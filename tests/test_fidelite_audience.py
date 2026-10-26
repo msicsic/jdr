@@ -141,9 +141,10 @@ class FideliteAudienceTests(unittest.TestCase):
         # Un verdict hors périmètre ne dispense jamais d'une opération manquante.
         m = presentes(antichambre_du_banc(), "aubin")
         saisie = '« Je te paie trois pièces pour une planche. »'
-        faux = parole(saisie, ("ressource", "faim", "", ""), personnage="aubin")
+        faux = parole(saisie, ("propos", "", "", ""), personnage="aubin")
+        faux["proposition"]["operations_demandees"]["proposition"] = True
         correction = parole(saisie, personnage="aubin")
-        # La revue reconnaît l'achat ; une déclaration seule ne le confirmerait pas.
+        # L'omission déclarée doit être examinée avant toute parole sans achat.
         r, sortie, appels = jouer(m, saisie, [faux, correction], [],
             revues=[revue("adresse", "proposition"), revue("validation_moteur"), revue("adresse")])
         self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)

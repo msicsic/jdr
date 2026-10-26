@@ -460,7 +460,7 @@ class MJ:
 
     def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision,
                                  operations_demandees=None, declaration_connue=True,
-                                 operations_declarees=None):
+                                 operations_declarees=None, operations_a_examiner=None):
         """Couverture locale, puis revue du sens seulement au-delà des mots exacts sans effet."""
         from .couverture_action import sens_parole, verifier_operations
         from .paroles import mots_dits, operations_contenu, forme_rapportee
@@ -479,13 +479,25 @@ class MJ:
             # La déclaration contrôle sa propre proposition, sans devenir une
             # obligation pour la suivante. Seule la revue confirme le sens.
             verifier_operations(plan, (operations_demandees or set()) | declarees)
+            a_examiner = operations_a_examiner if operations_a_examiner is not None else set()
+            a_examiner.update(declarees)
             mots = mots_dits(analyser_parole(monde, intention), intention)
-            if (not operations_demandees and not declarees
+            if (not operations_demandees and not a_examiner and not declarees
                     and not operations_contenu(complements["contenu"])
                     and (mots or not forme_rapportee(intention))
                     and rapport["replique_joueur"].strip() == (mots or intention).strip()):
                 return
-            self._auditer_action(intention, plan, revision, monde, operations_demandees)
+            try:
+                self._auditer_action(intention, plan, revision, monde, operations_demandees)
+            except RapportIllisible:
+                # Une revue illisible ne tranche aucune hypothèse restante.
+                raise
+            except ErreurMonde:
+                # La revue lisible a confirmé les obligations ou écarté les types.
+                a_examiner.clear()
+                raise
+            else:
+                a_examiner.clear()
         except ErreurMonde as exc:
             raise ParoleNonConforme(str(exc), exc.attendu) from exc
 
@@ -821,6 +833,7 @@ class MJ:
         if reponse["mode"] == "parole_joueur":
             fidelite_refusee = False
             operations_demandees = set()
+            operations_a_examiner = set()
             for essai in range(3):
                 # Des mots imposés par le joueur (guillemets, deux-points, interpellation) sont dits
                 # tels quels, sans réécriture.
@@ -830,15 +843,21 @@ class MJ:
                                "_intention": intention[:600]}
                 try:
                     from .couverture_action import lire_operations
+                    from .paroles import operations_contenu
                     declaration_connue = not reponse.get("_parole_moteur")
                     operations_declarees = set()
                     if declaration_connue:
                         operations_declarees = lire_operations(complements.pop("operations_demandees", None))
+                    # Une omission déclarée doit être examinée même si la
+                    # préparation échoue. Un type présent refusé ne l'impose pas.
+                    operations_a_examiner.update(
+                        operations_declarees - operations_contenu(complements["contenu"]))
                     # Une préparation refusée ne confirme aucune opération de
                     # cette interprétation ; les obligations reconnues restent.
                     travail, rapport = preparer_parole(monde, complements, revision)
                     self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
-                                                   operations_demandees, declaration_connue, operations_declarees)
+                                                   operations_demandees, declaration_connue, operations_declarees,
+                                                   operations_a_examiner)
                     break
                 except ParoleImpossible as exc:
                     # À qui parler, de quelle façon : c'est au joueur de préciser ou de s'approcher.
@@ -855,7 +874,8 @@ class MJ:
                             travail, rapport = preparer_parole(monde, complements, revision)
                             try:
                                 self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
-                                                               operations_demandees, False)
+                                                               operations_demandees, False,
+                                                               operations_a_examiner=operations_a_examiner)
                             except ParoleNonConforme:
                                 return {"mode": "dialogue", "texte": "Tu n'as encore rien dit : précise ce que tu veux "
                                         "demander ou faire savoir à ton interlocuteur.",

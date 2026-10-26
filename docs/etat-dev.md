@@ -9,22 +9,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   refusée, correction `qui` et secours bloqués sans revue. La déclaration contrôle
   sa propre proposition ; seuls les types reconnus par revue lisible obligent
   les corrections. Préparation refusée, omission locale et revue illisible ne
-  confirment plus les déclarations candidates. Aucun prompt ni scénario modifié.
-  **21 ciblés finaux verts**, rejeu des propositions historiques et autre script,
+  confirment plus les déclarations candidates. **Relecture de `e55e252`** :
+  régression d'abandon silencieux d'une omission reconnue ; `operations_a_examiner`
+  bloque désormais le raccourci aux mots exacts jusqu'à revue lisible, sans
+  imposer automatiquement le type. Revue illisible : attente conservée ; type
+  présent refusé par préparation : aucune attente (N9). Trois anciens tests
+  rétablis dans leur intention, achat déclaré/omis puis abandonné contrôlé.
+  Aucun prompt ni scénario modifié. **22 ciblés verts après relecture**,
+  cinq fichiers, 24,80 s, deux processus réduits ;
+  rejeu des propositions historiques et autre script,
   achat reconnu toujours exigé ; état et rendu contrôlés après recharge.
   Luna, une passe sur copies, trois scripts : **50 appels / 13 tours MJ**,
   aucun repli, incident technique ou défaut de recharge ; `soir-noir` **4,20**,
   `soir-voix` **4,00**, `noms-dialogue` **3,25 appels/tour**. Un refus d'omission
   corrigé ; aucun « Tu n'as encore rien dit ». Références `9a39738` relues sans
   rejeu (`soir-voix` absent du lot 141). Suite complète unique : **2 118 tests,
-  235 fichiers, 1 247,64 s**, deux échecs MiMo et une erreur d'attente obsolète
-  dans le test d'audience, adapté puis repris vert parmi les 21 ciblés.
+  235 fichiers, 1 247,64 s**, deux échecs MiMo et une erreur dans le test
+  d'audience, dont la première adaptation masquait la régression ci-dessus.
   Les deux échecs MiMo historiques `6 != 5` reproduits sur l'archive intacte
-  de la base (13 tests, 11,39 s). Aucun défaut nouveau restant observé,
-  aucune seconde suite complète ; commit non signé et branche poussée.
+  de la base (13 tests, 11,39 s). Aucune seconde suite complète ni nouvelle
+  passe Luna après relecture ; commit non signé et branche poussée.
   Deux calculs réduits au plus, Luna une exécution ; aucune clé Git de signature.
   Reconnaissance du sens encore sémantique ; raccourci aux mots exacts conservé
-  sans obligation confirmée, aucune garantie d'exhaustivité du typage libre.
+  sans obligation confirmée ni analyse en attente ; pas de garantie d'exhaustivité
+  du typage libre.
   [Rapport du lot 142](taches/rapport-codex-142-correction-parole.md) ;
   bruts `artifacts/correction-142/`.
 

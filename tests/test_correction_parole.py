@@ -54,7 +54,20 @@ class CorrectionParoleTests(unittest.TestCase):
         saisie = 'Aubin, bonsoir'
         faux = parole('Bonsoir', ('qui', '', '', ''), personnage='aubin')
         bon = parole(saisie, personnage='aubin')
-        self.verifier_parole(m, saisie, faux, bon, revues=[{}, {}])
+        appels = self.verifier_parole(m, saisie, faux, bon, revues=[{}, {}, {'conforme': True, 'motif': ''}])
+        self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 3)
+
+    def test_omission_candidate_ecartee_par_revue_sur_mots_exacts(self):
+        for script, saisie in [('noms-dialogue', 'Aubin, bonsoir'),
+                               ('echanges', 'Vous me voyez ?')]:
+            with self.subTest(script=script):
+                m = banc(script)
+                cible = prevue(m, saisie)['personnage']
+                faux = parole(saisie, personnage=cible)
+                faux['proposition']['operations_demandees']['proposition'] = True
+                bon = parole(saisie, personnage=cible)
+                appels = self.verifier_parole(m, saisie, faux, bon)
+                self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 1)
 
     def test_achat_reconnu_reste_exige_apres_correction_et_secours(self):
         m = banc('noms-dialogue')
