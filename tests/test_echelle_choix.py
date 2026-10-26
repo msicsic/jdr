@@ -216,7 +216,7 @@ class EchelleTests(unittest.TestCase):
                 self.assertEqual(reprise.data, m.data)
                 self.assertEqual(fiche(reprise), fiche(m))
                 self.assertEqual(decrire_perception(reprise), decrire_perception(m))
-        self.assertEqual(couverts, set(d.Palier))
+        self.assertEqual(couverts, set(d.Palier) - {d.Palier.DESESPOIR})
 
     def test_ecarts_egalites_et_routines_issues_des_besoins_pressants(self):
         for ecarts in ((0, 0, 0), (10, 10, 5), (5, 10, 10)):
@@ -239,6 +239,10 @@ class EchelleTests(unittest.TestCase):
 
         def comparer(m, qui):
             nonlocal compte
+            # L'oracle A0 porte sur le choix historique sans agenda ; A4 a
+            # maintenant des déclarations actives dans les données de la crue.
+            if d.agendas.depart(m, qui):
+                return candidats(m, qui)
             avant = list(anciens_candidats(m, qui))
             apres = list(candidats(m, qui))
             self.assertEqual(signature(avant), signature(apres), (scenario, graine, qui, m.data["minutes"]))

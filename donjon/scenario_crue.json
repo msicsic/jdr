@@ -674,6 +674,16 @@
           "CHA": 9
         },
         "traits": "Bourru, honnête, protecteur des évacués, méfiant envers qui l'a trompé ; lent à faire confiance, lent à la retirer. Il entretient le feu de l'échoppe pour les évacués trempés, avec le bois qu'il a mis de côté. Il ne quitte pas le relais tant que des évacués y sont attendus.",
+        "agendas": [
+          {
+            "id": "prevenir_crue",
+            "sorte": "informer",
+            "parametres": {
+              "qui": ["ilse", "brune"],
+              "avis": {"type": "avis", "objet": "antichambre", "attribut": "menace", "valeur": true}
+            }
+          }
+        ],
         "limites": [
           "ne_vole_pas",
           "ne_blesse_pas",

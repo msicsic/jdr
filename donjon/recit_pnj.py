@@ -49,6 +49,8 @@ def but_en_mots(monde, but):
 
 def _but(monde, but):
     t, o = but.get("type"), but.get("objet")
+    if t == "agenda":
+        return "informer " + court(monde, but["qui"])
     if t in ("fuir", "riposter", "proteger", "reddition"):
         return {"fuir": "fuir ", "riposter": "riposter contre ", "proteger": "protéger ",
                 "reddition": "se rendre à "}[t] + court(monde, but["qui"])

@@ -105,7 +105,7 @@ def part_pour(monde, id, objet, besoin, connus=None):
 def verifier_profil(monde, id, p):
     assert (isinstance(p, dict) and {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions"}
             <= set(p) <= {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions",
-                          "reserve", "securite", "protege", "situation", "alerte", "liens"}), "Profil de PNJ mal formé"
+                          "reserve", "securite", "protege", "situation", "alerte", "liens"} | agendas.champs_profil()), "Profil de PNJ mal formé"
     # Le seuil d'alerte, en crans de l'ouïe commune (``ouie.INTENSITES``) : un bruit inconnu qui lui
     # parvient à ce niveau l'envoie voir sans attendre (``alarme``).
     assert type(p.get("alerte", 0)) is int and -2 <= p.get("alerte", 0) <= 9, "Seuil d'alerte de PNJ invalide"
@@ -1491,16 +1491,17 @@ class Palier(IntEnum):
     PERIL_EAU = 0
     ALARME = 1
     RANIMER = 2
-    BESOIN_PRESSANT = 3
-    PAROLE_DUE = 4
-    PREVENIR = 5
-    REJOINDRE = 6
-    ATTENDRE_APPELANT = 7
-    BRUIT_A_VOIR = 8
-    PULSION_ROMPUE = 9
-    PROGRES_EN_COURS = 10
-    ROUTINE = 11
-    ARGENT = 12
+    DESESPOIR = 3
+    BESOIN_PRESSANT = 4
+    PAROLE_DUE = 5
+    PREVENIR = 6
+    REJOINDRE = 7
+    ATTENDRE_APPELANT = 8
+    BRUIT_A_VOIR = 9
+    PULSION_ROMPUE = 10
+    PROGRES_EN_COURS = 11
+    ROUTINE = 12
+    ARGENT = 13
 
 
 class Urgence(NamedTuple):
@@ -1533,6 +1534,10 @@ def _candidats(monde, id):
     buts = []
 
     def ajouter(besoin, methode, palier, departage=(), valeur=0, routine=False, recours=False):
+        if agendas.depart(monde, id) and palier == Palier.BESOIN_PRESSANT:
+            courant = e["intention"]
+            if courant and courant["motif"] == besoin and besoin != "agenda":
+                valeur += INERTIE
         buts.append(Candidat(besoin, methode, routine, recours, Urgence(palier, valeur, departage)))
 
     # Ceux qui laissent finir le plan en cours n'y ajoutent rien, mais restent pressants : ni
@@ -1545,11 +1550,13 @@ def _candidats(monde, id):
 
         def ajouter_recours(methode, routine=False):
             nonlocal rang_recours
+            desespere = bool(agendas.depart(monde, id)) and e["besoins"][besoin] >= DESESPOIR
             # Les routines d'un besoin pressant précèdent les autres routines, même à écart nul.
-            departage = ((0, -ecart, rang_besoin, rang_recours) if routine
+            departage = ((0, -ecart, rang_besoin, rang_recours) if routine and not desespere
                          else (rang_besoin, rang_recours))
-            ajouter(besoin, methode, Palier.ROUTINE if routine else Palier.BESOIN_PRESSANT,
-                    departage, 0 if routine else ecart, routine, True)
+            ajouter(besoin, methode, Palier.DESESPOIR if desespere else (
+                    Palier.ROUTINE if routine else Palier.BESOIN_PRESSANT),
+                    departage, 0 if routine and not desespere else ecart, routine, True)
             rang_recours += 1
 
         if besoin == "faim":
@@ -1581,6 +1588,15 @@ def _candidats(monde, id):
                 ajouter_recours(lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True)
     # Toute parole de service suit le devis qui l'a fait accepter, jusqu'à son abandon annoncé.
     from .planification import planifier_engagement
+    agendas.actualiser(monde, id)
+    for rang, agenda in enumerate(agendas.essayables(monde, id)):
+        if agenda["etat"] in ("actif", "sommeil"):
+            from .caractere import caracteristique
+            courant = e["intention"]
+            stabilite = (INERTIE + max(0, caracteristique(monde, id, "VOL")) / 4
+                         if courant and courant["but"].get("agenda") == agenda["id"] else 0)
+            ajouter("agenda", lambda m, i, a=agenda["id"]: agendas.planifier(m, i, a),
+                    Palier.BESOIN_PRESSANT, (len(BESOINS), rang), agendas.poids(monde, id, agenda) + stabilite)
     for rang, x in enumerate(agendas.en_cours(monde, id)):
         ajouter("engagement", lambda m, i, x=x: planifier_engagement(m, i, x), Palier.PAROLE_DUE, (rang,))
     # Un corps à terre connu : recours au même graphe de gestes, sans accès à ses PV ni son réveil.
