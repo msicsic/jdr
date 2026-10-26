@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification d'intégration 590653e**, lot **114**, branche
+  `codex-verif-integ-590653e` : aucun code du jeu changé, sans Luna.
+  **32 nuits de 12 h**, **huit rixes de 8 h**, puis **cinq nuits de 8 h
+  VERIFIER + spatial 0,2** : aucun plantage, violation, usurpation, coup ni
+  décès ; aucun écart de contrôle. Seule borne historique inchangée :
+  auberge 42, Lucien à 314, résultat retenu égal à l'optimum **73,4743**.
+  Mathe mine 3 : **3/3/3/3** gestes au lieu de **328/291/291/328** ;
+  offres identiques à moins d'une heure **13 → 0** contre `47d4d25`.
+  Contrepartie mine 1985 à 253 et accords corrigés sur les cas réels ;
+  appels d'Odile auberge 7 à 641–644 non observés, parcours changé.
+  Six avertissements textuellement redits en crue 2024 conservés ;
+  aucune nouvelle anomalie établie par les seules chroniques, alertes et
+  limites détaillées dans le rapport.
+  **Seuil CPU ×1,5 toujours manqué**, auberge 1985 12 h, versions appariées
+  lancées ensemble : fixe **118,50 → 195,08 s (×1,65)**, tiré
+  **93,31 → 246,73 s (×2,64)**. Une mesure par paire sur poste partagé.
+  Suite complète unique : **2 020 tests, 16 ignorés, aucun échec ni erreur**,
+  217 fichiers, deux processus réduits, **1 738,20 s**. Audits historiques
+  relus sans rejeu, **127 fichiers inchangés** ; CPU ancien sur archive isolée.
+  Bruts `artifacts/verif-integ-590653e/`.
+  [Rapport du lot 114](taches/rapport-codex-114-verif-integ.md).
+
 - Branche `codex-propositions-redites`, fusionnée, lot **110**, base
   `61a4406` : le refus d'un marché se lève seulement pour un moyen pertinent
   à sa cause ; une ouverture incidente ne change pas une garde, une nécessité
