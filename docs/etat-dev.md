@@ -156,9 +156,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Aucune clé de signature Git configurée : commit non signé, branche poussée, sans fusion.
   4d terminé ; 4e et 4f restent à faire.
   [Rapport 140](taches/rapport-codex-140-captivite.md).
-
-- Branche `codex-enfermer`, **non fusionnée**, lot **136**, base `bce47d8`
-  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Base voulue : la branche du lot 136.
+  Fusionné sur l'intégration (base voulue : la branche du lot 136, fusionnée juste avant) : seul conflit de documentation ; aucun fichier de code commun depuis la base.
 
 - **Vérification Luna 9a39738**, lot **141**, branche `codex-verif-luna-9a39738` :
   aucun code du jeu changé ; deux passes, vingt scripts historiques + avis,
