@@ -96,6 +96,58 @@ class PerceptionGesteTests(unittest.TestCase):
 
 
 class VueCouranteTests(unittest.TestCase):
+    def test_absence_dans_le_noir_personnes_et_objet_apres_recharge(self):
+        from pathlib import Path
+        from donjon.monde import Monde
+        reel = Monde.charger(Path("tests/data/scenes/signes_ecart_relais_noir.json"))
+        autre = nouveau_monde()
+        installer(autre)
+        for o in autre.objets.values():
+            if "allume" in o:
+                o["allume"] = False
+        for m, faux, corrige in (
+                (reel, "Tu ne sais pas si Ilse a peur de Brune : tu n’as aucun indice sur ses sentiments, et aucune des deux n’est ici pour que tu puisses le vérifier.",
+                 "Tu ne les vois pas dans l’obscurité."),
+                (autre, "Il n'y a aucun objet dans cette pièce.",
+                 "Tu ne vois pas les objets dans l’obscurité.")):
+            with self.subTest(faux=faux):
+                m = recharger(m)
+                avant = copy.deepcopy(m.data)
+                # Le fournisseur simulé exerce la portée indépendamment du verdict,
+                # y compris le classement neutre du constat réel. Le jugement de sens
+                # reste celui de l'auditeur ; ce test ne simule pas sa compréhension.
+                refus = {**ligne("neutre", motif="Absence au-delà de la vue couverte."),
+                         "portee_mecanique": "sans_fondement"}
+                r, texte, appels = jouer(m, "mj qui est ici ?", [dialogue(faux), dialogue(corrige)],
+                    [rapport(refus), rapport(ligne("mecanique", ["perception"]))])
+                faits = self.assertVueFournie(m, appels)
+                self.assertEqual(faits["perception"]["couverture_vue"]["portee"], "aucune")
+                self.assertSansGeste(avant, r)
+                self.assertNotIn(faux, texte)
+                self.assertNotIn(faux, str(r.data["conversation"]))
+                self.assertNotIn(faux, str(r.data["narrations_mj"]))
+                self.assertIn(corrige, texte)
+                self.assertEqual(r.data["conversation"][-1]["reponse"], corrige)
+                revision = [e for f, e in appels if f == "repondre_au_joueur"][1]
+                self.assertIn("couverture_vue", str(revision["controle_narratif"]))
+                self.assertIn("objets_visibles", str(revision["controle_narratif"]))
+                if "ilse" in m.objets:
+                    self.assertEqual(r.objets["ilse"]["lieu"], r.joueur["salle"])
+                    self.assertEqual(r.objets["brune"]["lieu"], r.joueur["salle"])
+
+    def test_couverture_visuelle_ne_depend_pas_de_la_liste_des_entites(self):
+        from donjon.perception import couverture_vue
+        m = nouveau_monde()
+        for o in m.objets.values():
+            if "allume" in o:
+                o["allume"] = False
+        self.assertEqual(couverture_vue(m)["portee"], "aucune")
+        m.data["salles"][m.joueur["salle"]]["lumiere_naturelle"] = 2
+        self.assertEqual(couverture_vue(m)["portee"], "salle")
+        installer(m)
+        # La vue orientée ne couvre pas automatiquement la pièce éclairée.
+        self.assertEqual(couverture_vue(m)["portee"], "partielle")
+
     def assertVueFournie(self, monde, appels):
         faits = next(e["faits"] for f, e in appels if f == "auditer_narration")
         attendus = {o["id"] for o in monde.contexte()["objets_perceptibles"] if o["visible"]}
@@ -103,6 +155,24 @@ class VueCouranteTests(unittest.TestCase):
         self.assertEqual(attendus, {v["id"] for k, v in faits.items()
                                     if k.startswith("objet:") and v["visible"]})
         return faits
+
+    def test_absence_etablie_par_fouille_reste_admise_apres_recharge(self):
+        m = relais()
+        from donjon.defi import BEFFROI
+        m.joueur.update(salle=BEFFROI, position=[4, 3])
+        m = recharger(m)
+        r, texte, _ = jouer(m, "mj je fouille le coffre", [action(proposition("toucher", "coffre"))], [])
+        self.assertIn("est vide : tes mains n'y trouvent rien", texte)
+        self.assertEqual(r.data["journal"][-1]["action"]["action"], "toucher")
+        self.assertEqual(r.objets["coffre"]["lieu"], m.objets["coffre"]["lieu"])
+        phrase = "Le coffre est vide."
+        suite, visible, appels = jouer(r, "mj qu'y avait-il dans le coffre ?", [dialogue(phrase)],
+                                     [rapport(ligne("mecanique", ["objet:coffre"]))])
+        faits = self.assertVueFournie(r, appels)
+        self.assertTrue(faits["objet:coffre"]["contenu_vide"])
+        self.assertIn(phrase, visible)
+        self.assertEqual(suite.data["conversation"][-1]["reponse"], phrase)
+        self.assertEqual(suite.data["journal"], r.data["journal"])
 
     def assertSansGeste(self, avant, reprise):
         for champ in ("minutes", "journal", "objets", "joueur", "jets"):

@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-absence-noir`, non fusionnée, lot **102**, base `e218907` :
+  le dossier d'audit porte la couverture réelle de la vue (`aucune`, `partielle`,
+  `salle`), calculée sans les entités cachées. Une absence est mécanique,
+  distincte d'une non-perception ; les refus de portée restituent la perception
+  courante dans leur `attendu`. Cas réel reproduit : Ilse et Brune présentes
+  dans l'antichambre noire, fausse absence affichée et sauvegardée. Neuf tests
+  ciblés verts : deux personnes, objet, vue éclairée et fouille exécutée,
+  état et rendu après recharge. Passe Luna unique : trois scripts, **17 tours MJ,
+  58 appels, 10,6 s/tour**, fausse absence non reproduite, aucun défaut de recharge.
+  `soir-noir` conserve un abandon de parole avec « Reformule-la » et une réplique
+  incohérente avec les paroles précédentes, hors de l'invariant de ce lot.
+  Suite complète unique : **1 982 tests, 16 ignorés, 208 fichiers, 1 907,24 s**,
+  deux processus réduits ; une erreur Windows TUI de remplacement temporaire
+  avant action (`WinError 5`), **rejeu du seul test vert en 3,05 s**, sans
+  changement de code ni seconde suite complète. La couverture est déterministe ; la reconnaissance
+  d'une absence dans une phrase reste sémantique. Le verdict historique erroné
+  rejoué tel quel passe encore : aucune garantie générale sur les paraphrases.
+  [Rapport du lot 102](taches/rapport-codex-102-absence-noir.md).
+
 - Branche `codex-sans-message-technique`, fusionnée, lot **100**, base
   `a86fdd7` : enveloppe des réponses contrôlée avant les audits, correction
   `RefusDeForme` distincte, puis repli de perception si la forme reste invalide.

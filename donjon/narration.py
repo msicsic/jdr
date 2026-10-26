@@ -244,7 +244,17 @@ attaches, possession, ressources (or, PV, combustible), lumière, présence des 
 récompenses, résultats d'action, indices et solutions. Elles doivent découler des faits fournis.
 La vue courante est déjà fournie par l'état : perception.objets_visibles énumère exactement
 les objets vus maintenant (les objet:<id> dont visible=true). Ce que Corvus voit ou ne voit
-pas dans cette portée est mecanique, source perception, y compris l'absence d'un objet visible.
+pas dans cette portée est mecanique, source perception, y compris une non-perception visuelle.
+perception.couverture_vue borne cette preuve : portee aucune, partielle ou salle désigne
+la surface réellement vue maintenant, jamais l'exploration mémorisée. Même une lumière
+perçue ici ne garantit pas que toute la salle soit visible (orientation, murs, ombres).
+Une absence de personne ou d'objet est une affirmation mécanique, jamais neutre : distingue
+ne pas percevoir et ne pas être là. Une liste objets_visibles vide ne prouve aucune absence
+hors de la surface couverte. Une absence dans toute la salle fondée sur la seule vue exige couverture_vue.portee=salle
+et une cible décelable à ce niveau de visibilité ; les contenus cachés restent exclus.
+Sans perception qui l'établit, classe sa portee_mecanique sans_fondement, même dans un segment
+mixte avec une limite de vue vraie, même si le verdict proposé serait neutre. Une parole
+de PNJ établit seulement qu'il l'a dite, pas la vérité de l'absence qu'il affirme.
 Dire « tu ne vois pas de… ici » ne prétend ni avoir fouillé ni prouver que toute la salle
 est vide. Juge ce que la réponse affirme, indépendamment d'une demande de chercher : elle
 peut répondre sur la seule vue actuelle sans prétendre avoir exécuté cette recherche.
@@ -1118,7 +1128,9 @@ def controler(texte, rapport, faits, partie="texte"):
         if ligne["portee_mecanique"] in ("sans_fondement", "contradictoire"):
             refuser(ligne["motif"] or "La portée mécanique de cette réponse n'est pas établie.",
                     "une réponse dont les effets et conditions mécaniques découlent des sources fournies ; "
-                    "sinon ne les affirme pas, même dans une citation")
+                    "sinon ne les affirme pas, même dans une citation ; "
+                    f"perception actuelle : {faits.get('perception', {})} ; "
+                    "une non-perception ne prouve pas une absence hors de la portée couverte")
         elif (verdict == "mecanique" or ligne["portee_mecanique"] == "etablie") and not ligne["sources"]:
             visees = _cles_visees(faits, passage)
             refuser("Cette affirmation mécanique ne cite aucun fait du moteur.",

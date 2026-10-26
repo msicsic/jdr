@@ -59,6 +59,25 @@ def _resultat(contributions):
             "contributions": contributions}
 
 
+def couverture_vue(monde):
+    """Étendue réellement vue, sans consulter les entités cachées.
+
+    L'exploration mémorisée ne prouve rien sur une absence actuelle. Même une
+    salle couverte ne révèle pas les contenus opaques.
+    """
+    salle = monde.joueur["salle"]
+    if _par_case(monde, salle):
+        from .geometrie import cases
+        from .spatial import champ_visible
+        positions = set(cases(monde.data["salles"][salle]))
+        vues = {(x, y) for lieu, x, y in champ_visible(monde) if lieu == salle} & positions
+        portee = "salle" if positions and vues == positions else "partielle" if vues else "aucune"
+    else:
+        portee = "salle" if eclairage(monde)["niveau"] > 0 else "aucune"
+    return {"salle": salle, "portee": portee, "contenus_caches": False,
+            "absence_hors_vue_etablie": False}
+
+
 def _sources(monde):
     sources = []
     for o in monde.objets.values():
