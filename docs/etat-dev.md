@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-accords`, fusionnée, lot **106**, base `dcd7b31` :
+  nombre déclaré prioritaire, sinon tête du nom, commun aux désignations,
+  accords sociaux et quantités ; pièces des échanges, missions, fiches, TUI
+  et compteur web centralisées dans `francais`. Aucun Luna ni changement de
+  scénario, planification ou délibération. Odon mine 7 reproduit ; échange
+  Lucien–Anselme reconstitué ; état, chronique, récit et vue après recharge.
+  Empreintes 2 h Relais/mine × quatre graines : **mesures et empreintes de jeu
+  identiques**. État final : seulement **28 chaînes accordées**, 19 désignations
+  d'outils et neuf contre-offres à une pièce ; huit SHA-256 complets identiques
+  après restauration de ces seules chaînes, huit recharges et rendus verts.
+  Suite complète unique : **1 995 tests, 16 ignorés, 1 822,58 s**, 212 fichiers,
+  deux processus réduits ; cinq échecs/deux erreurs corrigés, reprises finales
+  **158 tests, un ignoré, aucun défaut restant**, onze fichiers ; aucune seconde
+  suite. Les noms invariants ambigus demandent toujours `pluriel` explicite ;
+  les anciennes phrases sauvées restent historiques. Bruts `artifacts/accords-106/`.
+  [Rapport et limites](taches/rapport-codex-106-accords.md).
+
 - Branche `codex-profil-compare`, fusionnée, lot **98 b**, base **677f4c1** :
   `_moyenne` relève les obstacles une fois par calcul, sans cache supplémentaire,
   au lieu de rescanner tous les objets par case. Même sol, même projection crue ;

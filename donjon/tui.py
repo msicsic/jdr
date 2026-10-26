@@ -1,4 +1,5 @@
 """Interface Textual ; un seul thread possède la boucle de jeu et l'état mutable."""
+from .francais import quantite
 from queue import Queue
 
 import pyperclip
@@ -291,7 +292,7 @@ class SeuilApp(App[int]):
         scene = "\n\n".join(" ".join(p.splitlines()) for p in scene.split("\n\n"))
         self.query_one("#scene", Static).update(scene)
         self.query_one("#scene-cadre").border_title = vue["salle"]
-        self.sub_title = f'PV {vue["pv"]} · {vue["or"]} pièces · {vue["minutes"]} min'
+        self.sub_title = f'PV {vue["pv"]} · {quantite(vue["or"], 'pièce')} · {vue["minutes"]} min'
         self.query_one("#proposition", Static).update(vue["proposition"])
         self.query_one("#proposition-cadre").display = bool(vue["proposition"])
         self.occupe = False

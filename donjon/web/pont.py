@@ -70,13 +70,14 @@ class PontWeb:
     def rafraichir(self, monde, pending, mj):
         from ..carte import carte
         from ..rendu import fiche, regarder
+        from ..francais import quantite
         self.termine = bool(monde.data.get("fin"))
         cases = bool(monde.data.get("mode_cases"))
         etat = {"type": "etat", "fin": monde.data.get("fin"),
                 "scene": None, "carte_texte": "" if cases else carte(monde),
                 "fiche": fiche(monde), "regard": regarder(monde),
                 "salle": monde.data["salles"][monde.joueur["salle"]]["nom"],
-                "pv": f'{monde.joueur["pv"]}/{monde.joueur["pv_max"]}', "or": monde.joueur["or"],
+                "pv": f'{monde.joueur["pv"]}/{monde.joueur["pv_max"]}', "or": monde.joueur["or"], "or_texte": quantite(monde.joueur["or"], "pièce"),
                 "minutes": monde.data["minutes"],
                 "proposition": pending.resume(monde) if pending else "",
                 "connexion": "hors ligne" if mj is None else "déconnecté" if mj.erreur_auth else mj.connexion}

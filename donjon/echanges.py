@@ -18,6 +18,8 @@ que le planificateur du moteur exécute quand rien de plus urgent ne presse ; su
 qui la confie, elle en confie la garde (``biens.gardes``). Tout est déterministe hors des jets du
 moteur.
 """
+from .francais import pluriel as nombre_pluriel
+from .francais import quantite
 from . import agendas
 from .caractere import penchant
 from .esprits import RECENT, constater, croire, croyance, esprit, lire, memoriser, percevoir
@@ -1051,21 +1053,20 @@ def _avec_joueur(monde, id, etape, lignes):
 
 
 def phrase_condition(monde, condition):
-    from .francais import designer, lieu
-    o = designer(monde.objets[condition["objet"]])
+    from .francais import accorder, designer, lieu
+    x = monde.objets[condition["objet"]]
+    o = designer(x)
+    verbe = "soient" if nombre_pluriel(x) else "soit"
     if "servir" in condition:
         from .social import _qui
         from .francais import complement_de
-        return f"une part {complement_de(monde.objets[condition['objet']])} soit servie à {_qui(monde, condition['servir'])}"
+        return f"une part {complement_de(x)} soit servie à {_qui(monde, condition['servir'])}"
     if "remettre" in condition:
         from .social import _qui
-        return f"{o} soit remis à {_qui(monde, condition['remettre'])}"
+        return f"{o} {verbe} {accorder(x, 'remis')} à {_qui(monde, condition['remettre'])}"
     if "lieu" in condition:
-        return f"{o} soit dans {lieu(monde.data['salles'][condition['lieu']])}"
-    x = monde.objets[condition["objet"]]
-    pluriel = x.get("pluriel")
-    return (f"{o} {'soient' if pluriel else 'soit'} {'allumé' if 'allume' in condition else 'verrouillé'}"
-            + ("e" if x.get("genre") == "f" else "") + ("s" if pluriel else ""))
+        return f"{o} {verbe} dans {lieu(monde.data['salles'][condition['lieu']])}"
+    return f"{o} {verbe} {accorder(x, 'allumé' if 'allume' in condition else 'verrouillé')}"
 
 
 def phrase_affirmee(monde, sujet, attribut, valeur, pour_joueur):
@@ -1202,7 +1203,7 @@ def executer(monde, id, etape, lignes):
     elif op == "engager":
         condition, prix = contenu["condition"], contenu["prix"]
         issue = engager(monde, id, autre, condition, prix)
-        recit = (f"{a} offre {prix} pièce{'s' if prix > 1 else ''} à {b} pour qu'{_il(o)} fasse en sorte que "
+        recit = (f"{a} offre {quantite(prix, 'pièce')} à {b} pour qu'{_il(o)} fasse en sorte que "
                  f"{phrase_condition(monde, condition)}")
         clair = recit + "."
         reponse = f"{b} accepte et prend l'argent." if issue == "accepte" else f"{b} refuse."
@@ -1216,7 +1217,7 @@ def executer(monde, id, etape, lignes):
         prix = contenu.get("prix", 0) if op == "acheter" else 0
         issue = demander(monde, id, autre, objet["id"], contenu.get("foyer"), prix, contenu.get("remettre_part", False))
         quoi = "une part " + complement_de(objet) if part else designer(objet)
-        recit = (f"{a} achète {quoi} à {b} pour {prix} pièce{'s' if prix > 1 else ''}" if op == "acheter"
+        recit = (f"{a} achète {quoi} à {b} pour {quantite(prix, 'pièce')}" if op == "acheter"
                  else f"{a} demande {quoi} à {b}")
         clair = recit + "."
         reponse = {"remis": f"{b} lui remet {quoi}.", "rendu": f"{b} lui rend {designer(objet)}.",

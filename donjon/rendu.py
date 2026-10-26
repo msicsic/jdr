@@ -1,4 +1,5 @@
 """Rendu local déterministe ; les conversations libres sont gérées séparément."""
+from .francais import quantite
 from textwrap import fill
 from .monde import ErreurMonde
 from .perception import eclairage
@@ -59,7 +60,7 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
     if o.get("bloquee"):
         morceaux.append(accorder(o, "bloqué"))
     if o.get("en_vente"):
-        morceaux.append(f'en vente : {prix(monde, o)} pièces')
+        morceaux.append(f'en vente : {quantite(prix(monde, o), 'pièce')}')
     if o["type"] == "personnage":
         from .corps import blessure, conscient
         if not conscient(monde, o["id"]):
@@ -81,7 +82,7 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
     if o.get("charges") == 0:
         complements.append("Il n'en reste plus")
     elif "charges" in o and technique:
-        complements.append(f'Il reste {o["charges"]} utilisation' + ("s" if o["charges"] > 1 else ""))
+        complements.append(f'Il reste {quantite(o["charges"], "utilisation")}')
     if "allume" in o:
         morceaux.append(accorder(o, "allumé" if o["allume"] else "éteint"))
         if o.get("combustible") == 0:
@@ -290,7 +291,7 @@ def fiche(monde):
     stats = "  ".join(f"{k} {v} ({(v - 10) // 2:+d})" for k, v in j["stats"].items())
     sac = [decrire(monde, o["id"], article="indefini") if monde.visible(o["id"]) else designer(o, "indefini", debut=True) + " (sur toi, non visible)"
            for o in monde.objets.values() if o["lieu"] == "joueur"]
-    return (f'\nPERSONNAGE — {j["nom"]}\nPV {j["pv"]}/{j["pv_max"]} | {j["or"]} pièces | '
+    return (f'\nPERSONNAGE — {j["nom"]}\nPV {j["pv"]}/{j["pv_max"]} | {quantite(j["or"], 'pièce')} | '
             f'{monde.charge():.1f}/{j["capacite"]} kg | {monde.data["minutes"]} min\n'
             + stats + ("\n" + " | ".join(profil) if profil else "")
             + "\n" + " | ".join(f"{nom.capitalize()} : {niveau}" for nom, niveau in etat_corps(monde).items())
@@ -314,7 +315,7 @@ def decrire_accords(monde):
         return "Accords : aucune récompense proposée pour le moment."
     statuts = {"propose": "offre à accepter", "accepte": "accord accepté", "refuse": "offre refusée", "paye": "récompense payée"}
     return "Accords :\n" + "\n".join(
-        f"  {monde.data['missions'][id]['nom']} : {a['montant']} pièces, {statuts[a['statut']]}. {a['condition']}"
+        f"  {monde.data['missions'][id]['nom']} : {quantite(a['montant'], 'pièce')}, {statuts[a['statut']]}. {a['condition']}"
         for id, a in accords.items())
 
 

@@ -7,6 +7,7 @@ pas un calcul d'ingénierie.
 """
 import math
 
+from .francais import quantite
 from .monde import ErreurMonde
 
 # Densité en kg/m³ ; flexion et traction en kg de charge de jeu par cm² de section.
@@ -229,7 +230,7 @@ def decrire(o):
         taille = f"{cm(d['longueur_cm'])} de long, {cm(d['diametre_cm'])} de diamètre"
     else:
         taille = " × ".join(cm(d[k]) for k in ("longueur_cm", "largeur_cm", "epaisseur_cm", "hauteur_cm") if k in d)
-    return (f"{p['pieces']} pièces de {taille} chacune" if p["pieces"] > 1 else taille.capitalize())
+    return (f"{quantite(p['pieces'], 'pièce')} de {taille} chacune" if p["pieces"] > 1 else taille.capitalize())
 
 
 def verifier(m):

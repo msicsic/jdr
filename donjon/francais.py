@@ -60,15 +60,50 @@ def inserer_designation(texte, motif, nom):
 FEMININS = {"porte", "gravure", "serrure", "clé", "cle", "trousse", "lanterne", "torche", "empreinte",
             # Salles des scénarios, pour les parties sauvées avant qu'elles déclarent leur genre.
             "galerie", "salle", "conduite", "cuisine", "étable", "chambre", "réserve", "crypte", "echoppe",
-            "échoppe", "cour", "terrasse", "antichambre"}
+            "échoppe", "pièce", "part", "cour", "terrasse", "antichambre"}
 
 
 def feminin(objet):
     return objet.get("genre", "f" if objet["nom"].split()[0].lower() in FEMININS else "m") == "f"
 
 
-def pluriel(objet):
-    return objet.get("pluriel", objet["nom"].lower() == "murs")
+# Noms singuliers dont la finale ressemble à une marque du pluriel.
+SINGULIERS_INVARIABLES = frozenset("""accès amas bras bois corps cours dos fonds frais
+gaz grès héros jus laps lilas mois nez os pays poids pois prix puits repas
+repos secours sens souris tapis tas temps velours vis choix croix noix voix""".split())
+
+
+def quantite(nombre, nom, pluriel_nom=None, determinant=""):
+    """Quantité d'un nom singulier ; 0 et 1 restent singuliers en français.
+
+    Les formes irrégulières se déclarent par pluriel_nom, les finales s/x/z
+    sont invariantes. Le nom d'un objet pluriel passe plutôt par designer.
+    """
+    mots = nom.split(" ", 1)
+    tete = mots[0]
+    plur = pluriel_nom or (tete if tete.endswith(("s", "x", "z")) else tete + "s")
+    forme = nom if not pluriel({"nom": nom}, nombre) else plur + (" " + mots[1] if len(mots) > 1 and not pluriel_nom else "")
+    if determinant:
+        determinants = {"defini": ("la" if feminin({"nom": nom}) else "le", "les"),
+                        "possessif": ("ta" if feminin({"nom": nom}) else "ton", "tes")}
+        singulier, multiple = determinants[determinant]
+        forme = (multiple if pluriel({"nom": nom}, nombre) else singulier) + " " + f"{nombre} {forme}"
+        return forme
+    return f"{nombre} {forme}"
+
+
+def pluriel(objet, nombre=None):
+    """Nombre déclaré, sinon tête du nom ; une quantité désigne son propre nombre."""
+    if nombre is not None:
+        return abs(nombre) >= 2
+    if "pluriel" in objet:
+        return objet["pluriel"]
+    if objet.get("nom_propre", objet.get("type") == "personnage"):
+        return False
+    tete = re.split(r"[\s’'-]", objet.get("nom", "").lower())[0]
+    # Les finales s/x/z peuvent être singulières : le lexique grammatical
+    # couvre les formes invariantes ; une donnée explicite lève toute ambiguïté.
+    return tete.endswith(("s", "x")) and tete not in SINGULIERS_INVARIABLES
 
 
 def designer(objet, article="defini", debut=False):
@@ -118,7 +153,7 @@ def complement_de(objet):
 
 def accorder(objet, masculin, feminin_irregulier=None):
     mot = (feminin_irregulier or masculin + "e") if feminin(objet) else masculin
-    return mot + "s" if pluriel(objet) else mot
+    return mot + "s" if pluriel(objet) and not mot.endswith(("s", "x")) else mot
 
 
 def relation_physique(objet, support, relation):
