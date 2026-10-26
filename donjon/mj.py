@@ -969,8 +969,9 @@ class MJ:
         # cachés. Les affaires accessibles dans le noir ne sont pas nécessairement vues.
         faits["perception"] = {**faits["perception"],
                                "objets_visibles": [o["id"] for o in objets if o["visible"]]}
-        from .perception import couverture_vue
+        from .perception import couverture_vue, non_vus_connus
         faits["perception"]["couverture_vue"] = couverture_vue(monde)
+        faits["perception"]["non_vus_connus"] = non_vus_connus(monde)
         faits["perception"]["contributions"] = [
             {**c, "effet_percu": c["niveau"] > 0,
              "source_visible": c["source"] in faits["perception"]["objets_visibles"]}

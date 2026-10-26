@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-non-perception`, non fusionnée, lot **132** : dossier commun
+  `perception.non_vus_connus`, références et désignations déjà connues sans position
+  actuelle ; attestations exactes de non-perception prouvées par le mécanisme du
+  lot 95 et recalculées avant sauvegarde. La couverture borne les absences,
+  indépendamment de la non-perception visuelle. Aucun changement du garde de fuite.
+  Cas réel Gorm sous couverture partielle et objet connu ailleurs, console/rendu
+  rechargés ; fausses absences du lot 102 toujours refusées. **18 ciblés verts**,
+  puis **trois tests finaux verts**, dont attestation périmée refusée à la sauvegarde.
+  Luna sur copies, une passe, une exécution réduite : **27 appels / huit tours**,
+  signes-guet **4,50 → 2,00 appels/tour**, signes-noir **2,00 → 2,00**,
+  soir-noir **5,00 → 4,20** ; tour Gorm **6 / 4 → 2 appels**.
+  Aucun refus N6 ni fausse absence affichée, repli ou défaut de recharge.
+  Références `057766f` exclusivement relues ; identité finale soir-noir encore
+  incohérente, hors périmètre. Paraphrases et ignorance de position restent
+  sémantiques ; seule la preuve visuelle et sa reprise exacte sont déterministes.
+  Suite complète unique : **2 076 tests, deux échecs MiMo historiques `6 != 5`,
+  zéro erreur**, **1 110,50 s**, deux processus réduits ; pas de seconde suite.
+  Aucune clé Git de signature configurée, commit non signé, branche poussée. [Rapport du lot 132](taches/rapport-codex-132-non-perception.md).
+
+
 - Branche `codex-signes-critere`, fusionnée **sans son réglage**, lot **129**, base `56afc2e` :
   critère du 2026-10-26 (PSY basse ≤ 0,7, haute ≥ 0,8, méprises globales <20 %).
   Grille commune de **112 réglages**, corpus de 48 nuits de 4 h, aucun admissible ;
