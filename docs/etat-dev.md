@@ -1,8 +1,35 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-25.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-26.
 
 ## Où on en est
+
+- **Vérification d'intégration 47d4d25**, lot **94**, sans Luna ni changement de code.
+  Branche `codex-verif-integ-47d4d25`, base documentaire `a5cb018` ; références
+  `42bb9c0` et `5c2ce81` relues sans rejeu. Audit 12 h × quatre scénarios × huit graines,
+  rixe/rixe_douce 8 h × quatre graines : aucun plantage, violation, usurpation,
+  coup contre une personne ni décès. `VERIFIER` + spatial 0,2, 8 h, graine 42,
+  cinq scénarios : aucun écart ; une ancienne borne reconnue (auberge, Lucien 314,
+  lumière), résultat retenu égal au recalcul complet, 73,4743. Auberge contrôlée :
+  2 328 s contre 881 s auparavant, charges différentes, sans conclusion CPU.
+  Suite complète unique : **1 950 tests, 16 ignorés, aucun échec/erreur**, 203 fichiers,
+  deux processus à priorité réduite, **1 871,95 s** ; aucune seconde suite.
+  Contre `5c2ce81`, sans recours par nuit Relais/mine/auberge/crue :
+  **169/25/151/149 → 92/21/146/146** ; attente **271/1342/376/513 → 454/1361/490/546** ;
+  pire passages/PNJ/h **10/35/42/49 → 10/19/42/28**. Noir et eau ne baissent pas
+  généralement ; les moyennes ne garantissent pas l'absence de boucle.
+  **Nouveau petit lot : mine 3, Mathe dès 9–10 min**, protection sous clé contre
+  service de Lucien : **328 déverrouillages, 291 ouvertures et fermetures,
+  328 verrouillages**, sans telle rafale dans les références. Un acteur défait ses propres progrès,
+  ce que les bascules entre acteurs ne comptent pas ; cause précise à établir.
+  Persistent : offres identiques (mine 7, Josse 244), outil contre toute la paie
+  (mine 1985, Odon 253), avertissements textuels espacés (crue 2024), accords.
+  Anciens refus de marche sur l'eau et clôture unilatérale non observés ; appels
+  dans plusieurs lieux et nouveaux rendez-vous rapprochés restent possibles.
+  Ancienne tâche aussitôt abandonnée non exercée, offres refusées en crue 7.
+  Aucun correctif ni intervention sur `main`. Bruts et tableau des 96 nuits dans
+  `artifacts/verif-integ-47d4d25/` du dépôt principal ;
+  [rapport du lot 94](taches/rapport-codex-94-verif-integ.md).
 
 - Branche `codex-recours-prioritaire`, fusionnée, lot **90**, base
   `9810f4a` (lot 87 inclus), code signé SSH `e5c71f9`, `0144f92`, `8a6c1b6` :
