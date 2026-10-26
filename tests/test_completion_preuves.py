@@ -1,4 +1,5 @@
 """Une lacune de profondeur se complète, sans inventer une impossibilité."""
+import copy
 import gzip
 import hashlib
 import json
@@ -67,7 +68,13 @@ class CompletionTests(unittest.TestCase):
                 m.sauver(fichier)
                 recharge = Monde.charger(fichier)
                 self.assertEqual(m.data, recharge.data)
-                self.assertEqual(empreinte(recharge.data), attendu[nom]["monde"])
+                historique = copy.deepcopy(recharge.data)
+                for e in historique['esprits'].values():
+                    # L'oracle précède le service spontané. Seuls ses registres
+                    # vides peuvent être exclus, jamais une tentative réelle.
+                    self.assertEqual(e.pop('recours_services', []), [])
+                    self.assertIsNone(e.pop('service_en_cours', None))
+                self.assertEqual(empreinte(historique), attendu[nom]["monde"])
                 self.assertEqual(empreinte((regarder(recharge), scene_percue(recharge))), attendu[nom]["rendu"])
 
     def test_profondeur_minimale_et_permission_peuvent_reveler_un_but(self):

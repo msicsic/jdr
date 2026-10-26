@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-rendre-service`, non fusionnée**, lot **120**, base `0a53910`,
+  code signé SSH **`7ec9fbc`**, signature vérifiée : recours de service spontané
+  après méfiance ou rancune, hors de la recherche, après les moyens ordinaires
+  et avant une faute envers le même personnage. Devis autonome existant,
+  tentative sauvegardée par refus/besoin, aucun mandat ou droit inventé.
+  L'effet utile constaté avec son auteur identifié produit l'épreuve commune
+  `service_rendu` (confiance +20, affection +10, rancune −15, dette +20,
+  modulations et hystérésis conservées), dons et joueur compris ; prestations
+  convenues sans double crédit. Brune/Gorm et réserve commune d'auberge :
+  service, méfiance levée, redemande et journal rechargés, même laps découpé.
+  Suite complète unique : **2 048 tests, 16 ignorés, 221 fichiers, 1 860,72 s**,
+  deux processus réduits ; sept anciennes attentes/empreintes adaptées et
+  une erreur Windows TUI, reprises **28 + 1 tests verts**, bilan consolidé vert.
+  Oracles historiques conservés, seuls registres nouveaux vides exclus des
+  projections. Banc 4 h × quatre scénarios × quatre graines : **16/16 audits,
+  boucles et chroniques hors relations identiques**, aucun plantage/usurpation.
+  Trois repas spontanés constatés dans la mine, aucune demande accordée ensuite
+  ni réparation délibérée naturelle ; deux parcours ciblés positifs. CPU des
+  versions lancées ensemble, un processus réduit chacune, sans cache :
+  **213,250 → 213,688 s (+0,21 %)**, mesure ponctuelle sur poste partagé.
+  Bruts `artifacts/service-120/`, cache de base conservé.
+  Aucun Luna, scénario, `social.py`, `ouie.py` ou algorithme de recherche modifié.
+  [Rapport et limites du lot 120](taches/rapport-codex-120-rendre-service.md).
+
 - **Revue Argon du coût et lots 118–119, non fusionnés** (branches poussées `codex-reprises-exactes` `bb02f3a`,
   `codex-perception-exacte` `bd6d1eb`). Revue : `docs/taches/rapport-revue-argon-cout.md` (pistes A1 à A5 exactes, B1 à B3
   qui changent des décisions). Mesures (paires lancées ensemble, auberge 1985 12 h) : A3 tables partagées +2,6 %, A2 clé sans
