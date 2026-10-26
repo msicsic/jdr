@@ -126,6 +126,17 @@ Le texte accepté est affiché **tel que Luna l'a écrit**. Les ambiances du lie
 reviennent dans le contexte suivant (`ambiance_etablie`), ce qui permet à Luna de rester
 cohérente et à l'auditeur de refuser une ambiance qui les contredit.
 
+**Non-perception et absence** (`codex-non-perception`, lot 132). Le dossier
+`perception.non_vus_connus` fournit les références et désignations publiques des
+entités déjà connues que Corvus ne voit pas maintenant, sans position actuelle.
+Ce constat visuel est indépendant de `couverture_vue` ; il ne prouve ni absence,
+ni silence, ni activité. Une ancienne position mémorisée ne garantit pas la
+position actuelle. Les attestations du moteur donnent une phrase exacte de
+non-perception par entité ; leur reprise reçoit la preuve locale du lot 95,
+reconstruite avant sauvegarde. Une absence reste soumise à la couverture et aux
+conditions de détection. Les paraphrases et l'ignorance exprimée en prose libre
+restent jugées sémantiquement. Le contrôle déterministe des fuites est conservé.
+
 **Portée mécanique indépendante de la forme** (`codex-contenu-vide`, lot 59). Chaque segment
 du rapport d'audit porte aussi `portee_mecanique` : `aucune`, `etablie` (avec sources),
 `sans_fondement` ou `contradictoire` (avec sources). Le moteur vérifie ce champ quel que soit

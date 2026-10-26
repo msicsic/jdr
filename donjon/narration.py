@@ -66,6 +66,9 @@ def attestations(monde, contexte):
         if objet["visible"]:
             from .voix import reel
             textes.append(decrire(monde, reel(monde, objet["id"]), technique=False))
+    from .perception import non_vus_connus
+    textes.extend(f"Tu ne vois pas {entite['nom']} en ce moment."
+                  for entite in non_vus_connus(monde))
     return list(dict.fromkeys(p for texte in textes for p in segments(texte) if p))
 
 
@@ -269,8 +272,13 @@ attaches, possession, ressources (or, PV, combustible), lumière, présence des 
 récompenses, résultats d'action, indices et solutions. Elles doivent découler des faits fournis.
 La vue courante est déjà fournie par l'état : perception.objets_visibles énumère exactement
 les objets vus maintenant (les objet:<id> dont visible=true). Ce que Corvus voit ou ne voit
-pas dans cette portée est mecanique, source perception, y compris une non-perception visuelle.
-perception.couverture_vue borne cette preuve : portee aucune, partielle ou salle désigne
+pas maintenant est mecanique, source perception, y compris une non-perception visuelle.
+perception.non_vus_connus établit explicitement les entités déjà connues que Corvus ne voit
+pas maintenant, indépendamment de la surface couverte. Cela prouve leur non-perception
+visuelle, jamais leur absence ni leur position actuelle. Un souvenir de position ne prouve
+pas où l'entité se trouve maintenant : l'ignorance de sa position actuelle n'est pas une absence.
+Les attestations donnent aussi des formulations exactes du moteur, prouvées sans audit.
+perception.couverture_vue borne les conclusions d'absence : portee aucune, partielle ou salle désigne
 la surface réellement vue maintenant, jamais l'exploration mémorisée. Même une lumière
 perçue ici ne garantit pas que toute la salle soit visible (orientation, murs, ombres).
 Une absence de personne ou d'objet est une affirmation mécanique, jamais neutre : distingue

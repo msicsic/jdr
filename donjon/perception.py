@@ -78,6 +78,19 @@ def couverture_vue(monde):
             "absence_hors_vue_etablie": False}
 
 
+def non_vus_connus(monde):
+    """Preuve visuelle actuelle sur les seules entités déjà connues.
+
+    Ni position réelle, ni nouvelle identité : un souvenir ou un nom appris
+    autorise la référence, sans établir une présence ni une absence.
+    """
+    from .noms import public
+    connus = set().union(*(set(monde.data.get(champ, ())) for champ in (
+        "connus", "souvenirs_visuels", "personnages_vus", "noms_connus")))
+    return [public(monde, {"id": id, "nom": monde.objets[id]["nom"]})
+            for id in sorted(connus) if id in monde.objets and not monde.visible(id)]
+
+
 def _sources(monde):
     sources = []
     for o in monde.objets.values():
