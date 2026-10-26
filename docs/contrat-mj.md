@@ -944,6 +944,21 @@ sémantique de la prose reste probabiliste. Les tests couvrent la chaîne
 saisie → proposition → rejet ou persistance → affichage → rechargement, avec des réponses
 simulées qui contredisent volontairement l'état du monde.
 
+## Réplique directe du joueur (lot 138)
+
+`paroles.SENS_REPLIQUE` définit le même contrat pour le schéma d'interprétation,
+les règles de parole et la revue de fidélité : `replique` contient les mots
+prononcés au discours direct. Un cadre narratif introducteur de parole doit être
+transposé, avec ses personnes et son interrogation, sans modifier les opérations.
+La revue peut refuser cette confusion comme écart de sens. Les mots imposés
+(guillemets, deux-points, interpellation) restent exacts, même s'ils décrivent eux-mêmes
+une parole. Sans mots imposés, le raccourci de fidélité n'accepte pas la copie d'un
+cadre introducteur reconnu. Le secours local ne transpose pas : il demande des mots
+directs, sans enregistrer ni afficher une parole inventée. La reconnaissance locale
+partage les verbes introducteurs de l'analyse d'adresse ; elle ne constitue pas une
+analyse grammaticale exhaustive. Transposition et jugement de fidélité restent
+sémantiques ; l'invariant général n'est pas garanti pour toute formulation libre.
+
 ## Refus et échecs
 
 **Opérations de parole contestées** (lot 104). Une contre-revue qui refuse le

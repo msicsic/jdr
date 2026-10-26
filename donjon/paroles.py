@@ -62,12 +62,22 @@ SCHEMA_OPERATIONS = {"type": "object", "additionalProperties": False,
     "properties": {t: {"type": "boolean", "description": sens} for t, sens in OPERATIONS.items()},
     "required": list(OPERATIONS)}
 
+SENS_REPLIQUE = (
+    "La réplique est exclusivement ce que Corvus prononce au discours direct, dans sa bande "
+    "d'expression. Une saisie rapportée par un verbe introducteur de parole est transposée : "
+    "retirer le cadre narratif et adapter personnes grammaticales et interrogation, sans changer "
+    "le sens ni les opérations. Une description à la première ou deuxième personne de l'acte "
+    "de parler n'est pas la réplique. Les mots explicitement imposés (guillemets, deux-points, "
+    "interpellation) et les paroles déjà directes restent mot pour mot. La revue refuse comme "
+    "écart de sens une réplique qui raconte la parole au lieu de la prononcer."
+)
+
 SCHEMA_PAROLE = {
     "type": "object", "additionalProperties": False,
     "properties": {
         "personnage": {"type": "string",
                        "description": "parole_prevue.personnage : le destinataire fixé par le moteur, ou tous."},
-        "replique": {"type": "string", "description": "Ce que Corvus prononce, dans la bande d'expression."},
+        "replique": {"type": "string", "description": SENS_REPLIQUE},
         "contenu": {"type": "array", "maxItems": 3, "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
@@ -174,7 +184,7 @@ AISANCE = ((7, "très maladroite : hésitations, ton mal choisi, peut froisser")
            (15, "assurée : posée, persuasive"),
            (20, "brillante : charme, à-propos, art de convaincre"))
 
-REGLES = """
+REGLES = SENS_REPLIQUE + "\n" + """
 ## 7. Faire parler Corvus (parole_joueur)
 proposition = {operations_demandees, personnage, replique (ce que Corvus prononce), contenu}, texte vide.
 operations_demandees analyse la saisie seule selon les définitions communes du schéma, indépendamment du contenu proposé.
@@ -990,13 +1000,30 @@ def adresse_implicite(forme):
     return not any(forme[k] for k in ("nomme", "groupe", "inconnu")) and forme["maniere"] == "voix"
 
 
+def forme_rapportee(intention):
+    """Cadre introducteur de parole, hors mots explicitement cités.
+
+    Même lexique grammatical que l'adresse ; aucune transposition locale du sens.
+    """
+    mots = [normaliser(j.group()) for j in JETON.finditer(intention or "")]
+    i = 1 if mots[:1] in (["je"], ["tu"]) else 0
+    if i < len(mots) and mots[i] in PRONOMS:
+        i += 1
+    if i >= len(mots):
+        return False
+    verbe = mots[i]
+    if mots[:1] == ["tu"] and verbe.endswith("es"):
+        verbe = verbe[:-1]
+    return verbe in VERBES_PAROLE
+
+
 def mots_dits(forme, intention):
     """Une question directe, si le MJ en fait une parole, contient déjà ses mots.
     Une demande de la raconter (« je demande si… ») garde l'expression du personnage."""
     from .commandes import est_question
     if forme["mots"]:
         return forme["mots"]
-    if not forme["explicite"] and est_question(intention):
+    if not forme["explicite"] and not forme_rapportee(intention) and est_question(intention):
         return intention.strip()
     return None
 
