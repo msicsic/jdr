@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-propositions-redites`, non fusionnée, lot **110**, base
+  `61a4406` : le refus d'un marché se lève seulement pour un moyen pertinent
+  à sa cause ; une ouverture incidente ne change pas une garde, une nécessité
+  ou une réticence. Inventaire au refus retenu ; nouveau bien effectivement
+  offert ou force offerte supérieure permis. Propositions et achats d'un
+  plan rechargé revalidés avant parole, jet ou transfert. Mine 7 à 244 et crue
+  11 à 347 reproduites : portes crues ouvertes indûment comptées comme moyens.
+  **34 tests ciblés verts**, dont les deux captures, monde et rendu rechargés,
+  laps découpé, plan refusé sans publication, offre plus forte et nouveau bien.
+  Banc 4 h × quatre scénarios × quatre graines : propositions/acceptées
+  Relais **0/0 → 0/0**, mine **11/1 → 13/1**, auberge **3/1 → 3/1**, crue
+  **9/0 → 9/0** ; offres identiques à moins d'une heure **1 → 0**, aucun
+  plantage, violation, usurpation ou nouveau code de boucle. Les offres en
+  plus portent une lampe nouvellement ramassée ; la redite est remplacée
+  par un prix réellement supérieur. 16 références en cache réutilisées.
+  Suite complète unique : **2 013 tests, 16 ignorés, 216 fichiers, 1 870,76 s**,
+  deux processus réduits ; une erreur Windows de remplacement de fichier TUI,
+  reprise du seul test verte en **6,13 s**, sans changement de code. Aucun autre
+  échec ni erreur, aucune seconde suite. Aucun Luna ni changement des buts.
+  Anciennes sauvegardes sans inventaire conservatrices sur un nouveau bien
+  de valeur égale ; évolution sociale de la méfiance inchangée. Bruts
+  `artifacts/redites-110/`.
+  Code signé SSH **91f618f**, signature vérifiée.
+  [Rapport et limites](taches/rapport-codex-110-propositions-redites.md).
+
 - Branche `codex-contreparties`, fusionnée, lot **107**, base `303d38c` :
   le recours demande une part utile ou les pièces manquantes, au plus au prix
   offert, avec une source monétaire explicite conservée. Contrôle inversé du

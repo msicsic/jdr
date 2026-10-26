@@ -570,6 +570,19 @@ Voir le [rapport du lot 84](taches/rapport-codex-84-part-proposee.md).
 
 ### 7.2 Côté PNJ : proposer, regagner, passer par un autre
 
+**Lot 110, `codex-propositions-redites`, non fusionnée.** Un refus de marché
+se compare aux moyens pertinents pour sa cause, au choix et avant exécution
+d'un plan sauvegardé, y compris un achat. Une porte voisine devenue ouverte
+ne lève ni une garde, ni une nécessité, ni un refus du marché. Pour une
+impossibilité matérielle, les contenants de la demande et leurs clés restent
+des moyens ; les portes incidentes de la salle ne le sont pas. Un bien
+nouvellement porté ne relance que s'il est effectivement offert ; une valeur
+plus forte effectivement offerte reste permise. L'inventaire au refus est
+retenu parmi les faits de ses moyens. Le temps seul ne lève pas ce refus.
+Les anciennes sauvegardes sans cet inventaire restent conservatrices pour
+un nouveau bien de valeur égale ; leurs faits matériels et leur force offerte
+restent utilisables. La règle sociale de méfiance n'est pas modifiée.
+
 **Décision du 2026-10-24 : un PNJ propose « faute de mieux ».** Proposer n'est pas un geste
 envisagé dans chaque état de chaque recherche (lots 33 et 36, non fusionnés : +344 à +534 % de
 calcul, et Brune volait toujours sans avoir rien proposé). C'est un **recours de dernier ressort**,
