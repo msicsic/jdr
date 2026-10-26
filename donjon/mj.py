@@ -465,11 +465,15 @@ class MJ:
         from .couverture_action import sens_parole, verifier_operations
         from .paroles import mots_dits, operations_contenu
         from .moteur import Plan
+        from .biens import etat_comptes_joueur
         # L'adresse et ses effets sont déjà validés par destinataires. Ils ne
         # font pas partie de la question posée à la revue sémantique du contenu.
         plan = Plan({}, revision, "Contrôler le contenu de la parole préparée.", parole={
             "replique": rapport["replique_joueur"], "contenu": copy.deepcopy(complements["contenu"]),
-            "sens_contenu": sens_parole(complements["contenu"], monde)})
+            "sens_contenu": sens_parole(complements["contenu"], monde),
+            # Les termes implicites du contenu se lisent dans l'état d'origine,
+            # jamais dans les comptes après règlement de la copie préparée.
+            "comptes_avant": etat_comptes_joueur(monde, rapport["destinataires"])})
         try:
             declarees = operations_declarees or set()
             try:
