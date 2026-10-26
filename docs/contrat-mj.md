@@ -63,6 +63,17 @@ La revue reçoit ce sens calculé avant toute mutation, et les objets des termes
 imbriqués sont nommés comme les autres références. Son jugement de fidélité reste
 sémantique : le dossier n'exempte aucun autre objet ni changement de quantité.
 
+**Termes implicites des comptes** (`codex-relances-doublees`, lot 113). Le dossier
+de fidélité de toute parole contient aussi `comptes_avant`, construit par
+`biens.etat_comptes_joueur` sur le monde d'origine, avec les destinataires validés.
+Les dettes monétaires, prêts et livraisons connus du joueur donnent leurs rôles,
+biens et montants ; les comptes privés entre PNJ sont exclus. Les références sont
+nommées comme celles du contenu. Une quantité déjà portée par une dette peut ainsi
+être comparée à la saisie, même si le contenu typé désigne implicitement le dû.
+Le règlement de la copie préparée n'efface pas ce montant avant la revue. Ce
+dossier ne vaut ni accord ni transfert ; les refus de sens et le contrôle des
+opérations restent actifs. La compréhension sémantique demeure faillible.
+
 Chaque réponse libre de Luna (dialogue, avis de clarification, explication d'un refus)
 est découpée en segments et relue par un auditeur, qui classe chaque segment :
 

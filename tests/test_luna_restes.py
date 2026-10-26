@@ -221,7 +221,8 @@ class ParoleTests(unittest.TestCase):
                     ("demande", cible, "", "3"), personnage="aubin"), dialogue(recit)],
                     [rapport(controle)])
                 revue = next(e["plan"]["parole"] for f, e in appels if f == "auditer_action")
-                self.assertEqual(set(revue), {"replique", "contenu", "sens_contenu"})
+                self.assertEqual(set(revue), {"replique", "contenu", "sens_contenu", "comptes_avant"})
+                self.assertFalse(any(c["etat"] == "rendu" for c in revue["comptes_avant"]))
                 self.assertEqual(r.joueur["or"], m.joueur["or"] - 3)
                 if cible == "planches":
                     self.assertEqual(r.objets[cible]["charges"], m.objets[cible]["charges"] - 1)

@@ -160,7 +160,9 @@ def entree(intention, plan, monde=None):
                                     if "objet" in c[champ]}}
                 return {**c, **{k: _nommer(c[k], monde) for k in ("sujet", "valeur")
                                if k in c and c.get("type") != "ressource"}}
-            return {**p, "contenu": [nommer_contenu(c) for c in p.get("contenu", [])]}
+            return {**p, "contenu": [nommer_contenu(c) for c in p.get("contenu", [])],
+                    **({"comptes_avant": _nommer(p["comptes_avant"], monde)}
+                       if "comptes_avant" in p else {})}
         def nommer_plan(op):
             return {**op, **{cle: _nommer(op[cle], monde) for cle in ("effets_reussite", "effets_echec")},
                     **({"perception": {**op["perception"], "cible": _nommer(op["perception"]["cible"], monde)}}
