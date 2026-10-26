@@ -5,8 +5,11 @@ from pathlib import Path
 MODELE_PAR_DEFAUT = "gpt-6-luna"
 MODELE_CLAUDE = "claude-haiku-5-5"   # essai d'un autre fournisseur (--connexion anthropic)
 MODELE_MIMO = "mimo-v2.6-flash"
-DEFAUTS_CONNEXION = {"mimo": (MODELE_MIMO, "none")}
-VARIABLES = ("OPENAI_API_KEY", "OPENAI_MODEL", "ANTHROPIC_API_KEY", "MIMO_API_KEY", "XIAOMI_API_KEY")
+MODELE_LOCAL = "local"
+URL_LOCAL_DEFAUT = "http://127.0.0.1:8080/v1/chat/completions"
+DEFAUTS_CONNEXION = {"mimo": (MODELE_MIMO, "none"), "local": (MODELE_LOCAL, "none")}
+VARIABLES = ("OPENAI_API_KEY", "OPENAI_MODEL", "ANTHROPIC_API_KEY", "MIMO_API_KEY", "XIAOMI_API_KEY",
+             "LOCAL_LLM_URL", "LOCAL_LLM_MODEL", "LOCAL_LLM_KEY")
 
 
 def charger_env(chemin=None):

@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 from donjon.commandes import AIDE, PERCEPTIONS, analyser, est_question, heler
-from donjon.config import charger_env, MODELE_CLAUDE, MODELE_MIMO, MODELE_PAR_DEFAUT
+from donjon.config import charger_env, MODELE_CLAUDE, MODELE_LOCAL, MODELE_MIMO, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJ
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
@@ -74,7 +74,7 @@ def main(argv=None, interface=None):
     charger_env()
     parser = argparse.ArgumentParser(description="Le Seuil — donjon ASCII et maître du jeu IA")
     parser.add_argument("--offline", action="store_true", help="aucun appel au LLM")
-    parser.add_argument("--connexion", choices=["auto", "api", "chatgpt", "anthropic", "mimo"], default="auto",
+    parser.add_argument("--connexion", choices=["auto", "api", "chatgpt", "anthropic", "mimo", "local"], default="auto",
                         help="auto privilégie le compte ChatGPT enregistré, sinon la clé API")
     parser.add_argument("--new", action="store_true", help="nouvelle partie ; conserve une copie .bak de la sauvegarde existante")
     parser.add_argument("--atelier", action="store_true", help="scène de fabrication, sauvegarde séparée atelier.json")
@@ -110,9 +110,9 @@ def main(argv=None, interface=None):
                         help="affiche les résultats d'action rédigés par le moteur, sans récit de Luna")
     args = parser.parse_args(argv)
     if args.model is None:
-        args.model = MODELE_MIMO if args.connexion == "mimo" else os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
+        args.model = (MODELE_MIMO if args.connexion == "mimo" else os.environ.get("LOCAL_LLM_MODEL", MODELE_LOCAL) if args.connexion == "local" else os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT))
     if args.effort is None:
-        args.effort = "none" if args.connexion == "mimo" else "medium"
+        args.effort = "none" if args.connexion in ("mimo", "local") else "medium"
     if args.atelier + args.defi + args.mine + args.auberge + args.crue + args.rixe > 1:
         parser.error("Choisis --atelier, --defi, --mine, --auberge, --crue ou --rixe.")
     for scenario in ("mine", "auberge", "crue", "rixe"):
@@ -199,7 +199,7 @@ def main(argv=None, interface=None):
         if connexion == "anthropic" and args.model == MODELE_PAR_DEFAUT:
             args.model = MODELE_CLAUDE  # essai de Claude : jamais choisi par défaut
         cles = {"anthropic": ("ANTHROPIC_API_KEY",), "mimo": ("MIMO_API_KEY", "XIAOMI_API_KEY")}.get(connexion, ("OPENAI_API_KEY",))
-        actif = not args.offline and (connexion == "chatgpt" or any(os.environ.get(cle) for cle in cles))
+        actif = not args.offline and (connexion in ("chatgpt", "local") or any(os.environ.get(cle) for cle in cles))
         mj = MJ(args.model, args.effort, connexion=connexion) if actif else None
         if mj:
             mj.reflexion = args.reflexion
@@ -220,6 +220,7 @@ def main(argv=None, interface=None):
                 imprimer("Les phrases libres utilisent " + ("votre forfait ChatGPT et ses limites." if connexion == "chatgpt" else
                                                       "la clé API Anthropic, à titre d'essai." if connexion == "anthropic" else
                                                       "la clé API Xiaomi MiMo, à titre d'essai." if connexion == "mimo" else
+                                                      "le serveur LLM local (LOCAL_LLM_URL)." if connexion == "local" else
                                                       "la clé API OpenAI, avec une facturation séparée."))
         imprimer(m.data["scenario"]["objectif"] + " « aide » : commandes disponibles.")
         if not m.data["journal"]:

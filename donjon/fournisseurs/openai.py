@@ -6,6 +6,7 @@ import urllib.request
 
 from ..connexion import jeton, modeles
 from ..monde import ErreurMonde
+from ..sources import voie_cache
 from ..transport_openai import WebSocketResponses, ErreurTransport
 from .contrat import Fournisseur, Reponse
 from .schema import mutualiser
@@ -49,7 +50,7 @@ class OpenAI(Fournisseur):
             "store": False,
         }
         if demande.cle_cache:
-            payload["prompt_cache_key"] = demande.cle_cache
+            payload["prompt_cache_key"] = f"{demande.cle_cache}:{voie_cache(fonction, entree)}"
         if self.chatgpt:
             outil = payload["tools"][0]
             payload["tools"] = [{"type": "namespace", "name": "donjon",

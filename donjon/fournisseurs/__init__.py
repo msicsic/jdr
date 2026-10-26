@@ -12,4 +12,7 @@ def creer(connexion):
     if connexion == 'mimo':
         from .mimo import MiMo
         return MiMo()
+    if connexion == 'local':
+        from .local import Local
+        return Local()
     raise ValueError('Connexion fournisseur inconnue : ' + str(connexion))
