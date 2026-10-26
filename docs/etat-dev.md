@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-verif-luna-b0042c9`, lot **99**, code d’intégration **b0042c9**
+  inchangé : deux passes des vingt scripts du lot 79, **40 parties, 302 saisies,
+  136 tours MJ, 406 appels**, Luna ChatGPT medium/libre, quatre exécutions au plus
+  à priorité réduite sur copies. Références 42bb9c0/f033364/fbcf0ff/882907c
+  exclusivement relues ; 257 fichiers de cache inchangés, quarante nouvelles
+  parties rangées avec SHA-256 identiques. Face à 882907c : **12,747 → 10,335 s/tour
+  (−18,9 %)**, médiane **11,725 → 9,585 s** ; appels **388 → 406 (+4,6 %)**.
+  Charges différentes : aucune attribution causale. Achat du soir plus lent
+  (**16,5 → 20,4 s/tour**) mais paiement/remise exécutés **2/2**, or 26→23,
+  `planches_1` portée après recharge. **Validation partielle** : fausse absence
+  d’Ilse encore affichée en p1 ; orientation de Gorm et faux compte nominatif
+  non reproduits, sans garantie sémantique générale. Nouveaux constats : description
+  du mur remplacée par « Faits narratifs invalides » aux deux passes ; « données »
+  censuré dans une remise, puis repli ; appel de présence abandonné aux deux passes.
+  Trois replis détectés, aucun plantage du jeu, erreur réseau ni défaut de recharge ;
+  `profil` nul non reproduit. Erreur de rangement du lanceur auxiliaire reprise
+  sans rejouer Luna, trace conservée. Quatorze parcours sous-obstacle cohérents
+  après recharge ; limites du rendu des panneaux inchangées. Aucun code ni test
+  moteur modifié ; aucune suite complète relancée pour ce lot de vérification.
+  [Rapport et limites](taches/rapport-codex-99-verif-luna.md).
+
 - Branche `codex-aller-utile`, fusionnée, lot **92 c**,
   suite de `7598fc4`, base moteur **9810f4a** : une preuve d'absence complète
   les seuls nœuds manquants à leur profondeur minimale, avec les gestes communs.
