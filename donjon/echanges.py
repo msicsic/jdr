@@ -627,9 +627,12 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
         source = foyer_de(monde, auditeur, demandeur, foyer, objet)
         if foyer is not None and source is None:
             return "impossible"  # La cible nommée n'est jamais remplacée par un autre feu.
+        if remettre_part:
+            return _remettre_part(monde, auditeur, demandeur, objet, prix if vente else 0,
+                                  None if vente or accord else dd)
         if besoin_de_part(o) == "faim":
             condition = {"objet": objet, "servir": demandeur}
-        elif remettre_part or vente and foyer is None or source is None:
+        elif vente and foyer is None or source is None:
             # La part est remise pour les gestes du demandeur, quelle que soit la substance.
             # Sans source compatible, on ne promet jamais d'entretenir un feu avec ce qui n'y brûle pas.
             return _remettre_part(monde, auditeur, demandeur, objet, prix if vente else 0,
@@ -977,10 +980,12 @@ def confier(monde, demandeur, auditeur, condition):
     # s'il peut s'y prendre avec ce que la garde lui permet.
     engagement = {"condition": dict(condition), "pour": demandeur, "minute": monde.data["minutes"]}
     agendas.prendre(monde, auditeur, engagement)
-    if devis_service(monde, auditeur, condition, demandeur) is None:
+    devis = devis_service(monde, auditeur, condition, demandeur)
+    if devis is None:
         agendas.retirer_proposition(monde, auditeur, engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
-    if not jet_persuasion(monde, auditeur, demandeur, TACHE)[0]:
+    if not jet_persuasion(monde, auditeur, demandeur,
+                          TACHE - penchant(monde, auditeur, "altruisme") + devis[0] / PAS_PROPOSITION)[0]:
         agendas.retirer_proposition(monde, auditeur, engagement)
         return "refus"
     memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": dict(condition)})
@@ -1003,7 +1008,7 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     o = monde.objets[objet]
     e = esprit(monde, donneur) if (monde.objets.get(donneur) or {}).get("profil") else None
     livre = [x for x in (agendas.en_cours(monde, donneur) if e else []) if x["condition"] == {"objet": objet, "remettre": receveur}]
-    tenus = []
+    tenus = list(livre)
     if livre and proprietaire(monde, o) == donneur:
         # Ce qu'il a vendu et vient remettre : l'objet passe à l'acheteur, la parole est tenue.
         donner(monde, objet, receveur)
@@ -1021,6 +1026,8 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     restitution = bool(permission and permission["de"] == receveur and permission["a"] == donneur)
     ponctuel = restitution and monde.data["minutes"] - permission["minute"] <= 240
     deplacer(monde, objet, receveur)
+    if livre and 'lot' in livre[0]:
+        agendas.affecter_part(monde, receveur, livre[0]['lot'], objet)
     from .biens import compte, noter_compte
     noter_compte(monde, compte(donneur, receveur, objet, 1, "rendu"))
     if receveur != "joueur":
@@ -1374,6 +1381,9 @@ def executer(monde, id, etape, lignes):
                 constater(monde, id, objet["id"], "vu")
     elif op == "confier":
         issue = confier(monde, id, autre, contenu)
+        for s in lire(monde, id)['recours_intermediaires']:
+            if s['via'] == autre and s['objet'] == contenu['objet'] and s['issue'] == 'preparee':
+                s['issue'] = issue
         recit = f"{a} demande à {b} de faire en sorte que {phrase_condition(monde, contenu)}"
         clair = recit + "."
         reponse = f"{b} accepte." if issue in ("accepte", "deja") else f"{b} refuse."

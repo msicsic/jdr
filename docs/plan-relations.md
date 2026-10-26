@@ -714,6 +714,33 @@ l'autre pour choisir une offre. Détails et limites dans le
   relations : Ilse, que Gorm croit, lui demande de servir Brune, qu'il refuse en direct. Le récit
   dit la chaîne.
 
+  **Lot 122, branche `codex-intermediaires`, non fusionnée.** Même décision
+  « faute de mieux » que les lots 45 et 120 : après un refus retenu de méfiance
+  ou de rancune, les moyens ordinaires sans faute gardent la priorité. Le devis
+  le moins cher pour le demandeur départage service spontané et commission :
+  devis du service existant (ou valeur du don), contre approche de l'intermédiaire
+  et peine conventionnelle commune d'une tâche. Aucun recours ajouté aux états
+  de la recherche. Une commission acceptée s'attend avant une faute envers la cible.
+
+  Le candidat est connu et joignable ; le demandeur a observé ou entendu une
+  attitude d'attachement de la cible envers lui, sans attitude connue de méfiance
+  ou d'hostilité du candidat envers le demandeur. Il choisit le moins coûteux
+  à rejoindre, sans lire leurs relations privées. Une seule tentative par
+  refus/besoin est sauvegardée, même si l'accueil réel dément cette croyance.
+  `echanges.confier` conserve le seul jet commun : altruisme, lien du porteur
+  envers le demandeur et coût de son propre `devis_service` en fixent le DD.
+
+  Le porteur acquiert lui-même le bien visé, avec ses relations et les refus
+  communs, sans déléguer le travail. La demande explicite d'une part à emporter
+  vaut aussi pour la nourriture ; elle ne nourrit personne à l'accord. La
+  réception affecte l'identité réelle de la part à une seule tâche promise,
+  puis `servir` ou `remettre` tient cette parole. Les fournitures accessoires
+  restent limitées au commanditaire, comme auparavant. La demande au cédant
+  ne nomme pas le bénéficiaire ; une commission entendue peut le lui révéler.
+  Chronique, journal perçu et sauvegarde conservent la chaîne. Le banc compte
+  commissions sollicitées, acceptées et abouties. Deux scènes d'auteur et
+  limites : [rapport du lot 122](taches/rapport-codex-122-intermediaires.md).
+
 ### 7.3 Les avis
 
 Un avis est une croyance sur ce qui va arriver ou ce qu'il vaut mieux faire, avec sa conviction (la

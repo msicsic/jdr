@@ -12,6 +12,11 @@ def verifier(e):
     def cible(x):
         return isinstance(x, dict) and all(isinstance(x.get(k), str) for k in ("de", "besoin", "objet"))
     assert e["demande_refusee"] is None or cible(e["demande_refusee"]), "Déclencheur de recours invalide"
+    assert isinstance(e['recours_intermediaires'], list) and all(
+        set(s) == {'de', 'besoin', 'objet', 'operation', 'minute', 'via', 'issue', 'livraison', 'abouti'}
+        and all(isinstance(s[k], str) for k in ('de', 'besoin', 'objet', 'operation', 'via', 'issue', 'livraison'))
+        and type(s['abouti']) is bool and type(s['minute']) is int
+        for s in e['recours_intermediaires']), 'Intermédiaires invalides'
     assert e['service_en_cours'] is None or (cible(e['service_en_cours'])
         and set(e['service_en_cours']) == {'de', 'besoin', 'objet', 'condition'}
         and erreur_terme({'type': 'tache', 'condition': e['service_en_cours']['condition']}) is None), 'Service en cours invalide'
@@ -152,6 +157,19 @@ def plan_recours(monde, id, besoin, etapes):
     from .echanges import condition_remplie
     from .planification import planifier_pulsion, rejoindre
     e = lire(monde, id)
+    # Une commission acceptée est un moyen attendu, pas un prétexte à tenter
+    # aussi une faute pendant que l'autre accomplit sa parole.
+    from .deliberation import refus_retenu
+    from .echanges import ENGAGEMENT_MAX
+    for s in e['recours_intermediaires']:
+        aide = e['aides_attendues'].get(s['objet'])
+        if (s['besoin'] == besoin and not s['abouti'] and s['issue'] == 'accepte'
+                and aide and aide['qui'] == s['via']
+                and _dernier_recours(monde, id, s['de'], etapes)
+                and monde.data['minutes'] - aide['minute'] <= ENGAGEMENT_MAX
+                and not any(refus_retenu(monde, id, s['via'], ('confier',), objet=o)
+                            for o in (s['objet'], s['livraison']))):
+            return [{'operation': 'inspecter', 'cible': '', 'outil': '', 'lieu': '', 'condition': ''}]
     en_cours = e['service_en_cours']
     if en_cours and en_cours['besoin'] == besoin:
         from .deliberation import satisfaite, refus_retenu
@@ -164,7 +182,29 @@ def plan_recours(monde, id, besoin, etapes):
             if plan:
                 return plan
             e['service_en_cours'] = None
+    intermediaire = devis_intermediaire(monde, id, besoin, etapes)
+    # Deviser le service ne doit pas le marquer entrepris si la commission est
+    # moins chère. Les deux recours restent hors de la recherche ordinaire.
+    avant = list(e['recours_services']), e['service_en_cours']
     service = rendre_service(monde, id, besoin, etapes)
+    if intermediaire:
+        cout, plan, tentative = intermediaire
+        cout_service = float('inf')
+        if service:
+            from .echanges import _devis_proposition, valeur_proposition
+            en_cours = e['service_en_cours']
+            if en_cours:
+                devis = _devis_proposition(monde, id, en_cours['condition'], en_cours['de'])
+                cout_service = devis[0] if devis else float('inf')
+            else:
+                g = service[-1]
+                terme = {'type': 'part' if g['operation'] == 'servir' else 'objet',
+                         'objet': g['cible'] if g['operation'] == 'servir' else g['outil']}
+                cout_service = valeur_proposition(monde, id, terme, tentative['de'])
+        if cout_service is None or cout < cout_service:
+            e['recours_services'][:], e['service_en_cours'] = avant
+            e['recours_intermediaires'].append(tentative)
+            return plan
     if service:
         return service
     refusee = e["demande_refusee"]
@@ -205,6 +245,59 @@ def _dernier_recours(monde, id, autre, etapes):
         if g['condition'] == 'sans_temoin':
             return proprietaire(monde, g['cible']) == autre
     return True
+
+
+def devis_intermediaire(monde, id, besoin, etapes):
+    """Un seul porteur cru bien accueilli, sans consulter les liens des autres.
+
+    La commission est une tâche ordinaire ; seule son approche est devisée par
+    le demandeur. Le porteur fera son propre devis au moment de l'accepter.
+    """
+    from .deliberation import refus_retenu, _connus, besoin_de_part
+    from .planification import rejoindre, vue, depart, TACHE
+    e = lire(monde, id)
+    r = e['demande_refusee']
+    if not r or r['besoin'] != besoin or not _dernier_recours(monde, id, r['de'], etapes):
+        return None
+    refus = refus_retenu(monde, id, r['de'], ('demander', 'acheter', 'proposer'), objet=r['objet'])
+    if not refus or refus['raison'] not in ('mefiance', 'rancune'):
+        return None
+    cle = {**r, 'operation': refus['operation'], 'minute': refus['minute']}
+    if any(all(s[k] == v for k, v in cle.items()) for s in e['recours_intermediaires']):
+        return None
+    attitudes = e['croyances'].get(r['de'], {})
+    candidats = []
+    v = debut = None
+    for qui in sorted(_connus(monde, id)):
+        if qui in (id, r['de'], 'joueur') or not monde.objets.get(qui, {}).get('profil'):
+            continue
+        if attitudes.get('attitude:' + qui, {}).get('valeur') != 'attachement':
+            continue
+        if e['croyances'].get(qui, {}).get('attitude:' + id, {}).get('valeur') in ('mefiance', 'hostilite'):
+            continue
+        if relations.se_mefie(monde, id, qui):
+            continue
+        if v is None:
+            v = vue(monde, id)
+            debut = depart(monde, id, v)
+        salle = v.salle(debut, qui)
+        if salle is None or v.route(debut, salle) is None:
+            continue
+        cout = v.trajet(debut, salle, cible=qui) + TACHE
+        candidats.append((cout, qui))
+    if not candidats:
+        return None
+    cout, qui = min(candidats)
+    route = rejoindre(monde, id, qui)
+    if not route or not route[1]:
+        return None
+    o = monde.objets.get(r['objet'], {})
+    condition = {'objet': r['objet'],
+                 'servir' if besoin_de_part(o) == 'faim' else 'remettre': id}
+    geste = {'operation': 'confier', 'cible': qui, 'outil': '', 'lieu': '',
+             'condition': '', 'contenu': condition}
+    return cout, [*route[0], geste], {**cle, 'via': qui, 'issue': 'preparee',
+                                   'livraison': r['objet'], 'abouti': False}
 
 
 def _plan_service(monde, id, autre, condition):

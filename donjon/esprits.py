@@ -50,7 +50,7 @@ def pnjs(monde):
 
 
 CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
-          "recours_propositions": list, "recours_services": list, "service_en_cours": lambda: None,
+          "recours_propositions": list, "recours_services": list, "recours_intermediaires": list, "service_en_cours": lambda: None,
           "demande_refusee": lambda: None,
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, **agendas.CHAMPS,
           "libre": int,   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours

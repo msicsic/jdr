@@ -76,6 +76,7 @@ def observer_capture(scenario):
         assert not e.get("attentes_bornees"), "La capture historique a changé de décisions"
         e.pop("attentes_bornees", None)
         assert e.pop('recours_services', []) == [], 'Une tentative de service a changé la capture'
+        assert e.pop('recours_intermediaires', []) == [], 'Une commission a changé la capture'
         assert e.pop('service_en_cours', None) is None, 'Un projet de service a changé la capture'
     return {"visites": visites.hexdigest(), "n_visites": n_visites,
             "plans": plans.hexdigest(), "n_plans": n_plans,
