@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-comptes-recit`, **non fusionnée**, lot **117**, base
+  `6519588`, code signé `f39c279` et `8250fa3` : les comptes publics de
+  l'issue, de l'état et des offres reçoivent une référence fournie à l'auditeur ;
+  celui-ci relie chaque segment sans reconstruire rôles ni quantités. Console
+  simulée et recharge vérifiées pour Gorm, Aubin, Brune, achat du soir et compte
+  inversé signalé. Rejeu Luna des seize refus exacts : onze refus, cinq
+  admissions ; cinq écarts rejoués cinq fois par schéma. Une inversion réelle,
+  auparavant refusée cinq fois sur cinq, n'est refusée que trois fois sur cinq :
+  **validation refusée, ne pas intégrer en l'état**. Deux passes ciblées
+  (comptes, soir-appel, ressources, crypte) : 149→129 appels, 13→6 relances,
+  14,723→15,335 s/tour ; aucun gain de délai établi. Suite complète unique :
+  **2 035 tests, 16 ignorés, une erreur de générateur de test corrigée ; sept
+  tests ciblés repris verts**, aucune seconde suite. Bruts `artifacts/comptes-117/`.
+  [Rapport et limite du lot 117](taches/rapport-codex-117-comptes-recit.md).
+
 - Branche `codex-rapports-illisibles`, fusionnée, lot **116**, base
   `5ff7ce5`, code signé SSH **6949ca6**, signature vérifiée : le schéma extrait
   nature et fondement ; le moteur déduit le
