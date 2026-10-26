@@ -4,6 +4,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-retrait-stratege`, fusionnée, lot **130**, base `56afc2e` :
+  retrait du stratège Luna des PNJ, de ses options, outil, tests propres et mesures ;
+  délibération ordinaire inchangée. Ancien champ `stratege` ignoré, conservé inerte,
+  sans migration ; deux scènes rechargées et jouées (Relais/mine), même récit et état.
+  **16/16 nuits de 2 h strictement identiques** (Relais/crue/mine/auberge × quatre
+  graines), chronique, mesures et état complet sans exclusion. Référence calculée une
+  fois et cachée. **11 ciblés verts** ; suite complète unique : **2 052 tests, deux
+  échecs MiMo `6 != 5`, zéro erreur**, 1 047,51 s ; deux échecs reproduits sur la base
+  intacte (13 tests). Pyflakes sans nom indéfini, trois avertissements préexistants.
+  Aucun Luna, deux calculs réduits au plus ; fichiers réservés aux lots 128/129 intacts.
+  Aucune clé Git de signature configurée : commit non signé, branche poussée.
+  [Rapport du lot 130](taches/rapport-codex-130-retrait-stratege.md).
+  Fusionné sur l'intégration après les lots 122 à 127 et 131 : seul conflit de documentation ; aucun fichier de code commun depuis la base (lot 122 : `echanges`, `planification`, `pnj_propositions`), pas de suite complète relancée.
+
 - **Vérification d'intégration 057766f**, lot **131**, branche
   `codex-verif-integ-057766f` : analyse des bruts seuls, aucun rejeu, Luna,
   code du jeu, suite complète ni mesure CPU. **32 nuits de 12 h, huit rixes
@@ -3440,8 +3454,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   - les PNJ font du bruit ; action `ecouter`, mieux contre une porte ;
   - protéger : donnée `protege`, appel à l'aide, protecteur qui accourt, victime prévenue.
   - avant I : H (sécurité perçue, abri, rondes en routine), G (le feu partagé).
-- Luna (`gpt-6-luna`) reste le MJ. Le stratège Luna des PNJ (jalon E) est optionnel
-  (`--stratege`), désactivé par défaut. Remesuré sur le Relais de F, il n'apporte presque
+- Luna (`gpt-6-luna`) reste le MJ. Le stratège Luna des PNJ (jalon E), anciennement
+  optionnel et désactivé par défaut, est retiré au lot 130. Remesuré sur le Relais de F, il n'apporte presque
   plus rien : +5 % d'événements, −1 % d'oisiveté urgente. Le moteur fait désormais seul
   ce qui était son apport principal.
 - Après F, branche `recharger-foyer` : mettre un combustible dans un foyer, c'est le recharger
@@ -4778,9 +4792,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     dans un même choix ; elle est encore refaite au choix suivant. Pistes : un compteur de révision par facette de
     l'esprit, incrémenté dans les seules portes d'écriture (`esprits.croire`, `relations`, `agendas`, refus,
     mémoire) ; ou une trace automatique des lectures de la recherche. Après C1 ; lot risqué (toute la mémoire).
-  - **Le stratège Luna des PNJ** (`--stratege`, désactivé par défaut) : son interception des plans illicites
-    contourne l'arbitrage moral du moteur (`prix_faute`) et son vocabulaire ignore les gestes récents ; à retirer
-    ou à cantonner, lot de ménage.
+  - **Le stratège Luna des PNJ** (historique, retiré au lot 130) : son interception des plans illicites
+    contourne l'arbitrage moral du moteur (`prix_faute`) et son vocabulaire ignore les gestes récents ; retiré
+    par le lot de ménage 130.
   - **Principe : réduire l'espace plutôt qu'ajouter un cache** (revue externe du 2026-10-24, retenue). Chaque cache
     (`_MEMOIRE`, les deux graphes repris, le certificat `_sans_plan`, la perception incrémentale, le court-circuit
     des devis) impose une clé exacte que tout lot doit tenir et que `VERIFIER`/`spatial.VERIFICATION` contrôlent.
@@ -4998,7 +5012,6 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   - la voix des PNJ : Luna donne voix aux échanges entre PNJ dont le joueur est témoin, et
     les répliques ne contredisent plus l'issue décidée par le moteur ;
   - une protection plus riche ; d'autres remèdes au froid ;
-  - la priorité du stratège aux PNJ que le joueur perçoit.
 - **Branches d'essai**, poussées sur `origin` et non fusionnées :
   - `essai-code` : le MJ écrit un script Python borné au lieu du JSON ;
   - `essai-haiku` : premier adaptateur Anthropic, remplacé par celui de `banc-haiku`.
@@ -5084,11 +5097,6 @@ Non versionnés, donc absents d'un nouveau poste :
   la mémoire, nœuds, durée), aussi dans `--sortie`.
   `--scenario crue` joue la crue : récit de l'eau (tirage, salles gagnées, feux noyés, où chacun
   finit) et mesures `minutes_dans_l_eau`, `feux_noyes`, `trempes_fin`, `au_sec_fin`.
-- Banc A/B du stratège, avec Luna, environ 15 minutes pour 8 graines :
-  `python tools/banc_stratege.py --graines 1985 7 42 2024 --graines-sup 3 11 99 500`
-  Plusieurs exécutions Luna peuvent tourner en même temps (le coffre sérialise le renouvellement
-  du jeton) : Luna pèse peu sur le quota, plusieurs bancs Luna en parallèle sont permis ; comparer les
-  temps dans les mêmes conditions de charge.
 
 ## Règles de travail
 

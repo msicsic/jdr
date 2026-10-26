@@ -47,8 +47,6 @@ def verifier(monde):
     assert not any(o["type"] == "personnage" and "reaction_son" in o for o in monde.objets.values()), \
         "Réflexe sonore d'une ancienne partie : le seuil d'alerte est dans le profil (alerte)"
     verifier_places(monde)
-    from .stratege import verifier as verifier_stratege
-    verifier_stratege(monde)
     gestes = monde.data.get("gestes_en_cours", [])
     personnages = {id for id, o in monde.objets.items() if o["type"] == "personnage"}
     assert isinstance(gestes, list) and all(
@@ -1407,9 +1405,8 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
 def _impasse(monde, id, etape, arrivee, compter=True):
     """Aucun chemin en cases vers où il va : c'est un geste manqué. Il apprend ce qui le barre,
     les obstacles du chemin qu'ils coupent (le chemin par salles en tiendra compte), puis la
-    stratégie tombe, le réflexe cesse, ou il patiente avant de renoncer. Renvoie None."""
+    réflexe cesse, ou il patiente avant de renoncer. Renvoie None."""
     from .spatial import position_cible, trajet
-    from .stratege import terminer
     o = monde.objets[id]
     occupees = occupants(monde, id)
     obstacles = [k for k, x in monde.objets.items()
@@ -1425,8 +1422,6 @@ def _impasse(monde, id, etape, arrivee, compter=True):
     intention = e["intention"]
     if intention["motif"] == "alerte":
         e["intention"] = None
-    elif intention["but"]["type"] == "strategie":
-        terminer(monde, id, False, etape)
     else:
         _patienter(monde, id, intention, compter)
     return None
@@ -1579,8 +1574,7 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         return max(1, corps(monde, id)["inconscient"] - t), ATTENTE, None
     if t < corps(monde, id).get("reprise", 0):
         return corps(monde, id)["reprise"] - t, GESTE, None
-    from .deliberation import EFFORTS, PROGRESSIFS
-    from .stratege import terminer
+    from .deliberation import EFFORTS
     reste = _jusqu_a_la_minute(t)
     en_cases = bool(monde.data.get("mode_cases"))
     gestes = [] if gestes is None else gestes
@@ -1594,14 +1588,11 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
     if not intention:
         return reste, ATTENTE, None
     etapes, o = intention["plan"], monde.objets[id]
-    strategie = intention["but"]["type"] == "strategie"
     while etapes and etapes[0]["operation"] == "aller" and etapes[0]["lieu"] == o["lieu"]:
         etapes.pop(0)
     if not etapes:
         if intention["motif"] == "alerte":
             e["intention"] = None
-        elif strategie:
-            terminer(monde, id, True)
         return reste, FIN, None
     etape = etapes[0]
     operation = etape["operation"]
@@ -1610,9 +1601,6 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         # événement l'a fait reconsidérer entre-temps.
         return reste, ATTENTE, None
     en_place = en_cases and "position" in o
-    if strategie and operation == "aller" and not en_place and chemin(monde, id, o["lieu"], etape["lieu"]) is None:
-        terminer(monde, id, False, etape)  # Aucun passage qu'il croie ouvert : la stratégie tombe.
-        return reste, MANQUE, etape
     if en_place and operation == "aller":
         # Le seul juge du passage est le chemin en cases : sans chemin, c'est un geste manqué.
         lieu = etape["lieu"]
@@ -1664,8 +1652,6 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         if pas:
             return pas, GESTE, None
     if not _assez_de_lumiere(monde, id, etape):
-        if strategie:
-            terminer(monde, id, False, etape)
         return reste, MANQUE, etape
     if etape["condition"] == "sans_temoin" and not desespere(monde, id):
         if en_cases and "orientation" in o:
@@ -1720,10 +1706,6 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         etapes.pop(0)
         if intention["motif"] == "alerte" and not etapes:
             e["intention"] = None
-        elif strategie and not etapes:
-            terminer(monde, id, True)
-    elif fait is False and strategie and operation not in PROGRESSIFS:
-        terminer(monde, id, False, etape)  # Un geste manqué, ou un refus : il n'insiste pas.
     if not en_cases or operation == "aller":
         return reste, GESTE, None
     if operation in DURABLES:
