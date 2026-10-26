@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-boucle-garde-manger`, **non fusionnée**, lot **103**, base
+  `811ae4b`, code signé SSH `ddfbc36` : la garde laisse finir la remise sous clé
+  prévue par le plan d'un autre but, même sans motif urgent. Mine 3, capture
+  à 8 min : service de Lucien contre garde, avant le premier service ; défaut
+  ancien révélé par la fusion des contre-offres `1e7b4d9` (parent : 14 gestes
+  sur le garde-manger en 30 min ; fusion : 353). Aucune route ni MJ modifié.
+  Mathe et Gorm servant depuis leur réserve gardée : même monde, croyances,
+  chronique et rendu après recharge, laps d'un bloc ou découpé. Garde après
+  un tiers conservée. Suite complète unique : **1 988 tests, 16 ignorés,
+  2 092,61 s**, deux processus réduits ; deux erreurs du nouveau placement
+  de rendu et une régression intermédiaire de l'arbitrage de la garde elle-même
+  corrigées, sans modifier les tests historiques ; **33 tests repris verts en
+  135,02 s**. Banc 4 h × quatre scénarios × quatre graines : aucun plantage
+  ni usurpation, mêmes catégories et nombres de constats ; avis redits en mine
+  **3 → 7**, limite sociale conservée. Audit mine 3, 12 h : gestes sur la
+  réserve **328/291/291/328 → 3/3/3/3**, Lucien servi à 9 min ; aucune rafale,
+  ni usurpation. **VERIFIER + spatial.VERIFICATION=1, mine 3, 2 h : aucun écart, borne reconnue, plantage ni usurpation**, 4 532 s à priorité réduite. Limite : les plans portant une
+  restauration sous clé ; aucune preuve générale sur toutes les boucles.
+  [Rapport du lot 103](taches/rapport-codex-103-boucle-garde-manger.md).
+
 - Branche `codex-mots-courants`, fusionnée, lot **101**, base `31e3f9c`.
   Révision après `2d54461`/`4920a9e` : les réserves sur la preuve restent refusées
   lexicalement **sans source interne nommée** ; les tests historiques d'ambiance sont
