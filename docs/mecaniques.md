@@ -70,6 +70,32 @@ fin, si leurs conditions tiennent encore ; un coup reçu ou l'inconscience inter
 geste. Le registre des issues, les prises et les liens sont sauvegardés. Le banc accepte
 `--etat aubin:ligote`. Un réveil avant la fin empêche de traîner une victime devenue libre.
 
+### Enfermer et s'évader (4d, lot 136)
+
+`verrouiller <porte ou contenant> avec <clé>` exige un battant fermé, intact et une clé
+portée qui ouvre cette serrure ; durée cinq secondes. Verrouiller une porte devient une
+contrainte envers chaque personne que l'auteur croit dans une salle dont il ne croit
+aucune autre issue libre. Les présences du joueur viennent de ses souvenirs visuels ;
+celles des PNJ de leurs croyances explicites, jamais de la position réelle d'une personne
+inconnue. Les témoins, souvenirs et relations suivent le registre commun.
+
+Le PNJ apprend qu'il est enfermé en essayant une porte : souvenir situé sans geôlier inventé,
+appel à l'aide par l'ouïe commune, puis but de sortie dans le planificateur existant.
+Il peut obtenir une clé ou un outil, crocheter s'il le sait, ou forcer ; ses valeurs et
+permissions restent applicables. Le protecteur qui reconnaît l'appel vient jusqu'à la
+salle, en ouvrant les portes avec les clés portées.
+
+`frapper <porte>` permet aussi l'épaule sans outil : d20 + FOR contre 10 (1 échoue),
+1 + modificateur positif de FOR de dégâts. Un outil emploie la règle commune de force.
+Chaque coup prend trois secondes et est bruyant ; à zéro d'intégrité la porte reste
+ouverte et déverrouillée. Les coups PNJ se poursuivent jusqu'au bris ou à la révision du plan.
+La captivité constatée et les gestes sont sauvegardés ; aucune inquiétude `captif` ni
+brisure de volonté n'est ajoutée. Aucun nouveau choix autonome d'enfermer.
+
+`--etat personnage:enferme:salle` prépare uniquement la position et les portes fermées
+à clé ; il refuse une salle avec une issue sans porte, dont le beffroi actuel du Relais.
+Les épreuves utilisent le bureau et la réserve existants de la mine.
+
 ### Le coup et assommer (4b)
 
 `frapper` vise aussi une personne au contact. L'outil est une arme portée, ou vide pour les
@@ -1369,7 +1395,7 @@ compteur sauvegardés. Les échecs consomment aussi le temps prévu et produisen
 
 Le MJ peut proposer `action: composer` avec une à six étapes au lieu d'un verbe spécialisé.
 Le langage comprend `patienter`, `deplacer`, `detacher`, `allumer`, `eteindre`, les gestes
-d'appui et de son, ainsi que `ouvrir`, `fermer`, `deverrouiller`, `crocheter`, `couper`,
+d'appui et de son, ainsi que `ouvrir`, `fermer`, `deverrouiller`, `verrouiller`, `crocheter`, `couper`,
 `frapper`, `bloquer` et `debloquer`, compilés avec les règles de l'action seule, et `alimenter`
 (recharger un foyer avec un combustible porté ou à portée, une minute, sans jet ; `deplacer`
 un combustible vers un foyer est ce geste ; une charge prolonge le

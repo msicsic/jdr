@@ -44,7 +44,7 @@ def bonus(outil):
 def degats(monde, auteur, outil):
     """Ce qu'un coup réussi ôte à la cible : la puissance de l'outil, plus la FOR si elle aide."""
     from .caractere import modificateur
-    return (outil.get("puissance", 0) if outil else 0) + max(0, modificateur(monde, auteur, "FOR"))
+    return (outil.get("puissance", 0) if outil else 1) + max(0, modificateur(monde, auteur, "FOR"))
 
 
 def chance(monde, auteur, outil):

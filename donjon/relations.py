@@ -485,7 +485,7 @@ def souvenir(monde, id, s):
     if t in ("subi", "pousse") and autre is None:
         return
     if t == "vu_agir":
-        if s.get("operation") in ("frapper", "assommer") and s.get("objet") in ("joueur", *monde.data["esprits"]):
+        if s.get("operation") in ("frapper", "assommer", "enfermer") and s.get("objet") in ("joueur", *monde.data["esprits"]):
             if s["objet"] != id:
                 _appliquer(monde, id, autre, "violence_vue", s, 0.8 if s.get("par") == "ouie" else 1)
             return

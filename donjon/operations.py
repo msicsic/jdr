@@ -11,7 +11,7 @@ from .refus import cibles, inaccessible, portes_avec_usage
 
 
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
-ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "crocheter", "couper", "frapper",
+ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "couper", "frapper",
                        "bloquer", "debloquer")
 OPERATIONS = ("patienter", "deplacer", "prelever", "detacher", "allumer", "eteindre", "alimenter", "manger", "franchir_obstacle", "passer_obstacle", "emettre_son",
               "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)

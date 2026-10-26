@@ -69,7 +69,8 @@ class PorteFermeeTests(unittest.TestCase):
         self.assertIsNone(alarme(m, "aubin"))
 
     def test_d_un_bloc_ou_par_morceaux_le_monde_est_le_meme(self):
-        # Gorm, alerté, va chercher la clé du relais pour ouvrir la porte et voir d'où venait l'appel :
+        # Gorm, alerté, cherche à ouvrir pour voir d’où vient l’appel ; avec les coups de
+        # porte en trois secondes, prendre le pied-de-biche et forcer coûte moins que la clé :
         # attendu d'un bloc ou découpé en rotations rechargées, le même monde.
         def scene():
             m = self.scene()
@@ -78,7 +79,9 @@ class PorteFermeeTests(unittest.TestCase):
             faire(m, "je crie a l'aide")
             return m
         d_un_bloc, morcele = decouper(scene, 6)
-        self.assertIn("Gorm, gardien du relais prend la clé du relais.", chronique(morcele))
+        self.assertIn("Gorm, gardien du relais force la porte étanche du beffroi.", chronique(morcele))
+        self.assertEqual(morcele.objets["porte"]["integrite"], 0)
+        self.assertTrue(morcele.objets["porte"]["ouverte"])
         self.assertEqual(etat_pnj(d_un_bloc), etat_pnj(morcele))
 
 

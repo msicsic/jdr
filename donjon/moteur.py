@@ -18,7 +18,7 @@ from .refus import cibles, inaccessible, portes_avec_usage, ProprieteInconnue
 
 
 ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "fermer",
-           "deverrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
+           "deverrouiller", "verrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
            "ecouter", "pousser", "ranimer", "fuir", "riposter", "se_rendre", "degager", "saisir", "ligoter", "delier", "liberer", "trainer",
@@ -502,6 +502,12 @@ class Moteur:
                                   "le mode parole_joueur.")
             plan.effets.append(("payer", cible, {"vendeur": vendeur_id, "montant": cout}))
             plan.effets.append(("deplacer", cible, "joueur"))
+        elif action == "verrouiller":
+            from .tenir import valider_verrouillage
+            valider_verrouillage(m, "joueur", cible, outil)
+            plan.dixiemes, plan.confirmation = 50, True
+            plan.effets = [("verrouiller", cible, None)]
+            plan.risque = "Enfermer une personne est une contrainte pour les témoins."
         elif action in ("ouvrir", "fermer", "deverrouiller"):
             if o["type"] not in ("porte", "contenant"):
                 ouvrables = sorted(i for i, x in m.objets.items()
@@ -592,7 +598,7 @@ class Moteur:
                                   f"puissance de {outil} : {puissance}"
                                   + (f", seuil de coupe de {cible} : {o['seuil_coupe']}" if "seuil_coupe" in o else "")
                                   + " ; il faut un outil plus puissant.")
-            if action == "frapper" and not (coupe or choc):
+            if action == "frapper" and not (coupe or choc or not t and o["type"] == "porte"):
                 chocs = sorted(set(portes_avec_usage(m, "percussion")) | set(portes_avec_usage(m, "levier")))
                 raise ErreurMonde("Il faut un outil adapté à cette cible pour la frapper ou l'entamer.",
                                   f"outil : un objet en main d'usage percussion ou levier, parmi {cibles(m, chocs)}"
@@ -603,7 +609,9 @@ class Moteur:
             plan.stat, plan.dd = "FOR", force.DD
             plan.bonus, plan.bruit = (force.bonus(t) if action == "frapper" else 0), 3
             plan.effets = [("endommager", cible, force.degats(m, "joueur", t))]
-            plan.echec_critique = [("endommager", outil, 1)]
+            plan.echec_critique = [("endommager", outil, 1)] if outil else []
+            if o["type"] == "porte":
+                plan.dixiemes = 30
         elif action == "bloquer":
             if o["type"] != "porte":
                 raise ErreurMonde("On ne cale qu'une porte.", f"bloquer vise une porte ; {cible} est de type {o['type']}.")
@@ -1194,8 +1202,17 @@ class Moteur:
             avant, o["ouverte"] = o.get("ouverte"), valeur
             changer_etat(m, "joueur", cible, "ouverte", avant)
             lignes.append(designer(o, debut=True) + (" s'ouvre." if valeur else " se ferme."))
+        elif op == "verrouiller":
+            from .tenir import enfermer
+            from .temps import instant
+            enfermer(m, "joueur", cible, instant(m) + 50)
+            avant, o["verrouillee"] = o.get("verrouillee"), True
+            m.data.setdefault("verrous_joueur", {})[cible] = True
+            changer_etat(m, "joueur", cible, "verrouillee", avant)
+            lignes.append(designer(o, debut=True) + " est " + accorder(o, "verrouillé") + ".")
         elif op == "deverrouiller":
             avant, o["verrouillee"] = o.get("verrouillee"), False
+            m.data.setdefault("verrous_joueur", {})[cible] = False
             changer_etat(m, "joueur", cible, "verrouillee", avant)
             lignes.append(designer(o, debut=True) + " est " + accorder(o, "déverrouillé") + ".")
         elif op == "detacher":

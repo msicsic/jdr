@@ -52,6 +52,8 @@ def _but(monde, but):
     if t in ("fuir", "riposter", "proteger", "reddition"):
         return {"fuir": "fuir ", "riposter": "riposter contre ", "proteger": "protéger ",
                 "reddition": "se rendre à "}[t] + court(monde, but["qui"])
+    if t == "evader":
+        return "sortir de captivité : " + _salle(monde, but["lieu"])
     if t == "degager":
         return "se dégager"
     if t == "ranimer":

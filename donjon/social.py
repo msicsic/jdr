@@ -35,7 +35,7 @@ from .relations import se_fie, envers
 NOUVELLES = ("vu_agir", "vol_surpris", "vu_porter", "mensonge_decouvert", "mensonge_dementi", "absence",
              "dette_niee", "pret_garde", "mort_vue", "intention_lue")
 RANG_MAX = 2           # une rumeur entendue de troisième main n'est plus répétée
-GESTES = {"trainer": "a traîné", "prendre": "a pris", "poser": "a posé", "ouvrir": "a ouvert", "fermer": "a fermé",
+GESTES = {"enfermer": "a enfermé", "trainer": "a traîné", "prendre": "a pris", "poser": "a posé", "ouvrir": "a ouvert", "fermer": "a fermé",
           "deverrouiller": "a déverrouillé", "verrouiller": "a verrouillé",
           "crocheter": "a crocheté la serrure de", "forcer": "a tenté de crocheter la serrure de",
           "frapper": "a frappé", "briser": "a forcé",

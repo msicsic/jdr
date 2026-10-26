@@ -3,7 +3,8 @@
 Les sous-étapes 4a et 4b sont fusionnées (`codex-force-4a`, `codex-force-4b`) ; 4c est réalisée
 sur `codex-force-4c`, fusionnée, avec les limites de critère ci-dessous. La première partie de
 4d est réalisée sur `codex-force-4d-tenir`, non fusionnée (lot 126) : prises, liens et issues
-différées ; traîner et le reste de 4d restent à faire, puis 4e et 4f.
+différées. Traîner (lot 134), puis enfermer et s’évader (lot 136, `codex-enfermer`,
+non fusionnée) sont réalisés ; inquiétude captive et volonté brisée restent à faire, puis 4e et 4f.
 Ce document détaille l'étape 4 de `docs/plan-social.md` : PV et
 blessures pour tous, états du corps (retenu, ligoté, enfermé, assommé, mort), affrontement. Il
 prépare l'étape 5 (contrainte et menace : priver, enfermer, menacer, frapper ; la peur ; les
@@ -560,7 +561,22 @@ ou ligoter. Le joueur dispose des commandes locales et des fiches avant tentativ
 joueur/PNJ, deux positions appliquées à l'échéance sauvegardée, 4,5 s par case plus rotation,
 personne sans défense ou dépouille ; passages et contraintes communs, aucun choix autonome.
 Voir le [rapport 134](taches/rapport-codex-134-trainer.md).
-Enfermer, forcer une porte, inquiétude captive et volonté brisée restent au lot suivant de 4d.
+**Enfermer et s'évader réalisés au lot 136**, branche `codex-enfermer`, non fusionnée,
+base sur le lot 134 : verrouillage joueur/PNJ validé en commun, victimes selon les présences
+crues, témoins et relations communs. Le captif découvre sa situation en essayant une porte,
+appelle par l'ouïe commune et cherche une sortie avec le graphe ordinaire (clé, crochetage,
+outil ou épaule). Un protecteur alerté rejoint la salle et ouvre avec sa clé.
+Le coup sur une porte dure trois secondes, endommage son intégrité et se répète jusqu'au bris.
+Les valeurs et permissions du planificateur restent applicables : avoir un outil ne garantit
+pas qu'un PNJ accepte d'abîmer le bien d'autrui.
+Le beffroi du lot 134 a une issue sans porte vers la chambre de la cloche : il n'est pas
+refermable. Selon la décision utilisateur, aucune donnée de scénario n'est modifiée ;
+épreuves sur le bureau et la réserve de la mine (portes et clés existantes), pas au beffroi.
+159 ciblés finaux verts ; suite unique 2 091 tests, deux échecs MiMo historiques restant
+après reprises ciblées. Banc 4 h × quatre scénarios × quatre graines : 13/16 identiques,
+trois écarts de crue expliqués par la durée commune des coups (contre-épreuve exacte),
+aucun nouveau constat d'audit. Voir le [rapport 136](taches/rapport-codex-136-enfermer.md).
+Inquiétude `captif` et volonté brisée restent au lot suivant de 4d.
 Voir le [rapport 126](taches/rapport-codex-126-force-4d-tenir.md) pour les vérifications et limites.
 
 Saisir, se dégager, ligoter, délier, couper le lien, se libérer seul, traîner ; `verrouiller` pour

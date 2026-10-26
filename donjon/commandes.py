@@ -91,7 +91,7 @@ VERBES = {
     "voler": "voler", "derober": "voler",
     "saisir": "saisir", "ligoter": "ligoter", "delier": "delier",
     "ranimer": "ranimer", "observer": "observer",
-    "deverrouiller": "deverrouiller", "crocheter": "crocheter",
+    "verrouiller": "verrouiller", "deverrouiller": "deverrouiller", "crocheter": "crocheter",
     "frapper": "frapper", "defoncer": "frapper", "forcer": "frapper",
     "couper": "couper", "decouper": "couper", "trancher": "couper",
     "retirer": "detacher", "extraire": "detacher", "detacher": "detacher",

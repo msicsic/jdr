@@ -50,7 +50,7 @@ def verifier(monde):
     gestes = monde.data.get("gestes_en_cours", [])
     personnages = {id for id, o in monde.objets.items() if o["type"] == "personnage"}
     assert isinstance(gestes, list) and all(
-        isinstance(g, dict) and set(g) - {"issue"} == {"auteur", "operation", "objet", "fin", "nature", "temoins", "entendus",
+        isinstance(g, dict) and set(g) - {"issue", "porte"} == {"auteur", "operation", "objet", "fin", "nature", "temoins", "entendus",
                                            "se_sait_vu", "exclus"}
         and g["auteur"] in personnages | {"joueur"} and isinstance(g["operation"], str)
         and isinstance(g["objet"], str) and type(g["fin"]) is int and g["fin"] >= 0
@@ -59,6 +59,11 @@ def verifier(monde):
         and set(g["se_sait_vu"]) <= set(g["temoins"])
         and set(g["temoins"]) | set(g["entendus"]) | set(g["exclus"]) <= personnages for g in gestes), \
         "Gestes en cours invalides"
+    assert all("porte" not in g or g["operation"] == "enfermer" and
+               monde.objets.get(g["porte"], {}).get("type") == "porte" for g in gestes), "Porte de contrainte invalide"
+    captifs = monde.data.get("captivites_constatees", {})
+    assert isinstance(captifs, dict) and all(a in personnages | set(monde.data.get("defunts", {})) and s in monde.data["salles"]
+               for a, s in captifs.items()), "Captivité constatée invalide"
     assert all("issue" not in g or (g["operation"] in ("ligoter", "delier", "liberer")
                and isinstance(g["issue"], dict) and set(g["issue"]) == {"outil", "lien"}
                and all(isinstance(v, str) for v in g["issue"].values())) or (g["operation"] == "trainer"
@@ -241,7 +246,7 @@ TOUR = 40              # dixièmes de seconde : un tour complet sur soi-même, h
 CONTACT = 1            # case : au contact (une diagonale voisine comprise, ``geometrie.distance``)
 # Gestes contre une personne (``objet`` : elle, joueur compris) : la victime est la personne,
 # qui sait ce qu'elle a subi ; ceux qui voient faire en sont témoins comme d'un geste illicite.
-CONTRAINTES = ("pousser", "frapper", "assommer", "saisir", "ligoter", "trainer")
+CONTRAINTES = ("pousser", "frapper", "assommer", "saisir", "ligoter", "trainer", "enfermer")
 
 
 def est_contrainte(monde, operation, objet):
@@ -660,6 +665,8 @@ def _pas(monde, id, sortie, lignes):
             cle = _cle_portee(monde, id, porte["id"])
             if cle is None:
                 croire(monde, id, porte["id"], "verrouillee", True, "essai")
+                from .tenir import constater_enfermement
+                constater_enfermement(monde, id)
                 _annoncer_porte(monde, id, porte, "tente d'ouvrir", " résiste à une poussée.", lignes)
                 return
             porte["verrouillee"] = False
@@ -699,6 +706,9 @@ def _rate(monde, id, cible, attribut="lieu", valeur=None):
         reviser(monde, id, cible, "lieu", None, "essai", salle=None, case=None)
     else:
         reviser(monde, id, cible, attribut, valeur, "essai")
+    if attribut == "verrouillee" and valeur is True:
+        from .tenir import constater_enfermement
+        constater_enfermement(monde, id)
     return False
 
 
@@ -764,12 +774,12 @@ def _forcer(monde, id, cible, outil, lignes):
     True quand elle est brisée (``force.briser`` : ouverte, ce qu'elle contenait au sol)."""
     from . import force
     from .caractere import modificateur
-    c, t = monde.objets[cible], monde.objets[outil]
-    if not force.adapte(c, t) or not t.get("integrite"):
+    c, t = monde.objets[cible], monde.objets.get(outil)
+    if not (force.adapte(c, t) or not outil and c["type"] == "porte") or t is not None and not t.get("integrite"):
         return _rate(monde, id, outil, "etat", {"disponible": False})
     jet = monde.d20()
     if jet == 1 or jet + modificateur(monde, id, "FOR") + force.bonus(t) < force.DD:
-        if jet == 1:
+        if jet == 1 and t is not None:
             t["integrite"] = max(0, t["integrite"] - 1)
         _raconter(monde, id, "frappe en vain", c, lignes)
         return False
@@ -937,6 +947,15 @@ def _executer_effet(monde, id, etape, lignes, gestes):
         changer_etat(monde, id, cible, "ouverte", avant)
         _raconter(monde, id, "ferme", c, lignes)
     elif op in ("deverrouiller", "verrouiller"):
+        if op == "verrouiller":
+            from .tenir import valider_verrouillage, enfermer
+            from .monde import ErreurMonde
+            try:
+                valider_verrouillage(monde, id, cible, outil)
+            except ErreurMonde:
+                return _rate(monde, id, cible, "verrouillee", bool(c.get("verrouillee")))
+            from .temps import instant
+            enfermer(monde, id, cible, instant(monde) + DUREES[op])
         if cible not in monde.objets[outil].get("ouvre", []) or c.get("ouverte"):
             return False
         avant, c["verrouillee"] = c.get("verrouillee"), op == "verrouiller"
@@ -964,7 +983,7 @@ def _executer_effet(monde, id, etape, lignes, gestes):
         if not _forcer(monde, id, cible, outil, lignes):
             if faute:
                 gestes.append((id, "frapper", cible, bruit))
-            return False
+            return None
         croire(monde, id, cible, "verrouillee", False, "essai")
         if faute:
             gestes.append((id, "briser", cible, bruit))
@@ -1314,6 +1333,8 @@ def _ouvrir_en_chemin(monde, id, porte, lignes):
         cle = _cle_portee(monde, id, porte["id"])
         if cle is None:
             croire(monde, id, porte["id"], "verrouillee", True, "essai")
+            from .tenir import constater_enfermement
+            constater_enfermement(monde, id)
             _annoncer_porte(monde, id, porte, "tente d'ouvrir", " résiste à une poussée.", lignes)
             return DUREES["ouvrir"]
         porte["verrouillee"] = False
@@ -1720,6 +1741,8 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         if fait is None:
             return reste, ATTENTE, None
         return (reste, FIN, None) if fait else (reste, MANQUE, etape)
+    if operation == "frapper" and monde.objets.get(cible, {}).get("type") == "porte" and fait is not False:
+        return tourner + 30, GESTE, None
     if not fait:
         return reste, MANQUE, etape
     if operation == "assommer" or operation == "frapper" and (cible == "joueur" or monde.objets.get(cible, {}).get("type") == "personnage"):
