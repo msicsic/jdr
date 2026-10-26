@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-captivite`, **non fusionnée**, lot **140**, base `9aab62a`
+  (lot 136 `codex-enfermer`, non fusionné : dépendance voulue) : captivité selon les
+  liens et les issues crues, inquiétude `captif` par le temps vécu, corps du joueur
+  et fiche communs. Une heure captive coûte un point de jet de VOL (plafond cinq),
+  deux heures libres au calme en rendent un ; restes exacts sauvegardés en dixièmes.
+  Le répit exclut effort, prise, eau et danger perçu ; sécurité non croissante pour
+  le PNJ, lumière pour le joueur. Aucun choix autonome nouveau ni appel à Luna.
+  Bureau et réserve de la mine, Aubin ligoté au Relais, joueur captif puis libre :
+  même `data` et rendu après recharges et laps découpés ; croyances fausses et serrure
+  ignorée, détenteur de clé, bornes et répit interrompu vérifiés. **56 ciblés verts**
+  après reprises ; suite complète unique **2 101 tests, 1 126,77 s, deux échecs MiMo
+  historiques `6 != 5`, zéro erreur**, 230 fichiers. **16/16 nuits de 4 h identiques**
+  à la base (quatre scénarios × quatre graines), état, récit, souvenirs et mesures ;
+  références calculées une fois puis cachées, aucun rejeu de référence, zéro plantage,
+  usurpation ou violation. La contre-épreuve mine corrige l’invariant « verrou ne retient
+  pas le porteur d’une clé », sans exception de personnage. Deux calculs réduits au plus.
+  Aucune clé de signature Git configurée : commit non signé, branche poussée, sans fusion.
+  4d terminé ; 4e et 4f restent à faire.
+  [Rapport 140](taches/rapport-codex-140-captivite.md).
+
 - Branche `codex-enfermer`, **non fusionnée**, lot **136**, base `bce47d8`
   (lot 134 `codex-trainer`, non fusionné : dépendance voulue) : verrouiller joueur/PNJ,
   victimes selon les présences crues, contrainte et témoins communs ; constat par essai,

@@ -40,12 +40,23 @@ def sorties_crues(monde, auteur, salle, fermee=None):
         if fermee is not None and p == fermee:
             verrou = True
         elif auteur == "joueur":
-            # La mémoire de carte ne révèle pas les serrures hors de vue.
-            verrou = monde.data.get("verrous_joueur", {}).get(p) is True
+            # Le rendu montre le verrou visible ; hors de vue, seule la mémoire répond.
+            verrou = (monde.objets[p].get("verrouillee") is True if p and monde.visible(p)
+                      else monde.data.get("verrous_joueur", {}).get(p) is True)
         else:
             verrou = croyances.get(p, {}).get("verrouillee", {}).get("valeur") is True
         resultat.append((p, verrou))
     return resultat
+
+
+def captif(monde, auteur):
+    """Liens éprouvés ou toutes les issues crues verrouillées ; jamais les verrous réels."""
+    if corps.corps(monde, auteur).get("lie"):
+        return True
+    salle = monde.joueur["salle"] if auteur == "joueur" else monde.objets[auteur]["lieu"]
+    issues = sorties_crues(monde, auteur, salle)
+    from .pnj import _cle_portee
+    return bool(issues) and all(v and _cle_portee(monde, auteur, p) is None for p, v in issues)
 
 
 def enfermer(monde, auteur, porte, fin):
@@ -361,6 +372,9 @@ def finir(monde, g):
     except ErreurMonde:
         corps.evenement(monde, "geste_interrompu", cible, auteur=auteur, operation=operation)
         return
+    from .vecu import noter
+    activite = corps.corps(monde, cible).get("vecu", {}).get("activite")
+    noter(monde, cible, g["fin"], activite)
     c = corps.corps(monde, cible)
     if operation == "ligoter":
         deplacer(monde, outil, cible)
@@ -382,6 +396,7 @@ def finir(monde, g):
             from .combat import interrompre
             interrompre(monde, cible)
     corps.evenement(monde, operation, cible, auteur=auteur)
+    noter(monde, cible, g["fin"], activite)
     from .esprits import percevoir_tous
     percevoir_tous(monde)
 
