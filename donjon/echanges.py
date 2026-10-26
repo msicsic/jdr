@@ -40,12 +40,36 @@ def _devis_proposition(monde, id, condition, pour, devis=None):
     cle = (id, tuple(sorted(condition.items())), pour)
     if devis is not None and cle in devis:
         return devis[cle]
-    copie = monde.copier()
-    agendas.prendre(copie, id, {"condition": condition, "pour": pour, "minute": copie.data["minutes"]})
-    resultat = devis_service(copie, id, condition, pour)
+    if _charge_irrealisable(monde, id, condition, pour):
+        resultat = None
+    else:
+        copie = monde.copier()
+        agendas.prendre(copie, id, {"condition": condition, "pour": pour, "minute": copie.data["minutes"]})
+        resultat = devis_service(copie, id, condition, pour)
     if devis is not None:
         devis[cle] = resultat
     return resultat
+
+
+def _charge_irrealisable(monde, id, condition, pour):
+    """Preuve d'impossibilité du devis existant, sans exploration ni mutation.
+
+    Le devis d'entretien vise (allumé, chargé). Sans réservoir rechargeable,
+    aucun geste autonome ne peut rendre « chargé » vrai : alimenter et la part
+    de combustible exigent tous deux ``brule``. Si sa charge initiale est fausse
+    ou inconnue, ce but est donc inaccessible, indépendamment des trajets.
+    La projection et ses dates restent celles du planificateur commun.
+    """
+    from .perception import brule
+    from .deliberation import _cru
+    from .planification import _vu_avant_la_tache
+    if not condition.get("allume") or brule(monde.objets[condition["objet"]]):
+        return False
+    etat = _cru(monde, id, condition["objet"], "etat") or {}
+    # Ajouter la proposition datée de maintenant ne change pas cette lecture :
+    # sans engagement préalable, _vu_avant_la_tache prend déjà maintenant.
+    return (_vu_avant_la_tache(monde, id, condition, pour)
+            or not (etat.get("charge") and not etat.get("faible")))
 
 
 def devis_service(monde, id, condition, pour):

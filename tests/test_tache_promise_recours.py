@@ -1,4 +1,8 @@
 """Une contrepartie future passe par le même marché et le même agenda."""
+import copy
+import gzip
+import json
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
@@ -78,6 +82,39 @@ def offrir(fabrique):
 
 
 class TachePromiseTests(unittest.TestCase):
+    def test_charge_inaccessible_equivaut_au_devis_reel_deux_sources_rechargees(self):
+        from donjon.echanges import _devis_proposition, devis_service
+        from donjon.rendu import regarder as rendu
+        with gzip.open(Path(__file__).parent / 'data/devis-crue2024-17.json.gz',
+                       'rt', encoding='utf8') as f:
+            capture = json.load(f)
+        reel = (Monde(capture['data']), capture['id'], capture['pour'], capture['condition'])
+        m, id, autre, _ = reserve()
+        source = 'bougeoir_mireille'
+        m.objets[source].update(lieu=id, proprietaire=autre, allume=False, combustible=60)
+        m.data['connus'].append(source)
+        croire(m, id, source, 'lieu', id, 'vu', salle=None, case=None)
+        m.data['minutes'] = 1
+        second = (m, id, autre, {'objet': source, 'allume': True})
+        for monde, id, autre, c in (reel, second):
+            for charge, ancien in ((False, False), (True, True), (True, False)):
+                with self.subTest(source=c['objet'], charge=charge, ancien=ancien):
+                    m = recharger(monde.copier())
+                    croire(m, id, c['objet'], 'etat',
+                           {'allume': False, 'charge': charge, 'faible': False}, 'vu',
+                           minute=m.data['minutes'] - int(ancien))
+                    avant, visible = copy.deepcopy(m.data), rendu(m)
+                    with patch('donjon.echanges._charge_irrealisable', return_value=False):
+                        attendu = _devis_proposition(m, id, c, autre)
+                    with patch('donjon.echanges.devis_service', wraps=devis_service) as devis:
+                        obtenu = _devis_proposition(m, id, c, autre)
+                    self.assertEqual(obtenu, attendu)
+                    self.assertEqual(devis.call_count, int(charge and not ancien))
+                    self.assertEqual(m.data, avant)
+                    reprise = recharger(m)
+                    self.assertEqual(reprise.data, avant)
+                    self.assertEqual(rendu(reprise), visible)
+
     def test_un_refus_ancien_ne_supplante_pas_un_plan_ordinaire(self):
         for fabrique in (feu, reserve):
             m, id, autre, c = fabrique()
