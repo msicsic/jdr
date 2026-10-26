@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-suites-par-noeud`, fusionnée, lot **105**, base **dcd7b31**,
+  code signé **0aa644a** : `_mesurer` compose les seuls changements de portes
+  et reprend le successeur sans reconstruction quand rien ne change. Aucun
+  changement de coûts, d'ordre, de nœuds, de relances ou de scénario ; aucun Luna.
+  Trois tests ciblés verts, composition, captures ordonnées/coûts hexadécimaux,
+  tour moteur et rendu rechargé mine/auberge. Vingt répétitions par capture :
+  génération **196,67→177,68 µs/nœud mine 480**, **209,73→199,24 auberge 480**,
+  **284,13→249,70 auberge 600**, six recherches identiques à la base.
+  CPU 12 h apparié, deux processus réduits : base→branche **227,64→217,42 s
+  fixe (−4,49 %)**, **280,42→260,81 s tiré (−6,99 %)**, **90,41→86,88 s mine
+  (−3,90 %)**. Contre `42bb9c0`, auberge **×1,75 fixe / ×2,67 tiré** : seuil
+  ×1,5 non atteint, pas suffisant pour avancer `main`. Trois nuits base/branche
+  et trois répétitions branche identiques avec `comparer --calcul`, douze
+  recharges vertes. Empreintes 2 h, quatre scénarios × quatre graines :
+  **16 identiques**, huit références relues, huit manquantes calculées une fois.
+  `VERIFIER` + spatial 1, auberge 42 tirée, 2 h : aucun écart ni borne,
+  **1 221 nœuds, 350,44 s CPU**, recharge correcte. Suite complète unique :
+  **1 994 tests, 16 ignorés, aucun échec ni erreur**, 212 fichiers, deux processus
+  réduits, **1 806,26 s**. Même SHA-256 moteur qu'aux mesures.
+  Un seul levier ouvert ; gains observés, pas de preuve statistique sur ce poste
+  partagé. Bruts `artifacts/suites-105/`.
+  [Rapport du lot 105](taches/rapport-codex-105-suites-par-noeud.md).
+  Fusionné sur l'intégration après les lots 106 et 103 : seul conflit de documentation ; aucun fichier de code commun (`planification.py` seul). Seuil ×1,5 toujours manqué (auberge ×1,75 fixe / ×2,67 tiré dans cette cohorte).
+
 - Branche `codex-boucle-garde-manger`, fusionnée, lot **103**, base
   `811ae4b`, code signé SSH `ddfbc36` : la garde laisse finir la remise sous clé
   prévue par le plan d'un autre but, même sans motif urgent. Mine 3, capture
