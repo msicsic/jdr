@@ -4,6 +4,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-comptes-recit`, **non fusionnée**, lots **117** et **117 b** (poussée, `94a0782`) : les comptes du récit
+  viennent du moteur ; l'auditeur relie chaque segment à un compte fourni et choisit un sens fermé et une quantité, que le
+  moteur compare. Rejeu : inversion réelle refusée 5/5, trois faux refus 5/5 → 0/5. **Non fusionnée** : une passe Luna (quatre
+  scripts) donne 3,94 → 3,83 appels/tour mais **14,0 → 20,5 s/tour** et obstacles narratifs 11 → 60 ; le lot 117 seul (sans sens
+  fermé) gagnait 13 % d'appels mais laissait passer l'inversion 2 fois sur 5. Décision et mesure à deux passes à reprendre.
+
 - Branche `codex-tache-promise`, fusionnée, lot **115**, base **6910d8e** :
   une tâche typée peut payer une part dans le recours après les moyens ordinaires.
   Conditions connues, un candidat et un devis par recours, propres moyens sans
