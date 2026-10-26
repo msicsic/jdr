@@ -4,7 +4,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-disputes`, non fusionnée**, lot **121**, base **0a53910** :
+- Branche `codex-disputes`, fusionnée, lot **121**, base **0a53910** :
   avis de menace contradictoires entre PNJ par la parole commune ; une contradiction,
   une réponse et un éclat seulement par fierté/colère. Témoins auditifs, poids des sources,
   départage CHA/ELO, partis pris audibles et épreuves relationnelles ; registre des faits
@@ -18,6 +18,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   **53 tests ciblés verts en 68,01 s**, sept fichiers, un processus. Aucune seconde suite.
   Menace d'eau seulement ; parole typée du joueur et fréquence naturelle non garanties.
   [Rapport du lot 121](taches/rapport-codex-121-disputes.md).
+  Fusionné sur l'intégration (`main` 0a53910 + ce lot) : aucun conflit, aucun autre lot fusionné depuis la base. Aucune dispute naturelle dans les nuits : preuve seulement par scènes d'auteur ; à surveiller à la prochaine vérification d'intégration.
 
 - **Revue Argon du coût et lots 118–119, non fusionnés** (branches poussées `codex-reprises-exactes` `bb02f3a`,
   `codex-perception-exacte` `bd6d1eb`). Revue : `docs/taches/rapport-revue-argon-cout.md` (pistes A1 à A5 exactes, B1 à B3
