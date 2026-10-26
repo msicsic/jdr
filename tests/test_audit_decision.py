@@ -10,7 +10,7 @@ import jeu
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde, ErreurMonde
 from donjon.narration import (controler, consigner, schema_audit, segments,
-                              segments_etablis, attestations, VERDICTS, AuditIllisible)
+                              segments_etablis, attestations, NATURES, AuditIllisible)
 from donjon.rendu import regarder
 from tests.test_repli_et_appel import dialogue
 from tests.test_tensions import recharger
@@ -24,26 +24,38 @@ class AuditDecisionTests(unittest.TestCase):
             paires = set()
             for variante in variantes:
                 p = variante['properties']
-                verdict, = p['verdict']['enum']
+                nature, = p['nature']['enum']
                 for portee in p['portee_mecanique']['enum']:
-                    paires.add((verdict, portee))
-                    ligne = {'verdict': verdict, 'portee_mecanique': portee, 'sources': list(faits)}
+                    ligne = {'nature': nature, 'portee_mecanique': portee, 'sources': list(faits)}
                     for cle in variante['required']:
                         if cle not in ligne:
                             ligne[cle] = [] if p[cle]['type'] == 'array' else ''
                     # Le contrôleur peut refuser le texte, jamais lire une paire
                     # produite par le schéma comme deux jugements incompatibles.
-                    controler('Une assertion à contrôler.', {'segments': {'0': ligne}}, faits)
+                    rapport = controler('Une assertion à contrôler.', {'segments': {'0': ligne}}, faits)
+                    self.assertEqual(controler('Une assertion à contrôler.',
+                        {'segments': rapport['segments']}, faits), rapport)
+                    verdict = rapport['segments'][0]['verdict']
+                    paires.add((verdict, portee))
+                    if nature == 'mecanique' and portee in ('sans_fondement', 'contradictoire'):
+                        self.assertTrue(rapport['obstacles'])
             interdites = {('mecanique', 'sans_fondement'), ('mecanique', 'contradictoire'),
                           ('invention_protegee', 'etablie'), ('contradictoire', 'etablie')}
-            toutes = {(v, p) for v in VERDICTS for p in
+            toutes = {(v, p) for v in NATURES for p in
                       ('aucune', 'etablie', 'sans_fondement', 'contradictoire')}
-            self.assertEqual(paires, toutes - interdites)
+            self.assertEqual(paires, (toutes - interdites) |
+                {('invention_protegee', 'sans_fondement'), ('contradictoire', 'contradictoire')})
             for verdict, portee in interdites:
                 with self.subTest(verdict=verdict, portee=portee), self.assertRaises(AuditIllisible):
                     controler('Une assertion à contrôler.', {'segments': {'0': {
                         'verdict': verdict, 'portee_mecanique': portee, 'sources': list(faits),
                         'motif': 'Rapport forgé.'}}}, faits)
+            for complement in ({'verdict': 'mecanique'}, {'nature': 'invention_protegee'},
+                               {'portee_mecanique': []}):
+                with self.subTest(complement=complement), self.assertRaises(AuditIllisible):
+                    controler('Une assertion à contrôler.', {'segments': {'0': {
+                        'nature': 'mecanique', 'portee_mecanique': 'sans_fondement',
+                        'sources': list(faits), 'motif': 'Rapport forgé.', **complement}}}, faits)
 
     def test_console_texte_exact_libre_et_melange_apres_recharge(self):
         for defi in (False, True):
@@ -108,7 +120,7 @@ class AuditDecisionTests(unittest.TestCase):
         variantes = schema_audit({'salle': {}}, [2])['properties']['segments']['properties']['2']['anyOf']
         for v in variantes:
             p = v['properties']
-            verdict = p['verdict']['enum'][0]
+            verdict = p['nature']['enum'][0]
             self.assertEqual(set(p), set(v['required']))
             self.assertEqual('locuteur' in p, verdict in ('parole', 'engagement'))
             self.assertEqual('entites' in p, verdict in ('ambiance', 'engagement'))

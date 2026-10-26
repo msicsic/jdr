@@ -37,16 +37,16 @@ class VerdictCoherentTests(unittest.TestCase):
                 (crypte(), 'Gorm est face à toi.', 'Gorm me fait-il face ?', 'contradictoire')):
             with self.subTest(texte=faux):
                 avant = copy.deepcopy(m.data)
-                negatif = 'invention_protegee' if portee == 'sans_fondement' else 'contradictoire'
                 variantes = schema_audit({'perception': {}}, [0])['properties']['segments']['properties']['0']['anyOf']
-                self.assertFalse(any(v['properties']['verdict']['enum'] == ['mecanique']
-                    and portee in v['properties']['portee_mecanique']['enum'] for v in variantes))
-                self.assertTrue(any(v['properties']['verdict']['enum'] == [negatif]
+                self.assertTrue(all('verdict' not in v['properties'] for v in variantes))
+                self.assertTrue(any(v['properties']['nature']['enum'] == ['mecanique']
                     and portee in v['properties']['portee_mecanique']['enum'] for v in variantes))
                 bon = 'Tu peux regarder autour de toi.'
                 r, sortie, appels = jouer(recharger(m), saisie,
                     [dialogue(faux), dialogue(bon)],
-                    [jugement(negatif, portee), jugement('neutre', 'aucune', ())])
+                    [rapport({'nature': 'mecanique', 'portee_mecanique': portee,
+                              'sources': ['perception'], 'motif': 'Affirmation non établie.', 'comptes': []}),
+                     rapport({'nature': 'neutre', 'portee_mecanique': 'aucune', 'sources': [], 'comptes': []})])
                 self.assertNotIn(faux, sortie)
                 self.assertNotIn(faux, str(recharger(r).data.get('narrations_mj')))
                 self.assertIn(bon, sortie)
