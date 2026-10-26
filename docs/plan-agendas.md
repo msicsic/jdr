@@ -382,6 +382,27 @@ Vérification Luna (bancs de référence et une scène d'évacuation). **Point d
 le plan de décision (habitudes, réflexion limitée), sur la mesure du coût et de la plausibilité
 (décision 7).
 
+**Lot 144, `codex-agendas-a4a`, non fusionné : livraison partielle A4a.**
+Activation unique des déclarations dans l'esprit, origine scénario, état et cause sauvegardés,
+trois actifs au plus ; aucun champ nouveau pour les PNJ sans déclaration. `informer` vise un
+destinataire à la fois selon les routes crues, puis transmet un fait cru ou un avis de menace
+par la parole commune (réception et dispute conservées). Gorm reçoit en données l'objectif
+d'informer Ilse et Brune de la menace du refuge. La recherche du trajet passe sa condition à
+`chercher` et son gain à `_endure` ; un échec endort, une croyance nouvelle réveille. Le score
+transitoire combine valeurs, situation et affection ; échéance, plafond, fin après parole et
+bonus de continuité selon la VOL. Le désespoir précède les agendas, les besoins ordinaires
+partagent leur palier ; `INERTIE` est appliquée aux besoins déjà poursuivis.
+
+Restent dans A4a : `amener` (avis de préférence, proposition et accompagnement), l'épreuve
+d'évacuation successive à la galerie, la révision pour impossibilité crue et les manières
+générales dans la recherche. Le trajet est cherché avant une parole ajoutée au préfixe : ce
+n'est pas encore une condition de portée vocale dans le graphe. Plusieurs agendas essayés
+peuvent donc ajouter plusieurs recherches par choix ; la borne d'une seule n'est pas acquise.
+Le réveil suit les changements de contenu des croyances, pas encore toutes les entrées
+relationnelles du futur modèle. `garder`/`protéger`, s'interposer et l'hystérésis générale dans
+le score (remplacement de `retenu`) restent au lot suivant. A4 n'est pas déclaré achevé.
+Voir le [rapport 144](taches/rapport-codex-144-agendas-a4a.md) pour les vérifications et limites.
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des

@@ -4,6 +4,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-agendas-a4a`, **non fusionnée**, lot **144**, base `8ec3ace`
+  (lot 140 `codex-captivite`, non fusionné : dépendance voulue) : livraison partielle
+  permise, **activation + informer**. Déclarations du profil activées une fois dans
+  l'esprit, état/cause/origine sauvegardés, trois actifs au plus ; poids et plan
+  transitoires. Candidat sur l'échelle commune, désespoir devant, continuité selon VOL.
+  Destinataire suivant les routes crues, trajet par `chercher` et `_endure`, parole
+  typée commune avec avis et dispute ; Gorm doit prévenir Ilse et Brune en crue.
+  Sommeil sans plan/contenu cru et réveil sur croyance nouvelle. Aucun Luna,
+  deux calculs réduits au plus ; fichiers MJ et worktree d'intégration intacts.
+  **40 ciblés consolidés verts**, dont six d'activation (Gorm prévient deux personnes,
+  même état et rendu rechargés après laps découpé ; autre parole et registre plein).
+  Suite complète unique : **2 105 tests, 231 fichiers, 1 169,75 s**, deux échecs
+  MiMo historiques `6 != 5`, zéro erreur ; deux nouveaux tests repris hors de la suite.
+  **12/12 empreintes de 2 h identiques** à la base, Relais/mine/auberge × quatre
+  graines : chronique, mesures et état complet. Références calculées une fois et
+  cachées, aucun rejeu. Premier banc crue : neuf alertes de réveil répété ; correction
+  commune (nouvelle croyance autorise un essai, réveil seulement avec plan admissible),
+  **11 puis 10 ciblés verts**, sans seconde suite. Reprise branche seule 4 h × quatre
+  graines, quatre références cachées : aucune répétition nouvelle, zéro plantage,
+  usurpation/violation, mêmes deux observations historiques. Attente urgente moyenne
+  **22,5 → 20 min**, eau **123,75 → 128,75 min**, maximum de passages horaires
+  **17,5 → 13,25**. Ilse/Brune à la galerie à 4 h **1/8 → 3/8** ; arrivée avant
+  l'eau non prouvée. Information atteinte seulement sur 1985 (144 min), sommeil sans
+  menace crue sur les trois autres graines. Coût crue 1985 fixe, 4 h : recherches
+  **1 475 → 1 459**, nœuds **101 145 → 89 838** ; nuits différentes, aucun surcoût
+  isolé ni gain CPU garanti sur ce poste partagé. Code `36d2b82`, aucune clé de
+  signature configurée ; commits non signés, branche poussée sans fusion.
+  **A4 non achevé** : `amener`, impossibilité crue, manières générales, portée vocale
+  dans le graphe et borne d'une recherche supplémentaire par choix restent à faire ;
+  puis `garder`/`protéger`, s'interposer et hystérésis générale dans le score.
+  [Rapport 144](taches/rapport-codex-144-agendas-a4a.md).
+
 - Branche `codex-captivite`, **non fusionnée**, lot **140**, base `9aab62a`
   (lot 136 `codex-enfermer`, non fusionné : dépendance voulue) : captivité selon les
   liens et les issues crues, inquiétude `captif` par le temps vécu, corps du joueur
