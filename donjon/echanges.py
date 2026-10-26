@@ -1246,6 +1246,11 @@ def executer(monde, id, etape, lignes):
         return False  # Ils ne peuvent ni se voir ni s'entendre : rien ne se dit.
     a, b, contenu = _qui(monde, id), _qui(monde, autre), etape.get("contenu", {})
     objet = monde.objets.get(etape["outil"])
+    if op == "acheter" and objet:
+        from .pnj_propositions import offre_refusee
+        if offre_refusee(monde, id, autre, objet["id"],
+                         {"type": "pieces", "montant": contenu.get("prix", 0)}):
+            return False
     transmis = []  # Ce que la parole transmet à qui l'entend sans en être le destinataire.
     reponse, dite = "", True  # Ce que l'autre y répond, et s'il le dit de sa voix.
     if op == "dire" and "annulation" in contenu:
