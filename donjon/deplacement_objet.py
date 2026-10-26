@@ -7,6 +7,8 @@ from .monde import ErreurMonde
 def deplacer(monde, identifiant, destination, position=None):
     """Quitte l'ancien support ; la case de contact ne survit pas au déplacement."""
     o = monde.objets[identifiant]
+    if o.get("entrave"):
+        raise ErreurMonde("Ce lien retient encore une personne.", f"cible={identifiant} : entrave=false requis ; delier la personne avant de déplacer le lien.")
     if destination not in (*monde.data["salles"], *monde.objets, "joueur"):
         raise ErreurMonde("Destination d'objet inconnue.")
     o["lieu"] = destination

@@ -1,7 +1,9 @@
 # Plan : le corps des PNJ et la force (étape 4 du plan social)
 
 Les sous-étapes 4a et 4b sont fusionnées (`codex-force-4a`, `codex-force-4b`) ; 4c est réalisée
-sur `codex-force-4c`, fusionnée, avec les limites de critère ci-dessous ; 4d à 4f restent à faire.
+sur `codex-force-4c`, fusionnée, avec les limites de critère ci-dessous. La première partie de
+4d est réalisée sur `codex-force-4d-tenir`, non fusionnée (lot 126) : prises, liens et issues
+différées ; traîner et le reste de 4d restent à faire, puis 4e et 4f.
 Ce document détaille l'étape 4 de `docs/plan-social.md` : PV et
 blessures pour tous, états du corps (retenu, ligoté, enfermé, assommé, mort), affrontement. Il
 prépare l'étape 5 (contrainte et menace : priver, enfermer, menacer, frapper ; la peur ; les
@@ -547,6 +549,16 @@ l'ouïe commune (but protéger) ; force crue ; poursuite et renoncement de l'agr
   10 % ; aucun meurtre.
 
 ### 4d. Retenir, ligoter, délier, traîner, enfermer
+
+**Partie réalisée, lot 126, branche `codex-force-4d-tenir`, non fusionnée** : `tenir.py`
+porte saisir, ligoter, délier (main ou lame), se libérer et les validations communes du corps.
+`pnj.finir_gestes` applique les issues sauvegardées à leur échéance, avant le rendu ; coup,
+inconscience et invalidation des conditions empêchent l'effet. Les protecteurs rejoignent un
+protégé ligoté perçu et le délient ; les captifs se libèrent. Aucun PNJ ne choisit de saisir
+ou ligoter. Le joueur dispose des commandes locales et des fiches avant tentative.
+**Reste de ce brief : traîner**, reporté selon sa clause de livraison partielle. Enfermer,
+forcer une porte, inquiétude captive et volonté brisée restent au lot suivant de 4d.
+Voir le [rapport 126](taches/rapport-codex-126-force-4d-tenir.md) pour les vérifications et limites.
 
 Saisir, se dégager, ligoter, délier, couper le lien, se libérer seul, traîner ; `verrouiller` pour
 le joueur ; enfermer reconnu comme contrainte ; forcer une porte pour les PNJ ; inquiétude `captif`

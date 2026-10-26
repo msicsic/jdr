@@ -24,6 +24,8 @@ AIDE = """COMMANDES LOCALES — sans appel API
   acheter <objet>                       auprès de son vendeur présent
   voler <objet>                        tentative discrète, jet de DEX si observé
   parler <personnage>
+  saisir <personnage> | ligoter <personnage> avec <lien>
+  délier <personnage> [avec <lame>] | se libérer | se dégager
   ranimer <personnage>                 au contact, après une minute d'inconscience (10 secondes)
   offre <personnage> | negocier <personnage> 25
   accepter offre | refuser offre | accords
@@ -86,6 +88,7 @@ VERBES = {
     "toucher": "toucher", "lire": "lire", "prendre": "prendre", "poser": "poser",
     "acheter": "acheter", "ouvrir": "ouvrir", "fermer": "fermer",
     "voler": "voler", "derober": "voler",
+    "saisir": "saisir", "ligoter": "ligoter", "delier": "delier",
     "ranimer": "ranimer", "observer": "observer",
     "deverrouiller": "deverrouiller", "crocheter": "crocheter",
     "frapper": "frapper", "defoncer": "frapper", "forcer": "frapper",
@@ -385,6 +388,10 @@ def analyser(monde, texte):
         return proposition("aller", texte)
     if texte == "attendre" or texte.startswith("attendre "):
         return attente(texte[9:])
+    if texte in ("se liberer", "me liberer", "liberer"):
+        return proposition("liberer", "joueur")
+    if texte in ("se degager", "me degager", "degager"):
+        return proposition("degager")
     verbe, sep, reste = texte.partition(" ")
     if not sep or verbe not in VERBES:
         return None

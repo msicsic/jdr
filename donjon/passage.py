@@ -180,6 +180,9 @@ def laisser_passer(monde, id, passant, chemin=()):
     from .corps import conscient
     if not conscient(monde, id):
         return None, "inconscient"
+    from .corps import corps
+    if corps(monde, id).get("lie") or corps(monde, id).get("tenu_par"):
+        return None, "retenu"
     raison = raison_de_rester(monde, id) or refus_d_aider(monde, id, passant)
     if raison:
         return None, raison

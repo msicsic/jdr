@@ -63,6 +63,10 @@ def decrire(monde, id, detail=False, article="defini", technique=True):
         morceaux.append(f'en vente : {quantite(prix(monde, o), 'pièce')}')
     if o["type"] == "personnage":
         from .corps import blessure, conscient
+        if o.get("corps", {}).get("lie"):
+            morceaux.append(accorder(o, "ligoté"))
+        if o.get("corps", {}).get("tenu_par"):
+            morceaux.append(accorder(o, "retenu sur place"))
         if not conscient(monde, o["id"]):
             # Sans connaissance, il ne montre aucun signe (comme une dépouille, ``signes``).
             morceaux.append("à terre, sans connaissance")

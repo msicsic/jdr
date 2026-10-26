@@ -135,6 +135,8 @@ def a_portee(monde, id):
 def compiler(monde, e, precedent=None, justification="", origine="règles"):
     from .moteur import Plan
     verifier_etape(e)
+    from .tenir import autoriser
+    autoriser(monde, "joueur", e["operation"])
     if e["operation"] == "passer_obstacle":
         from .obstacles import compiler as compiler_passage
         return compiler_passage(monde, e, justification, origine)
