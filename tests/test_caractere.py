@@ -22,7 +22,6 @@ from donjon.operations import etape, sequence
 from donjon.moteur import Moteur
 from donjon.paroles import esprits_interlocuteurs, jet_persuasion
 from donjon.planification import planifier
-from donjon.stratege import ErreurStrategie, valider
 from tests.support import refusee, sans_evacues
 from tests.test_tensions import attendre, placer, recharger, relais
 
@@ -189,23 +188,6 @@ class ValeursTests(unittest.TestCase):
         issue, m = demande(30)
         self.assertEqual(issue, "refus")
         self.assertEqual(lire(m, "marchand")["engagements"], [])
-
-    def test_le_stratege_ne_fait_mentir_que_qui_peut_mentir(self):
-        def proposer(m, id):
-            return valider(m, id, {"decision": "plan", "besoin": "faim", "but": "tromper Gorm",
-                                   "justification": "", "etapes": [{
-                                       "operation": "dire", "cible": "marchand", "outil": "", "lieu": "",
-                                       "sujet": "reserve", "attribut": "verrouillee", "valeur": "non"}]})
-        m = relais()
-        # La scène oppose l'interdit à 100 au mensonge permis ; Ilse est désormais à 80 au Relais.
-        m.objets["ilse"]["profil"]["valeurs"]["honnetete"] = 100
-        for id in ("ilse", "brune"):
-            croire(m, id, "reserve", "verrouillee", True, "vu")
-            croire(m, id, "marchand", "lieu", "echoppe", "vu", salle="echoppe", case=None)
-        with self.assertRaisesRegex(ErreurStrategie, "il ne ment pas"):
-            proposer(m, "ilse")
-        self.assertEqual(proposer(m, "brune")["etapes"][-1]["contenu"],
-                         {"sujet": "reserve", "attribut": "verrouillee", "valeur": False})
 
     def test_le_mj_recoit_les_valeurs_de_qui_parle(self):
         m = recharger(relais())

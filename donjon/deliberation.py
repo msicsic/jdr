@@ -556,10 +556,10 @@ def _sur_place(monde, id, intention):
 
 def _passe_avant(monde, id, intention):
     """Ce qui passe avant l'attente d'être rejoint : un besoin qui presse, la parole donnée, prévenir
-    un protégé, un réflexe, une stratégie, et ce qu'il fait sur place (il y attend aussi bien).
+    un protégé, un réflexe, et ce qu'il fait sur place (il y attend aussi bien).
     La routine, aller voir un bruit, rétablir ce qui ne presse pas, l'argent lui cèdent."""
     return bool(intention) and (intention["motif"] in urgents(monde, id)
-                                or intention["motif"] in ("engagement", "alerte", "strategie", "rejoint")
+                                or intention["motif"] in ("engagement", "alerte", "rejoint")
                                 or intention["but"]["type"] == "prevenir" or _sur_place(monde, id, intention))
 
 
@@ -1697,7 +1697,6 @@ def choisir(monde, id, minute):
     from .corps import conscient
     if not conscient(monde, id):
         return
-    from . import stratege
     p = profil(monde, id)
     if not p:
         return
@@ -1726,8 +1725,6 @@ def choisir(monde, id, minute):
         if chemin(monde, id, monde.objets[id]["lieu"], intention["but"]["lieu"]) is not None:
             return  # Le réflexe déclaré garde la priorité jusqu'à son terme.
         e["intention"] = None  # Plus aucun passage qu'il croie ouvert : il ne peut accourir.
-    if intention and intention["but"]["type"] == "strategie" and intention["plan"]:
-        return  # Une stratégie choisie va à son terme, ou tombe au premier geste manqué.
     pressants = urgents(monde, id, inertie=True)
     tous = list(_candidats(monde, id))
     liste = [(besoin, methode) for besoin, methode, _, _, _ in tous]
@@ -1773,8 +1770,6 @@ def choisir(monde, id, minute):
         offre = plan_recours(monde, id, besoin, etapes)
         if offre:
             etapes = offre
-        if stratege.plan_illicite(monde, id, besoin, but, etapes, minute):
-            return
         intention = e["intention"]
         meme = bool(intention) and intention["but"] == but
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
@@ -1784,7 +1779,6 @@ def choisir(monde, id, minute):
         if not meme:
             e["patience"] = None  # Un autre but : ce qu'il attendait pour l'ancien ne compte plus.
         _classer(monde, id, pressants, liste, essais, minute)
-        stratege.occupe(monde, id)
         return
     from .pnj_propositions import plan_recours
     refusee = e["demande_refusee"]
@@ -1793,7 +1787,6 @@ def choisir(monde, id, minute):
                        "motif": refusee["besoin"], "plan": offre, "depuis": minute, "attente": 0}
                       if offre else None)
     _classer(monde, id, pressants, liste, essais, minute)
-    stratege.desoeuvre(monde, id, minute, urgents(monde, id))
 
 
 def menager_flamme(monde, id, minute):

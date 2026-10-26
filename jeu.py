@@ -93,8 +93,6 @@ def main(argv=None, interface=None):
                         help="MiMo : none désactive la réflexion (défaut) ; les autres niveaux l'activent")
     parser.add_argument("--reflexion", choices=["libre", "imposee"], default="libre",
                         help="anthropic : réflexion adaptative (défaut), ou outil imposé sans réflexion, plus rapide")
-    parser.add_argument("--stratege", action="store_true",
-                        help="Luna conseille les PNJ quand le moteur n'a pas de plan (appels plafonnés par heure de jeu)")
     parser.add_argument("--debug", action="store_true", help="autorise etat <objet> pour inspecter le monde")
     parser.add_argument("--compare-model", nargs="?", const="gpt-6-luna", metavar="MODELE",
                         help="compare en arrière-plan avec ce modèle (gpt-6-luna si omis)")
@@ -203,9 +201,6 @@ def main(argv=None, interface=None):
         mj = MJ(args.model, args.effort, connexion=connexion) if actif else None
         if mj:
             mj.reflexion = args.reflexion
-        from donjon import stratege
-        # Le stratège passe par la connexion du MJ principal, jamais par le modèle comparé.
-        stratege.activer(mj._appeler_brut if mj and args.stratege else None)
         if mj:
             mj = comparer(mj)
         if isinstance(mj, Comparateur):
@@ -315,7 +310,6 @@ def main(argv=None, interface=None):
                     if fermer:
                         fermer()
                     principal = MJ(args.model, args.effort, connexion="chatgpt")
-                    stratege.activer(principal._appeler_brut if args.stratege else None)
                     mj = comparer(principal)
                     pending = None
                     continue

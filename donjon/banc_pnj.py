@@ -1,15 +1,14 @@
 """Banc sans joueur : fait vivre les PNJ d'un scénario et imprime leur chronique.
 
     python -m donjon.banc_pnj --heures 3 --joueur chambre_cloche
-    python -m donjon.banc_pnj --heures 8 --joueur chambre_cloche --stratege --graine 7
     python -m donjon.banc_pnj --heures 8 --joueur chambre_cloche --graines 1985 7 42 2024
 
 Le joueur reste passif dans la salle choisie (par défaut, celle du départ) ; le temps
-avance par le moteur réel, cinq minutes à la fois, et l'état est vérifié à chaque pas. Sans
-``--stratege``, aucun appel à Luna. Le banc imprime le récit (``recit_pnj``) : buts, gestes,
+avance par le moteur réel, cinq minutes à la fois, et l'état est vérifié à chaque pas. Aucun
+appel à Luna. Le banc imprime le récit (``recit_pnj``) : buts, gestes,
 besoins de chaque PNJ, échanges entre eux. ``--chronique`` ajoute chaque pas : gestes,
-échanges et leur issue, décisions du stratège. ``--graines`` joue plusieurs nuits en
-parallèle (une par processus, sans stratège) et termine par leurs mesures et leur moyenne.
+échanges et leur issue. ``--graines`` joue plusieurs nuits en
+parallèle (une par processus) et termine par leurs mesures et leur moyenne.
 ``--rejeu page.html`` écrit en plus la page où rejouer la nuit ; avec ``--graines``, une page par
 graine (``page_<graine>.html``, ou ``rejeu_<graine>.html`` dans le dossier donné).
 """
@@ -208,7 +207,6 @@ def _executer(monde, minutes, recit=None, empreintes=None):
     mefiances = sum(1 for id in pnjs(monde) for x in relations.connus(monde, id) if relations.se_mefie(monde, id, x))
     relationnels = [c for c in chronique if c.get("nature") == "relation"]
     liens = [relations.envers(monde, id, x) for id in pnjs(monde) for x in relations.connus(monde, id)]
-    bilan = monde.data.get("stratege", {}).get("bilan", {})
     temoins = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
                if s["type"] == "vu_agir" and not est_contrainte(monde, s["operation"], s["objet"]) and s.get("par") != "ouie"]
     entendus = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
@@ -332,8 +330,7 @@ def _executer(monde, minutes, recit=None, empreintes=None):
                "demandes_ressource": sum(bool(re.search(r" demande à .* (s'il|si elle) a ", c["texte"])) for c in chronique),
                "vols_de_bourse": _vols_de_bourse(monde, chronique),
                # Crochetages (``ouie.nature_crochetage``) et marchés de tâches (``planification._engager``).
-               **crochetages(chronique, entendus), **marches(chronique),
-               **{"stratege_" + k: v for k, v in sorted(bilan.items())}}
+               **crochetages(chronique, entendus), **marches(chronique)}
     if active(monde):
         # La crue : minutes passées dans l'eau (PNJ × minutes), feux noyés, état de chacun à la fin.
         mesures.update(minutes_dans_l_eau=mouilles,
@@ -395,14 +392,6 @@ def _vols_de_bourse(monde, chronique):
     bourses = {k: (designer(o, debut=False), proprietaire(monde, o)) for k, o in monde.objets.items() if "pieces" in o}
     return sum(1 for c in chronique for nom, a in bourses.values()
                if c["pnj"] != a and c["texte"].endswith(" prend " + nom + "."))
-
-
-def appelant(connexion="chatgpt", modele=None, effort="medium"):
-    """Luna en stratège, par la même connexion que le MJ du jeu."""
-    from .config import charger_env
-    from .mj import MJ
-    charger_env()
-    return MJ(modele, effort, timeout=90, connexion=connexion)._appeler_brut
 
 
 def resume_diagnostic(recherches):
@@ -624,9 +613,7 @@ def main(argv=None):
     parser.add_argument("--heures", type=float, default=3)
     parser.add_argument("--joueur", help="salle où le joueur reste passif")
     parser.add_argument("--graine", type=int, default=1985)
-    parser.add_argument("--graines", type=int, nargs="+", help="plusieurs nuits en parallèle, sans stratège")
-    parser.add_argument("--stratege", action="store_true", help="Luna conseille les PNJ (appels plafonnés)")
-    parser.add_argument("--connexion", choices=("chatgpt", "api"), default="chatgpt")
+    parser.add_argument("--graines", type=int, nargs="+", help="plusieurs nuits en parallèle")
     parser.add_argument("--sortie", help="fichier JSON où écrire chronique, récit et mesures")
     parser.add_argument("--chronique", action="store_true", help="imprime aussi chaque pas")
     parser.add_argument("--rejeu", help="page HTML où rejouer la nuit (positions, regards, lumière, bruits, buts, croyances) ; "
@@ -640,8 +627,6 @@ def main(argv=None):
     args = parser.parse_args(argv)
     ceder()
     if args.graines:
-        if args.stratege:
-            parser.error("le stratège suit une nuit à la fois : --graine, pas --graines")
         resultats = nuits(args.scenario, args.graines, args.heures, args.joueur, args.chronique, args.diagnostic,
                           args.rejeu, args.depart, args.processus, args.etat, args.regler)
         for g, (texte, _, _) in zip(args.graines, resultats):
@@ -654,25 +639,20 @@ def main(argv=None):
             with open(args.sortie, "w", encoding="utf-8") as f:
                 json.dump([d for _, _, d in resultats], f, ensure_ascii=False, indent=1)
         return 0
-    from . import stratege
     from .planification import diagnostics
-    stratege.activer(appelant(args.connexion) if args.stratege else None)
-    try:
-        monde = creer(args.scenario, args.graine, args.depart)
-        if args.joueur:
-            from .geometrie import position_entree
-            monde.joueur.update(salle=args.joueur, position=list(position_entree(monde, args.joueur)))
-        appliquer_reglages(monde, args.regler)
-        appliquer_etats(monde, args.etat)
-        from .recit_pnj import Recit
-        recit = Recit(monde)
-        from contextlib import nullcontext
-        from .rejeu import Enregistreur
-        enregistreur = Enregistreur(monde) if args.rejeu else None
-        with diagnostics() as recherches, enregistreur.observer() if enregistreur else nullcontext():
-            chronique, mesures = executer(monde, int(args.heures * 60), recit)
-    finally:
-        stratege.activer(None)
+    monde = creer(args.scenario, args.graine, args.depart)
+    if args.joueur:
+        from .geometrie import position_entree
+        monde.joueur.update(salle=args.joueur, position=list(position_entree(monde, args.joueur)))
+    appliquer_reglages(monde, args.regler)
+    appliquer_etats(monde, args.etat)
+    from .recit_pnj import Recit
+    recit = Recit(monde)
+    from contextlib import nullcontext
+    from .rejeu import Enregistreur
+    enregistreur = Enregistreur(monde) if args.rejeu else None
+    with diagnostics() as recherches, enregistreur.observer() if enregistreur else nullcontext():
+        chronique, mesures = executer(monde, int(args.heures * 60), recit)
     if args.chronique:
         for c in chronique:
             print(f'[{c["minute"]:>4} min] {c["texte"]}')
@@ -695,7 +675,7 @@ def main(argv=None):
         print(texte_diagnostic(diagnostic["resume"]))
     if args.sortie:
         with open(args.sortie, "w", encoding="utf-8") as f:
-            json.dump({"graine": args.graine, "heures": args.heures, "stratege": args.stratege,
+            json.dump({"graine": args.graine, "heures": args.heures,
                        "chronique": chronique, "mesures": mesures, "recit": recit.donnees(monde, chronique),
                        "souvenirs": {id: lire(monde, id)["memoire"] for id in pnjs(monde)},
                        **({"diagnostic": diagnostic} if diagnostic else {})},
