@@ -4,6 +4,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-ceder-outil`, **non fusionnée**, lot **202** (`74a4bc4`) : céder un bien compte la capacité perdue (`biens.capacites_crues`, `valeur_bien`, ventes, marchés, contreparties ; prêt distinct). Lucien garde ses crochets (auberge 1, 239) ; Gaspard offre encore son briquet (sa lampe allumée compte comme autre flamme). Offres d'outils 36 → 19, acceptées 3 → 0, mais S/F/D en légère baisse (Relais, mine), crue sans recours 15 → 30, trois retours brefs nouveaux en crue 2024 ; **coût mine 4 h : nœuds +58 %, recherches +41 %** ; deux écarts de parcours propres à la branche dans la suite. **Mis en attente**, décision à l'utilisateur. [Rapport 202](taches/rapport-codex-202-ceder-outil.md) sur la branche ; bruts `artifacts/outil-202/`.
+
 - **Branche `codex-occasions-sur-base`, fusionnée**, lot **200**, base
   `23aba63` : reprise du lot 186 sans galettes sur les projets 184/192 actuels.
   Sept scénarios, données et tests seulement, aucun moteur/Luna. Les 30 échecs
