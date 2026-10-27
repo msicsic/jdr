@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-sol-surface`, **non fusionnée**, lot **173**, base `79594e4` :
+  `operations.compiler` résout via `deplacement_objet.destination_depot` une
+  surface nommée `sol`, perçue dans la salle courante, comme `destination: sol`.
+  Dépôt sur la case de Corvus pour déplacement, prélèvement, séquences et
+  improvisation ; murs/plafonds/sols distants ou non perçus refusés avec `attendu`.
+  Neuf ciblés verts, console/MJ simulé, antichambre/cour, monde et rendu rechargés.
+  Suite unique : **2 251 tests, 259 fichiers, 1 295,595 s**, zéro erreur/ignoré,
+  deux échecs MiMo historiques `6 != 5`. Relais 4 h × quatre graines : états
+  finaux/relevés/bilans/alertes identiques à `main` `812ebe5`, trois `fige_presse`
+  par côté ; références relues, aucune comparaison de temps. PC fixe partagé,
+  au plus deux travailleurs réduits. **Luna non validée : coffre illisible**,
+  première exécution en erreur avant réponse modèle ; commandes des deux passes
+  à reprendre dans `artifacts/sol-173/luna-a-jouer.txt`. Aucun fichier réservé
+  du lot 172 modifié ; aucune clé de signature configurée ; `main` intacte.
+  [Rapport 173](taches/rapport-codex-173-sol-surface.md) ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/sol-173/`.
+
 - Branche `codex-consignes-degraissees`, **non fusionnée**, lot **170** (L6), `b503242` : doublons retirés des consignes
   d'interprétation, **−2,7 %** (39 910 → 38 828 caractères), suite verte, empreintes identiques. Luna deux passes contre
   `cdaf371` : appels/tour 3,24 → 3,30, **s/tour 10,51 → 11,42**, **relances 14 → 19**, refus 21 → 25, replis 3 → 1 ;

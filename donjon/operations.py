@@ -174,8 +174,9 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
     op, cible, destination, outil, methode = (e[k] for k in ("operation", "cible", "destination", "outil", "methode"))
     # Référence publique relative, résolue dans l'état de chaque étape (séquences
     # et effets d'improvisation compris), jamais enregistrée comme un lieu.
-    if op in ("deplacer", "prelever") and destination == "sol":
-        destination = monde.joueur["salle"]
+    if op in ("deplacer", "prelever"):
+        from .deplacement_objet import destination_depot
+        destination = destination_depot(monde, destination)
     if op == "patienter":
         if cible or destination or outil or methode != "simple":
             raise ErreurMonde("Patienter n'a ni cible, ni outil, ni destination.",

@@ -11,7 +11,7 @@ import jeu
 from donjon.carte import carte, objets_visibles_cases
 from donjon.improvisation import proposition, issue, effet
 from donjon.mj import MJOpenAI
-from donjon.monde import Monde, ErreurMonde, nouveau_monde
+from donjon.monde import Monde, ErreurMonde, nouveau_monde, depuis_scenario, objet
 from donjon.moteur import Moteur
 from donjon.operations import sequence, etape
 from donjon.rendu import regarder
@@ -47,12 +47,44 @@ class PoserSolTests(unittest.TestCase):
         self.assertEqual(dessines[cible], (m.joueur["salle"], tuple(m.joueur["position"])))
 
     def test_torche_console_sequence_et_ancienne_destination(self):
-        for destination in ("sol", "antichambre"):
+        for destination in ("sol", "antichambre", "antichambre_sol"):
             with self.subTest(destination=destination):
                 m, texte = self.console(nouveau_monde(), sequence(
                     etape("deplacer", "torche", "joueur"), etape("deplacer", "torche", destination)))
                 self.verifier_sol(m, "torche")
                 self.assertIn("au sol", texte)
+
+    def test_surface_atelier_console_et_recharge(self):
+        m = depuis_scenario(Path(__file__).resolve().parents[1] / "donjon/scenario_atelier.json")
+        m, texte = self.console(m, sequence(etape("deplacer", "couteau", "cour_sol")))
+        self.verifier_sol(m, "couteau")
+        self.assertIn("au sol", texte)
+
+    def test_surfaces_invalides_refusees_et_recharge_inchangee(self):
+        for type_, nom, lieu, percu in (("surface", "mur", "antichambre", True),
+                ("surface", "plafond", "antichambre", True),
+                ("surface", "sol", "echoppe", True),
+                ("surface", "sol", "antichambre", False),
+                ("objet", "sol", "antichambre", True)):
+            with self.subTest(type=type_, nom=nom, lieu=lieu, percu=percu):
+                m = nouveau_monde()
+                m.objets["repere"] = objet("repere", nom, type_, lieu)
+                m = Monde(m.data)
+                avant = copy.deepcopy(m.data)
+                vue = regarder(m), carte(m)
+                visible_reelle = Monde.visible
+                with patch.object(Monde, "visible", lambda monde, id:
+                        False if id == "repere" and not percu else visible_reelle(monde, id)):
+                    with self.assertRaises(ErreurMonde) as refus:
+                        Moteur(m).preparer(sequence(etape("deplacer", "torche", "repere")))
+                self.assertIn("sol", refus.exception.attendu)
+                self.assertIn("repere", refus.exception.attendu)
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = Path(tmp) / "monde.json"
+                    m.sauver(path)
+                    recharge = Monde.charger(path)
+                self.assertEqual(recharge.data, avant)
+                self.assertEqual((regarder(recharge), carte(recharge)), vue)
 
     def test_planche_prelevee_puis_posee_console(self):
         m = test_matiere.LotTests().lot_decrit()
@@ -62,9 +94,10 @@ class PoserSolTests(unittest.TestCase):
         self.assertEqual(m.objets["planches"]["physique"]["pieces"], 1)
 
     def test_prelevement_direct_au_sol(self):
-        for destination in ("sol", "ancienne_forme"):
+        for destination in ("sol", "ancienne_forme", "surface"):
             m = test_matiere.LotTests().lot_decrit()
-            destination = "sol" if destination == "sol" else m.joueur["salle"]
+            destination = ("sol" if destination == "sol" else
+                           m.joueur["salle"] + "_sol" if destination == "surface" else m.joueur["salle"])
             m, _ = self.console(m, sequence(etape("prelever", "planches", destination)))
             self.verifier_sol(m, "planches_1")
 
@@ -73,7 +106,7 @@ class PoserSolTests(unittest.TestCase):
         moteur = Moteur(m)
         moteur.executer(moteur.preparer(sequence(etape("deplacer", "cle", "joueur"))))
         p = proposition("Laisser tomber la clé", issue("La clé tombe.",
-                        [effet("deplacer", "cle", "sol")]), cibles=["cle"], approche="manipulation")
+                        [effet("deplacer", "cle", "antichambre_sol")]), cibles=["cle"], approche="manipulation")
         m, _ = self.console(m, p)
         self.verifier_sol(m, "cle")
 
