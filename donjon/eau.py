@@ -242,43 +242,50 @@ def noyee_attendue(monde, id, salle):
     return attendue(monde, id, salle) >= NOYEE_CM
 
 
-def en_peril(monde, id):
-    """Quitter l'eau crue présente, ou la noyade attendue, sans interrompre une traversée sûre."""
-    ici = lieu(monde, id)
-    if not (active(monde) and ici in monde.data["salles"]
-            and (eau_crue(monde, id, ici) > 0 or noyee_attendue(monde, id, ici))):
-        return False
-    # Une traversée en cours ne devient pas un séjour à la minute ronde.
-    # Elle garde la main seulement si la même admissibilité prouve encore
-    # le départ avant la noyade, jusqu'au but sûr ; sinon, évacuation prioritaire.
+def peril_cru(hauteur, prevue):
+    """Le même péril pour un lieu réel, cru ou projeté, sans intention."""
+    return hauteur > 0 or prevue >= NOYEE_CM
+
+
+def en_peril(monde, id, salle=None):
+    """Péril du lieu selon les seules croyances, indépendant du plan adopté."""
+    salle = lieu(monde, id) if salle is None else salle
+    return (active(monde) and salle in monde.data["salles"]
+            and peril_cru(eau_crue(monde, id, salle), attendue(monde, id, salle)))
+
+
+def traversee_sure(monde, id, plan=None):
+    """Un déplacement en cours mène encore au sec avant la noyade.
+
+    Ce certificat de transit ne change jamais le péril du lieu. Il ne vaut
+    ni pour un séjour, ni pour une action finie exécutée dans l'eau.
+    """
     from .esprits import lire
-    esprit = lire(monde, id)
-    intention = esprit["intention"]
-    plan = intention["plan"] if intention else []
-    # Même préfixe déjà accompli que dans pnj.agir : une perception à
-    # l'arrivée peut faire choisir avant que l'exécution retire ces étapes.
-    debut = 0
-    while debut < len(plan) and plan[debut]["operation"] == "aller" and plan[debut]["lieu"] == ici:
-        debut += 1
-    plan = plan[debut:]
-    if plan and plan[0]["operation"] == "aller" and plan[0]["lieu"] != ici:
-        from .planification import Vue, depart
-        from .route_admissible import refus
-        v = Vue(monde, id)
-        e = depart(monde, id, v)
-        cible = plan[0]["lieu"]
-        route = v.route(e, cible)
-        if route is not None and refus(v, e, route, cible, depart_compris=True) is None:
-            return False
-    # Un geste fini qui peut encore aboutir n'est pas un séjour : l'interrompre
-    # devant sa cible le ferait reprendre au retour (inspection, livraison,
-    # repas…). L'attente d'une occasion, elle, ne garantit aucun achèvement.
-    from .pnj import DUREES
+    if plan is None:
+        intention = lire(monde, id)["intention"]
+        plan = intention["plan"] if intention else []
+    ici = lieu(monde, id)
+    destinations = []
+    for etape in plan:
+        if etape["operation"] != "aller":
+            break
+        destinations.append(etape["lieu"])
+    if not destinations or destinations[-1] == ici or en_peril(monde, id, destinations[-1]):
+        return False
+    from .planification import Vue, depart
+    from .route_admissible import refus
+    v = Vue(monde, id)
+    e = depart(monde, id, v)
     from .temps import MINUTE
-    if plan and esprit["patience"] is None and not noyee_attendue(monde, id, ici):
-        duree = DUREES.get(plan[0]["operation"])
-        if duree is not None and attendue(monde, id, ici, horizon=duree / MINUTE) < NOYEE_CM:
+    delai = 0
+    for cible in destinations:
+        if cible == e.salle:
+            continue
+        route = v.route(e, cible)
+        if route is None or refus(v, e, route, cible, delai=delai, depart_compris=True) is not None:
             return False
+        delai += (sum(d for _, d in route.sejours) / MINUTE if hasattr(route, "sejours") else len(route))
+        e = v.arrivee(e, cible, route)
     return True
 
 

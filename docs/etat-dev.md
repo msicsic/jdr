@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-evacuation-juge`, fusionnée**, lot **205 / 196 b**,
+  départ `71bb01d`, reprise demandée sur **`ef86cab` (204 intégré)** : péril
+  indépendant du plan, certificat de transit, repli vers moins d’eau, abri commun
+  au choix et au séjour, cible tenue jusqu’à l’accomplissement. Seul raccord
+  autorisé : `pnj._abriter` ; `_lieu_cru`/`salle_crue` intacts (autre lot).
+  Quatre états réels issus de **209** en fixtures (Aubin/Ilse/Gorm et cible d’Ilse),
+  monde/rendu rechargés et laps découpés ; **157 ciblés consolidés verts**.
+  Suite finale : **2 410 tests / 279 fichiers, 9 échecs bruts, zéro erreur** ;
+  après scènes explicitées et ciblés, restent les **deux MiMo préexistants**
+  reproduits sur la base exacte. Une seule passe par base, seconde demandée après 204.
+  Contrôle crue 1985 2 h `VERIFIER` et spatial 0,2 vert. **20 paires finales 4 h** :
+  suspects Relais **0 → 0**, mine **1 → 1**, auberge **5 → 5**, crue **27 → 9**,
+  hameau **24 → 9**, total **57 → 24**, zéro plantage/usurpation. Eau en crue
+  **13,75 → 7,5**, hameau **13,75 → 2,5 PNJ·min** en moyenne.
+  **Critères non validés** : seulement **7/12 empreintes 2 h identiques** ;
+  agenda a1 de Brune hameau 2024 réactivé/endormi huit fois, nouvelles répétitions,
+  attente urgente **27,5 → 111,25 PNJ·min** au hameau. Aucune garantie générale
+  contre les boucles ; contrat complet 196 c distinct, localisation crue non traitée.
+  Aucun Luna, deux calculs réduits au plus, commit non signé ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/evacuation-205/` ;
+  [rapport 205](taches/rapport-codex-205-evacuation-juge.md). **À revoir avant fusion.**
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Retours suspects 57 → 24 (crue 27 → 9, hameau 24 → 9), eau crue 13,75 → 7,5 et hameau 13,75 → 2,5 PNJ·min ; en contrepartie attente urgente crue 77,5 → 102,5 et hameau 27,5 → 111,25, sans recours crue 15 → 27,5, Brune hameau 2024 active/endort son agenda huit fois, Gorm 125 min sans but : à reprendre dans 196 c. Abris hors crue aussi changés (7/12 empreintes 2 h identiques).
+
 - **Branche `codex-reclamer-vol`, fusionnée**, lot **207**, base `c6c2de6` :
   recours typé `reclamer` avant la recherche de reprise, porteur/danger/présence
   crus, pas de peur ni d'inconscience crue ; demande au joueur sans remise imposée.
