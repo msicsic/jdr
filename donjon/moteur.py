@@ -538,12 +538,9 @@ class Moteur:
                 if o["ouverte"] == ouvrir:
                     raise ErreurMonde("C'est déjà " + ("ouvert." if ouvrir else "fermé."),
                                       f"{cible} est déjà {'ouvert' if ouvrir else 'fermé'} : rien à faire.")
-                if not ouvrir and o.get("bloque_par"):
-                    raise ErreurMonde("Impossible de refermer : " + designer(o) + " est calé.",
-                                      f"debloquer {cible} d'abord, éventuellement dans un composer.")
-                if not ouvrir and (o["integrite"] == 0 or o.get("detachee")):
-                    raise ErreurMonde("Impossible de refermer : le battant est brisé ou détaché.",
-                                      f"{cible} ne peut plus être fermé.")
+                if not ouvrir:
+                    from .portes import valider_fermeture
+                    valider_fermeture(m, cible)
                 plan.effets.append(("ouverture", cible, ouvrir))
         elif action == "crocheter":
             parent_id = o["lieu"] if o["type"] == "serrure" else cible

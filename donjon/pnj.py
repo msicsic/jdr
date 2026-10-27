@@ -951,6 +951,14 @@ def _executer_effet(monde, id, etape, lignes, gestes):
         _raconter(monde, id, "ouvre", c, lignes)
         _ouvert_par_soi(monde, id, cible)
     elif op == "fermer":
+        from .portes import valider_fermeture
+        from .monde import ErreurMonde
+        try:
+            valider_fermeture(monde, cible)
+        except ErreurMonde:
+            from .esprits import constater
+            constater(monde, id, cible, "essai")
+            return False
         avant, c["ouverte"] = c.get("ouverte"), False
         changer_etat(monde, id, cible, "ouverte", avant)
         _raconter(monde, id, "ferme", c, lignes)

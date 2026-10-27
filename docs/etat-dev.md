@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-amener-social-d`, non fusionnée**, lot **146 d**, base `bd11a3d` :
+  livraison partielle, correctif moteur préalable. Une fermeture de PNJ préparée
+  avant la destruction ou le dégondage du battant pouvait refermer le passage,
+  puis faire échouer la copie d'un devis sur `Passage incohérent`.
+  `portes.valider_fermeture` partage les préconditions matérielles du joueur et
+  des PNJ ; geste périmé refusé, état touché constaté, aucune fausse fermeture
+  publiée. Deux scènes crue 2024/42 reproduisent l'erreur avec la fonction de la
+  base, puis vérifient devis, monde complet et rendu après recharge ; **25 ciblés
+  verts**. Suite unique : **2 204 tests, 251 fichiers, 1 250,899 s**, deux échecs
+  MiMo historiques, zéro erreur/ignoré. **12/12 empreintes 2 h identiques** à
+  `main` `812ebe5`, Relais/mine/auberge ; références relues sans rejeu.
+  Crue 4 h × quatre graines : **4/4 états complets identiques** à `ef65e55`,
+  galerie **3/8**, eau **128,75 min**, attente urgente **60 min**, passages
+  horaires **13,25**, aucune boucle nouvelle/usurpation ni arrêt.
+  `VERIFIER` + spatial 0,2 crue fixe 42 et 2024 × 2 h : sans arrêt.
+  Deux calculs réduits au plus ; aucune clé Git de signature configurée,
+  commit non signé, branche seule poussée.
+  Le fil exact 2024/120 n'est pas reconstitué : cause capable de reproduire
+  l'erreur prouvée, unicité historique non prouvée. Sous-buts sociaux et données
+  d'évacuation non livrés, répétitions de plans non garanties. Aucun Luna ni
+  fichier MJ réservé modifié ; `main` intacte.
+  [Rapport 146 d](taches/rapport-codex-146d-amener-social.md), bruts exclusivement
+  dans `C:\Users\msics\donjon\artifacts\amener-146d\`.
+
 - **Branche `codex-amener-social`, fusionnée**, lot **146 c**, base `ef65e55` :
   livraison partielle, abandon d'`amener` pour coupure prouvée par les positions
   et hauteurs d'eau crues, même avec toutes les portes ouvertes. Cause conservée,
