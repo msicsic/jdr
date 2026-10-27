@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-localisation-crue`, non fusionnée**, lot **211**, base
+  `0b95f33` vérifiée : `monde.mobile_par_nature` distingue personnages et
+  objets transportables du décor fixe ; `_lieu_cru` ne lit plus leur position
+  réelle sans croyance. Aucun savoir initial ajouté, aucun fichier interdit ni
+  autre fonction de `deliberation.py` modifié. Trois graines réelles du 209,
+  t=753/1034, douze variantes monde/rendu rechargées ; autre PNJ/auberge,
+  savoir déclaré, fixe/mobile, porteur inconnu et temps découpé : **16 ciblés
+  verts**. Banc **20 nuits × 4 h**, références 209 relues (code identique) :
+  **57 → 48 retours** (Relais 0→4, mine 1→1, auberge 5→2, crue 27→22,
+  hameau 24→19), zéro plantage/usurpation. Les trois retours de localisation
+  d'Ilse disparaissent ; **critère aucune boucle nouvelle non validé** :
+  ronde/secours au Relais 2024, répétitions actif/sommeil de l'agenda de Brune
+  en crue 7, hausse hameau 42 (1→7) ; causalité détaillée non établie.
+  **Réserve avant intégration**, aucun élargissement aux lots 205/196 c.
+  Suite complète unique en cours ; aucun Luna, deux travailleurs réduits au
+  plus. Bruts `C:/Users/msics/donjon/artifacts/localisation-211/` ;
+  [rapport 211](taches/rapport-codex-211-localisation-crue.md).
+
 - **Lot 209, diagnostic seul**, `codex-retours-restants`, base `78ba505` : 57 retours reproduits (Relais 0, mine 1, auberge 5, crue 27, hameau 24), inventaire exhaustif attribué ; 25 évacuations à 205, 7 arbitrages d'abri à 205/196 c, 21 secours/rondes à examiner par le contrat complet de 196 c ; hors des deux : 3 localisations réelles lues sans croyance et une livraison interrompue par sa propre remise sous clé, deux petits lots proposés. Cas 208 rejoués : Ilse conserve la faim connue de Brune, Aubin perd le péril dès l'adoption du plan. Douze nuits réinstrumentées identiques, 35 captures monde/rendu rechargées ; aucun jeu modifié, aucun Luna, un calcul réduit à la fois ; bruts `C:/Users/msics/donjon/artifacts/retours-209/`, [rapport 209](taches/rapport-codex-209-retours-restants.md). Aucune garantie générale ni baisse future certifiée.
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 57 retours attribués : eau 25 et cibles d'abri 7 (lot 205, abri aussi 196 c), secours/rondes 21 (196 c), localisation crue d'un personnage lue sur sa position réelle 3 (lot à créer), restauration d'une charge suspendue 1 (lot à créer).
 
