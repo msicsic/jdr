@@ -52,6 +52,8 @@ def _but(monde, but):
     if t == "agenda":
         if "pieces" in but:
             return f"obtenir {but['pieces']} pièces"
+        if "objet" in but:
+            return "récupérer " + _objet(monde, but["objet"])
         return "informer " + court(monde, but["qui"])
     if t in ("fuir", "riposter", "proteger", "reddition"):
         return {"fuir": "fuir ", "riposter": "riposter contre ", "proteger": "protéger ",
