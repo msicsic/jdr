@@ -135,7 +135,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   base intacte (deux tests, 1,57 s). Un processus réduit, aucun Luna.
   Aucune clé Git de signature configurée : commit non signé, branche poussée.
   [Rapport du lot 139](taches/rapport-codex-139-crue-hameau.md).
-  Fusionné sur l'intégration après les lots 132 à 138 et 140 : seul conflit de documentation ; `banc_pnj.py` touché aussi par le lot 136 (épreuves `enferme`), fusionné sans conflit textuel. Accord de fusion : la porte du scénario dérivé recopiait `lieu: antichambre`, refusé depuis le lot 137 ; ramenée à `crypte` comme dans les autres scénarios. Suite complète relancée.
+  Fusionné sur l'intégration après les lots 132 à 138 et 140 : seul conflit de documentation ; `banc_pnj.py` touché aussi par le lot 136 (épreuves `enferme`), fusionné sans conflit textuel. Accord de fusion : la porte du scénario dérivé recopiait `lieu: antichambre`, refusé depuis le lot 137 ; ramenée à `crypte` comme dans les autres scénarios. Suite complète relancée une fois sur l'ensemble des fusions 139, 140 et 142 à 145 (`tools/tests.py --processus 2`, `2d504ae`) : **2 149 tests, 16 ignorés**, verte (2 316,8 s).
 
 - Branche `codex-captivite`, fusionnée, lot **140**, base `9aab62a`
   (lot 136 `codex-enfermer`, non fusionné : dépendance voulue) : captivité selon les
