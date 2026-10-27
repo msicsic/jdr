@@ -22,7 +22,9 @@ from tests.test_corps_blessable import passer
 
 
 def scene(cible="marchand", surprise=True):
-    m = presentes(creer("rixe", 1985, "fixe"))
+    # Isoler coups et gardes des nouvelles ventes/commissions.
+    from tests.scenarios_contractuels import creer as creer_contractuel
+    m = presentes(creer_contractuel("rixe", 1985, "fixe"))
     calme(m, "marchand", "ilse", "aubin", "brune")
     for id, pos in (("brune", (2, 5)), (cible, (3, 5))):
         placer(m, id, "antichambre", pos)

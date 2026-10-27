@@ -65,7 +65,9 @@ class MineTests(unittest.TestCase):
         # noir inquiète vont vers la lumière dont ils se souviennent, celle du bureau : le payeur,
         # dans le noir, n'y est plus seul, ou il appelle à son tour.
         from donjon.deliberation import autour
-        m = creer("mine", 3, "fixe")
+        # Épuisement du stock historique : aucun bois propre ajouté à Odon.
+        from tests.scenarios_contractuels import creer as creer_contractuel
+        m = creer_contractuel("mine", 3, "fixe")
         executer(m, 600)
         self.assertFalse(m.objets["poele"]["allume"])
         appels = {id for id in pnjs(m) if any(s["type"] == "appel" for s in lire(m, id)["memoire"])}

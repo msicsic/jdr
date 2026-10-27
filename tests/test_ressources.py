@@ -17,8 +17,8 @@ from donjon.perception import allumee, brule, substance
 from tests.test_tensions import recharger
 
 
-def nuit(scenario, graine, salle, depart="tire"):
-    m = creer(scenario, graine, depart)
+def nuit(scenario, graine, salle, depart="tire", fabrique=creer):
+    m = fabrique(scenario, graine, depart)
     m.joueur.update(salle=salle, position=list(position_entree(m, salle)))
     return m
 
@@ -40,7 +40,9 @@ class CrueTests(unittest.TestCase):
         # personne ne s'y chauffait plus et Brune avait froid près de cinq heures par nuit.
         # Gorm peut refuser Brune ; les trajets et échanges déterminent le bois
         # qu'elle obtient. Toute recharge doit consommer une ressource du monde.
-        m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 270, 90)
+        # Stock de la scène historique : pas de combustible propre supplémentaire.
+        from tests.scenarios_contractuels import creer as creer_contractuel
+        m, textes = par_blocs(nuit("crue", 7, "chambre_cloche", fabrique=creer_contractuel), 270, 90)
         # Les recours refusés changent les trajets de cette nuit : Brune ne prend
         # pas les planches et ne rallume pas le poêle. Aucun bois fictif ne le recharge.
         self.assertFalse(allumee(m.objets["poele_guet"]))
@@ -57,7 +59,7 @@ class CrueTests(unittest.TestCase):
         from tests.support import calme
         from tests.test_tensions import placer
         from donjon.esprits import croire
-        m = nuit("crue", 7, "chambre_cloche")
+        m = nuit("crue", 7, "chambre_cloche", fabrique=creer_contractuel)
         calme(m, "marchand", "brune", "ilse", "aubin")
         placer(m, "brune", "beffroi", (8, 3))
         lire(m, "brune")["besoins"]["chaleur"] = 80.0

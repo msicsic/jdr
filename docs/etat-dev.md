@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-occasions-sur-base`, non fusionnée**, lot **200**, base
+  `23aba63` : reprise du lot 186 sans galettes sur les projets 184/192 actuels.
+  Sept scénarios, données et tests seulement, aucun moteur/Luna. Les 30 échecs
+  et quatre erreurs historiques sont retrouvés ; 32 méthodes classées comme
+  changements légitimes, leurs ressources/rencontres d'auteur explicitées sans
+  relâcher les assertions. Les 54 inverses conservent exactement les données
+  de la base actuelle, projets compris (sept empreintes indépendantes).
+  **16 paires de 4 h**, référence exacte calculée une fois en cache commun :
+  S/F/D Relais **6,75/4,25/1,188 → 7,75/4/1,188**, mine
+  **13,25/4,75/1,214 → 15/5,25/1,321**, auberge inchangée
+  **6,5/2,75/0,625**, crue **17,25/6,25/1,938 → 16,75/5/1,563**.
+  Propositions/acceptées **58/15 → 71/18**, ventes **25/8 → 50/13**,
+  commissions **0/0/0 → 4/0/0**, avis/adoptions **0/0 → 4/1**, services
+  **3 → 3** ; projets de dette **12 → 12**, récupération naturelle **0 → 1**
+  (Gorm, bois du guet pris par Brune en crue 7, projet né à 152 min et atteint
+  à 228). Zéro plantage/usurpation, **24 recharges monde/rendu identiques**
+  sur la branche. Alertes : `fige_presse` **4 → 3**, répétitions **2 → 0**,
+  alternances **3 → 0**, appels nombreux **1 → 0**, noir long **1 → 1** ;
+  bascules **3 → 1**, pire passage **46 → 50/h**. Gain non uniforme, aucune
+  garantie générale contre les boucles ; compteur d'audit 199 non fusionné.
+  Suite complète unique en cours, deux travailleurs réduits au plus. Bruts
+  exclusivement `C:/Users/msics/donjon/artifacts/occasions-200/` ;
+  [rapport 200](taches/rapport-codex-200-occasions-sur-base.md).
+
 - **Diagnostic changements d'avis des PNJ**, lot **196**, branche `codex-changements-avis`, base `56ae922` : diagnostic et conception seuls (aucun fichier de `donjon/`, scénario ou test modifié, aucun Luna), détecteur générique sans effet de bord `tools/detecter_changements_avis.py` joué sur 20 nuits de 4 h (`relais`, `mine`, `auberge`, `crue`, `crue_hameau` × 1985/7/42/2024 ; 594 cycles accomplis, 272 allers-retours justifiés, **364 allers-retours non justifiés** tous prouvés boucles réelles sur `crue` 359 et `crue_hameau` 5 : 358 oscillations de Gorm sur la réserve brisée combinant `fin == "detruit"` ignorée par `gestes`/`satisfaite`, croyance `verrouillee` et bascule `"essai"`/`"vu"` dans `constater`, et auto-annulation par `retabli_par_son_plan` ; évacuations `PERIL_EAU` auto-annulées de Brune en `crue 1985` min 42 et `crue_hameau 1985` min 204 ; changements d'abri d'Ilse en `crue_hameau 2024` min 42–97), contrat d'engagement commun et découpage en lots 196a–196d dans [rapport 196](taches/rapport-codex-196-changements-avis.md), bruts dans `C:/Users/msics/donjon/artifacts/avis-196/detection-4h.json`.
 
 - **Branche `codex-occasions-asymetriques`, fusionnée**, lot **186**,

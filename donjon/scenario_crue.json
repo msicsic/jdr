@@ -771,7 +771,7 @@
           },
           "aubin": {
             "confiance": 65,
-            "affection": 20
+            "affection": 60
           }
         }
       },
@@ -1116,7 +1116,7 @@
       ],
       "id": "ilse",
       "integrite": 10,
-      "lieu": "antichambre",
+      "lieu": "chambre_cloche",
       "maniere_de_parler": "Ilse parle beaucoup, vite et avec chaleur, en posant des questions.",
       "masse": 0,
       "materiau": "",
@@ -1126,10 +1126,10 @@
       "genre": "f",
       "portrait": "Ilse est une femme ronde d'une quarantaine d'années, un châle trempé sur les épaules.",
       "position": [
-        3,
-        5
+        4,
+        8
       ],
-      "position_salle": "antichambre",
+      "position_salle": "chambre_cloche",
       "type": "personnage",
       "vigilance": 14,
       "profil": {
@@ -1207,7 +1207,7 @@
       ],
       "id": "aubin",
       "integrite": 10,
-      "lieu": "antichambre",
+      "lieu": "crypte",
       "maniere_de_parler": "Aubin parle peu, par phrases courtes, d'une voix éraillée.",
       "masse": 0,
       "materiau": "",
@@ -1216,10 +1216,10 @@
       "nom": "Aubin, vieux passeur",
       "portrait": "Aubin est un vieil homme voûté aux mains noueuses, ses bottes encore pleines d'eau.",
       "position": [
-        1,
-        5
+        2,
+        3
       ],
-      "position_salle": "antichambre",
+      "position_salle": "crypte",
       "type": "personnage",
       "vigilance": 11,
       "profil": {
@@ -1428,6 +1428,31 @@
       ],
       "prix_part": 1,
       "description_visuelle": "Quelques bûches fendues, rangées au sec contre le poêle du guet."
+    },
+    "bois_bateliere": {
+      "aliases": [
+        "bois bateliere",
+        "petit bois"
+      ],
+      "charges": 2,
+      "duree_combustion": 60,
+      "genre": "m",
+      "id": "bois_bateliere",
+      "integrite": 10,
+      "lieu": "brune",
+      "masse": 1,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "bois sec de la batelière",
+      "pluriel": true,
+      "proprietaire": "brune",
+      "type": "consommable",
+      "usages": [
+        "combustible"
+      ],
+      "prix_part": 1,
+      "description_visuelle": "Deux poignées de petit bois sec conservées pour raviver un foyer."
     }
   },
   "personnages_version": 1,
@@ -1794,27 +1819,27 @@
         },
         "ilse": {
           "lieu": {
-            "valeur": "antichambre",
+            "valeur": "chambre_cloche",
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9,
-            "salle": "antichambre",
+            "salle": "chambre_cloche",
             "case": [
-              3,
-              5
+              4,
+              8
             ]
           }
         },
         "aubin": {
           "lieu": {
-            "valeur": "antichambre",
+            "valeur": "crypte",
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9,
-            "salle": "antichambre",
+            "salle": "crypte",
             "case": [
-              1,
-              5
+              2,
+              3
             ]
           }
         },
@@ -1889,6 +1914,19 @@
               8
             ]
           }
+        },
+        "bois_bateliere": {
+          "lieu": {
+            "valeur": "brune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              7,
+              1
+            ]
+          }
         }
       },
       "memoire": [],
@@ -1954,6 +1992,13 @@
               1,
               1
             ]
+          },
+          "attitude:aubin": {
+            "valeur": "attachement",
+            "source": "devine",
+            "minute": 0,
+            "confiance": 0.9,
+            "signe": "sourit"
           }
         },
         "brasero": {
@@ -2014,6 +2059,19 @@
             "case": [
               6,
               8
+            ]
+          }
+        },
+        "bois_bateliere": {
+          "lieu": {
+            "valeur": "brune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              7,
+              1
             ]
           }
         }
@@ -2242,6 +2300,19 @@
             "case": [
               6,
               8
+            ]
+          }
+        },
+        "bois_bateliere": {
+          "lieu": {
+            "valeur": "brune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              7,
+              1
             ]
           }
         }
