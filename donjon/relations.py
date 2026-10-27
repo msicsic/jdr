@@ -16,6 +16,7 @@ MEFIANCE, CONFIANCE, RANCUNE, PEUR = 30, 60, 40, 40
 VIF = 60   # un axe qui se montre (``vive``)
 MENTEUSE = 0
 EPREUVES = {
+    "garde_ignoree": {"confiance": -10, "rancune": 10},
     "service_rendu": {"confiance": 20, "affection": 10, "rancune": -15, "dette": 20},
     "vu_agir": {"confiance": -40, "affection": -10, "rancune": 40},
     "vol_surpris": {"confiance": -40, "affection": -10, "rancune": 40},

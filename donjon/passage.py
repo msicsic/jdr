@@ -183,7 +183,8 @@ def laisser_passer(monde, id, passant, chemin=()):
     from .corps import corps
     if corps(monde, id).get("lie") or corps(monde, id).get("tenu_par"):
         return None, "retenu"
-    raison = raison_de_rester(monde, id) or refus_d_aider(monde, id, passant)
+    from .defense import garde_acces
+    raison = ("garde" if garde_acces(monde, id, passant) else None) or raison_de_rester(monde, id) or refus_d_aider(monde, id, passant)
     if raison:
         return None, raison
     case = case_d_ecart(monde, id, passant, chemin)
@@ -243,6 +244,9 @@ def demander_passage(monde, id, demandeur, lignes, chemin=(), prix=0):
     from .paroles import jet_persuasion
     if not (monde.data.get("mode_cases") and place_connue(monde, id) and place_connue(monde, demandeur)):
         return "inutile"
+    from .defense import persister
+    if persister(monde, id, demandeur):
+        return "mefiance"
     raison = raison_de_rester(monde, id)
     if raison:
         return raison
