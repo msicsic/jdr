@@ -550,6 +550,23 @@ Sans interposition disponible, le projet dort avec la cause explicite
 Aucun agenda historique ajouté. A4b reste partiel ; voir le
 [rapport 167 c](taches/rapport-codex-167c-garder-proteger.md).
 
+**Lot 175, `codex-fins-agendas`, non fusionnée : fins de garde, livraison partielle.**
+Le prérequis commun conserve une croyance `fin` datée (`detruit` ou
+`consomme`) après constat visuel ou conséquence d'un geste propre, pour le
+joueur comme pour les PNJ. La disponibilité reste dans son état historique ;
+une suppression distante du registre réel ne supprime plus le savoir et
+ne prouve aucune fin. Une réparation constatée peut démentir cette croyance.
+`garder` abandonne sur cette preuve, avec cause sauvegardée, publication à
+la sortie du choix et sans renaissance, même après réparation. Une position
+inconnue ne termine rien. Les épreuves ne déclarent des gardes qu'en tests.
+
+**Restent dans les fins de garde** : rendu au propriétaire, remis par le
+porteur, perte vue aux mains d'un autre sans permission. Cette livraison ne
+garantit donc pas tout l'invariant de fin du brief initial. **Restent pour
+A4b** : suivi à portée de voix, interposition d'un lieu et fin de `protéger`
+sur départ définitif, à décider ; aucun départ hors d'atteinte n'est inventé.
+Voir le [rapport 175](taches/rapport-codex-175-fins-agendas.md).
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des
