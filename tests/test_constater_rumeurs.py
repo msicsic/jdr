@@ -14,7 +14,7 @@ from tests.support import lier, relation
 import unittest
 from unittest.mock import patch
 
-from donjon.auberge import nouveau_auberge
+from tests.scenarios_contractuels import nouveau_auberge
 from donjon.esprits import connaitre, croire, lire, memoriser, percevoir_tous
 from donjon.geometrie import position_entree
 from donjon.perception import eclairage
@@ -48,6 +48,9 @@ class ContenantFermeTests(unittest.TestCase):
         pénombre, elle tend la main vers les vivres : elle apprend la réserve fermée et
         verrouillée, croit toujours les vivres dedans, et va chercher ses crochets."""
         m = refusee(sans_evacues(relais()))
+        # La scène du contenant fermé n'offre pas de bois propre à négocier.
+        from tests.test_entretenir import sans
+        sans(m, 'bois_bateliere')
         # Même ses outils ne convaincront pas Gorm : on vérifie ici le constat du verrou.
         from donjon import relations
         lire(m, "marchand")["relations"]["brune"] = relations._nouvelle({"confiance": 10})
@@ -442,7 +445,7 @@ class ParlerALaVoixTests(unittest.TestCase):
 
     def baraquement_noir(self, salle="baraquement"):
         from donjon.geometrie import cases
-        from donjon.mine import nouveau_mine
+        from tests.scenarios_contractuels import nouveau_mine
         m = nouveau_mine(1985, "fixe")
         installer(m)
         m = calme(m, "bram", "gaspard", "josse", "lucien", "mathe", "odon", "remy")

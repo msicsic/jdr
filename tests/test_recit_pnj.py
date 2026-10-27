@@ -68,6 +68,9 @@ class RecitTests(unittest.TestCase):
         from donjon.esprits import croire, lire, percevoir_tous
         from tests.test_tensions import placer, relais
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        # Il faut le bois d'autrui : le bois propre de la batelière est épuisé.
+        from tests.test_entretenir import sans
+        sans(m, 'bois_bateliere')
         m.objets["brasero"].update(allume=False, combustible=0)
         placer(m, "brune", "antichambre", (3, 5))
         placer(m, "marchand", "antichambre", (4, 5))

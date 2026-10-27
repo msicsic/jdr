@@ -4,6 +4,45 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-occasions-asymetriques`, fusionnée**, lot **186**,
+  base `integration 12a936d`, **variante finale sans galettes** : les nouveaux
+  lots alimentaires de Gorm/Mathe/Odile et leurs connaissances sont retirés
+  des sept scénarios. Bois propre de Brune/Odon/Joss, triangles d'affection
+  via Aubin/Josse/Mireille et observations inégales de la crue conservés.
+  Aucun `donjon/*.py`, trait, valeur, garde ou stock alimentaire historique modifié.
+  **16 paires de 4 h**, quatre scénarios × 1985/7/42/2024 ; références exactes
+  `12a936d` toutes relues en cache, seule la branche rejouée, moteur/outils
+  identiques. S/F/D moyens : Relais **3/2/0,625 → 3/2/0,625** ; mine
+  **13,5/4,5/1,286 → 13,5/4,5/1,250** ; auberge
+  **6,5/2,75/0,625 → 6,5/2,75/0,625** ; crue **10,75/5,5/1,75 → 11/5,75/2**.
+  Propositions/acceptées **18/2 → 21/2** (avec galettes : 11/0). Marchés retrouvés :
+  Odon/Mathe à 13 min, une part de bois contre le repas, outils conservés ;
+  Lucien/Anselme à 212, crochets contre besace. À 4 h : promesses **1/0 → 0/0**,
+  tâches payées **3/0/0 → 10/0/0**, commissions **0/0/0 → 1/1/1**,
+  avis/adoptions **11/2 → 3/2**, services crédités **3 → 3**, aucune dispute.
+  Zéro plantage/usurpation/violation ; `fige_presse` **5 → 4**, `noir_long`
+  **1 → 1**, deux répétitions de lectures (Josse/Rémy, mine 2024) et une
+  alternance de Gorm (crue 7). Quatre bascules isolées de chaque côté,
+  pire passage **30 → 42/h** ; aucune boucle motrice nouvelle établie.
+  Gain non uniforme : mine 1985 S **17 → 14**, compensé par les autres graines ;
+  crue 7 **13 → 8**, notamment huit avis absents. Les anciennes nuits de 12 h
+  avec galettes restent archivées, sans attribution à la variante finale.
+  **Tests ciblés : 299 dans 25 fichiers**, puis **68** dans cinq fichiers ;
+  dépendances déjà reprises : **25 méthodes**, puis **42 tests** dans quatre
+  fichiers. **Bilan consolidé vert**. Les assertions liées aux galettes sont
+  restaurées ; seules les scènes concernant bois, liens et positions gardent
+  leurs contraintes d'auteur. Sept variantes jouées cinq minutes puis rechargées
+  (état, description, besace, sons), rareté alimentaire vérifiée contre une
+  référence déclarée de 12a936d ; 54 inverses contractuels restituant la base.
+  Pas de nouvelle suite complète : aucun fichier modifié hors de ceux déjà
+  repris, conformément à la consigne. Aucun Luna ni nouveau banc de 12 h ;
+  deux travailleurs réduits au plus, `main` intacte, aucun temps comparé.
+  Complément commité localement pour la poussée du superviseur ; pas de clé
+  de signature configurée. Bruts finaux exclusivement
+  `C:/Users/msics/donjon/artifacts/occasions-186/sans-galettes/` ;
+  [rapport 186](taches/rapport-codex-186-occasions-asymetriques.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Données seulement : bois cessible, liens d'affection en triangle, observations inégales ; galettes retirées après comparaison à base identique (elles supprimaient la rareté). Base 12a936d, 16 nuits 4 h : propositions 18/2 → 21/2, une commission aboutie, avis 11/2 → 3/2 (crue 7 divergente), pire passage 30 → 42/h. Empreintes de référence modifiées.
+
 - **Branche `codex-deja-entendu`, fusionnée**, lot **191**, base
   `integration 8a10a16` : livraison **partielle, à ne pas intégrer comme garantie
   de l'invariant subjectif complet**. Le registre commun suit les paroles

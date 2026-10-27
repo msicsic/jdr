@@ -771,7 +771,7 @@
           },
           "aubin": {
             "confiance": 65,
-            "affection": 20
+            "affection": 60
           },
           "mael": {
             "confiance": 65,
@@ -1634,6 +1634,31 @@
       "maximum": 10,
       "proprietaire": "seve",
       "description_visuelle": "Un change de linge et quelques outils de métier enveloppés dans une toile."
+    },
+    "bois_bateliere": {
+      "aliases": [
+        "bois bateliere",
+        "petit bois"
+      ],
+      "charges": 2,
+      "duree_combustion": 60,
+      "genre": "m",
+      "id": "bois_bateliere",
+      "integrite": 10,
+      "lieu": "brune",
+      "masse": 1,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "bois sec de la batelière",
+      "pluriel": true,
+      "proprietaire": "brune",
+      "type": "consommable",
+      "usages": [
+        "combustible"
+      ],
+      "prix_part": 1,
+      "description_visuelle": "Deux poignées de petit bois sec conservées pour raviver un foyer."
     }
   },
   "personnages_version": 1,
@@ -2170,6 +2195,19 @@
             "repere": null,
             "montee": null
           }
+        },
+        "bois_bateliere": {
+          "lieu": {
+            "valeur": "brune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              7,
+              1
+            ]
+          }
         }
       },
       "memoire": [],
@@ -2236,6 +2274,13 @@
               1,
               1
             ]
+          },
+          "attitude:aubin": {
+            "valeur": "attachement",
+            "source": "devine",
+            "minute": 0,
+            "confiance": 0.9,
+            "signe": "sourit"
           }
         },
         "brasero": {
@@ -2296,6 +2341,19 @@
             "case": [
               6,
               8
+            ]
+          }
+        },
+        "bois_bateliere": {
+          "lieu": {
+            "valeur": "brune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              7,
+              1
             ]
           }
         }
@@ -2548,6 +2606,19 @@
             "niveau": null,
             "repere": null,
             "montee": null
+          }
+        },
+        "bois_bateliere": {
+          "lieu": {
+            "valeur": "brune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              7,
+              1
+            ]
           }
         }
       },
