@@ -39,11 +39,11 @@ class NarrationTests(unittest.TestCase):
         from donjon.narration import schema_audit
         schema = schema_audit({"salle": {}, "objet:cloche": {}}, 2)
         segments = schema["properties"]["segments"]
-        # Une entrée obligatoire par segment, sous la clé de son indice.
-        self.assertEqual(segments["required"], ["0", "1"])
-        for variante in segments["properties"]["1"]["anyOf"]:
+        self.assertEqual(segments["type"], "array")
+        for variante in segments["items"]["anyOf"]:
             sources = variante["properties"]["sources"]["items"]
-            self.assertEqual(sources["enum"], ["objet:cloche", "salle"])
+            self.assertEqual(sources, {"type": "string"})
+            self.assertEqual(variante["properties"]["indice"], {"type": "integer"})
 
     def test_rapport_par_cle_d_indice(self):
         from donjon.narration import AuditIllisible

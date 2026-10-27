@@ -186,14 +186,13 @@ def compte_bien_forme(c):
 
 
 def schema_audit(faits, nombre):
-    """Les sources citables sont exactement les clés fournies : une référence inventée
-    ou un chemin approximatif ne peut pas être produit. Une entrée obligatoire par segment,
-    sous la clé de son indice : un rapport ne peut ni sauter, ni fusionner, ni ajouter un segment."""
+    """Contrat invariant ; indices et sources sont validés par ``controler``.
+
+    Les arguments restent compatibles avec les appelants historiques. Les
+    extractions sont toujours présentes, même si leur dossier est absent.
+    """
     def ligne():
         item = copy.deepcopy(SCHEMA_AUDIT["properties"]["segments"]["items"])
-        item["properties"]["sources"]["items"] = {"type": "string", "enum": sorted(faits)}
-        del item["properties"]["indice"]
-        item["required"] = [k for k in item["required"] if k != "indice"]
         # Nature et fondement sont deux questions indépendantes : une absence
         # non prouvée reste une affirmation de nature mécanique. Le verdict
         # est déduit à la lecture, jamais demandé une seconde fois au modèle.
@@ -203,21 +202,18 @@ def schema_audit(faits, nombre):
             "description": "Nature du segment, indépendamment de son fondement mécanique ; "
                 "le moteur déduit le verdict de cette nature et de portee_mecanique."}
         item["required"].append("nature")
-        if "echanges_passes" in faits:
-            item["properties"]["rappels"] = copy.deepcopy(SCHEMA_RAPPELS)
-            item["required"].append("rappels")
-        if "comptes" in faits:
-            item["properties"]["comptes"] = copy.deepcopy(SCHEMA_COMPTES)
-            item["required"].append("comptes")
-        if "perception" in faits:
-            item["properties"]["eclairages"] = {"type": "array", "maxItems": 12,
-                "items": {"type": "string"},
-                "description": "Identifiants des sources dont le segment affirme une contribution actuelle "
-                    "à la lumière perçue ici, indépendamment du verdict. Extrais l'affirmation du texte, "
-                    "pas la liste des faits. Une parole citée n'établit pas la vérité de son contenu. "
-                    "Une source seulement vue, éteinte, supposée ou rappelée comme souvenir "
-                    "n'affirme aucune contribution actuelle : []."}
-            item["required"].append("eclairages")
+        item["properties"]["rappels"] = copy.deepcopy(SCHEMA_RAPPELS)
+        item["required"].append("rappels")
+        item["properties"]["comptes"] = copy.deepcopy(SCHEMA_COMPTES)
+        item["required"].append("comptes")
+        item["properties"]["eclairages"] = {"type": "array", "maxItems": 12,
+            "items": {"type": "string"},
+            "description": "Identifiants des sources dont le segment affirme une contribution actuelle "
+                "à la lumière perçue ici, indépendamment du verdict. Extrais l'affirmation du texte, "
+                "pas la liste des faits. Une parole citée n'établit pas la vérité de son contenu. "
+                "Une source seulement vue, éteinte, supposée ou rappelée comme souvenir "
+                "n'affirme aucune contribution actuelle : []."}
+        item["required"].append("eclairages")
         # Le motif n'intervient que dans un refus sémantique. Les champs
         # d'extraction ne portent un sens que pour les natures correspondantes.
         variantes = []
@@ -243,10 +239,9 @@ def schema_audit(faits, nombre):
                     variante["required"].remove(cle)
                 variantes.append(variante)
         return {"anyOf": variantes}
-    cles = [str(i) for i in (range(nombre) if isinstance(nombre, int) else nombre)]
     return {"type": "object", "additionalProperties": False,
-            "properties": {"segments": {"type": "object", "additionalProperties": False,
-                                        "properties": {c: ligne() for c in cles}, "required": cles}},
+            "properties": {"segments": {"type": "array", "maxItems": 24,
+                                        "items": ligne()}},
             "required": ["segments"]}
 
 
@@ -410,7 +405,7 @@ qu'un personnage lui répond ou y réagit, est contradictoire : seule l'explicat
 empêche est permise. Les champs à rendre dépendent du verdict et de la portée,
 selon le schéma : aucun motif pour un segment admis ; un motif de refus bref
 (240 caractères au plus). Ne fournis aucun champ absent de la variante choisie.
-Rends un contrôle par segment, sous la clé de son indice, sans réécrire ni redécouper les segments.
+Rends une liste de contrôles, chacun avec son indice fourni, sans réécrire ni redécouper les segments.
 """
 
 INSTRUCTIONS_AUDIT += "\n" + REGLE_DESIGNATIONS
@@ -1137,20 +1132,23 @@ def controler(texte, rapport, faits, partie="texte"):
     verdict de l'auditeur tel quel, et ce qui serait accepté."""
     passages = segments(texte)
     lignes = rapport.get("segments") if isinstance(rapport, dict) else None
+    if isinstance(lignes, list):
+        indices = [l.get("indice") if isinstance(l, dict) else None for l in lignes]
+        if (any(type(i) is not int for i in indices)
+                or indices != sorted(set(indices))):
+            raise AuditIllisible("Contrôle narratif mal formé.")
+        lignes = {str(l["indice"]): {k: v for k, v in l.items() if k != "indice"}
+                  for l in lignes}
     if isinstance(lignes, dict):
         # Refaire la preuve exacte à chaque lecture, y compris lors de la
         # sauvegarde. Aucun drapeau du MJ ne peut exempter une phrase libre.
         etablis = segments_etablis(texte, faits)
         lignes = {**lignes, **etablis}
-        # Forme demandée à l'auditeur : une entrée par segment, sous la clé de son indice.
+        # Après normalisation : une entrée par segment, sous la clé de son indice.
         if set(lignes) != {str(i) for i in range(len(passages))}:
             raise AuditIllisible("Contrôle narratif incomplet.")
         lignes = [{**lignes[str(i)], "indice": i} if isinstance(lignes[str(i)], dict) else lignes[str(i)]
                   for i in range(len(passages))]
-    elif isinstance(lignes, list) and len(lignes) == len(passages):
-        etablis = segments_etablis(texte, faits)
-        lignes = [{**etablis[str(i)], "indice": i} if str(i) in etablis else ligne
-                  for i, ligne in enumerate(lignes)]
     if (not passages or len(passages) > 24 or not isinstance(lignes, list)
             or len(lignes) != len(passages)):
         raise AuditIllisible("Contrôle narratif incomplet.")

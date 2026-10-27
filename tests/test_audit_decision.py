@@ -20,7 +20,7 @@ from tests.test_verdict_coherent import crypte
 class AuditDecisionTests(unittest.TestCase):
     def test_toutes_les_paires_du_schema_sont_coherentes(self):
         for faits in ({'salle': {}}, {'perception': {}, 'comptes': {}, 'echanges_passes': {}}):
-            variantes = schema_audit(faits, [0])['properties']['segments']['properties']['0']['anyOf']
+            variantes = schema_audit(faits, [0])['properties']['segments']['items']['anyOf']
             paires = set()
             for variante in variantes:
                 p = variante['properties']
@@ -29,10 +29,11 @@ class AuditDecisionTests(unittest.TestCase):
                     ligne = {'nature': nature, 'portee_mecanique': portee, 'sources': list(faits)}
                     for cle in variante['required']:
                         if cle not in ligne:
-                            ligne[cle] = [] if p[cle]['type'] == 'array' else ''
+                            ligne[cle] = (0 if p[cle]['type'] == 'integer' else
+                                          [] if p[cle]['type'] == 'array' else '')
                     # Le contrôleur peut refuser le texte, jamais lire une paire
                     # produite par le schéma comme deux jugements incompatibles.
-                    rapport = controler('Une assertion à contrôler.', {'segments': {'0': ligne}}, faits)
+                    rapport = controler('Une assertion à contrôler.', {'segments': [ligne]}, faits)
                     self.assertEqual(controler('Une assertion à contrôler.',
                         {'segments': rapport['segments']}, faits), rapport)
                     verdict = rapport['segments'][0]['verdict']
@@ -62,7 +63,7 @@ class AuditDecisionTests(unittest.TestCase):
             for melange in ('moteur', 'libre', 'melange'):
                 with self.subTest(defi=defi, texte=melange), tempfile.TemporaryDirectory() as tmp:
                     chemin = Path(tmp) / 'partie.json'
-                    appels, textes, originaux = [], [], []
+                    appels, textes, originaux, schemas = [], [], [], []
                     libre = 'Une odeur de pierre mouillée flotte autour de toi.'
                     def appeler(mj, instructions, entree, intention, fonction, schema):
                         appels.append((fonction, entree))
@@ -76,9 +77,11 @@ class AuditDecisionTests(unittest.TestCase):
                         self.assertEqual(fonction, 'auditer_narration')
                         self.assertEqual(list(entree['segments'].values()), [libre])
                         self.assertEqual(list(entree['segments']), ['1' if melange == 'melange' else '0'])
-                        return {'segments': {i: {'verdict': 'ambiance', 'portee_mecanique': 'aucune',
-                            'sources': [], 'entites': ['odeur de pierre'], 'comptes': [], 'eclairages': []}
-                            for i in entree['segments']}}
+                        schemas.append(copy.deepcopy(schema))
+                        return {'segments': [{'indice': int(i), 'nature': 'ambiance',
+                            'portee_mecanique': 'aucune', 'sources': [], 'entites': ['odeur de pierre'],
+                            'comptes': [], 'eclairages': [], 'rappels': []}
+                            for i in entree['segments']]}
                     with (patch.dict('os.environ', {'OPENAI_API_KEY': 'test'}),
                           patch.object(MJOpenAI, '_appeler_brut', appeler),
                           patch('builtins.input', side_effect=['mj Que vois-je ?', 'quitter']),
@@ -91,6 +94,7 @@ class AuditDecisionTests(unittest.TestCase):
                     self.assertEqual(reprise.data['narrations_mj'][-1]['texte'], textes[0])
                     self.assertEqual(reprise.objets, originaux[0])
                     if melange != 'moteur':
+                        self.assertEqual(schemas[0], schema_audit({}, [19, 23]))
                         self.assertIn(libre, str(reprise.contexte()['ambiance_etablie']))
                     self.assertEqual(regarder(recharger(reprise)), regarder(reprise))
 
@@ -117,7 +121,7 @@ class AuditDecisionTests(unittest.TestCase):
             consigner(m, {**dialogue(texte), '_audit': rapport})
 
     def test_schema_ne_demande_que_les_champs_du_verdict(self):
-        variantes = schema_audit({'salle': {}}, [2])['properties']['segments']['properties']['2']['anyOf']
+        variantes = schema_audit({'salle': {}}, [2])['properties']['segments']['items']['anyOf']
         for v in variantes:
             p = v['properties']
             verdict = p['nature']['enum'][0]

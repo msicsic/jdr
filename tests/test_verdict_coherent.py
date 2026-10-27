@@ -37,7 +37,7 @@ class VerdictCoherentTests(unittest.TestCase):
                 (crypte(), 'Gorm est face à toi.', 'Gorm me fait-il face ?', 'contradictoire')):
             with self.subTest(texte=faux):
                 avant = copy.deepcopy(m.data)
-                variantes = schema_audit({'perception': {}}, [0])['properties']['segments']['properties']['0']['anyOf']
+                variantes = schema_audit({'perception': {}}, [0])['properties']['segments']['items']['anyOf']
                 self.assertTrue(all('verdict' not in v['properties'] for v in variantes))
                 self.assertTrue(any(v['properties']['nature']['enum'] == ['mecanique']
                     and portee in v['properties']['portee_mecanique']['enum'] for v in variantes))

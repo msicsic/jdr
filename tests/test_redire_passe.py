@@ -155,7 +155,7 @@ class RedirePasseTests(unittest.TestCase):
 
     def test_schema_exige_rappels_pour_tous_les_verdicts(self):
         s = schema_audit({'echanges_passes': {}}, 1)
-        for v in s['properties']['segments']['properties']['0']['anyOf']:
+        for v in s['properties']['segments']['items']['anyOf']:
             self.assertIn('rappels', v['required'])
 
     def test_rappel_refuse_meme_sous_verdict_neutre_et_rapport_relu(self):

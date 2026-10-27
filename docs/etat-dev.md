@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-audit-invariant`, non fusionnée**, lot **162 / L2 b**, base
+  `c22541b` : audit narratif en liste avec indices entiers, sources en chaînes,
+  douze variantes et trois extractions fixes. Couverture et sources validées
+  par le lecteur, anciens rapports et verdict canonique conservés ; aucune
+  règle narrative ajoutée, seuls mots de format adaptés. Aucun `mj.py`,
+  `consignes.py`, fournisseur ou scénario modifié. **86/86 audits archivés aux
+  mêmes décisions** ; projection **50/72 variations → 0/72**, outils mutualisés
+  **22 422 → 22 107 caractères**. Deux passes Luna/sept scripts : **288 appels,
+  84 tours**, **0/76 variations** réelles, un audit illisible, deux replis,
+  zéro incident technique/recharge. Cache audit **555 776 → 826 368 jetons**,
+  aucun gain de vitesse démontré (11,13 → 11,49 s/tour). **Réserve : critère des
+  refus non déclaré atteint** ; 14 audits × cinq rejeux par version, 140 appels,
+  deux illisibles côté branche, trois pertes brutes > 1/5 (3→1, 3→0, 4→2),
+  motifs sémantiques mêlés. Aucun traitement particulier de ces exemples.
+  Suite unique : **2 214 tests, 253 fichiers, 1 899,24 s**, un travailleur réduit,
+  deux échecs MiMo historiques `6 != 5` reproduits avec le module intact de la
+  base ; zéro erreur/ignoré. **73 puis 17 ciblés, trois finaux verts** ; deux
+  scènes console, indices/sources invalides, état et rendu après recharge.
+  **4/4 empreintes Relais × 2 h identiques** à `main` `812ebe5`, références
+  relues du cache ; 14 parties Luna `cdaf371` liées au cache par SHA-256, aucun
+  rejeu de référence. Bruts externes exclusivement dans
+  `C:/Users/msics/donjon/artifacts/audit-162/`, deux exécutions Luna au plus.
+  Pas de serveur local mesuré ni nouvelle garantie sémantique ; mondes complets
+  prouvés en tests, non archivés dans les fils Luna. Aucune clé de signature,
+  commit non signé, branche seule poussée ; `main` intacte.
+  [Rapport 162](taches/rapport-codex-162-audit-invariant.md).
+
+
 - **Branche `codex-schema-invariant`, fusionnée**, lot **158 / L2**, base
   `7adc788`, code `9a0ea10`, mesure `a2147fd` : huit modes et toutes les branches
   d'interprétation toujours présents, sources en chaînes, faits à `suite` nullable.
