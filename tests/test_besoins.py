@@ -76,6 +76,9 @@ class GardeMangerTests(unittest.TestCase):
 
     def test_sous_les_yeux_du_joueur_elle_attend_puis_renonce(self):
         m = relais()
+        # Aucun repas de secours : seule la tentative sous témoin est isolée.
+        from tests.support import sans_souci
+        sans_souci(m)
         from donjon import relations
         lire(m, "marchand")["relations"]["brune"] = relations._nouvelle({"confiance": 10})
         # Placement d'auteur : le joueur s'est assis près de la réserve, sa lanterne allumée, et la regarde.
@@ -243,7 +246,15 @@ class ProfilTests(unittest.TestCase):
     def test_banc_sans_joueur(self):
         # Ce test vérifie le banc et son récit, pas le tirage d'un marché dont
         # l'évaluation peut évoluer. La demande de Brune est persuasive ici.
-        with patch("sys.stdout", io.StringIO()) as sortie, patch.object(Monde, "d20", return_value=20):
+        creer = banc_pnj.creer
+        def scene(*args, **kwargs):
+            from tests.support import sans_souci
+            # Ce récit exige la livraison de Gorm, pas un second repas
+            # demandé et livré par Ilse ou Aubin au titre d'un secours.
+            return sans_souci(creer(*args, **kwargs), "ilse", "aubin")
+        with (patch("sys.stdout", io.StringIO()) as sortie,
+              patch.object(Monde, "d20", return_value=20),
+              patch.object(banc_pnj, "creer", side_effect=scene)):
             self.assertEqual(banc_pnj.main(["--heures", "4", "--joueur", "chambre_cloche", "--chronique"]), 0)
         # Relais complet : affamée, Brune demande une part à Gorm, qui la sert et referme sa réserve ;
         # les évacués trempés se chauffent au brasero, que Gorm recharge avec son bois.

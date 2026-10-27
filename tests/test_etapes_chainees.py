@@ -85,6 +85,10 @@ def observer_capture(scenario):
     if "connaissances_joueur" in historique and not any(historique["connaissances_joueur"].values()):
         del historique["connaissances_joueur"]
     for e in historique["esprits"].values():
+        # Le contrat 213 ajoute la provenance de l'intention à la sauvegarde.
+        # Sa persistance est vérifiée dans test_contrat_engagement ; l'oracle
+        # historique conserve ici les décisions, plans, monde et vues du joueur.
+        e.pop("contrat_intention", None)
         # L'oracle antérieur au registre d'effort ne contient pas ce champ.
         # Un effort réellement retenu ne serait pas une migration vide.
         assert not e.get("attentes_bornees"), "La capture historique a changé de décisions"
