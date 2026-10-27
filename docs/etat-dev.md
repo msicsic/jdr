@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-rappel-ordre`, non fusionnée**, lot **156**, base `7cc0d16` :
+  dossier `narration.echanges_passes` trié, ordre chronologique et antériorité
+  explicites par rapport à la réponse non encore prononcée, révision courante.
+  Cause N7 confirmée dans le fil `cdaf371` p2 : extraction établie mais portée
+  contradictoire par inversion 2/5. **14 ciblés verts**, deux rappels rapportés,
+  faux rappels refusés, état et texte rechargés. Luna une passe des trois scripts :
+  **55 appels / 13 tours MJ**, aucun repli/erreur technique/recharge. `soir-noir`
+  **4,80 appels/tour**, `soir-voix` **4,50**, `noms-dialogue` **3,25** ; références
+  `cdaf371` relues sans rejeu, `soir-voix` absent du cache.
+  **N7 reste ouvert** : au n°5, le rappel du nom n'est plus rejeté pour l'ordre,
+  mais une décision actuelle est extraite à tort comme un passé jamais dit ;
+  sept appels et rappel retiré. Pas de garantie sémantique générale.
+  **4/4 empreintes Relais 2 h identiques** à `7cc0d16`, état complet, chronique,
+  mesures ; références absentes calculées une fois, rangées sans rejeu.
+  Suite complète unique : **2 179 tests, 246 fichiers, 1 273,205 s**, deux échecs
+  MiMo historiques `6 != 5`, zéro erreur/ignoré. Aucun fichier réservé ni `main`
+  modifié. Aucune clé de signature configurée : commit non signé, branche poussée.
+  [Rapport 156](taches/rapport-codex-156-rappel-ordre.md), bruts
+  `artifacts/rappel-156/`. Deux calculs réduits au plus, Luna avant la suite.
+
 - **Branche `codex-agendas-amener-b`, fusionnée**, lot **146 b**, base
   `b5a23bb`, code `36e1b33` puis `268e190` : complément prioritaire du lot 148,
   pureté de l'évaluation des candidats. Registre temporaire, transitions et

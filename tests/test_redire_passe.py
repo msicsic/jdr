@@ -18,6 +18,43 @@ def controle(qui, mots, rappel=None):
 
 
 class RedirePasseTests(unittest.TestCase):
+    def test_rappels_rapportes_apres_recharge_et_ordre_explicite(self):
+        from tests.test_parole_commune import scene
+        scenes = [(self.dire(banc('soir-noir'), 'personne', 'Qui est là ?',
+                            'Je suis Ilse.', ('qui', '', '', '')),
+                   'voix_1', 'Je suis Ilse.', 'Je t’ai déjà dit que je suis Ilse.'),
+                  (scene(), 'aubin', 'La lune est verte.',
+                   'Je t’ai dit que la lune est verte.')]
+        for m, qui, ancien, rappel in scenes:
+            with self.subTest(qui=qui):
+                if qui == 'aubin':
+                    m.data.setdefault('paroles_pnj', []).append(dict(locuteur=qui,
+                        texte=ancien, auditeurs=['joueur'], revision=m.data['revision'],
+                        minute=m.data['minutes'], salle=m.joueur['salle']))
+                m = recharger(m)
+                avant = copy.deepcopy(m.data)
+                mots = 'Aubin, et alors ?' if qui == 'aubin' else 'Et alors ?'
+                r, sortie, appels = jouer(m, '« ' + mots + ' »', [
+                    parole(mots, ('propos', '', '', ''), personnage=qui),
+                    dialogue(('Aubin' if qui == 'aubin' else 'Une voix') + ' répond : « ' + rappel + ' »')],
+                    [controle(qui, rappel, 'etablie')])
+                self.assertIn(rappel, sortie)
+                dossier = narration(appels)['faits']['echanges_passes'][qui]
+                self.assertEqual(dossier[0]['texte'], ancien)
+                self.assertEqual(dossier[0]['ordre_chronologique'], 1)
+                self.assertEqual(dossier[0]['anteriorite']['statut'],
+                                 'deja_prononcee_et_entendue_par_Corvus')
+                self.assertEqual(dossier[0]['anteriorite']['par_rapport_a'],
+                                 'reponse_en_cours_non_encore_prononcee')
+                recharge = recharger(r)
+                self.assertEqual(recharge.data, r.data)
+                self.assertEqual(recharge.data['paroles_pnj'][-1]['texte'], rappel)
+                self.assertIn(rappel, recharge.data['conversation'][-1]['reponse'])
+                self.assertEqual(recharge.data['jets'], avant['jets'])
+                for identifiant, objet in avant['objets'].items():
+                    for champ in ('salle', 'position', 'porteur', 'portions'):
+                        self.assertEqual(recharge.objets[identifiant].get(champ), objet.get(champ))
+
     def test_audit_exact_de_la_partie_archivee(self):
         d = json.loads((Path(__file__).parent / 'data/redire-passe-112.json').read_text(encoding='utf-8'))
         # Le rapport ancien reste lisible : c'est précisément le défaut reproduit.
@@ -102,6 +139,19 @@ class RedirePasseTests(unittest.TestCase):
         self.assertEqual([p['texte'] for p in faits['voix_1']], ['C’est Ilse.'])
         self.assertNotIn('auditeurs', str(faits))
         self.assertNotIn('Secret', str(faits))
+
+    def test_ordre_croissant_et_parole_de_la_revision_courante_deja_entendue(self):
+        m = banc('soir-noir')
+        m.data['revision'] = 5
+        m.data['paroles_pnj'] = [dict(locuteur='ilse', texte=texte,
+            auditeurs=['joueur'], revision=revision, minute=0, salle='beffroi')
+            for texte, revision in [('Seconde.', 5), ('Première.', 2)]]
+        avant = copy.deepcopy(m.data)
+        paroles = echanges_passes(recharger(m), {'ilse': {'nom': 'Une voix'}})['ilse']
+        self.assertEqual([p['texte'] for p in paroles], ['Première.', 'Seconde.'])
+        self.assertEqual([p['ordre_chronologique'] for p in paroles], [1, 2])
+        self.assertTrue(all(p['anteriorite']['revision_courante'] == 5 for p in paroles))
+        self.assertEqual(m.data, avant)
 
     def test_schema_exige_rappels_pour_tous_les_verdicts(self):
         s = schema_audit({'echanges_passes': {}}, 1)
