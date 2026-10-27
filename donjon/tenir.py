@@ -362,8 +362,8 @@ def secours(monde, auteur, lignes):
         from .defense import degager
         degager(monde, auteur, lignes)
         return 20
-    proteges = monde.objets[auteur].get("profil", {}).get("protege", ())
-    for cible in proteges:
+    from .deliberation import proteges
+    for cible in proteges(monde, auteur):
         if not corps.vivant(monde, cible) or not percoit(monde, auteur, cible):
             continue
         if not corps.corps(monde, cible).get("lie"):

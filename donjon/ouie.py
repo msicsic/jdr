@@ -677,7 +677,8 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     # Un seul souvenir du bruit par cri (et une seule inquiétude) : la suite ne le retient pas de nouveau.
     retenu = False
     if n == "cri" and niveau >= SEUIL and reconnaitre(monde, id, auteur)[1] == RECONNUE:
-        if auteur in (o.get("profil") or {}).get("protege", ()):
+        from .deliberation import proteges
+        if auteur in proteges(monde, id):
             _bruit_inconnu(monde, id, salle, n, niveau, auteur, case if salle == o["lieu"] else None)
             retenu = True
             from .esprits import memoriser, reconsiderer
