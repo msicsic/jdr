@@ -4,6 +4,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-audit-invariant`, **non fusionnée**, lot **162** (L2 b, schéma d'audit narratif invariant), `fd90d59` :
+  schéma invariant atteint (**50/72 → 0/76** variations), contrôles déterministes identiques sur les 86 audits archivés,
+  suite verte hors MiMo. **Refusée à la relecture** : critère de conservation des refus du lot 95 non atteint (trois audits
+  perdent plus d'un refus sur cinq : pierre non perçue 3→1, approbation accompagnant une parole 3→0, conduite/éclairage 4→2),
+  relances **13 → 22**, audits refusés **14 → 23**, replis **0 → 2**, un illisible ; **11,13 → 11,49 s/tour**. La forme du
+  rapport (liste indexée au lieu de clés) change le comportement de Luna. À reprendre autrement ou abandonner : décision à
+  l'utilisateur. [Rapport 162](taches/rapport-codex-162-audit-invariant.md) sur la branche ; bruts `artifacts/audit-162/`.
+
 - **Branche `codex-amener-social-e`, fusionnée**, lot **146 e**, base `116be91` :
   sous-buts sociaux d'amener livrés : parole dans le graphe, avis de menace,
   demande `confier`, refus motivé, sommeil/réessai sur croyance nouvelle,
