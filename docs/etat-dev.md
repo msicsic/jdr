@@ -4,6 +4,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-relances-168`, **non fusionnée**, lot **168**, `841f5d1` : attribution des relances de la vérification
+  Luna 227c496 (lot 165), **24 → 41** sur 64 parties communes : comptes omis ou engagement mal lu **10**, rappels hors avis
+  (silences actuels pris pour des rappels absents) **6**, avis désormais typés et relus **4** (légitime, lot 164), mesures
+  résolues **3**, gestes **2**, lumière **2**, perception/savoir/sources/voix d'auteur **14**. Correction partielle de la
+  famille des comptes (examen obligatoire de chaque compte dû/rendu) : refus de comptes **42/55 → 20/55** au rejeu, mais
+  huit audits perdent plus d'un refus sur cinq : **critère du lot 95 non atteint, non fusionnée**. Même famille que les
+  lots 117 b/117 c (`codex-comptes-recit-c`, en attente) : **décision groupée à l'utilisateur** sur le contrôle des comptes du
+  récit. [Rapport 168](taches/rapport-codex-168-relances.md) sur la branche ; bruts `artifacts/relances-168/` (`attribution.json`).
+
 - **Vérification Luna 227c496**, lot **165**, branche
   `codex-verif-luna-227c496` : aucun code changé, deux passes des 34 scripts,
   **68 parties / 184 tours MJ / 590 appels**, trois processus réduits au plus,
