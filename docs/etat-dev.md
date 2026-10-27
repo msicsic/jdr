@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-avis-saisie`, non fusionnée**, lot **164**, base `5bf8840` :
+  définition commune d'`avis` clarifiée : annonce d'une menace future, même
+  certaine et sans échéance ; horizon de calcul distinct du sens de la parole.
+  Aucun effet moteur ni fichier réservé aux lots 161/163 modifié. Douze tests
+  d'avis et neuf voisins verts ; trois saisies réelles, réception/faits dits,
+  parole ordinaire et refus de lieu inconnu, monde et rendu rechargés.
+  Luna : **6/6 avis**, référence `cdaf371` **3/6** exclusivement relue ;
+  quatre parties, **54 → 65 appels / 14 tours MJ**, un repli narratif sur
+  l'achat accepté de `soir-appel`, zéro erreur technique ou de recharge.
+  Suite complète unique : **2 224 tests, 254 fichiers, 2 270,737 s**, zéro
+  erreur/ignoré, deux échecs MiMo historiques `6 != 5` ; aucune seconde suite.
+  Un worker réduit pour cohabiter avec 163 ; vérification au-delà du créneau.
+  Le typage libre reste sémantique : carte entièrement fausse et raccourci
+  des mots exacts encore possibles ; aucune garantie exhaustive annoncée.
+  Aucune clé de signature configurée ; livraison non signée, branche seule
+  poussée, `main` intacte.
+  [Rapport 164](taches/rapport-codex-164-avis-saisie.md) ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/avis-164/`.
+
 - Branche `codex-audit-invariant`, **non fusionnée**, lot **162** (L2 b, schéma d'audit narratif invariant), `fd90d59` :
   schéma invariant atteint (**50/72 → 0/76** variations), contrôles déterministes identiques sur les 86 audits archivés,
   suite verte hors MiMo. **Refusée à la relecture** : critère de conservation des refus du lot 95 non atteint (trois audits
