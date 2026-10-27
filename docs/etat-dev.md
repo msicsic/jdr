@@ -1,16 +1,28 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-27.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
 ## Où on en est
 
 - **Branche `codex-service-non-defait`, non fusionnée**, lot **224**, base `a22f92e`
-  vérifiée : résultat promis conservé après clôture dans `biens`, filtre commun
+  vérifiée, puis 213 intégré (`bd45f65`, fusion `0192bb3`) : résultat promis
+  conservé après clôture dans `biens`, filtre commun
   des gestes qui le défont (trajets compris) et économie de flamme, engagements
   ouverts compris. Besoin approché par le lieu cru du bénéficiaire, sans délai
   ni lecture de ses buts privés, sans obligation d'entretien. Cas réel 217
-  repris à l'instant 4584, monde/rendu rechargés et laps découpé contrôlés ;
-  vérifications finales en cours. Bruts `C:/Users/msics/donjon/artifacts/service-224/` ;
+  repris à l'instant 4584, monde/rendu rechargés et laps découpé contrôlés.
+  **20 paires 4 h contre `bd45f65` : critère du compteur brut non atteint,
+  états payés perdus 6 → 6** ; quatre extinctions précoces évitées au Relais,
+  pertes ensuite relevées à l'épuisement naturel ; les deux du hameau restent
+  permises selon le lieu cru. Autres classes globalement stables/en baisse :
+  suspects 5 → 5, à expliquer 61 → 56, dérives 196 → 193 ; zéro plantage/usurpation.
+  Coût mine inchangé : 567 recherches / 8 383 nœuds. **Six nouveaux tests verts ;
+  suite unique achevée après fusion : 2 459 tests / 285 fichiers, 2 314,709 s,
+  deux MiMo préexistants reproduits sur `bd45f65`, zéro erreur**. Passe avant 213
+  interrompue sur instruction ; aucune seconde suite achevée. Aucun Luna,
+  deux travailleurs réduits au plus, aucune clé de signature. Limites : présence
+  crue comme approximation du besoin, anciennes clôtures sans trace non reconstruites.
+  Bruts `C:/Users/msics/donjon/artifacts/service-224/` ;
   [rapport 224](taches/rapport-codex-224-service-non-defait.md).
 
 - **Branche `codex-contrat-engagement`, fusionnée**, lot **213 / 196 c** :
