@@ -34,7 +34,7 @@ def auberge():
 
 
 class PieceDeLotTests(unittest.TestCase):
-    def achat(self, m, qui, lot, mots, contenu, mauvais=None):
+    def achat(self, m, qui, lot, mots, contenu, mauvais=None, source_invalide=False):
         m = recharger(m)
         or_avant, nombre = m.joueur["or"], m.objets[lot]["charges"]
         piece = id_piece(m, lot)
@@ -45,6 +45,11 @@ class PieceDeLotTests(unittest.TestCase):
         p = parole(mots, ("demande", lot, "", str(prix)), personnage=qui)
         p["proposition"]["contenu"] = [contenu]
         propositions = [p]
+        if source_invalide:
+            import copy
+            faux = copy.deepcopy(p)
+            faux["proposition"]["contenu"][0]["contrepartie"]["objet"] = lot
+            propositions.insert(0, faux)
         revues = [{"conforme": True, "motif": "Même bien et une seule part."}]
         if mauvais:
             faux = parole(mots, ("demande", mauvais, "", str(prix)), personnage=qui)
@@ -75,6 +80,32 @@ class PieceDeLotTests(unittest.TestCase):
         self.assertIn(r.objets[piece]["nom"], fiche(r))
         self.assertEqual(lire(r, qui)["engagements"], [])
         return r, dossiers
+
+    def test_source_pieces_corrigee_sans_perdre_achat(self):
+        from donjon.echanges import enqueter
+        for m, qui, lot, prix, mots in (
+                (presentes(antichambre_du_banc(), "aubin"), "aubin", "planches", 3,
+                 "je paie Aubin trois pièces pour une de ses planches"),
+                (auberge(), "joss", "fagots_etable", 1,
+                 "Je t'achète une bûche de chauffage pour une pièce.")):
+            with self.subTest(vendeur=qui):
+                enqueter(m, "joueur", qui, "bois")
+                contenu = {"type": "proposition", "demande": {"type": "part", "objet": lot},
+                           "contrepartie": {"type": "pieces", "montant": prix}}
+                from donjon.propositions import verifier
+                from donjon.monde import ErreurMonde
+                import copy
+                faux = copy.deepcopy(contenu)
+                faux["contrepartie"]["objet"] = lot
+                avant = copy.deepcopy(m.data)
+                with self.assertRaises(ErreurMonde) as refus:
+                    verifier(m, faux)
+                self.assertIn("contrepartie.objet", refus.exception.attendu)
+                self.assertIn(repr(lot), refus.exception.attendu)
+                self.assertIn("retirer", refus.exception.attendu)
+                self.assertIn(repr(contenu["contrepartie"]), refus.exception.attendu)
+                self.assertEqual(m.data, avant)
+                self.achat(m, qui, lot, mots, contenu, source_invalide=True)
 
     def test_planche_singuliere_marche_reel_et_demande(self):
         for type_ in ("proposition", "demande"):

@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-achat-corrige`, fusionnée**, lot **159**, base `7adc788` :
+  contrat commun de `pieces.objet` précisé dans `propositions.py` : source
+  facultative des pièces, jamais bien acheté ; refus inchangé avec champ,
+  valeur et correction exacte conservant le montant. Aucun retrait automatique,
+  aucune consigne ni assemblage de requête changé. **Cinq ciblés verts**,
+  achats planche/Aubin et bûche/Joss corrigés, payés, livrés puis état et fiche
+  vérifiés après recharge ; source invalide refusée sans mutation.
+  Luna une passe soir-appel/ressources/noms-dialogue : **43 → 45 appels / 11 tours**,
+  **3,91 → 4,09 appels/tour**, achat exécuté et `planches_1` portée après recharge,
+  aucun refus moteur/contre-revue, repli, arrêt technique ou défaut de recharge.
+  Référence p1 `cdaf371` relue dans les archives copiées, empreintes du manifeste
+  conformes ; cache d'origine absent. Premier lanceur de référence interrompu
+  sans partie achevée ; branche jouée une seule fois. Correction historique
+  prouvée par simulation, pas réémise naturellement par Luna ; aucune garantie
+  de toute saisie libre ni gain de vitesse. Suite complète unique : **2 199 tests,
+  249 fichiers, 16 ignorés, zéro erreur, 3 844,17 s**, un travailleur réduit,
+  vérification au-delà du créneau. Trois échecs bruts : deux sous-tests de
+  référence figée actualisés après comparaison des scènes à la base intacte,
+  **neuf tests repris verts** ; un échec de `test_mesure_prompt` (clé de cache
+  sans `:interpreter`) reproduit sur `7adc788`, laissé hors périmètre.
+  Pas de clé de signature Git ; commit non signé, branche seule poussée.
+  [Rapport 159](taches/rapport-codex-159-achat-corrige.md).
+  Fusionné sur l'intégration : conflits de documentation et de la référence figée `prompt-prefixe-avant.json`, supprimée par l'intégration (le test du lot 150 compare désormais le code courant avec et sans l'ordre des sources ; `tools/mesure_prompt.py` porte déjà la clé par voie) ; aucun fichier de code commun depuis la base.
+
 - **Branche `codex-amener-social`, fusionnée**, lot **146 c**, base `ef65e55` :
   livraison partielle, abandon d'`amener` pour coupure prouvée par les positions
   et hauteurs d'eau crues, même avec toutes les portes ouvertes. Cause conservée,

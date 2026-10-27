@@ -120,6 +120,15 @@ référence pour la saisie et la résolution des contenus. Aucun singulier ni no
 de pièce n'est inventé à partir d'un nom collectif. Les recherches gardent leurs
 contrôles de connaissance, de perception et d'ambiguïté.
 
+**Source des pièces** (lot 159). Dans un terme `pieces`, `objet` est facultatif
+et désigne exclusivement le contenant source des pièces, jamais le bien acheté.
+Sans ce champ, le paiement prend les fonds du donneur selon les règles communes.
+Le schéma décrit ce sens ; un contenant invalide reste refusé, avec le chemin,
+la valeur reçue et l'alternative exacte sans `objet`, au même montant. Aucun
+champ n'est effacé automatiquement et aucune transaction refusée n'est exécutée.
+La correction par Luna reste sémantique : le contrat ne garantit pas sa réussite
+pour toute saisie libre.
+
 Avant la contre-revue de fidélité, `paroles.sens_contenu` décrit les biens d'une
 demande ou d'un marché : référence publique, nom du lot, désignations connues,
 quantité et unité (`part` ou `objet`). Une demande simple d'une ressource comptée
