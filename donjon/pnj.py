@@ -1646,6 +1646,30 @@ def compter_attente(monde, id, t, continuer=False):
     e["patience"] = t if continuer and e["intention"] else None
 
 
+def refus_etape(monde, id, etapes):
+    """Admissibilité du prochain geste, au choix comme juste avant l'exécution.
+
+    Le contrôle porte sur l'eau crue et les routes déjà contrôlées par la
+    marche. Un but sec ne certifie pas un préparatif local dans un péril.
+    Aucun effet, aucune observation supplémentaire de la réalité.
+    """
+    from .eau import active, en_peril, menacee
+    if not active(monde):
+        return None
+    ici = monde.objets[id]["lieu"]
+    tete = next((x for x in etapes if x["operation"] != "aller" or x["lieu"] != ici), None)
+    if tete is None or tete["operation"] != "aller":
+        return "séjour en péril d'eau" if en_peril(monde, id) else None
+    if any(menacee(monde, id, s) for s in monde.data["salles"]):
+        from .planification import Vue, depart
+        from .temps import PAS_FEUTRE
+        v = Vue(monde, id)
+        allure = PAS_FEUTRE if any(x["condition"] in ("sans_temoin", "dans_le_dos") for x in etapes) else PAS
+        if v.route(depart(monde, id, v).apres(allure=allure), tete["lieu"]) is None:
+            return v.refus_routes.get(tete["lieu"], "route crue inaccessible")
+    return None
+
+
 def agir(monde, id, t, lignes, gestes=None, compter=True):
     """Le geste qui commence à l'instant ``t`` (en dixièmes de seconde) selon l'intention
     courante ; renvoie (durée, issue, étape manquée) : l'issue dit s'il agit (``GESTE``), attend
@@ -1679,6 +1703,8 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         return reste, FIN, None
     etape = etapes[0]
     operation = etape["operation"]
+    if refus_etape(monde, id, etapes) is not None:
+        return reste, MANQUE, etape
     if e["manque"] and e["manque"]["minute"] == monde.data["minutes"] and e["manque"]["etape"] == _geste(etape):
         # Un geste manqué ne se retente pas aussitôt : pas avant la minute suivante, même si un
         # événement l'a fait reconsidérer entre-temps.

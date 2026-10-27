@@ -34,6 +34,47 @@ def hameau():
 
 
 class EvacuationTests(unittest.TestCase):
+    def test_capture_213_hameau_42_ne_repropose_pas_un_preparatif_dans_l_eau(self):
+        source = Path(__file__).parent / 'data/engagement-213-hameau-42-peril.json.gz'
+        m = recharger(Monde(json.loads(gzip.decompress(source.read_bytes()))))
+        self.assertEqual(m.objets['brune']['lieu'], 'crypte')
+        self.assertTrue(eau.en_peril(m, 'brune'))
+        deliberation.choisir(m, 'brune', m.data['minutes'])
+        i = lire(m, 'brune')['intention']
+        self.assertIsNotNone(i)
+        self.assertEqual(i['but']['type'], 'abri')
+        self.assertEqual(i['plan'][0]['operation'], 'aller')
+        self.assertIsNone(pnj.refus_etape(m, 'brune', i['plan']))
+        from donjon import agendas
+        self.assertEqual(agendas.contrat_intention(m, 'brune')['palier'], deliberation.Palier.PERIL_EAU)
+        a = self.meme_suite(m, 3)
+        self.assertFalse(eau.en_peril(a, 'brune'))
+        self.assertNotEqual(a.objets['brune']['lieu'], 'crypte')
+
+    def test_meme_refus_du_preparatif_au_palier_absolu_et_a_l_execution(self):
+        m = sejour('ilse')
+        plan = [planification._etape('prendre', 'vivres'),
+                planification._etape('aller', lieu='chambre_cloche')]
+        but = {'type': 'abri', 'lieu': 'chambre_cloche'}
+        candidat = deliberation.Candidat(
+            'securite', lambda m, i: (but, plan), False, True,
+            deliberation.Urgence(deliberation.Palier.PERIL_EAU, 0, ()))
+        self.assertIsNotNone(pnj.refus_etape(m, 'ilse', plan))
+        with patch.object(deliberation, '_candidats', return_value=[candidat]):
+            deliberation.choisir(m, 'ilse', m.data['minutes'])
+        self.assertIsNone(lire(m, 'ilse')['intention'])
+        lire(m, 'ilse')['intention'] = {'but': but, 'motif': 'securite', 'plan': plan,
+                                      'depuis': m.data['minutes'], 'attente': 0}
+        m = recharger(m)
+        avant = dict(m.objets['vivres'])
+        _, issue, etape = pnj.agir(m, 'ilse', m.data['minutes'] * MINUTE, [])
+        self.assertEqual(issue, pnj.MANQUE)
+        self.assertEqual(etape, plan[0])
+        self.assertEqual(m.objets['vivres'], avant)
+        n = recharger(m)
+        self.assertEqual(m.data, n.data)
+        self.assertEqual(regarder(m), regarder(n))
+
     def meme_suite(self, m, duree=5):
         a, b = recharger(m), recharger(m)
         passer(a, duree * MINUTE)

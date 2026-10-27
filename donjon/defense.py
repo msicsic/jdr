@@ -322,11 +322,14 @@ def se_rendre(monde, id, autre, lignes):
 
 def protection(monde, id):
     """Un protégé agressé vu, ou un cri reconnu : le lieu est celui qu'on a appris."""
-    from .deliberation import profil, salle_crue, proteges
-    p = profil(monde, id) or {}
+    from .deliberation import salle_crue, proteges
     e = lire(monde, id)
-    for protege in proteges(monde, id):
-        connus = auteurs(monde, id, protege)
+    # Le joueur n'a pas de profil autonome ; ses appels reconnus sont déjà
+    # consignés dans la même mémoire, sans lui inventer de responsabilité.
+    responsables = proteges(monde, id) if id != "joueur" else list(dict.fromkeys(
+        s["qui"] for s in e["memoire"] if s["type"] == "secours"))
+    for protege in responsables:
+        connus = auteurs(monde, id, protege) if id != "joueur" else []
         salle = salle_crue(monde, id, protege)
         actifs = [a for a in connus if salle and salle_crue(monde, id, a) == salle
                   and etat_cru(monde, id, a).get("conscient") is not False

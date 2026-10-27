@@ -1,4 +1,4 @@
-"""Rejeu du fil lot 102, sans réinterpréter les réponses enregistrées."""
+"""Rejeu du fil 102 : mots inchangés, localisation:false ajouté au format 221."""
 import copy
 import json
 from pathlib import Path

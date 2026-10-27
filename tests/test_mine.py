@@ -68,6 +68,15 @@ class MineTests(unittest.TestCase):
         # Épuisement du stock historique : aucun bois propre ajouté à Odon.
         from tests.scenarios_contractuels import creer as creer_contractuel
         m = creer_contractuel("mine", 3, "fixe")
+        # Le don de combustible est un fait de cette scène d'épuisement,
+        # pas un marché dont l'issue dépend des autres engagements de Gaspard.
+        # Les charges restent entières : Josse doit réellement les brûler.
+        from donjon.deplacement_objet import deplacer
+        from donjon.esprits import croire
+        m.objets['bois_gaspard']['proprietaire'] = 'josse'
+        deplacer(m, 'bois_gaspard', 'josse')
+        croire(m, 'josse', 'bois_gaspard', 'lieu', 'josse', 'vu', salle=None, case=None)
+        croire(m, 'josse', 'bois_gaspard', 'etat', {'disponible': True}, 'vu')
         # Une recharge tardive peut rallumer le poêle avant 600 min. Observer
         # son extinction réelle, puis justifier tout rallumage par du combustible.
         poele_eteint = False

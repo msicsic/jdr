@@ -26,6 +26,10 @@ class FlammeNecessaireTests(unittest.TestCase):
         with gzip.open(Path(__file__).parent / 'data/amener-1985-avant-allumer.json.gz',
                        'rt', encoding='utf8') as f:
             m = self.recharge(Monde(json.load(f)))
+        # On isole la lumière nécessaire au propre plan de Brune : aucun
+        # repas de secours livré par un tiers ne vient achever ce plan.
+        from tests.support import sans_souci
+        sans_souci(m, 'marchand', 'ilse', 'aubin')
         chronique, _ = executer(m, 240)
         m = self.recharge(m)
         allumages = [c for c in chronique if c['pnj'] == 'brune'
