@@ -4,23 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-sait-observations`, non fusionnée**, reprise **206 b**,
-  intégration demandée **`3aa16f7`**, fusion `12cb925`, code **`410e1b9`**.
-  Nouveauté et utilité jugées sur le seul locuteur : besoin corporel observé,
-  moyen employable dans le lieu cru, tâche/rendez-vous convenus ; les mesures
-  successives d'eau ne rouvrent la parole qu'au changement de conséquence
-  (état de passage, noyade, décrue), portée persistée dans `faits_dits`.
-  Environnement acquis ensemble reconnu même hors du champ directionnel ;
-  aucune transmission silencieuse par les rotations géométriques du joueur.
-  Geste public distinct du jugement sur le lésé, grief de portage distinct de
-  la simple position. Aucun savoir privé d'auditeur relu ; `_abriter` et
-  `deliberation.py` non modifiés. Six nouveaux contrôles verts ; recours et
-  53 contrôles d'observation/découpage verts sans réancrage. Prémisses d'utilité
-  explicitées dans les scènes avec accord du superviseur, assertions conservées.
-  Avis crue 2024 et deux empreintes historiques encore en échec ciblé.
-  **Validation finale en cours** : suite unique 284 fichiers et vingt paires
-  4 h contre `3aa16f7`, compteur 219 actif ; un travailleur réduit par commande,
-  deux calculs au plus, aucun Luna. Bruts `C:/Users/msics/donjon/artifacts/sait-206/`.
+- **Branche `codex-sait-observations`, non fusionnée**, reprise **206 b**.
+  Nouvelle intégration demandée **`d7dbf1a`** (213/223/221), fusion `1048fa7`,
+  code de validation **`8121fcc`**. Les deux suivis sont conservés dans
+  `esprits.croire` : observations communes et réponses de localisation 221.
+  Nouveauté utile jugée par le seul locuteur : corps observé, moyen utilisable,
+  projets encore crus actifs et rendez-vous convenus. Mesures d'eau regroupées
+  par conséquences ; sens d'évolution partagé seulement à partir de mesures
+  communes, direction inconnue distincte ; annonce explicite hausse/baisse.
+  Les rotations silencieuses du joueur ne transmettent aucun savoir aux PNJ.
+  Huit nouveaux tests de ce contrat ; aucun accès privé au savoir de l'auditeur.
+  Accès aux engagements actifs par `agendas.en_cours`, sans modifier le module.
+  Après fusion : **63/65 ciblés verts** ; réponses 221 et secours 223 verts.
+  Témoin exact `d7dbf1a` : **8/8 contrôles courts verts** ; branche : quatre
+  écarts sur douze contrôles (remboursement, secours mine 42, abri, trempe).
+  Nouvelle suite unique et vingt paires 4 h contre `d7dbf1a` en cours,
+  classes 219, deux travailleurs réduits au plus ; aucun Luna.
+  L'oracle historique de l'auberge reste inchangé et rouge, décision du
+  superviseur ; projection limitée aux preuves refusée, différences de paroles.
+  Les résultats précédents `3aa16f7` restent des diagnostics, pas la validation
+  de cette fusion. Bruts `C:/Users/msics/donjon/artifacts/sait-206/` ;
   [Rapport 206](taches/rapport-codex-206-sait-observations.md).
 
 - Branche `codex-ou-est-il`, fusionnée, lot **221**, départ `4fe33ef` :
