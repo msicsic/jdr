@@ -32,7 +32,7 @@ class AmenerRouteTests(unittest.TestCase):
             self.assertEqual(m.data, avant)
             self.assertEqual(rendu(m), visible)
             a = agendas.projets(m, "marchand")[0]
-            self.assertEqual(a["etat"], "abandonne" if destination != "echoppe" else "sommeil")
+            self.assertEqual(a["etat"], "abandonne" if destination != "echoppe" else "actif")
             if destination != "echoppe":
                 self.assertEqual(a["raison"], "route crue coupee")
                 for salle in m.data["salles"]:

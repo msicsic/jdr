@@ -1263,6 +1263,10 @@ def retenir_abandon(monde, id, engagement, raison=None):
     autre, condition = engagement["pour"], engagement["condition"]
     if autre == "joueur":
         return
+    aides = esprit(monde, autre)["aides_attendues"]
+    aide = aides.get(condition["objet"])
+    if aide and aide["qui"] == id and aide["condition"] == condition:
+        del aides[condition["objet"]]
     paye = engagement.get("paye") or {}
     # Une part à remettre a été promise sous le nom de son lot (``_remettre_part``).
     objet = engagement.get("objet") or engagement.get("lot") or paye.get("objet") or condition["objet"]

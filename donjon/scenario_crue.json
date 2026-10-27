@@ -676,11 +676,11 @@
         "traits": "Bourru, honnête, protecteur des évacués, méfiant envers qui l'a trompé ; lent à faire confiance, lent à la retirer. Il entretient le feu de l'échoppe pour les évacués trempés, avec le bois qu'il a mis de côté. Il ne quitte pas le relais tant que des évacués y sont attendus.",
         "agendas": [
           {
-            "id": "prevenir_crue",
-            "sorte": "informer",
+              "id": "evacuer_crue",
+              "sorte": "amener",
             "parametres": {
               "qui": ["ilse", "brune"],
-              "avis": {"type": "avis", "objet": "antichambre", "attribut": "menace", "valeur": true}
+                "lieu": "chambre_cloche"
             }
           }
         ],

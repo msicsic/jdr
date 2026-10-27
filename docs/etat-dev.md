@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-amener-social-e`, non fusionnée**, lot **146 e**, base `116be91` :
+  sous-buts sociaux d'amener livrés : parole dans le graphe, avis de menace,
+  demande `confier`, refus motivé, sommeil/réessai sur croyance nouvelle,
+  accompagnement propre et attente sans navettes. Abandon reçu : aide attendue
+  correspondante invalidée ; régression prouvée sur deux scènes avec la base.
+  Gorm reçoit l'évacuation d'Ilse et Brune à la galerie. Scènes collectives
+  2024/42 éclairées, route ouverte : Ilse puis Brune, atteint, état et rendu
+  rechargés, laps continu/découpé identiques. Suite unique : **2 212 tests,
+  252 fichiers, 1 084,053 s**, zéro erreur/ignoré, sept échecs : deux MiMo
+  historiques et cinq assertions de scènes eau/services/marchés désormais
+  perturbées par l'évacuation ; scènes isolées, assertions conservées,
+  **49 tests repris verts**, aucune seconde suite. VERIFIER + spatial
+  0,2 : crue fixe 42/2024 × 2 h sans arrêt, monde et rendu rechargés identiques.
+  Douze empreintes Relais/mine/auberge identiques ; quatre crues sans arrêt
+  ni usurpation, atteint sur 7/42 ; galerie finale **3/8 → 2/8**, eau
+  **128,75 → 92,5 min**, passages horaires **13,25 → 15,5**. Deux répétitions
+  de torche sur 1985 : critère d'absence de boucle non acquis. Refus sociaux
+  1985/2024 respectés, aucune évacuation universelle revendiquée. Préférence
+  générale, seule portée vocale, réveil relationnel et coopération aux portes
+  restent limités. Pas de Luna, fichier MJ réservé ni `main` modifiés.
+  Deux calculs réduits au plus ; aucune clé de signature Git configurée,
+  livraison non signée, branche seule poussée.
+  [Rapport 146 e](taches/rapport-codex-146e-amener-social.md) ; bruts exclusivement
+  `C:\Users\msics\donjon\artifacts\amener-146e\`.
+
 - **Branche `codex-amener-social-d`, fusionnée**, lot **146 d**, base `bd11a3d` :
   livraison partielle, correctif moteur préalable. Une fermeture de PNJ préparée
   avant la destruction ou le dégondage du battant pouvait refermer le passage,

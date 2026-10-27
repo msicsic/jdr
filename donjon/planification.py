@@ -50,7 +50,7 @@ PALIER = 1.5           # refusé pour un prix trop bas, il offre ce prix et moit
 HABILE = 0.5           # chance de réussir à partir de laquelle il attend un crochetage discret (``bruit_crochetage``)
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
-TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi", "ranime")
+TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi", "ranime", "parle")
 # Ce qui compte sur un tiers ; un devis exclut la délégation du travail.
 TIERS = ("demander", "acheter", "engager", "demander_feu", "confier")
 # Usages que les gestes savent employer : un objet n'est pris que s'il peut servir à l'un d'eux.
@@ -1327,6 +1327,13 @@ def gestes(v, e, vises=None, but=None):
     # qu'il ne croit pas verrouillées ou que le plan a déverrouillées.
     for s, longueur in v.allers(e, v.ouvertes(e)):
         yield 0, longueur, [_etape("aller", lieu=s)], e.apres(salle=s)
+    # Le terminal établit seulement une prise de parole possible, jamais
+    # l'accord ni le déplacement de l'auditeur. L'approche et son coût passent
+    # par la même mesure que les autres échanges ; l'exécution valide l'ouïe.
+    for etape in vises.get("parole", ()):
+        qui = etape["cible"]
+        if v.salle(e, qui) == e.salle and not e.fait("parle", qui):
+            yield 0, 1, [etape], e.apres(faits=[(("parle", qui), True)])
     # Les gestes de défense sont offerts seulement aux buts qui les emploient.
     yield from _gestes_defense(v, e, vises)
     agissables, a_porter = v.agissables(vises)

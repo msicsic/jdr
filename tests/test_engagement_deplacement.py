@@ -16,8 +16,8 @@ from tests.test_social import placer
 from tests.test_tensions import recharger
 
 
-def scene(cible="ilse", destination="chambre_cloche"):
-    m = presentes(nouvelle_crue(1985, depart="fixe"))
+def scene(cible="ilse", destination="chambre_cloche", graine=1985):
+    m = presentes(nouvelle_crue(graine, depart="fixe"))
     installer(m)
     calme(m, "marchand", "aubin", "ilse", "brune")
     for qui, case in (("marchand", [2, 4]), (cible, [3, 4])):

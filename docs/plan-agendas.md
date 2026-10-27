@@ -475,6 +475,22 @@ Les sous-buts sociaux, les refus/réveils et la déclaration d'évacuation reste
 à livrer ; aucun succès collectif vers la galerie n'est revendiqué.
 Voir le [rapport 146 d](taches/rapport-codex-146d-amener-social.md).
 
+**Lot 146 e, `codex-amener-social-e`, non fusionnée : sous-buts sociaux livrés.**
+`amener` emploie la parole dans le graphe, le `confier` commun, ses refus retenus,
+la marche propre du porteur, puis l'attente et le constat local des arrivées.
+Proximité crue, départage spatial local, avis de menace non répété, sommeil et
+réessai sur croyance nouvelle ; publication différée conservée. Une annonce
+d'abandon invalide l'aide attendue correspondante dans le contrat commun.
+Gorm reçoit l'objectif d'amener Ilse et Brune à la galerie. Les scènes sociales
+éclairées et à route ouverte réussissent après recharge et avec laps découpé.
+**Crue globale partielle** : deux agendas atteints sur quatre graines, galerie
+à 4 h 3/8 → 2/8, refus persistants et deux répétitions de torche sur 1985.
+Pas de maintien imposé après arrivée. Préférence générale entre lieux, véritable
+terminal de seule portée vocale (approche actuelle au contact), réveil relationnel
+et coopération générale aux passages restent à faire. Aucun succès universel
+ni absence générale de boucle revendiqués. Voir le
+[rapport 146 e](taches/rapport-codex-146e-amener-social.md).
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des

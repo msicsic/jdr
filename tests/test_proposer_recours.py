@@ -18,6 +18,8 @@ from tests.test_tensions import placer, recharger
 
 def scene(confiance=10, autre="marchand", garde=False):
     m = presentes(nouvelle_crue(depart="fixe"))
+    # Scène de marché : isoler les recours du projet autonome d'évacuation.
+    m.objets["marchand"]["profil"]["agendas"] = []
     installer(m)
     calme(m, "brune", "marchand", "ilse", "aubin")
     m.joueur.update(salle="antichambre", position=[6, 4], orientation="est")
