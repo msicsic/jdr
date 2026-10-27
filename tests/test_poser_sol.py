@@ -1,5 +1,7 @@
 """Le sol public est relatif à Corvus ; l'état conserve un lieu physique."""
 import io
+import copy
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -83,4 +85,51 @@ class PoserSolTests(unittest.TestCase):
         self.assertIn("sol", refus.exception.attendu)
         self.assertIn("echoppe", refus.exception.attendu)
         self.assertEqual(m.data, avant)
+
+    def test_dossier_de_contre_revue_decrit_le_depot_sans_salle_destination(self):
+        from donjon.couverture_action import entree
+
+        cas = []
+        for destination in ("sol", "antichambre"):
+            m = nouveau_monde()
+            Moteur(m).executer(Moteur(m).preparer(sequence(etape("deplacer", "torche", "joueur"))))
+            cas.append((m, sequence(etape("deplacer", "torche", destination))))
+        m = test_matiere.LotTests().lot_decrit()
+        cas.extend((m.copier(), p) for p in (
+            sequence(etape("prelever", "planches", "sol")),
+            sequence(etape("prelever", "planches", "joueur"), etape("deplacer", "planches_1", "sol"))))
+        m = nouveau_monde()
+        Moteur(m).executer(Moteur(m).preparer(sequence(etape("deplacer", "cle", "joueur"))))
+        cas.append((m, proposition("Jongler", issue("La clé tombe.", [effet("deplacer", "cle", "sol")]),
+            issue("La clé tombe.", [effet("deplacer", "cle", "sol")]), cibles=["cle"],
+            approche="adresse", stat="DEX", difficulte=12)))
+
+        def verifier_plan(plan):
+            for effets in (plan["effets_reussite"], plan["effets_echec"]):
+                for op, cible, destination in effets:
+                    if op == "transferer" and isinstance(destination, dict):
+                        self.assertEqual(destination, {"destination": "sol", "position": "à tes pieds"})
+                        self.assertIn("au sol, à tes pieds", plan["titre"] + plan["information"])
+            for enfant in plan["etapes"]:
+                verifier_plan(enfant)
+
+        for m, p in cas:
+            with self.subTest(proposition=p):
+                plan = Moteur(m).preparer(p)
+                avant = copy.deepcopy((m.data, plan))
+                dossier = entree("je pose au sol", plan, m)
+                verifier_plan(dossier["plan"])
+                self.assertIn('"destination": "sol"', json.dumps(dossier["plan"], ensure_ascii=False))
+                self.assertNotIn('"' + m.joueur["salle"] + '"', json.dumps(dossier["plan"], ensure_ascii=False))
+                self.assertEqual(m.data, avant[0])
+                self.assertEqual(plan, avant[1])
+
+    def test_repere_du_depot_compile_ne_depend_pas_de_la_salle_initiale_du_dossier(self):
+        from donjon.deplacement_objet import presenter_effet
+        m = nouveau_monde()
+        # Le dépôt a été validé dans une autre étape de la séquence : le dossier
+        # peut être construit avant son franchissement, ou relu après son retour.
+        self.assertNotEqual(m.joueur["salle"], "echoppe")
+        self.assertEqual(presenter_effet(m, ("transferer", "torche", "echoppe")),
+                         ["transferer", "torche", {"destination": "sol", "position": "à tes pieds"}])
 

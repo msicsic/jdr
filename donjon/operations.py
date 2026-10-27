@@ -325,6 +325,9 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                 # Séparer au sol pose la nouvelle pièce à nos pieds, comme tout dépôt.
                 p.effets.append(("transferer", piece_id, destination))
             p.titre = "Prélever " + designer(avec_piece.objets[piece_id], "indefini") + "."
+            if destination == monde.joueur["salle"]:
+                from .deplacement_objet import decrire_depot
+                p.information = decrire_depot(avec_piece, piece_id)
             return p
         p = compiler(avec_piece, etape("deplacer", piece_id, destination or "joueur", methode=methode),
                      precedent, justification, origine)
@@ -405,6 +408,10 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         p.titre = ("Prendre " + designer(o) + "." if destination == "joueur" else
                    "Déplacer " + designer(o) + (" au sol." if destination == monde.joueur["salle"] else
                                                 " dans " + designer(monde.objets[destination]) + "."))
+        if destination == monde.joueur["salle"]:
+            from .deplacement_objet import decrire_depot, SOL_AUX_PIEDS
+            p.titre = decrire_depot(monde, cible)
+            p.information = "Destination : " + SOL_AUX_PIEDS + "."
         if destination == "joueur" and o.get("longueur_cm", 0) >= 100:
             p.titre = "Prendre et porter " + designer(o) + "."
         if precedent and precedent["operation"] == "detacher" and precedent["cible"] == cible:
