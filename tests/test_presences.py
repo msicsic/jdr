@@ -8,7 +8,7 @@ import unittest
 
 from tests.support import calme, presentes
 from donjon.defi import nouveau_defi
-from donjon.esprits import esprit, pnjs
+from donjon.esprits import croire, esprit, pnjs
 from donjon.francais import designer, sujet
 from donjon.geometrie import placer
 from donjon.monde import Monde
@@ -43,6 +43,10 @@ def scene(salle, case, regard, depart, position, vers):
     for n, id in enumerate(("brune", "ilse", "aubin")):
         m.objets[id]["lieu"] = "chambre_cloche"
         placer(m.objets[id], "chambre_cloche", [1 + n, 12])
+        # Gorm sait les autres à la galerie ; le test impose son passage,
+        # sans recherche d'une personne dont la position serait inconnue.
+        croire(m, "marchand", id, "lieu", "chambre_cloche", "savoir",
+               salle="chambre_cloche", case=[1 + n, 12])
     m.objets["marchand"]["lieu"] = depart
     placer(m.objets["marchand"], depart, position)
     esprit(m, "marchand")["intention"] = {"but": {"type": "rejoindre", "lieu": vers}, "motif": "alerte",

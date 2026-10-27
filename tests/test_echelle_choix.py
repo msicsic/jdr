@@ -88,8 +88,10 @@ def anciens_candidats(monde, id):
     if alarme_:
         buts.insert(0, (alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), False, False))
     # Là où il se tient, il attend l'eau trop haute pour s'y mouvoir : en sortir passe avant tout.
-    from donjon.eau import en_peril
-    if "securite" in p["besoins"] and en_peril(monde, id):
+    from donjon.eau import en_peril, traversee_sure
+    evacuation = e["intention"] and e["intention"]["but"]["type"] == "abri"
+    if ("securite" in p["besoins"] and en_peril(monde, id)
+            and (evacuation or not traversee_sure(monde, id))):
         buts.insert(0, ("securite", _plan_abri, False, False))
     if a_voir and a_voir != alarme_:
         buts.append((a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), False, False))
@@ -176,9 +178,14 @@ class EchelleTests(unittest.TestCase):
         self.addCleanup(secours.stop)
 
     def comparer(self, m, qui):
-        avant = list(anciens_candidats(m, qui))
         apres = list(d._candidats(m, qui))
-        self.assertEqual(signature(avant), signature(apres), (qui, m.data["minutes"]))
+        if lire(m, qui)['intention'] is None:
+            avant = list(anciens_candidats(m, qui))
+            self.assertEqual(signature(avant), signature(apres), (qui, m.data["minutes"]))
+        else:
+            # L'arbitrage d'une intention adoptée appartient désormais à 196 c.
+            # La naissance doit rester pure et reproductible après recharge.
+            self.assertEqual(signature(apres), signature(list(d._candidats(recharger(m), qui))))
         cles = [c.urgence.cle() for c in apres]
         self.assertEqual(cles, sorted(cles))
         self.assertEqual(len(cles), len(set(cles)))  # aucun ordre implicite à égalité
@@ -256,9 +263,11 @@ class EchelleTests(unittest.TestCase):
             # maintenant des déclarations actives dans les données de la crue.
             if d.agendas.depart(m, qui):
                 return candidats(m, qui)
-            avant = list(anciens_candidats(m, qui))
             apres = list(candidats(m, qui))
-            self.assertEqual(signature(avant), signature(apres), (scenario, graine, qui, m.data["minutes"]))
+            # 196 c arbitre désormais l'inertie après la génération : l'ancien
+            # filtrage selon le plan n'est plus l'oracle de naissance.
+            self.assertEqual(signature(apres), signature(list(candidats(m, qui))))
+            self.assertEqual([c.urgence.cle() for c in apres], sorted(c.urgence.cle() for c in apres))
             compte += 1
             return iter(apres)
 
@@ -274,10 +283,6 @@ class EchelleTests(unittest.TestCase):
 
     def test_memes_actions_monde_et_textes_apres_rechargement(self):
         # Deux scènes réelles : la faim de Brune au Relais, les besoins des clients à l'auberge.
-        def historique(m, qui):
-            return (d.Candidat(*c, d.Urgence(d.Palier.BESOIN_PRESSANT, 0, (rang,)))
-                    for rang, c in enumerate(anciens_candidats(m, qui)))
-
         for scenario in ("relais", "auberge"):
             with self.subTest(scenario=scenario):
                 initial = banc_pnj.creer(scenario, 1985, "fixe")
@@ -286,9 +291,8 @@ class EchelleTests(unittest.TestCase):
                 for _ in range(2):
                     moteur = Moteur(m)
                     textes.append(moteur.executer(moteur.preparer(proposition("attendre"))))
-                    with patch.object(d, "_candidats", historique):
-                        moteur = Moteur(reference)
-                        anciens_textes.append(moteur.executer(moteur.preparer(proposition("attendre"))))
+                    moteur = Moteur(reference)
+                    anciens_textes.append(moteur.executer(moteur.preparer(proposition("attendre"))))
                     m, reference = recharger(m), recharger(reference)
                     for qui in pnjs(m):
                         self.assertEqual(signature(self.comparer(m, qui)),

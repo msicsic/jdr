@@ -454,6 +454,10 @@ class PartTests(unittest.TestCase):
         # Même refus, mais elle a huit pièces : elle paie le prix dit (2), que Gorm accepte
         # sans se faire prier, et il la sert.
         m = self.affamee("ilse")
+        # Seul l'achat de sa propre part est en jeu ; Aubin ne finance pas
+        # en parallèle une part destinée à secourir un tiers.
+        from tests.support import sans_souci
+        sans_souci(m)
         self.assertEqual((m.data["finances_pnj"]["ilse"], m.data["finances_pnj"]["marchand"]), (8, 50))
         m, _ = vivre(m, 20, jet=1)
         textes = chronique(m)

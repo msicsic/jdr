@@ -649,6 +649,9 @@ class Vue:
     def refuse(self, autre, o):
         """Il ne le lui redemande pas : un refus qui tient, demandé ou à vendre ; sauf faute d'argent
         pour l'acheter, ce qui n'empêche pas de le demander."""
+        from .biens import restitution_retenue
+        if restitution_retenue(self.monde, self.id, autre, o):
+            return True
         refus = self.retenu(autre, ("demander", "acheter"), o)
         return refus if refus and refus["raison"] != "pauvre" else None
 
@@ -1408,14 +1411,18 @@ def gestes(v, e, vises=None, but=None):
             if not v.refuse(porteur, o):
                 yield (0, 1 + DEMANDE / v.chances_demandes[porteur], [_etape("demander", porteur, outil=o)],
                        e.apres(portes=e.portes | {o}, faits=permis), 1)
-            # L'acheter à son propriétaire, s'il a un prix et qu'il peut le payer.
+            # Acheter au propriétaire ou racheter son propre bien au détenteur.
             prix = objets[o].get("prix")
-            if (prix and v.proprietaire[o] == porteur and v.piece and not v.refuse_achat(porteur, o)
+            if (prix and porteur != "joueur" and v.proprietaire[o] in (porteur, id)
+                    and v.piece and not v.refuse_achat(porteur, o)
                     and v.richesse - (e.fait("depense") or 0) >= prix):
-                yield (0, 1 + DEMANDE + v.depense(prix),
-                       [_etape("acheter", porteur, outil=o, contenu={"prix": prix})],
-                       e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("achete", o), True),
-                                                             (("depense",), (e.fait("depense") or 0) + prix)]), 1)
+                from .pnj_propositions import offre_refusee
+                if not v._memo(("achat_refuse", porteur, o, prix), lambda: offre_refusee(
+                        monde, id, porteur, o, {"type": "pieces", "montant": prix})):
+                    yield (0, 1 + DEMANDE + v.depense(prix),
+                           [_etape("acheter", porteur, outil=o, contenu={"prix": prix})],
+                           e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("achete", o), True),
+                                                                 (("depense",), (e.fait("depense") or 0) + prix)]), 1)
         # Une violence ne sert que sur le porteur d’un moyen pertinent.
         # Son coût se compare à demander ; aucun ordre de recours imposé.
         if (utile and porteur and porteur not in (id, "joueur") and v.violence(porteur) is not None and v.autorise[o]
@@ -1968,6 +1975,8 @@ def _entrees_communes(v):
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
         [[o, v.leses_bris[o]] for o in v.connus if v.brise_illicite[o]],
         v.richesse, v.piece,
+        [[o, bool(v.refuse(retour["a"], o))] for o, retour in
+         monde.data.get("restitutions", {}).get(id, {}).items() if o in monde.objets],
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
@@ -3239,11 +3248,10 @@ def abri(monde, id, salles):
     Quitter qui l'inquiète n'est pas un gain là où il garde un bien que cette présence menace
     (``deliberation.menaces``) : s'en aller, c'est le lui laisser, et cet éloignement lui coûte
     (``prix_gardes``) comme à tout plan."""
-    from .deliberation import menaces, taux
+    from .deliberation import abri_valide, menaces, taux
     v = vue(monde, id)
     e = depart(monde, id, v)
-    from .defense import lieux_dangereux
-    salles = [s for s in salles if s not in lieux_dangereux(monde, id)]
+    salles = [s for s in salles if abri_valide(monde, id, s)]
     ici = [x for x in v.connus + ["joueur"] if x != id and (x == "joueur" or v.objets[x]["type"] == "personnage")
            and v.salle(e, x) == e.salle]
     fuir = any(v.se_mefie(x) for x in ici) and e.salle not in menaces(monde, id)

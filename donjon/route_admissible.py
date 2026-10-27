@@ -47,6 +47,17 @@ def refus(v, e, route, arrivee, passage=False, delai=0, certain=False, depart_co
                                                for s in traverses)):
                 return f"{v.objets[porte]['nom']} : ouverture incertaine et retour coupé par l'eau"
             deja.add(porte)
+    if not passage:
+        crue, _, _ = v.eau_route[arrivee]
+        prevue = attendue(v, arrivee, temps + eau.HORIZON)
+        source = attendue(v, e.salle, temps + eau.HORIZON)
+        source_crue = v.eau_route[e.salle][0]
+        # Quitter un péril pour moins d'eau reste un mouvement de secours.
+        # Choisir contrôle séparément le séjour des recours ordinaires ;
+        # le certificat de transit exige toujours une destination hors péril.
+        amelioration = eau.peril_cru(source_crue, source) and prevue < source
+        if eau.peril_cru(crue, prevue) and not amelioration:
+            return f"{v.salles[arrivee]['nom']} : séjour en péril d'eau"
     if not passage and v.descente(e.salle, arrivee, v.arrivee(e, arrivee, route)):
         return f"{v.salles[arrivee]['nom']} : séjour ou retour menacé par l'eau"
     return None

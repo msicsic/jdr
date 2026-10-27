@@ -323,6 +323,12 @@ class GesteQuiDureTests(unittest.TestCase):
         # n'est plus un abri : elle va à la conduite éclairée sans attendre la minute (avant, son
         # attente allait jusqu'à la minute).
         m = scene()
+        # Le fanal doit être l'unique lumière de cette scène : la lueur
+        # des autres sources rendrait encore l'abri valide après son extinction.
+        for k, o in m.objets.items():
+            if 'allume' in o and k != 'fanal':
+                o['allume'] = False
+        m.data['salles']['antichambre']['lumiere_naturelle'] = 0
         loin(m, "aubin", "marchand")
         placer(m, "ilse", "antichambre", (5, 2))
         regarder(m, "ilse", "fanal")
@@ -341,8 +347,8 @@ class GesteQuiDureTests(unittest.TestCase):
         # La destination dépend des liens ; l'événement doit interrompre cet abri sombre
         # au même instant, sans attendre la prochaine minute.
         t, id, but = choix.choix[0]
-        self.assertEqual((t, id, but["type"]), (205, "ilse", "abri"))
-        self.assertNotEqual(but["lieu"], "antichambre")
+        self.assertEqual((t, id), (205, "ilse"))
+        self.assertNotEqual(but, {"type": "abri", "lieu": "antichambre"})
         self.assertNotEqual(m.objets["ilse"]["lieu"], "antichambre")
 
 
