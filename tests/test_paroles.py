@@ -86,7 +86,8 @@ class CitationTests(unittest.TestCase):
         self.assertEqual(len(appels), 2)
         for instructions, entree, schema in appels:
             citables = schema["properties"]["faits"]["items"]["enum"]
-            self.assertEqual(citables, list(entree["faits"]))
+            # L1 ordonne les données sans modifier les clés citables du schéma.
+            self.assertCountEqual(citables, list(entree["faits"]))
             # Les blocs du contexte de parole, et tout sous-bloc que leurs règles nomment, se citent.
             self.assertLessEqual({"expression_joueur", "esprits_interlocuteurs"}, set(citables))
             sous_blocs = {cle for bloc in entree["faits"].values() if isinstance(bloc, dict)

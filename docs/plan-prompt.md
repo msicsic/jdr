@@ -44,7 +44,7 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
 
 - **L0 (lot 149)** — mesure sans code : taille envoyée par voie après mutualisation, part de chaque composant, préfixe commun
   entre appels successifs d'une même voie, jetons cachés ; ce qui casse le préfixe et dans quelle proportion.
-- **L1** — préfixe ordonné par voie, depuis `9d53229` : clé de cache par voie, faits et entrée ordonnés du plus stable au
+- **L1 (lot 150, porté sur `codex-prompt-prefixe`, non fusionné ; réserve sur le critère des refus)** — préfixe ordonné par voie, depuis `9d53229` : clé de cache par voie, faits et entrée ordonnés du plus stable au
   plus variable, révision en fin d'entrée seulement en relance, fournisseur local ; même contenu des requêtes à l'ordre près.
 - **L2** — schéma invariant : tous les modes et toutes les branches toujours présents, `faits` validé par le moteur,
   `suite` nullable dans une seule branche ; la question de faisabilité garde son contrat.
