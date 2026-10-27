@@ -24,6 +24,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   comptes/soir-appel/ressources/echanges, une passe des quatre références,
   contre `cdaf371`. Bruts exclusivement dans ce dossier, deux travailleurs
   réduits au plus. Aucun fichier réservé au lot 179 modifié ; `main` intacte.
+  Aucune clé de signature configurée : commits non signés, branche seule poussée.
   [Rapport 180](taches/rapport-codex-180-comptes-ecrits-moteur.md).
 
 - Branche `codex-retenus-apres`, fusionnée, lot **178**, base

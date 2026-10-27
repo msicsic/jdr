@@ -60,4 +60,4 @@ comptes/soir-appel/ressources/echanges et une passe relais/crypte/atelier/echang
 référence `cdaf371`, deux exécutions réduites au plus. Bruts exclusivement
 dans ce dossier ; `artifacts/` du worktree est une jonction vers lui. Aucun
 fichier réservé au lot 179 ni `main` modifié. Aucune clé de signature Git
-configurée : commit non signé ; statut de poussée à compléter après livraison.
+configurée : commits non signés, branche seule poussée sur `origin` ; `main` intacte.
