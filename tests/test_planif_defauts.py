@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch
 
 from donjon import pnj
-from tests.scenarios_contractuels import creer
+from donjon.banc_pnj import creer
 from donjon.caractere import modificateur
 from donjon.deliberation import lumiere_crue
 from donjon.deplacement_objet import deplacer

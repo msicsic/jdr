@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from donjon import combat, corps, planification, spatial
-from tests.scenarios_contractuels import creer
+from donjon.banc_pnj import creer
 from donjon.deplacement_objet import deplacer
 from donjon.esprits import lire, percevoir_tous, memoriser, croire
 from donjon.monde import ErreurMonde
@@ -302,6 +302,9 @@ class CombatTests(unittest.TestCase):
                 m = epreuve(cible)
                 # Cette embuscade isole le combat : le service visible est déjà fait.
                 m.objets['torche'].update(allume=True, combustible=120)
+                # Aucun bois propre ne peut servir de contrepartie avant l'embuscade.
+                from tests.test_entretenir import sans
+                sans(m, 'bois_bateliere')
                 percevoir_tous(m)
                 # Les coûts font préférer la demande à l'agression, avant tout refus de la clé.
                 plan = planification.planifier(m, "brune", "faim")

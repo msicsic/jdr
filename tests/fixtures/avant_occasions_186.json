@@ -14,27 +14,9 @@
       {
         "chemin": [
           "esprits",
-          "aubin",
-          "croyances",
-          "galettes_route"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
           "brune",
           "croyances",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
-          "brune",
-          "croyances",
-          "galettes_route"
         ],
         "retirer": true
       },
@@ -59,24 +41,8 @@
       },
       {
         "chemin": [
-          "esprits",
-          "marchand",
-          "croyances",
-          "galettes_route"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
           "objets",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "objets",
-          "galettes_route"
         ],
         "retirer": true
       },
@@ -105,34 +71,7 @@
       {
         "chemin": [
           "esprits",
-          "josse",
-          "croyances",
-          "galettes_cuisine"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
           "mathe",
-          "croyances",
-          "chutes_serrurier"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
-          "mathe",
-          "croyances",
-          "galettes_cuisine"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
-          "odon",
           "croyances",
           "chutes_serrurier"
         ],
@@ -143,7 +82,7 @@
           "esprits",
           "odon",
           "croyances",
-          "galettes_cuisine"
+          "chutes_serrurier"
         ],
         "retirer": true
       },
@@ -161,13 +100,6 @@
         "chemin": [
           "objets",
           "chutes_serrurier"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "objets",
-          "galettes_cuisine"
         ],
         "retirer": true
       },
@@ -198,15 +130,6 @@
           "esprits",
           "joss",
           "croyances",
-          "galettes_comptoir"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
-          "joss",
-          "croyances",
           "odile",
           "attitude:mireille"
         ],
@@ -224,15 +147,6 @@
       {
         "chemin": [
           "esprits",
-          "mireille",
-          "croyances",
-          "galettes_comptoir"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
           "odile",
           "croyances",
           "copeaux_palefrenier"
@@ -241,24 +155,8 @@
       },
       {
         "chemin": [
-          "esprits",
-          "odile",
-          "croyances",
-          "galettes_comptoir"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
           "objets",
           "copeaux_palefrenier"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "objets",
-          "galettes_comptoir"
         ],
         "retirer": true
       },
@@ -287,27 +185,9 @@
       {
         "chemin": [
           "esprits",
-          "aubin",
-          "croyances",
-          "galettes_route"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
           "brune",
           "croyances",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
-          "brune",
-          "croyances",
-          "galettes_route"
         ],
         "retirer": true
       },
@@ -363,15 +243,6 @@
           "marchand",
           "croyances",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
-          "marchand",
-          "croyances",
-          "galettes_route"
         ],
         "retirer": true
       },
@@ -442,13 +313,6 @@
         "chemin": [
           "objets",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "objets",
-          "galettes_route"
         ],
         "retirer": true
       },
@@ -504,27 +368,9 @@
       {
         "chemin": [
           "esprits",
-          "aubin",
-          "croyances",
-          "galettes_route"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
           "brune",
           "croyances",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
-          "brune",
-          "croyances",
-          "galettes_route"
         ],
         "retirer": true
       },
@@ -549,24 +395,8 @@
       },
       {
         "chemin": [
-          "esprits",
-          "marchand",
-          "croyances",
-          "galettes_route"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
           "objets",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "objets",
-          "galettes_route"
         ],
         "retirer": true
       },
@@ -595,27 +425,9 @@
       {
         "chemin": [
           "esprits",
-          "aubin",
-          "croyances",
-          "galettes_route"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
           "brune",
           "croyances",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
-          "brune",
-          "croyances",
-          "galettes_route"
         ],
         "retirer": true
       },
@@ -640,24 +452,8 @@
       },
       {
         "chemin": [
-          "esprits",
-          "marchand",
-          "croyances",
-          "galettes_route"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
           "objets",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "objets",
-          "galettes_route"
         ],
         "retirer": true
       },
@@ -686,27 +482,9 @@
       {
         "chemin": [
           "esprits",
-          "aubin",
-          "croyances",
-          "galettes_route"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
           "brune",
           "croyances",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "esprits",
-          "brune",
-          "croyances",
-          "galettes_route"
         ],
         "retirer": true
       },
@@ -731,24 +509,8 @@
       },
       {
         "chemin": [
-          "esprits",
-          "marchand",
-          "croyances",
-          "galettes_route"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
           "objets",
           "bois_bateliere"
-        ],
-        "retirer": true
-      },
-      {
-        "chemin": [
-          "objets",
-          "galettes_route"
         ],
         "retirer": true
       },

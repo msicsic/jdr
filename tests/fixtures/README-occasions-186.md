@@ -1,47 +1,48 @@
-# Entrées des scènes contractuelles, avant le lot 186
+# Entrées des scènes contractuelles du lot 186
 
-Les nouveaux moyens sont testés sur les scénarios courants par
-`test_occasions_scenarios.py`, le banc de `test_besoins.py` et les 24 nuits du lot.
-Les scènes isolées ci-dessous conservent leurs hypothèses d'auteur : ajouter
-une nourriture ou un combustible accessible peut légitimement remplacer le
-vol, l'appel, le prêt ou le trajet dont elles vérifient les conséquences.
+La variante finale n'ajoute aucune nourriture : les lots de galettes et leurs
+connaissances sont retirés. Les assertions qui les visaient ont retrouvé leur
+source d'avant 186 (`test_besoins`, `test_recit_pnj`, `test_scene`, etc.).
+`test_occasions_scenarios.py` contrôle désormais le stock alimentaire exact de
+`12a936d`, par une référence déclarée indépendante de la fabrique courante,
+et sept variantes après cinq minutes de jeu puis sauvegarde/rechargement
+(état, description, besace et sons).
 
-`avant_occasions_186.json` inverse seulement les 82 changements de données du
-lot, **avant** la construction du `Monde`. Les sept dictionnaires obtenus ont
-été comparés intégralement aux JSON de `12a936d`. Aucun moteur ancien, aucune
-nouvelle règle et aucune assertion de contrat affaiblie. Le banc du joueur
-passif conserve au contraire la fabrique courante : sa demande vise désormais
-les galettes et l'état rechargé vérifie que la réserve reste verrouillée.
+`avant_occasions_186.json` n'inverse plus que les **54 changements restants**,
+avant construction du monde : bois propre, liens/connaissances et positions.
+Ses sept entrées et états moteur correspondent exactement à `12a936d`.
+Les fabriques contractuelles sont conservées uniquement dans ces scènes :
 
-| Fichier de scènes | Hypothèse historique conservée et justification |
+| Fichier | Précondition d'auteur conservée |
 |---|---|
-| `test_besoins.py` | La réserve est l'unique nourriture disponible dans les scènes de vol ; le test du banc vérifie les nouvelles données. |
-| `test_tensions.py` | Identité du lot demandé, consommé et rendu, ouverture/fermeture de la réserve et stock de chauffage du jalon F. |
-| `test_social.py` | Le désespoir ou l'attente d'un témoin sont étudiés sans repas alternatif. |
-| `test_paroles.py` | État initial des interlocuteurs et constats disponibles pour les transmissions bornées par l'INT. |
-| `test_ouie.py` | Bruit du geste étudié, sans nouveaux recours qui déplacent ses acteurs. |
-| `test_voix.py` | La recherche d'une voix aboutit à la demande alimentaire déclarée par la scène. |
-| `test_lumiere.py` | Le bois déclaré épuisé l'est entièrement ; la lampe reste le recours étudié. |
-| `test_planif_defauts.py` | Les scènes de serrure et de passage n'ont pas de nourriture alternative immédiate. |
-| `test_refus_retenus.py` | Les moyens dont l'apparition doit lever le refus restent ceux contrôlés par chaque scène. |
-| `test_echanges_argent.py` | Prix, prêt et restitution étudiés avec les ressources qui fondaient leur plan. |
-| `test_echanges_suite.py` | Identité du combustible appris, enquêté, acheté ou prêté, et liens initiaux de ces scènes. |
-| `test_combat.py` | L'embuscade pour un bien conserve ses besoins et ses recours concurrents d'origine. |
-| `test_constater_rumeurs.py` | Constats et appels sont exercés sans nouvelle ressource qui évite la recherche de l'interlocuteur. |
-| `test_eau.py` | Positions initiales des scènes de montée de l'eau, notamment Ilse avant sa fuite. |
-| `test_proposer_recours.py` | La nourriture et les fournitures des scènes de marché restent celles explicitement préparées ; aucun nouveau candidat n'altère le devis étudié. |
-| `test_planification.py` | Les chaînes de recherche ont pour entrée une réserve verrouillée et aucun repas porté par le gardien. |
-| `test_entretenir.py` | Les stocks et propriétaires de combustible et de vivres déterminent le service et les fournitures étudiés. |
-| `test_lumiere_garde.py` | La lampe ou le combustible de la scène restent les moyens dont la garde est comparée. |
-| `test_engagement_deplacement.py` | Le sous-but social d'évacuation conserve les positions, les liens et les ressources de son entrée d'auteur. |
-| `test_tache_promise_recours.py` | La tâche promise est étudiée avec ses fournitures explicites, sans repas ou bois alternatif nouvellement porté. |
-| `test_ouie_temoins.py` | Le cambrioleur inconnu n'a pas de contrepartie qui lui ferait prendre la parole et se faire identifier avant l'interprétation du bruit. |
+| `test_constater_rumeurs.py` | Constats, interlocuteurs et fournitures de bois explicitement préparés. |
+| `test_eau.py` | Ilse et Aubin commencent aux positions de la scène de montée de l'eau. |
+| `test_echanges_suite.py` | Identité du bois appris, enquêté, acheté ou prêté. |
+| `test_entretenir.py` | Fournitures et propriétaires du combustible nécessaire au travail étudié. |
+| `test_lumiere.py` | Le bois déclaré épuisé l'est entièrement ; la lampe est le recours étudié. |
+| `test_lumiere_garde.py` | Les moyens dont on compare la garde restent ceux de la scène. |
+| `test_ouie.py` | Le geste étudié ne cède pas la place à un nouveau marché de bois. |
+| `test_ouie_temoins.py` | Le cambrioleur inconnu ne se fait pas identifier en proposant son bois avant l'interprétation du bruit. |
+| `test_proposer_recours.py` | La scène de marché conserve ses contreparties et liens déclarés. |
+| `test_tache_promise_recours.py` | L'autonomie de la tâche dépend de ses seules fournitures déclarées. |
+| `test_engagement_deplacement.py` | Ilse commence avant la destination de l'agenda étudié ; le projet n'est pas déjà atteint à l'installation. |
 
-`test_parts_achetees.py` conserve les données courantes : Joss annonce aussi
-ses nouveaux copeaux, dont la connaissance est vérifiée après rechargement.
-`test_recit_pnj.py` conserve le banc courant et attend la demande de galettes
-que le récit raconte désormais. `test_scene.py` attend les galettes visibles
-portées par Gorm, avec le pied-de-biche de sa scène ; ce contenu est également
-vérifié après rechargement.
-Le joueur de cette scène occupe une case libre, au lieu de partager celle
-d'Aubin : la sauvegarde ajoutée contrôle aussi la validité du placement.
+Dans les autres fichiers, la fabrique courante est rétablie. Les rares scènes
+qui ont besoin d'absence de bois le disent localement, sans affaiblir leurs
+assertions :
+
+- `test_besoins.py`, `test_constater_rumeurs.py` : pas de contrepartie propre
+  qui évite la recherche des crochets ou la constatation du verrou.
+- `test_combat.py` : pas de bois propre à échanger avant l'embuscade.
+- `test_recit_pnj.py` : Brune doit prendre les planches d'autrui ; son bois
+  propre est épuisé dans cette scène de témoignage du vol.
+- `test_refus_retenus.py` : les copeaux de Joss sont aussi brûlés dans la scène
+  où plus aucun combustible ne peut rendre le travail possible.
+- `test_deliberation_evenements.py` : pas d'autre fournisseur de bois dans
+  la scène de relance directe du brasero à la torche.
+- `test_marche.py` : les enquêtes « rien » correspondent à un stock absent ;
+  le gardien reste près du foyer après l'avoir éteint.
+
+`test_parts_achetees.py` garde les données courantes : Joss annonce aussi ses
+copeaux, dont la connaissance est vérifiée après rechargement. Aucun moteur
+ancien ni nouvelle règle du jeu n'est introduit par ces mises en scène.

@@ -2934,27 +2934,6 @@
       "prix_part": 1,
       "description_visuelle": "Un peu d'huile conservée pour les lampes de la nuit."
     },
-    "galettes_comptoir": {
-      "id": "galettes_comptoir",
-      "nom": "galettes du comptoir",
-      "type": "nourriture",
-      "lieu": "odile",
-      "genre": "m",
-      "aliases": [
-        "galettes comptoir",
-        "galettes"
-      ],
-      "masse": 1,
-      "materiau": "pain, lard et fromage",
-      "mobile": true,
-      "integrite": 10,
-      "maximum": 10,
-      "pluriel": true,
-      "portions": 4,
-      "proprietaire": "odile",
-      "description_visuelle": "Un petit lot de galettes sèches, séparé des provisions gardées.",
-      "prix_part": 2
-    },
     "copeaux_palefrenier": {
       "id": "copeaux_palefrenier",
       "nom": "copeaux du palefrenier",
@@ -3325,19 +3304,6 @@
             "confiance": 0.9
           }
         },
-        "galettes_comptoir": {
-          "lieu": {
-            "valeur": "odile",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "salle_commune",
-            "case": [
-              3,
-              2
-            ]
-          }
-        },
         "copeaux_palefrenier": {
           "lieu": {
             "valeur": "joss",
@@ -3592,19 +3558,6 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9
-          }
-        },
-        "galettes_comptoir": {
-          "lieu": {
-            "valeur": "odile",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "salle_commune",
-            "case": [
-              3,
-              2
-            ]
           }
         },
         "copeaux_palefrenier": {
@@ -4080,19 +4033,6 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9
-          }
-        },
-        "galettes_comptoir": {
-          "lieu": {
-            "valeur": "odile",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "salle_commune",
-            "case": [
-              3,
-              2
-            ]
           }
         },
         "copeaux_palefrenier": {

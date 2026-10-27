@@ -8,7 +8,7 @@ from tests.support import lier, relation
 import unittest
 from unittest.mock import patch
 
-from tests.scenarios_contractuels import creer
+from donjon.banc_pnj import creer
 from donjon.biens import a_autrui, reticence
 from donjon.caractere import valeur_piece, valeur_pieces
 from donjon.deliberation import illicite

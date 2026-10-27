@@ -1635,27 +1635,6 @@
       "proprietaire": "seve",
       "description_visuelle": "Un change de linge et quelques outils de métier enveloppés dans une toile."
     },
-    "galettes_route": {
-      "aliases": [
-        "galettes route",
-        "galettes"
-      ],
-      "genre": "m",
-      "id": "galettes_route",
-      "integrite": 10,
-      "lieu": "marchand",
-      "masse": 1,
-      "materiau": "pain et fromage",
-      "maximum": 10,
-      "mobile": true,
-      "nom": "galettes de route",
-      "portions": 4,
-      "proprietaire": "marchand",
-      "type": "nourriture",
-      "pluriel": true,
-      "prix_part": 2,
-      "description_visuelle": "Un petit lot de galettes sèches, séparé des provisions gardées."
-    },
     "bois_bateliere": {
       "aliases": [
         "bois bateliere",
@@ -2217,19 +2196,6 @@
             "montee": null
           }
         },
-        "galettes_route": {
-          "lieu": {
-            "valeur": "marchand",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "echoppe",
-            "case": [
-              1,
-              1
-            ]
-          }
-        },
         "bois_bateliere": {
           "lieu": {
             "valeur": "brune",
@@ -2375,19 +2341,6 @@
             "case": [
               6,
               8
-            ]
-          }
-        },
-        "galettes_route": {
-          "lieu": {
-            "valeur": "marchand",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "echoppe",
-            "case": [
-              1,
-              1
             ]
           }
         },
@@ -2653,19 +2606,6 @@
             "niveau": null,
             "repere": null,
             "montee": null
-          }
-        },
-        "galettes_route": {
-          "lieu": {
-            "valeur": "marchand",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "echoppe",
-            "case": [
-              1,
-              1
-            ]
           }
         },
         "bois_bateliere": {

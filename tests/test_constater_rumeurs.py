@@ -46,6 +46,9 @@ class ContenantFermeTests(unittest.TestCase):
         pénombre, elle tend la main vers les vivres : elle apprend la réserve fermée et
         verrouillée, croit toujours les vivres dedans, et va chercher ses crochets."""
         m = refusee(sans_evacues(relais()))
+        # La scène du contenant fermé n'offre pas de bois propre à négocier.
+        from tests.test_entretenir import sans
+        sans(m, 'bois_bateliere')
         # Même ses outils ne convaincront pas Gorm : on vérifie ici le constat du verrou.
         from donjon import relations
         lire(m, "marchand")["relations"]["brune"] = relations._nouvelle({"confiance": 10})

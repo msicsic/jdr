@@ -1,64 +1,56 @@
-"""Les nouveaux moyens passent par les échanges et la sauvegarde ordinaires."""
+"""Les occasions restantes préservent la rareté et les sauvegardes."""
 import unittest
-from unittest.mock import patch
 
 from donjon.banc_pnj import creer
-from donjon.echanges import garde, necessaire
-from donjon.esprits import lire, percevoir_tous
-from donjon.paroles import preparer_parole
+from donjon.ecoute import ENTENDU, entendus, rendre
+from donjon.geometrie import position_entree
+from donjon.moteur import Moteur, proposition
 from donjon.rendu import regarder, fiche
-from tests.support import presentes, regarder as voir
 from tests.test_tensions import recharger
+
+SCENARIOS = ('relais', 'mine', 'auberge', 'crue', 'crue_hameau', 'rixe', 'rixe_douce')
+
+
+# État alimentaire déclaré de 12a936d, indépendant des fabriques courantes.
+NOURRITURES_AVANT_186 = {'relais': {'vivres': {'lieu': 'reserve', 'proprietaire': 'marchand', 'portions': 4}},
+ 'mine': {'biscuits': {'lieu': 'coffre_paie', 'proprietaire': 'bram', 'portions': 2},
+          'pain_lucien': {'lieu': 'baraquement', 'proprietaire': 'lucien', 'portions': 1},
+          'vivres': {'lieu': 'garde_manger', 'proprietaire': 'mathe', 'portions': 4}},
+ 'auberge': {'marmite': {'lieu': 'cuisine', 'proprietaire': 'mireille', 'portions': 3},
+             'vivres': {'lieu': 'garde_manger', 'proprietaire': 'odile', 'portions': 4},
+             'provisions_anselme': {'lieu': 'besace_anselme',
+                                    'proprietaire': 'anselme',
+                                    'portions': 2},
+             'rations_hugues': {'lieu': 'hugues', 'proprietaire': 'hugues', 'portions': 1}},
+ 'crue': {'vivres': {'lieu': 'reserve', 'proprietaire': 'marchand', 'portions': 4}},
+ 'crue_hameau': {'vivres': {'lieu': 'reserve', 'proprietaire': 'marchand', 'portions': 7}},
+ 'rixe': {'vivres': {'lieu': 'reserve', 'proprietaire': 'marchand', 'portions': 4}},
+ 'rixe_douce': {'vivres': {'lieu': 'reserve', 'proprietaire': 'marchand', 'portions': 4}}}
 
 
 class OccasionsScenariosTests(unittest.TestCase):
     def test_creation_et_recharge_des_variantes(self):
-        for scenario in ('relais', 'mine', 'auberge', 'crue', 'crue_hameau', 'rixe', 'rixe_douce'):
+        for scenario in SCENARIOS:
             with self.subTest(scenario=scenario):
                 m = creer(scenario, 1985, 'fixe')
+                salle = {'mine': 'galerie', 'auberge': 'dortoir'}.get(scenario, 'chambre_cloche')
+                m.joueur.update(salle=salle, position=list(position_entree(m, salle)))
+                moteur = Moteur(m)
+                moteur.executer(moteur.preparer(proposition('attendre')))
                 r = recharger(m)
                 self.assertEqual(m.data, r.data)
                 self.assertEqual(regarder(m), regarder(r))
+                self.assertEqual(fiche(m), fiche(r))
+                self.assertEqual(rendre(m, entendus(m, -1, ENTENDU)),
+                                 rendre(r, entendus(r, -1, ENTENDU)))
 
-    def test_galettes_negociables_sans_modifier_la_reserve_historique(self):
-        cas = (('relais', 'marchand', 'galettes_route'),
-               ('mine', 'mathe', 'galettes_cuisine'),
-               ('auberge', 'odile', 'galettes_comptoir'))
-        for scenario, owner, food in cas:
+    def test_rarete_alimentaire_conservee(self):
+        def nourritures(m):
+            return {k: {p: o.get(p) for p in ('lieu', 'proprietaire', 'portions')}
+                    for k, o in m.objets.items() if o['type'] == 'nourriture'}
+        for scenario in SCENARIOS:
             with self.subTest(scenario=scenario):
-                m = presentes(creer(scenario, 1985, 'fixe'))
-                # Le joueur vient à l'interlocuteur ; aucun profil ou droit modifié.
-                o = m.objets[owner]
-                m.joueur.update(salle=o['lieu'], position=[o['position'][0] + 1, o['position'][1]])
-                voir(m, 'joueur', owner)
-                voir(m, owner, 'joueur')
-                m.data['connus'].append(food)
-                percevoir_tous(m)
-                m = recharger(m)
-                self.assertFalse(garde(m, owner, m.objets[food]))
-                self.assertFalse(necessaire(m, owner, food))
-                avant = m.objets['vivres']['portions']
-                gardes = m.objets[owner]['profil']['pulsions'].copy()
-                pieces = m.joueur['or']
-                with patch.object(type(m), 'd20', return_value=20):
-                    m, r = preparer_parole(m, {
-                        'personnage': owner, 'replique': 'Deux pièces contre une galette.',
-                        '_intention': 'Je dis à ' + o['aliases'][0] + ' : deux pièces contre une galette.',
-                        'contenu': [{'type': 'proposition',
-                                     'demande': {'type': 'part', 'objet': food},
-                                     'contrepartie': {'type': 'pieces', 'montant': 2}}]})
-                self.assertIn('accepte', ' '.join(r['faits']))
-                self.assertEqual(m.objets[food]['portions'], 3)
-                self.assertEqual(m.objets['vivres']['portions'], avant)
-                self.assertEqual(m.objets[owner]['profil']['pulsions'], gardes)
-                self.assertEqual(m.joueur['or'], pieces - 2)
-                recus = [k for k, v in m.objets.items()
-                         if v.get('lieu') == 'joueur' and v.get('type') == 'nourriture']
-                self.assertTrue(recus)
-                copie = recharger(m)
-                self.assertEqual(m.data, copie.data)
-                self.assertEqual(regarder(m), regarder(copie))
-                self.assertEqual(fiche(m), fiche(copie))
-                self.assertIn('galette', fiche(copie))
-                self.assertTrue(any(s['type'] == 'parole' and 'galette' in s['texte']
-                                    for s in lire(copie, owner)['memoire']))
+                m = creer(scenario, 1985, 'fixe')
+                attendu = NOURRITURES_AVANT_186[scenario]
+                self.assertEqual(nourritures(m), attendu)
+                self.assertEqual(nourritures(recharger(m)), attendu)

@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from donjon.commandes import analyser
 from donjon.deliberation import REDEMANDE, candidats
-from tests.scenarios_contractuels import nouveau_defi
+from donjon.defi import nouveau_defi
 from donjon.deplacement_objet import deplacer
 from donjon.echanges import demander
 from donjon.esprits import croire, lire, memoriser, percevoir_tous

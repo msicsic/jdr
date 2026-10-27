@@ -936,19 +936,6 @@
       "valeur": "gaspard"
      }
     },
-    "galettes_cuisine": {
-     "lieu": {
-      "valeur": "mathe",
-      "source": "savoir",
-      "minute": 0,
-      "confiance": 0.9,
-      "salle": "baraquement",
-      "case": [
-       3,
-       4
-      ]
-     }
-    },
     "chutes_serrurier": {
      "lieu": {
       "valeur": "odon",
@@ -1434,19 +1421,6 @@
       "valeur": true
      }
     },
-    "galettes_cuisine": {
-     "lieu": {
-      "valeur": "mathe",
-      "source": "savoir",
-      "minute": 0,
-      "confiance": 0.9,
-      "salle": "baraquement",
-      "case": [
-       3,
-       4
-      ]
-     }
-    },
     "chutes_serrurier": {
      "lieu": {
       "valeur": "odon",
@@ -1675,19 +1649,6 @@
       "minute": 0,
       "source": "savoir",
       "valeur": true
-     }
-    },
-    "galettes_cuisine": {
-     "lieu": {
-      "valeur": "mathe",
-      "source": "savoir",
-      "minute": 0,
-      "confiance": 0.9,
-      "salle": "baraquement",
-      "case": [
-       3,
-       4
-      ]
      }
     },
     "chutes_serrurier": {
@@ -4201,27 +4162,6 @@
     "combustible"
    ],
    "prix_part": 1
-  },
-  "galettes_cuisine": {
-   "aliases": [
-    "galettes cuisine",
-    "galettes"
-   ],
-   "genre": "m",
-   "id": "galettes_cuisine",
-   "integrite": 10,
-   "lieu": "mathe",
-   "masse": 1,
-   "materiau": "pain, lard et fromage",
-   "maximum": 10,
-   "mobile": true,
-   "nom": "galettes de la cuisinière",
-   "pluriel": true,
-   "portions": 4,
-   "proprietaire": "mathe",
-   "type": "nourriture",
-   "prix_part": 2,
-   "description_visuelle": "Un petit lot de galettes sèches, séparé des provisions gardées."
   },
   "chutes_serrurier": {
    "aliases": [
