@@ -85,8 +85,10 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
   Quatre états complets et rendus rechargés identiques à la base `123daed`.
   Deux passes Luna, 16 parties : communs **3,24 → 3,30 appels/tour**,
   **10,51 → 11,42 s/tour**, relances **14 → 19**, refus **21 → 25**, replis
-  **3 → 1** ; interprétation **0/81 variations**. Suite en cours ; rejeu des refus
-  bloqué par la revue automatique, **critère du lot 95 non établi**. Faisabilité
+  **3 → 1** ; interprétation **0/81 variations**. Suite unique : **2 241 tests,
+  16 ignorés, zéro échec/erreur** ; **4/4 empreintes Relais identiques** à `main`
+  `812ebe5` (2 h, quatre graines). Rejeu des refus bloqué par la revue automatique,
+  confié à l'orchestrateur par l'utilisateur : **critère du lot 95 non établi**. Faisabilité
   atelier non proposée dans une passe sur deux : **candidat partiel, non proposé
   à la fusion**. Pas de gain de vitesse démontré ni garantie exhaustive d'absence
   de paraphrases redondantes.

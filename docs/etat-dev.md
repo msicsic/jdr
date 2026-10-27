@@ -12,8 +12,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   16 parties / 84 tours / 281 appels ; communs **3,24 → 3,30 appels/tour**,
   **10,51 → 11,42 s/tour**, relances **14 → 19**, refus **21 → 25**, replis
   **3 → 1**. Consignes **0/81 variations**. Faisabilité atelier manquée 1/2 :
-  **candidat partiel, non proposé à la fusion**. Suite complète en cours.
-  Rejeu des refus rejeté par la revue automatique :
+  **candidat partiel, non proposé à la fusion**. Suite unique : **2 241 tests,
+  257 fichiers, 16 ignorés, zéro échec/erreur, 2 263,305 s**. **4/4 empreintes
+  Relais 2 h identiques** à `main` `812ebe5`, quatre références absentes calculées
+  une fois et rangées. Rejeu des refus rejeté par la revue automatique,
+  confié à l'orchestrateur par l'utilisateur :
   **critère du lot 95 non établi**, commande de reprise préparée. Aucun changement
   de logique moteur ni `narration.py` ; `main` intacte. Pas de clé de signature.
   [Rapport 170](taches/rapport-codex-170-consignes-degraissees.md) ; bruts exclusivement
