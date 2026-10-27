@@ -4,31 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-contrat-engagement`, non fusionnée**, lot **213 / 196 c**,
-  départ `cca5f50` vérifié, **reprise demandée sur `d2243c2` (211)** :
-  **implémentation partielle, validation en cours** ;
-  reprise au-delà du créneau autorisée. Arbitrage commun par palier et marge,
-  revalidation à plan vide, provenance des demandes de condition et d'agenda,
-  secours poursuivi sur détresse crue, geste manqué libérant l'engagement.
-  Aucun fichier interdit modifié, aucun Luna. Reproduction de base : 20 nuits 4 h,
-  suspects 0/1/5/9/9 (total 24), zéro plantage, références exactes en cache ;
-  Premier banc : suspects 0/1/0/0/1 (total 2), zéro plantage/usurpation,
-  mais Brune hameau 2024 reste dans l'eau devant une prise d'outil manquée.
-  Démenti commun ajouté ensuite ; banc final encore requis. 28 ciblés verts,
-  captures réelles Rémy/Mireille et recharges/laps découpés. Suite ancienne base :
-  2 428 tests, 14 échecs, zéro erreur ; archivée avant la fusion de 211 demandée.
-  Vérifications finales et référence de banc à reprendre sur `d2243c2` (16 suspects).
-  Deux travailleurs réduits au plus. Aucune garantie générale ni fusion conseillée.
+- **Branche `codex-contrat-engagement`, non fusionnée**, lot **213 / 196 c** :
+  **contrat partiel, ne pas fusionner**. `cca5f50` vérifié, 211 puis `3aa16f7`
+  (219) fusionnés avant le banc final ; reprise au-delà du créneau autorisée.
+  Revalidation à plan vide, naissance/poursuite séparées, secours hors de vue,
+  palier et marge commune `INERTIE + VOL/4`, phases et sorties attestées persistées.
+  Revue 217 : aucun coût passé ; coût futur de bascule encore sans raccord explicite.
+  **20 paires 4 h : 13 → 5 répétitions suspectes**, aucun scénario en hausse ;
+  57 → 52 préemptions légitimes, 486 → 484 cycles, autrui 1 → 0, progrès 0 → 0,
+  à expliquer 97 → 63 ; dérives 185 → 192, états payés perdus 7 → 6, séparés.
+  Zéro plantage/usurpation. Hameau : attente 128,75 → 178,75 ; eau 10 → 31,25.
+  Brune hameau 42 : 110 min dans l'eau, préparatif reproposé mais refusé par
+  l'exécution ; **absence d'entêtement non validée**. Deux retours d'agenda en
+  crue restent des sorties indéterminées ; liste fermée non garantie.
+  Huit tests du contrat avec captures 209/211, monde/rendu rechargés et laps
+  découpés ; 35 ciblés distincts puis 40 après intégration, et trois de projection,
+  verts. **Suite complète finale : 2 433 tests, 11 échecs, zéro erreur** : reprise
+  comparée à `3aa16f7`, deux Mimo préexistants, deux empreintes de registre corrigées
+  puis vertes, **sept écarts propres à la branche non résolus**. Aucune suite verte.
+  Seuls délibération/agendas changés en production, localisation crue intacte ;
+  aucun Luna, deux travailleurs réduits au plus, aucune clé de signature.
+  Suspension temporaire laissée explicitement au 218 (Gorm/Aubin hameau 1985 min 6).
+  Accord planification/exécution et sorties sans certificat à reprendre avant fusion.
   Bruts `C:/Users/msics/donjon/artifacts/engagement-213/` ;
-  [état de la tentative 213](taches/rapport-codex-213-contrat-engagement.md).
-  Les sorties indéterminées du planificateur et les sources sans demande
-  persistante restent à traiter ; le rapport détaille les limites.
-  **Revue 217 appliquée ensuite** : marge commune `INERTIE + VOL/4`, aucun coût
-  passé ; phases et causes de sortie attestées avec faits persistées, évaluation
-  indéterminée distinguée d'une fin. 35 ciblés distincts verts, dont huit du contrat.
-  Vérifications finales à rejouer sur cette version figée et `d2243c2`.
-  Suspension temporaire d'une charge non portée par le contrat : cas Gorm/Aubin
-  hameau 1985 min 6, explicitement laissé au lot 218 sur cette base.
+  [rapport 213](taches/rapport-codex-213-contrat-engagement.md).
 
 - **Branche `codex-audit-transitions`, fusionnée**, lot **219**, base
   `50de3c2` vérifiée : outils seulement, aucun `donjon/` ni Luna modifié.
