@@ -26,8 +26,7 @@ compose sa prise (deplacer vers joueur) puis franchir_obstacle ; une confirmatio
 La prise reste acquise si le saut échoue. Le moteur gère coût, chute et dommage à l'outil.
 Sur réussite, le personnage atteint le palier et lâche l'appui à son pied : aucun passage
 permanent ni retour garanti. Ne remplace pas cette intention par l'échelle ou une simple prise.
-Explique brièvement méthode et risque dans justification. Une question sur la faisabilité
-propose le même franchissement : le moteur le prépare sans l'exécuter.
+Explique brièvement méthode et risque dans justification.
 L'absence de compétence spécialisée n'est pas une interdiction ; la DEX et le DD servent
 à cet arbitrage. Le dossier ne garantit pas la réussite : les limites sont des règles de JDR.
 """

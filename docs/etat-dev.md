@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-consignes-degraissees`, **non fusionnée**, lot **170 / L6**,
+  base `123daed` : contrats permanents de parole, assemblage, passage local,
+  faisabilité et reprise dédoublonnés. Consignes **39 910 → 38 828 caractères
+  (−2,7 %)**, invariantes ; douze ciblés verts, quatre parcours Relais/atelier
+  identiques à la base, état complet et rendu après recharge. Deux passes Luna,
+  16 parties / 84 tours / 281 appels ; communs **3,24 → 3,30 appels/tour**,
+  **10,51 → 11,42 s/tour**, relances **14 → 19**, refus **21 → 25**, replis
+  **3 → 1**. Consignes **0/81 variations**. Faisabilité atelier manquée 1/2 :
+  **candidat partiel, non proposé à la fusion**. Suite complète en cours.
+  Rejeu des refus rejeté par la revue automatique :
+  **critère du lot 95 non établi**, commande de reprise préparée. Aucun changement
+  de logique moteur ni `narration.py` ; `main` intacte. Pas de clé de signature.
+  [Rapport 170](taches/rapport-codex-170-consignes-degraissees.md) ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/consignes-170/`.
+
 - Branche `codex-faits-a-la-demande`, **non fusionnée**, lot **166** (L7 partiel), `0ea6047` : surfaces génériques omises
   quand elles sont intactes, vides et sans usage (identifiants vus conservés) ; autres catalogues inchangés faute de critère sûr.
   `faits` d'interprétation **−3,9 %**, fiches de surfaces 927 → 501 caractères ; mais **préfixe d'entrée commun 10 959 → 8 113**

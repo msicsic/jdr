@@ -25,8 +25,9 @@ Passage local : composer avec operation passer_obstacle, cible obstacle, methode
 dessus, destination et outil vides, difficulte 0. Le moteur choisit ramper, enjamber ou
 escalader selon passage (qualification physique), gabarit et équipement ; il fixe durée et jet.
 Sans géométrie établie, la raison du refus indique la qualification manquante. Le dossier
-passages_obstacles donne possibilités et refus réels. Une question de faisabilité prépare la
-même fiche sans agir. Ce passage rejoint le sol libre d'en face dans la même salle ; une
+passages_obstacles donne possibilités et refus réels. Cette opération reste celle du geste quand
+la cible est loin ou seulement en souvenir ; propose-la, le moteur juge la portée et la forme.
+Ce passage rejoint le sol libre d'en face dans la même salle ; une
 échelle installée et le saut avec appui mobile restent des accès distincts entre lieux.
 """
 

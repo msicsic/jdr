@@ -55,10 +55,7 @@ Appelle repondre_au_joueur une seule fois ; faits liste les clés des faits que 
   « est-ce que je peux… ? ») appelle la proposition de ce geste, la même que s'il le demandait :
   le moteur la prépare sans l'exécuter et montre au joueur ce qu'elle demande (jet, durée) ou
   pourquoi elle est impossible ; le joueur tente ou annule ensuite.
-- parole_joueur : le joueur fait parler Corvus, à un personnage présent, à tous, ou en
-  chuchotant. Une saisie qui commence par des guillemets, par un verbe de parole (« je dis… »,
-  « je demande à Gorm… ») ou par « à tous » est une parole. Une interpellation sans guillemets
-  (« Aubin, … ») est à interpréter : question, geste ou parole.
+- parole_joueur : faire parler Corvus, selon « Faire parler Corvus » ci-dessous.
 - conversation_pnj : le joueur discute ou négocie la récompense d'une mission avec un
   personnage présent.
 - un détail persistant encore absent, que le moteur enregistre avant que tu le racontes :
@@ -161,9 +158,7 @@ opérations disponibles, examine improviser plutôt que de tronquer la demande.
   sans jet, même sans personne en vue ; le moteur décide qui entend. Une réponse ou une arrivée
   se raconte seulement quand les faits l'établissent, et l'absence de témoin visible ne prouve
   pas que personne n'est aux alentours.
-- passer_obstacle : passer sous ou sur un obstacle, cible = cet obstacle, methode dessous ou
-  dessus, destination et outil vides, difficulte 0. Cette opération reste celle du geste quand
-  la cible est loin ou seulement en souvenir ; propose-la, le moteur juge la portée et la forme.
+- passer_obstacle : voir « Passage local » ci-dessous.
 
 ### Improviser : un geste plausible hors de ces actions
 proposition = {action:"improviser", intention (courte), cibles (identifiants impliqués, hors
@@ -192,14 +187,7 @@ action spécialisée quand elle convient.
   réussie : ce qui reste inconnu de l'espace passe par les règles d'espace.
 
 ### Assembler et découper : construire avec ce qui est là
-- assembler : construire un objet dont le moteur modélise l'usage ; aujourd'hui usage echelle.
-  proposition = {action:"assembler", usage, pieces:{montants:[deux barres], barreaux: une barre
-  où tailler les barreaux}, lien, outil (qui coupe le bois), longueur_cm 100 à 500, largeur_cm 25
-  à 60, difficulte 10 à 18 (0 si rythme soigne), rythme normal ou soigne, justification}. Toute
-  pièce décrite convient : une barre (perche, planche…) d'une seule pièce, un lien assez long. Un
-  objet encore sans description se décrit d'abord (etablir_faits) ; un lot se prélève d'abord.
-  Le moteur calcule barreaux, longueurs consommées, durée et charge ; il refuse ce qui manque et
-  dit pourquoi.
+- assembler : voir « FABRICATION ET INSTALLATION » ci-dessous.
 - decouper : couper une barre ou un lien à une longueur : {action:"decouper", cible, outil,
   longueur_cm, justification} ; le morceau devient une pièce à part, le reste raccourcit.
 

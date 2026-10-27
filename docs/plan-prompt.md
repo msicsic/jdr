@@ -78,7 +78,19 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
   `HorsDePortee`, réponse exacte du moteur sans explication ni audit ; aucun déplacement automatique.
   Limite : la préparation s’arrête à la première cible hors de portée ; le recensement de toutes les cibles
   d’une proposition composée n’est pas garanti.
-- **L6** — dégraissage des consignes (doublons socle/règles), relances mesurées.
+- **L6, lot 170, branche `codex-consignes-degraissees`, non fusionnée** —
+  contrats de parole, assemblage, passage local, faisabilité et reprise mutualisés
+  dans leurs sections permanentes ; consignes **39 910 → 38 828 caractères
+  (−2,7 %)**, **0/3 variations** sur quatre captures Relais/atelier.
+  Quatre états complets et rendus rechargés identiques à la base `123daed`.
+  Deux passes Luna, 16 parties : communs **3,24 → 3,30 appels/tour**,
+  **10,51 → 11,42 s/tour**, relances **14 → 19**, refus **21 → 25**, replis
+  **3 → 1** ; interprétation **0/81 variations**. Suite en cours ; rejeu des refus
+  bloqué par la revue automatique, **critère du lot 95 non établi**. Faisabilité
+  atelier non proposée dans une passe sur deux : **candidat partiel, non proposé
+  à la fusion**. Pas de gain de vitesse démontré ni garantie exhaustive d'absence
+  de paraphrases redondantes.
+  [Rapport 170](taches/rapport-codex-170-consignes-degraissees.md).
 - **L7** — catalogues d'écriture à la demande et surfaces génériques paresseuses.
   À exercer avec le dépôt au sol : la première passe du lot 154 a proposé
   `antichambre_sol`/`cour_sol` comme destinations. Ces surfaces restent hors du

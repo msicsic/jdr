@@ -90,16 +90,18 @@ REGLES = """
 Ces règles utilisent le dossier atelier lorsqu’il est présent ; son absence ne fournit aucune ressource ni possibilité.
 FABRICATION ET INSTALLATION (conventions de jeu, pas conseils de construction réelle) :
 Le dossier atelier sépare ressources connues, inconnues et assemblages possibles.
-Pour une volonté de fabriquer une échelle, ou une question sur sa faisabilité (le moteur prépare
-alors l'assemblage sans rien fabriquer et dit ce qui manque), propose action assembler, usage
-echelle (voir Assembler et découper) : deux montants distincts, une barre pour les barreaux, un
-lien, un outil, longueur_cm, largeur_cm, difficulte 10..18, justification courte (méthode et risque).
-Choisis aussi rythme : normal = 26 min et jet pour l'échelle de 3 m ; soigne = deux fois
+assembler construit un objet dont le moteur modélise l'usage ; aujourd'hui usage echelle.
+proposition = {action:"assembler", usage, pieces:{montants:[deux barres distinctes],
+barreaux: une barre où tailler les barreaux}, lien, outil (qui coupe le bois), longueur_cm 100 à 500,
+largeur_cm 25 à 60, difficulte 10 à 18 (0 si rythme soigne), rythme normal ou soigne,
+justification courte (méthode et risque)}. Toute pièce décrite convient : une barre d'une seule
+pièce, un lien assez long. Un objet encore sans description se décrit d'abord (etablir_faits) ;
+un lot se prélève d'abord.
+Choisis aussi rythme : normal = durée du dossier et jet ; soigne = deux fois
 plus de temps, sans jet, si le dossier l'autorise (difficulte=0). « Je prends mon temps »,
 « soigneusement », « sans me presser » demandent soigne. Sans urgence ni préférence du joueur,
 préfère soigne : une fabrication ordinaire au calme ne doit pas devenir une loterie répétée.
-Une reprise explicite « je retente » reprend cependant le rythme de la dernière tentative,
-sauf demande de changement. Le rythme soigne ne contourne ni manque de matière ni outil absent.
+Le rythme soigne ne contourne ni manque de matière ni outil absent.
 Le moteur calcule barreaux, consommation, durée et charge ; ne les invente pas. Reprends
 une suggestion du dossier si elle convient à l'intention. Fabrication et installation
 sont séparées : construire ne garantit pas d'atteindre un mur donné. N'invente ni matériaux

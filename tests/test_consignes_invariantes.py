@@ -11,6 +11,27 @@ from tests.test_tensions import recharger
 
 
 class ConsignesInvariantesTests(unittest.TestCase):
+    def test_regles_mutualisees_presentes_une_seule_fois(self):
+        instructions, _, _, _ = prefixe.PrefixeKVTests()._capter_appel(scene(), 'Explique.')
+        # Inventaire des contrats déplacés ou dédoublonnés : une occurrence dans
+        # le texte réellement assemblé, pas seulement dans chaque constante.
+        for regle in (
+            'Une saisie qui commence par des guillemets',
+            'Une interpellation sans guillemets',
+            'pieces:{montants:',
+            'largeur_cm 25 à 60',
+            'un lot se prélève d’abord',
+            'Sans urgence ni préférence du joueur',
+            'sauf demande contraire',
+            'Le moteur calcule barreaux',
+            'operation passer_obstacle',
+            'la cible est loin ou seulement en souvenir',
+            'Une question sur la faisabilité d’un geste de Corvus',
+        ):
+            with self.subTest(regle=regle):
+                normalise = instructions.replace("'", '’')
+                self.assertEqual(normalise.count(regle.replace("'", '’')), 1)
+
     def test_scenes_console_proches_eloignees_et_recharge(self):
         consignes = []
         for type_scene in ('relais', 'atelier'):
