@@ -27,8 +27,16 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
 4. **Portée : refus local déterministe**, pas de déplacement automatique (le joueur déplace Corvus : le trajet a un coût en
    temps, bruit et lignes de vue). Une action refusée sur `HorsDePortee` répond par `reponse_du_moteur(exc)`
    (« Approche-toi de … »), comme une question de faisabilité, sans appel d'explication ni audit.
-5. **Fournisseur local dans les objectifs** : chaque lot garde un contrat propre dans `donjon/sources.py` et
-   `donjon/fournisseurs/`, pour que le préfixe se mette en cache sur Luna comme sur un serveur local.
+5. **Fournisseur local dans les objectifs** (raison initiale du chantier) : chaque lot garde un contrat propre dans
+   `donjon/sources.py` et `donjon/fournisseurs/`, pour que le préfixe se mette en cache sur Luna comme sur un serveur local.
+   Les deux caches diffèrent : selon la trace Luna d'Argon sur `9d53229` (`usage.attribution`), `/v1/responses` met en cache
+   `tools` puis `instructions`, jamais l'entrée, et un changement de 7 jetons de `tools` (enum de `faits`) fait tomber le
+   cache à 0 ; un serveur local met en cache `instructions` puis l'entrée (85 à 97 % avec `ordonner_faits`). L'invariance du
+   schéma (L2) et des consignes (L3) sert les deux ; l'ordre de l'entrée (L1) sert surtout le local.
+7. **`cache-kv-local` (`9d53229`, poussée sur `origin`)** a intégré la relecture de `d7913ce` : ordre du schéma, règles
+   conditionnelles et `INSTRUCTIONS_RESULTAT` comme sur `main`, consigne de révision en fin d'entrée seulement en relance,
+   `sources.py` (`ordonner_faits`, `ordonner_entree`, `voie_cache`), clé de cache par voie, fournisseur `local.py`. **L1 part
+   de ce commit**, porté sur l'intégration actuelle.
 6. **Schéma et consignes invariants** au long d'une partie ; ce qui n'est pas disponible ce tour est refusé par le moteur
    avec `attendu`, pas retiré du schéma.
 
@@ -36,7 +44,8 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
 
 - **L0 (lot 149)** — mesure sans code : taille envoyée par voie après mutualisation, part de chaque composant, préfixe commun
   entre appels successifs d'une même voie, jetons cachés ; ce qui casse le préfixe et dans quelle proportion.
-- **L1** — clé de cache par voie (reprise de la seule partie correspondante de `cache-kv-local`) : mêmes requêtes.
+- **L1** — préfixe ordonné par voie, depuis `9d53229` : clé de cache par voie, faits et entrée ordonnés du plus stable au
+  plus variable, révision en fin d'entrée seulement en relance, fournisseur local ; même contenu des requêtes à l'ordre près.
 - **L2** — schéma invariant : tous les modes et toutes les branches toujours présents, `faits` validé par le moteur,
   `suite` nullable dans une seule branche ; la question de faisabilité garde son contrat.
 - **L3** — consignes invariantes : règles d'atelier, d'obstacles, de franchissement et d'espace condensées dans le socle.
