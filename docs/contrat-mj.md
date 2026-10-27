@@ -75,6 +75,14 @@ ce contrôle lexical ne garantit pas toute paraphrase française.
 toutes ses paroles enregistrées que Corvus a entendues. Les citations gardent
 leurs mots historiques ; les auditeurs et identifiants privés ne sont pas transmis.
 Cette source ne subit pas la fenêtre globale des dix dernières paroles.
+Lot 156 : les paroles de chaque locuteur sont triées par révision puis minute,
+avec un `ordre_chronologique` croissant. Chaque entrée porte une `anteriorite`
+explicite : déjà prononcée et entendue par Corvus par rapport à la réponse en
+cours, non encore prononcée, et la révision courante. Une parole enregistrée
+à cette même révision reste antérieure à la réponse proposée. Ces données
+décrivent le registre entendu ; elles ne prouvent pas la vérité du contenu.
+Les rappels au discours rapporté restent jugés sémantiquement : ce dossier
+supprime l'ambiguïté de l'ordre sans prouver toute reformulation libre.
 Lot 135 : chaque parole fournit aussi son `rappel_exact`, rendu historique
 construit par le moteur avec le nom public du locuteur et ses mots intacts.
 Sa reprise entière reçoit une preuve locale sans audit. Les phrases entières du

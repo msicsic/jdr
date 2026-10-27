@@ -37,7 +37,16 @@ def echanges_passes(monde, interlocuteurs):
                   if p["locuteur"] == reel(monde, ref) and "joueur" in p["auditeurs"]]
             for ref in interlocuteurs}
     for ref, paroles in dossier.items():
-        for parole in paroles:
+        # La révision est un compteur croissant, pas un numéro de tentative
+        # narrative. Le registre ne contient pas la réponse encore proposée.
+        paroles.sort(key=lambda p: (p.get('revision', 0), p.get('minute', 0)))
+        for ordre, parole in enumerate(paroles, 1):
+            parole['ordre_chronologique'] = ordre
+            parole['anteriorite'] = {
+                'par_rapport_a': 'reponse_en_cours_non_encore_prononcee',
+                'statut': 'deja_prononcee_et_entendue_par_Corvus',
+                'revision_courante': monde.data['revision'],
+            }
             parole['rappel_exact'] = _rappel_exact(interlocuteurs[ref]['nom'], parole['texte'])
     return dossier
 
