@@ -4,24 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-localisation-crue`, non fusionnée**, lot **211**, base
-  initiale `0b95f33` vérifiée, **reprise demandée sur `aadab7c`** (205/207),
-  validation finale en cours ; mesures ci-dessous intermédiaires sur l'ancienne
-  base : `monde.mobile_par_nature` distingue personnages et
-  objets transportables du décor fixe ; `_lieu_cru` ne lit plus leur position
-  réelle sans croyance. Aucun savoir initial ajouté, aucun fichier interdit ni
-  autre fonction de `deliberation.py` modifié. Trois graines réelles du 209,
-  t=753/1034, douze variantes monde/rendu rechargées ; autre PNJ/auberge,
-  savoir déclaré, fixe/mobile, porteur inconnu et temps découpé : **16 ciblés
-  verts**. Banc **20 nuits × 4 h**, références 209 relues (code identique) :
-  **57 → 48 retours** (Relais 0→4, mine 1→1, auberge 5→2, crue 27→22,
-  hameau 24→19), zéro plantage/usurpation. Les trois retours de localisation
-  d'Ilse disparaissent ; **critère aucune boucle nouvelle non validé** :
-  ronde/secours au Relais 2024, répétitions actif/sommeil de l'agenda de Brune
-  en crue 7, hausse hameau 42 (1→7) ; causalité détaillée non établie.
-  **Réserve avant intégration**, aucun élargissement aux lots 205/196 c.
-  Suite complète unique en cours ; aucun Luna, deux travailleurs réduits au
-  plus. Bruts `C:/Users/msics/donjon/artifacts/localisation-211/` ;
+- **Branche `codex-localisation-crue`, non fusionnée**, lot **211**, départ
+  `0b95f33` vérifié puis **reprise demandée sur `aadab7c`** (205/207), fusion
+  `5a97ab3`, seul conflit documentaire. `monde.mobile_par_nature` et `_lieu_cru`
+  retirent le repli réel des personnages ; aucun savoir implicite ajouté au jeu,
+  aucun autre changement de production contre `aadab7c`. Trois graines 209,
+  t=753/1034, douze variantes monde/rendu rechargées ; cas Ilse/Aubin et autre
+  PNJ/auberge, savoir déclaré, fixe/mobile, porteur inconnu, temps découpé.
+  **15 ciblés verts** sur la fusion ; vérification de l'intention persistée et
+  de la non-perception renforcée avant exécution dans la suite finale.
+  **20 paires × 4 h**, référence exacte en cache : **24 → 16 retours**
+  (Relais 0→4, mine 1→1, auberge 5→2, crue 9→2, hameau 9→7), zéro
+  plantage/usurpation. Aucune nouvelle alerte de répétition/alternance, mais
+  **absence de boucle nouvelle non validée** : quatre retours de secours/ronde
+  au Relais, causalité détaillée non établie ; deux observations d'attente.
+  Attente urgente crue 102,5→178,75, hameau 111,25→128,75 PNJ·min ; sans recours
+  crue 27,5→0. **Réserve avant intégration**, aucun élargissement à 196 c.
+  Suite finale unique sur `aadab7c` : **2 425 tests / 281 fichiers, 2 128 s,
+  quatre échecs et une erreur bruts** ; six reprises vertes après observation
+  du test d'abri, contre-épreuve sur une case valide et oracle du rejeu.
+  **Deux MiMo préexistants restent, zéro erreur consolidée** ; aucune seconde
+  suite sur cette base. Première base archivée (2 404/13, 15 reprises vertes).
+  Le test d'eau passe après 205 ; Aubin nourri à 4 min, rotations reconnues
+  et état réel remplacent les anciens oracles textuels de part/rejeu.
+  Aucun Luna, deux travailleurs réduits au plus. Bruts
+  `C:/Users/msics/donjon/artifacts/localisation-211/`, finaux dans `aadab7c/` ;
   [rapport 211](taches/rapport-codex-211-localisation-crue.md).
 
 - **Branche `codex-evacuation-juge`, fusionnée**, lot **205 / 196 b**,

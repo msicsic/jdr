@@ -6,10 +6,13 @@ from pathlib import Path
 import unittest
 
 from donjon import deliberation as d
-from donjon.esprits import croire, lire
+from donjon.esprits import croire, lire, percus
+from donjon.geometrie import cases, placer
 from donjon.monde import Monde, mobile_par_nature
+from donjon.pnj import occupants
 from donjon.rendu import regarder
 from donjon.scene import scene_percue
+from donjon.spatial import _case_libre
 from tests.test_tensions import recharger, vivre
 from tests.test_voix import hugues_cherche_anselme
 
@@ -29,20 +32,32 @@ class LocalisationTests(unittest.TestCase):
         return r
 
     def test_position_cachee_ne_change_pas_la_croyance_ni_le_plan(self):
-        for m, acteur, cible in [(capture(), 'ilse', 'aubin'),
-                                 (hugues_cherche_anselme(), 'hugues', 'anselme')]:
+        for m, acteur, cible, salles in [
+                (capture(), 'ilse', 'aubin', ('crypte', 'echoppe')),
+                (hugues_cherche_anselme(), 'hugues', 'anselme', ('chambre_chaude', 'etable'))]:
             with self.subTest(acteur=acteur):
                 lire(m, acteur)['croyances'].setdefault(cible, {}).pop('lieu', None)
                 esprit = copy.deepcopy(lire(m, acteur))
                 plans = []
-                for salle in list(m.data['salles'])[:2]:
+                for salle in salles:
                     n = Monde(copy.deepcopy(m.data))
-                    n.objets[cible]['lieu'] = salle
+                    occupees = occupants(n, cible)
+                    for case in sorted(cases(n.data['salles'][salle])):
+                        if (salle, case) in occupees or not _case_libre(n, salle, case):
+                            continue
+                        placer(n.objets[cible], salle, case)
+                        if cible not in percus(n, acteur)[0]:
+                            break
+                    else:
+                        self.fail(f'Aucune case libre non perçue dans {salle}')
                     n = self.recharge(n)
+                    self.assertNotIn(cible, percus(n, acteur)[0])
                     self.assertEqual(esprit, lire(n, acteur))
                     self.assertIsNone(d._lieu_cru(n, acteur, cible))
                     self.assertIsNone(d.salle_crue(n, acteur, cible))
-                    plans.append(d.choisir(n, acteur, n.data['minutes']))
+                    d.choisir(n, acteur, n.data['minutes'])
+                    n = self.recharge(n)
+                    plans.append(copy.deepcopy(lire(n, acteur)['intention']))
                 self.assertEqual(plans[0], plans[1])
 
     def test_sources_declarees_absence_et_emboitement(self):
