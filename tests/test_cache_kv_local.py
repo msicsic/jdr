@@ -116,12 +116,11 @@ class PrefixeKVTests(unittest.TestCase):
         i2, e2, _, s2 = self._capter_appel(m_defi, "« Ilse, ouvre la porte ! »", enrichir=True,
                                            retour_moteur={"obstacle": "Test", "consigne": "Corrige."})
 
-        # Les consignes conditionnelles de l’intégration restent conditionnelles (L3 séparé).
-        self.assertIn("Le retour_moteur est un contrôle fiable", i2)
-        self.assertNotIn("Le retour_moteur est un contrôle fiable", i1)
-        # Les règles mode_cases/atelier ne sont pas injectées hors de leur contexte ; révision absente au 1er appel.
-        self.assertNotIn("action faufiler", i_base)
-        self.assertIn("action faufiler", i1)
+        self.assertEqual(i_base, i1)
+        self.assertEqual(i1, i2)
+        self.assertIn("Le retour_moteur est un contrôle fiable", e2["consigne_retour_moteur"])
+        self.assertNotIn("consigne_retour_moteur", e1)
+        self.assertIn("action faufiler", i_base)
         self.assertNotIn("rupture du contrat narratif", i1)
         # L'ordre causal du schéma (mode -> texte -> faits -> proposition) est intégralement préservé.
         self.assertEqual(list(s1["properties"]), ["mode", "texte", "faits", "proposition"])

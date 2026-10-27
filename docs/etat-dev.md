@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-consignes-invariantes`, fusionnée**, lot **161 / L3**,
+  base `c22541b` : consignes d'interprétation permanentes, quatre règles techniques
+  et parole présentes à chaque tour ; indications du refus courant en entrée.
+  **7/7 → 0/7 variations** sur huit captures Relais/atelier, consignes moyennes
+  **34 259,75 → 39 910 caractères**. Quatre parcours console identiques à la base,
+  état complet et rendu rechargés. Première passe **27 ciblés verts** ; suite
+  complète unique **2 214 tests, 253 fichiers, 16 ignorés, zéro échec/erreur,
+  2 060,44 s**, deux travailleurs réduits après la fin du calcul d’intégration.
+  Deux nouveaux tests L3 et neuf tests cache/local verts dans cette suite. **Validation Luna** :
+  « passe Luna faite par l'orchestrateur, à compléter » (rubrique réservée ; aucune
+  passe exécutée ici). Commande déposée dans `luna-a-jouer.txt`. Mesures Luna et
+  critère des refus à compléter par l'orchestrateur, qui poussera la branche.
+  Commits locaux non signés ; aucune poussée par cet agent. `main` intacte.
+  [Rapport 161](taches/rapport-codex-161-consignes-invariantes.md), bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/consignes-161/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Passe Luna jouée par l'orchestrateur (revue automatique de l'agent bloquante), deux passes, sept scripts contre cdaf371 : appels/tour 3,24 → 3,07, s/tour 10,5 → 9,9 (médiane 9,6 → 9,4), replis 1,5 → 1,0, obstacles 16 → 12, relances 7 → 6,5, refus 10,5 → 11 ; jetons cachés d'interprétation 567 808 → 1 141 120. Rejeu des refus du lot 95 non fait. Bruts artifacts/consignes-161/.
+
 - Branche `codex-audit-invariant`, **non fusionnée**, lot **162** (L2 b, schéma d'audit narratif invariant), `fd90d59` :
   schéma invariant atteint (**50/72 → 0/76** variations), contrôles déterministes identiques sur les 86 audits archivés,
   suite verte hors MiMo. **Refusée à la relecture** : critère de conservation des refus du lot 95 non atteint (trois audits

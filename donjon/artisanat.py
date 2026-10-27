@@ -87,6 +87,7 @@ def normaliser(p):
 
 
 REGLES = """
+Ces règles utilisent le dossier atelier lorsqu’il est présent ; son absence ne fournit aucune ressource ni possibilité.
 FABRICATION ET INSTALLATION (conventions de jeu, pas conseils de construction réelle) :
 Le dossier atelier sépare ressources connues, inconnues et assemblages possibles.
 Pour une volonté de fabriquer une échelle, ou une question sur sa faisabilité (le moteur prépare

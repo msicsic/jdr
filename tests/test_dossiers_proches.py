@@ -23,7 +23,7 @@ from tests.test_espace import terrasse
 DOSSIERS = (artisanat.dossier, franchissement.dossier, obstacles.dossier, espace.dossier)
 
 
-def console(m, p, tenter=False):
+def console(m, p, tenter=False, requetes=None):
     faits = []
 
     def appel(instructions, entree, intention, fonction, schema):
@@ -31,6 +31,8 @@ def console(m, p, tenter=False):
             return {"conforme": True, "motif": ""}
         if fonction == "auditer_narration":
             return {"segments": {}}
+        if requetes is not None:
+            requetes.append((instructions, copy.deepcopy(entree)))
         faits.append(copy.deepcopy(entree["faits"]))
         return {"mode": "action", "texte": "", "faits": [], "proposition": p}
 

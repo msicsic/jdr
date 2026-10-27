@@ -21,6 +21,7 @@ SCHEMA = {"type": "object", "additionalProperties": False,
                         "required": ["cadre", "terrain"]}}}, "required": ["abords"]}
 
 REGLES = """
+Ces règles utilisent le dossier espace lorsqu’il est présent ; son absence ne fournit aucune ressource ni possibilité.
 Le dossier espace décrit les bords et les sols voisins : absence de sortie à pied ne signifie
 pas absence de lieu de l'autre côté. Réponds aux questions d'issues à partir de ces bords,
 sans demander une observation supplémentaire lorsque ces faits sont déjà visibles.

@@ -285,3 +285,15 @@ accord n'est pas un paiement. Sans accord à modifier, le personnage répond d'a
 ses intentions, sans inventer de passé, de secret ni de promesse. Un personnage absent ne répond
 pas : reste en dialogue. Pour un savoir qui manque, préfère enrichir_savoirs.
 """
+
+
+# Indications du tour : envoyées dans l'entrée, jamais dans les consignes stables.
+RETOUR_INTERPRETATION = (
+    "Le retour_moteur est un contrôle fiable : corrige la proposition précédente, ou réponds en dialogue sur l'obstacle, sans exécuter autre chose."
+    "\nSon champ attendu, quand il existe, dit en champs et identifiants ce qu'une proposition corrigée "
+    "doit contenir : suis-le ; il ne s'adresse jamais au joueur."
+    "\nSi tu réponds en dialogue, rien n'a eu lieu : c'est toi qui expliques l'obstacle, aucun "
+    "personnage ne parle ni ne réagit.")
+RETOUR_REFUSE = (
+    "Les propositions précédentes ont été refusées avant toute exécution. Explique les conditions pertinentes à partir des faits fournis. "
+    "Ne présente pas ces refus comme une tentative de Corvus ni comme une preuve que son intention entière est impossible.")
