@@ -67,7 +67,9 @@ class PretTests(unittest.TestCase):
         m, _ = vivre(recharger(m), 6)
         self.assertEqual(m.objets["lampe_gaspard"]["lieu"], "gaspard")
         self.assertIn("Rémy rend la lampe de Gaspard à Gaspard (rendu).", chronique(m))
-        self.assertEqual(m.data["permissions"], [])
+        # Les autres mineurs vivent aussi : un prêt autonome d'une autre lampe
+        # n'invalide pas la restitution et la fin de cette permission-ci.
+        self.assertEqual([p for p in m.data["permissions"] if p["objet"] == "lampe_gaspard"], [])
         self.assertFalse([x for x in lire(m, "remy")["engagements"] if "rendre" in x["condition"]])
         self.assertTrue(illicite(m, "remy", "lampe_gaspard", "allumer"))
 
@@ -80,7 +82,8 @@ class PretTests(unittest.TestCase):
         lire(m, "remy")["intention"] = None
         self.assertEqual(demander(m, "gaspard", "remy", "lampe_gaspard"), "rendu")
         m = recharger(m)
-        self.assertEqual((m.objets["lampe_gaspard"]["lieu"], m.data["permissions"]), ("gaspard", []))
+        self.assertEqual((m.objets["lampe_gaspard"]["lieu"],
+                          [p for p in m.data["permissions"] if p["objet"] == "lampe_gaspard"]), ("gaspard", []))
 
     def test_le_joueur_emprunte_une_lampe_et_la_pose_sans_la_voler(self):
         m = calme(creer("mine", 1985, "fixe"), "gaspard")

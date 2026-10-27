@@ -424,6 +424,9 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    if attribut == "lieu":
+        from .defense import approche_vue
+        approche_vue(monde, id, sujet, ancienne or {}, croyance)
     if attribut == "eau" and source in ("vu", "essai"):
         # Une preuve propre postérieure dément l'avis durablement : le perdre de vue
         # ensuite ne doit pas ressusciter une ancienne prévision reçue.

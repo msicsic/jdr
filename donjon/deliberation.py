@@ -27,7 +27,7 @@ CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
               "servir", "frapper", "assommer", "dans_le_dos", "ranimer", "fuite", "se_rendre", "degager",
-              "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager", "proposer")
+              "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager", "proposer", "interposer")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter")  # gestes qui durent : une minute sans les finir n'est pas un échec
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent
 # demander_feu : tendre sa source à qui porte une flamme pour qu'il l'y allume (``echanges.demander_feu``).
@@ -1610,6 +1610,8 @@ def _candidats(monde, id):
                     continue
                 ajouter_recours(lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True)
     # Toute parole de service suit le devis qui l'a fait accepter, jusqu'à son abandon annoncé.
+    from .defense import interposition
+    ajouter("devoir", interposition, Palier.PAROLE_DUE, (-1,))
     from .planification import planifier_engagement
     for rang, agenda in enumerate(agendas.essayables(monde, id)):
         if agenda["etat"] in ("actif", "sommeil"):

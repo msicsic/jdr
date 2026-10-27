@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-garder-proteger`, fusionnée**, lot **167 / A4b partiel**,
+  base `45d07fb`, code `d230e4a` puis `0bdfee4` : interposition sur approche
+  observée d'une charge ou d'un protégé du profil, marche réelle vers le poste,
+  avertissement typé enregistré avant affichage, épreuve relationnelle commune
+  en cas de persistance. Joueur compris parmi les approchants ; aucune violence
+  ajoutée ni information privée de charge dans la parole. Huit ciblés verts,
+  dont Anselme/ballot et autre gardien, recharge et découpage ; présence immobile
+  31 minutes sans répétition. **Sortes d'agenda `garder`/`protéger` non livrées**,
+  suivi vocal/appel sur ce socle et hystérésis générale restent à faire.
+  Suite unique : **2 240 tests, 257 fichiers, 1 309,96 s**, zéro erreur/ignoré,
+  25 échecs bruts : 23 assertions historiques adaptées, **24 repris verts**,
+  deux MiMo historiques `6 != 5` laissés. **8/8 empreintes Relais/auberge
+  identiques**, mine/crue différentes (approches mémorisées, postes et paroles).
+  Banc rapide 4 h × quatre graines × auberge/mine/crue : zéro arrêt, usurpation,
+  violation, poussée ou boucle nouvelle détectée ; passages **13,75/8/21,5 →
+  13,75/8,25/20**, vols vus **0/0,5/1,5 → 0/0,25/1,5**, eau crue
+  **21,25 → 17,5 PNJ·min**. Josse sous devoir déjà satisfait : observation
+  déplacée de 2024/130 min à 1985/125 min, à surveiller. VERIFIER + spatial 0,2,
+  auberge fixe 1985, 2 h : monde et rendu rechargés identiques. Coût auberge
+  4 h : **201 recherches / 4 220 nœuds** inchangés ; CPU indicatif 8,17/10,19 s,
+  charges différentes, aucun surcoût isolé conclu. Références réutilisées,
+  seuls manques calculés ; deux travailleurs réduits au plus pour ce lot.
+  Pas de Luna ni fichier MJ réservé modifié ; `main` intacte. Pas de clé de
+  signature configurée, commits non signés ; branche seule poussée.
+  [Rapport 167](taches/rapport-codex-167-garder-proteger.md) ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/garder-167/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Les sortes d'agenda garder et protéger restent à faire. À surveiller : Josse fige_presse déplacé de mine 2024 à mine 1985 (devoir déjà satisfait).
+
 - Branche `codex-relances-168`, **non fusionnée**, lot **168**, `841f5d1` : attribution des relances de la vérification
   Luna 227c496 (lot 165), **24 → 41** sur 64 parties communes : comptes omis ou engagement mal lu **10**, rappels hors avis
   (silences actuels pris pour des rappels absents) **6**, avis désormais typés et relus **4** (légitime, lot 164), mesures

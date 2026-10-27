@@ -30,7 +30,7 @@ PAS = 15
 DUREES = {"prendre": 20, "poser": 20, "ouvrir": 20, "fermer": 20, "deverrouiller": 50, "verrouiller": 50,
           "crocheter": 600, "frapper": 600, "manger": 600, "servir": 300, "alimenter": 100, "allumer": 100, "eteindre": 30,
           "inspecter": 100, "dire": 100, "demander": 100, "acheter": 100, "confier": 100, "remettre": 50,
-          "demander_feu": 100, "proposer": 100, "ranimer": 100}
+          "demander_feu": 100, "proposer": 100, "ranimer": 100, "interposer": 100}
 DURABLES = ("reposer", "chauffer", "abriter")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ ; ouie : se
@@ -38,7 +38,7 @@ DURABLES = ("reposer", "chauffer", "abriter")
 NATURES = ("lecture", "deplacement", "geste", "social", "reponse", "decision", "ouie", "compte", "relation", "violence")   # reponse : répondre à qui l'appelle ; compte : dettes et travaux payés
 # Un geste touche sa cible, objet ou personne à qui l'on parle (``_a_toucher``), sauf ceux qui
 # agissent à distance : se chauffer, c'est recevoir la chaleur du feu dans sa salle (``corps``).
-A_DISTANCE = ("chauffer", "se_rendre", "degager", "fuite")
+A_DISTANCE = ("chauffer", "se_rendre", "degager", "fuite", "interposer")
 
 
 def verifier(monde):
@@ -839,6 +839,9 @@ def _executer_effet(monde, id, etape, lignes, gestes):
     from .deplacement_objet import deplacer
     o = monde.objets[id]
     op, cible, outil = etape["operation"], etape["cible"], etape["outil"]
+    if op == "interposer":
+        from .defense import avertir_acces
+        return avertir_acces(monde, id, etape, lignes)
     if op == "tuer":
         from .tenir import commencer
         from .monde import ErreurMonde
@@ -1644,6 +1647,15 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         # événement l'a fait reconsidérer entre-temps.
         return reste, ATTENTE, None
     en_place = en_cases and "position" in o
+    if en_place and operation == "interposer":
+        from .defense import interposition
+        reaction = interposition(monde, id)
+        if not reaction or not reaction[1] or reaction[1][0] != etape:
+            return reste, MANQUE, etape
+        arrivee = lambda salle, case: salle == etape["lieu"] and list(case) == etape["contenu"]["position"]
+        if not arrivee(o["lieu"], o["position"]):
+            pas = _marcher(monde, id, arrivee, lignes, gestes)
+            return (pas, GESTE, None) if pas else (reste, MANQUE, etape)
     if en_place and operation == "aller":
         # Le seul juge du passage est le chemin en cases : sans chemin, c'est un geste manqué.
         lieu = etape["lieu"]
