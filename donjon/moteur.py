@@ -1025,7 +1025,9 @@ class Moteur:
         from . import services
         service_avant = services.preparer(m, 'joueur', effet[1], effet[0])
         avant = agendas.etat_promis(m)
-        resultat = Moteur._appliquer_effet(m, effet, lignes)
+        from .esprits import constats_geste
+        with constats_geste(m, "joueur", effet[1], effet[2] if isinstance(effet[2], str) else None):
+            resultat = Moteur._appliquer_effet(m, effet, lignes)
         services.constater(m, 'joueur', effet[1], service_avant)
         if avant:
             agendas.constater_geste_joueur(m, avant)

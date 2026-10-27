@@ -828,7 +828,9 @@ def _executer(monde, id, etape, lignes, gestes):
     lacher(monde, id, etape["operation"])
     from . import services
     avant = services.preparer(monde, id, etape['cible'], etape['operation'])
-    fait = _executer_effet(monde, id, etape, lignes, gestes)
+    from .esprits import constats_geste
+    with constats_geste(monde, id, etape['cible'], etape['outil']):
+        fait = _executer_effet(monde, id, etape, lignes, gestes)
     if fait:
         services.constater(monde, id, etape['cible'], avant)
     return fait

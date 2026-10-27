@@ -15,6 +15,8 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
   demande d'y voir (``constater_lumiere_devant``).
 - ``pieces`` : ce qu'il croit qu'une bourse contient, su en la tenant ou par un savoir ; jamais
   lu sur l'objet (``planification.enrichir``).
+- ``fin`` : destruction ou consommation constatée, datée et conservée même
+  après retrait des restes ; distincte de l'état de disponibilité.
 - ``verrouillee`` : appris par un essai ou un savoir, jamais par la vue.
 - ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
 - ``prevision`` (sujet : une salle) : avis reçu, avec source et conviction ; valeur =
@@ -28,6 +30,7 @@ Le joueur a ``data["voix_connues"]`` et ``data["voix_entendues"]``. Voir quelqu'
 """
 from . import agendas
 import copy
+from contextlib import contextmanager
 
 from .biens import permis as _permis
 from .perception import _par_case, eclairage, faible
@@ -194,11 +197,13 @@ def _croyance_valide(monde, attribut, c):
                 and all(isinstance(x, str) for x in s["dit_a"])
                 and len(s["dit_a"]) == len(set(s["dit_a"]))), "Constat confié invalide"
     if attribut == "lieu":
-        # Une croyance peut survivre à son objet (détruit, retiré) ; la perception la purge.
+        # Une croyance peut survivre à son objet (détruit, retiré).
         assert (set(c) >= {"valeur", "salle", "case"}
                 and (c["valeur"] is None or isinstance(c["valeur"], str))
                 and (c["salle"] is None or c["salle"] in monde.data["salles"])
                 and (c["case"] is None or (isinstance(c["case"], list) and len(c["case"]) == 2))), "Croyance de lieu invalide"
+    elif attribut == "fin":
+        assert c.get("valeur") in ("detruit", "consomme"), "Fin d'objet crue invalide"
     elif attribut == "etat":
         # Des états vrais ou faux ; d'une salle, aussi les niveaux de lumière vus (0 à 2).
         assert isinstance(c.get("valeur"), dict) and all(
@@ -266,7 +271,9 @@ def verifier(monde):
         assert isinstance(e, dict) and set(e) == {"croyances", "memoire", "faits_dits"}, "Connaissances du joueur invalides"
         assert isinstance(e["croyances"], dict), "Croyances du joueur invalides"
         for sujet, attributs in e["croyances"].items():
-            assert sujet in monde.data["salles"] and set(attributs) <= {"eau", "prevision"}, "Perception d'eau du joueur invalide"
+            assert (isinstance(sujet, str) and isinstance(attributs, dict)
+                    and (sujet in monde.data["salles"] and set(attributs) <= {"eau", "prevision"}
+                         or set(attributs) <= {"fin"})), "Perception du joueur invalide"
             for attribut, c in attributs.items():
                 _croyance_valide(monde, attribut, c)
         assert isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX, "Mémoire du joueur invalide"
@@ -847,6 +854,38 @@ def _vu_porter(monde, id, sujet):
     reconsiderer(monde, id)
 
 
+@contextmanager
+def constats_geste(monde, id, *sujets):
+    """Conséquences matérielles d'un geste propre, réussi ou non."""
+    from .perception import fin_objet
+    avant = {s: fin_objet(monde.objets[s]) for s in sujets if s in monde.objets}
+    yield
+    for sujet, fin in avant.items():
+        if sujet in monde.objets and fin_objet(monde.objets[sujet]) != fin:
+            constater_fin_objet(monde, id, sujet, "essai")
+
+
+def constater_fin_objet(monde, id, sujet, source):
+    """Appelé seulement pour un objet vu ou touché par son propre geste.
+
+    La preuve datée reste dans les croyances, hors de la mémoire bornée. Une
+    suppression du registre réel n'est jamais, à elle seule, une observation.
+    Les lectures habituelles d'état et de disponibilité restent inchangées.
+    """
+    from .perception import fin_objet
+    assert source in ("vu", "essai")
+    cause = fin_objet(monde.objets[sujet])
+    ancienne = lire(monde, id)["croyances"].get(sujet, {}).get("fin")
+    if cause and (not ancienne or ancienne["valeur"] != cause):
+        croire(monde, id, sujet, "fin", cause, source)
+        reconsiderer(monde, id)
+    elif not cause and ancienne:
+        # Une réparation ou une réserve reconstituée peut démentir le constat.
+        # Cela ne réactive pas les projets déjà terminés.
+        del esprit(monde, id)["croyances"][sujet]["fin"]
+        reconsiderer(monde, id)
+
+
 def constater(monde, id, sujet, source):
     """Croit l'état visible de l'objet tel qu'il est : vu, ou laissé ainsi de sa propre main.
     D'un personnage, joueur compris, se voit ce qui presse son corps : la faim, le froid, la
@@ -868,6 +907,8 @@ def constater(monde, id, sujet, source):
             relancer(monde, id, "devoir", ATTEINTE)
         return
     o = monde.objets[sujet]
+    if source in ("vu", "essai"):
+        constater_fin_objet(monde, id, sujet, source)
     if "passage" in o:
         # La forme ne se devine pas de la catégorie ; pas de croyance neuve pour
         # les anciens objets non décrits (empreintes inchangées).
@@ -1019,8 +1060,8 @@ def percevoir(monde, id):
 def _percevoir(monde, id):
     vus, champ = percus(monde, id)
     croyances = esprit(monde, id)["croyances"]
-    for sujet in [s for s in croyances if s != "joueur" and s not in monde.objets and s not in monde.data["salles"]]:
-        del croyances[sujet]  # Objet détruit ou consommé : plus rien à croire à son sujet.
+    # Une disparition du registre n'apprend rien à un observateur distant.
+    # Conserver aussi une fin déjà constatée, même si ses restes sont retirés.
     constater_lumiere(monde, id)
     from .eau import percevoir as percevoir_eau
     percevoir_eau(monde, id)
@@ -1063,6 +1104,8 @@ def _percevoir(monde, id):
             change = True
     for sujet, attributs in croyances.items():
         lieu = attributs.get("lieu")
+        if sujet != "joueur" and sujet not in monde.objets:
+            continue
         if sujet in vus or not lieu or lieu["valeur"] is None or not _observe(monde, champ, lieu):
             continue
         contenant = monde.objets.get(lieu["valeur"])
@@ -1091,3 +1134,9 @@ def percevoir_tous(monde):
     with vue_memorisee(monde), etat_fige(monde):  # Percevoir ne révise que des esprits.
         for id in pnjs(monde):
             percevoir(monde, id)
+        from .perception import fin_objet
+        croyances_joueur = lire(monde, "joueur")["croyances"]
+        for sujet, o in monde.objets.items():
+            fin_connue = "fin" in croyances_joueur.get(sujet, {})
+            if (fin_objet(o) or fin_connue) and monde.visible(sujet):
+                constater_fin_objet(monde, "joueur", sujet, "vu")

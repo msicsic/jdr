@@ -14,6 +14,19 @@ from .francais import designer
 _matiere = None
 
 
+def fin_objet(o):
+    """Fin matérielle constatable, distincte d'une simple indisponibilité.
+
+    Un réservoir vide reste un objet : une lampe éteinte n'est pas consommée.
+    Les portions et charges désignent, elles, la réserve consommable elle-même.
+    """
+    if o.get("integrite") == 0:
+        return "detruit"
+    if any(o.get(k) == 0 for k in ("portions", "charges")):
+        return "consomme"
+    return None
+
+
 def salle_source(monde, source):
     lieu = source["lieu"]
     vus = set()
