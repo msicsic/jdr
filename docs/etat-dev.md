@@ -4,6 +4,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Revue vierge 187, lecture seule**, branche `codex-revue-vierge-pnj` : six nuits 4 h observées avant lecture des plans (`C:/Users/msics/donjon/artifacts/revue-187/`), [rapport 187](taches/rapport-codex-187-revue-vierge-pnj.md).
+
 - **Branche `codex-depart-definitif`, fusionnée**, lot **181 / A4b
   partiel**, base `integration 8c0cecd` : sortie `exterieur: true`, état
   `parti` sauvegardé par la marche commune joueur/PNJ avec ou sans cases ;
