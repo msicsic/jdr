@@ -7,6 +7,9 @@ fausses ou périmées. Le moteur seul les révise ; Luna ne les modifie pas.
 Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueur ».
 - ``lieu`` : valeur = lieu direct (salle, porteur ou contenant) ou None si l'objet n'est plus
   là où on l'attendait ; ``salle`` et ``case`` disent où il a été vu.
+  Une preuve ``possession`` peut accompagner ce lieu : porteur, propriétaire,
+  permission et remise autorisée constatés alors. L'adoption de cette preuve
+  par les nouvelles n'est pas encore prise en charge.
 - ``etat`` : état visible (porte ou contenant ouvert, luminaire allumé ; d'un personnage, ce
   qui presse son corps : ``{"faim", "chaleur", "repos"}`` ; d'une salle, sa lumière là où il se
   tenait et celle de ses propres sources : ``{"eclairee", "niveau", "propre"}``,
@@ -202,6 +205,12 @@ def _croyance_valide(monde, attribut, c):
                 and (c["valeur"] is None or isinstance(c["valeur"], str))
                 and (c["salle"] is None or c["salle"] in monde.data["salles"])
                 and (c["case"] is None or (isinstance(c["case"], list) and len(c["case"]) == 2))), "Croyance de lieu invalide"
+        if "possession" in c:
+            p = c["possession"]
+            assert (isinstance(p, dict) and set(p) == {"porteur", "proprietaire", "permis", "remis_par", "remise_autorisee"}
+                    and all(p[k] is None or isinstance(p[k], str)
+                            for k in ("porteur", "proprietaire", "remis_par"))
+                    and type(p["permis"]) is bool and type(p["remise_autorisee"]) is bool), "Possession constatée invalide"
     elif attribut == "fin":
         assert c.get("valeur") in ("detruit", "consomme"), "Fin d'objet crue invalide"
     elif attribut == "etat":
@@ -273,7 +282,7 @@ def verifier(monde):
         for sujet, attributs in e["croyances"].items():
             assert (isinstance(sujet, str) and isinstance(attributs, dict)
                     and (sujet in monde.data["salles"] and set(attributs) <= {"eau", "prevision"}
-                         or set(attributs) <= {"fin"})), "Perception du joueur invalide"
+                         or set(attributs) <= {"fin", "lieu"})), "Perception du joueur invalide"
             for attribut, c in attributs.items():
                 _croyance_valide(monde, attribut, c)
         assert isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX, "Mémoire du joueur invalide"
@@ -837,6 +846,32 @@ def prete(monde, id, objet, a):
     return any(s["type"] == "pret" and s.get("objet") == objet and s.get("a") == a for s in lire(monde, id)["memoire"])
 
 
+def constater_possession(monde, id, sujet, source, *, salle=None, case=None, remis_par=None, autorise=False):
+    """Preuve propre du lieu et des droits lors d'une vue ou d'une remise.
+
+    L'état réel n'est consulté qu'ici, au constat, jamais par la fin de garde.
+    La preuve est sauvegardée avec le lieu daté ;
+    aucune entité ni nouveau moyen n'est ajouté au planificateur.
+    """
+    assert source in ("vu", "essai")
+    o = monde.objets[sujet]
+    porteur = _porteur(monde, o)
+    details = {}
+    if porteur is not None:
+        proprietaire = _proprietaire(monde, o)
+        permis = porteur == proprietaire or _permis(monde, porteur, sujet)
+        p = {"porteur": porteur, "proprietaire": proprietaire,
+             "permis": bool(permis), "remis_par": remis_par,
+             "remise_autorisee": bool(remis_par is not None and (permis or autorise))}
+        ancienne = croyance(monde, id, sujet, "lieu") or {}
+        precedent = ancienne.get("possession", {})
+        if remis_par is None and all(precedent.get(k) == p[k] for k in ("porteur", "proprietaire")):
+            p["remis_par"] = precedent.get("remis_par")
+            p["remise_autorisee"] = precedent.get("remise_autorisee", False)
+        details["possession"] = p
+    reviser(monde, id, sujet, "lieu", o["lieu"], source, salle=salle, case=case, **details)
+
+
 def _vu_porter(monde, id, sujet):
     """Le propriétaire qui voit son bien aux mains d'un autre, sans le lui avoir prêté, découvre un vol."""
     o = monde.objets[sujet]
@@ -1077,7 +1112,7 @@ def _percevoir(monde, id):
             continue
         o = monde.objets[sujet]
         if o["type"] != "porte":
-            reviser(monde, id, sujet, "lieu", o["lieu"], salle=salle, case=case)
+            constater_possession(monde, id, sujet, "vu", salle=salle, case=case)
             _vu_porter(monde, id, sujet)
         avant = croyances.get(sujet, {}).get("etat") if o["type"] in ETATS_VISIBLES or o["type"] == "personnage" else None
         constater(monde, id, sujet, "vu")
@@ -1135,6 +1170,8 @@ def percevoir_tous(monde):
         from .perception import fin_objet
         croyances_joueur = lire(monde, "joueur")["croyances"]
         for sujet, o in monde.objets.items():
+            if _porteur(monde, o) is not None and monde.visible(sujet):
+                constater_possession(monde, "joueur", sujet, "vu")
             fin_connue = "fin" in croyances_joueur.get(sujet, {})
             if (fin_objet(o) or fin_connue) and monde.visible(sujet):
                 constater_fin_objet(monde, "joueur", sujet, "vu")

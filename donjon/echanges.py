@@ -1040,6 +1040,13 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     restitution = bool(permission and permission["de"] == receveur and permission["a"] == donneur)
     ponctuel = restitution and monde.data["minutes"] - permission["minute"] <= 240
     deplacer(monde, objet, receveur)
+    from .esprits import constater_possession
+    # Les participants connaissent leur propre transfert, même sans le voir.
+    # Le mandat de livraison est encore présent avant sa clôture ci-dessous.
+    for participant in (donneur, receveur):
+        if participant == "joueur" or (monde.objets.get(participant) or {}).get("profil"):
+            constater_possession(monde, participant, objet, "essai", remis_par=donneur,
+                                  autorise=any(x["pour"] == proprietaire(monde, o) for x in livre))
     if livre and 'lot' in livre[0]:
         agendas.affecter_part(monde, receveur, livre[0]['lot'], objet)
     from .biens import compte, noter_compte
