@@ -268,8 +268,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   résolues **3**, gestes **2**, lumière **2**, perception/savoir/sources/voix d'auteur **14**. Correction partielle de la
   famille des comptes (examen obligatoire de chaque compte dû/rendu) : refus de comptes **42/55 → 20/55** au rejeu, mais
   huit audits perdent plus d'un refus sur cinq : **critère du lot 95 non atteint, non fusionnée**. Même famille que les
-  lots 117 b/117 c (`codex-comptes-recit-c`, en attente) : **décision groupée à l'utilisateur** sur le contrôle des comptes du
-  récit. [Rapport 168](taches/rapport-codex-168-relances.md) sur la branche ; bruts `artifacts/relances-168/` (`attribution.json`).
+  lots 117 b/117 c (`codex-comptes-recit-c`, en attente) : **décision du 2026-10-27 : abandonnée**, comme 117 c, au profit des comptes
+  écrits par le moteur (lot 180). [Rapport 168](taches/rapport-codex-168-relances.md) sur la branche ; bruts `artifacts/relances-168/` (`attribution.json`).
 
 - **Vérification Luna 227c496**, lot **165**, branche
   `codex-verif-luna-227c496` : aucun code changé, deux passes des 34 scripts,
@@ -1450,7 +1450,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   viennent du moteur ; l'auditeur relie chaque segment à un compte fourni et choisit un sens fermé et une quantité, que le
   moteur compare. Rejeu : inversion réelle refusée 5/5, trois faux refus 5/5 → 0/5. **Non fusionnée** : une passe Luna (quatre
   scripts) donne 3,94 → 3,83 appels/tour mais **14,0 → 20,5 s/tour** et obstacles narratifs 11 → 60 ; le lot 117 seul (sans sens
-  fermé) gagnait 13 % d'appels mais laissait passer l'inversion 2 fois sur 5. **Décision du 2026-10-27 : remesurer** en deux passes Luna sur la base actuelle avant de décider ; branche non fusionnée d'ici là. **Remesure faite (lot 117 c, branche `codex-comptes-recit-c` `5be5581`, portée sur l'intégration, suite verte hors MiMo)** : deux passes, sept scripts contre `cdaf371` en cache ; **11,23 → 14,78 s/tour** (+32 %), audit narratif **3,64 → 8,71 s/tour** sur les quatre scripts 117 b, obstacles narratifs **19 → 68** ; aucune inversion naturelle dans la référence, douze tentatives de faux refus comptables sur sept tours (zéro en référence) ; rejeu : inversion réelle refusée 5/5. [Rapport 117 c](taches/rapport-codex-117c-comptes-recit-mesure.md) sur la branche. **Décision à l'utilisateur.**
+  fermé) gagnait 13 % d'appels mais laissait passer l'inversion 2 fois sur 5. **Décision du 2026-10-27 : remesurer** en deux passes Luna sur la base actuelle avant de décider ; branche non fusionnée d'ici là. **Remesure faite (lot 117 c, branche `codex-comptes-recit-c` `5be5581`, portée sur l'intégration, suite verte hors MiMo)** : deux passes, sept scripts contre `cdaf371` en cache ; **11,23 → 14,78 s/tour** (+32 %), audit narratif **3,64 → 8,71 s/tour** sur les quatre scripts 117 b, obstacles narratifs **19 → 68** ; aucune inversion naturelle dans la référence, douze tentatives de faux refus comptables sur sept tours (zéro en référence) ; rejeu : inversion réelle refusée 5/5. [Rapport 117 c](taches/rapport-codex-117c-comptes-recit-mesure.md) sur la branche. **Décision du 2026-10-27 : abandonnée** au profit des comptes écrits par le moteur, hors de l'audit sémantique (lot 180).
 
 - Branche `codex-tache-promise`, fusionnée, lot **115**, base **6910d8e** :
   une tâche typée peut payer une part dans le recours après les moyens ordinaires.
