@@ -1504,6 +1504,10 @@ def _reclamer(travail, auditeur, objet, faits, comptes):
         comptes.append(compte(auditeur, "joueur", objet, 1, "du"))
     faits.append({"rendu": f"{nom} te rend {designer(o)}.",
                   "necessaire": f"{nom} garde {designer(o)} : {il} s'en sert encore.",
+                  "mefiance": f"{nom} refuse de te rendre {designer(o)} : {il} ne te fait pas confiance.",
+                  "rancune": f"{nom} refuse de te rendre {designer(o)} : {il} t'en veut encore.",
+                  "refus": f"{nom} refuse de te rendre {designer(o)}.",
+                  "impossible": f"{nom} ne peut pas te remettre {designer(o)}.",
                   "qui_va_la": QUI_VA_LA.format(nom=nom, il=il)}.get(
         issue, f"{nom} ne te rend pas {designer(o)}, qu'{il} n'a pas sur {lui}."))
 

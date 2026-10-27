@@ -5,7 +5,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-localisation-crue`, non fusionnée**, lot **211**, base
-  `0b95f33` vérifiée : `monde.mobile_par_nature` distingue personnages et
+  initiale `0b95f33` vérifiée, **reprise demandée sur `aadab7c`** (205/207),
+  validation finale en cours ; mesures ci-dessous intermédiaires sur l'ancienne
+  base : `monde.mobile_par_nature` distingue personnages et
   objets transportables du décor fixe ; `_lieu_cru` ne lit plus leur position
   réelle sans croyance. Aucun savoir initial ajouté, aucun fichier interdit ni
   autre fonction de `deliberation.py` modifié. Trois graines réelles du 209,
@@ -21,6 +23,55 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Suite complète unique en cours ; aucun Luna, deux travailleurs réduits au
   plus. Bruts `C:/Users/msics/donjon/artifacts/localisation-211/` ;
   [rapport 211](taches/rapport-codex-211-localisation-crue.md).
+
+- **Branche `codex-evacuation-juge`, fusionnée**, lot **205 / 196 b**,
+  départ `71bb01d`, reprise demandée sur **`ef86cab` (204 intégré)** : péril
+  indépendant du plan, certificat de transit, repli vers moins d’eau, abri commun
+  au choix et au séjour, cible tenue jusqu’à l’accomplissement. Seul raccord
+  autorisé : `pnj._abriter` ; `_lieu_cru`/`salle_crue` intacts (autre lot).
+  Quatre états réels issus de **209** en fixtures (Aubin/Ilse/Gorm et cible d’Ilse),
+  monde/rendu rechargés et laps découpés ; **157 ciblés consolidés verts**.
+  Suite finale : **2 410 tests / 279 fichiers, 9 échecs bruts, zéro erreur** ;
+  après scènes explicitées et ciblés, restent les **deux MiMo préexistants**
+  reproduits sur la base exacte. Une seule passe par base, seconde demandée après 204.
+  Contrôle crue 1985 2 h `VERIFIER` et spatial 0,2 vert. **20 paires finales 4 h** :
+  suspects Relais **0 → 0**, mine **1 → 1**, auberge **5 → 5**, crue **27 → 9**,
+  hameau **24 → 9**, total **57 → 24**, zéro plantage/usurpation. Eau en crue
+  **13,75 → 7,5**, hameau **13,75 → 2,5 PNJ·min** en moyenne.
+  **Critères non validés** : seulement **7/12 empreintes 2 h identiques** ;
+  agenda a1 de Brune hameau 2024 réactivé/endormi huit fois, nouvelles répétitions,
+  attente urgente **27,5 → 111,25 PNJ·min** au hameau. Aucune garantie générale
+  contre les boucles ; contrat complet 196 c distinct, localisation crue non traitée.
+  Aucun Luna, deux calculs réduits au plus, commit non signé ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/evacuation-205/` ;
+  [rapport 205](taches/rapport-codex-205-evacuation-juge.md). **À revoir avant fusion.**
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Retours suspects 57 → 24 (crue 27 → 9, hameau 24 → 9), eau crue 13,75 → 7,5 et hameau 13,75 → 2,5 PNJ·min ; en contrepartie attente urgente crue 77,5 → 102,5 et hameau 27,5 → 111,25, sans recours crue 15 → 27,5, Brune hameau 2024 active/endort son agenda huit fois, Gorm 125 min sans but : à reprendre dans 196 c. Abris hors crue aussi changés (7/12 empreintes 2 h identiques).
+
+- **Branche `codex-reclamer-vol`, fusionnée**, lot **207**, base `c6c2de6` :
+  recours typé `reclamer` avant la recherche de reprise, porteur/danger/présence
+  crus, pas de peur ni d'inconscience crue ; demande au joueur sans remise imposée.
+  Décision commune de rétention illégitime : honnêteté, relation, valeur et utilité,
+  permission du prêt conservée ; rendu ciblé de `paroles._reclamer` **autorisé**.
+  Dix tests nouveaux verts : deux restitutions autonomes, refus puis reprise,
+  violence contrôlée, joueur libre, exclusions, temps découpé, monde/rendu rechargés.
+  Cas historique 200 reproduit sur 9904574 : naissance 152, atteint 228 ;
+  sa capture à 151 rejouée : Gorm réclame à 213, Brune refuse par rancune,
+  projet en sommeil faute de moyen admissible ; 89 min entières/découpées,
+  monde/rendu et recharges identiques. Base actuelle : aucune naissance.
+  Banc 20 paires 4 h, références a488f1f en cache (code identique) : zéro
+  plantage/usurpation, 20 chroniques identiques, avis **57/272/563** inchangés,
+  S/F/D inchangés ; aucune récupération naturelle, aucun gain de richesse démontré.
+  Suite unique : **2 411 tests / 279 fichiers, 3 117,025 s**, sept assertions en
+  échec, zéro erreur, 16 ignorés. Dix reprises finales vertes après adaptation
+  des oracles (portage suivi du refus ; réception d'accusation isolée du recours
+  prioritaire) ; **seul `test_rondes_resumees` reste en échec, reproduit sur c6c2de6**.
+  Aucune seconde suite ; clé de signature absente, livraison non signée sur la branche ;
+  [rapport 207](taches/rapport-codex-207-reclamer-vol.md).
+  Bruts `C:/Users/msics/donjon/artifacts/reclamer-207/`, aucun Luna, deux travailleurs réduits au plus.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Réclamation par la parole commune reclamer, recours hors recherche avant la reprise ; rendu des refus de reclamer par cause (paroles.py, autorisé). Aucune réclamation naturelle dans les 20 nuits 4 h (aucune naissance de récupération sur cette base) : preuve par scènes et capture historique ; compteur 199 identique (57).
+
+- **Lot 210, mesure seule**, `codex-mesure-saillance`, base `0aa41b3`, fusionnée : filtre expérimental des moyens agissables dans `tools/` ; 46 nuits séquentielles à priorité réduite, aucun `donjon/`/Luna modifié. Nœuds 12 h −94/79/86 % (mine/auberge/hameau), mais plan lumière avant crochetage perdu ; 4 h × cinq scénarios × quatre graines : nœuds −54 %, blocage 0 → 150, attente 620 → 2 885 min·PNJ ; hameau 12 h, suspects 13 → 32. 853 choix entiers S/REFERENCE échantillonnés, sept plans perdus sur 482 recherches communes ; Odile 75 min, surcoût +3,644 minutes modèle au rejeu. Six tests courts, deux témoins strictement identiques, 46 recharges JSON et neuf scènes disque/laps découpés verts. **Ne pas implémenter cette règle en l'état** ; filtre encore borné aux agissables, pas de garantie uniforme sur les flammes auxiliaires/devis. Bruts `C:/Users/msics/donjon/artifacts/saillance-210/` ; [rapport 210](taches/rapport-codex-210-mesure-saillance.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Sonde et rapport seulement. Nœuds −54 % sur 4 h (−79 à −94 % sur 12 h), mais attente 620 → 2 885 min·PNJ, blocage 0 → 150, hameau plus de retours, préparatif émergent (lumière avant crochetage) perdu, Odile oublie sa réserve : règle déconseillée en l'état ; préalables d'implémentation dans le rapport.
 
 - **Lot 209, diagnostic seul**, `codex-retours-restants`, base `78ba505` : 57 retours reproduits (Relais 0, mine 1, auberge 5, crue 27, hameau 24), inventaire exhaustif attribué ; 25 évacuations à 205, 7 arbitrages d'abri à 205/196 c, 21 secours/rondes à examiner par le contrat complet de 196 c ; hors des deux : 3 localisations réelles lues sans croyance et une livraison interrompue par sa propre remise sous clé, deux petits lots proposés. Cas 208 rejoués : Ilse conserve la faim connue de Brune, Aubin perd le péril dès l'adoption du plan. Douze nuits réinstrumentées identiques, 35 captures monde/rendu rechargées ; aucun jeu modifié, aucun Luna, un calcul réduit à la fois ; bruts `C:/Users/msics/donjon/artifacts/retours-209/`, [rapport 209](taches/rapport-codex-209-retours-restants.md). Aucune garantie générale ni baisse future certifiée.
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 57 retours attribués : eau 25 et cibles d'abri 7 (lot 205, abri aussi 196 c), secours/rondes 21 (196 c), localisation crue d'un personnage lue sur sa position réelle 3 (lot à créer), restauration d'une charge suspendue 1 (lot à créer).

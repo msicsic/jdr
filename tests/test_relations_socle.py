@@ -86,6 +86,10 @@ class AccesTests(unittest.TestCase):
 class ChaineTests(unittest.TestCase):
     def test_gorm_voit_ses_vivres_aux_mains_de_brune(self):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        # Cette épreuve de croyance ne dépend pas de l'identité d'une voix
+        # devenue hors champ pendant l'approche du porteur.
+        from donjon.voix import connaitre
+        connaitre(m, 'joueur', 'marchand')
         m.objets["vivres"]["lieu"] = "brune"
         placer(m, "marchand", "antichambre", [6, 1])
         m, _ = attendre(recharger(m))
@@ -93,7 +97,12 @@ class ChaineTests(unittest.TestCase):
         self.assertEqual(r["confiance"], 25)
         self.assertTrue(relations.se_mefie(m, "marchand", "brune"))
         self.assertEqual(accueil(m, "brune", "marchand"), "mefiance")
-        self.assertEqual(r["motifs"][-1]["type"], "vu_porter")
+        # Le constat de spoliation est maintenant suivi de sa réclamation
+        # refusée ; la preuve initiale et la confiance restent conservées.
+        self.assertEqual([x['type'] for x in r['motifs'][-2:]], ['vu_porter', 'refus'])
+        self.assertEqual(m.objets['vivres']['lieu'], 'brune')
+        self.assertTrue(any(c['pnj'] == 'marchand' and 'réclame' in c['texte']
+                            for c in m.data.get('chronique', [])))
         self.assertIn("croit que Brune est peu fiable", esprits_interlocuteurs(m, ["marchand"])["marchand"]["croit"])
         self.assertNotIn(relations.FIABLE, lire(m, "marchand")["croyances"].get("brune", {}))
 

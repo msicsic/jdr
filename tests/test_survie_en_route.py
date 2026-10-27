@@ -52,7 +52,8 @@ class SurvieEnRouteTests(unittest.TestCase):
                           'motif': 'securite', 'depuis': m.data['minutes'], 'attente': 0,
                           'plan': [planification._etape('aller', lieu='chambre_cloche')]}
         m = recharger(m)
-        self.assertFalse(eau.en_peril(m, 'brune'))
+        self.assertTrue(eau.en_peril(m, 'brune'))
+        self.assertTrue(eau.traversee_sure(m, 'brune'))
         a, b = recharger(m), recharger(m)
         passer(a, 5 * MINUTE)
         for _ in range(5):
@@ -100,7 +101,7 @@ class SurvieEnRouteTests(unittest.TestCase):
         self.assertNotEqual(avant, planification._entrees(planification.Vue(m, qui), {}, 4, 100))
         self.assertEqual(regarder(m), regarder(recharger(m)))
 
-    def test_un_geste_fini_au_sec_a_temps_ne_devient_pas_une_attente(self):
+    def test_un_geste_fini_dans_l_eau_ne_masque_pas_le_peril(self):
         m = sejour('ilse')
         from donjon.deplacement_objet import deplacer
         deplacer(m, 'vivres', 'ilse')
@@ -114,7 +115,8 @@ class SurvieEnRouteTests(unittest.TestCase):
                                    planification._etape('manger', 'vivres')],
                           'depuis': m.data['minutes'], 'attente': 0}
         m = recharger(m)
-        self.assertFalse(eau.en_peril(m, 'ilse'))
+        self.assertTrue(eau.en_peril(m, 'ilse'))
+        self.assertFalse(eau.traversee_sure(m, 'ilse'))
         a, b = recharger(m), recharger(m)
         passer(a, 5 * MINUTE)
         for _ in range(5):
@@ -123,7 +125,7 @@ class SurvieEnRouteTests(unittest.TestCase):
         a = recharger(a)
         self.assertEqual(a.data, b.data)
         self.assertEqual(regarder(a), regarder(b))
-        self.assertLess(lire(a, 'ilse')['besoins']['faim'], deliberation.DESESPOIR)
+        self.assertFalse(eau.en_peril(a, 'ilse'))
         self.assertEqual(eau.profondeur(a, a.objets['ilse']['lieu']), 0)
 
 

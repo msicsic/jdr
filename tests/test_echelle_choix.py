@@ -88,8 +88,10 @@ def anciens_candidats(monde, id):
     if alarme_:
         buts.insert(0, (alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), False, False))
     # Là où il se tient, il attend l'eau trop haute pour s'y mouvoir : en sortir passe avant tout.
-    from donjon.eau import en_peril
-    if "securite" in p["besoins"] and en_peril(monde, id):
+    from donjon.eau import en_peril, traversee_sure
+    evacuation = e["intention"] and e["intention"]["but"]["type"] == "abri"
+    if ("securite" in p["besoins"] and en_peril(monde, id)
+            and (evacuation or not traversee_sure(monde, id))):
         buts.insert(0, ("securite", _plan_abri, False, False))
     if a_voir and a_voir != alarme_:
         buts.append((a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), False, False))

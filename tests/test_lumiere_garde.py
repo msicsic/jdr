@@ -320,6 +320,8 @@ class GardienTests(unittest.TestCase):
         for x, case in (("aubin", [3, 2]), ("ilse", [4, 2])):
             lier(m, "marchand", x, True, "vu")
             croire(m, "marchand", x, "lieu", "echoppe", "vu", salle="echoppe", case=case)
+        # Le placement et les liens déclarent une nouvelle scène de choix.
+        lire(m, "marchand")["intention"] = None
         lire(m, "marchand")["besoins"]["securite"] = 75.0
         m = suivre(recharger(m), 4)
         self.assertEqual(m.objets["marchand"]["lieu"], "antichambre")
@@ -334,8 +336,18 @@ class GardienTests(unittest.TestCase):
         for x, case in (("aubin", [3, 2]), ("ilse", [4, 2])):
             lier(m, "marchand", x, True, "vu")
             croire(m, "marchand", x, "lieu", "echoppe", "vu", salle="echoppe", case=case)
+        # Le placement et les liens déclarent une nouvelle scène de choix.
+        lire(m, "marchand")["intention"] = None
         lire(m, "marchand")["besoins"]["securite"] = 75.0
         self.assertEqual(menaces(m, "marchand"), ())
+        # L'abri auprès d'Aubin est adopté ; ce cas éprouve son exécution
+        # sans devoir de garde, plutôt que le choix d'un nouveau réconfort.
+        from donjon.planification import aller, _etape
+        etapes = aller(m, 'marchand', 'echoppe')
+        self.assertIsNotNone(etapes)
+        lire(m, 'marchand')['intention'] = {'but': {'type': 'abri', 'lieu': 'echoppe'},
+            'motif': 'securite', 'plan': etapes + [_etape('abriter', lieu='echoppe')],
+            'depuis': m.data['minutes'], 'attente': 0}
         m = suivre(recharger(m), 3)
         self.assertEqual(m.objets["marchand"]["lieu"], "echoppe")
 

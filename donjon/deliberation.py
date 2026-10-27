@@ -1131,6 +1131,22 @@ def lumiere_utile(monde, id):
     return False
 
 
+def abri_valide(monde, id, salle):
+    """Même abri au choix, en route et au séjour, sur ce qui est perçu ou cru."""
+    from .eau import menacee
+    from .esprits import pnjs
+    from .defense import lieux_dangereux
+    if (salle not in monde.data["salles"] or menacee(monde, id, salle)
+            or salle in lieux_dangereux(monde, id)):
+        return False
+    if salle == monde.objets[id]["lieu"]:
+        a = autour(monde, id)
+        return bool(a["lumiere"] or a["fiables"])
+    return (_eclairee_crue(monde, id, salle)
+            or any(x != id and se_fie(monde, id, x) and salle_crue(monde, id, x) == salle
+                   for x in [*pnjs(monde), "joueur"]))
+
+
 def _plan_abri(monde, id):
     """Se mettre à l'abri : rejoindre un lieu qu'il croit éclairé où se tient quelqu'un qu'il croit
     fiable, et y rester ; là où il est d'abord, s'il l'est déjà. Un lieu où il croit l'eau, ou l'y
@@ -1141,15 +1157,9 @@ def _plan_abri(monde, id):
     from .eau import altitude, attendue, menacee, monte
     from .esprits import pnjs
     ici = monde.objets[id]["lieu"]
-    # L'abri vers lequel il est en route garde la main tant qu'il en est encore un à ses yeux : un
-    # abri meilleur apparu en chemin (quelqu'un de sûr qui passe ailleurs) ne le détourne pas, ni un
-    # lieu qu'il traverse en chemin, où il attend l'eau sans la voir monter ni s'y croire en péril :
-    # ce passage, son plan le prévoyait. Sans cela, deux qui se cherchent se croisent sans fin, et
-    # qui va vers un abri par un palier menacé rebrousse chemin vers le plus haut lieu, puis repart.
-    # Là où il se tient, s'il y est à l'abri, il reste. Devant l'eau qu'il voit monter, ou s'il se
-    # croit en péril, le plus haut lieu compte, quel que soit celui vers lequel il allait.
-    from .eau import en_peril
-    from .planification import _etape, abri
+    # Une destination encore valide garde la main pendant son trajet : la
+    # traversée d'un lieu humide n'est pas une nouvelle preuve contre l'abri.
+    from .planification import _etape, abri, aller
     from .defense import lieux_dangereux
     dangereuses = lieux_dangereux(monde, id)
 
@@ -1162,20 +1172,22 @@ def _plan_abri(monde, id):
                 continue
             salle = salle_crue(monde, id, x)
             if (salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle)
-                    and salle not in dangereuses and not menacee(monde, id, salle)):
+                    and abri_valide(monde, id, salle)):
                 salles.append(salle)
         return salles
 
     i = lire(monde, id)["intention"]
-    en_route = (i["but"].get("lieu") if i and i["plan"] and i["motif"] == "securite" and i["but"]["type"] == "abri"
-                and i["but"].get("lieu") != ici else None)
+    en_route = (i["but"].get("lieu") if i and i["plan"] and i["motif"] == "securite" and i["but"]["type"] == "abri" else None)
     eau_monte = monte(monde, id)
-    if en_route and not eau_monte and not en_peril(monde, id) and en_route in (abris := sures()) and ici not in abris:
+    if en_route and abri_valide(monde, id, en_route):
         trouve = abri(monde, id, [en_route])
-        if trouve is not None:
-            return {"type": "abri", "lieu": trouve[0]}, trouve[1] + [_etape("abriter", lieu=trouve[0])]
+        # Le prix d'abandon n'est pas une précondition de l'abri : au palier
+        # intermédiaire, comparer à rester ne doit pas annuler le trajet choisi.
+        etapes = trouve[1] if trouve is not None else aller(monde, id, en_route)
+        if etapes is not None:
+            return {"type": "abri", "lieu": en_route}, etapes + [_etape("abriter", lieu=en_route)]
     if menacee(monde, id, ici) or eau_monte:
-        salles = sorted((s for s in monde.data["salles"] if s not in dangereuses and not menacee(monde, id, s)
+        salles = sorted((s for s in monde.data["salles"] if abri_valide(monde, id, s)
                          and _eclairee_crue(monde, id, s)), key=lambda s: (-altitude(monde, s), s != ici, s))
     else:
         salles = sures()
@@ -1717,8 +1729,10 @@ def _candidats(monde, id):
         ajouter(alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), Palier.ALARME)
     # L'eau déjà présente ou la noyade attendue : sortir d'un séjour humide
     # n'attend pas que l'inquiétude franchisse son seuil (ni celui de noyade).
-    from .eau import en_peril
-    if "securite" in p["besoins"] and en_peril(monde, id):
+    from .eau import en_peril, traversee_sure
+    evacuation = e["intention"] and e["intention"]["but"]["type"] == "abri"
+    if ("securite" in p["besoins"] and en_peril(monde, id)
+            and (evacuation or not traversee_sure(monde, id))):
         ajouter("securite", _plan_abri, Palier.PERIL_EAU)
     if a_voir and a_voir != alarme_:
         ajouter(a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), Palier.BRUIT_A_VOIR)
@@ -1872,6 +1886,19 @@ def choisir(monde, id, minute):
                 essais[n] = "renonce"
                 continue
             resultat = methode(monde, id)
+            if resultat and urgence.palier != Palier.PERIL_EAU:
+                # Le même contrôle vaut aussi pour les recours sans trajet :
+                # l'échec d'une évacuation ne rend pas licite un séjour humide.
+                from .eau import en_peril, traversee_sure
+                destination = monde.objets[id]["lieu"]
+                for etape in resultat[1]:
+                    if etape["operation"] == "aller":
+                        destination = etape["lieu"]
+                if (en_peril(monde, id, destination)
+                        or en_peril(monde, id) and not traversee_sure(monde, id, resultat[1])):
+                    essais[n] = "rien"
+                    resultat = None
+                    continue
             if not resultat:
                 essais[n] = "rien"
                 continue
@@ -1888,11 +1915,16 @@ def choisir(monde, id, minute):
             resultat = retenu[2] if retenu else None
     if resultat:
         besoin = retenu[0] if retenu else besoin   # Retenu : la boucle a pu finir sur un autre but.
-        but, etapes = _attendre_qui_vient(monde, id, resultat)
-        from .pnj_propositions import plan_recours
-        offre = plan_recours(monde, id, besoin, etapes)
-        if offre:
-            etapes = offre
+        from .eau import en_peril
+        but, etapes = resultat
+        # Une sortie nécessaire ne devient pas une attente de rendez-vous ou
+        # de contrepartie dans l'eau après le contrôle du candidat.
+        if not en_peril(monde, id):
+            but, etapes = _attendre_qui_vient(monde, id, resultat)
+            from .pnj_propositions import plan_recours
+            offre = plan_recours(monde, id, besoin, etapes)
+            if offre:
+                etapes = offre
         intention = e["intention"]
         meme = bool(intention) and intention["but"] == but
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
@@ -1905,7 +1937,8 @@ def choisir(monde, id, minute):
         return
     from .pnj_propositions import plan_recours
     refusee = e["demande_refusee"]
-    offre = plan_recours(monde, id, refusee["besoin"], []) if refusee else None
+    from .eau import en_peril
+    offre = plan_recours(monde, id, refusee["besoin"], []) if refusee and not en_peril(monde, id) else None
     e["intention"] = ({"but": {"type": "proposition", "objet": refusee["objet"]},
                        "motif": refusee["besoin"], "plan": offre, "depuis": minute, "attente": 0}
                       if offre else None)

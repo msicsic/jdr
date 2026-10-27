@@ -78,6 +78,7 @@ class SignesTests(unittest.TestCase):
         self.assertNotIn("regard", lire(m, "ilse")["intention"].get("attitude", {}))
 
     def test_place_reelle_rendu_carte_observer_et_reprise(self):
+        lectures_visibles = []
         for id, autre in (("ilse", "brune"), ("brune", "ilse")):
             with self.subTest(id=id):
                 m = ecarter(scene(), id, autre)
@@ -93,9 +94,18 @@ class SignesTests(unittest.TestCase):
                 with patch("donjon.signes._jet", return_value=20):
                     texte = Moteur(m).executer(Moteur(m).preparer(analyser(m, "observer " + id)))
                 m = recharger(m)
-                self.assertIn("semble", texte)
-                self.assertTrue(m.data["lectures"])
-                self.assertTrue(signes.impressions(m))
+                # Observer fait vivre le monde : un PNJ qui poursuit son
+                # abri peut quitter le regard avant la lecture.
+                if m.visible(id):
+                    self.assertIn("semble", texte)
+                    self.assertTrue(m.data["lectures"])
+                    self.assertTrue(signes.impressions(m))
+                    lectures_visibles.append(id)
+                else:
+                    self.assertIn("ne vois plus", texte)
+                    self.assertNotIn("semble", texte)
+                self.assertEqual(rendu(m), rendu(recharger(m)))
+        self.assertTrue(lectures_visibles)
 
     def test_noir_dos_ligne_de_vue_et_cible_cachee(self):
         m = ecarter(scene())
