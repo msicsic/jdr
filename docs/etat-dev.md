@@ -4,6 +4,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-banc-attitudes`, **non fusionnée**, lot **176** (relations 3g), `7fb17a4` : banc `attitudes` et extraction typée
+  des attitudes dans chaque segment d'audit narratif, comparée par le moteur aux `signes_percus`/`impressions` fournis (id,
+  personnage, cible), contrôle refait à l'enregistrement. 40 ciblés verts, 4/4 empreintes identiques, suite verte hors MiMo.
+  Luna jouée par l'orchestrateur, deux passes relais/crypte/atelier/echanges contre `cdaf371` (cache) : appels/tour
+  **2,94 → 3,19**, obstacles narratifs **4,5 → 12**, relances **3 → 7**, refus 10 → 14, replis 0 → 0,5. Seuls 2 obstacles sur 24
+  sont des refus d'attitude (un hochement de tête sans signe perçu, plutôt juste) ; les autres sont les familles connues (vue
+  partielle, ambiance jugée mécanique, orientation), plus fréquentes : élargir le schéma et la consigne de l'audit narratif rend
+  l'auditeur plus sévère sur tout, comme au lot 162. Banc `attitudes` seul : 2,75 appels/tour, 2 refus. Secondes non comparables
+  (référence du cache, laptop chargé). **Mis en attente** : décision à l'utilisateur (contrôle des attitudes hors de l'audit
+  narratif commun, ou abandon). Bruts `artifacts/attitudes-176/` (PC fixe) et bancs-multi 20261027-084505 / 085427 (laptop).
+
 - Branche `codex-force-contre-revue`, fusionnée, lot **172**, base
   `79594e4` : dossier de traînage avec les deux déplacements du trajet validé,
   titre/information communs, positions des lieux non visités masquées ; dossier
