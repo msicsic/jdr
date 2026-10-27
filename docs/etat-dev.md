@@ -13,6 +13,36 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   vérifications finales en cours. Bruts `C:/Users/msics/donjon/artifacts/service-224/` ;
   [rapport 224](taches/rapport-codex-224-service-non-defait.md).
 
+- **Branche `codex-contrat-engagement`, fusionnée**, lot **213 / 196 c** :
+  **lot terminé, limites explicites**. `cca5f50` vérifié ; 211 puis
+  `3aa16f7` (219) intégrés ; moteur final **`5016c87`**. Raccord `pnj.py` autorisé :
+  `refus_etape` commun au choix et à `agir`, sans lecture réelle supplémentaire ;
+  seuls ces deux noms changent dans pnj, `_abriter`/témoins et localisation crue intacts.
+  Plan vide/hors de vue, attente sans geste périmé, délégation payée, tête de moyens
+  revalidée, palier absolu `PERIL_EAU` et marge `INERTIE + VOL/4` ; aucun coût passé.
+  Sept écarts initiaux corrigés, assertions gardées, prémisses listées au rapport.
+  **Suite finale : 2 448 tests / 283 fichiers, deux Mimo préexistants, zéro erreur**,
+  après 48 ciblés verts ; recharges monde/rendu/scène et laps découpés contrôlés.
+  **20 paires 4 h, vingt références en cache : suspects 13 → 5**, aucun scénario
+  en hausse ; cycles 486 → 468, préemptions légitimes 57 → 53, autrui 1 → 0,
+  progrès 0 → 0, à expliquer 97 → 61 ; dérives 185 → 196, états payés perdus 7 → 6.
+  Zéro plantage/usurpation. Hameau 42 après raccord : eau totale 120 → 5 PNJ·min,
+  ancien séjour de Brune 110 min supprimé. Eau moyenne crue 2,5 → 1,25, hameau
+  10 → 6,25 ; attente crue 178,75 → 196,25, hameau 128,75 → 97,5.
+  Restent cinq suspects, des alertes d'agenda distribuées en crue 1985 et une
+  attente confiée de Gorm au Relais 42 ; aucune garantie générale d'absence de boucle.
+  **Arbitrage utilisateur validé (version testée)** : un agenda sans plan admissible
+  au coût passe en sommeil et libère son palier (A4) ; reprise sur croyance ou moyen
+  nouveau, jamais par le délai seul. Aucun code changé depuis les vérifications.
+  Sources anciennes sans demande persistante : garantie générale encore limitée.
+  **218 non couvert entièrement** : une reconstruction forcée peut perdre la
+  suspension temporaire de charge ; le cas Gorm qui reverrouille sa réserve reste
+  au 218. Conserver les étapes du plan ne porte pas cette suspension indépendamment.
+  Aucun Luna, deux travailleurs réduits au plus, aucune clé de signature.
+  Bruts `C:/Users/msics/donjon/artifacts/engagement-213/` ;
+  [rapport 213](taches/rapport-codex-213-contrat-engagement.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Répétitions suspectes 13 → 5 (Relais 3 → 0, hameau 5 → 0), à expliquer 97 → 61, préemptions légitimes conservées ; inertie INERTIE + VOL/4 sans coût passé (revue 217) ; agenda sans plan admissible en sommeil, palier libéré ; refus_etape commun au choix et à l'exécution, PERIL_EAU absolu (hameau 42 : eau 120 → 5 PNJ·min). Attente crue 178,75 → 196,25. Suspension temporaire d'une charge laissée au lot 218.
+
 - **Branche `codex-anselme-coups`, fusionnée**, lot **222**, diagnostic seul : quatre nuits natives 2024 sur `4d4c625` / `fa330e1`, historiques identiques à 212 ; Anselme **11→2 alternances**, poêle/garde **10→0**, aucun suspect 219 ; crue **16 coups / 7 touchés → 0**, mais cycle fuite/secours de Gorm encore reproduit sur captures dans les deux versions (cri de Brune non acquitté, cinq retours). Petit lot distinct sur revalidation/acquittement du secours ; pas de défaut chaleur/abri établi ni de correction générale attribuée au 213. **221 captures** monde/rendus rechargés identiques, quatre reprises bloc/découpées identiques ; un seul calcul BelowNormal, aucun jeu ni Luna modifié. Bruts `C:/Users/msics/donjon/artifacts/anselme-coups-222/` ; [rapport 222](taches/rapport-codex-222-anselme-coups.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. Anselme : entretien du poêle et garde légitimes (préemption, plan vide après réussite), 10 → 0 alternance poêle/garde sur l'intégration. Coups : décisions locales justifiées (prise de moyen de Brune, protection de Gorm, ripostes), mais Gorm refait cinq fois l'aller-retour vers un ancien cri de secours non acquitté : petit lot distinct (secours réévalué et acquitté sur constat).
 

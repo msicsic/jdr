@@ -74,6 +74,7 @@ class SeuilTests(unittest.TestCase):
 
     def test_un_besoin_n_interrompt_le_plan_d_un_autre_que_s_il_presse_nettement_plus(self):
         m = self.gorm()
+        m.objets["ilse"]["profil"]["caracteristiques"]["VOL"] = 12
         s = seuils(m, "ilse")
         b = lire(m, "ilse")["besoins"]
         b.update(securite=s["securite"] + 14.0, chaleur=s["chaleur"] + 12.0)
@@ -83,7 +84,7 @@ class SeuilTests(unittest.TestCase):
         # Le froid presse presque autant : il laisse finir l'abri (et ne le reprend pas à chaque minute).
         self.assertEqual(urgents(m, "ilse", inertie=True), ["securite"])
         self.assertEqual(urgents(m, "ilse")[:2], ["securite", "chaleur"])
-        b["chaleur"] = s["chaleur"] + 14.0 + INERTIE
+        b["chaleur"] = s["chaleur"] + 14.0 + INERTIE + 3  # VOL 12 / 4
         self.assertEqual(urgents(m, "ilse", inertie=True)[0], "chaleur")
 
 
