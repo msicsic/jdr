@@ -470,6 +470,7 @@ def _utile(monde, id, autre, noyau):
     Aucune lecture du besoin, du projet ou du plan privé du destinataire.
     Les engagements ici sont ceux du locuteur et ses conversations retenues.
     """
+    from . import agendas
     from .deliberation import part_pour, salle_crue, _connus
     if noyau["type"] == "avis":
         # Inclut les rendez-vous convenus, même hors de la salle actuelle.
@@ -482,7 +483,7 @@ def _utile(monde, id, autre, noyau):
     if objet == autre:
         return True
     # Une tâche annoncée ou convenue est une preuve de projet, pas son exécution réelle.
-    projets = list(e["engagements"])
+    projets = agendas.en_cours(monde, id, actifs=True)
     conditions_vues, annules = set(), set()
     for s in reversed(e["memoire"]):
         if autre not in (s.get("a"), s.get("de"), s.get("pour"), s.get("qui")):

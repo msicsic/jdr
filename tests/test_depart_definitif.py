@@ -84,6 +84,11 @@ class DepartTests(unittest.TestCase):
         orienter(m, "marchand", "aubin")
         from tests.support import lier
         lier(m, "aubin", "marchand", True)
+        # Le projet de Gorm n'est pas lu dans son esprit : Aubin connaît
+        # sa demande de retrouver Ilse dans l'antichambre.
+        from donjon.esprits import memoriser
+        memoriser(m, "aubin", {"type": "engagement_pris", "pour": "marchand",
+                               "condition": {"objet": "ilse", "lieu": "antichambre"}})
         percevoir_tous(m)
         lignes = []
         with patch("donjon.paroles.jet_persuasion", return_value=(True, 20)):
