@@ -80,6 +80,11 @@ def copie(valeur, memo=None):
     return copy.deepcopy(valeur, memo)
 
 
+def mobile_par_nature(o):
+    """La mobilité d'un personnage ne dépend pas du drapeau des objets transportables."""
+    return o.get("type") == "personnage" or bool(o.get("mobile"))
+
+
 def objet(id, nom, type, lieu, **proprietes):
     return {"id": id, "nom": nom, "type": type, "lieu": lieu,
             "aliases": [], "materiau": "", "masse": 0, "mobile": False,

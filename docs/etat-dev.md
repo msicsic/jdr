@@ -5,7 +5,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-contrat-engagement`, non fusionnée**, lot **213 / 196 c**,
-  base `cca5f50` vérifiée : **implémentation partielle, validation en cours** ;
+  départ `cca5f50` vérifié, **reprise demandée sur `d2243c2` (211)** :
+  **implémentation partielle, validation en cours** ;
   reprise au-delà du créneau autorisée. Arbitrage commun par palier et marge,
   revalidation à plan vide, provenance des demandes de condition et d'agenda,
   secours poursuivi sur détresse crue, geste manqué libérant l'engagement.
@@ -14,12 +15,42 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Premier banc : suspects 0/1/0/0/1 (total 2), zéro plantage/usurpation,
   mais Brune hameau 2024 reste dans l'eau devant une prise d'outil manquée.
   Démenti commun ajouté ensuite ; banc final encore requis. 28 ciblés verts,
-  captures réelles Rémy/Mireille et recharges/laps découpés ; suite unique en cours.
+  captures réelles Rémy/Mireille et recharges/laps découpés. Suite ancienne base :
+  2 428 tests, 14 échecs, zéro erreur ; archivée avant la fusion de 211 demandée.
+  Vérifications finales et référence de banc à reprendre sur `d2243c2` (16 suspects).
   Deux travailleurs réduits au plus. Aucune garantie générale ni fusion conseillée.
   Bruts `C:/Users/msics/donjon/artifacts/engagement-213/` ;
   [état de la tentative 213](taches/rapport-codex-213-contrat-engagement.md).
   Les sorties indéterminées du planificateur et les sources sans demande
   persistante restent à traiter ; le rapport détaille les limites.
+
+- **Branche `codex-localisation-crue`, fusionnée**, lot **211**, départ
+  `0b95f33` vérifié puis **reprise demandée sur `aadab7c`** (205/207), fusion
+  `5a97ab3`, seul conflit documentaire. `monde.mobile_par_nature` et `_lieu_cru`
+  retirent le repli réel des personnages ; aucun savoir implicite ajouté au jeu,
+  aucun autre changement de production contre `aadab7c`. Trois graines 209,
+  t=753/1034, douze variantes monde/rendu rechargées ; cas Ilse/Aubin et autre
+  PNJ/auberge, savoir déclaré, fixe/mobile, porteur inconnu, temps découpé.
+  **15 ciblés verts** sur la fusion ; vérification de l'intention persistée et
+  de la non-perception renforcée avant exécution dans la suite finale.
+  **20 paires × 4 h**, référence exacte en cache : **24 → 16 retours**
+  (Relais 0→4, mine 1→1, auberge 5→2, crue 9→2, hameau 9→7), zéro
+  plantage/usurpation. Aucune nouvelle alerte de répétition/alternance, mais
+  **absence de boucle nouvelle non validée** : quatre retours de secours/ronde
+  au Relais, causalité détaillée non établie ; deux observations d'attente.
+  Attente urgente crue 102,5→178,75, hameau 111,25→128,75 PNJ·min ; sans recours
+  crue 27,5→0. **Réserve avant intégration**, aucun élargissement à 196 c.
+  Suite finale unique sur `aadab7c` : **2 425 tests / 281 fichiers, 2 128 s,
+  quatre échecs et une erreur bruts** ; six reprises vertes après observation
+  du test d'abri, contre-épreuve sur une case valide et oracle du rejeu.
+  **Deux MiMo préexistants restent, zéro erreur consolidée** ; aucune seconde
+  suite sur cette base. Première base archivée (2 404/13, 15 reprises vertes).
+  Le test d'eau passe après 205 ; Aubin nourri à 4 min, rotations reconnues
+  et état réel remplacent les anciens oracles textuels de part/rejeu.
+  Aucun Luna, deux travailleurs réduits au plus. Bruts
+  `C:/Users/msics/donjon/artifacts/localisation-211/`, finaux dans `aadab7c/` ;
+  [rapport 211](taches/rapport-codex-211-localisation-crue.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Retours suspects 24 → 16 (crue 9 → 2, auberge 5 → 2, hameau 9 → 7) mais Relais 0 → 4 (secours interrompus, transmis au lot 213) ; crue S 23 → 14 (proches retrouvés par une connaissance indue), attente crue 102,5 → 178,75, sans recours crue 27,5 → 0. Suite de la branche sur aadab7c : deux MiMo seulement.
 
 - **Branche `codex-evacuation-juge`, fusionnée**, lot **205 / 196 b**,
   départ `71bb01d`, reprise demandée sur **`ef86cab` (204 intégré)** : péril
@@ -42,7 +73,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Aucun Luna, deux calculs réduits au plus, commit non signé ; bruts exclusivement
   `C:/Users/msics/donjon/artifacts/evacuation-205/` ;
   [rapport 205](taches/rapport-codex-205-evacuation-juge.md). **À revoir avant fusion.**
-  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Retours suspects 57 → 24 (crue 27 → 9, hameau 24 → 9), eau crue 13,75 → 7,5 et hameau 13,75 → 2,5 PNJ·min ; en contrepartie attente urgente crue 77,5 → 102,5 et hameau 27,5 → 111,25, sans recours crue 15 → 27,5, Brune hameau 2024 active/endort son agenda huit fois, Gorm 125 min sans but : à reprendre dans 196 c. Abris hors crue aussi changés (7/12 empreintes 2 h identiques).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Retours suspects 57 → 24 (crue 27 → 9, hameau 24 → 9), eau crue 13,75 → 7,5 et hameau 13,75 → 2,5 PNJ·min ; en contrepartie attente urgente crue 77,5 → 102,5 et hameau 27,5 → 111,25, sans recours crue 15 → 27,5, Brune hameau 2024 active/endort son agenda huit fois, Gorm 125 min sans but : à reprendre dans 196 c. Abris hors crue aussi changés (7/12 empreintes 2 h identiques). Suite complète sur les fusions 207 et 205 (`tools/tests.py --processus 2`, `aadab7c`) : **2 422 tests, 16 ignorés**, verte (3 287,6 s).
 
 - **Branche `codex-reclamer-vol`, fusionnée**, lot **207**, base `c6c2de6` :
   recours typé `reclamer` avant la recherche de reprise, porteur/danger/présence

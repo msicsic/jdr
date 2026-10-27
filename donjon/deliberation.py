@@ -177,12 +177,13 @@ def relancer(monde, id, besoin, montant):
 # --- Croyances utiles au plan -------------------------------------------------------------
 
 def _lieu_cru(monde, id, sujet):
+    from .monde import mobile_par_nature
     c = lire(monde, id)["croyances"].get(sujet, {}).get("lieu")
     if c:
         return c["valeur"]
     o = monde.objets.get(sujet)
     # Les objets fixes font partie des lieux : on sait où ils sont sans les avoir revus.
-    return o["lieu"] if o and not o.get("mobile") else None
+    return o["lieu"] if o and not mobile_par_nature(o) else None
 
 
 def salle_crue(monde, id, sujet, profondeur=0):
