@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-silence-rappel`, **non fusionnée**, lot **169**, base `27b5268` :
+  définition temporelle commune de l'extraction `rappels` dans `narration.py`.
+  L'issue courante reste contrôlée par ses faits, sans comparaison au passé.
+  Quatre audits de silence concernés ; les deux rappels de la crypte ne sont
+  pas des silences, contrôle maintenu. Silence de Brune encore contestable
+  au regard de « te répond ». **17 ciblés verts**, console et MJ simulé,
+  deux scènes de témoins, absence de réponse, faux rappels refusés ; état complet
+  et rendu identiques après recharge. Suite complète unique : **2 235 tests,
+  257 fichiers, 1 957,560 s, zéro erreur/ignoré**, deux échecs MiMo historiques
+  `6 != 5` ; trois nouveaux tests verts dans leur version finale. Deux travailleurs
+  réduits, l'un suspendu pendant les calculs du lot voisin.
+  **Aucun appel Luna** : revue automatique bloquante sur les 60 appels de rejeu
+  demandés, interprétés comme dépassant deux exécutions et une passe.
+  Commandes dans `luna-a-jouer.txt` ; références `cdaf371` exclusivement relues.
+  **Critère 95 non mesuré, amélioration sémantique non certifiée**.
+  Pas de fichier réservé ni de moteur autonome modifié ; `main` intacte.
+  Aucune clé Git de signature configurée. [Rapport 169](taches/rapport-codex-169-silence-rappel.md) ;
+  bruts exclusivement `C:/Users/msics/donjon/artifacts/silence-169/`.
+
 - Branche `codex-relances-168`, **non fusionnée**, lot **168**, `841f5d1` : attribution des relances de la vérification
   Luna 227c496 (lot 165), **24 → 41** sur 64 parties communes : comptes omis ou engagement mal lu **10**, rappels hors avis
   (silences actuels pris pour des rappels absents) **6**, avis désormais typés et relus **4** (légitime, lot 164), mesures

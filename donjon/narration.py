@@ -79,9 +79,14 @@ def rappels_exacts(faits):
 
 SCHEMA_RAPPELS = {"type": "array", "maxItems": 12,
     "description": "Toute affirmation du segment sur ce qu'un interlocuteur a dit ou fait envers "
-        "Corvus auparavant, même dans une nouvelle réplique, quel que soit le verdict. "
-        "Extrais le sens, sans rechercher une formule particulière. Une décision actuelle ou "
-        "une croyance sur le monde n'est pas un rappel. Compare aux echanges_passes et aux "
+        "Corvus dans un échange passé distinct de l'issue courante, même dans une nouvelle réplique, "
+        "quel que soit le verdict. Extrais le sens et situe l'événement affirmé dans le temps, "
+        "sans rechercher une formule particulière. L'issue courante (acte, "
+        "perception, réaction ou absence de réaction) relève des faits et résultats actuels, "
+        "pas des échanges passés, même raconté à un temps accompli. Ne l'extrais pas dans "
+        "rappels ; sa compatibilité mécanique reste à contrôler avec les sources actuelles. "
+        "Une décision actuelle ou une croyance sur le monde n'est pas un rappel. "
+        "Compare les seuls événements antérieurs aux echanges_passes et aux "
         "résultats enregistrés fournis ; compatible ne signifie pas que le contenu ancien est vrai.",
     "items": {"type": "object", "additionalProperties": False,
         "properties": {"locuteur": {"type": "string"},
@@ -368,7 +373,11 @@ la demande du joueur et un contenu propos vide ne prouvent aucun de ces termes.
   Le passé des échanges et des gestes envers Corvus reste mécanique, même affirmé dans
   une nouvelle réplique. echanges_passes donne par référence publique les mots réellement
   entendus de chaque interlocuteur ; les résultats enregistrés établissent ses gestes.
-  Extrais ces affirmations dans rappels indépendamment du verdict et juge leur compatibilité.
+  Extrais dans rappels les affirmations sur un échange passé distinct de l'issue courante,
+  indépendamment du verdict, et juge leur compatibilité. Situe l'événement affirmé :
+  les actes, perceptions, réactions et absences de réaction de l'issue courante relèvent
+  des faits et résultats actuels, même racontés à un temps accompli ; ils ne sont pas
+  des rappels et restent soumis au contrôle mécanique de leurs sources actuelles.
   La liberté du contenu d'une parole ne permet pas de réécrire ces échanges. Un rappel sans
   fondement ou contraire est refusé ; une décision actuelle reste libre de formulation.
   Un rappel seul est mecanique, avec sa source ; il atteste qu'il l'a dit, pas que c'est vrai ;

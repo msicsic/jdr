@@ -128,6 +128,14 @@ Le schéma d'audit demande `rappels` pour chaque segment, indépendamment du
 verdict : locuteur, affirmation passée et compatibilité avec les échanges ou
 résultats fournis. Un rappel sans fondement ou contraire est refusé même dans
 une nouvelle réplique ; son `attendu` cite les paroles enregistrées du locuteur.
+Lot 169 : l'extraction distingue l'échange passé de l'issue courante. Les actes,
+perceptions, réactions et absences de réaction de cette issue sont contrôlés
+avec les faits et résultats actuels, sans comparaison aux échanges passés,
+même si le récit emploie un temps accompli. Cette distinction ne dispense
+aucune affirmation du contrôle mécanique de ses sources et n'exempte pas
+un faux rappel dans une nouvelle réplique. L'extraction reste sémantique ;
+les rejeux Luna du lot ont été bloqués par la revue automatique et ne permettent
+pas encore d'attester l'amélioration sur les fils réels.
 Une décision actuelle peut changer, sans réécrire ce qu'il a précédemment dit.
 L'extraction est conservée dans l'audit et revérifiée avant enregistrement.
 Les anciens rapports sans cette extraction restent lisibles. La reconnaissance
