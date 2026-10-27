@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-force-restes`, non fusionnée**, lot **157**, base `af1b8f3` :
+  destination du corps dans le titre et repère public/identifiant dans le dossier ;
+  salles nommées dans les effets et faits des désignations, portes avec type,
+  lieux et personnes perçues ou mémorisées, contact de la porte explicité.
+  Tests force et console/recharge verts (deux seuils, deux portes/personnes),
+  38 voisins verts, reprise finale 27 tests verte ; **2 185 tests, 247 fichiers, 1 310,441 s**, deux échecs MiMo historiques
+  `6 != 5`, zéro erreur/ignoré, suite complète unique. Resserrement final des
+  références de lieu et des issues avant action après son démarrage : 27 ciblés
+  finaux verts en 30,972 s, deux calculs au plus.
+  Luna deux passes des trois restes et une des huit autres scripts, référence
+  `cdaf371` relue sans rejeu : **60 → 60 appels / 22 tours MJ**, zéro repli,
+  incident technique ou erreur de recharge. Traîner **6/4**, enfermer **3/7**,
+  improvisé **3/3** ; **critère non atteint**, faux refus persistants.
+  Projection `ouverture=False` clarifiée en `fermer` après la passe, tests finaux
+  verts, pas de troisième passe Luna. Aucun nouvel état corporel inventé relevé,
+  monde complet/corps non archivés par le harnais Luna : garantie limitée aux
+  fils. Aucun effet moteur, règle lexicale, instruction de contre-revue ou
+  module réservé aux autres lots changé. Deux calculs réduits au plus ; aucune
+  clé de signature Git, commit non signé, branche seule poussée, `main` intact.
+  [Rapport 157](taches/rapport-codex-157-force-restes.md),
+  bruts `artifacts/force-157/` de ce worktree.
+
+
 - **Branche `codex-poser-au-sol`, fusionnée**, lot **154 / L8**, base
   `0352f29`, moteur `8697169`, présentation corrigée `040a9a1` : `destination: "sol"` résolu dans le compilateur
   commun de `deplacer`/`prelever`, séquences et effets d'improvisation compris.

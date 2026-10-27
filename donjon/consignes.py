@@ -104,7 +104,8 @@ court (méthode, risque), jamais un résultat.
   mains nues. Ce geste délibéré seul donne la mort ; frapper et assommer ne la donnent pas.
 - verrouiller : cible porte ou contenant fermé intact, outil clé portée correspondante.
   Enfermer quelqu'un passe par fermer si nécessaire, puis verrouiller la porte réelle, jamais
-  par une action sur la personne ; le moteur établit qui est effectivement retenu selon les issues connues.
+  par une action sur la personne. C'est la porte qui doit être au contact, pas la personne
+  derrière elle ; le moteur établit qui est effectivement retenu selon les issues connues.
 - bloquer : caler une porte ouverte avec un objet d'usage cale ; debloquer : la porte ou sa
   cale, sans outil.
 - copier : un motif, avec un consommable d'usage empreinte.

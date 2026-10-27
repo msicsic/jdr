@@ -119,10 +119,17 @@ def sens_parole(contenu, monde):
 def _operations(plan, monde=None):
     from .deplacement_objet import presenter_effet
     def presenter(effet):
+        # La bascule interne « ouverture=False » signifie fermer, pas ouvrir.
+        # La revue lit l'opération exécutée, jamais le nom interne du champ.
+        if effet[0] == "ouverture":
+            return ["ouvrir" if effet[2] else "fermer", effet[1], None]
         return presenter_effet(monde, effet) if monde is not None else list(effet)
     improvise = plan.proposition.get("action") == "improviser"
     return {
         "titre": plan.titre,
+        **({"passages": passages} if monde is not None and (passages := _passages(plan, monde)) else {}),
+        **({"destination_corps": _nommer(plan.destination_corps, monde)}
+           if monde is not None and hasattr(plan, "destination_corps") else {}),
         **({"perception": plan.perception} if plan.perception is not None else {}),
         **({"parole": plan.parole} if plan.parole is not None else {}),
         **({"geste_improvise": {"approche": plan.proposition.get("approche"),
@@ -137,9 +144,39 @@ def _operations(plan, monde=None):
 
 
 
+def _passages(plan, monde):
+    """Sens des portes du plan, limité aux lieux et présences déjà perçus."""
+    from .tenir import sorties_crues
+    if not any(op in ("ouverture", "verrouiller") for op, _, _ in plan.effets):
+        return []
+    souvenirs = monde.data.get("souvenirs_visuels", {})
+    lieux = {i: s["salle"] for i, s in souvenirs.items() if monde.designable(i)}
+    for i in monde.objets:
+        if monde.objets[i].get("type") == "personnage" and monde.visible(i):
+            lieux[i] = monde.objets[i]["lieu"]
+    connus = set(lieux.values()) | {monde.joueur["salle"]}
+    resultat = []
+    for op, cible, valeur in plan.effets:
+        if op not in ("ouverture", "verrouiller") or monde.objets.get(cible, {}).get("type") != "porte":
+            continue
+        for salle in sorted(connus):
+            if salle not in monde.data["salles"]:
+                continue
+            if not any(s.get("porte") == cible for s in monde.data["salles"][salle].get("sorties", {}).values()):
+                continue
+            resultat.append({"operation": ("ouvrir" if valeur else "fermer") if op == "ouverture" else op, "porte": cible, "type": "porte", "lieu": salle,
+                "personnes_connues": sorted(i for i, lieu in lieux.items() if lieu == salle
+                    and monde.objets[i].get("type") == "personnage"),
+                "issues_connues_avant": [{"porte": p, "verrouillee": v}
+                    for p, v in sorties_crues(monde, "joueur", salle) if p is None or monde.designable(p)]})
+    return _nommer(resultat, monde)
+
+
 def _nommer(valeur, monde):
     """Un identifiant devient « nom (identifiant) » : un identifiant nu (« marchand ») se lit
     comme un mot et ne désigne plus le personnage que le joueur nomme (« Gorm »)."""
+    if isinstance(valeur, str) and valeur in monde.data["salles"]:
+        return f"{monde.data['salles'][valeur]['nom']} ({valeur})"
     if isinstance(valeur, str) and valeur in monde.objets:
         from .noms import public, reference
         return f"{public(monde,monde.objets[valeur]['nom'])} ({reference(monde,valeur)})"
@@ -147,6 +184,16 @@ def _nommer(valeur, monde):
         return [_nommer(v, monde) for v in valeur]
     if isinstance(valeur,dict):
         return {k:_nommer(v,monde) for k,v in valeur.items()}
+    return valeur
+
+
+def _nommer_lieux(valeur, monde):
+    """Nomme les références de lieu sans réécrire un nom, une inscription ou une citation."""
+    if isinstance(valeur, dict):
+        return {k: (_nommer(v, monde) if k in ("lieu", "salle") and isinstance(v, str)
+                    else _nommer_lieux(v, monde)) for k, v in valeur.items()}
+    if isinstance(valeur, (list, tuple)):
+        return [_nommer_lieux(v, monde) for v in valeur]
     return valeur
 
 
@@ -184,8 +231,10 @@ def entree(intention, plan, monde=None):
         contexte = public(monde, monde.contexte())
         faits = {"objet:" + o["id"]: o for o in contexte["objets_perceptibles"]}
         faits["interlocuteurs"] = contexte["interlocuteurs"]
-        entree_["designations"] = reperes_designations(intention, faits) + reperes_designations(
-            json.dumps(operations, ensure_ascii=False), faits)
+        entree_["designations"] = [
+            {**repere, "faits": _nommer_lieux(repere["faits"], monde)}
+            for repere in reperes_designations(intention, faits) + reperes_designations(
+                json.dumps(operations, ensure_ascii=False), faits)]
     return entree_
 
 

@@ -640,6 +640,19 @@ appels non atteint**, pas de garantie sémantique universelle. La preuve de
 destination ajoutée après la passe n'est vérifiée qu'en tests, sans rejeu Luna.
 Voir le [rapport 147](taches/rapport-codex-147-force-4f-luna.md).
 
+Lot 157, branche `codex-force-restes`, **non fusionnée** : titre de traînage
+avec destination publique et repère de salle dans le dossier, salles nommées
+également dans les désignations, porte distinguée du meuble par son type et
+ses présences connues ; contact de la porte explicité dans les consignes.
+Deux passes des trois restes et une des huit autres bancs : **60 appels / 22 tours
+MJ**, comme les parties correspondantes de `cdaf371` relues du cache.
+Traîner **6/4**, enfermer **3/7**, improvisé **3/3** appels ; **critère non atteint**,
+faux refus persistants, notamment crypte/nom public et personne déjà dans la pièce.
+La projection finale distingue `fermer` de la bascule interne `ouverture=False` ;
+tests verts, pas de nouvelle passe Luna après cette correction. Aucun effet
+moteur ni instruction de contre-revue changé ; `tuer` exigeait déjà une cible
+sans défense. Voir le [rapport 157](taches/rapport-codex-157-force-restes.md).
+
 Consignes, actions typées et leurs `attendu`, improviser sans violence, état du corps comme domaine
 mécanique, locuteurs autorisés. Mesure : banc de parties `force` (`tools/banc_parties.py --fil`,
 copies de sauvegardes réelles) : « je frappe Brune avec le marteau », « j'assomme Gorm par
