@@ -23,11 +23,10 @@ class HorsDePorteeTests(unittest.TestCase):
         mj = MJOpenAI("gpt-6-luna")
         with patch.object(mj, "_appeler", side_effect=[alimenter, ErreurMonde("explication indisponible")]) as appel:
             reponse = mj._echanger_prepare(m, "je mets du bois dans le brasero")
-        # Une proposition, puis directement l'explication : pas de correction demandée.
-        self.assertEqual(appel.call_count, 2)
-        retour = appel.call_args_list[1].args[1]["faits"]["retour_moteur"]
-        self.assertIn("propositions_refusees", retour)
-        self.assertIn("Approche-toi", retour["propositions_refusees"][0][1])
+        # Interprétation seule : le moteur répond sans explication ni audit.
+        self.assertEqual(appel.call_count, 1)
+        self.assertIn("Approche-toi", reponse["texte"])
+        self.assertTrue(reponse["_texte_moteur"])
         self.assertTrue(reponse["_validation_refusee"])
 
 

@@ -153,8 +153,8 @@ class ExplicationTests(unittest.TestCase):
                            cibles=["poutre_conduite"], approche="effort")
         reprise, sortie, appels = jouer(loin_de_la_poutre(), "je donne un coup de pied dans la poutre", [
             action(coup), dialogue("La poutre est trop loin, il te faut t'en rapprocher.")], [CONTRADICTOIRE])
-        self.assertEqual(fonctions(appels).count("repondre_au_joueur"), 2)
-        self.assertEqual(fonctions(appels).count("auditer_narration"), 1)
+        self.assertEqual(fonctions(appels).count("repondre_au_joueur"), 1)
+        self.assertEqual(fonctions(appels).count("auditer_narration"), 0)
         self.assertIn("Approche-toi de la poutre effondrée", sortie)
         self.assertNotIn("Il te faut t'en rapprocher", sortie)
         self.assertNotIn("Je n'ai pas pu", sortie)
@@ -176,19 +176,20 @@ class ExplicationTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m,
                                         "J'attends que Gorm ait le dos tourné pour prendre discrètement les crochets",
                                         [prendre, dialogue("Tu ne peux donc pas la prendre d'ici.")], [CONTRADICTOIRE])
-        self.assertEqual(fonctions(appels).count("repondre_au_joueur"), 2)
+        self.assertEqual(fonctions(appels).count("repondre_au_joueur"), 1)
         self.assertIn("Approche-toi de la trousse de crochets", sortie)
         self.assertNotEqual(reprise.objets["crochets"]["lieu"], "joueur")
         self.assertEqual(reprise.data["journal"], [])
 
-    def test_une_explication_admise_reste_celle_du_mj(self):
+    def test_meme_une_explication_admissible_n_est_pas_demandee(self):
         coup = proposition("coup de pied dans la poutre", issue("Tu frappes la poutre."),
                            cibles=["poutre_conduite"], approche="effort")
         _, sortie, appels = jouer(loin_de_la_poutre(), "je donne un coup de pied dans la poutre", [
             action(coup), dialogue("La poutre effondrée est à plusieurs pas de toi.")],
             [verdicts(("mecanique", ("retour_moteur",), ""))])
-        self.assertIn("La poutre effondrée est à plusieurs pas de toi.", sortie)
-        self.assertNotIn("Approche-toi", sortie)
+        self.assertNotIn("La poutre effondrée est à plusieurs pas de toi.", sortie)
+        self.assertIn("Approche-toi", sortie)
+        self.assertEqual(fonctions(appels), ["repondre_au_joueur"])
 
 
 def replique(locuteur, citation):
