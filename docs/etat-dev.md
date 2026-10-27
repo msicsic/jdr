@@ -4,6 +4,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-consignes-degraissees`, **non fusionnée**, lot **170** (L6), `b503242` : doublons retirés des consignes
+  d'interprétation, **−2,7 %** (39 910 → 38 828 caractères), suite verte, empreintes identiques. Luna deux passes contre
+  `cdaf371` : appels/tour 3,24 → 3,30, **s/tour 10,51 → 11,42**, **relances 14 → 19**, refus 21 → 25, replis 3 → 1 ;
+  faisabilité de l'atelier manquée dans une passe, avec une réponse qui parle du « dossier ». Rejeu des refus non joué.
+  **Mis en attente** (gain faible, signes de régression ; l'agent ne le propose pas à la fusion) : décision à l'utilisateur.
+
 - Branche `codex-mesures-resolues`, **diagnostic, fusionnée**, lot **171**,
   base `06cfe9e` : les trois refus de mesures (`force-4c-fuir` p1/p2 t1,
   `atelier` p2 t8) sont faux ; aucune source nécessaire absente. Cumul de deux
