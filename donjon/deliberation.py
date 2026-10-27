@@ -659,6 +659,9 @@ def satisfaite(monde, id, condition):
         return bool(c and c["valeur"].get("allume") and not c["valeur"].get("faible")
                     and monde.data["minutes"] - c["minute"] < REVOIR_FEU)
     if "lieu" in condition:
+        if condition["objet"] == id:
+            # Sa propre position ne dépend pas d'une croyance sur un objet.
+            return monde.objets[id]["lieu"] == condition["lieu"]
         # Le tenir soi-même ne suffit pas : l'objet doit être déposé (ou tenu par un autre) sur place.
         return (not porte_par(monde, condition["objet"], id)
                 and salle_crue(monde, id, condition["objet"]) == condition["lieu"])

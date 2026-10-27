@@ -2911,8 +2911,14 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
                 vises["confier"] = (dict(condition),)
     elif "lieu" in condition:
         lieu = condition["lieu"]
-        but = lambda v, e: o not in e.portes and v.lieu(e, o) == lieu  # noqa: E731
-        vises = {"prendre": (o,), "poser": (o,)}
+        if o == id:
+            # Se rendre soi-même sur place est une marche, jamais une prise de
+            # personnage. Le devis et l'engagement emploient le même graphe.
+            but = lambda v, e: e.salle == lieu  # noqa: E731
+            vises = {}
+        else:
+            but = lambda v, e: o not in e.portes and v.lieu(e, o) == lieu  # noqa: E731
+            vises = {"prendre": (o,), "poser": (o,)}
     else:
         but = lambda v, e: v.verrouille(e, o) and not v.ouvert(e, o)  # noqa: E731
         vises = {"fermer": (o,)}
