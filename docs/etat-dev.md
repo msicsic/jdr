@@ -4,43 +4,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195, prototype
-  partiel non fusionnable**, base `integration de18162` : localisation crue
-  mobile dans le seul lieu cru ; attribution, méfiance et localisation
-  entretenue portent sur la même personne, sans position/intention réelle.
-  **Reprise arrêtée à la demande de l'orchestrateur si cause dans un fichier
-  du lot 197** : cause du retour d'Ilse localisée dans `deliberation._candidats`,
-  garde `PROGRES_EN_COURS` / `SECURITE_FIN = 30`. À 66 minutes : base sécurité
-  **32,59**, abri maintenu ; prototype **29,34**, ronde échoppe puis refuge.
-  L'ouïe change l'évolution de l'inquiétude ; la poursuite de l'abri dépend
-  de ce seuil. `deliberation.py` interdit, aucun contournement ni fichier
-  interdit modifié. Autres causes à établir ; intégration, nouvelle suite
-  et nouvelles mesures différées jusqu'à résolution. Rondes et acquisition
-  visuelle du joueur explicitement hors lot de reprise. Traces `causes-*`
-  et mondes `eau-cause-*` dans les bruts du lot.
-  Onze nouveaux tests et complément orientation/conservation du bois :
-  **18 verts**, état/rendu rechargés et laps découpés. Suite unique
-  **2 326 tests, 268 fichiers, 1 884,702 s**, puis 41 fichiers repris et
-  complément ; **consolidé 2 327, cinq échecs, une erreur**, aucun ignoré.
-  Deux MiMo connus ; **quatre cas verts sur la base échouent sur le
-  prototype** : abri d'Ilse, deux cas de lampe prêtée, copie de devis avec
-  croyance invalide. **Ne pas fusionner** avant résolution générale.
-  Banc base/final, cinq scénarios × quatre graines × 4 h et trois graines 1 :
-  **46/46 recharges état/rendu identiques**, zéro plantage/usurpation dans ces
-  nuits. Retournements moyens Relais **99,5 → 20,5**, mine **61,75 → 14,5**,
-  auberge **44 → 23,5**, crue **87 → 66,25**, hameau **141,25 → 87,5**.
-  S/F/D mine **12,75/5/1,179 → 9,5/4/1,036**, hameau
-  **24,75/6,5/1,708 → 20,75/4,75/1,167** : pas de gain général de richesse.
-  Trois alertes d'agendas, deux nouvelles hameau 2024 non expliquées.
-  **Odile garde ses cinq bruits de ronde** à 40/92/135/187/239 : aucune
-  croyance d'itinéraire chez l'auditeur ; acquisition des localisations
-  visuelles du joueur également absente. Invariant complet non garanti,
-  distance géométrique optimiste, datation à la minute. Aucun Luna ni
-  fichier réservé 180 c/194 ni `social.py` modifié ; référence constituée une
-  fois puis réutilisée, aucun rejeu de `main`, deux calculs réduits au plus.
-  Vérification au-delà du créneau ; aucune clé Git configurée.
-  Bruts exclusivement `C:/Users/msics/donjon/artifacts/pas-195/` ;
-  [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
+- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195, candidat
+  encore non fusionnable**, reprise après `4892c52` : intégration **ef86cab**
+  fusionnée par `320eaa1`, rapports 196 §4 et 199 relus. Garde général dans
+  `ouie._attribuer` : une compatibilité de marche explique le bruit sans
+  confirmer/déplacer/rajeunir la présence ; recalage précis dans `PRES_DE`
+  conservé. **39 ciblés ouïe verts**, dont 13 du lot, état/rendu rechargés et
+  laps découpés. Dernière sélection **69 tests, trois échecs, zéro erreur** :
+  Ilse à l'abri et deux prêts restent rouges, assertions intactes ; quatre
+  cas verts sur la référence exacte, copie de devis verte sur la fusion.
+  Pas de nouvelle suite complète sur ce candidat déjà bloqué.
+  Banc compteur 199 : **20 paires, cinq scénarios × quatre graines × 4 h**,
+  référence constituée une fois puis vingt lectures du cache, aucun
+  plantage/usurpation. Retournements moyens Relais **100→28,75**, mine
+  **60→16,5**, auberge **51,75→28,25**, crue **86,75→56**, hameau **134,5→78,5**.
+  Suspects **57→54**, mais Relais **0→1**, hameau **24→35** : critère sans
+  nouveau retour non validé. Relais 2024 : Gorm servir Ilse→None→servir Ilse,
+  instants **117595/117600/118052**, sans entrée photographiée changée ;
+  épisode et chronique relus. Sonde 199 non certifiante, aucune alerte masquée.
+  Brune hameau 2024 : référence **0**, prototype **2** alertes d'agendas,
+  garde **0**, même base ; les alertes venaient du prototype et disparaissent
+  après correction de la confirmation acoustique. S/F/D non uniformément
+  améliorés. Aucun fichier du lot 205 (`eau`, `deliberation`, `planification`)
+  touché ; aucun Luna, deux calculs réduits au plus. Ni verrou d'intention
+  ni compensation émotionnelle ajouté ; arbitrage commun 196c reste ouvert.
+  Rondes connues et acquisition visuelle du joueur hors lot.
+  Bruts exclusivement `C:/Users/msics/donjon/artifacts/pas-195/reprise-ef86/`
+  et cache local du lot ; [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
 
 - **Branche `codex-portee-sans-salle`, fusionnée**, lot **204**, base
   `51c1e0b` : P1 implémenté en mode cases ; contact par pas commun au joueur,

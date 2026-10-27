@@ -16,8 +16,8 @@ Chantier accepté après les caractères et valeurs (`docs/etat-dev.md`). Branch
 
 ### Présence crue mobile (lot 195, prototype non validé)
 
-**Non fusionnable** : quatre cas verts sur la base échouent avec ce prototype,
-dont une copie de devis produisant un monde invalide. Voir le
+**Non fusionnable sur la reprise ef86cab** : trois cas d'abri/prêt restent
+en échec et de nouveaux retours de décision sont mesurés. Voir le
 [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
 
 Pour attribuer un pas ou un geste ordinaire, `_crus_la` conserve le lieu cru
@@ -28,6 +28,12 @@ L'instant courant est au dixième ; la perception initiale, datée à la minute,
 donne une borne supérieure du temps écoulé possible. Aucune position réelle,
 intention privée ou route réelle de l'auteur ne confirme cette attribution.
 Une absence ou un départ cru l'exclut ; une méprise reste possible.
+
+Cette compatibilité de marche explique le bruit, sans confirmer une nouvelle
+localisation. Hors de la zone `PRES_DE` de la case déjà crue, `_attribuer`
+conserve la croyance entière, sa source et sa date ; l'hypothèse ne se
+rafraîchit pas elle-même. Le recalage acoustique dans la zone crue reste
+inchangé, et les voix reconnues sont situées par le mécanisme vocal.
 
 Les fracas, appels et voix inconnues gardent leur interprétation ; la méfiance
 continue de provoquer une surveillance de la personne à qui le bruit est
@@ -79,10 +85,10 @@ modulée ajoute un cran par quatre points au-dessus de 10 (Ilse, PER 14, entend 
 un cran plus bas en écoutant, encore un collé à la porte par où le bruit arrive ; sa PER aussi.
 
 **Interprétation (PNJ), selon ce qu'il croit.** Ce qu'il voit faire n'a pas besoin de l'ouïe.
-- **Connu** : un bruit ordinaire (feutré, pas, geste, voix) venu de là où il croit quelqu'un depuis
-  moins de 30 minutes (dans sa salle : à une case de là où il le croit, s'il le sait ; ailleurs :
-  dans cette salle). Il le lui attribue et le croit là où vient le bruit (source `entendu`), sans se
-  retourner.
+- **Connu** : un bruit ordinaire (feutré, pas, geste, voix) compatible avec une présence crue
+  récente (dans sa salle : zone crue augmentée de la marche possible ; ailleurs : même salle
+  crue). Il le lui attribue sans se retourner. Le recalage précis (source `entendu`) reste dans
+  la zone initiale `PRES_DE` ; la seule possibilité de déplacement ne rajeunit pas la croyance.
 - **Inconnu ou inhabituel** (bruyant, appel) : tout près (même salle, 6 cases) et hors de son
   regard, il se tourne vers le bruit ; la rotation retarde la fin de son geste ; ce qu'il voit
   devient croyance, et l'auteur d'un geste illicite en cours en fait un témoin (registre

@@ -22,8 +22,8 @@ son seuil (``SEUIL``) : un cran de mieux aux aguets (une ronde, une garde, aller
 au repos ; la PER modulée y ajoute un cran par quatre points au-dessus de la moyenne.
 
 Interprétation (PNJ), selon ce qu'il croit ; ce qu'il voit n'a pas besoin de l'ouïe :
-- connu : un bruit ordinaire venu de là où il croit quelqu'un (vu ou entendu récemment) ; il
-  l'attribue à cette personne et met sa croyance à jour, sans se retourner ;
+- connu : un bruit ordinaire compatible avec une présence crue récente ; il l'attribue sans se
+  retourner. Le recalage précis reste dans la zone crue, la marche possible ne se confirme pas ;
 - une voix dont il saisit les mots : s'il voit qui parle, il connaîtra sa voix ; sinon il la
   reconnaît ou non (``voix.reconnaitre``) : une voix connue, il croit son porteur là d'où elle
   vient ; une voix qui s'était nommée, il croit celui qu'elle a dit être là, comme un ouï-dire ;
@@ -522,10 +522,16 @@ def _cru_le_plus_proche(monde, id, crus, case):
 
 
 def _attribuer(monde, id, crus, salle, case):
-    """Il prête le bruit à celui qu'il croit là, le plus près d'où il vient : il le croit là."""
+    """Recaler dans la zone crue ; expliquer un déplacement possible ne le confirme pas."""
     from .esprits import croire, lire
     x = _cru_le_plus_proche(monde, id, crus, case)
     c = lire(monde, id)["croyances"][x]["lieu"]
+    # Pouvoir avoir marché jusque-là explique le bruit, sans identifier celui
+    # qui l'a fait. Cette hypothèse ne doit pas déplacer ni rajeunir la preuve
+    # de présence qui l'a rendue possible. La localisation acoustique précise
+    # conserve sa tolérance commune ; une voix reconnue est déjà située par voix.
+    if case is not None and c.get("case") is not None and distance(c["case"], case) > PRES_DE:
+        return
     # Un bruit ne dit pas qui le fait : qui ne le croit là que sur la parole d'une voix inconnue
     # (``se_dit``) ne le croit pas davantage.
     source, confiance = ("se_dit", c["confiance"]) if c["source"] == "se_dit" else ("entendu", 1.0)

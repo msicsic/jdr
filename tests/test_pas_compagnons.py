@@ -41,12 +41,13 @@ class PasCompagnonsTests(unittest.TestCase):
             with self.subTest(scenario=args[0]):
                 m = scene(*args)
                 orientation = m.objets[args[1]]["orientation"]
+                presence = copy.deepcopy(lire(m, args[1])["croyances"][args[2]]["lieu"])
                 for geste in ("aller", "prendre", "aller"):
                     self.assertNotIn(args[1], retentir(m, args[2], geste))
                     m = self.stable(m)
                 self.assertEqual(orientation, m.objets[args[1]]["orientation"])
                 self.assertFalse([s for s in lire(m, args[1])["memoire"] if s["type"] == "bruit"])
-                self.assertEqual("entendu", lire(m, args[1])["croyances"][args[2]]["lieu"]["source"])
+                self.assertEqual(presence, lire(m, args[1])["croyances"][args[2]]["lieu"])
 
     def test_mael_entend_le_refuge_depuis_une_autre_salle(self):
         m = scene("crue_hameau", "mael", "aubin")
@@ -95,9 +96,10 @@ class PasCompagnonsTests(unittest.TestCase):
         placer(m, "aubin", "crypte", (1, 3))
         placer(m, "brune", "antichambre", (1, 3))
         lire(m, "ilse")["croyances"].pop("brune", None)
+        presence = copy.deepcopy(lire(m, "ilse")["croyances"]["aubin"]["lieu"])
         retentir(m, "brune", "aller")
         m = self.stable(m)
-        self.assertEqual("entendu", lire(m, "ilse")["croyances"]["aubin"]["lieu"]["source"])
+        self.assertEqual(presence, lire(m, "ilse")["croyances"]["aubin"]["lieu"])
         self.assertNotIn("brune", lire(m, "ilse")["croyances"])
 
     def test_la_mefiance_porte_sur_la_meme_personne_que_l_attribution(self):
@@ -108,9 +110,10 @@ class PasCompagnonsTests(unittest.TestCase):
         lier(m, "ilse", "brune", False)
         m.data["minutes"] = 1
         self.assertTrue(se_mefie(m, "ilse", "brune"))
+        presence = copy.deepcopy(lire(m, "ilse")["croyances"]["aubin"]["lieu"])
         self.assertNotIn("ilse", retentir(m, "aubin", "aller"))
         m = self.stable(m)
-        self.assertEqual("entendu", lire(m, "ilse")["croyances"]["aubin"]["lieu"]["source"])
+        self.assertEqual(presence, lire(m, "ilse")["croyances"]["aubin"]["lieu"])
         self.assertEqual("vu", lire(m, "ilse")["croyances"]["brune"]["lieu"]["source"])
 
     def test_joueur_meme_attribution_sans_revelation_au_rendu(self):
@@ -122,6 +125,25 @@ class PasCompagnonsTests(unittest.TestCase):
         texte = " ".join(rendre(m, entendus(m, -1, ENTENDU)))
         self.assertIn("pas", texte)
         self.assertNotIn("Aubin", texte)
+
+    def test_une_compatibilite_de_marche_ne_se_confirme_pas_elle_meme(self):
+        m = scene()
+        presence = copy.deepcopy(lire(m, "ilse")["croyances"]["aubin"]["lieu"])
+        for minute in (1, 10, 20, 30):
+            m.data["minutes"] = minute
+            self.assertNotIn("ilse", retentir(m, "aubin", "aller"))
+            m = self.stable(m)
+            self.assertEqual(presence, lire(m, "ilse")["croyances"]["aubin"]["lieu"])
+        m.data["minutes"] = 31
+        self.assertNotIn("aubin", _crus_la(m, "ilse", "antichambre", [1, 3]))
+
+    def test_localisation_acoustique_dans_la_zone_deja_crue(self):
+        m = scene()
+        croire(m, "ilse", "aubin", "lieu", "antichambre", "vu", salle="antichambre", case=[1, 4])
+        self.assertNotIn("ilse", retentir(m, "aubin", "aller"))
+        m = self.stable(m)
+        c = lire(m, "ilse")["croyances"]["aubin"]["lieu"]
+        self.assertEqual((c["source"], c["case"], c["minute"]), ("entendu", [1, 3], 1))
 
     def test_meme_laps_entier_ou_decoupe_recharge(self):
         a, b = scene(), scene()

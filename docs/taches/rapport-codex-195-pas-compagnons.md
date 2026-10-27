@@ -1,78 +1,61 @@
-# Lot 195 — attribution des pas, prototype partiel non fusionnable
+# Lot 195 — reprise sur ef86cab : garde acoustique partiel, non fusionnable
 
-27 octobre 2026, `codex-pas-compagnons`, base `integration de18162`.
-Sans Luna, deux calculs réduits au plus ; `main` intacte. Bruts et sondes :
-`C:/Users/msics/donjon/artifacts/pas-195/` uniquement.
+Intégration **ef86cab** fusionnée par `320eaa1` ; rapports 196 §4 et 199 relus.
+Aucun Luna, deux calculs réduits au plus, aucun fichier du lot 205 touché.
+Bruts : `C:/Users/msics/donjon/artifacts/pas-195/reprise-ef86/` ; cache du lot
+dans `C:/Users/msics/donjon/artifacts/pas-195/references/`.
 
-**Reprise des régressions : arrêt sur le périmètre du lot 197.** L'attribution
-change l'évolution perceptive et la sécurité d'Ilse. À l'instant 39 600
-(minute 66), base : sécurité **32,59**, abri haut maintenu ; prototype :
-**29,34**, ronde vers l'échoppe, puis refuge. Le choix commun
-`deliberation._candidats` ne poursuit le progrès `abriter` qu'au-dessus de
-`SECURITE_FIN = 30` (`PROGRES`, puis `PROGRES_EN_COURS`) ; sinon la routine
-redevient admissible. Le maintien de l'abri dépend ainsi du niveau d'inquiétude,
-modifié par l'ouïe, plutôt que du seul motif anticipé de l'abri. Cet arbitrage
-est dans **`deliberation.py`, interdit pendant le lot 197** : arrêt demandé,
-sans correction ni contournement dans un autre fichier. Traces et mondes
-`causes-base/final.json`, `eau-cause-base/final.json` dans les bruts.
-Les autres causes restent à établir. Aucun fichier interdit modifié ;
-`origin/integration` pas encore fusionnée, aucune nouvelle suite ni mesure
-finale : ces étapes suivaient la résolution des régressions. Rondes connues
-et acquisition visuelle du joueur demeurent hors lot.
+**Correction dans `ouie.py`.** Le rayon de compatibilité reste la dernière
+case crue, augmentée de la marche possible depuis sa minute de localisation.
+Une compatibilité explique un pas sans retournement ni bruit inconnu, mais
+**ne confirme pas à elle seule une nouvelle position ni une nouvelle date**.
+`_attribuer` conserve alors la croyance entière ; recalage précis dans `PRES_DE`
+et voix reconnues conservés. Aucun appel au choix, bonus d'inquiétude, verrou
+d'intention, mot-clé, scénario ni format de sauvegarde ajouté. Attribution et
+méfiance choisissent la même identité.
 
-**Contrat proposé.** `ouie._crus_la` élargit la dernière case crue par la
-marche possible depuis sa minute de localisation, dans le seul lieu cru.
-Expiration commune de 30 minutes, absence et départ crus exclus ; aucune
-lecture des positions ou intentions réelles. `_cru_le_plus_proche` fait
-porter attribution, surveillance par méfiance et localisation entretenue
-sur la même personne. Fracas, appels, voix inconnues et proximité du bien
-pour le témoignage restent distincts. Le joueur entretient une localisation
-déjà crue, sans identité révélée au rendu. Aucun format de sauvegarde nouveau.
+**Ciblés.** Après fusion : 85 tests, trois échecs, aucune erreur. Après le garde :
+69 tests, trois échecs, aucune erreur ; **39 tests d'ouïe verts**, dont 13 du
+lot (non-auto-confirmation, recalage, témoignages, voix, méprise, autre scénario,
+état/rendu rechargés et laps découpés). Quatre cas historiques verts sur ef86cab ;
+copie de devis verte avec le garde, mais **abri d'Ilse et deux prêts encore rouges**,
+assertions intactes. Supprimer toute confirmation de position ne les corrige pas.
+Suite complète non relancée : ciblés et critère de fusion déjà en défaut.
 
-**Preuves et défauts.** Onze tests nouveaux : voisins hors du regard,
-Maël derrière une cloison, autre scène auberge, marche exécutée dans la mine,
-méprise, distance/temps, expiration/absence/départ, bruit inhabituel,
-témoignage illicite, méfiance, monde/rendu rechargés et laps découpés.
-Orientation préparée sans aucune présence explicative ; ressources contrôlées
-par conservation du bois à chaque geste et après recharge. **18 tests verts**.
-Suite unique : **2 326 tests, 268 fichiers, 1 884,702 s**, sept échecs et une
-erreur bruts. Reprise de 41 fichiers (35 antérieurs/en cours à l'ajustement
-et échecs), puis complément : **consolidé 2 327 tests, cinq échecs, une erreur,
-aucun ignoré**. Deux échecs MiMo `6 != 5` connus ; **quatre cas passent sur la
-base et échouent sur le prototype** : Ilse reste au refuge au lieu de l'abri
-haut, lampe prêtée non allumée puis rendue, copie d'un devis de travail
-rejetée pour croyance inconnue. Causes non corrigées ; **ne pas fusionner**.
-Vérification au-delà du créneau, aucune seconde suite complète.
+**Banc demandé, compteur 199 inchangé.** Cinq scénarios × quatre graines × 4 h.
+Vingt références constituées une fois ; vingt nuits de branche après le garde,
+**20/20 références relues du cache**, zéro plantage/usurpation. Un premier
+passage du prototype donnait 72 suspects contre 57 ; le garde les ramène à 54.
+Totaux des retours et moyennes des retournements sonores, base → garde :
 
-**Banc final.** Cinq scénarios × quatre graines × 4 h, plus trois graines 1.
-Cache exact absent : référence constituée une fois avec le code `de18162`,
-réutilisée après l'ajustement ; aucun rejeu de `main`. **46/46 recharges
-base/final identiques**, état et rendu ; zéro plantage/usurpation dans ces
-nuits. Moyennes base → final ; S/F/D selon les mêmes `cats` du lot 183 :
-
-| Scénario | Retournements | Bruits inconnus | Aller voir | S/F/D |
+| Scénario | Retournements | Suspects 199 | À expliquer | S/F/D |
 |---|---:|---:|---:|---|
-| Relais | 99,5 → 20,5 | 30,5 → 15 | 5,75 → 3 | 6,75/4,25/1,188 → 7,5/4/1,125 |
-| Mine | 61,75 → 14,5 | 17,25 → 15 | 3,5 → 3 | 12,75/5/1,179 → 9,5/4/1,036 |
-| Auberge | 44 → 23,5 | 37,25 → 33,25 | 9,25 → 10,5 | 6,5/2,75/0,625 → 6,25/2,75/0,656 |
-| Crue | 87 → 66,25 | 54 → 47 | 5,25 → 6,25 | 17,5/6,5/1,938 → 16,5/6,75/2,375 |
-| Hameau | 141,25 → 87,5 | 74 → 56,5 | 10,75 → 9 | 24,75/6,5/1,708 → 20,75/4,75/1,167 |
+| Relais | 100 → 28,75 | 0 → 1 | 18 → 23 | 11,25/4,5/1,813 → 10,5/4/1,625 |
+| Mine | 60 → 16,5 | 1 → 0 | 29 → 22 | 21,5/4,25/1,643 → 20,5/4,25/1,607 |
+| Auberge | 51,75 → 28,25 | 5 → 3 | 24 → 17 | 11,25/4/0,906 → 10/4,25/1 |
+| Crue | 86,75 → 56 | 27 → 15 | 89 → 110 | 23,75/6,75/2,813 → 22,5/7/2,75 |
+| Hameau | 134,5 → 78,5 | 24 → 35 | 112 → 126 | 27,25/6,75/2,333 → 29,25/6,5/2,167 |
 
-Vols vus/entendus : Relais 0,25/0,25 → 0,25/0,5 ; mine et auberge 0/0 → 0/0 ;
-crue 1,5/0,25 → 1,75/0,5 ; hameau 1,5/0,75 → 1,5/1,25. Richesse non améliorée
-uniformément. Hameau 7 : rafale intermédiaire de 79 rotations à 230 supprimée
-par l'attribution unifiée ; pic final 15 contre 19 sur la base. Restent trois
-alertes de répétition d'agendas, dont deux nouvelles sur Brune hameau 2024,
-cause non établie ; sept autres constats sont des observations.
+Bruits inconnus moyens : 30,75→15,25 / 18,25→16,5 / 43,25→37,25 /
+48,75→43,75 / 63,75→48,5. Aller voir : 5,75→3,5 / 4→2,75 / 13,5→10,75 /
+5,75→6,75 / 9,25→10,25 (même ordre). Vols vus/entendus : Relais 0/0→0,25/0,
+mine 0/0→0/0, auberge 0/0→0,25/0, crue 1/0,25→0,75/0,5, hameau 0/0→0/0.
+S/F/D : mêmes catégories du lot 183 ; aucun gain uniforme revendiqué.
 
-**Limites et reprise.** Sur la graine 1, Maël : 13 → 5 retournements mais
-7 → 8 bruits inconnus ; Gorm/Ilse/Aubin : 23/24/18 → 18/10/4 retournements.
-**Odile garde ses cinq bruits du couloir à 40/92/135/187/239**, 14 inconnus
-et huit inspections : ronde d'Hugues non corrigée. Aucune croyance
-d'itinéraire de ronde n'existe chez l'auditeur ; les perceptions visuelles
-du joueur n'alimentent pas automatiquement ce registre. La minute donne
-une borne optimiste, la distance géométrique ne prouve pas un parcours.
-L'invariant complet demande de reprendre ces contrats communs, puis les
-quatre défauts ci-dessus ; aucun mot-clé, scénario ou prompt spécial ajouté.
-Aucun fichier réservé aux lots 180 c/194 ni `social.py` modifié. Aucune clé
-Git configurée : commit non signé.
+**Brune, hameau 2024.** Les deux alertes d'agendas venaient bien du prototype :
+sur la même base, référence **0**, prototype **2** (8 activations, 8 sommeils),
+garde **0**. Une position seulement inférée ne devient plus une donnée de
+localisation confirmée. Aucune alerte masquée ; pas de garantie générale sur
+les agendas.
+
+**Blocage.** Le total suspect baisse **57→54**, mais le critère « aucun nouveau
+retour » échoue. Relais 2024 : Gorm choisit de servir Ilse à **117595**, abandonne
+à la minute **117600**, reprend à **118052** ; aucune entrée externe photographiée
+ne diffère (`non_justifie_strict_complet`). Chronique relue, épisode archivé dans
+`episode-relais-2024.json`. Hameau : 8→18 / 9→4 / 1→8 / 6→5 suspects par graine
+1985/7/42/2024. Selon 199, ces classes restent des observations, pas une
+certification complète. Une parade de choix dans l'ouïe serait contraire au
+contrat 196 §4 et au périmètre. **Ne pas fusionner en l'état** ; arbitrage commun
+et trois régressions encore ouverts. Rondes connues (routine d'autrui à apprendre)
+et acquisition visuelle du registre joueur hors lot. Distance géométrique et
+datation à la minute restent des bornes optimistes. Aucune clé Git configurée.
