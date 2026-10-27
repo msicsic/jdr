@@ -60,10 +60,16 @@ def requetes_et_recharge(type_mj, cas):
 
 class ContenuConserveTests(unittest.TestCase):
     def test_requetes_et_recharge_identiques_a_integration_sur_deux_scenes(self):
-        reference = json.loads((Path(__file__).parent / "data" / "prompt-prefixe-avant.json").read_text(encoding="utf-8"))
+        reference = json.loads((Path(__file__).parent / "data" / "prompt-schema-158-avant.json").read_text(encoding="utf-8"))
         for cas in CAS:
             with self.subTest(cas=cas):
-                self.assertEqual(requetes_et_recharge(MJ, cas), reference[cas])
+                resultat = requetes_et_recharge(MJ, cas)
+                self.assertEqual(resultat["etat"], reference[cas]["etat"])
+                self.assertEqual(resultat["rendu"], reference[cas]["rendu"])
+                # L2 change seulement le schéma ; requêtes et contexte de L1 conservés.
+                for obtenu, attendu in zip(resultat["requetes"], reference[cas]["requetes"], strict=True):
+                    self.assertEqual({k: v for k, v in obtenu.items() if k != "schema"},
+                                     {k: v for k, v in attendu.items() if k != "schema"})
 
     def test_ordre_idempotent_sans_perte_et_revision_toujours_en_fin(self):
         entree = {"consigne_revision": "corrige", "inconnu": [1],

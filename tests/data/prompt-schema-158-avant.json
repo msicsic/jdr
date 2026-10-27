@@ -1,0 +1,56 @@
+{
+ "crypte": {
+  "requetes": [
+   {
+    "fonction": "repondre_au_joueur",
+    "instructions": "7260748057d90d649e8575241ba041b452090ccd675489fa0ddb1c0b7e66cc83",
+    "entree": "9679f6ecb1ba1dad0370ae12c67d77aed94bb790cd5091eb2b5aa1eedaad5f04",
+    "schema": "a83d746f936e1283e2ab8ff53081400e4d0df76b2aa8f04975d3ae1e0284da1b"
+   },
+   {
+    "fonction": "auditer_action",
+    "instructions": "dd4221bbe0f31cf23b71b0b7664c43a23dfa532d162f2160478a5a5f35d70b61",
+    "entree": "37dff4eca0c444dfcdcc653b7c1ba84c526f6814e09a36ef7644cba5ad13600a",
+    "schema": "8cadb0fdca4b2f57c384ce49a9122ad0ec1cbb32a019d9d130eea6d1f26007ba"
+   },
+   {
+    "fonction": "repondre_au_joueur",
+    "instructions": "8f0abdeb4be4e2840b7ad56662bfd6354b2f7d953c70d246524775e36808be09",
+    "entree": "2c0159c3ea313c6b6920b0f6badd9334334394ff89169f0fdf74290f1154a562",
+    "schema": "1b026a0c2691da9103f8fc56f2a6aed646bb2290f8de66142952123b741eb1b2"
+   }
+  ],
+  "etat": "830c6bba3de6c9a88d22fb06591cc0eb89d2da2e9e580e6890b722f46bfba1a8",
+  "rendu": "2c6b2c694e22a6e451050cf0c105f00c968701d838e12c4d4d8f02d42edeb416"
+ },
+ "atelier": {
+  "requetes": [
+   {
+    "fonction": "repondre_au_joueur",
+    "instructions": "993a1ebbe4aa6ab9c5bdd208da189125b83f0c1f7598e56c5e675904768ab614",
+    "entree": "7a01ab1145474904f4ba6673cc62a5f954004d79cf9964f0f5288da6238089e9",
+    "schema": "6027ba4339c23d0c561c190760571f6e410160a2ecca801ad925275f46ba1bb7"
+   },
+   {
+    "fonction": "auditer_action",
+    "instructions": "dd4221bbe0f31cf23b71b0b7664c43a23dfa532d162f2160478a5a5f35d70b61",
+    "entree": "fdc00784b31f03cafe85061c74ecb62dbe1e363e6c37e5fca8e627a0197becab",
+    "schema": "8cadb0fdca4b2f57c384ce49a9122ad0ec1cbb32a019d9d130eea6d1f26007ba"
+   },
+   {
+    "fonction": "repondre_au_joueur",
+    "instructions": "8f0abdeb4be4e2840b7ad56662bfd6354b2f7d953c70d246524775e36808be09",
+    "entree": "4114caece5d19a05be9ae1c6cd93364e078f62b5eeb7ddfd6b88653a1e11376d",
+    "schema": "1b026a0c2691da9103f8fc56f2a6aed646bb2290f8de66142952123b741eb1b2"
+   },
+   {
+    "fonction": "auditer_narration",
+    "instructions": "974b49f417f7553bc1943b9307948923d29edda460c5e6caddca18d01714ec51",
+    "entree": "2ca3b8fd18fb6d6d149c24da8762f207d989d6459919f349fa996c66ad663978",
+    "schema": "d53bfaa627e641b2403443295cfb6e406529832064340068c974122d4d8bdf1b"
+   }
+  ],
+  "etat": "3af773f1d35c45728980e5f11bebfeac9e3bb6cb1c843c03334f0c2933089397",
+  "rendu": "2604f958b5f8dafeb21558ea8ae35ecdf2fb253c337f9b736be9bf45cad124fd"
+ }
+}
