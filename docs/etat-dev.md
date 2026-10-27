@@ -4,6 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-naissance-evenement`, non fusionnée**, lot **192 / A6
+  deuxième volet partiel**, base `integration 3668061` : un portage illégitime
+  constaté et son épreuve persistante font naître `récupérer {objet, qui}` par
+  la table et la création communes aux dettes personnelles. Poids selon valeur
+  matérielle, ambition, honnêteté, douceur, fierté et rancune ; terminal du
+  graphe existant « porter le bien », refus et prix de violence communs.
+  Sommeil/réveil, publication différée, plafond et sauvegarde conservés ; fin
+  sur retour, destruction ou consommation crus. Pas de lecture de position
+  cachée ni de fin inventée pour une suppression distante.
+  **28 ciblés distincts verts** consolidés, dont dix d'événement repris ;
+  suite unique **2 318 tests, 267 fichiers, 1 713,848 s**, deux MiMo historiques
+  `6 != 5`, aucune erreur/ignoré. Derniers ajustements repris en ciblés.
+  **16/16 nuits 4 h** (Relais/mine/auberge/crue × quatre graines) : états et
+  chroniques identiques au témoin exact, mondes/rendus rechargés identiques,
+  zéro plantage/usurpation ; alertes de base inchangées. **Zéro récupération
+  née naturellement**, richesse S/F/D inchangée. Mine fixe 1985, 4 h :
+  793 recherches, 342 neuves, 10 979 nœuds ; CPU indicatif 13,14 s.
+  Anselme/ballot et Gorm/marteau : six captures ciblées conservées, prise
+  autonome et deux projets atteints, trois minutes d'un bloc ou 1 + 1 + 1,
+  monde/rendu rechargés identiques. Capture historique de vol en nuit libre
+  non acquise ; les scènes d'auteur isolent les pulsions concurrentes.
+  Restent : disparition attribuée sans portage constaté, réclamation du vol,
+  dénonciation autonome, restitution de tout stock porté par autrui et abandon
+  selon la VOL ; nuire sans bien, punir, rallier, occasion et soupçon déduit
+  hors lot. Aucun Luna ni fichier réservé aux lots voisins modifié ; deux
+  travailleurs réduits au plus. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/naissance-192/` ;
+  [rapport 192](taches/rapport-codex-192-naissance-evenement.md).
+
 - **Branche `codex-naissance-agendas`, fusionnée**, lots **184 a/b / A6
   partiel**, base `integration 4efb277`, suite de `ae9504a` : table commune de
   naissances et projet de pièces sur dette personnelle ; **184 b** compare
