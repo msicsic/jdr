@@ -11,7 +11,7 @@ from tests.test_social import recharger
 
 
 class NouvellesUtilesTests(unittest.TestCase):
-    def test_registre_plein_ne_laissed_pas_boucler_une_mesure_non_suivie(self):
+    def test_registre_plein_ne_laisse_pas_boucler_une_mesure_non_suivie(self):
         m = scene()
         lire(m, 'ilse')['faits_dits'] = {
             social._cle([f'objet_{k}', 'etat', 'allume']): {'valeur': False, 'dit_a': {}}
@@ -30,7 +30,7 @@ class NouvellesUtilesTests(unittest.TestCase):
              'valeur': 20, 'details': {'montee': -30}}
         social.observation_commune(m, 'ilse', n, ['marchand'], vus={'marchand'})
         cle = social.faits_dits(n)[0][0]
-        self.assertEqual(lire(recharger(m), 'ilse')['faits_dits'][cle]['portee_a']['marchand'], [1, 1])
+        self.assertEqual(lire(recharger(m), 'ilse')['faits_dits'][cle]['portee_a']['marchand'], [1, 0])
         self.assertTrue(social._nouveau(recharger(m), 'ilse', 'marchand', n))
         # Une seconde mesure plus basse, observée ensemble, rend la décrue commune.
         social.observation_commune(m, 'ilse', {**n, 'valeur': 19}, ['marchand'], vus={'marchand'})
@@ -105,6 +105,10 @@ class NouvellesUtilesTests(unittest.TestCase):
             'minute': m.data['minutes'], 'pour': 'marchand',
             'condition': {'objet': 'brasero', 'allume': True}})
         self.assertTrue(social._utile(recharger(m), 'ilse', 'marchand', n))
+        lire(m, 'ilse')['memoire'].append({'type': 'engagement_tenu',
+            'minute': m.data['minutes'], 'pour': 'marchand',
+            'condition': {'objet': 'brasero', 'allume': True}})
+        self.assertFalse(social._utile(recharger(m), 'ilse', 'marchand', n))
 
     def test_hauteurs_successives_seuil_et_decrue_sur_deux_nuits(self):
         from donjon.banc_pnj import creer

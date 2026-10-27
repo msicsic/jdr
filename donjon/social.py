@@ -132,7 +132,7 @@ def _portee(noyau):
     cm = noyau["valeur"]
     vitesse = noyau.get("details", {}).get("montee")
     return [2 if cm >= NOYEE_CM else 1 if cm > 0 else 0,
-            -1 if vitesse is not None and vitesse < 0 else 1]
+            -1 if vitesse is not None and vitesse < 0 else 1 if vitesse else 0]
 
 
 def _retenir_portee(fait, auditeur, noyau):
@@ -448,7 +448,7 @@ def observation_commune(monde, id, noyau, temoins, *, vus=None):
                 # une valeur déjà publiquement partagée étaye la direction.
                 anciennes = fait.get("entendu_a", {}).get(autre, [])
                 precedente = (anciennes[-1] if anciennes else fait["dit_a"].get(autre))
-                direction = fait.get("portee_a", {}).get(autre, [0, 1])[1]
+                direction = fait.get("portee_a", {}).get(autre, [0, 0])[1]
                 if precedente is not None and precedente != valeur:
                     direction = -1 if valeur < precedente else 1
                 portee[1] = direction
@@ -482,7 +482,23 @@ def _utile(monde, id, autre, noyau):
     if objet == autre:
         return True
     # Une tâche annoncée ou convenue est une preuve de projet, pas son exécution réelle.
-    for s in [*e["memoire"], *e["engagements"]]:
+    projets = list(e["engagements"])
+    conditions_vues, annules = set(), set()
+    for s in reversed(e["memoire"]):
+        if autre not in (s.get("a"), s.get("de"), s.get("pour"), s.get("qui")):
+            continue
+        if s["type"] == "promesse_annulee":
+            annules.add(s.get("objet"))
+        condition = s.get("condition")
+        if not condition or s["type"] not in ("engagement_pris", "engagement_tenu", "abandon_annonce",
+                                               "engagement_abandonne"):
+            continue
+        cle = _cle(condition)
+        if cle not in conditions_vues:
+            conditions_vues.add(cle)
+            if s["type"] == "engagement_pris" and condition.get("objet") not in annules:
+                projets.append(s)
+    for s in projets:
         if autre in (s.get("a"), s.get("de"), s.get("pour"), s.get("qui")):
             condition = s.get("condition", {})
             if objet in (s.get("objet"), condition.get("objet"), condition.get("lieu")):

@@ -374,7 +374,7 @@ def verifier(monde):
                         and set(v) <= {"valeur", "dit_a", "entendu_a", "valeur_inconnue", "portee_a"}
                         and isinstance(v.get("portee_a", {}), dict)
                         and all(isinstance(a, str) and isinstance(p, list) and len(p) == 2
-                                and p[0] in (0, 1, 2) and p[1] in (-1, 1)
+                                and p[0] in (0, 1, 2) and p[1] in (-1, 0, 1)
                                 for a, p in v.get("portee_a", {}).items())
                         and isinstance(v.get("valeur_inconnue", False), bool)
                         and isinstance(v["dit_a"], dict) and all(isinstance(a, str) for a in v["dit_a"])
