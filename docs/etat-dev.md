@@ -5,15 +5,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-sait-observations`, non fusionnée**, lot **206**, base
-  `a488f1f`, correctif `f3470d4` poussé : `bavarder` décide sur les audiences et
+  initiale `a488f1f`, reprise demandée sur **`aadab7c`** (205/207 intégrés),
+  fusion `1457239` ; référence de comparaison `aadab7c` (`cca5f50` n'ajoute que
+  des briefs). `bavarder` décide sur les audiences et
   observations communes conservées par le locuteur, sans lire le savoir privé
   de l'auditeur ; la réception conserve son contrôle des confirmations.
   Acquisition privée sans réouverture des suivis des autres ; photographie des
   acquisitions visuelles d'une même passe, états/possessions publics et témoins
   simultanés d'un geste, avant les interprétations de responsabilité.
-  **56 ciblés verts**, sept nouveaux compris ; défense/trajets sans réancrage.
-  Validation en cours : quatre fichiers de suite conservés, 275 restants repris
-  sur le code optimisé, banc final à faire après la suite ; deux travailleurs
+  **58/60 ciblés verts**, huit nouveaux compris ; défense/trajets sans réancrage.
+  Les deux écarts attente/rotations se limitent aux preuves d'observation du
+  joueur (4 et 12 champs), dont le regard change ; corps, autres croyances,
+  chronique et objets identiques, six recharges monde/rendu identiques.
+  Ancienne base : 2 409 tests, 21 échecs et un incident Windows ; bilan archivé.
+  Validation en cours : nouvelle suite demandée après fusion (281 fichiers),
+  banc final à faire contre `aadab7c` après la suite ; deux travailleurs
   réduits au plus pour ce lot, aucun Luna. Bruts exclusivement
   `C:/Users/msics/donjon/artifacts/sait-206/` ;
   [rapport 206](taches/rapport-codex-206-sait-observations.md).

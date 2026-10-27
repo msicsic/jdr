@@ -14,6 +14,13 @@ from tests.test_deja_dit import confier
 from tests.test_social import recharger
 
 
+def mots_enregistres(monde, auteur):
+    # Les paroles vues sont conservées, mais exclues du rendu acoustique
+    # différé pour ne pas afficher deux fois les mêmes mots.
+    return '\n'.join(ecoute.mots_percus(monde, b) for b in monde.data.get('bruits', [])
+                     if b['auteur'] == auteur and b['texte'])
+
+
 class SavoirSubjectifTests(unittest.TestCase):
     def test_absences_deduites_de_places_privees_ne_sont_pas_une_vue_commune(self):
         from donjon.esprits import percevoir_tous
@@ -92,10 +99,9 @@ class SavoirSubjectifTests(unittest.TestCase):
         self.assertIn('Odon', texte)
         self.assertEqual(m.data, recharger(m).data)
         self.assertEqual(rendu(m), rendu(recharger(m)))
-        sons = ecoute.entendus(m, -1, ecoute.ENTENDU)
-        mots = ecoute.rendre(m, sons)
-        self.assertIn('Odon', '\n'.join(mots))
-        self.assertEqual(mots, ecoute.rendre(recharger(m), sons))
+        mots = mots_enregistres(m, 'josse')
+        self.assertIn('Odon', mots)
+        self.assertEqual(mots, mots_enregistres(recharger(m), 'josse'))
 
     def test_constat_prive_confirme_sans_effacer_la_preuve_propre(self):
         m = scene()
@@ -112,10 +118,9 @@ class SavoirSubjectifTests(unittest.TestCase):
                          'valeur': {'disponible': False}}))
         self.assertEqual(m.data, recharger(m).data)
         self.assertEqual(rendu(m), rendu(recharger(m)))
-        sons = ecoute.entendus(m, -1, ecoute.ENTENDU)
-        mots = ecoute.rendre(m, sons)
-        self.assertIn('épuisés', '\n'.join(mots))
-        self.assertEqual(mots, ecoute.rendre(recharger(m), sons))
+        mots = mots_enregistres(m, 'ilse')
+        self.assertIn('épuisés', mots)
+        self.assertEqual(mots, mots_enregistres(recharger(m), 'ilse'))
 
     def test_observation_commune_et_auditeur_hors_du_regard(self):
         for cache in (False, True):
