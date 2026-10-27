@@ -1,74 +1,66 @@
-# Lot 213 (196 c) — contrat d'engagement, validation en cours
+# Lot 213 (196 c) — engagement minimal, validation finale en cours
 
-Branche `codex-contrat-engagement`, non fusionnée, départ `cca5f50` vérifié,
-reprise demandée sur `d2243c2` (211), intégration fusionnée par `2a2d766`.
-Reprise au-delà du créneau explicitement autorisée. Aucun Luna ; deux
-travailleurs réduits au plus. Bruts exclusivement dans
-`C:/Users/msics/donjon/artifacts/engagement-213/`. Aucune clé Git configurée.
-Le commit de diagnostic `51728f2` est poussé ; il précède l'implémentation.
+**Branche `codex-contrat-engagement`, non fusionnée ; ne pas fusionner en l'état.**
+Départ `cca5f50`, reprise demandée sur `d2243c2` (211), fusion `2a2d766`.
+Version figée après revue 217 : `b215938`. Aucun Luna, deux travailleurs réduits
+au plus ; pas de clé de signature configurée. Bruts exclusivement dans
+`C:/Users/msics/donjon/artifacts/engagement-213/`.
 
-**Revue 217 appliquée.** Aucun coût de trajet déjà parcouru n'entre dans
-l'inertie. La marge commune vaut `INERTIE + VOL/4` ; les coûts futurs des
-moyens restent évalués par le planificateur, sans conversion arbitraire de
-minutes en points d'urgence. Le contrat minimal reste lié à l'identité de
-l'intention dans un registre auxiliaire d'`agendas.py` (validateur d'intention
-d'`esprits.py` inchangé), sans créer d'agenda pour les secours. Sa demande
-porte condition de fin, parent éventuel et raison crue. Les phases naître,
-continuer, attendre, finir et les causes de sortie attestées avec leurs faits
-sont persistées ; une absence de certificat reste explicitement indéterminée.
-**35 ciblés distincts verts**, dont huit tests du contrat. Le passage commencé
-avant cette instruction a été interrompu ; les vérifications finales portent
-sur cette version figée. **Limite 218 :** la suspension temporaire d'une charge
-n'est pas portée par ce registre. Gorm/Aubin, hameau 1985 min 6 : sa garde peut
-reprendre après reconstruction de la livraison ; reprise laissée au lot 218.
+**Contrat.** `choisir` revalide avant l'arbitrage ; une intention revalidée, garde
+ou attente à plan vide comprise, cède à un palier supérieur ou à une domination
+avec marge. `marge_engagement` applique partout `INERTIE + VOL/4` : aucun coût de
+trajet passé, aucune addition de minutes aux points d'urgence. Les coûts futurs
+des moyens restent au planificateur ; leur raccord explicite à la bascule reste
+à définir. `_candidats` sépare naissance et poursuite des demandes de condition
+et d'agenda. `_reprendre_demande` peut poursuivre un secours hors de vue sur sa
+détresse crue ; `_fin_demande` interprète les fins et démentis connus.
 
-**Ce qui change.** `choisir` revalide l'intention avant l'arbitrage et applique
-une règle commune de préemption : palier strictement supérieur, ou gain d'au
-moins `INERTIE` au même palier. Une garde ou une attente à plan vide peut être
-revalidée. L'inertie n'écarte plus les candidats à leur naissance ; les bonus
-locaux d'agenda et de besoin sont absorbés par cet arbitrage. Un geste manqué
-libère l'engagement et les préférences de cible avant une nouvelle décision ;
-une nouvelle planification vers le même but reste permise.
+**217.** Identité, parent éventuel, condition de fin et raison crue sont conservés
+par la façade `agendas.py`, liés à l'intention exacte. Ce registre auxiliaire
+respecte le validateur inchangé d'`esprits.py` et ne crée aucun agenda de secours.
+Les phases du dernier arbitrage (naître, continuer, attendre, finir), la dernière
+sortie attestée et ses faits survivent à la recharge. Une évaluation indéterminée
+reste distincte d'une fin. Un geste manqué libère l'engagement avant une nouvelle
+planification. Une seule transition est conservée, sans seconde pile de buts.
 
-Les candidats portent une demande typée pour les conditions et les agendas.
-Sa provenance, son urgence et sa raison sont conservées par `agendas.py`,
-comme état facultatif vérifié et rechargeable, lié à l'intention courante.
-`_reprendre_demande` consulte les mêmes prédicats de condition et de projet
-que les mécanismes existants. Un secours peut ainsi continuer hors de vue
-sur sa détresse crue ; une détresse démentie, la mort connue ou une disposition
-sociale devenue incompatible le libère. Le poids social est recalculé.
-Aucune règle de personnage, objet ou scénario, aucun fichier interdit modifié ;
-`_lieu_cru` et `salle_crue` comparés à la base : identiques.
+**Preuves ciblées.** 35 tests distincts verts, dont huit du contrat : captures
+réelles 209 Rémy/mine 42 et Mireille/auberge 1985 ; cas transmis par 211 au Relais
+1985 ; autre PNJ, autre scénario et secours contre le froid ; plan coupé, démenti,
+préemption d'une ronde, VOL, causes persistées. Monde complet et rendu après
+rechargement, laps entiers/découpés contrôlés. Le cycle d'Aubin au Relais 2024 ne
+réapparaît pas dans le banc. `_lieu_cru`/`salle_crue` sont identiques à `d2243c2` ;
+aucun autre fichier de production que délibération/agendas n'est modifié par 213.
 
-**Preuves.** Base : vingt nuits 4 h, cinq scénarios × quatre graines,
-compteur 199 : **0/1/5/9/9 = 24**, sans plantage. Références exactes en cache,
-relues sans nouveau calcul. Les captures 209 de Rémy (mine 42) et Mireille
-(auberge 1985) sont conservées en fixtures : adoption réelle d'un secours,
-monde complet, rendu et laps entiers/découpés après rechargement vérifiés.
-Autres scènes : faim hors de vue malgré plan coupé, démenti, préemption d'une
-ronde, autre PNJ et autre secours contre le froid, garde vide et marge.
-**28 ciblés verts** avant le dernier test de démenti. Suite complète unique
-`tools/tests.py --processus 2` en cours ; aucune seconde suite prévue.
-L'oracle A0 conserve la naissance historique sans intention ; la poursuite
-est désormais vérifiée par reproduction et recharge, pas par identité avec
-l'ancien arbitrage.
+**Banc final après 217 : 20 paires de 4 h**, cinq scénarios × quatre graines,
+compteur 199 inchangé, 20 références relues du cache. Zéro plantage/usurpation.
+Retours : sommes ; attente/sans recours/eau : moyennes PNJ·min ; S/F/D selon 183.
 
-**Premier banc, non final.** Vingt nuits de branche : suspects
-**0/1/0/0/1 = 2**, aucun scénario en hausse, aucun plantage ni usurpation.
-Mais Brune hameau 2024 reste dans l'eau (140 min sur cette graine) : un plan
-commence à répétition par une prise d'outil manquée. Cette observation a
-motivé le démenti commun sur geste manqué ajouté ensuite. Le banc final doit
-encore vérifier cet effet. Les métriques finales et S/F/D restent à relever.
-Les activations/sommeils d'a1 de Brune passent de huit à trois dans ce premier
-banc ; leur cause n'est pas supprimée. Gorm présente encore des épisodes
-sans but ; aucune correction générale de leur cause n'est établie.
+| Scénario | Retours | Attente / sans recours | Eau | S/F/D avant → après |
+|---|---:|---|---:|---|
+| Relais | 4 → 0 | 0/0 → 0/0 | 0 → 0 | 11,25/3,75/1,5 → 9,75/3,5/1,438 |
+| Mine | 1 → 1 | 0/0 → 0/0 | 0 → 0 | 22/4,25/1,607 → 25,5/4,5/1,964 |
+| Auberge | 2 → 2 | 0/20 → 0/20 | 0 → 0 | 12/4,25/1,063 → 11/4,25/1 |
+| Crue | 2 → 2 | 178,75/0 → 170/0 | 2,5 → 3,75 | 14/6,75/2 → 17/6,75/2,375 |
+| Hameau | 7 → 0 | 128,75/0 → 178,75/0 | 10 → 31,25 | 31/8/2,542 → 31,25/7,75/2,5 |
 
-**Limites ouvertes.** Un `None` du planificateur ne distingue toujours pas
-borne, coût d'endurance et impossibilité. La poursuite ne réinstalle donc
-jamais aveuglément un ancien plan ; en revanche, toute disparition de plan
-n'a pas encore de certificat moteur de démenti. Les sources sans demande
-persistante doivent encore réémettre leur cible pour être revalidées.
-La liste fermée n'est donc pas garantie sur toutes les voies, et les verrous
-historiques d'abri/lumière ne sont pas tous absorbés. Les localisations cachées
-et la restauration des charges restent hors périmètre. **Aucune solution
-générale, absence d'entêtement ou aptitude à la fusion revendiquée à ce stade.**
+**Réserves.** Total 16 → 5, aucun scénario en hausse. Trois restants suivent un
+`MANQUE` (acheter/servir/demander), sortie permise par R2 ; deux retours d'a1 en
+crue restent à élucider. Brune hameau 42 passe 110 min dans l'eau : la trace
+montre un geste manqué libérant le but, puis le même début de plan reproposé ;
+l'exécution refuse son séjour en péril d'eau. **Absence d'entêtement non validée**,
+aucun gain uniforme d'attente ou de richesse. A1 de Brune hameau 2024 : activations/
+sommeils 5/6 → 4/3, cause non supprimée. Gorm conserve des relevés sans but,
+classés en charge confiée ou attente ; ces relevés ne prouvent pas seuls une
+intention perdue. Les captures de diagnostic conservent monde/rendu rechargés.
+
+**Vérification finale en cours** sur la version figée après 217. Le passage ancien
+(2 428 tests, 14 échecs, zéro erreur) est archivé ; le premier passage sur 211 a
+été interrompu à réception de 217. Aucune conclusion de suite verte à ce stade.
+
+**Limites explicites.** `None` du planificateur ne distingue toujours pas borne,
+coût et impossibilité ; les sources sans demande persistante doivent réémettre
+leur cible. La liste fermée n'est pas garantie sur toutes les voies. Le raccord
+entre admissibilité crue et exécution, y compris les préparatifs d'évacuation,
+reste ouvert. **218** reprend la suspension temporaire non portée ici : Gorm
+ouvre sa réserve pour livrer Aubin, hameau 1985 min 6, et la reconstruction perd
+la protection de cette charge. Aucune correction de ce cas revendiquée.
