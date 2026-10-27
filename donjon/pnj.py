@@ -337,11 +337,15 @@ def _temoigner(monde, geste):
 
 
 def _temoins(monde, geste, souvenir, victime):
+    from .biens import lese_par
     from .deliberation import proteges
     from .deliberation import VOL, inquieter, relancer
     id = geste["auteur"]
     for autre in pnjs(monde):
         if autre != id and autre not in geste["temoins"] and autre not in geste["exclus"] and percoit(monde, autre, id):
+            if not est_contrainte(monde, geste['operation'], geste['objet']):
+                victime = lese_par(monde, geste['objet'], autre, geste['operation'])
+                souvenir = {**souvenir, 'victime': victime}
             geste["temoins"].append(autre)
             if geste["operation"] in ("frapper", "assommer", "tuer") and est_contrainte(monde, geste["operation"], geste["objet"]):
                 from .corps import evenement
@@ -375,6 +379,7 @@ def _temoins(monde, geste, souvenir, victime):
 
 def _temoins_a_l_oreille(monde, geste, souvenir, victime):
     from .deliberation import proteges
+    from .biens import lese_par
     """Témoins par l'ouïe, d'une certitude moindre que la vue : qui entend le geste pendant qu'il
     dure (``ouie.entend`` : sa nature, la distance, son seuil), sans en voir l'auteur, dans la salle
     même (il le situe), et croit tout près de là l'objet en cause ou ce qui le contient
@@ -401,6 +406,9 @@ def _temoins_a_l_oreille(monde, geste, souvenir, victime):
                 or not objet_situe(monde, autre, objet, salle, case)):
             continue
         geste["entendus"].append(autre)
+        if not est_contrainte(monde, geste['operation'], objet):
+            victime = lese_par(monde, objet, autre, geste['operation'])
+            souvenir = {**souvenir, 'victime': victime}
         if est_contrainte(monde, geste["operation"], objet):
             from .corps import evenement
             evenement(monde, "violence_entendue", objet, auteur=id, temoin=autre)
