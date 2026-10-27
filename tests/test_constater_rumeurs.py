@@ -87,12 +87,16 @@ class ContenantFermeTests(unittest.TestCase):
         croire(m, "lucien", "coffre_marchand", "verrouillee", False, "vu")
         lire(m, "lucien")["besoins"]["biens"] = 90.0
         self.assertEqual(eclairage(m, "chambre_chaude", [1, 3])["niveau"], 0)
-        m, _ = attendre(recharger(m))
+        # La serrure résiste aux essais suivants : on observe son constat
+        # du verrou, sans qu'une réussite de crochetage l'ait déjà remplacé.
+        with patch("donjon.monde.Monde.d20", return_value=1):
+            m, _ = attendre(recharger(m))
         croyances = lire(m, "lucien")["croyances"]
         self.assertEqual((croyances["coffre_marchand"]["verrouillee"]["valeur"],
                           croyances["coffre_marchand"]["verrouillee"]["source"]), (True, "essai"))
         self.assertEqual(croyances["ballot"]["lieu"]["valeur"], "coffre_marchand")
-        m, _ = attendre(m, 3)
+        with patch("donjon.monde.Monde.d20", return_value=1):
+            m, _ = attendre(m, 3)
         self.assertIn("Lucien, voyageur au manteau gris s'acharne sur la serrure du coffre ferré.",
                       gestes(m, "lucien"))
 
@@ -275,6 +279,10 @@ class ChercherQuelquUnTests(unittest.TestCase):
 
     def test_qui_se_mefie_ne_repond_pas(self):
         m = self.mireille_cherche_odile()
+        # Aucun autre appelant : le silence porte sur Mireille, dont Odile
+        # se méfie, et non sur une demande de secours de Mathurine.
+        from tests.support import sans_souci
+        sans_souci(m)
         lier(m, "odile", "mireille", False, "vu")
         m, _ = attendre(recharger(m))
         self.assertIn("Mireille appelle : « Odile ? »", chronique(m))
