@@ -420,6 +420,29 @@ l'accompagnement, la fin et l'abandon de l'agenda sur ses croyances. Ce prérequ
 prouve donc pas que Gorm évacue spontanément Ilse puis Brune. Voir le
 [rapport 146](taches/rapport-codex-146-agendas-amener.md).
 
+**Lot 146 b, `codex-agendas-amener-b`, non fusionné : fin d'amener, livraison partielle.**
+Complément prioritaire du lot 148 : les candidats d'agenda ne publient plus de
+transition pendant leur évaluation. Activation, fin et sous-buts utilisent un
+registre temporaire dans `vues_du_choix` ; les états et leur chronique sont
+enregistrés seulement après un choix complet et son contrôle de lecture seule.
+Un agenda essayé sans plan s'endort même si un autre candidat fournit le plan,
+comme les efforts bornés du lot 87. Un devis isolé ou un choix interrompu ne
+publie rien ; les évaluations imbriquées restent privées jusqu'à la sortie externe.
+`actualiser` reconnaît l'arrivée de toutes les personnes d'après les seules positions
+crues du porteur (vue ou parole), sans consulter leurs positions réelles à distance.
+Une destination qu'il croit ou attend noyée abandonne le projet avec cette cause.
+Ces états terminaux persistent après recharge et ne renaissent pas. Un projet dont
+ces conditions ne sont pas remplies dort explicitement : ses sous-buts ne sont pas
+encore pris en charge. Aucune déclaration d'évacuation ajoutée à la crue.
+
+Restent la préférence générale entre lieux et son avis (le contrat actuel des avis
+porte sur la menace de l'eau), le choix du plus proche, la portée de voix, la demande
+autonome et son refus durable, l'accompagnement et l'abandon pour route crue coupée.
+Une absence de route immédiate ne prouve pas l'impossibilité : chercher une clé ou
+ouvrir un passage peut encore fournir un plan. Les tests de fin ne prouvent ni
+l'évacuation spontanée, ni le réveil après refus, ni la priorité du désespoir pendant
+une évacuation. Voir le [rapport 146 b](taches/rapport-codex-146b-agendas-amener.md).
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des

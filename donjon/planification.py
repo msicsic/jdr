@@ -182,22 +182,24 @@ def vues_du_choix(monde, id):
     bloc = (id, [None, None], dict(origine))
     monde._vues_du_choix = bloc
     termine = False
-    try:
-        yield
-        termine = True
-    finally:
-        monde._vues_du_choix = ancien
-        if temoin is not None:
-            assert monde.data == temoin, "Une méthode candidate a modifié le monde ou l'esprit"
-        # L'effort appartient au choix réellement fait, pas aux devis et aux
-        # requêtes isolées. La photographie reste en lecture seule jusqu'ici.
-        if termine:
-            if ancien is not None and ancien[0] == id:
-                ancien[2].clear()
-                ancien[2].update(bloc[2])
-            else:
-                from .esprits import esprit
-                esprit(monde, id)["attentes_bornees"] = bloc[2]
+    from .agendas import evaluation
+    with evaluation(monde, id):
+        try:
+            yield
+            termine = True
+        finally:
+            monde._vues_du_choix = ancien
+            if temoin is not None:
+                assert monde.data == temoin, "Une méthode candidate a modifié le monde ou l'esprit"
+            # L'effort et les transitions d'agenda appartiennent au choix réel,
+            # jamais aux devis ni à une sélection interrompue.
+            if termine:
+                if ancien is not None and ancien[0] == id:
+                    ancien[2].clear()
+                    ancien[2].update(bloc[2])
+                else:
+                    from .esprits import esprit
+                    esprit(monde, id)["attentes_bornees"] = bloc[2]
 
 
 def vue(monde, id):

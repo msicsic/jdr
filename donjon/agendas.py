@@ -7,6 +7,7 @@ Les lectures renvoient des copies : toute mutation passe par une opération nomm
 import copy
 import hashlib
 import json
+from contextlib import contextmanager
 
 CHAMPS = {"engagements": list}
 
@@ -21,8 +22,51 @@ def champs_profil():
 
 
 def projets(monde, id):
-    from .esprits import lire
-    return copy.deepcopy(lire(monde, id).get("agendas", []))
+    return copy.deepcopy(_stock(monde, id) or [])
+
+
+def _stock(monde, id, creer=False):
+    from .esprits import esprit, lire
+    evaluation = getattr(monde, "_evaluation_agendas", None)
+    if evaluation is not None and evaluation[0] == id:
+        registre = evaluation[1]
+        if registre["stock"] is None and creer:
+            registre["stock"] = []
+        return registre["stock"]
+    if creer:
+        return esprit(monde, id).setdefault("agendas", [])
+    return lire(monde, id).get("agendas")
+
+
+@contextmanager
+def evaluation(monde, id, *, publier=True):
+    """Projets et chroniques proposés hors de data, publiés après le choix réel.
+
+    Comme les efforts bornés, un choix interrompu ne publie rien. Une évaluation
+    imbriquée transmet ses propositions à l'évaluation parente, jamais au monde.
+    """
+    ancien = getattr(monde, "_evaluation_agendas", None)
+    registre = {"stock": copy.deepcopy(_stock(monde, id)), "chroniques": []}
+    monde._evaluation_agendas = (id, registre)
+    try:
+        yield
+    except BaseException:
+        raise
+    else:
+        if not publier:
+            pass
+        elif ancien is not None and ancien[0] == id:
+            ancien[1]["stock"] = registre["stock"]
+            ancien[1]["chroniques"].extend(registre["chroniques"])
+        else:
+            from .esprits import esprit
+            from .pnj import _chroniquer
+            if registre["stock"] is not None:
+                esprit(monde, id)["agendas"] = registre["stock"]
+            for texte in registre["chroniques"]:
+                _chroniquer(monde, id, texte, "decision")
+    finally:
+        monde._evaluation_agendas = ancien
 
 
 def _croyances(monde, id):
@@ -61,31 +105,50 @@ def _changer(monde, id, a, etat, raison, empreinte):
         a["croyances"] = empreinte
         return
     a.update(etat=etat, depuis=monde.data["minutes"], raison=raison, croyances=empreinte)
-    _chroniquer(monde, id, f"{_qui(monde, id)} : agenda {a['id']} {etat} ({raison}).", "decision")
+    texte = f"{_qui(monde, id)} : agenda {a['id']} {etat} ({raison})."
+    evaluation = getattr(monde, "_evaluation_agendas", None)
+    if evaluation is not None and evaluation[0] == id:
+        evaluation[1]["chroniques"].append(texte)
+    else:
+        _chroniquer(monde, id, texte, "decision")
 
 
 def actualiser(monde, id):
     """Activation unique, révision sur les seules croyances du porteur."""
-    from .esprits import esprit
     declarations = depart(monde, id)
     if not declarations:
         return
-    e = esprit(monde, id)
     empreinte = _croyances(monde, id)
-    if "agendas" not in e:
-        e["agendas"] = []
+    if _stock(monde, id) is None:
+        stock = _stock(monde, id, creer=True)
         for n, declaration in enumerate(declarations):
             a = copy.deepcopy(declaration)
             a.setdefault("id", f"a{n + 1}")
             a.setdefault("maniere", {"sans_violence": True})
             a["origine"] = {"type": "scenario", "de": id, "minute": monde.data["minutes"], "cause": a["id"]}
             _changer(monde, id, a, "actif", "scenario", empreinte)
-            e["agendas"].append(a)
-    for a in e["agendas"]:
+            stock.append(a)
+    for a in _stock(monde, id):
         if a["etat"] not in ("actif", "sommeil"):
             continue
         if a.get("echeance", float("inf")) < monde.data["minutes"]:
             _changer(monde, id, a, "abandonne", "echeance", empreinte)
+            continue
+        if a["sorte"] == "amener":
+            from .deliberation import salle_crue
+            from .eau import noyee_attendue
+            destination = a["parametres"]["lieu"]
+            # Une arrivée réelle à distance ne vaut pas une observation. Comme
+            # pour une parole due, seule la position crue d'autrui fait foi.
+            if all(salle_crue(monde, id, qui) == destination for qui in _destinataires(a)):
+                _changer(monde, id, a, "atteint", "arrivee crue", empreinte)
+            elif noyee_attendue(monde, id, destination):
+                _changer(monde, id, a, "abandonne", "destination crue noyee", empreinte)
+            else:
+                # Le cycle de fin est disponible avant les sous-buts sociaux.
+                # Ne jamais faire passer une demande directe pour une préférence
+                # acceptée, ni déplacer la cible depuis le plan du porteur.
+                _changer(monde, id, a, "sommeil", "sous-buts non pris en charge", empreinte)
             continue
         if a["sorte"] != "informer":
             _changer(monde, id, a, "sommeil", "sorte non prise en charge", empreinte)
@@ -96,8 +159,7 @@ def actualiser(monde, id):
 
 
 def _limiter(monde, id, empreinte):
-    from .esprits import esprit
-    actifs = [a for a in esprit(monde, id)["agendas"] if a["etat"] == "actif"]
+    actifs = [a for a in _stock(monde, id) if a["etat"] == "actif"]
     for a in sorted(actifs, key=lambda a: (poids(monde, id, a), a["origine"]["minute"], a["id"]))[:max(0, len(actifs) - 3)]:
         _changer(monde, id, a, "abandonne", "supplante", empreinte)
 
@@ -131,11 +193,16 @@ def _informe(monde, id, a):
 
 def planifier(monde, id, identifiant):
     """Un seul prochain sous-but recherché ; aucun plan conservé dans l'agenda."""
-    from .esprits import esprit, lire
+    from .esprits import lire
     from .deliberation import salle_crue
     from .planification import chercher, _etape
     from .social import deja_dit, avis_exprime
-    a = next(a for a in esprit(monde, id)["agendas"] if a["id"] == identifiant)
+    contexte = getattr(monde, "_evaluation_agendas", None)
+    # Une requête isolée reste un devis : aucune transition ni chronique.
+    if contexte is None or contexte[0] != id:
+        with evaluation(monde, id, publier=False):
+            return planifier(monde, id, identifiant)
+    a = next(a for a in _stock(monde, id) if a["id"] == identifiant)
     empreinte = _croyances(monde, id)
     noyau = _noyau(a)
     # Un objectif de parole n'autorise ni une mesure inventée ni un mensonge.

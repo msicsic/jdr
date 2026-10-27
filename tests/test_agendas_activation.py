@@ -2,11 +2,19 @@
 import copy
 import unittest
 
-from donjon import agendas, deliberation, echanges, ecoute
+from donjon import agendas, deliberation, echanges, ecoute, planification
 from donjon.esprits import croire, lire
 from donjon.rendu import regarder as rendu
 from tests.test_avis_menace import scene
 from tests.test_tensions import recharger
+
+
+def planifier_choix(m, acteur, identifiant):
+    avant = copy.deepcopy(m.data)
+    with planification.vues_du_choix(m, acteur):
+        resultat = agendas.planifier(m, acteur, identifiant)
+        assert m.data == avant, "Une évaluation d'agenda a publié sa transition"
+    return resultat
 
 
 def declarer(m, acteur="aubin", cible="ilse", avis=True):
@@ -59,7 +67,7 @@ class ActivationTests(unittest.TestCase):
                     croire(m, acteur, "brasero", "lieu", "antichambre", "vu", salle="antichambre", case=[2, 2])
                 declarer(m, acteur, cible, avis)
                 m = recharger(m)
-                resultat = agendas.planifier(m, acteur, "a1")
+                resultat = planifier_choix(m, acteur, "a1")
                 self.assertIsNotNone(resultat)
                 but, etapes = resultat
                 self.assertEqual(but["type"], "agenda")
@@ -84,7 +92,7 @@ class ActivationTests(unittest.TestCase):
     def test_sommeil_sans_position_crue_et_reveil(self):
         m = declarer(scene())
         croire(m, "aubin", "ilse", "lieu", None, "vu", salle=None, case=None)
-        self.assertIsNone(agendas.planifier(m, "aubin", "a1"))
+        self.assertIsNone(planifier_choix(m, "aubin", "a1"))
         m = recharger(m)
         self.assertEqual(agendas.projets(m, "aubin")[0]["etat"], "sommeil")
         agendas.actualiser(m, "aubin")
@@ -92,14 +100,14 @@ class ActivationTests(unittest.TestCase):
         depuis = agendas.projets(m, "aubin")[0]["depuis"]
         croire(m, "aubin", "brasero", "etat", {"allume": False}, "vu")
         agendas.actualiser(m, "aubin")
-        self.assertIsNone(agendas.planifier(m, "aubin", "a1"))
+        self.assertIsNone(planifier_choix(m, "aubin", "a1"))
         self.assertEqual(agendas.projets(recharger(m), "aubin")[0]["etat"], "sommeil")
         self.assertEqual(agendas.projets(m, "aubin")[0]["depuis"], depuis)
         croire(m, "aubin", "ilse", "lieu", "antichambre", "vu", salle="antichambre", case=[3, 4])
         agendas.actualiser(m, "aubin")
         m = recharger(m)
         self.assertEqual(agendas.projets(m, "aubin")[0]["etat"], "sommeil")
-        self.assertIsNotNone(agendas.planifier(m, "aubin", "a1"))
+        self.assertIsNotNone(planifier_choix(m, "aubin", "a1"))
         self.assertEqual(agendas.projets(recharger(m), "aubin")[0]["etat"], "actif")
 
     def test_desespoir_devant_agenda_et_pas_de_stock_sans_declaration(self):
@@ -144,7 +152,7 @@ class ActivationTests(unittest.TestCase):
             str(i): {"valeur": True, "dit_a": {}} for i in range(social.DITS_MAX)}
         agendas.actualiser(m, "aubin")
         self.assertEqual(agendas.projets(m, "aubin")[0]["etat"], "actif")
-        self.assertIsNone(agendas.planifier(m, "aubin", "a1"))
+        self.assertIsNone(planifier_choix(m, "aubin", "a1"))
         m = recharger(m)
         self.assertEqual(agendas.projets(m, "aubin")[0]["etat"], "sommeil")
         self.assertEqual(agendas.projets(m, "aubin")[0]["raison"], "transmission non attestee")
