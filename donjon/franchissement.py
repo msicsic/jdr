@@ -15,14 +15,14 @@ from .refus import cibles
 
 
 REGLES = """
+Ces règles utilisent le dossier franchissements lorsqu’il est présent ; son absence ne fournit aucune ressource ni possibilité.
 INITIATIVES DE FRANCHISSEMENT : l'objectif indique un but, jamais une solution imposée.
 Une suggestion d'échelle est facultative. Examine la méthode du joueur, même improvisée.
 Opération composée franchir_obstacle : cible=obstacle connu, destination=palier relié,
 outil=objet servant d'appui mobile, methode=appui_mobile, difficulte estimée entre 16 et 22.
 Le dossier franchissements expose les conditions vérifiées, obstacles et inconnues.
-Une perche peut servir à tenter un saut pour franchir le mur : ce n'est ni fabriquer,
-ni installer une échelle. Si elle est au sol, compose deplacer(perche,joueur) puis
-franchir_obstacle(mur,palier,perche,appui_mobile,DD). Une seule confirmation pour l'ensemble.
+Un saut avec appui mobile ne fabrique ni n’installe une échelle. Si l’outil est au sol,
+compose sa prise (deplacer vers joueur) puis franchir_obstacle ; une confirmation couvre l’ensemble.
 La prise reste acquise si le saut échoue. Le moteur gère coût, chute et dommage à l'outil.
 Sur réussite, le personnage atteint le palier et lâche l'appui à son pied : aucun passage
 permanent ni retour garanti. Ne remplace pas cette intention par l'échelle ou une simple prise.

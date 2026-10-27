@@ -24,7 +24,7 @@ from .francais import designer
 from .artisanat import (SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, dossier as dossier_atelier,
                         REGLES as REGLES_ATELIER)
 from .harnais import derniere_tentative
-from .consignes import INTERPRETATION
+from .consignes import INTERPRETATION, RETOUR_INTERPRETATION, RETOUR_REFUSE
 from .franchissement import dossier as dossier_franchissement, REGLES as REGLES_FRANCHISSEMENT
 from .improvisation import SCHEMA as SCHEMA_IMPROVISATION, contexte as contexte_improvisation
 from .profil_joueur import SCHEMA as SCHEMA_PROFIL, catalogue as catalogue_profil, preparer as preparer_profil, reponse as reponse_profil
@@ -1169,23 +1169,11 @@ class MJ:
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }
-        instructions = INTERPRETATION
-        if atelier:
-            instructions += REGLES_ATELIER
-        if franchissements:
-            instructions += REGLES_FRANCHISSEMENT
-        if passages:
-            instructions += REGLES_OBSTACLES
-        if enrichir and espace:
-            instructions += REGLES_ESPACE
+        instructions = (INTERPRETATION + REGLES_ATELIER + REGLES_FRANCHISSEMENT
+                        + REGLES_OBSTACLES + REGLES_ESPACE + REGLES_PAROLE)
+        consigne_retour = None
         if retour_moteur:
-            instructions += ("\nLe retour_moteur est un contrôle fiable : corrige la proposition précédente, ou réponds en dialogue sur l'obstacle, sans exécuter autre chose."
-                             "\nSon champ attendu, quand il existe, dit en champs et identifiants ce qu'une proposition corrigée "
-                             "doit contenir : suis-le ; il ne s'adresse jamais au joueur."
-                             "\nSi tu réponds en dialogue, rien n'a eu lieu : c'est toi qui expliques l'obstacle, aucun "
-                             "personnage ne parle ni ne réagit.")
-        if parler:
-            instructions += REGLES_PAROLE
+            consigne_retour = RETOUR_INTERPRETATION
         if not enrichir:
             instructions = NARRATION
             schema["properties"]["mode"] = {"type": "string", "enum": ["dialogue"]}
@@ -1196,12 +1184,12 @@ class MJ:
                 faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu", "attestations", "ambiance_etablie", "comptes")}
                 instructions = INSTRUCTIONS_RESULTAT
             if retour_moteur:
-                instructions += "\nLes propositions précédentes ont été refusées avant toute exécution. Explique les conditions pertinentes à partir des faits fournis. Ne présente pas ces refus comme une tentative de Corvus ni comme une preuve que son intention entière est impossible."
+                consigne_retour = RETOUR_REFUSE
         instructions += REGLE_NARRATION
         from .localisation import REGLES as REGLES_LOCALISATION
         instructions += REGLES_LOCALISATION
-        if monde.data.get("mode_cases") and enrichir:
-            instructions += """\nLe joueur se déplace à pied avec les touches de la carte : une cible trop loin
+        if enrichir:
+            instructions += """\nEn mode_cases, le joueur se déplace à pied avec les touches de la carte : une cible trop loin
 (a_portee_de_main=false) appelle une invitation à s'approcher, car voir un objet ne suffit pas à le
 manipuler ; un personnage hors de portée de main peut être à portée de voix (a_portee_de_voix).
 salle.sorties_connues liste les sorties que Corvus connaît : d'autres peuvent lui échapper. La vue s'arrête aux murs, aux portes fermées et à l'obscurité : à distance, Corvus
@@ -1223,6 +1211,8 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 # Une commande complète n'a pas besoin des anciennes réponses du MJ.
                 conversation = []
         entree = ordonner_entree({"faits": faits, "conversation": conversation, "message": intention})
+        if consigne_retour:
+            entree["consigne_retour_moteur"] = consigne_retour.strip()
         debut = time.monotonic()
         self.derniere_utilisation = None
         trace = {"modele": self.modele, "revision": monde.data["revision"], "intention": intention,

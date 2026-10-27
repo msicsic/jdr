@@ -29,6 +29,16 @@ doit s'approcher. Les préparations, refus, trajets et coûts du moteur restent
 ceux du contrat commun. Ce filtre des données ne garantit pas que Luna ne
 proposera jamais spontanément un geste éloigné ; le moteur revalide sa portée.
 
+**Consignes d'interprétation invariantes** (lot 161, L3, validation Luna en attente).
+Les règles d'atelier, de franchissement, de passage local, d'espace et de parole
+figurent à chaque appel d'interprétation. Elles renvoient aux dossiers présents ;
+leur présence ne crée ni ressource ni possibilité lorsque le dossier manque.
+Les indications propres au refus courant sont dans `consigne_retour_moteur`
+de l'entrée, avec le refus dans `faits.retour_moteur`. Les relances narratives
+gardent leur consigne de révision dans l'entrée. La disponibilité, la portée et
+les effets restent validés par le moteur avant affichage. Les voies de récit
+gardent leurs consignes dédiées ; aucune garantie sémantique nouvelle n'en découle.
+
 **Schéma d'interprétation invariant** (lot 158, L2). Tous les modes et toutes
 les branches de proposition figurent à chaque appel d'interprétation, quel que
 soit le catalogue du tour. Leur disponibilité est contrôlée par le moteur avant

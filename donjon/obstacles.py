@@ -20,6 +20,7 @@ METHODES = ("dessous", "dessus")
 # les PNJ emploient DUREES. La mesure reçoit le tarif de son exécutant.
 DUREES_PORTES_JOUEUR = {"ouvrir": MINUTE, "deverrouiller": MINUTE}
 REGLES = """
+Ces règles utilisent le dossier passages_obstacles lorsqu’il est présent ; son absence ne fournit aucune ressource ni possibilité.
 Passage local : composer avec operation passer_obstacle, cible obstacle, methode dessous ou
 dessus, destination et outil vides, difficulte 0. Le moteur choisit ramper, enjamber ou
 escalader selon passage (qualification physique), gabarit et équipement ; il fixe durée et jet.

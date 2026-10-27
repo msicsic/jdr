@@ -55,7 +55,15 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
   atteint sur 16 audits (160 appels, perte maximale 1/5). Schéma d'audit narratif
   encore variable, à reprendre dans un lot suivant.
   [Rapport 158](taches/rapport-codex-158-schema-invariant.md).
-- **L3** — consignes invariantes : règles d'atelier, d'obstacles, de franchissement et d'espace condensées dans le socle.
+- **L3, lot 161, branche `codex-consignes-invariantes`, non fusionnée** —
+  consignes d'interprétation permanentes, règles des quatre dossiers et de parole
+  incluses sans condition de disponibilité ; indication du refus courant dans
+  l'entrée. Sur huit captures Relais/atelier, **7/7 → 0/7 variations**, consignes
+  moyennes **34 259,75 → 39 910 caractères**. Quatre parcours console identiques
+  à la base, état complet et rendu rechargés. **Validation partielle** : campagne
+  Luna bloquée par la revue automatique d'autorisation d'exportation ; aucun gain
+  de temps, cache réel ni critère des refus établi pour ce lot.
+  [Rapport 161](taches/rapport-codex-161-consignes-invariantes.md).
 - **L4 fait, lot 152, branche `codex-dossiers-proches`, fusionnée** — les quatre dossiers passent par
   `espace.objets_proches` (visibilité et `spatial.proche`), installations et outils compris ; les repères éloignés
   restent dans la vue. Les sauvegardes sans coordonnées n'établissent pas de portée au sol. Console et MJ simulé,

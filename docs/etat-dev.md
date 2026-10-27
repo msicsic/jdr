@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+
+- **Branche `codex-consignes-invariantes`, non fusionnée**, lot **161 / L3**,
+  base `c22541b` : consignes d'interprétation permanentes, quatre règles techniques
+  et parole présentes à chaque tour ; indications du refus courant en entrée.
+  **7/7 → 0/7 variations** sur huit captures Relais/atelier, consignes moyennes
+  **34 259,75 → 39 910 caractères**. Quatre parcours console identiques à la base,
+  état complet et rendu rechargés. Première passe **27 ciblés verts** ; suite
+  complète différée jusqu'à la fin du calcul d'intégration. **Validation partielle** :
+  revue automatique refusant l'exportation des scénarios/états vers ChatGPT,
+  campagne Luna en attente d'autorisation explicite ; aucun gain de latence,
+  cache réel ou critère des refus établi. Commit local non signé ; poussée `origin`
+  également bloquée par la revue automatique. `main` intacte.
+  [Rapport 161](taches/rapport-codex-161-consignes-invariantes.md), bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/consignes-161/`.
+
 - **Branche `codex-schema-invariant`, fusionnée**, lot **158 / L2**, base
   `7adc788`, code `9a0ea10`, mesure `a2147fd` : huit modes et toutes les branches
   d'interprétation toujours présents, sources en chaînes, faits à `suite` nullable.
