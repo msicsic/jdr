@@ -4,6 +4,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-service-non-defait`, non fusionnée**, lot **224**, base `a22f92e`
+  vérifiée : résultat promis conservé après clôture dans `biens`, filtre commun
+  des gestes qui le défont (trajets compris) et économie de flamme, engagements
+  ouverts compris. Besoin approché par le lieu cru du bénéficiaire, sans délai
+  ni lecture de ses buts privés, sans obligation d'entretien. Cas réel 217
+  repris à l'instant 4584, monde/rendu rechargés et laps découpé contrôlés ;
+  vérifications finales en cours. Bruts `C:/Users/msics/donjon/artifacts/service-224/` ;
+  [rapport 224](taches/rapport-codex-224-service-non-defait.md).
+
 - **Branche `codex-anselme-coups`, fusionnée**, lot **222**, diagnostic seul : quatre nuits natives 2024 sur `4d4c625` / `fa330e1`, historiques identiques à 212 ; Anselme **11→2 alternances**, poêle/garde **10→0**, aucun suspect 219 ; crue **16 coups / 7 touchés → 0**, mais cycle fuite/secours de Gorm encore reproduit sur captures dans les deux versions (cri de Brune non acquitté, cinq retours). Petit lot distinct sur revalidation/acquittement du secours ; pas de défaut chaleur/abri établi ni de correction générale attribuée au 213. **221 captures** monde/rendus rechargés identiques, quatre reprises bloc/découpées identiques ; un seul calcul BelowNormal, aucun jeu ni Luna modifié. Bruts `C:/Users/msics/donjon/artifacts/anselme-coups-222/` ; [rapport 222](taches/rapport-codex-222-anselme-coups.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. Anselme : entretien du poêle et garde légitimes (préemption, plan vide après réussite), 10 → 0 alternance poêle/garde sur l'intégration. Coups : décisions locales justifiées (prise de moyen de Brune, protection de Gorm, ripostes), mais Gorm refait cinq fois l'aller-retour vers un ancien cri de secours non acquitté : petit lot distinct (secours réévalué et acquitté sur constat).
 
