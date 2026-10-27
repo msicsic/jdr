@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-prompt-mesure`, fusionnée**, lot **149 / L0**, base
+  `3f16fe9` : mesure seule, aucun code du jeu changé ni appel à Luna/local.
+  **123 parties archivées, 1 354 appels**, dont 42/445 du lot 141, 80/896 de
+  références et 1/13 d’Argon `9d53229` lu sans fusion. Trois tests courts verts,
+  comparaison du message fournisseur simulé ; sources contrôlées par SHA-256.
+  Interprétation 141 : consignes changées 42/113 paires, schéma 60/113 ; audit
+  69/103. Ordre Luna outils → consignes → entrée distinct de l’ordre JSON réseau.
+  Entrée effectivement cachée : 47 429 jetons sur neuf appels, contrairement à
+  « jamais items.msg ». Trace Argon : sept jetons d’outils retirés, cache à zéro,
+  retrait réel `objet:brune`, pas `parole_prevue`. Ordre des faits testé isolément
+  en simulation locale ; pas de gain de temps ni serveur local mesuré.
+  Dix tours de portée, 24 appels dont 12 après refus ; atelier sans référence
+  proche 69/103, franchissements 8/103, obstacles 6/59, inconnus séparés.
+  Un processus réduit, aucun banc moteur ni suite complète pour cette mesure.
+  [Rapport 149](taches/rapport-codex-149-prompt-mesure.md), bruts
+  `C:/Users/msics/donjon/artifacts/prompt-149/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Priorité confirmée : L2 (schéma invariant) est le premier levier pour Luna ; L4 retire ~31 000 caractères éloignés, L5 jusqu'à 12 appels après refus sur ce corpus.
+
 - **Vérification d'intégration 2d504ae**, lot **148**, branche
   `codex-verif-integ-2d504ae` : aucun code du jeu ou outil changé, aucun Luna,
   aucune suite complète ni rejeu de référence. **49 nuits jouées une fois,
