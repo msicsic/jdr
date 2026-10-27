@@ -412,6 +412,9 @@ class PartTests(unittest.TestCase):
 
     def test_brune_demande_d_abord_et_gorm_la_sert(self):
         m = self.affamee("brune")
+        # Aucun don spontané ne doit remplacer cette demande et sa livraison.
+        from tests.support import sans_souci
+        sans_souci(m)
         m, _ = vivre(m, 20, jet=20)
         textes = chronique(m)
         self.assertIn("Brune demande une part des vivres du refuge à Gorm (promis).", textes)
@@ -422,6 +425,9 @@ class PartTests(unittest.TestCase):
 
     def test_refusee_brune_se_tourne_vers_le_vol(self):
         m = sans_le_sou(self.affamee("brune"), "brune")
+        # Le refus laisse son recours au vol nécessaire, sans aide des témoins.
+        from tests.support import sans_souci
+        sans_souci(m)
         m, _ = vivre(m, 8, jet=1)
         self.assertIn("Brune demande une part des vivres du refuge à Gorm ; contre-offre annoncée (refus).", chronique(m))
         intention = lire(m, "brune")["intention"]
@@ -430,6 +436,9 @@ class PartTests(unittest.TestCase):
 
     def test_ilse_sans_le_sou_retient_la_condition_sans_redemander_avec_le_temps(self):
         m = sans_le_sou(self.affamee("ilse"), "ilse")
+        # Pas de tiers qui fournisse ou fasse inspecter la part refusée.
+        from tests.support import sans_souci
+        sans_souci(m)
         m, _ = vivre(m, 10, jet=1)
         self.assertEqual(chronique(m).count("Ilse demande une part des vivres du refuge à Gorm ; contre-offre annoncée (refus)."), 1)
         m, _ = vivre(m, REDEMANDE - 20, jet=1)

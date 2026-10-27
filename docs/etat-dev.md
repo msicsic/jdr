@@ -4,6 +4,69 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Lot 197 b, branche `codex-empathie`, fusionnée**, reprise de `47ac3f1`
+  sur base `116294e` : triage des **34 constats** de 197 a, tableau complet dans
+  le rapport. Scènes historiques précisées unitairement par des données de souci
+  absent, contrats conservés ; le test de repas après appel vérifie désormais
+  une demande, un repas effectivement reçu et la satiété, plutôt qu'une formulation.
+  `services.conditions_manquantes` inclut le froid éprouvé du bénéficiaire dans la
+  salle du foyer, avant geste ; effet réel, perception, preuve unique, charge et
+  prestation convenue passent par les mêmes contrôles. Tests PNJ/joueur, doubles
+  crédits et recharges verts ; peur hors lot.
+  **313 ciblés dans 26 fichiers, 278,440 s : quatre échecs, zéro erreur** :
+  deux MiMo historiques, plus deux régressions de références internes exposées
+  par les portions créées par les secours (`test_avis_redits`, `test_combat`).
+  État mécanique/chronique identiques ; références 67/68 permutées ou référence 48
+  absente avant sauvegarde. **Raccord autorisé de trois lignes appliqué** dans
+  `echanges.detacher_part` : installateur commun des références appelé dès la
+  création, dans les deux chemins physique/compté. **Attention à la fusion avec
+  le lot 198 : même fichier, seuls ces trois ajouts pour 197 b.** Aucun champ
+  exclu ni secours neutralisé dans ces régressions ; comparaisons complètes vertes.
+  Le test des lampes prouve aussi les deux identités/audiences : Rémy peut annoncer
+  une lampe devant Lucien, que Josse n'a alors plus à répéter. **33 ciblés consolidés
+  verts** sur références, combat, portions et crédit. **Suite complète unique :
+  2 364 tests / 274 fichiers, 1 982,678 s : deux MiMo historiques et une erreur
+  de croyance `allume` autonome après allumage utile.** Corrigée dans
+  `services.constater`, qui conserve les états visibles du constat commun ;
+  cas réel inchangé et allumage complémentaire après recharge : **24 ciblés verts
+  / 3 fichiers, 19,304 s**. Bilan consolidé : deux MiMo historiques, zéro erreur ;
+  pas de seconde suite complète ni de nouveau banc.
+  Bruts `C:/Users/msics/donjon/artifacts/empathie-197/b/`, sans Luna, deux
+  travailleurs réduits au plus ; [rapport et tableau](taches/rapport-codex-197-empathie.md).
+
+- **Historique 197 a** (complété par 197 b ci-dessus), **3d partiel** :
+  faim/froid perçus deviennent des conditions communes `servir`/`allume`, après
+  les besoins propres et avant la routine. Seuil du souci du lot 80, rancune
+  exclue ; poids empathie × (affection + 20) / 100. Peur différée, crédit du froid
+  corporel sans charge encore absent du contrat commun de service.
+  **Base reprise : `integration 116294e`**, après annulation des données 186 et
+  fusion des lots 194/180. Le banc initial de 20 paires et la suite interrompue
+  sur `9c1897f` sont obsolètes, archivés sous `empathie-197/avant-integration-9c1897f/`.
+  **26 ciblés consolidés verts** : Mathe/Lucien sans charge, transi PNJ/joueur,
+  exclusions, priorité propre, temps entier/découpé et monde/rendu/journal
+  rechargés. **20 paires finales de 4 h**, cinq scénarios × quatre graines :
+  **21 repas d'empathie dans 13 nuits**, aucun entretien spontané sous ce
+  motif ; froid prouvé seulement en scènes ciblées. Sans recours **635 → 140 min**
+  (auberge 65 → 80, biens de Lucien) ; zéro plantage/usurpation. Vingt
+  sauvegardes/rendus stables après préparation de sauvegarde ; en crue 2024,
+  `sauver` complète seulement la référence interne `planches_1` avant écriture,
+  puis la recharge est identique (rejeu et chronique identiques également).
+  Pics de passages/h : 9/10/15/46/52 → 10/9/18/38/27 ; nouvelles alertes de
+  dette, froid, eau et noir : aucune garantie générale d'absence de boucle.
+  Aucun profil initial ≥ 70 : le seuil commun du souci permet pourtant des
+  secours, donc le critère historique n'est pas satisfait. Restent aussi la
+  mesure causale des minutes apaisées et la validation générale des anciens
+  parcours. **L'invariant complet 3d reste ouvert.** Suite finale unique sur
+  116294e : **2 361 tests, 274 fichiers, 1 887,048 s, 30 échecs et 4 erreurs**
+  dans 24 fichiers, dont les deux MiMo historiques. Épreuves du secours,
+  entretien isolé, échelle et vue pure/mémo vertes. Anciens parcours de demande,
+  appel, vol et déplacements encore en échec, sans attribution exhaustive ni
+  adaptation générale : **ne pas intégrer comme validation générale de 3d**.
+  Sans Luna, deux travailleurs réduits au plus. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/empathie-197/` ;
+  [rapport 197](taches/rapport-codex-197-empathie.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Livraison partielle (3d) : secours sur faim et froid perçus, souci commun du lot 80, crédit service_rendu du froid, ordre déterministe des références des portions. Banc 20 paires 4 h : 21 repas d'empathie dans 13 nuits, sans recours 635 → 140 min, S mine 13 → 23, auberge 6,5 → 11. Peur (rester près) hors lot. Aucun profil d'empathie ≥ 70 dans les scénarios.
+
 - **Diagnostic changements d'avis des PNJ**, lot **196**, branche `codex-changements-avis`, base `56ae922` : diagnostic et conception seuls (aucun fichier de `donjon/`, scénario ou test modifié, aucun Luna), détecteur générique sans effet de bord `tools/detecter_changements_avis.py` joué sur 20 nuits de 4 h (`relais`, `mine`, `auberge`, `crue`, `crue_hameau` × 1985/7/42/2024 ; 594 cycles accomplis, 272 allers-retours justifiés, **364 allers-retours non justifiés** tous prouvés boucles réelles sur `crue` 359 et `crue_hameau` 5 : 358 oscillations de Gorm sur la réserve brisée combinant `fin == "detruit"` ignorée par `gestes`/`satisfaite`, croyance `verrouillee` et bascule `"essai"`/`"vu"` dans `constater`, et auto-annulation par `retabli_par_son_plan` ; évacuations `PERIL_EAU` auto-annulées de Brune en `crue 1985` min 42 et `crue_hameau 1985` min 204 ; changements d'abri d'Ilse en `crue_hameau 2024` min 42–97), contrat d'engagement commun et découpage en lots 196a–196d dans [rapport 196](taches/rapport-codex-196-changements-avis.md), bruts dans `C:/Users/msics/donjon/artifacts/avis-196/detection-4h.json`.
 
 - **Branche `codex-occasions-asymetriques`, fusionnée**, lot **186**,

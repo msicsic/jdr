@@ -10,8 +10,12 @@ from tests.test_boucles_pnj import reserve_forcee
 from tests.test_tensions import placer, recharger, vivre
 
 
-def mine_avant_service():
+def mine_avant_service(souci=True):
     m = creer("mine", 3)
+    if not souci:
+        # Charge de Mathe : aucun secours concurrent à Odon ni repas de Rémy à Lucien.
+        from tests.support import sans_souci
+        sans_souci(m)
     m.joueur.update(salle="galerie", position=[1, 1])
     m, _ = vivre(m, 8)
     return m
@@ -83,7 +87,7 @@ class GardeDuPlanTests(unittest.TestCase):
         return m
 
     def test_mine3_capture8_service_sans_urgence_et_recharge(self):
-        self.verifier_service(mine_avant_service, "mathe", "lucien", "garde_manger", 7)
+        self.verifier_service(lambda: mine_avant_service(souci=False), "mathe", "lucien", "garde_manger", 7)
 
     def test_relais_service_depuis_la_reserve_gardee(self):
         self.verifier_service(gardien_servant, "marchand", "brune", "reserve", 5)

@@ -125,8 +125,13 @@ class DepartTireTests(unittest.TestCase):
 
 
 class DivergenceDuBancTests(unittest.TestCase):
-    def nuit(self, graine, depart="tire", minutes=60):
+    def nuit(self, graine, depart="tire", minutes=60, souci=True):
         m = creer("relais", graine, depart)
+        if not souci:
+            # Comme les marchés/nouvelles déjà isolés dans l'oracle du départ,
+            # les secours peuvent tirer des dés de demande indépendants du départ.
+            from tests.support import sans_souci
+            sans_souci(m)
         m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
         empreintes = {}
         _, mesures = executer(m, minutes, empreintes=empreintes)
@@ -144,8 +149,8 @@ class DivergenceDuBancTests(unittest.TestCase):
         # Les marchés A6 tirent aussi des dés : le départ seul est l'oracle ici.
         # Comparer les départs seuls ; la persuasion des nouvelles tire aussi des dés.
         # Départ déclaré : une seule nuit jusqu'à la cinquième minute, quelle que soit la graine.
-        fixes = {self.nuit(g, "fixe", 5)[0]["5"] for g in (1, 2, 3, 4)}
-        tirees = {self.nuit(g, "tire", 5)[0]["5"] for g in (1, 2, 3, 4)}
+        fixes = {self.nuit(g, "fixe", 5, souci=False)[0]["5"] for g in (1, 2, 3, 4)}
+        tirees = {self.nuit(g, "tire", 5, souci=False)[0]["5"] for g in (1, 2, 3, 4)}
         self.assertEqual(len(fixes), 1)
         self.assertGreater(len(tirees), 2)
 

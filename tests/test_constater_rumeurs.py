@@ -48,6 +48,9 @@ class ContenantFermeTests(unittest.TestCase):
         pénombre, elle tend la main vers les vivres : elle apprend la réserve fermée et
         verrouillée, croit toujours les vivres dedans, et va chercher ses crochets."""
         m = refusee(sans_evacues(relais()))
+        # Gorm n'apporte pas spontanément un repas : Brune doit constater le verrou.
+        from tests.support import sans_souci
+        sans_souci(m, "marchand")
         # Même ses outils ne convaincront pas Gorm : on vérifie ici le constat du verrou.
         from donjon import relations
         lire(m, "marchand")["relations"]["brune"] = relations._nouvelle({"confiance": 10})
@@ -198,6 +201,10 @@ class ChercherQuelquUnTests(unittest.TestCase):
         """Mireille a faim, sa marmite est vide ; elle ne sait où est Odile, qui garde les vivres.
         Odile est au grenier, dans le noir ; le bougeoir de Mireille est éteint."""
         m = calme(auberge(), "anselme", "hugues", "odile", "joss", "mireille", "tilo", "mathurine", "lucien")
+        # Hugues ne nourrit pas Mireille et Tilo ne cherche pas de part pour elle :
+        # cette scène d'appel exige qu'elle cherche encore Odile pour manger.
+        from tests.support import sans_souci
+        sans_souci(m, "hugues", "tilo")
         m.objets["marmite"]["portions"] = 0
         m.objets["bougeoir_mireille"]["allume"] = False
         croire(m, "mireille", "marmite", "etat", {"disponible": False}, "vu")

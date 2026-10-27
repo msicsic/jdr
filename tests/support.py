@@ -81,6 +81,19 @@ def calme(monde, *ids):
     return monde
 
 
+def sans_souci(monde, *ids):
+    """Scène d'auteur : acteurs sans souci spontané d'autrui, hors leurs charges.
+
+    Données explicites, sans neutraliser le mécanisme du secours : les tests
+    d'un appel, d'un prêt ou d'un refus peuvent ainsi conserver leur cause.
+    Les besoins, croyances, droits, engagements et liens restent inchangés.
+    """
+    acteurs = ids or tuple(i for i, o in monde.objets.items() if o.get('profil'))
+    for id in acteurs:
+        monde.objets[id]['profil']['valeurs'].update(altruisme=0, empathie=0)
+    return monde
+
+
 def regarder(monde, qui, vers):
     """Placement d'auteur : ``qui`` (un PNJ ou le joueur) regarde vers un personnage, le joueur, un
     objet ou une case de sa salle."""

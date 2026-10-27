@@ -199,6 +199,9 @@ class RejointTests(unittest.TestCase):
         """Gorm hèle Aubin ; Aubin, qui cherche Gorm pour sa part et connaît sa voix, sait d'où vient
         l'appel : il va vers lui au lieu d'attendre."""
         m = aubin_cherche_gorm()
+        # Gorm ne poursuit pas un service spontané concurrent de sa parole donnée.
+        from tests.support import sans_souci
+        sans_souci(m, "marchand")
         self.assertIn("marchand", lire(m, "aubin")["voix"])
         # Aubin, affamé, cherche Gorm à la conduite basse (la délibération de la minute passée).
         lire(m, "aubin")["intention"] = {
@@ -214,7 +217,12 @@ class RejointTests(unittest.TestCase):
         for _ in range(4):
             m, _ = vivre(m, 1)
         m = recharger(m)
-        self.assertTrue(obtient_sa_part(m))
+        # Le prix peut suivre la contre-offre (« condition remplie ») : vérifier
+        # la demande et le repas effectif, plus fort qu'une phrase d'accord.
+        self.assertTrue(any(t.startswith("Aubin demande une part") for t in chronique(m)))
+        self.assertTrue(any(s['type'] == 'nourri' and s['de'] == 'marchand'
+                            for s in lire(m, 'aubin')['memoire']))
+        self.assertLess(lire(m, 'aubin')['besoins']['faim'], 70)
         self.assertEqual(appels(m, "aubin"), [])
 
 

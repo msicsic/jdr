@@ -726,10 +726,12 @@ def detacher_part(monde, lot):
     d'autant. Renvoie son identifiant."""
     import copy
     from .matiere import id_piece, prelever_piece
+    from .noms import installer as installer_noms
     o = monde.objets[lot]
     piece = id_piece(monde, lot)
     if o.get("physique"):
         prelever_piece(monde, lot, piece)
+        installer_noms(monde)
         return piece
     part = copy.deepcopy(o)
     compteur = "portions" if o["type"] == "nourriture" else "charges"
@@ -738,6 +740,7 @@ def detacher_part(monde, lot):
     o[compteur] -= 1
     o["masse"] = round(o["masse"] - part["masse"], 3)
     monde.objets[piece] = part
+    installer_noms(monde)
     return piece
 
 

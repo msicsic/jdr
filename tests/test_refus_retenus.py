@@ -141,7 +141,11 @@ class PartImpossibleTests(unittest.TestCase):
         return recharger(m)
 
     def test_ilse_ne_redemande_pas_puis_redemande_quand_elle_sait_la_cle(self):
-        m, textes = vivre_long(self.ilse_affamee(), REDEMANDE + 30)
+        # Aucun secours ne fait ouvrir/inspecter les vivres : la clé retrouvée
+        # doit rester le premier moyen nouveau qui lève le refus retenu.
+        from tests.support import sans_souci
+        m = sans_souci(self.ilse_affamee(), "marchand", "aubin")
+        m, textes = vivre_long(m, REDEMANDE + 30)
         demandes = [t for t in textes if t.startswith("Ilse demande une part des vivres")]
         self.assertEqual(demandes, ["Ilse demande une part des vivres du refuge à Gorm (impossible)."])
         self.assertEqual(refus_retenu(m, "ilse", "marchand", ("demander",), "vivres")["cause"],
