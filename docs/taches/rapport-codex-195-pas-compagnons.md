@@ -4,6 +4,22 @@
 Sans Luna, deux calculs réduits au plus ; `main` intacte. Bruts et sondes :
 `C:/Users/msics/donjon/artifacts/pas-195/` uniquement.
 
+**Reprise des régressions : arrêt sur le périmètre du lot 197.** L'attribution
+change l'évolution perceptive et la sécurité d'Ilse. À l'instant 39 600
+(minute 66), base : sécurité **32,59**, abri haut maintenu ; prototype :
+**29,34**, ronde vers l'échoppe, puis refuge. Le choix commun
+`deliberation._candidats` ne poursuit le progrès `abriter` qu'au-dessus de
+`SECURITE_FIN = 30` (`PROGRES`, puis `PROGRES_EN_COURS`) ; sinon la routine
+redevient admissible. Le maintien de l'abri dépend ainsi du niveau d'inquiétude,
+modifié par l'ouïe, plutôt que du seul motif anticipé de l'abri. Cet arbitrage
+est dans **`deliberation.py`, interdit pendant le lot 197** : arrêt demandé,
+sans correction ni contournement dans un autre fichier. Traces et mondes
+`causes-base/final.json`, `eau-cause-base/final.json` dans les bruts.
+Les autres causes restent à établir. Aucun fichier interdit modifié ;
+`origin/integration` pas encore fusionnée, aucune nouvelle suite ni mesure
+finale : ces étapes suivaient la résolution des régressions. Rondes connues
+et acquisition visuelle du joueur demeurent hors lot.
+
 **Contrat proposé.** `ouie._crus_la` élargit la dernière case crue par la
 marche possible depuis sa minute de localisation, dans le seul lieu cru.
 Expiration commune de 30 minutes, absence et départ crus exclus ; aucune

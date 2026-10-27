@@ -8,6 +8,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   partiel non fusionnable**, base `integration de18162` : localisation crue
   mobile dans le seul lieu cru ; attribution, méfiance et localisation
   entretenue portent sur la même personne, sans position/intention réelle.
+  **Reprise arrêtée à la demande de l'orchestrateur si cause dans un fichier
+  du lot 197** : cause du retour d'Ilse localisée dans `deliberation._candidats`,
+  garde `PROGRES_EN_COURS` / `SECURITE_FIN = 30`. À 66 minutes : base sécurité
+  **32,59**, abri maintenu ; prototype **29,34**, ronde échoppe puis refuge.
+  L'ouïe change l'évolution de l'inquiétude ; la poursuite de l'abri dépend
+  de ce seuil. `deliberation.py` interdit, aucun contournement ni fichier
+  interdit modifié. Autres causes à établir ; intégration, nouvelle suite
+  et nouvelles mesures différées jusqu'à résolution. Rondes et acquisition
+  visuelle du joueur explicitement hors lot de reprise. Traces `causes-*`
+  et mondes `eau-cause-*` dans les bruts du lot.
   Onze nouveaux tests et complément orientation/conservation du bois :
   **18 verts**, état/rendu rechargés et laps découpés. Suite unique
   **2 326 tests, 268 fichiers, 1 884,702 s**, puis 41 fichiers repris et
