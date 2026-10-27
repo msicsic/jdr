@@ -275,6 +275,78 @@ def prix(monde, objet, part=False):
     return o.get("prix")
 
 
+def capacites_crues(monde, id, objet):
+    """Services matériels connus, sans lire charge, flamme ou contenu cachés.
+
+    Les usages et attaches sont structurels ; l'état d'une source est cru.
+    Une clé n'apporte que les accès que son porteur connaît.
+    """
+    from .esprits import croyance, lire
+    from .force import COUPE
+    o = monde.objets[objet]
+    usages = set(o.get("usages", ()))
+    profil = monde.objets.get(id, {}).get("profil") or {}
+    resultat = usages & {"allumage"}
+    if usages.intersection(COUPE):
+        resultat.add("coupe")
+    if "crochetage" in profil.get("capacites", ()) and "crochetage" in usages:
+        resultat.add("crochetage")
+    connus = lire(monde, id)["croyances"]
+    resultat.update("cle:" + cible for cible in o.get("ouvre", ()) if cible in connus)
+    etat = croyance(monde, id, objet, "etat")
+    etat = etat["valeur"] if etat else {}
+    if "allume" in o and (etat.get("allume") or etat.get("charge")):
+        resultat.add("lumiere")
+    if etat.get("allume"):
+        resultat.add("allumage")
+    return resultat
+
+
+def valeur_bien(monde, id, objet, part=False):
+    """Estimation commune en minutes : prix/contenu connu ou capacité marginale.
+
+    Un outil porté coûte la capacité perdue ; acquis, il vaut la capacité
+    ajoutée. Un doublon porté la conserve. Le désespoir valorise le remède
+    utilisable, pas n'importe quelle contrepartie. Aucun devis ni mutation.
+    """
+    from .caractere import valeur_pieces, valeur, ENJEU
+    from .deliberation import besoin_de_part, part_pour, parts, _connus, _lieu_cru, DESESPOIR
+    from .esprits import croyance, lire
+    o = monde.objets[objet]
+    montant = prix(monde, objet, part)
+    if not part and "pieces" in o:
+        c = croyance(monde, id, objet, "pieces")
+        montant = (montant or 0) + (c["valeur"] if c else 0)
+    if montant is None and not part and besoin_de_part(o) is not None:
+        # Le propriétaire compte sa réserve ; aucune quantité distante cachée.
+        n = parts(o) if proprietaire(monde, objet) == id else 1
+        montant = n * prix(monde, objet, True)
+    marchande = valeur_pieces(monde, id, montant if montant is not None else 1)
+    besoin = besoin_de_part(o)
+    remede = 0
+    if besoin and part_pour(monde, id, objet, besoin):
+        pression = lire(monde, id)["besoins"].get(besoin, 0)
+        remede = ENJEU * max(0, pression - DESESPOIR) / (100 - DESESPOIR)
+    if part:
+        return max(marchande, remede)
+    propres = set()
+    for k in _connus(monde, id):
+        if k == objet:
+            continue
+        # Une localisation cachée ne retire ni ne crée un doublon cru.
+        lieu, vus = _lieu_cru(monde, id, k), {k}
+        while lieu in monde.objets and lieu != id and lieu not in vus:
+            vus.add(lieu)
+            lieu = _lieu_cru(monde, id, lieu)
+        if lieu == id:
+            propres.update(capacites_crues(monde, id, k))
+    nouvelles = capacites_crues(monde, id, objet) - propres
+    # Même échelle que la peine et la faute. L'ambition pèse l'avenir ;
+    # seul un remède effectif peut passer cette capacité au désespoir.
+    usage = 12 * len(nouvelles) * (0.5 + valeur(monde, id, "ambition") / 100)
+    return max(marchande, usage, remede)
+
+
 def dettes(monde):
     """Les dettes en cours ; les lire ne change rien à l'état."""
     return monde.data.get("dettes", [])
