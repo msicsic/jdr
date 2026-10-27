@@ -82,7 +82,8 @@ class LocalisationTests(unittest.TestCase):
         self.m.joueur.update(position=[0, 1], orientation='ouest')  # Il regarde par la sortie.
         self.m.objets['marteau'].update(position=[4, 3], position_salle='echoppe')
         o = self.objets()['marteau']
-        self.assertFalse(o['a_portee'])
+        # Le seuil ouvert est un seul pas, malgré les deux mètres de la carte.
+        self.assertTrue(o['a_portee'])
         self.assertFalse(o['localisation']['meme_salle'])
         self.assertEqual(o['localisation']['direction'], 'ouest')
         self.assertEqual(o['localisation']['position_relative'], '2 mètres vers ouest')

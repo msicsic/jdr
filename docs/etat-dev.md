@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-portee-sans-salle`, non fusionnée**, lot **204**, base
+  `51c1e0b` : P1 implémenté en mode cases ; contact par pas commun au joueur,
+  aux accès PNJ et à leur approche, indépendamment du secteur de la cible ;
+  contenants/portes fermés et coins bloqués préservés, positions crues conservées.
+  Les deux côtés d'une diagonale doivent être libres, comme pour la marche ;
+  le volume de la cible ou de son support ne bloque pas son propre contact.
+  État et rendu rechargés, saisie réelle torche/crochets, autre seuil/verbe,
+  PNJ et temps découpé vérifiés. **88 ciblés puis 18 finaux verts** ; suite unique
+  **2 385 tests / 276 fichiers, 29 échecs et six erreurs**, ramenés après
+  corrections et adaptations vérifiées à **trois échecs préexistants reproduits
+  sur la base** (deux MiMo, AST du compteur 199), zéro erreur ; pas de seconde
+  suite complète. Empreintes 2 h : **6/16 identiques**, dix écarts de comportement,
+  zéro plantage ; références exactes en cache, ancien `main` incompatible avec
+  la sonde actuelle. **VERIFIER + spatial.VERIFICATION 0,2**, Relais 1985 2 h : vert.
+  Banc final 4 h, 16 paires : zéro plantage/constat d'usurpation, pics de passages/h
+  inchangés **10/9/18/38** ; retours suspects **275 → 380** (Relais 1→1, mine 1→2,
+  auberge 2→5, crue 271→372), à expliquer **313 → 292**, cycles **469 → 463**.
+  **Critère « aucune boucle nouvelle » non validé** : nouvelle alerte d'alternance
+  entretien du brasero/garde de Gorm, Relais 1985 min 5 ; réserve avant intégration
+  avec 201. Aucune alerte masquée ni correctif dans les fichiers de cet autre lot.
+  P2/P3 et M1–M3 restent ouverts ; aucun code de 201/202 ni du MJ modifié,
+  aucun Luna, deux travailleurs réduits au plus. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/portee-204/` ;
+  [rapport 204](taches/rapport-codex-204-portee-sans-salle.md).
+
 - **Lot 203, diagnostic seul**, `codex-capacites-salle`, base `2fe05b9` : portée manuelle encore bornée au secteur (deux cas au seuil ouvert, état et rendu rechargés), contexte social PNJ et projections MJ recensés ; lots P1–P3 proposés, MJ gelé séparé, aucune garantie générale ni modification du jeu, aucun Luna ; un processus réduit, bruts `C:/Users/msics/donjon/artifacts/capacites-203/`, [rapport 203](taches/rapport-codex-203-capacites-salle.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. P1 : la portée manuelle (spatial.proche, monde.present_physique/accessible, pnj._accessible) reste bornée à la salle de l'acteur, contrairement au contact entre personnages (refus « Approche-toi » au seuil ouvert, reproduit). P2 : contexte social des PNJ (de_pres, autour) borné à la salle. P3 : zone de calme de l'atelier. M1 à M3 côté MJ, en veille.
 

@@ -154,8 +154,12 @@ def _case_interieure(m, salle, sortie):
     return pos if pos in cases(m.data["salles"][salle]) else None
 
 
-def _salle_position(m, id, trace=None, salle_vue=None):
-    """Résout une position réelle de façon bornée (contenants compris)."""
+def _salle_position(m, id, trace=None, salle_vue=None, distante=False):
+    """Résout une position réelle de façon bornée (contenants compris).
+
+    ``distante`` conserve le secteur réel pour le contact ; les projections locales
+    continuent à ne renvoyer que des coordonnées de ``salle_vue``.
+    """
     salle_vue = salle_vue or m.joueur["salle"]
     trace = set() if trace is None else trace
     if id in trace or id not in m.objets:
@@ -166,7 +170,9 @@ def _salle_position(m, id, trace=None, salle_vue=None):
     if o.get("incorpore") or parti(m, id):
         return None
     if o.get("cote") and o.get("attache") and o["cote"] != salle_vue:
-        return None
+        if not distante:
+            return None
+        salle_vue = o["cote"]
     if o.get("type") == "porte":
         p = o.get("positions_salles", {}).get(salle_vue)
         return (salle_vue, tuple(p)) if p is not None else None
@@ -190,9 +196,11 @@ def _salle_position(m, id, trace=None, salle_vue=None):
         return None
     lieu = o.get("lieu")
     if lieu == "joueur":
+        if distante:
+            return m.joueur["salle"], tuple(m.joueur.get("position", ()))
         return (salle_vue, tuple(m.joueur.get("position", ()))) if salle_vue == m.joueur["salle"] else None
     if lieu in m.data["salles"]:
-        if lieu != salle_vue:
+        if lieu != salle_vue and not distante:
             return None
         if (o.get("type") == "surface" and o.get("nom", "").strip().lower() in ("sol", "plafond")
                 and not (o.get("position_salle") == lieu
@@ -200,14 +208,16 @@ def _salle_position(m, id, trace=None, salle_vue=None):
             return lieu, tuple(m.joueur.get("position", ()))
         p = position_objet(m, o)
         return (lieu, tuple(p)) if p is not None else None
+    salle_position = o.get("position_salle") if distante else salle_vue
     if (o.get("position_autonome") and lieu == o.get("ancrage_initial")
             and lieu in m.objets
             and not m.objets[lieu]["mobile"]
-            and o.get("position_salle") == salle_vue
-            and tuple(o.get("position", ())) in cases(m.data["salles"][salle_vue])):
-        return salle_vue, tuple(o["position"])
-    parent = _salle_position(m, lieu, trace, salle_vue)
-    if parent and parent[0] == salle_vue:
+            and salle_position in m.data["salles"]
+            and o.get("position_salle") == salle_position
+            and tuple(o.get("position", ())) in cases(m.data["salles"][salle_position])):
+        return salle_position, tuple(o["position"])
+    parent = _salle_position(m, lieu, trace, salle_vue, distante)
+    if parent and (parent[0] == salle_vue or distante):
         conteneur = m.objets.get(lieu, {})
         if conteneur.get("type") == "contenant" and not conteneur.get("ouverte"):
             return None
@@ -238,8 +248,9 @@ def position_carte(m, id, salle=None):
 
 def _bloquantes(m, salle, vue=False, sauf=None):
     """Les cases des objets de la salle qui bloquent le passage (ou la vue), hors ``sauf``."""
+    exclus = {sauf} if isinstance(sauf, str) else (sauf or ())
     return [position_cible(m, id, salle) for id, o in m.objets.items()
-            if id != sauf and not o.get("incorpore") and o.get("lieu") == salle
+            if id not in exclus and not o.get("incorpore") and o.get("lieu") == salle
             and (o.get("bloque_vue") if vue else o.get("bloque_passage"))]
 
 
@@ -278,18 +289,51 @@ def proche(m, id, acteur="joueur"):
     if porte_par(m, id, acteur) or (acteur == "joueur" and m.est_porte(id)):
         return True
     salle, origine = position_acteur(m, acteur)
-    cible = position_cible(m, id, salle)
-    if cible is None or origine is None:
+    if origine is None:
         return False
-    x, y = origine
-    dx, dy = cible[0] - x, cible[1] - y
-    if max(abs(dx), abs(dy)) > 1:
-        return False
-    if not (dx and dy):
+    # Une cible peut avoir plusieurs points de contact (porte, appui, composants).
+    # Seuls le secteur courant et ceux joints par un pas peuvent en fournir un.
+    secteurs = [salle, *(s["vers"] for s in m.data["salles"][salle].get("sorties", {}).values()
+                         if s.get("vers") in m.data["salles"]
+                         and _case_interieure(m, salle, s) == tuple(origine))]
+    vues = set()
+    for secteur in secteurs:
+        cible = _salle_position(m, id, salle_vue=secteur, distante=True)
+        if cible is not None and cible not in vues:
+            vues.add(cible)
+            if contact_cases(m, salle, origine, *cible, objet=id):
+                return True
+    return False
+
+
+def contact_cases(m, salle, origine, salle_cible, cible, objet=None):
+    """Contact manuel topologique, sans confondre les coordonnées de deux secteurs."""
+    from .monde import ErreurMonde
+    if salle == salle_cible and tuple(origine) == tuple(cible):
         return True
-    # Une diagonale ne passe pas en biais entre deux murs ou obstacles solides.
-    return (_case_libre(m, salle, (x + dx, y))
-            or _case_libre(m, salle, (x, y + dy)))
+    ox, oy = m.data["salles"][salle]["plan"]["origine"]
+    cx, cy = m.data["salles"][salle_cible]["plan"]["origine"]
+    dx, dy = cible[0] + cx - origine[0] - ox, cible[1] + cy - origine[1] - oy
+    if salle == salle_cible and max(abs(dx), abs(dy)) > 1:
+        return False
+    dx, dy = (dx > 0) - (dx < 0), (dy > 0) - (dy < 0)
+    try:
+        # Toucher n'est pas entrer dans la cible ni dans son support/contenant.
+        # Un point sans identité (estimation de contact) ne décrit pas son volume.
+        # Seule l'occupation de la case finale est ignorée, jamais les coins.
+        supports = set()
+        while objet in m.objets and objet not in supports:
+            supports.add(objet)
+            objet = m.objets[objet].get("lieu")
+        def libre(s, c):
+            if c not in cases(m.data["salles"][s]):
+                return False
+            finale = (s, tuple(c)) == (salle_cible, tuple(cible))
+            return (finale and not supports) or not _bloque(m, s, c, sauf=supports if finale else None)
+        pas = pas_vers(m, salle, origine, (dx, dy), case_libre=libre)
+    except ErreurMonde:
+        return False
+    return (pas["salle"], tuple(pas["position"])) == (salle_cible, tuple(cible))
 
 
 def _ligne(a, b):

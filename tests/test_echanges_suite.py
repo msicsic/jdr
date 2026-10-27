@@ -369,7 +369,13 @@ class PretReclameTests(unittest.TestCase):
         # La même règle entre PNJ : Rémy, dans le noir, garde la lampe échue que Gaspard lui réclame.
         from tests.test_echanges_argent import PretTests
         m = PretTests().lampe_empruntee()
-        m, _ = vivre(m, 3)   # Il l'a allumée : dans le noir, elle lui sert.
+        # Accomplir l'allumage avant la réclamation : trois minutes de vie
+        # autonome peuvent désormais suffire à transmettre la lampe à un tiers.
+        from donjon.pnj import _executer, _etape
+        self.assertTrue(_executer(m, "remy", _etape("allumer", "lampe_gaspard", outil="briquet"), [], []))
+        m = recharger(m)
+        self.assertEqual(m.objets["lampe_gaspard"]["lieu"], "remy")
+        self.assertTrue(m.objets["lampe_gaspard"]["allume"])
         m.data["permissions"][0]["minute"] = -ENGAGEMENT_MAX
         self.assertEqual(demander(m, "gaspard", "remy", "lampe_gaspard"), "necessaire")
         m = recharger(m)

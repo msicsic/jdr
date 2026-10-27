@@ -129,6 +129,9 @@ class FinsTests(unittest.TestCase):
             m = garde(outil)
             deplacer(m, outil, "marchand")
             deplacer(m, "coffre", "antichambre", [4, 5])
+            # Le test porte sur l'usure du coup, avec un vrai contact : (3,4)
+            # atteignait jadis le coffre en diagonale malgré le mur en (4,4).
+            m.objets["marchand"]["position"] = [3, 5]
             m.objets["coffre"].update(verrouillee=True, ouverte=False)
             m.objets[outil]["integrite"] = 1
             with patch.object(type(m), "d20", return_value=1):
