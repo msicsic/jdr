@@ -238,15 +238,80 @@ class ForceLunaTests(unittest.TestCase):
             self.assertNotEqual(piece['lieu_corvus'], piece['lieu'])
             self.assertEqual(piece['etat_apres_operation'], {'verrouillee': True})
             self.assertEqual(piece["issues_connues_avant"], [{"porte": piece["porte"], "verrouillee": False}])
+            self.assertEqual(piece['personnes_retenues_apres_operation'],
+                             [x for x in piece['personnes_connues'] if cible in x])
+            self.assertEqual(fermeture['passages'][0]['personnes_retenues_apres_operation'], [])
             verifier({"conforme": True, "motif": "porte fermée et verrouillée"}, plan)
             with self.assertRaises(ErreurMonde):
                 verifier({"conforme": False, "motif": "la demande exige de rouvrir"}, plan)
-            m, texte = console(m, p, "j’enferme cette personne", "--mine")
+            def admettre(recu):
+                verrou = recu['plan']['etapes'][1]['passages']
+                self.assertTrue(any(any(cible in i for i in x['personnes_retenues_apres_operation'])
+                                    for x in verrou))
+                return {'conforme': True, 'motif': ''}
+            m, texte = console(m, p, "j’enferme cette personne", "--mine", audit=admettre)
             self.assertTrue(m.objets[porte]["verrouillee"])
             self.assertFalse(m.objets[porte]["ouverte"])
             self.assertEqual(m.objets[cible]["lieu"], salle)
             self.assertIn("verrouill", texte)
+            self.assertEqual([e['id'] for e in m.data.get('historique_corps', [])
+                              if e['type'] == 'enfermer'], [cible])
+            self.assertEqual(m.data, recharger(m).data)
             self.assertEqual(regarder(m), regarder(recharger(m)))
+
+    def test_autre_issue_libre_ou_inconnue_ne_retient_personne(self):
+        from donjon.couverture_action import entree
+        from donjon.spatial import memoriser
+        from donjon.tenir import retenus_apres, enfermer
+        from tests.test_tensions import placer
+        from donjon.esprits import croire
+        for cible, salle in (('bram', 'bureau'), ('remy', 'reserve')):
+            for issue in ('libre', 'inconnue'):
+                with self.subTest(salle=salle, issue=issue):
+                    m, porte = scene_enfermer(cible, salle)
+                    deplacer(m, 'passe', 'joueur')
+                    m.objets[porte].update(ouverte=False, verrouillee=False)
+                    placer(m, cible, salle, (1, 1))
+                    position = copy.deepcopy(m.joueur)
+                    m.joueur.update(salle=salle, position=[2, 1])
+                    memoriser(m)
+                    m.joueur.update(position)
+                    autre = 'porte_reserve' if salle == 'bureau' else 'porte_bureau'
+                    destination = 'reserve' if salle == 'bureau' else 'bureau'
+                    ajout = {'escalier': True, 'case': [1, 1],
+                             'porte': autre if issue == 'inconnue' else None}
+                    m.data['salles'][salle]['sorties']['est'] = {**ajout, 'vers': destination}
+                    m.data['salles'][destination]['sorties']['ouest'] = {**ajout, 'vers': salle}
+                    m.objets[autre]['verrouillee'] = True
+                    m.data.get('verrous_joueur', {}).pop(autre, None)
+                    m = recharger(m)
+                    self.assertFalse(any(retenus_apres(m, 'joueur', porte).values()))
+                    croire(m, 'josse', cible, 'lieu', salle, 'savoir', salle=salle, case=None)
+                    m.data['esprits']['josse']['croyances'].pop(autre, None)
+                    etat = copy.deepcopy(m.data)
+                    self.assertFalse(any(retenus_apres(m, 'josse', porte).values()))
+                    self.assertEqual(m.data, etat)
+                    enfermer(m, 'josse', porte, 50)
+                    self.assertFalse(any(e['type'] == 'enfermer' for e in m.data.get('historique_corps', [])))
+                    p = proposition('verrouiller', porte, 'passe')
+                    plan = Moteur(m).preparer(p)
+                    etat = copy.deepcopy(m.data)
+                    dossier = entree('j’enferme cette personne', plan, m)
+                    self.assertEqual(m.data, etat)
+                    self.assertTrue(all(not x['personnes_retenues_apres_operation']
+                                        for x in dossier['plan']['passages']))
+                    revues = []
+                    def refuser(recu):
+                        revues.append(recu)
+                        self.assertTrue(all(not x['personnes_retenues_apres_operation']
+                                            for x in recu['plan']['passages']))
+                        return {'conforme': False, 'motif': 'une autre issue reste praticable'}
+                    m, texte = console(m, p, 'j’enferme cette personne', '--mine', audit=refuser)
+                    self.assertTrue(revues)
+                    self.assertFalse(m.objets[porte]['verrouillee'])
+                    self.assertNotIn('Tu verrouilles', texte)
+                    self.assertEqual(m.data, recharger(m).data)
+                    self.assertEqual(regarder(m), regarder(recharger(m)))
 
     def test_prendre_lier_delier_liberer_et_tuer_via_console(self):
         for cible in ('brune', 'aubin'):

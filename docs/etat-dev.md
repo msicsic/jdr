@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-retenus-apres`, **non fusionnée**, lot **178**, base
+  `integration dd815f4` : projection pure commune `tenir.retenus_apres`,
+  employée par `enfermer` et le dossier de contre-revue. Chaque opération de
+  porte indique les personnes retenues après elle ; fermeture seule ou autre
+  issue libre/inconnue : aucune retenue. Présences et verrous selon l'auteur,
+  vue du joueur actualisée sur une copie ; aucun effet physique ni prompt changé.
+  **29 ciblés verts**, trois fichiers, 44,046 s : Bram/bureau, Rémy/réserve,
+  console et MJ simulé, dossier sans mutation, refus de l'enfermement non établi,
+  événements et monde/rendu rechargés.
+  **8/8 exécutions identiques à `dd815f4`**, événements et recharges compris.
+  **12/12 empreintes 2 h identiques**, Relais/mine/rixe × quatre graines,
+  état complet et monde/rendu rechargés ; références du lot 175 et cache
+  `79594e4` exclusivement relues. Suite unique : **2 271 tests, 261 fichiers,
+  1 254,899 s**, deux échecs MiMo historiques `6 != 5`, zéro erreur/ignoré.
+  Aucune seconde suite. **Luna non jouée sur instruction** ;
+  commande exacte dans
+  `C:/Users/msics/donjon/artifacts/retenus-178/luna-a-jouer.txt` : deux passes
+  enfermer/traîner, une passe des neuf autres bancs de force contre `cdaf371`.
+  Amélioration sémantique et critère des trois appels non certifiés.
+  Deux travailleurs réduits au plus ; `main` intacte, aucune clé de signature.
+  Commit local uniquement : poussée refusée par la revue automatique
+  (confiance/destination d'`origin` non établies, risque d'exfiltration).
+  Bruts exclusivement `C:/Users/msics/donjon/artifacts/retenus-178/` ;
+  [rapport 178](taches/rapport-codex-178-retenus-apres.md).
+
 - **Branche `codex-fins-agendas`, fusionnée**, lot **175 / A4b partiel**,
   base `integration 7eb1ac9`, code `0544be1` puis `101f770` : croyance `fin` après
   destruction/consommation constatée, joueur et PNJ ; date conservée hors

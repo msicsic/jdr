@@ -627,6 +627,17 @@ dépouiller ; découverte, nouvelle de mort, devoir du protecteur ; fin de parti
 
 ### 4f. Luna et la force
 
+Lot 178, branche `codex-retenus-apres`, **non fusionnée**, base `dd815f4` :
+`tenir.retenus_apres` projette sans mutation les personnes retenues par un
+verrouillage, d'après les présences et issues crues de l'auteur. L'exécution
+`enfermer` et le dossier de contre-revue partagent ce calcul ; chaque opération
+de porte expose `personnes_retenues_apres_operation`. Une fermeture seule et
+une autre issue libre ou de verrou inconnu ne prouvent aucun enfermement.
+La projection actualise la vue du joueur sur une copie pour écarter les souvenirs
+démentis, sans dévoiler une présence réelle non perçue. Les effets moteur sont
+conservés. Luna non jouée sur instruction ; son amélioration sémantique reste
+à valider. Voir le [rapport 178](taches/rapport-codex-178-retenus-apres.md).
+
 Lot 147, branche `codex-force-4f-luna`, **non fusionnée** : exposition 4d/4e dans
 les consignes communes, corps explicitement mécanique dans l'audit ; filtre des
 locuteurs conscients existant vérifié jusque devant l'enregistrement, même après
