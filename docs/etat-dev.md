@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-audit-transitions`, non fusionnée**, lot **219**, base
+  `50de3c2` vérifiée : outils seulement, aucun `donjon/` ni Luna modifié.
+  Retours classés par preuve ordonnée, paliers effectivement essayés, étapes
+  exécutées et fin survenue pendant l'action d'autrui ; dérives et pertes
+  d'état payé séparées. Suivi des services conservé après éviction du souvenir,
+  aucune durée convenue inventée ni violation imputée. **25 ciblés verts** et
+  deux reprises courtes vertes ; **20/20 nuits 4 h identiques** aux témoins sans
+  sonde (monde complet, chroniques, empreintes, mesures), témoins réutilisés.
+  Courant : **486 cycles, 57 préemptions, 0 progrès, 1 autrui, 13 suspects,
+  97 à expliquer**, 185 fenêtres de dérive et 7 états payés perdus.
+  **57 historiques 209 : 50 suspects / 5 préemptions / 2 à expliquer** ; les
+  21 secours/rondes donnent **16/4/1**. Cas exact 217 torche **7–8 min** reproduit
+  sur `8177959`, 458 événements identiques, monde et rendu rechargés.
+  **Garantie causale générale non établie**, prédicats hérités et observation
+  partielle ; aucun comportement moteur corrigé. Pas de clé de signature
+  configurée. Bruts `C:/Users/msics/donjon/artifacts/transitions-219/` ;
+  [rapport 219](taches/rapport-codex-219-audit-transitions.md).
+
 - **Branche `codex-racheter-bien`, fusionnée**, lot **214**, base `cca5f50`,
   code `2b47bd9` : le geste d'achat commun permet au propriétaire de racheter
   son bien au détenteur. Rétention et vente jugées au prix de faute d'honnêteté

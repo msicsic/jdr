@@ -16,6 +16,7 @@ courant n'est jamais mis en cache. Les temps d'une nuit lue dans le cache ont é
 la sortie le dit. --sans-cache rejoue tout sans lire ni ranger.
 """
 import argparse
+from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 from contextlib import ExitStack, contextmanager
 import hashlib
@@ -164,7 +165,7 @@ def jouer_nuit(tache):
         if monde is not None:
             minutes[str(monde.data["minutes"])] = empreinte(monde.data)
         resultat["minutes"] = minutes
-    audit.ajouter_avis(resultat, detecteur.analyser_episodes(sonde.episodes))
+    audit.ajouter_avis(resultat, sonde.analyser())
     if not config["empreintes"]:
         if resultat.get("donnees"):
             chronique = resultat["donnees"]["chronique"]
@@ -371,6 +372,10 @@ def afficher(rapport):
                 for c in n.get("constats", []):
                     codes[c["code"]] = codes.get(c["code"], 0) + 1
             print("  Constats de l'audit : " + json.dumps(codes, ensure_ascii=False))
+            classes = Counter()
+            for n in nuits:
+                classes.update((n.get("avis") or {}).get("comptes", {}))
+            print("  Classes des retours : " + json.dumps(dict(classes), ensure_ascii=False))
 
 
 def main(argv=None):
