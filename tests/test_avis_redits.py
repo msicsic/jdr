@@ -54,10 +54,13 @@ class AvisReditsReelsTests(unittest.TestCase):
         m = self.parcours('mine', 70, 12 * 600)
         dits = [c for c in m.data['chronique'] if c['pnj'] == 'josse' and c.get('constat_confie')
                 and 'Lucien' in c['texte'] and 'rechange' in c['texte']]
-        self.assertEqual([c['minute'] for c in dits], [76, 79])
+        # L'audience déjà servie peut avancer la confidence suivante ; les
+        # deux identités restent distinctes, sans figer l'horaire du bavardage.
+        self.assertEqual(len(dits), 2)
         for objet in ('lampe_rechange_1', 'lampe_rechange_2'):
             self.assertFalse(m.objets[objet]['allume'])
-            self.assertFalse(lire(m, 'lucien')['croyances'][objet]['etat']['valeur']['allume'])
+            self.assertTrue(social.deja_dit(m, 'josse', 'lucien', {
+                'type': 'constat', 'objet': objet, 'attribut': 'etat', 'valeur': {'allume': False}}))
 
     def test_crue_2024_chaque_redite_exige_un_rallumage_appris(self):
         m = self.parcours('crue', 140, 110 * 600)

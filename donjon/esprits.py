@@ -370,8 +370,13 @@ def verifier(monde):
                         for s in e["memoire"])), "Mémoire de PNJ invalide"
         from .social import DITS_MAX
         assert (isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX
-                and all(isinstance(k, str) and isinstance(v, dict) and set(v) == {"valeur", "dit_a"}
+                and all(isinstance(k, str) and isinstance(v, dict) and {"valeur", "dit_a"} <= set(v)
+                        and set(v) <= {"valeur", "dit_a", "entendu_a", "valeur_inconnue"}
+                        and isinstance(v.get("valeur_inconnue", False), bool)
                         and isinstance(v["dit_a"], dict) and all(isinstance(a, str) for a in v["dit_a"])
+                        and isinstance(v.get("entendu_a", {}), dict)
+                        and all(isinstance(a, str) and isinstance(valeurs, list)
+                                for a, valeurs in v.get("entendu_a", {}).items())
                         for k, v in e["faits_dits"].items())), "Faits dits invalides"
         assert e["secours"] is None or (
             isinstance(e["secours"], dict) and set(e["secours"]) == {"minute", "apaise"}

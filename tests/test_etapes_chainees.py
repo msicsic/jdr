@@ -103,13 +103,25 @@ class EtapesTests(unittest.TestCase):
     def test_captures_mine_et_auberge_memes_plans_visites_monde_et_rendu_recharges(self):
         attendu = json.loads((DONNEES / "etapes-attendues.json").read_text(encoding="utf-8"))
         calcul = json.loads((DONNEES.parent / "profondeurs-preuve/etapes-calcul.json").read_text(encoding="utf-8"))
+        # Lot 191 : le registre d'audience change le monde sauvegardé ; dans
+        # la mine, une parole supprimée change aussi les reprises du graphe
+        # et les lignes. Les plans et les vues restent l'oracle historique.
+        paroles = {
+            "mine": {
+                "visites": "9a5260767ab9a7fbdc7970b62060e9d04bf680685687e628a8d4880e8d1e0e51",
+                "n_visites": 4956,
+                "diagnostics": "827bb1e37ba176d398472b218b1505d4310ede27fcd2200cbcf064b1f2d0286f",
+                "monde": "c7c8900af39bd1ccab5777a25164b9efe297d96c823794a05578bbc77388ecc1",
+                "lignes": "37c42d6a8fd5ac7fe31193886396a2573881be8e5280b81c74de01f2cf4d73dd"},
+            "auberge": {"monde": "f85db4952442efdfb10ab7797c96d21fb9d35c7f43c39d4cf063351ebb564969"}}
         for scenario in ("mine", "auberge"):
             with self.subTest(scenario=scenario):
                 # Le lot 92 c réduit les reprises, donc les visites et diagnostics.
                 # Plans, monde, lignes et rendus restent ceux de l'oracle historique.
                 nouvelles_mesures = calcul[scenario]
                 self.assertLessEqual(set(nouvelles_mesures), {"visites", "n_visites", "diagnostics"})
-                self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures})
+                self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures,
+                                                             **paroles[scenario]})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})

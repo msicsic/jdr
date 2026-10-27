@@ -78,8 +78,9 @@ class AvisMenaceTests(unittest.TestCase):
             self.assertEqual(lire(m, "ilse")["croyances"][sujet].get("eau"), attributs.get("eau"))
         ecouler(m, 600)
         m, dit, texte = confier(m)
-        self.assertTrue(dit)
-        self.assertIn("Gorm", texte)
+        self.assertFalse(dit)  # Gorm a déjà entendu l'avis adressé à Ilse.
+        avis = {"type": "avis", "objet": "antichambre", "attribut": "menace", "valeur": True}
+        self.assertTrue(social.deja_dit(m, "aubin", "marchand", avis))
         self.assertIsNone(prevision(m, "marchand", "antichambre"))
         self.assertFalse(eau.en_peril(m, "ilse"))  # Menacé ne veut pas encore dire noyé.
         # Les autres écoutent sans entreprendre une nouvelle tâche pendant ce parcours.
@@ -144,7 +145,7 @@ class AvisMenaceTests(unittest.TestCase):
         eau.observer(m, "aubin", "crypte")
         m, _, texte = confier(m)
         self.assertNotIn("menace", texte)
-        self.assertEqual(sum(bool(c.get("avis_exprime")) for c in m.data["chronique"]), 2)
+        self.assertEqual(sum(bool(c.get("avis_exprime")) for c in m.data["chronique"]), 1)
 
     def test_conclusion_contraire_reaffirmee_ne_relance_pas_l_avis_refuse(self):
         m = scene()
@@ -176,7 +177,7 @@ class AvisMenaceTests(unittest.TestCase):
             m = recharger(m)
         m, _, texte = confier(m)
         self.assertNotIn("menace", texte)
-        self.assertEqual(sum(bool(c.get("avis_exprime")) for c in m.data["chronique"]), 2)
+        self.assertEqual(sum(bool(c.get("avis_exprime")) for c in m.data["chronique"]), 1)
 
     def test_sources_conviction_et_constat_propre_plus_recent(self):
         m = scene()
