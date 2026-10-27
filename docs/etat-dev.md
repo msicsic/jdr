@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-comptes-recit-c`, non fusionnée**, lot **117 c**, base
+  `562b2b1`, fusion du 117 b (`94a0782`) par `aa43c13` : aucun autre code changé.
+  Deux passes Luna, sept scripts distincts, 14 parties contre 14 du cache `cdaf371`
+  jamais rejouées, SHA-256 du cache avant/après identiques. Ensemble, 80 tours :
+  **270 → 287 appels**, **3,38 → 3,59 appels/tour**, **11,23 → 14,78 s/tour**,
+  médianes secondes **10,68 → 13,43** ; relances **14 → 21**, replis **0 → 3**,
+  obstacles **19 → 68**. Quatre scripts historiques : **11,95 → 17,39 s/tour**,
+  obstacles **7 → 54** cumulés ; hausse relative de latence du 117 b confirmée
+  (~46 %), causalité isolée non prouvée, charges différentes. Audit narratif
+  **3,52 → 6,39 s/tour**. Aucune inversion explicite affichée relevée des deux
+  côtés ; **12 tentatives avec faux refus comptable sur sept tours** sur la branche,
+  zéro relevée dans la référence, qualification limitée aux comptes. Rejeu exact,
+  cinq essais chacun : inversion réelle et livraison future **5/5 refus** ; offre,
+  ambiance, possession **0/5**, aucune erreur. **55 tests ciblés verts** avec
+  console/état/rendu rechargés ; suite complète unique **2 168 tests, 244 fichiers,
+  1 251,69 s**, deux échecs MiMo `6 != 5`, zéro erreur/ignoré, reproduits sur la
+  base `562b2b1` (13 tests, 5,80 s). Aucune régression nouvelle détectée. Luna : aucun
+  incident technique/recharge ; projections archivées, monde complet non conservé.
+  Deux exécutions au plus, priorité réduite, copies seulement ; `main` intact.
+  Décision de fusion laissée à l'utilisateur. [Rapport 117 c](taches/rapport-codex-117c-comptes-recit-mesure.md),
+  bruts `C:/Users/msics/donjon/artifacts/comptes-117c-3vhx9bfb/`, copie SHA-256
+  vérifiée. Pas de clé de signature Git configurée ; commits non signés, branche poussée seule.
+
 - **Vérification Luna cdaf371**, lot **153**, branche
   `codex-verif-luna-cdaf371` : aucun code du jeu changé, `main` intact.
   Deux passes des 32 scripts, **64 parties, 352 saisies, 180 tours MJ,
