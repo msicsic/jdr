@@ -169,6 +169,9 @@ class JoueurReclameTests(unittest.TestCase):
 
     def test_son_objet_porte_par_un_autre(self):
         m = self.devant("brune")
+        # Cette scène exerce la restitution acceptée ; le refus malhonnête
+        # relève désormais du contrat commun et a sa propre épreuve.
+        m.objets['brune']['profil']['valeurs']['honnetete'] = 100
         # Placement d'auteur : Corvus connaît son couteau, que Brune a gardé.
         m.objets["couteau"]["proprietaire"] = "joueur"
         m.data["connus"].append("couteau")

@@ -148,6 +148,30 @@ def offre_refusee(monde, id, autre, objet, terme):
                and refus_tient(monde, id, s, terme, devis=devis) for s in lire(monde, id)["refus"])
 
 
+def reclamation(monde, id, objet):
+    """Réclamer au porteur cru avant de reprendre, sans consulter son état privé."""
+    from .deliberation import salle_crue, refus_retenu
+    from .defense import actifs, lieux_dangereux
+    if objet not in monde.objets:
+        return None
+    connu = lire(monde, id)['croyances'].get(objet, {})
+    porteur = connu.get('lieu', {}).get('possession', {}).get('porteur')
+    if not porteur or porteur == id:
+        return None
+    etat = lire(monde, id)['croyances'].get(porteur, {}).get('etat', {}).get('valeur', {})
+    if etat.get('conscient') is False:
+        return None
+    salle = salle_crue(monde, id, porteur)
+    if (salle != monde.objets[id]['lieu'] or salle in lieux_dangereux(monde, id)
+            or porteur in actifs(monde, id)
+            or relations.peur(relations.envers(monde, id, porteur))
+            or refus_retenu(monde, id, porteur, ('demander',), objet=objet)):
+        return None
+    return [{'operation': 'demander', 'cible': porteur, 'outil': objet,
+                       'lieu': '', 'condition': '',
+                       'contenu': {'type': 'reclamer', 'sujet': objet}}]
+
+
 def plan_recours(monde, id, besoin, etapes):
     """La condition entendue est un moyen, après les moyens ordinaires seulement.
 

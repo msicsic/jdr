@@ -34,6 +34,11 @@ class FuiteLumiereTests(unittest.TestCase):
     def test_capture_reelle_bloc_et_decoupes_recharges(self):
         with gzip.open(Path(__file__).parent / 'data/crue-2024-680.json.gz', 'rt', encoding='utf-8') as f:
             a = recharger(Monde(json.load(f)))
+        # La capture native est déjà rassurée avec les mécaniques actuelles.
+        # Une variante d'auteur conserve le même agresseur et exerce un abri
+        # pressant, sans supprimer la reprise exacte de la capture ci-dessous.
+        variante = recharger(a)
+        lire(variante, 'brune')['besoins']['securite'] = 100
         b = recharger(a)
         choisir = deliberation.choisir
         controles = []
@@ -53,6 +58,11 @@ class FuiteLumiereTests(unittest.TestCase):
             for _ in range(40):
                 passer(b, MINUTE)
                 b = recharger(b)
+            verifier_abri(variante, 'brune', variante.data['minutes'])
+            passer(variante, MINUTE)
+        self.assertLess(lire(variante, 'brune')['besoins']['securite'], 100)
+        self.assertEqual(variante.data, recharger(variante).data)
+        self.assertEqual(regarder(variante), regarder(recharger(variante)))
         a = recharger(a)
         self.assertEqual(a.data, b.data)
         self.assertEqual(regarder(a), regarder(b))

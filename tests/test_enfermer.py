@@ -137,6 +137,11 @@ class EnfermerTests(unittest.TestCase):
             Moteur(m).executer(Moteur(m).preparer(proposition("marcher",sens)))
         deplacer(m,"passe","joueur")
         placer(m,"gaspard","baraquement",(5,0))
+        # Le témoin vient d'être placé ici ; il ne poursuit pas un ancien
+        # abri à la galerie pendant les deux gestes observés.
+        lire(m,"gaspard")["intention"] = None
+        # Il assiste au geste pendant ce laps, sans entreprendre un trajet.
+        lire(m,"gaspard")["libre"] = instant(m) + 600
         m.objets["gaspard"]["orientation"]="ouest"
         percevoir_tous(m)
         Moteur(m).executer(Moteur(m).preparer(proposition("fermer",p)))

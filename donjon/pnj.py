@@ -1123,12 +1123,10 @@ def _abriter(monde, id, lieu, lignes):
         return True
     if monde.objets[id]["lieu"] != lieu:
         return False
-    from .eau import menacee
-    if menacee(monde, id, lieu):
-        return False  # L'eau gagne le lieu, ou va le gagner : ce n'est plus un abri.
+    from .deliberation import abri_valide
+    if not abri_valide(monde, id, lieu):
+        return False
     a = autour(monde, id)
-    if not a["fiables"] and not a["lumiere"]:
-        return False  # Ni lumière ni personne de sûr : ce n'est pas un abri.
     depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
     if not any(s["type"] == "abrite" and s["minute"] >= depuis for s in e["memoire"]):
         memoriser(monde, id, {"type": "abrite", "lieu": lieu})
