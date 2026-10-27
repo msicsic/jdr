@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-bourse-redemandee`, fusionnée**, lot **220**, base
+  `fb2dd65` vérifiée : restitution retenue durablement par `biens`, possession
+  constatée à la clôture du prêt, même garde dans le graphe et l'échange,
+  joueur compris ; aucun délai ni cas de scénario. La capture historique
+  mine 1985 sur `4d4c625` reproduit les demandes dès 288 ; reprise de la boucle
+  engagée à 290 avec la branche : retour à 290, puis aucune demande Mathe/Rémy
+  jusqu'à 305, bourse chez Rémy ; temps en bloc/découpé et monde/rendu rechargés
+  identiques. La base actuelle ne reproduit déjà plus cette naissance : Odon
+  prend la bourse à 287 et refuse sa restitution. **20 paires 4 h : chroniques
+  20/20 identiques**, audits 20/20 identiques, états 19/20 : hameau 7 ne diffère
+  que par la mémoire du retour de la torche Brune/Sève (empreinte sans ce champ
+  exactement égale à la référence). Zéro plantage/usurpation,
+  alertes et S/F/D inchangés, 199 **16/144/494**. Mine 1985 branche **12 h** :
+  138 échanges, 47 demandes, aucune demande de bourse Mathe/Rémy, zéro
+  plantage/usurpation, 199 **0/21/63**, trois `fige_presse`, cinq `noir_long`.
+  **35 ciblés distincts verts**, dont cinq nouveaux ; suite unique **2 437 tests /
+  283 fichiers, 1 980,589 s**, zéro erreur, deux MiMo `6 != 5` reproduits sur
+  `fb2dd65`, aucune seconde suite. Deux travailleurs réduits au plus ; vérification
+  au-delà du créneau. Borne du prix nul admise dans le nouveau schéma après la
+  suite ; cinq ciblés repassés verts, décisions mesurées inchangées.
+  Aucun Luna ni fichier interdit modifié, aucune clé de signature Git.
+  Bruts `C:/Users/msics/donjon/artifacts/bourse-220/` ;
+  [rapport 220](taches/rapport-codex-220-bourse-redemandee.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Restitution retenue avec les entrées du prêt (biens.clore, Vue.refuse, echanges.demander), levée par un besoin, un moyen, des fonds ou un prix nouveaux, jamais par le temps. Capture historique 290→305 : plus de redemande de Mathe/Rémy ; sur la base actuelle la boucle ne naissait déjà plus. 20/20 chroniques identiques, 19/20 empreintes (nouveau champ), suite 2 437 tests verte hors MiMo.
+
 - **Branche `codex-audit-transitions`, fusionnée**, lot **219**, base
   `50de3c2` vérifiée : outils seulement, aucun `donjon/` ni Luna modifié.
   Retours classés par preuve ordonnée, paliers effectivement essayés, étapes
