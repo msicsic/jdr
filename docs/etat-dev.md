@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-audit-transitions`, fusionnée**, lot **219**, base
+  `50de3c2` vérifiée : outils seulement, aucun `donjon/` ni Luna modifié.
+  Retours classés par preuve ordonnée, paliers effectivement essayés, étapes
+  exécutées et fin survenue pendant l'action d'autrui ; dérives et pertes
+  d'état payé séparées. Suivi des services conservé après éviction du souvenir,
+  aucune durée convenue inventée ni violation imputée. **25 ciblés verts** et
+  deux reprises courtes vertes ; **20/20 nuits 4 h identiques** aux témoins sans
+  sonde (monde complet, chroniques, empreintes, mesures), témoins réutilisés.
+  Courant : **486 cycles, 57 préemptions, 0 progrès, 1 autrui, 13 suspects,
+  97 à expliquer**, 185 fenêtres de dérive et 7 états payés perdus.
+  **57 historiques 209 : 50 suspects / 5 préemptions / 2 à expliquer** ; les
+  21 secours/rondes donnent **16/4/1**. Cas exact 217 torche **7–8 min** reproduit
+  sur `8177959`, 458 événements identiques, monde et rendu rechargés.
+  **Garantie causale générale non établie**, prédicats hérités et observation
+  partielle ; aucun comportement moteur corrigé. Pas de clé de signature
+  configurée. Bruts `C:/Users/msics/donjon/artifacts/transitions-219/` ;
+  [rapport 219](taches/rapport-codex-219-audit-transitions.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Outils seulement. Une règle classe chaque retour : cycle accompli, palier supérieur, satisfaction par autrui, progression observée, répétition suspecte, à expliquer ; dérives ouvertes et états payés perdus à part. Les 57 cas de 209 : 50 suspects, 5 préemptions, 2 à expliquer. Intégration actuelle, 20 nuits 4 h : 13 suspects, 57 préemptions, 7 états payés perdus ; 20/20 nuits identiques avec et sans sonde.
+
 - Branche `codex-sait-observations`, **non fusionnée, en attente**, lot **206** (`820762d`) : `social.bavarder` ne lit plus le savoir réel de l'auditeur, seulement les paroles, audiences et observations communes du locuteur. Juste, mais **les PNJ se redisent tout** : confidences crue 56 → 334, hameau 74 → 385, répétitions 2 → 23, demandes en boucle 0 → 26 (Brune → Gorm, crue 1985 : 54 confirmations, souvent des hauteurs d'eau successives) ; suite 14 échecs. Reprise à concevoir : ne dire que ce qui est nouveau **et pertinent** pour l'auditeur, et tenir pour commune une observation de l'environnement partagé (une eau vue ensemble), sans lecture privée. [Rapport 206](taches/rapport-codex-206-sait-observations.md) sur la branche ; bruts `artifacts/sait-206/`.
 
 - **Vérification d’intégration 4d4c625**, lot **212**, branche `codex-verif-integ-4d4c625`, base documentaire `a49c31e` : **49/49 nuits achevées**, code `donjon/`/`tools/` identique à `4d4c625`, aucun Luna, référence rejouée ou suite complète ; deux calculs au plus, en fond à priorité réduite. Zéro plantage, violation d’état, usurpation, mort relevée ou écart VERIFIER/spatial 0,2 ; cinq contrôles complets de 8 h, zéro borne (Lucien auberge 42/314 non reproduit). **16 coups, sept touchés**, crue 2024 à 672–691, Gorm finit inconscient. Hameau : attente **750 → 1 021,25**, noir **268,75 → 575**, pire passage **40 → 39/h** (1985 : **40 → 28**). Compteur 199 actif : **338 suspects**, garantie générale non établie ; boucle de prêts de la bourse mine 1985 (Mathe 97 demandes, Rémy 100) absente de ses suspects, et alternance poêle/garde d’Anselme auberge 2024 à instruire par les contrats communs, ancienneté même nuit indéterminable avec le seul rapport 174. **117 repas d’empathie**, 40 projets de pièces (un marqué atteint), 12 récupérations nées (huit fins sur retour cru, reprises autonomes non certifiées) ; aucun départ définitif relevé. Pas de monde/rendu certifié après recharge ; aucun correctif. Bruts, scripts, lecture de pile et manifeste des 49 archives exclusivement `C:/Users/msics/donjon/artifacts/verif-integ-4d4c625/` ; [rapport 212](taches/rapport-codex-212-verif-integ.md).
