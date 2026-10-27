@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Diagnostic appels/alternances**, lot **188**, branche
+  `codex-appels-alternances`, base `integration 31f7a0d` : aucun code ni Luna,
+  un seul calcul à priorité réduite. Crue 1985, 12 h : les **douze appels de
+  Brune, 495–518**, sont reproduits ; cinq premiers lieux et sept rappels
+  après des pas anonymes situés différemment, une seule voie d'appel,
+  aucune présence de Gorm inventée. Hameau 2024, 12 h, confirmé avec récit
+  et relevés : **quatre** alternances, une entretien/garde ; inspections
+  après 30 min et faits nouveaux avant les retours à la garde. **L'alerte
+  historique est interrompue par un défaut distinct du contrat des routes** :
+  Gorm sort définitivement à **352 min + 54,7 s** en cherchant Aubin pour
+  entretenir le feu ; Aubin à **380 min + 39,7 s** en cherchant Brune pour
+  la prévenir. Issue terminale introduite au lot 181, traitée comme salle
+  d'inspection ordinaire par le planificateur. À reprendre : même conséquence
+  terminale dans recherche/devis/route/exécution, aucun plan ne promettant
+  d'agir dans les lieux après départ. **153 recharges** état/rendu identiques,
+  dix choix de Gorm identiques après recharge ; reprises des deux départs
+  confirmées, limite de cadence des captures intermédiaires documentée.
+  Archives 174 absentes, onze alternances anciennes non expliquées une à une ;
+  archive 160 seulement relue. Aucun correctif ni suite complète.
+  Bruts exclusivement `C:/Users/msics/donjon/artifacts/appels-188/` ;
+  [rapport 188](taches/rapport-codex-188-appels-alternances.md).
+
 - **Branche `codex-prevision-bornee`, fusionnée**, lot **185**, base
   `integration 4efb277` : observation sèche ou mesurée postérieure bornant
   la droite de montée incompatible, sans changer la pente ni lire l'eau
