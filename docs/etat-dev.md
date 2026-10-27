@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Diagnostic appels/alternances**, lot **188**, branche
+  `codex-appels-alternances`, base `integration 31f7a0d` : aucun code ni Luna,
+  un seul calcul à priorité réduite. Crue 1985, 12 h : les **douze appels de
+  Brune, 495–518**, sont reproduits ; cinq premiers lieux et sept rappels
+  après des pas anonymes situés différemment, une seule voie d'appel,
+  aucune présence de Gorm inventée. Hameau 2024, 12 h, confirmé avec récit
+  et relevés : **quatre** alternances, une entretien/garde ; inspections
+  après 30 min et faits nouveaux avant les retours à la garde. **L'alerte
+  historique est interrompue par un défaut distinct du contrat des routes** :
+  Gorm sort définitivement à **352 min + 54,7 s** en cherchant Aubin pour
+  entretenir le feu ; Aubin à **380 min + 39,7 s** en cherchant Brune pour
+  la prévenir. Issue terminale introduite au lot 181, traitée comme salle
+  d'inspection ordinaire par le planificateur. À reprendre : même conséquence
+  terminale dans recherche/devis/route/exécution, aucun plan ne promettant
+  d'agir dans les lieux après départ. **153 recharges** état/rendu identiques,
+  dix choix de Gorm identiques après recharge ; reprises des deux départs
+  confirmées, limite de cadence des captures intermédiaires documentée.
+  Archives 174 absentes, onze alternances anciennes non expliquées une à une ;
+  archive 160 seulement relue. Aucun correctif ni suite complète.
+  Bruts exclusivement `C:/Users/msics/donjon/artifacts/appels-188/` ;
+  [rapport 188](taches/rapport-codex-188-appels-alternances.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Appels de Brune légitimes (indice perceptif nouveau à chaque rappel). Alternances de Gorm non reproduites : la nuit s'interrompt par le départ définitif de Gorm (352) puis d'Aubin (380) par la digue en cherchant quelqu'un, même défaut que la revue 187 ; cas transmis au lot 189.
+
 - **Revue vierge 187, lecture seule**, branche `codex-revue-vierge-pnj` : six nuits 4 h observées avant lecture des plans (`C:/Users/msics/donjon/artifacts/revue-187/`), [rapport 187](taches/rapport-codex-187-revue-vierge-pnj.md).
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Deux défauts confirmés par l'orchestrateur dans les bruts : hameau graine 1, Brune (120) et Ilse (177) quittent les lieux par la sortie extérieure en cherchant Gorm (régression du lot 181) ; Aubin force la porte du beffroi au pied-de-biche à côté de Gorm qui tient la clé (79).
 
