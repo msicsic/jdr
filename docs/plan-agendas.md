@@ -521,6 +521,23 @@ interception garantie ; les souvenirs sont bornés par la mémoire commune.
 A4 n'est pas déclaré achevé. Mesures et limites dans le
 [rapport 167](taches/rapport-codex-167-garder-proteger.md).
 
+**Lot 167 b, `codex-garder-proteger-b`, non fusionnée : garder, livraison partielle.**
+`garder` accepte `parametres.objet` ou `parametres.lieu`. Le sous-but utilise
+la garde existante ; une approche vue de l'objet passe d'abord par l'interposition.
+`charges_gardees` partage les charges des pulsions et agendas avec les lieux,
+les menaces, la défense et `prix_gardes` : ensembles de lieux et maximum du prix,
+jamais somme. La routine de garde d'une pulsion visant le même objet est retirée ;
+ses conditions de possession, serrure ou entretien restent des recours distincts.
+Le sommeil conserve la responsabilité ; fin à l'échéance, cause enregistrée,
+publication à la sortie du choix, sans renaissance de l'état terminal.
+Épreuves en données de tests : Anselme/ballot et deux autres gardiens, recharge,
+interposition et même laps découpé. Les agendas de départ historiques restent
+inchangés. **Restent** `protéger` (suivi vocal, appel et défense sur agenda),
+la fin de garde pour bien rendu/perdu/détruit et l'interposition sur un lieu
+sans objet. Une absence de position crue donne sommeil, jamais preuve de perte.
+Pas de garantie générale nouvelle sur les manières ou l'hystérésis. A4 reste
+partiel ; [rapport 167 b](taches/rapport-codex-167b-garder-proteger.md).
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des

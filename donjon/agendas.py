@@ -87,7 +87,7 @@ def poids(monde, id, agenda):
     from .caractere import valeur
     from .relations import envers
     p = monde.objets[id].get("profil") or {}
-    qui = agenda["parametres"]["qui"]
+    qui = agenda["parametres"].get("qui", [])
     qui = [qui] if isinstance(qui, str) else qui
     liens = [envers(monde, id, a)["affection"] for a in qui]
     score = (valeur(monde, id, "altruisme") + valeur(monde, id, "loyaute")
@@ -134,6 +134,8 @@ def actualiser(monde, id):
         if a.get("echeance", float("inf")) < monde.data["minutes"]:
             _changer(monde, id, a, "abandonne", "echeance", empreinte)
             continue
+        if a["sorte"] == "garder":
+            continue
         if a["sorte"] == "amener":
             from .deliberation import salle_crue
             from .eau import noyee_attendue
@@ -167,7 +169,7 @@ def essayables(monde, id):
     for a in projets(monde, id):
         if a["etat"] == "actif":
             yield a
-        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener"):
+        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener", "garder"):
             if empreinte is None:
                 empreinte = _croyances(monde, id)
             if a["croyances"] != empreinte:
@@ -231,6 +233,29 @@ def planifier(monde, id, identifiant):
     empreinte = _croyances(monde, id)
     if a["sorte"] == "amener":
         return _amener(monde, id, a, empreinte)
+    if a["sorte"] == "garder":
+        from .planification import garder
+        from .defense import interposition
+        c = a["parametres"]
+        poste = interposition(monde, id)
+        if poste is not None and poste[0]["objet"] == c.get("objet"):
+            if a["etat"] == "sommeil":
+                _changer(monde, id, a, "actif", "plan apres croyance nouvelle", empreinte)
+                _limiter(monde, id, empreinte)
+                if a["etat"] != "actif":
+                    return None
+            return poste
+        salle = salle_crue(monde, id, c["objet"]) if "objet" in c else c["lieu"]
+        etapes = garder(monde, id, salle) if salle in monde.data["salles"] else None
+        if etapes is None:
+            _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
+            return None
+        if a["etat"] == "sommeil":
+            _changer(monde, id, a, "actif", "plan apres croyance nouvelle", empreinte)
+            _limiter(monde, id, empreinte)
+            if a["etat"] != "actif":
+                return None
+        return {"type": "agenda", "agenda": identifiant}, etapes
     noyau = _noyau(a)
     # Un objectif de parole n'autorise ni une mesure inventée ni un mensonge.
     if noyau["type"] == "avis":
@@ -418,6 +443,18 @@ def oublier_personne(monde, personne):
 def depart(monde, id):
     """Données déclarées par le scénario, sans activation ni écriture dans ``data``."""
     return copy.deepcopy((monde.objets[id].get("profil") or {}).get("agendas", []))
+
+
+def gardes(monde, id):
+    """Charges à tenir, sans activation pendant une lecture ou la perception.
+
+    Le sommeil suspend la recherche, pas la responsabilité. Un état terminal
+    ou une échéance échue la retire aussi avant le prochain choix.
+    """
+    stock = _stock(monde, id)
+    return [copy.deepcopy(a["parametres"]) for a in (depart(monde, id) if stock is None else stock)
+            if a["sorte"] == "garder" and a.get("etat", "actif") in ("actif", "sommeil")
+            and a.get("echeance", float("inf")) >= monde.data["minutes"]]
 
 
 def contrats(monde):

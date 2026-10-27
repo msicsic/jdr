@@ -13,12 +13,10 @@ PAROLE = 30
 
 
 def charges(monde, id):
-    from .deliberation import profil, periodique, illicite
+    from .deliberation import profil, charges_gardees, illicite
     p = profil(monde, id) or {}
-    objets = {x["condition"]["objet"] for x in p.get("pulsions", ())
-              if x["besoin"] == "biens" and "objet" in x["condition"]
-              and not periodique(x["condition"])
-              and not illicite(monde, id, x["condition"]["objet"])}
+    objets = {c["objet"] for c in charges_gardees(monde, id)
+              if "objet" in c and not illicite(monde, id, c["objet"])}
     return objets | set(p.get("protege", ()))
 
 

@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-garder-proteger-b`, fusionnée**, lot **167 b / A4b
+  partiel**, base `f5eb72b`, code `57cf8fe` puis `70717fb` : sorte `garder`
+  objet/lieu sur le plan commun, interposition prioritaire pour sa charge,
+  responsabilités partagées avec les pulsions et `prix_gardes` sans somme,
+  publication différée, sommeil/réveil et fin à l'échéance. Épreuves en données
+  de tests : Anselme/ballot et autres gardiens, monde/rendu rechargés,
+  découpage ; aucun agenda historique ajouté. **Restent `protéger`, fins de
+  garde pour bien rendu/perdu/détruit, interposition d'un lieu sans objet.**
+  29 ciblés distincts verts, réveil compris. Suite unique : **2 246 tests,
+  258 fichiers, 2 209,27 s**, zéro erreur/ignoré, deux échecs MiMo historiques
+  `6 != 5` laissés ; aucune seconde suite.
+  **16/16 empreintes 2 h identiques** à l'intégration `6d87361`, quatre
+  scénarios × quatre graines. Auberge 4 h × quatre graines : mesures identiques,
+  passages horaires max moyens **13,75 → 13,75**, seul noir long historique,
+  aucune boucle nouvelle détectée. VERIFIER/spatial 0,2, auberge fixe 1985,
+  2 h : monde/rendu rechargés identiques. Coût 4 h : **201 recherches /
+  4 220 nœuds** inchangés, CPU indicatif 9,88/9,91 s, poste partagé.
+  Un travailleur réduit ; aucun Luna, fichier MJ réservé ni `main` modifiés.
+  Vérification au-delà du créneau pour cohabiter ; aucune clé de signature
+  configurée, commits non signés, branche seule poussée.
+  [Rapport 167 b](taches/rapport-codex-167b-garder-proteger.md) ;
+  bruts exclusivement `C:/Users/msics/donjon/artifacts/garder-167b/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Restent : protéger, fins rendu/perdu/détruit, interposition d'un lieu sans objet ; aucun agenda de garde historique déclaré, coût d'un agenda actif non isolé.
+
 - Branche `codex-silence-rappel`, fusionnée, lot **169**, base `27b5268` :
   définition temporelle commune de l'extraction `rappels` dans `narration.py`.
   L'issue courante reste contrôlée par ses faits, sans comparaison au passé.
