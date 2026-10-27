@@ -5,7 +5,7 @@ Le contrôle s'applique à la prose finale du MJ. Les affirmations mécaniques
 missions, résultats) doivent découler des faits fournis ; une invention dans ces
 domaines est refusée. L'ambiance est libre et enregistrée avec son lieu. Un nom
 d'entité absent de tout ce que le MJ a reçu est refusé sans dépendre de l'auditeur.
-Le texte accepté est affiché tel que Luna l'a écrit.
+Le texte libre accepté est complété par les comptes rédigés par le moteur.
 """
 from . import agendas
 
@@ -143,37 +143,6 @@ SCHEMA_AUDIT = {
 }
 CHAMPS_AUDIT = set(SCHEMA_AUDIT["properties"]["segments"]["items"]["required"])
 
-# L'auditeur extrait des rôles, même dans une réplique ; le moteur les compare.
-# Il ne décide pas lui-même si le compte est conforme. -1 : quantité non dite.
-SCHEMA_COMPTES = {"type": "array", "maxItems": 12,
-    "description": ("Toutes les affirmations sur ce qui est dû ou rendu, même sous verdict parole, "
-        "dans les mots du segment. Résous je/tu par le locuteur et joueur. debiteur = celui qui doit "
-        "ou rend ; creancier = celui à qui c'est dû/rendu ; objet vide pour des pièces, identifiant "
-        "pour un objet prêté, remis ou promis (une part détachée a son identifiant) ; "
-        "montant -1 si non dit, 0 si rien. etat du (encore dû, même refusé), "
-        "rendu (remise accomplie), absent (rien dû dans ce sens). Ne recopie pas les rôles des faits : "
-        "extrais ceux du texte, y compris s'ils les inversent. Une question, hypothèse ou citation "
-        "historique n'affirme aucun compte actuel : []. Une non-livraison ne dit pas absence de dette : "
-        "elle peut expliquer un remboursement de pièces sans affirmer de compte-objet. Un paiement "
-        "ou une remise déjà opérés dans comptes.issue sont des résultats du moteur, même racontés "
-        "dans une réplique : ils ne sont pas créés par cette parole."),
-    "items": {"type": "object", "additionalProperties": False,
-        "properties": {"debiteur": {"type": "string"}, "creancier": {"type": "string"},
-                       "objet": {"type": "string"}, "montant": {"type": "integer", "minimum": -1},
-                       "etat": {"type": "string", "enum": ["du", "rendu", "absent"]}},
-        "required": ["debiteur", "creancier", "objet", "montant", "etat"]}}
-
-SCHEMA_SOLDE = SCHEMA_COMPTES["items"]
-SCHEMA_COMPTES["items"] = {"anyOf": [SCHEMA_SOLDE, SCHEMA_OFFRE]}
-SCHEMA_COMPTES["description"] += (
-    " Une contrepartie promise contre une prestation future est etat offre : debiteur est celui "
-    "qui promet la contrepartie, creancier celui qui fournit la condition ; condition et "
-    "contrepartie sont les termes typés objet/part/tache/pieces/rien. Extrais ces termes du texte. "
-    "L'offre ne dit ni du ni rendu. Sa condition est fondée si elle correspond aux termes fournis "
-    "dans comptes.offres, missions_discutables ou conversation_validee.offres ; une reformulation "
-    "compatible n'ajoute aucune condition. Le texte libre de la mission complète ses termes typés.")
-
-
 def compte_bien_forme(c):
     if not isinstance(c, dict):
         return False
@@ -184,7 +153,7 @@ def compte_bien_forme(c):
         return (set(c) == set(SCHEMA_OFFRE["required"])
                 and all(isinstance(c[k], str) for k in ("debiteur", "creancier"))
                 and terme(c["condition"]) and terme(c["contrepartie"]))
-    return (set(c) == set(SCHEMA_SOLDE["required"])
+    return (set(c) == {"debiteur", "creancier", "objet", "montant", "etat"}
             and all(isinstance(c[k], str) for k in ("debiteur", "creancier", "objet"))
             and type(c["montant"]) is int and c["montant"] >= -1
             and c["etat"] in ("du", "rendu", "absent"))
@@ -211,9 +180,6 @@ def schema_audit(faits, nombre):
         if "echanges_passes" in faits:
             item["properties"]["rappels"] = copy.deepcopy(SCHEMA_RAPPELS)
             item["required"].append("rappels")
-        if "comptes" in faits:
-            item["properties"]["comptes"] = copy.deepcopy(SCHEMA_COMPTES)
-            item["required"].append("comptes")
         if "perception" in faits:
             item["properties"]["eclairages"] = {"type": "array", "maxItems": 12,
                 "items": {"type": "string"},
@@ -267,6 +233,9 @@ def textes_etablis(faits):
         if isinstance(texte, str):
             for passage in segments(texte):
                 catalogue[passage] = source
+    from .comptes_narratifs import phrases
+    for texte in phrases(faits):
+        ajouter(texte, "comptes")
     for texte in faits.get("attestations", []):
         ajouter(texte, "attestations")
     for cle in ("resultat_resolu", "conversation_validee"):
@@ -288,23 +257,9 @@ def segments_etablis(texte, faits):
     etablis = {str(i): {"verdict": "mecanique", "sources": [catalogue[p]],
                      "portee_mecanique": "aucune", "locuteur": "", "citation": "",
                      "presentation": "", "entites": [], "motif": "",
-                     **({"comptes": []} if "comptes" in faits else {}),
                      **({"rappels": []} if "echanges_passes" in faits else {}),
                      **({"eclairages": []} if "perception" in faits else {})}
             for i, p in enumerate(segments(texte)) if p in catalogue}
-    # La couverture d'une issue complète est une preuve du moteur, sans
-    # réinterpréter le sens d'une phrase isolée. Ne jamais créditer une issue
-    # partielle ni les comptes d'une autre opération.
-    passages = set(segments(texte))
-    for cle in ("resultat_resolu", "conversation_validee"):
-        bloc = faits.get(cle) or {}
-        compte_issue = faits.get("comptes", {}).get("issue", [])
-        rendus = {s for t in bloc.get("faits", []) if isinstance(t, str) for s in segments(t)}
-        if (compte_issue and bloc.get("comptes") == compte_issue and rendus
-                and rendus <= passages):
-            indice = next((i for i in etablis if segments(texte)[int(i)] in rendus), None)
-            if indice is not None:
-                etablis[indice]["comptes"] = copy.deepcopy(compte_issue)
     return etablis
 
 
@@ -437,6 +392,9 @@ Ne reproduis aucune phrase refusée. Appelle la fonction demandée une fois.
 """
 
 REGLE_NARRATION = """
+Les comptes sont rédigés et ajoutés par le moteur depuis comptes.issue. Ta prose libre,
+y compris les répliques, ne reformule ni montant, ni dette, ni sens de transfert,
+ni paiement, ni livraison promise ou faite. Raconte seulement la réaction sans compte.
 Ce que tu affirmes sur l'état mécanique (objets, personnages, positions, passages, possession,
 ressources, lumière, missions, résultats) doit découler des faits fournis ; pour créer un
 élément mécanique, propose un fait persistant lorsque ce mode est disponible. L'ambiance
@@ -1163,7 +1121,9 @@ def controler(texte, rapport, faits, partie="texte"):
     if (not passages or len(passages) > 24 or not isinstance(lignes, list)
             or len(lignes) != len(passages)):
         raise AuditIllisible("Contrôle narratif incomplet.")
-    obstacles, paroles, ambiances, lignes_validees = orientations(texte, faits, partie), [], [], []
+    from .comptes_narratifs import controler as controler_comptes
+    obstacles = orientations(texte, faits, partie) + controler_comptes(texte, faits, partie)
+    paroles, ambiances, lignes_validees = [], [], []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
         if isinstance(ligne, dict):
             if "nature" in ligne:
@@ -1212,17 +1172,9 @@ def controler(texte, rapport, faits, partie="texte"):
                 raise AuditIllisible("Contrôle des contributions lumineuses mal formé.")
             ligne = {k: v for k, v in ligne.items() if k != "eclairages"}
             obstacles.extend(eclairages(lumieres, faits, passage, indice, partie))
-        comptes = ligne.get("comptes") if isinstance(ligne, dict) else None
-        if "comptes" in faits or comptes is not None:
-            if (not isinstance(comptes, list) or len(comptes) > 12 or any(
-                    not compte_bien_forme(c) for c in comptes)):
-                raise AuditIllisible("Contrôle des rôles des comptes incomplet ou mal formé.")
-            from .noms import references_fournies
-            try:
-                comptes = references_fournies(comptes, faits)
-            except ErreurMonde as exc:
-                raise AuditIllisible("Une référence de compte est ambiguë dans le dossier fourni.") from exc
-        if comptes is not None:
+        # Les anciens rapports restent lisibles ; leur extraction comptable
+        # n'a plus aucun rôle de preuve ni de décision.
+        if isinstance(ligne, dict):
             ligne = {k: v for k, v in ligne.items() if k != "comptes"}
         # Les rapports archivés avant le champ de présentation n'établissent aucune présentation.
         if isinstance(ligne,dict) and 'presentation' not in ligne:
@@ -1259,26 +1211,9 @@ def controler(texte, rapport, faits, partie="texte"):
             ligne = {**ligne, "locuteur": "", "citation": "", "presentation": ""}
         if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
-        lignes_validees.append({**ligne, **({"comptes": comptes} if comptes is not None else {}),
+        lignes_validees.append({**ligne,
                                **({"rappels": rappels} if rappels is not None else {}),
                                **({"eclairages": lumieres} if lumieres is not None else {})})
-        if comptes:
-            dossier = faits.get("comptes", {})
-            attendus = dossier.get("issue", []) + dossier.get("etat", [])
-            for c in comptes:
-                pertinents = [a for a in dossier.get("issue", [])
-                    if a.get("objet") == c.get("objet") and
-                    {a["debiteur"], a["creancier"]} == {c["debiteur"], c["creancier"]}]
-                compatibles = (dossier.get("offres", []) if c["etat"] == "offre" else
-                    pertinents if c["etat"] == "absent" and pertinents else attendus)
-                conforme = (c in compatibles if c["etat"] == "offre" else any(
-                    all(c[k] == a[k] for k in ("debiteur", "creancier", "objet", "etat"))
-                    and c["montant"] in (-1, a["montant"]) for a in compatibles))
-                if not conforme:
-                    obstacles.append(audit("Le sens du compte ne correspond pas à l'issue du moteur.",
-                        f"comptes : reçu {c} ; respecter les rôles et termes de {compatibles} ; "
-                        + " ; ".join((faits.get("conversation_validee") or {}).get("faits", [])),
-                        partie=partie, segment=indice, texte=passage, recu=str(c)))
         # La citation est le texte entre les guillemets : ceux que l'auditeur recopie avec elle
         # ne la rendent pas fausse (« D'accord » cité « « D'accord » »).
         locuteur, citation = ligne["locuteur"], ligne["citation"].strip().strip("«»\"“”  ")
@@ -1339,7 +1274,7 @@ def controler(texte, rapport, faits, partie="texte"):
                     # lien nominal. Écarter cette seule donnée ne réécrit ni ne
                     # refuse une réplique contrôlée et ne fait apprendre aucun nom.
                     ligne = {**ligne, "presentation": ""}
-                    lignes_validees[-1] = {**ligne, **({"comptes": comptes} if comptes is not None else {})}
+                    lignes_validees[-1] = ligne
                 paroles.append({"locuteur": locuteur, "texte": citation, "passage": passage,
                                 **({'presentation':ligne['presentation']} if ligne['presentation'] else {})})
         elif verdict == "ambiance":
@@ -1347,15 +1282,6 @@ def controler(texte, rapport, faits, partie="texte"):
                               "entites": [e.strip()[:80] for e in ligne["entites"] if e.strip()]})
         elif verdict in ("invention_protegee", "contradictoire"):
             refuser(ligne["motif"] or "Affirmation mécanique non établie.", ACCEPTE_VERDICT[verdict])
-    dits = [c for l in lignes_validees for c in l.get("comptes", [])]
-    for c in faits.get("comptes", {}).get("issue", []):
-        if c["etat"] in ("rendu", "du") and not any(
-                all(d.get(k) == c[k] for k in ("debiteur", "creancier", "objet", "etat"))
-                and d.get("montant") in (-1, c["montant"]) for d in dits):
-            obstacles.append(audit("Le récit omet un compte de l'issue du moteur.",
-                f"comptes : restituer le compte {c}, déjà opéré ou promis par le moteur ; "
-                "ce résultat n'est pas un effet créé par la réplique",
-                partie=partie, segment=0, texte=texte, recu=str(dits)))
     return {"segments": copy.deepcopy(lignes_validees), "paroles": paroles, "ambiances": ambiances,
             "obstacles": obstacles, "texte_controle": texte.strip()}
 

@@ -156,8 +156,7 @@ class AudienceTests(unittest.TestCase):
         for saisie, replique, contenu, pieces in cas:
             with self.subTest(saisie=saisie):
                 self.assertEqual(prevue(m, saisie)["personnage"], "aubin")
-                recit = ("Aubin te rend les deux pièces." if contenu[0] == "reclamer"
-                         else "Aubin a entendu ta demande.")
+                recit = "Aubin a entendu ta demande."
                 controle = ligne("mecanique", sources=["conversation_validee", "comptes"])
                 if contenu[0] == "reclamer":
                     controle["comptes"] = [compte("aubin", "joueur", montant=2, etat="rendu")]

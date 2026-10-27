@@ -1339,6 +1339,12 @@ direction), plus lents, ils ne s'entendent que de tout près.
                     reponse = appeler_brut(instructions, {**entree, "retour_forme":
                         retour_refus(reponse, exc, "Corrige la forme sans abandonner l'intention.")},
                         intention, fonction, schema)
+            # Les phrases comptables sont ajoutées par le moteur à chaque essai,
+            # avant les gardes et la preuve exacte. Elles suivent la transaction
+            # et la sauvegarde de toute la réponse, jamais un préfixe hors audit.
+            if reponse.get("mode") == "dialogue":
+                from .comptes_narratifs import completer
+                reponse = {**reponse, "texte": completer(reponse.get("texte", ""), entree.get("faits", {}))}
             passages = []
             if reponse.get("mode") == "dialogue" and isinstance(reponse.get("texte"), str):
                 passages = [("texte", reponse["texte"], None)]
@@ -1403,6 +1409,11 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 from .narration import segments_etablis
                 etablis = segments_etablis(texte, faits)
                 a_controler = {str(i): s for i, s in enumerate(decoupage) if str(i) not in etablis}
+                from .comptes_narratifs import controler as controler_comptes
+                refus_comptes = controler_comptes(texte, faits, nom)
+                if refus_comptes:
+                    obstacles.extend(refus_comptes)
+                    continue
                 rapport = None
                 for essai in range(2):
                     from .noms import reperes_designations
@@ -1536,6 +1547,26 @@ direction), plus lents, ils ne s'entendent que de tout près.
         admis de la réponse qui en garde le plus, puis ce que dit le moteur (``narration.repli``).
         Les faits d'une négociation ou d'un savoir s'adressent au MJ : ils ne s'affichent pas."""
         faits = entree.get("faits", {})
+        from .comptes_narratifs import phrases, completer
+        if phrases(faits):
+            # Même après trois refus, les comptes ne dépendent ni de Luna ni
+            # d'un drapeau dispensant de la preuve avant enregistrement.
+            lignes = []
+            for cle in ("resultat_resolu", "conversation_validee"):
+                bloc = faits.get(cle) or {}
+                if cle == "resultat_resolu" or bloc.get("operation") == "parole_joueur":
+                    lignes.extend(s for s in bloc.get("faits", []) if isinstance(s, str) and s.strip())
+            texte = completer(" ".join(lignes), faits)
+            controle = controler_narration(texte, {"segments": {}}, faits)
+            if controle["obstacles"]:
+                raise ErreurMonde("Le compte rendu du moteur est incomplet.",
+                                  controle["obstacles"][0]["attendu"])
+            self._audit_courant = {**controle, "faits": faits, "texte_initial": texte,
+                                   "fondement": fondement_narratif(entree),
+                                   "fondement_paroles": fondement_paroles(entree)}
+            return self._noter_repli(intention, "comptes du moteur",
+                                     {"mode": "dialogue", "texte": texte,
+                                      "faits": ["comptes"], "proposition": None})
         for cle in ("resultat_resolu", "conversation_validee"):
             bloc = faits.get(cle)
             pour_joueur = isinstance(bloc, dict) and (cle == "resultat_resolu"

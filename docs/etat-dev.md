@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-comptes-ecrits-moteur`, **non fusionnée**, lot **180**,
+  base `integration e61cf08` : livraison partielle des comptes écrits par le
+  moteur (`comptes_narratifs`), ajoutés avant les contrôles, prouvés exactement
+  et revérifiés à l'enregistrement, repli compris. Extraction `comptes`
+  supprimée du schéma et du contrôle sémantique ; anciens champs ignorés.
+  **Invariant général non garanti** : la garde lexicale commune peut manquer
+  un compte implicite et refuser des emplois non comptables du vocabulaire.
+  Ce traitement partiel ne constitue pas une solution générale aux inversions.
+  Les lots **117/117 b/117 c et 168 sont abandonnés** sur décision du 27 octobre.
+  **160 ciblés finaux verts**, 20 fichiers, 80,702 s, dont trois nouveaux tests
+  ajoutés pendant la suite. Suite complète unique intermédiaire : **2 271 tests,
+  261 fichiers, 1 282,166 s**, sept échecs et 25 erreurs bruts ; tous les fichiers
+  concernés repris verts sauf les deux MiMo historiques `6 != 5` laissés.
+  Six gardes inchangées (AST), voix/parole rejouées identiques sur 177 audits ;
+  sur 155 audits sans compte extrait ni issue, 152 identiques et trois récits
+  financiers désormais refusés. Aucun Luna joué. Commande exacte dans
+  `C:/Users/msics/donjon/artifacts/comptes-180/luna-a-jouer.txt` : deux passes
+  comptes/soir-appel/ressources/echanges, une passe des quatre références,
+  contre `cdaf371`. Bruts exclusivement dans ce dossier, deux travailleurs
+  réduits au plus. Aucun fichier réservé au lot 179 modifié ; `main` intacte.
+  [Rapport 180](taches/rapport-codex-180-comptes-ecrits-moteur.md).
+
 - Branche `codex-retenus-apres`, fusionnée, lot **178**, base
   `integration dd815f4` : projection pure commune `tenir.retenus_apres`,
   employée par `enfermer` et le dossier de contre-revue. Chaque opération de

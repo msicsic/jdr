@@ -55,7 +55,7 @@ class AvisNonLuTests(unittest.TestCase):
         retour = mj(appels)[1]["faits"]["retour_moteur"]
         self.assertTrue(retour["obstacle"].startswith("Réexamine l'intention entière"))
         self.assertIn("Rien n'est encore tenté", sortie)
-        self.assertNotIn("moteur", sortie.split("est-ce que je pourrais")[-1].lower())
+        self.assertNotIn("moteur", sortie.split("Le MJ réfléchit")[-1].lower())
         self.assertEqual(reprise.data["journal"], [])
 
     def test_meme_nature_apres_le_reexamen_l_avis_est_audite_et_lu(self):
@@ -209,14 +209,14 @@ class NomsConnusTests(unittest.TestCase):
         presentes(m,'aubin')
         reprise, sortie, appels = jouer(m, "Aubin, tu me dois quelque chose ?", [
             parole("Aubin, tu me dois quelque chose ?", ("reclamer", "", "", ""), personnage="aubin"),
-            dialogue("Aubin : « Non. Je ne te dois rien, Corvus. »"),
-            dialogue("Aubin : « Non. Je ne te dois rien. »")],
-            [replique("aubin", "Non. Je ne te dois rien, Corvus."), replique("aubin", "Non. Je ne te dois rien.")])
+            dialogue("Aubin : « Non, Corvus. »"),
+            dialogue("Aubin : « Non. »")],
+            [replique("aubin", "Non, Corvus."), replique("aubin", "Non.")])
         refus = mj(appels)[2]["controle_narratif"]
         self.assertEqual(len(refus), 1)
         self.assertIn("Aubin ne connaît pas le nom de Corvus", refus[0]["motif"])
-        self.assertIn("Aubin : « Non. Je ne te dois rien. »", sortie)
-        self.assertNotIn("rien, Corvus", sortie)
+        self.assertIn("Aubin : « Non. »", sortie)
+        self.assertNotIn("Non, Corvus", sortie)
         self.assertNotIn("Corvus", " ".join(p["texte"] for p in reprise.data["paroles_pnj"]))
 
     def test_meme_nature_le_nom_dit_dans_la_replique_de_corvus_se_retient(self):

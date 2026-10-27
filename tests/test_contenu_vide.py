@@ -71,7 +71,7 @@ class ContenuVideTests(unittest.TestCase):
                 bonne = 'Je ne peux pas te donner ces conditions.'
                 r, sortie, appels = jouer(m, saisie, [parole(saisie, personnage=cible),
                     dialogue(f'« {citation} »'), dialogue(f'« {bonne} »')],
-                    [rapport(faux), rapport(ligne('parole', locuteur=cible, citation=bonne))])
+                    [rapport(ligne('parole', locuteur=cible, citation=bonne))])
                 self.assertNotIn(citation, sortie)
                 self.assertNotIn(citation, str(r.data.get('paroles_pnj')))
                 self.assertIn(bonne, sortie)

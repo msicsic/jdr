@@ -185,17 +185,18 @@ class EngagementTests(unittest.TestCase):
         self.assertEqual(rapport["obstacles"], [])
         self.assertEqual(rapport["paroles"], [{"locuteur": "marchand", "texte": "Je garderai le feu allumé.", "passage": texte}])
 
-    def test_l_issue_que_le_moteur_vient_de_valider_peut_etre_dite(self):
+    def test_compte_libre_interdit_meme_si_issue_validee(self):
         accord = "Offre de 20 pièces contre la remise de l'objet. Le joueur ne l'a pas encore acceptée."
         faits = self.faits(refuge(), conversation_validee={"personnage": "marchand", "faits": [accord]})
         texte = "« Je te donnerai vingt pièces pour la cloche. »"
         ok = controler(texte, audit(ligne("engagement", locuteur="marchand", citation=texte[2:-2],
                                           entites=[accord])), faits)
-        self.assertEqual(ok["obstacles"], [])
+        self.assertEqual(len(ok["obstacles"]), 1)
+        self.assertIn("comptes.issue", ok["obstacles"][0]["attendu"])
         # Une issue validée pour un autre personnage ne l'engage pas.
         autre = controler(texte, audit(ligne("engagement", locuteur="brune", citation=texte[2:-2],
                                              entites=[accord])), faits)
-        self.assertEqual(len(autre["obstacles"]), 1)
+        self.assertEqual(len(autre["obstacles"]), 2)
 
     def test_intention_et_accord_de_mission_sont_des_engagements_enregistres(self):
         from donjon.monde import nouveau_monde

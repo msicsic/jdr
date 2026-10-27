@@ -152,9 +152,11 @@ class AuditDecisionTests(unittest.TestCase):
                    compte('joueur', 'marchand', objet='planches', montant=1)]
         faits = {'comptes': {'issue': comptes},
                  'conversation_validee': {'faits': textes, 'comptes': comptes}}
+        from donjon.comptes_narratifs import phrases
+        textes = phrases(faits)
         complet = controler(' '.join(textes), {'segments': {}}, faits)
         self.assertFalse(complet['obstacles'])
         partiel = controler(textes[0], {'segments': {}}, faits)
         self.assertTrue(partiel['obstacles'])
-        self.assertIn('omet un compte', partiel['obstacles'][0]['motif'])
+        self.assertIn('compte manque', partiel['obstacles'][0]['motif'])
 
