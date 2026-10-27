@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-racheter-bien`, non fusionnée**, lot **214**, base `cca5f50`,
+  code `2b47bd9` : le geste d'achat commun permet au propriétaire de racheter
+  son bien au détenteur. Rétention et vente jugées au prix de faute d'honnêteté
+  existant ; accueil, utilité, budget, paiement, remise et refus communs.
+  La réclamation passe avant le rachat ; le prix et le poids du projet bornent
+  ce recours, aucun plafond d'agenda changé. **29 ciblés finaux verts**, dont
+  sept nouveaux ; ballot et marteau rachetés autonomement en scènes d'auteur
+  (estimation initiale 70, revente 7), monde/rendu et temps découpé identiques.
+  Joueur acheteur par sa parole existante ; joueur vendeur hors lot selon
+  l'instruction de repli du superviseur, car son acceptation actuelle ne couvre
+  que les missions déclarées. Aucun nouveau parcours ni raccord moteur/dialogue.
+  Suite unique **2 429 tests / 281 fichiers verte**, zéro échec/erreur,
+  16 ignorés, 3 580,295 s ; banc exact `cca5f50` / `2b47bd9` : **20 paires 4 h,
+  20 chroniques et états complets identiques**, zéro plantage/usurpation,
+  compteur 199 **24/204/510** inchangé, aucune nouvelle alerte. Aucune naissance
+  de récupération naturelle ; réclamations de biens/rachats/reprises **0 → 0**,
+  S/F/D inchangés. Coût mine 4 h identique : **870 recherches, 10 624 nœuds**.
+  Bois du guet en scène équivalente : refus raisonné (**5,944 > 1,857432**),
+  reste à Brune, projet en sommeil ; monde/rendu et laps découpés vérifiés.
+  Capture historique 207 rejouée 151→240 : mêmes recharges/laps, pas de naissance
+  sur cette base, bois au guet. Vérification au-delà du créneau. Aucun Luna,
+  aucun fichier des lots voisins modifié, commits non signés (aucune clé).
+  Bruts `C:/Users/msics/donjon/artifacts/racheter-214/` ;
+  [rapport 214](taches/rapport-codex-214-racheter-bien.md).
+
 - **Branche `codex-evacuation-juge`, fusionnée**, lot **205 / 196 b**,
   départ `71bb01d`, reprise demandée sur **`ef86cab` (204 intégré)** : péril
   indépendant du plan, certificat de transit, repli vers moins d’eau, abri commun
