@@ -272,10 +272,10 @@
     ]
   },
   "auberge-1985-600.json.gz/a_mange": {
-    "empreinte": "f59da261a19069c3d2939826d98fe356677ff7c14c038ce7003809fcd056273e",
-    "etats": 1451,
-    "successeurs": 10942,
-    "noeuds": 2030,
+    "empreinte": "c3dcc59e34208b4052d1a44f1945bf49c4da9e1b400f7eddb15ea19676839c46",
+    "etats": 1666,
+    "successeurs": 12536,
+    "noeuds": 2331,
     "resultat": null
   },
   "auberge-1985-600.json.gz/eclaire": {

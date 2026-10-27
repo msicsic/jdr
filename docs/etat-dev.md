@@ -35,6 +35,87 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Bruts exclusivement `C:/Users/msics/donjon/artifacts/pas-195/reprise-bd45/`
   et cache local figé ; [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
 
+- **Branche `codex-service-non-defait`, fusionnée**, lot **224**, base `a22f92e`
+  vérifiée, puis 213 intégré (`bd45f65`, fusion `0192bb3`) : résultat promis
+  conservé après clôture dans `biens`, filtre commun
+  des gestes qui le défont (trajets compris) et économie de flamme, engagements
+  ouverts compris. Besoin approché par le lieu cru du bénéficiaire, sans délai
+  ni lecture de ses buts privés, sans obligation d'entretien. Cas réel 217
+  repris à l'instant 4584, monde/rendu rechargés et laps découpé contrôlés.
+  **20 paires 4 h contre `bd45f65` : critère du compteur brut non atteint,
+  états payés perdus 6 → 6** ; quatre extinctions précoces évitées au Relais,
+  pertes ensuite relevées à l'épuisement naturel ; les deux du hameau restent
+  permises selon le lieu cru. Autres classes globalement stables/en baisse :
+  suspects 5 → 5, à expliquer 61 → 56, dérives 196 → 193 ; zéro plantage/usurpation.
+  Coût mine inchangé : 567 recherches / 8 383 nœuds. **Six nouveaux tests verts ;
+  suite unique achevée après fusion : 2 459 tests / 285 fichiers, 2 314,709 s,
+  deux MiMo préexistants reproduits sur `bd45f65`, zéro erreur**. Passe avant 213
+  interrompue sur instruction ; aucune seconde suite achevée. Aucun Luna,
+  deux travailleurs réduits au plus, aucune clé de signature. Limites : présence
+  crue comme approximation du besoin, anciennes clôtures sans trace non reconstruites.
+  Bruts `C:/Users/msics/donjon/artifacts/service-224/` ;
+  [rapport 224](taches/rapport-codex-224-service-non-defait.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `echanges.py`, `planification.py`, fusionnés sans conflit textuel. Trace durable du service rendu (biens.services_rendus), filtre des gestes qui défont l'état et menager_flamme ; protection tant que le bénéficiaire est cru présent ou porteur, sans délai ni entretien. Cas réel : torche de Brune conservée. Compteur brut des états payés perdus 6 → 6 (il compte aussi l'épuisement naturel du combustible) ; retours suspects 5 → 5. Fichiers de code communs depuis la base (planification, echanges, deliberation) : suite complète relancée sur la fusion.
+
+- Branche `codex-ou-est-il`, fusionnée, lot **221**, départ `4fe33ef` :
+  question commune de localisation à un tiers cru présent, réponse fondée sur
+  les seules croyances datées du témoin ; même contenu typé pour le joueur.
+  Réponses positives/négatives retenues hors des quarante souvenirs, selon les
+  indices persistants 37/69, sans réessai par délai. Extension du mécanisme des
+  refus et de la validation des sauvegardes autorisée par le superviseur ;
+  fonctions des lots voisins intactes. Registre suivi par `esprits.croire` :
+  seuls de vrais changements de lieu perçus renouvellent le contexte, pas
+  les cases, délais, confirmations ou bruits non attribués. Origine conservée
+  dans les relais ; une indication plus ancienne qu'une recherche infructueuse
+  ne rouvre pas le lieu. Capture auberge 42 à 500 : **11 → 3 questions**,
+  aucune réponse encore tenue réexécutée, mêmes monde/rendu et laps rechargés.
+  **38 reprises finales vertes, 18 nouveaux tests**.
+  Intégration `bd45f65` (213/219) fusionnée dans `813d45b` : seul conflit
+  documentaire, aucun conflit de code ; **38/38 ciblés verts en 49,729 s**.
+  Banc final cinq scénarios × quatre graines × 4 h, classes **219** :
+  suspects **0/1/2/2/0 → 0/1/2/2/0** (Relais/Mine/Auberge/Crue/Hameau),
+  **critère satisfait partout** ; cinq épisodes intégralement identiques à la
+  référence, aucune nouvelle répétition suspecte issue des questions.
+  **22 questions**, zéro plantage/usurpation. Un trio répété au hameau 42 :
+  Gorm → Maël sur Aubin, refus sociaux réarmés par rancune perçue **0 → 14**,
+  sans délai ; limite : un changement défavorable des axes permet aussi le réessai.
+  Préemptions **53 → 67**,
+  entrées à expliquer **61 → 69**, cycles accomplis **468 → 501**.
+  Attente urgente crue **196,25 → 218,75**, hameau **97,50 → 87,50** ;
+  S Relais **9,50 → 12**, hameau **31 → 40,50**, auberge en baisse.
+  La réserve historique 199 sur la base antérieure est remplacée par ce contrôle
+  classé 219 ; aucune amélioration uniforme d'attente ou de richesse garantie.
+  Capture 215 testée par `rejoindre` ; ses dix minutes inchangées ne déclenchent
+  pas la question (P1 reste distinct).
+  Suite unique **2 444 tests / 283 fichiers**, sept échecs bruts, zéro erreur,
+  16 ignorés, **3 166,835 s** ; cinq fichiers verts sur la base (20 tests),
+  puis 38 reprises vertes après correctif, migration N3/N9 et oracles explicités.
+  Aucune seconde suite complète ; aucun Luna, commits non signés. Bruts
+  `C:/Users/msics/donjon/artifacts/ou-est-221/` ;
+  [rapport 221](taches/rapport-codex-221-ou-est-il.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `planification.py`, fusionnés sans conflit textuel. Question commune au tiers présent, réponse d'après ses seules croyances (ouï-dire daté), indication démentie retenue selon sa cause ; même question pour le joueur. Sur bd45f65 : répétitions suspectes inchangées partout, préemptions 53 → 67, à expliquer 61 → 69 ; 17 questions sur 20 nuits. Fichiers de code communs depuis la base (deliberation, planification, echanges) : suite complète relancée sur la fusion.
+
+- **Branche `codex-secours-acquitte`, fusionnée**, lot **223** : départ
+  `395834b`, puis intégration 213 `bd45f65` fusionnée sans conflit. Lecture
+  `protection` pure ; acquittement sur constat dans `reagir`, appel non élucidé
+  sans trajet vers un danger connu. Captures 022/026 : retours effectifs **1→0**
+  chacune sur une minute ; coups **24→24 / 15→20**, combat toujours possible.
+  Autre protecteur/scénario, monde/rendus et laps découpés rechargés identiques.
+  **63 ciblés finaux verts** ; **24 paires 4 h** contre `bd45f65`, chroniques,
+  mesures, états et audits **24/24 identiques**, classes 219 **5 suspects,
+  58 préemptions, 566 cycles, 68 à expliquer** inchangées, zéro plantage/usurpation,
+  coups **0→0**, appels **9→9**. Références manquantes cachées une fois.
+  Suite unique initiale **2 446 tests / 284 fichiers, 2 239,365 s** : deux MiMo
+  historiques, une erreur Windows TUI repassée verte ; suite lancée avant fusion
+  et dernière correction de publication, ciblés/banc sur l'arbre final, pas de
+  seconde suite (code disjoint de 213). **Limite : raccord automatique des appels
+  joueur non établi dans ce périmètre** ; aucune garantie universelle des boucles
+  ni baisse de violence. Deux travailleurs réduits au plus, créneau dépassé,
+  aucun Luna, pas de clé Git de signature. Bruts
+  `C:/Users/msics/donjon/artifacts/secours-223/` ;
+  [rapport 223](taches/rapport-codex-223-secours-acquitte.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Captures 022/026 du lot 222 : retour de Gorm vers le danger connu 1 → 0, acquittement sur constat ; un appel non élucidé ne mène plus vers un lieu connu dangereux. 24 paires 4 h (avec rixe) identiques à bd45f65, aucune alerte nouvelle. Le joueur garde le choix de ses gestes.
+
 - **Branche `codex-contrat-engagement`, fusionnée**, lot **213 / 196 c** :
   **lot terminé, limites explicites**. `cca5f50` vérifié ; 211 puis
   `3aa16f7` (219) intégrés ; moteur final **`5016c87`**. Raccord `pnj.py` autorisé :

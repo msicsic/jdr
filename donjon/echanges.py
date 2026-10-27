@@ -928,20 +928,49 @@ def correspond_ressource(o, sujet):
     return False
 
 
-def enqueter(monde, demandeur, auditeur, besoin):
+def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
     """(« mefiance », « qui_va_la », « rien » ou « dit », ce qui a été dit) : ``demandeur`` demande à
     ``auditeur`` s'il a de quoi apaiser ``besoin`` (« As-tu des vivres ? », « du bois ? ») sans rien
     connaître de ce qu'il a. Le sujet peut aussi nommer un bien (nom, alias, matière ou catégorie).
     Il répond selon ses possessions connues ; pour un besoin général, ses ressources comptées pour ce
     besoin (``deliberation.besoin_de_part``) qu'il croit avoir encore, et où il les croit ; ce qu'il
     porte et ce qui est à lui à portée de main, il le sait (``siens_a_portee``). Le
-    demandeur l'apprend, par ouï-dire, et rien de plus : [(objet, lieu cru)]."""
+    demandeur l'apprend, par ouï-dire, et rien de plus : [(objet, lieu cru)].
+    Avec ``sujet``, la même question porte sur le dernier lieu cru d'une personne ;
+    la réponse datée, positive ou négative, reste retenue jusqu'à un nouvel indice."""
     from .deliberation import _connus, _disponible_cru, _lieu_cru, part_pour, parts
     from .paroles import BESOINS_DEMANDES
     from .spatial import porte_par
     from .vol import proprietaire
     from .deliberation import oublier_refus, retenir_refus
     arret = accueil(monde, demandeur, auditeur)
+    if sujet is not None:
+        # Une réponse de localisation porte exclusivement la croyance du témoin.
+        # La date d'acquisition et la provenance restent distinctes de la réception.
+        c = croyance(monde, auditeur, sujet, "lieu")
+        dit = [(sujet, c["valeur"])] if not arret and c and c["valeur"] in monde.data["salles"] else []
+        issue = arret or ("dit" if dit else "rien")
+        origine = dict(c.get("origine") or {"source": c["source"], "minute": c["minute"]}) if c else None
+        verifie = lire(monde, demandeur)["recherches"].get(sujet, {}).get(c["valeur"], -1) if dit else -1
+        appris = bool(dit and origine["minute"] >= verifie
+                      and not dementi(monde, demandeur, sujet, "lieu", c["valeur"]))
+        if appris:
+            from .voix import source_dite
+            croire(monde, demandeur, sujet, "lieu", c["valeur"], source_dite(monde, demandeur, auditeur),
+                   round(.7 * clarte(monde, demandeur), 2), salle=c["valeur"], case=None,
+                   origine=origine)
+        if demandeur != "joueur" and issue != "qui_va_la":
+            from .deliberation import consommer_indices_recherche
+            if appris:
+                consommer_indices_recherche(monde, demandeur, sujet, dit[0][1])
+            retenir_refus(monde, demandeur, auditeur, "enqueter_lieu",
+                          "indication" if dit else "inconnu" if issue == "rien" else issue,
+                          objet=sujet, souvenir=False,
+                          information={"lieu": dit[0][1], "minute": c["minute"], "source": c["source"],
+                                       "origine": dict(origine)} if dit else None)
+            memoriser(monde, demandeur, {"type": "enquete_lieu", "de": auditeur,
+                                         "objet": sujet, "issue": issue})
+        return issue, dit
     if not arret:
         siens_a_portee(monde, auditeur)
     if arret:
@@ -976,6 +1005,26 @@ def enqueter(monde, demandeur, auditeur, besoin):
         else:
             retenir_refus(monde, demandeur, auditeur, "enqueter", "rien", besoin=besoin, souvenir=False)
     return ("dit" if dit else "rien"), dit
+
+
+def reponse_localisation(monde, auditeur, sujet, issue, dit):
+    """La même réponse datée pour le joueur et la chronique ; aucune position réelle."""
+    from .paroles import _nom, _ouidire, _personne
+    nom, il, _ = _personne(monde, auditeur)
+    if issue == "qui_va_la":
+        from .paroles import QUI_VA_LA
+        return QUI_VA_LA.format(nom=nom, il=il)
+    if issue == "dit":
+        c = croyance(monde, auditeur, sujet, "lieu")
+        origine = _ouidire(monde, c["source"])
+        if c.get("origine") and c["origine"]["minute"] != c["minute"]:
+            origine += f" (ce renseignement remonte à la minute {c['origine']['minute']})"
+        preuve = "avoir vu" if c["source"] == "vu" else "avoir entendu" if c["source"] == "entendu" else "avoir appris"
+        return (f"{nom} dit {preuve} à la minute {c['minute']} : "
+                f"{phrase_affirmee(monde, sujet, 'lieu', dit[0][1], True)}{origine}.")
+    if issue == "rien":
+        return f"{nom} dit ne pas savoir où se trouve {_nom(monde, sujet)}."
+    return f"{nom} refuse de répondre."
 
 
 def demander_feu(monde, demandeur, auditeur, flamme, source):
@@ -1020,13 +1069,20 @@ def tenu(monde, id, condition, depuis=None):
         return satisfaite(monde, id, condition)  # Le prêt est clos : il le sait de sa main.
     if "servir" in condition or "remettre" in condition or not satisfaite(monde, id, condition):
         return False
-    if condition.get("objet") == id and "lieu" in condition:
-        # Il sait où sa marche vient de le mener, même avant la minute suivante.
-        return True
     # Les croyances sont datées à la minute : dans la minute même de la parole, rien ne dit qu'il a vu
     # après l'avoir donnée (il choisit désormais entre deux minutes, ``deliberation.choisir``).
     nouvelles = lire(monde, id)["croyances"].get(condition.get("objet"), {}).values()
-    return depuis is None or any(c["minute"] > depuis for c in nouvelles)
+    faite = (condition.get("objet") == id and "lieu" in condition
+             or depuis is None or any(c["minute"] > depuis for c in nouvelles))
+    if faite and depuis is not None:
+        # Le constat qui clôt la parole conserve son résultat, hors de la
+        # mémoire bornée. Un devis sans engagement n'inscrit rien.
+        from .biens import retenir_service
+        for engagement in agendas.en_cours(monde, id):
+            if (not engagement.get("annule") and engagement["condition"] == condition
+                    and engagement["minute"] == depuis):
+                retenir_service(monde, id, engagement)
+    return faite
 
 
 def confier(monde, demandeur, auditeur, condition):
@@ -1433,6 +1489,14 @@ def executer(monde, id, etape, lignes):
     elif op == "proposer":
         from .pnj_propositions import executer
         return executer(monde, id, autre, contenu, lignes)
+    elif op == "demander" and "localisation" in contenu:
+        sujet = contenu["localisation"]
+        issue, dit = enqueter(monde, id, autre, sujet=sujet)
+        from .paroles import _nom
+        recit = f"{a} demande à {b} où se trouve {_nom(monde, sujet)}"
+        clair = recit + "."
+        reponse = reponse_localisation(monde, autre, sujet, issue, dit)
+        cites, reussi = [sujet] + [lieu for _, lieu in dit], issue == "dit"
     elif op == "demander" and "ressource" in contenu:
         # « As-tu du bois ? » : il répond par ce qu'il a vraiment, et l'autre l'apprend.
         issue, dit = enqueter(monde, id, autre, contenu["ressource"])
@@ -1533,7 +1597,7 @@ def executer(monde, id, etape, lignes):
         qui_va_la(monde, id, autre, lignes)
     else:
         faire_entendre(monde, id, autre, clair, nommes, lignes, transmis, reponse, dite)
-    if "ressource" not in contenu:   # « As-tu… ? » retient sa réponse (``enqueter``).
+    if "ressource" not in contenu and "localisation" not in contenu:   # L'enquête retient sa réponse.
         # Un feu refusé l'est pour cette source ; un objet demandé, pour cet objet ; une tâche, pour ce
         # qu'elle vise. Le refus se retient selon sa cause (``deliberation.retenir_refus``) ; accordée,
         # la demande n'a plus de refus qui tienne.
