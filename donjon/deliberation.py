@@ -1577,7 +1577,7 @@ def _candidats(monde, id):
     buts = []
 
     def ajouter(besoin, methode, palier, departage=(), valeur=0, routine=False, recours=False):
-        if agendas.depart(monde, id) and palier == Palier.BESOIN_PRESSANT:
+        if agendas.presents(monde, id) and palier == Palier.BESOIN_PRESSANT:
             courant = e["intention"]
             if courant and courant["motif"] == besoin and besoin != "agenda":
                 valeur += INERTIE
@@ -1593,7 +1593,7 @@ def _candidats(monde, id):
 
         def ajouter_recours(methode, routine=False):
             nonlocal rang_recours
-            desespere = bool(agendas.depart(monde, id)) and e["besoins"][besoin] >= DESESPOIR
+            desespere = bool(agendas.presents(monde, id)) and e["besoins"][besoin] >= DESESPOIR
             # Les routines d'un besoin pressant précèdent les autres routines, même à écart nul.
             departage = ((0, -ecart, rang_besoin, rang_recours) if routine and not desespere
                          else (rang_besoin, rang_recours))

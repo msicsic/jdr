@@ -11,6 +11,44 @@ from contextlib import contextmanager
 
 CHAMPS = {"engagements": list}
 
+# Cause -> vocabulaire et valeurs ; aucune identité ni méthode d'action.
+NAISSANCES = {
+    "dette_situation": {"sorte": "obtenir", "valeurs": ("honnetete", "ambition")},
+}
+
+
+def _dette_situation(monde, id):
+    """Situation personnelle connue du porteur, distincte d'une créance locale."""
+    return (monde.objets[id].get("profil") or {}).get("situation", {}).get("dette", 0)
+
+
+def _naissances(monde, id, empreinte):
+    from .biens import richesse
+    dette = _dette_situation(monde, id)
+    if dette <= richesse(monde, id):
+        return
+    cause = "dette_situation"
+    stock = _stock(monde, id, creer=True)
+    # Une même cause ne ressuscite pas un projet terminal. Une nouvelle dette
+    # de même montant ne peut pas encore être distinguée par la situation.
+    if any(a["origine"].get("type") == "situation" and a["origine"].get("cause") == cause
+           for a in stock):
+        return
+    n = 1
+    while any(a["id"] == f"a{n}" for a in stock):
+        n += 1
+    a = {"id": f"a{n}", "sorte": NAISSANCES[cause]["sorte"],
+         "parametres": {"pieces": dette}, "maniere": {"sans_violence": True},
+         "origine": {"type": "situation", "de": id,
+                     "minute": monde.data["minutes"], "cause": cause}}
+    _changer(monde, id, a, "actif", cause, empreinte)
+    stock.append(a)
+
+
+def presents(monde, id):
+    """Projets déclarés ou nés, pour l'arbitrage commun des urgences."""
+    return bool(depart(monde, id) or _stock(monde, id))
+
 
 def champs_esprit(e):
     """L'état A4 est facultatif : aucune migration des esprits sans déclaration."""
@@ -78,7 +116,11 @@ def _croyances(monde, id):
         if isinstance(x, list):
             return [contenu(v) for v in x]
         return x
-    return hashlib.sha256(json.dumps(contenu(lire(monde, id)["croyances"]),
+    croyances = contenu(lire(monde, id)["croyances"])
+    if any(a["sorte"] == "obtenir" for a in (_stock(monde, id) or [])):
+        from .biens import richesse
+        croyances = [croyances, richesse(monde, id), _dette_situation(monde, id)]
+    return hashlib.sha256(json.dumps(croyances,
                                     sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
@@ -86,6 +128,9 @@ def poids(monde, id, agenda):
     """Valeurs, situation et liens courants ; jamais de score sauvegardé."""
     from .caractere import valeur
     from .relations import envers
+    regle = NAISSANCES.get(agenda.get("origine", {}).get("cause"))
+    if regle and agenda["origine"]["type"] == "situation":
+        return sum(valeur(monde, id, v) for v in regle["valeurs"]) / len(regle["valeurs"])
     p = monde.objets[id].get("profil") or {}
     qui = agenda["parametres"].get("qui", [])
     qui = [qui] if isinstance(qui, str) else qui
@@ -116,10 +161,12 @@ def _changer(monde, id, a, etat, raison, empreinte):
 def actualiser(monde, id):
     """Activation unique, révision sur les seules croyances du porteur."""
     declarations = depart(monde, id)
-    if not declarations:
-        return
+    if not declarations and not _stock(monde, id):
+        from .biens import richesse
+        if _dette_situation(monde, id) <= richesse(monde, id):
+            return
     empreinte = _croyances(monde, id)
-    if _stock(monde, id) is None:
+    if declarations and _stock(monde, id) is None:
         stock = _stock(monde, id, creer=True)
         for n, declaration in enumerate(declarations):
             a = copy.deepcopy(declaration)
@@ -128,11 +175,19 @@ def actualiser(monde, id):
             a["origine"] = {"type": "scenario", "de": id, "minute": monde.data["minutes"], "cause": a["id"]}
             _changer(monde, id, a, "actif", "scenario", empreinte)
             stock.append(a)
-    for a in _stock(monde, id):
+    _naissances(monde, id, empreinte)
+    for a in _stock(monde, id) or []:
         if a["etat"] not in ("actif", "sommeil"):
             continue
         if a.get("echeance", float("inf")) < monde.data["minutes"]:
             _changer(monde, id, a, "abandonne", "echeance", empreinte)
+            continue
+        if a["sorte"] == "obtenir":
+            from .biens import richesse
+            if (a["origine"]["type"] == "situation" and not _dette_situation(monde, id)):
+                _changer(monde, id, a, "atteint", "dette personnelle soldee", empreinte)
+            elif richesse(monde, id) >= a["parametres"]["pieces"]:
+                _changer(monde, id, a, "atteint", "pieces disponibles", empreinte)
             continue
         if a["sorte"] == "garder":
             raison = _fin_garde(monde, id, a)
@@ -170,7 +225,7 @@ def actualiser(monde, id):
 
 
 def _limiter(monde, id, empreinte):
-    actifs = [a for a in _stock(monde, id) if a["etat"] == "actif"]
+    actifs = [a for a in (_stock(monde, id) or []) if a["etat"] == "actif"]
     for a in sorted(actifs, key=lambda a: (poids(monde, id, a), a["origine"]["minute"], a["id"]))[:max(0, len(actifs) - 3)]:
         _changer(monde, id, a, "abandonne", "supplante", empreinte)
 
@@ -181,7 +236,7 @@ def essayables(monde, id):
     for a in projets(monde, id):
         if a["etat"] == "actif":
             yield a
-        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener", "garder", "protéger"):
+        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener", "garder", "protéger", "obtenir"):
             if empreinte is None:
                 empreinte = _croyances(monde, id)
             if a["croyances"] != empreinte:
@@ -245,6 +300,15 @@ def planifier(monde, id, identifiant):
     if a["etat"] not in ("actif", "sommeil"):
         return None
     empreinte = _croyances(monde, id)
+    if a["sorte"] == "obtenir":
+        from .planification import enrichir
+        resultat = enrichir(monde, id)
+        if resultat is None:
+            _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
+            return None
+        _changer(monde, id, a, "actif", "plan admissible", empreinte)
+        _limiter(monde, id, empreinte)
+        return ({"type": "agenda", "agenda": identifiant, "pieces": a["parametres"]["pieces"]}, resultat[1]) if a["etat"] == "actif" else None
     if a["sorte"] == "amener":
         return _amener(monde, id, a, empreinte)
     if a["sorte"] == "protéger":
@@ -557,7 +621,7 @@ def verifier(monde, id):
     for a in stock:
         assert (a["etat"] in ("actif", "sommeil", "atteint", "abandonne")
                 and type(a["depuis"]) is int and isinstance(a["raison"], str)
-                and a["origine"]["type"] == "scenario" and "plan" not in a
+                and a["origine"]["type"] in ("scenario", "situation") and "plan" not in a
                 and isinstance(a["croyances"], str)), "Agenda invalide"
     for engagement in en_cours(monde, id):
         from .deliberation import condition_valide
