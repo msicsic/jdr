@@ -706,7 +706,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   viennent du moteur ; l'auditeur relie chaque segment à un compte fourni et choisit un sens fermé et une quantité, que le
   moteur compare. Rejeu : inversion réelle refusée 5/5, trois faux refus 5/5 → 0/5. **Non fusionnée** : une passe Luna (quatre
   scripts) donne 3,94 → 3,83 appels/tour mais **14,0 → 20,5 s/tour** et obstacles narratifs 11 → 60 ; le lot 117 seul (sans sens
-  fermé) gagnait 13 % d'appels mais laissait passer l'inversion 2 fois sur 5. Décision et mesure à deux passes à reprendre.
+  fermé) gagnait 13 % d'appels mais laissait passer l'inversion 2 fois sur 5. **Décision du 2026-10-27 : remesurer** en deux passes Luna sur la base actuelle avant de décider ; branche non fusionnée d'ici là.
 
 - Branche `codex-tache-promise`, fusionnée, lot **115**, base **6910d8e** :
   une tâche typée peut payer une part dans le recours après les moyens ordinaires.
@@ -903,7 +903,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   huit recharges monde/rendus vertes, SHA-256 moteur inchangés. Vérifications
   conditionnées à l'implémentation non lancées. Bruts `artifacts/recherche-109/`.
   [Rapport et décision du lot 109](taches/rapport-codex-109-recherche-tiree.md).
-  **Décision en attente de l'utilisateur** : réduire l'exploration des deux allures (58 % du CPU de recherche en départ tiré) peut changer des plans.
+  **Décision du 2026-10-27 : pas maintenant** (réduire l'exploration des deux allures, 58 % du CPU de recherche en départ tiré, peut changer des plans) ; le coût revient après A4.
 
 - Branche `codex-contreparties`, fusionnée, lot **107**, base `303d38c` :
   le recours demande une part utile ou les pièces manquantes, au plus au prix
@@ -1029,7 +1029,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Pas de suite complète ni de vérification conditionnée à une implémentation.
   Outils et bruts `artifacts/profil-98/`, créneau dépassé par les profils complets.
   [Rapport et décision demandée](taches/rapport-codex-98-profil-compare.md).
-  Lots 98 et 98 b fusionnés ensemble sur l'intégration après les lots 97 et 100 à 104 : seul conflit de documentation ; aucun fichier de code commun (`trajet_estime.py` seul). **Décision en attente de l'utilisateur** : 58 % du surcoût de l'auberge vient de la fréquence des choix et recherches (délibération à l'événement, recours) ; la réduire peut changer le moment de certaines réactions des PNJ.
+  Lots 98 et 98 b fusionnés ensemble sur l'intégration après les lots 97 et 100 à 104 : seul conflit de documentation ; aucun fichier de code commun (`trajet_estime.py` seul). 58 % du surcoût de l'auberge vient de la fréquence des choix et recherches (délibération à l'événement, recours) ; la réduire peut changer le moment de certaines réactions des PNJ. **Décision du 2026-10-27 : pas maintenant**, le coût revient après A4.
 
 - Branche `codex-n3-reformule`, fusionnée, lot **104**, base `e4dbc6a` :
   le rejeu exact du fil lot 102 reproduit N3 avant correction (trois appels,
