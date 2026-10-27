@@ -278,6 +278,26 @@ def preparer(donnees, sauvegarde):
         from donjon.esprits import percevoir_tous
         percevoir_tous(m)
         frapper(m, coup["auteur"], coup["cible"], coup.get("outil", ""), coup.get("methode", "simple"))
+    # Prévisions et paroles d'auteur : la dispute est résolue par le social commun.
+    from donjon.esprits import croire, percevoir_tous
+    for c in prep.get("previsions", []):
+        croire(m, c["personnage"], c["salle"], "prevision", c["valeur"],
+               c.get("source", "vu"), c.get("confiance", 1), rang=0)
+    from donjon.social import bavarder
+    if any(prep.get(c) for c in ("previsions", "bavardages", "surveillent", "repos_social", "lecture_signes")):
+        percevoir_tous(m)
+    for qui in prep.get("bavardages", []):
+        bavarder(m, qui, [])
+    # Les signes viennent de décisions réelles, jamais d'une expression injectée.
+    from donjon.signes import surveiller, place, lire
+    for qui in prep.get("surveillent", []):
+        surveiller(m, qui)
+    for qui in prep.get("repos_social", []):
+        esprit(m, qui)["intention"] = {"but": {"type": "reposer"}, "motif": "fatigue",
+            "plan": [], "depuis": m.data["minutes"], "attente": 0}
+        place(m, qui, {"operation": "reposer", "cible": ""}, [])
+    if prep.get("lecture_signes"):
+        lire(m, "joueur")
     m.verifier()
     m.sauver(sauvegarde)
 

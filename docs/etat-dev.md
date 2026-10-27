@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-banc-attitudes`, **non fusionnée**, lot **176 / relations 3g**,
+  base `3842aef` : banc `attitudes` (écart d'Ilse, surveillance de Gorm,
+  dispute récente et proposition du joueur), préparé par les règles communes.
+  Extraction `attitudes` dans tous les audits, y compris les dossiers réduits
+  de résultat ; validation déterministe des identifiants de signe/impression,
+  personnage et cible, puis revalidation de la perception avant enregistrement.
+  Refus avec les signes et impressions disponibles dans `attendu`.
+  Console/MJ simulé, deux personnages, état complet et texte après recharge ;
+  **40 ciblés finaux verts**. **4/4 empreintes Relais 2 h identiques à la base**.
+  Suite complète unique : **2 262 tests, 261 fichiers, 1 308,136 s**, deux échecs
+  MiMo historiques `6 != 5`, zéro erreur/ignoré ; dossier réduit repris en ciblé.
+  Au plus deux travailleurs réduits sur poste partagé avec le lot 175.
+  **Aucun Luna**, coffre illisible : commande des deux passes contre `cdaf371`
+  dans `artifacts/attitudes-176/luna-a-jouer.txt` du dépôt principal.
+  Borne +10 % appels/tour et absence d'attributions sans appui en partie réelle
+  non mesurées. Extraction et compatibilité du sens restent sémantiques ; anciens
+  rapports sans extraction encore lisibles, aucune garantie exhaustive.
+  Aucun fichier réservé au lot 175 modifié, `main` intacte, aucune clé de
+  signature configurée. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/attitudes-176/`.
+  [Rapport 176](taches/rapport-codex-176-banc-attitudes.md).
+
 - Branche `codex-sol-surface`, fusionnée, lot **173**, base `79594e4` :
   `operations.compiler` résout via `deplacement_objet.destination_depot` une
   surface nommée `sol`, perçue dans la salle courante, comme `destination: sol`.

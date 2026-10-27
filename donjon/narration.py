@@ -95,6 +95,42 @@ SCHEMA_RAPPELS = {"type": "array", "maxItems": 12,
         "required": ["locuteur", "affirmation", "compatibilite"]}}
 
 
+SCHEMA_ATTITUDES = {"type": "array", "maxItems": 12,
+    "description": "Toute attitude, émotion ou intention attribuée par le récit à un personnage, "
+        "même sous forme d'impression, d'hypothèse ou dans un segment mixte. Une citation de PNJ "
+        "seule établit sa parole, pas son état intérieur : ne pas extraire son contenu comme vrai. "
+        "Pour chaque attribution, citer l'id exact dans signes_percus (observation) ou impressions "
+        "(lecture faillible, conserver sa nuance). Personnage et envers doivent correspondre ; "
+        "envers vide pour une émotion sans cible. Juger aussi le sens : un signe ne prouve pas "
+        "une intention cachée ni une autre émotion ; une impression n'est pas une certitude. "
+        "Sans appui compatible : source vide, compatibilite sans_fondement. Aucune attribution : [].",
+    "items": {"type": "object", "additionalProperties": False,
+        "properties": {"personnage": {"type": "string"}, "envers": {"type": "string"},
+            "affirmation": {"type": "string"}, "source": {"type": "string"},
+            "compatibilite": {"type": "string", "enum": ["etablie", "sans_fondement", "contradictoire"]}},
+        "required": ["personnage", "envers", "affirmation", "source", "compatibilite"]}}
+
+
+def controler_attitudes(attributions, faits, passage, indice, partie="texte"):
+    """L'auditeur extrait le sens ; le moteur vérifie les appuis publics exacts."""
+    obstacles = []
+    appuis = [a for cle in ("signes_percus", "impressions") for a in faits.get(cle, [])]
+    for attribution in attributions:
+        source = next((a for a in appuis if a.get("id") == attribution["source"]), None)
+        cause = ("sens non établi" if attribution["compatibilite"] != "etablie" else
+                 "identifiant d'appui absent" if source is None else
+                 "personnage différent" if source.get("personnage") != attribution["personnage"] else
+                 "cible différente" if source.get("envers", "") != attribution["envers"] else "")
+        if cause:
+            obstacles.append(audit("Cette attitude ne s'appuie pas sur une perception disponible.",
+                f"{cause} ; signes_percus : {faits.get('signes_percus', [])} ; "
+                f"impressions : {faits.get('impressions', [])} ; "
+                "citer un id compatible avec personnage et envers ; respecter le sens du signe "
+                "et la nuance de l'impression, ou retirer l'attribution",
+                partie=partie, segment=indice, texte=passage, recu=attribution))
+    return obstacles
+
+
 def attestations(monde, contexte):
     """Phrases produites par l'état courant, utiles au MJ pour formuler les faits mécaniques.
 
@@ -208,6 +244,8 @@ def schema_audit(faits, nombre):
             "description": "Nature du segment, indépendamment de son fondement mécanique ; "
                 "le moteur déduit le verdict de cette nature et de portee_mecanique."}
         item["required"].append("nature")
+        item["properties"]["attitudes"] = copy.deepcopy(SCHEMA_ATTITUDES)
+        item["required"].append("attitudes")
         if "echanges_passes" in faits:
             item["properties"]["rappels"] = copy.deepcopy(SCHEMA_RAPPELS)
             item["required"].append("rappels")
@@ -347,6 +385,13 @@ un plan préparé ou le seul silence des faits ne prouve aucun résultat de ce g
 Sans cette source, c'est invention_protegee, jamais ambiance ; avec elle, c'est mecanique.
 Ambiance : aspect, odeur, son de fond, température, texture, impression. Elle est libre tant
 qu'elle ne crée ni objet manipulable, ni passage, ni personnage, ni ressource, ni indice.
+Les attitudes, émotions et intentions prêtées par le récit à un personnage relèvent du
+contrôle mécanique, même avec « semble » : extrais-les dans attitudes quel que soit le verdict.
+Seuls signes_percus et impressions les appuient, avec leur id, personnage et cible envers.
+Une observation se raconte comme telle ; une lecture reste l'impression faillible de Corvus.
+Relations privées, émotions internes et paroles entendues ne prouvent pas une attitude perçue.
+Une parole citée établit seulement ce que son auteur dit ressentir, pas la vérité de ce ressenti.
+L'ambiance libre ne prête aucune attitude à un personnage.
 Examine CHAQUE segment fourni, y compris ce qu'il sous-entend, et classe-le en entier :
 Juge aussi sa portee_mecanique, indépendamment de sa forme et de son verdict : aucune,
 etablie (cite les sources qui établissent exactement son effet ou sa condition),
@@ -1188,6 +1233,16 @@ def controler(texte, rapport, faits, partie="texte"):
             ligne = {**defauts, **ligne}
         # Champ extrait par les nouveaux audits, conservé pour l'enregistrement.
         # Les anciens rapports ne portaient pas cette extraction.
+        attitudes = ligne.get("attitudes") if isinstance(ligne, dict) else None
+        if attitudes is not None:
+            if (not isinstance(attitudes, list) or len(attitudes) > 12 or any(
+                    not isinstance(a, dict) or set(a) != set(SCHEMA_ATTITUDES["items"]["required"])
+                    or not all(isinstance(v, str) for v in a.values())
+                    or a["compatibilite"] not in ("etablie", "sans_fondement", "contradictoire")
+                    for a in attitudes)):
+                raise AuditIllisible("Contrôle des attitudes mal formé.")
+            ligne = {k: v for k, v in ligne.items() if k != "attitudes"}
+            obstacles.extend(controler_attitudes(attitudes, faits, passage, indice, partie))
         rappels = ligne.get("rappels") if isinstance(ligne, dict) else None
         if rappels is not None:
             if (not isinstance(rappels, list) or len(rappels) > 12 or any(
@@ -1259,7 +1314,8 @@ def controler(texte, rapport, faits, partie="texte"):
             ligne = {**ligne, "locuteur": "", "citation": "", "presentation": ""}
         if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
-        lignes_validees.append({**ligne, **({"comptes": comptes} if comptes is not None else {}),
+        lignes_validees.append({**ligne, **({"attitudes": attitudes} if attitudes is not None else {}),
+                               **({"comptes": comptes} if comptes is not None else {}),
                                **({"rappels": rappels} if rappels is not None else {}),
                                **({"eclairages": lumieres} if lumieres is not None else {})})
         if comptes:
@@ -1435,6 +1491,13 @@ def consigner(monde, reponse):
     if rapport["obstacles"]:
         raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.",
                           rapport["obstacles"][0]["attendu"])
+    if any(l.get("attitudes") for l in rapport["segments"]):
+        courants = monde.contexte()
+        for indice, ligne in enumerate(rapport["segments"]):
+            contraires = controler_attitudes(ligne.get("attitudes", []), courants,
+                                             segments(audit["texte_initial"])[indice], indice)
+            if contraires:
+                raise ErreurMonde("Cette attitude n'est plus perçue.", contraires[0]["attendu"])
     etablis = segments_etablis(audit["texte_initial"], audit["faits"])
     if any(ligne['sources'] == ['echanges_passes'] for ligne in etablis.values()):
         from .dialogues import interlocuteurs

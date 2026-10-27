@@ -1116,6 +1116,19 @@ Après la fusion d'`echanges-argent` (prix propre, prêts, permissions).
 
 ### 3g. Luna
 
+- **Lot 176, branche `codex-banc-attitudes`, non fusionnée** : banc `attitudes`
+  sur la crue du Relais, placements et décisions communes (écart d'Ilse,
+  surveillance de Gorm, dispute récente, proposition du joueur). Le rapport
+  narratif extrait les attributions indépendamment du verdict ; le moteur
+  contrôle l'identifiant de signe/impression, le personnage et la cible, puis
+  revérifie leur perception avant enregistrement. Refus avec les appuis
+  disponibles dans `attendu`. Tests console avec MJ simulé, deux personnages,
+  état et texte rechargés. **Restent** les deux passes Luna et la mesure de la
+  borne +10 %, ainsi que les copies de sauvegarde réelle. L'extraction et la
+  compatibilité du sens restent sémantiques ; les anciens rapports sans
+  extraction restent lisibles. Aucune garantie exhaustive de détection des
+  attributions n'est revendiquée.
+  [Rapport du lot 176](taches/rapport-codex-176-banc-attitudes.md).
 - Faits (`signes_percus`, `impressions`, `relations` et `emotion` des interlocuteurs), consignes,
   audit par citation (§ 8).
 - **Mesure** : les bancs Luna (trois bancs de référence et le banc `echanges`, `--fil`), plus un
