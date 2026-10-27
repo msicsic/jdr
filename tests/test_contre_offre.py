@@ -145,7 +145,8 @@ class ContreOffreTests(unittest.TestCase):
         self.assertEqual(a.data["finances_pnj"], b.data["finances_pnj"])
         self.assertTrue(any("prend l'argent" in f for j in a.data["journal"] for f in j["faits"]))
 
-    def test_service_poursuivi_par_pnj_meme_laps_decoupe(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_service_poursuivi_par_pnj_meme_laps_decoupe(self, _naissance):
         m = faim()
         m.objets["brune"]["profil"]["besoins"]["devoir"] = {"depart": 80, "derive_heure": 0, "urgence": 60}
         lire(m, "brune")["besoins"].update(faim=0, devoir=80)

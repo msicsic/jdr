@@ -146,7 +146,8 @@ class GesteBruyantTests(unittest.TestCase):
 
 
 class PasConnusTests(unittest.TestCase):
-    def test_brune_marche_dans_le_refuge_ou_gorm_la_sait_rien(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_brune_marche_dans_le_refuge_ou_gorm_la_sait_rien(self, _naissance):
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         for n, id in enumerate(("ilse", "aubin")):
             placer(m, id, "crypte", (2 + n, 3))

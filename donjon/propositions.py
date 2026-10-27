@@ -277,6 +277,10 @@ def demande_financee(monde, id, demande, contrepartie):
         if t == "objet" and "pieces" in monde.objets[objet]:
             crue = croyance(monde, id, objet, "pieces")
             n += crue["valeur"] if crue else 0
+    elif t == "tache":
+        # Le prix d'un travail n'est pas le prix d'un objet. Son devis et
+        # l'utilité pour le payeur sont jugés par le marché commun.
+        return demande
     else:
         return None
     return {**demande, "montant": min(demande["montant"], n)} if n > 0 else None

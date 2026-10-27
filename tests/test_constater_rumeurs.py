@@ -12,6 +12,7 @@ Chaque test vérifie l'état du monde après rechargement, et ce que le joueur l
 
 from tests.support import lier, relation
 import unittest
+from unittest.mock import patch
 
 from donjon.auberge import nouveau_auberge
 from donjon.esprits import connaitre, croire, lire, memoriser, percevoir_tous
@@ -41,7 +42,8 @@ def lieu_cru(m, id, objet):
 
 
 class ContenantFermeTests(unittest.TestCase):
-    def test_brune_trouve_la_reserve_refermee_a_cle_et_la_croit_toujours_pleine(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_brune_trouve_la_reserve_refermee_a_cle_et_la_croit_toujours_pleine(self, _naissance):
         """Cas réel (Relais) : Brune croit la réserve ouverte ; Gorm l'a refermée à clé. Dans la
         pénombre, elle tend la main vers les vivres : elle apprend la réserve fermée et
         verrouillée, croit toujours les vivres dedans, et va chercher ses crochets."""

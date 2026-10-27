@@ -6,6 +6,7 @@ import gzip
 import json
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 from donjon import ecoute, planification, pnj
 from donjon.banc_pnj import creer
@@ -72,7 +73,9 @@ def passages(m, id, depuis=0):
 
 
 class RecoursPrioritaireTests(unittest.TestCase):
-    def test_capture_reelle_sans_navette_meme_monde_et_vue_decoupes(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_capture_reelle_sans_navette_meme_monde_et_vue_decoupes(self, _naissance):
+        # Comparer le maintien de l'abri historique, sans projets nouveaux d'autrui.
         a, b = suite(capture(), False), suite(capture(), True)
         self.assertEqual(a.data, b.data)
         self.assertEqual(vue(a), vue(b))

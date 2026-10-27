@@ -1458,6 +1458,8 @@ def _plan_argent(monde, id):
     """Des pièces à prendre qui valent, pour lui, plus que ce qu'il lui en coûte : la recherche
     (``planification.enrichir``)."""
     from .planification import enrichir
+    if agendas.pieces_poursuivies(monde, id):
+        return None  # Même acquisition déjà comparée, y compris le sommeil sans moyen nouveau.
     return enrichir(monde, id)
 
 

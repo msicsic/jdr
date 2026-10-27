@@ -50,6 +50,11 @@ def presents(monde, id):
     return bool(depart(monde, id) or _stock(monde, id))
 
 
+def pieces_poursuivies(monde, id):
+    return any(a["sorte"] == "obtenir" and a["etat"] in ("actif", "sommeil")
+               for a in (_stock(monde, id) or []))
+
+
 def champs_esprit(e):
     """L'état A4 est facultatif : aucune migration des esprits sans déclaration."""
     return set(e) - {"agendas"}
@@ -119,7 +124,11 @@ def _croyances(monde, id):
     croyances = contenu(lire(monde, id)["croyances"])
     if any(a["sorte"] == "obtenir" for a in (_stock(monde, id) or [])):
         from .biens import richesse
-        croyances = [croyances, richesse(monde, id), _dette_situation(monde, id)]
+        from .spatial import porte_par
+        e = lire(monde, id)
+        croyances = [croyances, richesse(monde, id), _dette_situation(monde, id),
+                     contenu(e["refus"]), contenu(e["relations"]), en_cours(monde, id),
+                     sorted(o for o in monde.objets if porte_par(monde, o, id))]
     return hashlib.sha256(json.dumps(croyances,
                                     sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
@@ -301,14 +310,19 @@ def planifier(monde, id, identifiant):
         return None
     empreinte = _croyances(monde, id)
     if a["sorte"] == "obtenir":
-        from .planification import enrichir
-        resultat = enrichir(monde, id)
+        if a["etat"] == "sommeil" and a["croyances"] == empreinte:
+            return None
+        from .argent_projet import obtenir
+        # Le prix reçu pour un travail n'efface pas la parole : laisser le
+        # recours d'engagement l'accomplir avant de rechercher une autre paie.
+        resultat = None if any(x.get("paye") for x in en_cours(monde, id, actifs=True)) else obtenir(
+            monde, id, a["parametres"]["pieces"], poids(monde, id, a))
         if resultat is None:
             _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
             return None
         _changer(monde, id, a, "actif", "plan admissible", empreinte)
         _limiter(monde, id, empreinte)
-        return ({"type": "agenda", "agenda": identifiant, "pieces": a["parametres"]["pieces"]}, resultat[1]) if a["etat"] == "actif" else None
+        return ({"type": "agenda", "agenda": identifiant, "pieces": a["parametres"]["pieces"]}, resultat) if a["etat"] == "actif" else None
     if a["sorte"] == "amener":
         return _amener(monde, id, a, empreinte)
     if a["sorte"] == "protéger":

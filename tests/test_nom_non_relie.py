@@ -78,7 +78,9 @@ class NomNonRelieTests(unittest.TestCase):
             placer(m, qui, 'beffroi', [x, 3])
         self.assertRefuse(m, 'je pousse Aubin', 'Tu ne connais personne du nom de Aubin ici.')
 
-    def test_nom_relie_le_geste_part_au_mj_et_la_fiche_persiste(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_nom_relie_le_geste_part_au_mj_et_la_fiche_persiste(self, _naissance):
+        # Le don éprouve la désignation, pas la revente autonome du bien reçu.
         for qui, saisie, p in (
             ('aubin', 'je pousse Aubin', proposition('pousser', 'aubin')),
             ('brune', 'je donne la cloche à Brune', proposition('remettre', 'cloche', 'brune'))):

@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from donjon import eau, planification, pnj
 from donjon.esprits import lire
@@ -62,7 +63,9 @@ class EauPlanMarcheTests(unittest.TestCase):
         self.assertIsNotNone(v.route(planification.depart(m, qui, v), 'echoppe'))
         self.assertNotEqual(entrees, planification._entrees(v, {}, 8, 4000))
 
-    def test_captures_reelles_sans_la_boucle_meme_monde_et_rendu_decoupes(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_captures_reelles_sans_la_boucle_meme_monde_et_rendu_decoupes(self, _naissance):
+        # Rejouer l'oracle observation/prévision/marche sans nouveaux marchés.
         for graine, qui, maximum in ((2024, 'marchand', 2), (1985, 'ilse', 1)):
             with self.subTest(graine=graine), tempfile.TemporaryDirectory() as dossier:
                 m = scene(graine)

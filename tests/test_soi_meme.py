@@ -28,6 +28,13 @@ def scene(accuse, locuteur, objet):
 class AccusationTests(unittest.TestCase):
     cas = (('brune', 'aubin', 'planches'), ('ilse', 'marchand', 'marteau'))
 
+    def assertSansAutoRumeur(self, m, accuse):
+        # Les marchés et les paroles tenues sont des conversations légitimes ;
+        # le contrat interdit la retransmission de l'accusation de soi.
+        self.assertFalse(any(s['type'] == 'rumeur' and s.get('de') == accuse
+                             and social.accuse(s['evenement']) == accuse
+                             for e in m.data['esprits'].values() for s in e['memoire']))
+
     def test_accusation_directe_et_surprise_passent_par_la_meme_reception(self):
         for accuse, locuteur, objet in self.cas:
             for type in ('vu_porter', 'intention_lue'):
@@ -61,7 +68,7 @@ class AccusationTests(unittest.TestCase):
         # Le récit rechargé conserve l'accusateur ; l'accusé n'a rien répété sur lui.
         recit = '\n'.join(Recit(m).entre_eux(m, m.data['chronique']))
         self.assertIn(f'{nom} dit à {cible} que {dit}', recit)
-        self.assertNotIn(f'{cible} dit à', recit)
+        self.assertSansAutoRumeur(m, accuse)
         tiers = next(x for x in ('ilse', 'aubin') if x not in (accuse, locuteur))
         self.assertTrue(any(s['type'] == 'parole' and s['locuteur'] == locuteur
                             for s in lire(m, tiers)['memoire']))
@@ -80,8 +87,7 @@ class AccusationTests(unittest.TestCase):
                     m, texte = attendre(recharger(m), jet=20)
                     self.assertEqual(m.objets[objet]['lieu'], accuse)
                     nom = m.objets[accuse]['nom'].split(',')[0]
-                    self.assertFalse(any(c['nature'] == 'social' and c['pnj'] == accuse
-                                         for c in m.data.get('chronique', [])))
+                    self.assertSansAutoRumeur(m, accuse)
                     self.assertNotIn(f'{nom} glisse', texte)
                     self.assertFalse(any(social.accuse(n) == accuse for _, n, *_ in social.nouvelles(m, accuse)))
 

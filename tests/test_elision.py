@@ -109,7 +109,8 @@ class ChaineTests(unittest.TestCase):
         self.assertEqual(public(r, {"personnage": "personne_1"}), {"personnage": "personne_1"})
         self.assertEqual(public(r, {"objet:personne_1": {}}), {"objet:personne_1": {}})
 
-    def test_don_et_promesse_a_un_corps_designe_apres_recharge(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_don_et_promesse_a_un_corps_designe_apres_recharge(self, _naissance):
         from donjon import agendas
         from donjon.moteur import Moteur, proposition
         from donjon.noms import designation

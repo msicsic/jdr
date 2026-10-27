@@ -146,7 +146,8 @@ class PorteTests(unittest.TestCase):
         self.assertFalse(lire(m, "odon")["croyances"]["porte_bureau"]["verrouillee"]["valeur"])
         self.assertEqual(m.objets["paie"]["lieu"], "odon")
 
-    def test_brune_crochete_la_porte_etanche_pour_la_reserve_du_palier(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_brune_crochete_la_porte_etanche_pour_la_reserve_du_palier(self, _naissance):
         # Autre cas de même nature : la réserve est au palier, derrière la porte étanche verrouillée ;
         # Brune, affamée, une torche allumée en main, n'a pas la clé.
         m = refusee(calme(relais(), "marchand", "ilse", "aubin"))

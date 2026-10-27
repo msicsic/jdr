@@ -368,7 +368,23 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
     original.data["jets"] = monde.data["jets"]
     if not accepte:
         return dict(bilan, cause="marche" if bilan["P"] > bilan["G"] else "persuasion")
+    # Un travail contre numéraire est la même tâche payée que « engager » :
+    # avance, garde et remboursement à l'échéance, dans la transaction du marché.
+    service_paye = False
+    for service, paiement, travailleur, payeur in (
+            (contrepartie, demande, proposant, auditeur),
+            (demande, contrepartie, auditeur, proposant)):
+        if (service["type"] == "tache" and paiement["type"] == "pieces"
+                and "objet" not in paiement and monde.objets.get(travailleur, {}).get("profil")):
+            service_paye = True
+            break
+    if service_paye:
+        issue = engager(monde, payeur, travailleur, service["condition"], paiement["montant"])
+        if issue != "accepte":
+            return dict(bilan, cause=issue)
     for terme, de, a in ((contrepartie, proposant, auditeur), (demande, auditeur, proposant)):
+        if service_paye:
+            continue  # Les deux prestations sont déjà inscrites par engager.
         t = terme["type"]
         if t in ("objet", "part"):
             if de == auditeur and not porte_par(monde, terme["objet"], de):

@@ -4,30 +4,42 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-naissance-agendas`, non fusionnée**, lot **184 / A6
-  partiel**, base `integration 4efb277` : table commune de cause/sorte/valeurs,
-  naissance pendant la nuit d'un objectif de pièces sur dette personnelle de
-  situation, registre et publication différée communs, trois actifs au plus,
-  sommeil/réveil, fin sur pièces disponibles ou dette personnelle retirée.
-  Délibération : désespoir prioritaire aussi pour les projets nés, rendu du but
-  en pièces. Cas Odon/mine et autre débiteur en données de tests, prises réelles
-  par `enrichir`, monde/rendu rechargés et laps entier/découpé contrôlés.
-  **Livraison partielle autorisée** : travail payé, vente, emprunt autonomes,
-  solde subjectif des créances locales et identité d'une nouvelle dette restent
-  ouverts ; aucune dette extérieure réputée remboursée par la seule acquisition.
-  Occasion, événement et soupçon déduit hors lot. Aucun Luna ni fichier réservé
+- **Branche `codex-naissance-agendas`, non fusionnée**, lots **184 a/b / A6
+  partiel**, base `integration 4efb277`, suite de `ae9504a` : table commune de
+  naissances et projet de pièces sur dette personnelle ; **184 b** compare
+  travail payé, vente de biens propres portés cessibles, prêt d'une bourse,
+  prise permise et vol au prix commun de la faute. Marches/paroles cherchées,
+  marchés par `proposer`, tâche contre numéraire par `engager` : avance,
+  engagement et remboursement éventuel communs. Pas d'accord ni fonds privés
+  supposés. Coût en minutes attendues par fraction du manque ; borne optimiste
+  sur le tarif du travail, sans supprimer un meilleur recours. Sommeil sans
+  nouvel essai identique, refus causaux, routine d'argent dédupliquée.
+  Odon et Rémy : ventes réelles, travail payé/accompli, prêt et vol, refus,
+  laps découpé, monde/rendu rechargés. **273 ciblés/repris distincts verts**,
+  31 fichiers ; suite unique **2 306 tests, 1 594,589 s**, 28 échecs/trois erreurs
+  bruts : cas repris verts hors deux MiMo historiques `6 != 5`. Frontière moteur
+  corrigée : coupe des annotations de devis avant publication du plan monétaire.
+  Capture de recherche : 31 passages, 17 monétaires/14 des recours de recherche ;
+  plafond de recherche précisé, monde/ouïe découpés conservés, A6 actif.
+  Répétition 42 de 184 a **causée par sa trajectoire de projet** : capture à 5,
+  reprise jusqu'à 240 strictement identique à l'archive, huit lectures de Mathe ;
+  même capture avec le seul projet abandonné, dette conservée : trois lectures.
+  Lecture des signes inchangée depuis la base ; aucun cas propre ajouté.
+  Banc final 184 b, 8/8 nuits sans plantage/usurpation, zéro bascule ;
+  `repetition` et `voir_alterne` disparus. Attente sous regard 164 → 74 min.
+  S/F/D, même `cats` du lot 183, mine 4 h : base **13,5/4,5/1,286**, 184 a
+  **12,25/4,75/1,143**, final 184 b **12,75/5/1,179** ; auberge inchangée.
+  Gain général non acquis ; noir mine base/184 b **31,25/90 PNJ·min**.
+  Coût fixe mine 1985/4 h base/184 a/184 b : neuves **264/401/342**, nœuds
+  **7 564/13 202/10 979**. Premier devis exhaustif 184 b : 187 362 nœuds ;
+  borne sans changement de monde/chronique/récit/souvenirs du relevé fixe ni
+  états/chroniques des huit nuits tirées. CPU final 14,52 s, indicatif ; aucun
+  temps du cache comparé. Vérifications au-delà du créneau, pas de seconde suite.
+  Aucune référence rejouée, aucun Luna ni fichier réservé
   aux lots 180/185 modifié ; deux calculs réduits au plus, `main` intacte.
-  **47 ciblés finaux verts** ; suite unique **2 297 tests, 1 389,616 s**,
-  quatorze échecs bruts : douze assertions historiques reprises vertes, deux
-  MiMo connus `6 != 5`, aucune erreur. **8/8 nuits 4 h** mine/auberge sans
-  plantage/usurpation, zéro bascule ; quatre projets d'Odon nés. Auberge stable,
-  mine : attente sous regard **59,43 → 164,03 min**, propositions **2,5 → 1**.
-  **Absence de boucle nouvelle non acquise** : `voir_alterne` en 7 et huit
-  lectures du même signe de Lucien par Mathe en 42. Gain de richesse non démontré.
-  Coût mine fixe 1985/4 h : recherches **749 → 941**, nœuds **7 564 → 13 202** ;
-  CPU indicatif **12,28 → 16,94 s**, sans conclusion de vitesse. Huit références
-  manquantes calculées une fois et cachées ; aucune référence rejouée.
-  Aucune clé de signature Git configurée. Bruts exclusivement
+  **Restent A6** : créances locales subjectives et identité d'une nouvelle dette,
+  occasion, événement, soupçon déduit ; pas de crédit numéraire nouveau ni de
+  remboursement extérieur simulé. Aucune clé de signature Git configurée. Bruts exclusivement
   `C:/Users/msics/donjon/artifacts/naissance-184/` ;
   [rapport 184](taches/rapport-codex-184-naissance-agendas.md).
 

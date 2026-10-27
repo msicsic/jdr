@@ -121,6 +121,11 @@ class NaissanceTests(unittest.TestCase):
 
     def test_sommeil_reveil_sur_croyance_nouvelle(self):
         m = scene()
+        # La bourse est ici le seul débouché connu ; les marchés ont leurs
+        # propres scènes dans test_agendas_pieces.
+        for qui, o in m.objets.items():
+            if o.get("profil") and qui != "odon":
+                croire(m, "odon", qui, "lieu", None, "vu", salle=None, case=None)
         croire(m, "odon", "paie", "pieces", 0, "essai")
         agendas.actualiser(m, "odon")
         with planification.vues_du_choix(m, "odon"):

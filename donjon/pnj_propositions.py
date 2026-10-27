@@ -71,8 +71,9 @@ def _entrees(monde, id, autre, besoin, demande):
     from .deliberation import moyens_crus, parts
     from .biens import proprietaire, richesse
     from .spatial import porte_par
-    causes = moyens_crus(monde, id, {"de": autre, "operation": "proposer", "objet": demande["objet"]})
-    return {"de": autre, "besoin": besoin, "objet": demande["objet"],
+    objet = demande.get("objet", autre)
+    causes = moyens_crus(monde, id, {"de": autre, "operation": "proposer", "objet": objet})
+    return {"de": autre, "besoin": besoin, "objet": objet,
             "cause": causes, "lien": dict(relations.axes(monde, id, autre)),
             "pieces": richesse(monde, id),
             "biens": {o: parts(x) for o, x in monde.objets.items()
@@ -446,7 +447,8 @@ def executer(monde, id, autre, contenu, lignes):
     from .pnj import _chroniquer
     from .social import _qui, faire_entendre
     demande, terme = contenu["demande"], contenu["contrepartie"]
-    if offre_refusee(monde, id, autre, demande["objet"], terme):
+    objet = demande.get("objet", autre)
+    if offre_refusee(monde, id, autre, objet, terme):
         return False
     if not offre_sensee(monde, id, autre, demande, terme):
         return False
@@ -463,8 +465,8 @@ def executer(monde, id, autre, contenu, lignes):
     memoriser(monde, id, {"type": "proposition", "a": autre, "demande": demande,
                           "contrepartie": terme, "issue": issue})
     if bilan["cause"]:
-        retenir_refus(monde, id, autre, "proposer", issue, objet=demande["objet"], besoin=besoin,
-                      offre=entrees_refus(monde, id, autre, demande["objet"], terme))
+        retenir_refus(monde, id, autre, "proposer", issue, objet=objet, besoin=besoin,
+                      offre=entrees_refus(monde, id, autre, objet, terme))
     recit = f"{_qui(monde, id)} propose à {_qui(monde, autre)} {en_mots(monde, terme)} contre {en_mots(monde, demande)}"
     _chroniquer(monde, id, f"{recit} ({issue}).", "social")
     reponse = (f"{_qui(monde, autre)} accepte l'échange."

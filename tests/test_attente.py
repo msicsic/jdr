@@ -4,6 +4,7 @@ ou entend un appel, un cri, un fracas, des paroles dont il saisit les mots. Vér
 sur ce que le joueur lit, après rechargement."""
 import re
 import unittest
+from unittest.mock import patch
 
 from donjon.commandes import analyser
 from donjon.esprits import croire, lire, pnjs
@@ -65,7 +66,8 @@ class CommandeTests(unittest.TestCase):
 
 
 class AttenteTests(unittest.TestCase):
-    def test_sans_rien_qui_l_interrompe_le_meme_monde_qu_un_bloc(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_sans_rien_qui_l_interrompe_le_meme_monde_qu_un_bloc(self, _naissance):
         # Le joueur, seul à la galerie, n'entend que des pas en dessous : rien ne l'interrompt.
         en_bloc, _ = faire(relais(), proposition("attendre"))
         par_tranches, texte, duree = attendre(relais(), "attendre 5 min")
@@ -99,7 +101,8 @@ class AttenteTests(unittest.TestCase):
         self.assertTrue(any(id not in vus for id in pnjs(reprise) if reprise.visible(id))
                         or any("un instant" in l for l in lignes), texte)
 
-    def test_un_appel_entendu(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_un_appel_entendu(self, _naissance):
         # Seul à la galerie : des pas en dessous ne l'interrompent pas, l'appel d'un nom si (ou un fracas).
         # La nuit libre n'a plus d'appel en douze heures depuis la part estimée (Gorm, qui achète les
         # planches d'Aubin pour le brasero, reçoit la part et recharge lui-même au lieu d'attendre le

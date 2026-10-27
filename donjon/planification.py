@@ -3034,7 +3034,13 @@ def _remettre(monde, id, o, condition, seul=None):
 
 
 def enrichir(monde, id):
-    """(but, étapes) pour prendre des pièces (un objet qu'il croit en contenir, qui n'est pas à lui)
+    """But et étapes d'une acquisition de pièces, d'après son devis commun."""
+    resultat = devis_enrichissement(monde, id)
+    return resultat[1:] if resultat else None
+
+
+def devis_enrichissement(monde, id):
+    """(coût, but, étapes) pour prendre des pièces (un objet qu'il croit en contenir, qui n'est pas à lui)
     qui valent pour lui plus que ce qu'il en coûte d'aller les prendre, faute comprise ; None sinon.
     L'argent ne presse jamais : aucune détresse n'use le prix de la faute (``caractere.ARGENT``).
 
@@ -3059,7 +3065,13 @@ def enrichir(monde, id):
                 or not _disponible_cru(monde, id, o)):
             continue
         lese = illicite(monde, id, o, confies=confies)
-        if not (lese and honnete) and (not lese or faute is not None and valeur_pieces(monde, id, n) > faute):
+        # L'interdiction de voler n'interdit pas de demander un prêt au
+        # propriétaire qui porte la bourse. Le graphe valide chaque moyen.
+        porteur = _lieu_cru(monde, id, o)
+        emprunt = (porteur == proprietaire(monde, monde.objets[o])
+                   and porteur in _connus(monde, id)
+                   and bool(profil(monde, porteur)))
+        if emprunt or not (lese and honnete) and (not lese or faute is not None and valeur_pieces(monde, id, n) > faute):
             bourses.append(o)
     if not bourses:
         return None
@@ -3073,7 +3085,7 @@ def enrichir(monde, id):
     pris = next(b for b in bourses if b in e.portes)
     if valeur_pieces(monde, id, crues[pris]) <= cout:
         return None  # Ces pièces ne valent pas, pour lui, ce qu'il lui en coûterait.
-    return {"type": "argent", "objet": pris}, retablir(v, e, _couper(etapes))
+    return cout, {"type": "argent", "objet": pris}, retablir(v, e, _couper(etapes))
 
 
 def reclamer(monde, id):
