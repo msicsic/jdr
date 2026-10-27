@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-ceder-outil`, non fusionnée**, lot **202**, base `1a3359a`,
+  **non validée pour intégration** : évaluation commune des capacités perdues
+  lors des cessions, doublons crus, remplacement et prêt distinct ; prix des
+  contre-offres honorables. Aucun nouveau but de convoitise, aucun Luna.
+  Lucien garde ses crochets en auberge 1 ; Gaspard offre encore son briquet
+  avec sa lampe allumée (119/34 min restantes) : horizon après extinction non garanti.
+  **16 nuits de 4 h**, quatre scénarios × quatre graines : outils proposés
+  **36 → 19**, acceptés **3 → 0**, zéro plantage/violation/usurpation ; avis suspects
+  **275 → 25**, mais trois retours brefs nouveaux ; richesse légèrement réduite
+  au Relais/mine et sans recours crue **15 → 30 min** en moyenne.
+  Coût mine fixe 1985 : recherches **698 → 987**, nœuds **6 684 → 10 558** ;
+  courts-circuits neutres sur **16/16 états et récits**, sans réduction du surcoût.
+  Suite unique **2 389 tests, 9 échecs, 3 erreurs, 16 ignorés** ; reprise
+  **57 tests, un échec de rendu découpé, un ignoré**. Restent deux écarts de
+  parcours propres à la branche (lanterne/ressources), un contrôle AST déjà
+  rouge sur la base et une limite de rendu découpé également prouvée sur la base.
+  Douze des treize nouveaux tests verts ; assertion stricte conservée.
+  Garantie générale non établie. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/outil-202/` ;
+  [rapport 202](taches/rapport-codex-202-ceder-outil.md).
+
 - **Branche `codex-garantie-avis`, fusionnée**, lot **199 / 196d**,
   base `0fb5a07` : mesure déterministe des retours de décision dans l'audit
   des nuits et le comparateur, mode empreintes compris ; comptes par PNJ,

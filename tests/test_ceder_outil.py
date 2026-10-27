@@ -161,7 +161,7 @@ class CederOutilTests(unittest.TestCase):
         from donjon.spatial import installer
         from tests.support import presentes, calme, regarder as orienter
         from tests.test_tensions import placer
-        for variante in ('seul', 'doublon', 'desespoir'):
+        for variante in ('seul', 'doublon', 'autre_flamme', 'desespoir'):
             with self.subTest(variante=variante):
                 m = presentes(nouveau_mine(depart='fixe'))
                 installer(m)
@@ -180,6 +180,8 @@ class CederOutilTests(unittest.TestCase):
                 lire(m, 'mathe')['relations']['gaspard'] = relations._nouvelle({'confiance': 70})
                 if variante == 'doublon':
                     m.objets['second_briquet'] = {**m.objets['briquet'], 'id': 'second_briquet'}
+                if variante == 'autre_flamme':
+                    m.objets['lampe_gaspard']['allume'] = True
                 percevoir_tous(m)
                 lire(m, 'gaspard')['intention'] = None
                 lire(m, 'gaspard')['besoins']['faim'] = 100 if variante == 'desespoir' else 65
