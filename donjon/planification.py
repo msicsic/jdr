@@ -136,15 +136,14 @@ def prix_gardes(monde, id, lieux):
     confiée ou un lieu de devoir. La présence crue qui inquiète le plus renchérit cette garde.
     """
     from .caractere import valeur
-    from .deliberation import periodique
+    from .deliberation import charges_gardees
     from .esprits import pnjs
     from .vol import proprietaire
     prix = {s: 0 for s in lieux}
     if not prix:
         return prix
-    for x in (profil(monde, id) or {}).get("pulsions", ()):
-        c = x["condition"]
-        if x["besoin"] != "biens" or periodique(c) or "objet" not in c:
+    for c in charges_gardees(monde, id):
+        if "objet" not in c:
             continue
         o = c["objet"]
         s = salle_crue(monde, id, o)

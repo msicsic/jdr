@@ -859,6 +859,9 @@ def de_garde(monde, id, salle):
     """Le lieu relève de son devoir de garde : il y fait une ronde, y garde un bien ou y entretient
     quelque chose (une pulsion du devoir ou des biens), ou un protégé s'y trouve, à ce qu'il croit."""
     p = profil(monde, id) or {}
+    if any(c.get("lieu") == salle or "objet" in c and salle_crue(monde, id, c["objet"]) == salle
+           for c in agendas.gardes(monde, id)):
+        return True
     for x in p.get("pulsions", []):
         c = x["condition"]
         if x["besoin"] in ("devoir", "biens") and (
@@ -1256,14 +1259,22 @@ def de_son_fait(monde, id, condition):
     return "lieu" in condition and "objet" in condition and porte_par(monde, condition["objet"], id)
 
 
+def charges_gardees(monde, id):
+    """Une charge commune aux pulsions, agendas, coûts et interposition."""
+    p = profil(monde, id) or {}
+    return [x["condition"] for x in p.get("pulsions", ())
+            if x["besoin"] == "biens" and not periodique(x["condition"])
+            and "objet" in x["condition"]] + agendas.gardes(monde, id)
+
+
 def _lieux_gardes(monde, id, siens=False):
     """Les salles où il croit ce qu'il garde : ses pulsions de biens sur un objet, hors rondes.
     ``siens`` : seulement ce dont il a la charge, le sien ou celui qu'on lui a confié (y toucher
     n'est pas une faute, ``illicite``), pas ce qu'il convoite."""
-    p = profil(monde, id) or {}
-    return {s for x in p.get("pulsions", []) if x["besoin"] == "biens" and not periodique(x["condition"])
-            and "objet" in x["condition"] and not (siens and illicite(monde, id, x["condition"]["objet"]))
-            for s in [salle_crue(monde, id, x["condition"]["objet"])] if s in monde.data["salles"]}
+    return {s for c in charges_gardees(monde, id)
+            if not (siens and "objet" in c and illicite(monde, id, c["objet"]))
+            for s in [salle_crue(monde, id, c["objet"]) if "objet" in c else c["lieu"]]
+            if s in monde.data["salles"]}
 
 
 def menaces(monde, id):
@@ -1289,9 +1300,12 @@ def gardes(monde, id):
     """Les salles où il croit ce qu'il garde (ses pulsions de biens qui ne sont pas des rondes),
     quand ses biens le pressent, ou quand il y croit quelqu'un qui le menace (``menaces``) :
     s'en tenir loin lui coûte (``planification.prix_gardes``), quel que soit le plan."""
+    declarees = {s for c in agendas.gardes(monde, id)
+                 for s in [salle_crue(monde, id, c["objet"]) if "objet" in c else c["lieu"]]
+                 if s in monde.data["salles"]}
     if "biens" in urgents(monde, id):
         return tuple(sorted(_lieux_gardes(monde, id)))
-    return menaces(monde, id)
+    return tuple(sorted(declarees | set(menaces(monde, id))))
 
 
 def _plan_garder(monde, id, condition):
@@ -1607,6 +1621,9 @@ def _candidats(monde, id):
         if besoin == "biens":
             for x in pulsions:
                 if periodique(x["condition"]):
+                    continue
+                if any(c.get("objet") == x["condition"].get("objet")
+                       for c in agendas.gardes(monde, id)):
                     continue
                 ajouter_recours(lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True)
     # Toute parole de service suit le devis qui l'a fait accepter, jusqu'à son abandon annoncé.
