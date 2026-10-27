@@ -126,6 +126,35 @@ def dernier_contrat_intention(monde, id):
     return copy.deepcopy(lire(monde, id).get("contrat_intention"))
 
 
+def charges_suspendues(monde, id):
+    """Charges du seul engagement courant ; aucune survie après son abandon."""
+    from .esprits import lire
+    i = lire(monde, id)["intention"]
+    reconstruction = getattr(monde, "_reconstruction_charges", None)
+    if i:
+        return copy.deepcopy(i.get("charges_suspendues", {}))
+    return copy.deepcopy(reconstruction[1]) if reconstruction and reconstruction[0] == id else {}
+
+
+@contextmanager
+def reconstruction_charges(monde, id, charges):
+    """Une évaluation ne libère la garde qu'après le remplacement effectif du but."""
+    ancien = getattr(monde, "_reconstruction_charges", None)
+    monde._reconstruction_charges = (id, charges)
+    try:
+        yield
+    finally:
+        monde._reconstruction_charges = ancien
+
+
+def retenir_charges(monde, id, conditions, *, restaurer=False):
+    from .esprits import esprit
+    i = esprit(monde, id)["intention"]
+    if conditions:
+        i["charges_suspendues"] = {"conditions": copy.deepcopy(conditions), "restaurer": restaurer}
+
+
+
 def champs_profil():
     return {"agendas"}
 

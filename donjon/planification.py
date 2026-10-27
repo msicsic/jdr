@@ -2813,8 +2813,60 @@ def rechauffe(v, e):
                        for f in v.foyers) for cle in e.faits)
 
 
+def suspensions(monde, id, etapes, but=None):
+    """Charges que les moyens publiés suspendent, sans dépendre de leur suffixe.
+
+    Les passages portent aussi les ouvertures implicites de leurs portes.
+    Une garde déjà rompue par un tiers n'est pas une suspension du plan.
+    """
+    gardees = [x["condition"] for x in profil(monde, id)["pulsions"]
+               if x["condition"].get("verrouillee")
+               or x["condition"].get("objet") == id and "lieu" in x["condition"]]
+    if not gardees or not etapes:
+        return []
+    from .deliberation import satisfaite
+    v, touches, lieux = vue(monde, id), set(), []
+    e = depart(monde, id, v)
+    portes = any(monde.objets[c["objet"]]["type"] == "porte" for c in gardees if c.get("verrouillee"))
+    for g in etapes:
+        if g["operation"] in ("ouvrir", "deverrouiller", "crocheter", "frapper"):
+            touches.add(g["cible"])
+        if g["operation"] == "aller":
+            lieux.append(g["lieu"])
+            if portes:
+                mesure = _mesurer(v, e, [g], e.apres(salle=g["lieu"]), 1)
+                if mesure:
+                    e = mesure[2]
+                    touches.update(k[1] for k, x in e.faits.items()
+                                   if k[0] == "ouvert" and x or k[0] == "verrou" and x is False)
+    return [dict(c) for c in gardees if but != {"type": "pulsion", **c}
+            and satisfaite(monde, id, c) and (c["objet"] in touches
+                or c.get("objet") == id and any(s != c["lieu"] for s in lieux))]
+
+
+def restaurer_charges(monde, id, conditions, depuis=None):
+    """Même recherche physique pour toute restauration, y compris le retour au poste.
+
+    None ne certifie pas la possibilité de restaurer : la garde redevient libre.
+    Le devis et la reprise emploient ce même contrat, sans gestes à distance.
+    """
+    if not conditions:
+        return 0, [], depuis
+    def atteint(v, e):
+        return all((not refermable(e.fait("fin", c["objet"]) or v.cru(c["objet"], "fin"))
+                    or v.verrouille(e, c["objet"]) and not v.ouvert(e, c["objet"]))
+                   if c.get("verrouillee") else e.salle == c["lieu"] for c in conditions)
+    return chercher(monde, id, atteint,
+                    {"fermer": tuple(c["objet"] for c in conditions if c.get("verrouillee"))},
+                    depuis=depuis, nom="restaurer_charges", memo=["restaurer_charges", conditions], emplois=())
+
+
 def retablir(v, e, etapes):
     """Ce qu'il garde sous clé et auquel le plan a touché, il le referme à clé avant de finir."""
+    complet = not any(g.get("attendre_remise") or g.get("suppose") for g in etapes)
+    etapes = _couper(etapes)
+    if not complet:
+        return etapes  # L'intention porte la restauration au-delà de ce préfixe.
     for x in profil(v.monde, v.id)["pulsions"]:
         cible = x["condition"].get("objet")
         if (not x["condition"].get("verrouillee") or not e.fait("touche", cible)
@@ -2857,7 +2909,7 @@ def planifier(monde, id, besoin):
     if trouve is None:
         return None
     _, etapes, e = trouve
-    return _resultat(vue(monde, id), e, _couper(etapes), besoin)
+    return _resultat(vue(monde, id), e, etapes, besoin)
 
 
 def _couper(etapes):
@@ -2990,7 +3042,7 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     if trouve is None:
         return None
     cout, etapes, e = trouve
-    return cout, {"type": "pulsion", **condition}, retablir(vue(monde, id), e, _couper(etapes))
+    return cout, {"type": "pulsion", **condition}, retablir(vue(monde, id), e, etapes)
 
 
 def _vu_avant_la_tache(monde, id, condition, payeur):
@@ -3039,7 +3091,20 @@ def _devis_remise(monde, id, o, condition, seul):
     if mesure is None:
         return None
     cout = trouve[0] + mesure[0] + mesure[1]
-    return cout, {'type': 'pulsion', **condition}, _couper(trouve[1]) + [remise]
+    but = {'type': 'pulsion', **condition}
+    charges = suspensions(monde, id, trouve[1], but)
+    fin = mesure[2].apres(portes=mesure[2].portes - {o}, faits=[(("lieu", o), condition['remettre'])])
+    restauration = restaurer_charges(monde, id, charges, depuis=fin)
+    if restauration is None:
+        return None
+    cout += restauration[0]
+    # Une remise dépendant encore d'une acquisition incertaine ne s'exécute
+    # pas au bout du préfixe. La charge, elle, est portée par l'intention.
+    complet = not any(g.get('attendre_remise') or g.get('suppose') for g in trouve[1])
+    etapes = _couper(trouve[1])
+    if complet:
+        etapes += [remise] + _couper(restauration[1])
+    return cout, but, etapes
 
 
 def _remettre(monde, id, o, condition, seul=None):
@@ -3115,7 +3180,7 @@ def devis_enrichissement(monde, id):
     pris = next(b for b in bourses if b in e.portes)
     if valeur_pieces(monde, id, crues[pris]) <= cout:
         return None  # Ces pièces ne valent pas, pour lui, ce qu'il lui en coûterait.
-    return cout, {"type": "argent", "objet": pris}, retablir(v, e, _couper(etapes))
+    return cout, {"type": "argent", "objet": pris}, retablir(v, e, etapes)
 
 
 def reclamer(monde, id):
@@ -3251,7 +3316,7 @@ def eclairer(monde, id):
     # livraisons attendues. Une attente sans geste n'a encore rien rétabli.
     if etapes and not any("allume" in v.objets[k] and v.feu(e, k)[0] for k in e.portes):
         etapes = [*etapes, _etape("abriter", lieu=e.salle)]
-    return {"type": "lumiere"}, retablir(v, e, _couper(etapes))
+    return {"type": "lumiere"}, retablir(v, e, etapes)
 
 
 def garder(monde, id, salle):
@@ -3260,7 +3325,7 @@ def garder(monde, id, salle):
     est pas, il n'y va que si cela lui coûte moins que rester où il est, sinon il endure."""
     trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="garder:" + salle, memo=["garder", salle],
                       emplois=(), motif="biens", tenir=True, endurer=0)
-    return None if trouve is None else retablir(vue(monde, id), trouve[2], _couper(trouve[1]))
+    return None if trouve is None else retablir(vue(monde, id), trouve[2], trouve[1])
 
 
 def abri(monde, id, salles):
