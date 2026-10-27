@@ -29,7 +29,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Suite complète unique : 2 360 tests, un seul échec (contrôle AST des agendas par le détecteur 199, corrigé sur l'intégration). Bruts
   exclusivement `C:/Users/msics/donjon/artifacts/occasions-200/` ;
   [rapport 200](taches/rapport-codex-200-occasions-sur-base.md).
-  Fusionné sur l'intégration : conflits de documentation et de `tests/test_ressources.py` (scène sans souci du lot 197 et stock contractuel du lot 200, réunis) ; base antérieure aux lots 197, 199 et 201 : suite complète relancée sur la fusion. Remplace le lot 186 annulé.
+  Fusionné sur l'intégration : conflits de documentation et de `tests/test_ressources.py` (scène sans souci du lot 197 et stock contractuel du lot 200, réunis) ; base antérieure aux lots 197, 199 et 201 : suite complète relancée sur la fusion (`tools/tests.py --processus 2`) : **2 389 tests, 16 ignorés, deux échecs**, deux nuits réelles changées par les nouvelles données : `test_battants_brises` (crue 2024, Brune vend son bois au lieu de briser la réserve ; reprend le stock contractuel d'avant 186) et `test_banc_sans_joueur` (Gorm sert Brune par empathie avant sa demande) ; adaptés, 9 tests repris verts. Remplace le lot 186 annulé.
 
 - **Branche `codex-reserve-brisee`, fusionnée**, lot **201 / 196 a**,
   base exacte `fffa3a2` : capacité commune de fermeture sur fin crue/constatée/
