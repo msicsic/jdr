@@ -24,7 +24,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Une reprise coordonnée du moteur dépasse les fichiers autorisés dans ce lot.
   Code `3805393`. Aucune clé de signature configurée ; commits non signés, branche seule poussée.
   [Rapport 151](taches/rapport-codex-151-portee-locale.md).
-  Fusionné sur l'intégration après le lot 150 : conflits de documentation seulement ; `mj.py` touché aussi par le lot 150 (ordre des requêtes), fusionné sans conflit textuel ; suite complète relancée. Question de l'agent (recenser toutes les cibles éloignées en reprenant les préparateurs) non retenue : le joueur lit le premier refus puis s'approche.
+  Fusionné sur l'intégration après le lot 150 : conflits de documentation seulement ; `mj.py` touché aussi par le lot 150 (ordre des requêtes), fusionné sans conflit textuel ; suite complète relancée. Question de l'agent (recenser toutes les cibles éloignées en reprenant les préparateurs) non retenue : le joueur lit le premier refus puis s'approche. Suite complète sur les fusions 150 et 151 (`tools/tests.py --processus 2`) : **2 198 tests, 16 ignorés, trois échecs de tests**, aucun du jeu : l'empreinte figée des requêtes du lot 150 (prise avant les lots 151, 152, 154) remplacée par une comparaison avec et sans l'ordre des sources sur le code courant ; `tools/mesure_prompt.py` reproduit la clé de cache par voie du lot 150. Les deux fichiers repris : 12 tests verts.
 
 - **Branche `codex-prompt-prefixe`, fusionnée**, lot **150**, base `4641dc3`,
   code `9a55cc1` : portage ciblé de `9d53229`, ordre commun des faits et entrées,

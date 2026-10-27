@@ -59,11 +59,16 @@ def requetes_et_recharge(type_mj, cas):
 
 
 class ContenuConserveTests(unittest.TestCase):
-    def test_requetes_et_recharge_identiques_a_integration_sur_deux_scenes(self):
-        reference = json.loads((Path(__file__).parent / "data" / "prompt-prefixe-avant.json").read_text(encoding="utf-8"))
+    def test_requetes_et_recharge_identiques_a_l_ordre_pres_sur_deux_scenes(self):
+        # Le même code, avec et sans l'ordre des sources : mêmes requêtes au contenu près
+        # (empreintes à clés triées), même état et même rendu après rechargement. Comparer au code
+        # courant plutôt qu'à une empreinte figée : les lots suivants changent légitimement le contenu.
         for cas in CAS:
             with self.subTest(cas=cas):
-                self.assertEqual(requetes_et_recharge(MJ, cas), reference[cas])
+                ordonne = requetes_et_recharge(MJ, cas)
+                with patch("donjon.mj.ordonner_entree", side_effect=lambda entree: entree):
+                    brut = requetes_et_recharge(MJ, cas)
+                self.assertEqual(ordonne, brut)
 
     def test_ordre_idempotent_sans_perte_et_revision_toujours_en_fin(self):
         entree = {"consigne_revision": "corrige", "inconnu": [1],

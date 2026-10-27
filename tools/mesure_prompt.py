@@ -18,6 +18,7 @@ import types
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from donjon.fournisseurs.schema import mutualiser
+from donjon.sources import voie_cache
 
 
 def serialiser(value):
@@ -52,7 +53,9 @@ def payload(e):
                                   'parameters': mutualiser(e['schema']), 'strict': True}]}],
             'tool_choice': 'required', 'parallel_tool_calls': False,
             'reasoning': {'effort': e.get('effort', 'medium')}, 'store': False,
-            'prompt_cache_key': '00000000-0000-0000-0000-000000000000'}
+            'prompt_cache_key': '00000000-0000-0000-0000-000000000000:' + voie_cache(
+                e['fonction'], e['entree'],
+                e['schema'].get('properties', {}).get('mode', {}).get('enum') != ['dialogue'])}
 
 
 def prefixe(a, b):
