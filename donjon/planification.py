@@ -231,7 +231,8 @@ class Vue:
         from .vol import proprietaire
         self.monde, self.id = monde, id
         self.objets = monde.objets
-        self.salles = monde.data["salles"]
+        from .presence import salles_interieures, interieur
+        self.salles = salles_interieures(monde, monde.objets[id]["lieu"])
         self.connus = _connus(monde, id)
         # Toucher au bien d'autrui, hors ce qu'un prêt ou une garde permettent ; le consommer (le
         # manger, en servir une part), que rien ne permet.
@@ -313,7 +314,7 @@ class Vue:
         self._passages_crus = any("passage" in c for c in lire(monde, id)["croyances"].values())
         self._metrique = metrique_necessaire(monde, id) if self._passages_crus else False
         self._metriques = {15: self._metrique}
-        self._cru_spatial = monde_cru(monde, id) if monde.data.get("mode_cases") else None
+        self._cru_spatial = interieur(monde_cru(monde, id)) if monde.data.get("mode_cases") else None
         self._approches = {}
         self._contextes_routes, self._tarifs_routes, self._effets_routes = {}, {}, {}
         self._mesures_allers = {}

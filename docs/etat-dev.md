@@ -4,6 +4,36 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-sortie-exterieure`, fusionnée**, lot **189**, base
+  `60617f9` : une sortie terminale est exclue du graphe des déplacements
+  internes, des estimations et des candidats de `Vue`, avec sa carte dans
+  `_entrees` ; la marche PNJ revalide la transition courante dans les deux
+  modes. Départ volontaire du joueur conservé. Les **439 événements** du
+  hameau 1 (revue 187) sont reproduits à l'identique sur la base ; captures
+  Brune 120 / Ilse 177 reprises sans départ, état complet et rendu identiques
+  après recharge et temps entier/découpé. Gorm 352 min 54,7 s / Aubin
+  380 min 39,7 s (hameau 2024, cas 188) également repris, recharges et laps
+  découpés identiques. **34 ciblés finaux verts** ; suite unique **2 297 tests,
+  265 fichiers, 2 304,410 s**, aucun échec/erreur, 16 ignorés (15 dépendances
+  MiMo facultatives, un `jsonschema`). Deux compléments après le passage du
+  fichier sont vérifiés en ciblés. **16/16 empreintes 2 h** Relais/mine/auberge/
+  crue × quatre graines identiques à la base exacte, état complet, repères,
+  récits et 32 recharges compris ; références manquantes constituées une fois.
+  **5/5 nuits hameau 4 h**, graines 1/1985/7/42/2024 : zéro PNJ parti,
+  usurpation ou plantage, cinq recharges état/rendu identiques, aucune boucle
+  « à expliquer ». Deux bascules isolées ; passages horaires max 24/40/22/19/28.
+  Contrôle exact 1985 : Sève quitte les lieux à 192 sur la base ; Gorm
+  20 → 40 passages/h sur le lot, achats, inspections de deux bruits distincts
+  et ronde ; hausse signalée, pas de boucle sans nouvel événement identifiée.
+  Pas de garantie générale sur les autres boucles ni but autonome de départ.
+  Deux travailleurs réduits au plus, sans Luna, aucun fichier réservé modifié,
+  aucune clé Git configurée (commit non signé). Poussée rejetée par la revue
+  automatique (export privé, propriété/destination GitHub non établies) ;
+  commit conservé localement selon le brief. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/sortie-189/` ;
+  [rapport 189](taches/rapport-codex-189-sortie-exterieure.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `planification.py`, fusionnés sans conflit textuel. Corrige la régression du lot 181 trouvée par la revue 187 et le diagnostic 188 (Brune 120, Ilse 177 hameau 1 ; Gorm 352, Aubin 380 hameau 2024). À surveiller : pic de passages hameau 1985 20 → 40/h, sans boucle identifiée.
+
 - **Branche `codex-naissance-agendas`, fusionnée**, lots **184 a/b / A6
   partiel**, base `integration 4efb277`, suite de `ae9504a` : table commune de
   naissances et projet de pièces sur dette personnelle ; **184 b** compare
