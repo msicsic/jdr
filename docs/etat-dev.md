@@ -4,6 +4,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-deja-entendu`, fusionnée**, lot **191**, base
+  `integration 8a10a16` : livraison **partielle, à ne pas intégrer comme garantie
+  de l'invariant subjectif complet**. Le registre commun suit les paroles
+  entendues par les témoins connus, y compris les avis refusés ; plusieurs
+  positions entendues coexistent sans devenir des croyances. Les nouvelles,
+  `_a_dire` et les preuves de transmission consultent ce registre sauvegardé.
+  Un changement appris rouvre les anciennes valeurs ; une première conclusion
+  personnelle ne se confond plus avec le contenu d'une parole entendue.
+  **Limite ouverte** : le contrôle historique `_sait` de `bavarder` lit encore
+  l'esprit de l'auditeur pour les connaissances antérieures. Sa suppression et
+  un essai de vue commune ont révélé des régressions de défense et de trajets ;
+  cet essai est retiré. Il faut étendre le contrat des observations communes,
+  au-delà des seules fonctions de registre autorisées dans `esprits.py`.
+  Suite unique intermédiaire : **2 299 tests, 265 fichiers, 1 572,001 s,
+  15 échecs et une erreur**, dont les deux MiMo historiques ; elle ne valide
+  pas à elle seule la version réduite finale. **135 ciblés finaux verts,
+  17 fichiers** ; les échecs intermédiaires hors les deux MiMo historiques
+  sont repris verts, deux empreintes réancrées (plans et vues inchangés).
+  **16 nuits retenues 4 h** : zéro plantage/usurpation, aucune nouvelle alerte
+  de boucle. Confidences totales Relais/mine/auberge/crue :
+  **9/127/37/48 → 9/81/30/37** ; avis crue **15 → 5**, deux adoptions,
+  aucune dispute naturelle. Seize références `4c57020` relues, antérieures
+  à la base : écarts non attribuables au seul lot. Mine 1 rejouée dès le début :
+  guet **15 → 3** ; ancienne capture avant 40 garde encore les annonces 40/41,
+  sans reconstitution rétroactive des audiences. Reprises 10 min / 5 + 5,
+  mondes et rendus rechargés identiques. Aucun Luna,
+  deux calculs réduits au plus ; tous les bruts conservés dans
+  `C:/Users/msics/donjon/artifacts/deja-entendu-191/`.
+  [Rapport 191](taches/rapport-codex-191-deja-entendu.md).
+  Fusionné sur l'intégration : conflits de documentation et de `tests/test_etapes_chainees.py` (patch des naissances A6 du lot 184 et paroles attendues du lot 191, réunis) ; aucun fichier de code du jeu commun depuis la base. Livraison partielle : annonces du guet de la mine 15 → 3. Reste un lot séparé : `_sait` dans `bavarder` lit encore le savoir réel de l'auditeur.
+
 - **Branche `codex-naissance-evenement`, fusionnée**, lot **192 / A6
   deuxième volet partiel**, base `integration 3668061` : un portage illégitime
   constaté et son épreuve persistante font naître `récupérer {objet, qui}` par

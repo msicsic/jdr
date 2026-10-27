@@ -83,10 +83,11 @@ def faits_dits(noyau):
 
 
 def transmission_attestee(monde, id, auditeur, noyau):
-    """Preuve positive d'une parole ; l'abstention du registre plein n'en est pas une."""
+    """Preuve positive du contenu partagé ; le registre plein n'en est pas une."""
     registre = lire(monde, id)["faits_dits"]
-    return all(cle in registre and auditeur in registre[cle]["dit_a"]
-               and registre[cle]["dit_a"][auditeur] == valeur
+    return all(cle in registre and (
+               auditeur in registre[cle]["dit_a"] and registre[cle]["dit_a"][auditeur] == valeur
+               or valeur in registre[cle].get("entendu_a", {}).get(auditeur, []))
                for cle, valeur in faits_dits(noyau))
 
 
@@ -94,6 +95,7 @@ def deja_dit(monde, id, auditeur, noyau):
     registre = lire(monde, id)["faits_dits"]
     return all((cle in registre and auditeur in registre[cle]["dit_a"]
                 and registre[cle]["dit_a"][auditeur] == valeur)
+               or (cle in registre and valeur in registre[cle].get("entendu_a", {}).get(auditeur, []))
                # Une nouvelle identité ne peut plus être suivie à saturation.
                or cle not in registre and len(registre) >= DITS_MAX
                for cle, valeur in faits_dits(noyau))
@@ -107,7 +109,50 @@ def retenir_dit(monde, id, auditeur, noyau):
         if cle not in registre:
             registre[cle] = {"valeur": copy.deepcopy(valeur), "dit_a": {}}
         registre[cle]["valeur"] = copy.deepcopy(valeur)
+        registre[cle].pop("valeur_inconnue", None)
         registre[cle]["dit_a"][auditeur] = copy.deepcopy(valeur)
+
+
+def _audience_connue(monde, locuteur, contenu, geste, observateur=None):
+    """Photographie ce que chacun peut constater de l'audience de la parole.
+
+    Entendre n'établit pas la vérité du contenu. Le registre suit seulement
+    qui le sait déjà dit, y compris quand il refuse de le croire. Un témoin
+    caché ne devient pas connu des autres par sa seule présence réelle.
+    """
+    from .ouie import saisit
+    from .pnj import pourraient_se_parler
+    from .paroles import _stats_pnj, capacite_transmission
+    auditeurs = [x for x in sorted(pnjs(monde)) if x != locuteur
+                 and monde.objets[x].get("profil") and saisit(monde, locuteur, x, geste)]
+    suivis = []
+    for observateur in ([observateur] if observateur is not None else [locuteur, *auditeurs]):
+        if observateur == "joueur":
+            continue
+        capacite = min(capacite_transmission(_stats_pnj(monde, x)["INT"])
+                       for x in (locuteur, observateur))
+        for autre in [locuteur, *auditeurs]:
+            if autre == observateur or not pourraient_se_parler(monde, observateur, autre):
+                continue
+            compris = min(capacite, capacite_transmission(_stats_pnj(monde, autre)["INT"]))
+            for c in contenu[:compris]:
+                if c["type"] in ("affirmation", "rumeur", "aveu"):
+                    suivis.append((observateur, autre, c if c["type"] == "affirmation" else c["evenement"]))
+    return suivis
+
+
+def _retenir_audience(monde, audience):
+    for observateur, autre, noyau in audience:
+        registre = esprit(monde, observateur)["faits_dits"]
+        for cle, valeur in faits_dits(noyau):
+            if cle not in registre and len(registre) < DITS_MAX:
+                registre[cle] = {"valeur": None, "valeur_inconnue": True, "dit_a": {}}
+            if cle in registre:
+                # Deux positions contraires peuvent avoir été entendues sans
+                # que l'une efface l'autre ni la position personnellement dite.
+                valeurs = registre[cle].setdefault("entendu_a", {}).setdefault(autre, [])
+                if valeur not in valeurs:
+                    valeurs.append(copy.deepcopy(valeur))
 
 
 def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details):
@@ -126,6 +171,12 @@ def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details)
         avant = dict(faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
                                 "valeur": ancienne}))
     for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur}):
+        if precedente is None and registre.get(cle, {}).get("valeur_inconnue"):
+            # Le contenu entendu n'était pas sa propre conclusion. La première
+            # conclusion calculée ne prouve donc aucun changement appris.
+            registre[cle]["valeur"] = copy.deepcopy(v)
+            registre[cle].pop("valeur_inconnue")
+            continue
         if precedente is None and cle not in registre:
             # Première conclusion dérivée : aucun changement connu. La suivre
             # empêche qu'une même conclusion réaffirmée rouvre un avis refusé.
@@ -136,12 +187,17 @@ def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details)
         ancienne = avant.get(cle) if precedente is not None else registre.get(cle, {}).get("valeur")
         if cle in registre:
             registre[cle]["valeur"] = copy.deepcopy(v)
+            registre[cle].pop("valeur_inconnue", None)
         if connue and ancienne == v:
             continue
         for e in monde.data.get("esprits", {}).values():
-            dits = e.get("faits_dits", {}).get(cle, {}).get("dit_a", {})
+            fait = e.get("faits_dits", {}).get(cle, {})
+            dits = fait.get("dit_a", {})
             if id in dits and dits[id] != v:
                 del dits[id]
+            entendus = fait.get("entendu_a", {})
+            if id in entendus:
+                entendus[id] = [valeur for valeur in entendus[id] if valeur == v]
 
 
 def migrer_dits(monde, id):
@@ -544,8 +600,12 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
     texte = nommer_pour(monde, texte, observateur=id)
     reponse = nommer_pour(monde, reponse, observateur=auditeur)
     diffuse = [dict(c, dispute=True) if opposition and c is avis else c for c in contenu]
+    audience = _audience_connue(monde, id, diffuse, geste)
     retentir(monde, id, geste, texte=texte, cites=[auditeur, *cites],
              parole={"a": [auditeur], "contenu": diffuse})
+    # Après réception : réviser une croyance pendant la parole ne doit pas
+    # effacer la preuve que sa nouvelle valeur vient d'être entendue ensemble.
+    _retenir_audience(monde, audience)
     if avis and avis.get("dispute"):
         for qui in presents:
             retenir_dit(monde, id, qui, avis["evenement"])
@@ -809,6 +869,7 @@ def retenir_parole(monde, id, locuteur, destinataires, texte, cites, contenu):
                           "cites": list(cites), **({} if identifie(monde, id, locuteur) else {"voix_inconnue": True})})
     capacite = min(capacite_transmission(_stats_pnj(monde, x)["INT"]) for x in (locuteur, id))
     issues = [i for i in (recevoir(monde, id, locuteur, c) for c in contenu[:capacite]) if i]
+    _retenir_audience(monde, _audience_connue(monde, locuteur, contenu, "dire", observateur=id))
     if issues:
         from .esprits import reconsiderer
         reconsiderer(monde, id)  # Ce qu'il a surpris lui apprend quelque chose.
@@ -831,7 +892,7 @@ def bavarder(monde, id, lignes):
         if auditeur is None:
             continue
         if _sait(monde, auditeur, noyau):
-            continue  # Il le sait déjà : rien à apprendre, la minute n'est pas perdue.
+            continue  # Limite historique : ce contrôle lit encore le savoir de l'auditeur.
         # Destinataire et témoins auditifs reçoivent le même contenu. Une accusation
         # adressée à son auteur reste une parole, sans lui apprendre une rumeur sur lui.
         # Si un tiers va contredire, le destinataire est lui aussi témoin des
