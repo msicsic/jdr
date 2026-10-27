@@ -1,68 +1,56 @@
-# Lot 206 — Savoir attribué à l’auditeur
+# Lot 206 b — Ne confier que le nouveau utile
 
-Branche `codex-sait-observations`, **non fusionnée, validation globale non acquise**.
-Base initiale `a488f1f`, reprise demandée sur **aadab7c** (205/207), fusion
-`1457239` ; `cca5f50` ajoute seulement des briefs. Code mesuré : `7e1d9dd`.
-Deux travailleurs au plus, priorité réduite, aucun Luna. Sans clé configurée,
-commits non signés. Bruts : `C:/Users/msics/donjon/artifacts/sait-206/`.
+Branche `codex-sait-observations`, **non fusionnée**. Intégration demandée
+`3aa16f7`, fusion `12cb925`, code mesuré `410e1b9`. Aucun Luna ; deux calculs
+au plus, priorité réduite. Sans clé configurée : commits non signés. Bruts :
+`C:/Users/msics/donjon/artifacts/sait-206/`. Le premier bilan 206 reste dans
+l’historique (`820762d`) ; cette reprise remplace ses conclusions provisoires.
 
-**Invariant.** `social.bavarder` consulte uniquement les paroles, audiences et
-observations communes du locuteur. `reviser_dits` ne rouvre plus les registres
-des autres sur acquisition privée. La réception conserve `_connait_reception` :
-une confirmation ne remplace pas la preuve personnelle, ni ne réapprend une
-agression. `esprits.percevoir_tous` collecte les acquisitions d’une même passe,
-avec support physique commun et témoin perçu. `voir_ensemble` couvre aussi les
-états/possessions ; `pnj._temoins` conserve le geste public avant interprétation
-individuelle. `social.observation_commune` persiste immédiatement valeur et
-audience dans le registre existant. Regards physiques réutilisés dans la passe,
-aucune ancienne croyance privée comme preuve. Témoin caché, arrivée ultérieure
-et absence inférée de positions privées sont exclus. Fichiers interdits et
-`_abriter` inchangés par ce lot.
+**Invariant et fonctions.** `social._auditeur` choisit un contenu nouveau et
+utile selon le locuteur, sans consulter le savoir, le plan ou les besoins privés
+du destinataire. `_utile` emploie le corps observé, le lieu cru, un moyen qui
+peut y servir, les tâches et rendez-vous convenus. Posséder du combustible ne
+suffit pas à rendre son épuisement utile à un transi sans foyer utilisable connu.
+Les griefs gardent leur portée sur la confiance ; les avis réutilisent leur
+contrat de destinataire concerné, rendez-vous compris.
 
-**Diagnostic 191.** Neutraliser `_sait` partout reproduit deux échecs de défense ;
-le retirer seulement de la décision en laisse un : avant d’intervenir, le
-protecteur confie à Aubin l’agression déjà vécue et la torche éteinte. Réception
-des confirmations et observation commune rétablissent ces cas. Les onze tests
-de trajets passent sans reproduire l’ancienne régression ; aucun réancrage.
+`_nouveau` distingue valeur exacte et conséquence mécanique : même état d’eau,
+même sens d’évolution, aucune nouvelle confidence ; franchissement du seuil de
+passage/noyade ou décrue, parole possible si utile. `portee_a` conserve cette
+preuve dans le registre existant des faits dits, validé par `esprits`, sans
+changer les champs réservés au registre distinct du lot 221. `percevoir_tous`
+reconnaît l’environnement acquis ensemble, même hors du champ directionnel.
+Une rotation géométrique du joueur ne prouve pas aux PNJ qu’il a acquis le fait.
+Enfin le geste public ne change pas d’identité selon le jugement sur le lésé ;
+sa précision de lieu ne recrée pas une agression à la réception. Le grief de
+portage est distinct de la simple position vue ensemble. `_abriter`,
+`deliberation.py` et les autres fichiers interdits sont intacts.
 
-**Preuves.** Cas réel mine 3 : Rémy a lu seul le guet d’Odon ; Josse, qui
-l’ignore, le lui redit. Autre cas : vivres épuisés connus par essai indépendant.
-Huit nouveaux tests vérifient témoins visibles/cachés, geste réel, changements
-privés/communs, salle, état et mots après rechargement. **57 ciblés finaux verts**.
-Suite complète : **2 430 tests / 281 fichiers, 14 échecs, zéro erreur,
-16 ignorés** ; quatre fragments terminés conservés, aucun fichier terminé
-rejoué sur cette base. Recalcul pur/mémorisé vert.
+**Preuves et reprise des échecs.** Six nouveaux tests : besoin privé ignoré,
+besoin observé, projet annoncé, hauteurs successives sur deux scénarios,
+parole réellement reçue/rechargée (centimètre tu, noyade et retour au sec dits),
+identité publique d’un geste et environnement commun. État et mots rendus sont
+comparés après recharge. Les huit cas subjectifs de 206 restent exercés.
+Le recours historique retrouve sa borne de passages ; 53 contrôles de registres,
+découpage et observations passent sans réancrage. Appel négocié rétabli sur la
+reprise ciblée. Deux captures d’oracle et avis crue 2024 encore en échec ciblé.
+Auberge : seul le hash de sauvegarde diffère ; mine : visites/plans et sauvegarde,
+avec lignes et vues identiques à `3aa16f7`. Aucun hash ni horaire attendu changé.
 
-Échecs maintenus : cinq comparaisons de registres après rotations, recours
-(40 passages pour 12 permis), appel mine, source de perception, avis crue,
-deux captures, confirmation supplémentaire, deux accusations de portage tues
-au témoin. Deux comparaisons diagnostiquées diffèrent uniquement sur l’audience
-joueur (4/12 champs) : ses rotations changent son regard ; six recharges
-monde/rendu identiques. Cela n’explique pas tous les échecs ; leur caractère
-préexistant sur aadab7c n’est pas établi. Assertions historiques non réancrées.
+**Scènes précisées avec accord explicite du superviseur**, assertions identiques :
 
-**Banc : vingt paires de quatre heures**, cinq scénarios × 1985/7/42/2024,
-compteur des changements d’avis actif. Cache consulté, aucune nuit disponible :
-vingt références calculées/rangées, puis branche. Sommes des quatre graines :
+- `test_constats_partages.scene` : Gorm affamé (90), constaté par Ilse.
+- Verrou : tâche connue de Gorm sur la porte ; réserve vide : tâche sur la réserve.
+- Brasero dans les constats vus : froid cru de Gorm ; test de découpage : froid réel
+  (90) et observé, conservé pendant son écoute sans action.
+- Auditeur arrivé après la parole (`test_deja_entendu`) : Aubin cru affamé.
+- Extinctions (`test_avis_redits`) : Josse connaît le projet de rallumer les deux
+  lampes pour Lucien ; Brune celui de rallumer la torche pour ses interlocuteurs.
+- Ancienne rumeur sur soi : naissance du projet de rachat isolée, en plus de la
+  réclamation déjà isolée sur l’intégration. Le retour du marteau venait d’un
+  achat à 7 pièces, pas d’une retransmission de la rumeur.
 
-| Scénario | Confidences | Constats | Avis | Avertissements redits | Retours suspects |
-|---|---:|---:|---:|---:|---:|
-| Relais | 30 → 43 | 23 → 35 | 0 → 0 | 0 → 0 | 0 → 0 |
-| Mine | 84 → 157 | 76 → 140 | 0 → 0 | 6 → 8 | 1 → 1 |
-| Auberge | 57 → 75 | 56 → 74 | 0 → 0 | 1 → 2 | 5 → 6 |
-| Crue | 56 → 334 | 41 → 319 | 4 → 3 | 0 → 7 | 9 → 15 |
-| Hameau | 74 → 385 | 40 → 354 | 12 → 9 | 0 → 6 | 9 → 6 |
-
-**Critères non validés.** Zéro plantage/usurpation, mais répétitions **2 → 23**,
-demandes en boucle **0 → 26** ; suspects en hausse auberge 7, crue 7/42.
-Exemples : Brune→Gorm, crue 1985, 54 confirmations ; Gorm→Aubin, hameau 7, 27.
-L’audit normalise les hauteurs successives : ces comptes ne prouvent pas une
-même valeur répétée, mais leur effet reste à résoudre. Entrées à expliquer
-**204 → 204**, distinctes des retours non justifiés **24 → 28**.
-
-**Reprise : ne pas fusionner comme correction validée.** Analyser confirmations
-fréquentes et 14 échecs sans lecture privée ni exception sur l’eau. Anciennes
-audiences manquantes non reconstructibles ; plafond de 512 identités inchangé.
-Coprésence seule ne rend pas publiques intentions/prévisions. Preuves :
-`suite-integration.json`, `banc-integration.json`, `synthese-banc-final.json` ;
-ancienne passe a488f1f archivée séparément.
+**Mesures finales en cours.** Une seule suite complète (284 fichiers), vingt
+paires de quatre heures contre `3aa16f7`, compteur 219 avec classes. Un travailleur
+par commande, référence puis branche. Résultats détaillés attendus dans
+`suite-206b.json` et `banc-206b.json` ; aucune validation globale annoncée ici.

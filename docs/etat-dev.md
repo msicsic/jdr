@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-sait-observations`, non fusionnée**, reprise **206 b**,
+  intégration demandée **`3aa16f7`**, fusion `12cb925`, code **`410e1b9`**.
+  Nouveauté et utilité jugées sur le seul locuteur : besoin corporel observé,
+  moyen employable dans le lieu cru, tâche/rendez-vous convenus ; les mesures
+  successives d'eau ne rouvrent la parole qu'au changement de conséquence
+  (état de passage, noyade, décrue), portée persistée dans `faits_dits`.
+  Environnement acquis ensemble reconnu même hors du champ directionnel ;
+  aucune transmission silencieuse par les rotations géométriques du joueur.
+  Geste public distinct du jugement sur le lésé, grief de portage distinct de
+  la simple position. Aucun savoir privé d'auditeur relu ; `_abriter` et
+  `deliberation.py` non modifiés. Six nouveaux contrôles verts ; recours et
+  53 contrôles d'observation/découpage verts sans réancrage. Prémisses d'utilité
+  explicitées dans les scènes avec accord du superviseur, assertions conservées.
+  Avis crue 2024 et deux empreintes historiques encore en échec ciblé.
+  **Validation finale en cours** : suite unique 284 fichiers et vingt paires
+  4 h contre `3aa16f7`, compteur 219 actif ; un travailleur réduit par commande,
+  deux calculs au plus, aucun Luna. Bruts `C:/Users/msics/donjon/artifacts/sait-206/`.
+  [Rapport 206](taches/rapport-codex-206-sait-observations.md).
+
+
 - **Branche `codex-audit-transitions`, fusionnée**, lot **219**, base
   `50de3c2` vérifiée : outils seulement, aucun `donjon/` ni Luna modifié.
   Retours classés par preuve ordonnée, paliers effectivement essayés, étapes
