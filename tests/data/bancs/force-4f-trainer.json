@@ -1,0 +1,70 @@
+{
+  "scenario": "rixe",
+  "seed": 1985,
+  "preparation": {
+    "salle": "crypte",
+    "position": [
+      4,
+      0
+    ],
+    "orientation": "nord",
+    "personnages": {
+      "brune": {
+        "salle": "echoppe",
+        "position": [
+          4,
+          6
+        ],
+        "orientation": "est"
+      },
+      "marchand": {
+        "salle": "echoppe",
+        "position": [
+          6,
+          4
+        ],
+        "orientation": "est"
+      },
+      "aubin": {
+        "salle": "echoppe",
+        "position": [
+          4,
+          4
+        ],
+        "orientation": "est"
+      },
+      "ilse": {
+        "salle": "echoppe",
+        "position": [
+          5,
+          4
+        ],
+        "orientation": "est"
+      }
+    },
+    "calmes": [
+      "brune",
+      "marchand",
+      "ilse",
+      "aubin"
+    ],
+    "noms_connus": [
+      "brune",
+      "marchand"
+    ],
+    "lieux": {
+      "briquet": "crypte",
+      "cire": "crypte",
+      "couteau": "crypte",
+      "lanterne": "crypte"
+    },
+    "etats": [
+      "brune:inconscient"
+    ]
+  },
+  "tours": [
+    "je la traîne dans la crypte",
+    "tenter",
+    "quitter"
+  ]
+}

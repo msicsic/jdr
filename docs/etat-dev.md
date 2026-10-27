@@ -1,8 +1,31 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-26.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-27.
 
 ## Où on en est
+
+- Branche `codex-force-4f-luna`, **non fusionnée**, lot **147**, base `cee0201` :
+  gestes 4d/4e exposés dans les consignes communes, état du corps explicitement
+  mécanique dans l'audit ; filtre existant des locuteurs conscients vérifié après
+  recharge jusque devant l'écriture. Fiche de `trainer` : destination du corps
+  ajoutée au dossier de contre-revue après un faux refus Luna, sans changer le pas.
+  Six tests nouveaux verts (console et recharge, deux personnes, deux seuils,
+  bureau/réserve), 70 ciblés existants verts ; reprise finale 16 tests verte.
+  Suite complète unique : **2 154 tests, 241 fichiers, 1 205,71 s, deux échecs
+  MiMo historiques `6 != 5`, zéro erreur/ignoré**. Complément de destination
+  postérieur au lancement de la suite, couvert par les ciblés finaux.
+  **16/16 empreintes de 2 h identiques** à `2d504ae` (code de jeu identique à
+  `cee0201`), Relais/rixe/mine/auberge × quatre graines : chronique, mesures,
+  état complet ; seize références manquantes cachées une fois, aucun rejeu.
+  Luna une passe : six nouveaux scripts et les cinq 4b/4c, **49 appels / 19 tours MJ,
+  2,58 appels/tour, 9,13 s/tour**, aucune erreur technique/recharge ni repli.
+  Huit saisies typées en deux appels ; refus juste du geste improvisé en quatre,
+  faux refus de traîner et d'enfermer en cinq et quatre. **Trois appels non garantis,
+  4f non entièrement satisfait** ; preuve de destination reprise en tests seulement,
+  contradictions corporelles toujours en partie sémantiques. Aucun fichier réservé
+  au lot 146, aucun modèle ni comportement autonome changé. Pas de clé de signature :
+  commit non signé, branche poussée sans fusion. Bruts `artifacts/force-147/`.
+  [Rapport 147](taches/rapport-codex-147-force-4f-luna.md).
 
 - Branche `codex-force-4e-tuer`, fusionnée, lot **145**, base `4c57020` :
   geste `tuer` commun au joueur et aux PNJ, sans choix autonome ; cible vivante sans

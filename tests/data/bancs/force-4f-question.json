@@ -1,0 +1,63 @@
+{
+  "scenario": "rixe",
+  "seed": 1985,
+  "preparation": {
+    "salle": "antichambre",
+    "position": [
+      1,
+      5
+    ],
+    "orientation": "est",
+    "personnages": {
+      "brune": {
+        "salle": "antichambre",
+        "position": [
+          2,
+          5
+        ],
+        "orientation": "est"
+      },
+      "marchand": {
+        "salle": "echoppe",
+        "position": [
+          6,
+          4
+        ],
+        "orientation": "est"
+      },
+      "aubin": {
+        "salle": "echoppe",
+        "position": [
+          4,
+          4
+        ],
+        "orientation": "est"
+      },
+      "ilse": {
+        "salle": "echoppe",
+        "position": [
+          5,
+          4
+        ],
+        "orientation": "est"
+      }
+    },
+    "calmes": [
+      "brune",
+      "marchand",
+      "ilse",
+      "aubin"
+    ],
+    "noms_connus": [
+      "brune",
+      "marchand"
+    ],
+    "lieux": {},
+    "etats": []
+  },
+  "tours": [
+    "est-ce que je peux l'assommer ?",
+    "tenter",
+    "quitter"
+  ]
+}

@@ -33,6 +33,20 @@ affichage ; les instructions, faits, efforts et réponses attendues restent les 
 
 ## Contrôle de la prose
 
+**Force, lot 147.** Les gestes 4d/4e ont leurs descriptions dans les mêmes
+consignes que les coups : saisir, ligoter, délier, se libérer, traîner, tuer et
+verrouiller (enfermer par la porte). Le schéma reprend déjà les actions du moteur.
+La fiche de traînage indique le lieu actuel où le corps rejoindra la case de
+départ ; ce même renseignement entre dans la contre-revue, sans révéler une
+destination encore inconnue. L'audit classe explicitement conscience, blessures,
+mort, prises et liens dans le domaine mécanique. Leur reconnaissance en prose
+reste sémantique. Les interlocuteurs sont filtrés par `corps.conscient` ;
+`narration.consigner` recalcule leur présence et leur audibilité avant toute
+écriture, même si l'audit antérieur autorisait leur parole. Tests après recharge
+avec deux personnes mortes ou inconscientes : aucune parole enregistrée.
+La passe Luna n'atteint pas le critère de trois appels pour toutes les saisies ;
+les faux refus de traîner et d'enfermer restent des limites observées.
+
 **Contrats internes dans les explications** (lot 143). Le garde commun de voix
 d'auteur contrôle aussi la justification d'un avis `impossible` après réexamen
 et le dialogue qui explique un refus du monde. Les constructions où le moteur

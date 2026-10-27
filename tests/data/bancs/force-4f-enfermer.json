@@ -1,0 +1,50 @@
+{
+  "scenario": "mine",
+  "seed": 1985,
+  "preparation": {
+    "salle": "baraquement",
+    "position": [
+      4,
+      1
+    ],
+    "orientation": "nord",
+    "personnages": {
+      "bram": {
+        "salle": "bureau",
+        "position": [
+          1,
+          1
+        ],
+        "orientation": "sud"
+      }
+    },
+    "calmes": [
+      "bram",
+      "gaspard",
+      "josse",
+      "remy",
+      "lucien",
+      "odon"
+    ],
+    "noms_connus": [
+      "bram"
+    ],
+    "lieux": {
+      "passe": "joueur"
+    },
+    "etats": [
+      "bram:inconscient"
+    ],
+    "proprietes_objets": {
+      "porte_bureau": {
+        "ouverte": true,
+        "verrouillee": false
+      }
+    }
+  },
+  "tours": [
+    "j'enferme Bram dans le bureau",
+    "tenter",
+    "quitter"
+  ]
+}

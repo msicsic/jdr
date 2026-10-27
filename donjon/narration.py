@@ -350,6 +350,8 @@ la demande du joueur et un contenu propos vide ne prouvent aucun de ces termes.
   le fournir ;
 - mecanique : affirmation mécanique soutenue par les faits ; cite dans sources les clés
   des faits qui la soutiennent (par exemple objet:<id>, perception, salle, engagements).
+  L'état du corps (blessure, conscience, mort, prise et liens) est mécanique : etat_corps
+  et les résultats du moteur en font foi ; un geste demandé ou commencé ne prouve pas son issue.
   La vue courante et ses absences ont la source perception ; qu'il ne voie pas un objet dont il
   n'a qu'un souvenir (souvenirs_visuels, hors_de_vue) est mecanique, avec cette source ;
 - parole : propos nouveau d'un personnage présent, attribué explicitement ; donne son
