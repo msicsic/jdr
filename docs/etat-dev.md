@@ -4,6 +4,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-empathie`, non fusionnée**, lot **197**, **3d partiel** :
+  faim/froid perçus deviennent des conditions communes `servir`/`allume`, après
+  les besoins propres et avant la routine. Seuil du souci du lot 80, rancune
+  exclue ; poids empathie × (affection + 20) / 100. Peur différée, crédit du froid
+  corporel sans charge encore absent du contrat commun de service.
+  **Base reprise : `integration 116294e`**, après annulation des données 186 et
+  fusion des lots 194/180. Le banc initial de 20 paires et la suite interrompue
+  sur `9c1897f` sont obsolètes, archivés sous `empathie-197/avant-integration-9c1897f/`.
+  **26 ciblés consolidés verts** : Mathe/Lucien sans charge, transi PNJ/joueur,
+  exclusions, priorité propre, temps entier/découpé et monde/rendu/journal
+  rechargés. **20 paires finales de 4 h**, cinq scénarios × quatre graines :
+  **21 repas d'empathie dans 13 nuits**, aucun entretien spontané sous ce
+  motif ; froid prouvé seulement en scènes ciblées. Sans recours **635 → 140 min**
+  (auberge 65 → 80, biens de Lucien) ; zéro plantage/usurpation. Vingt
+  sauvegardes/rendus stables après préparation de sauvegarde ; en crue 2024,
+  `sauver` complète seulement la référence interne `planches_1` avant écriture,
+  puis la recharge est identique (rejeu et chronique identiques également).
+  Pics de passages/h : 9/10/15/46/52 → 10/9/18/38/27 ; nouvelles alertes de
+  dette, froid, eau et noir : aucune garantie générale d'absence de boucle.
+  Aucun profil initial ≥ 70 : le seuil commun du souci permet pourtant des
+  secours, donc le critère historique n'est pas satisfait. Restent aussi la
+  mesure causale des minutes apaisées et la validation générale des anciens
+  parcours. **L'invariant complet 3d reste ouvert.** Suite finale unique sur
+  116294e : **2 361 tests, 274 fichiers, 1 887,048 s, 30 échecs et 4 erreurs**
+  dans 24 fichiers, dont les deux MiMo historiques. Épreuves du secours,
+  entretien isolé, échelle et vue pure/mémo vertes. Anciens parcours de demande,
+  appel, vol et déplacements encore en échec, sans attribution exhaustive ni
+  adaptation générale : **ne pas intégrer comme validation générale de 3d**.
+  Sans Luna, deux travailleurs réduits au plus. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/empathie-197/` ;
+  [rapport 197](taches/rapport-codex-197-empathie.md).
+
 - Branche `codex-comptes-ecrits-moteur`, fusionnée, lots **180 / b / c**,
   base initiale `integration e61cf08`, correction c sur `a0fcdb5`.
   Le narrateur raconte le geste et le ton sans affirmer de compte : garde

@@ -999,6 +999,19 @@ du joueur se limitent à son observation explicite, sans état affectif inventé
 
 ### 3d. L'empathie
 
+- Lot 197, branche `codex-empathie`, non fusionnée : livraison partielle,
+  faim et froid perçus seulement. Le seuil de souci reprend les avis de menace
+  (altruisme + empathie + affection ≥ 100), avec exclusion de la rancune ;
+  empathie × (affection + 20) / 100 ordonne ensuite les secours. Les conditions
+  `servir` et `allume` passent après les besoins propres et avant la routine,
+  seulement tant que le bénéficiaire est perçu. Aucune donnée de scénario ajoutée.
+  La compagnie rassurante reste à faire : terminal de proximité, maintien et
+  fin sur peur perçue disparue, déplacements/coûts et clés de recherche cohérents.
+  Restent aussi le crédit commun du froid corporel sans charge, la mesure des
+  minutes apaisées par autrui et la validation générale des anciens parcours.
+  Le seuil commun permet des secours sous 70 d'empathie : le critère historique
+  ci-dessous n'est pas satisfait, sans ajout d'un autre seuil.
+  Bilan et limites : [rapport 197](taches/rapport-codex-197-empathie.md).
 - Règle de § 6.4 ; aucune donnée nouvelle.
 - **Mesures** : `secours` (buts d'empathie menés à bien), minutes urgentes d'autrui apaisées par
   un autre, minutes sans recours.

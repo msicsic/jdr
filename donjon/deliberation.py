@@ -1531,8 +1531,48 @@ def candidats(monde, id):
         yield besoin, methode
 
 
+def secours(monde, id):
+    """Conditions ordinaires utiles à un corps actuellement perçu, sans lire son esprit.
+
+    Le seuil du souci est celui des avis de menace ; le poids départage ensuite
+    les secours. Une ancienne observation ne suffit pas à poursuivre un absent.
+    Le choix seul lit la perception : la recherche reçoit une condition existante.
+    """
+    from .caractere import valeur
+    from .esprits import percus
+    from .relations import envers, rancune
+    vus = percus(monde, id)[0]
+    e = lire(monde, id)
+    empathie = valeur(monde, id, "empathie")
+    for autre in sorted(vus):
+        if autre == id or (autre != "joueur" and monde.objets[autre]["type"] != "personnage"):
+            continue
+        lien = envers(monde, id, autre)
+        if (rancune(lien) or valeur(monde, id, "altruisme") + empathie + lien["affection"] < 100):
+            continue
+        etat = e["croyances"].get(autre, {}).get("etat", {})
+        if etat.get("source") not in ("vu", "essai"):
+            continue
+        corps = etat["valeur"]
+        if corps.get("mort") or corps.get("conscient") is False:
+            continue
+        poids = empathie * (lien["affection"] + 20) / 100
+        if corps.get("faim"):
+            for objet in _connus(monde, id):
+                if monde.objets[objet]["type"] == "nourriture" and _disponible_cru(monde, id, objet):
+                    yield autre, "faim", poids, {"objet": objet, "servir": autre}
+        if corps.get("chaleur"):
+            salle = salle_crue(monde, id, autre)
+            for objet in _connus(monde, id):
+                if not monde.objets[objet].get("foyer") or salle is None or salle_crue(monde, id, objet) != salle:
+                    continue
+                condition = {"objet": objet, "allume": True}
+                if not satisfaite(monde, id, condition):
+                    yield autre, "chaleur", poids, condition
+
+
 class Palier(IntEnum):
-    """Priorités historiques, du premier but tenté au dernier."""
+    """Priorités communes, du premier but tenté au dernier."""
     PERIL_EAU = 0
     ALARME = 1
     RANIMER = 2
@@ -1545,8 +1585,9 @@ class Palier(IntEnum):
     BRUIT_A_VOIR = 9
     PULSION_ROMPUE = 10
     PROGRES_EN_COURS = 11
-    ROUTINE = 12
-    ARGENT = 13
+    SECOURS = 12
+    ROUTINE = 13
+    ARGENT = 14
 
 
 class Urgence(NamedTuple):
@@ -1698,6 +1739,9 @@ def _candidats(monde, id):
                 and any(x["operation"] == GESTE_PROGRES[besoin] for x in e["intention"]["plan"])):
             ajouter(besoin, lambda m, i, b=besoin: _continuer_progres(m, i, b),
                     Palier.PROGRES_EN_COURS, (rang,), recours=True)
+    for rang, (autre, besoin, poids, condition) in enumerate(secours(monde, id)):
+        ajouter("empathie", lambda m, i, c=condition: _plan_pulsion(m, i, c),
+                Palier.SECOURS, (autre, besoin, rang), poids)
     # La routine : ses rondes, même quand le besoin qu'elles servent ne presse pas.
     for rang, x in enumerate(p["pulsions"]):
         if (periodique(x["condition"]) and x["besoin"] not in pressants

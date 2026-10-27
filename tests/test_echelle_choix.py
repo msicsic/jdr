@@ -166,11 +166,14 @@ def bruit(m, niveau):
 
 class EchelleTests(unittest.TestCase):
     def setUp(self):
-        # Cet oracle vérifie l'identité A0 des choix sans naissance A6.
-        # Les projets nés restent actifs dans test_agendas_naissance.
+        # Cet oracle vérifie l'identité A0 avant les naissances A6 et les
+        # secours 3d, exercés dans leurs tests de comportement dédiés.
         naissances = patch.object(d.agendas, "_naissances", return_value=None)
         naissances.start()
         self.addCleanup(naissances.stop)
+        secours = patch.object(d, "secours", return_value=())
+        secours.start()
+        self.addCleanup(secours.stop)
 
     def comparer(self, m, qui):
         avant = list(anciens_candidats(m, qui))
@@ -226,7 +229,7 @@ class EchelleTests(unittest.TestCase):
                 self.assertEqual(reprise.data, m.data)
                 self.assertEqual(fiche(reprise), fiche(m))
                 self.assertEqual(decrire_perception(reprise), decrire_perception(m))
-        self.assertEqual(couverts, set(d.Palier) - {d.Palier.DESESPOIR})
+        self.assertEqual(couverts, set(d.Palier) - {d.Palier.DESESPOIR, d.Palier.SECOURS})
 
     def test_ecarts_egalites_et_routines_issues_des_besoins_pressants(self):
         for ecarts in ((0, 0, 0), (10, 10, 5), (5, 10, 10)):
