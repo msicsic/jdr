@@ -1125,6 +1125,8 @@ def _plan_abri(monde, id):
     # croit en péril, le plus haut lieu compte, quel que soit celui vers lequel il allait.
     from .eau import en_peril
     from .planification import _etape, abri
+    from .defense import lieux_dangereux
+    dangereuses = lieux_dangereux(monde, id)
 
     def sures():
         """Les lieux éclairés, hors de l'eau, où il croit quelqu'un de sûr."""
@@ -1135,7 +1137,7 @@ def _plan_abri(monde, id):
                 continue
             salle = salle_crue(monde, id, x)
             if (salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle)
-                    and not menacee(monde, id, salle)):
+                    and salle not in dangereuses and not menacee(monde, id, salle)):
                 salles.append(salle)
         return salles
 
@@ -1148,7 +1150,7 @@ def _plan_abri(monde, id):
         if trouve is not None:
             return {"type": "abri", "lieu": trouve[0]}, trouve[1] + [_etape("abriter", lieu=trouve[0])]
     if menacee(monde, id, ici) or eau_monte:
-        salles = sorted((s for s in monde.data["salles"] if not menacee(monde, id, s)
+        salles = sorted((s for s in monde.data["salles"] if s not in dangereuses and not menacee(monde, id, s)
                          and _eclairee_crue(monde, id, s)), key=lambda s: (-altitude(monde, s), s != ici, s))
     else:
         salles = sures()
@@ -1170,7 +1172,7 @@ def _plan_abri(monde, id):
         # Aucun lieu hors de l'eau à sa portée : moins d'eau, c'est déjà en sortir. Ce n'est pas un
         # abri où rester (``pnj._abriter``) : il s'y rend.
         ici_cm = attendue(monde, id, ici)
-        moins = sorted((s for s in monde.data["salles"] if attendue(monde, id, s) < ici_cm),
+        moins = sorted((s for s in monde.data["salles"] if s not in dangereuses and attendue(monde, id, s) < ici_cm),
                        key=lambda s: (attendue(monde, id, s), -altitude(monde, s), s))
         for salle in moins:
             etapes = aller(monde, id, salle)
@@ -1188,6 +1190,10 @@ def _plan_lumiere(monde, id):
     d'un autre ne le suit pas."""
     if not peur_du_noir(monde, id):
         return None
+    from .defense import lieux_dangereux
+    dangereuses = lieux_dangereux(monde, id)
+    if monde.objets[id]["lieu"] in dangereuses:
+        return None
     from .perception import allumee
     porte = any(porte_par(monde, k, id) and "allume" in o and allumee(o) for k, o in monde.objets.items())
     # Il y voit par sa lumière en main, ou par celle du lieu (ses sources, une lueur voisine sur sa
@@ -1197,6 +1203,9 @@ def _plan_lumiere(monde, id):
         from .eau import menacee
         i = lire(monde, id)["intention"]
         if not i or i["but"]["type"] != "lumiere":
+            return None
+        destinations = [x["lieu"] for x in i["plan"] if x["operation"] in ("aller", "abriter")]
+        if destinations and destinations[-1] in dangereuses:
             return None
         trajet = porte and i["plan"] and all(x["operation"] == "aller" for x in i["plan"])
         sejour = (not porte and (not i["plan"] or any(x["operation"] == "abriter" for x in i["plan"]))

@@ -333,6 +333,12 @@ class Vue:
         # position crue est rejouée dans chaque état du plan.
         self.peurs_sociales = {x: peur / 50 for x in [*self.personnes(), "joueur"]
                               if (peur := relations.axes(monde, id, x)["peur"])}
+        from .defense import actifs
+        self.dangers = tuple(actifs(monde, id))
+        for x in self.dangers:
+            # Une violence active vaut la présence crainte maximale (100 / 50),
+            # même si les relations n'ont pas encore traduit cette peur.
+            self.peurs_sociales[x] = max(2, self.peurs_sociales.get(x, 0))
         self.taux_mefiance = taux(monde, id, "mefiance")
         # Gardes et eau sont figées par salle. Seules lumière et compagnie
         # peuvent rendre la pression dépendante des faits d'un nœud.
@@ -1164,6 +1170,10 @@ class Vue:
                            + NOIR * self.eau.get(e.salle, 0))
         return pressions[cle]
 
+    def dangereuse(self, e):
+        """Le lieu prévu contient un auteur de violence encore actif à ses yeux."""
+        return any(self.salle(e, x) == e.salle for x in self.dangers)
+
     def borne_rester(self, salle):
         """Plancher du séjour final, constant pour toute une recherche.
 
@@ -1955,7 +1965,7 @@ def _entrees_communes(v):
         # La suite estimée lit les mêmes routes, possessions, refus et gestes ;
         # ses pressions restent celles de la vue, y compris les menaces sociales.
         # La borne du séjour ne lit que salles, prix_gardes (ci-dessus) et eau.
-        "part-estimee:trajet-geste", v.eau, v.peurs_sociales, v.taux_mefiance,
+        "part-estimee:trajet-geste", v.eau, v.peurs_sociales, v.taux_mefiance, v.dangers,
         # Modèle de trajet et positions crues des cibles/obstacles, jamais le départ réel.
         ([metrique, "trajet-estime:entrees-v1",
           [[s, d["lieu"].get("salle"), d["lieu"].get("case")] for s, d in croyances.items()
@@ -3152,7 +3162,7 @@ def voir(monde, id, salle):
 
 
 def eclaire(v, e):
-    return v.lumiere(e) > 0
+    return v.lumiere(e) > 0 and not v.dangereuse(e)
 
 
 def eclairer(monde, id):
@@ -3202,6 +3212,8 @@ def abri(monde, id, salles):
     from .deliberation import menaces, taux
     v = vue(monde, id)
     e = depart(monde, id, v)
+    from .defense import lieux_dangereux
+    salles = [s for s in salles if s not in lieux_dangereux(monde, id)]
     ici = [x for x in v.connus + ["joueur"] if x != id and (x == "joueur" or v.objets[x]["type"] == "personnage")
            and v.salle(e, x) == e.salle]
     fuir = any(v.se_mefie(x) for x in ici) and e.salle not in menaces(monde, id)

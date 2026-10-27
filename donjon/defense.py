@@ -85,10 +85,20 @@ def dangers(monde, id, protege=None):
         if id == "joueur":
             return monde.visible(a)
         return salle_crue(monde, id, a) == ici
-    return [a for a in auteurs(monde, id, protege) if proche(a)
-            and etat_cru(monde, id, a).get("conscient") is not False
+    return [a for a in actifs(monde, id, protege) if proche(a)]
+
+
+def actifs(monde, id, protege=None):
+    """Auteurs encore dangereux selon les croyances, même hors de la salle actuelle."""
+    return [a for a in auteurs(monde, id, protege)
+            if etat_cru(monde, id, a).get("conscient") is not False
             and not etat_cru(monde, id, a).get("reddition")
             and not etat_cru(monde, id, a).get("lie")]
+
+
+def lieux_dangereux(monde, id):
+    from .deliberation import salle_crue
+    return {s for a in actifs(monde, id) if (s := salle_crue(monde, id, a))}
 
 
 def dangers_vus(monde):
