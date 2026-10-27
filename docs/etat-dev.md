@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-force-contre-revue`, **non fusionnée**, lot **172**, base
+  `79594e4` : dossier de traînage avec les deux déplacements du trajet validé,
+  titre/information communs, positions des lieux non visités masquées ; dossier
+  de porte avec lieu de Corvus et état après opération, consigne d'enfermer sans
+  déplacer la personne déjà derrière. Aucun effet moteur ni instruction d'audit
+  changé. Deux scènes de chaque nature, console et monde/rendu rechargés ;
+  **29 ciblés finaux verts**. Suite unique : **2 249 tests, 259 fichiers,
+  1 279,825 s**, aucune erreur/ignoré, deux échecs MiMo historiques `6 != 5`.
+  **16/16 empreintes 2 h identiques** à `79594e4`, Relais/mine/auberge/rixe ×
+  quatre graines ; références manquantes rangées une fois, aucun temps comparé.
+  Vérifications détaillées au [rapport 172](taches/rapport-codex-172-force-contre-revue.md).
+  **Luna non validée** : deux exécutions en erreur « Coffre ChatGPT illisible »
+  avant tout appel modèle ; critère des trois appels non certifié. Commande
+  exacte dans `C:/Users/msics/donjon/artifacts/force-172/luna-a-jouer.txt`.
+  PC fixe partagé, deux travailleurs réduits au plus, bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/force-172/`. Aucune clé de signature configurée ;
+  commit non signé, branche seule poussée ; `main` intacte.
+
 - Branche `codex-consignes-degraissees`, **non fusionnée**, lot **170** (L6), `b503242` : doublons retirés des consignes
   d'interprétation, **−2,7 %** (39 910 → 38 828 caractères), suite verte, empreintes identiques. Luna deux passes contre
   `cdaf371` : appels/tour 3,24 → 3,30, **s/tour 10,51 → 11,42**, **relances 14 → 19**, refus 21 → 25, replis 3 → 1 ;

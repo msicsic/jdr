@@ -22,11 +22,11 @@ from tests.test_tensions import recharger
 from donjon.deplacement_objet import deplacer
 
 
-def console(m, p, demande, scenario='--rixe'):
+def console(m, p, demande, scenario='--rixe', audit=None):
     reponse = {'mode': 'action', 'texte': '', 'faits': [], 'proposition': p}
     def appeler(*args):
         if args[3] == 'auditer_action':
-            return {'conforme': True, 'motif': ''}
+            return (audit(args[1]) if callable(audit) else audit) if audit is not None else {'conforme': True, 'motif': ''}
         return copy.deepcopy(reponse)
     with tempfile.TemporaryDirectory() as tmp:
         chemin = Path(tmp) / 'copie.json'
@@ -41,6 +41,44 @@ def console(m, p, demande, scenario='--rixe'):
 
 
 class ForceLunaTests(unittest.TestCase):
+    def test_gestes_non_conformes_refuses_avant_execution_console(self):
+        for scenario in ('relais', 'auberge'):
+            m, c = scene_trainer(scenario)
+            avant = copy.deepcopy(m.joueur['position']), copy.deepcopy(m.objets[c]['position'])
+            revues = []
+            def refuser(dossier):
+                revues.append(dossier)
+                self.assertEqual(dossier['plan']['deplacements'][0]['arrivee']['position'],
+                                 [avant[0][0], avant[0][1] - 1])
+                return {'conforme': False, 'motif': 'nord au lieu de est'}
+            p = proposition('trainer', c, 'nord')
+            Moteur(m).preparer(p)  # Mécaniquement possible, mais mauvaise direction.
+            m, texte = console(m, p, 'je traîne ce corps vers l’est',
+                               '--defi' if scenario == 'relais' else '--auberge',
+                               audit=refuser)
+            self.assertTrue(revues)
+            self.assertEqual((m.joueur['position'], m.objets[c]['position']), avant)
+            self.assertNotIn('Tu as traîné', texte)
+            self.assertEqual(m.data, recharger(m).data)
+            self.assertEqual(regarder(m), regarder(recharger(m)))
+        for salle in ('bureau', 'reserve'):
+            m, porte = scene_enfermer(salle=salle)
+            revues = []
+            def refuser(dossier):
+                revues.append(dossier)
+                self.assertEqual(dossier['plan']['passages'][0]['etat_apres_operation'],
+                                 {'ouverte': True})
+                return {'conforme': False, 'motif': 'ouvrir au lieu de fermer'}
+            m.objets[porte].update(ouverte=False, verrouillee=False)
+            p = proposition('ouvrir', porte)
+            Moteur(m).preparer(p)
+            m, texte = console(m, p, 'je ferme cette porte', '--mine',
+                               audit=refuser)
+            self.assertTrue(revues)
+            self.assertFalse(m.objets[porte]['ouverte'])
+            self.assertEqual(m.data, recharger(m).data)
+            self.assertEqual(regarder(m), regarder(recharger(m)))
+
     def test_destination_du_corps_dans_la_fiche_et_la_contre_revue(self):
         import json
         from tools.banc_parties import preparer
@@ -50,23 +88,51 @@ class ForceLunaTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / 'scene.json'
             preparer(json.loads(Path('tests/data/bancs/force-4f-trainer.json').read_text(encoding='utf-8')), chemin)
-            scenes.append((Monde.charger(chemin), 'brune', 'sud'))
+            scenes.append((Monde.charger(chemin), 'brune', 'sud', '--rixe'))
         m, c = scene_trainer()
         m.joueur.update(salle='echoppe', position=[8, 3], orientation='ouest')
         placer(m, c, 'antichambre', (0, 3))
         percevoir_tous(m)
-        scenes.append((m, c, 'ouest'))
-        for m, c, direction in scenes:
+        scenes.append((m, c, 'ouest', '--defi'))
+        for m, c, direction, scenario in scenes:
             salle = m.joueur['salle']
             plan = Moteur(m).preparer(proposition('trainer', c, direction))
             nom = m.data['salles'][salle]['nom']
             self.assertIn(nom, plan.information)
             self.assertIn(nom, plan.titre)
             dossier = entree('je traîne ce corps ici', plan, m)
+            mouvements = dossier['plan']['deplacements']
+            self.assertEqual(len(mouvements), 2)
+            self.assertEqual(mouvements[0]['depart'], mouvements[1]['arrivee'])
+            self.assertIn(c, mouvements[1]['acteur'])
+            self.assertEqual(mouvements[0]['depart']['position'], m.joueur['position'])
+            # Même trajet, lieu d'arrivée encore inconnu : aucune géographie privée.
+            cache = copy.deepcopy(plan)
+            inconnue = next(s for s in m.data['salles'] if s != salle)
+            cache.deplacements[0]['arrivee']['salle'] = inconnue
+            visites = m.data['visitees']
+            m.data['visitees'] = [salle]
+            try:
+                mouvement_cache = entree('je traîne ce corps', cache, m)['plan']['deplacements'][0]
+                self.assertEqual(mouvement_cache['arrivee'],
+                                 {'passage': "de l'autre côté, lieu non visité"})
+            finally:
+                m.data['visitees'] = visites
+            destination_joueur = copy.deepcopy(plan.deplacements[0]['arrivee'])
             self.assertNotIn('\"' + salle + '\"', json.dumps(dossier, ensure_ascii=False))
             self.assertIn(nom, entree('je traîne ce corps ici', plan, m)['plan']['information'])
-            texte = Moteur(m).executer(plan)
-            m = recharger(m)
+            revues = []
+            def admettre(recu):
+                revues.append(recu)
+                self.assertEqual(recu['plan']['deplacements'], mouvements)
+                return {'conforme': True, 'motif': ''}
+            m, texte = console(m, proposition('trainer', c, direction),
+                               'je la traîne dans la crypte' if scenario == '--rixe' else 'je traîne ce corps ici',
+                               scenario, audit=admettre)
+            self.assertTrue(revues)
+            self.assertEqual(m.joueur['salle'], destination_joueur['salle'])
+            self.assertEqual(m.joueur['position'], destination_joueur['position'])
+            self.assertEqual(m.objets[c]['position'], plan.deplacements[1]['arrivee']['position'])
             self.assertEqual(m.objets[c]['lieu'], salle)
             self.assertIn('traîné', texte)
             self.assertEqual(regarder(m), regarder(recharger(m)))
@@ -98,10 +164,13 @@ class ForceLunaTests(unittest.TestCase):
             fermeture = dossier["plan"]["etapes"][0]
             self.assertEqual(fermeture["effets_reussite"][0][0], "fermer")
             self.assertEqual(fermeture["passages"][0]["operation"], "fermer")
+            self.assertEqual(fermeture['passages'][0]['etat_apres_operation'], {'ouverte': False})
             passages = dossier["plan"]["etapes"][1]["passages"]
             piece = next(x for x in passages if x["lieu"].endswith("(" + salle + ")"))
             self.assertIn(m.objets[porte]["nom"].lower(), piece["porte"].lower())
             self.assertTrue(any(cible in x for x in piece["personnes_connues"]))
+            self.assertNotEqual(piece['lieu_corvus'], piece['lieu'])
+            self.assertEqual(piece['etat_apres_operation'], {'verrouillee': True})
             self.assertEqual(piece["issues_connues_avant"], [{"porte": piece["porte"], "verrouillee": False}])
             verifier({"conforme": True, "motif": "porte fermée et verrouillée"}, plan)
             with self.assertRaises(ErreurMonde):

@@ -127,6 +127,8 @@ def _operations(plan, monde=None):
     improvise = plan.proposition.get("action") == "improviser"
     return {
         "titre": plan.titre,
+        **({"deplacements": _deplacements(plan, monde)}
+           if monde is not None and hasattr(plan, "deplacements") else {}),
         **({"passages": passages} if monde is not None and (passages := _passages(plan, monde)) else {}),
         **({"destination_corps": _nommer(plan.destination_corps, monde)}
            if monde is not None and hasattr(plan, "destination_corps") else {}),
@@ -141,6 +143,16 @@ def _operations(plan, monde=None):
         "jet": bool(plan.stat),
         "etapes": [_operations(etape, monde) for etape in plan.plans],
     }
+
+
+def _deplacements(plan, monde):
+    """Le trajet validé décrit les pas sans dévoiler la géographie non visitée."""
+    connues = set(monde.data.get("visitees", [])) | {monde.joueur["salle"]}
+    return [{"acteur": _nommer(d["acteur"], monde),
+             **{cle: (_nommer(d[cle], monde) if d[cle]["salle"] in connues
+                      else {"passage": "de l'autre côté, lieu non visité"})
+                for cle in ("depart", "arrivee")}}
+            for d in plan.deplacements]
 
 
 
@@ -165,6 +177,8 @@ def _passages(plan, monde):
             if not any(s.get("porte") == cible for s in monde.data["salles"][salle].get("sorties", {}).values()):
                 continue
             resultat.append({"operation": ("ouvrir" if valeur else "fermer") if op == "ouverture" else op, "porte": cible, "type": "porte", "lieu": salle,
+                "lieu_corvus": monde.joueur["salle"],
+                "etat_apres_operation": {"ouverte": valeur} if op == "ouverture" else {"verrouillee": True},
                 "personnes_connues": sorted(i for i, lieu in lieux.items() if lieu == salle
                     and monde.objets[i].get("type") == "personnage"),
                 "issues_connues_avant": [{"porte": p, "verrouillee": v}
