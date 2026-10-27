@@ -112,7 +112,7 @@ class CeQuOnSaitAvoirTests(unittest.TestCase):
 
     def test_joss_sait_les_fagots_qu_il_porte_et_ceux_de_l_etable(self):
         # Autre cas de même nature : Joss, à l'étable, n'a rien regardé ; il porte une part de fagots et
-        # sait la réserve posée là, à sa portée, ainsi que ses propres copeaux.
+        # sait la réserve posée là, à sa portée.
         m = calme(creer("auberge", 1985, "fixe"), "joss", "mireille")
         lire(m, "joss")["croyances"].pop("fagots_etable", None)
         from donjon.echanges import detacher_part, enqueter
@@ -122,11 +122,9 @@ class CeQuOnSaitAvoirTests(unittest.TestCase):
         placer(m, "mireille", "etable", (5, 2))
         m = recharger(m)
         issue, dit = enqueter(m, "mireille", "joss", "chaleur")
-        self.assertEqual((issue, sorted(dit)), ("dit", sorted([
-            ("fagots_etable", "etable"), (piece, "joss"), ("copeaux_palefrenier", "joss")])))
+        self.assertEqual((issue, sorted(dit)), ("dit", sorted([("fagots_etable", "etable"), (piece, "joss")])))
         m = recharger(m)
         self.assertEqual(lire(m, "mireille")["croyances"]["fagots_etable"]["lieu"]["valeur"], "etable")
-        self.assertEqual(lire(m, "mireille")["croyances"]["copeaux_palefrenier"]["lieu"]["valeur"], "joss")
 
 
 if __name__ == "__main__":

@@ -2046,7 +2046,7 @@
         "liens": {
           "mireille": {
             "confiance": 65,
-            "affection": 60
+            "affection": 20
           },
           "tilo": {
             "confiance": 65,
@@ -2933,31 +2933,6 @@
       "proprietaire": "joss",
       "prix_part": 1,
       "description_visuelle": "Un peu d'huile conservée pour les lampes de la nuit."
-    },
-    "copeaux_palefrenier": {
-      "id": "copeaux_palefrenier",
-      "nom": "copeaux du palefrenier",
-      "type": "consommable",
-      "lieu": "joss",
-      "genre": "m",
-      "aliases": [
-        "copeaux palefrenier",
-        "petit bois"
-      ],
-      "masse": 1,
-      "materiau": "bois",
-      "mobile": true,
-      "integrite": 10,
-      "maximum": 10,
-      "pluriel": true,
-      "charges": 2,
-      "duree_combustion": 60,
-      "usages": [
-        "combustible"
-      ],
-      "proprietaire": "joss",
-      "description_visuelle": "Deux poignées de petit bois sec conservées pour raviver un foyer.",
-      "prix_part": 1
     }
   },
   "visitees": [
@@ -3303,19 +3278,6 @@
             "minute": 0,
             "confiance": 0.9
           }
-        },
-        "copeaux_palefrenier": {
-          "lieu": {
-            "valeur": "joss",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "etable",
-            "case": [
-              6,
-              2
-            ]
-          }
         }
       },
       "memoire": [],
@@ -3558,19 +3520,6 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9
-          }
-        },
-        "copeaux_palefrenier": {
-          "lieu": {
-            "valeur": "joss",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "etable",
-            "case": [
-              6,
-              2
-            ]
           }
         }
       },
@@ -3937,13 +3886,6 @@
               3,
               2
             ]
-          },
-          "attitude:mireille": {
-            "valeur": "attachement",
-            "source": "devine",
-            "minute": 0,
-            "confiance": 0.9,
-            "signe": "sourit"
           }
         },
         "mireille": {
@@ -4033,19 +3975,6 @@
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9
-          }
-        },
-        "copeaux_palefrenier": {
-          "lieu": {
-            "valeur": "joss",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "etable",
-            "case": [
-              6,
-              2
-            ]
           }
         }
       },

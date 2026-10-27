@@ -11,8 +11,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from donjon.banc_pnj import executer
-from tests.scenarios_contractuels import creer
+from donjon.banc_pnj import creer, executer
 from donjon.echanges import tenu
 from donjon.esprits import croire, lire
 from donjon.monde import Monde

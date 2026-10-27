@@ -9,7 +9,7 @@ import unittest
 from donjon import deliberation
 from unittest.mock import patch
 
-from tests.scenarios_contractuels import creer
+from donjon.banc_pnj import creer
 from donjon.commandes import analyser
 from donjon.deliberation import bruit_a_voir
 from donjon.esprits import croire, esprit, lire

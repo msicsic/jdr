@@ -131,9 +131,6 @@ class ContactTests(unittest.TestCase):
     def test_il_marche_jusqu_au_feu_qu_il_eteint(self):
         # Éteindre touche sa cible comme tout geste de la main : il s'en approche d'abord.
         m = tranquilles()
-        # Les enquêtes « rien » ci-dessous portent sur un stock effectivement absent.
-        from tests.test_entretenir import sans
-        sans(m, 'bois_bateliere')
         ecarter_tous(m, "brune", "ilse", "aubin")
         placer(m, "marchand", "echoppe", (8, 0))
         # Placement d'auteur : Gorm n'a pas de quoi payer quelqu'un pour rallumer le feu qu'il éteint

@@ -6,7 +6,7 @@ Chaque test vérifie l'état du monde après rechargement.
 """
 import unittest
 
-from tests.scenarios_contractuels import creer
+from donjon.banc_pnj import creer
 from donjon.deplacement_objet import deplacer
 from donjon.echanges import necessaire
 from donjon.esprits import croire, lire, percevoir_tous

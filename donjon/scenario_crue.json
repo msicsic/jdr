@@ -676,14 +676,11 @@
         "traits": "Bourru, honnête, protecteur des évacués, méfiant envers qui l'a trompé ; lent à faire confiance, lent à la retirer. Il entretient le feu de l'échoppe pour les évacués trempés, avec le bois qu'il a mis de côté. Il ne quitte pas le relais tant que des évacués y sont attendus.",
         "agendas": [
           {
-            "id": "evacuer_crue",
-            "sorte": "amener",
+              "id": "evacuer_crue",
+              "sorte": "amener",
             "parametres": {
-              "qui": [
-                "ilse",
-                "brune"
-              ],
-              "lieu": "chambre_cloche"
+              "qui": ["ilse", "brune"],
+                "lieu": "chambre_cloche"
             }
           }
         ],
@@ -774,7 +771,7 @@
           },
           "aubin": {
             "confiance": 65,
-            "affection": 60
+            "affection": 20
           }
         }
       },
@@ -1119,7 +1116,7 @@
       ],
       "id": "ilse",
       "integrite": 10,
-      "lieu": "chambre_cloche",
+      "lieu": "antichambre",
       "maniere_de_parler": "Ilse parle beaucoup, vite et avec chaleur, en posant des questions.",
       "masse": 0,
       "materiau": "",
@@ -1129,10 +1126,10 @@
       "genre": "f",
       "portrait": "Ilse est une femme ronde d'une quarantaine d'années, un châle trempé sur les épaules.",
       "position": [
-        4,
-        8
+        3,
+        5
       ],
-      "position_salle": "chambre_cloche",
+      "position_salle": "antichambre",
       "type": "personnage",
       "vigilance": 14,
       "profil": {
@@ -1210,7 +1207,7 @@
       ],
       "id": "aubin",
       "integrite": 10,
-      "lieu": "crypte",
+      "lieu": "antichambre",
       "maniere_de_parler": "Aubin parle peu, par phrases courtes, d'une voix éraillée.",
       "masse": 0,
       "materiau": "",
@@ -1219,10 +1216,10 @@
       "nom": "Aubin, vieux passeur",
       "portrait": "Aubin est un vieil homme voûté aux mains noueuses, ses bottes encore pleines d'eau.",
       "position": [
-        2,
-        3
+        1,
+        5
       ],
-      "position_salle": "crypte",
+      "position_salle": "antichambre",
       "type": "personnage",
       "vigilance": 11,
       "profil": {
@@ -1431,31 +1428,6 @@
       ],
       "prix_part": 1,
       "description_visuelle": "Quelques bûches fendues, rangées au sec contre le poêle du guet."
-    },
-    "bois_bateliere": {
-      "aliases": [
-        "bois bateliere",
-        "petit bois"
-      ],
-      "charges": 2,
-      "duree_combustion": 60,
-      "genre": "m",
-      "id": "bois_bateliere",
-      "integrite": 10,
-      "lieu": "brune",
-      "masse": 1,
-      "materiau": "bois",
-      "maximum": 10,
-      "mobile": true,
-      "nom": "bois sec de la batelière",
-      "pluriel": true,
-      "proprietaire": "brune",
-      "type": "consommable",
-      "usages": [
-        "combustible"
-      ],
-      "prix_part": 1,
-      "description_visuelle": "Deux poignées de petit bois sec conservées pour raviver un foyer."
     }
   },
   "personnages_version": 1,
@@ -1822,27 +1794,27 @@
         },
         "ilse": {
           "lieu": {
-            "valeur": "chambre_cloche",
+            "valeur": "antichambre",
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9,
-            "salle": "chambre_cloche",
+            "salle": "antichambre",
             "case": [
-              4,
-              8
+              3,
+              5
             ]
           }
         },
         "aubin": {
           "lieu": {
-            "valeur": "crypte",
+            "valeur": "antichambre",
             "source": "savoir",
             "minute": 0,
             "confiance": 0.9,
-            "salle": "crypte",
+            "salle": "antichambre",
             "case": [
-              2,
-              3
+              1,
+              5
             ]
           }
         },
@@ -1917,19 +1889,6 @@
               8
             ]
           }
-        },
-        "bois_bateliere": {
-          "lieu": {
-            "valeur": "brune",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "antichambre",
-            "case": [
-              7,
-              1
-            ]
-          }
         }
       },
       "memoire": [],
@@ -1995,13 +1954,6 @@
               1,
               1
             ]
-          },
-          "attitude:aubin": {
-            "valeur": "attachement",
-            "source": "devine",
-            "minute": 0,
-            "confiance": 0.9,
-            "signe": "sourit"
           }
         },
         "brasero": {
@@ -2062,19 +2014,6 @@
             "case": [
               6,
               8
-            ]
-          }
-        },
-        "bois_bateliere": {
-          "lieu": {
-            "valeur": "brune",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "antichambre",
-            "case": [
-              7,
-              1
             ]
           }
         }
@@ -2303,19 +2242,6 @@
             "case": [
               6,
               8
-            ]
-          }
-        },
-        "bois_bateliere": {
-          "lieu": {
-            "valeur": "brune",
-            "source": "savoir",
-            "minute": 0,
-            "confiance": 0.9,
-            "salle": "antichambre",
-            "case": [
-              7,
-              1
             ]
           }
         }

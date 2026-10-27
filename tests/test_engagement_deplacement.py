@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch
 
 from donjon import agendas, deliberation, echanges, ecoute, pnj, planification
-from tests.scenarios_contractuels import nouvelle_crue
+from donjon.crue import nouvelle_crue
 from donjon.esprits import croire, lire
 from donjon.monde import Monde
 from donjon.rendu import regarder as rendu

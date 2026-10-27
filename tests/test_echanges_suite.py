@@ -9,8 +9,7 @@ from tests.support import lier
 import unittest
 from unittest.mock import patch
 
-from donjon.banc_pnj import executer
-from tests.scenarios_contractuels import creer
+from donjon.banc_pnj import creer, executer
 from donjon.biens import bourse, comptes_joueur, rembourser
 from donjon.deplacement_objet import deplacer
 from donjon.echanges import ENGAGEMENT_MAX, demander, engager, enqueter

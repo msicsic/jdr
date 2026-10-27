@@ -4,7 +4,7 @@ import unittest
 from unittest.mock import patch
 
 from donjon import relations
-from tests.scenarios_contractuels import nouvelle_crue
+from donjon.crue import nouvelle_crue
 from donjon.deliberation import choisir, retenir_refus
 from donjon.echanges import executer
 from donjon.esprits import croire, lire, percevoir_tous

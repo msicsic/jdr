@@ -284,9 +284,6 @@ class EvenementTests(unittest.TestCase):
         # Autre cas de même nature : Brune éteint le brasero sous les yeux de Gorm, qui l'entretient ;
         # sa charge rompue, il va le rallumer sans attendre la minute.
         m = scene()
-        # La relance directe à la torche n'a pas d'autre fournisseur de bois.
-        from tests.test_entretenir import sans
-        sans(m, 'bois_bateliere')
         loin(m, "ilse", "aubin")
         placer(m, "marchand", "echoppe", (5, 4))
         regarder(m, "marchand", "brasero")

@@ -5,11 +5,13 @@ Chaque test contrôle l'état du monde, et ce que le joueur lit quand il est con
 rechargement.
 """
 import copy
+import json
 import random
 import unittest
 
 from donjon import eau
-from tests.scenarios_contractuels import donnees, nouvelle_crue, nouveau_defi
+from donjon.crue import ETAT_INITIAL, nouvelle_crue
+from donjon.defi import nouveau_defi
 from donjon.esprits import croire, lire, percevoir
 from donjon.monde import ErreurMonde, Monde, nouveau_monde_libre, objet
 from donjon.moteur import Moteur, proposition
@@ -25,7 +27,7 @@ FIXES = {"montee_cm_heure": [60, 60], "heure_pic": [5, 5], "hauteur_pic_cm": [60
 
 def crue(bornes=None, graine=1985):
     """La crue du Relais ; des bornes fixées rendent le niveau connu d'avance."""
-    data = donnees('crue')
+    data = json.loads(ETAT_INITIAL.read_text(encoding="utf-8"))
     data["seed"] = graine
     data["depart"]["mode"] = "fixe"   # Placement d'auteur : le départ déclaré.
     if bornes:

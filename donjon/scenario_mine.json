@@ -935,19 +935,6 @@
       "source": "savoir",
       "valeur": "gaspard"
      }
-    },
-    "chutes_serrurier": {
-     "lieu": {
-      "valeur": "odon",
-      "source": "savoir",
-      "minute": 0,
-      "confiance": 0.9,
-      "salle": "baraquement",
-      "case": [
-       8,
-       3
-      ]
-     }
     }
    },
    "intention": null,
@@ -1420,19 +1407,6 @@
       "source": "savoir",
       "valeur": true
      }
-    },
-    "chutes_serrurier": {
-     "lieu": {
-      "valeur": "odon",
-      "source": "savoir",
-      "minute": 0,
-      "confiance": 0.9,
-      "salle": "baraquement",
-      "case": [
-       8,
-       3
-      ]
-     }
     }
    },
    "intention": null,
@@ -1540,13 +1514,6 @@
       "salle": "baraquement",
       "source": "savoir",
       "valeur": "baraquement"
-     },
-     "attitude:josse": {
-      "valeur": "attachement",
-      "source": "devine",
-      "minute": 0,
-      "confiance": 0.9,
-      "signe": "sourit"
      }
     },
     "pain_lucien": {
@@ -1649,19 +1616,6 @@
       "minute": 0,
       "source": "savoir",
       "valeur": true
-     }
-    },
-    "chutes_serrurier": {
-     "lieu": {
-      "valeur": "odon",
-      "source": "savoir",
-      "minute": 0,
-      "confiance": 0.9,
-      "salle": "baraquement",
-      "case": [
-       8,
-       3
-      ]
      }
     }
    },
@@ -3498,7 +3452,7 @@
      },
      "josse": {
       "confiance": 65,
-      "affection": 60
+      "affection": 20
      },
      "lucien": {
       "confiance": 65,
@@ -4162,31 +4116,6 @@
     "combustible"
    ],
    "prix_part": 1
-  },
-  "chutes_serrurier": {
-   "aliases": [
-    "chutes serrurier",
-    "petit bois"
-   ],
-   "charges": 2,
-   "duree_combustion": 60,
-   "genre": "f",
-   "id": "chutes_serrurier",
-   "integrite": 10,
-   "lieu": "odon",
-   "masse": 1,
-   "materiau": "bois",
-   "maximum": 10,
-   "mobile": true,
-   "nom": "chutes de bois du serrurier",
-   "pluriel": true,
-   "proprietaire": "odon",
-   "type": "consommable",
-   "usages": [
-    "combustible"
-   ],
-   "prix_part": 1,
-   "description_visuelle": "Deux poignées de petit bois sec conservées pour raviver un foyer."
   }
  },
  "personnages_version": 1,
