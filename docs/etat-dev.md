@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-service-non-defait`, fusionnée**, lot **224**, base `a22f92e`
+  vérifiée, puis 213 intégré (`bd45f65`, fusion `0192bb3`) : résultat promis
+  conservé après clôture dans `biens`, filtre commun
+  des gestes qui le défont (trajets compris) et économie de flamme, engagements
+  ouverts compris. Besoin approché par le lieu cru du bénéficiaire, sans délai
+  ni lecture de ses buts privés, sans obligation d'entretien. Cas réel 217
+  repris à l'instant 4584, monde/rendu rechargés et laps découpé contrôlés.
+  **20 paires 4 h contre `bd45f65` : critère du compteur brut non atteint,
+  états payés perdus 6 → 6** ; quatre extinctions précoces évitées au Relais,
+  pertes ensuite relevées à l'épuisement naturel ; les deux du hameau restent
+  permises selon le lieu cru. Autres classes globalement stables/en baisse :
+  suspects 5 → 5, à expliquer 61 → 56, dérives 196 → 193 ; zéro plantage/usurpation.
+  Coût mine inchangé : 567 recherches / 8 383 nœuds. **Six nouveaux tests verts ;
+  suite unique achevée après fusion : 2 459 tests / 285 fichiers, 2 314,709 s,
+  deux MiMo préexistants reproduits sur `bd45f65`, zéro erreur**. Passe avant 213
+  interrompue sur instruction ; aucune seconde suite achevée. Aucun Luna,
+  deux travailleurs réduits au plus, aucune clé de signature. Limites : présence
+  crue comme approximation du besoin, anciennes clôtures sans trace non reconstruites.
+  Bruts `C:/Users/msics/donjon/artifacts/service-224/` ;
+  [rapport 224](taches/rapport-codex-224-service-non-defait.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `echanges.py`, `planification.py`, fusionnés sans conflit textuel. Trace durable du service rendu (biens.services_rendus), filtre des gestes qui défont l'état et menager_flamme ; protection tant que le bénéficiaire est cru présent ou porteur, sans délai ni entretien. Cas réel : torche de Brune conservée. Compteur brut des états payés perdus 6 → 6 (il compte aussi l'épuisement naturel du combustible) ; retours suspects 5 → 5. Fichiers de code communs depuis la base (planification, echanges, deliberation) : suite complète relancée sur la fusion.
+
 - Branche `codex-ou-est-il`, fusionnée, lot **221**, départ `4fe33ef` :
   question commune de localisation à un tiers cru présent, réponse fondée sur
   les seules croyances datées du témoin ; même contenu typé pour le joueur.
