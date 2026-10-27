@@ -5819,6 +5819,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   audit 12 h (4 × 4) identique. Temps égaux au bruit près (machine chargée par d'autres calculs). Limites
   dans `docs/plan-relations.md`.
 
+## Décisions prises le 2026-10-27 (revue vierge 187)
+
+- **Réflexion limitée / saillance** (`docs/plan-decision.md`) : **mesurer d'abord** ce qu'une recherche limitée aux moyens
+  saillants changerait (coût, plans perdus, comportements), puis décider ; l'ordre du 2026-10-23 tient d'ici là.
+- **Projets hors détresse** : un agenda né (A6) se place sur l'échelle commune selon son poids, pas au dernier palier
+  « argent » ; lot après 184 b.
+- **Suivi d'une délégation** : après un délai, le mandant va voir où en est sa charge confiée (joueur ou PNJ), au lieu de
+  rester figé (Gorm, 220 min au Relais) ; rattaché à A5.
+- Lots compatibles issus de la revue : 189 sortie extérieure (régression du lot 181), portes d'un lieu gardé, valeur des biens
+  non monétaires et des outils de capacité, parole sans constats auto-causés ni avis redits, ouïe des compagnons connus.
+
 ## Décisions prises le 2026-10-24
 
 - **A2b, les PNJ proposent « faute de mieux »** (`docs/plan-relations.md` § 7.2) : un recours de dernier
