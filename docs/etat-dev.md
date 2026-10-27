@@ -4,6 +4,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-mesures-resolues`, **diagnostic, non fusionnée**, lot **171**,
+  base `06cfe9e` : les trois refus de mesures (`force-4c-fuir` p1/p2 t1,
+  `atelier` p2 t8) sont faux ; aucune source nécessaire absente. Cumul de deux
+  pas mal lu, destination pourtant fournie par le geste résolu, coordonnées
+  équivalentes rejetées avec citation altérée. L’hypothèse d’une autre
+  affirmation sans fondement expliquant ces refus est retirée. Une preuve de
+  valeurs ne suffit pas à exempter les phrases entières ; décomposition typée
+  à décider, attestations canoniques à évaluer comme piste limitée aux reprises
+  exactes. **Aucun code, appel Luna ni test**, sur instruction de l’orchestrateur ;
+  aucune correction ou garantie après recharge revendiquée. Extraits et empreintes
+  des trois fils dans `C:/Users/msics/donjon/artifacts/mesures-171/diagnostic-audits.json`.
+  Pas de clé de signature configurée ; `main` intacte.
+  [Rapport 171](taches/rapport-codex-171-mesures-resolues.md).
+
 - Branche `codex-silence-rappel`, fusionnée, lot **169**, base `27b5268` :
   définition temporelle commune de l'extraction `rappels` dans `narration.py`.
   L'issue courante reste contrôlée par ses faits, sans comparaison au passé.
