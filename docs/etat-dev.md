@@ -4,6 +4,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-faits-a-la-demande`, **non fusionnée**, lot **166** (L7 partiel), `0ea6047` : surfaces génériques omises
+  quand elles sont intactes, vides et sans usage (identifiants vus conservés) ; autres catalogues inchangés faute de critère sûr.
+  `faits` d'interprétation **−3,9 %**, fiches de surfaces 927 → 501 caractères ; mais **préfixe d'entrée commun 10 959 → 8 113**
+  caractères (les surfaces envoyées varient d'un tour à l'autre), contraire à l'objectif du fournisseur local. Validation Luna
+  du code final et rejeu des refus non faits. **Mis en attente par l'orchestrateur** : gain faible, risque sur le préfixe local ;
+  décision à l'utilisateur. Bruts `artifacts/faits-166/`.
+
 - **Branche `codex-garder-proteger`, fusionnée**, lot **167 / A4b partiel**,
   base `45d07fb`, code `d230e4a` puis `0bdfee4` : interposition sur approche
   observée d'une charge ou d'un protégé du profil, marche réelle vers le poste,
