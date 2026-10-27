@@ -1,10 +1,10 @@
 {
-  "_reference": "4641dc3c7e66acf1619e53eb5c00510624602449 (MJ avant L1, empreintes JSON trié)",
+  "_reference": "7adc788 + lot 159 (description de pieces.objet ; autres donnees identiques a 7adc788, empreintes JSON trie)",
   "crypte": {
     "requetes": [
       {
         "fonction": "repondre_au_joueur",
-        "instructions": "bdfb8f4505ff3a46efb6dff26334146fc6decb94e0005d9df9466a986291d301",
+        "instructions": "7260748057d90d649e8575241ba041b452090ccd675489fa0ddb1c0b7e66cc83",
         "entree": "9679f6ecb1ba1dad0370ae12c67d77aed94bb790cd5091eb2b5aa1eedaad5f04",
         "schema": "a83d746f936e1283e2ab8ff53081400e4d0df76b2aa8f04975d3ae1e0284da1b"
       },
@@ -28,9 +28,9 @@
     "requetes": [
       {
         "fonction": "repondre_au_joueur",
-        "instructions": "64f5737886fee0d948c1f09aa0c690436144480248f986d1b9f65b2f28b54b81",
-        "entree": "12db1295ed79873f68f5d7ff7f6fb4db2c437367936d4a78c0ef9772931a9aba",
-        "schema": "b36524a4221cf414241ae2d9bcf7fef7d86da97fbe40513022d394163866fc5e"
+        "instructions": "993a1ebbe4aa6ab9c5bdd208da189125b83f0c1f7598e56c5e675904768ab614",
+        "entree": "7a01ab1145474904f4ba6673cc62a5f954004d79cf9964f0f5288da6238089e9",
+        "schema": "6027ba4339c23d0c561c190760571f6e410160a2ecca801ad925275f46ba1bb7"
       },
       {
         "fonction": "auditer_action",
@@ -48,7 +48,7 @@
         "fonction": "auditer_narration",
         "instructions": "974b49f417f7553bc1943b9307948923d29edda460c5e6caddca18d01714ec51",
         "entree": "2ca3b8fd18fb6d6d149c24da8762f207d989d6459919f349fa996c66ad663978",
-        "schema": "d53bfaa627e641b2403443295cfb6e406529832064340068c974122d4d8bdf1b"
+        "schema": "31941b4700491bd84588632d0c2cc432c3faca47be28bcb508075ea831a5d22a"
       }
     ],
     "etat": "3af773f1d35c45728980e5f11bebfeac9e3bb6cb1c843c03334f0c2933089397",

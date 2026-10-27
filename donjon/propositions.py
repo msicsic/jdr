@@ -22,7 +22,10 @@ def schema_terme(contrepartie=False, service=False):
     formes.extend([_forme({"type": {"type": "string", "enum": ["pieces"]},
                            "montant": {"type": "integer", "minimum": 1}}),
                    _forme({"type": {"type": "string", "enum": ["pieces"]},
-                           "montant": {"type": "integer", "minimum": 1}, "objet": {"type": "string"}})])
+                           "montant": {"type": "integer", "minimum": 1}, "objet": {
+                               "type": "string", "description":
+                               "Source des pièces : identifiant d'un contenant à pièces, jamais du bien acheté. "
+                               "Omettre objet pour payer sur les fonds du donneur."}})])
     if contrepartie:
         formes.append(_forme({"type": {"type": "string", "enum": ["rien"]}}))
     return {"anyOf": formes}
@@ -172,7 +175,11 @@ def verifier(monde, c, champ="contenu", proposant="joueur"):
                 objet = terme["objet"]
                 if (not isinstance(objet, str) or not connu(objet)
                         or "pieces" not in monde.objets.get(objet, {})):
-                    refuser(chemin + ".objet", objet, "identifiant connu d’un objet à pièces")
+                    refuser(chemin + ".objet", objet,
+                            "source des pièces : identifiant connu d’un objet à pièces ; "
+                            "ce champ ne désigne pas le bien acheté. "
+                            f"Pour les fonds du donneur, retirer {chemin}.objet et conserver "
+                            f"le terme {{'type': 'pieces', 'montant': {terme['montant']!r}}}")
 
 
 def demande_utile(monde, id, demande):
