@@ -40,32 +40,35 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
 6. **Schéma et consignes invariants** au long d'une partie ; ce qui n'est pas disponible ce tour est refusé par le moteur
    avec `attendu`, pas retiré du schéma.
 
+## État au 2026-10-27
+
+Faits et fusionnés : L0, L1, L2 (schéma d'interprétation), L3, L4, L5 (partiel), L8. En attente d'une décision : L6
+(lot 170), L7 (lot 166), schéma d'audit narratif (lot 162, refusé sous sa forme actuelle). **Chantier gelé** depuis la
+décision du 2026-10-27 de donner la priorité à la richesse des PNJ : plus de nouveau lot sur le prompt du MJ, sauf
+régression ; seul le lot 180 c (comptes écrits par le moteur, hors du plan L) reste en cours côté MJ.
+
 ## Lots (un invariant chacun, mesurés sur les quatre bancs de référence et les bancs ciblés)
 
 - **L0 (lot 149)** — mesure sans code : taille envoyée par voie après mutualisation, part de chaque composant, préfixe commun
   entre appels successifs d'une même voie, jetons cachés ; ce qui casse le préfixe et dans quelle proportion.
-- **L1 (lot 150, porté sur `codex-prompt-prefixe`, non fusionné ; réserve sur le critère des refus)** — préfixe ordonné par voie, depuis `9d53229` : clé de cache par voie, faits et entrée ordonnés du plus stable au
-  plus variable, révision en fin d'entrée seulement en relance, fournisseur local ; même contenu des requêtes à l'ordre près.
-- **L2 partiel, lot 158, branche `codex-schema-invariant`, non fusionnée** — schéma
-  d'interprétation invariant : tous les modes et toutes les branches toujours présents,
-  `faits` validé par le moteur, `suite` nullable dans une seule branche ; la question
-  de faisabilité exige le geste avant tout ajout. Disponibilités refusées avec `attendu`
-  avant audit. **0/92 variations** d'interprétation dans les deux passes Luna ;
-  taille accrue, cache supérieur, aucun gain de secondes démontré. Critère des refus
-  atteint sur 16 audits (160 appels, perte maximale 1/5). Schéma d'audit narratif
-  encore variable, à reprendre dans un lot suivant.
-  [Rapport 158](taches/rapport-codex-158-schema-invariant.md).
-- **L3, lot 161, branche `codex-consignes-invariantes`, non fusionnée** —
-  consignes d'interprétation permanentes, règles des quatre dossiers et de parole
-  incluses sans condition de disponibilité ; indication du refus courant dans
-  l'entrée. Sur huit captures Relais/atelier, **7/7 → 0/7 variations**, consignes
-  moyennes **34 259,75 → 39 910 caractères**. Quatre parcours console identiques
-  à la base, état complet et rendu rechargés. Suite unique **2 214 tests,
-  16 ignorés, zéro échec/erreur**. **Validation partielle** : campagne
-  Luna confiée à l’orchestrateur : « passe Luna faite par l'orchestrateur, à compléter »
-  (aucune passe exécutée ici). Aucun gain de temps, cache réel ni critère des refus
-  établi pour ce lot.
-  [Rapport 161](taches/rapport-codex-161-consignes-invariantes.md).
+- **L1 fait, lot 150, branche `codex-prompt-prefixe`, fusionnée** — préfixe ordonné par voie, depuis `9d53229` : clé de
+  cache par voie, faits et entrée ordonnés du plus stable au plus variable, révision en fin d'entrée seulement en relance,
+  fournisseur local ; même contenu des requêtes à l'ordre près. Aucun gain de vitesse démontré ; réserve du critère des refus
+  jugée non bloquante (les refus perdus étaient de faux refus de comptes). Fournisseur local non mesuré, faute de serveur.
+  [Rapport 150](taches/rapport-codex-150-prompt-prefixe.md).
+- **L2 partiel** — **lot 158, branche `codex-schema-invariant`, fusionnée** : schéma d'interprétation invariant (tous les
+  modes et branches toujours présents, `faits` validé par le moteur, disponibilités refusées avec `attendu`), **0/92
+  variations** d'interprétation sur deux passes Luna, critère des refus tenu (perte maximale 1/5), aucun gain de secondes
+  démontré. [Rapport 158](taches/rapport-codex-158-schema-invariant.md). **Lot 162 (schéma d'audit narratif invariant,
+  `codex-audit-invariant`), refusé** : variations 50/72 → 0/76, mais trois audits perdent plus d'un refus juste sur cinq,
+  relances 13 → 22 ; la forme du rapport change le comportement de Luna. Le schéma d'audit narratif reste variable ;
+  à reprendre autrement ou abandonner (décision à l'utilisateur).
+  [Rapport 162](taches/rapport-codex-162-audit-invariant.md) sur la branche.
+- **L3 fait, lot 161, branche `codex-consignes-invariantes`, fusionnée** — consignes d'interprétation permanentes, règles des
+  quatre dossiers et de parole sans condition de disponibilité, indication du refus courant dans l'entrée. Variations
+  7/7 → 0/7, consignes 34 260 → 39 910 caractères. Deux passes Luna jouées par l'orchestrateur sur sept scripts contre
+  `cdaf371` : appels/tour 3,24 → 3,07, s/tour 10,5 → 9,9, replis 1,5 → 1,0, jetons cachés d'interprétation ×2 ; rejeu des
+  refus du lot 95 non fait. [Rapport 161](taches/rapport-codex-161-consignes-invariantes.md).
 - **L4 fait, lot 152, branche `codex-dossiers-proches`, fusionnée** — les quatre dossiers passent par
   `espace.objets_proches` (visibilité et `spatial.proche`), installations et outils compris ; les repères éloignés
   restent dans la vue. Les sauvegardes sans coordonnées n'établissent pas de portée au sol. Console et MJ simulé,
@@ -74,15 +77,19 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
   modifiée ; **critère Luna des propositions distantes non atteint** (deux actions et un détail encore proposés,
   refusés par le moteur). Le filtre des dossiers ne garantit pas à lui seul les propositions libres de Luna.
   [Rapport 152](taches/rapport-codex-152-dossiers-proches.md).
-- **L5 (lot 151, partiellement réalisé sur `codex-portee-locale`, fusionnée)** — refus local de
-  `HorsDePortee`, réponse exacte du moteur sans explication ni audit ; aucun déplacement automatique.
-  Limite : la préparation s’arrête à la première cible hors de portée ; le recensement de toutes les cibles
-  d’une proposition composée n’est pas garanti.
-- **L6** — dégraissage des consignes (doublons socle/règles), relances mesurées.
-- **L7** — catalogues d'écriture à la demande et surfaces génériques paresseuses.
-  À exercer avec le dépôt au sol : la première passe du lot 154 a proposé
-  `antichambre_sol`/`cour_sol` comme destinations. Ces surfaces restent hors du
-  contrat des contenants ; leur présence dans les désignations est laissée à L7.
+- **L5 partiel, lot 151, branche `codex-portee-locale`, fusionnée** — refus local de `HorsDePortee`, réponse exacte du
+  moteur sans explication ni audit, aucun déplacement automatique ; coup de pied dans la poutre et saut à la perche
+  3 → 1 appel. Limite : la préparation s'arrête à la première cible hors de portée ; le recensement de toutes les cibles
+  d'une proposition composée n'est pas garanti. [Rapport 151](taches/rapport-codex-151-portee-locale.md).
+- **L6, lot 170, branche `codex-consignes-degraissees`, en attente** — doublons retirés des consignes d'interprétation,
+  **−2,7 %** (39 910 → 38 828 caractères) ; deux passes Luna contre `cdaf371` : appels/tour 3,24 → 3,30, s/tour
+  10,51 → 11,42, relances 14 → 19, replis 3 → 1, faisabilité de l'atelier manquée dans une passe. Gain faible, signes de
+  régression : non fusionné, décision à l'utilisateur.
+- **L7 partiel, lot 166, branche `codex-faits-a-la-demande`, en attente** — surfaces génériques omises quand elles sont
+  intactes, vides et sans usage ; `faits` d'interprétation **−3,9 %**, mais préfixe d'entrée commun 10 959 → 8 113
+  caractères (les surfaces envoyées varient d'un tour à l'autre), contraire au cache d'un fournisseur local. Catalogues
+  d'écriture à la demande non faits faute de critère sûr. Non fusionné, décision à l'utilisateur. Le dépôt au sol de L8
+  a proposé `antichambre_sol`/`cour_sol` comme destinations : ces surfaces restent dans les désignations.
 - **L8 fait, lot 154, branche `codex-poser-au-sol`, fusionnée** —
   `destination: "sol"` résolu dans le compilateur commun des déplacements et
   prélèvements ; séquences et effets d'improvisation suivent le même contrat.
