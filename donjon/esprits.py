@@ -199,6 +199,10 @@ def _croyance_valide(monde, attribut, c):
         assert (isinstance(s, dict) and set(s) == {"valeur", "dit_a"} and isinstance(s["dit_a"], list)
                 and all(isinstance(x, str) for x in s["dit_a"])
                 and len(s["dit_a"]) == len(set(s["dit_a"]))), "Constat confié invalide"
+    if "origine" in c:
+        assert (isinstance(c["origine"], dict) and set(c["origine"]) == {"source", "minute"}
+                and isinstance(c["origine"]["source"], str)
+                and type(c["origine"]["minute"]) is int), "Origine de localisation invalide"
     if attribut == "lieu":
         # Une croyance peut survivre à son objet (détruit, retiré).
         assert (set(c) >= {"valeur", "salle", "case"}
@@ -352,6 +356,11 @@ def verifier(monde):
             and isinstance(s["de"], str) and isinstance(s["operation"], str) and isinstance(s["raison"], str)
             and type(s["minute"]) is int and type(s.get("prix", 0)) is int
             and type(s.get("condition_tenue", False)) is bool
+            and ("information" not in s or isinstance(s["information"], dict)
+                 and set(s["information"]) == {"lieu", "minute", "source"}
+                 and s["information"]["lieu"] in monde.data["salles"]
+                 and type(s["information"]["minute"]) is int
+                 and isinstance(s["information"]["source"], str))
             and ("contre_offre" not in s or _contre_offre_valide(monde, id, s))
             and isinstance(s.get("cause", []), list) and all(isinstance(f, list) and len(f) == 4 for f in s.get("cause", []))
             and ("offre" not in s or isinstance(s["offre"], dict) and set(s["offre"]) == {"cause", "gain"}

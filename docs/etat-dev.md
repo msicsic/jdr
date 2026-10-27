@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-ou-est-il`, **non fusionnée**, lot **221**, départ `4fe33ef` :
+  question commune de localisation à un tiers cru présent, réponse fondée sur
+  les seules croyances datées du témoin ; même contenu typé pour le joueur.
+  Réponses positives/négatives retenues hors des quarante souvenirs, selon les
+  indices persistants 37/69, sans réessai par délai. Extension du mécanisme des
+  refus et de la validation des sauvegardes autorisée par le superviseur ;
+  fonctions des lots voisins intactes. **50 ciblés distincts verts, 12 nouveaux**.
+  Banc exact cinq scénarios × quatre graines × 4 h : **18 questions**, aucun
+  trio demandeur/témoin/cible répété, zéro plantage/usurpation ; S Relais
+  **11,25 → 14,25**, hameau **31 → 33**, autres scénarios en baisse.
+  Attente urgente crue **178,75 → 183,75**, hameau **128,75 → 151,25**.
+  **Réserve avant intégration** : suspects 199 **16 → 22**, nouvelle alerte
+  de lecture sociale (hameau 2024, huit contre sept), absence globale de
+  boucle nouvelle non certifiée. Capture 215 testée par `rejoindre` ; ses dix
+  minutes inchangées ne déclenchent pas la question (P1 reste distinct).
+  Suite complète unique en cours ; aucun Luna. Bruts
+  `C:/Users/msics/donjon/artifacts/ou-est-221/` ;
+  [rapport 221](taches/rapport-codex-221-ou-est-il.md).
+
 - Branche `codex-sait-observations`, **non fusionnée, en attente**, lot **206** (`820762d`) : `social.bavarder` ne lit plus le savoir réel de l'auditeur, seulement les paroles, audiences et observations communes du locuteur. Juste, mais **les PNJ se redisent tout** : confidences crue 56 → 334, hameau 74 → 385, répétitions 2 → 23, demandes en boucle 0 → 26 (Brune → Gorm, crue 1985 : 54 confirmations, souvent des hauteurs d'eau successives) ; suite 14 échecs. Reprise à concevoir : ne dire que ce qui est nouveau **et pertinent** pour l'auditeur, et tenir pour commune une observation de l'environnement partagé (une eau vue ensemble), sans lecture privée. [Rapport 206](taches/rapport-codex-206-sait-observations.md) sur la branche ; bruts `artifacts/sait-206/`.
 
 - **Vérification d’intégration 4d4c625**, lot **212**, branche `codex-verif-integ-4d4c625`, base documentaire `a49c31e` : **49/49 nuits achevées**, code `donjon/`/`tools/` identique à `4d4c625`, aucun Luna, référence rejouée ou suite complète ; deux calculs au plus, en fond à priorité réduite. Zéro plantage, violation d’état, usurpation, mort relevée ou écart VERIFIER/spatial 0,2 ; cinq contrôles complets de 8 h, zéro borne (Lucien auberge 42/314 non reproduit). **16 coups, sept touchés**, crue 2024 à 672–691, Gorm finit inconscient. Hameau : attente **750 → 1 021,25**, noir **268,75 → 575**, pire passage **40 → 39/h** (1985 : **40 → 28**). Compteur 199 actif : **338 suspects**, garantie générale non établie ; boucle de prêts de la bourse mine 1985 (Mathe 97 demandes, Rémy 100) absente de ses suspects, et alternance poêle/garde d’Anselme auberge 2024 à instruire par les contrats communs, ancienneté même nuit indéterminable avec le seul rapport 174. **117 repas d’empathie**, 40 projets de pièces (un marqué atteint), 12 récupérations nées (huit fins sur retour cru, reprises autonomes non certifiées) ; aucun départ définitif relevé. Pas de monde/rendu certifié après recharge ; aucun correctif. Bruts, scripts, lecture de pile et manifeste des 49 archives exclusivement `C:/Users/msics/donjon/artifacts/verif-integ-4d4c625/` ; [rapport 212](taches/rapport-codex-212-verif-integ.md).

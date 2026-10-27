@@ -240,8 +240,8 @@ def _disponible_cru(monde, id, objet):
 # une offre plus haute reste possible (``planification._engager``). Un refus d'humeur ou de méfiance,
 # et tout autre, tient ``REDEMANDE`` minutes. Chaque demande a sa dernière réponse refusée, gardée à
 # part des souvenirs, que le temps n'efface pas (``esprit["refus"]``) ; une demande accordée l'efface.
-CAUSES = ("impossible", "necessaire", "absent", "eteinte", "rien")
-DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre", "contre_offre", "condition_tenue")
+CAUSES = ("impossible", "necessaire", "absent", "eteinte", "rien", "indication", "inconnu")
+DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre", "contre_offre", "condition_tenue", "information")
 
 
 def _meme_demande(s, autre, operations, objet, besoin):
@@ -272,7 +272,7 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
                                    {"type": "pieces", "montant": detail["prix"]})
         if raison == "refus":
             s["raison"] = "persuasion"  # Un achat refusé est déjà une offre, pas une demande gratuite.
-    if raison in CAUSES and "contre_offre" not in s:
+    if (raison in CAUSES or operation == "enqueter_lieu") and "contre_offre" not in s:
         s["cause"] = moyens_crus(monde, id, s)
     esprit(monde, id)["refus"].append(s)
     intention = lire(monde, id)["intention"]
@@ -302,6 +302,9 @@ def tient(monde, id, s, connus=None):
     déjà au refus : ce qu'il apprend qui en ôte un (le bois vu épuisé, une porte crue fermée à clé) ne le
     lève pas, revoir la même chose non plus. Pour un prix trop bas, toujours (pour ce prix seulement).
     Sinon, depuis moins de ``REDEMANDE`` minutes."""
+    if s["operation"] == "enqueter_lieu":
+        avant = {tuple(f) for f in s.get("cause", [])}
+        return all(tuple(f) in avant for f in moyens_crus(monde, id, s, connus))
     if "contre_offre" in s:
         # Ce moyen se poursuit par le recours, hors de la recherche ordinaire.
         # Un délai ou la perte d'un moyen ne fait pas oublier la condition dite.
@@ -388,6 +391,18 @@ def moyens_crus(monde, id, s, connus=None):
     connus = _connus(monde, id) if connus is None else connus
     op, o = s["operation"], s.get("objet")
     faits, abords = set(), []
+
+    if op == "enqueter_lieu":
+        # Seulement les entrées du demandeur, jamais le savoir privé du témoin.
+        # L'absence et les dates seules n'apportent aucune indication nouvelle.
+        import json
+        if s["raison"] in ("mefiance", "rancune"):
+            from .relations import axes
+            faits.add(("relation", s["de"], None, json.dumps(axes(monde, id, s["de"]), sort_keys=True)))
+        for salle, indices in lire(monde, id)["indices_recherche"].get(o, {}).items():
+            for indice in indices:
+                faits.add(("indice", o, salle, json.dumps(indice, sort_keys=True)))
+        return sorted((list(f) for f in faits), key=str)
 
     def etat(k):
         return (croyances.get(k, {}).get("etat") or {}).get("valeur") or {}
