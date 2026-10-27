@@ -389,6 +389,16 @@ def verifier_forme_reponse(reponse, schema):
                            f"proposition reçue {reponse['proposition']!r}, mode {reponse['mode']!r} ; "
                            "accepté : un objet conforme au schéma de ce mode, distinct de faits (sources citées).")
     else:
+        # L'union du transport expose toutes les branches : le mode doit encore
+        # désigner la bonne famille avant tout audit ou accès à son contenu.
+        marqueur = {"action": "action", "enrichir_joueur": "profil_joueur",
+                    "enrichir": "ajouts", "conversation_pnj": "sujet",
+                    "parole_joueur": "replique", "enrichir_savoirs": "savoirs",
+                    "etablir_faits": "ajouts"}.get(reponse["mode"])
+        if marqueur and marqueur not in reponse["proposition"]:
+            raise RefusDeForme("La proposition ne correspond pas au mode de réponse.",
+                               f"proposition reçue {reponse['proposition']!r}, mode {reponse['mode']!r} ; "
+                               f"accepté : une proposition portant {marqueur!r} pour ce mode.")
         for champ in ("ajouts", "contenu"):
             if champ not in reponse["proposition"]:
                 continue
@@ -397,6 +407,38 @@ def verifier_forme_reponse(reponse, schema):
                 raise RefusDeForme("Le contenu typé doit être une liste d'objets structurés.",
                                    f"proposition.{champ} reçu {valeur!r} ; accepté : une liste "
                                    "d'objets conformes au schéma, pas une liste de sources citées.")
+
+
+def verifier_disponibilite(reponse, faits, geste_requis=False):
+    """Les possibilités du tour sont des données, jamais des variantes du schéma."""
+    disponibles = {
+        "dialogue": True, "action": True,
+        "enrichir_joueur": bool(faits.get("profil_joueur_a_completer")),
+        "enrichir": bool(faits.get("descriptions_a_completer")),
+        "conversation_pnj": bool(faits.get("interlocuteurs")),
+        "parole_joueur": bool(faits.get("interlocuteurs")) or
+                          "personnage" in (faits.get("parole_prevue") or {}),
+        "enrichir_savoirs": bool(faits.get("connaissances_a_completer")),
+        "etablir_faits": any((faits.get("faits_narratifs_proposables") or {}).values()),
+    }
+    mode = reponse.get("mode")
+    if not disponibles.get(mode, False):
+        raise RefusDeForme("Ce mode de réponse n'est pas disponible ici.",
+                           f"mode reçu {mode!r} ; acceptés : {[m for m, ok in disponibles.items() if ok]!r}.")
+    if mode == "etablir_faits":
+        verifier_suite_faits(reponse["proposition"], geste_requis)
+
+
+def verifier_suite_faits(proposition, geste_requis):
+    suite = proposition.get("suite")
+    if geste_requis and not isinstance(suite, dict):
+        raise RefusDeForme("Le geste demandé doit être précisé avec les faits.",
+                           f"proposition.suite reçu {suite!r} ; "
+                           "accepté : un geste (action hors clarifier/impossible, séquence ou improvisation).")
+    if isinstance(suite, dict) and suite.get("action") in ("clarifier", "impossible"):
+        raise RefusDeForme("La suite doit décrire le geste demandé.",
+                           f"proposition.suite.action reçu {suite['action']!r} ; "
+                           "accepté : une action hors clarifier/impossible, une séquence ou une improvisation.")
 
 
 def expliquer_refus(premier, dernier):
@@ -780,6 +822,7 @@ class MJ:
             suite_proposee = reponse["proposition"].get("suite")
             p = sans_suite(reponse["proposition"])
             try:
+                verifier_suite_faits(reponse["proposition"], geste_en_question(monde, intention))
                 if suite_proposee is not None and not isinstance(suite_proposee, dict):
                     raise RefusDeForme("Le geste suivant doit être précisé.",
                                        f"proposition.suite={suite_proposee!r} : accepté une proposition d'action.")
@@ -807,6 +850,7 @@ class MJ:
                             "proposition": None, "_validation_refusee": True, "_texte_moteur": True}
                 suite_proposee = reponse["proposition"].get("suite")
                 p = sans_suite(reponse["proposition"])
+                verifier_suite_faits(reponse["proposition"], geste_en_question(monde, intention))
                 travail, texte, _ = preparer_faits(monde, p, revision)
             if suite_fait:
                 # Un seul groupe de faits par tour : le réexamen ne relance pas l'invention.
@@ -1102,10 +1146,8 @@ class MJ:
             a for a in schema_geste["properties"]["action"]["enum"] if a not in ("clarifier", "impossible")]
         schema_faits_suite["properties"]["suite"] = {
             "description": "Le geste demandé, à préparer après validation des ajouts, sans supposer leur acceptation.",
-            "anyOf": [schema_geste, SCHEMA_SEQUENCE, SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE]}
+            "anyOf": [schema_geste, SCHEMA_SEQUENCE, SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, {"type": "null"}]}
         schema_faits_suite["required"].append("suite")
-        schemas_faits = ([schema_faits_suite] if geste_en_question(monde, intention)
-                         else [SCHEMA_FAITS, schema_faits_suite])
         from .paroles import SCHEMA_OPERATIONS
         schema_parole = copy.deepcopy(SCHEMA_PAROLE)
         # L'analyse de la saisie précède le choix du contenu : elle ne doit pas
@@ -1116,10 +1158,14 @@ class MJ:
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "mode": {"type": "string", "enum": ["dialogue", "action"] + (["enrichir_joueur"] if profil_disponible else []) + (["enrichir"] if disponibles else []) + (["conversation_pnj"] if social else []) + (["parole_joueur"] if parler else []) + (["enrichir_savoirs"] if savoirs_disponibles else []) + (["etablir_faits"] if any(faits_disponibles.values()) else [])},
+                "mode": {"type": "string", "enum": ["dialogue", "action", "enrichir_joueur", "enrichir",
+                                                       "conversation_pnj", "parole_joueur", "enrichir_savoirs", "etablir_faits"]},
                 "texte": {"type": "string"},
-                "faits": {"type": "array", "items": {"type": "string", "enum": list(faits)}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}] + ([SCHEMA_PROFIL] if profil_disponible else []) + ([SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE] if enrichir else []) + ([SCHEMA_COMPLEMENTS] if disponibles else []) + ([SCHEMA_CONVERSATION] if social else []) + ([schema_parole] if parler else []) + ([SCHEMA_SAVOIRS] if savoirs_disponibles else []) + (schemas_faits if any(faits_disponibles.values()) else [])},
+                "faits": {"type": "array", "items": {"type": "string"}},
+                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}, SCHEMA_PROFIL,
+                                          SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE,
+                                          SCHEMA_COMPLEMENTS, SCHEMA_CONVERSATION, schema_parole,
+                                          SCHEMA_SAVOIRS, schema_faits_suite]},
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }
@@ -1148,7 +1194,6 @@ class MJ:
             schema["properties"]["proposition"] = {"type": "null"}
             if resultat_resolu is not None:
                 faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu", "attestations", "ambiance_etablie", "comptes")}
-                schema["properties"]["faits"]["items"]["enum"] = list(faits)
                 instructions = INSTRUCTIONS_RESULTAT
             if retour_moteur:
                 instructions += "\nLes propositions précédentes ont été refusées avant toute exécution. Explique les conditions pertinentes à partir des faits fournis. Ne présente pas ces refus comme une tentative de Corvus ni comme une preuve que son intention entière est impossible."
@@ -1205,6 +1250,8 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 trace["secondes"] = round(time.monotonic() - debut, 3)
                 trace["usage"] = copy.deepcopy(self.derniere_utilisation)
                 self.observateur(trace)
+        if enrichir:
+            verifier_disponibilite(reponse, faits, geste_en_question(monde, intention))
         # L'audit sémantique de la prose est effectué par _appeler avant ce contrôle de forme.
         if isinstance(reponse.get("proposition"), dict) and reponse.get("mode") != "parole_joueur":
             from .noms import references
@@ -1285,6 +1332,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
             while True:
                 try:
                     verifier_forme_reponse(reponse, schema)
+                    if len(schema.get("properties", {}).get("mode", {}).get("enum", [])) > 1:
+                        verifier_disponibilite(reponse, entree["faits"],
+                            self._monde_controle is not None and geste_en_question(self._monde_controle, intention))
                     break
                 except RefusDeForme as exc:
                     if self.observateur:

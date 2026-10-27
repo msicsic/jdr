@@ -29,6 +29,18 @@ doit s'approcher. Les préparations, refus, trajets et coûts du moteur restent
 ceux du contrat commun. Ce filtre des données ne garantit pas que Luna ne
 proposera jamais spontanément un geste éloigné ; le moteur revalide sa portée.
 
+**Schéma d'interprétation invariant** (lot 158, L2). Tous les modes et toutes
+les branches de proposition figurent à chaque appel d'interprétation, quel que
+soit le catalogue du tour. Leur disponibilité est contrôlée par le moteur avant
+l'audit et la préparation ; un mode indisponible reçoit un `RefusDeForme` avec
+`attendu`. Les sources `faits` sont des chaînes : une clé inconnue est écartée
+sans établir de preuve. Les faits narratifs ont une seule branche, avec `suite`
+nullable ; une question de faisabilité exige le geste dans `suite`, avant tout
+ajout. Les anciennes propositions internes sans `suite` restent lisibles hors
+question de faisabilité. Les voies finales gardent le mode dialogue et les
+mêmes contrôles de sources. L'audit narratif conserve son schéma variable ;
+les consignes conditionnelles ne sont pas modifiées dans ce lot.
+
 **Schéma envoyé à OpenAI** (lot 93, `codex-latence-appels`). Le fournisseur
 mutualise les sous-schémas strictement identiques dans `$defs`, référencés par
 `$ref`, seulement si la requête devient plus courte. Leur expansion restitue
@@ -862,8 +874,10 @@ geste garde la voie de qualification puis réexamen lorsque la mécanique la dem
 mais omis du plan, gardent leur voie de correction. Si Luna commence par une qualification valable, elle est enregistrée avant la fiche
 et le geste est réexaminé selon le contrat existant.
 
-`etablir_faits` peut joindre aux `ajouts` une `suite`, proposition du geste demandé. Pour une
-question de faisabilité, le schéma exige cette suite si Luna choisit d'établir des faits.
+`etablir_faits` porte, à côté des `ajouts`, une `suite` nullable, proposition du geste
+demandé quand elle n'est pas nulle. Pour une question de faisabilité, le moteur exige
+ce geste avant tout ajout si Luna choisit d'établir des faits (lot 158) : le schéma
+reste invariant et le refus porte `proposition.suite` dans son `attendu`.
 Il s'agit de deux propositions dans un même appel : les ajouts passent les contrôles physiques
 sur copie, puis le geste passe la préparation du moteur et sa contre-revue de fidélité sur
 cette copie. Les faits acceptés sont sauvegardés avant la fiche ; la question n'exécute aucun

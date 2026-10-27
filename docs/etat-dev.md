@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-schema-invariant`, fusionnée**, lot **158 / L2**, base
+  `7adc788`, code `9a0ea10`, mesure `a2147fd` : huit modes et toutes les branches
+  d'interprétation toujours présents, sources en chaînes, faits à `suite` nullable.
+  Disponibilités refusées avec `attendu` avant audit, famille vérifiée, faisabilité
+  sans geste refusée avant préparation. Consignes et voie d'achat du lot 159 intactes.
+  **55 ciblés verts** : six modes indisponibles, branche incohérente, suite absente/null
+  et source inconnue, Relais/auberge, état complet et rendu rechargés identiques aux
+  témoins ; crypte/atelier, requêtes hors schéma, état et rendu identiques à la base.
+  Suite unique : **2 205 tests, 250 fichiers, 16 ignorés, zéro erreur, 3 731,37 s**,
+  un worker réduit après l'intégration. Un échec de mesure (suffixe de cache L1
+  non reconstruit), corrigé par `sources.voie_cache`, **12 ciblés repris verts**
+  sur quatre voies ; mesures recalculées hors réseau, aucune seconde suite.
+  **8/8 empreintes 2 h Relais/auberge identiques** à la base, quatre graines ;
+  huit références absentes rangées une fois. Six captures : outils moyens
+  **22 760 → 30 003 caractères**, variations **4/4 → 0/4** ; bancs Luna
+  **0/92 variations** d'interprétation, relances comprises. Deux passes, sept
+  scripts distincts, **293 appels/88 tours MJ**, un repli, zéro incident/recharge.
+  Référence `cdaf371` : neuf parties cachées, cinq absentes jouées une fois et rangées.
+  Cache d'interprétation **646 144 → 982 784 jetons** ; aucun gain de secondes démontré.
+  **Critère des refus atteint sur 16 audits/160 appels**, cinq rejeux par côté,
+  perte maximale **1/5**, aucune erreur/rapport illisible. Faux souvenir de Gorm 5→4.
+  **L2 partiel : audit narratif encore variable**, L3 intact, pas de serveur local
+  mesuré ni garantie sémantique nouvelle. Vérification hors créneau après attente
+  du calcul d'intégration. Copies seulement ; aucune clé de signature, commits
+  non signés, branche seule poussée ; `main` intacte.
+  [Rapport 158](taches/rapport-codex-158-schema-invariant.md), bruts `artifacts/schema-158/`.
+  Fusionné sur l'intégration : conflits de documentation, de `tools/mesure_prompt.py` (même correction de la clé par voie des deux côtés, version de la branche gardée) et de `tests/test_cache_kv_local.py` (comparaison avec et sans l'ordre des sources sur le code courant gardée, sans nouvelle empreinte figée) ; `mj.py` touché aussi par les lots 150, 151 et 159, fusionné sans conflit textuel ; suite complète relancée. L'audit narratif reste variable (44/74) : suite de L2 à faire.
+
 - **Vérification d'intégration 7adc788**, lot **160**, branche
   `codex-verif-integ-7adc788` : aucun code du jeu changé, aucun Luna, aucune
   suite complète ni référence rejouée ; `main` intacte. **49/49 nuits achevées**,

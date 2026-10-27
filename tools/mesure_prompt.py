@@ -41,9 +41,11 @@ def voie(e):
 def payload(e):
     """Ordre exact du message ChatGPT OpenAI après transport WebSocket.
 
-    La clé, constante pendant une partie mais non archivée, est un UUID factice.
+    La clé non archivée est un UUID factice, suffixé par la voie comme chez le fournisseur.
     Ce JSON n'est pas un ordre de tokens KV interne au fournisseur.
     """
+    interpretation = e['schema'].get('properties', {}).get('mode', {}).get('enum') != ['dialogue']
+    cache = voie_cache(e['fonction'], e['entree'], interpretation)
     return {'type': 'response.create', 'model': e['modele'], 'instructions': e['instructions'],
             'input': [{'role': 'user', 'content': serialiser(e['entree'])}],
             'tools': [{'type': 'namespace', 'name': 'donjon',
@@ -53,9 +55,7 @@ def payload(e):
                                   'parameters': mutualiser(e['schema']), 'strict': True}]}],
             'tool_choice': 'required', 'parallel_tool_calls': False,
             'reasoning': {'effort': e.get('effort', 'medium')}, 'store': False,
-            'prompt_cache_key': '00000000-0000-0000-0000-000000000000:' + voie_cache(
-                e['fonction'], e['entree'],
-                e['schema'].get('properties', {}).get('mode', {}).get('enum') != ['dialogue'])}
+            'prompt_cache_key': f'00000000-0000-0000-0000-000000000000:{cache}'}
 
 
 def prefixe(a, b):

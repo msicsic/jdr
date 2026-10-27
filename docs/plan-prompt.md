@@ -46,8 +46,15 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
   entre appels successifs d'une même voie, jetons cachés ; ce qui casse le préfixe et dans quelle proportion.
 - **L1 (lot 150, porté sur `codex-prompt-prefixe`, non fusionné ; réserve sur le critère des refus)** — préfixe ordonné par voie, depuis `9d53229` : clé de cache par voie, faits et entrée ordonnés du plus stable au
   plus variable, révision en fin d'entrée seulement en relance, fournisseur local ; même contenu des requêtes à l'ordre près.
-- **L2** — schéma invariant : tous les modes et toutes les branches toujours présents, `faits` validé par le moteur,
-  `suite` nullable dans une seule branche ; la question de faisabilité garde son contrat.
+- **L2 partiel, lot 158, branche `codex-schema-invariant`, non fusionnée** — schéma
+  d'interprétation invariant : tous les modes et toutes les branches toujours présents,
+  `faits` validé par le moteur, `suite` nullable dans une seule branche ; la question
+  de faisabilité exige le geste avant tout ajout. Disponibilités refusées avec `attendu`
+  avant audit. **0/92 variations** d'interprétation dans les deux passes Luna ;
+  taille accrue, cache supérieur, aucun gain de secondes démontré. Critère des refus
+  atteint sur 16 audits (160 appels, perte maximale 1/5). Schéma d'audit narratif
+  encore variable, à reprendre dans un lot suivant.
+  [Rapport 158](taches/rapport-codex-158-schema-invariant.md).
 - **L3** — consignes invariantes : règles d'atelier, d'obstacles, de franchissement et d'espace condensées dans le socle.
 - **L4 fait, lot 152, branche `codex-dossiers-proches`, fusionnée** — les quatre dossiers passent par
   `espace.objets_proches` (visibilité et `spatial.proche`), installations et outils compris ; les repères éloignés
