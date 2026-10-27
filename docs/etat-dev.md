@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-evacuation-juge`, non fusionnée**, lot **205 / 196 b**,
+  départ `71bb01d`, reprise demandée sur **`ef86cab` (204 intégré)** : péril
+  indépendant du plan, certificat de transit, repli vers moins d’eau, abri commun
+  au choix et au séjour, cible tenue jusqu’à l’accomplissement. Seul raccord
+  autorisé : `pnj._abriter` ; `_lieu_cru`/`salle_crue` intacts (autre lot).
+  Quatre états réels issus de **209** en fixtures (Aubin/Ilse/Gorm et cible d’Ilse),
+  monde/rendu rechargés et laps découpés ; **157 ciblés consolidés verts**.
+  Suite finale : **2 410 tests / 279 fichiers, 9 échecs bruts, zéro erreur** ;
+  après scènes explicitées et ciblés, restent les **deux MiMo préexistants**
+  reproduits sur la base exacte. Une seule passe par base, seconde demandée après 204.
+  Contrôle crue 1985 2 h `VERIFIER` et spatial 0,2 vert. **20 paires finales 4 h** :
+  suspects Relais **0 → 0**, mine **1 → 1**, auberge **5 → 5**, crue **27 → 9**,
+  hameau **24 → 9**, total **57 → 24**, zéro plantage/usurpation. Eau en crue
+  **13,75 → 7,5**, hameau **13,75 → 2,5 PNJ·min** en moyenne.
+  **Critères non validés** : seulement **7/12 empreintes 2 h identiques** ;
+  agenda a1 de Brune hameau 2024 réactivé/endormi huit fois, nouvelles répétitions,
+  attente urgente **27,5 → 111,25 PNJ·min** au hameau. Aucune garantie générale
+  contre les boucles ; contrat complet 196 c distinct, localisation crue non traitée.
+  Aucun Luna, deux calculs réduits au plus, commit non signé ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/evacuation-205/` ;
+  [rapport 205](taches/rapport-codex-205-evacuation-juge.md). **À revoir avant fusion.**
+
 - **Branche `codex-portee-sans-salle`, fusionnée**, lot **204**, base
   `51c1e0b` : P1 implémenté en mode cases ; contact par pas commun au joueur,
   aux accès PNJ et à leur approche, indépendamment du secteur de la cible ;

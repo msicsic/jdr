@@ -1,11 +1,14 @@
 """Un constat du battant lie le choix, la recherche et l'exécution."""
 import copy
+import gzip
+import json
+from pathlib import Path
 import unittest
 
 from donjon import deliberation, planification
 from donjon.banc_pnj import creer
 from donjon.esprits import constater, croire, lire
-from donjon.monde import ErreurMonde
+from donjon.monde import ErreurMonde, Monde
 from donjon.portes import valider_fermeture
 from donjon.rendu import decrire, regarder
 from tests.test_garde_plan import gardien_servant
@@ -44,13 +47,12 @@ class BattantsBrisesTests(unittest.TestCase):
     def test_crue_2024_reelle_apres_destruction(self):
         from donjon.moteur import Moteur, proposition
         from tools.detecter_changements_avis import observer_avis, analyser_episodes
-        from donjon.geometrie import position_entree
-        # Nuit réelle de la base du lot 201 : stock historique d'avant les occasions
-        # du lot 200, où Brune brise la réserve vers 45 min (avec le bois cessible
-        # du lot 200, elle le vend au lieu de briser).
-        from tests.scenarios_contractuels import creer as creer_contractuel
-        m = creer_contractuel("crue", 2024)
-        m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
+        # Capture réelle du lot 201, stock antérieur aux occasions du lot 200.
+        # Le choix d'évacuation change l'horaire natif de l'effraction, pas le
+        # contrat d'une destruction déjà constatée.
+        source = Path(__file__).parent / 'data/scenes/evacuation-205-battant-201.json.gz'
+        m = recharger(Monde(json.loads(gzip.decompress(source.read_bytes()))))
+        self.assertEqual(m.objets["reserve"]["integrite"], 0)
         with observer_avis() as sonde:
             for _ in range(12):
                 Moteur(m).executer(Moteur(m).preparer(proposition("attendre")))

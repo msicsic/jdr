@@ -3239,11 +3239,10 @@ def abri(monde, id, salles):
     Quitter qui l'inquiète n'est pas un gain là où il garde un bien que cette présence menace
     (``deliberation.menaces``) : s'en aller, c'est le lui laisser, et cet éloignement lui coûte
     (``prix_gardes``) comme à tout plan."""
-    from .deliberation import menaces, taux
+    from .deliberation import abri_valide, menaces, taux
     v = vue(monde, id)
     e = depart(monde, id, v)
-    from .defense import lieux_dangereux
-    salles = [s for s in salles if s not in lieux_dangereux(monde, id)]
+    salles = [s for s in salles if abri_valide(monde, id, s)]
     ici = [x for x in v.connus + ["joueur"] if x != id and (x == "joueur" or v.objets[x]["type"] == "personnage")
            and v.salle(e, x) == e.salle]
     fuir = any(v.se_mefie(x) for x in ici) and e.salle not in menaces(monde, id)
