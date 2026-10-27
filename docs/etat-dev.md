@@ -25,7 +25,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Aucun Luna, deux calculs réduits au plus, commit non signé ; bruts exclusivement
   `C:/Users/msics/donjon/artifacts/evacuation-205/` ;
   [rapport 205](taches/rapport-codex-205-evacuation-juge.md). **À revoir avant fusion.**
-  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Retours suspects 57 → 24 (crue 27 → 9, hameau 24 → 9), eau crue 13,75 → 7,5 et hameau 13,75 → 2,5 PNJ·min ; en contrepartie attente urgente crue 77,5 → 102,5 et hameau 27,5 → 111,25, sans recours crue 15 → 27,5, Brune hameau 2024 active/endort son agenda huit fois, Gorm 125 min sans but : à reprendre dans 196 c. Abris hors crue aussi changés (7/12 empreintes 2 h identiques).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Retours suspects 57 → 24 (crue 27 → 9, hameau 24 → 9), eau crue 13,75 → 7,5 et hameau 13,75 → 2,5 PNJ·min ; en contrepartie attente urgente crue 77,5 → 102,5 et hameau 27,5 → 111,25, sans recours crue 15 → 27,5, Brune hameau 2024 active/endort son agenda huit fois, Gorm 125 min sans but : à reprendre dans 196 c. Abris hors crue aussi changés (7/12 empreintes 2 h identiques). Suite complète sur les fusions 207 et 205 (`tools/tests.py --processus 2`, `aadab7c`) : **2 422 tests, 16 ignorés**, verte (3 287,6 s).
 
 - **Branche `codex-reclamer-vol`, fusionnée**, lot **207**, base `c6c2de6` :
   recours typé `reclamer` avant la recherche de reprise, porteur/danger/présence
