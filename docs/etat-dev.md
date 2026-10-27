@@ -26,6 +26,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   la base ; scénarios courants maintenus au banc et dans les tests des nouvelles
   données. Aucun Luna, deux travailleurs réduits au plus ; créneau dépassé par
   les vérifications. Pas de clé de signature configurée, `main` intacte.
+  Livraison locale `0bfa49a` : poussée refusée par la revue automatique,
+  destination GitHub non explicitement validée pour cet envoi ; aucun contenu
+  poussé, commit conservé conformément au brief.
   Bruts exclusivement `C:/Users/msics/donjon/artifacts/occasions-186/` ;
   [rapport 186](taches/rapport-codex-186-occasions-asymetriques.md).
 

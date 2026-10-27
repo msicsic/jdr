@@ -65,3 +65,8 @@ garantie générale d'absence de régression ; aucun temps du cache comparé.
 Empreintes modifiées comme attendu. Gain de richesse partiel : ni offre ni
 promesse autonome acceptée, et les deux prévisions contraires étayées demandées
 pour les disputes ne sont pas établies. Aucune clé de signature Git configurée.
+
+**Livraison locale.** Code/données/tests : `0bfa49a`. Poussée refusée par la
+revue automatique : destination `https://github.com/msicsic/jdr.git` non
+explicitement validée pour cet envoi. Aucun contenu poussé ; commit conservé
+sur la branche locale conformément au brief.
