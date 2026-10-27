@@ -101,6 +101,9 @@ class EvenementTests(unittest.TestCase):
                 raise RuntimeError()
         self.assertEqual(m.data, avant)
         agendas.actualiser(m, id)
+        # Le sommeil sans plan s'éprouve après le refus du nouveau recours
+        # verbal ; la recherche seule n'est plus l'ensemble des moyens.
+        deliberation.retenir_refus(m, id, auteur, 'demander', 'necessaire', objet=objet)
         with patch("donjon.planification.chercher", return_value=None) as chercher:
             with planification.vues_du_choix(m, id):
                 self.assertIsNone(agendas.planifier(m, id, "a1"))

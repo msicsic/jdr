@@ -626,6 +626,18 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
         return arret
     o = monde.objets[objet]
     if not part and proprietaire(monde, o) == demandeur:
+        from .biens import permis
+        # Le prêt autorisé n'est pas un vol : sa restitution garde le contrat
+        # de l'emprunt. Garder un bien sans droit est la même faute que garder
+        # des pièces dues, pesée avec la valeur commune du bien.
+        if not permis(monde, auditeur, objet):
+            if arret:
+                return arret
+            from .caractere import ARGENT, prix_faute
+            faute = prix_faute(monde, auditeur, ARGENT)
+            if faute is not None and valeur_proposition(
+                    monde, auditeur, {'type': 'objet', 'objet': objet}, demandeur) > faute:
+                return 'refus'
         # Son propriétaire le redemande : il le lui rend, sauf s'il s'en sert encore. Garder un prêt
         # échu qu'on lui réclame lui coûte la confiance du prêteur (``biens.pret_garde``).
         if necessaire(monde, auditeur, objet):
@@ -1195,6 +1207,18 @@ def _avec_joueur(monde, id, etape, lignes):
     if not se_parler(monde, id, "joueur"):
         return False
     nom = personne_pour_joueur(monde, id, court=True)[0]
+    if op == 'demander' and etape.get('contenu', {}).get('type') == 'reclamer':
+        from .biens import proprietaire
+        from .deliberation import retenir_refus
+        if proprietaire(monde, objet['id']) != id or not porte_par(monde, objet['id'], 'joueur'):
+            return _rate(monde, id, objet['id'])
+        texte = f"{_qui(monde, id)} réclame à {_qui(monde, 'joueur', id)} {designer(objet)}."
+        # La demande existe avant sa publication ; le joueur garde la décision.
+        retenir_refus(monde, id, 'joueur', 'demander', 'attente', objet=objet['id'])
+        _chroniquer(monde, id, texte, 'social')
+        lignes.append(f"{nom} te réclame {designer(objet)} : rends-lui son bien.")
+        retentir(monde, id, 'dire', texte=texte, cites=['joueur', objet['id']], vers=['joueur'], appris=True)
+        return False
     if op == "remettre":
         if not porte_par(monde, objet["id"], id):
             return False
@@ -1416,9 +1440,14 @@ def executer(monde, id, etape, lignes):
         issue = demander(monde, id, autre, objet["id"], contenu.get("foyer"), prix, contenu.get("remettre_part", False))
         quoi = "une part " + complement_de(objet) if part else designer(objet)
         recit = (f"{a} achète {quoi} à {b} pour {quantite(prix, 'pièce')}" if op == "acheter"
+                 else f"{a} réclame {quoi} à {b}" if contenu.get('type') == 'reclamer'
                  else f"{a} demande {quoi} à {b}")
         clair = recit + "."
         reponse = {"remis": f"{b} lui remet {quoi}.", "rendu": f"{b} lui rend {designer(objet)}.",
+                   "necessaire": f"{b} garde {quoi} : {_il(o)} s'en sert encore.",
+                   "mefiance": f"{b} refuse : {_il(o)} ne lui fait pas confiance.",
+                   "rancune": f"{b} refuse : {_il(o)} lui en veut encore.",
+                   "absent": f"{b} ne porte pas {quoi}.",
                    "vendu": f"{b} accepte et prend l'argent.",
                    "promis": f"{b} accepte de lui en donner."}.get(issue, f"{b} refuse.")
         dite = issue not in ("remis", "rendu")  # Remettre l'objet est un geste, pas une parole.

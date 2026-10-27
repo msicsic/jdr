@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-reclamer-vol`, non fusionnée**, lot **207**, base `c6c2de6` :
+  recours typé `reclamer` avant la recherche de reprise, porteur/danger/présence
+  crus, pas de peur ni d'inconscience crue ; demande au joueur sans remise imposée.
+  Décision commune de rétention illégitime : honnêteté, relation, valeur et utilité,
+  permission du prêt conservée ; rendu ciblé de `paroles._reclamer` **autorisé**.
+  Dix tests nouveaux verts : deux restitutions autonomes, refus puis reprise,
+  violence contrôlée, joueur libre, exclusions, temps découpé, monde/rendu rechargés.
+  Cas historique 200 reproduit sur 9904574 : naissance 152, atteint 228 ;
+  sa capture à 151 rejouée : Gorm réclame à 213, Brune refuse par rancune,
+  projet en sommeil faute de moyen admissible ; 89 min entières/découpées,
+  monde/rendu et recharges identiques. Base actuelle : aucune naissance.
+  Banc 20 paires 4 h, références a488f1f en cache (code identique) : zéro
+  plantage/usurpation, 20 chroniques identiques, avis **57/272/563** inchangés,
+  S/F/D inchangés ; aucune récupération naturelle, aucun gain de richesse démontré.
+  Suite unique : **2 411 tests / 279 fichiers, 3 117,025 s**, sept assertions en
+  échec, zéro erreur, 16 ignorés. Dix reprises finales vertes après adaptation
+  des oracles (portage suivi du refus ; réception d'accusation isolée du recours
+  prioritaire) ; **seul `test_rondes_resumees` reste en échec, reproduit sur c6c2de6**.
+  Aucune seconde suite ; clé de signature absente, livraison non signée sur la branche ;
+  [rapport 207](taches/rapport-codex-207-reclamer-vol.md).
+  Bruts `C:/Users/msics/donjon/artifacts/reclamer-207/`, aucun Luna, deux travailleurs réduits au plus.
+
 - **Branche `codex-portee-sans-salle`, fusionnée**, lot **204**, base
   `51c1e0b` : P1 implémenté en mode cases ; contact par pas commun au joueur,
   aux accès PNJ et à leur approche, indépendamment du secteur de la cible ;
