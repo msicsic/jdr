@@ -443,6 +443,24 @@ ouvrir un passage peut encore fournir un plan. Les tests de fin ne prouvent ni
 l'évacuation spontanée, ni le réveil après refus, ni la priorité du désespoir pendant
 une évacuation. Voir le [rapport 146 b](taches/rapport-codex-146b-agendas-amener.md).
 
+**Lot 146 c, `codex-amener-social`, non fusionnée : livraison partielle, route coupée.**
+`agendas.actualiser` abandonne aussi lorsque les seules positions et hauteurs d'eau
+crues prouvent qu'aucun chemin ne relie une personne à la destination, même en
+supposant toutes les portes ouvertes. Une recherche bornée sans résultat, une
+serrure ou une position inconnue ne suffisent pas à cette preuve. La cause
+`route crue coupee` persiste après recharge ; publication dans la frontière du
+choix inchangée. Ce traitement ne couvre pas toutes les coupures par obstacles
+ni leur prévision temporelle.
+
+**Les sous-buts sociaux et les données d'évacuation ne sont pas livrés.** Leur essai
+avec `confier`, avis de menace et marche propre a produit des répétitions et un
+arrêt « Passage incohérent » en crue 2024/120 ; il a été retiré entièrement.
+Restent le plus proche, la portée vocale, l'avis et sa réception, la demande avec
+refus durable/réveil, l'accompagnement, la déclaration de la crue et l'épreuve
+collective vers la galerie avec désespoir et laps découpé. Aucun avis commun ne
+représente encore une préférence générale entre lieux ; l'avis de menace du lieu
+quitté reste le recours prévu. Voir le [rapport 146 c](taches/rapport-codex-146c-amener-social.md).
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des
