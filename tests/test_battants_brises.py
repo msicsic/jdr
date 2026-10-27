@@ -45,7 +45,11 @@ class BattantsBrisesTests(unittest.TestCase):
         from donjon.moteur import Moteur, proposition
         from tools.detecter_changements_avis import observer_avis, analyser_episodes
         from donjon.geometrie import position_entree
-        m = creer("crue", 2024)
+        # Nuit réelle de la base du lot 201 : stock historique d'avant les occasions
+        # du lot 200, où Brune brise la réserve vers 45 min (avec le bois cessible
+        # du lot 200, elle le vend au lieu de briser).
+        from tests.scenarios_contractuels import creer as creer_contractuel
+        m = creer_contractuel("crue", 2024)
         m.joueur.update(salle="chambre_cloche", position=list(position_entree(m, "chambre_cloche")))
         with observer_avis() as sonde:
             for _ in range(12):
