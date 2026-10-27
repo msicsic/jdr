@@ -8,6 +8,17 @@ POSITION_DEPOT = "à tes pieds"
 SOL_AUX_PIEDS = "au sol, " + POSITION_DEPOT
 
 
+def destination_depot(monde, destination):
+    """Résout le repère public du sol dans l'état de l'étape courante."""
+    surface = monde.objets.get(destination, {})
+    if destination == "sol" or (surface.get("type") == "surface"
+            and surface.get("nom") == "sol"
+            and surface.get("lieu") == monde.joueur["salle"]
+            and monde.visible(destination)):
+        return monde.joueur["salle"]
+    return destination
+
+
 def decrire_depot(monde, identifiant):
     """Sens public du dépôt ; la salle reste un repère de stockage interne."""
     from .francais import designer

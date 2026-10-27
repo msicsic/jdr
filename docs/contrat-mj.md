@@ -26,6 +26,14 @@ construire. Il découle de la section « Contrat du MJ » d'[AGENTS.md](../AGENT
 
 ## Trois niveaux de vérité
 
+**Destination du sol (lot 173).** Pour `deplacer` et `prelever`, y compris
+dans les séquences et les effets d'improvisation, une destination désignant
+un objet de type `surface`, nommé `sol`, perçu dans la salle courante,
+équivaut à `destination: "sol"`. Le dépôt reste sur la case de Corvus,
+jamais sur une position propre de la surface. La résolution se fait dans
+l'état de chaque étape ; murs, plafonds, sols non perçus ou d'autres salles
+restent refusés avec `attendu`. Aucun alias propre à un scénario n'intervient.
+
 **Dossiers techniques au contact** (lot 152, L4). `atelier`, `franchissements`,
 `passages_obstacles` et `espace` ne décrivent que des objets visibles et proches
 de Corvus selon `spatial.proche`. Le filtre commun `espace.objets_proches`

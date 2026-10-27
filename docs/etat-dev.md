@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-sol-surface`, fusionnée, lot **173**, base `79594e4` :
+  `operations.compiler` résout via `deplacement_objet.destination_depot` une
+  surface nommée `sol`, perçue dans la salle courante, comme `destination: sol`.
+  Dépôt sur la case de Corvus pour déplacement, prélèvement, séquences et
+  improvisation ; murs/plafonds/sols distants ou non perçus refusés avec `attendu`.
+  Neuf ciblés verts, console/MJ simulé, antichambre/cour, monde et rendu rechargés.
+  Suite unique : **2 251 tests, 259 fichiers, 1 295,595 s**, zéro erreur/ignoré,
+  deux échecs MiMo historiques `6 != 5`. Relais 4 h × quatre graines : états
+  finaux/relevés/bilans/alertes identiques à `main` `812ebe5`, trois `fige_presse`
+  par côté ; références relues, aucune comparaison de temps. PC fixe partagé,
+  au plus deux travailleurs réduits. **Luna non validée : coffre illisible**,
+  première exécution en erreur avant réponse modèle ; commandes des deux passes
+  à reprendre dans `artifacts/sol-173/luna-a-jouer.txt`. Aucun fichier réservé
+  du lot 172 modifié ; aucune clé de signature configurée ; `main` intacte.
+  [Rapport 173](taches/rapport-codex-173-sol-surface.md) ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/sol-173/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Validation Luna jouée par l'orchestrateur (coffre illisible pour l'agent) : deux passes poser-sol-atelier/poser-sol-relais contre cdaf371, 4 → 4 appels/tour, aucun refus de destination ni repli des deux côtés ; atelier une passe 3,00 → 3,18 appels/tour, refus 3 → 5, aucun sur une destination (vue partielle, sens d'un compte, pierre distincte : familles connues). Bruts artifacts/sol-173/ et bancs-multi 20261027-081013 / 081145.
+
 - **Branche `codex-garder-proteger-c`, fusionnée**, lot **167 c / A4b
   partiel**, base `1aba0df`, code `13fde5f` et `5f69840` : responsabilités
   communes profil/agendas `protéger`, sans doublon ; appels, cris, défense,
