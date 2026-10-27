@@ -799,12 +799,18 @@ def inquieter(monde, id, cause, signe=1):
         relancer(monde, id, "securite", signe * taux(monde, id, cause))
 
 
+def proteges(monde, id):
+    """Responsabilités communes, ordre historique du profil et sans doublon."""
+    return list(dict.fromkeys([*(profil(monde, id) or {}).get("protege", ()),
+                               *sorted(agendas.proteges(monde, id))]))
+
+
 def protecteurs(monde, protege):
     """Ceux dont le profil déclare protéger ce personnage."""
     from .corps import vivant, conscient
     if not vivant(monde, protege):
         return []
-    return [x for x, o in monde.objets.items() if conscient(monde, x) and protege in (o.get("profil") or {}).get("protege", [])]
+    return [x for x, o in monde.objets.items() if conscient(monde, x) and protege in proteges(monde, x)]
 
 
 def appeler_a_l_aide(monde, id, minute):
@@ -867,7 +873,7 @@ def de_garde(monde, id, salle):
         if x["besoin"] in ("devoir", "biens") and (
                 c.get("lieu") == salle or "objet" in c and salle_crue(monde, id, c["objet"]) == salle):
             return True
-    return any(salle_crue(monde, id, x) == salle for x in p.get("protege", []))
+    return any(salle_crue(monde, id, x) == salle for x in proteges(monde, id))
 
 
 def _voir_en_cours(e):
@@ -915,7 +921,7 @@ def alarme(monde, id):
     for s in reversed(e["memoire"]):
         if s["type"] != "bruit" or resolu(monde, id, s):
             continue
-        if s["nature"] == "appel" and s.get("qui") in p.get("protege", []):
+        if s["nature"] == "appel" and s.get("qui") in proteges(monde, id):
             return s["salle"], "devoir"
         if alerte is not None and s.get("niveau", -99) >= alerte:
             return s["salle"], "devoir"
@@ -1641,7 +1647,7 @@ def _candidats(monde, id):
     for rang, x in enumerate(agendas.en_cours(monde, id)):
         ajouter("engagement", lambda m, i, x=x: planifier_engagement(m, i, x), Palier.PAROLE_DUE, (rang,))
     # Un corps à terre connu : recours au même graphe de gestes, sans accès à ses PV ni son réveil.
-    for rang, protege in enumerate(p.get("protege", ())):
+    for rang, protege in enumerate(proteges(monde, id)):
         c = e["croyances"].get(protege, {}).get("etat", {})
         if c.get("valeur", {}).get("conscient") is False and not c["valeur"].get("mort"):
             from .planification import ranimer

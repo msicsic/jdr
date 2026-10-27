@@ -136,6 +136,13 @@ def actualiser(monde, id):
             continue
         if a["sorte"] == "garder":
             continue
+        if a["sorte"] == "protéger":
+            from .esprits import lire
+            qui = a["parametres"]["qui"]
+            etat = lire(monde, id)["croyances"].get(qui, {}).get("etat", {}).get("valeur", {})
+            if etat.get("mort"):
+                _changer(monde, id, a, "abandonne", "protege cru mort", empreinte)
+            continue
         if a["sorte"] == "amener":
             from .deliberation import salle_crue
             from .eau import noyee_attendue
@@ -169,7 +176,7 @@ def essayables(monde, id):
     for a in projets(monde, id):
         if a["etat"] == "actif":
             yield a
-        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener", "garder"):
+        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener", "garder", "protéger"):
             if empreinte is None:
                 empreinte = _croyances(monde, id)
             if a["croyances"] != empreinte:
@@ -233,6 +240,15 @@ def planifier(monde, id, identifiant):
     empreinte = _croyances(monde, id)
     if a["sorte"] == "amener":
         return _amener(monde, id, a, empreinte)
+    if a["sorte"] == "protéger":
+        from .defense import interposition
+        poste = interposition(monde, id)
+        if poste is not None and poste[0]["objet"] == a["parametres"]["qui"]:
+            _changer(monde, id, a, "actif", "interposition", empreinte)
+            _limiter(monde, id, empreinte)
+            return poste if a["etat"] == "actif" else None
+        _changer(monde, id, a, "sommeil", "suivi vocal non pris en charge", empreinte)
+        return None
     if a["sorte"] == "garder":
         from .planification import garder
         from .defense import interposition
@@ -455,6 +471,21 @@ def gardes(monde, id):
     return [copy.deepcopy(a["parametres"]) for a in (depart(monde, id) if stock is None else stock)
             if a["sorte"] == "garder" and a.get("etat", "actif") in ("actif", "sommeil")
             and a.get("echeance", float("inf")) >= monde.data["minutes"]]
+
+
+def proteges(monde, id):
+    """Responsabilités de protection déclarées, sans activation ni omniscience.
+
+    Le sommeil ne décharge pas un protecteur ; les fins crues et l'échéance
+    retirent la responsabilité dès la lecture, avant même sa publication.
+    """
+    from .esprits import lire
+    stock = _stock(monde, id)
+    croyances = lire(monde, id)["croyances"]
+    return {a["parametres"]["qui"] for a in (depart(monde, id) if stock is None else stock)
+            if a["sorte"] == "protéger" and a.get("etat", "actif") in ("actif", "sommeil")
+            and a.get("echeance", float("inf")) >= monde.data["minutes"]
+            and not croyances.get(a["parametres"]["qui"], {}).get("etat", {}).get("valeur", {}).get("mort")}
 
 
 def contrats(monde):
