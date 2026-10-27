@@ -17,8 +17,8 @@ from tests.support import lier, relation
 import json
 import unittest
 
-from donjon.auberge import nouveau_auberge
-from donjon.defi import nouveau_defi
+from tests.scenarios_contractuels import nouveau_auberge
+from tests.scenarios_contractuels import nouveau_defi
 from donjon.esprits import connaitre, croire, lire, memoriser, percevoir_tous
 from donjon.geometrie import position_entree
 from donjon.monde import Monde

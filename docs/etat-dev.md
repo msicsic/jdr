@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-occasions-asymetriques`, non fusionnée**, lot **186**, base
+  `integration 12a936d` : petits lots de galettes portés par Gorm/Mathe/Odile,
+  petit bois propre porté par Brune/Odon/Joss, triangles d'affection connus
+  via Aubin/Josse/Mireille ; Ilse au guet et Aubin dans la crypte de la crue.
+  Données communes recopiées dans les dérivés du Relais. Aucun `donjon/*.py`,
+  trait, valeur, garde, réserve, pulsion, agenda ou bien historique modifié.
+  **24 nuits** (16 × 4 h, huit × 12 h), zéro plantage, usurpation ou violation
+  signalée ; **24 états, descriptions, besaces et sons rechargés identiques**.
+  Deux réparations délibérées : Brune recharge le brasero à 496 min, méfiance
+  levée puis repas à 498 (crue 1985) ; Odile donne une galette à Joss à 657,
+  service crédité sans levée de méfiance (auberge 7). Commissions longues
+  sollicitées/acceptées/abouties **5/4/2**, deux adoptions d'avis ; aucune
+  offre ou promesse autonome acceptée, aucune dispute. **Richesse partielle**,
+  pas de preuve des deux prévisions contraires demandées. Références historiques
+  219bc8d/ee835d2 exclusivement relues : pas de delta causal ni de temps comparé.
+  Suite unique **2 291 tests**, 264 fichiers, 16 ignorés, 2 238,67 s ; bruts
+  74 échecs/six erreurs avant adaptation des entrées de scènes. **80 méthodes
+  ciblées**, puis six et une reprises finales : **bilan consolidé vert**.
+  Fabriques contractuelles : sept entrées et états moteur exactement ceux de
+  la base ; scénarios courants maintenus au banc et dans les tests des nouvelles
+  données. Aucun Luna, deux travailleurs réduits au plus ; créneau dépassé par
+  les vérifications. Pas de clé de signature configurée, `main` intacte.
+  Bruts exclusivement `C:/Users/msics/donjon/artifacts/occasions-186/` ;
+  [rapport 186](taches/rapport-codex-186-occasions-asymetriques.md).
+
 - **Branche `codex-depart-definitif`, fusionnée**, lot **181 / A4b
   partiel**, base `integration 8c0cecd` : sortie `exterieur: true`, état
   `parti` sauvegardé par la marche commune joueur/PNJ avec ou sans cases ;

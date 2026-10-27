@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from donjon.defi import nouveau_defi
+from tests.scenarios_contractuels import nouveau_defi
 from donjon.esprits import lire, memoriser, croire, percoit
 from donjon.monde import Monde
 from donjon.moteur import Moteur, proposition

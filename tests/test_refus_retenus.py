@@ -11,7 +11,7 @@ from tests.support import lier
 import unittest
 from unittest.mock import patch
 
-from donjon.banc_pnj import creer
+from tests.scenarios_contractuels import creer
 from donjon.biens import bourse
 from donjon.deliberation import REDEMANDE, refus_retenu, retenir_refus, tient
 from donjon.deplacement_objet import deplacer

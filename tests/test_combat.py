@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from donjon import combat, corps, planification, spatial
-from donjon.banc_pnj import creer
+from tests.scenarios_contractuels import creer
 from donjon.deplacement_objet import deplacer
 from donjon.esprits import lire, percevoir_tous, memoriser, croire
 from donjon.monde import ErreurMonde

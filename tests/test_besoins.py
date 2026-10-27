@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 from tests.support import refusee, regarder, sans_evacues
 from donjon import banc_pnj
-from donjon.defi import nouveau_defi
+from tests.scenarios_contractuels import nouveau_defi
 from donjon.esprits import lire, percoit, percevoir_tous
 from donjon.monde import ErreurMonde, Monde
 from donjon.moteur import Moteur, proposition
@@ -238,14 +238,21 @@ class ProfilTests(unittest.TestCase):
     def test_banc_sans_joueur(self):
         # Ce test vérifie le banc et son récit, pas le tirage d'un marché dont
         # l'évaluation peut évoluer. La demande de Brune est persuasive ici.
-        with patch("sys.stdout", io.StringIO()) as sortie, patch.object(Monde, "d20", return_value=20):
+        mondes, creer_courant = [], banc_pnj.creer
+        def capturer(*args, **kwargs):
+            m = creer_courant(*args, **kwargs)
+            mondes.append(m)
+            return m
+        with patch("sys.stdout", io.StringIO()) as sortie, patch.object(Monde, "d20", return_value=20), \
+                patch.object(banc_pnj, "creer", side_effect=capturer):
             self.assertEqual(banc_pnj.main(["--heures", "4", "--joueur", "chambre_cloche", "--chronique"]), 0)
-        # Relais complet : affamée, Brune demande une part à Gorm, qui la sert et referme sa réserve ;
+        # Scénario courant : les galettes portées évitent d'ouvrir la réserve ;
         # les évacués trempés se chauffent au brasero, que Gorm recharge avec son bois.
-        self.assertIn("Brune demande une part des vivres du refuge à Gorm (", sortie.getvalue())
-        self.assertRegex(sortie.getvalue(), "Gorm appelle Brune et lui donne une part des vivres du refuge"
-                                           "|Gorm remet les vivres du refuge à Brune")
-        self.assertIn("Gorm, gardien du relais verrouille la réserve de vivres.", sortie.getvalue())
+        self.assertIn("Brune demande une part des galettes de route à Gorm (", sortie.getvalue())
+        self.assertIn("Gorm donne une part des galettes de route à Brune.", sortie.getvalue())
+        reprise = recharger(mondes[0])
+        self.assertEqual(mondes[0].data, reprise.data)
+        self.assertTrue(reprise.objets['reserve']['verrouillee'])
         self.assertIn("se chauffe près du brasero.", sortie.getvalue())
         self.assertIn("Gorm, gardien du relais alimente le brasero.", sortie.getvalue())
         self.assertIn("== Entre eux ==", sortie.getvalue())

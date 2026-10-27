@@ -3,7 +3,7 @@ n'écrivait, trouvées à partir des seuls gestes déclarés."""
 import unittest
 
 from tests.support import refusee, sans_evacues
-from donjon.defi import nouveau_defi
+from tests.scenarios_contractuels import nouveau_defi
 from donjon.esprits import croire, lire, memoriser
 from donjon.deliberation import REDEMANDE, retenir_refus
 from donjon.planification import a_mange, chercher, diagnostics, planifier

@@ -1,0 +1,768 @@
+{
+  "base": "12a936d59ced52ab0ead948082a09704727c3072",
+  "scenarios": {
+    "relais": [
+      {
+        "chemin": [
+          "esprits",
+          "aubin",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "aubin",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "marchand",
+          "attitude:aubin"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "marchand",
+          "profil",
+          "liens",
+          "aubin",
+          "affection"
+        ],
+        "avant": 20
+      }
+    ],
+    "mine": [
+      {
+        "chemin": [
+          "esprits",
+          "josse",
+          "croyances",
+          "chutes_serrurier"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "josse",
+          "croyances",
+          "galettes_cuisine"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "mathe",
+          "croyances",
+          "chutes_serrurier"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "mathe",
+          "croyances",
+          "galettes_cuisine"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "odon",
+          "croyances",
+          "chutes_serrurier"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "odon",
+          "croyances",
+          "galettes_cuisine"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "odon",
+          "croyances",
+          "mathe",
+          "attitude:josse"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "chutes_serrurier"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "galettes_cuisine"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "mathe",
+          "profil",
+          "liens",
+          "josse",
+          "affection"
+        ],
+        "avant": 20
+      }
+    ],
+    "auberge": [
+      {
+        "chemin": [
+          "esprits",
+          "joss",
+          "croyances",
+          "copeaux_palefrenier"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "joss",
+          "croyances",
+          "galettes_comptoir"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "joss",
+          "croyances",
+          "odile",
+          "attitude:mireille"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "mireille",
+          "croyances",
+          "copeaux_palefrenier"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "mireille",
+          "croyances",
+          "galettes_comptoir"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "odile",
+          "croyances",
+          "copeaux_palefrenier"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "odile",
+          "croyances",
+          "galettes_comptoir"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "copeaux_palefrenier"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "galettes_comptoir"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "odile",
+          "profil",
+          "liens",
+          "mireille",
+          "affection"
+        ],
+        "avant": 20
+      }
+    ],
+    "crue": [
+      {
+        "chemin": [
+          "esprits",
+          "aubin",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "aubin",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "marchand",
+          "attitude:aubin"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "aubin",
+          "lieu",
+          "case"
+        ],
+        "avant": [
+          1,
+          5
+        ]
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "aubin",
+          "lieu",
+          "salle"
+        ],
+        "avant": "antichambre"
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "aubin",
+          "lieu",
+          "valeur"
+        ],
+        "avant": "antichambre"
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "ilse",
+          "lieu",
+          "case"
+        ],
+        "avant": [
+          3,
+          5
+        ]
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "ilse",
+          "lieu",
+          "salle"
+        ],
+        "avant": "antichambre"
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "ilse",
+          "lieu",
+          "valeur"
+        ],
+        "avant": "antichambre"
+      },
+      {
+        "chemin": [
+          "objets",
+          "aubin",
+          "lieu"
+        ],
+        "avant": "antichambre"
+      },
+      {
+        "chemin": [
+          "objets",
+          "aubin",
+          "position"
+        ],
+        "avant": [
+          1,
+          5
+        ]
+      },
+      {
+        "chemin": [
+          "objets",
+          "aubin",
+          "position_salle"
+        ],
+        "avant": "antichambre"
+      },
+      {
+        "chemin": [
+          "objets",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "ilse",
+          "lieu"
+        ],
+        "avant": "antichambre"
+      },
+      {
+        "chemin": [
+          "objets",
+          "ilse",
+          "position"
+        ],
+        "avant": [
+          3,
+          5
+        ]
+      },
+      {
+        "chemin": [
+          "objets",
+          "ilse",
+          "position_salle"
+        ],
+        "avant": "antichambre"
+      },
+      {
+        "chemin": [
+          "objets",
+          "marchand",
+          "profil",
+          "liens",
+          "aubin",
+          "affection"
+        ],
+        "avant": 20
+      }
+    ],
+    "crue_hameau": [
+      {
+        "chemin": [
+          "esprits",
+          "aubin",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "aubin",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "marchand",
+          "attitude:aubin"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "marchand",
+          "profil",
+          "liens",
+          "aubin",
+          "affection"
+        ],
+        "avant": 20
+      }
+    ],
+    "rixe": [
+      {
+        "chemin": [
+          "esprits",
+          "aubin",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "aubin",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "marchand",
+          "attitude:aubin"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "marchand",
+          "profil",
+          "liens",
+          "aubin",
+          "affection"
+        ],
+        "avant": 20
+      }
+    ],
+    "rixe_douce": [
+      {
+        "chemin": [
+          "esprits",
+          "aubin",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "aubin",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "brune",
+          "croyances",
+          "marchand",
+          "attitude:aubin"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "esprits",
+          "marchand",
+          "croyances",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "bois_bateliere"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "galettes_route"
+        ],
+        "retirer": true
+      },
+      {
+        "chemin": [
+          "objets",
+          "marchand",
+          "profil",
+          "liens",
+          "aubin",
+          "affection"
+        ],
+        "avant": 20
+      }
+    ]
+  }
+}

@@ -11,7 +11,8 @@
 from tests.support import lier
 import unittest
 
-from donjon.banc_pnj import creer, executer
+from donjon.banc_pnj import executer
+from tests.scenarios_contractuels import creer
 from donjon.deliberation import autour, gardes, menaces
 from donjon.echanges import demander_feu
 from donjon.esprits import croire, lire, percevoir_tous

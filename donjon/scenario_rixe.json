@@ -761,7 +761,7 @@
           },
           "aubin": {
             "confiance": 65,
-            "affection": 20
+            "affection": 60
           }
         }
       },
@@ -1404,6 +1404,52 @@
         "lien"
       ],
       "description": "Une corde solide, enroulée."
+    },
+    "galettes_route": {
+      "aliases": [
+        "galettes route",
+        "galettes"
+      ],
+      "genre": "m",
+      "id": "galettes_route",
+      "integrite": 10,
+      "lieu": "marchand",
+      "masse": 1,
+      "materiau": "pain et fromage",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "galettes de route",
+      "portions": 4,
+      "proprietaire": "marchand",
+      "type": "nourriture",
+      "pluriel": true,
+      "prix_part": 2,
+      "description_visuelle": "Un petit lot de galettes sèches, séparé des provisions gardées."
+    },
+    "bois_bateliere": {
+      "aliases": [
+        "bois bateliere",
+        "petit bois"
+      ],
+      "charges": 2,
+      "duree_combustion": 60,
+      "genre": "m",
+      "id": "bois_bateliere",
+      "integrite": 10,
+      "lieu": "brune",
+      "masse": 1,
+      "materiau": "bois",
+      "maximum": 10,
+      "mobile": true,
+      "nom": "bois sec de la batelière",
+      "pluriel": true,
+      "proprietaire": "brune",
+      "type": "consommable",
+      "usages": [
+        "combustible"
+      ],
+      "prix_part": 1,
+      "description_visuelle": "Deux poignées de petit bois sec conservées pour raviver un foyer."
     }
   },
   "personnages_version": 1,
@@ -1829,6 +1875,32 @@
             "minute": 0,
             "confiance": 0.9
           }
+        },
+        "galettes_route": {
+          "lieu": {
+            "valeur": "marchand",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              1,
+              1
+            ]
+          }
+        },
+        "bois_bateliere": {
+          "lieu": {
+            "valeur": "brune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              7,
+              1
+            ]
+          }
         }
       },
       "memoire": [],
@@ -1894,6 +1966,13 @@
               1,
               1
             ]
+          },
+          "attitude:aubin": {
+            "valeur": "attachement",
+            "source": "devine",
+            "minute": 0,
+            "confiance": 0.9,
+            "signe": "sourit"
           }
         },
         "brasero": {
@@ -1920,7 +1999,33 @@
           }
         },
         "ilse": {},
-        "aubin": {}
+        "aubin": {},
+        "galettes_route": {
+          "lieu": {
+            "valeur": "marchand",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              1,
+              1
+            ]
+          }
+        },
+        "bois_bateliere": {
+          "lieu": {
+            "valeur": "brune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              7,
+              1
+            ]
+          }
+        }
       },
       "memoire": [],
       "intention": null,
@@ -2076,7 +2181,33 @@
           }
         },
         "brune": {},
-        "ilse": {}
+        "ilse": {},
+        "galettes_route": {
+          "lieu": {
+            "valeur": "marchand",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "echoppe",
+            "case": [
+              1,
+              1
+            ]
+          }
+        },
+        "bois_bateliere": {
+          "lieu": {
+            "valeur": "brune",
+            "source": "savoir",
+            "minute": 0,
+            "confiance": 0.9,
+            "salle": "antichambre",
+            "case": [
+              7,
+              1
+            ]
+          }
+        }
       },
       "memoire": [],
       "intention": null,

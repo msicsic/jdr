@@ -47,7 +47,7 @@ class ScenePercueTests(unittest.TestCase):
 
     def test_un_personnage_vu_avec_son_regard_et_ce_qu_il_porte_visiblement(self):
         m = relais()
-        m.joueur.update(salle="antichambre", position=[1, 5], orientation="est")
+        m.joueur.update(salle="antichambre", position=[1, 4], orientation="est")
         m.objets["marchand"]["lieu"] = "antichambre"
         placer(m.objets["marchand"], "antichambre", [4, 5])
         regarder(m, "marchand", [8, 5])
@@ -55,7 +55,10 @@ class ScenePercueTests(unittest.TestCase):
         m.objets["pied_de_biche"].pop("position", None)
         gorm = objets(scene_percue(m))["marchand"]
         self.assertEqual(gorm["orientation"], "est")
-        self.assertEqual([x["id"] for x in gorm["porte"]], ["pied_de_biche"])  # Ni sa barbe ni ses mains.
+        self.assertEqual([x["id"] for x in gorm["porte"]],
+                         ["galettes_route", "pied_de_biche"])  # Ni sa barbe ni ses mains.
+        from tests.test_tensions import recharger
+        self.assertEqual(gorm, objets(scene_percue(recharger(m)))["marchand"])
 
     def test_ce_qu_il_ne_voit_plus_reste_un_souvenir_a_sa_place(self):
         m = relais()
