@@ -4,6 +4,41 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-fins-agendas`, fusionnée**, lot **175 / A4b partiel**,
+  base `integration 7eb1ac9`, code `0544be1` puis `101f770` : croyance `fin` après
+  destruction/consommation constatée, joueur et PNJ ; date conservée hors
+  mémoire bornée et après retrait des restes, pas de preuve par suppression
+  distante. La disponibilité garde sa lecture historique. `garder` abandonne
+  sur cette preuve, cause sauvegardée et publication différée du choix ;
+  aucun devis ne réveille un agenda terminal. Réparation observée démentant
+  la croyance, sans renaissance de la garde. **157 ciblés finaux verts** : deux biens,
+  deux réserves, gestes propres dont outil brisé sur échec, ignorance à
+  distance, choix interrompu, laps entier/découpé, monde/rendu rechargés.
+  Suite unique : **2 264 tests, 261 fichiers, 1 352,153 s**, sept échecs et
+  une erreur bruts ; régressions reprises vertes, deux MiMo historiques
+  `6 != 5` laissés, aucune seconde suite complète. Un test de clé ajouté
+  après la suite, dans les ciblés. Cadence historique conservée ; preuve
+  exclue des moyens du plan, effets sur les responsabilités dans sa clé.
+  **16/16 nuits 2 h**, quatre scénarios × quatre graines : chroniques,
+  mesures, récits, souvenirs et empreintes physiques identiques, monde/rendu
+  rechargés identiques. **8/16 états complets identiques**, cinq autres avec
+  seules preuves nouvelles, trois crues aussi avec empreinte des croyances
+  de l'agenda d'évacuation ; états, causes et dates inchangés. Référence
+  `5f69840` (code identique à la base) exclusivement relue ; trois contrôles
+  de branche sans écriture de preuve expliquent les écarts crue. Pas de gain
+  de vitesse revendiqué. Placement d'auteur `sans_evacues` nettoyant désormais
+  ses connaissances initiales, sans purge omnisciente en partie.
+  **Restent rendu/remis et perte vue sans permission : invariant complet de
+  fin de `garder` non garanti.** Départ définitif du protégé expressément
+  retiré du lot par l'orchestrateur, notion absente du monde et à décider.
+  Restent aussi suivi à portée de voix et interposition d'un lieu.
+  Aucun Luna, scénario historique ni fichier réservé aux lots 172/173
+  modifié. Au plus deux travailleurs réduits ; aucun changement de `main`.
+  Pas de clé Git de signature configurée. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/fins-175/` ;
+  [rapport 175](taches/rapport-codex-175-fins-agendas.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Livraison partielle autorisée : rendu/remis et perte vue sans permission restent pour garder ; départ définitif d'un protégé hors lot (notion absente du monde, à décider). La croyance `fin` est exclue des entrées de la recherche (lue seulement via gardes/prix_gardes) : à contrôler par VERIFIER à la prochaine vérification d'intégration.
+
 - Branche `codex-contre-revue-etat-final`, fusionnée, lot **177**,
   base `integration` `4cb4361` : règle commune de contre-revue fondée sur
   l'état final établi par le moteur. Déplacements inhérents au geste admis,

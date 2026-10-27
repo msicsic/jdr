@@ -135,6 +135,9 @@ def actualiser(monde, id):
             _changer(monde, id, a, "abandonne", "echeance", empreinte)
             continue
         if a["sorte"] == "garder":
+            raison = _fin_garde(monde, id, a)
+            if raison:
+                _changer(monde, id, a, "abandonne", raison, empreinte)
             continue
         if a["sorte"] == "protéger":
             from .esprits import lire
@@ -237,6 +240,8 @@ def planifier(monde, id, identifiant):
         with evaluation(monde, id, publier=False):
             return planifier(monde, id, identifiant)
     a = next(a for a in _stock(monde, id) if a["id"] == identifiant)
+    if a["etat"] not in ("actif", "sommeil"):
+        return None
     empreinte = _croyances(monde, id)
     if a["sorte"] == "amener":
         return _amener(monde, id, a, empreinte)
@@ -461,6 +466,14 @@ def depart(monde, id):
     return copy.deepcopy((monde.objets[id].get("profil") or {}).get("agendas", []))
 
 
+def _fin_garde(monde, id, a):
+    """Aucune interrogation de l'objet réel, même s'il a été supprimé."""
+    from .esprits import lire
+    objet = a["parametres"].get("objet")
+    fin = lire(monde, id)["croyances"].get(objet, {}).get("fin")
+    return "bien cru " + fin["valeur"] if fin else None
+
+
 def gardes(monde, id):
     """Charges à tenir, sans activation pendant une lecture ou la perception.
 
@@ -470,7 +483,8 @@ def gardes(monde, id):
     stock = _stock(monde, id)
     return [copy.deepcopy(a["parametres"]) for a in (depart(monde, id) if stock is None else stock)
             if a["sorte"] == "garder" and a.get("etat", "actif") in ("actif", "sommeil")
-            and a.get("echeance", float("inf")) >= monde.data["minutes"]]
+            and a.get("echeance", float("inf")) >= monde.data["minutes"]
+            and not _fin_garde(monde, id, a)]
 
 
 def proteges(monde, id):
