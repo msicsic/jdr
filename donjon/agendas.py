@@ -144,10 +144,9 @@ def actualiser(monde, id):
                 _changer(monde, id, a, "atteint", "arrivee crue", empreinte)
             elif noyee_attendue(monde, id, destination):
                 _changer(monde, id, a, "abandonne", "destination crue noyee", empreinte)
+            elif _route_coupee(monde, id, a):
+                _changer(monde, id, a, "abandonne", "route crue coupee", empreinte)
             else:
-                # Le cycle de fin est disponible avant les sous-buts sociaux.
-                # Ne jamais faire passer une demande directe pour une préférence
-                # acceptée, ni déplacer la cible depuis le plan du porteur.
                 _changer(monde, id, a, "sommeil", "sous-buts non pris en charge", empreinte)
             continue
         if a["sorte"] != "informer":
@@ -180,6 +179,34 @@ def essayables(monde, id):
 def _destinataires(a):
     qui = a["parametres"]["qui"]
     return [qui] if isinstance(qui, str) else qui
+
+
+def _route_coupee(monde, id, a):
+    """Une coupure prouvée, pas l'échec d'une recherche bornée ou d'une serrure.
+
+    Même en supposant toutes les portes ouvertes, aucun chemin ne traverse les
+    salles crues noyées. Les positions des destinataires restent des croyances.
+    """
+    from .deliberation import salle_crue
+    from .eau import noyee_crue
+    salles = monde.data["salles"]
+    destination = a["parametres"]["lieu"]
+    interdites = {s for s in salles if noyee_crue(monde, id, s)}
+    for qui in _destinataires(a):
+        depart = salle_crue(monde, id, qui)
+        if depart not in salles:
+            continue
+        vus, file = {depart}, [depart]
+        while file:
+            salle = file.pop()
+            for sortie in salles[salle]["sorties"].values():
+                suivante = sortie["vers"]
+                if suivante not in vus and suivante not in interdites:
+                    vus.add(suivante)
+                    file.append(suivante)
+        if destination not in vus:
+            return True
+    return False
 
 
 def _noyau(a):
