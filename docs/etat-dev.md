@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Mesure de réflexion limitée**, lot **190**, branche
+  `codex-mesure-reflexion`, base `integration e62c5bf` : sondes et documentation
+  seules, aucun fichier de `donjon/` modifié, aucun Luna. Deux variantes de
+  profondeur (INT modulée ; même limite sauf sécurité/devoir/désespoir),
+  neuf nuits libres 12 h, mine/auberge/hameau 1985 fixes. Mine : monde et récit
+  identiques ; auberge INT : premier écart de chronique à 658 min, attente
+  435 → 440 ; variante enjeu identique. Hameau : six départs avant 155 min
+  contre quatre au témoin, défaut des issues du lot 189 encore présent dans
+  cette base ; baisse de CPU non interprétable comme amélioration.
+  Le plan lumière avant crochetage est perdu par les deux variantes ; la
+  capture historique Gorm 42/151 choisit désormais ses fagots, pas les planches.
+  701 explorations échantillonnées × deux variantes : mine/hameau sans écart,
+  auberge deux plans changés en INT, un en enjeu ; surcoûts maximaux 8,085 et
+  2,167 minutes modèle. Aucun plan perdu dans cet échantillon ; il manque la
+  première divergence du hameau. Trois témoins appariés strictement identiques
+  aux témoins simples ; douze mondes/rendus finaux rechargés stables.
+  Six reprises de scènes : monde/rendu rechargés et dix minutes d'un bloc ou
+  5 + 5 identiques. Livraison **partielle** : saillance non filtrée, appariement
+  échantillonné des recherches avant `endurer`, sans référence élargie ni taux
+  exact de choix de but changés. Ne pas avancer l'implémentation avant A5 sur
+  ces seules mesures. Deux calculs réduits au plus ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/reflexion-190/` ;
+  [rapport 190](taches/rapport-codex-190-mesure-reflexion-limitee.md).
+
 - **Diagnostic appels/alternances**, lot **188**, branche
   `codex-appels-alternances`, base `integration 31f7a0d` : aucun code ni Luna,
   un seul calcul à priorité réduite. Crue 1985, 12 h : les **douze appels de
