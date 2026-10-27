@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-prevision-bornee`, fusionnée**, lot **185**, base
+  `integration 4efb277` : observation sèche ou mesurée postérieure bornant
+  la droite de montée incompatible, sans changer la pente ni lire l'eau
+  cachée. Contrat commun `eau.borner` / estimation propre / avis quantitatif,
+  routes et clé existante, sauvegarde sans migration. Captures 182 de Sève
+  345, Ilse 420 et Maël 450 : recours retrouvés, dix minutes d'un bloc ou
+  découpées, monde et rendu rechargés identiques ; trois entrées exactes
+  également relues. **38 ciblés finaux verts**, **12/12 empreintes 2 h** hors eau
+  active identiques aux archives 181, état complet compris. **Huit nuits
+  rapides 4 h**, aucun plantage/usurpation/nouvelle alerte de boucle ; hameau
+  identique aux quatre archives 181. Crue comparée au cache de `main 812ebe5`,
+  antérieur à la base : écarts non attribués au seul lot 185. Suite unique :
+  **2 293 tests, 264 fichiers, 1 464,334 s**, trois échecs bruts : deux MiMo
+  historiques `6 != 5`, ancienne attente de plan absent corrigée puis ciblée
+  verte. Aucune erreur ni test ignoré. `VERIFIER` + spatial 0,2, crue 2024 et
+  hameau 42, 2 h : zéro écart/plantage, reprise finale après réancrage comprise.
+  Aucun Luna ni fichier réservé
+  au lot 184 modifié, deux calculs réduits au plus ; aucune clé de signature.
+  Bruts exclusivement `C:/Users/msics/donjon/artifacts/prevision-185/` ;
+  [rapport 185](taches/rapport-codex-185-prevision-bornee.md).
+  La borne ne prouve pas la décrue ni la fin de toute attente ou navette.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Corrige le défaut diagnostiqué au lot 182 (Sève, Ilse et Maël, hameau 42 : routes et abri rétablis). Crue 4 h contre une référence antérieure à la base : eau 128,75 → 17,5, passages horaires max 13,25 → 20, à surveiller à la prochaine vérification d'intégration (Maël galerie puis retour à Gorm en deux minutes dans une capture).
+
 - **Branche `codex-depart-definitif`, fusionnée**, lot **181 / A4b
   partiel**, base `integration 8c0cecd` : sortie `exterieur: true`, état
   `parti` sauvegardé par la marche commune joueur/PNJ avec ou sans cases ;

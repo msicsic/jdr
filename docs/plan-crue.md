@@ -468,6 +468,28 @@ légitime après une mesure nouvelle et ne garantit pas moins d'eau ni la fin de
 alternance entre besoins. Mesures et provenance dans le
 [rapport du lot 58](taches/rapport-codex-58-eau-plan-marche.md).
 
+## Une observation borne la prévision ancienne (lot 185)
+
+La dernière vitesse mesurée conserve sa date et sa valeur. Une observation
+postérieure qui contredit la montée extrapolée abaisse sa droite : une hauteur
+mesurée donne le niveau vu, un sol sec seulement un plafond à son altitude.
+La droite repart de cette borne avec la même vitesse ; aucune pente nulle ni
+hauteur sous le sol n'est inventée. Le niveau de crue étant commun, la preuve
+borne aussi les projections vers les autres salles. Sans observation contraire,
+une salle perdue de vue conserve sa prévision ; son eau déjà crue reste le minimum.
+
+`eau.borner` sert à l'estimation propre et aux prévisions quantitatives reçues
+par avis. Les observations et les deux repères ne sont pas réécrits ; la
+provenance de la prévision propre inclut la preuve qui la borne. Les avis
+qualitatifs gardent leur sens de menace future, sans profondeur inventée.
+`attendue`, les routes et `Vue.descente` lisent ces mêmes coefficients ;
+`eau_route`, déjà dans la clé de recherche, couvre leur changement. La sauvegarde
+conserve les preuves existantes, sans migration ni accès au tirage caché.
+
+Cette borne ne prouve ni la décrue ni une route sûre indéfiniment : la pente
+positive demeure, les portes et l'issue du séjour restent contrôlées.
+Voir le [rapport 185](taches/rapport-codex-185-prevision-bornee.md).
+
 ## Un feu hors de l'eau (branche `ressources`)
 
 Décision de l'utilisateur après `verifier-eau` : augmenter les ressources, par des données seules. Le
