@@ -1166,6 +1166,11 @@ def _plan_abri(monde, id):
     # Une destination encore valide garde la main pendant son trajet : la
     # traversée d'un lieu humide n'est pas une nouvelle preuve contre l'abri.
     from .planification import _etape, abri, aller
+    from .pnj import refus_etape
+
+    def admissible(etapes):
+        return etapes is not None and refus_etape(monde, id, etapes) is None
+
     from .defense import lieux_dangereux
     dangereuses = lieux_dangereux(monde, id)
 
@@ -1190,7 +1195,7 @@ def _plan_abri(monde, id):
         # Le prix d'abandon n'est pas une précondition de l'abri : au palier
         # intermédiaire, comparer à rester ne doit pas annuler le trajet choisi.
         etapes = trouve[1] if trouve is not None else aller(monde, id, en_route)
-        if etapes is not None:
+        if admissible(etapes):
             return {"type": "abri", "lieu": en_route}, etapes + [_etape("abriter", lieu=en_route)]
     if menacee(monde, id, ici) or eau_monte:
         salles = sorted((s for s in monde.data["salles"] if abri_valide(monde, id, s)
@@ -1201,14 +1206,14 @@ def _plan_abri(monde, id):
             # Le plus aimé d'abord ; chaque trajet doit rester possible et valoir ce qu'il laisse.
             for salle in salles:
                 trouve = abri(monde, id, [salle])
-                if trouve is not None:
+                if trouve is not None and admissible(trouve[1]):
                     return {"type": "abri", "lieu": trouve[0]}, trouve[1] + [_etape("abriter", lieu=trouve[0])]
             return None
         salles.sort(key=lambda s: s != ici)
     from .planification import _etape, aller
     for salle in salles:
         etapes = aller(monde, id, salle)
-        if etapes is None:
+        if not admissible(etapes):
             continue
         return {"type": "abri", "lieu": salle}, etapes + [_etape("abriter", lieu=salle)]
     if menacee(monde, id, ici):
@@ -1219,7 +1224,7 @@ def _plan_abri(monde, id):
                        key=lambda s: (attendue(monde, id, s), -altitude(monde, s), s))
         for salle in moins:
             etapes = aller(monde, id, salle)
-            if etapes:
+            if etapes and admissible(etapes):
                 return {"type": "abri", "lieu": salle}, etapes
     return None
 
@@ -1666,6 +1671,11 @@ def _reprendre_demande(monde, id, demande):
         condition = demande["condition"]
         if satisfaite(monde, id, condition):
             return None
+        if demande.get("tache") and _delegue(monde, id, {"condition": condition}):
+            # Une parole payée en cours suspend l'action propre, pas le but.
+            # Refaire une offre à plus bas prix n'est pas sa continuation.
+            intention = lire(monde, id)["intention"]
+            return (intention["but"], []) if intention else None
         return _plan_pulsion(monde, id, condition, demande.get("tache", False))
     if "agenda" in demande:
         if not any(a["id"] == demande["agenda"] and a["etat"] in ("actif", "sommeil")
@@ -1706,6 +1716,9 @@ def _fin_demande(monde, id, demande):
             return "dementie", {"agenda": demande["agenda"], "etat": projet["etat"] if projet else "absent"}
         if projet["etat"] == "atteint":
             return "accomplie", {"agenda": demande["agenda"], "etat": "atteint"}
+        if projet["etat"] == "sommeil":
+            return "dementie", {"agenda": demande["agenda"], "etat": "sommeil",
+                                "raison": projet["raison"], "croyances": projet["croyances"]}
     return None
 
 
@@ -2003,6 +2016,10 @@ def choisir(monde, id, minute):
                 evaluations[n] = None
                 return None
             proposition = candidat.methode(monde, id)
+            if proposition:
+                from .pnj import refus_etape
+                if refus_etape(monde, id, proposition[1]) is not None:
+                    proposition = None
             if proposition and urgence.palier != Palier.PERIL_EAU:
                 # Le même contrôle vaut aussi pour les recours sans trajet :
                 # l'échec d'une évacuation ne rend pas licite un séjour humide.
@@ -2019,6 +2036,7 @@ def choisir(monde, id, minute):
             return proposition
 
         actif = None
+        moyens_revalides = False
         if courant:
             # Une demande typée persiste indépendamment de sa naissance.
             # Pour les anciennes sauvegardes, on retrouve d'abord son candidat.
@@ -2031,6 +2049,7 @@ def choisir(monde, id, minute):
                 proposition = evaluer(n, candidat)
                 if proposition and _meme_demande_adoptee(candidat, courant, proposition, contrat):
                     actif = (candidat, proposition)
+                    moyens_revalides = True
                     break
             if actif is None and demande:
                 valeur = contrat["valeur"]
@@ -2044,6 +2063,18 @@ def choisir(monde, id, minute):
                 proposition = evaluer(len(tous), candidat)
                 if proposition:
                     actif = (candidat, proposition)
+                    moyens_revalides = True
+                elif sortie is None:
+                    fin = _fin_demande(monde, id, demande)
+                    if fin:
+                        sortie = _sortie(courant, minute, *fin)
+                    from .pnj import refus_etape
+                    if sortie is None and refus_etape(monde, id, []) is None:
+                        # Une recherche sans réponse ne certifie ni la fin
+                        # ni le démenti de la demande. Attendre un moyen ou
+                        # une information garde son identité et son palier,
+                        # sans réinstaller de geste périmé ; jamais dans l'eau.
+                        actif = (candidat, (courant["but"], []))
             # Le geste manqué est un démenti du plan courant, pas une preuve
             # que tous les moyens vers le même but sont impossibles. Seule la
             # nouvelle planification ci-dessus peut le réinstaller.
@@ -2064,6 +2095,16 @@ def choisir(monde, id, minute):
                 break
         if resultat is None and actif:
             choisi, resultat = actif
+            if (moyens_revalides and courant["plan"] and resultat[1]
+                    and courant["plan"][0] == resultat[1][0] and resultat[0] == courant["but"]
+                    and not (choisi.demande and choisi.demande.get("tache")
+                             and _delegue(monde, id, {"condition": choisi.demande["condition"]}))):
+                from .pnj import refus_etape
+                if refus_etape(monde, id, courant["plan"]) is None:
+                    # Revalider le but n'oblige pas à reconstruire ses moyens.
+                    # Les préparatifs et la remise en état du plan adopté
+                    # restent tenus jusqu'à un démenti ou une préemption.
+                    resultat = (courant["but"], courant["plan"])
     if resultat:
         besoin = choisi.besoin
         from .eau import en_peril

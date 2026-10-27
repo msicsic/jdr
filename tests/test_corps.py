@@ -137,6 +137,10 @@ class JoueurTests(unittest.TestCase):
 class PartDuJoueurTests(unittest.TestCase):
     def test_gorm_accepte_et_sert_le_joueur_la_ou_sont_les_vivres(self):
         m = calme(relais(), "brune", "ilse", "aubin")
+        # Cette scène isole la parole de Gorm au joueur : les tiers ne
+        # commandent pas une seconde part pour secourir le même affamé.
+        from tests.support import sans_souci
+        sans_souci(m, "brune", "ilse", "aubin")
         lire(m, "marchand")["besoins"].update(faim=0.0)
         m.joueur.update(salle="antichambre", position=[6, 4])
         corps.valeurs(m, "joueur")["faim"] = 80.0

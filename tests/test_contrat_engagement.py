@@ -46,6 +46,13 @@ class ContratEngagementTests(unittest.TestCase):
             if eligible:
                 hors_vue.append(auteur)
                 apres = lire(m, auteur)['intention']
+                if apres is None:
+                    # La part peut avoir été réellement servie avant que
+                    # la croyance de faim du bénéficiaire soit rafraîchie.
+                    self.assertTrue(d.satisfaite(m, auteur, demande['condition']))
+                    dernier = agendas.dernier_contrat_intention(m, auteur)['contrat']
+                    self.assertEqual(dernier['sortie']['cause'], 'accomplie')
+                    return resultat
                 self.assertIsNotNone(apres, (auteur, minute, avant))
                 if apres['but'] != avant['but']:
                     nouveau = agendas.contrat_intention(m, auteur)
