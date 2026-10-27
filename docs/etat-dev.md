@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-fuite-lumiere`, non fusionnée**, lot **155**, base `3b284b6` :
+  fuite, abri et lumière partagent les auteurs de violence encore actifs selon
+  les croyances. Leur lieu cru est exclu des recours de sécurité et coûte comme
+  une présence crainte dans le parcours ; lectures couvertes par `_entrees`.
+  Capture réelle crue 2024/680 rechargée : **68 → 8 passages de Brune en 40 min**,
+  fin des navettes après 688 ; mêmes `data` et rendu en laps continu/découpé.
+  Autre scène d'Ilse et réouverture des abris après fin du danger vérifiées.
+  **16/16 empreintes 2 h identiques** ; audit 12 h crue 2024 : maximum
+  **68 → 15 passages/heure**, aucune boucle nouvelle, usurpation ou mort.
+  Banc rapide 4 h crue/rixe : **8/8 identiques**, mêmes alertes historiques ;
+  VERIFIER + spatial 0,2 sur 2 h crue 2024 : zéro écart/borne/plantage.
+  Suite complète unique : **2 180 tests, 247 fichiers, 1 230,13 s**, deux
+  échecs MiMo historiques `6 != 5`, zéro erreur/ignoré, deux processus réduits.
+  Audit final sur le dernier code : mêmes chroniques, mesures et relevés, hors
+  temps de calcul. Aucun Luna ni fichier MJ réservé modifié ; aucune clé Git
+  de signature, commit non signé, branche seule poussée sans fusion ; `main` intacte.
+  [Rapport 155](taches/rapport-codex-155-fuite-lumiere.md).
+
 - **Branche `codex-agendas-amener-b`, fusionnée**, lot **146 b**, base
   `b5a23bb`, code `36e1b33` puis `268e190` : complément prioritaire du lot 148,
   pureté de l'évaluation des candidats. Registre temporaire, transitions et
@@ -5504,9 +5522,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   - **fuite ↔ sécurité** (déjà sur `main`, Relais 2024 à 12 h : Ilse 165 passages en une heure ; après la
     fusion 37) : après une vraie violence (Aubin assomme Brune pour prendre torche et planches), Ilse fuit
     l'auteur vers la conduite noire ; la fuite s'achève dès que la salle diffère, puis l'abri (Gorm, au refuge
-    éclairé) ou la lumière la ramène dans la salle de l'auteur, et `defense.choisir` la fait refuir. Correction
-    proposée : la salle crue d'un danger actif (`defense.auteurs`, `salle_crue`) pèse dans `Vue.pression` comme
-    une présence crainte et n'est pas un abri (`_plan_abri.sures`) ; lecture à mettre dans `_entrees` ;
+    éclairé) ou la lumière la ramène dans la salle de l'auteur, et `defense.choisir` la fait refuir.
+    **Corrigé sur `codex-fuite-lumiere`, non fusionnée, lot 155** : auteurs actifs communs,
+    pression sociale, terminaux lumière/abri et revalidation des recours, `_entrees` couvert.
+    Capture Brune crue 2024 et autre scène d'Ilse vérifiées après recharge ; ce correctif
+    ne prouve pas l'absence de toute boucle entre les autres besoins ;
   - **faim ↔ eau** (crue 2024, Brune heures 5-6) : le seul chemin de la galerie aux vivres du refuge traverse la
     conduite basse, que Brune attend noyée (116 cm) ; le parcours n'écarte que les salles crues noyées
     (`noyee_crue`) et `Vue.descente` ne juge que la salle d'arrivée, mais `eau.en_peril` juge la salle
