@@ -129,7 +129,7 @@ def devis_service(monde, id, condition, pour):
     return devis
 
 
-def valeur_proposition(monde, auditeur, terme, pour, *, devis=None):
+def valeur_proposition(monde, auditeur, terme, pour, *, devis=None, sans=None):
     """Prix propre, en minutes ; les tâches sont chiffrées par le plan cru de l'auditeur."""
     from .caractere import valeur_pieces
     t = terme["type"]
@@ -141,7 +141,7 @@ def valeur_proposition(monde, auditeur, terme, pour, *, devis=None):
         trouve = _devis_proposition(monde, auditeur, terme["condition"], pour, devis)
         return None if trouve is None else trouve[0]
     from .biens import valeur_bien
-    return valeur_bien(monde, auditeur, terme["objet"], t == "part")
+    return valeur_bien(monde, auditeur, terme["objet"], t == "part", sans=sans)
 
 
 def _livraison_proposition(monde, donneur, receveur, terme):
@@ -176,7 +176,8 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie, *, de
     # Une tâche promise ne vaut que si elle sert un but réellement cru de l'auditeur.
     buts = [x["condition"] for x in (monde.objets[auditeur].get("profil") or {}).get("pulsions", [])]
     buts += [x["condition"] for x in agendas.en_cours(monde, auditeur, actifs=True)]
-    g = valeur_proposition(monde, auditeur, contrepartie, auditeur, devis=devis)
+    g = valeur_proposition(monde, auditeur, contrepartie, auditeur, devis=devis,
+                           sans=demande.get("objet") if demande["type"] == "objet" else None)
     if contrepartie["type"] == "tache" and contrepartie["condition"] not in buts:
         g = 0.0
     if g is None:
@@ -295,7 +296,8 @@ def anticiper_valeur(monde, proposant, autre, demande, contrepartie):
             # La richesse liquide adverse est inconnue, même si une bourse est visible.
             o["lieu"] = None
     p = valeur_proposition(m, autre, demande, proposant)
-    g = valeur_proposition(m, autre, contrepartie, autre)
+    g = valeur_proposition(m, autre, contrepartie, autre,
+                           sans=demande.get("objet") if demande["type"] == "objet" else None)
     # Les services non connus comme utiles ne sont pas un gain acquis.
     if p is None:
         return {"dd_base": float("inf")}

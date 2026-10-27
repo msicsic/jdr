@@ -284,6 +284,8 @@ def capacites_crues(monde, id, objet):
     from .esprits import croyance, lire
     from .force import COUPE
     o = monde.objets[objet]
+    if croyance(monde, id, objet, "fin"):
+        return set()
     usages = set(o.get("usages", ()))
     profil = monde.objets.get(id, {}).get("profil") or {}
     resultat = usages & {"allumage"}
@@ -302,11 +304,12 @@ def capacites_crues(monde, id, objet):
     return resultat
 
 
-def valeur_bien(monde, id, objet, part=False):
+def valeur_bien(monde, id, objet, part=False, *, sans=None):
     """Estimation commune en minutes : prix/contenu connu ou capacité marginale.
 
     Un outil porté coûte la capacité perdue ; acquis, il vaut la capacité
-    ajoutée. Un doublon porté la conserve. Le désespoir valorise le remède
+    ajoutée. Un doublon porté la conserve ; ``sans`` exclut le bien cédé
+    simultanément, pour compter son remplacement parmi les gains. Le désespoir valorise le remède
     utilisable, pas n'importe quelle contrepartie. Aucun devis ni mutation.
     """
     from .caractere import valeur_pieces, valeur, ENJEU
@@ -331,7 +334,7 @@ def valeur_bien(monde, id, objet, part=False):
         return max(marchande, remede)
     propres = set()
     for k in _connus(monde, id):
-        if k == objet:
+        if k in (objet, sans):
             continue
         # Une localisation cachée ne retire ni ne crée un doublon cru.
         lieu, vus = _lieu_cru(monde, id, k), {k}

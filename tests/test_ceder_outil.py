@@ -250,6 +250,38 @@ class CederOutilTests(unittest.TestCase):
         self.assertEqual(recharge.data, m.data)
         self.assertEqual(regarder(recharge), regarder(m))
 
+    def test_cle_connue_et_source_ne_lisent_pas_les_etats_caches(self):
+        from donjon.biens import capacites_crues
+        m = self.scene()
+        outil = m.objets['crochets_lucien']
+        outil.update(usages=[], ouvre=['ballot'], allume=False, charge=0)
+        self.assertIn('cle:ballot', capacites_crues(m, 'lucien', outil['id']))
+        lire(m, 'lucien')['croyances'].pop('ballot', None)
+        self.assertNotIn('cle:ballot', capacites_crues(m, 'lucien', outil['id']))
+        croire(m, 'lucien', outil['id'], 'etat', {'allume': False, 'charge': True}, 'savoir')
+        estimee = capacites_crues(m, 'lucien', outil['id'])
+        self.assertIn('lumiere', estimee)
+        self.assertNotIn('allumage', estimee)
+        outil.update(allume=True, charge=100)
+        self.assertEqual(capacites_crues(recharger(m), 'lucien', outil['id']), estimee)
+
+    def test_remplacement_equivalent_conserve_la_capacite_dans_le_troc(self):
+        from donjon.echanges import proposer
+        from donjon.monde import Monde
+        m = self.scene()
+        m.objets['ballot']['usages'] = ['crochetage']
+        croire(m, 'anselme', 'crochets_lucien', 'lieu', 'lucien', 'savoir', salle='salle_commune', case=[3, 3])
+        demande = {'type': 'objet', 'objet': 'crochets_lucien'}
+        contre = {'type': 'objet', 'objet': 'ballot'}
+        with patch.object(Monde, 'd20', return_value=20):
+            bilan = proposer(m, 'anselme', 'lucien', demande, contre)
+        self.assertTrue(bilan.get('accepte'), bilan)
+        recharge = recharger(m)
+        self.assertEqual(recharge.objets['crochets_lucien']['proprietaire'], 'anselme')
+        self.assertEqual(recharge.objets['ballot']['proprietaire'], 'lucien')
+        self.assertEqual(recharge.data, m.data)
+        self.assertEqual(regarder(recharge), regarder(m))
+
 
 if __name__ == '__main__':
     unittest.main()
