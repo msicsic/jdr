@@ -1347,6 +1347,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 if monde is not None:
                     obstacles.extend(mentions_narratives(monde, texte, base, paroles, partie=nom))
                 faits = dict(entree.get("faits", {}))
+                if "comptes" in faits:
+                    from .narration import references_comptes
+                    faits["references_comptes"] = references_comptes(faits)
                 # Une parole n'a lieu que par le moteur : contrôle déterministe, quelle que soit la voie
                 # (action, parole, conversation, faits) et sans dépendre du verdict de l'auditeur.
                 obstacles.extend(paroles_sans_moteur(texte, faits, adresse, partie=nom))

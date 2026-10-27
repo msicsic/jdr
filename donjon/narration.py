@@ -129,8 +129,8 @@ SCHEMA_AUDIT = {
 }
 CHAMPS_AUDIT = set(SCHEMA_AUDIT["properties"]["segments"]["items"]["required"])
 
-# L'auditeur extrait des rôles, même dans une réplique ; le moteur les compare.
-# Il ne décide pas lui-même si le compte est conforme. -1 : quantité non dite.
+# Format historique conservé pour la relecture des audits enregistrés.
+# Les nouveaux audits utilisent schema_liens_comptes, sans extraction de rôles.
 SCHEMA_COMPTES = {"type": "array", "maxItems": 12,
     "description": ("Toutes les affirmations sur ce qui est dû ou rendu, même sous verdict parole, "
         "dans les mots du segment. Résous je/tu par le locuteur et joueur. debiteur = celui qui doit "
@@ -158,6 +158,48 @@ SCHEMA_COMPTES["description"] += (
     "L'offre ne dit ni du ni rendu. Sa condition est fondée si elle correspond aux termes fournis "
     "dans comptes.offres, missions_discutables ou conversation_validee.offres ; une reformulation "
     "compatible n'ajoute aucune condition. Le texte libre de la mission complète ses termes typés.")
+
+
+def references_comptes(faits):
+    """Catalogue déterministe des seuls comptes publics fournis par le moteur.
+
+    Une référence est locale au dossier ; elle ne porte aucun rôle à deviner.
+    Les doublons gardent la référence de l'issue, prioritaire pour sa couverture.
+    """
+    catalogue = {}
+    for groupe in ("issue", "etat", "offres"):
+        for indice, compte in enumerate(faits.get("comptes", {}).get(groupe, [])):
+            if compte not in catalogue.values():
+                catalogue[f"{groupe}.{indice}"] = copy.deepcopy(compte)
+    return catalogue
+
+
+def schema_liens_comptes(faits):
+    catalogue = references_comptes(faits)
+    return {"type": "object", "additionalProperties": False,
+        "description": "Pour CHAQUE compte fourni, indique s'il est évoqué et, si oui, "
+            "choisis son sens parmi les deux orientations proposées par le moteur. "
+            "La quantité est celle dite dans ce segment, ou non_dite. Le jugement porte "
+            "sur l'état et les termes restants ; les rôles et la quantité sont comparés "
+            "par le moteur. Une affirmation sans compte fourni relève de portee_mecanique.",
+        "properties": {ref: {"type": "object", "additionalProperties": False,
+            "properties": {
+                "jugement": {"type": "string", "enum": ["non_evoque", "restitue", "contredit"]},
+                "sens": {"type": "string", "enum": [*sens_du_compte(compte), "non_dit"],
+                         "description": "Sens affirmé par le texte, même sous négation ; non_dit si aucun sens n'est dit."},
+                "quantite": {"anyOf": [{"type": "integer", "minimum": 0},
+                                        {"type": "string", "enum": ["non_dite"]}],
+                             "description": "Nombre dit pour ce compte ; non_dite si aucun nombre n'est dit."}},
+            "required": ["jugement", "sens", "quantite"]} for ref, compte in catalogue.items()},
+        "required": list(catalogue)}
+
+
+def sens_du_compte(compte):
+    """Les deux seules orientations possibles, nommées par les rôles du moteur."""
+    verbe = {"du": "doit à", "absent": "doit à", "rendu": "a remis à",
+             "offre": "offre à"}[compte["etat"]]
+    return (f"{compte['debiteur']} {verbe} {compte['creancier']}",
+            f"{compte['creancier']} {verbe} {compte['debiteur']}")
 
 
 def compte_bien_forme(c):
@@ -197,9 +239,9 @@ def schema_audit(faits, nombre):
         if "echanges_passes" in faits:
             item["properties"]["rappels"] = copy.deepcopy(SCHEMA_RAPPELS)
             item["required"].append("rappels")
-        if "comptes" in faits:
-            item["properties"]["comptes"] = copy.deepcopy(SCHEMA_COMPTES)
-            item["required"].append("comptes")
+        if references_comptes(faits):
+            item["properties"]["liens_comptes"] = schema_liens_comptes(faits)
+            item["required"].append("liens_comptes")
         if "perception" in faits:
             item["properties"]["eclairages"] = {"type": "array", "maxItems": 12,
                 "items": {"type": "string"},
@@ -1194,8 +1236,60 @@ def controler(texte, rapport, faits, partie="texte"):
                 raise AuditIllisible("Contrôle des contributions lumineuses mal formé.")
             ligne = {k: v for k, v in ligne.items() if k != "eclairages"}
             obstacles.extend(eclairages(lumieres, faits, passage, indice, partie))
+        liens = None
+        if isinstance(ligne, dict) and "liens_comptes" in ligne:
+            liens = ligne["liens_comptes"]
+            catalogue = references_comptes(faits)
+            if "comptes" in ligne or not isinstance(liens, dict) or set(liens) != set(catalogue):
+                raise AuditIllisible("Liens vers les comptes fournis incomplets ou mal formés.")
+            comptes_lies = []
+            for reference, lien in liens.items():
+                compte = catalogue[reference]
+                if isinstance(lien, str):  # audits déjà enregistrés par le lot 117
+                    if lien not in ("non_evoque", "restitue", "contredit"):
+                        raise AuditIllisible("Lien vers un compte fourni mal formé.")
+                    jugement, sens, quantite = lien, "non_dit", "non_dite"
+                else:
+                    if (not isinstance(lien, dict) or set(lien) != {"jugement", "sens", "quantite"}
+                            or lien["jugement"] not in ("non_evoque", "restitue", "contredit")
+                            or lien["sens"] not in (*sens_du_compte(compte), "non_dit")
+                            or not (lien["quantite"] == "non_dite" or
+                                    type(lien["quantite"]) is int and lien["quantite"] >= 0)
+                            ):
+                        raise AuditIllisible("Sens ou quantité d'un compte fourni mal formé.")
+                    jugement, sens, quantite = lien["jugement"], lien["sens"], lien["quantite"]
+                if jugement == "non_evoque":
+                    # Aucun compte n'est affirmé : les autres champs n'ont pas
+                    # de portée, même si le modèle y laisse une valeur par défaut.
+                    if isinstance(lien, dict):
+                        liens[reference] = {**lien, "sens": "non_dit", "quantite": "non_dite"}
+                    continue
+                attendu_sens = sens_du_compte(compte)[0]
+                attendu_quantite = (compte["montant"] if "montant" in compte else
+                    compte["contrepartie"].get("montant"))
+                erreurs = []
+                if sens not in ("non_dit", attendu_sens):
+                    erreurs.append(("sens", sens, attendu_sens,
+                        "Le sens du compte ne correspond pas à l'issue du moteur."))
+                if (quantite != "non_dite" and attendu_quantite is not None and
+                        quantite != attendu_quantite):
+                    erreurs.append(("quantite", quantite, attendu_quantite,
+                        "La quantité du compte ne correspond pas à l'issue du moteur."))
+                if jugement == "contredit" and not erreurs:
+                    erreurs.append(("jugement", jugement, f"restituer {compte}",
+                        "L'état ou les termes du compte ne correspondent pas au moteur."))
+                if erreurs:
+                    for champ, recu, accepte, motif in erreurs:
+                        obstacles.append(audit(motif,
+                            f"references_comptes.{reference}.{champ} : {accepte}",
+                            partie=partie, segment=indice, texte=passage,
+                            recu=f"references_comptes.{reference}.{champ} : {recu}"))
+                else:
+                    comptes_lies.append(copy.deepcopy(compte))
+            ligne = {k: v for k, v in ligne.items() if k != "liens_comptes"}
+            ligne["comptes"] = comptes_lies
         comptes = ligne.get("comptes") if isinstance(ligne, dict) else None
-        if "comptes" in faits or comptes is not None:
+        if references_comptes(faits) or comptes is not None:
             if (not isinstance(comptes, list) or len(comptes) > 12 or any(
                     not compte_bien_forme(c) for c in comptes)):
                 raise AuditIllisible("Contrôle des rôles des comptes incomplet ou mal formé.")
@@ -1241,10 +1335,11 @@ def controler(texte, rapport, faits, partie="texte"):
             ligne = {**ligne, "locuteur": "", "citation": "", "presentation": ""}
         if verdict not in ("ambiance", "engagement"):
             ligne = {**ligne, "entites": []}
-        lignes_validees.append({**ligne, **({"comptes": comptes} if comptes is not None else {}),
+        lignes_validees.append({**ligne, **({"liens_comptes": copy.deepcopy(liens)} if liens is not None else
+                                             {"comptes": comptes} if comptes is not None else {}),
                                **({"rappels": rappels} if rappels is not None else {}),
                                **({"eclairages": lumieres} if lumieres is not None else {})})
-        if comptes:
+        if comptes and liens is None:
             dossier = faits.get("comptes", {})
             attendus = dossier.get("issue", []) + dossier.get("etat", [])
             for c in comptes:
@@ -1321,7 +1416,7 @@ def controler(texte, rapport, faits, partie="texte"):
                     # lien nominal. Écarter cette seule donnée ne réécrit ni ne
                     # refuse une réplique contrôlée et ne fait apprendre aucun nom.
                     ligne = {**ligne, "presentation": ""}
-                    lignes_validees[-1] = {**ligne, **({"comptes": comptes} if comptes is not None else {})}
+                    lignes_validees[-1] = {**lignes_validees[-1], **ligne}
                 paroles.append({"locuteur": locuteur, "texte": citation, "passage": passage,
                                 **({'presentation':ligne['presentation']} if ligne['presentation'] else {})})
         elif verdict == "ambiance":
@@ -1329,7 +1424,16 @@ def controler(texte, rapport, faits, partie="texte"):
                               "entites": [e.strip()[:80] for e in ligne["entites"] if e.strip()]})
         elif verdict in ("invention_protegee", "contradictoire"):
             refuser(ligne["motif"] or "Affirmation mécanique non établie.", ACCEPTE_VERDICT[verdict])
-    dits = [c for l in lignes_validees for c in l.get("comptes", [])]
+    catalogue = references_comptes(faits)
+    dits = [c for l in lignes_validees for c in (
+        [catalogue[ref] for ref, lien in l["liens_comptes"].items()
+         if (lien if isinstance(lien, str) else lien["jugement"]) == "restitue"
+         and (isinstance(lien, str) or
+              lien["sens"] in ("non_dit", sens_du_compte(catalogue[ref])[0]) and
+              (lien["quantite"] == "non_dite" or
+               lien["quantite"] == (catalogue[ref].get("montant") if "montant" in catalogue[ref]
+                                      else catalogue[ref]["contrepartie"].get("montant"))))]
+        if "liens_comptes" in l else l.get("comptes", []))]
     for c in faits.get("comptes", {}).get("issue", []):
         if c["etat"] in ("rendu", "du") and not any(
                 all(d.get(k) == c[k] for k in ("debiteur", "creancier", "objet", "etat"))

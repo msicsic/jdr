@@ -29,7 +29,7 @@ class AuditDecisionTests(unittest.TestCase):
                     ligne = {'nature': nature, 'portee_mecanique': portee, 'sources': list(faits)}
                     for cle in variante['required']:
                         if cle not in ligne:
-                            ligne[cle] = [] if p[cle]['type'] == 'array' else ''
+                            ligne[cle] = {'array': [], 'object': {}}.get(p[cle]['type'], '')
                     # Le contrôleur peut refuser le texte, jamais lire une paire
                     # produite par le schéma comme deux jugements incompatibles.
                     rapport = controler('Une assertion à contrôler.', {'segments': {'0': ligne}}, faits)

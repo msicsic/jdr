@@ -67,7 +67,8 @@ def jouer(monde, saisie, reponses, audits, revues=()):
                     from donjon.couverture_action import OPERATIONS
                     revue["operations_demandees"] = {t: t in revue["operations_demandees"] for t in OPERATIONS}
             return revue
-        return (audits if fonction == "auditer_narration" else reponses).pop(0)
+        resultat = (audits if fonction == "auditer_narration" else reponses).pop(0)
+        return resultat(entree) if callable(resultat) else resultat
     with tempfile.TemporaryDirectory() as tmp:
         chemin = Path(tmp) / "partie.json"
         monde.sauver(chemin)
