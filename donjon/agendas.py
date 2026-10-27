@@ -112,6 +112,20 @@ def retenir_intention(monde, id, contrat):
                               "contrat": copy.deepcopy(contrat)}
 
 
+def clore_intention(monde, id, sortie):
+    """Une seule dernière transition, sans pile de décisions ni agenda ajouté."""
+    from .esprits import esprit
+    c = esprit(monde, id).get("contrat_intention")
+    if c and all(c[k] == sortie["intention"][k] for k in ("but", "motif", "depuis")):
+        c["contrat"]["sortie"] = copy.deepcopy(sortie)
+        c["contrat"]["phase"] = "finir" if sortie["cause"] is not None else "indeterminee"
+
+
+def dernier_contrat_intention(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id).get("contrat_intention"))
+
+
 def champs_profil():
     return {"agendas"}
 
@@ -729,9 +743,18 @@ def verifier(monde, id):
                 and isinstance(c["but"], dict) and isinstance(c["motif"], str)
                 and type(c["depuis"]) is int), "Provenance d'intention invalide"
         contrat = c["contrat"]
-        assert (isinstance(contrat, dict) and set(contrat) == {"palier", "valeur", "demande"}
+        assert (isinstance(contrat, dict) and set(contrat) - {"phase", "sortie"} == {"palier", "valeur", "demande"}
                 and type(contrat["palier"]) is int and contrat["palier"] in list(Palier)
                 and isinstance(contrat["valeur"], (int, float))), "Contrat d'intention invalide"
+        assert contrat.get("phase", "continuer") in (
+            "naitre", "continuer", "attendre", "finir", "indeterminee"), "Phase d'intention invalide"
+        sortie = contrat.get("sortie")
+        if sortie is not None:
+            assert (isinstance(sortie, dict) and set(sortie) == {"cause", "minute", "faits", "intention"}
+                    and sortie["cause"] in (None, "accomplie", "dementie", "palier", "gain")
+                    and type(sortie["minute"]) is int and isinstance(sortie["faits"], dict)
+                    and isinstance(sortie["intention"], dict)
+                    and set(sortie["intention"]) == {"but", "motif", "depuis"}), "Sortie d'intention invalide"
         demande = contrat["demande"]
         assert (demande is None or isinstance(demande, dict)
                 and (set(demande) == {"agenda"} and isinstance(demande["agenda"], str)

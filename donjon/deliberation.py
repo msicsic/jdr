@@ -60,6 +60,12 @@ REPRISE = 15
 INERTIE = 5
 
 
+def marge_engagement(monde, id):
+    """Ténacité en points d'urgence ; aucune durée passée n'entre dans cette marge."""
+    from .caractere import caracteristique
+    return INERTIE + max(0, caracteristique(monde, id, "VOL")) / 4
+
+
 def profil(monde, id):
     return monde.objets[id].get("profil")
 
@@ -1375,8 +1381,8 @@ def urgents(monde, id, inertie=False):
     est son seuil ; apaisé (``eveiller``), il ne presse de nouveau que nettement au-dessus
     (``REPRISE``), comme un thermostat. Avec ``inertie`` (le choix du but), le plan en cours d'un
     autre besoin est aussi un repère : un besoin ne l'interrompt que s'il presse plus que lui
-    (de combien ce besoin dépasse encore son seuil, 0 s'il ne presse plus) d'``INERTIE`` au
-    moins. On achève le geste entamé avant de céder à la faim naissante, et deux besoins qui
+    (de combien ce besoin dépasse encore son seuil, 0 s'il ne presse plus) de la marge
+    d'engagement (``INERTIE`` majorée par VOL). On achève le geste entamé avant de céder à la faim naissante, et deux besoins qui
     pressent ensemble ne s'interrompent pas l'un l'autre à chaque minute."""
     s, e = seuils(monde, id), lire(monde, id)
     v = e["besoins"]
@@ -1387,7 +1393,7 @@ def urgents(monde, id, inertie=False):
     def presse(b):
         ecart = v.get(b, 0) - s[b]
         return (ecart >= (REPRISE if _etat_urgence(e, b) == "apaise" else 0)
-                and (en_cours in (None, b) or ecart >= avance + INERTIE))
+                and (en_cours in (None, b) or ecart >= avance + marge_engagement(monde, id)))
     return sorted((b for b in s if presse(b)), key=lambda b: (s[b] - v[b], BESOINS.index(b)))
 
 
@@ -1669,16 +1675,55 @@ def _reprendre_demande(monde, id, demande):
     raise ValueError("demande de poursuite inconnue")
 
 
-def _domine(autre, actif):
+def _fin_demande(monde, id, demande):
+    """Une fin ou un démenti attesté ; None reste une absence de certificat.
+
+    Les familles interprètent leurs conditions, l'arbitrage ne déduit jamais
+    une fin de la longueur d'un plan ou d'une recherche sans réponse.
+    """
+    raison = demande.get("raison")
+    if raison:
+        etat = _cru(monde, id, raison["qui"], "etat") or {}
+        if etat.get("mort") or etat.get("conscient") is False:
+            return "dementie", {"raison": raison, "etat_cru": etat}
+        if raison["besoin"] not in etat:
+            return None
+        if not etat[raison["besoin"]]:
+            return "accomplie", {"raison": raison, "etat_cru": etat}
+        if _poids_secours(monde, id, raison["qui"]) is None:
+            from .caractere import valeur
+            from .relations import envers, rancune
+            lien = envers(monde, id, raison["qui"])
+            return "dementie", {"raison": raison, "disposition": {
+                "rancune": rancune(lien), "affection": lien["affection"],
+                "altruisme": valeur(monde, id, "altruisme"),
+                "empathie": valeur(monde, id, "empathie"), "seuil": 100}}
+    if "condition" in demande and satisfaite(monde, id, demande["condition"]):
+        return "accomplie", {"condition": demande["condition"], "satisfaite": True}
+    if "agenda" in demande:
+        projet = next((a for a in agendas.projets(monde, id) if a["id"] == demande["agenda"]), None)
+        if projet is None or projet["etat"] == "abandonne":
+            return "dementie", {"agenda": demande["agenda"], "etat": projet["etat"] if projet else "absent"}
+        if projet["etat"] == "atteint":
+            return "accomplie", {"agenda": demande["agenda"], "etat": "atteint"}
+    return None
+
+
+def _sortie(intention, minute, cause, faits):
+    from copy import deepcopy
+    return {"cause": cause, "minute": minute, "faits": deepcopy(faits),
+            "intention": {k: deepcopy(intention[k]) for k in ("but", "motif", "depuis")}}
+
+
+def _domine(autre, actif, marge=INERTIE):
     """Même contrat d'arbitrage pour toute intention, attente et garde comprises."""
     return (autre.palier < actif.palier
-            or autre.palier == actif.palier and autre.valeur >= actif.valeur + INERTIE)
+            or autre.palier == actif.palier and autre.valeur >= actif.valeur + marge)
 
 
 def _meme_demande_adoptee(candidat, intention, resultat, contrat):
     demande = contrat.get("demande")
-    return (bool(demande) and candidat.demande == demande
-            or resultat[0] == intention["but"])
+    return candidat.demande == demande if demande else resultat[0] == intention["but"]
 
 
 def _candidats(monde, id):
@@ -1895,6 +1940,8 @@ def choisir(monde, id, minute):
     if reaction is not None:
         but, etapes = reaction
         ancien = e["intention"]
+        if ancien and ancien["but"] != but:
+            agendas.clore_intention(monde, id, _sortie(ancien, minute, "palier", {"reaction": but}))
         e["intention"] = {"but": but, "motif": "devoir" if but["type"] == "proteger" else "securite",
                           "plan": etapes, "depuis": ancien["depuis"] if ancien and ancien["but"] == but else minute,
                           "attente": 0}
@@ -1921,19 +1968,27 @@ def choisir(monde, id, minute):
     maintenant = instant(monde)
     courant = e["intention"]
     precedent = courant
+    contrat_precedent = agendas.contrat_intention(monde, id) or {}
+    sortie = None
     manque = e["manque"]
     if courant and courant["plan"] and manque and manque["minute"] == minute:
         from .pnj import _geste
         if _geste(courant["plan"][0]) == manque["etape"]:
             # R2 : l'échec libère aussi les anciennes préférences de cible
             # consultées par les générateurs. Un nouveau moyen reste permis.
+            sortie = _sortie(courant, minute, "dementie", {"manque": manque})
             courant = None
             e["intention"] = None
     resultat = None
     choisi = None
+    marge = marge_engagement(monde, id)
     from .planification import vues_du_choix
     with vues_du_choix(monde, id):
         agendas.actualiser(monde, id)
+        if courant and contrat_precedent.get("demande"):
+            fin = _fin_demande(monde, id, contrat_precedent["demande"])
+            if fin:
+                sortie = _sortie(courant, minute, *fin)
         tous = list(_candidats(monde, id))
         liste = [(c.besoin, c.methode) for c in tous]
         evaluations = {}
@@ -1993,11 +2048,19 @@ def choisir(monde, id, minute):
             # que tous les moyens vers le même but sont impossibles. Seule la
             # nouvelle planification ci-dessus peut le réinstaller.
         for n, candidat in enumerate(tous):
-            if actif and not _domine(candidat.urgence, actif[0].urgence):
+            if actif and not _domine(candidat.urgence, actif[0].urgence, marge):
                 continue
             proposition = evaluer(n, candidat)
             if proposition:
                 choisi, resultat = candidat, proposition
+                if actif and precedent and not _meme_demande_adoptee(
+                        candidat, precedent, proposition, contrat_precedent):
+                    cause = "palier" if candidat.urgence.palier < actif[0].urgence.palier else "gain"
+                    sortie = _sortie(precedent, minute, cause,
+                                     {"palier_actif": int(actif[0].urgence.palier),
+                                      "palier_nouveau": int(candidat.urgence.palier),
+                                      "valeur_active": actif[0].urgence.valeur,
+                                      "valeur_nouvelle": candidat.urgence.valeur, "marge": marge})
                 break
         if resultat is None and actif:
             choisi, resultat = actif
@@ -2015,13 +2078,23 @@ def choisir(monde, id, minute):
                 etapes = offre
         intention = precedent
         meme = bool(intention) and intention["but"] == but
+        meme_engagement = bool(intention) and _meme_demande_adoptee(
+            choisi, intention, (but, etapes), contrat_precedent)
+        if intention and not meme_engagement and sortie is None:
+            sortie = _sortie(intention, minute, None, {"evaluation": "indeterminee"})
+        if sortie is None and meme_engagement:
+            # Une continuation ne gomme pas la dernière sortie attestée.
+            # Un seul événement est conservé : ce n'est pas une pile de buts.
+            sortie = contrat_precedent.get("sortie")
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
                           "depuis": intention["depuis"] if meme else minute,
                           "attente": intention["attente"] if meme else 0,
                           **({"attitude": intention["attitude"]} if meme and "attitude" in intention else {})}
         agendas.retenir_intention(monde, id, {"palier": int(choisi.urgence.palier),
                                              "valeur": choisi.urgence.valeur,
-                                             "demande": choisi.demande})
+                                             "demande": choisi.demande,
+                                             "phase": "attendre" if not etapes else "continuer" if meme_engagement else "naitre",
+                                             "sortie": sortie})
         if not meme:
             e["patience"] = None  # Un autre but : ce qu'il attendait pour l'ancien ne compte plus.
         _classer(monde, id, pressants, liste, essais, minute)
@@ -2033,6 +2106,9 @@ def choisir(monde, id, minute):
     e["intention"] = ({"but": {"type": "proposition", "objet": refusee["objet"]},
                        "motif": refusee["besoin"], "plan": offre, "depuis": minute, "attente": 0}
                       if offre else None)
+    if precedent:
+        agendas.clore_intention(monde, id, sortie or _sortie(
+            precedent, minute, None, {"evaluation": "indeterminee"}))
     _classer(monde, id, pressants, liste, essais, minute)
 
 

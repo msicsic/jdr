@@ -23,6 +23,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   [état de la tentative 213](taches/rapport-codex-213-contrat-engagement.md).
   Les sorties indéterminées du planificateur et les sources sans demande
   persistante restent à traiter ; le rapport détaille les limites.
+  **Revue 217 appliquée ensuite** : marge commune `INERTIE + VOL/4`, aucun coût
+  passé ; phases et causes de sortie attestées avec faits persistées, évaluation
+  indéterminée distinguée d'une fin. 35 ciblés distincts verts, dont huit du contrat.
+  Vérifications finales à rejouer sur cette version figée et `d2243c2`.
+  Suspension temporaire d'une charge non portée par le contrat : cas Gorm/Aubin
+  hameau 1985 min 6, explicitement laissé au lot 218 sur cette base.
 
 - **Branche `codex-localisation-crue`, fusionnée**, lot **211**, départ
   `0b95f33` vérifié puis **reprise demandée sur `aadab7c`** (205/207), fusion

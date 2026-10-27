@@ -1,10 +1,26 @@
 # Lot 213 (196 c) — contrat d'engagement, validation en cours
 
-Branche `codex-contrat-engagement`, non fusionnée, base `cca5f50` vérifiée.
+Branche `codex-contrat-engagement`, non fusionnée, départ `cca5f50` vérifié,
+reprise demandée sur `d2243c2` (211), intégration fusionnée par `2a2d766`.
 Reprise au-delà du créneau explicitement autorisée. Aucun Luna ; deux
 travailleurs réduits au plus. Bruts exclusivement dans
 `C:/Users/msics/donjon/artifacts/engagement-213/`. Aucune clé Git configurée.
 Le commit de diagnostic `51728f2` est poussé ; il précède l'implémentation.
+
+**Revue 217 appliquée.** Aucun coût de trajet déjà parcouru n'entre dans
+l'inertie. La marge commune vaut `INERTIE + VOL/4` ; les coûts futurs des
+moyens restent évalués par le planificateur, sans conversion arbitraire de
+minutes en points d'urgence. Le contrat minimal reste lié à l'identité de
+l'intention dans un registre auxiliaire d'`agendas.py` (validateur d'intention
+d'`esprits.py` inchangé), sans créer d'agenda pour les secours. Sa demande
+porte condition de fin, parent éventuel et raison crue. Les phases naître,
+continuer, attendre, finir et les causes de sortie attestées avec leurs faits
+sont persistées ; une absence de certificat reste explicitement indéterminée.
+**35 ciblés distincts verts**, dont huit tests du contrat. Le passage commencé
+avant cette instruction a été interrompu ; les vérifications finales portent
+sur cette version figée. **Limite 218 :** la suspension temporaire d'une charge
+n'est pas portée par ce registre. Gorm/Aubin, hameau 1985 min 6 : sa garde peut
+reprendre après reconstruction de la livraison ; reprise laissée au lot 218.
 
 **Ce qui change.** `choisir` revalide l'intention avant l'arbitrage et applique
 une règle commune de préemption : palier strictement supérieur, ou gain d'au
