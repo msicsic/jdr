@@ -60,7 +60,16 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
 - **L5** — refus local de `HorsDePortee`, sans appel au MJ.
 - **L6** — dégraissage des consignes (doublons socle/règles), relances mesurées.
 - **L7** — catalogues d'écriture à la demande et surfaces génériques paresseuses.
-- **L8** — `destination: "sol"`.
+- **L8 fait, lot 154, branche `codex-poser-au-sol`, non fusionnée** —
+  `destination: "sol"` résolu dans le compilateur commun des déplacements et
+  prélèvements ; séquences et effets d'improvisation suivent le même contrat.
+  L'ancien identifiant de salle courante reste accepté ; autre salle refusée.
+  État, scène et carte contrôlés après recharge en console avec MJ simulé.
+  **Critère Luna sans refus de destination non atteint** : un identifiant de
+  surface encore proposé dans chaque épreuve ciblée ; le Relais corrige vers
+  `sol` et pose la torche, l'atelier abandonne après un faux refus sémantique
+  de la contre-revue sur l'effet interne vers la salle.
+  [Rapport 154](taches/rapport-codex-154-poser-au-sol.md).
 
 Chaque lot de L1 à L8 : tests ciblés après rechargement, suite complète une fois, Luna **deux passes** des quatre bancs de
 référence et des bancs ciblés, critère de refus du lot 95 (pas plus d'un refus juste perdu sur cinq rejeux), appels et

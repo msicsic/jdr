@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-poser-au-sol`, non fusionnée**, lot **154 / L8**, base
+  `0352f29`, code `8697169` : `destination: "sol"` résolu dans le compilateur
+  commun de `deplacer`/`prelever`, séquences et effets d'improvisation compris.
+  Ancienne salle courante compatible, autre salle refusée avec `attendu` ;
+  prélèvement direct déposé aux pieds de Corvus, état sauvegardé en lieux réels.
+  Cinq nouveaux tests console/MJ simulé verts, torche et planche, scène et carte
+  après recharge ; reprise ciblée finale 5/5. **2 174 tests, 245 fichiers,
+  1 285,395 s**, suite complète unique à deux processus réduits, deux échecs
+  MiMo historiques `6 != 5`, zéro erreur/ignoré. Banc rapide Relais quatre graines
+  × 4 h : états complets, relevés, chroniques, récits, souvenirs et mesures
+  **4/4 identiques** à `main` `812ebe5`, aucun plantage, trois `fige_presse`
+  identiques par côté ; quatre références absentes rangées une fois.
+  Luna une passe, atelier/Relais et deux dépôts ciblés : **72 appels/21 tours MJ**,
+  commun **64 → 62 appels/19 tours**, référence `cdaf371` relue sans rejeu.
+  **Critère sans refus de destination non atteint** : surface proposée deux fois,
+  refusée ; torche ensuite posée via `sol` au Relais, couteau toujours porté à
+  l'atelier après faux refus de l'audit sur l'effet interne vers `cour`.
+  Aucun repli/incident technique du jeu/erreur de recharge. Export HTML initial
+  interrompu puis régénéré hors ligne, aucun script rejoué. Pas de clé de
+  signature : commits non signés, branche poussée seule ; `main` intact.
+  [Rapport 154](taches/rapport-codex-154-poser-au-sol.md), bruts dans
+  `artifacts/poser-sol-154/` de ce worktree.
+
 - **Branche `codex-dossiers-proches`, fusionnée**, lot **152 / L4**, base
   `45e9f95` : les dossiers atelier, franchissement, obstacles et espace prennent
   leurs sources dans `espace.objets_proches` (vue et `spatial.proche`), outils et
