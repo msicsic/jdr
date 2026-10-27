@@ -1,0 +1,6 @@
+{
+ "scenario": "atelier",
+ "seed": 1985,
+ "preparation": {"lieux": {"couteau": "joueur"}},
+ "tours": ["je pose mon couteau au sol", "tenter", "regarder", "carte"]
+}

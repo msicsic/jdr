@@ -60,7 +60,21 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
 - **L5** — refus local de `HorsDePortee`, sans appel au MJ.
 - **L6** — dégraissage des consignes (doublons socle/règles), relances mesurées.
 - **L7** — catalogues d'écriture à la demande et surfaces génériques paresseuses.
-- **L8** — `destination: "sol"`.
+  À exercer avec le dépôt au sol : la première passe du lot 154 a proposé
+  `antichambre_sol`/`cour_sol` comme destinations. Ces surfaces restent hors du
+  contrat des contenants ; leur présence dans les désignations est laissée à L7.
+- **L8 fait, lot 154, branche `codex-poser-au-sol`, non fusionnée** —
+  `destination: "sol"` résolu dans le compilateur commun des déplacements et
+  prélèvements ; séquences et effets d'improvisation suivent le même contrat.
+  L'ancien identifiant de salle courante reste accepté ; autre salle refusée.
+  État, scène et carte contrôlés après recharge en console avec MJ simulé.
+  Le titre, l'information et le dossier de contre-revue présentent le dépôt
+  « au sol, à tes pieds », avec destination publique `sol`, sans exposer la salle
+  interne comme lieu du dépôt. Après reprise : **55 tests ciblés verts** ;
+  une passe Luna atelier et deux dépôts, **40 appels/13 tours MJ**, deux objets
+  posés sans refus (4 appels chacun). Le faux refus de l'atelier de la première
+  passe est corrigé à la source de représentation ; aucune consigne d'audit ajoutée.
+  [Rapport 154](taches/rapport-codex-154-poser-au-sol.md).
 
 Chaque lot de L1 à L8 : tests ciblés après rechargement, suite complète une fois, Luna **deux passes** des quatre bancs de
 référence et des bancs ciblés, critère de refus du lot 95 (pas plus d'un refus juste perdu sur cinq rejeux), appels et

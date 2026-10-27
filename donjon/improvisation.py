@@ -288,6 +288,12 @@ def preparer(m, p, origine):
     trace = {"approche": p["approche"], "cibles": p["cibles"], "outil": p["outil"]}
     plan.effets = effets + [("recit_improvise", "", {"texte": recits["reussite"].strip(), **trace})]
     plan.echec = echec + [("recit_improvise", "", {"texte": recits["echec"].strip(), **trace})]
+    from .deplacement_objet import decrire_depot
+    plan.information = "\n".join(
+        "En cas de " + branche + " : " + decrire_depot(m, cible)
+        for branche, consequences in (("réussite", effets), ("échec", echec))
+        for op, cible, destination in consequences
+        if op == "transferer" and destination == m.joueur["salle"])
     return plan
 
 

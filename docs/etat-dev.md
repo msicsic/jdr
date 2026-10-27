@@ -4,6 +4,39 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-poser-au-sol`, fusionnée**, lot **154 / L8**, base
+  `0352f29`, moteur `8697169`, présentation corrigée `040a9a1` : `destination: "sol"` résolu dans le compilateur
+  commun de `deplacer`/`prelever`, séquences et effets d'improvisation compris.
+  Ancienne salle courante compatible, autre salle refusée avec `attendu` ;
+  prélèvement direct déposé aux pieds de Corvus, état sauvegardé en lieux réels.
+  Cinq nouveaux tests console/MJ simulé verts, torche et planche, scène et carte
+  après recharge ; reprise ciblée finale 5/5. **2 174 tests, 245 fichiers,
+  1 285,395 s**, suite complète unique à deux processus réduits, deux échecs
+  MiMo historiques `6 != 5`, zéro erreur/ignoré. Banc rapide Relais quatre graines
+  × 4 h : états complets, relevés, chroniques, récits, souvenirs et mesures
+  **4/4 identiques** à `main` `812ebe5`, aucun plantage, trois `fige_presse`
+  identiques par côté ; quatre références absentes rangées une fois.
+  Luna une passe, atelier/Relais et deux dépôts ciblés : **72 appels/21 tours MJ**,
+  commun **64 → 62 appels/19 tours**, référence `cdaf371` relue sans rejeu.
+  Relecture : le faux refus atelier était une lacune du lot, corrigée dans le
+  titre, l'information et la projection des effets du dossier de contre-revue :
+  « au sol, à tes pieds », destination publique `sol`, salle interne préservée
+  dans les seuls effets exécutables. Même source pour les prélèvements, séquences
+  et branches d'improvisation ; aucune consigne d'audit ajoutée. **55 tests ciblés
+  verts**, dont dossier sans mutation ; pas de nouvelle suite complète pour cette
+  reprise de présentation. Nouvelle passe demandée des deux dépôts et d'atelier :
+  **40 appels/13 tours MJ**, couteau et torche posés sans refus, quatre appels chacun,
+  atelier **32/11**, contre 39/11 en référence. Aucun refus de destination,
+  repli/incident technique/erreur de recharge/mention sans fondement détectée.
+  Deux tours avec refus de matériau/portée à l'atelier. Les surfaces génériques
+  proposées lors de la première passe sont signalées pour L7, sans traitement ici.
+  Aucun repli/incident technique du jeu/erreur de recharge. Export HTML initial
+  interrompu puis régénéré hors ligne, aucun script rejoué. Pas de clé de
+  signature : commits non signés, branche poussée seule ; `main` intact.
+  [Rapport 154](taches/rapport-codex-154-poser-au-sol.md), bruts dans
+  `artifacts/poser-sol-154/` de ce worktree.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Reprise après relecture : le titre, l'information et le dossier de contre-revue disent « au sol, à tes pieds » (faux refus de l'atelier levé, deux dépôts Luna sans refus). Confusion avec les surfaces génériques signalée pour L7.
+
 - **Branche `codex-agendas-amener-b`, fusionnée**, lot **146 b**, base
   `b5a23bb`, code `36e1b33` puis `268e190` : complément prioritaire du lot 148,
   pureté de l'évaluation des candidats. Registre temporaire, transitions et

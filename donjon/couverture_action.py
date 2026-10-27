@@ -116,7 +116,10 @@ def sens_parole(contenu, monde):
             for c, sens in zip(contenu, sens_contenu(contenu, monde))]
 
 
-def _operations(plan):
+def _operations(plan, monde=None):
+    from .deplacement_objet import presenter_effet
+    def presenter(effet):
+        return presenter_effet(monde, effet) if monde is not None else list(effet)
     improvise = plan.proposition.get("action") == "improviser"
     return {
         "titre": plan.titre,
@@ -125,11 +128,11 @@ def _operations(plan):
         **({"geste_improvise": {"approche": plan.proposition.get("approche"),
                                 "cibles": plan.proposition.get("cibles", []),
                                 "outil": plan.proposition.get("outil", "")}} if improvise else {}),
-        "effets_reussite": [list(e) for e in plan.effets if e[0] != "recit_improvise"],
-        "effets_echec": [list(e) for e in plan.echec if e[0] != "recit_improvise"],
+        "effets_reussite": [presenter(e) for e in plan.effets if e[0] != "recit_improvise"],
+        "effets_echec": [presenter(e) for e in plan.echec if e[0] != "recit_improvise"],
         "information": plan.information,
         "jet": bool(plan.stat),
-        "etapes": [_operations(etape) for etape in plan.plans],
+        "etapes": [_operations(etape, monde) for etape in plan.plans],
     }
 
 
@@ -149,7 +152,7 @@ def _nommer(valeur, monde):
 
 def entree(intention, plan, monde=None):
     """La demande et les opérations du plan, chaque identifiant cité accompagné de son nom."""
-    operations = _operations(plan)
+    operations = _operations(plan, monde)
     if monde is not None:
         def nommer_parole(p):
             # Les références sont nommées, les mots libres restent littéraux.

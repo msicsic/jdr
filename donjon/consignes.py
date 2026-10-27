@@ -131,7 +131,7 @@ les gestes demandés, une étape par fixation ou par objet, et rien de plus : ra
 détachée, par exemple, n'est une étape que si le joueur le demande. Au-delà de six étapes ou des
 opérations disponibles, examine improviser plutôt que de tronquer la demande.
 - Donner un objet à un personnage n'est pas un déplacement : action remettre (voir plus haut).
-- deplacer : prendre (destination joueur), poser (destination = salle.id) ou ranger (un
+- deplacer : prendre (destination joueur), poser (destination sol, à tes pieds) ou ranger (un
   contenant ouvert). Un article en vente s'achète (acheter). methode discret pour un bien
   d'autrui : le moteur en déduit le vol, les témoins et leurs soupçons ; pour ses propres
   affaires, discret n'accuse personne.
@@ -180,7 +180,7 @@ action spécialisée quand elle convient.
   passe par un effet {operation, cible, destination, texte, valeur} :
   - marquer : cible = un support, texte = la marque littérale (« flèche vers le nord »), avec un
     outil qui grave ou coupe ;
-  - deplacer : un objet libre, destination joueur, salle.id ou contenant ouvert (pas pour voler
+  - deplacer : un objet libre, destination joueur, sol ou contenant ouvert (pas pour voler
     ni pour voyager) ;
   - son : cible joueur, valeur 1 à 3, texte parmi indetermine, voix_melodique, voix_breve,
     souffle, corps_rythmique, corps_bref ;
