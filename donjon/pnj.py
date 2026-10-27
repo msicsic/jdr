@@ -156,6 +156,8 @@ def chemin(monde, id, depart, arrivee, cles=(), ouvertes=(), precedents=None, po
 def parcours(monde, id, depart, cles=(), ouvertes=(), portes=None, metrique=None):
     """Toutes les salles qu'il croit atteindre depuis ``depart`` (``chemin``) : {salle : (salle
     d'avant, sortie)}, en largeur, le départ à None."""
+    from .presence import interieur
+    monde = interieur(monde)
     from .eau import noyee_crue
     from .obstacles import metrique_necessaire, parcours_cru
     if metrique is None:
@@ -652,6 +654,11 @@ def _a_toucher(monde, id, etape, portes=None):
 
 def _pas(monde, id, sortie, lignes):
     """Un geste d'une minute vers la sortie : ouvrir, déverrouiller, essayer ou passer."""
+    actuelles = monde.data["salles"][monde.objets[id]["lieu"]]["sorties"].values()
+    if sortie.get("exterieur") is True or not any(
+            s.get("exterieur") is not True and all(sortie.get(k) == valeur for k, valeur in s.items())
+            for s in actuelles):
+        return
     from .tenir import autoriser, lacher
     from .monde import ErreurMonde
     try:
@@ -680,9 +687,6 @@ def _pas(monde, id, sortie, lignes):
         _annoncer_porte(monde, id, porte, "ouvre", " s'ouvre.", lignes)
         return
     if _arrete_par_l_eau(monde, id, sortie["vers"]):
-        return
-    from .presence import franchir
-    if franchir(monde, id, o["lieu"], sortie["vers"], lignes):
         return
     depuis, o["lieu"] = o["lieu"], sortie["vers"]
     if "position" in o:
@@ -1190,6 +1194,8 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     que d'une case occupée, celui qui s'y tient doit lui faire place : avec ``gestes`` (le
     registre de ses gestes illicites), il attend qu'il s'écarte, le lui demande ou le pousse
     (``passage.faire_place``) ; sans, il attend."""
+    from .presence import interieur
+    geometrie = interieur(monde)
     from .tenir import autoriser, lacher
     from .monde import ErreurMonde
     try:
@@ -1239,14 +1245,14 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     formes = descriptions_crues(monde, id) if metrique_necessaire(monde, id, allure) else {}
     passages = transitions(monde, id, formes, allure=allure) if formes else None
     cout_porte = lambda p: duree_porte(monde, p)
-    chemin_ = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
+    chemin_ = trajet(geometrie, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
                      franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
                      passages=passages, allure=allure, cout_porte=cout_porte)
     if chemin_ is None:
         if gestes is None:
             return None
         # Il n'atteindrait ce qu'il vise que d'une case où quelqu'un se tient.
-        plein = trajet(monde, *depart, arrivee, franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
+        plein = trajet(geometrie, *depart, arrivee, franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
                        passages=passages, allure=allure, cout_porte=cout_porte)
         if not plein or plein[-1][:2] not in occupees:
             return None
@@ -1259,7 +1265,7 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
         n += 1  # La case de quelqu'un : il la traverse sans s'y arrêter.
     if any(porte for _, _, porte, _ in chemin_[1:n + 1]):
         # Une porte à ouvrir juste après la case d'un autre : il ne peut pas s'y arrêter pour l'ouvrir.
-        detour = trajet(monde, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
+        detour = trajet(geometrie, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
                         franchissable=franchissable,
                         libre=lambda salle, case: (salle, case) not in occupees and salle not in noyees,
                         passages=passages, allure=allure, cout_porte=cout_porte)
@@ -1335,9 +1341,10 @@ def _avancer_de(monde, id, pas, feutre, lignes):
                 retentir(monde, id, "aller", discret=feutre)
             return duree + _ouvrir_en_chemin(monde, id, monde.objets[porte], lignes)
         if salle != o["lieu"]:
-            from .presence import franchir
-            if franchir(monde, id, o["lieu"], salle, lignes):
-                return duree + duree_pas(PAS_FEUTRE if feutre else PAS, sens)
+            # Revalidation d'un pas préparé avant un changement de carte.
+            sortie = monde.data["salles"][o["lieu"]]["sorties"].get(vers, {})
+            if sortie.get("exterieur") is True and sortie["vers"] == salle:
+                return duree or PAS
             o["lieu"] = salle
             placer(o, salle, list(case))
             _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][salle]["nom"] + ".",

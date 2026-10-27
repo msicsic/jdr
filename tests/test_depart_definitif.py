@@ -43,8 +43,7 @@ class DepartTests(unittest.TestCase):
                 m, vers = scene(qui)
                 self.assertTrue(percoit(m, "marchand", qui))
                 lignes = []
-                duree = pnj._marcher(m, qui, lambda s, c: s == vers, lignes)
-                self.assertGreater(duree, 0)
+                self.assertTrue(presence.franchir(m, qui, "antichambre", vers, lignes))
                 self.assertTrue(presence.parti(m, qui))
                 self.assertNotIn(qui, pnjs(m))
                 self.assertFalse(m.present_physique(qui, salle="antichambre"))
@@ -71,7 +70,7 @@ class DepartTests(unittest.TestCase):
         placer(m, "aubin", "antichambre", (2, 3))
         orienter(m, "aubin", "ilse")
         percevoir_tous(m)
-        pnj._marcher(m, "ilse", lambda s, c: s == vers, [])
+        presence.franchir(m, "ilse", "antichambre", vers, [])
         agendas.actualiser(m, "marchand")
         self.assertEqual(agendas.projets(m, "marchand")[0]["etat"], "actif")
         nouvelles = [n for _, n, _, _ in social._constats(m, "aubin")
@@ -140,7 +139,7 @@ class DepartTests(unittest.TestCase):
     def test_meme_laps_entier_decoupe_apres_depart(self):
         from tests.test_tensions import vivre
         m, vers = scene()
-        pnj._marcher(m, "ilse", lambda s, c: s == vers, [])
+        presence.franchir(m, "ilse", "antichambre", vers, [])
         entier, _ = vivre(recharger(m), 3)
         morceaux = recharger(m)
         for _ in range(3):
@@ -176,7 +175,7 @@ class DepartTests(unittest.TestCase):
         percevoir_tous(m)
         self.assertTrue(m.visible("ilse"))
         lignes = []
-        pnj._marcher(m, "ilse", lambda s, c: s == vers, lignes)
+        presence.franchir(m, "ilse", "antichambre", vers, lignes)
         self.assertIn("quitte les lieux", " ".join(lignes))
         self.assertIsNone(salle_source(m, m.objets["lanterne"]))
         self.assertIsNone(position_cible(m, "lanterne"))

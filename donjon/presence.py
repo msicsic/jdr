@@ -1,6 +1,41 @@
 """Présence dans les lieux, distincte de la vie et du dernier emplacement."""
 
 
+def interieur(monde):
+    """Monde de lecture des déplacements internes, sans transition de départ.
+
+    Les salles restent disponibles aux lectures des objets et des croyances.
+    La géométrie et ses caches sont privés : un pas du joueur peut franchir
+    une issue qu'un plan interne ne peut jamais emprunter.
+    """
+    salles = monde.data["salles"]
+    if not any(s.get("exterieur") is True for p in salles.values() for s in p["sorties"].values()):
+        return monde
+    import copy
+    lecture = copy.copy(monde)
+    lecture.data = {**monde.data, "salles": {
+        s: {**p, "sorties": {d: x for d, x in p["sorties"].items() if x.get("exterieur") is not True}}
+        for s, p in salles.items()}}
+    lecture._cache_vue = {"persistant": {"pas": {}}}
+    return lecture
+
+
+def salles_interieures(monde, depart):
+    """Composante interne, sans présumer des serrures ni des obstacles crus."""
+    lecture = interieur(monde)
+    salles = lecture.data["salles"]
+    if lecture is monde:
+        return salles
+    accessibles, file = set(), [depart]
+    while file:
+        s = file.pop()
+        if s in accessibles or s not in salles:
+            continue
+        accessibles.add(s)
+        file.extend(x["vers"] for x in salles[s]["sorties"].values())
+    return {s: p for s, p in salles.items() if s in accessibles}
+
+
 def parti(monde, id):
     """Les affaires emportées suivent leur porteur, même dans un contenant."""
     vus = set()
@@ -18,7 +53,7 @@ def parti(monde, id):
 def franchir(monde, id, salle, destination, lignes):
     """Applique une issue déclarée, avant la publication de son franchissement.
 
-    La salle extérieure reste une destination géométrique ordinaire. Le dernier
+    Cette transition de présence n'est pas un déplacement interne. Le dernier
     emplacement est conservé ; il ne constitue plus une présence dans les lieux.
     """
     issues = [(d, s) for d, s in monde.data["salles"][salle]["sorties"].items()
