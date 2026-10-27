@@ -41,7 +41,7 @@ class PieceDeLotTests(unittest.TestCase):
         prix = 3 if qui == "aubin" else 1
         c = compte(qui, "joueur", piece, 1)
         cs = [compte("joueur", qui, montant=prix, etat="rendu"), c]
-        bon = "Les pièces sont remises et je te dois encore cette part."
+        bon = "Entendu."
         p = parole(mots, ("demande", lot, "", str(prix)), personnage=qui)
         p["proposition"]["contenu"] = [contenu]
         propositions = [p]

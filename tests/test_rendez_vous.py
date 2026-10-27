@@ -67,7 +67,10 @@ class RendezVousTests(unittest.TestCase):
             return chroniquer(m, id, texte, nature)
 
         with patch.object(pnj, "_chroniquer", annoncer):
-            bloc, coupe, debut = reprises(auberge_42(), 10)
+            # Les secours à Joss ne déplacent pas les participants au rendez-vous.
+            from tests.support import sans_souci
+            m = sans_souci(auberge_42(), "tilo", "mathurine", "mireille")
+            bloc, coupe, debut = reprises(m, 10)
         self.assertEqual(len(annonces), 2)  # Une par rejeu du même laps.
         self.assert_decoupage(bloc, coupe, debut)
         self.assert_rencontre(bloc, "odile", "anselme")
@@ -78,6 +81,9 @@ class RendezVousTests(unittest.TestCase):
 
     def test_relais_appele_qui_vient_et_l_appelant_ne_le_cherche_plus(self):
         m = scenes.JArriveTests().aubin_cherche_gorm_qui_le_hele()
+        # Gorm attend celui qu'il a hélé, sans initiative de repas concurrente.
+        from tests.support import sans_souci
+        sans_souci(m, "marchand")
         appelant = "marchand"
         from donjon.pnj import appeler
         appeler(m, appelant, "aubin", [])

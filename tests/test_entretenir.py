@@ -11,7 +11,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from donjon.banc_pnj import creer, executer
+from donjon.banc_pnj import executer
+from tests.scenarios_contractuels import creer
 from donjon.echanges import tenu
 from donjon.esprits import croire, lire
 from donjon.monde import Monde
@@ -181,6 +182,15 @@ class ParoleTenueTests(unittest.TestCase):
 class ServirUnProtegeTests(unittest.TestCase):
     def test_la_cuisiniere_sert_le_blesse_quand_il_a_faim_et_une_seule_fois(self):
         m = creer("mine", 1985, "fixe")
+        # Isoler cette charge des secours libres des autres personnages :
+        # ils peuvent désormais nourrir Lucien avant Mathe.
+        from tests.support import calme
+        from donjon.esprits import pnjs, percevoir_tous
+        from tests.support import regarder
+        autres = [x for x in pnjs(m) if x != "mathe"]
+        calme(m, *autres)
+        for x in autres:
+            lire(m, x)["libre"] = 120000
         # Au départ, Lucien n'a pas faim : Mathe ne le sert pas.
         chronique, _ = executer(m, 30)
         self.assertNotIn("Mathe donne une part des vivres de la cuisine à Lucien.", textes(chronique))
@@ -188,6 +198,8 @@ class ServirUnProtegeTests(unittest.TestCase):
         # Placement d'auteur : la fièvre l'a creusé, et Odon a mangé sa croûte de pain.
         lire(m, "lucien")["besoins"]["faim"] = 85.0
         sans(m, "pain_lucien")
+        regarder(m, "mathe", "lucien")
+        percevoir_tous(m)
         avant = m.objets["vivres"]["portions"]
         chronique, _ = executer(m, 120)
         m = recharger(m)

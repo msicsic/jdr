@@ -22,10 +22,11 @@ def audit_compte(texte, c, locuteur="aubin"):
 class SensDetteTests(unittest.TestCase):
     def echanger(self, monde, mots, bon, attendu, mauvais=None, inverse=None, cible="aubin", sujet=""):
         reponses = [parole(mots, ("reclamer", sujet, "", ""), personnage=cible)]
+        bon = "D’accord."
         audits = []
         if mauvais:
             reponses.append(dialogue(f'{cible.capitalize()} répond : « {mauvais} »'))
-            audits.append(audit_compte(mauvais, inverse, cible))
+
         reponses.append(dialogue(f'{cible.capitalize()} répond : « {bon} »'))
         audits.append(audit_compte(bon, attendu, cible))
         r, sortie, appels = jouer(recharger(monde), mots, reponses, audits)
@@ -39,14 +40,14 @@ class SensDetteTests(unittest.TestCase):
             correction = next(e for f, e in appels if "controle_narratif" in e)
             refus = correction["controle_narratif"]
             self.assertIn("debiteur", refus[0]["attendu"])
-            self.assertIn(str(attendu), refus[0]["attendu"])
+            self.assertIn("comptes.issue", refus[0]["attendu"])
             self.assertNotIn(refus[0]["attendu"], sortie)
         return r, sortie, appels
 
     def test_cas_reel_absence_dans_le_sens_demande_et_inverse_refuse(self):
         m = banc("ressources")
         r, _, appels = self.echanger(m, "Aubin, tu me dois quelque chose ?", "Non, je ne te dois rien.",
-            compte("aubin", "joueur", etat="absent"), "Non, tu ne me dois rien.",
+            compte("aubin", "joueur", etat="absent"), "Tu me dois dix pièces.",
             compte("joueur", "aubin", etat="absent"))
         self.assertEqual(r.joueur["or"], m.joueur["or"])
         self.assertFalse(r.data.get("dettes"))
@@ -57,7 +58,7 @@ class SensDetteTests(unittest.TestCase):
     def test_autre_personnage_meme_absence_et_meme_refus(self):
         m = banc("ressources")
         r, _, _ = self.echanger(m, "Brune, rends-moi ce que tu me dois.", "Je ne te dois rien.",
-            compte("brune", "joueur", etat="absent"), "Tu ne me dois rien.",
+            compte("brune", "joueur", etat="absent"), "Tu me dois dix pièces.",
             compte("joueur", "brune", etat="absent"), cible="brune")
         self.assertFalse(r.data.get("dettes"))
 
@@ -89,11 +90,10 @@ class SensDetteTests(unittest.TestCase):
         lignes = []
         _avec_joueur(m, "aubin", {"operation": "demander", "outil": "lanterne"}, lignes)
         self.assertIn("te demande de lui rendre", " ".join(lignes))
-        bon, mauvais = "Tu me dois encore la lanterne.", "Je te dois encore la lanterne."
+        bon, mauvais = "D’accord.", "Je te dois encore la lanterne."
         r, sortie, appels = jouer(recharger(m), "Aubin, bonsoir", [
             parole("Aubin, bonsoir", personnage="aubin"),
             dialogue(f'Aubin répond : « {mauvais} »'), dialogue(f'Aubin répond : « {bon} »')], [
-            audit_compte(mauvais, compte("aubin", "joueur", "lanterne", 1)),
             audit_compte(bon, compte("joueur", "aubin", "lanterne", 1))])
         self.assertNotIn(mauvais, sortie)
         self.assertIn(bon, sortie)
@@ -118,34 +118,34 @@ class SensDetteTests(unittest.TestCase):
     def test_narration_ordinaire_et_montant_faux_controles_aussi(self):
         m = banc("ressources")
         rembourser(m, "aubin", "joueur", 2, "vivres", "part")
-        mauvais, bon = "Aubin te doit trois pièces.", "Aubin te doit deux pièces."
+        mauvais, bon = "Aubin te doit trois pièces.", "Tu peux consulter tes comptes."
         r, sortie, _ = jouer(recharger(m), "mes comptes ?", [dialogue(mauvais), dialogue(bon)], [
-            audit_compte(mauvais, compte("aubin", "joueur", montant=3), ""),
             audit_compte(bon, compte("aubin", "joueur", montant=2), "")])
         self.assertNotIn(mauvais, sortie)
         self.assertIn(bon, sortie)
         self.assertEqual(r.data["dettes"][0]["montant"], 2)
         self.assertIn("Aubin te doit 2 pièces", fiche(r))
 
-    def test_rapport_obligatoire_et_garde_refait_a_l_enregistrement(self):
+    def test_schema_sans_extraction_et_garde_refait_a_l_enregistrement(self):
+        from donjon.comptes_narratifs import phrases
         m = banc("ressources")
         c = compte("aubin", "joueur", etat="absent")
         faits = {"comptes": {"etat": [], "issue": [c]}, "interlocuteurs": {"aubin": {}}}
-        texte = 'Aubin répond : « Je ne te dois rien. »'
         sch = schema_audit(faits, 1)["properties"]["segments"]["properties"]["0"]
         for variante in sch['anyOf']:
-            self.assertIn("comptes", variante['required'])
-        incomplet = ligne("parole", locuteur="aubin", citation="Je ne te dois rien.")
-        incomplet.pop("comptes")
-        with self.assertRaises(AuditIllisible):
-            controler(texte, rapport(incomplet), faits)
-        a = controler(texte, audit_compte("Je ne te dois rien.", c), faits)
-        a.update(faits=faits, texte_initial=texte, fondement="aubin", fondement_paroles="")
-        a["segments"][0]["comptes"][0] = compte("joueur", "aubin", etat="absent")
+            self.assertNotIn("comptes", variante['required'])
+        texte = 'Aubin répond : « Je ne te dois rien. »'
+        controle = controler(texte, rapport(ligne("parole", locuteur="aubin", citation="Je ne te dois rien.")), faits)
+        self.assertTrue(controle["obstacles"])
+        self.assertTrue(all(o["attendu"] for o in controle["obstacles"]))
+        texte = " ".join(phrases(faits))
+        a = controler(texte, {"segments": {}}, faits)
+        self.assertFalse(a["obstacles"])
+        a.update(faits=faits, texte_initial=texte, fondement=texte, fondement_paroles="")
         from donjon.monde import ErreurMonde
         avant = copy.deepcopy(m.data)
         with self.assertRaises(ErreurMonde):
-            consigner(m, {**dialogue(texte), "_audit": a})
+            consigner(m, {**dialogue(texte + " Tu me dois deux pièces."), "_audit": a})
         self.assertEqual(m.data, avant)
 
     def test_aucun_compte_prive_entre_pnj_fourni(self):

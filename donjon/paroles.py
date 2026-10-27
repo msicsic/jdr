@@ -1714,10 +1714,20 @@ def preparer_parole(monde, p, revision=None):
     livraisons_avant = livraisons_dues(travail)
     travail.data["_comptes_echange"] = []
     faits, comptes, offres = [], [], []
+    faits_comptables, offres_conclues, parts_comptables, biens_comptables = [], [], {}, {}
+    def quantites():
+        return {id: (o.get('charges'), o.get('portions'), o.get('physique', {}).get('pieces'))
+                for id, o in travail.objets.items()}
     for auditeur in [*dest, *repondent]:
         capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
         transmis = [x for x in (_typer(travail, c, auditeur) for c in contenu) if x]
         for c in transmis[:capacite]:
+            debut_faits, debut_offres = len(faits), len(offres)
+            avant_comptes = copy.deepcopy((comptes, travail.data["_comptes_echange"], livraisons_dues(travail)))
+            avant_quantites = quantites()
+            noms_avant = {id: {k: copy.deepcopy(o[k]) for k in
+                ('nom', 'type', 'genre', 'pluriel', 'nom_propre', 'elision', 'aliases') if k in o}
+                for id, o in travail.objets.items()}
             if c["type"] == "rumeur":
                 evenement = c["evenement"]
                 debat = next(d for d in debats if d[0]["evenement"] == evenement)
@@ -1743,6 +1753,31 @@ def preparer_parole(monde, p, revision=None):
                 _enqueter(travail, auditeur, c["besoin"], faits)
             else:
                 _demander(travail, auditeur, c["sujet"], faits, c["prix"])
+            apres_comptes = (comptes, travail.data["_comptes_echange"], livraisons_dues(travail))
+            # Provenance des textes, liée aux effets typés, jamais à leurs mots
+            # ni au type d'opération. Les autres contenus de la parole restent.
+            if avant_comptes != apres_comptes or len(offres) != debut_offres:
+                faits_comptables.extend(faits[debut_faits:])
+            if avant_comptes != apres_comptes:
+                offres_conclues.extend(offres[debut_offres:])
+            anciens = sum((list(x) for x in avant_comptes), [])
+            nouveaux = [x for canal in apres_comptes for x in canal if x not in anciens and x.get('objet')]
+            apres_quantites = quantites()
+            reduits = [id for id, q in avant_quantites.items() if id in apres_quantites
+                       and any(a is not None and b is not None and b < a for a, b in zip(q, apres_quantites[id]))]
+            for x in nouveaux:
+                if x['objet'] not in avant_quantites and len(reduits) == 1:
+                    parts_comptables[x['objet']] = reduits[0]
+                    biens_comptables[reduits[0]] = noms_avant[reduits[0]]
+            for offre in offres[debut_offres:]:
+                for terme, de, a in ((offre['condition'], offre['creancier'], offre['debiteur']),
+                                     (offre['contrepartie'], offre['debiteur'], offre['creancier'])):
+                    if terme['type'] == 'part':
+                        for x in nouveaux:
+                            if x['debiteur'] == de and x['creancier'] == a:
+                                parts_comptables[x['objet']] = terme['objet']
+                                if terme['objet'] in noms_avant:
+                                    biens_comptables[terme['objet']] = noms_avant[terme['objet']]
         if transmis[capacite:]:
             faits.append(f"{_personne(travail, auditeur)[0]} ne retient pas tout : une partie de ce que tu as dit se perd.")
         rejoint(travail, auditeur, "joueur")  # Il attendait que Corvus le rejoigne : ils se parlent.
@@ -1782,6 +1817,10 @@ def preparer_parole(monde, p, revision=None):
                "issue": issue(travail, forme, dest, [*dest, *repondent], temoins_vus, replique), "faits": faits,
                **({"comptes": comptes} if comptes else {}),
                **({"offres": offres} if offres else {}),
+               **({"faits_comptables": faits_comptables} if faits_comptables else {}),
+               **({"offres_conclues": offres_conclues} if offres_conclues else {}),
+               **({"parts_comptables": parts_comptables} if parts_comptables else {}),
+               **({"biens_comptables": biens_comptables} if biens_comptables else {}),
                **({"regard": vers} if vers else {})}
     return travail, rapport
 

@@ -135,25 +135,78 @@ def permis(monde, id, objet, operation=None, confies=None):
     return objet in confies[de]
 
 
-def a_autrui(monde, objet, id="joueur", operation=None, confies=None):
-    """Le propriétaire dont ``id`` lèse le bien par ce geste, ou None : sans propriétaire, le sien,
-    ce que le joueur a déjà dérobé, ou ce qu'une permission couvre (``confies`` : ``permis``)."""
+def responsable_cru(monde, objet, id):
+    """Responsable connu d'une installation, sans lire les projets privés d'autrui.
+
+    La propriété conserve sa priorité. À défaut : porteur cru d'une clé,
+    garde lue, ou charge propre (pulsion/agendas, par leur lecture commune).
+    Une garde supposée peut être fausse ; sa vérité n'est pas consultée.
+    """
     o = monde.objets[objet]
     de = proprietaire(monde, objet)
+    if de or o['type'] not in ('porte', 'contenant') or o.get('mobile'):
+        return de
+    from .deliberation import _lieu_cru, charges_gardees, salle_crue
+    from .signes import actives
+    lieux = set(o.get('relie', ())) | {salle_crue(monde, id, objet)}
+    lieux.discard(None)
+    # Les attaches des clés sont des propriétés structurelles ; leur porteur
+    # est exclusivement celui enregistré dans les croyances de l'observateur.
+    candidats = set()
+    for k, cle in monde.objets.items():
+        if objet not in cle.get('ouvre', ()):
+            continue
+        porteur, vus = _lieu_cru(monde, id, k), set()
+        while porteur in monde.objets and porteur not in vus:
+            vus.add(porteur)
+            if monde.objets[porteur]['type'] == 'personnage':
+                candidats.add(porteur)
+                break
+            porteur = _lieu_cru(monde, id, porteur)
+        if porteur == 'joueur':
+            candidats.add(porteur)
+    if candidats:
+        return sorted(candidats)[0]
+    gardiens = {x for x, a, c in actives(monde, id)
+                if a == 'intention' and c['valeur'] == 'garde'
+                and (c.get('envers') == objet or c.get('envers') in lieux
+                     or salle_crue(monde, id, c.get('envers')) in lieux)}
+    charges = charges_gardees(monde, id) if monde.objets.get(id, {}).get('profil') else ()
+    for c in charges:
+        if c.get('objet') == objet or c.get('lieu') in lieux or (
+                'objet' in c and salle_crue(monde, id, c['objet']) in lieux):
+            gardiens.add(id)
+    return sorted(gardiens)[0] if gardiens else None
+
+
+def lese_par(monde, objet, id, operation):
+    """Victime crue du geste : propriété habituelle, responsabilité pour le bris."""
+    return responsable_cru(monde, objet, id) if operation in (*BRISER, 'briser') else proprietaire(monde, objet)
+
+
+def a_autrui(monde, objet, id="joueur", operation=None, confies=None):
+    """La personne lésée : propriétaire, ou responsable cru pour le bris d'une installation.
+
+    None pour son propre bien, un bien sans responsable connu, ce que le joueur
+    a déjà dérobé ou ce qu'une permission couvre (``confies`` : ``permis``).
+    """
+    o = monde.objets[objet]
+    de = lese_par(monde, objet, id, operation)
     if de in (None, id) or id == "joueur" and o.get("vole_par") == "joueur":
         return None
     return None if permis(monde, id, objet, operation, confies) else de
 
 
 def leses(monde, objet, id, confies=None):
-    """(prendre, consommer, abîmer) : le propriétaire que lèse chacun de ces gestes d'``id`` sur
+    """(prendre, consommer, abîmer) : la personne que lèse chacun de ces gestes d'``id`` sur
     ``objet``, ou None — ``a_autrui`` sans opération, avec « manger », avec « frapper », jugés en
     une fois : rien ne permet de consommer ni d'abîmer le bien d'autrui (``permis``)."""
+    brise = a_autrui(monde, objet, id, 'frapper', confies)
     o = monde.objets[objet]
     de = proprietaire(monde, objet)
     if de in (None, id) or id == "joueur" and o.get("vole_par") == "joueur":
-        return None, None, None
-    return (None if permis(monde, id, objet, None, confies) else de), de, de
+        return None, None, brise
+    return (None if permis(monde, id, objet, None, confies) else de), de, brise
 
 
 def disponible_en_main(monde, objet, acteur):

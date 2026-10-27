@@ -88,7 +88,7 @@ joueur peut y faire. Ces cas sont des épreuves du vocabulaire, pas des règles.
 
 ## 4. Vocabulaire
 
-Sept sortes d'agenda, déclarées une fois par le moteur, paramétrées par le scénario ou par la
+Les sortes d'agenda, déclarées une fois par le moteur, paramétrées par le scénario ou par la
 naissance de l'agenda. Chaque sorte se décompose en **sous-buts**, des conditions que le
 planificateur sait viser ; jamais en gestes.
 
@@ -99,6 +99,7 @@ planificateur sait viser ; jamais en gestes.
 | **amener** | à atteindre | qui (un ou plusieurs), lieu | qu'il croie le lieu préférable (avis, 3f) ; qu'il accepte (proposition, 3e) ; l'accompagner ; le contraindre si la manière le permet (4d) |
 | **informer** | à atteindre | qui, fait ou avis | être à portée de voix ; le dire (`dire`, `prevenir`) ; le faire dire par un autre (mandat) |
 | **obtenir** | à atteindre | bien, pièces | le planificateur actuel (demander, acheter, travailler, prendre), étendu à ce qui n'est pas un besoin |
+| **récupérer** | à atteindre | objet, qui (auteur du tort) | porter à nouveau son bien ; moyens d'acquisition du graphe commun (lot 192 partiel) |
 | **écarter** | à atteindre | qui | qu'il parte (proposition, menace) ; l'enfermer (4d) ; l'assommer (4b) ; le tuer (4e) ; selon la manière et la douceur |
 | **rallier** | à atteindre | qui | lui rendre service (3e) ; partager un avis contre un tiers (3f) ; lui proposer |
 | **dissimuler** | à tenir | fait, objet, rôle | qu'aucun témoin ne le voie ; ne pas être vu près de ; taire ou mentir quand on l'interroge (3c) ; cacher l'objet |
@@ -258,8 +259,25 @@ déjà trouvé, sur le tarif commun du travail. Vérifications dans le rapport 1
 **Reste A6** : preuve
 subjective des créances locales et de leur règlement ; identité d'une nouvelle
 dette après la fin du premier projet (la cause personnelle unique ne renaît pas).
-Occasions, événements et soupçon déduit ne sont pas livrés. Aucun règlement
+À l'issue de 184 b, occasions, événements et soupçon déduit ne sont pas livrés. Aucun règlement
 effectif d'une dette extérieure n'est simulé par l'acquisition des pièces.
+
+**Lot 192, deuxième volet partiel**, branche `codex-naissance-evenement`,
+non fusionnée : la table commune fait naître `récupérer {objet, qui}` sur
+possession propre constatée sans permission et épreuve persistante de portage
+identifié. La preuve, plutôt que la mémoire courte ou la date du dernier regard,
+identifie la cause ; un même tort ne ressuscite pas le projet terminal.
+Son poids combine valeur du bien, ambition, honnêteté, douceur, fierté et rancune.
+Le terminal `objet porté` du graphe commun compare ses moyens existants,
+avec leurs coûts, refus et prix de violence. Publication différée, plafond de
+trois actifs et sommeil/réveil sont ceux des autres agendas. Restitution crue
+termine le projet ; destruction ou consommation crue l'abandonnent.
+**Restent dans ce volet** : disparition attribuée sans portage constaté,
+réclamation spécifique du vol, dénonciation autonome à un tiers/protecteur,
+et abandon par ténacité (VOL). Le graphe ne propose l'achat qu'au propriétaire :
+aucun achat de son propre bien au voleur n'est ajouté. Les occasions, le soupçon
+déduit, nuire sans bien, punir et rallier restent hors livraison. Voir le
+[rapport 192](taches/rapport-codex-192-naissance-evenement.md).
 
 Un agenda naît de quatre façons, toutes par des règles communes :
 - **le scénario** (données de départ) ;
@@ -656,8 +674,12 @@ d'Odon), événement (la vengeance), rallier. Épreuve : l'auberge (Anselme, Luc
 Table et naissance par dette personnelle, sorte `obtenir` et cycle commun livrés
 (§ 6.5). **184 b** compare aussi les marchés de travail payé et de vente aux
 bourses connues (prêt, prise permise, vol), avec coûts et refus communs.
-Restent les créances locales subjectives et une nouvelle identité de dette après une fin, puis occasion,
-événement et soupçon déduit. Voir le
+Restent les créances locales subjectives et une nouvelle identité de dette après une fin, puis occasion
+et soupçon déduit. Le lot 192 livre une naissance événementielle partielle sur portage illégitime
+constaté (§ 6.5), avec récupération par le graphe commun ; dénonciation autonome, réclamation du vol,
+disparition attribuée et abandon selon la VOL restent ouverts. Aucun projet naturel nouveau sur
+les seize nuits de 4 h ; les prises autonomes sont vérifiées en scènes ciblées rechargeables.
+Voir le
 [rapport 184](taches/rapport-codex-184-naissance-agendas.md).
 
 **Soupçon déduit** (revue externe du 2026-10-24, retenue ; brique des cas 5 et 10, avec A6 et A7) : quand un

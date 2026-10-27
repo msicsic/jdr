@@ -173,6 +173,9 @@ class PartPayeeTests(unittest.TestCase):
         # Autre cas de même nature : la promesse échoit, Gorm est aux vannes. La dette est connue ;
         # Ilse va la réclamer, et Gorm la lui rend quand ils se retrouvent.
         m = self.ilse_achete()
+        # Aubin ne fait pas inspecter les vivres pour Ilse avant l'expiration.
+        from tests.support import sans_souci
+        sans_souci(m, "aubin")
         placer(m, "marchand", "crypte", (2, 2))
         percevoir_tous(m)
         croire(m, "ilse", "marchand", "lieu", "crypte", "savoir", salle="crypte", case=[2, 2])

@@ -33,7 +33,7 @@ class PrimeOffreTests(unittest.TestCase):
         for typed in (False, True):
             m = scene()
             mots = "Gorm, combien me donnes-tu pour l'anneau ?"
-            citation = "Je te donnerai 20 pièces si tu me rapportes l'anneau."
+            citation = "Entendu."
             o = offre("marchand", "joueur", {"type": "objet", "objet": "anneau"},
                       {"type": "pieces", "montant": 20})
             avant = m.joueur["or"]
@@ -93,11 +93,13 @@ class PrimeOffreTests(unittest.TestCase):
             recit = MJOpenAI().raconter_resultat(r, {
                 "intention": "remettre l'anneau", "gestes": [], "faits": [texte]})
         self.assertEqual(appel.call_count, 1)
-        self.assertEqual(recit["texte"], texte)
+        from donjon.comptes_narratifs import completer
+        attendu = completer(texte, recit["_audit"]["faits"])
+        self.assertEqual(recit["texte"], attendu)
         self.assertEqual(recit["_audit"]["faits"]["comptes"]["issue"], [c])
         consigner(r, recit)
         r = recharger(r)
-        self.assertEqual(r.data["narrations_mj"][-1]["texte"], texte)
+        self.assertEqual(r.data["narrations_mj"][-1]["texte"], attendu)
         self.assertEqual(r.joueur["or"], or_avant + 20)
 
     def test_autre_offre_du_joueur_contre_promesse_differee(self):
@@ -108,7 +110,7 @@ class PrimeOffreTests(unittest.TestCase):
         mots = "Gorm, une part de vivres contre ma promesse d'allumer le brasero."
         premier = parole(mots, personnage="marchand")
         premier["proposition"]["contenu"] = [{"type": "proposition", "demande": PART, "contrepartie": TACHE}]
-        citation = "Je te remets une part de vivres contre ta promesse d'allumer le brasero."
+        citation = "Entendu."
         o = offre("joueur", "marchand", PART, TACHE)
         avant = m.objets["vivres"]["portions"]
         r, sortie, appels = jouer(m, mots, [premier, dialogue(f'Gorm : « {citation} »')],
@@ -129,7 +131,7 @@ class PrimeOffreTests(unittest.TestCase):
         faits = {"comptes": {"etat": [], "offres": [o]}, "interlocuteurs": {"marchand": {}}}
         a = controler(texte, audit(citation, [o]), faits)
         a.update(faits=faits, texte_initial=texte, fondement=texte, fondement_paroles="")
-        a["segments"][0]["comptes"][0] = {**o, "condition": {"type": "objet", "objet": "couteau"}}
+        a["segments"][0]["comptes"] = [{**o, "condition": {"type": "objet", "objet": "couteau"}}]
         avant = copy.deepcopy(m.data)
         from donjon.monde import ErreurMonde
         with self.assertRaises(ErreurMonde):

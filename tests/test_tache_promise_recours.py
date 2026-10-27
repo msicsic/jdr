@@ -41,7 +41,7 @@ def feu():
 
 
 def reserve():
-    from donjon.auberge import nouveau_auberge
+    from tests.scenarios_contractuels import nouveau_auberge
     m = presentes(nouveau_auberge(depart='fixe'))
     installer(m)
     calme(m, *[i for i, o in m.objets.items() if o.get('profil')])

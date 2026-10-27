@@ -68,7 +68,7 @@ class ContratsInternesTests(unittest.TestCase):
             dialogue(RELAIS), dialogue('Tu ne vois rien de tel ici.')],
             [rapport(ligne('neutre'), ligne('neutre'))])
         self.assertNotIn(RELAIS, sortie)
-        self.assertNotIn('moteur', sortie.lower())
+        self.assertNotIn('moteur', sortie.split('Le MJ réfléchit')[-1].lower())
         self.assertNotIn('identifiant', sortie.lower())
         self.assertIn('Tu ne vois rien de tel ici.', sortie)
         self.assertEqual(sum(f == 'repondre_au_joueur' for f, _ in appels), 3)

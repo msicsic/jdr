@@ -831,6 +831,17 @@ class Moteur:
         # Une bousculade n'a rien de discret : quiconque voit Corvus pendant le geste en est témoin.
         gestes += [commencer_geste(travail, "joueur", "pousser", cible, debut + duree(plan))
                    for op, cible, _ in effets if op == "pousser"]
+        # Le bris d'une installation suit le même registre que le geste PNJ,
+        # y compris un coup manqué ; le bruit seul n'attribue pas le tort.
+        if geste == "frapper":
+            from .biens import a_autrui
+            from .pnj import est_contrainte
+            cible = plan.proposition['cible']
+            if (cible in travail.objets and not est_contrainte(travail, geste, cible)
+                    and a_autrui(travail, cible, 'joueur', geste) is not None):
+                operation = 'briser' if travail.objets[cible]['integrite'] == 0 else geste
+                gestes.append(commencer_geste(travail, 'joueur', operation, cible,
+                                              debut + duree(plan), nature=bruit))
         # Son geste retentit (``ouie``) : qui l'entend sans le voir l'interprète, se retourne de près.
         # Un appel, un cri, un sifflement, le son d'un objet ont leur nature déclarée (``sons``).
         from .ouie import retentir

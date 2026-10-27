@@ -42,6 +42,346 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Bruts exclusivement `C:/Users/msics/donjon/artifacts/pas-195/` ;
   [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
 
+- **Branche `codex-portee-sans-salle`, fusionnée**, lot **204**, base
+  `51c1e0b` : P1 implémenté en mode cases ; contact par pas commun au joueur,
+  aux accès PNJ et à leur approche, indépendamment du secteur de la cible ;
+  contenants/portes fermés et coins bloqués préservés, positions crues conservées.
+  Les deux côtés d'une diagonale doivent être libres, comme pour la marche ;
+  le volume de la cible ou de son support ne bloque pas son propre contact.
+  État et rendu rechargés, saisie réelle torche/crochets, autre seuil/verbe,
+  PNJ et temps découpé vérifiés. **88 ciblés puis 18 finaux verts** ; suite unique
+  **2 385 tests / 276 fichiers, 29 échecs et six erreurs**, ramenés après
+  corrections et adaptations vérifiées à **trois échecs préexistants reproduits
+  sur la base** (deux MiMo, AST du compteur 199), zéro erreur ; pas de seconde
+  suite complète. Empreintes 2 h : **6/16 identiques**, dix écarts de comportement,
+  zéro plantage ; références exactes en cache, ancien `main` incompatible avec
+  la sonde actuelle. **VERIFIER + spatial.VERIFICATION 0,2**, Relais 1985 2 h : vert.
+  Banc final 4 h, 16 paires : zéro plantage/constat d'usurpation, pics de passages/h
+  inchangés **10/9/18/38** ; retours suspects **275 → 380** (Relais 1→1, mine 1→2,
+  auberge 2→5, crue 271→372), à expliquer **313 → 292**, cycles **469 → 463**.
+  **Critère « aucune boucle nouvelle » non validé** : nouvelle alerte d'alternance
+  entretien du brasero/garde de Gorm, Relais 1985 min 5 ; réserve avant intégration
+  avec 201. Aucune alerte masquée ni correctif dans les fichiers de cet autre lot.
+  P2/P3 et M1–M3 restent ouverts ; aucun code de 201/202 ni du MJ modifié,
+  aucun Luna, deux travailleurs réduits au plus. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/portee-204/` ;
+  [rapport 204](taches/rapport-codex-204-portee-sans-salle.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Banc 4 h cinq scénarios × quatre graines sur la fusion contre f746c30 : retours non justifiés 82 → 57 (hameau 48 → 24, crue 28 → 27, auberge 2 → 5, mine 3 → 1, Relais 1 → 0), aucune alternance nouvelle de Gorm ni usurpation ; la hausse du rapport venait de sa base antérieure au lot 201.
+
+- Branche `codex-ceder-outil`, **non fusionnée**, lot **202** (`74a4bc4`) : céder un bien compte la capacité perdue (`biens.capacites_crues`, `valeur_bien`, ventes, marchés, contreparties ; prêt distinct). Lucien garde ses crochets (auberge 1, 239) ; Gaspard offre encore son briquet (sa lampe allumée compte comme autre flamme). Offres d'outils 36 → 19, acceptées 3 → 0, mais S/F/D en légère baisse (Relais, mine), crue sans recours 15 → 30, trois retours brefs nouveaux en crue 2024 ; **coût mine 4 h : nœuds +58 %, recherches +41 %** ; deux écarts de parcours propres à la branche dans la suite. **Mis en attente**, décision à l'utilisateur. [Rapport 202](taches/rapport-codex-202-ceder-outil.md) sur la branche ; bruts `artifacts/outil-202/`.
+
+- **Branche `codex-occasions-sur-base`, fusionnée**, lot **200**, base
+  `23aba63` : reprise du lot 186 sans galettes sur les projets 184/192 actuels.
+  Sept scénarios, données et tests seulement, aucun moteur/Luna. Les 30 échecs
+  et quatre erreurs historiques sont retrouvés ; 32 méthodes classées comme
+  changements légitimes, leurs ressources/rencontres d'auteur explicitées sans
+  relâcher les assertions. Les 54 inverses conservent exactement les données
+  de la base actuelle, projets compris (sept empreintes indépendantes).
+  **16 paires de 4 h**, référence exacte calculée une fois en cache commun :
+  S/F/D Relais **6,75/4,25/1,188 → 7,75/4/1,188**, mine
+  **13,25/4,75/1,214 → 15/5,25/1,321**, auberge inchangée
+  **6,5/2,75/0,625**, crue **17,25/6,25/1,938 → 16,75/5/1,563**.
+  Propositions/acceptées **58/15 → 71/18**, ventes **25/8 → 50/13**,
+  commissions **0/0/0 → 4/0/0**, avis/adoptions **0/0 → 4/1**, services
+  **3 → 3** ; projets de dette **12 → 12**, récupération naturelle **0 → 1**
+  (Gorm, bois du guet pris par Brune en crue 7, projet né à 152 min et atteint
+  à 228). Zéro plantage/usurpation, **24 recharges monde/rendu identiques**
+  sur la branche. Alertes : `fige_presse` **4 → 3**, répétitions **2 → 0**,
+  alternances **3 → 0**, appels nombreux **1 → 0**, noir long **1 → 1** ;
+  bascules **3 → 1**, pire passage **46 → 50/h**. Gain non uniforme, aucune
+  garantie générale contre les boucles ; compteur d'audit 199 non fusionné.
+  Suite complète unique : 2 360 tests, un seul échec (contrôle AST des agendas par le détecteur 199, corrigé sur l'intégration). Bruts
+  exclusivement `C:/Users/msics/donjon/artifacts/occasions-200/` ;
+  [rapport 200](taches/rapport-codex-200-occasions-sur-base.md).
+  Fusionné sur l'intégration : conflits de documentation et de `tests/test_ressources.py` (scène sans souci du lot 197 et stock contractuel du lot 200, réunis) ; base antérieure aux lots 197, 199 et 201 : suite complète relancée sur la fusion (`tools/tests.py --processus 2`) : **2 389 tests, 16 ignorés, deux échecs**, deux nuits réelles changées par les nouvelles données : `test_battants_brises` (crue 2024, Brune vend son bois au lieu de briser la réserve ; reprend le stock contractuel d'avant 186) et `test_banc_sans_joueur` (Gorm sert Brune par empathie avant sa demande) ; adaptés, 9 tests repris verts. Remplace le lot 186 annulé.
+
+- **Branche `codex-reserve-brisee`, fusionnée**, lot **201 / 196 a**,
+  base exacte `fffa3a2` : capacité commune de fermeture sur fin crue/constatée/
+  simulée, constats vue/essai cohérents, verrou démenti aussi pour le joueur
+  (schéma sauvegardé inclus), garde du plan sans auto-exclusion de sa pulsion.
+  **22 ciblés verts**, cas réel crue 2024 et contenant de la mine, monde/rendu
+  rechargés, laps entier/découpé. **20 paires de 4 h** : suspects Relais
+  **1 → 1**, mine **1 → 1**, auberge **2 → 2**, crue **271 → 19**, hameau
+  **16 → 17** ; crue 2024 **253 → 1**, boucle réserve/garde supprimée.
+  La base actuelle ne reproduit plus l'effraction des graines 7/42 ; en 2024,
+  elle survient à 45 min. **Critère aucun scénario en hausse non atteint** :
+  hameau 7, retours d'abri **5 → 6** ; attribution unique non établie par trois
+  contre-épreuves. Nouvelle observation `fige_presse` de Gorm sur devoir confié.
+  Aucune garantie générale sur les avis/abris. Crue 7, 2 h, `VERIFIER` et
+  `spatial.VERIFICATION=0,2` : zéro écart, borne, plantage. Suite unique :
+  **2 385 tests / 276 fichiers, 1 803,701 s, trois échecs, zéro erreur** ; les
+  deux MiMo `6 != 5` et le contrôle AST des accès aux agendas du détecteur 199
+  sont reproduits sur la base exacte. Huit nouveaux tests repris verts avec
+  le texte public ; reprise de la capture de base à 45 min et six recharges
+  identiques (monde/rendu), sans retour à la fermeture. Aucune clé de signature
+  configurée, commit non signé.
+  Aucun Luna, deux travailleurs réduits au plus ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/reserve-201/` ;
+  [rapport 201](taches/rapport-codex-201-reserve-brisee.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Compteur 199, 20 paires 4 h contre la base exacte : crue 271 → 19 retours non justifiés (crue 2024 253 → 1, boucle réserve/garde de Gorm disparue), total 291 → 40 ; hameau 16 → 17 sans attribution causale établie. VERIFIER + spatial 0,2 crue 7 2 h sans écart. Le troisième échec de sa suite (contrôle AST des agendas par le détecteur 199) est corrigé sur l'intégration.
+
+- **Lot 203, diagnostic seul**, `codex-capacites-salle`, base `2fe05b9` : portée manuelle encore bornée au secteur (deux cas au seuil ouvert, état et rendu rechargés), contexte social PNJ et projections MJ recensés ; lots P1–P3 proposés, MJ gelé séparé, aucune garantie générale ni modification du jeu, aucun Luna ; un processus réduit, bruts `C:/Users/msics/donjon/artifacts/capacites-203/`, [rapport 203](taches/rapport-codex-203-capacites-salle.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. P1 : la portée manuelle (spatial.proche, monde.present_physique/accessible, pnj._accessible) reste bornée à la salle de l'acteur, contrairement au contact entre personnages (refus « Approche-toi » au seuil ouvert, reproduit). P2 : contexte social des PNJ (de_pres, autour) borné à la salle. P3 : zone de calme de l'atelier. M1 à M3 côté MJ, en veille.
+
+- **Branche `codex-garantie-avis`, fusionnée**, lot **199 / 196d**,
+  base `0fb5a07` : mesure déterministe des retours de décision dans l'audit
+  des nuits et le comparateur, mode empreintes compris ; comptes par PNJ,
+  décisions/minutes/classes et alertes dès un retour suspect. Les entrées
+  changées restent **à expliquer**, les archives sans sonde **non mesurées**.
+  **Garantie générale non établie** (`certification_complete=False`) : aucun
+  certificat moteur de démenti/palier/marge, moyens sous un même but et retours
+  > 60 min hors observation. **20 nuits de 4 h**, cinq scénarios × quatre
+  graines : **385 suspects, 315 à expliquer, 530 accomplis** ; Relais/mine/
+  auberge zéro suspect, crue **367**, hameau **18**. **20/20 identités** avec/
+  sans sonde (état complet, chronique, mesures, empreintes, récit, souvenirs),
+  vingt états/empreintes identiques aux bruts 196 malgré ses classes différentes.
+  Temps appariés **590,37 / 590,15 s** : surcoût non distinguable du bruit.
+  Trois cas 196 relus et six captures en fixtures ; aucun fichier de `donjon/`,
+  aucun Luna. **33 ciblés finaux verts**, écriture de l'audit, modes du comparateur,
+  sauvegarde/recharge et rendu compris. Suite unique : **2 343 tests, 271 fichiers,
+  31 échecs, quatre erreurs, 16 ignorés** ; deux fragments (41 + 230), sans rejouer
+  les fichiers terminés. Les **35 incidents sont reproduits sur la base exacte**
+  (33 méthodes, 26 fichiers, mêmes identifiants et catégories) ; suite générale
+  non verte, outils modifiés verts. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/garantie-199/` ;
+  [rapport 199](taches/rapport-codex-199-garantie-avis.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Outils seulement. Départ, cinq scénarios × quatre graines × 4 h : 385 retours non justifiés (crue 367, hameau 18 ; Relais, mine, auberge 0), 315 à expliquer, 530 cycles accomplis ; 20/20 nuits identiques avec et sans sonde. Les 35 échecs de sa suite venaient du lot 186 présent dans sa base (annulé depuis). Garantie générale non établie : lots 196 a à c.
+
+- **Lot 197 b, branche `codex-empathie`, fusionnée**, reprise de `47ac3f1`
+  sur base `116294e` : triage des **34 constats** de 197 a, tableau complet dans
+  le rapport. Scènes historiques précisées unitairement par des données de souci
+  absent, contrats conservés ; le test de repas après appel vérifie désormais
+  une demande, un repas effectivement reçu et la satiété, plutôt qu'une formulation.
+  `services.conditions_manquantes` inclut le froid éprouvé du bénéficiaire dans la
+  salle du foyer, avant geste ; effet réel, perception, preuve unique, charge et
+  prestation convenue passent par les mêmes contrôles. Tests PNJ/joueur, doubles
+  crédits et recharges verts ; peur hors lot.
+  **313 ciblés dans 26 fichiers, 278,440 s : quatre échecs, zéro erreur** :
+  deux MiMo historiques, plus deux régressions de références internes exposées
+  par les portions créées par les secours (`test_avis_redits`, `test_combat`).
+  État mécanique/chronique identiques ; références 67/68 permutées ou référence 48
+  absente avant sauvegarde. **Raccord autorisé de trois lignes appliqué** dans
+  `echanges.detacher_part` : installateur commun des références appelé dès la
+  création, dans les deux chemins physique/compté. **Attention à la fusion avec
+  le lot 198 : même fichier, seuls ces trois ajouts pour 197 b.** Aucun champ
+  exclu ni secours neutralisé dans ces régressions ; comparaisons complètes vertes.
+  Le test des lampes prouve aussi les deux identités/audiences : Rémy peut annoncer
+  une lampe devant Lucien, que Josse n'a alors plus à répéter. **33 ciblés consolidés
+  verts** sur références, combat, portions et crédit. **Suite complète unique :
+  2 364 tests / 274 fichiers, 1 982,678 s : deux MiMo historiques et une erreur
+  de croyance `allume` autonome après allumage utile.** Corrigée dans
+  `services.constater`, qui conserve les états visibles du constat commun ;
+  cas réel inchangé et allumage complémentaire après recharge : **24 ciblés verts
+  / 3 fichiers, 19,304 s**. Bilan consolidé : deux MiMo historiques, zéro erreur ;
+  pas de seconde suite complète ni de nouveau banc.
+  Bruts `C:/Users/msics/donjon/artifacts/empathie-197/b/`, sans Luna, deux
+  travailleurs réduits au plus ; [rapport et tableau](taches/rapport-codex-197-empathie.md).
+
+- **Historique 197 a** (complété par 197 b ci-dessus), **3d partiel** :
+  faim/froid perçus deviennent des conditions communes `servir`/`allume`, après
+  les besoins propres et avant la routine. Seuil du souci du lot 80, rancune
+  exclue ; poids empathie × (affection + 20) / 100. Peur différée, crédit du froid
+  corporel sans charge encore absent du contrat commun de service.
+  **Base reprise : `integration 116294e`**, après annulation des données 186 et
+  fusion des lots 194/180. Le banc initial de 20 paires et la suite interrompue
+  sur `9c1897f` sont obsolètes, archivés sous `empathie-197/avant-integration-9c1897f/`.
+  **26 ciblés consolidés verts** : Mathe/Lucien sans charge, transi PNJ/joueur,
+  exclusions, priorité propre, temps entier/découpé et monde/rendu/journal
+  rechargés. **20 paires finales de 4 h**, cinq scénarios × quatre graines :
+  **21 repas d'empathie dans 13 nuits**, aucun entretien spontané sous ce
+  motif ; froid prouvé seulement en scènes ciblées. Sans recours **635 → 140 min**
+  (auberge 65 → 80, biens de Lucien) ; zéro plantage/usurpation. Vingt
+  sauvegardes/rendus stables après préparation de sauvegarde ; en crue 2024,
+  `sauver` complète seulement la référence interne `planches_1` avant écriture,
+  puis la recharge est identique (rejeu et chronique identiques également).
+  Pics de passages/h : 9/10/15/46/52 → 10/9/18/38/27 ; nouvelles alertes de
+  dette, froid, eau et noir : aucune garantie générale d'absence de boucle.
+  Aucun profil initial ≥ 70 : le seuil commun du souci permet pourtant des
+  secours, donc le critère historique n'est pas satisfait. Restent aussi la
+  mesure causale des minutes apaisées et la validation générale des anciens
+  parcours. **L'invariant complet 3d reste ouvert.** Suite finale unique sur
+  116294e : **2 361 tests, 274 fichiers, 1 887,048 s, 30 échecs et 4 erreurs**
+  dans 24 fichiers, dont les deux MiMo historiques. Épreuves du secours,
+  entretien isolé, échelle et vue pure/mémo vertes. Anciens parcours de demande,
+  appel, vol et déplacements encore en échec, sans attribution exhaustive ni
+  adaptation générale : **ne pas intégrer comme validation générale de 3d**.
+  Sans Luna, deux travailleurs réduits au plus. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/empathie-197/` ;
+  [rapport 197](taches/rapport-codex-197-empathie.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Livraison partielle (3d) : secours sur faim et froid perçus, souci commun du lot 80, crédit service_rendu du froid, ordre déterministe des références des portions. Banc 20 paires 4 h : 21 repas d'empathie dans 13 nuits, sans recours 635 → 140 min, S mine 13 → 23, auberge 6,5 → 11. Peur (rester près) hors lot. Aucun profil d'empathie ≥ 70 dans les scénarios.
+
+- **Diagnostic changements d'avis des PNJ**, lot **196**, branche `codex-changements-avis`, base `56ae922` : diagnostic et conception seuls (aucun fichier de `donjon/`, scénario ou test modifié, aucun Luna), détecteur générique sans effet de bord `tools/detecter_changements_avis.py` joué sur 20 nuits de 4 h (`relais`, `mine`, `auberge`, `crue`, `crue_hameau` × 1985/7/42/2024 ; 594 cycles accomplis, 272 allers-retours justifiés, **364 allers-retours non justifiés** tous prouvés boucles réelles sur `crue` 359 et `crue_hameau` 5 : 358 oscillations de Gorm sur la réserve brisée combinant `fin == "detruit"` ignorée par `gestes`/`satisfaite`, croyance `verrouillee` et bascule `"essai"`/`"vu"` dans `constater`, et auto-annulation par `retabli_par_son_plan` ; évacuations `PERIL_EAU` auto-annulées de Brune en `crue 1985` min 42 et `crue_hameau 1985` min 204 ; changements d'abri d'Ilse en `crue_hameau 2024` min 42–97), contrat d'engagement commun et découpage en lots 196a–196d dans [rapport 196](taches/rapport-codex-196-changements-avis.md), bruts dans `C:/Users/msics/donjon/artifacts/avis-196/detection-4h.json`.
+
+- **Branche `codex-occasions-asymetriques`, fusionnée**, lot **186**,
+  base `integration 12a936d`, **variante finale sans galettes** : les nouveaux
+  lots alimentaires de Gorm/Mathe/Odile et leurs connaissances sont retirés
+  des sept scénarios. Bois propre de Brune/Odon/Joss, triangles d'affection
+  via Aubin/Josse/Mireille et observations inégales de la crue conservés.
+  Aucun `donjon/*.py`, trait, valeur, garde ou stock alimentaire historique modifié.
+  **16 paires de 4 h**, quatre scénarios × 1985/7/42/2024 ; références exactes
+  `12a936d` toutes relues en cache, seule la branche rejouée, moteur/outils
+  identiques. S/F/D moyens : Relais **3/2/0,625 → 3/2/0,625** ; mine
+  **13,5/4,5/1,286 → 13,5/4,5/1,250** ; auberge
+  **6,5/2,75/0,625 → 6,5/2,75/0,625** ; crue **10,75/5,5/1,75 → 11/5,75/2**.
+  Propositions/acceptées **18/2 → 21/2** (avec galettes : 11/0). Marchés retrouvés :
+  Odon/Mathe à 13 min, une part de bois contre le repas, outils conservés ;
+  Lucien/Anselme à 212, crochets contre besace. À 4 h : promesses **1/0 → 0/0**,
+  tâches payées **3/0/0 → 10/0/0**, commissions **0/0/0 → 1/1/1**,
+  avis/adoptions **11/2 → 3/2**, services crédités **3 → 3**, aucune dispute.
+  Zéro plantage/usurpation/violation ; `fige_presse` **5 → 4**, `noir_long`
+  **1 → 1**, deux répétitions de lectures (Josse/Rémy, mine 2024) et une
+  alternance de Gorm (crue 7). Quatre bascules isolées de chaque côté,
+  pire passage **30 → 42/h** ; aucune boucle motrice nouvelle établie.
+  Gain non uniforme : mine 1985 S **17 → 14**, compensé par les autres graines ;
+  crue 7 **13 → 8**, notamment huit avis absents. Les anciennes nuits de 12 h
+  avec galettes restent archivées, sans attribution à la variante finale.
+  **Tests ciblés : 299 dans 25 fichiers**, puis **68** dans cinq fichiers ;
+  dépendances déjà reprises : **25 méthodes**, puis **42 tests** dans quatre
+  fichiers. **Bilan consolidé vert**. Les assertions liées aux galettes sont
+  restaurées ; seules les scènes concernant bois, liens et positions gardent
+  leurs contraintes d'auteur. Sept variantes jouées cinq minutes puis rechargées
+  (état, description, besace, sons), rareté alimentaire vérifiée contre une
+  référence déclarée de 12a936d ; 54 inverses contractuels restituant la base.
+  Pas de nouvelle suite complète : aucun fichier modifié hors de ceux déjà
+  repris, conformément à la consigne. Aucun Luna ni nouveau banc de 12 h ;
+  deux travailleurs réduits au plus, `main` intacte, aucun temps comparé.
+  Complément commité localement pour la poussée du superviseur ; pas de clé
+  de signature configurée. Bruts finaux exclusivement
+  `C:/Users/msics/donjon/artifacts/occasions-186/sans-galettes/` ;
+  [rapport 186](taches/rapport-codex-186-occasions-asymetriques.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Données seulement : bois cessible, liens d'affection en triangle, observations inégales ; galettes retirées après comparaison à base identique (elles supprimaient la rareté). Base 12a936d, 16 nuits 4 h : propositions 18/2 → 21/2, une commission aboutie, avis 11/2 → 3/2 (crue 7 divergente), pire passage 30 → 42/h. Empreintes de référence modifiées.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Neuf familles de parades locales inventoriées ; 364 allers-retours sans entrée nouvelle sur 20 nuits de 4 h, dont 358 boucles de Gorm en crue après le bris de la réserve, invisibles à l'audit échantillonné. Contrat d'engagement proposé et lots 196 a à d. Suite complète sur 116294e (194 et 180 fusionnés) : 2 356 tests, 16 ignorés, verte.
+
+- Branche `codex-comptes-ecrits-moteur`, fusionnée, lots **180 / b / c**,
+  base initiale `integration e61cf08`, correction c sur `a0fcdb5`.
+  Le narrateur raconte le geste et le ton sans affirmer de compte : garde
+  stricte, seules les répliques citées des PNJ sont comparées aux comptes
+  issue/état/offres typés. Quantités présentées sans transfert inventé,
+  compléments de lieu « pièce » exclus du domaine monétaire.
+  Le moteur écrit une phrase naturelle par compte, à la deuxième personne,
+  avec accords communs et désignations publiques sans apposition ; paiement
+  et livraison réciproque réunis, solde nul et offre conclue non répétés.
+  Provenance typée des textes d'opérations dans `paroles` : les anciens textes
+  comptables sont remplacés sans retirer les autres faits de la même parole.
+  Parts/services et offres préparées utilisent les mêmes noms grammaticaux
+  publics. Preuve exacte, sauvegarde avant affichage, repli et montants conservés.
+  **Grammaire bornée : invariant exhaustif en français libre non garanti.**
+  Aucune exception de scénario ; essais 117/117 b/117 c et 168 abandonnés.
+  Suite c unique : **2 289 tests, 264 fichiers, 1 382,257 s**, uniquement
+  les deux échecs MiMo historiques `6 != 5`, zéro erreur/ignoré. Tests du lot
+  verts, dont six nouveaux tests de rendu naturel ; aucune reprise nécessaire.
+  Console/MJ simulé et recharge : Gorm, Brune, Aubin, achats de deux biens,
+  prime vingt et montant inventé, pied-de-biche « dans cette pièce »,
+  réplique présentative, phrases moteur contrôlées mot pour mot.
+  Validation externe de b (`a0fcdb5` contre `cdaf371`) : comptes deux passes,
+  5,08 → 4,58 appels/tour, 19,5 → 17,6 s/tour, comptes justes mais replis
+  1 → 2 ; références une passe, relances 3 → 6 et refus 8 → 13.
+  Ces mesures motivent c et ne le valident pas. Aucun Luna joué par cet agent ;
+  commandes exactes pour c, mêmes groupes et référence, dans
+  `C:/Users/msics/donjon/artifacts/comptes-180/luna-a-jouer.txt`.
+  Bruts exclusivement dans ce dossier ; au plus deux travailleurs réduits.
+  Aucun fichier réservé au lot 179 ni `main` modifié. Pas de clé de signature
+  configurée : commit non signé sur cette branche.
+  [Rapport 180](taches/rapport-codex-180-comptes-ecrits-moteur.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Décision du 2026-10-27. La prose du narrateur ne dit plus aucun compte (garde stricte) ; seules les répliques des PNJ sont comparées aux comptes (issue et offre) ; une phrase naturelle du moteur par compte. Validation Luna de l'orchestrateur contre cdaf371, comptes deux passes : appels/tour 5,08 → 4,42, obstacles narratifs 11 → 5,5, replis 1 → 0,5, refus 1 → 0, prime de Gorm à 20 ; références une passe : relances 3 → 7 (familles connues de l'audit, pas les comptes). Remplace les lots 117 c et 168, abandonnés.
+
+- **Branche `codex-porte-lieu-garde`, fusionnée**, lot **194**, base
+  `integration de18162` : responsabilité crue des installations sans
+  propriétaire déclaré dans `biens`, coût commun du bris (honnêteté/douceur),
+  identité de la personne lésée dans la clé du plan. Porteur cru de clé,
+  garde lue et charge propre ; aucun agenda privé d'autrui consulté.
+  Témoins par leurs propres croyances ; raccords `pnj.py` et `moteur.py`
+  autorisés, coups du joueur désormais au registre commun. Aubin ayant froid
+  devant la porte du beffroi demande la clé ; autre contenant, témoin du
+  joueur et d'un PNJ, détresse, ignorance, expiration, recharges et laps
+  découpé : **105 ciblés finaux verts**. La nuit hameau 1 de la base actuelle
+  ne reproduit plus le bris historique ; scène équivalente autorisée, avec
+  bris retrouvé en neutralisant seulement la nouvelle lecture.
+  Suite unique **2 323 tests, 268 fichiers, 1 868,206 s**, quatre échecs et
+  quatre erreurs bruts ; défauts du raccord et des nouvelles épreuves repris
+  verts, restent les deux MiMo historiques `6 != 5`, sans seconde suite.
+  **21 nuits 4 h**, zéro plantage/usurpation, 21 mondes/rendus rechargés
+  identiques ; deux bris au hameau, cinq crochetages, aucune demande de clé
+  dans ces nuits. Quatre répétitions : trois contrôles neutralisant la seule
+  nouvelle lecture ont états complets/chroniques/alertes identiques ; aucune
+  nouvelle boucle attribuée au lot. **VERIFIER + spatial 0,2**, hameau 1985,
+  2 h, vert et recharge identique. Seize références anciennes relues, aucun
+  cache hameau disponible ; aucune référence existante rejouée, aucun temps
+  de cache comparé. Pas de nouveau moyen social ; une victime par bien,
+  priorité propriété, clés puis gardes ; garde d'autrui connue par lecture.
+  Aucun Luna ni scénario modifié, deux travailleurs réduits au plus. Bruts
+  exclusivement `C:/Users/msics/donjon/artifacts/porte-194/` ;
+  [rapport 194](taches/rapport-codex-194-porte-lieu-garde.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Briser l'installation d'un lieu dont quelqu'un a la responsabilité crue (clé, garde, charge) est une faute envers lui ; témoins et joueur par la même règle (raccords minimaux pnj.py, moteur.py autorisés). Aucune demande de clé dans les nuits libres : choix prouvé par scènes ciblées.
+
+- **Lot 186 (occasions asymétriques, `codex-occasions-asymetriques`), fusion annulée le 2026-10-27** (`057d151`) : ses données
+  (bois cessible de Brune/Odon/Joss, liens d'affection en triangle, observations inégales), validées sur la base `12a936d`,
+  rencontrent le projet de pièces du lot 184 fusionné entre-temps (Brune endettée vend désormais son bois) : 30 échecs et
+  4 erreurs dans 25 fichiers de tests sur `c12acd1`, alors que ces fichiers passent sur `7f4445f` (261 tests). Gain du lot
+  modeste à base identique (propositions 18/2 → 21/2, une commission aboutie, avis 11/2 → 3/2). À refaire sur la base actuelle
+  (branche conservée sur `origin` jusqu'à décision, bruts `artifacts/occasions-186/`).
+
+- **Branche `codex-deja-entendu`, fusionnée**, lot **191**, base
+  `integration 8a10a16` : livraison **partielle, à ne pas intégrer comme garantie
+  de l'invariant subjectif complet**. Le registre commun suit les paroles
+  entendues par les témoins connus, y compris les avis refusés ; plusieurs
+  positions entendues coexistent sans devenir des croyances. Les nouvelles,
+  `_a_dire` et les preuves de transmission consultent ce registre sauvegardé.
+  Un changement appris rouvre les anciennes valeurs ; une première conclusion
+  personnelle ne se confond plus avec le contenu d'une parole entendue.
+  **Limite ouverte** : le contrôle historique `_sait` de `bavarder` lit encore
+  l'esprit de l'auditeur pour les connaissances antérieures. Sa suppression et
+  un essai de vue commune ont révélé des régressions de défense et de trajets ;
+  cet essai est retiré. Il faut étendre le contrat des observations communes,
+  au-delà des seules fonctions de registre autorisées dans `esprits.py`.
+  Suite unique intermédiaire : **2 299 tests, 265 fichiers, 1 572,001 s,
+  15 échecs et une erreur**, dont les deux MiMo historiques ; elle ne valide
+  pas à elle seule la version réduite finale. **135 ciblés finaux verts,
+  17 fichiers** ; les échecs intermédiaires hors les deux MiMo historiques
+  sont repris verts, deux empreintes réancrées (plans et vues inchangés).
+  **16 nuits retenues 4 h** : zéro plantage/usurpation, aucune nouvelle alerte
+  de boucle. Confidences totales Relais/mine/auberge/crue :
+  **9/127/37/48 → 9/81/30/37** ; avis crue **15 → 5**, deux adoptions,
+  aucune dispute naturelle. Seize références `4c57020` relues, antérieures
+  à la base : écarts non attribuables au seul lot. Mine 1 rejouée dès le début :
+  guet **15 → 3** ; ancienne capture avant 40 garde encore les annonces 40/41,
+  sans reconstitution rétroactive des audiences. Reprises 10 min / 5 + 5,
+  mondes et rendus rechargés identiques. Aucun Luna,
+  deux calculs réduits au plus ; tous les bruts conservés dans
+  `C:/Users/msics/donjon/artifacts/deja-entendu-191/`.
+  [Rapport 191](taches/rapport-codex-191-deja-entendu.md).
+  Fusionné sur l'intégration : conflits de documentation et de `tests/test_etapes_chainees.py` (patch des naissances A6 du lot 184 et paroles attendues du lot 191, réunis) ; aucun fichier de code du jeu commun depuis la base. Livraison partielle : annonces du guet de la mine 15 → 3. Reste un lot séparé : `_sait` dans `bavarder` lit encore le savoir réel de l'auditeur.
+
+- **Branche `codex-naissance-evenement`, fusionnée**, lot **192 / A6
+  deuxième volet partiel**, base `integration 3668061` : un portage illégitime
+  constaté et son épreuve persistante font naître `récupérer {objet, qui}` par
+  la table et la création communes aux dettes personnelles. Poids selon valeur
+  matérielle, ambition, honnêteté, douceur, fierté et rancune ; terminal du
+  graphe existant « porter le bien », refus et prix de violence communs.
+  Sommeil/réveil, publication différée, plafond et sauvegarde conservés ; fin
+  sur retour, destruction ou consommation crus. Pas de lecture de position
+  cachée ni de fin inventée pour une suppression distante.
+  **28 ciblés distincts verts** consolidés, dont dix d'événement repris ;
+  suite unique **2 318 tests, 267 fichiers, 1 713,848 s**, deux MiMo historiques
+  `6 != 5`, aucune erreur/ignoré. Derniers ajustements repris en ciblés.
+  **16/16 nuits 4 h** (Relais/mine/auberge/crue × quatre graines) : états et
+  chroniques identiques au témoin exact, mondes/rendus rechargés identiques,
+  zéro plantage/usurpation ; alertes de base inchangées. **Zéro récupération
+  née naturellement**, richesse S/F/D inchangée. Mine fixe 1985, 4 h :
+  793 recherches, 342 neuves, 10 979 nœuds ; CPU indicatif 13,14 s.
+  Anselme/ballot et Gorm/marteau : six captures ciblées conservées, prise
+  autonome et deux projets atteints, trois minutes d'un bloc ou 1 + 1 + 1,
+  monde/rendu rechargés identiques. Capture historique de vol en nuit libre
+  non acquise ; les scènes d'auteur isolent les pulsions concurrentes.
+  Restent : disparition attribuée sans portage constaté, réclamation du vol,
+  dénonciation autonome, restitution de tout stock porté par autrui et abandon
+  selon la VOL ; nuire sans bien, punir, rallier, occasion et soupçon déduit
+  hors lot. Aucun Luna ni fichier réservé aux lots voisins modifié ; deux
+  travailleurs réduits au plus. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/naissance-192/` ;
+  [rapport 192](taches/rapport-codex-192-naissance-evenement.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Livraison partielle (A6) : naissance et moyens communs prouvés par scènes d'auteur ; aucune récupération née naturellement dans les 16 nuits (aucun vol vu par sa victime), richesse inchangée.
+
 - **Branche `codex-sortie-exterieure`, fusionnée**, lot **189**, base
   `60617f9` : une sortie terminale est exclue du graphe des déplacements
   internes, des estimations et des candidats de `Vue`, avec sa carte dans

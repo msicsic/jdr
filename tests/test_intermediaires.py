@@ -103,6 +103,10 @@ class IntermediairesTests(unittest.TestCase):
         for auberge in (False, True):
             with self.subTest(auberge=auberge):
                 m, id, cible, via = scene(auberge)
+                # Ni le fournisseur ni un tiers ne nourrit gratuitement le demandeur :
+                # ce test vérifie la livraison unique de la commission acceptée.
+                from tests.support import sans_souci
+                sans_souci(m)
                 plan = plan_recours(m, id, 'faim', [])
                 self.assertEqual(plan[-1]['operation'], 'confier')
                 self.assertEqual(plan[-1]['cible'], via)
@@ -154,6 +158,9 @@ class IntermediairesTests(unittest.TestCase):
 
     def test_cible_mefiante_echoue_sans_boucle(self):
         m, id, cible, via = scene()
+        # Un don libre ne doit pas contourner la commission réellement refusée.
+        from tests.support import sans_souci
+        sans_souci(m)
         plan = plan_recours(m, id, 'faim', [])
         # La méfiance privée existe déjà à l'acceptation, mais le porteur
         # l'ignore encore : son devis n'a pas le droit de lire ce verdict.

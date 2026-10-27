@@ -43,7 +43,7 @@ agendas = importlib.util.module_from_spec(_spec_agendas)
 _spec_agendas.loader.exec_module(agendas)
 
 JOUEURS = {"relais": "chambre_cloche", "mine": "galerie", "auberge": "dortoir", "crue": "chambre_cloche",
-           "rixe": "chambre_cloche"}
+           "rixe": "chambre_cloche", "crue_hameau": "chambre_cloche"}
 
 # --------------------------------------------------------------------------------------------
 # Jouer
@@ -167,6 +167,27 @@ def _verifier_continu():
     P.chercher, P._explorer = _chercher, _explorer
 
 
+def detecteur_avis():
+    """La sonde livrée avec l'audit, même si le moteur vient d'une autre référence."""
+    nom = "_seuil_detecteur_avis"
+    if nom not in sys.modules:
+        spec = importlib.util.spec_from_file_location(nom, RACINE / "tools/detecter_changements_avis.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        sys.modules[nom] = module
+    return sys.modules[nom]
+
+
+def ajouter_avis(nuit, analyse):
+    """Mesures séparées du monde ; les archives sans sonde restent inconnues."""
+    nuit["avis"] = analyse
+    donnees = nuit.get("donnees")
+    if donnees is not None:
+        donnees["mesures"].update(avis_non_justifies=analyse["total_non_justifies"],
+                                 avis_a_expliquer=analyse["total_a_expliquer"],
+                                 avis_cycles_accomplis=analyse["total_cycles_accomplis"])
+
+
 def jouer_nuit(arguments):
     """Une nuit, instrumentée ; renvoie (scenario, graine, chemin, résumé)."""
     scenario, graine, heures, dossier, rejeu, releves_actifs, depart, continu = arguments
@@ -201,9 +222,12 @@ def jouer_nuit(arguments):
     page = str(Path(dossier) / f"rejeu_{scenario}_{graine}.html")
     debut = time.perf_counter()
     resultat = {"scenario": scenario, "graine": graine, "heures": heures, "depart": depart}
+    detecteur = detecteur_avis()
     try:
-        _, mesures, donnees = banc_pnj.nuit(scenario, graine, heures, JOUEURS[scenario], False, False, page, depart)
+        with detecteur.observer_avis() as sonde:
+            _, mesures, donnees = banc_pnj.nuit(scenario, graine, heures, JOUEURS[scenario], False, False, page, depart)
         resultat.update(donnees=donnees, plantage=None)
+        ajouter_avis(resultat, detecteur.analyser_episodes(sonde.episodes))
     except Exception as erreur:  # une nuit qui plante est consignée, les autres continuent
         monde = capture.get("monde")
         resultat.update(donnees=None, plantage={
@@ -505,6 +529,15 @@ def analyser_nuit(n):
         for e in engagements:
             if f["minute"] - e["minute"] >= 240:
                 noter("engagement_ancien", pnj, e["minute"], json.dumps(e, ensure_ascii=False)[:200], 1)
+    avis = n.get("avis")
+    if avis is None:
+        noter("avis_non_mesures", None, None, "Archive sans sonde de décisions ; aucune garantie disponible")
+    else:
+        for r in avis["allers_retours"]:
+            if r["non_justifie"] or r["classe"] == "entree_nouvelle_a_expliquer":
+                noter("avis_non_justifie" if r["non_justifie"] else "avis_a_expliquer",
+                      r["id"], r["retour_minute"], json.dumps(r, ensure_ascii=False), 1)
+
     return constats
 
 

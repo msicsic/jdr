@@ -27,7 +27,9 @@ def intention(m, id, operation, cible="", outil="", condition="", attente=0):
 
 
 def scene():
-    m = calme(creer("relais", 7, "fixe"), "ilse", "brune", "marchand", "aubin")
+    # Les signes étudiés précèdent toute nouvelle vente de bois.
+    from tests.scenarios_contractuels import creer as creer_contractuel
+    m = calme(creer_contractuel("relais", 7, "fixe"), "ilse", "brune", "marchand", "aubin")
     presentes(m)
     placer(m, "ilse", "antichambre", [3, 5])
     placer(m, "brune", "antichambre", [4, 5])

@@ -77,6 +77,9 @@ class IciViensTests(unittest.TestCase):
         retrouvailles."""
         m = aubin_cherche_gorm()
         self.assertFalse(appel.peut_venir(m, "marchand", "aubin"))
+        # Gorm n'initie pas de repas gratuit : l'appel d'Aubin reste nécessaire.
+        from tests.support import sans_souci
+        sans_souci(m, "marchand")
         m = suivre(m, 6, lambda m: "Aubin répond : « J'arrive ! »" in chronique(m))
         textes = chronique(m)
         self.assertIn("Gorm répond : « Ici, viens ! »", textes)
@@ -221,6 +224,7 @@ class JArriveTests(unittest.TestCase):
             "plan": [{"operation": "inspecter", "cible": "", "outil": "", "lieu": "antichambre", "condition": "",
                       "contenu": {"cherche": "marchand"}}], "depuis": m.data["minutes"], "attente": 0}
         m.objets["brune"]["orientation"] = "nord-est"
+        debut_appel = m.data["minutes"]
         appeler(m, "brune", "marchand", [])
         m = suivre(recharger(m), 10, lambda m: "Brune retrouve Gorm, comme convenu." in chronique(m))
         textes = chronique(m)
@@ -228,6 +232,16 @@ class JArriveTests(unittest.TestCase):
                  "Brune répond : « J'ai quelque chose à te demander. »", "Gorm répond : « J'arrive ! »",
                  "Gorm, gardien du relais passe dans : Refuge du relais.", "Gorm répond : « Me voici ! »",
                  "Brune retrouve Gorm, comme convenu."]
+        # Le nouveau parcours peut lui faire voir Gorm avant l'annonce.
+        # Sans annonce, exiger cette preuve visuelle réelle au lieu de la phrase.
+        if "Gorm répond : « Me voici ! »" not in textes:
+            vu = lire(m, "brune")["croyances"]["marchand"]["lieu"]
+            self.assertEqual(vu["source"], "vu")
+            self.assertGreaterEqual(vu["minute"], debut_appel)
+            self.assertEqual(vu["case"], m.objets["marchand"]["position"])
+            self.assertEqual(vu["salle"], m.objets["marchand"]["lieu"])
+            self.assertEqual(m.objets["brune"]["lieu"], m.objets["marchand"]["lieu"])
+            suite.remove("Gorm répond : « Me voici ! »")
         textes = textes[textes.index(suite[0]):]
         self.assertEqual([t for t in textes if t in suite], suite)
         m = suivre(m, 5, lambda m: False)
@@ -250,6 +264,9 @@ class JArriveTests(unittest.TestCase):
         """Aubin cherche Gorm : à son appel, « J'arrive ! » ; Gorm l'attend là où il est, le temps qu'il
         faut à Aubin pour venir ; Aubin vient et obtient sa part, sans rappeler."""
         m = self.aubin_cherche_gorm_qui_le_hele()
+        # Isoler la parole « J'arrive » de l'initiative de nourrir Aubin.
+        from tests.support import sans_souci
+        sans_souci(m, "marchand")
         appeler(m, "marchand", "aubin", [])
         m = recharger(m)
         self.assertIn("Aubin répond : « J'arrive ! »", chronique(m))

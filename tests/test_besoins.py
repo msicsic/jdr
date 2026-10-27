@@ -95,6 +95,9 @@ class GardeMangerTests(unittest.TestCase):
         m.objets["brune"]["profil"]["valeurs"]["douceur"] = 100
         # Cette scène isole l'outil absent : aucun service d'allumage à offrir.
         m.objets['torche'].update(allume=True, combustible=120)
+        # Pas de bois propre à échanger contre le repas non plus.
+        from tests.test_entretenir import sans
+        sans(m, 'bois_bateliere')
         # Placement d'auteur : le joueur a pris la trousse avant que Brune ne s'en occupe.
         m.objets["crochets"]["lieu"] = "joueur"
         m.objets["crochets"].pop("position")
@@ -244,7 +247,10 @@ class ProfilTests(unittest.TestCase):
             self.assertEqual(banc_pnj.main(["--heures", "4", "--joueur", "chambre_cloche", "--chronique"]), 0)
         # Relais complet : affamée, Brune demande une part à Gorm, qui la sert et referme sa réserve ;
         # les évacués trempés se chauffent au brasero, que Gorm recharge avec son bois.
-        self.assertIn("Brune demande une part des vivres du refuge à Gorm (", sortie.getvalue())
+        # Affamée, Brune demande sa part, ou Gorm la sert de lui-même s'il voit sa faim
+        # (secours du lot 197) ; dans les deux cas, la part est réellement donnée.
+        self.assertRegex(sortie.getvalue(), r"Brune demande une part des vivres du refuge à Gorm \("
+                                            r"|servir les vivres du refuge à Brune \(empathie\)")
         self.assertRegex(sortie.getvalue(), "Gorm appelle Brune et lui donne une part des vivres du refuge"
                                            "|Gorm remet les vivres du refuge à Brune")
         self.assertIn("Gorm, gardien du relais verrouille la réserve de vivres.", sortie.getvalue())

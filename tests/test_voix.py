@@ -135,6 +135,9 @@ class HelerTests(unittest.TestCase):
         Gorm répond de la salle des vannes ; Aubin y va et obtient sa part. Avant, il l'appelait à
         chaque minute sans que sa voix ne passe la porte."""
         m = aubin_cherche_gorm()
+        # L'appel motivé par la faim, pas l'initiative d'un repas gratuit.
+        from tests.support import sans_souci
+        sans_souci(m, "marchand")
         m, texte = attendre(m)
         self.assertEqual(len(appels(m, "aubin")), 1)
         self.assertIn("Gorm répond : « Ici, viens ! »", chronique(m))  # Il croit la porte fermée (``appel``).

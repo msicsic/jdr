@@ -209,16 +209,14 @@ joueur, proposition refusée ou `attendu` technique ne vaut preuve. Les autres
 segments seuls sont envoyés à l'auditeur, avec leurs indices d'origine ; aucun
 appel si tous sont établis. Les gardes déterministes du texte entier demeurent.
 La preuve exacte est reconstruite à l'enregistrement ; une attestation courante
-qui ne correspond plus à la perception est refusée. Les comptes de l'issue
-restent obligatoires : les comptes calculés sur la révision du résultat lui
-sont liés avant le rapprochement. La reprise intégrale des faits de l'opération, liée aux
-mêmes comptes typés, prouve leur couverture ; une reprise partielle ne reçoit
-pas ce crédit global et reste soumise au contrôle des comptes manquants.
+qui ne correspond plus à la perception est refusée. Depuis le lot 180, les
+comptes de l'issue ont leurs propres phrases moteur, ajoutées automatiquement,
+obligatoires et prouvées exactement, sans extraction de leurs rôles par l'auditeur.
 
 Le schéma du rapport dépend du verdict et de la portée. Il demande locuteur,
 citation et présentation seulement pour parole/engagement, les éléments
 seulement pour ambiance/engagement, et un motif de 240 caractères au plus
-seulement pour un refus sémantique. Sources, portée, comptes et contributions
+seulement pour un refus sémantique. Sources, portée et contributions
 lumineuses gardent leurs contrôles. Le moteur complète les champs sans objet
 pour conserver le format enregistré et accepte les anciens rapports complets.
 Une prose libre n'est jamais exemptée par son verdict présumé ; la décision
@@ -350,31 +348,43 @@ monétaire ne conclut rien sur les objets prêtés. Le contenu `reclamer` conser
 le destinataire doit à Corvus ; une question d'existence ainsi typée peut déclencher le
 règlement existant, elle n'est pas devenue une consultation sans effet.
 
-Pour chaque segment, l'auditeur extrait séparément les comptes affirmés dans les mots du
-texte, y compris dans une réplique, indépendamment de son verdict narratif. Le champ est
-obligatoire quand le dossier de comptes est fourni ; un rapport incomplet est illisible.
-Le moteur compare les rôles, l'objet, l'état et toute quantité explicite avec l'issue
-validée, ou les comptes courants hors réclamation. Un compte inversé est refusé même si
-le compte inverse serait lui aussi vide. Chaque compte incompatible produit un refus
-avec le segment, les rôles reçus et un `attendu` citant l'issue ; le même garde est refait
-avant l'enregistrement. Après refus répétés, le joueur lit l'issue du moteur.
+**Comptes écrits par le moteur et paroles compatibles (lots 180, b et c).**
+`comptes_narratifs.phrases` écrit une phrase naturelle à la deuxième personne
+par compte public ou offre présentée. Paiement et livraison réciproque sont
+réunis ; un remboursement remplace son solde nul. Les désignations publiques
+sans apposition et les accords communs évitent le rendu en fiche technique.
+La préparation de la parole marque les textes des opérations ayant produit
+les effets comptables typés : `completer` les remplace, sans retirer les faits
+des autres opérations de la même parole. Les parts gardent le nom grammatical
+de leur lot d'origine. Les offres déjà conclues et couvertes ne sont pas répétées.
+Aucun mécanisme d'échange ni état du monde n'est modifié par ce rendu.
 
-Les références des comptes extraits passent d'abord par la résolution exacte
-commune des identifiants, noms publics et alias (`noms.references_fournies`,
-`monde.reference_exacte`). Le catalogue vient exclusivement des objets,
-interlocuteurs, personnes connues et souvenirs visuels fournis, et du joueur :
-son nom désigne `joueur`, sans constante
-propre à Corvus. Cette résolution traverse aussi les termes imbriqués des offres,
-sans changer quantités, états ni prose. Une ambiguïté rend le rapport illisible ;
-une référence inconnue ne reçoit aucune identité privée. Le contrôle refait à
-l'enregistrement utilise le même dossier public conservé avec l'audit.
+Le narrateur raconte le geste et le ton, sans affirmer de compte. Sa garde
+est stricte : aucune comparaison de paraphrase avec l'issue. Seules les
+répliques citées des PNJ sont comparées aux comptes `issue`/`etat` et aux offres
+typées : rôles, montant, état et condition reconnus. Une quantité présentée
+sans prédicat n'invente pas un nouveau transfert. L'attribution publique du
+locuteur reste contrôlée par les mécanismes ordinaires. Chaque divergence
+porte un `attendu`. Une parole établit qu'elle a été entendue, sans créer
+d'effet ni établir la vérité de son contenu.
 
-Cette comparaison est déterministe **sur les comptes extraits**. Reconnaître une affirmation,
-ses pronoms et sa portée reste sémantique : une omission ou une extraction erronée peut
-laisser passer une contradiction ou provoquer un faux refus. Une parole enregistrée
-n'établit toujours pas la vérité de son contenu. Le contrôle ne crée aucune dette ni
-aucun remboursement ; les mutations précèdent toujours le récit et la sauvegarde précède
-l'affichage.
+Le nom « pièce » seul et ses compléments de lieu ne sont pas des comptes.
+Le domaine recherche un montant monétaire ou un prédicat de transfert/dette
+avec son objet ; les questions et obligations modales sans compte restent
+hors de cette garde. Une offre présentée conserve son montant moteur pendant
+les relances et le repli. Les formulations préparées et affichées utilisent
+le même formateur public ; une offre conclue est rendue par son issue.
+
+Les textes suivent la transaction sauvegardée avant affichage. Leur présence
+est obligatoire, leur preuve exacte recalculée par `textes_etablis/segments_etablis`,
+et leurs contrôles répétés par `consigner`, repli compris. Le schéma d'audit
+ne contient plus `comptes` ; ses anciens champs sont ignorés.
+
+**Limite.** La reconnaissance grammaticale reste bornée : les constructions
+implicites ou complexes hors de cette grammaire peuvent échapper au contrôle
+ou rester ambiguës. L'identification exhaustive des comptes en français libre
+n'est pas garantie. Les autres contrôles mécaniques restent en partie
+sémantiques. Les essais 117/117 b/117 c et 168 demeurent abandonnés.
 
 **Comptes de l'issue** (`codex-comptes-issue`, lot 73). Les paiements et remises
 sont collectés par leurs opérations, dans la copie transactionnelle de la conversation ;
@@ -385,16 +395,9 @@ son identité physique. Les remises encore dues figurent aussi dans l'état publ
 des comptes et dans leur rendu après recharge ; aucune dette privée entre PNJ
 n'est exposée, aucun journal technique supplémentaire n'est sauvegardé.
 
-Chaque compte `rendu` ou `du` de l'issue doit être restitué par les comptes extraits
-du récit entier, même si un segment est une réplique ou dit n'avoir aucune portée
-mécanique. Une omission ou un compte inversé entraîne une révision ; le contrôle
-est refait avant enregistrement. Le solde courant reste une source pour les autres
-comptes ; l'absence d'une créance explicitement traitée garde le sens de la demande.
-Raconter un transfert déjà opéré ne crée pas ce transfert par la parole. Une
-non-livraison qui explique un remboursement n'établit pas l'absence d'une dette-objet.
-L'extraction des affirmations et la qualification de leur portée restent sémantiques :
-le moteur compare déterministement les comptes extraits, sans garantir toute paraphrase
-ni neutraliser les autres contradictions d'un segment pourtant pourvu d'un compte juste.
+Depuis le lot 180, ces comptes ont leur texte moteur propre, obligatoire et prouvé
+exactement avant affichage et enregistrement. L'extraction comptable par l'auditeur
+est supprimée ; les limites de la garde sur la prose libre sont dites ci-dessus.
 
 **Offres conditionnelles** (`codex-prime-offre`, lot 67). Le dossier `comptes.offres`
 sépare les contreparties promises des soldes exigibles : `etat: offre`, `debiteur`
@@ -406,15 +409,16 @@ actuel de leur donneur, pour juger une reformulation dans la situation présente
 Le devis initial vient de `prime_base`, puis du montant proposé ou accepté ; aucun
 devis nouveau sans les fonds nécessaires. Un refus ou un paiement clôt l'offre.
 
-L'auditeur extrait une offre conditionnelle dans `comptes` avec cette forme, au lieu
-de la déclarer `du`. Le moteur compare exactement ses rôles et ses deux termes aux
-offres fournies. Une dette, une remise et une offre ne se justifient pas entre elles.
+Depuis le lot 180, l'auditeur n'extrait plus les offres dans `comptes`.
+Depuis 180 b, une offre présentée reçoit aussi son texte moteur ; les panneaux
+existants gardent leurs termes typés. Une dette,
+une remise et une offre ne se justifient pas entre elles.
 Les formulations produites par le moteur servent également d'appui aux engagements
 racontés ; annoncer la contrepartie conditionnelle ne lance aucune action.
 La remise de mission reste atomique : objet transféré et prime payée, sans solde
 intermédiaire sauvegardé ; son paiement est fourni comme compte `rendu` au récit
-du résultat. La comparaison est déterministe sur les termes extraits ; reconnaître
-une condition dans la prose et juger ses reformulations restent sémantiques.
+du résultat. Les autres jugements de portée et d'engagement restent sémantiques ;
+la lecture grammaticale comptable a les limites décrites ci-dessus.
 
 **Ce qui n'appelle pas de relance** (branche `relances-luna`). Un appel au MJ ou à l'auditeur qui ne
 peut rien changer à ce que lira le joueur n'est pas fait :

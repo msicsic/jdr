@@ -1013,9 +1013,35 @@ class MJ:
         from .biens import etat_comptes_joueur, offres_joueur
         faits["comptes"] = {"etat": etat_comptes_joueur(monde, contexte["interlocuteurs"]),
                             "issue": (conversation_validee or {}).get("comptes", []),
+                            "offres_a_dire": (conversation_validee or {}).get("offres", []),
                             "offres": offres_joueur(monde) + (conversation_validee or {}).get("offres", [])}
-        from .propositions import offre_en_mots
-        faits["comptes"]["formulations_offres"] = [offre_en_mots(monde, o) for o in faits["comptes"]["offres"]]
+        # Noms grammaticaux des seuls biens cités par les termes publics :
+        # aucune position, possession cachée ni propriété physique ajoutée.
+        biens_offres = {c['objet'] for c in faits['comptes']['issue'] if c.get('objet') in monde.objets}
+        parts = dict((conversation_validee or {}).get('parts_comptables', {}))
+        services = []
+        from .agendas import en_cours
+        for c in faits['comptes']['issue']:
+            if not c.get('objet') or c['debiteur'] not in monde.objets: continue
+            for engagement in en_cours(monde, c['debiteur'], objet=c['objet']):
+                condition = engagement['condition']
+                if condition.get('servir') == 'joueur':
+                    parts[c['objet']] = c['objet']
+                    services.append(c['objet'])
+                elif engagement.get('lot'):
+                    parts[c['objet']] = engagement['lot']
+        faits['comptes'].update(parts=parts, services=services)
+        biens_offres.update(parts.values())
+        for offre in faits["comptes"]["offres"]:
+            for terme in (offre["condition"], offre["contrepartie"]):
+                bien = terme.get("objet") or terme.get("condition", {}).get("objet")
+                if bien in monde.objets:
+                    biens_offres.add(bien)
+        faits["comptes"]["biens_offres"] = {
+            bien: {k: copy.deepcopy(monde.objets[bien][k]) for k in
+                   ("nom", "type", "genre", "pluriel", "nom_propre", "elision", "aliases")
+                   if k in monde.objets[bien]} for bien in biens_offres if bien in monde.objets}
+        faits['comptes']['biens_offres'].update((conversation_validee or {}).get('biens_comptables', {}))
         if resultat_resolu is not None:
             from .biens import compte
             from .agendas import contrats
@@ -1128,6 +1154,13 @@ class MJ:
         faits.update({"objet:" + o["id"]: o for o in objets})
         from .noms import public
         faits = public(monde, faits)
+        from .comptes_narratifs import phrases as phrases_comptes
+        # Même rendu public pour préparer le MJ et pour afficher l'offre.
+        # Les textes techniques d'un échange entre PNJ ne sont pas du récit.
+        faits["comptes"]["formulations_offres"] = [
+            " ".join(phrases_comptes({**faits, "conversation_validee": {**faits.get("conversation_validee", {}), "offres_conclues": []}, "comptes": {
+                **faits["comptes"], "issue": [], "offres": [o], "offres_a_dire": [o]}}))
+            for o in faits["comptes"]["offres"]]
         from .narration import echanges_passes
         # Déjà limité aux interlocuteurs publics ; garder les mots historiques
         # tels qu'ils ont été entendus, même après une présentation.
@@ -1339,6 +1372,13 @@ direction), plus lents, ils ne s'entendent que de tout près.
                     reponse = appeler_brut(instructions, {**entree, "retour_forme":
                         retour_refus(reponse, exc, "Corrige la forme sans abandonner l'intention.")},
                         intention, fonction, schema)
+            # Les phrases comptables sont ajoutées par le moteur à chaque essai,
+            # avant les gardes et la preuve exacte. Elles suivent la transaction
+            # et la sauvegarde de toute la réponse, jamais un préfixe hors audit.
+            if reponse.get("mode") == "dialogue":
+                from .comptes_narratifs import completer, presenter_offres
+                entree = {**entree, "faits": presenter_offres(entree.get("faits", {}), reponse.get("texte", ""))}
+                reponse = {**reponse, "texte": completer(reponse.get("texte", ""), entree.get("faits", {}))}
             passages = []
             if reponse.get("mode") == "dialogue" and isinstance(reponse.get("texte"), str):
                 passages = [("texte", reponse["texte"], None)]
@@ -1403,6 +1443,11 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 from .narration import segments_etablis
                 etablis = segments_etablis(texte, faits)
                 a_controler = {str(i): s for i, s in enumerate(decoupage) if str(i) not in etablis}
+                from .comptes_narratifs import controler as controler_comptes
+                refus_comptes = controler_comptes(texte, faits, nom, avant_audit=True)
+                if refus_comptes:
+                    obstacles.extend(refus_comptes)
+                    continue
                 rapport = None
                 for essai in range(2):
                     from .noms import reperes_designations
@@ -1536,6 +1581,26 @@ direction), plus lents, ils ne s'entendent que de tout près.
         admis de la réponse qui en garde le plus, puis ce que dit le moteur (``narration.repli``).
         Les faits d'une négociation ou d'un savoir s'adressent au MJ : ils ne s'affichent pas."""
         faits = entree.get("faits", {})
+        from .comptes_narratifs import phrases, completer
+        if phrases(faits):
+            # Même après trois refus, les comptes ne dépendent ni de Luna ni
+            # d'un drapeau dispensant de la preuve avant enregistrement.
+            lignes = []
+            for cle in ("resultat_resolu", "conversation_validee"):
+                bloc = faits.get(cle) or {}
+                if cle == "resultat_resolu" or bloc.get("operation") == "parole_joueur":
+                    lignes.extend(s for s in bloc.get("faits", []) if isinstance(s, str) and s.strip())
+            texte = completer(" ".join(lignes), faits)
+            controle = controler_narration(texte, {"segments": {}}, faits)
+            if controle["obstacles"]:
+                raise ErreurMonde("Le compte rendu du moteur est incomplet.",
+                                  controle["obstacles"][0]["attendu"])
+            self._audit_courant = {**controle, "faits": faits, "texte_initial": texte,
+                                   "fondement": fondement_narratif(entree),
+                                   "fondement_paroles": fondement_paroles(entree)}
+            return self._noter_repli(intention, "comptes du moteur",
+                                     {"mode": "dialogue", "texte": texte,
+                                      "faits": ["comptes"], "proposition": None})
         for cle in ("resultat_resolu", "conversation_validee"):
             bloc = faits.get(cle)
             pour_joueur = isinstance(bloc, dict) and (cle == "resultat_resolu"

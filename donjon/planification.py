@@ -36,6 +36,7 @@ from .obstacles import Route, cout_route, sejours_route, metrique_necessaire, mo
 from .geometrie import cases
 from .temps import MINUTE
 from . import pnj, trajet_estime, route_admissible
+from .portes import refermable
 
 PROFONDEUR = 8         # gestes au plus dans un plan (un trajet compte pour un)
 NOEUDS = 4000          # états examinés au plus
@@ -240,10 +241,12 @@ class Vue:
         from .biens import leses
         confies = {}
         self.illicite, self.consomme_illicite, self.brise_illicite = {}, {}, {}
+        self.leses_bris = {}
         for o in self.connus:
             prendre, consommer, abimer = leses(monde, o, id, confies)
             self.illicite[o], self.consomme_illicite[o], self.brise_illicite[o] = (
                 prendre is not None, consommer is not None, abimer is not None)
+            self.leses_bris[o] = abimer
         # Le prix d'abîmer le bien d'autrui (forcer), au prix de sa douceur (``chercher``) ; None :
         # il ne l'envisage pas.
         self.degat = None
@@ -1439,7 +1442,8 @@ def gestes(v, e, vises=None, but=None):
         if o in v_poser and o in portes:
             yield (0, 1, [_etape("poser", o, lieu=sa_salle)],
                    e.apres(portes=portes - {o}, faits=[(("lieu", o), sa_salle)]))
-        if o in v_fermer and v.salle(e, o) == sa_salle:
+        if (o in v_fermer and refermable(e.fait("fin", o) or v.cru(o, "fin"))
+                and v.salle(e, o) == sa_salle):
             if v.ouvert(e, o):
                 yield 0, 1, [_etape("fermer", o)], e.apres(faits=[(("ouvert", o), False)])
             elif not v.verrouille(e, o):
@@ -1475,7 +1479,7 @@ def gestes(v, e, vises=None, but=None):
                 # La forcer, par la règle du joueur (``force``) : avec un outil qu'il porte qui l'entame,
                 # coup après coup jusqu'à la briser ; brisée, elle reste ouverte. Abîmer le bien
                 # d'autrui heurte aussi sa douceur, une fois par personne lésée (``degat``).
-                brise = v.proprietaire[o] if v.brise_illicite[o] else None
+                brise = v.leses_bris[o]
                 if v.autorise[o] and not (brise and v.degat is None):
                     degat = [(("degat", brise), True)] if brise else []
                     abime = bool(brise) and not e.fait("degat", brise)
@@ -1486,6 +1490,7 @@ def gestes(v, e, vises=None, but=None):
                             yield (int(bool(brise) and not e.fait("faute", brise, "honnetete")), cout_coups,
                                    [_etape("frapper", o, outil=outil, condition="sans_temoin" if brise else "")],
                                    e.apres(faits=[(("verrou", o), False), (("ouvert", o), True), (("touche", o), True),
+                                                  (("fin", o), "detruit"),
                                                   *([(("faute", brise, "honnetete"), True)] if brise else []), *degat]),
                                    cout_coups, abime)
         # Manger ce qui est à portée.
@@ -1937,10 +1942,9 @@ def _entrees_communes(v):
         # Une occasion attendue ne garantit pas la fin d'un geste dans l'eau.
         (esprit_["patience"] is None) if v.eau_route else None,
         [k for k in v.connus if porte_par(monde, k, id)],
-        # Les preuves de fin ne sont pas lues par la recherche. Leur effet sur
-        # les responsabilités passe déjà par gardes/prix_gardes ci-dessous ;
-        # les inclure ici invaliderait un plan sans changer ses moyens.
-        [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items() if a != "fin"],
+        # La fin des battants est lue par les gestes et leur restauration.
+        [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()
+         if a != "fin" or monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.
@@ -1962,7 +1966,7 @@ def _entrees_communes(v):
         # Ce qu'un prêt ou une garde permettent (``biens.permis``), ce qu'il peut payer et ce que
         # vaut pour lui une pièce.
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
-        [o for o in v.connus if v.brise_illicite[o]],
+        [[o, v.leses_bris[o]] for o in v.connus if v.brise_illicite[o]],
         v.richesse, v.piece,
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
@@ -2791,7 +2795,8 @@ def retablir(v, e, etapes):
     """Ce qu'il garde sous clé et auquel le plan a touché, il le referme à clé avant de finir."""
     for x in profil(v.monde, v.id)["pulsions"]:
         cible = x["condition"].get("objet")
-        if not x["condition"].get("verrouillee") or not e.fait("touche", cible):
+        if (not x["condition"].get("verrouillee") or not e.fait("touche", cible)
+                or not refermable(e.fait("fin", cible) or v.cru(cible, "fin"))):
             continue
         if v.ouvert(e, cible):
             etapes.append(_etape("fermer", cible))
@@ -2943,6 +2948,8 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
             but = lambda v, e: o not in e.portes and v.lieu(e, o) == lieu  # noqa: E731
             vises = {"prendre": (o,), "poser": (o,)}
     else:
+        if not refermable(_cru(monde, id, o, "fin")):
+            return None
         but = lambda v, e: v.verrouille(e, o) and not v.ouvert(e, o)  # noqa: E731
         vises = {"fermer": (o,)}
     if tache and sorte(condition) and "allume" not in condition:
@@ -3314,7 +3321,8 @@ def _gestes_defense(v, e, vises):
                        e.apres(faits=[(("repousse", a), True)]), .025 / chance)
     if vises.get("fuir") and all(v.salle(e, a) != e.salle for a in ds) and not e.fait("fui"):
         # Fermer derrière soi appartient au plan, avec la même règle de clé que garder.
-        portes = sorted(v.portes_de[e.salle] & set(vises.get("fermer", ())))
+        portes = sorted(p for p in v.portes_de[e.salle] & set(vises.get("fermer", ()))
+                        if refermable(e.fait("fin", p) or v.cru(p, "fin")))
         closes = all(not v.ouvert(e, p) for p in portes)
         verrouillables = [p for p in portes if any(p in v.objets[k].get("ouvre", ()) for k in e.portes)]
         if closes and all(v.verrouille(e, p) for p in verrouillables):

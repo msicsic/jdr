@@ -54,7 +54,7 @@ class GardesJustesTests(unittest.TestCase):
 
     def test_refus_de_brune_dit_dans_le_monde_et_compte_conserve(self):
         m = banc('comptes')
-        texte = 'Elle maintient son refus des deux pièces qu’elle te doit.'
+        texte = 'Elle maintient son refus.'
         audit = rapport({**ligne('mecanique', sources=['comptes']),
                          'comptes': [compte('brune', 'joueur', montant=2)]})
         mots = 'Brune, rends-moi les deux pièces que tu me dois.'

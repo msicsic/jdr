@@ -14,6 +14,7 @@ CHAMPS = {"engagements": list}
 # Cause -> vocabulaire et valeurs ; aucune identité ni méthode d'action.
 NAISSANCES = {
     "dette_situation": {"sorte": "obtenir", "valeurs": ("honnetete", "ambition")},
+    "bien_spolie": {"sorte": "récupérer", "valeurs": ("ambition", "honnetete", "douceur", "fierte")},
 }
 
 
@@ -22,8 +23,47 @@ def _dette_situation(monde, id):
     return (monde.objets[id].get("profil") or {}).get("situation", {}).get("dette", 0)
 
 
+def _torts_connus(monde, id):
+    """Preuves propres persistantes ; ni mémoire courte ni enquête sur le réel."""
+    from .esprits import lire
+    e = lire(monde, id)
+    for objet, portage in sorted(e["portages"].items()):
+        connu = e["croyances"].get(objet, {})
+        p = connu.get("lieu", {}).get("possession", {})
+        if (p.get("proprietaire") == id and p.get("porteur") not in (None, id)
+                and p.get("permis") is False
+                and portage["auteur"] == p["porteur"] and not connu.get("fin")):
+            yield objet, portage
+
+
+def _naitre(monde, id, cause, parametres, origine, empreinte, *, sans_violence=True):
+    stock = _stock(monde, id, creer=True)
+    if any(a["origine"] == origine for a in stock):
+        return
+    n = 1
+    while any(a["id"] == f"a{n}" for a in stock):
+        n += 1
+    a = {"id": f"a{n}", "sorte": NAISSANCES[cause]["sorte"],
+         "parametres": parametres, "maniere": {"sans_violence": sans_violence},
+         "origine": origine}
+    _changer(monde, id, a, "actif", cause, empreinte)
+    stock.append(a)
+
+
 def _naissances(monde, id, empreinte):
-    from .biens import richesse
+    from .biens import richesse, VALEUR_OBJET
+    for objet, p in _torts_connus(monde, id):
+        # L'identité de preuve du portage survit aux regards successifs.
+        cause = "bien_spolie"
+        stock = _stock(monde, id) or []
+        if any(a["origine"].get("preuve") == p["preuve"] for a in stock):
+            continue
+        # Le tarif déclaré du bien connu est une estimation de départ,
+        # pas une lecture répétée d'un objet éventuellement disparu à distance.
+        prix = monde.objets.get(objet, {}).get("prix") or VALEUR_OBJET
+        _naitre(monde, id, cause, {"objet": objet, "qui": p["auteur"], "prix_cru": prix},
+                {"type": "evenement", "de": p["auteur"], "cause": cause,
+                 "preuve": p["preuve"], "minute": monde.data["minutes"]}, empreinte, sans_violence=False)
     dette = _dette_situation(monde, id)
     if dette <= richesse(monde, id):
         return
@@ -34,15 +74,8 @@ def _naissances(monde, id, empreinte):
     if any(a["origine"].get("type") == "situation" and a["origine"].get("cause") == cause
            for a in stock):
         return
-    n = 1
-    while any(a["id"] == f"a{n}" for a in stock):
-        n += 1
-    a = {"id": f"a{n}", "sorte": NAISSANCES[cause]["sorte"],
-         "parametres": {"pieces": dette}, "maniere": {"sans_violence": True},
-         "origine": {"type": "situation", "de": id,
-                     "minute": monde.data["minutes"], "cause": cause}}
-    _changer(monde, id, a, "actif", cause, empreinte)
-    stock.append(a)
+    _naitre(monde, id, cause, {"pieces": dette},
+            {"type": "situation", "de": id, "minute": monde.data["minutes"], "cause": cause}, empreinte)
 
 
 def presents(monde, id):
@@ -122,7 +155,7 @@ def _croyances(monde, id):
             return [contenu(v) for v in x]
         return x
     croyances = contenu(lire(monde, id)["croyances"])
-    if any(a["sorte"] == "obtenir" for a in (_stock(monde, id) or [])):
+    if any(a["sorte"] in ("obtenir", "récupérer") for a in (_stock(monde, id) or [])):
         from .biens import richesse
         from .spatial import porte_par
         e = lire(monde, id)
@@ -138,6 +171,14 @@ def poids(monde, id, agenda):
     from .caractere import valeur
     from .relations import envers
     regle = NAISSANCES.get(agenda.get("origine", {}).get("cause"))
+    if regle and agenda["sorte"] == "récupérer":
+        from .biens import VALEUR_OBJET
+        from .caractere import valeur_pieces
+        valeurs = sum(valeur(monde, id, v) for v in regle["valeurs"])
+        rancune = envers(monde, id, agenda["parametres"]["qui"])["rancune"]
+        prix = agenda["parametres"].get("prix_cru")
+        enjeu = valeur_pieces(monde, id, prix or VALEUR_OBJET)
+        return enjeu * (valeurs + rancune) / 500
     if regle and agenda["origine"]["type"] == "situation":
         return sum(valeur(monde, id, v) for v in regle["valeurs"]) / len(regle["valeurs"])
     p = monde.objets[id].get("profil") or {}
@@ -172,7 +213,7 @@ def actualiser(monde, id):
     declarations = depart(monde, id)
     if not declarations and not _stock(monde, id):
         from .biens import richesse
-        if _dette_situation(monde, id) <= richesse(monde, id):
+        if _dette_situation(monde, id) <= richesse(monde, id) and not next(_torts_connus(monde, id), None):
             return
     empreinte = _croyances(monde, id)
     if declarations and _stock(monde, id) is None:
@@ -197,6 +238,14 @@ def actualiser(monde, id):
                 _changer(monde, id, a, "atteint", "dette personnelle soldee", empreinte)
             elif richesse(monde, id) >= a["parametres"]["pieces"]:
                 _changer(monde, id, a, "atteint", "pieces disponibles", empreinte)
+            continue
+        if a["sorte"] == "récupérer":
+            from .esprits import lire
+            connu = lire(monde, id)["croyances"].get(a["parametres"]["objet"], {})
+            if connu.get("fin"):
+                _changer(monde, id, a, "abandonne", "bien cru " + connu["fin"]["valeur"], empreinte)
+            elif connu.get("lieu", {}).get("possession", {}).get("porteur") == id:
+                _changer(monde, id, a, "atteint", "bien cru rendu", empreinte)
             continue
         if a["sorte"] == "garder":
             raison = _fin_garde(monde, id, a)
@@ -245,7 +294,7 @@ def essayables(monde, id):
     for a in projets(monde, id):
         if a["etat"] == "actif":
             yield a
-        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener", "garder", "protéger", "obtenir"):
+        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener", "garder", "protéger", "obtenir", "récupérer"):
             if empreinte is None:
                 empreinte = _croyances(monde, id)
             if a["croyances"] != empreinte:
@@ -309,6 +358,22 @@ def planifier(monde, id, identifiant):
     if a["etat"] not in ("actif", "sommeil"):
         return None
     empreinte = _croyances(monde, id)
+    if a["sorte"] == "récupérer":
+        if a["etat"] == "sommeil" and a["croyances"] == empreinte:
+            return None
+        objet = a["parametres"]["objet"]
+        trouve = None
+        if objet in monde.objets:
+            trouve = chercher(monde, id, lambda v, e: objet in e.portes,
+                              {"prendre": (objet,)}, nom="recuperer:" + objet,
+                              memo=["recuperer", objet], emplois=(), endurer=poids(monde, id, a))
+        if trouve is None:
+            _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
+            return None
+        from .planification import _couper
+        _changer(monde, id, a, "actif", "plan admissible", empreinte)
+        _limiter(monde, id, empreinte)
+        return ({"type": "agenda", "agenda": identifiant, "objet": objet}, _couper(trouve[1])) if a["etat"] == "actif" else None
     if a["sorte"] == "obtenir":
         if a["etat"] == "sommeil" and a["croyances"] == empreinte:
             return None
@@ -635,7 +700,7 @@ def verifier(monde, id):
     for a in stock:
         assert (a["etat"] in ("actif", "sommeil", "atteint", "abandonne")
                 and type(a["depuis"]) is int and isinstance(a["raison"], str)
-                and a["origine"]["type"] in ("scenario", "situation") and "plan" not in a
+                and a["origine"]["type"] in ("scenario", "situation", "evenement") and "plan" not in a
                 and isinstance(a["croyances"], str)), "Agenda invalide"
     for engagement in en_cours(monde, id):
         from .deliberation import condition_valide

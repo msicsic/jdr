@@ -36,10 +36,10 @@ class ComptesFideliteTests(unittest.TestCase):
                 avant = m.joueur["or"]
                 mots = ("Gorm, rends-moi les deux pièces que tu me dois." if montant == 2
                         else "Aubin, rends-moi les cinq pièces que tu me dois.")
-                texte = "Je te rends les pièces."
+                texte = "D’accord."
                 r, sortie, appels = jouer(m, mots, [
                     parole(mots, ("reclamer", "", "", ""), personnage=qui), dialogue(f"« {texte} »")],
-                    [audit(texte, [compte(qui, "joueur", montant=montant, etat="rendu")], qui)],
+                    [audit(texte, [], qui)],
                     revues=[self.revue(qui, montant)])
                 self.assertEqual(r.joueur["or"], avant + montant)
                 self.assertFalse(any(d["a"] == "joueur" and d["de"] == qui for d in r.data["dettes"]))

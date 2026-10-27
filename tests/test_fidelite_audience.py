@@ -88,7 +88,7 @@ class FideliteAudienceTests(unittest.TestCase):
                     comptes = [compte("joueur", "aubin", montant=prix, etat="rendu"),
                                compte("aubin", "joueur", piece, 1,
                                       etat="du" if lot == "planches" else "rendu")]
-                    texte = "Le paiement est reçu et cette part est à toi."
+                    texte = "Entendu."
                     r, sortie, appels = jouer(m, saisie, [p, dialogue(f"« {texte} »")],
                         [audit(texte, comptes, "aubin")],
                         revues=[revue("validation_moteur", "proposition")])
@@ -112,7 +112,7 @@ class FideliteAudienceTests(unittest.TestCase):
             m = presentes(banc("soir-appel" if qui == "aubin" else "comptes"), qui)
             nom = m.objets[qui]["nom"].split(",")[0]
             saisie = f"{nom}, tu me dois quelque chose ?"
-            texte = "Je te rends les deux pièces."
+            texte = "Entendu."
             # Chaque débiteur a bien une dette et un nom connu dans sa scène.
             r, sortie, appels = jouer(m, saisie, [
                 parole(saisie, ("reclamer", "", "", ""), personnage=qui), dialogue(f"« {texte} »")],

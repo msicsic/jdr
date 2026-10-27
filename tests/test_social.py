@@ -9,7 +9,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from donjon.defi import nouveau_defi
+# Scènes de mécanisme : ressources et liens déclarés avant les occasions 186.
+from tests.scenarios_contractuels import nouveau_defi
 from donjon.esprits import lire, memoriser, croire, percoit
 from donjon.monde import Monde
 from donjon.moteur import Moteur, proposition
@@ -274,7 +275,10 @@ class DesespoirTests(unittest.TestCase):
 
     @patch("donjon.agendas._naissances", return_value=None)
     def test_sinon_elle_attend_que_personne_ne_la_voie(self, _naissance):
-        m, _ = attendre(self.brune_devant_ilse(80.0), jet=20)
+        # Le refus doit laisser Brune affamée, sans repas gratuit de Gorm/Ilse.
+        from tests.support import sans_souci
+        m = sans_souci(self.brune_devant_ilse(80.0), "marchand", "ilse")
+        m, _ = attendre(m, jet=20)
         self.assertTrue(m.objets["reserve"]["verrouillee"])
         self.assertGreater(lire(m, "brune")["intention"]["attente"], 0)
 

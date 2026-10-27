@@ -337,11 +337,15 @@ def _temoigner(monde, geste):
 
 
 def _temoins(monde, geste, souvenir, victime):
+    from .biens import lese_par
     from .deliberation import proteges
     from .deliberation import VOL, inquieter, relancer
     id = geste["auteur"]
     for autre in pnjs(monde):
         if autre != id and autre not in geste["temoins"] and autre not in geste["exclus"] and percoit(monde, autre, id):
+            if not est_contrainte(monde, geste['operation'], geste['objet']):
+                victime = lese_par(monde, geste['objet'], autre, geste['operation'])
+                souvenir = {**souvenir, 'victime': victime}
             geste["temoins"].append(autre)
             if geste["operation"] in ("frapper", "assommer", "tuer") and est_contrainte(monde, geste["operation"], geste["objet"]):
                 from .corps import evenement
@@ -375,6 +379,7 @@ def _temoins(monde, geste, souvenir, victime):
 
 def _temoins_a_l_oreille(monde, geste, souvenir, victime):
     from .deliberation import proteges
+    from .biens import lese_par
     """Témoins par l'ouïe, d'une certitude moindre que la vue : qui entend le geste pendant qu'il
     dure (``ouie.entend`` : sa nature, la distance, son seuil), sans en voir l'auteur, dans la salle
     même (il le situe), et croit tout près de là l'objet en cause ou ce qui le contient
@@ -401,6 +406,9 @@ def _temoins_a_l_oreille(monde, geste, souvenir, victime):
                 or not objet_situe(monde, autre, objet, salle, case)):
             continue
         geste["entendus"].append(autre)
+        if not est_contrainte(monde, geste['operation'], objet):
+            victime = lese_par(monde, objet, autre, geste['operation'])
+            souvenir = {**souvenir, 'victime': victime}
         if est_contrainte(monde, geste["operation"], objet):
             from .corps import evenement
             evenement(monde, "violence_entendue", objet, auteur=id, temoin=autre)
@@ -624,10 +632,11 @@ def _accessible(monde, id, objet):
         from .corps import sans_defense
         from .passage import au_contact
         return (sans_defense(monde, porteur) and au_contact(monde, id, porteur)
-                and monde.present_physique(objet, salle=monde.objets[id]["lieu"]))
+                and proche(monde, objet, id))
     o = monde.objets[id]
-    return (monde.present_physique(objet, salle=o["lieu"])
-            and (not monde.data.get("mode_cases") or "position" not in o or proche(monde, objet, id)))
+    if monde.data.get("mode_cases") and "position" in o:
+        return proche(monde, objet, id)
+    return monde.present_physique(objet, salle=o["lieu"])
 
 
 def _a_toucher(monde, id, etape, portes=None):
@@ -1404,19 +1413,20 @@ def _rejoindre_un_proche(monde, id, lignes):
     return _marcher(monde, id, lambda salle, case: salle == ici and distance(case, p) == 1, lignes)
 
 
-def _case_crue(monde, id, x):
-    """La case où il croit trouver ``x`` dans sa salle : là où il l'a vu. Une porte, un objet
+def _case_crue(monde, id, x, salle=None):
+    """La case où il croit trouver ``x`` dans le secteur demandé (le sien par défaut).
+    Une porte, un objet
     fixe font partie du lieu (``deliberation._lieu_cru``) : il sait leur place sans les avoir
     revus. None s'il ne sait où."""
     from .spatial import position_cible
-    ici, o = monde.objets[id]["lieu"], monde.objets.get(x)
+    ici, o = salle or monde.objets[id]["lieu"], monde.objets.get(x)
     fixe = o is not None and o["type"] != "personnage" and not o.get("mobile")
     cru = lire(monde, id)["croyances"].get(x, {}).get("lieu")
     porteur = cru.get("valeur") if cru else None
     if porteur in monde.objets and monde.objets[porteur]["type"] == "personnage" and porteur != id:
         etat = lire(monde, id)["croyances"].get(porteur, {}).get("etat", {}).get("valeur", {})
         if etat.get("conscient") is False:
-            return _case_crue(monde, id, porteur)
+            return _case_crue(monde, id, porteur, ici)
     if cru and (o is None or o["type"] != "porte"):  # Le joueur n'est pas un objet.
         if cru["valeur"] is None or cru.get("salle") != ici:
             return None
@@ -1431,12 +1441,8 @@ def _case_crue(monde, id, x):
 def _a_portee_de(monde, salle, case, cible):
     """De ``case``, la main atteint-elle ``cible`` ? Comme ``spatial.proche`` : une case voisine,
     sans passer en biais entre deux obstacles."""
-    from .spatial import _case_libre
-    dx, dy = cible[0] - case[0], cible[1] - case[1]
-    if max(abs(dx), abs(dy)) > 1:
-        return False
-    return not (dx and dy) or (_case_libre(monde, salle, (case[0] + dx, case[1]))
-                               or _case_libre(monde, salle, (case[0], case[1] + dy)))
+    from .spatial import contact_cases
+    return contact_cases(monde, salle, case, salle, cible)
 
 
 def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
@@ -1448,7 +1454,15 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
     loin = [x for x in _a_toucher(monde, id, etape) if not _accessible(monde, id, x)]
     if not loin:
         return 0
-    crues = [_case_crue(monde, id, x) for x in loin]
+    def places_crues():
+        croyances = lire(monde, id)["croyances"]
+        places = []
+        for x in loin:
+            salle = (croyances.get(x, {}).get("lieu") or {}).get("salle") or o["lieu"]
+            case = _case_crue(monde, id, x, salle)
+            places.append((salle, case) if case is not None else None)
+        return places
+    crues = places_crues()
     if None in crues:
         # Il le croit dans cette salle sans savoir où : il la parcourt des yeux. Ne le voyant
         # pas, c'est en essayant le geste qu'il constate son absence.
@@ -1456,11 +1470,12 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
         if "orientation" in o and any(c is None and (croyances.get(x, {}).get("lieu") or {}).get("salle") == o["lieu"]
                                       for x, c in zip(loin, crues)):
             tour_d_horizon(monde, id)
-            if None not in [_case_crue(monde, id, x) for x in loin]:
+            if None not in places_crues():
                 return TOUR
         return 0
-    ici = o["lieu"]
-    arrivee = lambda salle, case: salle == ici and all(_a_portee_de(monde, salle, case, c) for c in crues)
+    from .spatial import contact_cases
+    arrivee = lambda salle, case: all(contact_cases(monde, salle, case, s, c, objet=x)
+                                     for x, (s, c) in zip(loin, crues))
     pas = _marcher(monde, id, arrivee, lignes, gestes)
     return _impasse(monde, id, etape, arrivee, compter) if pas is None else pas
 

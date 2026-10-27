@@ -120,14 +120,14 @@ class SpatialTests(unittest.TestCase):
         self.assertIn(("crypte", 3, 6), spatial.champ_visible(m))
         self.assertTrue(spatial.visible(m, "coffre"))
 
-    def test_sortie_visible_et_objet_de_lautre_salle_demande_le_pas_de_portail(self):
+    def test_sortie_visible_et_objet_de_lautre_salle_au_contact(self):
         m = monde_eclaire()
         m.joueur["position"] = [3, 0]
         self.assertTrue(spatial.sortie_visible(m, "antichambre", "nord"))
         m.objets["porte"]["ouverte"] = True
         m.objets["coffre"]["position"] = [3, 6]
-        # Le coffre est à deux cases globales du personnage : il faut franchir le seuil avant l'interaction.
-        self.assertFalse(spatial.proche(m, "coffre"))
+        # L'épaisseur du mur sur la carte ne rajoute pas un pas au contact topologique.
+        self.assertTrue(spatial.proche(m, "coffre"))
         pas = spatial.preparer_pas(m, "nord")
         m.joueur.update(salle=pas["salle"], position=pas["position"])
         self.assertTrue(spatial.proche(m, "coffre"))
