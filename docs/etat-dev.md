@@ -4,6 +4,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Revue vierge 187, lecture seule**, branche `codex-revue-vierge-pnj` : six nuits 4 h observées avant lecture des plans (`C:/Users/msics/donjon/artifacts/revue-187/`), [rapport 187](taches/rapport-codex-187-revue-vierge-pnj.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Deux défauts confirmés par l'orchestrateur dans les bruts : hameau graine 1, Brune (120) et Ilse (177) quittent les lieux par la sortie extérieure en cherchant Gorm (régression du lot 181) ; Aubin force la porte du beffroi au pied-de-biche à côté de Gorm qui tient la clé (79).
+
 - **Branche `codex-prevision-bornee`, fusionnée**, lot **185**, base
   `integration 4efb277` : observation sèche ou mesurée postérieure bornant
   la droite de montée incompatible, sans changer la pente ni lire l'eau
