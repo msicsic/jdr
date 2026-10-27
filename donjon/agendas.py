@@ -87,6 +87,22 @@ def actualiser(monde, id):
         if a.get("echeance", float("inf")) < monde.data["minutes"]:
             _changer(monde, id, a, "abandonne", "echeance", empreinte)
             continue
+        if a["sorte"] == "amener":
+            from .deliberation import salle_crue
+            from .eau import noyee_attendue
+            destination = a["parametres"]["lieu"]
+            # Une arrivée réelle à distance ne vaut pas une observation. Comme
+            # pour une parole due, seule la position crue d'autrui fait foi.
+            if all(salle_crue(monde, id, qui) == destination for qui in _destinataires(a)):
+                _changer(monde, id, a, "atteint", "arrivee crue", empreinte)
+            elif noyee_attendue(monde, id, destination):
+                _changer(monde, id, a, "abandonne", "destination crue noyee", empreinte)
+            else:
+                # Le cycle de fin est disponible avant les sous-buts sociaux.
+                # Ne jamais faire passer une demande directe pour une préférence
+                # acceptée, ni déplacer la cible depuis le plan du porteur.
+                _changer(monde, id, a, "sommeil", "sous-buts non pris en charge", empreinte)
+            continue
         if a["sorte"] != "informer":
             _changer(monde, id, a, "sommeil", "sorte non prise en charge", empreinte)
             continue
