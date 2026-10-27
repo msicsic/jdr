@@ -11,6 +11,37 @@ from tests.test_social import recharger
 
 
 class NouvellesUtilesTests(unittest.TestCase):
+    def test_registre_plein_ne_laissed_pas_boucler_une_mesure_non_suivie(self):
+        m = scene()
+        lire(m, 'ilse')['faits_dits'] = {
+            social._cle([f'objet_{k}', 'etat', 'allume']): {'valeur': False, 'dit_a': {}}
+            for k in range(social.DITS_MAX)}
+        croire(m, 'ilse', 'echoppe', 'eau', 10, 'vu', niveau=10, montee=30)
+        for _ in range(2):
+            m, dit, texte = confier(recharger(m))
+            self.assertFalse(dit)
+            self.assertEqual(texte, '')
+        self.assertEqual(len(lire(m, 'ilse')['faits_dits']), social.DITS_MAX)
+        self.assertEqual(m.data, recharger(m).data)
+
+    def test_un_point_commun_ne_partage_pas_la_vitesse_privee(self):
+        m = scene()
+        n = {'type': 'constat', 'objet': 'echoppe', 'attribut': 'eau',
+             'valeur': 20, 'details': {'montee': -30}}
+        social.observation_commune(m, 'ilse', n, ['marchand'], vus={'marchand'})
+        cle = social.faits_dits(n)[0][0]
+        self.assertEqual(lire(recharger(m), 'ilse')['faits_dits'][cle]['portee_a']['marchand'], [1, 1])
+        self.assertTrue(social._nouveau(recharger(m), 'ilse', 'marchand', n))
+        # Une seconde mesure plus basse, observée ensemble, rend la décrue commune.
+        social.observation_commune(m, 'ilse', {**n, 'valeur': 19}, ['marchand'], vus={'marchand'})
+        self.assertEqual(lire(recharger(m), 'ilse')['faits_dits'][cle]['portee_a']['marchand'], [1, -1])
+        self.assertFalse(social._nouveau(recharger(m), 'ilse', 'marchand', {**n, 'valeur': 19}))
+        # La mesure entière ne bouge pas à chaque regard : ne pas effacer ce sens acquis.
+        social.observation_commune(m, 'ilse', {**n, 'valeur': 19}, ['marchand'], vus={'marchand'})
+        self.assertEqual(lire(recharger(m), 'ilse')['faits_dits'][cle]['portee_a']['marchand'], [1, -1])
+        self.assertEqual(m.data, recharger(m).data)
+        self.assertEqual(rendu(m), rendu(recharger(m)))
+
     def test_le_meme_geste_n_est_pas_nouveau_par_son_lese_ou_sa_precision(self):
         from donjon.esprits import memoriser
         m = scene()

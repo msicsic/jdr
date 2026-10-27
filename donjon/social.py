@@ -142,13 +142,13 @@ def _retenir_portee(fait, auditeur, noyau):
 
 
 def _nouveau(monde, id, auditeur, noyau):
-    if deja_dit(monde, id, auditeur, noyau):
-        return False
     portee = _portee(noyau)
     if portee is None:
-        return True
+        return not deja_dit(monde, id, auditeur, noyau)
     registre = lire(monde, id)["faits_dits"]
     for cle, _ in faits_dits(noyau):
+        if cle not in registre and len(registre) >= DITS_MAX:
+            return False  # Une nouveauté impossible à suivre ne doit pas boucler.
         fait = registre.get(cle, {})
         connue = fait.get("portee_a", {}).get(auditeur)
         if connue is None:
@@ -441,6 +441,17 @@ def observation_commune(monde, id, noyau, temoins, *, vus=None):
             if cle not in registre:
                 continue
             fait = registre[cle]
+            portee = _portee(noyau)
+            if portee is not None:
+                # Un point vu ensemble ne partage pas la vitesse que chacun
+                # a déduite de ses mesures privées. Seule la comparaison à
+                # une valeur déjà publiquement partagée étaye la direction.
+                anciennes = fait.get("entendu_a", {}).get(autre, [])
+                precedente = (anciennes[-1] if anciennes else fait["dit_a"].get(autre))
+                direction = fait.get("portee_a", {}).get(autre, [0, 1])[1]
+                if precedente is not None and precedente != valeur:
+                    direction = -1 if valeur < precedente else 1
+                portee[1] = direction
             # Une observation commune est aussi une acquisition personnelle.
             # La laisser « inconnue » jusqu'au regard suivant ferait dépendre
             # la sauvegarde du découpage des attentes.
@@ -449,7 +460,8 @@ def observation_commune(monde, id, noyau, temoins, *, vus=None):
             if autre in fait["dit_a"] and fait["dit_a"][autre] != valeur:
                 del fait["dit_a"][autre]
             fait.setdefault("entendu_a", {})[autre] = [copy.deepcopy(valeur)]
-            _retenir_portee(fait, autre, noyau)
+            if portee is not None:
+                fait.setdefault("portee_a", {})[autre] = portee
 
 
 def _utile(monde, id, autre, noyau):
@@ -558,7 +570,10 @@ def phrase(monde, noyau, locuteur=None):
     if t == "constat":
         from .francais import accorder, lieu
         if noyau["attribut"] == "eau":
-            return f"l'eau atteint {noyau['valeur']} cm dans " + lieu(monde.data["salles"][noyau["objet"]])
+            vitesse = noyau.get("details", {}).get("montee")
+            evolution = (", en baisse" if vitesse < 0 else ", en hausse") if vitesse else ""
+            return (f"l'eau atteint {noyau['valeur']} cm dans "
+                    + lieu(monde.data["salles"][noyau["objet"]]) + evolution)
         qualite = ("fermé" if noyau["attribut"] == "verrouillee" else
                    ("parti" if noyau["valeur"]["parti"] else "revenu") if "parti" in noyau["valeur"] else
                    "vide" if "vide" in noyau["valeur"] else
