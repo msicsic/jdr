@@ -246,8 +246,8 @@ def _disponible_cru(monde, id, objet):
 # une offre plus haute reste possible (``planification._engager``). Un refus d'humeur ou de méfiance,
 # et tout autre, tient ``REDEMANDE`` minutes. Chaque demande a sa dernière réponse refusée, gardée à
 # part des souvenirs, que le temps n'efface pas (``esprit["refus"]``) ; une demande accordée l'efface.
-CAUSES = ("impossible", "necessaire", "absent", "eteinte", "rien")
-DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre", "contre_offre", "condition_tenue")
+CAUSES = ("impossible", "necessaire", "absent", "eteinte", "rien", "indication", "inconnu")
+DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre", "contre_offre", "condition_tenue", "information", "repere")
 
 
 def _meme_demande(s, autre, operations, objet, besoin):
@@ -261,6 +261,16 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
     demande, avec, quand le refus a une cause, ce qu'il croit alors de ses moyens (``moyens_crus``).
     « Qui va là ? » n'est pas un refus : il s'est nommé, il redemande."""
     detail = {k: v for k, v in detail.items() if k in DETAILS_REFUS and v is not None}
+    historiques = []
+    repere = None
+    if operation == "enqueter_lieu":
+        for precedent in lire(monde, id)["refus"]:
+            if _meme_demande(precedent, autre, (operation,), detail.get("objet"), detail.get("besoin")):
+                if precedent.get("repere"):
+                    repere = dict(precedent["repere"])
+                historiques.extend(f for f in precedent.get("cause", []) if f[0] == "lieu_appris")
+                if precedent.get("information"):
+                    historiques.append(["lieu_appris", detail.get("objet"), precedent["information"]["lieu"], None])
     if souvenir:
         memoriser(monde, id, {"type": "refus", "de": autre, "operation": operation, "raison": raison,
                               **{k: v for k, v in detail.items() if k in ("objet", "besoin")}})
@@ -272,13 +282,24 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
         # égale, l'ancien refus gratuit ne doit pas cacher celui du marché.
         oublier_refus(monde, id, autre, "demander", detail.get("objet"), detail.get("besoin"))
     s = {"de": autre, "operation": operation, "raison": raison, "minute": monde.data["minutes"], **detail}
+    if historiques:
+        s["cause"] = historiques
+    if operation == "enqueter_lieu":
+        if repere is None:
+            c = lire(monde, id)["croyances"].get(detail.get("objet"), {}).get("lieu")
+            lieu = (c["valeur"] if c and c["source"] in ("vu", "entendu")
+                    and c["valeur"] in monde.data["salles"] else (detail.get("information") or {}).get("lieu"))
+            if lieu is not None:
+                repere = {"lieu": lieu, "revision": 0}
+        if repere is not None:
+            s["repere"] = repere
     if operation == "acheter" and detail.get("prix") and detail.get("objet"):
         from .pnj_propositions import entrees_refus
         s["offre"] = entrees_refus(monde, id, autre, detail["objet"],
                                    {"type": "pieces", "montant": detail["prix"]})
         if raison == "refus":
             s["raison"] = "persuasion"  # Un achat refusé est déjà une offre, pas une demande gratuite.
-    if raison in CAUSES and "contre_offre" not in s:
+    if (raison in CAUSES or operation == "enqueter_lieu") and "contre_offre" not in s:
         s["cause"] = moyens_crus(monde, id, s)
     esprit(monde, id)["refus"].append(s)
     intention = lire(monde, id)["intention"]
@@ -308,6 +329,9 @@ def tient(monde, id, s, connus=None):
     déjà au refus : ce qu'il apprend qui en ôte un (le bois vu épuisé, une porte crue fermée à clé) ne le
     lève pas, revoir la même chose non plus. Pour un prix trop bas, toujours (pour ce prix seulement).
     Sinon, depuis moins de ``REDEMANDE`` minutes."""
+    if s["operation"] == "enqueter_lieu":
+        avant = {tuple(f) for f in s.get("cause", [])}
+        return all(tuple(f) in avant for f in moyens_crus(monde, id, s, connus))
     if "contre_offre" in s:
         # Ce moyen se poursuit par le recours, hors de la recherche ordinaire.
         # Un délai ou la perte d'un moyen ne fait pas oublier la condition dite.
@@ -394,6 +418,29 @@ def moyens_crus(monde, id, s, connus=None):
     connus = _connus(monde, id) if connus is None else connus
     op, o = s["operation"], s.get("objet")
     faits, abords = set(), []
+
+    if op == "enqueter_lieu":
+        # Seulement les entrées du demandeur, jamais le savoir privé du témoin.
+        # L'absence et les dates seules n'apportent aucune indication nouvelle.
+        import json
+        faits.update(tuple(f) for f in s.get("cause", []) if f[0] == "lieu_appris")
+        if s.get("information"):
+            faits.add(("lieu_appris", o, s["information"]["lieu"], None))
+        if s["raison"] in ("mefiance", "rancune"):
+            from .relations import axes
+            faits.add(("relation", s["de"], None, json.dumps(axes(monde, id, s["de"]), sort_keys=True)))
+            return sorted((list(f) for f in faits), key=str)
+        if s.get("repere"):
+            faits.add(("repere", o, s["repere"]["lieu"], s["repere"]["revision"]))
+        for salle, indices in lire(monde, id)["indices_recherche"].get(o, {}).items():
+            for indice in indices:
+                # La réponse situe une salle, pas une case. Une autre case,
+                # une confirmation visuelle ou un relais du même lieu ne
+                # renouvellent donc pas ce renseignement. Un bruit sans
+                # auteur reste utile à l'inspection, sans réarmer ce témoin.
+                if indice[0] == "presence" or indice[0] == "bruit" and indice[2] == o:
+                    faits.add(("lieu_appris", o, salle, None))
+        return sorted((list(f) for f in faits), key=str)
 
     def etat(k):
         return (croyances.get(k, {}).get("etat") or {}).get("valeur") or {}

@@ -4,6 +4,44 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-ou-est-il`, fusionnée, lot **221**, départ `4fe33ef` :
+  question commune de localisation à un tiers cru présent, réponse fondée sur
+  les seules croyances datées du témoin ; même contenu typé pour le joueur.
+  Réponses positives/négatives retenues hors des quarante souvenirs, selon les
+  indices persistants 37/69, sans réessai par délai. Extension du mécanisme des
+  refus et de la validation des sauvegardes autorisée par le superviseur ;
+  fonctions des lots voisins intactes. Registre suivi par `esprits.croire` :
+  seuls de vrais changements de lieu perçus renouvellent le contexte, pas
+  les cases, délais, confirmations ou bruits non attribués. Origine conservée
+  dans les relais ; une indication plus ancienne qu'une recherche infructueuse
+  ne rouvre pas le lieu. Capture auberge 42 à 500 : **11 → 3 questions**,
+  aucune réponse encore tenue réexécutée, mêmes monde/rendu et laps rechargés.
+  **38 reprises finales vertes, 18 nouveaux tests**.
+  Intégration `bd45f65` (213/219) fusionnée dans `813d45b` : seul conflit
+  documentaire, aucun conflit de code ; **38/38 ciblés verts en 49,729 s**.
+  Banc final cinq scénarios × quatre graines × 4 h, classes **219** :
+  suspects **0/1/2/2/0 → 0/1/2/2/0** (Relais/Mine/Auberge/Crue/Hameau),
+  **critère satisfait partout** ; cinq épisodes intégralement identiques à la
+  référence, aucune nouvelle répétition suspecte issue des questions.
+  **22 questions**, zéro plantage/usurpation. Un trio répété au hameau 42 :
+  Gorm → Maël sur Aubin, refus sociaux réarmés par rancune perçue **0 → 14**,
+  sans délai ; limite : un changement défavorable des axes permet aussi le réessai.
+  Préemptions **53 → 67**,
+  entrées à expliquer **61 → 69**, cycles accomplis **468 → 501**.
+  Attente urgente crue **196,25 → 218,75**, hameau **97,50 → 87,50** ;
+  S Relais **9,50 → 12**, hameau **31 → 40,50**, auberge en baisse.
+  La réserve historique 199 sur la base antérieure est remplacée par ce contrôle
+  classé 219 ; aucune amélioration uniforme d'attente ou de richesse garantie.
+  Capture 215 testée par `rejoindre` ; ses dix minutes inchangées ne déclenchent
+  pas la question (P1 reste distinct).
+  Suite unique **2 444 tests / 283 fichiers**, sept échecs bruts, zéro erreur,
+  16 ignorés, **3 166,835 s** ; cinq fichiers verts sur la base (20 tests),
+  puis 38 reprises vertes après correctif, migration N3/N9 et oracles explicités.
+  Aucune seconde suite complète ; aucun Luna, commits non signés. Bruts
+  `C:/Users/msics/donjon/artifacts/ou-est-221/` ;
+  [rapport 221](taches/rapport-codex-221-ou-est-il.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `planification.py`, fusionnés sans conflit textuel. Question commune au tiers présent, réponse d'après ses seules croyances (ouï-dire daté), indication démentie retenue selon sa cause ; même question pour le joueur. Sur bd45f65 : répétitions suspectes inchangées partout, préemptions 53 → 67, à expliquer 61 → 69 ; 17 questions sur 20 nuits. Fichiers de code communs depuis la base (deliberation, planification, echanges) : suite complète relancée sur la fusion.
+
 - **Branche `codex-secours-acquitte`, fusionnée**, lot **223** : départ
   `395834b`, puis intégration 213 `bd45f65` fusionnée sans conflit. Lecture
   `protection` pure ; acquittement sur constat dans `reagir`, appel non élucidé

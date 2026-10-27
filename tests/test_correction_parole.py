@@ -29,6 +29,7 @@ class CorrectionParoleTests(unittest.TestCase):
         return appels
 
     def test_n9_propositions_historiques_apres_preparation_refusee(self):
+        # Format 221 : localisation:false complète le protocole, sans changer les mots archivés.
         propositions = json.loads((Path(__file__).parent / 'data/n9-lot141.json').read_text(encoding='utf-8-sig'))
         m = banc('soir-noir')
         # Le tour précédent a fait entendre une voix, comme dans le fil réel.

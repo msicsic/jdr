@@ -1880,12 +1880,24 @@ def _chercher(v, e, sujet):
     """Perdu de vue : il va le chercher là où il est passé le moins récemment, et l'y suppose,
     hors des salles où il l'a cherché en vain (``deliberation.appels_vains``) ; None s'il n'en reste
     aucune. Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
+    # Le contact inconnu peut d'abord faire l'objet d'une question présente.
+    # Comme l'inspection, cette transition s'arrête avant toute suite supposée.
+    question = None
+    if e.salle == v.objets[v.id]["lieu"] and not e.fait("cherche", sujet):
+        recours = s_enquerir(v.monde, v.id, sujet=sujet, _vue=v, _etat=e)
+        if recours is not None:
+            etapes = [{**x, "suppose": True} for x in recours[1]]
+            suivant = e.apres(faits=[(("lieu", sujet), e.salle), (("cherche", sujet), True)])
+            mesure = _mesurer(v, e, etapes, suivant, 1)
+            if mesure is not None:
+                temps, pression, suivant = mesure
+                question = TransitionMesuree((0, temps + DEMANDE, etapes, suivant, temps, False, pression))
     visites = lire(v.monde, v.id)["visites"]
     vaines = appels_vains(v.monde, v.id, sujet)
     routes = {s: v.route(e, s) for s in v.salles if s not in vaines}
     routes = {s: r for s, r in routes.items() if r is not None}
     if not routes:
-        return None
+        return question
     # Le coût d'une route est celui de toute la recherche (``Vue.allers`` : passages compris).
     salle = min(routes, key=lambda s: (visites.get(s, -1), cout_route(routes[s], e.orientation), s))
     # Il y parcourt la salle des yeux, et l'appelle s'il ne le voit pas (``pnj.appeler``).
@@ -1894,9 +1906,10 @@ def _chercher(v, e, sujet):
     suivant = e.apres(salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)])
     mesure = _mesurer(v, e, etapes, suivant, cout_route(routes[salle], e.orientation) + 1)
     if mesure is None:
-        return None
+        return question
     temps, pression, suivant = mesure
-    return TransitionMesuree((0, temps + CHERCHER, etapes, suivant, temps, False, pression))
+    recherche = TransitionMesuree((0, temps + CHERCHER, etapes, suivant, temps, False, pression))
+    return min((question, recherche), key=lambda t: t[1] + t[6]) if question is not None else recherche
 
 
 def depart(monde, id, v=None):
@@ -3153,15 +3166,27 @@ def reclamer(monde, id):
     return {"type": "reclamer", "qui": meilleur[1]}, meilleur[2]
 
 
-def s_enquerir(monde, id, besoin):
+def s_enquerir(monde, id, besoin=None, *, sujet=None, _vue=None, _etat=None):
     """(but, étapes) pour demander à quelqu'un s'il a de quoi apaiser ``besoin`` (des vivres, du
     bois : ``echanges.enqueter``), quand rien de ce qu'il connaît n'y pourvoit : à qui il ne connaît
     rien de tel, qu'il ne se méfie pas et dont la réponse refusée ne tient plus (``deliberation.tient``),
-    le plus proche de là où il le croit. None s'il n'a personne à qui le demander."""
+    le plus proche de là où il le croit. Avec ``sujet``, demander le lieu d'une personne à
+    un interlocuteur cru présent ; ne supposer ni ce qu'il sait, ni une réponse positive.
+    None s'il n'a personne à qui le demander."""
     if not profil(monde, id):
         return None
-    v = vue(monde, id)
-    e = depart(monde, id, v)
+    v = _vue or vue(monde, id)
+    e = _etat or depart(monde, id, v)
+    if sujet is not None:
+        interroges = {s["de"] for s in lire(monde, id)["refus"]
+                      if s["operation"] == "enqueter_lieu" and s.get("objet") == sujet
+                      and tient(monde, id, s, v.connus)}
+        for autre in sorted(v.personnes()):
+            if (autre != sujet and autre not in interroges and not v.se_mefie(autre)
+                    and v.salle(e, autre) == e.salle):
+                return ({"type": "enquete", "qui": autre, "objet": sujet},
+                        [_etape("demander", autre, contenu={"localisation": sujet})])
+        return None
     # Qui n'en a pas, il ne le lui redemande pas tant que rien de ce qu'il croit de ces ressources n'a
     # changé ; qui s'est méfié, pas avant ``REDEMANDE`` minutes (``deliberation.tient``).
     interroges = {s["de"] for s in lire(monde, id).get("refus", ()) if s["operation"] == "enqueter"
