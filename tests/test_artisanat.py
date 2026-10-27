@@ -25,9 +25,16 @@ def action(p):
     return {"mode": "action", "texte": "", "faits": ["atelier"], "proposition": p}
 
 
+def au_contact(m):
+    # Toutes les matières de cette épreuve de fabrication sont à portée.
+    m.joueur["position"] = [2, 2]
+    m.objets["ficelle"]["position"] = [3, 2]
+    return m
+
+
 class ArtisanatTests(unittest.TestCase):
     def setUp(self):
-        self.m = nouveau_atelier()
+        self.m = au_contact(nouveau_atelier())
         self.moteur = Moteur(self.m)
 
     def jouer(self, p, jet=20):
@@ -108,7 +115,7 @@ class ArtisanatTests(unittest.TestCase):
     def test_ressources_manquantes_et_mesures_inconnues_sans_mutation(self):
         for champ, valeur in (("longueur_cm", 200), ("charge_jeu_kg", None)):
             with self.subTest(champ=champ):
-                m = nouveau_atelier()
+                m = au_contact(nouveau_atelier())
                 if valeur is None:
                     del m.objets["perche_3"][champ]
                 else:
@@ -260,7 +267,7 @@ class HarnaisTests(unittest.TestCase):
         self.assertEqual(m.data["revision"], 1)
 
     def test_correction_une_fois_avec_obstacle_sans_modifier_monde(self):
-        m = nouveau_atelier()
+        m = au_contact(nouveau_atelier())
         avant = copy.deepcopy(m.data)
         appels = []
         def appeler(instructions, entree, *args):

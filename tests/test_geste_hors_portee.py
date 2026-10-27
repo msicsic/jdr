@@ -33,9 +33,7 @@ class GesteHorsPorteeTests(unittest.TestCase):
                 self.assertFalse(m.visible(cible))
                 avant = copy.deepcopy(m.data)
                 d = [e for e in dossier(m) if e["cible"] == cible and e["methode"] == "dessous"]
-                self.assertEqual(len(d), 1)
-                self.assertIn("Approche-toi", d[0]["refus"])
-                self.assertIn(cible, d[0]["attendu"])
+                self.assertEqual(d, [])
                 self.assertEqual(m.data, avant)
                 p = reponse(passage(cible))
                 r, texte = jouer(m, ["est-ce que je pourrais passer dessous ?"], [p])

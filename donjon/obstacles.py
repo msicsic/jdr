@@ -655,9 +655,11 @@ def appliquer(m, acteur, cible, valeur, lignes):
 
 
 def dossier(m):
+    from .espace import objets_proches
+
     resultat = []
-    for i, o in m.objets.items():
-        if not o.get("bloque_passage") or not m.designable(i):
+    for i, o in objets_proches(m).items():
+        if not o.get("bloque_passage"):
             continue
         for methode in METHODES:
             try:

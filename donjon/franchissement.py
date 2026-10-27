@@ -156,8 +156,11 @@ def compiler(m, e, justification, origine):
 
 
 def dossier(m):
-    obstacles = [o for o in m.objets.values() if m.accessible(o["id"]) and o.get("appui_vertical")]
-    outils = [o for o in m.objets.values() if m.accessible(o["id"]) and
+    from .espace import objets_proches
+
+    objets = list(objets_proches(m).values())
+    obstacles = [o for o in objets if o.get("appui_vertical")]
+    outils = [o for o in objets if
               (o.get("ressource") == "perche" or "appui_mobile" in o.get("usages", []))]
     if not obstacles:
         return None

@@ -85,6 +85,8 @@ class FranchissementTests(unittest.TestCase):
             self.moteur.preparer(sequence(saut()["etapes"][1]))
 
     def test_inconnue_non_inventee_et_migration_respecte_faits(self):
+        self.m.objets["mur_atelier"]["appui_vertical"].update(position_bas=[2, 3], position_haut=[0, 0])
+        self.m.objets["perche_1"]["position"] = [2, 2]
         del self.m.objets["mur_atelier"]["appui_vertical"]["elan_cm"]
         with self.assertRaisesRegex(ErreurMonde, "elan_cm"):
             self.moteur.preparer(saut())

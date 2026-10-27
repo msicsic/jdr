@@ -29,6 +29,8 @@ def terrasse():
         id = m.trouver("echelle")
         moteur.executer(moteur.preparer(proposition("installer", id, "mur_atelier")))
         moteur.executer(moteur.preparer(proposition("franchir", id)))
+    from donjon.spatial import installer
+    installer(m)
     return m, id
 
 
