@@ -1,58 +1,58 @@
 # Lot 154 — poser au sol (L8)
 
-Branche `codex-poser-au-sol`, non fusionnée, base `0352f29`, code `8697169`.
-`main` intact. Pas de clé Git de signature configurée : commits non signés.
+Branche `codex-poser-au-sol`, non fusionnée, base `0352f29`, moteur `8697169`,
+présentation corrigée `040a9a1`. `main` intact ; aucune clé Git de signature,
+commits non signés, branche poussée seule.
 
-**Invariant moteur.** `operations.compiler` résout `destination: "sol"` vers la
-salle de Corvus avant validation : `deplacer`, `prelever`, séquences et effets
-d'improvisation partagent ce chemin. `deplacement_objet.deplacer` enregistre le
-lieu réel et la position. Ancienne salle courante compatible ; autre salle
-refusée avec `attendu`. Le prélèvement direct dépose aussi la pièce aux pieds
-de Corvus, au lieu de conserver la position du tas. Deux lignes des consignes
-désignent `sol`. Aucun assemblage de requêtes, fournisseur ou PNJ changé.
+**Contrat commun.** `operations.compiler` résout `destination: "sol"` vers la
+salle de l'étape : `deplacer`, `prelever`, séquences et effets d'improvisation.
+Ancienne salle courante compatible ; autre salle refusée avec `attendu`.
+`deplacement_objet.deplacer` conserve lieu réel et position ; le prélèvement
+direct dépose aussi la pièce aux pieds de Corvus. Les consignes disent `sol`.
 
-**Preuves déterministes.** Cinq nouveaux tests console/MJ simulé : torche,
-planche prélevée puis posée, prélèvement direct, séquence, improvisation,
-compatibilité et refus sans mutation. Après recharge : lieu, position, visibilité,
-scène, légende et coordonnées de carte. Audit simulé conforme : son jugement
-sémantique réel n'est pas prouvé. Reprise finale : **5/5 verts**. Suite complète
-unique, deux processus réduits : **2 174 tests, 245 fichiers, 1 285,395 s**, deux
-échecs MiMo historiques `6 != 5` (`test_restes_fusions` et
-`test_fournisseurs_jeu`), zéro erreur/ignoré ; pas de référence rejouée pour ces
-échecs déjà documentés. Banc rapide Relais, quatre graines × 4 h : états complets,
+**Correction de la contre-revue.** Le premier passage exposait l'effet interne
+vers `cour`, provoquant un faux refus du dépôt du couteau. C'était une lacune
+de représentation du contrat commun, corrigée dans ce lot. `decrire_depot` et
+`presenter_effet` fournissent le libellé « au sol, à tes pieds » et la destination
+publique `{destination: "sol", position: "à tes pieds"}`. Titre et information
+du plan, branches d'improvisation et dossier récursif de `couverture_action`
+l'utilisent. La salle interne n'est plus présentée comme lieu du dépôt,
+y compris quand une séquence change de salle. **Aucun effet exécutable modifié**,
+aucune consigne d'audit ni exception d'objet ajoutée ; fournisseurs et PNJ intacts.
+
+**Vérifications.** Sept tests propres au lot : console/MJ simulé, torche et
+planche, prélèvement direct, séquence, improvisation, compatibilité et refus ;
+état, scène et carte après recharge. Le nouveau test inspecte le dossier pour
+chaque voie, réussite/échec compris, et vérifie sa lecture sans mutation du
+monde ni du plan. **55 tests ciblés verts, quatre fichiers, 1,485 s**.
+La reprise ne change que titre/information/dossier : pas de nouvelle suite
+complète, conformément à la relecture. La suite initiale unique reste :
+**2 174 tests, 245 fichiers, 1 285,395 s**, deux échecs MiMo historiques `6 != 5`
+(`test_restes_fusions`, `test_fournisseurs_jeu`), zéro erreur/ignoré, deux
+processus réduits. Banc initial Relais quatre graines × 4 h : états complets,
 relevés, chroniques, récits, souvenirs et mesures **4/4 identiques** à `main`
-`812ebe5`. Aucun plantage ; trois constats `fige_presse` identiques par côté.
-Quatre références absentes rangées une fois, puis quatre nuits de branche,
-un processus réduit ; temps non comparés. Atelier absent du banc PNJ, couvert
-en console et par Luna.
+`812ebe5` ; aucun plantage, trois `fige_presse` identiques par côté. Quatre
+références absentes cachées une fois ; atelier absent de ce banc PNJ.
 
-**Luna, une passe**, quatre scripts, `gpt-6-luna`, ChatGPT, effort medium,
-réflexion libre, sauvegardes temporaires seulement, une exécution réduite à la fois.
-Référence `cdaf371` relue sans rejeu (SHA-256 dans `mesures-luna.json`).
+**Luna après correction : une passe demandée**, ChatGPT `gpt-6-luna`, medium,
+réflexion libre, une exécution réduite, sauvegardes temporaires uniquement.
 
-| Scripts | Appels/tours MJ référence → lot | Appels/tour référence → lot |
-|---|---:|---:|
-| atelier | 39/11 → 39/11 | 3,55 → 3,55 |
-| relais | 25/8 → 23/8 | 3,12 → 2,88 |
-| poser-sol-atelier | — → 5/1 | — → 5,00 |
-| poser-sol-relais | — → 5/1 | — → 5,00 |
+| Script | Appels/tours MJ | Appels/tour | Secondes/tour | Refus de destination |
+|---|---:|---:|---:|---:|
+| poser-sol-atelier | 4/1 | 4,00 | 9,6 | 0 |
+| poser-sol-relais | 4/1 | 4,00 | 11,4 | 0 |
+| atelier | 32/11 | 2,91 | 8,8 | 0 |
 
-Total lot : **72 appels / 21 tours MJ** ; aucun repli, incident technique du jeu
-ou erreur de recharge. Secondes/tour : atelier 10,9 → 10,2 ; Relais 9,9 → 9,5 ;
-épreuves ciblées 13,5 et 14,5. Charges différentes : aucun gain de temps établi.
-Export HTML initial arrêté après écriture du JSON, import du lanceur corrigé,
-HTML régénéré hors ligne : aucun script rejoué. Mentions sans fondement détectées
-au Relais : 1 → 2 ; ce compteur n'est pas un audit exhaustif.
+**40 appels/13 tours MJ**, couteau et torche réellement déposés ; dossiers
+Luna archivés avec destination publique `sol`. Zéro repli, incident technique,
+erreur de recharge ou mention sans fondement détectée. Atelier conserve deux
+tours avec refus de matériau/portée, sans rapport avec le dépôt. Référence
+`cdaf371` relue sans rejeu : atelier 39/11 (3,55 appels/tour, 10,9 s/tour).
+Charges différentes : aucun gain de temps établi ni garantie sémantique absolue.
 
-**Critère Luna sans refus de destination non atteint.** Atelier propose d'abord
-`sol`, accepté par le moteur ; la contre-revue confond son effet interne vers
-`cour` avec un dépôt ailleurs qu'au sol et le rejette. La correction `cour_sol`
-est refusée par le moteur, puis Luna abandonne : couteau toujours porté.
-Relais propose `antichambre_sol`, refusé, puis corrige vers `sol` et dépose
-effectivement la torche. Pas de seconde passe ni d'exception de scénario ou de
-consigne d'audit ajoutée. Le contrat typé du moteur est établi ; le parcours
-Luna sans faux refus n'est pas garanti, la contradiction sémantique reste ouverte.
-
-Bruts : `artifacts/poser-sol-154/` dans ce worktree ; quatre JSON Luna,
-quatre HTML (premier régénéré hors ligne), analyse, mesures et résultats de tests.
-Les sources en cache restent intactes. Branche poussée seule, sans fusion.
+Première passe conservée : quatre scripts, 72 appels/21 tours MJ, faux refus
+atelier et deux destinations de surface. Après correction, les deux dépôts
+réussissent sans refus ; la confusion possible `cour_sol`/`antichambre_sol`
+est signalée pour **L7**, sans traitement ici. Référence initiale intacte
+(SHA-256 dans `mesures-luna.json`). Bruts : `artifacts/poser-sol-154/`,
+complément `revue-luna/`, `revue-cibles.json` et `dossiers-revue.txt`.

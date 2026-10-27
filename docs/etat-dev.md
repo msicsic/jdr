@@ -5,7 +5,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-poser-au-sol`, non fusionnée**, lot **154 / L8**, base
-  `0352f29`, code `8697169` : `destination: "sol"` résolu dans le compilateur
+  `0352f29`, moteur `8697169`, présentation corrigée `040a9a1` : `destination: "sol"` résolu dans le compilateur
   commun de `deplacer`/`prelever`, séquences et effets d'improvisation compris.
   Ancienne salle courante compatible, autre salle refusée avec `attendu` ;
   prélèvement direct déposé aux pieds de Corvus, état sauvegardé en lieux réels.
@@ -18,9 +18,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   identiques par côté ; quatre références absentes rangées une fois.
   Luna une passe, atelier/Relais et deux dépôts ciblés : **72 appels/21 tours MJ**,
   commun **64 → 62 appels/19 tours**, référence `cdaf371` relue sans rejeu.
-  **Critère sans refus de destination non atteint** : surface proposée deux fois,
-  refusée ; torche ensuite posée via `sol` au Relais, couteau toujours porté à
-  l'atelier après faux refus de l'audit sur l'effet interne vers `cour`.
+  Relecture : le faux refus atelier était une lacune du lot, corrigée dans le
+  titre, l'information et la projection des effets du dossier de contre-revue :
+  « au sol, à tes pieds », destination publique `sol`, salle interne préservée
+  dans les seuls effets exécutables. Même source pour les prélèvements, séquences
+  et branches d'improvisation ; aucune consigne d'audit ajoutée. **55 tests ciblés
+  verts**, dont dossier sans mutation ; pas de nouvelle suite complète pour cette
+  reprise de présentation. Nouvelle passe demandée des deux dépôts et d'atelier :
+  **40 appels/13 tours MJ**, couteau et torche posés sans refus, quatre appels chacun,
+  atelier **32/11**, contre 39/11 en référence. Aucun refus de destination,
+  repli/incident technique/erreur de recharge/mention sans fondement détectée.
+  Deux tours avec refus de matériau/portée à l'atelier. Les surfaces génériques
+  proposées lors de la première passe sont signalées pour L7, sans traitement ici.
   Aucun repli/incident technique du jeu/erreur de recharge. Export HTML initial
   interrompu puis régénéré hors ligne, aucun script rejoué. Pas de clé de
   signature : commits non signés, branche poussée seule ; `main` intact.
