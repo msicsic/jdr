@@ -29,11 +29,32 @@ def epreuve(gardien="marchand", approchant="joueur"):
     p["besoins"]["biens"] = {"depart": 0, "derive_heure": 0, "urgence": 70}
     p["pulsions"] = [{"besoin": "biens", "condition": {"objet": "cle_reserve", "lieu": "antichambre"}}]
     lire(m, gardien)["pulsions"] = [True]
+    orienter(m, gardien, "cle_reserve")
+    percevoir_tous(m)
+    if approchant == "joueur":
+        m.joueur["position"] = [1, 5]
+    else:
+        placer(m, approchant, "antichambre", (1, 5))
     orienter(m, gardien, approchant)
+    percevoir_tous(m)
+    if approchant == "joueur":
+        m.joueur["position"] = [2, 5]
+    else:
+        placer(m, approchant, "antichambre", (2, 5))
     percevoir_tous(m)
     lire(m, gardien)["relations"].pop(approchant, None)
     memoriser(m, gardien, {"type": "service_rendu", "de": approchant, "preuve": "fixture-service"})
     memoriser(m, gardien, {"type": "vol_surpris", "auteur": approchant, "objet": "cle_reserve"})
+    if approchant == "joueur":
+        m.joueur["position"] = [1, 5]
+    else:
+        placer(m, approchant, "antichambre", (1, 5))
+    percevoir_tous(m)
+    if approchant == "joueur":
+        m.joueur["position"] = [2, 5]
+    else:
+        placer(m, approchant, "antichambre", (2, 5))
+    percevoir_tous(m)
     return recharger(m)
 
 
@@ -65,9 +86,12 @@ class InterpositionTests(unittest.TestCase):
 
     def test_confiance_ne_provoque_pas_interposition(self):
         m = epreuve()
-        # Une relation initiale de confiance, fixée par la scène.
         lire(m, "marchand")["relations"].pop("joueur", None)
+        for n in range(5):
+            memoriser(m, "marchand", {"type": "service_rendu", "de": "joueur", "preuve": f"ami:{n}"})
+        self.assertTrue(relations.confiance(relations.envers(m, "marchand", "joueur")))
         self.assertIsNone(defense.interposition(m, "marchand"))
+        self.assertIsNotNone(laisser_passer(m, "marchand", "joueur")[0])
 
     def test_guet_lu_protege_et_tiers_sur(self):
         m = epreuve()
@@ -85,6 +109,9 @@ class InterpositionTests(unittest.TestCase):
         orienter(m, "marchand", "ilse")
         percevoir_tous(m)
         orienter(m, "marchand", "joueur")
+        m.joueur["position"] = [1, 5]
+        percevoir_tous(m)
+        m.joueur["position"] = [2, 5]
         percevoir_tous(m)
         r = defense.interposition(m, "marchand")
         self.assertIsNotNone(r)
@@ -103,8 +130,15 @@ class InterpositionTests(unittest.TestCase):
         orienter(m, "anselme", "ballot")
         percevoir_tous(m)
         orienter(m, "anselme", "joueur")
+        m.joueur["position"] = [1, 2]
+        percevoir_tous(m)
+        m.joueur["position"] = [2, 2]
         percevoir_tous(m)
         memoriser(m, "anselme", {"type": "vol_surpris", "auteur": "joueur", "objet": "ballot"})
+        m.joueur["position"] = [1, 2]
+        percevoir_tous(m)
+        m.joueur["position"] = [2, 2]
+        percevoir_tous(m)
         m = recharger(m)
         choisir(m, "anselme", 0)
         passer(m, MINUTE)
@@ -113,6 +147,15 @@ class InterpositionTests(unittest.TestCase):
         self.assertTrue(any(s["type"] == "mise_en_garde" and s["objet"] == "ballot"
                             for s in lire(m, "anselme")["memoire"]))
         self.assertIn("Anselme", regarder(m))
+
+    def test_presence_immobile_ne_renouvelle_pas_avertissement(self):
+        m = epreuve()
+        passer(m, MINUTE)
+        m = recharger(m)
+        passer(m, 31 * MINUTE)
+        m = recharger(m)
+        paroles = [s for s in m.data["chronique"] if "s'interpose" in s["texte"]]
+        self.assertEqual(len(paroles), 1)
 
     def test_meme_laps_decoupe_et_recharge(self):
         for gardien, autre in (("marchand", "joueur"), ("aubin", "brune")):
