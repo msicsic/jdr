@@ -30,7 +30,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   du calcul d'intégration. Copies seulement ; aucune clé de signature, commits
   non signés, branche seule poussée ; `main` intacte.
   [Rapport 158](taches/rapport-codex-158-schema-invariant.md), bruts `artifacts/schema-158/`.
-  Fusionné sur l'intégration : conflits de documentation, de `tools/mesure_prompt.py` (même correction de la clé par voie des deux côtés, version de la branche gardée) et de `tests/test_cache_kv_local.py` (comparaison avec et sans l'ordre des sources sur le code courant gardée, sans nouvelle empreinte figée) ; `mj.py` touché aussi par les lots 150, 151 et 159, fusionné sans conflit textuel ; suite complète relancée. L'audit narratif reste variable (44/74) : suite de L2 à faire.
+  Fusionné sur l'intégration : conflits de documentation, de `tools/mesure_prompt.py` (même correction de la clé par voie des deux côtés, version de la branche gardée) et de `tests/test_cache_kv_local.py` (comparaison avec et sans l'ordre des sources sur le code courant gardée, sans nouvelle empreinte figée) ; `mj.py` touché aussi par les lots 150, 151 et 159, fusionné sans conflit textuel ; suite complète relancée. L'audit narratif reste variable (44/74) : suite de L2 à faire. Suite complète sur la fusion (`tools/tests.py --processus 2`) : **2 212 tests, 16 ignorés, une erreur** : `test_scenarios_libres.test_resultat_local_attend_une_sauvegarde_reussie_avant_affichage`, `StopIteration` des saisies simulées, intermittente déjà vue aux lots 54 et 83 ; fichier repris seul deux fois, vert (6 tests).
 
 - **Vérification d'intégration 7adc788**, lot **160**, branche
   `codex-verif-integ-7adc788` : aucun code du jeu changé, aucun Luna, aucune
