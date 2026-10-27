@@ -4,6 +4,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Lot 203, diagnostic seul**, `codex-capacites-salle`, base `2fe05b9` : portée manuelle encore bornée au secteur (deux cas au seuil ouvert, état et rendu rechargés), contexte social PNJ et projections MJ recensés ; lots P1–P3 proposés, MJ gelé séparé, aucune garantie générale ni modification du jeu, aucun Luna ; un processus réduit, bruts `C:/Users/msics/donjon/artifacts/capacites-203/`, [rapport 203](taches/rapport-codex-203-capacites-salle.md).
+
 - **Branche `codex-garantie-avis`, fusionnée**, lot **199 / 196d**,
   base `0fb5a07` : mesure déterministe des retours de décision dans l'audit
   des nuits et le comparateur, mode empreintes compris ; comptes par PNJ,
