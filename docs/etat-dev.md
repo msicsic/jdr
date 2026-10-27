@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-portee-sans-salle`, fusionnée**, lot **204**, base
+  `51c1e0b` : P1 implémenté en mode cases ; contact par pas commun au joueur,
+  aux accès PNJ et à leur approche, indépendamment du secteur de la cible ;
+  contenants/portes fermés et coins bloqués préservés, positions crues conservées.
+  Les deux côtés d'une diagonale doivent être libres, comme pour la marche ;
+  le volume de la cible ou de son support ne bloque pas son propre contact.
+  État et rendu rechargés, saisie réelle torche/crochets, autre seuil/verbe,
+  PNJ et temps découpé vérifiés. **88 ciblés puis 18 finaux verts** ; suite unique
+  **2 385 tests / 276 fichiers, 29 échecs et six erreurs**, ramenés après
+  corrections et adaptations vérifiées à **trois échecs préexistants reproduits
+  sur la base** (deux MiMo, AST du compteur 199), zéro erreur ; pas de seconde
+  suite complète. Empreintes 2 h : **6/16 identiques**, dix écarts de comportement,
+  zéro plantage ; références exactes en cache, ancien `main` incompatible avec
+  la sonde actuelle. **VERIFIER + spatial.VERIFICATION 0,2**, Relais 1985 2 h : vert.
+  Banc final 4 h, 16 paires : zéro plantage/constat d'usurpation, pics de passages/h
+  inchangés **10/9/18/38** ; retours suspects **275 → 380** (Relais 1→1, mine 1→2,
+  auberge 2→5, crue 271→372), à expliquer **313 → 292**, cycles **469 → 463**.
+  **Critère « aucune boucle nouvelle » non validé** : nouvelle alerte d'alternance
+  entretien du brasero/garde de Gorm, Relais 1985 min 5 ; réserve avant intégration
+  avec 201. Aucune alerte masquée ni correctif dans les fichiers de cet autre lot.
+  P2/P3 et M1–M3 restent ouverts ; aucun code de 201/202 ni du MJ modifié,
+  aucun Luna, deux travailleurs réduits au plus. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/portee-204/` ;
+  [rapport 204](taches/rapport-codex-204-portee-sans-salle.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Banc 4 h cinq scénarios × quatre graines sur la fusion contre f746c30 : retours non justifiés 82 → 57 (hameau 48 → 24, crue 28 → 27, auberge 2 → 5, mine 3 → 1, Relais 1 → 0), aucune alternance nouvelle de Gorm ni usurpation ; la hausse du rapport venait de sa base antérieure au lot 201.
+
 - Branche `codex-ceder-outil`, **non fusionnée**, lot **202** (`74a4bc4`) : céder un bien compte la capacité perdue (`biens.capacites_crues`, `valeur_bien`, ventes, marchés, contreparties ; prêt distinct). Lucien garde ses crochets (auberge 1, 239) ; Gaspard offre encore son briquet (sa lampe allumée compte comme autre flamme). Offres d'outils 36 → 19, acceptées 3 → 0, mais S/F/D en légère baisse (Relais, mine), crue sans recours 15 → 30, trois retours brefs nouveaux en crue 2024 ; **coût mine 4 h : nœuds +58 %, recherches +41 %** ; deux écarts de parcours propres à la branche dans la suite. **Mis en attente**, décision à l'utilisateur. [Rapport 202](taches/rapport-codex-202-ceder-outil.md) sur la branche ; bruts `artifacts/outil-202/`.
 
 - **Branche `codex-occasions-sur-base`, fusionnée**, lot **200**, base

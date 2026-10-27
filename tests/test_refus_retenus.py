@@ -112,20 +112,32 @@ class TacheImpossibleTests(unittest.TestCase):
         # (où elle le croit : dans la chambre, ou aux mains d'Anselme si elle l'y a vu depuis)
         self.assertTrue([f for f in refus["cause"] if f[:2] == ["moyen", "bois_anselme"]], refus["cause"])
 
-    def test_au_banc_une_nuit_sans_bois_chaque_offre_impossible_n_est_faite_qu_une_fois(self):
+    def test_au_banc_une_nuit_sans_bois_pas_de_meme_offre_pour_la_meme_cause(self):
         # Autre cas de même nature : toute l'auberge, trois foyers, plus de bois du tout (300 minutes).
         m = creer("auberge", 1985, "fixe")
         for k in ("bois_cuisine", "fagots_etable", "bois_anselme"):
             m.objets[k]["charges"] = 0
         sans(m, "bois_reserve")   # La réserve d'Odile (branche ``ressources``) est brûlée aussi.
         m.objets["fourneau"]["combustible"] = 8
-        m, textes = vivre_long(recharger(m), 300)
-        # Les offres pour un feu : sans bois, rien de nouveau ne les rend possibles. (Dans cette nuit, depuis
-        # la branche ``temps-reel``, Lucien et Anselme se disputent aussi le ballot : chaque fois qu'Anselme
-        # apprend où il est passé, c'est un moyen nouveau, et l'offre d'aller le chercher se refait.)
+        causes = []
+        def noter(monde, id, autre, operation, raison, *args, **detail):
+            resultat = retenir_refus(monde, id, autre, operation, raison, *args, **detail)
+            if operation == "engager" and raison == "impossible" and detail.get("tache") == "allume":
+                refus = refus_retenu(monde, id, autre, (operation,), detail["objet"])
+                self.assertIsNotNone(refus)
+                causes.append((id, autre, detail["objet"],
+                               frozenset(tuple(f) for f in refus["cause"])))
+            return resultat
+        with patch("donjon.deliberation.retenir_refus", side_effect=noter):
+            m, textes = vivre_long(recharger(m), 300)
+        # Les mots seuls ne distinguent pas les offres : un nouveau moyen cru
+        # autorise une nouvelle demande, sans délai ni répétition de la même cause.
         impossibles = [t for t in textes if " fasse en sorte que " in t and t.endswith("soit allumé (impossible).")]
         self.assertTrue(impossibles)
-        self.assertEqual(len(impossibles), len(set(impossibles)), impossibles)
+        # Une flamme nouvellement acquise est un moyen nouveau, même sans bois.
+        # La même offre ne doit jamais se répéter pour la même cause retenue.
+        self.assertTrue(causes)
+        self.assertEqual(len(causes), len(set(causes)), causes)
 
 
 class PartImpossibleTests(unittest.TestCase):
