@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-force-contre-revue`, fusionnée, lot **172**, base
+  `79594e4` : dossier de traînage avec les deux déplacements du trajet validé,
+  titre/information communs, positions des lieux non visités masquées ; dossier
+  de porte avec lieu de Corvus et état après opération, consigne d'enfermer sans
+  déplacer la personne déjà derrière. Aucun effet moteur ni instruction d'audit
+  changé. Deux scènes de chaque nature, console et monde/rendu rechargés ;
+  **29 ciblés finaux verts**. Suite unique : **2 249 tests, 259 fichiers,
+  1 279,825 s**, aucune erreur/ignoré, deux échecs MiMo historiques `6 != 5`.
+  **16/16 empreintes 2 h identiques** à `79594e4`, Relais/mine/auberge/rixe ×
+  quatre graines ; références manquantes rangées une fois, aucun temps comparé.
+  Vérifications détaillées au [rapport 172](taches/rapport-codex-172-force-contre-revue.md).
+  **Luna non validée** : deux exécutions en erreur « Coffre ChatGPT illisible »
+  avant tout appel modèle ; critère des trois appels non certifié. Commande
+  exacte dans `C:/Users/msics/donjon/artifacts/force-172/luna-a-jouer.txt`.
+  PC fixe partagé, deux travailleurs réduits au plus, bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/force-172/`. Aucune clé de signature configurée ;
+  commit non signé, branche seule poussée ; `main` intacte.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `tenir.py`, fusionnés sans conflit textuel. Validation Luna jouée par l'orchestrateur (coffre illisible pour l'agent), contre cdaf371 : traîner/enfermer deux passes 5,25 → 2,75 appels/tour, 23,8 → 12,3 s/tour, relances 1 → 0 ; neuf autres bancs de force une passe 2,53 → 2,29 appels/tour, aucun repli. **Critère non atteint** : la contre-revue rejette encore 2/2 le pas inhérent de traîner (« fait aussi avancer le joueur ») et 1/2 un plan d'enfermement correct (« ne déplace pas Bram ») ; p2 enfermer propose d'emblée de déplacer Bram ; les quatre saisies finissent sur le refus de portée d'une proposition de repli, dans les deux variantes. Petit lot de suite : la contre-revue tient les déplacements établis par le moteur pour un geste comme partie de ce geste (lot 177). Suite complète relancée (`tenir.py` touché aussi par le lot 167 c).
+
 - Branche `codex-sol-surface`, fusionnée, lot **173**, base `79594e4` :
   `operations.compiler` résout via `deplacement_objet.destination_depot` une
   surface nommée `sol`, perçue dans la salle courante, comme `destination: sol`.

@@ -439,11 +439,18 @@ def preparer(monde, p, plan):
     if p["methode"] != "simple":
         raise ErreurMonde("Cette manière n'est pas prévue.", f"methode={p['methode']} : simple requis.")
     if operation == "trainer":
-        depart, _, _ = valider_trajet(monde, "joueur", cible, outil)
+        depart, victime, arrivee = valider_trajet(monde, "joueur", cible, outil)
+        def position(place):
+            return {"salle": place[0], "position": list(place[1])}
+        plan.deplacements = [
+            {"acteur": "joueur", "depart": position(depart), "arrivee": position(arrivee)},
+            {"acteur": cible, "depart": position(victime), "arrivee": position(depart)},
+        ]
         # Repère de lecture calculé sur le même trajet validé ; aucun effet ni état ajouté.
         plan.destination_corps = depart[0]
         plan.information = ("En cas de réussite, le corps rejoint ta case de départ dans "
-                            f"{monde.data['salles'][depart[0]]['nom']} ; tu avances d'un pas vers {outil}.")
+                            f"{monde.data['salles'][depart[0]]['nom']} ; tu avances d'un pas vers {outil}. "
+                            "Ces deux déplacements forment ensemble le pas de traînage.")
     else:
         valider(monde, "joueur", operation, cible, outil)
     nom = designer(monde.objets[cible]) if cible != "joueur" else "toi"

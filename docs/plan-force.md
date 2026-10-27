@@ -653,6 +653,16 @@ tests verts, pas de nouvelle passe Luna après cette correction. Aucun effet
 moteur ni instruction de contre-revue changé ; `tuer` exigeait déjà une cible
 sans défense. Voir le [rapport 157](taches/rapport-codex-157-force-restes.md).
 
+Lot 172, branche `codex-force-contre-revue`, **non fusionnée** : le dossier de
+traînage porte les deux déplacements calculés par le trajet validé, avec masque
+des positions dans les lieux non visités ; titre et information les présentent
+comme un seul pas. Le dossier des portes situe Corvus et donne l'état produit
+par chaque opération, sans déplacer la personne déjà derrière. Les consignes
+de ces gestes partagent ce sens. Tests à deux scènes, console et recharge ;
+**Luna non validée** (coffre illisible avant appel modèle), critère des trois
+appels et absence générale de faux refus non certifiés.
+Voir le [rapport 172](taches/rapport-codex-172-force-contre-revue.md).
+
 Consignes, actions typées et leurs `attendu`, improviser sans violence, état du corps comme domaine
 mécanique, locuteurs autorisés. Mesure : banc de parties `force` (`tools/banc_parties.py --fil`,
 copies de sauvegardes réelles) : « je frappe Brune avec le marteau », « j'assomme Gorm par

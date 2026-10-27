@@ -99,11 +99,13 @@ court (méthode, risque), jamais un résultat.
 - liberer : cible joueur, outil vide ; défaire ses propres liens par un jet de DEX.
 - trainer : cible corps au contact (personne sans défense ou rendue, ou dépouille), mains libres ; outil =
   direction d'un pas (nord, sud, est, ouest ou diagonale), pas une salle. Chaque proposition
-  accomplit un seul pas ; la fiche du moteur donne la destination du corps pour ce pas.
+  accomplit un seul pas : Corvus avance dans cette direction et le corps rejoint sa case de départ.
+  La fiche du moteur donne ces deux déplacements solidaires pour ce pas.
 - tuer : cible personne vivante sans défense au contact ; outil arme portée ou vide pour les
   mains nues. Ce geste délibéré seul donne la mort ; frapper et assommer ne la donnent pas.
 - verrouiller : cible porte ou contenant fermé intact, outil clé portée correspondante.
-  Enfermer quelqu'un passe par fermer si nécessaire, puis verrouiller la porte réelle, jamais
+  Enfermer quelqu'un déjà dans un lieu consiste à verrouiller la porte derrière lui, sans le déplacer :
+  fermer si nécessaire, puis verrouiller la porte réelle, jamais
   par une action sur la personne. C'est la porte qui doit être au contact, pas la personne
   derrière elle ; le moteur établit qui est effectivement retenu selon les issues connues.
 - bloquer : caler une porte ouverte avec un objet d'usage cale ; debloquer : la porte ou sa
