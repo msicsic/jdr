@@ -560,12 +560,38 @@ ne prouve aucune fin. Une réparation constatée peut démentir cette croyance.
 la sortie du choix et sans renaissance, même après réparation. Une position
 inconnue ne termine rien. Les épreuves ne déclarent des gardes qu'en tests.
 
-**Restent dans les fins de garde** : rendu au propriétaire, remis par le
+**À sa livraison, restaient dans les fins de garde** : rendu au propriétaire, remis par le
 porteur, perte vue aux mains d'un autre sans permission. Cette livraison ne
 garantit donc pas tout l'invariant de fin du brief initial. **Restent pour
 A4b** : suivi à portée de voix, interposition d'un lieu et fin de `protéger`
 sur départ définitif, à décider ; aucun départ hors d'atteinte n'est inventé.
 Voir le [rapport 175](taches/rapport-codex-175-fins-agendas.md).
+
+**Lot 179, `codex-garde-rendue-perdue`, non fusionnée : transferts constatés,
+livraison partielle autorisée.** `esprits.constater_possession` attache au lieu
+cru une preuve datée du porteur et des droits au moment du constat. La vue et
+`echanges.remettre` (donneur et receveur, joueur compris) utilisent cette même
+voie ; une remise mandatée par le propriétaire garde sa preuve d'autorisation
+après clôture du mandat. `agendas._fin_garde` lit uniquement ces croyances :
+remis à qui de droit par le gardien, rendu au propriétaire autre que le gardien,
+ou porté par un tiers sans permission. La cause suit la publication différée
+et l'irréversibilité des fins du lot 175. Un prêt, une garde confiée et une
+position inconnue ne prouvent pas la perte ; pas de nouveau réveil ni de
+nouveau moyen dans la recherche, pas de cumul avec la pulsion.
+
+**Reste l'ouï-dire, pour le joueur et les PNJ.** L'extension ébauchée des
+constats a été retirée : leur identité de fait peut être masquée par une
+ancienne accusation de portage, dépourvue des droits datés nécessaires.
+Il faut unifier la transmission de ces propriétés dans le contrat commun,
+sans inventer de permission depuis le réel à la réception. Le joueur n'a
+pas non plus les relations subjectives nécessaires au jet des PNJ.
+`social.py` est inchangé ; aucune nouvelle parole automatique n'est ajoutée.
+Les transferts exécutés hors `echanges.remettre` passent par la vue, sans
+nouvelle preuve de remise propre dans le noir. L'invariant complet sur toutes
+ces voies n'est donc pas garanti. A4b reste aussi ouvert pour le suivi vocal,
+l'interposition d'un lieu et le départ définitif d'un protégé, toujours à
+décider. Aucun agenda historique ajouté.
+Voir le [rapport 179](taches/rapport-codex-179-garde-rendue-perdue.md).
 
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
