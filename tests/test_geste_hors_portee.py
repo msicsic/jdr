@@ -90,3 +90,56 @@ class GesteHorsPorteeTests(unittest.TestCase):
         self.assertIn("Approche-toi", r["texte"])
         self.assertEqual(m.data, avant)
 
+
+
+class RefusLocalTests(unittest.TestCase):
+    def test_console_barricade_et_prise_refus_exact_puis_fiche_au_contact(self):
+        from tests.test_audits_attendu import jouer as console
+        from donjon.operations import sequence, etape
+        from tests.test_tensions import placer
+        for cible, p, saisie in (
+            ("poutre_conduite", passage(), "est-ce que je pourrais passer sous la poutre effondrée ?"),
+            ("crochets", sequence(etape("deplacer", "crochets", "joueur")),
+             "est-ce que je pourrais récupérer la trousse de crochets ?"),
+        ):
+            with self.subTest(cible=cible):
+                m = scene()
+                m.data["salles"]["echoppe"]["lumiere_naturelle"] = 2
+                m.joueur.update(position=[3, 1], orientation="est")
+                placer(m, cible, "echoppe", (7, 1))  # six mètres, quatre cases
+                m = recharger(m)
+                with self.assertRaises(HorsDePortee) as refus:
+                    Moteur(m).preparer(p, "MJ")
+                m, _, _ = console(m, "quitter", [], [])  # perception initiale enregistrée
+                avant = copy.deepcopy(m.data)
+                r, texte, appels = console(m, saisie, [reponse(p)], [])
+                self.assertEqual([f for f, _ in appels], ["repondre_au_joueur"])
+                self.assertIn(str(refus.exception), texte)
+                self.assertNotIn(refus.exception.attendu, texte)
+                self.assertEqual(r.data["narrations_mj"][-1]["texte"], str(refus.exception))
+                self.assertEqual({k: v for k, v in r.data.items() if k not in ("conversation", "narrations_mj")},
+                                 {k: v for k, v in avant.items() if k not in ("conversation", "narrations_mj")})
+                # Le même refus reste affiché après une nouvelle recharge.
+                r, texte, appels = console(recharger(r), saisie, [reponse(p)], [])
+                self.assertIn(str(refus.exception), texte)
+                self.assertEqual({k: v for k, v in r.data.items() if k not in ("conversation", "narrations_mj")},
+                                 {k: v for k, v in avant.items() if k not in ("conversation", "narrations_mj")})
+                m.joueur["position"] = [6, 1]
+                m = recharger(m)
+                r, texte, appels = console(m, saisie, [reponse(p)], [])
+                self.assertNotIn("Approche-toi", texte)
+                self.assertIn("tenter", texte.lower())
+                self.assertEqual(r.joueur["position"], m.joueur["position"])
+                self.assertEqual(instant(r), instant(m))
+
+    def test_cible_inconnue_garde_la_correction_ordinaire(self):
+        from tests.test_audits_attendu import jouer as console
+        m = scene()
+        faux = reponse(passage("cible_inconnue"))
+        r, texte, appels = console(m, "est-ce que je pourrais passer sous la poutre effondrée ?",
+                                  [faux, reponse(passage())], [])
+        interpretations = [e for f, e in appels if f == "repondre_au_joueur"]
+        self.assertEqual(len(interpretations), 2)
+        self.assertIn("attendu", interpretations[1]["faits"]["retour_moteur"])
+        self.assertNotIn("Approche-toi", texte)
+        self.assertIn("tenter", texte.lower())

@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-portee-locale`, fusionnée**, lot **151**, base `4641dc3` :
+  `HorsDePortee` rendu directement par `reponse_du_moteur`, sans explication
+  ni audit, sans déplacement ni effet mécanique. Autres refus et paroles
+  attendues sur leurs voies ordinaires ; aucun assemblage, consigne, schéma
+  ou fournisseur modifié. **28 ciblés verts puis cinq tests de portée verts**,
+  barricade à six mètres, prise éloignée, fiche au contact et cible inconnue
+  corrigée ; état et rendu après recharges. Suite complète unique : **2 162 tests,
+  242 fichiers, 16 ignorés, 3 514,6 s, zéro échec d’assertion, une erreur TUI
+  Windows** de remplacement temporaire ; seul test repris vert, sans changement
+  ni seconde suite. Un worker réduit pour cohabiter, vérification au-delà du créneau.
+  Luna une passe, neuf scripts : **72 → 80 appels / 29 tours MJ**, 2,48 → 2,76
+  appels/tour, 7,96 → 8,68 s/tour ; coup de pied Relais et saut avec perche
+  **3 → 1 appel** chacun. Aucun repli, incident technique ou défaut de recharge.
+  Neuf références `cdaf371` manquantes jouées une fois et cachées.
+  **L5 partiel** : premier refus seulement, recensement de toutes les cibles
+  éloignées et validité du reste de la proposition non garantis ; un essai de
+  collecte retiré a révélé les contrôles de distance répartis dans les préparateurs.
+  Une reprise coordonnée du moteur dépasse les fichiers autorisés dans ce lot.
+  Code `3805393`. Aucune clé de signature configurée ; commits non signés, branche seule poussée.
+  [Rapport 151](taches/rapport-codex-151-portee-locale.md).
+  Fusionné sur l'intégration après le lot 150 : conflits de documentation seulement ; `mj.py` touché aussi par le lot 150 (ordre des requêtes), fusionné sans conflit textuel ; suite complète relancée. Question de l'agent (recenser toutes les cibles éloignées en reprenant les préparateurs) non retenue : le joueur lit le premier refus puis s'approche.
+
 - **Branche `codex-prompt-prefixe`, fusionnée**, lot **150**, base `4641dc3`,
   code `9a55cc1` : portage ciblé de `9d53229`, ordre commun des faits et entrées,
   contexte avant propositions d’audit, révision en fin de relance, clés par voie,

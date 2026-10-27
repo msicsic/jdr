@@ -703,8 +703,9 @@ class MJ:
                     self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
                                       "revision": revision, "tentative": tentative + 1, **retour})
                 if isinstance(exc, HorsDePortee):
-                    # Aucune proposition ne rapproche le joueur : on explique sans redemander.
-                    correction_utilisee = True
+                    # Seuls les pas du joueur lèvent cet obstacle. Le refus est déjà
+                    # une réponse publique : aucune explication ni audit à demander.
+                    return reponse_du_moteur(exc)
                 forme = isinstance(exc, RefusDeForme) and not forme_corrigee and tentative < 2
                 if correction_utilisee and not forme and parole_attendue(monde, intention):
                     # Une parole n'est jamais perdue : le moteur prononce lui-même les mots du joueur.
