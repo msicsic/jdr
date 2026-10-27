@@ -4,6 +4,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-contrat-engagement`, non fusionnée**, lot **213 / 196 c**,
+  base `cca5f50` vérifiée : **tentative inachevée, aucune correction moteur**.
+  Examen du maintien à plan vide, de la naissance des secours et des issues
+  non distinguées par le résultat public du planificateur. Aucun fichier
+  interdit modifié, aucun Luna. Reproduction de base : 20 nuits 4 h,
+  suspects 0/1/5/9/9 (total 24), zéro plantage, références exactes en cache ;
+  deux travailleurs réduits au plus. Aucun critère de correction validé.
+  Bruts `C:/Users/msics/donjon/artifacts/engagement-213/` ;
+  [état de la tentative 213](taches/rapport-codex-213-contrat-engagement.md).
+  Contrat commun et totalité des vérifications du brief restent à réaliser.
+
 - **Branche `codex-evacuation-juge`, fusionnée**, lot **205 / 196 b**,
   départ `71bb01d`, reprise demandée sur **`ef86cab` (204 intégré)** : péril
   indépendant du plan, certificat de transit, repli vers moins d’eau, abri commun
