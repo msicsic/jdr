@@ -60,9 +60,11 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
   incluses sans condition de disponibilité ; indication du refus courant dans
   l'entrée. Sur huit captures Relais/atelier, **7/7 → 0/7 variations**, consignes
   moyennes **34 259,75 → 39 910 caractères**. Quatre parcours console identiques
-  à la base, état complet et rendu rechargés. **Validation partielle** : campagne
-  Luna bloquée par la revue automatique d'autorisation d'exportation ; aucun gain
-  de temps, cache réel ni critère des refus établi pour ce lot.
+  à la base, état complet et rendu rechargés. Suite unique **2 214 tests,
+  16 ignorés, zéro échec/erreur**. **Validation partielle** : campagne
+  Luna confiée à l’orchestrateur : « passe Luna faite par l'orchestrateur, à compléter »
+  (aucune passe exécutée ici). Aucun gain de temps, cache réel ni critère des refus
+  établi pour ce lot.
   [Rapport 161](taches/rapport-codex-161-consignes-invariantes.md).
 - **L4 fait, lot 152, branche `codex-dossiers-proches`, fusionnée** — les quatre dossiers passent par
   `espace.objets_proches` (visibilité et `spatial.proche`), installations et outils compris ; les repères éloignés

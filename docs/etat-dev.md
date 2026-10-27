@@ -11,11 +11,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   **7/7 → 0/7 variations** sur huit captures Relais/atelier, consignes moyennes
   **34 259,75 → 39 910 caractères**. Quatre parcours console identiques à la base,
   état complet et rendu rechargés. Première passe **27 ciblés verts** ; suite
-  complète différée jusqu'à la fin du calcul d'intégration. **Validation partielle** :
-  revue automatique refusant l'exportation des scénarios/états vers ChatGPT,
-  campagne Luna en attente d'autorisation explicite ; aucun gain de latence,
-  cache réel ou critère des refus établi. Commit local non signé ; poussée `origin`
-  également bloquée par la revue automatique. `main` intacte.
+  complète unique **2 214 tests, 253 fichiers, 16 ignorés, zéro échec/erreur,
+  2 060,44 s**, deux travailleurs réduits après la fin du calcul d’intégration.
+  Deux nouveaux tests L3 et neuf tests cache/local verts dans cette suite. **Validation Luna** :
+  « passe Luna faite par l'orchestrateur, à compléter » (rubrique réservée ; aucune
+  passe exécutée ici). Commande déposée dans `luna-a-jouer.txt`. Mesures Luna et
+  critère des refus à compléter par l'orchestrateur, qui poussera la branche.
+  Commits locaux non signés ; aucune poussée par cet agent. `main` intacte.
   [Rapport 161](taches/rapport-codex-161-consignes-invariantes.md), bruts exclusivement
   `C:/Users/msics/donjon/artifacts/consignes-161/`.
 

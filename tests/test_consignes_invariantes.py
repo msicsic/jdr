@@ -50,4 +50,3 @@ class ConsignesInvariantesTests(unittest.TestCase):
             self.assertNotIn('consigne_retour_moteur', entree)
             self.assertIn('consigne_retour_moteur', retour)
             self.assertEqual(retour['faits']['retour_moteur']['attendu'], 'champ=cible')
-

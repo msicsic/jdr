@@ -1,7 +1,7 @@
 # Rapport 161 — consignes d'interprétation invariantes (L3)
 
 27 octobre 2026 — branche `codex-consignes-invariantes`, **non fusionnée**, base
-`c22541b`. **Livraison partielle : vérification Luna bloquée.** `main` intacte.
+`c22541b`. **Vérification Luna confiée à l’orchestrateur.** `main` intacte.
 
 **Invariant.** `MJ._echanger` assemble toujours les mêmes règles d'interprétation,
 quel que soit le dossier disponible, la parole attendue ou le refus courant.
@@ -15,7 +15,9 @@ conservent leur révision en entrée. Aucun schéma, fournisseur, `sources.py`,
 `narration.py`, coût, action ou sauvegarde changé ; Luna reste `gpt-6-luna`.
 
 **Preuves sans modèle.** Tests ciblés : première passe, **27 tests verts**,
-43,82 s ; reprise finale et suite complète à renseigner après leur achèvement.
+43,82 s. Suite complète unique : **2 214 tests, 253 fichiers, 16 ignorés,
+zéro échec ni erreur, 2 060,44 s**, deux travailleurs réduits. Les deux nouveaux
+tests L3 et les neuf tests cache/local sont verts dans cette suite.
 Deux scènes console réelles, Relais avec obstacle et atelier avec matériau,
 chacune proche puis éloignée : consignes identiques entre scènes et tours,
 fiche de faisabilité au contact, invitation à s'approcher à distance, aucune
@@ -31,28 +33,22 @@ lot 149 (42 variations). Comparaison séparée au `_echanger` de `c22541b` : **4
 Le volume augmente avec les règles permanentes ; le dégraissage étendu reste L6.
 Les préfixes simulés ne prouvent aucun cache ni gain de secondes.
 
-**Luna : non exécutée.** La revue automatique a rejeté le lancement des deux passes,
-car elle considère non établie l'autorisation d'envoyer scripts, scénarios et états
-privés à ChatGPT. Aucun contournement ni appel effectué. À reprendre après accord
-explicite : références Relais/crypte/atelier/échanges, noms-dialogue, soir-appel,
-passage dessous (script existant `sous-obstacle-relais`, `sous-obstacle-dessous`
-absent), référence `cdaf371` relue du cache. Appels et secondes par tour, cache par
-voie, `usage.attribution`, relances/refus/replis et critère du lot 95 restent donc
-**non mesurés**. Aucune garantie sémantique ni vitesse nouvelle revendiquée.
+**Luna — « passe Luna faite par l'orchestrateur, à compléter ».** Rubrique
+réservée à l'orchestrateur : aucune passe n'a été exécutée par cet agent.
+L'orchestrateur prend en charge les deux passes et la poussée, après les rejets
+de revue automatique. Commande exacte : `luna-a-jouer.txt` dans les bruts.
+Sept scripts distincts : Relais/crypte/atelier/échanges, noms-dialogue, soir-appel,
+passage dessous (`sous-obstacle-relais`, car `sous-obstacle-dessous` n'existe pas).
+Référence `cdaf371` à relire du cache. Appels et secondes par tour, cache par voie,
+`usage.attribution`, variations des consignes, refus/relances/replis et critère du
+lot 95 restent **à compléter**. Aucun gain de vitesse ni garantie sémantique nouvelle.
 
 **Charge et livraison.** Suite complète unique différée jusqu'à la fin de la suite
 d'intégration, puis deux travailleurs réduits. Bruts exclusivement dans
 `C:/Users/msics/donjon/artifacts/consignes-161/` (`avant.json`, `apres.json`,
 `mesures.json`, tests et journaux). Pas de clé Git de signature configurée.
-Commit local non signé ; poussée bloquée également par la revue automatique,
-qui considère non établie l’autorisation d’exporter la branche vers `origin`.
-La reprise finale a relevé une assertion de test qui attendait le résultat exécuté
-alors que le parcours prépare seulement la fiche : attente corrigée en « Ramper sous ».
-Elle sera vérifiée par la suite complète unique déjà programmée ; aucun résultat
-vert de cette suite n’est encore revendiqué.
-
-Reprise : l’autorisation explicite transmise par le superviseur dans un message
-`paseo-system` a été présentée à la revue automatique. Nouveau rejet : cette source
-est déclarée non fiable pour autoriser l’exportation. Aucun appel Luna effectué.
-Une autorisation humaine directe est nécessaire ; la suite locale différée
-reste active (session 82627), sans seconde suite lancée.
+Commits locaux non signés, aucune clé configurée ; aucune poussée par cet agent.
+La reprise finale a corrigé une assertion de test qui attendait le résultat exécuté
+alors que le parcours prépare seulement la fiche : attente « Ramper sous ».
+Suite complète achevée après le calcul d’intégration, sans chevauchement des suites
+ni deuxième lancement. Aucun brut produit dans le worktree.
