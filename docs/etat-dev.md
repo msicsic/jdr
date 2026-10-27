@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification Luna cdaf371**, lot **153**, branche
+  `codex-verif-luna-cdaf371` : aucun code du jeu changé, `main` intact.
+  Deux passes des 32 scripts, **64 parties, 352 saisies, 180 tours MJ,
+  542 appels**, trois exécutions réduites au plus, copie exacte supprimée.
+  64 parties rangées sous `cdaf371`, SHA-256 source/cache identiques ; référence
+  `9a39738` relue sans rejeu, 63 fichiers inchangés. Commun : **445 → 448 appels**,
+  **3,13 → 3,15 appels/tour**, **11,76 → 10,64 s/tour**, charges différentes.
+  Ensemble : 3,01 appels/tour, 10,03 s/tour, médianes 2 / 9,16 ; 24 relances,
+  48 refus/32 tours, un repli par segments, zéro audit illisible ou incident
+  technique/recharge. **N9 corrigé sur le parcours réel p2** (`nom` refusé puis
+  `qui` exécuté) ; N10 non reproduit ; **N7 persiste**, audit inversant les
+  révisions du nom entendu. Avis **3/6**, toujours incomplets. Gorm rembourse
+  2/2 ; achat payé/livré p2, **N11 p1** contrepartie mal formée et correction
+  invalide, achat abandonné. Fausse absence et confusion comptable non réémises.
+  Force : huit saisies sur onze en deux appels 2/2 ; restes traîner **5/4**,
+  enfermer **2/3** (faux refus), improvisé **6/4** : critère non atteint.
+  Aucun résultat corporel inventé ni mort/inconscient parlant relevé ; monde
+  complet et corps après recharge non archivés, garantie limitée aux projections,
+  issues et fils conservés. 2 301 312 jetons cachés, dont 94 171 sur les items.
+  Aucune suite moteur ; aucune clé de signature, commit non signé, branche poussée.
+  [Rapport 153](taches/rapport-codex-153-verif-luna.md), bruts
+  `C:/Users/msics/donjon/artifacts/verif-luna-cdaf371/`.
+
 - **Branche `codex-prompt-mesure`, fusionnée**, lot **149 / L0**, base
   `3f16fe9` : mesure seule, aucun code du jeu changé ni appel à Luna/local.
   **123 parties archivées, 1 354 appels**, dont 42/445 du lot 141, 80/896 de
