@@ -185,6 +185,39 @@ def compte_bien_forme(c):
             and c["etat"] in ("du", "rendu", "absent"))
 
 
+def schema_comptes(faits):
+    """Examiner chaque résultat attendu, sans préremplir son extraction.
+
+    Les valeurs extraites restent celles du texte : une inversion ou un autre
+    montant doit parvenir au contrôleur, jamais être remplacé par l'issue.
+    """
+    issue = faits.get("comptes", {}).get("issue", [])
+    attendus = [c for c in issue if c["etat"] in ("du", "rendu")]
+    if not attendus:
+        return copy.deepcopy(SCHEMA_COMPTES)
+    proprietes = {f"issue_{i}": {"anyOf": [copy.deepcopy(SCHEMA_SOLDE), {"type": "null"}],
+        "description": (f"Le segment affirme-t-il le compte correspondant à {c} ? "
+            "Si oui extraire ses rôles, objet, montant et état depuis le texte, même différents "
+            "du résultat attendu ; sinon null. Une remise racontée par le narrateur compte aussi.")}
+        for i, c in enumerate(attendus)}
+    proprietes["autres"] = copy.deepcopy(SCHEMA_COMPTES)
+    return {"type": "object", "additionalProperties": False,
+            "properties": proprietes, "required": list(proprietes)}
+
+
+def lire_comptes(comptes, faits):
+    # Les anciens rapports et les preuves exactes locales gardent leur liste.
+    if isinstance(comptes, dict):
+        schema = schema_comptes(faits)
+        if set(comptes) != set(schema.get("properties", {})) or "autres" not in comptes:
+            raise AuditIllisible("Examen des comptes de l'issue incomplet.")
+        autres = comptes["autres"]
+        if not isinstance(autres, list):
+            raise AuditIllisible("Autres comptes mal formés.")
+        comptes = [c for k, c in comptes.items() if k != "autres" and c is not None] + autres
+    return comptes
+
+
 def schema_audit(faits, nombre):
     """Les sources citables sont exactement les clés fournies : une référence inventée
     ou un chemin approximatif ne peut pas être produit. Une entrée obligatoire par segment,
@@ -207,7 +240,7 @@ def schema_audit(faits, nombre):
             item["properties"]["rappels"] = copy.deepcopy(SCHEMA_RAPPELS)
             item["required"].append("rappels")
         if "comptes" in faits:
-            item["properties"]["comptes"] = copy.deepcopy(SCHEMA_COMPTES)
+            item["properties"]["comptes"] = schema_comptes(faits)
             item["required"].append("comptes")
         if "perception" in faits:
             item["properties"]["eclairages"] = {"type": "array", "maxItems": 12,
@@ -1205,6 +1238,7 @@ def controler(texte, rapport, faits, partie="texte"):
             obstacles.extend(eclairages(lumieres, faits, passage, indice, partie))
         comptes = ligne.get("comptes") if isinstance(ligne, dict) else None
         if "comptes" in faits or comptes is not None:
+            comptes = lire_comptes(comptes, faits)
             if (not isinstance(comptes, list) or len(comptes) > 12 or any(
                     not compte_bien_forme(c) for c in comptes)):
                 raise AuditIllisible("Contrôle des rôles des comptes incomplet ou mal formé.")

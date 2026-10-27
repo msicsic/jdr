@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-relances-168`, non fusionnée**, lot **168**, base `c16aaac` :
+  attribution des **24 → 41 relances**, **1 → 2 replis**, sur les 64 parties
+  communes archivées ; aucune référence rejouée, **114 fichiers inchangés**.
+  Familles principales : comptes 10, rappels 6, mesures 3, avis désormais typés 4,
+  gestes 2, lumière 2, perception/savoir/sources 14 (ensemble hétérogène).
+  `narration.schema_comptes/lire_comptes` exigent l'examen explicite de chaque
+  compte `du`/`rendu`, sans préremplir ses valeurs ; contrôles de compatibilité,
+  couverture et sauvegarde conservés, anciennes listes lisibles.
+  **Essai non fusionnable en l'état** : onze audits comptables rejoués cinq fois
+  par côté, **42/55 → 20/55 refus**, huit pertes de plus d'un refus sur cinq ;
+  critère 95 non satisfait, conservation de chaque refus juste non certifiée.
+  Un témoin sans compte, schéma inchangé, **1/5 → 0/5** ; **120 appels** au total,
+  zéro erreur technique ou audit illisible. Luna, une passe `comptes/soir-appel` :
+  **28 appels/6 tours MJ**, aucun incident/recharge, mais un repli au remboursement
+  d'Aubin (solde absent extrait au lieu de la remise, puis source omise).
+  **Famille non close**, pas de garantie sémantique nouvelle ni de gain de latence.
+  Console : Gorm et Aubin, vrai montant affiché/persisté, faux montant rejeté,
+  état complet et rendu stables après recharge ; omission et inversion refusées.
+  Suite complète unique : **2 233 tests, 256 fichiers, 1 296,437 s**, zéro
+  erreur/ignoré, deux échecs MiMo historiques `6 != 5` ; les quatre tests du
+  fichier modifié passent. Deux travailleurs réduits après Luna, aucune seconde
+  suite ; vérification au-delà du créneau. Auxiliaires des tests déplacés hors
+  du worktree après la suite ; bruts conservés au dossier ci-dessous.
+  Aucun moteur PNJ, fichier réservé ou `main` modifié ; aucune clé de signature
+  configurée, commit non signé, branche seule poussée.
+  [Rapport 168](taches/rapport-codex-168-relances.md), bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/relances-168/`.
+
 - **Vérification Luna 227c496**, lot **165**, branche
   `codex-verif-luna-227c496` : aucun code changé, deux passes des 34 scripts,
   **68 parties / 184 tours MJ / 590 appels**, trois processus réduits au plus,

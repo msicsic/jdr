@@ -21,6 +21,47 @@ def audit(texte, comptes, qui):
 
 
 class ComptesIssueTests(unittest.TestCase):
+    def test_examen_explicite_remboursements_console_recharge(self):
+        from donjon.narration import schema_comptes, AuditIllisible
+        for script, qui, nom in (("comptes", "marchand", "Gorm"),
+                                 ("soir-appel", "aubin", "Aubin")):
+            with self.subTest(script=script):
+                m = banc(script)
+                avant = m.joueur["or"]
+                c = compte(qui, "joueur", montant=2, etat="rendu")
+                bon = f"{nom} te rend les deux pièces."
+                faux = f"{nom} te rend trois pièces."
+                def rapport_compte(extrait):
+                    l = ligne("mecanique", sources=["conversation_validee"])
+                    l["comptes"] = {"issue_0": extrait, "autres": []}
+                    return rapport(l)
+                mots = "Je réclame les deux pièces dues."
+                r, sortie, appels = jouer(recharger(m), mots,
+                    [parole(mots, ("reclamer", "", "", ""), personnage=qui),
+                     dialogue(faux), dialogue(bon)],
+                    [rapport_compte({**c, "montant": 3}), rapport_compte(c)])
+                recharge = recharger(r)
+                self.assertIn(bon, sortie)
+                self.assertNotIn(faux, sortie)
+                self.assertIn(bon, str(recharge.data["conversation"]))
+                self.assertNotIn(faux, str(recharge.data["conversation"]))
+                self.assertEqual(recharge.data, r.data)
+                from donjon.rendu import regarder
+                self.assertEqual(regarder(recharge), regarder(r))
+                self.assertEqual(decrire_comptes(recharge), decrire_comptes(r))
+                self.assertEqual(recharge.joueur["or"], avant + 2)
+                self.assertNotIn(nom + " te doit 2 pièces", decrire_comptes(recharge))
+                faits = next(e["faits"] for _, e in appels
+                             if "conversation_validee" in e.get("faits", {}))
+                self.assertEqual(set(schema_comptes(faits)["properties"]), {"issue_0", "autres"})
+                self.assertTrue(controler(bon, rapport_compte(None), faits)["obstacles"])
+                self.assertTrue(controler(bon, rapport_compte({**c, "debiteur": "joueur",
+                    "creancier": qui}), faits)["obstacles"])
+                with self.assertRaises(AuditIllisible):
+                    incomplet = rapport_compte(c)
+                    incomplet["segments"]["0"]["comptes"] = {"autres": []}
+                    controler(bon, incomplet, faits)
+
     def test_remboursement_reel_et_autre_creancier_omission_et_inverse_refuses(self):
         for script, qui in (("soir-appel", "aubin"), ("comptes", "marchand")):
             with self.subTest(script=script):

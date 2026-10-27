@@ -76,6 +76,17 @@ affichage ; les instructions, faits, efforts et réponses attendues restent les 
 
 ## Contrôle de la prose
 
+**Examen des comptes de l'issue (lot 168).** Quand l'issue comporte un compte
+`du` ou `rendu`, chaque segment de l'audit examine explicitement ce compte :
+extraction des rôles, objet, montant et état affirmés, ou `null` si le segment
+ne l'affirme pas. Les autres comptes gardent leur extraction libre. Les valeurs
+attendues ne préremplissent jamais l'extraction ; un montant faux ou des rôles
+inversés parviennent aux mêmes contrôles de compatibilité et de couverture.
+Les anciens rapports en liste restent lisibles. L'examen explicite remplace
+l'extraction globale qui pouvait rester vide malgré un remboursement raconté.
+Il ne prouve pas la justesse sémantique de l'extraction ; un compte omis reste
+refusé, et le rapport canonique est relu avant enregistrement.
+
 **Force, lot 147.** Les gestes 4d/4e ont leurs descriptions dans les mêmes
 consignes que les coups : saisir, ligoter, délier, se libérer, traîner, tuer et
 verrouiller (enfermer par la porte). Le schéma reprend déjà les actions du moteur.
