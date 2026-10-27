@@ -5,15 +5,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-contrat-engagement`, non fusionnée**, lot **213 / 196 c**,
-  base `cca5f50` vérifiée : **tentative inachevée, aucune correction moteur**.
-  Examen du maintien à plan vide, de la naissance des secours et des issues
-  non distinguées par le résultat public du planificateur. Aucun fichier
-  interdit modifié, aucun Luna. Reproduction de base : 20 nuits 4 h,
+  base `cca5f50` vérifiée : **implémentation partielle, validation en cours** ;
+  reprise au-delà du créneau autorisée. Arbitrage commun par palier et marge,
+  revalidation à plan vide, provenance des demandes de condition et d'agenda,
+  secours poursuivi sur détresse crue, geste manqué libérant l'engagement.
+  Aucun fichier interdit modifié, aucun Luna. Reproduction de base : 20 nuits 4 h,
   suspects 0/1/5/9/9 (total 24), zéro plantage, références exactes en cache ;
-  deux travailleurs réduits au plus. Aucun critère de correction validé.
+  Premier banc : suspects 0/1/0/0/1 (total 2), zéro plantage/usurpation,
+  mais Brune hameau 2024 reste dans l'eau devant une prise d'outil manquée.
+  Démenti commun ajouté ensuite ; banc final encore requis. 28 ciblés verts,
+  captures réelles Rémy/Mireille et recharges/laps découpés ; suite unique en cours.
+  Deux travailleurs réduits au plus. Aucune garantie générale ni fusion conseillée.
   Bruts `C:/Users/msics/donjon/artifacts/engagement-213/` ;
   [état de la tentative 213](taches/rapport-codex-213-contrat-engagement.md).
-  Contrat commun et totalité des vérifications du brief restent à réaliser.
+  Les sorties indéterminées du planificateur et les sources sans demande
+  persistante restent à traiter ; le rapport détaille les limites.
 
 - **Branche `codex-evacuation-juge`, fusionnée**, lot **205 / 196 b**,
   départ `71bb01d`, reprise demandée sur **`ef86cab` (204 intégré)** : péril

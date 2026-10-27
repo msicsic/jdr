@@ -1,66 +1,58 @@
-# Lot 213 (196 c) — examen préalable, non livré
+# Lot 213 (196 c) — contrat d'engagement, validation en cours
 
-Branche `codex-contrat-engagement`, non fusionnée. Base `cca5f50` présente
-et ancêtre de HEAD ; aucun fetch ni merge nécessaire. AGENTS, état de
-développement et rapports 196 (entier), 199, 201, 205, 209 et 195 (depuis
-`origin/codex-pas-compagnons`) lus. Aucun fichier moteur ou test modifié,
-aucun Luna. **L'invariant demandé n'est pas garanti ; ce document ne livre
-pas une correction du lot 213.**
+Branche `codex-contrat-engagement`, non fusionnée, base `cca5f50` vérifiée.
+Reprise au-delà du créneau explicitement autorisée. Aucun Luna ; deux
+travailleurs réduits au plus. Bruts exclusivement dans
+`C:/Users/msics/donjon/artifacts/engagement-213/`. Aucune clé Git configurée.
+Le commit de diagnostic `51728f2` est poussé ; il précède l'implémentation.
 
-## Constat et contrat à rendre explicite
+**Ce qui change.** `choisir` revalide l'intention avant l'arbitrage et applique
+une règle commune de préemption : palier strictement supérieur, ou gain d'au
+moins `INERTIE` au même palier. Une garde ou une attente à plan vide peut être
+revalidée. L'inertie n'écarte plus les candidats à leur naissance ; les bonus
+locaux d'agenda et de besoin sont absorbés par cet arbitrage. Un geste manqué
+libère l'engagement et les préférences de cible avant une nouvelle décision ;
+une nouvelle planification vers le même but reste permise.
 
-`choisir` ne conserve `courant` que si `intention["plan"]` est non vide.
-Son hystérésis dépend ensuite de la réémission du même dictionnaire de but
-par un candidat de même motif. `secours` ne génère ses propositions que
-pour les corps actuellement perçus : la naissance et la poursuite n'ont
-pas de contrats séparés. L'intention publiée ne conserve ni la provenance
-du candidat ni son palier actif et sa raison. Les sous-buts d'agenda
-peuvent ainsi perdre leur provenance lors d'une interposition.
+Les candidats portent une demande typée pour les conditions et les agendas.
+Sa provenance, son urgence et sa raison sont conservées par `agendas.py`,
+comme état facultatif vérifié et rechargeable, lié à l'intention courante.
+`_reprendre_demande` consulte les mêmes prédicats de condition et de projet
+que les mécanismes existants. Un secours peut ainsi continuer hors de vue
+sur sa détresse crue ; une détresse démentie, la mort connue ou une disposition
+sociale devenue incompatible le libère. Le poids social est recalculé.
+Aucune règle de personnage, objet ou scénario, aucun fichier interdit modifié ;
+`_lieu_cru` et `salle_crue` comparés à la base : identiques.
 
-La revalidation commune doit aussi distinguer l'inadmissibilité d'un
-arbitrage de coût et d'une recherche incomplète. Dans `planification.chercher`,
-les issues internes `borne`, `attente`, `epuise`, `impossible` et `endure`
-aboutissent toutes à un résultat public `None`. `_endure` peut écarter un
-trajet trouvé sans prouver sa cible impossible. Une absence de candidat ou
-de plan ne constitue donc pas, à elle seule, une preuve de démenti.
-Inversement, conserver le plan ancien sans revalidation ne prouverait pas
-l'absence d'entêtement. Aucun de ces raccourcis n'a été implémenté.
+**Preuves.** Base : vingt nuits 4 h, cinq scénarios × quatre graines,
+compteur 199 : **0/1/5/9/9 = 24**, sans plantage. Références exactes en cache,
+relues sans nouveau calcul. Les captures 209 de Rémy (mine 42) et Mireille
+(auberge 1985) sont conservées en fixtures : adoption réelle d'un secours,
+monde complet, rendu et laps entiers/découpés après rechargement vérifiés.
+Autres scènes : faim hors de vue malgré plan coupé, démenti, préemption d'une
+ronde, autre PNJ et autre secours contre le froid, garde vide et marge.
+**28 ciblés verts** avant le dernier test de démenti. Suite complète unique
+`tools/tests.py --processus 2` en cours ; aucune seconde suite prévue.
+L'oracle A0 conserve la naissance historique sans intention ; la poursuite
+est désormais vérifiée par reproduction et recharge, pas par identité avec
+l'ancien arbitrage.
 
-Le raccord envisagé doit exposer une évaluation typée de **la cible adoptée**,
-indépendante du choix d'une nouvelle cible : accomplissement, admissibilité,
-blocage attesté, recherche indéterminée et coût d'alternative. La provenance,
-la raison active et l'urgence doivent rester des données rechargeables de
-l'intention ; les quatre sorties sont arbitrées dans `choisir`. Les
-prédicats restent ceux des mécaniques communes, sans copie du planificateur
-dans la délibération. La forme exacte de ce raccord et son étendue ne sont
-pas établies dans cette tentative ; aucune nécessité de toucher les fichiers
-interdits n'a été démontrée.
+**Premier banc, non final.** Vingt nuits de branche : suspects
+**0/1/0/0/1 = 2**, aucun scénario en hausse, aucun plantage ni usurpation.
+Mais Brune hameau 2024 reste dans l'eau (140 min sur cette graine) : un plan
+commence à répétition par une prise d'outil manquée. Cette observation a
+motivé le démenti commun sur geste manqué ajouté ensuite. Le banc final doit
+encore vérifier cet effet. Les métriques finales et S/F/D restent à relever.
+Les activations/sommeils d'a1 de Brune passent de huit à trois dans ce premier
+banc ; leur cause n'est pas supprimée. Gorm présente encore des épisodes
+sans but ; aucune correction générale de leur cause n'est établie.
 
-## Vérification et limites
-
-Captures et scripts de 209 consultés, notamment son inventaire et ses
-captures représentatives. Le classement de 209 reste une information
-historique : secours/perception et stabilité des cibles relèvent du contrat ;
-préemption d'une ronde par secours ou d'un secours par rendez-vous peut être
-légitime ; localisation cachée et restauration des charges restent hors lot.
-**Aucune reproduction exécutée sur la base actuelle n'établit encore cette
-attribution**, ni la cause des activations d'a1 de Brune et de l'absence de
-but de Gorm signalées par 205.
-
-Une reproduction de vingt nuits de base a été achevée avec
-`comparer_bancs.py --reference cca5f50 --branche cca5f50`, cinq scénarios,
-quatre graines, 4 h, deux travailleurs à priorité réduite. La référence
-exacte est désormais en cache ; le second côté relit les vingt nuits sans
-les rejouer. Compteur 199 : **Relais 0, mine 1, auberge 5, crue 9,
-hameau 9, total 24**, aucun plantage. L'archive et le journal sont dans
-`C:/Users/msics/donjon/artifacts/engagement-213/base.json` et `base.log`.
-Le banc avait terminé lorsque son arrêt a été demandé ; aucun travailleur
-de cette invocation n'était encore à arrêter.
-**Aucune baisse du compteur 199, aucune preuve nouvelle de
-recharge ou de laps découpés n'est revendiquée.** Pas de suite complète :
-aucune implémentation à valider. Aucun fichier interdit, y compris
-`_lieu_cru` et `salle_crue`, modifié. Aucune clé de signature Git configurée.
-
-La tentative s'arrête avant correction ; une reprise doit établir le contrat
-de revalidation, puis exécuter toutes les preuves du brief. Elle ne doit pas
-considérer ce diagnostic comme un lot 213 terminé.
+**Limites ouvertes.** Un `None` du planificateur ne distingue toujours pas
+borne, coût d'endurance et impossibilité. La poursuite ne réinstalle donc
+jamais aveuglément un ancien plan ; en revanche, toute disparition de plan
+n'a pas encore de certificat moteur de démenti. Les sources sans demande
+persistante doivent encore réémettre leur cible pour être revalidées.
+La liste fermée n'est donc pas garantie sur toutes les voies, et les verrous
+historiques d'abri/lumière ne sont pas tous absorbés. Les localisations cachées
+et la restauration des charges restent hors périmètre. **Aucune solution
+générale, absence d'entêtement ou aptitude à la fusion revendiquée à ce stade.**

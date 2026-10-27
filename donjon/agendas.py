@@ -90,7 +90,26 @@ def pieces_poursuivies(monde, id):
 
 def champs_esprit(e):
     """L'état A4 est facultatif : aucune migration des esprits sans déclaration."""
-    return set(e) - {"agendas"}
+    return set(e) - {"agendas", "contrat_intention"}
+
+
+def contrat_intention(monde, id):
+    """Provenance de l'intention courante, jamais celle d'une intention remplacée."""
+    from .esprits import lire
+    e = lire(monde, id)
+    c = e.get("contrat_intention")
+    i = e["intention"]
+    if c and i and all(c[k] == i[k] for k in ("but", "motif", "depuis")):
+        return copy.deepcopy(c["contrat"])
+    return None
+
+
+def retenir_intention(monde, id, contrat):
+    from .esprits import esprit
+    e = esprit(monde, id)
+    i = e["intention"]
+    e["contrat_intention"] = {**{k: copy.deepcopy(i[k]) for k in ("but", "motif", "depuis")},
+                              "contrat": copy.deepcopy(contrat)}
 
 
 def champs_profil():
@@ -702,6 +721,28 @@ def declares(rapport):
 
 
 def verifier(monde, id):
+    from .esprits import lire
+    c = lire(monde, id).get("contrat_intention") if id != "joueur" else None
+    if c is not None:
+        from .deliberation import condition_valide, Palier
+        assert (isinstance(c, dict) and set(c) == {"but", "motif", "depuis", "contrat"}
+                and isinstance(c["but"], dict) and isinstance(c["motif"], str)
+                and type(c["depuis"]) is int), "Provenance d'intention invalide"
+        contrat = c["contrat"]
+        assert (isinstance(contrat, dict) and set(contrat) == {"palier", "valeur", "demande"}
+                and type(contrat["palier"]) is int and contrat["palier"] in list(Palier)
+                and isinstance(contrat["valeur"], (int, float))), "Contrat d'intention invalide"
+        demande = contrat["demande"]
+        assert (demande is None or isinstance(demande, dict)
+                and (set(demande) == {"agenda"} and isinstance(demande["agenda"], str)
+                     or "condition" in demande and set(demande) <= {"condition", "tache", "raison"}
+                     and condition_valide(monde, demande["condition"])
+                     and type(demande.get("tache", False)) is bool)), "Demande d'intention invalide"
+        if demande and "raison" in demande:
+            raison = demande["raison"]
+            assert (isinstance(raison, dict) and set(raison) == {"qui", "besoin"}
+                    and (raison["qui"] == "joueur" or raison["qui"] in monde.objets)
+                    and raison["besoin"] in ("faim", "chaleur")), "Raison d'intention invalide"
     stock = projets(monde, id)
     assert len([a for a in stock if a["etat"] == "actif"]) <= 3, "Trop d'agendas actifs"
     assert len({a["id"] for a in stock}) == len(stock), "Identifiants d'agenda dupliqués"
