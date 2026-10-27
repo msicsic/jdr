@@ -1,4 +1,4 @@
-"""Transferts constatés : droits, choix différé, nouvelles et recharge."""
+"""Transferts constatés : droits, choix différé et recharge."""
 import copy
 import unittest
 
@@ -7,7 +7,7 @@ from donjon.biens import preter
 from donjon.deplacement_objet import deplacer
 from donjon.echanges import remettre
 from donjon.esprits import croire, lire, percevoir_tous, constater_possession
-from donjon.rendu import regarder
+from donjon.rendu import fiche, regarder
 from tests.support import regarder as orienter
 from tests import test_agendas_fins as fins
 from tests.test_tensions import recharger, vivre
@@ -17,7 +17,13 @@ class TransfertsTests(unittest.TestCase):
     objets = ("cle_reserve", "couteau")
 
     def verifier_fin(self, m, objet, cause):
-        return fins.FinsTests.verifier_fin(self, m, objet, cause)
+        m = fins.FinsTests.verifier_fin(self, m, objet, cause)
+        self.assertTrue(any("abandonne (bien cru " + cause + ")" in c["texte"]
+                            for c in m.data["chronique"]))
+        if m.objets[objet]["lieu"] == "joueur":
+            self.assertIn(m.objets[objet]["nom"].casefold(), fiche(m).casefold())
+            self.assertEqual(fiche(m), fiche(recharger(m)))
+        return m
 
     def test_remise_propre_au_proprietaire_et_recharge(self):
         for objet in self.objets:
@@ -110,6 +116,19 @@ class TransfertsTests(unittest.TestCase):
             self.assertNotEqual(agendas.projets(m, "marchand")[0]["etat"], "abandonne")
             self.assertEqual(regarder(m), regarder(recharger(m)))
 
+    def test_gardien_non_proprietaire_remet_a_un_emprunteur_autorise_sans_fin(self):
+        for objet in self.objets:
+            m = fins.garde(objet)
+            m.objets[objet]["proprietaire"] = "aubin"
+            preter(m, objet, "joueur")
+            deplacer(m, objet, "marchand")
+            remettre(m, "marchand", "joueur", objet)
+            m = recharger(m)
+            agendas.actualiser(m, "marchand")
+            self.assertEqual(agendas.projets(m, "marchand")[0]["etat"], "actif")
+            self.assertIn(objet, [a.get("objet") for a in agendas.gardes(m, "marchand")])
+            self.assertEqual(regarder(m), regarder(recharger(m)))
+
     def test_preuve_sans_objet_reel_laps_et_choix_interrompu(self):
         for objet in self.objets:
             m = fins.garde(objet)
@@ -149,6 +168,8 @@ class TransfertsTests(unittest.TestCase):
             m = recharger(m)
             self.assertEqual(agendas.projets(m, "anselme")[0]["raison"], "bien cru perdu")
             self.assertEqual(m.objets[objet]["lieu"], "joueur")
+            self.assertIn(m.objets[objet]["nom"].casefold(), fiche(m).casefold())
+            self.assertEqual(fiche(m), fiche(recharger(m)))
             self.assertEqual(regarder(m), regarder(recharger(m)))
 
     def test_preuve_hors_memoire_et_pas_de_double_prix(self):

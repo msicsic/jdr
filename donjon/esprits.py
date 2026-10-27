@@ -860,9 +860,11 @@ def constater_possession(monde, id, sujet, source, *, salle=None, case=None, rem
     if porteur is not None:
         proprietaire = _proprietaire(monde, o)
         permis = porteur == proprietaire or _permis(monde, porteur, sujet)
+        # Le droit de porter (prêt ou garde confiée) ne décharge pas le
+        # gardien. Il faut une restitution ou une livraison mandatée.
         p = {"porteur": porteur, "proprietaire": proprietaire,
              "permis": bool(permis), "remis_par": remis_par,
-             "remise_autorisee": bool(remis_par is not None and (permis or autorise))}
+             "remise_autorisee": bool(remis_par is not None and (porteur == proprietaire or autorise))}
         ancienne = croyance(monde, id, sujet, "lieu") or {}
         precedent = ancienne.get("possession", {})
         if remis_par is None and all(precedent.get(k) == p[k] for k in ("porteur", "proprietaire")):
