@@ -90,7 +90,8 @@ class LumiereDevantLaSerrureTests(unittest.TestCase):
         percevoir_tous(m)
         return recharger(m)
 
-    def test_brune_constate_la_penombre_devant_la_reserve(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_brune_constate_la_penombre_devant_la_reserve(self, _naissance):
         # Autre cas de même nature : la salle crue éclairée, la serrure dans la pénombre.
         m = self.brune_au_refuge()
         self.assertEqual(lumiere_crue(m, "brune", "antichambre"), 2)
@@ -102,7 +103,8 @@ class LumiereDevantLaSerrureTests(unittest.TestCase):
         m, _ = vivre(m, 1)
         self.assertEqual(len(essais(m, "brune", "reserve")), 1)
 
-    def test_dans_le_noir_elle_n_essaie_rien_et_va_chercher_de_la_lumiere(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_dans_le_noir_elle_n_essaie_rien_et_va_chercher_de_la_lumiere(self, _naissance):
         # La réserve aux vannes, que le brasero mort laisse noires ; Brune les croit éclairées (vues
         # autrefois) : devant la serrure, aucun jet ne réussirait. Elle n'essaie rien, et son plan
         # passe par la lumière.
@@ -228,7 +230,8 @@ class ForcerTests(unittest.TestCase):
         return m
 
     @patch("donjon.social._constats", return_value=())
-    def test_brune_force_la_porte_du_beffroi_qui_n_est_a_personne(self, _constats):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_brune_force_la_porte_du_beffroi_qui_n_est_a_personne(self, _naissance, _constats):
         # Les vivres sont derrière la porte étanche ; la porte n'est à personne : la forcer ne lèse
         # personne, même à qui a la douceur entière.
         # La Brune du scénario est désormais à 75 ; on pose la douceur entière pour cette scène.

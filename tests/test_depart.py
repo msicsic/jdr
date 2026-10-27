@@ -139,7 +139,9 @@ class DivergenceDuBancTests(unittest.TestCase):
         self.assertEqual(mesures["jets_par_heure"], mesures["jets"])  # Une heure de nuit.
 
     @patch("donjon.social._constats", return_value=())
-    def test_le_depart_tire_fait_diverger_les_nuits(self, _constats):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_le_depart_tire_fait_diverger_les_nuits(self, _naissance, _constats):
+        # Les marchés A6 tirent aussi des dés : le départ seul est l'oracle ici.
         # Comparer les départs seuls ; la persuasion des nouvelles tire aussi des dés.
         # Départ déclaré : une seule nuit jusqu'à la cinquième minute, quelle que soit la graine.
         fixes = {self.nuit(g, "fixe", 5)[0]["5"] for g in (1, 2, 3, 4)}

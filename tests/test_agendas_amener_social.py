@@ -29,7 +29,8 @@ class AmenerSocialTests(unittest.TestCase):
         self.assertEqual(rendu(n), rendu(m))
         return n
 
-    def test_deux_personnes_evacuations_successives_et_laps(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_deux_personnes_evacuations_successives_et_laps(self, _naissance):
         from tests.test_social import placer
         from tests.support import regarder
         for graine in (2024, 42):
@@ -86,7 +87,9 @@ class AmenerSocialTests(unittest.TestCase):
             resultat = agendas.planifier(m, "aubin", "evacuer")
         self.assertEqual(resultat[1][-1]["operation"], "confier")
 
-    def test_demande_accompagnement_et_marche_autonome_deux_destinations(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_demande_accompagnement_et_marche_autonome_deux_destinations(self, _naissance):
+        # Éprouver la marche convenue sans projet concurrent du destinataire.
         for cible, destination in (("ilse", "chambre_cloche"), ("brune", "echoppe")):
             with self.subTest(cible=cible):
                 m, condition = scene(cible, destination)

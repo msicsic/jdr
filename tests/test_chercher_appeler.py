@@ -29,7 +29,9 @@ class RechercheTests(unittest.TestCase):
         debut = instant(m)
         cris = []
         indices = []
+        passages_recherche = []
         heler = pnj.heler
+        chroniquer = pnj._chroniquer
         indice_recherche = deliberation.indice_recherche
 
         def indice(monde, id, salle, personne=None, **k):
@@ -46,16 +48,24 @@ class RechercheTests(unittest.TestCase):
                 cris.append(salle)
             return heler(monde, id, cherche, lignes)
 
-        with patch.object(pnj, 'heler', observer), patch.object(deliberation, 'indice_recherche', indice):
+        def noter(monde, id, texte, nature='geste', **k):
+            # Le plafond de la recherche ne compte pas les trajets vers les
+            # marchés d'un projet indépendant. La capture A6 en ajoute 17,
+            # contre 14 passages des recours historiques ; mêmes monde et ouïe.
+            if (id == qui and nature == 'deplacement' and ' passe dans :' in texte
+                    and (lire(monde, id)['intention'] or {}).get('motif') != 'agenda'):
+                passages_recherche.append(texte)
+            return chroniquer(monde, id, texte, nature, **k)
+
+        with patch.object(pnj, 'heler', observer), patch.object(deliberation, 'indice_recherche', indice), \
+                patch.object(pnj, '_chroniquer', noter):
             bloc, _ = vivre(recharger(m), 10)
         coupe = recharger(m)
         for _ in range(10):
             coupe, _ = vivre(coupe, 1)
         self.assertEqual(bloc.data, coupe.data)
         self.assertLessEqual(len(cris), len(m.data['salles']) + len(indices))
-        passages = [c for c in bloc.data['chronique'] if c['pnj'] == qui
-                    and c['minute'] >= debut // 600 and c['nature'] == 'deplacement']
-        self.assertLessEqual(len(passages), 4 * len(m.data['salles']))
+        self.assertLessEqual(len(passages_recherche), 4 * len(m.data['salles']))
         self.assertEqual(rendre(bloc, entendus(bloc, debut, ENTENDU)),
                          rendre(coupe, entendus(coupe, debut, ENTENDU)))
 

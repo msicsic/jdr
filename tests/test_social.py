@@ -272,7 +272,8 @@ class DesespoirTests(unittest.TestCase):
         self.assertEqual(souvenirs[0]["auteur"], "brune")
         self.assertFalse(relation(m, "ilse", "brune")["valeur"])
 
-    def test_sinon_elle_attend_que_personne_ne_la_voie(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_sinon_elle_attend_que_personne_ne_la_voie(self, _naissance):
         m, _ = attendre(self.brune_devant_ilse(80.0), jet=20)
         self.assertTrue(m.objets["reserve"]["verrouillee"])
         self.assertGreater(lire(m, "brune")["intention"]["attente"], 0)

@@ -44,7 +44,9 @@ class DefenseTests(unittest.TestCase):
     # Ces scènes fixent les jets de combat ; les confidences matérielles ordinaires
     # (test_constats_partages) ne doivent pas consommer ces jets préparés.
     @patch("donjon.social._constats", return_value=())
-    def test_epreuve_et_autre_victime_fuient_protecteur_entend_et_intervient(self, _constats):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_epreuve_et_autre_victime_fuient_protecteur_entend_et_intervient(self, _naissance, _constats):
+        # Fixer la scène après défense, avant un départ vers un marché A6.
         for cible in ("aubin", "ilse"):
             m = epreuve(cible)
             self.assertIn("brune", defense.dangers(m, cible))

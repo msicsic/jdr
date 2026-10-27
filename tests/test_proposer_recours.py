@@ -47,6 +47,12 @@ def scene(confiance=10, autre="marchand", garde=False):
 
 
 class RecoursTests(unittest.TestCase):
+    def setUp(self):
+        # Épreuve des contreparties d'un refus alimentaire, sans acquisition A6.
+        naissance = patch("donjon.agendas._naissances", return_value=None)
+        naissance.start()
+        self.addCleanup(naissance.stop)
+
     def test_part_promise_attendue_sans_racheter_ni_voler_avec_garde_active(self):
         m = scene(70, garde=True)
         with patch.object(Monde, "d20", return_value=20):

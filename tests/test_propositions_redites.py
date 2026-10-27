@@ -4,6 +4,7 @@ import gzip
 import json
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 from donjon.echanges import executer
 from donjon.esprits import lire
@@ -16,6 +17,12 @@ from tests.test_tensions import recharger
 
 
 class PropositionsReditesTests(unittest.TestCase):
+    def setUp(self):
+        # Rejouer les refus historiques sans ajouter un projet d'acquisition.
+        naissance = patch("donjon.agendas._naissances", return_value=None)
+        naissance.start()
+        self.addCleanup(naissance.stop)
+
     def capture(self, nom):
         with gzip.open(Path(__file__).parent / 'data' / nom, 'rt', encoding='utf8') as f:
             return recharger(Monde(json.load(f)))

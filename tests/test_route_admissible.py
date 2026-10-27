@@ -96,7 +96,9 @@ class RoutesTests(unittest.TestCase):
                 self.assertTrue(any(c['pnj'] == qui and 'retour coupé' in c['texte']
                                     for c in bloc.data['chronique']))
 
-    def test_une_traversee_en_cours_ne_devient_pas_un_sejour_a_la_minute(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_une_traversee_en_cours_ne_devient_pas_un_sejour_a_la_minute(self, _naissance):
+        # Conserver la destination de la traversée, sans acquisition concurrente.
         from tests.test_social import placer
         from tools.diagnostic_refuge_mouille import vivre, recharger as reprise
         for qui in ('brune', 'ilse'):

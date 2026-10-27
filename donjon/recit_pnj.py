@@ -50,6 +50,8 @@ def but_en_mots(monde, but):
 def _but(monde, but):
     t, o = but.get("type"), but.get("objet")
     if t == "agenda":
+        if "pieces" in but:
+            return f"obtenir {but['pieces']} pièces"
         return "informer " + court(monde, but["qui"])
     if t in ("fuir", "riposter", "proteger", "reddition"):
         return {"fuir": "fuir ", "riposter": "riposter contre ", "proteger": "protéger ",

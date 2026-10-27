@@ -51,7 +51,8 @@ class EngagementDeplacementTests(unittest.TestCase):
         pnj.avancer(m, ecouler(m, dt), [], dt)
         return recharger(m)
 
-    def test_gorm_confie_deux_marches_et_pas_un_transport(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_gorm_confie_deux_marches_et_pas_un_transport(self, _naissance):
         for cible, destination in (("ilse", "chambre_cloche"), ("brune", "echoppe")):
             with self.subTest(cible=cible):
                 m, condition = scene(cible, destination)

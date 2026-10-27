@@ -121,7 +121,8 @@ class ValeursTests(unittest.TestCase):
         but, etapes = planifier(m, "brune", "faim")
         self.assertIn("sans_temoin", {x["condition"] for x in etapes})
 
-    def test_memes_moyens_valeurs_differentes(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_memes_moyens_valeurs_differentes(self, _naissance):
         """Brune devant la réserve ouverte, Gorm à la salle des vannes : peu scrupuleuse, elle se
         sert ; plus honnête, elle va lui demander sa part."""
         def situation(honnetete):
@@ -135,7 +136,7 @@ class ValeursTests(unittest.TestCase):
 
         def gestes(m):
             return [c["texte"] for c in m.data["chronique"]
-                    if c["pnj"] == "brune" and c["nature"] not in ("deplacement", "ouie", "lecture")]
+                    if c["pnj"] == "brune" and c["nature"] not in ("deplacement", "ouie", "lecture", "decision")]
 
         avide, honnete = situation(20), situation(50)
         self.assertEqual(gestes(avide), ["Brune, batelière évacuée mange une part des vivres du refuge."])

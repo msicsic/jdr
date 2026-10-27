@@ -241,7 +241,9 @@ class DemandesTests(unittest.TestCase):
         self.assertEqual(reprise.objets["cle_reserve"]["lieu"], "marchand")
         self.assertIn("refuse de se séparer", " ".join(appels[1]["faits"]["conversation_validee"]["faits"]))
 
-    def test_brune_rend_les_crochets_seulement_si_elle_n_en_a_plus_besoin(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_brune_rend_les_crochets_seulement_si_elle_n_en_a_plus_besoin(self, _naissance):
+        # Le prêt demandé est distinct d'une vente autonome avant la conversation.
         for faim, attendu in ((0, "joueur"), (90, "brune")):
             m = relais()
             # Placement d'auteur : Corvus a vu Brune empocher la trousse, trop petite pour se voir ensuite.

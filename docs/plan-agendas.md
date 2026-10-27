@@ -238,6 +238,29 @@ Brune, étendue aux agendas.
 
 ### 6.5 La naissance d'un agenda
 
+Lot 184, premier volet **partiel**, branche `codex-naissance-agendas` :
+`agendas.NAISSANCES` décrit cause, sorte et valeurs. Une dette personnelle
+de `profil.situation`, connue de son porteur, supérieure à ses pièces disponibles
+fait naître `obtenir {pieces}` par le registre commun, avec publication différée,
+plafond, sommeil/réveil et sauvegarde. La recherche réemploie `enrichir`, avec
+son contrôle d'honnêteté et le prix non usé de la faute. Le désespoir précède
+aussi les projets nés en cours de jeu. L'objectif finit quand les pièces sont
+disponibles ou la dette personnelle retirée des données.
+**Complément 184 b**, même branche : `argent_projet.obtenir` compare travail
+payé, vente d'un bien propre porté et cessible, prêt d'une bourse, prise permise
+et vol au prix de faute. Les marchés passent par `proposer` ; une tâche contre
+numéraire passe par `engager` et conserve son remboursement à l'échéance.
+Les devis ont une même échelle de minutes attendues par fraction du manque.
+Le sommeil ne relance rien sans croyance nouvelle, et la routine d'argent ne
+double plus l'acquisition déjà portée par le projet. Les refus gardent leur cause.
+Une borne optimiste écarte seulement les marchés qui ne peuvent battre le recours
+déjà trouvé, sur le tarif commun du travail. Vérifications dans le rapport 184.
+**Reste A6** : preuve
+subjective des créances locales et de leur règlement ; identité d'une nouvelle
+dette après la fin du premier projet (la cause personnelle unique ne renaît pas).
+Occasions, événements et soupçon déduit ne sont pas livrés. Aucun règlement
+effectif d'une dette extérieure n'est simulé par l'acquisition des pièces.
+
 Un agenda naît de quatre façons, toutes par des règles communes :
 - **le scénario** (données de départ) ;
 - **une parole ou un contrat** : ce que font déjà `engager` et `confier`, étendu à un agenda durable
@@ -628,6 +651,14 @@ lieux, confie Brune à Aubin.
 **A6. La naissance des agendas.** Table des naissances ; occasion (le mercenaire), situation (la dette
 d'Odon), événement (la vengeance), rallier. Épreuve : l'auberge (Anselme, Lucien, Hugues) et la mine
 (Odon).
+
+**Lot 184, `codex-naissance-agendas`, non fusionné : premier volet partiel.**
+Table et naissance par dette personnelle, sorte `obtenir` et cycle commun livrés
+(§ 6.5). **184 b** compare aussi les marchés de travail payé et de vente aux
+bourses connues (prêt, prise permise, vol), avec coûts et refus communs.
+Restent les créances locales subjectives et une nouvelle identité de dette après une fin, puis occasion,
+événement et soupçon déduit. Voir le
+[rapport 184](taches/rapport-codex-184-naissance-agendas.md).
 
 **Soupçon déduit** (revue externe du 2026-10-24, retenue ; brique des cas 5 et 10, avec A6 et A7) : quand un
 PNJ constate une atteinte à un bien vu intact plus tôt sans avoir vu ni entendu le geste, il cherche dans ses

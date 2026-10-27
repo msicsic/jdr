@@ -165,6 +165,13 @@ def bruit(m, niveau):
 
 
 class EchelleTests(unittest.TestCase):
+    def setUp(self):
+        # Cet oracle vérifie l'identité A0 des choix sans naissance A6.
+        # Les projets nés restent actifs dans test_agendas_naissance.
+        naissances = patch.object(d.agendas, "_naissances", return_value=None)
+        naissances.start()
+        self.addCleanup(naissances.stop)
+
     def comparer(self, m, qui):
         avant = list(anciens_candidats(m, qui))
         apres = list(d._candidats(m, qui))

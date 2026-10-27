@@ -1,5 +1,5 @@
 """La préparation d'un choix ne change ni les recherches ni la partie rechargée."""
-from contextlib import ExitStack, nullcontext
+from contextlib import ExitStack
 from collections import OrderedDict
 import copy
 import gzip
@@ -8,7 +8,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from donjon import obstacles, planification as p
+from donjon import agendas, obstacles, planification as p
 from donjon.esprits import croire
 from donjon.monde import Monde
 from donjon.moteur import Moteur, proposition
@@ -50,7 +50,9 @@ class CoutFixeTests(unittest.TestCase):
                     pile.enter_context(patch.object(p, "_entrees_communes", relever))
                     pile.enter_context(patch.object(p, "VERIFIER", False))
                     if not partage:
-                        pile.enter_context(patch.object(p, "vues_du_choix", lambda *a: nullcontext()))
+                        # Retirer le partage des vues conserve la transaction
+                        # d'agendas : elle porte aussi les naissances pendant la nuit.
+                        pile.enter_context(patch.object(p, "vues_du_choix", lambda *a: agendas.evaluation(*a)))
                     with p.diagnostics() as diagnostics:
                         moteur = Moteur(m)
                         lignes = moteur.executer(moteur.preparer(proposition("attendre")))

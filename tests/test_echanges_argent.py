@@ -30,6 +30,12 @@ def memoires(m, id, sorte):
 
 
 class PretTests(unittest.TestCase):
+    def setUp(self):
+        # Le contrat de prêt est isolé des nouveaux marchés autonomes A6.
+        naissance = patch("donjon.agendas._naissances", return_value=None)
+        naissance.start()
+        self.addCleanup(naissance.stop)
+
     def lampe_empruntee(self):
         """Mine noire : Rémy, qui craint le noir, n'a plus sa lampe ; Gaspard, près de lui, porte
         la sienne éteinte et la lui prête ; Rémy a un briquet."""
@@ -146,6 +152,12 @@ class GardeTests(unittest.TestCase):
 
 
 class AchatTests(unittest.TestCase):
+    def setUp(self):
+        # Ces prix et rendus historiques portent sur l'achat alimentaire seul.
+        naissance = patch("donjon.agendas._naissances", return_value=None)
+        naissance.start()
+        self.addCleanup(naissance.stop)
+
     def brune_refusee(self, pieces, honnetete=50):
         """Gorm vient de lui refuser une part ; elle a ``pieces`` pièces et ses crochets ; une
         Brune plus scrupuleuse que celle du Relais (``honnetete``)."""

@@ -109,7 +109,11 @@ class EtapesTests(unittest.TestCase):
                 # Plans, monde, lignes et rendus restent ceux de l'oracle historique.
                 nouvelles_mesures = calcul[scenario]
                 self.assertLessEqual(set(nouvelles_mesures), {"visites", "n_visites", "diagnostics"})
-                self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures})
+                # La capture historique mesure les étapes du planificateur,
+                # sans la naissance A6 éprouvée séparément après recharge.
+                from donjon import agendas
+                with patch.object(agendas, "_naissances", return_value=None):
+                    self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})

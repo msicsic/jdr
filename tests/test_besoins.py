@@ -119,7 +119,9 @@ class GardeMangerTests(unittest.TestCase):
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         self.assertFalse(percoit(m, "brune", "joueur"))
 
-    def test_gorm_dans_l_ombre_la_voit_et_garde_sa_reserve(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_gorm_dans_l_ombre_la_voit_et_garde_sa_reserve(self, _naissance):
+        # Isoler la garde vue du nouveau marché de reverrouillage après le repas.
         m = absent(relais())
         m.objets["lanterne"]["lieu"] = "joueur"
         # Placement d'auteur : la torche brûle près de la réserve.
