@@ -4,6 +4,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-sait-observations`, non fusionnée**, lot **206**, base
+  `a488f1f`, correctif `f3470d4` poussé : `bavarder` décide sur les audiences et
+  observations communes conservées par le locuteur, sans lire le savoir privé
+  de l'auditeur ; la réception conserve son contrôle des confirmations.
+  Acquisition privée sans réouverture des suivis des autres ; photographie des
+  acquisitions visuelles d'une même passe, états/possessions publics et témoins
+  simultanés d'un geste, avant les interprétations de responsabilité.
+  **56 ciblés verts**, sept nouveaux compris ; défense/trajets sans réancrage.
+  Validation en cours : quatre fichiers de suite conservés, 275 restants repris
+  sur le code optimisé, banc final à faire après la suite ; deux travailleurs
+  réduits au plus pour ce lot, aucun Luna. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/sait-206/` ;
+  [rapport 206](taches/rapport-codex-206-sait-observations.md).
+
 - **Branche `codex-portee-sans-salle`, fusionnée**, lot **204**, base
   `51c1e0b` : P1 implémenté en mode cases ; contact par pas commun au joueur,
   aux accès PNJ et à leur approche, indépendamment du secteur de la cible ;

@@ -1231,7 +1231,10 @@ def percevoir_tous(monde):
         observations = {id: [] for id in pnjs(monde)}
         precedent = getattr(monde, "_observations_communes", None)
         regards_precedents = getattr(monde, "_regards_communs", None)
-        regards = {id: percus(monde, id)[0] for id in observations}
+        perceptions = {id: percus(monde, id) for id in observations}
+        regards = {id: p[0] for id, p in perceptions.items()}
+        supports = {id: set(vus) | {case[0] if isinstance(case, tuple) else case for case in champ}
+                    for id, (vus, champ) in perceptions.items()}
         monde._observations_communes = observations
         monde._regards_communs = regards
         try:
@@ -1248,6 +1251,7 @@ def percevoir_tous(monde):
             for noyau in contenus:
                 faits = faits_dits(noyau)
                 temoins = [autre for autre in observations if autre != id and autre in vus
+                           and noyau["sujet"] in supports[id] & supports[autre]
                            and all(cle in acquis[autre] and acquis[autre][cle] == valeur
                                    for cle, valeur in faits)]
                 observation_commune(monde, id, noyau, temoins, vus=vus)

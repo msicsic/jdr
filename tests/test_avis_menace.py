@@ -162,10 +162,11 @@ class AvisMenaceTests(unittest.TestCase):
         for menace in (True, False):
             social.reviser_dits(m, "marchand", "antichambre", "menace", menace)
             m = recharger(m)
-        self.assertFalse(social.deja_dit(m, "aubin", "marchand", avis))
-        m, dit, texte = confier(m)
-        self.assertTrue(dit)
-        self.assertIn("menace", texte)
+        # Ces conclusions sont privées : Aubin n'a entendu aucun changement
+        # de position et ne peut rouvrir son suivi en lisant l'esprit de Gorm.
+        self.assertTrue(social.deja_dit(m, "aubin", "marchand", avis))
+        m, _, texte = confier(m)
+        self.assertNotIn("menace", texte)
 
     def test_retour_de_menace_du_seul_locuteur_ne_rouvre_pas_l_avis(self):
         m = scene()

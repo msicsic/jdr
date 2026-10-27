@@ -390,10 +390,15 @@ def observation_commune(monde, id, noyau, temoins, *, vus=None):
             continue
         for cle, valeur in faits_dits(noyau):
             if cle not in registre and len(registre) < DITS_MAX:
-                registre[cle] = {"valeur": None, "valeur_inconnue": True, "dit_a": {}}
+                registre[cle] = {"valeur": copy.deepcopy(valeur), "dit_a": {}}
             if cle not in registre:
                 continue
             fait = registre[cle]
+            # Une observation commune est aussi une acquisition personnelle.
+            # La laisser « inconnue » jusqu'au regard suivant ferait dépendre
+            # la sauvegarde du découpage des attentes.
+            fait["valeur"] = copy.deepcopy(valeur)
+            fait.pop("valeur_inconnue", None)
             if autre in fait["dit_a"] and fait["dit_a"][autre] != valeur:
                 del fait["dit_a"][autre]
             fait.setdefault("entendu_a", {})[autre] = [copy.deepcopy(valeur)]
