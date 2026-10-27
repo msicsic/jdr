@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-reserve-brisee`, fusionnée**, lot **201 / 196 a**,
+  base exacte `fffa3a2` : capacité commune de fermeture sur fin crue/constatée/
+  simulée, constats vue/essai cohérents, verrou démenti aussi pour le joueur
+  (schéma sauvegardé inclus), garde du plan sans auto-exclusion de sa pulsion.
+  **22 ciblés verts**, cas réel crue 2024 et contenant de la mine, monde/rendu
+  rechargés, laps entier/découpé. **20 paires de 4 h** : suspects Relais
+  **1 → 1**, mine **1 → 1**, auberge **2 → 2**, crue **271 → 19**, hameau
+  **16 → 17** ; crue 2024 **253 → 1**, boucle réserve/garde supprimée.
+  La base actuelle ne reproduit plus l'effraction des graines 7/42 ; en 2024,
+  elle survient à 45 min. **Critère aucun scénario en hausse non atteint** :
+  hameau 7, retours d'abri **5 → 6** ; attribution unique non établie par trois
+  contre-épreuves. Nouvelle observation `fige_presse` de Gorm sur devoir confié.
+  Aucune garantie générale sur les avis/abris. Crue 7, 2 h, `VERIFIER` et
+  `spatial.VERIFICATION=0,2` : zéro écart, borne, plantage. Suite unique :
+  **2 385 tests / 276 fichiers, 1 803,701 s, trois échecs, zéro erreur** ; les
+  deux MiMo `6 != 5` et le contrôle AST des accès aux agendas du détecteur 199
+  sont reproduits sur la base exacte. Huit nouveaux tests repris verts avec
+  le texte public ; reprise de la capture de base à 45 min et six recharges
+  identiques (monde/rendu), sans retour à la fermeture. Aucune clé de signature
+  configurée, commit non signé.
+  Aucun Luna, deux travailleurs réduits au plus ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/reserve-201/` ;
+  [rapport 201](taches/rapport-codex-201-reserve-brisee.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Compteur 199, 20 paires 4 h contre la base exacte : crue 271 → 19 retours non justifiés (crue 2024 253 → 1, boucle réserve/garde de Gorm disparue), total 291 → 40 ; hameau 16 → 17 sans attribution causale établie. VERIFIER + spatial 0,2 crue 7 2 h sans écart. Le troisième échec de sa suite (contrôle AST des agendas par le détecteur 199) est corrigé sur l'intégration.
+
 - **Lot 203, diagnostic seul**, `codex-capacites-salle`, base `2fe05b9` : portée manuelle encore bornée au secteur (deux cas au seuil ouvert, état et rendu rechargés), contexte social PNJ et projections MJ recensés ; lots P1–P3 proposés, MJ gelé séparé, aucune garantie générale ni modification du jeu, aucun Luna ; un processus réduit, bruts `C:/Users/msics/donjon/artifacts/capacites-203/`, [rapport 203](taches/rapport-codex-203-capacites-salle.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. P1 : la portée manuelle (spatial.proche, monde.present_physique/accessible, pnj._accessible) reste bornée à la salle de l'acteur, contrairement au contact entre personnages (refus « Approche-toi » au seuil ouvert, reproduit). P2 : contexte social des PNJ (de_pres, autour) borné à la salle. P3 : zone de calme de l'atelier. M1 à M3 côté MJ, en veille.
 
