@@ -17,6 +17,18 @@ construire. Il découle de la section « Contrat du MJ » d'[AGENTS.md](../AGENT
 
 ## Trois niveaux de vérité
 
+**Dossiers techniques au contact** (lot 152, L4). `atelier`, `franchissements`,
+`passages_obstacles` et `espace` ne décrivent que des objets visibles et proches
+de Corvus selon `spatial.proche`. Le filtre commun `espace.objets_proches`
+s'applique aux matières, outils, assemblages, appuis, obstacles et installations ;
+une installation ne cite que son support également perçu au contact. Les biens
+portés gardent leur portée. Sans coordonnées de contact dans une ancienne
+sauvegarde, aucune portée au sol n'est supposée. Un objet visible éloigné reste
+un repère dans la vue et les faits perceptifs, sans dossier technique ; le joueur
+doit s'approcher. Les préparations, refus, trajets et coûts du moteur restent
+ceux du contrat commun. Ce filtre des données ne garantit pas que Luna ne
+proposera jamais spontanément un geste éloigné ; le moteur revalide sa portée.
+
 **Schéma envoyé à OpenAI** (lot 93, `codex-latence-appels`). Le fournisseur
 mutualise les sous-schémas strictement identiques dans `$defs`, référencés par
 `$ref`, seulement si la requête devient plus courte. Leur expansion restitue

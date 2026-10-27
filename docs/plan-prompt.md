@@ -49,7 +49,14 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
 - **L2** — schéma invariant : tous les modes et toutes les branches toujours présents, `faits` validé par le moteur,
   `suite` nullable dans une seule branche ; la question de faisabilité garde son contrat.
 - **L3** — consignes invariantes : règles d'atelier, d'obstacles, de franchissement et d'espace condensées dans le socle.
-- **L4** — dossiers bornés à la perception et à la proximité ; repère sans affordance pour ce qui est loin.
+- **L4 fait, lot 152, branche `codex-dossiers-proches`, non fusionnée** — les quatre dossiers passent par
+  `espace.objets_proches` (visibilité et `spatial.proche`), installations et outils compris ; les repères éloignés
+  restent dans la vue. Les sauvegardes sans coordonnées n'établissent pas de portée au sol. Console et MJ simulé,
+  état et rendu rechargés au Relais, à l'auberge et à l'atelier. Dix scènes identiques : `faits` 136 247 → 129 655
+  caractères (−4,8 %), franchissements 6/10 → 2/10 et obstacles 4/10 → 2/10. Aucune consigne ni règle de trajet
+  modifiée ; **critère Luna des propositions distantes non atteint** (deux actions et un détail encore proposés,
+  refusés par le moteur). Le filtre des dossiers ne garantit pas à lui seul les propositions libres de Luna.
+  [Rapport 152](taches/rapport-codex-152-dossiers-proches.md).
 - **L5** — refus local de `HorsDePortee`, sans appel au MJ.
 - **L6** — dégraissage des consignes (doublons socle/règles), relances mesurées.
 - **L7** — catalogues d'écriture à la demande et surfaces génériques paresseuses.

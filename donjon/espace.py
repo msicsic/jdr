@@ -162,18 +162,36 @@ def preparer(m, proposition, revision=None):
     return travail
 
 
+def objets_proches(m):
+    """Sources techniques perçues au contact, y compris les biens portés.
+
+    Une ancienne sauvegarde sans coordonnées ne prouve aucune portée au sol.
+    Les objets portés gardent la portée définie par spatial.proche.
+    """
+    from .spatial import proche, position_cible
+
+    resultat = {}
+    for id, o in m.objets.items():
+        if not m.visible(id):
+            continue
+        if not m.est_porte(id):
+            cible = position_cible(m, id)
+            if len(m.joueur.get("position", ())) != 2 or cible is None or len(cible) != 2:
+                continue
+        if proche(m, id):
+            resultat[id] = o
+    return resultat
+
+
 def dossier(m):
     if eclairage(m)["niveau"] < 2:
         return None
     salle, bords = m.joueur["salle"], []
-    for id, o in m.objets.items():
+    objets = objets_proches(m)
+    for id, o in objets.items():
         a = o.get("appui_vertical")
         if not a or salle not in (a["bas"], a["haut"]) or not a.get("direction"):
             continue
-        if m.data.get("mode_cases"):
-            from .spatial import proche
-            if not m.visible(id) or not proche(m, id):
-                continue
         autre = a["bas"] if salle == a["haut"] else a["haut"]
         bords.append({"appui": id, **a, "lieu_voisin": m.data["salles"][autre]["nom"],
                       "position_relative": "en contrebas" if salle == a["haut"] else "en hauteur",
@@ -182,8 +200,8 @@ def dossier(m):
         return None
     oppose = {"nord": "sud", "sud": "nord", "est": "ouest", "ouest": "est"}
     echelles = []
-    for id, o in m.objets.items():
-        if o.get("installation") and m.accessible(id):
+    for id, o in objets.items():
+        if o.get("installation") and o["installation"]["support"] in objets:
             a = m.objets[o["installation"]["support"]]["appui_vertical"]
             echelles.append({"objet": id, "support": o["installation"]["support"],
                             "bord_oppose": oppose.get(a.get("direction"))})

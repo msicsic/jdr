@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-dossiers-proches`, fusionnée**, lot **152 / L4**, base
+  `45e9f95` : les dossiers atelier, franchissement, obstacles et espace prennent
+  leurs sources dans `espace.objets_proches` (vue et `spatial.proche`), outils et
+  installations compris. Les repères éloignés restent dans la vue ; les biens
+  portés restent à portée. Sans coordonnées anciennes, aucune portée au sol
+  supposée. Aucun changement de consignes, d'actions, de trajets ou de PNJ.
+  Six nouveaux tests verts, console/MJ simulé, Relais/auberge/atelier, état et
+  rendu après recharge ; 63 ciblés existants verts. Dix projections identiques
+  hors dossiers : `faits` **136 247 → 129 655 caractères (−4,8 %)**,
+  franchissements **6/10 → 2/10**, obstacles **4/10 → 2/10**.
+  **8/8 empreintes 2 h identiques**, Relais/auberge × quatre graines ; référence
+  absente cachée une fois, aucun rejeu. Luna une passe de neuf scripts, référence
+  `cdaf371` cachée une fois : **84 → 77 appels / 29 tours MJ**, **2,90 → 2,66**
+  appels et **9,3 → 8,1 s/tour** ; dix tours avec refus de chaque côté, aucun
+  repli/erreur technique/recharge. Aucun dossier classé « aucun proche » après.
+  **Critère des propositions distantes Luna non atteint** : encore deux actions
+  et un détail bruts sur des cibles éloignées, refusés par le moteur ; réponses
+  finales bornées à l'approche ou à la vue. Suite complète unique : **2 169 tests,
+  244 fichiers, 1 242,46 s**, deux processus réduits ; deux échecs MiMo historiques
+  `6 != 5`, zéro erreur/ignoré. Aucun rejeu de référence pour ces échecs déjà
+  documentés. Pas de clé Git de signature ; commit non signé, branche poussée
+  seule ; `main` intact.
+  [Rapport 152](taches/rapport-codex-152-dossiers-proches.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Luna propose encore des gestes sur des cibles éloignées : refusés par le moteur, rendus locaux par L5 (lot 151).
+
 - **Vérification Luna cdaf371**, lot **153**, branche
   `codex-verif-luna-cdaf371` : aucun code du jeu changé, `main` intact.
   Deux passes des 32 scripts, **64 parties, 352 saisies, 180 tours MJ,

@@ -482,10 +482,11 @@ def appliquer(m, effet, lignes):
 
 
 def dossier(m):
+    from .espace import objets_proches
+
+    objets = objets_proches(m)
     ressources, assemblages, appuis, inconnues = [], [], [], []
-    for o in m.objets.values():
-        if not m.accessible(o["id"]):
-            continue
+    for o in objets.values():
         if o.get("ressource"):
             ressources.append(o["id"])
             inconnues.extend(f"{o['id']}.{k}" for k in ("longueur_cm", "charge_jeu_kg") if k not in o)
@@ -502,6 +503,8 @@ def dossier(m):
     for id in assemblages:
         o = m.objets[id]
         support = (o.get("installation") or {}).get("support")
+        if support and support not in objets:
+            continue
         installables, enchainables = [], []
         passage = False
         if support:
@@ -531,7 +534,7 @@ def dossier(m):
     suggestion = None
     perches = [i for i in ressources if m.objets[i].get("ressource") == "perche"]
     liens = [i for i in ressources if m.objets[i].get("ressource") == "lien"]
-    outils = [o["id"] for o in m.objets.values() if m.accessible(o["id"]) and m.est_porte(o["id"]) and "couper_bois" in o.get("usages", [])]
+    outils = [o["id"] for o in objets.values() if m.est_porte(o["id"]) and "couper_bois" in o.get("usages", [])]
     if len(perches) >= 3 and liens and outils:
         p = fabrication(perches[:2], perches[2], liens[0], outils[0],
                         min(300, *(int(m.objets[i].get("longueur_cm", 0)) for i in perches[:2])))
