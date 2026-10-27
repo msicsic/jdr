@@ -162,7 +162,8 @@ def _salle_position(m, id, trace=None, salle_vue=None):
         return None
     trace.add(id)
     o = m.objets[id]
-    if o.get("incorpore"):
+    from .presence import parti
+    if o.get("incorpore") or parti(m, id):
         return None
     if o.get("cote") and o.get("attache") and o["cote"] != salle_vue:
         return None
@@ -436,7 +437,8 @@ def _los_global(m, a, b, terrain, opaques):
 
 
 def visible(m, id, acteur="joueur", champ=None):
-    if id not in m.objets or id == acteur:
+    from .presence import parti
+    if id not in m.objets or id == acteur or parti(m, id) or parti(m, acteur):
         return False
     memo = _memo_vue(m)
     champ_propre = champ is None
@@ -650,7 +652,7 @@ CLES_VUE = ("id", "type", "lieu", "position_salle", "orientation", "detail_local
             "luminosite", "ouverte", "bloque_vue", "masse", "longueur_cm", "mobile", "cote", "attache", "nom",
             "position_autonome", "ancrage_initial")
 # Valeurs composées, rares, figées par leur texte : une modification en place change l'empreinte.
-CLES_VUE_COMPOSEES = ("ancrage_carte", "positions_salles", "appui_vertical", "installation")
+CLES_VUE_COMPOSEES = ("parti", "ancrage_carte", "positions_salles", "appui_vertical", "installation")
 _COMPOSEES = frozenset(CLES_VUE_COMPOSEES)
 ETATS_GARDES = 8      # états récents dont on garde la perception (un regard tourné puis rendu revient au même)
 
@@ -663,7 +665,7 @@ def etat_vue(m):
     if cache is None:
         return _etat_vue_brut(m)
     j = m.joueur
-    entete = (j.get("salle"), None if j.get("position") is None else tuple(j["position"]), j.get("orientation"))
+    entete = (j.get("salle"), None if j.get("position") is None else tuple(j["position"]), (j.get("orientation"), repr(j["parti"])) if j.get("parti") else j.get("orientation"))
     # La plupart des lectures successives ne séparent aucune écriture. Comparer les
     # dictionnaires en C évite alors même le parcours Python objet par objet. L'ordre des
     # objets et celui des clés composées comptent aussi dans l'empreinte de référence.
@@ -722,7 +724,8 @@ def _etat_vue_brut(m):
     """Référence complète, indépendante de toute reprise par objet."""
     j = m.joueur
     p = j.get("position")
-    return (j.get("salle"), None if p is None else tuple(p), j.get("orientation"), tuple([
+    return (j.get("salle"), None if p is None else tuple(p),
+            (j.get("orientation"), repr(j["parti"])) if j.get("parti") else j.get("orientation"), tuple([
         _etat_objet(cle, o, None if _COMPOSEES.isdisjoint(o) else repr(tuple(map(o.get, CLES_VUE_COMPOSEES))))
         for cle, o in m.objets.items()]))
 
@@ -935,14 +938,15 @@ def acteurs_vus(m, acteur, autres):
     """Ceux d'``autres`` (personnages ou joueur) que l'acteur voit dans sa propre salle : un test
     case par case, sans calculer tout son champ de vision."""
     from .corps import conscient
-    if not conscient(m, acteur):
+    from .presence import parti
+    if not conscient(m, acteur) or parti(m, acteur):
         return []
     salle = position_acteur(m, acteur)[0]
     origine = lumiere = None
     vus = []
     for autre in autres:
         if autre == "joueur":
-            if m.joueur["salle"] != salle:
+            if m.joueur.get("parti") or m.joueur["salle"] != salle:
                 continue
             case = tuple(m.joueur["position"])
         else:
@@ -959,7 +963,8 @@ def acteurs_vus(m, acteur, autres):
 def dans_le_regard(m, salle, case, acteur="joueur"):
     """Une case sous le regard de l'acteur, même dans le noir : une flamme y serait vue de loin."""
     from .corps import conscient
-    if not conscient(m, acteur):
+    from .presence import parti
+    if not conscient(m, acteur) or parti(m, acteur):
         return False
     origine, lumiere = _vue(m, acteur)
     if salle not in lumiere.salles:
@@ -1031,6 +1036,9 @@ def champ_visible(m, acteur="joueur"):
 def _champ(m, acteur, memo):
     """Le champ de l'acteur, à ne pas modifier : gardé dans ``vue_memorisee`` par état (``memo``),
     et par position, regard et signature de la vue d'un état à l'autre."""
+    from .presence import parti
+    if parti(m, acteur):
+        return frozenset()
     if memo is not None and ("champ", acteur) in memo:
         return memo["champ", acteur]
     cache = getattr(m, "_cache_vue", None)

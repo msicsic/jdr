@@ -302,6 +302,8 @@ def _constats(monde, id):
                 valeur = {k: False for k in ("disponible", "allume") if valeur.get(k) is False}
                 if c["valeur"].get("vide") is True:
                     valeur["vide"] = True
+                if "parti" in c["valeur"]:
+                    valeur["parti"] = c["valeur"]["parti"]
                 if not valeur:
                     continue
             elif not (attribut == "verrouillee" and valeur is True
@@ -391,6 +393,7 @@ def phrase(monde, noyau, locuteur=None):
         if noyau["attribut"] == "eau":
             return f"l'eau atteint {noyau['valeur']} cm dans " + lieu(monde.data["salles"][noyau["objet"]])
         qualite = ("fermé" if noyau["attribut"] == "verrouillee" else
+                   ("parti" if noyau["valeur"]["parti"] else "revenu") if "parti" in noyau["valeur"] else
                    "vide" if "vide" in noyau["valeur"] else
                    "épuisé" if "disponible" in noyau["valeur"] else "éteint")
         return (designer(o) + (" sont " if nombre_pluriel(o) else " est ")

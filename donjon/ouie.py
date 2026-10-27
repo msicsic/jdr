@@ -126,6 +126,9 @@ def perte(a, b):
 
 
 def _place(monde, qui):
+    from .presence import parti
+    if parti(monde, qui):
+        return None, None
     cases = monde.data.get("mode_cases")
     if qui == "joueur":
         j = monde.joueur

@@ -4,6 +4,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-depart-definitif`, non fusionnée**, lot **181 / A4b
+  partiel**, base `integration 8c0cecd` : sortie `exterieur: true`, état
+  `parti` sauvegardé par la marche commune joueur/PNJ avec ou sans cases ;
+  personne et biens conservés, sans présence, occupation, perception, lumière
+  ni ouïe dans les lieux. Retrait immédiat de l'ordonnanceur pendant son laps,
+  invalidation des caches perceptifs. Digue déclarée dans `crue_hameau` seul.
+  Preuve `etat.parti` aux témoins, constats et nouvelles datées des PNJ ;
+  `protéger` finit avec cause publiée à la sortie du choix, sans renaissance.
+  Lieu inconnu non terminal ; retour par placement d'auteur à l'issue,
+  croyance démentie par la vue, reprise corporelle sans temps rétroactif.
+  Départ du joueur : fin `depart`, journal et rendu de fin sauvegardés.
+  **16/16 empreintes historiques 2 h identiques**, Relais/mine/auberge/crue
+  × quatre graines, état complet et monde/rendu rechargés compris ; références
+  finales du lot 179 exclusivement relues. Aucun temps du cache comparé.
+  **55 ciblés validés au terme des reprises**, dont huit départs/retours et
+  conversations ; suite unique : **2 287 tests, 263 fichiers, 1 334,188 s**,
+  deux échecs MiMo historiques `6 != 5`, aucune erreur. Les deux compléments
+  de tests ajoutés après le passage du fichier et les reprises finales du
+  retour/nouvelle sont validés en ciblés, sans seconde suite complète.
+  **4/4 nuits hameau, 4 h**, zéro usurpation/plantage, aucune boucle signalée,
+  trois bascules isolées ; une observation `fige_presse` de devoir (1985).
+  Quatre mondes/rendus identiques après recharge ; aucun PNJ parti dans ces
+  nuits passives, les franchissements sont exercés dans les scènes ciblées.
+  **Limite** : l'adoption subjective des nouvelles par le joueur reste
+  absente ; paroles entendues seulement, sans modèle de confiance inventé.
+  Aucun choix autonome nouveau de départ, geste de retour du MJ ni simulation
+  hors des lieux. Restent suivi vocal, interposition d'un lieu et ouï-dire
+  des droits de garde. Aucun Luna ni fichier réservé au lot 180 modifié.
+  Deux travailleurs réduits au plus, `main` intacte, aucune clé de signature.
+  Bruts exclusivement `C:/Users/msics/donjon/artifacts/depart-181/` ;
+  [rapport 181](taches/rapport-codex-181-depart-definitif.md).
+
 - **Branche `codex-garde-rendue-perdue`, fusionnée**, lot **179 / A4b
   partiel**, base `integration dd815f4` : preuve de possession et de droits
   enregistrée avec le lieu cru par `esprits.constater_possession`, vue et

@@ -175,6 +175,8 @@ def prix(monde, objet):
 
 
 def regarder(monde):
+    if monde.joueur.get("parti"):
+        return "Tu as quitté les lieux. Ta partie est terminée."
     from .corps import conscient
     if not conscient(monde):
         return "Ta partie est terminée." if monde.data.get("fin") else "Tu es sans connaissance."

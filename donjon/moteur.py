@@ -797,6 +797,9 @@ class Moteur:
 
     @staticmethod
     def _terminer_etape(travail, plan, lignes, effets=(), geste=None, methode=None):
+        if travail.joueur.get("parti"):
+            lignes.append("Ta partie est terminée.")
+            return
         from .corps import conscient
         if not conscient(travail):
             Moteur._attendre_reveil(travail, lignes)
@@ -1066,6 +1069,9 @@ class Moteur:
                 ecart = valeur["ecart"]
                 s_ecarter(m, ecart["personnage"], (ecart["salle"], tuple(ecart["position"])), "joueur", lignes)
             ancienne = m.joueur["salle"]
+            from .presence import franchir
+            if franchir(m, "joueur", ancienne, valeur["salle"], lignes):
+                return
             m.joueur["salle"], m.joueur["position"] = valeur["salle"], list(valeur["position"])
             if valeur.get("orientation"):
                 m.joueur["orientation"] = valeur["orientation"]
@@ -1189,6 +1195,9 @@ class Moteur:
             o.pop("vendeur", None)
             lignes.append(f"Tu paies {quantite(montant, 'pièce')} à {m.objets[vendeur]['nom']}.")
         elif op == "voyager":
+            from .presence import franchir
+            if franchir(m, "joueur", m.joueur["salle"], cible, lignes):
+                return
             from .eau import refuser_entree
             refuser_entree(m, cible)  # Par une échelle, un saut, un passage : on n'arrive pas sous l'eau.
             position = valeur if isinstance(valeur, (list, tuple)) else position_entree(m, cible, m.joueur["salle"])

@@ -1673,6 +1673,15 @@
           ],
           "porte": null,
           "vers": "echoppe"
+        },
+        "est": {
+          "case": [
+            9,
+            3
+          ],
+          "porte": null,
+          "vers": "digue",
+          "exterieur": true
         }
       },
       "potentiel_invention": {
@@ -1883,6 +1892,36 @@
         ]
       },
       "genre": "f"
+    },
+    "digue": {
+      "altitude_cm": 1000,
+      "fenetres": 0,
+      "lumiere_naturelle": 0,
+      "nom": "Digue extérieure",
+      "genre": "f",
+      "exterieur": true,
+      "plan": {
+        "origine": [
+          10,
+          2
+        ],
+        "repere": "D",
+        "sol": [
+          "...",
+          "...",
+          "..."
+        ]
+      },
+      "sorties": {
+        "ouest": {
+          "case": [
+            -1,
+            1
+          ],
+          "porte": null,
+          "vers": "antichambre"
+        }
+      }
     }
   },
   "savoirs_pnj": {
