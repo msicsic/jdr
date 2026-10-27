@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification d'intégration ee835d2**, lot **174**, laptop, branche
+  `codex-verif-integ-ee835d2`, base documentaire `a96a495` : code `donjon/` et
+  `tools/` identique à `ee835d2`, aucun changement du jeu ni Luna. **49/49 nuits
+  achevées une fois**, deux travailleurs au plus à priorité réduite : 32 × 12 h,
+  huit rixes × 8 h, cinq VERIFIER/spatial 0,2 × 8 h, quatre hameaux × 12 h.
+  Zéro plantage, violation, usurpation, mort, coup contre personne ou écart de
+  contrôle ; seule borne Lucien auberge **42/314**, retenu = optimum **73,4743**.
+  Archives 160/148 absentes : rapports seuls relus, aucune référence rejouée.
+  Crue, moyenne huit graines : eau **344,38 → 44,38 PNJ·min**, attente
+  **511,25 → 393,75** ; pire passage **30 → 36/h**. Crue 2024 : eau **30**,
+  attente **145**, pire **24/h** (lot 163 : 34), Brune faim finale **100**,
+  Ilse **73** ; quatre parts épuisées à **431**, ancienne alerte continue de
+  Brune 305 min non retrouvée sous cette forme. Josse : mine 1985, 125 min dès
+  80 et 135 dès 210, devoir satisfait ; 2024, 165 dès 560, faim/devoir en attente.
+  **56 interpositions** principales sans violence ; sept hameau, cinq renforcées.
+  Galerie à 4 h sur quatre graines **3/8**, à 12 h sur huit graines **3/16**.
+  Gorm `amener` atteint **7/8**, aucun abandon ; graine 11 encore active.
+  `informer` absent du scénario courant, hameau sans agenda déclaré.
+  À instruire : Brune crue 1985, douze appels 495–518 ; Gorm hameau 2024,
+  onze alternances dont sept entretien/garde. Aucun défaut nouveau établi ;
+  absence d'archives empêchant de certifier leur ancienneté dans la même nuit.
+  Hameau : eau **280 → 40**, attente **192,50 → 750**. Monde et rendu après
+  recharge non certifiés par ces archives d'observation ; captivité non recensée
+  exhaustivement. Aucune suite complète, aucun correctif, `main` intacte.
+  Pas de clé de signature configurée ; livraison documentaire sur la branche seule.
+  [Rapport 174](taches/rapport-codex-174-verif-integ.md) ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/verif-integ-ee835d2/` (49 archives et manifeste).
+
 - **Branche `codex-garder-proteger-c`, fusionnée**, lot **167 c / A4b
   partiel**, base `1aba0df`, code `13fde5f` et `5f69840` : responsabilités
   communes profil/agendas `protéger`, sans doublon ; appels, cris, défense,
