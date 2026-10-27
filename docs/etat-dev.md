@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-reserve-brisee`, non fusionnée**, lot **201 / 196 a**,
+  base exacte `fffa3a2` : capacité commune de fermeture sur fin crue/constatée/
+  simulée, constats vue/essai cohérents, verrou démenti aussi pour le joueur
+  (schéma sauvegardé inclus), garde du plan sans auto-exclusion de sa pulsion.
+  **22 ciblés verts**, cas réel crue 2024 et contenant de la mine, monde/rendu
+  rechargés, laps entier/découpé. **20 paires de 4 h** : suspects Relais
+  **1 → 1**, mine **1 → 1**, auberge **2 → 2**, crue **271 → 19**, hameau
+  **16 → 17** ; crue 2024 **253 → 1**, boucle réserve/garde supprimée.
+  La base actuelle ne reproduit plus l'effraction des graines 7/42 ; en 2024,
+  elle survient à 45 min. **Critère aucun scénario en hausse non atteint** :
+  hameau 7, retours d'abri **5 → 6** ; attribution unique non établie par trois
+  contre-épreuves. Nouvelle observation `fige_presse` de Gorm sur devoir confié.
+  Aucune garantie générale sur les avis/abris. Crue 7, 2 h, `VERIFIER` et
+  `spatial.VERIFICATION=0,2` : zéro écart, borne, plantage. Suite unique :
+  **2 385 tests / 276 fichiers, 1 803,701 s, trois échecs, zéro erreur** ; les
+  deux MiMo `6 != 5` et le contrôle AST des accès aux agendas du détecteur 199
+  sont reproduits sur la base exacte. Huit nouveaux tests repris verts avec
+  le texte public ; reprise de la capture de base à 45 min et six recharges
+  identiques (monde/rendu), sans retour à la fermeture. Aucune clé de signature
+  configurée, commit non signé.
+  Aucun Luna, deux travailleurs réduits au plus ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/reserve-201/` ;
+  [rapport 201](taches/rapport-codex-201-reserve-brisee.md).
+
 - **Branche `codex-garantie-avis`, fusionnée**, lot **199 / 196d**,
   base `0fb5a07` : mesure déterministe des retours de décision dans l'audit
   des nuits et le comparateur, mode empreintes compris ; comptes par PNJ,

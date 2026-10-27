@@ -665,7 +665,11 @@ def satisfaite(monde, id, condition):
         # Le tenir soi-même ne suffit pas : l'objet doit être déposé (ou tenu par un autre) sur place.
         return (not porte_par(monde, condition["objet"], id)
                 and salle_crue(monde, id, condition["objet"]) == condition["lieu"])
-    return _cru(monde, id, condition["objet"], "verrouillee") is True and not _ouvert_cru(monde, id, condition["objet"])
+    from .portes import refermable
+    # Une installation détruite n'a plus de remise sous clé à accomplir.
+    return (not refermable(_cru(monde, id, condition["objet"], "fin"))
+            or _cru(monde, id, condition["objet"], "verrouillee") is True
+            and not _ouvert_cru(monde, id, condition["objet"]))
 
 
 def illicite(monde, id, objet, operation=None, confies=None):
@@ -1518,10 +1522,8 @@ def retabli_par_son_plan(monde, id, condition):
         return False
     if i["but"] != {"type": "pulsion", **condition}:
         return True  # Précondition temporaire d'un autre but, urgent ou non.
-    # Pour la garde elle-même, conserver l'arbitrage du recours en cours.
-    but = {k: v for k, v in i["but"].items() if k != "type"}
-    return i["motif"] in urgents(monde, id) or i["motif"] == "engagement" and any(
-        x["condition"] == but for x in agendas.en_cours(monde, id))
+    # La garde protège les autres buts, jamais contre son propre candidat.
+    return False
 
 
 def candidats(monde, id):

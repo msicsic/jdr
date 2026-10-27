@@ -20,7 +20,7 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
   lu sur l'objet (``planification.enrichir``).
 - ``fin`` : destruction ou consommation constatée, datée et conservée même
   après retrait des restes ; distincte de l'état de disponibilité.
-- ``verrouillee`` : appris par un essai ou un savoir, jamais par la vue.
+- ``verrouillee`` : appris par essai ou savoir ; ouverture ou destruction vue dément le verrou.
 - ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
 - ``prevision`` (sujet : une salle) : avis reçu, avec source et conviction ; valeur =
   [minute du niveau, niveau, montée en cm/h], sans modifier les mesures ``eau``.
@@ -282,7 +282,7 @@ def verifier(monde):
         for sujet, attributs in e["croyances"].items():
             assert (isinstance(sujet, str) and isinstance(attributs, dict)
                     and (sujet in monde.data["salles"] and set(attributs) <= {"eau", "prevision"}
-                         or set(attributs) <= {"fin", "lieu", "etat"})), "Perception du joueur invalide"
+                         or set(attributs) <= {"fin", "lieu", "etat", "verrouillee"})), "Perception du joueur invalide"
             for attribut, c in attributs.items():
                 _croyance_valide(monde, attribut, c)
         assert isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX, "Mémoire du joueur invalide"
@@ -961,6 +961,8 @@ def constater(monde, id, sujet, source):
     o = monde.objets[sujet]
     if source in ("vu", "essai"):
         constater_fin_objet(monde, id, sujet, source)
+        if o["type"] in ("porte", "contenant") and (o.get("ouverte") or o.get("integrite") == 0):
+            reviser(monde, id, sujet, "verrouillee", False, source)
     if "passage" in o:
         # La forme ne se devine pas de la catégorie ; pas de croyance neuve pour
         # les anciens objets non décrits (empreintes inchangées).
@@ -988,8 +990,15 @@ def constater(monde, id, sujet, source):
         valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
                    "charge": o.get("combustible", 0) > 0}
         etat = {k: bool(valeurs.get(k)) for k in etats}
-        if o["type"] == "contenant" and o.get("ouverte") and source == "vu":
-            etat["vide"] = not any(x["lieu"] == sujet for x in monde.objets.values())
+        if o["type"] == "contenant" and o.get("ouverte"):
+            visible = source == "vu" or (monde.visible(sujet) if id == "joueur" else sujet in percus(monde, id)[0])
+            if visible:
+                etat["vide"] = not any(x["lieu"] == sujet for x in monde.objets.values())
+            else:
+                # Toucher le battant dans le noir ne dément pas le contenu vu.
+                ancien = croyance(monde, id, sujet, "etat")
+                if ancien and "vide" in ancien["valeur"]:
+                    etat["vide"] = ancien["valeur"]["vide"]
         croire(monde, id, sujet, "etat", etat, source)
 
 
@@ -1141,8 +1150,6 @@ def _percevoir(monde, id):
             # interrompent aussi l'attente, comme une porte ou un feu.
             change |= (any(avant["valeur"].get(k) != apres.get(k) for k in ("blessure", "conscient"))
                        if o["type"] == "personnage" else avant["valeur"] != apres)
-        if o["type"] in ("porte", "contenant") and o.get("ouverte"):
-            reviser(monde, id, sujet, "verrouillee", False)  # Ouvert sous ses yeux : pas verrouillé.
     for sujet, attributs in list(croyances.items()):
         etat = attributs.get("etat")
         if (sujet not in vus and sujet in monde.objets and "allume" in monde.objets[sujet]
