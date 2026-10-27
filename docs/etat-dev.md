@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-retenus-apres`, fusionnée, lot **178**, base
+  `integration dd815f4` : projection pure commune `tenir.retenus_apres`,
+  employée par `enfermer` et le dossier de contre-revue. Chaque opération de
+  porte indique les personnes retenues après elle ; fermeture seule ou autre
+  issue libre/inconnue : aucune retenue. Présences et verrous selon l'auteur,
+  vue du joueur actualisée sur une copie ; aucun effet physique ni prompt changé.
+  **29 ciblés verts**, trois fichiers, 44,046 s : Bram/bureau, Rémy/réserve,
+  console et MJ simulé, dossier sans mutation, refus de l'enfermement non établi,
+  événements et monde/rendu rechargés.
+  **8/8 exécutions identiques à `dd815f4`**, événements et recharges compris.
+  **12/12 empreintes 2 h identiques**, Relais/mine/rixe × quatre graines,
+  état complet et monde/rendu rechargés ; références du lot 175 et cache
+  `79594e4` exclusivement relues. Suite unique : **2 271 tests, 261 fichiers,
+  1 254,899 s**, deux échecs MiMo historiques `6 != 5`, zéro erreur/ignoré.
+  Aucune seconde suite. **Luna non jouée sur instruction** ;
+  commande exacte dans
+  `C:/Users/msics/donjon/artifacts/retenus-178/luna-a-jouer.txt` : deux passes
+  enfermer/traîner, une passe des neuf autres bancs de force contre `cdaf371`.
+  Amélioration sémantique et critère des trois appels non certifiés.
+  Deux travailleurs réduits au plus ; `main` intacte, aucune clé de signature.
+  Commit local uniquement : poussée refusée par la revue automatique
+  (confiance/destination d'`origin` non établies, risque d'exfiltration).
+  Bruts exclusivement `C:/Users/msics/donjon/artifacts/retenus-178/` ;
+  [rapport 178](taches/rapport-codex-178-retenus-apres.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Commit et poussée repris par l'orchestrateur (saturation du modèle de l'agent). Validation Luna jouée par l'orchestrateur contre cdaf371 (cache) : enfermer/traîner deux passes **5,25 → 1,83 appels/tour**, 23,8 → 9,0 s/tour, refus 3,5 → 0,5, relances 1 → 0 ; **enfermer réussi p1** (fiche puis fermer et verrouiller exécutés, deux appels chacun), **p2 Luna vise encore Bram** au lieu de la porte (refus local « Approche-toi », un appel) : écart d'interprétation restant 1/2 ; traîner 2/2. Neuf autres bancs de force, une passe : 2,53 → 2,18 appels/tour, relances 3 → 1.
+
 - **Branche `codex-fins-agendas`, fusionnée**, lot **175 / A4b partiel**,
   base `integration 7eb1ac9`, code `0544be1` puis `101f770` : croyance `fin` après
   destruction/consommation constatée, joueur et PNJ ; date conservée hors

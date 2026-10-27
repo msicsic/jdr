@@ -168,7 +168,7 @@ def _deplacements(plan, monde):
 
 def _passages(plan, monde):
     """Sens des portes du plan, limité aux lieux et présences déjà perçus."""
-    from .tenir import sorties_crues
+    from .tenir import sorties_crues, retenus_apres
     if not any(op in ("ouverture", "verrouiller") for op, _, _ in plan.effets):
         return []
     souvenirs = monde.data.get("souvenirs_visuels", {})
@@ -181,6 +181,7 @@ def _passages(plan, monde):
     for op, cible, valeur in plan.effets:
         if op not in ("ouverture", "verrouiller") or monde.objets.get(cible, {}).get("type") != "porte":
             continue
+        retenus = retenus_apres(monde, "joueur", cible, verrouillee=op == "verrouiller")
         for salle in sorted(connus):
             if salle not in monde.data["salles"]:
                 continue
@@ -189,6 +190,7 @@ def _passages(plan, monde):
             resultat.append({"operation": ("ouvrir" if valeur else "fermer") if op == "ouverture" else op, "porte": cible, "type": "porte", "lieu": salle,
                 "lieu_corvus": monde.joueur["salle"],
                 "etat_apres_operation": {"ouverte": valeur} if op == "ouverture" else {"verrouillee": True},
+                "personnes_retenues_apres_operation": [i for i in retenus.get(salle, []) if monde.designable(i)],
                 "personnes_connues": sorted(i for i, lieu in lieux.items() if lieu == salle
                     and monde.objets[i].get("type") == "personnage"),
                 "issues_connues_avant": [{"porte": p, "verrouillee": v}

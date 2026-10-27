@@ -59,30 +59,51 @@ def captif(monde, auteur):
     return bool(issues) and all(v and _cle_portee(monde, auteur, p) is None for p, v in issues)
 
 
-def enfermer(monde, auteur, porte, fin):
-    """Le verrouillage qualifié par les seules présences et issues crues de l'auteur."""
+def retenus_apres(monde, auteur, porte, verrouillee=True):
+    """Projection pure de l'enfermement, selon les seules connaissances de l'auteur.
+
+    Fermer sans verrouiller ne condamne pas une issue. Les clés des victimes
+    relèvent de leur captivité vécue, pas de la contrainte exercée par l'auteur.
+    """
     from .esprits import lire
-    from .pnj import commencer_geste
-    from .spatial import memoriser as memoriser_vue
-    if monde.objets[porte]["type"] != "porte":
-        return
+    if monde.objets[porte]["type"] != "porte" or not verrouillee:
+        return {}
     if auteur == "joueur":
-        memoriser_vue(monde)
+        # La vue peut démentir un ancien souvenir de présence. Rejouer son
+        # actualisation sur une copie assure le même contrat qu'à l'exécution.
+        from copy import deepcopy
+        from .spatial import memoriser
+        monde = deepcopy(monde)
+        memoriser(monde)
         lieux = {i: s["salle"] for i, s in monde.data.get("souvenirs_visuels", {}).items()}
     else:
         lieux = {i: c.get("lieu", {}).get("valeur")
                  for i, c in lire(monde, auteur)["croyances"].items()}
+    resultat = {}
     for salle, piece in monde.data["salles"].items():
         if not any(s.get("porte") == porte for s in piece.get("sorties", {}).values()):
             continue
         issues = sorties_crues(monde, auteur, salle, porte)
         if not issues or not all(v for _, v in issues):
             continue
-        for victime, lieu in sorted(lieux.items()):
-            if victime != auteur and lieu == salle and corps.vivant(monde, victime):
-                g = commencer_geste(monde, auteur, "enfermer", victime, fin, exclus=(victime,) if victime != "joueur" else ())
-                g["porte"] = porte
-                corps.evenement(monde, "enfermer", victime, auteur=auteur, porte=porte)
+        resultat[salle] = [i for i, lieu in sorted(lieux.items())
+                          if i != auteur and lieu == salle and corps.vivant(monde, i)]
+    return resultat
+
+
+def enfermer(monde, auteur, porte, fin):
+    """Enregistre la contrainte projetée, après actualisation de la vue de l'auteur."""
+    from .pnj import commencer_geste
+    from .spatial import memoriser as memoriser_vue
+    if monde.objets[porte]["type"] != "porte":
+        return
+    if auteur == "joueur":
+        memoriser_vue(monde)
+    for victimes in retenus_apres(monde, auteur, porte).values():
+        for victime in victimes:
+            g = commencer_geste(monde, auteur, "enfermer", victime, fin, exclus=(victime,) if victime != "joueur" else ())
+            g["porte"] = porte
+            corps.evenement(monde, "enfermer", victime, auteur=auteur, porte=porte)
 
 
 def constater_enfermement(monde, auteur):
