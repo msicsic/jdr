@@ -53,8 +53,18 @@ récit et n'a pas à figurer dans les opérations ; l'outil et la méthode la po
 Une question sur la faisabilité d'un geste (« puis-je… ? ») se juge comme la demande de ce geste.
 Réponds conforme=false seulement pour un écart d'état net :
 - une action ou une cible différente de celle demandée ;
-- un changement durable demandé qu'aucune opération ne produit ;
+- un état durable demandé qui n'est ni déjà vrai d'après le dossier, ni produit par le plan ;
 - un changement durable ajouté que le joueur n'a pas demandé.
+Compare la demande à l'état final établi par le moteur, en lisant ensemble le titre,
+l'information, deplacements, passages, les effets et les étapes. Les déplacements et
+effets que le moteur établit pour accomplir le geste font partie de ce geste : ils
+ne sont pas des changements ajoutés et n'exigent pas une demande séparée. Cela
+n'autorise pas une autre action sur un tiers sans rapport avec le geste demandé.
+Un état demandé déjà vrai avant le plan d'après le dossier n'exige aucune opération
+pour le rétablir. Distingue cet acquis des changements restant à produire : les
+départs et présences connues décrivent l'avant, les arrivées et etat_apres_operation
+décrivent l'après de leur opération. Une présence ne prouve pas qu'un passage est
+fermé ; ne suppose aucun état ou effet absent du dossier.
 Le champ perception est une opération déclarée par le moteur, même si information et les effets
 sont vides : son résultat ne sera calculé qu'à l'exécution. Elle est un geste complet ;
 juge sa fidélité à la demande et à sa cible, sans exiger un effet durable ni anticiper son résultat.

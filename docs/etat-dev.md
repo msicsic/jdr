@@ -4,6 +4,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-contre-revue-etat-final`, **non fusionnée**, lot **177**,
+  base `integration` `4cb4361` : règle commune de contre-revue fondée sur
+  l'état final établi par le moteur. Déplacements inhérents au geste admis,
+  état déjà vrai selon le dossier sans opération supplémentaire ; changements
+  étrangers et états demandés manquants toujours refusés. Instructions seules,
+  aucun effet moteur ni dossier perceptif changé. **16 ciblés verts**, console
+  avec MJ simulé, deux seuils, Bram/bureau et Rémy/réserve, refus d'un déplacement
+  de tiers et d'une ouverture contraire à l'enfermement, monde/rendu rechargés.
+  Suite complète unique : **2 260 tests, 260 fichiers, 1 283,253 s**, zéro erreur
+  ou ignoré ; deux échecs MiMo historiques `6 != 5` et un échec de saisie du
+  test négatif, corrigé puis repris dans les **16 ciblés finaux verts, 40,771 s**.
+  Aucune seconde suite, deux travailleurs réduits au plus.
+  **Luna non jouée sur instruction** ; commande exacte dans
+  `C:/Users/msics/donjon/artifacts/contre-revue-177/luna-a-jouer.txt` : deux
+  passes traîner/enfermer, une passe neuf autres force et atelier/relais contre
+  `cdaf371`. Amélioration sémantique et critère des trois appels non certifiés.
+  Bruts exclusivement dans ce dossier ; aucune clé de signature configurée,
+  `main` intacte. [Rapport 177](taches/rapport-codex-177-contre-revue-etat-final.md).
+
 - Branche `codex-force-contre-revue`, fusionnée, lot **172**, base
   `79594e4` : dossier de traînage avec les deux déplacements du trajet validé,
   titre/information communs, positions des lieux non visités masquées ; dossier
