@@ -91,28 +91,41 @@ def _resume_decision(intention):
     }
 
 
-def _est_accompli(monde, id, decision, minute):
+def _est_accompli(monde, id, decision, minute, cause_sortie=None):
     """Vrai si la décision ``decision`` a atteint sa condition de fin à cet instant."""
     if not decision or not decision.get("but"):
         return False
     but = decision["but"]
     genre = but.get("type")
     e = lire(monde, id)
+    ici = monde.objets[id]["lieu"]
     if genre == "pulsion":
         cond = {k: v for k, v in but.items() if k != "type"}
         return bool(deliberation.satisfaite(monde, id, cond))
     if genre == "voir":
+        if cause_sortie and cause_sortie.startswith("fin:"):
+            return True
+        from donjon.ouie import resolu
         salle = but.get("lieu")
-        b = deliberation.bruit_a_voir(monde, id)
-        a = deliberation.alarme(monde, id)
-        return (not b or b[0] != salle) and (not a or a[0] != salle)
+        return not any(
+            s["type"] == "bruit" and s.get("salle") == salle and not resolu(monde, id, s)
+            for s in e["memoire"]
+        )
     if genre in ("manger", "part"):
         return "faim" not in e.get("pressants", ())
     if genre == "chaleur":
         return "chaleur" not in e.get("pressants", ()) and e["besoins"].get("chaleur", 0) <= deliberation.CHALEUR_FIN
     if genre == "repos":
         return "repos" not in e.get("pressants", ()) and e["besoins"].get("repos", 0) <= deliberation.REPOS_FIN
-    if genre in ("abri", "lumiere"):
+    if genre == "abri":
+        cible = but.get("lieu")
+        return (
+            (cible is None or ici == cible)
+            and not eau.en_peril(monde, id)
+            and "securite" not in e.get("pressants", ())
+            and e["besoins"].get("securite", 0) <= deliberation.SECURITE_FIN
+        )
+    if genre == "lumiere":
         return "securite" not in e.get("pressants", ()) and e["besoins"].get("securite", 0) <= deliberation.SECURITE_FIN
     if genre == "agenda":
         aid = but.get("agenda")
@@ -344,7 +357,9 @@ class SondeAvis:
             precedent["quitte_minute"] = minute
             precedent["quitte_cause"] = cause
             precedent["quitte_entrees"] = entrees
-            precedent["accompli_au_depart"] = _est_accompli(monde, id, precedent["decision"], minute)
+            precedent["accompli_au_depart"] = _est_accompli(
+                monde, id, precedent["decision"], minute, cause_sortie=cause
+            )
         eps.append({
             "id": id,
             "debut_t": t,

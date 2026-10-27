@@ -4,6 +4,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Diagnostic changements d'avis des PNJ**, lot **196**, branche `codex-changements-avis`, base `56ae922` : diagnostic et conception seuls (aucun fichier de `donjon/`, scénario ou test modifié, aucun Luna), détecteur générique sans effet de bord `tools/detecter_changements_avis.py` joué sur 20 nuits de 4 h (`relais`, `mine`, `auberge`, `crue`, `crue_hameau` × 1985/7/42/2024 ; 594 cycles accomplis, 272 allers-retours justifiés, **364 allers-retours non justifiés** tous prouvés boucles réelles sur `crue` 359 et `crue_hameau` 5 : 358 oscillations de Gorm sur la réserve brisée combinant `fin == "detruit"` ignorée par `gestes`/`satisfaite`, croyance `verrouillee` et bascule `"essai"`/`"vu"` dans `constater`, et auto-annulation par `retabli_par_son_plan` ; évacuations `PERIL_EAU` auto-annulées de Brune en `crue 1985` min 42 et `crue_hameau 1985` min 204 ; changements d'abri d'Ilse en `crue_hameau 2024` min 42–97), contrat d'engagement commun et découpage en lots 196a–196d dans [rapport 196](taches/rapport-codex-196-changements-avis.md), bruts dans `C:/Users/msics/donjon/artifacts/avis-196/detection-4h.json`.
+
 - **Branche `codex-occasions-asymetriques`, fusionnée**, lot **186**,
   base `integration 12a936d`, **variante finale sans galettes** : les nouveaux
   lots alimentaires de Gorm/Mathe/Odile et leurs connaissances sont retirés
