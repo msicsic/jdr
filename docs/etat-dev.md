@@ -4,6 +4,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Lot 215, diagnostic seul**, `codex-richesse-crue`, départ `3e86d1f` vérifié : huit nuits crue/hameau 4 h identiques à `d2243c2`, références `ef86cab`/`aadab7c` réemployées ; contre avant 211, signatures perdues/gagnées crue **55/19**, hameau **71/77**, S **23→14 / 29,5→31** ; attentes attribuées aux besoins, **36 captures** monde/rendu rechargées. Manque commun de contact/recherche proposé en priorité ; routes dangereuses, cloche déléguée et rondes satisfaites à conserver ; causalité distante de chaque texte non isolée, aucun gain garanti. Aucun jeu/Luna modifié, un calcul réduit à la fois ; bruts `C:/Users/msics/donjon/artifacts/richesse-215/`, [rapport 215](taches/rapport-codex-215-richesse-crue.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. Baisse S de la crue surtout juste (contacts obtenus par position réelle inconnue). Manques : P1 un contact nécessaire (abri en compagnie, enquête de ressource) sans localisation passe par la recherche/l'appel commun ; P2 demander à un tiers où est quelqu'un. Attentes restantes surtout Gorm/devoir et Brune/chaleur, contraintes justes.
+
 - **Branche `codex-localisation-crue`, fusionnée**, lot **211**, départ
   `0b95f33` vérifié puis **reprise demandée sur `aadab7c`** (205/207), fusion
   `5a97ab3`, seul conflit documentaire. `monde.mobile_par_nature` et `_lieu_cru`
