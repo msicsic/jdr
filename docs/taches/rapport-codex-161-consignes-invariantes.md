@@ -50,3 +50,9 @@ La reprise finale a relevé une assertion de test qui attendait le résultat ex�
 alors que le parcours prépare seulement la fiche : attente corrigée en « Ramper sous ».
 Elle sera vérifiée par la suite complète unique déjà programmée ; aucun résultat
 vert de cette suite n’est encore revendiqué.
+
+Reprise : l’autorisation explicite transmise par le superviseur dans un message
+`paseo-system` a été présentée à la revue automatique. Nouveau rejet : cette source
+est déclarée non fiable pour autoriser l’exportation. Aucun appel Luna effectué.
+Une autorisation humaine directe est nécessaire ; la suite locale différée
+reste active (session 82627), sans seconde suite lancée.
