@@ -141,12 +141,11 @@ class DetecterAvisTests(unittest.TestCase):
         constats = audit.analyser_nuit(nuit)
         self.assertEqual([c["niveau"] for c in constats], ["observation"])
 
-    def test_torche_hameau_1985_service_perdu(self):
+    def test_torche_hameau_1985_service_preserve(self):
         nuit = d.jouer_nuit_sondee("crue_hameau", 1985, heures=9/60, verifier_empreinte=True)
         pertes = [s for s in nuit["analyse"]["services_etat_perdu"] if s["prestataire"] == "brune"]
-        self.assertTrue(pertes)
-        self.assertTrue(all(s["reussite_t"] < s["perte_t"] < 9 * d.MINUTE for s in pertes))
-        self.assertTrue(all(not s["violation"] for s in pertes))
+        self.assertFalse(pertes)
+        self.assertTrue(any('allume la torche' in c['texte'] for c in nuit['chronique']))
 
     def test_torche_historique_217_rechargee(self):
         from donjon.monde import Monde

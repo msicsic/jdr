@@ -1951,12 +1951,14 @@ def menager_flamme(monde, id, minute):
     l'éclaire quand il a besoin d'y voir (``lumiere_utile``), sans autre lumière en main, ne se
     consume pas pour rien."""
     from .perception import allumee
+    from .biens import services_proteges
+    proteges = {c["objet"] for c in services_proteges(monde, id) if c.get("allume")}
     e = esprit(monde, id)
     plan = e["intention"]["plan"] if e["intention"] else []
     vises = {x["cible"] for x in plan} | {x["outil"] for x in plan}
     allumees = {s["objet"] for s in e["memoire"] if s["type"] == "flamme_employee"}
     flamme = next((k for k in sorted(allumees) if k in monde.objets and k not in vises
-                   and porte_par(monde, k, id) and allumee(monde.objets[k])), None)
+                   and k not in proteges and porte_par(monde, k, id) and allumee(monde.objets[k])), None)
     if flamme is None:
         return
     autres = any(k != flamme and porte_par(monde, k, id) and allumee(o) for k, o in monde.objets.items())
