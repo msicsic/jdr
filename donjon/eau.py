@@ -211,16 +211,24 @@ def noyee_attendue(monde, id, salle):
 
 
 def en_peril(monde, id):
-    """Il se tient là où il attend l'eau assez haute pour ne plus s'y mouvoir : il faut en sortir."""
+    """Quitter l'eau crue présente, ou la noyade attendue, sans interrompre une traversée sûre."""
     ici = lieu(monde, id)
-    if not (active(monde) and ici in monde.data["salles"] and noyee_attendue(monde, id, ici)):
+    if not (active(monde) and ici in monde.data["salles"]
+            and (eau_crue(monde, id, ici) > 0 or noyee_attendue(monde, id, ici))):
         return False
     # Une traversée en cours ne devient pas un séjour à la minute ronde.
     # Elle garde la main seulement si la même admissibilité prouve encore
     # le départ avant la noyade, jusqu'au but sûr ; sinon, évacuation prioritaire.
     from .esprits import lire
-    intention = lire(monde, id)["intention"]
+    esprit = lire(monde, id)
+    intention = esprit["intention"]
     plan = intention["plan"] if intention else []
+    # Même préfixe déjà accompli que dans pnj.agir : une perception à
+    # l'arrivée peut faire choisir avant que l'exécution retire ces étapes.
+    debut = 0
+    while debut < len(plan) and plan[debut]["operation"] == "aller" and plan[debut]["lieu"] == ici:
+        debut += 1
+    plan = plan[debut:]
     if plan and plan[0]["operation"] == "aller" and plan[0]["lieu"] != ici:
         from .planification import Vue, depart
         from .route_admissible import refus
@@ -229,6 +237,15 @@ def en_peril(monde, id):
         cible = plan[0]["lieu"]
         route = v.route(e, cible)
         if route is not None and refus(v, e, route, cible, depart_compris=True) is None:
+            return False
+    # Un geste fini qui peut encore aboutir n'est pas un séjour : l'interrompre
+    # devant sa cible le ferait reprendre au retour (inspection, livraison,
+    # repas…). L'attente d'une occasion, elle, ne garantit aucun achèvement.
+    from .pnj import DUREES
+    from .temps import MINUTE
+    if plan and esprit["patience"] is None and not noyee_attendue(monde, id, ici):
+        duree = DUREES.get(plan[0]["operation"])
+        if duree is not None and attendue(monde, id, ici, horizon=duree / MINUTE) < NOYEE_CM:
             return False
     return True
 

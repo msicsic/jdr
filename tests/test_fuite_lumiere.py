@@ -5,9 +5,9 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from donjon import defense, planification
+from donjon import defense, deliberation, planification
 from donjon.banc_pnj import executer
-from donjon.esprits import croire
+from donjon.esprits import croire, lire
 from donjon.monde import Monde
 from donjon.rendu import regarder
 from donjon.temps import MINUTE
@@ -35,19 +35,33 @@ class FuiteLumiereTests(unittest.TestCase):
         with gzip.open(Path(__file__).parent / 'data/crue-2024-680.json.gz', 'rt', encoding='utf-8') as f:
             a = recharger(Monde(json.load(f)))
         b = recharger(a)
-        chronique, _ = executer(recharger(a), 720)
-        passer(a, 40 * MINUTE)
-        for _ in range(40):
-            passer(b, MINUTE)
-            b = recharger(b)
+        choisir = deliberation.choisir
+        controles = []
+        def verifier_abri(monde, qui, minute):
+            resultat = choisir(monde, qui, minute)
+            intention = lire(monde, qui)['intention']
+            if qui == 'brune' and intention:
+                dangereuses = defense.lieux_dangereux(monde, qui)
+                for etape in intention['plan']:
+                    if etape['operation'] == 'abriter':
+                        self.assertNotIn(etape['lieu'], dangereuses)
+                        controles.append((minute, etape['lieu']))
+            return resultat
+        with patch.object(deliberation, 'choisir', verifier_abri):
+            executer(recharger(a), 720)
+            passer(a, 40 * MINUTE)
+            for _ in range(40):
+                passer(b, MINUTE)
+                b = recharger(b)
         a = recharger(a)
         self.assertEqual(a.data, b.data)
         self.assertEqual(regarder(a), regarder(b))
-        passages = [c for c in chronique if c['pnj'] == 'brune' and 'passe dans' in c['texte']]
-        self.assertEqual(len(passages), 8)
-        self.assertFalse(any(c['minute'] >= 689 for c in passages))
-        self.assertEqual(a.objets['brune']['lieu'], 'antichambre')
-        self.assertNotIn(a.objets['brune']['nom'], regarder(a))
+        # L'évacuation change les positions des compagnons : le nombre et le
+        # lieu final des trajets ne sont plus ceux de la nuit du lot 155.
+        # Le contrat est qu'aucun abri ni séjour de lumière ne renvoie vers
+        # l'auteur encore actif dans ses croyances, à chacun de ses choix.
+        self.assertTrue(controles)
+        self.assertNotIn(a.objets['brune']['lieu'], defense.lieux_dangereux(a, 'brune'))
 
     @patch('donjon.social._constats', return_value=())
     def test_autres_victimes_lieu_cru_fin_et_cle_memoire(self, _):

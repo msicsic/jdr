@@ -80,7 +80,10 @@ class EauPlanMarcheTests(unittest.TestCase):
                 # Ancienne lecture : 9 refus / 44 passages pour Gorm,
                 # 5 refus / 40 passages pour Ilse sur ces captures.
                 self.assertLessEqual(len(refus), maximum)
-                self.assertLessEqual(sum(c['nature'] == 'deplacement' for c in gestes), 16)
+                # Sortir d'un séjour humide ajoute désormais des passages
+                # légitimes (après inspection ou livraison). Leur nombre
+                # brut ne mesure pas une boucle de refus plan/marche.
+                self.assertEqual(eau.profondeur(bloc, bloc.objets[qui]['lieu']), 0)
 
     def test_eau_decouverte_au_seuil_retenue_et_route_refusee_apres_reprise(self):
         from tests.test_social import placer
