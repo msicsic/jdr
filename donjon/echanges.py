@@ -601,8 +601,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     """« absent », « mefiance », « qui_va_la », « necessaire », « impossible », « pauvre »,
     « refus », « remis », « rendu », « promis » ou « vendu ».
 
-    ``prix`` : les pièces offertes. Au moins le prix (``biens.prix``) au propriétaire, c'est un
-    achat : accepté sans se faire prier, payé aussitôt. Moins, c'est une demande, que le prix non
+    ``prix`` : les pièces offertes. Au moins le prix (``biens.prix``), c'est un achat au
+    propriétaire, ou un rachat au détenteur qui accepte la faute de vendre le bien retenu.
+    Le paiement accompagne la remise. Moins, c'est une demande, que le prix non
     payé rend plus dure à qui une pièce compte (``biens.reticence``). Une voix qu'il ne sait à qui
     prêter s'entend d'abord demander qui va là, qu'elle offre de payer ou réclame son bien."""
     from .biens import prix as prix_de, reticence, richesse
@@ -625,6 +626,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     if arret == "qui_va_la":
         return arret
     o = monde.objets[objet]
+    rachat = False
     if not part and proprietaire(monde, o) == demandeur:
         from .biens import permis
         # Le prêt autorisé n'est pas un vol : sa restitution garde le contrat
@@ -637,7 +639,14 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
             faute = prix_faute(monde, auditeur, ARGENT)
             if faute is not None and valeur_proposition(
                     monde, auditeur, {'type': 'objet', 'objet': objet}, demandeur) > faute:
-                return 'refus'
+                if not prix:
+                    return 'refus'
+                # Vendre le bien retenu lèse encore son propriétaire : le gain
+                # d'argent se pèse au même prix de faute que la rétention.
+                from .caractere import valeur_pieces
+                rachat = valeur_pieces(monde, auditeur, prix) > faute
+                if not rachat:
+                    return 'refus'
         # Son propriétaire le redemande : il le lui rend, sauf s'il s'en sert encore. Garder un prêt
         # échu qu'on lui réclame lui coûte la confiance du prêteur (``biens.pret_garde``).
         if necessaire(monde, auditeur, objet):
@@ -645,8 +654,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
             if demandeur != "joueur" and echu(monde, objet):
                 pret_garde(monde, demandeur, auditeur, objet, [])
             return "necessaire"
-        remettre(monde, auditeur, demandeur, objet, demande=True)
-        return "rendu"
+        if not rachat:
+            remettre(monde, auditeur, demandeur, objet, demande=True)
+            return "rendu"
     if arret:
         return arret
     if prix and richesse(monde, demandeur) < prix:
@@ -655,7 +665,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     # comme lorsqu'on lui demande quelles ressources il possède.
     siens_a_portee(monde, auditeur)
     prix_ = prix_de(monde, objet, part)
-    vente = (bool(prix_) and prix >= prix_ or accord and prix > 0) and proprietaire(monde, o) == auditeur
+    vente = (bool(prix_) and prix >= prix_ or accord and prix > 0) and (proprietaire(monde, o) == auditeur or rachat)
+    if rachat and not vente:
+        return "refus"
     # Ce qu'il perd à donner sans être payé : ce qui se consomme. Un objet qui dure, il le prête, et
     # le récupérera.
     perdu = part or besoin_de_part(o) is not None

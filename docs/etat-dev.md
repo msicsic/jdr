@@ -4,6 +4,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-racheter-bien`, fusionnée**, lot **214**, base `cca5f50`,
+  code `2b47bd9` : le geste d'achat commun permet au propriétaire de racheter
+  son bien au détenteur. Rétention et vente jugées au prix de faute d'honnêteté
+  existant ; accueil, utilité, budget, paiement, remise et refus communs.
+  La réclamation passe avant le rachat ; le prix et le poids du projet bornent
+  ce recours, aucun plafond d'agenda changé. **29 ciblés finaux verts**, dont
+  sept nouveaux ; ballot et marteau rachetés autonomement en scènes d'auteur
+  (estimation initiale 70, revente 7), monde/rendu et temps découpé identiques.
+  Joueur acheteur par sa parole existante ; joueur vendeur hors lot selon
+  l'instruction de repli du superviseur, car son acceptation actuelle ne couvre
+  que les missions déclarées. Aucun nouveau parcours ni raccord moteur/dialogue.
+  Suite unique **2 429 tests / 281 fichiers verte**, zéro échec/erreur,
+  16 ignorés, 3 580,295 s ; banc exact `cca5f50` / `2b47bd9` : **20 paires 4 h,
+  20 chroniques et états complets identiques**, zéro plantage/usurpation,
+  compteur 199 **24/204/510** inchangé, aucune nouvelle alerte. Aucune naissance
+  de récupération naturelle ; réclamations de biens/rachats/reprises **0 → 0**,
+  S/F/D inchangés. Coût mine 4 h identique : **870 recherches, 10 624 nœuds**.
+  Bois du guet en scène équivalente : refus raisonné (**5,944 > 1,857432**),
+  reste à Brune, projet en sommeil ; monde/rendu et laps découpés vérifiés.
+  Capture historique 207 rejouée 151→240 : mêmes recharges/laps, pas de naissance
+  sur cette base, bois au guet. Vérification au-delà du créneau. Aucun Luna,
+  aucun fichier des lots voisins modifié, commits non signés (aucune clé).
+  Bruts `C:/Users/msics/donjon/artifacts/racheter-214/` ;
+  [rapport 214](taches/rapport-codex-214-racheter-bien.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rachat par le geste d'achat commun, borné par le prix et le poids du projet (bois du guet : coût 5,944 > poids 1,86, pas de rachat, refus raisonné). Preuve par scènes (ballot, marteau) ; aucun rachat naturel dans les 20 nuits, 20/20 états identiques, coût mine identique. Joueur vendeur hors lot.
+
 - **Vérification Luna d85fb54**, lot **216**, jouée par l'orchestrateur sur le laptop (le coffre ChatGPT était illisible depuis l'agent du PC fixe) : deux passes des 34 scripts du lot 165, intégration `d85fb54` contre `cdaf371` (cache, scripts absents joués et rangés). Aucun code du jeu changé. **Appels/tour 3,21 → 2,98, s/tour 11,5 → 10,5 (médiane 9,3 → 9,0), replis 2 → 0,5, obstacles narratifs 31 → 19,5, relances 18 → 16,5, refus 25,5 → 22** ; aucune erreur technique ni de recharge. Force : traîner 2 appels/tour, enfermer 2,5 avec un refus sur quatre tours, geste improvisé encore refusé (3 refus/2 tours) ; poser au sol 4 appels/tour sans refus de destination ; comptes 4,75 appels/tour. Lecture qualitative des textes non faite saisie par saisie. [Rapport 216](taches/rapport-codex-216-verif-luna.md), bruts `C:/Users/msics/donjon/artifacts/verif-luna-d85fb54/`.
 - **Revue vierge 217, lecture seule** : cinq nuits 4 h sur `8177959`, regard influencé par la lecture préalable de ce point de reprise (limite autorisée) ; continuité d'intention, contact et service utile à distinguer des seuls retours. [Rapport 217](taches/rapport-codex-217-revue-vierge-decisions.md), bruts `C:/Users/msics/donjon/artifacts/revue-217/` ; aucun jeu, outil ou test modifié.
   Fusionné sur l'intégration (rapport seulement). Retenu : engagement minimal porté par l'intention, sans majorer l'inertie du trajet déjà parcouru (transmis au lot 213) ; contact comme sous-but commun (P1 du 215) ; services payés qui portent leur durée (Brune éteint la torche payée une minute après, hameau 1985) ; réessai lié à l'obstacle plutôt qu'au délai 30/60.
