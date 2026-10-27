@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-27.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
 ## Où on en est
 
@@ -17,14 +17,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   ne rouvre pas le lieu. Capture auberge 42 à 500 : **11 → 3 questions**,
   aucune réponse encore tenue réexécutée, mêmes monde/rendu et laps rechargés.
   **38 reprises finales vertes, 18 nouveaux tests**.
-  Banc final cinq scénarios × quatre graines × 4 h, **20 références du cache** :
-  **17 questions**, aucun trio répété dans une même nuit, zéro plantage/usurpation ;
-  S Relais **11,25 → 14,25**, hameau **31 → 32,75**, autres scénarios en baisse.
-  Attente urgente crue **178,75 → 183,75**, hameau **128,75 → 151,25**.
-  **Réserve avant intégration** : suspects 199 **16 → 22**, nouvelle alerte
-  de lecture sociale (hameau 2024, huit contre sept), absence globale de
-  boucle nouvelle non certifiée. Capture 215 testée par `rejoindre` ; ses dix
-  minutes inchangées ne déclenchent pas la question (P1 reste distinct).
+  Intégration `bd45f65` (213/219) fusionnée dans `813d45b` : seul conflit
+  documentaire, aucun conflit de code ; **38/38 ciblés verts en 49,729 s**.
+  Banc final cinq scénarios × quatre graines × 4 h, classes **219** :
+  suspects **0/1/2/2/0 → 0/1/2/2/0** (Relais/Mine/Auberge/Crue/Hameau),
+  **critère satisfait partout** ; cinq épisodes intégralement identiques à la
+  référence, aucune nouvelle répétition suspecte issue des questions.
+  **22 questions**, zéro plantage/usurpation. Un trio répété au hameau 42 :
+  Gorm → Maël sur Aubin, refus sociaux réarmés par rancune perçue **0 → 14**,
+  sans délai ; limite : un changement défavorable des axes permet aussi le réessai.
+  Préemptions **53 → 67**,
+  entrées à expliquer **61 → 69**, cycles accomplis **468 → 501**.
+  Attente urgente crue **196,25 → 218,75**, hameau **97,50 → 87,50** ;
+  S Relais **9,50 → 12**, hameau **31 → 40,50**, auberge en baisse.
+  La réserve historique 199 sur la base antérieure est remplacée par ce contrôle
+  classé 219 ; aucune amélioration uniforme d'attente ou de richesse garantie.
+  Capture 215 testée par `rejoindre` ; ses dix minutes inchangées ne déclenchent
+  pas la question (P1 reste distinct).
   Suite unique **2 444 tests / 283 fichiers**, sept échecs bruts, zéro erreur,
   16 ignorés, **3 166,835 s** ; cinq fichiers verts sur la base (20 tests),
   puis 38 reprises vertes après correctif, migration N3/N9 et oracles explicités.
@@ -7208,4 +7217,3 @@ Non versionnés, donc absents d'un nouveau poste :
   cours de jalon sans accord.
 - Les phrases des docs tirées d'un test ou d'un scénario décrivent ce scénario, pas une règle
   de conception du jeu.
-

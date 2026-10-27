@@ -1,6 +1,8 @@
 # Lot 221 — Demander à un tiers où est quelqu'un
 
-27 octobre 2026 — `codex-ou-est-il`, **non fusionnée**, base `4fe33ef` vérifiée.
+28 octobre 2026 — `codex-ou-est-il`, **non fusionnée** ; base initiale `4fe33ef`,
+puis intégration `bd45f65` (213/219) fusionnée dans `813d45b`. Seul conflit :
+`docs/etat-dev.md`, résolu en conservant les deux historiques ; aucun conflit de code.
 Aucun Luna ; deux calculs au plus, priorité réduite. Aucune clé configurée :
 commits non signés. Bruts : `C:/Users/msics/donjon/artifacts/ou-est-221/`.
 
@@ -38,24 +40,41 @@ recalées, plans/monde/textes/vues inchangés ; test de clôture d'un rendez-vou
 fondé sur un engagement explicitement convenu, plutôt que sur un choix futur
 d'appel. Aucune seconde suite complète. Créneau dépassé, notamment par cette suite.
 
-**Banc final : cinq scénarios × quatre graines × 4 h**, compteur 199 actif.
-Les 20 références exactes, calculées une fois, sont réutilisées après le correctif.
-**17 questions : 12 indications, cinq ignorances ; aucun trio demandeur/témoin/cible
-répété dans une même nuit, zéro plantage/usurpation.**
+**Reprise après intégration : 38/38 tests ciblés verts, 49,729 s.**
+Aucune seconde suite complète, conformément à la demande : aucun conflit de code.
 
-| Scénario | S/F/D moyens avant → après | Questions | Attente urgente PNJ·min |
-|---|---|---:|---:|
-| Relais | 11,25/3,75/1,50 → 14,25/4,75/1,69 | 5 | 0 → 1,25 |
-| Mine | 22/4,25/1,61 → 20/4,25/1,50 | 2 | 0 → 0 |
-| Auberge | 12/4,25/1,06 → 11,25/4,25/0,97 | 1 | 0 → 0 |
-| Crue | 14/6,75/2 → 13/6,75/2 | 1 | 178,75 → 183,75 |
-| Hameau | 31/8/2,54 → 32,75/8,25/2,42 | 8 | 128,75 → 151,25 |
+**Banc final contre `bd45f65` : cinq scénarios × quatre graines × 4 h**,
+classes 219 actives, vingt références calculées une fois et mises en cache.
+**Critère satisfait dans les cinq scénarios** : répétitions suspectes inchangées.
+Les cinq épisodes suspects sont même intégralement identiques à la référence :
+Mathé/mine 1985 (acheter), Mireille/auberge 1985 (servir), Tilo/auberge 42
+(demander), Brune/crue 42 et 2024 (proposer). **Aucune nouvelle répétition
+suspecte issue des questions ; zéro plantage/usurpation.**
 
-Questions : total sur quatre graines ; attente : compteur moteur ; S/F/D du lot
-183, inactifs compris. Appels **20 → 5**, retrouvailles de rendez-vous **13 → 3**
-(ce compteur ne compte pas chaque rencontre). **Réserve avant intégration** :
-suspects 199 **16 → 22**, entrées changées **144 → 147**, cycles accomplis
-**494 → 489** ; nouvelle alerte de lecture sociale au hameau 2024 (huit contre sept).
-**Absence globale de boucle nouvelle non certifiée.** Sur la capture 215 inchangée,
-dix minutes ne déclenchent pas naturellement la question : P1 reste distinct.
-Aucun gain uniforme de richesse ou d'attente garanti.
+| Scénario | Suspects | Préemptions | À expliquer | Attente urgente | S/F/D moyens |
+|---|---:|---:|---:|---:|---|
+| Relais | 0 → 0 | 5 → 16 | 7 → 6 | 0 → 0 | 9,50/3,50/1,44 → 12/4,25/1,63 |
+| Mine | 1 → 1 | 2 → 2 | 15 → 14 | 0 → 0 | 25,50/4,50/1,96 → 26,25/4,50/1,96 |
+| Auberge | 2 → 2 | 16 → 15 | 4 → 4 | 0 → 0 | 11/4,25/1 → 10,25/4,50/0,97 |
+| Crue | 2 → 2 | 8 → 6 | 17 → 13 | 196,25 → 218,75 | 17,50/7,50/2,63 → 17,25/7,50/2,50 |
+| Hameau | 0 → 0 | 22 → 28 | 18 → 32 | 97,50 → 87,50 | 31/7,50/2,67 → 40,50/8,50/2,63 |
+
+Classes : totaux sur quatre graines ; attente : moyenne PNJ·min du compteur moteur ;
+S/F/D du lot 183, inactifs compris. Totaux : suspects **5 → 5**, préemptions
+**53 → 67**, à expliquer **61 → 69**, cycles accomplis **468 → 501** ;
+satisfaction/démenti d'autrui **0 → 1**, autres classes nulles.
+**22 questions** (Relais 5, Mine 4, Auberge 1, Crue 1, Hameau 11).
+
+Un trio revient au hameau 42 : **Gorm → Maël, au sujet d'Aubin**, minutes
+115 et 147, deux refus « méfiance ». Le diagnostic reproduit la chronique :
+la rancune perçue envers Maël passe **0 → 14**, autres axes inchangés. Le refus
+social suit ces axes et se réarme à ce changement, sans délai ; un changement
+défavorable autorise donc aussi un réessai. **Limite du contrat social signalée**,
+aucune répétition suspecte 219 nouvelle. Trace : `diagnostic-question-bd45f65.*`.
+
+**Limites.** La hausse de l'attente urgente en crue et des entrées « à expliquer »
+au hameau demeure visible ; aucune amélioration uniforme de richesse ou d'attente
+n'est garantie. Le précédent résultat 199 (16 → 22) concernait la base antérieure
+et n'est pas le critère 219. Sur la capture 215 inchangée, dix minutes ne déclenchent
+pas naturellement la question : P1 reste distinct. Bruts de cette reprise :
+`reprise-bd45f65-cibles.*`, `banc-bd45f65.*`, `bilan-bd45f65.*`.
