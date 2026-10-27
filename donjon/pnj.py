@@ -466,10 +466,10 @@ def occupants(monde, sauf=None):
     """{(salle, case): qui s'y tient} : le joueur et les personnages placés, hormis ``sauf``."""
     places = {}
     j = monde.joueur
-    if sauf != "joueur" and j.get("position") is not None:
+    if sauf != "joueur" and not j.get("parti") and j.get("position") is not None:
         places[j["salle"], tuple(j["position"])] = "joueur"
     for k, o in monde.objets.items():
-        if (o["type"] == "personnage" and k != sauf and o.get("lieu") in monde.data["salles"]
+        if (o["type"] == "personnage" and not o.get("parti") and k != sauf and o.get("lieu") in monde.data["salles"]
                 and o.get("position") is not None):
             places.setdefault((o["lieu"], tuple(o["position"])), k)
     return places
@@ -485,9 +485,9 @@ def verifier_places(monde):
     tiennent jamais sur la même case."""
     if not monde.data.get("mode_cases"):
         return
-    places = [("joueur", (monde.joueur["salle"], tuple(monde.joueur["position"])))]
+    places = [] if monde.joueur.get("parti") else [("joueur", (monde.joueur["salle"], tuple(monde.joueur["position"])))]
     places += [(k, (o["lieu"], tuple(o["position"]))) for k, o in monde.objets.items()
-               if o["type"] == "personnage" and o.get("lieu") in monde.data["salles"] and o.get("position") is not None]
+               if o["type"] == "personnage" and not o.get("parti") and o.get("lieu") in monde.data["salles"] and o.get("position") is not None]
     vues = {}
     for k, place in places:
         assert place not in vues, f"Deux personnages sur la même case : {vues.get(place)}/{k}"
@@ -680,6 +680,9 @@ def _pas(monde, id, sortie, lignes):
         _annoncer_porte(monde, id, porte, "ouvre", " s'ouvre.", lignes)
         return
     if _arrete_par_l_eau(monde, id, sortie["vers"]):
+        return
+    from .presence import franchir
+    if franchir(monde, id, o["lieu"], sortie["vers"], lignes):
         return
     depuis, o["lieu"] = o["lieu"], sortie["vers"]
     if "position" in o:
@@ -1332,6 +1335,9 @@ def _avancer_de(monde, id, pas, feutre, lignes):
                 retentir(monde, id, "aller", discret=feutre)
             return duree + _ouvrir_en_chemin(monde, id, monde.objets[porte], lignes)
         if salle != o["lieu"]:
+            from .presence import franchir
+            if franchir(monde, id, o["lieu"], salle, lignes):
+                return duree + duree_pas(PAS_FEUTRE if feutre else PAS, sens)
             o["lieu"] = salle
             placer(o, salle, list(case))
             _chroniquer(monde, id, designer(o, debut=True) + " passe dans : " + monde.data["salles"][salle]["nom"] + ".",
@@ -1954,6 +1960,8 @@ def _avancer(monde, minutes, lignes, dixiemes):
     monde.data["minutes"], monde.data["dixiemes"] = fin_minutes, fin_dixiemes
     t, tours = debut, 0
     while True:
+        ids = [id for id in ids if not monde.objets[id].get("parti")]
+        esprits_ = {id: esprits_[id] for id in ids}
         frontiere = (t // MINUTE + 1) * MINUTE
         reveil_joueur = corps(monde, "joueur")["inconscient"] or fin + 1
         prochain = min((_prochain(e) for e in esprits_.values()), default=fin + 1)
@@ -2038,6 +2046,11 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 gestes = []
                 monde._agit = id  # Le temps de son geste et de ce qu'on en voit (``esprits._percevoir``).
                 duree, issue, rate = agir(monde, id, t, lignes, gestes, compter)
+                if monde.objets[id].get("parti"):
+                    monde._agit = None
+                    percevoir_tous(monde)
+                    observer()
+                    continue
                 if en_cases and issue in (FIN, MANQUE):
                     # Son plan est fini, ou un geste a manqué : il choisit aussitôt la suite, sur ce
                     # que l'essai vient de lui apprendre. Le geste manqué ne se retente pas avant la
@@ -2047,6 +2060,11 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     e["eveil"] = None
                     choisir(monde, id, monde.data["minutes"])
                     duree, issue, _ = agir(monde, id, t, lignes, gestes, compter)
+                    if monde.objets[id].get("parti"):
+                        monde._agit = None
+                        percevoir_tous(monde)
+                        observer()
+                        continue
                     if issue != GESTE:
                         duree, issue = _jusqu_a_la_minute(t), ATTENTE
                 attend = en_cases and issue == ATTENTE

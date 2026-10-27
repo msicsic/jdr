@@ -28,6 +28,9 @@ def fin_objet(o):
 
 
 def salle_source(monde, source):
+    from .presence import parti
+    if parti(monde, source["id"]):
+        return None
     lieu = source["lieu"]
     vus = set()
     while lieu in monde.objets:

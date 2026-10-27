@@ -593,6 +593,33 @@ l'interposition d'un lieu et le départ définitif d'un protégé, toujours à
 décider. Aucun agenda historique ajouté.
 Voir le [rapport 179](taches/rapport-codex-179-garde-rendue-perdue.md).
 
+**Lot 181, `codex-depart-definitif`, non fusionnée : présence et départ cru.**
+Une sortie peut déclarer `exterieur: true`, avec une destination géométrique
+et un seuil réciproque ordinaires. La marche du joueur et des PNJ, avec ou
+sans cases, enregistre le départ avant son récit. Le personnage et ses biens
+restent dans la sauvegarde ; ils n'occupent plus de case, ne sont plus perçus,
+n'éclairent plus les lieux et ne s'entendent plus. L'ordonnanceur retire aussi
+celui qui vient de partir pendant son laps. Le dernier emplacement reste une
+coordonnée historique, pas une présence. La digue du refuge est déclarée dans
+le seul scénario dérivé `crue_hameau`.
+
+Les témoins reçoivent `etat.parti`, daté, distinct d'un lieu inconnu. Les
+constats et nouvelles communs transmettent cette propriété aux PNJ avec
+leur confiance et leur date d'observation. `protéger` finit sur cette seule
+croyance, avec cause publiée après le choix et sans renaissance. Revoir le
+protégé dément sa croyance de départ, sans restaurer le projet terminal.
+Le joueur qui franchit l'issue termine sa partie avec la cause `depart`.
+Le retour est disponible comme placement d'auteur `presence.revenir`, par
+le seuil enregistré ; le temps hors des lieux n'est pas simulé.
+
+**Limites de livraison.** Aucun choix autonome nouveau de départ ni geste
+de retour proposé au MJ. L'adoption subjective d'une nouvelle par le joueur
+reste absente du contrat historique : il en entend les paroles, sans recevoir
+le jet d'adoption des PNJ. Cette voie empêche de déclarer l'invariant intégral
+pour tous les observateurs. Restent aussi le suivi vocal, l'interposition d'un
+lieu et l'ouï-dire des droits de garde du lot 179. Voir le
+[rapport 181](taches/rapport-codex-181-depart-definitif.md).
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des

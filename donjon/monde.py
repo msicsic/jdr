@@ -264,7 +264,8 @@ class Monde:
         trace.add(id)
         o = self.objets[id]
         salle = salle or self.joueur["salle"]
-        if o.get("incorpore"):
+        from .presence import parti
+        if o.get("incorpore") or parti(self, id):
             return False
         if o.get("appui_vertical"):
             a = o["appui_vertical"]
@@ -556,6 +557,8 @@ class Monde:
             verifier_transitions_scenario(self)
             from .pnj import verifier as verifier_pnj
             verifier_pnj(self)
+            from .presence import verifier as verifier_presence
+            verifier_presence(self)
             from .esprits import verifier as verifier_esprits
             verifier_esprits(self)
             from .corps import verifier as verifier_corps

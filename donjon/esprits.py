@@ -52,7 +52,7 @@ LONGUEUR_APPARENTE_CM = 50
 
 
 def pnjs(monde):
-    return [id for id, o in monde.objets.items() if o["type"] == "personnage"]
+    return [id for id, o in monde.objets.items() if o["type"] == "personnage" and not o.get("parti")]
 
 
 CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
@@ -282,7 +282,7 @@ def verifier(monde):
         for sujet, attributs in e["croyances"].items():
             assert (isinstance(sujet, str) and isinstance(attributs, dict)
                     and (sujet in monde.data["salles"] and set(attributs) <= {"eau", "prevision"}
-                         or set(attributs) <= {"fin", "lieu"})), "Perception du joueur invalide"
+                         or set(attributs) <= {"fin", "lieu", "etat"})), "Perception du joueur invalide"
             for attribut, c in attributs.items():
                 _croyance_valide(monde, attribut, c)
         assert isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX, "Mémoire du joueur invalide"
@@ -599,7 +599,8 @@ def percus(monde, acteur):
     que l'état dont elle dépend n'a pas changé (``spatial.etat_vue``) ; dans un état nouveau, elle se
     tire de la précédente quand c'est possible (``_percus_depuis``)."""
     from .corps import conscient
-    if not conscient(monde, acteur):
+    from .presence import parti
+    if not conscient(monde, acteur) or parti(monde, acteur):
         return {}, set()
     memo = _memo_vue(monde) if monde.data.get("mode_cases") else None
     if memo is None:
@@ -638,7 +639,7 @@ def _percus(monde, acteur, memo):
             if vu is not None:
                 vus[id] = vu
         j = monde.joueur
-        if (j["salle"], *j["position"]) in champ:
+        if not j.get("parti") and (j["salle"], *j["position"]) in champ:
             vus["joueur"] = (j["salle"], list(j["position"]))
         return vus, set(champ)
     if eclairage(monde, salle)["niveau"] == 0:
@@ -646,7 +647,7 @@ def _percus(monde, acteur, memo):
     for id, o in monde.objets.items():
         if id not in vus and _pertinent(monde, acteur, o) and monde.present_physique(id, salle=salle):
             vus[id] = (salle, None)
-    if monde.joueur["salle"] == salle:
+    if not monde.joueur.get("parti") and monde.joueur["salle"] == salle:
         vus["joueur"] = (salle, None)
     return vus, {salle}
 
@@ -655,7 +656,8 @@ def _vu_dans_le_champ(monde, memo, acteur, id, o, pose, champ, salles_du_champ, 
     """Où l'acteur voit l'objet ``id`` (salle, case), ou None : ``visible``, sans le cas des surfaces,
     qui ne sont pas pertinentes ; la première place dans le champ, et l'objet accroché au mur n'est vu
     que si ce mur l'est ; porté par un autre, s'il se remarque."""
-    if not _remarquable(acteur, o) or pose is not None and pose not in salles_du_champ:
+    from .presence import parti
+    if parti(monde, id) or not _remarquable(acteur, o) or pose is not None and pose not in salles_du_champ:
         return None
     premiere, vu = None, False
     for s in salles_vues if pose is None else (pose,):
@@ -707,7 +709,7 @@ def _percus_depuis(monde, acteur, memo, dernier):
         else:
             revus[id] = _vu_dans_le_champ(monde, memo, acteur, id, o, poses[id], champ, salles_du_champ, salles_vues)
     j = monde.joueur
-    joueur = (j["salle"], list(j["position"])) if (j["salle"], *j["position"]) in champ else None
+    joueur = (j["salle"], list(j["position"])) if not j.get("parti") and (j["salle"], *j["position"]) in champ else None
     if all((vus_avant.get(id) == porte) == (vu == porte) and (vus_avant.get(id) is None) == (vu is None)
            for id, vu in revus.items()) and ("joueur" in vus_avant) == (joueur is not None):
         # Aucun ne change de rubrique : l'ordre d'un calcul complet est celui d'avant.
@@ -931,10 +933,13 @@ def constater(monde, id, sujet, source):
         from .corps import CORPS, visible
         besoins = monde.joueur.get("besoins", {}) if sujet == "joueur" else lire(monde, sujet)["besoins"]
         ancien = croyance(monde, id, sujet, "etat")
+        if ancien and "parti" in ancien["valeur"]:
+            reviser(monde, id, sujet, "etat", {**ancien["valeur"], "parti": False}, source)
         if besoins:
             croire(monde, id, sujet, "etat",
                    {**{nom: besoins.get(nom, 0) >= regle["urgence"] for nom, regle in CORPS.items()},
-                    **visible(monde, sujet)}, source)
+                    **visible(monde, sujet),
+                    **({"parti": False} if ancien and "parti" in ancien["valeur"] else {})}, source)
         if (source == "vu" and not visible(monde, sujet)["conscient"]
                 and (not ancien or ancien["valeur"].get("conscient") is not False)
                 and protege):
@@ -1172,6 +1177,9 @@ def percevoir_tous(monde):
         from .perception import fin_objet
         croyances_joueur = lire(monde, "joueur")["croyances"]
         for sujet, o in monde.objets.items():
+            ancien = croyances_joueur.get(sujet, {}).get("etat")
+            if ancien and "parti" in ancien["valeur"] and monde.visible(sujet):
+                reviser(monde, "joueur", sujet, "etat", {**ancien["valeur"], "parti": False})
             if _porteur(monde, o) is not None and monde.visible(sujet):
                 constater_possession(monde, "joueur", sujet, "vu")
             fin_connue = "fin" in croyances_joueur.get(sujet, {})
