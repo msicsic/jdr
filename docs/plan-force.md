@@ -627,6 +627,19 @@ dépouiller ; découverte, nouvelle de mort, devoir du protecteur ; fin de parti
 
 ### 4f. Luna et la force
 
+Lot 147, branche `codex-force-4f-luna`, **non fusionnée** : exposition 4d/4e dans
+les consignes communes, corps explicitement mécanique dans l'audit ; filtre des
+locuteurs conscients existant vérifié jusque devant l'enregistrement, même après
+changement d'état. La fiche de `trainer` explicite aussi la case rejointe par le
+corps, pour que la contre-revue lise sa destination réelle. Aucun geste autonome
+modifié. Six bancs nouveaux et les cinq 4b/4c joués une fois : **49 appels,
+19 tours MJ, 2,58 appels/tour, 9,13 s/tour**. Huit saisies sur onze obtiennent leur
+fiche typée en deux appels ; geste improvisé : refus juste en quatre appels ;
+traîner et enfermer : faux refus en cinq et quatre appels. **Critère des trois
+appels non atteint**, pas de garantie sémantique universelle. La preuve de
+destination ajoutée après la passe n'est vérifiée qu'en tests, sans rejeu Luna.
+Voir le [rapport 147](taches/rapport-codex-147-force-4f-luna.md).
+
 Consignes, actions typées et leurs `attendu`, improviser sans violence, état du corps comme domaine
 mécanique, locuteurs autorisés. Mesure : banc de parties `force` (`tools/banc_parties.py --fil`,
 copies de sauvegardes réelles) : « je frappe Brune avec le marteau », « j'assomme Gorm par

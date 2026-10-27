@@ -439,7 +439,9 @@ def preparer(monde, p, plan):
     if p["methode"] != "simple":
         raise ErreurMonde("Cette manière n'est pas prévue.", f"methode={p['methode']} : simple requis.")
     if operation == "trainer":
-        valider_trajet(monde, "joueur", cible, outil)
+        depart, _, _ = valider_trajet(monde, "joueur", cible, outil)
+        plan.information = ("En cas de réussite, le corps rejoint ta case de départ dans "
+                            f"{monde.data['salles'][depart[0]]['nom']} ; tu avances d'un pas vers {outil}.")
     else:
         valider(monde, "joueur", operation, cible, outil)
     nom = designer(monde.objets[cible]) if cible != "joueur" else "toi"

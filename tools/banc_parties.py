@@ -37,7 +37,7 @@ REPLIS = ("Je ne peux pas encore", "Rien de ce que tu perçois ou sais ne permet
           "n'a pas terminé", "Aucune action appliquée", "Aucun changement enregistré",
           "Aucun ajout enregistré", "Aucun engagement enregistré")
 LANCEMENT = {"relais": ["--defi"], "atelier": ["--atelier", "--cases"], "crypte": ["--cases"],
-             "mine": ["--mine"], "auberge": ["--auberge"], "crue": ["--crue"]}
+             "mine": ["--mine"], "auberge": ["--auberge"], "crue": ["--crue"], "rixe": ["--rixe"]}
 
 
 class BudgetEpuise(RuntimeError):
@@ -205,7 +205,7 @@ def preparer(donnees, sauvegarde):
     elif donnees["scenario"] == "atelier":
         from donjon.atelier import nouveau_atelier
         m = nouveau_atelier()
-    elif donnees["scenario"] in ("mine", "auberge", "crue"):
+    elif donnees["scenario"] in ("mine", "auberge", "crue", "rixe"):
         from donjon.banc_pnj import creer
         m = creer(donnees["scenario"], seed, "fixe")
     else:

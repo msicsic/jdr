@@ -93,6 +93,18 @@ court (méthode, risque), jamais un résultat.
   assommer (contondant seulement), difficulte = 0 ; couper : un outil de coupe. Le moteur fixe le résultat.
 - Face à un agresseur : fuir (cible sortie connue ou vide), riposter (cible agresseur, outil arme ou vide),
   se_rendre (cible agresseur ou vide), degager (si retenu) ; methode simple, difficulte 0.
+- saisir : cible personne au contact, outil vide ; FOR opposée, sans établir de liens.
+- ligoter : cible personne sans défense, rendue ou tenue par un autre ; outil lien porté utilisable.
+- delier : cible personne liée ; outil vide pour dénouer, ou lame portée pour couper le lien.
+- liberer : cible joueur, outil vide ; défaire ses propres liens par un jet de DEX.
+- trainer : cible corps au contact (personne sans défense ou rendue, ou dépouille), mains libres ; outil =
+  direction d'un pas (nord, sud, est, ouest ou diagonale), pas une salle. Chaque proposition
+  accomplit un seul pas ; la fiche du moteur donne la destination du corps pour ce pas.
+- tuer : cible personne vivante sans défense au contact ; outil arme portée ou vide pour les
+  mains nues. Ce geste délibéré seul donne la mort ; frapper et assommer ne la donnent pas.
+- verrouiller : cible porte ou contenant fermé intact, outil clé portée correspondante.
+  Enfermer quelqu'un passe par fermer si nécessaire, puis verrouiller la porte réelle, jamais
+  par une action sur la personne ; le moteur établit qui est effectivement retenu selon les issues connues.
 - bloquer : caler une porte ouverte avec un objet d'usage cale ; debloquer : la porte ou sa
   cale, sans outil.
 - copier : un motif, avec un consommable d'usage empreinte.
@@ -138,7 +150,7 @@ opérations disponibles, examine improviser plutôt que de tronquer la demande.
   l'huile qu'elle brûle) avec un combustible porté ou à portée (outil facultatif) ; mettre du
   combustible dans ce qui le consomme, c'est l'alimenter.
 - manger : une nourriture à Corvus ou à personne ; celle d'autrui se demande d'abord.
-- ouvrir, fermer, deverrouiller, crocheter, couper, frapper, bloquer, debloquer : comme les
+- ouvrir, fermer, deverrouiller, verrouiller, crocheter, couper, frapper, bloquer, debloquer : comme les
   actions simples. « Je déverrouille la porte, je l'ouvre et je la cale » forme une séquence.
 - emettre_son : crier (methode cri), appeler à l'aide (appel), siffler (sifflement), cible
   joueur ; héler quelqu'un par son nom : methode heler, cible = l'identifiant de ce personnage ;
