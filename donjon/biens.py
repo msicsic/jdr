@@ -74,7 +74,59 @@ def clore(monde, objet, destination):
     """L'objet arrive à ``destination`` : s'il revient à son propriétaire, le prêt est clos."""
     liste = monde.data.get("permissions")
     if liste and any(p["objet"] == objet and p["de"] == destination for p in liste):
+        rendus = [p for p in liste if p["objet"] == objet and p["de"] == destination]
         liste[:] = [p for p in liste if not (p["objet"] == objet and p["de"] == destination)]
+        from .esprits import constater_possession
+        for p in rendus:
+            for participant in (p["a"], destination):
+                constater_possession(monde, participant, objet, "essai", remis_par=p["a"])
+            retenir_restitution(monde, p["a"], destination, objet)
+
+
+def entrees_reemprunt(monde, id, autre, objet):
+    """Entrées utiles d'un emprunt, sans date, déplacement ni bénéfice social du retour.
+
+    Une perte de moyen ne donne aucune raison de répéter un emprunt terminé.
+    Les besoins sont leurs épisodes urgents, pas leur croissance à chaque minute.
+    """
+    from .deliberation import urgents
+    from .esprits import lire
+    from .spatial import porte_par
+    croyances = lire(monde, id)["croyances"]
+    return {
+        "besoins": sorted(urgents(monde, id)) if monde.objets.get(id, {}).get("profil") else [],
+        "moyens": sorted(k for k in croyances if k != objet and k in monde.objets
+                         and porte_par(monde, k, id)),
+        "pieces": bourse(monde, id),
+        "contenu": (croyances.get(objet, {}).get("pieces") or {}).get("valeur", 0),
+        "proprietaire": proprietaire(monde, objet),
+        "prix": prix(monde, objet),
+    }
+
+
+def retenir_restitution(monde, id, autre, objet):
+    """Le retour est appris par son emprunteur, même si le propriétaire l'impose."""
+    retours = monde.data.setdefault("restitutions", {}).setdefault(id, {})
+    retours[objet] = {"a": autre, "entrees": entrees_reemprunt(monde, id, autre, objet)}
+
+
+def restitution_retenue(monde, id, autre, objet):
+    """Un emprunt rendu n'est pas réessayé sans besoin ou moyen nouveau.
+
+    Un achat ou un don reste une autre réponse : ce contrôle porte sur le prêt.
+    La mémoire est durable et commune au joueur et aux personnages.
+    """
+    retour = monde.data.get("restitutions", {}).get(id, {}).get(objet)
+    if not retour or retour["a"] != autre:
+        return False
+    avant, apres = retour["entrees"], entrees_reemprunt(monde, id, autre, objet)
+    return (all(b in avant["besoins"] for b in apres["besoins"])
+            and all(k in avant["moyens"] for k in apres["moyens"])
+            and apres["pieces"] <= avant["pieces"]
+            and apres["contenu"] <= avant["contenu"]
+            and apres["proprietaire"] == avant["proprietaire"]
+            and not (apres["prix"] is not None and
+                     (avant["prix"] is None or apres["prix"] < avant["prix"])))
 
 
 def donner(monde, objet, a):
@@ -604,6 +656,18 @@ def reticence(monde, id, prix_, offre=0):
 
 def verifier(monde):
     d = monde.data
+    for id, retours in d.get("restitutions", {}).items():
+        assert id == "joueur" or id in monde.objets, "Emprunteur restituant inconnu"
+        for objet, retour in retours.items():
+            assert isinstance(objet, str) and set(retour) == {"a", "entrees"}, "Restitution invalide"
+            assert isinstance(retour["a"], str), "Destinataire de restitution invalide"
+            e = retour["entrees"]
+            assert set(e) == {"besoins", "moyens", "pieces", "contenu", "proprietaire", "prix"}, "Entrées de restitution invalides"
+            assert all(isinstance(e[k], list) and all(isinstance(x, str) for x in e[k])
+                       for k in ("besoins", "moyens")), "Moyens de restitution invalides"
+            assert all(type(e[k]) is int and e[k] >= 0 for k in ("pieces", "contenu")), "Fonds de restitution invalides"
+            assert e["proprietaire"] is None or isinstance(e["proprietaire"], str), "Propriété de restitution invalide"
+            assert e["prix"] is None or type(e["prix"]) is int and e["prix"] >= 0, "Prix de restitution invalide"
     for p in d.get("permissions", []):
         assert (set(p) == {"objet", "a", "de", "minute"} and p["objet"] in d["objets"]
                 and (p["a"] == "joueur" or p["a"] in d["objets"] and d["objets"][p["a"]]["type"] in ("personnage", "depouille"))

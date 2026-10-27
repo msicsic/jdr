@@ -626,6 +626,10 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     if arret == "qui_va_la":
         return arret
     o = monde.objets[objet]
+    from .biens import restitution_retenue
+    if not part and not prix and proprietaire(monde, o) == auditeur and restitution_retenue(
+            monde, demandeur, auditeur, objet):
+        return "refus"
     rachat = False
     if not part and proprietaire(monde, o) == demandeur:
         from .biens import permis
@@ -1063,6 +1067,7 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     from .services import don_utile
     utile = don_utile(monde, receveur, objet)
     o = monde.objets[objet]
+    rendu_a_proprietaire = proprietaire(monde, o) == receveur
     e = esprit(monde, donneur) if (monde.objets.get(donneur) or {}).get("profil") else None
     livre = [x for x in (agendas.en_cours(monde, donneur) if e else []) if x["condition"] == {"objet": objet, "remettre": receveur}]
     tenus = list(livre)
@@ -1106,6 +1111,9 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
         agendas.tenir(monde, donneur, x)
         memoriser(monde, donneur, {"type": "engagement_tenu", "pour": receveur, "condition": x["condition"],
                                    **({"lot": x["lot"]} if "lot" in x else {})})
+    if donneur != receveur and rendu_a_proprietaire and not achat and not livre:
+        from .biens import retenir_restitution
+        retenir_restitution(monde, donneur, receveur, objet)
 
 
 def servir(monde, id, nourriture, pour, lignes):

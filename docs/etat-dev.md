@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-bourse-redemandee`, non fusionnée**, lot **220**, base
+  `fb2dd65` vérifiée : restitution retenue durablement par `biens`, possession
+  constatée à la clôture du prêt, même garde dans le graphe et l'échange,
+  joueur compris ; aucun délai ni cas de scénario. La capture historique
+  mine 1985 sur `4d4c625` reproduit les demandes dès 288 ; reprise de la boucle
+  engagée à 290 avec la branche : retour à 290, puis aucune demande Mathe/Rémy
+  jusqu'à 305, bourse chez Rémy ; temps en bloc/découpé et monde/rendu rechargés
+  identiques. La base actuelle ne reproduit déjà plus cette naissance : Odon
+  prend la bourse à 287 et refuse sa restitution. **20 paires 4 h : chroniques
+  20/20 identiques**, audits 20/20 identiques, états 19/20 : hameau 7 ne diffère
+  que par la mémoire du retour de la torche Brune/Sève (empreinte sans ce champ
+  exactement égale à la référence). Zéro plantage/usurpation,
+  alertes et S/F/D inchangés, 199 **16/144/494**. Mine 1985 branche **12 h** :
+  138 échanges, 47 demandes, aucune demande de bourse Mathe/Rémy, zéro
+  plantage/usurpation, 199 **0/21/63**, trois `fige_presse`, cinq `noir_long`.
+  **35 ciblés distincts verts**, dont cinq nouveaux ; suite unique **2 437 tests /
+  283 fichiers, 1 980,589 s**, zéro erreur, deux MiMo `6 != 5` reproduits sur
+  `fb2dd65`, aucune seconde suite. Deux travailleurs réduits au plus ; vérification
+  au-delà du créneau. Borne du prix nul admise dans le nouveau schéma après la
+  suite ; cinq ciblés repassés verts, décisions mesurées inchangées.
+  Aucun Luna ni fichier interdit modifié, aucune clé de signature Git.
+  Bruts `C:/Users/msics/donjon/artifacts/bourse-220/` ;
+  [rapport 220](taches/rapport-codex-220-bourse-redemandee.md).
+
 - **Vérification d’intégration 4d4c625**, lot **212**, branche `codex-verif-integ-4d4c625`, base documentaire `a49c31e` : **49/49 nuits achevées**, code `donjon/`/`tools/` identique à `4d4c625`, aucun Luna, référence rejouée ou suite complète ; deux calculs au plus, en fond à priorité réduite. Zéro plantage, violation d’état, usurpation, mort relevée ou écart VERIFIER/spatial 0,2 ; cinq contrôles complets de 8 h, zéro borne (Lucien auberge 42/314 non reproduit). **16 coups, sept touchés**, crue 2024 à 672–691, Gorm finit inconscient. Hameau : attente **750 → 1 021,25**, noir **268,75 → 575**, pire passage **40 → 39/h** (1985 : **40 → 28**). Compteur 199 actif : **338 suspects**, garantie générale non établie ; boucle de prêts de la bourse mine 1985 (Mathe 97 demandes, Rémy 100) absente de ses suspects, et alternance poêle/garde d’Anselme auberge 2024 à instruire par les contrats communs, ancienneté même nuit indéterminable avec le seul rapport 174. **117 repas d’empathie**, 40 projets de pièces (un marqué atteint), 12 récupérations nées (huit fins sur retour cru, reprises autonomes non certifiées) ; aucun départ définitif relevé. Pas de monde/rendu certifié après recharge ; aucun correctif. Bruts, scripts, lecture de pile et manifeste des 49 archives exclusivement `C:/Users/msics/donjon/artifacts/verif-integ-4d4c625/` ; [rapport 212](taches/rapport-codex-212-verif-integ.md).
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 49 nuits, zéro plantage, violation, usurpation, mort ou écart VERIFIER/spatial ; richesse S/F/D en hausse dans les quatre scénarios, sans recours en forte baisse ; attente crue et noir Relais/crue en hausse. Petits lots désignés : boucle de la bourse Mathe/Rémy (mine 1985 dès 288, 97 et 100 demandes), alternances poêle/garde d'Anselme (auberge 2024 dès 200), 16 coups en crue 2024 672-691.
 

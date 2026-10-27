@@ -649,6 +649,9 @@ class Vue:
     def refuse(self, autre, o):
         """Il ne le lui redemande pas : un refus qui tient, demandé ou à vendre ; sauf faute d'argent
         pour l'acheter, ce qui n'empêche pas de le demander."""
+        from .biens import restitution_retenue
+        if restitution_retenue(self.monde, self.id, autre, o):
+            return True
         refus = self.retenu(autre, ("demander", "acheter"), o)
         return refus if refus and refus["raison"] != "pauvre" else None
 
@@ -1972,6 +1975,8 @@ def _entrees_communes(v):
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
         [[o, v.leses_bris[o]] for o in v.connus if v.brise_illicite[o]],
         v.richesse, v.piece,
+        [[o, bool(v.refuse(retour["a"], o))] for o, retour in
+         monde.data.get("restitutions", {}).get(id, {}).items() if o in monde.objets],
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
