@@ -1,36 +1,39 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-27.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
 ## Où on en est
 
-- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195, candidat
-  encore non fusionnable**, reprise après `4892c52` : intégration **ef86cab**
-  fusionnée par `320eaa1`, rapports 196 §4 et 199 relus. Garde général dans
-  `ouie._attribuer` : une compatibilité de marche explique le bruit sans
-  confirmer/déplacer/rajeunir la présence ; recalage précis dans `PRES_DE`
-  conservé. **39 ciblés ouïe verts**, dont 13 du lot, état/rendu rechargés et
-  laps découpés. Dernière sélection **69 tests, trois échecs, zéro erreur** :
-  Ilse à l'abri et deux prêts restent rouges, assertions intactes ; quatre
-  cas verts sur la référence exacte, copie de devis verte sur la fusion.
-  Pas de nouvelle suite complète sur ce candidat déjà bloqué.
-  Banc compteur 199 : **20 paires, cinq scénarios × quatre graines × 4 h**,
-  référence constituée une fois puis vingt lectures du cache, aucun
-  plantage/usurpation. Retournements moyens Relais **100→28,75**, mine
-  **60→16,5**, auberge **51,75→28,25**, crue **86,75→56**, hameau **134,5→78,5**.
-  Suspects **57→54**, mais Relais **0→1**, hameau **24→35** : critère sans
-  nouveau retour non validé. Relais 2024 : Gorm servir Ilse→None→servir Ilse,
-  instants **117595/117600/118052**, sans entrée photographiée changée ;
-  épisode et chronique relus. Sonde 199 non certifiante, aucune alerte masquée.
-  Brune hameau 2024 : référence **0**, prototype **2** alertes d'agendas,
-  garde **0**, même base ; les alertes venaient du prototype et disparaissent
-  après correction de la confirmation acoustique. S/F/D non uniformément
-  améliorés. Aucun fichier du lot 205 (`eau`, `deliberation`, `planification`)
-  touché ; aucun Luna, deux calculs réduits au plus. Ni verrou d'intention
-  ni compensation émotionnelle ajouté ; arbitrage commun 196c reste ouvert.
-  Rondes connues et acquisition visuelle du joueur hors lot.
-  Bruts exclusivement `C:/Users/msics/donjon/artifacts/pas-195/reprise-ef86/`
-  et cache local du lot ; [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
+- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195, non fusionnable**, reprise
+  après contrat 213 : intégration **bd45f65** fusionnée par **1e703a4** depuis
+  `4968e54`. Production limitée à `ouie.py`, sans nouveau retour au choix.
+  Une présence crue peut expliquer un déplacement sans confirmer ni rajeunir
+  la localisation ; recalage précis conservé. Rapports 196 §4, 213 et 219 relus.
+  **95 ciblés distincts / huit fichiers verts**, dont 13 tests du lot avec
+  recharges monde/rendu et laps découpés. Les deux prêts passent inchangés ;
+  Ilse reste à l'abri haut. Son assertion d'intention contrôle désormais
+  le contrat 213 (plan vide, phase attendre), sans réancrer la scène.
+  **Banc 4 h, cinq scénarios × quatre graines, contre bd45f65** : suspects
+  **5 → 1**, aucun scénario en hausse (Relais 0→0, mine 1→0, auberge 2→1,
+  crue 2→0, hameau 0→0). Préemptions 53→51, cycles 468→460, à expliquer
+  61→58 ; dérives 196→195, états payés perdus 6→5, aucune certification.
+  Aucun plantage/usurpation. Retour de Gorm au service d'Ilse absent du
+  Relais 2024 courant ; Brune hameau 2024 : zéro alerte dans les deux variantes.
+  Un suspect résiduel en auberge 7 (Mireille servir Mathurine), occurrence
+  nouvelle dans cette graine ; aucune absence générale de boucle revendiquée.
+  **Suite complète unique : 2 466 tests / 285 fichiers, 2 004,160 s,
+  12 échecs, une erreur, aucun ignoré**, à deux processus réduits.
+  13 méthodes rejouées : deux MiMo seuls sur la base, mêmes 12 échecs et
+  une erreur sur la branche. Dix échecs et l'erreur attribuables au lot ;
+  assertions intactes.
+  Blocage isolé hors périmètre : Tilo allume à minute 0, mais `echanges.tenu`
+  exige une croyance après la minute de la parole ; sans rotation ultérieure,
+  engagement payé encore ouvert à minute 15. Preuve d'accomplissement commune
+  à instruire hors du seul `ouie.py` autorisé. Aucun contournement ajouté.
+  Critère du banc satisfait, ne pas fusionner. Aucun Luna. Rondes connues et
+  acquisition visuelle du joueur hors lot.
+  Bruts exclusivement `C:/Users/msics/donjon/artifacts/pas-195/reprise-bd45/`
+  et cache local figé ; [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
 
 - **Branche `codex-contrat-engagement`, fusionnée**, lot **213 / 196 c** :
   **lot terminé, limites explicites**. `cca5f50` vérifié ; 211 puis

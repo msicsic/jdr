@@ -14,10 +14,15 @@ Chantier accepté après les caractères et valeurs (`docs/etat-dev.md`). Branch
 
 ## Règle retenue (`donjon/ouie.py`)
 
-### Présence crue mobile (lot 195, prototype non validé)
+### Présence crue mobile (lot 195)
 
-**Non fusionnable sur la reprise ef86cab** : trois cas d'abri/prêt restent
-en échec et de nouveaux retours de décision sont mesurés. Voir le
+Reprise sur **bd45f65**, contrat d'engagement 213 et compteur classé 219 :
+répétitions suspectes **5 → 1**, sans hausse dans aucun des cinq scénarios.
+Les deux prêts passent ; Ilse reste dans l'abri haut avec, le cas échéant,
+une intention sans moyens, en attente selon le contrat commun. La suite complète
+reste rouge (12 échecs, une erreur), dont dix échecs et l'erreur attribuables au
+lot. **Non fusionnable** : preuve d'accomplissement d'engagement à reprendre
+hors du périmètre `ouie.py` ; voir le
 [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
 
 Pour attribuer un pas ou un geste ordinaire, `_crus_la` conserve le lieu cru
@@ -51,7 +56,8 @@ ne sont pas automatiquement inscrites dans ce registre ; le moteur ne porte
 pas de croyance d'itinéraire de ronde. Ce lot ne garantit donc ni l'attribution
 d'une ronde dans un autre lieu, ni la symétrie complète de l'acquisition des
 localisations entre joueur et PNJ. La distance est une borne géométrique,
-pas une preuve d'un parcours franchissable. L'invariant du brief reste partiel.
+pas une preuve d'un parcours franchissable. Ces deux acquisitions sont des
+chantiers séparés ; le présent lot porte sur une présence déjà crue là.
 
 **Tout geste fait un bruit.** Chaque geste a une nature, déclarée une fois (`ouie.NATURES` ; un
 geste absent de la table est ordinaire), chaque nature une intensité en crans :
