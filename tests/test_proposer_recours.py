@@ -103,6 +103,10 @@ class RecoursTests(unittest.TestCase):
             for confiance in (10, 70):
                 with self.subTest(autre=autre, confiance=confiance):
                     m = scene(confiance, autre)
+                    # Un repas offert supprimerait légitimement le recours au vol.
+                    # Ici le marché/refus reste le seul moyen licite de cette scène.
+                    from tests.support import sans_souci
+                    sans_souci(m)
                     with patch.object(Monde, "d20", return_value=20):
                         # Sans durée : le bloc historique laisse finir la livraison.
                         Moteur(m).executer(Moteur(m).preparer(proposition("attendre")))

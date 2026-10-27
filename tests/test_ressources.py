@@ -40,7 +40,11 @@ class CrueTests(unittest.TestCase):
         # personne ne s'y chauffait plus et Brune avait froid près de cinq heures par nuit.
         # Gorm peut refuser Brune ; les trajets et échanges déterminent le bois
         # qu'elle obtient. Toute recharge doit consommer une ressource du monde.
-        m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 270, 90)
+        # Scène de consommation propre : aucun acteur n'entretient pour autrui.
+        # Les assertions sur chaque stock et le refus de bois restent inchangées.
+        from tests.support import sans_souci
+        m = sans_souci(nuit("crue", 7, "chambre_cloche"))
+        m, textes = par_blocs(m, 270, 90)
         # Les recours refusés changent les trajets de cette nuit : Brune ne prend
         # pas les planches et ne rallume pas le poêle. Aucun bois fictif ne le recharge.
         self.assertFalse(allumee(m.objets["poele_guet"]))

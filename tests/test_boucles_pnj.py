@@ -109,7 +109,9 @@ class GesteDefaitTests(unittest.TestCase):
     def test_odon_ne_rouvre_pas_ce_que_mathe_vient_de_refermer(self):
         # Avant : « Odon ouvre » / « Mathe ferme » 689 fois chacun, toutes les deux secondes, puis
         # crochetage et reverrouillage en boucle, et Mathe qui appelle à l'aide toutes les 2 minutes.
-        m = vivre_avec_jet(garde_manger_force(), 4)
+        # Mathe garde sa charge ; aucun tiers ne fournit de repas à Odon.
+        from tests.support import sans_souci
+        m = vivre_avec_jet(sans_souci(garde_manger_force()), 4)
         ouvre = compte(m, "Odon, nouveau venu ouvre le garde-manger de la cuisinière.")
         ferme = compte(m, "Mathe, cuisinière ferme le garde-manger de la cuisinière.")
         self.assertLessEqual(ouvre, 1)

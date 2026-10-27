@@ -108,6 +108,9 @@ class CrochetageDuJoueurTests(unittest.TestCase):
     def test_son_bruit_tient_a_son_jet(self):
         for jet, entendu in ((20, False), (1, True)):
             m = self.corvus_devant_la_reserve()
+            # Ilse/Aubin n'enquêtent pas sur les vivres pour Brune : seul le geste fait du bruit.
+            from tests.support import sans_souci
+            sans_souci(m, "ilse", "aubin")
             with patch.object(Monde, "d20", return_value=jet):
                 texte = faire(m, "crocheter reserve avec crochets")
             m = recharger(m)

@@ -353,6 +353,9 @@ class PretReclameTests(unittest.TestCase):
 
     def test_rendue_a_temps_rien_ne_lui_est_reproche(self):
         m = self.lampe_pretee_au_joueur()
+        # Le prêteur reste à portée : pas de recherche de nourriture pour Rémy/Odon.
+        from tests.support import sans_souci
+        sans_souci(m, "gaspard")
         m, _ = vivre(m, 2)
         from donjon.moteur import Moteur, proposition
         moteur = Moteur(m)

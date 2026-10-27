@@ -77,6 +77,9 @@ class IciViensTests(unittest.TestCase):
         retrouvailles."""
         m = aubin_cherche_gorm()
         self.assertFalse(appel.peut_venir(m, "marchand", "aubin"))
+        # Gorm n'initie pas de repas gratuit : l'appel d'Aubin reste nécessaire.
+        from tests.support import sans_souci
+        sans_souci(m, "marchand")
         m = suivre(m, 6, lambda m: "Aubin répond : « J'arrive ! »" in chronique(m))
         textes = chronique(m)
         self.assertIn("Gorm répond : « Ici, viens ! »", textes)
@@ -250,6 +253,9 @@ class JArriveTests(unittest.TestCase):
         """Aubin cherche Gorm : à son appel, « J'arrive ! » ; Gorm l'attend là où il est, le temps qu'il
         faut à Aubin pour venir ; Aubin vient et obtient sa part, sans rappeler."""
         m = self.aubin_cherche_gorm_qui_le_hele()
+        # Isoler la parole « J'arrive » de l'initiative de nourrir Aubin.
+        from tests.support import sans_souci
+        sans_souci(m, "marchand")
         appeler(m, "marchand", "aubin", [])
         m = recharger(m)
         self.assertIn("Aubin répond : « J'arrive ! »", chronique(m))

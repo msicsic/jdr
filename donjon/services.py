@@ -4,11 +4,25 @@ from .esprits import lire, memoriser, percoit
 
 
 def conditions_manquantes(monde, beneficiaire, objet):
-    """Les mêmes buts crus non satisfaits pour un geste ou une remise."""
+    """Manques éprouvés avant l'effet : projets crus et froid corporel local.
+
+    Ce constat de crédit appartient au bénéficiaire : il éprouve son propre
+    corps. Il ne fournit aucune lecture privée au choix de l'auteur du geste.
+    """
     from .deliberation import satisfaite
+    from .corps import CORPS
     profil = monde.objets.get(beneficiaire, {}).get('profil') or {}
     buts = [p['condition'] for p in profil.get('pulsions', [])]
     buts += [p['condition'] for p in agendas.en_cours(monde, beneficiaire, actifs=True)]
+    foyer = monde.objets.get(objet, {})
+    if (foyer.get('foyer') and profil
+            and lire(monde, beneficiaire)['besoins'].get('chaleur', 0) >= CORPS['chaleur']['urgence']
+            and monde.present_physique(objet, salle=monde.objets[beneficiaire]['lieu'])):
+        # La même condition que l'entretien d'une charge. Sa satisfaction
+        # crue est contrôlée ci-dessous, avant le geste puis après son effet.
+        c = {'objet': objet, 'allume': True}
+        if c not in buts:
+            buts.append(c)
     return [c for c in buts if c.get('objet') == objet
             and not any(k in c for k in ('servir', 'rendre', 'remettre', 'periode'))
             and not satisfaite(monde, beneficiaire, c)]
@@ -82,9 +96,12 @@ def constater(monde, auteur, objet, avant):
         voir(monde, autre, objet, 'vu')
         # Voir un état ne révèle pas sa serrure ; voir le geste qui vient de
         # le changer établit en revanche cet effet précis, comme pour l'auteur.
-        from .esprits import croire
+        from .esprits import croire, ETATS_VISIBLES
         for attribut, valeur in ancien.items():
-            if attribut != 'combustible' and o.get(attribut) != valeur:
+            # Les états visibles viennent déjà d'être constatés ensemble par
+            # voir ; seuls les autres effets ont une croyance autonome.
+            if (attribut not in ('combustible', *ETATS_VISIBLES.get(o['type'], ()))
+                    and o.get(attribut) != valeur):
                 croire(monde, autre, objet, attribut, o.get(attribut), 'vu')
         if any(satisfaite(monde, autre, c) for c in conditions):
             memoriser(monde, autre, {'type': 'service_rendu', 'de': auteur, 'objet': objet})

@@ -4,7 +4,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-empathie`, non fusionnée**, lot **197**, **3d partiel** :
+- **Lot 197 b, branche `codex-empathie`, non fusionnée**, reprise de `47ac3f1`
+  sur base `116294e` : triage des **34 constats** de 197 a, tableau complet dans
+  le rapport. Scènes historiques précisées unitairement par des données de souci
+  absent, contrats conservés ; le test de repas après appel vérifie désormais
+  une demande, un repas effectivement reçu et la satiété, plutôt qu'une formulation.
+  `services.conditions_manquantes` inclut le froid éprouvé du bénéficiaire dans la
+  salle du foyer, avant geste ; effet réel, perception, preuve unique, charge et
+  prestation convenue passent par les mêmes contrôles. Tests PNJ/joueur, doubles
+  crédits et recharges verts ; peur hors lot.
+  **313 ciblés dans 26 fichiers, 278,440 s : quatre échecs, zéro erreur** :
+  deux MiMo historiques, plus deux régressions de références internes exposées
+  par les portions créées par les secours (`test_avis_redits`, `test_combat`).
+  État mécanique/chronique identiques ; références 67/68 permutées ou référence 48
+  absente avant sauvegarde. **Raccord autorisé de trois lignes appliqué** dans
+  `echanges.detacher_part` : installateur commun des références appelé dès la
+  création, dans les deux chemins physique/compté. **Attention à la fusion avec
+  le lot 198 : même fichier, seuls ces trois ajouts pour 197 b.** Aucun champ
+  exclu ni secours neutralisé dans ces régressions ; comparaisons complètes vertes.
+  Le test des lampes prouve aussi les deux identités/audiences : Rémy peut annoncer
+  une lampe devant Lucien, que Josse n'a alors plus à répéter. **33 ciblés consolidés
+  verts** sur références, combat, portions et crédit. **Suite complète unique :
+  2 364 tests / 274 fichiers, 1 982,678 s : deux MiMo historiques et une erreur
+  de croyance `allume` autonome après allumage utile.** Corrigée dans
+  `services.constater`, qui conserve les états visibles du constat commun ;
+  cas réel inchangé et allumage complémentaire après recharge : **24 ciblés verts
+  / 3 fichiers, 19,304 s**. Bilan consolidé : deux MiMo historiques, zéro erreur ;
+  pas de seconde suite complète ni de nouveau banc.
+  Bruts `C:/Users/msics/donjon/artifacts/empathie-197/b/`, sans Luna, deux
+  travailleurs réduits au plus ; [rapport et tableau](taches/rapport-codex-197-empathie.md).
+
+- **Historique 197 a** (complété par 197 b ci-dessus), **3d partiel** :
   faim/froid perçus deviennent des conditions communes `servir`/`allume`, après
   les besoins propres et avant la routine. Seuil du souci du lot 80, rancune
   exclue ; poids empathie × (affection + 20) / 100. Peur différée, crédit du froid

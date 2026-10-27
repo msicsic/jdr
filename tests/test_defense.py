@@ -396,6 +396,9 @@ class ForcerNEstPasAgresserTests(unittest.TestCase):
         for temoin in ("ilse", "marchand"):
             with self.subTest(temoin=temoin):
                 m = self.scene(temoin)
+                # Le témoin doit voir une effraction réelle, pas nourrir Brune avant celle-ci.
+                from tests.support import sans_souci
+                sans_souci(m, temoin)
                 vu = False
                 for _ in range(6):
                     passer(m, MINUTE)

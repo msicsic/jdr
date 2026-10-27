@@ -197,6 +197,9 @@ class VoirParlerTests(unittest.TestCase):
         """Corvus, à la lumière, voit Aubin demander sa part à Gorm et Gorm lui répondre, sans qu'on
         lui parle : il connaît désormais leurs deux voix. Avant, seule la voix de qui demandait."""
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
+        # Sans secours spontané, Gorm demeure en vue pour répondre à Aubin.
+        from tests.support import sans_souci
+        sans_souci(m, "marchand", "ilse")
         m.joueur.update(salle="echoppe", position=[1, 2], orientation="nord")
         placer(m, "marchand", "echoppe", (1, 1))
         placer(m, "aubin", "echoppe", (2, 1))

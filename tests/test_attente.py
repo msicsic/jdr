@@ -109,6 +109,9 @@ class AttenteTests(unittest.TestCase):
         # service puis de chercher Aubin en l'appelant) : placement d'auteur, Aubin ne sait plus où est
         # Gorm et sa faim montera ; il le cherchera en l'appelant, en dessous, au bout d'une heure et demie.
         m = relais()
+        # Aucun secours à Brune ne doit produire un appel avant celui d'Aubin.
+        from tests.support import sans_souci
+        sans_souci(m)
         croire(m, "aubin", "marchand", "lieu", None, "essai", salle=None, case=None)
         lire(m, "aubin")["besoins"]["faim"] = 60.0
         reprise, texte, duree = attendre(m, "attendre 12 h")

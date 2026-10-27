@@ -65,6 +65,81 @@ def executer(m, minutes):
 
 
 class EmpathieTests(unittest.TestCase):
+    def test_credit_du_froid_sans_charge_joueur_et_pnj_sans_double(self):
+        from donjon.moteur import Moteur, proposition
+        from donjon.operations import sequence, etape
+        for auteur_joueur in (False, True):
+            with self.subTest(auteur_joueur=auteur_joueur):
+                m, auteur, autre = scene(True)
+                if auteur_joueur:
+                    auteur = 'joueur'
+                    m.objets['bois'].update(lieu=auteur, proprietaire=auteur)
+                    regarder(m, autre, auteur)
+                    regarder(m, auteur, 'brasero')
+                percevoir_tous(m)
+                avant = relations.envers(m, autre, auteur)['confiance']
+                m = recharger(m)
+                if auteur_joueur:
+                    moteur = Moteur(m)
+                    texte = moteur.executer(moteur.preparer(sequence(etape('alimenter', 'brasero', outil='bois'))))
+                    self.assertIn('recharg', texte)
+                else:
+                    executer(m, 3)
+                m = recharger(m)
+                preuves = [s for s in lire(m, autre)['memoire'] if s['type'] == 'service_rendu' and s['de'] == auteur]
+                self.assertEqual(len(preuves), 1)
+                self.assertEqual(relations.envers(m, autre, auteur)['confiance'], avant + 20)
+                self.assertGreater(m.objets['brasero']['combustible'], 8)
+                self.assertEqual(rendu(m), rendu(recharger(m)))
+                from donjon.esprits import memoriser
+                memoriser(m, autre, preuves[0])
+                self.assertEqual(relations.envers(recharger(m), autre, auteur)['confiance'], avant + 20)
+
+    def test_credit_froid_exige_manque_local_et_effet_constate(self):
+        from donjon import services
+        from donjon.esprits import constater
+        for cas in ('utile', 'allumage', 'chaud', 'distant', 'sans_effet', 'non_vu', 'pulsion_egalement'):
+            with self.subTest(cas=cas):
+                m, auteur, autre = scene(True)
+                if cas == 'allumage':
+                    m.objets['brasero']['allume'] = False
+                if cas == 'chaud':
+                    lire(m, autre)['besoins']['chaleur'] = 0
+                if cas == 'distant':
+                    placer(m, autre, 'antichambre', [1, 3])
+                if cas == 'non_vu':
+                    regarder(m, autre, [5, 3])
+                if cas == 'pulsion_egalement':
+                    m.objets[autre]['profil']['pulsions'] = [{'besoin': 'devoir', 'condition': {'objet': 'brasero', 'allume': True}}]
+                    lire(m, autre)['pulsions'] = []
+                percevoir_tous(m)
+                constater(m, autre, 'brasero', 'essai')
+                avant = services.preparer(m, auteur, 'brasero', 'alimenter')
+                if cas != 'sans_effet':
+                    m.objets['brasero']['combustible'] += 120
+                    m.objets['brasero']['allume'] = True
+                services.constater(m, auteur, 'brasero', avant)
+                m = recharger(m)
+                preuves = [s for s in lire(m, autre)['memoire'] if s['type'] == 'service_rendu' and s['de'] == auteur]
+                self.assertEqual(len(preuves), int(cas in ('utile', 'allumage', 'pulsion_egalement')))
+                self.assertNotIn('allume', lire(m, autre)['croyances']['brasero'])
+                self.assertEqual(rendu(m), rendu(recharger(m)))
+
+    def test_feu_convenu_pas_de_second_credit_du_froid(self):
+        from donjon import agendas
+        m, auteur, autre = scene(True)
+        agendas.prendre(m, auteur, {'pour': autre, 'condition': {'objet': 'brasero', 'allume': True},
+                                  'minute': m.data['minutes']})
+        m = recharger(m)
+        executer(m, 3)
+        m = recharger(m)
+        self.assertGreater(m.objets['brasero']['combustible'], 8)
+        self.assertFalse(any(s['type'] == 'service_rendu' and s['de'] == auteur
+                             for s in lire(m, autre)['memoire']))
+        self.assertTrue(any(s['type'] == 'engagement_tenu' and s['pour'] == autre
+                            for s in lire(m, auteur)['memoire']))
+        self.assertEqual(rendu(m), rendu(recharger(m)))
+
     def test_repas_visible_dans_le_journal_joueur_compris(self):
         from donjon.moteur import Moteur, proposition
         for joueur in (False, True):

@@ -1007,8 +1007,15 @@ du joueur se limitent à son observation explicite, sans état affectif inventé
   seulement tant que le bénéficiaire est perçu. Aucune donnée de scénario ajoutée.
   La compagnie rassurante reste à faire : terminal de proximité, maintien et
   fin sur peur perçue disparue, déplacements/coûts et clés de recherche cohérents.
-  Restent aussi le crédit commun du froid corporel sans charge, la mesure des
-  minutes apaisées par autrui et la validation générale des anciens parcours.
+  Lot 197 b : crédit commun du froid corporel sans charge ajouté dans
+  `services.py`, sans double crédit d'une charge ou prestation convenue ; scènes
+  historiques précisées sans affaiblir leurs contrats. Deux régressions de références
+  de portions corrigées par un raccord autorisé de trois lignes dans
+  `echanges.detacher_part` (fichier partagé avec le lot 198). Suite unique :
+  2 364 tests, deux MiMo historiques et une erreur d’allumage corrigée dans
+  le constat des états visibles ; 24 ciblés verts ensuite, bilan consolidé
+  sans autre échec ni erreur.
+  Restent la mesure des minutes apaisées par autrui et la validation générale.
   Le seuil commun permet des secours sous 70 d'empathie : le critère historique
   ci-dessous n'est pas satisfait, sans ajout d'un autre seuil.
   Bilan et limites : [rapport 197](taches/rapport-codex-197-empathie.md).
