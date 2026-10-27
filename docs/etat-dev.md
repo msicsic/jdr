@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Diagnostic des mécanismes dormants**, lot **183**, branche
+  `codex-mecanismes-dormants`, base `integration 1b0a778` : les **49 archives**
+  du lot 174 relues, aucune modification du jeu, des scénarios ou de Luna.
+  **174 propositions, 14 acceptées** ; **18 promesses en contrepartie**,
+  17 refus `garde`, un `epuise`, aucune acceptation ; une commission naturelle
+  dans le hameau 1985, Brune → Maël à 659 min, refus `mefiance` ; aucune dispute.
+  Sept crédits de service dans les huit mines, sans preuve de réparation
+  intentionnelle. Le compteur des travaux payés ne mesure pas les promesses.
+  Mesure documentaire S/F/D (signatures sociales, familles, diversité par PNJ,
+  inactifs compris) sur les 49 nuits ; durées et groupes séparés. Priorités
+  proposées : situations négociables et asymétrie des preuves comme données,
+  empathie générale 3d, mandat A5 et naissances d'agendas A6 comme pièces moteur.
+  Reconstitutions ciblées sur copie de `ee835d2`, un seul processus de nuits à
+  priorité réduite : **mine 1985, crue 7, hameau 1985, 12 h**, chroniques,
+  mesures, empreintes, récits et souvenirs identiques aux archives. Captures
+  rechargeables, dix suites de décisions vérifiées deux fois, états/rendus
+  stables après recharge ; détails dans les bruts,
+  exclusivement `C:/Users/msics/donjon/artifacts/dormants-183/`.
+  Pas de suite complète ni de banc nouveau sur la branche documentaire.
+  [Rapport 183](taches/rapport-codex-183-mecanismes-dormants.md).
+
 - **Vérification d'intégration ee835d2**, lot **174**, laptop, branche
   `codex-verif-integ-ee835d2`, base documentaire `a96a495` : code `donjon/` et
   `tools/` identique à `ee835d2`, aucun changement du jeu ni Luna. **49/49 nuits
