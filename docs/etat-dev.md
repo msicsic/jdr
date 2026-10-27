@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-garantie-avis`, fusionnée**, lot **199 / 196d**,
+  base `0fb5a07` : mesure déterministe des retours de décision dans l'audit
+  des nuits et le comparateur, mode empreintes compris ; comptes par PNJ,
+  décisions/minutes/classes et alertes dès un retour suspect. Les entrées
+  changées restent **à expliquer**, les archives sans sonde **non mesurées**.
+  **Garantie générale non établie** (`certification_complete=False`) : aucun
+  certificat moteur de démenti/palier/marge, moyens sous un même but et retours
+  > 60 min hors observation. **20 nuits de 4 h**, cinq scénarios × quatre
+  graines : **385 suspects, 315 à expliquer, 530 accomplis** ; Relais/mine/
+  auberge zéro suspect, crue **367**, hameau **18**. **20/20 identités** avec/
+  sans sonde (état complet, chronique, mesures, empreintes, récit, souvenirs),
+  vingt états/empreintes identiques aux bruts 196 malgré ses classes différentes.
+  Temps appariés **590,37 / 590,15 s** : surcoût non distinguable du bruit.
+  Trois cas 196 relus et six captures en fixtures ; aucun fichier de `donjon/`,
+  aucun Luna. **33 ciblés finaux verts**, écriture de l'audit, modes du comparateur,
+  sauvegarde/recharge et rendu compris. Suite unique : **2 343 tests, 271 fichiers,
+  31 échecs, quatre erreurs, 16 ignorés** ; deux fragments (41 + 230), sans rejouer
+  les fichiers terminés. Les **35 incidents sont reproduits sur la base exacte**
+  (33 méthodes, 26 fichiers, mêmes identifiants et catégories) ; suite générale
+  non verte, outils modifiés verts. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/garantie-199/` ;
+  [rapport 199](taches/rapport-codex-199-garantie-avis.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Outils seulement. Départ, cinq scénarios × quatre graines × 4 h : 385 retours non justifiés (crue 367, hameau 18 ; Relais, mine, auberge 0), 315 à expliquer, 530 cycles accomplis ; 20/20 nuits identiques avec et sans sonde. Les 35 échecs de sa suite venaient du lot 186 présent dans sa base (annulé depuis). Garantie générale non établie : lots 196 a à c.
+
 - **Lot 197 b, branche `codex-empathie`, fusionnée**, reprise de `47ac3f1`
   sur base `116294e` : triage des **34 constats** de 197 a, tableau complet dans
   le rapport. Scènes historiques précisées unitairement par des données de souci

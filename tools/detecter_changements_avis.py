@@ -3,18 +3,23 @@
 Observe ``deliberation.choisir``, ``deliberation.menager_flamme`` et ``pnj.agir``
 sans modifier aucun état du monde, aucun tirage aléatoire ni aucune mémoire du
 planificateur. Pour chaque transition de décision d'un PNJ, photographie les
-entrées réellement lues par le choix (croyances, paliers de besoins, pulsions
+catégories d'entrées du choix (croyances, paliers de besoins, pulsions
 dues, bruits/alarmes/dangers, refus/promesses/engagements/agendas, inventaire et
 droits, position propre) et distingue :
 - les cycles accomplis (but achevé puis redevenu dû plus tard) ;
-- les allers-retours justifiés par une entrée externe nouvelle (bruit, refus,
+- les allers-retours à expliquer après une entrée externe nouvelle (bruit, refus,
   feu revu faible, franchissement de seuil d'urgence, etc.) ;
 - les allers-retours non justifiés, où le PNJ revient à une décision qu'il vient
   de quitter sans l'avoir accomplie alors qu'aucune entrée externe n'a changé
   (ou qu'elle a été abandonnée sans entrée nouvelle).
+
+Cette observation n'est pas un certificat d'engagement : elle ne connaît ni
+la dépendance exacte aux candidats, ni leurs paliers et marges comparés.
 """
 import argparse
 from collections import Counter
+from contextlib import contextmanager
+from unittest.mock import patch
 import copy
 import hashlib
 import json
@@ -406,15 +411,6 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             but_d1 = ep_depart["decision"]["but"]
             est_garde = but_d1.get("type") == "garder"
 
-            if ep_depart["accompli_au_depart"]:
-                classe = "cycle_accompli"
-                comptes[classe] += 1
-                continue
-            if est_garde and intermediaires_reels and all(m["accompli_au_depart"] for m in intermediaires_reels):
-                classe = "garde_interruption_accomplie"
-                comptes[classe] += 1
-                continue
-
             e_debut = ep_depart["debut_entrees"]
             e_quitte = ep_depart["quitte_entrees"] or ep_depart["debut_entrees"]
             e_retour = ep_retour["debut_entrees"]
@@ -431,7 +427,11 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             croyances_dr = _diff_croyances(e_debut, e_retour)
             croyances_dq = _diff_croyances(e_debut, e_quitte)
 
-            if not diff_quitte_retour and meme_lieu_quitte_retour:
+            if ep_depart["accompli_au_depart"]:
+                classe = "cycle_accompli"
+            elif est_garde and intermediaires_reels and all(m["accompli_au_depart"] for m in intermediaires_reels):
+                classe = "garde_interruption_accomplie"
+            elif not diff_quitte_retour and meme_lieu_quitte_retour:
                 classe = "non_justifie_strict_complet"
             elif not diff_debut_retour and meme_lieu_debut_retour:
                 classe = "non_justifie_retour_etat_initial_exact"
@@ -440,7 +440,7 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             elif not diff_debut_quitte:
                 classe = "non_justifie_abandon_sans_entree_externe"
             else:
-                classe = "justifie_par_entree_nouvelle"
+                classe = "entree_nouvelle_a_expliquer"
 
             comptes[classe] += 1
             non_justifie = classe.startswith("non_justifie_")
@@ -457,6 +457,7 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
                 "id": id,
                 "classe": classe,
                 "non_justifie": non_justifie,
+                "accompli_au_depart": ep_depart["accompli_au_depart"],
                 "d1_motif": ep_depart["decision"]["motif"],
                 "d1_but": but_d1,
                 "d1_tete_plan": ep_depart["decision"]["tete_plan"],
@@ -500,7 +501,12 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
     return {
         "comptes": dict(comptes),
         "total_non_justifies": sum(v for k, v in comptes.items() if k.startswith("non_justifie_")),
-        "total_justifies": comptes.get("justifie_par_entree_nouvelle", 0),
+        "total_justifies": 0,
+        "total_a_expliquer": comptes.get("entree_nouvelle_a_expliquer", 0),
+        "certification_complete": False,
+        "horizon_minutes": horizon_minutes,
+        "par_pnj": {id: dict(Counter(r["classe"] for r in allers_retours if r["id"] == id))
+                    for id in sorted(episodes_par_pnj)},
         "total_cycles_accomplis": (
             comptes.get("cycle_accompli", 0) + comptes.get("garde_interruption_accomplie", 0)
         ),
@@ -509,19 +515,9 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
     }
 
 
-def jouer_nuit_sondee(scenario, graine, heures=4.0, depart="tire", verifier_empreinte=False):
-    """Joue une nuit avec la sonde sans modifier aucun comportement du moteur."""
-    t0 = time.perf_counter()
-    planification._MEMOIRE.clear()
-    planification._GRAPHES.clear()
-    deliberation.COMPTES.clear()
-
-    joueur = SALLES_JOUEUR.get(scenario, "chambre_cloche")
-    monde = banc_pnj.creer(scenario, graine, depart)
-    if joueur:
-        from donjon.geometrie import position_entree
-        monde.joueur.update(salle=joueur, position=list(position_entree(monde, joueur)))
-
+@contextmanager
+def observer_avis():
+    """Sonde commune aux bancs ; restaure aussi les fonctions après une exception."""
     sonde = SondeAvis()
     vrai_choisir = deliberation.choisir
     vrai_deliberer = deliberation.deliberer
@@ -563,25 +559,50 @@ def jouer_nuit_sondee(scenario, graine, heures=4.0, depart="tire", verifier_empr
                 })
         return res
 
-    deliberation.choisir = choisir_sonde
-    deliberation.deliberer = deliberer_sonde
-    pnj.agir = agir_sonde
-    deliberation.menager_flamme = menager_sonde
-    try:
-        from donjon.recit_pnj import Recit
-        recit = Recit(monde)
-        empreintes = {}
-        pas, mesures = banc_pnj.executer(monde, int(heures * 60), recit, empreintes)
-    finally:
-        deliberation.choisir = vrai_choisir
-        deliberation.deliberer = vrai_deliberer
-        pnj.agir = vrai_agir
-        deliberation.menager_flamme = vrai_menager
+    with patch.object(deliberation, "choisir", choisir_sonde), \
+         patch.object(deliberation, "deliberer", deliberer_sonde), \
+         patch.object(pnj, "agir", agir_sonde), \
+         patch.object(deliberation, "menager_flamme", menager_sonde):
+        yield sonde
 
+
+def jouer_nuit_sondee(scenario, graine, heures=4.0, depart="tire", verifier_empreinte=False):
+    """Joue une nuit avec la sonde sans modifier aucun comportement du moteur."""
+    t0 = time.perf_counter()
+    # Le banc remet les résultats et graphes à froid, mais conserve les preuves
+    # d'impossibilité entre nuits. Les deux côtés de cette mesure partent à froid.
+    planification._IMPOSSIBLES.clear()
+    joueur = SALLES_JOUEUR.get(scenario, "chambre_cloche")
+    capture = {}
+    creer = banc_pnj.creer
+    def capturer(*a, **k):
+        capture["monde"] = creer(*a, **k)
+        return capture["monde"]
+    with observer_avis() as sonde, patch.object(banc_pnj, "creer", capturer):
+        _, mesures, donnees = banc_pnj.nuit(scenario, graine, heures, joueur, depart=depart)
+    monde = capture["monde"]
+    empreintes, pas = donnees["empreintes"], donnees["chronique"]
+
+    secondes_sonde = time.perf_counter() - t0
+    secondes_reference = None
     sha_etat = hashlib.sha256(_canon(monde.data).encode("utf-8")).hexdigest()
     if verifier_empreinte:
-        _, _, ref = banc_pnj.nuit(scenario, graine, heures, joueur, depart=depart)
+        capture = {}
+        creer = banc_pnj.creer
+        def capturer(*a, **k):
+            capture["monde"] = creer(*a, **k)
+            return capture["monde"]
+        planification._IMPOSSIBLES.clear()
+        debut_ref = time.perf_counter()
+        with patch.object(banc_pnj, "creer", capturer):
+            _, _, ref = banc_pnj.nuit(scenario, graine, heures, joueur, depart=depart)
+        secondes_reference = time.perf_counter() - debut_ref
+        assert sha_etat == hashlib.sha256(_canon(capture["monde"].data).encode("utf-8")).hexdigest(), "État modifié"
+        assert mesures == ref["mesures"], {k: [mesures.get(k), ref["mesures"].get(k)]
+            for k in mesures.keys() | ref["mesures"].keys() if mesures.get(k) != ref["mesures"].get(k)}
         assert empreintes == ref["empreintes"], f"Empreintes modifiées sur {scenario} {graine}"
+        assert donnees["recit"] == ref["recit"], "Récit modifié"
+        assert donnees["souvenirs"] == ref["souvenirs"], "Souvenirs modifiés"
         assert pas == ref["chronique"], f"Chronique modifiée sur {scenario} {graine}"
 
     analyse = analyser_episodes(sonde.episodes)
@@ -591,9 +612,12 @@ def jouer_nuit_sondee(scenario, graine, heures=4.0, depart="tire", verifier_empr
         "graine": graine,
         "heures": heures,
         "secondes": duree,
+        "secondes_sonde": secondes_sonde,
+        "secondes_reference": secondes_reference,
         "empreintes": empreintes,
         "sha256_data": sha_etat,
         "mesures": mesures,
+        "chronique": pas,
         "gestes_menager_flamme": sonde.gestes_contraires,
         "nb_episodes_par_pnj": {id: len(eps) for id, eps in sorted(sonde.episodes.items())},
         "analyse": analyse,
@@ -606,7 +630,7 @@ def main(argv=None):
     parser.add_argument("--graines", type=int, nargs="+", default=list(GRAINES_DEFAUT))
     parser.add_argument("--heures", type=float, default=4.0)
     parser.add_argument("--verifier-empreinte", action="store_true",
-                        help="vérifie sur la première nuit que la sonde ne change ni empreintes ni chronique")
+                        help="vérifie sur chaque nuit que la sonde ne change ni empreintes ni chronique")
     parser.add_argument("--sortie", required=True, help="fichier JSON où enregistrer le rapport complet")
     args = parser.parse_args(argv)
 
@@ -616,7 +640,6 @@ def main(argv=None):
     familles = Counter()
     par_scenario = {}
 
-    premiere = True
     for scenario in args.scenarios:
         c_scen = Counter()
         for graine in args.graines:
@@ -624,10 +647,12 @@ def main(argv=None):
                 scenario,
                 graine,
                 heures=args.heures,
-                verifier_empreinte=args.verifier_empreinte and premiere,
+                verifier_empreinte=args.verifier_empreinte,
             )
-            premiere = False
             resultats.append(r)
+            chemin = Path(args.sortie)
+            chemin.parent.mkdir(parents=True, exist_ok=True)
+            chemin.write_text(json.dumps({"provisoire": True, "nuits": resultats}, ensure_ascii=False), encoding="utf-8")
             a = r["analyse"]
             for k, v in a["comptes"].items():
                 totaux[k] += v
@@ -641,13 +666,13 @@ def main(argv=None):
                 f"retour_init={a['comptes'].get('non_justifie_retour_etat_initial_exact', 0)}, "
                 f"depl_seul={a['comptes'].get('non_justifie_externe_fixe_seul_deplacement', 0)}, "
                 f"abandon_sans_entree={a['comptes'].get('non_justifie_abandon_sans_entree_externe', 0)}) | "
-                f"justifiés={a['total_justifies']} | cycles_accomplis={a['total_cycles_accomplis']}",
+                f"à_expliquer={a['total_a_expliquer']} | cycles_accomplis={a['total_cycles_accomplis']}",
                 flush=True,
             )
         par_scenario[scenario] = {
             "comptes": dict(c_scen),
             "total_non_justifies": sum(v for k, v in c_scen.items() if k.startswith("non_justifie_")),
-            "total_justifies": c_scen.get("justifie_par_entree_nouvelle", 0),
+            "total_a_expliquer": c_scen.get("entree_nouvelle_a_expliquer", 0),
             "total_cycles_accomplis": (
                 c_scen.get("cycle_accompli", 0) + c_scen.get("garde_interruption_accomplie", 0)
             ),
@@ -662,7 +687,7 @@ def main(argv=None):
         },
         "totaux_comptes": dict(totaux),
         "total_non_justifies": sum(v for k, v in totaux.items() if k.startswith("non_justifie_")),
-        "total_justifies": totaux.get("justifie_par_entree_nouvelle", 0),
+        "total_a_expliquer": totaux.get("entree_nouvelle_a_expliquer", 0),
         "total_cycles_accomplis": (
             totaux.get("cycle_accompli", 0) + totaux.get("garde_interruption_accomplie", 0)
         ),
@@ -675,7 +700,7 @@ def main(argv=None):
     chemin.write_text(json.dumps(synthese, ensure_ascii=False, indent=2), encoding="utf-8")
     print(
         f"\nTOTAL ({len(resultats)} nuits) : non_justifiés={synthese['total_non_justifies']} | "
-        f"justifiés={synthese['total_justifies']} | cycles_accomplis={synthese['total_cycles_accomplis']}",
+        f"à_expliquer={synthese['total_a_expliquer']} | cycles_accomplis={synthese['total_cycles_accomplis']}",
         flush=True,
     )
 

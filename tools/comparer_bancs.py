@@ -5,7 +5,7 @@
 
 La branche omise désigne les fichiers du worktree courant, modifications comprises.
 Les mesures de temps incluent les relevés d'audit en mode normal ; le mode identité
-n'observe que chronique, mesures et état complet. Une divergence déclenche un rejeu
+observe aussi les décisions sans relevés de cinq minutes. Une divergence déclenche un rejeu
 instrumenté pour la dater, exclu des temps comparés.
 
 Une référence (et une branche donnée par --branche) est résolue en commit ; chacune de ses nuits
@@ -133,6 +133,8 @@ def jouer_nuit(tache):
     resultat = {"scenario": scenario, "graine": graine, "heures": config["heures"],
                 "plantage": None}
     with ExitStack() as pile:
+        detecteur = audit.detecteur_avis()
+        sonde = pile.enter_context(detecteur.observer_avis())
         pile.enter_context(patch.object(banc, "creer", creer_capture))
         pile.enter_context(patch.object(pnj, "commencer_geste", compter))
         pile.enter_context(patch.object(pnj, "_temoins", voir))
@@ -162,6 +164,7 @@ def jouer_nuit(tache):
         if monde is not None:
             minutes[str(monde.data["minutes"])] = empreinte(monde.data)
         resultat["minutes"] = minutes
+    audit.ajouter_avis(resultat, detecteur.analyser_episodes(sonde.episodes))
     if not config["empreintes"]:
         if resultat.get("donnees"):
             chronique = resultat["donnees"]["chronique"]
@@ -175,7 +178,7 @@ def jouer_nuit(tache):
         if monde is not None:
             resultat["final"] = audit._final(monde)
         resultat["boucles"] = audit.boucles(resultat)
-        resultat["constats"] = audit.analyser_nuit(resultat)
+    resultat["constats"] = audit.analyser_nuit(resultat)
     return resultat
 
 
@@ -209,7 +212,8 @@ def instrumentation():
     dans la clé, une nuit observée autrement se rejoue."""
     import inspect
     return references.empreinte(inspect.getsource(jouer_nuit), inspect.getsource(empreinte),
-                                Path(audit.__file__).read_text(encoding="utf-8"))
+                                Path(audit.__file__).read_text(encoding="utf-8"),
+                                (RACINE / "tools/detecter_changements_avis.py").read_text(encoding="utf-8"))
 
 
 def cle_nuit(config, scenario, graine, outil):
@@ -339,6 +343,14 @@ def afficher(rapport):
         else:
             minute = f'minute {d["minute"]}' if d["minute"] is not None else "minute indéterminée"
             print(f'Première divergence : {d["scenario"]}, graine {d["graine"]}, {minute} ({", ".join(d["parties"])}).')
+        for cote in ("reference", "branche"):
+            for nuit in rapport[cote]["nuits"]:
+                avis = nuit.get("avis") or {}
+                suspects = avis.get("total_non_justifies", 0)
+                inconnus = avis.get("total_a_expliquer", 0)
+                if suspects or inconnus:
+                    print(f"  Avis {cote} {nuit['scenario']} {nuit['graine']} : "
+                          f"{suspects} non justifiés, {inconnus} à expliquer")
         return
     from donjon.banc_pnj import divergence
     print("Moyenne [min–max] ; * écart ≥ 10 % ou apparition/disparition d'une mesure")
