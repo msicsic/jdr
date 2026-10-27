@@ -4,6 +4,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification d'intégration 2d504ae**, lot **148**, branche
+  `codex-verif-integ-2d504ae` : aucun code du jeu ou outil changé, aucun Luna,
+  aucune suite complète ni rejeu de référence. **49 nuits jouées une fois,
+  48 achevées** : 32 × 12 h quatre scénarios/huit graines, huit rixes × 8 h,
+  cinq contrôles `VERIFIER` + `spatial.VERIFICATION` 0,2 × 8 h, quatre hameaux
+  × 12 h. Deux calculs réduits au plus, fond ; temps non comparés.
+  **Défaut nouveau : crue 42, Gorm/0**, agenda actif → sommeil et chronique
+  pendant l'évaluation en lecture seule, arrêt du contrôle. Reproduction courte
+  instrumentée, pas de correctif ici. **Crue 2024, Brune/687–715** : boucle
+  fuite/lumière palier/galerie, 68 passages/heure, absente de la même nuit
+  `057766f` ; contrat danger/abri à reprendre. Cinq coups contre personnes
+  crue 2024 à 633/686 ; aucune mort, usurpation ni prise/lien/enfermement/meurtre
+  spontané relevé, captivité non recensée exhaustivement. Autres contrôles sans
+  écart ; borne de Lucien auberge 42/314 identique, retenu = optimum 73,4743.
+  Gorm informe en crue 1985/144, 500/155, 99/176, pas de rafale de réveils ;
+  cinq agendas non atteints. Un intermédiaire sollicité, Odon → Rémy mine 7/472,
+  refus par méfiance, zéro accepté/abouti. Promesse fautive crue 11/210 non
+  observée ; pièce mine 1985/253 correcte ; quinze appels Odon mine 2024
+  571–696 persistants. Hameau : aucun agenda déclaré dans le dérivé, diffusion
+  par agenda non exercée ; alerte entretien/garde Gorm 42/25 sans défaut prouvé.
+  32 empreintes de référence conformes au manifeste 131 ; archives sans
+  sauvegarde complète, rendu après recharge non certifié. Bruts et analyse
+  `C:/Users/msics/donjon/artifacts/verif-integ-2d504ae/`. Pas de clé Git de
+  signature ; commit non signé, branche poussée, `main` intact.
+  [Rapport 148](taches/rapport-codex-148-verif-integ.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Petits lots désignés : évaluation d'un candidat d'agenda sans écriture (confié au lot 146 b, même module) ; boucle fuite/lumière de Brune, crue 2024 687-715 (famille fuite ↔ sécurité, après 146 b).
+
 - **Branche `codex-agendas-amener`, fusionnée**, lot **146**, base `cee0201` :
   livraison partielle autorisée, prérequis de l'accord de déplacement. La condition
   `{objet: auteur, lieu: destination}` utilise une marche dans le devis et dans
