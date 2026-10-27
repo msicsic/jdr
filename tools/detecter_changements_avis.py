@@ -134,7 +134,7 @@ def _est_accompli(monde, id, decision, minute, cause_sortie=None):
         return "securite" not in e.get("pressants", ()) and e["besoins"].get("securite", 0) <= deliberation.SECURITE_FIN
     if genre == "agenda":
         aid = but.get("agenda")
-        return any(a["id"] == aid and a.get("etat") == "atteint" for a in e.get("agendas", ()))
+        return any(a["id"] == aid and a.get("etat") == "atteint" for a in agendas.projets(monde, id))
     if genre == "interposer":
         r = defense.interposition(monde, id)
         return r is None or not r[1]
@@ -273,7 +273,7 @@ def relever_entrees(monde, id, minute):
         }),
         "recherches": [[q, sorted(deliberation.appels_vains(monde, id, q))] for q in sorted(e.get("recherches", ()))],
         "engagements": [[x["pour"], x["condition"], bool(x.get("annule"))] for x in agendas.en_cours(monde, id)],
-        "agendas": [[a["id"], a.get("etat"), a.get("raison_sommeil")] for a in e.get("agendas", ())],
+        "agendas": [[a["id"], a.get("etat"), a.get("raison_sommeil")] for a in agendas.projets(monde, id)],
         "a_prevenir": [
             [s.get("victime"), s.get("auteur")]
             for s in e["memoire"]
