@@ -5,27 +5,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-contrat-engagement`, non fusionnée**, lot **213 / 196 c** :
-  **contrat partiel, ne pas fusionner**. `cca5f50` vérifié, 211 puis `3aa16f7`
-  (219) fusionnés avant le banc final ; reprise au-delà du créneau autorisée.
-  Revalidation à plan vide, naissance/poursuite séparées, secours hors de vue,
-  palier et marge commune `INERTIE + VOL/4`, phases et sorties attestées persistées.
-  Revue 217 : aucun coût passé ; coût futur de bascule encore sans raccord explicite.
-  **20 paires 4 h : 13 → 5 répétitions suspectes**, aucun scénario en hausse ;
-  57 → 52 préemptions légitimes, 486 → 484 cycles, autrui 1 → 0, progrès 0 → 0,
-  à expliquer 97 → 63 ; dérives 185 → 192, états payés perdus 7 → 6, séparés.
-  Zéro plantage/usurpation. Hameau : attente 128,75 → 178,75 ; eau 10 → 31,25.
-  Brune hameau 42 : 110 min dans l'eau, préparatif reproposé mais refusé par
-  l'exécution ; **absence d'entêtement non validée**. Deux retours d'agenda en
-  crue restent des sorties indéterminées ; liste fermée non garantie.
-  Huit tests du contrat avec captures 209/211, monde/rendu rechargés et laps
-  découpés ; 35 ciblés distincts puis 40 après intégration, et trois de projection,
-  verts. **Suite complète finale : 2 433 tests, 11 échecs, zéro erreur** : reprise
-  comparée à `3aa16f7`, deux Mimo préexistants, deux empreintes de registre corrigées
-  puis vertes, **sept écarts propres à la branche non résolus**. Aucune suite verte.
-  Seuls délibération/agendas changés en production, localisation crue intacte ;
-  aucun Luna, deux travailleurs réduits au plus, aucune clé de signature.
-  Suspension temporaire laissée explicitement au 218 (Gorm/Aubin hameau 1985 min 6).
-  Accord planification/exécution et sorties sans certificat à reprendre avant fusion.
+  **contrat partiel, arbitrage avant fusion**. `cca5f50` vérifié ; 211 puis
+  `3aa16f7` (219) intégrés ; moteur final **`5016c87`**. Raccord `pnj.py` autorisé :
+  `refus_etape` commun au choix et à `agir`, sans lecture réelle supplémentaire ;
+  seuls ces deux noms changent dans pnj, `_abriter`/témoins et localisation crue intacts.
+  Plan vide/hors de vue, attente sans geste périmé, délégation payée, tête de moyens
+  revalidée, palier absolu `PERIL_EAU` et marge `INERTIE + VOL/4` ; aucun coût passé.
+  Sept écarts initiaux corrigés, assertions gardées, prémisses listées au rapport.
+  **Suite finale : 2 448 tests / 283 fichiers, deux Mimo préexistants, zéro erreur**,
+  après 48 ciblés verts ; recharges monde/rendu/scène et laps découpés contrôlés.
+  **20 paires 4 h, vingt références en cache : suspects 13 → 5**, aucun scénario
+  en hausse ; cycles 486 → 468, préemptions légitimes 57 → 53, autrui 1 → 0,
+  progrès 0 → 0, à expliquer 97 → 61 ; dérives 185 → 196, états payés perdus 7 → 6.
+  Zéro plantage/usurpation. Hameau 42 après raccord : eau totale 120 → 5 PNJ·min,
+  ancien séjour de Brune 110 min supprimé. Eau moyenne crue 2,5 → 1,25, hameau
+  10 → 6,25 ; attente crue 178,75 → 196,25, hameau 128,75 → 97,5.
+  Restent cinq suspects, des alertes d'agenda distribuées en crue 1985 et une
+  attente confiée de Gorm au Relais 42 ; aucune garantie générale d'absence de boucle.
+  **Arbitrage** : un agenda sans plan admissible au coût libère actuellement son
+  intention (blocage attesté) ; garder sa priorité en attente peut bloquer un besoin
+  de même palier. Sources anciennes sans demande persistante et suspension de
+  charge à travers reconstruction forcée (218) restent des limites explicites.
+  Aucun Luna, deux travailleurs réduits au plus, aucune clé de signature.
   Bruts `C:/Users/msics/donjon/artifacts/engagement-213/` ;
   [rapport 213](taches/rapport-codex-213-contrat-engagement.md).
 
