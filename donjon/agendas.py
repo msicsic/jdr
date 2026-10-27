@@ -363,6 +363,14 @@ def planifier(monde, id, identifiant):
             return None
         objet = a["parametres"]["objet"]
         trouve = None
+        # La parole est un recours commun, sans introduire de branche dans le
+        # graphe de reprise. Son refus rend ensuite les moyens habituels au but.
+        from .pnj_propositions import reclamation
+        recours = reclamation(monde, id, objet)
+        if recours:
+            _changer(monde, id, a, "actif", "reclamation possible", empreinte)
+            _limiter(monde, id, empreinte)
+            return ({"type": "agenda", "agenda": identifiant, "objet": objet}, recours) if a["etat"] == "actif" else None
         if objet in monde.objets:
             trouve = chercher(monde, id, lambda v, e: objet in e.portes,
                               {"prendre": (objet,)}, nom="recuperer:" + objet,
