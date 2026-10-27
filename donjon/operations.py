@@ -172,6 +172,10 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                                                   e["difficulte"], justification), origine)
     p = Plan({"action": "composer", "justification": justification}, monde.data["revision"], "", origine=origine)
     op, cible, destination, outil, methode = (e[k] for k in ("operation", "cible", "destination", "outil", "methode"))
+    # Référence publique relative, résolue dans l'état de chaque étape (séquences
+    # et effets d'improvisation compris), jamais enregistrée comme un lieu.
+    if op in ("deplacer", "prelever") and destination == "sol":
+        destination = monde.joueur["salle"]
     if op == "patienter":
         if cible or destination or outil or methode != "simple":
             raise ErreurMonde("Patienter n'a ni cible, ni outil, ni destination.",
@@ -317,6 +321,9 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                 raise ErreurMonde("Séparer une pièce du lot se fait à la main.", "prelever sur place : outil vide, methode simple.")
             p = Plan({"action": "composer", "justification": justification}, monde.data["revision"], "", origine=origine)
             p.effets = [("prelever_piece", cible, piece_id)]
+            if destination == monde.joueur["salle"]:
+                # Séparer au sol pose la nouvelle pièce à nos pieds, comme tout dépôt.
+                p.effets.append(("transferer", piece_id, destination))
             p.titre = "Prélever " + designer(avec_piece.objets[piece_id], "indefini") + "."
             return p
         p = compiler(avec_piece, etape("deplacer", piece_id, destination or "joueur", methode=methode),
@@ -364,7 +371,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                 ouverts = sorted(i for i, x in monde.objets.items()
                                  if x["type"] == "contenant" and x.get("ouverte") and monde.accessible(i) and i != cible)
                 raise ErreurMonde("La destination doit être ta besace, le sol ici ou un contenant ouvert et accessible.",
-                                  f"destination : joueur, {monde.joueur['salle']} (le sol), ou un contenant ouvert parmi "
+                                  f"destination : joueur, sol (ici), ou un contenant ouvert parmi "
                                   f"{cibles(monde, ouverts)} ; reçu « {destination} »"
                                   + (" (fermé : ouvre-le d'abord)" if contenant and contenant["type"] == "contenant"
                                      and not contenant.get("ouverte") else "") + ".")
@@ -378,7 +385,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         if charge_autres + masse > monde.joueur["capacite"]:
             raise ErreurMonde("Cet objet et son contenu dépassent ta capacité de portage.",
                               f"charge {charge_autres} + masse {masse} > capacité {monde.joueur['capacite']} : "
-                              f"pose d'abord quelque chose (deplacer vers {monde.joueur['salle']}).")
+                              "pose d'abord quelque chose (deplacer vers sol).")
         # Contrôle aussi la destination et le poids imbriqué, sans toucher au monde réel.
         projection = monde.copier()
         from .deplacement_objet import deplacer

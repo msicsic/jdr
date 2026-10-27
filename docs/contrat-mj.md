@@ -920,6 +920,15 @@ Le Relais des crues désigne une cloche précise comme objectif. Une seconde clo
 
 ## Objets, capacités et évolutions
 
+Poser au sol utilise `destination: "sol"` pour `deplacer`, `prelever`, les
+séquences et les effets d'improvisation. Le compilateur résout ce repère relatif
+dans l'état de chaque étape ; le déplacement commun pose sur la case de Corvus
+(ou la case libre la plus proche selon la règle spatiale existante). La sauvegarde
+conserve l'identifiant de salle et la position physique, jamais `sol` comme lieu.
+L'identifiant de la salle courante reste accepté avec le même effet pour les
+anciennes réponses. Une autre salle est refusée avec `attendu` indiquant `sol`,
+`joueur` et les contenants ouverts accessibles ; aucun transfert distant n'est permis.
+
 Le type `objet`
 crée une entité physique située, dotée d'une masse, d'une matière, d'une mobilité et d'une
 relation au support : `pose`, `fixe` ou `contenu`. Le support annonce les relations possibles ;

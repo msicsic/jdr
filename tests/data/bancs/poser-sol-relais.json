@@ -1,0 +1,6 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {"lieux": {"torche": "joueur"}},
+ "tours": ["je pose ma torche au sol", "tenter", "regarder", "carte"]
+}
