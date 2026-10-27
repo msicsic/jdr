@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification d'intégration 7adc788**, lot **160**, branche
+  `codex-verif-integ-7adc788` : aucun code du jeu changé, aucun Luna, aucune
+  suite complète ni référence rejouée ; `main` intacte. **49/49 nuits achevées**,
+  deux calculs réduits au plus, en fond : 32 × 12 h, huit rixes × 8 h, cinq
+  contrôles renforcés × 8 h, quatre hameaux × 12 h. Zéro plantage, violation,
+  usurpation, mort ou écart de contrôle ; borne Lucien auberge 42/314 inchangée,
+  retenu = optimum 73,4743. Crue 42 renforcée atteint **480 min**, ancien arrêt
+  d'évaluation d'agenda absent. Brune crue 2024 : **68 → 8 passages** dans la
+  dernière heure, fin des navettes à 688 ; pire passage global crue **68 → 30**.
+  Aucune nouvelle alerte sur les 32 nuits principales ; deux anciennes alertes
+  de la boucle supprimées. Brune dans l'eau et Ilse affamée en attente persistent,
+  mêmes relevés qu'en `2d504ae` ; pas de preuve ici d'un recours disponible.
+  Gorm : mêmes sommeils/réveils, trois agendas d'information atteints, cinq non
+  atteints, aucun abandon ; aucun `amener` déclaré. Hameau 4/4 chroniques,
+  mesures, récits et alertes identiques ; huit rixes aux mesures identiques.
+  Cinq coups crue 2024 identiques, aucun captif attesté, captivité non recensée
+  exhaustivement. Archives sans sauvegarde complète : rendu après recharge non
+  certifié. 32 références `057766f` conformes au manifeste ; temps non comparés.
+  Aucune clé de signature, commit non signé, branche seule poussée sans fusion.
+  [Rapport 160](taches/rapport-codex-160-verif-integ.md), bruts et analyses
+  `C:/Users/msics/donjon/artifacts/verif-integ-7adc788/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Défauts du lot 148 corrigés (crue 42 sous VERIFIER au bout, Brune 68 → 8 passages). Petit lot désigné : recours de survie réévalués pendant le trajet et l'attente (Brune dans l'eau 135-360, Ilse faim 100 en attente 490-720, crue 2024), après 146 e.
+
 - **Branche `codex-amener-social-d`, fusionnée**, lot **146 d**, base `bd11a3d` :
   livraison partielle, correctif moteur préalable. Une fermeture de PNJ préparée
   avant la destruction ou le dégondage du battant pouvait refermer le passage,
