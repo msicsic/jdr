@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-prompt-mesure`, non fusionnée**, lot **149 / L0**, base
+  `3f16fe9` : mesure seule, aucun code du jeu changé ni appel à Luna/local.
+  **123 parties archivées, 1 354 appels**, dont 42/445 du lot 141, 80/896 de
+  références et 1/13 d’Argon `9d53229` lu sans fusion. Trois tests courts verts,
+  comparaison du message fournisseur simulé ; sources contrôlées par SHA-256.
+  Interprétation 141 : consignes changées 42/113 paires, schéma 60/113 ; audit
+  69/103. Ordre Luna outils → consignes → entrée distinct de l’ordre JSON réseau.
+  Entrée effectivement cachée : 47 429 jetons sur neuf appels, contrairement à
+  « jamais items.msg ». Trace Argon : sept jetons d’outils retirés, cache à zéro,
+  retrait réel `objet:brune`, pas `parole_prevue`. Ordre des faits testé isolément
+  en simulation locale ; pas de gain de temps ni serveur local mesuré.
+  Dix tours de portée, 24 appels dont 12 après refus ; atelier sans référence
+  proche 69/103, franchissements 8/103, obstacles 6/59, inconnus séparés.
+  Un processus réduit, aucun banc moteur ni suite complète pour cette mesure.
+  [Rapport 149](taches/rapport-codex-149-prompt-mesure.md), bruts
+  `C:/Users/msics/donjon/artifacts/prompt-149/`.
+
 - **Branche `codex-agendas-amener`, fusionnée**, lot **146**, base `cee0201` :
   livraison partielle autorisée, prérequis de l'accord de déplacement. La condition
   `{objet: auteur, lieu: destination}` utilise une marche dans le devis et dans
