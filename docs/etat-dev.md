@@ -4,6 +4,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-anselme-coups`, non fusionnée**, lot **222**, diagnostic seul : quatre nuits natives 2024 sur `4d4c625` / `fa330e1`, historiques identiques à 212 ; Anselme **11→2 alternances**, poêle/garde **10→0**, aucun suspect 219 ; crue **16 coups / 7 touchés → 0**, mais cycle fuite/secours de Gorm encore reproduit sur captures dans les deux versions (cri de Brune non acquitté, cinq retours). Petit lot distinct sur revalidation/acquittement du secours ; pas de défaut chaleur/abri établi ni de correction générale attribuée au 213. **221 captures** monde/rendus rechargés identiques, quatre reprises bloc/découpées identiques ; un seul calcul BelowNormal, aucun jeu ni Luna modifié. Bruts `C:/Users/msics/donjon/artifacts/anselme-coups-222/` ; [rapport 222](taches/rapport-codex-222-anselme-coups.md).
+
 - **Branche `codex-bourse-redemandee`, fusionnée**, lot **220**, base
   `fb2dd65` vérifiée : restitution retenue durablement par `biens`, possession
   constatée à la clôture du prêt, même garde dans le graphe et l'échange,
