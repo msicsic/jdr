@@ -89,7 +89,7 @@ class AvisReditsReelsTests(unittest.TestCase):
         # confiance a changé avec les trajets. La réouverture par une perception
         # positive est exercée séparément ci-dessous, sans imposer cette adoption.
 
-    def test_rallumage_appris_rouvre_le_fait_sur_la_capture_rechargee(self):
+    def test_rallumage_prive_ne_rouvre_pas_le_fait_sur_la_capture_rechargee(self):
         chemin = Path(__file__).parent / 'fixtures/avis_redits/crue-2024-140.json.gz'
         with gzip.open(chemin, 'rt', encoding='utf-8') as f:
             m = recharger(Monde(json.load(f)))
@@ -104,5 +104,5 @@ class AvisReditsReelsTests(unittest.TestCase):
         m.objets['torche']['allume'] = False
         croire(m, 'brune', 'torche', 'etat', {'allume': False}, 'vu')
         m = recharger(m)
-        self.assertFalse(social.deja_dit(m, 'brune', 'marchand', fait))
+        self.assertTrue(social.deja_dit(m, 'brune', 'marchand', fait))
         self.assertEqual(regarder(m), regarder(recharger(m)))

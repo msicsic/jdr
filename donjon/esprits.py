@@ -445,6 +445,10 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    observations = getattr(monde, "_observations_communes", None)
+    if observations is not None and source == "vu" and id in observations:
+        observations[id].append({"type": "affirmation", "sujet": sujet,
+                                 "attribut": attribut, "valeur": copy.deepcopy(valeur)})
     if attribut == "lieu":
         from .defense import approche_vue
         approche_vue(monde, id, sujet, ancienne or {}, croyance)
@@ -886,6 +890,8 @@ def constater_possession(monde, id, sujet, source, *, salle=None, case=None, rem
             p["remise_autorisee"] = precedent.get("remise_autorisee", False)
         details["possession"] = p
     reviser(monde, id, sujet, "lieu", o["lieu"], source, salle=salle, case=case, **details)
+    if source == "vu":
+        voir_ensemble(monde, id, sujet, "lieu", o["lieu"])
 
 
 def _vu_porter(monde, id, sujet):
@@ -935,6 +941,27 @@ def constater_fin_objet(monde, id, sujet, source):
         del esprit(monde, id)["croyances"][sujet]["fin"]
 
 
+def voir_ensemble(monde, id, sujet, attribut, valeur):
+    """Un constat visuel public, avec les témoins visibles du même sujet.
+
+    Appelé au point d'acquisition de la propriété visible : ni une croyance
+    privée, ni un essai dans le noir ne constituent une observation commune.
+    """
+    from .social import observation_commune
+    if id == "joueur":
+        return  # Le joueur choisit lui-même ses paroles.
+    regards = getattr(monde, "_regards_communs", None)
+    vus = regards[id] if regards is not None else percus(monde, id)[0]
+    if sujet not in vus:
+        return
+    temoins = [autre for autre in vus if autre in pnjs(monde)
+               and sujet in (regards[autre] if regards is not None else percus(monde, autre)[0])]
+    if "joueur" in vus and monde.visible(sujet):
+        temoins.append("joueur")
+    observation_commune(monde, id, {"type": "affirmation", "sujet": sujet,
+                                   "attribut": attribut, "valeur": valeur}, temoins, vus=vus)
+
+
 def constater(monde, id, sujet, source):
     """Croit l'état visible de l'objet tel qu'il est : vu, ou laissé ainsi de sa propre main.
     D'un personnage, joueur compris, se voit ce qui presse son corps : la faim, le froid, la
@@ -952,6 +979,8 @@ def constater(monde, id, sujet, source):
                    {**{nom: besoins.get(nom, 0) >= regle["urgence"] for nom, regle in CORPS.items()},
                     **visible(monde, sujet),
                     **({"parti": False} if ancien and "parti" in ancien["valeur"] else {})}, source)
+            if source == "vu":
+                voir_ensemble(monde, id, sujet, "etat", croyance(monde, id, sujet, "etat")["valeur"])
         if (source == "vu" and not visible(monde, sujet)["conscient"]
                 and (not ancien or ancien["valeur"].get("conscient") is not False)
                 and protege):
@@ -971,6 +1000,8 @@ def constater(monde, id, sujet, source):
         from .deliberation import inquieter, relancer
         ancien = croyance(monde, id, sujet, "etat")
         croire(monde, id, sujet, "etat", {"mort": True}, source)
+        if source == "vu":
+            voir_ensemble(monde, id, sujet, "etat", {"mort": True})
         if source == "vu" and not (ancien and ancien["source"] == "vu" and ancien["valeur"].get("mort")):
             memoriser(monde, id, {"type": "mort_vue", "objet": sujet, "salle": o["lieu"]})
             from .corps import evenement
@@ -1000,6 +1031,8 @@ def constater(monde, id, sujet, source):
                 if ancien and "vide" in ancien["valeur"]:
                     etat["vide"] = ancien["valeur"]["vide"]
         croire(monde, id, sujet, "etat", etat, source)
+        if source == "vu":
+            voir_ensemble(monde, id, sujet, "etat", etat)
 
 
 def _flamme_sous_les_yeux(monde, id, sujet, lieu):
@@ -1191,8 +1224,33 @@ def _percevoir(monde, id):
 
 def percevoir_tous(monde):
     with vue_memorisee(monde), etat_fige(monde):  # Percevoir ne révise que des esprits.
-        for id in pnjs(monde):
-            percevoir(monde, id)
+        # Photographier les acquisitions de CETTE perception commune, pas les
+        # croyances privées laissées par les perceptions précédentes. Cela
+        # couvre toute propriété observée par la voie commune, sans catalogue
+        # de types de faits, ni assimilation d'une conclusion à une observation.
+        observations = {id: [] for id in pnjs(monde)}
+        precedent = getattr(monde, "_observations_communes", None)
+        regards_precedents = getattr(monde, "_regards_communs", None)
+        regards = {id: percus(monde, id)[0] for id in observations}
+        monde._observations_communes = observations
+        monde._regards_communs = regards
+        try:
+            for id in observations:
+                percevoir(monde, id)
+        finally:
+            monde._observations_communes = precedent
+            monde._regards_communs = regards_precedents
+        from .social import faits_dits, observation_commune
+        acquis = {id: dict(f for n in contenus for f in faits_dits(n))
+                  for id, contenus in observations.items()}
+        for id, contenus in observations.items():
+            vus = regards[id]
+            for noyau in contenus:
+                faits = faits_dits(noyau)
+                temoins = [autre for autre in observations if autre != id and autre in vus
+                           and all(cle in acquis[autre] and acquis[autre][cle] == valeur
+                                   for cle, valeur in faits)]
+                observation_commune(monde, id, noyau, temoins, vus=vus)
         from .perception import fin_objet
         croyances_joueur = lire(monde, "joueur")["croyances"]
         for sujet, o in monde.objets.items():

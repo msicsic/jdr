@@ -110,6 +110,8 @@ def retenir_dit(monde, id, auditeur, noyau):
             registre[cle] = {"valeur": copy.deepcopy(valeur), "dit_a": {}}
         registre[cle]["valeur"] = copy.deepcopy(valeur)
         registre[cle].pop("valeur_inconnue", None)
+        if auditeur in registre[cle]["dit_a"] and registre[cle]["dit_a"][auditeur] != valeur:
+            registre[cle].get("entendu_a", {}).pop(auditeur, None)
         registre[cle]["dit_a"][auditeur] = copy.deepcopy(valeur)
 
 
@@ -156,7 +158,7 @@ def _retenir_audience(monde, audience):
 
 
 def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details):
-    """Seul un changement appris par le destinataire rouvre ce qui lui a été dit.
+    """Révise la valeur personnelle, sans consulter ni modifier un autre esprit.
 
     La dernière valeur crue par le locuteur sert aussi aux conclusions dérivées
     (menace). Ses changements ne suppriment pas les valeurs dites aux autres.
@@ -164,40 +166,17 @@ def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details)
     if attribut == "intention":
         valeur = {"valeur": valeur, "envers": details.get("envers")}
     registre = lire(monde, id)["faits_dits"]
-    avant = {}
-    if precedente:
-        ancienne = ({"valeur": precedente["valeur"], "envers": precedente.get("envers")}
-                    if attribut == "intention" else precedente["valeur"])
-        avant = dict(faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
-                                "valeur": ancienne}))
     for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur}):
-        if precedente is None and registre.get(cle, {}).get("valeur_inconnue"):
-            # Le contenu entendu n'était pas sa propre conclusion. La première
-            # conclusion calculée ne prouve donc aucun changement appris.
+        if cle in registre:
             registre[cle]["valeur"] = copy.deepcopy(v)
-            registre[cle].pop("valeur_inconnue")
-            continue
-        if precedente is None and cle not in registre:
+            registre[cle].pop("valeur_inconnue", None)
+        elif precedente is None:
             # Première conclusion dérivée : aucun changement connu. La suivre
             # empêche qu'une même conclusion réaffirmée rouvre un avis refusé.
             if len(registre) < DITS_MAX:
                 esprit(monde, id)["faits_dits"][cle] = {"valeur": copy.deepcopy(v), "dit_a": {}}
-            continue
-        connue = cle in avant if precedente is not None else cle in registre
-        ancienne = avant.get(cle) if precedente is not None else registre.get(cle, {}).get("valeur")
-        if cle in registre:
-            registre[cle]["valeur"] = copy.deepcopy(v)
-            registre[cle].pop("valeur_inconnue", None)
-        if connue and ancienne == v:
-            continue
-        for e in monde.data.get("esprits", {}).values():
-            fait = e.get("faits_dits", {}).get(cle, {})
-            dits = fait.get("dit_a", {})
-            if id in dits and dits[id] != v:
-                del dits[id]
-            entendus = fait.get("entendu_a", {})
-            if id in entendus:
-                entendus[id] = [valeur for valeur in entendus[id] if valeur == v]
+        # Les acquisitions privées ne rouvrent plus les suivis des autres.
+        # Paroles et observations communes apportent leur propre preuve.
 
 
 def migrer_dits(monde, id):
@@ -378,12 +357,9 @@ def _cru_ailleurs(monde, id, noyau):
     return bool(lieu) and lieu["minute"] > noyau["lieu"]["minute"] and lieu["valeur"] != noyau["lieu"]["valeur"]
 
 
-def _sait(monde, id, noyau):
+def _connait_reception(monde, id, noyau):
+    """L'auditeur juge une parole reçue avec ses propres connaissances."""
     if noyau["type"] == "avis":
-        # Une conclusion commune n'est pas une preuve identique : les prévisions
-        # peuvent différer en date, pente et conviction. Le locuteur n'a pas accès
-        # à celles de l'auditeur ; celui-ci les pèsera seulement en recevant l'avis.
-        # Le registre des faits dits borne les avertissements, même refusés.
         return False
     if noyau["type"] == "constat":
         c = lire(monde, id)["croyances"].get(noyau["objet"], {}).get(noyau["attribut"])
@@ -397,6 +373,30 @@ def _sait(monde, id, noyau):
     return any((faits_dits(s) == fait if s["type"] in NOUVELLES
                 else s["type"] == "rumeur" and faits_dits(s["evenement"]) == fait)
                for s in lire(monde, id)["memoire"])
+
+
+def observation_commune(monde, id, noyau, temoins, *, vus=None):
+    """Le moteur atteste les témoins ; chacun ne connaît que ceux qu'il voit.
+
+    Le contenu vient de l'observation, jamais des croyances de l'auditeur.
+    Une nouvelle valeur observée ensemble remplace la valeur qu'on lui prêtait.
+    """
+    from .esprits import percoit
+    if id == "joueur":
+        return
+    registre = esprit(monde, id)["faits_dits"]
+    for autre in temoins:
+        if autre == id or not (autre in vus if vus is not None else percoit(monde, id, autre)):
+            continue
+        for cle, valeur in faits_dits(noyau):
+            if cle not in registre and len(registre) < DITS_MAX:
+                registre[cle] = {"valeur": None, "valeur_inconnue": True, "dit_a": {}}
+            if cle not in registre:
+                continue
+            fait = registre[cle]
+            if autre in fait["dit_a"] and fait["dit_a"][autre] != valeur:
+                del fait["dit_a"][autre]
+            fait.setdefault("entendu_a", {})[autre] = [copy.deepcopy(valeur)]
 
 
 def _auditeur(monde, id, souvenir, noyau, source):
@@ -837,7 +837,7 @@ def recevoir(monde, id, locuteur, c):
         return recevoir_prevision(monde, id, locuteur, noyau, c["rang"])
     if c["type"] != "aveu" and accuse(noyau) == locuteur:
         return None  # Parler contre soi exige un aveu explicite, joueur comme PNJ.
-    if accuse(noyau) == id or _sait(monde, id, noyau):
+    if accuse(noyau) == id or _connait_reception(monde, id, noyau):
         return None
     if c["type"] == "aveu":
         from .voix import identifie, se_mefier
@@ -891,8 +891,6 @@ def bavarder(monde, id, lignes):
         auditeur = _auditeur(monde, id, souvenir, noyau, source)
         if auditeur is None:
             continue
-        if _sait(monde, auditeur, noyau):
-            continue  # Limite historique : ce contrôle lit encore le savoir de l'auditeur.
         # Destinataire et témoins auditifs reçoivent le même contenu. Une accusation
         # adressée à son auteur reste une parole, sans lui apprendre une rumeur sur lui.
         # Si un tiers va contredire, le destinataire est lui aussi témoin des

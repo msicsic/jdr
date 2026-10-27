@@ -58,7 +58,8 @@ class DejaEntenduTests(unittest.TestCase):
         m.objets["vivres"]["portions"] = 2
         croire(m, "brune", "vivres", "etat", {"disponible": True}, "vu")
         m = recharger(m)
-        self.assertFalse(social.deja_dit(m, "ilse", "brune", noyau))
+        # La nouvelle acquisition de Brune est privée, hors du lieu des vivres.
+        self.assertTrue(social.deja_dit(m, "ilse", "brune", noyau))
         self.assertTrue(social.deja_dit(m, "ilse", "marchand", noyau))
         self.assertEqual(rendu(m), rendu(recharger(m)))
 
@@ -101,9 +102,9 @@ class DejaEntenduTests(unittest.TestCase):
         croire(m, "marchand", "vivres", "etat", {"disponible": False}, "vu")
         croire(m, "marchand", "vivres", "etat", {"disponible": True}, "vu")
         m = recharger(m)
-        # L'aller-retour appris rouvre aussi une ancienne valeur entendue.
-        self.assertFalse(social.deja_dit(m, "brune", "marchand", oui))
-        self.assertFalse(social.deja_dit(m, "brune", "marchand", non))
+        # Brune n'a pas été témoin de cet aller-retour privé.
+        self.assertTrue(social.deja_dit(m, "brune", "marchand", oui))
+        self.assertTrue(social.deja_dit(m, "brune", "marchand", non))
 
     def test_laps_monde_et_mots_recharges_identiques(self):
         initial = assemblee()

@@ -341,6 +341,7 @@ def _temoins(monde, geste, souvenir, victime):
     from .deliberation import proteges
     from .deliberation import VOL, inquieter, relancer
     id = geste["auteur"]
+    fait_commun = dict(souvenir)  # Le geste public, avant les interprétations individuelles.
     for autre in pnjs(monde):
         if autre != id and autre not in geste["temoins"] and autre not in geste["exclus"] and percoit(monde, autre, id):
             if not est_contrainte(monde, geste['operation'], geste['objet']):
@@ -369,6 +370,12 @@ def _temoins(monde, geste, souvenir, victime):
                 memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id, "preuve": souvenir["preuve"]})
     # L'auteur peut remarquer un témoin après le début du geste. Seuls ceux
     # qu'il voit lui-même entrent dans son souvenir, conservé après le geste.
+    from .social import observation_commune
+    presents = [autre for autre in geste["temoins"] if percoit(monde, autre, id)]
+    for autre in presents:
+        # Les témoins du même geste connus à cet instant sont une preuve
+        # publique, indépendante de ce qu'ils savaient avant le geste.
+        observation_commune(monde, autre, fait_commun, presents)
     for autre in geste["temoins"]:
         if autre not in geste["se_sait_vu"] and (monde.visible(autre) if id == "joueur" else percoit(monde, id, autre)):
             geste["se_sait_vu"].append(autre)
