@@ -4,6 +4,39 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-agendas-amener-b`, non fusionnée**, lot **146 b**, base
+  `b5a23bb`, code `36e1b33` puis `268e190` : complément prioritaire du lot 148,
+  pureté de l'évaluation des candidats. Registre temporaire, transitions et
+  chronique publiées après un choix complet ; rien pour un devis isolé ou un
+  choix interrompu, comme les efforts bornés du lot 87. Le sommeil d'un agenda
+  essayé sans plan reste enregistré même si un autre candidat fournit le plan
+  (précision demandée et confirmée). Test neuf échouant sur la base intacte,
+  crue 42 fixe/tirée 2 h avec `VERIFIER` et `spatial.VERIFICATION` 0,2 sans arrêt :
+  état complet, chronique, mesures, récit et souvenirs identiques à la base
+  non vérifiée. **12/12 empreintes 2 h identiques** (Relais/mine/auberge).
+  **4/4 crues 4 h identiques** en état complet ; aucune boucle nouvelle,
+  plantage/usurpation/violation ; mêmes constats historiques. Attente urgente
+  20 min, eau 128,75 min, passages horaires maximum 13,25, Ilse/Brune à la
+  galerie en fin de nuit 3/8, inchangés. Références manquantes cachées sans rejeu.
+  Coût crue 1985 fixe 4 h inchangé : 1 430 recherches, 1 092 neuves, 83 066 nœuds.
+  Suite complète finale : **2 168 tests, 244 fichiers, 1 192,24 s, deux échecs
+  MiMo historiques `6 != 5`, zéro erreur/ignoré** ; deux échecs reproduits seuls
+  sur `b5a23bb`. Première suite interrompue au complément prioritaire, une seule
+  suite achevée sur le code final.
+  Livraison partielle du cycle de fin d'`amener` :
+  Toutes les personnes crues au lieu donnent `atteint` ; destination crue ou
+  attendue noyée : `abandonne`, cause sauvegardée. Aucune lecture des positions
+  distantes, aucune renaissance terminale. Sinon sommeil explicite, sans demande
+  ni transport ; données de la crue inchangées. **31 ciblés verts**, six fichiers,
+  dont huit nouveaux tests : deux personnes/deux lieux, état et rendu rechargés,
+  trois minutes entières/découpées identiques. **Amener reste incomplet** :
+  préférence générale et avis, plus proche, portée vocale, demande autonome et
+  refus durable/réveil, accompagnement, abandon pour route coupée et épreuve
+  d'évacuation avec faim désespérée restent à faire. Aucun Luna ni fichier MJ
+  réservé modifié. Deux calculs réduits au plus ; aucune clé de signature Git,
+  commits non signés, branche seule poussée sans fusion.
+  [Rapport 146 b](taches/rapport-codex-146b-agendas-amener.md).
+
 - **Branche `codex-agendas-amener`, fusionnée**, lot **146**, base `cee0201` :
   livraison partielle autorisée, prérequis de l'accord de déplacement. La condition
   `{objet: auteur, lieu: destination}` utilise une marche dans le devis et dans
