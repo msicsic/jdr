@@ -823,6 +823,27 @@ def percoit(monde, acteur, sujet):
     return sujet in percus(monde, acteur)[0]
 
 
+def _perception_commune(monde, id):
+    """Lecture physique unique par témoin dans une perception immuable."""
+    regards = getattr(monde, "_regards_communs", None)
+    if regards is None:
+        return percus(monde, id)
+    if id not in regards:
+        regards[id] = percus(monde, id)
+    return regards[id]
+
+
+def _visible_ensemble(monde, sujet):
+    """La vue du joueur appartient à la même photographie que celles des PNJ."""
+    regards = getattr(monde, "_regards_communs", None)
+    if regards is None:
+        return monde.visible(sujet)
+    cle = ("visible_joueur", sujet)
+    if cle not in regards:
+        regards[cle] = monde.visible(sujet)
+    return regards[cle]
+
+
 def _observe(monde, champ, croyance):
     """Le lieu où l'on attendait le sujet est-il sous les yeux du PNJ ?
 
@@ -950,13 +971,12 @@ def voir_ensemble(monde, id, sujet, attribut, valeur):
     from .social import observation_commune
     if id == "joueur":
         return  # Le joueur choisit lui-même ses paroles.
-    regards = getattr(monde, "_regards_communs", None)
-    vus = regards[id] if regards is not None else percus(monde, id)[0]
+    vus = _perception_commune(monde, id)[0]
     if sujet not in vus:
         return
     temoins = [autre for autre in vus if autre in pnjs(monde)
-               and sujet in (regards[autre] if regards is not None else percus(monde, autre)[0])]
-    if "joueur" in vus and monde.visible(sujet):
+               and sujet in _perception_commune(monde, autre)[0]]
+    if "joueur" in vus and _visible_ensemble(monde, sujet):
         temoins.append("joueur")
     observation_commune(monde, id, {"type": "affirmation", "sujet": sujet,
                                    "attribut": attribut, "valeur": valeur}, temoins, vus=vus)
@@ -1148,11 +1168,19 @@ def percevoir(monde, id):
     if not conscient(monde, id):
         return
     with etat_fige(monde):  # Percevoir ne révise que son esprit.
-        _percevoir(monde, id)
+        regards = getattr(monde, "_regards_communs", None)
+        if regards is None:
+            # Même hors d'une passe collective, tous les constats de cette
+            # perception portent sur la même photographie physique.
+            monde._regards_communs = {}
+        try:
+            _percevoir(monde, id)
+        finally:
+            monde._regards_communs = regards
 
 
 def _percevoir(monde, id):
-    vus, champ = percus(monde, id)
+    vus, champ = _perception_commune(monde, id)
     croyances = esprit(monde, id)["croyances"]
     # Une disparition du registre n'apprend rien à un observateur distant.
     # Conserver aussi une fin déjà constatée, même si ses restes sont retirés.
@@ -1236,7 +1264,7 @@ def percevoir_tous(monde):
         supports = {id: set(vus) | {case[0] if isinstance(case, tuple) else case for case in champ}
                     for id, (vus, champ) in perceptions.items()}
         monde._observations_communes = observations
-        monde._regards_communs = regards
+        monde._regards_communs = perceptions
         try:
             for id in observations:
                 percevoir(monde, id)
