@@ -6,10 +6,10 @@ import unittest
 from unittest.mock import patch
 
 from donjon import ecoute, pnj, social
-from donjon.esprits import lire
+from donjon.esprits import croire, lire
 from donjon.monde import Monde
 from donjon.rendu import regarder
-from donjon.temps import ecouler
+from donjon.temps import ecouler, instant
 from tests.test_social import recharger
 
 
@@ -22,23 +22,32 @@ class AvisReditsReelsTests(unittest.TestCase):
                 m = recharger(Monde(json.load(f)))
             lignes = []
             rallumages = []
+            transmissions = []
             reviser = social.reviser_dits
+            retenir = social.retenir_dit
             def revision(monde, id, sujet, attribut, valeur, **details):
-                if id == 'marchand' and sujet == 'torche' and attribut == 'etat' and valeur.get('allume'):
-                    rallumages.append(monde.data['minutes'])
+                if sujet == 'torche' and attribut == 'etat' and valeur.get('allume'):
+                    rallumages.append((id, instant(monde)))
                 return reviser(monde, id, sujet, attribut, valeur, **details)
-            with patch.object(social, 'reviser_dits', revision):
+            def transmission(monde, id, auditeur, noyau):
+                if (id == 'brune' and noyau.get('objet', noyau.get('sujet')) == 'torche'
+                        and noyau.get('attribut') == 'etat' and noyau.get('valeur', {}).get('allume') is False):
+                    entree = (auditeur, instant(monde))
+                    if entree not in transmissions:
+                        transmissions.append(entree)
+                return retenir(monde, id, auditeur, noyau)
+            with patch.object(social, 'reviser_dits', revision), patch.object(social, 'retenir_dit', transmission):
                 for dt in tranches:
                     pnj.avancer(m, ecouler(m, dt), lignes, dt)
                     m = recharger(m)
-            if scenario == 'crue':
-                self.assertTrue(any(146 < t < 242 for t in rallumages))
             sons = ecoute.entendus(m, -1, ecoute.ENTENDU)
             visible = regarder(m), ecoute.rendre(m, sons)
             recharge = recharger(m)
             self.assertEqual(visible, (regarder(recharge), ecoute.rendre(recharge, sons)))
-            resultats.append((m.data, visible))
+            resultats.append((m.data, visible, rallumages, transmissions))
         self.assertEqual(*resultats)
+        self.rallumages = rallumages
+        self.transmissions = transmissions
         return m
 
     def test_mine_2024_deux_lampes_homonymes_restent_deux_faits(self):
@@ -50,11 +59,35 @@ class AvisReditsReelsTests(unittest.TestCase):
             self.assertFalse(m.objets[objet]['allume'])
             self.assertFalse(lire(m, 'lucien')['croyances'][objet]['etat']['valeur']['allume'])
 
-    def test_crue_2024_rallumage_connu_de_gorm_autorise_la_nouvelle_extinction(self):
+    def test_crue_2024_chaque_redite_exige_un_rallumage_appris(self):
         m = self.parcours('crue', 140, 110 * 600)
-        dits = [c for c in m.data['chronique'] if c['pnj'] == 'brune' and c.get('constat_confie')
-                and 'Gorm' in c['texte'] and 'torche' in c['texte']]
-        self.assertEqual([c['minute'] for c in dits], [146, 242])
-        # La croyance finale peut aussi venir de la parole d'un tiers.
-        self.assertFalse(lire(m, 'marchand')['croyances']['torche']['etat']['valeur']['allume'])
-        self.assertFalse(m.objets['torche']['allume'])
+        # La sortie précoce de l'eau change les visites et les allumages.
+        # Une seconde annonce exige toujours un rallumage appris entre les deux,
+        # sans imposer les horaires d'une ancienne trajectoire.
+        self.assertTrue(self.transmissions)
+        for auditeur in {a for a, _ in self.transmissions}:
+            dits = [t for a, t in self.transmissions if a == auditeur]
+            appris = [t for a, t in self.rallumages if a == auditeur]
+            for avant, apres in zip(dits, dits[1:]):
+                self.assertTrue(any(avant < t <= apres for t in appris))
+        # Recevoir la parole ne garantit pas l'adoption de son contenu : la
+        # confiance a changé avec les trajets. La réouverture par une perception
+        # positive est exercée séparément ci-dessous, sans imposer cette adoption.
+
+    def test_rallumage_appris_rouvre_le_fait_sur_la_capture_rechargee(self):
+        chemin = Path(__file__).parent / 'fixtures/avis_redits/crue-2024-140.json.gz'
+        with gzip.open(chemin, 'rt', encoding='utf-8') as f:
+            m = recharger(Monde(json.load(f)))
+        fait = {'type': 'constat', 'objet': 'torche', 'attribut': 'etat', 'valeur': {'allume': False}}
+        m.objets['torche']['allume'] = False
+        croire(m, 'marchand', 'torche', 'etat', {'allume': False}, 'vu')
+        social.retenir_dit(m, 'brune', 'marchand', fait)
+        m = recharger(m)
+        self.assertTrue(social.deja_dit(m, 'brune', 'marchand', fait))
+        m.objets['torche']['allume'] = True
+        croire(m, 'marchand', 'torche', 'etat', {'allume': True}, 'vu')
+        m.objets['torche']['allume'] = False
+        croire(m, 'brune', 'torche', 'etat', {'allume': False}, 'vu')
+        m = recharger(m)
+        self.assertFalse(social.deja_dit(m, 'brune', 'marchand', fait))
+        self.assertEqual(regarder(m), regarder(recharger(m)))

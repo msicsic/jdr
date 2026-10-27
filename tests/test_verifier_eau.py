@@ -16,7 +16,7 @@ from unittest.mock import patch
 from donjon import eau, planification
 from donjon.banc_pnj import creer, executer
 from donjon.deliberation import deliberer
-from donjon.esprits import lire, percevoir
+from donjon.esprits import croire, lire, percevoir
 from donjon.geometrie import position_entree
 from donjon.planification import Vue, depart, diagnostics, planifier, planifier_pulsion
 from tests.support import calme
@@ -162,6 +162,12 @@ class EauTests(unittest.TestCase):
         # La ronde d'Aubin à la salle des vannes, le brasero de la conduite pour Ilse transie.
         self.assertIsNone(planifier_pulsion(m, "aubin", {"lieu": "crypte", "periode": 49}))
         lire(m, "ilse")["besoins"]["chaleur"] = 90.0
+        # L'évacuation précoce ramène désormais Gorm au refuge ; il peut
+        # refermer sa porte. Le recours positif testé ici suppose la route
+        # ouverte vers le poêle sec, comme dans la scène d'origine.
+        m.objets["porte"].update(ouverte=True, verrouillee=False)
+        croire(m, "ilse", "porte", "etat", {"ouverte": True}, "vu")
+        croire(m, "ilse", "porte", "verrouillee", False, "vu")
         m = recharger(m)
         but = planifier(m, "ilse", "chaleur")
         self.assertFalse(but and any(x["lieu"] in ("echoppe", "crypte") or x["cible"] == "brasero"

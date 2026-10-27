@@ -1934,6 +1934,8 @@ def _entrees_communes(v):
     return json.dumps([
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         monde.objets[id]["lieu"],
+        # Une occasion attendue ne garantit pas la fin d'un geste dans l'eau.
+        (esprit_["patience"] is None) if v.eau_route else None,
         [k for k in v.connus if porte_par(monde, k, id)],
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]

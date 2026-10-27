@@ -207,6 +207,11 @@ class JArriveTests(unittest.TestCase):
         le voit pas, l'attendait encore et l'aurait cru parjure à l'échéance (vu au banc). Venu comme
         promis, il le lui dit : « Me voici ! » ; ils se sont retrouvés, sans parole rompue."""
         m = scene("crue_42_minute_215.json.gz")
+        # Isoler l'annonce d'arrivée : la capture place Gorm au repos dans
+        # 18 cm d'eau. Son évacuation passe désormais avant une nouvelle parole.
+        # La crue native est vérifiée par les bancs de survie ; ici les paroles
+        # et leurs conséquences restent celles du contrat d'appel.
+        m.data.pop("crue")
         # Depuis la fusion des lampes (une part d'un lot porté se demande) et des noms, cette nuit ne mène
         # plus d'elle-même à l'appel de la minute 221 : il est placé d'autorité tel qu'il se faisait alors.
         # Brune, au refuge, cherche Gorm pour une part de son bois et parcourt la salle sans le voir ;

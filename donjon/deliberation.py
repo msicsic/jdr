@@ -1644,7 +1644,8 @@ def _candidats(monde, id):
     a_voir, alarme_ = bruit_a_voir(monde, id), alarme(monde, id)
     if alarme_:
         ajouter(alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), Palier.ALARME)
-    # Là où il se tient, il attend l'eau trop haute pour s'y mouvoir : en sortir passe avant tout.
+    # L'eau déjà présente ou la noyade attendue : sortir d'un séjour humide
+    # n'attend pas que l'inquiétude franchisse son seuil (ni celui de noyade).
     from .eau import en_peril
     if "securite" in p["besoins"] and en_peril(monde, id):
         ajouter("securite", _plan_abri, Palier.PERIL_EAU)
@@ -1766,9 +1767,11 @@ def choisir(monde, id, minute):
     intention = e["intention"]
     if intention and intention["motif"] == "alerte":
         from .pnj import chemin
-        if chemin(monde, id, monde.objets[id]["lieu"], intention["but"]["lieu"]) is not None:
+        from .eau import en_peril
+        if (not en_peril(monde, id)
+                and chemin(monde, id, monde.objets[id]["lieu"], intention["but"]["lieu"]) is not None):
             return  # Le réflexe déclaré garde la priorité jusqu'à son terme.
-        e["intention"] = None  # Plus aucun passage qu'il croie ouvert : il ne peut accourir.
+        e["intention"] = None  # Route coupée ou séjour dans l'eau : réévaluer les recours.
     pressants = urgents(monde, id, inertie=True)
     essais = {}
     # Hystérésis entre recours, comme entre besoins (``INERTIE``) : le recours en cours d'un besoin
@@ -1787,10 +1790,11 @@ def choisir(monde, id, minute):
         agendas.actualiser(monde, id)
         tous = list(_candidats(monde, id))
         liste = [(besoin, methode) for besoin, methode, _, _, _ in tous]
-        for n, (besoin, methode, routine, recours, _) in enumerate(tous):
+        for n, (besoin, methode, routine, recours, urgence) in enumerate(tous):
             if retenu is not None and (besoin, routine, recours) != (retenu[0], retenu[1], True):
                 continue
-            if besoin in e["renoncements"] and e["renoncements"][besoin] + REPIT * MINUTE > maintenant:
+            if (urgence.palier != Palier.PERIL_EAU and besoin in e["renoncements"]
+                    and e["renoncements"][besoin] + REPIT * MINUTE > maintenant):
                 essais[n] = "renonce"
                 continue
             resultat = methode(monde, id)

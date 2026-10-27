@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-survie-en-route`, fusionnée**, lot **163**, base `ab7a2e2` :
+  sortie des séjours humides sans attendre l'inquiétude ou 100 cm prévus ;
+  traversées admissibles et gestes finis conservés, attente/répit/réflexe
+  réévalués. Préfixe accompli commun à la lecture et à l'exécution ; attente
+  dans `_entrees` seulement lorsque l'eau est active. Captures historiques
+  reconstituées exactement : Brune 135/355 rejoint le sec, la seule ancienne
+  fonction la laisse dans l'eau ; Ilse 490 sans recours cru, réserve vue ouverte
+  relance sa demande, dernière part prise par Brune. Monde complet/rendu après
+  recharge et découpage identiques, autre scène à deux personnes.
+  **86 ciblés distincts verts après reprises** ; suite unique **2 226 tests,
+  255 fichiers, 2 109,456 s, zéro ignoré**, cinq échecs/une erreur bruts :
+  quatre hypothèses de scènes adaptées et reprises vertes, deux MiMo historiques
+  `6 != 5` laissés. **12/12 empreintes** Relais/mine/auberge 2 h identiques,
+  références relues ; VERIFIER/spatial 0,2 crue 2024 2 h sans écart/borne/plantage.
+  Crue 4 h × quatre graines : eau **92,5 → 21,25**, attente **13,75 → 21,25**,
+  passages **15,5 → 21,5** ; aucune nouvelle alerte/plantage/usurpation.
+  Crue native 2024 12 h : eau **210 → 30**, Brune mouillée 135–360 **13 → 1**
+  relevés (16 historiquement), Ilse faim 100 en attente **0 → 0** (47 historiquement).
+  Attente **120 → 370**, passages **14 → 34** ; nouvelle alerte Brune sans but
+  305 min conservée, vivres crus épuisés à 435, faim 100 finale sans nourriture
+  garantie. Monde et rendu à 720 stables après recharge. **Pas de garantie
+  générale d'absence de navettes/attentes.** Pas de Luna ni fichier MJ réservé
+  modifié ; `main` intacte. Suite à deux travailleurs réduits, un suspendu pour
+  cohabiter ; vérification au-delà du créneau. Aucune clé de signature : commit
+  non signé, branche seule poussée. [Rapport 163](taches/rapport-codex-163-survie-en-route.md) ;
+  bruts exclusivement `C:/Users/msics/donjon/artifacts/survie-163/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Eau 92,5 → 21,25 PNJ·min (crue 4 h) et 210 → 30 (crue 2024, 12 h) ; en contrepartie attente urgente 13,75 → 21,25 et passages max 15,5 → 21,5 (34 en crue 2024), sans boucle courte relevée : à surveiller à la prochaine vérification d'intégration. Attente d'Ilse justifiée par ses croyances (réserve verrouillée, aucun plan).
+
 - **Branche `codex-avis-saisie`, fusionnée**, lot **164**, base `5bf8840` :
   définition commune d'`avis` clarifiée : annonce d'une menace future, même
   certaine et sans échéance ; horizon de calcul distinct du sens de la parole.
