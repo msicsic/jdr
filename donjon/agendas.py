@@ -470,8 +470,25 @@ def _fin_garde(monde, id, a):
     """Aucune interrogation de l'objet réel, même s'il a été supprimé."""
     from .esprits import lire
     objet = a["parametres"].get("objet")
-    fin = lire(monde, id)["croyances"].get(objet, {}).get("fin")
-    return "bien cru " + fin["valeur"] if fin else None
+    connu = lire(monde, id)["croyances"].get(objet, {})
+    fin = connu.get("fin")
+    if fin:
+        return "bien cru " + fin["valeur"]
+    lieu = connu.get("lieu", {})
+    possession = lieu.get("possession")
+    if not possession or lieu.get("valeur") is None:
+        return None
+    porteur, proprietaire = possession["porteur"], possession["proprietaire"]
+    if porteur in (None, id):
+        return None
+    if (possession["remis_par"] == id and proprietaire != id
+            and possession["remise_autorisee"]):
+        return "bien cru remis"
+    if porteur == proprietaire:
+        return "bien cru rendu"
+    if not possession["permis"]:
+        return "bien cru perdu"
+    return None
 
 
 def gardes(monde, id):

@@ -4,6 +4,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-garde-rendue-perdue`, fusionnée**, lot **179 / A4b
+  partiel**, base `integration dd815f4` : preuve de possession et de droits
+  enregistrée avec le lieu cru par `esprits.constater_possession`, vue et
+  `echanges.remettre` (les deux participants, joueur compris). Fin de `garder`
+  sur remise propre autorisée, retour vu au propriétaire autre que le gardien,
+  perte vue aux mains d'un tiers sans permission ; cause sauvegardée,
+  publication différée du choix et aucun réveil d'un agenda terminal.
+  Prêt, garde confiée et position inconnue conservés ; aucune relecture des
+  droits réels à la décision. Anselme/ballot et clé, deux biens par cause,
+  laps entier/découpé, mémoire et monde/rendu rechargés éprouvés.
+  **91 ciblés verts au terme des reprises**, besace et cause affichée incluses.
+  Suite complète unique : **2 280 tests, 262 fichiers, 1 242,806 s**, quatre
+  échecs et une erreur bruts : projection des preuves nouvelles corrigée,
+  `tenir` repris vert après retrait de l'ouï-dire ; restent deux MiMo
+  historiques `6 != 5`, aucune seconde suite. **16/16 nuits 2 h** finales,
+  quatre scénarios × quatre graines : chroniques, mesures, récits, souvenirs
+  et empreintes physiques identiques à la référence du lot 175 exclusivement
+  relue, monde/rendu rechargés identiques. États hors nouvelles preuves et
+  empreintes internes des croyances d'agendas identiques ; aucun temps du
+  cache comparé. Code `7c52c26`, puis `70bf000` ; deux travailleurs réduits.
+  **Ouï-dire non livré**, livraison partielle autorisée : l'ébauche des
+  constats pouvait être masquée par l'identité d'une ancienne accusation ;
+  il faut unifier les propriétés transmises dans la voie commune. Pas de
+  modèle subjectif de confiance du joueur inventé ; `social.py` inchangé.
+  Transfert hors `echanges.remettre` dans le noir non couvert comme remise
+  propre. L'invariant intégral reste ouvert sur ces voies. Aucun Luna,
+  scénario historique ni fichier réservé au lot 178 modifié. Aucune clé
+  de signature configurée ; `main` intacte. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/garde-179/` ;
+  [rapport 179](taches/rapport-codex-179-garde-rendue-perdue.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Livraison partielle autorisée : la fin apprise par ouï-dire reste à faire (contrat commun des propriétés transmises par les nouvelles à reprendre), ainsi que les remises dans le noir hors `echanges.remettre`.
+
 - Branche `codex-retenus-apres`, fusionnée, lot **178**, base
   `integration dd815f4` : projection pure commune `tenir.retenus_apres`,
   employée par `enfermer` et le dossier de contre-revue. Chaque opération de
@@ -54,8 +86,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   de branche sans écriture de preuve expliquent les écarts crue. Pas de gain
   de vitesse revendiqué. Placement d'auteur `sans_evacues` nettoyant désormais
   ses connaissances initiales, sans purge omnisciente en partie.
-  **Restent rendu/remis et perte vue sans permission : invariant complet de
-  fin de `garder` non garanti.** Départ définitif du protégé expressément
+  **À sa livraison, restaient rendu/remis et perte vue sans permission ;
+  suite partielle au lot 179 ci-dessus.** Départ définitif du protégé expressément
   retiré du lot par l'orchestrateur, notion absente du monde et à décider.
   Restent aussi suivi à portée de voix et interposition d'un lieu.
   Aucun Luna, scénario historique ni fichier réservé aux lots 172/173

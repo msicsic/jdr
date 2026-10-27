@@ -70,12 +70,16 @@ def observer_capture(scenario):
     assert regarder(m) == regarder(recharge)
     assert scene_percue(m) == scene_percue(recharge)
     historique = copy.deepcopy(recharge.data)
-    # La preuve de fin ajoutée au lot 175 ne change ni les anciens états,
-    # ni leurs lecteurs. La comparaison complète avant projection demeure
-    # ci-dessus ; l'oracle ancien n'a pas ce nouveau savoir sauvegardé.
+    # Les preuves de fin (175) et de possession (179) ne figurent pas dans
+    # l'oracle ancien. Monde et rendus complets restent comparés après
+    # recharge ci-dessus ; seuls ces savoirs nouveaux sortent de la projection.
     for e in [*historique["esprits"].values(), historique.get("connaissances_joueur", {})]:
         for sujet, attributs in list(e.get("croyances", {}).items()):
             attributs.pop("fin", None)
+            if e is historique.get("connaissances_joueur"):
+                attributs.pop("lieu", None)
+            elif "lieu" in attributs:
+                attributs["lieu"].pop("possession", None)
             if not attributs:
                 del e["croyances"][sujet]
     if "connaissances_joueur" in historique and not any(historique["connaissances_joueur"].values()):
