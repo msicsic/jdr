@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-contre-revue-etat-final`, fusionnée, lot **177**,
+  base `integration` `4cb4361` : règle commune de contre-revue fondée sur
+  l'état final établi par le moteur. Déplacements inhérents au geste admis,
+  état déjà vrai selon le dossier sans opération supplémentaire ; changements
+  étrangers et états demandés manquants toujours refusés. Instructions seules,
+  aucun effet moteur ni dossier perceptif changé. **16 ciblés verts**, console
+  avec MJ simulé, deux seuils, Bram/bureau et Rémy/réserve, refus d'un déplacement
+  de tiers et d'une ouverture contraire à l'enfermement, monde/rendu rechargés.
+  Suite complète unique : **2 260 tests, 260 fichiers, 1 283,253 s**, zéro erreur
+  ou ignoré ; deux échecs MiMo historiques `6 != 5` et un échec de saisie du
+  test négatif, corrigé puis repris dans les **16 ciblés finaux verts, 40,771 s**.
+  Aucune seconde suite, deux travailleurs réduits au plus.
+  **Luna non jouée sur instruction** ; commande exacte dans
+  `C:/Users/msics/donjon/artifacts/contre-revue-177/luna-a-jouer.txt` : deux
+  passes traîner/enfermer, une passe neuf autres force et atelier/relais contre
+  `cdaf371`. Amélioration sémantique et critère des trois appels non certifiés.
+  Bruts exclusivement dans ce dossier ; aucune clé de signature configurée,
+  `main` intacte. [Rapport 177](taches/rapport-codex-177-contre-revue-etat-final.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Validation Luna jouée par l'orchestrateur contre cdaf371 (cache) : traîner/enfermer deux passes 5,25 → 3,50 appels/tour, refus 3,5 → 2 ; **traîner corrigé 2/2** (deux appels, fiche puis geste exécuté, récit juste) ; **enfermer toujours refusé 2/2** : la contre-revue lit « enfermer dans » comme « y faire entrer » (« Bram est déjà dans le bureau et l'action ne le met pas à l'intérieur »), p2 10 appels. Neuf autres bancs de force, atelier et Relais, une passe : 2,72 → 2,61 appels/tour, refus 9 → 11, dans le bruit d'une passe. Suite : le dossier dira qui sera retenu après l'opération, selon la captivité du lot 140 et les issues connues (lot 178).
+
 - Branche `codex-banc-attitudes`, **non fusionnée**, lot **176** (relations 3g), `7fb17a4` : banc `attitudes` et extraction typée
   des attitudes dans chaque segment d'audit narratif, comparée par le moteur aux `signes_percus`/`impressions` fournis (id,
   personnage, cible), contrôle refait à l'enregistrement. 40 ciblés verts, 4/4 empreintes identiques, suite verte hors MiMo.

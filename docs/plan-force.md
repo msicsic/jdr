@@ -663,6 +663,20 @@ de ces gestes partagent ce sens. Tests à deux scènes, console et recharge ;
 appels et absence générale de faux refus non certifiés.
 Voir le [rapport 172](taches/rapport-codex-172-force-contre-revue.md).
 
+Lot 177, branche `codex-contre-revue-etat-final`, **non fusionnée**, base
+`4cb4361` : la contre-revue compare la demande à l'état final établi par le
+moteur. Les déplacements inhérents au geste appartiennent à ce geste ; un état
+déjà vrai selon le dossier n'exige pas d'opération supplémentaire. La règle
+commune lit titre, information, déplacements, passages, effets et étapes ;
+les changements étrangers et états demandés non produits restent refusés.
+Aucun effet moteur, dossier perceptif ni consigne d'interprétation changé.
+Tests console/MJ simulé, deux scènes par nature, monde/rendu après recharge.
+**Luna non jouée** : commande de deux passes traîner/enfermer et d'une passe
+des neuf autres bancs force, atelier et relais contre `cdaf371`, dans
+`C:/Users/msics/donjon/artifacts/contre-revue-177/luna-a-jouer.txt`.
+La fidélité sémantique et le critère des trois appels restent à valider.
+Voir le [rapport 177](taches/rapport-codex-177-contre-revue-etat-final.md).
+
 Consignes, actions typées et leurs `attendu`, improviser sans violence, état du corps comme domaine
 mécanique, locuteurs autorisés. Mesure : banc de parties `force` (`tools/banc_parties.py --fil`,
 copies de sauvegardes réelles) : « je frappe Brune avec le marteau », « j'assomme Gorm par

@@ -41,6 +41,68 @@ def console(m, p, demande, scenario='--rixe', audit=None):
 
 
 class ForceLunaTests(unittest.TestCase):
+    def test_deplacement_d_un_tiers_non_demande_reste_refuse(self):
+        from tests.test_tensions import placer
+        for scenario in ('relais', 'auberge'):
+            m, cible = scene_trainer(scenario)
+            tiers = next(i for i, o in m.objets.items()
+                         if o['type'] == 'personnage' and i != cible)
+            placer(m, tiers, m.joueur['salle'], (3, 4))
+            corps.endormir(m, tiers)
+            percevoir_tous(m)
+            avant = copy.deepcopy(m.joueur), copy.deepcopy(m.objets[tiers])
+            revues = []
+            def refuser(dossier):
+                revues.append(dossier)
+                self.assertIn(tiers, dossier['plan']['deplacements'][1]['acteur'])
+                return {'conforme': False, 'motif': 'déplacement d’un tiers non demandé'}
+            m, texte = console(m, proposition('trainer', tiers, 'est'),
+                               'je traîne ' + m.objets[cible]['nom'] + ' vers l’est',
+                               '--defi' if scenario == 'relais' else '--auberge', audit=refuser)
+            self.assertTrue(revues)
+            self.assertEqual((m.joueur, m.objets[tiers]), avant)
+            self.assertNotIn('Tu as traîné', texte)
+            self.assertEqual(m.data, recharger(m).data)
+            self.assertEqual(regarder(m), regarder(recharger(m)))
+
+    def test_etat_deja_vrai_ne_demande_pas_de_deplacer_la_personne(self):
+        from donjon.couverture_action import entree
+        for cible, salle in (('bram', 'bureau'), ('remy', 'reserve')):
+            with self.subTest(cible=cible):
+                m, porte = scene_enfermer(cible, salle)
+                m.objets[porte].update(ouverte=True, verrouillee=False)
+                from donjon.spatial import memoriser
+                from tests.test_tensions import placer
+                placer(m, cible, salle, (1, 1))
+                position = copy.deepcopy(m.joueur)
+                m.joueur.update(salle=salle, position=[2, 1], orientation='ouest')
+                memoriser(m)
+                m.joueur.update(position)
+                percevoir_tous(m)
+                m = recharger(m)
+                p = proposition('fermer', porte)
+                plan = Moteur(m).preparer(p)
+                avant = copy.deepcopy(m.data)
+                dossier = entree('j’enferme cette personne', plan, m)
+                self.assertEqual(m.data, avant)
+                revues = []
+                def admettre(recu):
+                    revues.append(recu)
+                    piece = next(x for x in recu['plan']['passages']
+                                 if x['lieu'].endswith('(' + salle + ')'))
+                    self.assertTrue(any(cible in x for x in piece['personnes_connues']))
+                    self.assertEqual(piece['etat_apres_operation'], {'ouverte': False})
+                    self.assertEqual(recu['plan']['effets_reussite'],
+                                     dossier['plan']['effets_reussite'])
+                    return {'conforme': True, 'motif': ''}
+                m, texte = console(m, p, 'j’enferme cette personne', '--mine', audit=admettre)
+                self.assertTrue(revues)
+                self.assertFalse(m.objets[porte]['ouverte'])
+                self.assertEqual(m.objets[cible]['lieu'], salle)
+                self.assertIn('ferm', texte)
+                self.assertEqual(m.data, recharger(m).data)
+                self.assertEqual(regarder(m), regarder(recharger(m)))
+
     def test_gestes_non_conformes_refuses_avant_execution_console(self):
         for scenario in ('relais', 'auberge'):
             m, c = scene_trainer(scenario)
@@ -72,10 +134,11 @@ class ForceLunaTests(unittest.TestCase):
             m.objets[porte].update(ouverte=False, verrouillee=False)
             p = proposition('ouvrir', porte)
             Moteur(m).preparer(p)
-            m, texte = console(m, p, 'je ferme cette porte', '--mine',
+            m, texte = console(m, p, 'j’enferme cette personne dans cette pièce', '--mine',
                                audit=refuser)
             self.assertTrue(revues)
             self.assertFalse(m.objets[porte]['ouverte'])
+            self.assertEqual(m.objets['remy']['lieu'], salle)
             self.assertEqual(m.data, recharger(m).data)
             self.assertEqual(regarder(m), regarder(recharger(m)))
 
@@ -100,7 +163,9 @@ class ForceLunaTests(unittest.TestCase):
             nom = m.data['salles'][salle]['nom']
             self.assertIn(nom, plan.information)
             self.assertIn(nom, plan.titre)
+            avant_dossier = copy.deepcopy(m.data)
             dossier = entree('je traîne ce corps ici', plan, m)
+            self.assertEqual(m.data, avant_dossier)
             mouvements = dossier['plan']['deplacements']
             self.assertEqual(len(mouvements), 2)
             self.assertEqual(mouvements[0]['depart'], mouvements[1]['arrivee'])
@@ -135,6 +200,7 @@ class ForceLunaTests(unittest.TestCase):
             self.assertEqual(m.objets[c]['position'], plan.deplacements[1]['arrivee']['position'])
             self.assertEqual(m.objets[c]['lieu'], salle)
             self.assertIn('traîné', texte)
+            self.assertEqual(m.data, recharger(m).data)
             self.assertEqual(regarder(m), regarder(recharger(m)))
 
     def test_dossier_portes_personnes_et_lieux_sans_mutation(self):
