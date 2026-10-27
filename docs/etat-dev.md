@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-silence-rappel`, fusionnée, lot **169**, base `27b5268` :
+  définition temporelle commune de l'extraction `rappels` dans `narration.py`.
+  L'issue courante reste contrôlée par ses faits, sans comparaison au passé.
+  Quatre audits de silence concernés ; les deux rappels de la crypte ne sont
+  pas des silences, contrôle maintenu. Silence de Brune encore contestable
+  au regard de « te répond ». **17 ciblés verts**, console et MJ simulé,
+  deux scènes de témoins, absence de réponse, faux rappels refusés ; état complet
+  et rendu identiques après recharge. Suite complète unique : **2 235 tests,
+  257 fichiers, 1 957,560 s, zéro erreur/ignoré**, deux échecs MiMo historiques
+  `6 != 5` ; trois nouveaux tests verts dans leur version finale. Deux travailleurs
+  réduits, l'un suspendu pendant les calculs du lot voisin.
+  **Aucun appel Luna** : revue automatique bloquante sur les 60 appels de rejeu
+  demandés, interprétés comme dépassant deux exécutions et une passe.
+  Commandes dans `luna-a-jouer.txt` ; références `cdaf371` exclusivement relues.
+  **Critère 95 non mesuré, amélioration sémantique non certifiée**.
+  Pas de fichier réservé ni de moteur autonome modifié ; `main` intacte.
+  Aucune clé Git de signature configurée. [Rapport 169](taches/rapport-codex-169-silence-rappel.md) ;
+  bruts exclusivement `C:/Users/msics/donjon/artifacts/silence-169/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Validation Luna jouée par l'orchestrateur (revue automatique de l'agent bloquante) : rejeu de six audits, cinq essais par côté, refus base → lot 0→0, 5→5, 5→5, 1→0, 0→1, 0→0 (vrais rappels de Gorm toujours refusés 5/5, critère du lot 95 tenu) ; passe Luna echanges 4,67, noms-dialogue 3,25, soir-noir 4,6 appels/tour, aucun repli ni incident. Bruts artifacts/silence-169/ (PC fixe).
+
 - Branche `codex-faits-a-la-demande`, **non fusionnée**, lot **166** (L7 partiel), `0ea6047` : surfaces génériques omises
   quand elles sont intactes, vides et sans usage (identifiants vus conservés) ; autres catalogues inchangés faute de critère sûr.
   `faits` d'interprétation **−3,9 %**, fiches de surfaces 927 → 501 caractères ; mais **préfixe d'entrée commun 10 959 → 8 113**
