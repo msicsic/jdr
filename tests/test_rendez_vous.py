@@ -53,7 +53,7 @@ class RendezVousTests(unittest.TestCase):
         self.assertEqual(regarder(bloc), regarder(coupe))
         self.assertEqual(regarder(bloc), regarder(recharger(bloc)))
 
-    def test_capture_reelle_auberge_42_une_retrouvaille_et_la_demande_reprend(self):
+    def test_capture_auberge_42_rendez_vous_convenu_une_retrouvaille_et_demande(self):
         from donjon import pnj
         chroniquer = pnj._chroniquer
         annonces = []
@@ -70,11 +70,16 @@ class RendezVousTests(unittest.TestCase):
             # Les secours à Joss ne déplacent pas les participants au rendez-vous.
             from tests.support import sans_souci
             m = sans_souci(auberge_42(), "tilo", "mathurine", "mireille")
+            # La capture ne comporte aucun rendez-vous initial. En déclarer
+            # un par le contrat commun : sa clôture ne doit pas dépendre du
+            # choix ultérieur entre appeler et demander où est quelqu'un.
+            appel.attendre(m, "odile", "anselme", vient=True)
+            appel.venir(m, "anselme", "odile")
             bloc, coupe, debut = reprises(m, 10)
         self.assertEqual(len(annonces), 2)  # Une par rejeu du même laps.
         self.assert_decoupage(bloc, coupe, debut)
         self.assert_rencontre(bloc, "odile", "anselme")
-        self.assertEqual(len(appels(bloc, "anselme")), 1)
+        self.assertLessEqual(len(appels(bloc, "anselme")), 1)
         self.assertTrue(any("Anselme" in t and "une part" in t for t in chronique(bloc)))
         # Le témoin ne doit pas avoir besoin de charger une autre partie pour voir le même récit.
         self.assertEqual(chronique(bloc), chronique(recharger(bloc)))

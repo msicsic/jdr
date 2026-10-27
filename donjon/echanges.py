@@ -946,19 +946,24 @@ def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
         c = croyance(monde, auditeur, sujet, "lieu")
         dit = [(sujet, c["valeur"])] if not arret and c and c["valeur"] in monde.data["salles"] else []
         issue = arret or ("dit" if dit else "rien")
-        if dit and not dementi(monde, demandeur, sujet, "lieu", c["valeur"]):
+        origine = dict(c.get("origine") or {"source": c["source"], "minute": c["minute"]}) if c else None
+        verifie = lire(monde, demandeur)["recherches"].get(sujet, {}).get(c["valeur"], -1) if dit else -1
+        appris = bool(dit and origine["minute"] >= verifie
+                      and not dementi(monde, demandeur, sujet, "lieu", c["valeur"]))
+        if appris:
             from .voix import source_dite
             croire(monde, demandeur, sujet, "lieu", c["valeur"], source_dite(monde, demandeur, auditeur),
                    round(.7 * clarte(monde, demandeur), 2), salle=c["valeur"], case=None,
-                   origine={"source": c["source"], "minute": c["minute"]})
+                   origine=origine)
         if demandeur != "joueur" and issue != "qui_va_la":
             from .deliberation import consommer_indices_recherche
-            if dit:
+            if appris:
                 consommer_indices_recherche(monde, demandeur, sujet, dit[0][1])
             retenir_refus(monde, demandeur, auditeur, "enqueter_lieu",
                           "indication" if dit else "inconnu" if issue == "rien" else issue,
                           objet=sujet, souvenir=False,
-                          information={"lieu": dit[0][1], "minute": c["minute"], "source": c["source"]} if dit else None)
+                          information={"lieu": dit[0][1], "minute": c["minute"], "source": c["source"],
+                                       "origine": dict(origine)} if dit else None)
             memoriser(monde, demandeur, {"type": "enquete_lieu", "de": auditeur,
                                          "objet": sujet, "issue": issue})
         return issue, dit
@@ -1008,6 +1013,8 @@ def reponse_localisation(monde, auditeur, sujet, issue, dit):
     if issue == "dit":
         c = croyance(monde, auditeur, sujet, "lieu")
         origine = _ouidire(monde, c["source"])
+        if c.get("origine") and c["origine"]["minute"] != c["minute"]:
+            origine += f" (ce renseignement remonte à la minute {c['origine']['minute']})"
         preuve = "avoir vu" if c["source"] == "vu" else "avoir entendu" if c["source"] == "entendu" else "avoir appris"
         return (f"{nom} dit {preuve} à la minute {c['minute']} : "
                 f"{phrase_affirmee(monde, sujet, 'lieu', dit[0][1], True)}{origine}.")

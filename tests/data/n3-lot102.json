@@ -29,7 +29,8 @@
           "nom": false,
           "qui": true,
           "reclamer": false,
-          "ressource": false
+          "ressource": false,
+          "localisation": false
         }
       }
     }
@@ -50,7 +51,8 @@
         "nom": false,
         "qui": true,
         "reclamer": false,
-        "ressource": false
+        "ressource": false,
+        "localisation": false
       }
     }
   },
@@ -85,7 +87,8 @@
           "nom": false,
           "qui": false,
           "reclamer": false,
-          "ressource": false
+          "ressource": false,
+          "localisation": false
         }
       }
     }

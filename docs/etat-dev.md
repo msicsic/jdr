@@ -10,16 +10,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Réponses positives/négatives retenues hors des quarante souvenirs, selon les
   indices persistants 37/69, sans réessai par délai. Extension du mécanisme des
   refus et de la validation des sauvegardes autorisée par le superviseur ;
-  fonctions des lots voisins intactes. **50 ciblés distincts verts, 12 nouveaux**.
-  Banc exact cinq scénarios × quatre graines × 4 h : **18 questions**, aucun
-  trio demandeur/témoin/cible répété, zéro plantage/usurpation ; S Relais
-  **11,25 → 14,25**, hameau **31 → 33**, autres scénarios en baisse.
+  fonctions des lots voisins intactes. Registre suivi par `esprits.croire` :
+  seuls de vrais changements de lieu perçus renouvellent le contexte, pas
+  les cases, délais, confirmations ou bruits non attribués. Origine conservée
+  dans les relais ; une indication plus ancienne qu'une recherche infructueuse
+  ne rouvre pas le lieu. Capture auberge 42 à 500 : **11 → 3 questions**,
+  aucune réponse encore tenue réexécutée, mêmes monde/rendu et laps rechargés.
+  **38 reprises finales vertes, 18 nouveaux tests**.
+  Banc final cinq scénarios × quatre graines × 4 h, **20 références du cache** :
+  **17 questions**, aucun trio répété dans une même nuit, zéro plantage/usurpation ;
+  S Relais **11,25 → 14,25**, hameau **31 → 32,75**, autres scénarios en baisse.
   Attente urgente crue **178,75 → 183,75**, hameau **128,75 → 151,25**.
   **Réserve avant intégration** : suspects 199 **16 → 22**, nouvelle alerte
   de lecture sociale (hameau 2024, huit contre sept), absence globale de
   boucle nouvelle non certifiée. Capture 215 testée par `rejoindre` ; ses dix
   minutes inchangées ne déclenchent pas la question (P1 reste distinct).
-  Suite complète unique en cours ; aucun Luna. Bruts
+  Suite unique **2 444 tests / 283 fichiers**, sept échecs bruts, zéro erreur,
+  16 ignorés, **3 166,835 s** ; cinq fichiers verts sur la base (20 tests),
+  puis 38 reprises vertes après correctif, migration N3/N9 et oracles explicités.
+  Aucune seconde suite complète ; aucun Luna, commits non signés. Bruts
   `C:/Users/msics/donjon/artifacts/ou-est-221/` ;
   [rapport 221](taches/rapport-codex-221-ou-est-il.md).
 

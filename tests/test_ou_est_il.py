@@ -120,6 +120,95 @@ class LocalisationDemandeeTests(unittest.TestCase):
         self.assertEqual(c['valeur'], 'chambre_cloche')
         self.assertEqual(c['source'], 'vu')
 
+    def test_bruit_sans_auteur_et_cases_du_meme_lieu_ne_rearment_pas_le_temoin(self):
+        m = capture()
+        enqueter(m, 'aubin', 'ilse', sujet='marchand')
+        s = next(s for s in lire(m, 'aubin')['refus'] if s['operation'] == 'enqueter_lieu')
+        d.recherche_vaine(m, 'aubin', 'marchand', 'antichambre')
+        for case in ([1, 1], [2, 1], [3, 1]):
+            d.indice_recherche(m, 'aubin', 'echoppe', 'marchand', indice=['bruit', 4, None, case])
+            croire(m, 'aubin', 'marchand', 'lieu', 'antichambre', 'vu', salle='antichambre', case=case)
+            croire(m, 'aubin', 'marchand', 'lieu', None, 'vu', salle=None, case=None)
+            self.assertTrue(d.tient(self.recharge(m), 'aubin', s))
+            recours = p.s_enquerir(m, 'aubin', sujet='marchand')
+            self.assertTrue(recours is None or recours[0]['qui'] != 'ilse')
+
+    def test_indication_plus_ancienne_que_la_verification_ne_rouvre_pas_le_lieu(self):
+        m = capture()
+        d.recherche_vaine(m, 'aubin', 'marchand', 'antichambre')
+        issue, dit = enqueter(m, 'aubin', 'ilse', sujet='marchand')
+        self.assertEqual(issue, 'dit')  # L'ancienne parole reste prononcée et datée.
+        self.assertEqual(dit, [('marchand', 'antichambre')])
+        m = self.recharge(m)
+        self.assertIsNone(d.salle_crue(m, 'aubin', 'marchand'))
+        self.assertIn('antichambre', d.appels_vains(m, 'aubin', 'marchand'))
+        s = next(s for s in lire(m, 'aubin')['refus'] if s['operation'] == 'enqueter_lieu')
+        self.assertEqual(s['information']['minute'], 195)
+
+    def test_relais_conserve_et_annonce_l_origine_ancienne(self):
+        m = capture()
+        # Ilse a reçu récemment un renseignement dont l'origine est antérieure
+        # à la vérification d'Aubin. Le relais n'en fait pas une observation neuve.
+        croire(m, 'ilse', 'marchand', 'lieu', 'antichambre', 'dit:mael', salle='antichambre', case=None,
+               origine={'source': 'vu', 'minute': 190})
+        d.recherche_vaine(m, 'aubin', 'marchand', 'antichambre')
+        issue, dit = enqueter(m, 'aubin', 'ilse', sujet='marchand')
+        m = self.recharge(m)
+        self.assertIsNone(d.salle_crue(m, 'aubin', 'marchand'))
+        s = next(s for s in lire(m, 'aubin')['refus'] if s['operation'] == 'enqueter_lieu')
+        self.assertEqual(s['information']['origine'], {'source': 'vu', 'minute': 190})
+        self.assertIn('minute 190', reponse_localisation(m, 'ilse', 'marchand', issue, dit))
+
+    def test_ignorance_ulterieure_nefface_pas_le_contenu_deja_entendu(self):
+        m = capture()
+        d.recherche_vaine(m, 'aubin', 'marchand', 'antichambre')
+        enqueter(m, 'aubin', 'ilse', sujet='marchand')
+        d.indice_recherche(m, 'aubin', 'echoppe', 'marchand', indice=['bruit', 2, 'marchand', [1, 1]])
+        croire(m, 'ilse', 'marchand', 'lieu', None, 'vu', salle=None, case=None)
+        self.assertEqual(enqueter(m, 'aubin', 'ilse', sujet='marchand')[0], 'rien')
+        s = next(s for s in lire(m, 'aubin')['refus'] if s['operation'] == 'enqueter_lieu')
+        croire(m, 'aubin', 'marchand', 'lieu', 'antichambre', 'dit:mael', salle='antichambre', case=None)
+        croire(m, 'aubin', 'marchand', 'lieu', None, 'vu', salle=None, case=None)
+        self.assertTrue(d.tient(self.recharge(m), 'aubin', s))
+
+    def test_deplacement_percu_renouvelle_le_contexte_sans_etre_remis_a_zero_par_le_relais(self):
+        m = capture()
+        enqueter(m, 'aubin', 'ilse', sujet='marchand')
+        s = next(s for s in lire(m, 'aubin')['refus'] if s['operation'] == 'enqueter_lieu')
+        croire(m, 'aubin', 'marchand', 'lieu', 'echoppe', 'vu', salle='echoppe', case=[1, 1])
+        self.assertFalse(d.tient(m, 'aubin', s))
+        enqueter(m, 'aubin', 'ilse', sujet='marchand')
+        s = next(s for s in lire(m, 'aubin')['refus'] if s['operation'] == 'enqueter_lieu')
+        self.assertEqual(s['repere']['lieu'], 'echoppe')
+        croire(m, 'aubin', 'marchand', 'lieu', 'echoppe', 'vu', salle='echoppe', case=[2, 1])
+        self.assertTrue(d.tient(self.recharge(m), 'aubin', s))
+        croire(m, 'aubin', 'marchand', 'lieu', 'antichambre', 'vu', salle='antichambre', case=[1, 1])
+        self.assertFalse(d.tient(self.recharge(m), 'aubin', s))
+
+    def test_capture_auberge_aucune_question_retenue_reexecutee(self):
+        from unittest.mock import patch
+        from donjon import echanges
+        from tests.support import sans_souci
+        from tests.test_rendez_vous import auberge_42, reprises
+        original = echanges.enqueter
+        questions = []
+        def demander(monde, demandeur, auditeur, besoin=None, *, sujet=None):
+            if sujet is not None and demandeur != 'joueur':
+                precedents = [s for s in lire(monde, demandeur)['refus']
+                              if s['operation'] == 'enqueter_lieu' and s['de'] == auditeur
+                              and s.get('objet') == sujet]
+                self.assertFalse(any(d.tient(monde, demandeur, s) for s in precedents),
+                                 (monde.data['minutes'], demandeur, auditeur, sujet))
+                questions.append((demandeur, auditeur, sujet))
+            return original(monde, demandeur, auditeur, besoin, sujet=sujet)
+        m = sans_souci(auberge_42(), 'tilo', 'mathurine', 'mireille')
+        with patch.object(echanges, 'enqueter', demander):
+            bloc, coupe, _ = reprises(m, 10)
+        self.assertTrue(questions)
+        self.assertEqual(bloc.data, coupe.data)
+        self.assertEqual(regarder(bloc), regarder(coupe))
+        self.recharge(bloc)
+
     def test_memoire_du_plan_invalidee_par_la_reponse(self):
         m = capture()
         self.assertEqual(p.rejoindre(m, 'aubin', 'marchand')[0][0]['cible'], 'ilse')

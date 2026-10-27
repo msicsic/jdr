@@ -356,11 +356,19 @@ def verifier(monde):
             and isinstance(s["de"], str) and isinstance(s["operation"], str) and isinstance(s["raison"], str)
             and type(s["minute"]) is int and type(s.get("prix", 0)) is int
             and type(s.get("condition_tenue", False)) is bool
+            and ("repere" not in s or isinstance(s["repere"], dict)
+                 and set(s["repere"]) == {"lieu", "revision"}
+                 and s["repere"]["lieu"] in monde.data["salles"]
+                 and type(s["repere"]["revision"]) is int and s["repere"]["revision"] >= 0)
             and ("information" not in s or isinstance(s["information"], dict)
-                 and set(s["information"]) == {"lieu", "minute", "source"}
+                 and {"lieu", "minute", "source"} <= set(s["information"]) <= {"lieu", "minute", "source", "origine"}
                  and s["information"]["lieu"] in monde.data["salles"]
                  and type(s["information"]["minute"]) is int
-                 and isinstance(s["information"]["source"], str))
+                 and isinstance(s["information"]["source"], str)
+                 and ("origine" not in s["information"] or isinstance(s["information"]["origine"], dict)
+                      and set(s["information"]["origine"]) == {"source", "minute"}
+                      and isinstance(s["information"]["origine"]["source"], str)
+                      and type(s["information"]["origine"]["minute"]) is int))
             and ("contre_offre" not in s or _contre_offre_valide(monde, id, s))
             and isinstance(s.get("cause", []), list) and all(isinstance(f, list) and len(f) == 4 for f in s.get("cause", []))
             and ("offre" not in s or isinstance(s["offre"], dict) and set(s["offre"]) == {"cause", "gain"}
@@ -454,6 +462,16 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    if attribut == "lieu" and source in ("vu", "entendu") and valeur in monde.data["salles"]:
+        # Le contexte d'une réponse retenue change avec un déplacement
+        # réellement perçu de la personne, jamais avec une date, une autre
+        # case dans la même salle ou la répétition d'un renseignement tiers.
+        for reponse in esprit(monde, id).get("refus", ()):
+            if reponse["operation"] != "enqueter_lieu" or reponse.get("objet") != sujet:
+                continue
+            repere = reponse.get("repere")
+            if repere is None or repere["lieu"] != valeur:
+                reponse["repere"] = {"lieu": valeur, "revision": (repere["revision"] if repere else 0) + 1}
     if attribut == "lieu":
         from .defense import approche_vue
         approche_vue(monde, id, sujet, ancienne or {}, croyance)
