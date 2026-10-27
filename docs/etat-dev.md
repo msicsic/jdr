@@ -19,8 +19,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   0,2 : crue fixe 42/2024 × 2 h sans arrêt, monde et rendu rechargés identiques.
   Douze empreintes Relais/mine/auberge identiques ; quatre crues sans arrêt
   ni usurpation, atteint sur 7/42 ; galerie finale **3/8 → 2/8**, eau
-  **128,75 → 92,5 min**, passages horaires **13,25 → 15,5**. Deux répétitions
-  de torche sur 1985 : critère d'absence de boucle non acquis. Refus sociaux
+  **128,75 → 92,5 min**, passages horaires **13,25 → 15,5**. Reprise avant
+  fusion : crue 1985 `116be91`/`eef4925`, torche **1/1 → 10/9** allumages/
+  extinctions, captures avant premier allumage sauvegardées puis rechargées.
+  Boucle introduite dans cette nuit par le lot : économie selon lumière de
+  salle, plan selon lumière devant cible. `lumiere_devant_crue` partage
+  désormais cette lecture, sans source portée ; capture réelle et autre cas
+  Gorm/lanterne échouent avec la seule ancienne fonction, passent corrigés.
+  **51 ciblés/voisins verts**, aucune nouvelle suite complète (correction locale).
+  Quatre crues rejouées : aucun arrêt/usurpation/répétition de torche,
+  **4/3** sur 1985, plus de rafale 213–218. Trois autres états complets et
+  mesures identiques ; sur 1985, crochetage poursuivi, jets **19 → 25**,
+  gestes **164 → 148**, recherches **1 203 → 1 177**. Galerie/eau/passages
+  inchangés ; eau longue 2024 seule alerte conservée. Refus sociaux
   1985/2024 respectés, aucune évacuation universelle revendiquée. Préférence
   générale, seule portée vocale, réveil relationnel et coopération aux portes
   restent limités. Pas de Luna, fichier MJ réservé ni `main` modifiés.

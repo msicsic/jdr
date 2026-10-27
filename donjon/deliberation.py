@@ -1087,6 +1087,16 @@ def peur_du_noir(monde, id):
     return taux(monde, id, "noir") if "securite" in p.get("besoins", {}) else 0
 
 
+def lumiere_devant_crue(monde, id, objet, salle):
+    """Éclairage ambiant de la cible, sans source portée, pour prévoir ou économiser.
+
+    La lumière de la salle ne remplace pas une observation devant la cible.
+    Une nouvelle source posée peut en revanche améliorer cette observation.
+    """
+    vue = _cru(monde, id, objet, "lumiere")
+    return lumiere_crue(monde, id, salle) if vue is None else max(vue, apport_cru(monde, id, objet))
+
+
 def lumiere_utile(monde, id):
     """A-t-il besoin d'y voir, maintenant ou pour son plan ? Là où il se tient, ou là où son plan
     le mène, il croit le noir (``noir_cru`` : sans ce qu'il porte), et le noir l'inquiète ; ou il
@@ -1101,7 +1111,8 @@ def lumiere_utile(monde, id):
         if etape["operation"] == "aller" and etape["lieu"] in monde.data["salles"]:
             salle = etape["lieu"]
         if (peur and noir_cru(monde, id, salle)
-                or etape["operation"] in A_VUE and lumiere_crue(monde, id, salle) < 2):
+                or etape["operation"] in A_VUE
+                and lumiere_devant_crue(monde, id, etape["cible"], salle) < 2):
             return True  # Sa chance au geste compte sur la lumière qu'il croit (``chance_crochetage``).
     return False
 

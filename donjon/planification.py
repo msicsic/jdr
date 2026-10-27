@@ -24,7 +24,7 @@ from time import perf_counter
 from types import MappingProxyType
 
 from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vains, apport_cru, _cru, _disponible_cru,
-                           _lieu_cru, besoin_de_part, part_pour, gardes, illicite, lumiere_crue, moyens_crus, noir_cru,
+                           _lieu_cru, besoin_de_part, part_pour, gardes, illicite, lumiere_crue, lumiere_devant_crue, moyens_crus, noir_cru,
                            peur_du_noir, profil, promesse_en_cours, refus_retenu, salle_crue, taux, tient)
 from . import eau, force
 from .biens import PRIX_PART
@@ -1136,8 +1136,7 @@ class Vue:
         défaut, celle de la salle."""
         if self._eclaire_par_le_plan(e):
             return 2
-        vue = self.cru(o, "lumiere")
-        niveau = self.lumiere(e) if vue is None else max(vue, self.apport(o))
+        niveau = lumiere_devant_crue(self.monde, self.id, o, e.salle)
         if niveau < 2:
             self._lumiere_lue = True
         return niveau

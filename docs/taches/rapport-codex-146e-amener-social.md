@@ -1,68 +1,66 @@
-# Lot 146 e — sous-buts sociaux d'amener
+# Lot 146 e — amener, sous-buts sociaux et reprise avant fusion
 
-Branche `codex-amener-social-e`, **non fusionnée**, base `116be91`.
-Livraison des sous-buts sociaux ; **critère global de la crue non atteint**.
+Branche `codex-amener-social-e`, **non fusionnée**, base `116be91`, première
+livraison `eef4925`. **Évacuation universelle non acquise ; boucle de torche corrigée.**
 
-**Invariant et code.** Un projet portant sur la position d'autrui passe par une
-parole et un engagement autonome, jamais par un transport implicite.
-`agendas._amener` choisit les destinataires non arrivés selon les routes crues,
-avec proximité spatiale locale et identifiant pour départager. Il avertit de la
-menace du lieu quitté, sans répéter un avis transmis, puis emploie le `confier`
-commun. Les refus gardent leur cause ; le sommeil n'est réessayé qu'après une
-nouvelle croyance. Le porteur marche lui-même vers la destination et y attend
-les engagements acceptés ; une inspection locale, puis la perception ordinaire,
-permettent de constater les arrivées. La routine ne reprend pas entre deux
-attentes du même engagement, ce qui supprime les navettes exploratoires de Gorm.
-`planification.gestes` propose un terminal de parole, avec approche et coût
-communs ; il ne prédit ni l'accord ni la marche d'autrui. L'exécution conserve
-le contrôle commun de l'ouïe. Les transitions restent privées jusqu'à la sortie
-du choix (146 b). La crue déclare l'évacuation d'Ilse et Brune à la galerie.
+**Contrat livré.** `agendas._amener` choisit les destinataires non arrivés sur
+leurs positions crues, proximité locale puis identifiant ; avis de menace non
+répété, `confier` commun, refus retenu selon sa cause, sommeil/réessai sur
+croyance nouvelle. Le porteur marche lui-même et attend les engagements
+acceptés ; inspection locale puis perception ordinaire constatent l'arrivée.
+Aucun transport implicite, accord ou arrivée connus à distance. Le terminal de
+parole du graphe paie approche et coût communs ; l'exécution valide l'ouïe.
+Publication différée du choix conservée (146 b). La crue déclare l'évacuation
+d'Ilse et Brune à la galerie. L'annonce d'abandon invalide désormais seulement
+l'aide du même auteur et de même condition (`echanges.retenir_abandon`) ;
+deux scènes rechargées échouent avec la fonction de `116be91`.
 
-**Défaut commun isolé.** Une annonce d'abandon conservait l'aide attendue.
-`echanges.retenir_abandon` retire maintenant seulement l'aide du même auteur
-portant exactement la même condition, au moment où l'abandon est reçu. Avant
-l'annonce, aucune connaissance à distance. Réinjection de la fonction de
-`116be91` : les deux scènes Ilse/galerie et Brune/échoppe échouent ; correctif :
-refus conservé, aide supprimée, monde et rendu identiques après recharge.
+**Validation initiale.** Scènes collectives 2024/42, route ouverte et lanterne :
+Ilse puis Brune, agenda atteint, monde/rendu rechargés, laps continu/découpé
+identiques. Suite unique : **2 212 tests, 252 fichiers, 1 084,053 s**, zéro
+erreur/ignoré, sept échecs : deux MiMo historiques `6 != 5`, cinq assertions
+de scènes eau/services/marchés perturbées par le nouvel agenda. Scènes isolées
+explicitement, assertions conservées : **49 repris verts**, 29,706 s.
+**12/12 empreintes** Relais/mine/auberge × quatre graines identiques à `main`
+`812ebe5`, références relues. VERIFIER + spatial 0,2, crue fixe 42/2024 × 2 h :
+sans arrêt, monde/rendu rechargés identiques (85,94/49,43 s).
 
-**Vérification.** Les tests sociaux couvrent demande sans déplacement immédiat,
-marche autonome, avis entendu avant demande, sommeil motivé, essai sur croyance
-nouvelle, réveil avec recours retrouvé, désespoir prioritaire et publication
-différée. Deux scènes collectives 2024/42, route ouverte et lanterne portée,
-amènent Ilse puis Brune à la galerie : état et rendu après recharge, agenda
-atteint, égalité du laps continu et découpé. Les tests de fin et de coupure
-restent couverts. Suite complète unique : **2 212 tests, 252 fichiers,
-1 084,053 s, zéro erreur/ignoré, sept échecs** : deux MiMo historiques
-`6 != 5` et cinq assertions de scènes eau/services/marchés qui déclenchaient
-désormais aussi l'évacuation. Ces scènes isolent explicitement leur mécanique
-en désactivant l'agenda du scénario, sans changer leurs assertions. Reprise
-ciblée finale : **49 tests verts en 29,706 s** ; aucune seconde suite complète.
+**Boucle 1985, preuve et invariant.** Même crue 4 h, départ tiré, joueur à la
+galerie, rejouée séquentiellement sur `116be91` et `eef4925` : torche
+allumée/éteinte **1/1 → 10/9**. Captures avant premier allumage (109/102 min),
+sauvegardées puis rechargées. La répétition apparaît donc avec le lot dans cette
+nuit ; sa trajectoire révèle un désaccord : le plan prévoit l'éclairage devant
+la serrure, mais l'économie de combustible jugeait celui de la salle. Elle
+éteignait ainsi la source nécessaire au crochetage, qui la rallumait.
+`lumiere_devant_crue` partage maintenant l'observation de la cible et l'apport
+des sources nouvellement posées entre `Vue.lumiere_devant` et `lumiere_utile`,
+sans compter la source portée qu'on envisage d'éteindre. Aucune exception
+d'objet, personne ou scénario.
 
-Douze empreintes 2 h Relais/mine/auberge × quatre graines **identiques** à
-`main` `812ebe5` : chronique, mesures, état complet ; références toutes relues.
-Crue 4 h × quatre graines : **aucun arrêt ni usurpation** ; agenda atteint
-sur 7/37 min et 42/36 min. Galerie à 4 h **3/8 → 2/8** : les personnes peuvent
-repartir après avoir atteint l'objectif. Eau **128,75 → 92,5 min**, maximum
-horaire de passages **13,25 → 15,5** en moyenne. Deux répétitions nouvelles
-sur 1985 : Brune allume dix fois et éteint neuf fois sa torche ; eau longue
-de Brune sur 2024 conservée. Aucun gain de temps revendiqué : références en
-cache, charge différente. VERIFIER et spatial 0,2 sur crue fixe 42/2024 × 2 h :
-sans arrêt (85,94 et 49,43 s) ; sauvegarde complète et rendu rechargés contrôlés.
+La capture 102, dérivée en fixture comprimée, est rejouée jusqu'à 240 min ;
+autre cas : Gorm/lanterne, serrure sombre et salle claire, crochetage exécuté,
+état et rendu rechargés. Réinjection de la seule ancienne `lumiere_utile` :
+**deux échecs**, dont dix allumages sur la capture. Correctif : **51 ciblés et
+voisins verts**, 37,926 s. Contrat local de lecture : aucune nouvelle suite complète.
 
-**Limites.** L'évacuation universelle, le maintien à la galerie et l'absence de
-toute boucle ne sont pas garantis. Les refus de persuasion/rancune de 1985 et
-2024 sont respectés ; aucun succès forcé. Le test collectif isole le social
-avec route ouverte et lumière : il ne prouve pas une coopération générale pour
-les portes. La proximité reste estimée entre salles et géométrique sur place ;
-la parole exige actuellement une approche de contact, plus stricte que la seule
-portée vocale. L'avis disponible concerne la menace de l'eau, sans préférence
-générale entre lieux ni lecture de l'esprit du destinataire. Les seules
-relations nouvelles ne réveillent pas encore un agenda. Une inspection sans
-arrivée visible attend ensuite la perception ordinaire et la durée commune
-des engagements. Pas de Luna, fichier MJ réservé, sauvegarde utilisateur ou
-`main` modifiés. Deux calculs au plus, priorité réduite. Aucune clé Git de
-signature configurée : livraison non signée, branche seule poussée.
+**Quatre crues corrigées.** Aucun arrêt/usurpation ni constat de répétition de
+torche ; **4/3** allumages/extinctions sur 1985, plus de rafale 213–218.
+États complets et mesures de **7/42/2024 identiques à `eef4925`**. Sur 1985,
+conserver la lumière permet de poursuivre le crochetage : jets **19 → 25**,
+gestes **164 → 148**, recherches **1 203 → 1 177** ; choix et échanges suivent
+ce fil différent. Galerie finale, eau, passages horaires et usurpations restent
+inchangés : **2/8**, **92,5 min**, **15,5/h**, **0** (référence `main` :
+3/8, 128,75 min, 13,25/h, 0). Seule alerte conservée : eau longue 2024.
+Deux agendas atteints, 7/37 min et 42/36 min ; les personnes peuvent ensuite repartir.
 
-Bruts exclusivement : `C:\Users\msics\donjon\artifacts\amener-146e\`
-(`crue-livree.json`, `empreintes.json`, `verifier-*-monde.json`, résultats des
-tests et preuve sur la base ; premiers bancs exploratoires conservés à part).
+**Limites et livraison.** Refus 1985/2024 respectés ; pas de maintien imposé à
+la galerie ni garantie générale d'absence de boucle. Préférence entre lieux
+limitée à l'avis de menace de l'eau, approche actuelle au contact plutôt qu'à
+la seule portée vocale, proximité estimée, réveil relationnel et coopération
+aux portes non garantis. Pas de Luna, fichier MJ réservé, sauvegarde utilisateur
+ou `main` modifiés. Deux calculs réduits au plus ; aucun temps caché comparé.
+Aucune clé Git de signature configurée ; commits non signés, même branche poussée.
+
+Bruts exclusivement `C:\Users\msics\donjon\artifacts\amener-146e\` :
+`boucle-base*`, `boucle-branche*`, `preuve-boucle.log`, `tests-boucle-voisins.json`,
+`crue-sans-boucle.json`, vérifications initiales. Copie détachée de la base supprimée.

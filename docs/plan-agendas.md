@@ -484,7 +484,11 @@ d'abandon invalide l'aide attendue correspondante dans le contrat commun.
 Gorm reçoit l'objectif d'amener Ilse et Brune à la galerie. Les scènes sociales
 éclairées et à route ouverte réussissent après recharge et avec laps découpé.
 **Crue globale partielle** : deux agendas atteints sur quatre graines, galerie
-à 4 h 3/8 → 2/8, refus persistants et deux répétitions de torche sur 1985.
+à 4 h 3/8 → 2/8, refus persistants. Reprise avant fusion : répétitions de torche
+1985 absentes de `116be91`, corrigées par la lecture commune de la lumière
+devant la cible dans le plan et l'économie de combustible ; capture rechargée
+et autre cas Gorm/lanterne, 51 ciblés verts. Quatre crues sans répétition de
+torche ; 7/42/2024 inchangées, 1985 poursuit son crochetage au lieu de boucler.
 Pas de maintien imposé après arrivée. Préférence générale entre lieux, véritable
 terminal de seule portée vocale (approche actuelle au contact), réveil relationnel
 et coopération générale aux passages restent à faire. Aucun succès universel
