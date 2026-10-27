@@ -113,7 +113,13 @@ class EtapesTests(unittest.TestCase):
                 "diagnostics": "827bb1e37ba176d398472b218b1505d4310ede27fcd2200cbcf064b1f2d0286f",
                 "monde": "c7c8900af39bd1ccab5777a25164b9efe297d96c823794a05578bbc77388ecc1",
                 "lignes": "37c42d6a8fd5ac7fe31193886396a2573881be8e5280b81c74de01f2cf4d73dd"},
-            "auberge": {"monde": "f85db4952442efdfb10ab7797c96d21fb9d35c7f43c39d4cf063351ebb564969"}}
+            # Lot 211 : les localisations inconnues changent le parcours du
+            # graphe (8 212 → 8 294 visites), sans changer plans ni monde/rendu.
+            "auberge": {
+                "visites": "7cb33dd9c111bc78965db8bbf62e7f24f6af251c2590a249b5a51e7ec7b6c35c",
+                "n_visites": 8294,
+                "diagnostics": "befdaaae9e6543b9d6ea51a3694960e17b7399a8c6a4f88fa65e9c8a4a53ff69",
+                "monde": "f85db4952442efdfb10ab7797c96d21fb9d35c7f43c39d4cf063351ebb564969"}}
         for scenario in ("mine", "auberge"):
             with self.subTest(scenario=scenario):
                 # Le lot 92 c réduit les reprises, donc les visites et diagnostics.

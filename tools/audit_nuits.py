@@ -186,6 +186,11 @@ def ajouter_avis(nuit, analyse):
         donnees["mesures"].update(avis_non_justifies=analyse["total_non_justifies"],
                                  avis_a_expliquer=analyse["total_a_expliquer"],
                                  avis_cycles_accomplis=analyse["total_cycles_accomplis"])
+        for classe, nombre in analyse["comptes"].items():
+            donnees["mesures"]["avis_classe_" + classe] = nombre
+        donnees["mesures"]["avis_derives_ouvertes"] = analyse.get("total_derives_ouvertes", 0)
+        if "total_services_etat_perdu" in analyse:
+            donnees["mesures"]["avis_services_etat_perdu"] = analyse["total_services_etat_perdu"]
 
 
 def jouer_nuit(arguments):
@@ -227,7 +232,7 @@ def jouer_nuit(arguments):
         with detecteur.observer_avis() as sonde:
             _, mesures, donnees = banc_pnj.nuit(scenario, graine, heures, JOUEURS[scenario], False, False, page, depart)
         resultat.update(donnees=donnees, plantage=None)
-        ajouter_avis(resultat, detecteur.analyser_episodes(sonde.episodes))
+        ajouter_avis(resultat, sonde.analyser())
     except Exception as erreur:  # une nuit qui plante est consignée, les autres continuent
         monde = capture.get("monde")
         resultat.update(donnees=None, plantage={
@@ -537,6 +542,12 @@ def analyser_nuit(n):
             if r["non_justifie"] or r["classe"] == "entree_nouvelle_a_expliquer":
                 noter("avis_non_justifie" if r["non_justifie"] else "avis_a_expliquer",
                       r["id"], r["retour_minute"], json.dumps(r, ensure_ascii=False), 1)
+        for r in avis.get("derives_ouvertes", ()):
+            noter("avis_derive_ouverte", r["id"], r["debut_t"] / 600,
+                  json.dumps(r, ensure_ascii=False), 1, niveau="observation")
+        for r in avis.get("services_etat_perdu", ()):
+            noter("avis_etat_paye_perdu_duree_non_specifiee", r["prestataire"], r["perte_t"] / 600,
+                  json.dumps(r, ensure_ascii=False), 1, niveau="observation")
 
     return constats
 

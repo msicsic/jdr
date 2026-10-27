@@ -87,6 +87,9 @@ class IntermediairesTests(unittest.TestCase):
         m, id, cible, _ = service_scene(feu)
         placer(m, 'ilse', 'echoppe', [3, 4])
         regarder(m, id, 'ilse')
+        # Tourner les yeux n'enregistre pas encore ce qu'il voit : le devis
+        # doit partir de la perception d'Ilse, pas de sa position d'auteur.
+        percevoir_tous(m)
         croire(m, id, cible, 'attitude:ilse', 'attachement', 'devine', signe='sourit')
         devis = devis_intermediaire(m, id, 'faim', [])
         self.assertTrue(devis)

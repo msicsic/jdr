@@ -139,6 +139,10 @@ class AbriTests(unittest.TestCase):
             lire(m, id)["libre"] = 36000
         m.objets["fanal"].update(allume=True, combustible=1000)
         placer(m, "marchand", "antichambre", (6, 5))
+        # Son savoir de départ place encore Gorm ailleurs. La prémisse du
+        # refuge déjà vu doit constater les compagnons réellement présents.
+        from donjon.pnj import tour_d_horizon
+        tour_d_horizon(m, "ilse")
         lire(m, "ilse")["besoins"]["securite"] = 65.0
         # Elle a vu le refuge éclairé (sa première minute) : elle s'y abrite près d'Aubin et de
         # Brune, sans aller chercher Gorm ailleurs (ce que l'abri lui apporterait de plus, rien).

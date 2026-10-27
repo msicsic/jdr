@@ -4,37 +4,90 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-sait-observations`, non fusionnée**, lot **206**, base
-  initiale `a488f1f`, reprise demandée sur **`aadab7c`** (205/207 intégrés),
-  fusion `1457239` ; référence de comparaison `aadab7c` (`cca5f50` n'ajoute que
-  des briefs). `bavarder` décide sur les audiences et
-  observations communes conservées par le locuteur, sans lire le savoir privé
-  de l'auditeur ; la réception conserve son contrôle des confirmations.
-  Acquisition privée sans réouverture des suivis des autres ; photographie des
-  acquisitions visuelles d'une même passe, états/possessions publics et témoins
-  simultanés d'un geste, avant les interprétations de responsabilité.
-  **58/60 ciblés verts**, huit nouveaux compris ; défense/trajets sans réancrage.
-  Les deux écarts attente/rotations se limitent aux preuves d'observation du
-  joueur (4 et 12 champs), dont le regard change ; corps, autres croyances,
-  chronique et objets identiques, six recharges monde/rendu identiques.
-  Ancienne base : 2 409 tests, 21 échecs et un incident Windows ; bilan archivé.
-  Suite finale après fusion : **2 430 tests / 281 fichiers, 14 échecs,
-  zéro erreur, 16 ignorés** ; quatre fragments terminés conservés, aucun
-  fichier terminé rejoué sur cette base. Les assertions historiques restent
-  visibles : registres après rotations, trajectoires/captures, confirmations,
-  accusations de portage et navette de recours. **Validation globale non acquise.**
-  **20 paires finales 4 h contre `aadab7c`**, aucune référence en cache,
-  zéro plantage/usurpation. Confidences **301 → 994**, constats **236 → 922**,
-  avis exprimés **16 → 12**, avertissements redits **7 → 23** ; retours non
-  justifiés **24 → 28**, entrées à expliquer **204 → 204**. Audit : répétitions
-  **2 → 23**, demandes en boucle **0 → 26**, surtout confirmations des hauteurs
-  successives de la conduite basse (texte normalisé par l'audit).
-  **Absence de nouvelle boucle non validée ; ne pas fusionner comme correction
-  validée.** Reprendre les confirmations fréquentes, les accusations de portage
-  et les échecs sans réintroduire la lecture privée ni une exception sur l'eau.
-  Deux travailleurs réduits au plus pour ce lot, aucun Luna. Bruts exclusivement
-  `C:/Users/msics/donjon/artifacts/sait-206/` ;
-  [rapport 206](taches/rapport-codex-206-sait-observations.md).
+- **Branche `codex-audit-transitions`, fusionnée**, lot **219**, base
+  `50de3c2` vérifiée : outils seulement, aucun `donjon/` ni Luna modifié.
+  Retours classés par preuve ordonnée, paliers effectivement essayés, étapes
+  exécutées et fin survenue pendant l'action d'autrui ; dérives et pertes
+  d'état payé séparées. Suivi des services conservé après éviction du souvenir,
+  aucune durée convenue inventée ni violation imputée. **25 ciblés verts** et
+  deux reprises courtes vertes ; **20/20 nuits 4 h identiques** aux témoins sans
+  sonde (monde complet, chroniques, empreintes, mesures), témoins réutilisés.
+  Courant : **486 cycles, 57 préemptions, 0 progrès, 1 autrui, 13 suspects,
+  97 à expliquer**, 185 fenêtres de dérive et 7 états payés perdus.
+  **57 historiques 209 : 50 suspects / 5 préemptions / 2 à expliquer** ; les
+  21 secours/rondes donnent **16/4/1**. Cas exact 217 torche **7–8 min** reproduit
+  sur `8177959`, 458 événements identiques, monde et rendu rechargés.
+  **Garantie causale générale non établie**, prédicats hérités et observation
+  partielle ; aucun comportement moteur corrigé. Pas de clé de signature
+  configurée. Bruts `C:/Users/msics/donjon/artifacts/transitions-219/` ;
+  [rapport 219](taches/rapport-codex-219-audit-transitions.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Outils seulement. Une règle classe chaque retour : cycle accompli, palier supérieur, satisfaction par autrui, progression observée, répétition suspecte, à expliquer ; dérives ouvertes et états payés perdus à part. Les 57 cas de 209 : 50 suspects, 5 préemptions, 2 à expliquer. Intégration actuelle, 20 nuits 4 h : 13 suspects, 57 préemptions, 7 états payés perdus ; 20/20 nuits identiques avec et sans sonde.
+
+- Branche `codex-sait-observations`, **non fusionnée, en attente**, lot **206** (`820762d`) : `social.bavarder` ne lit plus le savoir réel de l'auditeur, seulement les paroles, audiences et observations communes du locuteur. Juste, mais **les PNJ se redisent tout** : confidences crue 56 → 334, hameau 74 → 385, répétitions 2 → 23, demandes en boucle 0 → 26 (Brune → Gorm, crue 1985 : 54 confirmations, souvent des hauteurs d'eau successives) ; suite 14 échecs. Reprise à concevoir : ne dire que ce qui est nouveau **et pertinent** pour l'auditeur, et tenir pour commune une observation de l'environnement partagé (une eau vue ensemble), sans lecture privée. [Rapport 206](taches/rapport-codex-206-sait-observations.md) sur la branche ; bruts `artifacts/sait-206/`.
+
+- **Vérification d’intégration 4d4c625**, lot **212**, branche `codex-verif-integ-4d4c625`, base documentaire `a49c31e` : **49/49 nuits achevées**, code `donjon/`/`tools/` identique à `4d4c625`, aucun Luna, référence rejouée ou suite complète ; deux calculs au plus, en fond à priorité réduite. Zéro plantage, violation d’état, usurpation, mort relevée ou écart VERIFIER/spatial 0,2 ; cinq contrôles complets de 8 h, zéro borne (Lucien auberge 42/314 non reproduit). **16 coups, sept touchés**, crue 2024 à 672–691, Gorm finit inconscient. Hameau : attente **750 → 1 021,25**, noir **268,75 → 575**, pire passage **40 → 39/h** (1985 : **40 → 28**). Compteur 199 actif : **338 suspects**, garantie générale non établie ; boucle de prêts de la bourse mine 1985 (Mathe 97 demandes, Rémy 100) absente de ses suspects, et alternance poêle/garde d’Anselme auberge 2024 à instruire par les contrats communs, ancienneté même nuit indéterminable avec le seul rapport 174. **117 repas d’empathie**, 40 projets de pièces (un marqué atteint), 12 récupérations nées (huit fins sur retour cru, reprises autonomes non certifiées) ; aucun départ définitif relevé. Pas de monde/rendu certifié après recharge ; aucun correctif. Bruts, scripts, lecture de pile et manifeste des 49 archives exclusivement `C:/Users/msics/donjon/artifacts/verif-integ-4d4c625/` ; [rapport 212](taches/rapport-codex-212-verif-integ.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 49 nuits, zéro plantage, violation, usurpation, mort ou écart VERIFIER/spatial ; richesse S/F/D en hausse dans les quatre scénarios, sans recours en forte baisse ; attente crue et noir Relais/crue en hausse. Petits lots désignés : boucle de la bourse Mathe/Rémy (mine 1985 dès 288, 97 et 100 demandes), alternances poêle/garde d'Anselme (auberge 2024 dès 200), 16 coups en crue 2024 672-691.
+
+- **Branche `codex-racheter-bien`, fusionnée**, lot **214**, base `cca5f50`,
+  code `2b47bd9` : le geste d'achat commun permet au propriétaire de racheter
+  son bien au détenteur. Rétention et vente jugées au prix de faute d'honnêteté
+  existant ; accueil, utilité, budget, paiement, remise et refus communs.
+  La réclamation passe avant le rachat ; le prix et le poids du projet bornent
+  ce recours, aucun plafond d'agenda changé. **29 ciblés finaux verts**, dont
+  sept nouveaux ; ballot et marteau rachetés autonomement en scènes d'auteur
+  (estimation initiale 70, revente 7), monde/rendu et temps découpé identiques.
+  Joueur acheteur par sa parole existante ; joueur vendeur hors lot selon
+  l'instruction de repli du superviseur, car son acceptation actuelle ne couvre
+  que les missions déclarées. Aucun nouveau parcours ni raccord moteur/dialogue.
+  Suite unique **2 429 tests / 281 fichiers verte**, zéro échec/erreur,
+  16 ignorés, 3 580,295 s ; banc exact `cca5f50` / `2b47bd9` : **20 paires 4 h,
+  20 chroniques et états complets identiques**, zéro plantage/usurpation,
+  compteur 199 **24/204/510** inchangé, aucune nouvelle alerte. Aucune naissance
+  de récupération naturelle ; réclamations de biens/rachats/reprises **0 → 0**,
+  S/F/D inchangés. Coût mine 4 h identique : **870 recherches, 10 624 nœuds**.
+  Bois du guet en scène équivalente : refus raisonné (**5,944 > 1,857432**),
+  reste à Brune, projet en sommeil ; monde/rendu et laps découpés vérifiés.
+  Capture historique 207 rejouée 151→240 : mêmes recharges/laps, pas de naissance
+  sur cette base, bois au guet. Vérification au-delà du créneau. Aucun Luna,
+  aucun fichier des lots voisins modifié, commits non signés (aucune clé).
+  Bruts `C:/Users/msics/donjon/artifacts/racheter-214/` ;
+  [rapport 214](taches/rapport-codex-214-racheter-bien.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rachat par le geste d'achat commun, borné par le prix et le poids du projet (bois du guet : coût 5,944 > poids 1,86, pas de rachat, refus raisonné). Preuve par scènes (ballot, marteau) ; aucun rachat naturel dans les 20 nuits, 20/20 états identiques, coût mine identique. Joueur vendeur hors lot.
+
+- **Vérification Luna d85fb54**, lot **216**, jouée par l'orchestrateur sur le laptop (le coffre ChatGPT était illisible depuis l'agent du PC fixe) : deux passes des 34 scripts du lot 165, intégration `d85fb54` contre `cdaf371` (cache, scripts absents joués et rangés). Aucun code du jeu changé. **Appels/tour 3,21 → 2,98, s/tour 11,5 → 10,5 (médiane 9,3 → 9,0), replis 2 → 0,5, obstacles narratifs 31 → 19,5, relances 18 → 16,5, refus 25,5 → 22** ; aucune erreur technique ni de recharge. Force : traîner 2 appels/tour, enfermer 2,5 avec un refus sur quatre tours, geste improvisé encore refusé (3 refus/2 tours) ; poser au sol 4 appels/tour sans refus de destination ; comptes 4,75 appels/tour. Lecture qualitative des textes non faite saisie par saisie. [Rapport 216](taches/rapport-codex-216-verif-luna.md), bruts `C:/Users/msics/donjon/artifacts/verif-luna-d85fb54/`.
+- **Revue vierge 217, lecture seule** : cinq nuits 4 h sur `8177959`, regard influencé par la lecture préalable de ce point de reprise (limite autorisée) ; continuité d'intention, contact et service utile à distinguer des seuls retours. [Rapport 217](taches/rapport-codex-217-revue-vierge-decisions.md), bruts `C:/Users/msics/donjon/artifacts/revue-217/` ; aucun jeu, outil ou test modifié.
+  Fusionné sur l'intégration (rapport seulement). Retenu : engagement minimal porté par l'intention, sans majorer l'inertie du trajet déjà parcouru (transmis au lot 213) ; contact comme sous-but commun (P1 du 215) ; services payés qui portent leur durée (Brune éteint la torche payée une minute après, hameau 1985) ; réessai lié à l'obstacle plutôt qu'au délai 30/60.
+
+- **Lot 215, diagnostic seul**, `codex-richesse-crue`, départ `3e86d1f` vérifié : huit nuits crue/hameau 4 h identiques à `d2243c2`, références `ef86cab`/`aadab7c` réemployées ; contre avant 211, signatures perdues/gagnées crue **55/19**, hameau **71/77**, S **23→14 / 29,5→31** ; attentes attribuées aux besoins, **36 captures** monde/rendu rechargées. Manque commun de contact/recherche proposé en priorité ; routes dangereuses, cloche déléguée et rondes satisfaites à conserver ; causalité distante de chaque texte non isolée, aucun gain garanti. Aucun jeu/Luna modifié, un calcul réduit à la fois ; bruts `C:/Users/msics/donjon/artifacts/richesse-215/`, [rapport 215](taches/rapport-codex-215-richesse-crue.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. Baisse S de la crue surtout juste (contacts obtenus par position réelle inconnue). Manques : P1 un contact nécessaire (abri en compagnie, enquête de ressource) sans localisation passe par la recherche/l'appel commun ; P2 demander à un tiers où est quelqu'un. Attentes restantes surtout Gorm/devoir et Brune/chaleur, contraintes justes.
+
+- **Branche `codex-localisation-crue`, fusionnée**, lot **211**, départ
+  `0b95f33` vérifié puis **reprise demandée sur `aadab7c`** (205/207), fusion
+  `5a97ab3`, seul conflit documentaire. `monde.mobile_par_nature` et `_lieu_cru`
+  retirent le repli réel des personnages ; aucun savoir implicite ajouté au jeu,
+  aucun autre changement de production contre `aadab7c`. Trois graines 209,
+  t=753/1034, douze variantes monde/rendu rechargées ; cas Ilse/Aubin et autre
+  PNJ/auberge, savoir déclaré, fixe/mobile, porteur inconnu, temps découpé.
+  **15 ciblés verts** sur la fusion ; vérification de l'intention persistée et
+  de la non-perception renforcée avant exécution dans la suite finale.
+  **20 paires × 4 h**, référence exacte en cache : **24 → 16 retours**
+  (Relais 0→4, mine 1→1, auberge 5→2, crue 9→2, hameau 9→7), zéro
+  plantage/usurpation. Aucune nouvelle alerte de répétition/alternance, mais
+  **absence de boucle nouvelle non validée** : quatre retours de secours/ronde
+  au Relais, causalité détaillée non établie ; deux observations d'attente.
+  Attente urgente crue 102,5→178,75, hameau 111,25→128,75 PNJ·min ; sans recours
+  crue 27,5→0. **Réserve avant intégration**, aucun élargissement à 196 c.
+  Suite finale unique sur `aadab7c` : **2 425 tests / 281 fichiers, 2 128 s,
+  quatre échecs et une erreur bruts** ; six reprises vertes après observation
+  du test d'abri, contre-épreuve sur une case valide et oracle du rejeu.
+  **Deux MiMo préexistants restent, zéro erreur consolidée** ; aucune seconde
+  suite sur cette base. Première base archivée (2 404/13, 15 reprises vertes).
+  Le test d'eau passe après 205 ; Aubin nourri à 4 min, rotations reconnues
+  et état réel remplacent les anciens oracles textuels de part/rejeu.
+  Aucun Luna, deux travailleurs réduits au plus. Bruts
+  `C:/Users/msics/donjon/artifacts/localisation-211/`, finaux dans `aadab7c/` ;
+  [rapport 211](taches/rapport-codex-211-localisation-crue.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Retours suspects 24 → 16 (crue 9 → 2, auberge 5 → 2, hameau 9 → 7) mais Relais 0 → 4 (secours interrompus, transmis au lot 213) ; crue S 23 → 14 (proches retrouvés par une connaissance indue), attente crue 102,5 → 178,75, sans recours crue 27,5 → 0. Suite de la branche sur aadab7c : deux MiMo seulement.
 
 - **Branche `codex-evacuation-juge`, fusionnée**, lot **205 / 196 b**,
   départ `71bb01d`, reprise demandée sur **`ef86cab` (204 intégré)** : péril
@@ -57,7 +110,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Aucun Luna, deux calculs réduits au plus, commit non signé ; bruts exclusivement
   `C:/Users/msics/donjon/artifacts/evacuation-205/` ;
   [rapport 205](taches/rapport-codex-205-evacuation-juge.md). **À revoir avant fusion.**
-  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Retours suspects 57 → 24 (crue 27 → 9, hameau 24 → 9), eau crue 13,75 → 7,5 et hameau 13,75 → 2,5 PNJ·min ; en contrepartie attente urgente crue 77,5 → 102,5 et hameau 27,5 → 111,25, sans recours crue 15 → 27,5, Brune hameau 2024 active/endort son agenda huit fois, Gorm 125 min sans but : à reprendre dans 196 c. Abris hors crue aussi changés (7/12 empreintes 2 h identiques).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Retours suspects 57 → 24 (crue 27 → 9, hameau 24 → 9), eau crue 13,75 → 7,5 et hameau 13,75 → 2,5 PNJ·min ; en contrepartie attente urgente crue 77,5 → 102,5 et hameau 27,5 → 111,25, sans recours crue 15 → 27,5, Brune hameau 2024 active/endort son agenda huit fois, Gorm 125 min sans but : à reprendre dans 196 c. Abris hors crue aussi changés (7/12 empreintes 2 h identiques). Suite complète sur les fusions 207 et 205 (`tools/tests.py --processus 2`, `aadab7c`) : **2 422 tests, 16 ignorés**, verte (3 287,6 s).
 
 - **Branche `codex-reclamer-vol`, fusionnée**, lot **207**, base `c6c2de6` :
   recours typé `reclamer` avant la recherche de reprise, porteur/danger/présence

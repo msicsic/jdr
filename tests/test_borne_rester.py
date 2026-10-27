@@ -85,7 +85,11 @@ class BorneResterTests(unittest.TestCase):
                 patch.object(p, "VERIFIER", True), p.diagnostics() as recherches:
             nouveau = p.chercher(m, "lucien", but, emplois=(), motif="biens", tenir=True, nom="garder:grenier")
             self.assertEqual(nouveau, complet)
-            self.assertLess(recherches[0]["noeuds"], sans_borne)
+            # La localisation inconnue d'un personnage ne crée plus de prix
+            # de compagnie/garde : sur cette capture, la borne peut être nulle.
+            # Le gain strict est éprouvé par test_lucien_reel_moins_d_etats ;
+            # ici restent l'absence de surcoût et l'identité du plan complet.
+            self.assertLessEqual(recherches[0]["noeuds"], sans_borne)
         # Le plan a des conséquences réelles, persistées ; le joueur au
         # dortoir ne voit pas ces gestes cachés. Chacun des deux mondes reste
         # intégralement identique à lui-même après sauvegarde/rechargement.
