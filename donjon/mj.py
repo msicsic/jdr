@@ -47,6 +47,7 @@ from .coherence_physique import (SCHEMA as SCHEMA_PHYSIQUE,
 from .moteur import QualificationRequise
 from .proximite import HorsDePortee
 from .refus import RapportIllisible, RefusDeForme, ProprieteInconnue, audit as refus_audit, audit_illisible, depuis_refus
+from .sources import ordonner_entree
 from .transactions import ajouter as ajouter_transaction
 
 LIMITE_INTENTION = 2000  # caractères d'une action du joueur, quel que soit le fournisseur
@@ -177,6 +178,21 @@ Le personnage ne promet d'agir (se déplacer, donner, aider…) que si conversat
 engagements (esprits_interlocuteurs) le prévoient : sinon il répond sans rien promettre.
 Sans conversation_validee, décris les faits enrichis déjà validés pour répondre au joueur, sans nouvel ajout ;
 présente comme souvenirs les descriptions de personnages absents.
+"""
+
+
+INSTRUCTIONS_RESULTAT = """Tu racontes en français et en tutoyant le joueur une manœuvre DÉJÀ RÉSOLUE.
+Le fait resultat_resolu contient exactement les gestes que Corvus a accomplis (gestes), les
+événements survenus (faits) et la demande du joueur (intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
+La manière du geste demandée par le joueur (style, rythme, posture) peut colorer le récit
+comme ambiance, sans ajouter d'effet. Ne répète pas les calculs de dés ; reprends exactement
+les nombres du résultat (PV, minutes, quantités) et n'en ajoute aucun.
+Respecte les réussites partielles, les échecs, les objets réellement déplacés et les témoins
+qui ont effectivement remarqué le geste. Les étapes non exécutées n'ont pas eu lieu.
+N'invente aucun événement, parole, émotion, connaissance, bruit ou nouvelle conséquence.
+L'historique aide à comprendre, mais seul resultat_resolu prouve ce qui vient de se produire.
+Le monde est déjà modifié : ta réponse ne déclenche aucune action. mode=dialogue,
+proposition=null ; faits référence resultat_resolu. Appelle repondre_au_joueur une seule fois.
 """
 
 
@@ -1132,19 +1148,7 @@ class MJ:
             if resultat_resolu is not None:
                 faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu", "attestations", "ambiance_etablie", "comptes")}
                 schema["properties"]["faits"]["items"]["enum"] = list(faits)
-                instructions = """Tu racontes en français et en tutoyant le joueur une manœuvre DÉJÀ RÉSOLUE.
-Le fait resultat_resolu contient exactement les gestes que Corvus a accomplis (gestes), les
-événements survenus (faits) et la demande du joueur (intention). Rédige une à trois phrases naturelles, non vides, avec les articles des objets.
-La manière du geste demandée par le joueur (style, rythme, posture) peut colorer le récit
-comme ambiance, sans ajouter d'effet. Ne répète pas les calculs de dés ; reprends exactement
-les nombres du résultat (PV, minutes, quantités) et n'en ajoute aucun.
-Respecte les réussites partielles, les échecs, les objets réellement déplacés et les témoins
-qui ont effectivement remarqué le geste. Les étapes non exécutées n'ont pas eu lieu.
-N'invente aucun événement, parole, émotion, connaissance, bruit ou nouvelle conséquence.
-L'historique aide à comprendre, mais seul resultat_resolu prouve ce qui vient de se produire.
-Le monde est déjà modifié : ta réponse ne déclenche aucune action. mode=dialogue,
-proposition=null ; faits référence resultat_resolu. Appelle repondre_au_joueur une seule fois.
-"""
+                instructions = INSTRUCTIONS_RESULTAT
             if retour_moteur:
                 instructions += "\nLes propositions précédentes ont été refusées avant toute exécution. Explique les conditions pertinentes à partir des faits fournis. Ne présente pas ces refus comme une tentative de Corvus ni comme une preuve que son intention entière est impossible."
         instructions += REGLE_NARRATION
@@ -1172,7 +1176,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
             if action_explicite and action_explicite["action"] not in ("observer", "parler"):
                 # Une commande complète n'a pas besoin des anciennes réponses du MJ.
                 conversation = []
-        entree = {"faits": faits, "conversation": conversation, "message": intention}
+        entree = ordonner_entree({"faits": faits, "conversation": conversation, "message": intention})
         debut = time.monotonic()
         self.derniere_utilisation = None
         trace = {"modele": self.modele, "revision": monde.data["revision"], "intention": intention,
@@ -1259,7 +1263,8 @@ direction), plus lents, ils ne s'entendent que de tout près.
 
         def appeler_brut(*arguments):
             nonlocal usage_total
-            sortie = self._appeler_brut(*arguments)
+            instructions_appel, entree_appel, *suite = arguments
+            sortie = self._appeler_brut(instructions_appel, ordonner_entree(entree_appel), *suite)
             if isinstance(sortie, dict) and "_texte_moteur" in sortie:
                 raise ErreurMonde("Le MJ ne peut pas déclarer lui-même un texte comme validé par le moteur.")
             usage_total = additionner_usage(usage_total, self.derniere_utilisation)
@@ -1478,8 +1483,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
             for o in obstacles:
                 if o not in refusees:
                     refusees.append(o)
-            correction = {**entree, "controle_narratif": refusees}
-            reponse = appeler_brut(instructions + INSTRUCTIONS_REVISION, correction,
+            correction = ordonner_entree({**entree, "controle_narratif": refusees,
+                                          "consigne_revision": INSTRUCTIONS_REVISION.strip()})
+            reponse = appeler_brut(instructions, correction,
                                    intention, fonction, schema)
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
 
@@ -1522,6 +1528,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
         une trace entière : instructions, entrée, schéma, réponse brute, usage et durée."""
         if self.erreur_auth:
             raise ErreurMonde(self.erreur_auth)
+        entree = ordonner_entree(entree)
         debut, brut, erreur = time.monotonic(), None, None
         self.dernier_brut = self.derniere_utilisation = None
         self.derniere_sortie = []
