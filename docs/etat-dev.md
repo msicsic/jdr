@@ -4,6 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-porte-lieu-garde`, fusionnée**, lot **194**, base
+  `integration de18162` : responsabilité crue des installations sans
+  propriétaire déclaré dans `biens`, coût commun du bris (honnêteté/douceur),
+  identité de la personne lésée dans la clé du plan. Porteur cru de clé,
+  garde lue et charge propre ; aucun agenda privé d'autrui consulté.
+  Témoins par leurs propres croyances ; raccords `pnj.py` et `moteur.py`
+  autorisés, coups du joueur désormais au registre commun. Aubin ayant froid
+  devant la porte du beffroi demande la clé ; autre contenant, témoin du
+  joueur et d'un PNJ, détresse, ignorance, expiration, recharges et laps
+  découpé : **105 ciblés finaux verts**. La nuit hameau 1 de la base actuelle
+  ne reproduit plus le bris historique ; scène équivalente autorisée, avec
+  bris retrouvé en neutralisant seulement la nouvelle lecture.
+  Suite unique **2 323 tests, 268 fichiers, 1 868,206 s**, quatre échecs et
+  quatre erreurs bruts ; défauts du raccord et des nouvelles épreuves repris
+  verts, restent les deux MiMo historiques `6 != 5`, sans seconde suite.
+  **21 nuits 4 h**, zéro plantage/usurpation, 21 mondes/rendus rechargés
+  identiques ; deux bris au hameau, cinq crochetages, aucune demande de clé
+  dans ces nuits. Quatre répétitions : trois contrôles neutralisant la seule
+  nouvelle lecture ont états complets/chroniques/alertes identiques ; aucune
+  nouvelle boucle attribuée au lot. **VERIFIER + spatial 0,2**, hameau 1985,
+  2 h, vert et recharge identique. Seize références anciennes relues, aucun
+  cache hameau disponible ; aucune référence existante rejouée, aucun temps
+  de cache comparé. Pas de nouveau moyen social ; une victime par bien,
+  priorité propriété, clés puis gardes ; garde d'autrui connue par lecture.
+  Aucun Luna ni scénario modifié, deux travailleurs réduits au plus. Bruts
+  exclusivement `C:/Users/msics/donjon/artifacts/porte-194/` ;
+  [rapport 194](taches/rapport-codex-194-porte-lieu-garde.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Briser l'installation d'un lieu dont quelqu'un a la responsabilité crue (clé, garde, charge) est une faute envers lui ; témoins et joueur par la même règle (raccords minimaux pnj.py, moteur.py autorisés). Aucune demande de clé dans les nuits libres : choix prouvé par scènes ciblées.
+
 - **Lot 186 (occasions asymétriques, `codex-occasions-asymetriques`), fusion annulée le 2026-10-27** (`057d151`) : ses données
   (bois cessible de Brune/Odon/Joss, liens d'affection en triangle, observations inégales), validées sur la base `12a936d`,
   rencontrent le projet de pièces du lot 184 fusionné entre-temps (Brune endettée vend désormais son bois) : 30 échecs et

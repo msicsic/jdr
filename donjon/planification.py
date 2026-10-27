@@ -240,10 +240,12 @@ class Vue:
         from .biens import leses
         confies = {}
         self.illicite, self.consomme_illicite, self.brise_illicite = {}, {}, {}
+        self.leses_bris = {}
         for o in self.connus:
             prendre, consommer, abimer = leses(monde, o, id, confies)
             self.illicite[o], self.consomme_illicite[o], self.brise_illicite[o] = (
                 prendre is not None, consommer is not None, abimer is not None)
+            self.leses_bris[o] = abimer
         # Le prix d'abîmer le bien d'autrui (forcer), au prix de sa douceur (``chercher``) ; None :
         # il ne l'envisage pas.
         self.degat = None
@@ -1475,7 +1477,7 @@ def gestes(v, e, vises=None, but=None):
                 # La forcer, par la règle du joueur (``force``) : avec un outil qu'il porte qui l'entame,
                 # coup après coup jusqu'à la briser ; brisée, elle reste ouverte. Abîmer le bien
                 # d'autrui heurte aussi sa douceur, une fois par personne lésée (``degat``).
-                brise = v.proprietaire[o] if v.brise_illicite[o] else None
+                brise = v.leses_bris[o]
                 if v.autorise[o] and not (brise and v.degat is None):
                     degat = [(("degat", brise), True)] if brise else []
                     abime = bool(brise) and not e.fait("degat", brise)
@@ -1962,7 +1964,7 @@ def _entrees_communes(v):
         # Ce qu'un prêt ou une garde permettent (``biens.permis``), ce qu'il peut payer et ce que
         # vaut pour lui une pièce.
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
-        [o for o in v.connus if v.brise_illicite[o]],
+        [[o, v.leses_bris[o]] for o in v.connus if v.brise_illicite[o]],
         v.richesse, v.piece,
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
