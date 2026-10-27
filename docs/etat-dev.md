@@ -4,6 +4,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Lot 203, diagnostic seul**, `codex-capacites-salle`, base `2fe05b9` : portée manuelle encore bornée au secteur (deux cas au seuil ouvert, état et rendu rechargés), contexte social PNJ et projections MJ recensés ; lots P1–P3 proposés, MJ gelé séparé, aucune garantie générale ni modification du jeu, aucun Luna ; un processus réduit, bruts `C:/Users/msics/donjon/artifacts/capacites-203/`, [rapport 203](taches/rapport-codex-203-capacites-salle.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. P1 : la portée manuelle (spatial.proche, monde.present_physique/accessible, pnj._accessible) reste bornée à la salle de l'acteur, contrairement au contact entre personnages (refus « Approche-toi » au seuil ouvert, reproduit). P2 : contexte social des PNJ (de_pres, autour) borné à la salle. P3 : zone de calme de l'atelier. M1 à M3 côté MJ, en veille.
+
 - **Branche `codex-garantie-avis`, fusionnée**, lot **199 / 196d**,
   base `0fb5a07` : mesure déterministe des retours de décision dans l'audit
   des nuits et le comparateur, mode empreintes compris ; comptes par PNJ,
