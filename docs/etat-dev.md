@@ -1,8 +1,33 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-26.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-27.
 
 ## Où on en est
+
+- **Branche `codex-agendas-amener`, non fusionnée**, lot **146**, base `cee0201` :
+  livraison partielle autorisée, prérequis de l'accord de déplacement. La condition
+  `{objet: auteur, lieu: destination}` utilise une marche dans le devis et dans
+  l'engagement commun, au lieu de prendre/poser le personnage. Arrivée reconnue
+  par sa position propre, même dans la minute ; le demandeur reste limité à ses
+  croyances sur autrui. Gorm confie deux marches (Ilse/galerie, Brune/échoppe),
+  accord sans déplacement instantané, engagement exécuté par le destinataire ;
+  mêmes `data` et rendus après recharges et laps entier/découpé. Méfiance et lieu
+  cru noyé refusés avant engagement. **28 ciblés verts puis 5 nouveaux ciblés verts**.
+  **12/12 empreintes 2 h identiques** (Relais/mine/auberge × quatre graines),
+  **4/4 crues 4 h identiques**, état complet, relevés, récits et mesures ; aucun
+  plantage/usurpation/violation ni boucle nouvelle. Attente urgente 20 min,
+  eau 128,75 min, passages horaires maximum 13,25, Ilse/Brune à la galerie 3/8,
+  inchangés. Crue 1985 fixe 4 h : 1 430 recherches, 1 092 neuves, 83 066 nœuds
+  inchangés. Seize références manquantes cachées, aucun rejeu. Suite complète unique :
+  **2 154 tests, 241 fichiers, 2 170,72 s**, deux échecs MiMo historiques `6 != 5`,
+  zéro erreur ; reproduits sur la base intacte (13 tests, 10,99 s). Contrôle de la
+  réponse entendue enrichi pendant la suite, cinq ciblés repris verts, moteur figé.
+  Aucun Luna, deux calculs réduits au plus ; suite à un processus pour cohabiter.
+  Code `b70e530`, aucune clé de signature configurée : commits non signés,
+  branche poussée seule, sans fusion.
+  **`amener` reste non réalisé**, données de la crue inchangées : préférence/avis,
+  demande autonome/refus durable, accompagnement, fin/abandon et épreuves restent.
+  [Rapport 146](taches/rapport-codex-146-agendas-amener.md).
 
 - Branche `codex-force-4e-tuer`, fusionnée, lot **145**, base `4c57020` :
   geste `tuer` commun au joueur et aux PNJ, sans choix autonome ; cible vivante sans

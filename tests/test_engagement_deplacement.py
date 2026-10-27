@@ -3,7 +3,7 @@ import copy
 import unittest
 from unittest.mock import patch
 
-from donjon import agendas, deliberation, echanges, pnj, planification
+from donjon import agendas, deliberation, echanges, ecoute, pnj, planification
 from donjon.crue import nouvelle_crue
 from donjon.esprits import croire, lire
 from donjon.monde import Monde
@@ -28,6 +28,7 @@ def scene(cible="ilse", destination="chambre_cloche"):
     m.joueur.update(salle="antichambre", position=[2, 3], orientation="nord")
     m.data["connus"] = sorted(m.objets)
     m.data["visitees"] = sorted(m.data["salles"])
+    m.data["voix_connues"] = ["marchand", cible]
     return recharger(m), {"objet": cible, "lieu": destination}
 
 
@@ -39,7 +40,12 @@ class EngagementDeplacementTests(unittest.TestCase):
         self.assertEqual(m.objets[cible]["lieu"], "antichambre")
         self.assertEqual(agendas.en_cours(m, cible)[0]["condition"], condition)
         self.assertTrue(any("accepte" in x["texte"] for x in m.data["chronique"]))
-        return recharger(m)
+        sons = ecoute.entendus(m, -1, ecoute.ENTENDU)
+        entendu = ecoute.rendre(m, sons)
+        self.assertIn("accepte", "\n".join(entendu))
+        m = recharger(m)
+        self.assertEqual(entendu, ecoute.rendre(m, ecoute.entendus(m, -1, ecoute.ENTENDU)))
+        return m
 
     def avancer(self, m, dt):
         pnj.avancer(m, ecouler(m, dt), [], dt)

@@ -403,6 +403,23 @@ relationnelles du futur modèle. `garder`/`protéger`, s'interposer et l'hystér
 le score (remplacement de `retenu`) restent au lot suivant. A4 n'est pas déclaré achevé.
 Voir le [rapport 144](taches/rapport-codex-144-agendas-a4a.md) pour les vérifications et limites.
 
+**Lot 146, `codex-agendas-amener`, non fusionné : prérequis de l'accord de déplacement.**
+La condition commune `{objet: destinataire, lieu: destination}` était acceptée par le
+vocabulaire des tâches, mais son devis cherchait à prendre puis poser le destinataire.
+Quand l'objet est l'auteur de la tâche, `_pulsion` vise maintenant sa propre salle et
+cherche une marche. `satisfaite` et `tenu` reconnaissent sa position propre sans attendre
+une croyance sur soi ni la minute suivante. La demande `confier` existante reste jugée
+par le destinataire : accueil, coût sur ses croyances, persuasion, puis engagement
+exécuté par son planificateur ; aucun déplacement à l'accord. Le demandeur continue
+de juger l'arrivée d'autrui sur ses seules croyances.
+
+**Livraison partielle : `amener` n'est pas encore pris en charge.** Aucune déclaration
+d'évacuation ajoutée à la crue. Restent le choix de la personne la plus proche, la
+préférence crue et son avis, l'émission autonome de la demande et son refus durable,
+l'accompagnement, la fin et l'abandon de l'agenda sur ses croyances. Ce prérequis ne
+prouve donc pas que Gorm évacue spontanément Ilse puis Brune. Voir le
+[rapport 146](taches/rapport-codex-146-agendas-amener.md).
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des
