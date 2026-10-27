@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification Luna 227c496**, lot **165**, branche
+  `codex-verif-luna-227c496` : aucun code changé, deux passes des 34 scripts,
+  **68 parties / 184 tours MJ / 590 appels**, trois processus réduits au plus,
+  copies seulement. **68/68 parties identiques au cache**, référence `cdaf371`
+  exclusivement relue, 114 fichiers contrôlés inchangés. Sur les 64 communs :
+  **542 → 572 appels**, **3,01 → 3,18 appels/tour**, **10,03 → 10,72 s/tour**,
+  médiane **9,16 → 8,59 s** ; relances **24 → 41**, refus **48 → 52**,
+  replis **1 → 2**, cache **2 301 312 → 4 262 016** jetons. Aucun gain causal
+  de vitesse établi. **Avis 6/6**, achats payés/livrés 2/2, Gorm remboursé 2/2,
+  fausse absence dans le noir non reproduite. L5 : refus locaux en un appel ;
+  L4 : propositions distantes persistantes. L8 : quatre poses abouties, deux
+  après refus de destination du sol. Traîner/enfermer toujours refusés à tort ;
+  improvisé typé tuer et refusé justement, geste improvisé non exercé.
+  N7 historique non réexercé (aucun rappel du nom proposé). Faux refus de
+  coordonnées, pas résolus, témoins actuels et comptes/engagements documentés
+  comme petits lots à reprendre ; aucune correction ni garantie générale.
+  Zéro incident technique, budget épuisé, audit illisible ou erreur de recharge.
+  Monde complet et panneaux après recharge non conservés : certification limitée
+  aux projections/textes/traces disponibles. Aucune suite moteur relancée,
+  aucune clé de signature configurée, branche seule poussée, `main` intacte.
+  [Rapport 165](taches/rapport-codex-165-verif-luna.md) ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/verif-luna-227c496/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Relances 24 → 41, replis 1 → 2, s/tour moyenne 10,03 → 10,72 (médiane 9,16 → 8,59), cache 2,3 → 4,3 M jetons : main non avancée, décision à l'utilisateur. Petits lots désignés : cause des relances supplémentaires (lot 168), repères publics du sol, restes de force (traîner, enfermer).
+
 - **Branche `codex-survie-en-route`, fusionnée**, lot **163**, base `ab7a2e2` :
   sortie des séjours humides sans attendre l'inquiétude ou 100 cm prévus ;
   traversées admissibles et gestes finis conservés, attente/répit/réflexe
