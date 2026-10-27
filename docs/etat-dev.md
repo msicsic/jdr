@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-mesures-resolues`, **diagnostic, fusionnée**, lot **171**,
+  base `06cfe9e` : les trois refus de mesures (`force-4c-fuir` p1/p2 t1,
+  `atelier` p2 t8) sont faux ; aucune source nécessaire absente. Cumul de deux
+  pas mal lu, destination pourtant fournie par le geste résolu, coordonnées
+  équivalentes rejetées avec citation altérée. L’hypothèse d’une autre
+  affirmation sans fondement expliquant ces refus est retirée. Une preuve de
+  valeurs ne suffit pas à exempter les phrases entières ; décomposition typée
+  à décider, attestations canoniques à évaluer comme piste limitée aux reprises
+  exactes. **Aucun code, appel Luna ni test**, sur instruction de l’orchestrateur ;
+  aucune correction ou garantie après recharge revendiquée. Extraits et empreintes
+  des trois fils dans `C:/Users/msics/donjon/artifacts/mesures-171/diagnostic-audits.json`.
+  Pas de clé de signature configurée ; `main` intacte.
+  [Rapport 171](taches/rapport-codex-171-mesures-resolues.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Trois faux refus sémantiques, aucune source manquante. Décision de conception à l'utilisateur : décomposition typée des affirmations de l'audit, ou attestations canoniques de positions et de totaux de déplacement réutilisables par la preuve exacte.
+
 - **Branche `codex-garder-proteger-b`, fusionnée**, lot **167 b / A4b
   partiel**, base `f5eb72b`, code `57cf8fe` puis `70717fb` : sorte `garder`
   objet/lieu sur le plan commun, interposition prioritaire pour sa charge,
