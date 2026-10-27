@@ -461,6 +461,20 @@ collective vers la galerie avec désespoir et laps découpé. Aucun avis commun 
 représente encore une préférence générale entre lieux ; l'avis de menace du lieu
 quitté reste le recours prévu. Voir le [rapport 146 c](taches/rapport-codex-146c-amener-social.md).
 
+**Lot 146 d, `codex-amener-social-d`, non fusionnée : correctif moteur préalable.**
+La fermeture exécutée par un PNJ pouvait remettre `ouverte=False` sur un battant
+déjà brisé ou dégondé ; la copie ultérieure d'un devis échouait alors sur
+`Passage incohérent`. La précondition matérielle de fermeture est désormais
+commune au joueur et aux PNJ (`portes.valider_fermeture`) : cale, intégrité,
+fixation. Le geste périmé échoue sans fermer le passage et le PNJ constate
+l'état touché. Deux scènes crue 2024/42, destruction/dégondage, reproduisent
+l'erreur avec la fonction de la base et vérifient copie, devis, état et rendu
+rechargés avec le correctif. Le fil historique 2024/120 n'est pas reconstitué :
+ce mécanisme reproduit l'erreur, sans prouver qu'il en était l'unique cause.
+Les sous-buts sociaux, les refus/réveils et la déclaration d'évacuation restent
+à livrer ; aucun succès collectif vers la galerie n'est revendiqué.
+Voir le [rapport 146 d](taches/rapport-codex-146d-amener-social.md).
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des
