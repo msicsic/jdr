@@ -218,6 +218,20 @@ class RestaurationChargesTests(unittest.TestCase):
             vivre(m, 5)
         self.assertTrue(captures)
         m = recharger(Monde(captures[0]))
+        # Cette phase passe par le même juge de tête que tous les candidats,
+        # même quand la recherche a trouvé des moyens de fermer.
+        from donjon import pnj
+        refuse = recharger(m)
+        valider = pnj.refus_etape
+        def fermeture_refusee(monde, qui, plan):
+            if qui == auteur and plan and plan[0]['operation'] in ('fermer', 'verrouiller'):
+                return {'cause': 'test_de_revalidation_commune'}
+            return valider(monde, qui, plan)
+        with patch.object(pnj, 'refus_etape', fermeture_refusee):
+            d.choisir(refuse, auteur, refuse.data['minutes'])
+        intention = lire(refuse, auteur)['intention']
+        self.assertFalse(intention and intention['plan'] and intention['plan'][0]['operation'] in ('fermer', 'verrouiller'))
+        self.verifier_rendus(refuse)
         i = lire(m, auteur)['intention']
         lire(m, auteur)['manque'] = {'minute': m.data['minutes'],
             'etape': {k: i['plan'][0][k] for k in ('operation', 'cible', 'outil', 'lieu')}}

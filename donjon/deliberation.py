@@ -2161,12 +2161,17 @@ def choisir(monde, id, minute):
                 if retablir and retablir[1]:
                     urgence = Urgence(Palier(contrat_precedent.get("palier", Palier.PULSION_ROMPUE)),
                                       contrat_precedent.get("valeur", 0), ())
-                    candidat = Candidat(porteur["motif"], None, False, True, urgence,
+                    candidat = Candidat(porteur["motif"],
+                                        lambda m, i: (porteur["but"], _couper(retablir[1])), False, True, urgence,
                                         contrat_precedent.get("demande"))
-                    actif = (candidat, (porteur["but"], _couper(retablir[1])))
-                    restauration = True
-                    moyens_revalides = False
-                    sortie = None
+                    proposition = evaluer(len(tous) + 1, candidat)
+                    if proposition:
+                        actif = (candidat, proposition)
+                        restauration = True
+                        moyens_revalides = False
+                        sortie = None
+                    else:
+                        charges_precedentes = {}
                 else:
                     # Accompli ou aucun moyen admissible : plus de suspension.
                     charges_precedentes = {}
