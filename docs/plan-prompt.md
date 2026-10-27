@@ -79,7 +79,15 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
   Limite : la préparation s’arrête à la première cible hors de portée ; le recensement de toutes les cibles
   d’une proposition composée n’est pas garanti.
 - **L6** — dégraissage des consignes (doublons socle/règles), relances mesurées.
-- **L7** — catalogues d'écriture à la demande et surfaces génériques paresseuses.
+- **L7 partiel, lot 166, branche `codex-faits-a-la-demande`, non fusionnée** —
+  surfaces simples intactes et vides omises des objets complets et du catalogue
+  de supports/qualifications lorsqu'elles n'ont aucun usage lexical ou structuré.
+  Détails, mécaniques, dégâts, dossiers et ambiance ciblée les conservent.
+  Les autres catalogues restent présents : aucun critère déterministe sûr
+  d'exclusion des inventions spontanées n'a été établi.
+  Une mention locative du sol le conserve par prudence ; les références
+  implicites à une surface vide restent une limite de la résolution lexicale.
+  [Rapport 166](taches/rapport-codex-166-faits-a-la-demande.md).
   À exercer avec le dépôt au sol : la première passe du lot 154 a proposé
   `antichambre_sol`/`cour_sol` comme destinations. Ces surfaces restent hors du
   contrat des contenants ; leur présence dans les désignations est laissée à L7.

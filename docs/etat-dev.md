@@ -4,6 +4,41 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-faits-a-la-demande`, non fusionnée**, lot **166 / L7 partiel**,
+  base `400e374` : projection commune des surfaces simples intactes et vides,
+  retirées des objets complets et des supports/qualifications sans usage lexical
+  ou structuré. Détails, dégâts, propriétés supplémentaires, références de
+  dossiers et ambiance ciblée les conservent ; moteur, rendu et sauvegardes
+  inchangés. Les autres catalogues restent présents faute de critère sûr ;
+  mention locative du sol conservée, références implicites non garanties.
+  **30 ciblés initiaux et 14 ciblés finaux verts** ; deux surfaces examinées,
+  détail de sol/mur et objet décrit, dépôt, état et rendu rechargés identiques
+  aux témoins. Deux passes Luna : **14 parties, 250 appels / 78 tours MJ**,
+  un repli, aucun arrêt technique/recharge. Référence `cdaf371` relue seulement :
+  cinq scripts communs, deux scripts ciblés absents du cache.
+  Dépôt : une destination `antichambre_sol` refusée puis corrigée en `sol`,
+  l'autre passe directement correcte ; confusion de destination non éliminée.
+  **Suite unique : 2 231 tests, 256 fichiers, 16 ignorés, zéro erreur,
+  six échecs de perception**, 2 154,752 s, deux travailleurs réduits.
+  Première suite : liste exhaustive des identifiants vus trop filtrée ; restaurée,
+  seules fiches complètes et entrées de catalogue omises. Luna précède cette
+  correction ; validation du code final confiée à l'orchestrateur.
+  Assertion des fiches adaptée à L7 en conservant l'exhaustivité de la vue ;
+  **23 tests repris verts**, aucune seconde suite. Mesure du code final :
+  `faits` **−3,94 %** à l'interprétation, **−4,45 %** après enrichissement,
+  résultat inchangé ; catalogues de portraits/savoirs/profil inchangés.
+  **4/4 empreintes Relais × 2 h identiques** à `400e374`, quatre graines,
+  quatre références absentes rangées une fois dans les bruts du lot.
+  Préfixe d'entrée commun **10 958,88 → 8 112,62** sur les captures : aucun
+  gain de latence revendiqué. Cinq scripts Luna communs : appels/tour
+  **3,20 / 3,31 → 3,31 / 3,17**, résultats antérieurs à la correction finale.
+  Rejeu des refus **en attente**, rejet automatique après les deux passes ;
+  l'utilisateur confie explicitement ce complément à l'orchestrateur.
+  Commande exacte dans `luna-a-jouer.txt`, aucun appel de rejeu exécuté.
+  Aucune clé de signature configurée ; `main` intacte.
+  [Rapport 166](taches/rapport-codex-166-faits-a-la-demande.md) ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/faits-166/`.
+
 - **Branche `codex-avis-saisie`, fusionnée**, lot **164**, base `5bf8840` :
   définition commune d'`avis` clarifiée : annonce d'une menace future, même
   certaine et sans échéance ; horizon de calcul distinct du sens de la parole.

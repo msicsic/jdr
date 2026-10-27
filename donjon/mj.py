@@ -1126,6 +1126,8 @@ class MJ:
             for esprit in faits.get('esprits_interlocuteurs', {}).values():
                 esprit.pop('noms_pour_repliques', None)
         faits.update({"objet:" + o["id"]: o for o in objets})
+        from .projection_surfaces import projeter
+        projeter(monde, faits, objets, intention, proposition_en_attente)
         from .noms import public
         faits = public(monde, faits)
         from .narration import echanges_passes

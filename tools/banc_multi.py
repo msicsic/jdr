@@ -261,6 +261,7 @@ def main(argv=None):
     p.add_argument("--reflexion", choices=("libre", "imposee"), default="libre")
     p.add_argument("--max-appels", type=int, default=500)
     p.add_argument("--garder", action="store_true", help="garde les worktrees après le banc")
+    p.add_argument("--sortie", type=Path, help="dossier des bruts (défaut : artifacts/bancs-multi/horodatage)")
     p.add_argument("--offline", action="store_true", help="aucun appel au modèle (vérifier le lanceur)")
     p.add_argument("--sans-cache", action="store_true",
                    help="rejoue toutes les passes, sans lire ni ranger de partie dans artifacts/references/<commit>/")
@@ -282,7 +283,7 @@ def main(argv=None):
     horodatage = datetime.now().strftime("%Y%m%d-%H%M%S")
     # Un dossier de worktrees par lancement : deux bancs simultanés ne se marchent pas dessus.
     racine = Path(tempfile.gettempdir()) / "seuil-bancs" / f"{horodatage}-{os.getpid()}"
-    sortie = BASE / "artifacts" / "bancs-multi" / f"{horodatage}-{os.getpid()}"
+    sortie = args.sortie or BASE / "artifacts" / "bancs-multi" / f"{horodatage}-{os.getpid()}"
     sortie.mkdir(parents=True, exist_ok=True)
     # Un worktree seulement pour une variante qui a encore une partie à jouer.
     depots = {nom: preparer_variante(nom, commits[nom] or ref, racine) for nom, ref in variantes.items()

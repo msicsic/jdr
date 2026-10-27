@@ -152,8 +152,16 @@ class VueCouranteTests(unittest.TestCase):
         faits = next(e["faits"] for f, e in appels if f == "auditer_narration")
         attendus = {o["id"] for o in monde.contexte()["objets_perceptibles"] if o["visible"]}
         self.assertEqual(set(faits["perception"]["objets_visibles"]), attendus)
-        self.assertEqual(attendus, {v["id"] for k, v in faits.items()
-                                    if k.startswith("objet:") and v["visible"]})
+        fiches = {v["id"] for k, v in faits.items() if k.startswith("objet:") and v["visible"]}
+        self.assertLessEqual(fiches, attendus)
+        # L7 peut omettre une fiche de surface vide, jamais son observation
+        # ni la fiche d'une autre entité ou d'un détail établi.
+        for id in attendus - fiches:
+            o = monde.objets[id]
+            self.assertEqual(o["type"], "surface")
+            self.assertFalse(monde.enfants(id))
+            self.assertFalse(o["mobile"])
+            self.assertEqual(o["integrite"], o["maximum"])
         return faits
 
     def test_absence_etablie_par_fouille_reste_admise_apres_recharge(self):

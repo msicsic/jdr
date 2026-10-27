@@ -157,10 +157,21 @@ class PrefixeKVTests(unittest.TestCase):
         j_t2 = json.dumps(entree_t2, ensure_ascii=False)
         j_retry = json.dumps(entree_retry, ensure_ascii=False)
 
-        # La révision et l'intention étant en fin de faits/entrée, plus de 85 % du JSON est partagé.
-        ratio_tours = prefixe_commun(j_t1, j_t2) / min(len(j_t1), len(j_t2))
+        # L7 retire des surfaces stables : un pourcentage du JSON dépendrait de
+        # leur volume. Vérifier le contrat d'ordre lui-même : tous les faits
+        # placés avant les données de parole/intention forment le même préfixe.
+        from donjon.sources import ORDRE_APRES_OBJETS
+        variables = set(ORDRE_APRES_OBJETS[ORDRE_APRES_OBJETS.index("parole_prevue"):])
+        stables = {}
+        for k, v in entree_t1["faits"].items():
+            if k in variables:
+                break
+            stables[k] = v
+        debut = json.dumps({"faits": stables}, ensure_ascii=False)[:-2]
+        self.assertTrue(j_t1.startswith(debut))
+        self.assertTrue(j_t2.startswith(debut))
+        self.assertGreaterEqual(prefixe_commun(j_t1, j_t2), len(debut))
         ratio_retry = prefixe_commun(j_t2, j_retry) / min(len(j_t2), len(j_retry))
-        self.assertGreater(ratio_tours, 0.85)
         self.assertGreater(ratio_retry, 0.92)
 
     def test_relance_controle_narratif_garde_instructions_et_prefixe_entree_intacts(self):

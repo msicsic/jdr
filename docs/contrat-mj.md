@@ -26,6 +26,25 @@ construire. Il découle de la section « Contrat du MJ » d'[AGENTS.md](../AGENT
 
 ## Trois niveaux de vérité
 
+**Surfaces simples à la demande** (lot 166, L7 partiel). La projection MJ
+omet les surfaces intactes et vides sans propriété mécanique supplémentaire,
+hors demande par nom/alias, référence dans un dossier ou proposition en attente.
+Elle retire aussi leurs entrées des supports et qualifications proposables.
+La liste `perception.objets_visibles` reste exhaustive : seule la fiche complète
+est omise, aucune observation du moteur n'est retirée.
+Une surface portant un enfant, une propriété supplémentaire ou des dégâts reste
+présente. Une ambiance ciblée conserve tous les supports pour permettre sa
+matérialisation. Cette projection ne modifie ni les entités du moteur, ni la
+perception du joueur, ni le rendu ou la sauvegarde. Le moteur revalide les
+propositions ; le schéma d'interprétation et les refus de modes sans catalogue
+restent inchangés. L'audit narratif garde ses sources variables.
+Les catalogues de portraits, savoirs, profil et les autres faits narratifs
+restent disponibles : aucun critère sûr d'exclusion depuis la saisie libre
+n'est établi. La résolution lexicale ne garantit pas les références implicites
+ou pronominales à une surface sans détail.
+Inversement, une mention locative (« poser au sol ») peut conserver le sol :
+la projection lexicale ne prétend pas distinguer tous les rôles du langage libre.
+
 **Dossiers techniques au contact** (lot 152, L4). `atelier`, `franchissements`,
 `passages_obstacles` et `espace` ne décrivent que des objets visibles et proches
 de Corvus selon `spatial.proche`. Le filtre commun `espace.objets_proches`
