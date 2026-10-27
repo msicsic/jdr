@@ -40,18 +40,28 @@ class CrueTests(unittest.TestCase):
         # personne ne s'y chauffait plus et Brune avait froid près de cinq heures par nuit.
         # Gorm peut refuser Brune ; les trajets et échanges déterminent le bois
         # qu'elle obtient. Toute recharge doit consommer une ressource du monde.
-        m, textes = par_blocs(nuit("crue", 7, "chambre_cloche"), 270, 90)
-        # Les recours refusés changent les trajets de cette nuit : Brune ne prend
-        # pas les planches et ne rallume pas le poêle. Aucun bois fictif ne le recharge.
-        self.assertFalse(allumee(m.objets["poele_guet"]))
+        m = nuit("crue", 7, "chambre_cloche")
+        def energie_bois(monde):
+            return sum(o.get("charges", 0) * o.get("duree_combustion", 0)
+                       for o in monde.objets.values()
+                       if "combustible" in o.get("usages", ()) and substance(o) == "bois") + sum(
+                           o.get("combustible", 0) for o in monde.objets.values() if brule(o) == "bois")
+        from donjon import pnj
+        executer_geste = pnj._executer
+        def verifier_geste(monde, id, etape, *args):
+            avant = energie_bois(monde)
+            resultat = executer_geste(monde, id, etape, *args)
+            self.assertLessEqual(energie_bois(monde), avant + 1e-7, (id, etape))
+            return resultat
+        initiale = energie_bois(m)
+        # La mobilité perçue change les rencontres et les recharges. Comme à
+        # l'auberge, le contrat porte sur chaque transfert et charge du foyer,
+        # pas sur l'absence d'entretien dans une trajectoire particulière.
+        with patch.object(pnj, "_executer", verifier_geste):
+            m, textes = par_blocs(m, 270, 90)
+        self.assertLessEqual(energie_bois(m), initiale)
+        self.assertGreaterEqual(energie_bois(m), 0)
         self.assertEqual(m.objets["poele_guet"]["lieu"], "chambre_cloche")
-        # Les signes changent les occasions : cette nuit ne demande plus les bûches.
-        # Le bois gardé reste intact ; une des deux planches prises a alimenté le poêle.
-        self.assertEqual(m.objets["bois_guet"]["charges"], 3)
-        self.assertEqual(m.objets["bois_guet"]["proprietaire"], "marchand")
-        self.assertNotIn("Brune, batelière évacuée prend les planches de bac.", textes)
-        self.assertEqual(m.objets["planches"]["charges"], 2)
-        self.assertEqual(m.objets["planches"]["proprietaire"], "aubin")
         # La capacité de rejoindre le feu haut reste vérifiée dans la même crue,
         # avant son extinction, depuis le palier voisin (et après recharge).
         from tests.support import calme

@@ -54,7 +54,12 @@ class RetournerTests(unittest.TestCase):
         poser(m, "marchand", "antichambre", [5, 5])
         poser(m, "ilse", "antichambre", [3, 5])
         regarder(m, "marchand", [8, 5])
-        lire(m, "marchand")["croyances"].pop("ilse")  # Il ne la sait pas là.
+        # Bruit inconnu : aucune présence crue ne doit pouvoir l'expliquer.
+        # Ne pas seulement retirer Ilse : il pourrait le prêter à un compagnon.
+        croyances = lire(m, "marchand")["croyances"]
+        for qui in list(croyances):
+            if qui == "joueur" or m.objets.get(qui, {}).get("type") == "personnage":
+                croyances.pop(qui)
         m.data["dixiemes"] = 100
         retentir(m, "ilse", "aller")
         self.assertEqual(m.objets["marchand"]["orientation"], "ouest")

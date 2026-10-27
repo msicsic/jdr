@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195, prototype
+  partiel non fusionnable**, base `integration de18162` : localisation crue
+  mobile dans le seul lieu cru ; attribution, méfiance et localisation
+  entretenue portent sur la même personne, sans position/intention réelle.
+  Onze nouveaux tests et complément orientation/conservation du bois :
+  **18 verts**, état/rendu rechargés et laps découpés. Suite unique
+  **2 326 tests, 268 fichiers, 1 884,702 s**, puis 41 fichiers repris et
+  complément ; **consolidé 2 327, cinq échecs, une erreur**, aucun ignoré.
+  Deux MiMo connus ; **quatre cas verts sur la base échouent sur le
+  prototype** : abri d'Ilse, deux cas de lampe prêtée, copie de devis avec
+  croyance invalide. **Ne pas fusionner** avant résolution générale.
+  Banc base/final, cinq scénarios × quatre graines × 4 h et trois graines 1 :
+  **46/46 recharges état/rendu identiques**, zéro plantage/usurpation dans ces
+  nuits. Retournements moyens Relais **99,5 → 20,5**, mine **61,75 → 14,5**,
+  auberge **44 → 23,5**, crue **87 → 66,25**, hameau **141,25 → 87,5**.
+  S/F/D mine **12,75/5/1,179 → 9,5/4/1,036**, hameau
+  **24,75/6,5/1,708 → 20,75/4,75/1,167** : pas de gain général de richesse.
+  Trois alertes d'agendas, deux nouvelles hameau 2024 non expliquées.
+  **Odile garde ses cinq bruits de ronde** à 40/92/135/187/239 : aucune
+  croyance d'itinéraire chez l'auditeur ; acquisition des localisations
+  visuelles du joueur également absente. Invariant complet non garanti,
+  distance géométrique optimiste, datation à la minute. Aucun Luna ni
+  fichier réservé 180 c/194 ni `social.py` modifié ; référence constituée une
+  fois puis réutilisée, aucun rejeu de `main`, deux calculs réduits au plus.
+  Vérification au-delà du créneau ; aucune clé Git configurée.
+  Bruts exclusivement `C:/Users/msics/donjon/artifacts/pas-195/` ;
+  [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
+
 - **Branche `codex-sortie-exterieure`, fusionnée**, lot **189**, base
   `60617f9` : une sortie terminale est exclue du graphe des déplacements
   internes, des estimations et des candidats de `Vue`, avec sa carte dans

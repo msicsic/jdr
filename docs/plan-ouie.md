@@ -14,6 +14,39 @@ Chantier accepté après les caractères et valeurs (`docs/etat-dev.md`). Branch
 
 ## Règle retenue (`donjon/ouie.py`)
 
+### Présence crue mobile (lot 195, prototype non validé)
+
+**Non fusionnable** : quatre cas verts sur la base échouent avec ce prototype,
+dont une copie de devis produisant un monde invalide. Voir le
+[rapport 195](taches/rapport-codex-195-pas-compagnons.md).
+
+Pour attribuer un pas ou un geste ordinaire, `_crus_la` conserve le lieu cru
+et la durée de validité commune (`RECENT`, 30 minutes). La case crue n'est
+plus une position immobile : la distance admissible est `PRES_DE` plus celle
+parcourable à l'allure commune de marche depuis la minute de localisation.
+L'instant courant est au dixième ; la perception initiale, datée à la minute,
+donne une borne supérieure du temps écoulé possible. Aucune position réelle,
+intention privée ou route réelle de l'auteur ne confirme cette attribution.
+Une absence ou un départ cru l'exclut ; une méprise reste possible.
+
+Les fracas, appels et voix inconnues gardent leur interprétation ; la méfiance
+continue de provoquer une surveillance de la personne à qui le bruit est
+attribué (`_cru_le_plus_proche`), pas de tous les candidats compatibles à la
+fois. Attribution, surveillance et localisation entretenue portent ainsi
+sur la même hypothèse. Le témoin d'un geste illicite emploie
+la même présence crue mobile pour reconnaître l'auteur, mais doit toujours
+entendre le geste et situer le bien : attribuer un bruit ordinaire ne masque
+pas le témoignage. `PRES_DE` reste inchangé pour situer ce bien.
+
+Le joueur peut entretenir une localisation déjà crue selon la même règle
+quand un bruit ordinaire lui parvient ; son rendu reste « des pas » ou « des
+bruits », sans nom révélé. **Limites :** les localisations visuelles du joueur
+ne sont pas automatiquement inscrites dans ce registre ; le moteur ne porte
+pas de croyance d'itinéraire de ronde. Ce lot ne garantit donc ni l'attribution
+d'une ronde dans un autre lieu, ni la symétrie complète de l'acquisition des
+localisations entre joueur et PNJ. La distance est une borne géométrique,
+pas une preuve d'un parcours franchissable. L'invariant du brief reste partiel.
+
 **Tout geste fait un bruit.** Chaque geste a une nature, déclarée une fois (`ouie.NATURES` ; un
 geste absent de la table est ordinaire), chaque nature une intensité en crans :
 
@@ -1784,8 +1817,9 @@ au moteur. Voir `docs/taches/rapport-codex-8-luna-noms.md` pour les scènes et l
   ferait d'une réussite de justesse un acharnement bruyant) et `planification.HABILE` (0,5 : la chance
   à partir de laquelle un voleur attend un crochetage feutré ; aux DEX des scénarios, personne ne s'y
   sait habile) sont à régler au banc ; l'outil ne compte que par sa nature (des crochets, pas un levier).
-- `PROCHE` (6 cases pour se retourner), `PRES_DE` (1 case pour attribuer un bruit à qui l'on croit
-  là), `HABITUDE` (15 min), le courage au-dessus de 50 pour aller voir un fracas.
+- `PROCHE` (6 cases pour se retourner), `PRES_DE` (1 case de tolérance initiale de localisation,
+  avant la marche possible du prototype 195), `HABITUDE` (15 min), le courage au-dessus de 50
+  pour aller voir un fracas.
 - L'inquiétude (15 × niveau reçu / 9) ; l'appel qui inquiète à chaque appel.
 - Les voix (branche `voix`) : `voix.INCONNU` (+2 au DD d'une demande d'une voix inconnue), la prudence
   (sécurité + 50 − courage ≥ 50), `VU_AILLEURS` (30 min : « c'est X » de qui a vu X ailleurs est douteux) ;
