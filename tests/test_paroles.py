@@ -8,7 +8,8 @@ from unittest.mock import patch
 
 import jeu
 from tests.support import refusee, regarder, sans_evacues
-from donjon.defi import nouveau_defi
+# Scènes de mécanisme : ressources et liens déclarés avant les occasions 186.
+from tests.scenarios_contractuels import nouveau_defi
 from donjon.esprits import lire
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde

@@ -128,7 +128,9 @@ class TenirTests(unittest.TestCase):
         ``lampe``, il sait la lampe du filon allumée. Odon, dont il se méfie, ne convoite pas la paie
         (honnêteté entière) : il resterait sinon à la porte du bureau, qu'il sait crocheter, et Bram
         s'abriterait de lui (une limite connue, ``docs/plan-planificateur.md``)."""
-        m = creer("mine", 1985, "fixe")
+        # Recours de lumière isolé du marché supplémentaire du bois d’Odon.
+        from tests.scenarios_contractuels import creer as creer_contractuel
+        m = creer_contractuel("mine", 1985, "fixe")
         calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
         m.objets["odon"]["profil"]["valeurs"]["honnetete"] = 100
         m.objets["chandelle"].update(allume=False, combustible=0)

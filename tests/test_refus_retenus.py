@@ -53,7 +53,8 @@ def fourneau_mort(qui="mathurine", fagots=0, bois_anselme=0):
     m = calme(creer("auberge", 1985, "fixe"), "mireille", qui)
     for k, charges in (("bois_cuisine", 0), ("fagots_etable", fagots), ("bois_anselme", bois_anselme)):
         m.objets[k]["charges"] = charges
-    sans(m, "bois_reserve")   # La réserve d'Odile (branche ``ressources``) est brûlée aussi.
+    # La réserve d'Odile et les nouveaux copeaux de Joss sont brûlés aussi.
+    sans(m, "bois_reserve", "copeaux_palefrenier")
     m.objets["fourneau"].update(allume=False, combustible=0)
     face_a_face(m, "mireille", qui, "cuisine")
     croire(m, "mireille", "fourneau", "etat", {"allume": False, "faible": False, "charge": False}, "vu")
