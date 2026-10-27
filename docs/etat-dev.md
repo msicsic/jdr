@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-avis-saisie`, fusionnée**, lot **164**, base `5bf8840` :
+  définition commune d'`avis` clarifiée : annonce d'une menace future, même
+  certaine et sans échéance ; horizon de calcul distinct du sens de la parole.
+  Aucun effet moteur ni fichier réservé aux lots 161/163 modifié. Douze tests
+  d'avis et neuf voisins verts ; trois saisies réelles, réception/faits dits,
+  parole ordinaire et refus de lieu inconnu, monde et rendu rechargés.
+  Luna : **6/6 avis**, référence `cdaf371` **3/6** exclusivement relue ;
+  quatre parties, **54 → 65 appels / 14 tours MJ**, un repli narratif sur
+  l'achat accepté de `soir-appel`, zéro erreur technique ou de recharge.
+  Suite complète unique : **2 224 tests, 254 fichiers, 2 270,737 s**, zéro
+  erreur/ignoré, deux échecs MiMo historiques `6 != 5` ; aucune seconde suite.
+  Un worker réduit pour cohabiter avec 163 ; vérification au-delà du créneau.
+  Le typage libre reste sémantique : carte entièrement fausse et raccourci
+  des mots exacts encore possibles ; aucune garantie exhaustive annoncée.
+  Aucune clé de signature configurée ; livraison non signée, branche seule
+  poussée, `main` intacte.
+  [Rapport 164](taches/rapport-codex-164-avis-saisie.md) ; bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/avis-164/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Avis typés 6/6 contre 3/6 ; appels/tour 3,86 → 4,64 sur les quatre parties (avis désormais relus, comme au lot 128).
+
 - **Branche `codex-consignes-invariantes`, fusionnée**, lot **161 / L3**,
   base `c22541b` : consignes d'interprétation permanentes, quatre règles techniques
   et parole présentes à chaque tour ; indications du refus courant en entrée.

@@ -88,6 +88,18 @@ class AvisJoueurTests(unittest.TestCase):
             self.assertIn(valeur, erreur.exception.attendu)
             self.assertEqual(m.data, avant)
 
+    def test_prevision_lieu_inconnu_refusee_avant_parole(self):
+        m = preparer()
+        avant = copy.deepcopy(m.data)
+        with self.assertRaises(ErreurMonde) as erreur:
+            paroles.preparer_parole(m, {"personnage": "marchand",
+                "replique": "ce lieu sera menacé", "_intention": "je dis à Gorm : ce lieu sera menacé",
+                "contenu": [{"type": "avis", "sujet": "lieu_inconnu", "attribut": "menace", "valeur": "oui"}]})
+        self.assertIn("sujet", erreur.exception.attendu)
+        self.assertIn("lieu_inconnu", erreur.exception.attendu)
+        self.assertEqual(recharger(m).data, avant)
+        self.assertEqual(rendu(m), rendu(recharger(m)))
+
     def test_cantonade_et_chuchotement(self):
         m = preparer()
         m, _ = dire(m, adresse="tous")
@@ -144,9 +156,48 @@ class AvisJoueurTests(unittest.TestCase):
         self.assertEqual(prevision(m, "marchand", "echoppe")["source"], "dit:joueur")
         self.assertEqual(rendu(m), rendu(recharger(m)))
 
+    def test_trois_saisies_du_banc_reception_et_faits_recharges(self):
+        import gzip
+        import json
+        from pathlib import Path
+        from donjon.monde import Monde
+        m = Monde(json.loads(gzip.decompress(
+            Path("tests/data/avis-joueur-124.json.gz").read_bytes())))
+        saisies = json.loads(Path("tests/data/bancs/avis-joueur.json").read_text(encoding="utf-8"))["tours"]
+        for saisie, salle, valeur in zip(saisies, ("echoppe", "chambre_cloche", "antichambre"), ("oui", "oui", "non")):
+            with self.subTest(saisie=saisie):
+                forme = paroles.prevue(m, saisie)
+                mots = saisie.split(": ", 1)[1]
+                m, sortie, _ = jouer(m, saisie, [
+                    parole(mots, ("avis", salle, "menace", valeur), personnage=forme["personnage"]),
+                    {**dialogue("On t'écoute."), "faits": ["conversation_validee"]}], [verdicts(NEUTRE)])
+                recharge = recharger(m)
+                self.assertEqual(recharge.data, m.data)
+                self.assertIn(mots, sortie)
+                self.assertEqual(recharge.data["paroles_joueur"][-1]["texte"], mots)
+                # Réception n'est pas adoption : Gorm peut opposer sa propre observation.
+                self.assertTrue(social.transmission_attestee(recharge, "joueur", "marchand",
+                    {"type": "avis", "sujet": salle, "attribut": "menace", "valeur": valeur == "oui"}))
+                self.assertTrue(any(s.get("locuteur") == "joueur" and s.get("texte") == mots
+                                    for s in lire(recharge, "marchand")["memoire"]))
+                self.assertEqual(rendu(m), rendu(recharge))
+
+    def test_parole_ordinaire_reste_propos_apres_recharge(self):
+        m = preparer()
+        m, sortie, appels = jouer(m, "je dis à Gorm : bonsoir", [
+            parole("bonsoir", ("propos", "", "", ""), personnage="marchand"),
+            {**dialogue("Gorm t'écoute."), "faits": ["conversation_validee"]}], [verdicts(NEUTRE)])
+        recharge = recharger(m)
+        self.assertIn("bonsoir", sortie)
+        self.assertEqual(recharge.data["paroles_joueur"][-1]["texte"], "bonsoir")
+        self.assertIsNone(prevision(recharge, "marchand", "echoppe"))
+        self.assertFalse(any(f == "auditer_action" for f, _ in appels))
+        self.assertEqual(rendu(m), rendu(recharge))
+
     def test_operation_declaree_ne_peut_rester_propos_aux_mots_exacts(self):
         # La déclaration porte l'intention, indépendamment du premier contenu.
         for mots, salle, valeur in (("l'eau va gagner la conduite basse", "echoppe", "oui"),
+                                    ("l'eau va gagner la galerie de ronde", "chambre_cloche", "oui"),
                                     ("l'eau ne menace pas le refuge du relais", "antichambre", "non")):
             with self.subTest(mots=mots):
                 m = preparer()

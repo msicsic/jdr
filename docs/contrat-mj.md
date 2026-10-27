@@ -9,6 +9,15 @@ l'avis et résout une éventuelle dispute avant affichage. Ni l'avis ni sa réce
 n'établissent sa vérité. Le joueur garde l'initiative de ses répliques et de ses partis.
 Les prévisions reçues peuvent être qualitatives, sans inventer hauteur ni vitesse ;
 elles ne remplacent pas une profondeur observée.
+Lot 164 : le sens commun d'`avis` couvre l'annonce d'une menace future sur un lieu,
+même exprimée avec certitude, sans marque d'opinion ni échéance explicite. Le
+prédicat disponible reste la menace d'eau ; l'heure est son horizon de calcul,
+pas une condition à prononcer pour typer la parole. Cette définition est partagée
+par le schéma de contenu, la carte des opérations et la revue de fidélité.
+Une opération reconnue mais omise du contenu reste refusée avant enregistrement,
+y compris lorsque la réplique reprend les mots exacts. La reconnaissance depuis
+le langage libre reste sémantique ; une carte entièrement fausse peut encore
+dispenser à tort un `propos` de revue.
 Limite mesurée : Luna a choisi `propos` sur les trois saisies de l'unique passe ; le
 contrat typé est exercé en console avec MJ simulé, pas garanti depuis le langage libre.
 
