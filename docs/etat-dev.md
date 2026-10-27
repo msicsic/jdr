@@ -10,15 +10,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   via Aubin/Josse/Mireille ; Ilse au guet et Aubin dans la crypte de la crue.
   Données communes recopiées dans les dérivés du Relais. Aucun `donjon/*.py`,
   trait, valeur, garde, réserve, pulsion, agenda ou bien historique modifié.
-  **24 nuits** (16 × 4 h, huit × 12 h), zéro plantage, usurpation ou violation
+  **Validation initiale : 24 nuits** (16 × 4 h, huit × 12 h), zéro plantage, usurpation ou violation
   signalée ; **24 états, descriptions, besaces et sons rechargés identiques**.
   Deux réparations délibérées : Brune recharge le brasero à 496 min, méfiance
   levée puis repas à 498 (crue 1985) ; Odile donne une galette à Joss à 657,
   service crédité sans levée de méfiance (auberge 7). Commissions longues
   sollicitées/acceptées/abouties **5/4/2**, deux adoptions d'avis ; aucune
   offre ou promesse autonome acceptée, aucune dispute. **Richesse partielle**,
-  pas de preuve des deux prévisions contraires demandées. Références historiques
-  219bc8d/ee835d2 exclusivement relues : pas de delta causal ni de temps comparé.
+  pas de preuve des deux prévisions contraires demandées.
+  **Complément à base identique : 16 paires de 4 h**, base exacte `12a936d`
+  contre `16c0ff1`, quatre scénarios × 1985/7/42/2024 ; moteur/outils identiques,
+  16 références calculées puis rangées dans le cache commun. S/F/D moyens :
+  mine **13,5/4,5/1,286 → 10,5/4,25/1,036** ; auberge
+  **6,5/2,75/0,625 → 6,25/2,75/0,594** ; S Relais **3 → 3,75**, crue
+  **10,75 → 11,5**. Propositions/acceptées **18/2 → 11/0** : Odon reçoit une
+  galette à 0 min au lieu du marché d'outils à 13 (mine 7) ; Lucien reçoit une
+  galette d'Odile à 213 au lieu du troc de besace à 212 (auberge 42).
+  Mine 2024 explique huit des douze signatures perdues en net dans les mines ;
+  auberge 7 perd un appel de livraison, remplacé par une remise directe de soupe.
+  Achats ordinaires **15 → 20**, hors S/F/D. À 4 h : promesses **1/0 → 0/0**,
+  tâches payées **3/0/0 → 11/0/0**, commissions **0/0/0 → 1/1/1**,
+  avis/adoptions **11/2 → 2/2**, services **3 → 3**, aucune dispute.
+  Zéro plantage/usurpation/violation ; `fige_presse` **5 → 4**, `noir_long`
+  **1 → 1**, nouvelles observations `repetition` (Odon mine 42, sans bascule)
+  et `voir_alterne` (Gorm crue 2024, une alternance). Quatre bascules isolées
+  de chaque côté ; pas de boucle motrice nouvelle établie. **Gain non uniforme** :
+  parcours alimentaires simplifiés mais moins de négociations ; les anciens
+  écarts historiques à 12 h restent non attribuables. Aucun temps comparé.
   Suite unique **2 291 tests**, 264 fichiers, 16 ignorés, 2 238,67 s ; bruts
   74 échecs/six erreurs avant adaptation des entrées de scènes. **80 méthodes
   ciblées**, puis six et une reprises finales : **bilan consolidé vert**.
@@ -26,9 +44,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   la base ; scénarios courants maintenus au banc et dans les tests des nouvelles
   données. Aucun Luna, deux travailleurs réduits au plus ; créneau dépassé par
   les vérifications. Pas de clé de signature configurée, `main` intacte.
-  Livraison locale `0bfa49a` : poussée refusée par la revue automatique,
-  destination GitHub non explicitement validée pour cet envoi ; aucun contenu
-  poussé, commit conservé conformément au brief.
+  Le superviseur a poussé `16c0ff1` ; complément documentaire commité localement
+  pour sa poussée. Aucun jeu de données, moteur ou test modifié dans ce complément ;
+  aucune suite ni nuit de 12 h relancée.
   Bruts exclusivement `C:/Users/msics/donjon/artifacts/occasions-186/` ;
   [rapport 186](taches/rapport-codex-186-occasions-asymetriques.md).
 
