@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-amener-social`, fusionnée**, lot **146 c**, base `ef65e55` :
+  livraison partielle, abandon d'`amener` pour coupure prouvée par les positions
+  et hauteurs d'eau crues, même avec toutes les portes ouvertes. Cause conservée,
+  aucun refus de route déduit d'une recherche bornée ou d'une serrure.
+  **Sous-buts sociaux non livrés** : tentative retirée après répétitions et arrêt
+  « Passage incohérent », crue 2024/120. Données de la crue inchangées.
+  **25 ciblés verts**, deux personnes/deux destinations coupées et une route
+  ouverte, état/rendu rechargés. **2 188 tests, 249 fichiers, 1 293,96 s**, deux
+  échecs MiMo historiques, zéro erreur/ignoré ; suite unique à deux processus réduits.
+  **12/12 empreintes 2 h identiques** à `ef65e55` (Relais/mine/auberge).
+  Crue 4 h : **4/4 états complets identiques** à la base ; galerie **3/8**,
+  eau **128,75 min**, attente urgente **60 min**, passages horaires **13,25**,
+  inchangés. VERIFIER/spatial 0,2 sur crue 42 fixe × 2 h sans arrêt ; coût
+  crue 1985 fixe × 4 h inchangé : **1 430 recherches, 83 066 nœuds**.
+  [Rapport 146 c](taches/rapport-codex-146c-amener-social.md), bruts dans `artifacts/`.
+  Aucun Luna ni fichier réservé modifié ; `main` intacte.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Sous-buts sociaux retirés : leur tentative a révélé un défaut moteur (crue 2024 à 120 min, « Passage incohérent » dans la copie d'un devis, porte détruite/détachée non ouverte) ; lot 146 d pour l'isoler.
+
 - **Branche `codex-force-restes`, fusionnée**, lot **157**, base `af1b8f3` :
   destination du corps dans le titre et repère public/identifiant dans le dossier ;
   salles nommées dans les effets et faits des désignations, portes avec type,
