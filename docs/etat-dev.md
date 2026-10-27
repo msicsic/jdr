@@ -1,8 +1,28 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-27.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
 ## Où on en est
+
+- **Branche `codex-secours-acquitte`, non fusionnée**, lot **223** : départ
+  `395834b`, puis intégration 213 `bd45f65` fusionnée sans conflit. Lecture
+  `protection` pure ; acquittement sur constat dans `reagir`, appel non élucidé
+  sans trajet vers un danger connu. Captures 022/026 : retours effectifs **1→0**
+  chacune sur une minute ; coups **24→24 / 15→20**, combat toujours possible.
+  Autre protecteur/scénario, monde/rendus et laps découpés rechargés identiques.
+  **63 ciblés finaux verts** ; **24 paires 4 h** contre `bd45f65`, chroniques,
+  mesures, états et audits **24/24 identiques**, classes 219 **5 suspects,
+  58 préemptions, 566 cycles, 68 à expliquer** inchangées, zéro plantage/usurpation,
+  coups **0→0**, appels **9→9**. Références manquantes cachées une fois.
+  Suite unique initiale **2 446 tests / 284 fichiers, 2 239,365 s** : deux MiMo
+  historiques, une erreur Windows TUI repassée verte ; suite lancée avant fusion
+  et dernière correction de publication, ciblés/banc sur l'arbre final, pas de
+  seconde suite (code disjoint de 213). **Limite : raccord automatique des appels
+  joueur non établi dans ce périmètre** ; aucune garantie universelle des boucles
+  ni baisse de violence. Deux travailleurs réduits au plus, créneau dépassé,
+  aucun Luna, pas de clé Git de signature. Bruts
+  `C:/Users/msics/donjon/artifacts/secours-223/` ;
+  [rapport 223](taches/rapport-codex-223-secours-acquitte.md).
 
 - **Branche `codex-contrat-engagement`, fusionnée**, lot **213 / 196 c** :
   **lot terminé, limites explicites**. `cca5f50` vérifié ; 211 puis

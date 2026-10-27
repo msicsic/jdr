@@ -3343,7 +3343,30 @@ def _gestes_defense(v, e, vises):
 def reagir(monde, id, dangers, aide=None):
     """Le graphe compare les moyens de sortir du danger ; un coup est toujours revalidé."""
     from . import corps
-    from .defense import etat_cru
+    from .defense import etat_cru, lieux_dangereux, protection as proteger
+    from .esprits import lire, percoit
+    e = lire(monde, id)
+    secourus = []
+    # Le constat remplace l'appel, même si la défense interrompt l'inspection.
+    # Une date à la minute ne départage pas deux événements de la même minute :
+    # dans ce cas seule la vue actuelle constitue une preuve suffisante.
+    for s in e["memoire"]:
+        if s["type"] != "secours" or s.get("examine"):
+            continue
+        qui = s["qui"]
+        etat = e["croyances"].get(qui, {}).get("etat", {})
+        vu = monde.visible(qui) if id == "joueur" else percoit(monde, id, qui)
+        if vu or etat.get("source") == "vu" and etat["minute"] > s["minute"]:
+            s["examine"] = True
+            secourus.append(qui)
+    if secourus:
+        corps.evenement(monde, "intervention", id, proteges=sorted(set(secourus)))
+    if aide and not aide[2] and aide[0] in secourus:
+        aide = proteger(monde, id)
+    # Le même constat vaut pour le joueur, qui choisit lui-même ses gestes :
+    # il n'a pas de profil pour la recherche d'un plan autonome.
+    if id == "joueur":
+        return None
     if corps.corps(monde, id).get("tenu_par"):
         return {"type": "degager"}, [_etape("degager")]
     ennemis = list(dangers)
@@ -3353,6 +3376,10 @@ def reagir(monde, id, dangers, aide=None):
                    and not etat_cru(monde, id, a).get("reddition")]
     if aide and not ennemis:
         protege, salle, _ = aide
+        # Un appel non élucidé ne rend pas sûre une destination déjà dangereuse.
+        # Il reste en mémoire : un constat ou un changement du danger peut le rouvrir.
+        if salle in lieux_dangereux(monde, id):
+            return None
         trajet = aller(monde, id, salle)
         r = (salle, trajet) if trajet else voir(monde, id, salle)
         if r:
