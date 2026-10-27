@@ -4,6 +4,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Lot 186 (occasions asymétriques, `codex-occasions-asymetriques`), fusion annulée le 2026-10-27** (`057d151`) : ses données
+  (bois cessible de Brune/Odon/Joss, liens d'affection en triangle, observations inégales), validées sur la base `12a936d`,
+  rencontrent le projet de pièces du lot 184 fusionné entre-temps (Brune endettée vend désormais son bois) : 30 échecs et
+  4 erreurs dans 25 fichiers de tests sur `c12acd1`, alors que ces fichiers passent sur `7f4445f` (261 tests). Gain du lot
+  modeste à base identique (propositions 18/2 → 21/2, une commission aboutie, avis 11/2 → 3/2). À refaire sur la base actuelle
+  (branche conservée sur `origin` jusqu'à décision, bruts `artifacts/occasions-186/`).
+
 - **Branche `codex-deja-entendu`, fusionnée**, lot **191**, base
   `integration 8a10a16` : livraison **partielle, à ne pas intégrer comme garantie
   de l'invariant subjectif complet**. Le registre commun suit les paroles
