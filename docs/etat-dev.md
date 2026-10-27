@@ -5,7 +5,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-contrat-engagement`, non fusionnée**, lot **213 / 196 c** :
-  **contrat partiel, arbitrage avant fusion**. `cca5f50` vérifié ; 211 puis
+  **lot terminé, limites explicites**. `cca5f50` vérifié ; 211 puis
   `3aa16f7` (219) intégrés ; moteur final **`5016c87`**. Raccord `pnj.py` autorisé :
   `refus_etape` commun au choix et à `agir`, sans lecture réelle supplémentaire ;
   seuls ces deux noms changent dans pnj, `_abriter`/témoins et localisation crue intacts.
@@ -22,10 +22,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   10 → 6,25 ; attente crue 178,75 → 196,25, hameau 128,75 → 97,5.
   Restent cinq suspects, des alertes d'agenda distribuées en crue 1985 et une
   attente confiée de Gorm au Relais 42 ; aucune garantie générale d'absence de boucle.
-  **Arbitrage** : un agenda sans plan admissible au coût libère actuellement son
-  intention (blocage attesté) ; garder sa priorité en attente peut bloquer un besoin
-  de même palier. Sources anciennes sans demande persistante et suspension de
-  charge à travers reconstruction forcée (218) restent des limites explicites.
+  **Arbitrage utilisateur validé (version testée)** : un agenda sans plan admissible
+  au coût passe en sommeil et libère son palier (A4) ; reprise sur croyance ou moyen
+  nouveau, jamais par le délai seul. Aucun code changé depuis les vérifications.
+  Sources anciennes sans demande persistante : garantie générale encore limitée.
+  **218 non couvert entièrement** : une reconstruction forcée peut perdre la
+  suspension temporaire de charge ; le cas Gorm qui reverrouille sa réserve reste
+  au 218. Conserver les étapes du plan ne porte pas cette suspension indépendamment.
   Aucun Luna, deux travailleurs réduits au plus, aucune clé de signature.
   Bruts `C:/Users/msics/donjon/artifacts/engagement-213/` ;
   [rapport 213](taches/rapport-codex-213-contrat-engagement.md).
