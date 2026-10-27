@@ -239,6 +239,11 @@ def planifier(monde, id, identifiant):
         c = a["parametres"]
         poste = interposition(monde, id)
         if poste is not None and poste[0]["objet"] == c.get("objet"):
+            if a["etat"] == "sommeil":
+                _changer(monde, id, a, "actif", "plan apres croyance nouvelle", empreinte)
+                _limiter(monde, id, empreinte)
+                if a["etat"] != "actif":
+                    return None
             return poste
         salle = salle_crue(monde, id, c["objet"]) if "objet" in c else c["lieu"]
         etapes = garder(monde, id, salle) if salle in monde.data["salles"] else None

@@ -21,6 +21,16 @@ def declarer(m, acteur, objet="cle_reserve", pulsion=False):
 
 
 class GarderTests(unittest.TestCase):
+    def test_interposition_reveille_aussi_la_garde_endormie(self):
+        m = declarer(interposition.epreuve(), "marchand")
+        lire(m, "marchand")["agendas"][0]["etat"] = "sommeil"
+        avant = copy.deepcopy(m.data)
+        with planification.vues_du_choix(m, "marchand"):
+            self.assertEqual(agendas.planifier(m, "marchand", "a1")[0]["type"], "interposer")
+            self.assertEqual(m.data, avant)
+        m = recharger(m)
+        self.assertEqual(agendas.projets(m, "marchand")[0]["etat"], "actif")
+
     def test_anselme_ballot_agenda_sans_pulsion(self):
         from donjon import banc_pnj
         original = banc_pnj.creer
