@@ -1936,7 +1936,10 @@ def _entrees_communes(v):
         # Une occasion attendue ne garantit pas la fin d'un geste dans l'eau.
         (esprit_["patience"] is None) if v.eau_route else None,
         [k for k in v.connus if porte_par(monde, k, id)],
-        [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()],
+        # Les preuves de fin ne sont pas lues par la recherche. Leur effet sur
+        # les responsabilités passe déjà par gardes/prix_gardes ci-dessous ;
+        # les inclure ici invaliderait un plan sans changer ses moyens.
+        [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items() if a != "fin"],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.

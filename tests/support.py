@@ -54,6 +54,11 @@ def sans_evacues(monde):
         for table in monde.data.values():
             if isinstance(table, dict):
                 table.pop(id, None)
+        # Ce placement d'auteur retire les entités de la scène initiale ; il
+        # ne simule pas leur disparition en partie. Le moteur ne purge plus
+        # les souvenirs à distance d'après le seul registre des objets.
+        for e in monde.data.get("esprits", {}).values():
+            e["croyances"].pop(id, None)
     for o in monde.objets.values():
         if "liens" in o.get("profil", {}):
             o["profil"]["liens"] = {x: a for x, a in o["profil"]["liens"].items() if x in monde.objets or x == "joueur"}

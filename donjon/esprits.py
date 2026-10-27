@@ -878,12 +878,10 @@ def constater_fin_objet(monde, id, sujet, source):
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get("fin")
     if cause and (not ancienne or ancienne["valeur"] != cause):
         croire(monde, id, sujet, "fin", cause, source)
-        reconsiderer(monde, id)
     elif not cause and ancienne:
         # Une réparation ou une réserve reconstituée peut démentir le constat.
         # Cela ne réactive pas les projets déjà terminés.
         del esprit(monde, id)["croyances"][sujet]["fin"]
-        reconsiderer(monde, id)
 
 
 def constater(monde, id, sujet, source):

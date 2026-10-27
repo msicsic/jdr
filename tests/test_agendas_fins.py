@@ -168,3 +168,25 @@ class FinsTests(unittest.TestCase):
         self.assertEqual(entier.data, morceaux.data)
         self.assertEqual(regarder(entier), regarder(recharger(morceaux)))
         self.assertEqual(agendas.projets(entier, "marchand")[0]["raison"], "bien cru detruit")
+
+    def test_preuve_invalide_le_plan_seulement_par_la_responsabilite_lue(self):
+        for objet in ("cle_reserve", "couteau"):
+            for avec_garde in (False, True):
+                with self.subTest(objet=objet, garde=avec_garde):
+                    m = garde(objet)
+                    m.objets[objet]["proprietaire"] = "marchand"
+                    if not avec_garde:
+                        m.objets["marchand"]["profil"]["agendas"] = []
+                        lire(m, "marchand").pop("agendas")
+                    def cle():
+                        with planification.vues_du_choix(m, "marchand"):
+                            return planification._entrees_communes(planification.vue(m, "marchand"))
+                    avant = cle()
+                    # L'objet reste réellement intact : seule sa fin CRUE agit.
+                    croire(m, "marchand", objet, "fin", "detruit", "vu")
+                    apres = cle()
+                    self.assertEqual(avant != apres, avec_garde)
+                    m = recharger(m)
+                    self.assertEqual(regarder(m), regarder(recharger(m)))
+                    if avec_garde:
+                        self.verifier_fin(m, objet, "detruit")
