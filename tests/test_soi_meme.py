@@ -77,8 +77,11 @@ class AccusationTests(unittest.TestCase):
         self.assertTrue(any(s['type'] == 'parole' and s['locuteur'] == locuteur
                             for s in lire(m, tiers)['memoire']))
 
+    @patch('donjon.agendas._naissances', return_value=None)
     @patch('donjon.pnj_propositions.reclamation', return_value=None)
-    def test_ancienne_rumeur_contre_soi_ne_se_retransmet_pas(self, _reclamation):
+    def test_ancienne_rumeur_contre_soi_ne_se_retransmet_pas(self, _reclamation, _naissances):
+        # Comme l'accusation directe : isoler son transport des récupérations
+        # autonomes (réclamation et naissance d'un rachat de son bien).
         for accuse, locuteur, objet in self.cas:
             for type in ('vu_porter', 'intention_lue', 'mensonge_dementi'):
                 with self.subTest(accuse=accuse, type=type):

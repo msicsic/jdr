@@ -47,6 +47,8 @@ class DejaEntenduTests(unittest.TestCase):
         placer(m, "aubin", "antichambre", [2, 5])
         regarder(m, "ilse", "aubin")
         croire(m, "ilse", "aubin", "lieu", "antichambre", "vu", salle="antichambre", case=[2, 5])
+        # L'arrivant est cru affamé : la réserve épuisée lui est utile à savoir.
+        croire(m, "ilse", "aubin", "etat", {"faim": True}, "vu")
         from tests.support import lier
         lier(m, "ilse", "aubin", True)
         ecouler(m, 600)

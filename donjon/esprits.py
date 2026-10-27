@@ -371,7 +371,11 @@ def verifier(monde):
         from .social import DITS_MAX
         assert (isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX
                 and all(isinstance(k, str) and isinstance(v, dict) and {"valeur", "dit_a"} <= set(v)
-                        and set(v) <= {"valeur", "dit_a", "entendu_a", "valeur_inconnue"}
+                        and set(v) <= {"valeur", "dit_a", "entendu_a", "valeur_inconnue", "portee_a"}
+                        and isinstance(v.get("portee_a", {}), dict)
+                        and all(isinstance(a, str) and isinstance(p, list) and len(p) == 2
+                                and p[0] in (0, 1, 2) and p[1] in (-1, 1)
+                                for a, p in v.get("portee_a", {}).items())
                         and isinstance(v.get("valeur_inconnue", False), bool)
                         and isinstance(v["dit_a"], dict) and all(isinstance(a, str) for a in v["dit_a"])
                         and isinstance(v.get("entendu_a", {}), dict)
@@ -448,7 +452,9 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     observations = getattr(monde, "_observations_communes", None)
     if observations is not None and source == "vu" and id in observations:
         observations[id].append({"type": "affirmation", "sujet": sujet,
-                                 "attribut": attribut, "valeur": copy.deepcopy(valeur)})
+                                 "attribut": attribut, "valeur": copy.deepcopy(valeur),
+                                 "details": {k: copy.deepcopy(v) for k, v in lieu.items()
+                                             if k in ("montee", "niveau", "repere")}})
     if attribut == "lieu":
         from .defense import approche_vue
         approche_vue(monde, id, sujet, ancienne or {}, croyance)
@@ -833,17 +839,6 @@ def _perception_commune(monde, id):
     return regards[id]
 
 
-def _visible_ensemble(monde, sujet):
-    """La vue du joueur appartient à la même photographie que celles des PNJ."""
-    regards = getattr(monde, "_regards_communs", None)
-    if regards is None:
-        return monde.visible(sujet)
-    cle = ("visible_joueur", sujet)
-    if cle not in regards:
-        regards[cle] = monde.visible(sujet)
-    return regards[cle]
-
-
 def _observe(monde, champ, croyance):
     """Le lieu où l'on attendait le sujet est-il sous les yeux du PNJ ?
 
@@ -976,8 +971,9 @@ def voir_ensemble(monde, id, sujet, attribut, valeur):
         return
     temoins = [autre for autre in vus if autre in pnjs(monde)
                and sujet in _perception_commune(monde, autre)[0]]
-    if "joueur" in vus and _visible_ensemble(monde, sujet):
-        temoins.append("joueur")
+    # Le champ géométrique du joueur n'atteste pas qu'il a acquis ce fait.
+    # Ses paroles ont une audience enregistrée ; une rotation silencieuse
+    # ne constitue pas une communication publique de son savoir aux PNJ.
     observation_commune(monde, id, {"type": "affirmation", "sujet": sujet,
                                    "attribut": attribut, "valeur": valeur}, temoins, vus=vus)
 
@@ -1279,7 +1275,8 @@ def percevoir_tous(monde):
             for noyau in contenus:
                 faits = faits_dits(noyau)
                 temoins = [autre for autre in observations if autre != id and autre in vus
-                           and noyau["sujet"] in supports[id] & supports[autre]
+                           and (noyau["sujet"] in supports[id] & supports[autre]
+                                or noyau["sujet"] in monde.data["salles"])
                            and all(cle in acquis[autre] and acquis[autre][cle] == valeur
                                    for cle, valeur in faits)]
                 observation_commune(monde, id, noyau, temoins, vus=vus)

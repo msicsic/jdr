@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from donjon import ecoute, pnj, social
-from donjon.esprits import croire, lire
+from donjon.esprits import croire, lire, memoriser
 from donjon.monde import Monde
 from donjon.rendu import regarder
 from donjon.temps import ecouler, instant
@@ -20,6 +20,16 @@ class AvisReditsReelsTests(unittest.TestCase):
         for tranches in ((duree,), (150,) * (duree // 150)):
             with gzip.open(chemin, 'rt', encoding='utf-8') as f:
                 m = recharger(Monde(json.load(f)))
+            # Le contrat porte sur les audiences et les identités, pas sur
+            # l'occasion de bavarder sans utilité : expliciter le projet connu.
+            if scenario == 'mine':
+                for objet in ('lampe_rechange_1', 'lampe_rechange_2'):
+                    memoriser(m, 'josse', {'type': 'engagement_pris', 'pour': 'lucien',
+                                         'condition': {'objet': objet, 'allume': True}})
+            else:
+                for autre in ('aubin', 'ilse', 'marchand'):
+                    memoriser(m, 'brune', {'type': 'engagement_pris', 'pour': autre,
+                                         'condition': {'objet': 'torche', 'allume': True}})
             lignes = []
             rallumages = []
             transmissions = []

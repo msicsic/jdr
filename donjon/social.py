@@ -69,14 +69,22 @@ def faits_dits(noyau):
         return [(_cle([sujet, attribut]), valeur)]
     if t == "intention_lue":
         return [(_cle([noyau["auteur"], "intention"]), {"valeur": "guet", "envers": noyau["objet"]})]
-    if t in ("absence", "mort_vue", "vu_porter"):
+    if t in ("absence", "mort_vue"):
         sujet, attribut, valeur = (noyau["objet"], "etat", {"mort": True}) if t == "mort_vue" else (
             noyau["objet"], "lieu", noyau.get("auteur") if t == "vu_porter" else None)
         return faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur})
-    identite = {k: noyau[k] for k in ("type", "auteur", "objet", "operation", "locuteur", "sujet", "attribut", "victime")
+    identite = {k: noyau[k] for k in ("type", "auteur", "objet", "operation", "locuteur", "sujet", "attribut")
                 if k in noyau}
+    # Le témoin peut juger autrement qui est lésé, sans avoir vu un autre geste.
+    # Une créance sans geste, elle, identifie aussi son créancier.
+    if "victime" in noyau and "operation" not in noyau:
+        identite["victime"] = noyau["victime"]
     valeur = {k: noyau[k] for k in ("montant",) if k in noyau}
     faits = [(_cle(identite), valeur)]
+    if t == "vu_porter":
+        # Le portage matériel n'établit pas le grief sur le droit de porter.
+        faits.extend(faits_dits({"type": "affirmation", "sujet": noyau["objet"],
+                                 "attribut": "lieu", "valeur": noyau["auteur"]}))
     if "lieu" in noyau:
         faits.append((_cle([noyau["objet"], "lieu"]), noyau["lieu"]["valeur"]))
     return faits
@@ -113,6 +121,44 @@ def retenir_dit(monde, id, auditeur, noyau):
         if auditeur in registre[cle]["dit_a"] and registre[cle]["dit_a"][auditeur] != valeur:
             registre[cle].get("entendu_a", {}).pop(auditeur, None)
         registre[cle]["dit_a"][auditeur] = copy.deepcopy(valeur)
+        _retenir_portee(registre[cle], auditeur, noyau)
+
+
+def _portee(noyau):
+    """Conséquence mécanique d'une mesure, distincte de sa précision factuelle."""
+    if noyau.get("attribut") != "eau":
+        return None
+    from .eau import NOYEE_CM
+    cm = noyau["valeur"]
+    vitesse = noyau.get("details", {}).get("montee")
+    return [2 if cm >= NOYEE_CM else 1 if cm > 0 else 0,
+            -1 if vitesse is not None and vitesse < 0 else 1]
+
+
+def _retenir_portee(fait, auditeur, noyau):
+    portee = _portee(noyau)
+    if portee is not None:
+        fait.setdefault("portee_a", {})[auditeur] = portee
+
+
+def _nouveau(monde, id, auditeur, noyau):
+    if deja_dit(monde, id, auditeur, noyau):
+        return False
+    portee = _portee(noyau)
+    if portee is None:
+        return True
+    registre = lire(monde, id)["faits_dits"]
+    for cle, _ in faits_dits(noyau):
+        fait = registre.get(cle, {})
+        connue = fait.get("portee_a", {}).get(auditeur)
+        if connue is None:
+            anciennes = ([fait["dit_a"][auditeur]] if auditeur in fait.get("dit_a", {}) else
+                         fait.get("entendu_a", {}).get(auditeur, [])[-1:])
+            if anciennes:
+                connue = _portee({**noyau, "valeur": anciennes[-1], "details": {}})
+        if connue != portee:
+            return True
+    return False
 
 
 def _audience_connue(monde, locuteur, contenu, geste, observateur=None):
@@ -155,6 +201,7 @@ def _retenir_audience(monde, audience):
                 valeurs = registre[cle].setdefault("entendu_a", {}).setdefault(autre, [])
                 if valeur not in valeurs:
                     valeurs.append(copy.deepcopy(valeur))
+                _retenir_portee(registre[cle], autre, noyau)
 
 
 def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details):
@@ -342,7 +389,7 @@ def _constats(monde, id):
                 if not valeur:
                     continue
             elif not (attribut == "verrouillee" and valeur is True
-                      or attribut == "eau" and valeur > 0):
+                      or attribut == "eau" and valeur >= 0):
                 continue
             noyau = {"type": "constat", "objet": objet, "attribut": attribut,
                      "valeur": valeur, "observe": c["minute"]}
@@ -369,9 +416,9 @@ def _connait_reception(monde, id, noyau):
         from .signes import intentions_lues
         return any(x == noyau["auteur"] and c.get("envers") == noyau["objet"]
                    for x, c in intentions_lues(monde, id))
-    fait = faits_dits(noyau)
-    return any((faits_dits(s) == fait if s["type"] in NOUVELLES
-                else s["type"] == "rumeur" and faits_dits(s["evenement"]) == fait)
+    fait = faits_dits(_fait(noyau))
+    return any((faits_dits(_fait(s)) == fait if s["type"] in NOUVELLES
+                else s["type"] == "rumeur" and faits_dits(_fait(s["evenement"])) == fait)
                for s in lire(monde, id)["memoire"])
 
 
@@ -402,6 +449,63 @@ def observation_commune(monde, id, noyau, temoins, *, vus=None):
             if autre in fait["dit_a"] and fait["dit_a"][autre] != valeur:
                 del fait["dit_a"][autre]
             fait.setdefault("entendu_a", {})[autre] = [copy.deepcopy(valeur)]
+            _retenir_portee(fait, autre, noyau)
+
+
+def _utile(monde, id, autre, noyau):
+    """Ce que le locuteur sait du corps, des biens et des tâches de l'autre.
+
+    Aucune lecture du besoin, du projet ou du plan privé du destinataire.
+    Les engagements ici sont ceux du locuteur et ses conversations retenues.
+    """
+    from .deliberation import part_pour, salle_crue, _connus
+    if noyau["type"] == "avis":
+        # Inclut les rendez-vous convenus, même hors de la salle actuelle.
+        return _concerne(monde, id, autre, noyau["objet"])
+    if noyau["type"] not in ("constat", "avis"):
+        return True  # Les griefs renseignent la confiance, même sans besoin matériel.
+    e = lire(monde, id)
+    objet = noyau["objet"]
+    o = monde.objets.get(objet, {})
+    if objet == autre:
+        return True
+    # Une tâche annoncée ou convenue est une preuve de projet, pas son exécution réelle.
+    for s in [*e["memoire"], *e["engagements"]]:
+        if autre in (s.get("a"), s.get("de"), s.get("pour"), s.get("qui")):
+            condition = s.get("condition", {})
+            if objet in (s.get("objet"), condition.get("objet"), condition.get("lieu")):
+                return True
+    corps = e["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
+    salle = salle_crue(monde, id, autre)
+    if objet in monde.objets:
+        if corps.get("faim") and part_pour(monde, id, objet, "faim"):
+            return True
+        if corps.get("chaleur") and part_pour(monde, id, objet, "chaleur"):
+            from .perception import recharge
+            from .eau import noyee_crue
+            # Du combustible ne sert pas le froid là où aucun foyer n'est
+            # connu ; un autre emploi passe par le projet annoncé ci-dessus.
+            if salle is not None and not noyee_crue(monde, id, salle) and any(
+                    monde.objets[x].get("foyer") and recharge(monde.objets[x], o)
+                    and salle_crue(monde, id, x) == salle
+                    and not e["croyances"].get(x, {}).get("fin") for x in _connus(monde, id)):
+                return True
+    if objet in monde.data["salles"]:
+        # Information d'environnement : sa salle ou un passage qui en part.
+        proches = {salle} | {s for p in monde.objets.values() if p["type"] == "porte"
+                            and salle in p.get("relie", []) for s in p["relie"]}
+        suivi = e["faits_dits"].get(_cle([objet, "eau"]), {})
+        return objet in proches and (noyau.get("attribut") != "eau" or noyau["valeur"] > 0
+                                    or autre in suivi.get("portee_a", {}))
+    if o.get("type") == "porte":
+        return salle in o.get("relie", [])
+    if isinstance(noyau.get("valeur"), dict) and "allume" in noyau["valeur"]:
+        # Un feu sert au froid ; une source éclaire le lieu où il est cru nécessaire.
+        lieu = salle_crue(monde, id, objet)
+        lumiere = e["croyances"].get(salle, {}).get("etat", {}).get("valeur", {})
+        return bool(corps.get("chaleur") and o.get("foyer")
+                    or lieu == salle and lumiere.get("eclairee") is False)
+    return False
 
 
 def _auditeur(monde, id, souvenir, noyau, source):
@@ -411,16 +515,18 @@ def _auditeur(monde, id, souvenir, noyau, source):
     colere = emotion(monde, id)
     accusee = accuse(noyau)
     if (colere and colere["niveau"] >= 20 and colere["contre"] == accusee and accusee in monde.objets
-            and accusee != id and not deja_dit(monde, id, accusee, noyau)
+            and accusee != id and _nouveau(monde, id, accusee, noyau)
             and pourraient_se_parler(monde, id, accusee)):
         return accusee
     for autre in sorted(pnjs(monde), key=lambda x: (-envers(monde, id, x)["affection"], x)):
-        if (autre == id or deja_dit(monde, id, autre, noyau) or autre in (accuse(noyau), source)
+        if (autre == id or not _nouveau(monde, id, autre, noyau) or autre in (accuse(noyau), source)
                 or not monde.objets[autre].get("profil")
                 or monde.objets[autre]["lieu"] != monde.objets[id]["lieu"]
                 or not pourraient_se_parler(monde, id, autre)
                 or (not _concerne(monde, id, autre, noyau["objet"]) if noyau["type"] == "avis"
                     else not se_fie(monde, id, autre))):
+            continue
+        if not _utile(monde, id, autre, noyau):
             continue
         if noyau["type"] == "absence" and _proprietaire(monde, noyau) != autre:
             continue  # Un objet manquant ne regarde que son propriétaire.
