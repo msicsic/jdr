@@ -1017,7 +1017,21 @@ class MJ:
                             "offres": offres_joueur(monde) + (conversation_validee or {}).get("offres", [])}
         # Noms grammaticaux des seuls biens cités par les termes publics :
         # aucune position, possession cachée ni propriété physique ajoutée.
-        biens_offres = set()
+        biens_offres = {c['objet'] for c in faits['comptes']['issue'] if c.get('objet') in monde.objets}
+        parts = dict((conversation_validee or {}).get('parts_comptables', {}))
+        services = []
+        from .agendas import en_cours
+        for c in faits['comptes']['issue']:
+            if not c.get('objet') or c['debiteur'] not in monde.objets: continue
+            for engagement in en_cours(monde, c['debiteur'], objet=c['objet']):
+                condition = engagement['condition']
+                if condition.get('servir') == 'joueur':
+                    parts[c['objet']] = c['objet']
+                    services.append(c['objet'])
+                elif engagement.get('lot'):
+                    parts[c['objet']] = engagement['lot']
+        faits['comptes'].update(parts=parts, services=services)
+        biens_offres.update(parts.values())
         for offre in faits["comptes"]["offres"]:
             for terme in (offre["condition"], offre["contrepartie"]):
                 bien = terme.get("objet") or terme.get("condition", {}).get("objet")
@@ -1026,7 +1040,8 @@ class MJ:
         faits["comptes"]["biens_offres"] = {
             bien: {k: copy.deepcopy(monde.objets[bien][k]) for k in
                    ("nom", "type", "genre", "pluriel", "nom_propre", "elision", "aliases")
-                   if k in monde.objets[bien]} for bien in biens_offres}
+                   if k in monde.objets[bien]} for bien in biens_offres if bien in monde.objets}
+        faits['comptes']['biens_offres'].update((conversation_validee or {}).get('biens_comptables', {}))
         if resultat_resolu is not None:
             from .biens import compte
             from .agendas import contrats
@@ -1143,7 +1158,7 @@ class MJ:
         # Même rendu public pour préparer le MJ et pour afficher l'offre.
         # Les textes techniques d'un échange entre PNJ ne sont pas du récit.
         faits["comptes"]["formulations_offres"] = [
-            " ".join(phrases_comptes({**faits, "comptes": {
+            " ".join(phrases_comptes({**faits, "conversation_validee": {**faits.get("conversation_validee", {}), "offres_conclues": []}, "comptes": {
                 **faits["comptes"], "issue": [], "offres": [o], "offres_a_dire": [o]}}))
             for o in faits["comptes"]["offres"]]
         from .narration import echanges_passes

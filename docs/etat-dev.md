@@ -4,36 +4,36 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-comptes-ecrits-moteur`, **non fusionnée**, lots **180 / 180 b**,
-  base initiale `integration e61cf08`, reprise b sur `885b1c5`. Les comptes
-  sont écrits par le moteur, prouvés exactement et revérifiés à l'enregistrement,
-  repli compris. Depuis b, les paroles comptables compatibles sont admises :
-  grammaire commune des quantités, rôles et états, comparaison avec l'issue et
-  les offres typées, sans rubrique comptable dans l'audit. Le nom « pièce »
-  ne suffit plus à définir un compte. Offres présentées conservées pendant les
-  relances et dans le repli, montants moteur préservés ; contrats et effets
-  inchangés. Contractions/appositions communes et suppression des anciens
-  segments moteur disant le même compte. **Grammaire bornée : identification
-  exhaustive des comptes en français libre non garantie.** Aucune exception
-  de scénario ou de formulation. Les essais 117/117 b/117 c et 168 restent abandonnés.
-  Suite b unique : **2 280 tests, 263 fichiers, 1 360,614 s**, deux échecs MiMo
-  historiques `6 != 5`, deux erreurs corrigées. **172 ciblés verts**, 22 fichiers,
-  91,646 s, puis **51 finaux verts**, huit fichiers, 25,193 s, après raccord du
-  même formateur public à la préparation du MJ et au rendu des offres de service.
-  Aucun nouveau défaut reproduit hors MiMo, aucune seconde suite complète ;
-  deux travailleurs réduits au plus. Console et recharge : salle, Gorm/Aubin,
-  Brune, absence de dette, offres à vingt/trente pièces, montants/rôles/objet
-  de condition incompatibles refusés, texte moteur non doublé.
-  Validation Luna de `885b1c5` jouée par l'orchestrateur sur laptop : quatre
-  scripts en deux passes, 5,08 → 4,71 appels/tour et 19,5 → 18,0 s/tour,
-  mais relances 6,5 → 7,5 et deux saisies en repli ; trois références,
-  une passe : obstacles 4 → 14, relances 3 → 9, 8,4 → 13,4 s/tour.
-  Comptes justes, faux refus lexicaux et offre perdue motivant b.
-  Aucun Luna joué pour b ; commande exacte, contre `cdaf371`, dans
-  `C:/Users/msics/donjon/artifacts/comptes-180/luna-a-jouer.txt` : deux passes
-  comptes/soir-appel/ressources/echanges, une passe relais/crypte/atelier.
-  Bruts exclusivement dans ce dossier. Aucun fichier réservé au lot 179 ni
-  `main` modifié. Aucune clé de signature configurée : commit non signé.
+- Branche `codex-comptes-ecrits-moteur`, **non fusionnée**, lots **180 / b / c**,
+  base initiale `integration e61cf08`, correction c sur `a0fcdb5`.
+  Le narrateur raconte le geste et le ton sans affirmer de compte : garde
+  stricte, seules les répliques citées des PNJ sont comparées aux comptes
+  issue/état/offres typés. Quantités présentées sans transfert inventé,
+  compléments de lieu « pièce » exclus du domaine monétaire.
+  Le moteur écrit une phrase naturelle par compte, à la deuxième personne,
+  avec accords communs et désignations publiques sans apposition ; paiement
+  et livraison réciproque réunis, solde nul et offre conclue non répétés.
+  Provenance typée des textes d'opérations dans `paroles` : les anciens textes
+  comptables sont remplacés sans retirer les autres faits de la même parole.
+  Parts/services et offres préparées utilisent les mêmes noms grammaticaux
+  publics. Preuve exacte, sauvegarde avant affichage, repli et montants conservés.
+  **Grammaire bornée : invariant exhaustif en français libre non garanti.**
+  Aucune exception de scénario ; essais 117/117 b/117 c et 168 abandonnés.
+  Suite c unique : **2 289 tests, 264 fichiers, 1 382,257 s**, uniquement
+  les deux échecs MiMo historiques `6 != 5`, zéro erreur/ignoré. Tests du lot
+  verts, dont six nouveaux tests de rendu naturel ; aucune reprise nécessaire.
+  Console/MJ simulé et recharge : Gorm, Brune, Aubin, achats de deux biens,
+  prime vingt et montant inventé, pied-de-biche « dans cette pièce »,
+  réplique présentative, phrases moteur contrôlées mot pour mot.
+  Validation externe de b (`a0fcdb5` contre `cdaf371`) : comptes deux passes,
+  5,08 → 4,58 appels/tour, 19,5 → 17,6 s/tour, comptes justes mais replis
+  1 → 2 ; références une passe, relances 3 → 6 et refus 8 → 13.
+  Ces mesures motivent c et ne le valident pas. Aucun Luna joué par cet agent ;
+  commandes exactes pour c, mêmes groupes et référence, dans
+  `C:/Users/msics/donjon/artifacts/comptes-180/luna-a-jouer.txt`.
+  Bruts exclusivement dans ce dossier ; au plus deux travailleurs réduits.
+  Aucun fichier réservé au lot 179 ni `main` modifié. Pas de clé de signature
+  configurée : commit non signé sur cette branche.
   [Rapport 180](taches/rapport-codex-180-comptes-ecrits-moteur.md).
 
 - Branche `codex-retenus-apres`, fusionnée, lot **178**, base

@@ -84,9 +84,9 @@ def personnes(faits):
 
 
 def objets_publics(faits):
-    return {**faits.get('comptes', {}).get('biens_offres', {}),
-            **{cle[6:]: o for cle, o in faits.items()
-               if cle.startswith('objet:') and isinstance(o, dict)}}
+    return {**{cle[6:]: o for cle, o in faits.items()
+               if cle.startswith('objet:') and isinstance(o, dict)},
+            **faits.get('comptes', {}).get('biens_offres', {})}
 
 
 def presenter_offres(faits, texte):
@@ -123,7 +123,7 @@ def locuteur(passage, faits):
 
 
 def clauses(texte):
-    return [s.strip() for m in re.finditer(r'([^.;!?]+)([.;!?]|$)', texte)
+    return [s.strip() for m in re.finditer(r'([^.;!?:]+)([.;!?:]|$)', texte)
             if m[2] != '?' for s in re.split(r'\bmais\b', m[1]) if s.strip()]
 
 
@@ -151,6 +151,38 @@ def roles(avant, faits, qui, apres='', preposition='à'):
     return sujet, receveur, bool(pronoms or noms)
 
 
+def comptable(texte, faits):
+    """Domaine grammatical commun ; un complément de lieu n'est pas une monnaie."""
+    for brute in clauses(texte):
+        clause = normaliser(brute)
+        if DETTE.search(clause): return True
+        verbe = VERBES.search(clause)
+        if (verbe and verbe.lastgroup == 'devoir'
+                and re.search(r"\b(?:me|m|te|t|lui|leur)\b", clause[:verbe.start()])
+                and re.search(r'\brien\b', clause[verbe.end():])): return True
+        for unite in re.finditer(r'\bpieces?\b', clause):
+            prefixe = clause[:unite.start()]
+            predicats = list(VERBES.finditer(prefixe))
+            avant_unite = prefixe[predicats[-1].end():] if predicats else prefixe
+            # Prépositions de lieu : elles relient le geste à la salle, jamais
+            # le verbe de transfert à un complément monétaire.
+            locatif = re.search(r'\b(?:dans|parmi|devant|derriere|hors|sur|sous|vers|depuis|autour)\b', avant_unite)
+            if locatif: continue
+            n = montant(clause[:unite.end()])
+            if n is not None and (n != 1 or re.search(r'\b1\s*$', prefixe)):
+                return True
+            if predicats: return True
+        # Les biens dus sont identifiés par le même registre public que les
+        # pièces ; aucune liste d'objets ou de scénarios.
+        ids = {c.get('objet') for c in faits.get('comptes', {}).get('issue', [])
+               + faits.get('comptes', {}).get('etat', []) if c.get('objet')}
+        ids.update(faits.get('comptes', {}).get('parts', {}).values())
+        if verbe and any(ref in ids and any(nom and re.search(r'(?<!\w)' + re.escape(normaliser(nom))
+                + r'(?!\w)', clause) for nom in (o.get('nom', ''), *o.get('aliases', [])))
+                for ref, o in objets_publics(faits).items()): return True
+    return False
+
+
 def lire(texte, faits, qui):
     """Assertions monétaires explicites ; None pour un rôle grammatical ambigu."""
     assertions = []
@@ -169,15 +201,7 @@ def lire(texte, faits, qui):
         unite = bool(re.search(r'\bpieces?\b', clause))
         fragment = re.match(r"([\w -]+?)\s+pieces?\s*(?:,|$)", entete)
         nominal = bool(fragment and nombre(fragment[1]) is not None)
-        # Un nom de salle ou un nombre de pièces sans prédicat monétaire ne
-        # devient pas une dette. Le nominal monétaire est une quantité offerte.
-        absence_personnelle = bool(verbe and verbe.lastgroup == 'devoir'
-            and re.search(r'\b(?:me|m|te|t|lui|leur)\b', entete[:verbe.start()])
-            and re.search(r'\brien\b', entete[verbe.end():]))
-        domaine = bool(DETTE.search(clause) or verbe and (unite or objet in comptes_objets
-                       or verbe.lastgroup == 'payer' or absence_personnelle)
-                       or nominal and offres(faits))
-        if not domaine: continue
+        if not comptable(brute, faits): continue
         if qui is None: return None
         avant = entete[:verbe.start()] if verbe else entete
         genre = verbe.lastgroup if verbe else 'donner'
@@ -193,6 +217,8 @@ def lire(texte, faits, qui):
         condition = bool(re.search(r'\b(?:si|contre)\b', clause))
         etat = ('absent' if negatif else 'du') if genre == 'devoir' or DETTE.search(clause) else (
             'du' if negatif else 'offre' if condition or nominal else 'rendu')
+        if verbe is None and not DETTE.search(clause) and not condition and not nominal:
+            etat = None  # Quantité présentée sans verbe de transfert : ne pas en inventer un.
         if n == 0 and (genre == 'devoir' or DETTE.search(clause)): etat = 'absent'
         if etat == 'absent': n = 0
         assertions.append({'debiteur': sujet, 'creancier': receveur, 'etat': etat,
@@ -214,7 +240,7 @@ def compatibles(a, faits):
             return []
     resultat = []
     for c in candidats:
-        if c.get('etat') != a['etat']: continue
+        if a['etat'] is not None and c.get('etat') != a['etat']: continue
         if a['etat'] == 'offre':
             terme = c['contrepartie']
             if terme['type'] != 'pieces': continue
@@ -241,7 +267,8 @@ def compatibles(a, faits):
                 if a['montant'] is None or a['montant'] == n: resultat.append(c)
             continue
         if c.get('objet'):
-            if c['objet'] != a.get('objet'): continue
+            if (c['objet'] != a.get('objet')
+                    and dossier.get('parts', {}).get(c['objet']) != a.get('objet')): continue
         elif a.get('objet') and not a['monetaire']: continue
         if a['montant'] is None or a['montant'] == c['montant']:
             resultat.append(c)
@@ -249,30 +276,79 @@ def compatibles(a, faits):
 
 
 def phrases(faits):
-    """Une phrase moteur par compte public, offres typées comprises."""
+    """Rendu naturel de l'état final, sans répéter soldes nuls et offres conclues."""
     def personne(ref):
-        if ref == 'joueur': return 'toi'
-        nom = personnes(faits).get(ref, 'une personne')
-        return nom + ',' if ',' in nom and not nom.endswith(',') else nom
-    textes = []
-    for c in faits.get('comptes', {}).get('issue', []):
-        if 'joueur' not in (c['debiteur'], c['creancier']): continue
-        de = groupe_nominal(personne(c['debiteur']), 'de')
-        vers = groupe_nominal(personne(c['creancier']), 'à')
-        if c.get('objet'):
-            bien = faits.get('objet:' + c['objet'], {}).get('nom', 'le bien convenu')
-            q = f"{c['montant']} × {bien}"
-        else:
-            q = quantite(c['montant'], 'pièce')
-        if c['etat'] == 'rendu': texte = f'Remise effectuée : {de} {vers}, {q}.'
-        elif c['etat'] == 'du': texte = f'Reste dû : {de} {vers}, {q}.'
+        return 'toi' if ref == 'joueur' else personnes(faits).get(ref, 'une personne').split(',')[0]
+
+    biens = objets_publics(faits)
+    parts = faits.get('comptes', {}).get('parts', {})
+    services = faits.get('comptes', {}).get('services', [])
+    def quantite_compte(c):
+        o = biens.get(c['objet'])
+        if c['objet'] in parts:
+            parent = biens.get(parts[c['objet']])
+            nom = (parent['nom'] if c['objet'] in services else designer(parent)) if parent else 'le bien convenu'
+            return ('une part' if c['montant'] == 1 else quantite(c['montant'], 'part')) + ' ' + groupe_nominal(nom, 'de')
+        if not o: return 'le bien convenu'
+        return designer(o, article='indefini') if c['montant'] == 1 else quantite(c['montant'], o['nom'])
+
+    issue = faits.get('comptes', {}).get('issue', [])
+    comptes = [c for i, c in enumerate(issue) if c not in issue[:i]
+               and 'joueur' in (c['debiteur'], c['creancier'])]
+    # Le remboursement dit déjà le transfert ; le solde nul n'ajoute pas une
+    # seconde annonce du même règlement.
+    comptes = [c for c in comptes if not (c['etat'] == 'absent' and any(
+        a['etat'] == 'rendu' and a['montant'] > 0 and all(a[k] == c[k] for k in
+        ('debiteur', 'creancier', 'objet')) for a in comptes))]
+    textes, utilises, paiements = [], set(), []
+    for i, c in enumerate(comptes):
+        if i in utilises: continue
+        de, vers = c['debiteur'], c['creancier']
+        nom = personne(de if vers == 'joueur' else vers)
+        q = quantite_compte(c) if c['objet'] else quantite(c['montant'], 'pièce')
+        if c['etat'] == 'rendu':
+            if de == 'joueur':
+                texte = ('Tu remets ' + q if c['objet'] else 'Tu paies ' + q) + ' ' + groupe_nominal(nom, 'à')
+                suite = next(((j, a) for j, a in enumerate(comptes) if j != i and j not in utilises
+                    and a['debiteur'] == vers and a['creancier'] == 'joueur' and a['objet']
+                    and a['etat'] in ('du', 'rendu')), None)
+                if suite:
+                    j, a = suite
+                    verbe = 'servir' if a['objet'] in services else 'remettre'
+                    texte += ', qui ' + ('doit encore te ' + verbe if a['etat'] == 'du' else 'te remet') + ' ' + quantite_compte(a)
+                    utilises.add(j)
+                elif not c['objet']:
+                    paiements.append((len(textes), c))
+            else:
+                texte = groupe_nominal(nom, debut=True) + (' te remet ' if c['objet'] else ' te rend ') + q
+                suite = next(((j, a) for j, a in enumerate(comptes) if j != i and j not in utilises
+                    and not a['objet'] and a['etat'] == 'du' and a['debiteur'] == de
+                    and a['creancier'] == vers), None) if not c['objet'] else None
+                if suite:
+                    j, a = suite
+                    texte += ' et te doit encore ' + quantite(a['montant'], 'pièce')
+                    utilises.add(j)
+        elif c['etat'] == 'du':
+            if c['objet']:
+                verbe = 'servir' if c['objet'] in services else 'remettre'
+                texte = ('Tu dois encore ' + verbe + ' ' + q + ' ' + groupe_nominal(nom, 'à') if de == 'joueur'
+                         else groupe_nominal(nom, debut=True) + ' doit encore te ' + verbe + ' ' + q)
+            else:
+                texte = ('Tu dois encore ' + q + ' ' + groupe_nominal(nom, 'à') if de == 'joueur'
+                         else groupe_nominal(nom, debut=True) + ' te doit encore ' + q)
         elif c['etat'] == 'absent':
-            texte = f"Aucune dette {de} envers {personne(c['creancier'])} pour " + (bien if c.get('objet') else 'les pièces') + '.'
+            if c['objet']:
+                texte = ('Tu ne remets pas ' + q + ' ' + groupe_nominal(nom, 'à') if de == 'joueur'
+                         else groupe_nominal(nom, debut=True) + ' ne te remet pas ' + q)
+            else:
+                texte = ('Tu ne dois aucune pièce ' + groupe_nominal(nom, 'à') if de == 'joueur'
+                         else groupe_nominal(nom, debut=True) + ' ne te doit aucune pièce')
         else:
             from .monde import ErreurMonde
             raise ErreurMonde('Ce compte ne peut pas encore être raconté.',
                               f"comptes.issue.etat : reçu {c['etat']!r} ; du, rendu ou absent")
-        textes.append(texte)
+        textes.append(texte + '.')
+        utilises.add(i)
     dossier = faits.get('comptes', {})
     biens = objets_publics(faits)
     def bien(ref, determine=True):
@@ -298,11 +374,27 @@ def phrases(faits):
         nom = bien(t['objet'], determine=t['type'] != 'part')
         return 'une part ' + groupe_nominal(nom, 'de') if t['type'] == 'part' else nom
     actives = dossier.get('offres_a_dire', offres(faits))
+    conclues = (faits.get('conversation_validee') or {}).get('offres_conclues', [])
+    couvertes = []
+    for indice, c in paiements:
+        candidats = [o for o in offres(faits) if o in conclues
+                     and (o['debiteur'], o['creancier']) == (c['debiteur'], c['creancier'])
+                     and o['contrepartie']['type'] == 'pieces'
+                     and o['contrepartie']['montant'] == c['montant']]
+        if len(candidats) == 1:
+            o = candidats[0]
+            if o['condition']['type'] != 'rien':
+                textes[indice] = textes[indice][:-1] + ' pour ' + terme(o['condition']) + '.'
+            couvertes.append(o)
+    def en_compte(t):
+        return t['type'] != 'tache' or any(k in t['condition'] for k in ('servir', 'remettre'))
     for o in offres(faits):
-        if o not in actives: continue
-        rendu = (f"Offre {groupe_nominal(personne(o['debiteur']), 'de')} "
-                 f"{groupe_nominal(personne(o['creancier']), 'à')} : "
-                 f"{terme(o['contrepartie'])} contre {terme(o['condition'])}.")
+        if o not in actives or o in couvertes: continue
+        if o in conclues and en_compte(o['condition']) and en_compte(o['contrepartie']): continue
+        contre, condition = terme(o['contrepartie']), terme(o['condition'])
+        rendu = (f"Tu offres {contre} {groupe_nominal(personne(o['creancier']), 'à')} contre {condition}."
+                 if o['debiteur'] == 'joueur' else
+                 f"{groupe_nominal(personne(o['debiteur']), debut=True)} t'offre {contre} contre {condition}.")
         if 'joueur' in (o['debiteur'], o['creancier']): textes.append(rendu)
     return list(dict.fromkeys(textes))
 
@@ -311,6 +403,8 @@ def completer(texte, faits):
     from .narration import segments
     moteurs = {s for cle in ('conversation_validee', 'resultat_resolu')
                for t in (faits.get(cle) or {}).get('faits', []) for s in segments(t)}
+    remplaces = {s for cle in ('conversation_validee', 'resultat_resolu')
+                 for t in (faits.get(cle) or {}).get('faits_comptables', []) for s in segments(t)}
     requis = phrases(faits)
     canoniques = list(dict.fromkeys(s for p in requis for s in segments(p)))
     passages = segments(texte)
@@ -318,9 +412,8 @@ def completer(texte, faits):
     for passage in passages:
         # Une ancienne phrase moteur du même compte est remplacée, sans toucher
         # aux paroles libres ni créditer une paraphrase du MJ comme preuve.
-        assertions = lire(passage, faits, locuteur(passage, faits)) if passage in moteurs else []
-        if (passage not in canoniques and assertions and all(compatibles(a, faits) for a in assertions)
-                and not CITATIONS.search(passage)):
+        if (passage not in canoniques and not CITATIONS.search(passage)
+                and (passage in remplaces or passage in moteurs and requis and comptable(passage, faits))):
             continue
         gardes.append(passage)
     presents = set(gardes)
@@ -338,12 +431,16 @@ def controler(texte, faits, partie='texte', locuteurs=None, avant_audit=False):
         citations = CITATIONS.findall(passage)
         qui = locuteur(passage, faits)
         if locuteurs is not None: qui = locuteurs.get(i) or qui
-        extraits = [(CITATIONS.sub('', passage), None)] + [(c, qui) for c in citations]
-        for extrait, auteur in extraits:
-            assertions = lire(extrait, faits, auteur)
-            # Avant l'audit, une attribution absente est différée à son locuteur
-            # typé. L'enregistrement refait la même comparaison avec ce locuteur.
-            if assertions is None and citations and avant_audit: continue
+        narrateur = CITATIONS.sub('', passage)
+        if comptable(narrateur, faits):
+            obstacles.append(audit('Les comptes du narrateur sont écrits par le moteur.',
+                'prose du narrateur sans compte ; conserver les phrases du moteur ; '
+                f"comptes.issue : {faits.get('comptes', {}).get('issue', [])}",
+                partie=partie, segment=i, texte=passage, recu=narrateur))
+        for extrait in citations:
+            if not comptable(extrait, faits): continue
+            assertions = lire(extrait, faits, qui)
+            if assertions is None and avant_audit: continue
             if assertions is None or any(not compatibles(a, faits) for a in assertions):
                 obstacles.append(audit('Ce compte ne correspond pas aux comptes du moteur.',
                     f"comptes.issue : {faits.get('comptes', {}).get('issue', [])} ; "

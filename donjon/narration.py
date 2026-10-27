@@ -392,9 +392,10 @@ Ne reproduis aucune phrase refusée. Appelle la fonction demandée une fois.
 """
 
 REGLE_NARRATION = """
-Les comptes et offres ont leur texte moteur. Hors des répliques citées, ne les reformule
-pas. Une parole de PNJ peut les évoquer si son sens, ses montants et ses conditions
-restent compatibles avec l'issue et les offres fournies ; elle ne crée aucun effet.
+Le narrateur raconte le geste et le ton, sans affirmer aucun compte : le moteur écrit
+les comptes et les offres. Seules les répliques citées des PNJ peuvent les évoquer,
+avec un sens, des montants et des conditions compatibles avec l'issue et les offres
+fournies ; elles ne créent aucun effet.
 Ce que tu affirmes sur l'état mécanique (objets, personnages, positions, passages, possession,
 ressources, lumière, missions, résultats) doit découler des faits fournis ; pour créer un
 élément mécanique, propose un fait persistant lorsque ce mode est disponible. L'ambiance

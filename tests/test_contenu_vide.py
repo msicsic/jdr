@@ -54,7 +54,7 @@ class ContenuVideTests(unittest.TestCase):
     def test_prime_et_autre_condition_mecanique_refusees_meme_classees_parole(self):
         for nom, saisie, citation, audit_faux in [
             ('crypte', "Gorm, combien me donnes-tu pour l'anneau ?", "Je te donnerai 10 pièces d'or si tu me rapportes l'anneau.", False),
-            ('sous-obstacle-auberge', 'Quel est le prix du repas ?', 'Le repas coûte 73 pièces.', True)]:
+            ('sous-obstacle-auberge', 'Quel est le prix du repas ?', 'Le repas coûte 73 pièces.', False)]:
             with self.subTest(nom=nom):
                 from donjon.monde import nouveau_monde
                 m = nouveau_monde() if nom == 'crypte' else banc(nom)
@@ -69,8 +69,8 @@ class ContenuVideTests(unittest.TestCase):
                 faux = ligne('parole', locuteur=cible, citation=citation)
                 faux.update(portee_mecanique='sans_fondement', motif='Condition mécanique sans décision du moteur.')
                 bonne = 'Je ne peux pas te donner ces conditions.'
-                # Le prix descriptif reste un fait mécanique de l'audit ordinaire ;
-                # l'offre incompatible est refusée par la garde comptable avant lui.
+                # Le montant monétaire et l'offre incompatibles sont refusés
+                # par la garde comptable avant l'audit ordinaire.
                 audits = ([rapport(faux)] if audit_faux else []) + [
                     rapport(ligne('parole', locuteur=cible, citation=bonne))]
                 r, sortie, appels = jouer(m, saisie, [parole(saisie, personnage=cible),

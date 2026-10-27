@@ -43,11 +43,11 @@ class ComptesMoteurTests(unittest.TestCase):
                  "interlocuteurs": {"personne_9": {"nom": "la voix grave"}}}
         avant = copy.deepcopy(faits)
         texte = completer("", faits)
-        self.assertIn("la voix grave", texte)
+        self.assertIn("la voix grave", texte.lower())
         self.assertNotIn("personne_9", texte)
         self.assertFalse(controler(texte, faits))
         self.assertTrue(segments_etablis(texte, faits))
-        for modifie in (texte.replace("7", "8"), texte.replace("à toi", "à elle"),
+        for modifie in (texte.replace("7", "8"), texte.replace("te rend", "lui rend"),
                         "« Je te rends sept pièces. »"):
             with self.subTest(texte=modifie):
                 self.assertTrue(controler(modifie, faits))

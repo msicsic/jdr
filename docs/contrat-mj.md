@@ -348,42 +348,43 @@ monétaire ne conclut rien sur les objets prêtés. Le contenu `reclamer` conser
 le destinataire doit à Corvus ; une question d'existence ainsi typée peut déclencher le
 règlement existant, elle n'est pas devenue une consultation sans effet.
 
-**Comptes écrits par le moteur et paroles compatibles (lots 180 et 180 b).**
-`comptes_narratifs.phrases` écrit les comptes publics `du`, `rendu`, `absent`
-et les offres présentées. Le rendu emploie les contractions et accords communs ;
-une apposition nominale est refermée. Les noms viennent du dossier public,
-sans déduction d'identité privée. Une ancienne phrase moteur reconnue comme
-disant le même compte est remplacée par ce rendu, sans doubler son énoncé.
-Les textes suivent la transaction ordinaire, sauvegardée avant affichage.
-`textes_etablis/segments_etablis` recalculent leur preuve exacte, et `consigner`
-refait les contrôles avant enregistrement. Le repli conserve ces mêmes textes.
+**Comptes écrits par le moteur et paroles compatibles (lots 180, b et c).**
+`comptes_narratifs.phrases` écrit une phrase naturelle à la deuxième personne
+par compte public ou offre présentée. Paiement et livraison réciproque sont
+réunis ; un remboursement remplace son solde nul. Les désignations publiques
+sans apposition et les accords communs évitent le rendu en fiche technique.
+La préparation de la parole marque les textes des opérations ayant produit
+les effets comptables typés : `completer` les remplace, sans retirer les faits
+des autres opérations de la même parole. Les parts gardent le nom grammatical
+de leur lot d'origine. Les offres déjà conclues et couvertes ne sont pas répétées.
+Aucun mécanisme d'échange ni état du monde n'est modifié par ce rendu.
 
-Le schéma d'audit ne contient plus `comptes` ; ses anciens champs sont ignorés.
-Hors citation, un compte doit venir du moteur. Une réplique citée de PNJ peut
-exprimer un compte compatible avec les comptes et offres fournis. Sa lecture
-locale compare les rôles, les états et les montants reconnus ; elle distingue
-la proposition principale et la condition d'une offre. Le locuteur vient de
-l'attribution publique ou du champ de parole déjà contrôlé par l'audit ordinaire.
-Une divergence reçoit un refus et un `attendu`, revérifiés à l'enregistrement.
-Une parole n'établit toujours pas la vérité de son contenu et ne crée aucun effet.
+Le narrateur raconte le geste et le ton, sans affirmer de compte. Sa garde
+est stricte : aucune comparaison de paraphrase avec l'issue. Seules les
+répliques citées des PNJ sont comparées aux comptes `issue`/`etat` et aux offres
+typées : rôles, montant, état et condition reconnus. Une quantité présentée
+sans prédicat n'invente pas un nouveau transfert. L'attribution publique du
+locuteur reste contrôlée par les mécanismes ordinaires. Chaque divergence
+porte un `attendu`. Une parole établit qu'elle a été entendue, sans créer
+d'effet ni établir la vérité de son contenu.
 
-Le nom « pièce » ne suffit pas à définir un compte. La garde recherche un
-prédicat comptable avec son objet ou un montant dans un contexte monétaire.
-Les questions ne sont pas des assertions. Les obligations modales sans compte
-restent du ressort de l'audit ordinaire. Une offre présentée est sélectionnée
-parmi les seules offres typées, avec leur montant moteur, et reste dans le
-dossier du tour pendant les relances ; une réplique incorrecte suivie d'un repli
-ne peut donc faire disparaître l'offre déjà présentée.
-Les libellés d'offres de la préparation du MJ et de l'affichage utilisent le
-même formateur public, y compris les prestations promises au joueur. Ils
-n'emploient pas tels quels les textes techniques d'un échange entre PNJ.
+Le nom « pièce » seul et ses compléments de lieu ne sont pas des comptes.
+Le domaine recherche un montant monétaire ou un prédicat de transfert/dette
+avec son objet ; les questions et obligations modales sans compte restent
+hors de cette garde. Une offre présentée conserve son montant moteur pendant
+les relances et le repli. Les formulations préparées et affichées utilisent
+le même formateur public ; une offre conclue est rendue par son issue.
 
-**Limite.** Cette lecture est une grammaire bornée, pas une compréhension
-universelle du français. Les constructions implicites ou complexes hors de
-cette grammaire peuvent encore échapper au contrôle ou rester ambiguës ;
-l'identification exhaustive des comptes en prose libre n'est pas garantie.
-Les autres contrôles mécaniques restent en partie sémantiques. Les essais
-117/117 b/117 c et 168 demeurent abandonnés.
+Les textes suivent la transaction sauvegardée avant affichage. Leur présence
+est obligatoire, leur preuve exacte recalculée par `textes_etablis/segments_etablis`,
+et leurs contrôles répétés par `consigner`, repli compris. Le schéma d'audit
+ne contient plus `comptes` ; ses anciens champs sont ignorés.
+
+**Limite.** La reconnaissance grammaticale reste bornée : les constructions
+implicites ou complexes hors de cette grammaire peuvent échapper au contrôle
+ou rester ambiguës. L'identification exhaustive des comptes en français libre
+n'est pas garantie. Les autres contrôles mécaniques restent en partie
+sémantiques. Les essais 117/117 b/117 c et 168 demeurent abandonnés.
 
 **Comptes de l'issue** (`codex-comptes-issue`, lot 73). Les paiements et remises
 sont collectés par leurs opérations, dans la copie transactionnelle de la conversation ;

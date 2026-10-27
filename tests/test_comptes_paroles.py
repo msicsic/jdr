@@ -86,8 +86,7 @@ class ComptesParolesTests(unittest.TestCase):
                 ancien = faits['conversation_validee']['faits'][0]
                 texte = completer(ancien, faits)
                 self.assertNotIn(ancien, texte)
-                self.assertEqual(texte.count('Aucune dette'), 1)
-                self.assertIn("d'" + nom + ', envers', texte)
+                self.assertEqual(texte, nom.split(',')[0] + ' ne te doit aucune pièce.')
                 self.assertEqual(completer(texte, faits), texte)
                 self.assertFalse(controler(texte, faits))
 
@@ -161,7 +160,7 @@ class ComptesParolesTests(unittest.TestCase):
                 for texte in faits['comptes']['formulations_offres']:
                     self.assertIn('pour toi', texte)
                     self.assertNotIn(nom, texte)
-                    self.assertIn(texte, sortie)
+                    self.assertNotIn(texte, sortie)
                 self.assertEqual(r.joueur['or'], avant - 3)
                 self.assertTrue(livraisons_dues(recharger(r)))
                 self.assertEqual(recharger(r).data, r.data)
