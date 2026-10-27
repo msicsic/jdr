@@ -61,11 +61,56 @@ class ForceLunaTests(unittest.TestCase):
             plan = Moteur(m).preparer(proposition('trainer', c, direction))
             nom = m.data['salles'][salle]['nom']
             self.assertIn(nom, plan.information)
+            self.assertIn(nom, plan.titre)
+            dossier = entree('je traîne ce corps ici', plan, m)
+            self.assertNotIn('\"' + salle + '\"', json.dumps(dossier, ensure_ascii=False))
             self.assertIn(nom, entree('je traîne ce corps ici', plan, m)['plan']['information'])
             texte = Moteur(m).executer(plan)
             m = recharger(m)
             self.assertEqual(m.objets[c]['lieu'], salle)
             self.assertIn('traîné', texte)
+            self.assertEqual(regarder(m), regarder(recharger(m)))
+
+    def test_dossier_portes_personnes_et_lieux_sans_mutation(self):
+        from donjon.couverture_action import entree, verifier, _nommer_lieux
+        self.assertEqual(_nommer_lieux({"texte": "bureau", "nom": "bureau"}, scene_enfermer()[0]),
+                         {"texte": "bureau", "nom": "bureau"})
+        from donjon.operations import etape
+        for cible, salle in (("bram", "bureau"), ("remy", "reserve")):
+            m, porte = scene_enfermer(cible, salle)
+            deplacer(m, "passe", "joueur")
+            m.objets[porte].update(ouverte=True, verrouillee=False)
+            from tests.test_tensions import placer
+            from donjon.spatial import memoriser
+            placer(m, cible, salle, (1, 1))
+            position = copy.deepcopy(m.joueur)
+            m.joueur.update(salle=salle, position=[2, 1])
+            memoriser(m)
+            m.joueur.update(position)
+            percevoir_tous(m)
+            m = recharger(m)
+            p = {"action": "composer", "justification": ""}
+            p["etapes"] = [etape("fermer", porte), etape("verrouiller", porte, outil="passe")]
+            plan = Moteur(m).preparer(p)
+            avant = copy.deepcopy(m.data)
+            dossier = entree("j’enferme cette personne", plan, m)
+            self.assertEqual(m.data, avant)
+            fermeture = dossier["plan"]["etapes"][0]
+            self.assertEqual(fermeture["effets_reussite"][0][0], "fermer")
+            self.assertEqual(fermeture["passages"][0]["operation"], "fermer")
+            passages = dossier["plan"]["etapes"][1]["passages"]
+            piece = next(x for x in passages if x["lieu"].endswith("(" + salle + ")"))
+            self.assertIn(m.objets[porte]["nom"].lower(), piece["porte"].lower())
+            self.assertTrue(any(cible in x for x in piece["personnes_connues"]))
+            self.assertEqual(piece["issues_connues_avant"], [{"porte": piece["porte"], "verrouillee": False}])
+            verifier({"conforme": True, "motif": "porte fermée et verrouillée"}, plan)
+            with self.assertRaises(ErreurMonde):
+                verifier({"conforme": False, "motif": "la demande exige de rouvrir"}, plan)
+            m, texte = console(m, p, "j’enferme cette personne", "--mine")
+            self.assertTrue(m.objets[porte]["verrouillee"])
+            self.assertFalse(m.objets[porte]["ouverte"])
+            self.assertEqual(m.objets[cible]["lieu"], salle)
+            self.assertIn("verrouill", texte)
             self.assertEqual(regarder(m), regarder(recharger(m)))
 
     def test_prendre_lier_delier_liberer_et_tuer_via_console(self):

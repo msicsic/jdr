@@ -440,6 +440,8 @@ def preparer(monde, p, plan):
         raise ErreurMonde("Cette manière n'est pas prévue.", f"methode={p['methode']} : simple requis.")
     if operation == "trainer":
         depart, _, _ = valider_trajet(monde, "joueur", cible, outil)
+        # Repère de lecture calculé sur le même trajet validé ; aucun effet ni état ajouté.
+        plan.destination_corps = depart[0]
         plan.information = ("En cas de réussite, le corps rejoint ta case de départ dans "
                             f"{monde.data['salles'][depart[0]]['nom']} ; tu avances d'un pas vers {outil}.")
     else:
@@ -448,6 +450,8 @@ def preparer(monde, p, plan):
     plan.titre = {"tuer": f"Tuer {nom} ({5 if outil else 30} secondes, sans jet).", "trainer": f"Traîner {nom} vers {outil} (4,5 secondes par case).", "saisir": f"Saisir {nom} : FOR contre FOR ou DEX, défense 10 par surprise.",
                   "ligoter": f"Ligoter {nom} (30 secondes).", "delier": f"Délier {nom} ({3 if outil else 10} secondes).",
                   "liberer": "Défaire tes liens : DEX contre 18, dix minutes."}[operation]
+    if operation == "trainer":
+        plan.titre += " " + plan.information
     plan.minutes, plan.dixiemes, plan.confirmation = 0, (50 if operation == "tuer" and outil else 30 if operation == "delier" and outil else DUREES[operation]), True
     tourner = 0
     if operation == "trainer":
