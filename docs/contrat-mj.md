@@ -994,6 +994,19 @@ sémantiques ; l'invariant général n'est pas garanti pour toute formulation li
 
 ## Refus et échecs
 
+**Portée locale** (lot 151, `codex-portee-locale`). Une proposition refusée par
+`HorsDePortee` reçoit directement `reponse_du_moteur(exc)` : le joueur lit
+le message exact « Approche-toi… », sans explication de Luna ni audit narratif.
+Le refus conserve son `attendu` dans la trace destinée au MJ seulement. Aucun
+rapprochement, geste, jet ou temps écoulé ; seul le joueur choisit ses pas.
+La saisie et la réponse restent dans l'historique habituel. Les autres refus
+gardent leur correction ordinaire ; une parole attendue conserve sa voie moteur.
+Le contrôle de perception et de désignation précède toujours la portée.
+Limite : la préparation s’arrête au premier refus ; elle ne recense pas toutes
+les cibles éloignées d’une proposition composée. Les contrôles situés après
+ce refus n’attestent pas non plus que toute la suite serait valide au contact.
+
+
 **Opérations de parole contestées** (lot 104). Une contre-revue qui refuse le
 sens du contenu ne confirme pas les opérations présentes dans ce contenu,
 même si elle les coche aussi dans `operations_demandees`. Elles restent des

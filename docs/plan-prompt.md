@@ -50,7 +50,10 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
   `suite` nullable dans une seule branche ; la question de faisabilité garde son contrat.
 - **L3** — consignes invariantes : règles d'atelier, d'obstacles, de franchissement et d'espace condensées dans le socle.
 - **L4** — dossiers bornés à la perception et à la proximité ; repère sans affordance pour ce qui est loin.
-- **L5** — refus local de `HorsDePortee`, sans appel au MJ.
+- **L5 (lot 151, partiellement réalisé sur `codex-portee-locale`, non fusionnée)** — refus local de
+  `HorsDePortee`, réponse exacte du moteur sans explication ni audit ; aucun déplacement automatique.
+  Limite : la préparation s’arrête à la première cible hors de portée ; le recensement de toutes les cibles
+  d’une proposition composée n’est pas garanti.
 - **L6** — dégraissage des consignes (doublons socle/règles), relances mesurées.
 - **L7** — catalogues d'écriture à la demande et surfaces génériques paresseuses.
 - **L8** — `destination: "sol"`.
