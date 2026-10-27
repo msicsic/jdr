@@ -131,10 +131,7 @@ def devis_service(monde, id, condition, pour):
 
 def valeur_proposition(monde, auditeur, terme, pour, *, devis=None):
     """Prix propre, en minutes ; les tâches sont chiffrées par le plan cru de l'auditeur."""
-    from .biens import prix
     from .caractere import valeur_pieces
-    from .deliberation import besoin_de_part, parts
-    from .vol import proprietaire
     t = terme["type"]
     if t == "rien":
         return 0.0
@@ -143,20 +140,8 @@ def valeur_proposition(monde, auditeur, terme, pour, *, devis=None):
     if t == "tache":
         trouve = _devis_proposition(monde, auditeur, terme["condition"], pour, devis)
         return None if trouve is None else trouve[0]
-    # Le prix est une donnée de valeur, pas une lecture de l'état caché du bien.
-    objet = terme["objet"]
-    montant = prix(monde, objet, t == "part")
-    if t == "objet" and "pieces" in monde.objets[objet]:
-        crue = croyance(monde, auditeur, objet, "pieces")
-        n = monde.objets[objet]["pieces"] if proprietaire(monde, monde.objets[objet]) == auditeur else (crue["valeur"] if crue else 0)
-        montant = (montant or PRIX_SANS_PRIX) + n
-    if montant is None and t == "objet" and besoin_de_part(monde.objets[objet]) is not None:
-        # Il compte sa propre réserve ; la quantité cachée chez l'autre ne nourrit pas son jugement.
-        quantite = parts(monde.objets[objet]) if proprietaire(monde, monde.objets[objet]) == auditeur else 1
-        montant = quantite * (prix(monde, objet, True) or PRIX_SANS_PRIX)
-    # Céder un bien ne retire aucune pièce de sa bourse : même sans argent, un
-    # outil ou une clé garde sa valeur. ``depense`` plafonne au numéraire possédé.
-    return valeur_pieces(monde, auditeur, montant if montant is not None else PRIX_SANS_PRIX)
+    from .biens import valeur_bien
+    return valeur_bien(monde, auditeur, terme["objet"], t == "part")
 
 
 def _livraison_proposition(monde, donneur, receveur, terme):
@@ -188,9 +173,20 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie, *, de
     arret = accueil(monde, proposant, auditeur)
     if arret:
         return {"cause": arret}
+    # Une tâche promise ne vaut que si elle sert un but réellement cru de l'auditeur.
+    buts = [x["condition"] for x in (monde.objets[auditeur].get("profil") or {}).get("pulsions", [])]
+    buts += [x["condition"] for x in agendas.en_cours(monde, auditeur, actifs=True)]
+    g = valeur_proposition(monde, auditeur, contrepartie, auditeur, devis=devis)
+    if contrepartie["type"] == "tache" and contrepartie["condition"] not in buts:
+        g = 0.0
+    if g is None:
+        g = 0.0  # Aucun moyen cru : il ne compte pas sur ce service.
+    r = percue(monde, auditeur, proposant)
+    if contrepartie["type"] == "tache":
+        g *= r["confiance"] / 100
     if demande["type"] in ("objet", "part"):
         objet = demande["objet"]
-        if demande["type"] == "objet" and necessaire(monde, auditeur, objet):
+        if demande["type"] == "objet" and necessaire(monde, auditeur, objet, contrevaleur=g, cession=True):
             return {"cause": "necessaire"}
         if garde(monde, auditeur, monde.objets[objet]):
             return {"cause": "garde"}
@@ -216,17 +212,6 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie, *, de
                 for x in (e.get("cible"), e.get("outil")):
                     if x in monde.objets and garde(monde, auditeur, monde.objets[x]):
                         return {"cause": "garde"}
-    # Une tâche promise ne vaut que si elle sert un but réellement cru de l'auditeur.
-    buts = [x["condition"] for x in (monde.objets[auditeur].get("profil") or {}).get("pulsions", [])]
-    buts += [x["condition"] for x in agendas.en_cours(monde, auditeur, actifs=True)]
-    g = valeur_proposition(monde, auditeur, contrepartie, auditeur, devis=devis)
-    if contrepartie["type"] == "tache" and contrepartie["condition"] not in buts:
-        g = 0.0
-    if g is None:
-        g = 0.0  # Aucun moyen cru : il ne compte pas sur ce service.
-    r = percue(monde, auditeur, proposant)
-    if contrepartie["type"] == "tache":
-        g *= r["confiance"] / 100
     # Une demande peut elle-même réaliser un but : le gain est le devis évité, sans vérité cachée.
     if demande["type"] == "tache" and demande["condition"] in buts:
         g += p
@@ -301,6 +286,10 @@ def anticiper_valeur(monde, proposant, autre, demande, contrepartie):
     crues = lire(monde, proposant)["croyances"]
     m.data["esprits"][autre]["croyances"] = crues
     for i, o in m.objets.items():
+        # L'estimation marginale ne doit pas découvrir les outils cachés de
+        # l'autre par son inventaire réel. Même projection que ses croyances.
+        if o.get("mobile"):
+            o["lieu"] = crues.get(i, {}).get("lieu", {}).get("valeur")
         if "pieces" in o:
             o["pieces"] = crues.get(i, {}).get("pieces", {}).get("valeur", 0)
             # La richesse liquide adverse est inconnue, même si une bourse est visible.
@@ -463,10 +452,24 @@ def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
     return "crue"
 
 
-def necessaire(monde, auditeur, objet):
-    """Un objet qui sert son plan en cours ou une de ses pulsions (l'objet, sa clé) n'est pas
-    prêté, ni la source qui l'éclaire quand il a besoin d'y voir (``deliberation.lumiere_utile``).
-    Le plan qui le rend à son propriétaire ne compte pas : ce n'est pas s'en servir."""
+def necessaire(monde, auditeur, objet, *, contrevaleur=0, cession=False):
+    """Réserve de capacité non compensée, emploi courant ou pulsion (objet, clé).
+
+    Le plan de restitution n'est pas un usage ; lumière utile et gardes
+    immédiates restent protégées indépendamment du montant offert.
+    """
+    from .biens import valeur_bien, capacites_crues
+    from .caractere import valeur_pieces
+    # Sans capacité perdue, le prix seul ne rend pas un objet nécessaire.
+    # Une contrepartie peut compenser cette perte, hors des gardes du plan.
+    # Un prêt/restitution conserve le titre et son retour attendu ; ce n'est
+    # pas une perte durable. Son emploi immédiat reste contrôlé ci-dessous.
+    if cession and capacites_crues(monde, auditeur, objet):
+        from .biens import prix
+        marchande = valeur_pieces(monde, auditeur, prix(monde, objet) or PRIX_SANS_PRIX)
+        estimee = valeur_bien(monde, auditeur, objet)
+        if estimee > max(marchande, contrevaleur):
+            return True
     intention = lire(monde, auditeur)["intention"]
     if (intention and "rendre" not in intention["but"]
             and any(objet in (e["cible"], e["outil"]) for e in intention["plan"])):
@@ -605,6 +608,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     achat : accepté sans se faire prier, payé aussitôt. Moins, c'est une demande, que le prix non
     payé rend plus dure à qui une pièce compte (``biens.reticence``). Une voix qu'il ne sait à qui
     prêter s'entend d'abord demander qui va là, qu'elle offre de payer ou réclame son bien."""
+    from .caractere import valeur_pieces
     from .biens import prix as prix_de, reticence, richesse
     from .deliberation import besoin_de_part
     from .planification import devis_pulsion
@@ -692,7 +696,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     if not porte_par(monde, objet, auditeur):
         # Un objet à lui qu'il ne porte pas, acheté à son prix : il s'engage à l'aller chercher et à le
         # remettre ; payé d'avance, non remis à l'échéance, le prix est dû (``engagements_echus``).
-        if necessaire(monde, auditeur, objet) or garde(monde, auditeur, o):
+        if necessaire(monde, auditeur, objet, contrevaleur=valeur_pieces(monde, auditeur, prix) if vente else 0, cession=vente) or garde(monde, auditeur, o):
             return "necessaire"
         condition = {"objet": objet, "remettre": demandeur}
         engagements = agendas.en_cours(monde, auditeur)
@@ -708,7 +712,7 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
         _vendre(monde, auditeur, demandeur, objet, prix)
         return "vendu"
     # Prêter ce qui se consomme, c'est en donner les parts : il n'en prête pas ce qu'il garde.
-    if necessaire(monde, auditeur, objet) or garde(monde, auditeur, o):
+    if necessaire(monde, auditeur, objet, contrevaleur=valeur_pieces(monde, auditeur, prix) if vente else 0, cession=vente) or garde(monde, auditeur, o):
         return "necessaire"
     if not vente and not accord and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
         return "refus"

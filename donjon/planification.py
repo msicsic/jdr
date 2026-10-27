@@ -1371,7 +1371,11 @@ def gestes(v, e, vises=None, but=None):
         illicite_, faute, mal, touche_droit, faute_conso, mal_conso, touche_conso = droits[o]
         touche = ([(("touche", contenant), True)] if contenant else []) + touche_droit
         # Prendre ce qu'un geste sait employer : clé, outil, vivres, combustible, flamme portable.
-        utile = (v.utile[o] or o in v_prendre) and o in a_porter and not superflu
+        # La mobilité nominale ne dispense pas du retrait/démontage/déliage.
+        # Aucun moyen de prise, achat, prêt ou saisie ne peut escamoter cette
+        # opération préalable ; ces états structurels sont dans _entrees.
+        transportable = not (x.get("installation") or x.get("incorpore") or x.get("entrave"))
+        utile = (v.utile[o] or o in v_prendre) and o in a_porter and not superflu and transportable
         # Une source de plus, sans capacité que n'aient déjà celles qu'il porte : rien ne l'acquiert.
         if utile and v.doublon(e, o, noms_vises, v_entretenir):
             utile = False
@@ -3042,29 +3046,32 @@ def enrichir(monde, id):
     return resultat[1:] if resultat else None
 
 
-def devis_enrichissement(monde, id):
-    """(coût, but, étapes) pour prendre des pièces (un objet qu'il croit en contenir, qui n'est pas à lui)
-    qui valent pour lui plus que ce qu'il en coûte d'aller les prendre, faute comprise ; None sinon.
-    L'argent ne presse jamais : aucune détresse n'use le prix de la faute (``caractere.ARGENT``).
+def devis_enrichissement(monde, id, *, pieces_seules=False):
+    """Acquérir un bien connu dont la valeur commune dépasse chemin et faute.
 
-    Il compte les pièces qu'il croit dedans (croyance ``pieces`` : su en la tenant, ou un savoir
-    du scénario), jamais celles qui y sont : une bourse dont il ne sait rien ne le tente pas."""
-    from .caractere import ARGENT, interdit, prix_faute, valeur_pieces
+    Le but historique « argent » désigne aussi les biens sans numéraire ;
+    aucune valeur cachée ni contenu inconnu ne participe au devis.
+    """
+    from .biens import valeur_bien, permis
+    from .caractere import ARGENT, interdit, prix_faute
     from .vol import proprietaire
     if not profil(monde, id):
         return None
-    crues = {o: _cru(monde, id, o, "pieces") for o in _connus(monde, id)}
+    crues = {o: valeur_bien(monde, id, o) for o in _connus(monde, id)
+             if monde.objets[o].get("mobile") and monde.objets[o]["type"] not in ("personnage", "depouille")
+             and (not pieces_seules or _cru(monde, id, o, "pieces"))}
     if not any(crues.values()):
         return None
     faute = prix_faute(monde, id, ARGENT)
     # Ce qu'il ne peut prendre (son honnêteté l'interdit, la faute passe l'enjeu), ou qui vaut moins
     # que la seule faute de le prendre, ne se cherche pas : aucun plan n'en vaudrait la peine. Jugé sur
-    # les seules bourses crues, par les lectures de la vue (``Vue.illicite``, ``Vue.autorise``) : la vue
-    # entière ne se construit que s'il en reste une à chercher.
+    # les seuls biens connus, par les lectures de la vue (``Vue.illicite``, ``Vue.autorise``) : la vue
+    # entière ne se construit que s'il en reste un à chercher.
     honnete, confies = interdit(monde, id, "honnetete"), {}
-    bourses = []
+    cibles = []
     for o, n in crues.items():
         if (not n or proprietaire(monde, monde.objets[o]) == id or porte_par(monde, o, id)
+                or not _cru(monde, id, o, "pieces") and permis(monde, id, o, confies=confies)
                 or not _disponible_cru(monde, id, o)):
             continue
         lese = illicite(monde, id, o, confies=confies)
@@ -3074,20 +3081,27 @@ def devis_enrichissement(monde, id):
         emprunt = (porteur == proprietaire(monde, monde.objets[o])
                    and porteur in _connus(monde, id)
                    and bool(profil(monde, porteur)))
-        if emprunt or not (lese and honnete) and (not lese or faute is not None and valeur_pieces(monde, id, n) > faute):
-            bourses.append(o)
-    if not bourses:
+        if (emprunt and _cru(monde, id, o, "pieces")
+                or not (lese and honnete) and (not lese or faute is not None and n > faute)):
+            cibles.append(o)
+    if not cibles:
         return None
-    bourses = tuple(bourses)
+    cibles = tuple(cibles)
     v = vue(monde, id)
-    trouve = chercher(monde, id, lambda v, e: any(b in e.portes for b in bourses), {"prendre": bourses},
+    def acquis(e, b):
+        # Un prêt non monétaire ne crée pas de patrimoine. Les besoins qui
+        # emploient l'outil savent l'emprunter ; la convoitise exige l'acquisition.
+        return b in e.portes and (bool(_cru(monde, id, b, "pieces"))
+                                 or not e.fait("permis", b) or e.fait("achete", b))
+
+    trouve = chercher(monde, id, lambda v, e: any(acquis(e, b) for b in cibles), {"prendre": cibles},
                       nom="argent", memo=["argent"], emplois=(), motif=ARGENT)
     if trouve is None:
         return None
     cout, etapes, e = trouve
-    pris = next(b for b in bourses if b in e.portes)
-    if valeur_pieces(monde, id, crues[pris]) <= cout:
-        return None  # Ces pièces ne valent pas, pour lui, ce qu'il lui en coûterait.
+    pris = next(b for b in cibles if acquis(e, b))
+    if crues[pris] <= cout:
+        return None  # Ce bien ne vaut pas, pour lui, ce qu'il lui en coûterait.
     return cout, {"type": "argent", "objet": pris}, retablir(v, e, _couper(etapes))
 
 

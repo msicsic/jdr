@@ -46,7 +46,7 @@ def obtenir(monde, id, montant, budget):
         # Une parole prend une minute ; sa chance n'excède jamais 1.
         return _borne_marche(valeur_but, valeur_gain, peine) <= min(c[0] for c in candidats)
 
-    prise = devis_enrichissement(monde, id)
+    prise = devis_enrichissement(monde, id, pieces_seules=True)
     if prise:
         cout, but, etapes = prise
         connu = lire(monde, id)["croyances"].get(but["objet"], {}).get("pieces", {})

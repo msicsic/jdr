@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Lot 198 Sol, `codex-valeur-biens-sol`, non fusionné, non validé pour intégration**,
+  base `766d4a4` (`c8eb5d2` inclus). Estimation commune des biens par prix/contenu connu,
+  capacités marginales et remède au désespoir ; ventes, propositions et convoitise raccordées.
+  Prêt d'usage distinct de l'acquisition patrimoniale, projection adverse sans inventaire caché,
+  transport d'installation/composant/entrave interdit avant retrait. Aucun scénario ni Luna.
+  **23 ciblés finaux verts, dont 11 nouveaux** ; cas réels mine 1 / auberge 1, 137 / 239,
+  offres d'outils remplacées par des pièces contre une part, quatre mondes/rendus rechargés
+  identiques. Mine 1 sans recours **0 → 30 min**. Laps découpé : biens/finances conservés,
+  pas de garantie d'égalité de tout l'état entre découpages.
+  Suite unique intermédiaire **2 363 tests, 274 fichiers, 2 000,045 s, 117 échecs / 13 erreurs** ;
+  seuls cas échoués repris après correction : **121 tests, encore 82 échecs / 8 erreurs**.
+  **16 nuits finales 4 h**, références cachées, zéro plantage/violation/usurpation ;
+  nouvelle alerte Brune/Gorm **11 appels**, crue 2024, non levée. Richesse S/F baisse dans
+  les quatre scénarios. **VERIFIER + spatial 0,2**, mine 1985, 2 h : vert. Coût mine 4 h,
+  nœuds **7 078 → 28 790**, CPU indicatif **13,92 / 22,22 s**. Deux travailleurs réduits.
+  Ne pas intégrer comme garantie générale ; audit des régressions, boucle et coût restent ouverts.
+  Environ 1 h 15, aucune clé de signature configurée. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/valeur-198-sol/` ;
+  [rapport 198 Sol](taches/rapport-codex-198-valeur-des-biens.md).
+
 - Branche `codex-comptes-ecrits-moteur`, fusionnée, lots **180 / b / c**,
   base initiale `integration e61cf08`, correction c sur `a0fcdb5`.
   Le narrateur raconte le geste et le ton sans affirmer de compte : garde
