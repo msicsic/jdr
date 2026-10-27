@@ -49,7 +49,10 @@ class ContreOffreTests(unittest.TestCase):
     def test_prix_dit_paye_et_reception_sans_second_jet_deux_biens(self):
         for objet in ("vivres", "cle_reserve"):
             with self.subTest(objet=objet):
-                m, lignes = refus(scene(70), objet)
+                m = scene(70)
+                # Le test de prix honoré finance aussi la capacité durable de la clé.
+                m.data["finances_pnj"]["brune"] = 100
+                m, lignes = refus(m, objet)
                 s = lire(m, "brune")["refus"][-1]
                 self.assertIn("Offre de", " ".join(lignes))
                 prix = s["contre_offre"]["condition"]["montant"]

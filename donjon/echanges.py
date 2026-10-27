@@ -173,13 +173,16 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie, *, de
     arret = accueil(monde, proposant, auditeur)
     if arret:
         return {"cause": arret}
+    # L'emploi immédiat interdit déjà la cession, quelle que soit la promesse.
+    if demande["type"] == "objet" and necessaire(monde, auditeur, demande["objet"]):
+        return {"cause": "necessaire"}
     # Une tâche promise ne vaut que si elle sert un but réellement cru de l'auditeur.
     buts = [x["condition"] for x in (monde.objets[auditeur].get("profil") or {}).get("pulsions", [])]
     buts += [x["condition"] for x in agendas.en_cours(monde, auditeur, actifs=True)]
-    g = valeur_proposition(monde, auditeur, contrepartie, auditeur, devis=devis,
-                           sans=demande.get("objet") if demande["type"] == "objet" else None)
-    if contrepartie["type"] == "tache" and contrepartie["condition"] not in buts:
-        g = 0.0
+    g = 0.0
+    if contrepartie["type"] != "tache" or contrepartie["condition"] in buts:
+        g = valeur_proposition(monde, auditeur, contrepartie, auditeur, devis=devis,
+                               sans=demande.get("objet") if demande["type"] == "objet" else None)
     if g is None:
         g = 0.0  # Aucun moyen cru : il ne compte pas sur ce service.
     r = percue(monde, auditeur, proposant)
@@ -558,12 +561,20 @@ def contre_offre(monde, demandeur, auditeur, objet, raison):
     if raison == "refus":
         if proprietaire(monde, monde.objets[objet]) != auditeur:
             return None  # Il ne vend pas le bien d'un tiers.
+        if not part and necessaire(monde, auditeur, objet):
+            return None
+        from .caractere import valeur_pieces
         montant = prix(monde, objet, part) or PRIX_SANS_PRIX
+        def acceptable(n):
+            return reticence(monde, auditeur, montant, n) <= 0 and (part or not necessaire(
+                monde, auditeur, objet, contrevaleur=valeur_pieces(monde, auditeur, n), cession=True))
         # Recherche monotone du seuil propre : aucune lecture de la bourse adverse.
         bas, haut = 1, montant
+        while not acceptable(haut):
+            haut *= 2
         while bas < haut:
             milieu = (bas + haut) // 2
-            if reticence(monde, auditeur, montant, milieu) <= 0:
+            if acceptable(milieu):
                 haut = milieu
             else:
                 bas = milieu + 1

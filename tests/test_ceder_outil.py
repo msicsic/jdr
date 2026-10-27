@@ -152,6 +152,7 @@ class CederOutilTests(unittest.TestCase):
         for monde in (entier, decoupe):
             self.assertEqual(recharger(monde).data, monde.data)
             self.assertEqual(regarder(recharger(monde)), regarder(monde))
+        self.assertEqual(regarder(entier), regarder(decoupe))
 
     def test_gaspard_marche_reel_refus_puis_doublon_ou_desespoir(self):
         from donjon.mine import nouveau_mine

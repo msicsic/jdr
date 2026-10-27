@@ -319,11 +319,11 @@ def valeur_bien(monde, id, objet, part=False, *, sans=None):
     montant = prix(monde, objet, part)
     if not part and "pieces" in o:
         c = croyance(monde, id, objet, "pieces")
-        montant = (montant or 0) + (c["valeur"] if c else 0)
+        montant = (montant or 1) + (c["valeur"] if c else 0)
     if montant is None and not part and besoin_de_part(o) is not None:
         # Le propriétaire compte sa réserve ; aucune quantité distante cachée.
         n = parts(o) if proprietaire(monde, objet) == id else 1
-        montant = n * prix(monde, objet, True)
+        montant = n * (prix(monde, objet, True) or 1)
     marchande = valeur_pieces(monde, id, montant if montant is not None else 1)
     besoin = besoin_de_part(o)
     remede = 0
