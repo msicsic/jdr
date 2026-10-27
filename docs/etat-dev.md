@@ -18,9 +18,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   joueur (4 et 12 champs), dont le regard change ; corps, autres croyances,
   chronique et objets identiques, six recharges monde/rendu identiques.
   Ancienne base : 2 409 tests, 21 échecs et un incident Windows ; bilan archivé.
-  Validation en cours : nouvelle suite demandée après fusion (281 fichiers),
-  banc final à faire contre `aadab7c` après la suite ; deux travailleurs
-  réduits au plus pour ce lot, aucun Luna. Bruts exclusivement
+  Suite finale après fusion : **2 430 tests / 281 fichiers, 14 échecs,
+  zéro erreur, 16 ignorés** ; quatre fragments terminés conservés, aucun
+  fichier terminé rejoué sur cette base. Les assertions historiques restent
+  visibles : registres après rotations, trajectoires/captures, confirmations,
+  accusations de portage et navette de recours. **Validation globale non acquise.**
+  **20 paires finales 4 h contre `aadab7c`**, aucune référence en cache,
+  zéro plantage/usurpation. Confidences **301 → 994**, constats **236 → 922**,
+  avis exprimés **16 → 12**, avertissements redits **7 → 23** ; retours non
+  justifiés **24 → 28**, entrées à expliquer **204 → 204**. Audit : répétitions
+  **2 → 23**, demandes en boucle **0 → 26**, surtout confirmations des hauteurs
+  successives de la conduite basse (texte normalisé par l'audit).
+  **Absence de nouvelle boucle non validée ; ne pas fusionner comme correction
+  validée.** Reprendre les confirmations fréquentes, les accusations de portage
+  et les échecs sans réintroduire la lecture privée ni une exception sur l'eau.
+  Deux travailleurs réduits au plus pour ce lot, aucun Luna. Bruts exclusivement
   `C:/Users/msics/donjon/artifacts/sait-206/` ;
   [rapport 206](taches/rapport-codex-206-sait-observations.md).
 

@@ -1,65 +1,68 @@
-# Lot 206 — Savoir attribué à l'auditeur
+# Lot 206 — Savoir attribué à l’auditeur
 
-Branche `codex-sait-observations`, non fusionnée ; base initiale **a488f1f**.
-Reprise demandée sur **aadab7c** (205/207), fusion **1457239** ; `cca5f50`
-ajoute seulement des briefs. Référence des mesures finales : **aadab7c**.
-Sans Luna ni modification propre des fichiers interdits. Bruts exclusivement
-`C:/Users/msics/donjon/artifacts/sait-206/`. Deux travailleurs de calcul au plus,
-priorité réduite. Aucune clé de signature configurée.
+Branche `codex-sait-observations`, **non fusionnée, validation globale non acquise**.
+Base initiale `a488f1f`, reprise demandée sur **aadab7c** (205/207), fusion
+`1457239` ; `cca5f50` ajoute seulement des briefs. Code mesuré : `7e1d9dd`.
+Deux travailleurs au plus, priorité réduite, aucun Luna. Sans clé configurée,
+commits non signés. Bruts : `C:/Users/msics/donjon/artifacts/sait-206/`.
 
-**Invariant.** La décision de confier une nouvelle consulte le registre du
-locuteur : paroles adressées, audiences reconnues et observations communes.
-Elle ne consulte plus les croyances privées du destinataire. `reviser_dits`
-ne rouvre plus les suivis des autres esprits lorsqu'un auditeur apprend seul
-un changement. Un changement explicitement annoncé ou observé ensemble peut
-les rouvrir. La réception conserve son contrôle propre, renommé
-`_connait_reception` : une confirmation ne remplace pas une preuve personnelle
-et ne réapprend pas une agression.
+**Invariant.** `social.bavarder` consulte uniquement les paroles, audiences et
+observations communes du locuteur. `reviser_dits` ne rouvre plus les registres
+des autres sur acquisition privée. La réception conserve `_connait_reception` :
+une confirmation ne remplace pas la preuve personnelle, ni ne réapprend une
+agression. `esprits.percevoir_tous` collecte les acquisitions d’une même passe,
+avec support physique commun et témoin perçu. `voir_ensemble` couvre aussi les
+états/possessions ; `pnj._temoins` conserve le geste public avant interprétation
+individuelle. `social.observation_commune` persiste immédiatement valeur et
+audience dans le registre existant. Regards physiques réutilisés dans la passe,
+aucune ancienne croyance privée comme preuve. Témoin caché, arrivée ultérieure
+et absence inférée de positions privées sont exclus. Fichiers interdits et
+`_abriter` inchangés par ce lot.
 
-**Observation commune.** `esprits.percevoir_tous` photographie les acquisitions
-visuelles de la même passe : un contenu identique effectivement acquis par
-deux témoins devient commun si le locuteur perçoit l'autre. Aucun catalogue
-de faits ni ancienne croyance privée n'intervient. `voir_ensemble` atteste aussi
-les acquisitions publiques d'état/possession hors de cette passe. `pnj._temoins` fait de même
-pour le geste public avant les interprétations individuelles de responsabilité ;
-seuls les témoins présents simultanément comptent. `social.observation_commune` conserve la
-valeur attribuée à ces auditeurs dans le registre persistant commun ; elle est
-aussi enregistrée immédiatement comme acquisition personnelle, sans attendre
-un regard ultérieur qui ferait varier la sauvegarde selon le découpage. Un témoin
-caché, une arrivée ultérieure ou une acquisition privée n'y entrent pas.
+**Diagnostic 191.** Neutraliser `_sait` partout reproduit deux échecs de défense ;
+le retirer seulement de la décision en laisse un : avant d’intervenir, le
+protecteur confie à Aubin l’agression déjà vécue et la torche éteinte. Réception
+des confirmations et observation commune rétablissent ces cas. Les onze tests
+de trajets passent sans reproduire l’ancienne régression ; aucun réancrage.
 
-**Diagnostic 191.** Sur la base actuelle, neutraliser `_sait` partout reproduit
-deux échecs de défense ; le neutraliser seulement dans `bavarder` laisse un
-échec, l'intervention du protecteur. Les traces identifient deux confirmations
-à Aubin : Brune l'a frappé et la torche est éteinte. La première ne doit pas
-redevenir une agression nouvellement apprise ; les faits vus ensemble n'ont
-pas à prendre une confidence avant l'intervention. Les onze tests de trajets
-réels ne reproduisent pas les anciennes régressions sur cette base ; aucune
-assertion de défense ou de trajet n'est réancrée.
+**Preuves.** Cas réel mine 3 : Rémy a lu seul le guet d’Odon ; Josse, qui
+l’ignore, le lui redit. Autre cas : vivres épuisés connus par essai indépendant.
+Huit nouveaux tests vérifient témoins visibles/cachés, geste réel, changements
+privés/communs, salle, état et mots après rechargement. **57 ciblés finaux verts**.
+Suite complète : **2 430 tests / 281 fichiers, 14 échecs, zéro erreur,
+16 ignorés** ; quatre fragments terminés conservés, aucun fichier terminé
+rejoué sur cette base. Recalcul pur/mémorisé vert.
 
-**Preuves.** Capture réelle mine 3 : Rémy a sa propre lecture du guet d'Odon,
-inconnue de Josse ; Josse lui redit donc la nouvelle, reçue comme confirmation.
-Autre cas : vivres épuisés connus séparément par l'essai. Huit tests nouveaux
-contrôlent aussi témoin visible/caché, geste réel, changement privé, changement
-observé ensemble, constat de salle, absence inférée sans support visible,
-état, mots affichables et rendu rechargés. Les tests historiques conservent les
-laps d'un bloc/découpés et les registres après éviction des souvenirs. Sur la
-fusion : **58/60 ciblés verts**, huit nouveaux compris. Les deux écarts
-attente/rotations (4/12 champs) concernent exclusivement les preuves de ce que
-le joueur a vu : les rotations changent son regard. Corps, autres croyances,
-chronique et objets restent identiques ; six recharges monde/rendu identiques.
-Ces tests ne sont pas réancrés. Les anciens tests sociaux
-qui exigeaient une réouverture sur acquisition privée suivent maintenant le
-contrat subjectif ; celui de changement annoncé exerce une vraie parole.
+Échecs maintenus : cinq comparaisons de registres après rotations, recours
+(40 passages pour 12 permis), appel mine, source de perception, avis crue,
+deux captures, confirmation supplémentaire, deux accusations de portage tues
+au témoin. Deux comparaisons diagnostiquées diffèrent uniquement sur l’audience
+joueur (4/12 champs) : ses rotations changent son regard ; six recharges
+monde/rendu identiques. Cela n’explique pas tous les échecs ; leur caractère
+préexistant sur aadab7c n’est pas établi. Assertions historiques non réancrées.
 
-**Mesures finales.** Ancienne base : une passe en deux fragments, **2 409 tests,
-21 échecs, un incident Windows**, archivée ; ciblés en cours au changement de
-base. Nouvelle suite demandée après fusion (**281 fichiers**) puis banc vingt
-nuits contre `aadab7c` en cours de validation. Aucune seconde passe sur une même
-base pour les fichiers terminés.
+**Banc : vingt paires de quatre heures**, cinq scénarios × 1985/7/42/2024,
+compteur des changements d’avis actif. Cache consulté, aucune nuit disponible :
+vingt références calculées/rangées, puis branche. Sommes des quatre graines :
 
-**Limites.** Les audiences absentes des anciennes sauvegardes ne sont pas
-reconstituables ; le plafond existant de 512 identités reste inchangé. Les
-lectures d'intention et prévisions ne sont pas transformées en faits publics
-par une simple coprésence. Le lot ne garantit pas l'absence de toute répétition
-ni l'exhaustivité des inférences sur ce qu'un autre a pu comprendre.
+| Scénario | Confidences | Constats | Avis | Avertissements redits | Retours suspects |
+|---|---:|---:|---:|---:|---:|
+| Relais | 30 → 43 | 23 → 35 | 0 → 0 | 0 → 0 | 0 → 0 |
+| Mine | 84 → 157 | 76 → 140 | 0 → 0 | 6 → 8 | 1 → 1 |
+| Auberge | 57 → 75 | 56 → 74 | 0 → 0 | 1 → 2 | 5 → 6 |
+| Crue | 56 → 334 | 41 → 319 | 4 → 3 | 0 → 7 | 9 → 15 |
+| Hameau | 74 → 385 | 40 → 354 | 12 → 9 | 0 → 6 | 9 → 6 |
+
+**Critères non validés.** Zéro plantage/usurpation, mais répétitions **2 → 23**,
+demandes en boucle **0 → 26** ; suspects en hausse auberge 7, crue 7/42.
+Exemples : Brune→Gorm, crue 1985, 54 confirmations ; Gorm→Aubin, hameau 7, 27.
+L’audit normalise les hauteurs successives : ces comptes ne prouvent pas une
+même valeur répétée, mais leur effet reste à résoudre. Entrées à expliquer
+**204 → 204**, distinctes des retours non justifiés **24 → 28**.
+
+**Reprise : ne pas fusionner comme correction validée.** Analyser confirmations
+fréquentes et 14 échecs sans lecture privée ni exception sur l’eau. Anciennes
+audiences manquantes non reconstructibles ; plafond de 512 identités inchangé.
+Coprésence seule ne rend pas publiques intentions/prévisions. Preuves :
+`suite-integration.json`, `banc-integration.json`, `synthese-banc-final.json` ;
+ancienne passe a488f1f archivée séparément.
