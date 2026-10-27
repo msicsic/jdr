@@ -149,6 +149,8 @@ class RejointTests(unittest.TestCase):
         m = recharger(m)
         self.assertEqual(len(appels(m, "aubin")), 1)
         self.assertTrue(obtient_sa_part(m))
+        self.assertGreater(m.objets["aubin"]["corps"]["repas"], 0)
+        self.assertLess(lire(m, "aubin")["besoins"]["faim"], 90)
         self.assertIsNone(lire(m, "marchand")["rejoint"])
 
     def test_le_meme_laps_decoupe_donne_le_meme_monde(self):
@@ -227,11 +229,9 @@ class RejointTests(unittest.TestCase):
 
 
 def obtient_sa_part(m):
-    """Aubin, une fois Gorm retrouvé, obtient sa part : promise sur demande, ou achetée (le moyen
-    dépend du prix de la demande et de sa bourse, pas de l'appel)."""
-    return any(ligne in chronique(m) for ligne in (
-        "Aubin demande une part des vivres du refuge à Gorm (promis).",
-        "Aubin achète une part des vivres du refuge à Gorm pour 2 pièces (vendu)."))
+    """Le monde retient la part réellement servie à Aubin, promise ou achetée."""
+    return any(s.get("type") == "nourri" and s.get("de") == "marchand"
+               and s.get("objet") == "vivres" for s in lire(m, "aubin")["memoire"])
 
 
 def gorm_derriere_la_porte():

@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-localisation-crue`, fusionnée**, lot **211**, départ
+  `0b95f33` vérifié puis **reprise demandée sur `aadab7c`** (205/207), fusion
+  `5a97ab3`, seul conflit documentaire. `monde.mobile_par_nature` et `_lieu_cru`
+  retirent le repli réel des personnages ; aucun savoir implicite ajouté au jeu,
+  aucun autre changement de production contre `aadab7c`. Trois graines 209,
+  t=753/1034, douze variantes monde/rendu rechargées ; cas Ilse/Aubin et autre
+  PNJ/auberge, savoir déclaré, fixe/mobile, porteur inconnu, temps découpé.
+  **15 ciblés verts** sur la fusion ; vérification de l'intention persistée et
+  de la non-perception renforcée avant exécution dans la suite finale.
+  **20 paires × 4 h**, référence exacte en cache : **24 → 16 retours**
+  (Relais 0→4, mine 1→1, auberge 5→2, crue 9→2, hameau 9→7), zéro
+  plantage/usurpation. Aucune nouvelle alerte de répétition/alternance, mais
+  **absence de boucle nouvelle non validée** : quatre retours de secours/ronde
+  au Relais, causalité détaillée non établie ; deux observations d'attente.
+  Attente urgente crue 102,5→178,75, hameau 111,25→128,75 PNJ·min ; sans recours
+  crue 27,5→0. **Réserve avant intégration**, aucun élargissement à 196 c.
+  Suite finale unique sur `aadab7c` : **2 425 tests / 281 fichiers, 2 128 s,
+  quatre échecs et une erreur bruts** ; six reprises vertes après observation
+  du test d'abri, contre-épreuve sur une case valide et oracle du rejeu.
+  **Deux MiMo préexistants restent, zéro erreur consolidée** ; aucune seconde
+  suite sur cette base. Première base archivée (2 404/13, 15 reprises vertes).
+  Le test d'eau passe après 205 ; Aubin nourri à 4 min, rotations reconnues
+  et état réel remplacent les anciens oracles textuels de part/rejeu.
+  Aucun Luna, deux travailleurs réduits au plus. Bruts
+  `C:/Users/msics/donjon/artifacts/localisation-211/`, finaux dans `aadab7c/` ;
+  [rapport 211](taches/rapport-codex-211-localisation-crue.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Retours suspects 24 → 16 (crue 9 → 2, auberge 5 → 2, hameau 9 → 7) mais Relais 0 → 4 (secours interrompus, transmis au lot 213) ; crue S 23 → 14 (proches retrouvés par une connaissance indue), attente crue 102,5 → 178,75, sans recours crue 27,5 → 0. Suite de la branche sur aadab7c : deux MiMo seulement.
+
 - **Branche `codex-evacuation-juge`, fusionnée**, lot **205 / 196 b**,
   départ `71bb01d`, reprise demandée sur **`ef86cab` (204 intégré)** : péril
   indépendant du plan, certificat de transit, repli vers moins d’eau, abri commun

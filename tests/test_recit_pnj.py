@@ -90,7 +90,12 @@ class RecitTests(unittest.TestCase):
 
     def test_rondes_resumees(self):
         self.assertIn("Rondes :", self.texte)
-        self.assertNotIn("ronde : ", self.texte)
+        for ligne in self.texte.splitlines():
+            if "ronde : " in ligne:
+                # La nuit comporte maintenant une demande pendant la ronde
+                # d'Aubin : cet échange doit rester raconté, contrairement
+                # aux rondes composées de seules inspections.
+                self.assertIn("demande une part des vivres du refuge", ligne)
 
     def test_mots(self):
         self.assertEqual(de("Aubin"), "d'Aubin")
