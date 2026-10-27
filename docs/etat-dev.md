@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-prompt-prefixe`, fusionnée**, lot **150**, base `4641dc3`,
+  code `9a55cc1` : portage ciblé de `9d53229`, ordre commun des faits et entrées,
+  contexte avant propositions d’audit, révision en fin de relance, clés par voie,
+  fournisseur local et quatre slots. Consignes conditionnelles, résultat et schéma
+  conservés ; aucun refus du lot 151 modifié. **Neuf ciblés verts**, requêtes,
+  état complet et rendu rechargé identiques à la base sur deux scènes console.
+  Suite unique : **2 169 tests, 243 fichiers, 16 ignorés, zéro erreur, 3 530,46 s**,
+  un travailleur réduit ; seul échec d’une ancienne assertion d’ordre entrée/enum,
+  adaptée à l’égalité des clés avec multiplicité et reprise verte, sans seconde suite.
+  **4/4 empreintes Relais 2 h identiques** à la base : chronique, mesures,
+  état complet ; quatre références absentes rangées une fois, aucun rejeu.
+  Luna : sept références absentes cachées une fois, branche deux passes,
+  **21 parties, 132 tours, 454 appels**, aucun incident technique/recharge.
+  Branche **3,52 / 3,36 appels par tour**, référence **3,43** ; secondes moyennes
+  **12,29 / 11,67**, référence **10,70** ; replis **1 / 0**, référence **2**.
+  **Aucun gain de vitesse démontré. Réserve de validation : critère brut du lot 95
+  non atteint sur trois des huit audits rejoués cinq fois par côté (80 appels)** ;
+  faux refus de comptes/parole mêlés aux motifs, aucune garantie par cause.
+  Faux souvenir de Gorm refusé 5/5 des deux côtés. Serveur local absent,
+  tests réseau simulé seulement ; L2/L3 et les limites sémantiques restent.
+  Aucune clé de signature configurée ; commits non signés, branche poussée seule.
+  [Rapport 150](taches/rapport-codex-150-prompt-prefixe.md), bruts `artifacts/prompt-150/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Réserve du rapport jugée non bloquante : les trois audits où la branche refuse moins sont des faux refus de comptes (remboursements d'Aubin conformes à l'issue) ; le refus juste (faux souvenir de Gorm) reste 5/5 des deux côtés. Aucun gain de vitesse démontré, attendu de L2/L3. Fournisseur local non mesuré (aucun serveur sur le laptop).
+
 - **Branche `codex-fuite-lumiere`, fusionnée**, lot **155**, base `3b284b6` :
   fuite, abri et lumière partagent les auteurs de violence encore actifs selon
   les croyances. Leur lieu cru est exclu des recours de sécurité et coûte comme
