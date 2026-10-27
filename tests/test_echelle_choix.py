@@ -140,7 +140,10 @@ def identite(methode):
 
 
 def signature(liste):
-    return [(c[0], c[2], c[3], identite(c[1])) for c in liste]
+    # L'oracle A0 compare les candidats historiques ; l'interposition A4b a
+    # ses propres épreuves et ne retire ni ne réordonne les anciens candidats.
+    from donjon.defense import interposition
+    return [(c[0], c[2], c[3], identite(c[1])) for c in liste if c[1] is not interposition]
 
 
 def scene():

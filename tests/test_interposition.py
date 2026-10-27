@@ -70,11 +70,12 @@ class InterpositionTests(unittest.TestCase):
                 choisir(m, gardien, m.data["minutes"])
                 self.assertEqual(lire(m, gardien)["intention"]["but"]["type"], "interposer")
                 lignes = passer(m, MINUTE)
+                self.assertIn("N'approche pas davantage", " ".join(lignes))
                 m = recharger(m)
                 self.assertEqual(m.objets[gardien]["position"], [3, 5])
                 self.assertTrue(any(s["type"] == "mise_en_garde" for s in lire(m, gardien)["memoire"]))
                 self.assertIn("interpose", str(m.data))
-                self.assertTrue(regarder(m))
+                self.assertIn(m.objets[gardien]["nom"], regarder(m))
                 axes = relations.axes(m, gardien, autre)
                 self.assertEqual(laisser_passer(m, gardien, autre)[1], "garde")
                 self.assertEqual(demander_passage(m, gardien, autre, []), "mefiance")
@@ -156,6 +157,23 @@ class InterpositionTests(unittest.TestCase):
         m = recharger(m)
         paroles = [s for s in m.data["chronique"] if "s'interpose" in s["texte"]]
         self.assertEqual(len(paroles), 1)
+
+    def test_rapprochement_physique_vu_apres_avertissement(self):
+        from tests.test_marche import faire
+        for gardien in ("marchand", "aubin"):
+            m = epreuve(gardien)
+            passer(m, MINUTE)
+            orienter(m, gardien, (2, 4))
+            percevoir_tous(m)
+            avant = relations.axes(m, gardien, "joueur")
+            texte = faire(m, "marcher", "nord-est")
+            m = recharger(m)
+            self.assertEqual(m.joueur["position"], [3, 4])
+            self.assertIn("pas", texte)
+            apres = relations.axes(m, gardien, "joueur")
+            self.assertLess(apres["confiance"], avant["confiance"])
+            self.assertGreater(apres["rancune"], avant["rancune"])
+            self.assertTrue(regarder(m))
 
     def test_meme_laps_decoupe_et_recharge(self):
         for gardien, autre in (("marchand", "joueur"), ("aubin", "brune")):

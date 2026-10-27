@@ -495,6 +495,32 @@ et coopération générale aux passages restent à faire. Aucun succès universe
 ni absence générale de boucle revendiqués. Voir le
 [rapport 146 e](taches/rapport-codex-146e-amener-social.md).
 
+**Lot 167, `codex-garder-proteger`, non fusionnée : A4b partiel, interposition.**
+`esprits.croire` transmet une approche vue à `defense.approche_vue` : changement
+de case vers une charge des pulsions de biens ou un protégé du profil, par une
+personne suspecte ou dont le guet sur cette charge est lu. Une présence immobile
+ne relance pas un avertissement par délai. `interposition` propose une case
+d'accès une case avant le contact ; `pnj.agir` la rejoint par la marche ordinaire,
+revalide charge, approche et ouïe, puis inscrit l'avertissement avant sa parole
+typée. Aucun nom de charge privée n'est transmis dans les mots ou leur contenu.
+Le poste est refusé à cet approchant par le passage commun ; demande de passage
+après avertissement ou rapprochement vu supplémentaire donnent l'épreuve
+`garde_ignoree`, avec preuve commune et modulation relationnelle ordinaire.
+Le candidat suit les besoins pressants et les détresses ; la défense 4c conserve
+son traitement d'une agression. Ni déplacement instantané ni violence ajoutés.
+
+Épreuve Anselme/ballot sorti du coffre et autre gardien : données de tests,
+joueur et PNJ approchants, positions, parole, relation et rendu après recharge,
+laps continu/découpé, ami non bloqué, guet lu et protégé du profil. Aucun agenda
+de départ nouveau dans les nuits historiques. **Restent les sortes d'agenda
+`garder` et `protéger`**, leur cycle/publication différée et leur articulation
+avec `prix_gardes`, le suivi à portée de voix et l'appel. L'hystérésis générale
+dans le score reste aussi à faire. Le poste ne ferme pas tous les accès : un
+contact déjà établi, un autre côté ou un poste inaccessible ne sont pas une
+interception garantie ; les souvenirs sont bornés par la mémoire commune.
+A4 n'est pas déclaré achevé. Mesures et limites dans le
+[rapport 167](taches/rapport-codex-167-garder-proteger.md).
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des
