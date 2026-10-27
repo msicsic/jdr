@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-garantie-avis`, non fusionnée**, lot **199 / 196d**,
+  base `0fb5a07` : mesure déterministe des retours de décision dans l'audit
+  des nuits et le comparateur, mode empreintes compris ; comptes par PNJ,
+  décisions/minutes/classes et alertes dès un retour suspect. Les entrées
+  changées restent **à expliquer**, les archives sans sonde **non mesurées**.
+  **Garantie générale non établie** (`certification_complete=False`) : aucun
+  certificat moteur de démenti/palier/marge, moyens sous un même but et retours
+  > 60 min hors observation. **20 nuits de 4 h**, cinq scénarios × quatre
+  graines : **385 suspects, 315 à expliquer, 530 accomplis** ; Relais/mine/
+  auberge zéro suspect, crue **367**, hameau **18**. **20/20 identités** avec/
+  sans sonde (état complet, chronique, mesures, empreintes, récit, souvenirs),
+  vingt états/empreintes identiques aux bruts 196 malgré ses classes différentes.
+  Temps appariés **590,37 / 590,15 s** : surcoût non distinguable du bruit.
+  Trois cas 196 relus et six captures en fixtures ; aucun fichier de `donjon/`,
+  aucun Luna. **33 ciblés finaux verts**, écriture de l'audit, modes du comparateur,
+  sauvegarde/recharge et rendu compris. Suite unique : **2 343 tests, 271 fichiers,
+  31 échecs, quatre erreurs, 16 ignorés** ; deux fragments (41 + 230), sans rejouer
+  les fichiers terminés. Les **35 incidents sont reproduits sur la base exacte**
+  (33 méthodes, 26 fichiers, mêmes identifiants et catégories) ; suite générale
+  non verte, outils modifiés verts. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/garantie-199/` ;
+  [rapport 199](taches/rapport-codex-199-garantie-avis.md).
+
+
 - **Diagnostic changements d'avis des PNJ**, lot **196**, branche `codex-changements-avis`, base `56ae922` : diagnostic et conception seuls (aucun fichier de `donjon/`, scénario ou test modifié, aucun Luna), détecteur générique sans effet de bord `tools/detecter_changements_avis.py` joué sur 20 nuits de 4 h (`relais`, `mine`, `auberge`, `crue`, `crue_hameau` × 1985/7/42/2024 ; 594 cycles accomplis, 272 allers-retours justifiés, **364 allers-retours non justifiés** tous prouvés boucles réelles sur `crue` 359 et `crue_hameau` 5 : 358 oscillations de Gorm sur la réserve brisée combinant `fin == "detruit"` ignorée par `gestes`/`satisfaite`, croyance `verrouillee` et bascule `"essai"`/`"vu"` dans `constater`, et auto-annulation par `retabli_par_son_plan` ; évacuations `PERIL_EAU` auto-annulées de Brune en `crue 1985` min 42 et `crue_hameau 1985` min 204 ; changements d'abri d'Ilse en `crue_hameau 2024` min 42–97), contrat d'engagement commun et découpage en lots 196a–196d dans [rapport 196](taches/rapport-codex-196-changements-avis.md), bruts dans `C:/Users/msics/donjon/artifacts/avis-196/detection-4h.json`.
 
 - **Branche `codex-occasions-asymetriques`, fusionnée**, lot **186**,
