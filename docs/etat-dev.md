@@ -4,6 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-garder-proteger-c`, fusionnée**, lot **167 c / A4b
+  partiel**, base `1aba0df`, code `13fde5f` et `5f69840` : responsabilités
+  communes profil/agendas `protéger`, sans doublon ; appels, cris, défense,
+  interposition, perception, témoins, réanimation et secours aux liens.
+  Mort crue : fin avec cause publiée après choix, sans renaissance ; position
+  inconnue non terminale. Épreuves en données de tests, aucun agenda historique
+  ajouté. Gorm/Ilse appelle et accourt ; deux protecteurs de Brune rejoignent
+  leur poste et avertissent ; monde/rendu rechargés, laps entier/découpé.
+  Sélections finales **36 puis 38 tests verts** (avec recouvrement).
+  **16/16 empreintes 2 h identiques** à la base, quatre scénarios × quatre
+  graines ; Relais 4 h × quatre graines, mesures identiques, passages horaires
+  max moyens **6,25 → 6,25**, zéro usurpation/violation/bascule/plantage,
+  trois `fige_presse` historiques de chaque côté. VERIFIER/spatial 0,2,
+  Relais fixe 1985, 2 h : monde et rendu rechargés identiques.
+  Coût Relais 4 h : **265 recherches / 3 058 nœuds** inchangés ; CPU
+  indicatif 3,42/3,28 s, sans conclusion de vitesse. Suite unique : **2 255
+  tests, 260 fichiers, 1 302,232 s**, deux échecs MiMo historiques `6 != 5`,
+  zéro erreur/ignoré ; aucune seconde suite. Deux travailleurs réduits au plus.
+  **Restent suivi vocal, fin sur départ cru, fins garder rendu/perdu/détruit,
+  interposition d'un lieu.** Sans poste, `protéger` dort explicitement pour
+  suivi vocal non pris en charge ; les secours restent actifs. Coût avec
+  nouvel agenda actif non isolé. Pas de Luna ni fichier MJ réservé ; `main`
+  intacte, aucune clé de signature configurée, branche seule poussée.
+  Jonction temporaire des traces automatiques retirée ; aucun brut local.
+  Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/garder-167c/` ;
+  [rapport 167 c](taches/rapport-codex-167c-garder-proteger.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Restent : suivi à portée de voix, départ cru du protégé, fins de garder, interposition devant un lieu ; aucun agenda historique ajouté.
+
 - Branche `codex-consignes-degraissees`, **non fusionnée**, lot **170** (L6), `b503242` : doublons retirés des consignes
   d'interprétation, **−2,7 %** (39 910 → 38 828 caractères), suite verte, empreintes identiques. Luna deux passes contre
   `cdaf371` : appels/tour 3,24 → 3,30, **s/tour 10,51 → 11,42**, **relances 14 → 19**, refus 21 → 25, replis 3 → 1 ;

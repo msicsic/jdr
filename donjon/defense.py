@@ -13,11 +13,11 @@ PAROLE = 30
 
 
 def charges(monde, id):
-    from .deliberation import profil, charges_gardees, illicite
+    from .deliberation import profil, charges_gardees, illicite, proteges
     p = profil(monde, id) or {}
     objets = {c["objet"] for c in charges_gardees(monde, id)
               if "objet" in c and not illicite(monde, id, c["objet"])}
-    return objets | set(p.get("protege", ()))
+    return objets | set(proteges(monde, id))
 
 
 def approche_vue(monde, id, autre, avant, apres):
@@ -322,10 +322,10 @@ def se_rendre(monde, id, autre, lignes):
 
 def protection(monde, id):
     """Un protégé agressé vu, ou un cri reconnu : le lieu est celui qu'on a appris."""
-    from .deliberation import profil, salle_crue
+    from .deliberation import profil, salle_crue, proteges
     p = profil(monde, id) or {}
     e = lire(monde, id)
-    for protege in p.get("protege", ()):
+    for protege in proteges(monde, id):
         connus = auteurs(monde, id, protege)
         salle = salle_crue(monde, id, protege)
         actifs = [a for a in connus if salle and salle_crue(monde, id, a) == salle

@@ -538,6 +538,18 @@ sans objet. Une absence de position crue donne sommeil, jamais preuve de perte.
 Pas de garantie générale nouvelle sur les manières ou l'hystérésis. A4 reste
 partiel ; [rapport 167 b](taches/rapport-codex-167b-garder-proteger.md).
 
+**Lot 167 c, livraison partielle.** Les protégés du profil et des agendas
+`protéger` partagent désormais une lecture dédupliquée : appels reconnus,
+cris de secours, défense, interposition, réanimation et secours aux liens.
+La mort crue termine l'agenda avec cause, publiée à la sortie du choix ;
+une position inconnue ne suffit pas, un état terminal ne renaît pas.
+Sans interposition disponible, le projet dort avec la cause explicite
+`suivi vocal non pris en charge`, sans perdre la responsabilité de secours.
+**Restent** le suivi à portée de voix, la fin sur départ cru, les fins de
+`garder` (rendu/perdu/détruit) et l'interposition d'un lieu sans objet.
+Aucun agenda historique ajouté. A4b reste partiel ; voir le
+[rapport 167 c](taches/rapport-codex-167c-garder-proteger.md).
+
 **A5. Le mandat et l'autorité.** Mandater, juger un mandat, compte rendu, réaffectation, profondeur ;
 l'autorité (statut, ascendant, lecture dérivée) ; parole typée du joueur (`mandat`, `compte_rendu`).
 Épreuve : la crue étendue aux évacués du hameau, six à huit PNJ (décision 5) ; Gorm, responsable des

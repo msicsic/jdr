@@ -335,6 +335,7 @@ def _temoigner(monde, geste):
 
 
 def _temoins(monde, geste, souvenir, victime):
+    from .deliberation import proteges
     from .deliberation import VOL, inquieter, relancer
     id = geste["auteur"]
     for autre in pnjs(monde):
@@ -355,7 +356,7 @@ def _temoins(monde, geste, souvenir, victime):
                 continue  # La victime l'a subi (``passage.subir``) ; ses biens ne sont pas en cause.
             if autre == victime:
                 relancer(monde, autre, "biens", VOL)
-            elif victime in (monde.objets[autre].get("profil") or {}).get("protege", []):
+            elif victime in proteges(monde, autre):
                 # Un protégé atteint : son devoir est touché, il ira le prévenir.
                 from .deliberation import ATTEINTE
                 relancer(monde, autre, "devoir", ATTEINTE)
@@ -371,6 +372,7 @@ def _temoins(monde, geste, souvenir, victime):
 
 
 def _temoins_a_l_oreille(monde, geste, souvenir, victime):
+    from .deliberation import proteges
     """Témoins par l'ouïe, d'une certitude moindre que la vue : qui entend le geste pendant qu'il
     dure (``ouie.entend`` : sa nature, la distance, son seuil), sans en voir l'auteur, dans la salle
     même (il le situe), et croit tout près de là l'objet en cause ou ce qui le contient
@@ -420,7 +422,7 @@ def _temoins_a_l_oreille(monde, geste, souvenir, victime):
             _chroniquer(monde, autre, f"{_qui(monde, autre)} entend que quelqu'un {quoi}.", "ouie")
         if autre == victime:
             relancer(monde, autre, "biens", VOL)
-        elif reconnu and victime in (o.get("profil") or {}).get("protege", []):
+        elif reconnu and victime in proteges(monde, autre):
             relancer(monde, autre, "devoir", ATTEINTE)
             memoriser(monde, autre, {"type": "a_prevenir", "victime": victime, "auteur": id, "preuve": souvenir["preuve"]})
 

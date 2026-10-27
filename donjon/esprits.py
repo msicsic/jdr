@@ -851,6 +851,8 @@ def constater(monde, id, sujet, source):
     """Croit l'état visible de l'objet tel qu'il est : vu, ou laissé ainsi de sa propre main.
     D'un personnage, joueur compris, se voit ce qui presse son corps : la faim, le froid, la
     fatigue (``corps``), sous les noms des besoins du corps."""
+    from .deliberation import proteges
+    protege = (sujet == "joueur" or monde.objets[sujet]["type"] in ("personnage", "depouille")) and sujet in proteges(monde, id)
     if sujet == "joueur" or monde.objets[sujet]["type"] == "personnage":
         from .corps import CORPS, visible
         besoins = monde.joueur.get("besoins", {}) if sujet == "joueur" else lire(monde, sujet)["besoins"]
@@ -861,7 +863,7 @@ def constater(monde, id, sujet, source):
                     **visible(monde, sujet)}, source)
         if (source == "vu" and not visible(monde, sujet)["conscient"]
                 and (not ancien or ancien["valeur"].get("conscient") is not False)
-                and sujet in (monde.objets[id].get("profil") or {}).get("protege", [])):
+                and protege):
             from .deliberation import ATTEINTE, relancer
             relancer(monde, id, "devoir", ATTEINTE)
         return
@@ -880,7 +882,7 @@ def constater(monde, id, sujet, source):
             evenement(monde, "mort_vue", sujet, temoin=id,
                       delai=monde.data["minutes"] - monde.data["defunts"][sujet]["minute"])
             inquieter(monde, id, "mort")
-            if sujet in (monde.objets[id].get("profil") or {}).get("protege", []):
+            if protege:
                 relancer(monde, id, "devoir", 30)
             from .pnj import _chroniquer
             _chroniquer(monde, id, monde.objets[id]["nom"].split(",")[0] + " découvre " + o["nom"] + ".", "geste")
