@@ -392,9 +392,9 @@ Ne reproduis aucune phrase refusée. Appelle la fonction demandée une fois.
 """
 
 REGLE_NARRATION = """
-Les comptes sont rédigés et ajoutés par le moteur depuis comptes.issue. Ta prose libre,
-y compris les répliques, ne reformule ni montant, ni dette, ni sens de transfert,
-ni paiement, ni livraison promise ou faite. Raconte seulement la réaction sans compte.
+Les comptes et offres ont leur texte moteur. Hors des répliques citées, ne les reformule
+pas. Une parole de PNJ peut les évoquer si son sens, ses montants et ses conditions
+restent compatibles avec l'issue et les offres fournies ; elle ne crée aucun effet.
 Ce que tu affirmes sur l'état mécanique (objets, personnages, positions, passages, possession,
 ressources, lumière, missions, résultats) doit découler des faits fournis ; pour créer un
 élément mécanique, propose un fait persistant lorsque ce mode est disponible. L'ambiance
@@ -1122,7 +1122,8 @@ def controler(texte, rapport, faits, partie="texte"):
             or len(lignes) != len(passages)):
         raise AuditIllisible("Contrôle narratif incomplet.")
     from .comptes_narratifs import controler as controler_comptes
-    obstacles = orientations(texte, faits, partie) + controler_comptes(texte, faits, partie)
+    locuteurs = {i: l.get('locuteur') for i, l in enumerate(lignes) if isinstance(l, dict)}
+    obstacles = orientations(texte, faits, partie) + controler_comptes(texte, faits, partie, locuteurs)
     paroles, ambiances, lignes_validees = [], [], []
     for indice, (passage, ligne) in enumerate(zip(passages, lignes)):
         if isinstance(ligne, dict):

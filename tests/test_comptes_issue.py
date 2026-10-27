@@ -29,7 +29,7 @@ class ComptesIssueTests(unittest.TestCase):
                 m = banc(script)
                 avant = m.joueur["or"]
                 mots = "Je réclame les deux pièces dues."
-                faux = "Gorm te rend les deux pièces."
+                faux = "Je te rends dix pièces."
                 inverse = "Tu me rends les deux pièces."
                 bon = "D’accord."
                 c = compte(qui, "joueur", montant=2, etat="rendu")

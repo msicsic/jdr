@@ -4,27 +4,36 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- Branche `codex-comptes-ecrits-moteur`, **non fusionnée**, lot **180**,
-  base `integration e61cf08` : livraison partielle des comptes écrits par le
-  moteur (`comptes_narratifs`), ajoutés avant les contrôles, prouvés exactement
-  et revérifiés à l'enregistrement, repli compris. Extraction `comptes`
-  supprimée du schéma et du contrôle sémantique ; anciens champs ignorés.
-  **Invariant général non garanti** : la garde lexicale commune peut manquer
-  un compte implicite et refuser des emplois non comptables du vocabulaire.
-  Ce traitement partiel ne constitue pas une solution générale aux inversions.
-  Les lots **117/117 b/117 c et 168 sont abandonnés** sur décision du 27 octobre.
-  **160 ciblés finaux verts**, 20 fichiers, 80,702 s, dont trois nouveaux tests
-  ajoutés pendant la suite. Suite complète unique intermédiaire : **2 271 tests,
-  261 fichiers, 1 282,166 s**, sept échecs et 25 erreurs bruts ; tous les fichiers
-  concernés repris verts sauf les deux MiMo historiques `6 != 5` laissés.
-  Six gardes inchangées (AST), voix/parole rejouées identiques sur 177 audits ;
-  sur 155 audits sans compte extrait ni issue, 152 identiques et trois récits
-  financiers désormais refusés. Aucun Luna joué. Commande exacte dans
+- Branche `codex-comptes-ecrits-moteur`, **non fusionnée**, lots **180 / 180 b**,
+  base initiale `integration e61cf08`, reprise b sur `885b1c5`. Les comptes
+  sont écrits par le moteur, prouvés exactement et revérifiés à l'enregistrement,
+  repli compris. Depuis b, les paroles comptables compatibles sont admises :
+  grammaire commune des quantités, rôles et états, comparaison avec l'issue et
+  les offres typées, sans rubrique comptable dans l'audit. Le nom « pièce »
+  ne suffit plus à définir un compte. Offres présentées conservées pendant les
+  relances et dans le repli, montants moteur préservés ; contrats et effets
+  inchangés. Contractions/appositions communes et suppression des anciens
+  segments moteur disant le même compte. **Grammaire bornée : identification
+  exhaustive des comptes en français libre non garantie.** Aucune exception
+  de scénario ou de formulation. Les essais 117/117 b/117 c et 168 restent abandonnés.
+  Suite b unique : **2 280 tests, 263 fichiers, 1 360,614 s**, deux échecs MiMo
+  historiques `6 != 5`, deux erreurs corrigées. **172 ciblés verts**, 22 fichiers,
+  91,646 s, puis **51 finaux verts**, huit fichiers, 25,193 s, après raccord du
+  même formateur public à la préparation du MJ et au rendu des offres de service.
+  Aucun nouveau défaut reproduit hors MiMo, aucune seconde suite complète ;
+  deux travailleurs réduits au plus. Console et recharge : salle, Gorm/Aubin,
+  Brune, absence de dette, offres à vingt/trente pièces, montants/rôles/objet
+  de condition incompatibles refusés, texte moteur non doublé.
+  Validation Luna de `885b1c5` jouée par l'orchestrateur sur laptop : quatre
+  scripts en deux passes, 5,08 → 4,71 appels/tour et 19,5 → 18,0 s/tour,
+  mais relances 6,5 → 7,5 et deux saisies en repli ; trois références,
+  une passe : obstacles 4 → 14, relances 3 → 9, 8,4 → 13,4 s/tour.
+  Comptes justes, faux refus lexicaux et offre perdue motivant b.
+  Aucun Luna joué pour b ; commande exacte, contre `cdaf371`, dans
   `C:/Users/msics/donjon/artifacts/comptes-180/luna-a-jouer.txt` : deux passes
-  comptes/soir-appel/ressources/echanges, une passe des quatre références,
-  contre `cdaf371`. Bruts exclusivement dans ce dossier, deux travailleurs
-  réduits au plus. Aucun fichier réservé au lot 179 modifié ; `main` intacte.
-  Aucune clé de signature configurée : commits non signés, branche seule poussée.
+  comptes/soir-appel/ressources/echanges, une passe relais/crypte/atelier.
+  Bruts exclusivement dans ce dossier. Aucun fichier réservé au lot 179 ni
+  `main` modifié. Aucune clé de signature configurée : commit non signé.
   [Rapport 180](taches/rapport-codex-180-comptes-ecrits-moteur.md).
 
 - Branche `codex-retenus-apres`, fusionnée, lot **178**, base

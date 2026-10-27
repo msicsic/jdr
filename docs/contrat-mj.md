@@ -348,33 +348,42 @@ monétaire ne conclut rien sur les objets prêtés. Le contenu `reclamer` conser
 le destinataire doit à Corvus ; une question d'existence ainsi typée peut déclencher le
 règlement existant, elle n'est pas devenue une consultation sans effet.
 
-**Comptes écrits par le moteur (lot 180, livraison partielle).**
-`comptes_narratifs.phrases` écrit les comptes `du`, `rendu` et `absent` de
-`comptes.issue`, dans les deux sens. Les références sont celles du dossier public ;
-un nom manquant reste une désignation générique, un bien non décrit reste « le bien
-convenu ». Aucun compte entre tiers n'est affiché. Le moteur ajoute ces phrases
-avant le contrôle, sans doublon, y compris dans le repli après trois refus.
-`textes_etablis/segments_etablis` recalculent leur preuve exacte ; `controler` exige
-leur présence et `consigner` refait le contrôle avant enregistrement. Les textes
-suivent la sauvegarde et l'affichage ordinaires de la transaction.
+**Comptes écrits par le moteur et paroles compatibles (lots 180 et 180 b).**
+`comptes_narratifs.phrases` écrit les comptes publics `du`, `rendu`, `absent`
+et les offres présentées. Le rendu emploie les contractions et accords communs ;
+une apposition nominale est refermée. Les noms viennent du dossier public,
+sans déduction d'identité privée. Une ancienne phrase moteur reconnue comme
+disant le même compte est remplacée par ce rendu, sans doubler son énoncé.
+Les textes suivent la transaction ordinaire, sauvegardée avant affichage.
+`textes_etablis/segments_etablis` recalculent leur preuve exacte, et `consigner`
+refait les contrôles avant enregistrement. Le repli conserve ces mêmes textes.
 
-Le schéma d'audit ne contient plus `comptes`. Les extractions des anciens rapports
-sont ignorées ; elles ne prouvent ni ne refusent un compte. Luna garde la réaction
-et l'ambiance, sans reformuler montant, dette, paiement ou livraison. Une garde
-lexicale commune refuse les segments libres de ce domaine avant l'appel d'audit,
-avec un `attendu`, même lorsqu'ils sont justes. Les autres contrôles restent actifs.
+Le schéma d'audit ne contient plus `comptes` ; ses anciens champs sont ignorés.
+Hors citation, un compte doit venir du moteur. Une réplique citée de PNJ peut
+exprimer un compte compatible avec les comptes et offres fournis. Sa lecture
+locale compare les rôles, les états et les montants reconnus ; elle distingue
+la proposition principale et la condition d'une offre. Le locuteur vient de
+l'attribution publique ou du champ de parole déjà contrôlé par l'audit ordinaire.
+Une divergence reçoit un refus et un `attendu`, revérifiés à l'enregistrement.
+Une parole n'établit toujours pas la vérité de son contenu et ne crée aucun effet.
 
-**Limite : l'invariant général de non-reformulation n'est pas garanti.** Cette
-garde déterministe n'analyse pas toute la langue : une paraphrase implicite peut
-lui échapper, de même qu'un transfert d'objet sans vocabulaire financier ; un
-emploi non comptable du même vocabulaire peut être refusé. Les verbes de transfert
-ambigus ne sont pas traités par une liste d'exceptions de formulation.
-La suppression de l'extraction sémantique ne résout pas cette limite. Le lot 180
-ne doit pas être présenté comme une garantie générale contre les inversions ;
-les essais 117/117 b/117 c et 168 sont abandonnés, sans être repris ici.
-Une parole enregistrée n'établit pas la vérité de son contenu. Le contrôle ne crée
-aucune dette ni aucun remboursement ; les mutations précèdent le récit et la
-sauvegarde précède l'affichage.
+Le nom « pièce » ne suffit pas à définir un compte. La garde recherche un
+prédicat comptable avec son objet ou un montant dans un contexte monétaire.
+Les questions ne sont pas des assertions. Les obligations modales sans compte
+restent du ressort de l'audit ordinaire. Une offre présentée est sélectionnée
+parmi les seules offres typées, avec leur montant moteur, et reste dans le
+dossier du tour pendant les relances ; une réplique incorrecte suivie d'un repli
+ne peut donc faire disparaître l'offre déjà présentée.
+Les libellés d'offres de la préparation du MJ et de l'affichage utilisent le
+même formateur public, y compris les prestations promises au joueur. Ils
+n'emploient pas tels quels les textes techniques d'un échange entre PNJ.
+
+**Limite.** Cette lecture est une grammaire bornée, pas une compréhension
+universelle du français. Les constructions implicites ou complexes hors de
+cette grammaire peuvent encore échapper au contrôle ou rester ambiguës ;
+l'identification exhaustive des comptes en prose libre n'est pas garantie.
+Les autres contrôles mécaniques restent en partie sémantiques. Les essais
+117/117 b/117 c et 168 demeurent abandonnés.
 
 **Comptes de l'issue** (`codex-comptes-issue`, lot 73). Les paiements et remises
 sont collectés par leurs opérations, dans la copie transactionnelle de la conversation ;
@@ -400,15 +409,15 @@ Le devis initial vient de `prime_base`, puis du montant proposé ou accepté ; a
 devis nouveau sans les fonds nécessaires. Un refus ou un paiement clôt l'offre.
 
 Depuis le lot 180, l'auditeur n'extrait plus les offres dans `comptes`.
-Les offres hors de l'issue ne reçoivent pas de nouveau texte automatique dans ce
-lot partiel ; les panneaux existants gardent leurs termes moteur. Une dette,
+Depuis 180 b, une offre présentée reçoit aussi son texte moteur ; les panneaux
+existants gardent leurs termes typés. Une dette,
 une remise et une offre ne se justifient pas entre elles.
 Les formulations produites par le moteur servent également d'appui aux engagements
 racontés ; annoncer la contrepartie conditionnelle ne lance aucune action.
 La remise de mission reste atomique : objet transféré et prime payée, sans solde
 intermédiaire sauvegardé ; son paiement est fourni comme compte `rendu` au récit
 du résultat. Les autres jugements de portée et d'engagement restent sémantiques ;
-la garde lexicale comptable a les limites décrites ci-dessus.
+la lecture grammaticale comptable a les limites décrites ci-dessus.
 
 **Ce qui n'appelle pas de relance** (branche `relances-luna`). Un appel au MJ ou à l'auditeur qui ne
 peut rien changer à ce que lira le joueur n'est pas fait :

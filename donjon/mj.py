@@ -1013,9 +1013,20 @@ class MJ:
         from .biens import etat_comptes_joueur, offres_joueur
         faits["comptes"] = {"etat": etat_comptes_joueur(monde, contexte["interlocuteurs"]),
                             "issue": (conversation_validee or {}).get("comptes", []),
+                            "offres_a_dire": (conversation_validee or {}).get("offres", []),
                             "offres": offres_joueur(monde) + (conversation_validee or {}).get("offres", [])}
-        from .propositions import offre_en_mots
-        faits["comptes"]["formulations_offres"] = [offre_en_mots(monde, o) for o in faits["comptes"]["offres"]]
+        # Noms grammaticaux des seuls biens cités par les termes publics :
+        # aucune position, possession cachée ni propriété physique ajoutée.
+        biens_offres = set()
+        for offre in faits["comptes"]["offres"]:
+            for terme in (offre["condition"], offre["contrepartie"]):
+                bien = terme.get("objet") or terme.get("condition", {}).get("objet")
+                if bien in monde.objets:
+                    biens_offres.add(bien)
+        faits["comptes"]["biens_offres"] = {
+            bien: {k: copy.deepcopy(monde.objets[bien][k]) for k in
+                   ("nom", "type", "genre", "pluriel", "nom_propre", "elision", "aliases")
+                   if k in monde.objets[bien]} for bien in biens_offres}
         if resultat_resolu is not None:
             from .biens import compte
             from .agendas import contrats
@@ -1128,6 +1139,13 @@ class MJ:
         faits.update({"objet:" + o["id"]: o for o in objets})
         from .noms import public
         faits = public(monde, faits)
+        from .comptes_narratifs import phrases as phrases_comptes
+        # Même rendu public pour préparer le MJ et pour afficher l'offre.
+        # Les textes techniques d'un échange entre PNJ ne sont pas du récit.
+        faits["comptes"]["formulations_offres"] = [
+            " ".join(phrases_comptes({**faits, "comptes": {
+                **faits["comptes"], "issue": [], "offres": [o], "offres_a_dire": [o]}}))
+            for o in faits["comptes"]["offres"]]
         from .narration import echanges_passes
         # Déjà limité aux interlocuteurs publics ; garder les mots historiques
         # tels qu'ils ont été entendus, même après une présentation.
@@ -1343,7 +1361,8 @@ direction), plus lents, ils ne s'entendent que de tout près.
             # avant les gardes et la preuve exacte. Elles suivent la transaction
             # et la sauvegarde de toute la réponse, jamais un préfixe hors audit.
             if reponse.get("mode") == "dialogue":
-                from .comptes_narratifs import completer
+                from .comptes_narratifs import completer, presenter_offres
+                entree = {**entree, "faits": presenter_offres(entree.get("faits", {}), reponse.get("texte", ""))}
                 reponse = {**reponse, "texte": completer(reponse.get("texte", ""), entree.get("faits", {}))}
             passages = []
             if reponse.get("mode") == "dialogue" and isinstance(reponse.get("texte"), str):
@@ -1410,7 +1429,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 etablis = segments_etablis(texte, faits)
                 a_controler = {str(i): s for i, s in enumerate(decoupage) if str(i) not in etablis}
                 from .comptes_narratifs import controler as controler_comptes
-                refus_comptes = controler_comptes(texte, faits, nom)
+                refus_comptes = controler_comptes(texte, faits, nom, avant_audit=True)
                 if refus_comptes:
                     obstacles.extend(refus_comptes)
                     continue

@@ -47,7 +47,7 @@ class SensDetteTests(unittest.TestCase):
     def test_cas_reel_absence_dans_le_sens_demande_et_inverse_refuse(self):
         m = banc("ressources")
         r, _, appels = self.echanger(m, "Aubin, tu me dois quelque chose ?", "Non, je ne te dois rien.",
-            compte("aubin", "joueur", etat="absent"), "Non, tu ne me dois rien.",
+            compte("aubin", "joueur", etat="absent"), "Tu me dois dix pièces.",
             compte("joueur", "aubin", etat="absent"))
         self.assertEqual(r.joueur["or"], m.joueur["or"])
         self.assertFalse(r.data.get("dettes"))
@@ -58,7 +58,7 @@ class SensDetteTests(unittest.TestCase):
     def test_autre_personnage_meme_absence_et_meme_refus(self):
         m = banc("ressources")
         r, _, _ = self.echanger(m, "Brune, rends-moi ce que tu me dois.", "Je ne te dois rien.",
-            compte("brune", "joueur", etat="absent"), "Tu ne me dois rien.",
+            compte("brune", "joueur", etat="absent"), "Tu me dois dix pièces.",
             compte("joueur", "brune", etat="absent"), cible="brune")
         self.assertFalse(r.data.get("dettes"))
 
