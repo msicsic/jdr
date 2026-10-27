@@ -38,7 +38,7 @@ class FinAmenerTests(unittest.TestCase):
                 self.assertTrue(echanges.tenu(m, cible, condition))
                 agendas.actualiser(m, "marchand")
                 m = self.verifier_recharge(m)
-                self.assertEqual(agendas.projets(m, "marchand")[0]["etat"], "sommeil")
+                self.assertEqual(agendas.projets(m, "marchand")[0]["etat"], "actif")
                 croire(m, "marchand", cible, "lieu", destination, source,
                        salle=destination, case=[1, 3])
                 agendas.actualiser(m, "marchand")
@@ -61,7 +61,7 @@ class FinAmenerTests(unittest.TestCase):
             agendas.actualiser(m, "marchand")
             m = self.verifier_recharge(m)
             self.assertEqual(agendas.projets(m, "marchand")[0]["etat"],
-                             "sommeil" if cible == "ilse" else "atteint")
+                             "actif" if cible == "ilse" else "atteint")
 
     def test_noyade_crue_abandonne_sans_consulter_le_niveau_reel(self):
         for cible, destination in (("ilse", "chambre_cloche"), ("brune", "echoppe")):
@@ -79,7 +79,7 @@ class FinAmenerTests(unittest.TestCase):
                 agendas.actualiser(m, "marchand")
                 self.assertEqual(agendas.projets(self.verifier_recharge(m), "marchand")[0], a)
 
-    def test_sans_sous_but_aucun_engagement_ni_transport_meme_laps_decoupe(self):
+    def test_porteur_occupe_aucun_engagement_ni_transport_meme_laps_decoupe(self):
         m, _ = scene()
         m = declarer(m, ["ilse", "brune"], "chambre_cloche")
         for qui in ("marchand", "ilse", "brune", "aubin"):
@@ -94,8 +94,8 @@ class FinAmenerTests(unittest.TestCase):
             b = avancer(b, 300)
         self.assertEqual(a.data, b.data)
         self.assertEqual(rendu(a), rendu(b))
-        self.assertEqual(agendas.projets(a, "marchand")[0]["etat"], "sommeil")
-        self.assertFalse(list(agendas.essayables(a, "marchand")))
+        self.assertEqual(agendas.projets(a, "marchand")[0]["etat"], "actif")
+        self.assertTrue(list(agendas.essayables(a, "marchand")))
         for qui in ("ilse", "brune"):
             self.assertFalse(agendas.en_cours(a, qui))
             self.assertEqual(a.objets[qui]["lieu"], m.objets[qui]["lieu"])

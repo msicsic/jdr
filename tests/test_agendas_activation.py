@@ -45,6 +45,11 @@ class ActivationTests(unittest.TestCase):
         # Les destinataires écoutent ; leur évacuation appartient au prochain lot.
         for qui in ("ilse", "brune", "aubin"):
             lire(m, qui)["libre"] = 1000000
+        # Ce test conserve son objectif de transmission indépendamment du
+        # projet d'évacuation désormais déclaré par la crue.
+        declarer(m, "marchand", "ilse")
+        m.objets["marchand"]["profil"]["agendas"][0]["parametres"]["qui"] = ["ilse", "brune"]
+        lire(m, "marchand").pop("agendas", None)
         agendas.actualiser(m, "marchand")
         m = recharger(m)
         a, b = recharger(m), recharger(m)

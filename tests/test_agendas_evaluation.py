@@ -21,7 +21,7 @@ class EvaluationAgendaTests(unittest.TestCase):
         with patch.object(planification, "VERIFIER", True):
             deliberation.choisir(m, "marchand", 0)
         a = agendas.projets(m, "marchand")[0]
-        self.assertEqual((a["etat"], a["raison"]), ("sommeil", "contenu non cru"))
+        self.assertEqual((a["etat"], a["raison"]), ("actif", "scenario"))
         n = recharger(m)
         self.assertEqual(n.data, m.data)
         self.assertEqual(rendu(n), rendu(m))

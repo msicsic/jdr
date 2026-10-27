@@ -15,6 +15,10 @@ from tests.test_tensions import recharger, placer
 
 def scene(fabrique):
     m, id, autre, c = fabrique()
+    # Le service et sa contrepartie sont le seul projet de cette scène.
+    if "marchand" in m.objets:
+        m.objets["marchand"]["profil"]["agendas"] = []
+        lire(m, "marchand").pop("agendas", None)
     if 'verrouillee' in c:
         # Une réserve commune, avec sa propre clé : aucun mandat implicite
         # du bénéficiaire méfiant n'autorise à toucher son bien privé.

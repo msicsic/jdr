@@ -4,6 +4,43 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-amener-social-e`, fusionnée**, lot **146 e**, base `116be91` :
+  sous-buts sociaux d'amener livrés : parole dans le graphe, avis de menace,
+  demande `confier`, refus motivé, sommeil/réessai sur croyance nouvelle,
+  accompagnement propre et attente sans navettes. Abandon reçu : aide attendue
+  correspondante invalidée ; régression prouvée sur deux scènes avec la base.
+  Gorm reçoit l'évacuation d'Ilse et Brune à la galerie. Scènes collectives
+  2024/42 éclairées, route ouverte : Ilse puis Brune, atteint, état et rendu
+  rechargés, laps continu/découpé identiques. Suite unique : **2 212 tests,
+  252 fichiers, 1 084,053 s**, zéro erreur/ignoré, sept échecs : deux MiMo
+  historiques et cinq assertions de scènes eau/services/marchés désormais
+  perturbées par l'évacuation ; scènes isolées, assertions conservées,
+  **49 tests repris verts**, aucune seconde suite. VERIFIER + spatial
+  0,2 : crue fixe 42/2024 × 2 h sans arrêt, monde et rendu rechargés identiques.
+  Douze empreintes Relais/mine/auberge identiques ; quatre crues sans arrêt
+  ni usurpation, atteint sur 7/42 ; galerie finale **3/8 → 2/8**, eau
+  **128,75 → 92,5 min**, passages horaires **13,25 → 15,5**. Reprise avant
+  fusion : crue 1985 `116be91`/`eef4925`, torche **1/1 → 10/9** allumages/
+  extinctions, captures avant premier allumage sauvegardées puis rechargées.
+  Boucle introduite dans cette nuit par le lot : économie selon lumière de
+  salle, plan selon lumière devant cible. `lumiere_devant_crue` partage
+  désormais cette lecture, sans source portée ; capture réelle et autre cas
+  Gorm/lanterne échouent avec la seule ancienne fonction, passent corrigés.
+  **51 ciblés/voisins verts**, aucune nouvelle suite complète (correction locale).
+  Quatre crues rejouées : aucun arrêt/usurpation/répétition de torche,
+  **4/3** sur 1985, plus de rafale 213–218. Trois autres états complets et
+  mesures identiques ; sur 1985, crochetage poursuivi, jets **19 → 25**,
+  gestes **164 → 148**, recherches **1 203 → 1 177**. Galerie/eau/passages
+  inchangés ; eau longue 2024 seule alerte conservée. Refus sociaux
+  1985/2024 respectés, aucune évacuation universelle revendiquée. Préférence
+  générale, seule portée vocale, réveil relationnel et coopération aux portes
+  restent limités. Pas de Luna, fichier MJ réservé ni `main` modifiés.
+  Deux calculs réduits au plus ; aucune clé de signature Git configurée,
+  livraison non signée, branche seule poussée.
+  [Rapport 146 e](taches/rapport-codex-146e-amener-social.md) ; bruts exclusivement
+  `C:\Users\msics\donjon\artifacts\amener-146e\`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Reprise après relecture : la boucle de torche de Brune (crue 1985), introduite par le lot, venait d'une lecture de lumière différente entre planificateur (devant la cible) et décision de garder la source (salle) ; lecture commune lumiere_devant_crue, quatre crues sans répétition. Restent : maintien à la galerie (3/8 → 2/8), parole exigeant le contact, préférence générale entre lieux.
+
 - **Branche `codex-schema-invariant`, fusionnée**, lot **158 / L2**, base
   `7adc788`, code `9a0ea10`, mesure `a2147fd` : huit modes et toutes les branches
   d'interprétation toujours présents, sources en chaînes, faits à `suite` nullable.

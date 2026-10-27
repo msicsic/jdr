@@ -24,7 +24,7 @@ from time import perf_counter
 from types import MappingProxyType
 
 from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vains, apport_cru, _cru, _disponible_cru,
-                           _lieu_cru, besoin_de_part, part_pour, gardes, illicite, lumiere_crue, moyens_crus, noir_cru,
+                           _lieu_cru, besoin_de_part, part_pour, gardes, illicite, lumiere_crue, lumiere_devant_crue, moyens_crus, noir_cru,
                            peur_du_noir, profil, promesse_en_cours, refus_retenu, salle_crue, taux, tient)
 from . import eau, force
 from .biens import PRIX_PART
@@ -50,7 +50,7 @@ PALIER = 1.5           # refusé pour un prix trop bas, il offre ce prix et moit
 HABILE = 0.5           # chance de réussir à partir de laquelle il attend un crochetage discret (``bruit_crochetage``)
 # Effets qui achèvent un but sans rien permettre ensuite : un geste qui les produit sans
 # atteindre le but cherché ne mène nulle part (se chauffer quand on a faim).
-TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi", "ranime")
+TERMINAUX = ("mange", "part", "chauffe", "inspecte", "servi", "ranime", "parle")
 # Ce qui compte sur un tiers ; un devis exclut la délégation du travail.
 TIERS = ("demander", "acheter", "engager", "demander_feu", "confier")
 # Usages que les gestes savent employer : un objet n'est pris que s'il peut servir à l'un d'eux.
@@ -1136,8 +1136,7 @@ class Vue:
         défaut, celle de la salle."""
         if self._eclaire_par_le_plan(e):
             return 2
-        vue = self.cru(o, "lumiere")
-        niveau = self.lumiere(e) if vue is None else max(vue, self.apport(o))
+        niveau = lumiere_devant_crue(self.monde, self.id, o, e.salle)
         if niveau < 2:
             self._lumiere_lue = True
         return niveau
@@ -1327,6 +1326,13 @@ def gestes(v, e, vises=None, but=None):
     # qu'il ne croit pas verrouillées ou que le plan a déverrouillées.
     for s, longueur in v.allers(e, v.ouvertes(e)):
         yield 0, longueur, [_etape("aller", lieu=s)], e.apres(salle=s)
+    # Le terminal établit seulement une prise de parole possible, jamais
+    # l'accord ni le déplacement de l'auditeur. L'approche et son coût passent
+    # par la même mesure que les autres échanges ; l'exécution valide l'ouïe.
+    for etape in vises.get("parole", ()):
+        qui = etape["cible"]
+        if v.salle(e, qui) == e.salle and not e.fait("parle", qui):
+            yield 0, 1, [etape], e.apres(faits=[(("parle", qui), True)])
     # Les gestes de défense sont offerts seulement aux buts qui les emploient.
     yield from _gestes_defense(v, e, vises)
     agissables, a_porter = v.agissables(vises)

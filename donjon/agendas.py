@@ -146,8 +146,6 @@ def actualiser(monde, id):
                 _changer(monde, id, a, "abandonne", "destination crue noyee", empreinte)
             elif _route_coupee(monde, id, a):
                 _changer(monde, id, a, "abandonne", "route crue coupee", empreinte)
-            else:
-                _changer(monde, id, a, "sommeil", "sous-buts non pris en charge", empreinte)
             continue
         if a["sorte"] != "informer":
             _changer(monde, id, a, "sommeil", "sorte non prise en charge", empreinte)
@@ -169,7 +167,7 @@ def essayables(monde, id):
     for a in projets(monde, id):
         if a["etat"] == "actif":
             yield a
-        elif a["etat"] == "sommeil" and a["sorte"] == "informer":
+        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener"):
             if empreinte is None:
                 empreinte = _croyances(monde, id)
             if a["croyances"] != empreinte:
@@ -231,6 +229,8 @@ def planifier(monde, id, identifiant):
             return planifier(monde, id, identifiant)
     a = next(a for a in _stock(monde, id) if a["id"] == identifiant)
     empreinte = _croyances(monde, id)
+    if a["sorte"] == "amener":
+        return _amener(monde, id, a, empreinte)
     noyau = _noyau(a)
     # Un objectif de parole n'autorise ni une mesure inventée ni un mensonge.
     if noyau["type"] == "avis":
@@ -270,6 +270,81 @@ def planifier(monde, id, identifiant):
         if a["etat"] != "actif":
             return None
     return {"type": "agenda", "agenda": identifiant, "qui": qui}, trouve[1] + [_etape("dire", qui, contenu=contenu)]
+
+
+def _amener(monde, id, a, empreinte):
+    """Parole, demande, puis marche propre ; seules les traces du porteur font foi."""
+    from .deliberation import salle_crue, refus_retenu
+    from .eau import menacee
+    from .esprits import lire
+    from .echanges import ENGAGEMENT_MAX
+    from .planification import vue, depart as etat_depart, cout_route, chercher, _etape
+    from .social import deja_dit, avis_exprime
+    destination = a["parametres"]["lieu"]
+    v = vue(monde, id)
+    e = etat_depart(monde, id, v)
+    cibles = [q for q in _destinataires(a) if salle_crue(monde, id, q) != destination]
+    def distance(q):
+        from .spatial import distance as distance_spatiale
+        salle = salle_crue(monde, id, q)
+        route = (v.approche(e, _etape("confier", q)) if salle == e.salle
+                 else v.route(e, salle) if salle is not None else None)
+        case = v.case_objet(e, q) if salle == e.salle else None
+        propre = monde.objets[id].get("position")
+        local = distance_spatiale(propre, case) if propre is not None and case is not None else float("inf")
+        return (float("inf") if route is None else 0 if salle == e.salle else cout_route(route, e.orientation), local, q)
+    raisons, attendus = [], []
+    for qui in sorted(cibles, key=distance):
+        salle = salle_crue(monde, id, qui)
+        condition = {"objet": qui, "lieu": destination}
+        aide = lire(monde, id)["aides_attendues"].get(qui)
+        accepte = (aide and aide["qui"] == qui and aide["condition"] == condition
+                   and monde.data["minutes"] - aide["minute"] <= ENGAGEMENT_MAX)
+        noyau = {"type": "avis", "objet": salle, "attribut": "menace", "valeur": True}
+        # Un avis déjà transmis n'est pas répété ; aucune lecture de l'esprit d'autrui.
+        if not accepte and salle and menacee(monde, id, salle) and not menacee(monde, id, destination) and not deja_dit(monde, id, qui, noyau):
+            suite = [_etape("dire", qui, contenu={"avis": avis_exprime(monde, id, salle, True)})]
+            lieu = salle
+        elif accepte:
+            lieu, suite = destination, []
+            if e.salle == destination:
+                attendus.append(qui)
+                continue
+        else:
+            refus = refus_retenu(monde, id, qui, ("confier",), qui)
+            if refus:
+                raisons.append("refus " + refus["raison"])
+                continue
+            lieu, suite = salle, [_etape("confier", qui, contenu=condition)]
+        but = (lambda v, e: bool(e.fait("parle", qui))) if suite else (lambda v, e: e.salle == lieu)
+        trouve = None if lieu is None else chercher(
+            monde, id, but, {"parole": suite}, nom="agenda:" + a["id"],
+            memo=["agenda", a["id"], qui, lieu, suite], emplois=(), endurer=poids(monde, id, a))
+        if trouve is None:
+            raisons.append("sans plan admissible au cout")
+            continue
+        if a["etat"] == "sommeil":
+            _changer(monde, id, a, "actif", "plan apres croyance nouvelle", empreinte)
+            _limiter(monde, id, empreinte)
+            if a["etat"] != "actif":
+                return None
+        return {"type": "agenda", "agenda": a["id"], "qui": qui}, trouve[1]
+    if attendus:
+        # Attendre un engagement accepté est un recours : laisser la routine
+        # reprendre ici produirait des navettes vers le rendez-vous à chaque choix.
+        if a["etat"] == "sommeil":
+            _changer(monde, id, a, "actif", "plan apres croyance nouvelle", empreinte)
+            _limiter(monde, id, empreinte)
+            if a["etat"] != "actif":
+                return None
+        depuis = max(lire(monde, id)["aides_attendues"][q]["minute"] for q in attendus)
+        # Une inspection achevée sans arrivée visible ne justifie pas de
+        # recommencer sans fin ; la perception ordinaire continue pendant l'attente.
+        suite = ([] if lire(monde, id)["visites"].get(destination, -1) >= depuis
+                 else [_etape("inspecter", lieu=destination)])
+        return {"type": "agenda", "agenda": a["id"], "qui": attendus[0]}, suite
+    _changer(monde, id, a, "sommeil", raisons[0] if raisons else "arrivee attendue", empreinte)
+    return None
 
 
 def en_cours(monde, id, *, condition=None, objet=None, personne=None, actifs=False):

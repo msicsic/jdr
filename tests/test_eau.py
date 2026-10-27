@@ -247,6 +247,8 @@ class PnjTests(unittest.TestCase):
 
     def test_l_eau_qui_monte_fait_fuir_vers_la_galerie(self):
         m = calme(crue(FIXES), "marchand", "brune", "aubin")
+        # Ilse réagit ici à l'eau elle-même, sans demande d'évacuation de Gorm.
+        m.objets["marchand"]["profil"]["agendas"] = []
         # Ilse craint la crue (sa sécurité presse déjà) ; elle se tient au refuge, près de la conduite.
         # Gorm a laissé ouverte la porte étanche : Ilse ne sait pas où est la clé.
         placer(m, "ilse", "antichambre", (1, 3))
