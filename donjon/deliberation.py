@@ -1591,7 +1591,6 @@ def _candidats(monde, id):
                 ajouter_recours(lambda m, i, c=x["condition"]: _plan_garder(m, i, c), True)
     # Toute parole de service suit le devis qui l'a fait accepter, jusqu'à son abandon annoncé.
     from .planification import planifier_engagement
-    agendas.actualiser(monde, id)
     for rang, agenda in enumerate(agendas.essayables(monde, id)):
         if agenda["etat"] in ("actif", "sommeil"):
             from .caractere import caracteristique
@@ -1751,8 +1750,6 @@ def choisir(monde, id, minute):
             return  # Le réflexe déclaré garde la priorité jusqu'à son terme.
         e["intention"] = None  # Plus aucun passage qu'il croie ouvert : il ne peut accourir.
     pressants = urgents(monde, id, inertie=True)
-    tous = list(_candidats(monde, id))
-    liste = [(besoin, methode) for besoin, methode, _, _, _ in tous]
     essais = {}
     # Hystérésis entre recours, comme entre besoins (``INERTIE``) : le recours en cours d'un besoin
     # garde la main sur les autres recours du même besoin et du même rang tant que son plan n'est pas
@@ -1767,6 +1764,9 @@ def choisir(monde, id, minute):
     resultat = None
     from .planification import vues_du_choix
     with vues_du_choix(monde, id):
+        agendas.actualiser(monde, id)
+        tous = list(_candidats(monde, id))
+        liste = [(besoin, methode) for besoin, methode, _, _, _ in tous]
         for n, (besoin, methode, routine, recours, _) in enumerate(tous):
             if retenu is not None and (besoin, routine, recours) != (retenu[0], retenu[1], True):
                 continue
