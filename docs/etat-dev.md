@@ -4,6 +4,39 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- Branche `codex-comptes-ecrits-moteur`, fusionnée, lots **180 / b / c**,
+  base initiale `integration e61cf08`, correction c sur `a0fcdb5`.
+  Le narrateur raconte le geste et le ton sans affirmer de compte : garde
+  stricte, seules les répliques citées des PNJ sont comparées aux comptes
+  issue/état/offres typés. Quantités présentées sans transfert inventé,
+  compléments de lieu « pièce » exclus du domaine monétaire.
+  Le moteur écrit une phrase naturelle par compte, à la deuxième personne,
+  avec accords communs et désignations publiques sans apposition ; paiement
+  et livraison réciproque réunis, solde nul et offre conclue non répétés.
+  Provenance typée des textes d'opérations dans `paroles` : les anciens textes
+  comptables sont remplacés sans retirer les autres faits de la même parole.
+  Parts/services et offres préparées utilisent les mêmes noms grammaticaux
+  publics. Preuve exacte, sauvegarde avant affichage, repli et montants conservés.
+  **Grammaire bornée : invariant exhaustif en français libre non garanti.**
+  Aucune exception de scénario ; essais 117/117 b/117 c et 168 abandonnés.
+  Suite c unique : **2 289 tests, 264 fichiers, 1 382,257 s**, uniquement
+  les deux échecs MiMo historiques `6 != 5`, zéro erreur/ignoré. Tests du lot
+  verts, dont six nouveaux tests de rendu naturel ; aucune reprise nécessaire.
+  Console/MJ simulé et recharge : Gorm, Brune, Aubin, achats de deux biens,
+  prime vingt et montant inventé, pied-de-biche « dans cette pièce »,
+  réplique présentative, phrases moteur contrôlées mot pour mot.
+  Validation externe de b (`a0fcdb5` contre `cdaf371`) : comptes deux passes,
+  5,08 → 4,58 appels/tour, 19,5 → 17,6 s/tour, comptes justes mais replis
+  1 → 2 ; références une passe, relances 3 → 6 et refus 8 → 13.
+  Ces mesures motivent c et ne le valident pas. Aucun Luna joué par cet agent ;
+  commandes exactes pour c, mêmes groupes et référence, dans
+  `C:/Users/msics/donjon/artifacts/comptes-180/luna-a-jouer.txt`.
+  Bruts exclusivement dans ce dossier ; au plus deux travailleurs réduits.
+  Aucun fichier réservé au lot 179 ni `main` modifié. Pas de clé de signature
+  configurée : commit non signé sur cette branche.
+  [Rapport 180](taches/rapport-codex-180-comptes-ecrits-moteur.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Décision du 2026-10-27. La prose du narrateur ne dit plus aucun compte (garde stricte) ; seules les répliques des PNJ sont comparées aux comptes (issue et offre) ; une phrase naturelle du moteur par compte. Validation Luna de l'orchestrateur contre cdaf371, comptes deux passes : appels/tour 5,08 → 4,42, obstacles narratifs 11 → 5,5, replis 1 → 0,5, refus 1 → 0, prime de Gorm à 20 ; références une passe : relances 3 → 7 (familles connues de l'audit, pas les comptes). Remplace les lots 117 c et 168, abandonnés.
+
 - **Branche `codex-porte-lieu-garde`, fusionnée**, lot **194**, base
   `integration de18162` : responsabilité crue des installations sans
   propriétaire déclaré dans `biens`, coût commun du bris (honnêteté/douceur),

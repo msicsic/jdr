@@ -133,7 +133,7 @@ class VerdictCoherentTests(unittest.TestCase):
                 m = banc(script, noms_connus=['marchand', 'aubin', 'brune', 'ilse'])
                 avant = m.joueur['or']
                 mots = f'{nom}, rends-moi les deux pièces que tu me dois.'
-                texte = f'{nom} te rend les deux pièces.'
+                texte = 'Ta demande est entendue.'
                 a = jugement('mecanique', 'etablie', ('comptes',))
                 a['segments']['0']['comptes'] = [compte(nom.lower(), 'Corvus', montant=2, etat='rendu')]
                 r, sortie, appels = jouer(recharger(m), mots,
@@ -183,7 +183,7 @@ class VerdictCoherentTests(unittest.TestCase):
                 placer(m, qui, lieu, (1, 1))
                 m = recharger(m)
                 self.assertNotIn(qui, m.contexte()['interlocuteurs'])
-                texte = f'{nom} te doit deux pièces.'
+                texte = 'Tu peux consulter tes comptes.'
                 a = jugement('mecanique', 'etablie', ('comptes',))
                 a['segments']['0']['comptes'] = [compte(nom, 'Corvus', montant=2)]
                 r, sortie, appels = jouer(m, 'qui me doit des pièces ?', [dialogue(texte)], [a])

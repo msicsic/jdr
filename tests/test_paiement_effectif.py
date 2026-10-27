@@ -45,7 +45,7 @@ class PaiementEffectifTests(unittest.TestCase):
                     bon["proposition"]["contenu"] = [{"type": "proposition",
                         "demande": {"type": "part", "objet": lot},
                         "contrepartie": {"type": "pieces", "montant": prix}}]
-                texte = "Les pièces sont remises et cette part est à toi."
+                texte = "Entendu."
                 # Une remise immédiate ou engagée dépend de la position réelle du bien.
                 comptes = [compte("joueur", "aubin", montant=prix, etat="rendu"),
                            compte("aubin", "joueur", piece, 1,
@@ -79,7 +79,7 @@ class PaiementEffectifTests(unittest.TestCase):
                 saisie = "je t'offre deux pièces pour une part de soupe"
                 m.objets["vivres"].update(nom="soupe", aliases=["soupe"], prix_part=2)
                 piece = id_piece(m, "vivres")
-                texte = "Les deux pièces et la soupe sont remises."
+                texte = "Entendu."
                 bon = parole(saisie, personnage="aubin")
                 bon["proposition"]["contenu"] = [{"type": "proposition",
                     "demande": {"type": "part", "objet": "vivres"},
@@ -127,7 +127,7 @@ class PaiementEffectifTests(unittest.TestCase):
         from tests.test_parole_corrections import banc
         m = banc("soir-appel")
         saisie = "Aubin, rends-moi les deux pièces dues."
-        bon = "Je te rends les deux pièces."
+        bon = "Entendu."
         faux = parole(saisie, personnage="aubin")
         faux["proposition"]["operations_demandees"]["reclamer"] = True
         r, sortie, _ = jouer(m, saisie, [faux,
