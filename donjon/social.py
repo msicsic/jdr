@@ -989,6 +989,22 @@ def retenir_parole(monde, id, locuteur, destinataires, texte, cites, contenu):
                 + (f" ({', '.join(issues)})" if issues else "") + ".", "ouie")
 
 
+def _priorite_nouvelle(monde, id, noyau):
+    """Un changement de possibilités face au péril prime une information ordinaire.
+
+    Même règle pour une mesure, un avis ou toute autre représentation du lieu :
+    c'est son état mécanique cru, non la classe narrative du fait, qui compte.
+    """
+    from .eau import en_peril, eau_crue, attendue, NOYEE_CM
+    sujet = noyau.get("sujet", noyau.get("objet"))
+    def possibilites(cm):
+        return 2 if cm >= NOYEE_CM else 1 if cm > 0 else 0
+    peril = sujet in monde.data["salles"] and (
+        en_peril(monde, id, sujet)
+        or possibilites(eau_crue(monde, id, sujet)) != possibilites(attendue(monde, id, sujet)))
+    return not peril, noyau["type"] in ("constat", "avis")
+
+
 def bavarder(monde, id, lignes):
     """Confie au plus une nouvelle dans la minute courante ; True si une parole est dite."""
     from .pnj import _chroniquer
@@ -998,7 +1014,7 @@ def bavarder(monde, id, lignes):
         return False
     connues = list(nouvelles(monde, id))
     # Même une rumeur de constat reste moins urgente qu'une accusation.
-    for souvenir, noyau, rang, source in sorted(reversed(connues), key=lambda x: x[1]["type"] in ("constat", "avis")):
+    for souvenir, noyau, rang, source in sorted(reversed(connues), key=lambda x: _priorite_nouvelle(monde, id, x[1])):
         auditeur = _auditeur(monde, id, souvenir, noyau, source)
         if auditeur is None:
             continue
