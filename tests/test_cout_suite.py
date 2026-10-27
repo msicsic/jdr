@@ -194,20 +194,28 @@ class AbsenceTests(unittest.TestCase):
                 with patch.object(p, '_GRAPHES', {}), patch.object(p, '_MEMOIRE', {}), \
                         patch.object(p, '_IMPOSSIBLES', {} if reprendre else Oublieux()), \
                         patch.object(p, 'VERIFIER', True), p.diagnostics() as recherches:
-                    poids = []
+                    poids, plans = [], []
                     for niveau in (70, 72, 75, 78):
                         lire(m, qui)['besoins'][besoin] = niveau
                         poids.append((prix_faute(m, qui, besoin), prix_faute(m, qui, besoin, 'douceur')))
-                        self.assertIsNone(p.planifier(m, qui, besoin), scenario)
+                        plan = p.planifier(m, qui, besoin)
+                        plans.append(plan)
+                        if scenario == 'mine':
+                            self.assertIsNone(plan, scenario)
+                        else:
+                            # Le sec récent borne maintenant l'ancienne montée :
+                            # cette capture de crue retrouve un recours alimentaire.
+                            self.assertIsNotNone(plan, scenario)
                     self.assertGreater(len(set(poids)), 1)
-                    self.assertEqual(any(r['impossible'] for r in recherches), reprendre)
+                    if scenario == 'mine':
+                        self.assertEqual(any(r['impossible'] for r in recherches), reprendre)
                     m = recharger(m)
                     m, lignes = vivre(m, 5)
                 recharge = recharger(m)
                 self.assertEqual(m.data, recharge.data)
                 self.assertEqual(regarder(m), regarder(recharge))
                 self.assertEqual(scene_percue(m), scene_percue(recharge))
-                resultats.append((recharge.data, lignes, regarder(recharge), scene_percue(recharge)))
+                resultats.append((plans, recharge.data, lignes, regarder(recharge), scene_percue(recharge)))
             self.assertEqual(resultats[0], resultats[1], scenario)
 
     def test_les_deux_recherches_reelles_bornees_restent_identiques_apres_recharge(self):

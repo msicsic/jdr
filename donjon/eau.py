@@ -144,9 +144,41 @@ def noyee_crue(monde, id, salle):
     return eau_crue(monde, id, salle) >= NOYEE_CM
 
 
+def borner(monde, id, estimation):
+    """Borner la droite par les observations postérieures, sans mesurer de vitesse.
+
+    Le sol sec donne seulement un plafond du niveau commun, jamais le niveau
+    caché sous le sol. Une salle non revue n'apporte aucune preuve nouvelle.
+    Renvoie aussi la preuve qui a abaissé la droite, pour sa provenance.
+    """
+    from .esprits import lire
+    minute, niveau_vu, montee = estimation
+    if montee <= 0:
+        return estimation, None
+    borne = None
+    salle_bornee = None
+    for salle, attributs in sorted(lire(monde, id)["croyances"].items()):
+        c = attributs.get("eau")
+        if (salle not in monde.data["salles"] or not c
+                or c["source"] not in ("vu", "essai", "savoir") or c["minute"] < minute):
+            continue
+        plafond = altitude(monde, salle) + c["valeur"]
+        projete = niveau_vu + montee * (c["minute"] - minute) / 60
+        if projete > plafond:
+            niveau_vu -= projete - plafond
+            borne = c
+            salle_bornee = salle
+    if borne is not None:
+        # Repartir exactement du plafond observé, plutôt que d'un intercept
+        # rétrocalculé : son arrondi pourrait annoncer une trace d'eau au sec.
+        return (borne["minute"], altitude(monde, salle_bornee) + borne["valeur"], montee), borne
+    return (minute, niveau_vu, montee), None
+
+
 def estimation(monde, id):
-    """(minute, niveau, montée en cm/h) : dernier niveau vu et dernière vitesse
-    mesurée entre deux repères ; None sans mesure de vitesse."""
+    """(minute, niveau, montée en cm/h) : droite du dernier niveau vu,
+    bornée par les observations suivantes, et dernière vitesse mesurée
+    entre deux repères ; None sans mesure de vitesse."""
     from .esprits import lire
     vues = [c for a in lire(monde, id)["croyances"].values()
             if (c := a.get("eau")) and c.get("niveau") is not None]
@@ -160,7 +192,7 @@ def estimation(monde, id):
     if not vitesses:
         return None
     minute, niveau_vu = max((c["minute"], c["niveau"]) for c in vues)
-    return minute, niveau_vu, max(vitesses)[1]
+    return borner(monde, id, (minute, niveau_vu, max(vitesses)[1]))[0]
 
 
 def monte(monde, id):

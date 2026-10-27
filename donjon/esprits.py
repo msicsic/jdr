@@ -481,8 +481,8 @@ def poids_source(monde, id, c):
 
 
 def prevision_propre(monde, id):
-    """L'estimation du lot 58, avec la qualité de ses deux preuves, sans les modifier."""
-    from .eau import estimation
+    """L'estimation et la qualité de ses preuves, borne comprise, sans les modifier."""
+    from .eau import estimation, borner
     e = estimation(monde, id)
     if e is None:
         return None
@@ -491,8 +491,11 @@ def prevision_propre(monde, id):
     ancre = max(vues, key=lambda c: (c["minute"], c["niveau"]))
     pente = max((c for c in vues if c.get("repere") is not None and c.get("montee") is not None),
                 key=lambda c: (c["repere"][0], c["montee"]))
-    faible = min((ancre, pente), key=lambda c: poids_source(monde, id, c) * c["confiance"])
-    return {"valeur": list(e), "minute": max(ancre["minute"], pente["repere"][0]),
+    e, borne = borner(monde, id, (ancre["minute"], ancre["niveau"], e[2]))
+    preuves = [ancre, pente] + ([borne] if borne else [])
+    faible = min(preuves, key=lambda c: poids_source(monde, id, c) * c["confiance"])
+    minute = max(ancre["minute"], pente["repere"][0], borne["minute"] if borne else 0)
+    return {"valeur": list(e), "minute": minute,
             "source": faible["source"], "confiance": faible["confiance"]}
 
 
@@ -510,6 +513,10 @@ def prevision(monde, id, salle):
                    or poids_source(monde, id, propre) * propre["confiance"]
                    > poids_source(monde, id, recue) * recue["confiance"]):
         return propre
+    if type(recue["valeur"]) is not bool:
+        from .eau import borner
+        valeur, _ = borner(monde, id, recue["valeur"])
+        return {**recue, "valeur": list(valeur)}
     return recue
 
 
