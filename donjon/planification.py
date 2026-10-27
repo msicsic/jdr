@@ -1408,14 +1408,18 @@ def gestes(v, e, vises=None, but=None):
             if not v.refuse(porteur, o):
                 yield (0, 1 + DEMANDE / v.chances_demandes[porteur], [_etape("demander", porteur, outil=o)],
                        e.apres(portes=e.portes | {o}, faits=permis), 1)
-            # L'acheter à son propriétaire, s'il a un prix et qu'il peut le payer.
+            # Acheter au propriétaire ou racheter son propre bien au détenteur.
             prix = objets[o].get("prix")
-            if (prix and v.proprietaire[o] == porteur and v.piece and not v.refuse_achat(porteur, o)
+            if (prix and porteur != "joueur" and v.proprietaire[o] in (porteur, id)
+                    and v.piece and not v.refuse_achat(porteur, o)
                     and v.richesse - (e.fait("depense") or 0) >= prix):
-                yield (0, 1 + DEMANDE + v.depense(prix),
-                       [_etape("acheter", porteur, outil=o, contenu={"prix": prix})],
-                       e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("achete", o), True),
-                                                             (("depense",), (e.fait("depense") or 0) + prix)]), 1)
+                from .pnj_propositions import offre_refusee
+                if not v._memo(("achat_refuse", porteur, o, prix), lambda: offre_refusee(
+                        monde, id, porteur, o, {"type": "pieces", "montant": prix})):
+                    yield (0, 1 + DEMANDE + v.depense(prix),
+                           [_etape("acheter", porteur, outil=o, contenu={"prix": prix})],
+                           e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("achete", o), True),
+                                                                 (("depense",), (e.fait("depense") or 0) + prix)]), 1)
         # Une violence ne sert que sur le porteur d’un moyen pertinent.
         # Son coût se compare à demander ; aucun ordre de recours imposé.
         if (utile and porteur and porteur not in (id, "joueur") and v.violence(porteur) is not None and v.autorise[o]

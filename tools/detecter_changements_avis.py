@@ -2,19 +2,15 @@
 
 Observe ``deliberation.choisir``, ``deliberation.menager_flamme`` et ``pnj.agir``
 sans modifier aucun état du monde, aucun tirage aléatoire ni aucune mémoire du
-planificateur. Pour chaque transition de décision d'un PNJ, photographie les
-catégories d'entrées du choix (croyances, paliers de besoins, pulsions
-dues, bruits/alarmes/dangers, refus/promesses/engagements/agendas, inventaire et
-droits, position propre) et distingue :
-- les cycles accomplis (but achevé puis redevenu dû plus tard) ;
-- les allers-retours à expliquer après une entrée externe nouvelle (bruit, refus,
-  feu revu faible, franchissement de seuil d'urgence, etc.) ;
-- les allers-retours non justifiés, où le PNJ revient à une décision qu'il vient
-  de quitter sans l'avoir accomplie alors qu'aucune entrée externe n'a changé
-  (ou qu'elle a été abandonnée sans entrée nouvelle).
+planificateur. Pour chaque transition, conserve les entrées du choix et les preuves observées :
+palier du candidat essayé, étape exécutée et condition de fin devenue vraie.
+Les règles sont ordonnées : cycle accompli, préemption stricte, satisfaction ou
+démenti pendant l'action d'un tiers, progression, répétition, entrée à expliquer.
+Les dérives ouvertes et les pertes d'état payé sont des observations séparées.
+Aucune durée de maintien n'est inventée pour les services instantanés.
 
-Cette observation n'est pas un certificat d'engagement : elle ne connaît ni
-la dépendance exacte aux candidats, ni leurs paliers et marges comparés.
+La couverture demeure partielle (horizon, prédicats de fin et candidats sans
+palier publié) : une entrée changée ne constitue pas un certificat causal.
 """
 import argparse
 from collections import Counter
@@ -345,6 +341,63 @@ class SondeAvis:
         self.intentions_agir = {}   # id -> str
         self.dans_deliberer = False
         self.gestes_contraires = []
+        self.candidats = {}
+        self.services = {}
+
+    def accomplissements(self, monde):
+        resultat = {}
+        for qui, eps in self.episodes.items():
+            vus = set()
+            for ep in reversed(eps):
+                cle = ep["decision"]["cle"]
+                if cle is None or cle in vus:
+                    continue
+                vus.add(cle)
+                if instant(monde) - ep["debut_t"] > 60 * MINUTE:
+                    continue
+                resultat[qui, cle] = _est_accompli(monde, qui, ep["decision"], monde.data["minutes"])
+        return resultat
+
+    def constater(self, monde, acteur, avant):
+        for (qui, cle), accompli in self.accomplissements(monde).items():
+            if avant.get((qui, cle)) is False and accompli:
+                self.episodes[qui][-1].setdefault("faits", []).append({
+                    "t": instant(monde), "cle": cle, "autrui": acteur != qui,
+                    "acteur": acteur, "preuve": "condition_de_fin_devenue_vraie"})
+
+    def relever_services(self, monde):
+        # Conditions d'état, lues dans la réalité ; les conditions de gestes
+        # (servir/remettre) n'impliquent aucun état durable de l'objet.
+        for qui in self.episodes:
+            for souvenir in lire(monde, qui)["memoire"]:
+                if souvenir.get("type") != "tache_payee":
+                    continue
+                condition = souvenir["condition"]
+                objet = condition.get("objet")
+                if objet not in monde.objets or not set(condition) <= {"objet", "allume", "verrouillee", "lieu"}:
+                    continue
+                cle = _canon([qui, souvenir])
+                self.services.setdefault(cle, {
+                    "payeur": qui, "prestataire": souvenir["a"], "condition": copy.deepcopy(condition),
+                    "minute_paiement": souvenir["minute"], "reussite_t": None, "perte_t": None,
+                    "classe": "etat_paye_perdu_apres_reussite_duree_non_specifiee",
+                    "violation": False, "duree_specifiee": False})
+        # Le souvenir peut sortir de la mémoire bornée du personnage ; l'audit
+        # conserve son observation et continue à suivre l'état payé.
+        for service in self.services.values():
+            condition = service["condition"]
+            objet = monde.objets.get(condition["objet"], {})
+            vrai = all(objet.get(k) == v for k, v in condition.items() if k != "objet")
+            if vrai and service["reussite_t"] is None:
+                service["reussite_t"] = instant(monde)
+            if not vrai and service["reussite_t"] is not None and service["perte_t"] is None:
+                service["perte_t"] = instant(monde)
+
+    def analyser(self):
+        analyse = analyser_episodes(self.episodes)
+        analyse["services_etat_perdu"] = [s for s in self.services.values() if s["perte_t"] is not None]
+        analyse["total_services_etat_perdu"] = len(analyse["services_etat_perdu"])
+        return analyse
 
     def enregistrer_choix(self, monde, id, minute, cause):
         dec = _resume_decision(lire(monde, id)["intention"])
@@ -354,6 +407,8 @@ class SondeAvis:
             eps[-1]["fin_t"] = t
             eps[-1]["fin_minute"] = minute
             eps[-1]["nb_choix"] += 1
+            if dec["cle"] in self.candidats.get(id, {}):
+                eps[-1]["palier"] = self.candidats[id][dec["cle"]]
             return
         entrees = relever_entrees(monde, id, minute)
         if eps:
@@ -380,6 +435,8 @@ class SondeAvis:
             "quitte_cause": None,
             "quitte_entrees": None,
             "accompli_au_depart": False,
+            "palier": self.candidats.get(id, {}).get(dec["cle"]),
+            "faits": [],
         })
 
 
@@ -442,8 +499,38 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             else:
                 classe = "entree_nouvelle_a_expliquer"
 
+            # Les preuves instrumentées priment sur les anciennes ressemblances
+            # d'entrées. Un palier est celui d'un candidat réellement exécuté,
+            # jamais déduit du nom du but ou du personnage.
+            ancienne_classe = classe
+            preuves = []
+            palier = ep_depart.get("palier")
+            suivant = intermediaires[0] if intermediaires else {}
+            palier_suivant = suivant.get("palier")
+            faits = [f for e in [ep_depart, *intermediaires] for f in e.get("faits", ())
+                     if (ep_depart["quitte_t"] or ep_depart["fin_t"]) <= f["t"] <= ep_retour["debut_t"]]
+            if ep_depart["accompli_au_depart"]:
+                classe = "cycle_accompli"
+            elif palier is not None and palier_suivant is not None and palier_suivant < palier:
+                classe = "preemption_palier_superieur"
+                preuves = [{"depart": palier, "interruption": palier_suivant}]
+            elif any(f.get("cle") == cle and f.get("autrui") for f in faits):
+                classe = "satisfaction_ou_dementi_autrui"
+                preuves = [f for f in faits if f.get("cle") == cle and f.get("autrui")]
+            elif any(f.get("cle") == cle and f.get("progression") for f in faits):
+                classe = "progression_reelle"
+                preuves = [f for f in faits if f.get("cle") == cle and f.get("progression")]
+            elif intermediaires_reels and all(m["accompli_au_depart"] for m in intermediaires_reels):
+                # Un résultat intermédiaire demande une explication causale ;
+                # cette prudence vaut pour tous les buts, sans exception de garde.
+                classe = "entree_nouvelle_a_expliquer"
+            elif classe.startswith("non_justifie_"):
+                classe = "repetition_sans_entree_nouvelle"
+            else:
+                classe = "entree_nouvelle_a_expliquer"
+
             comptes[classe] += 1
-            non_justifie = classe.startswith("non_justifie_")
+            non_justifie = classe == "repetition_sans_entree_nouvelle"
             signature = (
                 id,
                 ep_depart["decision"]["motif"],
@@ -456,6 +543,8 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             allers_retours.append({
                 "id": id,
                 "classe": classe,
+                "classe_199": ancienne_classe,
+                "preuves": preuves,
                 "non_justifie": non_justifie,
                 "accompli_au_depart": ep_depart["accompli_au_depart"],
                 "d1_motif": ep_depart["decision"]["motif"],
@@ -498,10 +587,29 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
                 "besoins_retour": e_retour["besoins_continus"],
             })
 
+    derives = []
+    for id, eps in sorted(episodes_par_pnj.items()):
+        for i in range(len(eps) - 2):
+            trois = eps[i:i + 3]
+            cles = [e["decision"]["cle"] for e in trois]
+            if None in cles or len(set(cles)) != 3:
+                continue
+            if any(e["decision"]["cle"] == cles[0] for e in eps[i + 3:]
+                   if horizon_minutes is None or (e["debut_t"] - trois[0]["debut_t"]) / MINUTE <= horizon_minutes):
+                continue
+            if horizon_minutes is not None and (trois[-1]["debut_t"] - trois[0]["debut_t"]) / MINUTE > horizon_minutes:
+                continue
+            derives.append({"id": id, "debut_t": trois[0]["debut_t"],
+                            "decisions": [e["decision"] for e in trois],
+                            "accomplis": [e["accompli_au_depart"] for e in trois[:2]],
+                            "suspect_certifie": False})
     return {
         "comptes": dict(comptes),
-        "total_non_justifies": sum(v for k, v in comptes.items() if k.startswith("non_justifie_")),
-        "total_justifies": 0,
+        "total_non_justifies": comptes.get("repetition_sans_entree_nouvelle", 0),
+        "total_justifies": sum(comptes.get(k, 0) for k in (
+            "preemption_palier_superieur", "progression_reelle", "satisfaction_ou_dementi_autrui")),
+        "derives_ouvertes": derives,
+        "total_derives_ouvertes": len(derives),
         "total_a_expliquer": comptes.get("entree_nouvelle_a_expliquer", 0),
         "certification_complete": False,
         "horizon_minutes": horizon_minutes,
@@ -523,6 +631,17 @@ def observer_avis():
     vrai_deliberer = deliberation.deliberer
     vrai_agir = pnj.agir
     vrai_menager = deliberation.menager_flamme
+    vrais_candidats = deliberation._candidats
+
+    def candidats_sondes(m, id):
+        for candidat in vrais_candidats(m, id):
+            def methode(m, id, original=candidat.methode, palier=int(candidat.urgence.palier)):
+                resultat = original(m, id)
+                if resultat:
+                    cle = _cle_decision({"but": resultat[0]})
+                    sonde.candidats.setdefault(id, {})[cle] = palier
+                return resultat
+            yield candidat._replace(methode=methode)
 
     def deliberer_sonde(m, id, minute):
         sonde.dans_deliberer = True
@@ -533,12 +652,26 @@ def observer_avis():
 
     def choisir_sonde(m, id, minute):
         cause = "minute" if sonde.dans_deliberer else sonde.intentions_agir.pop(id, "eveil")
+        sonde.candidats[id] = {}
         res = vrai_choisir(m, id, minute)
         sonde.enregistrer_choix(m, id, minute, cause)
+        sonde.relever_services(m)
         return res
 
     def agir_sonde(m, id, t, lignes, gestes=None, compter=True):
+        avant = sonde.accomplissements(m)
+        intention = copy.deepcopy(lire(m, id)["intention"])
         res = vrai_agir(m, id, t, lignes, gestes, compter)
+        sonde.constater(m, id, avant)
+        apres = lire(m, id)["intention"]
+        if (intention and intention.get("plan") and apres
+                and _cle_decision(intention) == _cle_decision(apres)
+                and len(apres["plan"]) < len(intention["plan"])
+                and res[1] in (pnj.GESTE, pnj.FIN) and sonde.episodes.get(id)):
+            sonde.episodes[id][-1]["faits"].append({
+                "t": instant(m), "cle": _cle_decision(intention), "progression": True,
+                "preuve": "etape_executee", "etape": intention["plan"][0]})
+        sonde.relever_services(m)
         _, issue, rate = res
         if issue in (pnj.FIN, pnj.MANQUE):
             sonde.intentions_agir[id] = f"{issue}:{rate.get('operation') if rate else ''}"
@@ -547,6 +680,7 @@ def observer_avis():
     def menager_sonde(m, id, minute):
         avant = {k: m.objets[k].get("allume") for k in m.objets if "allume" in m.objets[k]}
         res = vrai_menager(m, id, minute)
+        sonde.relever_services(m)
         for k, v_avant in avant.items():
             if v_avant and not m.objets[k].get("allume"):
                 sonde.gestes_contraires.append({
@@ -562,6 +696,7 @@ def observer_avis():
     with patch.object(deliberation, "choisir", choisir_sonde), \
          patch.object(deliberation, "deliberer", deliberer_sonde), \
          patch.object(pnj, "agir", agir_sonde), \
+         patch.object(deliberation, "_candidats", candidats_sondes), \
          patch.object(deliberation, "menager_flamme", menager_sonde):
         yield sonde
 
@@ -605,7 +740,7 @@ def jouer_nuit_sondee(scenario, graine, heures=4.0, depart="tire", verifier_empr
         assert donnees["souvenirs"] == ref["souvenirs"], "Souvenirs modifiés"
         assert pas == ref["chronique"], f"Chronique modifiée sur {scenario} {graine}"
 
-    analyse = analyser_episodes(sonde.episodes)
+    analyse = sonde.analyser()
     duree = round(time.perf_counter() - t0, 2)
     return {
         "scenario": scenario,
@@ -662,16 +797,17 @@ def main(argv=None):
             print(
                 f"[{scenario} {graine}] {r['secondes']:.1f}s | "
                 f"non_justifiés={a['total_non_justifies']} "
-                f"(strict={a['comptes'].get('non_justifie_strict_complet', 0)}, "
-                f"retour_init={a['comptes'].get('non_justifie_retour_etat_initial_exact', 0)}, "
-                f"depl_seul={a['comptes'].get('non_justifie_externe_fixe_seul_deplacement', 0)}, "
-                f"abandon_sans_entree={a['comptes'].get('non_justifie_abandon_sans_entree_externe', 0)}) | "
+                f"classes={a['comptes']} | "
                 f"à_expliquer={a['total_a_expliquer']} | cycles_accomplis={a['total_cycles_accomplis']}",
                 flush=True,
             )
         par_scenario[scenario] = {
             "comptes": dict(c_scen),
-            "total_non_justifies": sum(v for k, v in c_scen.items() if k.startswith("non_justifie_")),
+            "total_derives_ouvertes": sum(r["analyse"]["total_derives_ouvertes"]
+                                          for r in resultats if r["scenario"] == scenario),
+            "total_services_etat_perdu": sum(r["analyse"]["total_services_etat_perdu"]
+                                             for r in resultats if r["scenario"] == scenario),
+            "total_non_justifies": c_scen.get("repetition_sans_entree_nouvelle", 0),
             "total_a_expliquer": c_scen.get("entree_nouvelle_a_expliquer", 0),
             "total_cycles_accomplis": (
                 c_scen.get("cycle_accompli", 0) + c_scen.get("garde_interruption_accomplie", 0)
@@ -686,7 +822,9 @@ def main(argv=None):
             "nb_nuits": len(resultats),
         },
         "totaux_comptes": dict(totaux),
-        "total_non_justifies": sum(v for k, v in totaux.items() if k.startswith("non_justifie_")),
+        "total_derives_ouvertes": sum(r["analyse"]["total_derives_ouvertes"] for r in resultats),
+        "total_services_etat_perdu": sum(r["analyse"]["total_services_etat_perdu"] for r in resultats),
+        "total_non_justifies": totaux.get("repetition_sans_entree_nouvelle", 0),
         "total_a_expliquer": totaux.get("entree_nouvelle_a_expliquer", 0),
         "total_cycles_accomplis": (
             totaux.get("cycle_accompli", 0) + totaux.get("garde_interruption_accomplie", 0)
