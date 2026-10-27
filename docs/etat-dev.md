@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Diagnostic attente/noir du hameau**, lot **182**, branche
+  `codex-attente-hameau`, base `integration 1598b57` : aucun code modifié,
+  aucun Luna. **Neuf nuits historiques 12 h**, deux calculs réduits au plus.
+  146 e inchangé sur 42/7 ; **163** : attente **0 → 1 435** en 42 et
+  **15 → 495** en 7 ; **167** : **495 → 720** en 7, noir **580 → 715**.
+  167 b/c : mêmes chroniques/relevés ; deux nuits expliquent **96 %** de la
+  hausse d'attente. En 42, anciennes pentes positives malgré des lieux revus
+  secs : routes alimentaires et abri interdits par les croyances, recherches
+  épuisées sans plafond. Neutraliser ces pentes sur copies rend les recours
+  possibles ; aucun correctif livré. Invariant à reprendre : l'observation
+  sèche récente contraint l'extrapolation, sans inventer de pente ni lire
+  l'eau cachée. En 7 : froid sans moyens, lumière possible mais sécurité non
+  urgente ; interposition de Gorm dès 347, puis attente alimentaire de Sève
+  **10 → 285 min**, porte crue verrouillée par ouï-dire, réellement ouverte
+  mais non vue de près. Aucun passage connu ignoré. **48 recharges** de
+  captures et **quatre entrées exactes** : état/rendu identiques ; rejeu
+  110–450 identique au témoin. Auberge sans eau active : cause du noir non
+  attribuée ; 1985/2024 seulement relues, aucune garantie générale.
+  Pas de suite complète ni clé de signature ; `main` intacte. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/attente-182/` ;
+  [rapport 182](taches/rapport-codex-182-attente-hameau.md).
+
 - **Vérification d'intégration ee835d2**, lot **174**, laptop, branche
   `codex-verif-integ-ee835d2`, base documentaire `a96a495` : code `donjon/` et
   `tools/` identique à `ee835d2`, aucun changement du jeu ni Luna. **49/49 nuits
