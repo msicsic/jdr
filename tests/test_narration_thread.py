@@ -181,6 +181,61 @@ class NarrationThreadTests(unittest.TestCase):
         self.assertTrue(all(not liste for liste in self.pont.monde.data.get("ambiances", {}).values()))
         self._quitter()
 
+    def test_narration_plus_recente_montree_abandonne_la_precedente(self):
+        """Deux actions : la 1re narration est bloquée, la 2e finit et s'affiche, puis la 1re est libérée.
+        La 1re n'écrase pas la 2e, le bandeau garde la plus récente et seule la 2e est consignée."""
+        porte = threading.Event()
+        bloque_1 = threading.Event()
+
+        def ambiance(numero):
+            if numero == 1:
+                bloque_1.set()
+                porte.wait(timeout=10)
+            return f"Ambiance {_ROMAIN[numero - 1]}."
+
+        self._partie(ambiance)
+        self._jouer("ecouter")
+        self.assertTrue(bloque_1.wait(timeout=5))
+        self._jouer("ecouter")
+        self.assertTrue(attendre(lambda: len(self.pont.montrees) == 1))
+        self.assertEqual(self.pont.derniere_ambiance["texte"], "Ambiance II.")
+        porte.set()
+        time.sleep(0.1)
+        self.assertEqual([v["texte"] for v in self.pont.montrees], ["Ambiance II."])
+        self.assertEqual(self.pont.derniere_ambiance["texte"], "Ambiance II.")
+        self.assertEqual([a["texte"] for a in self.pont.monde.data["ambiances"]["salle_commune"]], ["Ambiance II."])
+        reprise = self._quitter()
+        self.assertEqual([a["texte"] for a in reprise.data["ambiances"]["salle_commune"]], ["Ambiance II."])
+
+    def test_premiere_ambiance_seule_disponible_n_est_pas_perdue(self):
+        """Deux actions : la 1re narration est bloquée, la 2e revient vide avant que la 1re ne se termine.
+        Puisque la 2e n'a rien montré (derniere_montree reste 0), la 1re est montrée et consignée à sa fin."""
+        porte = threading.Event()
+        bloque_1 = threading.Event()
+        fin_2 = threading.Event()
+
+        def ambiance(numero):
+            if numero == 1:
+                bloque_1.set()
+                porte.wait(timeout=10)
+                return "Ambiance I."
+            fin_2.set()
+            return ""
+
+        self._partie(ambiance)
+        self._jouer("ecouter")
+        self.assertTrue(bloque_1.wait(timeout=5))
+        self._jouer("ecouter")
+        self.assertTrue(fin_2.wait(timeout=5))
+        self.assertTrue(attendre(lambda: self.pont.derniere_ambiance["statut"] == "pret"))
+        porte.set()
+        self.assertTrue(attendre(lambda: len(self.pont.montrees) == 1))
+        self.assertEqual([v["texte"] for v in self.pont.montrees], ["Ambiance I."])
+        self.assertEqual(self.pont.derniere_ambiance["texte"], "Ambiance I.")
+        self.assertEqual([a["texte"] for a in self.pont.monde.data["ambiances"]["salle_commune"]], ["Ambiance I."])
+        reprise = self._quitter()
+        self.assertEqual([a["texte"] for a in reprise.data["ambiances"]["salle_commune"]], ["Ambiance I."])
+
 
 if __name__ == "__main__":
     unittest.main()

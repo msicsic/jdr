@@ -258,6 +258,8 @@ def main(argv=None, interface=None):
         pending = None
         comparaison_pending = 0
         derniere_ambiance = ""
+        statut_ambiance = "pret"
+        derniere_montree = 0
         verrou_narration = threading.RLock()
         seq_narration = 0
         thread_narration = None
@@ -275,31 +277,35 @@ def main(argv=None, interface=None):
             liste.append({"texte": texte[:1000], "entites": [], "revision": m.data["revision"]})
             del liste[:-AMBIANCES_PAR_LIEU]
 
-        def montrer_ambiance(texte, numero, duree):
-            if numero == seq_narration:   # seule la dernière narration lancée parle au bandeau
-                notifier_ambiance("pret", texte=texte or derniere_ambiance, duree=duree if texte else None)
-
-        def integrer_ambiances():
-            """Verrou tenu, côté boucle : consigne, sauve puis montre uniquement l'ambiance effectivement montrée."""
-            arrivees = list(en_attente)
-            del en_attente[:]
-            montrables = [(texte, lieu, numero, duree) for texte, lieu, numero, duree in arrivees if numero == seq_narration]
-            if any(texte for texte, *_ in montrables):
-                for texte, lieu, *_ in montrables:
-                    if texte:
-                        consigner_ambiance(texte, lieu)
-                m.sauver(args.save)
-            for texte, _lieu, numero, duree in montrables:
-                montrer_ambiance(texte, numero, duree)
-
         def notifier_ambiance(statut, texte=None, duree=None):
-            nonlocal derniere_ambiance
+            nonlocal derniere_ambiance, statut_ambiance
             with verrou_narration:
+                statut_ambiance = statut
                 if texte is not None and statut == "pret":
                     derniere_ambiance = texte
                 texte_courant = derniere_ambiance if texte is None else texte
             if interface and hasattr(interface, "ambiance"):
                 interface.ambiance(statut=statut, texte=texte_courant, duree=duree)
+
+        def publier_ambiance(texte, lieu, numero, duree):
+            """Verrou tenu : consigne, sauve et montre toute ambiance plus récente que ``derniere_montree``."""
+            nonlocal derniere_montree
+            if texte:
+                if numero <= derniere_montree:
+                    return
+                consigner_ambiance(texte, lieu)
+                m.sauver(args.save)
+                derniere_montree = numero
+                notifier_ambiance("pret", texte=texte, duree=duree)
+            elif statut_ambiance == "en_cours":
+                notifier_ambiance("pret", texte="", duree=None)
+
+        def integrer_ambiances():
+            """Verrou tenu, côté boucle : intègre les ambiances terminées pendant que la boucle travaillait."""
+            arrivees = list(en_attente)
+            del en_attente[:]
+            for texte, lieu, numero, duree in arrivees:
+                publier_ambiance(texte, lieu, numero, duree)
 
         notifier_ambiance("pret", "")
 
@@ -392,11 +398,7 @@ def main(argv=None, interface=None):
                     duree_narr = round(time.perf_counter() - t0_narr, 1)
                     with verrou_narration:
                         if en_lecture:   # la boucle attend une saisie : le monde est à nous, sous verrou
-                            if ma_seq == seq_narration:
-                                if ambiance_txt:
-                                    consigner_ambiance(ambiance_txt, lieu)
-                                    m.sauver(args.save)
-                                montrer_ambiance(ambiance_txt, ma_seq, duree_narr)
+                            publier_ambiance(ambiance_txt, lieu, ma_seq, duree_narr)
                         else:            # la boucle travaille : elle consignera, sauvegardera et montrera
                             en_attente.append((ambiance_txt, lieu, ma_seq, duree_narr))
 
