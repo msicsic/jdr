@@ -1763,7 +1763,7 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         return pas_social, GESTE, None
     if operation == "abriter" and en_cases and o["lieu"] == etape["lieu"]:
         # S'abriter, c'est se tenir près de quelqu'un de sûr qu'il croit là, pas sur le seuil.
-        pas = None if intention.get("attitude", {}).get("place") else _rejoindre_un_proche(monde, id, lignes)
+        pas = _rejoindre_un_proche(monde, id, lignes)
         if pas:
             return pas, GESTE, None
     if not _assez_de_lumiere(monde, id, etape):

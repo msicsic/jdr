@@ -1,0 +1,87 @@
+"""Une ancienne place sociale ne réserve pas le prochain geste."""
+import unittest
+from unittest.mock import patch
+
+from donjon import relations, signes
+from donjon.esprits import croire, lire
+from donjon.geometrie import distance
+from donjon.pnj import agir
+from donjon.perception import eclairage
+from donjon.rendu import regarder
+from tests.scenarios_contractuels import creer
+from tests.support import calme
+from tests.test_signes import intention
+from tests.test_tensions import placer, recharger, vivre
+
+
+def scene(scenario, etat):
+    m = creer(scenario, 7, "fixe")
+    id, proche, perdu, salle = (("ilse", "aubin", "marchand", "antichambre") if scenario == "relais"
+                              else ("hugues", "lucien", "anselme", "salle_commune"))
+    ids = [x for x, o in m.objets.items() if o.get("profil")]
+    calme(m, *ids)
+    for x in ids:
+        lire(m, x)["libre"] = 36000
+    placer(m, id, salle, [1, 1])
+    placer(m, proche, salle, [6, 5])
+    m.joueur.update(salle=salle, position=[1, 3], orientation="est")
+    m.data["salles"][salle]["lumiere_naturelle"] = 2
+    e = lire(m, id)
+    e["relations"].clear()
+    # Un lien encore présent suffit à empêcher l'ancien nettoyage « pas de liens ».
+    e["relations"][proche] = relations._nouvelle({"confiance": 70, "affection": 20}, m.data["minutes"])
+    croire(m, id, proche, "lieu", salle, "vu", salle=salle, case=[6, 5])
+    ailleurs = "echoppe" if scenario == "relais" else "cellier"
+    croire(m, id, perdu, "lieu", None if etat == "inconnu" else ailleurs, "vu", salle=None, case=None)
+    e["besoins"]["securite"] = 75
+    intention(m, id, "abriter")
+    e["intention"]["attitude"] = {"place": {"signe": "proche", "envers": perdu, "sens": "dependance"}}
+    return recharger(m), id, proche
+
+
+class PlacePerimeeTests(unittest.TestCase):
+    def test_la_place_sans_pas_cede_au_proche_dans_le_meme_geste(self):
+        for scenario in ("relais", "auberge"):
+            for etat in ("inconnu", "dementi"):
+                with self.subTest(scenario=scenario, etat=etat):
+                    m, id, proche = scene(scenario, etat)
+                    avant = list(m.objets[id]["position"])
+                    agir(m, id, m.data["minutes"] * 600, [])
+                    m = recharger(m)
+                    self.assertNotEqual(m.objets[id]["position"], avant)
+                    self.assertNotIn("place", lire(m, id)["intention"].get("attitude", {}))
+                    self.assertEqual(m.data, recharger(m).data)
+                    self.assertEqual(regarder(m), regarder(recharger(m)))
+
+    def test_le_recours_rejoint_la_compagnie_apres_recharge_et_decoupe(self):
+        for scenario in ("relais", "auberge"):
+            with self.subTest(scenario=scenario):
+                m, id, proche = scene(scenario, "inconnu")
+                lire(m, id)["libre"] = 0
+                bloc, _ = vivre(recharger(m), 2)
+                morceaux, _ = vivre(recharger(m), 1)
+                morceaux, _ = vivre(morceaux, 1)
+                self.assertEqual(bloc.data, morceaux.data)
+                self.assertEqual(regarder(bloc), regarder(morceaux))
+                self.assertEqual(bloc.objets[id]["lieu"], bloc.objets[proche]["lieu"])
+                self.assertLessEqual(distance(bloc.objets[id]["position"], bloc.objets[proche]["position"]), 1)
+                self.assertGreater(eclairage(bloc, bloc.objets[id]["lieu"], bloc.objets[id]["position"])["niveau"], 0)
+
+    def test_le_pas_social_impossible_ne_conserve_aucune_place(self):
+        for signe in ("proche", "ecart"):
+            with self.subTest(signe=signe):
+                m, id, proche = scene("auberge", "inconnu")
+                placer(m, id, "salle_commune", [4, 4])
+                i = lire(m, id)["intention"]
+                i["attitude"]["place"] = {"signe": signe, "envers": proche, "sens": "dependance"}
+                with patch("donjon.pnj._marcher", return_value=None) as marcher:
+                    self.assertIsNone(signes.place(m, id, i["plan"][0], []))
+                marcher.assert_called_once()
+                self.assertNotIn("place", i["attitude"])
+                self.assertEqual(regarder(m), regarder(recharger(m)))
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+

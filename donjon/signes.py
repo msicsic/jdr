@@ -638,6 +638,10 @@ def place(m, id, etape, lignes):
     from .deliberation import salle_crue
     o, e = m.objets[id], esprit(m, id)
     i = e["intention"]
+    # Une place décrit le pas social courant, jamais un droit acquis sur le
+    # prochain geste. Toutes les sorties sans pas rendent la main au recours.
+    if i:
+        i.get("attitude", {}).pop("place", None)
     if not m.data.get("mode_cases") or not i or etape["operation"] not in ("abriter", "chauffer", "reposer"):
         return None
     ici = o["lieu"]
@@ -658,7 +662,6 @@ def place(m, id, etape, lignes):
             liens.append((x, p, max(r["affection"], r["confiance"]), "proche",
                           "attachement" if relations.vive(r, "affection") else "dependance"))
     if not liens:
-        i.get("attitude", {}).pop("place", None)
         return None
     cible = _case_crue(m, id, etape["cible"]) if etape["operation"] == "chauffer" else None
     depart = tuple(o["position"])
@@ -675,10 +678,12 @@ def place(m, id, etape, lignes):
         return None
     meilleur = min(candidats, key=lambda p: (score(p), distance(p, depart), p))
     x, q, v, signe, sens = max(liens, key=lambda l: (abs(l[2]), l[0]))
-    if signe == "ecart" and distance(meilleur, q) >= 2 or signe == "proche" and distance(meilleur, q) <= 1:
-        i.setdefault("attitude", {})["place"] = {"signe": signe, "envers": x, "sens": sens}
     if meilleur != depart and score(meilleur) < score(depart):
-        return _marcher(m, id, lambda salle, p: salle == ici and tuple(p) == meilleur, lignes)
+        pas = _marcher(m, id, lambda salle, p: salle == ici and tuple(p) == meilleur, lignes)
+        if pas and (signe == "ecart" and distance(meilleur, q) >= 2
+                    or signe == "proche" and distance(meilleur, q) <= 1):
+            i.setdefault("attitude", {})["place"] = {"signe": signe, "envers": x, "sens": sens}
+        return pas
     return None
 
 
