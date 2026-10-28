@@ -116,7 +116,8 @@ def main(argv=None, interface=None):
     parser.add_argument("--narration", choices=["auto", "local", "chatgpt", "api", "anthropic", "mimo", "sans"], default=None,
                         help="fournisseur pour le narrateur d'ambiance (sans changer le pipeline d'action)")
     parser.add_argument("--monolithique", action="store_true",
-                        help="force le mode monolithique historique avec double-passe d'audit")
+                        help="force le mode monolithique historique avec double-passe d'audit "
+                             "(ignore --decouple et --narration)")
     args = parser.parse_args(argv)
     if args.model is None:
         args.model = MODELE_MIMO if args.connexion == "mimo" else os.environ.get("LOCAL_LLM_MODEL", MODELE_LOCAL) if args.connexion == "local" else os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
