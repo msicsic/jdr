@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-devis-observateur`, fusionnée**, lot **258**, base
+  `integration e9a8dfe` : `agendas.devis_observateur` et contexte explicite
+  observateur/acteur sur modèle fermé ; départ et possessions crus, savoirs
+  partagés/transmis explicites, profil neutre, relations/refus de l'observateur,
+  autorité estimée sans lire ni inverser la reconnaissance privée du tiers.
+  Toutes les données projetées dans les entrées, caches réel/estimé séparés ;
+  devis réel 256 intact, aucun appelant autonome. **75 tests ciblés distincts
+  verts / onze fichiers**, dont huit nouveaux : deux charges du 257,
+  variations privées sans effet sur projection/devis, départ et clé crus avec
+  effet, pureté et monde/rendu/scène conservés après recharge. Ni suite
+  complète ni Luna. **Empreintes validées : 20/20 paires 2 h identiques**,
+  cinq scénarios × quatre graines, référence `e9a8dfe`, branche `9149386` :
+  chroniques, mesures, empreintes et hash de l'état final complet identiques.
+  Zéro plantage, avis non justifiés **1 → 1** (crue 7), à expliquer
+  **41 → 41**. Vingt références absentes calculées et mises en cache une
+  fois, aucune rejouée. Calcul détaché terminé en **226,699 s**, deux
+  processus réduits au plus, `fin.json` code 0 ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/observateur-258/`.
+  Limite : catalogue structurel/carte communs au planificateur, sans nouvelle
+  mémoire des transformations cachées ; coût du prochain sous-but seulement.
+  [Rapport 258](taches/rapport-codex-258-devis-observateur.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. agendas.devis_observateur et planification.ContexteDevis : départ, possessions et connaissances partagées crus par l'observateur, ses relations et refus ; profil inconnu estimé neutre (caractéristiques 10, valeurs 50) ; relations.autorite_estimee (statut propre cru, ascendant et dette réciproques inconnus à zéro), distincte du jugement réel ; mémoires et graphes séparés par observateur et acteur, lectures dans _entrees. Déplacer Aubin ou changer son savoir privé ne change pas le devis de Gorm ; ses croyances le changent. 20/20 nuits 2 h identiques ; suite complète sur la branche : aucun échec nouveau par rapport à la régression connue du 251, hors un contrôle AST venu du 256.
+
 - **Branche `codex-faire-ou-confier`, fusionnée**, lot **257**, base
   `integration 5e08b76` : arrêt au constat explicitement prévu au brief.
   Le devis réel du titulaire (`agendas.devis_mandat`, 256) ne peut servir

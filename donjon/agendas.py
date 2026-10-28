@@ -215,6 +215,24 @@ def devis_mandat(monde, mandant, parent, titulaire, sorte, parametres):
     return (cout[0], resultat[1]) if resultat is not None and cout else None
 
 
+def devis_observateur(monde, observateur, parent, acteur, sorte, parametres, *, transmis=()):
+    """Prochain sous-but estimé sur les seules données de l'observateur.
+
+    Les connaissances partagées ou à transmettre sont explicites ; le mandat
+    hypothétique ne publie rien. Le jugement réel reste ``devis_mandat``.
+    Aucun appelant autonome n'utilise ce devis.
+    """
+    from .planification import ContexteDevis
+    contexte = ContexteDevis(observateur, acteur, transmis)
+    copie = contexte.projeter(monde)
+    if copie is None:
+        return None
+    a = confier(copie, observateur, parent, acteur, sorte, parametres, accepte=True)
+    cout = []
+    resultat = planifier(copie, acteur, a["id"], cout=cout)
+    return (cout[0], resultat[1]) if resultat is not None and cout else None
+
+
 def _condition_mandat(monde, sorte, parametres):
     """Identité du sous-but indépendante de l'ordre des destinataires."""
     if sorte not in ("amener", "informer") or not isinstance(parametres, dict):
