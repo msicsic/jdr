@@ -302,7 +302,9 @@ def main(argv=None, interface=None):
                 derniere_montree = numero
                 notifier_ambiance("pret", texte=texte, duree=duree)
             elif statut_ambiance == "en_cours":
-                notifier_ambiance("pret", texte="", duree=None)
+                # Rien de nouveau à montrer : on libère le bandeau sans effacer la dernière ambiance
+                # affichée (texte=None laisse ``derniere_ambiance`` intact).
+                notifier_ambiance("pret")
 
         def integrer_ambiances():
             """Verrou tenu, côté boucle : intègre les ambiances terminées pendant que la boucle travaillait."""

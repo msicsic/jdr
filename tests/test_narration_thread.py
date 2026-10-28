@@ -145,6 +145,33 @@ class NarrationThreadTests(unittest.TestCase):
         self.assertTrue(all(not liste for liste in self.pont.monde.data.get("ambiances", {}).values()))
         self.assertTrue(all(not liste for liste in self._quitter().data.get("ambiances", {}).values()))
 
+    def test_narration_vide_garde_l_ambiance_deja_affichee(self):
+        """Une narration vide ne doit pas effacer le bandeau : la dernière ambiance montrée reste
+        visible, et le registre n'en garde qu'une."""
+        appel_vide = threading.Event()
+
+        def ambiance(numero):
+            if numero == 1:
+                return "Ambiance I."
+            appel_vide.set()
+            return ""
+
+        self._partie(ambiance)
+        self._jouer("ecouter")
+        self.assertTrue(attendre(lambda: len(self.pont.montrees) == 1))
+        self.assertEqual(self.pont.derniere_ambiance["texte"], "Ambiance I.")
+        self._jouer("ecouter")
+        self.assertTrue(appel_vide.wait(timeout=5), "la seconde narration n'est pas appelée")
+        self.assertTrue(attendre(lambda: self.pont.derniere_ambiance["statut"] == "pret"))
+        time.sleep(0.2)
+        self.assertEqual(self.pont.derniere_ambiance["texte"], "Ambiance I.")
+        self.assertEqual({v["texte"] for v in self.pont.montrees}, {"Ambiance I."})
+        self.assertEqual([a["texte"] for a in self.pont.monde.data["ambiances"]["salle_commune"]],
+                         ["Ambiance I."])
+        reprise = self._quitter()
+        self.assertEqual([a["texte"] for a in reprise.data["ambiances"]["salle_commune"]],
+                         ["Ambiance I."])
+
     def test_panne_fournisseur_libere_le_bandeau_et_trace_sans_masquer_resultat(self):
         """Une panne réseau/401 du fournisseur de narration est tracée sur stderr, libère le bandeau,
         ne consigne aucune ambiance et laisse le résultat mécanique affiché dans la conversation."""
