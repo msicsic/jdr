@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-bornes-garde`, non fusionnée**, lot **243**, base
+  intégration **c870c8b**, diagnostic seul. Les deux absences historiques
+  `4306c14`, auberge 42 à 435, sont reproduites : 4 000 nœuds contre
+  **7 071 / 6 574** pour les complètes, coûts **126,36 / 127,289407**.
+  Elles sont reconnues dans `BORNES`, même résultat sans optimisation :
+  aucune violation silencieuse du contrat 48, aucun plafond ni code changé.
+  Lecture de lanterne devenue faible, combinatoire des états, séjour H trop
+  bas pour conclure sous plafond ; contre-épreuve forte à 336 nœuds.
+  Intégration : première absence au grenier maintenue (7 091 nœuds),
+  deux absences à la chambre (11 139 / 11 898), ronde de sécurité choisie.
+  Historiquement, aucun temps sans but : la garde de la chambre coûte moins.
+  Sur l’intégration, **44 min 17,8 s sans intention entre 435 et 480**,
+  hors deux courtes rondes ; besoin de biens en attente confirmé à la recharge.
+  Cinq couples état/but réétudiés sur captures rechargées, conséquences
+  moteur/monde/rendu/scène rechargés identiques ; autre recours de Joss.
+  **15 ciblés verts, 163,033 s** ; aucune suite complète ni campagne globale
+  supplémentaire (diagnostic seul), aucun Luna. Bruts
+  `C:/Users/msics/donjon/artifacts/bornes-243/` ;
+  [rapport 243](taches/rapport-codex-243-bornes-garde.md).
+
 - **Branche `codex-aide-stable`, fusionnée**, lot **240**, base
   intégration `1c71666`. `Vue.detresses` conserve l'ouverture de l'aide pour
   une intention sans geste tant qu'une promesse connue reste valide, dès
