@@ -100,17 +100,17 @@ ACTIONS :
 - dialogue : le joueur pose une question ou adresse la parole à un personnage (ou à tous / à la cantonade).
   Une saisie entre guillemets (« ... »), avec un verbe de parole (je dis, je demande, je chuchote...) ou « à tous : ... » est TOUJOURS dialogue (ou conversation_pnj pour négocier une mission), même si ses mots évoquent un geste.
   Renseigne sujet_parole et contenu (liste de 1 à 3 actes de parole typés) selon ce que Corvus dit :
-  - "propos" : parole ordinaire, salutation ou question générale -> contenu = [{"type": "propos", "sujet": "", "attribut": "", "valeur": ""}]
-  - "qui" : demander qui est l'interlocuteur / son nom -> contenu = [{"type": "qui", "sujet": "", "attribut": "", "valeur": ""}]
-  - "nom" : Corvus se présente sous un nom (sujet = "joueur" ou id du personnage dont il prend le nom) -> contenu = [{"type": "nom", "sujet": "joueur", "attribut": "", "valeur": ""}]
-  - "localisation" : demander où se trouve une personne connue (sujet = id dans personnages_connus) -> contenu = [{"type": "localisation", "sujet": id_perso, "attribut": "", "valeur": ""}]
-  - "ressource" : demander si l'interlocuteur possède un bien ou de quoi satisfaire un besoin sans l'acheter (sujet = le bien nommé, sans article, même inconnu de Corvus : nom, alias, matière ou catégorie, ex. "bois", "pain" ; ou besoin général : faim = de quoi manger, chaleur = du combustible) -> contenu = [{"type": "ressource", "sujet": "...", "attribut": "", "valeur": ""}]
-  - "reclamer" : réclamer ou interroger sur un dû (sujet = "" pour des pièces dues, ou id d'un objet appartenant à Corvus) -> contenu = [{"type": "reclamer", "sujet": "", "attribut": "", "valeur": ""}]
-  - "demande" : demander qu'on donne/prête/vende un objet ou une part de ressource (sujet = id objet ou ressource, valeur = "" ou nombre de pièces offertes en chiffres ex: "2") -> contenu = [{"type": "demande", "sujet": id_objet, "attribut": "", "valeur": ""}]
-  - "passage" : demander de s'écarter / laisser passer (sujet = "", valeur = "" ou pièces offertes en chiffres) -> contenu = [{"type": "passage", "sujet": "", "attribut": "", "valeur": ""}]
-  - "aveu" : avouer un geste fait sur un objet d'autrui (sujet = id objet, valeur = geste parmi prendre, poser, ouvrir, fermer, deverrouiller, verrouiller, crocheter, forcer, manger, servir, alimenter, allumer, eteindre) -> contenu = [{"type": "aveu", "sujet": id_objet, "attribut": "", "valeur": geste}]
-  - "affirmation" : affirmer un fait sur un sujet (sujet = id objet/personnage/"joueur", attribut = "lieu"|"verrouillee"|"fiable", valeur = id lieu/porteur ou "oui"/"non") -> contenu = [{"type": "affirmation", "sujet": ..., "attribut": ..., "valeur": ...}]
-  - "avis" : prévoir qu'un lieu connu sera menacé ou épargné par l'eau (sujet = id dans salles_connues, attribut = "menace", valeur = "oui"|"non") -> contenu = [{"type": "avis", "sujet": id_salle, "attribut": "menace", "valeur": "oui"}]
+  - "propos" -> contenu = [{"type": "propos", "sujet": "", "attribut": "", "valeur": ""}]
+  - "qui" -> contenu = [{"type": "qui", "sujet": "", "attribut": "", "valeur": ""}]
+  - "nom" (sujet = "joueur" ou id du personnage dont il prend le nom) -> contenu = [{"type": "nom", "sujet": "joueur", "attribut": "", "valeur": ""}]
+  - "localisation" (sujet = id dans personnages_connus) -> contenu = [{"type": "localisation", "sujet": id_perso, "attribut": "", "valeur": ""}]
+  - "ressource" (sujet = le bien nommé, sans article, même inconnu de Corvus : nom, alias, matière ou catégorie, ex. "bois", "pain" ; ou besoin général : faim = de quoi manger, chaleur = du combustible) -> contenu = [{"type": "ressource", "sujet": "...", "attribut": "", "valeur": ""}]
+  - "reclamer" (sujet = "" pour des pièces dues, ou id d'un objet appartenant à Corvus) -> contenu = [{"type": "reclamer", "sujet": "", "attribut": "", "valeur": ""}]
+  - "demande" (sujet = id objet ou ressource, valeur = "" ou nombre de pièces offertes en chiffres ex: "2") -> contenu = [{"type": "demande", "sujet": id_objet, "attribut": "", "valeur": ""}]
+  - "passage" (sujet = "", valeur = "" ou pièces offertes en chiffres) -> contenu = [{"type": "passage", "sujet": "", "attribut": "", "valeur": ""}]
+  - "aveu" (sujet = id objet, valeur = geste parmi prendre, poser, ouvrir, fermer, deverrouiller, verrouiller, crocheter, forcer, manger, servir, alimenter, allumer, eteindre) -> contenu = [{"type": "aveu", "sujet": id_objet, "attribut": "", "valeur": geste}]
+  - "affirmation" (sujet = id objet/personnage/"joueur", attribut = "lieu"|"verrouillee"|"fiable", valeur = id lieu/porteur ou "oui"/"non") -> contenu = [{"type": "affirmation", "sujet": ..., "attribut": ..., "valeur": ...}]
+  - "avis" (sujet = id dans salles_connues, attribut = "menace", valeur = "oui"|"non") -> contenu = [{"type": "avis", "sujet": id_salle, "attribut": "menace", "valeur": "oui"}]
   - "proposition" : proposer un échange lié {"type": "proposition", "demande": terme, "contrepartie": terme} où chaque terme est {"type": "objet"|"part", "objet": id}, {"type": "tache", "condition": {"objet": id, "allume": true|"verrouillee": true|"lieu": id_salle|"servir": id_perso}}, {"type": "pieces", "montant": int} ou (en contrepartie) {"type": "rien"}.
   Hors dialogue, sujet_parole = "" et contenu = [].
 - clarifier : l'intention est trop ambiguë entre plusieurs cibles ou actions incompatibles (justification = question brève au joueur, à la 2e personne).
