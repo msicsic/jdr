@@ -394,8 +394,8 @@ def main(argv=None, interface=None):
                     ambiance_txt = (recit.get("ambiance") or "").strip() if recit else ""
                     if ambiance_txt and chiffres_sans_fondement(ambiance_txt, affichage, monde_snap.joueur):
                         ambiance_txt = ""
-                except ErreurMonde:
-                    pass
+                except ErreurMonde as exc:
+                    print(f"[narrateur] {exc}", file=sys.stderr)
                 finally:
                     # Quoi qu'il arrive, y compris une erreur inattendue (qui remonte, sans être masquée),
                     # l'ambiance montrée est enregistrée avec son lieu avant d'être affichée et le bandeau est libéré.

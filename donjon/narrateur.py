@@ -142,7 +142,7 @@ def verifier_narration(monde, texte, entree, mode="ambiance", cible_id=None, fai
                     f"Ce nombre (« {n} ») ne figure pas dans le résultat mécanique.",
                     f"l'ambiance sans le nombre « {n} » : aucun chiffre ni quantité mécanique non établie",
                     partie="texte",
-                    segment=0,
+                    segment=None,
                     texte=texte,
                     recu=n,
                 )
