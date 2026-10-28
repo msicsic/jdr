@@ -1,5 +1,6 @@
 """Une ancienne place sociale ne réserve pas le prochain geste."""
 import unittest
+import copy
 from unittest.mock import patch
 
 from donjon import relations, signes
@@ -40,6 +41,34 @@ def scene(scenario, etat):
 
 
 class PlacePerimeeTests(unittest.TestCase):
+    def test_la_cible_connue_hors_d_atteinte_cede_a_la_compagnie_accessible(self):
+        for scenario in ("relais", "auberge"):
+            with self.subTest(scenario=scenario):
+                m, id, proche = scene(scenario, "inconnu")
+                perdu = "marchand" if scenario == "relais" else "anselme"
+                salle = "salle_divisee"
+                m.data["salles"][salle] = copy.deepcopy(m.data["salles"][m.objets[id]["lieu"]])
+                m.data["salles"][salle].update(nom="Salle divisée", sorties={},
+                    plan={"origine": [100, 100], "repere": "X", "sol": [".... ....."] * 7})
+                for x, p in ((id, [3, 1]), (proche, [1, 4]), (perdu, [5, 1])):
+                    placer(m, x, salle, p)
+                m.joueur.update(salle=salle, position=[1, 2])
+                for x in (proche, perdu):
+                    croire(m, id, x, "lieu", salle, "vu", salle=salle, case=m.objets[x]["position"])
+                lire(m, id)["relations"][perdu] = relations._nouvelle(
+                    {"affection": 90, "confiance": 90}, m.data["minutes"])
+                intention(m, id, "abriter")
+                lire(m, id)["intention"]["attitude"] = {
+                    "place": {"signe": "proche", "envers": perdu, "sens": "attachement"}}
+                lire(m, id)["libre"] = 0
+                bloc, _ = vivre(recharger(m), 2)
+                morceaux, _ = vivre(recharger(m), 1)
+                morceaux, _ = vivre(morceaux, 1)
+                self.assertEqual(bloc.data, morceaux.data)
+                self.assertEqual(regarder(bloc), regarder(morceaux))
+                self.assertLessEqual(distance(bloc.objets[id]["position"], bloc.objets[proche]["position"]), 1)
+                self.assertEqual(bloc.objets[id]["lieu"], salle)
+
     def test_la_place_sans_pas_cede_au_proche_dans_le_meme_geste(self):
         for scenario in ("relais", "auberge"):
             for etat in ("inconnu", "dementi"):
@@ -70,8 +99,8 @@ class PlacePerimeeTests(unittest.TestCase):
     def test_le_pas_social_impossible_ne_conserve_aucune_place(self):
         for signe in ("proche", "ecart"):
             with self.subTest(signe=signe):
-                m, id, proche = scene("auberge", "inconnu")
-                placer(m, id, "salle_commune", [4, 4])
+                m, id, proche = scene("relais", "inconnu")
+                placer(m, id, "antichambre", [4, 5])
                 i = lire(m, id)["intention"]
                 i["attitude"]["place"] = {"signe": signe, "envers": proche, "sens": "dependance"}
                 with patch("donjon.pnj._marcher", return_value=None) as marcher:
