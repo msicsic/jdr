@@ -16,6 +16,10 @@ provisoirement avant le devis et retiré en cas de refus. Aucun nouveau champ
 de sauvegarde, déplacement, savoir privé du bénéficiaire ou état hypothétique
 persisté. Une pulsion spontanée de nourrir autrui ne constitue pas cet accord.
 `planification._mesurer_direct` utilise ce contrat dans ses lieux projetés.
+Une localisation inconnue ne constitue pas une preuve d'absence : ce point
+général rétablit aussi la commission de Mireille pour Joss, dont la trace
+est perdue pendant la fourniture. Une localisation crue ailleurs reste
+incompatible, notamment pour Mathurine dans la capture du lot 251.
 
 La revalidation par `pnj.refus_etape` conserve le contrôle des participants
 supplémentaires ; les cibles de contact gardent leur approche et leur
@@ -24,8 +28,13 @@ la disparition d'un objet et d'enregistrer la croyance qui répare le plan :
 les deux erreurs du journal relevaient de cette admission prématurée.
 
 **Vérification.** Première passe : **74 tests verts**, six fichiers,
-56,418 s, deux processus à priorité réduite. Vérification finale en cours :
-les **18 fichiers en échec du journal**, sans assertion affaiblie, et six
+56,418 s, deux processus à priorité réduite. Passe des **24 fichiers :
+310 tests, 309 verts et un échec** (chaîne de l'auberge, localisation inconnue
+confondue avec absence). Après le raccord, **53 tests verts / huit fichiers,
+62,807 s**, dont cette chaîne et les deux scènes du lot 251. Les **16 autres
+fichiers sont revérifiés en cours** sur le dernier moteur ; les huit voisins
+verts ne sont pas relancés. Périmètre : les **18 fichiers en échec du journal**,
+sans assertion affaiblie, et six
 voisins (`service_repropose`, contrat d'engagement, trajet estimé, part
 estimée, parts achetées, engagement et déplacement). Liste exacte et résultats
 dans les bruts. La nouvelle contre-épreuve joueur/Ilse vérifie demande,
@@ -39,9 +48,11 @@ quatre graines × 4 h, deux processus réduits au plus ; références `39db079`
 et `e875877`, caches réemployés, branche calculée une fois puis réemployée
 par son commit. Suspects et S/F/D contre les deux références restent à
 rapporter : aucune conclusion de non-régression globale avant ce résultat.
-Version figée du moteur : `3c529db`. Le lanceur attend la fin du processus
+Version figée du moteur : `15d18c1`. Le lanceur attend la fin du processus
 de tests, sans travailleur de banc simultané ; en cas d'échec des tests,
 il écrit la fin en erreur sans lancer le banc.
+Le premier lanceur a correctement arrêté l'enchaînement sur l'échec ciblé ;
+aucun banc de la version intermédiaire n'a été joué.
 
 **Limites.** Une venue convenue est une hypothèse du devis, pas la garantie
 de l'immobilité, de l'ouïe ou de l'arrivée future du bénéficiaire. L'exécution

@@ -5,14 +5,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-presences-regression`, non fusionnée**, lot **259**, base
-  `integration 7e69227`, moteur `3c529db` : admission d'une part demandée
+  `integration 7e69227`, moteur `15d18c1` : admission d'une part demandée
   avec sa venue convenue, sans déplacement ni consommation projetée réelle ;
   service spontané à un absent toujours refusé. Revalidation des participants
   distincte de l'observation ordinaire des cibles de contact disparues.
   Première passe **74 tests verts / six fichiers, 56,418 s** ; nouvelle
   contre-épreuve joueur/Ilse verte (devis pur, absence puis venue, service,
   engagement, portions, mémoire/texte et rendu rechargés). Vérification des
-  **18 fichiers en échec + six voisins en cours**, deux processus réduits.
+  **18 fichiers en échec + six voisins : 310 tests, 309 verts**, un échec
+  d'intermédiaire corrigé ensuite (localisation inconnue n'est pas absence).
+  **53 tests verts / huit fichiers, 62,807 s** après ce raccord, dont
+  l'intermédiaire et les scènes 251 ; les 16 autres fichiers se revérifient,
+  deux processus réduits. Aucun ancien oracle modifié ni assertion affaiblie.
   Banc détaché enchaîné seulement si ces tests réussissent : cinq scénarios,
   quatre graines, 4 h, références `39db079` et `e875877` avec réemploi du
   cache ; branche figée calculée une fois. Suspects et S/F/D restent à lire ;
