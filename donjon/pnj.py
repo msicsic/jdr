@@ -661,6 +661,19 @@ def _a_toucher(monde, id, etape, portes=None):
     return touches
 
 
+def _a_reunir(monde, id, etape, portes=None):
+    """Présences nécessaires au geste, distinctes de sa portée de contact.
+
+    Le bénéficiaire d'une part peut être appelé dans la salle sans être
+    touché. Il reste un participant requis, même si la cible est le repas.
+    Ce contrat sert à la projection du plan et à sa revalidation.
+    """
+    requis = _a_toucher(monde, id, etape, portes)
+    if etape["operation"] == "servir":
+        requis.append(etape.get("contenu", {}).get("pour"))
+    return requis
+
+
 def _pas(monde, id, sortie, lignes):
     """Un geste d'une minute vers la sortie : ouvrir, déverrouiller, essayer ou passer."""
     actuelles = monde.data["salles"][monde.objets[id]["lieu"]]["sorties"].values()
@@ -1758,15 +1771,21 @@ def compter_attente(monde, id, t, continuer=False):
 def refus_etape(monde, id, etapes):
     """Admissibilité du prochain geste, au choix comme juste avant l'exécution.
 
-    Le contrôle porte sur l'eau crue et les routes déjà contrôlées par la
+    Le contrôle porte sur les présences requises, l'eau crue et les routes déjà contrôlées par la
     marche. Un but sec ne certifie pas un préparatif local dans un péril.
     Aucun effet, aucune observation supplémentaire de la réalité.
     """
+    ici = monde.objets[id]["lieu"]
+    tete = next((x for x in etapes if x["operation"] != "aller" or x["lieu"] != ici), None)
+    if tete is not None and tete["operation"] != "aller":
+        from .planification import vue, depart
+        v = vue(monde, id)
+        e = depart(monde, id, v)
+        if any(not v.present(e, x) for x in _a_reunir(monde, id, tete, e.portes)):
+            return "participant ou cible cru absent"
     from .eau import active, en_peril, menacee
     if not active(monde):
         return None
-    ici = monde.objets[id]["lieu"]
-    tete = next((x for x in etapes if x["operation"] != "aller" or x["lieu"] != ici), None)
     if tete is None or tete["operation"] != "aller":
         return "séjour en péril d'eau" if en_peril(monde, id) else None
     if any(menacee(monde, id, s) for s in monde.data["salles"]):

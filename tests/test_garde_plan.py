@@ -87,7 +87,16 @@ class GardeDuPlanTests(unittest.TestCase):
         return m
 
     def test_mine3_capture8_service_sans_urgence_et_recharge(self):
-        self.verifier_service(lambda: mine_avant_service(souci=False), "mathe", "lucien", "garde_manger", 7)
+        def scene():
+            m = mine_avant_service(souci=False)
+            # Le test porte sur la garde pendant un service réalisable. Dans
+            # l'ancien départ Lucien quittait sa case ; Mathe constatait son
+            # absence après avoir déverrouillé, puis servait sans le situer.
+            # Le bénéficiaire est ici explicitement près du repas.
+            placer(m, "lucien", "baraquement", [3, 5])
+            percevoir_tous(m)
+            return recharger(m)
+        self.verifier_service(scene, "mathe", "lucien", "garde_manger", 7)
 
     def test_relais_service_depuis_la_reserve_gardee(self):
         self.verifier_service(gardien_servant, "marchand", "brune", "reserve", 5)
