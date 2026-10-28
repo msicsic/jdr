@@ -41,6 +41,25 @@ def scene(scenario, etat):
 
 
 class PlacePerimeeTests(unittest.TestCase):
+    def test_un_detour_progresse_meme_si_la_distance_arrondie_reste_egale(self):
+        m, id, _ = scene("relais", "inconnu")
+        placer(m, id, "antichambre", [1, 0])
+        placer(m, "marchand", "antichambre", [3, 1])
+        croire(m, id, "marchand", "lieu", "antichambre", "vu", salle="antichambre", case=[3, 1])
+        lire(m, id)["relations"].clear()
+        lire(m, id)["relations"]["marchand"] = relations._nouvelle({"peur": 70}, m.data["minutes"])
+        i = lire(m, id)["intention"]
+        # [0,0] n'est pas du sol. Rejoindre [0,1] exige le détour par [1,1],
+        # qui garde la distance arrondie 2 avant de l'améliorer à 3.
+        self.assertTrue(signes.place(m, id, i["plan"][0], []))
+        self.assertEqual(m.objets[id]["position"], [1, 1])
+        self.assertEqual(distance(m.objets[id]["position"], [3, 1]), 2)
+        m = recharger(m)
+        self.assertEqual(regarder(m), regarder(recharger(m)))
+        self.assertTrue(signes.place(m, id, lire(m, id)["intention"]["plan"][0], []))
+        self.assertEqual(m.objets[id]["position"], [0, 1])
+        self.assertEqual(m.data, recharger(m).data)
+
     def test_la_cible_connue_hors_d_atteinte_cede_a_la_compagnie_accessible(self):
         for scenario in ("relais", "auberge"):
             with self.subTest(scenario=scenario):

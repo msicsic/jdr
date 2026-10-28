@@ -1487,9 +1487,7 @@ def _pas_placement(jugement, arrivee=None):
         if score(p) < score(depart):
             chemin = jugement["chemin"](lambda q: tuple(q) == p, admissible)
             if chemin:
-                premier = next(q for s, q, _, _ in chemin if (s, q) not in jugement["occupees"])
-                if score(premier) < score(depart):
-                    return premier
+                return next(q for s, q, _, _ in chemin if (s, q) not in jugement["occupees"])
     return None
 
 
