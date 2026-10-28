@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-reessai-regressions`, fusionnée**, lot **229**,
+  départ `1e09926`, première livraison `ad785cf`, puis merge demandé de
+  `origin/integration` **`c9d8c05`** (230/231), sans rebase. Aucun moteur/MJ
+  modifié par 229. Lucien : divergence à 95 min, ancienne reprise par délai
+  contre témoin encore cru présent ; reprises à 107 et 167 sur localisation
+  entendue d'Anselme. Fenêtre de garde explicitement réancrée 150 → 165 min,
+  but, bougeoir porté/allumé, lumière effective et état/rendu rechargés exigés.
+  Huile `881db69` : refus reproduit, deux parts pour une réserve de deux
+  après part préparée pour Lucien à 464 min ; refus juste. Promesse annulée
+  à 466, part séparée chez Odile (échanges réservés au 228).
+  **Après 230, test d'huile vert sans adaptation 229** : fichier strictement
+  identique à `origin/integration`, lanterne à sec et au contact de 230 conservée,
+  réserve d'Odile inchangée. **35 ciblés verts après merge** : 34 tests de
+  quatre fichiers en 225,369 s et test exact d'huile en 194,531 s.
+  Suite complète unique **avant 230** : **2 498 tests / 289 fichiers,
+  3 637,727 s**, un échec de voix préexistant (Mathurine entendue, relevé 225),
+  zéro erreur, 16 ignorés ; **suite non verte avant 230**. Pas de seconde
+  suite ni banc moteur : aucun fichier moteur commun entre 229 et 230.
+  Deux travailleurs à priorité réduite, aucun Luna ; créneau dépassé par
+  les vérifications. [Rapport 229](taches/rapport-codex-229-reessai-regressions.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Tests et documentation seulement. Lucien : comportement juste (reprise du vol seulement après avoir entendu Anselme ailleurs, jamais par le délai), oracle de garde réancré 150 → 165 min avec exigences de lumière ramenée et de cause opposable. Huile : refus d'Odile pour cause necessaire juste sur 881db69 (réserve gardée = parts restantes) ; le test adapté par 230 passe inchangé. À voir avec 228 : une part détachée reste séparée chez Odile après l'annulation d'une promesse.
+
 - **Branche `codex-restauration-charges`, fusionnée**, lot **218** :
   code `2bd1e6f`, reprise demandée sur **`881db69`** (224/225), fusion
   `7c46d64` sans conflit de code, validation finale `fa9dbe3`. Charge suspendue
