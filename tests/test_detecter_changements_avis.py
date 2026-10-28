@@ -29,6 +29,151 @@ def episode(but, debut, quitte, valeur=0, accompli=False):
 
 
 class DetecterAvisTests(unittest.TestCase):
+    def test_entrees_publiees_exigent_un_lien_avec_le_plan_admissible(self):
+        for nature in ("portes", "possedes", "lieu", "engagement"):
+            eps = [episode("agenda", 0, 1), episode("garder", 1, 2), episode("agenda", 2, 3)]
+            for e in eps:
+                for cle in ("debut_entrees", "quitte_entrees"):
+                    e[cle]["_details"].update(inventaire={"portes": [], "possedes": []},
+                                             social={"engagements": [], "engagements_tenus": []})
+            q, r = eps[0]["quitte_entrees"], eps[2]["debut_entrees"]
+            if nature in ("portes", "possedes"):
+                r["_details"]["inventaire"][nature] = ["bien"]
+                r["inventaire_et_droits"] = 1
+            elif nature == "lieu":
+                q["_details"]["croyances"]["bien.lieu"] = '"ailleurs"'
+                r["_details"]["croyances"]["bien.lieu"] = '"salle"'
+                r["croyances_valeurs"] = 1
+            else:
+                c = {"objet": "bien", "allume": True}
+                q["_details"]["social"]["engagements"] = [["payeur", c, False]]
+                r["_details"]["social"]["engagements_tenus"] = [
+                    {"type": "engagement_tenu", "pour": "payeur", "condition": c, "minute": 2}]
+                r["social_et_engagements"] = 1
+            eps[2]["moyen_admissible"] = True
+            # Référence imbriquée d'une contrepartie, et pas seulement tête du plan.
+            eps[2]["decision"]["plan"] = [{"operation": "aller", "lieu": "salle"},
+                {"operation": "proposer", "cible": "client", "contenu": {
+                    "contrepartie": {"type": "objet", "objet": "bien"}}}]
+            with self.subTest(nature=nature):
+                a = self.analyser(eps)
+                self.assertEqual(a["comptes"], {"entree_publiee_utilisee": 1})
+                self.assertEqual(a["total_justifies"], 1)
+                n = {"scenario": "scene", "graine": 0, "heures": 1, "donnees": {"mesures": {}}}
+                audit.ajouter_avis(n, a)
+                self.assertEqual(n["donnees"]["mesures"]["avis_classe_entree_publiee_utilisee"], 1)
+                self.assertNotIn("avis_a_expliquer", {c["code"] for c in audit.analyser_nuit(n)})
+                eps[2]["moyen_admissible"] = False
+                self.assertEqual(self.analyser(eps)["total_justifies"], 0)
+                eps[2]["moyen_admissible"] = True
+                eps[2]["decision"]["plan"][1]["contenu"]["contrepartie"]["objet"] = "sans_rapport"
+                self.assertEqual(self.analyser(eps)["total_justifies"], 0)
+                # Les mots de la grammaire ne sont pas des références.
+                eps[2]["decision"]["plan"] = [{"operation": "bien", "type": "bien"}]
+                self.assertEqual(self.analyser(eps)["total_justifies"], 0)
+
+    def test_engagement_retire_ou_ancien_ne_prouve_pas_un_accomplissement(self):
+        eps = [episode("agenda", 0, 1), episode("garder", 1, 2), episode("agenda", 2, 3)]
+        c = {"objet": "bien", "allume": True}
+        q, r = eps[0]["quitte_entrees"], eps[2]["debut_entrees"]
+        q["_details"]["social"] = {"engagements": [["payeur", c, False]]}
+        r["_details"]["social"] = {"engagements": []}
+        r["social_et_engagements"] = 1
+        eps[2]["moyen_admissible"] = True
+        eps[2]["decision"]["plan"] = [{"operation": "allumer", "cible": "bien"}]
+        for recu in (None, {"type": "engagement_abandonne", "pour": "payeur", "condition": c, "minute": 2},
+                     {"type": "engagement_tenu", "pour": "payeur", "condition": c, "minute": 0}):
+            # Seul le reçu typé tenu entre dans le relevé de la sonde.
+            r["_details"]["social"]["engagements_tenus"] = [recu] if recu and recu["type"] == "engagement_tenu" else []
+            self.assertEqual(self.analyser(eps)["total_justifies"], 0)
+        r["_details"]["social"]["engagements_tenus"][0]["minute"] = 2
+        q["_details"]["social"]["engagements"][0][2] = True
+        self.assertEqual(self.analyser(eps)["total_justifies"], 0)
+        q["_details"]["social"]["engagements"][0][2] = False
+        r["_details"]["social"]["engagements"] = [["payeur", c, True]]
+        self.assertEqual(self.analyser(eps)["total_justifies"], 0)
+
+    def test_reveils_brune_reels_et_recharges(self):
+        from donjon import banc_pnj, planification
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from tests.test_tensions import recharger
+        resultats = []
+        for observer in (nullcontext, d.observer_avis):
+            capture = {}
+            creer = banc_pnj.creer
+            def capturer(*a, **k):
+                capture["monde"] = creer(*a, **k)
+                return capture["monde"]
+            planification._IMPOSSIBLES.clear()
+            with patch.object(banc_pnj, "creer", capturer), observer() as sonde:
+                _, mesures, donnees = banc_pnj.nuit("crue_hameau", 2024, 2/60,
+                                                   "chambre_cloche", depart="tire")
+            if sonde:
+                retours = {r["retour_t"]: r for r in sonde.analyser()["allers_retours"]
+                           if r["id"] == "brune" and r["d1_but"].get("type") == "agenda"}
+                for t, preuve in ((591, "possession_nouvelle"), (929, "lieu_cru_change")):
+                    self.assertEqual(retours[t]["classe"], "entree_publiee_utilisee")
+                    self.assertIn(preuve, {p["preuve"] for p in retours[t]["preuves"]})
+            m = capture["monde"]
+            vue, etat = (regarder(m), scene_percue(m)), copy.deepcopy(m.data)
+            m = recharger(m)
+            self.assertEqual(etat, m.data)
+            self.assertEqual(vue, (regarder(m), scene_percue(m)))
+            resultats.append((m.data, vue, mesures, donnees["chronique"]))
+        self.assertEqual(*resultats)
+
+    def test_cloture_et_contre_epreuves_en_scene_rechargee(self):
+        from donjon import agendas
+        from donjon.esprits import croire
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from tests.test_tache_promise_recours import reserve
+        from tests.test_tensions import recharger
+        for cas, classe in (("tenu", "entree_publiee_utilisee"),
+                            ("retire", "entree_nouvelle_a_expliquer"),
+                            ("sans_rapport", "entree_nouvelle_a_expliquer"),
+                            ("sans_entree", "repetition_sans_entree_nouvelle")):
+            initial, artisan, payeur, c = reserve()
+            initial.objets[c["objet"]]["ouverte"] = False
+            resultats = []
+            for observer in (nullcontext, d.observer_avis):
+                m = recharger(initial.copier())
+                engagement = {"condition": c, "pour": payeur, "minute": 0}
+                agendas.prendre(m, artisan, engagement)
+                eps = [episode("agenda", 0, 1), episode("autre", 1, 2), episode("agenda", 2, 3)]
+                eps[0]["debut_entrees"] = d.relever_entrees(m, artisan, 0)
+                m.data["minutes"] = 1
+                croire(m, artisan, payeur, "etat", {"occupe": True}, "vu")
+                eps[0]["quitte_entrees"] = d.relever_entrees(m, artisan, 1)
+                with observer():
+                    m.data["minutes"] = 2
+                    if cas == "tenu":
+                        self.assertTrue(d.pnj._executer(m, artisan, {"operation": "verrouiller",
+                            "cible": c["objet"], "outil": "cle_garde_manger",
+                            "lieu": "", "condition": ""}, [], None))
+                        agendas.echoir(m, artisan)
+                        self.assertTrue(m.objets[c["objet"]]["verrouillee"])
+                    elif cas == "retire":
+                        agendas.retirer_proposition(m, artisan, engagement)
+                    elif cas == "sans_rapport":
+                        croire(m, artisan, payeur, "lieu", "dortoir", "vu", salle="dortoir", case=None)
+                eps[2]["debut_entrees"] = d.relever_entrees(m, artisan, 2)
+                eps[2]["decision"]["plan"] = [{"operation": "deverrouiller", "cible": c["objet"],
+                                                "outil": "cle_garde_manger"}]
+                eps[2]["moyen_admissible"] = True
+                with self.subTest(cas=cas, sonde=observer is d.observer_avis):
+                    self.assertEqual(self.analyser(eps)["comptes"], {classe: 1})
+                    if cas == "tenu":
+                        self.assertIn("engagement_accompli_publie", {
+                            p["preuve"] for p in self.analyser(eps)["allers_retours"][0]["preuves"]})
+                    etat, vue = copy.deepcopy(m.data), (regarder(m), scene_percue(m))
+                    m = recharger(m)
+                    self.assertEqual(etat, m.data)
+                    self.assertEqual(vue, (regarder(m), scene_percue(m)))
+                    resultats.append((m.data, vue))
+            self.assertEqual(*resultats)
+
     def test_classes_causales_service(self):
         from types import SimpleNamespace
         for acteur, cause, parti, classe in (

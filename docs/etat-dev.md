@@ -2,6 +2,31 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-reveils-agenda-sonde`, fusionnée**, lot **271**,
+  base `de74ff2`, moteur `1355f7a`, outils seulement : reprise justifiée par
+  possession/propriété nouvelle, lieu cru changé ou engagement accompli publié,
+  reliés aux références du plan admissible repris (offres imbriquées comprises).
+  Brune hameau 2024 **591/929** reconnus ; captures 268 sous `881db69`
+  **495/1393/59658** reconnus, **738 reste à expliquer**. Mireille auberge 1985
+  **36720** reste suspecte. **30 tests ciblés distincts verts**, scènes avec/sans
+  sonde et recharges monde/rendu/scène, 18 recharges des captures historiques.
+  Aucun moteur modifié, ni Luna ni suite complète. **Vingt paires 4 h terminées :
+  20/20 identités, 180 contrôles verts**, zéro plantage, un processus réduit
+  détaché, **2 466,737 s**. Sur les mêmes nuits : à expliquer **41 → 15**,
+  **26 entrées publiées utilisées**, suspects **1 → 1** (Aubin Relais 2024
+  `117518`), cycles **495 → 495**, préemptions **48 → 48**, changements de moyen
+  **14 → 14**, progressions **1 → 1**, dérives **212 → 212**, pertes d'état payé
+  **4 → 4**, aucune violation de service. Référence 265 : à expliquer **47**,
+  suspects **1**, cycles **489**, préemptions **46**, changements de moyen **9**,
+  pertes **5** ; écarts intercampagnes non attribués au lot. Aucun retour ajouté
+  ou retiré ; aucune référence rejouée, aucun temps comparé entre campagnes.
+  Bruts `C:/Users/msics/donjon/artifacts/reveils-271/`, `bilan.json`,
+  `fin.json` (`ok=true`). Correctif `3b1ccdc` poussé ; **aucun calcul actif**.
+  Horizon 60 min et reçus bornés ; lien structurel, sans preuve de nécessité
+  contrefactuelle ni garantie universelle.
+  [Rapport 271](taches/rapport-codex-271-reveils-agenda-sonde.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Outils seulement. Classe entree_publiee_utilisee : une reprise du même but est justifiée si une entrée publiée depuis la sortie (bien acquis ou possédé, lieu cru changé, reçu engagement_tenu) est référencée par le plan repris et que ce plan respecte les renoncements. Brune 591/929 (hameau 2024) et trois réveils historiques du 268 reconnus ; 738 reste à expliquer ; suspect Mireille 36720 conservé. 20 nuits 4 h identiques avec et sans sonde : à expliquer 41 → 15, 26 reclassements, suspects 1 → 1 (Aubin, Relais 2024, 117518).
+
 - **Branche `codex-depart-rendez-vous`, fusionnée**, lot **270**,
   diagnostic seul, base `4d2881f` : les **15 départs** comptés par la 241 dans
   la crue (huit graines `audit-12h` et `verifier-8h`) sont **11 cas distincts

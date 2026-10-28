@@ -6,7 +6,8 @@ planificateur. Pour chaque transition, conserve les entrées du choix et les pre
 palier du candidat essayé, étape exécutée et condition de fin devenue vraie.
 Les règles sont ordonnées : cycle accompli, préemption stricte, satisfaction ou
 démenti pendant l'action d'un tiers, progression, moyen évitant le geste manqué,
-rendez-vous intermédiaire clos, répétition, entrée à expliquer.
+rendez-vous intermédiaire clos, entrée publiée utilisée par le plan repris,
+répétition, entrée à expliquer.
 Les dérives ouvertes et les pertes d'état payé sont des observations séparées.
 Aucune durée de maintien n'est inventée pour les services instantanés.
 Les pertes sont attribuées aux gestes exécutés ou aux transitions physiques
@@ -277,6 +278,8 @@ def relever_entrees(monde, id, minute):
         }),
         "recherches": [[q, sorted(deliberation.appels_vains(monde, id, q))] for q in sorted(e.get("recherches", ()))],
         "engagements": [[x["pour"], x["condition"], bool(x.get("annule"))] for x in agendas.en_cours(monde, id)],
+        "engagements_tenus": [copy.deepcopy(s) for s in e["memoire"]
+                              if s["type"] == "engagement_tenu" and "pour" in s],
         "agendas": [[a["id"], a.get("etat"), a.get("raison_sommeil")] for a in agendas.projets(monde, id)],
         "a_prevenir": [
             [s.get("victime"), s.get("auteur")]
@@ -289,6 +292,7 @@ def relever_entrees(monde, id, minute):
 
     inventaire_dict = {
         "portes": sorted(k for k in v.connus if planification.porte_par(monde, k, id)),
+        "possedes": sorted(k for k in v.connus if v.proprietaire[k] == id),
         "richesse": [v.richesse, v.piece],
         "illicites": [
             sorted(o for o in v.connus if v.illicite[o]),
@@ -339,6 +343,68 @@ def _diff_croyances(e1, e2):
     c1, c2 = e1["_details"]["croyances"], e2["_details"]["croyances"]
     cles = sorted(set(c1) | set(c2))
     return {k: [c1.get(k), c2.get(k)] for k in cles if c1.get(k) != c2.get(k)}
+
+
+def _references_plan(valeur):
+    """Identifiants des étapes, y compris les conditions des offres imbriquées.
+
+    Les noms d'opération, types d'offre et textes ne sont pas des références.
+    On ne déduit aucune dépendance à partir du nom du but ou d'un personnage.
+    """
+    if isinstance(valeur, list):
+        return set().union(*(_references_plan(x) for x in valeur))
+    if not isinstance(valeur, dict):
+        return set()
+    refs = {v for k, v in valeur.items()
+            if k in ("cible", "outil", "objet", "qui", "de", "pour", "lieu", "destination")
+            and isinstance(v, str) and v}
+    for v in valeur.values():
+        if isinstance(v, (dict, list)):
+            refs.update(_references_plan(v))
+    return refs
+
+
+def _entrees_utilisees(ep_depart, intermediaires, ep_retour):
+    """Preuves publiées depuis la sortie, reliées au plan réellement repris.
+
+    Une simple différence d'empreinte, une perte de possession, une position
+    oubliée ou une annulation d'engagement ne sont jamais des preuves.
+    Les archives dépourvues de ces relevés restent sans certificat.
+    """
+    plan = ep_retour["decision"].get("plan")
+    if not plan or not ep_retour.get("moyen_admissible"):
+        return []
+    refs = _references_plan(plan)
+    avant = (ep_depart.get("quitte_entrees") or ep_depart["debut_entrees"])["_details"]
+    apres = ep_retour["debut_entrees"]["_details"]
+    preuves = []
+    for champ, preuve in (("portes", "possession_nouvelle"), ("possedes", "propriete_nouvelle")):
+        inv1, inv2 = avant.get("inventaire", {}), apres.get("inventaire", {})
+        if champ not in inv1 or champ not in inv2:
+            continue
+        for objet in sorted((set(inv2[champ]) - set(inv1[champ])) & refs):
+            preuves.append({"preuve": preuve, "objet": objet})
+    for cible in sorted(refs):
+        cle = cible + ".lieu"
+        v1, v2 = avant["croyances"].get(cle), apres["croyances"].get(cle)
+        # Les valeurs sont canoniques ; null et la chaîne vide ne localisent rien.
+        if v2 is not None and v2 not in ("null", '""') and v1 != v2:
+            preuves.append({"preuve": "lieu_cru_change", "cible": cible, "avant": v1, "apres": v2})
+    social1, social2 = avant.get("social", {}), apres.get("social", {})
+    # Le moteur publie engagement_tenu ; la seule disparition du stock ne suffit
+    # pas. Exiger aussi la charge observée active puis retirée et son objet utilisé.
+    releves = [avant, *(entrees["_details"] for e in intermediaires
+                        for entrees in (e["debut_entrees"], e.get("quitte_entrees")) if entrees)]
+    charges = [x for details in releves for x in details.get("social", {}).get("engagements", ())]
+    for recu in social2.get("engagements_tenus", ()):
+        charge = [recu["pour"], recu["condition"], False]
+        if (recu not in social1.get("engagements_tenus", ())
+                and charge in charges
+                and not any(x[:2] == charge[:2] for x in social2.get("engagements", ()))
+                and recu["condition"].get("objet") in refs
+                and ep_depart["quitte_minute"] <= recu["minute"] <= ep_retour["debut_minute"]):
+            preuves.append({"preuve": "engagement_accompli_publie", "recu": recu})
+    return preuves
 
 
 class SondeAvis:
@@ -597,6 +663,7 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
                           and f.get("cle") == m["decision"]["cle"]
                           and m["debut_t"] <= f["t"] <= ep_retour["debut_t"]
                           and plan_retour and any(p.get("cible") == f["qui"] for p in plan_retour)]
+            entrees_utilisees = _entrees_utilisees(ep_depart, intermediaires, ep_retour)
             if ep_depart["accompli_au_depart"]:
                 classe = "cycle_accompli"
             elif palier is not None and palier_suivant is not None and palier_suivant < palier:
@@ -614,6 +681,9 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             elif rendez_vous:
                 classe = "rendez_vous_intermediaire_accompli"
                 preuves = rendez_vous
+            elif entrees_utilisees:
+                classe = "entree_publiee_utilisee"
+                preuves = entrees_utilisees + [{"preuve": "plan_retour_admissible", "plan": plan_retour}]
             elif intermediaires_reels and all(m["accompli_au_depart"] for m in intermediaires_reels):
                 # Un résultat intermédiaire demande une explication causale ;
                 # cette prudence vaut pour tous les buts, sans exception de garde.
@@ -702,7 +772,7 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
         "total_non_justifies": comptes.get("repetition_sans_entree_nouvelle", 0),
         "total_justifies": sum(comptes.get(k, 0) for k in (
             "preemption_palier_superieur", "progression_reelle", "satisfaction_ou_dementi_autrui",
-            "changement_moyen_admissible", "rendez_vous_intermediaire_accompli")),
+            "changement_moyen_admissible", "rendez_vous_intermediaire_accompli", "entree_publiee_utilisee")),
         "derives_ouvertes": derives,
         "total_derives_ouvertes": len(derives),
         "total_a_expliquer": comptes.get("entree_nouvelle_a_expliquer", 0),
