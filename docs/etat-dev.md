@@ -13,14 +13,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   contrôles sociaux/perceptifs, clés/coûts et recharges complètes ; même laps
   entier/découpé. Deux oracles de garde isolés des secours spontanés dans
   leurs seules scènes ; assertions conservées. Ni Luna ni suite complète.
-  **Banc détaché en cours : 20 nuits 4 h par côté**, référence exacte du
-  départ, cache commun sans rejouer les nuits présentes ; deux processus
-  réduits au plus. Compteurs 219/boucles par nuit, secours de peur et temps
-  urgent en baisse sous compagnie ; ce temps n'est pas un gain causal.
-  Sonde pure (état complet/chronique), scène active : un secours, 2,0 min.
-  **Pas de validation du banc avant lecture de `fin.json` et des résultats.**
-  Bruts `C:/Users/msics/donjon/artifacts/rester-266/` ; fin attendue
-  `banc/fin.json`. [Rapport 266](taches/rapport-codex-266-rester-pres.md).
+  **Banc terminé, non validant : 20 paires 4 h**, référence `7404d2d`, code
+  `c8e4916` ; zéro plantage/usurpation, `fin.json` code 0, **544,924 s**.
+  Vingt références absentes calculées/rangées une fois ; deux processus
+  réduits au plus. **84 secours de peur, 161,077 min** de sécurité urgente
+  en baisse sous compagnie (temps vécu, pas gain causal). Suspects 219
+  **2 → 6** : cinq nouveaux sur `pres`, crue 1985 (Brune/Ilse, 82 et 83),
+  hameau 7 (Aubin/Ilse, 39 ; Maël/Ilse, 61), hameau 2024 (Maël/Gorm, 203).
+  Suspect auberge 2024 disparu, crue 7 conservé. Bascules **3 → 2**, aucune
+  hausse par nuit ; cycles 219 **489 → 462**, à expliquer **55 → 66**,
+  dérives ouvertes **233 → 246**. Nouvelle attente sans but de Gorm hameau 7,
+  devoir pressant 155 min dès 90 ; attente urgente totale **400 → 470 min**.
+  **Critère « aucune hausse de suspects » non satisfait : intégration non
+  déclarée verte.** Suivi ciblé des cinq reprises : signes perçus et sorties
+  du contrat à capturer avant de conclure boucle ou faux positif.
+  Aucun calcul actif. Commit local, push refusé par la revue automatique
+  (destination GitHub non vérifiée). Bruts et analyse par nuit :
+  `C:/Users/msics/donjon/artifacts/rester-266/`.
+  [Rapport 266](taches/rapport-codex-266-rester-pres.md).
 
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic
   seul, base `integration 769c7f1` : épisode absent de la nuit actuelle 12 h ;

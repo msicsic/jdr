@@ -1,62 +1,67 @@
 # Lot 266 — rester près d'un proche effrayé
 
-Branche `codex-rester-pres`, **non fusionnée**, base `7404d2d`, 28 octobre 2026.
-Ni Luna, scénario, comparaison de modèles ni suite complète. Poste fixe,
-deux processus réduits au plus. `echanges.py` intact ; dans `agendas.py`,
-seule la validation des raisons accepte désormais `peur`, avec autorisation
-explicite de l'utilisateur pendant le lot. Aucun mécanisme du lot 260 modifié.
+Branche `codex-rester-pres`, **non fusionnée**, base `7404d2d`, code `c8e4916`,
+28 octobre 2026. Commit local : push refusé par la revue automatique
+(GitHub jugé non vérifié pour ce code potentiellement privé). Ni Luna,
+scénario ni suite complète. `echanges.py` intact ; seule validation `peur`
+ajoutée dans `agendas.py`, autorisée par l'utilisateur ; mécanismes 260 intacts.
 
-**Invariant et code.** `deliberation.detresses_percues` extrait exactement la
-lecture commune du lot 53, désormais partagée avec `autour` : tremblement,
-fuite, impression encore appuyée par son signe, appel identifié de la minute.
-`secours` ouvre la condition durable `pres` au palier SECOURS, avec le seuil
-et le poids du 197, rancune exclue. Le contrat commun conserve sa raison ;
-`_raison_tient` et `_fin_demande` relisent la peur perçue et le calme propre.
-Absence du signe, détresse propre ou disposition retirée donnent une sortie
-explicite ; les paliers supérieurs et le péril gardent l'arbitrage commun.
-La disparition du signe dément la raison perçue, sans certifier une émotion
-privée disparue. Un bénéficiaire cru mort ou inconscient est exclu.
+**Invariant et code.** `deliberation.detresses_percues` partage avec `autour`
+les signes/lectures du 53, sans besoin privé d'autrui. `secours` ouvre `pres`
+au palier et au poids du 197, rancune exclue. Le contrat commun tient tant
+que la peur est perçue ; `_raison_tient`/`_fin_demande` terminent sur perte
+du signe, détresse propre ou souci retiré, sans certifier l'émotion privée.
+Priorités et péril restent communs. `planification.gestes`/`_pulsion` utilisent
+approches, coûts, séjour et `rejoindre` sans localisation crue. Cible dans
+`vises`/mémoire, lieux et cases crus dans `_entrees` : graphes et VERIFIER
+communs. `pnj` exécute `rester` sans déplacement accessoire au contact ; présence
+revalidée et souvenir enregistré avant affichage aux témoins. L'apaisement
+reste exclusivement celui d'`autour`/`vecu` au temps vécu.
 
-`planification.gestes` offre le terminal de proximité ; `_pulsion` emploie
-les routes, présences, approches et tarifs communs, puis un séjour `tenir`.
-La cible est dans `vises` et la clé de mémoire ; lieux/cases crus, métrique,
-obstacles et tarifs sont déjà dans `_entrees`. Mémoire, graphes et contrôle
-VERIFIER restent communs. Sans localisation crue, le préfixe `rejoindre` du
-226 cherche le contact, sans terminal sur une présence supposée. `pnj`
-exécute `rester` par l'approche physique commune, sans case choisie par le
-planificateur ; au contact, le placement accessoire ne le fait pas repartir.
-La compagnie n'injecte aucun point de sécurité : `autour` et `vecu` restent
-seuls responsables de l'apaisement. Proximité revalidée, souvenir enregistré,
-puis phrase visible seulement si les deux personnes sont perçues du joueur.
+**76 tests ciblés distincts verts / huit fichiers**, dont six nouveaux :
+Aubin/Ilse après noir et Mathe/Lucien, arrivée/maintien/contact immobile,
+apaisement et fin, exclusions sociales/perceptives, besoin propre prioritaire,
+localisation inconnue, réalité privée sans effet et croyance qui change le
+devis. Monde entier, rendu/carte et scène identiques après recharge et laps
+entier/découpé. Deux oracles de garde passent sur la base (61,907 s) ; seules
+leurs scènes sont isolées du souci spontané, assertions conservées. Reprise
+23 tests : 85,450 s ; fichier final de proximité, six tests : 4,546 s.
 
-**Vérification ciblée : 76 tests distincts verts, huit fichiers.** Fichiers
-du brief, plus planification et trajet estimé. Six nouveaux tests : Aubin/Ilse
-et Mathe/Lucien, arrivée, maintien, compagnon déjà au contact immobile,
-sécurité décroissante, peur d'Ilse réellement accrue dans le noir puis fin
-naturelle, souci faible/rancune/dos/noir/détresse et faim propres, appel
-identifié sans localisation, positions/besoins privés sans effet et
-localisation crue qui change le devis. Monde entier, rendu/carte et scène
-identiques après recharge ; même laps entier/découpé. Deux anciens oracles
-de dynamique étaient modifiés par les nouveaux secours (ils passent sur la
-base : deux méthodes, 61,907 s). Leurs seules scènes sont explicitement sans
-souci spontané ; assertions de garde/recherche inchangées, autres scènes
-de ce fichier conservées. Dernière reprise : 23 tests / trois fichiers,
-85,450 s ; dernier fichier de proximité : six tests, 4,546 s.
+**Banc terminé, non validant.** `fin.json` code 0, **544,924 s**, deux
+travailleurs réduits ; **20 paires 4 h**, zéro plantage/usurpation. Référence
+`7404d2d` : vingt absentes calculées/rangées une fois, aucune présente rejouée.
+Branche `c8e4916` jouée une fois. Sonde pure : état entier/chronique identiques
+en nuit courte ; scène active pure, un secours et 2,0 min.
 
-**Banc détaché en cours**, `tools/banc_rester_pres.py` : 4 h, cinq scénarios
-× 1985/7/42/2024, référence exacte `7404d2d` (commit de départ ; `main` local
-reste à `c870c8b`). Références exactes réemployées, seules les absentes sont
-calculées/rangées ; branche jouée une fois avec compteurs. Sonde pure sur
-état final complet et chronique en nuit courte ; seule la durée de calcul
-diffère. Scène active : état entier identique, un secours et **2,0 minutes**
-de sécurité urgente en baisse avec sa compagnie. Ce compteur mesure le temps
-vécu sous secours, **pas un gain causal contre une autre trajectoire**.
-`bilan.json` conserve les suspects/cycles 219 et boucles **par nuit**, les
-épisodes de peur et les minutes apaisées. Résultats et absence de nouvelle
-alternance **non certifiés avant lecture du banc** ; lot non déclaré validé.
+| Scénario | Suspects 219, base → lot | Secours de peur | Minutes urgentes apaisées sous secours |
+|---|---:|---:|---:|
+| Relais | 0 → 0 | 4 | 32,165 |
+| Mine | 0 → 0 | 23 | 101,298 |
+| Auberge | 1 → 0 | 14 | 18,540 |
+| Crue | 1 → 3 | 15 | 0 |
+| Hameau | 0 → 3 | 28 | 9,074 |
+| **Total** | **2 → 6** | **84** | **161,077** |
 
-Bruts : `C:/Users/msics/donjon/artifacts/rester-266/`.
-Fin attendue, écrite en dernier : `banc/fin.json` (vérifier `code`, puis
-`bilan.json` et les nuits). Les signes restent faillibles et relus aux
-événements/minutes existants, sans délai de maintien ajouté. Aucune garantie
-nouvelle sur la justesse sémantique des impressions ou toutes les boucles.
+Minutes de sécurité urgente réellement en baisse sous compagnie,
+**pas gain causal contre une autre nuit** ; une amorce n'assure pas l'arrivée
+ni l'apaisement. Cycles 219 **489 → 462**, à expliquer **55 → 66**, dérives
+**233 → 246**. Bascules **3 → 2**, sans hausse par nuit (mine 42 : 2 → 1 ;
+crue 7 : 1 → 1 ; autres : zéro). Aller voir/autre but **3 → 1**, crue 42
+conservée ; absence d'alternance entre relevés non certifiée.
+
+**Cinq suspects nouveaux, tous sur `pres`**, conservés sans reclassement :
+Brune/Ilse, crue 1985, 82 et 83 après intention vide ; Aubin/Ilse, hameau 7,
+39 après deux rondes ; Maël/Ilse, même nuit, 61 après attente sans intention ;
+Maël/Gorm, hameau 2024, 203 après intention vide. Suspect faim crue 7 conservé,
+auberge 2024 disparu. **Critère « aucune hausse par nuit » échoué sur trois
+nuits.** Boucles moteur non certifiées : **suivi nécessaire**, capturer
+signes/lectures et sorties du contrat à ces interruptions/reprises pour
+distinguer démenti perceptif légitime et reprise sans cause.
+
+Autre alerte nouvelle : Gorm hameau 7, devoir pressant en attente sans but,
+155 min à partir de 90 ; à instruire. Attente urgente globale **400 → 470 min**,
+sans recours **0 → 0**. **Lot documenté, non déclaré validé pour intégration.**
+Aucun calcul actif ni vérification relancée. Bruts :
+`C:/Users/msics/donjon/artifacts/rester-266/` ; `banc/bilan.json`,
+`analyse-finale.json` : comparaison/alertes par nuit. Signes faillibles,
+relus aux événements/minutes existants, sans délai ajouté.
