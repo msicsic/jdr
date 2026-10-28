@@ -123,10 +123,15 @@ class AbriTests(unittest.TestCase):
         m, texte = attendre(recharger(m), 3)
         self.assertEqual(m.objets["ilse"]["lieu"], "antichambre")
         self.assertEqual(m.objets["aubin"]["lieu"], "antichambre")
-        # 3c la rapproche ensuite réellement. Le texte de son arrivée à l’abri
-        # reste celui de cet instant : elle n’était pas encore au contact.
+        # Depuis 233, entendre les compagnons ne les localise pas par une
+        # rotation fortuite. Elle voit Brune, rejoint sa compagnie éclairée,
+        # et ne localise jamais Aubin (chronique des croyances du lot 234).
         from donjon.geometrie import distance
-        self.assertLessEqual(distance(m.objets["ilse"]["position"], m.objets["aubin"]["position"]), 1)
+        from donjon.perception import eclairage
+        self.assertIsNone(lire(m, "ilse")["croyances"].get("aubin", {}).get("lieu", {}).get("valeur"))
+        self.assertEqual(lire(m, "ilse")["croyances"]["brune"]["lieu"]["valeur"], "antichambre")
+        self.assertLessEqual(distance(m.objets["ilse"]["position"], m.objets["brune"]["position"]), 1)
+        self.assertGreaterEqual(eclairage(m, "antichambre", m.objets["ilse"]["position"])["niveau"], 1)
         self.assertIn("Ilse reste en compagnie.", chronique(m))
         self.assertIn("Ilse reste en compagnie.", texte.splitlines())
         # À l'abri, elle se calme : la lumière et la compagnie l'emportent sur la dérive.
