@@ -8,13 +8,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   faux audit MiMo remis au schéma actuel (`nature`, sans `verdict`/`comptes`),
   comptes d'appels et assertions conservés ; deux fichiers entiers verts,
   **13 tests, 7,627 s**. Passe initiale : **36 tests, trois échecs**.
-  Arrêt demandé par le brief : la torche hameau 1985 est réellement éteinte
-  par Brune à 3615, après réussite à 3188, combustible encore 59 ; sonde
-  `prestataire_beneficiaire_present`, protection vide avant le geste.
-  Prémisse « perte disparue » non reproduite ; légitimité de la clôture
-  antérieure et classement à instruire avant tout réancrage. Aucun moteur,
-  adaptateur, capture ni oracle torche modifié ; suite complète non lancée,
-  suite verte non revendiquée. Bruts `artifacts/suite-238/` du dépôt principal ;
+  Reprise moteur autorisée après l'arrêt initial : trace créée à 3288 puis
+  clôturée dans le même choix, déplacement de Brune avec la torche pris
+  pour un départ d'Ilse, encore crue dans l'échoppe ; extinction à 3615,
+  combustible 59. `biens.py` retient le lieu cru du bénéficiaire à la
+  réussite ; une ancienne trace mobile sans ancrage ne prouve pas un départ.
+  Raccords de création/validation explicitement autorisés après clarification.
+  **50 ciblés verts / cinq fichiers, 34,530 s**, trois nouveaux tests,
+  monde/rendu/scène rechargés, laps en bloc/découpé ; assertions historiques
+  intactes. Banc final vingt paires 4 h, cinq scénarios × quatre graines :
+  fautifs **1 → 0**, physiques **5 → 6**, suspects **2 → 2** sans hausse par
+  nuit/scénario, zéro plantage. Vingt références `e84d5a7` rangées une fois,
+  toutes relues au banc final après renforcement des anciennes traces mobiles.
+  Suite commencée puis interrompue pour ce renforcement ; seule passe complète
+  finale achevée : **2 529 tests / 292 fichiers, 2 518,071 s, zéro échec,
+  une erreur Windows TUI**, zéro ignoré. `os.replace` refuse le temporaire de
+  `test_sortie_galerie_vers_palier_noir_garde_joueur_sur_la_carte` ; test inchangé
+  repris seul vert en **1,020 s**, verrou non identifié. **Suite brute non verte**,
+  aucune seconde suite complète. Les trois échecs initiaux sont corrigés.
+  Anciennes traces mobiles sans ancrage : protection conservée faute de preuve
+  de départ, aucune reconstruction historique ni entretien ajouté. Créneau
+  dépassé par les validations, deux calculs réduits au plus, aucun Luna.
+  Aucun MJ, adaptateur, capture ou fonction des lots voisins modifié.
+  Bruts `artifacts/suite-238/` du dépôt principal ;
   [rapport 238](taches/rapport-codex-238-suite-verte.md).
 
 - **Branche `codex-purete-candidats`, fusionnée**, lot **232**, base
