@@ -40,13 +40,34 @@ Le test de garde de la mine a été réancré près du repas, assertions conserv
 son ancien placement perdait Lucien de vue après déverrouillage, puis servait
 sans le situer (preuve comparée à la base verte, journaux dans les bruts).
 
-**Banc en cours.** Lancé détaché, priorité réduite, un travailleur : 4 h,
-cinq scénarios × quatre graines, référence figée `854bb10`, puis branche.
-Cache de cette base absent sur ce poste au lancement : remplissage unique
-des références manquantes par l'outil commun, aucune référence existante
-relancée. À réception de `banc.termine.json`, examiner `comparaison.json` :
-compteur 219, suspects sans hausse, préemptions, « à expliquer », plantages
-et usurpations. **Ces résultats ne sont pas encore validés.**
+**Banc achevé**, code 0 le 28 octobre à 17 h 48 : **20/20 paires de nuits
+de 4 h**, cinq scénarios × quatre graines, départ tiré, référence `854bb10`
+puis branche `a7e99f1`, un travailleur réduit. Cache de base absent au lancement :
+remplissage unique des références manquantes, aucune référence existante relancée.
+
+| Compteur 219 / audit | Base | Branche |
+|---|---:|---:|
+| Suspects non justifiés | 4 | 2 |
+| Préemptions de palier supérieur | 46 | 46 |
+| Entrées nouvelles « à expliquer » | 51 | 55 |
+| Cycles accomplis | 498 | 489 |
+| Dérives ouvertes | 216 | 233 |
+| Plantages / usurpations / violations | 0 / 0 / 0 | 0 / 0 / 0 |
+
+Suspects par scénario (Relais, mine, auberge, crue, hameau) :
+**1/0/1/2/0 → 0/0/1/1/0**. Trois alertes disparaissent (Aubin Relais 2024,
+Mireille auberge 7, Aubin crue 2024), celle d'Aubin crue 7 reste identique.
+Une **nouvelle alerte** concerne Odile, auberge 2024, **135912–136430** :
+service de vivres à Mathurine, trajet vers le cellier, intermédiaire
+`rejoindre Mathurine` vers ce même cellier, puis retour au but de service.
+Les lieux passent étable → cuisine → cellier ; ce n'est pas la reproposition
+immédiate du geste `servir` corrigée sur la capture de Mireille.
+Le détecteur classe néanmoins ce retour comme non justifié : **baisse globale
+des suspects, mais absence de hausse par nuit non garantie** (auberge 2024,
+0 → 1). Cette nouvelle alerte n'est pas certifiée faux positif ; elle reste
+à diagnostiquer. Les quatre entrées supplémentaires « à expliquer » et les
+dérives ouvertes ne sont pas certifiées bénignes. Aucun moteur ni oracle
+d'audit modifié après ce banc ; aucune nouvelle passe ni suite complète.
 
 **Limites.** Le correctif garantit l'admission sur la présence crue requise ;
 il ne constitue pas une mémoire générale de toutes les causes d'échec.

@@ -13,11 +13,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   nouvelle mémoire d'échec. **28 tests ciblés distincts verts / cinq fichiers**,
   deux contre-épreuves rouges ; capture réelle et mine, monde/rendu rechargés,
   laps en bloc/découpés, reprise sur croyance de retour. Placement du test de
-  garde explicité près du repas, assertions conservées. **Banc rapide détaché
-  en cours**, cinq scénarios × quatre graines × 4 h, un travailleur réduit,
-  référence figée 854bb10 (cache absent, remplissage des seules nuits manquantes).
-  Compteur 219, suspects, préemptions et « à expliquer » encore à valider ;
-  aucune suite complète ni Luna. Limites : présence crue, pas garantie de
+  garde explicité près du repas, assertions conservées. **Banc achevé : 20/20
+  paires 4 h**, cinq scénarios × quatre graines, un travailleur réduit,
+  référence 854bb10 (remplissage unique du cache absent). Compteur 219 :
+  suspects **4 → 2**, préemptions **46 → 46**, « à expliquer » **51 → 55**,
+  cycles **498 → 489**, dérives ouvertes **216 → 233** ; zéro plantage,
+  usurpation ou violation. **Réserve : hausse locale auberge 2024, 0 → 1**,
+  Odile 135912–136430, service → rejoindre Mathurine → service, trajets vers
+  le cellier ; nouvelle alerte non certifiée faux positif, à diagnostiquer.
+  Le critère sans hausse par nuit n'est pas garanti malgré la baisse globale.
+  Aucune suite complète ni Luna. Limites : présence crue, pas garantie de
   l'ouïe ni mémoire universelle d'échecs ou nouvelle recherche de bénéficiaire.
   Bruts `C:/Users/msics/donjon/artifacts/service-251/`, fin `banc.termine.json`.
   [Rapport 251](taches/rapport-codex-251-service-repropose.md).
