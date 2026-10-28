@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification d'intégration c870c8b**, lot **241**, branche
+  `codex-verif-integ-2` : **49/49 nuits achevées, zéro plantage**,
+  cinq contrôles 8 h VERIFIER/spatial 0,2 terminés, dont mine/rixe 42 ;
+  zéro écart consigné et aucune mutation candidate détectée. Aucun code
+  du jeu changé, Luna, pull, suite complète ni référence rejouée ; un seul
+  travailleur détaché à priorité réduite. **Intégration non déclarée verte** :
+  Lucien auberge 42, 435–480, **75 → 74 bornes**, mais plans manqués
+  **2 → 73** (une seule ancienne borne exacte). Une alerte 227 nouvelle,
+  Brune/Ilse hameau 1985 : torche payée allumée à 2436, éteinte à 24600
+  (41 min), bénéficiaire cru présent ; violation moteur non certifiée sans
+  historique de clôture, sonde non raccordée à l'ancrage 238. Pertes 227 :
+  21 physiques et cette alerte, aucune autre cause. Suspects 219 **31 → 23**,
+  à expliquer **390 → 376** (47 → 49 nuits achevées). Anselme auberge 7,
+  420–479 : **246 → 4 passages** ; onze suspects chaleur/devoir de Gorm
+  hameau 1985, 541–545 : **→ zéro**. Sans recours mine **58,12 → 0** ;
+  attente hameau **1 761,25 → 931,25**, S **80,25 → 64,50 (−19,6 %)**,
+  perte de richesse acceptée après 233, avis adoptés toujours zéro.
+  Départs candidats dans la minute d'un « Ici, viens ! » **39 → 24**,
+  crue **10 → 15** : aucune garantie générale. Zéro usurpation/mort,
+  un coup nouveau Aubin→Gorm à 652 (hameau 1985), suivi d'inconscience ;
+  aucune volonté brisée relevée, captivité non certifiée. À instruire :
+  recherche bornée, clôture/service payé et sonde, réessai de Bram mine
+  2024 à 613 et attente de Gorm hameau 7 à 682 (alertes, pas boucles
+  certifiées). Monde/rendu rechargé non couverts par les archives.
+  Bruts `C:/Users/msics/donjon/artifacts/verif-integ-c870c8b/` ;
+  [rapport 241](taches/rapport-codex-241-verif-integ.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 49/49 nuits achevées, zéro plantage, usurpation ou mort ; mine 42 et rixe 42 sous VERIFIER et spatial 0,2 terminent (pureté corrigée par 232). Suspects 219 31 → 23, sans recours mine 58 → 0, Anselme auberge 7 246 → 4 passages/h, Gorm hameau 1985 11 suspects → 0, attente hameau 1 761 → 931 PNJ·min ; S hameau −19,6 % (perte acceptée après 233). Non déclarée verte : Lucien auberge 42 à 435, 73 plans manqués sous la borne (corrigé depuis par le lot 244). Un coup réel (Aubin assomme Gorm, hameau 1985 à 652, pour la torche). Petits suivis : service payé de Brune éteint à 41 (hameau 1985), retours de Bram (mine 2024, 613) et de Gorm (hameau 7, 682), Ilse crue 7 au poêle 450 min malgré la faim.
+
 - **Branche `codex-suite-bf99943`, fusionnée**, lot **253**, départ
   `39db079` : frontières reproduites sur parents directs, Lucien **246 /
   f46a0b5**, captures mine/auberge **248 / bf99943**. La restitution
