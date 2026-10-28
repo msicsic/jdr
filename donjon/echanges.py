@@ -1129,20 +1129,36 @@ def confier(monde, demandeur, auditeur, condition):
     siens_a_portee(monde, auditeur)
     # Une tâche sur un bien de celui qui la confie en confie la garde (``biens.gardes``) : il juge
     # s'il peut s'y prendre avec ce que la garde lui permet.
-    engagement = {"condition": dict(condition), "pour": demandeur, "minute": monde.data["minutes"]}
-    agendas.prendre(monde, auditeur, engagement)
+    engagement = next((x for x in agendas.en_cours(monde, auditeur, condition=condition, actifs=True)
+                       if x['pour'] == demandeur
+                       and monde.data['minutes'] - x['minute'] <= ENGAGEMENT_MAX
+                       and not empeche(monde, auditeur, x)), None)
+    nouveau = engagement is None
+    if nouveau:
+        engagement = {"condition": dict(condition), "pour": demandeur, "minute": monde.data["minutes"]}
+        agendas.prendre(monde, auditeur, engagement)
     devis = devis_service(monde, auditeur, condition, demandeur)
     if devis is None:
-        agendas.retirer_proposition(monde, auditeur, engagement)
+        if nouveau:
+            agendas.retirer_proposition(monde, auditeur, engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
-    if not jet_persuasion(monde, auditeur, demandeur,
+    if nouveau and not jet_persuasion(monde, auditeur, demandeur,
                           TACHE - penchant(monde, auditeur, "altruisme") + devis[0] / PAS_PROPOSITION)[0]:
         agendas.retirer_proposition(monde, auditeur, engagement)
         return "refus"
-    memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": dict(condition)})
+    if nouveau:
+        memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": dict(condition)})
+    else:
+        agendas.renouveler(monde, auditeur, engagement, monde.data['minutes'])
     if demandeur != "joueur" and "objet" in condition:
         esprit(monde, demandeur)["aides_attendues"][condition["objet"]] = {
             "qui": auditeur, "condition": dict(condition), "minute": monde.data["minutes"]}
+        from .planification import duree_devis
+        from math import ceil
+        duree = duree_devis(monde, auditeur, devis[1])
+        if duree is not None:
+            esprit(monde, demandeur)["aides_attendues"][condition["objet"]]["echeance"] = (
+                monde.data["minutes"] + ceil(monde.data.get('dixiemes', 0) / 600 + duree))
     return "accepte"
 
 
