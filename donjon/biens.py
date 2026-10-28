@@ -24,6 +24,8 @@ bourse, une paie) : qui le porte peut les dépenser. Une part d'une ressource co
 (``prix_part``, sinon ``PRIX_PART``), un objet le sien s'il est déclaré (``prix``). Ce que vaut une
 pièce pour chacun vient de ses besoins et de ses valeurs (``caractere.valeur_piece``).
 """
+from contextlib import contextmanager
+
 from .francais import quantite
 from . import agendas
 from .vol import proprietaire as _possesseur
@@ -741,6 +743,30 @@ def retenir_service(monde, id, engagement):
         services.append(trace)
 
 
+@contextmanager
+def clotures_services_du_choix(monde):
+    """Clôtures découvertes en lecture, publiées après le choix complet seulement.
+
+    Les choix imbriqués transmettent leurs clôtures au parent. Un devis isolé
+    n'ouvre pas ce registre ; une interruption abandonne tout le registre.
+    """
+    ancien = getattr(monde, "_clotures_services", None)
+    clotures = []
+    monde._clotures_services = clotures
+    try:
+        yield
+    except BaseException:
+        raise
+    else:
+        if ancien is not None:
+            ancien.extend(s for s in clotures if s not in ancien)
+        elif clotures:
+            services = monde.data.get("services_rendus", [])
+            services[:] = [s for s in services if s not in clotures]
+    finally:
+        monde._clotures_services = ancien
+
+
 def services_proteges(monde, id):
     """Résultats encore utiles d'après les seules observations du prestataire.
 
@@ -748,6 +774,8 @@ def services_proteges(monde, id):
     résultat (ou son portage). Un départ connu ou un état constaté défait
     termine la protection définitivement ; ni oubli par délai, ni entretien.
     Un bénéficiaire présent qui n'en a plus besoin reste donc protégé.
+    La lecture reste pure ; les traces finies sont proposées au registre du
+    choix, lorsqu'il existe, sans écriture pour un devis isolé.
     """
     from .deliberation import _cru, _lieu_cru, salle_crue
     actifs = [{"de": id, "pour": x["pour"], "condition": x["condition"]}
@@ -778,8 +806,9 @@ def services_proteges(monde, id):
             # L'absence d'information nouvelle ne dément pas la parole reçue.
             if c not in proteges:
                 proteges.append(c)
-    if finis:
-        services[:] = [s for s in services if s not in finis]
+    clotures = getattr(monde, "_clotures_services", None)
+    if clotures is not None:
+        clotures.extend(s for s in finis if s not in clotures)
     return proteges
 
 
