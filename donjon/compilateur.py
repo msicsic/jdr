@@ -104,7 +104,7 @@ ACTIONS :
   - "qui" : demander qui est l'interlocuteur / son nom -> contenu = [{"type": "qui", "sujet": "", "attribut": "", "valeur": ""}]
   - "nom" : Corvus se présente sous un nom (sujet = "joueur" ou id du personnage dont il prend le nom) -> contenu = [{"type": "nom", "sujet": "joueur", "attribut": "", "valeur": ""}]
   - "localisation" : demander où se trouve une personne connue (sujet = id dans personnages_connus) -> contenu = [{"type": "localisation", "sujet": id_perso, "attribut": "", "valeur": ""}]
-  - "ressource" : demander si l'interlocuteur possède un bien ou de quoi satisfaire un besoin sans l'acheter (sujet = nom du bien sans article ex: "bois", "pain", ou besoin général "faim" / "chaleur") -> contenu = [{"type": "ressource", "sujet": "...", "attribut": "", "valeur": ""}]
+  - "ressource" : demander si l'interlocuteur possède un bien ou de quoi satisfaire un besoin sans l'acheter (sujet = le bien nommé, sans article, même inconnu de Corvus : nom, alias, matière ou catégorie, ex. "bois", "pain" ; ou besoin général : faim = de quoi manger, chaleur = du combustible) -> contenu = [{"type": "ressource", "sujet": "...", "attribut": "", "valeur": ""}]
   - "reclamer" : réclamer ou interroger sur un dû (sujet = "" pour des pièces dues, ou id d'un objet appartenant à Corvus) -> contenu = [{"type": "reclamer", "sujet": "", "attribut": "", "valeur": ""}]
   - "demande" : demander qu'on donne/prête/vende un objet ou une part de ressource (sujet = id objet ou ressource, valeur = "" ou nombre de pièces offertes en chiffres ex: "2") -> contenu = [{"type": "demande", "sujet": id_objet, "attribut": "", "valeur": ""}]
   - "passage" : demander de s'écarter / laisser passer (sujet = "", valeur = "" ou pièces offertes en chiffres) -> contenu = [{"type": "passage", "sujet": "", "attribut": "", "valeur": ""}]
@@ -205,6 +205,21 @@ SCHEMA_COMPILATEUR = {
     ],
     "additionalProperties": False,
 }
+
+
+def _alleger_contenu(schema):
+    """Le sens générique de ``sujet`` est dit une fois dans ``PROMPT_COMPILATEUR``.
+
+    Les variantes de ``contenu`` ne le répètent pas : le contrat du champ reste
+    le même, seule la copie par branche disparaît.
+    """
+    for variante in schema["properties"]["contenu"]["items"].get("anyOf", []):
+        sujet = variante.get("properties", {}).get("sujet")
+        if isinstance(sujet, dict):
+            sujet.pop("description", None)
+
+
+_alleger_contenu(SCHEMA_COMPILATEUR)
 
 _ACTIONS_PERSONNAGE = ("frapper", "saisir", "pousser", "ligoter", "delier", "trainer", "tuer", "ranimer")
 
