@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-ascendant-neutre`, non fusionnée**, lot **248**, base
+  `f46a0b5` (référence remplacée sur instruction du superviseur) : sixième
+  axe orienté neutre dans `relations.py`, lecture pure `autorite_reconnue`,
+  liens initiaux, bande 60/50, estompement vers le lien déclaré à 1 point/h,
+  signatures et validation. Anciennes relations sans champ lues à zéro sans
+  migration ; contrats partiels rejetés. Aucun lecteur de décision ni épreuve,
+  aucun scénario/MJ changé. **81 tests distincts verts / six fichiers**,
+  contrôle AST renforcé ; monde et rendu rechargés, deux couples orientés,
+  ancien format et laps découpés. **Vingt paires d'empreintes 2 h en attente**,
+  cinq scénarios, quatre graines ; cache `f46a0b5`, retrait strict du champ
+  nouveau avant hash complet, bruts et chemins retirés conservés.
+  Fin attendue `C:/Users/msics/donjon/artifacts/ascendant-248/fin.json`.
+  Aucune suite complète ni Luna. [Rapport 248](taches/rapport-codex-248-ascendant-neutre.md).
+
+
 - **Branche `codex-restitution-route`, fusionnée**, lot **246**, base
   `2b15134` : transport avec le bien jusqu'à la destination crue, puis
   nécessité dans l'état de remise ; même admission et revalidation via
