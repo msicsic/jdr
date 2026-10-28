@@ -43,9 +43,12 @@ class CrueTests(unittest.TestCase):
         # Scène de consommation propre : aucun acteur n'entretient pour autrui,
         # et le stock historique sans combustible propre supplémentaire.
         # Les assertions sur chaque stock et le refus de bois restent inchangées.
-        from tests.support import sans_souci
+        from tests.support import sans_souci, calme
         from tests.scenarios_contractuels import creer as creer_contractuel
         m = sans_souci(nuit("crue", 7, "chambre_cloche", fabrique=creer_contractuel))
+        # L'extinction à stock constant suppose des corps déjà rassasiés et
+        # réchauffés, pas une absence accidentelle de perception du poêle.
+        calme(m, "marchand", "brune", "ilse", "aubin")
         m, textes = par_blocs(m, 270, 90)
         # Les recours refusés changent les trajets de cette nuit : Brune ne prend
         # pas les planches et ne rallume pas le poêle. Aucun bois fictif ne le recharge.

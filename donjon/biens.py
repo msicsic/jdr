@@ -662,9 +662,13 @@ def retenir_service(monde, id, engagement):
     c = engagement["condition"]
     if set(c) not in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"}):
         return
+    from .deliberation import salle_crue
     trace = {"de": id, "pour": engagement["pour"], "condition": dict(c)}
     services = monde.data.setdefault("services_rendus", [])
-    if trace not in services:
+    if not any(all(s.get(k) == v for k, v in trace.items()) for s in services):
+        # Le prestataire peut déplacer le résultat : cela ne prouve pas que
+        # son bénéficiaire est parti. Retenir son lieu au constat de réussite.
+        trace["lieu_beneficiaire"] = salle_crue(monde, id, engagement["pour"])
         services.append(trace)
 
 
@@ -695,14 +699,16 @@ def clotures_services_du_choix(monde):
 def services_proteges(monde, id):
     """Résultats encore utiles d'après les seules observations du prestataire.
 
-    Le besoin est approché par la présence crue du bénéficiaire auprès du
-    résultat (ou son portage). Un départ connu ou un état constaté défait
+    Le besoin est approché par la présence crue du bénéficiaire au lieu
+    retenu à la réussite ou auprès du résultat (ou son portage).
+    Un départ connu de ces lieux ou un état constaté défait
     termine la protection définitivement ; ni oubli par délai, ni entretien.
     Un bénéficiaire présent qui n'en a plus besoin reste donc protégé.
     La lecture reste pure ; les traces finies sont proposées au registre du
     choix, lorsqu'il existe, sans écriture pour un devis isolé.
     """
     from .deliberation import _cru, _lieu_cru, salle_crue
+    from .monde import mobile_par_nature
     actifs = [{"de": id, "pour": x["pour"], "condition": x["condition"]}
               for x in agendas.en_cours(monde, id) if not x.get("annule")
               and set(x["condition"]) in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})]
@@ -723,7 +729,13 @@ def services_proteges(monde, id):
                  or "verrouillee" in c and (_cru(monde, id, o, "verrouillee") is False
                                               or etat.get("ouverte") is True)
                  or "lieu" in c and lieu is not None and lieu != c["lieu"])
-        parti = (porteur != pour and lieu is not None and beneficiaire is not None and lieu != beneficiaire)
+        # Sans ancrage historique, seul un résultat fixe fournit encore un
+        # lieu de référence. Le déplacement d'un résultat mobile, porté ou
+        # posé ensuite, ne prouve jamais un départ de son bénéficiaire.
+        reference = s.get("lieu_beneficiaire",
+                          None if mobile_par_nature(monde.objets.get(o, {})) else lieu)
+        parti = (porteur != pour and reference is not None and lieu is not None
+                 and beneficiaire is not None and reference != beneficiaire and lieu != beneficiaire)
         if cesse and not actif or parti:
             if not actif:
                 finis.append(s)
@@ -745,7 +757,9 @@ def verifier(monde):
     from .deliberation import condition_valide
     assert isinstance(d.get("services_rendus", []), list), "Traces de service invalides"
     for s in d.get("services_rendus", []):
-        assert (isinstance(s, dict) and set(s) == {"de", "pour", "condition"}
+        assert (isinstance(s, dict) and set(s) in ({"de", "pour", "condition"},
+                                                {"de", "pour", "condition", "lieu_beneficiaire"})
+                and (s.get("lieu_beneficiaire") is None or s["lieu_beneficiaire"] in monde.data["salles"])
                 and s["de"] in monde.objets and monde.objets[s["de"]]["type"] in ("personnage", "depouille")
                 and (s["pour"] == "joueur" or s["pour"] in monde.objets
                      and monde.objets[s["pour"]]["type"] in ("personnage", "depouille"))

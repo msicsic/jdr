@@ -258,7 +258,15 @@ class PnjTests(unittest.TestCase):
         self.assertEqual(m.objets["ilse"]["lieu"], "chambre_cloche")
         # Rassurée, elle y reste : sa ronde au refuge la couperait de la galerie (la conduite, qu'elle
         # attend noyée dans l'heure, est entre eux), elle ne l'entreprend pas (branche ``verifier-eau``).
-        self.assertIn((e["intention"] or {}).get("but"), (None, {"type": "abri", "lieu": "chambre_cloche"}))
+        intention = e["intention"]
+        if intention and intention["but"] != {"type": "abri", "lieu": "chambre_cloche"}:
+            # Le contrat 213 conserve une intention bloquée, sans exécuter ses
+            # anciens moyens. Une ronde retenue en attente n'est pas un départ.
+            from donjon.agendas import contrat_intention
+            self.assertEqual(intention["plan"], [])
+            contrat = contrat_intention(m, "ilse")
+            self.assertIsNotNone(contrat)
+            self.assertEqual(contrat["phase"], "attendre")
         # Trempée en arrivant (son départ, puis l'eau de la conduite), elle a séché au poêle du guet,
         # le feu hors de l'eau (branche ``ressources``).
         self.assertEqual(m.objets["ilse"]["corps"]["trempe"], 0)

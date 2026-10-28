@@ -1527,15 +1527,15 @@ def eveiller(monde, id, minute):
 
 
 def _classer(monde, id, pressants, liste, essais, minute):
-    """Un besoin qui presse et dont chaque recours a été essayé sans plan (ou qui n'en a aucun) se
-    met en attente ; dès qu'un recours aboutit, il presse de nouveau. Un recours qu'on n'a pas
-    essayé (un but plus pressant a abouti avant, ou il y a renoncé pour un temps) ne décide rien."""
+    """Un besoin dont chaque recours est sans moyen admissible se met en attente :
+    recherche sans plan ou renoncement dont l'obstacle cru tient encore. Dès qu'un
+    recours aboutit, il presse de nouveau. Un recours non évalué ne décide rien."""
     u = esprit(monde, id)["urgences"]
     for b in pressants:
         issues = [essais.get(i) for i, (motif, _) in enumerate(liste) if motif == b]
         if "plan" in issues:
             etat = "presse"
-        elif all(x == "rien" for x in issues):
+        elif all(x in ("rien", "renonce") for x in issues):
             etat = "attente"
         else:
             continue
@@ -2295,7 +2295,7 @@ def choisir(monde, id, minute):
     from .pnj_propositions import plan_recours
     refusee = e["demande_refusee"]
     from .eau import en_peril
-    offre = plan_recours(monde, id, refusee["besoin"], []) if refusee and not en_peril(monde, id) else None
+    offre = plan_recours(monde, id, refusee["besoin"], None) if refusee and not en_peril(monde, id) else None
     e["intention"] = ({"but": {"type": "proposition", "objet": refusee["objet"]},
                        "motif": refusee["besoin"], "plan": offre, "depuis": minute, "attente": 0}
                       if offre else None)
