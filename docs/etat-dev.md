@@ -2,6 +2,21 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-compteurs-faux-positifs`, non fusionnée**, lot **265**,
+  base `integration c32cc7d`, outils seulement : clôtures publiées des services
+  suivies avec leur preuve et l'ancrage 238 ; autre moyen admis seulement si le
+  plan évite le geste manqué et respecte les renoncements ; rendez-vous
+  intermédiaire clos par `appel.retrouves` relié au partenaire du plan repris.
+  Trois faux positifs exacts reconnus sur copies des sources `c870c8b` : Bram
+  `367860`, Gorm `409744`, torche `24600` close à `24090`. Identité avec/sans
+  sonde et recharges des deux reprises ; **26 tests ciblés verts**, scènes
+  fautives toujours signalées. Aucun moteur modifié, Luna ni suite complète.
+  **Vingt nuits 4 h en cours, lot non validé** : un processus réduit détaché
+  via WMI ; compteurs avant/après et identités dans `bilan.json`, marqueur
+  `C:/Users/msics/donjon/artifacts/compteurs-265/fin.json`. Ne pas relancer :
+  lire ce marqueur puis le bilan à la reprise. Certification générale fausse.
+  [Rapport 265](taches/rapport-codex-265-compteurs-faux-positifs.md).
+
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic
   seul, base `integration 769c7f1` : épisode absent de la nuit actuelle 12 h ;
   reproduit sur `c870c8b`, hameau 1985, départ tiré, joueur chambre de la

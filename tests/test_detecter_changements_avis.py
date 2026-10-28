@@ -70,6 +70,115 @@ class DetecterAvisTests(unittest.TestCase):
         self.assertEqual(a["par_pnj"]["pnj"]["repetition_sans_entree_nouvelle"], 1)
         self.assertEqual(a["allers_retours"][0]["retour_minute"], 2)
 
+    def test_autre_moyen_exige_echec_observe_et_evite_dans_tout_le_plan(self):
+        for genre in ("lumiere", "chaleur"):
+            rate = {"operation": "acheter", "cible": "vendeur", "lieu": ""}
+            eps = [episode(genre, 0, 1), episode("garder", 1, 2), episode(genre, 2, 3)]
+            eps[0]["faits"] = [{"t": 600, "preuve": "etape_manquee", "etape": rate}]
+            eps[2]["decision"]["plan"] = [{"operation": "confier", "cible": "artisan"}]
+            eps[2]["moyen_admissible"] = True
+            self.assertEqual(self.analyser(eps)["comptes"], {"changement_moyen_admissible": 1})
+            # Un détour avant le même obstacle reste suspect.
+            eps[2]["decision"]["plan"].append(rate)
+            self.assertEqual(self.analyser(eps)["total_non_justifies"], 1)
+            eps[2]["decision"]["plan"].pop()
+            eps[2]["moyen_admissible"] = False
+            self.assertEqual(self.analyser(eps)["total_non_justifies"], 1)
+            eps[2]["moyen_admissible"] = True
+            eps[0]["faits"] = []
+            self.assertEqual(self.analyser(eps)["total_non_justifies"], 1)
+
+    def test_rendez_vous_publie_et_recharge(self):
+        from donjon import appel
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from tests.test_tache_promise_recours import reserve
+        from tests.test_tensions import recharger
+        for retrouvailles in (False, True):
+            initial, artisan, payeur, _ = reserve()
+            initial = recharger(initial)
+            resultats = []
+            for observer in (nullcontext, d.observer_avis):
+                m = recharger(initial.copier())
+                d.lire(m, artisan)["rejoint"] = {"qui": payeur, "jusqu_a": 20, "vient": True}
+                eps = [episode("lumiere", 0, 1), episode("attendre", 1, 2), episode("lumiere", 2, 3)]
+                eps[1]["decision"] = d._resume_decision({"but": {"type": "attendre", "qui": payeur}})
+                eps[2]["decision"]["plan"] = [{"operation": "engager", "cible": payeur}]
+                with observer() as sonde:
+                    if sonde:
+                        sonde.episodes[artisan] = eps[:2]
+                        sonde.relever_services(m)
+                    m.data["minutes"] = 1
+                    if retrouvailles:
+                        appel.retrouves(m, artisan, payeur)
+                    else:
+                        # Expiration/rupture sans contact : l'absence ne prouve rien.
+                        d.lire(m, artisan)["rejoint"] = None
+                    if sonde:
+                        sonde.episodes[artisan].append(eps[2])
+                        a = sonde.analyser()
+                        self.assertEqual(a["total_non_justifies"], 0 if retrouvailles else 1)
+                        if retrouvailles:
+                            self.assertEqual(a["comptes"], {"rendez_vous_intermediaire_accompli": 1})
+                            eps[2]["decision"]["plan"][0]["cible"] = "autre"
+                            self.assertEqual(sonde.analyser()["total_non_justifies"], 1)
+                vue = regarder(m), scene_percue(m)
+                avant = copy.deepcopy(m.data)
+                m = recharger(m)
+                self.assertEqual(avant, m.data)
+                self.assertEqual(vue, (regarder(m), scene_percue(m)))
+                resultats.append((m.data, *vue))
+            self.assertEqual(*resultats)
+
+    def test_cloture_service_publiee_puis_reunion_et_perte_rechargees(self):
+        from donjon import biens
+        from donjon.esprits import croire
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from tests.test_service_non_defait import serrure
+        from tests.test_tensions import recharger
+        initial, artisan, payeur, c = serrure()
+        resultats = []
+        for observer in (nullcontext, d.observer_avis):
+            m = recharger(initial.copier())
+            with observer() as sonde:
+                if sonde:
+                    sonde.services["s"] = {"prestataire": artisan, "payeur": payeur,
+                        "condition": c, "reussite_t": None, "perte_t": None}
+                    sonde.relever_services(m)
+                croire(m, artisan, payeur, "lieu", "dortoir", "vu", salle="dortoir", case=None)
+                copie = m.copier()
+                with biens.clotures_services_du_choix(copie):
+                    biens.services_proteges(copie, artisan)
+                with self.assertRaises(RuntimeError):
+                    with biens.clotures_services_du_choix(m):
+                        biens.services_proteges(m, artisan)
+                        raise RuntimeError("choix interrompu")
+                if sonde:
+                    self.assertNotIn("cloture", sonde.services["s"])
+                with biens.clotures_services_du_choix(m):
+                    self.assertNotIn(c, biens.services_proteges(m, artisan))
+                if sonde:
+                    self.assertTrue(sonde.services["s"]["cloture"]["presence"]["parti"])
+                # Le bénéficiaire revient : la clôture publiée reste acquise.
+                salle = m.objets[artisan]["lieu"]
+                croire(m, artisan, payeur, "lieu", salle, "vu", salle=salle, case=None)
+                m = recharger(m)
+                m.data["minutes"] += 1
+                self.assertTrue(d.pnj._executer(m, artisan, {"operation": "deverrouiller",
+                    "cible": "garde_manger", "outil": "cle_garde_manger", "lieu": "", "condition": ""}, [], None))
+                if sonde:
+                    perte, = sonde.analyser()["services_etat_perdu"]
+                    self.assertEqual(perte["classe"], "service_clos_avant_perte")
+                    self.assertFalse(perte["violation"])
+            vue = regarder(m), scene_percue(m)
+            avant = copy.deepcopy(m.data)
+            m = recharger(m)
+            self.assertEqual(avant, m.data)
+            self.assertEqual(vue, (regarder(m), scene_percue(m)))
+            resultats.append((m.data, *vue))
+        self.assertEqual(*resultats)
+
     def test_cycle_accompli_conserve_sa_preuve(self):
         a = self.analyser([episode("pulsion", 0, 1, accompli=True), episode("garder", 1, 2), episode("pulsion", 2, 3)])
         self.assertEqual(a["total_cycles_accomplis"], 1)
@@ -330,6 +439,9 @@ class DetecterAvisTests(unittest.TestCase):
                 a = d.analyser_episodes(capture["episodes"])
                 self.assertEqual(dict(Counter(r["classe_199"] for r in a["allers_retours"])), capture["comptes"])
                 self.assertTrue(capture["chronique"])
+                if capture["nom"] == "crue_hameau-1985-brune-123253":
+                    suspect = next(r for r in a["allers_retours"] if r["retour_t"] == 123253)
+                    self.assertTrue(suspect["non_justifie"])
 
     def test_comparateur_mesure_et_alerte(self):
         from tools import comparer_bancs as c
