@@ -12,20 +12,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   migration ; contrats partiels rejetés. Aucun lecteur de décision ni épreuve,
   aucun scénario/MJ changé. **81 tests distincts verts / six fichiers**,
   contrôle AST renforcé ; monde et rendu rechargés, deux couples orientés,
-  ancien format et laps découpés. **Banc 2 h terminé mais non validé** :
-  20/20 chroniques, mesures, récits, souvenirs et empreintes physiques
-  identiques, zéro plantage ; état complet identique seulement **12/20**
-  après retrait du champ neutre et recalcul sourcé de 21 hashes dérivés
-  (agendas et copies dans les contrats d'intention). Restent mine 7/2024,
-  crue quatre graines, crue_hameau 1985/2024 : cause non établie,
-  **neutralité de l'état complet non garantie**. Les deux reprises
-  instrumentées reproduisent les états bruts de la branche ; les références
-  ont été jouées une seule fois, puis relues du cache. Leur cache n'ayant
-  que le hash final, localisation structurelle suspendue à l'autorisation
-  de rejouer ces huit références avec capture d'état. Aucun code changé
-  pendant le diagnostic. Bruts `C:/Users/msics/donjon/artifacts/ascendant-248/`,
-  bilan `comparaison-preuve-complete.json`, fin `fin-preuve-complete.json`.
-  Aucune suite complète ni Luna. [Rapport 248](taches/rapport-codex-248-ascendant-neutre.md).
+  ancien format et laps découpés. **Banc validé : 20/20 paires 2 h**,
+  cinq scénarios, quatre graines : mêmes textes de chronique, mesures,
+  récits, souvenirs, empreintes physiques ; zéro plantage. États complets
+  identiques après retrait de l'axe neutre et recalcul sourcé des hashes
+  dérivés. Le diagnostic intermédiaire restait à 12/20 ; **rejeu unique de
+  huit références expressément autorisé**, captures à part, cache inchangé,
+  hashes de référence reproduits 8/8. Quinze champs restants localisés :
+  douze signatures de recours négatifs dans `attentes_bornees`
+  (`pnj_propositions._entrees_negatives`), deux JSON de relations dans les
+  causes de refus (`deliberation.moyens_crus`) et un hash d'agenda qui les
+  inclut. Projections et formats conservés ; états/données bruts de branche
+  identiques aux passes initiales ; **aucun écart réel de comportement**.
+  Aucun moteur modifié pendant la reprise. Limite : pas identité binaire
+  des sauvegardes, ni garantie universelle hors des vingt nuits vérifiées.
+  Aucune suite complète ni Luna ; deux processus réduits au plus,
+  aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/ascendant-248/`,
+  bilan consolidé `validation-finale.json`, chemins `diagnostic-champs.json`.
+  [Rapport 248](taches/rapport-codex-248-ascendant-neutre.md).
 
 
 - **Branche `codex-restitution-route`, fusionnée**, lot **246**, base
