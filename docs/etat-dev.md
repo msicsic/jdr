@@ -4,26 +4,43 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-ceder-outil`, non fusionnée**, lot **202**, base `1a3359a`,
-  **non validée pour intégration** : évaluation commune des capacités perdues
-  lors des cessions, doublons crus, remplacement et prêt distinct ; prix des
-  contre-offres honorables. Aucun nouveau but de convoitise, aucun Luna.
-  Lucien garde ses crochets en auberge 1 ; Gaspard offre encore son briquet
-  avec sa lampe allumée (119/34 min restantes) : horizon après extinction non garanti.
-  **16 nuits de 4 h**, quatre scénarios × quatre graines : outils proposés
-  **36 → 19**, acceptés **3 → 0**, zéro plantage/violation/usurpation ; avis suspects
-  **275 → 25**, mais trois retours brefs nouveaux ; richesse légèrement réduite
-  au Relais/mine et sans recours crue **15 → 30 min** en moyenne.
-  Coût mine fixe 1985 : recherches **698 → 987**, nœuds **6 684 → 10 558** ;
-  courts-circuits neutres sur **16/16 états et récits**, sans réduction du surcoût.
-  Suite unique **2 389 tests, 9 échecs, 3 erreurs, 16 ignorés** ; reprise
-  **57 tests, un échec de rendu découpé, un ignoré**. Restent deux écarts de
-  parcours propres à la branche (lanterne/ressources), un contrôle AST déjà
-  rouge sur la base et une limite de rendu découpé également prouvée sur la base.
-  Douze des treize nouveaux tests verts ; assertion stricte conservée.
-  Garantie générale non établie. Bruts exclusivement
-  `C:/Users/msics/donjon/artifacts/outil-202/` ;
-  [rapport 202](taches/rapport-codex-202-ceder-outil.md).
+- **Branche `codex-ceder-outil-b`, non fusionnée**, lot **228**, reprise du
+  **202** (`74a4bc4`), intégration `bc498ed` fusionnée dans `da5fe79`.
+  **Non validée pour intégration : S hameau −14,2 % et défaut de pureté exposés par 202.**
+  Conservation des capacités marginales du 202 ; recours sans offre acceptable
+  retenu durablement avec les entrées du jugement, sans expiration par délai.
+  Seul `pnj_propositions.py` change dans le moteur après fusion ; fichiers
+  voisins et `echanges.tenu` intacts, aucun Luna. Captures 208 d'Odon et Rémy,
+  invalidations et monde/rendu rechargés ; laps réel bloc/découpé contrôlé.
+  Cache dans `attentes_bornees`, publication après choix ou abandon si échec,
+  sans nouvelle écriture pendant l'évaluation ; plan et quantités inclus.
+  **22 ciblés cession/reprise verts**, cinq ciblés graphes/ressources verts.
+  Le test 202 rejouait le passé sans avancer l'horloge : appel corrigé,
+  assertions strictes conservées. Mine fixe 1985/4 h : référence `b6d610b`
+  et base fusionnée **601 recherches / 9 189 nœuds**, correctif final
+  identique ; surcoût 208 non reproduit après les intégrations.
+  **20 paires finales × 4 h**, vingt références cachées : suspects **4→4**,
+  à expliquer **59→53**, cycles **523→522**, préemptions **67→70** ; zéro
+  plantage/usurpation, sans recours nul partout. Chroniques 20/20 identiques
+  après retrait des compteurs corporels bruts du relevé. Attribution hameau
+  42/2024 : chroniques identiques avec/sans le seul invariant 228 ; baisse de
+  richesse antérieure au cache. **Suite unique achevée : 2 508 tests / 290
+  fichiers, sept échecs, zéro erreur, 2 081,118 s** ; première tentative
+  interrompue, derniers raccords repris en ciblés après démarrage de la suite,
+  aucune seconde suite complète. Deux MiMo historiques, trois écarts déjà
+  reproduits sur `b6d610b` (Lucien/lanterne, huile à sa réserve, troisième voix
+  sans fuite d'identité). Achat à une pièce sous-compensé (8,4 contre 0,909),
+  et pureté : `services_proteges` clôt une trace pendant `_entrees_communes`
+  à 60 min (Brune), vert sur intégration, rouge sur 202 et livraison.
+  Ces deux derniers écarts sont identiques sans/avec cache négatif.
+  Ancien constat 202 reproduit : lanterne 400→47 à 480, huile inchangée,
+  allumages 436/438 avec extinction ; monde/rendu rechargés stables.
+  Limite 202 conservée :
+  rallumage après extinction d'une autre flamme non garanti ; aucune garantie
+  générale d'absence de boucle. Deux travailleurs réduits au plus, aucune clé
+  de signature. Bruts `C:/Users/msics/donjon/artifacts/ceder-228/` ;
+  [rapport 228](taches/rapport-codex-228-ceder-outil-reprise.md).
+
 - **Branche `codex-compteur-services`, fusionnée**, lot **227**, départ
   `b8e433d` vérifié, moteur identique à `881db69` : outils seulement, aucun
   `donjon/` ni Luna modifié. Les pertes d'états payés distinguent le geste du

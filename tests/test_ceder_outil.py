@@ -141,8 +141,12 @@ class CederOutilTests(unittest.TestCase):
         entier, decoupe = recharger(m), recharger(m)
         from donjon.pnj import avancer
         with patch.object(Monde, 'd20', return_value=20):
+            # avancer rejoue jusqu'à l'heure courante : l'horloge doit avoir
+            # avancé, sinon les deux appels découpés rejouent le même passé.
+            entier.data['minutes'] += 2
             avancer(entier, 2, [])
             for _ in range(2):
+                decoupe.data['minutes'] += 1
                 avancer(decoupe, 1, [])
                 decoupe = recharger(decoupe)
         entier = recharger(entier)
