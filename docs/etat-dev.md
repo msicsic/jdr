@@ -4,6 +4,56 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-reessai-obstacle`, fusionnée**, lot **225**, départ
+  `e4d8655` vérifié : patience 30 min conservée, répit 60 min retiré ; chaque
+  renoncement retient son obstacle cru par but/moyen, sans effacement par
+  délai, nouveau regard ou essai d'un autre moyen. Raccords minimaux
+  `pnj._patienter`/`agir`/`_impasse` et `passage.faire_place`/`_patienter`
+  expressément autorisés ; fonctions des lots voisins et MJ intacts.
+  Mine 1985, même départ au puits : renoncements **31/122/213 → 31/147**,
+  reprise **114** sur constat sans témoin, monde/rendu rechargés identiques.
+  **51 ciblés verts**, autre cause/PNJ/scénario, ronde autonome et laps
+  découpé contrôlés. **20 paires 4 h**, 20 références `bd45f65` en cache :
+  suspects 219 **5→4**, cycles **468→498**, préemptions **53→53**, à expliquer
+  **61→52** ; zéro plantage/usurpation, aucune nouvelle alerte de boucle
+  par nuit/PNJ parmi les codes contrôlés. Mine : renoncements **3→1,5** ;
+  auberge : sans recours **20→0 PNJ·min**, attente urgente inchangée ailleurs.
+  Suite finale unique achevée : **2 462 tests / 286 fichiers, 2 014,763 s**,
+  zéro erreur, trois échecs bruts ; oracle de rendu des rondes corrigé et
+  repassé vert, **deux MiMo `6 != 5` historiques restent** (213/223), suite
+  non verte. Tentative antérieure interrompue après découverte de la perte
+  de mémoire lors d'un autre moyen, corrigée et testée. Créneau dépassé par
+  les vérifications ; aucun code moteur changé après le banc final.
+  **Limite : les anciens entiers n'ont aucune cause récupérable** ; le
+  prochain renoncement l'enregistrera. Vérifications soumises aux urgences
+  et trajets admissibles, pas de garantie universelle des boucles.
+  Deux travailleurs réduits au plus ; aucun Luna, aucune clé de signature.
+  Bruts `C:/Users/msics/donjon/artifacts/reessai-225/` ;
+  [rapport 225](taches/rapport-codex-225-reessai-obstacle.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `esprits.py`, fusionnés sans conflit textuel. Décision du 2026-10-27 (3 B) : patience 30 min gardée, REPIT retiré ; renoncer retient l'obstacle cru (étape, lieu, témoins, passage), levé par un constat ou un autre moyen, jamais par le temps ; inspections ordinaires en rondes de contrôle. Odon (mine 1985) : renoncements 31/122/213 → 31/147, reprise à 114 après constat sans témoin. Répétitions suspectes 5 → 4, à expliquer 61 → 52. Fichiers de code communs depuis la base (deliberation, esprits) : suite complète relancée.
+
+- **Branche `codex-service-non-defait`, fusionnée**, lot **224**, base `a22f92e`
+  vérifiée, puis 213 intégré (`bd45f65`, fusion `0192bb3`) : résultat promis
+  conservé après clôture dans `biens`, filtre commun
+  des gestes qui le défont (trajets compris) et économie de flamme, engagements
+  ouverts compris. Besoin approché par le lieu cru du bénéficiaire, sans délai
+  ni lecture de ses buts privés, sans obligation d'entretien. Cas réel 217
+  repris à l'instant 4584, monde/rendu rechargés et laps découpé contrôlés.
+  **20 paires 4 h contre `bd45f65` : critère du compteur brut non atteint,
+  états payés perdus 6 → 6** ; quatre extinctions précoces évitées au Relais,
+  pertes ensuite relevées à l'épuisement naturel ; les deux du hameau restent
+  permises selon le lieu cru. Autres classes globalement stables/en baisse :
+  suspects 5 → 5, à expliquer 61 → 56, dérives 196 → 193 ; zéro plantage/usurpation.
+  Coût mine inchangé : 567 recherches / 8 383 nœuds. **Six nouveaux tests verts ;
+  suite unique achevée après fusion : 2 459 tests / 285 fichiers, 2 314,709 s,
+  deux MiMo préexistants reproduits sur `bd45f65`, zéro erreur**. Passe avant 213
+  interrompue sur instruction ; aucune seconde suite achevée. Aucun Luna,
+  deux travailleurs réduits au plus, aucune clé de signature. Limites : présence
+  crue comme approximation du besoin, anciennes clôtures sans trace non reconstruites.
+  Bruts `C:/Users/msics/donjon/artifacts/service-224/` ;
+  [rapport 224](taches/rapport-codex-224-service-non-defait.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `echanges.py`, `planification.py`, fusionnés sans conflit textuel. Trace durable du service rendu (biens.services_rendus), filtre des gestes qui défont l'état et menager_flamme ; protection tant que le bénéficiaire est cru présent ou porteur, sans délai ni entretien. Cas réel : torche de Brune conservée. Compteur brut des états payés perdus 6 → 6 (il compte aussi l'épuisement naturel du combustible) ; retours suspects 5 → 5. Fichiers de code communs depuis la base (planification, echanges, deliberation) : suite complète relancée sur la fusion.
+
 - Branche `codex-ou-est-il`, fusionnée, lot **221**, départ `4fe33ef` :
   question commune de localisation à un tiers cru présent, réponse fondée sur
   les seules croyances datées du témoin ; même contenu typé pour le joueur.

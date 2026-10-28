@@ -555,14 +555,14 @@ def faire_place(monde, id, autre, chemin, lignes, gestes):
         if _demande_en_cours(monde, id, autre):
             return PAS  # Le joueur prié de laisser passer a le temps de bouger (``REPONSE``).
         if not _peut_prier(monde, id, autre):
-            return _patienter(monde, id, t)
+            return _patienter(monde, id, t, autre, chemin)
         _prier(monde, id, autre, chemin, lignes)
         return DEMANDE
     intention = lire(monde, id)["intention"]
     besoin = intention["motif"] if intention else None
     if not a_pousse(monde, id, autre) and pousserait(monde, id, besoin) and pousser(monde, id, autre, lignes, gestes, chemin):
         return POUSSEE
-    return _patienter(monde, id, t)
+    return _patienter(monde, id, t, autre, chemin)
 
 
 def _peut_prier(monde, id, autre):
@@ -578,7 +578,7 @@ def _peut_prier(monde, id, autre):
     return True
 
 
-def _patienter(monde, id, t):
+def _patienter(monde, id, t, autre, chemin):
     """Personne ne lui fait place : il patiente jusqu'à la minute suivante ; un but ordinaire finit
     par être abandonné après ``PATIENCE`` minutes passées à attendre (comptées au temps vécu,
     ``pnj.compter_attente``), un réflexe ou une stratégie attendent leur propre terme."""
@@ -587,7 +587,10 @@ def _patienter(monde, id, t):
     intention = esprit(monde, id)["intention"]
     if intention and intention["motif"] != "alerte" and intention["but"]["type"] != "strategie":
         if intention["attente"] > PATIENCE * MINUTE:
-            renoncer(monde, id, monde.data["minutes"])
+            cause = {"type": "passage", "salle": monde.objets[id]["lieu"],
+                     "etape": dict(intention["plan"][0]), "obstacle": autre,
+                     "arrivees": [[chemin[-1][0], list(chemin[-1][1])]]}
+            renoncer(monde, id, monde.data["minutes"], cause)
         else:
             commencer_attente(monde, id, t)
     return MINUTE - t % MINUTE

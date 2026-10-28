@@ -1956,7 +1956,9 @@ def _entrees_communes(v):
     from .signes import actives
     # Les cibles et obstacles restent localisés ; le départ est seulement la salle.
     metrique = v._metrique
+    from .biens import services_proteges
     return json.dumps([
+        services_proteges(monde, id),  # Entrées du filtre des résultats promis.
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         monde.objets[id]["lieu"],
         # Une occasion attendue ne garantit pas la fin d'un geste dans l'eau.
@@ -2556,9 +2558,35 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
             duree = temps
         else:
             pression = duree * v.pression(e) if duree else 0
+        if _defait_service(v, e, suivant):
+            continue
         suites.append((fautes, minutes, ajout, suivant, duree, geste[5] if len(geste) > 5 else False,
                        pression / duree if duree else 0))
     return suites
+
+
+def _defait_service(v, avant, suivant):
+    """Filtre commun après composition des gestes, approches et portes franchies.
+
+    Il ne défait aucun résultat protégé de sa propre main, y compris dans un
+    trajet. Les suites différées repassent par la même normalisation.
+    """
+    from .biens import services_proteges
+    conditions = v._memo(("services_proteges",), lambda: services_proteges(v.monde, v.id))
+    for c in conditions:
+        o = c["objet"]
+        if "allume" in c:
+            obtenu = v.feu(avant, o)[0] is True
+            defait = v.feu(suivant, o)[0] is False
+        elif "verrouillee" in c:
+            obtenu = v.verrouille(avant, o) and not v.ouvert(avant, o)
+            defait = v.ouvert(suivant, o) or not v.verrouille(suivant, o)
+        else:
+            obtenu = o not in avant.portes and v.salle(avant, o) == c["lieu"]
+            defait = o in suivant.portes or v.salle(suivant, o) != c["lieu"]
+        if obtenu and (defait or suivant.fait("fin", o) or suivant.fait("mange", o)):
+            return True
+    return False
 
 
 def _mesurer(v, e, ajout, suivant, ancienne_duree):
