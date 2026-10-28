@@ -502,7 +502,7 @@ def _verifier_contenu_compile(monde, contenu, destinataires=None):
 
 class MJ:
     def __init__(self, modele=None, effort=None, timeout=45, connexion="api", *,
-                 fournisseur=None, fournisseur_narration=None, decoupler=None):
+                 fournisseur=None, fournisseur_narration=None, decoupler=None, narration_decouplee=None):
         defaut_modele, defaut_effort = DEFAUTS_CONNEXION.get(connexion, (os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT), "medium"))
         self.modele = modele or defaut_modele
         self.effort, self.timeout = effort if effort is not None else defaut_effort, timeout
@@ -533,10 +533,7 @@ class MJ:
                 self.fournisseur_narration = creer_fournisseur(fournisseur_narration)
         else:
             self.fournisseur_narration = fournisseur_narration if fournisseur_narration is not None else self.fournisseur
-        self._narration_decouplee = bool(
-            self.decoupler
-            or (decoupler is None and fournisseur_narration is not None and fournisseur_narration not in ("sans", "off", "none"))
-        )
+        self.narration_decouplee = bool(self.decoupler) if narration_decouplee is None else bool(narration_decouplee)
 
     def fermer(self):
         self.fournisseur.fermer()
@@ -635,7 +632,7 @@ class MJ:
 
     def raconter_resultat(self, monde, resultat):
         """Narration seule : le résultat est déjà résolu et sauvegardé par la boucle de jeu."""
-        if self.decoupler or getattr(self, "_narration_decouplee", False):
+        if self.decoupler or getattr(self, "narration_decouplee", False):
             fourn = self.fournisseur_narration
             if fourn is None:
                 return None

@@ -1484,6 +1484,113 @@ class NarrationDeterministeDecoupleTests(unittest.TestCase):
         self.assertNotIn("mendiant", res3["texte"].lower())
         self.assertEqual(m3.data, avant3)
 
+    def test_drapeau_narration_seul_garde_action_monolithique_et_decouple_active_compilateur(self):
+        import jeu
+        from donjon.fournisseurs.contrat import Fournisseur, Reponse
+
+        appels_action = []
+        appels_narration = []
+
+        class EspionAction(Fournisseur):
+            def _appeler(self, demande):
+                appels_action.append(demande.fonction)
+                if demande.fonction == "repondre_au_joueur":
+                    return Reponse(
+                        arguments={
+                            "mode": "action",
+                            "texte": "",
+                            "faits": ["joueur"],
+                            "proposition": proposition("prendre", "cle"),
+                        },
+                        brut={},
+                        utilisation={},
+                    )
+                if demande.fonction == "auditer_action":
+                    return Reponse(
+                        arguments={"conforme": True, "motif": ""},
+                        brut={},
+                        utilisation={},
+                    )
+                if demande.fonction == "compiler_intention":
+                    return Reponse(
+                        arguments={
+                            "action": "prendre",
+                            "cible": "cle",
+                            "outil": "",
+                            "avec": "",
+                            "methode": "",
+                            "direction": "",
+                            "texte": "",
+                            "sujet_parole": "",
+                            "contenu": [],
+                        },
+                        brut={},
+                        utilisation={"entree": 10, "sortie": 5},
+                    )
+                return Reponse(arguments={}, brut={}, utilisation={})
+
+        class EspionNarration(Fournisseur):
+            def _appeler(self, demande):
+                appels_narration.append(demande.fonction)
+                return Reponse(
+                    arguments={"texte": "Le métal froid de la clé te glace la paume."},
+                    brut={},
+                    utilisation={},
+                )
+
+        def faux_creer(nom):
+            return EspionNarration() if nom == "mimo" else EspionAction()
+
+        # Cas 1 : --connexion api --narration mimo (sans --decouple, --action, ni local)
+        # -> pipeline d'action monolithique (repondre_au_joueur + auditer_action, jamais compiler_intention),
+        #    mais ambiance écrite par le fournisseur de narration (narrer_ambiance).
+        with tempfile.TemporaryDirectory() as tmp:
+            f1 = Path(tmp) / "narration_seule.json"
+            sortie1 = io.StringIO()
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "cle-test", "MIMO_API_KEY": "cle-mimo"}), \
+                 patch("donjon.mj.creer_fournisseur", side_effect=faux_creer), \
+                 patch("builtins.input", side_effect=["mj je prends la clé", "quitter"]), \
+                 patch("sys.stdout", sortie1):
+                self.assertEqual(
+                    jeu.main(["--console", "--connexion", "api", "--narration", "mimo", "--save", str(f1)]),
+                    0,
+                )
+            reprise1 = Monde.charger(f1)
+
+        self.assertNotIn("compiler_intention", appels_action)
+        self.assertIn("repondre_au_joueur", appels_action)
+        self.assertIn("auditer_action", appels_action)
+        self.assertEqual(appels_narration, ["narrer_ambiance"])
+        self.assertEqual(reprise1.objets["cle"]["lieu"], "joueur")
+        self.assertEqual(
+            [a["texte"] for a in reprise1.data["ambiances"]["antichambre"]],
+            ["Le métal froid de la clé te glace la paume."],
+        )
+
+        # Cas 2 : avec --decouple, le compilateur d'intention est appelé
+        appels_action.clear()
+        appels_narration.clear()
+        with tempfile.TemporaryDirectory() as tmp:
+            f2 = Path(tmp) / "decouple.json"
+            sortie2 = io.StringIO()
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "cle-test", "MIMO_API_KEY": "cle-mimo"}), \
+                 patch("donjon.mj.creer_fournisseur", side_effect=faux_creer), \
+                 patch("builtins.input", side_effect=["mj je prends la clé", "quitter"]), \
+                 patch("sys.stdout", sortie2):
+                self.assertEqual(
+                    jeu.main(["--console", "--connexion", "api", "--narration", "mimo", "--decouple", "--save", str(f2)]),
+                    0,
+                )
+            reprise2 = Monde.charger(f2)
+
+        self.assertEqual(appels_action, ["compiler_intention"])
+        self.assertEqual(appels_narration, ["narrer_ambiance"])
+        self.assertEqual(reprise2.objets["cle"]["lieu"], "joueur")
+        self.assertEqual(
+            [a["texte"] for a in reprise2.data["ambiances"]["antichambre"]],
+            ["Le métal froid de la clé te glace la paume."],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

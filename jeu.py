@@ -114,7 +114,7 @@ def main(argv=None, interface=None):
     parser.add_argument("--action", choices=["auto", "local", "chatgpt", "api", "anthropic", "mimo"], default=None,
                         help="fournisseur pour l'arbitrage mécanique des actions")
     parser.add_argument("--narration", choices=["auto", "local", "chatgpt", "api", "anthropic", "mimo", "sans"], default=None,
-                        help="fournisseur pour le vernis narratif d'ambiance")
+                        help="fournisseur pour le narrateur d'ambiance (sans changer le pipeline d'action)")
     parser.add_argument("--monolithique", action="store_true",
                         help="force le mode monolithique historique avec double-passe d'audit")
     args = parser.parse_args(argv)
@@ -225,10 +225,14 @@ def main(argv=None, interface=None):
             args.decouple
             or (connexion_action == "local")
             or (args.action is not None)
+        ) and not args.monolithique
+        narration_decouplee = (
+            decoupler
             or (args.narration is not None and args.narration != "sans")
         ) and not args.monolithique
         mj = MJ(args.model, args.effort, connexion=connexion_action,
-                fournisseur_narration=connexion_narration, decoupler=decoupler) if actif else None
+                fournisseur_narration=connexion_narration, decoupler=decoupler,
+                narration_decouplee=narration_decouplee) if actif else None
         if mj:
             mj.reflexion = args.reflexion
         if mj:
@@ -240,7 +244,7 @@ def main(argv=None, interface=None):
             imprimer("Comparaison inactive : MJ hors ligne. Aucun appel au second modèle.")
         if interface is None:
             imprimer("\nLE SEUIL — prototype testvrac | " + str(BASE))
-            desc_mj = f"action={connexion_action}, narration={connexion_narration}" if decoupler else connexion_action
+            desc_mj = f"action={connexion_action}, narration={connexion_narration}" if (decoupler or narration_decouplee) else connexion_action
             imprimer("MJ : " + (f"{args.model} / {args.effort} / {desc_mj}" if actif else "hors ligne (commandes locales)"))
             if actif:
                 imprimer("Les phrases libres utilisent " + ("votre serveur LLM local Ollama." if connexion == "local" else
@@ -326,7 +330,7 @@ def main(argv=None, interface=None):
             """Récit d'un résultat déjà appliqué et sauvegardé ; le moteur reste le repli."""
             if mj is None or args.recit_moteur:
                 return None
-            est_decouple = getattr(mj, "decoupler", False) or getattr(mj, "_narration_decouplee", False)
+            est_decouple = getattr(mj, "decoupler", False) or getattr(mj, "narration_decouplee", False)
             if est_decouple:
                 notifier_ambiance("en_cours")
             t0_narr = time.perf_counter()
@@ -357,7 +361,7 @@ def main(argv=None, interface=None):
         def lancer_narration(affichage, intention, gestes=None):
             """Lance le récit d'ambiance en arrière-plan pour ne jamais bloquer l'interface ni les menus."""
             nonlocal seq_narration, thread_narration
-            est_decouple = getattr(mj, "decoupler", False) or getattr(mj, "_narration_decouplee", False)
+            est_decouple = getattr(mj, "decoupler", False) or getattr(mj, "narration_decouplee", False)
             if mj is None or args.recit_moteur:
                 if est_decouple:
                     notifier_ambiance("pret")
@@ -409,7 +413,7 @@ def main(argv=None, interface=None):
             # Le moteur a déjà produit les conséquences ; son journal garde le détail du jet.
             affichage = rendre_resultat(resultat)
             m.sauver(args.save)
-            if getattr(mj, "decoupler", False):
+            if getattr(mj, "decoupler", False) or getattr(mj, "narration_decouplee", False):
                 m.memoriser(intention, affichage, "resultat_moteur")
                 m.sauver(args.save)
                 imprimer(affichage)
@@ -685,7 +689,7 @@ def main(argv=None, interface=None):
                         evenements = [ligne for ligne in resultat.splitlines() if ligne not in silencieux]
                         if evenements:
                             imprimer("\n".join(evenements))
-                    if getattr(mj, "decoupler", False) and not (mouvement or instant) and p["action"] != "tourner":
+                    if (getattr(mj, "decoupler", False) or getattr(mj, "narration_decouplee", False)) and not (mouvement or instant) and p["action"] != "tourner":
                         if interface:
                             interface.rafraichir(m, pending, mj)
                         lancer_narration(resultat, texte, gestes_accomplis(plan, m))
