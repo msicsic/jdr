@@ -1796,7 +1796,10 @@ def refus_etape(monde, id, etapes):
         e = depart(monde, id, v)
         # Les cibles de contact passent par l'approche et l'observation du
         # geste : les rejeter ici empêcherait d'apprendre leur disparition.
-        if any(not v.present(e, x) for x in _a_reunir(
+        # Une localisation inconnue n'est pas une preuve d'absence ; le
+        # geste devra la constater. Seule une présence crue incompatible
+        # rend le participant impossible dans cette projection.
+        if any(v.salle(e, x) is not None and not v.present(e, x) for x in _a_reunir(
                 monde, id, tete, e.portes, venues=True, contacts=False)):
             return "participant cru absent"
     from .eau import active, en_peril, menacee
