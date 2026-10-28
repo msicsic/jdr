@@ -4,36 +4,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195, non fusionnable**, reprise
-  après contrat 213 : intégration **bd45f65** fusionnée par **1e703a4** depuis
-  `4968e54`. Production limitée à `ouie.py`, sans nouveau retour au choix.
-  Une présence crue peut expliquer un déplacement sans confirmer ni rajeunir
-  la localisation ; recalage précis conservé. Rapports 196 §4, 213 et 219 relus.
-  **95 ciblés distincts / huit fichiers verts**, dont 13 tests du lot avec
-  recharges monde/rendu et laps découpés. Les deux prêts passent inchangés ;
-  Ilse reste à l'abri haut. Son assertion d'intention contrôle désormais
-  le contrat 213 (plan vide, phase attendre), sans réancrer la scène.
-  **Banc 4 h, cinq scénarios × quatre graines, contre bd45f65** : suspects
-  **5 → 1**, aucun scénario en hausse (Relais 0→0, mine 1→0, auberge 2→1,
-  crue 2→0, hameau 0→0). Préemptions 53→51, cycles 468→460, à expliquer
-  61→58 ; dérives 196→195, états payés perdus 6→5, aucune certification.
-  Aucun plantage/usurpation. Retour de Gorm au service d'Ilse absent du
-  Relais 2024 courant ; Brune hameau 2024 : zéro alerte dans les deux variantes.
-  Un suspect résiduel en auberge 7 (Mireille servir Mathurine), occurrence
-  nouvelle dans cette graine ; aucune absence générale de boucle revendiquée.
-  **Suite complète unique : 2 466 tests / 285 fichiers, 2 004,160 s,
-  12 échecs, une erreur, aucun ignoré**, à deux processus réduits.
-  13 méthodes rejouées : deux MiMo seuls sur la base, mêmes 12 échecs et
-  une erreur sur la branche. Dix échecs et l'erreur attribuables au lot ;
-  assertions intactes.
-  Blocage isolé hors périmètre : Tilo allume à minute 0, mais `echanges.tenu`
-  exige une croyance après la minute de la parole ; sans rotation ultérieure,
-  engagement payé encore ouvert à minute 15. Preuve d'accomplissement commune
-  à instruire hors du seul `ouie.py` autorisé. Aucun contournement ajouté.
-  Critère du banc satisfait, ne pas fusionner. Aucun Luna. Rondes connues et
-  acquisition visuelle du joueur hors lot.
-  Bruts exclusivement `C:/Users/msics/donjon/artifacts/pas-195/reprise-bd45/`
-  et cache local figé ; [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
+- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195, non fusionnable** :
+  **346c1aa fusionné par 11f728a**, extension autorisée à **`echanges.tenu`**.
+  Point de comparaison après parole, preuve nouvelle propre `vu`/`essai`, bornes
+  entre promesses identiques d'une même minute ; souvenir neutre sauvegardé.
+  Aucun constat, position, émotion ou retour au choix ajouté. Seul `tenu` change
+  dans `echanges.py` ; bloc `retenir_service` du 224 intact. Tilo allume et solde
+  à minute 0 ; notification sur la chronique entière, clôture et protection
+  vérifiées en plus, sans réancrer. **41 ciblés verts**, dont quatre nouveaux
+  tests de preuve, monde/rendu/scène rechargés. Clé prêtée toujours à rendre.
+  Prêts, contrat 213, tests 224 et palier passent.
+  **Banc 20 paires 4 h contre 346c1aa : suspects 5→1**, aucune hausse par
+  scénario ; préemptions 67→65, cycles 494→462, à expliquer 67→77,
+  dérives 202→210, états payés perdus 8→7, figés pressés 3→4 (observations).
+  Zéro plantage/usurpation. Après borne : 20 références relues du cache,
+  20 états/chroniques/mesures/épisodes identiques au premier banc.
+  Gorm Relais 2024 et hausse hameau absents ; Brune 2024 : zéro alerte.
+  **Suite finale : 2 497 tests / 289 fichiers, 1 948,617 s, 13 échecs,
+  une erreur, aucun ignoré**. Une seule passe achevée, une partielle interrompue
+  pour corriger la borne. Rejeux sur la base exacte : quatre préexistants
+  (MiMo ×2, voix, torche historique sans perte) ; neuf échecs et l'erreur
+  propres au candidat. Causes détaillées dans les bruts, assertions conservées :
+  trajectoires commerciales/sociales ou croyances actualisées, dont Ilse déjà
+  au poêle haut et Mireille crue satisfaite ; pas de compensation dans l'ouïe.
+  Placement hors périmètre : attitude périmée et recours d'abri. Proposition
+  non appliquée dans `signes.place` : 21 tests de signes verts, Ilse rejoint
+  Brune, assertion spécifique Aubin toujours rouge. Arbitrage nécessaire,
+  **ne pas fusionner**. Aucun Luna, deux calculs réduits au plus, aucune clé Git.
+  Limite : checkpoint oublié ou croyance inchangée, jugement conservateur.
+  Rondes et registre visuel joueur hors lot. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/pas-195/extension-346/` ;
+  [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
 
 - **Branche `codex-service-non-defait`, fusionnée**, lot **224**, base `a22f92e`
   vérifiée, puis 213 intégré (`bd45f65`, fusion `0192bb3`) : résultat promis

@@ -1,75 +1,72 @@
-# Lot 195 — banc validé, régressions restantes : non fusionnable
+# Lot 195 — preuve d'accomplissement après 224, branche non fusionnable
 
-28 octobre 2026. Intégration **bd45f65** fusionnée par **1e703a4** depuis
-`4968e54` ; rapports 196 §4, 213 et 219 relus. Seul **`donjon/ouie.py`** diffère
-dans le moteur, sans nouvelle modification de production à cette reprise.
-Aucun Luna ; deux travailleurs réduits au maximum. Bruts exclusivement dans
-`C:/Users/msics/donjon/artifacts/pas-195/reprise-bd45/`, cache figé sous
-`pas-195/references/bd45f65541ecf7b66bf088970b1e3a2a274d5c93/`.
+28 octobre 2026. **346c1aa fusionné par 11f728a** ; extension autorisée à
+`echanges.tenu` en plus de `ouie.py`. Aucun autre fichier du moteur modifié,
+aucun Luna, deux calculs réduits au maximum. Bruts exclusivement dans
+`C:/Users/msics/donjon/artifacts/pas-195/extension-346/` ; historique sous
+`reprise-bd45/`, références exactes sous `pas-195/references/`.
 
-**Invariant.** `_crus_la` élargit la case crue par la marche possible depuis sa
-minute de localisation, dans le lieu cru, pendant `RECENT` (30 minutes).
-Aucune position réelle ou intention privée consultée. Attribution et méfiance
-emploient `_cru_le_plus_proche`. `_attribuer` conserve la croyance entière hors
-`PRES_DE` : une possibilité de déplacement n'est pas une confirmation qui
-réveille les agendas. Recalage précis et voix reconnues conservés. Aucun appel
-au choix, bonus émotionnel, verrou d'intention ou format de sauvegarde ajouté.
+**Correction.** L'ouïe attribue un bruit ordinaire compatible avec une présence
+crue mobile sans confirmer son déplacement ; attribution/méfiance communes,
+recalage précis et voix reconnues conservés. Dans **`tenu` seulement**, un
+souvenir neutre `suivi_engagement` conserve la croyance pertinente au premier
+jugement après la parole (état, lieu ou verrou). Une preuve nouvelle `vu`/`essai`
+peut ainsi établir l'ordre dans la même minute après recharge ; sinon, il faut
+un constat propre strictement postérieur. Les prises/clôtures/abandons séparent
+les promesses identiques. Ancien état, bruit et délai seuls insuffisants ;
+aucun constat fabriqué, position, émotion ou retour au choix ajouté.
+**Le bloc `retenir_service` du 224 reste intact**, puis `agendas.echoir` clôt.
+Contrôle AST : seule `tenu` change dans `echanges.py` par rapport à `346c1aa`.
 
-**Anciens rouges.** Les deux prêts passent inchangés après le contrat 213.
-Ilse reste dans l'abri haut, sèche et au chaud. Son assertion d'intention
-contrôle désormais le contrat 213 : hors but abri, plan vide et phase `attendre`.
-Même scène, mêmes 80 minutes et assertions physiques, aucune prémisse réancrée.
-**95 ciblés distincts / huit fichiers verts**, dont 13 tests du lot : méprise,
-expiration, fracas, témoin illicite, non-auto-confirmation, autre scénario,
-monde/rendu rechargés et laps découpés.
+**Preuves : 41 ciblés verts**, dont quatre nouveaux tests : geste propre après
+checkpoint/recharge, geste antérieur et bruit non probants, observation d'un
+tiers, deux paroles identiques dans la même minute sans partage de preuve.
+Monde/rendu/scène rechargés ; restitution de clé distincte. Tilo allume et solde
+sa tâche à minute 0, protection 224 conservée. Son relevé excluait cette minute :
+même notification contrôlée dans toute la chronique, plus clôture/protection,
+sans réancrer la scène. Prêts, contrat 213, tests 224 et palier passent.
 
-**Banc 219 : cinq scénarios × graines 1985/7/42/2024 × 4 h.** Référence exacte
-constituée une fois, puis branche ; zéro plantage/usurpation. Classes : totaux
-de quatre nuits ; retournements et S/F/D : moyennes selon les catégories du 183.
+**Banc final 219 : 20 paires de 4 h**, cinq scénarios × graines 1985/7/42/2024,
+référence constituée une fois. Après correction de la borne : vingt références
+relues, vingt nuits candidates identiques au premier banc (état, chronique,
+mesures, épisodes). Zéro plantage/usurpation. Suspects : totaux ; autres : moyennes.
 
-| Scénario | Retournements | Suspects | Préemptions | À expliquer | S/F/D |
-|---|---:|---:|---:|---:|---|
-| Relais | 79,5→22 | 0→0 | 5→17 | 7→8 | 9,5/3,5/1,438→11,5/4,5/1,688 |
-| Mine | 68,5→18 | 1→0 | 2→3 | 15→13 | 25,5/4,5/1,964→24/4/1,607 |
-| Auberge | 49,25→24,75 | 2→1 | 16→10 | 4→2 | 11/4,25/1→8,25/4/0,906 |
-| Crue | 52,75→30,5 | 2→0 | 8→4 | 17→19 | 17,5/7,5/2,625→20/8/3,063 |
-| Hameau | 109→43,25 | 0→0 | 22→17 | 18→16 | 31/7,5/2,667→27,5/7/2,292 |
+| Scénario | Suspects | Retournements | Bruits inconnus / aller voir | S/F/D (183) |
+|---|---:|---:|---|---|
+| Relais | 0→0 | 54→27,25 | 20,5/4,25→17,5/4,25 | 11,5/4,25/1,625→14,5/4,5/1,813 |
+| Mine | 1→0 | 68,25→18 | 14,5/2,25→16,5/2,5 | 26,25/4,5/1,964→24/4/1,607 |
+| Auberge | 2→1 | 48,75→24,75 | 40,5/12→33/10,25 | 10,25/4,5/0,969→8,25/4/0,906 |
+| Crue | 2→0 | 50,25→27,25 | 31,75/4,75→27,75/2,5 | 16,5/7,25/2,438→17,75/7,5/2,688 |
+| Hameau | 0→0 | 139,25→48 | 64,5/4→36/2,25 | 40,5/8,5/2,667→27/7,5/2,167 |
 
-Suspects **5→1**, aucun scénario en hausse ; cycles **468→460**, préemptions
-**53→51**, à expliquer **61→58**, autrui/progression **0→0**. Dérives **196→195**,
-états payés perdus **6→5**, observations non certifiantes. Bruits inconnus moyens
-(même ordre) : 27→16,75 / 14,5→16,5 / 41,75→33 / 36,5→30,75 / 44,5→36,5.
-Aller voir : 4,25→4,75 / 1,75→2,5 / 12,75→10,25 / 5,25→3 / 2,25→1,75.
-Vols vus : 0→0 / 0→0 / 0,25→0 / 0→0 / 0,25→0,25 ; entendus tous nuls.
-Aucun gain uniforme de richesse. Suspect résiduel : Mireille, auberge 7,
-servir Mathurine, **111690/111725/111910**, occurrence nouvelle dans cette graine.
+**Suspects 5→1**, aucune hausse par scénario ; préemptions 67→65, cycles
+494→462, autrui 1→1, progrès 0→0. **À expliquer 67→77, dérives 202→210**,
+états payés perdus 8→7, observations « figés pressés » 3→4 ; aucune certification.
+Vols vus/entendus nuls ; richesse non uniformément améliorée. Résiduel : Mireille,
+auberge 7, servir Mathurine, **111690/111725/111910**. Aucun retour Gorm vers
+servir Ilse au Relais 2024 ; Brune hameau 2024 : zéro alerte dans les deux variantes.
 
-Gorm, Relais 2024 : aucun retour vers le service d'Ilse dans les deux variantes ;
-l'ancien **117595/117600/118052** est absent du banc courant, sans prétendre
-rejouer sa capture historique. Hameau : hausse disparue, suspects **0→0** ;
-Brune 2024 : **0→0** alertes d'agendas. Les deux anciennes alertes venaient du
-prototype qui confirmait les localisations inférées, supprimé avant `4968e54`.
+**Suite complète finale : 2 497 tests / 289 fichiers, 1 948,617 s, 13 échecs,
+une erreur, aucun ignoré**. Une seule passe achevée ; une passe partielle a été
+interrompue pour corriger la borne. Rejeux contrôlés sur `346c1aa` : **quatre
+échecs préexistants** (MiMo ×2, troisième voix, ancienne attente de perte de
+torche). **Neuf échecs et l'erreur propres au candidat**, assertions conservées.
 
-**Suite unique : 2 466 tests / 285 fichiers, 2 004,160 s, 12 échecs, une erreur,
-aucun ignoré.** Les 13 méthodes en défaut sont rejouées sans changer leurs
-assertions : base **deux MiMo `6 != 5`**, branche **12 échecs / une erreur**.
-Dix échecs et l'erreur viennent donc du lot : ressources, trajet d'abri,
-caractère, attente, voix, contre-offre, proche préféré, sécurité, tâche payée,
-patience. Diagnostic détaillé, mondes et rendus : **`regressions-bd45.md`**
-dans les bruts. Aucun de ces dix fichiers de test modifié.
+**Restants**, détaillés avec mondes/rendus dans `diagnostic-extension.md` :
+dialogue interrompant l'attente ; ligne « retrouve Gorm » ; combustible consommé ;
+offre d'argent après repas payé ; agenda concurrent préemptant l'abri ; faim
+satisfaite avant le renoncement, intention ensuite nulle ; Ilse déjà au poêle
+haut, donc sans trajet à refaire ; croyance de Mireille actualisée à « charge
+satisfaite ». Plusieurs attentes figent une ancienne trajectoire ; aucune
+compensation d'inquiétude ni neutralisation des agendas appliquée.
 
-**Arrêt sur le périmètre.** Tilo alimente et allume à minute 0 dans les deux
-variantes. Base : nouvelle perception à minute 1, tâche soldée. Branche :
-preuve datée 0, engagement toujours ouvert et en attente à minute 15.
-`echanges.tenu` exige une croyance strictement postérieure à la minute de la
-parole ; `agendas.echoir` ne reconnaît donc pas cette réussite de sa main.
-La trajectoire perceptive de la base apportait cette confirmation accidentelle. Il faut
-instruire une preuve d'accomplissement ordonnée après la demande, persistée,
-commune à l'action et au jugement de fin, **hors du seul `ouie.py` autorisé**.
-Aucune perception fabriquée ni assertion affaiblie ; autres causes non toutes
-isolées. Le critère du banc passe, **ne pas fusionner la branche**.
+**Placement hors périmètre.** Une attitude périmée bloque le recours d'abri.
+Proposition non appliquée dans `signes.place`, essayée en mémoire : 21 tests
+verts, Ilse rejoint Brune, mais l'assertion particulière sur Aubin reste rouge.
+Ce n'est pas une correction validée des anciens tests ; contrat et attentes
+restent à arbitrer hors de `ouie.py` / `echanges.tenu`. **Ne pas fusionner**.
 
-**Limites.** Compteur 219 non certifiant (horizon 60 minutes). Distance géométrique
-et datation à la minute : bornes optimistes. Rondes hors lot : il faudrait apprendre
-la routine d'autrui ; acquisition visuelle du registre joueur également séparée.
-Aucune clé de signature Git configurée.
+**Limites.** Checkpoint oublié ou croyance inchangée dans la même minute : preuve
+propre ultérieure nécessaire. Compteur non certifiant ; bornes géométriques et
+datation optimistes. Rondes apprises et registre visuel joueur hors lot. Aucune
+clé Git de signature configurée.

@@ -16,13 +16,16 @@ Chantier accepté après les caractères et valeurs (`docs/etat-dev.md`). Branch
 
 ### Présence crue mobile (lot 195)
 
-Reprise sur **bd45f65**, contrat d'engagement 213 et compteur classé 219 :
+Reprise après 224 sur **346c1aa**, contrat d'engagement 213 et compteur classé 219 :
 répétitions suspectes **5 → 1**, sans hausse dans aucun des cinq scénarios.
 Les deux prêts passent ; Ilse reste dans l'abri haut avec, le cas échéant,
-une intention sans moyens, en attente selon le contrat commun. La suite complète
-reste rouge (12 échecs, une erreur), dont dix échecs et l'erreur attribuables au
-lot. **Non fusionnable** : preuve d'accomplissement d'engagement à reprendre
-hors du périmètre `ouie.py` ; voir le
+une intention sans moyens, en attente selon le contrat commun. Extension autorisée
+à `echanges.tenu` : preuve propre ordonnée après la parole, clôture et protection
+du service 224 conservées, sans confirmation acoustique. Tilo et le palier
+repassent ; neuf échecs et une erreur restent propres au candidat final.
+**Non fusionnable** : placement et attentes de trajectoire encore ouverts.
+Suite complète finale : 2 497 tests, 13 échecs et une erreur, dont quatre échecs
+préexistants sur la référence. Quatre nouveaux tests de preuve verts ; voir le
 [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
 
 Pour attribuer un pas ou un geste ordinaire, `_crus_la` conserve le lieu cru
