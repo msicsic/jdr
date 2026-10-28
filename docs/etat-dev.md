@@ -2,6 +2,26 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-depart-rendez-vous`, non fusionnée**, lot **270**,
+  diagnostic seul, base `4d2881f` : les **15 départs** comptés par la 241 dans
+  la crue (huit graines `audit-12h` et `verifier-8h`) sont **11 cas distincts
+  = 4 venues, 1 clôture, 6 ruptures**. Les venues sont des `J'arrive !` suivis
+  du départ vers l'appelant ; la clôture est Ilse 42 à 282, dont l'attente est
+  déjà rompue à 281 ; les six ruptures ont toutes un **palier strictement
+  supérieur** (eau 0, besoin pressant 4, parole due 5), sont annoncées et
+  **entendues** par le partenaire. Les quatre lignes `verifier-8h/42` répètent
+  `audit-12h/42` (665 lignes et cinq empreintes identiques jusqu'à 480 min,
+  seule `issue` diffère). **Aucun défaut du moteur** : la hausse 10 → 15 est
+  un artefact du compteur, qui ne suit ni l'état réel de l'attente, ni le
+  `J'arrive !` du même PNJ, ni la rupture entendue, et ne déduplique pas les
+  nuits rejouées dans deux groupes. Aucun code du jeu modifié, ni Luna, suite
+  complète ou banc comparatif. **Quatre captures** monde/empreinte/rendu
+  identiques après recharge, dont les départs de 281 sur `c870c8b` (worktree
+  détaché, graine 42, cinq empreintes exactes). Bruts
+  `C:/Users/msics/donjon/artifacts/rendez-vous-270/` ;
+  [rapport 270](taches/rapport-codex-270-depart-rendez-vous.md). Aucun calcul
+  actif.
+
 - **Branche `codex-agenda-brune`, fusionnée**, lot **268**, diagnostic
   seul sur `a6ecefd` (moteur `1355f7a`) : hameau 2024, départ tiré, joueur
   passif, 4 h ; alerte huit/neuf absente. **Deux réveils effectifs** actuels
