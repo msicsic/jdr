@@ -2,6 +2,22 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-agenda-brune`, non fusionnée**, lot **268**, diagnostic
+  seul sur `a6ecefd` (moteur `1355f7a`) : hameau 2024, départ tiré, joueur
+  passif, 4 h ; alerte huit/neuf absente. **Deux réveils effectifs** actuels
+  (crochets acquis, puis pied-de-biche/position de Gorm), trois sommeils ;
+  quatre lignes actif car naissance et changement de raison se cumulent.
+  Rejeu demandé de `881db69` détachée : **six réveils**, sept sommeils,
+  huit lignes actif ; chaque réveil a une empreinte changée et un recours
+  admissible. Aucun délai seul observé, aucun suspect 219 certifié ; deux
+  retours actuels restent « entrée nouvelle à expliquer ». **20 captures**
+  monde/rendu/scène identiques après recharge, deux nuits successives à
+  priorité réduite, zéro plantage. Premier commit de disparition non établi ;
+  neuf cycles exacts du moteur corrigé 218 non diagnostiqués. Aucun code
+  du jeu modifié, ni Luna, suite complète ou banc comparatif ; aucun calcul
+  actif. Bruts `C:/Users/msics/donjon/artifacts/agenda-268/` ;
+  [rapport 268](taches/rapport-codex-268-agenda-brune.md).
+
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic
   seul, base `integration 769c7f1` : épisode absent de la nuit actuelle 12 h ;
   reproduit sur `c870c8b`, hameau 1985, départ tiré, joueur chambre de la
