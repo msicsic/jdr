@@ -1,8 +1,8 @@
 # Lot 267 — Soupçon déduit
 
-Branche `codex-soupcon-deduit`, **non fusionnée**, base `7404d2d`.
-Bruts : `C:/Users/msics/donjon/artifacts/soupcon-267/` ; correctif du
-registre et vérifications en cours dans le sous-dossier `registre/`.
+Branche `codex-soupcon-deduit`, **non fusionnée**, base `7404d2d`, code
+`27e2aee`. Bruts : `C:/Users/msics/donjon/artifacts/soupcon-267/` ;
+correctif du registre et vérifications terminées dans `registre/`.
 
 **Invariant corrigé.** Les indices d'une déduction ne prennent aucune des
 quarante places de la mémoire commune. `esprits._retenir_presence` écrit
@@ -12,15 +12,12 @@ aucun souvenir ni nom et ne consulte aucune position cachée. Les dates fines
 des gestes restent également dans ce registre : aucun champ ajouté au
 souvenir commun, aucune modification de l'identité de sa preuve.
 
-Présences et gestes sont chacun bornés à **40 entrées** ; les passages d'une
-même personne dans un même lieu sont rafraîchis. `_purger_indices_soupcon`
-retire ce qui précède le plus ancien constat utile de chaque lieu ; quand
-cet intervalle avance ou disparaît, les anciens indices sont supprimés.
-Une troncature de capacité marque l'intervalle incomplet : oublier un second
-passant ne transforme pas le premier en suspect unique. Structure, dates,
-lieux et bornes sont validés au chargement. Les anciens champs du 267 et ses
-souvenirs de présence sont migrés ; un souvenir déjà évincé par une ancienne
-version ne peut pas être reconstruit.
+Présences et gestes sont chacun bornés à **40 entrées**. Les présences
+répétées sont rafraîchies ; `_purger_indices_soupcon` supprime ce qui précède
+les intervalles utiles. Une troncature interdit l'attribution sur l'intervalle
+incomplet : oublier un second passant ne désigne pas le premier. Structure,
+dates, lieux et bornes sont validés au chargement ; anciens champs et
+souvenirs de présence du 267 migrés.
 
 L'inférence conserve ses deux constats propres et son épreuve relationnelle
 commune : un seul suspect, confiance **−6 à −18 selon PSY**, preuve **0,4**,
@@ -33,9 +30,8 @@ perte appliquée. Aucune naissance de `récupérer` sur ce seul indice.
 onze fichiers, **51,858 s**, deux processus réduits. Les onze tests de scènes
 existants passent, avec monde/rendu/scène rechargés, laps entier/découpé,
 Gorm/réserve et Anselme/coffre et leurs contre-épreuves. Trois nouveaux tests
-contrôlent l'absence d'éviction commune après saturation, la purge des
-intervalles et le refus au chargement d'un registre trop grand, mal daté ou
-d'un lieu inconnu. Captures `registre/{relais,auberge}.json`, traces
+contrôlent saturation sans éviction commune, purge et refus des registres
+invalides au chargement. Captures `registre/{relais,auberge}.json`, traces
 `registre/tests.json`. Ni suite complète ni Luna.
 
 L'échec isolé de
@@ -44,23 +40,32 @@ est déjà prouvé sur **7404d2d** et **61a1a67** : chacun 1 échec `40 != 20`,
 ligne 325, aucune erreur, même fichier de test. Preuves `dette-base` et
 `dette-branche` JSON/log ; le même échec subsiste dans les 121 ciblés.
 
-**Banc du correctif à valider.** Comparateur commun, référence exacte
+**Banc validé : 20/20 paires identiques hors seul registre.** Référence exacte
 `7404d2d`, cinq scénarios × graines 1985/7/42/2024, **4 h**, départ tiré,
-deux travailleurs réduits au plus, détachés. Les **vingt références sont en
-cache** : le lanceur interdit leur rejeu et ne calcule que la branche.
-Il conserve l'état final brut et une empreinte supplémentaire excluant
-**uniquement `esprits[*].indices_soupcon`** ; aucun autre champ normalisé.
-Critère : égalité des vingt chroniques, de toutes les mesures et des états
-hors ce seul registre. États complets de branche archivés pour préciser
-un éventuel écart restant. Contrôle du lanceur sur trois minutes simulées
-réussi. Résultats attendus `registre/comparaison.json`, fichier écrit en
-dernier **`registre/fin.json`** ; aucune identité encore déclarée.
+branche `27e2aee`. Comparateur commun : **vingt références lues dans le
+cache, aucune rejouée ; vingt nuits de branche calculées**. **20/20
+chroniques, toutes les mesures et les états finaux hors registre sont
+identiques**. Les états bruts diffèrent dans chaque paire uniquement par
+**`esprits[*].indices_soupcon`**, absent de la base. Aucune autre exclusion
+ni normalisation. Recalcul indépendant des empreintes des vingt états
+complets archivés : hash brut conforme à la capture ; après retrait du
+seul registre, hash exactement égal à celui de la base.
 
-Le diagnostic précédent contre la base (ancien code `61a1a67`) est conservé
-dans `bilan-base.json` et `localisation-base/` : à **39 min 31 s**, Ilse
-oubliait son abri après occupation de 11/40 places par les présences ;
-neutraliser ce stockage rétablissait la base sur 40 min. Le banc contre
-`main c870c8b` n'isolait pas le lot ; ses baisses de richesse ne lui sont pas
-attribuables. Effraction limitée à une dégradation constatée, sans
-crochetage invisible ni disparition distante inventée. `agendas.py`,
-`echanges.py`, choix de délibération, scénarios et MJ inchangés.
+**Zéro plantage/usurpation, zéro soupçon né dans chaque nuit** ; aucun
+effet hors registre observé sur ce banc. La preuve du soupçon vient des
+scènes ciblées, sans gain naturel démontré. Suspects 219 **2 → 2**, sans
+hausse par nuit (auberge 2024 et crue 7 : 1 → 1 ; autres : 0 → 0), à expliquer
+**55 → 55**, dérives **233 → 233**, cycles **489 → 489**. Richesse S/F/D
+identique, puisque les chroniques sont inchangées. Calcul détaché réduit,
+deux travailleurs au plus, **349,601 s**, `fin.json` code **0** ; aucun
+calcul actif. Preuves : `registre/comparaison.json`, `registre/fin.json`,
+`registre/identite-verifiee.json` (empreintes et chemins exclus par nuit),
+`registre/etats-branche/*.json.gz`, `registre/banc.log`.
+
+Ancien défaut d'Ilse à **39 min 31 s** corrigé par l'isolement du registre ;
+diagnostic conservé dans `localisation-base/`. L'ancien banc contre
+`main c870c8b` n'isolait pas le lot. Limites : identité vérifiée sur ces
+vingt nuits, migration incapable de recréer un souvenir déjà perdu ;
+effraction par dégradation constatée seulement, sans crochetage invisible
+ni disparition distante inventée. `agendas.py`, `echanges.py`, choix de
+délibération, scénarios et MJ inchangés.

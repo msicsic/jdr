@@ -16,16 +16,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   registre, monde/rendu/scène rechargés et laps entier/découpé.
   Dette déjà prouvée isolément sur base `7404d2d` et code `61a1a67`
   (`40 != 20`, même test), traces conservées. Ni suite complète ni Luna.
-  **Banc du correctif en attente de validation** : vingt nuits 4 h,
-  cinq scénarios × quatre graines, départ tiré, comparateur commun ;
-  vingt références `7404d2d` en cache, rejeu interdit, branche seule.
-  Contrôle de chronique, mesures et état final hors **seul** champ
-  `esprits[*].indices_soupcon` ; états bruts de branche conservés.
-  Calcul détaché réduit, deux travailleurs au plus ; fin attendue
-  `C:/Users/msics/donjon/artifacts/soupcon-267/registre/fin.json`.
+  **Banc validé : 20/20 paires 4 h identiques hors seul registre**, cinq
+  scénarios × quatre graines, départ tiré, code `27e2aee` ; vingt références
+  `7404d2d` lues en cache sans rejeu, vingt nuits de branche calculées.
+  Chroniques, toutes les mesures et états finaux identiques après retrait
+  du **seul** champ `esprits[*].indices_soupcon`, absent de la base ;
+  aucun autre écart. Empreintes recalculées indépendamment depuis les vingt
+  états bruts archivés (`registre/identite-verifiee.json`). Zéro plantage,
+  usurpation ou soupçon né ; effet ajouté prouvé par les scènes ciblées,
+  aucun bénéfice naturel démontré. Suspects 219 **2 → 2**, sans hausse par
+  nuit, à expliquer **55 → 55**, dérives **233 → 233**, cycles **489 → 489** ;
+  richesse S/F/D identique. Calcul détaché réduit, deux travailleurs au plus,
+  **349,601 s**, `registre/fin.json` code 0 ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/soupcon-267/registre/`.
   Ancien défaut localisé (Ilse, crue 2024, 39 min 31 s : abri évincé
-  par les présences), preuves dans `localisation-base/` ; aucune identité
-  du correctif déclarée avant le nouveau banc. Effraction visible par
+  par les présences), preuves dans `localisation-base/` ; corrigé sur les
+  vingt nuits vérifiées. Effraction visible par
   intégrité seulement ; [rapport 267](taches/rapport-codex-267-soupcon-deduit.md).
 
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic
