@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-alertes-231`, fusionnée**, lot **237**, diagnostic seul,
+  base/intégration **`e84d5a7`** (218/229/230/232 inclus), aucun code du jeu
+  modifié. **Dix nuits × 12 h**, cinq cas sur `4306c14` détaché puis intégration,
+  séquentielles, priorité réduite, aucun Luna ni suite complète. Les cinq
+  replays historiques retrouvent chronique/récit/souvenirs/empreintes et
+  mesures communes ; **228 captures**, monde et rendu rechargés identiques.
+  Mine : les 465 PNJ·min historiques « sans recours » viennent d'Odon 500/7 ;
+  renoncement retenu laissé « pressant » par `_classer`, premières inactivités
+  107/539. Intégration **305 → 275**, **160 → 145**, même défaut initial.
+  Gorm hameau 1985 : onze suspects chaleur ; revalidation dépendant du classement
+  attente/presse, abandon isolé à 544 (326556). Maël hameau 42 : quatre suspects,
+  restitution choisie à 419 puis annulée au lieu sombre intermédiaire par
+  `necessaire`. Les deux occurrences disparaissent des nuits actuelles
+  (zéro retour chaleur de Gorm, zéro suspect de Maël), mais les deux juges
+  reproduisent encore leurs limites sur les captures historiques.
+  Appels Odon/mine 1985 **19 → 0** ; historiquement sept lieux puis douze
+  réouvertures par indices nouveaux, aucun rappel sans réouverture observée.
+  Trois petits lots distincts proposés : qualification des recours bloqués,
+  stabilité de l'aide sous adoption, cohérence transport/remise ; aucune
+  nouvelle moyenne sur huit graines ni garantie générale des boucles.
+  Bruts `C:/Users/msics/donjon/artifacts/alertes-237/` ;
+  [rapport 237](taches/rapport-codex-237-alertes-231.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. Mine : « sans recours » mal qualifié après un renoncement (Odon, 107 et 539 ; toujours présent sur l'intégration), petit lot A (classement commun des recours renoncés). Appels : aucune faute établie. Gorm hameau 1985 : l'aide ouverte après attente est effacée par sa propre adoption (lot B, mécanisme latent). Maël hameau 42 : restitution rejetée en route par la nécessité immédiate du bien (lot C, latent).
+
 - **Branche `codex-purete-candidats`, fusionnée**, lot **232**, base
   `integration adb52c4` : `biens.services_proteges` ne supprime plus les
   traces pendant une lecture. Clôtures retenues hors `data`, publiées après
