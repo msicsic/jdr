@@ -40,13 +40,21 @@ conservés après sauvegarde/recharge et mêmes laps entiers/découpés. Les ref
 sont également rechargés. Tests voisins : filiation, activation, déplacements
 sociaux, statuts sourcés, ascendant, argent et paroles. `git diff --check` vert.
 
-**Banc rapide demandé : en cours**, cinq scénarios × quatre graines, 4 h,
-référence figée `4318a5b`, cache commun, au plus deux processus réduits,
-référence puis branche. Sortie et compteur 219 dans
-`C:/Users/msics/donjon/artifacts/mandat-256/comparaison.json` ; comparaison
-supplémentaire des chroniques, mesures et empreintes complètes dans
-`identite.json`, sans rejouer les nuits. Fichier final écrit en dernier :
-`fin.json`. Aucune identité des vingt nuits n'est encore déclarée.
+**Banc rapide terminé : 20/20 paires 4 h identiques**, Relais, mine, auberge,
+crue et hameau, graines 1985/7/42/2024, départ tiré. Référence figée
+`4318a5b`, branche `a4443eb` : chroniques, mesures et empreintes de l'état
+final complet identiques. Zéro plantage, usurpation ou violation signalée.
+Compteur 219 : suspects **2 → 2**, sans hausse par nuit (Relais/mine/auberge/
+crue/hameau **0/0/1/1/0**), préemptions **46 → 46**, cycles accomplis
+**489 → 489**, entrées à expliquer **55 → 55**, dérives ouvertes **233 → 233**.
+Ces alertes préexistantes ne sont pas résolues par ce lot.
+Vingt références exactes absentes calculées une fois et rangées dans le cache,
+puis vingt nuits de branche ; aucune référence rejouée. Deux processus réduits
+au plus, **551,850 s**, `fin.json` code **0**, aucun calcul actif.
+Bruts `C:/Users/msics/donjon/artifacts/mandat-256/` : `comparaison.json`
+(banc et compteur 219), `identite.json` (divergence nulle, comparaison des
+résultats existants sans rejeu), `tests.json`, `banc.log` et `fin.json`.
+Les temps des deux versions ne fondent aucune conclusion de performance.
 
 Limites : calibrage initial à éprouver dans les futurs profils de scénario ;
 le devis est celui du **prochain sous-but social**, pas une garantie du

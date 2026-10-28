@@ -14,9 +14,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   deux processus réduits ; Gorm/Aubin/Brune et information à Ilse, refus et
   acceptations rechargés, monde/rendu/scène/paroles, laps entier/découpé.
   Aucun scénario, MJ, social/esprits/planification modifié ; ni Luna ni suite
-  complète. **Banc rapide détaché en cours** : cinq scénarios × quatre graines,
-  4 h, cache de la base figée ; compteur 219 et identité à relire avant validation.
-  Bruts `C:/Users/msics/donjon/artifacts/mandat-256/`, fin attendue `fin.json`.
+  complète. **Banc terminé : 20/20 paires 4 h identiques**, cinq scénarios ×
+  quatre graines, référence `4318a5b`, branche `a4443eb` : chroniques, mesures
+  et empreintes de l'état final complet. Zéro plantage/usurpation/violation ;
+  compteur 219 suspects **2 → 2**, sans hausse par nuit (Relais/mine/auberge/
+  crue/hameau **0/0/1/1/0**), préemptions **46 → 46**, cycles **489 → 489**,
+  à expliquer **55 → 55**, dérives **233 → 233**. Vingt références exactes
+  absentes calculées une fois et mises en cache, aucune rejouée. Deux processus
+  réduits au plus, **551,850 s**, `fin.json` code 0 ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/mandat-256/`.
   Limite : coût du prochain sous-but social, pas garantie de réussite complète ;
   aucun choix autonome de mandataire ajouté.
   [Rapport 256](taches/rapport-codex-256-jugement-mandat.md).
