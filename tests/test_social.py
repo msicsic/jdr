@@ -261,7 +261,11 @@ class DesespoirTests(unittest.TestCase):
         return recharger(m)
 
     def test_affamee_a_l_extreme_elle_crochete_sous_les_yeux_d_ilse(self):
-        m, _ = attendre(self.brune_devant_ilse(97.0), jet=20)
+        # Le témoin reste témoin ; il ne cherche pas Gorm pour servir Brune
+        # pendant le crochetage dont on contrôle ici la faute et la perception.
+        from tests.support import sans_souci
+        m = sans_souci(self.brune_devant_ilse(97.0), "marchand", "ilse")
+        m, _ = attendre(m, jet=20)
         textes = [c["texte"] for c in m.data["chronique"]]
         self.assertIn("Brune, batelière évacuée crochète la serrure de la réserve de vivres sans forcer.", textes)
         self.assertIn("Brune, batelière évacuée mange une part des vivres du refuge.", textes)

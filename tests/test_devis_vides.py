@@ -22,7 +22,7 @@ class DevisVidesTests(unittest.TestCase):
         for scenario in ("auberge", "mine"):
             chemin = Path(__file__).parent / f"data/cout-12h/{scenario}-1985-480.json.gz"
             depart = json.loads(gzip.decompress(chemin.read_bytes()))
-            resultats, comptes = [], []
+            resultats, comptes, exclusions = [], [], []
             for filtrer in (False, True):
                 m = recharger(Monde(depart))
                 recherches, preparatifs, exclus = [], 0, 0
@@ -66,10 +66,14 @@ class DevisVidesTests(unittest.TestCase):
                 self.assertEqual(scene_percue(m), scene_percue(recharge))
                 resultats.append((recherches, recharge.data, lignes, regarder(recharge), scene_percue(recharge)))
                 comptes.append(preparatifs)
-                if scenario == "auberge":
-                    self.assertGreater(exclus, 0, scenario)
+                exclusions.append(exclus)
             self.assertEqual(resultats[0], resultats[1], scenario)
-            if scenario == "auberge":
+            # Une capture peut désormais attendre au lieu de rechercher une
+            # flamme. Aucun gain strict n'est attendu sans devis à exclure ;
+            # le cas sans flamme ci-dessous en exige toujours un, dans les
+            # deux scénarios. L'identité complète reste exigée ici.
+            self.assertLessEqual(comptes[1], comptes[0], scenario)
+            if any(exclusions):
                 self.assertLess(comptes[1], comptes[0], scenario)
 
     def test_sans_flamme_deux_scenes_aucun_preparatif_et_meme_absence_rechargee(self):

@@ -136,15 +136,27 @@ def decider(monde, qui, autre, raison=None, prie=False):
     from .voix import repond
     if not repond(monde, qui, autre) or se_cache(monde, qui):
         return None
+    # Une invitation à venir serait mensongère si son intention prioritaire
+    # l'emmène ailleurs. Il ne promet ni de venir ni d'attendre dans ce cas.
+    from .agendas import contrat_intention
+    from .deliberation import Palier, _passe_avant
+    i = lire(monde, qui)["intention"]
+    contrat = contrat_intention(monde, qui)
+    prioritaire = (contrat["palier"] < Palier.ATTENDRE_APPELANT if contrat
+                   else _passe_avant(monde, qui, i))
+    part_prioritaire = prioritaire and i and part(monde, qui, i["plan"])
+    ici = None if part_prioritaire else VIENS
+    if part_prioritaire and not _vise(i, autre):
+        return None
     r = lire(monde, qui)["rejoint"]
     if r and r["qui"] == autre and not prie:
-        return VIENS   # Il l'attend déjà ici ; prié de venir (l'autre ne le peut pas), il en décide de nouveau.
+        return ici   # Il l'attend déjà ici ; prié de venir (l'autre ne le peut pas), il en décide de nouveau.
     if not peut_venir(monde, qui, autre) or retenu(monde, qui, autre) or presse_ailleurs(monde, qui, autre):
-        return VIENS
+        return ici
     if prie or cherche(monde, qui, autre):
         return ARRIVE
     if raison is not None:
-        return ARRIVE if pressante(monde, qui, raison) else VIENS
+        return ARRIVE if pressante(monde, qui, raison) else ici
     return QUOI
 
 
@@ -402,6 +414,60 @@ def reagir(monde, qui, sorte, lignes):
 
 # --- Le rendez-vous ------------------------------------------------------------------------------
 
+def part(monde, id, etapes):
+    """Le plan quitte le lieu de la réponse, indépendamment de son motif."""
+    return any(x["operation"] == "aller" and x["lieu"] != monde.objets[id]["lieu"] for x in etapes)
+
+
+def rompre_attente(monde, id):
+    """Annoncer le départ avant de reprendre un plan qui quitte le rendez-vous.
+
+    Seul celui qui saisit l'annonce apprend la rupture ; sinon il doit encore
+    constater le lieu vide. Aucun déplacement caché ne lui est communiqué.
+    """
+    from .deliberation import recherche_vaine
+    from .esprits import croire, reconsiderer
+    from .ouie import retentir, saisit
+    from .pnj import _chroniquer
+    from .voix import source_dite
+    e = esprit(monde, id)
+    r = e["rejoint"]
+    if not r:
+        return
+    e["rejoint"] = None
+    qui = r["qui"]
+    if qui != "joueur" and qui not in monde.objets:
+        return
+    entendu = saisit(monde, id, qui, "heler")
+    cri = texte(monde, id, "Je ne peux plus t'attendre.")
+    # L'écoute de cette annonce situe encore la voix ici, puis l'annonce
+    # invalide ce lieu comme destination convenue, sans inventer le suivant.
+    bruits = monde.data.get("bruits", [])
+    dernier = bruits[-1] if bruits else None
+    retentir(monde, id, "heler", texte=cri, cites=[qui], parole={"a": [qui], "contenu": []})
+    # Le choix du but n'a pas de liste de lignes où afficher la réplique.
+    # Elle reste à rendre par l'écoute, même si le locuteur était visible.
+    bruits = monde.data.get("bruits", [])
+    if bruits and bruits[-1] is not dernier:
+        bruits[-1].pop("vu", None)
+    if entendu and qui == "joueur":
+        croire(monde, qui, id, "lieu", None, source_dite(monde, qui, id), salle=None, case=None)
+    if entendu and qui != "joueur":
+        d = esprit(monde, qui)["rejoindre"]
+        attend = esprit(monde, qui)["rejoint"]
+        if d and d["qui"] == id or attend and attend["qui"] == id:
+            salle = d["salle"] if d and d["qui"] == id else (
+                lire(monde, qui)["croyances"].get(id, {}).get("lieu") or {}).get("valeur")
+            for cle in ("rejoindre", "rejoint"):
+                if (esprit(monde, qui)[cle] or {}).get("qui") == id:
+                    esprit(monde, qui)[cle] = None
+            if salle in monde.data["salles"]:
+                recherche_vaine(monde, qui, id, salle)
+            croire(monde, qui, id, "lieu", None, source_dite(monde, qui, id), salle=None, case=None)
+            reconsiderer(monde, qui)
+    _chroniquer(monde, id, cri, "reponse")
+
+
 def rencontre(monde, id, qui):
     """``id`` et ``qui`` se retrouvent : il le voit, ou il le sait là et ils peuvent se parler."""
     from .esprits import percoit
@@ -455,7 +521,8 @@ def tenir(monde, id, minute):
     """Le rendez-vous de ``id``, d'après ce qu'il voit, à chaque choix de son but (``deliberation.attendre``).
     Il attendait : retrouvé, l'attente est finie ; à l'échéance, il cesse d'attendre et, si l'autre avait
     promis de venir, il le voit : une parole non tenue (``relations``). Il devait venir : arrivé, ou là
-    sans y trouver personne, ou à l'échéance, il n'a plus à venir."""
+    sans y trouver personne, il n'a plus à venir. Le délai écoulé ne lui apprend
+    pas que le lieu est vide."""
     from .pnj import _chroniquer
     from .social import _qui
     from .voix import se_mefier
@@ -496,10 +563,9 @@ def tenir(monde, id, minute):
     # exigent d'avoir rejoint le lieu. Une parole échangée clôt aussi la venue, via ``rejoint``.
     elif monde.objets[id]["lieu"] == d["salle"] and rencontre(monde, id, d["qui"]):
         _retrouver(monde, id, d["qui"])
-    elif (monde.objets[id]["lieu"] == d["salle"] and (
+    elif monde.objets[id]["lieu"] == d["salle"] and (
               e["visites"].get(d["salle"], -1) > d["depuis"]
-              or e["recherches"].get(d["qui"], {}).get(d["salle"], -1) >= d["depuis"])
-          or minute >= d["jusqu_a"]):
+              or e["recherches"].get(d["qui"], {}).get(d["salle"], -1) >= d["depuis"]):
         e["rejoindre"] = None
         memoriser(monde, id, {"type": "rendez_vous_manque", "qui": d["qui"]})
 
@@ -543,7 +609,9 @@ def plan_venir(monde, id):
     if monde.objets[id]["lieu"] == d["salle"]:
         return but, regarder
     etapes = aller(monde, id, d["salle"])
-    return None if etapes is None else (but, etapes + regarder)
+    # Un chemin coupé ne permet pas de rappeler depuis un autre lieu :
+    # garder la destination jusqu'à un constat ou une rupture entendue.
+    return (but, []) if etapes is None else (but, etapes + regarder)
 
 
 def verifier(monde, e):

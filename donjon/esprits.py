@@ -170,7 +170,7 @@ def installer(monde):
         if trajet and e["intention"] is None:
             e["intention"] = {"but": {"type": "rejoindre", "lieu": trajet["vers"]}}
         i = e["intention"]
-        if i is not None and set(i) - {"attitude"} != CLES_INTENTION:
+        if i is not None and set(i) - {"attitude", "charges_suspendues"} != CLES_INTENTION:
             # Intention du jalon A : un réflexe d'alerte, sans plan enregistré.
             e["intention"] = {"but": i["but"], "motif": "alerte", "plan": [
                 {"operation": "aller", "cible": "", "outil": "", "lieu": i["but"]["lieu"], "condition": ""}],
@@ -445,12 +445,21 @@ def verifier(monde):
                 and len(p[1]) == 2 and all(type(n) is int for n in p[1]))
             for q, p in e["presence_recherche"].items()), "Présences de recherche invalides"
         i = e["intention"]
-        assert i is None or (isinstance(i, dict) and set(i) - {"attitude"} == CLES_INTENTION
+        assert i is None or (isinstance(i, dict) and set(i) - {"attitude", "charges_suspendues"} == CLES_INTENTION
                              and isinstance(i["but"], dict) and isinstance(i["but"].get("type"), str)
                              and isinstance(i["motif"], str) and type(i["depuis"]) is int
                              and type(i["attente"]) is int and i["attente"] >= 0
                              and isinstance(i["plan"], list)), "Intention de PNJ invalide"
         if i:
+            charges = i.get("charges_suspendues")
+            if "charges_suspendues" in i:
+                from .deliberation import condition_valide
+                assert (isinstance(charges, dict) and set(charges) == {"conditions", "restaurer"}
+                        and type(charges["restaurer"]) is bool and isinstance(charges["conditions"], list)
+                        and bool(charges["conditions"]) and all(
+                            condition_valide(monde, c) and (c.get("verrouillee") is True
+                                or c.get("objet") == id and "lieu" in c)
+                            for c in charges["conditions"])), "Charges suspendues invalides"
             from .deliberation import OPERATIONS
             for etape in i["plan"]:
                 # Un geste social porte son contenu : ce qui est affirmé, ou la tâche confiée.

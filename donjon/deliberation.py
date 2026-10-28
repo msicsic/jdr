@@ -639,13 +639,23 @@ def _plan_attendre(monde, id):
     return ({"type": "attendre", "qui": r["qui"]}, []) if r and not _sur_place(monde, id, e["intention"]) else None
 
 
-def _attendre_qui_vient(monde, id, resultat):
+def _attendre_qui_vient(monde, id, resultat, palier=None):
     """Le rendez-vous fournit le lieu où chercher son interlocuteur : qui doit venir le rejoint
-    au lieu d'explorer ailleurs. Qui attend quelqu'un qui a promis de venir (« J'arrive ! »)
-    ne va pas le chercher : un plan qui
+    au lieu d'explorer ailleurs. Un départ attend le rendez-vous, sauf palier
+    strictement supérieur : dans ce cas sa rupture est annoncée. Qui attend
+    quelqu'un qui a promis de venir (« J'arrive ! ») ne va pas le chercher : un plan qui
     commence par aller à lui, ou le chercher, devient l'attendre là où il est, le temps convenu ; son
     but reprend quand ils se sont retrouvés. Un plan qui fait d'abord autre chose ici reste tel quel."""
-    from .appel import _vise, plan_venir
+    from .appel import _vise, part, plan_venir, rompre_attente
+    r = lire(monde, id)["rejoint"]
+    if resultat and r and part(monde, id, resultat[1]):
+        if palier is not None and palier < Palier.ATTENDRE_APPELANT:
+            rompre_attente(monde, id)
+        else:
+            return {"type": "attendre", "qui": r["qui"]}, []
+    from .eau import en_peril
+    if en_peril(monde, id):
+        return resultat
     d = lire(monde, id)["rejoindre"]
     if resultat and d and _vise({"but": resultat[0], "plan": resultat[1]}, d["qui"]):
         # Le même objectif cherche un interlocuteur qui vient de lui dire où venir. Le
@@ -1205,7 +1215,9 @@ def _plan_abri(monde, id):
     attend bientôt (``eau.menacee``), n'est pas un abri. Tant qu'il voit l'eau monter, l'abri est
     le plus haut lieu éclairé qu'elle ne menace pas, avec ou sans compagnie : elle monte par le bas.
     S'il n'en atteint aucun et que l'eau menace où il se tient, il gagne au moins le lieu où il attend
-    le moins d'eau, éclairé ou non : piégé, il cherche d'abord à sortir de l'eau (``candidats``)."""
+    le moins d'eau, éclairé ou non : piégé, il cherche d'abord à sortir de l'eau (``candidats``).
+    Hors de ce péril, un proche fiable perdu de vue devient un contact à chercher,
+    sous le même parent abri, sans destination d'abri supposée."""
     from .eau import altitude, attendue, menacee, monte
     from .esprits import pnjs
     ici = monde.objets[id]["lieu"]
@@ -1233,6 +1245,21 @@ def _plan_abri(monde, id):
                 salles.append(salle)
         return salles
 
+    def chercher_un_proche():
+        # Chercher ne fait encore d'aucune salle un abri : le parent sera
+        # réévalué après contact, comme après un trajet vers un abri connu.
+        from .planification import contacter
+        from .relations import envers
+        if menacee(monde, id, ici) or monte(monde, id):
+            return None
+        for x in sorted([*pnjs(monde), "joueur"], key=lambda x: (-envers(monde, id, x)["affection"], x)):
+            if x == id or not se_fie(monde, id, x) or salle_crue(monde, id, x) is not None:
+                continue
+            etapes = contacter(monde, id, x)
+            if etapes and admissible(etapes):
+                return {"type": "abri", "lieu": None, "qui": x}, etapes
+        return None
+
     i = lire(monde, id)["intention"]
     en_route = (i["but"].get("lieu") if i and i["plan"] and i["motif"] == "securite" and i["but"]["type"] == "abri" else None)
     eau_monte = monte(monde, id)
@@ -1254,7 +1281,7 @@ def _plan_abri(monde, id):
                 trouve = abri(monde, id, [salle])
                 if trouve is not None and admissible(trouve[1]):
                     return {"type": "abri", "lieu": trouve[0]}, trouve[1] + [_etape("abriter", lieu=trouve[0])]
-            return None
+            return chercher_un_proche()
         salles.sort(key=lambda s: s != ici)
     from .planification import _etape, aller
     for salle in salles:
@@ -1272,7 +1299,7 @@ def _plan_abri(monde, id):
             etapes = aller(monde, id, salle)
             if etapes and admissible(etapes):
                 return {"type": "abri", "lieu": salle}, etapes
-    return None
+    return chercher_un_proche()
 
 
 def _plan_lumiere(monde, id):
@@ -1587,6 +1614,9 @@ def retabli_par_son_plan(monde, id, condition):
     """
     e = lire(monde, id)
     i = e["intention"]
+    if (not i or i["but"] != {"type": "pulsion", **condition}) and condition in (
+            agendas.charges_suspendues(monde, id).get("conditions", ())):
+        return True
     if not (condition.get("verrouillee") and i and any(
             x["operation"] == "verrouiller" and x["cible"] == condition["objet"] for x in i["plan"])):
         return False
@@ -1998,6 +2028,9 @@ def choisir(monde, id, minute):
         reaction = evasion(monde, id)
     if reaction is not None:
         but, etapes = reaction
+        from .appel import part, rompre_attente
+        if part(monde, id, etapes):
+            rompre_attente(monde, id)
         ancien = e["intention"]
         if ancien and ancien["but"] != but:
             agendas.clore_intention(monde, id, _sortie(ancien, minute, "palier", {"reaction": but}))
@@ -2017,6 +2050,9 @@ def choisir(monde, id, minute):
         from .eau import en_peril
         if (not en_peril(monde, id)
                 and chemin(monde, id, monde.objets[id]["lieu"], intention["but"]["lieu"]) is not None):
+            from .appel import part, rompre_attente
+            if part(monde, id, intention["plan"]):
+                rompre_attente(monde, id)
             return  # Le réflexe déclaré garde la priorité jusqu'à son terme.
         e["intention"] = None  # Route coupée ou séjour dans l'eau : réévaluer les recours.
     pressants = urgents(monde, id)
@@ -2026,6 +2062,7 @@ def choisir(monde, id, minute):
     courant = e["intention"]
     precedent = courant
     contrat_precedent = agendas.contrat_intention(monde, id) or {}
+    charges_precedentes = agendas.charges_suspendues(monde, id)
     sortie = None
     manque = e["manque"]
     if courant and courant["plan"] and manque and manque["minute"] == minute:
@@ -2040,7 +2077,7 @@ def choisir(monde, id, minute):
     choisi = None
     marge = marge_engagement(monde, id)
     from .planification import vues_du_choix
-    with vues_du_choix(monde, id):
+    with vues_du_choix(monde, id), agendas.reconstruction_charges(monde, id, charges_precedentes):
         agendas.actualiser(monde, id)
         if courant and contrat_precedent.get("demande"):
             fin = _fin_demande(monde, id, contrat_precedent["demande"])
@@ -2134,6 +2171,52 @@ def choisir(monde, id, minute):
             # Le geste manqué est un démenti du plan courant, pas une preuve
             # que tous les moyens vers le même but sont impossibles. Seule la
             # nouvelle planification ci-dessus peut le réinstaller.
+        # La fin du service n'efface pas la remise en état de ses préparatifs.
+        # Les moyens de cette phase sont recalculés sur le cru, non recopiés
+        # d'un ancien suffixe (le destinataire a pu être rejoint ailleurs).
+        restauration = False
+        conditions = charges_precedentes.get("conditions", [])
+        porteur = courant or precedent
+        if porteur and conditions and (charges_precedentes.get("restaurer")
+                                       or not (sortie and sortie["cause"] == "dementie")):
+            fin = _fin_demande(monde, id, contrat_precedent["demande"]) if contrat_precedent.get("demande") else None
+            condition = {k: v for k, v in porteur["but"].items() if k != "type"}
+            if porteur["but"]["type"] == "pulsion":
+                due = any(x["condition"] == condition and not x.get("annule")
+                          for x in agendas.en_cours(monde, id))
+                # Une charge personnelle peut être satisfaite par l'état cru ;
+                # une parole due s'acquitte par son geste, pas par cet état.
+                if not due and (porteur["motif"] != "engagement" and satisfaite(monde, id, condition) or any(
+                        s["type"] == "engagement_tenu" and s.get("condition") == condition
+                        and s["minute"] >= porteur["depuis"] for s in e["memoire"])):
+                    fin = ("accomplie", {"condition": condition})
+            if (charges_precedentes.get("restaurer") or fin and fin[0] == "accomplie"):
+                from .planification import restaurer_charges, _couper
+                from .pnj import refus_etape
+                if all(satisfaite(monde, id, c) for c in conditions):
+                    retablir = (0, [], None)
+                elif (courant and courant["plan"] and charges_precedentes.get("restaurer")
+                      and refus_etape(monde, id, courant["plan"]) is None):
+                    retablir = (0, courant["plan"], None)
+                else:
+                    retablir = restaurer_charges(monde, id, conditions)
+                if retablir and retablir[1]:
+                    urgence = Urgence(Palier(contrat_precedent.get("palier", Palier.PULSION_ROMPUE)),
+                                      contrat_precedent.get("valeur", 0), ())
+                    candidat = Candidat(porteur["motif"],
+                                        lambda m, i: (porteur["but"], _couper(retablir[1])), False, True, urgence,
+                                        contrat_precedent.get("demande"))
+                    proposition = evaluer(len(tous) + 1, candidat)
+                    if proposition:
+                        actif = (candidat, proposition)
+                        restauration = True
+                        moyens_revalides = False
+                        sortie = None
+                    else:
+                        charges_precedentes = {}
+                else:
+                    # Accompli ou aucun moyen admissible : plus de suspension.
+                    charges_precedentes = {}
         for n, candidat in enumerate(tous):
             if actif and not _domine(candidat.urgence, actif[0].urgence, marge):
                 continue
@@ -2173,8 +2256,8 @@ def choisir(monde, id, minute):
                                         if r["but"] != but or obstacle_patience(monde, id, r["cause"])]
         # Une sortie nécessaire ne devient pas une attente de rendez-vous ou
         # de contrepartie dans l'eau après le contrôle du candidat.
+        but, etapes = _attendre_qui_vient(monde, id, resultat, choisi.urgence.palier)
         if not en_peril(monde, id):
-            but, etapes = _attendre_qui_vient(monde, id, resultat)
             from .pnj_propositions import plan_recours
             offre = plan_recours(monde, id, besoin, etapes)
             if offre:
@@ -2193,6 +2276,13 @@ def choisir(monde, id, minute):
                           "depuis": intention["depuis"] if meme else minute,
                           "attente": intention["attente"] if meme else 0,
                           **({"attitude": intention["attitude"]} if meme and "attitude" in intention else {})}
+        from .planification import suspensions
+        charges = list(charges_precedentes.get("conditions", ())) if meme_engagement else []
+        for c in suspensions(monde, id, etapes, but):
+            if c not in charges:
+                charges.append(c)
+        agendas.retenir_charges(monde, id, charges,
+                               restaurer=restauration and meme_engagement)
         agendas.retenir_intention(monde, id, {"palier": int(choisi.urgence.palier),
                                              "valeur": choisi.urgence.valeur,
                                              "demande": choisi.demande,
