@@ -1,7 +1,7 @@
 # Lot 206 b — Ne confier que le nouveau utile
 
 Branche `codex-sait-observations`, **non fusionnée**. Intégration demandée
-`3aa16f7`, fusion `12cb925`, code mesuré `410e1b9`. Aucun Luna ; deux calculs
+`881db69` (224/225), fusion `8178021`, après `d7dbf1a` (213/223/221). Aucun Luna ; deux calculs
 au plus, priorité réduite. Sans clé configurée : commits non signés. Bruts :
 `C:/Users/msics/donjon/artifacts/sait-206/`. Le premier bilan 206 reste dans
 l’historique (`820762d`) ; cette reprise remplace ses conclusions provisoires.
@@ -26,17 +26,14 @@ sa précision de lieu ne recrée pas une agression à la réception. Le grief de
 portage est distinct de la simple position vue ensemble. `_abriter`,
 `deliberation.py` et les autres fichiers interdits sont intacts.
 
-**Preuves et reprise des échecs.** Six nouveaux tests : besoin privé ignoré,
+**Preuves et reprise des échecs.** Huit nouveaux tests : besoin privé ignoré,
 besoin observé, projet annoncé, hauteurs successives sur deux scénarios,
 parole réellement reçue/rechargée (centimètre tu, noyade et retour au sec dits),
 identité publique d’un geste et environnement commun. État et mots rendus sont
 comparés après recharge. Les huit cas subjectifs de 206 restent exercés.
-Le recours historique retrouve sa borne de passages ; 53 contrôles de registres,
-découpage et observations passent sans réancrage. Appel négocié rétabli sur la
-reprise ciblée. Deux captures d’oracle et avis crue 2024 encore en échec ciblé.
-Auberge : seul le hash de sauvegarde diffère ; mine : visites/plans et sauvegarde,
-avec lignes et vues identiques à `3aa16f7`. Aucun hash ni horaire attendu changé.
-
+Les contrôles ciblés après d7dbf1a donnaient 63/65, réponses 221 et secours 223
+verts. Les décisions historiques changent : aucune projection des seules preuves
+communes ne permet de conserver les empreintes. Aucun hash ni horaire attendu changé.
 **Scènes précisées avec accord explicite du superviseur**, assertions identiques :
 
 - `test_constats_partages.scene` : Gorm affamé (90), constaté par Ilse.
@@ -50,7 +47,35 @@ avec lignes et vues identiques à `3aa16f7`. Aucun hash ni horaire attendu chang
   réclamation déjà isolée sur l’intégration. Le retour du marteau venait d’un
   achat à 7 pièces, pas d’une retransmission de la rumeur.
 
-**Mesures finales en cours.** Une seule suite complète (284 fichiers), vingt
-paires de quatre heures contre `3aa16f7`, compteur 219 avec classes. Un travailleur
-par commande, référence puis branche. Résultats détaillés attendus dans
-`suite-206b.json` et `banc-206b.json` ; aucune validation globale annoncée ici.
+- Départ hors vue : demande connue d'Aubin à Gorm pour retrouver Ilse.
+- Abri : naissance du projet financier après l'arrivée isolée ; Brune rejoint
+  bien Aubin avant de partir vendre sa torche, ce qui relève d'une autre scène.
+- Registre historique : retour de disponibilité explicitement annoncé ; une
+  révision seulement privée ne rouvre plus le fait dit. La recherche de phrase
+  distingue la vraie confidence de son rappel dans une autre parole.
+
+**Huit diagnostics demandés (base historique `3aa16f7`).** Bois mine 600 :
+écart du lot, première confidence de lampe omise à 0 ; test vert après d7dbf1a.
+Avis crue 2024 : écart du lot, ancien grief choisi à 102 avant le danger ;
+priorité mécanique commune corrigée, cas 500/2024 verts. Oracle mine : décisions
+et sauvegarde changées, rendus identiques ; pas un simple champ neuf.
+Oracle auberge : divergence à **481**, l'annonce de lanterne éteinte disparaît.
+Le prototype la remplaçait par la soupe épuisée, nouvelle au registre mais
+**inutile** : Tilo n'était pas cru affamé, son engagement de 65 était déjà tenu.
+Le contrat de clôture corrigé supprime aussi cette annonce ; aucune annonce de
+remplacement n'est alors justifiée. La projection des seules preuves communes
+ne suffit donc pas (chronique, souvenirs, jets changés) ; oracle **gardé rouge
+sur instruction**, décision de réancrage réservée à l'intégration. Abri : choix
+initial correct puis projet financier distinct, scène isolée ci-dessus.
+Crue : Ilse mouillée 1,025 min plutôt que 0, écart du lot non corrigé.
+Tilo payé : engagement non clôturé sur l'ancienne base ; corrigé par 213 entrant,
+sans élargir artificiellement la fenêtre du test. Capture 219 hameau 1985 : la
+perte d'état payé historique disparaît ; détecteur et traces synthétiques verts,
+une reproduction devenue absente ne démontre pas un défaut du compteur.
+
+**Vérification finale sur `881db69` en cours.** Suite unique et vingt paires de
+4 h, cinq scénarios × quatre graines, classes 219 ; fichiers
+`suite-881db69.json` et `banc-881db69.json`. La passe `d7dbf1a`, interrompue sur
+nouvelle instruction de fusion, est archivée dans `suite-d7dbf1a-interrompue/`.
+Les mesures `banc-206b-livraison.json` sur `3aa16f7` restent un diagnostic ancien,
+pas la validation de la base finale. Aucune validation globale annoncée.

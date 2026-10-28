@@ -6,9 +6,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 <<<<<<< HEAD
 - **Branche `codex-sait-observations`, non fusionnée**, reprise **206 b**.
-  Nouvelle intégration demandée **`d7dbf1a`** (213/223/221), fusion `1048fa7`,
-  code de validation **`8121fcc`**. Les deux suivis sont conservés dans
-  `esprits.croire` : observations communes et réponses de localisation 221.
+  Nouvelle intégration demandée **`881db69`** (224/225), fusion `8178021`,
+  après `d7dbf1a` (213/223/221). Les suivis sont conservés dans
+  `esprits` : observations communes, réponses 221 et renoncements 225.
   Nouveauté utile jugée par le seul locuteur : corps observé, moyen utilisable,
   projets encore crus actifs et rendez-vous convenus. Mesures d'eau regroupées
   par conséquences ; sens d'évolution partagé seulement à partir de mesures
@@ -16,10 +16,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Les rotations silencieuses du joueur ne transmettent aucun savoir aux PNJ.
   Huit nouveaux tests de ce contrat ; aucun accès privé au savoir de l'auditeur.
   Accès aux engagements actifs par `agendas.en_cours`, sans modifier le module.
-  Après fusion : **63/65 ciblés verts** ; réponses 221 et secours 223 verts.
+  Sur `d7dbf1a` : **63/65 ciblés verts** ; réponses 221 et secours 223 verts.
   Témoin exact `d7dbf1a` : **8/8 contrôles courts verts** ; branche : quatre
   écarts sur douze contrôles (remboursement, secours mine 42, abri, trempe).
-  Nouvelle suite unique et vingt paires 4 h contre `d7dbf1a` en cours,
+  Passe `d7dbf1a` interrompue et archivée sur instruction de fusion ;
+  nouvelle suite unique et vingt paires 4 h contre `881db69` en cours,
   classes 219, deux travailleurs réduits au plus ; aucun Luna.
   L'oracle historique de l'auberge reste inchangé et rouge, décision du
   superviseur ; projection limitée aux preuves refusée, différences de paroles.
