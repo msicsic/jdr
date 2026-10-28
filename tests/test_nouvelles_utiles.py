@@ -149,7 +149,7 @@ class NouvellesUtilesTests(unittest.TestCase):
              'valeur': 20, 'details': {'montee': -30}}
         social.observation_commune(m, 'ilse', n, ['marchand'], vus={'marchand'})
         cle = social.faits_dits(n)[0][0]
-        self.assertEqual(lire(recharger(m), 'ilse')['faits_dits'][cle]['portee_a']['marchand'], [1, 0])
+        self.assertEqual(lire(recharger(m), 'ilse')['faits_dits'][cle]['portee_a']['marchand'], [1, None])
         self.assertTrue(social._nouveau(recharger(m), 'ilse', 'marchand', n))
         # Une seconde mesure plus basse, observée ensemble, rend la décrue commune.
         social.observation_commune(m, 'ilse', {**n, 'valeur': 19}, ['marchand'], vus={'marchand'})

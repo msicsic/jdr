@@ -121,7 +121,7 @@ def retenir_dit(monde, id, auditeur, noyau):
         if auditeur in registre[cle]["dit_a"] and registre[cle]["dit_a"][auditeur] != valeur:
             registre[cle].get("entendu_a", {}).pop(auditeur, None)
         registre[cle]["dit_a"][auditeur] = copy.deepcopy(valeur)
-        _retenir_portee(registre[cle], auditeur, noyau)
+        _retenir_portee(registre[cle], auditeur, noyau, monde.data["minutes"])
 
 
 def _portee(noyau):
@@ -131,14 +131,27 @@ def _portee(noyau):
     from .eau import NOYEE_CM
     cm = noyau["valeur"]
     vitesse = noyau.get("details", {}).get("montee")
-    return [2 if cm >= NOYEE_CM else 1 if cm > 0 else 0,
-            -1 if vitesse is not None and vitesse < 0 else 1 if vitesse else 0]
+    direction = None if vitesse is None else -1 if vitesse < 0 else 1 if vitesse > 0 else 0
+    return [2 if cm >= NOYEE_CM else 1 if cm > 0 else 0, direction]
 
 
-def _retenir_portee(fait, auditeur, noyau):
+def _retenir_portee(fait, auditeur, noyau, minute):
     portee = _portee(noyau)
     if portee is not None:
-        fait.setdefault("portee_a", {})[auditeur] = portee
+        _retenir_information(fait, auditeur, portee, noyau.get("observe", minute))
+
+
+def _retenir_information(fait, auditeur, portee, observe):
+    """Conserver la chronologie et les précisions compatibles des preuves partagées."""
+    registre = fait.setdefault("portee_a", {})
+    dates = fait.setdefault("portee_date_a", {})
+    ancienne = registre.get(auditeur, [None] * len(portee))
+    precedentes = dates.get(auditeur, [-1] * len(portee))
+    valeur, instants = list(ancienne), list(precedentes)
+    for i, v in enumerate(portee):
+        if v is not None and observe >= precedentes[i]:
+            valeur[i], instants[i] = v, observe
+    registre[auditeur], dates[auditeur] = valeur, instants
 
 
 def _nouveau(monde, id, auditeur, noyau):
@@ -156,7 +169,10 @@ def _nouveau(monde, id, auditeur, noyau):
                          fait.get("entendu_a", {}).get(auditeur, [])[-1:])
             if anciennes:
                 connue = _portee({**noyau, "valeur": anciennes[-1], "details": {}})
-        if connue != portee:
+        observe = noyau.get("observe", monde.data["minutes"])
+        dates = fait.get("portee_date_a", {}).get(auditeur, [-1] * len(portee))
+        if connue is None or any(v is not None and v != connue[i] and observe >= dates[i]
+                                 for i, v in enumerate(portee)):
             return True
     return False
 
@@ -201,7 +217,7 @@ def _retenir_audience(monde, audience):
                 valeurs = registre[cle].setdefault("entendu_a", {}).setdefault(autre, [])
                 if valeur not in valeurs:
                     valeurs.append(copy.deepcopy(valeur))
-                _retenir_portee(registre[cle], autre, noyau)
+                _retenir_portee(registre[cle], autre, noyau, monde.data["minutes"])
 
 
 def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details):
@@ -448,7 +464,7 @@ def observation_commune(monde, id, noyau, temoins, *, vus=None):
                 # une valeur déjà publiquement partagée étaye la direction.
                 anciennes = fait.get("entendu_a", {}).get(autre, [])
                 precedente = (anciennes[-1] if anciennes else fait["dit_a"].get(autre))
-                direction = fait.get("portee_a", {}).get(autre, [0, 0])[1]
+                direction = None
                 if precedente is not None and precedente != valeur:
                     direction = -1 if valeur < precedente else 1
                 portee[1] = direction
@@ -461,7 +477,7 @@ def observation_commune(monde, id, noyau, temoins, *, vus=None):
                 del fait["dit_a"][autre]
             fait.setdefault("entendu_a", {})[autre] = [copy.deepcopy(valeur)]
             if portee is not None:
-                fait.setdefault("portee_a", {})[autre] = portee
+                _retenir_information(fait, autre, portee, noyau.get("observe", monde.data["minutes"]))
 
 
 def _utile(monde, id, autre, noyau):

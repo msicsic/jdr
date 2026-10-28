@@ -4,6 +4,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Lot 255, `codex-sait-observations-c`, non fusionné, validation en cours** :
+  intégration `4318a5b` fusionnée dans `5eac995` ; conflits documentaire et deux
+  tests d'étapes réunis, `recevoir_statuts` conservé. Les 46 redites du hameau
+  250 viennent du suivi sans date de deux estimations d'eau (Brune 216 stable,
+  Aubin 211 en hausse), malgré la co-perception existante. Portée partagée datée
+  par composante, précision inconnue distincte de zéro ; aucune lecture privée
+  supplémentaire. Capture 219, autre scène au Relais, recharge/rendu/laps couverts.
+  Suspects d'achat/service/localisation non déclarés résolus. Validation ciblée
+  **83 tests distincts verts** (82/82 en 67,439 s, complément 4/4 en 4,916 s) ; banc détaché
+  cinq scénarios × quatre graines en cours ; aucune suite complète
+  ni Luna. Fusion non validée avant les critères par nuit. Bruts
+  `C:/Users/msics/donjon/artifacts/partagee-255/fin.json` ;
+  [rapport 255](taches/rapport-codex-255-observation-partagee.md).
+
 - **Branche `codex-sait-observations-c`, non fusionnée**, lot **250**,
   **non validée à fusionner** : intégration `1194876` fusionnée dans `8300d26`,
   seul conflit documentaire réuni ; moteur `8a7edfa`, inchangé à l'arbitrage.

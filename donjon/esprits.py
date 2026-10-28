@@ -449,10 +449,14 @@ def verifier(monde):
         from .social import DITS_MAX
         assert (isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX
                 and all(isinstance(k, str) and isinstance(v, dict) and {"valeur", "dit_a"} <= set(v)
-                        and set(v) <= {"valeur", "dit_a", "entendu_a", "valeur_inconnue", "portee_a"}
+                        and set(v) <= {"valeur", "dit_a", "entendu_a", "valeur_inconnue", "portee_a", "portee_date_a"}
+                        and isinstance(v.get("portee_date_a", {}), dict)
+                        and all(isinstance(a, str) and isinstance(ts, list) and len(ts) == 2
+                                and all(type(t) is int and t >= -1 for t in ts)
+                                for a, ts in v.get("portee_date_a", {}).items())
                         and isinstance(v.get("portee_a", {}), dict)
                         and all(isinstance(a, str) and isinstance(p, list) and len(p) == 2
-                                and p[0] in (0, 1, 2) and p[1] in (-1, 0, 1)
+                                and p[0] in (0, 1, 2) and p[1] in (None, -1, 0, 1)
                                 for a, p in v.get("portee_a", {}).items())
                         and isinstance(v.get("valeur_inconnue", False), bool)
                         and isinstance(v["dit_a"], dict) and all(isinstance(a, str) for a in v["dit_a"])
