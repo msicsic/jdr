@@ -215,6 +215,19 @@ def palier_menace():
         from tests.test_marche import intention
         intention(m, i, [{"operation": "aller", "lieu": "antichambre"}],
                   but={"type": "abri", "lieu": "antichambre"}, motif="securite")
+        # Scène d'auteur : elles ont mesuré la baisse annoncée ici. Les
+        # anciennes mesures de la nuit préparatoire peuvent encore leur
+        # faire croire à une montée, et justifier un second trajet vers le haut.
+        from donjon import eau
+        t = m.data['minutes']
+        niveau = eau.niveau(m, t)
+        precedent = eau.niveau(m, t - eau.REPERE)
+        pente = round((niveau - precedent) * 60 / eau.REPERE)
+        assert pente < 0
+        for connu in lire(m, i)['croyances'].values():
+            connu.pop('eau', None)
+        croire(m, i, 'beffroi', 'eau', niveau - eau.altitude(m, 'beffroi'), 'vu',
+               niveau=niveau, repere=[t, niveau], montee=pente)
     percevoir_tous(m)
     # La nuit préparatoire peut encore enregistrer un passage à la minute 404,
     # avant le placement d'auteur. Le contrôle porte sur la scène qui commence ici.

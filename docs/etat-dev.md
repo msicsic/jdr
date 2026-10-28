@@ -4,6 +4,39 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-suivi-delegation`, non fusionnée**, lot **242**, base
+  `c870c8b` : suivi des charges confiées sur échéance explicitement connue.
+  `confier` conserve une durée physique mesurable du plan accepté, distincte
+  du coût pondéré ; contrôle du résultat cru par le mandant, arrêt sur
+  réalisation apprise, revalidation de l'attente dans `Vue.aides` et
+  `agendas._amener`. Échéance facultative des délégations initiales validée
+  avec `attendu` ; aucune migration ni donnée de scénario modifiée.
+  **Limite : Gorm au Relais n'a aucun accord daté ni échéance dans la donnée
+  actuelle ; son immobilité historique ne reçoit pas un délai fabriqué.**
+  Scène d'auteur avec accord explicite et autre charge à la mine (Bram/Josse),
+  sauvegardes/rendus rechargés, réalisation en route et laps découpés.
+  Relance d'abord rouge (deux obligations au lieu d'une), puis raccord
+  supplémentaire expressément autorisé :
+  `confier` réutilise l'obligation active du même mandant et de même condition,
+  renouvelle devis/date/échéance par `agendas.renouveler` ; autres conditions,
+  contreparties et ordre conservés. Paroles closes/annulées/rompues exclues.
+  **54 tests directement concernés verts / six fichiers**, dont 17 nouveaux
+  tests, la relance après recharge, deux conditions distinctes, paroles
+  closes/annulées et le contrôle AST A1. **Banc final : vingt paires 4 h**,
+  zéro plantage/usurpation, suspects **0/0/1/1/0 inchangés** (Relais/mine/
+  auberge/crue/hameau), aucune hausse par nuit ; S/F/D et minutes d'attente
+  inchangés, chroniques/récits/souvenirs identiques 20/20. Références toutes
+  relues ; aucune référence rejouée. Une première suite
+  interrompue à 45 fichiers / 784 tests pour clôture durable et prémisse
+  explicite du test d'abri (eau crue en hausse +8, et non baisse mesurée).
+  Assertions historiques intactes, fichier des boucles repris vert.
+  **Suite complète laissée au superviseur**, nouvelle consigne du 2026-10-28
+  (`4422f13`) : passe finale arrêtée à **18 fichiers / 323 tests, aucun échec** ;
+  aucune suite complète achevée ni revendiquée. Créneau dépassé par les reprises
+  et vérifications ; aucun calcul laissé actif. Bruts
+  `C:/Users/msics/donjon/artifacts/delegation-242/`.
+  [Rapport 242](taches/rapport-codex-242-suivi-delegation.md).
+
 - **Branche `codex-aide-stable`, fusionnée**, lot **240**, base
   intégration `1c71666`. `Vue.detresses` conserve l'ouverture de l'aide pour
   une intention sans geste tant qu'une promesse connue reste valide, dès

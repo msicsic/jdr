@@ -388,6 +388,7 @@ class Vue:
         from .echanges import ENGAGEMENT_MAX
         self.aides = [(x["qui"], x) for x in lire(monde, id)["aides_attendues"].values()
                       if monde.data["minutes"] - x["minute"] <= ENGAGEMENT_MAX
+                      and not agendas.aide_echue(monde, x)
                       and not se_mefie(monde, id, x["qui"])
                       and not refus_retenu(monde, id, x["qui"], ("confier",), x["condition"]["objet"])]
         intention = lire(monde, id)["intention"]
@@ -3012,6 +3013,47 @@ def devis_pulsion(monde, id, condition, payeur):
         raise ValueError(f"devis_pulsion : acteur sans profil autonome : {id}")
     trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
     return None if trouve is None else (trouve[0], trouve[2])
+
+
+def duree_devis(monde, id, etapes):
+    """Durée physique du plan publié, sans convertir ses pénalités en temps.
+
+    Un préfixe hypothétique, un geste aléatoire ou durable ne promet aucune
+    durée. L'absence de mesure ne reçoit pas de délai de remplacement.
+    """
+    v = vue(monde, id)
+    if v._cru_spatial is None:
+        return None
+    e, total = depart(monde, id, v), 0
+    for g in etapes:
+        op = g['operation']
+        if (op not in (*pnj.DUREES, 'aller')
+                or op in ('crocheter', 'frapper', 'demander', 'acheter', 'confier', 'proposer', 'demander_feu')
+                or any(g.get(k) for k in ('suppose', 'attendre_remise', 'condition'))):
+            return None
+        mesure = _mesurer_direct(v, e, [g], e, 0)
+        if mesure is None:
+            return None
+        temps, _, e = mesure
+        total += temps
+        o = g['cible']
+        if op == 'aller':
+            e = e.apres(salle=g['lieu'])
+        elif op == 'prendre':
+            e = e.apres(portes=e.portes | {o})
+        elif op == 'poser':
+            e = e.apres(portes=e.portes - {o})
+        elif op == 'remettre':
+            e = e.apres(portes=e.portes - {g['outil']})
+        if op == 'poser':
+            e = e.apres(faits=[(('lieu', o), e.salle)])
+        elif op in ('ouvrir', 'fermer'):
+            e = e.apres(faits=[(('ouvert', o), op == 'ouvrir')])
+        elif op in ('verrouiller', 'deverrouiller'):
+            e = e.apres(faits=[(('verrou', o), op == 'verrouiller')])
+        elif op in ('allumer', 'eteindre'):
+            e = e.apres(faits=[(('allume', o), op == 'allumer')])
+    return total
 
 
 def _pulsion(monde, id, condition, tache, entretenir=None):

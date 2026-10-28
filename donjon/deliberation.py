@@ -132,7 +132,12 @@ def verifier_profil(monde, id, p):
                 and all(isinstance(b[k], (int, float)) for k in b)
                 and 0 <= b["depart"] <= 100 and 0 < b["urgence"] <= 100), "Besoin de PNJ invalide"
     for pulsion in p["pulsions"]:
-        assert (set(pulsion) <= {"besoin", "condition", "delegue_a"} and pulsion.get("besoin") in seuils(monde, id)
+        if 'echeance' in pulsion and (not pulsion.get('delegue_a')
+                or type(pulsion['echeance']) is not int or pulsion['echeance'] < 0):
+            from .monde import ErreurMonde
+            raise ErreurMonde('Échéance de délégation invalide.',
+                              f"{id}.pulsions.echeance reçu {pulsion['echeance']!r} ; attendu : entier >= 0 en minutes absolues, avec delegue_a=joueur.")
+        assert (set(pulsion) <= {"besoin", "condition", "delegue_a", "echeance"} and pulsion.get("besoin") in seuils(monde, id)
                 and condition_valide(monde, pulsion.get("condition"))
                 and pulsion.get("delegue_a", "joueur") == "joueur"), "Pulsion de PNJ invalide"
 
@@ -1426,7 +1431,8 @@ def _plan_garder(monde, id, condition):
 def _delegue(monde, id, pulsion):
     """Une pulsion confiée au joueur attend tant que le PNJ le croit fiable ; une pulsion qu'il a payé
     quelqu'un de rétablir aussi (``tache_payee``)."""
-    return bool(pulsion.get("delegue_a") and not se_mefie(monde, id, pulsion["delegue_a"])
+    return bool(pulsion.get("delegue_a") and not agendas.aide_echue(monde, pulsion)
+                and not se_mefie(monde, id, pulsion["delegue_a"])
                 or tache_payee(monde, id, pulsion["condition"]))
 
 
@@ -1909,6 +1915,9 @@ def _candidats(monde, id):
     # Un bruit inconnu qu'il doit, ou ose, aller voir : après ce qui presse, avant la routine ; une
     # alarme (l'appel d'un protégé, un bruit à son seuil d'alerte), avant tout le reste.
     from .planification import voir
+    for rang, lieu in enumerate(dict.fromkeys(agendas.suivis_delegations(monde, id))):
+        ajouter('devoir', lambda m, i, s=lieu: voir(m, i, s),
+                Palier.BESOIN_PRESSANT, (-1, rang))
     a_voir, alarme_ = bruit_a_voir(monde, id), alarme(monde, id)
     if alarme_:
         ajouter(alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), Palier.ALARME)
@@ -2019,6 +2028,7 @@ def choisir(monde, id, minute):
         return
     e = esprit(monde, id)
     installer(monde, id)
+    agendas.clore_aides_constatees(monde, id)
     COMPTES["choix"] += 1
     # Le danger immédiat se traite avant les besoins ordinaires, avec un choix au coût.
     from .defense import choisir as choisir_defense
