@@ -64,7 +64,10 @@ fait une fois, à l'intégration, pour plusieurs lots ensemble.
   comparer des temps que lancés ensemble (`--sans-cache`). `tools/references.py lister` montre le
   cache, `purger --garder N` retire ce qui n'est plus un ancêtre de `main` ou trop ancien.
 - **Vérification du lot**, le minimum qui prouve l'invariant :
-  - tests ciblés pendant le travail, suite complète (`tools/tests.py`) **une seule fois**, à la fin ;
+  - tests ciblés pendant le travail, et les fichiers de tests que le lot touche ou que son
+    changement concerne directement ; **pas de suite complète dans le lot** : le superviseur la lance
+    par script, sans agent, à la fusion (une fois par fusion ou groupe de fusions) et ouvre un petit
+    lot si elle révèle un échec ;
   - un changement censé ne rien changer : empreintes sur 2 h (`tools/comparer_bancs.py
     --empreintes`), seulement les scénarios touchés et le Relais, 4 graines ;
   - un changement de comportement : banc rapide, 4 h de jeu, 4 graines, mêmes scénarios ; il suffit
@@ -72,6 +75,11 @@ fait une fois, à l'intégration, pour plusieurs lots ensemble.
   - Luna, si le lot touche le MJ : **une passe**, seulement les scripts qui exercent le changement.
   - Pas de banc de 8 à 12 h, d'audit de nuits, de `VERIFIER`/`VERIFICATION` sur 8 h, ni de campagne
     Luna à deux passes dans un lot, sauf si le brief le demande expressément.
+- **Calculs longs sans agent qui attend** : un banc qui dépasse une dizaine de minutes, une nuit
+  de 8 à 12 h ou une campagne se lance détaché (priorité réduite, sortie dans `artifacts/`, fichier
+  de fin écrit en dernier). L'agent ne le surveille pas en boucle : il termine son tour par
+  `CALCUL EN COURS : <fichier de fin attendu>` ; le superviseur le relance quand le fichier existe.
+  Relire un journal toutes les quelques minutes relit tout le contexte de l'agent et coûte cher.
 - **Vérification à l'intégration**, groupée tous les deux ou trois lots fusionnés et lancée en fond
   pendant le lot suivant : banc complet (8 à 12 h, 8 graines, quatre scénarios et `rixe`,
   `VERIFIER`), audit des nuits, `VERIFIER` et `spatial.VERIFICATION` sur 8 h, Luna deux passes sur

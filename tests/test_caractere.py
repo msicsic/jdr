@@ -129,7 +129,11 @@ class ValeursTests(unittest.TestCase):
             m = sans_evacues(relais())
             m.objets["reserve"].update(verrouillee=False, ouverte=True)
             placer(m, "marchand", "crypte", position_entree(m, "crypte"))
-            croire(m, "brune", "marchand", "lieu", "crypte", "vu", salle="crypte", case=None)
+            # Elle l'a réellement localisé et il reste à ce poste pendant la
+            # demande : aucun retournement fortuit ne doit permettre la rencontre.
+            lire(m, "marchand")["libre"] = 2 * 600
+            croire(m, "brune", "marchand", "lieu", "crypte", "vu", salle="crypte",
+                   case=list(m.objets["marchand"]["position"]))
             croire(m, "brune", "reserve", "etat", {"ouverte": True}, "vu")
             m.objets["brune"]["profil"]["valeurs"]["honnetete"] = honnetete
             return attendre(recharger(m), 4)[0]

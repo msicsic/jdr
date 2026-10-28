@@ -598,7 +598,10 @@ def _amener(monde, id, a, empreinte):
             _limiter(monde, id, empreinte)
             if a["etat"] != "actif":
                 return None
-        depuis = max(lire(monde, id)["aides_attendues"][q]["minute"] for q in attendus)
+        aides = [lire(monde, id)["aides_attendues"][q] for q in attendus]
+        # L'échéance ouvre un constat ; elle n'annule pas la parole et
+        # n'autorise pas une deuxième délégation identique au même acteur.
+        depuis = max(x['echeance'] + 1 if aide_echue(monde, x) else x['minute'] for x in aides)
         # Une inspection achevée sans arrivée visible ne justifie pas de
         # recommencer sans fin ; la perception ordinaire continue pendant l'attente.
         suite = ([] if lire(monde, id)["visites"].get(destination, -1) >= depuis
@@ -606,6 +609,61 @@ def _amener(monde, id, a, empreinte):
         return {"type": "agenda", "agenda": a["id"], "qui": attendus[0]}, suite
     _changer(monde, id, a, "sommeil", raisons[0] if raisons else "arrivee attendue", empreinte)
     return None
+
+
+def aide_echue(monde, aide):
+    """Aucune échéance reconstruite pour une ancienne parole."""
+    return 'echeance' in aide and monde.data['minutes'] > aide['echeance']
+
+
+def clore_aides_constatees(monde, id):
+    """Une réalisation apprise clôt la parole, même si le résultat se perd ensuite.
+
+    Publication au début du choix, jamais pendant une lecture de candidat.
+    Une ancienne preuve antérieure à l'accord ne tient pas une nouvelle parole.
+    """
+    from .esprits import lire
+    from .deliberation import profil, satisfaite
+    e = lire(monde, id)
+    for objet, aide in list(e['aides_attendues'].items()):
+        c = aide['condition']
+        attribut = 'etat' if 'allume' in c or 'servir' in c else 'lieu' if any(
+            k in c for k in ('lieu', 'rendre', 'remettre')) else 'verrouillee'
+        preuve = e['croyances'].get(c.get('servir', objet), {}).get(attribut)
+        if not preuve or preuve['minute'] <= aide['minute']:
+            continue
+        destinataire = c.get('remettre', c.get('rendre'))
+        faite = (preuve.get('possession', {}).get('porteur') == destinataire
+                 if destinataire else satisfaite(monde, id, c))
+        if faite:
+            del e['aides_attendues'][objet]
+    for pulsion in profil(monde, id)['pulsions']:
+        if pulsion.get('delegue_a') and satisfaite(monde, id, pulsion['condition']):
+            # Le mandat initial est achevé ; la charge propre reste au mandant.
+            del pulsion['delegue_a']
+            pulsion.pop('echeance', None)
+
+
+def suivis_delegations(monde, id):
+    """Contrôles dus d'après les accords connus et les constats du mandant.
+
+    Une visite après l'échéance clôt ce contrôle : le seul écoulement du temps
+    ne justifie jamais de recommencer une ronde identique.
+    """
+    from .esprits import lire
+    from .deliberation import profil, salle_crue, satisfaite, se_mefie
+    e = lire(monde, id)
+    aides = list(e['aides_attendues'].values())
+    aides += [dict(qui=p['delegue_a'], condition=p['condition'], echeance=p['echeance'])
+              for p in profil(monde, id)['pulsions'] if p.get('delegue_a') and 'echeance' in p]
+    for aide in aides:
+        if (not aide_echue(monde, aide) or satisfaite(monde, id, aide['condition'])
+                or se_mefie(monde, id, aide['qui'])):
+            continue
+        c = aide['condition']
+        lieu = c.get('lieu') or salle_crue(monde, id, c['objet']) or salle_crue(monde, id, aide['qui'])
+        if lieu in monde.data['salles'] and e['visites'].get(lieu, -1) <= aide['echeance']:
+            yield lieu
 
 
 def en_cours(monde, id, *, condition=None, objet=None, personne=None, actifs=False):
@@ -633,6 +691,17 @@ def retirer_proposition(monde, id, engagement):
     from .esprits import esprit
     stock = monde.data.get("promesses_joueur", []) if id == "joueur" else esprit(monde, id)["engagements"]
     stock.remove(engagement)
+
+
+def renouveler(monde, id, engagement, minute):
+    """Confirmer la même obligation, sans changer sa place ni ses contreparties."""
+    from .esprits import esprit
+    stock = monde.data.get('promesses_joueur', []) if id == 'joueur' else esprit(monde, id)['engagements']
+    for x in stock:
+        if x == engagement and not x.get('annule'):
+            x['minute'] = minute
+            return copy.deepcopy(x)
+    raise ValueError('Engagement actif absent lors du renouvellement')
 
 
 def tenir(monde, id, engagement):

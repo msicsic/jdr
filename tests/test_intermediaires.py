@@ -97,7 +97,7 @@ class IntermediairesTests(unittest.TestCase):
         for cout, operation in ((0, 'confier'), (1000, 'alimenter')):
             copie = recharger(m.copier())
             with patch('donjon.pnj_propositions.devis_intermediaire', return_value=(cout, devis[1], devis[2])):
-                plan = plan_recours(copie, id, 'faim', [])
+                plan = plan_recours(copie, id, 'faim', None)
             self.assertEqual(plan[-1]['operation'], operation)
             if operation == 'confier':
                 self.assertEqual(lire(copie, id)['recours_services'], [])
@@ -110,7 +110,7 @@ class IntermediairesTests(unittest.TestCase):
                 # ce test vérifie la livraison unique de la commission acceptée.
                 from tests.support import sans_souci
                 sans_souci(m)
-                plan = plan_recours(m, id, 'faim', [])
+                plan = plan_recours(m, id, 'faim', None)
                 self.assertEqual(plan[-1]['operation'], 'confier')
                 self.assertEqual(plan[-1]['cible'], via)
                 lire(m, id)['intention']['plan'] = plan
@@ -147,7 +147,7 @@ class IntermediairesTests(unittest.TestCase):
 
     def test_commission_refusee_et_une_tentative_durable(self):
         m, id, cible, via = scene()
-        plan = plan_recours(m, id, 'faim', [])
+        plan = plan_recours(m, id, 'faim', None)
         lire(m, via)['relations'][id] = relations._nouvelle({'confiance': 0})
         with patch.object(Monde, 'd20') as jet:
             self.assertFalse(executer(m, id, plan[-1], []))
@@ -164,7 +164,7 @@ class IntermediairesTests(unittest.TestCase):
         # Un don libre ne doit pas contourner la commission réellement refusée.
         from tests.support import sans_souci
         sans_souci(m)
-        plan = plan_recours(m, id, 'faim', [])
+        plan = plan_recours(m, id, 'faim', None)
         # La méfiance privée existe déjà à l'acceptation, mais le porteur
         # l'ignore encore : son devis n'a pas le droit de lire ce verdict.
         lire(m, cible)['relations'][via] = relations._nouvelle({'confiance': 0})
@@ -186,14 +186,14 @@ class IntermediairesTests(unittest.TestCase):
 
     def test_acceptation_sans_remise_et_sans_jet_supplementaire(self):
         m, id, cible, via = scene()
-        plan = plan_recours(m, id, 'faim', [])
+        plan = plan_recours(m, id, 'faim', None)
         with patch.object(Monde, 'd20', return_value=20) as jet:
             self.assertTrue(executer(m, id, plan[-1], []))
         self.assertEqual(jet.call_count, 1)
         m = recharger(m)
         self.assertEqual(m.objets['vivres']['lieu'], cible)
         self.assertEqual(m.objets['vivres']['portions'], 8)
-        self.assertEqual(plan_recours(m, id, 'faim', [])[-1]['operation'], 'inspecter')
+        self.assertEqual(plan_recours(m, id, 'faim', None)[-1]['operation'], 'inspecter')
         self.assertEqual(lire(m, id)['besoins']['faim'], 95)
 
 

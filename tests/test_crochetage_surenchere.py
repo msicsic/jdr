@@ -11,6 +11,7 @@ ces pièces ne passe pas la peine que la tâche lui épargne ; puis il renonce. 
 dire ensuite impossible se jugent par le même devis (``echanges.empeche``).
 
 Chaque cas vérifie l'état du monde après rechargement, et ce que le joueur lit quand il est là."""
+import copy
 import unittest
 from unittest.mock import patch
 
@@ -146,7 +147,12 @@ class VoleurQuiSeSaitHabileTests(unittest.TestCase):
         lumiere = lumiere_du_geste(m, "brune")
         self.assertLess(chance_crochetage(m, "brune", lumiere), 0.5)
         self.assertEqual(bruit_crochetage(m, "brune", lumiere), "bruyant")
-        m, _ = vivre(m, 2, jet=20)
+        # Épreuve du bruit du geste imposé, hors négociation : le parcours
+        # naturel compensé est vérifié séparément ci-dessous.
+        with patch('donjon.pnj_propositions.recours', return_value=None), \
+                patch('donjon.pnj_propositions.plan_recours', return_value=None), \
+                patch('donjon.agendas._naissances', return_value=None):
+            m, _ = vivre(m, 2, jet=20)
         self.assertTrue(m.objets["reserve"]["verrouillee"])
         self.assertEqual(lire(m, "brune")["intention"]["plan"][0]["operation"], "crocheter")
         self.assertGreater(lire(m, "brune")["intention"]["attente"], 0)
@@ -161,6 +167,49 @@ class VoleurQuiSeSaitHabileTests(unittest.TestCase):
         m, _ = vivre(m, 2, jet=20)
         self.assertFalse(m.objets["reserve"]["verrouillee"])
         self.assertIn(CROCHETE + " sans forcer.", chronique(m))
+
+    def test_recours_naturel_compense_avant_la_faute_accepte_ou_refuse(self):
+        # Sans isoler le commerce : 228 rend le marché préférable à la faute.
+        from donjon import echanges
+        from donjon.biens import valeur_capacites
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        for jet in (1, 20):
+            with self.subTest(jet=jet):
+                m = self.brune_et_une_oreille(15)
+                offres = []
+                proposer = echanges.proposer
+
+                def observer(monde, de, a, demande, contrepartie, **options):
+                    outil = contrepartie.get('objet')
+                    if de != 'brune' or outil != 'crochets':
+                        return proposer(monde, de, a, demande, contrepartie, **options)
+                    bilan = echanges.evaluer_proposition(monde, a, de, contrepartie, demande)
+                    capacite = valeur_capacites(monde, de, outil) if outil else 0
+                    avant = copy.deepcopy((monde.objets.get(outil), monde.data['finances_pnj']))
+                    resultat = proposer(monde, de, a, demande, contrepartie, **options)
+                    if de == 'brune' and outil == 'crochets':
+                        self.assertIsNone(bilan['cause'])
+                        self.assertGreaterEqual(bilan['G'], bilan['P'])
+                        self.assertGreaterEqual(bilan['G'], capacite)
+                        recharge = recharger(monde)
+                        self.assertEqual(monde.data, recharge.data)
+                        self.assertEqual(regarder(monde), regarder(recharge))
+                        self.assertEqual(scene_percue(monde), scene_percue(recharge))
+                        if resultat.get('accepte'):
+                            self.assertEqual(recharge.objets[outil]['proprietaire'], a)
+                            self.assertEqual(recharge.objets[outil]['lieu'], a)
+                        else:
+                            self.assertEqual((recharge.objets[outil], recharge.data['finances_pnj']), avant)
+                        offres.append(bool(resultat.get('accepte')))
+                    return resultat
+
+                with patch.object(echanges, 'proposer', observer):
+                    m, _ = vivre(m, 2, jet=jet)
+                self.assertTrue(offres, chronique(m))
+                self.assertEqual(set(offres), {jet == 20})
+                m = recharger(m)
+                self.assertEqual(m.objets['crochets']['lieu'], 'marchand' if jet == 20 else 'brune')
 
 
 
@@ -201,7 +250,12 @@ class TacheAccepteeTests(unittest.TestCase):
         # Il peut le faire dès la minute initiale, exclue du relevé de vivre_long.
         self.assertIn("Tilo, neveu de l'aubergiste allume l'âtre.", chronique(m))
         self.assertTrue(m.objets["atre"]["allume"])
-        self.assertIn("Tilo a fait le travail que Odile lui avait payé pour que l'âtre soit allumé.", textes)
+        # La preuve de son propre geste peut solder la parole dans la minute
+        # initiale, que vivre_long exclut de ses relevés. Garder toute la trace.
+        self.assertIn("Tilo a fait le travail que Odile lui avait payé pour que l'âtre soit allumé.", chronique(m))
+        self.assertEqual(lire(m, "tilo")["engagements"], [])
+        from donjon.biens import services_proteges
+        self.assertIn({"objet": "atre", "allume": True}, services_proteges(recharger(m), "tilo"))
         self.assertEqual(m.data.get("dettes", []), [])
 
     def test_odile_hausse_par_paliers_puis_renonce(self):

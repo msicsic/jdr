@@ -30,6 +30,438 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   travailleurs réduits au plus ; créneau dépassé par validation. Bruts
   `C:/Users/msics/donjon/artifacts/sait-235/` ;
   [rapport 235](taches/rapport-codex-235-sait-observations-c.md).
+- **Branche `codex-confidences-perdues`, fusionnée**, lot **249**, base
+  `integration 59321b9` : diagnostic documentaire de `adb52c4` contre 235
+  (`942a3c2`), aucun code du jeu ni test modifié. Inventaire exhaustif des
+  126 paroles Relais/mine, quatre graines × 4 h : 122 occurrences absentes,
+  quatre retrouvées à un autre instant, onze ajouts/réattributions ; compteur
+  25/101 → 5/10, comprenant aussi les comptes rendus de promesse.
+  Huit captures identiques aux bruts (chroniques/empreintes/récits/souvenirs),
+  123 transmissions sans effet sur le choix immédiat ; huit rejeux de choix
+  et cinq prolongations pour couvrir l'heure après les annonces tardives :
+  **5 472 ablations locales, six écarts issus d'une confidence utile perdue**,
+  Josse → Mathe, biscuits épuisés à 141, évitement d'un secours impossible
+  à 191–193, mine 1985. `_utile` ignore l'usage connu d'un moyen pour aider
+  autrui hors engagement actif ; recommandation d'élargir par une preuve
+  d'usage perçue, typée et révisable, sans lecture privée. Schéma non conçu.
+  Huit assertions rouges reclassées sur captures, aucun oracle modifié ni
+  test déclaré vert. Deux nuits 235 sondées, identiques aux bruts : Aubin/Ilse est un
+  faux positif (enquête de localisation, autre moyen) ; Mireille/Mathurine,
+  un défaut réel d'admission du service envers une personne crue ailleurs.
+  Effets des témoins auditifs et nuit entière
+  sans parole non mesurés ; aucune autorisation de fusion de 235. Un processus
+  réduit, aucun Luna, suite complète ou banc de comparaison. Bruts
+  `C:/Users/msics/donjon/artifacts/confidences-249/`.
+  [Rapport 249](taches/rapport-codex-249-confidences-perdues.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. Mine et Relais : 122 confidences absentes sous 235, presque toutes sans usage décisionnel (sources éteintes, contenants fermés, biens disparus) ; une seule utile perdue démontrée (Josse → Mathe, biscuits épuisés, mine 1985 à 141 : évitement à 191-193). Manque : l'usage d'un moyen pour aider un tiers hors engagement actif, à retenir comme preuve d'usage par le contrat commun perception/parole. Huit assertions rouges du 235 classées en attentes périmées ; suspect Aubin/Ilse faux positif ; Mireille/Mathurine (auberge 2024, 226) défaut réel d'admission du service. Premier diagnostic Sol medium sur nuits rejouées.
+
+- **Branche `codex-suite-bf4cede`, fusionnée**, lot **247**, base
+  `f46a0b5` : quatre oracles corrigés, aucun code moteur ni MJ modifié.
+  Bissection `4306c14`–`bf4cede`, frontières confirmées vert/rouge sur
+  parents directs : deux ancrages de service introduits par **234 / bf4cede**
+  (Ilse crue à l'antichambre au constat), exploration d'auberge par
+  **244 / b744265** (20 632 → 8 573 visites, mêmes plans/monde/lignes/vues),
+  prémisse de crue par **242 / d606305** (Gorm ne transmet plus sa vitesse
+  à Ilse ; échéance de `confier` isolée par contre-épreuves).
+  Connaissance de montée désormais explicite dans la scène d'auteur,
+  assertions de sécurité conservées, exécution et deux vues rechargées
+  vérifiées. **39/39 tests verts sur quatre fichiers, 118,060 s** ; fichier
+  d'eau final renforcé **7/7, 67,695 s**. Pas de suite complète, banc ni Luna.
+  Bruts `C:/Users/msics/donjon/artifacts/suite-247/` ;
+  [rapport 247](taches/rapport-codex-247-suite-bf4cede.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Tests seulement, moteur inchangé. Bissection : deux oracles de lieu du bénéficiaire périmés par le placement du lot 234 (Ilse reste crue à l'antichambre), empreinte de visites de l'auberge périmée par le lot 244 (20 632 → 8 573 visites, mêmes plans et monde), scène d'eau dont la prémisse venait d'une mesure transmise par Gorm que l'échéance du lot 242 supprime (connaissance déclarée explicitement, contrôles d'exécution et de recharge ajoutés). 39 tests verts.
+
+- **Branche `codex-restitution-route`, fusionnée**, lot **246**, base
+  `2b15134` : transport avec le bien jusqu'à la destination crue, puis
+  nécessité dans l'état de remise ; même admission et revalidation via
+  `_rendre`, recherche commune d'`aller` et `echanges.necessaire(apres=...)`.
+  Cession compensée 228 conservée, aucun cas de scénario. Capture historique
+  `4306c14`, hameau 42 à 421, reproduite ; contre-épreuve rouge sur la base
+  pour Maël et pour une lampe de la mine. Restitution, refus sans autre
+  lumière, remplacement, monde/rendu/scène rechargés et laps découpés couverts.
+  **47 ciblés distincts verts / cinq fichiers, passe 452,688 s** ; trois premiers
+  fichiers repris sur le raccord final : **31/31 verts, 63,743 s**.
+  **20/20 paires 4 h identiques** : monde complet,
+  chroniques/récits/souvenirs, empreintes, mesures et audits. Zéro plantage/
+  usurpation ; suspects 219 **4 → 4**, aucune hausse par nuit, répartition
+  Relais/mine/auberge/crue/hameau **1/0/1/2/0**. Cycles **498 → 498**,
+  préemptions **46 → 46**, à expliquer **51 → 51**, dérives **216 → 216**.
+  Un travailleur réduit ; vingt références exactes absentes calculées et
+  rangées une seule fois. Aucune nouvelle garantie d'autonomie des sources
+  sur un long trajet. Aucun Luna ni suite complète ; bruts
+  `C:/Users/msics/donjon/artifacts/restitution-246/`.
+  [Rapport 246](taches/rapport-codex-246-restitution-route.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Lot C du diagnostic 237. _rendre juge la remise sur l'état projeté après le trajet (recherche commune d'aller, puis echanges.necessaire(apres=...)) : le bien reste un moyen pendant le transport, la restitution n'est écartée que s'il reste nécessaire après la remise. Capture historique de Maël (hameau 42, 421) et lampe de Gaspard (mine) ; refus si l'arrivée est sombre sans autre source. 20/20 nuits 4 h identiques, suspects 4 → 4.
+
+- **Branche `codex-conception-a5`, fusionnée**, lot **245**, base
+  `integration 9b69785` : inventaire d'A5 et onze lots proposés, sans code
+  du jeu ni calcul. `confier`, agendas sociaux et contrat 213 réutilisables ;
+  filiation de mandat, autorité et compte rendu général manquants.
+  Lot 242 lu sur `origin/codex-suivi-delegation` (`0b37f44`), absent de cette
+  base : à intégrer avant A5, limites des anciennes charges non datées
+  conservées. Six PNJ déjà présents dans la crue étendue ; statut de Gorm,
+  réglages d'autorité, profondeur et réaffectation proposés en options.
+  Aucun test, banc ou Luna ; vérification documentaire uniquement.
+  [Rapport 245](taches/rapport-codex-245-conception-a5.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. Inventaire d'A5 : briques existantes (confier, amener, devis d'intermédiaire, aides acceptées, voix), origine mandat, compte rendu, réaffectation, récursion, statut et ascendant absents ; onze lots proposés (ascendant neutre, statut sourcé, filiation bornée, jugement selon l'autorité perçue, faire ou confier, compte rendu, réaffectation, évolution de l'ascendant, joueur mandant et mandaté, données du hameau). Quatre arbitrages à l'utilisateur. Premier essai Sol medium.
+
+- **Branche `codex-place-perimee`, fusionnée**, lot **234**, ciblés et banc validés.
+  Merge demandé de `origin/integration` **`d9e5166`** (233/236/238/239/240)
+  dans **`860fa0b`**, sans rebase, seul conflit documentaire. Moteur 234
+  inchangé depuis `5f73166` : jugement commun placement/rapprochement, cible
+  crue, trajet possible et progression sans dégradation ; posture effective
+  sans réservation de geste, détour à distance égale permis. Aucun cas d’acteur.
+  **46/46 ciblés initiaux verts**, puis **31/31 verts** (Lucien, 225, place,
+  sécurité). Aubin **8 passages/30 min** contre 188, garde livrée/verrouillée.
+  **Ilse rejoint Brune éclairée**, jamais Aubin localisé : chronique complète,
+  adaptation conditionnelle autorisée `89fdfb8`, croyance/lumière contrôlées.
+  **La nuit historique de Lucien change : vol réussi à la place de la garde
+  éclairée.** Contrôle 229 à 95 conservé ; reprises seulement après entrée
+  nouvelle levant l’obstacle, aucun témoin cru présent/vu/à portée d’oreille
+  au vol 107–109. Anselme reprend le ballot, huit pièces cherchées à 114,
+  contrat de tâche palier 4 en attente ; garde palier 13 non prioritaire.
+  Zéro aller-retour injustifié 219, aucune navette après la recherche.
+  **Séparation autorisée `ffd814f`** : test de cette trajectoire et scène de
+  lanterne explicitement sans pulsion sur le ballot ; assertions de garde,
+  possession/lumière/changements de lieu/recharge conservées.
+  **Suite complète laissée au superviseur**, nouvelle règle **`4422f13`**. Passe arrêtée sur instruction après **1545 tests / 166 fichiers achevés**, zéro échec, une erreur Windows `os.replace` à la sauvegarde initiale du test TUI de coffre vide, avant l’application. Ce seul test, inchangé, repris **vert en 3,602 s** ; cause système non identifiée. Résultats partiels archivés ; cette passe n’a été ni achevée ni relancée.
+  Banc : **20 paires de 4 h**, quatre références du cache `d9e5166`, seize
+  manquantes rangées une fois. Suspects **2 → 2, épisodes identiques**, aucune
+  hausse par nuit ni nouvelle alerte, aucun plantage/usurpation ; maxima PNJ/h
+  **9/10/15/24/22 inchangés**. Cycles **499 → 499**, préemptions **49 → 49**,
+  à expliquer **66 → 65**, dérives **222 → 218**. Mireille auberge 2024 et
+  demandes promises de Maël hameau 7 : anciens écarts absents après fusion.
+  Fonctions exclues intactes, aucun Luna, deux travailleurs réduits au plus ;
+  créneau dépassé. Bruts `C:/Users/msics/donjon/artifacts/place-234/reprise/` ;
+  [rapport 234](taches/rapport-codex-234-place-perimee.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. pnj._jugement_placement et _pas_placement communs à signes.place et _rejoindre_un_proche : cible crue localisable, objectif atteignable, trajet qui améliore ; une posture périmée cède et ne réserve plus le geste. Ilse rejoint la lumière et une compagnie (Brune, Aubin jamais localisé : assertion adaptée avec preuve). La nuit historique de Lucien change : vol réussi à 107-109 min sans témoin cru (légitime selon 225), puis attente d'information ; le retour de lanterne est vérifié dans une scène dédiée, assertions conservées. Aubin 188 → 8 passages/30 min. 20 paires 4 h : suspects 2 → 2, maxima inchangés. Suite complète laissée au superviseur.
+
+- **Branche `codex-suivi-delegation`, fusionnée**, lot **242**, base
+  `c870c8b` : suivi des charges confiées sur échéance explicitement connue.
+  `confier` conserve une durée physique mesurable du plan accepté, distincte
+  du coût pondéré ; contrôle du résultat cru par le mandant, arrêt sur
+  réalisation apprise, revalidation de l'attente dans `Vue.aides` et
+  `agendas._amener`. Échéance facultative des délégations initiales validée
+  avec `attendu` ; aucune migration ni donnée de scénario modifiée.
+  **Limite : Gorm au Relais n'a aucun accord daté ni échéance dans la donnée
+  actuelle ; son immobilité historique ne reçoit pas un délai fabriqué.**
+  Scène d'auteur avec accord explicite et autre charge à la mine (Bram/Josse),
+  sauvegardes/rendus rechargés, réalisation en route et laps découpés.
+  Relance d'abord rouge (deux obligations au lieu d'une), puis raccord
+  supplémentaire expressément autorisé :
+  `confier` réutilise l'obligation active du même mandant et de même condition,
+  renouvelle devis/date/échéance par `agendas.renouveler` ; autres conditions,
+  contreparties et ordre conservés. Paroles closes/annulées/rompues exclues.
+  **54 tests directement concernés verts / six fichiers**, dont 17 nouveaux
+  tests, la relance après recharge, deux conditions distinctes, paroles
+  closes/annulées et le contrôle AST A1. **Banc final : vingt paires 4 h**,
+  zéro plantage/usurpation, suspects **0/0/1/1/0 inchangés** (Relais/mine/
+  auberge/crue/hameau), aucune hausse par nuit ; S/F/D et minutes d'attente
+  inchangés, chroniques/récits/souvenirs identiques 20/20. Références toutes
+  relues ; aucune référence rejouée. Une première suite
+  interrompue à 45 fichiers / 784 tests pour clôture durable et prémisse
+  explicite du test d'abri (eau crue en hausse +8, et non baisse mesurée).
+  Assertions historiques intactes, fichier des boucles repris vert.
+  **Suite complète laissée au superviseur**, nouvelle consigne du 2026-10-28
+  (`4422f13`) : passe finale arrêtée à **18 fichiers / 323 tests, aucun échec** ;
+  aucune suite complète achevée ni revendiquée. Créneau dépassé par les reprises
+  et vérifications ; aucun calcul laissé actif. Bruts
+  `C:/Users/msics/donjon/artifacts/delegation-242/`.
+  [Rapport 242](taches/rapport-codex-242-suivi-delegation.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `echanges.py`, `planification.py`, fusionnés sans conflit textuel. Le mandant juge une charge confiée sur une échéance connue (planification.duree_devis : durée physique du plan retenu, conservée par echanges.confier) et ses croyances ; échéance passée sans constat : il va voir, reprend ou réaffecte ; réalisation constatée ou apprise : clôture. Relance du même mandant pour la même condition : l'obligation active est réutilisée (agendas.renouveler). Pas de délai inventé : la délégation initiale de Gorm au Relais, sans échéance déclarée, reste sans suivi temporel. 20/20 nuits 4 h identiques. Suite complète laissée au superviseur.
+
+- **Branche `codex-ceder-outil-b`, fusionnée**, lot **228**, reprise du
+  **202**, base intégrée **`d9e5166`** (233/238/239/240), fusion `e938352`.
+  Compensation `e8feb8f`, six premiers oracles `537a352`, seconde extension
+  autorisée **`d3a4d67`**. Aucun nouveau code moteur pendant les arbitrages.
+  Capacité marginale protégée sauf doublon, remplacement ou gain suffisant ;
+  achat **8,4 contre 0,909 refusé**. Cache négatif à dépendances crues égales
+  conservé, anciens verdicts rejugés. Fonctions réservées des autres lots intactes.
+  **Torche 1985 : service non bloqué**, douze jugements admissibles avant 2 min ;
+  vente de crochets compensée à huit pièces (P=G=33,899), classée 6,20, qui
+  devance le service choisi sur intégration (55,43). Parcours naturel original
+  testé séparément. Reconstruction déclarée : torche d'Ilse remise à Brune,
+  offre typée réellement payée, puis autonomie intacte ; annonce sauvegardée,
+  engagement tenu, service protégé, état/rendus et bloc/découpe contrôlés.
+  Rémy : extinction juste au bureau éclairé (niveau 2, `lumiere_utile=False`).
+  Tilo : achat réel 1, remboursement 19, dette 1 persistante, conservation d'or
+  et absence de double versement ; apport réel puis solde complet vérifiés.
+  **48 ciblés distincts verts** pour les quatre fichiers de la seconde extension.
+  `securite` intact : distance 4 déjà rouge sur `d9e5166`, confiée au lot 234.
+  **Suite complète laissée au superviseur** (consigne/AGENTS `4422f13`) :
+  passe en cours arrêtée, aucun verdict final revendiqué ; ciblés du lot verts.
+  Suite antérieure : 2 590 tests, six échecs/zéro erreur, attribution archivée.
+  Seul réancrage de capture : hash monde auberge du premier arbitrage (crochets
+  14,4 contre huile 6 ; pièce proposée, autres empreintes gardées).
+  Mesures antérieures contre `3c0e1ca` : S hameau **35→35,75**, nuits dans
+  **[26 ; 44]**, suspects **2→2** sans hausse par nuit ; mine **910→887 recherches,
+  10 925→9 959 nœuds**. Aucun nouveau banc revendiqué sur `d9e5166`.
+  Aucun Luna ; deux travailleurs réduits au plus ; aucune clé de signature.
+  Bruts `C:/Users/msics/donjon/artifacts/ceder-228/reprise/` ;
+  [rapport 228](taches/rapport-codex-228-ceder-outil-reprise.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Un PNJ ne cède pas une capacité qu'il perdrait sans compensation (202) ; une offre reste possible quand la contrepartie compense réellement la capacité perdue (biens.valeur_capacites, echanges.necessaire, evaluer_proposition) ; recours négatif retenu tant que ses dépendances crues ne changent pas. 20 paires 4 h : S hameau 35 → 35,75 (toutes les nuits dans l'étendue de référence), suspects 2 → 2, coût mine −8,8 % nœuds. Promesse de torche du hameau 1985 : Brune préfère désormais la vente compensée de ses crochets (autre choix, service non interdit). Oracles de trajectoire arbitrés avec preuve dans dix fichiers de tests ; hash monde auberge réancré explicitement. Suite complète laissée au superviseur.
+
+- **Branche `codex-lumiere-faible`, fusionnée**, lot **244**, base
+  intégration **707e7ac**. `Vue.recharge_utile` distingue capacité de
+  lumière et réserve faible : une source encore allumée ne rend plus
+  pertinent du combustible sans gain dans la projection, sauf entretien
+  explicite. Même critère pour acquisition, parts et alimentation ; aucun
+  plafond ni autre mécanisme changé. Les trois recherches réelles de 435
+  retrouvent le résultat de l'ancienne complète sous plafond ; grenier
+  **7 091 → 336 nœuds**, coût **125,64**, chambre **11 139 / 11 898 →
+  656 / 663**. Monde/rendu/scène rechargés, **zéro seconde sans intention
+  entre 435 et 480** sur le rejeu ciblé (44 min 17,8 s au 243),
+  laps découpé à l'auberge et à la mine,
+  entretien réellement exécuté et sauvegardé. **12/12 paires 2 h
+  identiques** (auberge/mine/Relais). Coût mine 1985 4 h : **10 119 →
+  10 100 nœuds**, mêmes choix, chroniques et état final complet.
+  **20/20 paires 4 h identiques** (états, récits, souvenirs, empreintes,
+  mesures, audits), cinq scénarios × quatre graines ; zéro plantage,
+  deux suspects inchangés. **5 tests finaux verts, 18,244 s**.
+  **Contrôle 8 h auberge 42 vert, 2 528,217 s**, `VERIFIER` et spatial 0,2 ;
+  une ancienne borne à 312, même coût complet (73,498790), aucune absence
+  à 435, 143 choix de Lucien avec intention entre 435 et 480.
+  **Suite complète laissée au superviseur** : passe en cours arrêtée à
+  réception de la règle `integration` 4422f13, sans bilan global.
+  Créneau dépassé par ces validations.
+  Limite : pas de
+  décompte de l'autonomie dans la projection, donc aucune garantie ajoutée
+  de couvrir physiquement un long plan. Aucun Luna, bruts
+  `C:/Users/msics/donjon/artifacts/lumiere-244/` ;
+  [rapport 244](taches/rapport-codex-244-lumiere-faible.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Vue.recharge_utile : une recharge n'est utile que pour allumer une source éteinte sans charge ou restaurer une réserve visée par un entretien ; la réserve faible ne rend plus l'huile pertinente (729 acquisitions, 1 052 devis envisagés pour rien). Lucien auberge 42 à 435 : 7 091 → 336 nœuds, même résultat que la complète, zéro seconde sans intention (44 min au lot 243). 12/12 empreintes 2 h et 20/20 nuits 4 h identiques ; VERIFIER + spatial 0,2 auberge 42 8 h vert. Suite complète laissée au superviseur (nouvelle règle).
+
+- **Branche `codex-bornes-garde`, fusionnée**, lot **243**, base
+  intégration **c870c8b**, diagnostic seul. Les deux absences historiques
+  `4306c14`, auberge 42 à 435, sont reproduites : 4 000 nœuds contre
+  **7 071 / 6 574** pour les complètes, coûts **126,36 / 127,289407**.
+  Elles sont reconnues dans `BORNES`, même résultat sans optimisation :
+  aucune violation silencieuse du contrat 48, aucun plafond ni code changé.
+  Lecture de lanterne devenue faible, combinatoire des états, séjour H trop
+  bas pour conclure sous plafond ; contre-épreuve forte à 336 nœuds.
+  Intégration : première absence au grenier maintenue (7 091 nœuds),
+  deux absences à la chambre (11 139 / 11 898), ronde de sécurité choisie.
+  Historiquement, aucun temps sans but : la garde de la chambre coûte moins.
+  Sur l’intégration, **44 min 17,8 s sans intention entre 435 et 480**,
+  hors deux courtes rondes ; besoin de biens en attente confirmé à la recharge.
+  Cinq couples état/but réétudiés sur captures rechargées, conséquences
+  moteur/monde/rendu/scène rechargés identiques ; autre recours de Joss.
+  **15 ciblés verts, 163,033 s** ; aucune suite complète ni campagne globale
+  supplémentaire (diagnostic seul), aucun Luna. Bruts
+  `C:/Users/msics/donjon/artifacts/bornes-243/` ;
+  [rapport 243](taches/rapport-codex-243-bornes-garde.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. Limite reconnue, pas de violation du contrat 48 : les recherches jouées plafonnent à 4 000 et sont consignées. Cause : la lanterne d'Hugues lue faible à 435 déclenche la découverte des moyens de lumière, qui multiplie les états (336 nœuds sans cette lecture contre plus de 4 000). Sur l'intégration, Lucien reste 44 min 17,8 s sans intention entre 435 et 480. Suite possible : borner la découverte de lumière quand une source faiblit (piste C1/saillance), à mesurer.
+
+- **Branche `codex-aide-stable`, fusionnée**, lot **240**, base
+  intégration `1c71666`. `Vue.detresses` conserve l'ouverture de l'aide pour
+  une intention sans geste tant qu'une promesse connue reste valide, dès
+  le retrait de la demande exécutée. La phase `attendre` seule n'ouvre pas
+  l'aide d'une garde tenue. Moyens,
+  refus et confiance restent revalidés ; aucun ancien plan réinstallé,
+  aucun champ ajouté, aucun changement de `_classer`, des échanges, de
+  `pnj.py`, des biens, de l'ouïe ou du MJ. Captures historiques `4306c14`
+  hameau 1985 à 541 et 544:156 reproduites ; deux régressions échouent sur
+  le constructeur exact de la base et passent avec le raccord. Autre besoin
+  à la mine (lumière de Bram, aide de Josse), annulation reçue et réalisation.
+  Monde/rendu rechargés et laps découpés couverts ; deux contre-épreuves
+  rouges sur la base. Suite complète unique : **2 534 tests / 293 fichiers,
+  3 409,760 s, trois échecs, zéro erreur, 16 ignorés ; suite non verte**.
+  Deux écarts d'empreintes corrigés par le raccord à la seule promesse connue,
+  sans modifier les oracles : tous les champs mine/auberge retrouvent la base.
+  Torche hameau 1985 reproduite sur la base, mêmes 3188/3615 (réserve 238).
+  **24 ciblés finaux verts**, dont les deux oracles historiques intacts ;
+  même échec de torche sur le raccord final. **20 paires 4 h finales**,
+  zéro plantage, suspects 219 **0/0/2/0/0 inchangés** ; cycles 507,
+  préemptions 58, à expliquer 87 inchangés. **20/20** états finaux,
+  chroniques/récits/souvenirs/empreintes identiques ; recherches neuves
+  **15 017 → 15 024 (+0,05 %)**. Vingt références réemployées, aucune
+  rejouée ; aucune seconde suite complète. Créneau dépassé par les validations.
+  Bruts `C:/Users/msics/donjon/artifacts/aide-240/` ;
+  [rapport 240](taches/rapport-codex-240-aide-stable.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Vue.detresses garde l'ouverture de l'aide tant qu'une aide acceptée reste connue et valide, sans dépendre du classement du besoin (Gorm hameau 1985, 544 : son choix effaçait son propre recours). Autre cas : Bram attend que Josse allume la chandelle. 20/20 nuits 4 h identiques, suspects inchangés. Suite : un échec préexistant (torche, corrigé depuis par 238).
+
+- **Branche `codex-pas-compagnons-c`, fusionnée**, lot **233** :
+  livraison `f34e6c2`, reprise après merge de `origin/integration` **`01ce467`
+  dans `7d68a8f`**, sans rebase, seul conflit documentaire. Le bruit attribué
+  réveille le choix sans rotation ni position inventée ; aucun nouveau moteur
+  ni MJ dans la reprise, `tenu` 195 conservé. **Décision utilisateur : baisse
+  de richesse du hameau acceptée**, les rencontres nées des rotations fortuites
+  n'étant pas légitimes : banc initial S **35 → 27,75**, acceptées **13 → 9**.
+  **Cinq écarts arbitrés**, placement d'Ilse laissé au **234** : six champs
+  d'empreintes migrés sur preuves, lignes et deux vues historiques inchangées ;
+  secours de Rémy repris au checkpoint réel d'adoption **725** de `01ce467` ;
+  lampe effectivement vue et Josse occupé au poste ; trajet du témoin déclaré
+  comme réflexe prioritaire au lieu d'un devoir injecté sans charge.
+  **31 ciblés + 19 tests de pas verts**, mêmes monde/rendu rechargés et laps
+  découpés ; **152/153 anciennes assertions identiques**, une expression
+  d'empreintes migrée, quatre assertions de provenance/schéma ajoutées.
+  **Aubin crue 2024 à 23576** : trajectoire issue indirectement du réveil 233
+  (absente sans ces seules lignes), mais retour après fin de surveillance,
+  `eveil=None`, vers **ouvrir/servir**, sans répéter la demande refusée à 23551.
+  Refus conservé, réserve toujours fermée et pas de nouveau don pendant le
+  contrôle rechargé/découpé. Retour **justifié comme changement de moyen** ;
+  alerte brute 219 conservée, aucune garantie générale des boucles.
+  **Suite de reprise unique : 2 549 tests / 294 fichiers, 2 430,801 s,
+  quatre échecs, zéro erreur, zéro ignoré**. Aucun des cinq écarts repris ne
+  revient ; le fichier de stabilité de Lucien du 229 passe (neuf tests).
+  Restants : **trois préexistants** (torche hameau 1985, deux MiMo `6 != 5`,
+  reproduits sur `adb52c4` à la livraison initiale) et **placement d'Ilse du
+  195 réservé au 234**. Suite non verte, aucun nouvel échec identifié.
+  Créneau dépassé par la suite unique. Aucun Luna, deux travailleurs réduits ;
+  pas de nouveau banc global, mesures initiales et leur référence conservées.
+  Bruts `C:/Users/msics/donjon/artifacts/pas-233/reprise/` ;
+  [rapport 233](taches/rapport-codex-233-pas-compagnons-c.md).
+  Fusionné sur l'intégration : conflits de documentation et de `tests/test_signalements.py` (test de classement du lot 239 et préparation de scène du lot 233, réunis) ; fichiers de code touchés aussi depuis la base : aucun commun. Décision du 2026-10-28 : perte de richesse au hameau acceptée (S 35 → 27,75). Un pas compatible avec un compagnon cru proche s'explique sans retournement et réveille le choix (esprits.reconsiderer) sans position inventée ; preuve d'accomplissement des engagements dans echanges.tenu (195). Retournements divisés par deux à quatre. Cinq oracles caducs arbitrés avec preuve ; retour d'Aubin crue 2024 justifié (autre moyen). Placement d'Ilse laissé rouge, réservé au lot 234.
+
+- **Branche `codex-suite-verte`, fusionnée**, lot **238**, base `e84d5a7` :
+  faux audit MiMo remis au schéma actuel (`nature`, sans `verdict`/`comptes`),
+  comptes d'appels et assertions conservés ; deux fichiers entiers verts,
+  **13 tests, 7,627 s**. Passe initiale : **36 tests, trois échecs**.
+  Reprise moteur autorisée après l'arrêt initial : trace créée à 3288 puis
+  clôturée dans le même choix, déplacement de Brune avec la torche pris
+  pour un départ d'Ilse, encore crue dans l'échoppe ; extinction à 3615,
+  combustible 59. `biens.py` retient le lieu cru du bénéficiaire à la
+  réussite ; une ancienne trace mobile sans ancrage ne prouve pas un départ.
+  Raccords de création/validation explicitement autorisés après clarification.
+  **50 ciblés verts / cinq fichiers, 34,530 s**, trois nouveaux tests,
+  monde/rendu/scène rechargés, laps en bloc/découpé ; assertions historiques
+  intactes. Banc final vingt paires 4 h, cinq scénarios × quatre graines :
+  fautifs **1 → 0**, physiques **5 → 6**, suspects **2 → 2** sans hausse par
+  nuit/scénario, zéro plantage. Vingt références `e84d5a7` rangées une fois,
+  toutes relues au banc final après renforcement des anciennes traces mobiles.
+  Suite commencée puis interrompue pour ce renforcement ; seule passe complète
+  finale achevée : **2 529 tests / 292 fichiers, 2 518,071 s, zéro échec,
+  une erreur Windows TUI**, zéro ignoré. `os.replace` refuse le temporaire de
+  `test_sortie_galerie_vers_palier_noir_garde_joueur_sur_la_carte` ; test inchangé
+  repris seul vert en **1,020 s**, verrou non identifié. **Suite brute non verte**,
+  aucune seconde suite complète. Les trois échecs initiaux sont corrigés.
+  Anciennes traces mobiles sans ancrage : protection conservée faute de preuve
+  de départ, aucune reconstruction historique ni entretien ajouté. Créneau
+  dépassé par les validations, deux calculs réduits au plus, aucun Luna.
+  Aucun MJ, adaptateur, capture ou fonction des lots voisins modifié.
+  Bruts `artifacts/suite-238/` du dépôt principal ;
+  [rapport 238](taches/rapport-codex-238-suite-verte.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Torche du hameau 1985 : la trace du service payé était close par une fausse déduction de départ d'Ilse (Brune emportait la torche) ; le lieu cru du bénéficiaire au constat de réussite est sauvegardé (services_rendus.lieu_beneficiaire) et clore pour départ exige de le croire ailleurs que ce lieu et que le résultat. Faux audit MiMo remis au schéma actuel. 20 paires 4 h : pertes fautives 227 1 → 0, suspects 2 → 2. Suite : zéro échec, une erreur Windows TUI passagère (verrou de fichier temporaire), test repris vert.
+
+- **Branche `codex-renonce-attente`, fusionnée**, lot **239**, base
+  intégration `3c0e1ca` (236 inclus). `_classer` compte `renonce`, dont
+  l'obstacle cru tient encore, comme un recours sans moyen admissible :
+  attente si tous les recours sont bloqués, priorité à tout plan possible,
+  aucun classement déduit d'un recours non évalué. Aucun changement du
+  choix, du juge des obstacles, des propositions, des biens, de `pnj.py`,
+  de l'ouïe ni du MJ. Captures mine 500/107 et 7/539:599 reproduites sur
+  la base : `sans_recours` devient `attente`. Choix, récit, sauvegarde/rendu,
+  laps découpés et reprise après constat couverts, autre besoin au Relais.
+  **8/8 paires 2 h identiques** mine/Relais ; **4/4 paires mine 4 h
+  identiques**, zéro plantage, sans recours 0/0/0/0 et attente 40/0/0/0
+  inchangés. Replays ciblés jusqu'à 110/540 : chroniques identiques,
+  5 → 0 PNJ·min sans recours dans chacune des deux fenêtres. **22 ciblés
+  verts**. Suite complète unique : **2 531 tests / 293 fichiers,
+  3 973,916 s, un échec, zéro erreur, 16 ignorés ; suite non verte**.
+  Même échec de torche hameau 1985 que le lot 236, réussite à 3188 puis
+  perte à 3615 ; aucun oracle affaibli. Comparaison spatiale pure verte
+  (854,313 s). Aucun nouvel échec identifié, deux travailleurs réduits ;
+  aucun Luna. Créneau dépassé par la suite finale.
+  Bruts `C:/Users/msics/donjon/artifacts/renonce-239/` ;
+  [rapport 239](taches/rapport-codex-239-renonce-attente.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. _classer traite un recours renoncé dont l'obstacle cru tient encore comme un essai sans moyen : besoin en attente, plus « sans recours ». Odon mine 500 à 107 et mine 7 à 539 : sans recours → attente, reprise après constat qui lève l'obstacle ; Gorm (Relais, passage obstrué) comme autre cas. Huit empreintes 2 h et quatre nuits mine 4 h identiques. Suite : un échec préexistant (torche, lot 238).
+
+- **Branche `codex-navettes-garde`, fusionnée**, lot **236**, base
+  `ecbf1a1`, diagnostic `6bed2a0`, correctif `3f217d0`. Extension autorisée à
+  `pnj_propositions.plan_recours` et son raccord dans `deliberation.choisir` ;
+  `recours`, registres négatifs, services protégés et MJ intacts. Un résultat
+  ordinaire vide (but tenu) n'est plus confondu avec l'absence de solution
+  (`None`) : pas de greffe commerciale par le seul besoin partagé. Auberge 7
+  sur `4306c14` : sept passages/minute à 430–434 ; garde stable, ancienne
+  contre-offre d'huile réinjectée au poste puis retirée en route. Nouvelle
+  nuit `ecbf1a1` : pas de rafale de 426 à 435, mais greffe encore reproductible
+  sur capture historique avant correction. **35 ciblés verts**, capture et
+  Brune au Relais, monde/rendu rechargés, laps découpés, contre-offre utile
+  conservée. **20 paires 4 h contre `ecbf1a1`**, références manquantes rangées
+  une fois : suspects 219 **0/0/2/0/0 inchangés**, maxima de passages/heure
+  **9/11/17/62/22 inchangés** (Relais/mine/auberge/crue/hameau), zéro plantage.
+  Cycles 507, préemptions 58, à expliquer 87 inchangés. Réserve auberge 7 :
+  dérives ouvertes **8 → 9**, pas de hausse de suspects. **Suite complète
+  unique : 2 524 tests / 292 fichiers, 3 643,527 s**, un échec, zéro erreur,
+  16 ignorés ; **suite non verte**. Échec de torche hameau 1985 reproduit seul
+  sur `ecbf1a1` (16,293 s), mêmes réussite à 3188 et perte fautive à 3615 ;
+  aucun oracle affaibli. Deux travailleurs réduits au plus, créneau dépassé
+  par les vérifications. Aucune garantie
+  universelle des navettes, heure historique entière non rejouée. Bruts
+  `C:/Users/msics/donjon/artifacts/navettes-236/` ;
+  [rapport 236](taches/rapport-codex-236-navettes-garde.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Un but tenu sans geste ([]) se distingue d'un recours sans moyen ordinaire (None) : plan_recours ne remplace plus le plan vide d'une garde par une ancienne contre-offre du même besoin (Anselme, auberge 7, 429-435 : achat d'huile injecté puis retiré à chaque reconstruction). Capture historique corrigée, aucun nouveau départ sur six minutes. 20 paires 4 h contre ecbf1a1 : suspects et maxima de passages inchangés, 18/20 états identiques. Suite : un échec préexistant (torche du hameau, lot 238).
+
+- **Branche `codex-alertes-231`, fusionnée**, lot **237**, diagnostic seul,
+  base/intégration **`e84d5a7`** (218/229/230/232 inclus), aucun code du jeu
+  modifié. **Dix nuits × 12 h**, cinq cas sur `4306c14` détaché puis intégration,
+  séquentielles, priorité réduite, aucun Luna ni suite complète. Les cinq
+  replays historiques retrouvent chronique/récit/souvenirs/empreintes et
+  mesures communes ; **228 captures**, monde et rendu rechargés identiques.
+  Mine : les 465 PNJ·min historiques « sans recours » viennent d'Odon 500/7 ;
+  renoncement retenu laissé « pressant » par `_classer`, premières inactivités
+  107/539. Intégration **305 → 275**, **160 → 145**, même défaut initial.
+  Gorm hameau 1985 : onze suspects chaleur ; revalidation dépendant du classement
+  attente/presse, abandon isolé à 544 (326556). Maël hameau 42 : quatre suspects,
+  restitution choisie à 419 puis annulée au lieu sombre intermédiaire par
+  `necessaire`. Les deux occurrences disparaissent des nuits actuelles
+  (zéro retour chaleur de Gorm, zéro suspect de Maël), mais les deux juges
+  reproduisent encore leurs limites sur les captures historiques.
+  Appels Odon/mine 1985 **19 → 0** ; historiquement sept lieux puis douze
+  réouvertures par indices nouveaux, aucun rappel sans réouverture observée.
+  Trois petits lots distincts proposés : qualification des recours bloqués,
+  stabilité de l'aide sous adoption, cohérence transport/remise ; aucune
+  nouvelle moyenne sur huit graines ni garantie générale des boucles.
+  Bruts `C:/Users/msics/donjon/artifacts/alertes-237/` ;
+  [rapport 237](taches/rapport-codex-237-alertes-231.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. Mine : « sans recours » mal qualifié après un renoncement (Odon, 107 et 539 ; toujours présent sur l'intégration), petit lot A (classement commun des recours renoncés). Appels : aucune faute établie. Gorm hameau 1985 : l'aide ouverte après attente est effacée par sa propre adoption (lot B, mécanisme latent). Maël hameau 42 : restitution rejetée en route par la nécessité immédiate du bien (lot C, latent).
+
+- **Branche `codex-purete-candidats`, fusionnée**, lot **232**, base
+  `integration adb52c4` : `biens.services_proteges` ne supprime plus les
+  traces pendant une lecture. Clôtures retenues hors `data`, publiées après
+  un choix complet réussi ; devis isolé et choix interrompu sans écriture,
+  imbrications transmises au parent. Arrêts historiques `4306c14` reproduits :
+  mine 42 à 415 (copie 418, Gaspard, poêle/Josse), rixe 42 à 350 (copie 351,
+  Aubin, brasero/marchand) ; `_entrees_communes → services_proteges`, seul
+  champ modifié `services_rendus`. Sur la base actuelle enrichie de 218/230,
+  ces deux nuits passent déjà, mais la lecture écrit encore hors choix.
+  **22 ciblés verts**, cinq nouveaux tests, captures versionnées, monde/
+  rendu/scène rechargés et laps découpés identiques. **12/12 empreintes
+  2 h identiques** à `adb52c4` (Relais/mine/rixe × quatre graines), zéro
+  plantage ; douze références manquantes rangées une fois. Mine et rixe
+  corrigées 8 h `VERIFIER` + spatial 0,2 achevées sans arrêt, mesures et
+  mondes finaux complets identiques à la base actuelle. **Suite complète
+  unique : 2 526 tests / 292 fichiers, 2 366,049 s, quatre échecs, zéro
+  erreur**, suite non verte : Lucien et deux MiMo identiques aux traces
+  préexistantes 230 ; compteur torche hameau 1985 reproduit exactement
+  sur `adb52c4` (un ciblé, 9,414 s), laissé intact. Aucun nouvel échec
+  identifié, aucun oracle modifié. Créneau dépassé par les validations.
+  Aucun Luna, deux calculs réduits au plus ; bruts
+  `C:/Users/msics/donjon/artifacts/purete-232/` ;
+  [rapport 232](taches/rapport-codex-232-purete-candidats.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. biens.services_proteges ne supprime plus les traces finies pendant la lecture : clôtures retenues hors de data et publiées par planification.vues_du_choix après un choix complet réussi, abandonnées sinon. Corrige les deux arrêts du lot 231 (Gaspard mine 42 à 415, Aubin rixe 42 à 350) : huit heures achevées sous VERIFIER et spatial 0,2. 12/12 empreintes 2 h identiques. Suite : quatre échecs préexistants.
+
+- **Branche `codex-reessai-regressions`, fusionnée**, lot **229**,
+  départ `1e09926`, première livraison `ad785cf`, puis merge demandé de
+  `origin/integration` **`c9d8c05`** (230/231), sans rebase. Aucun moteur/MJ
+  modifié par 229. Lucien : divergence à 95 min, ancienne reprise par délai
+  contre témoin encore cru présent ; reprises à 107 et 167 sur localisation
+  entendue d'Anselme. Fenêtre de garde explicitement réancrée 150 → 165 min,
+  but, bougeoir porté/allumé, lumière effective et état/rendu rechargés exigés.
+  Huile `881db69` : refus reproduit, deux parts pour une réserve de deux
+  après part préparée pour Lucien à 464 min ; refus juste. Promesse annulée
+  à 466, part séparée chez Odile (échanges réservés au 228).
+  **Après 230, test d'huile vert sans adaptation 229** : fichier strictement
+  identique à `origin/integration`, lanterne à sec et au contact de 230 conservée,
+  réserve d'Odile inchangée. **35 ciblés verts après merge** : 34 tests de
+  quatre fichiers en 225,369 s et test exact d'huile en 194,531 s.
+  Suite complète unique **avant 230** : **2 498 tests / 289 fichiers,
+  3 637,727 s**, un échec de voix préexistant (Mathurine entendue, relevé 225),
+  zéro erreur, 16 ignorés ; **suite non verte avant 230**. Pas de seconde
+  suite ni banc moteur : aucun fichier moteur commun entre 229 et 230.
+  Deux travailleurs à priorité réduite, aucun Luna ; créneau dépassé par
+  les vérifications. [Rapport 229](taches/rapport-codex-229-reessai-regressions.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Tests et documentation seulement. Lucien : comportement juste (reprise du vol seulement après avoir entendu Anselme ailleurs, jamais par le délai), oracle de garde réancré 150 → 165 min avec exigences de lumière ramenée et de cause opposable. Huile : refus d'Odile pour cause necessaire juste sur 881db69 (réserve gardée = parts restantes) ; le test adapté par 230 passe inchangé. À voir avec 228 : une part détachée reste séparée chez Odile après l'annulation d'une promesse.
 
 - **Branche `codex-restauration-charges`, fusionnée**, lot **218** :
   code `2bd1e6f`, reprise demandée sur **`881db69`** (224/225), fusion
@@ -64,7 +496,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   réduits au plus, commits non signés (aucune clé). Bruts finaux
   `C:/Users/msics/donjon/artifacts/charges-218/881db69/`, archives dans le parent ;
   [rapport 218](taches/rapport-codex-218-restauration-charges.md).
-  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `planification.py`, fusionnés sans conflit textuel. Conditions suspendues et phase de restauration conservées dans l'intention, transmises au même engagement après découpe ou reconstruction ; restaurer_charges recherche le rétablissement physique après le service (juge commun 213/225). 20 paires 4 h contre 881db69 : suspects 4 → 4, préemptions 67 → 54, états payés perdus 8 → 6 ; nouvelle alerte d'agenda de Brune (hameau 2024, neuf activations/sommeils) à relire à la prochaine vérification. Coût mine 1985 4 h : nœuds 9 189 → 11 051 (+20 %), recherches 601 → 913 (devis de feu de Bram). Occurrence historique 209 non reproduite sur la base. Fichiers de code communs avec 226/230 : suite complète relancée.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `planification.py`, fusionnés sans conflit textuel. Conditions suspendues et phase de restauration conservées dans l'intention, transmises au même engagement après découpe ou reconstruction ; restaurer_charges recherche le rétablissement physique après le service (juge commun 213/225). 20 paires 4 h contre 881db69 : suspects 4 → 4, préemptions 67 → 54, états payés perdus 8 → 6 ; nouvelle alerte d'agenda de Brune (hameau 2024, neuf activations/sommeils) à relire à la prochaine vérification. Coût mine 1985 4 h : nœuds 9 189 → 11 051 (+20 %), recherches 601 → 913 (devis de feu de Bram). Occurrence historique 209 non reproduite sur la base. Fichiers de code communs avec 226/230 : suite complète relancée. Suite complète sur la fusion (`2844ef7`, `tools/tests.py --processus 3`, PC fixe) : **2 521 tests, quatre échecs**, zéro erreur (2 024,6 s) : la stabilité de Lucien, corrigée ensuite par le test du lot 229 (vert sur `bee69b4`), et trois préexistants (torche du hameau 1985 depuis 221/224, deux MiMo `6 != 5`). La troisième voix de Mathurine ne revient plus depuis 230.
 
 - **Branche `codex-rendez-vous-tenu`, fusionnée**, lot **230**, base
   `1e09926` de l'intégration : une invitation à venir suppose de rester ;
@@ -227,6 +659,46 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucune clé de signature Git. Bruts `C:/Users/msics/donjon/artifacts/contact-226/` ;
   [rapport 226](taches/rapport-codex-226-contact-sous-but.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base 881db69 (227 : outils seulement). Contact sans lieu connu repris par rejoindre (inspection, appel, question 221) sous le but parent abri ou enquête. 20 paires 4 h contre 881db69 : attente crue 218,75 → 108,75, hameau 92,5 → 76,25 PNJ·min, S crue 16,5 → 24,5, suspects 4 → 2 ; préemptions 67 → 87 et à expliquer 59 → 85 en hausse, huit sommeils de l'agenda de Gorm en crue 2024 à surveiller. Cinq échecs de sa suite préexistants (voix du joueur, compteur torche corrigé par 227, lanterne de Lucien, deux MiMo).
+- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195** :
+  **346c1aa fusionné par 11f728a**, extension autorisée à **`echanges.tenu`**.
+  Point de comparaison après parole, preuve nouvelle propre `vu`/`essai`, bornes
+  entre promesses identiques d'une même minute ; souvenir neutre sauvegardé.
+  Aucun constat, position, émotion ou retour au choix ajouté. Seul `tenu` change
+  dans `echanges.py` ; bloc `retenir_service` du 224 intact. Tilo allume et solde
+  à minute 0 ; notification sur la chronique entière, clôture et protection
+  vérifiées en plus, sans réancrer. **41 ciblés verts**, dont quatre nouveaux
+  tests de preuve, monde/rendu/scène rechargés. Clé prêtée toujours à rendre.
+  Prêts, contrat 213, tests 224 et palier passent.
+  **Banc 20 paires 4 h contre 346c1aa : suspects 5→1**, aucune hausse par
+  scénario ; préemptions 67→65, cycles 494→462, à expliquer 67→77,
+  dérives 202→210, états payés perdus 8→7, figés pressés 3→4 (observations).
+  Zéro plantage/usurpation. Après borne : 20 références relues du cache,
+  20 états/chroniques/mesures/épisodes identiques au premier banc.
+  Gorm Relais 2024 et hausse hameau absents ; Brune 2024 : zéro alerte.
+  Après arbitrage : **huit échecs et l'erreur corrigés par des prémisses
+  explicites**, **273 assertions identiques par AST**, huit fichiers et
+  **67 tests ciblés verts**. Aucun changement du moteur depuis `e7aab68`,
+  aucun banc relancé. Quatre préexistants laissés rouges : MiMo ×2 ; voix
+  apparue à la fusion 221 (`d7dbf1a`) ; attente historique de perte de torche
+  apparue à la fusion 224 (`346c1aa`), interaction avec 221 (224 seul vert).
+  Vérification sur cinq sources exactes avec les deux tests originaux.
+  **Suite après arbitrage : 2 497 tests / 289 fichiers, 2 091,515 s, cinq
+  échecs, zéro erreur, zéro ignoré**, une passe finale après les prémisses,
+  deux travailleurs réduits : quatre préexistants et défaut de placement.
+  **Richesse hameau : S 40,5→27 correspond à des interactions réelles perdues**,
+  ni bruits ni retournements ne comptent dans S ; acceptées 16→9, tâches
+  faites 4→2, prêts/rendus 1/1→0/0 ; occurrences de travail payé 20→26.
+  Placement hors périmètre : attitude périmée et recours d'abri. Proposition
+  non appliquée dans `signes.place` : 21 tests de signes verts, Ilse rejoint
+  Brune, assertion spécifique Aubin toujours rouge. **Lot séparé à créer**,
+  contrat d'invalidation des attitudes périmées décrit sans l'appliquer ;
+  défaut laissé rouge pour décision d'intégration. Aucun Luna, deux calculs
+  réduits au plus, aucune clé Git.
+  Limite : checkpoint oublié ou croyance inchangée, jugement conservateur.
+  Rondes et registre visuel joueur hors lot. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/pas-195/extension-346/` et `arbitrage/` ;
+  [rapport 195](taches/rapport-codex-195-pas-compagnons.md),
+  [classement exhaustif et richesse](taches/rapport-codex-195-arbitrage.md).
 
 - **Branche `codex-service-non-defait`, fusionnée**, lot **224**, base `a22f92e`
   vérifiée, puis 213 intégré (`bd45f65`, fusion `0192bb3`) : résultat promis
@@ -388,6 +860,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 - Branche `codex-sait-observations`, **non fusionnée, en attente**, lot **206** (`820762d`) : `social.bavarder` ne lit plus le savoir réel de l'auditeur, seulement les paroles, audiences et observations communes du locuteur. Juste, mais **les PNJ se redisent tout** : confidences crue 56 → 334, hameau 74 → 385, répétitions 2 → 23, demandes en boucle 0 → 26 (Brune → Gorm, crue 1985 : 54 confirmations, souvent des hauteurs d'eau successives) ; suite 14 échecs. Reprise à concevoir : ne dire que ce qui est nouveau **et pertinent** pour l'auditeur, et tenir pour commune une observation de l'environnement partagé (une eau vue ensemble), sans lecture privée. [Rapport 206](taches/rapport-codex-206-sait-observations.md) sur la branche ; bruts `artifacts/sait-206/`.
   **Reprise 206 b (`0ba27d3`), toujours en attente** : `social._auditeur` décide avec les seules croyances du locuteur. Confidences 27/104/48/49/92 → 6/12/6/6/27 (Relais/mine/auberge/crue/hameau) et avertissements redits 6 → 0, mais 13 échecs et une erreur introduits, suspects 4 → 5, deux boucles nouvelles (Mireille/Mathurine auberge 2024, agenda de Brune au hameau 2024) : non fusionnable en l'état ; la baisse des confidences appauvrit aussi les échanges. Décision à l'utilisateur.
+  **Reprise 235 (`codex-sait-observations-c`, `942a3c2`), en attente** : `social._utile` relie la nouvelle aux biens, portages, intentions perçues, engagements et supports crus de l'auditeur. Confidences Relais/mine/auberge/crue/hameau 25/101/47/65/62 → 5/10/7/50/47 (mine et Relais non restaurées), S mine 26,75 → 23, suspects 2 → 4 (Aubin/Ilse Relais 2024, Mireille/Mathurine auberge 2024), suite : 13 échecs (huit écarts non résolus). Non fusionnable en l'état.
 
 - **Vérification d’intégration 4d4c625**, lot **212**, branche `codex-verif-integ-4d4c625`, base documentaire `a49c31e` : **49/49 nuits achevées**, code `donjon/`/`tools/` identique à `4d4c625`, aucun Luna, référence rejouée ou suite complète ; deux calculs au plus, en fond à priorité réduite. Zéro plantage, violation d’état, usurpation, mort relevée ou écart VERIFIER/spatial 0,2 ; cinq contrôles complets de 8 h, zéro borne (Lucien auberge 42/314 non reproduit). **16 coups, sept touchés**, crue 2024 à 672–691, Gorm finit inconscient. Hameau : attente **750 → 1 021,25**, noir **268,75 → 575**, pire passage **40 → 39/h** (1985 : **40 → 28**). Compteur 199 actif : **338 suspects**, garantie générale non établie ; boucle de prêts de la bourse mine 1985 (Mathe 97 demandes, Rémy 100) absente de ses suspects, et alternance poêle/garde d’Anselme auberge 2024 à instruire par les contrats communs, ancienneté même nuit indéterminable avec le seul rapport 174. **117 repas d’empathie**, 40 projets de pièces (un marqué atteint), 12 récupérations nées (huit fins sur retour cru, reprises autonomes non certifiées) ; aucun départ définitif relevé. Pas de monde/rendu certifié après recharge ; aucun correctif. Bruts, scripts, lecture de pile et manifeste des 49 archives exclusivement `C:/Users/msics/donjon/artifacts/verif-integ-4d4c625/` ; [rapport 212](taches/rapport-codex-212-verif-integ.md).
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 49 nuits, zéro plantage, violation, usurpation, mort ou écart VERIFIER/spatial ; richesse S/F/D en hausse dans les quatre scénarios, sans recours en forte baisse ; attente crue et noir Relais/crue en hausse. Petits lots désignés : boucle de la bourse Mathe/Rémy (mine 1985 dès 288, 97 et 100 demandes), alternances poêle/garde d'Anselme (auberge 2024 dès 200), 16 coups en crue 2024 672-691.
@@ -507,6 +980,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 - Branche `codex-pas-compagnons`, **non fusionnée, en attente de 196 c et du diagnostic 209**, lot **195** (`4968e54`, reprise sur `ef86cab`) : dans `ouie.py`, un pas compatible avec la marche possible d'un compagnon cru là s'explique sans retournement ni bruit inconnu, sans confirmer sa position. Retournements Relais 100 → 28,75, hameau 134,5 → 78,5 ; retours suspects 57 → 54 au total mais hameau **24 → 35** et un retour nouveau au Relais 2024 (Gorm sert Ilse, abandonne, reprend, sans entrée nouvelle) ; trois tests rouges (abri d'Ilse, deux prêts). Arbitrage commun du contrat d'engagement (196 c) attendu avant reprise. [Rapport 195](taches/rapport-codex-195-pas-compagnons.md) sur la branche ; bruts `artifacts/pas-195/`.
   **Reprise finale (`cf777e7`, sur 346c1aa), toujours en attente** : ouïe des compagnons plus preuve d'accomplissement dans `echanges.tenu` (souvenir `suivi_engagement`). 20 paires 4 h : suspects 5 → 1, retournements divisés par deux à quatre ; mais hameau S 40,5 → 27 (échanges acceptés 16 → 9, demandes −28, offres −10, promesses −10 : interactions nées de perceptions fortuites), mine S 26,25 → 24, auberge 10,25 → 8,25 ; à expliquer 67 → 77. Suite 2 497 tests, cinq échecs : quatre préexistants et un défaut de placement révélé (`signes.place` : attitude périmée qui bloque l'abri d'Ilse), lot séparé proposé. Décision à l'utilisateur : moins de retournements contre moins d'interactions au hameau.
+  **Reprise 233 (`codex-pas-compagnons-c`), non fusionnée** : baisse de richesse acceptée par décision du 2026-10-28 ; rencontres fortuites non légitimes. Après merge de l'intégration `01ce467`, cinq écarts d'oracles/prémisses repris sur preuves, placement conservé pour 234. Retour d'Aubin crue 2024 justifié comme autre moyen après refus, sans nouveau réveil au retour. Suite de reprise et détails : voir l'entrée 233 et son rapport actualisés en tête de ce document.
 
 - **Lot 208, diagnostic seul**, `codex-cout-ceder-outil`, `1a3359a` contre `74a4bc4` : surcoût mine reproduit, recherches 698 → 987, nœuds 6 684 → 10 558 ; 89,4 % des nœuds en plus dans les devis de fermeture d'Odon/Rémy, recours négatifs répétés après auto-refus d'outils. Poêle et trois retours de crue reproduits, ancien écart de lanterne non reproduit (fichier ciblé vert sur les deux commits). Réutilisation des recours négatifs proposée, gain non garanti ; 202 reste en attente. Aucun jeu modifié/Luna, un calcul réduit à la fois, captures monde/rendu rechargés ; bruts `C:/Users/msics/donjon/artifacts/cout-208/`, [rapport 208](taches/rapport-codex-208-cout-ceder-outil.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. 89 % des nœuds en plus viennent de recours négatifs redemandés (Odon, Rémy : devis de fermeture) après que les PNJ ne proposent plus leurs outils ; aucun calcul de valeur dans la recherche. Petit lot proposé pour la reprise de 202 : retenir un recours sans offre acceptable tant que ses dépendances crues ne changent pas.
@@ -6783,6 +7257,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   et fixe (4 × 4) ; `VERIFIER` et `spatial.VERIFICATION` 0,2 sur une nuit de chaque scénario, sans écart ;
   audit 12 h (4 × 4) identique. Temps égaux au bruit près (machine chargée par d'autres calculs). Limites
   dans `docs/plan-relations.md`.
+
+## Décisions prises le 2026-10-28
+
+- **Lot 195 (ouïe des compagnons) : reprendre** (lot 233). Garder l'attribution d'un pas à un compagnon cru proche, mais ce bruit reste une information de présence utilisable pour les initiatives sociales : on ne perd pas la rencontre (S du hameau 40,5 → 27 sur la livraison 195).
+- **Feuille de route (point du 28)** : A0, A1, A2 = 3e, A3 = 3f faits ; A4 fait pour l'essentiel (restent suivi vocal, interposition devant un lieu, ouï-dire des fins de garde) ; A6 et 3d partiels ; A5, A7, A8 non commencés. Ordre retenu : (1) clore la consolidation : vérification 241, avancer `main` si elle est propre, petits lots qui en sortent et lot C du diagnostic 237 ; (2) **A5, mandat et autorité**, suite du lot 242, épreuve de la crue étendue au hameau (Gorm confie Brune à Aubin) ; (3) 3d (la peur chez un proche) et A6 (occasion, soupçon déduit) ; puis A7/A8. Le MJ reste en veille.
+- **Lot 233 (reprise 195) : accepter la perte de richesse au hameau** (S 35 → 27,75). Les rencontres nées de retournements fortuits ne sont pas une source légitime ; cinq écarts d'oracles/prémisses arbitrés sur la reprise après `01ce467` ; le placement reste au lot 234, qui peut être fusionné avant ou après 233. Suite de reprise : trois préexistants et le placement 234 restent rouges ; voir l'entrée 233 et son rapport.
+- **Lot 206 (savoir des observations) : reprendre** (lot 235). Le locuteur ne lit jamais l'esprit de l'auditeur ; il dit ce qu'il croit nouveau **et** pertinent pour lui (confidences 206 b tombées de 80 à 90 %).
+- **Lot 228 (céder un outil, reprise du 202) : reprendre.** Garder la règle (ne pas céder une capacité sans compensation), mais une offre reste possible quand la contrepartie compense vraiment la capacité perdue ; corriger l'achat à une pièce sous-compensé ; viser la richesse du hameau dans l'étendue de la référence (S 40,5 → 34,75 sur 228).
+- **A5, arbitrages (rapport 245)** : statut de Gorm sourcé, portée limitée à ses lieux, connu des seuls occupants déclarés, ascendants initiaux neutres sauf liens renseignés ; deux niveaux de mandat depuis l'agenda racine, cycles interdits ; mandataire en retard : avertir l'ancien titulaire s'il est joignable puis réaffecter sur croyances, sans annulation à distance ; les refus d'accueil (méfiance, rancune) tiennent, l'autorité perçue (statut, ascendant, dette) donne un bonus borné au jugement de qui écoute déjà, sans obéissance automatique. « Obéir sous contrainte » (la peur arrache un mandat malgré la méfiance : exécution réticente, abandon hors de vue, rancune) : lot ultérieur, avec A7 ou 4f.
 
 ## Décisions prises le 2026-10-27 au soir
 

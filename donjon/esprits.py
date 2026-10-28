@@ -423,9 +423,17 @@ def verifier(monde):
                 and all(b in e["besoins"] for b in e["detresses_appelees"])
                 and len(set(e["detresses_appelees"])) == len(e["detresses_appelees"])), "Détresses appelées invalides"
         from .deliberation import condition_valide
+        assert isinstance(e['aides_attendues'], dict), 'Aides attendues invalides'
+        for o, x in e['aides_attendues'].items():
+            if isinstance(x, dict) and 'echeance' in x and (type(x['echeance']) is not int
+                    or type(x.get('minute')) is not int or x['echeance'] < x['minute']):
+                from .monde import ErreurMonde
+                raise ErreurMonde('Échéance d’aide invalide.',
+                                  f"{id}.aides_attendues.{o}.echeance reçu {x['echeance']!r} ; attendu : entier >= minute ({x.get('minute')!r}).")
         assert isinstance(e["aides_attendues"], dict) and all(
-            o in monde.objets and isinstance(x, dict) and set(x) == {"qui", "condition", "minute"}
+            o in monde.objets and isinstance(x, dict) and set(x) - {"echeance"} == {"qui", "condition", "minute"}
             and x["qui"] in monde.objets and type(x["minute"]) is int
+            and ('echeance' not in x or type(x['echeance']) is int and x['echeance'] >= x['minute'])
             and x["condition"].get("objet") == o and condition_valide(monde, x["condition"])
             for o, x in e["aides_attendues"].items()), "Aides attendues invalides"
         assert isinstance(e["recherches"], dict) and all(

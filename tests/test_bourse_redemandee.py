@@ -108,13 +108,22 @@ class RestitutionTests(unittest.TestCase):
     def test_achat_reste_une_autre_reponse_et_don_non_restitue(self):
         m, acteur, donneurs = scenes.DemandeTests().scene('relais')
         autre, objet = donneurs[0], 'source_0'
+        m.data['finances_pnj'][acteur] = 100
         m.objets[objet]['prix'] = 1
         echanges.remettre(m, autre, acteur, objet)
         echanges.remettre(m, acteur, autre, objet)
         m = self.stable(m)
         self.assertTrue(biens.restitution_retenue(m, acteur, autre, objet))
+        # Une vente est distincte d'un nouvel emprunt, mais elle doit payer
+        # la capacité perdue : une pièce ne compense pas cette lampe unique.
+        self.assertEqual(echanges.demander(m, acteur, autre, objet, prix=1), 'necessaire')
+        offre = echanges.contre_offre(m, acteur, autre, objet, 'necessaire')
+        self.assertIsNotNone(offre)
+        prix = offre['condition']['montant']
+        self.assertGreater(prix, 1)
+        m = self.stable(m)
         with patch.object(Monde, 'd20', return_value=20):
-            self.assertEqual(echanges.demander(m, acteur, autre, objet, prix=1), 'vendu')
+            self.assertEqual(echanges.demander(m, acteur, autre, objet, prix=prix), 'vendu')
         self.assertEqual(self.stable(m).objets[objet]['proprietaire'], acteur)
         # Un transfert gratuit de propriété est un don, pas un prêt rendu.
         objet = 'source_1'

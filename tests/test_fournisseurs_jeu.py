@@ -30,8 +30,10 @@ def arguments(cible, fonction, entree):
     if fonction == 'auditer_action':
         return {'conforme': True, 'motif': ''}
     if fonction == 'auditer_narration':
-        return {'segments': {i: {"portee_mecanique": "aucune", 'verdict': 'mecanique',
-            'sources': ['resultat_resolu'], "comptes": [], 'eclairages': []}
+        return {'segments': {i: {"portee_mecanique": "etablie", 'nature': 'mecanique',
+            'sources': ['resultat_resolu'],
+            **({'eclairages': []} if 'perception' in entree['faits'] else {}),
+            **({'rappels': []} if 'echanges_passes' in entree['faits'] else {})}
             for i in entree['segments']}}
     if fonction == 'repondre_au_joueur':
         if 'resultat_resolu' in entree.get('faits', {}):

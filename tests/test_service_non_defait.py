@@ -8,9 +8,9 @@ from unittest.mock import patch
 
 from donjon import agendas, planification
 from donjon.biens import retenir_service, services_proteges
-from donjon.deliberation import menager_flamme
+from donjon.deliberation import menager_flamme, salle_crue
 from donjon.echanges import engager
-from donjon.esprits import croire, lire, percevoir_tous
+from donjon.esprits import croire, lire, memoriser, percevoir_tous
 from donjon.monde import ErreurMonde, Monde
 from donjon.rendu import regarder
 from donjon.scene import scene_percue
@@ -56,6 +56,122 @@ class ServiceNonDefaitTests(unittest.TestCase):
         self.assertEqual(regarder(m), regarder(r))
         self.assertEqual(scene_percue(m), scene_percue(r))
         return r
+
+    def test_hameau_1985_prestataire_mobile_bloc_decoupe(self):
+        from donjon import banc_pnj
+        from donjon.geometrie import position_entree
+        from tools.detecter_changements_avis import observer_avis
+        # Offre historique jouée par le contrat typé, sans imposer le choix
+        # autonome. Le parcours naturel est éprouvé séparément.
+        from tests.test_pas_compagnons import hameau_1985_service_annonce
+        initial = hameau_1985_service_annonce()
+        resultats = []
+        for bornes in ((10,), (5, 10)):
+            planification._MEMOIRE.clear()
+            planification._GRAPHES.clear()
+            planification._IMPOSSIBLES.clear()
+            m = self.recharge(initial.copier())
+            from donjon import biens
+            retenir = biens.retenir_service
+            ancrages = []
+
+            def retenir_vu(monde, de, engagement):
+                suivi = de == 'brune' and engagement['condition'] == {'objet': 'torche', 'allume': True}
+                existant = any(s['de'] == de and s['pour'] == engagement['pour']
+                               and s['condition'] == engagement['condition']
+                               for s in monde.data.get('services_rendus', []))
+                lieu = salle_crue(monde, de, engagement['pour']) if suivi else None
+                resultat = retenir(monde, de, engagement)
+                if suivi and not existant:
+                    trace = next(s for s in monde.data['services_rendus']
+                                 if s['de'] == de and s['pour'] == engagement['pour']
+                                 and s['condition'] == engagement['condition'])
+                    self.assertEqual(trace['lieu_beneficiaire'], lieu)
+                    ancrages.append(lieu)
+                return resultat
+
+            with observer_avis() as sonde, patch.object(biens, 'retenir_service', retenir_vu):
+                for borne in bornes:
+                    banc_pnj.executer(m, borne)
+                    m = self.recharge(m)
+            services = [s for s in sonde.services.values() if s['prestataire'] == 'brune']
+            self.assertTrue(services)
+            self.assertTrue(any(s['reussite_t'] is not None for s in services))
+            self.assertFalse(sonde.analyser()['services_etat_perdu'])
+            self.assertTrue(m.objets['torche']['allume'])
+            self.assertIn({'objet': 'torche', 'allume': True}, services_proteges(m, 'brune'))
+            # Chaque création (transaction réelle et devis) a été confrontée
+            # à sa croyance au constat. Le placement 234 conserve ici
+            # le lieu d'Ilse connu après l'offre reconstruite du 228.
+            # Emporter la torche n'établit pas le départ de la bénéficiaire.
+            lieu = next(s['lieu_beneficiaire'] for s in m.data['services_rendus'] if s['de'] == 'brune')
+            self.assertTrue(ancrages)
+            self.assertEqual(lieu, 'antichambre')
+            self.assertIn(lieu, ancrages)
+            self.assertFalse(any('éteint la torche' in x['texte']
+                                 for x in m.data['chronique'] if x['pnj'] == 'brune'))
+            resultats.append((m.data, regarder(m), scene_percue(m)))
+        self.assertEqual(*resultats)
+
+    def test_autre_prestataire_resultat_porte_et_depart_beneficiaire(self):
+        from tests.test_tensions import placer
+        m, id, autre, _ = reserve()
+        lampe = 'lanterne_couloir'
+        c = {'objet': lampe, 'allume': True}
+        calme(m, id, autre)
+        lire(m, id)['intention'] = None
+        m.objets[lampe].update(lieu=id, proprietaire=id)
+        croire(m, id, lampe, 'lieu', id, 'vu', salle=None, case=None)
+        croire(m, id, lampe, 'etat', {'allume': True, 'charge': True}, 'vu')
+        memoriser(m, id, {'type': 'flamme_employee', 'objet': lampe, 'minute': m.data['minutes']})
+        retenir_service(m, id, {'pour': autre, 'condition': c})
+        # Seul le prestataire s'éloigne avec le résultat, pas son bénéficiaire.
+        placer(m, id, 'cuisine', [3, 2])
+        initial = self.recharge(m)
+        resultats = []
+        for laps in ((2,), (1, 1)):
+            m = self.recharge(initial.copier())
+            with planification.vues_du_choix(m, id):
+                self.assertIn(c, services_proteges(m, id))
+            menager_flamme(m, id, m.data['minutes'])
+            self.assertIsNone(lire(m, id)['intention'])
+            for minutes in laps:
+                m, _ = vivre(m, minutes)
+                m = self.recharge(m)
+            self.assertTrue(m.objets[lampe]['allume'])
+            self.assertIn(c, services_proteges(m, id))
+            resultats.append((m.data, regarder(m), scene_percue(m)))
+        self.assertEqual(*resultats)
+        # Le bénéficiaire peut emporter le résultat, puis le poser auprès de lui.
+        croire(m, id, autre, 'lieu', 'dortoir', 'vu', salle='dortoir', case=None)
+        croire(m, id, lampe, 'lieu', autre, 'vu', salle=None, case=None)
+        self.assertIn(c, services_proteges(self.recharge(m), id))
+        m.objets[lampe]['lieu'] = 'dortoir'
+        croire(m, id, lampe, 'lieu', 'dortoir', 'vu', salle='dortoir', case=None)
+        self.assertIn(c, services_proteges(self.recharge(m), id))
+        # S'éloigner du lieu initial et du résultat libère le prestataire.
+        croire(m, id, autre, 'lieu', 'cuisine', 'vu', salle='cuisine', case=None)
+        with planification.vues_du_choix(m, id):
+            self.assertNotIn(c, services_proteges(m, id))
+        self.assertFalse(self.recharge(m).data['services_rendus'])
+
+    def test_ancienne_trace_portee_sans_ancrage_ne_prouve_pas_un_depart(self):
+        m, _ = vivre(cas_217(), 1)
+        trace = next(s for s in m.data['services_rendus'] if s['de'] == 'brune')
+        del trace['lieu_beneficiaire']
+        m.objets['brune']['lieu'] = 'antichambre'
+        m = self.recharge(m)
+        with planification.vues_du_choix(m, 'brune'):
+            self.assertIn(trace['condition'], services_proteges(m, 'brune'))
+        self.assertIn(trace, self.recharge(m).data['services_rendus'])
+        # Poser le résultat après l'avoir emporté ne fournit pas davantage
+        # l'ancien lieu commun qui manque à cette sauvegarde.
+        m.objets['torche']['lieu'] = 'antichambre'
+        croire(m, 'brune', 'torche', 'lieu', 'antichambre', 'vu', salle='antichambre', case=None)
+        m = self.recharge(m)
+        with planification.vues_du_choix(m, 'brune'):
+            self.assertIn(trace['condition'], services_proteges(m, 'brune'))
+        self.assertIn(trace, self.recharge(m).data['services_rendus'])
 
     def test_cas_reel_217_bloc_decoupe_et_depart_cru(self):
         initial = cas_217()  # Capture réelle à l'instant 4584, allumage à 7 min.
@@ -117,6 +233,9 @@ class ServiceNonDefaitTests(unittest.TestCase):
         croire(m, id, 'garde_manger', 'verrouillee', False, 'vu')
         m = self.recharge(m)
         self.assertNotIn(c, services_proteges(m, id))
+        # La lecture ne publie plus : seul un choix complet clôt la trace.
+        with planification.vues_du_choix(m, id):
+            self.assertNotIn(c, services_proteges(m, id))
         self.assertEqual(lire(m, id)['relations'], avant)
         self.assertFalse(agendas.en_cours(m, id))
         self.assertFalse(m.data.get('dettes'))

@@ -10,6 +10,7 @@
   d'où le retour serait coupé ; qui l'attend noyée là où il se tient en sort avant tout."""
 import json
 import copy
+import inspect
 import unittest
 from unittest.mock import patch
 
@@ -58,8 +59,15 @@ class VerifierTests(unittest.TestCase):
         croire(m, "lucien", "josse", "lieu", None, "savoir", salle=None, case=None)
         m.objets["bidon_huile"]["charges"] = 0
         croire(m, "lucien", "bidon_huile", "etat", {"disponible": False}, "savoir")
-        placer(m, "josse", "filon", (3, 3))
+        placer(m, "josse", "baraquement", (3, 2))
+        # La recherche et le refus de la lampe, pas la mobilité du fournisseur :
+        # il reste occupé à son poste pendant les quinze minutes observées.
+        lire(m, "josse")["libre"] = 15 * 600
         m.objets["lampe_josse"].update(allume=True, combustible=720)
+        # La lampe est effectivement vue avant la recherche : le test ne
+        # dépend plus de l'arrivée fortuite de Josse dans le regard de Lucien.
+        from tests.support import regarder
+        regarder(m, "lucien", "josse")
         for id in ("remy", "lucien", "bram"):
             lire(m, id)["besoins"]["securite"] = 70.0
         # Ses buts se choisissent aussi entre deux minutes (``deliberation-evenements``) : on regarde
@@ -73,7 +81,37 @@ class VerifierTests(unittest.TestCase):
             if id == "lucien" and i:
                 plans.append(copy.deepcopy(i))  # l'exécution retire ensuite les étapes en place
             return resultat
-        with patch.object(planification, "VERIFIER", True), diagnostics() as recherches,                 patch.object(deliberation, "choisir", espion):
+        from donjon import echanges
+        from donjon.biens import valeur_capacites
+        from donjon.caractere import valeur_pieces
+        demander = echanges.demander
+        signature = inspect.signature(demander)
+        refus_lucien, ventes = [], []
+
+        def transaction(monde, demandeur, auditeur, objet, *args, **options):
+            suivi = objet == 'lampe_josse' and auditeur == 'josse'
+            if suivi:
+                prix = signature.bind(monde, demandeur, auditeur, objet, *args, **options).arguments.get('prix', 0)
+                avant = copy.deepcopy(monde.data['finances_pnj'])
+                capacite = valeur_capacites(monde, auditeur, objet)
+                gain = valeur_pieces(monde, auditeur, prix)
+            resultat = demander(monde, demandeur, auditeur, objet, *args, **options)
+            if suivi and demandeur == 'lucien' and resultat == 'necessaire':
+                self.assertEqual(monde.objets[objet]['lieu'], 'josse')
+                self.assertEqual(monde.data['finances_pnj'], avant)
+                refus_lucien.append(resultat)
+            if suivi and resultat == 'vendu':
+                self.assertEqual(demandeur, 'bram')
+                self.assertGreaterEqual(gain, capacite)
+                self.assertEqual(monde.objets[objet]['lieu'], demandeur)
+                self.assertEqual(monde.objets[objet]['proprietaire'], demandeur)
+                self.assertEqual(monde.data['finances_pnj'][demandeur], avant[demandeur] - prix)
+                self.assertEqual(monde.data['finances_pnj'][auditeur], avant[auditeur] + prix)
+                ventes.append(prix)
+            return resultat
+
+        with patch.object(planification, "VERIFIER", True), diagnostics() as recherches, \
+                patch.object(deliberation, "choisir", espion), patch.object(echanges, 'demander', transaction):
             for _ in range(15):
                 m, _ = vivre(m, 1)
         # L'espace enrichi borne d'abord la recherche. Josse entre ensuite dans
@@ -84,7 +122,19 @@ class VerifierTests(unittest.TestCase):
         self.assertTrue(any(r["pnj"] == "lucien" and r["but"] == "lumiere" for r in recherches))
         self.assertTrue(any(c["texte"].startswith("Lucien demande la lampe du contremaître à Josse")
                             for c in m.data["chronique"]))
-        self.assertEqual(m.objets["lampe_josse"]["lieu"], "josse")  # son refus est respecté
+        # 202/228 : le refus de prêt à Lucien tient ; Bram peut ensuite payer
+        # la capacité perdue (17 pièces). Le refus ne fige pas le porteur à vie.
+        self.assertTrue(refus_lucien)
+        self.assertEqual(ventes, [17])
+        m = recharger(m)
+        self.assertEqual(m.objets['lampe_josse']['lieu'], 'bram')
+        self.assertEqual(m.objets['lampe_josse']['proprietaire'], 'bram')
+        from donjon.rendu import regarder as rendu
+        from donjon.scene import scene_percue
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        self.assertEqual(rendu(m), rendu(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
 
     def test_remy_cherche_gaspard_et_le_controle_passe(self):
         # Même nature (mine, le camp éteint) : Rémy va chercher Gaspard, qui a le briquet, l'appelle et
@@ -149,9 +199,11 @@ class EauTests(unittest.TestCase):
                          json.dumps(decoupe.data, sort_keys=True))
 
     def scene(self):
-        """Même nature, une autre crue (1 cm par minute depuis -150) : à la minute 100, tous au refuge
-        ont vu l'eau monter ; ils attendent la conduite (130 cm) et la salle des vannes (110 cm)
-        noyées dans l'heure, le refuge mouillé (10 cm)."""
+        """Autre crue (1 cm par minute depuis -150), à la minute 100.
+
+        Aubin a mesuré sa vitesse ; les autres ont pu évacuer avant une
+        seconde mesure. Une position d'auteur ne leur donne pas ce savoir.
+        """
         m = calme(crue(FIXES), "marchand", "brune", "ilse", "aubin")
         m, _ = attendre(m, 100)
         self.assertEqual(eau.estimation(m, "aubin")[2], 60)
@@ -159,6 +211,16 @@ class EauTests(unittest.TestCase):
 
     def test_on_ne_descend_pas_ou_l_eau_va_noyer_et_on_ne_s_y_chauffe_pas(self):
         m = self.scene()
+        # Le recours positif part du refuge après observation de la crue ;
+        # une évacuation antérieure ne doit pas supprimer le trajet à éprouver.
+        placer(m, "ilse", "antichambre", (1, 3))
+        # 247 : depuis le suivi 242, Gorm ne transmet plus sa mesure à
+        # Ilse dans cette scène. Sa prémisse est une montée connue :
+        # connaissance d'auteur explicite, distincte de sa position.
+        # Aucun savoir d'Aubin ni niveau réel n'est consulté par le plan.
+        croire(m, "ilse", "crypte", "eau", eau.profondeur(m, "crypte"), "savoir",
+               niveau=eau.niveau(m), repere=[m.data["minutes"], eau.niveau(m)], montee=60)
+        self.assertEqual(eau.estimation(m, "ilse")[2], 60)
         # La ronde d'Aubin à la salle des vannes, le brasero de la conduite pour Ilse transie.
         self.assertIsNone(planifier_pulsion(m, "aubin", {"lieu": "crypte", "periode": 49}))
         lire(m, "ilse")["besoins"]["chaleur"] = 90.0
@@ -182,6 +244,21 @@ class EauTests(unittest.TestCase):
                            v.pression(depart(m, "ilse", v).apres(salle="chambre_cloche")))
         self.assertTrue(v.descente("antichambre", "crypte"))
         self.assertFalse(v.descente("crypte", "antichambre"))   # Vers moins d'eau, on peut aller.
+        self.assertIn("echoppe", v.menacees)
+        self.assertIn("crypte", v.noyees)
+        # La suite s'exécute aussi dans le monde : ni descente vers
+        # le brasero, ni chauffage dangereux annoncé. État et deux vues
+        # du joueur restent identiques après sauvegarde/rechargement.
+        executer(m, m.data["minutes"] + 5)
+        self.assertNotIn(m.objets["ilse"]["lieu"], ("echoppe", "crypte"))
+        self.assertFalse(any(c["pnj"] == "ilse" and "se chauffe" in c["texte"]
+                             and "brasero" in c["texte"] for c in m.data["chronique"]))
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        self.assertEqual(regarder(m), regarder(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
 
     def test_qui_attend_l_eau_noyer_sa_salle_en_sort_avant_tout(self):
         m = self.scene()

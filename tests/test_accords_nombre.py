@@ -44,6 +44,12 @@ class AccordsTests(unittest.TestCase):
                 m = scene(70)
                 m.objets["crochets"].pop("pluriel", None)
                 m.objets["crochets"].update(nom=nom, prix=1, **donnees)
+                # La cession grammaticale conserve sa capacité grâce à un vrai double.
+                m.objets["crochets_rechange"] = {
+                    **copy.deepcopy(m.objets["crochets"]), "id": "crochets_rechange",
+                    "nom": "crochets de rechange", "lieu": "brune", "proprietaire": "brune"}
+                from donjon.esprits import percevoir_tous
+                percevoir_tous(m)
                 contenu = {"demande": {"type": "part", "objet": "vivres"},
                            "contrepartie": {"type": "objet", "objet": "crochets"}}
                 lignes = []

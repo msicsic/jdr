@@ -14,6 +14,59 @@ Chantier accepté après les caractères et valeurs (`docs/etat-dev.md`). Branch
 
 ## Règle retenue (`donjon/ouie.py`)
 
+### Présence crue mobile (lot 195)
+
+Reprise après 224 sur **346c1aa**, contrat d'engagement 213 et compteur classé 219 :
+répétitions suspectes **5 → 1**, sans hausse dans aucun des cinq scénarios.
+Les deux prêts passent ; Ilse reste dans l'abri haut avec, le cas échéant,
+une intention sans moyens, en attente selon le contrat commun. Extension autorisée
+à `echanges.tenu` : preuve propre ordonnée après la parole, clôture et protection
+du service 224 conservées, sans confirmation acoustique. Tilo et le palier
+repassent. Après arbitrage, huit échecs et l'erreur corrigés par des prémisses
+explicites, 273 assertions inchangées et 67 ciblés verts ; moteur inchangé.
+Suite finale après arbitrage : 2 497 tests, cinq échecs classés, zéro erreur
+et zéro ignoré (2 091,515 s, deux travailleurs réduits).
+Défaut de placement social laissé rouge pour un lot séparé, selon l'arbitrage.
+Quatre préexistants restent rouges (MiMo ×2, voix issue de 221, attente de perte
+de torche devenue obsolète à la fusion 224 avec 221). La baisse de S au hameau
+comprend des interactions réelles perdues, pas seulement des sons supprimés.
+Quatre nouveaux tests de preuve verts ; voir le
+[rapport 195](taches/rapport-codex-195-pas-compagnons.md).
+
+Pour attribuer un pas ou un geste ordinaire, `_crus_la` conserve le lieu cru
+et la durée de validité commune (`RECENT`, 30 minutes). La case crue n'est
+plus une position immobile : la distance admissible est `PRES_DE` plus celle
+parcourable à l'allure commune de marche depuis la minute de localisation.
+L'instant courant est au dixième ; la perception initiale, datée à la minute,
+donne une borne supérieure du temps écoulé possible. Aucune position réelle,
+intention privée ou route réelle de l'auteur ne confirme cette attribution.
+Une absence ou un départ cru l'exclut ; une méprise reste possible.
+
+Cette compatibilité de marche explique le bruit, sans confirmer une nouvelle
+localisation. Hors de la zone `PRES_DE` de la case déjà crue, `_attribuer`
+conserve la croyance entière, sa source et sa date ; l'hypothèse ne se
+rafraîchit pas elle-même. Le recalage acoustique dans la zone crue reste
+inchangé, et les voix reconnues sont situées par le mécanisme vocal.
+
+Les fracas, appels et voix inconnues gardent leur interprétation ; la méfiance
+continue de provoquer une surveillance de la personne à qui le bruit est
+attribué (`_cru_le_plus_proche`), pas de tous les candidats compatibles à la
+fois. Attribution, surveillance et localisation entretenue portent ainsi
+sur la même hypothèse. Le témoin d'un geste illicite emploie
+la même présence crue mobile pour reconnaître l'auteur, mais doit toujours
+entendre le geste et situer le bien : attribuer un bruit ordinaire ne masque
+pas le témoignage. `PRES_DE` reste inchangé pour situer ce bien.
+
+Le joueur peut entretenir une localisation déjà crue selon la même règle
+quand un bruit ordinaire lui parvient ; son rendu reste « des pas » ou « des
+bruits », sans nom révélé. **Limites :** les localisations visuelles du joueur
+ne sont pas automatiquement inscrites dans ce registre ; le moteur ne porte
+pas de croyance d'itinéraire de ronde. Ce lot ne garantit donc ni l'attribution
+d'une ronde dans un autre lieu, ni la symétrie complète de l'acquisition des
+localisations entre joueur et PNJ. La distance est une borne géométrique,
+pas une preuve d'un parcours franchissable. Ces deux acquisitions sont des
+chantiers séparés ; le présent lot porte sur une présence déjà crue là.
+
 **Tout geste fait un bruit.** Chaque geste a une nature, déclarée une fois (`ouie.NATURES` ; un
 geste absent de la table est ordinaire), chaque nature une intensité en crans :
 
@@ -46,10 +99,10 @@ modulée ajoute un cran par quatre points au-dessus de 10 (Ilse, PER 14, entend 
 un cran plus bas en écoutant, encore un collé à la porte par où le bruit arrive ; sa PER aussi.
 
 **Interprétation (PNJ), selon ce qu'il croit.** Ce qu'il voit faire n'a pas besoin de l'ouïe.
-- **Connu** : un bruit ordinaire (feutré, pas, geste, voix) venu de là où il croit quelqu'un depuis
-  moins de 30 minutes (dans sa salle : à une case de là où il le croit, s'il le sait ; ailleurs :
-  dans cette salle). Il le lui attribue et le croit là où vient le bruit (source `entendu`), sans se
-  retourner.
+- **Connu** : un bruit ordinaire (feutré, pas, geste, voix) compatible avec une présence crue
+  récente (dans sa salle : zone crue augmentée de la marche possible ; ailleurs : même salle
+  crue). Il le lui attribue sans se retourner. Le recalage précis (source `entendu`) reste dans
+  la zone initiale `PRES_DE` ; la seule possibilité de déplacement ne rajeunit pas la croyance.
 - **Inconnu ou inhabituel** (bruyant, appel) : tout près (même salle, 6 cases) et hors de son
   regard, il se tourne vers le bruit ; la rotation retarde la fin de son geste ; ce qu'il voit
   devient croyance, et l'auteur d'un geste illicite en cours en fait un témoin (registre
@@ -1784,8 +1837,9 @@ au moteur. Voir `docs/taches/rapport-codex-8-luna-noms.md` pour les scènes et l
   ferait d'une réussite de justesse un acharnement bruyant) et `planification.HABILE` (0,5 : la chance
   à partir de laquelle un voleur attend un crochetage feutré ; aux DEX des scénarios, personne ne s'y
   sait habile) sont à régler au banc ; l'outil ne compte que par sa nature (des crochets, pas un levier).
-- `PROCHE` (6 cases pour se retourner), `PRES_DE` (1 case pour attribuer un bruit à qui l'on croit
-  là), `HABITUDE` (15 min), le courage au-dessus de 50 pour aller voir un fracas.
+- `PROCHE` (6 cases pour se retourner), `PRES_DE` (1 case de tolérance initiale de localisation,
+  avant la marche possible du prototype 195), `HABITUDE` (15 min), le courage au-dessus de 50
+  pour aller voir un fracas.
 - L'inquiétude (15 × niveau reçu / 9) ; l'appel qui inquiète à chaque appel.
 - Les voix (branche `voix`) : `voix.INCONNU` (+2 au DD d'une demande d'une voix inconnue), la prudence
   (sécurité + 50 − courage ≥ 50), `VU_AILLEURS` (30 min : « c'est X » de qui a vu X ailleurs est douteux) ;

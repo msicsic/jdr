@@ -22,8 +22,8 @@ son seuil (``SEUIL``) : un cran de mieux aux aguets (une ronde, une garde, aller
 au repos ; la PER modulée y ajoute un cran par quatre points au-dessus de la moyenne.
 
 Interprétation (PNJ), selon ce qu'il croit ; ce qu'il voit n'a pas besoin de l'ouïe :
-- connu : un bruit ordinaire venu de là où il croit quelqu'un (vu ou entendu récemment) ; il
-  l'attribue à cette personne et met sa croyance à jour, sans se retourner ;
+- connu : un bruit ordinaire compatible avec une présence crue récente ; il l'attribue sans se
+  retourner. Le recalage précis reste dans la zone crue, la marche possible ne se confirme pas ;
 - une voix dont il saisit les mots : s'il voit qui parle, il connaîtra sa voix ; sinon il la
   reconnaît ou non (``voix.reconnaitre``) : une voix connue, il croit son porteur là d'où elle
   vient ; une voix qui s'était nommée, il croit celui qu'elle a dit être là, comme un ouï-dire ;
@@ -427,6 +427,12 @@ def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites, a=(), co
             connaitre(monde, "joueur", auteur)  # Il le voit parler : il saura reconnaître sa voix.
         if not (mots and texte):
             return
+    if n in HABITUELS and not mots and parvient[0] >= SEUIL - finesse(monde, "joueur"):
+        # Même interprétation que les PNJ, avant le rendu et la sauvegarde. Le bruit
+        # reste rendu comme tel : cette attribution n'est pas une identité vue.
+        crus = _crus_la(monde, "joueur", salle, case if ici == salle else None)
+        if crus:
+            _attribuer(monde, "joueur", crus, salle, case if ici == salle else None)
     niveau, par = parvient
     if ici == salle:
         par = None if case is None or position is None or distance(case, position) <= PROCHE else "piece"
@@ -448,18 +454,29 @@ def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites, a=(), co
 # --- Les PNJ ------------------------------------------------------------------------------
 
 def _crus_la(monde, id, salle, case):
-    """Ceux qu'il croit, depuis peu, là d'où vient le bruit : dans la salle, et près de la case
-    s'il sait où ils se tiennent et d'où vient le bruit."""
+    """Présences crues compatibles avec une marche depuis leur dernière localisation.
+
+    Les croyances sont datées à la minute : retenir toute la minute possible,
+    sans inventer l'instant de la perception. Ni position ni trajet réels ne
+    permettent de corriger cette hypothèse, qui peut être une méprise.
+    """
     from .esprits import RECENT, lire
+    from .pnj import PAS
+    from .temps import MINUTE, PAS_JOUEUR, instant
     minute = monde.data["minutes"]
     crus = []
     for x, attributs in lire(monde, id)["croyances"].items():
         if x == id or not (x == "joueur" or monde.objets.get(x, {}).get("type") == "personnage"):
             continue
         c = attributs.get("lieu")
-        if not c or c["valeur"] != salle or minute - c["minute"] > RECENT:
+        age = minute - c["minute"] if c else -1
+        if (not c or c["valeur"] != salle or not 0 <= age <= RECENT
+                or attributs.get("etat", {}).get("valeur", {}).get("parti")):
             continue
-        if case is not None and c.get("case") and distance(c["case"], case) > PRES_DE:
+        # Début de la minute crue : borne supérieure du temps écoulé possible.
+        ecoule = instant(monde) - c["minute"] * MINUTE
+        allure = PAS_JOUEUR if x == "joueur" else PAS
+        if case is not None and c.get("case") and distance(c["case"], case) > PRES_DE + ecoule / allure:
             continue
         crus.append(x)
     return crus
@@ -493,16 +510,28 @@ def objet_situe(monde, id, objet, salle, case):
     return False
 
 
-def _attribuer(monde, id, crus, salle, case):
-    """Il prête le bruit à celui qu'il croit là, le plus près d'où il vient : il le croit là."""
-    from .esprits import croire, lire
+def _cru_le_plus_proche(monde, id, crus, case):
+    """La même attribution pour interpréter le bruit, le surveiller et le retenir."""
+    from .esprits import lire
     croyances = lire(monde, id)["croyances"]
 
     def ecart(x):
         c = croyances[x]["lieu"]
         return (distance(c["case"], case) if case is not None and c.get("case") else 0, x)
-    x = min(crus, key=ecart)
-    c = croyances[x]["lieu"]
+    return min(crus, key=ecart)
+
+
+def _attribuer(monde, id, crus, salle, case):
+    """Recaler dans la zone crue ; expliquer un déplacement possible ne le confirme pas."""
+    from .esprits import croire, lire
+    x = _cru_le_plus_proche(monde, id, crus, case)
+    c = lire(monde, id)["croyances"][x]["lieu"]
+    # Pouvoir avoir marché jusque-là explique le bruit, sans identifier celui
+    # qui l'a fait. Cette hypothèse ne doit pas déplacer ni rajeunir la preuve
+    # de présence qui l'a rendue possible. La localisation acoustique précise
+    # conserve sa tolérance commune ; une voix reconnue est déjà située par voix.
+    if case is not None and c.get("case") is not None and distance(c["case"], case) > PRES_DE:
+        return
     # Un bruit ne dit pas qui le fait : qui ne le croit là que sur la parole d'une voix inconnue
     # (``se_dit``) ne le croit pas davantage.
     source, confiance = ("se_dit", c["confiance"]) if c["source"] == "se_dit" else ("entendu", 1.0)
@@ -725,9 +754,18 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     # Héler : qui en saisit les mots entend qu'on appelle quelqu'un, sans alarme.
     inhabituel = n not in HABITUELS and not (n == "hele" and mots)
     from .relations import se_mefie, craint
+    if crus:
+        # Surveiller celui à qui il prête ce bruit ; un autre candidat lointain
+        # ne doit pas rendre suspect le geste attribué à son compagnon.
+        crus = [_cru_le_plus_proche(monde, id, crus, case if ici else None)]
     mefiance = any(se_mefie(monde, id, x) or craint(monde, id, x) for x in crus)
     if crus and not inhabituel and not mefiance:
         _attribuer(monde, id, crus, salle, case if ici else None)
+        # Expliquer le bruit dispense de se retourner, pas de lui prêter
+        # attention : cette présence peut offrir une occasion de lui parler.
+        # Le choix et l'échange gardent leurs contrôles de présence et d'ouïe.
+        from .esprits import reconsiderer
+        reconsiderer(monde, id)
         return retourne
     if not retourne and ici and distance(case, o["position"]) <= PROCHE:
         from .spatial import dans_le_regard

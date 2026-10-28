@@ -1196,7 +1196,7 @@ def a_pas_feutres(monde, id):
     return bool(intention) and any(x["condition"] in ("sans_temoin", "dans_le_dos") for x in intention["plan"])
 
 
-def _marcher(monde, id, arrivee, lignes, gestes=None):
+def _marcher(monde, id, arrivee, lignes, gestes=None, libre=None):
     """Un pas d'une case vers une case libre où ``arrivee(salle, case)``, ou la porte fermée qu'il
     rencontre en chemin ; renvoie la durée du geste, 0 s'il y est déjà, None s'il ne voit aucun
     passage. Qui prépare un geste qu'il veut sans témoin marche à pas feutrés : plus lent, il ne
@@ -1207,9 +1207,11 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     suit. Si une porte fermée l'en empêche, il contourne. Sinon, ou s'il n'atteint ce qu'il vise
     que d'une case occupée, celui qui s'y tient doit lui faire place : avec ``gestes`` (le
     registre de ses gestes illicites), il attend qu'il s'écarte, le lui demande ou le pousse
-    (``passage.faire_place``) ; sans, il attend."""
+    (``passage.faire_place``) ; sans, il attend. ``libre`` conserve les contraintes
+    du séjour qui a admis le déplacement, y compris dans ses détours."""
     from .presence import interieur
     geometrie = interieur(monde)
+    admissible = libre or (lambda salle, case: True)
     from .tenir import autoriser, lacher
     from .monde import ErreurMonde
     try:
@@ -1260,13 +1262,14 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
     passages = transitions(monde, id, formes, allure=allure) if formes else None
     cout_porte = lambda p: duree_porte(monde, p)
     chemin_ = trajet(geometrie, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
-                     franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
+                     franchissable=franchissable, libre=lambda salle, case: salle not in noyees and admissible(salle, case),
                      passages=passages, allure=allure, cout_porte=cout_porte)
     if chemin_ is None:
         if gestes is None:
             return None
         # Il n'atteindrait ce qu'il vise que d'une case où quelqu'un se tient.
-        plein = trajet(geometrie, *depart, arrivee, franchissable=franchissable, libre=lambda salle, case: salle not in noyees,
+        plein = trajet(geometrie, *depart, arrivee, franchissable=franchissable,
+                       libre=lambda salle, case: salle not in noyees and admissible(salle, case),
                        passages=passages, allure=allure, cout_porte=cout_porte)
         if not plein or plein[-1][:2] not in occupees:
             return None
@@ -1281,7 +1284,7 @@ def _marcher(monde, id, arrivee, lignes, gestes=None):
         # Une porte à ouvrir juste après la case d'un autre : il ne peut pas s'y arrêter pour l'ouvrir.
         detour = trajet(geometrie, *depart, lambda salle, case: arrivee(salle, case) and (salle, case) not in occupees,
                         franchissable=franchissable,
-                        libre=lambda salle, case: (salle, case) not in occupees and salle not in noyees,
+                        libre=lambda salle, case: (salle, case) not in occupees and salle not in noyees and admissible(salle, case),
                         passages=passages, allure=allure, cout_porte=cout_porte)
         if not detour:
             if gestes is None:
@@ -1397,25 +1400,134 @@ def _ouvrir_en_chemin(monde, id, porte, lignes):
     return DUREES["ouvrir"]
 
 
-def _rejoindre_un_proche(monde, id, lignes):
-    """Un pas vers la personne la plus aimée qu'il croit fiable et croit dans sa salle ; None
-    s'il est déjà près d'elle ou n'en connaît aucune."""
+def _jugement_placement(monde, id, etape):
+    """Même séjour, mêmes cibles crues et mêmes pas pour les deux placements.
+
+    Un rapprochement accessoire ne quitte pas le lieu ni la portée du geste
+    qu'il accompagne. Le trajet doit exister dans ces contraintes, et un pas
+    ne peut défaire le gain social obtenu par le précédent.
+    """
+    from . import relations, signes
     from .deliberation import salle_crue
-    o = monde.objets[id]
-    ici, depart = o["lieu"], tuple(o["position"])
-    proches = []
-    for x in [*pnjs(monde), "joueur"]:
-        if x == id or not se_fie(monde, id, x) or salle_crue(monde, id, x) != ici:
-            continue
-        p = _case_crue(monde, id, x)  # Là où il l'a vu : il le cherche des yeux en chemin.
-        if p is not None:
-            from .relations import envers
-            proches.append((-envers(monde, id, x)["affection"], x, distance(p, depart), p))
-    if not proches or min(proches)[2] <= 1:
+    from .presence import interieur
+    from .spatial import trajet, _case_libre
+    from .obstacles import descriptions_crues, transitions, metrique_necessaire, duree_porte
+    from .temps import PAS_FEUTRE
+    if not monde.data.get("mode_cases") or etape["operation"] not in DURABLES:
         return None
-    _, _, _, p = min(proches)
-    # Au contact : une case voisine, même en diagonale (distance 1).
-    return _marcher(monde, id, lambda salle, case: salle == ici and distance(case, p) == 1, lignes)
+    o, e = monde.objets[id], lire(monde, id)
+    ici, depart = o["lieu"], tuple(o["position"])
+    foyer = _case_crue(monde, id, etape["cible"]) if etape["operation"] == "chauffer" else None
+    possible = lambda s, p: s == ici and (foyer is None or distance(p, foyer) <= 2)
+    geometrie = interieur(monde)
+    occupees = occupants(monde, id)
+    allure = PAS_FEUTRE if a_pas_feutres(monde, id) else PAS
+    formes = descriptions_crues(monde, id) if metrique_necessaire(monde, id, allure) else {}
+    passages = transitions(monde, id, formes, allure=allure) if formes else None
+
+    def chemin(arrivee, admissible=lambda p: True):
+        return trajet(geometrie, ici, depart,
+                      lambda s, p: possible(s, p) and (s, p) not in occupees and arrivee(p),
+                      franchissable=lambda porte: _franchissable(monde, id, porte),
+                      libre=lambda s, p: possible(s, p) and admissible(p), passages=passages, allure=allure,
+                      cout_porte=lambda porte: duree_porte(monde, porte))
+
+    contacts = {}
+    def contact(p, q):
+        cle = (tuple(p), tuple(q))
+        if cle not in contacts:
+            contacts[cle] = _a_portee_de(monde, ici, p, q)
+        return contacts[cle]
+
+    positions, liens = {}, []
+    for x in sorted(set(relations.connus(monde, id)) | {x for x, _, _ in signes.actives(monde, id)}):
+        if x == id or salle_crue(monde, id, x) != ici:
+            continue
+        p = _case_crue(monde, id, x)
+        if p is None:
+            continue
+        positions[x] = p
+        r = relations.axes(monde, id, x)
+        hostile = signes.hostile_cru(monde, id, x)
+        if relations.peur(r) or relations.rancune(r) or hostile:
+            evite = max(r["peur"], r["rancune"], relations.RANCUNE if hostile else 0)
+            lien = (x, p, -evite, "ecart", "crainte" if r["peur"] >= r["rancune"] else "hostilite")
+            arrivee = lambda q: distance(q, p) >= 2
+        elif relations.vive(r, "affection") or relations.confiance(r) and e["besoins"].get("securite", 0) >= 50:
+            lien = (x, p, max(r["affection"], r["confiance"]), "proche",
+                    "attachement" if relations.vive(r, "affection") else "dependance")
+            arrivee = lambda q: contact(q, p)
+        else:
+            continue
+        if chemin(arrivee) is not None:
+            liens.append(lien)
+
+    def score(p):
+        return sum((max(0, 3 - distance(p, q)) * (-v) if v < 0
+                    else min(3, max(0, distance(p, q) - 1)) * v) for _, q, v, _, _ in liens)
+
+    admissible = lambda s, p: possible(s, p) and score(p) <= score(depart)
+
+    voisins = [(depart[0] + dx, depart[1] + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1) if dx or dy]
+    return {"lieu": ici, "depart": depart, "positions": positions, "liens": liens,
+            "score": score, "chemin": chemin, "possible": possible, "admissible": admissible,
+            "occupees": occupees, "contact": contact,
+            "cases": [p for p in [depart, *voisins] if possible(ici, p) and _case_libre(monde, ici, p)]}
+
+
+def _pas_placement(jugement, arrivee=None):
+    """Progresser sur un trajet admissible, sans dégrader le placement social.
+
+    La progression d'un rapprochement est celle du trajet au contact, pas la
+    distance en ligne droite (qui peut rester égale devant un obstacle).
+    """
+    score, depart = jugement["score"], jugement["depart"]
+    admissible = lambda p: score(p) <= score(depart)
+    if arrivee is not None:
+        chemin = jugement["chemin"](
+            lambda p: arrivee(p) and (not jugement["liens"] or score(p) < score(depart)), admissible)
+        if not chemin:
+            return None
+        return next(p for s, p, _, _ in chemin if (s, p) not in jugement["occupees"])
+    if jugement["cases"]:
+        p = min(jugement["cases"], key=lambda p: (score(p), distance(p, depart), p))
+        if score(p) < score(depart):
+            chemin = jugement["chemin"](lambda q: tuple(q) == p, admissible)
+            if chemin:
+                return next(q for s, q, _, _ in chemin if (s, q) not in jugement["occupees"])
+    return None
+
+
+def _rejoindre_un_proche(monde, id, lignes, jugement=None):
+    """Rejoindre un proche fiable admissible, préféré selon son affection.
+
+    Le recours est accompli au contact d'une compagnie fiable ; une cible
+    sans trajet améliorant cède à la suivante, sans bloquer le séjour.
+    """
+    from .relations import envers
+    if jugement is None:
+        i = lire(monde, id)["intention"]
+        if not i or not i["plan"]:
+            return None
+        jugement = _jugement_placement(monde, id, i["plan"][0])
+    if jugement is None:
+        return None
+    ici, depart = jugement["lieu"], jugement["depart"]
+    proches = []
+    for x, p in jugement["positions"].items():
+        if se_fie(monde, id, x):
+            proches.append((-envers(monde, id, x)["affection"], x, distance(p, depart), p))
+    # L'abri demande de la compagnie fiable, pas de changer de compagnon
+    # quand le contact est déjà établi. Le placement social peut encore
+    # améliorer cette place ; le recours, lui, est alors accompli.
+    if not proches or any(jugement["contact"](depart, x[3]) for x in proches):
+        return None
+    for _, _, _, p in sorted(proches):
+        pas = _pas_placement(jugement, arrivee=lambda q: jugement["contact"](q, p))
+        if pas is not None:
+            return _marcher(monde, id, lambda salle, case: salle == ici and tuple(case) == pas, lignes,
+                            libre=jugement["admissible"])
+    return None
 
 
 def _case_crue(monde, id, x, salle=None):
@@ -1765,12 +1877,13 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
                 if pas:
                     return pas, GESTE, None
     from .signes import place as place_sociale
-    pas_social = place_sociale(monde, id, etape, lignes)
+    jugement = _jugement_placement(monde, id, etape)
+    pas_social = place_sociale(monde, id, etape, lignes, jugement=jugement)
     if pas_social:
         return pas_social, GESTE, None
     if operation == "abriter" and en_cases and o["lieu"] == etape["lieu"]:
         # S'abriter, c'est se tenir près de quelqu'un de sûr qu'il croit là, pas sur le seuil.
-        pas = None if intention.get("attitude", {}).get("place") else _rejoindre_un_proche(monde, id, lignes)
+        pas = _rejoindre_un_proche(monde, id, lignes, jugement=jugement)
         if pas:
             return pas, GESTE, None
     if not _assez_de_lumiere(monde, id, etape):

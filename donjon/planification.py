@@ -183,7 +183,8 @@ def vues_du_choix(monde, id):
     monde._vues_du_choix = bloc
     termine = False
     from .agendas import evaluation
-    with evaluation(monde, id):
+    from .biens import clotures_services_du_choix
+    with clotures_services_du_choix(monde), evaluation(monde, id):
         try:
             yield
             termine = True
@@ -384,17 +385,24 @@ class Vue:
         self._contexte_parts = None
         # Un recours ordinaire épuisé ouvre l'aide sur place ; la garde ne se lève pas.
         from .deliberation import attentes, _lieux_gardes
-        intention = lire(monde, id)["intention"]
-        en_cours = ([intention["motif"]] if intention and any(
-            x["operation"] == "confier" for x in intention["plan"]) else [])
-        self.detresses = tuple(sorted(set(attentes(monde, id)) | set(en_cours)))
-        self.poste = self.objets[id]["lieu"]
-        self.poste_garde = self.poste in self.gardes and self.poste in _lieux_gardes(monde, id, siens=True)
         from .echanges import ENGAGEMENT_MAX
         self.aides = [(x["qui"], x) for x in lire(monde, id)["aides_attendues"].values()
                       if monde.data["minutes"] - x["minute"] <= ENGAGEMENT_MAX
+                      and not agendas.aide_echue(monde, x)
                       and not se_mefie(monde, id, x["qui"])
                       and not refus_retenu(monde, id, x["qui"], ("confier",), x["condition"]["objet"])]
+        intention = lire(monde, id)["intention"]
+        # L'aide acceptée reste une cause d'ouverture quand son bénéficiaire
+        # attend sa réalisation, même si l'adoption a reclassé le besoin
+        # « presse ». Une phase « attendre » ou un plan vide seuls ne prouvent
+        # pas un manque de moyens (une garde tenue n'en a pas besoin).
+        # Moyens et refus restent revalidés ; aucun ancien plan n'est réinstallé.
+        en_cours = ([intention["motif"]] if intention and (
+            not intention["plan"] and self.aides or any(
+            x["operation"] == "confier" for x in intention["plan"])) else [])
+        self.detresses = tuple(sorted(set(attentes(monde, id)) | set(en_cours)))
+        self.poste = self.objets[id]["lieu"]
+        self.poste_garde = self.poste in self.gardes and self.poste in _lieux_gardes(monde, id, siens=True)
 
     @property
     def emploie_lumiere(self):
@@ -1091,8 +1099,19 @@ class Vue:
             disponibles = set().union(*(self.sources_du_lot[k] for k in e.portes if self.disponible(k)))
             self._sources_vides[cle] = frozenset(s for s in self.rechargeables
                 if (s in entretenus or self.emploie_lumiere and not deja)
-                and not self.feu(e, s)[1] and s not in disponibles)
+                and self.recharge_utile(e, s, entretenus) and s not in disponibles)
         return self._sources_vides[cle]
+
+    def recharge_utile(self, e, source, entretenus=()):
+        """Une charge apporte-t-elle une capacité absente dans la projection ?
+
+        Une source faible encore allumée éclaire et fournit toujours une flamme.
+        La recharger ne change aucun de ces gestes ; seul un entretien explicite
+        exige alors sa réserve. Éteinte et vide, elle gagne la possibilité
+        d'être allumée. Ne pas confondre réserve faible et capacité absente.
+        """
+        allume, charge = self.feu(e, source)
+        return not charge and (source in entretenus or allume is False)
 
     def trajet(self, depart_, arrivee, *, case=None, cible=None):
         """Temps estimé entre salles et vers une cible ; la case n'intervient pas."""
@@ -1379,11 +1398,12 @@ def gestes(v, e, vises=None, but=None):
         # Une source de plus, sans capacité que n'aient déjà celles qu'il porte : rien ne l'acquiert.
         if utile and v.doublon(e, o, noms_vises, v_entretenir):
             utile = False
-        # Dans la projection, une charge suffisante ne s'épuise pas en chemin.
-        # Porter un combustible sans aucune source à recharger ne change donc
-        # aucun geste futur ; on ne développe pas ces inventaires équivalents.
+        # La projection ne décompte pas le combustible en chemin : une source
+        # faible allumée conserve sa lumière et sa flamme. Sans recharge qui
+        # ajoute une capacité (ou entretien visé), porter du combustible ne
+        # change aucun geste futur : ne pas développer ces inventaires.
         if (utile and o not in v_prendre and o in v.combustibles_seuls
-                and not any(not v.feu(e, s)[1] for s in v.sources_du_lot_triees[o])):
+                and not any(v.recharge_utile(e, s, v_entretenir) for s in v.sources_du_lot_triees[o])):
             utile = False
         if ici and o not in portes and x.get("mobile") and v.autorise[o] and v.disponible(o) and utile:
             yield mal, 1, [_etape("prendre", o, condition=faute)], e.apres(portes=portes | {o}, faits=touche)
@@ -1511,8 +1531,8 @@ def gestes(v, e, vises=None, but=None):
         # salle, s'il la porte), se chauffer à un foyer allumé.
         if "allume" in x and not superflu and (o in portes or ici or v.salle(e, o) == sa_salle and not x.get("mobile")):
             allume, charge = v.feu(e, o)
-            # Un foyer se recharge tant qu'il n'est pas vif ; une lampe, quand elle est vide.
-            if brule(x) and not charge:
+            # Restaurer la réserve visée, ou rendre allumable une source vide.
+            if brule(x) and v.recharge_utile(e, o, v_entretenir):
                 for bois in sorted(k for k in e.portes if recharge(x, objets[k]) and v.disponible(k)):
                     yield (mal, 1, [_etape("alimenter", o, outil=bois, condition=faute)],
                            e.apres(faits=[(("charge", o), True), *touche]))
@@ -3007,6 +3027,47 @@ def devis_pulsion(monde, id, condition, payeur):
     return None if trouve is None else (trouve[0], trouve[2])
 
 
+def duree_devis(monde, id, etapes):
+    """Durée physique du plan publié, sans convertir ses pénalités en temps.
+
+    Un préfixe hypothétique, un geste aléatoire ou durable ne promet aucune
+    durée. L'absence de mesure ne reçoit pas de délai de remplacement.
+    """
+    v = vue(monde, id)
+    if v._cru_spatial is None:
+        return None
+    e, total = depart(monde, id, v), 0
+    for g in etapes:
+        op = g['operation']
+        if (op not in (*pnj.DUREES, 'aller')
+                or op in ('crocheter', 'frapper', 'demander', 'acheter', 'confier', 'proposer', 'demander_feu')
+                or any(g.get(k) for k in ('suppose', 'attendre_remise', 'condition'))):
+            return None
+        mesure = _mesurer_direct(v, e, [g], e, 0)
+        if mesure is None:
+            return None
+        temps, _, e = mesure
+        total += temps
+        o = g['cible']
+        if op == 'aller':
+            e = e.apres(salle=g['lieu'])
+        elif op == 'prendre':
+            e = e.apres(portes=e.portes | {o})
+        elif op == 'poser':
+            e = e.apres(portes=e.portes - {o})
+        elif op == 'remettre':
+            e = e.apres(portes=e.portes - {g['outil']})
+        if op == 'poser':
+            e = e.apres(faits=[(('lieu', o), e.salle)])
+        elif op in ('ouvrir', 'fermer'):
+            e = e.apres(faits=[(('ouvert', o), op == 'ouvrir')])
+        elif op in ('verrouiller', 'deverrouiller'):
+            e = e.apres(faits=[(('verrou', o), op == 'verrouiller')])
+        elif op in ('allumer', 'eteindre'):
+            e = e.apres(faits=[(('allume', o), op == 'allumer')])
+    return total
+
+
 def _pulsion(monde, id, condition, tache, entretenir=None):
     """(coût, but, étapes) de ``planifier_pulsion``, ou None."""
     from .deliberation import salle_crue
@@ -3092,18 +3153,30 @@ def _nom_condition(c):
 
 
 def _rendre(monde, id, o, condition):
-    """Un objet prêté qui ne lui sert plus (``echanges.necessaire``) : rejoindre son propriétaire
-    et le lui rendre."""
+    """Transport avec le bien, puis nécessité jugée dans l'état de remise.
+
+    Le même devis est recalculé à l'admission et pendant le trajet. Un contact
+    encore recherché ne publie aucune remise avant de connaître sa destination.
+    """
     from .echanges import necessaire
-    if not porte_par(monde, o, id) or necessaire(monde, id, o):
+    if not porte_par(monde, o, id):
         return None
-    chemin = rejoindre(monde, id, condition["rendre"])
-    if chemin is None:
+    v = vue(monde, id)
+    salle = v.salle(depart(monde, id, v), condition['rendre'])
+    if salle is None:
+        chemin = rejoindre(monde, id, condition['rendre'])
+        return None if chemin is None else ({"type": "pulsion", **condition}, chemin[0])
+    # Même recherche qu'aller, avec son état terminal : tous les moyens du
+    # trajet (prises, portes, allumages) restent disponibles jusqu'à la remise.
+    trajet = chercher(monde, id, lambda v, e: e.salle == salle,
+                     nom="aller", memo=["aller", salle], emplois=())
+    if trajet is None:
         return None
-    etapes, trouve = chemin
-    if trouve:
-        etapes.append(_etape("remettre", condition["rendre"], outil=o))
-    return {"type": "pulsion", **condition}, etapes
+    e = trajet[2]
+    fin = e.apres(portes=e.portes - {o}, faits=[(('lieu', o), condition['rendre'])])
+    if necessaire(monde, id, o, apres=(v, fin)):
+        return None
+    return {"type": "pulsion", **condition}, trajet[1] + [_etape("remettre", condition['rendre'], outil=o)]
 
 
 def _devis_remise(monde, id, o, condition, seul):

@@ -24,6 +24,8 @@ bourse, une paie) : qui le porte peut les dépenser. Une part d'une ressource co
 (``prix_part``, sinon ``PRIX_PART``), un objet le sien s'il est déclaré (``prix``). Ce que vaut une
 pièce pour chacun vient de ses besoins et de ses valeurs (``caractere.valeur_piece``).
 """
+from contextlib import contextmanager
+
 from .francais import quantite
 from . import agendas
 from .vol import proprietaire as _possesseur
@@ -325,6 +327,91 @@ def prix(monde, objet, part=False):
     if part:
         return o.get("prix_part", PRIX_PART)
     return o.get("prix")
+
+
+def capacites_crues(monde, id, objet):
+    """Services matériels connus, sans lire charge, flamme ou contenu cachés.
+
+    Les usages et attaches sont structurels ; l'état d'une source est cru.
+    Une clé n'apporte que les accès que son porteur connaît.
+    """
+    from .esprits import croyance, lire
+    from .force import COUPE
+    o = monde.objets[objet]
+    if croyance(monde, id, objet, "fin"):
+        return set()
+    usages = set(o.get("usages", ()))
+    profil = monde.objets.get(id, {}).get("profil") or {}
+    resultat = usages & {"allumage"}
+    if usages.intersection(COUPE):
+        resultat.add("coupe")
+    if "crochetage" in profil.get("capacites", ()) and "crochetage" in usages:
+        resultat.add("crochetage")
+    connus = lire(monde, id)["croyances"]
+    resultat.update("cle:" + cible for cible in o.get("ouvre", ()) if cible in connus)
+    etat = croyance(monde, id, objet, "etat")
+    etat = etat["valeur"] if etat else {}
+    if "allume" in o and (etat.get("allume") or etat.get("charge")):
+        resultat.add("lumiere")
+    if etat.get("allume"):
+        resultat.add("allumage")
+    return resultat
+
+
+def valeur_capacites(monde, id, objet, *, sans=None):
+    """Valeur marginale des capacités connues, distincte du prix du bien.
+
+    Même estimation à l'acquisition et à la cession ; ``sans`` retire le bien
+    simultanément cédé des moyens qu'il croit conserver.
+    """
+    from .caractere import valeur
+    from .deliberation import _connus, _lieu_cru
+    propres = set()
+    for k in _connus(monde, id):
+        if k in (objet, sans):
+            continue
+        lieu, vus = _lieu_cru(monde, id, k), {k}
+        while lieu in monde.objets and lieu != id and lieu not in vus:
+            vus.add(lieu)
+            lieu = _lieu_cru(monde, id, lieu)
+        if lieu == id:
+            propres.update(capacites_crues(monde, id, k))
+    nouvelles = capacites_crues(monde, id, objet) - propres
+    return 12 * len(nouvelles) * (0.5 + valeur(monde, id, "ambition") / 100)
+
+
+def valeur_bien(monde, id, objet, part=False, *, sans=None):
+    """Estimation commune en minutes : prix/contenu connu ou capacité marginale.
+
+    Un outil porté coûte la capacité perdue ; acquis, il vaut la capacité
+    ajoutée. Un doublon porté la conserve ; ``sans`` exclut le bien cédé
+    simultanément, pour compter son remplacement parmi les gains. Le désespoir valorise le remède
+    utilisable, pas n'importe quelle contrepartie. Aucun devis ni mutation.
+    """
+    from .caractere import valeur_pieces, ENJEU
+    from .deliberation import besoin_de_part, part_pour, parts, DESESPOIR
+    from .esprits import croyance, lire
+    o = monde.objets[objet]
+    montant = prix(monde, objet, part)
+    if not part and "pieces" in o:
+        c = croyance(monde, id, objet, "pieces")
+        montant = (montant or 1) + (c["valeur"] if c else 0)
+    if montant is None and not part and besoin_de_part(o) is not None:
+        # Le propriétaire compte sa réserve ; aucune quantité distante cachée.
+        n = parts(o) if proprietaire(monde, objet) == id else 1
+        montant = n * (prix(monde, objet, True) or 1)
+    marchande = valeur_pieces(monde, id, montant if montant is not None else 1)
+    besoin = besoin_de_part(o)
+    remede = 0
+    if besoin and part_pour(monde, id, objet, besoin):
+        pression = lire(monde, id)["besoins"].get(besoin, 0)
+        remede = ENJEU * max(0, pression - DESESPOIR) / (100 - DESESPOIR)
+    if part:
+        return max(marchande, remede)
+    # Même échelle que la peine et la faute. L'ambition pèse l'avenir ;
+    # seul un remède effectif peut passer cette capacité au désespoir.
+    usage = valeur_capacites(monde, id, objet, sans=sans)
+    return max(marchande, usage, remede)
 
 
 def dettes(monde):
@@ -660,21 +747,53 @@ def retenir_service(monde, id, engagement):
     c = engagement["condition"]
     if set(c) not in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"}):
         return
+    from .deliberation import salle_crue
     trace = {"de": id, "pour": engagement["pour"], "condition": dict(c)}
     services = monde.data.setdefault("services_rendus", [])
-    if trace not in services:
+    if not any(all(s.get(k) == v for k, v in trace.items()) for s in services):
+        # Le prestataire peut déplacer le résultat : cela ne prouve pas que
+        # son bénéficiaire est parti. Retenir son lieu au constat de réussite.
+        trace["lieu_beneficiaire"] = salle_crue(monde, id, engagement["pour"])
         services.append(trace)
+
+
+@contextmanager
+def clotures_services_du_choix(monde):
+    """Clôtures découvertes en lecture, publiées après le choix complet seulement.
+
+    Les choix imbriqués transmettent leurs clôtures au parent. Un devis isolé
+    n'ouvre pas ce registre ; une interruption abandonne tout le registre.
+    """
+    ancien = getattr(monde, "_clotures_services", None)
+    clotures = []
+    monde._clotures_services = clotures
+    try:
+        yield
+    except BaseException:
+        raise
+    else:
+        if ancien is not None:
+            ancien.extend(s for s in clotures if s not in ancien)
+        elif clotures:
+            services = monde.data.get("services_rendus", [])
+            services[:] = [s for s in services if s not in clotures]
+    finally:
+        monde._clotures_services = ancien
 
 
 def services_proteges(monde, id):
     """Résultats encore utiles d'après les seules observations du prestataire.
 
-    Le besoin est approché par la présence crue du bénéficiaire auprès du
-    résultat (ou son portage). Un départ connu ou un état constaté défait
+    Le besoin est approché par la présence crue du bénéficiaire au lieu
+    retenu à la réussite ou auprès du résultat (ou son portage).
+    Un départ connu de ces lieux ou un état constaté défait
     termine la protection définitivement ; ni oubli par délai, ni entretien.
     Un bénéficiaire présent qui n'en a plus besoin reste donc protégé.
+    La lecture reste pure ; les traces finies sont proposées au registre du
+    choix, lorsqu'il existe, sans écriture pour un devis isolé.
     """
     from .deliberation import _cru, _lieu_cru, salle_crue
+    from .monde import mobile_par_nature
     actifs = [{"de": id, "pour": x["pour"], "condition": x["condition"]}
               for x in agendas.en_cours(monde, id) if not x.get("annule")
               and set(x["condition"]) in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})]
@@ -695,7 +814,13 @@ def services_proteges(monde, id):
                  or "verrouillee" in c and (_cru(monde, id, o, "verrouillee") is False
                                               or etat.get("ouverte") is True)
                  or "lieu" in c and lieu is not None and lieu != c["lieu"])
-        parti = (porteur != pour and lieu is not None and beneficiaire is not None and lieu != beneficiaire)
+        # Sans ancrage historique, seul un résultat fixe fournit encore un
+        # lieu de référence. Le déplacement d'un résultat mobile, porté ou
+        # posé ensuite, ne prouve jamais un départ de son bénéficiaire.
+        reference = s.get("lieu_beneficiaire",
+                          None if mobile_par_nature(monde.objets.get(o, {})) else lieu)
+        parti = (porteur != pour and reference is not None and lieu is not None
+                 and beneficiaire is not None and reference != beneficiaire and lieu != beneficiaire)
         if cesse and not actif or parti:
             if not actif:
                 finis.append(s)
@@ -703,8 +828,9 @@ def services_proteges(monde, id):
             # L'absence d'information nouvelle ne dément pas la parole reçue.
             if c not in proteges:
                 proteges.append(c)
-    if finis:
-        services[:] = [s for s in services if s not in finis]
+    clotures = getattr(monde, "_clotures_services", None)
+    if clotures is not None:
+        clotures.extend(s for s in finis if s not in clotures)
     return proteges
 
 
@@ -716,7 +842,9 @@ def verifier(monde):
     from .deliberation import condition_valide
     assert isinstance(d.get("services_rendus", []), list), "Traces de service invalides"
     for s in d.get("services_rendus", []):
-        assert (isinstance(s, dict) and set(s) == {"de", "pour", "condition"}
+        assert (isinstance(s, dict) and set(s) in ({"de", "pour", "condition"},
+                                                {"de", "pour", "condition", "lieu_beneficiaire"})
+                and (s.get("lieu_beneficiaire") is None or s["lieu_beneficiaire"] in monde.data["salles"])
                 and s["de"] in monde.objets and monde.objets[s["de"]]["type"] in ("personnage", "depouille")
                 and (s["pour"] == "joueur" or s["pour"] in monde.objets
                      and monde.objets[s["pour"]]["type"] in ("personnage", "depouille"))

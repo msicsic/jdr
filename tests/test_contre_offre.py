@@ -49,13 +49,16 @@ class ContreOffreTests(unittest.TestCase):
     def test_prix_dit_paye_et_reception_sans_second_jet_deux_biens(self):
         for objet in ("vivres", "cle_reserve"):
             with self.subTest(objet=objet):
-                m, lignes = refus(scene(70), objet)
+                m = scene(70)
+                # Le test de prix honoré finance aussi la capacité durable de la clé.
+                m.data["finances_pnj"]["brune"] = 100
+                m, lignes = refus(m, objet)
                 s = lire(m, "brune")["refus"][-1]
                 self.assertIn("Offre de", " ".join(lignes))
                 prix = s["contre_offre"]["condition"]["montant"]
                 self.assertIn(f"{prix} pièce" + ("s" if prix > 1 else ""), " ".join(lignes))
                 avant = copy.deepcopy(m.data["finances_pnj"])
-                plan = plan_recours(m, "brune", "faim", [])
+                plan = plan_recours(m, "brune", "faim", None)
                 self.assertEqual(plan[-1]["operation"], "acheter")
                 lignes = []
                 with patch("donjon.echanges.jet_persuasion", side_effect=AssertionError("second jet")):
@@ -74,7 +77,7 @@ class ContreOffreTests(unittest.TestCase):
         self.assertEqual(s["contre_offre"]["condition"], {
             "type": "tache", "condition": {"objet": "repas", "servir": "marchand"}})
         self.assertIn("servie", " ".join(lignes))
-        plan = plan_recours(m, "brune", "faim", [])
+        plan = plan_recours(m, "brune", "faim", None)
         self.assertEqual(plan[-1]["operation"], "servir")
         lignes = []
         self.assertTrue(servir(m, "brune", "repas", "marchand", lignes))
@@ -83,7 +86,7 @@ class ContreOffreTests(unittest.TestCase):
         self.assertTrue(lire(m, "brune")["refus"][-1]["condition_tenue"])
         # La preuve n'est pas perdue lorsque la mémoire courte s'efface.
         lire(m, "marchand")["memoire"] = []
-        plan = plan_recours(recharger(m), "brune", "faim", [])
+        plan = plan_recours(recharger(m), "brune", "faim", None)
         with patch("donjon.echanges.jet_persuasion", side_effect=AssertionError("second jet")):
             self.assertTrue(executer(m, "brune", plan[-1], lignes))
         m = recharger(m)
@@ -97,7 +100,7 @@ class ContreOffreTests(unittest.TestCase):
         percevoir_tous(m)
         for _ in range(3):
             m = recharger(m)
-            self.assertIsNone(plan_recours(m, "brune", "faim", []))
+            self.assertIsNone(plan_recours(m, "brune", "faim", None))
             self.assertTrue(tient(m, "brune", lire(m, "brune")["refus"][-1]))
             m.data["minutes"] += 121
         self.assertEqual(m.objets["cle_reserve"]["lieu"], "marchand")
@@ -123,11 +126,25 @@ class ContreOffreTests(unittest.TestCase):
         self.assertEqual(m.objets["cle_rechange"]["lieu"], "brune")
         self.assertIn("clé de rechange", " ".join(lignes))
 
-    def test_mefiance_et_garde_durable_sans_condition(self):
-        for m, objet in ((scene(10), "vivres"), (scene(70, garde=True), "cle_reserve")):
+    def test_mefiance_et_reserve_gardee_sans_condition(self):
+        from donjon.deliberation import reserve
+        reservee = scene(70, garde=True)
+        reservee.objets['vivres']['portions'] = reserve(reservee, 'marchand')
+        for m, objet in ((scene(10), "vivres"), (reservee, "vivres")):
             m, lignes = refus(m, objet)
             self.assertNotIn("contre_offre", lire(m, "brune")["refus"][-1])
             self.assertNotIn("Offre de", " ".join(lignes))
+
+    def test_capacite_de_cle_gardee_a_un_prix_compensant(self):
+        from donjon.biens import valeur_capacites
+        from donjon.caractere import valeur_pieces
+        m, lignes = refus(scene(70, garde=True), 'cle_reserve')
+        offre = lire(m, 'brune')['refus'][-1]['contre_offre']
+        prix = offre['condition']['montant']
+        self.assertGreaterEqual(valeur_pieces(m, 'marchand', prix),
+                                valeur_capacites(m, 'marchand', 'cle_reserve'))
+        self.assertEqual(recharger(m).objets['cle_reserve']['lieu'], 'marchand')
+        self.assertIn('Offre de', ' '.join(lignes))
 
     def test_meme_laps_decoupe_et_recharge_prix(self):
         a, _ = refus(scene(70), "vivres")

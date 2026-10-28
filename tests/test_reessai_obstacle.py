@@ -38,6 +38,53 @@ class ReessaiObstacleTests(unittest.TestCase):
         self.assertEqual(texte, rendu(apres))
         return apres
 
+    def test_faim_renoncee_attend_un_moyen_dans_les_deux_captures_reelles(self):
+        from donjon.recit_pnj import Recit
+        from donjon.banc_pnj import _oisifs_urgents
+        # Base intégration 3c0e1ca, départ tiré, joueur galerie ; graine 7
+        # à 539:599, après le dernier renoncement de cette minute.
+        for graine, minute in ((500, 107), (7, 539)):
+            with self.subTest(graine=graine):
+                m = Monde(json.loads(gzip.decompress((Path(__file__).parent / 'data' /
+                    f'renonce-239-mine-{graine}-{minute}.json.gz').read_bytes())))
+                e = lire(m, 'odon')
+                retenus = copy.deepcopy(e['renoncements'])
+                r = retenus['faim'][0]
+                # Repartir de l'ancien classement pour exercer le choix complet.
+                e['urgences']['faim'] = {'etat': 'presse', 'depuis': 0}
+                d.choisir(m, 'odon', minute)
+                m = self.recharge(m)
+                self.assertEqual(d.inactivite(m, 'odon'), 'attente')
+                self.assertEqual(lire(m, 'odon')['renoncements'], retenus)
+                self.assertTrue(d.renoncement_tient(m, 'odon', r, (r['but'], [r['cause']['etape']])))
+                recit = Recit(m)
+                recit._noter(m, 'odon', minute)
+                self.assertIn("en attente d'un moyen", '\n'.join(recit.personnage(m, 'odon', m.data['chronique'])))
+                self.assertEqual(_oisifs_urgents(m)[1], 0)
+                bloc, _ = vivre(self.recharge(m), 2)
+                coupe = self.recharge(m)
+                for _ in range(2):
+                    coupe, _ = vivre(coupe, 1)
+                self.assertEqual(bloc.data, coupe.data)
+                self.assertEqual(rendu(bloc), rendu(coupe))
+                self.assertEqual(d.inactivite(bloc, 'odon'), 'attente')
+                # Un constat enlève les témoins des vivres. Un témoin reste
+                # devant la paie : ouvrir aussi cet autre recours ferait passer
+                # l'agenda d'argent avant la faim, sans invalider sa reprise.
+                from donjon.corps import endormir, visible
+                placer(m, 'gaspard', 'bureau', (4, 2))
+                croire(m, 'odon', 'gaspard', 'lieu', 'bureau', 'vu', salle='bureau', case=[4, 2])
+                for qui, objet in m.objets.items():
+                    if qui not in ('odon', 'gaspard') and objet.get('type') == 'personnage':
+                        endormir(m, qui)
+                        croire(m, 'odon', qui, 'etat', visible(m, qui), 'vu')
+                tour_d_horizon(m, 'odon')
+                self.assertFalse(d.renoncement_tient(m, 'odon', r, (r['but'], [r['cause']['etape']])))
+                d.choisir(m, 'odon', minute)
+                m = self.recharge(m)
+                self.assertEqual(lire(m, 'odon')['intention']['but'], r['but'])
+                self.assertEqual(lire(m, 'odon')['urgences']['faim']['etat'], 'presse')
+
     def test_odon_pas_de_reprise_par_delai_ni_date_de_regard(self):
         m = odon()
         retenu = copy.deepcopy(lire(m, 'odon')['renoncements']['agenda'][0])
@@ -123,6 +170,14 @@ class ReessaiObstacleTests(unittest.TestCase):
         d.choisir(m, 'marchand', m.data['minutes'])
         m = self.recharge(m)
         self.assertNotEqual((lire(m, 'marchand')['intention'] or {}).get('but'), r['but'])
+        self.assertEqual(lire(m, 'marchand')['urgences']['devoir']['etat'], 'attente')
+        bloc, _ = vivre(self.recharge(m), 2)
+        coupe = self.recharge(m)
+        for _ in range(2):
+            coupe, _ = vivre(coupe, 1)
+        self.assertEqual(bloc.data, coupe.data)
+        self.assertEqual(rendu(bloc), rendu(coupe))
+        self.recharge(bloc)
         m.joueur['position'] = [6, 3]
         tour_d_horizon(m, 'marchand')
         d.choisir(m, 'marchand', m.data['minutes'])
