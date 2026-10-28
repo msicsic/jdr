@@ -4,33 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-place-perimee`, non fusionnée**, lot **234**, base
-  `adb52c4` : `signes.place` efface la place avant toute sortie sans pas
-  et ne la renouvelle qu'après un pas social produit ; `pnj.agir` rend
-  immédiatement la main au rapprochement ordinaire sans pas social.
-  Trois tests nouveaux (huit sous-cas), Relais/Ilse et auberge/Hugues,
-  croyance inconnue/démentie, trajet impossible, monde/rendu rechargés et
-  deux minutes d'un bloc ou découpées. Quatre variantes rouges sur la base,
-  vertes après correction. **33 ciblés : 32 verts, une régression historique
-  conservée sur la proximité d'Aubin** : Ilse rejoint Brune avant de localiser
-  Aubin, finit `[6,1]` contre Aubin `[1,5]`. La base passe cette assertion.
-  Deux autres régressions de la suite : navette d'Aubin (188 passages contre
-  un plafond de 12) et garde non livrée (`0 != 1`) ; les trois cas passent sur
-  la base, fonctions originales chargées en mémoire. Perte de torche au
-  hameau reproduite sur la base, mêmes instants 3188/3615, oracle conservé.
-  Aucun contournement de perception, aucun MJ ; **correction non validée pour
-  fusion**. Suite complète unique : **2 524 tests / 292 fichiers,
-  4 071,069 s, quatre échecs, zéro erreur, 16 ignorés** ; calcul pur/mémorisé
-  (`test_vue_action.py`) vert. **20 paires × 4 h contre `adb52c4`** : vingt
-  références complétées une fois ; zéro plantage/usurpation ; suspects 219
-  **2 → 2**, épisodes de l'auberge intégralement identiques, aucune hausse par
-  nuit ni nouvelle alerte de boucle parmi les codes contrôlés. Répétitions
-  textuelles **4 → 0**, cycles **507 → 505**, préemptions **58 → 46**,
-  à expliquer **87 → 63**, dérives **204 → 175**. Perte de service fautive
-  **1 → 1**, préexistante. La capture d'Aubin reste rouge : aucune garantie
-  générale d'absence de boucle nouvelle. Créneau dépassé ; aucun Luna ;
-  [rapport 234](taches/rapport-codex-234-place-perimee.md), bruts
-  `C:/Users/msics/donjon/artifacts/place-234/`.
+- **Branche `codex-place-perimee`, non fusionnée**, lot **234**, validation
+  non acquise. Merge demandé de `origin/integration` **`1c44801`** (229/232)
+  dans `3f8739e` ; code final **`5f73166`**. Placement et rapprochement partagent
+  un jugement du lieu cru, du trajet atteignable et de sa progression sans
+  dégradation, dans le séjour. Premier pas à distance égale permis sur un trajet
+  améliorant ; posture établie sur la position effective, sans réserver de geste.
+  Aucune exception d'acteur ni modification des fonctions exclues.
+  **44 ciblés initiaux verts** ; cinq nouveaux tests / treize sous-cas.
+  Recharge et laps découpés contrôlés. Trois régressions initiales vertes,
+  assertions intactes : Aubin **188 → 8 passages/30 min**, garde livrée et
+  refermée/verrouillée, Ilse `[0,4]` près d'Aubin `[1,5]`, localisé par la vue
+  à t525 ; fanal perçu niveau 1, sécurité 69,707. Chronique archivée.
+  Suite complète unique sur `34825a8` : **2 530 tests / 293 fichiers,
+  trois échecs, zéro erreur, seize ignorés**. Base rejouée : Gorm/Lucien verts,
+  torche seule rouge (préexistante **3188/3615**, lot 238). Gorm corrigé ensuite
+  par le détour admissible ; consolidation finale **64/65 verts**. **Lucien
+  reste rouge** : le recours débloqué rejoint Odile à t45591, mais il ne rapporte
+  plus la lanterne au grenier ; blocage ultérieur non expliqué. Oracle conservé,
+  aucune seconde suite complète, aucune garantie globale revendiquée.
+  Banc final : **20 paires de 4 h, 20 références du cache `1c44801`**, aucun
+  plantage/usurpation ; suspects 219 **2 → 3** (Mireille auberge 2024 à 226,
+  cause non certifiée). Max passages/PNJ/h Relais/mine/auberge/crue/hameau :
+  **9/11/17/62/22 → 9/10/17/62/28**. Cycles **507 → 510**, préemptions
+  **58 → 43**, à expliquer **87 → 74**, dérives **204 → 203**. Alerte Maël
+  hameau 7 (huit demandes promises), observation d'alternance Lucien auberge 42.
+  Aucun Luna, deux travailleurs réduits au plus ; créneau dépassé.
+  Bruts : `C:/Users/msics/donjon/artifacts/place-234/reprise/` ;
+  [rapport 234](taches/rapport-codex-234-place-perimee.md).
+
 - **Branche `codex-purete-candidats`, fusionnée**, lot **232**, base
   `integration adb52c4` : `biens.services_proteges` ne supprime plus les
   traces pendant une lecture. Clôtures retenues hors `data`, publiées après
@@ -7519,4 +7521,3 @@ Non versionnés, donc absents d'un nouveau poste :
   cours de jalon sans accord.
 - Les phrases des docs tirées d'un test ou d'un scénario décrivent ce scénario, pas une règle
   de conception du jeu.
-
