@@ -626,60 +626,31 @@ def surveiller(m, id):
     return regarder(m, id, i, x, "surveille", "crainte" if relations.craint(m, id, x) else "mefiance")
 
 
-def place(m, id, etape, lignes):
-    """Choisir une case de séjour parmi celles qui permettent encore le geste.
-
-    Un pas fait partie du trajet commun : obstacles, occupation et temps restent ses juges.
-    La distance sociale se juge sur les positions crues, la chaleur sur le foyer visé.
-    """
-    from .pnj import _case_crue, _marcher
-    from .spatial import _case_libre
+def place(m, id, etape, lignes, jugement=None):
+    """Actualiser la posture et produire un pas admis par le juge commun."""
+    from .pnj import _jugement_placement, _pas_placement, _marcher
     from .esprits import esprit
-    from .deliberation import salle_crue
-    o, e = m.objets[id], esprit(m, id)
-    i = e["intention"]
-    if not m.data.get("mode_cases") or not i or etape["operation"] not in ("abriter", "chauffer", "reposer"):
-        return None
-    ici = o["lieu"]
-    liens = []
-    for x in sorted(set(relations.connus(m, id)) | {x for x, _, _ in actives(m, id)}):
-        if x == id or salle_crue(m, id, x) != ici:
-            continue
-        p = _case_crue(m, id, x)
-        if p is None:
-            continue
-        r = relations.axes(m, id, x)
-        hostile = hostile_cru(m, id, x)
-        if relations.peur(r) or relations.rancune(r) or hostile:
-            # Le poids de l'écart suit l'axe le plus fort ; la décision, les bandes communes.
-            evite = max(r["peur"], r["rancune"], relations.RANCUNE if hostile else 0)
-            liens.append((x, p, -evite, "ecart", "crainte" if r["peur"] >= r["rancune"] else "hostilite"))
-        elif relations.vive(r, "affection") or relations.confiance(r) and e["besoins"].get("securite", 0) >= 50:
-            liens.append((x, p, max(r["affection"], r["confiance"]), "proche",
-                          "attachement" if relations.vive(r, "affection") else "dependance"))
-    if not liens:
+    i = esprit(m, id)["intention"]
+    if i:
         i.get("attitude", {}).pop("place", None)
+    if not i:
         return None
-    cible = _case_crue(m, id, etape["cible"]) if etape["operation"] == "chauffer" else None
-    depart = tuple(o["position"])
-    def possible(p):
-        return cible is None or distance(p, cible) <= 2
-    def score(p):
-        return sum((max(0, 3 - distance(p, q)) * (-v) if v < 0 else min(3, max(0, distance(p, q) - 1)) * v)
-                   for _, q, v, _, _ in liens)
-    # Un mouvement ne doit pas alterner entre cases de même valeur.
-    candidats = [depart] + [(depart[0] + dx, depart[1] + dy) for dx in (-1, 0, 1) for dy in (-1, 0, 1)
-                           if dx or dy]
-    candidats = [p for p in candidats if _case_libre(m, ici, p) and possible(p)]
-    if not candidats:
+    if jugement is None:
+        jugement = _jugement_placement(m, id, etape)
+    if jugement is None or not jugement["liens"]:
         return None
-    meilleur = min(candidats, key=lambda p: (score(p), distance(p, depart), p))
-    x, q, v, signe, sens = max(liens, key=lambda l: (abs(l[2]), l[0]))
-    if signe == "ecart" and distance(meilleur, q) >= 2 or signe == "proche" and distance(meilleur, q) <= 1:
+    meilleur = _pas_placement(jugement)
+    ici = jugement["lieu"]
+    pas = (_marcher(m, id, lambda salle, p: salle == ici and tuple(p) == meilleur, lignes,
+                    libre=jugement["admissible"]) if meilleur is not None else None)
+    x, q, v, signe, sens = max(jugement["liens"], key=lambda l: (abs(l[2]), l[0]))
+    # La posture déjà tenue reste lisible, mais ne réserve aucun geste :
+    # seul le pas renvoyé donne la priorité sur le recours ordinaire.
+    position = tuple(m.objets[id]["position"])
+    if (signe == "ecart" and distance(position, q) >= 2
+            or signe == "proche" and jugement["contact"](position, q)):
         i.setdefault("attitude", {})["place"] = {"signe": signe, "envers": x, "sens": sens}
-    if meilleur != depart and score(meilleur) < score(depart):
-        return _marcher(m, id, lambda salle, p: salle == ici and tuple(p) == meilleur, lignes)
-    return None
+    return pas
 
 
 def verifier(m):

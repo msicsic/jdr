@@ -112,23 +112,130 @@ class TenirTests(unittest.TestCase):
         return m
 
     def test_lucien_rapporte_la_lanterne_de_l_etable_au_grenier_au_lieu_d_aller_et_venir(self):
-        from donjon.deliberation import autour, obstacle_patience
+        from donjon.deliberation import autour
         from donjon.rendu import regarder as rendu
-        # Depuis 225, la présence crue des témoins retient le vol après 95 min,
-        # au lieu de le relancer par délai. Le retour éclairé à la garde arrive
-        # vers 145 min : l'ancienne fenêtre 130–150 coupait ce trajet en deux.
-        m, lieux = suivre(self.lucien_au_grenier_noir(), "lucien", 95, pas=5)
-        retenu = lire(m, "lucien")["renoncements"]["biens"][0]
-        self.assertTrue(obstacle_patience(m, "lucien", retenu["cause"]))
-        self.assertNotEqual(lire(m, "lucien")["intention"]["but"], retenu["but"])
-        m, suite = suivre(m, "lucien", 70, pas=5)
-        lieux += suite
+        # Scène de garde : ses biens pressent, sa sécurité est apaisée,
+        # et il connaît une lumière à emporter. La poursuite concurrente du
+        # ballot est vérifiée séparément, sans décider du sort de la lanterne.
+        m = self.lucien_au_grenier_noir()
+        p = m.objets["lucien"]["profil"]
+        p["pulsions"] = [x for x in p["pulsions"] if x["condition"].get("objet") != "ballot"]
+        lire(m, "lucien")["pulsions"] = []
+        lire(m, "lucien")["besoins"].update(biens=85.0, securite=10.0)
+        source = m.objets["mireille"]
+        croire(m, "lucien", "mireille", "lieu", source["lieu"], "savoir",
+               salle=source["lieu"], case=source["position"])
+        croire(m, "lucien", "bougeoir_mireille", "lieu", "mireille", "savoir",
+               salle=source["lieu"], case=source["position"])
+        croire(m, "lucien", "bougeoir_mireille", "etat",
+               {"allume": True, "faible": False, "charge": True}, "savoir")
+        m, lieux = suivre(m, "lucien", 165, pas=5)
         self.assertEqual(lieux[-5:], ["grenier"] * 5)
         self.assertLessEqual(changements(lieux), 6)
         self.assertEqual(lire(m, "lucien")["intention"]["but"], {"type": "garder", "lieu": "grenier"})
         self.assertEqual(m.objets["bougeoir_mireille"]["lieu"], "lucien")
         self.assertTrue(m.objets["bougeoir_mireille"]["allume"])
         self.assertTrue(autour(m, "lucien")["lumiere"])
+        texte = rendu(m)
+        apres = recharger(m)
+        self.assertEqual(m.data, apres.data)
+        self.assertEqual(texte, rendu(apres))
+
+    def test_lucien_attend_une_information_apres_la_reprise_du_ballot(self):
+        import copy
+        from donjon import deliberation, pnj
+        from donjon.agendas import contrat_intention
+        from donjon.deliberation import obstacle_patience
+        from donjon.ouie import nature
+        from donjon.planification import bruit_crochetage
+        from donjon.rendu import regarder as rendu
+        from donjon.temps import instant, MINUTE
+        from tools.detecter_changements_avis import observer_avis, analyser_episodes
+        # Scène historique complète : conserver le contrôle 229 à 95 min.
+        # Le recours débloqué change ensuite sa place et la fenêtre du vol.
+        retenu, croyance95 = None, None
+        vols, reprises, reprise_ballot, deplacements = [], [], [], []
+        with observer_avis() as sonde:
+            executer, choisir, agir = pnj._executer, deliberation.choisir, pnj.agir
+
+            def executer_sonde(m, id, etape, *args, **kwargs):
+                preuve = None
+                if id == "lucien" and etape["condition"] == "sans_temoin":
+                    bruit = (bruit_crochetage(m, id, pnj.lumiere_du_geste(m, id))
+                             if etape["operation"] == "crocheter" else nature(etape["operation"], discret=True))
+                    preuve = {"instant": instant(m), "operation": etape["operation"],
+                              "vus": pnj.temoins_crus(m, id), "oreilles": pnj.oreilles_crues(m, id, bruit),
+                              "presents": [x for x in lire(m, id)["croyances"] if x != id
+                                           and (x == "joueur" or m.objets.get(x, {}).get("type") == "personnage")
+                                           and deliberation.salle_crue(m, id, x) == m.objets[id]["lieu"]
+                                           and lire(m, id)["croyances"][x].get("etat", {}).get("valeur", {}).get("conscient") is not False],
+                              "obstacle": obstacle_patience(m, id, retenu["cause"]) if retenu else None,
+                              "desespere": pnj.desespere(m, id)}
+                resultat = executer(m, id, etape, *args, **kwargs)
+                if resultat:
+                    if preuve is not None:
+                        vols.append(preuve)
+                    if id == "anselme" and etape["operation"] == "prendre" and etape["cible"] == "ballot":
+                        reprise_ballot.append(instant(m))
+                return resultat
+
+            def choisir_sonde(m, id, minute):
+                avant = (lire(m, id)["intention"] or {}).get("but")
+                resultat = choisir(m, id, minute)
+                apres = (lire(m, id)["intention"] or {}).get("but")
+                if id == "lucien" and retenu and avant != retenu["but"] and apres == retenu["but"]:
+                    reprises.append({"instant": instant(m), "obstacle": obstacle_patience(m, id, retenu["cause"]),
+                                     "croyance": copy.deepcopy(lire(m, id)["croyances"]["anselme"]["lieu"])})
+                return resultat
+
+            def agir_sonde(m, id, t, *args, **kwargs):
+                avant = m.objets[id]["lieu"]
+                resultat = agir(m, id, t, *args, **kwargs)
+                if id == "lucien" and avant != m.objets[id]["lieu"]:
+                    deplacements.append(t)
+                return resultat
+
+            with patch.object(pnj, "_executer", executer_sonde), \
+                 patch.object(deliberation, "choisir", choisir_sonde), patch.object(pnj, "agir", agir_sonde):
+                m, _ = suivre(self.lucien_au_grenier_noir(), "lucien", 95, pas=5)
+                retenu = copy.deepcopy(lire(m, "lucien")["renoncements"]["biens"][0])
+                croyance95 = copy.deepcopy(lire(m, "lucien")["croyances"]["anselme"]["lieu"])
+                self.assertTrue(obstacle_patience(m, "lucien", retenu["cause"]))
+                self.assertNotEqual(lire(m, "lucien")["intention"]["but"], retenu["but"])
+                m, _ = suivre(m, "lucien", 25, pas=5)
+                recherche = dict(lire(m, "lucien")["recherches"]["anselme"])
+                self.assertEqual(set(recherche), set(m.data["salles"]))
+                m, _ = suivre(m, "lucien", 45, pas=5)
+        self.assertTrue(reprises)
+        for reprise in reprises:
+            self.assertGreater(reprise["instant"], 95 * MINUTE)
+            self.assertFalse(reprise["obstacle"])
+            self.assertNotEqual(reprise["croyance"]["valeur"], croyance95["valeur"])
+            self.assertGreater(reprise["croyance"]["minute"], 95)
+        self.assertEqual({v["operation"] for v in vols}, {"crocheter", "ouvrir", "prendre"})
+        for vol in vols:
+            self.assertGreaterEqual(vol["instant"], 107 * MINUTE)
+            self.assertLess(vol["instant"], 110 * MINUTE)
+            self.assertEqual(vol["presents"], [])
+            self.assertEqual(vol["vus"], [])
+            self.assertEqual(vol["oreilles"], [])
+            self.assertFalse(vol["obstacle"])
+            self.assertFalse(vol["desespere"])
+        self.assertTrue(reprise_ballot)
+        self.assertGreater(min(reprise_ballot), max(v["instant"] for v in vols))
+        self.assertFalse([t for t in deplacements if t >= 120 * MINUTE])
+        avis = analyser_episodes({"lucien": sonde.episodes["lucien"]})
+        self.assertEqual(avis["total_non_justifies"], 0)
+        e = lire(m, "lucien")
+        self.assertEqual(e["recherches"]["anselme"], recherche)
+        self.assertEqual(e["intention"]["but"], {"type": "pulsion", "objet": "ballot", "lieu": "etable"})
+        self.assertEqual(e["intention"]["plan"], [])
+        self.assertEqual(contrat_intention(m, "lucien")["phase"], "attendre")
+        self.assertEqual(contrat_intention(m, "lucien")["demande"],
+                         {"condition": {"objet": "ballot", "lieu": "etable"}, "tache": True})
+        self.assertIsNone(e["croyances"]["anselme"]["lieu"]["valeur"])
+        self.assertEqual(e["croyances"]["ballot"]["lieu"]["valeur"], "anselme")
+        self.assertEqual(m.objets["ballot"]["lieu"], "chambre_chaude")
         texte = rendu(m)
         apres = recharger(m)
         self.assertEqual(m.data, apres.data)

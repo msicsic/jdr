@@ -4,6 +4,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-place-perimee`, fusionnée**, lot **234**, ciblés et banc validés.
+  Merge demandé de `origin/integration` **`d9e5166`** (233/236/238/239/240)
+  dans **`860fa0b`**, sans rebase, seul conflit documentaire. Moteur 234
+  inchangé depuis `5f73166` : jugement commun placement/rapprochement, cible
+  crue, trajet possible et progression sans dégradation ; posture effective
+  sans réservation de geste, détour à distance égale permis. Aucun cas d’acteur.
+  **46/46 ciblés initiaux verts**, puis **31/31 verts** (Lucien, 225, place,
+  sécurité). Aubin **8 passages/30 min** contre 188, garde livrée/verrouillée.
+  **Ilse rejoint Brune éclairée**, jamais Aubin localisé : chronique complète,
+  adaptation conditionnelle autorisée `89fdfb8`, croyance/lumière contrôlées.
+  **La nuit historique de Lucien change : vol réussi à la place de la garde
+  éclairée.** Contrôle 229 à 95 conservé ; reprises seulement après entrée
+  nouvelle levant l’obstacle, aucun témoin cru présent/vu/à portée d’oreille
+  au vol 107–109. Anselme reprend le ballot, huit pièces cherchées à 114,
+  contrat de tâche palier 4 en attente ; garde palier 13 non prioritaire.
+  Zéro aller-retour injustifié 219, aucune navette après la recherche.
+  **Séparation autorisée `ffd814f`** : test de cette trajectoire et scène de
+  lanterne explicitement sans pulsion sur le ballot ; assertions de garde,
+  possession/lumière/changements de lieu/recharge conservées.
+  **Suite complète laissée au superviseur**, nouvelle règle **`4422f13`**. Passe arrêtée sur instruction après **1545 tests / 166 fichiers achevés**, zéro échec, une erreur Windows `os.replace` à la sauvegarde initiale du test TUI de coffre vide, avant l’application. Ce seul test, inchangé, repris **vert en 3,602 s** ; cause système non identifiée. Résultats partiels archivés ; cette passe n’a été ni achevée ni relancée.
+  Banc : **20 paires de 4 h**, quatre références du cache `d9e5166`, seize
+  manquantes rangées une fois. Suspects **2 → 2, épisodes identiques**, aucune
+  hausse par nuit ni nouvelle alerte, aucun plantage/usurpation ; maxima PNJ/h
+  **9/10/15/24/22 inchangés**. Cycles **499 → 499**, préemptions **49 → 49**,
+  à expliquer **66 → 65**, dérives **222 → 218**. Mireille auberge 2024 et
+  demandes promises de Maël hameau 7 : anciens écarts absents après fusion.
+  Fonctions exclues intactes, aucun Luna, deux travailleurs réduits au plus ;
+  créneau dépassé. Bruts `C:/Users/msics/donjon/artifacts/place-234/reprise/` ;
+  [rapport 234](taches/rapport-codex-234-place-perimee.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. pnj._jugement_placement et _pas_placement communs à signes.place et _rejoindre_un_proche : cible crue localisable, objectif atteignable, trajet qui améliore ; une posture périmée cède et ne réserve plus le geste. Ilse rejoint la lumière et une compagnie (Brune, Aubin jamais localisé : assertion adaptée avec preuve). La nuit historique de Lucien change : vol réussi à 107-109 min sans témoin cru (légitime selon 225), puis attente d'information ; le retour de lanterne est vérifié dans une scène dédiée, assertions conservées. Aubin 188 → 8 passages/30 min. 20 paires 4 h : suspects 2 → 2, maxima inchangés. Suite complète laissée au superviseur.
+
 - **Branche `codex-suivi-delegation`, fusionnée**, lot **242**, base
   `c870c8b` : suivi des charges confiées sur échéance explicitement connue.
   `confier` conserve une durée physique mesurable du plan accepté, distincte
