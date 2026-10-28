@@ -2,6 +2,18 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-ilse-poele`, fusionnée**, lot **261**, diagnostic seul,
+  base `integration 2365125` : Ilse entretient le poêle du guet 450 min dès 165
+  malgré la faim (crue, graine 7). Reproduit sur l'intégration actuelle ;
+  captures rechargées 160/165/270/275/400/600/720 min (monde/rendu identiques).
+  À 270 min+, faim pressante (71→100, seuil 70) mais les deux recours faim
+  évaluent à `RIEN` (`planification.planifier` retourne `None`, issue `epuise`,
+  1 nœud) : aucun vivre qu'Ilse croit pouvoir prendre (réserve gardée par le
+  marchand). Verdict : comportement juste, routine de garde pendant l'attente.
+  Aucun code modifié. Bruts `C:/Users/msics/donjon/artifacts/ilse-261/`.
+  [Rapport 261](taches/rapport-codex-261-ilse-poele.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement, premier essai d'OpenCode Beam Free : livré complet. Épisode reproduit (165-720) ; la faim est seule urgence mais sans recours admissible d'après les croyances d'Ilse (vivres à la réserve gardée par Gorm), recherche faim épuisée à 1 nœud ; le poêle est une routine exécutée pendant l'attente. Verdict : comportement juste. Réserve du superviseur : un épuisement à 1 nœud ne montre pas pourquoi la demande d'une part à Gorm n'est pas envisagée (refus retenu ou autre) ; non vérifié.
+
 ## Où on en est
 
 - **Branche `codex-devis-observateur`, fusionnée**, lot **258**, base
