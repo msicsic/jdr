@@ -4,6 +4,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-aide-stable`, non fusionnée**, lot **240**, base
+  intégration `1c71666`. `Vue.detresses` conserve l'ouverture de l'aide pour
+  une intention sans geste tant qu'une promesse connue reste valide, dès
+  le retrait de la demande exécutée. La phase `attendre` seule n'ouvre pas
+  l'aide d'une garde tenue. Moyens,
+  refus et confiance restent revalidés ; aucun ancien plan réinstallé,
+  aucun champ ajouté, aucun changement de `_classer`, des échanges, de
+  `pnj.py`, des biens, de l'ouïe ou du MJ. Captures historiques `4306c14`
+  hameau 1985 à 541 et 544:156 reproduites ; deux régressions échouent sur
+  le constructeur exact de la base et passent avec le raccord. Autre besoin
+  à la mine (lumière de Bram, aide de Josse), annulation reçue et réalisation.
+  Monde/rendu rechargés et laps découpés couverts ; deux contre-épreuves
+  rouges sur la base. Suite complète unique : **2 534 tests / 293 fichiers,
+  3 409,760 s, trois échecs, zéro erreur, 16 ignorés ; suite non verte**.
+  Deux écarts d'empreintes corrigés par le raccord à la seule promesse connue,
+  sans modifier les oracles : tous les champs mine/auberge retrouvent la base.
+  Torche hameau 1985 reproduite sur la base, mêmes 3188/3615 (réserve 238).
+  **24 ciblés finaux verts**, dont les deux oracles historiques intacts ;
+  même échec de torche sur le raccord final. **20 paires 4 h finales**,
+  zéro plantage, suspects 219 **0/0/2/0/0 inchangés** ; cycles 507,
+  préemptions 58, à expliquer 87 inchangés. **20/20** états finaux,
+  chroniques/récits/souvenirs/empreintes identiques ; recherches neuves
+  **15 017 → 15 024 (+0,05 %)**. Vingt références réemployées, aucune
+  rejouée ; aucune seconde suite complète. Créneau dépassé par les validations.
+  Bruts `C:/Users/msics/donjon/artifacts/aide-240/` ;
+  [rapport 240](taches/rapport-codex-240-aide-stable.md).
+
 - **Branche `codex-renonce-attente`, fusionnée**, lot **239**, base
   intégration `3c0e1ca` (236 inclus). `_classer` compte `renonce`, dont
   l'obstacle cru tient encore, comme un recours sans moyen admissible :

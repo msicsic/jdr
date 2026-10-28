@@ -15,6 +15,51 @@ from tests.test_tensions import placer, recharger
 
 
 class ContratEngagementTests(unittest.TestCase):
+    def test_aide_attendue_autre_besoin_revalidation_et_abandon_entendu(self):
+        from donjon import echanges
+        from tests.test_gardien_detresse import GardienDetresseTests
+        from donjon.planification import _MEMOIRE, _GRAPHES
+        m = GardienDetresseTests().lumiere()
+        with patch.object(Monde, 'd20', return_value=20):
+            d.choisir(m, 'bram', m.data['minutes'])
+            demande = copy.deepcopy(lire(m, 'bram')['intention'])
+            self.assertEqual(demande['plan'][0]['operation'], 'confier')
+            self.assertTrue(echanges.executer(m, 'bram', demande['plan'][0], []))
+        for _ in range(3):
+            m = recharger(m)
+            _MEMOIRE.clear()
+            _GRAPHES.clear()
+            d.choisir(m, 'bram', m.data['minutes'])
+            i = lire(m, 'bram')['intention']
+            self.assertEqual(i['but'], demande['but'])
+            self.assertEqual(i['plan'], [])
+            self.assertEqual(agendas.contrat_intention(m, 'bram')['phase'], 'attendre')
+            self.assertFalse(m.objets['chandelle']['allume'])
+            self.assertEqual(rendu(m), rendu(recharger(m)))
+        n = recharger(m.copier())
+        executer(m, 2)
+        for _ in range(2):
+            executer(n, 1)
+            n = recharger(n)
+        self.assertEqual(m.data, n.data)
+        self.assertEqual(rendu(m), rendu(n))
+        self.assertTrue(m.objets['chandelle']['allume'])
+        # Une annulation reçue retire bien la cause de l'attente. La lecture
+        # de l'intention privée de Josse n'est pas nécessaire pour la terminer.
+        m = GardienDetresseTests().lumiere()
+        with patch.object(Monde, 'd20', return_value=20):
+            d.choisir(m, 'bram', m.data['minutes'])
+            echanges.executer(m, 'bram', lire(m, 'bram')['intention']['plan'][0], [])
+        d.choisir(m, 'bram', m.data['minutes'])
+        condition = {'objet': 'chandelle', 'allume': True}
+        echanges.retenir_abandon(m, 'josse', {'pour': 'bram', 'condition': condition})
+        m = recharger(m)
+        d.choisir(m, 'bram', m.data['minutes'])
+        self.assertNotIn('chandelle', lire(m, 'bram')['aides_attendues'])
+        i = lire(m, 'bram')['intention']
+        self.assertFalse(i and i['but'] == demande['but'] and not i['plan'])
+        self.assertEqual(rendu(m), rendu(recharger(m)))
+
     def test_relais_1985_de_211_ne_perd_pas_un_secours_sur_un_eveil(self):
         from donjon import banc_pnj
         creer = banc_pnj.creer
