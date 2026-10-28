@@ -47,16 +47,21 @@ sept tests importés, ensuite exclus de la découverte). Huit fichiers en
 et d'autorité consignées séparément. Au plus deux processus, priorité réduite.
 Ni suite complète ni Luna. `git diff --check` propre.
 
-**Empreintes 2 h en cours**, cinq scénarios (Relais, mine, auberge, crue,
-hameau) × quatre graines. Référence figée à **e9a8dfe**, l'`origin/integration`
-du départ, même si la référence distante avance ensuite ; cache partagé,
-aucune référence déjà disponible rejouée. Calcul détaché, deux processus
-réduits ; résultat à lire avant de déclarer la neutralité validée.
-Bruts : `C:/Users/msics/donjon/artifacts/observateur-258/`, fin attendue
-`fin.json`.
+**Empreintes validées : 20/20 paires 2 h identiques**, cinq scénarios
+(Relais, mine, auberge, crue, hameau) × quatre graines 1985/7/42/2024.
+Référence **e9a8dfe**, l'`origin/integration` du départ, branche **9149386** :
+chroniques, mesures, empreintes et hash de l'état final complet identiques
+nuit par nuit ; divergence nulle, zéro plantage. Avis non justifiés **1 → 1**
+(crue 7), entrées à expliquer **41 → 41**, aucun accroissement. Vingt
+références exactes absentes calculées et rangées une fois, aucune rejouée ;
+vingt nuits de branche également rangées. Calcul détaché terminé en
+**226,699 s**, deux processus réduits au plus, `fin.json` code **0**.
+Aucun calcul actif. Bruts :
+`C:/Users/msics/donjon/artifacts/observateur-258/` (`empreintes.json`,
+`fin.json`, journaux et résultats des tests ciblés).
 
 **Limites** : coût du prochain sous-but, aucune garantie de réussite complète
-ni d'adhésion réelle ; neutralité globale non déclarée avant les empreintes.
+ni d'adhésion réelle ; neutralité vérifiée sur les vingt paires ci-dessus.
 L'appelant doit expliciter ce qu'il sait partagé ou prévoit de transmettre ;
 aucune inférence automatique d'un savoir partagé. Le catalogue structurel et
 la carte suivent le contrat actuel du planificateur : cette projection

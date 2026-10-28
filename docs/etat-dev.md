@@ -14,10 +14,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   verts / onze fichiers**, dont huit nouveaux : deux charges du 257,
   variations privées sans effet sur projection/devis, départ et clé crus avec
   effet, pureté et monde/rendu/scène conservés après recharge. Ni suite
-  complète ni Luna. **Empreintes 2 h détachées en cours**, cinq scénarios ×
-  quatre graines, référence de départ figée à `e9a8dfe` ; neutralité globale
-  non encore validée. Fin attendue :
-  `C:/Users/msics/donjon/artifacts/observateur-258/fin.json`.
+  complète ni Luna. **Empreintes validées : 20/20 paires 2 h identiques**,
+  cinq scénarios × quatre graines, référence `e9a8dfe`, branche `9149386` :
+  chroniques, mesures, empreintes et hash de l'état final complet identiques.
+  Zéro plantage, avis non justifiés **1 → 1** (crue 7), à expliquer
+  **41 → 41**. Vingt références absentes calculées et mises en cache une
+  fois, aucune rejouée. Calcul détaché terminé en **226,699 s**, deux
+  processus réduits au plus, `fin.json` code 0 ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/observateur-258/`.
   Limite : catalogue structurel/carte communs au planificateur, sans nouvelle
   mémoire des transformations cachées ; coût du prochain sous-but seulement.
   [Rapport 258](taches/rapport-codex-258-devis-observateur.md).
