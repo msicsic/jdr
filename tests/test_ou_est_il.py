@@ -44,7 +44,15 @@ class LocalisationDemandeeTests(unittest.TestCase):
         questions = [s for s in textes if 'Aubin demande à Brune où se trouve Gorm' in s]
         self.assertEqual(len(questions), 1)
         self.assertTrue(any('Aubin' in s and 'passe dans : Salle des vannes' in s for s in textes))
-        self.assertTrue(any('Aubin retrouve Gorm' in s for s in textes))
+        # Le rendez-vous vocal peut être rompu pour une urgence, puis le
+        # contact obtenu par le trajet et la demande ordinaires. Ne pas
+        # exiger une annonce de rendez-vous qui n'est plus en cours.
+        self.assertIn("Aubin répond : « Je ne peux plus t'attendre. »", textes)
+        self.assertIn('Gorm appelle Aubin et lui donne une part des vivres du refuge.', textes)
+        self.assertEqual(m.objets['aubin']['lieu'], m.objets['marchand']['lieu'])
+        for qui in ('aubin', 'marchand'):
+            self.assertIsNone(lire(m, qui)['rejoint'])
+            self.assertIsNone(lire(m, qui)['rejoindre'])
         self.assertTrue(any(s['operation'] == 'enqueter_lieu' and s['de'] == 'brune'
                             for s in lire(m, 'aubin')['refus']))
         self.recharge(m)

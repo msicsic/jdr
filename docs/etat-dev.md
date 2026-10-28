@@ -4,6 +4,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-rendez-vous-tenu`, non fusionnée**, lot **230**, base
+  `1e09926` de l'intégration : une invitation à venir suppose de rester ;
+  les plans de départ sans rapport avec l'interlocuteur cèdent aussi au
+  rendez-vous. Seul un palier strictement supérieur autorise la rupture,
+  annoncée par l'ouïe et retenue si entendue. Défense immédiate et alerte
+  raccordées ; voyageur attaché au lieu convenu jusqu'au contact, au constat
+  vide ou à la rupture entendue, sans rappel par simple délai/chemin coupé.
+  Scène historique : six invitations de Mireille dont cinq à Mathurine
+  **→ une**, trois voix **→ deux**, oracle historique inchangé.
+  Défaut déjà visible sur `bd45f65` : Gorm invite Maël à 35, part à 292
+  (hameau 7/42/2024, chroniques en cache). **105 ciblés consolidés verts**,
+  neuf fichiers dont douze nouveaux cas : monde/ouïe/rendu rechargés et laps découpés.
+  **20 paires de 4 h contre `1e09926`**, références manquantes rangées une
+  fois : zéro plantage/usurpation, deux suspects 219 intégralement identiques ;
+  préemptions **87 → 70**, à expliquer **85 → 70**, dérives **241 → 216**.
+  Passe finale : vingt références relues du cache ; état final, chronique et
+  avis identiques à la première mesure de branche, moteur figé par empreintes.
+  Appels **11 → 12**, réponses **37 → 39**, retrouvailles **8 → 5** ; aucune
+  nouvelle alerte de répétition/alternance par nuit/PNJ. Nouvelle alerte
+  d'attente de devoir de Gorm en crue 7 (**fige_presse 3 → 4**), sans attente
+  de rendez-vous active au relevé final ; limite conservée, pas de garantie
+  générale des boucles ni des repas de Mathurine. Rupture non entendue ou
+  départ muet du joueur : lieu vide à constater, aucun savoir distant.
+  Suite complète unique : **2 508 tests / 290 fichiers, 2 530,264 s**, sept
+  échecs et une erreur bruts ; cinq prémisses/oracles repris verts, **trois
+  préexistants reproduits sur `1e09926`** (Lucien, deux MiMo), suite non verte.
+  Derniers ajustements pendant la passe, puis neuf fichiers repris ; aucune
+  seconde suite complète. Créneau dépassé par les validations. Aucun Luna ; bruts
+  `C:/Users/msics/donjon/artifacts/rendez-vous-230/` ;
+  [rapport 230](taches/rapport-codex-230-rendez-vous-tenu.md).
+
 - **Branche `codex-compteur-services`, fusionnée**, lot **227**, départ
   `b8e433d` vérifié, moteur identique à `881db69` : outils seulement, aucun
   `donjon/` ni Luna modifié. Les pertes d'états payés distinguent le geste du
