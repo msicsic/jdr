@@ -5,40 +5,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-ceder-outil-b`, non fusionnée**, lot **228**, reprise du
-  **202** (`74a4bc4`), intégration `bc498ed` fusionnée dans `da5fe79`.
-  **Non validée pour intégration : S hameau −14,2 % et défaut de pureté exposés par 202.**
-  Conservation des capacités marginales du 202 ; recours sans offre acceptable
-  retenu durablement avec les entrées du jugement, sans expiration par délai.
-  Seul `pnj_propositions.py` change dans le moteur après fusion ; fichiers
-  voisins et `echanges.tenu` intacts, aucun Luna. Captures 208 d'Odon et Rémy,
-  invalidations et monde/rendu rechargés ; laps réel bloc/découpé contrôlé.
-  Cache dans `attentes_bornees`, publication après choix ou abandon si échec,
-  sans nouvelle écriture pendant l'évaluation ; plan et quantités inclus.
-  **22 ciblés cession/reprise verts**, cinq ciblés graphes/ressources verts.
-  Le test 202 rejouait le passé sans avancer l'horloge : appel corrigé,
-  assertions strictes conservées. Mine fixe 1985/4 h : référence `b6d610b`
-  et base fusionnée **601 recherches / 9 189 nœuds**, correctif final
-  identique ; surcoût 208 non reproduit après les intégrations.
-  **20 paires finales × 4 h**, vingt références cachées : suspects **4→4**,
-  à expliquer **59→53**, cycles **523→522**, préemptions **67→70** ; zéro
-  plantage/usurpation, sans recours nul partout. Chroniques 20/20 identiques
-  après retrait des compteurs corporels bruts du relevé. Attribution hameau
-  42/2024 : chroniques identiques avec/sans le seul invariant 228 ; baisse de
-  richesse antérieure au cache. **Suite unique achevée : 2 508 tests / 290
-  fichiers, sept échecs, zéro erreur, 2 081,118 s** ; première tentative
-  interrompue, derniers raccords repris en ciblés après démarrage de la suite,
-  aucune seconde suite complète. Deux MiMo historiques, trois écarts déjà
-  reproduits sur `b6d610b` (Lucien/lanterne, huile à sa réserve, troisième voix
-  sans fuite d'identité). Achat à une pièce sous-compensé (8,4 contre 0,909),
-  et pureté : `services_proteges` clôt une trace pendant `_entrees_communes`
-  à 60 min (Brune), vert sur intégration, rouge sur 202 et livraison.
-  Ces deux derniers écarts sont identiques sans/avec cache négatif.
-  Ancien constat 202 reproduit : lanterne 400→47 à 480, huile inchangée,
-  allumages 436/438 avec extinction ; monde/rendu rechargés stables.
-  Limite 202 conservée :
-  rallumage après extinction d'une autre flamme non garanti ; aucune garantie
-  générale d'absence de boucle. Deux travailleurs réduits au plus, aucune clé
-  de signature. Bruts `C:/Users/msics/donjon/artifacts/ceder-228/` ;
+  **202** autorisée le 28 octobre. Intégration fusionnée jusqu'à **`3c0e1ca`**,
+  lots 232/236 inclus ; code figé `6652ed2`, correctif `e8feb8f`.
+  Une capacité marginale cédée exige une compensation réelle : doublon conservé,
+  remplacement acquis ou valeur suffisante selon le cédant. Achat sous-compensé
+  **8,4 contre 0,909 refusé** ; prix compensant annoncé et honoré. Pas d'exception
+  par objet ; prêts et réserves gardent leurs contrôles. Cache négatif à entrées
+  crues égales conservé, anciens refus rejugés sous le nouveau contrat.
+  `echanges.tenu`, `plan_recours` et `deliberation.choisir` inchangés par 228 ;
+  pureté intégrée par 232, aucun contournement.
+  Analyse préalable hameau 1985/42 : service d'allumage conservé ; trois offres
+  de clé à une pièce (12 contre 5,174) et torche (12 contre 4,840), sans doublon,
+  réellement sous-compensées : refus maintenus. Captures rechargées, vente
+  compensée, remplacement, rendu et état testés. **70 ciblés puis 15 verts**.
+  **Vingt paires de 4 h** contre `3c0e1ca`, références calculées une fois et
+  cachées : suspects **2→2**, aucune hausse par nuit ; cycles **507→520**,
+  préemptions **58→54**, à expliquer **87→84**, zéro plantage/usurpation.
+  **S hameau 35→35,75**, nuits **36/35/28/44** dans l'étendue de référence
+  **[26 ; 44]** ; F/D **8/2,625 inchangés**. Sans recours nul hors crue,
+  crue **13,75→15 PNJ·min/nuit**. Mine fixe 1985/4 h :
+  **910→887 recherches, 10 925→9 959 nœuds**, sans hausse de coût.
+  **Non validée pour intégration.**
+  **Suite complète unique : 2 558 tests / 296 fichiers, 8 échecs, 2 erreurs,
+  2 460,937 s ; suite non verte, intégration non validée.** Trois défauts déjà sur intégration (deux MiMo, torche hameau), trois hérités
+  de 202 (empreinte auberge, demande de lampe, prix de clé du test 236), quatre
+  écarts de reprise (crochetage/ouïe/rejeu : marchés tentés avant la faute).
+  Comparaisons ciblées 82 et 46 tests sur copies ; oracles voisins intacts,
+  attentes de trajectoire à arbitrer. Pureté verte avec 232. Aucun Luna ; deux travailleurs réduits
+  au plus, aucune clé de signature. Bruts
+  `C:/Users/msics/donjon/artifacts/ceder-228/reprise/` ;
   [rapport 228](taches/rapport-codex-228-ceder-outil-reprise.md).
 - **Branche `codex-navettes-garde`, fusionnée**, lot **236**, base
   `ecbf1a1`, diagnostic `6bed2a0`, correctif `3f217d0`. Extension autorisée à
