@@ -58,8 +58,15 @@ class VerifierTests(unittest.TestCase):
         croire(m, "lucien", "josse", "lieu", None, "savoir", salle=None, case=None)
         m.objets["bidon_huile"]["charges"] = 0
         croire(m, "lucien", "bidon_huile", "etat", {"disponible": False}, "savoir")
-        placer(m, "josse", "filon", (3, 3))
+        placer(m, "josse", "baraquement", (3, 2))
+        # La recherche et le refus de la lampe, pas la mobilité du fournisseur :
+        # il reste occupé à son poste pendant les quinze minutes observées.
+        lire(m, "josse")["libre"] = 15 * 600
         m.objets["lampe_josse"].update(allume=True, combustible=720)
+        # La lampe est effectivement vue avant la recherche : le test ne
+        # dépend plus de l'arrivée fortuite de Josse dans le regard de Lucien.
+        from tests.support import regarder
+        regarder(m, "lucien", "josse")
         for id in ("remy", "lucien", "bram"):
             lire(m, id)["besoins"]["securite"] = 70.0
         # Ses buts se choisissent aussi entre deux minutes (``deliberation-evenements``) : on regarde
@@ -159,6 +166,9 @@ class EauTests(unittest.TestCase):
 
     def test_on_ne_descend_pas_ou_l_eau_va_noyer_et_on_ne_s_y_chauffe_pas(self):
         m = self.scene()
+        # Le recours positif part du refuge après observation de la crue ;
+        # une évacuation antérieure ne doit pas supprimer le trajet à éprouver.
+        placer(m, "ilse", "antichambre", (1, 3))
         # La ronde d'Aubin à la salle des vannes, le brasero de la conduite pour Ilse transie.
         self.assertIsNone(planifier_pulsion(m, "aubin", {"lieu": "crypte", "periode": 49}))
         lire(m, "ilse")["besoins"]["chaleur"] = 90.0

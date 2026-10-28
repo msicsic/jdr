@@ -1074,13 +1074,40 @@ def tenu(monde, id, condition, depuis=None):
     from .deliberation import satisfaite
     if "rendre" in condition:
         return satisfaite(monde, id, condition)  # Le prêt est clos : il le sait de sa main.
-    if "servir" in condition or "remettre" in condition or not satisfaite(monde, id, condition):
+    if "servir" in condition or "remettre" in condition:
+        return False  # Ces paroles se soldent au geste de remise, pas au constat.
+    e = lire(monde, id)
+    attribut = "etat" if "allume" in condition else "lieu" if "lieu" in condition else "verrouillee"
+    preuve = e["croyances"].get(condition.get("objet"), {}).get(attribut)
+    nouvelle = False
+    if depuis is not None and any(not x.get("annule") and x["condition"] == condition
+                                 and x["minute"] == depuis for x in agendas.en_cours(monde, id)):
+        # Ce premier jugement est après la parole. Son point de comparaison
+        # survit à une recharge et départage les faits d'une même minute sans
+        # inventer l'instant de perception. Une mémoire oubliée ne fait pas
+        # preuve : le nouveau suivi repart seulement de ce qu'il croit alors.
+        suivi = None
+        for s in reversed(e["memoire"]):
+            if s.get("condition") != condition:
+                continue
+            if s["type"] in ("engagement_pris", "engagement_tenu", "engagement_abandonne"):
+                break  # Une autre parole identique n'hérite pas de cette preuve.
+            if s["type"] == "suivi_engagement" and s["depuis"] == depuis:
+                suivi = s
+                break
+        if suivi is None:
+            memoriser(monde, id, {"type": "suivi_engagement", "depuis": depuis,
+                                  "condition": condition, "initiale": preuve})
+        else:
+            nouvelle = bool(preuve and preuve != suivi["initiale"]
+                            and preuve["source"] in ("vu", "essai"))
+    if not satisfaite(monde, id, condition):
         return False
     # Les croyances sont datées à la minute : dans la minute même de la parole, rien ne dit qu'il a vu
     # après l'avoir donnée (il choisit désormais entre deux minutes, ``deliberation.choisir``).
-    nouvelles = lire(monde, id)["croyances"].get(condition.get("objet"), {}).values()
     faite = (condition.get("objet") == id and "lieu" in condition
-             or depuis is None or any(c["minute"] > depuis for c in nouvelles))
+             or depuis is None or nouvelle
+             or bool(preuve and preuve["minute"] > depuis and preuve["source"] in ("vu", "essai")))
     if faite and depuis is not None:
         # Le constat qui clôt la parole conserve son résultat, hors de la
         # mémoire bornée. Un devis sans engagement n'inscrit rien.

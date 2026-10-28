@@ -78,6 +78,10 @@ class RecoursTests(unittest.TestCase):
         lire(m, "mathe")["pulsions"] = []
         lire(m, "odon")["besoins"]["faim"] = 95
         m.data["finances_pnj"]["odon"] = 5  # Il peut remplir la condition monétaire annoncée.
+        # Il connaît ses fonds, pas l'encaisse d'autrui : cette scène exerce
+        # le repas acheté, sans chasse à l'argent après le repas.
+        for attributs in lire(m, "odon")["croyances"].values():
+            attributs.pop("pieces", None)
         for o, x in m.objets.items():
             if x["type"] == "nourriture" and o != "vivres":
                 x["portions"] = 0

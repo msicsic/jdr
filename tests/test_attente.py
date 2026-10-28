@@ -69,8 +69,17 @@ class AttenteTests(unittest.TestCase):
     @patch("donjon.agendas._naissances", return_value=None)
     def test_sans_rien_qui_l_interrompe_le_meme_monde_qu_un_bloc(self, _naissance):
         # Le joueur, seul à la galerie, n'entend que des pas en dessous : rien ne l'interrompt.
-        en_bloc, _ = faire(relais(), proposition("attendre"))
-        par_tranches, texte, duree = attendre(relais(), "attendre 5 min")
+        def sans_interruption():
+            from tests.support import calme
+            m = relais()
+            calme(m, *pnjs(m))
+            # Aucun besoin ni mission échue ne provoque de dialogue pendant
+            # l'attente. Le silence est une prémisse, pas un effet des bruits.
+            for id in pnjs(m):
+                m.objets[id]["profil"]["agendas"] = []
+            return m
+        en_bloc, _ = faire(sans_interruption(), proposition("attendre"))
+        par_tranches, texte, duree = attendre(sans_interruption(), "attendre 5 min")
         self.assertEqual(duree, 3000)
         self.assertEqual(texte.splitlines()[0], "Tu attends 5 minutes.")
         self.assertNotIn("cesses d'attendre", texte)

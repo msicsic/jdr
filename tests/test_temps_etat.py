@@ -257,7 +257,11 @@ def gorm_part_vers_l_ouest():
     m.objets["lanterne"]["allume"] = False
     for n, id in enumerate(("brune", "ilse", "aubin")):
         placer(m, id, "crypte", (2 + n, 3))
-    intention(m, "marchand", plan("aller", lieu="echoppe"), but="rejoindre", motif="devoir")
+    # Le trajet du témoin doit réellement rester dû lorsqu'un son l'éveille.
+    # Un simple plan injecté de « devoir » sans charge peut être abandonné.
+    # Le réflexe déclaré garde sa priorité jusqu'à son arrivée (choix commun).
+    intention(m, "marchand", plan("aller", lieu="echoppe"), but="alerte", motif="alerte")
+    lire(m, "marchand")["intention"]["but"]["lieu"] = "echoppe"
     esprit(m, "marchand")["libre"] = instant(m) + 100
     return recharger(m)
 

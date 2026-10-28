@@ -14,7 +14,7 @@ from donjon.esprits import croire, lire, percevoir_tous
 from donjon.geometrie import cases
 from donjon.monde import Monde
 from donjon.rendu import regarder
-from donjon.temps import ecouler
+from donjon.temps import ecouler, instant
 from tests.support import calme
 from tests.test_tensions import placer, recharger
 
@@ -73,6 +73,67 @@ def passages(m, id, depuis=0):
 
 
 class RecoursPrioritaireTests(unittest.TestCase):
+    def aide_historique(self, minute):
+        fichier = Path(__file__).parent / 'data' / f'aide-240-hameau-1985-{minute}.json.gz'
+        return recharger(Monde(json.loads(gzip.decompress(fichier.read_bytes()))))
+
+    def test_aide_historique_adoptee_independante_du_classement(self):
+        from donjon import agendas, deliberation as d
+        for etat in ('attente', 'presse'):
+            m = self.aide_historique(544)
+            e = lire(m, 'marchand')
+            self.assertEqual(instant(m), 326556)
+            self.assertEqual(e['intention']['plan'], [])
+            self.assertEqual(agendas.contrat_intention(m, 'marchand')['phase'], 'attendre')
+            but = dict(e['intention']['but'])
+            e['urgences']['chaleur']['etat'] = etat
+            for _ in range(3):
+                d.choisir(m, 'marchand', m.data['minutes'])
+                self.assertIsNotNone(lire(m, 'marchand')['intention'])
+                self.assertEqual(lire(m, 'marchand')['intention']['but'], but)
+                self.assertEqual(lire(m, 'marchand')['intention']['plan'], [])
+                self.assertEqual(agendas.contrat_intention(m, 'marchand')['phase'], 'attendre')
+                self.assertFalse(m.objets['brasero']['allume'])
+                n = recharger(m)
+                self.assertEqual(m.data, n.data)
+                self.assertEqual(vue(m), vue(n))
+                m = n
+        # Sans attente adoptée ni promesse connue, la seule fin d'un plan ne
+        # suffit pas à ouvrir une aide.
+        for phase in ('attendre', 'continuer', None):
+            m = self.aide_historique(544)
+            e = lire(m, 'marchand')
+            e['aides_attendues'].clear()
+            if phase:
+                e['contrat_intention']['contrat']['phase'] = phase
+            else:
+                e.pop('contrat_intention')
+            self.assertIsNone(d._plan_froid(m, 'marchand'))
+
+    def test_aide_capture_541_meme_monde_et_vue_laps_decoupes(self):
+        from donjon import deliberation as d
+        abandons = []
+        choisir = d.choisir
+
+        def observer(m, id, minute):
+            avant = lire(m, id)['intention']
+            resultat = choisir(m, id, minute)
+            apres = lire(m, id)['intention']
+            if id == 'marchand' and avant and avant['motif'] == 'chaleur' and not avant['plan']:
+                if not apres or apres['motif'] != 'chaleur':
+                    abandons.append((instant(m), avant, apres))
+            return resultat
+
+        with patch.object(d, 'choisir', observer):
+            a = suite(self.aide_historique(541), False, 5)
+            b = suite(self.aide_historique(541), True, 5)
+        self.assertEqual(abandons, [])
+        self.assertEqual(a.data, b.data)
+        self.assertEqual(vue(a), vue(b))
+        self.assertEqual(vue(a), vue(recharger(a)))
+        self.assertEqual(lire(a, 'marchand')['intention']['motif'], 'chaleur')
+        self.assertTrue(lire(a, 'marchand')['aides_attendues'])
+
     @patch("donjon.agendas._naissances", return_value=None)
     def test_capture_reelle_sans_navette_meme_monde_et_vue_decoupes(self, _naissance):
         # Comparer le maintien de l'abri historique, sans projets nouveaux d'autrui.

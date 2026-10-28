@@ -15,6 +15,51 @@ from tests.test_tensions import placer, recharger
 
 
 class ContratEngagementTests(unittest.TestCase):
+    def test_aide_attendue_autre_besoin_revalidation_et_abandon_entendu(self):
+        from donjon import echanges
+        from tests.test_gardien_detresse import GardienDetresseTests
+        from donjon.planification import _MEMOIRE, _GRAPHES
+        m = GardienDetresseTests().lumiere()
+        with patch.object(Monde, 'd20', return_value=20):
+            d.choisir(m, 'bram', m.data['minutes'])
+            demande = copy.deepcopy(lire(m, 'bram')['intention'])
+            self.assertEqual(demande['plan'][0]['operation'], 'confier')
+            self.assertTrue(echanges.executer(m, 'bram', demande['plan'][0], []))
+        for _ in range(3):
+            m = recharger(m)
+            _MEMOIRE.clear()
+            _GRAPHES.clear()
+            d.choisir(m, 'bram', m.data['minutes'])
+            i = lire(m, 'bram')['intention']
+            self.assertEqual(i['but'], demande['but'])
+            self.assertEqual(i['plan'], [])
+            self.assertEqual(agendas.contrat_intention(m, 'bram')['phase'], 'attendre')
+            self.assertFalse(m.objets['chandelle']['allume'])
+            self.assertEqual(rendu(m), rendu(recharger(m)))
+        n = recharger(m.copier())
+        executer(m, 2)
+        for _ in range(2):
+            executer(n, 1)
+            n = recharger(n)
+        self.assertEqual(m.data, n.data)
+        self.assertEqual(rendu(m), rendu(n))
+        self.assertTrue(m.objets['chandelle']['allume'])
+        # Une annulation reçue retire bien la cause de l'attente. La lecture
+        # de l'intention privée de Josse n'est pas nécessaire pour la terminer.
+        m = GardienDetresseTests().lumiere()
+        with patch.object(Monde, 'd20', return_value=20):
+            d.choisir(m, 'bram', m.data['minutes'])
+            echanges.executer(m, 'bram', lire(m, 'bram')['intention']['plan'][0], [])
+        d.choisir(m, 'bram', m.data['minutes'])
+        condition = {'objet': 'chandelle', 'allume': True}
+        echanges.retenir_abandon(m, 'josse', {'pour': 'bram', 'condition': condition})
+        m = recharger(m)
+        d.choisir(m, 'bram', m.data['minutes'])
+        self.assertNotIn('chandelle', lire(m, 'bram')['aides_attendues'])
+        i = lire(m, 'bram')['intention']
+        self.assertFalse(i and i['but'] == demande['but'] and not i['plan'])
+        self.assertEqual(rendu(m), rendu(recharger(m)))
+
     def test_relais_1985_de_211_ne_perd_pas_un_secours_sur_un_eveil(self):
         from donjon import banc_pnj
         creer = banc_pnj.creer
@@ -73,11 +118,22 @@ class ContratEngagementTests(unittest.TestCase):
     def test_captures_209_reelles_recharge_et_laps_decoupes(self):
         for nom, auteur, minutes in (('mine-42', 'remy', 4), ('auberge-1985', 'mireille', 10)):
             with self.subTest(capture=nom):
-                fichier = Path(__file__).parent / 'data' / f'engagement-213-{nom}.json.gz'
+                # Mine : checkpoint réel sur 01ce467 immédiatement après le
+                # choix de Rémy (725 dixièmes). Le contrat de ce test est la
+                # persistance de l'aide adoptée, pas sa naissance fortuite
+                # depuis le départ de la nuit. L'auberge exerce aussi sa naissance.
+                capture = 'engagement-233-mine-42-adopte' if nom == 'mine-42' else f'engagement-213-{nom}'
+                fichier = Path(__file__).parent / 'data' / f'{capture}.json.gz'
                 m = Monde(json.loads(gzip.decompress(fichier.read_bytes())))
                 m = recharger(m)
                 n = recharger(m.copier())
                 demandes = []
+                initial = agendas.contrat_intention(m, auteur)
+                if nom == 'mine-42':
+                    self.assertEqual(m.data['minutes'] * 600 + m.data.get('dixiemes', 0), 725)
+                    self.assertEqual(initial['demande']['raison'], {'qui': 'odon', 'besoin': 'faim'})
+                    self.assertEqual(lire(m, auteur)['intention']['motif'], 'empathie')
+                    demandes.append(copy.deepcopy(initial['demande']))
                 choisir = d.choisir
 
                 def observer(monde, id, minute):

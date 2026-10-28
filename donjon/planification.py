@@ -385,17 +385,23 @@ class Vue:
         self._contexte_parts = None
         # Un recours ordinaire épuisé ouvre l'aide sur place ; la garde ne se lève pas.
         from .deliberation import attentes, _lieux_gardes
-        intention = lire(monde, id)["intention"]
-        en_cours = ([intention["motif"]] if intention and any(
-            x["operation"] == "confier" for x in intention["plan"]) else [])
-        self.detresses = tuple(sorted(set(attentes(monde, id)) | set(en_cours)))
-        self.poste = self.objets[id]["lieu"]
-        self.poste_garde = self.poste in self.gardes and self.poste in _lieux_gardes(monde, id, siens=True)
         from .echanges import ENGAGEMENT_MAX
         self.aides = [(x["qui"], x) for x in lire(monde, id)["aides_attendues"].values()
                       if monde.data["minutes"] - x["minute"] <= ENGAGEMENT_MAX
                       and not se_mefie(monde, id, x["qui"])
                       and not refus_retenu(monde, id, x["qui"], ("confier",), x["condition"]["objet"])]
+        intention = lire(monde, id)["intention"]
+        # L'aide acceptée reste une cause d'ouverture quand son bénéficiaire
+        # attend sa réalisation, même si l'adoption a reclassé le besoin
+        # « presse ». Une phase « attendre » ou un plan vide seuls ne prouvent
+        # pas un manque de moyens (une garde tenue n'en a pas besoin).
+        # Moyens et refus restent revalidés ; aucun ancien plan n'est réinstallé.
+        en_cours = ([intention["motif"]] if intention and (
+            not intention["plan"] and self.aides or any(
+            x["operation"] == "confier" for x in intention["plan"])) else [])
+        self.detresses = tuple(sorted(set(attentes(monde, id)) | set(en_cours)))
+        self.poste = self.objets[id]["lieu"]
+        self.poste_garde = self.poste in self.gardes and self.poste in _lieux_gardes(monde, id, siens=True)
 
     @property
     def emploie_lumiere(self):
