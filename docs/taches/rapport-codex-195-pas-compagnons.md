@@ -1,10 +1,10 @@
-# Lot 195 — preuve d'accomplissement après 224, branche non fusionnable
+# Lot 195 — preuve d'accomplissement après 224 et arbitrage des attentes
 
 28 octobre 2026. **346c1aa fusionné par 11f728a** ; extension autorisée à
 `echanges.tenu` en plus de `ouie.py`. Aucun autre fichier du moteur modifié,
-aucun Luna, deux calculs réduits au maximum. Bruts exclusivement dans
-`C:/Users/msics/donjon/artifacts/pas-195/extension-346/` ; historique sous
-`reprise-bd45/`, références exactes sous `pas-195/references/`.
+aucun Luna, deux calculs réduits au maximum. Bruts exclusivement sous
+`C:/Users/msics/donjon/artifacts/pas-195/` : `extension-346/`, `arbitrage/`,
+historique `reprise-bd45/`, références exactes `references/`.
 
 **Correction.** L'ouïe attribue un bruit ordinaire compatible avec une présence
 crue mobile sans confirmer son déplacement ; attribution/méfiance communes,
@@ -46,25 +46,42 @@ Vols vus/entendus nuls ; richesse non uniformément améliorée. Résiduel : Mir
 auberge 7, servir Mathurine, **111690/111725/111910**. Aucun retour Gorm vers
 servir Ilse au Relais 2024 ; Brune hameau 2024 : zéro alerte dans les deux variantes.
 
-**Suite complète finale : 2 497 tests / 289 fichiers, 1 948,617 s, 13 échecs,
-une erreur, aucun ignoré**. Une seule passe achevée ; une passe partielle a été
-interrompue pour corriger la borne. Rejeux contrôlés sur `346c1aa` : **quatre
-échecs préexistants** (MiMo ×2, troisième voix, ancienne attente de perte de
-torche). **Neuf échecs et l'erreur propres au candidat**, assertions conservées.
+**Arbitrage des tests.** La suite précédente (2 497 tests, 13 échecs et une
+erreur) isolait quatre préexistants et neuf échecs/une erreur du candidat.
+Sur autorisation, **huit échecs et l'erreur** sont corrigés par des prémisses
+explicites de scène : rencontre localisée, silence, absence de dette concurrente,
+corps déjà rassasiés, départ du trajet, travail réellement en attente.
+**273 assertions identiques par AST**, huit fichiers / **67 tests ciblés verts**.
+Classement de chaque cas et détail des prémisses dans
+[l'annexe d'arbitrage](rapport-codex-195-arbitrage.md). Moteur inchangé depuis
+`e7aab68` ; banc final ci-dessus réutilisé, aucune référence relancée.
 
-**Restants**, détaillés avec mondes/rendus dans `diagnostic-extension.md` :
-dialogue interrompant l'attente ; ligne « retrouve Gorm » ; combustible consommé ;
-offre d'argent après repas payé ; agenda concurrent préemptant l'abri ; faim
-satisfaite avant le renoncement, intention ensuite nulle ; Ilse déjà au poêle
-haut, donc sans trajet à refaire ; croyance de Mireille actualisée à « charge
-satisfaite ». Plusieurs attentes figent une ancienne trajectoire ; aucune
-compensation d'inquiétude ni neutralisation des agendas appliquée.
+**Suite après arbitrage : 2 497 tests / 289 fichiers, 2 091,515 s, cinq échecs,
+zéro erreur, zéro ignoré**, une passe complète après les dernières prémisses,
+deux travailleurs réduits. Exactement les quatre préexistants et le défaut
+de placement ci-dessous ; aucune autre régression. Bruts `arbitrage/suite.json`.
+
+**Origine des préexistants vérifiée sur sources exactes** : troisième voix
+apparue à la fusion **221, d7dbf1a** ; attente historique de perte de torche
+à la fusion **224, 346c1aa**, par interaction avec 221 (les deux tests passent
+sur la branche 224 seule `0ae525f`). MiMo ×2 déjà rouge sur `bd45f65`.
 
 **Placement hors périmètre.** Une attitude périmée bloque le recours d'abri.
 Proposition non appliquée dans `signes.place`, essayée en mémoire : 21 tests
 verts, Ilse rejoint Brune, mais l'assertion particulière sur Aubin reste rouge.
-Ce n'est pas une correction validée des anciens tests ; contrat et attentes
-restent à arbitrer hors de `ouie.py` / `echanges.tenu`. **Ne pas fusionner**.
+Ce n'est pas une correction validée des anciens tests. **Défaut laissé rouge,
+lot séparé à créer**, cas/fonctions/contrat proposés dans l'annexe ; aucun patch
+de placement appliqué. Les quatre préexistants restent également rouges.
+
+**Richesse du hameau : perte réelle, pas retrait des sons dans le compteur.**
+S ne compte ni bruits ni retournements : 162→108 signatures sur quatre nuits,
+soit **40,5→27**. Décomposition : demandes −28, offres −10, promesses −10,
+travail payé/appels/services −3 chacun, disputes −2, avis +5. Les échanges
+acceptés passent **16→9**, tâches faites **4→2**, prêts/rendus **1/1→0/0** ;
+des interactions réelles disparaissent avec les perceptions fortuites.
+Les occurrences de travail payé montent néanmoins **20→26**. Différences
+intégrales et exemples datés dans `arbitrage/richesse-hameau.json` et l'annexe.
+Aucune garantie de richesse préservée ; les suspects ne montent nulle part.
 
 **Limites.** Checkpoint oublié ou croyance inchangée dans la même minute : preuve
 propre ultérieure nécessaire. Compteur non certifiant ; bornes géométriques et

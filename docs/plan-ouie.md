@@ -22,10 +22,15 @@ Les deux prêts passent ; Ilse reste dans l'abri haut avec, le cas échéant,
 une intention sans moyens, en attente selon le contrat commun. Extension autorisée
 à `echanges.tenu` : preuve propre ordonnée après la parole, clôture et protection
 du service 224 conservées, sans confirmation acoustique. Tilo et le palier
-repassent ; neuf échecs et une erreur restent propres au candidat final.
-**Non fusionnable** : placement et attentes de trajectoire encore ouverts.
-Suite complète finale : 2 497 tests, 13 échecs et une erreur, dont quatre échecs
-préexistants sur la référence. Quatre nouveaux tests de preuve verts ; voir le
+repassent. Après arbitrage, huit échecs et l'erreur corrigés par des prémisses
+explicites, 273 assertions inchangées et 67 ciblés verts ; moteur inchangé.
+Suite finale après arbitrage : 2 497 tests, cinq échecs classés, zéro erreur
+et zéro ignoré (2 091,515 s, deux travailleurs réduits).
+Défaut de placement social laissé rouge pour un lot séparé, selon l'arbitrage.
+Quatre préexistants restent rouges (MiMo ×2, voix issue de 221, attente de perte
+de torche devenue obsolète à la fusion 224 avec 221). La baisse de S au hameau
+comprend des interactions réelles perdues, pas seulement des sons supprimés.
+Quatre nouveaux tests de preuve verts ; voir le
 [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
 
 Pour attribuer un pas ou un geste ordinaire, `_crus_la` conserve le lieu cru

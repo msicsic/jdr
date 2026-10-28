@@ -214,6 +214,11 @@ def brune_guette():
     # Ce guet n'est pas résolu par la vente des crochets au gardien.
     from donjon import relations
     lire(m, "marchand")["relations"]["brune"] = relations._nouvelle({"confiance": 10})
+    # Le témoin ne résout pas le guet par un repas spontané ; Brune n'a pas
+    # non plus de projet de dette concurrent pendant cette épreuve de patience.
+    from tests.support import sans_souci
+    sans_souci(m, "marchand")
+    m.objets["brune"]["profil"].setdefault("situation", {})["dette"] = 0
     m.joueur["position"] = [6, 4]
     regarder(m, "joueur", "reserve")
     return m

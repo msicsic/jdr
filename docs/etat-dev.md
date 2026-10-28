@@ -4,7 +4,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195, non fusionnable** :
+- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195** :
   **346c1aa fusionné par 11f728a**, extension autorisée à **`echanges.tenu`**.
   Point de comparaison après parole, preuve nouvelle propre `vu`/`essai`, bornes
   entre promesses identiques d'une même minute ; souvenir neutre sauvegardé.
@@ -20,21 +20,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Zéro plantage/usurpation. Après borne : 20 références relues du cache,
   20 états/chroniques/mesures/épisodes identiques au premier banc.
   Gorm Relais 2024 et hausse hameau absents ; Brune 2024 : zéro alerte.
-  **Suite finale : 2 497 tests / 289 fichiers, 1 948,617 s, 13 échecs,
-  une erreur, aucun ignoré**. Une seule passe achevée, une partielle interrompue
-  pour corriger la borne. Rejeux sur la base exacte : quatre préexistants
-  (MiMo ×2, voix, torche historique sans perte) ; neuf échecs et l'erreur
-  propres au candidat. Causes détaillées dans les bruts, assertions conservées :
-  trajectoires commerciales/sociales ou croyances actualisées, dont Ilse déjà
-  au poêle haut et Mireille crue satisfaite ; pas de compensation dans l'ouïe.
+  Après arbitrage : **huit échecs et l'erreur corrigés par des prémisses
+  explicites**, **273 assertions identiques par AST**, huit fichiers et
+  **67 tests ciblés verts**. Aucun changement du moteur depuis `e7aab68`,
+  aucun banc relancé. Quatre préexistants laissés rouges : MiMo ×2 ; voix
+  apparue à la fusion 221 (`d7dbf1a`) ; attente historique de perte de torche
+  apparue à la fusion 224 (`346c1aa`), interaction avec 221 (224 seul vert).
+  Vérification sur cinq sources exactes avec les deux tests originaux.
+  **Suite après arbitrage : 2 497 tests / 289 fichiers, 2 091,515 s, cinq
+  échecs, zéro erreur, zéro ignoré**, une passe finale après les prémisses,
+  deux travailleurs réduits : quatre préexistants et défaut de placement.
+  **Richesse hameau : S 40,5→27 correspond à des interactions réelles perdues**,
+  ni bruits ni retournements ne comptent dans S ; acceptées 16→9, tâches
+  faites 4→2, prêts/rendus 1/1→0/0 ; occurrences de travail payé 20→26.
   Placement hors périmètre : attitude périmée et recours d'abri. Proposition
   non appliquée dans `signes.place` : 21 tests de signes verts, Ilse rejoint
-  Brune, assertion spécifique Aubin toujours rouge. Arbitrage nécessaire,
-  **ne pas fusionner**. Aucun Luna, deux calculs réduits au plus, aucune clé Git.
+  Brune, assertion spécifique Aubin toujours rouge. **Lot séparé à créer**,
+  contrat d'invalidation des attitudes périmées décrit sans l'appliquer ;
+  défaut laissé rouge pour décision d'intégration. Aucun Luna, deux calculs
+  réduits au plus, aucune clé Git.
   Limite : checkpoint oublié ou croyance inchangée, jugement conservateur.
   Rondes et registre visuel joueur hors lot. Bruts exclusivement
-  `C:/Users/msics/donjon/artifacts/pas-195/extension-346/` ;
-  [rapport 195](taches/rapport-codex-195-pas-compagnons.md).
+  `C:/Users/msics/donjon/artifacts/pas-195/extension-346/` et `arbitrage/` ;
+  [rapport 195](taches/rapport-codex-195-pas-compagnons.md),
+  [classement exhaustif et richesse](taches/rapport-codex-195-arbitrage.md).
 
 - **Branche `codex-service-non-defait`, fusionnée**, lot **224**, base `a22f92e`
   vérifiée, puis 213 intégré (`bd45f65`, fusion `0192bb3`) : résultat promis
