@@ -4,6 +4,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-faire-ou-confier`, non fusionnée**, lot **257**, base
+  `integration 5e08b76` : arrêt au constat explicitement prévu au brief.
+  Le devis réel du titulaire (`agendas.devis_mandat`, 256) ne peut servir
+  de classement vu du mandant : deux preuves amener Brune / informer Ilse,
+  esprit de Gorm et objets inchangés, retrait d'un savoir privé d'Aubin,
+  coût **0,225 / 0,166667 → impossible**. Monde, rendu, scène et devis
+  conservés après recharge pour chaque variante ; devis initiaux purs.
+  Proposition d'un lot neutre de projection observateur/acteur avant le
+  choix autonome. Aucun moteur modifié, suite complète, Luna ou banc lancé ;
+  aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/confier-257/`.
+  [Rapport 257](taches/rapport-codex-257-faire-ou-confier.md).
+
 - **Branche `codex-jugement-mandat`, fusionnée**, lot **256**, base
   `integration 4318a5b` : jugement explicite de mandat par `echanges.confier`,
   devis social commun sur copie, statut cru dans sa portée et ascendant :
