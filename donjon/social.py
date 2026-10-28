@@ -687,6 +687,9 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
     """L'auditeur croit-il la nouvelle ? Effets sur ses croyances et ses besoins."""
     from .paroles import _stats_pnj, dementi, jet_persuasion
     from .voix import identifie, se_mefier, source_dite
+    if noyau["type"] == "constat" and noyau.get("attribut") == "statuts":
+        return recevoir_statuts(monde, auditeur, locuteur, noyau["objet"], noyau["valeur"],
+                                minute=noyau["observe"], confiance=round(.7 * .8 ** rang, 2))
     objet = noyau.get("objet")
     observe = noyau.get("observe", monde.data["minutes"])
     proprietes = [json.loads(cle) for cle, _ in faits_dits(noyau)]
@@ -996,6 +999,24 @@ def _entendu(monde, id, auditeur, noyau, rang, lignes):
                    [{"type": "rumeur", "evenement": noyau, "rang": rang}])
 
 
+def recevoir_statuts(monde, id, locuteur, sujet, valeurs, *, minute=None, confiance=.7):
+    """Une prétention pèse comme sa voix, jamais comme le statut qu'elle revendique."""
+    from .esprits import croyance, verifier_statuts, poids_source
+    from .voix import source_dite
+    import copy
+    verifier_statuts(monde, valeurs)
+    source = source_dite(monde, id, locuteur)
+    ancienne = croyance(monde, id, sujet, "statuts")
+    minute = monde.data["minutes"] if minute is None else minute
+    nouvelle = {"source": source, "confiance": confiance}
+    if ancienne and (ancienne["minute"] > minute or
+                     poids_source(monde, id, ancienne) * ancienne["confiance"] >
+                     poids_source(monde, id, nouvelle) * confiance):
+        return "dementi"
+    croire(monde, id, sujet, "statuts", copy.deepcopy(valeurs), source, confiance, minute=minute)
+    return "crue"
+
+
 def recevoir(monde, id, locuteur, c):
     """Ce qu'une parole transmet à ``id``, qui l'entend, destinataire ou non ; renvoie l'issue, ou
     None s'il n'y a rien à apprendre. Une affirmation se juge comme une confidence
@@ -1019,6 +1040,8 @@ def recevoir(monde, id, locuteur, c):
     if c["type"] in ("qui", "appel", "raison"):
         return None   # Une question, ou ce qu'on convient à un appel (``appel``) : rien à apprendre d'autrui.
     if c["type"] == "affirmation":
+        if c["attribut"] == "statuts":
+            return recevoir_statuts(monde, id, locuteur, c["sujet"], c["valeur"])
         if c["sujet"] == id:
             return None
         from .echanges import affirmer

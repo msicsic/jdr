@@ -78,6 +78,16 @@ class AccesTests(unittest.TestCase):
                     fautes.append(f"{p.relative_to(RACINE)}:{noeud.lineno}")
         self.assertEqual(fautes, [])
 
+    def test_aucun_acces_direct_a_l_ascendant_hors_relations(self):
+        fautes = []
+        for p in _sources():
+            if p.name == "relations.py" and p.parent.name == "donjon":
+                continue
+            for n in ast.walk(ast.parse(p.read_text(encoding="utf-8"))):
+                if isinstance(n, ast.Constant) and n.value == "ascendant":
+                    fautes.append(f"{p.relative_to(RACINE)}:{n.lineno}")
+        self.assertEqual(fautes, [])
+
     def test_plus_de_fiabilite_dans_voix(self):
         from donjon import voix
         self.assertFalse(hasattr(voix, "fiabilite"))

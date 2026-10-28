@@ -460,19 +460,19 @@ def necessaire(monde, auditeur, objet, *, contrevaleur=0, cession=False, apres=N
     Une cession juge la capacité marginale contre la valeur réellement reçue.
     Le prêt conserve son contrôle d'usage immédiat et son obligation de retour.
     ``apres`` (vue, état sans le bien) juge une restitution à sa destination,
-    sans confondre les moyens du transport avec ceux conservés à la remise.
+    sans confondre les moyens du transport avec ceux conservés à la remise
+    pour le plan actif ou son séjour.
     """
     from .biens import valeur_capacites, capacites_crues
     if cession and capacites_crues(monde, auditeur, objet):
         return valeur_capacites(monde, auditeur, objet) > contrevaleur
     intention = lire(monde, auditeur)["intention"]
-    if (apres is None and intention and "rendre" not in intention["but"]
+    if (intention and "rendre" not in intention["but"]
             and any(objet in (e["cible"], e["outil"]) for e in intention["plan"])):
         return True
     if "allume" in monde.objets[objet] and monde.objets[auditeur].get("profil"):
         from .deliberation import lumiere_utile
-        if (lumiere_utile(monde, auditeur) if apres is None
-                else apres[0].peur and apres[0].noir(apres[1])):
+        if lumiere_utile(monde, auditeur, apres=apres):
             return True
     profil = monde.objets[auditeur].get("profil")
     for pulsion in (profil or {}).get("pulsions", []):

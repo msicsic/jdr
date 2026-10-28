@@ -10,8 +10,8 @@ import hashlib
 import json
 
 FIABLE = "fiable"
-AXES = ("confiance", "affection", "rancune", "peur", "dette")
-ETRANGER = dict(zip(AXES, (40, 0, 0, 0, 0)))
+AXES = ("confiance", "affection", "rancune", "peur", "dette", "ascendant")
+ETRANGER = dict(zip(AXES, (40, 0, 0, 0, 0, 0)))
 MEFIANCE, CONFIANCE, RANCUNE, PEUR = 30, 60, 40, 40
 VIF = 60   # un axe qui se montre (``vive``)
 MENTEUSE = 0
@@ -48,7 +48,7 @@ EPREUVES = {
     "pret_garde": {"confiance": -20, "rancune": 15},
     "dette_honoree": {"dette": -20},
 }
-BANDES = ("mefiance", "confiance", "rancune", "peur")
+BANDES = ("mefiance", "confiance", "rancune", "peur", "ascendant")
 
 
 def identifier(s, instant):
@@ -62,14 +62,22 @@ def _bandes(r, avant=None):
     return {"mefiance": r["confiance"] < (40 if a.get("mefiance") else MEFIANCE),
             "confiance": r["confiance"] >= (50 if a.get("confiance") else CONFIANCE),
             "rancune": r["rancune"] >= (30 if a.get("rancune") else RANCUNE),
-            "peur": r["peur"] >= (30 if a.get("peur") else PEUR)}
+            "peur": r["peur"] >= (30 if a.get("peur") else PEUR),
+            "ascendant": r.get("ascendant", 0) >= (50 if a.get("ascendant") else CONFIANCE)}
 
 
 def _nouvelle(axes=None, minute=0):
     r = {**ETRANGER, **(axes or {}), "minute": minute, "source": "savoir", "motifs": []}
     r["bandes"] = _bandes(r)
-    r["ancrages"] = {a: [r[a], minute] for a in ("affection", "rancune", "peur")}
+    r["ancrages"] = {a: [r[a], minute] for a in ("affection", "rancune", "peur", "ascendant")}
     return r
+
+
+def _completer(r):
+    """Vue du contrat actuel ; l'absence historique de l'axe signifie zéro."""
+    return {**r, "ascendant": r.get("ascendant", 0),
+            "bandes": {"ascendant": False, **r["bandes"]},
+            "ancrages": {"ascendant": [0, 0], **r["ancrages"]}}
 
 
 def installer(monde, id):
@@ -101,19 +109,22 @@ def portage_connu(monde, id, objet, porteur):
 def verifier_chronique(c):
     assert (set(c) == {"minute", "instant", "pnj", "texte", "nature", "relation", "cause", "bandes", "mefiance_levee", "service"}
             and isinstance(c["relation"], str) and c["cause"] in EPREUVES
-            and isinstance(c["bandes"], dict) and set(c["bandes"]) == set(BANDES)
+            and isinstance(c["bandes"], dict) and set(c["bandes"]) in (set(BANDES), set(BANDES) - {"ascendant"})
             and all(type(v) is bool for v in c["bandes"].values())
             and type(c["mefiance_levee"]) is bool and (c["service"] is None or isinstance(c["service"], str))), "Chronique de relation invalide"
 
 
 def _estompes(monde, id, autre, r):
+    # Ascendant : même retour lent au lien initial que l’affection (1 point/h).
+    # Aucune épreuve du présent lot ne modifie cet axe.
     from .caractere import valeur
-    ancre = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {}).get("affection", 0)
+    liens = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {})
     demie = max(1, 720 * valeur(monde, id, "fierte") / 50 / (1 + valeur(monde, id, "douceur") / 100))
     resultat = {}
     for a, (base, minute) in r["ancrages"].items():
         dt = max(0, monde.data["minutes"] - minute)
-        if a == "affection":
+        if a in ("affection", "ascendant"):
+            ancre = liens.get(a, 0)
             ecart = base - ancre
             resultat[a] = ancre + (1 if ecart >= 0 else -1) * max(0, abs(ecart) - dt / 60)
         else:
@@ -126,10 +137,10 @@ def _lecture_pure(monde, id, autre):
     brut = lire(monde, id).get("relations", {}).get(autre)
     if brut is None:
         return _nouvelle()
-    r = dict(brut)
-    for a, v in _estompes(monde, id, autre, brut).items():
-        ancre = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {}).get("affection", 0)
-        r[a] = math.ceil(v - 1e-9) if a == "affection" and brut["ancrages"][a][0] > ancre else math.floor(v + 1e-9)
+    r = _completer(brut)
+    for a, v in _estompes(monde, id, autre, r).items():
+        ancre = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {}).get(a, 0)
+        r[a] = math.ceil(v - 1e-9) if a in ("affection", "ascendant") and r["ancrages"][a][0] > ancre else math.floor(v + 1e-9)
     r["bandes"] = _bandes(r, brut["bandes"])
     return r
 
@@ -139,7 +150,8 @@ def _lecture(monde, id, autre):
     profil = monde.objets[id].get("profil") or {}
     brut = lire(monde, id).get("relations", {}).get(autre)
     cle = (monde.data["minutes"],
-           (profil.get("liens") or {}).get(autre, {}).get("affection", 0),
+           tuple((profil.get("liens") or {}).get(autre, {}).get(a, 0)
+                 for a in ("affection", "ascendant")),
            profil.get("valeurs", {}).get("fierte", 50),
            profil.get("valeurs", {}).get("douceur", 50))
     cache = monde.__dict__.setdefault("_lectures_relations", {})
@@ -188,6 +200,22 @@ def axes(monde, id, autre):
     return {a: r[a] for a in AXES} | {"bandes": dict(r["bandes"])}
 
 
+def statuts_reconnus(monde, id, autre, lieu, domaine):
+    """Croyance sourcée de portée pertinente, sans lire le profil réel du titulaire."""
+    from .esprits import croyance
+    c = croyance(monde, id, autre, "statuts")
+    if c is None:
+        return None
+    resultat = copy.deepcopy(c)
+    resultat["valeur"] = [v for v in resultat["valeur"] if lieu in v["lieux"] and domaine in v["domaines"]]
+    return resultat if resultat["valeur"] else None
+
+
+def autorite_reconnue(monde, id, autre):
+    """Ascendant qu'id reconnaît à autre, sans statut ni bonus de décision."""
+    return _lecture(monde, id, autre)["ascendant"]
+
+
 def chance_demande(monde, id, autre):
     """Estimation du demandeur, jamais lecture de l'esprit de l'autre.
 
@@ -230,7 +258,7 @@ def signature(monde, id):
     return (monde.data["minutes"],
             tuple((x, tuple(r[a] for a in AXES), tuple(r["bandes"].items()),
                    tuple((a, tuple(v)) for a, v in r["ancrages"].items()))
-                  for x, r in lire(monde, id)["relations"].items()),
+                  for x, brut in lire(monde, id)["relations"].items() for r in [_completer(brut)]),
             repr(profil.get("liens")), profil.get("valeurs", {}).get("fierte"),
             profil.get("valeurs", {}).get("douceur"))
 
@@ -369,8 +397,8 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
         if not montant:
             continue
         exact = min(100, max(0, estompes.get(a, r[a]) + montant))
-        ancre = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {}).get("affection", 0)
-        r[a] = math.ceil(exact - 1e-9) if a == "affection" and exact > ancre else math.floor(exact + 1e-9)
+        ancre = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {}).get(a, 0)
+        r[a] = math.ceil(exact - 1e-9) if a in ("affection", "ascendant") and exact > ancre else math.floor(exact + 1e-9)
         if a in r["ancrages"]:
             r["ancrages"][a] = [exact, monde.data["minutes"]]
     delta = {a: r[a] - avant[a] for a in AXES if r[a] != avant[a]}
@@ -570,7 +598,8 @@ def partager(monde, id, minute):
 
 def resume(r):
     mots = [texte for b, texte in (("mefiance", "se méfie"), ("confiance", "fait confiance"),
-                                  ("rancune", "en veut"), ("peur", "craint")) if r["bandes"][b]]
+                                  ("rancune", "en veut"), ("peur", "craint"),
+                                  ("ascendant", "reconnaît une autorité")) if r["bandes"][b]]
     if dette_notable(r):
         mots.append("se sent redevable")
     return ", ".join(mots) or "reste prudent"
@@ -600,12 +629,17 @@ def verifier(monde, id):
         assert all(type(v) is int and 0 <= v <= 100 for v in axes.values()), "Valeur de lien invalide"
     for x, r in lire(monde, id)["relations"].items():
         assert isinstance(x, str) and x != id and isinstance(r, dict), "Relation invalide"
-        assert set(r) == {*AXES, "minute", "source", "motifs", "bandes", "ancrages"}, "Relation mal formée"
+        ancien = "ascendant" not in r
+        assert set(r) == {*(a for a in AXES if not ancien or a != "ascendant"),
+                           "minute", "source", "motifs", "bandes", "ancrages"}, "Relation mal formée"
+        assert ("ascendant" in r["bandes"]) == (not ancien), "Bande d'ascendant manquante"
+        assert ("ascendant" in r["ancrages"]) == (not ancien), "Ancre d'ascendant manquante"
+        r = _completer(r)
         assert all(type(r.get(a)) is int and 0 <= r[a] <= 100 for a in AXES), "Axe de relation invalide"
         assert type(r["minute"]) is int and r["minute"] >= 0 and isinstance(r["source"], str), "Date de relation invalide"
         assert set(r["bandes"]) == set(BANDES) and all(type(v) is bool for v in r["bandes"].values()), "Bandes invalides"
         assert isinstance(r["motifs"], list) and len(r["motifs"]) <= 3, "Motifs invalides"
-        assert isinstance(r["ancrages"], dict) and set(r["ancrages"]) == {"affection", "rancune", "peur"}, "Ancres invalides"
+        assert isinstance(r["ancrages"], dict) and set(r["ancrages"]) == {"affection", "rancune", "peur", "ascendant"}, "Ancres invalides"
         assert all(isinstance(v, list) and len(v) == 2 and isinstance(v[0], (int, float)) and math.isfinite(v[0])
                    and 0 <= v[0] <= 100 and type(v[1]) is int and v[1] >= 0 for v in r["ancrages"].values()), "Ancre de relation invalide"
         for m in r["motifs"]:

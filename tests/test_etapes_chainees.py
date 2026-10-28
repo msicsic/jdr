@@ -25,6 +25,41 @@ def _empreinte(x):
     return hashlib.sha256(json.dumps(x, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
+def _sans_ascendant_neutre(x):
+    """Projection pré-248, y compris les relations sérialisées dans les refus.
+
+    Refuse tout axe actif : l'oracle doit continuer à détecter un changement
+    de comportement. Les formats JSON imbriqués sont conservés exactement.
+    """
+    if isinstance(x, dict):
+        resultat = {}
+        for k, valeur in x.items():
+            if k == 'ascendant':
+                assert (type(valeur) is int and valeur == 0 or valeur is False or
+                        isinstance(valeur, list) and len(valeur) == 2 and
+                        type(valeur[0]) is int and valeur[0] == 0 and
+                        type(valeur[1]) is int and valeur[1] >= 0), 'Ascendant non neutre'
+            else:
+                resultat[k] = _sans_ascendant_neutre(valeur)
+        return resultat
+    if isinstance(x, list):
+        return [_sans_ascendant_neutre(v) for v in x]
+    if isinstance(x, str) and x.startswith(('{', '[')):
+        try:
+            valeur = json.loads(x)
+        except ValueError:
+            return x
+        normalise = _sans_ascendant_neutre(valeur)
+        if normalise != valeur:
+            for tri in (True, False):
+                for ascii_ in (True, False):
+                    options = dict(sort_keys=tri, ensure_ascii=ascii_)
+                    if json.dumps(valeur, **options) == x:
+                        return json.dumps(normalise, **options)
+            raise AssertionError('Format JSON de relation inconnu')
+    return x
+
+
 def _etat(e):
     return e.salle, sorted(e.portes), sorted(e.faits.items(), key=repr), e.allure
 
@@ -110,7 +145,9 @@ def observer_capture(scenario, preuve=None):
     return {"visites": visites.hexdigest(), "n_visites": n_visites,
             "plans": plans.hexdigest(), "n_plans": n_plans,
             "diagnostics": _empreinte([{k: v for k, v in d.items() if k != "duree"} for d in diagnostics]),
-            "monde": _empreinte(historique), "lignes": _empreinte(lignes),
+            # 248 : retrouver le hash historique en retirant seulement le
+            # sixième axe neutre, sans remplacer aucun hash attendu.
+            "monde": _empreinte(_sans_ascendant_neutre(historique)), "lignes": _empreinte(lignes),
             "regarder": _empreinte(regarder(recharge)), "scene": _empreinte(scene_percue(recharge))}
 
 
@@ -137,6 +174,10 @@ class EtapesTests(unittest.TestCase):
         from donjon.echanges import valeur_proposition
         self.assertGreater(valeur_capacites(recharge, 'lucien', 'crochets_lucien'), valeur_proposition(
             recharge, 'lucien', {'type': 'part', 'objet': 'burette_huile'}, 'lucien', sans='crochets_lucien'))
+    def test_projection_historique_refuse_un_ascendant_actif(self):
+        for valeur in (1, True, [1, 0]):
+            with self.subTest(valeur=valeur), self.assertRaisesRegex(AssertionError, 'non neutre'):
+                _sans_ascendant_neutre({'relation': {'ascendant': valeur}})
 
     def test_captures_mine_et_auberge_memes_plans_visites_monde_et_rendu_recharges(self):
         attendu = json.loads((DONNEES / "etapes-attendues.json").read_text(encoding="utf-8"))

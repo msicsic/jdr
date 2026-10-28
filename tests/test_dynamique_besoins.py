@@ -112,8 +112,10 @@ class TenirTests(unittest.TestCase):
         return m
 
     def test_lucien_rapporte_la_lanterne_de_l_etable_au_grenier_au_lieu_d_aller_et_venir(self):
+        from donjon import pnj
         from donjon.deliberation import autour
         from donjon.rendu import regarder as rendu
+        from donjon.scene import scene_percue
         # Scène de garde : ses biens pressent, sa sécurité est apaisée,
         # et il connaît une lumière à emporter. La poursuite concurrente du
         # ballot est vérifiée séparément, sans décider du sort de la lanterne.
@@ -129,17 +131,34 @@ class TenirTests(unittest.TestCase):
                salle=source["lieu"], case=source["position"])
         croire(m, "lucien", "bougeoir_mireille", "etat",
                {"allume": True, "faible": False, "charge": True}, "savoir")
-        m, lieux = suivre(m, "lucien", 165, pas=5)
+        agir, passages = pnj.agir, []
+        def agir_sonde(m, id, *args, **kwargs):
+            avant = m.objets[id]['lieu']
+            resultat = agir(m, id, *args, **kwargs)
+            if id == 'lucien' and avant != m.objets[id]['lieu']:
+                passages.append(m.objets[id]['lieu'])
+            return resultat
+        with patch.object(pnj, 'agir', agir_sonde):
+            m, lieux = suivre(m, "lucien", 165, pas=5)
+        # Compter aussi les trajets entre deux relevés de cinq minutes.
+        self.assertEqual(passages, ['couloir', 'salle_commune', 'cuisine',
+                                    'salle_commune', 'couloir', 'grenier'])
         self.assertEqual(lieux[-5:], ["grenier"] * 5)
         self.assertLessEqual(changements(lieux), 6)
         self.assertEqual(lire(m, "lucien")["intention"]["but"], {"type": "garder", "lieu": "grenier"})
         self.assertEqual(m.objets["bougeoir_mireille"]["lieu"], "lucien")
         self.assertTrue(m.objets["bougeoir_mireille"]["allume"])
         self.assertTrue(autour(m, "lucien")["lumiere"])
+        self.assertFalse(any(c.get('pnj') == 'lucien' and '(rendu)' in c['texte']
+                             for c in m.data['chronique']))
+        # Le joueur constate la garde éclairée après la simulation.
+        m.joueur.update(salle='grenier', position=[1, 2])
         texte = rendu(m)
+        self.assertIn('Le bougeoir', texte)
         apres = recharger(m)
         self.assertEqual(m.data, apres.data)
         self.assertEqual(texte, rendu(apres))
+        self.assertEqual(scene_percue(m), scene_percue(apres))
 
     def test_lucien_attend_une_information_apres_la_reprise_du_ballot(self):
         import copy

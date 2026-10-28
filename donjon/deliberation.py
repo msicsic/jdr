@@ -110,7 +110,9 @@ def part_pour(monde, id, objet, besoin, connus=None):
 def verifier_profil(monde, id, p):
     assert (isinstance(p, dict) and {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions"}
             <= set(p) <= {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions",
-                          "reserve", "securite", "protege", "situation", "alerte", "liens"} | agendas.champs_profil()), "Profil de PNJ mal formé"
+                          "reserve", "securite", "protege", "situation", "alerte", "liens", "statuts"} | agendas.champs_profil()), "Profil de PNJ mal formé"
+    from .esprits import verifier_statuts
+    verifier_statuts(monde, p.get("statuts", []), declares=True)
     # Le seuil d'alerte, en crans de l'ouïe commune (``ouie.INTENSITES``) : un bruit inconnu qui lui
     # parvient à ce niveau l'envoie voir sans attendre (``alarme``).
     assert type(p.get("alerte", 0)) is int and -2 <= p.get("alerte", 0) <= 9, "Seuil d'alerte de PNJ invalide"
@@ -1178,22 +1180,39 @@ def lumiere_devant_crue(monde, id, objet, salle):
     return lumiere_crue(monde, id, salle) if vue is None else max(vue, apport_cru(monde, id, objet))
 
 
-def lumiere_utile(monde, id):
+def lumiere_utile(monde, id, *, apres=None):
     """A-t-il besoin d'y voir, maintenant ou pour son plan ? Là où il se tient, ou là où son plan
     le mène, il croit le noir (``noir_cru`` : sans ce qu'il porte), et le noir l'inquiète ; ou il
-    y a un geste qui demande d'y voir (crocheter) là où il ne croit pas la pleine lumière."""
+    y a un geste qui demande d'y voir (crocheter) là où il ne croit pas la pleine lumière.
+    Après une remise, juge les moyens conservés et le plan actif restant ;
+    le trajet de restitution ne constitue pas un emploi futur du bien."""
     e = lire(monde, id)
     salle, peur = monde.objets[id]["lieu"], peur_du_noir(monde, id) > 0
     if salle not in monde.data["salles"]:
         return False
-    if peur and noir_cru(monde, id, salle):
+    if apres is not None:
+        v, etat = apres
+        salle = etat.salle
+    if peur and (noir_cru(monde, id, salle) if apres is None else v.noir(etat)):
         return True
-    for etape in e["intention"]["plan"] if e["intention"] else []:
+    intention = e['intention']
+    plan = intention['plan'] if intention and (apres is None or 'rendre' not in intention['but']) else []
+    if apres is not None and intention and 'rendre' not in intention['but']:
+        # Un plan terminé peut tenir son but en restant sur place. La remise
+        # projetée retire le moyen, sans déplacer ce séjour à son destinataire.
+        salle = monde.objets[id]['lieu']
+        etat = etat.apres(salle=salle)
+        if not plan and peur and v.noir(etat):
+            return True
+    for etape in plan:
         if etape["operation"] == "aller" and etape["lieu"] in monde.data["salles"]:
             salle = etape["lieu"]
-        if (peur and noir_cru(monde, id, salle)
+            if apres is not None:
+                etat = etat.apres(salle=salle)
+        if (peur and (noir_cru(monde, id, salle) if apres is None else v.noir(etat))
                 or etape["operation"] in A_VUE
-                and lumiere_devant_crue(monde, id, etape["cible"], salle) < 2):
+                and (lumiere_devant_crue(monde, id, etape["cible"], salle) if apres is None
+                     else v.lumiere_devant(etat, etape['cible'])) < 2):
             return True  # Sa chance au geste compte sur la lumière qu'il croit (``chance_crochetage``).
     return False
 
