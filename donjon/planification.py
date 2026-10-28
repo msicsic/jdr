@@ -3153,18 +3153,30 @@ def _nom_condition(c):
 
 
 def _rendre(monde, id, o, condition):
-    """Un objet prêté qui ne lui sert plus (``echanges.necessaire``) : rejoindre son propriétaire
-    et le lui rendre."""
+    """Transport avec le bien, puis nécessité jugée dans l'état de remise.
+
+    Le même devis est recalculé à l'admission et pendant le trajet. Un contact
+    encore recherché ne publie aucune remise avant de connaître sa destination.
+    """
     from .echanges import necessaire
-    if not porte_par(monde, o, id) or necessaire(monde, id, o):
+    if not porte_par(monde, o, id):
         return None
-    chemin = rejoindre(monde, id, condition["rendre"])
-    if chemin is None:
+    v = vue(monde, id)
+    salle = v.salle(depart(monde, id, v), condition['rendre'])
+    if salle is None:
+        chemin = rejoindre(monde, id, condition['rendre'])
+        return None if chemin is None else ({"type": "pulsion", **condition}, chemin[0])
+    # Même recherche qu'aller, avec son état terminal : tous les moyens du
+    # trajet (prises, portes, allumages) restent disponibles jusqu'à la remise.
+    trajet = chercher(monde, id, lambda v, e: e.salle == salle,
+                     nom="aller", memo=["aller", salle], emplois=())
+    if trajet is None:
         return None
-    etapes, trouve = chemin
-    if trouve:
-        etapes.append(_etape("remettre", condition["rendre"], outil=o))
-    return {"type": "pulsion", **condition}, etapes
+    e = trajet[2]
+    fin = e.apres(portes=e.portes - {o}, faits=[(('lieu', o), condition['rendre'])])
+    if necessaire(monde, id, o, apres=(v, fin)):
+        return None
+    return {"type": "pulsion", **condition}, trajet[1] + [_etape("remettre", condition['rendre'], outil=o)]
 
 
 def _devis_remise(monde, id, o, condition, seul):

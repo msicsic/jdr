@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-restitution-route`, non fusionnée**, lot **246**, base
+  `2b15134` : transport avec le bien jusqu'à la destination crue, puis
+  nécessité dans l'état de remise ; même admission et revalidation via
+  `_rendre`, recherche commune d'`aller` et `echanges.necessaire(apres=...)`.
+  Cession compensée 228 conservée, aucun cas de scénario. Capture historique
+  `4306c14`, hameau 42 à 421, reproduite ; contre-épreuve rouge sur la base
+  pour Maël et pour une lampe de la mine. Restitution, refus sans autre
+  lumière, remplacement, monde/rendu/scène rechargés et laps découpés couverts.
+  **31 ciblés verts** avant la projection finale par l'état terminal ; passe
+  finale de cinq fichiers en cours. **Banc détaché 20 paires 4 h en cours**,
+  un travailleur réduit, références exactes absentes calculées une seule fois.
+  Aucun Luna ni suite complète ; aucun verdict global revendiqué avant
+  `C:/Users/msics/donjon/artifacts/restitution-246/banc-fin.txt`.
+  [Rapport 246](taches/rapport-codex-246-restitution-route.md).
+
 - **Branche `codex-place-perimee`, fusionnée**, lot **234**, ciblés et banc validés.
   Merge demandé de `origin/integration` **`d9e5166`** (233/236/238/239/240)
   dans **`860fa0b`**, sans rebase, seul conflit documentaire. Moteur 234
