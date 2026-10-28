@@ -173,9 +173,6 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie, *, de
     arret = accueil(monde, proposant, auditeur)
     if arret:
         return {"cause": arret}
-    # L'emploi immédiat interdit déjà la cession, quelle que soit la promesse.
-    if demande["type"] == "objet" and necessaire(monde, auditeur, demande["objet"]):
-        return {"cause": "necessaire"}
     # Une tâche promise ne vaut que si elle sert un but réellement cru de l'auditeur.
     buts = [x["condition"] for x in (monde.objets[auditeur].get("profil") or {}).get("pulsions", [])]
     buts += [x["condition"] for x in agendas.en_cours(monde, auditeur, actifs=True)]
@@ -460,21 +457,12 @@ def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
 def necessaire(monde, auditeur, objet, *, contrevaleur=0, cession=False):
     """Réserve de capacité non compensée, emploi courant ou pulsion (objet, clé).
 
-    Le plan de restitution n'est pas un usage ; lumière utile et gardes
-    immédiates restent protégées indépendamment du montant offert.
+    Une cession juge la capacité marginale contre la valeur réellement reçue.
+    Le prêt conserve son contrôle d'usage immédiat et son obligation de retour.
     """
-    from .biens import valeur_bien, capacites_crues
-    from .caractere import valeur_pieces
-    # Sans capacité perdue, le prix seul ne rend pas un objet nécessaire.
-    # Une contrepartie peut compenser cette perte, hors des gardes du plan.
-    # Un prêt/restitution conserve le titre et son retour attendu ; ce n'est
-    # pas une perte durable. Son emploi immédiat reste contrôlé ci-dessous.
+    from .biens import valeur_capacites, capacites_crues
     if cession and capacites_crues(monde, auditeur, objet):
-        from .biens import prix
-        marchande = valeur_pieces(monde, auditeur, prix(monde, objet) or PRIX_SANS_PRIX)
-        estimee = valeur_bien(monde, auditeur, objet)
-        if estimee > max(marchande, contrevaleur):
-            return True
+        return valeur_capacites(monde, auditeur, objet) > contrevaleur
     intention = lire(monde, auditeur)["intention"]
     if (intention and "rendre" not in intention["but"]
             and any(objet in (e["cible"], e["outil"]) for e in intention["plan"])):
@@ -542,33 +530,52 @@ def accueil(monde, demandeur, auditeur):
 
 
 def contre_offre(monde, demandeur, auditeur, objet, raison):
-    """Une condition qu'il sait honorer, jamais une nouvelle chance de persuasion.
-
-    Les gardes et pulsions durables restent des empêchements. Un besoin corporel
-    n'est exprimable que par un service du contrat commun ; le repas servi est
-    aujourd'hui le seul de ces services qui apaise directement le corps.
-    """
-    from .biens import prix, reticence
+    """Une compensation honorable : service corporel ou prix suffisant."""
+    from .biens import prix, reticence, capacites_crues
     from .deliberation import _connus, SATIETE, urgents
     from .propositions import offre
     from .vol import proprietaire
-    if raison not in ("refus", "necessaire") or accueil(monde, demandeur, auditeur):
+    if raison not in ('refus', 'necessaire') or accueil(monde, demandeur, auditeur):
         return None
     part = demande_de_part(monde, demandeur, auditeur, objet)
-    demande = {"type": "part" if part else "objet", "objet": objet}
+    demande = {'type': 'part' if part else 'objet', 'objet': objet}
     if not _livraison_proposition(monde, auditeur, demandeur, demande):
         return None
-    if raison == "refus":
+
+    def condition_service():
+        intention = lire(monde, auditeur)['intention']
+        if not intention or intention['motif'] not in urgents(monde, auditeur):
+            return None
+        besoin = intention['motif']
+        if besoin != 'faim':
+            return None
+        copie = monde.copier()
+        e = esprit(copie, auditeur)
+        e['besoins'][besoin] = max(0, e['besoins'][besoin] - SATIETE)
+        e['intention'] = None
+        if besoin in urgents(copie, auditeur) or necessaire(copie, auditeur, objet) or garde(copie, auditeur, copie.objets[objet]):
+            return None
+        nourritures = [o for o in sorted(_connus(monde, auditeur))
+                       if monde.objets[o]['type'] == 'nourriture' and o != objet]
+        if not nourritures:
+            return None
+        return {'type': 'tache', 'condition': {'objet': nourritures[0], 'servir': auditeur}}
+
+    condition = condition_service() if raison == 'necessaire' else None
+    if condition is None:
+        # Une nécessité de capacité est compensable ; la réserve consommable
+        # et les autres nécessités conservent leur contrat distinct.
+        if raison == 'necessaire' and (part or not capacites_crues(monde, auditeur, objet)):
+            return None
         if proprietaire(monde, monde.objets[objet]) != auditeur:
-            return None  # Il ne vend pas le bien d'un tiers.
-        if not part and necessaire(monde, auditeur, objet):
+            return None
+        if not part and necessaire(monde, auditeur, objet, contrevaleur=float('inf'), cession=True):
             return None
         from .caractere import valeur_pieces
         montant = prix(monde, objet, part) or PRIX_SANS_PRIX
         def acceptable(n):
             return reticence(monde, auditeur, montant, n) <= 0 and (part or not necessaire(
                 monde, auditeur, objet, contrevaleur=valeur_pieces(monde, auditeur, n), cession=True))
-        # Recherche monotone du seuil propre : aucune lecture de la bourse adverse.
         bas, haut = 1, montant
         while not acceptable(haut):
             haut *= 2
@@ -578,25 +585,7 @@ def contre_offre(monde, demandeur, auditeur, objet, raison):
                 haut = milieu
             else:
                 bas = milieu + 1
-        condition = {"type": "pieces", "montant": bas}
-    else:
-        intention = lire(monde, auditeur)["intention"]
-        if not intention or intention["motif"] not in urgents(monde, auditeur):
-            return None
-        besoin = intention["motif"]
-        if besoin != "faim":
-            return None  # Pas de condition corporelle correspondante dans les termes communs.
-        copie = monde.copier()
-        e = esprit(copie, auditeur)
-        e["besoins"][besoin] = max(0, e["besoins"][besoin] - SATIETE)
-        e["intention"] = None
-        if besoin in urgents(copie, auditeur) or necessaire(copie, auditeur, objet) or garde(copie, auditeur, copie.objets[objet]):
-            return None
-        nourritures = [o for o in sorted(_connus(monde, auditeur))
-                       if monde.objets[o]["type"] == "nourriture" and o != objet]
-        if not nourritures:
-            return None
-        condition = {"type": "tache", "condition": {"objet": nourritures[0], "servir": auditeur}}
+        condition = {'type': 'pieces', 'montant': bas}
     return offre(auditeur, demandeur, condition, demande)
 
 
@@ -686,7 +675,8 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     # comme lorsqu'on lui demande quelles ressources il possède.
     siens_a_portee(monde, auditeur)
     prix_ = prix_de(monde, objet, part)
-    vente = (bool(prix_) and prix >= prix_ or accord and prix > 0) and (proprietaire(monde, o) == auditeur or rachat)
+    vente = (prix > 0 and (prix_ is None or prix >= prix_ or accord)
+             and (proprietaire(monde, o) == auditeur or rachat))
     if rachat and not vente:
         return "refus"
     # Ce qu'il perd à donner sans être payé : ce qui se consomme. Un objet qui dure, il le prête, et
@@ -1545,7 +1535,7 @@ def executer(monde, id, etape, lignes):
                  else f"{a} demande {quoi} à {b}")
         clair = recit + "."
         reponse = {"remis": f"{b} lui remet {quoi}.", "rendu": f"{b} lui rend {designer(objet)}.",
-                   "necessaire": f"{b} garde {quoi} : {_il(o)} s'en sert encore.",
+                   "necessaire": f"{b} préfère garder {quoi} à ces conditions.",
                    "mefiance": f"{b} refuse : {_il(o)} ne lui fait pas confiance.",
                    "rancune": f"{b} refuse : {_il(o)} lui en veut encore.",
                    "absent": f"{b} ne porte pas {quoi}.",

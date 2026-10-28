@@ -358,6 +358,28 @@ def capacites_crues(monde, id, objet):
     return resultat
 
 
+def valeur_capacites(monde, id, objet, *, sans=None):
+    """Valeur marginale des capacités connues, distincte du prix du bien.
+
+    Même estimation à l'acquisition et à la cession ; ``sans`` retire le bien
+    simultanément cédé des moyens qu'il croit conserver.
+    """
+    from .caractere import valeur
+    from .deliberation import _connus, _lieu_cru
+    propres = set()
+    for k in _connus(monde, id):
+        if k in (objet, sans):
+            continue
+        lieu, vus = _lieu_cru(monde, id, k), {k}
+        while lieu in monde.objets and lieu != id and lieu not in vus:
+            vus.add(lieu)
+            lieu = _lieu_cru(monde, id, lieu)
+        if lieu == id:
+            propres.update(capacites_crues(monde, id, k))
+    nouvelles = capacites_crues(monde, id, objet) - propres
+    return 12 * len(nouvelles) * (0.5 + valeur(monde, id, "ambition") / 100)
+
+
 def valeur_bien(monde, id, objet, part=False, *, sans=None):
     """Estimation commune en minutes : prix/contenu connu ou capacité marginale.
 
@@ -366,8 +388,8 @@ def valeur_bien(monde, id, objet, part=False, *, sans=None):
     simultanément, pour compter son remplacement parmi les gains. Le désespoir valorise le remède
     utilisable, pas n'importe quelle contrepartie. Aucun devis ni mutation.
     """
-    from .caractere import valeur_pieces, valeur, ENJEU
-    from .deliberation import besoin_de_part, part_pour, parts, _connus, _lieu_cru, DESESPOIR
+    from .caractere import valeur_pieces, ENJEU
+    from .deliberation import besoin_de_part, part_pour, parts, DESESPOIR
     from .esprits import croyance, lire
     o = monde.objets[objet]
     montant = prix(monde, objet, part)
@@ -386,21 +408,9 @@ def valeur_bien(monde, id, objet, part=False, *, sans=None):
         remede = ENJEU * max(0, pression - DESESPOIR) / (100 - DESESPOIR)
     if part:
         return max(marchande, remede)
-    propres = set()
-    for k in _connus(monde, id):
-        if k in (objet, sans):
-            continue
-        # Une localisation cachée ne retire ni ne crée un doublon cru.
-        lieu, vus = _lieu_cru(monde, id, k), {k}
-        while lieu in monde.objets and lieu != id and lieu not in vus:
-            vus.add(lieu)
-            lieu = _lieu_cru(monde, id, lieu)
-        if lieu == id:
-            propres.update(capacites_crues(monde, id, k))
-    nouvelles = capacites_crues(monde, id, objet) - propres
     # Même échelle que la peine et la faute. L'ambition pèse l'avenir ;
     # seul un remède effectif peut passer cette capacité au désespoir.
-    usage = 12 * len(nouvelles) * (0.5 + valeur(monde, id, "ambition") / 100)
+    usage = valeur_capacites(monde, id, objet, sans=sans)
     return max(marchande, usage, remede)
 
 

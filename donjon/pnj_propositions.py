@@ -116,7 +116,9 @@ def _entrees_negatives(monde, id, autre, demande, entrees):
             return [sans_dates(y) for y in x]
         return x
     projection = json.dumps([
-        1, demande, entrees, monde.objets[id]['lieu'], monde.objets[id].get('profil'),
+        # Le contrat de compensation a changé : un ancien verdict négatif
+        # n'est pas une preuve sous les règles actuelles, même à monde égal.
+        2, demande, entrees, monde.objets[id]['lieu'], monde.objets[id].get('profil'),
         {o: {a: {k: c[k] for k in ('valeur', 'salle', 'case', 'possession', 'envers') if k in c}
              for a, c in d.items()} for o, d in e['croyances'].items()},
         [[o, {k: x for k, x in monde.objets[o].items()
