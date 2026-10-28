@@ -11,12 +11,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   la seule perte appliquée. Noms inconnus non appris. **118 ciblés distincts,
   117 verts / un échec de dette préexistant** (40 au lieu de 20) ; onze
   nouveaux tests, scènes Gorm/réserve et Anselme/coffre, état/rendu/scène
-  rechargés et laps entier/découpé. Ni suite complète ni Luna. Banc 4 h,
-  cinq scénarios × quatre graines, détaché réduit (deux travailleurs),
-  référence `main c870c8b` : vingt références exactes absentes à ranger une
-  seule fois, puis branche. **Banc non encore validé** ; fin attendue
-  `C:/Users/msics/donjon/artifacts/soupcon-267/fin.json`, comptages des soupçons
-  et suspects 219 par nuit. Effraction visible par intégrité seulement ;
+  rechargés et laps entier/découpé. Dette prouvée par le seul test sur base
+  `7404d2d` et code `61a1a67` : chacun 1 échec `40 != 20`, aucune erreur,
+  même fichier de test ; traces `dette-base` et `dette-branche` JSON/log.
+  Ni suite complète ni Luna. **Banc terminé, non validé : 20 paires 4 h,
+  40 nuits achevées, zéro plantage/usurpation**, soupçons nés **0 → 0 dans
+  chaque paire**. Référence `main c870c8b` → branche `61a1a67` : suspects
+  219 **2 → 3** ; auberge 2024 et crue 7 **0 → 1**, auberge 7 **1 → 0**,
+  crue 2024 **1 → 1**, autres **0 → 0**. Richesse S/F/D crue
+  **25,75/7,25/3,25 → 18,75/6,25/2,75** ; hameau
+  **25/7,5/2,208 → 21,75/7/2,083** ; autres scénarios dans le rapport.
+  **Comparaison non causale du seul lot : `main` diffère de sa base**.
+  Vingt références absentes cachées une fois, aucune rejouée ; calcul
+  détaché réduit (deux travailleurs au plus), **489,338 s**, `fin.json` code 0.
+  Aucun calcul actif. Bruts et bilan par nuit :
+  `C:/Users/msics/donjon/artifacts/soupcon-267/`. Effraction visible par intégrité seulement ;
   aucun crochetage caché ni disparition distante inventé. Bruts au même
   dossier ; [rapport 267](taches/rapport-codex-267-soupcon-deduit.md).
 
