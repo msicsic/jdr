@@ -21,14 +21,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   intervalles courts sans rupture, Maël/Ilse tenu de 38 jusqu'au vrai démenti
   perçu à 60 (`mefiance`), état entier/rendu/scène et laps découpés vérifiés.
   Oracle de garde de Lucien intact ; oracle de clôture sur simple échec corrigé.
-  **Banc détaché de continuité en cours : branche seule, vingt nuits 4 h**,
-  référence `7404d2d` en cache exclusivement, deux travailleurs réduits au plus.
+  **Banc détaché terminé**, code `21d5f5b`, sortie 0 en 374,736 s : branche
+  seule, vingt nuits 4 h, vingt références `7404d2d` en cache exclusivement,
+  deux travailleurs à priorité réduite.
   Même sonde que le premier banc (`0ff727d`, blob
   `4e2c68d073fcdf71d4996da93527bf3cdd02267b`, instrumentation `1f6b05da83`),
-  sonde 265/271 non utilisée. **Critère : aucune hausse de suspects par nuit.**
-  Ancien 2 → 6 et diagnostic Gorm restent historiques, sans validation actuelle.
-  Bruts `C:/Users/msics/donjon/artifacts/rester-266/continuite-captures/` ;
-  fin attendue `continuite-banc/fin.json`. Ni Luna ni suite complète.
+  sonde 265/271 non utilisée. **Critère « aucune hausse de suspects par nuit »
+  tenu sur 20/20 : 2 → 0**, zéro suspect à chaque nuit de branche.
+  **183 secours, 202,393 min** de sécurité urgente en baisse sous compagnie
+  (mesure vécue, pas gain causal). Aucun plantage, usurpations 0 → 0 ;
+  cycles 489 → 420, à expliquer 55 → 56, bascules 3 → 1, appels 8 → 3,
+  avertissements redits 3 → 6. Gorm hameau 7 : sans but pressé 195 → 0 min
+  aux relevés, ancienne attente nouvelle de 155 min disparue ; toutefois
+  44 départs de secours de Gorm, cycles de la nuit 14 → 50 classés accomplis,
+  zéro minute urgente apaisée : fréquence encore à examiner, pas légitimée.
+  Alertes nouvelles documentées : marchand relais 7/Josse mine 7 sous devoir
+  sans but, Lucien auberge 42 dans le noir avec `pres`, appel répété de Brune
+  crue 1985 ; deux cessations physiques de torche sans violation.
+  Ancien 2 → 6 retiré ; les autres écarts ne sont pas déclarés corrigés.
+  Bruts `C:/Users/msics/donjon/artifacts/rester-266/continuite-captures/` et
+  `continuite-banc/` (`fin.json`, `bilan.json`, `validation.json`).
+  Rapport clos, commit local ; ni Luna ni suite complète, branche non fusionnée.
   [Rapport 266](taches/rapport-codex-266-rester-pres.md).
 
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic

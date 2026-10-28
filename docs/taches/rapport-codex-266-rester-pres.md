@@ -50,19 +50,47 @@ recharge, laps entier/découpé. L'oracle de garde de Lucien est conservé intac
 l'ancien oracle qui imposait la clôture de toute demande sur échec d'un moyen
 est remplacé par la conservation de sa raison, sans conserver le plan manqué.
 
-**Anciennes mesures, désormais historiques :** 84 secours, 161,077 min de
-sécurité urgente en baisse sous compagnie ; compteur 219 brut 2 → 6.
-Gorm hameau 7 : sans but pressé 195 → 195 min aux relevés, confié 75 → 40,
-attente 120 → 155 ; ni absence de moyens sûrs vers le brasero ni attente
-continue de 155 min imputables à une rupture de `pres`. Le nouveau banc devra
-remesurer cette trajectoire ; le précédent diagnostic ne valide plus le lot.
-
-**Banc de continuité détaché en cours : branche seule, vingt nuits 4 h**,
-cinq scénarios × 1985/7/42/2024, deux travailleurs réduits. Référence `7404d2d`
-exclusivement en cache, aucun calcul de référence autorisé. **Même sonde que
+**Banc de continuité terminé**, code 0, 374,736 s : code `21d5f5b`, branche
+seule, vingt nuits de 4 h, deux travailleurs à priorité réduite. Les vingt
+références `7404d2d` viennent du cache, aucune rejouée. **Même sonde que
 le premier banc** : `0ff727d`, blob `4e2c68d073fcdf71d4996da93527bf3cdd02267b`,
 instrumentation `1f6b05da83` ; sonde d'intégration 265/271 non utilisée.
-**Critère : aucune hausse de suspects par nuit. Aucune validation avant résultat.**
+**Critère « aucune hausse de suspects par nuit » tenu sur 20/20 : 2 → 0.**
+Chaque cellule ci-dessous donne référence → branche ; graines dans l'ordre indiqué.
+
+| Scénario | 1985 | 7 | 42 | 2024 | Secours commencés | Minutes apaisées |
+|---|---:|---:|---:|---:|---:|---:|
+| Relais | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 | 4 | 36,310 |
+| Mine | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 | 40 | 112,645 |
+| Auberge | 0 → 0 | 0 → 0 | 0 → 0 | 1 → 0 | 17 | 1,528 |
+| Crue | 0 → 0 | 1 → 0 | 0 → 0 | 0 → 0 | 20 | 29,148 |
+| Hameau | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 | 102 | 22,763 |
+
+**183 départs de secours ; 202,393 min** de sécurité urgente effectivement
+en baisse sous compagnie de secours. Ce compteur ne mesure ni un gain causal
+contre la référence, ni la réussite de chaque départ. Aucun plantage,
+usurpations 0 → 0 ; cycles accomplis 489 → 420, entrées à expliquer 55 → 56,
+bascules 3 → 1, appels à l'aide 8 → 3, avertissements redits 3 → 6.
+
+**Gorm, hameau 7 :** l'ancienne attente nouvelle de 155 min appartenait au
+premier correctif, désormais remplacé. La référence avait déjà 195 min sans
+but sous devoir pressant (75 confiées + 120 en attente) ; la branche corrigée
+en a **0** aux relevés de cinq minutes, sans alerte `fige_presse`. Ce résultat
+n'établit pas que tout est réglé : Gorm commence 44 secours vers Ilse, sur
+les 50 du hameau 7 ; cycles 14 → 50, tous classés accomplis par cette sonde,
+aucune minute urgente apaisée mesurée cette nuit. Cette fréquence reste une
+limite à examiner, pas une preuve de légitimité de chaque reprise.
+
+**Alertes nouvelles à conserver pour l'intégration :** sans but sous devoir
+pressant, marchand relais 7 (155 min, confié) et Josse mine 7 (185 min,
+satisfaite) ; Lucien auberge 42, 95 min dans le noir avec `pres Hugues` ;
+Brune crue 1985, appel « Gorm ? » répété neuf fois. Avertissements redits
+nouveaux : mine 1985 (1), auberge 42 (1), hameau 1985 (3), avec disparition
+de deux anciens. Deux nouveaux constats de cessation physique de torche
+(Brune, relais 7/hameau 7) sont marqués `violation: false`. Le critère 219
+est satisfait ; ces autres écarts ne sont pas déclarés corrigés ni légitimes.
+
 Bruts `C:/Users/msics/donjon/artifacts/rester-266/` : `continuite-captures/`
-(`preuves.json`, `intervalles-complets.json`, mondes/rendus/scènes et
-`tests-consolides.json`), fin attendue `continuite-banc/fin.json`.
+(`intervalles-complets.json`, mondes/rendus/scènes, `tests-consolides.json`),
+`continuite-banc/` (`fin.json`, `bilan.json`, `validation.json`, vingt nuits
+et référence). L'ancien 2 → 6 est historique ; il ne décrit plus ce code.
