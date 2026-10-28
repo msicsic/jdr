@@ -2,6 +2,25 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-coup-torche`, non fusionnée**, lot **269**, diagnostic
+  seul, base `integration 47fd0a2` : coup absent de la nuit actuelle,
+  reproduit sur `c870c8b` détaché, hameau 1985, départ tiré, joueur passif
+  chambre de la cloche, 12 h. Aubin frappe à **391220 (652 min)** et prend
+  la torche à 391235 ; Gorm inconscient au relevé 655. Chaleur 100,
+  palier besoin pressant ; désespoir corporel autorisant les témoins.
+  Coûts refaits **25,415 à 615**, **32,321 à 652** ; recherche pacifique
+  épuisée à 185/66 nœuds, refus de combustible encore valides, aucun
+  service de rechange/aide attendue. Torche de Maël portée par Gorm :
+  prêt/achat à ce tiers exclus par le contrat de transfert existant.
+  Verdict conforme aux recours modélisés, sans garantie sur toutes les
+  négociations imaginables. Premier écart actuel/historique dès 600,
+  offres de Brune différentes à la première minute ; cause non isolée.
+  **169 captures monde/rendu/scène identiques après recharge**, deux nuits
+  successives à priorité réduite, aucun code du jeu modifié, Luna, suite
+  complète ou banc comparatif ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/coup-269/` ;
+  [rapport 269](taches/rapport-codex-269-coup-torche.md).
+
 - **Branche `codex-agenda-brune`, fusionnée**, lot **268**, diagnostic
   seul sur `a6ecefd` (moteur `1355f7a`) : hameau 2024, départ tiré, joueur
   passif, 4 h ; alerte huit/neuf absente. **Deux réveils effectifs** actuels
