@@ -69,14 +69,22 @@ def faits_dits(noyau):
         return [(_cle([sujet, attribut]), valeur)]
     if t == "intention_lue":
         return [(_cle([noyau["auteur"], "intention"]), {"valeur": "guet", "envers": noyau["objet"]})]
-    if t in ("absence", "mort_vue", "vu_porter"):
+    if t in ("absence", "mort_vue"):
         sujet, attribut, valeur = (noyau["objet"], "etat", {"mort": True}) if t == "mort_vue" else (
             noyau["objet"], "lieu", noyau.get("auteur") if t == "vu_porter" else None)
         return faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur})
-    identite = {k: noyau[k] for k in ("type", "auteur", "objet", "operation", "locuteur", "sujet", "attribut", "victime")
+    identite = {k: noyau[k] for k in ("type", "auteur", "objet", "operation", "locuteur", "sujet", "attribut")
                 if k in noyau}
+    # Le témoin peut juger autrement qui est lésé, sans avoir vu un autre geste.
+    # Une créance sans geste, elle, identifie aussi son créancier.
+    if "victime" in noyau and "operation" not in noyau:
+        identite["victime"] = noyau["victime"]
     valeur = {k: noyau[k] for k in ("montant",) if k in noyau}
     faits = [(_cle(identite), valeur)]
+    if t == "vu_porter":
+        # Le portage matériel n'établit pas le grief sur le droit de porter.
+        faits.extend(faits_dits({"type": "affirmation", "sujet": noyau["objet"],
+                                 "attribut": "lieu", "valeur": noyau["auteur"]}))
     if "lieu" in noyau:
         faits.append((_cle([noyau["objet"], "lieu"]), noyau["lieu"]["valeur"]))
     return faits
@@ -110,7 +118,47 @@ def retenir_dit(monde, id, auditeur, noyau):
             registre[cle] = {"valeur": copy.deepcopy(valeur), "dit_a": {}}
         registre[cle]["valeur"] = copy.deepcopy(valeur)
         registre[cle].pop("valeur_inconnue", None)
+        if auditeur in registre[cle]["dit_a"] and registre[cle]["dit_a"][auditeur] != valeur:
+            registre[cle].get("entendu_a", {}).pop(auditeur, None)
         registre[cle]["dit_a"][auditeur] = copy.deepcopy(valeur)
+        _retenir_portee(registre[cle], auditeur, noyau)
+
+
+def _portee(noyau):
+    """Conséquence mécanique d'une mesure, distincte de sa précision factuelle."""
+    if noyau.get("attribut") != "eau":
+        return None
+    from .eau import NOYEE_CM
+    cm = noyau["valeur"]
+    vitesse = noyau.get("details", {}).get("montee")
+    return [2 if cm >= NOYEE_CM else 1 if cm > 0 else 0,
+            -1 if vitesse is not None and vitesse < 0 else 1 if vitesse else 0]
+
+
+def _retenir_portee(fait, auditeur, noyau):
+    portee = _portee(noyau)
+    if portee is not None:
+        fait.setdefault("portee_a", {})[auditeur] = portee
+
+
+def _nouveau(monde, id, auditeur, noyau):
+    portee = _portee(noyau)
+    if portee is None:
+        return not deja_dit(monde, id, auditeur, noyau)
+    registre = lire(monde, id)["faits_dits"]
+    for cle, _ in faits_dits(noyau):
+        if cle not in registre and len(registre) >= DITS_MAX:
+            return False  # Une nouveauté impossible à suivre ne doit pas boucler.
+        fait = registre.get(cle, {})
+        connue = fait.get("portee_a", {}).get(auditeur)
+        if connue is None:
+            anciennes = ([fait["dit_a"][auditeur]] if auditeur in fait.get("dit_a", {}) else
+                         fait.get("entendu_a", {}).get(auditeur, [])[-1:])
+            if anciennes:
+                connue = _portee({**noyau, "valeur": anciennes[-1], "details": {}})
+        if connue != portee:
+            return True
+    return False
 
 
 def _audience_connue(monde, locuteur, contenu, geste, observateur=None):
@@ -153,10 +201,11 @@ def _retenir_audience(monde, audience):
                 valeurs = registre[cle].setdefault("entendu_a", {}).setdefault(autre, [])
                 if valeur not in valeurs:
                     valeurs.append(copy.deepcopy(valeur))
+                _retenir_portee(registre[cle], autre, noyau)
 
 
 def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details):
-    """Seul un changement appris par le destinataire rouvre ce qui lui a été dit.
+    """Révise la valeur personnelle, sans consulter ni modifier un autre esprit.
 
     La dernière valeur crue par le locuteur sert aussi aux conclusions dérivées
     (menace). Ses changements ne suppriment pas les valeurs dites aux autres.
@@ -164,40 +213,17 @@ def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details)
     if attribut == "intention":
         valeur = {"valeur": valeur, "envers": details.get("envers")}
     registre = lire(monde, id)["faits_dits"]
-    avant = {}
-    if precedente:
-        ancienne = ({"valeur": precedente["valeur"], "envers": precedente.get("envers")}
-                    if attribut == "intention" else precedente["valeur"])
-        avant = dict(faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
-                                "valeur": ancienne}))
     for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur}):
-        if precedente is None and registre.get(cle, {}).get("valeur_inconnue"):
-            # Le contenu entendu n'était pas sa propre conclusion. La première
-            # conclusion calculée ne prouve donc aucun changement appris.
+        if cle in registre:
             registre[cle]["valeur"] = copy.deepcopy(v)
-            registre[cle].pop("valeur_inconnue")
-            continue
-        if precedente is None and cle not in registre:
+            registre[cle].pop("valeur_inconnue", None)
+        elif precedente is None:
             # Première conclusion dérivée : aucun changement connu. La suivre
             # empêche qu'une même conclusion réaffirmée rouvre un avis refusé.
             if len(registre) < DITS_MAX:
                 esprit(monde, id)["faits_dits"][cle] = {"valeur": copy.deepcopy(v), "dit_a": {}}
-            continue
-        connue = cle in avant if precedente is not None else cle in registre
-        ancienne = avant.get(cle) if precedente is not None else registre.get(cle, {}).get("valeur")
-        if cle in registre:
-            registre[cle]["valeur"] = copy.deepcopy(v)
-            registre[cle].pop("valeur_inconnue", None)
-        if connue and ancienne == v:
-            continue
-        for e in monde.data.get("esprits", {}).values():
-            fait = e.get("faits_dits", {}).get(cle, {})
-            dits = fait.get("dit_a", {})
-            if id in dits and dits[id] != v:
-                del dits[id]
-            entendus = fait.get("entendu_a", {})
-            if id in entendus:
-                entendus[id] = [valeur for valeur in entendus[id] if valeur == v]
+        # Les acquisitions privées ne rouvrent plus les suivis des autres.
+        # Paroles et observations communes apportent leur propre preuve.
 
 
 def migrer_dits(monde, id):
@@ -363,7 +389,7 @@ def _constats(monde, id):
                 if not valeur:
                     continue
             elif not (attribut == "verrouillee" and valeur is True
-                      or attribut == "eau" and valeur > 0):
+                      or attribut == "eau" and valeur >= 0):
                 continue
             noyau = {"type": "constat", "objet": objet, "attribut": attribut,
                      "valeur": valeur, "observe": c["minute"]}
@@ -378,12 +404,9 @@ def _cru_ailleurs(monde, id, noyau):
     return bool(lieu) and lieu["minute"] > noyau["lieu"]["minute"] and lieu["valeur"] != noyau["lieu"]["valeur"]
 
 
-def _sait(monde, id, noyau):
+def _connait_reception(monde, id, noyau):
+    """L'auditeur juge une parole reçue avec ses propres connaissances."""
     if noyau["type"] == "avis":
-        # Une conclusion commune n'est pas une preuve identique : les prévisions
-        # peuvent différer en date, pente et conviction. Le locuteur n'a pas accès
-        # à celles de l'auditeur ; celui-ci les pèsera seulement en recevant l'avis.
-        # Le registre des faits dits borne les avertissements, même refusés.
         return False
     if noyau["type"] == "constat":
         c = lire(monde, id)["croyances"].get(noyau["objet"], {}).get(noyau["attribut"])
@@ -393,10 +416,125 @@ def _sait(monde, id, noyau):
         from .signes import intentions_lues
         return any(x == noyau["auteur"] and c.get("envers") == noyau["objet"]
                    for x, c in intentions_lues(monde, id))
-    fait = faits_dits(noyau)
-    return any((faits_dits(s) == fait if s["type"] in NOUVELLES
-                else s["type"] == "rumeur" and faits_dits(s["evenement"]) == fait)
+    fait = faits_dits(_fait(noyau))
+    return any((faits_dits(_fait(s)) == fait if s["type"] in NOUVELLES
+                else s["type"] == "rumeur" and faits_dits(_fait(s["evenement"])) == fait)
                for s in lire(monde, id)["memoire"])
+
+
+def observation_commune(monde, id, noyau, temoins, *, vus=None):
+    """Le moteur atteste les témoins ; chacun ne connaît que ceux qu'il voit.
+
+    Le contenu vient de l'observation, jamais des croyances de l'auditeur.
+    Une nouvelle valeur observée ensemble remplace la valeur qu'on lui prêtait.
+    """
+    from .esprits import percoit
+    if id == "joueur":
+        return
+    registre = esprit(monde, id)["faits_dits"]
+    for autre in temoins:
+        if autre == id or not (autre in vus if vus is not None else percoit(monde, id, autre)):
+            continue
+        for cle, valeur in faits_dits(noyau):
+            if cle not in registre and len(registre) < DITS_MAX:
+                registre[cle] = {"valeur": copy.deepcopy(valeur), "dit_a": {}}
+            if cle not in registre:
+                continue
+            fait = registre[cle]
+            portee = _portee(noyau)
+            if portee is not None:
+                # Un point vu ensemble ne partage pas la vitesse que chacun
+                # a déduite de ses mesures privées. Seule la comparaison à
+                # une valeur déjà publiquement partagée étaye la direction.
+                anciennes = fait.get("entendu_a", {}).get(autre, [])
+                precedente = (anciennes[-1] if anciennes else fait["dit_a"].get(autre))
+                direction = fait.get("portee_a", {}).get(autre, [0, 0])[1]
+                if precedente is not None and precedente != valeur:
+                    direction = -1 if valeur < precedente else 1
+                portee[1] = direction
+            # Une observation commune est aussi une acquisition personnelle.
+            # La laisser « inconnue » jusqu'au regard suivant ferait dépendre
+            # la sauvegarde du découpage des attentes.
+            fait["valeur"] = copy.deepcopy(valeur)
+            fait.pop("valeur_inconnue", None)
+            if autre in fait["dit_a"] and fait["dit_a"][autre] != valeur:
+                del fait["dit_a"][autre]
+            fait.setdefault("entendu_a", {})[autre] = [copy.deepcopy(valeur)]
+            if portee is not None:
+                fait.setdefault("portee_a", {})[autre] = portee
+
+
+def _utile(monde, id, autre, noyau):
+    """Ce que le locuteur sait du corps, des biens et des tâches de l'autre.
+
+    Aucune lecture du besoin, du projet ou du plan privé du destinataire.
+    Les engagements ici sont ceux du locuteur et ses conversations retenues.
+    """
+    from . import agendas
+    from .deliberation import part_pour, salle_crue, _connus
+    if noyau["type"] == "avis":
+        # Inclut les rendez-vous convenus, même hors de la salle actuelle.
+        return _concerne(monde, id, autre, noyau["objet"])
+    if noyau["type"] not in ("constat", "avis"):
+        return True  # Les griefs renseignent la confiance, même sans besoin matériel.
+    e = lire(monde, id)
+    objet = noyau["objet"]
+    o = monde.objets.get(objet, {})
+    if objet == autre:
+        return True
+    # Une tâche annoncée ou convenue est une preuve de projet, pas son exécution réelle.
+    projets = agendas.en_cours(monde, id, actifs=True)
+    conditions_vues, annules = set(), set()
+    for s in reversed(e["memoire"]):
+        if autre not in (s.get("a"), s.get("de"), s.get("pour"), s.get("qui")):
+            continue
+        if s["type"] == "promesse_annulee":
+            annules.add(s.get("objet"))
+        condition = s.get("condition")
+        if not condition or s["type"] not in ("engagement_pris", "engagement_tenu", "abandon_annonce",
+                                               "engagement_abandonne"):
+            continue
+        cle = _cle(condition)
+        if cle not in conditions_vues:
+            conditions_vues.add(cle)
+            if s["type"] == "engagement_pris" and condition.get("objet") not in annules:
+                projets.append(s)
+    for s in projets:
+        if autre in (s.get("a"), s.get("de"), s.get("pour"), s.get("qui")):
+            condition = s.get("condition", {})
+            if objet in (s.get("objet"), condition.get("objet"), condition.get("lieu")):
+                return True
+    corps = e["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
+    salle = salle_crue(monde, id, autre)
+    if objet in monde.objets:
+        if corps.get("faim") and part_pour(monde, id, objet, "faim"):
+            return True
+        if corps.get("chaleur") and part_pour(monde, id, objet, "chaleur"):
+            from .perception import recharge
+            from .eau import noyee_crue
+            # Du combustible ne sert pas le froid là où aucun foyer n'est
+            # connu ; un autre emploi passe par le projet annoncé ci-dessus.
+            if salle is not None and not noyee_crue(monde, id, salle) and any(
+                    monde.objets[x].get("foyer") and recharge(monde.objets[x], o)
+                    and salle_crue(monde, id, x) == salle
+                    and not e["croyances"].get(x, {}).get("fin") for x in _connus(monde, id)):
+                return True
+    if objet in monde.data["salles"]:
+        # Information d'environnement : sa salle ou un passage qui en part.
+        proches = {salle} | {s for p in monde.objets.values() if p["type"] == "porte"
+                            and salle in p.get("relie", []) for s in p["relie"]}
+        suivi = e["faits_dits"].get(_cle([objet, "eau"]), {})
+        return objet in proches and (noyau.get("attribut") != "eau" or noyau["valeur"] > 0
+                                    or autre in suivi.get("portee_a", {}))
+    if o.get("type") == "porte":
+        return salle in o.get("relie", [])
+    if isinstance(noyau.get("valeur"), dict) and "allume" in noyau["valeur"]:
+        # Un feu sert au froid ; une source éclaire le lieu où il est cru nécessaire.
+        lieu = salle_crue(monde, id, objet)
+        lumiere = e["croyances"].get(salle, {}).get("etat", {}).get("valeur", {})
+        return bool(corps.get("chaleur") and o.get("foyer")
+                    or lieu == salle and lumiere.get("eclairee") is False)
+    return False
 
 
 def _auditeur(monde, id, souvenir, noyau, source):
@@ -406,16 +544,18 @@ def _auditeur(monde, id, souvenir, noyau, source):
     colere = emotion(monde, id)
     accusee = accuse(noyau)
     if (colere and colere["niveau"] >= 20 and colere["contre"] == accusee and accusee in monde.objets
-            and accusee != id and not deja_dit(monde, id, accusee, noyau)
+            and accusee != id and _nouveau(monde, id, accusee, noyau)
             and pourraient_se_parler(monde, id, accusee)):
         return accusee
     for autre in sorted(pnjs(monde), key=lambda x: (-envers(monde, id, x)["affection"], x)):
-        if (autre == id or deja_dit(monde, id, autre, noyau) or autre in (accuse(noyau), source)
+        if (autre == id or not _nouveau(monde, id, autre, noyau) or autre in (accuse(noyau), source)
                 or not monde.objets[autre].get("profil")
                 or monde.objets[autre]["lieu"] != monde.objets[id]["lieu"]
                 or not pourraient_se_parler(monde, id, autre)
                 or (not _concerne(monde, id, autre, noyau["objet"]) if noyau["type"] == "avis"
                     else not se_fie(monde, id, autre))):
+            continue
+        if not _utile(monde, id, autre, noyau):
             continue
         if noyau["type"] == "absence" and _proprietaire(monde, noyau) != autre:
             continue  # Un objet manquant ne regarde que son propriétaire.
@@ -447,7 +587,10 @@ def phrase(monde, noyau, locuteur=None):
     if t == "constat":
         from .francais import accorder, lieu
         if noyau["attribut"] == "eau":
-            return f"l'eau atteint {noyau['valeur']} cm dans " + lieu(monde.data["salles"][noyau["objet"]])
+            vitesse = noyau.get("details", {}).get("montee")
+            evolution = (", en baisse" if vitesse < 0 else ", en hausse") if vitesse else ""
+            return (f"l'eau atteint {noyau['valeur']} cm dans "
+                    + lieu(monde.data["salles"][noyau["objet"]]) + evolution)
         qualite = ("fermé" if noyau["attribut"] == "verrouillee" else
                    ("parti" if noyau["valeur"]["parti"] else "revenu") if "parti" in noyau["valeur"] else
                    "vide" if "vide" in noyau["valeur"] else
@@ -837,7 +980,7 @@ def recevoir(monde, id, locuteur, c):
         return recevoir_prevision(monde, id, locuteur, noyau, c["rang"])
     if c["type"] != "aveu" and accuse(noyau) == locuteur:
         return None  # Parler contre soi exige un aveu explicite, joueur comme PNJ.
-    if accuse(noyau) == id or _sait(monde, id, noyau):
+    if accuse(noyau) == id or _connait_reception(monde, id, noyau):
         return None
     if c["type"] == "aveu":
         from .voix import identifie, se_mefier
@@ -878,6 +1021,22 @@ def retenir_parole(monde, id, locuteur, destinataires, texte, cites, contenu):
                 + (f" ({', '.join(issues)})" if issues else "") + ".", "ouie")
 
 
+def _priorite_nouvelle(monde, id, noyau):
+    """Un changement de possibilités face au péril prime une information ordinaire.
+
+    Même règle pour une mesure, un avis ou toute autre représentation du lieu :
+    c'est son état mécanique cru, non la classe narrative du fait, qui compte.
+    """
+    from .eau import en_peril, eau_crue, attendue, NOYEE_CM
+    sujet = noyau.get("sujet", noyau.get("objet"))
+    def possibilites(cm):
+        return 2 if cm >= NOYEE_CM else 1 if cm > 0 else 0
+    peril = sujet in monde.data["salles"] and (
+        en_peril(monde, id, sujet)
+        or possibilites(eau_crue(monde, id, sujet)) != possibilites(attendue(monde, id, sujet)))
+    return not peril, noyau["type"] in ("constat", "avis")
+
+
 def bavarder(monde, id, lignes):
     """Confie au plus une nouvelle dans la minute courante ; True si une parole est dite."""
     from .pnj import _chroniquer
@@ -887,12 +1046,10 @@ def bavarder(monde, id, lignes):
         return False
     connues = list(nouvelles(monde, id))
     # Même une rumeur de constat reste moins urgente qu'une accusation.
-    for souvenir, noyau, rang, source in sorted(reversed(connues), key=lambda x: x[1]["type"] in ("constat", "avis")):
+    for souvenir, noyau, rang, source in sorted(reversed(connues), key=lambda x: _priorite_nouvelle(monde, id, x[1])):
         auditeur = _auditeur(monde, id, souvenir, noyau, source)
         if auditeur is None:
             continue
-        if _sait(monde, auditeur, noyau):
-            continue  # Limite historique : ce contrôle lit encore le savoir de l'auditeur.
         # Destinataire et témoins auditifs reçoivent le même contenu. Une accusation
         # adressée à son auteur reste une parole, sans lui apprendre une rumeur sur lui.
         # Si un tiers va contredire, le destinataire est lui aussi témoin des

@@ -117,6 +117,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `C:/Users/msics/donjon/artifacts/compteur-227/` ;
   [rapport 227](taches/rapport-codex-227-compteur-services.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Outils seulement. Quatre causes : geste fautif du prestataire (seule violation), geste après départ cru du bénéficiaire, bénéficiaire ou tiers, cessation physique. Six cas du banc 224 : 4 gestes fautifs → 0 (devenus cessations physiques), 2 permis. Intégration 881db69 : zéro perte fautive ; 20/20 nuits identiques avec et sans sonde.
+- **Branche `codex-sait-observations`, non fusionnée**, lot **206 b**,
+  référence finale **`881db69`**, fusion `8178021`, moteur mesuré `26bd4d2`.
+  Nouveauté et utilité selon les seules croyances du locuteur ; observations
+  communes, projets crus encore actifs et conséquences de l'eau, sans lecture
+  privée de l'auditeur. Réponses 221 et renoncements 225 conservés.
+  **Seize tests centraux verts** ; avis redits, mine 600 et abri isolé verts.
+  Suite unique finale : **2 502 tests / 290 fichiers, 15 échecs, une erreur,
+  16 ignorés**. Témoins exacts : deux échecs déjà présents (voix, capture 219),
+  **treize échecs et une erreur introduits** ; aucun réancrage.
+  Vingt paires 4 h, classes 219 : confidences **320→57**, répétitions
+  textuelles pondérées **34→18**, demandes en boucle **0→0**, avertissements
+  redits **6→0** ; zéro plantage/usurpation. Suspects **4→5**, à expliquer
+  **59→52**, cycles **523→507**, préemptions **67→57**, dérives **200→200**,
+  états payés perdus **8→4**. **Critère aucune nouvelle boucle non atteint** :
+  Mireille auberge 2024 à 226 ; alternance d'agenda Brune hameau 2024 neuf fois.
+  Oracle auberge conservé rouge sur instruction : à 481 la lanterne éteinte
+  n'est plus annoncée ; aucune confidence utile ne la remplace. Rendus/plans
+  identiques, sauvegarde et jets 9→7 différents. Trempe Ilse 1,025≠0 reste rouge.
+  Branche à examiner, **pas une correction globalement validée à fusionner**.
+  Aucun Luna, deux travailleurs réduits au plus ; aucune clé, commits non signés.
+  Bruts `C:/Users/msics/donjon/artifacts/sait-206/`, annexe exhaustive
+  `diagnostic-final-881db69.md` et [rapport 206](taches/rapport-codex-206-sait-observations.md).
+  Anciennes mesures `3aa16f7` archivées ; passe `d7dbf1a` interrompue sur
+  instruction de fusion et archivée, pas utilisée comme validation finale.
 
 - **Branche `codex-reessai-obstacle`, fusionnée**, lot **225**, départ
   `e4d8655` vérifié : patience 30 min conservée, répit 60 min retiré ; chaque

@@ -404,7 +404,11 @@ def verifier(monde):
         from .social import DITS_MAX
         assert (isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX
                 and all(isinstance(k, str) and isinstance(v, dict) and {"valeur", "dit_a"} <= set(v)
-                        and set(v) <= {"valeur", "dit_a", "entendu_a", "valeur_inconnue"}
+                        and set(v) <= {"valeur", "dit_a", "entendu_a", "valeur_inconnue", "portee_a"}
+                        and isinstance(v.get("portee_a", {}), dict)
+                        and all(isinstance(a, str) and isinstance(p, list) and len(p) == 2
+                                and p[0] in (0, 1, 2) and p[1] in (-1, 0, 1)
+                                for a, p in v.get("portee_a", {}).items())
                         and isinstance(v.get("valeur_inconnue", False), bool)
                         and isinstance(v["dit_a"], dict) and all(isinstance(a, str) for a in v["dit_a"])
                         and isinstance(v.get("entendu_a", {}), dict)
@@ -487,6 +491,12 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    observations = getattr(monde, "_observations_communes", None)
+    if observations is not None and source == "vu" and id in observations:
+        observations[id].append({"type": "affirmation", "sujet": sujet,
+                                 "attribut": attribut, "valeur": copy.deepcopy(valeur),
+                                 "details": {k: copy.deepcopy(v) for k, v in lieu.items()
+                                             if k in ("montee", "niveau", "repere")}})
     if attribut == "lieu" and source in ("vu", "entendu") and valeur in monde.data["salles"]:
         # Le contexte d'une réponse retenue change avec un déplacement
         # réellement perçu de la personne, jamais avec une date, une autre
@@ -871,6 +881,16 @@ def percoit(monde, acteur, sujet):
     return sujet in percus(monde, acteur)[0]
 
 
+def _perception_commune(monde, id):
+    """Lecture physique unique par témoin dans une perception immuable."""
+    regards = getattr(monde, "_regards_communs", None)
+    if regards is None:
+        return percus(monde, id)
+    if id not in regards:
+        regards[id] = percus(monde, id)
+    return regards[id]
+
+
 def _observe(monde, champ, croyance):
     """Le lieu où l'on attendait le sujet est-il sous les yeux du PNJ ?
 
@@ -938,6 +958,8 @@ def constater_possession(monde, id, sujet, source, *, salle=None, case=None, rem
             p["remise_autorisee"] = precedent.get("remise_autorisee", False)
         details["possession"] = p
     reviser(monde, id, sujet, "lieu", o["lieu"], source, salle=salle, case=case, **details)
+    if source == "vu":
+        voir_ensemble(monde, id, sujet, "lieu", o["lieu"])
 
 
 def _vu_porter(monde, id, sujet):
@@ -987,6 +1009,27 @@ def constater_fin_objet(monde, id, sujet, source):
         del esprit(monde, id)["croyances"][sujet]["fin"]
 
 
+def voir_ensemble(monde, id, sujet, attribut, valeur):
+    """Un constat visuel public, avec les témoins visibles du même sujet.
+
+    Appelé au point d'acquisition de la propriété visible : ni une croyance
+    privée, ni un essai dans le noir ne constituent une observation commune.
+    """
+    from .social import observation_commune
+    if id == "joueur":
+        return  # Le joueur choisit lui-même ses paroles.
+    vus = _perception_commune(monde, id)[0]
+    if sujet not in vus:
+        return
+    temoins = [autre for autre in vus if autre in pnjs(monde)
+               and sujet in _perception_commune(monde, autre)[0]]
+    # Le champ géométrique du joueur n'atteste pas qu'il a acquis ce fait.
+    # Ses paroles ont une audience enregistrée ; une rotation silencieuse
+    # ne constitue pas une communication publique de son savoir aux PNJ.
+    observation_commune(monde, id, {"type": "affirmation", "sujet": sujet,
+                                   "attribut": attribut, "valeur": valeur}, temoins, vus=vus)
+
+
 def constater(monde, id, sujet, source):
     """Croit l'état visible de l'objet tel qu'il est : vu, ou laissé ainsi de sa propre main.
     D'un personnage, joueur compris, se voit ce qui presse son corps : la faim, le froid, la
@@ -1004,6 +1047,8 @@ def constater(monde, id, sujet, source):
                    {**{nom: besoins.get(nom, 0) >= regle["urgence"] for nom, regle in CORPS.items()},
                     **visible(monde, sujet),
                     **({"parti": False} if ancien and "parti" in ancien["valeur"] else {})}, source)
+            if source == "vu":
+                voir_ensemble(monde, id, sujet, "etat", croyance(monde, id, sujet, "etat")["valeur"])
         if (source == "vu" and not visible(monde, sujet)["conscient"]
                 and (not ancien or ancien["valeur"].get("conscient") is not False)
                 and protege):
@@ -1023,6 +1068,8 @@ def constater(monde, id, sujet, source):
         from .deliberation import inquieter, relancer
         ancien = croyance(monde, id, sujet, "etat")
         croire(monde, id, sujet, "etat", {"mort": True}, source)
+        if source == "vu":
+            voir_ensemble(monde, id, sujet, "etat", {"mort": True})
         if source == "vu" and not (ancien and ancien["source"] == "vu" and ancien["valeur"].get("mort")):
             memoriser(monde, id, {"type": "mort_vue", "objet": sujet, "salle": o["lieu"]})
             from .corps import evenement
@@ -1052,6 +1099,8 @@ def constater(monde, id, sujet, source):
                 if ancien and "vide" in ancien["valeur"]:
                     etat["vide"] = ancien["valeur"]["vide"]
         croire(monde, id, sujet, "etat", etat, source)
+        if source == "vu":
+            voir_ensemble(monde, id, sujet, "etat", etat)
 
 
 def _flamme_sous_les_yeux(monde, id, sujet, lieu):
@@ -1167,11 +1216,19 @@ def percevoir(monde, id):
     if not conscient(monde, id):
         return
     with etat_fige(monde):  # Percevoir ne révise que son esprit.
-        _percevoir(monde, id)
+        regards = getattr(monde, "_regards_communs", None)
+        if regards is None:
+            # Même hors d'une passe collective, tous les constats de cette
+            # perception portent sur la même photographie physique.
+            monde._regards_communs = {}
+        try:
+            _percevoir(monde, id)
+        finally:
+            monde._regards_communs = regards
 
 
 def _percevoir(monde, id):
-    vus, champ = percus(monde, id)
+    vus, champ = _perception_commune(monde, id)
     croyances = esprit(monde, id)["croyances"]
     # Une disparition du registre n'apprend rien à un observateur distant.
     # Conserver aussi une fin déjà constatée, même si ses restes sont retirés.
@@ -1243,8 +1300,38 @@ def _percevoir(monde, id):
 
 def percevoir_tous(monde):
     with vue_memorisee(monde), etat_fige(monde):  # Percevoir ne révise que des esprits.
-        for id in pnjs(monde):
-            percevoir(monde, id)
+        # Photographier les acquisitions de CETTE perception commune, pas les
+        # croyances privées laissées par les perceptions précédentes. Cela
+        # couvre toute propriété observée par la voie commune, sans catalogue
+        # de types de faits, ni assimilation d'une conclusion à une observation.
+        observations = {id: [] for id in pnjs(monde)}
+        precedent = getattr(monde, "_observations_communes", None)
+        regards_precedents = getattr(monde, "_regards_communs", None)
+        perceptions = {id: percus(monde, id) for id in observations}
+        regards = {id: p[0] for id, p in perceptions.items()}
+        supports = {id: set(vus) | {case[0] if isinstance(case, tuple) else case for case in champ}
+                    for id, (vus, champ) in perceptions.items()}
+        monde._observations_communes = observations
+        monde._regards_communs = perceptions
+        try:
+            for id in observations:
+                percevoir(monde, id)
+        finally:
+            monde._observations_communes = precedent
+            monde._regards_communs = regards_precedents
+        from .social import faits_dits, observation_commune
+        acquis = {id: dict(f for n in contenus for f in faits_dits(n))
+                  for id, contenus in observations.items()}
+        for id, contenus in observations.items():
+            vus = regards[id]
+            for noyau in contenus:
+                faits = faits_dits(noyau)
+                temoins = [autre for autre in observations if autre != id and autre in vus
+                           and (noyau["sujet"] in supports[id] & supports[autre]
+                                or noyau["sujet"] in monde.data["salles"])
+                           and all(cle in acquis[autre] and acquis[autre][cle] == valeur
+                                   for cle, valeur in faits)]
+                observation_commune(monde, id, noyau, temoins, vus=vus)
         from .perception import fin_objet
         croyances_joueur = lire(monde, "joueur")["croyances"]
         for sujet, o in monde.objets.items():

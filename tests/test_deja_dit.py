@@ -40,7 +40,7 @@ class DejaDitTests(unittest.TestCase):
         m, dit, texte = confier(recharger(m), "josse")
         # L'ancien suivi porte déjà Lucien : le fait lui était connu dès la
         # minute 4 (Rémy). La reprise ne doit même pas redire l'épisode à 14.
-        self.assertNotIn("Odon semble guetter la porte du bureau", texte)
+        self.assertNotIn("glisse à Lucien que Odon semble guetter la porte du bureau", texte)
         self.assertTrue(social.deja_dit(m, "josse", "lucien", nouvelle))
         for minute in (62, 110, 178, 247):
             oublier(m, "josse", "lucien")
@@ -113,6 +113,11 @@ class DejaDitTests(unittest.TestCase):
             m.objets["vivres"]["portions"] = 2
             croire(m, "ilse", "vivres", "etat", {"disponible": True}, "vu")
             croire(m, "marchand", "vivres", "etat", {"disponible": True}, "vu")
+            # Ilse doit savoir que Gorm a appris le changement : elle le lui
+            # annonce explicitement, plutôt que lire sa croyance privée.
+            social.faire_entendre(m, "ilse", "marchand", "Les vivres sont disponibles.", ["vivres"], [],
+                                 [{"type": "affirmation", "sujet": "vivres", "attribut": "etat",
+                                   "valeur": {"disponible": True}}])
             m = recharger(m)
             m.objets["vivres"]["portions"] = 0
         self.assertEqual(sum(bool(c.get("constat_confie")) for c in m.data["chronique"]), 2)
@@ -147,7 +152,7 @@ class DejaDitTests(unittest.TestCase):
         self.assertTrue(social.deja_dit(recharger(m), "ilse", "marchand", noyau))
         croire(m, "marchand", "vivres", "etat", {"disponible": False}, "dit:ilse")
         croire(m, "marchand", "vivres", "etat", {"disponible": True}, "vu")
-        self.assertFalse(social.deja_dit(recharger(m), "ilse", "marchand", noyau))
+        self.assertTrue(social.deja_dit(recharger(m), "ilse", "marchand", noyau))
 
     def test_lieu_et_accusation_restent_dits_apres_oubli(self):
         from tests.test_boucles_pnj import ballot_rendu

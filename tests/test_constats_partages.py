@@ -26,6 +26,9 @@ def scene():
     regarder(m, "joueur", "ilse")
     lier(m, "ilse", "marchand", True)
     lier(m, "marchand", "ilse", True)
+    # La réserve est une nouvelle utile : Gorm est affamé et Ilse le voit.
+    lire(m, "marchand")["besoins"]["faim"] = 90
+    constater(m, "ilse", "marchand", "vu")
     # Les vivres sont à l'écart : Gorm ne voit pas lui-même la réserve épuisée.
     m.objets["vivres"].update(lieu="echoppe", position=[4, 3], position_salle="echoppe", portions=0)
     for id in ("ilse", "marchand"):
@@ -73,6 +76,9 @@ class ConstatsPartagesTests(unittest.TestCase):
 
     def test_verrou_constate_par_le_geste_dit_et_cru(self):
         m = scene()
+        # Projet connu : Gorm a confié à Ilse une tâche sur cette porte.
+        memoriser(m, "ilse", {"type": "engagement_pris", "pour": "marchand",
+                              "condition": {"objet": "porte", "verrouillee": False}})
         m.objets["porte"].update(ouverte=False, verrouillee=True)
         croire(m, "marchand", "porte", "verrouillee", False, "savoir")
         m = constater_echec(m, "ouvrir", "porte")
@@ -115,7 +121,11 @@ class ConstatsPartagesTests(unittest.TestCase):
                 ("echoppe", "eau", 35, "l'eau atteint 35 cm dans la conduite basse")):
             with self.subTest(attribut=attribut, objet=objet):
                 m = scene()
+                if objet == "brasero":
+                    croire(m, "ilse", "marchand", "etat", {"chaleur": True}, "vu")
                 if objet == "reserve":
+                    memoriser(m, "ilse", {"type": "engagement_pris", "pour": "marchand",
+                                          "condition": {"objet": "reserve", "ouverte": True}})
                     m.objets[objet]["ouverte"] = True
                     constater(m, "ilse", objet, "vu")
                     self.assertTrue(lire(m, "ilse")["croyances"][objet]["etat"]["valeur"]["vide"])
@@ -193,6 +203,8 @@ class ConstatsPartagesTests(unittest.TestCase):
     def test_meme_laps_decoupe_meme_monde_et_nouvelle_entendue(self):
         initial = constater_echec(scene(), "manger", "vivres")
         initial.objets["brasero"]["allume"] = False
+        lire(initial, "marchand")["besoins"]["chaleur"] = 90
+        croire(initial, "ilse", "marchand", "etat", {"chaleur": True}, "vu")
         croire(initial, "ilse", "brasero", "etat", {"allume": False}, "essai")
         lire(initial, "marchand")["libre"] = 10000  # Il écoute sans entreprendre de rallumer le feu.
         resultats = []
