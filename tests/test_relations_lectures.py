@@ -241,6 +241,9 @@ class LecturesTests(unittest.TestCase):
         for id in ("ilse", "brune"):
             for aime in ("aubin", "marchand"):
                 m = calme(relais(), "ilse", "brune", "aubin", "marchand")
+                # L'épreuve porte sur l'abri choisi, sans dette personnelle
+                # concurrente qui ferait légitimement partir gagner de l'argent.
+                m.objets[id]["profil"].setdefault("situation", {})["dette"] = 0
                 placer(m, id, "echoppe", [3, 5])
                 placer(m, "aubin", "antichambre", [5, 5])
                 placer(m, "marchand", "crypte", [5, 3])

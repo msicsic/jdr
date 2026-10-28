@@ -119,8 +119,10 @@ class InactiviteTests(unittest.TestCase):
                 m = recharger(m)
                 self.assertEqual(lire(m, 'aubin')['urgences']['faim']['etat'], attendu)
 
-    def verifier_scene(self, nom, qui, cause, texte):
+    def verifier_scene(self, nom, qui, cause, texte, preparer=None):
         m = scene(nom)
+        if preparer is not None:
+            preparer(m)
         avant = copy.deepcopy(m.data)
         self.assertEqual(D.inactivite(m, qui), cause)
         self.assertEqual(m.data, avant)  # Lire une cause ne fait ni rechercher ni agir.
@@ -133,7 +135,13 @@ class InactiviteTests(unittest.TestCase):
         self.assertEqual(D.inactivite(bloc, qui), cause)
 
     def test_mireille_auberge_11_travail_confie(self):
-        self.verifier_scene('auberge-11-500', 'mireille', 'confiee', 'Charge confiée à autrui')
+        def travail_a_venir(m):
+            # Charge réellement inachevée et prestataire déjà occupé : la
+            # cause reste "confiée" sans dépendre d'une vieille vue du feu.
+            m.objets['fourneau']['combustible'] = 1
+            lire(m, 'joss')['libre'] = instant(m) + 11 * 600
+        self.verifier_scene('auberge-11-500', 'mireille', 'confiee', 'Charge confiée à autrui',
+                            preparer=travail_a_venir)
 
     def test_gorm_relais_1985_charge_confiee_au_joueur(self):
         self.verifier_scene('relais-1985-120', 'marchand', 'confiee', 'Charge confiée à autrui')

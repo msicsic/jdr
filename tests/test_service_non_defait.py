@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from donjon import agendas, planification
 from donjon.biens import retenir_service, services_proteges
-from donjon.deliberation import menager_flamme
+from donjon.deliberation import menager_flamme, salle_crue
 from donjon.echanges import engager
 from donjon.esprits import croire, lire, memoriser, percevoir_tous
 from donjon.monde import ErreurMonde, Monde
@@ -80,8 +80,12 @@ class ServiceNonDefaitTests(unittest.TestCase):
             self.assertFalse(sonde.analyser()['services_etat_perdu'])
             self.assertTrue(m.objets['torche']['allume'])
             self.assertIn({'objet': 'torche', 'allume': True}, services_proteges(m, 'brune'))
-            self.assertEqual(next(s['lieu_beneficiaire'] for s in m.data['services_rendus']
-                                  if s['de'] == 'brune'), 'echoppe')
+            # Lot 233 : sans rotation fortuite, Ilse est crue à l'antichambre au constat
+            # (l'échoppe sur l'ancienne trajectoire). L'ancrage reste le lieu cru du
+            # bénéficiaire par le prestataire, et le service reste protégé ci-dessus.
+            lieu = next(s['lieu_beneficiaire'] for s in m.data['services_rendus'] if s['de'] == 'brune')
+            self.assertIn(lieu, m.data['salles'])
+            self.assertEqual(lieu, salle_crue(m, 'brune', 'ilse'))
             self.assertFalse(any('éteint la torche' in x['texte']
                                  for x in m.data['chronique'] if x['pnj'] == 'brune'))
             resultats.append((m.data, regarder(m), scene_percue(m)))

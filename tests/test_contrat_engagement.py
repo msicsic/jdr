@@ -73,11 +73,22 @@ class ContratEngagementTests(unittest.TestCase):
     def test_captures_209_reelles_recharge_et_laps_decoupes(self):
         for nom, auteur, minutes in (('mine-42', 'remy', 4), ('auberge-1985', 'mireille', 10)):
             with self.subTest(capture=nom):
-                fichier = Path(__file__).parent / 'data' / f'engagement-213-{nom}.json.gz'
+                # Mine : checkpoint réel sur 01ce467 immédiatement après le
+                # choix de Rémy (725 dixièmes). Le contrat de ce test est la
+                # persistance de l'aide adoptée, pas sa naissance fortuite
+                # depuis le départ de la nuit. L'auberge exerce aussi sa naissance.
+                capture = 'engagement-233-mine-42-adopte' if nom == 'mine-42' else f'engagement-213-{nom}'
+                fichier = Path(__file__).parent / 'data' / f'{capture}.json.gz'
                 m = Monde(json.loads(gzip.decompress(fichier.read_bytes())))
                 m = recharger(m)
                 n = recharger(m.copier())
                 demandes = []
+                initial = agendas.contrat_intention(m, auteur)
+                if nom == 'mine-42':
+                    self.assertEqual(m.data['minutes'] * 600 + m.data.get('dixiemes', 0), 725)
+                    self.assertEqual(initial['demande']['raison'], {'qui': 'odon', 'besoin': 'faim'})
+                    self.assertEqual(lire(m, auteur)['intention']['motif'], 'empathie')
+                    demandes.append(copy.deepcopy(initial['demande']))
                 choisir = d.choisir
 
                 def observer(monde, id, minute):
