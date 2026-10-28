@@ -1614,6 +1614,9 @@ def retabli_par_son_plan(monde, id, condition):
     """
     e = lire(monde, id)
     i = e["intention"]
+    if (not i or i["but"] != {"type": "pulsion", **condition}) and condition in (
+            agendas.charges_suspendues(monde, id).get("conditions", ())):
+        return True
     if not (condition.get("verrouillee") and i and any(
             x["operation"] == "verrouiller" and x["cible"] == condition["objet"] for x in i["plan"])):
         return False
@@ -2059,6 +2062,7 @@ def choisir(monde, id, minute):
     courant = e["intention"]
     precedent = courant
     contrat_precedent = agendas.contrat_intention(monde, id) or {}
+    charges_precedentes = agendas.charges_suspendues(monde, id)
     sortie = None
     manque = e["manque"]
     if courant and courant["plan"] and manque and manque["minute"] == minute:
@@ -2073,7 +2077,7 @@ def choisir(monde, id, minute):
     choisi = None
     marge = marge_engagement(monde, id)
     from .planification import vues_du_choix
-    with vues_du_choix(monde, id):
+    with vues_du_choix(monde, id), agendas.reconstruction_charges(monde, id, charges_precedentes):
         agendas.actualiser(monde, id)
         if courant and contrat_precedent.get("demande"):
             fin = _fin_demande(monde, id, contrat_precedent["demande"])
@@ -2167,6 +2171,52 @@ def choisir(monde, id, minute):
             # Le geste manqué est un démenti du plan courant, pas une preuve
             # que tous les moyens vers le même but sont impossibles. Seule la
             # nouvelle planification ci-dessus peut le réinstaller.
+        # La fin du service n'efface pas la remise en état de ses préparatifs.
+        # Les moyens de cette phase sont recalculés sur le cru, non recopiés
+        # d'un ancien suffixe (le destinataire a pu être rejoint ailleurs).
+        restauration = False
+        conditions = charges_precedentes.get("conditions", [])
+        porteur = courant or precedent
+        if porteur and conditions and (charges_precedentes.get("restaurer")
+                                       or not (sortie and sortie["cause"] == "dementie")):
+            fin = _fin_demande(monde, id, contrat_precedent["demande"]) if contrat_precedent.get("demande") else None
+            condition = {k: v for k, v in porteur["but"].items() if k != "type"}
+            if porteur["but"]["type"] == "pulsion":
+                due = any(x["condition"] == condition and not x.get("annule")
+                          for x in agendas.en_cours(monde, id))
+                # Une charge personnelle peut être satisfaite par l'état cru ;
+                # une parole due s'acquitte par son geste, pas par cet état.
+                if not due and (porteur["motif"] != "engagement" and satisfaite(monde, id, condition) or any(
+                        s["type"] == "engagement_tenu" and s.get("condition") == condition
+                        and s["minute"] >= porteur["depuis"] for s in e["memoire"])):
+                    fin = ("accomplie", {"condition": condition})
+            if (charges_precedentes.get("restaurer") or fin and fin[0] == "accomplie"):
+                from .planification import restaurer_charges, _couper
+                from .pnj import refus_etape
+                if all(satisfaite(monde, id, c) for c in conditions):
+                    retablir = (0, [], None)
+                elif (courant and courant["plan"] and charges_precedentes.get("restaurer")
+                      and refus_etape(monde, id, courant["plan"]) is None):
+                    retablir = (0, courant["plan"], None)
+                else:
+                    retablir = restaurer_charges(monde, id, conditions)
+                if retablir and retablir[1]:
+                    urgence = Urgence(Palier(contrat_precedent.get("palier", Palier.PULSION_ROMPUE)),
+                                      contrat_precedent.get("valeur", 0), ())
+                    candidat = Candidat(porteur["motif"],
+                                        lambda m, i: (porteur["but"], _couper(retablir[1])), False, True, urgence,
+                                        contrat_precedent.get("demande"))
+                    proposition = evaluer(len(tous) + 1, candidat)
+                    if proposition:
+                        actif = (candidat, proposition)
+                        restauration = True
+                        moyens_revalides = False
+                        sortie = None
+                    else:
+                        charges_precedentes = {}
+                else:
+                    # Accompli ou aucun moyen admissible : plus de suspension.
+                    charges_precedentes = {}
         for n, candidat in enumerate(tous):
             if actif and not _domine(candidat.urgence, actif[0].urgence, marge):
                 continue
@@ -2226,6 +2276,13 @@ def choisir(monde, id, minute):
                           "depuis": intention["depuis"] if meme else minute,
                           "attente": intention["attente"] if meme else 0,
                           **({"attitude": intention["attitude"]} if meme and "attitude" in intention else {})}
+        from .planification import suspensions
+        charges = list(charges_precedentes.get("conditions", ())) if meme_engagement else []
+        for c in suspensions(monde, id, etapes, but):
+            if c not in charges:
+                charges.append(c)
+        agendas.retenir_charges(monde, id, charges,
+                               restaurer=restauration and meme_engagement)
         agendas.retenir_intention(monde, id, {"palier": int(choisi.urgence.palier),
                                              "valeur": choisi.urgence.valeur,
                                              "demande": choisi.demande,
