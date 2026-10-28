@@ -106,7 +106,8 @@ CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": 
           "recherches": dict,
           # Contenus des indices déjà utilisés par personne et lieu, hors mémoire bornée.
           "indices_recherche": dict,
-          "presence_recherche": dict}  # Dernière localisation positive, même après un constat d'absence.
+          "presence_recherche": dict,  # Dernière localisation positive, même après un constat d'absence.
+          "constats_biens": dict, "soupcons": dict}
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -441,6 +442,19 @@ def verifier(monde):
         assert (isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX
                 and all(isinstance(s, dict) and isinstance(s.get("type"), str) and type(s.get("minute")) is int
                         for s in e["memoire"])), "Mémoire de PNJ invalide"
+        assert all(s.get("qui") != id and isinstance(s.get("qui"), str)
+                   and s.get("salle") in monde.data["salles"] and type(s.get("instant")) is int
+                   for s in e["memoire"] if s["type"] == "presence_percue"), "Souvenir de présence invalide"
+        assert isinstance(e["constats_biens"], dict), "Constats de biens invalides"
+        for o, cs in e["constats_biens"].items():
+            assert isinstance(o, str) and isinstance(cs, dict) and set(cs) <= {
+                "present", "integrite", "vide", "allume", "charge", "disponible"}, "Propriétés constatées invalides"
+            for champ, c in cs.items():
+                assert (set(c) == {"valeur", "salle", "instant", "proprietaire", "lieu"}
+                        and c["salle"] in monde.data["salles"] and type(c["instant"]) is int
+                        and (c["proprietaire"] is None or isinstance(c["proprietaire"], str))
+                        and (c["lieu"] is None or isinstance(c["lieu"], str))
+                        and (type(c["valeur"]) is int if champ == "integrite" else type(c["valeur"]) is bool)), "Constat de bien invalide"
         from .social import DITS_MAX
         assert (isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX
                 and all(isinstance(k, str) and isinstance(v, dict) and {"valeur", "dit_a"} <= set(v)
@@ -535,6 +549,9 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    if (id != "joueur" and attribut == "lieu" and source == "entendu" and valeur in monde.data["salles"]
+            and (sujet == "joueur" or monde.objets.get(sujet, {}).get("type") == "personnage")):
+        _retenir_presence(monde, id, sujet, valeur)
     if attribut == "lieu" and source in ("vu", "entendu") and valeur in monde.data["salles"]:
         # Le contexte d'une réponse retenue change avec un déplacement
         # réellement perçu de la personne, jamais avec une date, une autre
@@ -654,6 +671,8 @@ def memoriser(monde, id, evenement):
     souvenir = copy.deepcopy({"minute": monde.data["minutes"], **evenement})
     from .relations import identifier
     from .temps import instant
+    if souvenir["type"] in ("vu_agir", "entendu_agir", "vu_porter", "vol_surpris"):
+        souvenir.setdefault("instant", instant(monde))
     identifier(souvenir, instant(monde))
     memoire.append(souvenir)
     del memoire[:-MEMOIRE_MAX]
@@ -661,6 +680,78 @@ def memoriser(monde, id, evenement):
     eprouver_souvenir(monde, id, souvenir)
     from .defense import retenir as retenir_violence
     retenir_violence(monde, id, souvenir)
+
+
+def _retenir_presences(monde, id, vus):
+    """Dernières présences perçues, dans la mémoire commune bornée, sans noms appris.
+
+    Une présence continue prolonge le même souvenir ; elle ne remplit pas la
+    mémoire à chaque pas ni ne conserve une archive des personnes oubliées.
+    """
+    for qui, (salle, _) in vus.items():
+        if qui == id or not salle or (qui != "joueur" and monde.objets[qui]["type"] != "personnage"):
+            continue
+        _retenir_presence(monde, id, qui, salle)
+
+
+def _retenir_presence(monde, id, qui, salle):
+    from .temps import instant
+    if qui == id:
+        return
+    memoire = esprit(monde, id)["memoire"]
+    ancien = next((s for s in reversed(memoire) if s["type"] == "presence_percue" and s["qui"] == qui), None)
+    if ancien and ancien["salle"] == salle:
+        memoire.remove(ancien)
+        ancien.update(minute=monde.data["minutes"], instant=instant(monde))
+        memoire.append(ancien)
+    else:
+        memoriser(monde, id, {"type": "presence_percue", "qui": qui, "salle": salle, "instant": instant(monde)})
+
+
+def _constater_bien(monde, id, sujet, faits, salle, source="vu"):
+    """Comparer des propriétés réellement constatées, jamais un état caché.
+
+    Chaque propriété garde son propre dernier constat (le contenu d'un coffre
+    fermé n'est pas revu). Les présences et gestes viennent seulement des souvenirs.
+    """
+    if id == "joueur" or salle is None:
+        return
+    from .temps import instant
+    from .relations import deduire_soupcon, reviser_soupcons
+    e = esprit(monde, id)
+    reviser_soupcons(monde, id, sujet, faits, salle=salle)
+    constats = e["constats_biens"].setdefault(sujet, {})
+    for champ, valeur in faits.items():
+        avant = constats.get(champ)
+        proprietaire = (_proprietaire(monde, monde.objets[sujet]) if faits.get("present") is True
+                        else (avant or {}).get("proprietaire"))
+        lieu_cru = croyance(monde, id, sujet, "lieu") or {}
+        constats[champ] = {"valeur": valeur, "salle": salle, "instant": instant(monde),
+                           "proprietaire": proprietaire, "lieu": lieu_cru.get("valeur")}
+        if not avant or avant["proprietaire"] is None or avant["salle"] != salle or avant["instant"] >= instant(monde):
+            continue
+        atteint = (valeur < avant["valeur"] if champ == "integrite" else
+                   valeur and not avant["valeur"] if champ == "vide" else not valeur and avant["valeur"])
+        if not atteint or source != "vu" or getattr(monde, "_agit", None) == id:
+            continue
+        # L'extinction par épuisement n'est pas une atteinte imputable.
+        if champ == "allume" and not faits.get("charge", False):
+            continue
+        if champ == "charge":
+            continue
+        lies = {sujet, avant["lieu"]} | {o for o, cs in e["constats_biens"].items()
+                                        if cs.get("present", {}).get("lieu") == sujet}
+        connus = [s for s in e["memoire"] if s["type"] in
+                  ("vu_agir", "entendu_agir", "vu_porter", "vol_surpris")
+                  and s.get("objet") in lies and s.get("instant", s["minute"] * 600) >= avant["instant"]]
+        if connus or sujet in e["portages"]:
+            continue
+        suspects = {s["qui"] for s in e["memoire"] if s["type"] == "presence_percue"
+                    and s["salle"] == salle and avant["instant"] <= s["instant"] <= instant(monde)}
+        if len(suspects) == 1:
+            auteur = next(iter(suspects))
+            if auteur != avant["proprietaire"]:
+                deduire_soupcon(monde, id, auteur, sujet, champ, avant)
 
 
 def dernier_son(monde, id):
@@ -986,6 +1077,9 @@ def constater_possession(monde, id, sujet, source, *, salle=None, case=None, rem
             p["remise_autorisee"] = precedent.get("remise_autorisee", False)
         details["possession"] = p
     reviser(monde, id, sujet, "lieu", o["lieu"], source, salle=salle, case=case, **details)
+    if id != "joueur" and porteur == id and details["possession"]["proprietaire"] == id:
+        from .relations import reviser_soupcons
+        reviser_soupcons(monde, id, sujet, {"present": True}, rendu=True)
 
 
 def _vu_porter(monde, id, sujet):
@@ -1100,6 +1194,17 @@ def constater(monde, id, sujet, source):
                 if ancien and "vide" in ancien["valeur"]:
                     etat["vide"] = ancien["valeur"]["vide"]
         croire(monde, id, sujet, "etat", etat, source)
+    if source in ("vu", "essai") and _proprietaire(monde, o) is not None:
+        lieu = croyance(monde, id, sujet, "lieu") or {}
+        salle = lieu.get("salle")
+        if _porteur(monde, o) == id:
+            salle = monde.objets[id]["lieu"]
+        faits = {"present": True}
+        if "integrite" in o:
+            faits["integrite"] = o["integrite"]
+        if etats:
+            faits.update({k: v for k, v in etat.items() if k in ("vide", "allume", "charge", "disponible")})
+        _constater_bien(monde, id, sujet, faits, salle, source)
 
 
 def _flamme_sous_les_yeux(monde, id, sujet, lieu):
@@ -1220,6 +1325,7 @@ def percevoir(monde, id):
 
 def _percevoir(monde, id):
     vus, champ = percus(monde, id)
+    _retenir_presences(monde, id, vus)
     croyances = esprit(monde, id)["croyances"]
     # Une disparition du registre n'apprend rien à un observateur distant.
     # Conserver aussi une fin déjà constatée, même si ses restes sont retirés.
@@ -1260,6 +1366,9 @@ def _percevoir(monde, id):
             valeur = etat["valeur"]
             reviser(monde, id, sujet, "etat", {**valeur, "allume": False, "faible": False,
                                                "charge": bool(valeur.get("charge")) and not valeur.get("faible")})
+            _constater_bien(monde, id, sujet, {"allume": False,
+                             "charge": bool(valeur.get("charge")) and not valeur.get("faible")},
+                             (attributs.get("lieu") or {}).get("salle"))
             change = True
     for sujet, attributs in croyances.items():
         lieu = attributs.get("lieu")
@@ -1276,6 +1385,8 @@ def _percevoir(monde, id):
             continue  # Un objet fixe fait partie du lieu : ne pas le voir d'ici ne le déplace pas.
         reviser(monde, id, sujet, "lieu", None, salle=None, case=None)
         if sujet != "joueur" and monde.objets[sujet]["type"] != "personnage":
+            if sujet in e["constats_biens"]:
+                _constater_bien(monde, id, sujet, {"present": False}, lieu["salle"])
             change = True  # Ce qu'il attendait là n'y est plus.
             memoriser(monde, id, {"type": "absence", "objet": sujet, "salle": lieu["salle"]})
             from .vol import proprietaire

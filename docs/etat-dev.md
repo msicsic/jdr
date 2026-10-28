@@ -2,6 +2,24 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-soupcon-deduit`, non fusionnée**, lot **267**, base
+  `7404d2d` : deux constats propres datés d'un bien et présences perçues dans
+  la mémoire commune bornée ; un seul suspect donne `soupcon_deduit`,
+  confiance −6 à −18 selon PSY, preuve 0,4/source `devine`, sans portage ni
+  naissance de récupération. Conséquences concomitantes regroupées ; levée
+  révisable au retour/réparation ou à l'attribution apprise, compensation de
+  la seule perte appliquée. Noms inconnus non appris. **118 ciblés distincts,
+  117 verts / un échec de dette préexistant** (40 au lieu de 20) ; onze
+  nouveaux tests, scènes Gorm/réserve et Anselme/coffre, état/rendu/scène
+  rechargés et laps entier/découpé. Ni suite complète ni Luna. Banc 4 h,
+  cinq scénarios × quatre graines, détaché réduit (deux travailleurs),
+  référence `main c870c8b` : vingt références exactes absentes à ranger une
+  seule fois, puis branche. **Banc non encore validé** ; fin attendue
+  `C:/Users/msics/donjon/artifacts/soupcon-267/fin.json`, comptages des soupçons
+  et suspects 219 par nuit. Effraction visible par intégrité seulement ;
+  aucun crochetage caché ni disparition distante inventé. Bruts au même
+  dossier ; [rapport 267](taches/rapport-codex-267-soupcon-deduit.md).
+
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic
   seul, base `integration 769c7f1` : épisode absent de la nuit actuelle 12 h ;
   reproduit sur `c870c8b`, hameau 1985, départ tiré, joueur chambre de la

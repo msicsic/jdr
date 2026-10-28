@@ -28,6 +28,8 @@ EPREUVES = {
     "dispute_perdue": {"rancune": 10},
     "parti_pris": {"affection": 3},
     "rumeur": {"confiance": -20},
+    "soupcon_deduit": {"confiance": -12},
+    "soupcon_leve": {"confiance": 12},
     "aveu": {"confiance": -25},
     "refus": {"rancune": 5},
     "nourri": {"confiance": 10, "affection": 10, "rancune": -10, "dette": 20},
@@ -401,7 +403,7 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
     preuve = s.get("preuve") or hashlib.sha256(json.dumps(s, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
     cle = autre + ":" + preuve
     preuves = esprit(monde, id)["preuves_relations"]
-    niveau = 0.5 if cause == "rumeur" else 0.8 if cause == "aveu" or s.get("par") == "ouie" else 1.0
+    niveau = 0.4 if cause == "soupcon_deduit" else 0.5 if cause == "rumeur" else 0.8 if cause == "aveu" or s.get("par") == "ouie" else 1.0
     precedente = preuves.get(cle)
     if precedente and precedente["niveau"] > niveau:
         return
@@ -440,7 +442,7 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
         if a in r["ancrages"]:
             r["ancrages"][a] = [exact, monde.data["minutes"]]
     delta = {a: r[a] - avant[a] for a in AXES if r[a] != avant[a]}
-    if not delta:
+    if not delta and cause not in ("soupcon_deduit", "soupcon_leve"):
         return
     bandes = r["bandes"]
     r["bandes"] = _bandes(r, bandes)
@@ -458,10 +460,56 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
     from .pnj import _chroniquer
     from .social import _qui
     changes = [b for b in BANDES if bandes[b] != r["bandes"][b]]
-    if changes or cause in ("dette_honoree", "service_rendu"):
-        _chroniquer(monde, id, f"{_qui(monde, id)} envers {_qui(monde, autre)} : {resume(r)} ; {cause}.", "relation")
+    if changes or cause in ("dette_honoree", "service_rendu", "soupcon_deduit", "soupcon_leve"):
+        designation = _qui(monde, autre, id if cause in ("soupcon_deduit", "soupcon_leve") else None)
+        _chroniquer(monde, id, f"{_qui(monde, id)} envers {designation} : {resume(r)} ; {cause}.", "relation")
         monde.data["chronique"][-1].update(relation=autre, cause=cause, bandes=copy.deepcopy(r["bandes"]),
                                           mefiance_levee=bandes["mefiance"] and not r["bandes"]["mefiance"], service=s.get("service", s.get("objet")))
+
+
+def deduire_soupcon(monde, id, auteur, objet, champ, avant):
+    """Un indice faillible, distinct de tout portage constaté et du témoignage."""
+    from .esprits import esprit, memoriser
+    from .temps import instant
+    e = esprit(monde, id)
+    # Deux conséquences concomitantes (coffre vide et bien absent) étayent
+    # le même indice ; elles ne multiplient pas la peine relationnelle.
+    for s in e["soupcons"].values():
+        if s["auteur"] == auteur and s["salle"] == avant["salle"] and avant["instant"] <= s["fin"]:
+            s["indices"].setdefault(objet, {})[champ] = avant["valeur"]
+            return
+    preuve = f"soupcon:{id}:{objet}:{champ}:{avant['instant']}:{instant(monde)}"
+    s = {"auteur": auteur, "salle": avant["salle"], "debut": avant["instant"], "fin": instant(monde),
+         "indices": {objet: {champ: avant["valeur"]}}, "perte": 0}
+    e["soupcons"][preuve] = s
+    confiance_avant = envers(monde, id, auteur)["confiance"]
+    memoriser(monde, id, {"type": "soupcon_deduit", "auteur": auteur, "objet": objet,
+                         "preuve": preuve, "source": "devine"})
+    s["perte"] = confiance_avant - envers(monde, id, auteur)["confiance"]
+
+
+def reviser_soupcons(monde, id, objet, faits=None, *, auteur_appris=False, salle=None, rendu=False):
+    """Retirer l'indice démenti ; aucun crédit pour une pénalité non appliquée."""
+    from .esprits import esprit, memoriser
+    e = esprit(monde, id)
+    for preuve, s in list(e["soupcons"].items()):
+        if objet not in s["indices"]:
+            continue
+        if auteur_appris or rendu:
+            s["indices"].clear()
+        else:
+            indices = s["indices"][objet]
+            for champ, valeur in list(indices.items()):
+                if champ == "present" and not rendu and salle != s["salle"]:
+                    continue
+                if champ in (faits or {}) and (faits[champ] >= valeur if champ == "integrite" else faits[champ] == valeur):
+                    del indices[champ]
+            if not indices:
+                del s["indices"][objet]
+        if not s["indices"]:
+            del e["soupcons"][preuve]
+            memoriser(monde, id, {"type": "soupcon_leve", "auteur": s["auteur"], "objet": objet,
+                                 "preuve": "leve:" + preuve, "perte": s["perte"], "source": "devine"})
 
 
 def souvenir(monde, id, s):
@@ -473,6 +521,16 @@ def souvenir(monde, id, s):
     if t == "rumeur" and s.get("evenement", {}).get("type") == "intention_lue":
         return
     if id == "joueur":
+        return
+    if t in ("vu_agir", "vu_porter", "vol_surpris"):
+        reviser_soupcons(monde, id, s.get("objet"), auteur_appris=True)
+    if t == "rumeur" and s.get("evenement", {}).get("type") in ("vu_agir", "vu_porter", "vol_surpris"):
+        reviser_soupcons(monde, id, s["evenement"].get("objet"), auteur_appris=True)
+    if t in ("soupcon_deduit", "soupcon_leve"):
+        from .caractere import caracteristique
+        facteur = (min(1.5, max(.5, caracteristique(monde, id, "PSY") / 10)) if t == "soupcon_deduit"
+                   else s["perte"] / EPREUVES[t]["confiance"])
+        _appliquer(monde, id, s["auteur"], t, s, facteur)
         return
     autre = s.get("auteur", s.get("locuteur", s.get("de", s.get("qui"))))
     if t == "restitution":
@@ -646,8 +704,19 @@ def resume(r):
 def verifier(monde, id):
     from .esprits import lire
     e = lire(monde, id)
+    assert isinstance(e["soupcons"], dict), "Soupçons invalides"
+    for preuve, s in e["soupcons"].items():
+        assert (isinstance(preuve, str) and set(s) == {"auteur", "salle", "debut", "fin", "indices", "perte"}
+                and isinstance(s["auteur"], str) and s["salle"] in monde.data["salles"]
+                and type(s["debut"]) is int and type(s["fin"]) is int and 0 <= s["debut"] <= s["fin"]
+                and type(s["perte"]) is int and 0 <= s["perte"] <= 18
+                and isinstance(s["indices"], dict) and bool(s["indices"])
+                and all(isinstance(o, str) and isinstance(cs, dict) and cs and set(cs) <= {
+                    "present", "integrite", "vide", "allume", "disponible"} and all(
+                        type(v) is int if c == "integrite" else type(v) is bool for c, v in cs.items())
+                    for o, cs in s["indices"].items())), "Indice de soupçon invalide"
     assert isinstance(e["preuves_relations"], dict) and all(isinstance(p, str) and isinstance(v, dict) and set(v) == {"niveau", "effets"}
-        and v["niveau"] in (0.5, 0.8, 1.0) and isinstance(v["effets"], dict) and set(v["effets"]) <= set(AXES)
+        and v["niveau"] in (0.4, 0.5, 0.8, 1.0) and isinstance(v["effets"], dict) and set(v["effets"]) <= set(AXES)
         and all(type(d) is int for d in v["effets"].values()) for p, v in e["preuves_relations"].items()), "Preuves de relation invalides"
     assert isinstance(e["portages"], dict) and all(isinstance(o, str) and isinstance(p, dict) and set(p) == {"auteur", "preuve"}
         and all(isinstance(v, str) for v in p.values()) for o, p in e["portages"].items()), "Portages retenus invalides"
