@@ -118,6 +118,7 @@ const ETATS_PORTE = {ouverte: "ouverte", fermee: "fermée", verrouillee: "verrou
 const $ = id => document.getElementById(id);
 const canvas = $("carte"), ctx = canvas.getContext("2d");
 let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, surligne = null;
+let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
 let occupe = true, historique = [], indice = 0, brouillon = "";
 
@@ -154,8 +155,8 @@ function iconeSouvenir(s) {
   return o ? icone(o) : (SYMBOLES_SOUVENIR[s.symbole] || "❔");
 }
 function fleche(cx, cy, r, orientation, teinte) {
-  const d = DIRS[orientation]; if (!d) return;
-  const a = Math.atan2(d[1], d[0]);
+  const a = typeof orientation === "number" ? orientation : (() => { const d = DIRS[orientation]; if (!d) return null; return Math.atan2(d[1], d[0]); })();
+  if (a === null) return;
   ctx.fillStyle = teinte; ctx.beginPath();
   ctx.moveTo(cx + Math.cos(a) * (r + 7), cy + Math.sin(a) * (r + 7));
   ctx.lineTo(cx + Math.cos(a + 2.5) * r * .55, cy + Math.sin(a + 2.5) * r * .55);
@@ -175,6 +176,75 @@ function cone(o, orientation, teinte, cases) {
   // Seulement sur des cases données : celles que tu vois pour toi, celles que tu connais pour un autre.
   ctx.fillStyle = teinte;
   cases.forEach(c => { if (dansLeCone(o, orientation, c)) ctx.fillRect(X(c[0]), Y(c[1]), CS, CS); });
+}
+function easeInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+function posJoueurAnim() {
+  if (!animJoueur) return scene.joueur.globale;
+  const t = Math.min(1, (performance.now() - animJoueur.debut) / animJoueur.duree);
+  const e = easeInOut(t);
+  const [ax, ay] = animJoueur.depuis, [bx, by] = animJoueur.vers;
+  return [ax + (bx - ax) * e, ay + (by - ay) * e];
+}
+function lancerAnimJoueur(depuis, vers) {
+  if (!depuis || !vers) return;
+  if (depuis[0] === vers[0] && depuis[1] === vers[1]) return;
+  const dist = Math.max(1, Math.round(Math.hypot(depuis[0] - vers[0], depuis[1] - vers[1])));
+  animJoueur = {depuis: [depuis[0], depuis[1]], vers: [vers[0], vers[1]], debut: performance.now(), duree: Math.min(700, 140 * dist)};
+  requestAnimationFrame(tickAnim);
+}
+function tickAnim() {
+  if (!animJoueur) return;
+  const t = Math.min(1, (performance.now() - animJoueur.debut) / animJoueur.duree);
+  dessiner();
+  if (t < 1) requestAnimationFrame(tickAnim);
+  else animJoueur = null;
+}
+function orientAngle(nom) {
+  const d = DIRS[nom]; if (!d) return 0;
+  return Math.atan2(d[1], d[0]);
+}
+function angleRotJoueur() {
+  if (!scene || !scene.joueur) return 0;
+  if (!animRotJoueur) return orientAngle(scene.joueur.orientation);
+  const t = Math.min(1, (performance.now() - animRotJoueur.debut) / animRotJoueur.duree);
+  const e = easeInOut(t);
+  return animRotJoueur.a0 + animRotJoueur.diff * e;
+}
+function lancerAnimRotJoueur(de, vers) {
+  if (!de || !vers || de === vers) return;
+  const a0 = orientAngle(de), a1 = orientAngle(vers);
+  let diff = a1 - a0;
+  while (diff > Math.PI) diff -= 2 * Math.PI;
+  while (diff < -Math.PI) diff += 2 * Math.PI;
+  if (Math.abs(diff) < 1e-9) return;
+  animRotJoueur = {a0, diff, debut: performance.now(), duree: Math.min(320, 160 + Math.abs(diff) * 60)};
+  requestAnimationFrame(tickRot);
+}
+function tickRot() {
+  if (!animRotJoueur) return;
+  const t = Math.min(1, (performance.now() - animRotJoueur.debut) / animRotJoueur.duree);
+  dessiner();
+  if (t < 1) requestAnimationFrame(tickRot);
+  else animRotJoueur = null;
+}
+function offsetBump() {
+  if (!bumpJoueur) return [0, 0];
+  const t = (performance.now() - bumpJoueur.debut) / bumpJoueur.duree;
+  const phase = t < 0.5 ? t * 2 : (1 - t) * 2;
+  const e = easeInOut(Math.max(0, Math.min(1, phase)));
+  return [bumpJoueur.dx * e * CS, bumpJoueur.dy * e * CS];
+}
+function lancerBump(dir) {
+  const d = DIRS[dir]; if (!d) return;
+  bumpJoueur = {dx: d[0] * 0.45, dy: d[1] * 0.45, debut: performance.now(), duree: 320};
+  requestAnimationFrame(tickBump);
+}
+function tickBump() {
+  if (!bumpJoueur) return;
+  const t = Math.min(1, (performance.now() - bumpJoueur.debut) / bumpJoueur.duree);
+  dessiner();
+  if (t < 1) requestAnimationFrame(tickBump);
+  else bumpJoueur = null;
 }
 function dessiner() {
   for (const k in parCase) delete parCase[k];
@@ -273,10 +343,19 @@ function dessiner() {
       ((p.porte || []).length ? "<br>tient : " + p.porte.map(x => echapper(x.nom)).join(", ") : "") + "</span>");
   });
   if (j.globale && j.niveau === niveau.niveau) {
-    const cx = X(j.globale[0]) + CS / 2, cy = Y(j.globale[1]) + CS / 2, r = CS * .34;
+    const pos = posJoueurAnim();
+    const [bx, by] = offsetBump();
+    const cx = X(pos[0]) + CS / 2 + bx, cy = Y(pos[1]) + CS / 2 + by, r = CS * .34;
     ctx.fillStyle = "#ffd166"; ctx.strokeStyle = "#5a4310"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
-    fleche(cx, cy, r, j.orientation, "#3b2a05");
+    if (bumpJoueur) {
+      const bt = Math.min(1, (performance.now() - bumpJoueur.debut) / bumpJoueur.duree);
+      const alpha = (1 - bt) * 0.7;
+      ctx.strokeStyle = `rgba(220, 90, 90, ${alpha})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(cx, cy, r + 7, 0, 2 * Math.PI); ctx.stroke();
+    }
+    fleche(cx, cy, r, angleRotJoueur(), "#3b2a05");
     noter(j.globale, `<b>Toi</b><br><span class=gris>tu regardes vers le ${j.orientation}</span>`);
   }
   if (surligne) {
@@ -319,8 +398,21 @@ function appliquerEtat(e) {
   $("proposition").style.display = e.proposition ? "block" : "none";
   $("proposition-texte").textContent = e.proposition;
   if (e.scene) {
+    const ancienJoueur = scene && scene.joueur && scene.joueur.niveau === e.scene.joueur.niveau ? scene.joueur.globale : null;
+    const nouveauJoueur = e.scene.joueur.globale;
+    const ancienOrient = scene && scene.joueur && scene.joueur.niveau === e.scene.joueur.niveau ? scene.joueur.orientation : null;
+    const nouveauOrient = e.scene.joueur.orientation;
     $("carte-texte").hidden = true; canvas.hidden = false;
     preparer(e.scene); dessiner(); listes();
+    if (ancienJoueur && nouveauJoueur && (ancienJoueur[0] !== nouveauJoueur[0] || ancienJoueur[1] !== nouveauJoueur[1])) {
+      lancerAnimJoueur(ancienJoueur, nouveauJoueur);
+    } else if (ancienJoueur && nouveauJoueur && derniereDirectionTentee) {
+      lancerBump(derniereDirectionTentee);
+    }
+    if (ancienOrient && nouveauOrient && ancienOrient !== nouveauOrient) {
+      lancerAnimRotJoueur(ancienOrient, nouveauOrient);
+    }
+    derniereDirectionTentee = null;
   } else {
     canvas.hidden = true; $("carte-texte").hidden = false; $("carte-texte").textContent = e.carte_texte;
     preparer(null); listes();
@@ -335,6 +427,8 @@ function etatOccupe(oui) {
 async function envoyer(texte, historiser = true) {
   texte = texte.trim();
   if (!texte || occupe) return;
+  const m = texte.match(/^(?:pas|chasse|faufiler)\s+(\S+(?:-\S+)*)/i);
+  derniereDirectionTentee = m && DIRS[m[1]] ? m[1] : null;
   if (historiser) { historique.push(texte); historique = historique.slice(-100); indice = historique.length; brouillon = ""; }
   etatOccupe(true);
   try {
