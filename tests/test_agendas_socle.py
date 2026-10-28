@@ -104,7 +104,7 @@ class ChaineTests(unittest.TestCase):
         self.assertTrue(any(s["type"] == "engagement_tenu" for s in lire(m, "aubin")["memoire"]))
         self.assertFalse(any("engagement pris" in t for t in engagements_enregistres(m, "aubin")))
 
-    def test_tache_payee_acceptee_puis_abandonnee(self):
+    def abandon_paye(self):
         m = cs.TacheAccepteeTests().tilo_paye_pour_l_atre(briquet=True)
         presentes(m, "tilo")
         m.joueur.update(salle="salle_commune", position=[3, 3], orientation="ouest")
@@ -125,6 +125,14 @@ class ChaineTests(unittest.TestCase):
         m = recharger(m)
         self.assertFalse(m.objets["atre"]["allume"])
         self.assertEqual(agendas.en_cours(m, "tilo"), [])
+        return m, avant
+
+    def test_tache_payee_acceptee_puis_abandonnee(self):
+        m, avant = self.abandon_paye()
+        # Isoler le remboursement intégral d'une autre dépense autonome :
+        # Tilo attend ici deux minutes. Le solde normal entre créancier et
+        # débiteur reste exécuté par la vie des PNJ, même pendant cette attente.
+        lire(m, 'tilo')['libre'] = 2 * 600
         m, lignes = vivre(m, 2)
         m = recharger(m)
         self.assertEqual(agendas.en_cours(m, "tilo"), [])
@@ -133,6 +141,43 @@ class ChaineTests(unittest.TestCase):
         self.assertTrue(any("te rend 20 pièces" in t for t in lignes), lignes)
         self.assertTrue(any(s["type"] == "engagement_abandonne" for s in lire(m, "tilo")["memoire"]))
         self.assertFalse(any("engagement pris" in t for t in engagements_enregistres(m, "tilo")))
+
+    def test_achat_apres_abandon_conserve_la_piece_due_puis_la_solde(self):
+        from donjon.biens import payer, solder
+        from donjon.rendu import regarder as rendu
+        from donjon.scene import scene_percue
+        m, avant = self.abandon_paye()
+        odile = bourse(m, 'odile')
+        total = m.joueur['or'] + sum(m.data['finances_pnj'].values())
+        m, lignes = vivre(m, 2)
+        m = recharger(m)
+        # Parcours naturel 228 : une pièce réellement payée à Odile pour le
+        # bois avant le solde de minute ; les dix-neuf autres sont remboursées.
+        self.assertEqual(m.joueur['or'], avant[0] - 1)
+        self.assertEqual(bourse(m, 'tilo'), 0)
+        self.assertEqual(bourse(m, 'odile'), odile + 1)
+        self.assertEqual(m.joueur['or'] + sum(m.data['finances_pnj'].values()), total)
+        self.assertEqual(m.objets['bois_cuisine']['lieu'], 'tilo')
+        self.assertEqual(m.objets['bois_cuisine']['proprietaire'], 'tilo')
+        self.assertTrue(any('te rend 19 pièces' in t for t in lignes))
+        self.assertEqual(m.data['dettes'], [dict(de='tilo', a='joueur', montant=1,
+                                               objet='atre', quoi='tache', minute=0)])
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        self.assertEqual(rendu(m), rendu(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
+        avant_solde = copy.deepcopy(m.data)
+        solder(m, [])
+        self.assertEqual(m.data, avant_solde)  # Sans fonds, ni oubli ni double versement.
+        # Apport explicite, prélevé chez celle qui a reçu la pièce : aucun or créé.
+        payer(m, 'odile', 'tilo', 1)
+        solder(m, lignes)
+        m = recharger(m)
+        self.assertEqual((m.joueur['or'], bourse(m, 'tilo')), avant)
+        self.assertEqual(bourse(m, 'odile'), odile)
+        self.assertEqual(m.data['dettes'], [])
+        self.assertEqual(m.joueur['or'] + sum(m.data['finances_pnj'].values()), total)
+        self.assertTrue(any('te rend 1 pièce' in t for t in lignes))
 
 
 if __name__ == "__main__":

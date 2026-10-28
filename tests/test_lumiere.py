@@ -57,10 +57,24 @@ class MineTests(unittest.TestCase):
         self.assertTrue(m.objets["lampe_remy"]["allume"])
         self.assertEqual(m.objets["lampe_remy"]["lieu"], "remy")
         self.assertIn("Rémy, jeune mineur allume la lampe de Rémy.", chronique(m))
-        # Le baraquement reste obscur sans elle : il ne l'éteint pas pour la ménager.
+        # Au baraquement obscur, la lampe est gardée. Le parcours 202/228
+        # mène ensuite Rémy au bureau éclairé : il peut alors l'économiser.
         m, _ = vivre(m, 10)
-        self.assertTrue(m.objets["lampe_remy"]["allume"])
-        self.assertNotIn("Rémy, jeune mineur éteint la lampe de Rémy.", chronique(m))
+        self.assertFalse(m.objets["lampe_remy"]["allume"])
+        self.assertEqual(m.objets['remy']['lieu'], 'bureau')
+        self.assertTrue(lire(m, 'remy')['croyances']['chandelle']['etat']['valeur']['allume'])
+        from donjon.deliberation import lumiere_utile
+        from donjon.pnj import lumiere_du_geste
+        self.assertFalse(lumiere_utile(m, 'remy'))
+        self.assertEqual(lumiere_du_geste(m, 'remy'), 2)
+        self.assertIn("Rémy, jeune mineur éteint la lampe de Rémy.", chronique(m))
+        self.assertGreater(m.objets['lampe_remy']['combustible'], 0)
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        self.assertEqual(regarder(m), regarder(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
 
     def test_le_poele_rallume_il_menage_sa_lampe(self):
         # Le poêle mort est une pulsion rompue de Josse : il obtient des bûches de Gaspard, qui
@@ -104,12 +118,27 @@ class MineTests(unittest.TestCase):
         deplacer(m, "bidon_huile", "remy")
         m, _ = vivre(inquiet(m), 4)
         lampe = m.objets["lampe_remy"]
-        self.assertTrue(lampe["allume"])
+        # Elle a été remplie et allumée, puis ménagée au bureau éclairé.
+        self.assertFalse(lampe["allume"])
+        self.assertEqual(m.objets['remy']['lieu'], 'bureau')
+        self.assertTrue(lire(m, 'remy')['croyances']['chandelle']['etat']['valeur']['allume'])
+        from donjon.deliberation import lumiere_utile
+        from donjon.pnj import lumiere_du_geste
+        self.assertFalse(lumiere_utile(m, 'remy'))
+        self.assertEqual(lumiere_du_geste(m, 'remy'), 2)
         self.assertGreater(lampe["combustible"], 120 - 5)
         self.assertEqual(m.objets["bidon_huile"]["charges"], 2)
         textes = chronique(m)
         self.assertLess(textes.index("Rémy, jeune mineur alimente la lampe de Rémy."),
                         textes.index("Rémy, jeune mineur allume la lampe de Rémy."))
+        self.assertLess(textes.index("Rémy, jeune mineur allume la lampe de Rémy."),
+                        textes.index("Rémy, jeune mineur éteint la lampe de Rémy."))
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        self.assertEqual(regarder(m), regarder(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
 
     def test_l_huile_ne_va_pas_au_poele_ni_le_bois_a_la_lampe(self):
         # Josse entretient son poêle avec des étais, pas avec l'huile des lampes, même portée.
