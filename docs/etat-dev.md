@@ -2,6 +2,21 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic
+  seul, base `integration 769c7f1` : épisode absent de la nuit actuelle 12 h ;
+  reproduit sur `c870c8b`, hameau 1985, départ tiré, joueur chambre de la
+  cloche. Service payé à `686`, allumé à `2436`, ancré en `antichambre`
+  à `2536`, clôturé à **`24090`** sur départ vu d’Ilse en crypte pendant que
+  Brune et la torche sont encore dans l’échoppe. Brune rejoint ensuite Ilse
+  puis éteint à `24600` par `menager_flamme` : **extinction légitime**, faux
+  positif de la sonde 227 sans historique des clôtures. Ancrage 238 respecté.
+  Captures création/clôture/avant-après extinction et fins 12 h : monde,
+  rendu et scène identiques après recharge. Aucun code du jeu changé,
+  Luna, suite complète ni banc comparatif.
+  Bruts `C:/Users/msics/donjon/artifacts/torche-263/` ;
+  [rapport 263](taches/rapport-codex-263-torche-eteinte.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement (Sol medium). Hameau 1985 sur c870c8b, 1 233 entrées de chronique identiques à l'archive 241 ; absent de l'intégration actuelle. Le service d'allumage payé par Ilse était clos à 24090 sur son départ observé (crue en crypte, ancrage 238 appliqué : ni au lieu de réussite ni à celui du résultat) avant que Brune n'éteigne la torche à 24600 pour la ménager : extinction légitime selon le contrat ; faux positif de la sonde 227, qui ignore l'historique des clôtures. Limite du contrat relevée : Brune rejoint ensuite Ilse dans la crypte et la protection close ne renaît pas.
+
 - **Branche `codex-ilse-poele`, fusionnée**, lot **261**, diagnostic seul,
   base `integration 2365125` : Ilse entretient le poêle du guet 450 min dès 165
   malgré la faim (crue, graine 7). Reproduit sur l'intégration actuelle ;
