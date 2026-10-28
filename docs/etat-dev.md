@@ -12,19 +12,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sur le retour perceptif, Mathé/Lucien hors perception avec obstacle puis
   reprise et repas effectif, vraie fin/préemption, recharges monde/rendu/scène
   et laps entiers/découpés. Correctif poussé **`3ec23bb`**.
-  **Validation incomplète, non prêt pour fusion** : calcul détaché terminé
-  en échec (**398,712 s**), tests complémentaires **28/29**, soit **49/50
-  tests distincts / sept fichiers**. Erreur dans le test de Lucien après
-  reprise du ballot, `test_dynamique_besoins.py:225` : recherche d'Anselme
-  absente, `KeyError: 'anselme'` ; cause et attribution au correctif non
-  établies, aucun contrôle sur la base dans cette relecture. **Banc 4 h non
-  lancé**, le lanceur s'arrêtant avant le comparateur : aucune des vingt
-  paires prévues, aucun compteur 219 par nuit ni comparaison à `0e3e626`.
-  Disparition du suspect Aubin sur une nuit entière et absence de hausse
-  non démontrées ; échec à instruire avant reprise de la validation.
+  Compléments **28/29**, erreur Lucien instruite : test inchangé vert sur
+  `c9459ce` isolée (**92,579 s**), erreur sur branche (**67,480 s**).
+  Trajectoire nouvelle conforme : Anselme conserve l'entretien du poêle
+  (**palier 4 / valeur 50**, sécurité **4 / 11,485**, marge **7,5**), reste
+  témoin, interdit le vol ; puis une demande de restitution conservée ne
+  lui apprend pas le dépôt du ballot à l'étable. Le test dépendait de deux
+  abandons de demandes. Prémisses d'auteur explicitées : capture historique
+  à 95 min sans entretien adopté, puis lieu du dépôt appris à 110 min.
+  **30 assertions inchangées**, test vert (**51,387 s**), neuf contrôles de
+  recharge monde/rendu/scène ; les **49 autres tests déjà verts**, moteur
+  inchangé lors de cette reprise. **Banc seul détaché en cours**, vingt
+  paires 4 h, référence `0e3e626`, sonde 265/271, un processus réduit ;
+  compteur 219 par nuit et retours Aubin attendus, aucun résultat revendiqué.
   Ni Luna ni suite complète. Bruts
-  `C:/Users/msics/donjon/artifacts/demande-273-sol/`, `fin.json`
-  (**`ok=false`**) ; **aucun calcul actif**.
+  `C:/Users/msics/donjon/artifacts/demande-273-sol/`, fin attendue
+  **`fin-banc.json`** ; ancien `fin.json` (`ok=false`) conservé comme archive
+  de la première campagne arrêtée avant banc.
   [Rapport 273](taches/rapport-codex-273-demande-adoptee.md).
 
 - **Branche `codex-retour-aubin`, fusionnée**, lot **272**, diagnostic

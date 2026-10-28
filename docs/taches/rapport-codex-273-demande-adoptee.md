@@ -1,72 +1,64 @@
 # Lot 273 — demande adoptée et moyen démenti
 
-29 octobre 2026. **Branche `codex-demande-adoptee`, non fusionnée**,
-base `c9459ce`, correctif poussé **`3ec23bb`** ; référence de banc demandée
-`0e3e626`. **Validation incomplète : non prêt pour fusion.**
+29 octobre 2026. **Branche `codex-demande-adoptee`, non fusionnée**, base
+`c9459ce`, correctif moteur **`3ec23bb`**. **Banc encore à recevoir.**
 
-**Correctif proposé.** Un échec de geste ne certifie pas la fin d'une
-demande adoptée. Dans `deliberation.choisir`, la collision avec `manque`
-libère maintenant le plan de cette demande tout en conservant son identité,
-son palier et sa provenance. La revalidation existante peut retrouver un
-moyen, attendre sans geste, constater une fin par `_fin_demande` ou céder
-à une priorité gagnante. Le plan démenti ne fournit plus de suffixe à
-recopier, même si la recherche repropose sa tête. Les refus et renoncements
-causaux restent contrôlés par les mécanismes existants ; aucun délai ajouté.
+**Invariant.** L'échec d'un moyen ne certifie pas la fin d'une demande
+adoptée. `deliberation.choisir` libère ses gestes sans effacer son identité
+ni son palier ; la revalidation existante trouve un autre moyen, attend
+sans geste, constate une fin ou cède à une priorité gagnante. Aucun
+suffixe démenti recopié ni délai ajouté ; refus et renoncements conservés.
 Aucun changement dans `planification`, `agendas`, `echanges` ou `signes`.
+La condition exacte de la demande reste tenue : un autre objet cible
+n'est pas assimilé à un autre moyen de cette condition.
 
-**Preuves ciblées : 21 tests verts (98,600 s, un processus réduit)** :
-13 tests du contrat et huit tests d'empathie, fichiers modifiés entiers.
-La capture réelle rechargeable **Relais 2024, 117503** est archivée sous
-`tests/data/demande-273-relais-2024-117503.json.gz` : Ilse hors perception,
-raison encore valide, appel effectif à `_reprendre_demande`, identité et
-palier conservés, phase `continuer`, aucune sortie `dementie`. Le refus
-`necessaire` ne tenant déjà plus, le planificateur repropose la demande de
-part ; l'exécuteur conserve son interdiction de réessai dans la minute.
-Sur les deux minutes suivantes, le retour perceptif d'Ilse est exercé sans
-nouvelle naissance de la demande ni sortie.
+**Preuves initiales : 21 tests verts**, contrat et empathie entiers,
+**98,600 s**, un processus réduit. Capture réelle **Aubin Relais 2024,
+117503** : Ilse hors perception, demande revalidée, identité et palier
+conservés, aucune sortie ni renaissance sur son retour perceptif. Le refus
+ancien ne tenant plus, la tête peut être reproposée, mais l'exécuteur
+interdit toujours le réessai dans la minute. Deuxième cas **Mathé/Lucien,
+mine** : attente hors perception faute de nourriture, reprise sur constat
+d'un moyen disponible, repas effectivement servi. Monde, rendu et scène
+contrôlés après recharge ; laps entiers/découpés identiques. Fins attestées,
+préemptions et absence de recopie d'un suffixe vérifiées. Les scènes de
+repas isolent explicitement les vivres portés, sans premier but d'achat.
 
-Deuxième cas, **Mathé/Lucien dans la mine** : demande de secours adoptée,
-bénéficiaire hors perception et nourriture constatée épuisée ; attente
-persistante sans gestes. Un constat de nourriture disponible permet la
-reprise hors perception, puis la part est effectivement servie et la faim
-apaisée. Les deux cas contrôlent monde, rendu et scène après sauvegarde et
-recharge ; laps entiers et découpés avec recharge donnent le même état.
-Un démenti attesté par le corps cru et une vraie préemption demeurent des
-sorties justifiées. Un autre test empêche la recopie d'un suffixe périmé.
-L'ancien test imposant l'effacement a été conservé pour les intentions sans
-demande typée. La scène d'auteur `scene_repas` isole la nourriture portée
-pour les tests de repas et de préemption de ronde : leur réussite ne dépend
-plus de l'abandon implicite d'une première demande visant une autre
-ressource à racheter. La demande conserve sa condition exacte ; changer
-d'objet cible n'est pas assimilé à un autre moyen de cette même condition.
+**Erreur Lucien instruite.** Les compléments avaient donné **28/29**
+(**398,297 s**) : contrats internes 5/5, dynamique 9/10, échelle 4/4,
+réessai 7/7, secours acquitté 3/3. Le test inchangé de recherche après
+reprise du ballot **passe sur `c9459ce` isolée (92,579 s)** et **échoue sur
+la branche (67,480 s)** : `KeyError: 'anselme'` à 120 minutes.
 
-**Calcul détaché terminé en échec**, un processus réduit, **398,712 s**.
-Tests complémentaires : **28 succès / 29**, aucun échec d'assertion et une
-erreur ; avec les fichiers modifiés, **49 succès / 50 tests distincts,
-sept fichiers**. Détail : contrats internes **5/5**, dynamique des besoins
-**9/10**, échelle du choix **4/4**, réessai obstacle **7/7**, secours acquitté
-**3/3**. Les 29 tests complémentaires ont duré **398,297 s**.
+La nouvelle trajectoire est conforme au contrat : Anselme conserve sa
+demande d'entretien du poêle après le refus d'une lanterne. À 120 min,
+fin et reprise sans réponse, attente **palier 4 / valeur 50** ; sécurité
+**4 / 11,485**, marge **7,5**, aucun candidat dominant. Il demeure témoin,
+le renoncement de Lucien tient, le ballot reste dans le coffre : aucun vol
+puis aucune recherche d'Anselme n'ont lieu. En partant du contrôle
+historique à 95 min, une seconde dépendance apparaît : après refus de
+restitution, Anselme conserve aussi cette demande ; il croit le ballot
+sur Lucien et ignore son dépôt à l'étable. L'ancienne trajectoire le
+faisait retrouver fortuitement par un autre plan après abandon du but.
 
-L'erreur est dans
-`test_dynamique_besoins.TenirTests.test_lucien_attend_une_information_apres_la_reprise_du_ballot`,
-ligne 225 : `lire(m, "lucien")["recherches"]["anselme"]` lève
-**`KeyError: 'anselme'`**. La recherche attendue par ce test n'est pas
-présente au relevé. Sa cause et son attribution au correctif ne sont pas
-établies : aucun contrôle de ce test sur la base n'a été exécuté dans cette
-relecture. Cet échec reste à instruire avant de conclure le lot technique.
+**Prémisses du test explicitées, moteur inchangé.** Départ de la capture
+95 min (garde sans demande d'entretien en cours), puis information au
+propriétaire à 110 min sur le dépôt réel. Il reprend légitimement le
+ballot ; Lucien épuise ensuite sa recherche et attend sans nouveau départ.
+**Les 30 assertions originales sont identiques** (comparaison AST) et le
+test passe en **51,387 s**, avec neuf contrôles monde/rendu/scène après
+recharge à 110/120/165 min. Les 49 autres tests étaient déjà verts ;
+aucune nouvelle suite complète ni répétition des fichiers inchangés.
+Bruts : `lucien-base/`, `lucien-branche/`, `lucien-premisse-finale/`,
+`diagnostic-lucien.json`, scripts et captures archivés.
 
-**Banc 4 h non lancé.** Le lanceur s'arrête sur le code de retour des
-tests avant d'appeler le comparateur. Aucune des vingt paires prévues
-(Relais/mine/auberge/crue/hameau × graines 1985/7/42/2024) n'a donc été
-jouée par cette campagne ; `banc.json` et `bilan.json` sont absents. Aucun
-compteur 219 par nuit, aucune absence de hausse ni disparition du suspect
-Aubin sur une nuit entière ne sont démontrés. La preuve sur sa capture
-117503 reste limitée au test ciblé décrit plus haut. La comparaison à
-`0e3e626` avec la sonde 265/271 reste à effectuer après traitement du test.
-Ni nouveau calcul, ni Luna, ni suite complète lancés lors de cette relecture.
-
-Bruts : `C:/Users/msics/donjon/artifacts/demande-273-sol/`,
-`tests-contrat-empathie.json`, `tests-cibles.json`, `tests-cibles.log`,
-`fin.json` (**`ok=false`**, trace de l'arrêt avant banc). **Aucun calcul
-actif.** La garantie reste limitée aux cas vérifiés du contrat de demande
-typée ; aucune validation générale ni aptitude à la fusion n'est revendiquée.
+**Banc seul détaché**, indépendant du retour des tests : vingt paires
+4 h, Relais/mine/auberge/crue/hameau × 1985/7/42/2024, référence
+`0e3e626` en cache ou calculée une seule fois, sonde actuelle 265/271,
+un processus réduit. Suspects 219 comparés **nuit par nuit** et retours
+Aubin conservés. **Aucun résultat du banc encore revendiqué.** Ni Luna
+ni suite complète. Bruts dans
+`C:/Users/msics/donjon/artifacts/demande-273-sol/` ; fichier attendu
+**`fin-banc.json`**, écrit en dernier. L'ancien `fin.json` (`ok=false`)
+reste l'archive de la première campagne arrêtée avant banc. La garantie
+porte sur les cas vérifiés ; aucune stabilité générale n'est certifiée.
