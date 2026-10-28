@@ -2,6 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-retour-aubin`, non fusionnée**, lot **272**, diagnostic
+  seul, base `aaaf4cf` : Aubin Relais 2024, départ tiré, joueur passif,
+  **retour 117518 reproduit** ; sortie 117503 après naissance 117488.
+  **Défaut de continuité** : un `manque` ancien du même geste efface
+  l’intention avant la reprise de sa demande adoptée, sans fin attestée ni
+  palier supérieur. Ilse reste crue affamée ; hors perception à 117503,
+  elle redevient perçue à 117518, recréant le candidat de secours. La sonde
+  ignore cette entrée perceptive : son « strict complet » est trop fort.
+  Refus `necessaire` retenu mais déjà non tenant aux trois relevés,
+  aucun renoncement 225 ; aucun réessai par le seul délai démontré.
+  Contre-épreuves sur copies : retirer, déplacer ou vieillir seulement le
+  marqueur conserve la demande hors perception. **Une nuit 4 h, 15,999 s**,
+  un processus réduit, classements identiques à l’archive 271 ; huit contrôles
+  de captures et quatre de contre-épreuves, **36 égalités monde/rendu/scène**
+  après recharge. Aucun code du jeu modifié, ni Luna, suite complète ou
+  banc comparatif. Bruts `C:/Users/msics/donjon/artifacts/retour-272/`,
+  `fin.json` (`ok=true`) ; aucun calcul actif. Suite proposée : préserver
+  la demande adoptée lors du démenti d’un moyen, revalider les moyens et
+  exiger une fin ou une préemption attestée ; aucune correction livrée.
+  [Rapport 272](taches/rapport-codex-272-retour-aubin.md).
+
 - **Branche `codex-reveils-agenda-sonde`, fusionnée**, lot **271**,
   base `de74ff2`, moteur `1355f7a`, outils seulement : reprise justifiée par
   possession/propriété nouvelle, lieu cru changé ou engagement accompli publié,
