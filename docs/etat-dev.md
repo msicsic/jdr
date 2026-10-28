@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-place-perimee`, non fusionnée**, lot **234**, base
+  `adb52c4` : `signes.place` efface la place avant toute sortie sans pas
+  et ne la renouvelle qu'après un pas social produit ; `pnj.agir` rend
+  immédiatement la main au rapprochement ordinaire sans pas social.
+  Trois tests nouveaux (huit sous-cas), Relais/Ilse et auberge/Hugues,
+  croyance inconnue/démentie, trajet impossible, monde/rendu rechargés et
+  deux minutes d'un bloc ou découpées. Quatre variantes rouges sur la base,
+  vertes après correction. **33 ciblés : 32 verts, une régression historique
+  conservée sur la proximité d'Aubin** : Ilse rejoint Brune avant de localiser
+  Aubin, finit `[6,1]` contre Aubin `[1,5]`. La base passe cette assertion.
+  Deux autres régressions de la suite : navette d'Aubin (188 passages contre
+  un plafond de 12) et garde non livrée (`0 != 1`) ; les trois cas passent sur
+  la base, fonctions originales chargées en mémoire. Perte de torche au
+  hameau reproduite sur la base, mêmes instants 3188/3615, oracle conservé.
+  Aucun contournement de perception, aucun MJ ; **correction non validée pour
+  fusion**. Suite complète unique : **2 524 tests / 292 fichiers,
+  4 071,069 s, quatre échecs, zéro erreur, 16 ignorés** ; calcul pur/mémorisé
+  (`test_vue_action.py`) vert. **20 paires × 4 h contre `adb52c4`** : vingt
+  références complétées une fois ; zéro plantage/usurpation ; suspects 219
+  **2 → 2**, épisodes de l'auberge intégralement identiques, aucune hausse par
+  nuit ni nouvelle alerte de boucle parmi les codes contrôlés. Répétitions
+  textuelles **4 → 0**, cycles **507 → 505**, préemptions **58 → 46**,
+  à expliquer **87 → 63**, dérives **204 → 175**. Perte de service fautive
+  **1 → 1**, préexistante. La capture d'Aubin reste rouge : aucune garantie
+  générale d'absence de boucle nouvelle. Créneau dépassé ; aucun Luna ;
+  [rapport 234](taches/rapport-codex-234-place-perimee.md), bruts
+  `C:/Users/msics/donjon/artifacts/place-234/`.
+
 - **Branche `codex-restauration-charges`, fusionnée**, lot **218** :
   code `2bd1e6f`, reprise demandée sur **`881db69`** (224/225), fusion
   `7c46d64` sans conflit de code, validation finale `fa9dbe3`. Charge suspendue
