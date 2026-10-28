@@ -2,6 +2,28 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-retour-aubin`, fusionnée**, lot **272**, diagnostic
+  seul, base `aaaf4cf` : Aubin Relais 2024, départ tiré, joueur passif,
+  **retour 117518 reproduit** ; sortie 117503 après naissance 117488.
+  **Défaut de continuité** : un `manque` ancien du même geste efface
+  l’intention avant la reprise de sa demande adoptée, sans fin attestée ni
+  palier supérieur. Ilse reste crue affamée ; hors perception à 117503,
+  elle redevient perçue à 117518, recréant le candidat de secours. La sonde
+  ignore cette entrée perceptive : son « strict complet » est trop fort.
+  Refus `necessaire` retenu mais déjà non tenant aux trois relevés,
+  aucun renoncement 225 ; aucun réessai par le seul délai démontré.
+  Contre-épreuves sur copies : retirer, déplacer ou vieillir seulement le
+  marqueur conserve la demande hors perception. **Une nuit 4 h, 15,999 s**,
+  un processus réduit, classements identiques à l’archive 271 ; huit contrôles
+  de captures et quatre de contre-épreuves, **36 égalités monde/rendu/scène**
+  après recharge. Aucun code du jeu modifié, ni Luna, suite complète ou
+  banc comparatif. Bruts `C:/Users/msics/donjon/artifacts/retour-272/`,
+  `fin.json` (`ok=true`) ; aucun calcul actif. Suite proposée : préserver
+  la demande adoptée lors du démenti d’un moyen, revalider les moyens et
+  exiger une fin ou une préemption attestée ; aucune correction livrée.
+  [Rapport 272](taches/rapport-codex-272-retour-aubin.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement (Sol medium). Défaut réel : à 117503, choisir lit un ancien échec (manque, demande d'une part refusée « necessaire ») et clôt en « dementie » la demande d'Aubin pour nourrir Ilse, alors que sa raison tient (Ilse crue affamée) ; Ilse sortie du champ de vision, rien ne la reprend, puis à 117518 sa perception renouvelée fait renaître le même plan (1,5 s d'interruption). Preuve : retirer seulement manque conserve la demande. Petit lot proposé : le démenti d'un moyen ne clôt pas une demande adoptée dont la raison tient ; moyens revalidés, fin ou préemption attestée. La sonde 219 ne relève pas les entrées perceptives.
+
 - **Branche `codex-reveils-agenda-sonde`, fusionnée**, lot **271**,
   base `de74ff2`, moteur `1355f7a`, outils seulement : reprise justifiée par
   possession/propriété nouvelle, lieu cru changé ou engagement accompli publié,
