@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-ascendant-neutre`, fusionnée**, lot **248**, base
+  `f46a0b5` (référence remplacée sur instruction du superviseur) : sixième
+  axe orienté neutre dans `relations.py`, lecture pure `autorite_reconnue`,
+  liens initiaux, bande 60/50, estompement vers le lien déclaré à 1 point/h,
+  signatures et validation. Anciennes relations sans champ lues à zéro sans
+  migration ; contrats partiels rejetés. Aucun lecteur de décision ni épreuve,
+  aucun scénario/MJ changé. **81 tests distincts verts / six fichiers**,
+  contrôle AST renforcé ; monde et rendu rechargés, deux couples orientés,
+  ancien format et laps découpés. **Banc validé : 20/20 paires 2 h**,
+  cinq scénarios, quatre graines : mêmes textes de chronique, mesures,
+  récits, souvenirs, empreintes physiques ; zéro plantage. États complets
+  identiques après retrait de l'axe neutre et recalcul sourcé des hashes
+  dérivés. Le diagnostic intermédiaire restait à 12/20 ; **rejeu unique de
+  huit références expressément autorisé**, captures à part, cache inchangé,
+  hashes de référence reproduits 8/8. Quinze champs restants localisés :
+  douze signatures de recours négatifs dans `attentes_bornees`
+  (`pnj_propositions._entrees_negatives`), deux JSON de relations dans les
+  causes de refus (`deliberation.moyens_crus`) et un hash d'agenda qui les
+  inclut. Projections et formats conservés ; états/données bruts de branche
+  identiques aux passes initiales ; **aucun écart réel de comportement**.
+  Aucun moteur modifié pendant la reprise. Limite : pas identité binaire
+  des sauvegardes, ni garantie universelle hors des vingt nuits vérifiées.
+  Aucune suite complète ni Luna ; deux processus réduits au plus,
+  aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/ascendant-248/`,
+  bilan consolidé `validation-finale.json`, chemins `diagnostic-champs.json`.
+  [Rapport 248](taches/rapport-codex-248-ascendant-neutre.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Sixième axe des relations (ce que B reconnaît d'autorité à A), lu et écrit par relations.py seul (autorite_reconnue), neutre à zéro, liens de départ possibles, bande 60/50 et estompement vers le lien initial ; anciennes sauvegardes chargées neutres sans migration ; aucun lecteur de décision. 20/20 nuits 2 h : jeu identique ; état complet identique après retrait du champ neutre et recalcul des empreintes qui en dérivent (attentes bornées, causes de refus sérialisées, croyances d'agenda), rejeu unique des huit références autorisé pour le prouver. 81 tests ciblés verts.
+
 - **Branche `codex-confidences-perdues`, fusionnée**, lot **249**, base
   `integration 59321b9` : diagnostic documentaire de `adb52c4` contre 235
   (`942a3c2`), aucun code du jeu ni test modifié. Inventaire exhaustif des
