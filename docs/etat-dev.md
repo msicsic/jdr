@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-confidences-perdues`, non fusionnée**, lot **249**, base
+  `integration 59321b9` : diagnostic documentaire de `adb52c4` contre 235
+  (`942a3c2`), aucun code du jeu ni test modifié. Inventaire exhaustif des
+  126 paroles Relais/mine, quatre graines × 4 h : 122 occurrences absentes,
+  quatre retrouvées à un autre instant, onze ajouts/réattributions ; compteur
+  25/101 → 5/10, comprenant aussi les comptes rendus de promesse.
+  Huit captures identiques aux bruts (chroniques/empreintes/récits/souvenirs),
+  123 transmissions sans effet sur le choix immédiat ; huit rejeux de choix
+  et cinq prolongations pour couvrir l'heure après les annonces tardives :
+  **5 472 ablations locales, six écarts issus d'une confidence utile perdue**,
+  Josse → Mathe, biscuits épuisés à 141, évitement d'un secours impossible
+  à 191–193, mine 1985. `_utile` ignore l'usage connu d'un moyen pour aider
+  autrui hors engagement actif ; recommandation d'élargir par une preuve
+  d'usage perçue, typée et révisable, sans lecture privée. Schéma non conçu.
+  Huit assertions rouges reclassées sur captures, aucun oracle modifié ni
+  test déclaré vert. Deux nuits 235 sondées, identiques aux bruts : Aubin/Ilse est un
+  faux positif (enquête de localisation, autre moyen) ; Mireille/Mathurine,
+  un défaut réel d'admission du service envers une personne crue ailleurs.
+  Effets des témoins auditifs et nuit entière
+  sans parole non mesurés ; aucune autorisation de fusion de 235. Un processus
+  réduit, aucun Luna, suite complète ou banc de comparaison. Bruts
+  `C:/Users/msics/donjon/artifacts/confidences-249/`.
+  [Rapport 249](taches/rapport-codex-249-confidences-perdues.md).
+
 - **Branche `codex-restitution-route`, fusionnée**, lot **246**, base
   `2b15134` : transport avec le bien jusqu'à la destination crue, puis
   nécessité dans l'état de remise ; même admission et revalidation via
