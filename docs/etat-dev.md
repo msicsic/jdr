@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-restitution-route`, fusionnée**, lot **246**, base
+  `2b15134` : transport avec le bien jusqu'à la destination crue, puis
+  nécessité dans l'état de remise ; même admission et revalidation via
+  `_rendre`, recherche commune d'`aller` et `echanges.necessaire(apres=...)`.
+  Cession compensée 228 conservée, aucun cas de scénario. Capture historique
+  `4306c14`, hameau 42 à 421, reproduite ; contre-épreuve rouge sur la base
+  pour Maël et pour une lampe de la mine. Restitution, refus sans autre
+  lumière, remplacement, monde/rendu/scène rechargés et laps découpés couverts.
+  **47 ciblés distincts verts / cinq fichiers, passe 452,688 s** ; trois premiers
+  fichiers repris sur le raccord final : **31/31 verts, 63,743 s**.
+  **20/20 paires 4 h identiques** : monde complet,
+  chroniques/récits/souvenirs, empreintes, mesures et audits. Zéro plantage/
+  usurpation ; suspects 219 **4 → 4**, aucune hausse par nuit, répartition
+  Relais/mine/auberge/crue/hameau **1/0/1/2/0**. Cycles **498 → 498**,
+  préemptions **46 → 46**, à expliquer **51 → 51**, dérives **216 → 216**.
+  Un travailleur réduit ; vingt références exactes absentes calculées et
+  rangées une seule fois. Aucune nouvelle garantie d'autonomie des sources
+  sur un long trajet. Aucun Luna ni suite complète ; bruts
+  `C:/Users/msics/donjon/artifacts/restitution-246/`.
+  [Rapport 246](taches/rapport-codex-246-restitution-route.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Lot C du diagnostic 237. _rendre juge la remise sur l'état projeté après le trajet (recherche commune d'aller, puis echanges.necessaire(apres=...)) : le bien reste un moyen pendant le transport, la restitution n'est écartée que s'il reste nécessaire après la remise. Capture historique de Maël (hameau 42, 421) et lampe de Gaspard (mine) ; refus si l'arrivée est sombre sans autre source. 20/20 nuits 4 h identiques, suspects 4 → 4.
+
 - **Branche `codex-conception-a5`, fusionnée**, lot **245**, base
   `integration 9b69785` : inventaire d'A5 et onze lots proposés, sans code
   du jeu ni calcul. `confier`, agendas sociaux et contrat 213 réutilisables ;
