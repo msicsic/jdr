@@ -1397,9 +1397,10 @@ def gestes(v, e, vises=None, but=None):
         # Une source de plus, sans capacité que n'aient déjà celles qu'il porte : rien ne l'acquiert.
         if utile and v.doublon(e, o, noms_vises, v_entretenir):
             utile = False
-        # Dans la projection, une charge suffisante ne s'épuise pas en chemin.
-        # Porter un combustible sans aucune source à recharger ne change donc
-        # aucun geste futur ; on ne développe pas ces inventaires équivalents.
+        # La projection ne décompte pas le combustible en chemin : une source
+        # faible allumée conserve sa lumière et sa flamme. Sans recharge qui
+        # ajoute une capacité (ou entretien visé), porter du combustible ne
+        # change aucun geste futur : ne pas développer ces inventaires.
         if (utile and o not in v_prendre and o in v.combustibles_seuls
                 and not any(v.recharge_utile(e, s, v_entretenir) for s in v.sources_du_lot_triees[o])):
             utile = False
@@ -1529,7 +1530,7 @@ def gestes(v, e, vises=None, but=None):
         # salle, s'il la porte), se chauffer à un foyer allumé.
         if "allume" in x and not superflu and (o in portes or ici or v.salle(e, o) == sa_salle and not x.get("mobile")):
             allume, charge = v.feu(e, o)
-            # Un foyer se recharge tant qu'il n'est pas vif ; une lampe, quand elle est vide.
+            # Restaurer la réserve visée, ou rendre allumable une source vide.
             if brule(x) and v.recharge_utile(e, o, v_entretenir):
                 for bois in sorted(k for k in e.portes if recharge(x, objets[k]) and v.disponible(k)):
                     yield (mal, 1, [_etape("alimenter", o, outil=bois, condition=faute)],

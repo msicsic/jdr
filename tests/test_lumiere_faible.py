@@ -120,3 +120,18 @@ class LumiereFaibleTests(unittest.TestCase):
         self.assertGreater(m.objets[source]["combustible"], avant)
         self.assertEqual(m.objets[fuel]["charges"], 0)
         self.visible(m)
+
+    def test_lampe_faible_a_la_mine_meme_laps_decoupe(self):
+        def fabriquer():
+            m = scene("mine", "remy", "baraquement", "bureau", "lampe_remy",
+                      {"lampe_remy": (True, "remy")}, "briquet")
+            m.objets["lampe_remy"].update(allume=True, combustible=20)
+            croire(m, "remy", "lampe_remy", "etat",
+                   {"allume": True, "charge": True, "faible": True}, "vu")
+            return self.visible(m)
+        bloc, morceaux = decouper(fabriquer, 1, recharger_tous=7)
+        for m in (bloc, morceaux):
+            self.assertTrue(m.objets["lampe_remy"]["allume"])
+            self.visible(m)
+        self.assertEqual(bloc.objets, morceaux.objets)
+        self.assertEqual(lire(bloc, "remy"), lire(morceaux, "remy"))
