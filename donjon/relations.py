@@ -90,7 +90,13 @@ def installer(monde, id):
 
 def connus(monde, id):
     from .esprits import lire
+    id = _observateur_devis(monde, id)
     return sorted(lire(monde, id).get("relations", {}))
+
+
+def _observateur_devis(monde, id):
+    contexte = getattr(monde, "_contexte_devis", None)
+    return contexte.observateur if contexte is not None and id == contexte.acteur else id
 
 
 def oublier_portage(monde, id, objet):
@@ -147,6 +153,7 @@ def _lecture_pure(monde, id, autre):
 
 def _lecture(monde, id, autre):
     from .esprits import lire
+    id = _observateur_devis(monde, id)
     profil = monde.objets[id].get("profil") or {}
     brut = lire(monde, id).get("relations", {}).get(autre)
     cle = (monde.data["minutes"],
@@ -229,6 +236,19 @@ def autorite_mandat(monde, id, autre, lieu, domaine):
             "bonus": min(5, (3 if statut else 0) + max(0, r["ascendant"]) * 3 / 100)}
 
 
+def autorite_estimee(monde, observateur, autre, lieu, domaine):
+    """Autorité que l'observateur croit avoir, sans lire le destinataire.
+
+    Son propre statut cru est un a priori explicite. Le lien observateur ->
+    autre ne dit pas quel ascendant autre lui reconnaît : cet ascendant et
+    la dette réciproque inconnus sont estimés à zéro, sans retourner les axes.
+    Ce n'est ni une reconnaissance réciproque ni le jet réel du mandaté.
+    """
+    statut = statuts_reconnus(monde, observateur, observateur, lieu, domaine)
+    return {"statut": statut, "ascendant": 0, "dette": 0,
+            "bonus": 3 if statut else 0}
+
+
 def chance_demande(monde, id, autre):
     """Estimation du demandeur, jamais lecture de l'esprit de l'autre.
 
@@ -238,6 +258,7 @@ def chance_demande(monde, id, autre):
     """
     from .deliberation import REDEMANDE
     from .esprits import lire
+    id = _observateur_devis(monde, id)
     r, e = axes(monde, id, autre), lire(monde, id)
     chance = (0.5 + (r["confiance"] - 40) / 200 + r["affection"] / 500
               - r["rancune"] / 250 - r["peur"] / 500 + r["dette"] / 1000)

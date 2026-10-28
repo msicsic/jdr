@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-devis-observateur`, non fusionnée**, lot **258**, base
+  `integration e9a8dfe` : `agendas.devis_observateur` et contexte explicite
+  observateur/acteur sur modèle fermé ; départ et possessions crus, savoirs
+  partagés/transmis explicites, profil neutre, relations/refus de l'observateur,
+  autorité estimée sans lire ni inverser la reconnaissance privée du tiers.
+  Toutes les données projetées dans les entrées, caches réel/estimé séparés ;
+  devis réel 256 intact, aucun appelant autonome. **75 tests ciblés distincts
+  verts / onze fichiers**, dont huit nouveaux : deux charges du 257,
+  variations privées sans effet sur projection/devis, départ et clé crus avec
+  effet, pureté et monde/rendu/scène conservés après recharge. Ni suite
+  complète ni Luna. **Empreintes 2 h détachées en cours**, cinq scénarios ×
+  quatre graines, référence de départ figée à `e9a8dfe` ; neutralité globale
+  non encore validée. Fin attendue :
+  `C:/Users/msics/donjon/artifacts/observateur-258/fin.json`.
+  Limite : catalogue structurel/carte communs au planificateur, sans nouvelle
+  mémoire des transformations cachées ; coût du prochain sous-but seulement.
+  [Rapport 258](taches/rapport-codex-258-devis-observateur.md).
+
 - **Branche `codex-faire-ou-confier`, fusionnée**, lot **257**, base
   `integration 5e08b76` : arrêt au constat explicitement prévu au brief.
   Le devis réel du titulaire (`agendas.devis_mandat`, 256) ne peut servir

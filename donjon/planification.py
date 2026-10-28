@@ -223,6 +223,92 @@ def vue(monde, id):
     return v
 
 
+class ContexteDevis:
+    """Estimation explicite d'un acteur, distincte de son jugement réel.
+
+    ``transmis`` nomme les couples (sujet, attribut) que l'observateur prévoit
+    de communiquer ou sait déjà partagés. Aucun savoir du tiers n'est lu.
+    Les moyens et le départ sont ceux crus par l'observateur. Les capacités
+    inconnues suivent BASE/NEUTRE de caractere ; besoins calmes, ni charge,
+    ni compétence spécialisée supposée, bourse ordinaire (biens.BOURSE).
+    Le catalogue structurel et la carte sont les a priori communs du
+    planificateur ; les champs CHANGEANTS sont remplacés par les croyances.
+    Ce monde est un modèle de
+    calcul fermé, jamais un esprit attribué au personnage dans la sauvegarde.
+    """
+
+    def __init__(self, observateur, acteur, transmis=()):
+        self.observateur, self.acteur = observateur, acteur
+        self.transmis = tuple(sorted(set(tuple(x) for x in transmis)))
+
+    def projeter(self, monde):
+        from .caractere import BASE, NEUTRE, STATS, VALEURS
+        from .esprits import CHAMPS
+        from .monde import mobile_par_nature
+        observateur, acteur = self.observateur, self.acteur
+        if observateur == acteur:
+            raise ValueError("Un devis observateur exige deux personnages distincts")
+        e = lire(monde, observateur)
+        lieu = e["croyances"].get(acteur, {}).get("lieu", {})
+        if lieu.get("salle") not in monde.data["salles"]:
+            return None
+        # Pas de constructeur Monde : ses installateurs réintroduiraient les
+        # savoirs et les profils réels. Pas de caches hérités du monde source.
+        projection = object.__new__(type(monde))
+        data = copy.deepcopy({k: monde.data[k] for k in
+            ("salles", "minutes", "dixiemes", "mode_cases", "geometrie_version") if k in monde.data})
+        data.update(objets={}, esprits={}, joueur={"salle": None, "or": 0},
+                    connaissances_joueur={}, finances_pnj={}, revision=0, jets=0)
+        projection.data = data
+        connus = e["croyances"]
+        for sujet, original in monde.objets.items():
+            mobile = mobile_par_nature(original)
+            if mobile and sujet not in connus and sujet not in (observateur, acteur):
+                continue
+            c = connus.get(sujet, {})
+            o = copy.deepcopy({k: v for k, v in original.items()
+                               if k not in CHANGEANTS and k not in
+                               ("profil", "parti", "proprietaire", "permis", "vol", "captivite")})
+            o["lieu"] = c.get("lieu", {}).get("valeur") if mobile else original.get("lieu")
+            if c.get("lieu", {}).get("case") is not None:
+                o.update(position=copy.deepcopy(c["lieu"]["case"]), position_salle=c["lieu"]["salle"])
+            for k in ("allume", "ouverte", "verrouillee", "pieces", "combustible", "charges", "portions"):
+                if k in original:
+                    o[k] = copy.deepcopy(c.get(k, {}).get("valeur",
+                        c.get("etat", {}).get("valeur", {}).get(k, False if isinstance(original[k], bool) else 0)))
+            possession = c.get("lieu", {}).get("possession", {})
+            if "proprietaire" in possession:
+                o["proprietaire"] = possession["proprietaire"]
+            if original["type"] == "personnage":
+                o = {k: o[k] for k in ("id", "type", "nom", "mobile", "lieu", "position", "position_salle") if k in o}
+                o["profil"] = {"caracteristiques": dict.fromkeys(STATS, BASE),
+                               "valeurs": dict.fromkeys(VALEURS, NEUTRE),
+                               "besoins": {}, "pulsions": [], "liens": {}, "capacites": []}
+                o["corps"] = {}
+            projection.objets[sujet] = o
+        projection.objets[acteur]["lieu"] = lieu["salle"]
+        # État de calcul neuf : seules les connaissances explicitement
+        # partagées/transmises et les moyens observés entrent dans l'estimation.
+        estime = {k: f() for k, f in CHAMPS.items()}
+        for sujet, attribut in self.transmis:
+            if attribut not in connus.get(sujet, {}):
+                raise ValueError(f"Connaissance à transmettre absente : {sujet}/{attribut}")
+            estime["croyances"].setdefault(sujet, {})[attribut] = copy.deepcopy(connus[sujet][attribut])
+        for sujet, c in connus.items():
+            if sujet == acteur or sujet in projection.objets and porte_par(projection, sujet, acteur):
+                estime["croyances"].setdefault(sujet, {}).update(copy.deepcopy(c))
+        projection.data["esprits"][acteur] = estime
+        estime["refus"] = copy.deepcopy(e["refus"])
+        # Les relations/refus sont ceux de l'observateur, pas une relation
+        # inventée dans le sens acteur -> tiers. Vue les lit par ce contexte.
+        projection.data["esprits"][observateur] = copy.deepcopy(e)
+        projection.objets[observateur]["profil"] = copy.deepcopy(monde.objets[observateur].get("profil"))
+        if any("eau" in c or "prevision" in c for c in connus.values()):
+            projection.data["crue"] = {}  # Activation seule ; aucun tirage réel.
+        projection._contexte_devis = self
+        return projection
+
+
 class Vue:
     """Ce que le PNJ croit, corrigé de ce que le plan a déjà changé.
 
@@ -232,6 +318,7 @@ class Vue:
         from .caractere import interdit
         from .vol import proprietaire
         self.monde, self.id = monde, id
+        self.contexte = getattr(monde, "_contexte_devis", None)
         self.objets = monde.objets
         from .presence import salles_interieures, interieur
         self.salles = salles_interieures(monde, monde.objets[id]["lieu"])
@@ -1955,6 +2042,12 @@ def _entrees(v, vises, profondeur, noeuds):
         if partage[1] is None:
             partage[1] = _entrees_communes(v)
         communes = partage[1]
+    if v.contexte is not None:
+        # La projection est fermée : toutes ses données sont autorisées et
+        # toute nouvelle lecture est couverte, y compris hors de Vue.
+        communes = (communes, json.dumps([
+            v.contexte.observateur, v.contexte.acteur, v.contexte.transmis,
+            v.monde.data], ensure_ascii=False, sort_keys=True))
     return communes, json.dumps([
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), v.eclairer,
         [[x, v.violence(x) is not None] for x in v.personnes()], _entrees_defense(v, vises)
@@ -2099,6 +2192,8 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                                 valeur(monde, id, "courage"), v.desespere]]))
         entrees = (base, json.dumps([faute, v.degat, endurer]))
         place = (id, json.dumps(memo, ensure_ascii=False))
+        if v.contexte is not None:
+            place = (("observateur", v.contexte.observateur, id), place[1])
         garde = _MEMOIRE.get(place)
         if garde is not None and garde[0] != entrees:
             garde = None
