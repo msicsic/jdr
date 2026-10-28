@@ -4,6 +4,40 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-restauration-charges`, non fusionnée**, lot **218** :
+  code `2bd1e6f`, reprise demandée sur **`881db69`** (224/225), fusion
+  `7c46d64` sans conflit de code, validation finale `fa9dbe3`. Charge suspendue
+  dans l'intention via `agendas`, conservée après découpe et reconstruction ;
+  restauration physique et retour au poste par le planificateur, juge commun
+  du 213/225, garde libérée après abandon. Parole due distincte de satisfaction
+  du bénéficiaire ; remise et restauration au devis commun. Seul champ et
+  validation dans `esprits`, aucun MJ/`social`/`pnj` modifié par le delta 218.
+  **64 ciblés verts, 11 nouveaux**, onze repris après rejet du champ `null` ;
+  Gorm/Mathe, autre contenant/scénario, porte/poste, suffixe perdu,
+  reconstruction avant/pendant restauration, abandon, monde/rendu rechargés
+  et laps découpés. Capture 209 rejouée sur la base : service à Ilse à 5/10 min,
+  livraison historique `vivres_6` à 6 min non reproduite ; aucune amélioration
+  de cette occurrence revendiquée. **20 paires 4 h**, classes 219 : suspects
+  **4 → 4** (0/0/2/2/0 inchangé), zéro plantage/usurpation ; cycles **523 → 483**,
+  préemptions **67 → 54**, à expliquer **59 → 63**, dérives **200 → 178**,
+  états payés perdus **8 → 6** (durée non spécifiée). **Réserves avant fusion** :
+  nouvelle alerte Brune hameau 2024 (neuf états actif/neuf sommeil), absence
+  générale de boucle nouvelle non validée ; **coût mine +20,3 % en nœuds**
+  (**9 189 → 11 051**, recherches **601 → 913**), critère non atteint.
+  Nouveaux devis de feu de Bram : **1 680 nœuds**, restauration **85** ;
+  aucune possibilité retirée pour réduire le compteur. Eau crue **1,25 → 3,75**,
+  hameau **5 → 5 PNJ·min**, aucun gain uniforme d'attente/richesse.
+  **Suite complète finale unique achevée : 2 497 tests / 289 fichiers,
+  3 847,957 s**, deux échecs, zéro erreur, 16 ignorés ; les deux échecs
+  (voix inconnues et stabilité de Lucien) sont reproduits sur **`881db69`**,
+  aucun oracle modifié. Deux passes partielles antérieures interrompues,
+  dont la reprise demandée sur 224/225 ; créneau dépassé par les vérifications.
+  Anciennes suspensions déjà perdues et identité des sources non typées :
+  limites explicites, aucune garantie universelle. Aucun Luna, deux travailleurs
+  réduits au plus, commits non signés (aucune clé). Bruts finaux
+  `C:/Users/msics/donjon/artifacts/charges-218/881db69/`, archives dans le parent ;
+  [rapport 218](taches/rapport-codex-218-restauration-charges.md).
+
 - **Branche `codex-reessai-obstacle`, fusionnée**, lot **225**, départ
   `e4d8655` vérifié : patience 30 min conservée, répit 60 min retiré ; chaque
   renoncement retient son obstacle cru par but/moyen, sans effacement par
