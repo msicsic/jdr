@@ -75,10 +75,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   entièrement verte à cause des neuf défauts hérités. Bruts
   `C:/Users/msics/donjon/artifacts/confier-260/`, `fin.json` de reprise.
   Pas de compte rendu ni réaffectation sur retard.
-  **Reprise après fusion de origin/integration 1355f7a (lot 259)** : aucun
-  conflit moteur, bilans 259/260 conservés ; tests ciblés et comparaison
-  crue/Relais en préparation pour réexaminer ces réserves. Branche pas encore
-  déclarée prête pour la suite du superviseur.
+  **Reprise après fusion de `origin/integration 1355f7a` (lot 259)**,
+  commit de fusion `ab21fb3`, sans rebase : aucun conflit moteur, bilans
+  259/260 conservés ; calcul détaché de 90 fichiers ciblés puis comparaison
+  crue/Relais 4 h, quatre graines, contre `1355f7a`, avec cache. Réserves
+  historiques ci-dessus à réexaminer sur ce moteur ; résultats par fichier
+  conservés, deux travailleurs réduits au plus, aucune suite complète.
+  Fin attendue `C:/Users/msics/donjon/artifacts/confier-260/apres-259/fin.json`.
+  Branche pas encore déclarée prête pour la suite du superviseur.
   [Rapport 260](taches/rapport-codex-260-faire-ou-confier.md).
 
 - **Branche `codex-presences-regression`, fusionnée**, lot **259**, base

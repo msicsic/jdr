@@ -1,5 +1,20 @@
 # Lot 260 — faire ou confier sur les croyances du mandant
 
+**Reprise après 259, en cours.** Fusion sans rebase de
+`origin/integration 1355f7a` dans `ab21fb3` ; aucun conflit de code, seul
+`etat-dev.md` réconcilié en conservant les deux bilans. Relance des
+88 fichiers ciblés et des voisins `test_corps` / `test_relations_socle`
+(90 fichiers, aucune suite complète), puis comparaison crue/Relais 4 h,
+quatre graines, contre `1355f7a`, avec cache. Les réserves ci-dessous
+décrivent **l'ancien moteur sans 259** : elles ne valent pas verdict sur la
+fusion. Lecture croisée des quatre versions prévue pour isoler l'effet du
+259 sur l'attente, l'oisiveté et les activations/sommeils de Brune.
+Calcul détaché, deux travailleurs réduits au plus, résultats par fichier
+conservés au fil de la passe ; arrêt avant le banc si les tests échouent.
+Bruts : `C:/Users/msics/donjon/artifacts/confier-260/apres-259/` ;
+fin attendue `fin.json`. Branche pas encore déclarée prête pour la suite
+complète du superviseur.
+
 `codex-faire-ou-confier-b`, **non fusionnée**, base `634b869`, moteur
 `23a1b83` (implémentation `c5d7301`), 28 octobre 2026. Ni scénario, MJ,
 `social.py`, `esprits.py`, `_mesurer_direct` ou `pnj.refus_etape` modifié ;
