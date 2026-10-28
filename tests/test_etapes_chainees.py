@@ -169,10 +169,17 @@ class EtapesTests(unittest.TestCase):
                     # Diff exhaustif archivé dans reprise/capture-differences.json.
                     compensation = ({'monde': '66e43f9693b962a30e3a48b4b9fc7b0af2436bc9d4d3448f37ca7ade18f2d2d7'}
                                     if scenario == 'auberge' else {})
+                    # 244 : une flamme faible n'ouvre plus les acquisitions
+                    # de combustible sans gain de capacité. Seule l'exploration
+                    # change (20 632 → 8 573 visites), plans et monde conservés.
+                    reserve = ({'visites': '727ad9bb04e40a5e2602b0e93032d4d337be6fe23c896d8cbe917c30fafb6a5b',
+                                'n_visites': 8573,
+                                'diagnostics': '713286253ce4161d93c4833e73e951671caacd67758398a206448edb605acadd'}
+                               if scenario == 'auberge' else {})
                     self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures,
                                                                  **paroles[scenario], **contacts[scenario],
                                                                  **rendez_vous.get(scenario, {}), **pas[scenario],
-                                                                 **compensation})
+                                                                 **compensation, **reserve})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})

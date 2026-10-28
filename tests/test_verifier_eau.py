@@ -199,9 +199,11 @@ class EauTests(unittest.TestCase):
                          json.dumps(decoupe.data, sort_keys=True))
 
     def scene(self):
-        """Même nature, une autre crue (1 cm par minute depuis -150) : à la minute 100, tous au refuge
-        ont vu l'eau monter ; ils attendent la conduite (130 cm) et la salle des vannes (110 cm)
-        noyées dans l'heure, le refuge mouillé (10 cm)."""
+        """Autre crue (1 cm par minute depuis -150), à la minute 100.
+
+        Aubin a mesuré sa vitesse ; les autres ont pu évacuer avant une
+        seconde mesure. Une position d'auteur ne leur donne pas ce savoir.
+        """
         m = calme(crue(FIXES), "marchand", "brune", "ilse", "aubin")
         m, _ = attendre(m, 100)
         self.assertEqual(eau.estimation(m, "aubin")[2], 60)
@@ -212,6 +214,13 @@ class EauTests(unittest.TestCase):
         # Le recours positif part du refuge après observation de la crue ;
         # une évacuation antérieure ne doit pas supprimer le trajet à éprouver.
         placer(m, "ilse", "antichambre", (1, 3))
+        # 247 : depuis le suivi 242, Gorm ne transmet plus sa mesure à
+        # Ilse dans cette scène. Sa prémisse est une montée connue :
+        # connaissance d'auteur explicite, distincte de sa position.
+        # Aucun savoir d'Aubin ni niveau réel n'est consulté par le plan.
+        croire(m, "ilse", "crypte", "eau", eau.profondeur(m, "crypte"), "savoir",
+               niveau=eau.niveau(m), repere=[m.data["minutes"], eau.niveau(m)], montee=60)
+        self.assertEqual(eau.estimation(m, "ilse")[2], 60)
         # La ronde d'Aubin à la salle des vannes, le brasero de la conduite pour Ilse transie.
         self.assertIsNone(planifier_pulsion(m, "aubin", {"lieu": "crypte", "periode": 49}))
         lire(m, "ilse")["besoins"]["chaleur"] = 90.0
@@ -235,6 +244,21 @@ class EauTests(unittest.TestCase):
                            v.pression(depart(m, "ilse", v).apres(salle="chambre_cloche")))
         self.assertTrue(v.descente("antichambre", "crypte"))
         self.assertFalse(v.descente("crypte", "antichambre"))   # Vers moins d'eau, on peut aller.
+        self.assertIn("echoppe", v.menacees)
+        self.assertIn("crypte", v.noyees)
+        # La suite s'exécute aussi dans le monde : ni descente vers
+        # le brasero, ni chauffage dangereux annoncé. État et deux vues
+        # du joueur restent identiques après sauvegarde/rechargement.
+        executer(m, m.data["minutes"] + 5)
+        self.assertNotIn(m.objets["ilse"]["lieu"], ("echoppe", "crypte"))
+        self.assertFalse(any(c["pnj"] == "ilse" and "se chauffe" in c["texte"]
+                             and "brasero" in c["texte"] for c in m.data["chronique"]))
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        self.assertEqual(regarder(m), regarder(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
 
     def test_qui_attend_l_eau_noyer_sa_salle_en_sort_avant_tout(self):
         m = self.scene()

@@ -115,8 +115,10 @@ class PasCompagnonsTests(unittest.TestCase):
         # l'ancien engagement pris, sans perdre le service payé.
         self.assertTrue([s for s in lire(a, 'brune')['memoire']
                          if s['type'] == 'engagement_tenu' and s.get('pour') == 'ilse'])
+        # 234 : le placement conserve ici Ilse connue à l'antichambre
+        # au constat ; l'ancrage du service doit enregistrer ce lieu.
         self.assertIn(dict(de='brune', pour='ilse', condition={'objet': 'torche', 'allume': True},
-                           lieu_beneficiaire=None), a.data['services_rendus'])
+                           lieu_beneficiaire='antichambre'), a.data['services_rendus'])
 
     def test_hameau_1985_service_admissible_mais_vente_compensee_prioritaire(self):
         from unittest.mock import patch

@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-suite-bf4cede`, non fusionnée**, lot **247**, base
+  `f46a0b5` : quatre oracles corrigés, aucun code moteur ni MJ modifié.
+  Bissection `4306c14`–`bf4cede`, frontières confirmées vert/rouge sur
+  parents directs : deux ancrages de service introduits par **234 / bf4cede**
+  (Ilse crue à l'antichambre au constat), exploration d'auberge par
+  **244 / b744265** (20 632 → 8 573 visites, mêmes plans/monde/lignes/vues),
+  prémisse de crue par **242 / d606305** (Gorm ne transmet plus sa vitesse
+  à Ilse ; échéance de `confier` isolée par contre-épreuves).
+  Connaissance de montée désormais explicite dans la scène d'auteur,
+  assertions de sécurité conservées, exécution et deux vues rechargées
+  vérifiées. **39/39 tests verts sur quatre fichiers, 118,060 s** ; fichier
+  d'eau final renforcé **7/7, 67,695 s**. Pas de suite complète, banc ni Luna.
+  Bruts `C:/Users/msics/donjon/artifacts/suite-247/` ;
+  [rapport 247](taches/rapport-codex-247-suite-bf4cede.md).
+
 - **Branche `codex-restitution-route`, fusionnée**, lot **246**, base
   `2b15134` : transport avec le bien jusqu'à la destination crue, puis
   nécessité dans l'état de remise ; même admission et revalidation via
