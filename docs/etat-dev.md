@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-presences-regression`, non fusionnée**, lot **259**, base
+  `integration 7e69227`, moteur `3c529db` : admission d'une part demandée
+  avec sa venue convenue, sans déplacement ni consommation projetée réelle ;
+  service spontané à un absent toujours refusé. Revalidation des participants
+  distincte de l'observation ordinaire des cibles de contact disparues.
+  Première passe **74 tests verts / six fichiers, 56,418 s** ; nouvelle
+  contre-épreuve joueur/Ilse verte (devis pur, absence puis venue, service,
+  engagement, portions, mémoire/texte et rendu rechargés). Vérification des
+  **18 fichiers en échec + six voisins en cours**, deux processus réduits.
+  Banc détaché enchaîné seulement si ces tests réussissent : cinq scénarios,
+  quatre graines, 4 h, références `39db079` et `e875877` avec réemploi du
+  cache ; branche figée calculée une fois. Suspects et S/F/D restent à lire ;
+  aucune conclusion globale avant la fin. Ni suite complète ni Luna.
+  Bruts `C:/Users/msics/donjon/artifacts/regression-259/`, fin attendue
+  `banc.termine.json`.
+  [Rapport 259](taches/rapport-codex-259-presences-regression.md).
+
 - **Branche `codex-faire-ou-confier`, fusionnée**, lot **257**, base
   `integration 5e08b76` : arrêt au constat explicitement prévu au brief.
   Le devis réel du titulaire (`agendas.devis_mandat`, 256) ne peut servir
