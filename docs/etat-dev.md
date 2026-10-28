@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-aide-stable`, fusionnée**, lot **240**, base
+  intégration `1c71666`. `Vue.detresses` conserve l'ouverture de l'aide pour
+  une intention sans geste tant qu'une promesse connue reste valide, dès
+  le retrait de la demande exécutée. La phase `attendre` seule n'ouvre pas
+  l'aide d'une garde tenue. Moyens,
+  refus et confiance restent revalidés ; aucun ancien plan réinstallé,
+  aucun champ ajouté, aucun changement de `_classer`, des échanges, de
+  `pnj.py`, des biens, de l'ouïe ou du MJ. Captures historiques `4306c14`
+  hameau 1985 à 541 et 544:156 reproduites ; deux régressions échouent sur
+  le constructeur exact de la base et passent avec le raccord. Autre besoin
+  à la mine (lumière de Bram, aide de Josse), annulation reçue et réalisation.
+  Monde/rendu rechargés et laps découpés couverts ; deux contre-épreuves
+  rouges sur la base. Suite complète unique : **2 534 tests / 293 fichiers,
+  3 409,760 s, trois échecs, zéro erreur, 16 ignorés ; suite non verte**.
+  Deux écarts d'empreintes corrigés par le raccord à la seule promesse connue,
+  sans modifier les oracles : tous les champs mine/auberge retrouvent la base.
+  Torche hameau 1985 reproduite sur la base, mêmes 3188/3615 (réserve 238).
+  **24 ciblés finaux verts**, dont les deux oracles historiques intacts ;
+  même échec de torche sur le raccord final. **20 paires 4 h finales**,
+  zéro plantage, suspects 219 **0/0/2/0/0 inchangés** ; cycles 507,
+  préemptions 58, à expliquer 87 inchangés. **20/20** états finaux,
+  chroniques/récits/souvenirs/empreintes identiques ; recherches neuves
+  **15 017 → 15 024 (+0,05 %)**. Vingt références réemployées, aucune
+  rejouée ; aucune seconde suite complète. Créneau dépassé par les validations.
+  Bruts `C:/Users/msics/donjon/artifacts/aide-240/` ;
+  [rapport 240](taches/rapport-codex-240-aide-stable.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Vue.detresses garde l'ouverture de l'aide tant qu'une aide acceptée reste connue et valide, sans dépendre du classement du besoin (Gorm hameau 1985, 544 : son choix effaçait son propre recours). Autre cas : Bram attend que Josse allume la chandelle. 20/20 nuits 4 h identiques, suspects inchangés. Suite : un échec préexistant (torche, corrigé depuis par 238).
+
 - **Branche `codex-pas-compagnons-c`, fusionnée**, lot **233** :
   livraison `f34e6c2`, reprise après merge de `origin/integration` **`01ce467`
   dans `7d68a8f`**, sans rebase, seul conflit documentaire. Le bruit attribué
