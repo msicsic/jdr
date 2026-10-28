@@ -661,16 +661,29 @@ def _a_toucher(monde, id, etape, portes=None):
     return touches
 
 
-def _a_reunir(monde, id, etape, portes=None):
+def _a_reunir(monde, id, etape, portes=None, *, venues=False, contacts=True):
     """Présences nécessaires au geste, distinctes de sa portée de contact.
 
     Le bénéficiaire d'une part peut être appelé dans la salle sans être
     touché. Il reste un participant requis, même si la cible est le repas.
-    Ce contrat sert à la projection du plan et à sa revalidation.
+    ``venues`` tient compte du contrat de venue au lieu du service dans
+    l'admission du plan. Il ne prouve pas une présence réelle : le geste
+    contrôle encore celle-ci avant de servir. ``contacts=False`` conserve
+    l'observation des cibles de contact par l'exécution ordinaire.
     """
-    requis = _a_toucher(monde, id, etape, portes)
+    requis = _a_toucher(monde, id, etape, portes) if contacts else []
     if etape["operation"] == "servir":
-        requis.append(etape.get("contenu", {}).get("pour"))
+        pour = etape.get("contenu", {}).get("pour")
+        # Une part demandée se prend au lieu des vivres : le demandeur
+        # convient d'y venir. Une pulsion de nourrir autrui ne vaut pas accord.
+        # L'engagement provisoire du devis porte déjà ce même contrat.
+        from . import agendas
+        convenue = venues and any(
+            x.get("objet") == etape["cible"] and x.get("pour") == pour
+            and x["condition"] == {"objet": etape["cible"], "servir": pour}
+            and not x.get("annule") for x in agendas.en_cours(monde, id))
+        if not convenue:
+            requis.append(pour)
     return requis
 
 
@@ -1781,8 +1794,14 @@ def refus_etape(monde, id, etapes):
         from .planification import vue, depart
         v = vue(monde, id)
         e = depart(monde, id, v)
-        if any(not v.present(e, x) for x in _a_reunir(monde, id, tete, e.portes)):
-            return "participant ou cible cru absent"
+        # Les cibles de contact passent par l'approche et l'observation du
+        # geste : les rejeter ici empêcherait d'apprendre leur disparition.
+        # Une localisation inconnue n'est pas une preuve d'absence ; le
+        # geste devra la constater. Seule une présence crue incompatible
+        # rend le participant impossible dans cette projection.
+        if any(v.salle(e, x) is not None and not v.present(e, x) for x in _a_reunir(
+                monde, id, tete, e.portes, venues=True, contacts=False)):
+            return "participant cru absent"
     from .eau import active, en_peril, menacee
     if not active(monde):
         return None

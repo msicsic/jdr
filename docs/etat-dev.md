@@ -2,6 +2,47 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic
+  seul, base `integration 769c7f1` : épisode absent de la nuit actuelle 12 h ;
+  reproduit sur `c870c8b`, hameau 1985, départ tiré, joueur chambre de la
+  cloche. Service payé à `686`, allumé à `2436`, ancré en `antichambre`
+  à `2536`, clôturé à **`24090`** sur départ vu d’Ilse en crypte pendant que
+  Brune et la torche sont encore dans l’échoppe. Brune rejoint ensuite Ilse
+  puis éteint à `24600` par `menager_flamme` : **extinction légitime**, faux
+  positif de la sonde 227 sans historique des clôtures. Ancrage 238 respecté.
+  Captures création/clôture/avant-après extinction et fins 12 h : monde,
+  rendu et scène identiques après recharge. Aucun code du jeu changé,
+  Luna, suite complète ni banc comparatif.
+  Bruts `C:/Users/msics/donjon/artifacts/torche-263/` ;
+  [rapport 263](taches/rapport-codex-263-torche-eteinte.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement (Sol medium). Hameau 1985 sur c870c8b, 1 233 entrées de chronique identiques à l'archive 241 ; absent de l'intégration actuelle. Le service d'allumage payé par Ilse était clos à 24090 sur son départ observé (crue en crypte, ancrage 238 appliqué : ni au lieu de réussite ni à celui du résultat) avant que Brune n'éteigne la torche à 24600 pour la ménager : extinction légitime selon le contrat ; faux positif de la sonde 227, qui ignore l'historique des clôtures. Limite du contrat relevée : Brune rejoint ensuite Ilse dans la crypte et la protection close ne renaît pas.
+
+- **Branche `codex-ilse-poele`, fusionnée**, lot **261**, diagnostic seul,
+  base `integration 2365125` : Ilse entretient le poêle du guet 450 min dès 165
+  malgré la faim (crue, graine 7). Reproduit sur l'intégration actuelle ;
+  captures rechargées 160/165/270/275/400/600/720 min (monde/rendu identiques).
+  À 270 min+, faim pressante (71→100, seuil 70) mais les deux recours faim
+  évaluent à `RIEN` (`planification.planifier` retourne `None`, issue `epuise`,
+  1 nœud) : aucun vivre qu'Ilse croit pouvoir prendre (réserve gardée par le
+  marchand). Verdict : comportement juste, routine de garde pendant l'attente.
+  Aucun code modifié. Bruts `C:/Users/msics/donjon/artifacts/ilse-261/`.
+  [Rapport 261](taches/rapport-codex-261-ilse-poele.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement, premier essai d'OpenCode Beam Free : livré complet. Épisode reproduit (165-720) ; la faim est seule urgence mais sans recours admissible d'après les croyances d'Ilse (vivres à la réserve gardée par Gorm), recherche faim épuisée à 1 nœud ; le poêle est une routine exécutée pendant l'attente. Verdict : comportement juste. Réserve du superviseur : un épuisement à 1 nœud ne montre pas pourquoi la demande d'une part à Gorm n'est pas envisagée (refus retenu ou autre) ; non vérifié.
+
+- **Branche `codex-ilse-demande`, fusionnée**, lot **262**, diagnostic seul (Beam Free),
+  base `integration 769c7f1` : pourquoi Ilse ne demande pas une part à Gorm (crue 7).
+  Sur les captures 270/400/600 rechargées, `planification.gestes` depuis l'état initial
+  propose seulement `aller beffroi` (et `chauffer poele_guet` à 600) ; aucun `demander`
+  de part de vivres. Exclusion : Gorm (`marchand`) est cru en `antichambre`, salle connue
+  et différente de `chambre_cloche`, tandis que l'antichambre est inaccessible (`porte`
+  crue verrouillée, sans clé ni crochetage) ; `_parts_calculer` n'offre `demander` que si
+  le donneur est co-présent, ni `_chercher` si son lieu est connu. Aucun refus retenu
+  (`refus_retenu` `None`), ni méfiance/rancune, ni vivre cru épuisé.
+  Verdict : exclusion juste selon ses croyances (passage verrouillé, co-présence requise).
+  Aucun code modifié. Bruts `C:/Users/msics/donjon/artifacts/ilse-262/` ;
+  [rapport 262](taches/rapport-codex-262-ilse-demande.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement (Beam Free). Réserve du superviseur : l'appel à travers la porte (héler, appel négocié « Ici, viens ! ») pour faire venir le donneur n'est pas envisagé par le recours de faim ; piste à instruire.
+
 ## Où on en est
 
 - **Branche `codex-faire-ou-confier-b`, non fusionnée**, lot **260**, base
@@ -34,7 +75,58 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   entièrement verte à cause des neuf défauts hérités. Bruts
   `C:/Users/msics/donjon/artifacts/confier-260/`, `fin.json` de reprise.
   Pas de compte rendu ni réaffectation sur retard.
+  **Reprise après fusion de origin/integration 1355f7a (lot 259)** : aucun
+  conflit moteur, bilans 259/260 conservés ; tests ciblés et comparaison
+  crue/Relais en préparation pour réexaminer ces réserves. Branche pas encore
+  déclarée prête pour la suite du superviseur.
   [Rapport 260](taches/rapport-codex-260-faire-ou-confier.md).
+
+- **Branche `codex-presences-regression`, fusionnée**, lot **259**, base
+  `integration 7e69227`, moteur `15d18c1` : admission d'une part demandée
+  avec sa venue convenue ; localisation inconnue distincte d'absence crue,
+  présence réelle et parole toujours contrôlées avant consommation.
+  Service spontané de Mireille à Mathurine absente toujours refusé ; approche
+  et observation ordinaires des cibles disparues restaurées. Aucun nouveau
+  champ, scénario, MJ, social/esprits/agendas/relations modifié.
+  **310/310 tests ciblés verts**, 18 fichiers du journal + six voisins,
+  assertions intactes, monde/rendu rechargés, joueur/Ilse et scènes 251.
+  Suite complète du superviseur sur PC fixe, `dc326ad` : **2 655 tests,
+  un échec AST préexistant**, les 25 échecs/erreurs de 251 disparus.
+  Test isolé reproduit sur **7e69227 et dc326ad**, même
+  `agendas.py:1054`, fichier et contrôle AST inchangés par le lot.
+  **Banc achevé, code 0 : vingt nuits 4 h par version**, cinq scénarios ×
+  quatre graines, `39db079` / `e875877` / branche. Suspects **4/2/3**,
+  sans hausse par nuit contre l'avant-251 ; deux alertes anciennes d'Aubin
+  reviennent contre 251 (Relais/crue 2024), Odile auberge 2024 disparaît.
+  Cycles **498/489/495**, à expliquer **51/55/53**, dérives **216/233/212** ;
+  attente urgente **565/400/565**, sans recours **0/0/0 PNJ·min**.
+  S/F/D détaillés au rapport : S mine **24,25/28,50/25,75**, auberge
+  **9,50/11/9,25** ; aucune amélioration générale revendiquée.
+  Zéro plantage/usurpation/violation. Quarante références exactes absentes
+  calculées une fois, vingt nuits de branche calculées une fois puis relues
+  pour la seconde comparaison ; aucun temps comparé avec le cache.
+  **1 513,801 s**, deux travailleurs réduits au plus, aucun calcul actif.
+  Ni Luna ni suite complète relancée par l'agent. Limites : venue future non
+  garantie, trois suspects non certifiés bénins, pas d'identité universelle.
+  Bruts `C:/Users/msics/donjon/artifacts/regression-259/`, `bilan-final.json`,
+  `banc.termine.json`, preuves `ast-base.log` et `ast-branche.log`.
+  [Rapport 259](taches/rapport-codex-259-presences-regression.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `planification.py`, fusionnés sans conflit textuel. Corrige la régression du lot 251 : la présence nécessaire se juge au moment du geste, une venue convenue compte, une localisation inconnue n'est pas une absence. Suite sur la branche (dc326ad) : 2 655 tests, les 25 échecs hérités de 251 disparus ; seul échec, le contrôle AST de l'ascendant, déjà corrigé sur l'intégration par 57d70d4 (vert ici). 20 paires 4 h : richesse revenue à l'avant-251, suspects 4/2/3 (avant 251 / 251 / 259), attente urgente 565/400/565.
+
+- **Branche `codex-retours-241`, fusionnée**, lot **264**, diagnostic seul,
+  base `integration 8ac7b46` : retours Bram mine 2024 à 613 et Gorm hameau 7
+  à 682 absents des deux nuits actuelles de 12 h, reproduits sur `c870c8b`
+  détaché. **Deux faux positifs 219** : Bram change de moyen après l'absence
+  constatée d'Odon (achat de combustible → tâche d'allumage à Mathe) ; Gorm
+  reprend après l'arrivée de Sève et la clôture réelle du rendez-vous, que
+  `_est_accompli` ne reconnaît pas pour `attendre`. Refus suivants enregistrés,
+  aucun renoncement causal effacé ni attente encore valide rompue sur ces
+  retours. Quatre nuits achevées sans plantage, **336 captures monde/rendu
+  identiques après recharge** ; un calcul réduit à la fois, aucun code du jeu
+  modifié, ni Luna, suite complète ou banc comparatif. Aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/retours-264/`.
+  [Rapport 264](taches/rapport-codex-264-retours-241.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement (Sol medium). Reproduits sur c870c8b, absents de l'intégration actuelle. Bram (mine 2024, 613) : achat raté car Odon absent, puis le but lumière revient par un autre moyen (confier la chandelle à Mathe), refusé et retenu : changement de moyen légitime. Gorm (hameau 7, 682) : le recours cède à l'attente de Sève convenue (« J'arrive ! »), rendez-vous réellement clos par appel.retrouves avant la reprise : légitime. Deux faux positifs du compteur 219 : il devrait distinguer les moyens d'un même but et reconnaître la clôture d'un rendez-vous intermédiaire.
 
 - **Branche `codex-devis-observateur`, fusionnée**, lot **258**, base
   `integration e9a8dfe` : `agendas.devis_observateur` et contexte explicite
