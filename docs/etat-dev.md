@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification d'intégration 4306c14**, lot **231**, branche
+  `codex-verif-integ-4306c14`, non fusionnée : code `donjon/ tools/` identique
+  à `4306c14`, aucun correctif, Luna, pull ni référence rejouée. **49 nuits
+  lancées une fois, 47 achevées, intégration non verte** : contrôles mine 42
+  à 415 et rixe 42 à 350 interrompus par la mutation d'état pendant
+  `planification.vues_du_choix` ; mêmes contrôles achevés sur `4d4c625`.
+  Auberge 42/Lucien à 435 : **75 bornes**, dont 73 `ancienne_borne` à
+  résultat exact et deux plans de garde manqués ; aucun autre écart consigné.
+  **31 suspects 219, 390 à expliquer ; zéro geste fautif 227**, 22 pertes
+  physiques et une après départ cru ; zéro usurpation/coup/mort relevé.
+  Attente crue **905 → 1 162,50**, hameau **1 021,25 → 1 761,25 PNJ·min**.
+  Bourse mine 1985 **228 → 0 demandes**, crue 2024 **16 → 0 coups**.
+  Nouveaux cas à instruire : Anselme auberge 7 **246 passages/h** sous garde,
+  Gorm hameau 1985 **onze retours chaleur/devoir** à 541–545, Maël hameau 42
+  **quatre suspects restitution/inspection** ; correspondances anciennes
+  archivées. Gorm crue 2024 : **5 → 12 sommeils** avant évacuation.
+  Rendez-vous : **28 → 39 départs candidats** après « Ici, viens ! », aucun
+  de Mireille ; urgences/échéances non certifiées. Un travailleur de calcul
+  en fond à priorité réduite. Ni captivité exhaustive ni monde/rendu rechargé
+  certifiés ; deux nuits sans mesures finales. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/verif-integ-4306c14/` ;
+  [rapport 231](taches/rapport-codex-231-verif-integ.md).
+
 - **Branche `codex-compteur-services`, fusionnée**, lot **227**, départ
   `b8e433d` vérifié, moteur identique à `881db69` : outils seulement, aucun
   `donjon/` ni Luna modifié. Les pertes d'états payés distinguent le geste du
