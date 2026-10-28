@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-confidences-perdues`, fusionnée**, lot **249**, base
+  `integration 59321b9` : diagnostic documentaire de `adb52c4` contre 235
+  (`942a3c2`), aucun code du jeu ni test modifié. Inventaire exhaustif des
+  126 paroles Relais/mine, quatre graines × 4 h : 122 occurrences absentes,
+  quatre retrouvées à un autre instant, onze ajouts/réattributions ; compteur
+  25/101 → 5/10, comprenant aussi les comptes rendus de promesse.
+  Huit captures identiques aux bruts (chroniques/empreintes/récits/souvenirs),
+  123 transmissions sans effet sur le choix immédiat ; huit rejeux de choix
+  et cinq prolongations pour couvrir l'heure après les annonces tardives :
+  **5 472 ablations locales, six écarts issus d'une confidence utile perdue**,
+  Josse → Mathe, biscuits épuisés à 141, évitement d'un secours impossible
+  à 191–193, mine 1985. `_utile` ignore l'usage connu d'un moyen pour aider
+  autrui hors engagement actif ; recommandation d'élargir par une preuve
+  d'usage perçue, typée et révisable, sans lecture privée. Schéma non conçu.
+  Huit assertions rouges reclassées sur captures, aucun oracle modifié ni
+  test déclaré vert. Deux nuits 235 sondées, identiques aux bruts : Aubin/Ilse est un
+  faux positif (enquête de localisation, autre moyen) ; Mireille/Mathurine,
+  un défaut réel d'admission du service envers une personne crue ailleurs.
+  Effets des témoins auditifs et nuit entière
+  sans parole non mesurés ; aucune autorisation de fusion de 235. Un processus
+  réduit, aucun Luna, suite complète ou banc de comparaison. Bruts
+  `C:/Users/msics/donjon/artifacts/confidences-249/`.
+  [Rapport 249](taches/rapport-codex-249-confidences-perdues.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. Mine et Relais : 122 confidences absentes sous 235, presque toutes sans usage décisionnel (sources éteintes, contenants fermés, biens disparus) ; une seule utile perdue démontrée (Josse → Mathe, biscuits épuisés, mine 1985 à 141 : évitement à 191-193). Manque : l'usage d'un moyen pour aider un tiers hors engagement actif, à retenir comme preuve d'usage par le contrat commun perception/parole. Huit assertions rouges du 235 classées en attentes périmées ; suspect Aubin/Ilse faux positif ; Mireille/Mathurine (auberge 2024, 226) défaut réel d'admission du service. Premier diagnostic Sol medium sur nuits rejouées.
+
 - **Branche `codex-suite-bf4cede`, fusionnée**, lot **247**, base
   `f46a0b5` : quatre oracles corrigés, aucun code moteur ni MJ modifié.
   Bissection `4306c14`–`bf4cede`, frontières confirmées vert/rouge sur
