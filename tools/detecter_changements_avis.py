@@ -8,13 +8,15 @@ Les règles sont ordonnées : cycle accompli, préemption stricte, satisfaction 
 démenti pendant l'action d'un tiers, progression, répétition, entrée à expliquer.
 Les dérives ouvertes et les pertes d'état payé sont des observations séparées.
 Aucune durée de maintien n'est inventée pour les services instantanés.
+Les pertes sont attribuées aux gestes exécutés ou aux transitions physiques
+sondés, avec la présence crue avant le geste ; ailleurs la cause reste inconnue.
 
 La couverture demeure partielle (horizon, prédicats de fin et candidats sans
 palier publié) : une entrée changée ne constitue pas un certificat causal.
 """
 import argparse
 from collections import Counter
-from contextlib import contextmanager
+from contextlib import contextmanager, ExitStack
 from unittest.mock import patch
 import copy
 import hashlib
@@ -38,6 +40,8 @@ SALLES_JOUEUR = {
     "crue_hameau": "chambre_cloche",
 }
 GRAINES_DEFAUT = (1985, 7, 42, 2024)
+CLASSES_SERVICES = ("prestataire_beneficiaire_present", "prestataire_beneficiaire_parti",
+                    "beneficiaire_ou_tiers", "cessation_physique", "cause_non_observee")
 
 CATEGORIES_EXTERNES = (
     "croyances_valeurs",
@@ -365,7 +369,22 @@ class SondeAvis:
                     "t": instant(monde), "cle": cle, "autrui": acteur != qui,
                     "acteur": acteur, "preuve": "condition_de_fin_devenue_vraie"})
 
-    def relever_services(self, monde):
+    def presence_service(self, monde, service):
+        """Lecture pure du même critère de départ cru que biens.services_proteges."""
+        id, pour = service["prestataire"], service["payeur"]
+        objet = service["condition"]["objet"]
+        lieu = deliberation.salle_crue(monde, id, objet)
+        beneficiaire = deliberation.salle_crue(monde, id, pour)
+        porteur = deliberation._lieu_cru(monde, id, objet)
+        parti = porteur != pour and lieu is not None and beneficiaire is not None and lieu != beneficiaire
+        return {"parti": parti, "lieu_objet_cru": lieu, "lieu_beneficiaire_cru": beneficiaire,
+                "porteur_cru": porteur}
+
+    def presences_services(self, monde):
+        return {id(s): self.presence_service(monde, s) for s in self.services.values()
+                if s["perte_t"] is None and s["reussite_t"] is not None}
+
+    def relever_services(self, monde, acteur=None, cause=None, presences=None):
         # Conditions d'état, lues dans la réalité ; les conditions de gestes
         # (servir/remettre) n'impliquent aucun état durable de l'objet.
         for qui in self.episodes:
@@ -392,11 +411,25 @@ class SondeAvis:
                 service["reussite_t"] = instant(monde)
             if not vrai and service["reussite_t"] is not None and service["perte_t"] is None:
                 service["perte_t"] = instant(monde)
+                presence = (presences or {}).get(id(service))
+                classe = "cause_non_observee"
+                if cause == "physique":
+                    classe = "cessation_physique"
+                elif acteur is not None:
+                    if acteur != service["prestataire"]:
+                        classe = "beneficiaire_ou_tiers"
+                    elif presence is not None:
+                        classe = ("prestataire_beneficiaire_parti" if presence["parti"]
+                                  else "prestataire_beneficiaire_present")
+                service.update(classe=classe, acteur=acteur, cause=cause, presence_avant=presence,
+                               violation=classe == "prestataire_beneficiaire_present")
 
     def analyser(self):
         analyse = analyser_episodes(self.episodes)
         analyse["services_etat_perdu"] = [s for s in self.services.values() if s["perte_t"] is not None]
         analyse["total_services_etat_perdu"] = len(analyse["services_etat_perdu"])
+        analyse["services_par_classe"] = {c: sum(s["classe"] == c for s in analyse["services_etat_perdu"])
+                                          for c in CLASSES_SERVICES}
         return analyse
 
     def enregistrer_choix(self, monde, id, minute, cause):
@@ -633,6 +666,17 @@ def observer_avis():
     vrai_menager = deliberation.menager_flamme
     vrais_candidats = deliberation._candidats
 
+    def transition(original, physique=False):
+        def observer(monde, *args, **kwargs):
+            m = monde
+            sonde.relever_services(m)
+            presences = sonde.presences_services(m)
+            resultat = original(m, *args, **kwargs)
+            sonde.relever_services(m, acteur=None if physique else (args[0] if args else kwargs["id"]),
+                                  cause="physique" if physique else "geste", presences=presences)
+            return resultat
+        return observer
+
     def candidats_sondes(m, id):
         for candidat in vrais_candidats(m, id):
             def methode(m, id, original=candidat.methode, palier=int(candidat.urgence.palier)):
@@ -659,6 +703,8 @@ def observer_avis():
         return res
 
     def agir_sonde(m, id, t, lignes, gestes=None, compter=True):
+        sonde.relever_services(m)
+        presences = sonde.presences_services(m)
         avant = sonde.accomplissements(m)
         intention = copy.deepcopy(lire(m, id)["intention"])
         res = vrai_agir(m, id, t, lignes, gestes, compter)
@@ -671,7 +717,7 @@ def observer_avis():
             sonde.episodes[id][-1]["faits"].append({
                 "t": instant(m), "cle": _cle_decision(intention), "progression": True,
                 "preuve": "etape_executee", "etape": intention["plan"][0]})
-        sonde.relever_services(m)
+        sonde.relever_services(m, acteur=id, cause="geste", presences=presences)
         _, issue, rate = res
         if issue in (pnj.FIN, pnj.MANQUE):
             sonde.intentions_agir[id] = f"{issue}:{rate.get('operation') if rate else ''}"
@@ -693,11 +739,16 @@ def observer_avis():
                 })
         return res
 
-    with patch.object(deliberation, "choisir", choisir_sonde), \
+    from donjon import perception
+    with ExitStack() as pile, patch.object(deliberation, "choisir", choisir_sonde), \
          patch.object(deliberation, "deliberer", deliberer_sonde), \
          patch.object(pnj, "agir", agir_sonde), \
          patch.object(deliberation, "_candidats", candidats_sondes), \
          patch.object(deliberation, "menager_flamme", menager_sonde):
+        for module, nom, physique in ((pnj, "_executer", False),
+                                     (perception, "avancer_combustion", True),
+                                     (eau, "inonder", True)):
+            pile.enter_context(patch.object(module, nom, transition(getattr(module, nom), physique)))
         yield sonde
 
 
@@ -802,6 +853,8 @@ def main(argv=None):
                 flush=True,
             )
         par_scenario[scenario] = {
+            "services_par_classe": dict(sum((Counter(r["analyse"]["services_par_classe"])
+                                             for r in resultats if r["scenario"] == scenario), Counter())),
             "comptes": dict(c_scen),
             "total_derives_ouvertes": sum(r["analyse"]["total_derives_ouvertes"]
                                           for r in resultats if r["scenario"] == scenario),
@@ -815,6 +868,8 @@ def main(argv=None):
         }
 
     synthese = {
+        "services_par_classe": dict(sum((Counter(r["analyse"]["services_par_classe"])
+                                         for r in resultats), Counter())),
         "parametres": {
             "scenarios": args.scenarios,
             "graines": args.graines,
