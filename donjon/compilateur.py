@@ -4,6 +4,7 @@ Ce composant extrait le contexte local réduit (salle, sorties, objets accessibl
 missions et accords en cours) et utilise un fournisseur LLM (local ou cloud) avec un schéma
 d'intention compact, sans consigne narrative ni double passe d'audit lourd.
 """
+import copy
 import os
 
 from .agendas import contrats
@@ -11,6 +12,7 @@ from .fournisseurs.contrat import Demande
 from .improvisation import FORMES_SONORES, effet, issue, proposition as proposition_improviser
 from .monde import ErreurMonde, normaliser
 from .operations import OPERATIONS as OPERATIONS_COMPOSER
+from .paroles import SCHEMA_PAROLE, TYPES as TYPES_PAROLE
 from .passage import au_contact
 from .refus import RefusDeForme
 from .voix import nom_pour_joueur
@@ -28,7 +30,7 @@ METHODES_AUTORISEES = [
     "cri", "appel", "sifflement", "heler", "dessous", "dessus", "appui_mobile"
 ]
 OPERATIONS_AUTORISEES = ["proposer", "negocier", "accepter", "refuser", "discuter", ""]
-SUJETS_PAROLE = ["", "propos", "qui"]
+SUJETS_PAROLE = ["", *TYPES_PAROLE]
 DESTINATIONS_AUTORISEES = ["joueur", "salle", ""]
 
 PROMPT_COMPILATEUR = """Tu es le compilateur d'intention de LE SEUIL.
@@ -85,9 +87,22 @@ ACTIONS :
   - accepter : accepter l'offre convenue (montant_demande = 0).
   - refuser : décliner l'offre de mission (montant_demande = 0).
   - discuter : parler de la mission sans changer d'accord (mission = "", montant_demande = 0).
-- dialogue : le joueur pose une question ou adresse la parole à un personnage présent.
-  {"action": "dialogue", "texte": "réponse directe dans la fiction (ex: Gorm : « La trousse de crochets coûte 8 pièces. »)"}
-  sujet_parole : "qui" si le joueur demande l'identité de l'interlocuteur (son nom, qui il est), "propos" pour toute autre parole ; vide hors dialogue.
+- dialogue : le joueur pose une question ou adresse la parole à un personnage (ou à tous / à la cantonade).
+  Une saisie entre guillemets (« ... »), avec un verbe de parole (je dis, je demande, je chuchote...) ou « à tous : ... » est TOUJOURS dialogue (ou conversation_pnj pour négocier une mission), même si ses mots évoquent un geste.
+  Renseigne sujet_parole et contenu (liste de 1 à 3 actes de parole typés) selon ce que Corvus dit :
+  - "propos" : parole ordinaire, salutation ou question générale -> contenu = [{"type": "propos", "sujet": "", "attribut": "", "valeur": ""}]
+  - "qui" : demander qui est l'interlocuteur / son nom -> contenu = [{"type": "qui", "sujet": "", "attribut": "", "valeur": ""}]
+  - "nom" : Corvus se présente sous un nom (sujet = "joueur" ou id du personnage dont il prend le nom) -> contenu = [{"type": "nom", "sujet": "joueur", "attribut": "", "valeur": ""}]
+  - "localisation" : demander où se trouve une personne connue (sujet = id dans personnages_connus) -> contenu = [{"type": "localisation", "sujet": id_perso, "attribut": "", "valeur": ""}]
+  - "ressource" : demander si l'interlocuteur possède un bien ou de quoi satisfaire un besoin sans l'acheter (sujet = nom du bien sans article ex: "bois", "pain", ou besoin général "faim" / "chaleur") -> contenu = [{"type": "ressource", "sujet": "...", "attribut": "", "valeur": ""}]
+  - "reclamer" : réclamer ou interroger sur un dû (sujet = "" pour des pièces dues, ou id d'un objet appartenant à Corvus) -> contenu = [{"type": "reclamer", "sujet": "", "attribut": "", "valeur": ""}]
+  - "demande" : demander qu'on donne/prête/vende un objet ou une part de ressource (sujet = id objet ou ressource, valeur = "" ou nombre de pièces offertes en chiffres ex: "2") -> contenu = [{"type": "demande", "sujet": id_objet, "attribut": "", "valeur": ""}]
+  - "passage" : demander de s'écarter / laisser passer (sujet = "", valeur = "" ou pièces offertes en chiffres) -> contenu = [{"type": "passage", "sujet": "", "attribut": "", "valeur": ""}]
+  - "aveu" : avouer un geste fait sur un objet d'autrui (sujet = id objet, valeur = geste parmi prendre, poser, ouvrir, fermer, deverrouiller, verrouiller, crocheter, forcer, manger, servir, alimenter, allumer, eteindre) -> contenu = [{"type": "aveu", "sujet": id_objet, "attribut": "", "valeur": geste}]
+  - "affirmation" : affirmer un fait sur un sujet (sujet = id objet/personnage/"joueur", attribut = "lieu"|"verrouillee"|"fiable", valeur = id lieu/porteur ou "oui"/"non") -> contenu = [{"type": "affirmation", "sujet": ..., "attribut": ..., "valeur": ...}]
+  - "avis" : prévoir qu'un lieu connu sera menacé ou épargné par l'eau (sujet = id dans salles_connues, attribut = "menace", valeur = "oui"|"non") -> contenu = [{"type": "avis", "sujet": id_salle, "attribut": "menace", "valeur": "oui"}]
+  - "proposition" : proposer un échange lié {"type": "proposition", "demande": terme, "contrepartie": terme} où chaque terme est {"type": "objet"|"part", "objet": id}, {"type": "tache", "condition": {"objet": id, "allume": true|"verrouillee": true|"lieu": id_salle|"servir": id_perso}}, {"type": "pieces", "montant": int} ou (en contrepartie) {"type": "rien"}.
+  Hors dialogue, sujet_parole = "" et contenu = [].
 - clarifier : l'intention est trop ambiguë entre plusieurs cibles ou actions incompatibles (justification = question brève au joueur, à la 2e personne).
 - impossible : aucune action du moteur ne couvre l'intention, ou un retour_moteur montre que le monde empêche réellement le geste. N'utilise JAMAIS impossible au premier essai si une action du moteur existe (propose l'action, même si la cible est verrouillée, fermée ou éloignée : c'est le moteur qui tranche).
 
@@ -132,8 +147,9 @@ SCHEMA_COMPILATEUR = {
         "sujet_parole": {
             "type": "string",
             "enum": SUJETS_PAROLE,
-            "description": "Pour action 'dialogue' : 'qui' si le joueur demande l'identité de l'interlocuteur (son nom, qui il est), 'propos' pour toute autre parole ; chaîne vide hors dialogue."
+            "description": "Pour action 'dialogue' : type principal de la parole ('propos', 'qui', 'nom', 'localisation', 'ressource', 'reclamer', 'demande', 'passage', 'aveu', 'affirmation', 'avis', 'proposition') ; chaîne vide hors dialogue."
         },
+        "contenu": copy.deepcopy(SCHEMA_PAROLE["properties"]["contenu"]),
         "justification": {
             "type": "string",
             "description": "Courte raison interne du choix d'action (non affichée au joueur)."
@@ -175,7 +191,7 @@ SCHEMA_COMPILATEUR = {
     },
     "required": [
         "action", "cible", "destination", "outil", "methode", "difficulte",
-        "texte", "sujet_parole", "justification", "personnage", "operation", "mission", "montant_demande", "etapes"
+        "texte", "sujet_parole", "contenu", "justification", "personnage", "operation", "mission", "montant_demande", "etapes"
     ],
     "additionalProperties": False,
 }
@@ -251,8 +267,9 @@ def determiner_modele(fournisseur, modele_souhaite=None):
     return os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
 
 
-def extraire_contexte(monde):
+def extraire_contexte(monde, intention=""):
     """Extrait le contexte compact strictement nécessaire à l'arbitrage mécanique (~150 jetons)."""
+    from . import paroles
     salle_id = monde.joueur["salle"]
     salle = monde.data["salles"][salle_id]
     sorties = salle.get("sorties", {})
@@ -293,16 +310,43 @@ def extraire_contexte(monde):
         for m_id, m in monde.data.get("missions", {}).items()
     ]
     accords = contrats(monde)
-    return {
+    personnages_connus = [
+        {"id": id, "nom": monde.objets[id]["nom"].split(",")[0]}
+        for id in paroles.identites(monde)
+    ]
+    salles_connues = [
+        {"id": s, "nom": monde.data["salles"][s].get("nom", s)}
+        for s in sorted(monde.data.get("salles", {}))
+        if paroles._connu_du_joueur(monde, s)
+    ]
+    connus_ids = sorted(set(monde.data.get("connus", [])) | set(monde.data.get("souvenirs_visuels", {})))
+    objets_connus = [
+        {"id": id, "nom": monde.objets[id]["nom"]}
+        for id in connus_ids
+        if id in monde.objets and monde.objets[id].get("type") != "personnage" and id not in vus
+    ]
+    from .biens import etat_comptes_joueur
+    comptes = etat_comptes_joueur(monde, [p["id"] for p in pnjs])
+    ctx = {
         "salle": salle.get("nom", salle_id),
         "sorties": list(sorties.keys()),
         "objets": objets,
         "inventaire": inventaire,
         "interlocuteurs": pnjs,
+        "personnages_connus": personnages_connus,
+        "salles_connues": salles_connues,
+        "objets_connus": objets_connus,
         "missions": missions,
         "accords": accords,
         "or_joueur": monde.joueur.get("or", 0),
     }
+    if comptes:
+        ctx["comptes"] = comptes
+    if intention:
+        prev = paroles.prevue(monde, intention)
+        if "personnage" in prev:
+            ctx["parole_prevue"] = prev
+    return ctx
 
 
 def _liste_marchandises(monde):
@@ -325,6 +369,86 @@ def _liste_marchandises(monde):
     }
 
 
+def _normaliser_terme_proposition(terme, monde):
+    """Résout les noms connus en identifiants dans un terme d'échange (``proposition``)."""
+    if not isinstance(terme, dict) or not monde:
+        return terme
+    from .paroles import resoudre
+    copie = copy.deepcopy(terme)
+    if "objet" in copie and isinstance(copie["objet"], str) and copie["objet"] not in monde.objets:
+        res = resoudre(monde, copie["objet"])
+        if res:
+            copie["objet"] = res
+    if isinstance(copie.get("condition"), dict):
+        cond = copie["condition"]
+        for cle in ("objet", "lieu", "servir"):
+            if cle in cond and isinstance(cond[cle], str):
+                res = resoudre(monde, cond[cle])
+                if res:
+                    cond[cle] = res
+    return copie
+
+
+def _normaliser_contenu_parole(prop, monde=None, intention=""):
+    """Construit la liste ``contenu`` de ``parole_joueur`` à partir de ``contenu`` ou ``sujet_parole``."""
+    from .paroles import nom_dans
+    sp = prop.get("sujet_parole") if prop.get("sujet_parole") in TYPES_PAROLE else "propos"
+    brut = prop.get("contenu")
+    if isinstance(brut, list) and brut:
+        # Si le modèle a laissé un unique propos générique alors que sujet_parole est plus précis, privilégier sujet_parole.
+        if len(brut) == 1 and isinstance(brut[0], dict) and brut[0].get("type") == "propos" and sp != "propos":
+            brut = []
+    if isinstance(brut, list) and brut:
+        resultat = []
+        for c in brut[:3]:
+            if not isinstance(c, dict):
+                continue
+            if c.get("type") == "proposition":
+                item = copy.deepcopy(c)
+                if "demande" in item:
+                    item["demande"] = _normaliser_terme_proposition(item["demande"], monde)
+                if "contrepartie" in item:
+                    item["contrepartie"] = _normaliser_terme_proposition(item["contrepartie"], monde)
+                resultat.append(item)
+            else:
+                type_c = c.get("type") if c.get("type") in TYPES_PAROLE else "propos"
+                resultat.append({
+                    "type": type_c,
+                    "sujet": str(c.get("sujet") or ""),
+                    "attribut": str(c.get("attribut") or ""),
+                    "valeur": str(c.get("valeur") or ""),
+                })
+        if resultat:
+            return resultat
+
+    cible = str(prop.get("cible") or "")
+    dest = str(prop.get("destination") or "")
+    outil = str(prop.get("outil") or "")
+    op = str(prop.get("operation") or "")
+    montant = int(prop.get("montant_demande") or 0)
+    offre_str = str(montant) if montant > 0 else ""
+
+    if sp in ("propos", "qui"):
+        return [{"type": sp, "sujet": "", "attribut": "", "valeur": ""}]
+    if sp == "nom":
+        sujet = cible or ((nom_dans(monde, intention) if monde else None) or "joueur")
+        return [{"type": "nom", "sujet": sujet, "attribut": "", "valeur": ""}]
+    if sp in ("localisation", "ressource", "reclamer"):
+        return [{"type": sp, "sujet": cible, "attribut": "", "valeur": ""}]
+    if sp == "demande":
+        return [{"type": "demande", "sujet": cible, "attribut": "", "valeur": offre_str}]
+    if sp == "passage":
+        return [{"type": "passage", "sujet": "", "attribut": "", "valeur": offre_str}]
+    if sp == "aveu":
+        return [{"type": "aveu", "sujet": cible, "attribut": "", "valeur": op or outil}]
+    if sp == "avis":
+        return [{"type": "avis", "sujet": cible or dest, "attribut": "menace", "valeur": "oui"}]
+    if sp == "affirmation":
+        attr = "lieu" if dest else ""
+        return [{"type": "affirmation", "sujet": cible, "attribut": attr, "valeur": dest or outil}]
+    return [{"type": "propos", "sujet": "", "attribut": "", "valeur": ""}]
+
+
 def normaliser_proposition(prop, monde=None, intention=""):
     """Harmonise la proposition avec les attentes strictes du moteur."""
     saisie_norm = normaliser(intention or "")
@@ -343,14 +467,21 @@ def normaliser_proposition(prop, monde=None, intention=""):
             action = "dialogue"
 
     if action == "dialogue":
-        cible_dial = _resoudre_cible_personnage(monde, prop.get("personnage") or prop.get("cible") or "", intention) if monde else (prop.get("personnage") or prop.get("cible") or "")
+        contenu = _normaliser_contenu_parole(prop, monde, intention)
+        if any(isinstance(c, dict) and c.get("type") == "qui" for c in contenu):
+            sujet_parole = "qui"
+        elif contenu and isinstance(contenu[0], dict) and contenu[0].get("type") in TYPES_PAROLE:
+            sujet_parole = contenu[0]["type"]
+        else:
+            sujet_parole = "propos"
         # Invariant : la justification interne du compilateur ne doit jamais être copiée dans le texte joueur.
         return {
             "action": "dialogue",
             "texte": prop.get("texte") or "",
-            "sujet_parole": prop.get("sujet_parole") if prop.get("sujet_parole") in ("propos", "qui") else "propos",
-            "personnage": cible_dial or prop.get("personnage") or "",
-            "cible": cible_dial or prop.get("cible") or "",
+            "sujet_parole": sujet_parole,
+            "contenu": contenu,
+            "personnage": prop.get("personnage") or "",
+            "cible": prop.get("cible") or "",
         }
 
     if action == "improviser":
@@ -640,7 +771,7 @@ def normaliser_proposition(prop, monde=None, intention=""):
 
 def compiler(fournisseur, monde, intention, modele=None, timeout=30, effort=None, retour_moteur=None):
     """Appelle le fournisseur pour traduire l'intention en proposition mécanique."""
-    ctx = extraire_contexte(monde)
+    ctx = extraire_contexte(monde, intention=intention)
     entree = {
         "contexte": ctx,
         "intention": intention,

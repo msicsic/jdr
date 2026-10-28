@@ -809,5 +809,174 @@ class RelanceAttenduCompilateurTests(unittest.TestCase):
         self.assertTrue(r_loin.get("_texte_moteur"))
 
 
+class ParoleJoueurDecoupleTests(unittest.TestCase):
+    """Les actes de parole typés (``donjon/paroles.py``) passent par le compilateur et ``preparer_parole``."""
+
+    @staticmethod
+    def _arg(**champs):
+        base = {
+            "action": "dialogue", "cible": "", "destination": "", "outil": "", "methode": "simple",
+            "difficulte": 0, "texte": "", "sujet_parole": "propos", "justification": "",
+            "personnage": "", "operation": "", "mission": "", "montant_demande": 0,
+            "etapes": [], "contenu": [],
+        }
+        base.update(champs)
+        return base
+
+    @staticmethod
+    def _mj_sequence(reponses_compilateur, replique_dialogue="« Entendu. »"):
+        from donjon.fournisseurs.contrat import Fournisseur, Reponse
+        appels_compil = []
+        appels_dial = []
+        it = iter(reponses_compilateur)
+
+        class Faux(Fournisseur):
+            def _appeler(self, demande):
+                if demande.fonction == "compiler_intention":
+                    appels_compil.append(copy.deepcopy(demande.entree))
+                    return Reponse(arguments=next(it), brut={}, utilisation={"entree": 10, "sortie": 5})
+                if demande.fonction == "repondre_dialogue":
+                    appels_dial.append({"instructions": demande.instructions, "entree": copy.deepcopy(demande.entree)})
+                    return Reponse(arguments={"replique": replique_dialogue}, brut={}, utilisation={"entree": 5, "sortie": 5})
+                return Reponse(arguments={"texte": ""}, brut={}, utilisation={})
+
+        return MJOpenAI(connexion="local", fournisseur=Faux(), decoupler=True), appels_compil, appels_dial
+
+    def test_passage_et_reclamer_dette_enregistrent_effets_apres_rechargement(self):
+        from donjon.transactions import appliquer
+        from donjon.biens import rembourser
+        from tests.test_parole_commune import scene
+        from tests.test_parole_corrections import banc
+        from tests.test_tensions import placer, recharger
+
+        # Cas 1 : demander le passage à Brune au contact dans l'antichambre
+        m = scene(brune=(2, 3), ilse=(5, 4), aubin=(1, 5))
+        m.data["connus"].append("brune")
+        m = recharger(m)
+        mj, appels, _ = self._mj_sequence([
+            self._arg(sujet_parole="passage"),
+        ], replique_dialogue="Brune : « Passe donc. »")
+        r = mj.echanger(m, "Brune, laisse-moi passer")
+        self.assertEqual(len(appels), 1)
+        self.assertEqual(r["mode"], "dialogue")
+        self.assertIn("s'écarte d'un pas pour te laisser passer.", r["texte"])
+        # Tant que la transaction n'est pas appliquée, le monde d'origine est intact
+        self.assertEqual(m.objets["brune"]["position"], [2, 3])
+        m, _ = appliquer(m, r["_transactions"])
+        m.memoriser("Brune, laisse-moi passer", r["texte"], "dialogue")
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "passage.json"
+            m.sauver(f)
+            reprise = Monde.charger(f)
+        self.assertNotEqual(reprise.objets["brune"]["position"], [2, 3])
+        self.assertIn("s'écarte d'un pas", reprise.data["conversation"][-1]["reponse"])
+
+        # Cas 2 : réclamer une dette d'or à Aubin
+        m2 = banc("ressources")
+        rembourser(m2, "aubin", "joueur", 2, "vivres", "part")
+        m2 = recharger(m2)
+        or_avant = m2.joueur.get("or", 0)
+        mj2, appels2, _ = self._mj_sequence([
+            self._arg(
+                sujet_parole="reclamer",
+                contenu=[{"type": "reclamer", "sujet": "", "attribut": "", "valeur": ""}],
+            ),
+        ], replique_dialogue="Aubin : « Voilà ton dû. »")
+        r2 = mj2.echanger(m2, "Aubin, rends-moi les deux pièces que tu me dois")
+        self.assertEqual(len(appels2), 1)
+        self.assertIn("2 pièces", r2["texte"])
+        m2, _ = appliquer(m2, r2["_transactions"])
+        m2.memoriser("Aubin, rends-moi les deux pièces que tu me dois", r2["texte"], "dialogue")
+        with tempfile.TemporaryDirectory() as tmp:
+            f2 = Path(tmp) / "dette.json"
+            m2.sauver(f2)
+            reprise2 = Monde.charger(f2)
+        self.assertEqual(reprise2.joueur.get("or", 0), or_avant + 2)
+        self.assertEqual(reprise2.data.get("dettes", []), [])
+        self.assertIn("2 pièces", reprise2.data["conversation"][-1]["reponse"])
+
+    def test_localisation_avec_relance_attendu_et_affirmation_croyance_apres_rechargement(self):
+        from donjon.transactions import appliquer
+        from tests.test_parole_commune import scene
+        from tests.test_paroles import relais, croyance
+
+        # Cas 1 : demander à Ilse (en face) où est Brune (sans détourner le destinataire vers Brune !),
+        # avec 1er essai fautif (« fantome_inconnu ») corrigé grâce à attendu.
+        m = scene(ilse=(2, 4), aubin=(1, 5), brune=(7, 1))
+        for pid in ("aubin", "brune", "ilse"):
+            if pid not in m.data["connus"]:
+                m.data["connus"].append(pid)
+        mj, appels, _ = self._mj_sequence([
+            self._arg(
+                sujet_parole="localisation",
+                contenu=[{"type": "localisation", "sujet": "fantome_inconnu", "attribut": "", "valeur": ""}],
+            ),
+            self._arg(
+                sujet_parole="localisation",
+                contenu=[{"type": "localisation", "sujet": "brune", "attribut": "", "valeur": ""}],
+            ),
+        ], replique_dialogue="Ilse : « Elle est par ici. »")
+        r = mj.echanger(m, "je demande : où est Brune ?")
+        self.assertEqual(len(appels), 2)
+        self.assertIn("brune", appels[1]["retour_moteur"]["attendu"])
+        self.assertIn("Ilse", r["texte"])
+        m, _ = appliquer(m, r["_transactions"])
+        self.assertEqual(r["_transactions"][0]["proposition"]["personnage"], "ilse")
+
+        # Cas 2 : transmettre une affirmation à Gorm (avec relance RefusDeForme si valeur est vide au 1er essai)
+        m2 = relais()
+        mj2, appels2, _ = self._mj_sequence([
+            self._arg(
+                sujet_parole="affirmation",
+                contenu=[{"type": "affirmation", "sujet": "cloche", "attribut": "lieu", "valeur": ""}],
+            ),
+            self._arg(
+                sujet_parole="affirmation",
+                contenu=[{"type": "affirmation", "sujet": "cloche", "attribut": "lieu", "valeur": "antichambre"}],
+            ),
+        ], replique_dialogue="Gorm : « Dans l'antichambre ? Je prends note. »")
+        r2 = mj2.echanger(m2, "je lui dis que la cloche est déjà au refuge")
+        self.assertEqual(len(appels2), 2)
+        self.assertIn("contenu[0].valeur", appels2[1]["retour_moteur"]["attendu"])
+        m2, _ = appliquer(m2, r2["_transactions"])
+        with tempfile.TemporaryDirectory() as tmp:
+            f2 = Path(tmp) / "croyance.json"
+            m2.sauver(f2)
+            reprise2 = Monde.charger(f2)
+        croyance_cloche = croyance(reprise2, "cloche")
+        self.assertEqual(croyance_cloche["valeur"], "antichambre")
+        self.assertEqual(croyance_cloche["source"], "dit:joueur")
+
+    def test_parole_attendue_bloque_action_physique_et_secret_nom_pnj_respecte(self):
+        from donjon.transactions import appliquer
+        from tests.test_parole_commune import scene
+        from tests.test_tensions import recharger
+        from donjon.voix import connait_nom
+
+        # Cas 1 : « Pousse-toi de là ! » est une parole ; si le compilateur propose « pousser »,
+        # le moteur refuse (« Corvus le dit ; il ne le fait pas. ») et relance vers dialogue/passage.
+        m = scene(brune=(2, 3), ilse=(5, 4), aubin=(1, 5))
+        if "brune" in m.data.get("connus", []):
+            m.data["connus"].remove("brune")
+        if "brune" in m.data.get("noms_connus", []):
+            m.data["noms_connus"].remove("brune")
+        m.data.get("voix_entendues", {}).pop("brune", None)
+        m = recharger(m)
+        mj, appels, appels_dial = self._mj_sequence([
+            self._arg(action="pousser", cible="brune", sujet_parole="", contenu=[]),
+            self._arg(action="dialogue", sujet_parole="passage"),
+        ], replique_dialogue="« Du calme, je me pousse. »")
+        r = mj.echanger(m, "« Pousse-toi de là ! »")
+        self.assertEqual(len(appels), 2)
+        self.assertEqual(appels[1]["retour_moteur"]["obstacle"], "Corvus le dit ; il ne le fait pas.")
+        self.assertEqual(r["mode"], "dialogue")
+        m, _ = appliquer(m, r["_transactions"])
+        self.assertNotEqual(m.objets["brune"]["position"], [2, 3])
+        # Brune n'a pas été questionnée sur son identité (« qui ») : son vrai nom n'est ni connu ni injecté au narrateur
+        self.assertFalse(connait_nom(m, "joueur", "brune"))
+        self.assertEqual(len(appels_dial), 1)
+        self.assertNotIn("Brune", appels_dial[0]["instructions"])
+
+
 if __name__ == "__main__":
     unittest.main()

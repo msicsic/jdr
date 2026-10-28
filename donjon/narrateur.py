@@ -91,8 +91,8 @@ PROMPT_DIALOGUE = """Tu es la voix du personnage ciblé dans LE SEUIL, un jeu de
 Le joueur s'adresse à un personnage présent.
 Consignes :
 - Réponds directement dans la fiction au nom de `personnage_cible`, en 1 ou 2 phrases percutantes au style direct (ex: <personnage_cible> : « ... »).
-- Réponds réellement à la question ou aux propos du joueur d'après ton rôle (`role_cible`), ton portrait (`portrait_cible`), le lieu et `faits_moteur`.
-- Si le joueur demande ton nom ou qui tu es, réponds dans les guillemets avec ton vrai prénom (`vrai_prenom`), JAMAIS avec une description physique comme « l'homme large » ou « l'homme svelte ».
+- Si `faits_moteur` est non vide, ta réplique DOIT exprimer fidèlement l'issue décrite dans `faits_moteur` (ex: si tu t'écartais pour laisser passer, si tu rends une dette, si tu dis où se trouve quelqu'un ou que tu l'ignores).
+- Ne te présente par ton nom (`vrai_prenom`) que si le joueur demande qui tu es (ou si `faits_moteur` indique que tu te nommes).
 - Ne répète JAMAIS la question du joueur mot pour mot en guise de réponse.
 - N'écris JAMAIS de texte générique ou méta (« Réponse du PNJ », « à déterminer », « Le joueur... », « Aucune action... »).
 """
@@ -129,22 +129,24 @@ def repondre_dialogue(fournisseur, monde, intention, personnage=None, faits=None
     portrait_cible = ""
     vrai_nom = ""
     if cible_id and cible_id in monde.objets:
+        from .voix import connait_nom
         o_cible = monde.objets[cible_id]
         nom_complet = o_cible.get("nom", "")
-        vrai_nom = nom_complet.split(",")[0].strip()
-        if "," in nom_complet:
-            role_cible = nom_complet.split(",", 1)[1].strip()
+        if connait_nom(monde, "joueur", cible_id):
+            vrai_nom = nom_complet.split(",")[0].strip()
+            if "," in nom_complet:
+                role_cible = nom_complet.split(",", 1)[1].strip()
         portrait_cible = o_cible.get("portrait") or ""
     from .francais import quantite
     from .rendu import prix
     en_vente = [o for o in monde.objets.values() if o.get("en_vente") and o.get("lieu") == salle_id]
     articles_desc = [f"{o['nom']} ({quantite(prix(monde, o), 'pièce')})" for o in en_vente]
     missions = [m_data.get("nom", m_id) for m_id, m_data in monde.data.get("missions", {}).items()]
+    se_nomme_dans_faits = any("se nomme" in f for f in (faits or []))
     entree = {
         "lieu": salle_nom,
         "personnages_presents": pnjs,
         "personnage_cible": cible_nom[:1].upper() + cible_nom[1:] if cible_nom else "MJ",
-        "vrai_prenom": vrai_nom or (cible_nom[:1].upper() + cible_nom[1:] if cible_nom else "MJ"),
         "role_cible": role_cible,
         "portrait_cible": portrait_cible,
         "faits_moteur": list(faits or []),
@@ -152,6 +154,8 @@ def repondre_dialogue(fournisseur, monde, intention, personnage=None, faits=None
         "missions_connues": missions,
         "saisie_joueur": intention,
     }
+    if se_nomme_dans_faits:
+        entree["vrai_prenom"] = vrai_nom or (cible_nom[:1].upper() + cible_nom[1:] if cible_nom else "MJ")
     modele_choisi = determiner_modele(fournisseur, modele)
     demande = Demande(
         instructions=PROMPT_DIALOGUE,
@@ -169,10 +173,13 @@ def repondre_dialogue(fournisseur, monde, intention, personnage=None, faits=None
         cible_label = cible_nom[:1].upper() + cible_nom[1:] if cible_nom else "MJ"
         nom_presente = vrai_nom or cible_label
         if replique and replique.lower().strip(".! ") in (cible_label.lower(), nom_presente.lower()):
-            if role_cible:
-                replique = f"{cible_label} : « Je m'appelle {nom_presente}, {role_cible}. »"
+            if se_nomme_dans_faits:
+                if role_cible:
+                    replique = f"{cible_label} : « Je m'appelle {nom_presente}, {role_cible}. »"
+                else:
+                    replique = f"{cible_label} : « Je m'appelle {nom_presente}. »"
             else:
-                replique = f"{cible_label} : « Je m'appelle {nom_presente}. »"
+                return ""
         elif replique and "«" not in replique and '"' not in replique and ":" not in replique:
             replique = f"{cible_label} : « {replique} »"
         if vrai_nom and cible_nom and vrai_nom.lower() != cible_nom.lower():
