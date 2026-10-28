@@ -4,6 +4,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-reessai-regressions`, non fusionnée**, lot **229**,
+  départ `1e09926` : tests/documentation seulement. Lucien : divergence à
+  95 min, ancienne reprise par délai contre témoin encore cru présent ;
+  reprises permises à 107 et 167 sur localisation entendue d'Anselme.
+  Fenêtre de garde explicitement réancrée 150 → 165 min, exigences de but,
+  bougeoir porté/allumé et lumière effective renforcées, état/rendu rechargés.
+  Huile sur `881db69` : refus reproduit, deux parts restantes pour une réserve
+  de deux après part préparée pour Lucien à 464 min ; refus juste.
+  Promesse annulée à 466, part séparée restant chez Odile (échanges réservés au 228). Scène de vente
+  explicitée : réserve personnelle d'une part, aucun ajout de ressource,
+  paiement/livraison/recharge conservés et perte d'une part contrôlée.
+  **45 ciblés verts / cinq fichiers** dans la suite finale unique :
+  **2 498 tests / 289 fichiers, 3 637,727 s**, un échec préexistant de voix
+  (Mathurine entendue, identique au relevé 225), zéro erreur, 16 ignorés ;
+  **suite non verte**. Vente révisée verte sur la capture réelle `881db69`
+  et son moteur historique, aucune nuit rejouée. Première passe ciblée :
+  36 verts en 396,162 s. Deux travailleurs à priorité réduite ; créneau
+  dépassé par les vérifications, aucune seconde suite complète.
+  Aucun moteur/MJ modifié, aucun Luna ni banc supplémentaire ; pas de garantie
+  universelle des boucles. [Rapport 229](taches/rapport-codex-229-reessai-regressions.md).
+
 - **Branche `codex-compteur-services`, fusionnée**, lot **227**, départ
   `b8e433d` vérifié, moteur identique à `881db69` : outils seulement, aucun
   `donjon/` ni Luna modifié. Les pertes d'états payés distinguent le geste du
