@@ -4,18 +4,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Lot 255, `codex-sait-observations-c`, non fusionné, validation en cours** :
-  intégration `4318a5b` fusionnée dans `5eac995` ; conflits documentaire et deux
-  tests d'étapes réunis, `recevoir_statuts` conservé. Les 46 redites du hameau
-  250 viennent du suivi sans date de deux estimations d'eau (Brune 216 stable,
-  Aubin 211 en hausse), malgré la co-perception existante. Portée partagée datée
-  par composante, précision inconnue distincte de zéro ; aucune lecture privée
-  supplémentaire. Capture 219, autre scène au Relais, recharge/rendu/laps couverts.
-  Suspects d'achat/service/localisation non déclarés résolus. Validation ciblée
-  **83 tests distincts verts** (82/82 en 67,439 s, complément 4/4 en 4,916 s) ; banc détaché
-  cinq scénarios × quatre graines en cours ; aucune suite complète
-  ni Luna. Fusion non validée avant les critères par nuit. Bruts
-  `C:/Users/msics/donjon/artifacts/partagee-255/fin.json` ;
+- **Lot 255, `codex-sait-observations-c`, non fusionnable ; chantier à mettre
+  de côté** conformément au dernier brief 206 → 235 → 250 → 255. Intégration
+  `4318a5b` fusionnée dans `5eac995`, moteur `58beadb`. Précisions de portée
+  datées séparément, inconnu distinct du zéro, aucune lecture privée ajoutée.
+  Capture hameau 219 et autre cas au Relais, recharge/rendu/laps couverts ;
+  **83 tests distincts verts**. Banc terminé, **20 paires × 4 h** : zéro plantage/
+  usurpation, moteur figé. **Deux critères échoués** : redites **0 → 21** (hameau
+  7 ; les 46 anciennes du hameau 1985 disparaissent), suspects **2 → 4**, hausses
+  mine 1985 **0 → 2** et hameau 1985 **0 → 1**. Arbitrage conservateur : Lucien
+  abri/repos, Mathe achat de pain, Aubin localisation maintenus ; Aubin crue 7
+  préexistant. Aucun compteur soustrait. Confidences Relais/mine/auberge/crue/
+  hameau **28/68/43/49/46 → 17/61/18/52/140**, S/F/D au rapport ; cycles
+  **489 → 502**, à expliquer **55 → 83**. Invariant général non garanti.
+  Régression des parts promises du 251 réservée au 259, non corrigée ici.
+  Aucune suite complète ni Luna ; clôture documentaire sans nouveau calcul.
+  Bruts `C:/Users/msics/donjon/artifacts/partagee-255/` ;
   [rapport 255](taches/rapport-codex-255-observation-partagee.md).
 
 - **Branche `codex-sait-observations-c`, non fusionnée**, lot **250**,
