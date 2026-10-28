@@ -183,7 +183,8 @@ def vues_du_choix(monde, id):
     monde._vues_du_choix = bloc
     termine = False
     from .agendas import evaluation
-    with evaluation(monde, id):
+    from .biens import clotures_services_du_choix
+    with clotures_services_du_choix(monde), evaluation(monde, id):
         try:
             yield
             termine = True

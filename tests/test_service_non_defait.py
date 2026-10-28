@@ -117,6 +117,9 @@ class ServiceNonDefaitTests(unittest.TestCase):
         croire(m, id, 'garde_manger', 'verrouillee', False, 'vu')
         m = self.recharge(m)
         self.assertNotIn(c, services_proteges(m, id))
+        # La lecture ne publie plus : seul un choix complet clôt la trace.
+        with planification.vues_du_choix(m, id):
+            self.assertNotIn(c, services_proteges(m, id))
         self.assertEqual(lire(m, id)['relations'], avant)
         self.assertFalse(agendas.en_cours(m, id))
         self.assertFalse(m.data.get('dettes'))
