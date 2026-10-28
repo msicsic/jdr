@@ -15,9 +15,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   **18 fichiers en échec + six voisins : 310 tests, 309 verts**, un échec
   d'intermédiaire corrigé ensuite (localisation inconnue n'est pas absence).
   **53 tests verts / huit fichiers, 62,807 s** après ce raccord, dont
-  l'intermédiaire et les scènes 251 ; les 16 autres fichiers se revérifient,
-  deux processus réduits. Aucun ancien oracle modifié ni assertion affaiblie.
-  Banc détaché enchaîné seulement si ces tests réussissent : cinq scénarios,
+  l'intermédiaire et les scènes 251 ; **257 tests verts / 16 autres fichiers,
+  236,710 s**, soit **310/310 verts** sur le moteur final, deux processus
+  réduits. Aucun ancien oracle modifié ni assertion affaiblie.
+  Reprise du banc le 28 octobre à 21 h 09 : l'ancien lanceur avait survécu
+  à la session mais échoué sur l'import `donjon` avant son bloc de fin.
+  Chemin d'import et couverture des erreurs corrigés dans le lanceur brut ;
+  processus détaché caché **6880**, priorité réduite et deux travailleurs
+  constatés depuis une nouvelle commande. Aucun test rejoué.
+  Banc sur cinq scénarios,
   quatre graines, 4 h, références `39db079` et `e875877` avec réemploi du
   cache ; branche figée calculée une fois. Suspects et S/F/D restent à lire ;
   aucune conclusion globale avant la fin. Ni suite complète ni Luna.

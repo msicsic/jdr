@@ -31,9 +31,9 @@ les deux erreurs du journal relevaient de cette admission prématurée.
 56,418 s, deux processus à priorité réduite. Passe des **24 fichiers :
 310 tests, 309 verts et un échec** (chaîne de l'auberge, localisation inconnue
 confondue avec absence). Après le raccord, **53 tests verts / huit fichiers,
-62,807 s**, dont cette chaîne et les deux scènes du lot 251. Les **16 autres
-fichiers sont revérifiés en cours** sur le dernier moteur ; les huit voisins
-verts ne sont pas relancés. Périmètre : les **18 fichiers en échec du journal**,
+62,807 s**, dont cette chaîne et les deux scènes du lot 251. Les **257 tests
+des 16 autres fichiers sont verts, 236,710 s**, soit **310/310 verts** sur le
+dernier moteur. Périmètre : les **18 fichiers en échec du journal**,
 sans assertion affaiblie, et six
 voisins (`service_repropose`, contrat d'engagement, trajet estimé, part
 estimée, parts achetées, engagement et déplacement). Liste exacte et résultats
@@ -48,9 +48,14 @@ quatre graines × 4 h, deux processus réduits au plus ; références `39db079`
 et `e875877`, caches réemployés, branche calculée une fois puis réemployée
 par son commit. Suspects et S/F/D contre les deux références restent à
 rapporter : aucune conclusion de non-régression globale avant ce résultat.
-Version figée du moteur : `15d18c1`. Le lanceur attend la fin du processus
-de tests, sans travailleur de banc simultané ; en cas d'échec des tests,
-il écrit la fin en erreur sans lancer le banc.
+Version figée du moteur : `15d18c1`. Reprise le 28 octobre à 21 h 09,
+processus caché détaché **6880**, priorité réduite ; existence du lanceur et
+des deux travailleurs vérifiée dans une nouvelle commande, journal démarré
+sur `39db079`, journal d'erreur vide. Les tests finaux n'ont pas été rejoués.
+Le précédent lancement avait survécu à la session et terminé les tests,
+puis échoué sur l'import `donjon` avant le bloc écrivant la fin. Le lanceur
+brut ajoute désormais la racine à `sys.path` et protège aussi cette
+initialisation pour écrire la fin en cas d'erreur Python.
 Le premier lanceur a correctement arrêté l'enchaînement sur l'échec ciblé ;
 aucun banc de la version intermédiaire n'a été joué.
 
