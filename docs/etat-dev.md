@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-sait-observations-c`, non fusionnée**, lot **250**, validation
+  en cours : fusion de `origin/integration 1194876` dans `8300d26`, seul conflit
+  documentaire réuni. Preuves d'usage typées et révisables par perception de geste,
+  demande et service entendu ; `_utile` suit les moyens équivalents et supports
+  crus, sans lecture privée. **21 existants et quatre nouveaux ciblés verts**,
+  puis deux cas renforcés repris verts. Capture mine 141 et service à Rémy rejoué
+  à 1 min : biscuits pertinents, annoncés après deux autres réserves, aucune
+  demande prévue à 191–193 ; autre combustible au Relais, monde/rendu rechargés
+  et laps découpés. L'annonce spontanée exactement à 141 n'est pas établie.
+  Fichiers concernés puis banc 20 paires 4 h détachés à priorité réduite,
+  un travailleur ; **pas de suite complète ni Luna**. Mesures et arbitrage des
+  huit anciennes assertions encore en attente ; aucune autorisation de fusion.
+  Fin attendue `C:/Users/msics/donjon/artifacts/usage-250/fin.json` ;
+  [rapport provisoire 250](taches/rapport-codex-250-preuve-usage.md).
+
 - **Branche `codex-sait-observations-c`, non fusionnée**, lot **235**, base
   `adb52c4`, apport 206 `0ba27d3` fusionné dans `8a4e332` ; **non validée à fusionner**.
   Utilité selon les possessions, portages, intentions perçues, engagements et

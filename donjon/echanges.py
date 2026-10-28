@@ -1267,7 +1267,12 @@ def servir(monde, id, nourriture, pour, lignes):
     texte = (f"{_qui(monde, id)} {appel}donne une part {complement_de(o)}"
              + ("." if appel else f" à {_qui(monde, pour)}."))
     _chroniquer(monde, id, texte, "social")
-    faire_entendre(monde, id, pour, texte, [nourriture], lignes)
+    from .esprits import emplois_usage, retenir_usage
+    # Le service rendu est perçu par son bénéficiaire ; ses mots sont aussi
+    # une preuve d'emploi pour les témoins qui identifient le prestataire.
+    retenir_usage(monde, pour, id, nourriture, "vu")
+    faire_entendre(monde, id, pour, texte, [nourriture], lignes,
+                   [{"type": "usage", "moyen": nourriture, "emplois": emplois_usage(monde, nourriture)}])
     return True
 
 
@@ -1647,6 +1652,17 @@ def executer(monde, id, etape, lignes):
     detail = " ; contre-offre annoncée" if offre else " ; condition remplie" if honoree else ""
     _chroniquer(monde, id, f"{recit}{detail} ({issue}).", "social")
     nommes = [x for x in cites if x and (x in monde.objets or x in monde.data["salles"] or x == "joueur")]
+    if op in ("demander", "acheter", "engager", "confier", "demander_feu"):
+        from .esprits import emplois_usage
+        moyens = {x for x in (etape.get("outil"), contenu.get("objet"),
+                              contenu.get("condition", {}).get("objet"), contenu.get("allumer"),
+                              contenu.get("localisation"))
+                  if x in monde.objets and monde.objets[x]["type"] not in ("personnage", "depouille")}
+        transmis.extend({"type": "usage", "moyen": x, "emplois": emplois_usage(monde, x)}
+                        for x in sorted(moyens))
+        if "ressource" in contenu:
+            emploi = "part:" + contenu["ressource"]
+            transmis.append({"type": "usage", "moyen": emploi, "emplois": [emploi]})
     if issue == "qui_va_la":
         # Il ne sait à qui est cette voix : « Qui va là ? » ; l'autre se nomme (``voix.se_nommer``),
         # et redemandera.

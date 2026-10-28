@@ -486,6 +486,18 @@ def _utile(monde, id, autre, noyau):
     # porte ou garde le concerne déjà. Les liens mobiles viennent uniquement
     # des lieux et des possessions retenus par le locuteur, jamais du monde.
     lies = set()
+    from .esprits import emplois_usage
+    # Les preuves appartiennent au locuteur. Les équivalences portent sur les
+    # capacités déclarées et conservées à l'acquisition, pas sur un plan futur.
+    usages = e["croyances"].get(autre, {})
+    for attribut, preuve in usages.items():
+        if not attribut.startswith("usage:") or not preuve["valeur"]:
+            continue
+        lies.add(attribut[6:])
+        emplois = set(preuve["emplois"])
+        lies.update(s for s in e["croyances"] if any(
+            x == emploi or x.startswith(emploi + ":")
+            for x in emplois_usage(monde, s) for emploi in emplois))
     for sujet, attributs in e["croyances"].items():
         lieu = attributs.get("lieu", {})
         possession = lieu.get("possession", {})
@@ -770,6 +782,11 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
     texte = nommer_pour(monde, texte, observateur=id)
     reponse = nommer_pour(monde, reponse, observateur=auditeur)
     diffuse = [dict(c, dispute=True) if opposition and c is avis else c for c in contenu]
+    from .ouie import saisit
+    if auditeur != "joueur" and saisit(monde, id, auditeur, geste):
+        for c in diffuse:
+            if c["type"] == "usage":
+                recevoir(monde, auditeur, id, c)
     audience = _audience_connue(monde, id, diffuse, geste)
     retentir(monde, id, geste, texte=texte, cites=[auditeur, *cites],
              parole={"a": [auditeur], "contenu": diffuse})
@@ -989,6 +1006,13 @@ def recevoir(monde, id, locuteur, c):
     from .corps import conscient
     if not conscient(monde, id):
         return None
+    if c["type"] == "usage":
+        from .esprits import retenir_usage
+        from .voix import identifie
+        if identifie(monde, id, locuteur):
+            retenir_usage(monde, id, locuteur, c["moyen"], "dit:" + locuteur,
+                          actif=c.get("actif", True), emplois=c["emplois"])
+        return None  # Une demande atteste son emploi, pas sa réalisation.
     if c["type"] == "nom":
         from .voix import se_nommer
         return se_nommer(monde, id, locuteur, c["sujet"])

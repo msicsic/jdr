@@ -215,6 +215,11 @@ def _croyance_valide(monde, attribut, c):
                     and all(p[k] is None or isinstance(p[k], str)
                             for k in ("porteur", "proprietaire", "remis_par"))
                     and type(p["permis"]) is bool and type(p["remise_autorisee"]) is bool), "Possession constatée invalide"
+    elif attribut.startswith("usage:"):
+        assert (bool(attribut[6:]) and type(c.get("valeur")) is bool
+                and isinstance(c.get("emplois"), list)
+                and all(isinstance(x, str) and x for x in c["emplois"])
+                and c["emplois"] == sorted(set(c["emplois"]))), "Preuve d'usage invalide"
     elif attribut == "fin":
         assert c.get("valeur") in ("detruit", "consomme"), "Fin d'objet crue invalide"
     elif attribut == "etat":
@@ -1005,10 +1010,50 @@ def constats_geste(monde, id, *sujets):
     """Conséquences matérielles d'un geste propre, réussi ou non."""
     from .perception import fin_objet
     avant = {s: fin_objet(monde.objets[s]) for s in sujets if s in monde.objets}
+    objets = {s: copy.deepcopy(monde.objets[s]) for s in avant
+              if monde.objets[s]["type"] not in ("personnage", "depouille")}
+    temoins = {s: [qui for qui in pnjs(monde) if qui != id
+                   and percoit(monde, qui, id) and percoit(monde, qui, s)] for s in objets}
     yield
+    if any(monde.objets.get(s) != o for s, o in objets.items()):
+        for sujet in objets:
+            for qui in temoins[sujet]:
+                retenir_usage(monde, qui, id, sujet, "vu")
     for sujet, fin in avant.items():
         if sujet in monde.objets and fin_objet(monde.objets[sujet]) != fin:
             constater_fin_objet(monde, id, sujet, "essai")
+
+
+def emplois_usage(monde, moyen):
+    """Capacités déclarées d'un moyen, jamais ses réserves ni un besoin privé."""
+    from .deliberation import besoin_de_part
+    from .perception import substance
+    o = monde.objets.get(moyen, {})
+    if not o:
+        return []
+    # La compatibilité de recharge est matérielle : huile et bois ne sont
+    # pas interchangeables parce qu'ils portent tous deux « combustible ».
+    emplois = {"usage:" + x + (":" + str(substance(o)) if x == "combustible" else "")
+               for x in o.get("usages", [])}
+    categorie = besoin_de_part(o)
+    if categorie:
+        suffixe = ":" + str(substance(o)) if "combustible" in o.get("usages", []) else ""
+        emplois.add("part:" + categorie + suffixe)
+    if o.get("luminosite", 0):
+        emplois.add("eclairer")
+    if o.get("foyer"):
+        emplois.add("chauffer")
+    return sorted(emplois)
+
+
+def retenir_usage(monde, id, auteur, moyen, source, *, actif=True, emplois=None):
+    """Une preuve fonctionnelle révisable, durable hors de la mémoire bornée.
+
+    Les appelants attestent un geste perçu ou une parole identifiée saisie.
+    Un démenti remplace la preuve ; l'épuisement du moyen ne nie pas son usage.
+    """
+    croire(monde, id, auteur, "usage:" + moyen, actif, source,
+           emplois=emplois_usage(monde, moyen) if emplois is None else list(emplois))
 
 
 def constater_fin_objet(monde, id, sujet, source):
