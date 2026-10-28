@@ -4,28 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-sait-observations`, non fusionnée**, reprise **206 b**.
-  Nouvelle intégration demandée **`881db69`** (224/225), fusion `8178021`,
-  après `d7dbf1a` (213/223/221). Les suivis sont conservés dans
-  `esprits` : observations communes, réponses 221 et renoncements 225.
-  Nouveauté utile jugée par le seul locuteur : corps observé, moyen utilisable,
-  projets encore crus actifs et rendez-vous convenus. Mesures d'eau regroupées
-  par conséquences ; sens d'évolution partagé seulement à partir de mesures
-  communes, direction inconnue distincte ; annonce explicite hausse/baisse.
-  Les rotations silencieuses du joueur ne transmettent aucun savoir aux PNJ.
-  Huit nouveaux tests de ce contrat ; aucun accès privé au savoir de l'auditeur.
-  Accès aux engagements actifs par `agendas.en_cours`, sans modifier le module.
-  Sur `d7dbf1a` : **63/65 ciblés verts** ; réponses 221 et secours 223 verts.
-  Témoin exact `d7dbf1a` : **8/8 contrôles courts verts** ; branche : quatre
-  écarts sur douze contrôles (remboursement, secours mine 42, abri, trempe).
-  Passe `d7dbf1a` interrompue et archivée sur instruction de fusion ;
-  nouvelle suite unique et vingt paires 4 h contre `881db69` en cours,
-  classes 219, deux travailleurs réduits au plus ; aucun Luna.
-  L'oracle historique de l'auberge reste inchangé et rouge, décision du
-  superviseur ; projection limitée aux preuves refusée, différences de paroles.
-  Les résultats précédents `3aa16f7` restent des diagnostics, pas la validation
-  de cette fusion. Bruts `C:/Users/msics/donjon/artifacts/sait-206/` ;
-  [Rapport 206](taches/rapport-codex-206-sait-observations.md).
+- **Branche `codex-sait-observations`, non fusionnée**, lot **206 b**,
+  référence finale **`881db69`**, fusion `8178021`, moteur mesuré `26bd4d2`.
+  Nouveauté et utilité selon les seules croyances du locuteur ; observations
+  communes, projets crus encore actifs et conséquences de l'eau, sans lecture
+  privée de l'auditeur. Réponses 221 et renoncements 225 conservés.
+  **Seize tests centraux verts** ; avis redits, mine 600 et abri isolé verts.
+  Suite unique finale : **2 502 tests / 290 fichiers, 15 échecs, une erreur,
+  16 ignorés**. Témoins exacts : deux échecs déjà présents (voix, capture 219),
+  **treize échecs et une erreur introduits** ; aucun réancrage.
+  Vingt paires 4 h, classes 219 : confidences **320→57**, répétitions
+  textuelles pondérées **34→18**, demandes en boucle **0→0**, avertissements
+  redits **6→0** ; zéro plantage/usurpation. Suspects **4→5**, à expliquer
+  **59→52**, cycles **523→507**, préemptions **67→57**, dérives **200→200**,
+  états payés perdus **8→4**. **Critère aucune nouvelle boucle non atteint** :
+  Mireille auberge 2024 à 226 ; alternance d'agenda Brune hameau 2024 neuf fois.
+  Oracle auberge conservé rouge sur instruction : à 481 la lanterne éteinte
+  n'est plus annoncée ; aucune confidence utile ne la remplace. Rendus/plans
+  identiques, sauvegarde et jets 9→7 différents. Trempe Ilse 1,025≠0 reste rouge.
+  Branche à examiner, **pas une correction globalement validée à fusionner**.
+  Aucun Luna, deux travailleurs réduits au plus ; aucune clé, commits non signés.
+  Bruts `C:/Users/msics/donjon/artifacts/sait-206/`, annexe exhaustive
+  `diagnostic-final-881db69.md` et [rapport 206](taches/rapport-codex-206-sait-observations.md).
+  Anciennes mesures `3aa16f7` archivées ; passe `d7dbf1a` interrompue sur
+  instruction de fusion et archivée, pas utilisée comme validation finale.
+
 - **Branche `codex-reessai-obstacle`, fusionnée**, lot **225**, départ
   `e4d8655` vérifié : patience 30 min conservée, répit 60 min retiré ; chaque
   renoncement retient son obstacle cru par but/moyen, sans effacement par
