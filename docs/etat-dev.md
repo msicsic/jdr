@@ -45,6 +45,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-retours-241`, fusionnée**, lot **264**, diagnostic seul,
+  base `integration 8ac7b46` : retours Bram mine 2024 à 613 et Gorm hameau 7
+  à 682 absents des deux nuits actuelles de 12 h, reproduits sur `c870c8b`
+  détaché. **Deux faux positifs 219** : Bram change de moyen après l'absence
+  constatée d'Odon (achat de combustible → tâche d'allumage à Mathe) ; Gorm
+  reprend après l'arrivée de Sève et la clôture réelle du rendez-vous, que
+  `_est_accompli` ne reconnaît pas pour `attendre`. Refus suivants enregistrés,
+  aucun renoncement causal effacé ni attente encore valide rompue sur ces
+  retours. Quatre nuits achevées sans plantage, **336 captures monde/rendu
+  identiques après recharge** ; un calcul réduit à la fois, aucun code du jeu
+  modifié, ni Luna, suite complète ou banc comparatif. Aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/retours-264/`.
+  [Rapport 264](taches/rapport-codex-264-retours-241.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement (Sol medium). Reproduits sur c870c8b, absents de l'intégration actuelle. Bram (mine 2024, 613) : achat raté car Odon absent, puis le but lumière revient par un autre moyen (confier la chandelle à Mathe), refusé et retenu : changement de moyen légitime. Gorm (hameau 7, 682) : le recours cède à l'attente de Sève convenue (« J'arrive ! »), rendez-vous réellement clos par appel.retrouves avant la reprise : légitime. Deux faux positifs du compteur 219 : il devrait distinguer les moyens d'un même but et reconnaître la clôture d'un rendez-vous intermédiaire.
+
 - **Branche `codex-devis-observateur`, fusionnée**, lot **258**, base
   `integration e9a8dfe` : `agendas.devis_observateur` et contexte explicite
   observateur/acteur sur modèle fermé ; départ et possessions crus, savoirs
