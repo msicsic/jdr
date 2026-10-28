@@ -26,22 +26,27 @@ Contre-épreuves : arrivée sombre sans autre source (refus), puis avec
 une autre lampe portée (restitution). Monde, rendu, scène et laps de cinq
 minutes en bloc/découpés avec rechargements sont contrôlés.
 
-**Vérifications.** Première passe directement concernée : 31 tests verts
-(`echanges_argent`, `garde_pret`, `contrat_engagement`). Passe finale par
-fichiers, un seul travailleur réduit : en cours ; résultat attendu dans
-`artifacts/restitution-246/tests.json`. Elle ajoute `lumiere` et les nouvelles
-régressions. Les essais refusés par le bac à sable Windows pour l'écriture
-dans les répertoires temporaires ne constituent pas des résultats du moteur.
-Aucune ancienne assertion ni capture réancrée. Aucune suite complète, aucun Luna.
+**Vérifications.** **47 tests verts / cinq fichiers, 452,688 s** :
+`echanges_argent`, `garde_pret`, `contrat_engagement`, `lumiere` et les
+trois nouvelles régressions ; zéro échec, erreur ou saut. La capture réelle
+et les contre-épreuves exécutées après le dernier raccord sont vertes.
+Les trois premiers fichiers repris sur le code final sont **31/31 verts,
+63,743 s** ; les 47 tests distincts sont donc validés sur ce code.
+Les essais refusés par le bac à sable Windows pour l'écriture
+temporaire ne constituent pas des résultats du moteur. Aucune ancienne
+assertion ni capture réancrée. Aucune suite complète, aucun Luna.
 
 **Banc et limites.** Banc détaché 4 h, cinq scénarios × quatre graines,
 un travailleur réduit, compteur 219 et fichier de fin écrit en dernier.
-Référence exacte `2b15134` : cache absent, seules les nuits manquantes sont
-calculées et rangées une fois ; aucun rejeu de `main`. Résultats en attente,
-absence de hausse des suspects non encore revendiquée. Les durées de réserve
-ne sont pas davantage simulées qu'auparavant : aucune garantie nouvelle
+Référence exacte `2b15134` : cache absent, vingt nuits manquantes calculées
+et rangées une fois ; aucun rejeu de `main`. Branche finale **`efbc2e6`**,
+worktree propre au relevé. **20/20 paires identiques** : état final complet,
+chroniques, récits, souvenirs, empreintes, mesures et audits. Zéro plantage
+ou usurpation. Suspects 219 **4 → 4**, aucune hausse par nuit : Relais/mine/
+auberge/crue/hameau **1/0/1/2/0**. Cycles **498 → 498**, préemptions
+**46 → 46**, à expliquer **51 → 51**, dérives ouvertes **216 → 216**.
+Les durées de réserve ne sont pas davantage simulées qu'auparavant : aucune garantie nouvelle
 d'autonomie d'une source pendant un long trajet. Le jugement reste celui
 des croyances et des besoins représentés, revalidé à chaque choix.
 
-Bruts : `C:/Users/msics/donjon/artifacts/restitution-246/` ; fin attendue :
-`banc-fin.txt`. Livraison provisoire jusqu'à lecture de ce résultat.
+Bruts : `C:/Users/msics/donjon/artifacts/restitution-246/`.

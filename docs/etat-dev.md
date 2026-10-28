@@ -12,11 +12,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `4306c14`, hameau 42 à 421, reproduite ; contre-épreuve rouge sur la base
   pour Maël et pour une lampe de la mine. Restitution, refus sans autre
   lumière, remplacement, monde/rendu/scène rechargés et laps découpés couverts.
-  **31 ciblés verts** avant la projection finale par l'état terminal ; passe
-  finale de cinq fichiers en cours. **Banc détaché 20 paires 4 h en cours**,
-  un travailleur réduit, références exactes absentes calculées une seule fois.
-  Aucun Luna ni suite complète ; aucun verdict global revendiqué avant
-  `C:/Users/msics/donjon/artifacts/restitution-246/banc-fin.txt`.
+  **47 ciblés distincts verts / cinq fichiers, passe 452,688 s** ; trois premiers
+  fichiers repris sur le raccord final : **31/31 verts, 63,743 s**.
+  **20/20 paires 4 h identiques** : monde complet,
+  chroniques/récits/souvenirs, empreintes, mesures et audits. Zéro plantage/
+  usurpation ; suspects 219 **4 → 4**, aucune hausse par nuit, répartition
+  Relais/mine/auberge/crue/hameau **1/0/1/2/0**. Cycles **498 → 498**,
+  préemptions **46 → 46**, à expliquer **51 → 51**, dérives **216 → 216**.
+  Un travailleur réduit ; vingt références exactes absentes calculées et
+  rangées une seule fois. Aucune nouvelle garantie d'autonomie des sources
+  sur un long trajet. Aucun Luna ni suite complète ; bruts
+  `C:/Users/msics/donjon/artifacts/restitution-246/`.
   [Rapport 246](taches/rapport-codex-246-restitution-route.md).
 
 - **Branche `codex-place-perimee`, fusionnée**, lot **234**, ciblés et banc validés.
