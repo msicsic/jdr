@@ -47,12 +47,16 @@ Aucun hash attendu remplacé, aucun moteur changé pour les empreintes.
 **Validation et limites.** **62 tests verts en 191,559 s**, sept fichiers :
 `dynamique_besoins`, `etapes_chainees`, `restitution_route`, `echanges_argent`,
 `garde_pret`, `contrat_engagement`, `lumiere`. `git diff --check` vert.
-Banc rapide détaché : 4 h, cinq scénarios × quatre graines, référence exacte
-`bf99943`, cache consulté avant toute nuit manquante (aucun dossier pour ce
-commit au départ), deux processus réduits au plus. Les références manquantes
-sont calculées et rangées une fois par le comparateur commun.
-Sentinelle attendue : `C:/Users/msics/donjon/artifacts/suite-253/banc-fin.json`, écrite en dernier.
-La validation des suspects reste en attente du banc. Aucune suite complète
-ni Luna. Le jugement reste fondé sur les croyances et les emplois représentés ;
+**Banc validé : 20/20 paires de 4 h**, cinq scénarios × quatre graines,
+référence exacte `bf99943`, branche `74eb299`. États finaux complets,
+empreintes, chroniques, mesures, récits, souvenirs et audits identiques.
+Zéro plantage ou usurpation signalée ; suspects **4 → 4**, sans hausse par
+nuit (Relais/mine/auberge/crue/hameau : **1/0/1/2/0**). Cycles **498 → 498**,
+dérives ouvertes **216 → 216**, avis à expliquer **51 → 51**.
+Cache consulté : vingt références absentes calculées et rangées une fois,
+aucune référence rejouée ; deux processus réduits au plus, exécution détachée.
+Résultats `banc.json`, validation `banc-fin.json` écrite en dernier,
+dans le dossier des bruts. Aucun calcul encore actif pour ce lot.
+Aucune suite complète ni Luna. Le jugement reste fondé sur les croyances et les emplois représentés ;
 ce lot n'ajoute ni simulation de consommation sur un long trajet ni preuve
 universelle sur tous les plans possibles.

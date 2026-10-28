@@ -13,10 +13,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   champs d'ascendant neutre et des relations JSON : égalité structurelle
   et deux hashes historiques retrouvés, aucun hash attendu remplacé.
   **62 ciblés verts / sept fichiers, 191,559 s** ; nouvelle scène de mine
-  rouge sur `bf99943` inchangé. Banc rapide détaché 4 h, cinq scénarios ×
-  quatre graines contre `bf99943`, cache consulté puis nuits manquantes
-  rangées une fois ; sentinelle `suite-253/banc-fin.json` attendue,
-  suspects non encore validés. Aucune suite complète ni Luna.
+  rouge sur `bf99943` inchangé. **Banc validé : 20/20 paires 4 h**, cinq
+  scénarios × quatre graines contre `bf99943`, branche `74eb299` : états
+  complets, empreintes, chroniques, mesures, récits, souvenirs et audits
+  identiques. Zéro plantage/usurpation signalée ; suspects **4 → 4**, aucune
+  hausse par nuit (Relais/mine/auberge/crue/hameau **1/0/1/2/0**), cycles
+  **498 → 498**, dérives **216 → 216**, à expliquer **51 → 51**. Vingt
+  références absentes calculées et rangées une fois, aucune rejouée.
+  Banc détaché terminé, deux processus réduits au plus ; aucun calcul actif
+  pour ce lot. Aucune suite complète ni Luna.
   Bruts `C:/Users/msics/donjon/artifacts/suite-253/` ;
   [rapport 253](taches/rapport-codex-253-suite-bf99943.md).
 
