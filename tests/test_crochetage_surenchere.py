@@ -201,7 +201,12 @@ class TacheAccepteeTests(unittest.TestCase):
         # Il peut le faire dès la minute initiale, exclue du relevé de vivre_long.
         self.assertIn("Tilo, neveu de l'aubergiste allume l'âtre.", chronique(m))
         self.assertTrue(m.objets["atre"]["allume"])
-        self.assertIn("Tilo a fait le travail que Odile lui avait payé pour que l'âtre soit allumé.", textes)
+        # La preuve de son propre geste peut solder la parole dans la minute
+        # initiale, que vivre_long exclut de ses relevés. Garder toute la trace.
+        self.assertIn("Tilo a fait le travail que Odile lui avait payé pour que l'âtre soit allumé.", chronique(m))
+        self.assertEqual(lire(m, "tilo")["engagements"], [])
+        from donjon.biens import services_proteges
+        self.assertIn({"objet": "atre", "allume": True}, services_proteges(recharger(m), "tilo"))
         self.assertEqual(m.data.get("dettes", []), [])
 
     def test_odile_hausse_par_paliers_puis_renonce(self):

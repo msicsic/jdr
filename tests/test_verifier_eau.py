@@ -159,6 +159,9 @@ class EauTests(unittest.TestCase):
 
     def test_on_ne_descend_pas_ou_l_eau_va_noyer_et_on_ne_s_y_chauffe_pas(self):
         m = self.scene()
+        # Le recours positif part du refuge après observation de la crue ;
+        # une évacuation antérieure ne doit pas supprimer le trajet à éprouver.
+        placer(m, "ilse", "antichambre", (1, 3))
         # La ronde d'Aubin à la salle des vannes, le brasero de la conduite pour Ilse transie.
         self.assertIsNone(planifier_pulsion(m, "aubin", {"lieu": "crypte", "periode": 49}))
         lire(m, "ilse")["besoins"]["chaleur"] = 90.0

@@ -176,6 +176,46 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucune clé de signature Git. Bruts `C:/Users/msics/donjon/artifacts/contact-226/` ;
   [rapport 226](taches/rapport-codex-226-contact-sous-but.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base 881db69 (227 : outils seulement). Contact sans lieu connu repris par rejoindre (inspection, appel, question 221) sous le but parent abri ou enquête. 20 paires 4 h contre 881db69 : attente crue 218,75 → 108,75, hameau 92,5 → 76,25 PNJ·min, S crue 16,5 → 24,5, suspects 4 → 2 ; préemptions 67 → 87 et à expliquer 59 → 85 en hausse, huit sommeils de l'agenda de Gorm en crue 2024 à surveiller. Cinq échecs de sa suite préexistants (voix du joueur, compteur torche corrigé par 227, lanterne de Lucien, deux MiMo).
+- **Branche `codex-pas-compagnons`, non fusionnée**, lot **195** :
+  **346c1aa fusionné par 11f728a**, extension autorisée à **`echanges.tenu`**.
+  Point de comparaison après parole, preuve nouvelle propre `vu`/`essai`, bornes
+  entre promesses identiques d'une même minute ; souvenir neutre sauvegardé.
+  Aucun constat, position, émotion ou retour au choix ajouté. Seul `tenu` change
+  dans `echanges.py` ; bloc `retenir_service` du 224 intact. Tilo allume et solde
+  à minute 0 ; notification sur la chronique entière, clôture et protection
+  vérifiées en plus, sans réancrer. **41 ciblés verts**, dont quatre nouveaux
+  tests de preuve, monde/rendu/scène rechargés. Clé prêtée toujours à rendre.
+  Prêts, contrat 213, tests 224 et palier passent.
+  **Banc 20 paires 4 h contre 346c1aa : suspects 5→1**, aucune hausse par
+  scénario ; préemptions 67→65, cycles 494→462, à expliquer 67→77,
+  dérives 202→210, états payés perdus 8→7, figés pressés 3→4 (observations).
+  Zéro plantage/usurpation. Après borne : 20 références relues du cache,
+  20 états/chroniques/mesures/épisodes identiques au premier banc.
+  Gorm Relais 2024 et hausse hameau absents ; Brune 2024 : zéro alerte.
+  Après arbitrage : **huit échecs et l'erreur corrigés par des prémisses
+  explicites**, **273 assertions identiques par AST**, huit fichiers et
+  **67 tests ciblés verts**. Aucun changement du moteur depuis `e7aab68`,
+  aucun banc relancé. Quatre préexistants laissés rouges : MiMo ×2 ; voix
+  apparue à la fusion 221 (`d7dbf1a`) ; attente historique de perte de torche
+  apparue à la fusion 224 (`346c1aa`), interaction avec 221 (224 seul vert).
+  Vérification sur cinq sources exactes avec les deux tests originaux.
+  **Suite après arbitrage : 2 497 tests / 289 fichiers, 2 091,515 s, cinq
+  échecs, zéro erreur, zéro ignoré**, une passe finale après les prémisses,
+  deux travailleurs réduits : quatre préexistants et défaut de placement.
+  **Richesse hameau : S 40,5→27 correspond à des interactions réelles perdues**,
+  ni bruits ni retournements ne comptent dans S ; acceptées 16→9, tâches
+  faites 4→2, prêts/rendus 1/1→0/0 ; occurrences de travail payé 20→26.
+  Placement hors périmètre : attitude périmée et recours d'abri. Proposition
+  non appliquée dans `signes.place` : 21 tests de signes verts, Ilse rejoint
+  Brune, assertion spécifique Aubin toujours rouge. **Lot séparé à créer**,
+  contrat d'invalidation des attitudes périmées décrit sans l'appliquer ;
+  défaut laissé rouge pour décision d'intégration. Aucun Luna, deux calculs
+  réduits au plus, aucune clé Git.
+  Limite : checkpoint oublié ou croyance inchangée, jugement conservateur.
+  Rondes et registre visuel joueur hors lot. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/pas-195/extension-346/` et `arbitrage/` ;
+  [rapport 195](taches/rapport-codex-195-pas-compagnons.md),
+  [classement exhaustif et richesse](taches/rapport-codex-195-arbitrage.md).
 
 - **Branche `codex-service-non-defait`, fusionnée**, lot **224**, base `a22f92e`
   vérifiée, puis 213 intégré (`bd45f65`, fusion `0192bb3`) : résultat promis
