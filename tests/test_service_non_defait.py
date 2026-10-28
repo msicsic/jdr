@@ -101,11 +101,12 @@ class ServiceNonDefaitTests(unittest.TestCase):
             self.assertTrue(m.objets['torche']['allume'])
             self.assertIn({'objet': 'torche', 'allume': True}, services_proteges(m, 'brune'))
             # Chaque création (transaction réelle et devis) a été confrontée
-            # à sa croyance au constat. Ici Ilse n'est plus localisée ; cela
-            # n'établit pas son départ. Le service doit rester protégé.
+            # à sa croyance au constat. Le placement 234 conserve ici
+            # le lieu d'Ilse connu après l'offre reconstruite du 228.
+            # Emporter la torche n'établit pas le départ de la bénéficiaire.
             lieu = next(s['lieu_beneficiaire'] for s in m.data['services_rendus'] if s['de'] == 'brune')
             self.assertTrue(ancrages)
-            self.assertIsNone(lieu)
+            self.assertEqual(lieu, 'antichambre')
             self.assertIn(lieu, ancrages)
             self.assertFalse(any('éteint la torche' in x['texte']
                                  for x in m.data['chronique'] if x['pnj'] == 'brune'))
