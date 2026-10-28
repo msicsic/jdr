@@ -3,37 +3,30 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
 - **Branche `codex-soupcon-deduit`, non fusionnée**, lot **267**, base
-  `7404d2d` : deux constats propres datés d'un bien et présences perçues dans
-  la mémoire commune bornée ; un seul suspect donne `soupcon_deduit`,
-  confiance −6 à −18 selon PSY, preuve 0,4/source `devine`, sans portage ni
-  naissance de récupération. Conséquences concomitantes regroupées ; levée
-  révisable au retour/réparation ou à l'attribution apprise, compensation de
-  la seule perte appliquée. Noms inconnus non appris. **118 ciblés distincts,
-  117 verts / un échec de dette préexistant** (40 au lieu de 20) ; onze
-  nouveaux tests, scènes Gorm/réserve et Anselme/coffre, état/rendu/scène
-  rechargés et laps entier/découpé. Dette prouvée par le seul test sur base
-  `7404d2d` et code `61a1a67` : chacun 1 échec `40 != 20`, aucune erreur,
-  même fichier de test ; traces `dette-base` et `dette-branche` JSON/log.
-  Ni suite complète ni Luna. **Comparaison à la base exacte `7404d2d` :
-  différente, non validée**. Vingt paires 4 h toutes lues en cache (base et
-  code `61a1a67`), aucune nuit 4 h rejouée ; zéro plantage/usurpation ou
-  soupçon né. **16/20 chroniques et 3/20 mesures identiques**, états bruts
-  différents dès minute 0 (champs ajoutés). **S/F/D identiques** dans les
-  cinq scénarios : les baisses contre `main c870c8b` n'étaient pas causales.
-  Suspects 219 **2 → 3**, seule hausse crue 2024 **0 → 1** (Gorm,
-  devoir/interposition), à expliquer **55 → 54**, dérives **233 → 234**.
-  **Première différence de chronique : Ilse, crue 2024, 39 min 31 s** :
-  `_retenir_presence` occupe 11 des 40 souvenirs ; une parole chasse
-  `abrite` de minute 3, puis `_abriter` répète « reste dans la lumière ».
-  Contrôle causal sur 40 min : neutraliser seulement `_retenir_presence`
-  dans la sonde rétablit exactement chronique et mesures de base.
-  **Effet hors soupçon établi**, autres écarts pas tous localisés ; aucun
-  correctif moteur ajouté dans ce diagnostic. Calculs courts réduits,
-  deux processus au plus ; aucun calcul actif. Bruts et bilan par nuit
-  `comparaison-base-cache.json`, `bilan-base.json`, `localisation-base/` :
-  `C:/Users/msics/donjon/artifacts/soupcon-267/`. Effraction visible par intégrité seulement ;
-  aucun crochetage caché ni disparition distante inventé. Bruts au même
-  dossier ; [rapport 267](taches/rapport-codex-267-soupcon-deduit.md).
+  `7404d2d` : **correctif du stockage des présences**. Un seul champ
+  `indices_soupcon` réunit présences, gestes datés, constats et soupçons ;
+  aucune place prise dans les quarante souvenirs communs, aucun champ
+  ajouté à leurs preuves. Présences/gestes bornés chacun à 40 ; purge
+  selon les intervalles utiles, attribution interdite après troncature,
+  validation à la recharge et migration des premières sauvegardes 267.
+  Déduction sans position cachée ; confiance −6 à −18 selon PSY, indice
+  révisable, sans portage ni naissance de récupération. **121 ciblés :
+  120 verts, un échec de dette préexistant**, onze fichiers, 51,858 s,
+  deux processus réduits ; onze scènes existantes et trois contrôles du
+  registre, monde/rendu/scène rechargés et laps entier/découpé.
+  Dette déjà prouvée isolément sur base `7404d2d` et code `61a1a67`
+  (`40 != 20`, même test), traces conservées. Ni suite complète ni Luna.
+  **Banc du correctif en attente de validation** : vingt nuits 4 h,
+  cinq scénarios × quatre graines, départ tiré, comparateur commun ;
+  vingt références `7404d2d` en cache, rejeu interdit, branche seule.
+  Contrôle de chronique, mesures et état final hors **seul** champ
+  `esprits[*].indices_soupcon` ; états bruts de branche conservés.
+  Calcul détaché réduit, deux travailleurs au plus ; fin attendue
+  `C:/Users/msics/donjon/artifacts/soupcon-267/registre/fin.json`.
+  Ancien défaut localisé (Ilse, crue 2024, 39 min 31 s : abri évincé
+  par les présences), preuves dans `localisation-base/` ; aucune identité
+  du correctif déclarée avant le nouveau banc. Effraction visible par
+  intégrité seulement ; [rapport 267](taches/rapport-codex-267-soupcon-deduit.md).
 
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic
   seul, base `integration 769c7f1` : épisode absent de la nuit actuelle 12 h ;

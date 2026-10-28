@@ -2,11 +2,13 @@
 import copy
 import json
 import os
+import tempfile
 from pathlib import Path
 import unittest
 
 from donjon import agendas, relations
-from donjon.esprits import lire, percevoir, memoriser, constater_possession, verifier, croire
+from donjon.esprits import (lire, percevoir, memoriser, constater_possession, verifier, croire,
+                           _retenir_presence, _purger_indices_soupcon, PRESENCES_MAX)
 from donjon.recit_pnj import Recit
 from donjon.rendu import regarder as rendu
 from tests.test_constater_rumeurs import auberge
@@ -30,12 +32,13 @@ def scene(autre=False):
     m.objets[coffre].update(ouverte=True, verrouillee=False)
     e = lire(m, victime)
     e['memoire'].clear()
-    e['constats_biens'].clear()
-    e['soupcons'].clear()
+    e['indices_soupcon']['presences'].clear()
+    e['indices_soupcon']['constats'].clear()
+    e['indices_soupcon']['soupcons'].clear()
     e['portages'].clear()
     regarder(m, victime, coffre)
     percevoir(m, victime)
-    assert e['constats_biens'][coffre]['vide']['valeur'] is False
+    assert e['indices_soupcon']['constats'][coffre]['vide']['valeur'] is False
     m.objets[coffre].update(ouverte=False, verrouillee=True)
     m.data['minutes'] += 1
     placer(m, suspect, salle, [case[0] + 1, case[1]])
@@ -82,8 +85,8 @@ class SoupconTests(unittest.TestCase):
             s = (self.recharge(m), *s[1:])
             avant = relations.envers(m, victime, suspect)['confiance']
             m = self.recharge(disparition(s), 'auberge' if autre else 'relais')
-            self.assertEqual({x['auteur'] for x in lire(m, victime)['soupcons'].values()}, {suspect})
-            self.assertEqual(len(lire(m, victime)['soupcons']), 1)
+            self.assertEqual({x['auteur'] for x in lire(m, victime)['indices_soupcon']['soupcons'].values()}, {suspect})
+            self.assertEqual(len(lire(m, victime)['indices_soupcon']['soupcons']), 1)
             self.assertLess(relations.envers(m, victime, suspect)['confiance'], avant)
             self.assertEqual(relations.envers(m, victime, suspect)['source'], 'devine')
             self.assertIn('soupcon_deduit', '\n'.join(Recit(m).entre_eux(m, m.data['chronique'])))
@@ -97,16 +100,16 @@ class SoupconTests(unittest.TestCase):
             s = scene()
             m, victime, _, _, _, salle, _, case = s
             if cas == 'zero':
-                lire(m, victime)['memoire'].clear()
+                lire(m, victime)['indices_soupcon']['presences'].clear()
             elif cas == 'deux':
                 placer(m, 'ilse', salle, [case[0] + 1, case[1] + 1])
                 regarder(m, victime, 'ilse')
                 percevoir(m, victime)
             else:
-                for i in range(41):
-                    memoriser(m, victime, {'type': 'son', 'indice': i})
+                for i in range(PRESENCES_MAX + 1):
+                    _retenir_presence(m, victime, 'passant-' + str(i), salle)
             m = self.recharge(disparition(s))
-            self.assertFalse(lire(m, victime)['soupcons'], cas)
+            self.assertFalse(lire(m, victime)['indices_soupcon']['soupcons'], cas)
 
     def test_geste_vu_ou_entendu_reste_seul(self):
         for par in ('vue', 'ouie'):
@@ -115,7 +118,7 @@ class SoupconTests(unittest.TestCase):
             memoriser(m, victime, {'type': 'vu_agir', 'auteur': suspect,
                 'objet': bien, 'operation': 'prendre', 'victime': victime, 'par': par})
             m = self.recharge(disparition(s))
-            self.assertFalse(lire(m, victime)['soupcons'])
+            self.assertFalse(lire(m, victime)['indices_soupcon']['soupcons'])
             self.assertTrue(any(x['type'] == 'vu_agir' for x in relations.envers(m, victime, suspect)['motifs']))
 
     def test_retour_et_auteur_appris_levent_sans_effacer_les_autres_epreuves(self):
@@ -138,7 +141,7 @@ class SoupconTests(unittest.TestCase):
                 memoriser(m, victime, evt if cause == 'temoin' else
                           {'type': 'rumeur', 'de': 'ilse', 'evenement': evt})
             m = self.recharge(m)
-            self.assertFalse(lire(m, victime)['soupcons'])
+            self.assertFalse(lire(m, victime)['indices_soupcon']['soupcons'])
             self.assertTrue(any(x['type'] == 'refus' for x in relations.envers(m, victime, suspect)['motifs']))
             self.assertIn('soupcon_leve', '\n'.join(Recit(m).entre_eux(m, m.data['chronique'])))
 
@@ -167,7 +170,7 @@ class SoupconTests(unittest.TestCase):
         b.data['chronique'] = []
         placer(b, 'ilse', 'chambre_cloche', [3, 3])
         disparition((a, *s[1:])); disparition((b, *s[1:]))
-        self.assertEqual(lire(a, victime)['soupcons'], lire(b, victime)['soupcons'])
+        self.assertEqual(lire(a, victime)['indices_soupcon']['soupcons'], lire(b, victime)['indices_soupcon']['soupcons'])
         for c in a.data['chronique']:
             if c.get('cause') == 'soupcon_deduit':
                 self.assertNotIn('Brune', c['texte'])
@@ -191,10 +194,10 @@ class SoupconTests(unittest.TestCase):
         m.objets[coffre]['ouverte'] = False
         percevoir(m, victime)
         m = disparition(s, vider=False)
-        self.assertEqual(len(lire(m, victime)['soupcons']), 1)
+        self.assertEqual(len(lire(m, victime)['indices_soupcon']['soupcons']), 1)
         m.objets[bien]['lieu'] = victime
         constater_possession(m, victime, bien, 'essai')
-        self.assertFalse(lire(m, victime)['soupcons'])
+        self.assertFalse(lire(m, victime)['indices_soupcon']['soupcons'])
         self.recharge(m)
 
     def test_integrite_et_extinction_autre_bien(self):
@@ -223,7 +226,7 @@ class SoupconTests(unittest.TestCase):
             percevoir(m, victime)
             if hasattr(m, '_agit'):
                 del m._agit
-            self.assertEqual(bool(lire(m, victime)['soupcons']), dommage in ('casse', 'eteint'), dommage)
+            self.assertEqual(bool(lire(m, victime)['indices_soupcon']['soupcons']), dommage in ('casse', 'eteint'), dommage)
             self.recharge(m)
 
     def test_confiance_saturee_et_refus_commun(self):
@@ -247,8 +250,56 @@ class SoupconTests(unittest.TestCase):
         regarder(m, victime, bien)
         percevoir(m, victime)
         m = self.recharge(m)
-        self.assertTrue(lire(m, victime)['soupcons'])
+        self.assertTrue(lire(m, victime)['indices_soupcon']['soupcons'])
         m.objets[bien]['portions'] = 4
         percevoir(m, victime)
-        self.assertFalse(lire(m, victime)['soupcons'])
+        self.assertFalse(lire(m, victime)['indices_soupcon']['soupcons'])
         self.recharge(m)
+
+    def test_registre_borne_sans_eviction_des_souvenirs_communs(self):
+        for autre in (False, True):
+            m, victime, _, _, _, salle, *_ = scene(autre)
+            for i in range(40):
+                memoriser(m, victime, {'type': 'abrite' if i == 0 else 'son', 'indice': i})
+            avant = copy.deepcopy(lire(m, victime)['memoire'])
+            for i in range(PRESENCES_MAX + 5):
+                _retenir_presence(m, victime, 'passant-' + str(i), salle)
+            e = lire(m, victime)
+            self.assertEqual(e['memoire'], avant)
+            self.assertEqual(len(e['indices_soupcon']['presences']), PRESENCES_MAX)
+            self.assertTrue(e['indices_soupcon']['oublis'])
+            n = self.recharge(m)
+            self.assertEqual(lire(n, victime)['memoire'], avant)
+
+    def test_purge_des_presences_hors_intervalle_utile(self):
+        m, victime, _, coffre, _, salle, *_ = scene()
+        r = lire(m, victime)['indices_soupcon']
+        r['presences'] = [{'qui': 'brune', 'salle': salle, 'instant': 1},
+                          {'qui': 'ilse', 'salle': salle, 'instant': 600}]
+        r['constats'] = {coffre: {'vide': {'valeur': False, 'salle': salle, 'instant': 600,
+                                          'lieu': salle, 'proprietaire': victime}}}
+        _purger_indices_soupcon(m, victime)
+        self.assertEqual([s['qui'] for s in r['presences']], ['ilse'])
+        self.recharge(m)
+        m.data['minutes'] += 1
+        r['constats'][coffre]['vide']['instant'] = 1200
+        _purger_indices_soupcon(m, victime)
+        self.assertEqual(r['presences'], [])
+        self.recharge(m)
+
+    def test_registre_invalide_refuse_au_chargement(self):
+        from donjon.monde import Monde, ErreurMonde
+        for faute in ('date', 'lieu', 'taille'):
+            m, victime, *_ = scene()
+            r = lire(m, victime)['indices_soupcon']
+            if faute == 'date':
+                r['presences'][0]['instant'] = -1
+            elif faute == 'lieu':
+                r['presences'][0]['salle'] = 'lieu-inexistant'
+            else:
+                r['presences'] *= PRESENCES_MAX + 1
+            with tempfile.TemporaryDirectory() as tmp:
+                chemin = Path(tmp) / 'invalide.json'
+                chemin.write_text(json.dumps(m.data, ensure_ascii=False), encoding='utf-8')
+                with self.assertRaises(ErreurMonde):
+                    Monde.charger(chemin)

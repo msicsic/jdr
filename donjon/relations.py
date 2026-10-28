@@ -474,14 +474,14 @@ def deduire_soupcon(monde, id, auteur, objet, champ, avant):
     e = esprit(monde, id)
     # Deux conséquences concomitantes (coffre vide et bien absent) étayent
     # le même indice ; elles ne multiplient pas la peine relationnelle.
-    for s in e["soupcons"].values():
+    for s in e["indices_soupcon"]["soupcons"].values():
         if s["auteur"] == auteur and s["salle"] == avant["salle"] and avant["instant"] <= s["fin"]:
             s["indices"].setdefault(objet, {})[champ] = avant["valeur"]
             return
     preuve = f"soupcon:{id}:{objet}:{champ}:{avant['instant']}:{instant(monde)}"
     s = {"auteur": auteur, "salle": avant["salle"], "debut": avant["instant"], "fin": instant(monde),
          "indices": {objet: {champ: avant["valeur"]}}, "perte": 0}
-    e["soupcons"][preuve] = s
+    e["indices_soupcon"]["soupcons"][preuve] = s
     confiance_avant = envers(monde, id, auteur)["confiance"]
     memoriser(monde, id, {"type": "soupcon_deduit", "auteur": auteur, "objet": objet,
                          "preuve": preuve, "source": "devine"})
@@ -492,7 +492,7 @@ def reviser_soupcons(monde, id, objet, faits=None, *, auteur_appris=False, salle
     """Retirer l'indice démenti ; aucun crédit pour une pénalité non appliquée."""
     from .esprits import esprit, memoriser
     e = esprit(monde, id)
-    for preuve, s in list(e["soupcons"].items()):
+    for preuve, s in list(e["indices_soupcon"]["soupcons"].items()):
         if objet not in s["indices"]:
             continue
         if auteur_appris or rendu:
@@ -507,7 +507,7 @@ def reviser_soupcons(monde, id, objet, faits=None, *, auteur_appris=False, salle
             if not indices:
                 del s["indices"][objet]
         if not s["indices"]:
-            del e["soupcons"][preuve]
+            del e["indices_soupcon"]["soupcons"][preuve]
             memoriser(monde, id, {"type": "soupcon_leve", "auteur": s["auteur"], "objet": objet,
                                  "preuve": "leve:" + preuve, "perte": s["perte"], "source": "devine"})
 
@@ -704,8 +704,8 @@ def resume(r):
 def verifier(monde, id):
     from .esprits import lire
     e = lire(monde, id)
-    assert isinstance(e["soupcons"], dict), "Soupçons invalides"
-    for preuve, s in e["soupcons"].items():
+    assert isinstance(e["indices_soupcon"]["soupcons"], dict), "Soupçons invalides"
+    for preuve, s in e["indices_soupcon"]["soupcons"].items():
         assert (isinstance(preuve, str) and set(s) == {"auteur", "salle", "debut", "fin", "indices", "perte"}
                 and isinstance(s["auteur"], str) and s["salle"] in monde.data["salles"]
                 and type(s["debut"]) is int and type(s["fin"]) is int and 0 <= s["debut"] <= s["fin"]

@@ -1,74 +1,66 @@
 # Lot 267 — Soupçon déduit
 
-Branche `codex-soupcon-deduit`, **non fusionnée** ; base `7404d2d`, code
-`61a1a67`. Bruts : `C:/Users/msics/donjon/artifacts/soupcon-267/`.
+Branche `codex-soupcon-deduit`, **non fusionnée**, base `7404d2d`.
+Bruts : `C:/Users/msics/donjon/artifacts/soupcon-267/` ; correctif du
+registre et vérifications en cours dans le sous-dossier `registre/`.
 
-**Changement.** `esprits._constater_bien` compare deux constats propres
-datés et les présences perçues dans les quarante souvenirs communs, sans
-position cachée ni chronique. Un seul suspect donne l'épreuve relationnelle
-`soupcon_deduit` : confiance **−6 à −18 selon PSY**, preuve **0,4**, source
-`devine`, sans portage établi ni nom appris. Geste connu/propre et épuisement
-exclus ; conséquences concomitantes regroupées. `reviser_soupcons` lève
-l'indice au retour, à la réparation ou à l'attribution apprise, compensant
-la seule perte appliquée. État enregistré avant récit.
+**Invariant corrigé.** Les indices d'une déduction ne prennent aucune des
+quarante places de la mémoire commune. `esprits._retenir_presence` écrit
+uniquement dans `indices_soupcon`, registre séparé qui réunit présences,
+gestes datés, constats de biens, soupçons actifs et bornes d'oubli. Il n'ajoute
+aucun souvenir ni nom et ne consulte aucune position cachée. Les dates fines
+des gestes restent également dans ce registre : aucun champ ajouté au
+souvenir commun, aucune modification de l'identité de sa preuve.
 
-**Tests.** **118 ciblés distincts : 117 verts, un échec préexistant**, onze
-fichiers. Onze nouveaux tests, Gorm/réserve et Anselme/coffre avec
-contre-épreuves ; monde/rendu/scène conservés après recharge et laps
-3 ou 1+1+1. Captures `relais.json`, `auberge.json`, résultats
-`tests.json`, `tests-soupcon-final.json`. Ni suite complète ni Luna.
+Présences et gestes sont chacun bornés à **40 entrées** ; les passages d'une
+même personne dans un même lieu sont rafraîchis. `_purger_indices_soupcon`
+retire ce qui précède le plus ancien constat utile de chaque lieu ; quand
+cet intervalle avance ou disparaît, les anciens indices sont supprimés.
+Une troncature de capacité marque l'intervalle incomplet : oublier un second
+passant ne transforme pas le premier en suspect unique. Structure, dates,
+lieux et bornes sont validés au chargement. Les anciens champs du 267 et ses
+souvenirs de présence sont migrés ; un souvenir déjà évincé par une ancienne
+version ne peut pas être reconstruit.
 
-**Preuve de dette.** Le seul test
+L'inférence conserve ses deux constats propres et son épreuve relationnelle
+commune : un seul suspect, confiance **−6 à −18 selon PSY**, preuve **0,4**,
+source `devine`, jamais un portage établi. Geste connu/propre et extinction
+par épuisement exclus ; conséquences concomitantes regroupées. Retour,
+réparation ou attribution apprise lèvent l'indice en compensant la seule
+perte appliquée. Aucune naissance de `récupérer` sur ce seul indice.
+
+**Vérifications ciblées : 121 tests, 120 verts, un échec préexistant de dette**,
+onze fichiers, **51,858 s**, deux processus réduits. Les onze tests de scènes
+existants passent, avec monde/rendu/scène rechargés, laps entier/découpé,
+Gorm/réserve et Anselme/coffre et leurs contre-épreuves. Trois nouveaux tests
+contrôlent l'absence d'éviction commune après saturation, la purge des
+intervalles et le refus au chargement d'un registre trop grand, mal daté ou
+d'un lieu inconnu. Captures `registre/{relais,auberge}.json`, traces
+`registre/tests.json`. Ni suite complète ni Luna.
+
+L'échec isolé de
 `tests.test_relations_graduees.TempsEtContratsTests.test_dette_soldee_une_fois_par_demande_acceptee`
-rejoué sur **7404d2d** puis **61a1a67** échoue identiquement : **1 test,
-1 échec, aucune erreur**, `AssertionError: 40 != 20`, ligne 325. Même
-fichier (SHA-256 `ddc685f3…`). Traces complètes `dette-base.json/.log` et
-`dette-branche.json/.log` ; copie isolée de base retirée.
+est déjà prouvé sur **7404d2d** et **61a1a67** : chacun 1 échec `40 != 20`,
+ligne 325, aucune erreur, même fichier de test. Preuves `dette-base` et
+`dette-branche` JSON/log ; le même échec subsiste dans les 121 ciblés.
 
-**Comparaison à la base exacte : différente, lot non validé.**
-`tools/comparer_bancs.py --reference 7404d2d --branche 61a1a67 --heures 4
---depart tire --scenarios relais mine auberge crue crue_hameau --graines
-1985 7 42 2024 --processus 2` : **20 nuits de chaque côté lues en cache,
-aucune nuit 4 h rejouée**. Le contrôle `comparer_identite` du mode
-`--empreintes` est appliqué aux empreintes finales, chroniques et mesures
-déjà enregistrées ; les clés distinctes du mode `--empreintes` sont absentes.
-**16/20 chroniques, 3/20 mesures identiques ; états bruts 0/20**, les nouveaux
-champs `constats_biens`/`soupcons` différant dès la création à la minute 0.
-**Zéro plantage/usurpation ; zéro soupçon né**. Suspects 219 **2 → 3**,
-seule hausse en **crue 2024 : 0 → 1** (Gorm, devoir/interposition).
-À expliquer **55 → 54**, dérives **233 → 234**, cycles **489 → 489**.
+**Banc du correctif à valider.** Comparateur commun, référence exacte
+`7404d2d`, cinq scénarios × graines 1985/7/42/2024, **4 h**, départ tiré,
+deux travailleurs réduits au plus, détachés. Les **vingt références sont en
+cache** : le lanceur interdit leur rejeu et ne calcule que la branche.
+Il conserve l'état final brut et une empreinte supplémentaire excluant
+**uniquement `esprits[*].indices_soupcon`** ; aucun autre champ normalisé.
+Critère : égalité des vingt chroniques, de toutes les mesures et des états
+hors ce seul registre. États complets de branche archivés pour préciser
+un éventuel écart restant. Contrôle du lanceur sur trois minutes simulées
+réussi. Résultats attendus `registre/comparaison.json`, fichier écrit en
+dernier **`registre/fin.json`** ; aucune identité encore déclarée.
 
-Richesse S/F/D moyenne, `cats` du lot 183 : famille × auteur × texte,
-D incluant les PNJ inactifs.
-
-| Scénario | Base = branche (S/F/D) |
-| --- | --- |
-| Relais | 13,25 / 4,25 / 1,563 |
-| Mine | 28,5 / 4,75 / 2,036 |
-| Auberge | 11 / 4,25 / 1,063 |
-| Crue | 18,75 / 6,25 / 2,75 |
-| Hameau | 21,75 / 7 / 2,083 |
-
-**Première divergence de chronique : crue 2024, Ilse, 39 min 31 s**
-(`instant=23710`) : « Ilse reste dans la lumière » est répété dans la branche.
-`esprits._retenir_presence` remplit la mémoire commune ; juste avant cet
-instant, **11 des 40 souvenirs sont des présences**. Une parole de Gorm
-chasse le souvenir `abrite` de minute 3 ; `pnj._abriter` le recrée et répète
-la narration. Rejeu ciblé **40 min**, base/branche puis ablation de la seule
-fonction `_retenir_presence` sur une simulation : **chronique et toutes les
-mesures retrouvent exactement la base**. Effet hors soupçon causalement
-établi sur cet horizon ; les autres différences ne sont pas toutes localisées.
-Les quatre chroniques différentes : mine 7/42, crue 7/2024.
-
-L'ancien banc contre `main c870c8b` n'isole pas le lot : ses baisses de
-richesse ne lui sont pas attribuables. **Effet hors scènes établi** ; aucun
-moteur corrigé dans ce diagnostic. Bruts `comparaison-base-cache.json`,
-`bilan-base.json`, `localisation-base/{base,branche,sans-presences}.json`
-(mémoires avant/après et pile d'appel). Calculs courts à priorité réduite,
-deux processus au plus ; aucun calcul actif.
-
-**Limites.** Soupçon faillible après oubli ; aucune naissance de
-`récupérer` sur ce seul indice ni interpellation autonome nouvelle.
-Effraction couverte par dégradation constatée, sans crochetage invisible
-ni disparition distante déduite du registre. `agendas.py`, `echanges.py`,
-choix de délibération, scénarios et MJ inchangés.
+Le diagnostic précédent contre la base (ancien code `61a1a67`) est conservé
+dans `bilan-base.json` et `localisation-base/` : à **39 min 31 s**, Ilse
+oubliait son abri après occupation de 11/40 places par les présences ;
+neutraliser ce stockage rétablissait la base sur 40 min. Le banc contre
+`main c870c8b` n'isolait pas le lot ; ses baisses de richesse ne lui sont pas
+attribuables. Effraction limitée à une dégradation constatée, sans
+crochetage invisible ni disparition distante inventée. `agendas.py`,
+`echanges.py`, choix de délibération, scénarios et MJ inchangés.
