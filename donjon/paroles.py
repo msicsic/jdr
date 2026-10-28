@@ -276,7 +276,7 @@ def _stats_pnj(monde, id):
     return caracteristiques(monde, id)
 
 
-def jet_persuasion(monde, auditeur, locuteur, dd_base):
+def jet_persuasion(monde, auditeur, locuteur, dd_base, *, bonus=0, bilan=None):
     """d20 + présence (CHA) et éloquence (ELO) du locuteur, contre un DD que la confiance de
     l'auditeur abaisse ou relève et que sa volonté (VOL) élève ; caractéristiques modulées. La
     confiance est celle qu'il porte à qui il croit entendre (``relations.percue``) : une voix qu'il ne
@@ -289,7 +289,11 @@ def jet_persuasion(monde, auditeur, locuteur, dd_base):
           - relation["dette"] / 20 + relation["rancune"] / 20
           + (0 if identifie(monde, auditeur, locuteur) else INCONNU)
           + modificateur(monde, auditeur, "VOL"))
-    return monde.d20() + modificateur(monde, locuteur, "CHA") + modificateur(monde, locuteur, "ELO") >= dd, dd
+    total = monde.d20() + modificateur(monde, locuteur, "CHA") + modificateur(monde, locuteur, "ELO")
+    dd -= bonus
+    if bilan is not None:
+        bilan.update(total=total, dd=dd)
+    return total >= dd, dd
 
 
 def dementi(monde, auditeur, sujet, attribut, valeur):

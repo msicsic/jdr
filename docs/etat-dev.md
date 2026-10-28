@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-jugement-mandat`, non fusionnée**, lot **256**, base
+  `integration 4318a5b` : jugement explicite de mandat par `echanges.confier`,
+  devis social commun sur copie, statut cru dans sa portée et ascendant :
+  bonus plafonné à 5 points de DD ; dette du jet inchangée, comptée une fois.
+  Accueil prioritaire, aucune obéissance forcée ; raison et bilan enregistrés
+  sur le parent avant publication et chronique, filiation par `agendas.confier`,
+  confirmation sans nouveau jet. **68 tests verts / neuf fichiers, 32,616 s**,
+  deux processus réduits ; Gorm/Aubin/Brune et information à Ilse, refus et
+  acceptations rechargés, monde/rendu/scène/paroles, laps entier/découpé.
+  Aucun scénario, MJ, social/esprits/planification modifié ; ni Luna ni suite
+  complète. **Banc rapide détaché en cours** : cinq scénarios × quatre graines,
+  4 h, cache de la base figée ; compteur 219 et identité à relire avant validation.
+  Bruts `C:/Users/msics/donjon/artifacts/mandat-256/`, fin attendue `fin.json`.
+  Limite : coût du prochain sous-but social, pas garantie de réussite complète ;
+  aucun choix autonome de mandataire ajouté.
+  [Rapport 256](taches/rapport-codex-256-jugement-mandat.md).
+
 - **Vérification d'intégration c870c8b**, lot **241**, branche
   `codex-verif-integ-2` : **49/49 nuits achevées, zéro plantage**,
   cinq contrôles 8 h VERIFIER/spatial 0,2 terminés, dont mine/rixe 42 ;

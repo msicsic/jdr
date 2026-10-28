@@ -1127,8 +1127,59 @@ def tenu(monde, id, condition, depuis=None):
     return faite
 
 
-def confier(monde, demandeur, auditeur, condition):
+def _juger_tache(monde, demandeur, auditeur, cout, **options):
+    return jet_persuasion(monde, auditeur, demandeur,
+                         TACHE - penchant(monde, auditeur, "altruisme") + cout / PAS_PROPOSITION,
+                         **options)[0]
+
+
+def _confier_mandat(monde, demandeur, auditeur, mandat):
+    from .relations import autorite_mandat
+    if getattr(monde, "_evaluation_agendas", None) is not None:
+        raise ValueError("Publier le jugement après le devis")
+    parent, sorte, parametres = mandat["parent"], mandat["sorte"], mandat["parametres"]
+    # Valider filiation et contenu avant accueil, jet ou écriture sur le monde réel.
+    copie = monde.copier()
+    candidat = agendas.confier(copie, demandeur, parent, auditeur, sorte, parametres, accepte=True)
+    existant = next((a for a in agendas.projets(monde, auditeur) if a["id"] == candidat["id"]
+                     and a["origine"] == candidat["origine"]), None)
+    jugement = {"qui": auditeur, "minute": monde.data["minutes"], "sorte": sorte,
+                "parametres": parametres}
+    issue = accueil(monde, demandeur, auditeur)
+    if issue is None and existant is not None:
+        jugement["raison"] = "confirmation"
+        issue = "accepte"
+    elif issue is None:
+        siens_a_portee(monde, auditeur)
+        devis = agendas.devis_mandat(monde, demandeur, parent, auditeur, sorte, parametres)
+        if devis is None:
+            issue = "impossible"
+        else:
+            autorite = autorite_mandat(monde, auditeur, demandeur,
+                                      monde.objets[auditeur]["lieu"], sorte)
+            bilan = {}
+            accepte = _juger_tache(monde, demandeur, auditeur, devis[0],
+                                  bonus=autorite["bonus"], bilan=bilan)
+            jugement.update(autorite=autorite, cout=devis[0], **bilan)
+            issue = "accepte" if accepte else "refus"
+            if accepte:
+                sans_autorite = bilan["dd"] + autorite["bonus"]
+                jugement["raison"] = ("adhesion" if bilan["total"] >= sans_autorite + autorite["dette"] / 20
+                                       else "dette" if bilan["total"] >= sans_autorite else "autorite")
+    jugement.update(issue=issue)
+    jugement.setdefault("raison", issue)
+    agendas.retenir_jugement(monde, demandeur, parent, jugement)
+    if issue == "accepte":
+        agendas.confier(monde, demandeur, parent, auditeur, sorte, parametres, accepte=True)
+    return issue
+
+
+def confier(monde, demandeur, auditeur, condition=None, *, mandat=None):
     """« mefiance », « qui_va_la », « deja », « impossible », « refus » ou « accepte »."""
+    if mandat is not None:
+        if condition is not None:
+            raise ValueError("Une condition ou un mandat, pas les deux")
+        return _confier_mandat(monde, demandeur, auditeur, mandat)
     arret = accueil(monde, demandeur, auditeur)
     if arret:
         return arret
@@ -1150,8 +1201,7 @@ def confier(monde, demandeur, auditeur, condition):
         if nouveau:
             agendas.retirer_proposition(monde, auditeur, engagement)
         return "impossible"  # Il ne voit pas comment s'y prendre avec ce qu'il sait.
-    if nouveau and not jet_persuasion(monde, auditeur, demandeur,
-                          TACHE - penchant(monde, auditeur, "altruisme") + devis[0] / PAS_PROPOSITION)[0]:
+    if nouveau and not _juger_tache(monde, demandeur, auditeur, devis[0]):
         agendas.retirer_proposition(monde, auditeur, engagement)
         return "refus"
     if nouveau:
