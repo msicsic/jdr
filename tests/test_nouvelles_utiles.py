@@ -11,6 +11,125 @@ from tests.test_social import recharger
 
 
 class NouvellesUtilesTests(unittest.TestCase):
+    def test_capture_reelle_tilo_previent_mireille_du_bois_epuise(self):
+        import gzip
+        import json
+        from pathlib import Path
+        from donjon.monde import Monde
+        from tests.support import regarder
+        from tests.test_sait_observations import mots_enregistres
+        p = Path(__file__).parent / 'data/signalements-auberge-3-570.json.gz'
+        m = Monde(json.loads(gzip.decompress(p.read_bytes())))
+        # Capture conservée à 570 : ni besoins, ni projets, ni croyances
+        # réécrits. Seul le joueur vient écouter la confidence dans la cuisine.
+        m.joueur.update(salle='cuisine', position=[3, 1])
+        regarder(m, 'joueur', 'tilo')
+        m.data['connus'] = sorted(m.objets)
+        m.data['noms_connus'] = [k for k, o in m.objets.items() if o['type'] == 'personnage']
+        n = next(n for _, n, _, _ in social.nouvelles(m, 'tilo') if n.get('objet') == 'bois_reserve_2')
+        self.assertTrue(social._utile(recharger(m), 'tilo', 'mireille', n))
+        m, dit, texte = confier(recharger(m), 'tilo')
+        self.assertTrue(dit)
+        self.assertIn('épuisé', texte)
+        self.assertTrue(social.deja_dit(m, 'tilo', 'mireille', n))
+        self.assertEqual(m.objets['bois_reserve_2']['charges'], 0)
+        self.assertIn('épuisé', mots_enregistres(m, 'tilo'))
+        self.assertEqual(m.data, recharger(m).data)
+        self.assertEqual(rendu(m), rendu(recharger(m)))
+        self.assertFalse(social._nouveau(recharger(m), 'tilo', 'mireille', n))
+        from donjon import pnj
+        from donjon.temps import ecouler
+        from unittest.mock import patch
+        resultats = []
+        for tranches in ((600,), (150,) * 4):
+            suite, lignes = recharger(m), []
+            with patch.object(Monde, 'd20', return_value=20):
+                for dt in tranches:
+                    minutes = ecouler(suite, dt)
+                    pnj.avancer(suite, minutes, lignes, dt)
+                    suite = recharger(suite)
+            self.assertEqual(suite.objets['bois_reserve_2']['charges'], 0)
+            self.assertEqual(suite.data, recharger(suite).data)
+            self.assertEqual(rendu(suite), rendu(recharger(suite)))
+            resultats.append((suite.data, rendu(suite), mots_enregistres(suite, 'tilo')))
+        self.assertEqual(*resultats)
+
+    def test_bien_connu_utile_sans_detresse_et_redite_tue(self):
+        from donjon import pnj
+        from donjon.monde import Monde
+        from donjon.temps import ecouler
+        from unittest.mock import patch
+        from tests.test_sait_observations import mots_enregistres
+        # Même situation que les extinctions perdues au 206 : le propriétaire
+        # est dans une salle éclairée et n'a annoncé aucun projet de rallumage.
+        for objet, valeur, mot in (('brasero', {'allume': False}, 'éteint'),
+                                   ('vivres', {'disponible': False}, 'épuisés')):
+            with self.subTest(objet=objet):
+                initial = scene()
+                initial.objets[objet]['proprietaire'] = 'marchand'
+                o = initial.objets[objet]
+                croire(initial, 'ilse', objet, 'lieu', o['lieu'], 'vu',
+                       salle=o['lieu'], case=o.get('position'))
+                if objet == 'brasero':
+                    initial.objets[objet]['allume'] = False
+                croire(initial, 'ilse', 'marchand', 'etat', {'faim': False, 'chaleur': False}, 'vu')
+                croire(initial, 'ilse', objet, 'etat', valeur, 'essai')
+                lire(initial, 'marchand')['libre'] = 10000
+                # Les autres constats ne sont pas la nouvelle testée.
+                resultats = []
+                for tranches in ((1200,), (150,) * 8):
+                    m, lignes = recharger(initial), []
+                    with patch.object(Monde, 'd20', return_value=20):
+                        for dt in tranches:
+                            minutes = ecouler(m, dt)
+                            pnj.avancer(m, minutes, lignes, dt)
+                            m = recharger(m)
+                    dits = [c for c in m.data['chronique'] if c.get('constat_confie')
+                            and mot in c['texte']]
+                    self.assertEqual(len(dits), 1, dits)
+                    self.assertTrue(social.deja_dit(m, 'ilse', 'marchand',
+                        {'type': 'constat', 'objet': objet, 'attribut': 'etat', 'valeur': valeur}))
+                    self.assertIn(mot, mots_enregistres(m, 'ilse'))
+                    self.assertEqual(m.data, recharger(m).data)
+                    self.assertEqual(rendu(m), rendu(recharger(m)))
+                    resultats.append((m.data, rendu(m), mots_enregistres(m, 'ilse')))
+                self.assertEqual(*resultats)
+
+    def test_support_cru_du_bien_et_non_son_support_reel(self):
+        m = scene()
+        m.objets['vivres']['proprietaire'] = 'marchand'
+        croire(m, 'ilse', 'vivres', 'lieu', 'reserve', 'vu', salle='echoppe', case=[4, 3])
+        n = {'type': 'constat', 'objet': 'reserve', 'attribut': 'verrouillee', 'valeur': True}
+        self.assertTrue(social._utile(recharger(m), 'ilse', 'marchand', n))
+        # Une relocalisation privée du monde ne révise pas le lien cru.
+        m.objets['vivres']['lieu'] = 'crypte'
+        self.assertTrue(social._utile(recharger(m), 'ilse', 'marchand', n))
+        croire(m, 'ilse', 'vivres', 'lieu', 'crypte', 'vu', salle='crypte', case=[4, 3])
+        self.assertFalse(social._utile(recharger(m), 'ilse', 'marchand', n))
+
+    def test_don_distant_ne_change_pas_le_proprietaire_cru(self):
+        m = scene()
+        m.objets['vivres']['proprietaire'] = 'marchand'
+        croire(m, 'ilse', 'vivres', 'lieu', 'echoppe', 'vu', salle='echoppe', case=[4, 3])
+        n = {'type': 'constat', 'objet': 'vivres', 'attribut': 'etat', 'valeur': {'disponible': False}}
+        croire(m, 'ilse', 'marchand', 'etat', {'faim': False}, 'vu')
+        m.objets['vivres']['proprietaire'] = 'brune'
+        self.assertTrue(social._utile(recharger(m), 'ilse', 'marchand', n))
+        croire(m, 'ilse', 'vivres', 'lieu', 'echoppe', 'vu', salle='echoppe', case=[4, 3])
+        self.assertFalse(social._utile(recharger(m), 'ilse', 'marchand', n))
+        # Constater une absence n'apprend pas à qui l'objet a été donné.
+        croire(m, 'ilse', 'vivres', 'lieu', None, 'vu', salle=None, case=None)
+        self.assertNotIn('possession', lire(recharger(m), 'ilse')['croyances']['vivres']['lieu'])
+
+    def test_danger_sur_le_lieu_cru_du_bien_concerne_son_proprietaire(self):
+        m = scene()
+        m.objets['vivres']['proprietaire'] = 'marchand'
+        croire(m, 'ilse', 'vivres', 'lieu', 'echoppe', 'vu', salle='echoppe', case=[4, 3])
+        n = {'type': 'avis', 'objet': 'echoppe', 'attribut': 'menace', 'valeur': True}
+        self.assertTrue(social._utile(recharger(m), 'ilse', 'marchand', n))
+        social.retenir_dit(m, 'ilse', 'marchand', n)
+        self.assertFalse(social._nouveau(recharger(m), 'ilse', 'marchand', n))
+
     def test_registre_plein_ne_laisse_pas_boucler_une_mesure_non_suivie(self):
         m = scene()
         lire(m, 'ilse')['faits_dits'] = {

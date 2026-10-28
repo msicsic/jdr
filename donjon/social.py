@@ -472,9 +472,9 @@ def _utile(monde, id, autre, noyau):
     """
     from . import agendas
     from .deliberation import part_pour, salle_crue, _connus
-    if noyau["type"] == "avis":
+    if noyau["type"] == "avis" and _concerne(monde, id, autre, noyau["objet"]):
         # Inclut les rendez-vous convenus, même hors de la salle actuelle.
-        return _concerne(monde, id, autre, noyau["objet"])
+        return True
     if noyau["type"] not in ("constat", "avis"):
         return True  # Les griefs renseignent la confiance, même sans besoin matériel.
     e = lire(monde, id)
@@ -482,6 +482,21 @@ def _utile(monde, id, autre, noyau):
     o = monde.objets.get(objet, {})
     if objet == autre:
         return True
+    # L'utilité n'attend pas une détresse visible : ce que l'autre possède,
+    # porte ou garde le concerne déjà. Les liens mobiles viennent uniquement
+    # des lieux et des possessions retenus par le locuteur, jamais du monde.
+    lies = set()
+    for sujet, attributs in e["croyances"].items():
+        lieu = attributs.get("lieu", {})
+        possession = lieu.get("possession", {})
+        if (possession.get("proprietaire") == autre
+                or lieu.get("valeur") == autre):
+            lies.add(sujet)
+    # Une intention lue est une croyance du locuteur, y compris si elle est
+    # erronée. Sa durée est celle du mécanisme commun des signes.
+    from .signes import actives
+    lies.update(c.get("envers") for qui, attribut, c in actives(monde, id)
+                if qui == autre and attribut == "intention")
     # Une tâche annoncée ou convenue est une preuve de projet, pas son exécution réelle.
     projets = agendas.en_cours(monde, id, actifs=True)
     conditions_vues, annules = set(), set()
@@ -502,8 +517,20 @@ def _utile(monde, id, autre, noyau):
     for s in projets:
         if autre in (s.get("a"), s.get("de"), s.get("pour"), s.get("qui")):
             condition = s.get("condition", {})
-            if objet in (s.get("objet"), condition.get("objet"), condition.get("lieu")):
-                return True
+            lies.update(x for x in (s.get("objet"), condition.get("objet"), condition.get("lieu")) if x)
+    # Un contenant et le lieu d'un bien sont pertinents au même titre que le
+    # bien lui-même. Parcourir les supports crus évite la lecture d'un portage
+    # ou d'un déplacement distant ; les cycles de croyances restent bornés.
+    for sujet in tuple(lies):
+        vus = set()
+        while sujet and sujet not in vus:
+            vus.add(sujet)
+            lies.add(sujet)
+            sujet = e["croyances"].get(sujet, {}).get("lieu", {}).get("valeur")
+    if objet in lies:
+        return True
+    if noyau["type"] == "avis":
+        return False
     corps = e["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
     salle = salle_crue(monde, id, autre)
     if objet in monde.objets:
@@ -552,7 +579,7 @@ def _auditeur(monde, id, souvenir, noyau, source):
                 or not monde.objets[autre].get("profil")
                 or monde.objets[autre]["lieu"] != monde.objets[id]["lieu"]
                 or not pourraient_se_parler(monde, id, autre)
-                or (not _concerne(monde, id, autre, noyau["objet"]) if noyau["type"] == "avis"
+                or (not _utile(monde, id, autre, noyau) if noyau["type"] == "avis"
                     else not se_fie(monde, id, autre))):
             continue
         if not _utile(monde, id, autre, noyau):

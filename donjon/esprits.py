@@ -489,6 +489,19 @@ def croyance(monde, id, sujet, attribut):
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     monde_minute = monde.data["minutes"]
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
+    if (attribut == "lieu" and valeur is not None and source in ("vu", "essai")
+            and sujet in monde.objets and monde.objets[sujet]["type"] != "personnage"
+            and "possession" not in lieu):
+        # Retenir aussi le propriétaire d'un bien posé lors de son acquisition.
+        # La décision sociale ne doit pas relire plus tard un droit réellement
+        # transféré hors de la vue du locuteur. Même schéma que le portage vu.
+        o = monde.objets[sujet]
+        porteur = _porteur(monde, o)
+        proprietaire = _proprietaire(monde, o)
+        lieu["possession"] = {"porteur": porteur, "proprietaire": proprietaire,
+                              "permis": bool(porteur is not None and (
+                                  porteur == proprietaire or _permis(monde, porteur, sujet))),
+                              "remis_par": None, "remise_autorisee": False}
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
     observations = getattr(monde, "_observations_communes", None)

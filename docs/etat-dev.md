@@ -4,6 +4,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-sait-observations-c`, non fusionnée**, lot **235**, base
+  `adb52c4`, apport 206 `0ba27d3` fusionné dans `8a4e332` ; **non validée à fusionner**.
+  Utilité selon les possessions, portages, intentions perçues, engagements et
+  supports crus ; possession des biens posés retenue à l'acquisition dans
+  `esprits.croire`, sans droit appris par une absence ni un don distant.
+  Aucun accès rétabli au savoir privé de l'auditeur ; hors 206, deux modules
+  autorisés et leurs tests seulement. **60 ciblés verts, 21 centraux verts**,
+  cinq nouveaux cas ; Tilo/Mireille à 570, autre ressource/scénario, redite,
+  monde/rendu/mots rechargés et laps découpés. **20 paires 4 h** contre `adb52c4` :
+  confidences **25/101/47/65/62 → 5/10/7/50/47** ; niveau 206 b historique
+  **6/12/6/6/27 sur une autre base**. Restauration mine/Relais insuffisante.
+  Avertissements redits **3 → 1**, suspects 219 **2 → 4** : nouveaux Aubin/Ilse
+  Relais 2024 à 196 et Mireille/Mathurine auberge 2024 à 226 ; agenda textuel
+  de Brune disparu. Zéro plantage/usurpation ; cycles **507 → 496**,
+  préemptions **58 → 39**, à expliquer **87 → 66**, dérives **204 → 175**.
+  S/F/D en baisse mine/hameau, aucune amélioration générale revendiquée.
+  Suite unique : **2 542 tests / 293 fichiers, 2 615,401 s, treize échecs,
+  zéro erreur/ignoré**. Témoins isolés intégration/fusion 206/final : onze
+  échecs propres au 206 subsistent, deux MiMo préexistants ; aucun échec
+  ajouté par le delta 235 dans ces méthodes. Trois anciens rouges résolus
+  par les entrants, trois prémisses documentées sans changer les assertions,
+  huit écarts non résolus ; aucun hash réancré. Anciennes possessions absentes
+  non inventées ; aucune garantie générale des boucles. Aucun Luna, deux
+  travailleurs réduits au plus ; créneau dépassé par validation. Bruts
+  `C:/Users/msics/donjon/artifacts/sait-235/` ;
+  [rapport 235](taches/rapport-codex-235-sait-observations-c.md).
+
 - **Branche `codex-restauration-charges`, fusionnée**, lot **218** :
   code `2bd1e6f`, reprise demandée sur **`881db69`** (224/225), fusion
   `7c46d64` sans conflit de code, validation finale `fa9dbe3`. Charge suspendue
