@@ -4,6 +4,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-service-repropose`, non fusionnée**, lot **251**, base
+  `integration 854bb10` : présences requises d'un geste partagées entre
+  mesure du plan et `pnj.refus_etape` (admission/revalidation/exécution).
+  Le bénéficiaire d'un service doit être cru présent, sans exiger le contact.
+  Auberge 2024 : absent de l'intégration, défaut reproduit sur `942a3c2`
+  à 135695 puis reproposition à 135725 ; capture conservée. Aucun délai ni
+  nouvelle mémoire d'échec. **28 tests ciblés distincts verts / cinq fichiers**,
+  deux contre-épreuves rouges ; capture réelle et mine, monde/rendu rechargés,
+  laps en bloc/découpés, reprise sur croyance de retour. Placement du test de
+  garde explicité près du repas, assertions conservées. **Banc rapide détaché
+  en cours**, cinq scénarios × quatre graines × 4 h, un travailleur réduit,
+  référence figée 854bb10 (cache absent, remplissage des seules nuits manquantes).
+  Compteur 219, suspects, préemptions et « à expliquer » encore à valider ;
+  aucune suite complète ni Luna. Limites : présence crue, pas garantie de
+  l'ouïe ni mémoire universelle d'échecs ou nouvelle recherche de bénéficiaire.
+  Bruts `C:/Users/msics/donjon/artifacts/service-251/`, fin `banc.termine.json`.
+  [Rapport 251](taches/rapport-codex-251-service-repropose.md).
+
 - **Branche `codex-ascendant-neutre`, fusionnée**, lot **248**, base
   `f46a0b5` (référence remplacée sur instruction du superviseur) : sixième
   axe orienté neutre dans `relations.py`, lecture pure `autorite_reconnue`,

@@ -2643,7 +2643,7 @@ def _mesurer_direct(v, e, ajout, suivant, ancienne_duree):
             route = v.route(courant, etape["lieu"])
         else:
             if any(not v.present(courant, x)
-                   for x in pnj._a_toucher(v.monde, v.id, etape, courant.portes)):
+                   for x in pnj._a_reunir(v.monde, v.id, etape, courant.portes)):
                 return None
             route = v.approche(courant, etape)
         if route is None:
