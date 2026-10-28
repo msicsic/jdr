@@ -4,6 +4,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-renonce-attente`, fusionnée**, lot **239**, base
+  intégration `3c0e1ca` (236 inclus). `_classer` compte `renonce`, dont
+  l'obstacle cru tient encore, comme un recours sans moyen admissible :
+  attente si tous les recours sont bloqués, priorité à tout plan possible,
+  aucun classement déduit d'un recours non évalué. Aucun changement du
+  choix, du juge des obstacles, des propositions, des biens, de `pnj.py`,
+  de l'ouïe ni du MJ. Captures mine 500/107 et 7/539:599 reproduites sur
+  la base : `sans_recours` devient `attente`. Choix, récit, sauvegarde/rendu,
+  laps découpés et reprise après constat couverts, autre besoin au Relais.
+  **8/8 paires 2 h identiques** mine/Relais ; **4/4 paires mine 4 h
+  identiques**, zéro plantage, sans recours 0/0/0/0 et attente 40/0/0/0
+  inchangés. Replays ciblés jusqu'à 110/540 : chroniques identiques,
+  5 → 0 PNJ·min sans recours dans chacune des deux fenêtres. **22 ciblés
+  verts**. Suite complète unique : **2 531 tests / 293 fichiers,
+  3 973,916 s, un échec, zéro erreur, 16 ignorés ; suite non verte**.
+  Même échec de torche hameau 1985 que le lot 236, réussite à 3188 puis
+  perte à 3615 ; aucun oracle affaibli. Comparaison spatiale pure verte
+  (854,313 s). Aucun nouvel échec identifié, deux travailleurs réduits ;
+  aucun Luna. Créneau dépassé par la suite finale.
+  Bruts `C:/Users/msics/donjon/artifacts/renonce-239/` ;
+  [rapport 239](taches/rapport-codex-239-renonce-attente.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. _classer traite un recours renoncé dont l'obstacle cru tient encore comme un essai sans moyen : besoin en attente, plus « sans recours ». Odon mine 500 à 107 et mine 7 à 539 : sans recours → attente, reprise après constat qui lève l'obstacle ; Gorm (Relais, passage obstrué) comme autre cas. Huit empreintes 2 h et quatre nuits mine 4 h identiques. Suite : un échec préexistant (torche, lot 238).
+
 - **Branche `codex-navettes-garde`, fusionnée**, lot **236**, base
   `ecbf1a1`, diagnostic `6bed2a0`, correctif `3f217d0`. Extension autorisée à
   `pnj_propositions.plan_recours` et son raccord dans `deliberation.choisir` ;

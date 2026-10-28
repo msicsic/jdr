@@ -105,6 +105,20 @@ class SecoursTests(unittest.TestCase):
 
 
 class InactiviteTests(unittest.TestCase):
+    def test_classement_des_recours_admissibles_et_non_evalues(self):
+        m = relais()
+        m.data['minutes'] = 1
+        for issues, attendu in (([], 'attente'), (['renonce'], 'attente'),
+                                (['rien', 'renonce'], 'attente'),
+                                (['renonce', 'plan'], 'presse'),
+                                (['renonce', None], 'presse')):
+            with self.subTest(issues=issues):
+                lire(m, 'aubin')['urgences']['faim'] = {'etat': 'presse', 'depuis': 0}
+                D._classer(m, 'aubin', ['faim'], [('faim', None)] * len(issues),
+                           {i: x for i, x in enumerate(issues) if x is not None}, 1)
+                m = recharger(m)
+                self.assertEqual(lire(m, 'aubin')['urgences']['faim']['etat'], attendu)
+
     def verifier_scene(self, nom, qui, cause, texte):
         m = scene(nom)
         avant = copy.deepcopy(m.data)
