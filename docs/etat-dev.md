@@ -4,6 +4,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-faire-ou-confier-b`, non fusionnée**, lot **260**, base
+  `634b869` : `agendas.planifier` sépare prochain sous-but et mandataire ;
+  comparaison sur devis observateur, chance d'accord, autorité estimée et
+  confiance crue, égalité par identifiant. Paroles préparatoires ordinaires,
+  puis jugement réel `echanges.confier(mandat=...)` ; refus identifiés par
+  mandat, autres destinataires conservés, aucune lecture privée du candidat.
+  Sept nouveaux tests verts (deux charges, choix réel, refus, avis, égalité,
+  plusieurs destinataires, monde/rendu/scène rechargés, laps entiers/découpés) ;
+  quinze voisins déjà exécutés avant les dernières extensions. **Validation
+  élargie en cours : 88 fichiers ciblés, puis vingt nuits 4 h contre la base
+  avec cache et coût mine 1985 4 h**, deux processus réduits au plus, calcul
+  détaché, arrêt au premier échec. Ni suite complète ni Luna. Aucun résultat
+  de banc ni absence de régression annoncé ; compteur 219, écarts et coûts à
+  lire à la reprise. Bruts `C:/Users/msics/donjon/artifacts/confier-260/`,
+  fin attendue `fin.json`. Pas de compte rendu ni réaffectation sur retard.
+  [Rapport 260](taches/rapport-codex-260-faire-ou-confier.md).
+
 - **Branche `codex-devis-observateur`, fusionnée**, lot **258**, base
   `integration e9a8dfe` : `agendas.devis_observateur` et contexte explicite
   observateur/acteur sur modèle fermé ; départ et possessions crus, savoirs
