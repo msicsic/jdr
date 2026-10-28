@@ -4,6 +4,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-suite-verte`, non fusionnée**, lot **238**, base `e84d5a7` :
+  faux audit MiMo remis au schéma actuel (`nature`, sans `verdict`/`comptes`),
+  comptes d'appels et assertions conservés ; deux fichiers entiers verts,
+  **13 tests, 7,627 s**. Passe initiale : **36 tests, trois échecs**.
+  Arrêt demandé par le brief : la torche hameau 1985 est réellement éteinte
+  par Brune à 3615, après réussite à 3188, combustible encore 59 ; sonde
+  `prestataire_beneficiaire_present`, protection vide avant le geste.
+  Prémisse « perte disparue » non reproduite ; légitimité de la clôture
+  antérieure et classement à instruire avant tout réancrage. Aucun moteur,
+  adaptateur, capture ni oracle torche modifié ; suite complète non lancée,
+  suite verte non revendiquée. Bruts `artifacts/suite-238/` du dépôt principal ;
+  [rapport 238](taches/rapport-codex-238-suite-verte.md).
+
 - **Branche `codex-purete-candidats`, fusionnée**, lot **232**, base
   `integration adb52c4` : `biens.services_proteges` ne supprime plus les
   traces pendant une lecture. Clôtures retenues hors `data`, publiées après
