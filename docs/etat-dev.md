@@ -4,6 +4,36 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-suite-verte`, fusionnée**, lot **238**, base `e84d5a7` :
+  faux audit MiMo remis au schéma actuel (`nature`, sans `verdict`/`comptes`),
+  comptes d'appels et assertions conservés ; deux fichiers entiers verts,
+  **13 tests, 7,627 s**. Passe initiale : **36 tests, trois échecs**.
+  Reprise moteur autorisée après l'arrêt initial : trace créée à 3288 puis
+  clôturée dans le même choix, déplacement de Brune avec la torche pris
+  pour un départ d'Ilse, encore crue dans l'échoppe ; extinction à 3615,
+  combustible 59. `biens.py` retient le lieu cru du bénéficiaire à la
+  réussite ; une ancienne trace mobile sans ancrage ne prouve pas un départ.
+  Raccords de création/validation explicitement autorisés après clarification.
+  **50 ciblés verts / cinq fichiers, 34,530 s**, trois nouveaux tests,
+  monde/rendu/scène rechargés, laps en bloc/découpé ; assertions historiques
+  intactes. Banc final vingt paires 4 h, cinq scénarios × quatre graines :
+  fautifs **1 → 0**, physiques **5 → 6**, suspects **2 → 2** sans hausse par
+  nuit/scénario, zéro plantage. Vingt références `e84d5a7` rangées une fois,
+  toutes relues au banc final après renforcement des anciennes traces mobiles.
+  Suite commencée puis interrompue pour ce renforcement ; seule passe complète
+  finale achevée : **2 529 tests / 292 fichiers, 2 518,071 s, zéro échec,
+  une erreur Windows TUI**, zéro ignoré. `os.replace` refuse le temporaire de
+  `test_sortie_galerie_vers_palier_noir_garde_joueur_sur_la_carte` ; test inchangé
+  repris seul vert en **1,020 s**, verrou non identifié. **Suite brute non verte**,
+  aucune seconde suite complète. Les trois échecs initiaux sont corrigés.
+  Anciennes traces mobiles sans ancrage : protection conservée faute de preuve
+  de départ, aucune reconstruction historique ni entretien ajouté. Créneau
+  dépassé par les validations, deux calculs réduits au plus, aucun Luna.
+  Aucun MJ, adaptateur, capture ou fonction des lots voisins modifié.
+  Bruts `artifacts/suite-238/` du dépôt principal ;
+  [rapport 238](taches/rapport-codex-238-suite-verte.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Torche du hameau 1985 : la trace du service payé était close par une fausse déduction de départ d'Ilse (Brune emportait la torche) ; le lieu cru du bénéficiaire au constat de réussite est sauvegardé (services_rendus.lieu_beneficiaire) et clore pour départ exige de le croire ailleurs que ce lieu et que le résultat. Faux audit MiMo remis au schéma actuel. 20 paires 4 h : pertes fautives 227 1 → 0, suspects 2 → 2. Suite : zéro échec, une erreur Windows TUI passagère (verrou de fichier temporaire), test repris vert.
+
 - **Branche `codex-renonce-attente`, fusionnée**, lot **239**, base
   intégration `3c0e1ca` (236 inclus). `_classer` compte `renonce`, dont
   l'obstacle cru tient encore, comme un recours sans moyen admissible :
