@@ -4,6 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-lumiere-faible`, non fusionnée**, lot **244**, base
+  intégration **707e7ac**. `Vue.recharge_utile` distingue capacité de
+  lumière et réserve faible : une source encore allumée ne rend plus
+  pertinent du combustible sans gain dans la projection, sauf entretien
+  explicite. Même critère pour acquisition, parts et alimentation ; aucun
+  plafond ni autre mécanisme changé. Les trois recherches réelles de 435
+  retrouvent le résultat de l'ancienne complète sous plafond ; grenier
+  **7 091 → 336 nœuds**, coût **125,64**, chambre **11 139 / 11 898 →
+  656 / 663**. Monde/rendu/scène rechargés, **zéro seconde sans intention
+  entre 435 et 480** sur le rejeu ciblé (44 min 17,8 s au 243),
+  laps découpé à l'auberge et à la mine,
+  entretien réellement exécuté et sauvegardé. **12/12 paires 2 h
+  identiques** (auberge/mine/Relais). Coût mine 1985 4 h : **10 119 →
+  10 100 nœuds**, mêmes choix, chroniques et état final complet.
+  **20/20 paires 4 h identiques** (états, récits, souvenirs, empreintes,
+  mesures, audits), cinq scénarios × quatre graines ; zéro plantage,
+  deux suspects inchangés. **5 tests finaux verts, 18,244 s**.
+  **Contrôle 8 h auberge 42 vert, 2 528,217 s**, `VERIFIER` et spatial 0,2 ;
+  une ancienne borne à 312, même coût complet (73,498790), aucune absence
+  à 435, 143 choix de Lucien avec intention entre 435 et 480.
+  **Suite complète laissée au superviseur** : passe en cours arrêtée à
+  réception de la règle `integration` 4422f13, sans bilan global.
+  Créneau dépassé par ces validations.
+  Limite : pas de
+  décompte de l'autonomie dans la projection, donc aucune garantie ajoutée
+  de couvrir physiquement un long plan. Aucun Luna, bruts
+  `C:/Users/msics/donjon/artifacts/lumiere-244/` ;
+  [rapport 244](taches/rapport-codex-244-lumiere-faible.md).
+
 - **Branche `codex-bornes-garde`, fusionnée**, lot **243**, base
   intégration **c870c8b**, diagnostic seul. Les deux absences historiques
   `4306c14`, auberge 42 à 435, sont reproduites : 4 000 nœuds contre

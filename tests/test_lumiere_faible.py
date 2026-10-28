@@ -49,16 +49,26 @@ class LumiereFaibleTests(unittest.TestCase):
                 m = self.visible(capture(nom))
                 self.assertTrue(lire(m, "lucien")["croyances"]["lanterne_hugues"]["etat"]["valeur"]["faible"])
                 but = lambda v, e: e.salle == salle
-                with patch.object(p.Vue, "recharge_utile", ancienne_recharge):
-                    complet, _ = chercher(m, "lucien", but, None, emplois=None, motif="biens",
-                                          tenir=True, noeuds=p.REFERENCE)
+                explorer = p._explorer
+                def uniforme(*a, **kw):
+                    return explorer(*a, **{**kw, "differer": False, "borner": False,
+                                          "decouvrir_discretion": False})
+                with patch.object(p.Vue, "recharge_utile", ancienne_recharge), \
+                        patch.object(p, "_explorer", uniforme):
+                    complet, ancien = chercher(m, "lucien", but, None, emplois=None, motif="biens",
+                                               tenir=True, noeuds=p.REFERENCE)
+                self.assertGreater(ancien["noeuds"], p.NOEUDS)
                 nouveau, diag = chercher(m, "lucien", but, None, emplois=(), motif="biens", tenir=True)
                 self.assertIsNotNone(nouveau)
                 self.assertEqual(nouveau, complet)
                 self.assertLess(diag["noeuds"], p.NOEUDS)
 
     def test_lucien_garde_un_but_monde_et_rendu_recharges_laps_decoupes(self):
-        bloc, morceaux = decouper(capture, 437, recharger_tous=7)
+        def fabriquer():
+            for nom in ("_MEMOIRE", "_GRAPHES", "_IMPOSSIBLES"):
+                getattr(p, nom).clear()
+            return capture()
+        bloc, morceaux = decouper(fabriquer, 437, recharger_tous=7)
         # Les rotations du joueur changent son orientation et sa mémoire visuelle.
         # Comparer les conséquences des PNJ indépendamment de ces gestes du joueur.
         for m in (bloc, morceaux):
@@ -123,6 +133,8 @@ class LumiereFaibleTests(unittest.TestCase):
 
     def test_lampe_faible_a_la_mine_meme_laps_decoupe(self):
         def fabriquer():
+            for nom in ("_MEMOIRE", "_GRAPHES", "_IMPOSSIBLES"):
+                getattr(p, nom).clear()
             m = scene("mine", "remy", "baraquement", "bureau", "lampe_remy",
                       {"lampe_remy": (True, "remy")}, "briquet")
             m.objets["lampe_remy"].update(allume=True, combustible=20)
