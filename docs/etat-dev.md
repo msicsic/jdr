@@ -4,6 +4,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-conception-a5`, fusionnée**, lot **245**, base
+  `integration 9b69785` : inventaire d'A5 et onze lots proposés, sans code
+  du jeu ni calcul. `confier`, agendas sociaux et contrat 213 réutilisables ;
+  filiation de mandat, autorité et compte rendu général manquants.
+  Lot 242 lu sur `origin/codex-suivi-delegation` (`0b37f44`), absent de cette
+  base : à intégrer avant A5, limites des anciennes charges non datées
+  conservées. Six PNJ déjà présents dans la crue étendue ; statut de Gorm,
+  réglages d'autorité, profondeur et réaffectation proposés en options.
+  Aucun test, banc ou Luna ; vérification documentaire uniquement.
+  [Rapport 245](taches/rapport-codex-245-conception-a5.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. Inventaire d'A5 : briques existantes (confier, amener, devis d'intermédiaire, aides acceptées, voix), origine mandat, compte rendu, réaffectation, récursion, statut et ascendant absents ; onze lots proposés (ascendant neutre, statut sourcé, filiation bornée, jugement selon l'autorité perçue, faire ou confier, compte rendu, réaffectation, évolution de l'ascendant, joueur mandant et mandaté, données du hameau). Quatre arbitrages à l'utilisateur. Premier essai Sol medium.
+
 - **Branche `codex-place-perimee`, fusionnée**, lot **234**, ciblés et banc validés.
   Merge demandé de `origin/integration` **`d9e5166`** (233/236/238/239/240)
   dans **`860fa0b`**, sans rebase, seul conflit documentaire. Moteur 234
