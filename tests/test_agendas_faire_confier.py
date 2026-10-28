@@ -142,6 +142,15 @@ class FaireConfierTests(unittest.TestCase):
         r = self.choix(self.recharge(m))
         self.assertEqual(r[0]['qui'], 'ilse')
 
+    def test_agenda_social_terminal_ne_propose_aucun_mandataire(self):
+        for sorte, cible in [('amener', 'brune'), ('informer', 'ilse')]:
+            with self.subTest(sorte=sorte):
+                m, _ = self.scene(sorte, cible)
+                lire(m, 'marchand')['agendas'][0].update(etat='abandonne', raison='route coupee')
+                m = self.recharge(m)
+                self.assertIsNone(self.choix(m))
+                self.recharge(m)
+
 
 if __name__ == '__main__':
     unittest.main()

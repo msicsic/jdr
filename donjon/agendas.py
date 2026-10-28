@@ -592,7 +592,7 @@ def choisir_mandataire(monde, id, identifiant, propre, mesure):
     from .planification import chercher, _etape
     from .pnj import DUREES
     a = _projet(monde, id, identifiant)
-    if a["sorte"] not in ("amener", "informer"):
+    if a["etat"] not in ("actif", "sommeil") or a["sorte"] not in ("amener", "informer"):
         return propre
     qui = propre[0].get("qui") if propre else None
     if propre is None:
