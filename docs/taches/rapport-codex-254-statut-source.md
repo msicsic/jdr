@@ -41,16 +41,21 @@ statuts crus. Une parole ne modifie jamais les déclarations réelles.
 - Les cinq autres fichiers : `relations_ascendant`, `relations_socle`,
   `relations_lectures`, `relations_graduees`, `social`. Exécution isolée,
   un travailleur à priorité réduite, **46,035 s**. L'échec
-  `test_dette_soldee_une_fois_par_demande_acceptee` donne **40 au lieu de 20**,
+  `tests.test_relations_graduees.TempsEtContratsTests.test_dette_soldee_une_fois_par_demande_acceptee`
+  donne **40 au lieu de 20**,
   reproduit seul sur `e65fd54` (**0,596 s**) ; aucun oracle changé.
-- **Empreintes en cours**, code figé `3f4a951` contre la base `e65fd54`
-  (`origin/integration` au départ) : cinq scénarios × quatre graines × 2 h,
-  cache commun, référence puis branche, un travailleur à priorité réduite.
-  Processus détaché ; fin écrite en dernier dans `fin.json`. L'identité du
-  jeu et de l'état complet ne peut pas encore être affirmée.
+- **Empreintes terminées : 20/20 paires identiques**, code figé `3f4a951`
+  contre la base `e65fd54` (`origin/integration` au départ) : Relais, mine,
+  auberge, crue et `crue_hameau`, graines 1985/7/42/2024, chacune sur 2 h.
+  Chronique, mesures et état final complet identiques nuit par nuit, sans
+  retrait de champs ; divergence `null`, zéro plantage des quarante nuits.
+  Les vingt références exactes manquantes ont été calculées une fois et
+  rangées dans le cache commun, puis les vingt nuits de branche ; un
+  travailleur à priorité réduite. Calcul détaché terminé en **731,228 s**,
+  `fin.json` code **0**, sans erreur. Aucun calcul actif pour ce lot.
 
 Bruts : `C:/Users/msics/donjon/artifacts/statut-254/` : `tests.json`,
-`echec-base.txt`, `lancer.py`, `empreintes.log`, puis `empreintes.json` et
+`echec-base.txt`, `lancer.py`, `empreintes.log`, `empreintes.json` et
 `fin.json`. Pas de suite complète ni d'audit long.
 
 ## Limites
@@ -60,5 +65,6 @@ Ce socle ne prouve pas automatiquement un mensonge : une rectification doit
 explicites, sans hiérarchie de grades ni déduction de juridiction. Le statut
 est transportable comme contenu moteur ; aucun protocole joueur/MJ ni
 émission autonome de statut n'est ajouté. Aucune obéissance, aucun bonus ni
-garantie universelle hors des épreuves décrites. L'échec de dette préexistant
-et les résultats d'empreintes restent à examiner à l'intégration.
+garantie universelle hors des épreuves décrites. L'identité est prouvée sur
+ces vingt paires sans statut déclaré, pas pour tout scénario possible.
+L'échec de dette préexistant reste à examiner à l'intégration.

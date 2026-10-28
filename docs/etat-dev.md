@@ -12,14 +12,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   date, poids sans privilège du titre, retrait persistant, déclarations réelles
   intactes ; ni `_utile` ni `bavarder` modifiées. **63 tests / six fichiers :
   62 verts, un échec préexistant** de dette (40 au lieu de 20), reproduit seul
-  sur `e65fd54`. Six nouveaux tests verts, Relais et mine, monde/rendu rechargés,
-  contrôle AST. **Empreintes 20 paires 2 h en cours**, cinq scénarios,
-  quatre graines, référence figée et cache, un travailleur réduit, détaché ;
-  identité complète pas encore conclue. Fin attendue :
-  `C:/Users/msics/donjon/artifacts/statut-254/fin.json`.
+  sur `e65fd54` :
+  `tests.test_relations_graduees.TempsEtContratsTests.test_dette_soldee_une_fois_par_demande_acceptee`.
+  Six nouveaux tests verts, Relais et mine, monde/rendu rechargés, contrôle AST.
+  **Empreintes 20/20 paires 2 h identiques**, chronique, mesures et état final
+  complet sans retrait de champs ; Relais, mine, auberge, crue, `crue_hameau`,
+  graines 1985/7/42/2024. Zéro plantage, divergence nulle ; vingt références
+  exactes manquantes calculées une fois et mises en cache, puis branche.
+  Un travailleur réduit, calcul détaché terminé en 731,228 s, `fin.json` code 0.
+  Aucun calcul actif ; bruts `C:/Users/msics/donjon/artifacts/statut-254/`.
   Pas de scénario historique, décision, MJ, Luna ou suite complète changé/lancé.
   Limites : aucun démenti omniscient, protocole joueur/MJ et émission autonome
-  hors lot. [Rapport 254](taches/rapport-codex-254-statut-source.md).
+  hors lot ; identité limitée aux vingt paires vérifiées sans statut déclaré.
+  [Rapport 254](taches/rapport-codex-254-statut-source.md).
 
 - **Branche `codex-filiation-mandat`, fusionnée**, lot **252**, base
   `integration 59cb572` : API `agendas.confier`, lectures copiées `filiation`
