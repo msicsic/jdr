@@ -31,7 +31,7 @@ DUREES = {"prendre": 20, "poser": 20, "ouvrir": 20, "fermer": 20, "deverrouiller
           "crocheter": 600, "frapper": 600, "manger": 600, "servir": 300, "alimenter": 100, "allumer": 100, "eteindre": 30,
           "inspecter": 100, "dire": 100, "demander": 100, "acheter": 100, "confier": 100, "remettre": 50,
           "demander_feu": 100, "proposer": 100, "ranimer": 100, "interposer": 100}
-DURABLES = ("reposer", "chauffer", "abriter")
+DURABLES = ("reposer", "chauffer", "abriter", "rester")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ ; ouie : se
 # retourner au bruit, retenir un bruit inconnu, aller le voir (``ouie``).
@@ -650,7 +650,7 @@ def _a_toucher(monde, id, etape, portes=None):
     touches = []
     for role in ("cible", "outil"):
         x = etape[role]
-        if x == "joueur" and op in ("frapper", "assommer", "dans_le_dos"):
+        if x == "joueur" and op in ("frapper", "assommer", "dans_le_dos", "rester"):
             touches.append(x)
             continue
         if x not in monde.objets or (x in portes if portes is not None else _porte(monde, x, id)):
@@ -908,6 +908,21 @@ def _executer_effet(monde, id, etape, lignes, gestes):
         return _reposer(monde, id, lignes)
     if op == "abriter":
         return _abriter(monde, id, etape["lieu"], lignes)
+    if op == "rester":
+        if not _accessible(monde, id, etape["cible"]):
+            return False
+        e = esprit(monde, id)
+        depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
+        if not any(s["type"] == "compagnie" and s.get("qui") == etape["cible"]
+                   and s["minute"] >= depuis for s in e["memoire"]):
+            # La présence est revalidée avant toute affirmation de proximité.
+            memoriser(monde, id, {"type": "compagnie", "qui": etape["cible"]})
+            from .social import _qui
+            texte = f"{_qui(monde, id)} reste près {de(_qui(monde, etape['cible']))}."
+            _chroniquer(monde, id, texte)
+            if monde.visible(id) and (etape["cible"] == "joueur" or monde.visible(etape["cible"])):
+                lignes.append(texte)
+        return None  # La raison du séjour est revalidée par le choix commun.
     from .deliberation import SOCIALES
     if op in SOCIALES:
         from .echanges import executer
@@ -1420,6 +1435,9 @@ def _jugement_placement(monde, id, etape):
     from .obstacles import descriptions_crues, transitions, metrique_necessaire, duree_porte
     from .temps import PAS_FEUTRE
     if not monde.data.get("mode_cases") or etape["operation"] not in DURABLES:
+        return None
+    if _a_toucher(monde, id, etape):
+        # Un séjour ciblé tient déjà sa place par l'approche de sa cible.
         return None
     o, e = monde.objets[id], lire(monde, id)
     ici, depart = o["lieu"], tuple(o["position"])

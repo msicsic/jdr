@@ -2,6 +2,26 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-rester-pres`, non fusionnée**, lot **266**, base `7404d2d` :
+  secours de peur sur la lecture commune du 53, souci/poids/palier du 197,
+  condition durable `pres` et approche physique commune ; maintien et fin
+  explicites sur perception, calme et disposition propres, priorités intactes.
+  Aucune position ni besoin privé d'autrui lu. `echanges.py` intact ; seule
+  validation des raisons élargie à `peur` dans `agendas.py`, autorisée par
+  l'utilisateur. **76 tests ciblés distincts verts / huit fichiers**, dont
+  six nouveaux : Ilse après noir, mine, maintien/contact immobile, fin,
+  contrôles sociaux/perceptifs, clés/coûts et recharges complètes ; même laps
+  entier/découpé. Deux oracles de garde isolés des secours spontanés dans
+  leurs seules scènes ; assertions conservées. Ni Luna ni suite complète.
+  **Banc détaché en cours : 20 nuits 4 h par côté**, référence exacte du
+  départ, cache commun sans rejouer les nuits présentes ; deux processus
+  réduits au plus. Compteurs 219/boucles par nuit, secours de peur et temps
+  urgent en baisse sous compagnie ; ce temps n'est pas un gain causal.
+  Sonde pure (état complet/chronique), scène active : un secours, 2,0 min.
+  **Pas de validation du banc avant lecture de `fin.json` et des résultats.**
+  Bruts `C:/Users/msics/donjon/artifacts/rester-266/` ; fin attendue
+  `banc/fin.json`. [Rapport 266](taches/rapport-codex-266-rester-pres.md).
+
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic
   seul, base `integration 769c7f1` : épisode absent de la nuit actuelle 12 h ;
   reproduit sur `c870c8b`, hameau 1985, départ tiré, joueur chambre de la
