@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-pas-compagnons-c`, non fusionnée**, lot **233**, base
+  `adb52c4`, fusion du 195 `cf777e7` dans `241a38b` (conflit documentaire seul).
+  Dans `ouie.entendre`, un bruit ordinaire attribué réveille la délibération
+  sans rotation ni position inventée ; `echanges.tenu` du 195 conservé.
+  **18 ciblés finaux verts**, dont promesse réelle Brune/Ilse hameau 1985,
+  demande autonome reconstituée au hameau et au Relais, monde/rendu rechargés
+  et laps découpés. Remettre seulement l'ouïe 195 en mémoire fait échouer
+  les trois tests de rencontre/éveil (cinq sous-cas), cas réel compris.
+  **20 paires × 4 h contre `adb52c4`**, référence manquante constituée une
+  fois et conservée en cache : zéro plantage/usurpation, suspects **2 → 2**
+  au total, mais auberge **2 → 1** et crue **0 → 1** (Aubin 2024 à 23576).
+  Retournements moyens en baisse dans les cinq scénarios. **Richesse du
+  hameau non rétablie** : S **35 → 27,75**, référence **[26–44]**, candidat
+  **[17–37]**, graines 7/42 à 17/24 ; échanges acceptés **13 → 9**.
+  **Suite unique : 2 542 tests / 293 fichiers, 2 925,970 s, dix échecs,
+  zéro erreur, zéro ignoré**. Quatre préexistants reproduits sur `adb52c4`
+  (torche, stabilité de Lucien, deux MiMo) ; six écarts du candidat non résolus
+  (deux empreintes, secours capturé, demande de lampe, témoin sur trajet
+  injecté, placement connu du 195 réservé au 234). Aucun oracle historique
+  modifié ; **candidat non validé globalement**. Aucun Luna ; moteur figé
+  depuis le banc. Créneau dépassé par la suite complète et son diagnostic.
+  Bruts `C:/Users/msics/donjon/artifacts/pas-233/` ;
+  [rapport 233](taches/rapport-codex-233-pas-compagnons-c.md).
+
 - **Branche `codex-restauration-charges`, fusionnée**, lot **218** :
   code `2bd1e6f`, reprise demandée sur **`881db69`** (224/225), fusion
   `7c46d64` sans conflit de code, validation finale `fa9dbe3`. Charge suspendue

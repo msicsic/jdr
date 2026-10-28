@@ -27,6 +27,118 @@ def scene(scenario="relais", auditeur="ilse", auteur="aubin", salle="antichambre
 
 
 class PasCompagnonsTests(unittest.TestCase):
+    def test_promesse_reelle_du_hameau_1985_retrouvee_apres_recharge(self):
+        from donjon.banc_pnj import executer
+        from donjon.geometrie import position_entree
+
+        def depart():
+            m = creer("crue_hameau", 1985)
+            m.joueur.update(salle="chambre_cloche",
+                            position=list(position_entree(m, "chambre_cloche")))
+            return recharger(m)
+
+        a, b = depart(), depart()
+        executer(a, 2)
+        for _ in range(2):
+            executer(b, 1)
+            b = self.stable(b)
+        a = self.stable(a)
+        self.assertEqual(a.data, b.data)
+        self.assertTrue([c for c in a.data["chronique"] if c["pnj"] == "brune"
+                         and "propose à Ilse la promesse que la torche soit allumée" in c["texte"]
+                         and "(accepte)" in c["texte"]])
+        self.assertTrue([s for s in lire(a, "brune")["memoire"]
+                         if s["type"] == "engagement_pris" and s.get("pour") == "ilse"])
+
+    def test_aubin_saisit_l_occasion_de_demander_a_gorm_hameau_et_relais(self):
+        """Reconstitution de la demande de vivres perdue au hameau 1985.
+
+        Aubin attend encore ; Gorm marche dans son dos. Le son, puis la vie
+        autonome, doivent mener à une vraie demande et une parole enregistrée.
+        """
+        from donjon.corps import valeurs
+        from donjon.pnj import avancer
+
+        def vivre(scenario, laps):
+            m = scene(scenario, "aubin", "marchand", "antichambre")
+            m.data["dixiemes"] = 30
+            for id, o in m.objets.items():
+                if o.get("profil"):
+                    lire(m, id).update(libre=1200, veille=None, eveil=None)
+            lire(m, "aubin").update(libre=630, veille=1200, eveil=None, intention=None)
+            valeurs(m, "aubin")["faim"] = 80
+            m = recharger(m)
+            orientation = m.objets["aubin"]["orientation"]
+            retentir(m, "marchand", "aller")
+            self.assertEqual(orientation, m.objets["aubin"]["orientation"])
+            for d in laps:
+                ecouler(m, d)
+                avancer(m, 0, [], dixiemes=d)
+                m = self.stable(m)
+            return m
+
+        for scenario in ("crue_hameau", "relais"):
+            with self.subTest(scenario=scenario):
+                a = vivre(scenario, [500])
+                b = vivre(scenario, [150, 150, 200])
+                self.assertEqual(a.data, b.data)
+                self.assertTrue([c for c in a.data["chronique"] if c["pnj"] == "aubin"
+                                 and "demande une part" in c["texte"] and "(promis)" in c["texte"]])
+                self.assertTrue([s for s in lire(a, "marchand")["memoire"]
+                                 if s["type"] == "engagement_pris" and s.get("pour") == "aubin"])
+                self.assertEqual({"type": "part", "objet": "vivres", "de": "marchand"},
+                                 lire(a, "aubin")["intention"]["but"])
+
+    def test_presence_attribuee_reveille_sans_vue_ni_position_inventee(self):
+        from donjon.pnj import pourraient_se_parler, se_parler
+        from donjon.temps import instant
+        for args in (("crue_hameau", "mael", "aubin", "antichambre"),
+                     ("auberge", "odile", "hugues", "salle_commune")):
+            with self.subTest(scenario=args[0]):
+                m = scene(*args)
+                auditeur, auteur = args[1:3]
+                e = lire(m, auditeur)
+                e["eveil"] = None
+                avant = copy.deepcopy(e["croyances"][auteur]["lieu"])
+                orientation = m.objets[auditeur]["orientation"]
+                libre = e["libre"]
+                self.assertNotIn(auditeur, retentir(m, auteur, "aller"))
+                m = self.stable(m)
+                e = lire(m, auditeur)
+                self.assertEqual(instant(m), e["eveil"])
+                self.assertEqual(avant, e["croyances"][auteur]["lieu"])
+                self.assertEqual(orientation, m.objets[auditeur]["orientation"])
+                self.assertEqual(libre, e["libre"])
+                self.assertTrue(pourraient_se_parler(m, auditeur, auteur))
+                self.assertTrue(se_parler(m, auditeur, auteur))
+                self.stable(m)
+
+    def test_attribution_erronee_ne_permet_pas_de_parler_au_compagnon_absent(self):
+        from donjon.pnj import pourraient_se_parler, se_parler
+        m = scene()
+        placer(m, "aubin", "crypte", (1, 3))
+        placer(m, "brune", "antichambre", (1, 3))
+        lire(m, "ilse")["croyances"].pop("brune", None)
+        retentir(m, "brune", "aller")
+        m = self.stable(m)
+        self.assertFalse(pourraient_se_parler(m, "ilse", "aubin"))
+        self.assertFalse(se_parler(m, "ilse", "aubin"))
+        self.assertNotIn("brune", lire(m, "ilse")["croyances"])
+        self.stable(m)
+
+    def test_bruit_inconnu_ne_devient_pas_presence_identifiee(self):
+        m = scene()
+        placer(m, "ilse", "echoppe", (8, 3))
+        m.objets["ilse"]["orientation"] = "ouest"
+        lire(m, "ilse")["croyances"].pop("aubin", None)
+        retentir(m, "aubin", "aller")
+        m = self.stable(m)
+        self.assertNotIn("aubin", lire(m, "ilse")["croyances"])
+        self.assertTrue([s for s in lire(m, "ilse")["memoire"] if s["type"] == "bruit"])
+        self.assertFalse([s for s in lire(m, "ilse")["memoire"]
+                          if s["type"] == "bruit" and s.get("qui")])
+
+
     def stable(self, m):
         avant = copy.deepcopy(m.data)
         rendu = (decrire_contexte(m), rendre(m, entendus(m, -1, ENTENDU)))

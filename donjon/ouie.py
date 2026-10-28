@@ -761,6 +761,11 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
     mefiance = any(se_mefie(monde, id, x) or craint(monde, id, x) for x in crus)
     if crus and not inhabituel and not mefiance:
         _attribuer(monde, id, crus, salle, case if ici else None)
+        # Expliquer le bruit dispense de se retourner, pas de lui prêter
+        # attention : cette présence peut offrir une occasion de lui parler.
+        # Le choix et l'échange gardent leurs contrôles de présence et d'ouïe.
+        from .esprits import reconsiderer
+        reconsiderer(monde, id)
         return retourne
     if not retourne and ici and distance(case, o["position"]) <= PROCHE:
         from .spatial import dans_le_regard
