@@ -1499,7 +1499,11 @@ def _impasse(monde, id, etape, arrivee, compter=True):
     if intention["motif"] == "alerte":
         e["intention"] = None
     else:
-        _patienter(monde, id, intention, compter)
+        from .spatial import cases
+        cause = {"type": "passage", "salle": monde.objets[id]["lieu"], "etape": dict(etape),
+                 "arrivees": [[s, list(c)] for s, piece in monde.data["salles"].items()
+                              for c in cases(piece) if arrivee(s, c)]}
+        _patienter(monde, id, intention, compter, cause=cause)
     return None
 
 
@@ -1604,7 +1608,7 @@ def _geste(etape):
     return {k: etape[k] for k in ("operation", "cible", "outil", "lieu")}
 
 
-def _patienter(monde, id, intention, compter=True):
+def _patienter(monde, id, intention, compter=True, *, cause):
     """Il attend son occasion, ou que le chemin se libère : une attente commence maintenant
     (``commencer_attente``) ; le temps qu'il y passe se compte en dixièmes de seconde, quel que soit
     le nombre de fois qu'un événement l'a fait reconsidérer. Au-delà de ``PATIENCE`` minutes
@@ -1612,7 +1616,7 @@ def _patienter(monde, id, intention, compter=True):
     from .deliberation import PATIENCE, renoncer
     from .temps import MINUTE, instant
     if intention["attente"] > PATIENCE * MINUTE:
-        renoncer(monde, id, monde.data["minutes"])
+        renoncer(monde, id, monde.data["minutes"], cause)
         return True
     commencer_attente(monde, id, instant(monde))
     return False
@@ -1777,7 +1781,7 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
             if (not dernier or {k: dernier[k] for k in ici} != ici or t - dernier["instant"] > 2 * TOUR
                     or not compter):
                 e["balayage"] = {**ici, "instant": t}
-                observe = bool(tour_d_horizon(monde, id))
+                observe = tour_d_horizon(monde, id)
                 if not observe:
                     return TOUR, GESTE, None
         else:
@@ -1789,11 +1793,14 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         # le bruit que lui promet son adresse à la lumière qu'il a devant la serrure.
         attendu = (bruit_crochetage(monde, id, lumiere_du_geste(monde, id)) if operation == "crocheter"
                    else nature_de(operation, discret=True))
-        if (observe or (observe is None and temoins_crus(monde, id))
-                or oreilles_crues(monde, id, attendu)):
+        from .deliberation import obstacle_patience, salle_crue
+        cause = {"type": "temoins", "salle": o["lieu"], "etape": dict(etape), "nature": attendu}
+        temoins = sorted(set(obstacle_patience(monde, id, cause)) | set(observe or ()))
+        if observe or temoins:
             # Il guette une occasion, jusqu'à la minute suivante ou jusqu'à ce que sa situation change.
             from .signes import dissimule, regarder as regard_social
-            if _patienter(monde, id, intention, compter):
+            cause["temoins"] = {x: salle_crue(monde, id, x) for x in temoins}
+            if _patienter(monde, id, intention, compter, cause=cause):
                 return reste, FIN, None
             rotation = regard_social(monde, id, intention, etape["cible"], "convoite", "guet",
                                      detourner=dissimule(monde, id, intention=True))

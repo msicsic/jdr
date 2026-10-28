@@ -2,7 +2,7 @@
 les horloges du scénario se déclenchent à leur minute pendant la vie des PNJ, même au milieu d'un
 long geste du joueur ; le corps, la dérive des besoins et la sécurité ressentie évoluent selon le
 temps passé dans chaque état (``vecu``), pour les PNJ comme pour le joueur ; le froid sec monte de 4
-par heure ; la patience et le répit se comptent en temps. Chaque cas se vérifie sur l'état du monde
+par heure ; la patience se compte en temps, le renoncement retient l'obstacle. Chaque cas vérifie le monde
 après rechargement, et le même laps découpé autrement donne le même monde."""
 import unittest
 from unittest.mock import patch
@@ -10,7 +10,7 @@ from unittest.mock import patch
 from donjon import vecu
 from donjon.banc_pnj import creer
 from donjon.corps import CORPS, EFFORT
-from donjon.deliberation import PATIENCE, REPIT, choisir
+from donjon.deliberation import PATIENCE, choisir
 from donjon.esprits import esprit, lire
 from donjon.geometrie import position_entree
 from donjon.temps import MINUTE, instant
@@ -221,7 +221,7 @@ def brune_guette():
 
 class PatienceTests(unittest.TestCase):
     """La patience se compte au temps passé à attendre, pas au nombre de fois qu'on y repense ; le
-    répit après un renoncement se compte de son instant."""
+    renoncement enregistre son instant et sa cause, sans délai de réessai."""
 
     def renoncement(self, m, id, pas=1):
         """Le joueur attend jusqu'au renoncement de ``id`` ; renvoie le monde rechargé, l'instant où
@@ -233,7 +233,7 @@ class PatienceTests(unittest.TestCase):
             if debut is None and e["patience"] is not None:
                 debut = e["patience"]
             if e["renoncements"]:
-                return m, debut, min(e["renoncements"].values())
+                return m, debut, min(r["instant"] for rs in e["renoncements"].values() for r in rs)
         self.fail("Pas de renoncement")
 
     def test_cas_reel_brune_renonce_apres_trente_minutes_de_guet(self):
@@ -244,11 +244,11 @@ class PatienceTests(unittest.TestCase):
         self.assertGreaterEqual(fin - debut, PATIENCE * MINUTE)
         self.assertLessEqual(fin - debut, (PATIENCE + 1) * MINUTE)
         self.assertTrue(m.objets["reserve"]["verrouillee"])
-        # Le répit court de cet instant : pas de nouveau guet avant ``REPIT`` minutes.
+        # La cause est gardée sans échéance de réessai.
         e = lire(m, "brune")
         self.assertNotEqual((e["intention"] or {}).get("motif"), "faim")
-        self.assertEqual(type(e["renoncements"]["faim"]), int)
-        self.assertGreater(e["renoncements"]["faim"] + REPIT * MINUTE, instant(m))
+        self.assertEqual(e["renoncements"]["faim"][0]["instant"], fin)
+        self.assertEqual(e["renoncements"]["faim"][0]["cause"]["type"], "temoins")
 
     def test_gorm_bloque_par_le_joueur_compte_le_temps_qu_il_attend(self):
         # Autre cas de même nature : Gorm doit ouvrir la porte des vannes depuis la case où le joueur se

@@ -309,7 +309,23 @@ def verifier(monde):
         # Satisfaite (True), rompue (False), jamais satisfaite depuis qu'il la connaît (None).
         assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
                 and all(v is None or type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
-        assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
+        # Entiers : anciennes sauvegardes sans cause, conservées sans inventer
+        # de preuve. Les renoncements nouveaux n'ont aucune date de réveil.
+        assert isinstance(e["renoncements"], dict) and all(
+            isinstance(k, str) and (type(v) is int or isinstance(v, list) and all(
+                isinstance(r, dict) and set(r) == {"instant", "but", "cause"}
+                and type(r["instant"]) is int and r["instant"] >= 0 and isinstance(r["but"], dict)
+                and isinstance(r["cause"], dict)
+                and r["cause"].get("type") in ("temoins", "passage", "corps")
+                and r["cause"].get("salle") in monde.data["salles"]
+                and isinstance(r["cause"].get("etape"), dict)
+                and (r["cause"]["type"] == "corps" or
+                     (isinstance(r["cause"].get("temoins"), dict) and "nature" in r["cause"]
+                     if r["cause"]["type"] == "temoins" else
+                     isinstance(r["cause"].get("arrivees"), list)
+                     and all(s in monde.data["salles"] and isinstance(c, list) and len(c) == 2
+                             and all(type(x) is int for x in c) for s, c in r["cause"]["arrivees"])))
+                for r in v)) for k, v in e["renoncements"].items()), "Renoncements invalides"
         assert isinstance(e["attentes_bornees"], dict) and all(
             isinstance(k, str) and isinstance(v, str) for k, v in e["attentes_bornees"].items()
         ), "Attentes de recherche invalides"
