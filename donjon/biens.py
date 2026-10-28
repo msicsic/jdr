@@ -652,10 +652,77 @@ def reticence(monde, id, prix_, offre=0):
     return round((valeur_pieces(monde, id, manque) - prix_ * PIECE) / GENEROSITE)
 
 
+# --- Résultats des paroles de service -----------------------------------------------------
+
+
+def retenir_service(monde, id, engagement):
+    """Un résultat promis et constaté, pas une obligation de le maintenir."""
+    c = engagement["condition"]
+    if set(c) not in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"}):
+        return
+    trace = {"de": id, "pour": engagement["pour"], "condition": dict(c)}
+    services = monde.data.setdefault("services_rendus", [])
+    if trace not in services:
+        services.append(trace)
+
+
+def services_proteges(monde, id):
+    """Résultats encore utiles d'après les seules observations du prestataire.
+
+    Le besoin est approché par la présence crue du bénéficiaire auprès du
+    résultat (ou son portage). Un départ connu ou un état constaté défait
+    termine la protection définitivement ; ni oubli par délai, ni entretien.
+    Un bénéficiaire présent qui n'en a plus besoin reste donc protégé.
+    """
+    from .deliberation import _cru, _lieu_cru, salle_crue
+    actifs = [{"de": id, "pour": x["pour"], "condition": x["condition"]}
+              for x in agendas.en_cours(monde, id) if not x.get("annule")
+              and set(x["condition"]) in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})]
+    services = monde.data.get("services_rendus", [])
+    proteges, finis = [], []
+    for s, actif in [(s, False) for s in services] + [(s, True) for s in actifs]:
+        if s["de"] != id:
+            continue
+        c, pour = s["condition"], s["pour"]
+        o = c["objet"]
+        etat = _cru(monde, id, o, "etat") or {}
+        lieu = salle_crue(monde, id, o)
+        beneficiaire = salle_crue(monde, id, pour)
+        porteur = _lieu_cru(monde, id, o)
+        cesse = (o not in monde.objets or _cru(monde, id, o, "fin") is not None
+                 or (_cru(monde, id, pour, "etat") or {}).get("mort")
+                 or "allume" in c and etat.get("allume") is False
+                 or "verrouillee" in c and (_cru(monde, id, o, "verrouillee") is False
+                                              or etat.get("ouverte") is True)
+                 or "lieu" in c and lieu is not None and lieu != c["lieu"])
+        parti = (porteur != pour and lieu is not None and beneficiaire is not None and lieu != beneficiaire)
+        if cesse and not actif or parti:
+            if not actif:
+                finis.append(s)
+        else:
+            # L'absence d'information nouvelle ne dément pas la parole reçue.
+            if c not in proteges:
+                proteges.append(c)
+    if finis:
+        services[:] = [s for s in services if s not in finis]
+    return proteges
+
+
 # --- Vérification ------------------------------------------------------------------------
+
 
 def verifier(monde):
     d = monde.data
+    from .deliberation import condition_valide
+    assert isinstance(d.get("services_rendus", []), list), "Traces de service invalides"
+    for s in d.get("services_rendus", []):
+        assert (isinstance(s, dict) and set(s) == {"de", "pour", "condition"}
+                and s["de"] in monde.objets and monde.objets[s["de"]]["type"] in ("personnage", "depouille")
+                and (s["pour"] == "joueur" or s["pour"] in monde.objets
+                     and monde.objets[s["pour"]]["type"] in ("personnage", "depouille"))
+                and condition_valide(monde, s["condition"])
+                and set(s["condition"]) in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})
+                ), "Trace de service invalide"
     for id, retours in d.get("restitutions", {}).items():
         assert id == "joueur" or id in monde.objets, "Emprunteur restituant inconnu"
         for objet, retour in retours.items():
