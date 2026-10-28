@@ -4,6 +4,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-filiation-mandat`, fusionnée**, lot **252**, base
+  `integration 59cb572` : API `agendas.confier`, lectures copiées `filiation`
+  et `enfants`, origine `mandat`, liens réciproques, unicité par parent /
+  titulaire / condition, deux arêtes au plus, aucun titulaire répété.
+  Refus sans effet, relance avec confirmation datée sans ressusciter un
+  résultat terminal ; validation à la recharge et contrôle AST renforcés.
+  Anciens contrats inchangés ; aucun lecteur de décision ni appel automatique.
+  **25 ciblés distincts verts / cinq fichiers**, parole et déplacement réels,
+  monde/rendu/scène rechargés. **Empreintes 20/20 paires 2 h identiques** :
+  chronique, mesures et état final complet sans retrait de champs ; référence
+  figée `59cb572`, branche `28983ff`, cinq scénarios, quatre graines.
+  Zéro plantage ; avis inchangés, non justifiés **2 → 2**, à expliquer
+  **39 → 39**. Vingt références exactes manquantes calculées une fois et
+  rangées dans le cache commun ; un travailleur réduit, calcul terminé,
+  `fin.json` code 0. Aucun calcul actif, pas de suite complète ni Luna.
+  Bruts `C:/Users/msics/donjon/artifacts/filiation-252/`.
+  Limite : identité vérifiée sur ces vingt paires, sans garantie universelle.
+  [Rapport 252](taches/rapport-codex-252-filiation-mandat.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. agendas.confier publie un mandat déjà accepté (amener, informer) : origine mandat reliée au parent, références confies réciproques, profondeur dérivée des liens ; troisième arête et cycle refusés avant publication (causes distinctes, attendu), relance idempotente, refus sans écriture, publication interdite pendant une évaluation ; agendas.verifier contrôle les liens à la recharge. Aucun appelant en jeu : 20/20 nuits 2 h identiques, état complet compris. 25 tests ciblés verts.
+
 - **Branche `codex-service-repropose`, fusionnée**, lot **251**, base
   `integration 854bb10` : présences requises d'un geste partagées entre
   mesure du plan et `pnj.refus_etape` (admission/revalidation/exécution).
