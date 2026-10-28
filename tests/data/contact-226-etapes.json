@@ -1,0 +1,20 @@
+{
+  "mine": {
+    "visites": "8401832ca9cf937a4ac58dbbd11e556c95d0ce170cabb4be7b5f629db1fcb871",
+    "n_visites": 8471,
+    "plans": "a2fef1f9b6a023e6c2223749a6c65d52526e63008a7bf42d4e5c826cde023f2c",
+    "n_plans": 78,
+    "diagnostics": "c004a7f602d54842cbb914b1fb81efcbaf12389437a41e693581226377537590",
+    "monde": "fc77849bbc2c0b0df47aab3052b27209fedf4b290f0de199178753a0cac82e2b",
+    "lignes": "100187324ef46437989b2700fcd1967bd1fa4b7ac3e9358c07fd488710374132"
+  },
+  "auberge": {
+    "visites": "e2611fcdb40498ccc4f82e231a66c60ab7071b2b3cae547731015ac79307e066",
+    "n_visites": 17198,
+    "plans": "6002c05773b2078c7b53cd6a99677849a3ce10192ea04524fadbcb80b188c452",
+    "n_plans": 98,
+    "diagnostics": "51c0cd5204d6ccb519ebef56db4e07c9f506232a281d4ad8e94491813db32b8e",
+    "monde": "f69c1434053abdac683820afae1e4c2d35528ec38446d4767eef376584c4af76",
+    "lignes": "8d4d01d0acba3b89512171f12c8942a30538593fc50822d5d0105037babe4c37"
+  }
+}

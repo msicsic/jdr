@@ -375,6 +375,10 @@ class BouclesTests(unittest.TestCase):
         from tests.test_protection import seule_et_a_bout
         m = seule_et_a_bout(relais())
         m.objets["marchand"]["profil"]["protege"] = []
+        # Sans compagnon fiable à chercher, le second épisode n'est pas
+        # remplacé par un abri en compagnie avant son appel au secours.
+        from tests.support import lier
+        lier(m, "ilse", "marchand", False, "vu")
         m, _ = vivre(recharger(m), 2)
         lire(m, "ilse")["besoins"]["securite"] = 40.0
         m, _ = vivre(recharger(m), 1)

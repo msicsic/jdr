@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from donjon import defense, planification, ouie
-from donjon.esprits import lire, memoriser, percevoir_tous
+from donjon.esprits import lire, memoriser, percevoir_tous, percoit
 from donjon.monde import Monde
 from donjon.rendu import regarder
 from donjon.scene import scene_percue
@@ -63,9 +63,14 @@ class SecoursAcquitteTests(unittest.TestCase):
                 passer(b, MINUTE // 4)
                 b = recharger(b)
             self.identique(a, b)
-            # Une fois la scène constatée, le cri ne demeure pas à examiner.
-            self.assertTrue(any(s["type"] == "secours" and s.get("examine")
-                                for s in lire(a, "marchand")["memoire"]))
+            # Une recherche d'abri peut le détourner avant le constat. Le cri
+            # reste alors en attente, sans retour au danger ni acquittement
+            # inventé. L'autre scène ci-dessous contrôle le constat effectif.
+            cri = next(s for s in lire(a, "marchand")["memoire"] if s["type"] == "secours")
+            if not cri.get("examine"):
+                self.assertFalse(percoit(a, "marchand", cri["qui"]))
+                etat = lire(a, "marchand")["croyances"].get(cri["qui"], {}).get("etat", {})
+                self.assertFalse(etat.get("source") == "vu" and etat["minute"] > cri["minute"])
 
     def test_appel_reel_suivi_puis_constate_autre_scenario(self):
         for protecteur, cible in (("marchand", "aubin"), ("ilse", "aubin")):

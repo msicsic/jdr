@@ -1205,7 +1205,9 @@ def _plan_abri(monde, id):
     attend bientôt (``eau.menacee``), n'est pas un abri. Tant qu'il voit l'eau monter, l'abri est
     le plus haut lieu éclairé qu'elle ne menace pas, avec ou sans compagnie : elle monte par le bas.
     S'il n'en atteint aucun et que l'eau menace où il se tient, il gagne au moins le lieu où il attend
-    le moins d'eau, éclairé ou non : piégé, il cherche d'abord à sortir de l'eau (``candidats``)."""
+    le moins d'eau, éclairé ou non : piégé, il cherche d'abord à sortir de l'eau (``candidats``).
+    Hors de ce péril, un proche fiable perdu de vue devient un contact à chercher,
+    sous le même parent abri, sans destination d'abri supposée."""
     from .eau import altitude, attendue, menacee, monte
     from .esprits import pnjs
     ici = monde.objets[id]["lieu"]
@@ -1233,6 +1235,21 @@ def _plan_abri(monde, id):
                 salles.append(salle)
         return salles
 
+    def chercher_un_proche():
+        # Chercher ne fait encore d'aucune salle un abri : le parent sera
+        # réévalué après contact, comme après un trajet vers un abri connu.
+        from .planification import contacter
+        from .relations import envers
+        if menacee(monde, id, ici) or monte(monde, id):
+            return None
+        for x in sorted([*pnjs(monde), "joueur"], key=lambda x: (-envers(monde, id, x)["affection"], x)):
+            if x == id or not se_fie(monde, id, x) or salle_crue(monde, id, x) is not None:
+                continue
+            etapes = contacter(monde, id, x)
+            if etapes and admissible(etapes):
+                return {"type": "abri", "lieu": None, "qui": x}, etapes
+        return None
+
     i = lire(monde, id)["intention"]
     en_route = (i["but"].get("lieu") if i and i["plan"] and i["motif"] == "securite" and i["but"]["type"] == "abri" else None)
     eau_monte = monte(monde, id)
@@ -1254,7 +1271,7 @@ def _plan_abri(monde, id):
                 trouve = abri(monde, id, [salle])
                 if trouve is not None and admissible(trouve[1]):
                     return {"type": "abri", "lieu": trouve[0]}, trouve[1] + [_etape("abriter", lieu=trouve[0])]
-            return None
+            return chercher_un_proche()
         salles.sort(key=lambda s: s != ici)
     from .planification import _etape, aller
     for salle in salles:
@@ -1272,7 +1289,7 @@ def _plan_abri(monde, id):
             etapes = aller(monde, id, salle)
             if etapes and admissible(etapes):
                 return {"type": "abri", "lieu": salle}, etapes
-    return None
+    return chercher_un_proche()
 
 
 def _plan_lumiere(monde, id):

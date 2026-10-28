@@ -35,14 +35,20 @@ def reprises(m, minutes):
     return bloc, coupe, debut
 
 
+def retrouvailles(m, a, b):
+    """Le rendez-vous contrôlé, indépendamment des autres contacts légitimes."""
+    noms = [m.joueur["nom"] if x == "joueur" else m.objets[x]["nom"].split(",")[0] for x in (a, b)]
+    textes = {f"{x} retrouve {y}, comme convenu." for x, y in (noms, noms[::-1])}
+    return [t for t in chronique(m) if t in textes]
+
+
 class RendezVousTests(unittest.TestCase):
     def assert_rencontre(self, m, a, b):
         for x, y in ((a, b), (b, a)):
             if x != "joueur":
                 for cle in ("rejoint", "rejoindre"):
                     self.assertNotEqual((lire(m, x)[cle] or {}).get("qui"), y)
-        retrouvailles = [t for t in chronique(m) if " retrouve " in t and "comme convenu" in t]
-        self.assertEqual(len(retrouvailles), 1)
+        self.assertEqual(len(retrouvailles(m, a, b)), 1)
 
     def assert_decoupage(self, bloc, coupe, debut):
         bloc.verifier()
@@ -59,7 +65,7 @@ class RendezVousTests(unittest.TestCase):
         annonces = []
 
         def annoncer(m, id, texte, nature="geste"):
-            if "retrouve" in texte and "comme convenu" in texte:
+            if texte in ("Odile retrouve Anselme, comme convenu.", "Anselme retrouve Odile, comme convenu."):
                 for x in ("odile", "anselme"):
                     self.assertIsNone(lire(m, x)["rejoint"])
                     self.assertIsNone(lire(m, x)["rejoindre"])
@@ -128,6 +134,10 @@ class RendezVousTests(unittest.TestCase):
         m = scenes.JArriveTests().aubin_cherche_gorm_qui_le_hele()
         appel.attendre(m, "marchand", "aubin", vient=True)
         appel.venir(m, "aubin", "marchand")
+        # Aucun nouveau besoin de contact ne crée un second rendez-vous
+        # après l'expiration du premier, qui est le contrat éprouvé ici.
+        from tests.support import calme
+        calme(m, "marchand", "aubin")
         # Le voyageur ne peut plus venir : le lieu où l'appelant est parti est hors de sa vue.
         placer(m, "marchand", "echoppe", [4, 5])
         m.objets["porte"].update(ouverte=False, verrouillee=True)
@@ -136,7 +146,7 @@ class RendezVousTests(unittest.TestCase):
         bloc, coupe, debut = reprises(m, 6)
         self.assert_decoupage(bloc, coupe, debut)
         self.assertIn("Gorm cesse d'attendre Aubin, qui avait promis de venir.", chronique(bloc))
-        self.assertFalse(any("comme convenu" in t for t in chronique(bloc)))
+        self.assertEqual(retrouvailles(bloc, "marchand", "aubin"), [])
 
     def test_dialogue_clot_les_deux_et_ne_clot_pas_un_autre_rendez_vous(self):
         m = scenes.JArriveTests().aubin_cherche_gorm_qui_le_hele()

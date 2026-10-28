@@ -55,6 +55,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   [rapport 225](taches/rapport-codex-225-reessai-obstacle.md).
   Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `esprits.py`, fusionnés sans conflit textuel. Décision du 2026-10-27 (3 B) : patience 30 min gardée, REPIT retiré ; renoncer retient l'obstacle cru (étape, lieu, témoins, passage), levé par un constat ou un autre moyen, jamais par le temps ; inspections ordinaires en rondes de contrôle. Odon (mine 1985) : renoncements 31/122/213 → 31/147, reprise à 114 après constat sans témoin. Répétitions suspectes 5 → 4, à expliquer 61 → 52. Fichiers de code communs depuis la base (deliberation, esprits) : suite complète relancée.
 
+- **Branche `codex-contact-sous-but`, fusionnée**, lot **226**, départ
+  `e5afca8` vérifié, puis intégration 225 (`881db69`, pointe documentaire `b8e433d`)
+  en avance rapide, seul conflit documentaire. Contact perdu de vue recherché
+  sous son parent abri/enquête par `rejoindre` (inspection/appel/question 221),
+  sans localisation réelle ni abri supposé. Seuls `_plan_abri`, `s_enquerir`
+  et le raccord commun changent ; périmètre des lots voisins conservé.
+  Captures 215 : Ilse cherche/appelle Aubin, Brune cherche Ilse pour sa chaleur ;
+  Aubin reste justement sans recours sur ses ressources déjà connues.
+  **Huit nouveaux tests verts**, auberge autonome, parent apaisé/démenti,
+  refus/indices, monde/rendu/scène rechargés et laps découpés.
+  **20 paires finales 4 h contre `881db69`**, références complétées une fois en cache :
+  attente crue **218,75 → 108,75**, hameau **92,5 → 76,25 PNJ·min** ;
+  suspects **4 → 2**, sans hausse par scénario, deux restants intégralement
+  identiques ; zéro plantage/usurpation. S crue **16,5 → 24,5** ; appels **5 → 11**.
+  Préemptions **67 → 87**, à expliquer **59 → 85**, dérives **200 → 241**,
+  états payés perdus **8 → 9**. **Absence de toute boucle nouvelle non certifiée** :
+  nouvelle alerte textuelle d'agenda en crue 2024 ; limites du service 224 conservées.
+  **35 ciblés verts après 225** ; première mesure sur `346c1aa` archivée séparément.
+  Suite initiale interrompue sur demande d'intégration (10 fichiers / 100 tests verts),
+  seule passe complète finale achevée : **2 494 tests / 289 fichiers, 2 558,203 s,
+  15 échecs bruts, zéro erreur**. Cinq échecs reproduits sur `881db69` (voix,
+  compteur de service, lanterne Lucien, deux MiMo), laissés intacts ; dix écarts
+  d'oracles/prémisses propres au contact résolus en reprises ciblées, monde/rendus
+  et contrats conservés. **17 ciblés finaux + deux reprises verts** ; bilan
+  consolidé : **cinq préexistants, suite non verte**, pas de seconde suite complète.
+  AST : seules les deux fonctions et le raccord autorisés ; moteur inchangé depuis
+  le banc. Créneau dépassé par validations et reprise 225. Aucun Luna, deux travailleurs réduits au plus,
+  aucune clé de signature Git. Bruts `C:/Users/msics/donjon/artifacts/contact-226/` ;
+  [rapport 226](taches/rapport-codex-226-contact-sous-but.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Fusionné sur l'intégration : seul conflit de documentation ; base 881db69 (fichiers de code de 227 : outils seulement). Contact sans lieu connu repris par rejoindre (inspection, appel, question 221) sous le but parent abri ou enquête. 20 paires 4 h contre 881db69 : attente crue 218,75 → 108,75, hameau 92,5 → 76,25 PNJ·min, S crue 16,5 → 24,5, suspects 4 → 2 ; préemptions 67 → 87 et à expliquer 59 → 85 en hausse, huit sommeils de l'agenda de Gorm en crue 2024 à surveiller. Cinq échecs de sa suite préexistants (voix du joueur, compteur torche corrigé par 227, lanterne de Lucien, deux MiMo).
+
 - **Branche `codex-service-non-defait`, fusionnée**, lot **224**, base `a22f92e`
   vérifiée, puis 213 intégré (`bd45f65`, fusion `0192bb3`) : résultat promis
   conservé après clôture dans `biens`, filtre commun
