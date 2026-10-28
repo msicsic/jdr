@@ -1220,5 +1220,140 @@ class AtelierEtQualificationDecoupleTests(unittest.TestCase):
         self.assertEqual(reprise2.objets["assemblage_1"]["installation"]["support"], "mur_atelier")
 
 
+class NarrationDeterministeDecoupleTests(unittest.TestCase):
+    """Vérifie le Lot D dans donjon/narrateur.py : voix_auteur, paroles_sans_moteur, voix_inconnues, mentions."""
+
+    def test_narrer_refuse_et_corrige_voix_auteur_coordonnees_parole_et_entite_non_percue(self):
+        from donjon.fournisseurs.contrat import Fournisseur, Reponse
+        from donjon.narrateur import narrer
+        from tests.test_parole_commune import scene
+        from tests.test_tensions import recharger
+
+        m = scene(brune=(2, 3), ilse=(5, 4), aubin=(1, 5))
+        if "brune" in m.data.get("connus", []):
+            m.data["connus"].remove("brune")
+        if "brune" in m.data.get("noms_connus", []):
+            m.data["noms_connus"].remove("brune")
+        m = recharger(m)
+
+        appels = []
+        reponses = iter([
+            "Je vois Corvus en [2, 3] devant Brune et l'anneau. Tu dis à Brune : « Salut ! »",
+            "Une odeur d'huile froide flotte sous la voûte de pierre.",
+        ])
+
+        class FauxNarrateur(Fournisseur):
+            def _appeler(self, demande):
+                appels.append(copy.deepcopy(demande.entree))
+                return Reponse(arguments={"texte": next(reponses)}, brut={}, utilisation={})
+
+        texte = narrer(FauxNarrateur(), m, "observer la salle", "Tu observes la salle.")
+        self.assertEqual(len(appels), 2)
+        attendus = " ".join(o["attendu"] for o in appels[1]["controle_narratif"])
+        # Vérifie que les 4 familles d'obstacles déterministes sont bien détectées au 1er essai :
+        self.assertIn("« Je »", attendus)       # voix_auteur (1re personne)
+        self.assertIn("« Corvus »", attendus)   # voix_auteur (nom du joueur)
+        self.assertIn("« [2, 3] »", attendus)   # unites_moteur (coordonnées)
+        self.assertIn("« Brune »", attendus)    # voix_inconnues (nom de PNJ non appris)
+        self.assertIn("« anneau »", attendus)   # mentions (entité non perçue)
+        self.assertEqual(texte, "Une odeur d'huile froide flotte sous la voûte de pierre.")
+
+        # Cas 2 : si la 2e tentative comporte un segment valide et un segment fautif, seul le segment valide est gardé
+        reponses2 = iter([
+            "Corvus avance en [2, 3].",
+            "L'air humide glace ta nuque. Brune te regarde en [2, 3].",
+        ])
+
+        class FauxNarrateur2(Fournisseur):
+            def _appeler(self, demande):
+                return Reponse(arguments={"texte": next(reponses2)}, brut={}, utilisation={})
+
+        texte2 = narrer(FauxNarrateur2(), m, "avancer", "Tu fais un pas.")
+        self.assertEqual(texte2, "L'air humide glace ta nuque.")
+
+    def test_repondre_dialogue_refuse_nom_secret_nom_corvus_inconnu_et_entite_absente_ou_replie_sur_faits(self):
+        from donjon.fournisseurs.contrat import Fournisseur, Reponse
+        from donjon.transactions import appliquer
+        from tests.test_parole_commune import scene
+        from tests.test_tensions import recharger
+
+        m = scene(brune=(2, 3), ilse=(5, 4), aubin=(1, 5))
+        if "brune" in m.data.get("connus", []):
+            m.data["connus"].remove("brune")
+        if "brune" in m.data.get("noms_connus", []):
+            m.data["noms_connus"].remove("brune")
+        m.data.get("voix_entendues", {}).pop("brune", None)
+        m = recharger(m)
+
+        appels_dial = []
+        repliques = iter([
+            "Brune : « Passe donc Corvus, je suis Brune et l'anneau est caché. »",
+            "La femme trapue au tablier taché : « Passe donc, étranger. »",
+        ])
+
+        class Faux(Fournisseur):
+            def _appeler(self, demande):
+                if demande.fonction == "compiler_intention":
+                    return Reponse(
+                        arguments={
+                            "action": "dialogue",
+                            "cible": "",
+                            "outil": "",
+                            "avec": "",
+                            "methode": "",
+                            "direction": "",
+                            "texte": "",
+                            "sujet_parole": "passage",
+                            "contenu": [],
+                        },
+                        brut={},
+                        utilisation={"entree": 10, "sortie": 5},
+                    )
+                if demande.fonction == "repondre_dialogue":
+                    appels_dial.append(copy.deepcopy(demande.entree))
+                    return Reponse(arguments={"replique": next(repliques)}, brut={}, utilisation={"entree": 5, "sortie": 5})
+                return Reponse(arguments={"texte": ""}, brut={}, utilisation={})
+
+        mj = MJOpenAI(connexion="local", fournisseur=Faux(), decoupler=True)
+        r = mj.echanger(m, "« Laisse-moi passer. »")
+        self.assertEqual(len(appels_dial), 2)
+        attendus = " ".join(o["attendu"] for o in appels_dial[1]["controle_narratif"])
+        self.assertIn("« Brune »", attendus)
+        self.assertIn("« Corvus »", attendus)
+        self.assertIn("« anneau »", attendus)
+        self.assertNotIn("Brune", r["texte"])
+        self.assertNotIn("Corvus", r["texte"])
+        self.assertNotIn("anneau", r["texte"])
+        self.assertIn("Passe donc, étranger.", r["texte"])
+        self.assertIn("s'écarte d'un pas pour te laisser passer.", r["texte"])
+
+        m, _ = appliquer(m, r["_transactions"])
+        m.memoriser("« Laisse-moi passer. »", r["texte"], "dialogue")
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "dial_controle.json"
+            m.sauver(f)
+            reprise = Monde.charger(f)
+        self.assertNotEqual(reprise.objets["brune"]["position"], [2, 3])
+        self.assertNotIn("Brune", reprise.data["conversation"][-1]["reponse"])
+
+        # Cas 2 : si les deux essais de repondre_dialogue échouent au contrôle déterministe,
+        # repondre_dialogue renvoie "" et MJ.echanger se replie proprement sur les faits du moteur.
+        m2 = scene(brune=(2, 3), ilse=(5, 4), aubin=(1, 5))
+        if "brune" in m2.data.get("connus", []):
+            m2.data["connus"].remove("brune")
+        if "brune" in m2.data.get("noms_connus", []):
+            m2.data["noms_connus"].remove("brune")
+        m2.data.get("voix_entendues", {}).pop("brune", None)
+        m2 = recharger(m2)
+        repliques = iter([
+            "Brune : « Passe Corvus ! »",
+            "Brune : « Encore Brune et Corvus ! »",
+        ])
+        r2 = mj.echanger(m2, "« Laisse-moi passer. »")
+        self.assertNotIn("Brune", r2["texte"])
+        self.assertNotIn("Corvus", r2["texte"])
+        self.assertEqual(r2["texte"], "la femme sèche s'écarte d'un pas pour te laisser passer.")
+
+
 if __name__ == "__main__":
     unittest.main()
