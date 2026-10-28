@@ -173,6 +173,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-faire-ou-confier-b`, fusionnée, prête pour une nouvelle
+  suite complète du superviseur**, lot **260**, correctif **`323a0af`**.
+  Régression de la suite `d0f9f7a` (2 671 tests, une erreur propre au lot) :
+  crue/Brune devenue dépouille rejetée par le devis de mandat. Contrat commun
+  corrigé : identité persistante (`noms.PERSONNES`) distincte de disponibilité
+  mort/parti crue ; lecteurs communs au cycle, sous-but, choix et devis.
+  Tous indisponibles : fin/sommeil ; groupes partiels conservés. Projection
+  neutre depuis les croyances : une mort cachée ne change pas à elle seule
+  le type/nom/profil du modèle estimé ; cible hors modèle = devis impossible.
+  Jugements et filiation restent rechargeables après décès de la cible.
+  Aucun masquage d'exception ni cas de scénario. Coûts, paroles et jugement
+  réel du mandat conservés ; intégration 259 déjà fusionnée sans rebase.
+  **796/796 tests verts / 92 fichiers**, dont **17/17 corps blessable entier**
+  inchangé et six nouveaux tests de cycle de vie, monde/rendu/scène rechargés,
+  deux PNJ / deux sortes, mort cachée, croyances fausses, groupe et historique.
+  **812,656 s**, deux travailleurs réduits au plus. **Huit paires 4 h
+  crue/Relais identiques** contre `ab21fb3` : monde final, chronique, mesures,
+  empreintes, récit et souvenirs ; huit références intégralement en cache,
+  aucune rejouée. Zéro plantage. **Réserves antérieures maintenues** : crue
+  7/42 oisiveté 0/0 → 55/195, attente 0/0 → 25/130 PNJ·min ; crue 2024
+  250/185 → 215/160 (oisiveté/attente). Aucun recours possible non entrepris
+  certifié. Brune crue 42 : 10 lignes actif / 9 sommeil, huit réveils avec
+  empreintes différentes, huit captures rechargées ; à 2441, provenance
+  seule vu → entendu, nécessité individuelle non démontrée. Cas distinct du
+  268 (hameau 2024). Ni boucle sans entrée établie ni non-régression globale
+  revendiquée. Ni Luna ni suite complète lancée ici ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/confier-260/destinataires-*` et
+  `apres-259/`. Aucun compte rendu ni réaffectation sur retard.
+  [Rapport 260](taches/rapport-codex-260-faire-ou-confier.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Le mandant choisit entre faire lui-même et confier d'après le devis de l'acteur vu par lui (agendas.devis_observateur, lot 258) ; identité d'un destinataire persistante (survit au décès), disponibilité crue séparée : un destinataire cru mort ou parti termine l'agenda ou le met en sommeil, n'est pas devisé. Correction après la première suite (Brune dépouille en crue : ValueError). Suite complète sur la branche (c590aad) : 2 677 tests, verte. Réserves conservées pour la prochaine vérification d'intégration : crue 7/42, oisiveté urgente 0/0 → 55/195 et attente 0/0 → 25/130 PNJ·min après 259, sans recours possible non entrepris certifié ; aucun mandat prononcé naturellement dans les nuits.
+
 - **Branche `codex-presences-regression`, fusionnée**, lot **259**, base
   `integration 7e69227`, moteur `15d18c1` : admission d'une part demandée
   avec sa venue convenue ; localisation inconnue distincte d'absence crue,
