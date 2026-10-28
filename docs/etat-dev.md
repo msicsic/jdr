@@ -14,6 +14,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   [Rapport 261](taches/rapport-codex-261-ilse-poele.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement, premier essai d'OpenCode Beam Free : livré complet. Épisode reproduit (165-720) ; la faim est seule urgence mais sans recours admissible d'après les croyances d'Ilse (vivres à la réserve gardée par Gorm), recherche faim épuisée à 1 nœud ; le poêle est une routine exécutée pendant l'attente. Verdict : comportement juste. Réserve du superviseur : un épuisement à 1 nœud ne montre pas pourquoi la demande d'une part à Gorm n'est pas envisagée (refus retenu ou autre) ; non vérifié.
 
+- **Branche codex-ilse-demande, non fusionnée**, lot **262**, diagnostic seul,
+  base integration 769c7f1 : pourquoi Ilse ne demande pas une part à Gorm (crue 7).
+  Sur les captures 270/400/600 rechargées, planification.gestes depuis l'état initial
+  propose seulement ller beffroi (et chauffer poele_guet à 600) ; aucun demander
+  de part de vivres. Exclusion : Gorm (marchand) est cru en ntichambre, salle connue
+  et différente de chambre_cloche, tandis que l'antichambre est inaccessible (porte
+  porte crue verrouillée, sans clé ni crochetage) ; _parts_calculer n'offre
+  demander que si le donneur est co-présent, ni _chercher si son lieu est connu.
+  Aucun refus retenu (
+efus_retenu None), ni méfiance/rancune, ni vivre cru épuisé.
+  Verdict : exclusion juste selon ses croyances (passage verrouillé, co-présence requise).
+  Aucun code modifié. Bruts C:/Users/msics/donjon/artifacts/ilse-262/.
+  [Rapport 262](taches/rapport-codex-262-ilse-demande.md).
+
 ## Où on en est
 
 - **Branche `codex-devis-observateur`, fusionnée**, lot **258**, base
