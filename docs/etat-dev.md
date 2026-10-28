@@ -12,11 +12,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   résultat terminal ; validation à la recharge et contrôle AST renforcés.
   Anciens contrats inchangés ; aucun lecteur de décision ni appel automatique.
   **25 ciblés distincts verts / cinq fichiers**, parole et déplacement réels,
-  monde/rendu/scène rechargés. **Empreintes 20 paires 2 h en cours**,
-  référence figée `59cb572`, cinq scénarios, quatre graines, cache commun,
-  un travailleur réduit détaché. Fin attendue :
-  `C:/Users/msics/donjon/artifacts/filiation-252/fin.json`.
-  Pas de suite complète ni Luna. Identité des nuits non encore conclue.
+  monde/rendu/scène rechargés. **Empreintes 20/20 paires 2 h identiques** :
+  chronique, mesures et état final complet sans retrait de champs ; référence
+  figée `59cb572`, branche `28983ff`, cinq scénarios, quatre graines.
+  Zéro plantage ; avis inchangés, non justifiés **2 → 2**, à expliquer
+  **39 → 39**. Vingt références exactes manquantes calculées une fois et
+  rangées dans le cache commun ; un travailleur réduit, calcul terminé,
+  `fin.json` code 0. Aucun calcul actif, pas de suite complète ni Luna.
+  Bruts `C:/Users/msics/donjon/artifacts/filiation-252/`.
+  Limite : identité vérifiée sur ces vingt paires, sans garantie universelle.
   [Rapport 252](taches/rapport-codex-252-filiation-mandat.md).
 
 - **Branche `codex-ascendant-neutre`, fusionnée**, lot **248**, base

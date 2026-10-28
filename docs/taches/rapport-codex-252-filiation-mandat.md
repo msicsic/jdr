@@ -1,7 +1,7 @@
 # Lot 252 — filiation unique et bornée des mandats
 
 Branche `codex-filiation-mandat`, **non fusionnée**, base `59cb572`
-(`origin/integration` au départ). Le banc d'empreintes reste en cours.
+(`origin/integration` au départ). Banc d'empreintes terminé et validé.
 
 ## Invariant et réalisation
 
@@ -46,12 +46,17 @@ La parole est réellement transmise, la demande de déplacement réellement
 acceptée et exécutée par la marche ; une relance conserve l'enfant atteint.
 Un engagement historique est chargé inchangé après création d'un mandat.
 
-**Empreintes en cours** : référence figée `59cb572`, 2 h, Relais/mine/auberge/
-crue/`crue_hameau`, graines 1985/7/42/2024, un travailleur, priorité réduite, cache
-commun réutilisé. Comparaison standard de chronique, mesures et état complet
-(aucun champ nouveau n'est créé tant que l'API n'est pas appelée ; aucun
-retrait de champ attendu). Résultats à lire dans `empreintes.json` après
-`fin.json`. Aucune conclusion d'identité des vingt nuits à ce stade.
+**Empreintes validées : 20/20 paires identiques**, référence figée `59cb572`
+contre branche `28983ff`, 2 h, Relais/mine/auberge/crue/`crue_hameau`, graines
+1985/7/42/2024. Chronique, mesures et **état final complet identiques**, sans
+retirer de champs : aucun champ nouveau n'est créé tant que l'API n'est pas
+appelée. Zéro plantage sur les quarante nuits ; avis inchangés, **2 → 2 non
+justifiés**, **39 → 39 à expliquer** (les deux non justifiés sont dans la crue,
+graines 7 et 2024). Ces constats préexistants ne sont pas résolus par ce socle.
+Un travailleur réduit, référence puis branche ; les vingt références exactes
+manquantes ont été calculées une fois puis rangées dans le cache commun.
+Pas de conclusion de performance. `fin.json` : code 0, fin le 2026-10-28 à
+17:53:02 +01:00 ; bilan `empreintes.json`, divergence nulle.
 
 Bruts : `C:/Users/msics/donjon/artifacts/filiation-252/` : tests initiaux,
 `tests-mandat.json`, `calcul.ps1`, `empreintes.log`, résultat et fichier de fin.
@@ -69,4 +74,5 @@ conversion d'ancien contrat. L'acceptation est fournie par l'appelant, non
 prouvée par cette API. Le contenu de parole reste à juger par le contrat
 social existant ; l'API ne transforme pas un propos en vérité du monde.
 Le suivi et les échéances propres aux mandats restent pour les lots suivants.
+L'identité du jeu est prouvée sur ces vingt paires, pas sur toute partie possible.
 Ni suite complète, ni Luna, ni scénario/MJ/moteur de décision modifiés.
