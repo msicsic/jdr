@@ -4,7 +4,6 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-<<<<<<< HEAD
 - **Branche `codex-sait-observations`, non fusionnée**, reprise **206 b**.
   Nouvelle intégration demandée **`881db69`** (224/225), fusion `8178021`,
   après `d7dbf1a` (213/223/221). Les suivis sont conservés dans
@@ -27,7 +26,6 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Les résultats précédents `3aa16f7` restent des diagnostics, pas la validation
   de cette fusion. Bruts `C:/Users/msics/donjon/artifacts/sait-206/` ;
   [Rapport 206](taches/rapport-codex-206-sait-observations.md).
-=======
 - **Branche `codex-reessai-obstacle`, fusionnée**, lot **225**, départ
   `e4d8655` vérifié : patience 30 min conservée, répit 60 min retiré ; chaque
   renoncement retient son obstacle cru par but/moyen, sans effacement par
@@ -77,7 +75,6 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Bruts `C:/Users/msics/donjon/artifacts/service-224/` ;
   [rapport 224](taches/rapport-codex-224-service-non-defait.md).
   Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `echanges.py`, `planification.py`, fusionnés sans conflit textuel. Trace durable du service rendu (biens.services_rendus), filtre des gestes qui défont l'état et menager_flamme ; protection tant que le bénéficiaire est cru présent ou porteur, sans délai ni entretien. Cas réel : torche de Brune conservée. Compteur brut des états payés perdus 6 → 6 (il compte aussi l'épuisement naturel du combustible) ; retours suspects 5 → 5. Fichiers de code communs depuis la base (planification, echanges, deliberation) : suite complète relancée sur la fusion.
->>>>>>> 881db69
 
 - Branche `codex-ou-est-il`, fusionnée, lot **221**, départ `4fe33ef` :
   question commune de localisation à un tiers cru présent, réponse fondée sur
