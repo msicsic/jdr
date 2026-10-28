@@ -5,17 +5,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-navettes-garde`, non fusionnée**, lot **236**, base
-  `ecbf1a1` : diagnostic, **arrêt pour question de périmètre**, aucun moteur
-  modifié. Auberge 7 rejouée successivement sur `4306c14` et l'intégration
-  actuelle, captures 415/435. Rafale historique retrouvée : sept passages
-  par minute de 430 à 434, garde inchangée, aucun geste manqué. Au poste,
-  `pnj_propositions.plan_recours` injecte une ancienne contre-offre d'huile
-  dans le plan vide de garde sur le seul motif `biens` ; hors du poste,
-  la reconstruction supprime l'achat et fait revenir. Fonction hors périmètre
-  du brief : extension demandée avant correction. Nouvelle nuit actuelle :
-  aucun passage de 426 à 435, mais la capture historique rechargée reproduit
-  encore l'injection avec le moteur actuel. Pas de garantie après 435,
-  aucun correctif, banc rapide ni suite complète. Bruts
+  `ecbf1a1`, diagnostic `6bed2a0`, correctif `3f217d0`. Extension autorisée à
+  `pnj_propositions.plan_recours` et son raccord dans `deliberation.choisir` ;
+  `recours`, registres négatifs, services protégés et MJ intacts. Un résultat
+  ordinaire vide (but tenu) n'est plus confondu avec l'absence de solution
+  (`None`) : pas de greffe commerciale par le seul besoin partagé. Auberge 7
+  sur `4306c14` : sept passages/minute à 430–434 ; garde stable, ancienne
+  contre-offre d'huile réinjectée au poste puis retirée en route. Nouvelle
+  nuit `ecbf1a1` : pas de rafale de 426 à 435, mais greffe encore reproductible
+  sur capture historique avant correction. **35 ciblés verts**, capture et
+  Brune au Relais, monde/rendu rechargés, laps découpés, contre-offre utile
+  conservée. **20 paires 4 h contre `ecbf1a1`**, références manquantes rangées
+  une fois : suspects 219 **0/0/2/0/0 inchangés**, maxima de passages/heure
+  **9/11/17/62/22 inchangés** (Relais/mine/auberge/crue/hameau), zéro plantage.
+  Cycles 507, préemptions 58, à expliquer 87 inchangés. Réserve auberge 7 :
+  dérives ouvertes **8 → 9**, pas de hausse de suspects. **Suite complète
+  unique : 2 524 tests / 292 fichiers, 3 643,527 s**, un échec, zéro erreur,
+  16 ignorés ; **suite non verte**. Échec de torche hameau 1985 reproduit seul
+  sur `ecbf1a1` (16,293 s), mêmes réussite à 3188 et perte fautive à 3615 ;
+  aucun oracle affaibli. Deux travailleurs réduits au plus, créneau dépassé
+  par les vérifications. Aucune garantie
+  universelle des navettes, heure historique entière non rejouée. Bruts
   `C:/Users/msics/donjon/artifacts/navettes-236/` ;
   [rapport 236](taches/rapport-codex-236-navettes-garde.md).
 

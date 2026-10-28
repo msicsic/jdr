@@ -1,69 +1,66 @@
-# Lot 236 — diagnostic des navettes de garde
+# Lot 236 — ne pas greffer un ancien recours sur un but tenu
 
 28 octobre 2026, branche `codex-navettes-garde`, non fusionnée, base `ecbf1a1`.
-**Arrêt pour question de périmètre, aucun correctif moteur.** Le contrat fautif
-implique `pnj_propositions.plan_recours`, hors des fichiers autorisés par le brief.
+Diagnostic `6bed2a0`, correctif `3f217d0`. Extension à `plan_recours` et son
+raccord dans `deliberation.choisir` autorisée par le superviseur. Aucun changement
+de `recours`, des registres négatifs, des services protégés ni du MJ ; aucun Luna.
 
-## Reproduction
+**Cause et invariant.** Un résultat ordinaire vide signifie « but tenu sans
+geste », pas « aucun moyen trouvé ». Le raccord transmettait pourtant `[]`
+dans les deux cas. Une contre-offre ancienne, associée au même besoin, remplaçait
+alors le résultat d'un autre but. `plan_recours` reçoit désormais `None` pour
+l'absence de solution ; une liste reste le résultat du but choisi. Tout résultat
+ordinaire sans faute est prioritaire, même vide. Un recours reste possible après
+absence de solution ou moyen sans témoin ; offres, prix et refus restent retenus.
+Aucune règle propre au gardien, au scénario ou au bien demandé.
 
-Deux nuits auberge, graine 7, départ tiré, joueur au dortoir à sa position
-d'entrée : d'abord le worktree détaché `4306c14`, ensuite la branche actuelle
-(intégration `ecbf1a1`, après 218/229/230). Un seul calcul à la fois, priorité
-BelowNormal ; aucun Luna. Captures à 415, juste avant la fenêtre, puis à 435 ;
-trace avant/après chaque choix d'Anselme, croyances et plans compris.
+**Reproduction**, priorité réduite, une nuit à la fois : auberge 7, départ tiré,
+joueur au dortoir ; `4306c14` détaché, puis intégration `ecbf1a1`. Captures 415/435,
+choix avant/après, plans et croyances archivés. Sur la référence :
 
-Sur `4306c14`, la rafale est reproduite, sans mesurer l'heure entière historique :
-
-| Minute | Cause et progression observées |
+| Minute | Cause du départ ou du retour d'Anselme |
 |---|---|
-| 420–421 | La garde cherche une lanterne ; découverte du ballot déplacé, puis remise au poste. |
-| 422–423 | Ballot remis, pas de navette commerciale relevée. |
-| 424–425 | Rétablissement du poêle ; demandes de lanterne puis d'huile. Deux contre-offres à une pièce sont retenues à 425. |
-| 426–428 | Retour au poste, démarches autour du poêle ; pas encore le cycle stabilisé. |
-| 429 | Lanterne éteinte ; garde reconstruite, mais son plan vide est remplacé par un trajet d'achat d'huile chez Joss. Quatre passages. |
-| 430 | À l'étable, avant l'achat, le choix reconstruit le retour au poste ; au poste, il réinjecte l'achat. Sept passages. |
-| 431 | Même inversion depuis la cuisine, puis nouveau départ du poste. Sept passages. |
-| 432 | Même inversion depuis l'étable. Sept passages. |
-| 433 | Même inversion depuis la cuisine. Sept passages. |
-| 434 | Même inversion depuis l'étable. Sept passages. |
-| 435 | Nouvelle inversion depuis la cuisine, capture finale. |
+| 420–421 | Lanterne recherchée, ballot découvert déplacé, puis remis au poste. |
+| 422–423 | Pas de navette commerciale relevée. |
+| 424–425 | Poêle à rétablir ; demandes de lanterne et d'huile, contre-offres à 425. |
+| 426–428 | Retour au poste et démarches autour du poêle. |
+| 429 | Garde vide remplacée par l'achat d'huile chez Joss ; quatre passages. |
+| 430 | À l'étable avant l'achat, reconstruction du retour ; au poste, réinjection de l'achat ; sept passages. |
+| 431 | Même inversion depuis la cuisine ; sept passages. |
+| 432 | Même inversion depuis l'étable ; sept passages. |
+| 433 | Même inversion depuis la cuisine ; sept passages. |
+| 434 | Même inversion depuis l'étable ; sept passages. |
+| 435 | Nouvelle inversion depuis la cuisine ; capture finale. |
 
-Pendant ce cycle, même but `garder/chambre_chaude`, même naissance à 429,
-aucun `manque`. Le lieu cru de la charge ne bascule pas. La rafale n'est donc
-pas un trajet de garde qui change de cible : des moyens commerciaux étrangers
-à ce but lui sont greffés puis retirés à la reconstruction.
+Même garde `chambre_chaude`, née à 429, aucun geste manqué ni déplacement cru
+de la charge. La fonction de garde rend bien `[]` au poste ; c'est le recours
+commercial qui injecte l'achat. Nouvelle nuit actuelle : aucun passage entre
+426 et 435, garde née à 426. Mais la capture historique rechargée sur le moteur
+actuel reproduisait encore la greffe avant correction.
 
-Sur l'intégration actuelle, aucun passage d'Anselme entre 426 et 435 : garde
-au poste, née à 426, plan vide. La demande refusée porte alors sur le bois
-d'Odile, sans contre-offre retenue. **Cette fenêtre n'établit pas l'absence
-de rafale plus tard dans la nuit.**
+**35 tests ciblés verts** : 32 existants (47,044 s), trois nouveaux (5,967 s).
+Les appels isolés « pas de solution » passent de `[]` à `None`, assertions
+conservées. Capture historique : retour achevé, aucun nouveau départ sur six
+minutes. Brune au Relais : contre-offre alimentaire sans greffe sur sa garde,
+argent conservé. Monde complet identique en bloc ou par minute ; état et rendus
+public/de scène identiques après sauvegarde/recharge. Achat de clé sans second
+jet conservé ; service conditionnel poursuivi par le moteur toujours vérifié.
 
-## Cause et invariant à corriger
+**Banc rapide : vingt paires de 4 h**, cinq scénarios, quatre graines, contre
+`ecbf1a1` ; références manquantes calculées une fois et rangées. Aucun plantage.
+Ordre Relais/mine/auberge/crue/hameau : suspects 219 **0/0/2/0/0 → 0/0/2/0/0**,
+sans hausse par nuit ; maxima PNJ/heure **9/11/17/62/22 → 9/11/17/62/22**.
+Cycles **507 → 507**, préemptions **58 → 58**, entrées à expliquer **87 → 87**.
+Dix-huit états finaux identiques ; seuls auberge 1985 (chronique identique) et 7
+diffèrent. Auberge 7 : proposition de Mireille absente à 187, recherches
+**1 078 → 1 070**, dérives ouvertes **8 → 9** ; réserve conservée. Temps non comparés.
 
-Sur la capture historique rechargée, `planification.garder` rend correctement
-`[]` au poste. `deliberation.choisir` appelle ensuite
-`pnj_propositions.plan_recours(monde, id, besoin, etapes)`. Ce dernier associe
-une ancienne contre-offre à la seule identité du besoin `biens` : il rend
-le trajet d'achat d'huile. En déplacement, le plan ordinaire de retour,
-non vide et sans faute, empêche ce remplacement : l'achat disparaît avant
-exécution. Le retour recrée les conditions de son injection.
-
-La même capture historique chargée par le moteur actuel produit encore
-`garde [] → plan_recours biens [] → trajet + acheter`. Le défaut de contrat
-subsiste malgré la disparition de son déclencheur dans la nouvelle nuit.
-Un recours doit rester rattaché à la demande et au résultat qui le rendent
-utile ; le partage d'un besoin ne permet pas de le transférer à un autre but.
-Interdire les achats pendant une garde masquerait cette lacune générale.
-
-## Limites et reprise
-
-Le brief impose de poser une question si la cause sort des fichiers autorisés.
-Il faut autoriser le contrat commun des recours dans `pnj_propositions.py`
-avec son raccord à `deliberation`, puis ajouter les cas rechargés réels et
-analogues, les laps découpés et les rendus. Aucun invariant corrigé revendiqué,
-aucun banc 20 nuits ni suite complète lancés avant cette décision.
-
-Bruts : `C:/Users/msics/donjon/artifacts/navettes-236/` : captures 415/435,
-chroniques 415–435, choix JSONL et scripts de diagnostic. Les déplacements
-manuels du script causal servent uniquement à isoler l'injection du recours ;
-ils ne constituent pas un test de nuit corrigée.
+**Suite complète unique : 2 524 tests / 292 fichiers, 3 643,527 s**, un échec,
+zéro erreur, 16 ignorés ; **suite non verte**. Le seul échec, torche hameau 1985
+(`test_detecter_changements_avis`), est reproduit seul sur `ecbf1a1` (16,293 s) :
+même réussite à 3188 et perte fautive à 3615. Aucun oracle modifié pour l'effacer.
+Deux travailleurs réduits au plus ; créneau dépassé par les vérifications.
+Pas de garantie sur toutes les causes de navette, ni mesure des 246 passages de
+l'heure historique entière ; la nouvelle nuit n'est suivie que jusqu'à 435.
+Bruts : `C:/Users/msics/donjon/artifacts/navettes-236/`. Les déplacements manuels
+du script causal isolent l'injection ; ils ne valent pas test de nuit corrigée.
