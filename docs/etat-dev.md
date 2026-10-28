@@ -4,6 +4,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-conception-a5`, non fusionnée**, lot **245**, base
+  `integration 9b69785` : inventaire d'A5 et onze lots proposés, sans code
+  du jeu ni calcul. `confier`, agendas sociaux et contrat 213 réutilisables ;
+  filiation de mandat, autorité et compte rendu général manquants.
+  Lot 242 lu sur `origin/codex-suivi-delegation` (`0b37f44`), absent de cette
+  base : à intégrer avant A5, limites des anciennes charges non datées
+  conservées. Six PNJ déjà présents dans la crue étendue ; statut de Gorm,
+  réglages d'autorité, profondeur et réaffectation proposés en options.
+  Aucun test, banc ou Luna ; vérification documentaire uniquement.
+  [Rapport 245](taches/rapport-codex-245-conception-a5.md).
+
 - **Branche `codex-lumiere-faible`, fusionnée**, lot **244**, base
   intégration **707e7ac**. `Vue.recharge_utile` distingue capacité de
   lumière et réserve faible : une source encore allumée ne rend plus
