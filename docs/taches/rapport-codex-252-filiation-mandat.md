@@ -47,7 +47,7 @@ acceptée et exécutée par la marche ; une relance conserve l'enfant atteint.
 Un engagement historique est chargé inchangé après création d'un mandat.
 
 **Empreintes en cours** : référence figée `59cb572`, 2 h, Relais/mine/auberge/
-crue/hameau, graines 1985/7/42/2024, un travailleur, priorité réduite, cache
+crue/`crue_hameau`, graines 1985/7/42/2024, un travailleur, priorité réduite, cache
 commun réutilisé. Comparaison standard de chronique, mesures et état complet
 (aucun champ nouveau n'est créé tant que l'API n'est pas appelée ; aucun
 retrait de champ attendu). Résultats à lire dans `empreintes.json` après
@@ -56,7 +56,10 @@ retrait de champ attendu). Résultats à lire dans `empreintes.json` après
 Bruts : `C:/Users/msics/donjon/artifacts/filiation-252/` : tests initiaux,
 `tests-mandat.json`, `calcul.ps1`, `empreintes.log`, résultat et fichier de fin.
 Les tests ont nécessité une exécution hors bac à sable : les répertoires
-temporaires Python y étaient inaccessibles. Aucun refus d'approbation.
+temporaires Python y étaient inaccessibles. Premier lancement du banc arrêté
+avant toute nuit (argument `hameau` corrigé en `crue_hameau`), journal et fin
+archivés avec le suffixe `lancement-initial`. Push d'abord refusé par le contrôle
+automatique, puis autorisé après présentation de la ligne de livraison du brief.
 
 ## Limites
 
