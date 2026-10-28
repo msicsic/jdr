@@ -5,35 +5,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-ceder-outil-b`, non fusionnée**, lot **228**, reprise du
-  **202** autorisée le 28 octobre. Intégration fusionnée jusqu'à **`3c0e1ca`**,
-  lots 232/236 inclus ; code figé `6652ed2`, correctif `e8feb8f`.
-  Une capacité marginale cédée exige une compensation réelle : doublon conservé,
-  remplacement acquis ou valeur suffisante selon le cédant. Achat sous-compensé
-  **8,4 contre 0,909 refusé** ; prix compensant annoncé et honoré. Pas d'exception
-  par objet ; prêts et réserves gardent leurs contrôles. Cache négatif à entrées
-  crues égales conservé, anciens refus rejugés sous le nouveau contrat.
-  `echanges.tenu`, `plan_recours` et `deliberation.choisir` inchangés par 228 ;
-  pureté intégrée par 232, aucun contournement.
-  Analyse préalable hameau 1985/42 : service d'allumage conservé ; trois offres
-  de clé à une pièce (12 contre 5,174) et torche (12 contre 4,840), sans doublon,
-  réellement sous-compensées : refus maintenus. Captures rechargées, vente
-  compensée, remplacement, rendu et état testés. **70 ciblés puis 15 verts**.
-  **Vingt paires de 4 h** contre `3c0e1ca`, références calculées une fois et
-  cachées : suspects **2→2**, aucune hausse par nuit ; cycles **507→520**,
-  préemptions **58→54**, à expliquer **87→84**, zéro plantage/usurpation.
-  **S hameau 35→35,75**, nuits **36/35/28/44** dans l'étendue de référence
-  **[26 ; 44]** ; F/D **8/2,625 inchangés**. Sans recours nul hors crue,
-  crue **13,75→15 PNJ·min/nuit**. Mine fixe 1985/4 h :
-  **910→887 recherches, 10 925→9 959 nœuds**, sans hausse de coût.
-  **Non validée pour intégration.**
-  **Suite complète unique : 2 558 tests / 296 fichiers, 8 échecs, 2 erreurs,
-  2 460,937 s ; suite non verte, intégration non validée.** Trois défauts déjà sur intégration (deux MiMo, torche hameau), trois hérités
-  de 202 (empreinte auberge, demande de lampe, prix de clé du test 236), quatre
-  écarts de reprise (crochetage/ouïe/rejeu : marchés tentés avant la faute).
-  Comparaisons ciblées 82 et 46 tests sur copies ; oracles voisins intacts,
-  attentes de trajectoire à arbitrer. Pureté verte avec 232. Aucun Luna ; deux travailleurs réduits
-  au plus, aucune clé de signature. Bruts
-  `C:/Users/msics/donjon/artifacts/ceder-228/reprise/` ;
+  **202**, intégration **`d9e5166`** fusionnée dans `e938352`
+  (233/238/239/240 inclus). Compensation `e8feb8f`, arbitrage autorisé des
+  six tests voisins **`537a352`**. Capacité marginale protégée sauf doublon,
+  remplacement acquis ou valeur suffisante ; achat **8,4 contre 0,909 refusé**.
+  Cache négatif conservé, anciens verdicts rejugés sous le nouveau contrat.
+  Aucun correctif propre à un objet ; `tenu`, `plan_recours`, `choisir`
+  et services protégés conservent les raccords des lots voisins.
+  **47 ciblés distincts verts**. Lucien conserve ses crochets (14,4 contre
+  huile 6) et propose une pièce ; **seul hash monde auberge réancré explicitement**,
+  diff exhaustif archivé, autres empreintes gardées. Prêt à Lucien refusé,
+  vente de lampe à Bram pour 17 pièces compensante, titres et finances contrôlés.
+  Navettes : pas d'achat sans fonds, pas de recours sur une garde tenue.
+  Faute imposée isolée des négociations et naissances d'agendas pour bruit,
+  ouïe et rejeu ; assertions intactes. Nouveau parcours naturel jets 1/20
+  sans cette isolation : compensation, acceptation/refus et recharge contrôlés.
+  **Suite complète finale unique : 2 590 tests / 298 fichiers, 6 échecs,
+  zéro erreur, zéro ignoré, 2 609,210 s ; non validée pour intégration.**
+  Les six fichiers arbitrés passent. Cinq autres fichiers restent en échec :
+  `securite` (distance 4, déjà rouge sur intégration), `lumiere` (deux cas :
+  Rémy rejoint le bureau éclairé puis éteint), `agendas_socle` (Tilo dépense 1,
+  rembourse 19, dette de 1 conservée), `pas_compagnons` et `service_non_defait`
+  (hameau : autres marchés tentés, aucune promesse de torche conclue).
+  Attribution : 55 tests ciblés sur intégration, un échec ; replays de branche
+  archivés. Ces cinq fichiers hors extension sont intacts, aucune attente
+  réancrée pour masquer le défaut ; priorité du remboursement à arbitrer.
+  Mesures précédentes contre `3c0e1ca` (avant les quatre nouveaux lots) :
+  S hameau **35→35,75**, nuits dans **[26 ; 44]**, suspects **2→2** sans hausse
+  par nuit ; mine **910→887 recherches, 10 925→9 959 nœuds**. Pas de nouveau
+  banc revendiqué sur `d9e5166`. Ancienne suite de reprise 8 échecs/2 erreurs,
+  remplacée par le verdict final ci-dessus ; MiMo/torche corrigés par 238.
+  Aucun Luna ; deux travailleurs réduits au plus, aucune clé de signature.
+  Bruts `C:/Users/msics/donjon/artifacts/ceder-228/reprise/` ;
   [rapport 228](taches/rapport-codex-228-ceder-outil-reprise.md).
 - **Branche `codex-aide-stable`, fusionnée**, lot **240**, base
   intégration `1c71666`. `Vue.detresses` conserve l'ouverture de l'aide pour
