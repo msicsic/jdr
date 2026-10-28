@@ -1,6 +1,21 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
+
+- **Branche `codex-demande-adoptee`, non fusionnée**, lot **273**, base
+  `c9459ce` : `choisir` libère le plan démenti par `manque` sans effacer
+  sa demande typée ; reprise des moyens, attente sans geste, fin attestée
+  et préemption passent par le contrat existant. Pas de recopie du suffixe
+  démenti, aucun délai ajouté, refus/renoncements conservés ; seul
+  `deliberation.py` change dans le moteur. **21 tests verts** (contrat et empathie),
+  capture réelle Aubin Relais 2024 **117503** sans sortie ni renaissance
+  sur le retour perceptif, Mathé/Lucien hors perception avec obstacle puis
+  reprise et repas effectif, vraie fin/préemption, recharges monde/rendu/scène
+  et laps entiers/découpés. **Calcul détaché en cours** : tests ciblés puis
+  banc 4 h cinq scénarios × quatre graines, référence `0e3e626`, sonde
+  actuelle ; aucune absence de hausse encore revendiquée. Ni Luna ni suite
+  complète. Bruts `C:/Users/msics/donjon/artifacts/demande-273-sol/` ; fin
+  attendue `fin.json`. [Rapport 273](taches/rapport-codex-273-demande-adoptee.md).
 
 - **Branche `codex-retour-aubin`, fusionnée**, lot **272**, diagnostic
   seul, base `aaaf4cf` : Aubin Relais 2024, départ tiré, joueur passif,

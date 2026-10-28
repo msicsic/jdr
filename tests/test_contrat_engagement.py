@@ -7,11 +7,12 @@ import unittest
 from unittest.mock import patch
 
 from donjon import agendas, deliberation as d, relations
-from donjon.esprits import croire, lire, percevoir_tous, percus
+from donjon.esprits import croire, lire, percevoir_tous, percus, constater
 from donjon.planification import _etape
 from donjon.monde import Monde
-from tests.test_empathie import scene, executer, rendu
+from tests.test_empathie import scene, scene_repas, executer, rendu
 from tests.test_tensions import placer, recharger
+from donjon.scene import scene_percue
 
 
 class ContratEngagementTests(unittest.TestCase):
@@ -81,12 +82,8 @@ class ContratEngagementTests(unittest.TestCase):
             eligible = False
             if avant and raison:
                 corps = e['croyances'].get(raison['qui'], {}).get('etat', {}).get('valeur', {})
-                manque = e['manque']
-                echec = bool(manque and manque['minute'] == minute and avant['plan']
-                             and manque['etape'] == {k: avant['plan'][0][k]
-                                                    for k in ('operation', 'cible', 'outil', 'lieu')})
                 eligible = (raison['qui'] not in percus(m, auteur)[0] and corps.get(raison['besoin'])
-                            and not corps.get('mort') and corps.get('conscient') is not False and not echec)
+                            and not corps.get('mort') and corps.get('conscient') is not False)
             resultat = choisir(m, auteur, minute)
             if eligible:
                 hors_vue.append(auteur)
@@ -192,7 +189,7 @@ class ContratEngagementTests(unittest.TestCase):
         self.assertEqual(rendu(m), rendu(n))
 
     def test_preemption_ronde_par_secours_et_accomplissement_decoupe(self):
-        m, auteur, autre = scene()
+        m, auteur, autre = scene_repas()
         condition = {'lieu': 'galerie', 'periode': 30}
         m.objets[auteur]['profil']['pulsions'] = [{'besoin': 'devoir', 'condition': condition}]
         lire(m, auteur)['pulsions'] = []
@@ -268,9 +265,10 @@ class ContratEngagementTests(unittest.TestCase):
             self.assertEqual(m.data, n.data)
             self.assertEqual(rendu(m), rendu(n))
 
-    def test_echec_libere_l_engagement_et_ses_preferences_de_cible(self):
+    def test_echec_sans_demande_typee_libere_ses_preferences_de_cible(self):
         m, auteur, autre = scene()
         d.choisir(m, auteur, 0)
+        lire(m, auteur)['contrat_intention']['contrat']['demande'] = None
         i = lire(m, auteur)['intention']
         self.assertTrue(i['plan'])
         lire(m, auteur)['manque'] = {'minute': 0,
@@ -292,6 +290,160 @@ class ContratEngagementTests(unittest.TestCase):
         n = recharger(m)
         self.assertEqual(m.data, n.data)
         self.assertEqual(rendu(m), rendu(n))
+
+    def recharge_complete(self, m):
+        avant = copy.deepcopy(m.data)
+        texte, scene = rendu(m), scene_percue(m)
+        n = recharger(m)
+        self.assertEqual(avant, n.data)
+        self.assertEqual(texte, rendu(n))
+        self.assertEqual(scene, scene_percue(n))
+        return n
+
+    @staticmethod
+    def marquer_echec(m, auteur):
+        from donjon.pnj import _geste
+        lire(m, auteur)['manque'] = {
+            'minute': m.data['minutes'],
+            'etape': _geste(lire(m, auteur)['intention']['plan'][0])}
+
+    def test_capture_273_echec_ancien_revalide_hors_vue_sans_renaissance(self):
+        fichier = Path(__file__).parent / 'data/demande-273-relais-2024-117503.json.gz'
+        m = self.recharge_complete(Monde(json.loads(gzip.decompress(fichier.read_bytes()))))
+        avant = copy.deepcopy(lire(m, 'aubin')['intention'])
+        contrat = agendas.contrat_intention(m, 'aubin')
+        self.assertNotIn('ilse', percus(m, 'aubin')[0])
+        self.assertIsNone(d._fin_demande(m, 'aubin', contrat['demande']))
+        with patch.object(d, '_reprendre_demande', wraps=d._reprendre_demande) as reprise:
+            d.choisir(m, 'aubin', m.data['minutes'])
+        reprise.assert_called_once_with(m, 'aubin', contrat['demande'])
+        self.assertEqual(lire(m, 'aubin')['intention']['but'], avant['but'])
+        self.assertEqual(lire(m, 'aubin')['intention']['depuis'], avant['depuis'])
+        apres = agendas.contrat_intention(m, 'aubin')
+        self.assertEqual(apres['demande'], contrat['demande'])
+        self.assertEqual(apres['palier'], contrat['palier'])
+        self.assertEqual(apres['phase'], 'continuer')
+        self.assertIsNone(apres['sortie'])
+        # Le refus necessaire historique ne tient plus. Le planificateur peut
+        # reproposer la tête, mais l'exécuteur ne la retente pas dans la minute.
+        from donjon.pnj import agir, ATTENTE
+        from donjon.temps import instant
+        self.assertEqual(agir(m, 'aubin', instant(m), [])[1], ATTENTE)
+        m = self.recharge_complete(m)
+        n = self.recharge_complete(m)
+        choix, vus, phases = d.choisir, [], []
+
+        def observer(monde, id, minute):
+            choix(monde, id, minute)
+            if id == 'aubin':
+                c = agendas.contrat_intention(monde, id)
+                if c and c['demande'] == contrat['demande']:
+                    phases.append(c['phase'])
+                    vus.append('ilse' in percus(monde, id)[0])
+                    self.assertIsNone(c['sortie'])
+
+        with patch.object(d, 'choisir', observer):
+            executer(m, 2)
+        for _ in range(2):
+            executer(n, 1)
+            n = self.recharge_complete(n)
+        self.assertTrue(phases)
+        self.assertIn(True, vus, 'le retour perceptif réel doit être exercé')
+        self.assertNotIn('naitre', phases)
+        self.assertEqual(m.data, n.data)
+        self.assertEqual(rendu(m), rendu(n))
+        self.assertEqual(scene_percue(m), scene_percue(n))
+        self.recharge_complete(m)
+
+    def test_demande_adoptee_attend_obstacle_puis_reprend_hors_vue(self):
+        m, auteur, autre = scene_repas()
+        d.choisir(m, auteur, 0)
+        avant = copy.deepcopy(lire(m, auteur)['intention'])
+        contrat = agendas.contrat_intention(m, auteur)
+        self.marquer_echec(m, auteur)
+        placer(m, autre, 'galerie', [3, 1])
+        percevoir_tous(m)
+        croire(m, auteur, autre, 'lieu', 'galerie', 'entendu', salle='galerie', case=[3, 1])
+        m.objets['vivres']['portions'] = 0
+        constater(m, auteur, 'vivres', 'essai')
+        m = self.recharge_complete(m)
+        for _ in range(3):
+            self.assertNotIn(autre, percus(m, auteur)[0])
+            d.choisir(m, auteur, m.data['minutes'])
+            self.assertEqual(lire(m, auteur)['intention']['but'], avant['but'])
+            self.assertEqual(lire(m, auteur)['intention']['plan'], [])
+            apres = agendas.contrat_intention(m, auteur)
+            self.assertEqual(apres['demande'], contrat['demande'])
+            self.assertEqual(apres['phase'], 'attendre')
+            self.assertIsNone(apres['sortie'])
+            m = self.recharge_complete(m)
+        n = self.recharge_complete(m)
+        executer(m, 2)
+        for _ in range(2):
+            executer(n, 1)
+            n = self.recharge_complete(n)
+        self.assertEqual(m.data, n.data)
+        self.assertEqual(lire(m, auteur)['intention']['plan'], [])
+        m = self.recharge_complete(m)
+        # Le seul constat nouveau est le moyen redevenu disponible ; la
+        # cible reste hors de vue. Aucun délai ni nouvelle naissance requis.
+        m.objets['vivres']['portions'] = 8
+        constater(m, auteur, 'vivres', 'essai')
+        d.choisir(m, auteur, m.data['minutes'])
+        self.assertNotIn(autre, percus(m, auteur)[0])
+        self.assertTrue(lire(m, auteur)['intention']['plan'])
+        self.assertEqual(lire(m, auteur)['intention']['depuis'], avant['depuis'])
+        self.assertEqual(agendas.contrat_intention(m, auteur)['phase'], 'continuer')
+        m = self.recharge_complete(m)
+        n = self.recharge_complete(m)
+        executer(m, 6)
+        for _ in range(6):
+            executer(n, 1)
+            n = self.recharge_complete(n)
+        self.assertEqual(m.data, n.data)
+        self.assertLess(lire(m, autre)['besoins']['faim'], 70)
+        self.assertLess(m.objets['vivres']['portions'], 8)
+        self.assertIn('donne une part', str(m.data['chronique']))
+        self.recharge_complete(m)
+
+    def test_plan_dementi_ne_recopie_pas_un_suffixe_perime(self):
+        m, auteur, _ = scene()
+        d.choisir(m, auteur, 0)
+        i = lire(m, auteur)['intention']
+        tete = copy.deepcopy(i['plan'][0])
+        i['plan'].append(_etape('inspecter', lieu='bureau'))
+        self.marquer_echec(m, auteur)
+        m = self.recharge_complete(m)
+        with patch.object(d, '_candidats', return_value=[]), patch.object(
+                d, '_reprendre_demande', return_value=(i['but'], [tete])):
+            d.choisir(m, auteur, 0)
+        self.assertEqual(lire(m, auteur)['intention']['plan'], [tete])
+        self.assertIsNone(agendas.contrat_intention(m, auteur)['sortie'])
+        self.recharge_complete(m)
+
+    def test_echec_ne_masque_ni_fin_attestee_ni_preemption(self):
+        for cause in ('dementie', 'palier'):
+            with self.subTest(cause=cause):
+                m, auteur, autre = scene()
+                d.choisir(m, auteur, 0)
+                self.marquer_echec(m, auteur)
+                if cause == 'dementie':
+                    etat = dict(lire(m, auteur)['croyances'][autre]['etat']['valeur'], mort=True)
+                    croire(m, auteur, autre, 'etat', etat, 'vu')
+                else:
+                    lire(m, auteur)['besoins']['faim'] = 90.
+                m = self.recharge_complete(m)
+                d.choisir(m, auteur, 0)
+                c = agendas.dernier_contrat_intention(m, auteur)['contrat']
+                self.assertEqual(c['sortie']['cause'], cause)
+                self.assertNotIn('manque', c['sortie']['faits'])
+                if cause == 'dementie':
+                    self.assertTrue(c['sortie']['faits']['etat_cru']['mort'])
+                else:
+                    self.assertLess(c['sortie']['faits']['palier_nouveau'],
+                                    c['sortie']['faits']['palier_actif'])
+                    self.assertEqual(lire(m, auteur)['intention']['motif'], 'faim')
+                self.recharge_complete(m)
 
     def test_disposition_nouvelle_dement_le_secours_sans_apaiser_la_cible(self):
         m, auteur, autre = scene()

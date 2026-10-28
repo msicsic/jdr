@@ -2104,11 +2104,18 @@ def choisir(monde, id, minute):
     if courant and courant["plan"] and manque and manque["minute"] == minute:
         from .pnj import _geste
         if _geste(courant["plan"][0]) == manque["etape"]:
-            # R2 : l'échec libère aussi les anciennes préférences de cible
-            # consultées par les générateurs. Un nouveau moyen reste permis.
-            sortie = _sortie(courant, minute, "dementie", {"manque": manque})
-            courant = None
-            e["intention"] = None
+            if contrat_precedent.get("demande"):
+                # Le moyen est démenti, pas la demande adoptée. Libérer ses
+                # gestes avant de replanifier conserve l'identité et le palier,
+                # sans recopier le plan périmé même si sa tête est reproposée.
+                courant = {**courant, "plan": []}
+                e["intention"] = courant
+            else:
+                # Sans demande typée, libérer aussi les préférences de cible
+                # consultées par les générateurs. Un nouveau moyen reste permis.
+                sortie = _sortie(courant, minute, "dementie", {"manque": manque})
+                courant = None
+                e["intention"] = None
     resultat = None
     choisi = None
     marge = marge_engagement(monde, id)

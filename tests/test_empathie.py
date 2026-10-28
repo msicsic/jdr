@@ -48,6 +48,18 @@ def scene(froid=False, joueur=False):
     return recharger(m), auteur, autre
 
 
+def scene_repas(joueur=False):
+    """Service depuis les vivres portés, sans premier but d'achat distinct."""
+    from donjon.esprits import constater
+    m, auteur, autre = scene(joueur=joueur)
+    for objet, o in m.objets.items():
+        if o['type'] == 'nourriture' and objet != 'vivres':
+            o['portions'] = 0
+            if objet in lire(m, auteur)['croyances']:
+                constater(m, auteur, objet, 'essai')
+    return recharger(m), auteur, autre
+
+
 def rendu(m):
     from donjon.rendu import regarder
     from donjon.carte import carte
@@ -144,7 +156,7 @@ class EmpathieTests(unittest.TestCase):
         from donjon.moteur import Moteur, proposition
         for joueur in (False, True):
             with self.subTest(joueur=joueur):
-                m, auteur, autre = scene(joueur=joueur)
+                m, auteur, autre = scene_repas(joueur=joueur)
                 moteur = Moteur(m)
                 texte = moteur.executer(moteur.preparer(proposition('attendre')))
                 m = recharger(m)
@@ -156,7 +168,7 @@ class EmpathieTests(unittest.TestCase):
                 self.assertEqual(rendu(m), rendu(recharger(m)))
 
     def test_mathe_sert_sans_charge_une_fois_et_recharge(self):
-        m, auteur, autre = scene()
+        m, auteur, autre = scene_repas()
         self.assertTrue(list(secours(m, auteur)))
         b = recharger(m.copier())
         executer(m, 6)
