@@ -5,11 +5,13 @@ sans modifier aucun état du monde, aucun tirage aléatoire ni aucune mémoire d
 planificateur. Pour chaque transition, conserve les entrées du choix et les preuves observées :
 palier du candidat essayé, étape exécutée et condition de fin devenue vraie.
 Les règles sont ordonnées : cycle accompli, préemption stricte, satisfaction ou
-démenti pendant l'action d'un tiers, progression, répétition, entrée à expliquer.
+démenti pendant l'action d'un tiers, progression, moyen évitant le geste manqué,
+rendez-vous intermédiaire clos, répétition, entrée à expliquer.
 Les dérives ouvertes et les pertes d'état payé sont des observations séparées.
 Aucune durée de maintien n'est inventée pour les services instantanés.
 Les pertes sont attribuées aux gestes exécutés ou aux transitions physiques
-sondés, avec la présence crue avant le geste ; ailleurs la cause reste inconnue.
+sondés, avec la présence crue avant le geste et les clôtures publiées auparavant ;
+ailleurs la cause reste inconnue.
 
 La couverture demeure partielle (horizon, prédicats de fin et candidats sans
 palier publié) : une entrée changée ne constitue pas un certificat causal.
@@ -27,7 +29,7 @@ import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from donjon import agendas, banc_pnj, corps, defense, deliberation, eau, planification, pnj, relations  # noqa: E402
+from donjon import agendas, appel, banc_pnj, biens, corps, defense, deliberation, eau, planification, pnj, relations  # noqa: E402
 from donjon.esprits import RECENT, lire, pnjs  # noqa: E402
 from donjon.temps import MINUTE, instant  # noqa: E402
 
@@ -41,7 +43,8 @@ SALLES_JOUEUR = {
 }
 GRAINES_DEFAUT = (1985, 7, 42, 2024)
 CLASSES_SERVICES = ("prestataire_beneficiaire_present", "prestataire_beneficiaire_parti",
-                    "beneficiaire_ou_tiers", "cessation_physique", "cause_non_observee")
+                    "beneficiaire_ou_tiers", "cessation_physique", "cause_non_observee",
+                    "service_clos_avant_perte")
 
 CATEGORIES_EXTERNES = (
     "croyances_valeurs",
@@ -93,6 +96,7 @@ def _resume_decision(intention):
         "cle": _cle_decision(intention),
         "tete_plan": tete,
         "nb_etapes": len(plan),
+        "plan": copy.deepcopy(plan),
     }
 
 
@@ -347,6 +351,24 @@ class SondeAvis:
         self.gestes_contraires = []
         self.candidats = {}
         self.services = {}
+        self.monde_services = None
+
+    def cloturer_services(self, monde, avant):
+        """Ne retient que les retraits effectivement publiés par le choix complet."""
+        for trace in avant:
+            if trace in monde.data.get("services_rendus", ()):
+                continue
+            for service in self.services.values():
+                if (service["prestataire"] == trace["de"] and service["payeur"] == trace["pour"]
+                        and service["condition"] == trace["condition"]
+                        and service["reussite_t"] is not None and service["perte_t"] is None
+                        and "cloture" not in service):
+                    service["cloture"] = {
+                        "t": instant(monde), "preuve": "retrait_publie_services_rendus",
+                        "trace": copy.deepcopy(trace),
+                        "presence": self.presence_service(monde, service, trace),
+                        "croyances": copy.deepcopy(lire(monde, trace["de"])["croyances"]),
+                    }
 
     def accomplissements(self, monde):
         resultat = {}
@@ -369,22 +391,31 @@ class SondeAvis:
                     "t": instant(monde), "cle": cle, "autrui": acteur != qui,
                     "acteur": acteur, "preuve": "condition_de_fin_devenue_vraie"})
 
-    def presence_service(self, monde, service):
+    def presence_service(self, monde, service, trace=None):
         """Lecture pure du même critère de départ cru que biens.services_proteges."""
         id, pour = service["prestataire"], service["payeur"]
         objet = service["condition"]["objet"]
         lieu = deliberation.salle_crue(monde, id, objet)
         beneficiaire = deliberation.salle_crue(monde, id, pour)
         porteur = deliberation._lieu_cru(monde, id, objet)
-        parti = porteur != pour and lieu is not None and beneficiaire is not None and lieu != beneficiaire
+        from donjon.monde import mobile_par_nature
+        if trace is None:
+            trace = next((s for s in monde.data.get("services_rendus", ())
+                          if s["de"] == id and s["pour"] == pour
+                          and s["condition"] == service["condition"]), {})
+        reference = trace.get("lieu_beneficiaire",
+                              None if mobile_par_nature(monde.objets.get(objet, {})) else lieu)
+        parti = (porteur != pour and reference is not None and lieu is not None
+                 and beneficiaire is not None and reference != beneficiaire and lieu != beneficiaire)
         return {"parti": parti, "lieu_objet_cru": lieu, "lieu_beneficiaire_cru": beneficiaire,
-                "porteur_cru": porteur}
+                "porteur_cru": porteur, "lieu_reference": reference}
 
     def presences_services(self, monde):
         return {id(s): self.presence_service(monde, s) for s in self.services.values()
                 if s["perte_t"] is None and s["reussite_t"] is not None}
 
     def relever_services(self, monde, acteur=None, cause=None, presences=None):
+        self.monde_services = monde
         # Conditions d'état, lues dans la réalité ; les conditions de gestes
         # (servir/remettre) n'impliquent aucun état durable de l'objet.
         for qui in self.episodes:
@@ -423,6 +454,8 @@ class SondeAvis:
                                   else "prestataire_beneficiaire_present")
                 service.update(classe=classe, acteur=acteur, cause=cause, presence_avant=presence,
                                violation=classe == "prestataire_beneficiaire_present")
+                if "cloture" in service and service["cloture"]["t"] <= instant(monde):
+                    service.update(classe="service_clos_avant_perte", violation=False)
 
     def analyser(self):
         analyse = analyser_episodes(self.episodes)
@@ -432,7 +465,7 @@ class SondeAvis:
                                           for c in CLASSES_SERVICES}
         return analyse
 
-    def enregistrer_choix(self, monde, id, minute, cause):
+    def enregistrer_choix(self, monde, id, minute, cause, manque=None):
         dec = _resume_decision(lire(monde, id)["intention"])
         t = instant(monde)
         eps = self.episodes.setdefault(id, [])
@@ -453,6 +486,10 @@ class SondeAvis:
             precedent["accompli_au_depart"] = _est_accompli(
                 monde, id, precedent["decision"], minute, cause_sortie=cause
             )
+            if manque and cause.startswith("manque:"):
+                precedent.setdefault("faits", []).append({
+                    "t": t, "cle": precedent["decision"]["cle"],
+                    "preuve": "etape_manquee", "etape": copy.deepcopy(manque["etape"])})
         eps.append({
             "id": id,
             "debut_t": t,
@@ -470,6 +507,11 @@ class SondeAvis:
             "accompli_au_depart": False,
             "palier": self.candidats.get(id, {}).get(dec["cle"]),
             "faits": [],
+            "moyen_admissible": not any(
+                deliberation.renoncement_tient(monde, id, r,
+                                               (dec["but"], dec.get("plan", [])))
+                for retenus in lire(monde, id).get("renoncements", {}).values()
+                if isinstance(retenus, list) for r in retenus) if dec["cle"] else False,
         })
 
 
@@ -542,6 +584,19 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             palier_suivant = suivant.get("palier")
             faits = [f for e in [ep_depart, *intermediaires] for f in e.get("faits", ())
                      if (ep_depart["quitte_t"] or ep_depart["fin_t"]) <= f["t"] <= ep_retour["debut_t"]]
+            plan_retour = ep_retour["decision"].get("plan")
+            echecs_evites = [f for f in ep_depart.get("faits", ())
+                             if f.get("preuve") == "etape_manquee"
+                             and f["t"] == ep_depart["quitte_t"]
+                             and plan_retour and ep_retour.get("moyen_admissible")
+                             and not any(all(p.get(k) == f["etape"].get(k)
+                                             for k in ("operation", "cible", "lieu"))
+                                         for p in plan_retour)]
+            rendez_vous = [f for m in intermediaires for f in m.get("faits", ())
+                          if f.get("preuve") == "rendez_vous_clos_par_retrouves"
+                          and f.get("cle") == m["decision"]["cle"]
+                          and m["debut_t"] <= f["t"] <= ep_retour["debut_t"]
+                          and plan_retour and any(p.get("cible") == f["qui"] for p in plan_retour)]
             if ep_depart["accompli_au_depart"]:
                 classe = "cycle_accompli"
             elif palier is not None and palier_suivant is not None and palier_suivant < palier:
@@ -553,6 +608,12 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             elif any(f.get("cle") == cle and f.get("progression") for f in faits):
                 classe = "progression_reelle"
                 preuves = [f for f in faits if f.get("cle") == cle and f.get("progression")]
+            elif echecs_evites:
+                classe = "changement_moyen_admissible"
+                preuves = echecs_evites + [{"preuve": "plan_retour_admissible", "plan": plan_retour}]
+            elif rendez_vous:
+                classe = "rendez_vous_intermediaire_accompli"
+                preuves = rendez_vous
             elif intermediaires_reels and all(m["accompli_au_depart"] for m in intermediaires_reels):
                 # Un résultat intermédiaire demande une explication causale ;
                 # cette prudence vaut pour tous les buts, sans exception de garde.
@@ -640,7 +701,8 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
         "comptes": dict(comptes),
         "total_non_justifies": comptes.get("repetition_sans_entree_nouvelle", 0),
         "total_justifies": sum(comptes.get(k, 0) for k in (
-            "preemption_palier_superieur", "progression_reelle", "satisfaction_ou_dementi_autrui")),
+            "preemption_palier_superieur", "progression_reelle", "satisfaction_ou_dementi_autrui",
+            "changement_moyen_admissible", "rendez_vous_intermediaire_accompli")),
         "derives_ouvertes": derives,
         "total_derives_ouvertes": len(derives),
         "total_a_expliquer": comptes.get("entree_nouvelle_a_expliquer", 0),
@@ -665,6 +727,36 @@ def observer_avis():
     vrai_agir = pnj.agir
     vrai_menager = deliberation.menager_flamme
     vrais_candidats = deliberation._candidats
+    vraies_clotures = biens.clotures_services_du_choix
+    vrais_retrouves = appel.retrouves
+
+    @contextmanager
+    def clotures_sondees(m):
+        observe = m is sonde.monde_services
+        avant = copy.deepcopy(m.data.get("services_rendus", []))
+        if observe:
+            sonde.relever_services(m)
+        with vraies_clotures(m):
+            yield
+        if observe:
+            sonde.cloturer_services(m, avant)
+
+    def retrouves_sondes(m, id, qui):
+        observe = m is sonde.monde_services
+        attentes = [(x, y) for x, y in ((id, qui), (qui, id))
+                    if x != "joueur" and (lire(m, x).get("rejoint") or {}).get("qui") == y]
+        resultat = vrais_retrouves(m, id, qui)
+        if not observe:
+            return resultat
+        for x, y in attentes:
+            if lire(m, x).get("rejoint") is not None or not sonde.episodes.get(x):
+                continue
+            ep = sonde.episodes[x][-1]
+            if ep["decision"]["but"] == {"type": "attendre", "qui": y}:
+                ep.setdefault("faits", []).append({
+                    "t": instant(m), "cle": ep["decision"]["cle"], "qui": y,
+                    "preuve": "rendez_vous_clos_par_retrouves"})
+        return resultat
 
     def transition(original, physique=False):
         def observer(monde, *args, **kwargs):
@@ -695,10 +787,12 @@ def observer_avis():
             sonde.dans_deliberer = False
 
     def choisir_sonde(m, id, minute):
+        sonde.relever_services(m)
         cause = "minute" if sonde.dans_deliberer else sonde.intentions_agir.pop(id, "eveil")
+        manque = copy.deepcopy(lire(m, id).get("manque"))
         sonde.candidats[id] = {}
         res = vrai_choisir(m, id, minute)
-        sonde.enregistrer_choix(m, id, minute, cause)
+        sonde.enregistrer_choix(m, id, minute, cause, manque)
         sonde.relever_services(m)
         return res
 
@@ -743,6 +837,8 @@ def observer_avis():
     with ExitStack() as pile, patch.object(deliberation, "choisir", choisir_sonde), \
          patch.object(deliberation, "deliberer", deliberer_sonde), \
          patch.object(pnj, "agir", agir_sonde), \
+         patch.object(biens, "clotures_services_du_choix", clotures_sondees), \
+         patch.object(appel, "retrouves", retrouves_sondes), \
          patch.object(deliberation, "_candidats", candidats_sondes), \
          patch.object(deliberation, "menager_flamme", menager_sonde):
         for module, nom, physique in ((pnj, "_executer", False),

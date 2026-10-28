@@ -2,6 +2,29 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-compteurs-faux-positifs`, fusionnée**, lot **265**,
+  base `integration c32cc7d`, outils seulement : clôtures publiées des services
+  suivies avec leur preuve et l'ancrage 238 ; autre moyen admis seulement si le
+  plan évite le geste manqué et respecte les renoncements ; rendez-vous
+  intermédiaire clos par `appel.retrouves` relié au partenaire du plan repris.
+  Trois faux positifs exacts reconnus sur copies des sources `c870c8b` : Bram
+  `367860`, Gorm `409744`, torche `24600` close à `24090`. Identité avec/sans
+  sonde et recharges des deux reprises ; **26 tests ciblés verts**, scènes
+  fautives toujours signalées. Aucun moteur modifié, Luna ni suite complète.
+  **Vingt nuits 4 h terminées : 20/20 identités, 180 contrôles verts**, zéro
+  plantage, un processus réduit détaché via WMI, 2 338,585 s. Suspects **2 → 1**,
+  à expliquer **55 → 47**, changements de moyen admis **0 → 9** ; cycles
+  **489 → 489**, préemptions **46 → 46**, pertes d'état payé **5 → 5** (quatre
+  cessations physiques, un bénéficiaire parti). Suspect historique Mireille
+  auberge 1985 `36720` toujours signalé. Bruts et `fin.json` (`ok=true`) :
+  `C:/Users/msics/donjon/artifacts/compteurs-265/`. Aucun calcul actif.
+  Correctif `91377b1` poussé. Suite 268 non couverte : les réveils d'agenda de
+  Brune `591`/`929` restent à expliquer ; reconnaître acquisitions, positions
+  apprises et engagements accomplis dans un lot suivant. Certification générale
+  fausse ; aucune garantie universelle de stabilité du jeu.
+  [Rapport 265](taches/rapport-codex-265-compteurs-faux-positifs.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Outils seulement. La sonde garde l'historique des clôtures publiées (service clos avant perte, ancrage 238), reconnaît un changement de moyen qui évite le geste manqué et un rendez-vous intermédiaire clos par appel.retrouves. Cas exacts 263/264 reclassés ; suspect historique Mireille auberge 1985 toujours signalé. 20 nuits 4 h identiques avec et sans sonde : suspects 2 → 1, à expliquer 55 → 47, neuf changements de moyen reconnus (crue). Suite : réveils d'agenda sur moyen acquis, position apprise ou engagement accompli (lot 268) encore à expliquer.
+
 - **Branche `codex-agenda-brune`, fusionnée**, lot **268**, diagnostic
   seul sur `a6ecefd` (moteur `1355f7a`) : hameau 2024, départ tiré, joueur
   passif, 4 h ; alerte huit/neuf absente. **Deux réveils effectifs** actuels
