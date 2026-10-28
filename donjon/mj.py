@@ -533,6 +533,10 @@ class MJ:
                 self.fournisseur_narration = creer_fournisseur(fournisseur_narration)
         else:
             self.fournisseur_narration = fournisseur_narration if fournisseur_narration is not None else self.fournisseur
+        self._narration_decouplee = bool(
+            self.decoupler
+            or (decoupler is None and fournisseur_narration is not None and fournisseur_narration not in ("sans", "off", "none"))
+        )
 
     def fermer(self):
         self.fournisseur.fermer()
@@ -631,7 +635,7 @@ class MJ:
 
     def raconter_resultat(self, monde, resultat):
         """Narration seule : le résultat est déjà résolu et sauvegardé par la boucle de jeu."""
-        if self.decoupler:
+        if self.decoupler or getattr(self, "_narration_decouplee", False):
             fourn = self.fournisseur_narration
             if fourn is None:
                 return None
@@ -647,7 +651,6 @@ class MJ:
                 "mode": "dialogue",
                 "texte": texte_final,
                 "ambiance": recit,
-                "_audit": True,
             }
         return self._echanger(monde, "Raconte la manœuvre qui vient d'être résolue.", None,
                               enrichir=False, resultat_resolu=resultat)

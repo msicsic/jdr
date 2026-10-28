@@ -1219,6 +1219,66 @@ class AtelierEtQualificationDecoupleTests(unittest.TestCase):
         self.assertEqual(reprise2.joueur["salle"], "terrasse")
         self.assertEqual(reprise2.objets["assemblage_1"]["installation"]["support"], "mur_atelier")
 
+    def test_rythme_assembler_ignore_mots_temps_et_presser(self):
+        from donjon.atelier import nouveau_atelier
+        from donjon.compilateur import normaliser_proposition
+
+        m = nouveau_atelier()
+        for phrase in (
+            "je presse le pas pour assembler l'échelle",
+            "j'assemble l'échelle en même temps",
+            "combien de temps faut-il pour assembler l'échelle",
+        ):
+            prop = normaliser_proposition(
+                self._arg(action="assembler", cible="echelle", methode="simple", texte="300"),
+                m,
+                intention=phrase,
+            )
+            self.assertEqual(prop["action"], "assembler")
+            self.assertEqual(prop["rythme"], "normal", f"« {phrase} » ne doit pas basculer en rythme soigné")
+
+    def test_compiler_faits_route_vers_ollama_11434_par_defaut(self):
+        from donjon.atelier import nouveau_atelier
+        from donjon.compilateur import compiler_faits
+        from donjon.fournisseurs.local import Local
+
+        m = nouveau_atelier()
+        urls_appelees = []
+        payload_ollama = {
+            "message": {
+                "content": json.dumps({
+                    "ajouts": [{
+                        "type": "qualification",
+                        "ancrage": "hache",
+                        "coupe_possible": True,
+                    }],
+                }),
+            },
+            "prompt_eval_count": 12,
+            "eval_count": 8,
+        }
+
+        def faux_urlopen(req, timeout=None):
+            urls_appelees.append((req.full_url, json.loads(req.data.decode("utf-8"))))
+            return io.BytesIO(json.dumps(payload_ollama).encode("utf-8"))
+
+        with patch.dict("os.environ", {}, clear=True), \
+             patch("urllib.request.urlopen", side_effect=faux_urlopen):
+            arguments, _ = compiler_faits(
+                Local(),
+                m,
+                "Je coupe la corde avec la hache",
+                qualification_requise={"question": "coupe", "cible": "hache", "outil": "hache"},
+            )
+        ajouts = arguments["ajouts"]
+        self.assertEqual(len(urls_appelees), 1)
+        url, corps = urls_appelees[0]
+        self.assertIn(":11434/api/chat", url)
+        self.assertNotIn(":8080", url)
+        self.assertFalse(corps.get("think", True))
+        self.assertEqual(len(ajouts), 1)
+        self.assertEqual(ajouts[0]["ancrage"], "hache")
+
 
 class NarrationDeterministeDecoupleTests(unittest.TestCase):
     """Vérifie le Lot D dans donjon/narrateur.py : voix_auteur, paroles_sans_moteur, voix_inconnues, mentions."""
@@ -1353,6 +1413,42 @@ class NarrationDeterministeDecoupleTests(unittest.TestCase):
         self.assertNotIn("Brune", r2["texte"])
         self.assertNotIn("Corvus", r2["texte"])
         self.assertEqual(r2["texte"], "la femme sèche s'écarte d'un pas pour te laisser passer.")
+
+    def test_narrer_refuse_chiffres_sans_fondement(self):
+        from donjon.fournisseurs.contrat import Fournisseur, Reponse
+        from donjon.narrateur import narrer
+        from tests.test_parole_commune import scene
+
+        m = scene(brune=(2, 3), ilse=(5, 4), aubin=(1, 5))
+        appels = []
+        reponses = iter([
+            "Il reste 3 torches au mur et la porte a cédé au 2e coup.",
+            "L'humidité suinte le long des pierres froides.",
+        ])
+
+        class FauxNarrateur(Fournisseur):
+            def _appeler(self, demande):
+                appels.append(copy.deepcopy(demande.entree))
+                return Reponse(arguments={"texte": next(reponses)}, brut={}, utilisation={})
+
+        texte = narrer(FauxNarrateur(), m, "observer la salle", "Tu observes la salle.")
+        self.assertEqual(len(appels), 2)
+        attendus = " ".join(o["attendu"] for o in appels[1]["controle_narratif"])
+        self.assertIn("« 3 »", attendus)
+        self.assertEqual(texte, "L'humidité suinte le long des pierres froides.")
+
+    def test_liste_marchandises_sans_pnj_n_invente_pas_de_locuteur(self):
+        from donjon.compilateur import _liste_marchandises
+
+        m = nouveau_monde()
+        m.joueur["salle"] = m.joueur["position_salle"] = "echoppe"
+        # Retirer le marchand de la salle tout en laissant des articles en vente
+        m.objets.pop("marchand", None)
+        res = _liste_marchandises(m)
+        self.assertIsNotNone(res)
+        self.assertNotIn("marchand", res["texte"].lower())
+        self.assertNotIn("«", res["texte"])
+        self.assertTrue(res["texte"].startswith("Articles en vente ici :"))
 
 
 if __name__ == "__main__":

@@ -7,17 +7,21 @@ affichage ou enregistrement d'ambiance.
 """
 import os
 import re
-from .fournisseurs.contrat import Demande
+import sys
+from .fournisseurs.contrat import Demande, ErreurFournisseur
 from . import lexique
+from .monde import ErreurMonde
 from .narration import (
     CITATIONS,
     INSTRUCTIONS_REVISION,
+    chiffres_sans_fondement,
     mentions,
     paroles_sans_moteur,
     segments,
     voix_auteur,
     voix_inconnues,
 )
+from .refus import audit
 from .voix import connait_appellation, connait_nom, nom_pour_joueur
 
 PROMPT_NARRATEUR = """Tu es la voix narrative de LE SEUIL, un jeu de rôle d'exploration sombre et viscéral.
@@ -132,6 +136,17 @@ def verifier_narration(monde, texte, entree, mode="ambiance", cible_id=None, fai
         obstacles.extend(paroles_sans_moteur(texte, faits_moteur, adresse=True))
         obstacles.extend(voix_inconnues(monde, [], {}, texte))
         obstacles.extend(mentions(monde, texte, base))
+        for n in chiffres_sans_fondement(texte, entree.get("resultat_moteur", ""), monde.joueur):
+            obstacles.append(
+                audit(
+                    f"Ce nombre (« {n} ») ne figure pas dans le résultat mécanique.",
+                    f"l'ambiance sans le nombre « {n} » : aucun chiffre ni quantité mécanique non établie",
+                    partie="texte",
+                    segment=0,
+                    texte=texte,
+                    recu=n,
+                )
+            )
         return obstacles
 
     # Mode dialogue : réplique directe attribuée à cible_id
@@ -228,8 +243,8 @@ def narrer(fournisseur, monde, intention, resultat_moteur, modele=None, timeout=
                 ]
                 return " ".join(valides).strip()
         return texte
-    except Exception:
-        # En cas d'erreur ou timeout du narrateur, le résultat mécanique suffit
+    except (ErreurFournisseur, ErreurMonde, TimeoutError, OSError) as exc:
+        print(f"[narrateur] {exc}", file=sys.stderr)
         return ""
 
 
@@ -369,5 +384,6 @@ def repondre_dialogue(fournisseur, monde, intention, personnage=None, faits=None
                 return ""
             return replique2
         return replique
-    except Exception:
+    except (ErreurFournisseur, ErreurMonde, TimeoutError, OSError) as exc:
+        print(f"[narrateur] {exc}", file=sys.stderr)
         return ""

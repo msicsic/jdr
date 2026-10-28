@@ -8,7 +8,7 @@ MODELE_MIMO = "mimo-v2.6-flash"
 MODELE_LOCAL = "nemotron-3.5-bolt:e4b"
 URL_LOCAL_DEFAUT = "http://127.0.0.1:8080/v1/chat/completions"
 URL_OLLAMA_DEFAUT = "http://127.0.0.1:11434"
-DEFAUTS_CONNEXION = {"mimo": (MODELE_MIMO, "none"), "local": (MODELE_LOCAL, "medium")}
+DEFAUTS_CONNEXION = {"mimo": (MODELE_MIMO, "none"), "local": (MODELE_LOCAL, "none")}
 VARIABLES = ("OPENAI_API_KEY", "OPENAI_MODEL", "ANTHROPIC_API_KEY", "MIMO_API_KEY", "XIAOMI_API_KEY",
              "LOCAL_LLM_URL", "LOCAL_LLM_MODEL", "LOCAL_LLM_KEY")
 

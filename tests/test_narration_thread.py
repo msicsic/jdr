@@ -1,5 +1,6 @@
 """La narration d'ambiance en thread : elle ne corrompt pas la conversation, se consigne avec son lieu avant
 d'être montrée, et le bandeau est toujours libéré."""
+import io
 import itertools
 from pathlib import Path
 import tempfile
@@ -10,10 +11,13 @@ from unittest.mock import patch
 
 import jeu
 from donjon.auberge import nouveau_auberge
-from donjon.fournisseurs.contrat import Reponse
+from donjon.fournisseurs.contrat import ErreurFournisseur, Reponse
 from donjon.mj import MJ
 from donjon.monde import Monde
 from donjon.web.pont import PontWeb
+
+_ROMAIN = ("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV")
+_FOIS = ("première", "seconde", "troisième", "quatrième")
 
 
 class PontEspion(PontWeb):
@@ -83,26 +87,30 @@ class NarrationThreadTests(unittest.TestCase):
 
     def test_narration_tardive_n_ecrase_pas_la_conversation_pleine(self):
         """La mémoire garde 12 échanges : une narration qui finit après l'action suivante visait, par son
-        index, l'échange de cette action et l'écrasait. L'ambiance est maintenant consignée à part."""
+        index, l'échange de cette action et l'écrasait. L'ambiance est maintenant consignée à part, et une
+        ambiance périmée (non montrée) n'est jamais consignée."""
         porte = threading.Event()
-        bloquer = []
+        bloque_13 = threading.Event()
 
         def ambiance(numero):
-            if bloquer:
+            if numero == 13:
+                bloque_13.set()
                 porte.wait(timeout=10)
-            return f"Ambiance {numero}."
+            return f"Ambiance {_ROMAIN[numero - 1]}."
 
         self._partie(ambiance)
         for _ in range(12):
             self._jouer("ecouter")
         self.assertTrue(attendre(lambda: len(self.pont.montrees) == 12))
         self.assertEqual(len(self.pont.monde.data["conversation"]), 12)
-        bloquer.append(True)
-        self._jouer("ecouter")   # sa narration attend
-        self._jouer("ecouter")   # l'action suivante est déjà consignée quand la première narration finit
+        self._jouer("ecouter")   # sa narration (n° 13) attend sur porte
+        self.assertTrue(bloque_13.wait(timeout=5))
+        self._jouer("ecouter")   # l'action suivante (n° 14) est lancée et finit avant la 13
+        self.assertTrue(attendre(lambda: len(self.pont.montrees) == 13))
         porte.set()
-        # La plus ancienne narration finit la dernière : elle est consignée, mais seule la plus récente parle au bandeau.
-        self.assertTrue(attendre(lambda: len(self.pont.monde.data["ambiances"]["salle_commune"]) == 14))
+        # La narration 13 (périmée) se termine sans écraser la conversation ni être consignée dans ambiances.
+        time.sleep(0.1)
+        self.assertEqual(len(self.pont.monde.data["ambiances"]["salle_commune"]), 13)
         self.assertEqual(len(self.pont.montrees), 13)
         conversation = self.pont.monde.data["conversation"]
         self.assertEqual(len(conversation), 12)
@@ -111,11 +119,11 @@ class NarrationThreadTests(unittest.TestCase):
             self.assertTrue(echange["reponse"].strip())
         reprise = self._quitter()
         self.assertEqual([a["texte"] for a in reprise.data["ambiances"]["salle_commune"]][-2:],
-                         ["Ambiance 13.", "Ambiance 14."])
+                         ["Ambiance XII.", "Ambiance XIV."])
         self.assertFalse(any("Ambiance" in e["reponse"] for e in reprise.data["conversation"]))
 
     def test_ambiance_consignee_avec_son_lieu_avant_d_etre_montree(self):
-        self._partie(lambda n: f"Une odeur de cendre, la {n}e fois.")
+        self._partie(lambda n: f"Une odeur de cendre, la {_FOIS[n - 1]} fois.")
         self._jouer("ecouter")
         self._jouer("ecouter")
         self.assertTrue(attendre(lambda: len(self.pont.montrees) == 2))
@@ -124,7 +132,7 @@ class NarrationThreadTests(unittest.TestCase):
             self.assertIn(vue["texte"], [a["texte"] for a in vue["consignees"]["salle_commune"]])
         reprise = self._quitter()
         self.assertEqual([a["texte"] for a in reprise.data["ambiances"]["salle_commune"]],
-                         ["Une odeur de cendre, la 1e fois.", "Une odeur de cendre, la 2e fois."])
+                         ["Une odeur de cendre, la première fois.", "Une odeur de cendre, la seconde fois."])
         # Les autres lieux n'ont rien reçu.
         self.assertTrue(all(not liste for salle, liste in reprise.data["ambiances"].items() if salle != "salle_commune"))
 
@@ -137,15 +145,39 @@ class NarrationThreadTests(unittest.TestCase):
         self.assertTrue(all(not liste for liste in self.pont.monde.data.get("ambiances", {}).values()))
         self.assertTrue(all(not liste for liste in self._quitter().data.get("ambiances", {}).values()))
 
-    def test_une_erreur_inattendue_libere_le_bandeau_sans_etre_masquee(self):
-        erreurs = []
-        self._partie(lambda n: "inutilisé")
-        with patch.object(MJ, "raconter_resultat", side_effect=RuntimeError("défaut")), \
-             patch.object(threading, "excepthook", lambda args: erreurs.append(args.exc_value)):
+    def test_panne_fournisseur_libere_le_bandeau_et_trace_sans_masquer_resultat(self):
+        """Une panne réseau/401 du fournisseur de narration est tracée sur stderr, libère le bandeau,
+        ne consigne aucune ambiance et laisse le résultat mécanique affiché dans la conversation."""
+        def en_panne(_numero):
+            raise ErreurFournisseur("HTTP 401 : jeton expiré")
+
+        stderr_capture = io.StringIO()
+        self._partie(en_panne)
+        with patch("sys.stderr", stderr_capture):
             self._jouer("ecouter")
-            self.assertTrue(attendre(lambda: erreurs), "l'erreur doit remonter, pas être avalée")
             self.assertTrue(attendre(lambda: self.pont.derniere_ambiance["statut"] == "pret"))
-        self.assertIsInstance(erreurs[0], RuntimeError)
+            self.assertTrue(attendre(lambda: "401" in stderr_capture.getvalue()))
+        self.assertEqual(self.pont.derniere_ambiance["texte"], "")
+        self.assertIn("[narrateur]", stderr_capture.getvalue())
+        self.assertTrue(all(not liste for liste in self.pont.monde.data.get("ambiances", {}).values()))
+        reprise = self._quitter()
+        self.assertEqual(len(reprise.data["conversation"]), 1)
+        self.assertTrue(reprise.data["conversation"][0]["reponse"].strip())
+
+    def test_une_erreur_inattendue_libere_le_bandeau_sans_etre_masquee(self):
+        """Un bug de programmation (AttributeError) dans le narrateur remonte jusqu'au thread sans être avalé
+        par narrer, tout en libérant le bandeau dans finally."""
+        erreurs = []
+
+        def bogue(_numero):
+            raise AttributeError("champ manquant simulé")
+
+        self._partie(bogue)
+        with patch.object(threading, "excepthook", lambda args: erreurs.append(args.exc_value)):
+            self._jouer("ecouter")
+            self.assertTrue(attendre(lambda: erreurs), "l'erreur de programmation doit remonter jusqu'au thread")
+            self.assertTrue(attendre(lambda: self.pont.derniere_ambiance["statut"] == "pret"))
+        self.assertIsInstance(erreurs[0], AttributeError)
         self.assertTrue(all(not liste for liste in self.pont.monde.data.get("ambiances", {}).values()))
         self._quitter()
 

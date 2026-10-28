@@ -18,7 +18,7 @@ from .contrat import ErreurFournisseur, Fournisseur, Reponse
 from .schema import mutualiser
 
 CONTEXTE_DEFAUT = 32768
-FONCTIONS_DECOUPLEES = ("compiler_intention", "narrer_ambiance", "repondre_dialogue")
+FONCTIONS_DECOUPLEES = ("compiler_intention", "etablir_faits", "narrer_ambiance", "repondre_dialogue")
 
 
 def normaliser_url(url=None):

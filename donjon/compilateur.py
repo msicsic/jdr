@@ -364,20 +364,26 @@ def extraire_contexte(monde, intention=""):
 
 
 def _liste_marchandises(monde):
-    """Le catalogue de la salle, dit par son vendeur : des faits du moteur (articles, prix), jamais un texte du modèle."""
+    """Le catalogue de la salle : dit par le vendeur présent s'il est identifié, sinon constaté sans locuteur fictif."""
     en_vente = [o for o in monde.objets.values() if o.get("en_vente") and o.get("lieu") == monde.joueur["salle"]] if monde else []
     if not en_vente:
         raise RefusDeForme("Rien n'est à vendre ici.",
                            "lister_marchandises : aucun objet en_vente dans la salle ; réponds autrement (dialogue).")
+    from .biens import proprietaire
     from .francais import quantite
     from .rendu import prix
     pnjs = [i for i, o in monde.objets.items()
             if o.get("type") == "personnage" and o.get("lieu") == monde.joueur["salle"] and i != "joueur"]
-    nom_vendeur = nom_pour_joueur(monde, pnjs[0]).capitalize() if len(pnjs) == 1 else "Le marchand"
+    vendeurs = [i for i in pnjs if proprietaire(monde, en_vente[0]["id"]) == i] if len(pnjs) > 1 else pnjs
     articles = [f"{o['nom']} : {quantite(prix(monde, o), 'pièce')}" for o in en_vente]
+    if len(vendeurs) == 1:
+        nom_vendeur = nom_pour_joueur(monde, vendeurs[0]).capitalize()
+        texte = f"{nom_vendeur} : « " + " ; ".join(articles) + ". Tu as de quoi payer ? »"
+    else:
+        texte = "Articles en vente ici : " + " ; ".join(articles) + "."
     return {
         "action": "dialogue",
-        "texte": f"{nom_vendeur} : « " + " ; ".join(articles) + ". Tu as de quoi payer ? »",
+        "texte": texte,
         "justification": "Liste des articles en vente dans l'échoppe.",
         "_deterministe": True,
     }
@@ -470,15 +476,6 @@ def normaliser_proposition(prop, monde=None, intention=""):
         return _liste_marchandises(monde)
 
     action = prop.get("action", "")
-    # Invariant : une parole entre guillemets ou une question adressée (hors faisabilité d'un geste)
-    # ne doit pas être transformée en simple observation silencieuse par le compilateur.
-    if action != "conversation_pnj":
-        from .commandes import faisabilite
-        a_guillemets = "«" in (intention or "") or '"' in (intention or "")
-        if a_guillemets and action in ("observer", "examiner", "attendre", "improviser"):
-            action = "dialogue"
-        elif "?" in (intention or "") and action in ("observer", "attendre") and not faisabilite(intention or ""):
-            action = "dialogue"
 
     if action == "dialogue":
         contenu = _normaliser_contenu_parole(prop, monde, intention)
@@ -722,7 +719,7 @@ def normaliser_proposition(prop, monde=None, intention=""):
                 adaptes = [o_id for o_id, o in monde.objets.items() if o.get("lieu") == "joueur" and "couper_bois" in o.get("usages", [])]
                 outil = str(sugg.get("outil") or (adaptes[0] if adaptes else outil))
         rythme = prop.get("rythme") if prop.get("rythme") in ("normal", "soigne") else (
-            "soigne" if methode == "soigne" or any(w in saisie_norm for w in ("soigne", "temps", "presser", "calme")) else "normal"
+            "soigne" if methode == "soigne" else "normal"
         )
         m_len_asm = re.search(r"\d+", str(prop.get("longueur_cm") or prop.get("montant_demande") or prop.get("texte") or ""))
         longueur_cm = int(m_len_asm.group(0)) if m_len_asm else 300

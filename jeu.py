@@ -8,7 +8,6 @@ from pathlib import Path
 import sys
 import threading
 import time
-from types import SimpleNamespace
 
 from donjon.commandes import AIDE, PERCEPTIONS, analyser, est_question, heler
 from donjon.config import charger_env, MODELE_CLAUDE, MODELE_MIMO, MODELE_LOCAL, MODELE_PAR_DEFAUT
@@ -122,7 +121,7 @@ def main(argv=None, interface=None):
     if args.model is None:
         args.model = MODELE_MIMO if args.connexion == "mimo" else os.environ.get("LOCAL_LLM_MODEL", MODELE_LOCAL) if args.connexion == "local" else os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
     if args.effort is None:
-        args.effort = "none" if args.connexion == "mimo" else "medium"
+        args.effort = "none" if args.connexion in ("mimo", "local") else "medium"
     if args.atelier + args.defi + args.mine + args.auberge + args.crue + args.crue_hameau + args.rixe > 1:
         parser.error("Choisis --atelier, --defi, --mine, --auberge, --crue, --crue-hameau ou --rixe.")
     for scenario in ("mine", "auberge", "crue", "crue_hameau", "rixe"):
@@ -222,7 +221,12 @@ def main(argv=None, interface=None):
         actif = not args.offline and (connexion_action in ("chatgpt", "local") or any(os.environ.get(cle) for cle in cles))
         connexion = connexion_action
         
-        decoupler = (args.decouple or (connexion_action == "local") or (args.action is not None)) and not args.monolithique
+        decoupler = (
+            args.decouple
+            or (connexion_action == "local")
+            or (args.action is not None)
+            or (args.narration is not None and args.narration != "sans")
+        ) and not args.monolithique
         mj = MJ(args.model, args.effort, connexion=connexion_action,
                 fournisseur_narration=connexion_narration, decoupler=decoupler) if actif else None
         if mj:
@@ -254,7 +258,7 @@ def main(argv=None, interface=None):
         pending = None
         comparaison_pending = 0
         derniere_ambiance = ""
-        verrou_narration = threading.Lock()
+        verrou_narration = threading.RLock()
         seq_narration = 0
         thread_narration = None
         en_lecture = False
@@ -276,29 +280,32 @@ def main(argv=None, interface=None):
                 notifier_ambiance("pret", texte=texte or derniere_ambiance, duree=duree if texte else None)
 
         def integrer_ambiances():
-            """Verrou tenu, côté boucle : consigne, sauve puis montre les ambiances arrivées entre-temps."""
+            """Verrou tenu, côté boucle : consigne, sauve puis montre uniquement l'ambiance effectivement montrée."""
             arrivees = list(en_attente)
             del en_attente[:]
-            if any(texte for texte, *_ in arrivees):
-                for texte, lieu, *_ in arrivees:
+            montrables = [(texte, lieu, numero, duree) for texte, lieu, numero, duree in arrivees if numero == seq_narration]
+            if any(texte for texte, *_ in montrables):
+                for texte, lieu, *_ in montrables:
                     if texte:
                         consigner_ambiance(texte, lieu)
                 m.sauver(args.save)
-            for texte, _lieu, numero, duree in arrivees:
+            for texte, _lieu, numero, duree in montrables:
                 montrer_ambiance(texte, numero, duree)
 
         def notifier_ambiance(statut, texte=None, duree=None):
             nonlocal derniere_ambiance
-            if texte is not None and statut == "pret":
-                derniere_ambiance = texte
+            with verrou_narration:
+                if texte is not None and statut == "pret":
+                    derniere_ambiance = texte
+                texte_courant = derniere_ambiance if texte is None else texte
             if interface and hasattr(interface, "ambiance"):
-                interface.ambiance(statut=statut, texte=derniere_ambiance if texte is None else texte, duree=duree)
+                interface.ambiance(statut=statut, texte=texte_courant, duree=duree)
 
         notifier_ambiance("pret", "")
 
         def attendre_narration():
             if thread_narration and thread_narration.is_alive():
-                thread_narration.join(timeout=5)
+                thread_narration.join(timeout=getattr(mj, "timeout", 20))
             with verrou_narration:
                 integrer_ambiances()
 
@@ -313,23 +320,27 @@ def main(argv=None, interface=None):
             """Récit d'un résultat déjà appliqué et sauvegardé ; le moteur reste le repli."""
             if mj is None or args.recit_moteur:
                 return None
-            if getattr(mj, "decoupler", False):
+            est_decouple = getattr(mj, "decoupler", False) or getattr(mj, "_narration_decouplee", False)
+            if est_decouple:
                 notifier_ambiance("en_cours")
             t0_narr = time.perf_counter()
             try:
                 recit = mj.raconter_resultat(m, {"intention": demande_initiale(intention), "gestes": gestes,
                                                  "faits": affichage.splitlines()})
             except ErreurMonde:
-                if getattr(mj, "decoupler", False):
+                if est_decouple:
                     notifier_ambiance("pret")
                 return None
             if not recit:
-                if getattr(mj, "decoupler", False):
+                if est_decouple:
                     notifier_ambiance("pret")
                 return None
-            if not getattr(mj, "decoupler", False):
-                if (recit.get("mode") != "dialogue" or not recit.get("_audit")
-                        or chiffres_sans_fondement(recit["texte"], affichage, m.joueur)):
+            if chiffres_sans_fondement(recit["texte"], affichage, m.joueur):
+                if est_decouple:
+                    notifier_ambiance("pret")
+                return None
+            if not est_decouple:
+                if recit.get("mode") != "dialogue" or not recit.get("_audit"):
                     return None
             else:
                 duree_narr = round(time.perf_counter() - t0_narr, 1)
@@ -340,8 +351,9 @@ def main(argv=None, interface=None):
         def lancer_narration(affichage, intention, gestes=None):
             """Lance le récit d'ambiance en arrière-plan pour ne jamais bloquer l'interface ni les menus."""
             nonlocal seq_narration, thread_narration
+            est_decouple = getattr(mj, "decoupler", False) or getattr(mj, "_narration_decouplee", False)
             if mj is None or args.recit_moteur:
-                if getattr(mj, "decoupler", False):
+                if est_decouple:
                     notifier_ambiance("pret")
                 return
             lieu = m.joueur["salle"]
@@ -356,12 +368,9 @@ def main(argv=None, interface=None):
             with verrou_narration:
                 seq_narration += 1
                 ma_seq = seq_narration
+                monde_snap = m.copier()
             notifier_ambiance("en_cours")
             demande_init = demande_initiale(intention)
-            monde_snap = SimpleNamespace(
-                joueur={"salle": lieu},
-                data={"salles": m.data["salles"]},
-            )
 
             def tache():
                 t0_narr = time.perf_counter()
@@ -373,18 +382,21 @@ def main(argv=None, interface=None):
                         "faits": affichage.splitlines(),
                     })
                     ambiance_txt = (recit.get("ambiance") or "").strip() if recit else ""
+                    if ambiance_txt and chiffres_sans_fondement(ambiance_txt, affichage, monde_snap.joueur):
+                        ambiance_txt = ""
                 except ErreurMonde:
                     pass
                 finally:
                     # Quoi qu'il arrive, y compris une erreur inattendue (qui remonte, sans être masquée),
-                    # l'ambiance est enregistrée avec son lieu avant d'être montrée et le bandeau est libéré.
+                    # l'ambiance montrée est enregistrée avec son lieu avant d'être affichée et le bandeau est libéré.
                     duree_narr = round(time.perf_counter() - t0_narr, 1)
                     with verrou_narration:
                         if en_lecture:   # la boucle attend une saisie : le monde est à nous, sous verrou
-                            if ambiance_txt:
-                                consigner_ambiance(ambiance_txt, lieu)
-                                m.sauver(args.save)
-                            montrer_ambiance(ambiance_txt, ma_seq, duree_narr)
+                            if ma_seq == seq_narration:
+                                if ambiance_txt:
+                                    consigner_ambiance(ambiance_txt, lieu)
+                                    m.sauver(args.save)
+                                montrer_ambiance(ambiance_txt, ma_seq, duree_narr)
                         else:            # la boucle travaille : elle consignera, sauvegardera et montrera
                             en_attente.append((ambiance_txt, lieu, ma_seq, duree_narr))
 
