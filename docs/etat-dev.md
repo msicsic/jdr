@@ -6,29 +6,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 - **Branche `codex-presences-regression`, non fusionnée**, lot **259**, base
   `integration 7e69227`, moteur `15d18c1` : admission d'une part demandée
-  avec sa venue convenue, sans déplacement ni consommation projetée réelle ;
-  service spontané à un absent toujours refusé. Revalidation des participants
-  distincte de l'observation ordinaire des cibles de contact disparues.
-  Première passe **74 tests verts / six fichiers, 56,418 s** ; nouvelle
-  contre-épreuve joueur/Ilse verte (devis pur, absence puis venue, service,
-  engagement, portions, mémoire/texte et rendu rechargés). Vérification des
-  **18 fichiers en échec + six voisins : 310 tests, 309 verts**, un échec
-  d'intermédiaire corrigé ensuite (localisation inconnue n'est pas absence).
-  **53 tests verts / huit fichiers, 62,807 s** après ce raccord, dont
-  l'intermédiaire et les scènes 251 ; **257 tests verts / 16 autres fichiers,
-  236,710 s**, soit **310/310 verts** sur le moteur final, deux processus
-  réduits. Aucun ancien oracle modifié ni assertion affaiblie.
-  Reprise du banc le 28 octobre à 21 h 09 : l'ancien lanceur avait survécu
-  à la session mais échoué sur l'import `donjon` avant son bloc de fin.
-  Chemin d'import et couverture des erreurs corrigés dans le lanceur brut ;
-  processus détaché caché **6880**, priorité réduite et deux travailleurs
-  constatés depuis une nouvelle commande. Aucun test rejoué.
-  Banc sur cinq scénarios,
-  quatre graines, 4 h, références `39db079` et `e875877` avec réemploi du
-  cache ; branche figée calculée une fois. Suspects et S/F/D restent à lire ;
-  aucune conclusion globale avant la fin. Ni suite complète ni Luna.
-  Bruts `C:/Users/msics/donjon/artifacts/regression-259/`, fin attendue
-  `banc.termine.json`.
+  avec sa venue convenue ; localisation inconnue distincte d'absence crue,
+  présence réelle et parole toujours contrôlées avant consommation.
+  Service spontané de Mireille à Mathurine absente toujours refusé ; approche
+  et observation ordinaires des cibles disparues restaurées. Aucun nouveau
+  champ, scénario, MJ, social/esprits/agendas/relations modifié.
+  **310/310 tests ciblés verts**, 18 fichiers du journal + six voisins,
+  assertions intactes, monde/rendu rechargés, joueur/Ilse et scènes 251.
+  Suite complète du superviseur sur PC fixe, `dc326ad` : **2 655 tests,
+  un échec AST préexistant**, les 25 échecs/erreurs de 251 disparus.
+  Test isolé reproduit sur **7e69227 et dc326ad**, même
+  `agendas.py:1054`, fichier et contrôle AST inchangés par le lot.
+  **Banc achevé, code 0 : vingt nuits 4 h par version**, cinq scénarios ×
+  quatre graines, `39db079` / `e875877` / branche. Suspects **4/2/3**,
+  sans hausse par nuit contre l'avant-251 ; deux alertes anciennes d'Aubin
+  reviennent contre 251 (Relais/crue 2024), Odile auberge 2024 disparaît.
+  Cycles **498/489/495**, à expliquer **51/55/53**, dérives **216/233/212** ;
+  attente urgente **565/400/565**, sans recours **0/0/0 PNJ·min**.
+  S/F/D détaillés au rapport : S mine **24,25/28,50/25,75**, auberge
+  **9,50/11/9,25** ; aucune amélioration générale revendiquée.
+  Zéro plantage/usurpation/violation. Quarante références exactes absentes
+  calculées une fois, vingt nuits de branche calculées une fois puis relues
+  pour la seconde comparaison ; aucun temps comparé avec le cache.
+  **1 513,801 s**, deux travailleurs réduits au plus, aucun calcul actif.
+  Ni Luna ni suite complète relancée par l'agent. Limites : venue future non
+  garantie, trois suspects non certifiés bénins, pas d'identité universelle.
+  Bruts `C:/Users/msics/donjon/artifacts/regression-259/`, `bilan-final.json`,
+  `banc.termine.json`, preuves `ast-base.log` et `ast-branche.log`.
   [Rapport 259](taches/rapport-codex-259-presences-regression.md).
 
 - **Branche `codex-faire-ou-confier`, fusionnée**, lot **257**, base
