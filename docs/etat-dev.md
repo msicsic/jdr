@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-navettes-garde`, non fusionnée**, lot **236**, base
+  `ecbf1a1` : diagnostic, **arrêt pour question de périmètre**, aucun moteur
+  modifié. Auberge 7 rejouée successivement sur `4306c14` et l'intégration
+  actuelle, captures 415/435. Rafale historique retrouvée : sept passages
+  par minute de 430 à 434, garde inchangée, aucun geste manqué. Au poste,
+  `pnj_propositions.plan_recours` injecte une ancienne contre-offre d'huile
+  dans le plan vide de garde sur le seul motif `biens` ; hors du poste,
+  la reconstruction supprime l'achat et fait revenir. Fonction hors périmètre
+  du brief : extension demandée avant correction. Nouvelle nuit actuelle :
+  aucun passage de 426 à 435, mais la capture historique rechargée reproduit
+  encore l'injection avec le moteur actuel. Pas de garantie après 435,
+  aucun correctif, banc rapide ni suite complète. Bruts
+  `C:/Users/msics/donjon/artifacts/navettes-236/` ;
+  [rapport 236](taches/rapport-codex-236-navettes-garde.md).
+
 - **Branche `codex-reessai-regressions`, fusionnée**, lot **229**,
   départ `1e09926`, première livraison `ad785cf`, puis merge demandé de
   `origin/integration` **`c9d8c05`** (230/231), sans rebase. Aucun moteur/MJ
