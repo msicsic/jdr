@@ -235,7 +235,10 @@ class LecturesTests(unittest.TestCase):
             self.assertEqual(m.objets[id]["lieu"], "antichambre")
             self.assertIn("des pas", texte)
 
-    def test_l_abri_rejoint_le_plus_aime_des_proches_fiables(self):
+    @patch("donjon.agendas._naissances", return_value=None)
+    def test_l_abri_rejoint_le_plus_aime_des_proches_fiables(self, _naissances):
+        # Isoler le choix et l'arrivée auprès du compagnon : un projet
+        # financier né après l'arrivée relève d'une autre scène.
         from donjon.deliberation import _plan_abri
         from tests.test_marche import intention
         for id in ("ilse", "brune"):
