@@ -37,19 +37,37 @@ engagement simplement retiré toujours à expliquer ; aucun changement toujours
 suspect. Second cas positif : verrouillage réellement exécuté pour Odile,
 engagement clos par `agendas.echoir`, puis plan visant le même meuble.
 Plans inadmissibles, références textuelles et reçus anciens/charges annulées
-ne justifient rien. Les premiers lancements ont rencontré les droits Windows
-des répertoires temporaires ; les vérifications avec sauvegardes ont été
-relancées hors bac à sable, avec priorité réduite.
+ne justifient rien. Sauvegardes vérifiées hors bac à sable après les refus
+d'accès Windows aux répertoires temporaires.
 
-**Campagne détachée à terminer :** vingt paires de nuits de **4 h**, cinq
-scénarios × quatre graines, sur le moteur courant ; un processus réduit,
-nuits sonde/témoin successives. Deux observateurs avant/après dans la nuit
-sondée, état complet, empreintes, chronique, mesures, récit, souvenirs et vues
-rechargées comparés au témoin. `bilan.json` publiera les compteurs avant/après
-et rappellera la référence 265 (suspects **1**, à expliquer **47**, cycles
-**489**, préemptions **46**, changements de moyen **9**). Résultats finaux non
-encore revendiqués ; signal de fin écrit en dernier :
-`C:/Users/msics/donjon/artifacts/reveils-271/fin.json`.
+**Campagne terminée : 20/20 identités, 180 contrôles verts, zéro plantage.**
+Vingt paires **4 h**, cinq scénarios × quatre graines, départ tiré ; nuits
+sonde/témoin successives, un processus réduit détaché, **2 466,737 s**.
+État complet, empreintes, chronique, mesures, récit, souvenirs, état et vues
+rechargés identiques. Deux observateurs avant/après classent les mêmes nuits :
+
+| Compteur | Référence 265, après | Avant 271 | Après 271 |
+|---|---:|---:|---:|
+| Suspects | 1 | 1 | 1 |
+| À expliquer | 47 | 41 | 15 |
+| Entrées publiées utilisées | 0 | 0 | 26 |
+| Cycles accomplis | 489 | 495 | 495 |
+| Préemptions | 46 | 48 | 48 |
+| Changements de moyen | 9 | 14 | 14 |
+| Progressions réelles | 0 | 1 | 1 |
+| Pertes d'état payé | 5 | 4 | 4 |
+
+**Effet propre mesuré : 26 reclassements, tous de « à expliquer » vers la
+nouvelle classe**, aucun retour ajouté ou retiré, aucun suspect effacé.
+Relais 8, crue 13, hameau 5 ; tous portent un lieu cru changé, dont cinq
+également une acquisition/propriété nouvelle. Les clôtures sont couvertes par
+la scène ciblée et la capture historique. Brune **591/929** reconnus aussi dans
+la nuit complète. Suspect actuel conservé : Aubin, Relais 2024, **117518**.
+Dérives **212 → 212** ; pertes physiques **3 → 3**, bénéficiaire parti **1 → 1**,
+aucune violation de service. Les écarts entre la référence 265 et l'avant-271
+ne sont pas attribués à ce lot ; aucune référence rejouée ni comparaison de
+temps entre campagnes. `fin.json` : `ok=true`, vingt paires achevées ;
+**aucun calcul actif**.
 
 **Limites.** Horizon existant de 60 minutes, relevés aux transitions de décision
 et mémoire bornée des reçus : une preuve disparue ou non relevée reste inconnue.
@@ -57,4 +75,5 @@ Le lien structurel au plan ne démontre pas la nécessité individuelle de chaqu
 entrée par retrait contrefactuel. Aucune certification générale d'absence de
 boucle. Bruts, scripts et preuves :
 `C:/Users/msics/donjon/artifacts/reveils-271/` (`captures.json`, `campagne.py`,
-`detecteur_avant.py`, puis `bilan.json` et `fin.json`).
+`detecteur_avant.py`, `tests.json`, `bilan.json`, `fin.json` et vingt nuits
+compressées avec les deux analyses).

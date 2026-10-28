@@ -10,10 +10,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   **495/1393/59658** reconnus, **738 reste à expliquer**. Mireille auberge 1985
   **36720** reste suspecte. **30 tests ciblés distincts verts**, scènes avec/sans
   sonde et recharges monde/rendu/scène, 18 recharges des captures historiques.
-  Aucun moteur modifié, ni Luna ni suite complète. **Vingt paires 4 h détachées
-  à terminer**, un processus réduit, compteurs avant/après et référence 265
-  dans `bilan.json`. Signal de fin attendu :
-  `C:/Users/msics/donjon/artifacts/reveils-271/fin.json`.
+  Aucun moteur modifié, ni Luna ni suite complète. **Vingt paires 4 h terminées :
+  20/20 identités, 180 contrôles verts**, zéro plantage, un processus réduit
+  détaché, **2 466,737 s**. Sur les mêmes nuits : à expliquer **41 → 15**,
+  **26 entrées publiées utilisées**, suspects **1 → 1** (Aubin Relais 2024
+  `117518`), cycles **495 → 495**, préemptions **48 → 48**, changements de moyen
+  **14 → 14**, progressions **1 → 1**, dérives **212 → 212**, pertes d'état payé
+  **4 → 4**, aucune violation de service. Référence 265 : à expliquer **47**,
+  suspects **1**, cycles **489**, préemptions **46**, changements de moyen **9**,
+  pertes **5** ; écarts intercampagnes non attribués au lot. Aucun retour ajouté
+  ou retiré ; aucune référence rejouée, aucun temps comparé entre campagnes.
+  Bruts `C:/Users/msics/donjon/artifacts/reveils-271/`, `bilan.json`,
+  `fin.json` (`ok=true`). Correctif `3b1ccdc` poussé ; **aucun calcul actif**.
   Horizon 60 min et reçus bornés ; lien structurel, sans preuve de nécessité
   contrefactuelle ni garantie universelle.
   [Rapport 271](taches/rapport-codex-271-reveils-agenda-sonde.md).
