@@ -1062,6 +1062,7 @@ def verifier(monde, id):
         _verifier_filiation(monde, id, a)
         jugements = a.get("jugements", [])
         assert isinstance(jugements, list), "Jugements de mandat invalides"
+        from .relations import CLES_AUTORITE
         for j in jugements:
             assert (isinstance(j, dict) and set(j) >= {"qui", "minute", "sorte", "parametres", "issue", "raison"}
                     and j["qui"] in monde.objets and type(j["minute"]) is int
@@ -1069,7 +1070,7 @@ def verifier(monde, id):
                     and j["raison"] in ("adhesion", "dette", "autorite", "confirmation", j["issue"])), "Jugement de mandat invalide"
             _condition_mandat(monde, j["sorte"], j["parametres"])
             if "autorite" in j:
-                assert (set(j["autorite"]) == {"statut", "ascendant", "dette", "bonus"}
+                assert (set(j["autorite"]) == CLES_AUTORITE
                         and 0 <= j["autorite"]["bonus"] <= 5
                         and all(isinstance(j[k], (int, float)) for k in ("cout", "total", "dd"))), "Bilan de mandat invalide"
     for engagement in en_cours(monde, id):

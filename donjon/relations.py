@@ -223,6 +223,10 @@ def autorite_reconnue(monde, id, autre):
     return _lecture(monde, id, autre)["ascendant"]
 
 
+# Les champs du bilan d'autorité d'un mandat (``autorite_mandat``), seule source de leurs noms hors de ce module.
+CLES_AUTORITE = frozenset({"statut", "ascendant", "dette", "bonus"})
+
+
 def autorite_mandat(monde, id, autre, lieu, domaine):
     """Une lecture perçue ; la dette figure déjà dans le jet commun.
 
