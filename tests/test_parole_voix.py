@@ -181,7 +181,7 @@ class RejointTests(unittest.TestCase):
         self.assertGreaterEqual(lire(m, "marchand")["visites"]["antichambre"], echeance)  # Puis sa ronde.
 
     def test_un_besoin_plus_pressant_passe_avant(self):
-        """Gorm a répondu à Aubin ; sa faim presse : il va manger d'abord, puis attend Aubin."""
+        """Gorm a répondu à Aubin ; sa faim presse : il annonce la rupture avant d'aller manger."""
         m = calme(relais(), "marchand", "brune", "ilse", "aubin")
         placer(m, "marchand", "crypte", (5, 2))
         placer(m, "aubin", "beffroi", position_entree(m, "beffroi"))
@@ -191,11 +191,16 @@ class RejointTests(unittest.TestCase):
         lire(m, "marchand")["besoins"]["faim"] = 95.0
         m = recharger(m)
         m, _ = vivre(m, 1)
-        # Il est allé manger aussitôt (à l'événement, sans attendre la minute), puis attend Aubin.
+        # Le départ urgent ne laisse pas une attente attachée à l'ancien lieu.
         self.assertIn("Gorm, gardien du relais mange une part des vivres du refuge.", chronique(m))
-        self.assertEqual(lire(m, "marchand")["rejoint"]["qui"], "aubin")
+        self.assertIsNone(lire(m, "marchand")["rejoint"])
+        self.assertIsNone(lire(m, "aubin")["rejoint"])
+        self.assertIn("Gorm répond : « Je ne peux plus t'attendre. »", chronique(m))
         self.assertLess(m.data["minutes"], echeance)
-        self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "attendre", "qui": "aubin"})
+        from donjon.rendu import regarder
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        self.assertEqual(regarder(m), regarder(recharge))
 
     def test_s_il_le_cherche_aussi_il_va_vers_lui(self):
         """Gorm hèle Aubin ; Aubin, qui cherche Gorm pour sa part et connaît sa voix, sait d'où vient

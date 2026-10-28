@@ -65,12 +65,16 @@ def nuit_noire(scenario, qui, donneur, source, lot, salle):
 
 
 class PartsPourSourcesTests(unittest.TestCase):
-    def test_cas_reel_auberge_apres_huit_heures_l_huile_achetee_recharge_la_lanterne_vide(self):
-        # La vraie nuit épuise les 400 minutes de la lanterne. On ne remplace ni les autres
-        # sources ni les ressources du scénario pour obtenir ce constat.
+    def test_cas_reel_auberge_apres_huit_heures_l_huile_achetee_recharge_une_lanterne_a_sec(self):
+        # Garder la vraie nuit comme contexte de vente. La durée d'utilisation
+        # dépend des décisions des PNJ : elle n'épuise pas forcément la source
+        # depuis qu'ils tiennent leurs rendez-vous. Déclarer ensuite la limite
+        # à sec que ce test de recharge doit exercer, sans prolonger la nuit.
         m = creer("auberge", 1985, "tire")
         m.joueur.update(salle="dortoir", position=[1, 3])
         executer(m, 480)
+        m = recharger(m)
+        m.objets["lanterne_etable"].update(combustible=0, allume=False)
         m = recharger(m)
         self.assertEqual(m.objets["lanterne_etable"]["combustible"], 0)
         self.assertFalse(m.objets["lanterne_etable"]["allume"])
@@ -87,6 +91,10 @@ class PartsPourSourcesTests(unittest.TestCase):
                             if ("etable", c) not in prises_joueur and _case_libre(m, "etable", c)),
                            key=lambda c: (distance(c, (4, 1)), c))
         m.joueur["position"] = list(place_joueur)
+        # La nuit peut aussi laisser la lanterne portée par un PNJ. La scène
+        # de recharge la déclare à sec et au contact, comme la vente ci-dessous
+        # déclare l'huile sur Odile ; aucune possession n'est supposée acquise.
+        deplacer(m, "lanterne_etable", "etable", position=list(place_joueur))
         prises = occupants(m, sauf="odile")
         libres = [c for c in cases(m.data["salles"]["etable"])
                   if ("etable", c) not in prises and _case_libre(m, "etable", c)
