@@ -2,6 +2,26 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-coup-torche`, fusionnée**, lot **269**, diagnostic
+  seul, base `integration 47fd0a2` : coup absent de la nuit actuelle,
+  reproduit sur `c870c8b` détaché, hameau 1985, départ tiré, joueur passif
+  chambre de la cloche, 12 h. Aubin frappe à **391220 (652 min)** et prend
+  la torche à 391235 ; Gorm inconscient au relevé 655. Chaleur 100,
+  palier besoin pressant ; désespoir corporel autorisant les témoins.
+  Coûts refaits **25,415 à 615**, **32,321 à 652** ; recherche pacifique
+  épuisée à 185/66 nœuds, refus de combustible encore valides, aucun
+  service de rechange/aide attendue. Torche de Maël portée par Gorm :
+  prêt/achat à ce tiers exclus par le contrat de transfert existant.
+  Verdict conforme aux recours modélisés, sans garantie sur toutes les
+  négociations imaginables. Premier écart actuel/historique dès 600,
+  offres de Brune différentes à la première minute ; cause non isolée.
+  **169 captures monde/rendu/scène identiques après recharge**, deux nuits
+  successives à priorité réduite, aucun code du jeu modifié, Luna, suite
+  complète ou banc comparatif ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/coup-269/` ;
+  [rapport 269](taches/rapport-codex-269-coup-torche.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement (Sol medium). Absent de l'intégration actuelle (hameau 1985, 12 h, aucun coup), reproduit sur c870c8b à 652. Aubin, chaleur à 100 (seuil corporel 95 qui autorise l'embuscade malgré les témoins), sans aucun plan pacifique admissible : part de bois refusée (necessaire, impossible), torche de Maël portée par Gorm avec permission, ni prêt au détenteur permis ni achat possibles. Coût brasero 25,4 et poêle 32,3 ; recherche sans assommer épuisée. Manques relevés, non corrigés : demander un prêt au détenteur permis du bien d'un tiers, demander qu'on allume un feu pour soi.
+
 - **Branche `codex-compteurs-faux-positifs`, fusionnée**, lot **265**,
   base `integration c32cc7d`, outils seulement : clôtures publiées des services
   suivies avec leur preuve et l'ancrage 238 ; autre moyen admis seulement si le
