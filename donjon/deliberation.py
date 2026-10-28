@@ -639,13 +639,23 @@ def _plan_attendre(monde, id):
     return ({"type": "attendre", "qui": r["qui"]}, []) if r and not _sur_place(monde, id, e["intention"]) else None
 
 
-def _attendre_qui_vient(monde, id, resultat):
+def _attendre_qui_vient(monde, id, resultat, palier=None):
     """Le rendez-vous fournit le lieu où chercher son interlocuteur : qui doit venir le rejoint
-    au lieu d'explorer ailleurs. Qui attend quelqu'un qui a promis de venir (« J'arrive ! »)
-    ne va pas le chercher : un plan qui
+    au lieu d'explorer ailleurs. Un départ attend le rendez-vous, sauf palier
+    strictement supérieur : dans ce cas sa rupture est annoncée. Qui attend
+    quelqu'un qui a promis de venir (« J'arrive ! ») ne va pas le chercher : un plan qui
     commence par aller à lui, ou le chercher, devient l'attendre là où il est, le temps convenu ; son
     but reprend quand ils se sont retrouvés. Un plan qui fait d'abord autre chose ici reste tel quel."""
-    from .appel import _vise, plan_venir
+    from .appel import _vise, part, plan_venir, rompre_attente
+    r = lire(monde, id)["rejoint"]
+    if resultat and r and part(monde, id, resultat[1]):
+        if palier is not None and palier < Palier.ATTENDRE_APPELANT:
+            rompre_attente(monde, id)
+        else:
+            return {"type": "attendre", "qui": r["qui"]}, []
+    from .eau import en_peril
+    if en_peril(monde, id):
+        return resultat
     d = lire(monde, id)["rejoindre"]
     if resultat and d and _vise({"but": resultat[0], "plan": resultat[1]}, d["qui"]):
         # Le même objectif cherche un interlocuteur qui vient de lui dire où venir. Le
@@ -2015,6 +2025,9 @@ def choisir(monde, id, minute):
         reaction = evasion(monde, id)
     if reaction is not None:
         but, etapes = reaction
+        from .appel import part, rompre_attente
+        if part(monde, id, etapes):
+            rompre_attente(monde, id)
         ancien = e["intention"]
         if ancien and ancien["but"] != but:
             agendas.clore_intention(monde, id, _sortie(ancien, minute, "palier", {"reaction": but}))
@@ -2034,6 +2047,9 @@ def choisir(monde, id, minute):
         from .eau import en_peril
         if (not en_peril(monde, id)
                 and chemin(monde, id, monde.objets[id]["lieu"], intention["but"]["lieu"]) is not None):
+            from .appel import part, rompre_attente
+            if part(monde, id, intention["plan"]):
+                rompre_attente(monde, id)
             return  # Le réflexe déclaré garde la priorité jusqu'à son terme.
         e["intention"] = None  # Route coupée ou séjour dans l'eau : réévaluer les recours.
     pressants = urgents(monde, id)
@@ -2190,8 +2206,8 @@ def choisir(monde, id, minute):
                                         if r["but"] != but or obstacle_patience(monde, id, r["cause"])]
         # Une sortie nécessaire ne devient pas une attente de rendez-vous ou
         # de contrepartie dans l'eau après le contrôle du candidat.
+        but, etapes = _attendre_qui_vient(monde, id, resultat, choisi.urgence.palier)
         if not en_peril(monde, id):
-            but, etapes = _attendre_qui_vient(monde, id, resultat)
             from .pnj_propositions import plan_recours
             offre = plan_recours(monde, id, besoin, etapes)
             if offre:

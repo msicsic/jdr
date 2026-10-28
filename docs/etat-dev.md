@@ -5,25 +5,81 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-reessai-regressions`, non fusionnée**, lot **229**,
-  départ `1e09926` : tests/documentation seulement. Lucien : divergence à
-  95 min, ancienne reprise par délai contre témoin encore cru présent ;
-  reprises permises à 107 et 167 sur localisation entendue d'Anselme.
-  Fenêtre de garde explicitement réancrée 150 → 165 min, exigences de but,
-  bougeoir porté/allumé et lumière effective renforcées, état/rendu rechargés.
-  Huile sur `881db69` : refus reproduit, deux parts restantes pour une réserve
-  de deux après part préparée pour Lucien à 464 min ; refus juste.
-  Promesse annulée à 466, part séparée restant chez Odile (échanges réservés au 228). Scène de vente
-  explicitée : réserve personnelle d'une part, aucun ajout de ressource,
-  paiement/livraison/recharge conservés et perte d'une part contrôlée.
-  **45 ciblés verts / cinq fichiers** dans la suite finale unique :
-  **2 498 tests / 289 fichiers, 3 637,727 s**, un échec préexistant de voix
-  (Mathurine entendue, identique au relevé 225), zéro erreur, 16 ignorés ;
-  **suite non verte**. Vente révisée verte sur la capture réelle `881db69`
-  et son moteur historique, aucune nuit rejouée. Première passe ciblée :
-  36 verts en 396,162 s. Deux travailleurs à priorité réduite ; créneau
-  dépassé par les vérifications, aucune seconde suite complète.
-  Aucun moteur/MJ modifié, aucun Luna ni banc supplémentaire ; pas de garantie
-  universelle des boucles. [Rapport 229](taches/rapport-codex-229-reessai-regressions.md).
+  départ `1e09926`, première livraison `ad785cf`, puis merge demandé de
+  `origin/integration` **`c9d8c05`** (230/231), sans rebase. Aucun moteur/MJ
+  modifié par 229. Lucien : divergence à 95 min, ancienne reprise par délai
+  contre témoin encore cru présent ; reprises à 107 et 167 sur localisation
+  entendue d'Anselme. Fenêtre de garde explicitement réancrée 150 → 165 min,
+  but, bougeoir porté/allumé, lumière effective et état/rendu rechargés exigés.
+  Huile `881db69` : refus reproduit, deux parts pour une réserve de deux
+  après part préparée pour Lucien à 464 min ; refus juste. Promesse annulée
+  à 466, part séparée chez Odile (échanges réservés au 228).
+  **Après 230, test d'huile vert sans adaptation 229** : fichier strictement
+  identique à `origin/integration`, lanterne à sec et au contact de 230 conservée,
+  réserve d'Odile inchangée. **35 ciblés verts après merge** : 34 tests de
+  quatre fichiers en 225,369 s et test exact d'huile en 194,531 s.
+  Suite complète unique **avant 230** : **2 498 tests / 289 fichiers,
+  3 637,727 s**, un échec de voix préexistant (Mathurine entendue, relevé 225),
+  zéro erreur, 16 ignorés ; **suite non verte avant 230**. Pas de seconde
+  suite ni banc moteur : aucun fichier moteur commun entre 229 et 230.
+  Deux travailleurs à priorité réduite, aucun Luna ; créneau dépassé par
+  les vérifications. [Rapport 229](taches/rapport-codex-229-reessai-regressions.md).
+
+- **Branche `codex-rendez-vous-tenu`, fusionnée**, lot **230**, base
+  `1e09926` de l'intégration : une invitation à venir suppose de rester ;
+  les plans de départ sans rapport avec l'interlocuteur cèdent aussi au
+  rendez-vous. Seul un palier strictement supérieur autorise la rupture,
+  annoncée par l'ouïe et retenue si entendue. Défense immédiate et alerte
+  raccordées ; voyageur attaché au lieu convenu jusqu'au contact, au constat
+  vide ou à la rupture entendue, sans rappel par simple délai/chemin coupé.
+  Scène historique : six invitations de Mireille dont cinq à Mathurine
+  **→ une**, trois voix **→ deux**, oracle historique inchangé.
+  Défaut déjà visible sur `bd45f65` : Gorm invite Maël à 35, part à 292
+  (hameau 7/42/2024, chroniques en cache). **105 ciblés consolidés verts**,
+  neuf fichiers dont douze nouveaux cas : monde/ouïe/rendu rechargés et laps découpés.
+  **20 paires de 4 h contre `1e09926`**, références manquantes rangées une
+  fois : zéro plantage/usurpation, deux suspects 219 intégralement identiques ;
+  préemptions **87 → 70**, à expliquer **85 → 70**, dérives **241 → 216**.
+  Passe finale : vingt références relues du cache ; état final, chronique et
+  avis identiques à la première mesure de branche, moteur figé par empreintes.
+  Appels **11 → 12**, réponses **37 → 39**, retrouvailles **8 → 5** ; aucune
+  nouvelle alerte de répétition/alternance par nuit/PNJ. Nouvelle alerte
+  d'attente de devoir de Gorm en crue 7 (**fige_presse 3 → 4**), sans attente
+  de rendez-vous active au relevé final ; limite conservée, pas de garantie
+  générale des boucles ni des repas de Mathurine. Rupture non entendue ou
+  départ muet du joueur : lieu vide à constater, aucun savoir distant.
+  Suite complète unique : **2 508 tests / 290 fichiers, 2 530,264 s**, sept
+  échecs et une erreur bruts ; cinq prémisses/oracles repris verts, **trois
+  préexistants reproduits sur `1e09926`** (Lucien, deux MiMo), suite non verte.
+  Derniers ajustements pendant la passe, puis neuf fichiers repris ; aucune
+  seconde suite complète. Créneau dépassé par les validations. Aucun Luna ; bruts
+  `C:/Users/msics/donjon/artifacts/rendez-vous-230/` ;
+  [rapport 230](taches/rapport-codex-230-rendez-vous-tenu.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Qui répond « Ici, viens ! » reste jusqu'à l'arrivée, l'échéance réglée sur la distance ou un palier strictement supérieur ; s'il part, la rupture s'annonce par l'ouïe ; « J'arrive ! » va au lieu convenu sans rappeler. Mireille/Mathurine : six invitations → une. 20 paires 4 h contre 1e09926 : suspects 219 identiques, préemptions 87 → 70, à expliquer 85 → 70 ; une alerte fige_presse nouvelle (Gorm, crue 7). Test de l'huile (lot 229) adapté : lanterne déclarée à sec et au contact. Suite : trois échecs préexistants (Lucien, deux MiMo).
+
+- **Vérification d'intégration 4306c14**, lot **231**, branche
+  `codex-verif-integ-4306c14`, fusionnée : code `donjon/ tools/` identique
+  à `4306c14`, aucun correctif, Luna, pull ni référence rejouée. **49 nuits
+  lancées une fois, 47 achevées, intégration non verte** : contrôles mine 42
+  à 415 et rixe 42 à 350 interrompus par la mutation d'état pendant
+  `planification.vues_du_choix` ; mêmes contrôles achevés sur `4d4c625`.
+  Auberge 42/Lucien à 435 : **75 bornes**, dont 73 `ancienne_borne` à
+  résultat exact et deux plans de garde manqués ; aucun autre écart consigné.
+  **31 suspects 219, 390 à expliquer ; zéro geste fautif 227**, 22 pertes
+  physiques et une après départ cru ; zéro usurpation/coup/mort relevé.
+  Attente crue **905 → 1 162,50**, hameau **1 021,25 → 1 761,25 PNJ·min**.
+  Bourse mine 1985 **228 → 0 demandes**, crue 2024 **16 → 0 coups**.
+  Nouveaux cas à instruire : Anselme auberge 7 **246 passages/h** sous garde,
+  Gorm hameau 1985 **onze retours chaleur/devoir** à 541–545, Maël hameau 42
+  **quatre suspects restitution/inspection** ; correspondances anciennes
+  archivées. Gorm crue 2024 : **5 → 12 sommeils** avant évacuation.
+  Rendez-vous : **28 → 39 départs candidats** après « Ici, viens ! », aucun
+  de Mireille ; urgences/échéances non certifiées. Un travailleur de calcul
+  en fond à priorité réduite. Ni captivité exhaustive ni monde/rendu rechargé
+  certifiés ; deux nuits sans mesures finales. Bruts exclusivement
+  `C:/Users/msics/donjon/artifacts/verif-integ-4306c14/` ;
+  [rapport 231](taches/rapport-codex-231-verif-integ.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. 47/49 nuits : deux plantages de pureté des candidats (planification.vues_du_choix, mine 42 à 415, rixe 42 à 350) ; bourse 228 → 0, coups crue 2024 16 → 0, renoncements mine 1,75 → 0,25 ; suspects 219 : 31. Petits lots désignés : pureté des candidats, bornes de Lucien (auberge 42, 435), passages d'Anselme (auberge 7, 420-479), retours chaleur/devoir de Gorm (hameau 1985), suspects de Maël (hameau 42), sommeils de l'agenda de Gorm (crue 2024).
 
 - **Branche `codex-compteur-services`, fusionnée**, lot **227**, départ
   `b8e433d` vérifié, moteur identique à `881db69` : outils seulement, aucun
@@ -385,6 +441,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 57 retours attribués : eau 25 et cibles d'abri 7 (lot 205, abri aussi 196 c), secours/rondes 21 (196 c), localisation crue d'un personnage lue sur sa position réelle 3 (lot à créer), restauration d'une charge suspendue 1 (lot à créer).
 
 - Branche `codex-pas-compagnons`, **non fusionnée, en attente de 196 c et du diagnostic 209**, lot **195** (`4968e54`, reprise sur `ef86cab`) : dans `ouie.py`, un pas compatible avec la marche possible d'un compagnon cru là s'explique sans retournement ni bruit inconnu, sans confirmer sa position. Retournements Relais 100 → 28,75, hameau 134,5 → 78,5 ; retours suspects 57 → 54 au total mais hameau **24 → 35** et un retour nouveau au Relais 2024 (Gorm sert Ilse, abandonne, reprend, sans entrée nouvelle) ; trois tests rouges (abri d'Ilse, deux prêts). Arbitrage commun du contrat d'engagement (196 c) attendu avant reprise. [Rapport 195](taches/rapport-codex-195-pas-compagnons.md) sur la branche ; bruts `artifacts/pas-195/`.
+  **Reprise finale (`cf777e7`, sur 346c1aa), toujours en attente** : ouïe des compagnons plus preuve d'accomplissement dans `echanges.tenu` (souvenir `suivi_engagement`). 20 paires 4 h : suspects 5 → 1, retournements divisés par deux à quatre ; mais hameau S 40,5 → 27 (échanges acceptés 16 → 9, demandes −28, offres −10, promesses −10 : interactions nées de perceptions fortuites), mine S 26,25 → 24, auberge 10,25 → 8,25 ; à expliquer 67 → 77. Suite 2 497 tests, cinq échecs : quatre préexistants et un défaut de placement révélé (`signes.place` : attitude périmée qui bloque l'abri d'Ilse), lot séparé proposé. Décision à l'utilisateur : moins de retournements contre moins d'interactions au hameau.
 
 - **Lot 208, diagnostic seul**, `codex-cout-ceder-outil`, `1a3359a` contre `74a4bc4` : surcoût mine reproduit, recherches 698 → 987, nœuds 6 684 → 10 558 ; 89,4 % des nœuds en plus dans les devis de fermeture d'Odon/Rémy, recours négatifs répétés après auto-refus d'outils. Poêle et trois retours de crue reproduits, ancien écart de lanterne non reproduit (fichier ciblé vert sur les deux commits). Réutilisation des recours négatifs proposée, gain non garanti ; 202 reste en attente. Aucun jeu modifié/Luna, un calcul réduit à la fois, captures monde/rendu rechargés ; bruts `C:/Users/msics/donjon/artifacts/cout-208/`, [rapport 208](taches/rapport-codex-208-cout-ceder-outil.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. 89 % des nœuds en plus viennent de recours négatifs redemandés (Odon, Rémy : devis de fermeture) après que les PNJ ne proposent plus leurs outils ; aucun calcul de valeur dans la recherche. Petit lot proposé pour la reprise de 202 : retenir un recours sans offre acceptable tant que ses dépendances crues ne changent pas.

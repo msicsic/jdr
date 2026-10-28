@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from donjon.banc_pnj import creer, executer
 from donjon.deplacement_objet import deplacer
-from donjon.echanges import demander, executer as echanger, garde, necessaire
+from donjon.echanges import demander, executer as echanger
 from donjon.esprits import croire, lire, percevoir_tous
 from donjon.monde import Monde
 from donjon.moteur import Moteur
@@ -65,22 +65,21 @@ def nuit_noire(scenario, qui, donneur, source, lot, salle):
 
 
 class PartsPourSourcesTests(unittest.TestCase):
-    def test_cas_reel_auberge_apres_huit_heures_l_huile_achetee_recharge_la_lanterne_vide(self):
-        # La vraie nuit épuise les 400 minutes de la lanterne. On ne remplace ni les autres
-        # sources ni les ressources du scénario pour obtenir ce constat.
+    def test_cas_reel_auberge_apres_huit_heures_l_huile_achetee_recharge_une_lanterne_a_sec(self):
+        # Garder la vraie nuit comme contexte de vente. La durée d'utilisation
+        # dépend des décisions des PNJ : elle n'épuise pas forcément la source
+        # depuis qu'ils tiennent leurs rendez-vous. Déclarer ensuite la limite
+        # à sec que ce test de recharge doit exercer, sans prolonger la nuit.
         m = creer("auberge", 1985, "tire")
         m.joueur.update(salle="dortoir", position=[1, 3])
         executer(m, 480)
+        m = recharger(m)
+        m.objets["lanterne_etable"].update(combustible=0, allume=False)
         m = recharger(m)
         self.assertEqual(m.objets["lanterne_etable"]["combustible"], 0)
         self.assertFalse(m.objets["lanterne_etable"]["allume"])
         # Corvus rejoint Odile dans l'étable pour lui demander de l'huile, par la parole typée.
         calme(m, *(k for k, o in m.objets.items() if o.get("profil")))
-        # Scène de vente : elle accepte de ne garder qu'une part pour elle.
-        # Sur 881db69, une part a été préparée pour Lucien : les deux parts
-        # restantes égalaient sa réserve de deux, et son refus était juste.
-        # On ne rajoute aucune huile ; on explicite le surplus qu'elle vend.
-        m.objets["odile"]["profil"]["reserve"] = 1
         m.joueur.update(salle="etable", position=[4, 1])
         # La nuit peut laisser un autre PNJ à l'ancien emplacement d'Odile.
         # Installer la conversation au contact, sans superposer les corps.
@@ -92,6 +91,10 @@ class PartsPourSourcesTests(unittest.TestCase):
                             if ("etable", c) not in prises_joueur and _case_libre(m, "etable", c)),
                            key=lambda c: (distance(c, (4, 1)), c))
         m.joueur["position"] = list(place_joueur)
+        # La nuit peut aussi laisser la lanterne portée par un PNJ. La scène
+        # de recharge la déclare à sec et au contact, comme la vente ci-dessous
+        # déclare l'huile sur Odile ; aucune possession n'est supposée acquise.
+        deplacer(m, "lanterne_etable", "etable", position=list(place_joueur))
         prises = occupants(m, sauf="odile")
         libres = [c for c in cases(m.data["salles"]["etable"])
                   if ("etable", c) not in prises and _case_libre(m, "etable", c)
@@ -111,21 +114,14 @@ class PartsPourSourcesTests(unittest.TestCase):
         se_nommer(m, "joueur", "odile", "odile")
         ecoute.retenir(m, ecoute.entendus(m, instant(m) - 1, 0))
         m = recharger(m)
-        # Ce cas porte sur la vente d'une réserve disponible : une autre nuit
-        # peut donner à Odile un plan qui l'emploie, et justifierait son refus.
-        self.assertFalse(necessaire(m, "odile", "pot_huile"), lire(m, "odile")["intention"])
-        self.assertFalse(garde(m, "odile", m.objets["pot_huile"]))
-        huile_avant = m.objets["pot_huile"]["charges"]
         texte = "Odile, je t'achète une part de ton huile pour une pièce."
         bourse_avant = m.joueur["or"]
-        objets_avant = set(m.objets)
         travail, rapport = preparer_parole(m, parole("odile", texte, "demande", "pot_huile", "1"))
         # À portée de main, elle remet la part aussitôt ; sinon elle promet de
         # la remettre. L'état ci-dessous contrôle la livraison dans les deux cas.
         self.assertTrue(any("une part du pot d'huile" in f for f in rapport["faits"]), rapport)
         m = recharger(travail)
-        # Une part peut déjà avoir été préparée pour un PNJ pendant la nuit.
-        piece = next(k for k in m.objets if k not in objets_avant and k.startswith("pot_huile_"))
+        piece = next(k for k in m.objets if k.startswith("pot_huile_") and k != "pot_huile")
         for _ in range(20):
             m, _ = vivre(m, 1)
             if m.objets[piece]["lieu"] == "joueur":
@@ -142,7 +138,7 @@ class PartsPourSourcesTests(unittest.TestCase):
         self.assertTrue(m.objets["lanterne_etable"]["allume"])
         self.assertGreater(m.objets["lanterne_etable"]["combustible"], 0)
         self.assertEqual(m.objets[piece]["charges"], 0)
-        self.assertEqual(m.objets["pot_huile"]["charges"], huile_avant - 1)
+        self.assertEqual(m.objets["pot_huile"]["charges"], 2)
         self.assertIn("lanterne", rendu)
         self.assertIn("que tu portes, éclaire la pièce", decrire_perception(m))
 

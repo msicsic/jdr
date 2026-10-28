@@ -1,8 +1,9 @@
 # Lot 229 — Régressions des tests après le réessai causal
 
 28 octobre 2026. **Branche `codex-reessai-regressions`, non fusionnée**,
-base `1e09926`. Tests et documentation seulement ; aucun moteur ni MJ
-modifié, aucun Luna. Deux calculs simultanés au plus, priorité réduite.
+base `1e09926`, première livraison `ad785cf`, puis merge demandé de
+`origin/integration` **`c9d8c05`** (230/231), sans rebase. Le 229 ne modifie
+que tests/documentation ; moteur de 230 repris intact, aucun MJ ni Luna. Deux calculs simultanés au plus, priorité réduite.
 Bruts : `C:/Users/msics/donjon/artifacts/reessai-229/`.
 
 **Lucien : comportement juste.** Comparaison avec `346c1aa`, même scène
@@ -42,29 +43,23 @@ Rejeu exact du test en un bloc sur copie de `881db69` : refus reproduit ;
 vente sur la capture de l'intégration actuelle, qui garde trois parts.
 Sur `881db69`, état complet identique en bloc et par relevés de cinq minutes.
 
-**Prémisse de vente explicitement changée**, pas la nuit ni les ressources :
-après huit heures, dans la scène préparée pour Corvus, Odile accepte de ne
-garder qu'**une part** pour elle. Contrôle avant demande : ni usage
-nécessaire ni garde de réserve. On exige la livraison, la pièce payée,
-la perte d'exactement une part du lot, la recharge et la perception après
-rechargement. La valeur absolue `2` est remplacée par `charges_avant - 1`
-car la nuit peut déjà avoir détaché une part. La part suivie est celle
-créée par la vente, pas celle préparée pour Lucien. Aucune huile ajoutée ; aucune assertion
-de paiement, possession ou lumière retirée.
-Les cas auberge/mine du même fichier vérifient aussi refus à la réserve,
-vente du surplus, monde et rendu rechargés.
+**Après 230, le test d'huile passe inchangé.** Le fichier final est
+strictement identique à `c9d8c05:tests/test_lampes_parts.py`. Le test renommé
+`...recharge_une_lanterne_a_sec` conserve la nuit de 480 min et la déclaration
+230 de la lanterne à sec et au contact. Il passe sur le moteur fusionné
+**sans changer la réserve d'Odile** : une passe, 194,531 s. Aucun changement
+229 de ce fichier n'est retenu. Le refus de `881db69` reste justifié par
+la cause établie ci-dessus ; une nuit différente ne rend pas ce refus faux.
 
-**Vérifications et limites.** Première passe : 36 ciblés verts en 396,162 s.
-Suite complète finale unique : **2 498 tests / 289 fichiers, 3 637,727 s**,
-**un échec, zéro erreur, 16 ignorés** ; les **45 tests des cinq fichiers
-ciblés sont verts**, dernières assertions comprises. Seul échec :
+**Vérifications et limites.** Avant 230, suite complète unique sur
+`ad785cf` : **2 498 tests / 289 fichiers, 3 637,727 s**, un échec, zéro erreur,
+16 ignorés ; 45 tests des cinq fichiers ciblés verts. Seul échec :
 `test_constater_rumeurs...test_le_joueur_qui_ne_les_connait_pas_n_entend_que_des_voix`
 (Mathurine en plus), identique au relevé antérieur
-`artifacts/integ-225/suite.log`, laissé intact. **Suite non verte.**
-Scène de vente révisée rejouée sur la capture réelle `881db69`, avec son
-moteur historique : vente, nouvelle part, recharge et rendu verts, sans
-rejouer la nuit. Pas de seconde suite complète ni de banc rapide (moteur
-inchangé). Créneau dépassé par les vérifications, dont une heure de suite.
-Aucune garantie générale d'absence de boucles au-delà des entrées examinées.
-La garde compte le lot demandé ; le traitement de la part séparée après
-annulation reste hors de ce lot (échanges/biens réservés au 228).
+`artifacts/integ-225/suite.log` ; **suite non verte avant 230**.
+Après merge : **34 tests verts / quatre fichiers, 225,369 s**, plus le test
+d'huile exact de 230 vert, soit **35 ciblés verts**. Aucune seconde suite
+complète ni nouveau banc : 229 n'a aucun fichier moteur commun avec 230.
+Créneau dépassé par les vérifications, dont une heure de suite avant merge.
+La garde compte le lot demandé ; la part séparée après annulation relève
+des échanges/biens réservés au 228. Pas de garantie universelle des boucles.
