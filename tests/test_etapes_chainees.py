@@ -29,7 +29,7 @@ def _etat(e):
     return e.salle, sorted(e.portes), sorted(e.faits.items(), key=repr), e.allure
 
 
-def observer_capture(scenario):
+def observer_capture(scenario, preuve=None):
     """Oracle enregistré sur la base : toutes les sorties du tas et tous les plans,
     puis la chaîne moteur, monde, journal et vue après recharge (480–485 min).
     Les préfixes du tas ne font volontairement pas partie de la projection.
@@ -70,15 +70,16 @@ def observer_capture(scenario):
     assert regarder(m) == regarder(recharge)
     assert scene_percue(m) == scene_percue(recharge)
     if scenario == 'auberge':
-        # 202/228 : l'huile ne compense pas les seuls crochets. La proposition
-        # à une pièce est refusée pour méfiance ; aucun outil n'est cédé.
-        assert any(c['texte'] == "Lucien propose à Joss 1 pièce contre une part de la burette d'huile d'écurie (mefiance)."
-                   for c in recharge.data['chronique'])
+        # 250 : les paroles pertinentes changent les contacts. L'huile n'est
+        # plus négociée spontanément pendant ce laps ; l'offre précise est
+        # éprouvée séparément, sans la supposer née au hasard de la trajectoire.
         assert recharge.objets['crochets_lucien']['lieu'] == 'lucien'
-        from donjon.biens import valeur_capacites
-        from donjon.echanges import valeur_proposition
-        assert valeur_capacites(recharge, 'lucien', 'crochets_lucien') > valeur_proposition(
-            recharge, 'lucien', {'type': 'part', 'objet': 'burette_huile'}, 'lucien', sans='crochets_lucien')
+        assert recharge.objets['lanterne_etable']['lieu'] == 'etable'
+        assert recharge.objets['lucien']['lieu'] == 'chambre_chaude'
+    if preuve is not None:
+        preuve.update(monde=copy.deepcopy(recharge.data), lignes=list(lignes),
+                      regarder=regarder(recharge), scene=scene_percue(recharge),
+                      diagnostics=[{k: v for k, v in d.items() if k != 'duree'} for d in diagnostics])
     historique = copy.deepcopy(recharge.data)
     # Les preuves de fin (175) et de possession (179) ne figurent pas dans
     # l'oracle ancien. Monde et rendus complets restent comparés après
@@ -114,12 +115,36 @@ def observer_capture(scenario):
 
 
 class EtapesTests(unittest.TestCase):
+    def test_compensation_huile_refusee_sur_offre_explicitement_prononcee(self):
+        # L'offre ne naît plus nécessairement dans les cinq minutes de la
+        # capture. Conserver le marché exact, en le faisant réellement proposer.
+        m = recharger(Monde(json.loads(gzip.decompress(
+            (DONNEES / 'auberge-1985-480.json.gz').read_bytes()))))
+        from donjon.esprits import lire
+        from donjon.pnj_propositions import executer
+        lire(m, 'lucien')['intention']['motif'] = 'lumiere'
+        self.assertTrue(executer(m, 'lucien', 'joss', {
+            'demande': {'type': 'part', 'objet': 'burette_huile'},
+            'contrepartie': {'type': 'pieces', 'montant': 1}}, []))
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        self.assertEqual(regarder(m), regarder(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
+        self.assertTrue(any(c['texte'] == "Lucien propose à Joss 1 pièce contre une part de la burette d'huile d'écurie (mefiance)."
+                            for c in recharge.data['chronique']))
+        self.assertEqual(recharge.objets['crochets_lucien']['lieu'], 'lucien')
+        from donjon.biens import valeur_capacites
+        from donjon.echanges import valeur_proposition
+        self.assertGreater(valeur_capacites(recharge, 'lucien', 'crochets_lucien'), valeur_proposition(
+            recharge, 'lucien', {'type': 'part', 'objet': 'burette_huile'}, 'lucien', sans='crochets_lucien'))
+
     def test_captures_mine_et_auberge_memes_plans_visites_monde_et_rendu_recharges(self):
         attendu = json.loads((DONNEES / "etapes-attendues.json").read_text(encoding="utf-8"))
         calcul = json.loads((DONNEES.parent / "profondeurs-preuve/etapes-calcul.json").read_text(encoding="utf-8"))
         contacts = json.loads((DONNEES.parent / "contact-226-etapes.json").read_text(encoding="utf-8"))
         rendez_vous = json.loads((DONNEES.parent / "rendez-vous-230-etapes.json").read_text(encoding="utf-8"))
         pas = json.loads((DONNEES.parent / "pas-233-etapes.json").read_text(encoding="utf-8"))
+        usage = json.loads((DONNEES.parent / 'usage-250-etapes.json').read_text(encoding='utf-8'))
         # Lot 191 : le registre d'audience change le monde sauvegardé ; dans
         # la mine, une parole supprimée change aussi les reprises du graphe
         # et les lignes. Les plans et les vues restent l'oracle historique.
@@ -176,10 +201,18 @@ class EtapesTests(unittest.TestCase):
                                 'n_visites': 8573,
                                 'diagnostics': '713286253ce4161d93c4833e73e951671caacd67758398a206448edb605acadd'}
                                if scenario == 'auberge' else {})
+                    # Diffs exhaustifs monde/chronique/diagnostics contre
+                    # 1194876 : artifacts/usage-250/etapes-differences-*.json.
+                    # Mine : aucun objet ne change. Auberge : lanterne posée,
+                    # Lucien rejoint Anselme ; offre conservée dans une scène
+                    # explicite. Les DEUX vues gardent leur ancien oracle.
+                    self.assertEqual(set(usage[scenario]),
+                        {'visites', 'n_visites', 'plans', 'n_plans', 'diagnostics', 'monde'}
+                        | ({'lignes'} if scenario == 'auberge' else set()))
                     self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures,
                                                                  **paroles[scenario], **contacts[scenario],
                                                                  **rendez_vous.get(scenario, {}), **pas[scenario],
-                                                                 **compensation, **reserve})
+                                                                 **compensation, **reserve, **usage[scenario]})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})

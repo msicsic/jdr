@@ -45,12 +45,14 @@ class CompletionTests(unittest.TestCase):
             with self.subTest(capture=nom), tempfile.TemporaryDirectory() as dossier:
                 self.setUp()
                 m = Monde(json.loads(gzip.decompress((DATA / chemin).read_bytes())))
+                avant = copy.deepcopy(m.data)
                 with p.diagnostics() as ds:
                     for _ in range(3):
                         p._MEMOIRE.clear()
                         r = p.chercher(m, qui, p.a_mange, nom="faim", memo=["besoin", "faim"],
                                        emplois=("manger",), motif="faim")
                         self.assertEqual(encoder(r), attendu[nom]["resultat"])
+                self.assertEqual(m.data, avant)  # La recherche ne change aucun savoir.
                 if r is None:
                     self.assertEqual(ds[-1]["issue"], "impossible")
                     self.assertEqual(ds[-1]["noeuds"], 0)
@@ -75,6 +77,19 @@ class CompletionTests(unittest.TestCase):
                     self.assertEqual(e.pop('recours_services', []), [])
                     self.assertEqual(e.pop('recours_intermediaires', []), [])
                     self.assertIsNone(e.pop('service_en_cours', None))
+                if nom == 'mine-480':
+                    # 206 : le lésé n'identifie plus un geste distinct. Le
+                    # diff complet contre 1194876 ne contient que ce renommage
+                    # de clé, avec les cinq destinataires strictement conservés.
+                    from donjon.social import _cle
+                    fait = {'type': 'vu_agir', 'auteur': 'odon', 'objet': 'pain_lucien', 'operation': 'manger'}
+                    registre = historique['esprits']['gaspard']['faits_dits']
+                    valeur = registre.pop(_cle(fait))
+                    self.assertEqual(valeur, {'valeur': {}, 'dit_a': {
+                        qui: {} for qui in ('lucien', 'remy', 'josse', 'mathe', 'bram')}})
+                    ancienne = _cle(dict(fait, victime='lucien'))
+                    self.assertNotIn(ancienne, registre)
+                    registre[ancienne] = valeur
                 self.assertEqual(empreinte(historique), attendu[nom]["monde"])
                 self.assertEqual(empreinte((regarder(recharge), scene_percue(recharge))), attendu[nom]["rendu"])
 

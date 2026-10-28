@@ -4,20 +4,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-sait-observations-c`, non fusionnée**, lot **250**, validation
-  en cours : fusion de `origin/integration 1194876` dans `8300d26`, seul conflit
-  documentaire réuni. Preuves d'usage typées et révisables par perception de geste,
-  demande et service entendu ; `_utile` suit les moyens équivalents et supports
-  crus, sans lecture privée. **21 existants et quatre nouveaux ciblés verts**,
-  puis deux cas renforcés repris verts. Capture mine 141 et service à Rémy rejoué
-  à 1 min : biscuits pertinents, annoncés après deux autres réserves, aucune
-  demande prévue à 191–193 ; autre combustible au Relais, monde/rendu rechargés
-  et laps découpés. L'annonce spontanée exactement à 141 n'est pas établie.
-  Fichiers concernés puis banc 20 paires 4 h détachés à priorité réduite,
-  un travailleur ; **pas de suite complète ni Luna**. Mesures et arbitrage des
-  huit anciennes assertions encore en attente ; aucune autorisation de fusion.
-  Fin attendue `C:/Users/msics/donjon/artifacts/usage-250/fin.json` ;
-  [rapport provisoire 250](taches/rapport-codex-250-preuve-usage.md).
+- **Branche `codex-sait-observations-c`, non fusionnée**, lot **250**,
+  **non validée à fusionner** : intégration `1194876` fusionnée dans `8300d26`,
+  seul conflit documentaire réuni ; moteur `8a7edfa`, inchangé à l'arbitrage.
+  Preuves d'usage typées/révisables par geste perçu, demande et service entendu ;
+  `_utile` suit les équivalents et supports crus, sans lecture privée.
+  Capture mine 141, service à Rémy réellement rejoué à 1 min : biscuits annoncés
+  après deux autres réserves, aucune demande prévue à 191–193. Autre combustible
+  au Relais ; monde/rendu rechargés et laps découpés. **Annonce spontanée
+  exactement à 141 non établie**, anciennes preuves absentes non inventées.
+  **154 tests couverts** : passe initiale 153/17 fichiers, sept échecs ; huit
+  fichiers repris **70/70 verts, 243,539 s**, 84 autres verts inchangés.
+  Huit assertions arbitrées sans affaiblissement : restitutions sans nouveau
+  marché, trente minutes continues de séchage, parole réelle pour la suite,
+  auteur vu avant la contrainte ; deux prémisses déjà explicites conservées.
+  Completion : seul renommage de clé prouvé, cinq destinataires et anciens hashes
+  conservés ; étapes : diffs exhaustifs avant réancrage, deux vues historiques
+  inchangées, offre précise conservée dans une scène réellement prononcée.
+  **20 paires 4 h contre 1194876** : confidences Relais/mine/auberge/crue/hameau
+  **34/72/38/53/58 → 26/54/19/48/122** (235 historique sur autre base :
+  **5/10/7/50/47**). **Suspects 219 : 4 → 8**, nouveaux Lucien et deux Mathe
+  mine 1985, Aubin hameau 1985/2024 ; non reclassés, aucune garantie de boucle.
+  Avertissements redits pondérés **0 → 46** (hameau 1985), préemptions **46 → 38**,
+  cycles **498 → 522**, à expliquer **51 → 83**, dérives **216 → 219**, états
+  payés perdus **4 → 5** ; zéro plantage/usurpation. S/F/D au rapport, baisse
+  en mine ; critère sans hausse non atteint. Vingt références absentes calculées
+  une fois et rangées, aucun banc relancé ; un travailleur réduit, deux au plus
+  pour les seuls témoins de captures. **Aucune suite complète ni Luna.**
+  Bruts `C:/Users/msics/donjon/artifacts/usage-250/` ;
+  [rapport 250](taches/rapport-codex-250-preuve-usage.md).
 
 - **Branche `codex-sait-observations-c`, non fusionnée**, lot **235**, base
   `adb52c4`, apport 206 `0ba27d3` fusionné dans `8a4e332` ; **non validée à fusionner**.

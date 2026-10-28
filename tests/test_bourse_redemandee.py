@@ -24,6 +24,11 @@ class RestitutionTests(unittest.TestCase):
     def test_capture_reelle_mine_mathe_remy_et_laps_decoupe(self):
         with gzip.open(Path(__file__).parent / 'data/bourse-220-mine-290.json.gz', 'rt', encoding='utf-8') as f:
             m = Monde(json.load(f))
+        # Le contrat éprouvé est la restitution, sans nouveau marché après
+        # celle-ci. Sur la trajectoire libre, Josse rachète la paie à 298.
+        # Le garder occupé isole les restitutions de Mathe et Rémy.
+        from donjon.temps import instant
+        lire(m, 'josse')['libre'] = instant(m) + 9001
         a, b = self.stable(m), self.stable(m)
         from donjon.pnj import avancer
         from donjon.temps import ecouler

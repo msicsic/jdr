@@ -267,13 +267,23 @@ class PnjTests(unittest.TestCase):
             contrat = contrat_intention(m, "ilse")
             self.assertIsNotNone(contrat)
             self.assertEqual(contrat["phase"], "attendre")
-        # Trempée en arrivant (son départ, puis l'eau de la conduite), elle a séché au poêle du guet,
-        # le feu hors de l'eau (branche ``ressources``).
-        self.assertEqual(m.objets["ilse"]["corps"]["trempe"], 0)
         from donjon.corps import au_chaud
         self.assertTrue(au_chaud(m, "ilse"))
         # Au refuge, ceux qui ne l'ont pas vue monter assez longtemps y restent.
         self.assertEqual(m.objets["brune"]["lieu"], "antichambre")
+        # Elle a pu revenir de l'eau à 77 : l'arrivée à 80 ne garantit pas
+        # trente minutes continues de séchage. Éprouver ce séjour explicitement.
+        from donjon.corps import SECHAGE
+        from donjon.temps import instant
+        lire(m, 'ilse')['libre'] = instant(m) + (SECHAGE + 1) * 600
+        m, _ = attendre(recharger(m), m.data['minutes'] + SECHAGE)
+        self.assertEqual(m.objets['ilse']['lieu'], 'chambre_cloche')
+        self.assertEqual(m.objets['ilse']['corps']['trempe'], 0)
+        self.assertTrue(au_chaud(m, 'ilse'))
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        from donjon.rendu import regarder
+        self.assertEqual(regarder(m), regarder(recharge))
 
     def test_une_alarme_sans_passage_tombe(self):
         from donjon.deliberation import alarme, deliberer

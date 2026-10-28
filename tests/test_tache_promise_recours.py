@@ -190,13 +190,30 @@ class TachePromiseTests(unittest.TestCase):
                     n = 0
                     while instant(b) < instant(a):
                         moteur = Moteur(b)
-                        moteur.executer(moteur.preparer(analyser(b, 'tourner est' if n % 2 else 'tourner ouest')))
+                        action = moteur.preparer(analyser(b, 'tourner est' if n % 2 else 'tourner ouest'))
+                        reste = instant(a) - instant(b)
+                        if action.dixiemes > reste:
+                            from donjon.pnj import avancer
+                            from donjon.temps import ecouler
+                            avancer(b, ecouler(b, reste), [], reste)
+                        else:
+                            moteur.executer(action)
                         b = recharger(b)
                         n += 1
                 a, b = recharger(a), recharger(b)
                 for m in (a, b):
                     self.assertFalse(agendas.en_cours(m, id, condition=c, actifs=True))
                     self.assertTrue(any(s['type'] == 'engagement_tenu' for s in lire(m, id)['memoire']))
+                    # Tenir la tâche n'impose pas une confidence dans les
+                    # cinq minutes. Une conversation réelle transmet la suite.
+                    from donjon.social import faire_entendre
+                    from donjon.pnj import peuvent_se_parler
+                    self.assertTrue(peuvent_se_parler(m, id, autre))
+                    faire_entendre(m, id, autre, 'Le service est terminé.', [c['objet']], [])
+                    recharge = recharger(m)
+                    self.assertEqual(m.data, recharge.data)
+                    from donjon.rendu import regarder as rendu
+                    self.assertEqual(rendu(m), rendu(recharge))
                     self.assertTrue(any(s['type'] == 'engagement_tenu' and s.get('de') == id
                                         for s in lire(m, autre)['memoire']))
                     if 'allume' in c:

@@ -1,0 +1,19 @@
+{
+  "mine": {
+    "visites": "3832971cbaee4b893dacaeed6a1834e257fe36314cf19fd2eb089dea0b95e032",
+    "n_visites": 16249,
+    "plans": "83f6ff50715cf22b83d8573ea70866b2f7768f93b6373b462f98d8d222d08b71",
+    "n_plans": 144,
+    "diagnostics": "d6c3b984ee2bcb36a26a36dc6b499db682b6722a1b7455982d27313e700bf0e1",
+    "monde": "a57b4201b3b61311c3e68b884a5816813c47ebfa03fa75396a2ce1cfe2c4e78f"
+  },
+  "auberge": {
+    "visites": "17f66bc7336faf54a76b969a8ecdaefcc2765e12c3d038fc79205c800a71f451",
+    "n_visites": 11795,
+    "plans": "df0c692515ef86c4f18401fad41392f75d21f6ef4afa163fd89de1c35cf3bb75",
+    "n_plans": 113,
+    "diagnostics": "9e58fd3b503a3a7888ffa47970635c948c12f2282c0e020dc1d827dfd1f95d77",
+    "monde": "f48eab37e3a79d7ab0bd08b44a6feff6fad59f8f4394359d4cbf86dd5b1216c8",
+    "lignes": "83e216d4f8a9edea04c0731bffdd9f536e7e55bae13a22da821f4e9b259a3bd5"
+  }
+}

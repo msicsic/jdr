@@ -92,6 +92,13 @@ class TrainerTests(unittest.TestCase):
                 else:
                     corps.corps(m, c)["inconscient"] = 0
                     appliquer_etats(m, [c + ":ligote"])
+                    # La victime éveillée voit l'auteur avant la contrainte.
+                    # Sans cette prémisse, subi.auteur peut rester inconnu.
+                    from tests.support import regarder as orienter
+                    orienter(m, c, 'joueur')
+                    percevoir_tous(m)
+                    from donjon.esprits import percoit
+                    self.assertTrue(percoit(m, c, 'joueur'))
                 avant = place(m, "joueur")
                 tenir.commencer(m, "joueur", "trainer", c, "est")
                 g = m.data["gestes_en_cours"][-1]
