@@ -4,6 +4,30 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-jugement-mandat`, fusionnée**, lot **256**, base
+  `integration 4318a5b` : jugement explicite de mandat par `echanges.confier`,
+  devis social commun sur copie, statut cru dans sa portée et ascendant :
+  bonus plafonné à 5 points de DD ; dette du jet inchangée, comptée une fois.
+  Accueil prioritaire, aucune obéissance forcée ; raison et bilan enregistrés
+  sur le parent avant publication et chronique, filiation par `agendas.confier`,
+  confirmation sans nouveau jet. **68 tests verts / neuf fichiers, 32,616 s**,
+  deux processus réduits ; Gorm/Aubin/Brune et information à Ilse, refus et
+  acceptations rechargés, monde/rendu/scène/paroles, laps entier/découpé.
+  Aucun scénario, MJ, social/esprits/planification modifié ; ni Luna ni suite
+  complète. **Banc terminé : 20/20 paires 4 h identiques**, cinq scénarios ×
+  quatre graines, référence `4318a5b`, branche `a4443eb` : chroniques, mesures
+  et empreintes de l'état final complet. Zéro plantage/usurpation/violation ;
+  compteur 219 suspects **2 → 2**, sans hausse par nuit (Relais/mine/auberge/
+  crue/hameau **0/0/1/1/0**), préemptions **46 → 46**, cycles **489 → 489**,
+  à expliquer **55 → 55**, dérives **233 → 233**. Vingt références exactes
+  absentes calculées une fois et mises en cache, aucune rejouée. Deux processus
+  réduits au plus, **551,850 s**, `fin.json` code 0 ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/mandat-256/`.
+  Limite : coût du prochain sous-but social, pas garantie de réussite complète ;
+  aucun choix autonome de mandataire ajouté.
+  [Rapport 256](taches/rapport-codex-256-jugement-mandat.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. echanges.confier(mandat=...) juge un mandat explicite par le jet commun (_juger_tache : faisabilité, coût, altruisme, liens, volonté, un d20) plus relations.autorite_mandat : statut cru dans son lieu et son domaine 3 points de DD, ascendant 0 à 3, somme plafonnée à 5, dette comptée une seule fois ; refus d'accueil avant tout jet, jamais d'acceptation forcée ; raison (adhésion, dette, autorité, refus et cause) enregistrée avant la chronique ; acceptation par agendas.confier. Demandes ordinaires inchangées ; aucun appelant autonome : 20/20 nuits 4 h identiques, suspects 2 → 2. 68 tests ciblés verts.
+
 - **Vérification d'intégration c870c8b**, lot **241**, branche
   `codex-verif-integ-2` : **49/49 nuits achevées, zéro plantage**,
   cinq contrôles 8 h VERIFIER/spatial 0,2 terminés, dont mine/rixe 42 ;

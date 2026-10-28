@@ -196,6 +196,25 @@ def enfants(monde, titulaire, identifiant):
     return copy.deepcopy(a.get("confies", []))
 
 
+def retenir_jugement(monde, mandant, parent, jugement):
+    """Décision du destinataire conservée avant tout récit, y compris un refus."""
+    if getattr(monde, "_evaluation_agendas", None) is not None:
+        raise ValueError("Publier le jugement après le devis")
+    a = _projet(monde, mandant, parent)
+    if a is None:
+        raise ValueError("Parent de mandat absent")
+    a.setdefault("jugements", []).append(copy.deepcopy(jugement))
+
+
+def devis_mandat(monde, mandant, parent, titulaire, sorte, parametres):
+    """Plan social et coût commun sur copie ; aucune obligation publiée."""
+    copie = monde.copier()
+    a = confier(copie, mandant, parent, titulaire, sorte, parametres, accepte=True)
+    cout = []
+    resultat = planifier(copie, titulaire, a["id"], cout=cout)
+    return (cout[0], resultat[1]) if resultat is not None and cout else None
+
+
 def _condition_mandat(monde, sorte, parametres):
     """Identité du sous-but indépendante de l'ordre des destinataires."""
     if sorte not in ("amener", "informer") or not isinstance(parametres, dict):
@@ -509,7 +528,7 @@ def _informe(monde, id, a):
     return all(transmission_attestee(monde, id, qui, _noyau(a)) for qui in _destinataires(a))
 
 
-def planifier(monde, id, identifiant):
+def planifier(monde, id, identifiant, *, cout=None):
     """Un seul prochain sous-but recherché ; aucun plan conservé dans l'agenda."""
     from .esprits import lire
     from .deliberation import salle_crue
@@ -519,7 +538,7 @@ def planifier(monde, id, identifiant):
     # Une requête isolée reste un devis : aucune transition ni chronique.
     if contexte is None or contexte[0] != id:
         with evaluation(monde, id, publier=False):
-            return planifier(monde, id, identifiant)
+            return planifier(monde, id, identifiant, cout=cout)
     a = next(a for a in _stock(monde, id) if a["id"] == identifiant)
     if a["etat"] not in ("actif", "sommeil"):
         return None
@@ -563,7 +582,7 @@ def planifier(monde, id, identifiant):
         _limiter(monde, id, empreinte)
         return ({"type": "agenda", "agenda": identifiant, "pieces": a["parametres"]["pieces"]}, resultat) if a["etat"] == "actif" else None
     if a["sorte"] == "amener":
-        return _amener(monde, id, a, empreinte)
+        return _amener(monde, id, a, empreinte, cout=cout)
     if a["sorte"] == "protéger":
         from .defense import interposition
         poste = interposition(monde, id)
@@ -634,10 +653,13 @@ def planifier(monde, id, identifiant):
         _limiter(monde, id, empreinte)
         if a["etat"] != "actif":
             return None
+    if cout is not None:
+        from .pnj import DUREES
+        cout.append(trouve[0] + DUREES["dire"] / 600)
     return {"type": "agenda", "agenda": identifiant, "qui": qui}, trouve[1] + [_etape("dire", qui, contenu=contenu)]
 
 
-def _amener(monde, id, a, empreinte):
+def _amener(monde, id, a, empreinte, *, cout=None):
     """Parole, demande, puis marche propre ; seules les traces du porteur font foi."""
     from .deliberation import salle_crue, refus_retenu
     from .eau import menacee
@@ -693,6 +715,8 @@ def _amener(monde, id, a, empreinte):
             _limiter(monde, id, empreinte)
             if a["etat"] != "actif":
                 return None
+        if cout is not None:
+            cout.append(trouve[0])
         return {"type": "agenda", "agenda": a["id"], "qui": qui}, trouve[1]
     if attendus:
         # Attendre un engagement accepté est un recours : laisser la routine
@@ -1018,6 +1042,18 @@ def verifier(monde, id):
                 and a["origine"]["type"] in ("scenario", "situation", "evenement", "mandat") and "plan" not in a
                 and isinstance(a["croyances"], str)), "Agenda invalide"
         _verifier_filiation(monde, id, a)
+        jugements = a.get("jugements", [])
+        assert isinstance(jugements, list), "Jugements de mandat invalides"
+        for j in jugements:
+            assert (isinstance(j, dict) and set(j) >= {"qui", "minute", "sorte", "parametres", "issue", "raison"}
+                    and j["qui"] in monde.objets and type(j["minute"]) is int
+                    and j["issue"] in ("accepte", "refus", "impossible", "mefiance", "rancune", "qui_va_la")
+                    and j["raison"] in ("adhesion", "dette", "autorite", "confirmation", j["issue"])), "Jugement de mandat invalide"
+            _condition_mandat(monde, j["sorte"], j["parametres"])
+            if "autorite" in j:
+                assert (set(j["autorite"]) == {"statut", "ascendant", "dette", "bonus"}
+                        and 0 <= j["autorite"]["bonus"] <= 5
+                        and all(isinstance(j[k], (int, float)) for k in ("cout", "total", "dd"))), "Bilan de mandat invalide"
     for engagement in en_cours(monde, id):
         from .deliberation import condition_valide
         # ``paye`` : une contrepartie payée d'avance (une part, un objet, une tâche), le bien et le prix

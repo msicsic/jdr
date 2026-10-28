@@ -216,6 +216,19 @@ def autorite_reconnue(monde, id, autre):
     return _lecture(monde, id, autre)["ascendant"]
 
 
+def autorite_mandat(monde, id, autre, lieu, domaine):
+    """Une lecture perçue ; la dette figure déjà dans le jet commun.
+
+    Statut : 3 points, ascendant : au plus 3, total au plus 5 points
+    de DD. La peur ne confère aucun pouvoir de mandat dans ce lot.
+    """
+    from .voix import identifie
+    r = percue(monde, id, autre)
+    statut = statuts_reconnus(monde, id, autre, lieu, domaine) if identifie(monde, id, autre) else None
+    return {"statut": statut, "ascendant": r["ascendant"], "dette": r["dette"],
+            "bonus": min(5, (3 if statut else 0) + max(0, r["ascendant"]) * 3 / 100)}
+
+
 def chance_demande(monde, id, autre):
     """Estimation du demandeur, jamais lecture de l'esprit de l'autre.
 
