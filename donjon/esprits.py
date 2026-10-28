@@ -24,6 +24,10 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
 - ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
 - ``prevision`` (sujet : une salle) : avis reçu, avec source et conviction ; valeur =
   [minute du niveau, niveau, montée en cm/h], sans modifier les mesures ``eau``.
+- ``statuts`` (sujet : un personnage) : liste de {titre, lieux, domaines}, vraie ou
+  prétendue ; [] dément les statuts précédemment crus. Le profil d'auteur ajoute
+  ``connus`` à chaque statut pour ses seuls connaisseurs initiaux. La lecture de
+  portée appartient à ``relations.statuts_reconnus``, sans lecteur de décision.
 
 Voix (``voix.py``) : ``voix`` liste ceux dont il connaît la voix (il les a entendus parler en les
 voyant, ou le scénario les lui fait connaître) ; ``voix_entendues``, les voix inconnues qu'il a
@@ -125,10 +129,42 @@ def esprit(monde, id):
     return e
 
 
+def verifier_statuts(monde, valeurs, declares=False):
+    """Une portée explicite : lieux ET domaines ; aucune portée universelle implicite."""
+    assert isinstance(valeurs, list), "Statuts invalides"
+    for v in valeurs:
+        assert isinstance(v, dict) and set(v) == ({"titre", "lieux", "domaines", "connus"} if declares else
+                                                  {"titre", "lieux", "domaines"}), "Statut mal formé"
+        assert isinstance(v["titre"], str) and v["titre"].strip(), "Titre de statut invalide"
+        for k in ("lieux", "domaines"):
+            assert (isinstance(v[k], list) and v[k] and all(isinstance(x, str) and x for x in v[k])
+                    and len(v[k]) == len(set(v[k]))), "Portée de statut invalide"
+        assert all(x in monde.data["salles"] for x in v["lieux"]), "Lieu de statut inconnu"
+        if declares:
+            assert (isinstance(v["connus"], list)
+                    and all(isinstance(x, str) and (x == "joueur" or
+                            monde.objets.get(x, {}).get("type") in ("personnage", "depouille")) for x in v["connus"])
+                    and len(v["connus"]) == len(set(v["connus"]))), "Connaisseurs de statut invalides"
+
+
+def installer_statuts(monde, id):
+    """Savoirs initiaux seulement ; ne réinjecte jamais une vérité à la recharge."""
+    for sujet, o in monde.objets.items():
+        valeurs = (o.get("profil") or {}).get("statuts", [])
+        verifier_statuts(monde, valeurs, declares=True)
+        connus = [{k: copy.deepcopy(v[k]) for k in ("titre", "lieux", "domaines")}
+                  for v in valeurs if id in v["connus"]]
+        if connus:
+            croire(monde, id, sujet, "statuts", connus, "savoir")
+
+
 def installer(monde):
     monde.data.setdefault("esprits", {})
+    if "connaissances_joueur" not in monde.data:
+        installer_statuts(monde, "joueur")
     personnages = set(pnjs(monde)) | {"joueur"}
     for id in pnjs(monde):
+        nouveaux_statuts = "relations" not in monde.data["esprits"].get(id, {})
         nouveau = "voix" not in monde.data["esprits"].get(id, {})
         migrer_confidences = "faits_dits" not in monde.data["esprits"].get(id, {})
         migrer_recherches = "recherches" not in monde.data["esprits"].get(id, {})
@@ -159,6 +195,8 @@ def installer(monde):
                                 "apaise": (bool(appels[-1].get("apaise"))
                                            and e["besoins"].get("securite", 0) < DESESPOIR
                                            and "securite" not in urgents(monde, id))}
+        if nouveaux_statuts:
+            installer_statuts(monde, id)
         if nouveau:
             # Début de partie : le scénario déclare qui se connaît déjà (un savoir à son sujet) ;
             # il connaît leur voix. Voir quelqu'un, plus tard, n'y ajoute rien (``voix``).
@@ -203,7 +241,9 @@ def _croyance_valide(monde, attribut, c):
         assert (isinstance(c["origine"], dict) and set(c["origine"]) == {"source", "minute"}
                 and isinstance(c["origine"]["source"], str)
                 and type(c["origine"]["minute"]) is int), "Origine de localisation invalide"
-    if attribut == "lieu":
+    if attribut == "statuts":
+        verifier_statuts(monde, c.get("valeur"))
+    elif attribut == "lieu":
         # Une croyance peut survivre à son objet (détruit, retiré).
         assert (set(c) >= {"valeur", "salle", "case"}
                 and (c["valeur"] is None or isinstance(c["valeur"], str))
@@ -286,7 +326,7 @@ def verifier(monde):
         for sujet, attributs in e["croyances"].items():
             assert (isinstance(sujet, str) and isinstance(attributs, dict)
                     and (sujet in monde.data["salles"] and set(attributs) <= {"eau", "prevision"}
-                         or set(attributs) <= {"fin", "lieu", "etat", "verrouillee"})), "Perception du joueur invalide"
+                         or set(attributs) <= {"fin", "lieu", "etat", "verrouillee", "statuts"})), "Perception du joueur invalide"
             for attribut, c in attributs.items():
                 _croyance_valide(monde, attribut, c)
         assert isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX, "Mémoire du joueur invalide"
