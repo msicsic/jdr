@@ -11,10 +11,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `367860`, Gorm `409744`, torche `24600` close à `24090`. Identité avec/sans
   sonde et recharges des deux reprises ; **26 tests ciblés verts**, scènes
   fautives toujours signalées. Aucun moteur modifié, Luna ni suite complète.
-  **Vingt nuits 4 h en cours, lot non validé** : un processus réduit détaché
-  via WMI ; compteurs avant/après et identités dans `bilan.json`, marqueur
-  `C:/Users/msics/donjon/artifacts/compteurs-265/fin.json`. Ne pas relancer :
-  lire ce marqueur puis le bilan à la reprise. Certification générale fausse.
+  **Vingt nuits 4 h terminées : 20/20 identités, 180 contrôles verts**, zéro
+  plantage, un processus réduit détaché via WMI, 2 338,585 s. Suspects **2 → 1**,
+  à expliquer **55 → 47**, changements de moyen admis **0 → 9** ; cycles
+  **489 → 489**, préemptions **46 → 46**, pertes d'état payé **5 → 5** (quatre
+  cessations physiques, un bénéficiaire parti). Suspect historique Mireille
+  auberge 1985 `36720` toujours signalé. Bruts et `fin.json` (`ok=true`) :
+  `C:/Users/msics/donjon/artifacts/compteurs-265/`. Aucun calcul actif.
+  Correctif `91377b1` poussé. Suite 268 non couverte : les réveils d'agenda de
+  Brune `591`/`929` restent à expliquer ; reconnaître acquisitions, positions
+  apprises et engagements accomplis dans un lot suivant. Certification générale
+  fausse ; aucune garantie universelle de stabilité du jeu.
   [Rapport 265](taches/rapport-codex-265-compteurs-faux-positifs.md).
 
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic
