@@ -49,6 +49,14 @@
   #journal { flex: 1; overflow: auto; min-height: 0; }
   #journal p { margin: 3px 0; white-space: pre-wrap; }
   #journal .moi { color: #ddc694; }
+  #ambiance { background: #151a17; border: 1px solid #2d3832; border-left: 3px solid #57806a; border-radius: 4px;
+              padding: 6px 10px; font-size: 13px; line-height: 1.4; display: flex; gap: 8px; align-items: baseline;
+              min-height: 28px; color: #c2d1c7; }
+  #ambiance .ambiance-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+                              color: #7fb8a4; flex: none; }
+  #ambiance .ambiance-texte { font-style: italic; flex: 1; }
+  #ambiance .ambiance-texte.attente { color: #63756c; letter-spacing: 2px; }
+  #ambiance .ambiance-temps { margin-left: auto; font-size: 11px; color: #63756c; font-style: normal; flex: none; }
   #proposition { display: none; border: 1px solid #5a5233; background: #26241a; border-radius: 6px; padding: 6px 9px; }
   #proposition pre { margin: 0 0 6px; white-space: pre-wrap; font: inherit; }
   #saisie { display: flex; gap: 8px; }
@@ -92,6 +100,11 @@
   </aside>
   <section id="recit">
     <div id="journal"></div>
+    <div id="ambiance">
+      <span class="ambiance-label">Narrateur :</span>
+      <span id="ambiance-texte" class="ambiance-texte attente">…</span>
+      <span id="ambiance-temps" class="ambiance-temps"></span>
+    </div>
     <div id="proposition"><pre id="proposition-texte"></pre>
       <button class="principal" id="tenter">Lancer la tentative</button> <button id="annuler">Tout annuler</button></div>
     <div id="saisie"><input id="commande" autocomplete="off" placeholder="Que fais-tu ?"><button id="envoyer">Envoyer</button></div>
@@ -312,6 +325,25 @@ function ajouterLigne(texte) {
   while (journal.children.length > 500) journal.removeChild(journal.firstChild);
   if (suivre) journal.scrollTop = journal.scrollHeight;
 }
+function appliquerAmbiance(e) {
+  const el = $("ambiance-texte"), temps = $("ambiance-temps");
+  if (!el) return;
+  if (e.statut === "en_cours") {
+    el.textContent = "…";
+    el.className = "ambiance-texte attente";
+    if (temps) temps.textContent = "";
+  } else if (e.statut === "pret") {
+    if (e.texte) {
+      el.textContent = e.texte;
+      el.className = "ambiance-texte";
+      if (temps) temps.textContent = e.duree ? `${e.duree} s` : "";
+    } else {
+      el.textContent = "—";
+      el.className = "ambiance-texte attente";
+      if (temps) temps.textContent = "";
+    }
+  }
+}
 function appliquerEtat(e) {
   $("lieu").textContent = e.salle;
   $("compteurs").textContent = `PV ${e.pv} · ${e.or_texte} · ${e.minutes} min · MJ : ${e.connexion}`;
@@ -347,6 +379,7 @@ flux.onmessage = m => {
   const e = JSON.parse(m.data);
   if (e.type === "ligne") ajouterLigne(e.texte);
   else if (e.type === "etat") appliquerEtat(e);
+  else if (e.type === "ambiance") appliquerAmbiance(e);
   else if (e.type === "pret") { etatOccupe(false); poursuivre(); }
   else if (e.type === "occupe") etatOccupe(true);
 };
@@ -505,13 +538,22 @@ function vers(g) {
 }
 function gestes(o) {
   const liste = [["examiner", "Examiner"]];
-  if (o.type === "personnage") return [...liste, ["observer", "Observer son attitude"], ["parler", "Lui parler"]];
+  if (o.type === "personnage") return [...liste, ["observer", "Observer son attitude"], ["parler", "Lui parler…"]];
   if (o.type === "motif") liste.push(["lire", "Lire"]);
   if (o.type === "luminaire") liste.push(o.allume ? ["eteindre", "Éteindre"] : ["allumer", "Allumer"]);
   if (o.type === "nourriture") liste.push(["manger", "Manger"]);
   if (o.type === "contenant") liste.push(["ouvrir", "Ouvrir"], ["fermer", "Fermer"]);
   if (o.mobile) liste.push(["prendre", "Prendre"]);
   return liste;
+}
+function parlerA(o) {
+  arreter(null);
+  const saisie = $("commande"), prefixe = `à ${court(o.nom)} : `;
+  const texte = saisie.value.replace(/^à [^:]+:\s*/i, "").trim();
+  if (texte) { envoyer(prefixe + texte); saisie.value = ""; return; }
+  saisie.value = prefixe;
+  saisie.focus();
+  if (saisie.setSelectionRange) saisie.setSelectionRange(prefixe.length, prefixe.length);
 }
 function gestesPorte(p) {
   const liste = [["examiner", "Examiner"]];
@@ -542,7 +584,11 @@ function choixCase(g) {
   const geste = texte => () => aPortee(g, texte);
   const sections = [];
   niveau.objets.filter(o => cle(o.globale) === k).forEach(o =>
-    sections.push([o.nom, gestes(o).map(([verbe, libelle]) => [libelle, geste(`${verbe} ${o.id}`), `${verbe} ${o.id}`])]));
+    sections.push([o.nom, gestes(o).map(([verbe, libelle]) => [
+      libelle,
+      verbe === "parler" ? () => parlerA(o) : geste(`${verbe} ${o.id}`),
+      `${verbe} ${o.id}`,
+    ])]));
   niveau.sorties.filter(s => s.porte && cle(s.globale) === k).forEach(s =>
     sections.push([s.porte.nom, gestesPorte(s.porte).map(([verbe, libelle]) => [libelle, geste(`${verbe} ${s.porte.id}`), `${verbe} ${s.porte.id}`])]));
   const autres = [];
@@ -551,13 +597,13 @@ function choixCase(g) {
   return {sections, autres};
 }
 canvas.addEventListener("click", e => {
-  if (!bornes || !scene || occupe) return;
+  if (!bornes || !scene) return;
   const r = canvas.getBoundingClientRect();
   const g = [Math.floor((e.clientX - r.left) / CS) + bornes.xmin, Math.floor((e.clientY - r.top) / CS) + bornes.ymin];
   const {sections, autres} = choixCase(g);
   e.stopPropagation();
   // Une case de sol libre : on y va tout de suite, sans menu.
-  if (!sections.length && autres.length && autres[0][0] === "Aller ici") { fermerMenu(); allerA(g); return; }
+  if (!sections.length && autres.length && autres[0][0] === "Aller ici") { fermerMenu(); if (!occupe) allerA(g); return; }
   if (autres.length) sections.push([sections.length ? "Ici" : "", autres]);
   if (sections.length) ouvrirMenu(e.clientX + 6, e.clientY + 6, sections); else fermerMenu();
 });

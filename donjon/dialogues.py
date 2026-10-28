@@ -190,6 +190,62 @@ def preparer_conversation(monde, p, revision=None):
     return travail, rapport
 
 
+def replique_conversation(monde, travail, p, rapport):
+    """Parole directe du donneur pour un accord de mission validé (``preparer_conversation``).
+
+    Les termes (montant, objet, statut, échéance) viennent de l'engagement du moteur ; aucune
+    phrase de régie (« Le joueur… », « Il… ») n'entre dans les guillemets. Pour une discussion
+    sans mission (``discuter``), renvoie ``""`` : le narrateur répond librement.
+    """
+    from .francais import complement_de
+    from .voix import nom_pour_joueur
+    op, mission_id = rapport["operation"], p.get("mission") or ""
+    if op == "discuter" or not mission_id:
+        return ""
+    acteur = rapport["personnage"]
+    mission = travail.data["missions"][mission_id]
+    objet = travail.objets[mission["objet"]]
+    bien, du_bien = designer(objet), complement_de(objet)
+    avant = agendas.contrats(monde).get(mission_id)
+    statut_avant = avant["statut"] if avant else None
+    accord = rapport.get("engagement")
+    if statut_avant == "paye":
+        somme = quantite(avant["montant"], "pièce", determinant="defini") + (" convenues" if avant["montant"] > 1 else " convenue")
+        mots = f"Je t'ai déjà versé {somme} pour {bien}. Je ne te dois plus rien."
+    elif statut_avant == "accepte":
+        somme = quantite(avant["montant"], "pièce")
+        payable = "payables" if avant["montant"] > 1 else "payable"
+        mots = f"Notre accord est conclu : {somme}, {payable} contre la remise {du_bien}. Je n'en changerai pas."
+    elif op == "accepter":
+        somme = quantite(accord["montant"], "pièce")
+        auras = "Tu les auras" if accord["montant"] > 1 else "Tu l'auras"
+        mots = f"Marché conclu pour {somme}. {auras} à la remise {du_bien}."
+    elif op == "refuser":
+        somme = quantite(accord["montant"], "pièce")
+        mots = f"Soit. Je retire mon offre de {somme} pour {bien}."
+    elif not accord:
+        mots = f"Je n'ai pas de quoi te payer pour {bien} en ce moment."
+    else:
+        montant = accord["montant"]
+        somme = quantite(montant, "pièce")
+        payable = "payables" if montant > 1 else "payable"
+        ancien = avant["montant"] if statut_avant == "propose" else 0
+        demande = p.get("montant_demande", 0)
+        if op == "negocier" and demande > montant:
+            demande_txt = quantite(demande, "pièce")
+            if ancien == montant:
+                mots = f"Pas {demande_txt} : je maintiens mon offre de {somme} contre la remise {du_bien}. Dis-moi si tu l'acceptes."
+            else:
+                mots = f"Pas {demande_txt} ; je monte à {somme}, {payable} à la remise {du_bien}. Dis-moi si tu acceptes."
+        elif op == "negocier" and ancien == montant:
+            mots = f"Je maintiens mon offre de {somme} contre la remise {du_bien}. Dis-moi si tu l'acceptes."
+        else:
+            mots = f"Je t'offre {somme}, {payable} contre la remise {du_bien}. Dis-moi si tu acceptes."
+    nom = nom_pour_joueur(travail, acteur) if acteur in travail.objets else acteur
+    locuteur = nom[:1].upper() + nom[1:]
+    return f"{locuteur} : « {mots} »"
+
+
 def remise_convenue(monde, objet_id, destinataire=""):
     """La mission dont l'accord accepté attend cet objet, auprès d'un donneur présent ; sinon None."""
     candidats = [id for id, m in monde.data["missions"].items()

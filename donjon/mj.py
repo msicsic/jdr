@@ -447,7 +447,8 @@ def expliquer_refus(premier, dernier):
 
 
 class MJ:
-    def __init__(self, modele=None, effort=None, timeout=45, connexion="api", *, fournisseur=None):
+    def __init__(self, modele=None, effort=None, timeout=45, connexion="api", *,
+                 fournisseur=None, fournisseur_narration=None, decoupler=None):
         defaut_modele, defaut_effort = DEFAUTS_CONNEXION.get(connexion, (os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT), "medium"))
         self.modele = modele or defaut_modele
         self.effort, self.timeout = effort if effort is not None else defaut_effort, timeout
@@ -465,16 +466,31 @@ class MJ:
         self._sans_relance = False     # une explication refusée cède au refus du monde, sans relance
         self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
         self.reflexion = "libre"       # Claude : réflexion adaptative (défaut), ou « imposee » : outil imposé, sans réflexion
+        self.decoupler = (connexion == "local") if decoupler is None else decoupler
         # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
         # que le préfixe commun (instructions, schéma, faits) n'est pas relu à chaque appel.
         import uuid
         self.cle_cache = str(uuid.uuid4())
         self.fournisseur = fournisseur if fournisseur is not None else creer_fournisseur(connexion)
+        if isinstance(fournisseur_narration, str):
+            if fournisseur_narration in ("sans", "off", "none"):
+                self.fournisseur_narration = None
+            else:
+                self.fournisseur_narration = creer_fournisseur(fournisseur_narration)
+        else:
+            self.fournisseur_narration = fournisseur_narration if fournisseur_narration is not None else self.fournisseur
 
     def fermer(self):
         self.fournisseur.fermer()
+        if self.fournisseur_narration and self.fournisseur_narration is not self.fournisseur:
+            self.fournisseur_narration.fermer()
 
     def proposer(self, monde, intention):
+        if self.decoupler:
+            from .compilateur import compiler
+            prop, utilisation = compiler(self.fournisseur, monde, intention, modele=self.modele, timeout=self.timeout, effort=self.effort)
+            self.derniere_utilisation = utilisation
+            return prop
         from .noms import verifier_references, references
         contexte=monde.contexte()
         reponse=self._appeler(INSTRUCTIONS, {"monde": contexte, "intention": intention},
@@ -561,13 +577,200 @@ class MJ:
 
     def raconter_resultat(self, monde, resultat):
         """Narration seule : le résultat est déjà résolu et sauvegardé par la boucle de jeu."""
+        if self.decoupler:
+            fourn = self.fournisseur_narration
+            if fourn is None:
+                return None
+            from .narrateur import narrer
+            intention = resultat.get("intention", "")
+            faits_list = resultat.get("faits", [])
+            faits_texte = " ".join(faits_list)
+            recit = narrer(fourn, monde, intention, faits_texte, timeout=self.timeout)
+            if not recit:
+                return None
+            texte_final = (faits_texte + "\n" + recit) if faits_texte else recit
+            return {
+                "mode": "dialogue",
+                "texte": texte_final,
+                "ambiance": recit,
+                "_audit": True,
+            }
         return self._echanger(monde, "Raconte la manœuvre qui vient d'être résolue.", None,
                               enrichir=False, resultat_resolu=resultat)
+
+    def _echanger_decouple(self, monde, intention, proposition_en_attente=None):
+        from .compilateur import compiler
+        prop, utilisation = compiler(self.fournisseur, monde, intention, modele=self.modele, timeout=self.timeout, effort=self.effort)
+        self.derniere_utilisation = utilisation
+
+        action = prop.get("action")
+        if action == "conversation_pnj":
+            from .dialogues import preparer_conversation, replique_conversation
+            p_conv = {
+                "personnage": prop.get("personnage") or "",
+                "sujet": intention,
+                "operation": prop.get("operation") or "proposer",
+                "mission": prop.get("mission") or "",
+                "montant_demande": int(prop.get("montant_demande") or 0),
+            }
+            if not p_conv["mission"] and p_conv["personnage"] in monde.objets:
+                siennes = [m_id for m_id, m_data in monde.data.get("missions", {}).items() if m_data.get("donneur") == p_conv["personnage"]]
+                if len(siennes) == 1:
+                    p_conv["mission"] = siennes[0]
+
+            travail, rapport = preparer_conversation(monde, p_conv, monde.data["revision"])
+            repartie = replique_conversation(monde, travail, p_conv, rapport)
+            if not repartie:
+                from .narrateur import repondre_dialogue
+                fourn_dial = self.fournisseur_narration or self.fournisseur
+                repartie = repondre_dialogue(fourn_dial, travail, intention, personnage=rapport["personnage"], timeout=self.timeout)
+            return {
+                "mode": "dialogue",
+                "texte": repartie,
+                "ambiance": "",
+                "faits": rapport.get("faits", []),
+                "proposition": None,
+                "_transactions": [
+                    {
+                        "type": "conversation_pnj",
+                        "revision": monde.data["revision"],
+                        "proposition": p_conv,
+                        "rapport": rapport,
+                    }
+                ],
+            }
+
+        if action == "dialogue":
+            from .narrateur import repondre_dialogue
+            cible_perso = prop.get("personnage") or prop.get("cible")
+            transactions = []
+            prefixe = None
+            faits_parole = []
+            monde_dialogue = monde
+            import re
+            from . import paroles
+            from .dialogues import interlocuteurs
+            from .voix import connait_nom, nom_pour_joueur, reel
+            intention_parole = intention
+            forme = paroles.analyser(monde, intention)
+            mots = (paroles.mots_dits(forme, intention) or intention).strip().strip('"«»').strip()
+            prev = paroles.prevue(monde, intention)
+            mots_norm = normaliser(intention or "")
+            est_qui = prop.get("sujet_parole") == "qui"
+            if not forme.get("nomme") and not forme.get("groupe") and mots:
+                cible_choisie = None
+                presents_ids = [reel(monde, d) for d in interlocuteurs(monde)]
+                for pid in presents_ids:
+                    if not pid or pid not in monde.objets:
+                        continue
+                    designation_vis = normaliser(nom_pour_joueur(monde, pid))
+                    if designation_vis and len(designation_vis) >= 3 and designation_vis in mots_norm:
+                        cible_choisie = pid
+                        break
+                if not cible_choisie and est_qui and "impossible" not in prev:
+                    reel_prev = reel(monde, prev.get("personnage"))
+                    if reel_prev and connait_nom(monde, "joueur", reel_prev):
+                        inconnus = [pid for pid in presents_ids if pid and not connait_nom(monde, "joueur", pid) and monde.visible(pid)]
+                        if inconnus:
+                            dernier_cible = next(
+                                (j.get("action", {}).get("cible") for j in reversed(monde.data.get("journal", [])[-5:])
+                                 if j.get("action", {}).get("cible") in inconnus),
+                                None,
+                            )
+                            cible_choisie = dernier_cible or paroles.en_face(monde, inconnus)
+                if cible_choisie and cible_choisie in monde.objets:
+                    cible_perso = cible_choisie
+                    nom_cible = nom_pour_joueur(monde, cible_choisie)
+                    mots_propres = re.sub(re.escape(nom_cible), "", mots, flags=re.I).strip(" ,:;-") or mots
+                    intention_parole = f"à {nom_cible} : {mots_propres}"
+                    forme = paroles.analyser(monde, intention_parole)
+                    mots = (paroles.mots_dits(forme, intention_parole) or mots_propres).strip().strip('"«»').strip()
+                    prev = paroles.prevue(monde, intention_parole)
+            if "impossible" in prev:
+                raise ParoleImpossible(prev["impossible"])
+            if prev.get("personnage") and (prev["personnage"] != "personne" or prev.get("mots")):
+                if mots:
+                    p_parole = {
+                        "personnage": prev["personnage"],
+                        "replique": mots,
+                        "contenu": [{"type": "qui" if est_qui else "propos", "sujet": "", "attribut": "", "valeur": ""}],
+                        "_intention": intention_parole,
+                    }
+                    travail_p, rapport_p = paroles.preparer_parole(monde, p_parole, monde.data["revision"])
+                    monde_dialogue = travail_p
+                    prefixe = paroles.annonce(travail_p, rapport_p)
+                    faits_parole = rapport_p.get("faits", [])
+                    if rapport_p.get("repondent"):
+                        cible_perso = reel(travail_p, rapport_p["repondent"][0])
+                    transactions.append({
+                        "type": "parole",
+                        "revision": monde.data["revision"],
+                        "proposition": p_parole,
+                        "rapport": rapport_p,
+                    })
+            texte_compil = prop.get("texte", "").strip()
+            if prop.get("_deterministe") and texte_compil:
+                texte = texte_compil
+            else:
+                texte = repondre_dialogue(
+                    self.fournisseur_narration or self.fournisseur,
+                    monde_dialogue,
+                    intention,
+                    personnage=cible_perso,
+                    faits=faits_parole,
+                    timeout=self.timeout,
+                )
+                if est_qui and len(faits_parole) > 1:
+                    lignes_noms = "\n".join(faits_parole)
+                    texte = f"{lignes_noms}\n{texte}" if texte else lignes_noms
+            if not est_qui and texte and cible_perso and transactions:
+                from . import paroles
+                from .voix import connait_nom
+                if not connait_nom(monde_dialogue, "joueur", cible_perso) and paroles.nom_dans(monde_dialogue, texte) == cible_perso:
+                    p_qui = dict(transactions[0]["proposition"])
+                    p_qui["contenu"] = [{"type": "qui", "sujet": "", "attribut": "", "valeur": ""}]
+                    travail_q, rapport_q = paroles.preparer_parole(monde, p_qui, monde.data["revision"])
+                    monde_dialogue = travail_q
+                    faits_parole = rapport_q.get("faits", [])
+                    transactions[0] = {
+                        "type": "parole",
+                        "revision": monde.data["revision"],
+                        "proposition": p_qui,
+                        "rapport": rapport_q,
+                    }
+            if not texte:
+                texte = " ".join(faits_parole) if faits_parole else "Aucune réponse."
+            return {
+                "mode": "dialogue",
+                "texte": texte,
+                "ambiance": "",
+                "faits": faits_parole,
+                "proposition": None,
+                "_prefixe_moteur": prefixe,
+                "_transactions": transactions,
+            }
+
+        if action in ("clarifier", "impossible"):
+            return {
+                "mode": "dialogue",
+                "texte": prop.get("justification") or "Je ne peux pas accomplir ce geste dans cette situation.",
+                "faits": [],
+                "proposition": None,
+                "_transactions": [],
+            }
+
+        return {
+            "mode": "action",
+            "proposition": prop,
+            "_transactions": [],
+        }
 
     def echanger(self, monde, intention, proposition_en_attente=None):
         """Complète les abords autorisés avant l'arbitrage, toujours sur copie."""
         from .noms import verifier_saisie
         verifier_saisie(monde, intention)
+        if self.decoupler:
+            return self._echanger_decouple(monde, intention, proposition_en_attente)
         from .espace import a_completer, preparer, SCHEMA as SCHEMA_ESPACE
         cadres = a_completer(monde)
         if not cadres:

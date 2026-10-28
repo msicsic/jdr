@@ -1202,6 +1202,25 @@ def _memoriser(m):
     return exploration
 
 
+def _memoriser_murs_heurtes(m, salle, position, vecteur):
+    """Un pas heurté contre un mur révèle ce mur au toucher, même dans le noir."""
+    piece = m.data["salles"].get(salle, {})
+    if "plan" not in piece:
+        return
+    sol = cases(piece)
+    seuils = {tuple(s["case"]) for s in piece.get("sorties", {}).values()
+              if len(s.get("case", ())) == 2}
+    x, y = position
+    dx, dy = vecteur
+    candidats = ((x + dx, y), (x, y + dy), (x + dx, y + dy)) if dx and dy else ((x + dx, y + dy),)
+    murs = m.data.setdefault("murs_memorises", {}).setdefault(salle, [])
+    connus = {tuple(p) for p in murs}
+    for cx, cy in candidats:
+        if (cx, cy) not in sol and (cx, cy) not in seuils and (cx, cy) not in connus:
+            murs.append([cx, cy])
+            connus.add((cx, cy))
+
+
 def preparer_pas(m, direction):
     vecteur = VECTEURS.get(direction) if isinstance(direction, str) else direction
     if not isinstance(vecteur, (tuple, list)) or len(vecteur) != 2:
@@ -1209,7 +1228,11 @@ def preparer_pas(m, direction):
     dx, dy = vecteur
     if type(dx) is not int or type(dy) is not int or max(abs(dx), abs(dy)) != 1:
         _erreur("Le déplacement doit avancer d'une case.")
-    pas = pas_vers(m, m.joueur["salle"], tuple(m.joueur["position"]), (dx, dy))
+    salle, position = m.joueur["salle"], tuple(m.joueur["position"])
+    pas = _pas(m, salle, position, (dx, dy))
+    if isinstance(pas, str):
+        _memoriser_murs_heurtes(m, salle, position, (dx, dy))
+        _erreur(pas)
     if pas["salle"] != m.joueur["salle"]:
         from .eau import refuser_entree
         refuser_entree(m, pas["salle"])

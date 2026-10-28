@@ -18,6 +18,7 @@ class PontWeb:
         self.abonnes = []
         self.historique = []          # les dernières lignes, pour une page ouverte en cours de partie
         self.dernier_etat = None
+        self.derniere_ambiance = {"type": "ambiance", "statut": "pret", "texte": "", "duree": None}
         self.occupe = True            # tant que la boucle n'attend pas de commande
         self.termine = False
 
@@ -31,6 +32,8 @@ class PontWeb:
                 file.put({"type": "ligne", "texte": texte})
             if self.dernier_etat:
                 file.put(self.dernier_etat)
+            if self.derniere_ambiance:
+                file.put(self.derniere_ambiance)
             file.put({"type": "occupe" if self.occupe else "pret"})
             self.abonnes.append(file)
         return file
@@ -87,6 +90,12 @@ class PontWeb:
         with self.verrou:
             self.dernier_etat = etat
         self.diffuser(etat)
+
+    def ambiance(self, statut="pret", texte="", duree=None):
+        evt = {"type": "ambiance", "statut": statut, "texte": texte, "duree": duree}
+        with self.verrou:
+            self.derniere_ambiance = evt
+        self.diffuser(evt)
 
     # --- Ce que la page envoie --------------------------------------------------------------
 

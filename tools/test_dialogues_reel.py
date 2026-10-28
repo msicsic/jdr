@@ -25,7 +25,11 @@ def main():
     m.joueur["salle"] = "echoppe"
     m.memoriser("je demande a gorn ce que j'y gagne a retrouver cet anneau",
                 "Gorm : « Mes prix tiennent déjà compte de votre charisme. Un bon levier ménage la lame. »", "resultat_moteur")
-    mj = MJOpenAI(connexion="chatgpt")
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--connexion", default="local")
+    args = parser.parse_args()
+    mj = MJOpenAI(connexion=args.connexion)
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "partie.json"
         for message, statut, montant in (
@@ -37,6 +41,7 @@ def main():
             r = mj.echanger(m, message)
             assert m.data == avant
             assert r["mode"] == "dialogue" and du_type(r, "conversation_pnj"), r
+            assert "Le joueur" not in r["texte"] and "Aucun paiement" not in r["texte"], r["texte"]
             p = du_type(r, "conversation_pnj")
             m, rapport = preparer_conversation(m, p["proposition"], p["revision"])
             assert rapport["engagement"] == {"statut": statut, "montant": montant}, rapport

@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Architecture découplée (compilateur d'intention + narrateur d'ambiance), bandeau web et fournisseur local unifié**,
+  branche `prompt-simplifie`, rebasée sur `c870c8b` :
+  - **Compilateur et contrat moteur (`donjon/compilateur.py`, `donjon/mj.py`, `donjon/dialogues.py`)** :
+    découplage entre la compilation d'intention mécanique en 1 passe (~150 jetons de contexte) et la narration d'ambiance a posteriori (`donjon/narrateur.py`).
+    Typage de `sujet_parole` (`propos` | `qui`) et `lister_marchandises` dans le schéma du compilateur (suppression des listes de mots-clés codées en dur `est_qui`, `est_meta`, `mots_commerce`, `_MOTS_FORMES_SONORES` et des `except Exception: pass` silencieux).
+    Les accords de mission (`conversation_pnj`) sont formulés au discours direct à partir de l'engagement validé (`replique_conversation`), sans phrase de régie dans les guillemets du PNJ.
+    Sur `acheter` (`donjon/moteur.py`), la proximité est exigée envers le vendeur (et non l'article posé plus loin dans l'échoppe).
+  - **Bandeau « Narrateur » et thread de narration (`jeu.py`, `donjon/web/page.html`, `donjon/web/pont.py`)** :
+    narration d'ambiance exécutée en tâche de fond non bloquante ; les ambiances sont consignées dans `data["ambiances"][salle]` avant affichage (sous verrou, ou mises en file d'attente `en_attente` tant que la boucle principale travaille pour éviter toute perte lors du remplacement de `monde.data` par `Moteur.executer`), et le bandeau est systématiquement libéré en bloc `finally`.
+  - **Murs heurtés dans le noir (`donjon/spatial.py`, `jeu.py`)** :
+    un pas bloqué par un mur mémorise ce mur dans `m.data["murs_memorises"]` et le sauvegarde immédiatement.
+  - **Fournisseur local unifié (`donjon/fournisseurs/local.py`, `donjon/config.py`)** :
+    unifie l'API native Ollama (`/api/chat`, port `11434`, `num_ctx: 32768`, `nemotron-3.5-bolt:e4b`) pour le mode découplé et l'API compatible OpenAI (`/v1/chat/completions`, `llama-server`, slots de cache KV) de `main`.
+  - **Vérification** : suite complète verte hors les deux échecs MiMo `6 != 5` préexistants (lot 220) ; bancs réels `tools/test_dialogues_reel.py` (5/5) et `tools/test_vol_reel.py` (6/6) sur Ollama local (`nemotron-3.5-bolt:e4b`) verts.
+
 - **Branche `codex-aide-stable`, fusionnée**, lot **240**, base
   intégration `1c71666`. `Vue.detresses` conserve l'ouverture de l'aide pour
   une intention sans geste tant qu'une promesse connue reste valide, dès

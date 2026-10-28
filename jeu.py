@@ -6,15 +6,18 @@ import json
 import os
 from pathlib import Path
 import sys
+import threading
+import time
+from types import SimpleNamespace
 
 from donjon.commandes import AIDE, PERCEPTIONS, analyser, est_question, heler
-from donjon.config import charger_env, MODELE_CLAUDE, MODELE_LOCAL, MODELE_MIMO, MODELE_PAR_DEFAUT
+from donjon.config import charger_env, MODELE_CLAUDE, MODELE_MIMO, MODELE_LOCAL, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJ
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
 from donjon.moteur import Moteur, QualificationRequise, gestes_accomplis
 from donjon.noms import NomNonResolu, verifier_saisie
-from donjon.narration import (consigner as consigner_narration, rendre_resultat,
+from donjon.narration import (AMBIANCES_PAR_LIEU, consigner as consigner_narration, rendre_resultat,
                               chiffres_sans_fondement)
 from donjon.dialogues import preparer_conversation, commande_sociale
 from donjon.commandes import repondre as repondre_appel
@@ -107,11 +110,19 @@ def main(argv=None, interface=None):
     parser.add_argument("--port", type=int, default=8765, help="port local de --web")
     parser.add_argument("--recit-moteur", action="store_true",
                         help="affiche les résultats d'action rédigés par le moteur, sans récit de Luna")
+    parser.add_argument("--decouple", action="store_true",
+                        help="active le mode découplé (compilateur d'actions + narrateur d'ambiance)")
+    parser.add_argument("--action", choices=["auto", "local", "chatgpt", "api", "anthropic", "mimo"], default=None,
+                        help="fournisseur pour l'arbitrage mécanique des actions")
+    parser.add_argument("--narration", choices=["auto", "local", "chatgpt", "api", "anthropic", "mimo", "sans"], default=None,
+                        help="fournisseur pour le vernis narratif d'ambiance")
+    parser.add_argument("--monolithique", action="store_true",
+                        help="force le mode monolithique historique avec double-passe d'audit")
     args = parser.parse_args(argv)
     if args.model is None:
         args.model = MODELE_MIMO if args.connexion == "mimo" else os.environ.get("LOCAL_LLM_MODEL", MODELE_LOCAL) if args.connexion == "local" else os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
     if args.effort is None:
-        args.effort = "none" if args.connexion in ("mimo", "local") else "medium"
+        args.effort = "none" if args.connexion == "mimo" else "medium"
     if args.atelier + args.defi + args.mine + args.auberge + args.crue + args.crue_hameau + args.rixe > 1:
         parser.error("Choisis --atelier, --defi, --mine, --auberge, --crue, --crue-hameau ou --rixe.")
     for scenario in ("mine", "auberge", "crue", "crue_hameau", "rixe"):
@@ -195,14 +206,25 @@ def main(argv=None, interface=None):
             from donjon.spatial import installer as installer_cases
             installer_cases(m)
         moteur = Moteur(m)
-        connexion = args.connexion
-        if connexion == "auto" and not args.offline:
-            connexion = "chatgpt" if Coffre().compte() else "api"
-        if connexion == "anthropic" and args.model == MODELE_PAR_DEFAUT:
+        connexion_action = args.action or args.connexion
+        if connexion_action == "auto" and not args.offline:
+            connexion_action = "chatgpt" if Coffre().compte() else "api"
+        if connexion_action == "anthropic" and args.model == MODELE_PAR_DEFAUT:
             args.model = MODELE_CLAUDE  # essai de Claude : jamais choisi par défaut
-        cles = {"anthropic": ("ANTHROPIC_API_KEY",), "mimo": ("MIMO_API_KEY", "XIAOMI_API_KEY")}.get(connexion, ("OPENAI_API_KEY",))
-        actif = not args.offline and (connexion in ("chatgpt", "local") or any(os.environ.get(cle) for cle in cles))
-        mj = MJ(args.model, args.effort, connexion=connexion) if actif else None
+        
+        connexion_narration = args.narration
+        if connexion_narration is None:
+            connexion_narration = "sans" if args.recit_moteur else connexion_action
+        elif connexion_narration == "auto" and not args.offline:
+            connexion_narration = "chatgpt" if Coffre().compte() else "api"
+
+        cles = {"anthropic": ("ANTHROPIC_API_KEY",), "mimo": ("MIMO_API_KEY", "XIAOMI_API_KEY")}.get(connexion_action, ("OPENAI_API_KEY",))
+        actif = not args.offline and (connexion_action in ("chatgpt", "local") or any(os.environ.get(cle) for cle in cles))
+        connexion = connexion_action
+        
+        decoupler = (args.decouple or (connexion_action == "local") or (args.action is not None)) and not args.monolithique
+        mj = MJ(args.model, args.effort, connexion=connexion_action,
+                fournisseur_narration=connexion_narration, decoupler=decoupler) if actif else None
         if mj:
             mj.reflexion = args.reflexion
         if mj:
@@ -214,12 +236,13 @@ def main(argv=None, interface=None):
             imprimer("Comparaison inactive : MJ hors ligne. Aucun appel au second modèle.")
         if interface is None:
             imprimer("\nLE SEUIL — prototype testvrac | " + str(BASE))
-            imprimer("MJ : " + (f"{args.model} / {args.effort} / {connexion}" if actif else "hors ligne (commandes locales)"))
+            desc_mj = f"action={connexion_action}, narration={connexion_narration}" if decoupler else connexion_action
+            imprimer("MJ : " + (f"{args.model} / {args.effort} / {desc_mj}" if actif else "hors ligne (commandes locales)"))
             if actif:
-                imprimer("Les phrases libres utilisent " + ("votre forfait ChatGPT et ses limites." if connexion == "chatgpt" else
+                imprimer("Les phrases libres utilisent " + ("votre serveur LLM local Ollama." if connexion == "local" else
+                                                      "votre forfait ChatGPT et ses limites." if connexion == "chatgpt" else
                                                       "la clé API Anthropic, à titre d'essai." if connexion == "anthropic" else
                                                       "la clé API Xiaomi MiMo, à titre d'essai." if connexion == "mimo" else
-                                                      "le serveur LLM local (LOCAL_LLM_URL)." if connexion == "local" else
                                                       "la clé API OpenAI, avec une facturation séparée."))
         imprimer(m.data["scenario"]["objectif"] + " « aide » : commandes disponibles.")
         if not m.data["journal"]:
@@ -230,6 +253,54 @@ def main(argv=None, interface=None):
             afficher("fiche")
         pending = None
         comparaison_pending = 0
+        derniere_ambiance = ""
+        verrou_narration = threading.Lock()
+        seq_narration = 0
+        thread_narration = None
+        en_lecture = False
+        en_attente = []   # (texte, lieu, numéro, durée) : ambiances finies pendant que la boucle travaillait
+        # L'ambiance est libre, mais enregistrée avec son lieu avant d'être montrée : le registre du moteur
+        # (``data["ambiances"][salle]``, sans valeur mécanique, hors de la conversation qui fonde les affirmations
+        # du MJ). Le narrateur découplé ne relève aucune entité (``entites`` vide) : un élément d'ambiance que le
+        # joueur cible n'est donc pas encore matérialisé par ``ambiance_ciblee``.
+        # Le moteur valide en remplaçant ``monde.data`` : seule la boucle de jeu écrit dans le monde, ou le thread
+        # tant que la boucle attend une saisie (``en_lecture``, sous verrou). Sinon l'ambiance attend la boucle.
+
+        def consigner_ambiance(texte, lieu):
+            liste = m.data.setdefault("ambiances", {}).setdefault(lieu, [])
+            liste.append({"texte": texte[:1000], "entites": [], "revision": m.data["revision"]})
+            del liste[:-AMBIANCES_PAR_LIEU]
+
+        def montrer_ambiance(texte, numero, duree):
+            if numero == seq_narration:   # seule la dernière narration lancée parle au bandeau
+                notifier_ambiance("pret", texte=texte or derniere_ambiance, duree=duree if texte else None)
+
+        def integrer_ambiances():
+            """Verrou tenu, côté boucle : consigne, sauve puis montre les ambiances arrivées entre-temps."""
+            arrivees = list(en_attente)
+            del en_attente[:]
+            if any(texte for texte, *_ in arrivees):
+                for texte, lieu, *_ in arrivees:
+                    if texte:
+                        consigner_ambiance(texte, lieu)
+                m.sauver(args.save)
+            for texte, _lieu, numero, duree in arrivees:
+                montrer_ambiance(texte, numero, duree)
+
+        def notifier_ambiance(statut, texte=None, duree=None):
+            nonlocal derniere_ambiance
+            if texte is not None and statut == "pret":
+                derniere_ambiance = texte
+            if interface and hasattr(interface, "ambiance"):
+                interface.ambiance(statut=statut, texte=derniere_ambiance if texte is None else texte, duree=duree)
+
+        notifier_ambiance("pret", "")
+
+        def attendre_narration():
+            if thread_narration and thread_narration.is_alive():
+                thread_narration.join(timeout=5)
+            with verrou_narration:
+                integrer_ambiances()
 
         def demande_initiale(intention):
             # « tenter » confirme la dernière proposition : son récit part de la demande d'origine.
@@ -239,23 +310,99 @@ def main(argv=None, interface=None):
                          if e.get("nature") == "proposition_non_executee"), intention)
 
         def raconter(affichage, intention, gestes):
-            """Récit de Luna d'un résultat déjà appliqué et sauvegardé ; le moteur reste le repli."""
+            """Récit d'un résultat déjà appliqué et sauvegardé ; le moteur reste le repli."""
             if mj is None or args.recit_moteur:
                 return None
+            if getattr(mj, "decoupler", False):
+                notifier_ambiance("en_cours")
+            t0_narr = time.perf_counter()
             try:
                 recit = mj.raconter_resultat(m, {"intention": demande_initiale(intention), "gestes": gestes,
                                                  "faits": affichage.splitlines()})
             except ErreurMonde:
+                if getattr(mj, "decoupler", False):
+                    notifier_ambiance("pret")
                 return None
-            if (recit.get("mode") != "dialogue" or not recit.get("_audit")
-                    or chiffres_sans_fondement(recit["texte"], affichage, m.joueur)):
+            if not recit:
+                if getattr(mj, "decoupler", False):
+                    notifier_ambiance("pret")
                 return None
+            if not getattr(mj, "decoupler", False):
+                if (recit.get("mode") != "dialogue" or not recit.get("_audit")
+                        or chiffres_sans_fondement(recit["texte"], affichage, m.joueur)):
+                    return None
+            else:
+                duree_narr = round(time.perf_counter() - t0_narr, 1)
+                ambiance_txt = (recit.get("ambiance") or "").strip()
+                notifier_ambiance("pret", texte=ambiance_txt or derniere_ambiance, duree=duree_narr if ambiance_txt else None)
             return recit
+
+        def lancer_narration(affichage, intention, gestes=None):
+            """Lance le récit d'ambiance en arrière-plan pour ne jamais bloquer l'interface ni les menus."""
+            nonlocal seq_narration, thread_narration
+            if mj is None or args.recit_moteur:
+                if getattr(mj, "decoupler", False):
+                    notifier_ambiance("pret")
+                return
+            lieu = m.joueur["salle"]
+            if interface is None or not hasattr(interface, "ambiance"):
+                recit = raconter(affichage, intention, gestes or [])
+                ambiance_txt = (recit.get("ambiance") or "").strip() if recit else ""
+                if ambiance_txt and ambiance_txt != affichage:
+                    consigner_ambiance(ambiance_txt, lieu)
+                    m.sauver(args.save)
+                    imprimer(ambiance_txt)
+                return
+            with verrou_narration:
+                seq_narration += 1
+                ma_seq = seq_narration
+            notifier_ambiance("en_cours")
+            demande_init = demande_initiale(intention)
+            monde_snap = SimpleNamespace(
+                joueur={"salle": lieu},
+                data={"salles": m.data["salles"]},
+            )
+
+            def tache():
+                t0_narr = time.perf_counter()
+                ambiance_txt = ""
+                try:
+                    recit = mj.raconter_resultat(monde_snap, {
+                        "intention": demande_init,
+                        "gestes": gestes or [],
+                        "faits": affichage.splitlines(),
+                    })
+                    ambiance_txt = (recit.get("ambiance") or "").strip() if recit else ""
+                except ErreurMonde:
+                    pass
+                finally:
+                    # Quoi qu'il arrive, y compris une erreur inattendue (qui remonte, sans être masquée),
+                    # l'ambiance est enregistrée avec son lieu avant d'être montrée et le bandeau est libéré.
+                    duree_narr = round(time.perf_counter() - t0_narr, 1)
+                    with verrou_narration:
+                        if en_lecture:   # la boucle attend une saisie : le monde est à nous, sous verrou
+                            if ambiance_txt:
+                                consigner_ambiance(ambiance_txt, lieu)
+                                m.sauver(args.save)
+                            montrer_ambiance(ambiance_txt, ma_seq, duree_narr)
+                        else:            # la boucle travaille : elle consignera, sauvegardera et montrera
+                            en_attente.append((ambiance_txt, lieu, ma_seq, duree_narr))
+
+            thread_narration = threading.Thread(target=tache, daemon=True)
+            thread_narration.start()
 
         def conclure(plan, resultat, intention, numero=0):
             # Le moteur a déjà produit les conséquences ; son journal garde le détail du jet.
             affichage = rendre_resultat(resultat)
             m.sauver(args.save)
+            if getattr(mj, "decoupler", False):
+                m.memoriser(intention, affichage, "resultat_moteur")
+                m.sauver(args.save)
+                imprimer(affichage)
+                if interface:
+                    interface.rafraichir(m, pending, mj)
+                lancer_narration(affichage, intention, gestes_accomplis(plan, m))
+                return
             # Une perception a déjà pour résultat ce que le moteur fait percevoir :
             # le rendre directement conserve cette portée sans seconde interprétation.
             recit = None if plan.perception is not None else raconter(affichage, intention, gestes_accomplis(plan, m))
@@ -272,19 +419,28 @@ def main(argv=None, interface=None):
             if interface:
                 interface.rafraichir(m, pending, mj)
             if m.data.get("fin"):
+                attendre_narration()
                 m.sauver(args.save)
                 imprimer("Ta partie est terminée : " + m.data["fin"]["cause"] + ".")
                 return 0
+            with verrou_narration:
+                integrer_ambiances()
+                en_lecture = True
             try:
                 texte = lire("\nCorvus > ").strip()
             except (EOFError, KeyboardInterrupt):
                 imprimer()
                 texte = "quitter"
+            finally:
+                with verrou_narration:
+                    en_lecture = False
             cmd = normaliser(texte)
             if not cmd:
                 continue
+            murs_avant = len(m.data.get("murs_memorises", {}).get(m.joueur["salle"], ()))
             try:
                 if cmd in ("quitter", "q", "exit"):
+                    attendre_narration()
                     m.sauver(args.save)
                     imprimer("Partie sauvegardée. A bientôt.")
                     return 0
@@ -383,6 +539,7 @@ def main(argv=None, interface=None):
                         for e in m.data["journal"][-12:]:
                             imprimer(f'[{e["minutes"]} min] {e["action"]["action"]} ({e["origine"]}) : ' + " ".join(e["faits"]))
                     else:
+                        attendre_narration()
                         m.sauver(args.save)
                         imprimer("Partie sauvegardée.")
                     continue
@@ -420,6 +577,9 @@ def main(argv=None, interface=None):
                             imprimer("Cette phrase nécessite le MJ IA. Tapez « aide » pour les commandes hors ligne.")
                         continue
                     imprimer("Le MJ réfléchit…", flush=True)
+                    if getattr(mj, "decoupler", False):
+                        notifier_ambiance("en_cours")
+                    t0_mj = time.perf_counter()
                     reponse = mj.echanger(m, texte[3:] if force_mj else texte,
                                          pending.proposition if pending else None)
                     transactions = reponse.get("_transactions", [])
@@ -433,13 +593,18 @@ def main(argv=None, interface=None):
                                   "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
                         prefixe = reponse.get("_prefixe_moteur")
                         travail.memoriser(texte, "\n".join(filter(None, (prefixe, reponse["texte"]))), nature)
-                        consigner_narration(travail, reponse)
+                        if not getattr(mj, "decoupler", False):
+                            consigner_narration(travail, reponse)
                         # Ne montrer la nouvelle fiction qu'après sa sauvegarde réussie.
                         travail.sauver(args.save)
                         m.data, pending = travail.data, suite
                         if prefixe:
                             imprimer(prefixe)
                         imprimer(reponse["texte"])
+                        if getattr(mj, "decoupler", False):
+                            if interface:
+                                interface.rafraichir(m, pending, mj)
+                            lancer_narration(reponse["texte"], texte[3:] if force_mj else texte)
                         if isinstance(mj, Comparateur):
                             for t, rapport in zip(transactions, rapports):
                                 if t["type"] == "conversation_pnj":
@@ -469,6 +634,8 @@ def main(argv=None, interface=None):
                             afficher("carte")
                             afficher("scene")
                         continue
+                    if getattr(mj, "decoupler", False):
+                        notifier_ambiance("pret")
                     imprimer("\n" + pending.resume(m))
                     m.memoriser(texte, pending.resume(m), "proposition_non_executee")
                     m.sauver(args.save)
@@ -479,6 +646,7 @@ def main(argv=None, interface=None):
                 else:
                     if p["action"] != "observer":
                         pending = None
+                    murs_avant = len(m.data.get("murs_memorises", {}).get(m.joueur["salle"], ()))
                     plan = moteur.preparer(p)
                     if plan.confirmation:
                         pending = plan
@@ -490,7 +658,7 @@ def main(argv=None, interface=None):
                         imprimer("« tenter » pour agir ; « annuler » pour abandonner.")
                         continue
                     resultat = moteur.executer(plan)
-                    mouvement = m.data.get("mode_cases") and p["action"] in ("marcher", "aller")
+                    mouvement = m.data.get("mode_cases") and p["action"] in ("marcher", "aller", "faufiler", "chasser")
                     # Un instant d'attente (la touche Espace, le temps d'un pas) se tait comme un pas.
                     instant = p["action"] == "attendre" and p["cible"] and plan.dixiemes <= PAS_JOUEUR
                     if not (mouvement or instant):
@@ -503,11 +671,19 @@ def main(argv=None, interface=None):
                         evenements = [ligne for ligne in resultat.splitlines() if ligne not in silencieux]
                         if evenements:
                             imprimer("\n".join(evenements))
+                    if getattr(mj, "decoupler", False) and not (mouvement or instant) and p["action"] != "tourner":
+                        if interface:
+                            interface.rafraichir(m, pending, mj)
+                        lancer_narration(resultat, texte, gestes_accomplis(plan, m))
                     if p["action"] == "aller" and not mouvement:
                         afficher("carte")
                         afficher("scene")
             except ErreurMonde as exc:
+                if getattr(mj, "decoupler", False):
+                    notifier_ambiance("pret")
                 pending = None
+                if len(m.data.get("murs_memorises", {}).get(m.joueur["salle"], ())) != murs_avant:
+                    m.sauver(args.save)
                 imprimer(str(exc))
             except OSError as exc:
                 imprimer(f"Ecriture de sauvegarde impossible : {exc}. La partie reste en mémoire ; réessayez sauver.")

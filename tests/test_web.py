@@ -44,6 +44,17 @@ class Flux:
             if e["type"] == "pret":
                 return vus
 
+    def jusqu_a_ambiance_prete(self, deja_vus):
+        vus = list(deja_vus)
+        amb = [e for e in vus if e["type"] == "ambiance"]
+        if len(amb) >= 2 and amb[-1]["statut"] == "pret":
+            return vus
+        while True:
+            e = self.suivant()
+            vus.append(e)
+            if e["type"] == "ambiance" and e["statut"] == "pret":
+                return vus
+
 
 def commande(port, texte, hote="127.0.0.1"):
     c = http.client.HTTPConnection("127.0.0.1", port, timeout=10)
@@ -84,6 +95,146 @@ class PartieWebTests(unittest.TestCase):
                 pont.termine = True
                 serveur.arreter()
 
+    def test_narrateur_decouple_alimente_le_bandeau_ambiance_et_sauve(self):
+        from unittest.mock import patch
+        from donjon.fournisseurs.contrat import Reponse
+
+        debloquer_narration = threading.Event()
+
+        def faux_appeler(demande):
+            if demande.fonction == "narrer_ambiance":
+                debloquer_narration.wait(timeout=5)
+                return Reponse(
+                    arguments={"texte": "Une odeur de suif froid flotte sous la voûte."},
+                    brut={}, utilisation={},
+                )
+            if demande.fonction == "repondre_dialogue":
+                cible = demande.entree.get("personnage_cible", "Inconnu")
+                saisie = demande.entree.get("saisie_joueur", "").lower()
+                if "appel" in saisie or "nom" in saisie:
+                    return Reponse(
+                        arguments={"replique": f"{cible} : « Je m'appelle {cible}, {demande.entree.get('role_cible', '')}. »"},
+                        brut={}, utilisation={},
+                    )
+                return Reponse(
+                    arguments={"replique": f"{cible} : « Je veille sur l'âtre. »"},
+                    brut={}, utilisation={},
+                )
+            return Reponse(
+                arguments={
+                    "action": "dialogue", "cible": "", "destination": "", "outil": "",
+                    "methode": "simple", "difficulte": 0, "texte": "", "justification": "",
+                    # Comme le ferait le modèle : c'est lui qui type la parole (« qui » pour une demande d'identité).
+                    "sujet_parole": "qui" if "appelle" in demande.intention else "propos",
+                    "personnage": "", "operation": "", "mission": "", "montant_demande": 0, "etapes": [],
+                },
+                brut={}, utilisation={},
+            )
+
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+            from donjon.auberge import nouveau_auberge
+            sauvegarde = Path(dossier) / "auberge.json"
+            m_init = nouveau_auberge()
+            m_init.joueur.update(salle="salle_commune", position=[4, 5], orientation="nord")
+            m_init.sauver(sauvegarde)
+            pont = PontWeb()
+            serveur = Serveur(pont, 0)
+            port = serveur.server_address[1]
+            threading.Thread(target=serveur.serve_forever, daemon=True).start()
+            with patch("donjon.fournisseurs.contrat.Fournisseur.appeler", side_effect=faux_appeler):
+                partie = threading.Thread(
+                    target=jeu.main,
+                    args=(["--auberge", "--connexion", "local", "--save", str(sauvegarde)],),
+                    kwargs={"interface": pont},
+                    daemon=True,
+                )
+                partie.start()
+                try:
+                    flux = Flux(port)
+                    debut = flux.jusqu_a_pret()
+                    amb_init = [e for e in debut if e["type"] == "ambiance"]
+                    self.assertTrue(amb_init)
+                    self.assertEqual(amb_init[-1]["statut"], "pret")
+                    self.assertEqual(amb_init[-1]["texte"], "")
+
+                    # 1. Observation locale : la main est rendue (« pret ») AVANT que le narrateur ne termine
+                    self.assertEqual(commande(port, "ecouter")[0], 200)
+                    suite_obs = flux.jusqu_a_pret()
+                    self.assertFalse(pont.occupe)
+                    amb_pendant = [e for e in suite_obs if e["type"] == "ambiance"]
+                    self.assertEqual([e["statut"] for e in amb_pendant], ["en_cours"])
+                    debloquer_narration.set()
+                    suite_obs = flux.jusqu_a_ambiance_prete(suite_obs)
+                    amb_obs = [e for e in suite_obs if e["type"] == "ambiance"]
+                    self.assertEqual([e["statut"] for e in amb_obs], ["en_cours", "pret"])
+                    self.assertIn("odeur de suif froid", amb_obs[-1]["texte"])
+
+                    # 2. Parole au PNJ : enregistre la parole dans le moteur et met à jour le bandeau Narrateur
+                    etat_avant = next(e for e in suite_obs if e["type"] == "etat")
+                    noms_avant = [
+                        o["nom"]
+                        for n in etat_avant["scene"]["niveaux"]
+                        for o in n["objets"]
+                        if o["type"] == "personnage"
+                    ]
+                    self.assertIn("l'homme svelte", [n.lower() for n in noms_avant])
+                    self.assertEqual(commande(port, '"que fais-tu ici ?"')[0], 200)
+                    suite_dial = flux.jusqu_a_ambiance_prete(flux.jusqu_a_pret())
+                    lignes_dial = [e["texte"] for e in suite_dial if e["type"] == "ligne"]
+                    self.assertTrue(any("Je veille sur l'âtre." in l for l in lignes_dial), lignes_dial)
+                    amb_dial = [e for e in suite_dial if e["type"] == "ambiance"]
+                    self.assertEqual(amb_dial[-1]["statut"], "pret")
+                    self.assertIn("odeur de suif froid", amb_dial[-1]["texte"])
+
+                    # 3. Demander son nom sans nommer personne s'adresse à celui qu'on a sous les yeux (ici Lucien,
+                    # à une case, devant Corvus ; la géométrie le décide, rien d'autre) : son nom, appris, remplace
+                    # sa description dans l'interface et dans noms_connus.
+                    self.assertIn("la vieille femme menue", [n.lower() for n in noms_avant])
+                    self.assertEqual(commande(port, "comment tu t'appelles ?")[0], 200)
+                    suite_nom1 = flux.jusqu_a_pret()
+                    etat_apres1 = next(e for e in suite_nom1 if e["type"] == "etat")
+                    noms_apres1 = [
+                        o["nom"]
+                        for n in etat_apres1["scene"]["niveaux"]
+                        for o in n["objets"]
+                        if o["type"] == "personnage"
+                    ]
+                    lignes_nom1 = [e.get("texte") for e in suite_nom1 if e["type"] == "ligne"]
+                    self.assertIn("Lucien, voyageur au manteau gris", noms_apres1, lignes_nom1)
+                    self.assertNotIn("l'homme svelte", [n.lower() for n in noms_apres1])
+                    self.assertIn("la vieille femme menue", [n.lower() for n in noms_apres1])   # elle ne s'est pas nommée
+
+                    # Et en s'adressant à tous (« a tous : "comment vous appelez vous ?" »)
+                    self.assertEqual(commande(port, 'a tous : "comment vous appelez vous ?"')[0], 200)
+                    suite_nom2 = flux.jusqu_a_pret()
+                    lignes_nom2 = [e["texte"] for e in suite_nom2 if e["type"] == "ligne"]
+                    self.assertFalse(any("Je m'appelle L'homme" in l or "Je m'appelle l'homme" in l for l in lignes_nom2), lignes_nom2)
+                    etat_apres2 = next(e for e in suite_nom2 if e["type"] == "etat")
+                    noms_apres2 = [
+                        o["nom"]
+                        for n in etat_apres2["scene"]["niveaux"]
+                        for o in n["objets"]
+                        if o["type"] == "personnage"
+                    ]
+                    self.assertIn("Lucien, voyageur au manteau gris", noms_apres2)
+                    # Mathurine, à cinq cases, n'a été ni interrogée ni la seule à répondre : son nom reste inconnu.
+                    self.assertIn("la vieille femme menue", [n.lower() for n in noms_apres2])
+
+                    self.assertEqual(commande(port, "quitter")[0], 200)
+                    partie.join(20)
+                    self.assertFalse(partie.is_alive())
+                    reprise = Monde.charger(sauvegarde)
+                    # L'ambiance est consignée avec son lieu, hors de la conversation (qui fonde les affirmations du MJ).
+                    self.assertTrue(any("odeur de suif froid" in a["texte"]
+                                        for a in reprise.data["ambiances"]["salle_commune"]))
+                    self.assertFalse(any("odeur de suif froid" in c.get("reponse", "") for c in reprise.data["conversation"]))
+                    self.assertTrue(reprise.data.get("paroles_joueur"))
+                    self.assertIn("lucien", reprise.data.get("noms_connus", []))
+                    self.assertNotIn("mathurine", reprise.data.get("noms_connus", []))
+                finally:
+                    pont.termine = True
+                    serveur.arreter()
+
     def test_une_commande_a_la_fois_et_d_ici_seulement(self):
         pont = PontWeb()
         self.assertFalse(pont.soumettre("pas est"))  # La boucle n'attend pas encore de commande.
@@ -95,7 +246,6 @@ class PartieWebTests(unittest.TestCase):
             self.assertEqual(commande(port, "pas est")[0], 409)
         finally:
             serveur.arreter()
-
 
 class InterfaceParDefautTests(unittest.TestCase):
     """Dans un terminal, on joue dans le navigateur ; --tui et --console restent au choix."""
@@ -162,6 +312,10 @@ class ClicTests(unittest.TestCase):
         gestes = {c for cmds in self.clic["choix"].values() for c in cmds if c != "aller"}
         self.assertTrue(any(c.startswith("prendre ") for c in gestes))
         self.assertTrue(any(c.startswith("tourner ") for c in gestes))
+        self.assertIsNone(self.clic["parler"]["envoiSiVide"])
+        self.assertTrue(self.clic["parler"]["saisieApresVide"].startswith("à "))
+        self.assertTrue(self.clic["parler"]["saisieApresVide"].endswith(" : "))
+        self.assertTrue(self.clic["parler"]["envoiAvecTexte"].endswith(" : bonjour"))
         for texte in sorted(gestes):
             essai = Monde(copy.deepcopy(self.monde.data))
             self.assertIsNotNone(analyser(essai, texte), texte)

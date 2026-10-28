@@ -1,12 +1,9 @@
-"""Fournisseur LLM local compatible OpenAI (llama-server, vLLM, SGLang, LM Studio, Ollama).
+"""Fournisseur LLM local : API native Ollama (/api/chat) et serveurs compatibles OpenAI (/v1/chat/completions).
 
-Le schéma JSON dynamique est passé dans ``response_format`` (grammaire GBNF / XGrammar appliquée
-aux logits de sortie) et non injecté comme préfixe d'outil dans le flux de tokens d'entrée.
-Le flux d'entrée ne contient ainsi que ``[system(instructions), user(entree)]`` :
-- ``instructions`` conserve les consignes de la voie et ses règles conditionnelles ;
-- ``entree`` commence par ``faits`` ordonné des clés les plus stables aux plus volatiles ;
-- ``prompt_cache_key`` distingue les voies ; ``id_slot`` les répartit sur quatre slots KV
-  (les narrations partagent un slot, les audits hors narration un autre).
+- Pour le compilateur et le narrateur découplés sur Ollama (port 11434 par défaut), utilise ``/api/chat``
+  avec ``format`` (grammaire JSON), ``think`` et ``options.num_ctx = 32768``.
+- Pour ``llama-server`` / vLLM / SGLang (``/v1/chat/completions``) et la voie complète, passe
+  ``response_format``, ``cache_prompt``, ``id_slot`` et ``prompt_cache_key``.
 """
 import json
 import os
@@ -14,11 +11,14 @@ import re
 import urllib.error
 import urllib.request
 
-from ..config import MODELE_LOCAL, URL_LOCAL_DEFAUT
+from ..config import MODELE_LOCAL, URL_LOCAL_DEFAUT, URL_OLLAMA_DEFAUT
 from ..monde import ErreurMonde
 from ..sources import slot_cache, voie_cache
 from .contrat import ErreurFournisseur, Fournisseur, Reponse
 from .schema import mutualiser
+
+CONTEXTE_DEFAUT = 32768
+FONCTIONS_DECOUPLEES = ("compiler_intention", "narrer_ambiance", "repondre_dialogue")
 
 
 def normaliser_url(url=None):
@@ -56,20 +56,75 @@ def enrichir_usage(resultat):
             details.setdefault("cached_tokens", cache_n)
             usage["prompt_tokens_details"] = details
             if "prompt_tokens" in usage and "prompt_n" in timings:
-                # llama-server compte parfois prompt_n seul dans prompt_tokens : conserver le total clair.
                 usage.setdefault("prompt_eval_tokens", timings["prompt_n"])
     return usage or None
 
 
 class Local(Fournisseur):
-    def __init__(self, url=None, cle=None):
+    def __init__(self, url=None, cle=None, contexte=None):
         super().__init__()
         self.url = url
         self.cle = cle
+        self.contexte = contexte or int(os.environ.get("LOCAL_LLM_CTX") or CONTEXTE_DEFAUT)
+
+    def _est_ollama_natif(self, demande):
+        url_cfg = (self.url or os.environ.get("LOCAL_LLM_URL") or "").strip().rstrip("/")
+        if url_cfg.endswith("/api/chat"):
+            return True
+        if "/v1" in url_cfg or ":8080" in url_cfg:
+            return False
+        return demande.fonction in FONCTIONS_DECOUPLEES or ":11434" in url_cfg
+
+    def _appeler_ollama(self, demande):
+        base = (self.url or os.environ.get("LOCAL_LLM_URL") or URL_OLLAMA_DEFAUT).strip().rstrip("/")
+        url = base if base.endswith("/api/chat") else base + "/api/chat"
+        payload = {
+            "model": demande.modele or os.environ.get("LOCAL_LLM_MODEL") or MODELE_LOCAL,
+            "messages": [{"role": "system", "content": demande.instructions},
+                         {"role": "user", "content": json.dumps(demande.entree, ensure_ascii=False)}],
+            "format": mutualiser(demande.schema),
+            "stream": False,
+            "think": demande.effort != "none",
+            "options": {"temperature": 0.2, "repeat_penalty": 1.15, "num_ctx": self.contexte, "num_predict": 4096},
+            "keep_alive": "10m",
+        }
+        requete = urllib.request.Request(url,
+            data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            with urllib.request.urlopen(requete, timeout=demande.timeout) as flux:
+                resultat = json.load(flux)
+        except urllib.error.HTTPError as exc:
+            statut = exc.code
+            detail = exc.read().decode("utf-8", "replace")[:300]
+            exc.close()
+            raise ErreurMonde(f"MJ local indisponible : HTTP {statut} {detail}. Aucune action appliquée.") from None
+        except (urllib.error.URLError, TimeoutError, OSError, ValueError):
+            raise ErreurMonde("Le serveur LLM local n'a pas répondu (Ollama lancé ? LOCAL_LLM_URL). "
+                              "Aucune action appliquée.") from None
+        message = resultat.get("message") if isinstance(resultat, dict) else None
+        if not isinstance(message, dict):
+            raise ErreurMonde("Réponse du LLM local mal formée. Aucune action appliquée.")
+        entree, sortie_n = resultat.get("prompt_eval_count") or 0, resultat.get("eval_count") or 0
+        usage = {"input_tokens": entree, "output_tokens": sortie_n, "total_tokens": entree + sortie_n,
+                 "duree_totale_s": round((resultat.get("total_duration") or 0) / 1e9, 2),
+                 "reflexion": message.get("thinking") or None}
+        brut = [{"finish_reason": resultat.get("done_reason"), "message": message}]
+        if resultat.get("done_reason") == "length":
+            raise ErreurFournisseur("Réponse du LLM local incomplète (num_predict atteint). Aucune action appliquée.",
+                                    brut=brut, utilisation=usage)
+        try:
+            arguments = extraire_json(message.get("content") or "")
+        except (ValueError, TypeError) as exc:
+            raise ErreurFournisseur("Proposition du LLM local illisible. Aucune action appliquée.",
+                                    brut=brut, utilisation=usage) from exc
+        return Reponse(arguments, brut, usage, [{"type": "message", "role": "assistant"}])
 
     def _appeler(self, demande):
         if self.erreur_auth:
             raise ErreurMonde(self.erreur_auth)
+        if self._est_ollama_natif(demande):
+            return self._appeler_ollama(demande)
         url = normaliser_url(self.url)
         cle = self.cle or os.environ.get("LOCAL_LLM_KEY") or "local"
         modele = demande.modele or os.environ.get("LOCAL_LLM_MODEL") or MODELE_LOCAL

@@ -347,7 +347,7 @@ def main(argv=None):
     p.add_argument("--offline", action="store_true", help="aucun appel au modèle")
     p.add_argument("--max-appels", type=int, default=150)
     p.add_argument("--etiquette", default="")
-    p.add_argument("--connexion", choices=("chatgpt", "anthropic", "mimo"), default="chatgpt",
+    p.add_argument("--connexion", choices=("chatgpt", "anthropic", "mimo", "local"), default="chatgpt",
                    help="anthropic : essai de Claude (ANTHROPIC_API_KEY), jamais choisi par défaut")
     p.add_argument("--effort", choices=("none", "low", "medium", "high"), default=None)
     p.add_argument("--reflexion", choices=("libre", "imposee"), default="libre",

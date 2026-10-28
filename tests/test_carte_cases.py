@@ -250,6 +250,78 @@ class CarteCasesTests(unittest.TestCase):
         with patch("donjon.spatial.champ_visible", return_value={("antichambre", 1, 2)}):
             self.assertIn("~G Gorm le marchand", carte(self.monde))
 
+    def test_mur_heurte_dans_le_noir_est_memorise_et_persiste(self):
+        from donjon.auberge import nouveau_auberge
+        from donjon.monde import ErreurMonde
+        from donjon.scene import scene_percue
+        from donjon.spatial import verifier
 
+        # Cas 1 : dortoir de l'Auberge dans le noir (pas droit contre le mur nord)
+        m = nouveau_auberge(depart="fixe")
+        installer(m)
+        moteur = Moteur(m)
+        self.assertEqual(m.data.get("murs_memorises", {}).get("dortoir", []), [])
+        for _ in range(2):
+            moteur.executer(moteur.preparer(proposition("marcher", "nord")))
+        self.assertEqual(m.joueur["position"], [2, 0])
+        with self.assertRaises(ErreurMonde):
+            moteur.preparer(proposition("marcher", "nord"))
+        self.assertIn([2, -1], m.data["murs_memorises"]["dortoir"])
+        verifier(m)
+        self.assertIn("##", carte(m).split("=== LEGENDE ===")[0])
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+            chemin = Path(dossier) / "dortoir_mur.json"
+            m.sauver(chemin)
+            reprise = Monde.charger(chemin)
+        self.assertIn([2, -1], reprise.data["murs_memorises"]["dortoir"])
+        self.assertIn("##", carte(reprise).split("=== LEGENDE ===")[0])
+        murs_scene = [mur["case"] for niv in scene_percue(reprise)["niveaux"]
+                      for mur in niv["murs"] if mur["salle"] == "dortoir"]
+        self.assertIn([2, -1], murs_scene)
+
+        # Cas 2 : antichambre dans le noir (pas diagonal dans le coin nord-ouest)
+        self.monde.objets["lanterne"]["allume"] = False
+        self.monde.objets["brasero"]["allume"] = False
+        self.monde.joueur["position"] = [0, 0]
+        self.monde.data["murs_memorises"] = {}
+        with self.assertRaises(ErreurMonde):
+            Moteur(self.monde).preparer(proposition("marcher", "nord-ouest"))
+        self.assertEqual(self.monde.data["murs_memorises"]["antichambre"], [[-1, 0], [0, -1], [-1, -1]])
+        verifier(self.monde)
+
+
+    def test_mur_heurte_est_sauvegarde_par_la_boucle_de_jeu_sans_attendre_quitter(self):
+        """Un pas refusé change pourtant l'état (le mur est connu) : la boucle sauvegarde avant la commande suivante."""
+        import io
+        import jeu
+        from donjon.auberge import nouveau_auberge
+
+        m = nouveau_auberge(depart="fixe")
+        installer(m)
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+            fichier = Path(dossier) / "dortoir.json"
+            m.sauver(fichier)
+            sauvees = []
+            vrai_sauver = Monde.sauver
+
+            def espion(self, chemin, *args, **kwargs):
+                sauvees.append([list(c) for c in self.data.get("murs_memorises", {}).get("dortoir", [])])
+                return vrai_sauver(self, chemin, *args, **kwargs)
+
+            commandes = iter(["nord", "nord", "nord"])
+            avant_quitter = []
+
+            def saisie(_invite=""):
+                commande = next(commandes, None)
+                if commande is None:
+                    avant_quitter.extend(sauvees)
+                    return "quitter"
+                return commande
+
+            with patch("builtins.input", side_effect=saisie), patch("sys.stdout", io.StringIO()), \
+                 patch.object(Monde, "sauver", espion):
+                jeu.main(["--offline", "--save", str(fichier)])
+            self.assertIn([2, -1], avant_quitter[-1] if avant_quitter else [])
+            self.assertIn([2, -1], Monde.charger(fichier).data["murs_memorises"]["dortoir"])
 if __name__ == "__main__":
     unittest.main()

@@ -55,5 +55,13 @@ for (const [nom, actif, valeur] of [["saisie_vide", $("commande"), ""], ["saisie
   ecouteurs.keydown.forEach(f => f({key: " ", preventDefault() { empeche = true; }}));
   sortie.espace[nom] = {envoi: envois[0] || null, empeche};
 }
+const pCible = personnes[0] || {id: "marchand", nom: "l'homme trapu, marchand"};
+occupe = false; envois.length = 0; $("commande").value = "";
+parlerA(pCible);
+const saisieApresVide = $("commande").value;
+const envoiSiVide = envois[0] || null;
+$("commande").value = "bonjour";
+parlerA(pCible);
+sortie.parler = {saisieApresVide, envoiSiVide, envoiAvecTexte: envois[0] || null};
 console.log(JSON.stringify(sortie));
 `);

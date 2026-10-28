@@ -412,7 +412,7 @@ class Moteur:
             return plan
         if not m.accessible(cible):
             raise inaccessible(m, cible)
-        if action not in ("examiner", "parler"):
+        if action not in ("examiner", "parler", "acheter"):
             from .proximite import exiger
             exiger(m, cible)
         if action == "examiner" and not m.visible(cible):

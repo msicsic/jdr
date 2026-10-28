@@ -362,5 +362,298 @@ class ConsoleTests(unittest.TestCase):
             self.assertFalse(Monde.charger(fichier).objets["axe_haut"]["attache"])
 
 
+    def test_compilateur_sons_improvises_et_absence_fuite_justification(self):
+        from donjon.compilateur import extraire_contexte, normaliser_proposition
+        from donjon.auberge import nouveau_auberge; m = nouveau_auberge(); m.data["mode_cases"] = True
+        m.joueur["salle"] = m.joueur["position_salle"] = "couloir"
+        m.joueur["position"] = [7, 2]
+        m.joueur["orientation"] = "ouest"
+        ctx = extraire_contexte(m)
+        noms_ctx = [o["nom"] for o in ctx["objets"]] + [p["nom"] for p in ctx["interlocuteurs"]]
+        self.assertNotIn("Hugues", noms_ctx)
+        self.assertNotIn("Mathurine", noms_ctx)
+        for phrase, action_brute, cible_brute, forme_attendue, rendu_attendu in (
+            ("je chante", "improviser", "voix_melodique", "voix_melodique", "Tu fais entendre des notes de ta voix."),
+            ("je tape dans mes mains", "improviser", "corps_rythmique", "corps_rythmique", "Tu frappes un rythme avec ton corps."),
+        ):
+            p = normaliser_proposition(
+                {"action": action_brute, "cible": cible_brute, "texte": "", "justification": "Le joueur émet un son."},
+                m,
+                intention=phrase,
+            )
+            self.assertEqual(p["action"], "improviser")
+            plan = Moteur(m).preparer(p)
+            self.assertEqual(plan.stat, "")
+            self.assertFalse(plan.confirmation)
+            res = Moteur(m).executer(plan)
+            self.assertIn(rendu_attendu, res)
+            self.assertEqual(m.data["sons"][-1]["forme"], forme_attendue)
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "auberge.json"
+            m.sauver(f)
+            m2 = Monde.charger(f)
+            self.assertEqual(m2.data["sons"][-1]["forme"], "corps_rythmique")
+            self.assertTrue(m2.data["gestes_improvises"])
+        p_dial = normaliser_proposition(
+            {"action": "dialogue", "texte": "", "justification": "Le joueur bavarde; aucune action mécanique."},
+            m,
+            intention="bonjour",
+        )
+        self.assertEqual(p_dial["texte"], "")
+        # Neutralisation / étranglement dans le dos d'Odile au contact : défense 10 par surprise et perte de connaissance
+        m.objets["odile"]["lieu"] = m.objets["odile"]["position_salle"] = "couloir"
+        m.objets["odile"]["position"] = [4, 1]
+        m.objets["odile"]["orientation"] = "ouest"
+        m.joueur["position"] = [5, 1]
+        m.joueur["orientation"] = "ouest"
+        p_etrangle = normaliser_proposition(
+            {"action": "frapper", "cible": "", "outil": "", "methode": "assommer", "texte": "", "justification": ""},
+            m,
+            intention="je l'étrangle",
+        )
+        self.assertEqual(p_etrangle["action"], "frapper")
+        self.assertEqual(p_etrangle["cible"], "odile")
+        self.assertEqual(p_etrangle["methode"], "assommer")
+        plan_etrangle = Moteur(m).preparer(p_etrangle)
+        self.assertIn("défense 10 par surprise", plan_etrangle.resume(m))
+        with patch.object(Monde, "d20", return_value=15):
+            res_etrangle = Moteur(m).executer(plan_etrangle)
+        self.assertIn("sans connaissance", res_etrangle)
+        # Le compilateur ne réécrit plus la décision du modèle d'après des mots de la saisie :
+        # c'est le modèle qui choisit l'action, le moteur qui valide.
+        for phrase, action_brute in (("je l'étrangle", "dialogue"), ("je chante", "dialogue"), ("je lui saisis le bras", "dialogue")):
+            p_brut = normaliser_proposition(
+                {"action": action_brute, "cible": "", "texte": "", "justification": ""}, m, intention=phrase)
+            self.assertEqual(p_brut["action"], "dialogue", phrase)
+        p_muet = normaliser_proposition(
+            {"action": "improviser", "cible": "", "texte": "", "justification": ""}, m, intention="je chante")
+        self.assertEqual(p_muet["action"], "improviser")
+        sons_avant = len(m.data.get("sons", []))
+        Moteur(m).executer(Moteur(m).preparer(p_muet))
+        self.assertEqual(len(m.data.get("sons", [])), sons_avant)  # forme non désignée : geste muet, pas de son deviné
+
+
+class DialogueDecoupleTests(unittest.TestCase):
+    """Le compilateur type la parole (``sujet_parole``) ; le moteur n'infère rien des mots de la saisie."""
+
+    @staticmethod
+    def _mj(sujet):
+        from donjon.fournisseurs.contrat import Fournisseur, Reponse
+
+        class Faux(Fournisseur):
+            def _appeler(self, demande):
+                if demande.fonction == "compiler_intention":
+                    return Reponse(arguments={
+                        "action": "dialogue", "cible": "", "destination": "", "outil": "", "methode": "simple",
+                        "difficulte": 0, "texte": "", "sujet_parole": sujet, "justification": "", "personnage": "",
+                        "operation": "", "mission": "", "montant_demande": 0, "etapes": []}, brut={}, utilisation={})
+                if demande.fonction == "repondre_dialogue":
+                    return Reponse(arguments={"replique": f"{demande.entree['personnage_cible']} : « Hm. »"},
+                                   brut={}, utilisation={})
+                return Reponse(arguments={"texte": ""}, brut={}, utilisation={})
+
+        return MJOpenAI(connexion="local", fournisseur=Faux(), decoupler=True)
+
+    def _parler(self, phrase, sujet):
+        from donjon.auberge import nouveau_auberge
+        from donjon.transactions import appliquer
+        from donjon.voix import connait_nom
+
+        m = nouveau_auberge()
+        m.joueur.update(salle="salle_commune", position=[4, 5], orientation="nord")
+        reponse = self._mj(sujet).echanger(m, phrase)
+        self.assertEqual(reponse["mode"], "dialogue")
+        travail, _ = appliquer(m, reponse["_transactions"])
+        with tempfile.TemporaryDirectory(dir=Path.cwd()) as dossier:
+            chemin = Path(dossier) / "auberge.json"
+            travail.sauver(chemin)
+            reprise = Monde.charger(chemin)
+        return connait_nom(reprise, "joueur", "mathurine")
+
+    def test_demande_d_identite_typee_par_le_modele_apprend_le_nom_apres_rechargement(self):
+        # Deux formulations que nulle liste de mots ne prévoit : seul le type donné par le modèle compte.
+        for phrase in ("à la vieille femme menue : c'est quoi ton blaze ?", "à la vieille femme menue : toi, t'es qui ?"):
+            self.assertTrue(self._parler(phrase, "qui"), phrase)
+
+    def test_meme_phrase_typee_propos_n_apprend_pas_le_nom(self):
+        for phrase in ("à la vieille femme menue : comment tu t'appelles ?", "à la vieille femme menue : tu es qui ?"):
+            self.assertFalse(self._parler(phrase, "propos"), phrase)
+
+    def test_sujet_parole_normalise_et_defaut_propos(self):
+        from donjon.compilateur import normaliser_proposition
+        for brut, attendu in (("qui", "qui"), ("propos", "propos"), ("", "propos"), ("n'importe quoi", "propos")):
+            p = normaliser_proposition({"action": "dialogue", "texte": "Le joueur demande quelque chose.",
+                                        "sujet_parole": brut, "justification": ""}, nouveau_monde(), intention="bonjour")
+            self.assertEqual(p["sujet_parole"], attendu)
+
+    def test_texte_du_compilateur_n_est_jamais_affiche_si_le_narrateur_se_tait(self):
+        from donjon.auberge import nouveau_auberge
+        from donjon.fournisseurs.contrat import Fournisseur, Reponse
+
+        for texte in ("Le joueur demande son nom au PNJ.", "Odile : « Le joueur d'échecs est parti. »"):
+            class Faux(Fournisseur):
+                def _appeler(self, demande):
+                    if demande.fonction == "compiler_intention":
+                        return Reponse(arguments={
+                            "action": "dialogue", "cible": "", "destination": "", "outil": "", "methode": "simple",
+                            "difficulte": 0, "texte": texte, "sujet_parole": "propos", "justification": "",
+                            "personnage": "", "operation": "", "mission": "", "montant_demande": 0, "etapes": []},
+                            brut={}, utilisation={})
+                    return Reponse(arguments={"replique": "", "texte": ""}, brut={}, utilisation={})
+
+            m = nouveau_auberge()
+            m.joueur.update(salle="salle_commune", position=[4, 5], orientation="nord")
+            mj = MJOpenAI(connexion="local", fournisseur=Faux(), decoupler=True)
+            reponse = mj.echanger(m, "à la vieille femme menue : bonjour")
+            self.assertNotIn(texte, reponse["texte"])
+            self.assertNotIn("Le joueur", reponse["texte"])
+
+    def test_parole_impossible_est_rendue_au_joueur_sans_reponse_inventee(self):
+        """Un nom que Corvus ne connaît pas (deux cas) : aucune réplique, rien d'enregistré, le message du moteur."""
+        from donjon.auberge import nouveau_auberge
+        from donjon.paroles import ParoleImpossible
+
+        for phrase in ("je dis à Mathurine : bonjour", "je dis à Lucien : bonjour"):
+            m = nouveau_auberge()
+            m.joueur.update(salle="salle_commune", position=[4, 5], orientation="nord")
+            avant = copy.deepcopy(m.data)
+            with self.assertRaises(ParoleImpossible) as ctx:
+                self._mj("propos").echanger(m, phrase)
+            self.assertIn("Tu ne connais personne du nom", str(ctx.exception))
+            self.assertEqual(m.data, avant, phrase)
+
+    def test_erreur_interne_n_est_pas_avalee(self):
+        """Plus de `except Exception: pass` : un défaut du moteur ne se déguise pas en réplique."""
+        from donjon.auberge import nouveau_auberge
+
+        m = nouveau_auberge()
+        m.joueur.update(salle="salle_commune", position=[4, 5], orientation="nord")
+        with patch("donjon.paroles.preparer_parole", side_effect=KeyError("defaut")):
+            with self.assertRaises(KeyError):
+                self._mj("propos").echanger(m, "à la vieille femme menue : bonjour")
+
+class CommerceEtRemiseCompilateurTests(unittest.TestCase):
+    """Le modèle choisit l'action ; le moteur valide. Aucun mot de la saisie ne la change."""
+
+    @staticmethod
+    def _echoppe(anneau=False):
+        m = nouveau_monde()
+        m.joueur["salle"] = "echoppe"
+        if anneau:
+            m.objets["anneau"]["lieu"] = "joueur"
+        return m
+
+    def test_catalogue_dit_par_le_vendeur_avec_les_faits_du_moteur(self):
+        from donjon.compilateur import normaliser_proposition
+        from donjon.rendu import prix
+        m = self._echoppe()
+        p = normaliser_proposition({"action": "lister_marchandises", "cible": "", "texte": "Des babioles !"}, m,
+                                   intention="que vendez-vous ?")
+        self.assertEqual(p["action"], "dialogue")
+        self.assertTrue(p["_deterministe"])
+        for o in m.objets.values():
+            if o.get("en_vente") and o.get("lieu") == "echoppe":
+                self.assertIn(o["nom"], p["texte"])
+                self.assertIn(f"{prix(m, o)} pièce", p["texte"])
+        self.assertNotIn("babioles", p["texte"])   # jamais le texte du modèle
+
+    def test_catalogue_sans_rien_en_vente_est_refuse_avec_son_attendu(self):
+        from donjon.compilateur import normaliser_proposition
+        m = nouveau_monde()   # le joueur n'est pas dans l'échoppe
+        m.joueur["salle"] = next(s for s in m.data["salles"] if s != "echoppe")
+        with self.assertRaises(ErreurMonde) as ctx:
+            normaliser_proposition({"action": "lister_marchandises", "cible": ""}, m, intention="que vendez-vous ?")
+        self.assertTrue(getattr(ctx.exception, "attendu", ""))
+
+    def test_les_mots_du_commerce_ne_changent_plus_l_action_du_modele(self):
+        from donjon.compilateur import normaliser_proposition
+        m = self._echoppe()
+        for phrase in ("combien de pièces me reste-t-il ?", "ce que tu vends est-il de bonne qualité ?",
+                       "je prends la trousse de crochets"):
+            p = normaliser_proposition({"action": "dialogue", "cible": "", "texte": "", "personnage": "marchand"},
+                                       m, intention=phrase)
+            self.assertEqual(p["action"], "dialogue", phrase)
+            self.assertFalse(p.get("_deterministe"), phrase)
+
+    def test_les_mots_de_la_remise_ne_changent_plus_l_action_du_modele(self):
+        from donjon.compilateur import normaliser_proposition
+        m = self._echoppe(anneau=True)
+        for phrase in ("Gorm, donne-moi 30 pièces pour l'anneau", "voici ce que je pense de l'anneau"):
+            p = normaliser_proposition({"action": "conversation_pnj", "personnage": "marchand", "operation": "negocier",
+                                        "mission": "", "montant_demande": 30}, m, intention=phrase)
+            self.assertEqual(p["action"], "conversation_pnj", phrase)
+
+    def test_remise_jamais_le_premier_objet_ni_le_premier_pnj(self):
+        from donjon.compilateur import normaliser_proposition
+        m = self._echoppe(anneau=True)
+        m.objets["cle"]["lieu"] = "joueur"
+        # Deux objets portés, aucun nommé : le moteur n'en choisit pas un à la place du joueur.
+        p = normaliser_proposition({"action": "remettre", "cible": "", "outil": "marchand"}, m, intention="tiens, prends ça")
+        self.assertEqual(p["cible"], "")
+        with self.assertRaises(ErreurMonde):
+            Moteur(m).preparer(p)
+        # Nommé dans la saisie, ou seul objet porté : déduit.
+        p = normaliser_proposition({"action": "remettre", "cible": "", "outil": "marchand"}, m,
+                                   intention="voici l'anneau du veilleur")
+        self.assertEqual((p["cible"], p["outil"]), ("anneau", "marchand"))
+        for i, o in m.objets.items():   # il ne porte plus que l'anneau
+            if o.get("lieu") == "joueur" and i != "anneau":
+                o["lieu"] = "echoppe"
+        p = normaliser_proposition({"action": "remettre", "cible": "", "outil": ""}, m, intention="tiens")
+        self.assertEqual((p["cible"], p["outil"]), ("anneau", "marchand"))
+
+    def test_replique_accord_en_fiction_sans_phrase_de_regie_sur_deux_missions_et_recharge(self):
+        from donjon.fournisseurs.contrat import Fournisseur, Reponse
+        from donjon.transactions import appliquer
+
+        def mj_conv(personnage, operation, mission, montant=0):
+            class Faux(Fournisseur):
+                def _appeler(self, demande):
+                    return Reponse(arguments={
+                        "action": "conversation_pnj", "cible": "", "destination": "", "outil": "", "methode": "simple",
+                        "difficulte": 0, "texte": "", "sujet_parole": "propos", "justification": "",
+                        "personnage": personnage, "operation": operation, "mission": mission,
+                        "montant_demande": montant, "etapes": []}, brut={}, utilisation={})
+            return MJOpenAI(connexion="local", fournisseur=Faux(), decoupler=True)
+
+        # 1) Mission de Gorm (l'anneau du veilleur) : offre, contre-offre, maintien, acceptation.
+        m = self._echoppe()
+        for op, dem, attendu_texte, attendu_montant, attendu_statut in (
+            ("proposer", 0, "Je t'offre 20 pièces, payables contre la remise de l'anneau du veilleur.", 20, "propose"),
+            ("negocier", 40, "Pas 40 pièces ; je monte à 22 pièces, payables à la remise de l'anneau du veilleur.", 22, "propose"),
+            ("negocier", 40, "Pas 40 pièces : je maintiens mon offre de 22 pièces contre la remise de l'anneau du veilleur.", 22, "propose"),
+            ("accepter", 0, "Marché conclu pour 22 pièces. Tu les auras à la remise de l'anneau du veilleur.", 22, "accepte"),
+        ):
+            r = mj_conv("marchand", op, "anneau_veilleur", dem).echanger(m, "parlons de l'anneau")
+            self.assertIn(attendu_texte, r["texte"])
+            for regie in ("Le joueur", "Aucun paiement immédiat", "Il maintient", "contre la remise de l'objet"):
+                self.assertNotIn(regie, r["texte"])
+            m, _ = appliquer(m, r["_transactions"])
+            m.memoriser("parlons de l'anneau", r["texte"], "conversation_pnj")
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "echoppe.json"
+            m.sauver(f)
+            reprise = Monde.charger(f)
+        self.assertEqual(reprise.data["engagements"]["anneau_veilleur"], {"statut": "accepte", "montant": 22})
+        self.assertIn("Marché conclu pour 22 pièces", reprise.data["conversation"][-1]["reponse"])
+
+        # 2) Autre PNJ et autre mission (Mira, la clé en fer) : même contrat sans mention de Gorm ni de l'anneau.
+        m2 = self._echoppe()
+        from donjon.voix import apprendre_nom
+        m2.objets["mira"] = objet("mira", "Mira", "personnage", "echoppe", genre="f")
+        apprendre_nom(m2, "joueur", "mira")
+        m2.data["finances_pnj"]["mira"] = 12
+        m2.data["missions"]["cle_mira"] = {
+            "donneur": "mira", "objet": "cle", "nom": "Apporter la clé",
+            "condition": "Remettre la clé à Mira.", "prime_base": 5, "prime_plafond": 10,
+        }
+        r2 = mj_conv("mira", "proposer", "cle_mira").echanger(m2, "Mira, combien pour la clé ?")
+        self.assertEqual(
+            r2["texte"],
+            "Mira : « Je t'offre 5 pièces, payables contre la remise de la clé du veilleur. Dis-moi si tu acceptes. »",
+        )
+        m2, _ = appliquer(m2, r2["_transactions"])
+        self.assertEqual(m2.data["engagements"]["cle_mira"], {"statut": "propose", "montant": 5})
+
 if __name__ == "__main__":
     unittest.main()
