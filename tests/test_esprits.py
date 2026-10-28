@@ -7,7 +7,8 @@ from unittest.mock import patch
 
 import jeu
 from tests.support import regarder, sans_evacues
-from donjon.defi import nouveau_defi
+# Scènes de mécanisme : ressources et liens déclarés avant les occasions 186.
+from tests.scenarios_contractuels import nouveau_defi
 from donjon.esprits import lire, percoit
 from donjon.monde import Monde, nouveau_monde
 from donjon.moteur import Moteur, proposition

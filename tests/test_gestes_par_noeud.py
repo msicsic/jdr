@@ -33,7 +33,11 @@ def sans_preparation():
 
 class GestesTests(unittest.TestCase):
     def test_successeurs_ordre_couts_et_noeuds_de_la_base(self):
-        # Empreintes produites par 02c8e8b avec le même outil, avant modification.
+        # Empreintes produites par 02c8e8b avec le même outil ; seul le graphe
+        # a_mange de l'auberge à 600 min est recalé au contact du lot 204
+        # (35 états en moins, résultat toujours impossible ; cinq captures inchangées).
+        # Lot 221 : la question ajoute 215 états à ce graphe ; même résultat
+        # impossible et mêmes cinq autres captures, monde/rendu vérifiés ci-dessous.
         attendus = json.loads((DONNEES / "gestes-attendus.json").read_text(encoding="utf8"))
         self.assertEqual(captures(p, DONNEES), attendus)
 

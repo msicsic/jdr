@@ -36,6 +36,7 @@ from .obstacles import Route, cout_route, sejours_route, metrique_necessaire, mo
 from .geometrie import cases
 from .temps import MINUTE
 from . import pnj, trajet_estime, route_admissible
+from .portes import refermable
 
 PROFONDEUR = 8         # gestes au plus dans un plan (un trajet compte pour un)
 NOEUDS = 4000          # états examinés au plus
@@ -648,6 +649,9 @@ class Vue:
     def refuse(self, autre, o):
         """Il ne le lui redemande pas : un refus qui tient, demandé ou à vendre ; sauf faute d'argent
         pour l'acheter, ce qui n'empêche pas de le demander."""
+        from .biens import restitution_retenue
+        if restitution_retenue(self.monde, self.id, autre, o):
+            return True
         refus = self.retenu(autre, ("demander", "acheter"), o)
         return refus if refus and refus["raison"] != "pauvre" else None
 
@@ -1407,14 +1411,18 @@ def gestes(v, e, vises=None, but=None):
             if not v.refuse(porteur, o):
                 yield (0, 1 + DEMANDE / v.chances_demandes[porteur], [_etape("demander", porteur, outil=o)],
                        e.apres(portes=e.portes | {o}, faits=permis), 1)
-            # L'acheter à son propriétaire, s'il a un prix et qu'il peut le payer.
+            # Acheter au propriétaire ou racheter son propre bien au détenteur.
             prix = objets[o].get("prix")
-            if (prix and v.proprietaire[o] == porteur and v.piece and not v.refuse_achat(porteur, o)
+            if (prix and porteur != "joueur" and v.proprietaire[o] in (porteur, id)
+                    and v.piece and not v.refuse_achat(porteur, o)
                     and v.richesse - (e.fait("depense") or 0) >= prix):
-                yield (0, 1 + DEMANDE + v.depense(prix),
-                       [_etape("acheter", porteur, outil=o, contenu={"prix": prix})],
-                       e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("achete", o), True),
-                                                             (("depense",), (e.fait("depense") or 0) + prix)]), 1)
+                from .pnj_propositions import offre_refusee
+                if not v._memo(("achat_refuse", porteur, o, prix), lambda: offre_refusee(
+                        monde, id, porteur, o, {"type": "pieces", "montant": prix})):
+                    yield (0, 1 + DEMANDE + v.depense(prix),
+                           [_etape("acheter", porteur, outil=o, contenu={"prix": prix})],
+                           e.apres(portes=e.portes | {o}, faits=[(("permis", o), True), (("achete", o), True),
+                                                                 (("depense",), (e.fait("depense") or 0) + prix)]), 1)
         # Une violence ne sert que sur le porteur d’un moyen pertinent.
         # Son coût se compare à demander ; aucun ordre de recours imposé.
         if (utile and porteur and porteur not in (id, "joueur") and v.violence(porteur) is not None and v.autorise[o]
@@ -1441,7 +1449,8 @@ def gestes(v, e, vises=None, but=None):
         if o in v_poser and o in portes:
             yield (0, 1, [_etape("poser", o, lieu=sa_salle)],
                    e.apres(portes=portes - {o}, faits=[(("lieu", o), sa_salle)]))
-        if o in v_fermer and v.salle(e, o) == sa_salle:
+        if (o in v_fermer and refermable(e.fait("fin", o) or v.cru(o, "fin"))
+                and v.salle(e, o) == sa_salle):
             if v.ouvert(e, o):
                 yield 0, 1, [_etape("fermer", o)], e.apres(faits=[(("ouvert", o), False)])
             elif not v.verrouille(e, o):
@@ -1488,6 +1497,7 @@ def gestes(v, e, vises=None, but=None):
                             yield (int(bool(brise) and not e.fait("faute", brise, "honnetete")), cout_coups,
                                    [_etape("frapper", o, outil=outil, condition="sans_temoin" if brise else "")],
                                    e.apres(faits=[(("verrou", o), False), (("ouvert", o), True), (("touche", o), True),
+                                                  (("fin", o), "detruit"),
                                                   *([(("faute", brise, "honnetete"), True)] if brise else []), *degat]),
                                    cout_coups, abime)
         # Manger ce qui est à portée.
@@ -1870,12 +1880,24 @@ def _chercher(v, e, sujet):
     """Perdu de vue : il va le chercher là où il est passé le moins récemment, et l'y suppose,
     hors des salles où il l'a cherché en vain (``deliberation.appels_vains``) ; None s'il n'en reste
     aucune. Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
+    # Le contact inconnu peut d'abord faire l'objet d'une question présente.
+    # Comme l'inspection, cette transition s'arrête avant toute suite supposée.
+    question = None
+    if e.salle == v.objets[v.id]["lieu"] and not e.fait("cherche", sujet):
+        recours = s_enquerir(v.monde, v.id, sujet=sujet, _vue=v, _etat=e)
+        if recours is not None:
+            etapes = [{**x, "suppose": True} for x in recours[1]]
+            suivant = e.apres(faits=[(("lieu", sujet), e.salle), (("cherche", sujet), True)])
+            mesure = _mesurer(v, e, etapes, suivant, 1)
+            if mesure is not None:
+                temps, pression, suivant = mesure
+                question = TransitionMesuree((0, temps + DEMANDE, etapes, suivant, temps, False, pression))
     visites = lire(v.monde, v.id)["visites"]
     vaines = appels_vains(v.monde, v.id, sujet)
     routes = {s: v.route(e, s) for s in v.salles if s not in vaines}
     routes = {s: r for s, r in routes.items() if r is not None}
     if not routes:
-        return None
+        return question
     # Le coût d'une route est celui de toute la recherche (``Vue.allers`` : passages compris).
     salle = min(routes, key=lambda s: (visites.get(s, -1), cout_route(routes[s], e.orientation), s))
     # Il y parcourt la salle des yeux, et l'appelle s'il ne le voit pas (``pnj.appeler``).
@@ -1884,9 +1906,10 @@ def _chercher(v, e, sujet):
     suivant = e.apres(salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)])
     mesure = _mesurer(v, e, etapes, suivant, cout_route(routes[salle], e.orientation) + 1)
     if mesure is None:
-        return None
+        return question
     temps, pression, suivant = mesure
-    return TransitionMesuree((0, temps + CHERCHER, etapes, suivant, temps, False, pression))
+    recherche = TransitionMesuree((0, temps + CHERCHER, etapes, suivant, temps, False, pression))
+    return min((question, recherche), key=lambda t: t[1] + t[6]) if question is not None else recherche
 
 
 def depart(monde, id, v=None):
@@ -1933,16 +1956,17 @@ def _entrees_communes(v):
     from .signes import actives
     # Les cibles et obstacles restent localisés ; le départ est seulement la salle.
     metrique = v._metrique
+    from .biens import services_proteges
     return json.dumps([
+        services_proteges(monde, id),  # Entrées du filtre des résultats promis.
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         monde.objets[id]["lieu"],
         # Une occasion attendue ne garantit pas la fin d'un geste dans l'eau.
         (esprit_["patience"] is None) if v.eau_route else None,
         [k for k in v.connus if porte_par(monde, k, id)],
-        # Les preuves de fin ne sont pas lues par la recherche. Leur effet sur
-        # les responsabilités passe déjà par gardes/prix_gardes ci-dessous ;
-        # les inclure ici invaliderait un plan sans changer ses moyens.
-        [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items() if a != "fin"],
+        # La fin des battants est lue par les gestes et leur restauration.
+        [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()
+         if a != "fin" or monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.
@@ -1966,6 +1990,8 @@ def _entrees_communes(v):
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],
         [[o, v.leses_bris[o]] for o in v.connus if v.brise_illicite[o]],
         v.richesse, v.piece,
+        [[o, bool(v.refuse(retour["a"], o))] for o, retour in
+         monde.data.get("restitutions", {}).get(id, {}).items() if o in monde.objets],
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
@@ -2532,9 +2558,35 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
             duree = temps
         else:
             pression = duree * v.pression(e) if duree else 0
+        if _defait_service(v, e, suivant):
+            continue
         suites.append((fautes, minutes, ajout, suivant, duree, geste[5] if len(geste) > 5 else False,
                        pression / duree if duree else 0))
     return suites
+
+
+def _defait_service(v, avant, suivant):
+    """Filtre commun après composition des gestes, approches et portes franchies.
+
+    Il ne défait aucun résultat protégé de sa propre main, y compris dans un
+    trajet. Les suites différées repassent par la même normalisation.
+    """
+    from .biens import services_proteges
+    conditions = v._memo(("services_proteges",), lambda: services_proteges(v.monde, v.id))
+    for c in conditions:
+        o = c["objet"]
+        if "allume" in c:
+            obtenu = v.feu(avant, o)[0] is True
+            defait = v.feu(suivant, o)[0] is False
+        elif "verrouillee" in c:
+            obtenu = v.verrouille(avant, o) and not v.ouvert(avant, o)
+            defait = v.ouvert(suivant, o) or not v.verrouille(suivant, o)
+        else:
+            obtenu = o not in avant.portes and v.salle(avant, o) == c["lieu"]
+            defait = o in suivant.portes or v.salle(suivant, o) != c["lieu"]
+        if obtenu and (defait or suivant.fait("fin", o) or suivant.fait("mange", o)):
+            return True
+    return False
 
 
 def _mesurer(v, e, ajout, suivant, ancienne_duree):
@@ -2793,7 +2845,8 @@ def retablir(v, e, etapes):
     """Ce qu'il garde sous clé et auquel le plan a touché, il le referme à clé avant de finir."""
     for x in profil(v.monde, v.id)["pulsions"]:
         cible = x["condition"].get("objet")
-        if not x["condition"].get("verrouillee") or not e.fait("touche", cible):
+        if (not x["condition"].get("verrouillee") or not e.fait("touche", cible)
+                or not refermable(e.fait("fin", cible) or v.cru(cible, "fin"))):
             continue
         if v.ouvert(e, cible):
             etapes.append(_etape("fermer", cible))
@@ -2945,6 +2998,8 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
             but = lambda v, e: o not in e.portes and v.lieu(e, o) == lieu  # noqa: E731
             vises = {"prendre": (o,), "poser": (o,)}
     else:
+        if not refermable(_cru(monde, id, o, "fin")):
+            return None
         but = lambda v, e: v.verrouille(e, o) and not v.ouvert(e, o)  # noqa: E731
         vises = {"fermer": (o,)}
     if tache and sorte(condition) and "allume" not in condition:
@@ -3139,15 +3194,27 @@ def reclamer(monde, id):
     return {"type": "reclamer", "qui": meilleur[1]}, meilleur[2]
 
 
-def s_enquerir(monde, id, besoin):
+def s_enquerir(monde, id, besoin=None, *, sujet=None, _vue=None, _etat=None):
     """(but, étapes) pour demander à quelqu'un s'il a de quoi apaiser ``besoin`` (des vivres, du
     bois : ``echanges.enqueter``), quand rien de ce qu'il connaît n'y pourvoit : à qui il ne connaît
     rien de tel, qu'il ne se méfie pas et dont la réponse refusée ne tient plus (``deliberation.tient``),
-    le plus proche de là où il le croit. None s'il n'a personne à qui le demander."""
+    le plus proche de là où il le croit. Avec ``sujet``, demander le lieu d'une personne à
+    un interlocuteur cru présent ; ne supposer ni ce qu'il sait, ni une réponse positive.
+    None s'il n'a personne à qui le demander."""
     if not profil(monde, id):
         return None
-    v = vue(monde, id)
-    e = depart(monde, id, v)
+    v = _vue or vue(monde, id)
+    e = _etat or depart(monde, id, v)
+    if sujet is not None:
+        interroges = {s["de"] for s in lire(monde, id)["refus"]
+                      if s["operation"] == "enqueter_lieu" and s.get("objet") == sujet
+                      and tient(monde, id, s, v.connus)}
+        for autre in sorted(v.personnes()):
+            if (autre != sujet and autre not in interroges and not v.se_mefie(autre)
+                    and v.salle(e, autre) == e.salle):
+                return ({"type": "enquete", "qui": autre, "objet": sujet},
+                        [_etape("demander", autre, contenu={"localisation": sujet})])
+        return None
     # Qui n'en a pas, il ne le lui redemande pas tant que rien de ce qu'il croit de ces ressources n'a
     # changé ; qui s'est méfié, pas avant ``REDEMANDE`` minutes (``deliberation.tient``).
     interroges = {s["de"] for s in lire(monde, id).get("refus", ()) if s["operation"] == "enqueter"
@@ -3234,11 +3301,10 @@ def abri(monde, id, salles):
     Quitter qui l'inquiète n'est pas un gain là où il garde un bien que cette présence menace
     (``deliberation.menaces``) : s'en aller, c'est le lui laisser, et cet éloignement lui coûte
     (``prix_gardes``) comme à tout plan."""
-    from .deliberation import menaces, taux
+    from .deliberation import abri_valide, menaces, taux
     v = vue(monde, id)
     e = depart(monde, id, v)
-    from .defense import lieux_dangereux
-    salles = [s for s in salles if s not in lieux_dangereux(monde, id)]
+    salles = [s for s in salles if abri_valide(monde, id, s)]
     ici = [x for x in v.connus + ["joueur"] if x != id and (x == "joueur" or v.objets[x]["type"] == "personnage")
            and v.salle(e, x) == e.salle]
     fuir = any(v.se_mefie(x) for x in ici) and e.salle not in menaces(monde, id)
@@ -3316,7 +3382,8 @@ def _gestes_defense(v, e, vises):
                        e.apres(faits=[(("repousse", a), True)]), .025 / chance)
     if vises.get("fuir") and all(v.salle(e, a) != e.salle for a in ds) and not e.fait("fui"):
         # Fermer derrière soi appartient au plan, avec la même règle de clé que garder.
-        portes = sorted(v.portes_de[e.salle] & set(vises.get("fermer", ())))
+        portes = sorted(p for p in v.portes_de[e.salle] & set(vises.get("fermer", ()))
+                        if refermable(e.fait("fin", p) or v.cru(p, "fin")))
         closes = all(not v.ouvert(e, p) for p in portes)
         verrouillables = [p for p in portes if any(p in v.objets[k].get("ouvre", ()) for k in e.portes)]
         if closes and all(v.verrouille(e, p) for p in verrouillables):
@@ -3329,7 +3396,30 @@ def _gestes_defense(v, e, vises):
 def reagir(monde, id, dangers, aide=None):
     """Le graphe compare les moyens de sortir du danger ; un coup est toujours revalidé."""
     from . import corps
-    from .defense import etat_cru
+    from .defense import etat_cru, lieux_dangereux, protection as proteger
+    from .esprits import lire, percoit
+    e = lire(monde, id)
+    secourus = []
+    # Le constat remplace l'appel, même si la défense interrompt l'inspection.
+    # Une date à la minute ne départage pas deux événements de la même minute :
+    # dans ce cas seule la vue actuelle constitue une preuve suffisante.
+    for s in e["memoire"]:
+        if s["type"] != "secours" or s.get("examine"):
+            continue
+        qui = s["qui"]
+        etat = e["croyances"].get(qui, {}).get("etat", {})
+        vu = monde.visible(qui) if id == "joueur" else percoit(monde, id, qui)
+        if vu or etat.get("source") == "vu" and etat["minute"] > s["minute"]:
+            s["examine"] = True
+            secourus.append(qui)
+    if secourus:
+        corps.evenement(monde, "intervention", id, proteges=sorted(set(secourus)))
+    if aide and not aide[2] and aide[0] in secourus:
+        aide = proteger(monde, id)
+    # Le même constat vaut pour le joueur, qui choisit lui-même ses gestes :
+    # il n'a pas de profil pour la recherche d'un plan autonome.
+    if id == "joueur":
+        return None
     if corps.corps(monde, id).get("tenu_par"):
         return {"type": "degager"}, [_etape("degager")]
     ennemis = list(dangers)
@@ -3339,6 +3429,10 @@ def reagir(monde, id, dangers, aide=None):
                    and not etat_cru(monde, id, a).get("reddition")]
     if aide and not ennemis:
         protege, salle, _ = aide
+        # Un appel non élucidé ne rend pas sûre une destination déjà dangereuse.
+        # Il reste en mémoire : un constat ou un changement du danger peut le rouvrir.
+        if salle in lieux_dangereux(monde, id):
+            return None
         trajet = aller(monde, id, salle)
         r = (salle, trajet) if trajet else voir(monde, id, salle)
         if r:

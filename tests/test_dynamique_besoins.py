@@ -74,6 +74,7 @@ class SeuilTests(unittest.TestCase):
 
     def test_un_besoin_n_interrompt_le_plan_d_un_autre_que_s_il_presse_nettement_plus(self):
         m = self.gorm()
+        m.objets["ilse"]["profil"]["caracteristiques"]["VOL"] = 12
         s = seuils(m, "ilse")
         b = lire(m, "ilse")["besoins"]
         b.update(securite=s["securite"] + 14.0, chaleur=s["chaleur"] + 12.0)
@@ -83,7 +84,7 @@ class SeuilTests(unittest.TestCase):
         # Le froid presse presque autant : il laisse finir l'abri (et ne le reprend pas à chaque minute).
         self.assertEqual(urgents(m, "ilse", inertie=True), ["securite"])
         self.assertEqual(urgents(m, "ilse")[:2], ["securite", "chaleur"])
-        b["chaleur"] = s["chaleur"] + 14.0 + INERTIE
+        b["chaleur"] = s["chaleur"] + 14.0 + INERTIE + 3  # VOL 12 / 4
         self.assertEqual(urgents(m, "ilse", inertie=True)[0], "chaleur")
 
 
@@ -128,7 +129,9 @@ class TenirTests(unittest.TestCase):
         ``lampe``, il sait la lampe du filon allumée. Odon, dont il se méfie, ne convoite pas la paie
         (honnêteté entière) : il resterait sinon à la porte du bureau, qu'il sait crocheter, et Bram
         s'abriterait de lui (une limite connue, ``docs/plan-planificateur.md``)."""
-        m = creer("mine", 1985, "fixe")
+        # Recours de lumière isolé du marché supplémentaire du bois d’Odon.
+        from tests.scenarios_contractuels import creer as creer_contractuel
+        m = creer_contractuel("mine", 1985, "fixe")
         calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
         m.objets["odon"]["profil"]["valeurs"]["honnetete"] = 100
         m.objets["chandelle"].update(allume=False, combustible=0)

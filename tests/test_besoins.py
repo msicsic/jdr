@@ -76,6 +76,9 @@ class GardeMangerTests(unittest.TestCase):
 
     def test_sous_les_yeux_du_joueur_elle_attend_puis_renonce(self):
         m = relais()
+        # Aucun repas de secours : seule la tentative sous témoin est isolée.
+        from tests.support import sans_souci
+        sans_souci(m)
         from donjon import relations
         lire(m, "marchand")["relations"]["brune"] = relations._nouvelle({"confiance": 10})
         # Placement d'auteur : le joueur s'est assis près de la réserve, sa lanterne allumée, et la regarde.
@@ -95,6 +98,9 @@ class GardeMangerTests(unittest.TestCase):
         m.objets["brune"]["profil"]["valeurs"]["douceur"] = 100
         # Cette scène isole l'outil absent : aucun service d'allumage à offrir.
         m.objets['torche'].update(allume=True, combustible=120)
+        # Pas de bois propre à échanger contre le repas non plus.
+        from tests.test_entretenir import sans
+        sans(m, 'bois_bateliere')
         # Placement d'auteur : le joueur a pris la trousse avant que Brune ne s'en occupe.
         m.objets["crochets"]["lieu"] = "joueur"
         m.objets["crochets"].pop("position")
@@ -240,11 +246,22 @@ class ProfilTests(unittest.TestCase):
     def test_banc_sans_joueur(self):
         # Ce test vérifie le banc et son récit, pas le tirage d'un marché dont
         # l'évaluation peut évoluer. La demande de Brune est persuasive ici.
-        with patch("sys.stdout", io.StringIO()) as sortie, patch.object(Monde, "d20", return_value=20):
+        creer = banc_pnj.creer
+        def scene(*args, **kwargs):
+            from tests.support import sans_souci
+            # Ce récit exige la livraison de Gorm, pas un second repas
+            # demandé et livré par Ilse ou Aubin au titre d'un secours.
+            return sans_souci(creer(*args, **kwargs), "ilse", "aubin")
+        with (patch("sys.stdout", io.StringIO()) as sortie,
+              patch.object(Monde, "d20", return_value=20),
+              patch.object(banc_pnj, "creer", side_effect=scene)):
             self.assertEqual(banc_pnj.main(["--heures", "4", "--joueur", "chambre_cloche", "--chronique"]), 0)
         # Relais complet : affamée, Brune demande une part à Gorm, qui la sert et referme sa réserve ;
         # les évacués trempés se chauffent au brasero, que Gorm recharge avec son bois.
-        self.assertIn("Brune demande une part des vivres du refuge à Gorm (", sortie.getvalue())
+        # Affamée, Brune demande sa part, ou Gorm la sert de lui-même s'il voit sa faim
+        # (secours du lot 197) ; dans les deux cas, la part est réellement donnée.
+        self.assertRegex(sortie.getvalue(), r"Brune demande une part des vivres du refuge à Gorm \("
+                                            r"|servir les vivres du refuge à Brune \(empathie\)")
         self.assertRegex(sortie.getvalue(), "Gorm appelle Brune et lui donne une part des vivres du refuge"
                                            "|Gorm remet les vivres du refuge à Brune")
         self.assertIn("Gorm, gardien du relais verrouille la réserve de vivres.", sortie.getvalue())

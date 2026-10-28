@@ -632,10 +632,11 @@ def _accessible(monde, id, objet):
         from .corps import sans_defense
         from .passage import au_contact
         return (sans_defense(monde, porteur) and au_contact(monde, id, porteur)
-                and monde.present_physique(objet, salle=monde.objets[id]["lieu"]))
+                and proche(monde, objet, id))
     o = monde.objets[id]
-    return (monde.present_physique(objet, salle=o["lieu"])
-            and (not monde.data.get("mode_cases") or "position" not in o or proche(monde, objet, id)))
+    if monde.data.get("mode_cases") and "position" in o:
+        return proche(monde, objet, id)
+    return monde.present_physique(objet, salle=o["lieu"])
 
 
 def _a_toucher(monde, id, etape, portes=None):
@@ -1115,12 +1116,10 @@ def _abriter(monde, id, lieu, lignes):
         return True
     if monde.objets[id]["lieu"] != lieu:
         return False
-    from .eau import menacee
-    if menacee(monde, id, lieu):
-        return False  # L'eau gagne le lieu, ou va le gagner : ce n'est plus un abri.
+    from .deliberation import abri_valide
+    if not abri_valide(monde, id, lieu):
+        return False
     a = autour(monde, id)
-    if not a["fiables"] and not a["lumiere"]:
-        return False  # Ni lumière ni personne de sûr : ce n'est pas un abri.
     depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
     if not any(s["type"] == "abrite" and s["minute"] >= depuis for s in e["memoire"]):
         memoriser(monde, id, {"type": "abrite", "lieu": lieu})
@@ -1412,19 +1411,20 @@ def _rejoindre_un_proche(monde, id, lignes):
     return _marcher(monde, id, lambda salle, case: salle == ici and distance(case, p) == 1, lignes)
 
 
-def _case_crue(monde, id, x):
-    """La case où il croit trouver ``x`` dans sa salle : là où il l'a vu. Une porte, un objet
+def _case_crue(monde, id, x, salle=None):
+    """La case où il croit trouver ``x`` dans le secteur demandé (le sien par défaut).
+    Une porte, un objet
     fixe font partie du lieu (``deliberation._lieu_cru``) : il sait leur place sans les avoir
     revus. None s'il ne sait où."""
     from .spatial import position_cible
-    ici, o = monde.objets[id]["lieu"], monde.objets.get(x)
+    ici, o = salle or monde.objets[id]["lieu"], monde.objets.get(x)
     fixe = o is not None and o["type"] != "personnage" and not o.get("mobile")
     cru = lire(monde, id)["croyances"].get(x, {}).get("lieu")
     porteur = cru.get("valeur") if cru else None
     if porteur in monde.objets and monde.objets[porteur]["type"] == "personnage" and porteur != id:
         etat = lire(monde, id)["croyances"].get(porteur, {}).get("etat", {}).get("valeur", {})
         if etat.get("conscient") is False:
-            return _case_crue(monde, id, porteur)
+            return _case_crue(monde, id, porteur, ici)
     if cru and (o is None or o["type"] != "porte"):  # Le joueur n'est pas un objet.
         if cru["valeur"] is None or cru.get("salle") != ici:
             return None
@@ -1439,12 +1439,8 @@ def _case_crue(monde, id, x):
 def _a_portee_de(monde, salle, case, cible):
     """De ``case``, la main atteint-elle ``cible`` ? Comme ``spatial.proche`` : une case voisine,
     sans passer en biais entre deux obstacles."""
-    from .spatial import _case_libre
-    dx, dy = cible[0] - case[0], cible[1] - case[1]
-    if max(abs(dx), abs(dy)) > 1:
-        return False
-    return not (dx and dy) or (_case_libre(monde, salle, (case[0] + dx, case[1]))
-                               or _case_libre(monde, salle, (case[0], case[1] + dy)))
+    from .spatial import contact_cases
+    return contact_cases(monde, salle, case, salle, cible)
 
 
 def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
@@ -1456,7 +1452,15 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
     loin = [x for x in _a_toucher(monde, id, etape) if not _accessible(monde, id, x)]
     if not loin:
         return 0
-    crues = [_case_crue(monde, id, x) for x in loin]
+    def places_crues():
+        croyances = lire(monde, id)["croyances"]
+        places = []
+        for x in loin:
+            salle = (croyances.get(x, {}).get("lieu") or {}).get("salle") or o["lieu"]
+            case = _case_crue(monde, id, x, salle)
+            places.append((salle, case) if case is not None else None)
+        return places
+    crues = places_crues()
     if None in crues:
         # Il le croit dans cette salle sans savoir où : il la parcourt des yeux. Ne le voyant
         # pas, c'est en essayant le geste qu'il constate son absence.
@@ -1464,11 +1468,12 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
         if "orientation" in o and any(c is None and (croyances.get(x, {}).get("lieu") or {}).get("salle") == o["lieu"]
                                       for x, c in zip(loin, crues)):
             tour_d_horizon(monde, id)
-            if None not in [_case_crue(monde, id, x) for x in loin]:
+            if None not in places_crues():
                 return TOUR
         return 0
-    ici = o["lieu"]
-    arrivee = lambda salle, case: salle == ici and all(_a_portee_de(monde, salle, case, c) for c in crues)
+    from .spatial import contact_cases
+    arrivee = lambda salle, case: all(contact_cases(monde, salle, case, s, c, objet=x)
+                                     for x, (s, c) in zip(loin, crues))
     pas = _marcher(monde, id, arrivee, lignes, gestes)
     return _impasse(monde, id, etape, arrivee, compter) if pas is None else pas
 
@@ -1494,7 +1499,11 @@ def _impasse(monde, id, etape, arrivee, compter=True):
     if intention["motif"] == "alerte":
         e["intention"] = None
     else:
-        _patienter(monde, id, intention, compter)
+        from .spatial import cases
+        cause = {"type": "passage", "salle": monde.objets[id]["lieu"], "etape": dict(etape),
+                 "arrivees": [[s, list(c)] for s, piece in monde.data["salles"].items()
+                              for c in cases(piece) if arrivee(s, c)]}
+        _patienter(monde, id, intention, compter, cause=cause)
     return None
 
 
@@ -1599,7 +1608,7 @@ def _geste(etape):
     return {k: etape[k] for k in ("operation", "cible", "outil", "lieu")}
 
 
-def _patienter(monde, id, intention, compter=True):
+def _patienter(monde, id, intention, compter=True, *, cause):
     """Il attend son occasion, ou que le chemin se libère : une attente commence maintenant
     (``commencer_attente``) ; le temps qu'il y passe se compte en dixièmes de seconde, quel que soit
     le nombre de fois qu'un événement l'a fait reconsidérer. Au-delà de ``PATIENCE`` minutes
@@ -1607,7 +1616,7 @@ def _patienter(monde, id, intention, compter=True):
     from .deliberation import PATIENCE, renoncer
     from .temps import MINUTE, instant
     if intention["attente"] > PATIENCE * MINUTE:
-        renoncer(monde, id, monde.data["minutes"])
+        renoncer(monde, id, monde.data["minutes"], cause)
         return True
     commencer_attente(monde, id, instant(monde))
     return False
@@ -1632,6 +1641,30 @@ def compter_attente(monde, id, t, continuer=False):
         attente_sous_regard(monde, id, t - e["patience"])
         e["intention"]["attente"] += t - e["patience"]
     e["patience"] = t if continuer and e["intention"] else None
+
+
+def refus_etape(monde, id, etapes):
+    """Admissibilité du prochain geste, au choix comme juste avant l'exécution.
+
+    Le contrôle porte sur l'eau crue et les routes déjà contrôlées par la
+    marche. Un but sec ne certifie pas un préparatif local dans un péril.
+    Aucun effet, aucune observation supplémentaire de la réalité.
+    """
+    from .eau import active, en_peril, menacee
+    if not active(monde):
+        return None
+    ici = monde.objets[id]["lieu"]
+    tete = next((x for x in etapes if x["operation"] != "aller" or x["lieu"] != ici), None)
+    if tete is None or tete["operation"] != "aller":
+        return "séjour en péril d'eau" if en_peril(monde, id) else None
+    if any(menacee(monde, id, s) for s in monde.data["salles"]):
+        from .planification import Vue, depart
+        from .temps import PAS_FEUTRE
+        v = Vue(monde, id)
+        allure = PAS_FEUTRE if any(x["condition"] in ("sans_temoin", "dans_le_dos") for x in etapes) else PAS
+        if v.route(depart(monde, id, v).apres(allure=allure), tete["lieu"]) is None:
+            return v.refus_routes.get(tete["lieu"], "route crue inaccessible")
+    return None
 
 
 def agir(monde, id, t, lignes, gestes=None, compter=True):
@@ -1667,6 +1700,8 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         return reste, FIN, None
     etape = etapes[0]
     operation = etape["operation"]
+    if refus_etape(monde, id, etapes) is not None:
+        return reste, MANQUE, etape
     if e["manque"] and e["manque"]["minute"] == monde.data["minutes"] and e["manque"]["etape"] == _geste(etape):
         # Un geste manqué ne se retente pas aussitôt : pas avant la minute suivante, même si un
         # événement l'a fait reconsidérer entre-temps.
@@ -1746,7 +1781,7 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
             if (not dernier or {k: dernier[k] for k in ici} != ici or t - dernier["instant"] > 2 * TOUR
                     or not compter):
                 e["balayage"] = {**ici, "instant": t}
-                observe = bool(tour_d_horizon(monde, id))
+                observe = tour_d_horizon(monde, id)
                 if not observe:
                     return TOUR, GESTE, None
         else:
@@ -1758,11 +1793,14 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
         # le bruit que lui promet son adresse à la lumière qu'il a devant la serrure.
         attendu = (bruit_crochetage(monde, id, lumiere_du_geste(monde, id)) if operation == "crocheter"
                    else nature_de(operation, discret=True))
-        if (observe or (observe is None and temoins_crus(monde, id))
-                or oreilles_crues(monde, id, attendu)):
+        from .deliberation import obstacle_patience, salle_crue
+        cause = {"type": "temoins", "salle": o["lieu"], "etape": dict(etape), "nature": attendu}
+        temoins = sorted(set(obstacle_patience(monde, id, cause)) | set(observe or ()))
+        if observe or temoins:
             # Il guette une occasion, jusqu'à la minute suivante ou jusqu'à ce que sa situation change.
             from .signes import dissimule, regarder as regard_social
-            if _patienter(monde, id, intention, compter):
+            cause["temoins"] = {x: salle_crue(monde, id, x) for x in temoins}
+            if _patienter(monde, id, intention, compter, cause=cause):
                 return reste, FIN, None
             rotation = regard_social(monde, id, intention, etape["cible"], "convoite", "guet",
                                      detourner=dissimule(monde, id, intention=True))

@@ -74,7 +74,59 @@ def clore(monde, objet, destination):
     """L'objet arrive à ``destination`` : s'il revient à son propriétaire, le prêt est clos."""
     liste = monde.data.get("permissions")
     if liste and any(p["objet"] == objet and p["de"] == destination for p in liste):
+        rendus = [p for p in liste if p["objet"] == objet and p["de"] == destination]
         liste[:] = [p for p in liste if not (p["objet"] == objet and p["de"] == destination)]
+        from .esprits import constater_possession
+        for p in rendus:
+            for participant in (p["a"], destination):
+                constater_possession(monde, participant, objet, "essai", remis_par=p["a"])
+            retenir_restitution(monde, p["a"], destination, objet)
+
+
+def entrees_reemprunt(monde, id, autre, objet):
+    """Entrées utiles d'un emprunt, sans date, déplacement ni bénéfice social du retour.
+
+    Une perte de moyen ne donne aucune raison de répéter un emprunt terminé.
+    Les besoins sont leurs épisodes urgents, pas leur croissance à chaque minute.
+    """
+    from .deliberation import urgents
+    from .esprits import lire
+    from .spatial import porte_par
+    croyances = lire(monde, id)["croyances"]
+    return {
+        "besoins": sorted(urgents(monde, id)) if monde.objets.get(id, {}).get("profil") else [],
+        "moyens": sorted(k for k in croyances if k != objet and k in monde.objets
+                         and porte_par(monde, k, id)),
+        "pieces": bourse(monde, id),
+        "contenu": (croyances.get(objet, {}).get("pieces") or {}).get("valeur", 0),
+        "proprietaire": proprietaire(monde, objet),
+        "prix": prix(monde, objet),
+    }
+
+
+def retenir_restitution(monde, id, autre, objet):
+    """Le retour est appris par son emprunteur, même si le propriétaire l'impose."""
+    retours = monde.data.setdefault("restitutions", {}).setdefault(id, {})
+    retours[objet] = {"a": autre, "entrees": entrees_reemprunt(monde, id, autre, objet)}
+
+
+def restitution_retenue(monde, id, autre, objet):
+    """Un emprunt rendu n'est pas réessayé sans besoin ou moyen nouveau.
+
+    Un achat ou un don reste une autre réponse : ce contrôle porte sur le prêt.
+    La mémoire est durable et commune au joueur et aux personnages.
+    """
+    retour = monde.data.get("restitutions", {}).get(id, {}).get(objet)
+    if not retour or retour["a"] != autre:
+        return False
+    avant, apres = retour["entrees"], entrees_reemprunt(monde, id, autre, objet)
+    return (all(b in avant["besoins"] for b in apres["besoins"])
+            and all(k in avant["moyens"] for k in apres["moyens"])
+            and apres["pieces"] <= avant["pieces"]
+            and apres["contenu"] <= avant["contenu"]
+            and apres["proprietaire"] == avant["proprietaire"]
+            and not (apres["prix"] is not None and
+                     (avant["prix"] is None or apres["prix"] < avant["prix"])))
 
 
 def donner(monde, objet, a):
@@ -675,10 +727,89 @@ def reticence(monde, id, prix_, offre=0):
     return round((valeur_pieces(monde, id, manque) - prix_ * PIECE) / GENEROSITE)
 
 
+# --- Résultats des paroles de service -----------------------------------------------------
+
+
+def retenir_service(monde, id, engagement):
+    """Un résultat promis et constaté, pas une obligation de le maintenir."""
+    c = engagement["condition"]
+    if set(c) not in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"}):
+        return
+    trace = {"de": id, "pour": engagement["pour"], "condition": dict(c)}
+    services = monde.data.setdefault("services_rendus", [])
+    if trace not in services:
+        services.append(trace)
+
+
+def services_proteges(monde, id):
+    """Résultats encore utiles d'après les seules observations du prestataire.
+
+    Le besoin est approché par la présence crue du bénéficiaire auprès du
+    résultat (ou son portage). Un départ connu ou un état constaté défait
+    termine la protection définitivement ; ni oubli par délai, ni entretien.
+    Un bénéficiaire présent qui n'en a plus besoin reste donc protégé.
+    """
+    from .deliberation import _cru, _lieu_cru, salle_crue
+    actifs = [{"de": id, "pour": x["pour"], "condition": x["condition"]}
+              for x in agendas.en_cours(monde, id) if not x.get("annule")
+              and set(x["condition"]) in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})]
+    services = monde.data.get("services_rendus", [])
+    proteges, finis = [], []
+    for s, actif in [(s, False) for s in services] + [(s, True) for s in actifs]:
+        if s["de"] != id:
+            continue
+        c, pour = s["condition"], s["pour"]
+        o = c["objet"]
+        etat = _cru(monde, id, o, "etat") or {}
+        lieu = salle_crue(monde, id, o)
+        beneficiaire = salle_crue(monde, id, pour)
+        porteur = _lieu_cru(monde, id, o)
+        cesse = (o not in monde.objets or _cru(monde, id, o, "fin") is not None
+                 or (_cru(monde, id, pour, "etat") or {}).get("mort")
+                 or "allume" in c and etat.get("allume") is False
+                 or "verrouillee" in c and (_cru(monde, id, o, "verrouillee") is False
+                                              or etat.get("ouverte") is True)
+                 or "lieu" in c and lieu is not None and lieu != c["lieu"])
+        parti = (porteur != pour and lieu is not None and beneficiaire is not None and lieu != beneficiaire)
+        if cesse and not actif or parti:
+            if not actif:
+                finis.append(s)
+        else:
+            # L'absence d'information nouvelle ne dément pas la parole reçue.
+            if c not in proteges:
+                proteges.append(c)
+    if finis:
+        services[:] = [s for s in services if s not in finis]
+    return proteges
+
+
 # --- Vérification ------------------------------------------------------------------------
+
 
 def verifier(monde):
     d = monde.data
+    from .deliberation import condition_valide
+    assert isinstance(d.get("services_rendus", []), list), "Traces de service invalides"
+    for s in d.get("services_rendus", []):
+        assert (isinstance(s, dict) and set(s) == {"de", "pour", "condition"}
+                and s["de"] in monde.objets and monde.objets[s["de"]]["type"] in ("personnage", "depouille")
+                and (s["pour"] == "joueur" or s["pour"] in monde.objets
+                     and monde.objets[s["pour"]]["type"] in ("personnage", "depouille"))
+                and condition_valide(monde, s["condition"])
+                and set(s["condition"]) in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})
+                ), "Trace de service invalide"
+    for id, retours in d.get("restitutions", {}).items():
+        assert id == "joueur" or id in monde.objets, "Emprunteur restituant inconnu"
+        for objet, retour in retours.items():
+            assert isinstance(objet, str) and set(retour) == {"a", "entrees"}, "Restitution invalide"
+            assert isinstance(retour["a"], str), "Destinataire de restitution invalide"
+            e = retour["entrees"]
+            assert set(e) == {"besoins", "moyens", "pieces", "contenu", "proprietaire", "prix"}, "Entrées de restitution invalides"
+            assert all(isinstance(e[k], list) and all(isinstance(x, str) for x in e[k])
+                       for k in ("besoins", "moyens")), "Moyens de restitution invalides"
+            assert all(type(e[k]) is int and e[k] >= 0 for k in ("pieces", "contenu")), "Fonds de restitution invalides"
+            assert e["proprietaire"] is None or isinstance(e["proprietaire"], str), "Propriété de restitution invalide"
+            assert e["prix"] is None or type(e["prix"]) is int and e["prix"] >= 0, "Prix de restitution invalide"
     for p in d.get("permissions", []):
         assert (set(p) == {"objet", "a", "de", "minute"} and p["objet"] in d["objets"]
                 and (p["a"] == "joueur" or p["a"] in d["objets"] and d["objets"][p["a"]]["type"] in ("personnage", "depouille"))

@@ -15,7 +15,7 @@ import copy
 import unittest
 from unittest.mock import patch
 
-from donjon.banc_pnj import creer
+from tests.scenarios_contractuels import creer
 from donjon.esprits import croire, esprit, lire, percevoir_tous
 from donjon.geometrie import distance, position_entree
 from donjon.monde import Monde

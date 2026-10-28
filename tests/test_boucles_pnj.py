@@ -303,6 +303,10 @@ class RecoursTests(unittest.TestCase):
         placer(m, "brune", "chambre_cloche", (1, 11))
         for x in ("marchand", "aubin", "ilse"):
             lier(m, "brune", x, True, "vu")
+            # La scène suppose un refuge connu : le placement physique des
+            # compagnons hors de vue ne donne pas cette information à Brune.
+            croire(m, "brune", x, "lieu", "antichambre", "savoir",
+                   salle="antichambre", case=list(m.objets[x]["position"]))
         croire(m, "brune", "antichambre", "etat", {"eclairee": True, "niveau": 2, "propre": 2}, "vu")
         for s in ("beffroi", "crypte"):
             croire(m, "brune", s, "etat", {"eclairee": False, "niveau": 0, "propre": 0}, "vu")

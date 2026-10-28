@@ -9,7 +9,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from donjon.defi import nouveau_defi
+# Scènes de mécanisme : ressources et liens déclarés avant les occasions 186.
+from tests.scenarios_contractuels import nouveau_defi
 from donjon.esprits import lire, memoriser, croire, percoit
 from donjon.monde import Monde
 from donjon.moteur import Moteur, proposition

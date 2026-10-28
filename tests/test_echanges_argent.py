@@ -41,6 +41,7 @@ class PretTests(unittest.TestCase):
         la sienne éteinte et la lui prête ; Rémy a un briquet."""
         m = avec_briquet(mine_noire())
         # Placement d'auteur : Rémy a laissé sa lampe à la réserve, fermée à clé.
+        m.objets["lampe_remy"]["allume"] = False
         deplacer(m, "lampe_remy", "reserve", position=[2, 2])
         croire(m, "remy", "lampe_remy", "lieu", "reserve", "vu", salle="reserve", case=[2, 2])
         m.objets["lampe_gaspard"]["allume"] = False

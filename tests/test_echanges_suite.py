@@ -9,7 +9,8 @@ from tests.support import lier
 import unittest
 from unittest.mock import patch
 
-from donjon.banc_pnj import creer, executer
+from donjon.banc_pnj import executer
+from tests.scenarios_contractuels import creer
 from donjon.biens import bourse, comptes_joueur, rembourser
 from donjon.deplacement_objet import deplacer
 from donjon.echanges import ENGAGEMENT_MAX, demander, engager, enqueter
@@ -168,6 +169,9 @@ class JoueurReclameTests(unittest.TestCase):
 
     def test_son_objet_porte_par_un_autre(self):
         m = self.devant("brune")
+        # Cette scène exerce la restitution acceptée ; le refus malhonnête
+        # relève désormais du contrat commun et a sa propre épreuve.
+        m.objets['brune']['profil']['valeurs']['honnetete'] = 100
         # Placement d'auteur : Corvus connaît son couteau, que Brune a gardé.
         m.objets["couteau"]["proprietaire"] = "joueur"
         m.data["connus"].append("couteau")
@@ -369,7 +373,13 @@ class PretReclameTests(unittest.TestCase):
         # La même règle entre PNJ : Rémy, dans le noir, garde la lampe échue que Gaspard lui réclame.
         from tests.test_echanges_argent import PretTests
         m = PretTests().lampe_empruntee()
-        m, _ = vivre(m, 3)   # Il l'a allumée : dans le noir, elle lui sert.
+        # Accomplir l'allumage avant la réclamation : trois minutes de vie
+        # autonome peuvent désormais suffire à transmettre la lampe à un tiers.
+        from donjon.pnj import _executer, _etape
+        self.assertTrue(_executer(m, "remy", _etape("allumer", "lampe_gaspard", outil="briquet"), [], []))
+        m = recharger(m)
+        self.assertEqual(m.objets["lampe_gaspard"]["lieu"], "remy")
+        self.assertTrue(m.objets["lampe_gaspard"]["allume"])
         m.data["permissions"][0]["minute"] = -ENGAGEMENT_MAX
         self.assertEqual(demander(m, "gaspard", "remy", "lampe_gaspard"), "necessaire")
         m = recharger(m)

@@ -21,6 +21,13 @@ branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **te
    `franchissements`, `passages_obstacles`, `espace`) ne dépend de la salle ; tout est borné à la perception et à la
    proximité (`spatial.proche`), comme `espace.dossier`. Un objet perçu mais pas adjacent n'est qu'un repère visuel, sans
    dossier technique.
+   **P1 fait, lot 204 (`codex-portee-sans-salle`, non fusionnée)** : en mode cases, la main du joueur
+   et des PNJ atteint la case voisine par un pas praticable, seuil ouvert compris ; l'approche garde
+   les lieux et cases crus. Les contenants fermés et les portes fermées restent des barrières.
+   Les diagonales suivent les pas (deux côtés libres). P2 (contexte social), P3 (calme) et M1–M3
+   (projections MJ) restent ouverts ; voir le [rapport 204](taches/rapport-codex-204-portee-sans-salle.md).
+   Réserve d'intégration : le banc final augmente les retours suspects et ajoute une alerte d'alternance ;
+   le critère d'absence de boucle nouvelle n'est pas validé.
 2. **Poser au sol** : `destination: "sol"` (la case de Corvus), plus `salle.id`.
 3. **Surfaces génériques paresseuses** : non envoyées comme objets complets tant qu'elles ne sont ni ciblées ni porteuses
    d'un détail établi ; le contrat « un élément d'ambiance ciblé est matérialisé ou déclaré non manipulable » reste tenu.

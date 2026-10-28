@@ -29,12 +29,12 @@ from .monde import ErreurMonde, normaliser
 from .relations import FIABLE
 
 ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
-TYPES = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "proposition")
+TYPES = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "localisation", "proposition")
 CHAMPS_CONTENU = {
     "propos": (), "affirmation": ("sujet", "attribut", "valeur"),
     "demande": ("sujet", "valeur"), "passage": ("sujet", "valeur"),
     "aveu": ("sujet", "valeur"), "nom": ("sujet",), "qui": (),
-    "reclamer": ("sujet",), "ressource": ("sujet",),
+    "reclamer": ("sujet",), "ressource": ("sujet",), "localisation": ("sujet",),
     "proposition": (),
     "avis": ("sujet", "attribut", "valeur"),
 }
@@ -43,6 +43,7 @@ BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » che
 # de besoins restent disponibles pour les demandes générales ; un bien nommé
 # conserve son nom, sans être élargi au besoin qu'il pourrait servir.
 SENS_CONTENU = {
+    "localisation": "Demander où se trouve une personne connue, désignée par sujet. La réponse transmet la dernière croyance datée de l'interlocuteur, jamais une position cachée.",
     "avis": "Prévoir qu'une menace atteindra ou épargnera un lieu : annoncer une évolution future est un avis, même formulé comme une certitude, sans marque d'opinion ni échéance explicite. sujet est la référence publique du lieu connu de Corvus, attribut menace, valeur oui (menacé) ou non (épargné). Le prédicat disponible évalue la menace d'eau ; son horizon de calcul est fixé par le moteur, il n'est pas une condition à exprimer dans la parole. Le contenu transmet la prévision du joueur, jamais un fait établi ; sa conviction est calculée par le moteur sur ses perceptions.",
     "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
     "propos": "Parole dont le sens ne relève d'aucune des opérations disponibles. Reproduire les mots du joueur ne dispense pas de typer les opérations qu'ils expriment.",
@@ -1234,6 +1235,9 @@ def _typer(monde, c, auditeur=None):
         sujet = (c.get("sujet") or "").strip()
         objet = resoudre(monde, sujet) if sujet else None
         return {"type": "reclamer", "objet": objet} if objet or not sujet else None
+    if isinstance(c, dict) and c.get("type") == "localisation":
+        sujet = resoudre(monde, c.get("sujet"))
+        return {"type": "localisation", "sujet": sujet} if sujet else None
     if isinstance(c, dict) and c.get("type") == "ressource":
         sujet = normaliser(c.get("sujet") or "")
         return {"type": "ressource", "besoin": sujet} if sujet else None
@@ -1307,6 +1311,13 @@ def verifier_contenus(monde, contenu):
                                    f"contenu[{i}].{champ} : vide pour type {c.get('type')} ; "
                                    f"reçu « {c[champ]} ».")
         sujet = str(c.get("sujet") or "").strip()
+        if c.get("type") == "localisation":
+            cible = resoudre(monde, sujet)
+            if cible != "joueur" and monde.objets.get(cible, {}).get("type") != "personnage":
+                raise ErreurMonde("Corvus ne désigne pas une personne connue.",
+                                  f"contenu[{i}].sujet : personnage connu parmi "
+                                  f"{sorted(k for k, o in monde.objets.items() if o['type'] == 'personnage' and _connu_du_joueur(monde, k))}, "
+                                  f"ou joueur ; reçu {sujet!r}.")
         if c.get("type") == "avis":
             if resoudre(monde, sujet) not in monde.data["salles"]:
                 raise ErreurMonde("Corvus ne connaît pas ce lieu.",
@@ -1504,6 +1515,10 @@ def _reclamer(travail, auditeur, objet, faits, comptes):
         comptes.append(compte(auditeur, "joueur", objet, 1, "du"))
     faits.append({"rendu": f"{nom} te rend {designer(o)}.",
                   "necessaire": f"{nom} garde {designer(o)} : {il} s'en sert encore.",
+                  "mefiance": f"{nom} refuse de te rendre {designer(o)} : {il} ne te fait pas confiance.",
+                  "rancune": f"{nom} refuse de te rendre {designer(o)} : {il} t'en veut encore.",
+                  "refus": f"{nom} refuse de te rendre {designer(o)}.",
+                  "impossible": f"{nom} ne peut pas te remettre {designer(o)}.",
                   "qui_va_la": QUI_VA_LA.format(nom=nom, il=il)}.get(
         issue, f"{nom} ne te rend pas {designer(o)}, qu'{il} n'a pas sur {lui}."))
 
@@ -1546,7 +1561,7 @@ def _demander_passage(travail, auditeur, faits, prix=0):
 
 
 # Ce qu'un contenu demande à qui l'entend : il appelle une réponse, comme toute question.
-APPELLENT_REPONSE = ("qui", "ressource", "demande", "reclamer", "passage")
+APPELLENT_REPONSE = ("qui", "ressource", "localisation", "demande", "reclamer", "passage")
 
 
 def appelle_reponse(replique, contenu):
@@ -1749,6 +1764,10 @@ def preparer_parole(monde, p, revision=None):
                 _qui_est_la(travail, auditeur, faits)
             elif c["type"] == "reclamer":
                 _reclamer(travail, auditeur, c["objet"], faits, comptes)
+            elif c["type"] == "localisation":
+                from .echanges import enqueter, reponse_localisation
+                issue_lieu, dit = enqueter(travail, "joueur", auditeur, sujet=c["sujet"])
+                faits.append(reponse_localisation(travail, auditeur, c["sujet"], issue_lieu, dit))
             elif c["type"] == "ressource":
                 _enqueter(travail, auditeur, c["besoin"], faits)
             else:

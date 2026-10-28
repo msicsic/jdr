@@ -85,6 +85,10 @@ def observer_capture(scenario):
     if "connaissances_joueur" in historique and not any(historique["connaissances_joueur"].values()):
         del historique["connaissances_joueur"]
     for e in historique["esprits"].values():
+        # Le contrat 213 ajoute la provenance de l'intention à la sauvegarde.
+        # Sa persistance est vérifiée dans test_contrat_engagement ; l'oracle
+        # historique conserve ici les décisions, plans, monde et vues du joueur.
+        e.pop("contrat_intention", None)
         # L'oracle antérieur au registre d'effort ne contient pas ce champ.
         # Un effort réellement retenu ne serait pas une migration vide.
         assert not e.get("attentes_bornees"), "La capture historique a changé de décisions"
@@ -113,7 +117,15 @@ class EtapesTests(unittest.TestCase):
                 "diagnostics": "827bb1e37ba176d398472b218b1505d4310ede27fcd2200cbcf064b1f2d0286f",
                 "monde": "c7c8900af39bd1ccab5777a25164b9efe297d96c823794a05578bbc77388ecc1",
                 "lignes": "37c42d6a8fd5ac7fe31193886396a2573881be8e5280b81c74de01f2cf4d73dd"},
-            "auberge": {"monde": "f85db4952442efdfb10ab7797c96d21fb9d35c7f43c39d4cf063351ebb564969"}}
+            # Lot 211 : les localisations inconnues changent le parcours du
+            # graphe (8 212 → 8 294 visites), sans changer plans ni monde/rendu.
+            # Lot 221 : la question ajoute 48 visites ; mêmes plans, monde,
+            # lignes et rendus complets après recharge.
+            "auberge": {
+                "visites": "86c65822867ed8b3aaa3d67c57741ec7e0fe0159277cd94336e38d38f2dd7937",
+                "n_visites": 8342,
+                "diagnostics": "c4bd5ec754384c1195966e279ccfd3a46f4edcd101576f652894ec08fae8181b",
+                "monde": "f85db4952442efdfb10ab7797c96d21fb9d35c7f43c39d4cf063351ebb564969"}}
         for scenario in ("mine", "auberge"):
             with self.subTest(scenario=scenario):
                 # Le lot 92 c réduit les reprises, donc les visites et diagnostics.

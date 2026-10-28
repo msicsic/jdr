@@ -1,5 +1,7 @@
 """Contrat de la sonde et de ses alertes, hors appel au modèle."""
 import gzip
+from collections import Counter
+import copy
 from contextlib import nullcontext
 import json
 from pathlib import Path
@@ -27,13 +29,45 @@ def episode(but, debut, quitte, valeur=0, accompli=False):
 
 
 class DetecterAvisTests(unittest.TestCase):
+    def test_classes_causales_service(self):
+        from types import SimpleNamespace
+        for acteur, cause, parti, classe in (
+                ("artisan", "geste", False, "prestataire_beneficiaire_present"),
+                ("artisan", "geste", True, "prestataire_beneficiaire_parti"),
+                ("payeur", "geste", False, "beneficiaire_ou_tiers"),
+                ("tiers", "geste", False, "beneficiaire_ou_tiers"),
+                (None, "physique", False, "cessation_physique"),
+                (None, None, False, "cause_non_observee")):
+            for champ in ("allume", "verrouillee", "lieu"):
+                with self.subTest(classe=classe, champ=champ):
+                    sonde = d.SondeAvis()
+                    valeur = "salle" if champ == "lieu" else True
+                    monde = SimpleNamespace(objets={"bien": {champ: valeur}}, data={"minutes": 0})
+                    service = {"payeur": "payeur", "prestataire": "artisan",
+                               "condition": {"objet": "bien", champ: valeur},
+                               "reussite_t": None, "perte_t": None}
+                    sonde.services["s"] = service
+                    sonde.relever_services(monde)
+                    monde.objets["bien"][champ] = "ailleurs" if champ == "lieu" else False
+                    sonde.relever_services(monde, acteur, cause, {id(service): {"parti": parti}})
+                    resultat = sonde.analyser()
+                    self.assertEqual(resultat["services_par_classe"][classe], 1)
+                    self.assertEqual(service["violation"], classe == "prestataire_beneficiaire_present")
+                    nuit = {"scenario": "synthese", "graine": 0, "heures": 1,
+                            "donnees": {"mesures": {}}}
+                    audit.ajouter_avis(nuit, resultat)
+                    self.assertEqual(nuit["donnees"]["mesures"]["avis_service_" + classe], 1)
+                    constat = next(c for c in audit.analyser_nuit(nuit)
+                                   if c["code"] == "avis_service_" + classe)
+                    self.assertEqual(constat["niveau"], "violation" if service["violation"] else "observation")
+
     def analyser(self, eps, **kw):
         return d.analyser_episodes({"pnj": eps}, **kw)
 
     def test_retour_sans_entree_et_details(self):
         a = self.analyser([episode("pulsion", 0, 1), episode("garder", 1, 2), episode("pulsion", 2, 3)])
         self.assertEqual(a["total_non_justifies"], 1)
-        self.assertEqual(a["par_pnj"]["pnj"]["non_justifie_strict_complet"], 1)
+        self.assertEqual(a["par_pnj"]["pnj"]["repetition_sans_entree_nouvelle"], 1)
         self.assertEqual(a["allers_retours"][0]["retour_minute"], 2)
 
     def test_cycle_accompli_conserve_sa_preuve(self):
@@ -41,9 +75,10 @@ class DetecterAvisTests(unittest.TestCase):
         self.assertEqual(a["total_cycles_accomplis"], 1)
         self.assertFalse(a["allers_retours"][0]["non_justifie"])
 
-    def test_garde_interrompue_par_tache_accomplie(self):
-        a = self.analyser([episode("garder", 0, 1), episode("pulsion", 1, 2, accompli=True), episode("garder", 2, 3)])
-        self.assertEqual(a["comptes"], {"garde_interruption_accomplie": 1})
+    def test_fin_intermediaire_seule_ne_prouve_pas_un_progres(self):
+        for but in ("garder", "autre"):
+            a = self.analyser([episode(but, 0, 1), episode("pulsion", 1, 2, accompli=True), episode(but, 2, 3)])
+            self.assertEqual(a["comptes"], {"entree_nouvelle_a_expliquer": 1})
 
     def test_entree_changee_ne_certifie_pas_une_raison(self):
         eps = [episode("pulsion", 0, 1), episode("garder", 1, 2, 1), episode("pulsion", 2, 3, 2)]
@@ -62,14 +97,165 @@ class DetecterAvisTests(unittest.TestCase):
         eps[-1]["debut_t"] = 2 * 600
         eps[-1]["debut_entrees"]["lieu"] = "ailleurs"
         a = self.analyser(eps)
-        self.assertEqual(a["comptes"], {"non_justifie_externe_fixe_seul_deplacement": 1})
+        self.assertEqual(a["comptes"], {"repetition_sans_entree_nouvelle": 1})
 
     def test_restauration_apres_exception(self):
+        from donjon import perception
         choisir = d.deliberation.choisir
+        executer, combustion = d.pnj._executer, perception.avancer_combustion
         with self.assertRaises(RuntimeError):
             with d.observer_avis():
                 raise RuntimeError("essai")
         self.assertIs(d.deliberation.choisir, choisir)
+        self.assertIs(d.pnj._executer, executer)
+        self.assertIs(perception.avancer_combustion, combustion)
+
+    def test_paliers_observes_stricts_et_regle_unique(self):
+        for palier, attendu in ((12, "preemption_palier_superieur"),
+                                (13, "repetition_sans_entree_nouvelle"),
+                                (14, "repetition_sans_entree_nouvelle")):
+            eps = [episode("a", 0, 1), episode("b", 1, 2), episode("a", 2, 3)]
+            eps[0]["palier"], eps[1]["palier"] = 13, palier
+            eps[1]["faits"] = [{"cle": eps[0]["decision"]["cle"], "t": 900,
+                                "autrui": True, "progression": True}]
+            # La préemption prime ; sinon la satisfaction observée prime sur le progrès.
+            if palier == 12:
+                self.assertEqual(self.analyser(eps)["comptes"], {attendu: 1})
+            else:
+                self.assertEqual(self.analyser(eps)["comptes"], {"satisfaction_ou_dementi_autrui": 1})
+                eps[1]["faits"] = []
+                self.assertEqual(self.analyser(eps)["comptes"], {attendu: 1})
+
+    def test_progression_avec_preuve_et_derive_separee(self):
+        eps = [episode("a", 0, 1), episode("b", 1, 2), episode("a", 2, 3)]
+        eps[1]["faits"] = [{"cle": eps[0]["decision"]["cle"], "t": 900,
+                            "progression": True, "preuve": "etape_executee"}]
+        self.assertEqual(self.analyser(eps)["comptes"], {"progression_reelle": 1})
+        self.assertEqual(self.analyser(eps)["total_derives_ouvertes"], 0)
+        a = self.analyser([episode("a", 0, 1), episode("b", 1, 2), episode("c", 2, 3)])
+        self.assertEqual(a["total_derives_ouvertes"], 1)
+        self.assertEqual(a["total_non_justifies"], 0)
+
+    def test_sonde_attribue_une_fin_survenue_pendant_action_autrui(self):
+        sonde = d.SondeAvis()
+        eps = [episode("a", 0, 1), episode("b", 1, 2), episode("a", 2, 3)]
+        sonde.episodes["aidant"] = eps[:2]
+        cle = eps[0]["decision"]["cle"]
+        from types import SimpleNamespace
+        monde = SimpleNamespace(data={"minutes": 1})
+        with patch.object(d, "instant", return_value=900), \
+             patch.object(d, "_est_accompli", return_value=False):
+            avant = sonde.accomplissements(monde)
+        with patch.object(d, "instant", return_value=900), \
+             patch.object(d, "_est_accompli", side_effect=lambda m, qui, dec, minute: dec["cle"] == cle):
+            sonde.constater(monde, "tiers", avant)
+        sonde.episodes["aidant"].append(eps[2])
+        a = sonde.analyser()
+        self.assertEqual(a["comptes"], {"satisfaction_ou_dementi_autrui": 1})
+        self.assertEqual(a["allers_retours"][0]["preuves"][0]["acteur"], "tiers")
+
+    def test_etat_paye_perdu_sans_duree_ne_viole_pas_un_contrat(self):
+        from types import SimpleNamespace
+        sonde = d.SondeAvis()
+        sonde.episodes["payeur"] = []
+        souvenir = {"type": "tache_payee", "a": "artisan", "minute": 0,
+                    "condition": {"objet": "bien", "verrouillee": True}, "prix": 2}
+        monde = SimpleNamespace(objets={"bien": {"verrouillee": False}}, data={"minutes": 0})
+        with patch.object(d, "lire", return_value={"memoire": [souvenir]}), patch.object(d, "instant", return_value=600):
+            sonde.relever_services(monde)
+            monde.objets["bien"]["verrouillee"] = True
+            sonde.relever_services(monde)
+            souvenir.clear()  # Le souvenir borné disparaît, l'observation demeure.
+            monde.objets["bien"]["verrouillee"] = False
+            sonde.relever_services(monde)
+        a = sonde.analyser()
+        self.assertEqual(a["total_services_etat_perdu"], 1)
+        self.assertFalse(a["services_etat_perdu"][0]["violation"])
+        self.assertEqual(a["total_non_justifies"], 0)
+        nuit = {"scenario": "synthese", "graine": 0, "heures": 1}
+        audit.ajouter_avis(nuit, a)
+        constats = audit.analyser_nuit(nuit)
+        self.assertEqual([c["niveau"] for c in constats], ["observation"])
+        a["services_etat_perdu"][0]["classe"] = "etat_paye_perdu_apres_reussite_duree_non_specifiee"
+        self.assertEqual(audit.analyser_nuit(nuit)[0]["code"], "avis_service_cause_non_observee")
+
+    def test_torche_hameau_1985_service_perdu(self):
+        nuit = d.jouer_nuit_sondee("crue_hameau", 1985, heures=9/60, verifier_empreinte=True)
+        pertes = [s for s in nuit["analyse"]["services_etat_perdu"] if s["prestataire"] == "brune"]
+        # Depuis 225 ce court départ ne produit plus la perte historique.
+        self.assertEqual(pertes, [])
+        self.assertTrue(all(s["reussite_t"] < s["perte_t"] < 9 * d.MINUTE for s in pertes))
+        self.assertTrue(all(not s["violation"] for s in pertes))
+
+    def test_torche_historique_217_rechargee(self):
+        from donjon.monde import Monde
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        with gzip.open(Path(__file__).parent / "fixtures/changements_avis/service-217.json.gz", "rt", encoding="utf8") as f:
+            capture = json.load(f)
+        sonde = d.SondeAvis()
+        # Le paiement observé appartient au fil d'audit, même si le souvenir
+        # a déjà disparu des deux captures de fin de service.
+        contrat = copy.deepcopy(capture["services"][0])
+        contrat.update(reussite_t=None, perte_t=None)
+        sonde.services["contrat_capture"] = contrat
+        for phase in ("reussite", "perte"):
+            monde = Monde(copy.deepcopy(capture["etats"][phase]))
+            with tempfile.TemporaryDirectory() as dossier:
+                chemin = Path(dossier) / "monde.json"
+                monde.sauver(chemin)
+                recharge = Monde.charger(chemin)
+            self.assertEqual(monde.data, recharge.data)
+            self.assertEqual(regarder(monde), regarder(recharge))
+            self.assertEqual(scene_percue(monde), scene_percue(recharge))
+            sonde.relever_services(recharge)
+        pertes = sonde.analyser()["services_etat_perdu"]
+        self.assertEqual(len(pertes), 1)
+        self.assertEqual(pertes[0]["reussite_t"], capture["services"][0]["reussite_t"])
+        self.assertEqual(pertes[0]["perte_t"], capture["services"][0]["perte_t"])
+        self.assertLess(pertes[0]["reussite_t"], pertes[0]["perte_t"])
+        self.assertEqual(pertes[0]["reussite_t"] // d.MINUTE, 7)
+        self.assertEqual(pertes[0]["perte_t"] // d.MINUTE, 8)
+        self.assertFalse(pertes[0]["violation"])
+        self.assertEqual(pertes[0]["classe"], "cause_non_observee")
+
+    def test_transition_reelle_et_physique_apres_recharge(self):
+        from donjon.monde import Monde
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from donjon import perception
+        with gzip.open(Path(__file__).parent / "fixtures/changements_avis/service-217.json.gz",
+                       "rt", encoding="utf8") as f:
+            capture = json.load(f)
+        for physique in (False, True):
+            resultats = []
+            for observer in (nullcontext, d.observer_avis):
+                monde = Monde(copy.deepcopy(capture["etats"]["reussite"]))
+                with tempfile.TemporaryDirectory() as dossier:
+                    chemin = Path(dossier) / "monde.json"
+                    monde.sauver(chemin)
+                    monde = Monde.charger(chemin)
+                    with observer() as sonde:
+                        if sonde:
+                            service = copy.deepcopy(capture["services"][0])
+                            service.update(reussite_t=None, perte_t=None)
+                            sonde.services["capture"] = service
+                        if physique:
+                            perception.avancer_combustion(monde, 1000, [])
+                        else:
+                            fait = d.pnj._executer(monde=monde, id="brune", etape={
+                                "operation": "eteindre", "cible": "torche", "outil": "",
+                                "lieu": "", "condition": ""}, lignes=[], gestes=None)
+                            self.assertTrue(fait)
+                    if sonde:
+                        pertes = sonde.analyser()["services_etat_perdu"]
+                        self.assertEqual(len(pertes), 1)
+                        self.assertEqual(pertes[0]["classe"], "cessation_physique" if physique
+                                         else "prestataire_beneficiaire_present")
+                    monde.sauver(chemin)
+                    monde = Monde.charger(chemin)
+                    resultats.append((monde.data, regarder(monde), scene_percue(monde)))
+            self.assertEqual(resultats[0], resultats[1])
 
     def test_alerte_et_archive_sans_mesure(self):
         n = {"scenario": "relais", "graine": 7, "heures": 1, "donnees": {"chronique": [], "mesures": {}}}
@@ -77,7 +263,64 @@ class DetecterAvisTests(unittest.TestCase):
         a = self.analyser([episode("pulsion", 0, 1), episode("garder", 1, 2), episode("pulsion", 2, 3)])
         audit.ajouter_avis(n, a)
         self.assertEqual(n["donnees"]["mesures"]["avis_non_justifies"], 1)
+        self.assertNotIn("avis_services_etat_perdu", n["donnees"]["mesures"])
         self.assertIn("avis_non_justifie", {c["code"] for c in audit.analyser_nuit(n)})
+
+    def test_autre_etat_serrure_monde_et_rendu_recharges(self):
+        from tests.test_service_non_defait import serrure
+        from tests.test_tensions import recharger
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        initial, artisan, payeur, condition = serrure()
+        resultats = []
+        for observer in (nullcontext, d.observer_avis):
+            monde = recharger(initial.copier())
+            with observer() as sonde:
+                if sonde:
+                    sonde.services["serrure"] = {
+                        "prestataire": artisan, "payeur": payeur, "condition": condition,
+                        "reussite_t": None, "perte_t": None}
+                self.assertTrue(d.pnj._executer(monde, artisan, {
+                    "operation": "deverrouiller", "cible": "garde_manger",
+                    "outil": "cle_garde_manger", "lieu": "", "condition": ""}, [], None))
+            if sonde:
+                perte, = sonde.analyser()["services_etat_perdu"]
+                self.assertEqual(perte["classe"], "prestataire_beneficiaire_present")
+            monde = recharger(monde)
+            self.assertFalse(monde.objets["garde_manger"]["verrouillee"])
+            resultats.append((monde.data, regarder(monde), scene_percue(monde)))
+        self.assertEqual(resultats[0], resultats[1])
+
+    def test_position_perdue_pendant_marche_hors_executeur(self):
+        from tests.test_tache_promise_recours import reserve
+        from tests.test_tensions import recharger
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        initial, artisan, payeur, _ = reserve()
+        d.lire(initial, artisan)["intention"] = {
+            "but": {"type": "pulsion", "objet": artisan, "lieu": "cuisine"},
+            "motif": "devoir", "depuis": initial.data["minutes"], "attente": 0,
+            "plan": [{"operation": "aller", "lieu": "cuisine", "cible": "",
+                      "outil": "", "condition": ""}]}
+        resultats = []
+        for observer in (nullcontext, d.observer_avis):
+            monde = recharger(initial.copier())
+            with observer() as sonde:
+                if sonde:
+                    sonde.services["position"] = {"prestataire": artisan, "payeur": payeur,
+                        "condition": {"objet": artisan, "lieu": "cellier"},
+                        "reussite_t": None, "perte_t": None}
+                for _ in range(100):
+                    d.pnj.agir(monde, artisan, d.instant(monde), [], [])
+                    if monde.objets[artisan]["lieu"] != "cellier":
+                        break
+                self.assertNotEqual(monde.objets[artisan]["lieu"], "cellier")
+            if sonde:
+                perte, = sonde.analyser()["services_etat_perdu"]
+                self.assertEqual(perte["classe"], "prestataire_beneficiaire_present")
+            monde = recharger(monde)
+            resultats.append((monde.data, regarder(monde), scene_percue(monde)))
+        self.assertEqual(resultats[0], resultats[1])
 
     def test_captures_reelles(self):
         with gzip.open(Path(__file__).parent / "fixtures/changements_avis/episodes.json.gz", "rt", encoding="utf-8") as f:
@@ -85,7 +328,7 @@ class DetecterAvisTests(unittest.TestCase):
         for capture in captures:
             with self.subTest(capture=capture["nom"]):
                 a = d.analyser_episodes(capture["episodes"])
-                self.assertEqual(a["comptes"], capture["comptes"])
+                self.assertEqual(dict(Counter(r["classe_199"] for r in a["allers_retours"])), capture["comptes"])
                 self.assertTrue(capture["chronique"])
 
     def test_comparateur_mesure_et_alerte(self):

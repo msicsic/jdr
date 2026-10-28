@@ -36,7 +36,6 @@ SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "demander_feu"
 A_VUE = ("crocheter",)  # gestes qui demandent d'y voir (``planification.chance_crochetage``)
 PROFONDEUR = 4
 PATIENCE = 30          # minutes passées à attendre une occasion (ou un passage) avant de renoncer
-REPIT = 60             # minutes avant de reprendre un but abandonné, comptées de l'instant du renoncement
 ATTEINTE = 30          # une pulsion qui cesse d'être satisfaite relance son besoin
 VOL = 60               # un vol vu par sa victime
 REPOS_FIN = 20         # reposé : il se relève
@@ -58,6 +57,12 @@ APPEL_REPIT = 10       # minutes entre deux appels à l'aide
 # il n'interrompt le plan en cours d'un autre besoin que s'il presse plus que lui d'INERTIE.
 REPRISE = 15
 INERTIE = 5
+
+
+def marge_engagement(monde, id):
+    """Ténacité en points d'urgence ; aucune durée passée n'entre dans cette marge."""
+    from .caractere import caracteristique
+    return INERTIE + max(0, caracteristique(monde, id, "VOL")) / 4
 
 
 def profil(monde, id):
@@ -177,12 +182,13 @@ def relancer(monde, id, besoin, montant):
 # --- Croyances utiles au plan -------------------------------------------------------------
 
 def _lieu_cru(monde, id, sujet):
+    from .monde import mobile_par_nature
     c = lire(monde, id)["croyances"].get(sujet, {}).get("lieu")
     if c:
         return c["valeur"]
     o = monde.objets.get(sujet)
     # Les objets fixes font partie des lieux : on sait où ils sont sans les avoir revus.
-    return o["lieu"] if o and not o.get("mobile") else None
+    return o["lieu"] if o and not mobile_par_nature(o) else None
 
 
 def salle_crue(monde, id, sujet, profondeur=0):
@@ -239,8 +245,8 @@ def _disponible_cru(monde, id, objet):
 # une offre plus haute reste possible (``planification._engager``). Un refus d'humeur ou de méfiance,
 # et tout autre, tient ``REDEMANDE`` minutes. Chaque demande a sa dernière réponse refusée, gardée à
 # part des souvenirs, que le temps n'efface pas (``esprit["refus"]``) ; une demande accordée l'efface.
-CAUSES = ("impossible", "necessaire", "absent", "eteinte", "rien")
-DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre", "contre_offre", "condition_tenue")
+CAUSES = ("impossible", "necessaire", "absent", "eteinte", "rien", "indication", "inconnu")
+DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre", "contre_offre", "condition_tenue", "information", "repere")
 
 
 def _meme_demande(s, autre, operations, objet, besoin):
@@ -254,6 +260,16 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
     demande, avec, quand le refus a une cause, ce qu'il croit alors de ses moyens (``moyens_crus``).
     « Qui va là ? » n'est pas un refus : il s'est nommé, il redemande."""
     detail = {k: v for k, v in detail.items() if k in DETAILS_REFUS and v is not None}
+    historiques = []
+    repere = None
+    if operation == "enqueter_lieu":
+        for precedent in lire(monde, id)["refus"]:
+            if _meme_demande(precedent, autre, (operation,), detail.get("objet"), detail.get("besoin")):
+                if precedent.get("repere"):
+                    repere = dict(precedent["repere"])
+                historiques.extend(f for f in precedent.get("cause", []) if f[0] == "lieu_appris")
+                if precedent.get("information"):
+                    historiques.append(["lieu_appris", detail.get("objet"), precedent["information"]["lieu"], None])
     if souvenir:
         memoriser(monde, id, {"type": "refus", "de": autre, "operation": operation, "raison": raison,
                               **{k: v for k, v in detail.items() if k in ("objet", "besoin")}})
@@ -265,13 +281,24 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
         # égale, l'ancien refus gratuit ne doit pas cacher celui du marché.
         oublier_refus(monde, id, autre, "demander", detail.get("objet"), detail.get("besoin"))
     s = {"de": autre, "operation": operation, "raison": raison, "minute": monde.data["minutes"], **detail}
+    if historiques:
+        s["cause"] = historiques
+    if operation == "enqueter_lieu":
+        if repere is None:
+            c = lire(monde, id)["croyances"].get(detail.get("objet"), {}).get("lieu")
+            lieu = (c["valeur"] if c and c["source"] in ("vu", "entendu")
+                    and c["valeur"] in monde.data["salles"] else (detail.get("information") or {}).get("lieu"))
+            if lieu is not None:
+                repere = {"lieu": lieu, "revision": 0}
+        if repere is not None:
+            s["repere"] = repere
     if operation == "acheter" and detail.get("prix") and detail.get("objet"):
         from .pnj_propositions import entrees_refus
         s["offre"] = entrees_refus(monde, id, autre, detail["objet"],
                                    {"type": "pieces", "montant": detail["prix"]})
         if raison == "refus":
             s["raison"] = "persuasion"  # Un achat refusé est déjà une offre, pas une demande gratuite.
-    if raison in CAUSES and "contre_offre" not in s:
+    if (raison in CAUSES or operation == "enqueter_lieu") and "contre_offre" not in s:
         s["cause"] = moyens_crus(monde, id, s)
     esprit(monde, id)["refus"].append(s)
     intention = lire(monde, id)["intention"]
@@ -301,6 +328,9 @@ def tient(monde, id, s, connus=None):
     déjà au refus : ce qu'il apprend qui en ôte un (le bois vu épuisé, une porte crue fermée à clé) ne le
     lève pas, revoir la même chose non plus. Pour un prix trop bas, toujours (pour ce prix seulement).
     Sinon, depuis moins de ``REDEMANDE`` minutes."""
+    if s["operation"] == "enqueter_lieu":
+        avant = {tuple(f) for f in s.get("cause", [])}
+        return all(tuple(f) in avant for f in moyens_crus(monde, id, s, connus))
     if "contre_offre" in s:
         # Ce moyen se poursuit par le recours, hors de la recherche ordinaire.
         # Un délai ou la perte d'un moyen ne fait pas oublier la condition dite.
@@ -387,6 +417,29 @@ def moyens_crus(monde, id, s, connus=None):
     connus = _connus(monde, id) if connus is None else connus
     op, o = s["operation"], s.get("objet")
     faits, abords = set(), []
+
+    if op == "enqueter_lieu":
+        # Seulement les entrées du demandeur, jamais le savoir privé du témoin.
+        # L'absence et les dates seules n'apportent aucune indication nouvelle.
+        import json
+        faits.update(tuple(f) for f in s.get("cause", []) if f[0] == "lieu_appris")
+        if s.get("information"):
+            faits.add(("lieu_appris", o, s["information"]["lieu"], None))
+        if s["raison"] in ("mefiance", "rancune"):
+            from .relations import axes
+            faits.add(("relation", s["de"], None, json.dumps(axes(monde, id, s["de"]), sort_keys=True)))
+            return sorted((list(f) for f in faits), key=str)
+        if s.get("repere"):
+            faits.add(("repere", o, s["repere"]["lieu"], s["repere"]["revision"]))
+        for salle, indices in lire(monde, id)["indices_recherche"].get(o, {}).items():
+            for indice in indices:
+                # La réponse situe une salle, pas une case. Une autre case,
+                # une confirmation visuelle ou un relais du même lieu ne
+                # renouvellent donc pas ce renseignement. Un bruit sans
+                # auteur reste utile à l'inspection, sans réarmer ce témoin.
+                if indice[0] == "presence" or indice[0] == "bruit" and indice[2] == o:
+                    faits.add(("lieu_appris", o, salle, None))
+        return sorted((list(f) for f in faits), key=str)
 
     def etat(k):
         return (croyances.get(k, {}).get("etat") or {}).get("valeur") or {}
@@ -665,7 +718,11 @@ def satisfaite(monde, id, condition):
         # Le tenir soi-même ne suffit pas : l'objet doit être déposé (ou tenu par un autre) sur place.
         return (not porte_par(monde, condition["objet"], id)
                 and salle_crue(monde, id, condition["objet"]) == condition["lieu"])
-    return _cru(monde, id, condition["objet"], "verrouillee") is True and not _ouvert_cru(monde, id, condition["objet"])
+    from .portes import refermable
+    # Une installation détruite n'a plus de remise sous clé à accomplir.
+    return (not refermable(_cru(monde, id, condition["objet"], "fin"))
+            or _cru(monde, id, condition["objet"], "verrouillee") is True
+            and not _ouvert_cru(monde, id, condition["objet"]))
 
 
 def illicite(monde, id, objet, operation=None, confies=None):
@@ -1126,6 +1183,22 @@ def lumiere_utile(monde, id):
     return False
 
 
+def abri_valide(monde, id, salle):
+    """Même abri au choix, en route et au séjour, sur ce qui est perçu ou cru."""
+    from .eau import menacee
+    from .esprits import pnjs
+    from .defense import lieux_dangereux
+    if (salle not in monde.data["salles"] or menacee(monde, id, salle)
+            or salle in lieux_dangereux(monde, id)):
+        return False
+    if salle == monde.objets[id]["lieu"]:
+        a = autour(monde, id)
+        return bool(a["lumiere"] or a["fiables"])
+    return (_eclairee_crue(monde, id, salle)
+            or any(x != id and se_fie(monde, id, x) and salle_crue(monde, id, x) == salle
+                   for x in [*pnjs(monde), "joueur"]))
+
+
 def _plan_abri(monde, id):
     """Se mettre à l'abri : rejoindre un lieu qu'il croit éclairé où se tient quelqu'un qu'il croit
     fiable, et y rester ; là où il est d'abord, s'il l'est déjà. Un lieu où il croit l'eau, ou l'y
@@ -1136,15 +1209,14 @@ def _plan_abri(monde, id):
     from .eau import altitude, attendue, menacee, monte
     from .esprits import pnjs
     ici = monde.objets[id]["lieu"]
-    # L'abri vers lequel il est en route garde la main tant qu'il en est encore un à ses yeux : un
-    # abri meilleur apparu en chemin (quelqu'un de sûr qui passe ailleurs) ne le détourne pas, ni un
-    # lieu qu'il traverse en chemin, où il attend l'eau sans la voir monter ni s'y croire en péril :
-    # ce passage, son plan le prévoyait. Sans cela, deux qui se cherchent se croisent sans fin, et
-    # qui va vers un abri par un palier menacé rebrousse chemin vers le plus haut lieu, puis repart.
-    # Là où il se tient, s'il y est à l'abri, il reste. Devant l'eau qu'il voit monter, ou s'il se
-    # croit en péril, le plus haut lieu compte, quel que soit celui vers lequel il allait.
-    from .eau import en_peril
-    from .planification import _etape, abri
+    # Une destination encore valide garde la main pendant son trajet : la
+    # traversée d'un lieu humide n'est pas une nouvelle preuve contre l'abri.
+    from .planification import _etape, abri, aller
+    from .pnj import refus_etape
+
+    def admissible(etapes):
+        return etapes is not None and refus_etape(monde, id, etapes) is None
+
     from .defense import lieux_dangereux
     dangereuses = lieux_dangereux(monde, id)
 
@@ -1157,20 +1229,22 @@ def _plan_abri(monde, id):
                 continue
             salle = salle_crue(monde, id, x)
             if (salle in monde.data["salles"] and salle not in salles and _eclairee_crue(monde, id, salle)
-                    and salle not in dangereuses and not menacee(monde, id, salle)):
+                    and abri_valide(monde, id, salle)):
                 salles.append(salle)
         return salles
 
     i = lire(monde, id)["intention"]
-    en_route = (i["but"].get("lieu") if i and i["plan"] and i["motif"] == "securite" and i["but"]["type"] == "abri"
-                and i["but"].get("lieu") != ici else None)
+    en_route = (i["but"].get("lieu") if i and i["plan"] and i["motif"] == "securite" and i["but"]["type"] == "abri" else None)
     eau_monte = monte(monde, id)
-    if en_route and not eau_monte and not en_peril(monde, id) and en_route in (abris := sures()) and ici not in abris:
+    if en_route and abri_valide(monde, id, en_route):
         trouve = abri(monde, id, [en_route])
-        if trouve is not None:
-            return {"type": "abri", "lieu": trouve[0]}, trouve[1] + [_etape("abriter", lieu=trouve[0])]
+        # Le prix d'abandon n'est pas une précondition de l'abri : au palier
+        # intermédiaire, comparer à rester ne doit pas annuler le trajet choisi.
+        etapes = trouve[1] if trouve is not None else aller(monde, id, en_route)
+        if admissible(etapes):
+            return {"type": "abri", "lieu": en_route}, etapes + [_etape("abriter", lieu=en_route)]
     if menacee(monde, id, ici) or eau_monte:
-        salles = sorted((s for s in monde.data["salles"] if s not in dangereuses and not menacee(monde, id, s)
+        salles = sorted((s for s in monde.data["salles"] if abri_valide(monde, id, s)
                          and _eclairee_crue(monde, id, s)), key=lambda s: (-altitude(monde, s), s != ici, s))
     else:
         salles = sures()
@@ -1178,14 +1252,14 @@ def _plan_abri(monde, id):
             # Le plus aimé d'abord ; chaque trajet doit rester possible et valoir ce qu'il laisse.
             for salle in salles:
                 trouve = abri(monde, id, [salle])
-                if trouve is not None:
+                if trouve is not None and admissible(trouve[1]):
                     return {"type": "abri", "lieu": trouve[0]}, trouve[1] + [_etape("abriter", lieu=trouve[0])]
             return None
         salles.sort(key=lambda s: s != ici)
     from .planification import _etape, aller
     for salle in salles:
         etapes = aller(monde, id, salle)
-        if etapes is None:
+        if not admissible(etapes):
             continue
         return {"type": "abri", "lieu": salle}, etapes + [_etape("abriter", lieu=salle)]
     if menacee(monde, id, ici):
@@ -1196,7 +1270,7 @@ def _plan_abri(monde, id):
                        key=lambda s: (attendue(monde, id, s), -altitude(monde, s), s))
         for salle in moins:
             etapes = aller(monde, id, salle)
-            if etapes:
+            if etapes and admissible(etapes):
                 return {"type": "abri", "lieu": salle}, etapes
     return None
 
@@ -1358,19 +1432,19 @@ def urgents(monde, id, inertie=False):
     est son seuil ; apaisé (``eveiller``), il ne presse de nouveau que nettement au-dessus
     (``REPRISE``), comme un thermostat. Avec ``inertie`` (le choix du but), le plan en cours d'un
     autre besoin est aussi un repère : un besoin ne l'interrompt que s'il presse plus que lui
-    (de combien ce besoin dépasse encore son seuil, 0 s'il ne presse plus) d'``INERTIE`` au
-    moins. On achève le geste entamé avant de céder à la faim naissante, et deux besoins qui
+    (de combien ce besoin dépasse encore son seuil, 0 s'il ne presse plus) de la marge
+    d'engagement (``INERTIE`` majorée par VOL). On achève le geste entamé avant de céder à la faim naissante, et deux besoins qui
     pressent ensemble ne s'interrompent pas l'un l'autre à chaque minute."""
     s, e = seuils(monde, id), lire(monde, id)
     v = e["besoins"]
     i = e["intention"]
-    en_cours = i["motif"] if inertie and i and i["plan"] else None
+    en_cours = i["motif"] if inertie and i else None
     avance = max(0.0, v.get(en_cours, 0) - s[en_cours]) if en_cours in s else 0.0
 
     def presse(b):
         ecart = v.get(b, 0) - s[b]
         return (ecart >= (REPRISE if _etat_urgence(e, b) == "apaise" else 0)
-                and (en_cours in (None, b) or ecart >= avance + INERTIE))
+                and (en_cours in (None, b) or ecart >= avance + marge_engagement(monde, id)))
     return sorted((b for b in s if presse(b)), key=lambda b: (s[b] - v[b], BESOINS.index(b)))
 
 
@@ -1518,37 +1592,33 @@ def retabli_par_son_plan(monde, id, condition):
         return False
     if i["but"] != {"type": "pulsion", **condition}:
         return True  # Précondition temporaire d'un autre but, urgent ou non.
-    # Pour la garde elle-même, conserver l'arbitrage du recours en cours.
-    but = {k: v for k, v in i["but"].items() if k != "type"}
-    return i["motif"] in urgents(monde, id) or i["motif"] == "engagement" and any(
-        x["condition"] == but for x in agendas.en_cours(monde, id))
+    # La garde protège les autres buts, jamais contre son propre candidat.
+    return False
 
 
 def candidats(monde, id):
     """Buts envisageables, du besoin le plus pressant au moins pressant ; la routine (rondes,
     surveillance) passe après ce qui presse vraiment et après une tâche acceptée. (besoin, méthode)."""
-    for besoin, methode, _, _, _ in _candidats(monde, id):
-        yield besoin, methode
+    for candidat in _candidats(monde, id):
+        yield candidat.besoin, candidat.methode
 
 
 def secours(monde, id):
     """Conditions ordinaires utiles à un corps actuellement perçu, sans lire son esprit.
 
     Le seuil du souci est celui des avis de menace ; le poids départage ensuite
-    les secours. Une ancienne observation ne suffit pas à poursuivre un absent.
+    les secours. La naissance exige la perception ; le contrat adopté conserve
+    séparément la condition et la détresse crue pour sa poursuite.
     Le choix seul lit la perception : la recherche reçoit une condition existante.
     """
-    from .caractere import valeur
     from .esprits import percus
-    from .relations import envers, rancune
     vus = percus(monde, id)[0]
     e = lire(monde, id)
-    empathie = valeur(monde, id, "empathie")
     for autre in sorted(vus):
         if autre == id or (autre != "joueur" and monde.objets[autre]["type"] != "personnage"):
             continue
-        lien = envers(monde, id, autre)
-        if (rancune(lien) or valeur(monde, id, "altruisme") + empathie + lien["affection"] < 100):
+        poids = _poids_secours(monde, id, autre)
+        if poids is None:
             continue
         etat = e["croyances"].get(autre, {}).get("etat", {})
         if etat.get("source") not in ("vu", "essai"):
@@ -1556,7 +1626,6 @@ def secours(monde, id):
         corps = etat["valeur"]
         if corps.get("mort") or corps.get("conscient") is False:
             continue
-        poids = empathie * (lien["affection"] + 20) / 100
         if corps.get("faim"):
             for objet in _connus(monde, id):
                 if monde.objets[objet]["type"] == "nourriture" and _disponible_cru(monde, id, objet):
@@ -1569,6 +1638,17 @@ def secours(monde, id):
                 condition = {"objet": objet, "allume": True}
                 if not satisfaite(monde, id, condition):
                     yield autre, "chaleur", poids, condition
+
+
+def _poids_secours(monde, id, autre):
+    """Même disposition sociale à la naissance et à la revalidation du secours."""
+    from .caractere import valeur
+    from .relations import envers, rancune
+    lien = envers(monde, id, autre)
+    empathie = valeur(monde, id, "empathie")
+    if rancune(lien) or valeur(monde, id, "altruisme") + empathie + lien["affection"] < 100:
+        return None
+    return empathie * (lien["affection"] + 20) / 100
 
 
 class Palier(IntEnum):
@@ -1606,6 +1686,103 @@ class Candidat(NamedTuple):
     routine: bool
     recours: bool
     urgence: Urgence
+    demande: object = None
+
+
+def _raison_tient(monde, id, demande):
+    """Une raison sociale est une croyance du porteur, jamais l'état d'autrui.
+
+    Les demandes sans bénéficiaire ont leur propre prédicat de condition ou
+    d'agenda. Une observation plus récente peut démentir une détresse ; perdre
+    son champ de vision n'est pas une telle observation.
+    """
+    raison = demande.get("raison")
+    if raison is None:
+        return True
+    etat = _cru(monde, id, raison["qui"], "etat") or {}
+    return bool(_poids_secours(monde, id, raison["qui"]) is not None
+                and etat.get(raison["besoin"]) and not etat.get("mort")
+                and etat.get("conscient") is not False)
+
+
+def _reprendre_demande(monde, id, demande):
+    """Revalider la demande adoptée sans relancer son critère de naissance.
+
+    Le planificateur reste seul juge des moyens. Une absence de plan ne
+    prouve pas l'impossibilité : aucun plan périmé n'est réinstallé ici.
+    """
+    if not _raison_tient(monde, id, demande):
+        return None
+    if "condition" in demande:
+        condition = demande["condition"]
+        if satisfaite(monde, id, condition):
+            return None
+        if demande.get("tache") and _delegue(monde, id, {"condition": condition}):
+            # Une parole payée en cours suspend l'action propre, pas le but.
+            # Refaire une offre à plus bas prix n'est pas sa continuation.
+            intention = lire(monde, id)["intention"]
+            return (intention["but"], []) if intention else None
+        return _plan_pulsion(monde, id, condition, demande.get("tache", False))
+    if "agenda" in demande:
+        if not any(a["id"] == demande["agenda"] and a["etat"] in ("actif", "sommeil")
+                   for a in agendas.projets(monde, id)):
+            return None
+        return agendas.planifier(monde, id, demande["agenda"])
+    raise ValueError("demande de poursuite inconnue")
+
+
+def _fin_demande(monde, id, demande):
+    """Une fin ou un démenti attesté ; None reste une absence de certificat.
+
+    Les familles interprètent leurs conditions, l'arbitrage ne déduit jamais
+    une fin de la longueur d'un plan ou d'une recherche sans réponse.
+    """
+    raison = demande.get("raison")
+    if raison:
+        etat = _cru(monde, id, raison["qui"], "etat") or {}
+        if etat.get("mort") or etat.get("conscient") is False:
+            return "dementie", {"raison": raison, "etat_cru": etat}
+        if raison["besoin"] not in etat:
+            return None
+        if not etat[raison["besoin"]]:
+            return "accomplie", {"raison": raison, "etat_cru": etat}
+        if _poids_secours(monde, id, raison["qui"]) is None:
+            from .caractere import valeur
+            from .relations import envers, rancune
+            lien = envers(monde, id, raison["qui"])
+            return "dementie", {"raison": raison, "disposition": {
+                "rancune": rancune(lien), "affection": lien["affection"],
+                "altruisme": valeur(monde, id, "altruisme"),
+                "empathie": valeur(monde, id, "empathie"), "seuil": 100}}
+    if "condition" in demande and satisfaite(monde, id, demande["condition"]):
+        return "accomplie", {"condition": demande["condition"], "satisfaite": True}
+    if "agenda" in demande:
+        projet = next((a for a in agendas.projets(monde, id) if a["id"] == demande["agenda"]), None)
+        if projet is None or projet["etat"] == "abandonne":
+            return "dementie", {"agenda": demande["agenda"], "etat": projet["etat"] if projet else "absent"}
+        if projet["etat"] == "atteint":
+            return "accomplie", {"agenda": demande["agenda"], "etat": "atteint"}
+        if projet["etat"] == "sommeil":
+            return "dementie", {"agenda": demande["agenda"], "etat": "sommeil",
+                                "raison": projet["raison"], "croyances": projet["croyances"]}
+    return None
+
+
+def _sortie(intention, minute, cause, faits):
+    from copy import deepcopy
+    return {"cause": cause, "minute": minute, "faits": deepcopy(faits),
+            "intention": {k: deepcopy(intention[k]) for k in ("but", "motif", "depuis")}}
+
+
+def _domine(autre, actif, marge=INERTIE):
+    """Même contrat d'arbitrage pour toute intention, attente et garde comprises."""
+    return (autre.palier < actif.palier
+            or autre.palier == actif.palier and autre.valeur >= actif.valeur + marge)
+
+
+def _meme_demande_adoptee(candidat, intention, resultat, contrat):
+    demande = contrat.get("demande")
+    return candidat.demande == demande if demande else resultat[0] == intention["but"]
 
 
 def _candidats(monde, id):
@@ -1619,22 +1796,18 @@ def _candidats(monde, id):
     p, e = profil(monde, id), esprit(monde, id)
     buts = []
 
-    def ajouter(besoin, methode, palier, departage=(), valeur=0, routine=False, recours=False):
-        if agendas.presents(monde, id) and palier == Palier.BESOIN_PRESSANT:
-            courant = e["intention"]
-            if courant and courant["motif"] == besoin and besoin != "agenda":
-                valeur += INERTIE
-        buts.append(Candidat(besoin, methode, routine, recours, Urgence(palier, valeur, departage)))
+    def ajouter(besoin, methode, palier, departage=(), valeur=0, routine=False, recours=False, demande=None):
+        buts.append(Candidat(besoin, methode, routine, recours, Urgence(palier, valeur, departage), demande))
 
     # Ceux qui laissent finir le plan en cours n'y ajoutent rien, mais restent pressants : ni
     # routine ni pulsion rompue de leur fait ne passe devant ce plan.
     pressants = urgents(monde, id)
     s = seuils(monde, id)
-    for besoin in urgents(monde, id, inertie=True):
+    for besoin in urgents(monde, id):
         ecart, rang_besoin = e["besoins"][besoin] - s[besoin], BESOINS.index(besoin)
         rang_recours = 0
 
-        def ajouter_recours(methode, routine=False):
+        def ajouter_recours(methode, routine=False, demande=None):
             nonlocal rang_recours
             desespere = bool(agendas.presents(monde, id)) and e["besoins"][besoin] >= DESESPOIR
             # Les routines d'un besoin pressant précèdent les autres routines, même à écart nul.
@@ -1642,7 +1815,7 @@ def _candidats(monde, id):
                          else (rang_besoin, rang_recours))
             ajouter(besoin, methode, Palier.DESESPOIR if desespere else (
                     Palier.ROUTINE if routine else Palier.BESOIN_PRESSANT),
-                    departage, 0 if routine and not desespere else ecart, routine, True)
+                    departage, 0 if routine and not desespere else ecart, routine, True, demande)
             rang_recours += 1
 
         if besoin == "faim":
@@ -1663,7 +1836,7 @@ def _candidats(monde, id):
                     and not retabli_par_son_plan(monde, id, x["condition"])):
                 # Une ronde peut attendre qu'il ait tenu parole ; un feu à voir ou à recharger, non.
                 ajouter_recours(lambda m, i, c=x["condition"]: _pulsion_a_soi(m, i, c),
-                                periodique(x["condition"]))
+                                periodique(x["condition"]), {"condition": x["condition"], "tache": True})
                 if "allume" in x["condition"]:
                     # Un feu sans bois qu'il connaisse : il demande à qui pourrait en avoir.
                     ajouter_recours(lambda m, i: _plan_enquete(m, i, "chaleur"))
@@ -1681,12 +1854,9 @@ def _candidats(monde, id):
     from .planification import planifier_engagement
     for rang, agenda in enumerate(agendas.essayables(monde, id)):
         if agenda["etat"] in ("actif", "sommeil"):
-            from .caractere import caracteristique
-            courant = e["intention"]
-            stabilite = (INERTIE + max(0, caracteristique(monde, id, "VOL")) / 4
-                         if courant and courant["but"].get("agenda") == agenda["id"] else 0)
             ajouter("agenda", lambda m, i, a=agenda["id"]: agendas.planifier(m, i, a),
-                    Palier.BESOIN_PRESSANT, (len(BESOINS), rang), agendas.poids(monde, id, agenda) + stabilite)
+                    Palier.BESOIN_PRESSANT, (len(BESOINS), rang), agendas.poids(monde, id, agenda),
+                    demande={"agenda": agenda["id"]})
     for rang, x in enumerate(agendas.en_cours(monde, id)):
         ajouter("engagement", lambda m, i, x=x: planifier_engagement(m, i, x), Palier.PAROLE_DUE, (rang,))
     # Un corps à terre connu : recours au même graphe de gestes, sans accès à ses PV ni son réveil.
@@ -1714,8 +1884,10 @@ def _candidats(monde, id):
         ajouter(alarme_[1], lambda m, i, s=alarme_[0]: voir(m, i, s), Palier.ALARME)
     # L'eau déjà présente ou la noyade attendue : sortir d'un séjour humide
     # n'attend pas que l'inquiétude franchisse son seuil (ni celui de noyade).
-    from .eau import en_peril
-    if "securite" in p["besoins"] and en_peril(monde, id):
+    from .eau import en_peril, traversee_sure
+    evacuation = e["intention"] and e["intention"]["but"]["type"] == "abri"
+    if ("securite" in p["besoins"] and en_peril(monde, id)
+            and (evacuation or not traversee_sure(monde, id))):
         ajouter("securite", _plan_abri, Palier.PERIL_EAU)
     if a_voir and a_voir != alarme_:
         ajouter(a_voir[1], lambda m, i, s=a_voir[0]: voir(m, i, s), Palier.BRUIT_A_VOIR)
@@ -1728,7 +1900,7 @@ def _candidats(monde, id):
                 and not _delegue(monde, id, x) and not satisfaite(monde, id, c)
                 and not retabli_par_son_plan(monde, id, c)):
             ajouter(x["besoin"], lambda m, i, c=c: _pulsion_a_soi(m, i, c),
-                    Palier.PULSION_ROMPUE, (i, 0), recours=True)
+                    Palier.PULSION_ROMPUE, (i, 0), recours=True, demande={"condition": c, "tache": True})
             if "allume" in c:
                 ajouter(x["besoin"], lambda m, i: _plan_enquete(m, i, "chaleur"),
                         Palier.PULSION_ROMPUE, (i, 1), recours=True)
@@ -1741,13 +1913,15 @@ def _candidats(monde, id):
                     Palier.PROGRES_EN_COURS, (rang,), recours=True)
     for rang, (autre, besoin, poids, condition) in enumerate(secours(monde, id)):
         ajouter("empathie", lambda m, i, c=condition: _plan_pulsion(m, i, c),
-                Palier.SECOURS, (autre, besoin, rang), poids)
+                Palier.SECOURS, (autre, besoin, rang), poids,
+                demande={"condition": condition, "raison": {"qui": autre, "besoin": besoin}})
     # La routine : ses rondes, même quand le besoin qu'elles servent ne presse pas.
     for rang, x in enumerate(p["pulsions"]):
         if (periodique(x["condition"]) and x["besoin"] not in pressants
                 and not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)):
             ajouter(x["besoin"], lambda m, i, c=x["condition"]: _pulsion_a_soi(m, i, c),
-                    Palier.ROUTINE, (1, rang), routine=True, recours=True)
+                    Palier.ROUTINE, (1, rang), routine=True, recours=True,
+                    demande={"condition": x["condition"], "tache": True})
     # L'argent : un poids permanent, qui ne presse jamais ; il ne passe qu'après tout le reste.
     # Ce qu'on lui doit d'abord, puis des pièces à prendre.
     ajouter(ARGENT, _plan_creance, Palier.ARGENT, (0,), routine=True)
@@ -1825,6 +1999,8 @@ def choisir(monde, id, minute):
     if reaction is not None:
         but, etapes = reaction
         ancien = e["intention"]
+        if ancien and ancien["but"] != but:
+            agendas.clore_intention(monde, id, _sortie(ancien, minute, "palier", {"reaction": but}))
         e["intention"] = {"but": but, "motif": "devoir" if but["type"] == "proteger" else "securite",
                           "plan": etapes, "depuis": ancien["depuis"] if ancien and ancien["but"] == but else minute,
                           "attente": 0}
@@ -1843,69 +2019,199 @@ def choisir(monde, id, minute):
                 and chemin(monde, id, monde.objets[id]["lieu"], intention["but"]["lieu"]) is not None):
             return  # Le réflexe déclaré garde la priorité jusqu'à son terme.
         e["intention"] = None  # Route coupée ou séjour dans l'eau : réévaluer les recours.
-    pressants = urgents(monde, id, inertie=True)
+    pressants = urgents(monde, id)
     essais = {}
-    # Hystérésis entre recours, comme entre besoins (``INERTIE``) : le recours en cours d'un besoin
-    # garde la main sur les autres recours du même besoin et du même rang tant que son plan n'est pas
-    # achevé et que sa méthode le rend encore sur ce qu'il croit (rien de neuf ne l'a rendu impossible
-    # ou ne l'a changé). Ainsi la lumière ne défait pas l'abri dont le chemin passe par le noir, ni
-    # l'inverse. Ce qui n'est pas un recours (une alarme, une parole due, prévenir…) passe devant ; la
-    # routine n'en a pas besoin (une ronde faite reste faite pour sa période, rien ne s'y relaie).
-    from .temps import MINUTE, instant
-    maintenant = instant(monde)
-    courant = intention if intention and intention["plan"] else None
-    retenu = None    # (besoin, rang, résultat) : un autre recours de ce besoin, s'il faut y revenir
+    # Revalidation de l'intention avant l'arbitrage. Le nombre de gestes ne dit
+    # ni si son but est accompli, ni s'il est encore admissible.
+    courant = e["intention"]
+    precedent = courant
+    contrat_precedent = agendas.contrat_intention(monde, id) or {}
+    sortie = None
+    manque = e["manque"]
+    if courant and courant["plan"] and manque and manque["minute"] == minute:
+        from .pnj import _geste
+        if _geste(courant["plan"][0]) == manque["etape"]:
+            # R2 : l'échec libère aussi les anciennes préférences de cible
+            # consultées par les générateurs. Un nouveau moyen reste permis.
+            sortie = _sortie(courant, minute, "dementie", {"manque": manque})
+            courant = None
+            e["intention"] = None
     resultat = None
+    choisi = None
+    marge = marge_engagement(monde, id)
     from .planification import vues_du_choix
     with vues_du_choix(monde, id):
         agendas.actualiser(monde, id)
+        if courant and contrat_precedent.get("demande"):
+            fin = _fin_demande(monde, id, contrat_precedent["demande"])
+            if fin:
+                sortie = _sortie(courant, minute, *fin)
         tous = list(_candidats(monde, id))
-        liste = [(besoin, methode) for besoin, methode, _, _, _ in tous]
-        for n, (besoin, methode, routine, recours, urgence) in enumerate(tous):
-            if retenu is not None and (besoin, routine, recours) != (retenu[0], retenu[1], True):
-                continue
-            if (urgence.palier != Palier.PERIL_EAU and besoin in e["renoncements"]
-                    and e["renoncements"][besoin] + REPIT * MINUTE > maintenant):
+        # Vérifier une occasion n'est pas reprendre le geste abandonné. La
+        # ronde existante met les croyances à jour, même sans nouvelle reçue.
+        lieux = {r["cause"]["salle"] for rs in e["renoncements"].values()
+                 if isinstance(rs, list) for r in rs if r["cause"]["type"] != "corps"}
+        for salle in sorted(lieux):
+            condition = {"lieu": salle, "periode": PATIENCE}
+            if not satisfaite(monde, id, condition):
+                tous.append(Candidat("securite", lambda m, i, c=condition: _plan_pulsion(m, i, c),
+                                     True, False, Urgence(Palier.ROUTINE, 0, (2,)), None))
+        tous.sort(key=lambda c: c.urgence.cle())
+        liste = [(c.besoin, c.methode) for c in tous]
+        evaluations = {}
+
+        def evaluer(n, candidat):
+            if n in evaluations:
+                return evaluations[n]
+            besoin, urgence = candidat.besoin, candidat.urgence
+            proposition = candidat.methode(monde, id)
+            retenus = e["renoncements"].get(besoin, [])
+            if (proposition and urgence.palier != Palier.PERIL_EAU
+                    and any(renoncement_tient(monde, id, r, proposition)
+                            for r in (retenus if isinstance(retenus, list) else []))):
                 essais[n] = "renonce"
+                evaluations[n] = None
+                return None
+            if proposition:
+                from .pnj import refus_etape
+                if refus_etape(monde, id, proposition[1]) is not None:
+                    proposition = None
+            if proposition and urgence.palier != Palier.PERIL_EAU:
+                # Le même contrôle vaut aussi pour les recours sans trajet :
+                # l'échec d'une évacuation ne rend pas licite un séjour humide.
+                from .eau import en_peril, traversee_sure
+                destination = monde.objets[id]["lieu"]
+                for etape in proposition[1]:
+                    if etape["operation"] == "aller":
+                        destination = etape["lieu"]
+                if (en_peril(monde, id, destination)
+                        or en_peril(monde, id) and not traversee_sure(monde, id, proposition[1])):
+                    proposition = None
+            essais[n] = "plan" if proposition else "rien"
+            evaluations[n] = proposition
+            return proposition
+
+        actif = None
+        moyens_revalides = False
+        if courant:
+            # Une demande typée persiste indépendamment de sa naissance.
+            # Pour les anciennes sauvegardes, on retrouve d'abord son candidat.
+            contrat = agendas.contrat_intention(monde, id) or {}
+            demande = contrat.get("demande")
+            correspondants = [(n, c) for n, c in enumerate(tous)
+                              if c.besoin == courant["motif"]
+                              and (not demande or c.demande == demande)]
+            for n, candidat in correspondants:
+                proposition = evaluer(n, candidat)
+                if proposition and _meme_demande_adoptee(candidat, courant, proposition, contrat):
+                    actif = (candidat, proposition)
+                    moyens_revalides = True
+                    break
+            if actif is None and demande:
+                valeur = contrat["valeur"]
+                if demande.get("raison"):
+                    valeur = _poids_secours(monde, id, demande["raison"]["qui"])
+                    valeur = 0 if valeur is None else valeur
+                urgence = Urgence(Palier(contrat["palier"]), valeur, ())
+                candidat = Candidat(courant["motif"],
+                                    lambda m, i: _reprendre_demande(m, i, demande),
+                                    False, True, urgence, demande)
+                proposition = evaluer(len(tous), candidat)
+                if proposition:
+                    actif = (candidat, proposition)
+                    moyens_revalides = True
+                elif sortie is None:
+                    fin = _fin_demande(monde, id, demande)
+                    if fin:
+                        sortie = _sortie(courant, minute, *fin)
+                    from .pnj import refus_etape
+                    if sortie is None and refus_etape(monde, id, []) is None:
+                        # Une recherche sans réponse ne certifie ni la fin
+                        # ni le démenti de la demande. Attendre un moyen ou
+                        # une information garde son identité et son palier,
+                        # sans réinstaller de geste périmé ; jamais dans l'eau.
+                        actif = (candidat, (courant["but"], []))
+            # Le geste manqué est un démenti du plan courant, pas une preuve
+            # que tous les moyens vers le même but sont impossibles. Seule la
+            # nouvelle planification ci-dessus peut le réinstaller.
+        for n, candidat in enumerate(tous):
+            if actif and not _domine(candidat.urgence, actif[0].urgence, marge):
                 continue
-            resultat = methode(monde, id)
-            if not resultat:
-                essais[n] = "rien"
-                continue
-            essais[n] = "plan"
-            if retenu is not None:
-                if resultat[0] == courant["but"]:
-                    break   # Sa méthode rend encore le recours en cours : il le garde.
-                continue
-            if recours and not routine and courant and besoin == courant["motif"] and resultat[0] != courant["but"]:
-                retenu = (besoin, routine, resultat)   # Le sien d'abord, si sa méthode le rend encore.
-                continue
-            break
-        else:
-            resultat = retenu[2] if retenu else None
+            proposition = evaluer(n, candidat)
+            if proposition:
+                choisi, resultat = candidat, proposition
+                if actif and precedent and not _meme_demande_adoptee(
+                        candidat, precedent, proposition, contrat_precedent):
+                    cause = "palier" if candidat.urgence.palier < actif[0].urgence.palier else "gain"
+                    sortie = _sortie(precedent, minute, cause,
+                                     {"palier_actif": int(actif[0].urgence.palier),
+                                      "palier_nouveau": int(candidat.urgence.palier),
+                                      "valeur_active": actif[0].urgence.valeur,
+                                      "valeur_nouvelle": candidat.urgence.valeur, "marge": marge})
+                break
+        if resultat is None and actif:
+            choisi, resultat = actif
+            if (moyens_revalides and courant["plan"] and resultat[1]
+                    and courant["plan"][0] == resultat[1][0] and resultat[0] == courant["but"]
+                    and not (choisi.demande and choisi.demande.get("tache")
+                             and _delegue(monde, id, {"condition": choisi.demande["condition"]}))):
+                from .pnj import refus_etape
+                if refus_etape(monde, id, courant["plan"]) is None:
+                    # Revalider le but n'oblige pas à reconstruire ses moyens.
+                    # Les préparatifs et la remise en état du plan adopté
+                    # restent tenus jusqu'à un démenti ou une préemption.
+                    resultat = (courant["but"], courant["plan"])
     if resultat:
-        besoin = retenu[0] if retenu else besoin   # Retenu : la boucle a pu finir sur un autre but.
-        but, etapes = _attendre_qui_vient(monde, id, resultat)
-        from .pnj_propositions import plan_recours
-        offre = plan_recours(monde, id, besoin, etapes)
-        if offre:
-            etapes = offre
-        intention = e["intention"]
+        besoin = choisi.besoin
+        from .eau import en_peril
+        but, etapes = resultat
+        retenus = e["renoncements"].get(besoin)
+        if isinstance(retenus, list):
+            # Essayer un autre moyen ne réhabilite pas le premier. Seule la
+            # levée de sa cause peut solder la mémoire de cet obstacle.
+            e["renoncements"][besoin] = [r for r in retenus
+                                        if r["but"] != but or obstacle_patience(monde, id, r["cause"])]
+        # Une sortie nécessaire ne devient pas une attente de rendez-vous ou
+        # de contrepartie dans l'eau après le contrôle du candidat.
+        if not en_peril(monde, id):
+            but, etapes = _attendre_qui_vient(monde, id, resultat)
+            from .pnj_propositions import plan_recours
+            offre = plan_recours(monde, id, besoin, etapes)
+            if offre:
+                etapes = offre
+        intention = precedent
         meme = bool(intention) and intention["but"] == but
+        meme_engagement = bool(intention) and _meme_demande_adoptee(
+            choisi, intention, (but, etapes), contrat_precedent)
+        if intention and not meme_engagement and sortie is None:
+            sortie = _sortie(intention, minute, None, {"evaluation": "indeterminee"})
+        if sortie is None and meme_engagement:
+            # Une continuation ne gomme pas la dernière sortie attestée.
+            # Un seul événement est conservé : ce n'est pas une pile de buts.
+            sortie = contrat_precedent.get("sortie")
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
                           "depuis": intention["depuis"] if meme else minute,
                           "attente": intention["attente"] if meme else 0,
                           **({"attitude": intention["attitude"]} if meme and "attitude" in intention else {})}
+        agendas.retenir_intention(monde, id, {"palier": int(choisi.urgence.palier),
+                                             "valeur": choisi.urgence.valeur,
+                                             "demande": choisi.demande,
+                                             "phase": "attendre" if not etapes else "continuer" if meme_engagement else "naitre",
+                                             "sortie": sortie})
         if not meme:
             e["patience"] = None  # Un autre but : ce qu'il attendait pour l'ancien ne compte plus.
         _classer(monde, id, pressants, liste, essais, minute)
         return
     from .pnj_propositions import plan_recours
     refusee = e["demande_refusee"]
-    offre = plan_recours(monde, id, refusee["besoin"], []) if refusee else None
+    from .eau import en_peril
+    offre = plan_recours(monde, id, refusee["besoin"], []) if refusee and not en_peril(monde, id) else None
     e["intention"] = ({"but": {"type": "proposition", "objet": refusee["objet"]},
                        "motif": refusee["besoin"], "plan": offre, "depuis": minute, "attente": 0}
                       if offre else None)
+    if precedent:
+        agendas.clore_intention(monde, id, sortie or _sortie(
+            precedent, minute, None, {"evaluation": "indeterminee"}))
     _classer(monde, id, pressants, liste, essais, minute)
 
 
@@ -1915,12 +2221,14 @@ def menager_flamme(monde, id, minute):
     l'éclaire quand il a besoin d'y voir (``lumiere_utile``), sans autre lumière en main, ne se
     consume pas pour rien."""
     from .perception import allumee
+    from .biens import services_proteges
+    proteges = {c["objet"] for c in services_proteges(monde, id) if c.get("allume")}
     e = esprit(monde, id)
     plan = e["intention"]["plan"] if e["intention"] else []
     vises = {x["cible"] for x in plan} | {x["outil"] for x in plan}
     allumees = {s["objet"] for s in e["memoire"] if s["type"] == "flamme_employee"}
     flamme = next((k for k in sorted(allumees) if k in monde.objets and k not in vises
-                   and porte_par(monde, k, id) and allumee(monde.objets[k])), None)
+                   and k not in proteges and porte_par(monde, k, id) and allumee(monde.objets[k])), None)
     if flamme is None:
         return
     autres = any(k != flamme and porte_par(monde, k, id) and allumee(o) for k, o in monde.objets.items())
@@ -1934,13 +2242,100 @@ def menager_flamme(monde, id, minute):
                           "depuis": minute, "attente": 0}
 
 
-def renoncer(monde, id, minute):
-    """Il abandonne son but : il ne le reprend qu'après ``REPIT`` minutes, comptées de cet instant
-    (``renoncements`` : l'instant, en dixièmes de seconde)."""
+def obstacle_patience(monde, id, cause):
+    """Juge commun de l'occasion attendue, uniquement sur les perceptions/croyances.
+
+    Les dates de perception ne libèrent pas un obstacle retenu. Un témoin
+    perdu de vue reste une présence crue jusqu'à un constat ou une nouvelle.
+    Le passage emploie la géométrie commune, avec les obstacles *crus*.
+    """
+    from .pnj import temoins_crus, oreilles_crues, _franchissable
+    e = lire(monde, id)
+    if cause["type"] == "corps":
+        from .corps import conscient
+        return not conscient(monde, id)
+    if cause["type"] == "temoins":
+        presents = set()
+        if monde.objets[id]["lieu"] == cause["salle"]:
+            presents.update(temoins_crus(monde, id))
+            presents.update(oreilles_crues(monde, id, cause["nature"]))
+        for qui, salle in cause.get("temoins", {}).items():
+            if (salle_crue(monde, id, qui) == salle
+                    and (_cru(monde, id, qui, "etat") or {}).get("conscient") is not False):
+                presents.add(qui)
+        if "temoins" in cause:
+            # Une présence apprise depuis le renoncement ne disparaît pas non
+            # plus par vieillissement du dernier bruit ou du dernier regard.
+            for qui in e["croyances"]:
+                if (qui != id and (qui == "joueur" or monde.objets.get(qui, {}).get("type") == "personnage")
+                        and salle_crue(monde, id, qui) == cause["salle"]
+                        and (_cru(monde, id, qui, "etat") or {}).get("conscient") is not False):
+                    presents.add(qui)
+        return sorted(presents)
+    from .spatial import trajet
+    o = monde.objets[id]
+    places, solides = set(), set()
+    for qui, attributs in e["croyances"].items():
+        lieu = attributs.get("lieu") or {}
+        salle, case = lieu.get("salle"), lieu.get("case")
+        if qui == id or salle not in monde.data["salles"] or case is None or lieu.get("valeur") != salle:
+            continue
+        objet = monde.objets.get(qui, {})
+        if qui == "joueur" or objet.get("type") == "personnage":
+            places.add((salle, tuple(case)))
+        elif objet.get("bloque_passage"):
+            solides.add((salle, tuple(case)))
+    arrivees = {(s, tuple(c)) for s, c in cause["arrivees"]}
+    chemin = trajet(monde, o["lieu"], o["position"],
+                    lambda s, c: (s, c) in arrivees and (s, c) not in places,
+                    franchissable=lambda p: _franchissable(monde, id, p),
+                    libre=lambda s, c: (s, c) not in solides and (s, c) not in places, solides=False)
+    return chemin is None
+
+
+def renoncement_tient(monde, id, retenu, proposition):
+    """Un autre but ou un moyen qui évite l'obstacle reste possible."""
+    but, plan = proposition
+    if but != retenu["but"]:
+        return False
+    cause = retenu["cause"]
+    etape = cause["etape"]
+    cles = ("operation", "cible", "lieu")
+    meme_obstacle = any(all(p.get(k) == etape.get(k) for k in cles) for p in plan)
+    if cause["type"] == "temoins":
+        meme_obstacle = any(
+            p.get("cible") and p["cible"] == etape.get("cible")
+            or p.get("condition") == "sans_temoin"
+            and salle_crue(monde, id, p.get("cible")) == cause["salle"] for p in plan)
+    if not meme_obstacle:
+        return False
+    return bool(obstacle_patience(monde, id, cause))
+
+
+def renoncer(monde, id, minute, cause=None):
+    """Retient l'obstacle réellement rencontré, sans échéance de réessai."""
+    from copy import deepcopy
     from .temps import instant
     e = esprit(monde, id)
     intention = e["intention"]
-    e["renoncements"][intention["motif"]] = instant(monde)
+    if cause is None:
+        from .corps import conscient
+        assert not conscient(monde, id), "Un renoncement conscient doit transmettre sa cause"
+        cause = {"type": "corps", "salle": monde.objets[id]["lieu"],
+                 "etape": dict(intention["plan"][0]) if intention["plan"] else {}}
+    motif = intention["motif"]
+    retenus = e["renoncements"].get(motif, [])
+    # L'ancien entier ne portait aucune cause : ne pas en inventer une lors
+    # d'une migration. Les nouveaux renoncements remplacent ces seuls délais.
+    if not isinstance(retenus, list):
+        retenus = []
+    retenu = {"instant": instant(monde), "but": deepcopy(intention["but"]), "cause": deepcopy(cause)}
+    def meme_obstacle(r):
+        return (r["but"] == retenu["but"] and r["cause"]["type"] == cause["type"]
+                and r["cause"]["salle"] == cause["salle"]
+                and all(r["cause"]["etape"].get(k) == cause["etape"].get(k)
+                        for k in ("operation", "cible", "lieu")))
+    e["renoncements"][motif] = [r for r in retenus if not meme_obstacle(r)] + [retenu]
     e["patience"] = None
     memoriser(monde, id, {"type": "renoncement", "but": dict(intention["but"])})
     e["intention"] = None

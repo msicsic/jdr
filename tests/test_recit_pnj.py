@@ -90,7 +90,25 @@ class RecitTests(unittest.TestCase):
 
     def test_rondes_resumees(self):
         self.assertIn("Rondes :", self.texte)
-        self.assertNotIn("ronde : ", self.texte)
+        # Contrat du résumé, indépendant des rencontres d'une nuit : une
+        # inspection seule est regroupée ; parole et décision restent visibles.
+        m = creer("relais", 7, "fixe")
+        recit = Recit(m)
+        recit.episodes["aubin"] = [
+            {"but": {"type": "pulsion", "lieu": "antichambre", "periode": 30},
+             "motif": "devoir", "debut": minute, "fin": minute, "abandon": False}
+            for minute in range(3)]
+        evenements = [
+            ("geste", "Aubin inspecte le refuge"),
+            ("social", "Aubin demande une part des vivres du refuge à Gorm"),
+            ("decision", "Aubin : agenda a1 sommeil (sans plan admissible au cout)")]
+        chronique = [{"pnj": "aubin", "minute": minute, "nature": nature, "texte": texte}
+                     for minute, (nature, texte) in enumerate(evenements)]
+        lignes = recit.personnage(m, "aubin", chronique)
+        self.assertTrue(any("Rondes : Refuge du relais ×1" in ligne for ligne in lignes), lignes)
+        detail = [ligne for ligne in lignes if "ronde : " in ligne]
+        self.assertTrue(any("demande une part des vivres du refuge" in ligne for ligne in detail), detail)
+        self.assertTrue(any("agenda a1 sommeil" in ligne for ligne in detail), detail)
 
     def test_mots(self):
         self.assertEqual(de("Aubin"), "d'Aubin")

@@ -20,7 +20,7 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
   lu sur l'objet (``planification.enrichir``).
 - ``fin`` : destruction ou consommation constatée, datée et conservée même
   après retrait des restes ; distincte de l'état de disponibilité.
-- ``verrouillee`` : appris par un essai ou un savoir, jamais par la vue.
+- ``verrouillee`` : appris par essai ou savoir ; ouverture ou destruction vue dément le verrou.
 - ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
 - ``prevision`` (sujet : une salle) : avis reçu, avec source et conviction ; valeur =
   [minute du niveau, niveau, montée en cm/h], sans modifier les mesures ``eau``.
@@ -199,6 +199,10 @@ def _croyance_valide(monde, attribut, c):
         assert (isinstance(s, dict) and set(s) == {"valeur", "dit_a"} and isinstance(s["dit_a"], list)
                 and all(isinstance(x, str) for x in s["dit_a"])
                 and len(s["dit_a"]) == len(set(s["dit_a"]))), "Constat confié invalide"
+    if "origine" in c:
+        assert (isinstance(c["origine"], dict) and set(c["origine"]) == {"source", "minute"}
+                and isinstance(c["origine"]["source"], str)
+                and type(c["origine"]["minute"]) is int), "Origine de localisation invalide"
     if attribut == "lieu":
         # Une croyance peut survivre à son objet (détruit, retiré).
         assert (set(c) >= {"valeur", "salle", "case"}
@@ -282,7 +286,7 @@ def verifier(monde):
         for sujet, attributs in e["croyances"].items():
             assert (isinstance(sujet, str) and isinstance(attributs, dict)
                     and (sujet in monde.data["salles"] and set(attributs) <= {"eau", "prevision"}
-                         or set(attributs) <= {"fin", "lieu", "etat"})), "Perception du joueur invalide"
+                         or set(attributs) <= {"fin", "lieu", "etat", "verrouillee"})), "Perception du joueur invalide"
             for attribut, c in attributs.items():
                 _croyance_valide(monde, attribut, c)
         assert isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX, "Mémoire du joueur invalide"
@@ -309,7 +313,23 @@ def verifier(monde):
         # Satisfaite (True), rompue (False), jamais satisfaite depuis qu'il la connaît (None).
         assert (isinstance(e["pulsions"], list) and len(e["pulsions"]) in (0, len(p["pulsions"]) if p else 0)
                 and all(v is None or type(v) is bool for v in e["pulsions"])), "Pulsions de PNJ invalides"
-        assert all(type(v) is int for v in e["renoncements"].values()), "Renoncements invalides"
+        # Entiers : anciennes sauvegardes sans cause, conservées sans inventer
+        # de preuve. Les renoncements nouveaux n'ont aucune date de réveil.
+        assert isinstance(e["renoncements"], dict) and all(
+            isinstance(k, str) and (type(v) is int or isinstance(v, list) and all(
+                isinstance(r, dict) and set(r) == {"instant", "but", "cause"}
+                and type(r["instant"]) is int and r["instant"] >= 0 and isinstance(r["but"], dict)
+                and isinstance(r["cause"], dict)
+                and r["cause"].get("type") in ("temoins", "passage", "corps")
+                and r["cause"].get("salle") in monde.data["salles"]
+                and isinstance(r["cause"].get("etape"), dict)
+                and (r["cause"]["type"] == "corps" or
+                     (isinstance(r["cause"].get("temoins"), dict) and "nature" in r["cause"]
+                     if r["cause"]["type"] == "temoins" else
+                     isinstance(r["cause"].get("arrivees"), list)
+                     and all(s in monde.data["salles"] and isinstance(c, list) and len(c) == 2
+                             and all(type(x) is int for x in c) for s, c in r["cause"]["arrivees"])))
+                for r in v)) for k, v in e["renoncements"].items()), "Renoncements invalides"
         assert isinstance(e["attentes_bornees"], dict) and all(
             isinstance(k, str) and isinstance(v, str) for k, v in e["attentes_bornees"].items()
         ), "Attentes de recherche invalides"
@@ -352,6 +372,19 @@ def verifier(monde):
             and isinstance(s["de"], str) and isinstance(s["operation"], str) and isinstance(s["raison"], str)
             and type(s["minute"]) is int and type(s.get("prix", 0)) is int
             and type(s.get("condition_tenue", False)) is bool
+            and ("repere" not in s or isinstance(s["repere"], dict)
+                 and set(s["repere"]) == {"lieu", "revision"}
+                 and s["repere"]["lieu"] in monde.data["salles"]
+                 and type(s["repere"]["revision"]) is int and s["repere"]["revision"] >= 0)
+            and ("information" not in s or isinstance(s["information"], dict)
+                 and {"lieu", "minute", "source"} <= set(s["information"]) <= {"lieu", "minute", "source", "origine"}
+                 and s["information"]["lieu"] in monde.data["salles"]
+                 and type(s["information"]["minute"]) is int
+                 and isinstance(s["information"]["source"], str)
+                 and ("origine" not in s["information"] or isinstance(s["information"]["origine"], dict)
+                      and set(s["information"]["origine"]) == {"source", "minute"}
+                      and isinstance(s["information"]["origine"]["source"], str)
+                      and type(s["information"]["origine"]["minute"]) is int))
             and ("contre_offre" not in s or _contre_offre_valide(monde, id, s))
             and isinstance(s.get("cause", []), list) and all(isinstance(f, list) and len(f) == 4 for f in s.get("cause", []))
             and ("offre" not in s or isinstance(s["offre"], dict) and set(s["offre"]) == {"cause", "gain"}
@@ -445,6 +478,16 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    if attribut == "lieu" and source in ("vu", "entendu") and valeur in monde.data["salles"]:
+        # Le contexte d'une réponse retenue change avec un déplacement
+        # réellement perçu de la personne, jamais avec une date, une autre
+        # case dans la même salle ou la répétition d'un renseignement tiers.
+        for reponse in esprit(monde, id).get("refus", ()):
+            if reponse["operation"] != "enqueter_lieu" or reponse.get("objet") != sujet:
+                continue
+            repere = reponse.get("repere")
+            if repere is None or repere["lieu"] != valeur:
+                reponse["repere"] = {"lieu": valeur, "revision": (repere["revision"] if repere else 0) + 1}
     if attribut == "lieu":
         from .defense import approche_vue
         approche_vue(monde, id, sujet, ancienne or {}, croyance)
@@ -961,6 +1004,8 @@ def constater(monde, id, sujet, source):
     o = monde.objets[sujet]
     if source in ("vu", "essai"):
         constater_fin_objet(monde, id, sujet, source)
+        if o["type"] in ("porte", "contenant") and (o.get("ouverte") or o.get("integrite") == 0):
+            reviser(monde, id, sujet, "verrouillee", False, source)
     if "passage" in o:
         # La forme ne se devine pas de la catégorie ; pas de croyance neuve pour
         # les anciens objets non décrits (empreintes inchangées).
@@ -988,8 +1033,15 @@ def constater(monde, id, sujet, source):
         valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
                    "charge": o.get("combustible", 0) > 0}
         etat = {k: bool(valeurs.get(k)) for k in etats}
-        if o["type"] == "contenant" and o.get("ouverte") and source == "vu":
-            etat["vide"] = not any(x["lieu"] == sujet for x in monde.objets.values())
+        if o["type"] == "contenant" and o.get("ouverte"):
+            visible = source == "vu" or (monde.visible(sujet) if id == "joueur" else sujet in percus(monde, id)[0])
+            if visible:
+                etat["vide"] = not any(x["lieu"] == sujet for x in monde.objets.values())
+            else:
+                # Toucher le battant dans le noir ne dément pas le contenu vu.
+                ancien = croyance(monde, id, sujet, "etat")
+                if ancien and "vide" in ancien["valeur"]:
+                    etat["vide"] = ancien["valeur"]["vide"]
         croire(monde, id, sujet, "etat", etat, source)
 
 
@@ -1141,8 +1193,6 @@ def _percevoir(monde, id):
             # interrompent aussi l'attente, comme une porte ou un feu.
             change |= (any(avant["valeur"].get(k) != apres.get(k) for k in ("blessure", "conscient"))
                        if o["type"] == "personnage" else avant["valeur"] != apres)
-        if o["type"] in ("porte", "contenant") and o.get("ouverte"):
-            reviser(monde, id, sujet, "verrouillee", False)  # Ouvert sous ses yeux : pas verrouillé.
     for sujet, attributs in list(croyances.items()):
         etat = attributs.get("etat")
         if (sujet not in vus and sujet in monde.objets and "allume" in monde.objets[sujet]

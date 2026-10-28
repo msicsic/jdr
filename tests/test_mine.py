@@ -65,9 +65,33 @@ class MineTests(unittest.TestCase):
         # noir inquiète vont vers la lumière dont ils se souviennent, celle du bureau : le payeur,
         # dans le noir, n'y est plus seul, ou il appelle à son tour.
         from donjon.deliberation import autour
-        m = creer("mine", 3, "fixe")
-        executer(m, 600)
-        self.assertFalse(m.objets["poele"]["allume"])
+        # Épuisement du stock historique : aucun bois propre ajouté à Odon.
+        from tests.scenarios_contractuels import creer as creer_contractuel
+        m = creer_contractuel("mine", 3, "fixe")
+        # Le don de combustible est un fait de cette scène d'épuisement,
+        # pas un marché dont l'issue dépend des autres engagements de Gaspard.
+        # Les charges restent entières : Josse doit réellement les brûler.
+        from donjon.deplacement_objet import deplacer
+        from donjon.esprits import croire
+        m.objets['bois_gaspard']['proprietaire'] = 'josse'
+        deplacer(m, 'bois_gaspard', 'josse')
+        croire(m, 'josse', 'bois_gaspard', 'lieu', 'josse', 'vu', salle=None, case=None)
+        croire(m, 'josse', 'bois_gaspard', 'etat', {'disponible': True}, 'vu')
+        # Une recharge tardive peut rallumer le poêle avant 600 min. Observer
+        # son extinction réelle, puis justifier tout rallumage par du combustible.
+        poele_eteint = False
+        gestes = []
+        while m.data["minutes"] < 600:
+            chronique, _ = executer(m, min(600, m.data["minutes"] + 5))
+            gestes.extend(chronique)
+            poele_eteint |= not m.objets["poele"]["allume"]
+        self.assertTrue(poele_eteint)
+        self.assertEqual(m.objets['etais']['charges'], 0)
+        self.assertEqual(m.objets['bois_gaspard']['charges'], 0)
+        if m.objets['poele']['allume']:
+            self.assertGreater(m.objets['poele']['combustible'], 0)
+            self.assertTrue(any('allume le poêle à bois' in c['texte'] for c in gestes))
+            self.assertTrue(any('alimente le poêle à bois' in c['texte'] for c in gestes))
         appels = {id for id in pnjs(m) if any(s["type"] == "appel" for s in lire(m, id)["memoire"])}
         # Le blessé appelle, ou s'est fait de la lumière : depuis que la lueur diffuse compte pour la
         # lumière d'une salle (``esprits.lumiere_ici``), il va allumer une lampe de rechange à la

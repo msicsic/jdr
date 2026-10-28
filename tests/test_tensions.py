@@ -10,7 +10,8 @@ from unittest.mock import patch
 
 from donjon.commandes import analyser
 from donjon.deliberation import REDEMANDE, candidats
-from donjon.defi import nouveau_defi
+# Scènes de mécanisme : ressources et liens déclarés avant les occasions 186.
+from tests.scenarios_contractuels import nouveau_defi
 from donjon.deplacement_objet import deplacer
 from donjon.echanges import demander
 from donjon.esprits import croire, lire, memoriser, percevoir_tous
@@ -453,6 +454,10 @@ class PartTests(unittest.TestCase):
         # Même refus, mais elle a huit pièces : elle paie le prix dit (2), que Gorm accepte
         # sans se faire prier, et il la sert.
         m = self.affamee("ilse")
+        # Seul l'achat de sa propre part est en jeu ; Aubin ne finance pas
+        # en parallèle une part destinée à secourir un tiers.
+        from tests.support import sans_souci
+        sans_souci(m)
         self.assertEqual((m.data["finances_pnj"]["ilse"], m.data["finances_pnj"]["marchand"]), (8, 50))
         m, _ = vivre(m, 20, jet=1)
         textes = chronique(m)

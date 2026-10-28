@@ -35,7 +35,11 @@ class AccusationTests(unittest.TestCase):
                              and social.accuse(s['evenement']) == accuse
                              for e in m.data['esprits'].values() for s in e['memoire']))
 
-    def test_accusation_directe_et_surprise_passent_par_la_meme_reception(self):
+    # Isoler ici le transport d'une accusation : réclamer son bien est
+    # désormais prioritaire sur cette confidence. Les restitutions réelles
+    # restent actives et vérifiées dans test_reclamer_vol et le cas historique.
+    @patch('donjon.pnj_propositions.reclamation', return_value=None)
+    def test_accusation_directe_et_surprise_passent_par_la_meme_reception(self, _reclamation):
         for accuse, locuteur, objet in self.cas:
             for type in ('vu_porter', 'intention_lue'):
                 with self.subTest(accuse=accuse, type=type):
@@ -73,7 +77,8 @@ class AccusationTests(unittest.TestCase):
         self.assertTrue(any(s['type'] == 'parole' and s['locuteur'] == locuteur
                             for s in lire(m, tiers)['memoire']))
 
-    def test_ancienne_rumeur_contre_soi_ne_se_retransmet_pas(self):
+    @patch('donjon.pnj_propositions.reclamation', return_value=None)
+    def test_ancienne_rumeur_contre_soi_ne_se_retransmet_pas(self, _reclamation):
         for accuse, locuteur, objet in self.cas:
             for type in ('vu_porter', 'intention_lue', 'mensonge_dementi'):
                 with self.subTest(accuse=accuse, type=type):

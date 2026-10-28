@@ -10,7 +10,8 @@
       "nom": true,
       "qui": false,
       "reclamer": false,
-      "ressource": false
+      "ressource": false,
+      "localisation": false
     },
     "personnage": "voix_1",
     "replique": "Corvus. Qui es-tu ?",
@@ -40,7 +41,8 @@
       "nom": false,
       "qui": true,
       "reclamer": false,
-      "ressource": false
+      "ressource": false,
+      "localisation": false
     },
     "personnage": "voix_1",
     "replique": "Qui est là ?",

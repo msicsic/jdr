@@ -617,8 +617,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     """« absent », « mefiance », « qui_va_la », « necessaire », « impossible », « pauvre »,
     « refus », « remis », « rendu », « promis » ou « vendu ».
 
-    ``prix`` : les pièces offertes. Au moins le prix (``biens.prix``) au propriétaire, c'est un
-    achat : accepté sans se faire prier, payé aussitôt. Moins, c'est une demande, que le prix non
+    ``prix`` : les pièces offertes. Au moins le prix (``biens.prix``), c'est un achat au
+    propriétaire, ou un rachat au détenteur qui accepte la faute de vendre le bien retenu.
+    Le paiement accompagne la remise. Moins, c'est une demande, que le prix non
     payé rend plus dure à qui une pièce compte (``biens.reticence``). Une voix qu'il ne sait à qui
     prêter s'entend d'abord demander qui va là, qu'elle offre de payer ou réclame son bien."""
     from .caractere import valeur_pieces
@@ -642,7 +643,31 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     if arret == "qui_va_la":
         return arret
     o = monde.objets[objet]
+    from .biens import restitution_retenue
+    if not part and not prix and proprietaire(monde, o) == auditeur and restitution_retenue(
+            monde, demandeur, auditeur, objet):
+        return "refus"
+    rachat = False
     if not part and proprietaire(monde, o) == demandeur:
+        from .biens import permis
+        # Le prêt autorisé n'est pas un vol : sa restitution garde le contrat
+        # de l'emprunt. Garder un bien sans droit est la même faute que garder
+        # des pièces dues, pesée avec la valeur commune du bien.
+        if not permis(monde, auditeur, objet):
+            if arret:
+                return arret
+            from .caractere import ARGENT, prix_faute
+            faute = prix_faute(monde, auditeur, ARGENT)
+            if faute is not None and valeur_proposition(
+                    monde, auditeur, {'type': 'objet', 'objet': objet}, demandeur) > faute:
+                if not prix:
+                    return 'refus'
+                # Vendre le bien retenu lèse encore son propriétaire : le gain
+                # d'argent se pèse au même prix de faute que la rétention.
+                from .caractere import valeur_pieces
+                rachat = valeur_pieces(monde, auditeur, prix) > faute
+                if not rachat:
+                    return 'refus'
         # Son propriétaire le redemande : il le lui rend, sauf s'il s'en sert encore. Garder un prêt
         # échu qu'on lui réclame lui coûte la confiance du prêteur (``biens.pret_garde``).
         if necessaire(monde, auditeur, objet):
@@ -650,8 +675,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
             if demandeur != "joueur" and echu(monde, objet):
                 pret_garde(monde, demandeur, auditeur, objet, [])
             return "necessaire"
-        remettre(monde, auditeur, demandeur, objet, demande=True)
-        return "rendu"
+        if not rachat:
+            remettre(monde, auditeur, demandeur, objet, demande=True)
+            return "rendu"
     if arret:
         return arret
     if prix and richesse(monde, demandeur) < prix:
@@ -660,7 +686,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
     # comme lorsqu'on lui demande quelles ressources il possède.
     siens_a_portee(monde, auditeur)
     prix_ = prix_de(monde, objet, part)
-    vente = (bool(prix_) and prix >= prix_ or accord and prix > 0) and proprietaire(monde, o) == auditeur
+    vente = (bool(prix_) and prix >= prix_ or accord and prix > 0) and (proprietaire(monde, o) == auditeur or rachat)
+    if rachat and not vente:
+        return "refus"
     # Ce qu'il perd à donner sans être payé : ce qui se consomme. Un objet qui dure, il le prête, et
     # le récupérera.
     perdu = part or besoin_de_part(o) is not None
@@ -917,20 +945,49 @@ def correspond_ressource(o, sujet):
     return False
 
 
-def enqueter(monde, demandeur, auditeur, besoin):
+def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
     """(« mefiance », « qui_va_la », « rien » ou « dit », ce qui a été dit) : ``demandeur`` demande à
     ``auditeur`` s'il a de quoi apaiser ``besoin`` (« As-tu des vivres ? », « du bois ? ») sans rien
     connaître de ce qu'il a. Le sujet peut aussi nommer un bien (nom, alias, matière ou catégorie).
     Il répond selon ses possessions connues ; pour un besoin général, ses ressources comptées pour ce
     besoin (``deliberation.besoin_de_part``) qu'il croit avoir encore, et où il les croit ; ce qu'il
     porte et ce qui est à lui à portée de main, il le sait (``siens_a_portee``). Le
-    demandeur l'apprend, par ouï-dire, et rien de plus : [(objet, lieu cru)]."""
+    demandeur l'apprend, par ouï-dire, et rien de plus : [(objet, lieu cru)].
+    Avec ``sujet``, la même question porte sur le dernier lieu cru d'une personne ;
+    la réponse datée, positive ou négative, reste retenue jusqu'à un nouvel indice."""
     from .deliberation import _connus, _disponible_cru, _lieu_cru, part_pour, parts
     from .paroles import BESOINS_DEMANDES
     from .spatial import porte_par
     from .vol import proprietaire
     from .deliberation import oublier_refus, retenir_refus
     arret = accueil(monde, demandeur, auditeur)
+    if sujet is not None:
+        # Une réponse de localisation porte exclusivement la croyance du témoin.
+        # La date d'acquisition et la provenance restent distinctes de la réception.
+        c = croyance(monde, auditeur, sujet, "lieu")
+        dit = [(sujet, c["valeur"])] if not arret and c and c["valeur"] in monde.data["salles"] else []
+        issue = arret or ("dit" if dit else "rien")
+        origine = dict(c.get("origine") or {"source": c["source"], "minute": c["minute"]}) if c else None
+        verifie = lire(monde, demandeur)["recherches"].get(sujet, {}).get(c["valeur"], -1) if dit else -1
+        appris = bool(dit and origine["minute"] >= verifie
+                      and not dementi(monde, demandeur, sujet, "lieu", c["valeur"]))
+        if appris:
+            from .voix import source_dite
+            croire(monde, demandeur, sujet, "lieu", c["valeur"], source_dite(monde, demandeur, auditeur),
+                   round(.7 * clarte(monde, demandeur), 2), salle=c["valeur"], case=None,
+                   origine=origine)
+        if demandeur != "joueur" and issue != "qui_va_la":
+            from .deliberation import consommer_indices_recherche
+            if appris:
+                consommer_indices_recherche(monde, demandeur, sujet, dit[0][1])
+            retenir_refus(monde, demandeur, auditeur, "enqueter_lieu",
+                          "indication" if dit else "inconnu" if issue == "rien" else issue,
+                          objet=sujet, souvenir=False,
+                          information={"lieu": dit[0][1], "minute": c["minute"], "source": c["source"],
+                                       "origine": dict(origine)} if dit else None)
+            memoriser(monde, demandeur, {"type": "enquete_lieu", "de": auditeur,
+                                         "objet": sujet, "issue": issue})
+        return issue, dit
     if not arret:
         siens_a_portee(monde, auditeur)
     if arret:
@@ -965,6 +1022,26 @@ def enqueter(monde, demandeur, auditeur, besoin):
         else:
             retenir_refus(monde, demandeur, auditeur, "enqueter", "rien", besoin=besoin, souvenir=False)
     return ("dit" if dit else "rien"), dit
+
+
+def reponse_localisation(monde, auditeur, sujet, issue, dit):
+    """La même réponse datée pour le joueur et la chronique ; aucune position réelle."""
+    from .paroles import _nom, _ouidire, _personne
+    nom, il, _ = _personne(monde, auditeur)
+    if issue == "qui_va_la":
+        from .paroles import QUI_VA_LA
+        return QUI_VA_LA.format(nom=nom, il=il)
+    if issue == "dit":
+        c = croyance(monde, auditeur, sujet, "lieu")
+        origine = _ouidire(monde, c["source"])
+        if c.get("origine") and c["origine"]["minute"] != c["minute"]:
+            origine += f" (ce renseignement remonte à la minute {c['origine']['minute']})"
+        preuve = "avoir vu" if c["source"] == "vu" else "avoir entendu" if c["source"] == "entendu" else "avoir appris"
+        return (f"{nom} dit {preuve} à la minute {c['minute']} : "
+                f"{phrase_affirmee(monde, sujet, 'lieu', dit[0][1], True)}{origine}.")
+    if issue == "rien":
+        return f"{nom} dit ne pas savoir où se trouve {_nom(monde, sujet)}."
+    return f"{nom} refuse de répondre."
 
 
 def demander_feu(monde, demandeur, auditeur, flamme, source):
@@ -1009,13 +1086,20 @@ def tenu(monde, id, condition, depuis=None):
         return satisfaite(monde, id, condition)  # Le prêt est clos : il le sait de sa main.
     if "servir" in condition or "remettre" in condition or not satisfaite(monde, id, condition):
         return False
-    if condition.get("objet") == id and "lieu" in condition:
-        # Il sait où sa marche vient de le mener, même avant la minute suivante.
-        return True
     # Les croyances sont datées à la minute : dans la minute même de la parole, rien ne dit qu'il a vu
     # après l'avoir donnée (il choisit désormais entre deux minutes, ``deliberation.choisir``).
     nouvelles = lire(monde, id)["croyances"].get(condition.get("objet"), {}).values()
-    return depuis is None or any(c["minute"] > depuis for c in nouvelles)
+    faite = (condition.get("objet") == id and "lieu" in condition
+             or depuis is None or any(c["minute"] > depuis for c in nouvelles))
+    if faite and depuis is not None:
+        # Le constat qui clôt la parole conserve son résultat, hors de la
+        # mémoire bornée. Un devis sans engagement n'inscrit rien.
+        from .biens import retenir_service
+        for engagement in agendas.en_cours(monde, id):
+            if (not engagement.get("annule") and engagement["condition"] == condition
+                    and engagement["minute"] == depuis):
+                retenir_service(monde, id, engagement)
+    return faite
 
 
 def confier(monde, demandeur, auditeur, condition):
@@ -1056,6 +1140,7 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     from .services import don_utile
     utile = don_utile(monde, receveur, objet)
     o = monde.objets[objet]
+    rendu_a_proprietaire = proprietaire(monde, o) == receveur
     e = esprit(monde, donneur) if (monde.objets.get(donneur) or {}).get("profil") else None
     livre = [x for x in (agendas.en_cours(monde, donneur) if e else []) if x["condition"] == {"objet": objet, "remettre": receveur}]
     tenus = list(livre)
@@ -1099,6 +1184,9 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
         agendas.tenir(monde, donneur, x)
         memoriser(monde, donneur, {"type": "engagement_tenu", "pour": receveur, "condition": x["condition"],
                                    **({"lot": x["lot"]} if "lot" in x else {})})
+    if donneur != receveur and rendu_a_proprietaire and not achat and not livre:
+        from .biens import retenir_restitution
+        retenir_restitution(monde, donneur, receveur, objet)
 
 
 def servir(monde, id, nourriture, pour, lignes):
@@ -1212,6 +1300,18 @@ def _avec_joueur(monde, id, etape, lignes):
     if not se_parler(monde, id, "joueur"):
         return False
     nom = personne_pour_joueur(monde, id, court=True)[0]
+    if op == 'demander' and etape.get('contenu', {}).get('type') == 'reclamer':
+        from .biens import proprietaire
+        from .deliberation import retenir_refus
+        if proprietaire(monde, objet['id']) != id or not porte_par(monde, objet['id'], 'joueur'):
+            return _rate(monde, id, objet['id'])
+        texte = f"{_qui(monde, id)} réclame à {_qui(monde, 'joueur', id)} {designer(objet)}."
+        # La demande existe avant sa publication ; le joueur garde la décision.
+        retenir_refus(monde, id, 'joueur', 'demander', 'attente', objet=objet['id'])
+        _chroniquer(monde, id, texte, 'social')
+        lignes.append(f"{nom} te réclame {designer(objet)} : rends-lui son bien.")
+        retentir(monde, id, 'dire', texte=texte, cites=['joueur', objet['id']], vers=['joueur'], appris=True)
+        return False
     if op == "remettre":
         if not porte_par(monde, objet["id"], id):
             return False
@@ -1406,6 +1506,14 @@ def executer(monde, id, etape, lignes):
     elif op == "proposer":
         from .pnj_propositions import executer
         return executer(monde, id, autre, contenu, lignes)
+    elif op == "demander" and "localisation" in contenu:
+        sujet = contenu["localisation"]
+        issue, dit = enqueter(monde, id, autre, sujet=sujet)
+        from .paroles import _nom
+        recit = f"{a} demande à {b} où se trouve {_nom(monde, sujet)}"
+        clair = recit + "."
+        reponse = reponse_localisation(monde, autre, sujet, issue, dit)
+        cites, reussi = [sujet] + [lieu for _, lieu in dit], issue == "dit"
     elif op == "demander" and "ressource" in contenu:
         # « As-tu du bois ? » : il répond par ce qu'il a vraiment, et l'autre l'apprend.
         issue, dit = enqueter(monde, id, autre, contenu["ressource"])
@@ -1433,9 +1541,14 @@ def executer(monde, id, etape, lignes):
         issue = demander(monde, id, autre, objet["id"], contenu.get("foyer"), prix, contenu.get("remettre_part", False))
         quoi = "une part " + complement_de(objet) if part else designer(objet)
         recit = (f"{a} achète {quoi} à {b} pour {quantite(prix, 'pièce')}" if op == "acheter"
+                 else f"{a} réclame {quoi} à {b}" if contenu.get('type') == 'reclamer'
                  else f"{a} demande {quoi} à {b}")
         clair = recit + "."
         reponse = {"remis": f"{b} lui remet {quoi}.", "rendu": f"{b} lui rend {designer(objet)}.",
+                   "necessaire": f"{b} garde {quoi} : {_il(o)} s'en sert encore.",
+                   "mefiance": f"{b} refuse : {_il(o)} ne lui fait pas confiance.",
+                   "rancune": f"{b} refuse : {_il(o)} lui en veut encore.",
+                   "absent": f"{b} ne porte pas {quoi}.",
                    "vendu": f"{b} accepte et prend l'argent.",
                    "promis": f"{b} accepte de lui en donner."}.get(issue, f"{b} refuse.")
         dite = issue not in ("remis", "rendu")  # Remettre l'objet est un geste, pas une parole.
@@ -1501,7 +1614,7 @@ def executer(monde, id, etape, lignes):
         qui_va_la(monde, id, autre, lignes)
     else:
         faire_entendre(monde, id, autre, clair, nommes, lignes, transmis, reponse, dite)
-    if "ressource" not in contenu:   # « As-tu… ? » retient sa réponse (``enqueter``).
+    if "ressource" not in contenu and "localisation" not in contenu:   # L'enquête retient sa réponse.
         # Un feu refusé l'est pour cette source ; un objet demandé, pour cet objet ; une tâche, pour ce
         # qu'elle vise. Le refus se retient selon sa cause (``deliberation.retenir_refus``) ; accordée,
         # la demande n'a plus de refus qui tienne.

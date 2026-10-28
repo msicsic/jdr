@@ -80,6 +80,11 @@ def copie(valeur, memo=None):
     return copy.deepcopy(valeur, memo)
 
 
+def mobile_par_nature(o):
+    """La mobilité d'un personnage ne dépend pas du drapeau des objets transportables."""
+    return o.get("type") == "personnage" or bool(o.get("mobile"))
+
+
 def objet(id, nom, type, lieu, **proprietes):
     return {"id": id, "nom": nom, "type": type, "lieu": lieu,
             "aliases": [], "materiau": "", "masse": 0, "mobile": False,
@@ -310,8 +315,12 @@ class Monde:
     def accessible(self, id):
         if self.data.get("mode_cases"):
             from .spatial import proche
-            return self.visible(id) or (self.present_physique(id) and
-                   (self.est_porte(id) or (id in self.data["connus"] and proche(self, id))))
+            # La présence dans le secteur courant n'est pas une condition de contact.
+            # L'inventaire garde le contrôle des contenants fermés, même connus.
+            return (self.visible(id)
+                    or (self.est_porte(id) and self.present_physique(id))
+                    or (id in self.data["connus"] and proche(self, id)
+                        and not self.est_porte(id)))
         if not self.present_physique(id):
             return False
         # Dans le noir on peut retrouver ses propres affaires ou une cible déjà examinée.
