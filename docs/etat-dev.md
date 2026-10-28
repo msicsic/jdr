@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-suite-bf99943`, fusionnée**, lot **253**, départ
+  `39db079` : frontières reproduites sur parents directs, Lucien **246 /
+  f46a0b5**, captures mine/auberge **248 / bf99943**. La restitution
+  projetée protège le plan actif et son séjour, même avec un plan vide ;
+  garde éclairée de Lucien et visite de galerie de Rémy vérifiées après
+  recharge, remplacement puis restitution couverts. Projection des seuls
+  champs d'ascendant neutre et des relations JSON : égalité structurelle
+  et deux hashes historiques retrouvés, aucun hash attendu remplacé.
+  **62 ciblés verts / sept fichiers, 191,559 s** ; nouvelle scène de mine
+  rouge sur `bf99943` inchangé. **Banc validé : 20/20 paires 4 h**, cinq
+  scénarios × quatre graines contre `bf99943`, branche `74eb299` : états
+  complets, empreintes, chroniques, mesures, récits, souvenirs et audits
+  identiques. Zéro plantage/usurpation signalée ; suspects **4 → 4**, aucune
+  hausse par nuit (Relais/mine/auberge/crue/hameau **1/0/1/2/0**), cycles
+  **498 → 498**, dérives **216 → 216**, à expliquer **51 → 51**. Vingt
+  références absentes calculées et rangées une fois, aucune rejouée.
+  Banc détaché terminé, deux processus réduits au plus ; aucun calcul actif
+  pour ce lot. Aucune suite complète ni Luna.
+  Bruts `C:/Users/msics/donjon/artifacts/suite-253/` ;
+  [rapport 253](taches/rapport-codex-253-suite-bf99943.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, fusionnés sans conflit textuel. Lucien (lot 246) : une restitution ne retire plus un moyen encore employé par le plan actif ou le séjour qu'il tient (echanges.necessaire protège les emplois explicites, deliberation.lumiere_utile juge la projection après remise sur les étapes restantes et le séjour) ; oracle de garde intact, autre cas Rémy/lampe de Gaspard. Empreintes mine et auberge (lot 248) : retrait prouvé du seul axe neutre, hashes historiques retrouvés et conservés. 62 tests verts ; 20/20 nuits 4 h identiques, suspects 4 → 4.
+
 - **Branche `codex-statut-source`, fusionnée**, lot **254**, base
   `integration e65fd54`, code `3f4a951` : statut déclaré au profil, croyance
   sourcée réservée aux connaisseurs initiaux, portée explicite lieux/domaines,
