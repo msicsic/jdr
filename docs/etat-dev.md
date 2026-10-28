@@ -2,6 +2,22 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-reveils-agenda-sonde`, non fusionnée**, lot **271**,
+  base `de74ff2`, moteur `1355f7a`, outils seulement : reprise justifiée par
+  possession/propriété nouvelle, lieu cru changé ou engagement accompli publié,
+  reliés aux références du plan admissible repris (offres imbriquées comprises).
+  Brune hameau 2024 **591/929** reconnus ; captures 268 sous `881db69`
+  **495/1393/59658** reconnus, **738 reste à expliquer**. Mireille auberge 1985
+  **36720** reste suspecte. **30 tests ciblés distincts verts**, scènes avec/sans
+  sonde et recharges monde/rendu/scène, 18 recharges des captures historiques.
+  Aucun moteur modifié, ni Luna ni suite complète. **Vingt paires 4 h détachées
+  à terminer**, un processus réduit, compteurs avant/après et référence 265
+  dans `bilan.json`. Signal de fin attendu :
+  `C:/Users/msics/donjon/artifacts/reveils-271/fin.json`.
+  Horizon 60 min et reçus bornés ; lien structurel, sans preuve de nécessité
+  contrefactuelle ni garantie universelle.
+  [Rapport 271](taches/rapport-codex-271-reveils-agenda-sonde.md).
+
 - **Branche `codex-compteurs-faux-positifs`, fusionnée**, lot **265**,
   base `integration c32cc7d`, outils seulement : clôtures publiées des services
   suivies avec leur preuve et l'ancrage 238 ; autre moyen admis seulement si le
