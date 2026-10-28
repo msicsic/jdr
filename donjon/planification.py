@@ -3198,7 +3198,8 @@ def s_enquerir(monde, id, besoin=None, *, sujet=None, _vue=None, _etat=None):
     """(but, étapes) pour demander à quelqu'un s'il a de quoi apaiser ``besoin`` (des vivres, du
     bois : ``echanges.enqueter``), quand rien de ce qu'il connaît n'y pourvoit : à qui il ne connaît
     rien de tel, qu'il ne se méfie pas et dont la réponse refusée ne tient plus (``deliberation.tient``),
-    le plus proche de là où il le croit. Avec ``sujet``, demander le lieu d'une personne à
+    le plus proche de là où il le croit ; faute de témoin joignable localisé, chercher
+    un témoin admissible sans encore supposer sa réponse. Avec ``sujet``, demander le lieu d'une personne à
     un interlocuteur cru présent ; ne supposer ni ce qu'il sait, ni une réponse positive.
     None s'il n'a personne à qui le demander."""
     if not profil(monde, id):
@@ -3223,12 +3224,20 @@ def s_enquerir(monde, id, besoin=None, *, sujet=None, _vue=None, _etat=None):
     candidats = []
     for autre in v.personnes():
         salle = v.salle(e, autre)
-        if autre in interroges or autre in connus or salle is None or v.se_mefie(autre):
+        if autre in interroges or autre in connus or v.se_mefie(autre):
+            continue
+        if salle is None:
+            candidats.append((float("inf"), autre, salle))
             continue
         longueur = v.trajet(e, salle, cible=autre)
         if salle == e.salle or longueur:
             candidats.append((longueur, autre, salle))
     for _, autre, salle in sorted(candidats):
+        if salle is None:
+            etapes = contacter(monde, id, autre)
+            if etapes is not None:
+                return {"type": "enquete", "besoin": besoin, "qui": autre}, etapes
+            continue
         etapes = [] if salle == e.salle else aller(monde, id, salle)
         if etapes is not None:
             return ({"type": "enquete", "besoin": besoin, "qui": autre},
@@ -3325,6 +3334,16 @@ def aller(monde, id, salle):
     """Les étapes pour se rendre dans une salle, ou None s'il n'y croit aucun passage."""
     trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="aller", memo=["aller", salle], emplois=())
     return None if trouve is None else trouve[1]
+
+
+def contacter(monde, id, sujet):
+    """Le préfixe de contact commun, sans exécuter la suite sur une présence supposée.
+
+    Le but appelant reste le parent des moyens ; inspection, appel et question
+    consomment les mêmes indices que rejoindre et sont revalidés au choix suivant.
+    """
+    resultat = rejoindre(monde, id, sujet)
+    return None if resultat is None else resultat[0]
 
 
 def rejoindre(monde, id, sujet):

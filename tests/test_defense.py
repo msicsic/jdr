@@ -112,7 +112,13 @@ class DefenseTests(unittest.TestCase):
             self.assertLess(corps.pv(m, "brune"), avant)
             self.assertFalse(m.data.get("defunts"))
             vue = " ".join(regarder(m).split())
-            self.assertIn("sans connaissance" if not corps.conscient(m, "brune") else "blessé", vue)
+            # Une recherche de contact peut l'avoir fait sortir du champ.
+            # La blessure reste réelle ; elle n'est décrite que si elle est vue.
+            if m.visible("brune"):
+                self.assertIn("sans connaissance" if not corps.conscient(m, "brune") else "blessé", vue)
+            else:
+                self.assertNotIn("Brune", vue)
+            self.assertEqual(regarder(m), regarder(recharger(m)))
 
     def test_joueur_fiches_et_issues_reelles_apres_rechargement(self):
         for auteur in ("brune", "marchand"):

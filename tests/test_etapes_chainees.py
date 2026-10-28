@@ -107,6 +107,7 @@ class EtapesTests(unittest.TestCase):
     def test_captures_mine_et_auberge_memes_plans_visites_monde_et_rendu_recharges(self):
         attendu = json.loads((DONNEES / "etapes-attendues.json").read_text(encoding="utf-8"))
         calcul = json.loads((DONNEES.parent / "profondeurs-preuve/etapes-calcul.json").read_text(encoding="utf-8"))
+        contacts = json.loads((DONNEES.parent / "contact-226-etapes.json").read_text(encoding="utf-8"))
         # Lot 191 : le registre d'audience change le monde sauvegardé ; dans
         # la mine, une parole supprimée change aussi les reprises du graphe
         # et les lignes. Les plans et les vues restent l'oracle historique.
@@ -136,8 +137,14 @@ class EtapesTests(unittest.TestCase):
                 # sans la naissance A6 éprouvée séparément après recharge.
                 from donjon import agendas
                 with patch.object(agendas, "_naissances", return_value=None):
+                    # 226 change le comportement : Odon cherche Josse pour
+                    # manger, Anselme cherche Lucien pour le bois. Plans,
+                    # monde et journal changent ; les deux vues du joueur
+                    # gardent exactement leurs empreintes historiques.
+                    self.assertEqual(set(contacts[scenario]),
+                                     {"visites", "n_visites", "plans", "n_plans", "diagnostics", "monde", "lignes"})
                     self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures,
-                                                                 **paroles[scenario]})
+                                                                 **paroles[scenario], **contacts[scenario]})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})

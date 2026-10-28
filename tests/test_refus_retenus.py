@@ -85,6 +85,10 @@ class TacheImpossibleTests(unittest.TestCase):
         # Elle a pu apprendre l'épuisement par les nouvelles : un lieu seul ne
         # dit pas que la réserve a été regarnie. Hugues précise qu'il reste du bois.
         croire(m, "mireille", "bois_anselme", "etat", {"disponible": True}, "dit:hugues", 0.7)
+        # Seule Mireille reçoit cette nouvelle. Le témoin reste présent
+        # et ignorant du bois : on éprouve le réessai de la même offre.
+        face_a_face(m, "mireille", "mathurine", "cuisine")
+        lire(m, "mathurine")["croyances"].pop("bois_anselme", None)
         m = recharger(m)
         self.assertIsNone(refus_retenu(m, "mireille", "mathurine", ("engager",), "fourneau"))
         # Le nombre dépend du chemin choisi et des moyens appris en route.
@@ -103,8 +107,20 @@ class TacheImpossibleTests(unittest.TestCase):
                 self.assertTrue(cause - causes[-1], (causes[-1], cause))
                 causes.append(cause)
 
-        with patch("donjon.deliberation.retenir_refus", side_effect=noter):
-            m, textes = vivre_long(m, 40)
+        from donjon.echanges import executer
+        from donjon.planification import _etape
+        from donjon import pnj
+        chroniquer, textes = pnj._chroniquer, []
+        def raconter(monde, id, texte, nature="geste"):
+            textes.append(texte)
+            return chroniquer(monde, id, texte, nature)
+        with patch("donjon.deliberation.retenir_refus", side_effect=noter), \
+                patch.object(pnj, "_chroniquer", side_effect=raconter):
+            # La même offre est effectivement formulée. L'autonomie peut
+            # désormais préférer chercher une autre personne à contacter.
+            self.assertFalse(executer(m, "mireille", _etape("engager", "mathurine", contenu={
+                "condition": {"objet": "fourneau", "allume": True}, "prix": 2}), []))
+        m = recharger(m)
         self.assertGreater(len(causes), 1)
         self.assertEqual(len(offres(textes, "Mireille", "Mathurine")), len(causes) - 1)
         # Mathurine n'en sait pas plus : refusée de nouveau, l'offre retient ce que Mireille croit désormais.

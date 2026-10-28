@@ -84,8 +84,13 @@ class DemandeDUneVoixInconnueTests(unittest.TestCase):
         for connue in (True, False):
             m = baraquement("reserve", voix_connue=connue)
             self.assertIsNone(_plan_pulsion(m, "mathe", {"objet": "vivres", "servir": "odon"}))
+            # Éprouver cette demande, pas le choix autonome entre demander
+            # la part et rechercher un autre fournisseur (226).
+            from donjon.echanges import executer
+            from donjon.planification import _etape
             with patch.object(Monde, "d20", return_value=20):
-                m, _ = attendre(m)
+                self.assertFalse(executer(m, "odon", _etape("demander", "mathe", outil="vivres"), []))
+            m = recharger(m)
             self.assertIn("Odon demande une part des vivres de la cuisine à Mathe (impossible).", chronique(m))
 
     def test_le_joueur_inconnu_de_gorm_dans_le_noir(self):
