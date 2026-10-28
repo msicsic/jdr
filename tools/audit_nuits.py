@@ -191,6 +191,8 @@ def ajouter_avis(nuit, analyse):
         donnees["mesures"]["avis_derives_ouvertes"] = analyse.get("total_derives_ouvertes", 0)
         if "total_services_etat_perdu" in analyse:
             donnees["mesures"]["avis_services_etat_perdu"] = analyse["total_services_etat_perdu"]
+        for classe, nombre in analyse.get("services_par_classe", {}).items():
+            donnees["mesures"]["avis_service_" + classe] = nombre
 
 
 def jouer_nuit(arguments):
@@ -546,8 +548,12 @@ def analyser_nuit(n):
             noter("avis_derive_ouverte", r["id"], r["debut_t"] / 600,
                   json.dumps(r, ensure_ascii=False), 1, niveau="observation")
         for r in avis.get("services_etat_perdu", ()):
-            noter("avis_etat_paye_perdu_duree_non_specifiee", r["prestataire"], r["perte_t"] / 600,
-                  json.dumps(r, ensure_ascii=False), 1, niveau="observation")
+            classe = r.get("classe")
+            if classe not in detecteur_avis().CLASSES_SERVICES:
+                classe = "cause_non_observee"
+            noter("avis_service_" + classe, r["prestataire"], r["perte_t"] / 600,
+                  json.dumps(r, ensure_ascii=False), 1,
+                  niveau="violation" if classe == "prestataire_beneficiaire_present" else "observation")
 
     return constats
 

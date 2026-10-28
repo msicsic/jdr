@@ -4,6 +4,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-compteur-services`, non fusionnée**, lot **227**, départ
+  `b8e433d` vérifié, moteur identique à `881db69` : outils seulement, aucun
+  `donjon/` ni Luna modifié. Les pertes d'états payés distinguent le geste du
+  prestataire sans départ cru (seul fautif), son geste après départ cru,
+  le bénéficiaire/tiers et la cessation physique ; une cause non observée
+  reste inconnue. Croyances prises avant le geste, observation de `agir`
+  (marche comprise), exécution et horloges physiques, sans mutation du monde.
+  Six cas 224 rejoués sur `bd45f65`/`e4ba54e` : **4 fautifs → 0**, **2 permis
+  → 2**, **0 physiques → 4**, total brut **6 → 6**. Cas 217 historique
+  retrouvé à **4584/4824**, corrigé sans perte dans la fenêtre reprise.
+  Banc courant **20 nuits × 4 h**, cinq scénarios × quatre graines :
+  **8 cessations physiques**, aucune autre classe ; monde complet,
+  empreintes, chronique, récit, souvenirs et mesures identiques avec/sans
+  sonde. **43 tests verts / trois fichiers, 104,740 s**, monde et rendus
+  rechargés sur torche, serrure et marche. Pas de suite complète du jeu.
+  Un seul calcul à la fois, priorité réduite ; aucune clé de signature.
+  Limites : paiements/réussites non observés non reconstruits, première
+  perte et conditions d'état déjà reconnues ; pas de causalité distante
+  certifiée ni de garantie générale sur les boucles. Bruts
+  `C:/Users/msics/donjon/artifacts/compteur-227/` ;
+  [rapport 227](taches/rapport-codex-227-compteur-services.md).
+
 - **Branche `codex-reessai-obstacle`, fusionnée**, lot **225**, départ
   `e4d8655` vérifié : patience 30 min conservée, répit 60 min retiré ; chaque
   renoncement retient son obstacle cru par but/moyen, sans effacement par

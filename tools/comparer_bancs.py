@@ -376,6 +376,10 @@ def afficher(rapport):
             for n in nuits:
                 classes.update((n.get("avis") or {}).get("comptes", {}))
             print("  Classes des retours : " + json.dumps(dict(classes), ensure_ascii=False))
+            services = Counter()
+            for n in nuits:
+                services.update((n.get("avis") or {}).get("services_par_classe", {}))
+            print("  Causes des pertes de service : " + json.dumps(dict(services), ensure_ascii=False))
 
 
 def main(argv=None):
