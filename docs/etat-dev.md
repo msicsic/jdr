@@ -2,6 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
 
+- **Branche `codex-depart-rendez-vous`, fusionnée**, lot **270**,
+  diagnostic seul, base `4d2881f` : les **15 départs** comptés par la 241 dans
+  la crue (huit graines `audit-12h` et `verifier-8h`) sont **11 cas distincts
+  = 4 venues, 1 clôture, 6 ruptures**. Les venues sont des `J'arrive !` suivis
+  du départ vers l'appelant ; la clôture est Ilse 42 à 282, dont l'attente est
+  déjà rompue à 281 ; les six ruptures ont toutes un **palier strictement
+  supérieur** (eau 0, besoin pressant 4, parole due 5), sont annoncées et
+  **entendues** par le partenaire. Les quatre lignes `verifier-8h/42` répètent
+  `audit-12h/42` (665 lignes et cinq empreintes identiques jusqu'à 480 min,
+  seule `issue` diffère). **Aucun défaut du moteur** : la hausse 10 → 15 est
+  un artefact du compteur, qui ne suit ni l'état réel de l'attente, ni le
+  `J'arrive !` du même PNJ, ni la rupture entendue, et ne déduplique pas les
+  nuits rejouées dans deux groupes. Aucun code du jeu modifié, ni Luna, suite
+  complète ou banc comparatif. **Quatre captures** monde/empreinte/rendu
+  identiques après recharge, dont les départs de 281 sur `c870c8b` (worktree
+  détaché, graine 42, cinq empreintes exactes). Bruts
+  `C:/Users/msics/donjon/artifacts/rendez-vous-270/` ;
+  [rapport 270](taches/rapport-codex-270-depart-rendez-vous.md). Aucun calcul
+  actif.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement, premier essai de DeepSeek V4.1 Flash Free (OpenCode) : livré complet. Les 15 départs comptés par la 241 sont 11 cas distincts : 4 venues promises (J'arrive ! puis départ vers l'appelant), 1 après clôture, 6 ruptures à palier strictement supérieur (eau, besoin pressant, parole due), toutes annoncées et entendues ; 4 doublons (verifier-8h/42 rejoue audit-12h/42). Aucun défaut du moteur ; la hausse 10 → 15 vient du comptage textuel de la 241, qui ne suit ni l'attente réelle, ni le J'arrive !, ni la rupture entendue, ni les nuits rejouées.
+
 - **Branche `codex-coup-torche`, fusionnée**, lot **269**, diagnostic
   seul, base `integration 47fd0a2` : coup absent de la nuit actuelle,
   reproduit sur `c870c8b` détaché, hameau 1985, départ tiré, joueur passif
