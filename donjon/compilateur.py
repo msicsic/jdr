@@ -6,6 +6,7 @@ d'intention compact, sans consigne narrative ni double passe d'audit lourd.
 """
 import copy
 import os
+import re
 
 from .agendas import contrats
 from .fournisseurs.contrat import Demande
@@ -21,12 +22,13 @@ ACTIONS_AUTORISEES = [
     "observer", "examiner", "toucher", "lire", "ecouter", "aller", "marcher", "faufiler", "chasser", "tourner", "attendre",
     "prendre", "poser", "acheter", "voler", "lister_marchandises", "allumer", "eteindre",
     "ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "detacher",
-    "couper", "bloquer", "debloquer", "copier", "passer_obstacle",
+    "couper", "decouper", "assembler", "installer", "franchir", "desinstaller",
+    "bloquer", "debloquer", "copier", "passer_obstacle",
     "frapper", "saisir", "pousser", "ligoter", "delier", "liberer", "degager", "trainer", "tuer", "ranimer",
-    "remettre", "improviser", "composer", "conversation_pnj", "dialogue", "clarifier", "impossible"
+    "remettre", "etablir_faits", "improviser", "composer", "conversation_pnj", "dialogue", "clarifier", "impossible"
 ]
 METHODES_AUTORISEES = [
-    "simple", "finesse", "force", "discret", "percussion", "levier", "traction", "assommer",
+    "simple", "soigne", "finesse", "force", "discret", "percussion", "levier", "traction", "assommer",
     "cri", "appel", "sifflement", "heler", "dessous", "dessus", "appui_mobile"
 ]
 OPERATIONS_AUTORISEES = ["proposer", "negocier", "accepter", "refuser", "discuter", ""]
@@ -66,6 +68,12 @@ ACTIONS :
 - ranimer : réveiller un personnage inconscient au contact (cible = id personnage).
 - remettre : cible = id de l'objet porté (ex: "anneau"), outil = id du destinataire (ex: "marchand").
   Donner ou remettre un objet convenu est toujours l'action mécanique remettre, pas une conversation.
+- decouper : couper une barre ou un lien à une longueur donnée. cible = id de la pièce, outil = id outil tranchant (ex: "hache"), difficulte (ou montant_demande) = longueur_cm à couper (ex: 100).
+- assembler : fabriquer une échelle (usage echelle) avec 2 montants, 1 barre pour les barreaux, 1 lien et 1 outil tranchant. cible = "montant_1,montant_2,barreaux,lien" (ou "" pour reprendre la suggestion du dossier atelier), outil = id outil (ex: "hache"), methode = "soigne" (sans jet, 2x temps) ou "simple" (rythme normal), montant_demande = longueur_cm (ex: 300, ou 0 pour défaut).
+- installer : appuyer un assemblage (échelle) contre un appui vertical. cible = id assemblage, outil = id appui_vertical.
+- franchir : monter ou descendre par un assemblage installé. cible = id assemblage installé, outil = "".
+- desinstaller : retirer un assemblage de son appui. cible = id assemblage installé, outil = "".
+- etablir_faits : établir un fait narratif (détail visuel, inscription, petit objet matérialisé, ou qualification physique d'un objet lorsque retour_moteur le demande).
 - improviser : geste expressif ou émission sonore du joueur hors actions spécialisées :
   - chanter, fredonner un air : cible = "voix_melodique"
   - tousser, rire, grognement, raclement de gorge : cible = "voix_breve"
@@ -76,6 +84,8 @@ ACTIONS :
 - composer : séquence d'étapes pour le vol furtif, émission vocale forte ou manœuvre combinée :
   - patienter : guetter deux minutes (cible="", destination="", outil="", methode="simple", difficulte=0).
   - deplacer : cible = id, destination = "joueur" (prendre) ou salle (poser). Pour voler : methode "discret".
+  - prelever : séparer une pièce d'un lot (cible = id lot, destination = "joueur" ou salle, methode = "simple").
+  - appuyer / franchir / soulever : installer un assemblage (appuyer: cible=id assemblage, outil=id appui), le franchir (franchir: cible=id assemblage), ou le retirer (soulever: cible=id assemblage).
   - emettre_son : cible = "joueur", methode = "cri" | "appel" | "sifflement" (ou cible = id objet sonore, methode = "simple").
   Attendre une occasion pour voler un objet = composer avec :
     étape 1 : patienter
@@ -342,6 +352,10 @@ def extraire_contexte(monde, intention=""):
     }
     if comptes:
         ctx["comptes"] = comptes
+    from .artisanat import dossier as dossier_atelier
+    d_atelier = dossier_atelier(monde)
+    if d_atelier:
+        ctx["atelier"] = d_atelier
     if intention:
         prev = paroles.prevue(monde, intention)
         if "personnage" in prev:
@@ -667,10 +681,67 @@ def normaliser_proposition(prop, monde=None, intention=""):
             "justification": prop.get("justification", ""),
         }
 
-    # 4. Actions simples standard (examiner, prendre, poser, aller, attendre, acheter, combat, etc.)
+    if action == "etablir_faits":
+        return {
+            "action": "etablir_faits",
+            "ajouts": prop.get("ajouts") if isinstance(prop.get("ajouts"), list) else [],
+            "justification": prop.get("justification", ""),
+        }
+
+    # 4. Actions simples standard et atelier (decouper, assembler, installer, franchir, desinstaller, etc.)
     cible = prop.get("cible", "")
     outil = prop.get("outil", "")
     methode = prop.get("methode", "simple")
+
+    if action == "assembler":
+        from .artisanat import dossier as dossier_atelier, ressources_libres
+        pieces_dict = prop.get("pieces")
+        if isinstance(pieces_dict, dict) and "montants" in pieces_dict and "barreaux" in pieces_dict:
+            montants = list(pieces_dict["montants"])
+            barreaux = str(pieces_dict["barreaux"])
+            lien = str(prop.get("lien") or "")
+        else:
+            jetons = [t.strip() for t in (cible or "").replace(";", ",").split(",") if t.strip()]
+            montants = jetons[:2] if len(jetons) >= 2 else []
+            barreaux = jetons[2] if len(jetons) >= 3 else ""
+            lien = jetons[3] if len(jetons) >= 4 else (prop.get("lien") or "")
+        if monde:
+            d_at = dossier_atelier(monde) or {}
+            sugg = (d_at.get("suggestion") or {}).get("proposition") or {}
+            perches_libres = ressources_libres(monde, "perche")
+            liens_libres = ressources_libres(monde, "lien")
+            if len(montants) < 2:
+                montants = list(sugg.get("montants") or perches_libres[:2])
+                while len(montants) < 2:
+                    montants.append("")
+            if not barreaux:
+                barreaux = str(sugg.get("traverses") or (perches_libres[2] if len(perches_libres) >= 3 else ""))
+            if not lien:
+                lien = str(sugg.get("lien") or (liens_libres[0] if liens_libres else ""))
+            if not outil or outil not in monde.objets:
+                adaptes = [o_id for o_id, o in monde.objets.items() if o.get("lieu") == "joueur" and "couper_bois" in o.get("usages", [])]
+                outil = str(sugg.get("outil") or (adaptes[0] if adaptes else outil))
+        rythme = prop.get("rythme") if prop.get("rythme") in ("normal", "soigne") else (
+            "soigne" if methode == "soigne" or any(w in saisie_norm for w in ("soigne", "temps", "presser", "calme")) else "normal"
+        )
+        m_len_asm = re.search(r"\d+", str(prop.get("longueur_cm") or prop.get("montant_demande") or prop.get("texte") or ""))
+        longueur_cm = int(m_len_asm.group(0)) if m_len_asm else 300
+        if not 100 <= longueur_cm <= 500:
+            longueur_cm = 300
+        largeur_cm = int(prop.get("largeur_cm") or 35)
+        diff_ass = 0 if rythme == "soigne" else (int(prop.get("difficulte") or 12) if 10 <= int(prop.get("difficulte") or 0) <= 18 else 12)
+        return {
+            "action": "assembler",
+            "usage": str(prop.get("usage") or "echelle"),
+            "pieces": {"montants": montants[:2], "barreaux": barreaux},
+            "lien": lien,
+            "outil": outil,
+            "longueur_cm": longueur_cm,
+            "largeur_cm": largeur_cm,
+            "difficulte": diff_ass,
+            "rythme": rythme,
+            "justification": prop.get("justification") or "Assembler une échelle.",
+        }
 
     if action in _ACTIONS_PERSONNAGE:
         cible = _resoudre_cible_personnage(monde, cible or prop.get("personnage") or "", intention)
@@ -696,6 +767,8 @@ def normaliser_proposition(prop, monde=None, intention=""):
                     break
 
     # Normalisation de outil (sauf pousser / trainer où outil est une direction)
+    if action == "installer" and not outil and prop.get("destination"):
+        outil = prop.get("destination", "")
     if action not in ("pousser", "trainer") and monde and outil:
         if outil not in monde.objets:
             o_norm = normaliser(outil)
@@ -706,7 +779,7 @@ def normaliser_proposition(prop, monde=None, intention=""):
                     break
             else:
                 for o_id, o in monde.objets.items():
-                    if o.get("lieu") == "joueur":
+                    if o.get("lieu") == "joueur" or (action == "installer" and o.get("appui_vertical")):
                         noms = [o_id, normaliser(o.get("nom", ""))] + [normaliser(a) for a in o.get("aliases", [])]
                         if any(len(n) >= 3 and (n in o_norm or o_norm in n) for n in noms):
                             outil = o_id
@@ -721,11 +794,20 @@ def normaliser_proposition(prop, monde=None, intention=""):
         if regle is None or regle[0]:
             outil = ""
 
-    # Pour saisir / ranimer / liberer / degager, outil doit rester vide
-    if action in ("saisir", "ranimer", "liberer", "degager"):
+    # Pour saisir / ranimer / liberer / degager / franchir / desinstaller, outil doit rester vide
+    if action in ("saisir", "ranimer", "liberer", "degager", "franchir", "desinstaller"):
         outil = ""
     if action == "liberer" and not cible:
         cible = "joueur"
+    if action in ("installer", "franchir", "desinstaller") and monde:
+        if not cible or not monde.objets.get(cible, {}).get("assemblage"):
+            assemblages = [o_id for o_id, o in monde.objets.items() if o.get("assemblage") and monde.accessible(o_id)]
+            if len(assemblages) == 1:
+                cible = assemblages[0]
+        if action == "installer" and (not outil or outil not in monde.objets):
+            appuis = [o_id for o_id, o in monde.objets.items() if o.get("appui_vertical") and monde.accessible(o_id)]
+            if len(appuis) == 1:
+                outil = appuis[0]
 
     # Déduction automatique de l'outil requis par l'action si manquant ou non trouvé
     if monde and (not outil or outil not in monde.objets):
@@ -733,7 +815,7 @@ def normaliser_proposition(prop, monde=None, intention=""):
             adaptes = [o_id for o_id, o in monde.objets.items() if o.get("lieu") == "joueur" and "crochetage" in o.get("usages", [])]
             if adaptes:
                 outil = adaptes[0]
-        elif action == "couper":
+        elif action in ("couper", "decouper"):
             adaptes = [o_id for o_id, o in monde.objets.items() if o.get("lieu") == "joueur" and set(o.get("usages", [])) & {"couper", "couper_bois"}]
             if adaptes:
                 outil = adaptes[0]
@@ -755,6 +837,17 @@ def normaliser_proposition(prop, monde=None, intention=""):
             if liens:
                 outil = liens[0]
 
+    if action == "decouper":
+        m_len_dec = re.search(r"\d+", str(prop.get("longueur_cm") or prop.get("difficulte") or prop.get("montant_demande") or prop.get("texte") or ""))
+        longueur_dec = int(m_len_dec.group(0)) if m_len_dec else 0
+        return {
+            "action": "decouper",
+            "cible": cible,
+            "outil": outil,
+            "longueur_cm": longueur_dec,
+            "justification": prop.get("justification", ""),
+        }
+
     if methode not in ("simple", "finesse", "levier", "percussion", "traction", "assommer"):
         methode = "simple"
     difficulte = prop.get("difficulte", 0) if action == "detacher" else 0
@@ -767,6 +860,56 @@ def normaliser_proposition(prop, monde=None, intention=""):
         "difficulte": difficulte,
         "justification": prop.get("justification", ""),
     }
+
+
+PROMPT_COMPILATEUR_FAITS = """Tu établis des faits narratifs ou des qualifications physiques dans LE SEUIL.
+Tu reçois l'intention du joueur, le catalogue `faits_narratifs_proposables` (supports, qualifiables, évolutions, potentiel_invention) et éventuellement `qualification_requise` ou `retour_moteur`.
+Propose `ajouts` (1 à 3 éléments) strictement conformes au schéma :
+- Si `qualification_requise` demande la capacité "tranchable" d'un objet avec un moyen (outil), utilise un ajout `{"type": "qualification", "ancrage": <objet>, "moyen": <moyen>, "coupe_possible": <true|false>}` d'après le matériau, la masse, la description de l'objet et l'outil.
+- Si `qualification_requise` demande une autre capacité ("lumiere", "son", etc.), utilise `{"type": "qualification", "ancrage": <objet>, "capacites": [...]}` si l'objet possède réellement cette capacité, sinon `{"type": "qualification", "ancrage": <objet>, "ecartees": [<capacite>]}`.
+- Si un objet doit être décrit physiquement (`physique`), utilise `{"type": "qualification", "ancrage": <objet>, "physique": {"forme": "barre"|"plaque"|"lien"|"bloc"|"etoffe", "matiere": ..., "pieces": ..., "nom_piece": "", "dimensions": {"longueur_cm": ..., "largeur_cm": ..., "epaisseur_cm": ..., "diametre_cm": 0, "hauteur_cm": 0}}}` cohérent avec sa masse et son matériau (une planche ou perche est de forme `"barre"`).
+- Si un passage sous obstacle doit être décrit (`passage`), utilise `{"type": "qualification", "ancrage": <objet>, "passage": {"degagement_cm": ..., "hauteur_cm": ..., "largeur_cm": ..., "profondeur_cm": ..., "charge_kg": ..., "appuis": <true|false>}}`.
+- Pour un détail visuel ou une inscription sur un support de `supports`, utilise `type: "detail"` ou `"inscription"`.
+- Pour matérialiser un petit objet sur un support (dans la limite de `potentiel_invention`), utilise `type: "objet"`.
+"""
+
+
+def compiler_faits(
+    fournisseur,
+    monde,
+    intention,
+    modele=None,
+    timeout=30,
+    effort=None,
+    qualification_requise=None,
+    retour_moteur=None,
+):
+    """Appelle le fournisseur pour produire un ajout typé conforme à ``SCHEMA_FAITS``."""
+    from .faits_locaux import SCHEMA_FAITS, catalogue as catalogue_faits
+    entree = {
+        "intention": intention,
+        "faits_narratifs_proposables": catalogue_faits(monde),
+    }
+    if qualification_requise is not None:
+        entree["qualification_requise"] = qualification_requise
+    if retour_moteur is not None:
+        entree["retour_moteur"] = retour_moteur
+    modele_choisi = determiner_modele(fournisseur, modele)
+    if effort is None:
+        cls_nom = fournisseur.__class__.__name__.lower()
+        effort = "none" if "local" in cls_nom or "mimo" in cls_nom else "medium"
+    demande = Demande(
+        instructions=PROMPT_COMPILATEUR_FAITS,
+        entree=entree,
+        intention=intention,
+        fonction="etablir_faits",
+        schema=SCHEMA_FAITS,
+        modele=modele_choisi,
+        effort=effort,
+        timeout=timeout,
+    )
+    reponse = fournisseur.appeler(demande)
+    return reponse.arguments, reponse.utilisation
 
 
 def compiler(fournisseur, monde, intention, modele=None, timeout=30, effort=None, retour_moteur=None):

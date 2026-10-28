@@ -978,5 +978,247 @@ class ParoleJoueurDecoupleTests(unittest.TestCase):
         self.assertNotIn("Brune", appels_dial[0]["instructions"])
 
 
+class AtelierEtQualificationDecoupleTests(unittest.TestCase):
+    """Vérifie le Lot C dans le chemin découplé : QualificationRequise / etablir_faits et atelier."""
+
+    def _arg(self, **surcharges):
+        base = {
+            "action": "dialogue",
+            "cible": "",
+            "outil": "",
+            "avec": "",
+            "methode": "",
+            "direction": "",
+            "texte": "",
+            "sujet_parole": "",
+            "contenu": [],
+        }
+        base.update(surcharges)
+        return base
+
+    def _mj_sequence(self, reponses_compilateur, reponses_faits=()):
+        from donjon.fournisseurs.contrat import Fournisseur, Reponse
+        appels_compil = []
+        appels_faits = []
+        it_compil = iter(reponses_compilateur)
+        it_faits = iter(reponses_faits)
+
+        class Faux(Fournisseur):
+            def _appeler(self, demande):
+                if demande.fonction == "compiler_intention":
+                    appels_compil.append(copy.deepcopy(demande.entree))
+                    return Reponse(arguments=next(it_compil), brut={}, utilisation={"entree": 10, "sortie": 5})
+                if demande.fonction == "etablir_faits":
+                    appels_faits.append(copy.deepcopy(demande.entree))
+                    return Reponse(arguments=next(it_faits), brut={}, utilisation={"entree": 10, "sortie": 5})
+                return Reponse(arguments={"texte": "", "replique": ""}, brut={}, utilisation={})
+
+        return MJOpenAI(connexion="local", fournisseur=Faux(), decoupler=True), appels_compil, appels_faits
+
+    def test_qualification_coupe_positive_et_negative_avec_rechargement(self):
+        from unittest.mock import patch
+        from donjon.atelier import nouveau_atelier
+        from donjon.capacites_objet import statut as statut_capacite
+        from donjon.monde import objet
+        from donjon.moteur import Moteur
+        from donjon.transactions import appliquer
+
+        def _atelier_plaque_scie():
+            m = nouveau_atelier()
+            m.objets["plaque"] = objet(
+                "plaque", "plaque d'acier", "materiau", "cour", genre="f",
+                materiau="acier doux", masse=12.6, mobile=False,
+                description_visuelle="Plaque d'acier doux de 2 mm, fixée au sol.")
+            m.objets["plaque"]["position"] = list(m.joueur["position"])
+            m.objets["scie"] = objet(
+                "scie", "scie à métaux", "outil", "joueur", genre="f",
+                materiau="acier", masse=0.6, usages=["couper"], puissance=2,
+                description_visuelle="Lame fine adaptée au sciage de l'acier doux.")
+            return m
+
+        # Cas 1 : qualification positive (coupe_possible=True sur la plaque avec la scie)
+        m = _atelier_plaque_scie()
+        mj, appels_c, appels_f = self._mj_sequence(
+            reponses_compilateur=[
+                self._arg(action="couper", cible="plaque", outil="scie"),
+            ],
+            reponses_faits=[
+                {
+                    "ajouts": [{
+                        "type": "qualification",
+                        "ancrage": "plaque",
+                        "moyen": "scie",
+                        "coupe_possible": True,
+                    }],
+                },
+            ],
+        )
+        r = mj.echanger(m, "Je scie la plaque avec la scie")
+        self.assertEqual(len(appels_c), 1)
+        self.assertEqual(len(appels_f), 1)
+        self.assertEqual(r["mode"], "action")
+        self.assertEqual(r["proposition"]["action"], "couper")
+        self.assertEqual(len(r["_transactions"]), 1)
+        self.assertEqual(r["_transactions"][0]["type"], "faits")
+
+        m, _ = appliquer(m, r["_transactions"])
+        with patch.object(Monde, "d20", return_value=20):
+            res = Moteur(m).executer(Moteur(m).preparer(r["proposition"], "MJ"))
+        self.assertIsInstance(res, str)
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "coupe_pos.json"
+            m.sauver(f)
+            reprise = Monde.charger(f)
+        self.assertEqual(statut_capacite(reprise.objets["plaque"], "tranchable", reprise.objets["scie"]), "etablie")
+        self.assertLess(reprise.objets["plaque"]["integrite"], 10)
+
+        # Cas 2 : qualification négative (coupe_possible=False) après 1 relance sur outil invalide
+        m2 = _atelier_plaque_scie()
+        mj2, appels_c2, appels_f2 = self._mj_sequence(
+            reponses_compilateur=[
+                self._arg(action="couper", cible="plaque", outil="scie"),
+            ],
+            reponses_faits=[
+                {
+                    "ajouts": [{
+                        "type": "qualification",
+                        "ancrage": "plaque",
+                        "moyen": "outil_inexistant",
+                        "coupe_possible": False,
+                    }],
+                },
+                {
+                    "ajouts": [{
+                        "type": "qualification",
+                        "ancrage": "plaque",
+                        "moyen": "scie",
+                        "coupe_possible": False,
+                    }],
+                },
+            ],
+        )
+        r2 = mj2.echanger(m2, "Je scie la plaque avec la scie")
+        self.assertEqual(len(appels_c2), 1)
+        self.assertEqual(len(appels_f2), 2)
+        self.assertIn("moyen", appels_f2[1]["retour_moteur"]["attendu"])
+        self.assertEqual(r2["mode"], "dialogue")
+        self.assertIn("résiste à la scie", r2["texte"])
+        self.assertEqual(len(r2["_transactions"]), 1)
+        m2, _ = appliquer(m2, r2["_transactions"])
+        with tempfile.TemporaryDirectory() as tmp:
+            f2 = Path(tmp) / "coupe_neg.json"
+            m2.sauver(f2)
+            reprise2 = Monde.charger(f2)
+        self.assertEqual(statut_capacite(reprise2.objets["plaque"], "tranchable", reprise2.objets["scie"]), "ecartee")
+        self.assertEqual(reprise2.objets["plaque"]["integrite"], 10)
+
+    def test_qualification_physique_puis_decouper_et_assembler_installer_franchir_apres_rechargement(self):
+        from unittest.mock import patch
+        from donjon.atelier import nouveau_atelier
+        from donjon.moteur import Moteur
+        from donjon.transactions import appliquer
+
+        # Cas 1 : découper une planche brute non décrite physiquement déclenche etablir_faits (physique)
+        m = nouveau_atelier()
+        m.objets["planche_brute"] = {
+            "id": "planche_brute",
+            "nom": "planche brute",
+            "aliases": ["planche"],
+            "genre": "f",
+            "type": "materiau",
+            "lieu": "cour",
+            "position": list(m.joueur["position"]),
+            "position_salle": "cour",
+            "mobile": True,
+            "masse": 9.0,
+            "materiau": "bois",
+            "integrite": 10,
+            "maximum": 10,
+            "proprietaire": "joueur",
+        }
+        mj, appels_c, appels_f = self._mj_sequence(
+            reponses_compilateur=[
+                self._arg(action="decouper", cible="planche_brute", outil="hache", texte="100"),
+            ],
+            reponses_faits=[
+                {
+                    "ajouts": [{
+                        "type": "qualification",
+                        "ancrage": "planche_brute",
+                        "physique": {
+                            "forme": "barre",
+                            "matiere": "bois",
+                            "pieces": 1,
+                            "nom_piece": "",
+                            "dimensions": {
+                                "longueur_cm": 300,
+                                "largeur_cm": 20,
+                                "epaisseur_cm": 2.5,
+                                "diametre_cm": 0,
+                                "hauteur_cm": 0,
+                            },
+                        },
+                    }],
+                },
+            ],
+        )
+        r = mj.echanger(m, "Je coupe un morceau d'un mètre dans la planche brute avec la hache")
+        self.assertEqual(len(appels_c), 1)
+        self.assertEqual(len(appels_f), 1)
+        self.assertEqual(r["mode"], "action")
+        self.assertEqual(r["proposition"]["action"], "decouper")
+        m, _ = appliquer(m, r["_transactions"])
+        with patch.object(Monde, "d20", return_value=20):
+            res = Moteur(m).executer(Moteur(m).preparer(r["proposition"], "MJ"))
+        self.assertIsInstance(res, str)
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "decoupe.json"
+            m.sauver(f)
+            reprise = Monde.charger(f)
+        self.assertEqual(reprise.objets["planche_brute"]["physique"]["dimensions"]["longueur_cm"], 200)
+        self.assertIn("planche_brute_1", reprise.objets)
+        self.assertEqual(reprise.objets["planche_brute_1"]["physique"]["dimensions"]["longueur_cm"], 100)
+
+        # Cas 2 : assembler une échelle soignée, l'installer contre mur_atelier et franchir vers la terrasse
+        m2 = nouveau_atelier(seed=1985)
+        m2.data["mode_cases"] = False
+        mj2, appels_c2, _ = self._mj_sequence(
+            reponses_compilateur=[
+                self._arg(action="assembler", cible="echelle", methode="soigne", texte="300"),
+                self._arg(action="installer", cible="echelle_1", avec="mur_atelier"),
+                self._arg(action="franchir", cible="mur_atelier"),
+            ],
+        )
+        r_asm = mj2.echanger(m2, "Je fabrique soigneusement une échelle de 3 mètres avec les perches et la ficelle")
+        self.assertEqual(r_asm["mode"], "action")
+        self.assertEqual(r_asm["proposition"]["action"], "assembler")
+        self.assertEqual(r_asm["proposition"]["rythme"], "soigne")
+        with patch.object(Monde, "d20", return_value=20):
+            res_asm = Moteur(m2).executer(Moteur(m2).preparer(r_asm["proposition"], "MJ"))
+        self.assertIsInstance(res_asm, str)
+        self.assertIn("assemblage_1", m2.objets)
+
+        r_inst = mj2.echanger(m2, "Je dresse l'échelle contre le mur de l'atelier")
+        self.assertEqual(r_inst["mode"], "action")
+        self.assertEqual(r_inst["proposition"]["action"], "installer")
+        with patch.object(Monde, "d20", return_value=20):
+            res_inst = Moteur(m2).executer(Moteur(m2).preparer(r_inst["proposition"], "MJ"))
+        self.assertIsInstance(res_inst, str)
+
+        r_fr = mj2.echanger(m2, "Je grimpe à l'échelle jusqu'à la terrasse")
+        self.assertEqual(r_fr["mode"], "action")
+        self.assertEqual(r_fr["proposition"]["action"], "franchir")
+        with patch.object(Monde, "d20", return_value=20):
+            res_fr = Moteur(m2).executer(Moteur(m2).preparer(r_fr["proposition"], "MJ"))
+        self.assertIsInstance(res_fr, str)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            f2 = Path(tmp) / "atelier_echelle.json"
+            m2.sauver(f2)
+            reprise2 = Monde.charger(f2)
+        self.assertEqual(reprise2.joueur["salle"], "terrasse")
+        self.assertEqual(reprise2.objets["assemblage_1"]["installation"]["support"], "mur_atelier")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -652,7 +652,120 @@ class MJ:
         return self._echanger(monde, "Raconte la manœuvre qui vient d'être résolue.", None,
                               enrichir=False, resultat_resolu=resultat)
 
-    def _echanger_decouple(self, monde, intention, proposition_en_attente=None):
+    def _resoudre_faits_decouple(
+        self,
+        monde,
+        intention,
+        proposition_en_attente,
+        revision,
+        *,
+        p_faits_initiale=None,
+        prop_action=None,
+        qualification_requise=None,
+        retour_initial=None,
+    ):
+        from .compilateur import compiler_faits
+        if p_faits_initiale and p_faits_initiale.get("ajouts"):
+            p_faits = {"ajouts": p_faits_initiale["ajouts"]}
+        else:
+            p_faits, u_f = compiler_faits(
+                self.fournisseur,
+                monde,
+                intention,
+                modele=self.modele,
+                timeout=self.timeout,
+                effort=self.effort,
+                qualification_requise=qualification_requise,
+                retour_moteur=retour_initial,
+            )
+            self.derniere_utilisation = additionner_usage(self.derniere_utilisation, u_f)
+        try:
+            travail, texte_faits, _ = preparer_faits(monde, p_faits, revision)
+        except ErreurMonde as exc_f:
+            retour_f = retour_refus(
+                p_faits,
+                exc_f,
+                "Revois les ancrages et les faits actuels d'après attendu. Ne raconte pas un fait refusé.",
+            )
+            if self.observateur:
+                self.observateur({
+                    "etape": "validation",
+                    "modele": self.modele,
+                    "intention": intention,
+                    "revision": revision,
+                    "tentative": 1,
+                    **retour_f,
+                })
+            p_faits, u_f2 = compiler_faits(
+                self.fournisseur,
+                monde,
+                intention,
+                modele=self.modele,
+                timeout=self.timeout,
+                effort=self.effort,
+                qualification_requise=qualification_requise,
+                retour_moteur=retour_f,
+            )
+            self.derniere_utilisation = additionner_usage(self.derniere_utilisation, u_f2)
+            travail, texte_faits, _ = preparer_faits(monde, p_faits, revision)
+
+        qualification = any(a.get("type") == "qualification" for a in p_faits.get("ajouts", []))
+        manipulable = any(a.get("type") == "objet" for a in p_faits.get("ajouts", []))
+        if qualification or (manipulable and not est_question(intention)):
+            if prop_action is not None:
+                try:
+                    plan = Moteur(travail.copier()).preparer(prop_action, "MJ")
+                    if plan.realise_geste:
+                        return ajouter_transaction(
+                            {"mode": "action", "proposition": prop_action, "_transactions": []},
+                            "faits",
+                            revision,
+                            p_faits,
+                            debut=True,
+                        )
+                except ErreurMonde as exc_suite:
+                    if (
+                        "qualification établie" in (exc_suite.attendu or "")
+                        or "ne re-propose pas" in (exc_suite.attendu or "")
+                    ):
+                        return ajouter_transaction(
+                            {
+                                "mode": "dialogue",
+                                "texte": texte_faits,
+                                "ambiance": "",
+                                "faits": [],
+                                "proposition": None,
+                                "_texte_moteur": True,
+                                "_transactions": [],
+                            },
+                            "faits",
+                            revision,
+                            p_faits,
+                        )
+            try:
+                suite = self._echanger_decouple(
+                    travail, intention, proposition_en_attente, _suite_fait=True
+                )
+                if suite["mode"] == "action" or (suite["mode"] == "dialogue" and not qualification):
+                    return ajouter_transaction(suite, "faits", revision, p_faits, debut=True)
+            except ErreurMonde:
+                pass
+        return ajouter_transaction(
+            {
+                "mode": "dialogue",
+                "texte": texte_faits,
+                "ambiance": "",
+                "faits": [],
+                "proposition": None,
+                "_texte_moteur": True,
+                "_transactions": [],
+            },
+            "faits",
+            revision,
+            p_faits,
+        )
+
+    def _echanger_decouple(self, monde, intention, proposition_en_attente=None, *, _suite_fait=False):
         from .compilateur import compiler
         revision = monde.data["revision"]
         if (not est_question(intention) and proposition_en_attente is None and
@@ -891,6 +1004,18 @@ class MJ:
                         "_transactions": transactions,
                     }
 
+                if action == "etablir_faits":
+                    if _suite_fait:
+                        raise ErreurMonde("Le réexamen après un fait établi a proposé d'autres faits.")
+                    return self._resoudre_faits_decouple(
+                        monde,
+                        intention,
+                        proposition_en_attente,
+                        revision,
+                        p_faits_initiale=prop if prop.get("ajouts") else None,
+                        retour_initial=retour,
+                    )
+
                 if action == "impossible" and not (correction_utilisee or forme_corrigee):
                     raise RefusDeForme(REEXAMEN, ATTENDU_REEXAMEN)
 
@@ -918,6 +1043,39 @@ class MJ:
                                 "tentative": tentative + 1,
                                 **retour_refus(prop, exc, "Une propriété reste à décrire ; rien n'est tenté.")})
                         return {**reponse_du_moteur(exc), "_transactions": []}
+                    if (not _suite_fait and not geste_en_question(monde, intention)
+                            and (isinstance(exc, QualificationRequise) or "etablir_faits" in (exc.attendu or ""))):
+                        qual_req = (
+                            {"objet": exc.cible, "capacite": exc.capacite, "moyen": prop.get("outil", "")}
+                            if isinstance(exc, QualificationRequise)
+                            else None
+                        )
+                        retour_q = retour_refus(
+                            prop,
+                            exc,
+                            "L'action attend une propriété physique ou un fait encore inconnu. "
+                            "Propose dans etablir_faits un jugement compatible avec les faits.",
+                        )
+                        if qual_req is not None:
+                            retour_q["qualification_requise"] = qual_req
+                        if self.observateur:
+                            self.observateur({
+                                "etape": "validation",
+                                "modele": self.modele,
+                                "intention": intention,
+                                "revision": revision,
+                                "tentative": tentative + 1,
+                                **retour_q,
+                            })
+                        return self._resoudre_faits_decouple(
+                            monde,
+                            intention,
+                            proposition_en_attente,
+                            revision,
+                            prop_action=prop,
+                            qualification_requise=qual_req,
+                            retour_initial=retour_q,
+                        )
                     if not isinstance(exc, (QualificationRequise, RefusDeForme)):
                         if str(exc) not in map(str, refus_monde):
                             refus_monde.append(exc)
