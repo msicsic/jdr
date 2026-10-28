@@ -5,37 +5,32 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Où on en est
 
 - **Branche `codex-ceder-outil-b`, non fusionnée**, lot **228**, reprise du
-  **202**, intégration **`d9e5166`** fusionnée dans `e938352`
-  (233/238/239/240 inclus). Compensation `e8feb8f`, arbitrage autorisé des
-  six tests voisins **`537a352`**. Capacité marginale protégée sauf doublon,
-  remplacement acquis ou valeur suffisante ; achat **8,4 contre 0,909 refusé**.
-  Cache négatif conservé, anciens verdicts rejugés sous le nouveau contrat.
-  Aucun correctif propre à un objet ; `tenu`, `plan_recours`, `choisir`
-  et services protégés conservent les raccords des lots voisins.
-  **47 ciblés distincts verts**. Lucien conserve ses crochets (14,4 contre
-  huile 6) et propose une pièce ; **seul hash monde auberge réancré explicitement**,
-  diff exhaustif archivé, autres empreintes gardées. Prêt à Lucien refusé,
-  vente de lampe à Bram pour 17 pièces compensante, titres et finances contrôlés.
-  Navettes : pas d'achat sans fonds, pas de recours sur une garde tenue.
-  Faute imposée isolée des négociations et naissances d'agendas pour bruit,
-  ouïe et rejeu ; assertions intactes. Nouveau parcours naturel jets 1/20
-  sans cette isolation : compensation, acceptation/refus et recharge contrôlés.
-  **Suite complète finale unique : 2 590 tests / 298 fichiers, 6 échecs,
-  zéro erreur, zéro ignoré, 2 609,210 s ; non validée pour intégration.**
-  Les six fichiers arbitrés passent. Cinq autres fichiers restent en échec :
-  `securite` (distance 4, déjà rouge sur intégration), `lumiere` (deux cas :
-  Rémy rejoint le bureau éclairé puis éteint), `agendas_socle` (Tilo dépense 1,
-  rembourse 19, dette de 1 conservée), `pas_compagnons` et `service_non_defait`
-  (hameau : autres marchés tentés, aucune promesse de torche conclue).
-  Attribution : 55 tests ciblés sur intégration, un échec ; replays de branche
-  archivés. Ces cinq fichiers hors extension sont intacts, aucune attente
-  réancrée pour masquer le défaut ; priorité du remboursement à arbitrer.
-  Mesures précédentes contre `3c0e1ca` (avant les quatre nouveaux lots) :
-  S hameau **35→35,75**, nuits dans **[26 ; 44]**, suspects **2→2** sans hausse
-  par nuit ; mine **910→887 recherches, 10 925→9 959 nœuds**. Pas de nouveau
-  banc revendiqué sur `d9e5166`. Ancienne suite de reprise 8 échecs/2 erreurs,
-  remplacée par le verdict final ci-dessus ; MiMo/torche corrigés par 238.
-  Aucun Luna ; deux travailleurs réduits au plus, aucune clé de signature.
+  **202**, base intégrée **`d9e5166`** (233/238/239/240), fusion `e938352`.
+  Compensation `e8feb8f`, six premiers oracles `537a352`, seconde extension
+  autorisée **`d3a4d67`**. Aucun nouveau code moteur pendant les arbitrages.
+  Capacité marginale protégée sauf doublon, remplacement ou gain suffisant ;
+  achat **8,4 contre 0,909 refusé**. Cache négatif à dépendances crues égales
+  conservé, anciens verdicts rejugés. Fonctions réservées des autres lots intactes.
+  **Torche 1985 : service non bloqué**, douze jugements admissibles avant 2 min ;
+  vente de crochets compensée à huit pièces (P=G=33,899), classée 6,20, qui
+  devance le service choisi sur intégration (55,43). Parcours naturel original
+  testé séparément. Reconstruction déclarée : torche d'Ilse remise à Brune,
+  offre typée réellement payée, puis autonomie intacte ; annonce sauvegardée,
+  engagement tenu, service protégé, état/rendus et bloc/découpe contrôlés.
+  Rémy : extinction juste au bureau éclairé (niveau 2, `lumiere_utile=False`).
+  Tilo : achat réel 1, remboursement 19, dette 1 persistante, conservation d'or
+  et absence de double versement ; apport réel puis solde complet vérifiés.
+  **48 ciblés distincts verts** pour les quatre fichiers de la seconde extension.
+  `securite` intact : distance 4 déjà rouge sur `d9e5166`, confiée au lot 234.
+  **Suite complète laissée au superviseur** (consigne/AGENTS `4422f13`) :
+  passe en cours arrêtée, aucun verdict final revendiqué ; ciblés du lot verts.
+  Suite antérieure : 2 590 tests, six échecs/zéro erreur, attribution archivée.
+  Seul réancrage de capture : hash monde auberge du premier arbitrage (crochets
+  14,4 contre huile 6 ; pièce proposée, autres empreintes gardées).
+  Mesures antérieures contre `3c0e1ca` : S hameau **35→35,75**, nuits dans
+  **[26 ; 44]**, suspects **2→2** sans hausse par nuit ; mine **910→887 recherches,
+  10 925→9 959 nœuds**. Aucun nouveau banc revendiqué sur `d9e5166`.
+  Aucun Luna ; deux travailleurs réduits au plus ; aucune clé de signature.
   Bruts `C:/Users/msics/donjon/artifacts/ceder-228/reprise/` ;
   [rapport 228](taches/rapport-codex-228-ceder-outil-reprise.md).
 - **Branche `codex-aide-stable`, fusionnée**, lot **240**, base
