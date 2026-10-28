@@ -10,19 +10,22 @@ from .agendas import contrats
 from .fournisseurs.contrat import Demande
 from .improvisation import FORMES_SONORES, effet, issue, proposition as proposition_improviser
 from .monde import ErreurMonde, normaliser
+from .operations import OPERATIONS as OPERATIONS_COMPOSER
 from .passage import au_contact
+from .refus import RefusDeForme
 from .voix import nom_pour_joueur
 
 ACTIONS_AUTORISEES = [
     "observer", "examiner", "toucher", "lire", "ecouter", "aller", "marcher", "faufiler", "chasser", "tourner", "attendre",
-    "prendre", "poser", "acheter", "lister_marchandises", "allumer", "eteindre",
+    "prendre", "poser", "acheter", "voler", "lister_marchandises", "allumer", "eteindre",
     "ouvrir", "fermer", "deverrouiller", "verrouiller", "crocheter", "detacher",
+    "couper", "bloquer", "debloquer", "copier", "passer_obstacle",
     "frapper", "saisir", "pousser", "ligoter", "delier", "liberer", "degager", "trainer", "tuer", "ranimer",
-    "remettre", "improviser", "composer", "conversation_pnj", "dialogue"
+    "remettre", "improviser", "composer", "conversation_pnj", "dialogue", "clarifier", "impossible"
 ]
 METHODES_AUTORISEES = [
     "simple", "finesse", "force", "discret", "percussion", "levier", "traction", "assommer",
-    "cri", "appel", "sifflement", "heler"
+    "cri", "appel", "sifflement", "heler", "dessous", "dessus", "appui_mobile"
 ]
 OPERATIONS_AUTORISEES = ["proposer", "negocier", "accepter", "refuser", "discuter", ""]
 SUJETS_PAROLE = ["", "propos", "qui"]
@@ -85,6 +88,11 @@ ACTIONS :
 - dialogue : le joueur pose une question ou adresse la parole à un personnage présent.
   {"action": "dialogue", "texte": "réponse directe dans la fiction (ex: Gorm : « La trousse de crochets coûte 8 pièces. »)"}
   sujet_parole : "qui" si le joueur demande l'identité de l'interlocuteur (son nom, qui il est), "propos" pour toute autre parole ; vide hors dialogue.
+- clarifier : l'intention est trop ambiguë entre plusieurs cibles ou actions incompatibles (justification = question brève au joueur, à la 2e personne).
+- impossible : aucune action du moteur ne couvre l'intention, ou un retour_moteur montre que le monde empêche réellement le geste. N'utilise JAMAIS impossible au premier essai si une action du moteur existe (propose l'action, même si la cible est verrouillée, fermée ou éloignée : c'est le moteur qui tranche).
+
+CORRECTION SUR RETOUR DU MOTEUR :
+Si retour_moteur est présent dans l'entrée, ta proposition précédente (proposition_refusee) a été refusée par le moteur (obstacle). Corrige la proposition en suivant exactement attendu (identifiant exact, outil requis, étape préalable dans composer comme ouvrir ou detacher avant deplacer, ou action demandée). Si aucune correction mécanique ne peut aboutir d'après attendu, utilise action = "impossible".
 """
 
 SCHEMA_COMPILATEUR = {
@@ -153,9 +161,9 @@ SCHEMA_COMPILATEUR = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "operation": {"type": "string", "enum": ["patienter", "deplacer", "detacher", "emettre_son"]},
+                    "operation": {"type": "string", "enum": list(OPERATIONS_COMPOSER)},
                     "cible": {"type": "string"},
-                    "destination": {"type": "string", "enum": DESTINATIONS_AUTORISEES},
+                    "destination": {"type": "string"},
                     "outil": {"type": "string"},
                     "methode": {"type": "string", "enum": METHODES_AUTORISEES},
                     "difficulte": {"type": "integer"},
@@ -301,8 +309,8 @@ def _liste_marchandises(monde):
     """Le catalogue de la salle, dit par son vendeur : des faits du moteur (articles, prix), jamais un texte du modèle."""
     en_vente = [o for o in monde.objets.values() if o.get("en_vente") and o.get("lieu") == monde.joueur["salle"]] if monde else []
     if not en_vente:
-        raise ErreurMonde("Rien n'est à vendre ici.",
-                          "lister_marchandises : aucun objet en_vente dans la salle ; réponds autrement (dialogue).")
+        raise RefusDeForme("Rien n'est à vendre ici.",
+                           "lister_marchandises : aucun objet en_vente dans la salle ; réponds autrement (dialogue).")
     from .francais import quantite
     from .rendu import prix
     pnjs = [i for i, o in monde.objets.items()
@@ -485,21 +493,46 @@ def normaliser_proposition(prop, monde=None, intention=""):
                     "cible": e.get("cible", ""),
                     "destination": "",
                     "outil": e.get("outil", ""),
-                    "methode": e.get("methode", "levier"),
+                    "methode": e.get("methode") if e.get("methode") in ("simple", "levier", "finesse", "percussion") else "levier",
                     "difficulte": e.get("difficulte", 0),
+                })
+            elif op in ("deplacer", "prelever"):
+                dest_dep = e.get("destination", "") or "joueur"
+                if dest_dep in ("salle", "sol", "ici") and monde:
+                    dest_dep = monde.joueur["salle"]
+                meth_dep = e.get("methode", "discret")
+                if meth_dep not in ("simple", "discret"):
+                    meth_dep = "discret"
+                etapes.append({
+                    "operation": op,
+                    "cible": e.get("cible", ""),
+                    "destination": dest_dep,
+                    "outil": e.get("outil", ""),
+                    "methode": meth_dep,
+                    "difficulte": 0,
                 })
             else:
                 etapes.append({
                     "operation": op,
                     "cible": e.get("cible", ""),
-                    "destination": e.get("destination", "") or "joueur",
+                    "destination": e.get("destination", "") if op in ("appuyer", "franchir") else "",
                     "outil": e.get("outil", ""),
-                    "methode": e.get("methode", "discret"),
-                    "difficulte": 0,
+                    "methode": e.get("methode") if e.get("methode") in METHODES_AUTORISEES and e.get("methode") != "discret" else "simple",
+                    "difficulte": e.get("difficulte", 0) if op == "franchir_obstacle" else 0,
                 })
         return {
             "action": "composer",
             "etapes": etapes,
+            "justification": prop.get("justification", ""),
+        }
+
+    if action in ("clarifier", "impossible"):
+        return {
+            "action": action,
+            "cible": "",
+            "outil": "",
+            "methode": "simple",
+            "difficulte": 0,
             "justification": prop.get("justification", ""),
         }
 
@@ -515,7 +548,9 @@ def normaliser_proposition(prop, monde=None, intention=""):
     ):
         action = "faufiler"
 
-    if monde and cible and cible not in monde.objets and action not in ("aller", "marcher", "faufiler", "chasser", "tourner", "liberer", "degager"):
+    if (monde and cible and cible not in monde.objets
+            and action not in ("aller", "marcher", "faufiler", "chasser", "tourner", "liberer", "degager")
+            and not (action == "observer" and cible in ("scene", "lumiere", "contexte"))):
         c_norm = normaliser(cible)
         for o_id, o in monde.objets.items():
             noms = [o_id, normaliser(o.get("nom", ""))] + [normaliser(a) for a in o.get("aliases", [])]
@@ -603,13 +638,15 @@ def normaliser_proposition(prop, monde=None, intention=""):
     }
 
 
-def compiler(fournisseur, monde, intention, modele=None, timeout=30, effort=None):
+def compiler(fournisseur, monde, intention, modele=None, timeout=30, effort=None, retour_moteur=None):
     """Appelle le fournisseur pour traduire l'intention en proposition mécanique."""
     ctx = extraire_contexte(monde)
     entree = {
         "contexte": ctx,
         "intention": intention,
     }
+    if retour_moteur is not None:
+        entree["retour_moteur"] = retour_moteur
     modele_choisi = determiner_modele(fournisseur, modele)
     if effort is None:
         cls_nom = fournisseur.__class__.__name__.lower()
@@ -625,5 +662,10 @@ def compiler(fournisseur, monde, intention, modele=None, timeout=30, effort=None
         timeout=timeout,
     )
     reponse = fournisseur.appeler(demande)
-    proposition = normaliser_proposition(reponse.arguments, monde, intention=intention)
+    try:
+        proposition = normaliser_proposition(reponse.arguments, monde, intention=intention)
+    except ErreurMonde as exc:
+        exc.utilisation = reponse.utilisation
+        exc.proposition_refusee = reponse.arguments
+        raise
     return proposition, reponse.utilisation

@@ -7,7 +7,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 - **Architecture découplée (compilateur d'intention + narrateur d'ambiance), bandeau web et fournisseur local unifié**,
   branche `prompt-simplifie`, rebasée sur `c870c8b` :
   - **Compilateur et contrat moteur (`donjon/compilateur.py`, `donjon/mj.py`, `donjon/dialogues.py`)** :
-    découplage entre la compilation d'intention mécanique en 1 passe (~150 jetons de contexte) et la narration d'ambiance a posteriori (`donjon/narrateur.py`).
+    découplage entre la compilation d'intention mécanique (~150 jetons de contexte) et la narration d'ambiance a posteriori (`donjon/narrateur.py`).
+    Boucle de validation et de relance sur refus `attendu` (Lot A) dans `MJ._echanger_decouple` : toute proposition du compilateur est validée sur copie (`Moteur.preparer`, `preparer_conversation`, `_liste_marchandises`) ; en cas de refus (`ErreurMonde` / `RefusDeForme`), `retour_refus` transmet `obstacle` et `attendu` au compilateur pour correction (identifiant, outil, étape préalable `ouvrir`/`detacher` dans `composer`, ou opération de conversation), sans jamais exposer `RefusDeForme` ni `attendu` au joueur, et en rendant directement le refus du moteur sur `HorsDePortee` ou obstacle physique confirmé.
     Typage de `sujet_parole` (`propos` | `qui`) et `lister_marchandises` dans le schéma du compilateur (suppression des listes de mots-clés codées en dur `est_qui`, `est_meta`, `mots_commerce`, `_MOTS_FORMES_SONORES` et des `except Exception: pass` silencieux).
     Les accords de mission (`conversation_pnj`) sont formulés au discours direct à partir de l'engagement validé (`replique_conversation`), sans phrase de régie dans les guillemets du PNJ.
     Sur `acheter` (`donjon/moteur.py`), la proximité est exigée envers le vendeur (et non l'article posé plus loin dans l'échoppe).

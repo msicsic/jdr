@@ -655,5 +655,159 @@ class CommerceEtRemiseCompilateurTests(unittest.TestCase):
         m2, _ = appliquer(m2, r2["_transactions"])
         self.assertEqual(m2.data["engagements"]["cle_mira"], {"statut": "propose", "montant": 5})
 
+
+class RelanceAttenduCompilateurTests(unittest.TestCase):
+    """Le chemin découplé valide les propositions sur copie et transmet ``attendu`` au compilateur en cas de refus."""
+
+    @staticmethod
+    def _arg(**champs):
+        base = {
+            "action": "observer", "cible": "", "destination": "", "outil": "", "methode": "simple",
+            "difficulte": 0, "texte": "", "sujet_parole": "", "justification": "",
+            "personnage": "", "operation": "", "mission": "", "montant_demande": 0, "etapes": [],
+        }
+        base.update(champs)
+        return base
+
+    @staticmethod
+    def _mj_sequence(reponses_compilateur, replique_dialogue="Gorm : « Entendu. »"):
+        from donjon.fournisseurs.contrat import Fournisseur, Reponse
+        appels = []
+        it = iter(reponses_compilateur)
+
+        class Faux(Fournisseur):
+            def _appeler(self, demande):
+                if demande.fonction == "compiler_intention":
+                    appels.append(copy.deepcopy(demande.entree))
+                    return Reponse(arguments=next(it), brut={}, utilisation={"entree": 10, "sortie": 5})
+                if demande.fonction == "repondre_dialogue":
+                    return Reponse(arguments={"replique": replique_dialogue}, brut={}, utilisation={"entree": 5, "sortie": 5})
+                return Reponse(arguments={"texte": ""}, brut={}, utilisation={})
+
+        return MJOpenAI(connexion="local", fournisseur=Faux(), decoupler=True), appels
+
+    def test_correction_sur_attendu_pour_contenant_ferme_et_objet_observe_avec_recharge(self):
+        # Cas 1 : l'anneau est dans le coffre fermé (non verrouillé). Le 1er essai « prendre anneau »
+        # reçoit attendu (« ouvre d'abord coffre... ») et se corrige en composer (ouvrir + deplacer).
+        m = nouveau_monde()
+        m.joueur["salle"] = "crypte"
+        m.objets["coffre"]["verrouillee"] = False
+        m.objets["coffre"]["ouverte"] = False
+        mj, appels = self._mj_sequence([
+            self._arg(action="prendre", cible="anneau"),
+            self._arg(action="composer", etapes=[
+                {"operation": "ouvrir", "cible": "coffre", "destination": "", "outil": "", "methode": "simple", "difficulte": 0},
+                {"operation": "deplacer", "cible": "anneau", "destination": "joueur", "outil": "", "methode": "simple", "difficulte": 0},
+            ]),
+        ])
+        r = mj.echanger(m, "je prends l'anneau dans le coffre")
+        self.assertEqual(len(appels), 2)
+        self.assertNotIn("retour_moteur", appels[0])
+        retour = appels[1]["retour_moteur"]
+        self.assertIn("ouvre d'abord coffre", retour["attendu"])
+        self.assertNotIn("composer", retour["obstacle"])
+        self.assertEqual(r["mode"], "action")
+        self.assertEqual(r["proposition"]["action"], "composer")
+        # Le monde d'origine n'a pas été muté pendant la validation
+        self.assertFalse(m.objets["coffre"]["ouverte"])
+        self.assertEqual(m.objets["anneau"]["lieu"], "coffre")
+        # Exécution, sauvegarde et rechargement
+        plan = Moteur(m).preparer(r["proposition"], "MJ")
+        texte_res = Moteur(m).executer(plan)
+        m.memoriser("je prends l'anneau dans le coffre", texte_res, "resultat_moteur")
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "crypte.json"
+            m.sauver(f)
+            reprise = Monde.charger(f)
+        self.assertTrue(reprise.objets["coffre"]["ouverte"])
+        self.assertEqual(reprise.objets["anneau"]["lieu"], "joueur")
+        self.assertIn("anneau", reprise.data["conversation"][-1]["reponse"].lower())
+
+        # Cas 2 : observer un objet précis (« antichambre_sol ») -> attendu oriente vers examiner.
+        m2 = nouveau_monde()
+        mj2, appels2 = self._mj_sequence([
+            self._arg(action="observer", cible="antichambre_sol"),
+            self._arg(action="examiner", cible="antichambre_sol"),
+        ])
+        r2 = mj2.echanger(m2, "j'observe les dalles du sol")
+        self.assertEqual(len(appels2), 2)
+        self.assertIn("examiner", appels2[1]["retour_moteur"]["attendu"])
+        self.assertEqual(r2["mode"], "action")
+        self.assertEqual((r2["proposition"]["action"], r2["proposition"]["cible"]), ("examiner", "antichambre_sol"))
+        plan2 = Moteur(m2).preparer(r2["proposition"], "MJ")
+        res2 = Moteur(m2).executer(plan2)
+        m2.memoriser("j'observe les dalles du sol", res2, "resultat_moteur")
+        with tempfile.TemporaryDirectory() as tmp:
+            f2 = Path(tmp) / "antichambre.json"
+            m2.sauver(f2)
+            reprise2 = Monde.charger(f2)
+        self.assertIn("sol en pierre", reprise2.data["conversation"][-1]["reponse"].lower())
+
+    def test_correction_conversation_pnj_et_lister_marchandises_sur_attendu(self):
+        from donjon.transactions import appliquer
+        # 1) Accepter une offre non encore proposée -> attendu demande proposer ou negocier d'abord.
+        m = nouveau_monde()
+        m.joueur["salle"] = "echoppe"
+        mj, appels = self._mj_sequence([
+            self._arg(action="conversation_pnj", personnage="marchand", operation="accepter", mission="anneau_veilleur"),
+            self._arg(action="conversation_pnj", personnage="marchand", operation="proposer", mission="anneau_veilleur"),
+        ])
+        r = mj.echanger(m, "parlons de la mission de l'anneau")
+        self.assertEqual(len(appels), 2)
+        self.assertIn("proposer ou negocier d'abord", appels[1]["retour_moteur"]["attendu"])
+        self.assertEqual(r["mode"], "dialogue")
+        self.assertIn("Je t'offre 20 pièces", r["texte"])
+        m, _ = appliquer(m, r["_transactions"])
+        self.assertEqual(m.data["engagements"]["anneau_veilleur"], {"statut": "propose", "montant": 20})
+
+        # 2) lister_marchandises hors échoppe -> RefusDeForme corrigé en dialogue au 2e appel.
+        m2 = nouveau_monde()
+        mj2, appels2 = self._mj_sequence([
+            self._arg(action="lister_marchandises"),
+            self._arg(action="dialogue", sujet_parole="propos"),
+        ], replique_dialogue="Il n'y a aucun marchand ici.")
+        r2 = mj2.echanger(m2, "y a-t-il quelque chose à acheter ici ?")
+        self.assertEqual(len(appels2), 2)
+        self.assertIn("aucun objet en_vente", appels2[1]["retour_moteur"]["attendu"])
+        self.assertEqual(r2["mode"], "dialogue")
+
+    def test_reexamen_impossible_et_refus_monde_ou_hors_portee_sans_fuite_d_attendu(self):
+        # 1) Si le compilateur répond « impossible » au 1er essai, RefusDeForme impose de proposer le geste ;
+        # lorsque le moteur refuse ensuite (porte verrouillée) et que le compilateur conclut « impossible »,
+        # le joueur reçoit exactement le refus du moteur, sans attendu.
+        m = nouveau_monde()
+        mj, appels = self._mj_sequence([
+            self._arg(action="impossible", justification="Je pense que c'est fermé."),
+            self._arg(action="ouvrir", cible="porte"),
+            self._arg(action="impossible", justification="Inventé par le modèle."),
+        ])
+        r = mj.echanger(m, "j'ouvre la porte du nord")
+        self.assertEqual(len(appels), 3)
+        self.assertIn("action : le geste que demande la saisie", appels[1]["retour_moteur"]["attendu"])
+        self.assertIn("C'est verrouillé.", r["texte"])
+        self.assertNotIn("Inventé par le modèle", r["texte"])
+        self.assertNotIn("attendu", r["texte"])
+        self.assertTrue(r.get("_texte_moteur"))
+        self.assertTrue(r.get("_validation_refusee"))
+
+        # 2) HorsDePortee en mode_cases : réponse publique immédiate en 1 seul appel, sans relance.
+        from tests.test_tensions import placer, recharger
+        from tests.test_sous_obstacle import scene
+        m_loin = scene()
+        m_loin.data["salles"]["echoppe"]["lumiere_naturelle"] = 2
+        m_loin.joueur.update(position=[3, 1], orientation="est")
+        placer(m_loin, "crochets", "echoppe", (7, 1))
+        m_loin = recharger(m_loin)
+        mj_loin, appels_loin = self._mj_sequence([
+            self._arg(action="prendre", cible="crochets"),
+        ])
+        r_loin = mj_loin.echanger(m_loin, "je prends la trousse de crochets")
+        self.assertEqual(len(appels_loin), 1)
+        self.assertEqual(r_loin["mode"], "dialogue")
+        self.assertIn("Approche-toi", r_loin["texte"])
+        self.assertNotIn("cible=", r_loin["texte"])
+        self.assertTrue(r_loin.get("_texte_moteur"))
+
+
 if __name__ == "__main__":
     unittest.main()
