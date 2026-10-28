@@ -4,6 +4,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-suite-bf99943`, non fusionnée**, lot **253**, départ
+  `39db079` : frontières reproduites sur parents directs, Lucien **246 /
+  f46a0b5**, captures mine/auberge **248 / bf99943**. La restitution
+  projetée protège le plan actif et son séjour, même avec un plan vide ;
+  garde éclairée de Lucien et visite de galerie de Rémy vérifiées après
+  recharge, remplacement puis restitution couverts. Projection des seuls
+  champs d'ascendant neutre et des relations JSON : égalité structurelle
+  et deux hashes historiques retrouvés, aucun hash attendu remplacé.
+  **62 ciblés verts / sept fichiers, 191,559 s** ; nouvelle scène de mine
+  rouge sur `bf99943` inchangé. Banc rapide détaché 4 h, cinq scénarios ×
+  quatre graines contre `bf99943`, cache consulté puis nuits manquantes
+  rangées une fois ; sentinelle `suite-253/banc-fin.json` attendue,
+  suspects non encore validés. Aucune suite complète ni Luna.
+  Bruts `C:/Users/msics/donjon/artifacts/suite-253/` ;
+  [rapport 253](taches/rapport-codex-253-suite-bf99943.md).
+
 - **Branche `codex-ascendant-neutre`, fusionnée**, lot **248**, base
   `f46a0b5` (référence remplacée sur instruction du superviseur) : sixième
   axe orienté neutre dans `relations.py`, lecture pure `autorite_reconnue`,

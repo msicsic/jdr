@@ -106,3 +106,40 @@ class RestitutionRouteTests(unittest.TestCase):
                     if remplacement:
                         self.assertEqual(m.objets['lampe_remy']['lieu'], 'remy')
                         self.assertTrue(m.objets['lampe_remy']['allume'])
+
+    def test_la_remise_eclairee_conserve_le_moyen_du_plan_actif(self):
+        # Autre usage que la garde de Lucien : une visite de galerie. Le
+        # propriétaire est dans un lieu éclairé, mais le plan restant ne l'est pas.
+        with patch('donjon.agendas._naissances', return_value=None):
+            m = self.mine()
+            placer(m, 'remy', 'baraquement', (3, 2))
+            condition = {'lieu': 'galerie', 'periode': 90}
+            m.objets['remy']['profil']['pulsions'] = [{'besoin': 'devoir', 'condition': condition}]
+            lire(m, 'remy')['pulsions'] = [None]
+            lire(m, 'remy')['besoins']['devoir'] = 85.
+            percevoir_tous(m)
+            plan = p.planifier_pulsion(m, 'remy', condition)
+            self.assertIsNotNone(plan)
+            lire(m, 'remy')['intention'] = {'but': plan[0], 'motif': 'devoir', 'plan': plan[1],
+                                          'depuis': m.data['minutes'], 'attente': 0}
+            m = self.identique_recharge(m)
+            self.assertIsNone(p._rendre(m, 'remy', 'lampe_gaspard',
+                                       {'objet': 'lampe_gaspard', 'rendre': 'gaspard'}))
+            m = self.avancer_identique(m, 1)
+            self.assertEqual(m.objets['remy']['lieu'], 'galerie')
+            self.assertEqual(m.objets['lampe_gaspard']['lieu'], 'remy')
+            self.assertTrue(m.objets['lampe_gaspard']['allume'])
+            self.assertTrue(d.autour(m, 'remy')['lumiere'])
+            # Un moyen de remplacement maintient le même plan après remise.
+            from donjon.deplacement_objet import deplacer
+            deplacer(m, 'lampe_remy', 'remy')
+            m.objets['lampe_remy'].update(allume=True, combustible=200)
+            percevoir_tous(m)
+            lire(m, 'remy')['intention'] = {'but': plan[0], 'motif': 'devoir', 'plan': plan[1],
+                                          'depuis': m.data['minutes'], 'attente': 0}
+            m = self.identique_recharge(m)
+            self.assertIsNotNone(p._rendre(m, 'remy', 'lampe_gaspard',
+                                          {'objet': 'lampe_gaspard', 'rendre': 'gaspard'}))
+            m = self.avancer_identique(m, 5)
+            self.assertEqual(m.objets['lampe_gaspard']['lieu'], 'gaspard')
+            self.assertTrue(m.objets['lampe_remy']['allume'])
