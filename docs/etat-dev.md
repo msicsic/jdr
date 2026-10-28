@@ -4,6 +4,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-purete-candidats`, fusionnée**, lot **232**, base
+  `integration adb52c4` : `biens.services_proteges` ne supprime plus les
+  traces pendant une lecture. Clôtures retenues hors `data`, publiées après
+  un choix complet réussi ; devis isolé et choix interrompu sans écriture,
+  imbrications transmises au parent. Arrêts historiques `4306c14` reproduits :
+  mine 42 à 415 (copie 418, Gaspard, poêle/Josse), rixe 42 à 350 (copie 351,
+  Aubin, brasero/marchand) ; `_entrees_communes → services_proteges`, seul
+  champ modifié `services_rendus`. Sur la base actuelle enrichie de 218/230,
+  ces deux nuits passent déjà, mais la lecture écrit encore hors choix.
+  **22 ciblés verts**, cinq nouveaux tests, captures versionnées, monde/
+  rendu/scène rechargés et laps découpés identiques. **12/12 empreintes
+  2 h identiques** à `adb52c4` (Relais/mine/rixe × quatre graines), zéro
+  plantage ; douze références manquantes rangées une fois. Mine et rixe
+  corrigées 8 h `VERIFIER` + spatial 0,2 achevées sans arrêt, mesures et
+  mondes finaux complets identiques à la base actuelle. **Suite complète
+  unique : 2 526 tests / 292 fichiers, 2 366,049 s, quatre échecs, zéro
+  erreur**, suite non verte : Lucien et deux MiMo identiques aux traces
+  préexistantes 230 ; compteur torche hameau 1985 reproduit exactement
+  sur `adb52c4` (un ciblé, 9,414 s), laissé intact. Aucun nouvel échec
+  identifié, aucun oracle modifié. Créneau dépassé par les validations.
+  Aucun Luna, deux calculs réduits au plus ; bruts
+  `C:/Users/msics/donjon/artifacts/purete-232/` ;
+  [rapport 232](taches/rapport-codex-232-purete-candidats.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. biens.services_proteges ne supprime plus les traces finies pendant la lecture : clôtures retenues hors de data et publiées par planification.vues_du_choix après un choix complet réussi, abandonnées sinon. Corrige les deux arrêts du lot 231 (Gaspard mine 42 à 415, Aubin rixe 42 à 350) : huit heures achevées sous VERIFIER et spatial 0,2. 12/12 empreintes 2 h identiques. Suite : quatre échecs préexistants.
+
 - **Branche `codex-reessai-regressions`, fusionnée**, lot **229**,
   départ `1e09926`, première livraison `ad785cf`, puis merge demandé de
   `origin/integration` **`c9d8c05`** (230/231), sans rebase. Aucun moteur/MJ
