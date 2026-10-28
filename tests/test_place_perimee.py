@@ -97,16 +97,20 @@ class PlacePerimeeTests(unittest.TestCase):
                 self.assertGreater(eclairage(bloc, bloc.objets[id]["lieu"], bloc.objets[id]["position"])["niveau"], 0)
 
     def test_le_pas_social_impossible_ne_conserve_aucune_place(self):
-        for signe in ("proche", "ecart"):
-            with self.subTest(signe=signe):
+        for signe, duree in ((s, d) for s in ("proche", "ecart") for d in (None, 15)):
+            with self.subTest(signe=signe, duree=duree):
                 m, id, proche = scene("relais", "inconnu")
                 placer(m, id, "antichambre", [4, 5])
                 i = lire(m, id)["intention"]
                 i["attitude"]["place"] = {"signe": signe, "envers": proche, "sens": "dependance"}
-                with patch("donjon.pnj._marcher", return_value=None) as marcher:
-                    self.assertIsNone(signes.place(m, id, i["plan"][0], []))
+                # Ouvrir un passage ou échouer peut consommer du temps sans
+                # atteindre la place visée : le signe décrit la case effective.
+                with patch("donjon.pnj._marcher", return_value=duree) as marcher:
+                    self.assertEqual(signes.place(m, id, i["plan"][0], []), duree)
                 marcher.assert_called_once()
+                self.assertEqual(m.objets[id]["position"], [4, 5])
                 self.assertNotIn("place", i["attitude"])
+                self.assertNotIn("place", lire(recharger(m), id)["intention"].get("attitude", {}))
                 self.assertEqual(regarder(m), regarder(recharger(m)))
 
 

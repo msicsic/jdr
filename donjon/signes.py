@@ -646,7 +646,7 @@ def place(m, id, etape, lignes, jugement=None):
     x, q, v, signe, sens = max(jugement["liens"], key=lambda l: (abs(l[2]), l[0]))
     # La posture déjà tenue reste lisible, mais ne réserve aucun geste :
     # seul le pas renvoyé donne la priorité sur le recours ordinaire.
-    position = meilleur if pas else jugement["depart"]
+    position = tuple(m.objets[id]["position"])
     if (signe == "ecart" and distance(position, q) >= 2
             or signe == "proche" and jugement["contact"](position, q)):
         i.setdefault("attitude", {})["place"] = {"signe": signe, "envers": x, "sens": sens}
