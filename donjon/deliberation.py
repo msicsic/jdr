@@ -110,7 +110,9 @@ def part_pour(monde, id, objet, besoin, connus=None):
 def verifier_profil(monde, id, p):
     assert (isinstance(p, dict) and {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions"}
             <= set(p) <= {"caracteristiques", "traits", "valeurs", "capacites", "besoins", "pulsions",
-                          "reserve", "securite", "protege", "situation", "alerte", "liens"} | agendas.champs_profil()), "Profil de PNJ mal formé"
+                          "reserve", "securite", "protege", "situation", "alerte", "liens", "statuts"} | agendas.champs_profil()), "Profil de PNJ mal formé"
+    from .esprits import verifier_statuts
+    verifier_statuts(monde, p.get("statuts", []), declares=True)
     # Le seuil d'alerte, en crans de l'ouïe commune (``ouie.INTENSITES``) : un bruit inconnu qui lui
     # parvient à ce niveau l'envoie voir sans attendre (``alarme``).
     assert type(p.get("alerte", 0)) is int and -2 <= p.get("alerte", 0) <= 9, "Seuil d'alerte de PNJ invalide"

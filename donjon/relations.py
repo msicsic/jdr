@@ -200,6 +200,17 @@ def axes(monde, id, autre):
     return {a: r[a] for a in AXES} | {"bandes": dict(r["bandes"])}
 
 
+def statuts_reconnus(monde, id, autre, lieu, domaine):
+    """Croyance sourcée de portée pertinente, sans lire le profil réel du titulaire."""
+    from .esprits import croyance
+    c = croyance(monde, id, autre, "statuts")
+    if c is None:
+        return None
+    resultat = copy.deepcopy(c)
+    resultat["valeur"] = [v for v in resultat["valeur"] if lieu in v["lieux"] and domaine in v["domaines"]]
+    return resultat if resultat["valeur"] else None
+
+
 def autorite_reconnue(monde, id, autre):
     """Ascendant qu'id reconnaît à autre, sans statut ni bonus de décision."""
     return _lecture(monde, id, autre)["ascendant"]
