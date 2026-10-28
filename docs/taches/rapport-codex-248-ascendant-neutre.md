@@ -1,49 +1,59 @@
 # Lot 248 — ascendant neutre (A5, lot 1)
 
 Branche `codex-ascendant-neutre`, **non fusionnée**, base `f46a0b5`,
-28 octobre 2026. Cette base remplace `1006204` sur instruction du superviseur.
+28 octobre 2026. Cette référence remplace `1006204` sur instruction du superviseur.
 
-L'invariant est un sixième axe orienté, accessible par `relations.py`,
+L'invariant visé est un sixième axe orienté, accessible par `relations.py`,
 sans effet sur les décisions. `AXES`, `ETRANGER`, `_nouvelle`, `envers`,
-`axes` et `autorite_reconnue` exposent maintenant l'ascendant (0–100,
-neutre à zéro). Les liens déclarés dans un profil le fixent ; aucun scénario
-n'est modifié et aucune épreuve ne le fait varier. La bande reprend les
-seuils 60/50 de la confiance ; l'estompement reprend le retour de l'affection
-vers le lien initial, à un point par heure. Une valeur initiale déclarée
-reste donc stable. Ces réglages ne donnent aucun bonus d'autorité.
+`axes` et `autorite_reconnue` exposent l'ascendant (entier 0–100, neutre à zéro).
+Les liens déclarés dans un profil peuvent le fixer ; aucun scénario ni aucune
+épreuve n'est modifié. La bande reprend l'hystérésis 60/50 de la confiance ;
+l'estompement reprend le retour de l'affection vers le lien initial à 1 point/h.
+Une valeur initiale déclarée reste stable. Aucun bonus ni lecteur de décision.
 
-`_completer` fournit une vue pure des relations historiques sans ce champ :
-valeur zéro, bande fausse et ancre neutre. Chargement et lecture ne réécrivent
-pas la sauvegarde. La validation accepte l'ancien contrat complet ou le
-nouveau et rejette les contrats partiels. Les anciennes chroniques restent
-valides. `signature` inclut valeur, bande et ancre ; la clé de lecture inclut
-le lien initial. `_entrees` énumère déjà `relations.AXES` et reçoit ainsi
-le sixième axe sans modifier `planification.py`. Les signatures des signes,
-limitées aux seuils effectivement lus, restent inchangées.
+`_completer` fournit une vue pure des relations historiques : valeur zéro,
+bande fausse et ancre neutre, sans migration. La validation accepte l'ancien
+contrat complet ou le nouveau, rejette les contrats partiels et accepte les
+anciennes chroniques. `signature` inclut axe, bande et ancre ; la clé de lecture
+inclut le lien initial. `_entrees` énumère déjà `relations.AXES`, sans changement
+de `planification.py`. Les signatures des signes restent limitées aux seuils
+qu'ils lisent. Aucun fichier moteur hors `relations.py` modifié.
 
-Vérifications ciblées : **44 tests verts en 11,856 s**, puis **50 verts en
-13,809 s**, soit **81 tests distincts** dans six fichiers (relations,
-voix, signes). Six tests nouveaux couvrent deux couples orientés (70 contre
-20), profil déclaré, pureté, sauvegarde/rechargement du monde et du rendu,
-ancien format sans migration puis action visible identique, estompement en
-bloc/découpé, hystérésis, invalidation du cache et validation. Le contrôle AST
-interdit toute occurrence directe de l'axe hors de `relations.py` dans le
-jeu et les outils. `git diff --check` vert. Les premières tentatives du
-lanceur ont rencontré les permissions temporaires du sandbox Windows ;
-les passes rapportées sont les reprises autorisées hors sandbox.
+**Tests : 81 distincts verts, six fichiers.** Première passe : 44 en 11,856 s ;
+seconde : 50 en 13,809 s (recouvrement compris), relations/voix/signes. Six
+nouveaux tests couvrent deux couples orientés (70 contre 20), profil déclaré,
+pureté, monde/rendu après recharge, ancien format sans migration puis action
+visible identique, estompement en bloc/découpé, hystérésis, signatures/cache et
+validation. Contrôle AST renforcé : aucun accès direct à l'axe hors façade.
+`git diff --check` vert. Reprises autorisées hors sandbox après des refus
+d'écriture des temporaires Windows. Aucune suite complète ni Luna.
 
-**Banc de neutralité en attente** : vingt paires de 2 h, Relais/mine/auberge/
-crue/crue_hameau, graines 1985/7/42/2024, référence `f46a0b5` via le cache
-standard (seules les manquantes sont jouées). Lanceur de preuve dans les
-bruts : `banc_ascendant_248.py`. La branche conserve chaque état et résultat
-bruts et chaque chemin retiré ; seuls les champs `ascendant` neutres
-(valeur, bande, ancre, y compris instantanés typés des chroniques) sont
-retirés avant comparaison du hash complet et des données hors temps.
-Les textes de chronique, mesures, récit et souvenirs doivent rester identiques.
-Le résultat ne sera déclaré validé qu'après lecture de `comparaison.json`.
-Fichier de fin écrit en dernier :
-`C:/Users/msics/donjon/artifacts/ascendant-248/fin.json`.
+**Banc terminé, non validé.** Vingt paires de 2 h, Relais/mine/auberge/crue/
+crue_hameau, graines 1985/7/42/2024 : **20/20 chroniques, mesures, récits,
+souvenirs et empreintes physiques identiques**, zéro plantage. Les vingt
+références manquantes ont été calculées une fois et rangées ; aucune rejouée.
 
-Aucune suite complète, aucun Luna, aucune fusion. Ce lot pose le contrat ;
-statuts, attribution, jugement des mandats et épreuves d'autorité restent
-aux lots suivants. Bruts : `C:/Users/msics/donjon/artifacts/ascendant-248/`.
+Le retrait direct du champ neutre retrouve seulement 4/20 hashes d'état :
+les agendas stockent une empreinte de croyances incluant les relations,
+également copiée dans certains contrats d'intention. Deux reprises de la seule
+branche capturent les entrées exactes de ces hashes sans changer leur résultat
+pendant le jeu ; les vingt références sont relues du cache. La preuve finale
+reproduit **20/20 états bruts initiaux**, retire 1 563 champs neutres et recalcule
+21 occurrences de hashes dérivés sur leurs projections sans le champ nouveau.
+Projections, chemins et valeurs sont archivés ; aucun hash n'est ignoré.
+
+Résultat : **12/20 états complets identiques ; huit écarts non expliqués** :
+mine 7/2024, crue quatre graines, crue_hameau 1985/2024. **La neutralité de
+l'état complet n'est pas garantie.** Aucun nouveau code ni élargissement de la
+normalisation sans cause identifiée. Le cache ne contient que le hash final :
+localiser les écarts demanderait l'autorisation de rejouer ces huit références
+avec capture d'état, exception à « pas de référence relancée » (`AGENTS.md`).
+Deux processus réduits au plus ; environ 223 s cumulées de nuits par reprise.
+
+Bruts : `C:/Users/msics/donjon/artifacts/ascendant-248/` ; verdict final
+`fin-preuve-complete.json`, bilan `comparaison-preuve-complete.json`, lanceur
+`banc_ascendant_248_preuve_complete.py`, preuves `*-projections-agendas.json`,
+`*-retraits.json`, états `*-etat.json`, résultats `*-brut-instrumente.json`.
+La sauvegarde brute diffère par le champ ajouté et les hashes qui en dérivent ;
+aucune égalité binaire revendiquée. Statuts, jugement et épreuves d'autorité
+restent aux lots suivants. Aucune fusion ; aucun calcul encore actif.

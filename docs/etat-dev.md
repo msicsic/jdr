@@ -12,10 +12,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   migration ; contrats partiels rejetés. Aucun lecteur de décision ni épreuve,
   aucun scénario/MJ changé. **81 tests distincts verts / six fichiers**,
   contrôle AST renforcé ; monde et rendu rechargés, deux couples orientés,
-  ancien format et laps découpés. **Vingt paires d'empreintes 2 h en attente**,
-  cinq scénarios, quatre graines ; cache `f46a0b5`, retrait strict du champ
-  nouveau avant hash complet, bruts et chemins retirés conservés.
-  Fin attendue `C:/Users/msics/donjon/artifacts/ascendant-248/fin.json`.
+  ancien format et laps découpés. **Banc 2 h terminé mais non validé** :
+  20/20 chroniques, mesures, récits, souvenirs et empreintes physiques
+  identiques, zéro plantage ; état complet identique seulement **12/20**
+  après retrait du champ neutre et recalcul sourcé de 21 hashes dérivés
+  (agendas et copies dans les contrats d'intention). Restent mine 7/2024,
+  crue quatre graines, crue_hameau 1985/2024 : cause non établie,
+  **neutralité de l'état complet non garantie**. Les deux reprises
+  instrumentées reproduisent les états bruts de la branche ; les références
+  ont été jouées une seule fois, puis relues du cache. Leur cache n'ayant
+  que le hash final, localisation structurelle suspendue à l'autorisation
+  de rejouer ces huit références avec capture d'état. Aucun code changé
+  pendant le diagnostic. Bruts `C:/Users/msics/donjon/artifacts/ascendant-248/`,
+  bilan `comparaison-preuve-complete.json`, fin `fin-preuve-complete.json`.
   Aucune suite complète ni Luna. [Rapport 248](taches/rapport-codex-248-ascendant-neutre.md).
 
 
