@@ -45,44 +45,36 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-faire-ou-confier-b`, non fusionnée**, lot **260**, base
-  `634b869` : `agendas.planifier` sépare prochain sous-but et mandataire ;
-  comparaison sur devis observateur, chance d'accord, autorité estimée et
-  confiance crue, égalité par identifiant. Paroles préparatoires ordinaires,
-  puis jugement réel `echanges.confier(mandat=...)` ; refus identifiés par
-  mandat, autres destinataires conservés, aucune lecture privée du candidat.
-  **754 tests / 88 fichiers ciblés : huit assertions et une erreur héritées**,
-  neuf traces identiques sur la base exacte `634b869` (huit méthodes rejouées
-  seules), régression 251/259 laissée hors branche. **115 tests d'agendas /
-  17 fichiers verts**, dont huit nouveaux. Défaut propre au 260 reproduit sur
-  les deux charges : un agenda terminal proposait encore un mandataire ;
-  garde commune actif/sommeil corrigée dans `23a1b83`, **32 tests / cinq
-  fichiers revérifiés verts**, sans double compte. Monde/rendu/scène rechargés,
-  laps entiers/découpés, choix réel, refus, avis, égalité et plusieurs cibles.
-  **Banc vingt paires 4 h terminé**, base `634b869`, branche `23a1b83` :
-  zéro plantage/violation signalé, 16 paires entièrement identiques ; crue
-  1985 monde/chronique identiques avec 62 recherches supplémentaires ;
-  crue 7/42/2024, tiers envisagé à 978 puis plan propre repris, ordre des
-  gestes/échanges modifié. Aucun mandat prononcé dans le banc ; profils de
-  test pour les acceptations réelles. Compteur 219 **2 → 1 suspect**, aucune
-  hausse par nuit ; à expliquer **55 → 59**, cycles **489 → 490**, préemptions
-  **46 → 53**, dérives **233 → 232**. **Réserve**, crue 42 : deux alertes
-  répétition de Brune ; oisiveté urgente crue 7/42/2024 **0/0/80 → 50/70/215**,
-  attente **0/0/45 → 15/70/160** min. Pas de non-régression globale annoncée.
-  Coût mine 1985 4 h : compteurs/empreintes identiques, **823 recherches,
-  13 464 nœuds**, CPU indicatifs 20,766/22 s. Deux travailleurs réduits au
-  plus ; aucun calcul actif, ni suite complète ni Luna. Sélection non
-  entièrement verte à cause des neuf défauts hérités. Bruts
-  `C:/Users/msics/donjon/artifacts/confier-260/`, `fin.json` de reprise.
-  Pas de compte rendu ni réaffectation sur retard.
-  **Reprise après fusion de `origin/integration 1355f7a` (lot 259)**,
-  commit de fusion `ab21fb3`, sans rebase : aucun conflit moteur, bilans
-  259/260 conservés ; calcul détaché de 90 fichiers ciblés puis comparaison
-  crue/Relais 4 h, quatre graines, contre `1355f7a`, avec cache. Réserves
-  historiques ci-dessus à réexaminer sur ce moteur ; résultats par fichier
-  conservés, deux travailleurs réduits au plus, aucune suite complète.
-  Fin attendue `C:/Users/msics/donjon/artifacts/confier-260/apres-259/fin.json`.
-  Branche pas encore déclarée prête pour la suite du superviseur.
+- **Branche `codex-faire-ou-confier-b`, non fusionnée, prête pour la suite
+  complète du superviseur**, lot **260**. Fusion sans rebase de
+  `origin/integration 1355f7a` (259), moteur validé `ab21fb3` : aucun conflit
+  de code, bilans 259/260 conservés. Choix faire/confier sur devis observateur,
+  chance et fiabilité crues ; paroles réelles puis jugement du mandat ; refus
+  distincts, filiation bornée, aucune lecture privée pour classer le tiers.
+  Garde des agendas terminaux corrigée dans `23a1b83` sur les deux charges.
+  **773/773 tests ciblés verts / 90 fichiers**, dont huit nouveaux ; les neuf
+  défaillances héritées du 251 disparaissent après 259. Monde/rendu/scène
+  rechargés, laps entiers/découpés. **Huit paires 4 h crue/Relais**, zéro
+  plantage/violation signalé ; Relais identique, crue 1985 monde/chronique
+  identiques (+62 recherches), trois autres crues divergentes après le choix
+  de tiers puis reprise propre. Aucun mandat prononcé dans le banc ; profils
+  de test pour les acceptations réelles. Compteur 219 **3 → 1 suspects**, sans
+  hausse par nuit, à expliquer **35 → 44**, cycles **180 → 188**, dérives
+  **73 → 64**. **Réserve d'attente maintenue**, crue 7/42 : oisiveté
+  **0/0 → 55/195**, attente **0/0 → 25/130** PNJ·min ; crue 2024 s'améliore
+  après 259 (**250/185 → 215/160** oisiveté/attente). Zéro minute classée
+  recours possible non entrepris ; pas de garantie globale d'optimalité.
+  **Brune crue 42 instruite**, sans extrapoler le 268 (hameau 2024) :
+  10 lignes actif / 9 sommeil, **8 vrais réveils**, empreintes différentes
+  avec entrées nouvelles ; à 2441 seule la provenance du lieu d'Aubin change
+  vu → entendu (nécessité individuelle non démontrée). Huit captures avant
+  réveil rechargées, monde/rendu/scène identiques ; chronique du préfixe
+  identique au banc. Aucune boucle sans entrée démontrée, aucun cas moteur
+  ajouté. Ancien banc/coût avant 259 conservés dans les bruts ; aucune
+  non-régression globale revendiquée. Ni Luna ni suite complète lancée ici.
+  **876,395 s**, deux travailleurs réduits au plus, aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/confier-260/apres-259/`,
+  `fin.json`, `bilan-final.json`. Pas de compte rendu ni réaffectation sur retard.
   [Rapport 260](taches/rapport-codex-260-faire-ou-confier.md).
 
 - **Branche `codex-presences-regression`, fusionnée**, lot **259**, base

@@ -1,82 +1,65 @@
 # Lot 260 — faire ou confier sur les croyances du mandant
 
-**Reprise après 259, en cours.** Fusion sans rebase de
-`origin/integration 1355f7a` dans `ab21fb3` ; aucun conflit de code, seul
-`etat-dev.md` réconcilié en conservant les deux bilans. Relance des
-88 fichiers ciblés et des voisins `test_corps` / `test_relations_socle`
-(90 fichiers, aucune suite complète), puis comparaison crue/Relais 4 h,
-quatre graines, contre `1355f7a`, avec cache. Les réserves ci-dessous
-décrivent **l'ancien moteur sans 259** : elles ne valent pas verdict sur la
-fusion. Lecture croisée des quatre versions prévue pour isoler l'effet du
-259 sur l'attente, l'oisiveté et les activations/sommeils de Brune.
-Calcul détaché, deux travailleurs réduits au plus, résultats par fichier
-conservés au fil de la passe ; arrêt avant le banc si les tests échouent.
-Bruts : `C:/Users/msics/donjon/artifacts/confier-260/apres-259/` ;
-fin attendue `fin.json`. Branche pas encore déclarée prête pour la suite
-complète du superviseur.
+**Prête pour la suite complète du superviseur**, branche non fusionnée
+`codex-faire-ou-confier-b`. Moteur validé `ab21fb3` : fusion sans rebase de
+`origin/integration 1355f7a` (259), aucun conflit moteur ; les deux bilans ont
+été conservés dans le seul conflit documentaire. Aucun moteur modifié lors
+de cette analyse, ni Luna ni suite complète lancée par l'agent.
 
-`codex-faire-ou-confier-b`, **non fusionnée**, base `634b869`, moteur
-`23a1b83` (implémentation `c5d7301`), 28 octobre 2026. Ni scénario, MJ,
-`social.py`, `esprits.py`, `_mesurer_direct` ou `pnj.refus_etape` modifié ;
-ni Luna ni suite complète.
+**Contrat.** `agendas.planifier` sépare prochain sous-but et mandataire : coût
+propre contre trajet cru, paroles et devis observateur pondéré par chance
+d'accord / confiance crues ; égalité par identifiant, filiation bornée, sans
+esprit privé du tiers. Les faits projetés passent réellement par `dire`, puis
+`echanges.confier(mandat=...)` garde le jugement réel. Refus distincts par
+mandat, acceptations réservées sans lire l'enfant. La garde des agendas
+terminaux (`23a1b83`) est prouvée sur `amener` et `informer`.
 
-**Contrat.** `agendas.planifier` appelle le prochain sous-but puis le choix
-de mandataire. Coût propre contre trajet cru vers le tiers, paroles
-préparatoires et devis observateur du prochain sous-but, pondéré par chance
-d'accord (`chance_demande + autorite_estimee.bonus / 20`, plafond 0,95) et
-fiabilité crue (confiance / 100, plancher 0,1). Égalité par identifiant ;
-cycles et profondeur exclus, aucun esprit privé du tiers dans le classement.
-Le lieu de la cible et le contenu sont réellement énoncés par `dire`, puis
-`echanges.executer` passe par `echanges.confier(mandat=...)` : accueil,
-jugement réel, filiation et enregistrement avant récit. L'avis reste
-qualitatif. Le devis hypothétique ne reconstruit pas les ancêtres privés.
-Les refus distinguent les mandats ; leur cause matérielle retient les
-croyances sans dates de regard ni sa propre trace. Après refus : autre tiers
-ou plan propre. Les acceptations réservent leur cible, sans lire l'enfant.
+**773/773 tests verts / 90 fichiers ciblés** : les 88 fichiers précédents,
+`test_corps` et `test_relations_socle`. Les neuf défaillances héritées du 251
+ont disparu avec le 259, sans assertion affaiblie. Huit tests propres au 260 :
+choix réel, deux charges, refus, égalité, avis, plusieurs cibles et état
+terminal ; monde/rendu/scène rechargés, laps entier/découpé.
 
-**Arbitrage propre au 260.** Deux preuves après recharge ont révélé qu'un
-agenda terminal pouvait encore proposer une délégation. La garde commune
-actif/sommeil est corrigée dans `23a1b83` ; preuve rouge sur `c5d7301`
-conservée dans `cycle-vie-avant.json`, deux charges vertes après correction.
+**Huit paires 4 h crue/Relais**, quatre graines, référence `1355f7a`, branche
+`ab21fb3` : zéro plantage/violation signalé. Relais entièrement identique ;
+crue 1985 monde/chronique identiques (+62 recherches). Trois autres crues
+modifiées après tiers envisagé à 978 puis reprise propre. Aucun mandat
+prononcé dans le banc ; acceptations effectives prouvées en profils de test.
+Compteur 219 **3 → 1 suspects**, sans hausse par nuit ; à expliquer **35 → 44**,
+cycles **180 → 188**, préemptions **18 → 19**, dérives **73 → 64**.
+Huit références exactes absentes calculées une fois, aucune rejouée.
 
-**Tests : 754 / 88 fichiers ciblés**, huit assertions et une erreur
-héritées, **neuf traces complètes identiques sur la base exacte** (huit
-méthodes rejouées seules, seuls chemins et numéros de ligne neutralisés).
-`arbitrage-tests.json` distingue ces défauts du 251/259 ; le 259 n'est pas
-repris. **115 tests d'agendas / 17 fichiers verts**, dont huit nouveaux ;
-**32 tests / cinq fichiers revérifiés verts** après la garde terminale,
-sans double compte. Gorm → Aubin → Brune et information à Ilse : choix réel,
-paroles, jugement et prochain plan social, aucun portage implicite. Monde,
-rendu et scène rechargés ; laps 1800 ou 3 × 600 identiques. États privés
-sans effet sur le choix, départ cru avec effet, refus puis plan propre,
-égalité, avis et plusieurs cibles couverts.
+**Attente réévaluée.** O/A = oisiveté urgente / attente, PNJ·min :
 
-**Banc terminé : vingt paires 4 h, zéro plantage ou violation signalée.**
-Relais/mine/auberge/crue/hameau × quatre graines ; référence `634b869`,
-branche `23a1b83`. Vingt références absentes calculées et rangées une fois,
-aucune rejouée. **16 paires entièrement identiques** ; crue 1985 : monde et
-chronique identiques, **1 980 → 2 042 recherches** seulement. Crue 7/42/2024 :
-à l'instant 978, Gorm envisage un tiers (tête de plan vers la crypte), puis
-les observations font reprendre le plan propre ; ordre des gestes et des
-échanges modifié. **Aucun mandat prononcé dans le banc** : acceptations
-réelles prouvées par les profils de test. Compteur 219 : suspects **2 → 1**,
-aucune hausse par nuit (auberge 2024 **1 → 1**, crue 7 **1 → 0**) ; cycles
-**489 → 490**, préemptions **46 → 53**, à expliquer **55 → 59**, dérives
-**233 → 232**. Réserve : crue 42, deux alertes de répétition (9 activations /
-9 sommeils de Brune) ; oisiveté urgente crue 7/42/2024 **0/0/80 → 50/70/215**,
-attente **0/0/45 → 15/70/160** minutes. Ces effets ne certifient pas une
-boucle, mais interdisent une conclusion de non-régression globale.
+| Crue | Sans 260, avec 259 | Avec 260 et 259 | Ancien 260 sans 259 |
+|---|---:|---:|---:|
+| 1985 | 105 / 80 | 105 / 80 | 65 / 40 |
+| 7 | 0 / 0 | 55 / 25 | 50 / 15 |
+| 42 | 0 / 0 | 195 / 130 | 70 / 70 |
+| 2024 | 250 / 185 | 215 / 160 | 215 / 160 |
 
-**Coût mine 1985, 4 h fixe : compteurs et empreintes identiques**,
-**823 recherches, 364 neuves, 13 464 nœuds, 88 477 gestes produits**.
-CPU indicatifs **20,766 / 22,000 s**, sans conclusion de performance.
-Deux travailleurs réduits au plus ; aucun calcul actif. Le premier lanceur
-interrompu avant résultats est conservé dans `fin-interruption.json`.
+Le 259 inverse le verdict relatif de 2024, mais la hausse persiste pour 7/42.
+**Zéro minute classée recours possible non entrepris** ; le reste de
+l'oisiveté de crue est classé en aide confiée. Relevés 42 : attente du devoir
+de Gorm, puis de la chaleur de Brune. Réserve de comportement conservée :
+ces catégories ne garantissent pas l'optimalité ni l'absence de plan manqué.
 
-**Limites et décision.** Correction fonctionnelle conservée ; réserves du
-banc et neuf défauts hérités explicitement maintenus, pas d'exception de
-scénario. Coût du prochain sous-but, pas garantie d'adhésion ou de réussite ;
-limites structurelles du modèle fermé 258 conservées. Une nouvelle croyance
-peut rouvrir une impossibilité. Une acceptation attend le constat propre,
-sans compte rendu ni réaffectation sur retard. Bruts et analyses :
-`C:/Users/msics/donjon/artifacts/confier-260/` ; `fin.json` termine la reprise.
+**Brune crue 42 contrôlée séparément du 268** (hameau 2024, `742f6a1`).
+Diagnostic des huit premières minutes : **10 lignes actif, 9 sommeil,
+8 vrais réveils**. Chaque réveil diffère de la dernière empreinte retenue,
+y compris après un essai resté en sommeil : positions, observations ou refus
+nouveaux. À 2441, seule la provenance du lieu d'Aubin change **vu → entendu**,
+valeur stable : aucun réarmement par délai seul, mais nécessité individuelle
+non démontrée. Huit captures avant réveil rechargées, monde/rendu/scène
+identiques ; chronique du préfixe identique au banc. Aucune boucle sans
+entrée démontrée, aucune exception moteur ajoutée.
+
+**Décision : prête pour la suite complète, avec réserves explicites** sur
+l'attente et la finesse des empreintes ; pas de non-régression globale
+revendiquée. Prochain sous-but seulement, limites structurelles du 258,
+aucune garantie d'adhésion/réussite, aucun compte rendu ni réaffectation.
+Ancien banc cinq scénarios et coût mine avant 259 conservés dans les bruts.
+Calcul détaché **876,395 s**, deux travailleurs réduits au plus, aucun calcul
+actif. Bruts : `C:/Users/msics/donjon/artifacts/confier-260/apres-259/`
+(tests, comparaison, réserves, synthèse, diagnostic et huit sauvegardes de
+Brune) ; `fin.json` et `bilan-final.json` clôturent la reprise.
