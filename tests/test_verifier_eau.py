@@ -10,6 +10,7 @@
   d'où le retour serait coupé ; qui l'attend noyée là où il se tient en sort avant tout."""
 import json
 import copy
+import inspect
 import unittest
 from unittest.mock import patch
 
@@ -80,7 +81,37 @@ class VerifierTests(unittest.TestCase):
             if id == "lucien" and i:
                 plans.append(copy.deepcopy(i))  # l'exécution retire ensuite les étapes en place
             return resultat
-        with patch.object(planification, "VERIFIER", True), diagnostics() as recherches,                 patch.object(deliberation, "choisir", espion):
+        from donjon import echanges
+        from donjon.biens import valeur_capacites
+        from donjon.caractere import valeur_pieces
+        demander = echanges.demander
+        signature = inspect.signature(demander)
+        refus_lucien, ventes = [], []
+
+        def transaction(monde, demandeur, auditeur, objet, *args, **options):
+            suivi = objet == 'lampe_josse' and auditeur == 'josse'
+            if suivi:
+                prix = signature.bind(monde, demandeur, auditeur, objet, *args, **options).arguments.get('prix', 0)
+                avant = copy.deepcopy(monde.data['finances_pnj'])
+                capacite = valeur_capacites(monde, auditeur, objet)
+                gain = valeur_pieces(monde, auditeur, prix)
+            resultat = demander(monde, demandeur, auditeur, objet, *args, **options)
+            if suivi and demandeur == 'lucien' and resultat == 'necessaire':
+                self.assertEqual(monde.objets[objet]['lieu'], 'josse')
+                self.assertEqual(monde.data['finances_pnj'], avant)
+                refus_lucien.append(resultat)
+            if suivi and resultat == 'vendu':
+                self.assertEqual(demandeur, 'bram')
+                self.assertGreaterEqual(gain, capacite)
+                self.assertEqual(monde.objets[objet]['lieu'], demandeur)
+                self.assertEqual(monde.objets[objet]['proprietaire'], demandeur)
+                self.assertEqual(monde.data['finances_pnj'][demandeur], avant[demandeur] - prix)
+                self.assertEqual(monde.data['finances_pnj'][auditeur], avant[auditeur] + prix)
+                ventes.append(prix)
+            return resultat
+
+        with patch.object(planification, "VERIFIER", True), diagnostics() as recherches, \
+                patch.object(deliberation, "choisir", espion), patch.object(echanges, 'demander', transaction):
             for _ in range(15):
                 m, _ = vivre(m, 1)
         # L'espace enrichi borne d'abord la recherche. Josse entre ensuite dans
@@ -91,7 +122,19 @@ class VerifierTests(unittest.TestCase):
         self.assertTrue(any(r["pnj"] == "lucien" and r["but"] == "lumiere" for r in recherches))
         self.assertTrue(any(c["texte"].startswith("Lucien demande la lampe du contremaître à Josse")
                             for c in m.data["chronique"]))
-        self.assertEqual(m.objets["lampe_josse"]["lieu"], "josse")  # son refus est respecté
+        # 202/228 : le refus de prêt à Lucien tient ; Bram peut ensuite payer
+        # la capacité perdue (17 pièces). Le refus ne fige pas le porteur à vie.
+        self.assertTrue(refus_lucien)
+        self.assertEqual(ventes, [17])
+        m = recharger(m)
+        self.assertEqual(m.objets['lampe_josse']['lieu'], 'bram')
+        self.assertEqual(m.objets['lampe_josse']['proprietaire'], 'bram')
+        from donjon.rendu import regarder as rendu
+        from donjon.scene import scene_percue
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        self.assertEqual(rendu(m), rendu(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
 
     def test_remy_cherche_gaspard_et_le_controle_passe(self):
         # Même nature (mine, le camp éteint) : Rémy va chercher Gaspard, qui a le briquet, l'appelle et
