@@ -1,65 +1,68 @@
 # Lot 260 — faire ou confier sur les croyances du mandant
 
-**Prête pour la suite complète du superviseur**, branche non fusionnée
-`codex-faire-ou-confier-b`. Moteur validé `ab21fb3` : fusion sans rebase de
-`origin/integration 1355f7a` (259), aucun conflit moteur ; les deux bilans ont
-été conservés dans le seul conflit documentaire. Aucun moteur modifié lors
-de cette analyse, ni Luna ni suite complète lancée par l'agent.
+**Prête pour la nouvelle suite complète du superviseur**, branche non
+fusionnée `codex-faire-ou-confier-b`, moteur corrigé `323a0af`. Fusion sans
+rebase de l'intégration 259 (`1355f7a`) conservée. Ni Luna ni suite complète
+lancée par l'agent ; aucun scénario, MJ ou corps modifié dans ce correctif.
 
-**Contrat.** `agendas.planifier` sépare prochain sous-but et mandataire : coût
-propre contre trajet cru, paroles et devis observateur pondéré par chance
-d'accord / confiance crues ; égalité par identifiant, filiation bornée, sans
-esprit privé du tiers. Les faits projetés passent réellement par `dire`, puis
-`echanges.confier(mandat=...)` garde le jugement réel. Refus distincts par
-mandat, acceptations réservées sans lire l'enfant. La garde des agendas
-terminaux (`23a1b83`) est prouvée sur `amener` et `informer`.
+**Régression reconnue.** La suite du superviseur sur `d0f9f7a` : 2 671 tests,
+une erreur propre au 260, absente de l'intégration verte (2 663 tests).
+Crue/Brune devenue dépouille : le choix de mandataire appelait un validateur
+exigeant encore le type vivant. Une garde contre ce seul type aurait masqué
+la mort cachée et laissé invalides les jugements et filiations historiques.
 
-**773/773 tests verts / 90 fichiers ciblés** : les 88 fichiers précédents,
-`test_corps` et `test_relations_socle`. Les neuf défaillances héritées du 251
-ont disparu avec le 259, sans assertion affaiblie. Huit tests propres au 260 :
-choix réel, deux charges, refus, égalité, avis, plusieurs cibles et état
-terminal ; monde/rendu/scène rechargés, laps entier/découpé.
+**Invariant corrigé : identité persistante, admissibilité crue, projection.**
+`agendas._condition_mandat` valide la structure et l'identité avec la famille
+commune `noms.PERSONNES`, qui survit au décès. La disponibilité est séparée :
+`_personne_disponible_crue` / `_destinataires_disponibles` lisent les seuls
+états mort/parti crus par le mandant. Ces lecteurs servent à l'actualisation,
+au sous-but, au choix du tiers et au devis. Aucun destinataire disponible :
+fin dans l'actualisation, sommeil dans un devis isolé ; un groupe garde ses
+membres encore disponibles. Un candidat cru mort/parti n'est pas devisé.
+Une cible absente du modèle fermé rend le devis impossible, sans exception.
 
-**Huit paires 4 h crue/Relais**, quatre graines, référence `1355f7a`, branche
-`ab21fb3` : zéro plantage/violation signalé. Relais entièrement identique ;
-crue 1985 monde/chronique identiques (+62 recherches). Trois autres crues
-modifiées après tiers envisagé à 978 puis reprise propre. Aucun mandat
-prononcé dans le banc ; acceptations effectives prouvées en profils de test.
-Compteur 219 **3 → 1 suspects**, sans hausse par nuit ; à expliquer **35 → 44**,
-cycles **180 → 188**, préemptions **18 → 19**, dérives **73 → 64**.
-Huit références exactes absentes calculées une fois, aucune rejouée.
+`ContexteDevis.projeter` reconstruit vie, présence et profil neutre des
+personnes depuis les croyances de l'observateur ; type réel, nom de dépouille
+et disparition du profil ne deviennent plus des observations à distance.
+Le mandat hypothétique est validé sur cette projection. Aucun `try/except`
+ne masque un refus de validation : les structures mal formées restent
+refusées ; les références historiques à une cible morte restent rechargeables.
+Le contrat faire/confier, ses coûts, paroles, jugement réel et filiation
+bornée sont conservés ; aucune exception d'objet, de PNJ ou de scénario.
 
-**Attente réévaluée.** O/A = oisiveté urgente / attente, PNJ·min :
+**796/796 tests verts, 92 fichiers ciblés**, deux travailleurs réduits,
+**812,656 s**. Les 90 fichiers précédents, `test_corps_blessable` et le nouveau
+`test_agendas_destinataires`. **17/17 tests du fichier corps blessable entier,
+assertions inchangées**, dont le cas exact signalé ; **six nouveaux tests**
+avec sous-cas crue/Brune puis Ilse, `amener` puis `informer`, mort/départ crus
+alors que la personne est vivante, décès caché de la cible ou du candidat,
+cible inconnue, groupe partiellement disponible, jugement/filiation après
+décès. Monde complet, rendu et scène vérifiés après recharge. Quand l'esprit
+du mandant reste inchangé dans ces profils, la mort réelle cachée conserve
+projection complète, devis et choix. La première passe rouge reste dans
+`destinataires-avant.log` ; les passages intermédiaires ne sont pas ajoutés
+au compte des 796 tests.
 
-| Crue | Sans 260, avec 259 | Avec 260 et 259 | Ancien 260 sans 259 |
-|---|---:|---:|---:|
-| 1985 | 105 / 80 | 105 / 80 | 65 / 40 |
-| 7 | 0 / 0 | 55 / 25 | 50 / 15 |
-| 42 | 0 / 0 | 195 / 130 | 70 / 70 |
-| 2024 | 250 / 185 | 215 / 160 | 215 / 160 |
+**Stabilité : huit paires 4 h crue/Relais entièrement identiques** contre le
+moteur antérieur `ab21fb3` : état final complet, chroniques, mesures, empreintes,
+récits et souvenirs. Zéro plantage ; huit références lues dans le cache,
+aucune rejouée, seulement huit nuits corrigées calculées. Pas de comparaison
+de temps avec les références en cache. `git diff --check` propre.
 
-Le 259 inverse le verdict relatif de 2024, mais la hausse persiste pour 7/42.
-**Zéro minute classée recours possible non entrepris** ; le reste de
-l'oisiveté de crue est classé en aide confiée. Relevés 42 : attente du devoir
-de Gorm, puis de la chaleur de Brune. Réserve de comportement conservée :
-ces catégories ne garantissent pas l'optimalité ni l'absence de plan manqué.
+**Réserves antérieures inchangées**, donc maintenues : après 259, crue 7/42,
+oisiveté urgente 0/0 → 55/195 et attente 0/0 → 25/130 PNJ·min ; crue 2024,
+oisiveté/attente 250/185 → 215/160. Aucun recours possible non entrepris
+certifié par le détecteur. Brune crue 42 : 10 lignes actif / 9 sommeil mais
+8 vrais réveils, huit captures rechargées et changements d'empreinte ; à
+2441 seule la provenance vu → entendu change, nécessité individuelle non
+démontrée. Diagnostic distinct du 268 (hameau 2024). Aucune boucle sans
+entrée établie ni non-régression globale revendiquée. Coût du prochain
+sous-but seulement, limites structurelles du modèle fermé 258, aucune
+garantie d'adhésion/réussite, aucun compte rendu ni réaffectation sur retard.
 
-**Brune crue 42 contrôlée séparément du 268** (hameau 2024, `742f6a1`).
-Diagnostic des huit premières minutes : **10 lignes actif, 9 sommeil,
-8 vrais réveils**. Chaque réveil diffère de la dernière empreinte retenue,
-y compris après un essai resté en sommeil : positions, observations ou refus
-nouveaux. À 2441, seule la provenance du lieu d'Aubin change **vu → entendu**,
-valeur stable : aucun réarmement par délai seul, mais nécessité individuelle
-non démontrée. Huit captures avant réveil rechargées, monde/rendu/scène
-identiques ; chronique du préfixe identique au banc. Aucune boucle sans
-entrée démontrée, aucune exception moteur ajoutée.
-
-**Décision : prête pour la suite complète, avec réserves explicites** sur
-l'attente et la finesse des empreintes ; pas de non-régression globale
-revendiquée. Prochain sous-but seulement, limites structurelles du 258,
-aucune garantie d'adhésion/réussite, aucun compte rendu ni réaffectation.
-Ancien banc cinq scénarios et coût mine avant 259 conservés dans les bruts.
-Calcul détaché **876,395 s**, deux travailleurs réduits au plus, aucun calcul
-actif. Bruts : `C:/Users/msics/donjon/artifacts/confier-260/apres-259/`
-(tests, comparaison, réserves, synthèse, diagnostic et huit sauvegardes de
-Brune) ; `fin.json` et `bilan-final.json` clôturent la reprise.
+Bruts : `C:/Users/msics/donjon/artifacts/confier-260/`, fichiers
+`destinataires-avant.log`, `destinataires-tests.json`,
+`destinataires-stabilite.json`, `destinataires-stabilite-analyse.json`,
+`destinataires-fin.json` ; diagnostics antérieurs dans `apres-259/`.
+Aucun calcul actif. **Prête pour la relance de la suite complète ; son
+résultat reste à établir par le superviseur.**
