@@ -163,6 +163,110 @@ def projets(monde, id):
     return copy.deepcopy(_stock(monde, id) or [])
 
 
+def _projet(monde, titulaire, identifiant):
+    return next((a for a in (_stock(monde, titulaire) or [])
+                 if a["id"] == identifiant), None)
+
+
+def filiation(monde, titulaire, identifiant):
+    """Chaîne copiée racine → agenda ; la profondeur est le nombre d'arêtes.
+
+    Les références sont locales au titulaire, jamais des identifiants globaux.
+    Les liens restent consultables après la fin d'un projet.
+    """
+    chaine, vus = [], set()
+    while True:
+        if titulaire in vus:
+            raise ValueError("Cycle de mandat")
+        vus.add(titulaire)
+        a = _projet(monde, titulaire, identifiant)
+        if a is None:
+            raise ValueError("Parent de mandat absent")
+        chaine.append({"titulaire": titulaire, "agenda": identifiant})
+        origine = a["origine"]
+        if origine["type"] != "mandat":
+            return list(reversed(chaine))
+        titulaire, identifiant = origine["de"], origine["parent"]
+
+
+def enfants(monde, titulaire, identifiant):
+    a = _projet(monde, titulaire, identifiant)
+    if a is None:
+        raise ValueError("Agenda absent")
+    return copy.deepcopy(a.get("confies", []))
+
+
+def _condition_mandat(monde, sorte, parametres):
+    """Identité du sous-but indépendante de l'ordre des destinataires."""
+    if sorte not in ("amener", "informer") or not isinstance(parametres, dict):
+        raise ValueError("Sorte de mandat invalide")
+    p = copy.deepcopy(parametres)
+    qui = p.get("qui")
+    qui = [qui] if isinstance(qui, str) else qui
+    if (not isinstance(qui, list) or not qui
+            or any(not isinstance(q, str) or q not in monde.objets
+                   or monde.objets[q]["type"] != "personnage" for q in qui)):
+        raise ValueError("Destinataires de mandat invalides")
+    p["qui"] = sorted(set(qui))
+    if sorte == "amener":
+        if set(p) != {"qui", "lieu"} or p["lieu"] not in monde.data["salles"]:
+            raise ValueError("Destination de mandat invalide")
+    elif (set(p) not in ({"qui", "fait"}, {"qui", "avis"})
+          or not isinstance(_noyau({"parametres": p}), dict)):
+        raise ValueError("Contenu de mandat invalide")
+    return p
+
+
+def confier(monde, mandant, parent, titulaire, sorte, parametres, *, accepte):
+    """Publier une acceptation déjà jugée ; aucun jet, choix ni ancien contrat.
+
+    Refus : aucun effet. Relance : même enfant, même état (même terminal),
+    date de confirmation renouvelée sans effacer la date d'origine.
+    Cette publication entre deux esprits ne s'effectue pas dans un devis.
+    """
+    from .monde import ErreurMonde
+    if type(accepte) is not bool:
+        raise ValueError("Acceptation de mandat invalide")
+    if not accepte:
+        return None
+    if getattr(monde, "_evaluation_agendas", None) is not None:
+        raise ValueError("Publier le mandat après le devis")
+    if (titulaire not in monde.objets
+            or monde.objets[titulaire]["type"] != "personnage"):
+        raise ValueError("Titulaire de mandat invalide")
+    p = _condition_mandat(monde, sorte, parametres)
+    chaine = filiation(monde, mandant, parent)
+    if titulaire in {r["titulaire"] for r in chaine}:
+        raise ErreurMonde("Ce mandat reviendrait à l'un de ses mandants.",
+                          f"titulaire={titulaire} ; attendu : titulaire absent de {chaine}")
+    if len(chaine) >= 3:
+        raise ErreurMonde("Ce mandat a déjà été confié deux fois de suite.",
+                          f"parent={mandant}/{parent}, profondeur={len(chaine)-1} ; attendu : profondeur < 2")
+    a = _projet(monde, mandant, parent)
+    for ref in a.get("confies", []):
+        enfant = _projet(monde, ref["titulaire"], ref["agenda"])
+        if (ref["titulaire"] == titulaire and enfant["sorte"] == sorte
+                and _condition_mandat(monde, sorte, enfant["parametres"]) == p):
+            enfant["confirme"] = monde.data["minutes"]
+            return copy.deepcopy(enfant)
+    actualiser(monde, titulaire)
+    stock = _stock(monde, titulaire) or []
+    n = 1
+    while any(x["id"] == f"a{n}" for x in stock):
+        n += 1
+    enfant = {"id": f"a{n}", "sorte": sorte, "parametres": p,
+              "maniere": copy.deepcopy(a.get("maniere", {"sans_violence": True})),
+              "origine": {"type": "mandat", "de": mandant, "parent": parent,
+                          "minute": monde.data["minutes"]},
+              "confirme": monde.data["minutes"]}
+    empreinte = _croyances(monde, titulaire)
+    _changer(monde, titulaire, enfant, "actif", "mandat", empreinte)
+    _stock(monde, titulaire, creer=True).append(enfant)
+    a.setdefault("confies", []).append({"titulaire": titulaire, "agenda": enfant["id"]})
+    _limiter(monde, titulaire, empreinte)
+    return copy.deepcopy(enfant)
+
+
 def _stock(monde, id, creer=False):
     from .esprits import esprit, lire
     evaluation = getattr(monde, "_evaluation_agendas", None)
@@ -832,6 +936,47 @@ def declares(rapport):
     return copy.deepcopy(rapport.get("engagements"))
 
 
+def _verifier_filiation(monde, id, a):
+    origine = a["origine"]
+    if origine["type"] == "mandat":
+        assert (set(origine) == {"type", "de", "parent", "minute"}
+                and isinstance(origine["de"], str) and isinstance(origine["parent"], str)
+                and type(origine["minute"]) is int
+                and type(a.get("confirme")) is int
+                and a["confirme"] >= origine["minute"]), "Origine de mandat invalide"
+        try:
+            chaine = filiation(monde, id, a["id"])
+            assert len(chaine) <= 3, "Profondeur de mandat dépassée"
+            _condition_mandat(monde, a["sorte"], a["parametres"])
+        except ValueError as e:
+            raise AssertionError(str(e)) from e
+        parent = _projet(monde, origine["de"], origine["parent"])
+        assert parent.get("confies", []).count({"titulaire": id, "agenda": a["id"]}) == 1, "Mandat sans lien réciproque"
+    else:
+        assert "confirme" not in a, "Confirmation sans mandat"
+    refs = a.get("confies", [])
+    assert isinstance(refs, list), "Enfants de mandat invalides"
+    identites, conditions = set(), []
+    for r in refs:
+        assert (isinstance(r, dict) and set(r) == {"titulaire", "agenda"}
+                and isinstance(r["titulaire"], str) and isinstance(r["agenda"], str)), "Référence de mandat invalide"
+        cle = (r["titulaire"], r["agenda"])
+        assert cle not in identites, "Enfant de mandat dupliqué"
+        identites.add(cle)
+        enfant = _projet(monde, *cle)
+        assert enfant is not None, "Enfant de mandat absent"
+        o = enfant["origine"]
+        assert (o["type"] == "mandat" and o["de"] == id
+                and o["parent"] == a["id"]), "Parent de mandat incohérent"
+        try:
+            condition = (r["titulaire"], enfant["sorte"],
+                         _condition_mandat(monde, enfant["sorte"], enfant["parametres"]))
+        except ValueError as e:
+            raise AssertionError(str(e)) from e
+        assert condition not in conditions, "Condition de mandat dupliquée"
+        conditions.append(condition)
+
+
 def verifier(monde, id):
     from .esprits import lire
     c = lire(monde, id).get("contrat_intention") if id != "joueur" else None
@@ -870,8 +1015,9 @@ def verifier(monde, id):
     for a in stock:
         assert (a["etat"] in ("actif", "sommeil", "atteint", "abandonne")
                 and type(a["depuis"]) is int and isinstance(a["raison"], str)
-                and a["origine"]["type"] in ("scenario", "situation", "evenement") and "plan" not in a
+                and a["origine"]["type"] in ("scenario", "situation", "evenement", "mandat") and "plan" not in a
                 and isinstance(a["croyances"], str)), "Agenda invalide"
+        _verifier_filiation(monde, id, a)
     for engagement in en_cours(monde, id):
         from .deliberation import condition_valide
         # ``paye`` : une contrepartie payée d'avance (une part, un objet, une tâche), le bien et le prix

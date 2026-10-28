@@ -4,6 +4,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-filiation-mandat`, non fusionnée**, lot **252**, base
+  `integration 59cb572` : API `agendas.confier`, lectures copiées `filiation`
+  et `enfants`, origine `mandat`, liens réciproques, unicité par parent /
+  titulaire / condition, deux arêtes au plus, aucun titulaire répété.
+  Refus sans effet, relance avec confirmation datée sans ressusciter un
+  résultat terminal ; validation à la recharge et contrôle AST renforcés.
+  Anciens contrats inchangés ; aucun lecteur de décision ni appel automatique.
+  **25 ciblés distincts verts / cinq fichiers**, parole et déplacement réels,
+  monde/rendu/scène rechargés. **Empreintes 20 paires 2 h en cours**,
+  référence figée `59cb572`, cinq scénarios, quatre graines, cache commun,
+  un travailleur réduit détaché. Fin attendue :
+  `C:/Users/msics/donjon/artifacts/filiation-252/fin.json`.
+  Pas de suite complète ni Luna. Identité des nuits non encore conclue.
+  [Rapport 252](taches/rapport-codex-252-filiation-mandat.md).
+
 - **Branche `codex-ascendant-neutre`, fusionnée**, lot **248**, base
   `f46a0b5` (référence remplacée sur instruction du superviseur) : sixième
   axe orienté neutre dans `relations.py`, lecture pure `autorite_reconnue`,
