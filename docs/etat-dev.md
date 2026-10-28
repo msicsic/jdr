@@ -11,11 +11,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   capture réelle Aubin Relais 2024 **117503** sans sortie ni renaissance
   sur le retour perceptif, Mathé/Lucien hors perception avec obstacle puis
   reprise et repas effectif, vraie fin/préemption, recharges monde/rendu/scène
-  et laps entiers/découpés. **Calcul détaché en cours** : tests ciblés puis
-  banc 4 h cinq scénarios × quatre graines, référence `0e3e626`, sonde
-  actuelle ; aucune absence de hausse encore revendiquée. Ni Luna ni suite
-  complète. Bruts `C:/Users/msics/donjon/artifacts/demande-273-sol/` ; fin
-  attendue `fin.json`. [Rapport 273](taches/rapport-codex-273-demande-adoptee.md).
+  et laps entiers/découpés. Correctif poussé **`3ec23bb`**.
+  **Validation incomplète, non prêt pour fusion** : calcul détaché terminé
+  en échec (**398,712 s**), tests complémentaires **28/29**, soit **49/50
+  tests distincts / sept fichiers**. Erreur dans le test de Lucien après
+  reprise du ballot, `test_dynamique_besoins.py:225` : recherche d'Anselme
+  absente, `KeyError: 'anselme'` ; cause et attribution au correctif non
+  établies, aucun contrôle sur la base dans cette relecture. **Banc 4 h non
+  lancé**, le lanceur s'arrêtant avant le comparateur : aucune des vingt
+  paires prévues, aucun compteur 219 par nuit ni comparaison à `0e3e626`.
+  Disparition du suspect Aubin sur une nuit entière et absence de hausse
+  non démontrées ; échec à instruire avant reprise de la validation.
+  Ni Luna ni suite complète. Bruts
+  `C:/Users/msics/donjon/artifacts/demande-273-sol/`, `fin.json`
+  (**`ok=false`**) ; **aucun calcul actif**.
+  [Rapport 273](taches/rapport-codex-273-demande-adoptee.md).
 
 - **Branche `codex-retour-aubin`, fusionnée**, lot **272**, diagnostic
   seul, base `aaaf4cf` : Aubin Relais 2024, départ tiré, joueur passif,

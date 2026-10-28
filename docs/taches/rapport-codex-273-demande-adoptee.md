@@ -1,9 +1,10 @@
 # Lot 273 — demande adoptée et moyen démenti
 
 29 octobre 2026. **Branche `codex-demande-adoptee`, non fusionnée**,
-base `c9459ce` ; référence de banc demandée `0e3e626`.
+base `c9459ce`, correctif poussé **`3ec23bb`** ; référence de banc demandée
+`0e3e626`. **Validation incomplète : non prêt pour fusion.**
 
-**Invariant corrigé.** Un échec de geste ne certifie pas la fin d'une
+**Correctif proposé.** Un échec de geste ne certifie pas la fin d'une
 demande adoptée. Dans `deliberation.choisir`, la collision avec `manque`
 libère maintenant le plan de cette demande tout en conservant son identité,
 son palier et sa provenance. La revalidation existante peut retrouver un
@@ -39,17 +40,33 @@ plus de l'abandon implicite d'une première demande visant une autre
 ressource à racheter. La demande conserve sa condition exacte ; changer
 d'objet cible n'est pas assimilé à un autre moyen de cette même condition.
 
-**Vérifications détachées en cours**, PID **31584**, un processus réduit : fichiers
-`test_echelle_choix`, `test_dynamique_besoins`, `test_reessai*`,
-`test_contrats_internes`, `test_secours_acquitte` ; puis banc 4 h,
-Relais/mine/auberge/crue/hameau × graines 1985/7/42/2024. Référence
-`0e3e626` réutilisée en cache si disponible, seules nuits manquantes jouées
-une fois, puis branche ; sonde actuelle 265/271 identique des deux côtés.
-Le bilan comparera les suspects 219 nuit par nuit et le cas Aubin. Aucun
-résultat de ce banc n'est encore revendiqué. Ni Luna ni suite complète.
+**Calcul détaché terminé en échec**, un processus réduit, **398,712 s**.
+Tests complémentaires : **28 succès / 29**, aucun échec d'assertion et une
+erreur ; avec les fichiers modifiés, **49 succès / 50 tests distincts,
+sept fichiers**. Détail : contrats internes **5/5**, dynamique des besoins
+**9/10**, échelle du choix **4/4**, réessai obstacle **7/7**, secours acquitté
+**3/3**. Les 29 tests complémentaires ont duré **398,297 s**.
+
+L'erreur est dans
+`test_dynamique_besoins.TenirTests.test_lucien_attend_une_information_apres_la_reprise_du_ballot`,
+ligne 225 : `lire(m, "lucien")["recherches"]["anselme"]` lève
+**`KeyError: 'anselme'`**. La recherche attendue par ce test n'est pas
+présente au relevé. Sa cause et son attribution au correctif ne sont pas
+établies : aucun contrôle de ce test sur la base n'a été exécuté dans cette
+relecture. Cet échec reste à instruire avant de conclure le lot technique.
+
+**Banc 4 h non lancé.** Le lanceur s'arrête sur le code de retour des
+tests avant d'appeler le comparateur. Aucune des vingt paires prévues
+(Relais/mine/auberge/crue/hameau × graines 1985/7/42/2024) n'a donc été
+jouée par cette campagne ; `banc.json` et `bilan.json` sont absents. Aucun
+compteur 219 par nuit, aucune absence de hausse ni disparition du suspect
+Aubin sur une nuit entière ne sont démontrés. La preuve sur sa capture
+117503 reste limitée au test ciblé décrit plus haut. La comparaison à
+`0e3e626` avec la sonde 265/271 reste à effectuer après traitement du test.
+Ni nouveau calcul, ni Luna, ni suite complète lancés lors de cette relecture.
 
 Bruts : `C:/Users/msics/donjon/artifacts/demande-273-sol/`,
-`tests-contrat-empathie.json`, `tests-cibles.json`, `banc.json`, `bilan.json` ;
-**fichier de fin attendu `fin.json`**, écrit en dernier, avec `ok` et les
-éventuelles erreurs. La garantie est celle du contrat de demande typée et
-des cas vérifiés, pas une certification générale de stabilité des PNJ.
+`tests-contrat-empathie.json`, `tests-cibles.json`, `tests-cibles.log`,
+`fin.json` (**`ok=false`**, trace de l'arrêt avant banc). **Aucun calcul
+actif.** La garantie reste limitée aux cas vérifiés du contrat de demande
+typée ; aucune validation générale ni aptitude à la fusion n'est revendiquée.
