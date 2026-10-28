@@ -452,7 +452,7 @@ def verifier(monde):
                              and isinstance(i["plan"], list)), "Intention de PNJ invalide"
         if i:
             charges = i.get("charges_suspendues")
-            if charges is not None:
+            if "charges_suspendues" in i:
                 from .deliberation import condition_valide
                 assert (isinstance(charges, dict) and set(charges) == {"conditions", "restaurer"}
                         and type(charges["restaurer"]) is bool and isinstance(charges["conditions"], list)

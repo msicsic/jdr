@@ -261,6 +261,10 @@ class RestaurationChargesTests(unittest.TestCase):
         faux['esprits'][auteur]['intention']['charges_suspendues']['restaurer'] = 'oui'
         with self.assertRaisesRegex(ErreurMonde, 'Charges suspendues'):
             Monde(faux)
+        faux = copy.deepcopy(m.data)
+        faux['esprits'][auteur]['intention']['charges_suspendues'] = None
+        with self.assertRaisesRegex(ErreurMonde, 'Charges suspendues'):
+            Monde(faux)
         del lire(m, auteur)['intention']['charges_suspendues']
         self.verifier_rendus(m)
 
