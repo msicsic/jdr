@@ -1,62 +1,66 @@
-# Lot 234 — placement et rapprochement : un même juge
+# Lot 234 — placement et rapprochement : un même jugement
 
-Branche `codex-place-perimee`, **non fusionnée ; validation non acquise**.
-Merge demandé de `origin/integration` **`1c44801`** (229/232) dans `3f8739e`,
-seul conflit documentaire. Code final **`5f73166`**, après `c6cc8fa` et `34825a8`.
-La référence reste ce commit fusionné, sans suivre les intégrations suivantes.
+Branche `codex-place-perimee`, **non fusionnée ; ciblés et banc validés**.
+Merge demandé de `origin/integration` **`d9e5166`** (233/236/238/239/240) dans
+**`860fa0b`**, sans rebase, seul conflit documentaire. Moteur propre au 234
+inchangé depuis **`5f73166`** ; tests d’Ilse **`89fdfb8`**, Lucien **`ffd814f`**.
 
-**Invariant.** `pnj._jugement_placement` et `_pas_placement` servent à
+**Invariant.** `pnj._jugement_placement` et `_pas_placement` sont communs à
 `signes.place` et `_rejoindre_un_proche` : lieu cru localisable, objectif
 atteignable, trajet améliorant dans le séjour et la portée du geste, sans
-dégrader le placement obtenu. La progression porte sur le trajet : son premier
-pas peut conserver la distance arrondie. `_marcher` maintient ce prédicat dans
-ses détours. Une cible impossible cède ; le contact fiable accomplit le recours.
-Une posture seule ne réserve jamais le geste ; elle est réactualisée sur la
-position effective, même après une durée consommée sans déplacement. Aucun
-nouveau champ de sauvegarde, mode, prompt ni exception d'acteur.
+dégradation intermédiaire. Un premier pas à distance arrondie égale est permis.
+`_marcher` maintient ce prédicat dans ses détours. Une cible impossible cède ;
+une posture seule ne réserve pas le geste. Posture réactualisée sur la position
+effective, même après une durée sans déplacement. Aucun champ, mode, prompt
+ni exception d’acteur. Un détour exigeant une dégradation temporaire cède au séjour.
 
-**Preuves ciblées.** Cinq nouveaux tests / treize sous-cas : Ilse/Relais et
-Hugues/auberge, cible inconnue, démentie, inaccessible, mouvement manqué et
-détour à distance égale. Douze sous-cas rouges sur les fonctions exactes de
-`1c44801` ; le détour est rouge sur `34825a8`, puis vert. Monde et rendu après
-recharge, laps entiers/découpés contrôlés. Les cinq fichiers initiaux donnent
-**44 tests verts** ; consolidation étendue : **64/65 verts**, zéro erreur.
+**Preuves.** Cinq nouveaux tests / treize sous-cas : Ilse/Relais et Hugues/auberge,
+cible inconnue, démentie, paroi, mouvement manqué, détour à distance égale.
+Contre-épreuves rouges archivées ; monde/rendu rechargés, laps entiers/découpés.
+Après arbitrages :
+**46/46 ciblés initiaux verts**, puis **31/31 verts** sur Lucien, 225, placement
+et sécurité. Aubin reste à **8 passages/30 min** contre 188 à la première
+livraison ; garde livrée, réserve refermée/verrouillée.
 
-Les **trois régressions demandées passent sans changer leurs assertions** :
-Aubin **188 → 8 passages / 30 min**, même monde/vue en laps découpés ; garde :
-une part livrée, réserve refermée/verrouillée après recharge ; Ilse rejoint
-Aubin. Chronique finale : Aubin non localisé au départ, vu à **t525** lorsque
-Ilse est `[2,1]` ; positions finales **Ilse `[0,4]`, Aubin `[1,5]`**, fanal
-perçu niveau **1**, sécurité **69,707**. Aucun assouplissement de l'oracle.
+**Ilse.** Chronique complète : Aubin jamais localisé, Brune vue au refuge.
+Ilse termine **`[6,0]`**, Brune **`[7,1]`**, lumière **niveau 2**, sécurité
+**69,685**. Selon l’autorisation conditionnelle, assertion de proximité vers
+Brune ; contrôles ajoutés de localisation crue et de lumière. Lignes publiques
+de compagnie et apaisement conservés. Preuve `croyances-ilse-d9.json`.
 
-**Suite complète unique sur `34825a8` : 2 530 tests / 293 fichiers,
-3 610,030 s, trois échecs, zéro erreur, seize ignorés.** Rejoués avec les
-fonctions de `1c44801` : Gorm et Lucien passent, seule la torche échoue.
-Le détour corrige ensuite Gorm, confirmé dans la consolidation sur `5f73166`.
-**Lucien reste rouge** (`test_dynamique_besoins`, retour de lanterne au grenier).
-Première divergence physique à **t45591** : ancienne posture vers Odile sans
-pas ; le recours restauré avance de `[2,2]` à `[3,2]` vers Odile crue présente
-et fiable. À 107 min il quitte ensuite la salle commune ; il termine chambre
-chaude, but sur le ballot, plan vide, bougeoir chez Mireille. La cause de ce
-blocage ultérieur n'est pas certifiée. Aucune modification de l'assertion ou
-des modules exclus pour l'effacer. Torche **3188/3615** préexistante, lot 238.
-Pas de seconde suite complète après correction ; consolidation ciblée explicite.
+**Lucien : la correction change la nuit historique — vol réussi à la place
+de la garde éclairée.** Le recours auparavant bloqué change sa place et
+l’information reçue. Le test garde le contrôle 229 à 95 min : témoin toujours
+cru, pas de reprise. Toute reprise ultérieure exige une entrée nouvelle qui
+lève l’obstacle. À **107–109 min**, avant chacun des gestes exécutés, aucun
+témoin cru présent, vu ou à portée d’oreille ; aucun passage par le désespoir.
+Le vol est donc légitime selon 225. Ballot posé à l’étable, repris par Anselme,
+vu porté par lui, puis localisation perdue. Huit pièces cherchées à 114 ;
+contrat de tâche **palier 4** en attente d’information, garde **palier 13**
+non prioritaire. Test : **zéro aller-retour injustifié 219**, recherche inchangée
+et aucun déplacement de 120 à 165 ; état et rendu rechargés identiques.
 
-**Banc final sur `5f73166` : vingt paires de 4 h, vingt références du cache**,
-zéro plantage/usurpation. Suspects 219 **2 → 3** : hausse Mireille auberge 2024
-à 226 min (`manque:servir`, puis retour au service de Mathurine), cause non
-certifiée ; paquet causal archivé. Max passages/PNJ/h Relais/mine/auberge/crue/
-hameau : **9/11/17/62/22 → 9/10/17/62/28** (Gorm 2024, heure 3 : 28).
-Cycles **507 → 510**, préemptions **58 → 43**, à expliquer **87 → 74**,
-dérives **204 → 203**. Nouvelle alerte Maël hameau 7 : huit demandes promises ;
-alternance Lucien auberge 42 : observation, pas preuve de boucle. Les passes
-intermédiaires sont conservées ; aucune référence rejouée. Temps non comparés.
+**Séparation explicitement autorisée.** La scène dédiée à la lanterne exclut
+la pulsion sur le ballot et l’explique : biens pressants, sécurité apaisée,
+bougeoir connu. Toutes les assertions de garde, possession, lumière,
+changements de lieu et recharge sont conservées. Le scénario historique garde
+ses contrôles de témoin, tâche, recherche et absence de navette.
+**Suite complète laissée au superviseur**, nouvelle règle **`4422f13`**. Passe arrêtée sur instruction après **1545 tests / 166 fichiers achevés**, zéro échec, une erreur Windows `os.replace` à la sauvegarde initiale du test TUI de coffre vide, avant l’application. Ce seul test, inchangé, repris **vert en 3,602 s** ; cause système non identifiée. Résultats partiels archivés ; cette passe n’a été ni achevée ni relancée.
 
-Périmètre confirmé par AST : `signes.place`, `pnj.agir`, `_marcher`,
-`_rejoindre_un_proche` et les deux nouveaux auxiliaires. `ouie`, `echanges.tenu`,
-`pnj_propositions`, `biens.services_proteges`, `menager_flamme`, `social` et MJ
-intacts. Aucun Luna, deux travailleurs réduits au plus ; créneau dépassé.
-Les trajets exigeant une dégradation temporaire cèdent au séjour. Absence
-générale de nouvelles boucles **non garantie**. Bruts et scripts :
-`C:/Users/msics/donjon/artifacts/place-234/reprise/` (`banc-plateau*`,
-`suite-finale*`, `consolidation-plateau*`, `lucien-*`, `croyances-ilse-plateau*`).
+**Banc final : vingt paires de 4 h contre `d9e5166`.** Quatre références du
+cache, seize manquantes rangées une fois ; aucune rejouée. Aucun plantage ni
+usurpation. Suspects 219 **2 → 2, épisodes identiques**, aucune hausse par nuit
+ni nouvelle alerte. Max passages/PNJ/h Relais/mine/auberge/crue/hameau
+**9/10/15/24/22 inchangés**. Cycles **499 → 499**, préemptions **49 → 49**,
+à expliquer **66 → 65**, dérives **222 → 218**. Mireille auberge 2024 à 226 :
+zéro suspect des deux côtés, mêmes gestes principaux ; Maël hameau 7 : zéro
+demande promise des deux côtés. Ces anciens écarts disparaissent après fusion,
+sans modifier échanges, propositions ou compteur. Temps non comparés.
+
+AST : seuls `signes.place`, `pnj.agir`, `_marcher`, `_rejoindre_un_proche` et
+deux auxiliaires nouveaux diffèrent ; fonctions exclues et MJ intacts.
+Aucun Luna, deux travailleurs réduits au plus ; créneau dépassé. Absence
+universelle de boucles non garantie. Bruts et scripts :
+`C:/Users/msics/donjon/artifacts/place-234/reprise/` (`banc-d9-final*`,
+`suite-d9-interrompue.json`, `tui-reprise-d9.txt`, `cibles-lucien-autorisees-d9*`, `lucien-d9-*`,
+`causes-d9-mireille-mael*`). Les reprises précédentes restent archivées.
