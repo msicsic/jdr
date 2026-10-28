@@ -222,16 +222,24 @@ def devis_observateur(monde, observateur, parent, acteur, sorte, parametres, *, 
     hypothétique ne publie rien. Le jugement réel reste ``devis_mandat``.
     """
     from .planification import ContexteDevis
+    p = _condition_mandat(monde, sorte, parametres)
+    if (not _personne_disponible_crue(monde, observateur, acteur)
+            or any(not _personne_disponible_crue(monde, observateur, q) for q in p["qui"])):
+        return None
     contexte = ContexteDevis(observateur, acteur, transmis)
     copie = contexte.projeter(monde)
     if copie is None:
+        return None
+    if any(q not in copie.objets for q in p["qui"]):
+        # Une identité dans l'agenda ne fournit pas à elle seule les
+        # connaissances nécessaires à son apparition dans le modèle fermé.
         return None
     # Un devis n'est pas une publication : reconstruire une filiation lirait
     # les esprits des ancêtres, absents à juste titre du modèle fermé.
     a = copy.deepcopy(_projet(monde, observateur, parent))
     if a is None:
         raise ValueError("Parent de mandat absent")
-    a.update(id="devis", sorte=sorte, parametres=_condition_mandat(monde, sorte, parametres),
+    a.update(id="devis", sorte=sorte, parametres=_condition_mandat(copie, sorte, p),
              etat="actif", origine={"type": "scenario"})
     for champ in ("confies", "jugements"):
         a.pop(champ, None)
@@ -254,7 +262,12 @@ def devis_observateur(monde, observateur, parent, acteur, sorte, parametres, *, 
 
 
 def _condition_mandat(monde, sorte, parametres):
-    """Identité du sous-but indépendante de l'ordre des destinataires."""
+    """Structure et identité persistantes, indépendantes de la disponibilité.
+
+    Un jugement et une filiation restent valides après la mort d'une cible.
+    L'admissibilité du prochain geste dépend des croyances, séparément.
+    """
+    from .noms import PERSONNES
     if sorte not in ("amener", "informer") or not isinstance(parametres, dict):
         raise ValueError("Sorte de mandat invalide")
     p = copy.deepcopy(parametres)
@@ -262,7 +275,7 @@ def _condition_mandat(monde, sorte, parametres):
     qui = [qui] if isinstance(qui, str) else qui
     if (not isinstance(qui, list) or not qui
             or any(not isinstance(q, str) or q not in monde.objets
-                   or monde.objets[q]["type"] != "personnage" for q in qui)):
+                   or monde.objets[q]["type"] not in PERSONNES for q in qui)):
         raise ValueError("Destinataires de mandat invalides")
     p["qui"] = sorted(set(qui))
     if sorte == "amener":
@@ -455,6 +468,9 @@ def actualiser(monde, id):
         if a.get("echeance", float("inf")) < monde.data["minutes"]:
             _changer(monde, id, a, "abandonne", "echeance", empreinte)
             continue
+        if a["sorte"] in ("amener", "informer") and not _destinataires_disponibles(monde, id, a):
+            _changer(monde, id, a, "abandonne", "destinataires crus indisponibles", empreinte)
+            continue
         if a["sorte"] == "obtenir":
             from .biens import richesse
             if (a["origine"]["type"] == "situation" and not _dette_situation(monde, id)):
@@ -529,6 +545,19 @@ def _destinataires(a):
     return [qui] if isinstance(qui, str) else qui
 
 
+def _personne_disponible_crue(monde, id, qui):
+    """Identité connue, ni mort ni départ crus ; aucune lecture du corps réel."""
+    from .esprits import lire
+    from .noms import PERSONNES
+    etat = lire(monde, id)["croyances"].get(qui, {}).get("etat", {}).get("valeur", {})
+    return (monde.objets.get(qui, {}).get("type") in PERSONNES
+            and not etat.get("mort") and not etat.get("parti"))
+
+
+def _destinataires_disponibles(monde, id, a):
+    return [q for q in _destinataires(a) if _personne_disponible_crue(monde, id, q)]
+
+
 def _route_coupee(monde, id, a):
     """Une coupure prouvée, pas l'échec d'une recherche bornée ou d'une serrure.
 
@@ -598,7 +627,7 @@ def choisir_mandataire(monde, id, identifiant, propre, mesure):
     if propre is None:
         attribues = {q for j in a.get("jugements", []) if j["issue"] == "accepte"
                      and j["sorte"] == a["sorte"] for q in _destinataires(j)}
-        cibles = [q for q in _destinataires(a) if q not in attribues]
+        cibles = [q for q in _destinataires_disponibles(monde, id, a) if q not in attribues]
         if a["sorte"] == "amener":
             cibles = [q for q in cibles if salle_crue(monde, id, q) != a["parametres"]["lieu"]]
         else:
@@ -607,6 +636,8 @@ def choisir_mandataire(monde, id, identifiant, propre, mesure):
         qui = min(cibles, default=None)
     if qui is None:
         return propre
+    if not _personne_disponible_crue(monde, id, qui):
+        return None
     p = copy.deepcopy(a["parametres"])
     p["qui"] = [qui]
     mandat = {"parent": identifiant, "sorte": a["sorte"], "parametres": p}
@@ -639,8 +670,7 @@ def choisir_mandataire(monde, id, identifiant, propre, mesure):
         paroles.append({"avis": avis_exprime(monde, id, avis["objet"], avis["valeur"])})
     choix = [(mesure[0] if mesure else float("inf"), id, propre)]
     for acteur in sorted(croyances):
-        o = monde.objets.get(acteur, {})
-        if acteur in exclus or o.get("type") != "personnage" or acteur == "joueur":
+        if acteur in exclus or acteur == "joueur" or not _personne_disponible_crue(monde, id, acteur):
             continue
         if refus_retenu(monde, id, acteur, ("confier",), qui, mandat=mandat):
             continue
@@ -683,9 +713,13 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
     if a["etat"] not in ("actif", "sommeil"):
         return None
     if a["sorte"] in ("amener", "informer"):
+        disponibles = _destinataires_disponibles(monde, id, a)
+        if not disponibles:
+            _changer(monde, id, a, "sommeil", "destinataires crus indisponibles", _croyances(monde, id))
+            return None
         confies = {q for j in a.get("jugements", []) if j["issue"] == "accepte"
                    and j["sorte"] == a["sorte"] for q in _destinataires(j)}
-        restants = [q for q in _destinataires(a) if q not in confies]
+        restants = [q for q in disponibles if q not in confies]
         if not restants:
             return {"type": "agenda", "agenda": identifiant}, []
     empreinte = _croyances(monde, id)

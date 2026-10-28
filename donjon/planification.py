@@ -245,6 +245,7 @@ class ContexteDevis:
         from .caractere import BASE, NEUTRE, STATS, VALEURS
         from .esprits import CHAMPS
         from .monde import mobile_par_nature
+        from .noms import PERSONNES
         observateur, acteur = self.observateur, self.acteur
         if observateur == acteur:
             raise ValueError("Un devis observateur exige deux personnages distincts")
@@ -279,8 +280,14 @@ class ContexteDevis:
             possession = c.get("lieu", {}).get("possession", {})
             if "proprietaire" in possession:
                 o["proprietaire"] = possession["proprietaire"]
-            if original["type"] == "personnage":
-                o = {k: o[k] for k in ("id", "type", "nom", "mobile", "lieu", "position", "position_salle") if k in o}
+            if original["type"] in PERSONNES:
+                # L'identité persiste ; vie et présence viennent de l'observateur.
+                # Ni le type, le nom du corps ni son profil réel ne constituent
+                # une observation de mort à distance.
+                etat = c.get("etat", {}).get("valeur", {})
+                o = {k: o[k] for k in ("id", "lieu", "position", "position_salle") if k in o}
+                o.update(type="depouille" if etat.get("mort") else "personnage",
+                         nom=sujet, mobile=True, parti=bool(etat.get("parti")))
                 o["profil"] = {"caracteristiques": dict.fromkeys(STATS, BASE),
                                "valeurs": dict.fromkeys(VALEURS, NEUTRE),
                                "besoins": {}, "pulsions": [], "liens": {}, "capacites": []}
