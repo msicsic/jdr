@@ -374,7 +374,7 @@ def _liste_marchandises(monde):
     from .rendu import prix
     pnjs = [i for i, o in monde.objets.items()
             if o.get("type") == "personnage" and o.get("lieu") == monde.joueur["salle"] and i != "joueur"]
-    vendeurs = [i for i in pnjs if proprietaire(monde, en_vente[0]["id"]) == i] if len(pnjs) > 1 else pnjs
+    vendeurs = [i for i in pnjs if all(proprietaire(monde, o["id"]) == i for o in en_vente)]
     articles = [f"{o['nom']} : {quantite(prix(monde, o), 'pièce')}" for o in en_vente]
     if len(vendeurs) == 1:
         nom_vendeur = nom_pour_joueur(monde, vendeurs[0]).capitalize()

@@ -1440,15 +1440,49 @@ class NarrationDeterministeDecoupleTests(unittest.TestCase):
     def test_liste_marchandises_sans_pnj_n_invente_pas_de_locuteur(self):
         from donjon.compilateur import _liste_marchandises
 
-        m = nouveau_monde()
-        m.joueur["salle"] = m.joueur["position_salle"] = "echoppe"
-        # Retirer le marchand de la salle tout en laissant des articles en vente
-        m.objets.pop("marchand", None)
-        res = _liste_marchandises(m)
-        self.assertIsNotNone(res)
-        self.assertNotIn("marchand", res["texte"].lower())
-        self.assertNotIn("«", res["texte"])
-        self.assertTrue(res["texte"].startswith("Articles en vente ici :"))
+        # 1) 0 PNJ : constat sans locuteur ni guillemets, état du monde inchangé
+        m0 = nouveau_monde()
+        m0.joueur["salle"] = m0.joueur["position_salle"] = "echoppe"
+        m0.objets["marchand"]["lieu"] = m0.objets["marchand"]["position_salle"] = "antichambre"
+        avant0 = copy.deepcopy(m0.data)
+        res0 = _liste_marchandises(m0)
+        self.assertIsNotNone(res0)
+        self.assertNotIn("marchand", res0["texte"].lower())
+        self.assertNotIn("«", res0["texte"])
+        self.assertTrue(res0["texte"].startswith("Articles en vente ici :"))
+        self.assertEqual(m0.data, avant0)
+
+        # 2) 1 PNJ non vendeur (mendiant présent, marchand absent) : aucun locuteur, le mendiant ne parle pas
+        m1 = nouveau_monde()
+        m1.joueur["salle"] = m1.joueur["position_salle"] = "echoppe"
+        m1.objets["marchand"]["lieu"] = m1.objets["marchand"]["position_salle"] = "antichambre"
+        m1.objets["mendiant"] = objet("mendiant", "un mendiant", "personnage", "echoppe", genre="m", mobile=False)
+        avant1 = copy.deepcopy(m1.data)
+        res1 = _liste_marchandises(m1)
+        self.assertNotIn("«", res1["texte"])
+        self.assertNotIn("mendiant", res1["texte"].lower())
+        self.assertNotIn("homme", res1["texte"].lower())
+        self.assertTrue(res1["texte"].startswith("Articles en vente ici :"))
+        self.assertEqual(m1.data, avant1)
+
+        # 3) 1 PNJ vendeur présent : le vendeur parle
+        m2 = nouveau_monde()
+        m2.joueur["salle"] = m2.joueur["position_salle"] = "echoppe"
+        avant2 = copy.deepcopy(m2.data)
+        res2 = _liste_marchandises(m2)
+        self.assertTrue(res2["texte"].startswith("Gorm le marchand : « "))
+        self.assertIn("pied-de-biche : 11 pièces", res2["texte"])
+        self.assertEqual(m2.data, avant2)
+
+        # 4) 2 PNJ présents dont un seul est vendeur : le vendeur parle, l'autre non
+        m3 = nouveau_monde()
+        m3.joueur["salle"] = m3.joueur["position_salle"] = "echoppe"
+        m3.objets["mendiant"] = objet("mendiant", "un mendiant", "personnage", "echoppe", genre="m", mobile=False)
+        avant3 = copy.deepcopy(m3.data)
+        res3 = _liste_marchandises(m3)
+        self.assertTrue(res3["texte"].startswith("Gorm le marchand : « "))
+        self.assertNotIn("mendiant", res3["texte"].lower())
+        self.assertEqual(m3.data, avant3)
 
 
 if __name__ == "__main__":
