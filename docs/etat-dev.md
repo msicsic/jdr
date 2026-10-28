@@ -173,6 +173,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Vérification Luna c9459ce**, jouée par l'orchestrateur sur le laptop (comme le lot 216), sans agent ni code changé : deux passes des 34 scripts du lot 165, intégration `c9459ce` (lots 244 à 272, dont A5 260) contre `d85fb54` lu du cache. **Appels/tour 2,98 → 3,00**, replis **0,5 → 0**, obstacles narratifs **19,5 → 15**, relances **16,5 → 13**, refus **22 → 24** (dans l'étendue des passes 21-27) ; aucune erreur technique ni de recharge sur les 68 parties. Secondes/tour **10,5 → 5,8** (médiane 9,0 → 5,1) : non comparables, référence mesurée un autre soir ; le premier delta moyen baisse aussi d'environ 40 % sur toutes les fonctions, signe d'un service plus rapide plutôt que d'un gain du jeu. Aucune régression du MJ. Lecture qualitative des textes non faite saisie par saisie. Bruts `C:/Users/msics/donjon/artifacts/bancs-multi/20261028-235223-6688/`.
+
 - **Branche `codex-faire-ou-confier-b`, fusionnée, prête pour une nouvelle
   suite complète du superviseur**, lot **260**, correctif **`323a0af`**.
   Régression de la suite `d0f9f7a` (2 671 tests, une erreur propre au lot) :
