@@ -45,6 +45,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-presences-regression`, fusionnée**, lot **259**, base
+  `integration 7e69227`, moteur `15d18c1` : admission d'une part demandée
+  avec sa venue convenue ; localisation inconnue distincte d'absence crue,
+  présence réelle et parole toujours contrôlées avant consommation.
+  Service spontané de Mireille à Mathurine absente toujours refusé ; approche
+  et observation ordinaires des cibles disparues restaurées. Aucun nouveau
+  champ, scénario, MJ, social/esprits/agendas/relations modifié.
+  **310/310 tests ciblés verts**, 18 fichiers du journal + six voisins,
+  assertions intactes, monde/rendu rechargés, joueur/Ilse et scènes 251.
+  Suite complète du superviseur sur PC fixe, `dc326ad` : **2 655 tests,
+  un échec AST préexistant**, les 25 échecs/erreurs de 251 disparus.
+  Test isolé reproduit sur **7e69227 et dc326ad**, même
+  `agendas.py:1054`, fichier et contrôle AST inchangés par le lot.
+  **Banc achevé, code 0 : vingt nuits 4 h par version**, cinq scénarios ×
+  quatre graines, `39db079` / `e875877` / branche. Suspects **4/2/3**,
+  sans hausse par nuit contre l'avant-251 ; deux alertes anciennes d'Aubin
+  reviennent contre 251 (Relais/crue 2024), Odile auberge 2024 disparaît.
+  Cycles **498/489/495**, à expliquer **51/55/53**, dérives **216/233/212** ;
+  attente urgente **565/400/565**, sans recours **0/0/0 PNJ·min**.
+  S/F/D détaillés au rapport : S mine **24,25/28,50/25,75**, auberge
+  **9,50/11/9,25** ; aucune amélioration générale revendiquée.
+  Zéro plantage/usurpation/violation. Quarante références exactes absentes
+  calculées une fois, vingt nuits de branche calculées une fois puis relues
+  pour la seconde comparaison ; aucun temps comparé avec le cache.
+  **1 513,801 s**, deux travailleurs réduits au plus, aucun calcul actif.
+  Ni Luna ni suite complète relancée par l'agent. Limites : venue future non
+  garantie, trois suspects non certifiés bénins, pas d'identité universelle.
+  Bruts `C:/Users/msics/donjon/artifacts/regression-259/`, `bilan-final.json`,
+  `banc.termine.json`, preuves `ast-base.log` et `ast-branche.log`.
+  [Rapport 259](taches/rapport-codex-259-presences-regression.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `planification.py`, fusionnés sans conflit textuel. Corrige la régression du lot 251 : la présence nécessaire se juge au moment du geste, une venue convenue compte, une localisation inconnue n'est pas une absence. Suite sur la branche (dc326ad) : 2 655 tests, les 25 échecs hérités de 251 disparus ; seul échec, le contrôle AST de l'ascendant, déjà corrigé sur l'intégration par 57d70d4 (vert ici). 20 paires 4 h : richesse revenue à l'avant-251, suspects 4/2/3 (avant 251 / 251 / 259), attente urgente 565/400/565.
+
 - **Branche `codex-retours-241`, fusionnée**, lot **264**, diagnostic seul,
   base `integration 8ac7b46` : retours Bram mine 2024 à 613 et Gorm hameau 7
   à 682 absents des deux nuits actuelles de 12 h, reproduits sur `c870c8b`

@@ -135,6 +135,53 @@ class JoueurTests(unittest.TestCase):
 
 
 class PartDuJoueurTests(unittest.TestCase):
+    def test_venue_convenue_ne_vaut_pas_presence_ni_part_deja_servie(self):
+        from donjon import pnj, planification
+        from donjon.esprits import croire, percevoir_tous
+        from donjon.rendu import regarder
+        for pour in ('joueur', 'ilse'):
+            with self.subTest(pour=pour):
+                m = calme(relais(), 'marchand', 'brune', 'ilse', 'aubin')
+                placer(m, 'marchand', 'echoppe', [4, 1])
+                placer(m, 'ilse', 'echoppe', [5, 1])
+                m.joueur.update(salle='echoppe', position=[1, 2])
+                percevoir_tous(m)
+                with patch.object(Monde, 'd20', return_value=20):
+                    self.assertEqual(demander(m, pour, 'marchand', 'vivres'), 'promis')
+                m = recharger(m)
+                self.assertIsNotNone(planification.planifier_engagement(
+                    m, 'marchand', lire(m, 'marchand')['engagements'][0]))
+                # Le donneur arrive aux vivres avant le bénéficiaire.
+                placer(m, 'marchand', 'antichambre', [2, 3])
+                deplacer(m, 'vivres', 'marchand')
+                croire(m, 'marchand', pour, 'lieu', 'echoppe', 'vu',
+                       salle='echoppe', case=[3, 3])
+                m = recharger(m)
+                geste = planification._etape('servir', 'vivres', contenu={'pour': pour})
+                v = planification.Vue(m, 'marchand')
+                e = planification.depart(m, 'marchand', v)
+                avant = copy.deepcopy(m.data)
+                self.assertIsNotNone(planification._mesurer_direct(v, e, [geste], e, 1))
+                self.assertEqual(m.data, avant)  # Le devis ne déplace personne.
+                portions = m.objets['vivres']['portions']
+                self.assertFalse(pnj._executer(m, 'marchand', geste, [], []))
+                self.assertEqual(m.objets['vivres']['portions'], portions)
+                if pour == 'joueur':
+                    m.joueur.update(salle='antichambre', position=[1, 3])
+                else:
+                    placer(m, pour, 'antichambre', [1, 3])
+                percevoir_tous(m)
+                lignes = []
+                self.assertTrue(pnj._executer(m, 'marchand', geste, lignes, []))
+                r = recharger(m)
+                self.assertEqual(r.objets['vivres']['portions'], portions - 1)
+                self.assertEqual(lire(r, 'marchand')['engagements'], [])
+                self.assertEqual(m.data, r.data)
+                self.assertEqual(regarder(m), regarder(r))
+                self.assertTrue(lignes if pour == 'joueur' else any(
+                    s['type'] == 'nourri' and s['de'] == 'marchand'
+                    for s in lire(r, pour)['memoire']))
+
     def test_gorm_accepte_et_sert_le_joueur_la_ou_sont_les_vivres(self):
         m = calme(relais(), "brune", "ilse", "aubin")
         # Cette scène isole la parole de Gorm au joueur : les tiers ne
