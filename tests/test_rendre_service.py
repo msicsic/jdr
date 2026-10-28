@@ -49,7 +49,7 @@ class RendreServiceTests(unittest.TestCase):
         for fabrique in (feu, reserve):
             with self.subTest(scene=fabrique.__name__):
                 m, id, autre, c = scene(fabrique)
-                plan = plan_recours(m, id, 'faim', [])
+                plan = plan_recours(m, id, 'faim', None)
                 self.assertTrue(plan)
                 self.assertNotIn('proposer', [g['operation'] for g in plan])
                 lire(m, id)['intention']['plan'] = plan
@@ -80,11 +80,11 @@ class RendreServiceTests(unittest.TestCase):
         m, id, autre, c = scene(feu)
         m.objets['bois']['charges'] = 0
         percevoir_tous(m)
-        self.assertIsNone(plan_recours(m, id, 'faim', []))
+        self.assertIsNone(plan_recours(m, id, 'faim', None))
         m = recharger(m)
         from donjon.echanges import devis_service
         with patch('donjon.echanges.devis_service', wraps=devis_service) as devis:
-            self.assertIsNone(plan_recours(m, id, 'faim', []))
+            self.assertIsNone(plan_recours(m, id, 'faim', None))
         # Le recours commercial peut encore deviser ; le service gratuit ne recommence pas.
         self.assertEqual(len(lire(m, id)['recours_services']), 1)
         m, id, autre, c = scene(feu)
@@ -155,13 +155,13 @@ class RendreServiceTests(unittest.TestCase):
 
     def test_un_refus_resolu_ne_reprend_pas_un_ancien_service(self):
         m, id, autre, c = scene(feu)
-        self.assertTrue(plan_recours(m, id, 'faim', []))
+        self.assertTrue(plan_recours(m, id, 'faim', None))
         self.assertIsNotNone(lire(m, id)['service_en_cours'])
         # Le moyen ordinaire nouveau a abouti : sa réponse refusée n'existe plus.
         lire(m, id)['refus'].clear()
         lire(m, id)['demande_refusee'] = None
         m = recharger(m)
-        self.assertIsNone(plan_recours(m, id, 'faim', []))
+        self.assertIsNone(plan_recours(m, id, 'faim', None))
         self.assertIsNone(lire(m, id)['service_en_cours'])
 
     def test_meme_don_joueur_utile_puis_inutile_recharge_et_visible(self):

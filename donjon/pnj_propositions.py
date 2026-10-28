@@ -236,7 +236,14 @@ def plan_recours(monde, id, besoin, etapes):
 
     Aucune comparaison de marchés dans la recherche : le service utilise son
     planificateur existant, puis le demandeur revient réclamer la contrepartie.
+
+    ``None`` : aucun moyen ordinaire trouvé pour ce besoin. Une liste, même
+    vide, est au contraire un résultat du but choisi : sans faute à éviter,
+    il n'a pas de manque que l'ancien refus d'une autre demande comblerait.
     """
+    if etapes is not None and not any(g["condition"] == "sans_temoin" for g in etapes):
+        return None
+    etapes = [] if etapes is None else etapes
     from .biens import richesse
     from .echanges import condition_remplie
     from .planification import planifier_pulsion, rejoindre

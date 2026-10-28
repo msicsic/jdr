@@ -2295,7 +2295,7 @@ def choisir(monde, id, minute):
     from .pnj_propositions import plan_recours
     refusee = e["demande_refusee"]
     from .eau import en_peril
-    offre = plan_recours(monde, id, refusee["besoin"], []) if refusee and not en_peril(monde, id) else None
+    offre = plan_recours(monde, id, refusee["besoin"], None) if refusee and not en_peril(monde, id) else None
     e["intention"] = ({"but": {"type": "proposition", "objet": refusee["objet"]},
                        "motif": refusee["besoin"], "plan": offre, "depuis": minute, "attente": 0}
                       if offre else None)
