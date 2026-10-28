@@ -35,7 +35,7 @@ class DetecterAvisTests(unittest.TestCase):
             for e in eps:
                 for cle in ("debut_entrees", "quitte_entrees"):
                     e[cle]["_details"].update(inventaire={"portes": [], "possedes": []},
-                                             social={"engagements": [], "engagements_tenus": []})
+                                             social={"charges": [], "engagements_tenus": []})
             q, r = eps[0]["quitte_entrees"], eps[2]["debut_entrees"]
             if nature in ("portes", "possedes"):
                 r["_details"]["inventaire"][nature] = ["bien"]
@@ -46,7 +46,7 @@ class DetecterAvisTests(unittest.TestCase):
                 r["croyances_valeurs"] = 1
             else:
                 c = {"objet": "bien", "allume": True}
-                q["_details"]["social"]["engagements"] = [["payeur", c, False]]
+                q["_details"]["social"]["charges"] = [["payeur", c, False]]
                 r["_details"]["social"]["engagements_tenus"] = [
                     {"type": "engagement_tenu", "pour": "payeur", "condition": c, "minute": 2}]
                 r["social_et_engagements"] = 1
@@ -76,8 +76,8 @@ class DetecterAvisTests(unittest.TestCase):
         eps = [episode("agenda", 0, 1), episode("garder", 1, 2), episode("agenda", 2, 3)]
         c = {"objet": "bien", "allume": True}
         q, r = eps[0]["quitte_entrees"], eps[2]["debut_entrees"]
-        q["_details"]["social"] = {"engagements": [["payeur", c, False]]}
-        r["_details"]["social"] = {"engagements": []}
+        q["_details"]["social"] = {"charges": [["payeur", c, False]]}
+        r["_details"]["social"] = {"charges": []}
         r["social_et_engagements"] = 1
         eps[2]["moyen_admissible"] = True
         eps[2]["decision"]["plan"] = [{"operation": "allumer", "cible": "bien"}]
@@ -87,10 +87,10 @@ class DetecterAvisTests(unittest.TestCase):
             r["_details"]["social"]["engagements_tenus"] = [recu] if recu and recu["type"] == "engagement_tenu" else []
             self.assertEqual(self.analyser(eps)["total_justifies"], 0)
         r["_details"]["social"]["engagements_tenus"][0]["minute"] = 2
-        q["_details"]["social"]["engagements"][0][2] = True
+        q["_details"]["social"]["charges"][0][2] = True
         self.assertEqual(self.analyser(eps)["total_justifies"], 0)
-        q["_details"]["social"]["engagements"][0][2] = False
-        r["_details"]["social"]["engagements"] = [["payeur", c, True]]
+        q["_details"]["social"]["charges"][0][2] = False
+        r["_details"]["social"]["charges"] = [["payeur", c, True]]
         self.assertEqual(self.analyser(eps)["total_justifies"], 0)
 
     def test_reveils_brune_reels_et_recharges(self):

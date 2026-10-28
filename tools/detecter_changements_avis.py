@@ -277,7 +277,7 @@ def relever_entrees(monde, id, minute):
             if s["type"] == "creance_vaine" and minute - s["minute"] < deliberation.REDEMANDE
         }),
         "recherches": [[q, sorted(deliberation.appels_vains(monde, id, q))] for q in sorted(e.get("recherches", ()))],
-        "engagements": [[x["pour"], x["condition"], bool(x.get("annule"))] for x in agendas.en_cours(monde, id)],
+        "charges": [[x["pour"], x["condition"], bool(x.get("annule"))] for x in agendas.en_cours(monde, id)],
         "engagements_tenus": [copy.deepcopy(s) for s in e["memoire"]
                               if s["type"] == "engagement_tenu" and "pour" in s],
         "agendas": [[a["id"], a.get("etat"), a.get("raison_sommeil")] for a in agendas.projets(monde, id)],
@@ -395,12 +395,12 @@ def _entrees_utilisees(ep_depart, intermediaires, ep_retour):
     # pas. Exiger aussi la charge observée active puis retirée et son objet utilisé.
     releves = [avant, *(entrees["_details"] for e in intermediaires
                         for entrees in (e["debut_entrees"], e.get("quitte_entrees")) if entrees)]
-    charges = [x for details in releves for x in details.get("social", {}).get("engagements", ())]
+    charges = [x for details in releves for x in details.get("social", {}).get("charges", ())]
     for recu in social2.get("engagements_tenus", ()):
         charge = [recu["pour"], recu["condition"], False]
         if (recu not in social1.get("engagements_tenus", ())
                 and charge in charges
-                and not any(x[:2] == charge[:2] for x in social2.get("engagements", ()))
+                and not any(x[:2] == charge[:2] for x in social2.get("charges", ()))
                 and recu["condition"].get("objet") in refs
                 and ep_depart["quitte_minute"] <= recu["minute"] <= ep_retour["debut_minute"]):
             preuves.append({"preuve": "engagement_accompli_publie", "recu": recu})
