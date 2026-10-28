@@ -101,6 +101,8 @@ def main():
     ap.add_argument('--reference', required=True)
     ap.add_argument('--arbre-reference', type=Path, required=True)
     ap.add_argument('--sortie', type=Path, required=True)
+    ap.add_argument('--reference-cache-seule', action='store_true',
+                    help='refuser toute référence absente du cache, sans jamais la rejouer')
     args = ap.parse_args()
     ceder()
     args.sortie.mkdir(parents=True, exist_ok=True)
@@ -113,9 +115,17 @@ def main():
         commit = references.resoudre(RACINE, args.reference)
         if not commit or comparateur.git(args.arbre_reference, 'rev-parse', 'HEAD') != commit:
             raise ValueError('Arbre de référence différent du commit demandé')
+        cache = references.dossier(RACINE)
+        if args.reference_cache_seule:
+            outil = comparateur.instrumentation()
+            manquantes = [(s, g) for s, g in comparateur.taches_du_lot(config)
+                          for cle in [comparateur.cle_nuit(config, s, g, outil)]
+                          if references.lire(comparateur.chemin_nuit(cache, commit, cle), cle) is None]
+            if manquantes:
+                raise ValueError(f'Références manquantes, aucune rejouée : {manquantes}')
         with tempfile.TemporaryDirectory(prefix='rester-266-') as temporaire:
             avant = comparateur.nuits_du_cote(lambda: args.arbre_reference, commit, config,
-                                              temporaire, 'reference', references.dossier(RACINE))
+                                              temporaire, 'reference', cache)
         (args.sortie / 'reference.json').write_text(json.dumps(avant, ensure_ascii=False), encoding='utf-8')
         print('Référence terminée, lancement branche : 20 nuits, deux processus réduits.', flush=True)
         taches = [(s, g, config) for s, g in comparateur.taches_du_lot(config)]

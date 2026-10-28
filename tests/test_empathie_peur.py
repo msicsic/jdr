@@ -1,5 +1,8 @@
 """Compagnie de secours : signes, approche, temps vécu et recharge du monde entier."""
 import copy
+import gzip
+import json
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
@@ -54,6 +57,70 @@ def visible(m):
 
 
 class CompagnieTests(unittest.TestCase):
+    def test_cinq_reprises_reelles_perte_et_retour_physiques_du_signe(self):
+        from donjon.monde import Monde
+        dossier = Path(__file__).parent / 'data' / 'scenes' / 'rester-266'
+        fichiers = sorted(dossier.glob('suspect-*.json.gz'))
+        self.assertEqual(len(fichiers), 5)
+        for fichier in fichiers:
+            with self.subTest(capture=fichier.name):
+                charge = json.loads(gzip.decompress(fichier.read_bytes()))
+                acteur, autre = charge['acteur'], charge['beneficiaire']
+                empreintes = []
+                for phase in ('interruption', 'reprise'):
+                    m = Monde(copy.deepcopy(charge[phase]))
+                    n = recharger(m)
+                    self.assertEqual(m.data, n.data)
+                    self.assertEqual(visible(m), visible(n))
+                    avant = copy.deepcopy(m.data)
+                    for _ in range(3):
+                        self.assertEqual(autre in d.detresses_percues(m, acteur), phase == 'reprise')
+                    self.assertEqual(m.data, avant)
+                    self.assertTrue(d.calme_pour_secourir(m, acteur))
+                    if phase == 'interruption':
+                        demande = d.agendas.contrat_intention(m, acteur)['demande']
+                        self.assertEqual(d._fin_demande(m, acteur, demande)[0], 'dementie')
+                    else:
+                        self.assertTrue(any(s['personnage'] == autre and s['signe'] == 'surveille'
+                                            for s in signes.percus(m, acteur)))
+                    # Même choix après recharge ; aucun secours réinstallé par une relecture seule.
+                    for monde in (m, n):
+                        d.choisir(monde, acteur, monde.data['minutes'])
+                    self.assertEqual(m.data, n.data)
+                    i = lire(m, acteur)['intention'] or {}
+                    self.assertEqual(i.get('but') == {'type': 'pulsion', 'pres': autre}, phase == 'reprise')
+                    self.assertEqual(m.data, recharger(m).data)
+                    self.assertEqual(visible(m), visible(recharger(m)))
+                    empreintes.append({x: {k: charge[phase]['objets'][x].get(k)
+                                                for k in ('lieu', 'position', 'orientation')}
+                                        for x in (acteur, autre)})
+                self.assertNotEqual(*empreintes)  # Le monde perçu a réellement changé entre les deux.
+
+    def test_gorm_attend_un_moyen_sur_pour_le_feu_mais_execute_encore_sa_ronde(self):
+        from donjon.monde import Monde
+        dossier = Path(__file__).parent / 'data' / 'scenes' / 'rester-266'
+        for minute in (85, 208):
+            with self.subTest(minute=minute):
+                m = Monde(json.loads(gzip.decompress((dossier / f'gorm-{minute}.json.gz').read_bytes())))
+                m = recharger(m)
+                self.assertIn('devoir', d.urgents(m, 'marchand'))
+                # Le brasero reste inaccessible sans séjour humide ; les bois eux existent.
+                v = p.Vue(m, 'marchand')
+                self.assertTrue(d._disponible_cru(m, 'marchand', 'bois'))
+                self.assertIsNone(v.route(p.depart(m, 'marchand', v), 'echoppe'))
+                self.assertIsNone(d._plan_pulsion(m, 'marchand', {'objet': 'brasero', 'allume': True}, True))
+                self.assertTrue(d._delegue(m, 'marchand', m.objets['marchand']['profil']['pulsions'][0]))
+                d.choisir(m, 'marchand', m.data['minutes'])
+                if minute == 85:
+                    self.assertIsNone(lire(m, 'marchand')['intention'])
+                    self.assertEqual(d.inactivite(m, 'marchand'), 'attente')
+                else:
+                    self.assertEqual(lire(m, 'marchand')['intention']['plan'][0]['operation'], 'inspecter')
+                    passer(m, MINUTE)
+                    self.assertGreaterEqual(lire(m, 'marchand')['visites']['antichambre'], minute)
+                self.assertEqual(m.data, recharger(m).data)
+                self.assertEqual(visible(m), visible(recharger(m)))
+
     def test_compagnon_deja_a_portee_reste_sans_deplacement(self):
         m, auteur, autre = scene()
         placer(m, auteur, 'antichambre', [4, 5])
