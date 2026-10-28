@@ -4,29 +4,38 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
-- **Branche `codex-pas-compagnons-c`, non fusionnée**, lot **233**, base
-  `adb52c4`, fusion du 195 `cf777e7` dans `241a38b` (conflit documentaire seul).
-  Dans `ouie.entendre`, un bruit ordinaire attribué réveille la délibération
-  sans rotation ni position inventée ; `echanges.tenu` du 195 conservé.
-  **18 ciblés finaux verts**, dont promesse réelle Brune/Ilse hameau 1985,
-  demande autonome reconstituée au hameau et au Relais, monde/rendu rechargés
-  et laps découpés. Remettre seulement l'ouïe 195 en mémoire fait échouer
-  les trois tests de rencontre/éveil (cinq sous-cas), cas réel compris.
-  **20 paires × 4 h contre `adb52c4`**, référence manquante constituée une
-  fois et conservée en cache : zéro plantage/usurpation, suspects **2 → 2**
-  au total, mais auberge **2 → 1** et crue **0 → 1** (Aubin 2024 à 23576).
-  Retournements moyens en baisse dans les cinq scénarios. **Richesse du
-  hameau non rétablie** : S **35 → 27,75**, référence **[26–44]**, candidat
-  **[17–37]**, graines 7/42 à 17/24 ; échanges acceptés **13 → 9**.
-  **Suite unique : 2 542 tests / 293 fichiers, 2 925,970 s, dix échecs,
-  zéro erreur, zéro ignoré**. Quatre préexistants reproduits sur `adb52c4`
-  (torche, stabilité de Lucien, deux MiMo) ; six écarts du candidat non résolus
-  (deux empreintes, secours capturé, demande de lampe, témoin sur trajet
-  injecté, placement connu du 195 réservé au 234). Aucun oracle historique
-  modifié ; **candidat non validé globalement**. Aucun Luna ; moteur figé
-  depuis le banc. Créneau dépassé par la suite complète et son diagnostic.
-  Bruts `C:/Users/msics/donjon/artifacts/pas-233/` ;
+- **Branche `codex-pas-compagnons-c`, non fusionnée**, lot **233** :
+  livraison `f34e6c2`, reprise après merge de `origin/integration` **`01ce467`
+  dans `7d68a8f`**, sans rebase, seul conflit documentaire. Le bruit attribué
+  réveille le choix sans rotation ni position inventée ; aucun nouveau moteur
+  ni MJ dans la reprise, `tenu` 195 conservé. **Décision utilisateur : baisse
+  de richesse du hameau acceptée**, les rencontres nées des rotations fortuites
+  n'étant pas légitimes : banc initial S **35 → 27,75**, acceptées **13 → 9**.
+  **Cinq écarts arbitrés**, placement d'Ilse laissé au **234** : six champs
+  d'empreintes migrés sur preuves, lignes et deux vues historiques inchangées ;
+  secours de Rémy repris au checkpoint réel d'adoption **725** de `01ce467` ;
+  lampe effectivement vue et Josse occupé au poste ; trajet du témoin déclaré
+  comme réflexe prioritaire au lieu d'un devoir injecté sans charge.
+  **31 ciblés + 19 tests de pas verts**, mêmes monde/rendu rechargés et laps
+  découpés ; **152/153 anciennes assertions identiques**, une expression
+  d'empreintes migrée, quatre assertions de provenance/schéma ajoutées.
+  **Aubin crue 2024 à 23576** : trajectoire issue indirectement du réveil 233
+  (absente sans ces seules lignes), mais retour après fin de surveillance,
+  `eveil=None`, vers **ouvrir/servir**, sans répéter la demande refusée à 23551.
+  Refus conservé, réserve toujours fermée et pas de nouveau don pendant le
+  contrôle rechargé/découpé. Retour **justifié comme changement de moyen** ;
+  alerte brute 219 conservée, aucune garantie générale des boucles.
+  **Suite de reprise unique : 2 549 tests / 294 fichiers, 2 430,801 s,
+  quatre échecs, zéro erreur, zéro ignoré**. Aucun des cinq écarts repris ne
+  revient ; le fichier de stabilité de Lucien du 229 passe (neuf tests).
+  Restants : **trois préexistants** (torche hameau 1985, deux MiMo `6 != 5`,
+  reproduits sur `adb52c4` à la livraison initiale) et **placement d'Ilse du
+  195 réservé au 234**. Suite non verte, aucun nouvel échec identifié.
+  Créneau dépassé par la suite unique. Aucun Luna, deux travailleurs réduits ;
+  pas de nouveau banc global, mesures initiales et leur référence conservées.
+  Bruts `C:/Users/msics/donjon/artifacts/pas-233/reprise/` ;
   [rapport 233](taches/rapport-codex-233-pas-compagnons-c.md).
+
 - **Branche `codex-alertes-231`, fusionnée**, lot **237**, diagnostic seul,
   base/intégration **`e84d5a7`** (218/229/230/232 inclus), aucun code du jeu
   modifié. **Dix nuits × 12 h**, cinq cas sur `4306c14` détaché puis intégration,
@@ -591,7 +600,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 - Branche `codex-pas-compagnons`, **non fusionnée, en attente de 196 c et du diagnostic 209**, lot **195** (`4968e54`, reprise sur `ef86cab`) : dans `ouie.py`, un pas compatible avec la marche possible d'un compagnon cru là s'explique sans retournement ni bruit inconnu, sans confirmer sa position. Retournements Relais 100 → 28,75, hameau 134,5 → 78,5 ; retours suspects 57 → 54 au total mais hameau **24 → 35** et un retour nouveau au Relais 2024 (Gorm sert Ilse, abandonne, reprend, sans entrée nouvelle) ; trois tests rouges (abri d'Ilse, deux prêts). Arbitrage commun du contrat d'engagement (196 c) attendu avant reprise. [Rapport 195](taches/rapport-codex-195-pas-compagnons.md) sur la branche ; bruts `artifacts/pas-195/`.
   **Reprise finale (`cf777e7`, sur 346c1aa), toujours en attente** : ouïe des compagnons plus preuve d'accomplissement dans `echanges.tenu` (souvenir `suivi_engagement`). 20 paires 4 h : suspects 5 → 1, retournements divisés par deux à quatre ; mais hameau S 40,5 → 27 (échanges acceptés 16 → 9, demandes −28, offres −10, promesses −10 : interactions nées de perceptions fortuites), mine S 26,25 → 24, auberge 10,25 → 8,25 ; à expliquer 67 → 77. Suite 2 497 tests, cinq échecs : quatre préexistants et un défaut de placement révélé (`signes.place` : attitude périmée qui bloque l'abri d'Ilse), lot séparé proposé. Décision à l'utilisateur : moins de retournements contre moins d'interactions au hameau.
-  **Reprise 233 (`codex-pas-compagnons-c`, `f34e6c2`), en attente** : un bruit attribué à un compagnon cru proche réveille le choix (`esprits.reconsiderer`) sans rotation. Retournements toujours divisés par deux à quatre, suspects 2 → 2 (nouvelle alerte Aubin crue 2024) ; mais S du hameau 35 → 27,75 (−21 %, graines 7/42 sous le minimum de la référence), échanges acceptés 13 → 9 : les interactions perdues naissaient surtout de cascades de trajectoires après des rotations fortuites, pas d'une vue retirée. Suite : dix échecs, dont six propres au candidat (empreintes mine/auberge, secours de Rémy, lampe de Lucien, trajet du témoin, placement 234). Non fusionnable en l'état.
+  **Reprise 233 (`codex-pas-compagnons-c`), non fusionnée** : baisse de richesse acceptée par décision du 2026-10-28 ; rencontres fortuites non légitimes. Après merge de l'intégration `01ce467`, cinq écarts d'oracles/prémisses repris sur preuves, placement conservé pour 234. Retour d'Aubin crue 2024 justifié comme autre moyen après refus, sans nouveau réveil au retour. Suite de reprise et détails : voir l'entrée 233 et son rapport actualisés en tête de ce document.
 
 - **Lot 208, diagnostic seul**, `codex-cout-ceder-outil`, `1a3359a` contre `74a4bc4` : surcoût mine reproduit, recherches 698 → 987, nœuds 6 684 → 10 558 ; 89,4 % des nœuds en plus dans les devis de fermeture d'Odon/Rémy, recours négatifs répétés après auto-refus d'outils. Poêle et trois retours de crue reproduits, ancien écart de lanterne non reproduit (fichier ciblé vert sur les deux commits). Réutilisation des recours négatifs proposée, gain non garanti ; 202 reste en attente. Aucun jeu modifié/Luna, un calcul réduit à la fois, captures monde/rendu rechargés ; bruts `C:/Users/msics/donjon/artifacts/cout-208/`, [rapport 208](taches/rapport-codex-208-cout-ceder-outil.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. 89 % des nœuds en plus viennent de recours négatifs redemandés (Odon, Rémy : devis de fermeture) après que les PNJ ne proposent plus leurs outils ; aucun calcul de valeur dans la recherche. Petit lot proposé pour la reprise de 202 : retenir un recours sans offre acceptable tant que ses dépendances crues ne changent pas.
@@ -6872,7 +6881,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Décisions prises le 2026-10-28
 
 - **Lot 195 (ouïe des compagnons) : reprendre** (lot 233). Garder l'attribution d'un pas à un compagnon cru proche, mais ce bruit reste une information de présence utilisable pour les initiatives sociales : on ne perd pas la rencontre (S du hameau 40,5 → 27 sur la livraison 195).
-- **Lot 233 (reprise 195) : accepter la perte de richesse au hameau** (S 35 → 27,75). Les rencontres nées de retournements fortuits ne sont pas une source légitime ; résoudre d'abord les six échecs propres au candidat (le placement relève du lot 234), puis fusionner.
+- **Lot 233 (reprise 195) : accepter la perte de richesse au hameau** (S 35 → 27,75). Les rencontres nées de retournements fortuits ne sont pas une source légitime ; cinq écarts d'oracles/prémisses arbitrés sur la reprise après `01ce467` ; le placement reste au lot 234, qui peut être fusionné avant ou après 233. Suite de reprise : trois préexistants et le placement 234 restent rouges ; voir l'entrée 233 et son rapport.
 - **Lot 206 (savoir des observations) : reprendre** (lot 235). Le locuteur ne lit jamais l'esprit de l'auditeur ; il dit ce qu'il croit nouveau **et** pertinent pour lui (confidences 206 b tombées de 80 à 90 %).
 - **Lot 228 (céder un outil, reprise du 202) : reprendre.** Garder la règle (ne pas céder une capacité sans compensation), mais une offre reste possible quand la contrepartie compense vraiment la capacité perdue ; corriger l'achat à une pièce sous-compensé ; viser la richesse du hameau dans l'étendue de la référence (S 40,5 → 34,75 sur 228).
 

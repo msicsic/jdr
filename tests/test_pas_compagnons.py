@@ -1,5 +1,8 @@
 """Attribution des gestes ordinaires : présence crue mobile, jamais position réelle."""
 import copy
+import gzip
+import json
+from pathlib import Path
 import unittest
 
 from donjon.banc_pnj import creer
@@ -27,6 +30,36 @@ def scene(scenario="relais", auditeur="ilse", auteur="aubin", salle="antichambre
 
 
 class PasCompagnonsTests(unittest.TestCase):
+    def test_alerte_aubin_crue_2024_autre_moyen_apres_refus(self):
+        from donjon.deliberation import choisir
+        from donjon.monde import Monde
+        from donjon.pnj import avancer
+
+        fichier = Path(__file__).parent / 'data/pas-233-aubin-crue-2024-23576.json.gz'
+        original = Monde(json.loads(gzip.decompress(fichier.read_bytes())))
+        etats = []
+        for laps in ([100], [50, 50]):
+            m = self.stable(original.copier())
+            e = lire(m, 'aubin')
+            refus = copy.deepcopy(e['refus'])
+            self.assertEqual(e['manque']['etape']['operation'], 'demander')
+            choisir(m, 'aubin', m.data['minutes'])
+            self.assertEqual(e['intention']['but'], {'type': 'pulsion', 'objet': 'vivres', 'servir': 'brune'})
+            self.assertEqual([x['operation'] for x in e['intention']['plan']], ['ouvrir', 'servir'])
+            self.assertEqual(e['refus'], refus)
+            demandes = [c for c in m.data['chronique'] if c['pnj'] == 'aubin' and 'demande une part' in c['texte']]
+            for dt in laps:
+                ecouler(m, dt)
+                avancer(m, 0, [], dixiemes=dt)
+                m = self.stable(m)
+            # Le témoin empêche toujours le vol : aucun refus oublié ni
+            # nourriture attribuée à distance au bénéficiaire.
+            self.assertFalse(m.objets['reserve']['ouverte'])
+            self.assertEqual(demandes, [c for c in m.data['chronique']
+                                       if c['pnj'] == 'aubin' and 'demande une part' in c['texte']])
+            etats.append(m.data)
+        self.assertEqual(*etats)
+
     def test_promesse_reelle_du_hameau_1985_retrouvee_apres_recharge(self):
         from donjon.banc_pnj import executer
         from donjon.geometrie import position_entree

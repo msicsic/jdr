@@ -1,80 +1,70 @@
-# Lot 233 — entendre le compagnon et reconsidérer l'occasion
+# Lot 233 — compagnon entendu, rencontre et validation des oracles
 
-28 octobre 2026. Branche `codex-pas-compagnons-c`, **non fusionnée**. Base
-`adb52c4`, fusion du 195 `cf777e7` dans `241a38b` ; seul conflit documentaire.
-**Candidat livré avec critères incomplets**, aucune garantie de richesse préservée.
+28 octobre 2026. Branche `codex-pas-compagnons-c`, **non fusionnée**.
+Livraison initiale `f34e6c2` ; reprise après merge de `origin/integration`
+**`01ce467` dans `7d68a8f`**, sans rebase, seul conflit documentaire.
+**Décision utilisateur : perte de richesse du hameau acceptée** ; les rencontres
+nées de rotations fortuites ne sont pas une source légitime de richesse.
 
-**Invariant d'attention, raccord dans `ouie.entendre`** : expliquer un bruit ordinaire par
-une présence crue dispense de se retourner, pas de lui prêter attention.
-Après l'attribution, `esprits.reconsiderer` réveille le choix commun, sans
-rotation, temps de geste ajouté, nouvelle position ni connaissance de l'auteur
-réel. Une compatibilité de marche seule ne rajeunit toujours pas la preuve.
-Présence crue, audibilité réciproque et identification restent celles de
-`pnj.pourraient_se_parler` / `se_parler` et de l'accueil commun. Aucun raccord
-hors périmètre ; `echanges.tenu` hérité du 195 reste intact dans cette reprise.
+**Invariant.** Un bruit ordinaire attribué à une présence crue réveille le choix
+commun (`ouie.entendre → esprits.reconsiderer`) sans rotation ni position
+inventée. La compatibilité de marche seule ne rajeunit pas sa preuve ;
+l'audibilité et l'identification gardent leurs contrôles communs. Le `tenu`
+du 195 reste conservé. **Aucun code moteur/MJ ajouté ou modifié par cette
+reprise** ; les modifications du 229 et du 232 viennent du merge demandé.
 
-**Interactions perdues du 195, hameau 1985/42, quatre heures.** Relecture des
-signatures et rejeu instrumenté de `346c1aa` ; exemples absents du candidat 195 :
+**Arbitrage des six échecs du candidat.**
 
-| Graine, instant (dixièmes) | Interaction | Perception de référence et manque |
-|---|---|---|
-| 1985, 131 | Brune vend du bois à Aubin | À 50, rotation vers la voix de Maël, personne vue ; voix d'Aubin localisée `[1,5]`. Ce n'est pas une découverte visuelle d'Aubin. |
-| 1985, 247 | Aubin demande des vivres à Gorm | À 207, rotation aux pas de Maël : Maël vu, lieu échoppe rafraîchi ; Gorm déjà vu. À 238, bruit attribué à Gorm, case `[4,2]`. |
-| 1985, 561 | Brune promet d'allumer la torche à Ilse | Ilse vue auparavant ; à 539, bruit attribué à Ilse, case `[1,2]`, sans rotation. Perte en cascade, pas une vue manquante immédiate. |
-| 42, 1039 | Brune propose la même tâche à Maël | Maël vu avant l'offre ; à 985, voix de Gorm entendue à l'échoppe, sans rotation. Trajectoire déjà divergente. |
-| 42, 48672 | Ilse demande des vivres à Gorm | Rotations aux pas de Brune à 48625/48651 ; Gorm reste vu, lieu de Brune rafraîchi. Réveil sans nouveau fournisseur découvert. |
-| 42, 48672 | Ilse offre deux pièces à Gorm | Même rencontre et même perception que la demande précédente. |
+| Cas | Diagnostic et correction de l'oracle/prémisse |
+|---|---|
+| Empreinte mine | Oracle caduc : rotation de Gaspard à 288872 supprimée. Six champs mesurés migrés. |
+| Empreinte auberge | Même cause, rotation d'Anselme à 289356 supprimée. Même migration. |
+| Secours de Rémy, capture 209 | Le départ à 0 n'engendre plus le secours historique. Reprise au checkpoint réel **725** de `01ce467` : aide à Odon avec le pain de Lucien. Contrat initial exigé, monde/rendu rechargés et laps découpés conservés ; naissance toujours exercée à l'auberge. |
+| Lampe de Lucien | Le plan de demande existe à 846, mais Josse se déplace avant l'échange. La lampe est désormais réellement vue, Josse occupé au poste durant la fenêtre. **VERIFIER, demande effective et refus respecté inchangés**. |
+| Témoin pendant le vol | Son à 0, réveil, puis à 100 le choix abandonne le trajet injecté « devoir » sans charge. Trajet fixé comme réflexe déclaré `alerte`, régi par sa priorité commune ; toutes les assertions de vol, témoignage et mémoire sont conservées. |
+| Placement d'Ilse | Défaut connu du 195, réservé au **234** ; ni `signes.place` ni `pnj.agir` modifiés. |
 
-Ces traces excluent l'explication « chaque perte est une vue retirée » :
-attributions, éveils et déplacements ultérieurs interviennent aussi. Les
-préfixes rejoués sont identiques aux chroniques historiques jusqu'à la minute
-30 (1985) et 147 (42), donc couvrent ces six exemples ; divergence ensuite,
-aucune causalité individuelle certifiée au-delà. Les absences de signatures
-ne prouvent pas qu'un besoin reste insatisfait.
-Dans le banc 233, les deux promesses du tableau réapparaissent à **1 min**
-(1985) et **139 min** (42) ; les quatre autres signatures restent absentes.
+Captures rejouées sur l'intégration et le candidat : **lignes affichées,
+`regarder` et `scene_percue` strictement identiques** aux oracles historiques ;
+seules visites, nombres, plans, diagnostics et monde interne changent. `pas-233-etapes.json` ne remplace que ces six champs.
+Sur les quatre fichiers arbitrés, **152 des 153 anciennes assertions sont
+identiques par AST** ; une expression d'empreintes est migrée, quatre assertions
+de provenance/schéma sont ajoutées. Aucune assertion de résultat retirée.
 
-**Banc final : 20 paires × 4 h contre `adb52c4`**, références manquantes
-constituées une fois et conservées en cache ; pas de comparaison de temps.
+**Aubin, crue 2024, 23576 : retour justifié comme autre moyen, pas service
+accompli.** Retirer seulement le réveil 233 (`ouie.py` 195 en mémoire) fait
+disparaître cette trajectoire sur les mêmes 41 premières minutes : l'apparition
+est donc un effet indirect du 233. À **23551**, demande refusée `necessaire`,
+moyen retenu en `manque`. À **23576**, `eveil=None` : fin de la surveillance,
+pas nouveau réveil acoustique. Le choix conserve le refus et remplace la
+demande par **ouvrir la réserve puis servir**, sans témoin. Il se rapproche,
+mais le témoin empêche le vol : réserve toujours fermée, aucune nouvelle
+demande, aucun don fictif dans la fenêtre testée. Capture versionnée, mêmes
+monde/rendu après recharge et 100 dixièmes d'un bloc ou 50+50. Le compteur 219
+regroupe le but et ne prouve pas ce changement de moyen : **alerte brute
+conservée, répétition fautive écartée à la lecture ciblée**, sans modifier le
+compteur ni certifier l'absence générale de boucles.
 
-| Scénario | Suspects 219 | Retournements moyens | S/F/D moyens, référence → candidat |
-|---|---:|---:|---|
-| Relais | 0 → 0 | 68,50 → 28,25 | 10,75/4/1,563 → 12,25/4/1,500 |
-| Mine | 0 → 0 | 81,50 → 22 | 26,75/5/1,893 → 25/5/1,929 |
-| Auberge | 2 → 1 | 49,75 → 27,50 | 11,50/4,50/1,094 → 11,25/3,75/0,969 |
-| Crue | 0 → 1 | 72,50 → 56 | 25,75/7,50/3,500 → 25,75/7,25/3,250 |
-| Hameau | 0 → 0 | 116,50 → 46,75 | 35/8/2,625 → 27,75/7,25/2,375 |
+**Mesures initiales réutilisées**, `f34e6c2` contre `adb52c4`, 20 paires × 4 h ;
+pas de nouveau banc global ni de Luna. Suspects bruts **2 → 2**, zéro
+plantage/usurpation. Retournements **1 555 → 722**, en baisse dans les cinq scénarios.
+Hameau S/F/D **35/8/2,625 → 27,75/7,25/2,375**, S **[26–44] → [17–37]**,
+échanges acceptés **13 → 9** : baisse acceptée, aucun gain uniforme revendiqué.
 
-Zéro plantage/usurpation. Suspects **2 → 2 au total**, mais nouvelle alerte
-Aubin, crue 2024, retour au service de Brune à **23576** après demande manquée :
-**absence de hausse par scénario non acquise**. Hameau : référence S
-**[26–44]**, candidat **[17–37]** ; moyenne 27,75 dans l'étendue de référence,
-mais **−20,7 %**, graines 7/42 à **17/24**, sous son minimum. **Richesse
-restaurée non validée**, échanges acceptés **13 → 9**. Aucun réglage par PNJ
-ou scénario pour atteindre le compteur.
+**Validation de reprise.** **31 ciblés + 19 tests de pas verts** ; cas réel
+Brune/Ilse hameau 1985, autre scénario Relais, inconnu anonyme, méprise et
+recharges/découpages conservés. **Suite complète unique : 2 549 tests / 294 fichiers, 2 430,801 s,
+quatre échecs, zéro erreur et zéro ignoré.** Aucun des cinq écarts repris ne
+revient ; les neuf tests de `test_dynamique_besoins` (229) passent.
+Restent **trois préexistants** reproduits lors de la première livraison sur
+`adb52c4` : torche du hameau 1985 (ici perte permise après départ cru), deux
+MiMo `6 != 5` ; et **le placement d'Ilse du 195 réservé au 234** (distance
+finale 4 au lieu de ≤ 1). La suite reste non verte, sans nouvel échec identifié.
+Le test de stabilité de Lucien du 229 est intégré ; placement réservé au 234.
+Bruts dans
+`C:/Users/msics/donjon/artifacts/pas-233/reprise/` : diagnostics comparés,
+empreintes, captures, contrôle AST, résultats ciblés et suite. Deux travailleurs
+réduits au maximum ; aucun Luna. Scripts de génération et traces restent dans
+les bruts ; les deux checkpoints et les empreintes attendues sont versionnés.
 
-**Tests.** 30 ciblés verts, puis **18 tests de pas finaux verts** : cas réel
-Brune/Ilse hameau 1985, demande autonome d'Aubin à Gorm reconstituée au hameau
-et au Relais, engagements effectifs, monde/rendu rechargés et laps découpés.
-Présence sans rotation ni position inventée, inconnu anonyme et compagnon
-absent couverts. **Contre-épreuve isolée** : remettre seulement `ouie.py` du
-195 en mémoire sur le même moteur fait échouer les trois nouveaux tests de
-rencontre/éveil (**cinq échecs avec sous-cas, zéro erreur**), cas réel compris.
-**Suite complète unique : 2 542 tests / 293 fichiers, 2 925,970 s, dix échecs,
-zéro erreur et zéro ignoré.** Le dernier cas ajouté est repris dans les 18
-ciblés finaux ; aucun changement moteur après le banc. Le dernier fichier
-de la suite, comparaison avec/sans cache spatial, passe en 702 s.
-Comparaison ciblée sur `adb52c4` : **quatre préexistants reproduits** (torche,
-stabilité de Lucien, deux MiMo). **Six écarts supplémentaires du candidat
-195+233 restent non résolus** : empreintes mine/auberge, secours de Rémy
-dans la capture 209, demande de lampe de Lucien, trajet injecté du témoin
-pendant le vol, placement d'abri connu du 195 (lot 234). Oracles et assertions
-historiques laissés intacts ; aucune garantie de non-régression globale.
-
-Banc et suite à deux travailleurs réduits ; aucun Luna. Bruts et scripts :
-`C:/Users/msics/donjon/artifacts/pas-233/` (`comparaison.json`, `analyse.json`,
-`perceptions-*.json`, `interactions-perdues.json`, `suite.json`,
-`echecs-base*.json`, `contre-epreuve.json`, `cibles-finales.json`, `banc.log`).
-Les limites du placement (234), des preuves du 195 et
-des contradictions sémantiques restent hors de cette correction.
-Créneau dépassé par la passe complète et son diagnostic ciblé.
+Créneau dépassé par la suite complète unique et son attente ; aucun second lancement.
