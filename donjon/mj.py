@@ -477,7 +477,7 @@ def _verifier_contenu_compile(monde, contenu, destinataires=None):
                     "L'affirmation ne précise pas le sujet.",
                     f"contenu[{i}].sujet : identifiant de l'entité visée ; reçu ''.",
                 )
-            if attribut not in ("lieu", "verrouillee", "fiable"):
+            if attribut not in paroles.ATTRIBUTS:
                 raise RefusDeForme(
                     "Cet attribut d'affirmation n'est pas pris en charge.",
                     f"contenu[{i}].attribut : 'lieu', 'verrouillee' ou 'fiable' ; reçu {attribut!r}.",
