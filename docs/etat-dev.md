@@ -4,6 +4,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-reessai-obstacle`, fusionnée**, lot **225**, départ
+  `e4d8655` vérifié : patience 30 min conservée, répit 60 min retiré ; chaque
+  renoncement retient son obstacle cru par but/moyen, sans effacement par
+  délai, nouveau regard ou essai d'un autre moyen. Raccords minimaux
+  `pnj._patienter`/`agir`/`_impasse` et `passage.faire_place`/`_patienter`
+  expressément autorisés ; fonctions des lots voisins et MJ intacts.
+  Mine 1985, même départ au puits : renoncements **31/122/213 → 31/147**,
+  reprise **114** sur constat sans témoin, monde/rendu rechargés identiques.
+  **51 ciblés verts**, autre cause/PNJ/scénario, ronde autonome et laps
+  découpé contrôlés. **20 paires 4 h**, 20 références `bd45f65` en cache :
+  suspects 219 **5→4**, cycles **468→498**, préemptions **53→53**, à expliquer
+  **61→52** ; zéro plantage/usurpation, aucune nouvelle alerte de boucle
+  par nuit/PNJ parmi les codes contrôlés. Mine : renoncements **3→1,5** ;
+  auberge : sans recours **20→0 PNJ·min**, attente urgente inchangée ailleurs.
+  Suite finale unique achevée : **2 462 tests / 286 fichiers, 2 014,763 s**,
+  zéro erreur, trois échecs bruts ; oracle de rendu des rondes corrigé et
+  repassé vert, **deux MiMo `6 != 5` historiques restent** (213/223), suite
+  non verte. Tentative antérieure interrompue après découverte de la perte
+  de mémoire lors d'un autre moyen, corrigée et testée. Créneau dépassé par
+  les vérifications ; aucun code moteur changé après le banc final.
+  **Limite : les anciens entiers n'ont aucune cause récupérable** ; le
+  prochain renoncement l'enregistrera. Vérifications soumises aux urgences
+  et trajets admissibles, pas de garantie universelle des boucles.
+  Deux travailleurs réduits au plus ; aucun Luna, aucune clé de signature.
+  Bruts `C:/Users/msics/donjon/artifacts/reessai-225/` ;
+  [rapport 225](taches/rapport-codex-225-reessai-obstacle.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `esprits.py`, fusionnés sans conflit textuel. Décision du 2026-10-27 (3 B) : patience 30 min gardée, REPIT retiré ; renoncer retient l'obstacle cru (étape, lieu, témoins, passage), levé par un constat ou un autre moyen, jamais par le temps ; inspections ordinaires en rondes de contrôle. Odon (mine 1985) : renoncements 31/122/213 → 31/147, reprise à 114 après constat sans témoin. Répétitions suspectes 5 → 4, à expliquer 61 → 52. Fichiers de code communs depuis la base (deliberation, esprits) : suite complète relancée.
+
 - **Branche `codex-service-non-defait`, fusionnée**, lot **224**, base `a22f92e`
   vérifiée, puis 213 intégré (`bd45f65`, fusion `0192bb3`) : résultat promis
   conservé après clôture dans `biens`, filtre commun
