@@ -1670,17 +1670,22 @@ def candidats(monde, id):
 
 
 def secours(monde, id):
-    """Conditions ordinaires utiles à un corps actuellement perçu, sans lire son esprit.
+    """Conditions ordinaires utiles à un besoin perçu ou retenu, sans lire l'esprit d'autrui.
 
     Le seuil du souci est celui des avis de menace ; le poids départage ensuite
-    les secours. La naissance exige la perception ; le contrat adopté conserve
-    séparément la condition et la détresse crue pour sa poursuite.
+    les secours. La faim et le froid naissent du corps perçu ; une détresse
+    déjà retenue peut reprendre après une priorité propre, sans nouvelle vue.
+    Le contrat adopté conserve sa condition et sa raison indépendamment du moyen.
     Le choix seul lit la perception : la recherche reçoit une condition existante.
     """
     from .esprits import percus
     vus = percus(monde, id)[0]
-    peurs = detresses_percues(monde, id) if calme_pour_secourir(monde, id) else set()
     e = lire(monde, id)
+    from .signes import detresse_retenue
+    peurs = (detresses_percues(monde, id) | {x for x, c in e["croyances"].items()
+             if (x == "joueur" or monde.objets.get(x, {}).get("type") == "personnage")
+             and c.get("detresse", {}).get("valeur")
+             and detresse_retenue(monde, id, x)}) if calme_pour_secourir(monde, id) else set()
     for autre in sorted(set(vus) | peurs):
         if autre == id or (autre != "joueur" and monde.objets.get(autre, {}).get("type") != "personnage"):
             continue
@@ -1777,11 +1782,13 @@ def _raison_tient(monde, id, demande):
     if raison is None:
         return True
     if raison["besoin"] == "peur":
+        from .signes import detresse_retenue
         etat = _cru(monde, id, raison["qui"], "etat") or {}
         return bool(_poids_secours(monde, id, raison["qui"]) is not None
                     and calme_pour_secourir(monde, id)
                     and not etat.get("mort") and etat.get("conscient") is not False
-                    and raison["qui"] in detresses_percues(monde, id))
+                    and not etat.get("parti")
+                    and detresse_retenue(monde, id, raison["qui"]))
     etat = _cru(monde, id, raison["qui"], "etat") or {}
     return bool(_poids_secours(monde, id, raison["qui"]) is not None
                 and etat.get(raison["besoin"]) and not etat.get("mort")
@@ -1823,7 +1830,7 @@ def _fin_demande(monde, id, demande):
     raison = demande.get("raison")
     if raison:
         if raison["besoin"] == "peur" and not _raison_tient(monde, id, demande):
-            return "dementie", {"raison": raison, "detresses_percues": sorted(detresses_percues(monde, id)),
+            return "dementie", {"raison": raison, "detresse_retenue": lire(monde, id)["croyances"].get(raison["qui"], {}).get("detresse"),
                                 "calme": calme_pour_secourir(monde, id),
                                 "souci": _poids_secours(monde, id, raison["qui"])}
         etat = _cru(monde, id, raison["qui"], "etat") or {}
@@ -2125,15 +2132,22 @@ def choisir(monde, id, minute):
     contrat_precedent = agendas.contrat_intention(monde, id) or {}
     charges_precedentes = agendas.charges_suspendues(monde, id)
     sortie = None
+    moyen_dementi = False
     manque = e["manque"]
     if courant and courant["plan"] and manque and manque["minute"] == minute:
         from .pnj import _geste
         if _geste(courant["plan"][0]) == manque["etape"]:
-            # R2 : l'échec libère aussi les anciennes préférences de cible
-            # consultées par les générateurs. Un nouveau moyen reste permis.
-            sortie = _sortie(courant, minute, "dementie", {"manque": manque})
-            courant = None
-            e["intention"] = None
+            if (contrat_precedent.get("demande") or {}).get("raison"):
+                # Le moyen est démenti, pas la demande adoptée. Libérer son
+                # ancien suffixe puis replanifier ; sa raison seule décide
+                # de sa fin, même quand le bénéficiaire sort du champ.
+                courant = {**courant, "plan": []}
+                e["intention"] = courant
+                moyen_dementi = True
+            else:
+                sortie = _sortie(courant, minute, "dementie", {"manque": manque})
+                courant = None
+                e["intention"] = None
     resultat = None
     choisi = None
     marge = marge_engagement(monde, id)
@@ -2144,7 +2158,15 @@ def choisir(monde, id, minute):
             fin = _fin_demande(monde, id, contrat_precedent["demande"])
             if fin:
                 sortie = _sortie(courant, minute, *fin)
-        tous = list(_candidats(monde, id))
+        # Les générateurs ne doivent pas préférer l'ancienne cible du moyen
+        # manqué. La demande reste locale et sera revalidée séparément.
+        parent = e["intention"]
+        try:
+            if moyen_dementi:
+                e["intention"] = None
+            tous = list(_candidats(monde, id))
+        finally:
+            e["intention"] = parent
         # Vérifier une occasion n'est pas reprendre le geste abandonné. La
         # ronde existante met les croyances à jour, même sans nouvelle reçue.
         lieux = {r["cause"]["salle"] for rs in e["renoncements"].values()
@@ -2162,7 +2184,13 @@ def choisir(monde, id, minute):
             if n in evaluations:
                 return evaluations[n]
             besoin, urgence = candidat.besoin, candidat.urgence
-            proposition = candidat.methode(monde, id)
+            parent = e["intention"]
+            try:
+                if moyen_dementi:
+                    e["intention"] = None
+                proposition = candidat.methode(monde, id)
+            finally:
+                e["intention"] = parent
             retenus = e["renoncements"].get(besoin, [])
             if (proposition and urgence.palier != Palier.PERIL_EAU
                     and any(renoncement_tient(monde, id, r, proposition)
@@ -2170,6 +2198,13 @@ def choisir(monde, id, minute):
                 essais[n] = "renonce"
                 evaluations[n] = None
                 return None
+            if proposition:
+                from .pnj import refus_etape, _geste
+                if (moyen_dementi and manque and manque["minute"] == minute and proposition[1]
+                        and _geste(proposition[1][0]) == manque["etape"]):
+                    # Même contrat que l'exécution : ne pas réinstaller le
+                    # geste encore marqué manqué. Un autre moyen est permis.
+                    proposition = None
             if proposition:
                 from .pnj import refus_etape
                 if refus_etape(monde, id, proposition[1]) is not None:
@@ -2279,9 +2314,16 @@ def choisir(monde, id, minute):
                     # Accompli ou aucun moyen admissible : plus de suspension.
                     charges_precedentes = {}
         for n, candidat in enumerate(tous):
-            if actif and not _domine(candidat.urgence, actif[0].urgence, marge):
+            moyen_disponible = bool(actif and not moyens_revalides
+                                    and actif[0].demande and actif[0].demande.get("raison")
+                                    and candidat.demande and candidat.demande.get("raison") == actif[0].demande["raison"]
+                                    and candidat.urgence.palier == actif[0].urgence.palier
+                                    and candidat.urgence.valeur >= actif[0].urgence.valeur)
+            if actif and not _domine(candidat.urgence, actif[0].urgence, marge) and not moyen_disponible:
                 continue
             proposition = evaluer(n, candidat)
+            if moyen_disponible and proposition and not proposition[1]:
+                continue  # Une attente sans moyen ne remplace pas une autre attente.
             if proposition:
                 choisi, resultat = candidat, proposition
                 if actif and precedent and not _meme_demande_adoptee(
@@ -2291,7 +2333,8 @@ def choisir(monde, id, minute):
                                      {"palier_actif": int(actif[0].urgence.palier),
                                       "palier_nouveau": int(candidat.urgence.palier),
                                       "valeur_active": actif[0].urgence.valeur,
-                                      "valeur_nouvelle": candidat.urgence.valeur, "marge": marge})
+                                      "valeur_nouvelle": candidat.urgence.valeur, "marge": marge,
+                                      **({"moyen_actif": False, "moyen_nouveau": True} if moyen_disponible else {})})
                 break
         if resultat is None and actif:
             choisi, resultat = actif

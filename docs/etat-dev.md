@@ -1,59 +1,34 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Branche `codex-rester-pres`, non fusionnée**, lot **266**, base `7404d2d` :
-  secours de peur sur la lecture commune du 53, souci/poids/palier du 197,
-  condition durable `pres` et approche physique commune ; maintien et fin
-  explicites sur perception, calme et disposition propres, priorités intactes.
-  Aucune position ni besoin privé d'autrui lu. `echanges.py` intact ; seule
-  validation des raisons élargie à `peur` dans `agendas.py`, autorisée par
-  l'utilisateur. **78 tests ciblés distincts verts / huit fichiers**, dont
-  huit nouveaux : Ilse après noir, mine, maintien/contact immobile, fin,
-  contrôles sociaux/perceptifs, clés/coûts et recharges complètes ; même laps
-  entier/découpé. Deux oracles de garde isolés des secours spontanés dans
-  leurs seules scènes ; assertions conservées. Ni Luna ni suite complète.
-  **Banc initial, avant diagnostic : 20 paires 4 h**, référence `7404d2d`, code
-  `c8e4916` ; zéro plantage/usurpation, `fin.json` code 0, **544,924 s**.
-  Vingt références absentes calculées/rangées une fois ; deux processus
-  réduits au plus. **84 secours de peur, 161,077 min** de sécurité urgente
-  en baisse sous compagnie (temps vécu, pas gain causal). Suspects 219
-  **2 → 6** : cinq nouveaux sur `pres`, crue 1985 (Brune/Ilse, 82 et 83),
-  hameau 7 (Aubin/Ilse, 39 ; Maël/Ilse, 61), hameau 2024 (Maël/Gorm, 203).
-  Suspect auberge 2024 disparu, crue 7 conservé. Bascules **3 → 2**, aucune
-  hausse par nuit ; cycles 219 **489 → 462**, à expliquer **55 → 66**,
-  dérives ouvertes **233 → 246**. Nouvelle attente sans but de Gorm hameau 7,
-  devoir pressant 155 min dès 90 ; attente urgente totale **400 → 470 min**.
-  **Reprise : les cinq surplus sont prouvés légitimes au contrat perceptif**,
-  captures avant interruption/reprise : regard d'Ilse NE→SO à 82 et 83,
-  mouvements d'Aubin/Ilse à 39, déplacement et nouvelle lecture à 60 pour
-  Maël/Ilse à 61, regard de Gorm NO→SO à 203. Démenti avant intention vide
-  ou routine, signe effectivement revu avant chaque reprise, calme maintenu.
-  Aucun effet de relecture seule ; **aucune correction moteur justifiée**.
-  **78 ciblés distincts verts / huit fichiers** ; huit tests de proximité
-  en 15,206 s, cinq paires et deux captures de Gorm rechargées, état complet,
-  rendu et scène vérifiés. Sept charges comprimées versionnées.
-  Gorm : temps sans but pressé identique **195 → 195 min** aux relevés,
-  confié **75 → 40**, attente **120 → 155** ; trajectoire modifiée, retour
-  à 55, brasero non revu depuis 55 à 85, séjour humide inaccessible,
-  recherche feu épuisée (24 nœuds), cloche déléguée. Il agit entre relevés
-  (enquêtes 85/115, offres 132–133, rondes 106/157/208) : aucune immobilité
-  continue de 155 min prouvée. Même difficulté en référence dès 125.
-  **Rejeu terminé : vingt nuits 4 h de branche `8e1cb2d`, 386,007 s,
-  code 0**, zéro plantage/usurpation, vingt références en cache, aucune rejouée.
-  Vingt hashes d'état final complet, chroniques, avis, boucles et compteurs
-  de secours identiques au premier banc. **Sonde 219 locale de `0ff727d`,
-  antérieure aux lots 265/271**, blob `4e2c68d073fcdf71d4996da93527bf3cdd02267b`,
-  instrumentation cache `1f6b05da83` ; nouvelle sonde d'intégration non utilisée.
-  Compteur brut inchangé par nuit (graines 1985/7/42/2024) : Relais/mine tous
-  zéro ; auberge `0/0/0/1 → 0/0/0/0` ; crue `0/1/0/0 → 2/1/0/0` ; hameau
-  `0/0/0/0 → 0/2/0/1`. **Critère de reprise satisfait par preuve des cinq
-  surplus légitimes**, sans reclassement ; pas de validation générale de
-  l'intégration 265/271. Aucun calcul actif. Diagnostic `reprise-diagnostic/`,
-  bilan et comparaison exacte `reprise-banc/validation.json`.
-  Commit local, push précédemment refusé par la revue automatique
-  (destination GitHub non vérifiée). Bruts et analyse par nuit :
-  `C:/Users/msics/donjon/artifacts/rester-266/`.
+- **Branche `codex-rester-pres`, non fusionnée**, lot **266**, base `7404d2d`.
+  **Reprise du 29 octobre : précédent verdict « cinq surplus légitimes » retiré.**
+  Les pertes/reprises sur regard étaient un défaut de continuité. `signes`
+  retient désormais une croyance de détresse datée, avec preuve et confiance,
+  révisée par la perception commune seulement : calme discernable, nouvelle
+  lecture contradictoire du même signe, départ/mort/inconscience connus.
+  Ni perte de vue, ni regard, ni ancienneté d'affichage ne la suppriment.
+  `esprits` valide/sauvegarde ; `deliberation` tient le secours sur cette
+  croyance, après besoins propres et avec le souci du 197. Un moyen manqué
+  libère son plan/préférences sans clore la demande portant une raison ;
+  autre moyen admissible pour la même raison possible, jamais reprise aveugle
+  du geste manqué. Les autres charges gardent leur arbitrage. Aucun délai,
+  scénario ni modèle modifié ; `agendas`/`echanges` inchangés à cette reprise.
+  **93 ciblés distincts verts / dix fichiers**, bilan consolidé ; dernière
+  reprise 37 tests en 79,443 s, dix de proximité en 14,675 s.
+  Cinq cas réels rechargés, quatre
+  intervalles courts sans rupture, Maël/Ilse tenu de 38 jusqu'au vrai démenti
+  perçu à 60 (`mefiance`), état entier/rendu/scène et laps découpés vérifiés.
+  Oracle de garde de Lucien intact ; oracle de clôture sur simple échec corrigé.
+  **Banc détaché de continuité en cours : branche seule, vingt nuits 4 h**,
+  référence `7404d2d` en cache exclusivement, deux travailleurs réduits au plus.
+  Même sonde que le premier banc (`0ff727d`, blob
+  `4e2c68d073fcdf71d4996da93527bf3cdd02267b`, instrumentation `1f6b05da83`),
+  sonde 265/271 non utilisée. **Critère : aucune hausse de suspects par nuit.**
+  Ancien 2 → 6 et diagnostic Gorm restent historiques, sans validation actuelle.
+  Bruts `C:/Users/msics/donjon/artifacts/rester-266/continuite-captures/` ;
+  fin attendue `continuite-banc/fin.json`. Ni Luna ni suite complète.
   [Rapport 266](taches/rapport-codex-266-rester-pres.md).
 
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic

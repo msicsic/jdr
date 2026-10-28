@@ -257,6 +257,13 @@ def _croyance_valide(monde, attribut, c):
                     and type(p["permis"]) is bool and type(p["remise_autorisee"]) is bool), "Possession constatée invalide"
     elif attribut == "fin":
         assert c.get("valeur") in ("detruit", "consomme"), "Fin d'objet crue invalide"
+    elif attribut == "detresse":
+        p = c.get("preuve", {})
+        assert (type(c.get("valeur")) is bool and isinstance(p, dict)
+                and set(p) == {"canal", "signe", "attribut", "minute", "valeur"}
+                and p["canal"] in ("expression", "lecture", "appel", "calme", "etat", "adoption")
+                and all(isinstance(p[k], str) for k in ("signe", "attribut", "valeur"))
+                and type(p["minute"]) is int), "Détresse perçue invalide"
     elif attribut == "etat":
         # Des états vrais ou faux ; d'une salle, aussi les niveaux de lumière vus (0 à 2).
         assert isinstance(c.get("valeur"), dict) and all(
@@ -326,7 +333,7 @@ def verifier(monde):
         for sujet, attributs in e["croyances"].items():
             assert (isinstance(sujet, str) and isinstance(attributs, dict)
                     and (sujet in monde.data["salles"] and set(attributs) <= {"eau", "prevision"}
-                         or set(attributs) <= {"fin", "lieu", "etat", "verrouillee", "statuts"})), "Perception du joueur invalide"
+                         or set(attributs) <= {"fin", "lieu", "etat", "verrouillee", "statuts", "detresse"})), "Perception du joueur invalide"
             for attribut, c in attributs.items():
                 _croyance_valide(monde, attribut, c)
         assert isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX, "Mémoire du joueur invalide"
@@ -1285,6 +1292,8 @@ def _percevoir(monde, id):
     # Ce qu'il voit changer par son propre geste (ses pas, se tourner, une porte qu'il ouvre), il s'y
     # attendait : son plan le prévoyait, il le poursuit (la fin du plan, un geste manqué et la minute
     # le font choisir de nouveau). Seul ce que font les autres, ou le monde, l'éveille.
+    from .signes import retenir_detresses, percus as signes_percus
+    retenir_detresses(monde, id, signes_percus(monde, id))
     if change and not premiere and getattr(monde, "_agit", None) != id:
         reconsiderer(monde, id)
 

@@ -57,7 +57,53 @@ def visible(m):
 
 
 class CompagnieTests(unittest.TestCase):
-    def test_cinq_reprises_reelles_perte_et_retour_physiques_du_signe(self):
+    def test_lecture_retenue_revisee_par_un_dementi_percu_et_non_par_le_regard(self):
+        from donjon.monde import Monde
+        fichier = Path(__file__).parent / 'data/scenes/rester-266/suspect-5.json.gz'
+        charge = json.loads(gzip.decompress(fichier.read_bytes()))
+        m = Monde(charge['reprise'])
+        acteur, autre = charge['acteur'], charge['beneficiaire']
+        percevoir_tous(m)
+        preuve = signes.detresse_retenue(m, acteur, autre)
+        self.assertIsNotNone(preuve)
+        d.choisir(m, acteur, m.data['minutes'])
+        demande = d.agendas.contrat_intention(m, acteur)['demande']
+        self.assertIsNone(d._fin_demande(m, acteur, demande))
+        # Nouvelle épreuve commune de ce regard : l'ancienne crainte était une méprise.
+        lire(m, acteur)['signes_lus'][preuve['preuve']['signe']] = m.data['minutes'] - signes.RELECTURE
+        with patch.object(signes, '_jet', return_value=20):
+            signes.lire(m, acteur)
+        self.assertIsNone(signes.detresse_retenue(m, acteur, autre))
+        self.assertEqual(d._fin_demande(m, acteur, demande)[0], 'dementie')
+        self.assertEqual(lire(m, acteur)['croyances'][autre]['detresse']['preuve']['valeur'], 'mefiance')
+        m = recharger(m)
+        d.choisir(m, acteur, m.data['minutes'])
+        self.assertNotEqual((lire(m, acteur)['intention'] or {}).get('but'), {'type':'pulsion','pres':autre})
+        regarder(m, acteur, [8, 3])
+        percevoir_tous(m)
+        self.assertIsNone(signes.detresse_retenue(m, acteur, autre))
+        self.assertEqual(m.data, recharger(m).data)
+        self.assertEqual(visible(m), visible(recharger(m)))
+
+    def test_moyen_manque_et_perte_de_vue_ne_cloturent_pas_la_demande(self):
+        from donjon.pnj import _geste
+        m, acteur, autre = scene()
+        d.choisir(m, acteur, m.data['minutes'])
+        i = copy.deepcopy(lire(m, acteur)['intention'])
+        lire(m, acteur)['manque'] = {'minute':m.data['minutes'], 'etape':_geste(i['plan'][0])}
+        regarder(m, acteur, [1, 5])
+        percevoir_tous(m)
+        m = recharger(m)
+        d.choisir(m, acteur, m.data['minutes'])
+        apres = lire(m, acteur)['intention']
+        self.assertEqual(apres['but'], i['but'])
+        self.assertEqual(apres['depuis'], i['depuis'])
+        self.assertEqual(apres['plan'], [])  # Le moyen manqué n'est pas recopié.
+        self.assertIsNotNone(d.agendas.contrat_intention(m, acteur)['demande'])
+        self.assertEqual(m.data, recharger(m).data)
+        self.assertEqual(visible(m), visible(recharger(m)))
+
+    def test_cinq_captures_reelles_ne_rompent_pas_sur_un_regard(self):
         from donjon.monde import Monde
         dossier = Path(__file__).parent / 'data' / 'scenes' / 'rester-266'
         fichiers = sorted(dossier.glob('suspect-*.json.gz'))
@@ -79,7 +125,7 @@ class CompagnieTests(unittest.TestCase):
                     self.assertTrue(d.calme_pour_secourir(m, acteur))
                     if phase == 'interruption':
                         demande = d.agendas.contrat_intention(m, acteur)['demande']
-                        self.assertEqual(d._fin_demande(m, acteur, demande)[0], 'dementie')
+                        self.assertIsNone(d._fin_demande(m, acteur, demande))
                     else:
                         self.assertTrue(any(s['personnage'] == autre and s['signe'] == 'surveille'
                                             for s in signes.percus(m, acteur)))
@@ -88,7 +134,32 @@ class CompagnieTests(unittest.TestCase):
                         d.choisir(monde, acteur, monde.data['minutes'])
                     self.assertEqual(m.data, n.data)
                     i = lire(m, acteur)['intention'] or {}
-                    self.assertEqual(i.get('but') == {'type': 'pulsion', 'pres': autre}, phase == 'reprise')
+                    self.assertEqual(i.get('but'), {'type': 'pulsion', 'pres': autre})
+                    if phase == 'interruption':
+                        self.assertEqual(i['depuis'], charge[phase]['esprits'][acteur]['intention']['depuis'])
+                        from donjon.temps import instant
+                        dt = instant(Monde(copy.deepcopy(charge['reprise']))) - instant(m)
+                        ruptures = []
+                        original = d.choisir
+                        def observer(monde, qui, minute):
+                            avant = copy.deepcopy(lire(monde, qui)['intention'])
+                            resultat = original(monde, qui, minute)
+                            apres = lire(monde, qui)['intention'] or {}
+                            if qui == acteur and avant and avant['but'] == i['but'] and apres.get('but') != i['but']:
+                                ruptures.append(d.agendas.dernier_contrat_intention(monde, qui))
+                            return resultat
+                        with patch.object(d, 'choisir', observer):
+                            passer(m, dt)
+                        if dt <= MINUTE:
+                            self.assertEqual(ruptures, [])
+                            self.assertEqual(lire(m, acteur)['intention']['depuis'], i['depuis'])
+                        else:
+                            self.assertEqual(len(ruptures), 1)
+                            sortie = ruptures[0]['contrat']['sortie']
+                            self.assertEqual(sortie['cause'], 'dementie')
+                            preuve = sortie['faits']['detresse_retenue']
+                            self.assertFalse(preuve['valeur'])
+                            self.assertEqual(preuve['preuve']['valeur'], 'mefiance')
                     self.assertEqual(m.data, recharger(m).data)
                     self.assertEqual(visible(m), visible(recharger(m)))
                     empreintes.append({x: {k: charge[phase]['objets'][x].get(k)
@@ -193,8 +264,13 @@ class CompagnieTests(unittest.TestCase):
                 position = copy.deepcopy(m.objets[auteur]['position'])
                 d.choisir(m, auteur, m.data['minutes'])
                 intention = lire(m, auteur)['intention']
-                self.assertFalse(intention and intention['motif'] == 'empathie')
-                if cas in ('sans_souci', 'rancune', 'apaisee', 'dos', 'noir', 'propre_peur'):
+                if cas in ('dos', 'noir'):
+                    self.assertEqual(intention['motif'], 'empathie')
+                else:
+                    self.assertFalse(intention and intention['motif'] == 'empathie')
+                if cas in ('dos', 'noir'):
+                    self.assertTrue(peur(m, auteur))
+                if cas in ('sans_souci', 'rancune', 'apaisee', 'propre_peur'):
                     self.assertFalse(peur(m, auteur))
                 if cas == 'apaisee':
                     contrat = lire(m, auteur)['contrat_intention']['contrat']

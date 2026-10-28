@@ -479,7 +479,116 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
             from .pnj import _chroniquer
             _chroniquer(m, observateur, f"Lecture de {s['personnage']} : {sens or 'aucune impression'}.", "lecture")
             m.data["chronique"][-1].update(enregistrement)
+    if not joueur:
+        retenir_detresses(m, observateur, signes)
     return impressions(m) if joueur else None
+
+
+DETRESSE = ("peur", "crainte", "inquietude")
+
+
+def detresse_retenue(m, observateur, sujet):
+    """Besoin cru, sans péremption ni lecture privée ; perdre un signe ne le dément pas.
+
+    Les anciennes parties conservent déjà les impressions datées : elles restent
+    utilisables sans leur demander d'être à nouveau dans le champ de vision.
+    """
+    crus = esprit_lu(m, observateur)["croyances"].get(sujet, {})
+    etat = crus.get("etat", {}).get("valeur", {})
+    if etat.get("parti") or etat.get("mort") or etat.get("conscient") is False:
+        return None
+    if "detresse" in crus:
+        return crus["detresse"] if crus["detresse"]["valeur"] else None
+    anciennes = [c for a, c in crus.items()
+                 if (a in ("emotion", "intention", "parole_doutee") or a.startswith("attitude:"))
+                 and c.get("valeur") in DETRESSE and c.get("signe")]
+    if anciennes:
+        c = max(anciennes, key=lambda c: c.get("apprise", c["minute"]))
+        return {"valeur": True, "source": c["source"], "minute": c["minute"],
+                "preuve": {"canal": "lecture", "signe": c["signe"], "attribut": next(
+                    a for a, v in crus.items() if v is c), "minute": c.get("apprise", c["minute"]),
+                    "valeur": c["valeur"]}}
+    # Une sauvegarde de l'ancien moteur peut porter la raison adoptée sans
+    # avoir enregistré séparément son signe brut. Ne pas effacer cette raison.
+    from .agendas import contrat_intention
+    contrat = contrat_intention(m, observateur) or {}
+    raison = (contrat.get("demande") or {}).get("raison")
+    if raison == {"qui": sujet, "besoin": "peur"}:
+        depuis = esprit_lu(m, observateur)["intention"]["depuis"]
+        return {"valeur": True, "source": "devine", "minute": depuis,
+                "preuve": {"canal": "adoption", "signe": "", "attribut": "", "minute": depuis, "valeur": "peur"}}
+    return None
+
+
+def retenir_detresses(m, observateur, signes):
+    """Réviser seulement aux perceptions : preuve positive ou démenti discernable.
+
+    Une expression corporelle absente est un calme vu seulement quand cette
+    expression serait discernable. Un regard détourné ne contredit jamais une
+    lecture d'attitude ; il faut une nouvelle lecture contradictoire du même signe.
+    """
+    from .esprits import croire, reconsiderer, percus as objets_percus
+    e = esprit_lu(m, observateur)
+    positifs = {}
+    ids = {s["id"] for s in signes}
+    for s in signes:
+        if s["signe"] in ("tremble", "fuit"):
+            positifs[s["personnage"]] = ("vu", {"canal": "expression", "signe": s["id"],
+                "attribut": "", "minute": m.data["minutes"], "valeur": s["signe"]})
+    for sujet, a, c in actives(m, observateur):
+        if c["valeur"] in DETRESSE and c["signe"] in ids and sujet not in positifs:
+            positifs[sujet] = (c["source"], {"canal": "lecture", "signe": c["signe"],
+                "attribut": a, "minute": c.get("apprise", c["minute"]), "valeur": c["valeur"]})
+    for s in e["memoire"]:
+        if s["type"] == "detresse" and s["minute"] == m.data["minutes"] and s["qui"] not in positifs:
+            positifs[s["qui"]] = ("entendu", {"canal": "appel", "signe": "", "attribut": "",
+                "minute": s["minute"], "valeur": "appel"})
+    vus = None
+    sujets = set(positifs) | {x for x, d in e["croyances"].items() if "detresse" in d}
+    from .agendas import contrat_intention
+    raison = ((contrat_intention(m, observateur) or {}).get("demande") or {}).get("raison")
+    if raison and raison["besoin"] == "peur":
+        sujets.add(raison["qui"])
+    for sujet in sorted(sujets):
+        crus = e["croyances"].get(sujet, {})
+        enregistre = crus.get("detresse")
+        ancien = enregistre or detresse_retenue(m, observateur, sujet)
+        source, preuve, valeur = None, None, True
+        etat = crus.get("etat", {})
+        if any(etat.get("valeur", {}).get(k) for k in ("parti", "mort")) or etat.get("valeur", {}).get("conscient") is False:
+            source, valeur = etat["source"], False
+            preuve = {"canal": "etat", "signe": "", "attribut": "etat", "minute": etat["minute"], "valeur": "indisponible"}
+        elif sujet in positifs:
+            source, preuve = positifs[sujet]
+        elif ancien and ancien["valeur"]:
+            p = ancien["preuve"]
+            if p["canal"] == "lecture":
+                revision = crus.get(p["attribut"], {})
+                if (revision.get("signe") == p["signe"] and revision.get("valeur") not in DETRESSE
+                        and revision.get("apprise", revision.get("minute", -1)) >= p["minute"]
+                        and p["signe"] in ids):
+                    source, valeur = revision["source"], False
+                    preuve = {**p, "minute": revision["minute"], "valeur": revision["valeur"]}
+            elif p["canal"] in ("expression", "appel"):
+                if vus is None:
+                    vus = objets_percus(m, observateur)[0]
+                if sujet in vus:
+                    niveau, distance_ = _niveau_distance(m, observateur, sujet)
+                    regle = SIGNES["tremble"]
+                    if niveau >= regle[2] and distance_ <= regle[3]:
+                        source, valeur = "vu", False
+                        preuve = {"canal": "calme", "signe": "", "attribut": "", "minute": m.data["minutes"], "valeur": "calme"}
+        if preuve is None and ancien and not enregistre:
+            source, preuve = ancien["source"], ancien["preuve"]
+        if preuve is not None and (enregistre is None or ancien["valeur"] != valeur or valeur and any(
+                preuve[k] != ancien["preuve"][k] for k in ("canal", "signe", "attribut"))):
+            confiance = (crus.get(preuve["attribut"], {}).get("confiance", .5)
+                         if preuve["canal"] in ("lecture", "adoption") else 1.0)
+            croire(m, observateur, sujet, "detresse", valeur, source, confiance, preuve=preuve)
+            from .deliberation import _poids_secours
+            if (ancien is None or ancien["valeur"] != valeur) and (
+                    raison and raison["qui"] == sujet or _poids_secours(m, observateur, sujet) is not None):
+                reconsiderer(m, observateur)
 
 
 def actives(m, observateur):
@@ -488,7 +597,8 @@ def actives(m, observateur):
         valeurs = [(c["personnage"], c.get("attribut", ""), c) for c in m.data.get("lectures", {}).values()]
     else:
         valeurs = [(x, a, c) for x, d in esprit_lu(m, observateur)["croyances"].items() for a, c in d.items()
-                   if c["source"] == "devine" or c["source"].startswith("dit:") and "signe" in c]
+                   if (a in ("emotion", "intention", "parole_doutee") or a.startswith("attitude:"))
+                   and (c["source"] == "devine" or c["source"].startswith("dit:") and "signe" in c)]
     return [(x, a, c) for x, a, c in valeurs if m.data["minutes"] - c["minute"] <
             (30 if a in ("emotion", "intention", "parole_doutee") else ATTITUDE_MAX)]
 
@@ -675,10 +785,14 @@ def percevoir_tous(m):
     emissions = {id: de(m, id) for id in ["joueur", *m.objets]
                  if id == "joueur" or m.objets[id]["type"] == "personnage"}
     episodes = _occurrences(m, emissions)
-    if not any(emissions.values()):
+    acteurs = pnjs(m)
+    if not any(emissions.values()) and not any(
+            any(c.get("detresse", {}).get("valeur") for c in esprit_lu(m, id)["croyances"].values())
+            or any(s["type"] == "detresse" and s["minute"] == m.data["minutes"] for s in esprit_lu(m, id)["memoire"])
+            for id in acteurs):
         return
     with vue_memorisee(m), etat_fige(m):
-        for id in pnjs(m):
+        for id in acteurs:
             lire(m, id, percus(m, id, emissions=emissions), occurrences=episodes)
 
 

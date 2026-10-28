@@ -268,7 +268,7 @@ class ContratEngagementTests(unittest.TestCase):
             self.assertEqual(m.data, n.data)
             self.assertEqual(rendu(m), rendu(n))
 
-    def test_echec_libere_l_engagement_et_ses_preferences_de_cible(self):
+    def test_echec_libere_le_moyen_et_ses_preferences_sans_clore_la_demande(self):
         m, auteur, autre = scene()
         d.choisir(m, auteur, 0)
         i = lire(m, auteur)['intention']
@@ -285,10 +285,14 @@ class ContratEngagementTests(unittest.TestCase):
         with patch.object(d, '_candidats', candidats):
             d.choisir(m, auteur, 0)
         self.assertEqual(observes, [None])
-        self.assertIsNone(lire(m, auteur)['intention'])
-        fin = agendas.dernier_contrat_intention(m, auteur)['contrat']
-        self.assertEqual(fin['phase'], 'finir')
-        self.assertEqual(fin['sortie']['cause'], 'dementie')
+        apres = lire(m, auteur)['intention']
+        self.assertEqual(apres['but'], i['but'])
+        self.assertEqual(apres['depuis'], i['depuis'])
+        self.assertEqual(apres['plan'], [])
+        contrat = agendas.contrat_intention(m, auteur)
+        self.assertEqual(contrat['phase'], 'attendre')
+        self.assertIsNone(contrat['sortie'])
+        self.assertIsNotNone(contrat['demande'])
         n = recharger(m)
         self.assertEqual(m.data, n.data)
         self.assertEqual(rendu(m), rendu(n))
