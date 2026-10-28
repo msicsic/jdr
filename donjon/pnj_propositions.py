@@ -89,6 +89,65 @@ def _tient(avant, apres):
             and all(o in avant["biens"] and n <= avant["biens"][o] for o, n in apres["biens"].items()))
 
 
+def _entrees_negatives(monde, id, autre, demande, entrees):
+    """Valeurs du jugement et des devis, sans dates de regard ni délai de reprise.
+
+    Les besoins entrent par leurs effets sur les valeurs et les détresses : une
+    croissance sans effet sur le marché n'est pas une nouvelle contrepartie.
+    Les positions crues restent nécessaires au devis des livraisons/services.
+    Le relevé est volontairement conservateur sur les connaissances et les accès.
+    """
+    import hashlib
+    import json
+    from .biens import valeur_bien
+    from .caractere import STATS, caracteristique
+    from .deliberation import _connus
+    from .planification import vue, CHANGEANTS
+    from .pnj import DUREES
+    from .propositions import taches_crues
+    from . import agendas
+    e, v = lire(monde, id), vue(monde, id)
+    connus = sorted(_connus(monde, id))
+    def sans_dates(x):
+        if isinstance(x, dict):
+            return {k: sans_dates(y) for k, y in x.items()
+                    if k not in ('minute', 'depuis', 'attente', 'instant')}
+        if isinstance(x, (list, tuple)):
+            return [sans_dates(y) for y in x]
+        return x
+    projection = json.dumps([
+        # Le contrat de compensation a changé : un ancien verdict négatif
+        # n'est pas une preuve sous les règles actuelles, même à monde égal.
+        2, demande, entrees, monde.objets[id]['lieu'], monde.objets[id].get('profil'),
+        {o: {a: {k: c[k] for k in ('valeur', 'salle', 'case', 'possession', 'envers') if k in c}
+             for a, c in d.items()} for o, d in e['croyances'].items()},
+        [[o, {k: x for k, x in monde.objets[o].items()
+               if k not in CHANGEANTS and k not in ('profil', 'esprit')},
+          valeur_bien(monde, id, o), valeur_bien(monde, id, o, True)] for o in connus],
+        {q: relations.axes(monde, id, q) for q in relations.connus(monde, id)},
+        sans_dates(e['refus']), sans_dates(agendas.en_cours(monde, id)),
+        # Les compteurs du corps/vecu avancent même sans effet sur un devis.
+        # Ses conséquences mécaniques passent par les caractéristiques réelles.
+        sans_dates(e['pulsions']), sans_dates(e['intention']),
+        [caracteristique(monde, id, s) for s in STATS],
+        sans_dates(monde.data.get('permissions', [])),
+        # services_proteges clôt les traces périmées : le relevé d'entrées
+        # retient leurs données et les croyances, sans provoquer cette écriture.
+        [s for s in monde.data.get('services_rendus', []) if s['de'] == id],
+        list(taches_crues(monde, id, autre)),
+        [getattr(v, k) for k in ('salles', 'proprietaire', 'gardes', 'prix_gardes',
+          'chances_demandes', 'detresses', 'poste_garde', 'aides', 'illicite',
+          'consomme_illicite', 'brise_illicite', 'richesse', 'piece', 'peur',
+          'eau', 'peurs_sociales', 'taux_mefiance', 'dangers')],
+        sorted(v.menacees), sorted(v.noyees), v.monte, v.eau_route,
+        [[o, v.apport(o)] for o in connus if 'lumiere' in e['croyances'].get(o, {})],
+        [[o, x.get('lieu'), x.get('position'), x.get('position_salle'), x.get('positions_salles')]
+         for o, x in monde.objets.items() if not x.get('mobile') and x['type'] != 'personnage'],
+        monde.data.get('mode_cases'), DUREES,
+    ], ensure_ascii=False, sort_keys=True, default=lambda x: sorted(x))
+    return hashlib.sha256(projection.encode('utf-8')).hexdigest()
+
+
 def entrees_refus(monde, id, autre, objet, terme, *, devis=None):
     """Les moyens de cette demande et la force réellement offerte, pas la fortune disponible."""
     from .biens import prix, proprietaire
@@ -398,11 +457,16 @@ def rendre_service(monde, id, besoin, etapes):
 
 def recours(monde, id, besoin, etapes):
     """Une seule offre avant la faute retenue, ou après la demande refusée."""
+    import json
     from .biens import proprietaire
     from .deliberation import _connus, salle_crue, refus_retenu
     if etapes and not any(g["condition"] == "sans_temoin" for g in etapes):
         return None  # Un ancien refus ne remplace jamais un moyen ordinaire nouveau.
     e, candidats = lire(monde, id), []
+    # Même transaction que les recours bornés de la recherche : aucune écriture
+    # du monde pendant l'évaluation, publication seulement à la sortie du choix.
+    choix = getattr(monde, '_vues_du_choix', None)
+    retenues = choix[2] if choix is not None and choix[0] == id else e['attentes_bornees']
     service_devise = False
     # Les demandes ordinaires du préfixe gardent leur chance avant tout recours.
     for n, geste in enumerate(etapes):
@@ -438,6 +502,14 @@ def recours(monde, id, besoin, etapes):
             continue
         # Il sait où le trouver ; la marche sociale normale le rejoint au contact.
         entrees = _entrees(monde, id, autre, besoin, demande)
+        cle = json.dumps(['recours_proposition', autre, besoin, demande['objet']], ensure_ascii=False)
+        dependances = _entrees_negatives(monde, id, autre, demande, entrees)
+        negatif = retenues.get(cle)
+        sans_service = json.dumps([dependances, False])
+        avec_service = json.dumps([dependances, True])
+        if negatif in (sans_service, avec_service):
+            service_devise = service_devise or negatif == avec_service
+            continue
         avant = next((x for x in e["recours_propositions"] if x["de"] == autre and x["besoin"] == besoin), None)
         refus = [s for s in e["refus"] if s["de"] == autre and s.get("objet") == demande["objet"]
                  and s["operation"] in ("acheter", "proposer") and "offre" in s]
@@ -448,7 +520,8 @@ def recours(monde, id, besoin, etapes):
                   for t, cout, gain in _contreparties(monde, id, autre, demande)
                   if not any(refus_tient(monde, id, s, t) for s in refus)]
         offres = [o for o in offres if o[0] > chance]
-        if not service_devise and not (avant and _tient(avant, entrees)):
+        complet = not service_devise and not (avant and _tient(avant, entrees))
+        if complet:
             from .propositions import taches_crues
             from .echanges import offre_sensee, valeur_proposition, PAS_PROPOSITION
             # Un seul service devisé par recours, après les biens et pièces.
@@ -461,6 +534,8 @@ def recours(monde, id, besoin, etapes):
                         refus_tient(monde, id, s, terme, devis=devis) for s in refus):
                     offres.append((relations.chance_proposition(chance, cout / PAS_PROPOSITION), -cout, terme))
         if not offres:
+            if complet:
+                retenues[cle] = avec_service if service_devise else sans_service
             continue
         # Prix propre de l'essai par chance d'accord, puis chance pour les ex aequo.
         _, _, terme = min(offres, key=lambda x: (-x[1] / x[0], -x[0]))

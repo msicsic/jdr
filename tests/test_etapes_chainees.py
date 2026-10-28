@@ -69,6 +69,16 @@ def observer_capture(scenario):
     assert m.data == recharge.data
     assert regarder(m) == regarder(recharge)
     assert scene_percue(m) == scene_percue(recharge)
+    if scenario == 'auberge':
+        # 202/228 : l'huile ne compense pas les seuls crochets. La proposition
+        # à une pièce est refusée pour méfiance ; aucun outil n'est cédé.
+        assert any(c['texte'] == "Lucien propose à Joss 1 pièce contre une part de la burette d'huile d'écurie (mefiance)."
+                   for c in recharge.data['chronique'])
+        assert recharge.objets['crochets_lucien']['lieu'] == 'lucien'
+        from donjon.biens import valeur_capacites
+        from donjon.echanges import valeur_proposition
+        assert valeur_capacites(recharge, 'lucien', 'crochets_lucien') > valeur_proposition(
+            recharge, 'lucien', {'type': 'part', 'objet': 'burette_huile'}, 'lucien', sans='crochets_lucien')
     historique = copy.deepcopy(recharge.data)
     # Les preuves de fin (175) et de possession (179) ne figurent pas dans
     # l'oracle ancien. Monde et rendus complets restent comparés après
@@ -154,9 +164,15 @@ class EtapesTests(unittest.TestCase):
                     # deux vues historiques restent strictement identiques.
                     self.assertEqual(set(pas[scenario]),
                                      {"visites", "n_visites", "plans", "n_plans", "diagnostics", "monde"})
+                    # Réancrage 228 explicite du monde d'auberge uniquement :
+                    # crochets → pièce dans le refus et ses souvenirs entendus.
+                    # Diff exhaustif archivé dans reprise/capture-differences.json.
+                    compensation = ({'monde': '66e43f9693b962a30e3a48b4b9fc7b0af2436bc9d4d3448f37ca7ade18f2d2d7'}
+                                    if scenario == 'auberge' else {})
                     self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures,
                                                                  **paroles[scenario], **contacts[scenario],
-                                                                 **rendez_vous.get(scenario, {}), **pas[scenario]})
+                                                                 **rendez_vous.get(scenario, {}), **pas[scenario],
+                                                                 **compensation})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})

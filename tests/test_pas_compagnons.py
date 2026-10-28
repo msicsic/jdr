@@ -29,6 +29,36 @@ def scene(scenario="relais", auditeur="ilse", auteur="aubin", salle="antichambre
     return recharger(m)
 
 
+def hameau_1985_service_annonce():
+    """Rejouer explicitement l'offre historique par le contrat typé, puis laisser vivre."""
+    from unittest.mock import patch
+    from donjon.geometrie import position_entree
+    from donjon.monde import Monde
+    from donjon.pnj_propositions import executer
+    from donjon.esprits import percevoir_tous
+    from tests.test_tensions import placer
+    from tests.support import regarder
+    from donjon.deplacement_objet import deplacer
+    m = creer('crue_hameau', 1985)
+    m.joueur.update(salle='chambre_cloche', position=list(position_entree(m, 'chambre_cloche')))
+    placer(m, 'brune', 'antichambre', [2, 3])
+    placer(m, 'ilse', 'antichambre', [2, 4])
+    # Torche remise à la prestataire pour l'allumage : elle la connaît en main,
+    # sans découvrir un objet dans l'ombre par une position réelle cachée.
+    deplacer(m, 'torche', 'brune')
+    m.objets['torche']['proprietaire'] = 'ilse'
+    regarder(m, 'brune', 'ilse')
+    regarder(m, 'ilse', 'brune')
+    percevoir_tous(m)
+    contenu = {'demande': {'type': 'pieces', 'montant': 1},
+               'contrepartie': {'type': 'tache', 'condition': {'objet': 'torche', 'allume': True}}}
+    lire(m, 'brune')['intention'] = {'but': {'type': 'proposition', 'objet': 'ilse'},
+                                    'motif': 'argent', 'depuis': 0, 'attente': 0, 'plan': []}
+    with patch.object(Monde, 'd20', return_value=20):
+        assert executer(m, 'brune', 'ilse', contenu, [])
+    return m
+
+
 class PasCompagnonsTests(unittest.TestCase):
     def test_alerte_aubin_crue_2024_autre_moyen_apres_refus(self):
         from donjon.deliberation import choisir
@@ -60,28 +90,72 @@ class PasCompagnonsTests(unittest.TestCase):
             etats.append(m.data)
         self.assertEqual(*etats)
 
-    def test_promesse_reelle_du_hameau_1985_retrouvee_apres_recharge(self):
+    def test_promesse_hameau_1985_annoncee_retrouvee_apres_recharge(self):
         from donjon.banc_pnj import executer
         from donjon.geometrie import position_entree
 
         def depart():
-            m = creer("crue_hameau", 1985)
-            m.joueur.update(salle="chambre_cloche",
-                            position=list(position_entree(m, "chambre_cloche")))
-            return recharger(m)
+            return recharger(hameau_1985_service_annonce())
 
         a, b = depart(), depart()
+        # La parole et l'engagement pris sont bien sauvegardés avant le travail.
+        self.assertTrue([c for c in a.data["chronique"] if c["pnj"] == "brune"
+                         and "propose à Ilse la promesse que la torche soit allumée" in c["texte"]
+                         and "(accepte)" in c["texte"]])
+        self.assertTrue([s for s in lire(a, "brune")["memoire"]
+                         if s["type"] == "engagement_pris" and s.get("pour") == "ilse"])
         executer(a, 2)
         for _ in range(2):
             executer(b, 1)
             b = self.stable(b)
         a = self.stable(a)
         self.assertEqual(a.data, b.data)
-        self.assertTrue([c for c in a.data["chronique"] if c["pnj"] == "brune"
-                         and "propose à Ilse la promesse que la torche soit allumée" in c["texte"]
-                         and "(accepte)" in c["texte"]])
-        self.assertTrue([s for s in lire(a, "brune")["memoire"]
-                         if s["type"] == "engagement_pris" and s.get("pour") == "ilse"])
+        # Le banc peut achever l'attente à cinq minutes ; la chronique (300)
+        # et la mémoire (40) sont bornées. Le résultat tenu remplace alors
+        # l'ancien engagement pris, sans perdre le service payé.
+        self.assertTrue([s for s in lire(a, 'brune')['memoire']
+                         if s['type'] == 'engagement_tenu' and s.get('pour') == 'ilse'])
+        self.assertIn(dict(de='brune', pour='ilse', condition={'objet': 'torche', 'allume': True},
+                           lieu_beneficiaire=None), a.data['services_rendus'])
+
+    def test_hameau_1985_service_admissible_mais_vente_compensee_prioritaire(self):
+        from unittest.mock import patch
+        from donjon import banc_pnj, echanges
+        from donjon.geometrie import position_entree
+        m = creer('crue_hameau', 1985)
+        m.joueur.update(salle='chambre_cloche', position=list(position_entree(m, 'chambre_cloche')))
+        services, ventes = [], []
+        sensee, proposer = echanges.offre_sensee, echanges.proposer
+
+        def juger(monde, de, a, demande, terme, **options):
+            r = sensee(monde, de, a, demande, terme, **options)
+            if (de == 'brune' and a == 'ilse' and demande == {'type': 'pieces', 'montant': 1}
+                    and terme == {'type': 'tache', 'condition': {'objet': 'torche', 'allume': True}}):
+                services.append(r)
+            return r
+
+        def proposer_vu(monde, de, a, demande, terme, **options):
+            if de == 'brune' and terme == {'type': 'objet', 'objet': 'crochets'}:
+                bilan = echanges.evaluer_proposition(monde, a, de, terme, demande)
+                self.assertIsNone(bilan['cause'])
+                self.assertGreaterEqual(bilan['G'], bilan['P'])
+                self.assertEqual(demande, {'type': 'pieces', 'montant': 8})
+                ventes.append(a)
+            return proposer(monde, de, a, demande, terme, **options)
+
+        with patch.object(echanges, 'offre_sensee', juger), patch.object(echanges, 'proposer', proposer_vu):
+            banc_pnj.executer(m, 2)
+        m = self.stable(m)
+        self.assertTrue(services)
+        # Au premier choix ce service reste admissible ; des états projetés
+        # ultérieurs peuvent changer son intérêt, pas établir une cession.
+        self.assertTrue(services[0])
+        self.assertEqual(ventes, ['ilse', 'aubin', 'mael', 'marchand'])
+        from donjon.biens import proprietaire
+        self.assertEqual(proprietaire(m, 'crochets'), 'brune')
+        self.assertEqual(m.objets['crochets']['lieu'], 'brune')
+        self.assertFalse([s for s in lire(m, 'brune')['memoire']
+                          if s['type'] == 'engagement_pris' and s.get('pour') == 'ilse'])
 
     def test_aubin_saisit_l_occasion_de_demander_a_gorm_hameau_et_relais(self):
         """Reconstitution de la demande de vivres perdue au hameau 1985.

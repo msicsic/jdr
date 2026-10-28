@@ -61,16 +61,36 @@ class ServiceNonDefaitTests(unittest.TestCase):
         from donjon import banc_pnj
         from donjon.geometrie import position_entree
         from tools.detecter_changements_avis import observer_avis
-        initial = banc_pnj.creer('crue_hameau', 1985, 'tire')
-        initial.joueur.update(salle='chambre_cloche',
-                             position=list(position_entree(initial, 'chambre_cloche')))
+        # Offre historique jouée par le contrat typé, sans imposer le choix
+        # autonome. Le parcours naturel est éprouvé séparément.
+        from tests.test_pas_compagnons import hameau_1985_service_annonce
+        initial = hameau_1985_service_annonce()
         resultats = []
         for bornes in ((10,), (5, 10)):
             planification._MEMOIRE.clear()
             planification._GRAPHES.clear()
             planification._IMPOSSIBLES.clear()
             m = self.recharge(initial.copier())
-            with observer_avis() as sonde:
+            from donjon import biens
+            retenir = biens.retenir_service
+            ancrages = []
+
+            def retenir_vu(monde, de, engagement):
+                suivi = de == 'brune' and engagement['condition'] == {'objet': 'torche', 'allume': True}
+                existant = any(s['de'] == de and s['pour'] == engagement['pour']
+                               and s['condition'] == engagement['condition']
+                               for s in monde.data.get('services_rendus', []))
+                lieu = salle_crue(monde, de, engagement['pour']) if suivi else None
+                resultat = retenir(monde, de, engagement)
+                if suivi and not existant:
+                    trace = next(s for s in monde.data['services_rendus']
+                                 if s['de'] == de and s['pour'] == engagement['pour']
+                                 and s['condition'] == engagement['condition'])
+                    self.assertEqual(trace['lieu_beneficiaire'], lieu)
+                    ancrages.append(lieu)
+                return resultat
+
+            with observer_avis() as sonde, patch.object(biens, 'retenir_service', retenir_vu):
                 for borne in bornes:
                     banc_pnj.executer(m, borne)
                     m = self.recharge(m)
@@ -80,12 +100,13 @@ class ServiceNonDefaitTests(unittest.TestCase):
             self.assertFalse(sonde.analyser()['services_etat_perdu'])
             self.assertTrue(m.objets['torche']['allume'])
             self.assertIn({'objet': 'torche', 'allume': True}, services_proteges(m, 'brune'))
-            # Lot 233 : sans rotation fortuite, Ilse est crue à l'antichambre au constat
-            # (l'échoppe sur l'ancienne trajectoire). L'ancrage reste le lieu cru du
-            # bénéficiaire par le prestataire, et le service reste protégé ci-dessus.
+            # Chaque création (transaction réelle et devis) a été confrontée
+            # à sa croyance au constat. Ici Ilse n'est plus localisée ; cela
+            # n'établit pas son départ. Le service doit rester protégé.
             lieu = next(s['lieu_beneficiaire'] for s in m.data['services_rendus'] if s['de'] == 'brune')
-            self.assertIn(lieu, m.data['salles'])
-            self.assertEqual(lieu, salle_crue(m, 'brune', 'ilse'))
+            self.assertTrue(ancrages)
+            self.assertIsNone(lieu)
+            self.assertIn(lieu, ancrages)
             self.assertFalse(any('éteint la torche' in x['texte']
                                  for x in m.data['chronique'] if x['pnj'] == 'brune'))
             resultats.append((m.data, regarder(m), scene_percue(m)))

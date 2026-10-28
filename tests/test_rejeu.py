@@ -116,7 +116,12 @@ class AutresNuitsTests(unittest.TestCase):
         from donjon.monde import Monde
         m = brune_crochete_dans_le_dos_de_gorm()
         enregistreur = Enregistreur(m)
-        with enregistreur.observer(), patch.object(Monde, "d20", return_value=1):
+        # Le rejeu porte sur le geste illicite imposé ; les marchés compensés
+        # antérieurs à la faute sont éprouvés dans test_crochetage_surenchere.
+        with enregistreur.observer(), patch.object(Monde, "d20", return_value=1), \
+                patch('donjon.pnj_propositions.recours', return_value=None), \
+                patch('donjon.pnj_propositions.plan_recours', return_value=None), \
+                patch('donjon.agendas._naissances', return_value=None):
             faire(m, "attendre")
         m = recharger(m)
         self.assertTrue(m.objets["reserve"]["verrouillee"])

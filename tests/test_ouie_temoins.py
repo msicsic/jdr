@@ -226,7 +226,12 @@ class TemoinParLOuieTests(unittest.TestCase):
             if le_sait:
                 croire(m, "brune", "marchand", "lieu", "antichambre", "entendu", salle="antichambre", case=[0, 3])
             return recharger(m)
-        sait, ignore = attendre(brune_en_douce(True), 2), attendre(brune_en_douce(False), 1)
+        # Ici on impose la faute pour éprouver ses témoins. La négociation
+        # compensée qui peut la précéder est couverte au lot 228.
+        with patch('donjon.pnj_propositions.recours', return_value=None), \
+                patch('donjon.pnj_propositions.plan_recours', return_value=None), \
+                patch('donjon.agendas._naissances', return_value=None):
+            sait, ignore = attendre(brune_en_douce(True), 2), attendre(brune_en_douce(False), 1)
         self.assertFalse(any("s'acharne" in t for t in chronique(sait)))
         etape = lire(sait, "brune")["intention"]["plan"][0]
         self.assertEqual((etape["operation"], etape["condition"]), ("crocheter", "sans_temoin"))
@@ -236,7 +241,10 @@ class TemoinParLOuieTests(unittest.TestCase):
         # Il voit faire : il est témoin par la vue, pas par l'ouïe.
         from tests.test_ouie import brune_crochete_dans_le_dos_de_gorm
         m = brune_crochete_dans_le_dos_de_gorm()
-        m = attendre(m, 1)
+        with patch('donjon.pnj_propositions.recours', return_value=None), \
+                patch('donjon.pnj_propositions.plan_recours', return_value=None), \
+                patch('donjon.agendas._naissances', return_value=None):
+            m = attendre(m, 1)
         self.assertTrue(vu_agir(m, "marchand"))
         self.assertTrue(all(s.get("par") != "ouie" for s in souvenirs(m, "marchand", "vu_agir")))
 

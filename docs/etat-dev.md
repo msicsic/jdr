@@ -4,6 +4,37 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **Branche `codex-ceder-outil-b`, fusionnée**, lot **228**, reprise du
+  **202**, base intégrée **`d9e5166`** (233/238/239/240), fusion `e938352`.
+  Compensation `e8feb8f`, six premiers oracles `537a352`, seconde extension
+  autorisée **`d3a4d67`**. Aucun nouveau code moteur pendant les arbitrages.
+  Capacité marginale protégée sauf doublon, remplacement ou gain suffisant ;
+  achat **8,4 contre 0,909 refusé**. Cache négatif à dépendances crues égales
+  conservé, anciens verdicts rejugés. Fonctions réservées des autres lots intactes.
+  **Torche 1985 : service non bloqué**, douze jugements admissibles avant 2 min ;
+  vente de crochets compensée à huit pièces (P=G=33,899), classée 6,20, qui
+  devance le service choisi sur intégration (55,43). Parcours naturel original
+  testé séparément. Reconstruction déclarée : torche d'Ilse remise à Brune,
+  offre typée réellement payée, puis autonomie intacte ; annonce sauvegardée,
+  engagement tenu, service protégé, état/rendus et bloc/découpe contrôlés.
+  Rémy : extinction juste au bureau éclairé (niveau 2, `lumiere_utile=False`).
+  Tilo : achat réel 1, remboursement 19, dette 1 persistante, conservation d'or
+  et absence de double versement ; apport réel puis solde complet vérifiés.
+  **48 ciblés distincts verts** pour les quatre fichiers de la seconde extension.
+  `securite` intact : distance 4 déjà rouge sur `d9e5166`, confiée au lot 234.
+  **Suite complète laissée au superviseur** (consigne/AGENTS `4422f13`) :
+  passe en cours arrêtée, aucun verdict final revendiqué ; ciblés du lot verts.
+  Suite antérieure : 2 590 tests, six échecs/zéro erreur, attribution archivée.
+  Seul réancrage de capture : hash monde auberge du premier arbitrage (crochets
+  14,4 contre huile 6 ; pièce proposée, autres empreintes gardées).
+  Mesures antérieures contre `3c0e1ca` : S hameau **35→35,75**, nuits dans
+  **[26 ; 44]**, suspects **2→2** sans hausse par nuit ; mine **910→887 recherches,
+  10 925→9 959 nœuds**. Aucun nouveau banc revendiqué sur `d9e5166`.
+  Aucun Luna ; deux travailleurs réduits au plus ; aucune clé de signature.
+  Bruts `C:/Users/msics/donjon/artifacts/ceder-228/reprise/` ;
+  [rapport 228](taches/rapport-codex-228-ceder-outil-reprise.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Un PNJ ne cède pas une capacité qu'il perdrait sans compensation (202) ; une offre reste possible quand la contrepartie compense réellement la capacité perdue (biens.valeur_capacites, echanges.necessaire, evaluer_proposition) ; recours négatif retenu tant que ses dépendances crues ne changent pas. 20 paires 4 h : S hameau 35 → 35,75 (toutes les nuits dans l'étendue de référence), suspects 2 → 2, coût mine −8,8 % nœuds. Promesse de torche du hameau 1985 : Brune préfère désormais la vente compensée de ses crochets (autre choix, service non interdit). Oracles de trajectoire arbitrés avec preuve dans dix fichiers de tests ; hash monde auberge réancré explicitement. Suite complète laissée au superviseur.
+
 - **Branche `codex-lumiere-faible`, fusionnée**, lot **244**, base
   intégration **707e7ac**. `Vue.recharge_utile` distingue capacité de
   lumière et réserve faible : une source encore allumée ne rend plus

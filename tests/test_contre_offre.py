@@ -49,7 +49,10 @@ class ContreOffreTests(unittest.TestCase):
     def test_prix_dit_paye_et_reception_sans_second_jet_deux_biens(self):
         for objet in ("vivres", "cle_reserve"):
             with self.subTest(objet=objet):
-                m, lignes = refus(scene(70), objet)
+                m = scene(70)
+                # Le test de prix honoré finance aussi la capacité durable de la clé.
+                m.data["finances_pnj"]["brune"] = 100
+                m, lignes = refus(m, objet)
                 s = lire(m, "brune")["refus"][-1]
                 self.assertIn("Offre de", " ".join(lignes))
                 prix = s["contre_offre"]["condition"]["montant"]
@@ -123,11 +126,25 @@ class ContreOffreTests(unittest.TestCase):
         self.assertEqual(m.objets["cle_rechange"]["lieu"], "brune")
         self.assertIn("clé de rechange", " ".join(lignes))
 
-    def test_mefiance_et_garde_durable_sans_condition(self):
-        for m, objet in ((scene(10), "vivres"), (scene(70, garde=True), "cle_reserve")):
+    def test_mefiance_et_reserve_gardee_sans_condition(self):
+        from donjon.deliberation import reserve
+        reservee = scene(70, garde=True)
+        reservee.objets['vivres']['portions'] = reserve(reservee, 'marchand')
+        for m, objet in ((scene(10), "vivres"), (reservee, "vivres")):
             m, lignes = refus(m, objet)
             self.assertNotIn("contre_offre", lire(m, "brune")["refus"][-1])
             self.assertNotIn("Offre de", " ".join(lignes))
+
+    def test_capacite_de_cle_gardee_a_un_prix_compensant(self):
+        from donjon.biens import valeur_capacites
+        from donjon.caractere import valeur_pieces
+        m, lignes = refus(scene(70, garde=True), 'cle_reserve')
+        offre = lire(m, 'brune')['refus'][-1]['contre_offre']
+        prix = offre['condition']['montant']
+        self.assertGreaterEqual(valeur_pieces(m, 'marchand', prix),
+                                valeur_capacites(m, 'marchand', 'cle_reserve'))
+        self.assertEqual(recharger(m).objets['cle_reserve']['lieu'], 'marchand')
+        self.assertIn('Offre de', ' '.join(lignes))
 
     def test_meme_laps_decoupe_et_recharge_prix(self):
         a, _ = refus(scene(70), "vivres")

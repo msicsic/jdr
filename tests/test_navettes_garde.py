@@ -76,6 +76,12 @@ class NavettesGardeTests(unittest.TestCase):
         # moyen de fermer sa réserve ; le marché reste exécutable après recharge.
         m = scene(70)
         m, _ = refus(m, 'cle_reserve')
+        # 202/228 : la clé doit être payée à sa capacité, pas à une pièce.
+        # Sans fonds, aucun achat ; une garde tenue ne devient pas un manque,
+        # même après financement de la contre-offre.
+        self.assertIsNone(plan_recours(recharger(m), 'brune', 'faim', None))
+        prix = lire(m, 'brune')['refus'][-1]['contre_offre']['condition']['montant']
+        m.data['finances_pnj']['brune'] = prix
         self.assertIsNone(plan_recours(recharger(m), 'brune', 'faim', []))
         plan = plan_recours(recharger(m), 'brune', 'faim', None)
         self.assertEqual(plan[-1]['operation'], 'acheter')
