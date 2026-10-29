@@ -1,8 +1,9 @@
 # Lot 297 — réaffecter une charge en retard
 
 Branche `codex-a5-reaffecter`, **non fusionnée**, base intégration
-`83a2e89`, moteur `4c634cb`, 29 octobre 2026. Ni MJ, scénario, protocole
-joueur, Luna ni suite complète modifiés ou lancés.
+`83a2e89`, moteur `4c634cb`, validation `599dfbb`, 29 octobre 2026.
+Lot terminé, branche poussée vers origin, aucun calcul actif. Ni MJ,
+scénario, protocole joueur, Luna ni suite complète modifiés ou lancés.
 
 **Invariant.** L'historique `confies` conserve la filiation ; le registre
 `attributions` distingue attribution active, remplacement et reprise par
@@ -43,7 +44,7 @@ agir tant que le retrait n'a pas été entendu** : une attribution unique
 dans les croyances du mandant n'est pas une annulation distante.
 
 **Preuves.** **86 tests distincts / 12 fichiers verts**, zéro échec,
-erreur ou ignoré ; dernières versions par fichier, **145,231 s cumulées**,
+erreur ou ignoré ; dernières versions par fichier, **145,226 s cumulées**,
 deux travailleurs réduits au plus. Dix nouveaux tests : Gorm/Aubin/Ilse
 et Brune au hameau, Bram/Josse/Mathe et Lucien à la mine, déplacement et
 information. Remplacement réellement accepté, refus réellement prononcé
@@ -54,11 +55,19 @@ Monde, rendu, scène et écoute sont contrôlés après sauvegarde/recharge ;
 les intervenants agissent pendant les laps entiers/découpés identiques.
 Le contrôle AST réserve aussi `attributions` à la façade des agendas.
 
-**Empreintes en cours**, 2 h, hameau/mine/Relais × 1985/7/42/2024,
-référence figée `83a2e89` et cache commun, deux processus réduits, référence
-puis branche. Aucune comparaison de temps avec des références en cache.
-Bruts : `C:/Users/msics/donjon/artifacts/reaffecter-297/` ;
-`tests-bilan.json`, `empreintes.json`, `empreintes.log` et fichier de fin
-`fin-verification.json` (écrit aussi en cas d'échec). La clôture des
-empreintes reste à constater ; aucun banc 4 h supplémentaire tant
-qu'aucune réaffectation naturelle n'est constatée.
+**Empreintes terminées : 12/12 paires identiques**, 2 h, hameau/mine/Relais
+× 1985/7/42/2024, départ tiré, `83a2e89` → `599dfbb` : chronique, mesures,
+empreintes, SHA-256 de l'état final complet, récit et souvenirs, nuit par
+nuit. Aucune nuit divergente ni plantage ; avis non justifiés **0 → 0**,
+entrées à expliquer **16 → 16**, avis complets identiques. Aucun mandat A5
+accepté ni retrait dans ces nuits : pas de réaffectation naturelle ; la
+preuve du comportement vient des scènes ciblées. Aucun banc 4 h ajouté.
+Douze références exactes manquantes calculées une fois et rangées dans le
+cache commun, puis douze nuits de branche ; deux processus réduits au plus,
+**242,022 s**, `fin-verification.json` : **ok=true, code 0**. Aucun gain de
+performance déduit. Résultats lus à la clôture, aucun calcul relancé et
+sources/tests inchangés depuis validation.
+
+Bruts copiés dans `C:/Users/msics/donjon/artifacts/reaffecter-297/` : tests
+et `tests-bilan.json`, `empreintes.json`, journaux, lanceur, fichier de fin,
+`analyser_fin.py` et `analyse-fin.json` (lecture des résultats existants).

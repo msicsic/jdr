@@ -13,11 +13,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   entier/découpé avec intervenants actifs. Pas de délai inventé pour un
   devis incertain, ni conversion des anciens accords sans échéance ; deux
   intervenants peuvent agir tant que le retrait n'est pas entendu.
-  **Empreintes 2 h en cours**, hameau/mine/Relais × quatre graines, contre
-  la base d'intégration et cache, deux travailleurs réduits. Calcul détaché
-  démarré, PID 43184 ; fin attendue (même en cas d'échec) :
-  `C:/Users/msics/donjon/artifacts/reaffecter-297/fin-verification.json`.
-  Ni Luna ni suite complète. [Rapport 297](taches/rapport-codex-297-a5-reaffecter.md).
+  **Lot terminé : empreintes 2 h, 12/12 paires identiques**, hameau/mine/
+  Relais × 1985/7/42/2024, départ tiré, `83a2e89` → `599dfbb` : chronique,
+  mesures, empreintes et SHA-256 de l'état final complet ; récit/souvenirs
+  identiques aussi. Aucun mandat A5 accepté ni retrait dans ces nuits :
+  pas de réaffectation naturelle, preuve par les scènes ciblées ; aucun
+  banc 4 h ajouté. Zéro plantage, avis non justifiés 0 → 0, entrées à
+  expliquer 16 → 16, avis identiques. Douze références manquantes calculées
+  une fois et rangées, douze nuits de branche, deux travailleurs réduits,
+  242,022 s ; `C:/Users/msics/donjon/artifacts/reaffecter-297/fin-verification.json`
+  **ok=true, code 0**. Bruts et analyse de clôture copiés dans ce dossier.
+  Branche poussée vers origin, aucun calcul actif ni relancé à la clôture ;
+  sources/tests inchangés. Ni Luna ni suite complète.
+  [Rapport 297](taches/rapport-codex-297-a5-reaffecter.md).
 
 - **Branche `codex-suite-g2-g4`, lot 295, fusionnée**, base intégration
   `475d29d` : les sept fichiers du brief reproduisent les **15 échecs et
