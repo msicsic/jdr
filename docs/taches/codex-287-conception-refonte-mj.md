@@ -13,6 +13,11 @@ Les lots en attente **176** (contrôle des attitudes), **170** (consignes allég
 invariant) et **171** (faux refus de mesures) sont versés dans cette refonte : dis ce que chacun devient. Le lot **166**
 est abandonné.
 
+**Précision de l'utilisateur (29 octobre), qui prime sur le reste du brief** : la branche `origin/prompt-simplifie` est la
+**base** de la réflexion, pas une option parmi d'autres. Le document décrit la refonte comme l'achèvement et le portage
+de cette architecture sur l'intégration actuelle. Les audits de l'intégration ne sont gardés que s'ils protègent une
+garantie que l'architecture découplée ne couvre pas, chaque cas justifié.
+
 ## À lire
 - `AGENTS.md` (contrat du MJ : trois niveaux mécanique / interactif / ambiance), `docs/contrat-mj.md`,
   `docs/plan-migration-mj.md` (revue du 17 octobre, phases 3 et 6 reportées), `docs/plan-prompt.md` (L0 à L8).
