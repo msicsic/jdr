@@ -15,10 +15,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   monde/rendu/scène identiques après recharge. Fixture historique et scènes
   d'auteur brasero/poêle, recharges et laps entier/découpé, contre-épreuves,
   service payé et parole du joueur préparés.
-  **Validation en cours**, ne pas fusionner : première sélection de vingt
-  fichiers puis sélection finale des appelants et banc 20 paires 4 h,
-  référence `1852d6e`, deux travailleurs réduits au plus. Résultat terminal
-  attendu `C:/Users/msics/donjon/artifacts/allumer-277/fin.json` ; vérifier
+  Reprise après `d306370` : **314 tests, deux échecs et huit erreurs**,
+  banc non lancé. Erreurs de fixture (`foyer=False`) corrigées. Les deux
+  fichiers historiques sont verts sur `1852d6e` (**8/8, 96,496 s**) :
+  régressions du lot. Admission trop large aux luminaires fixes, corrigée
+  sur la mécanique `foyer=True` : graphe faim de Rémy élargi sans besoin,
+  demandes de Bram grossissant la chronique bornée et évacuant son ancien
+  appel. **8/8 historiques verts après correction, 100,469 s**, sans toucher
+  les assertions ni les six empreintes. Rejeux monde/rendu/scène rechargés.
+  Scènes d'auteur précisées : chaleur en lumière naturelle, permission sans
+  restitution concurrente, combustible privé inconnu, foyer vide réel,
+  joueur au contact avec un contenu `proposition` existant.
+  **8/8 tests propres au lot verts, 31,031 s** ; monde final de la scène
+  Bram corrigée identique à celui de `1852d6e`, six graphes historiques exacts.
+  **Validation en cours**, ne pas fusionner : reprise des 34 fichiers et
+  banc 20 paires 4 h, référence `1852d6e`, deux travailleurs réduits au plus.
+  Ancien `fin.json` négatif conservé ; résultat terminal de reprise
+  attendu `C:/Users/msics/donjon/artifacts/allumer-277/correction/fin.json` ; vérifier
   `ok`, les tests, chaque nuit suspecte 219 et S/F/D avant livraison finale.
   [Rapport 277](taches/rapport-codex-277-allumer-pour-soi.md).
 

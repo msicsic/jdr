@@ -1736,7 +1736,7 @@ def _allumer_pour_soi(v, e, o):
     jugement, réalisation et refus restent ceux de confier/engager.
     """
     x = v.objets[o]
-    if (v.seul or "allume" not in x or x.get("mobile") or v.illicite[o]
+    if (v.seul or not x.get("foyer") or x.get("mobile") or v.illicite[o]
             or not v.disponible(o) or v.contrarie(o) or v.salle(e, o) in v.menacees
             or v.feu(e, o) != (False, True)
             or any(v.flamme(e, k) for k in e.portes)):
