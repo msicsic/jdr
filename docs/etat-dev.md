@@ -9,7 +9,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun moteur/MJ modifié, aucune charge `informer` sans justification.
   **45 tests distincts / sept fichiers verts**, monde/scène/rendu/écoute
   rechargés, accords et marches réels Maël/Sève, temps continu/découpé.
-  **Calcul détaché en préparation** : crue empreintes 2 h × quatre graines,
+  **Calcul détaché lancé sur `8145e48`**, PID 41884, priorité réduite :
+  crue empreintes 2 h × quatre graines,
   hameau banc 4 h × quatre graines contre `7ec839e`, cache commun, deux
   travailleurs réduits. Résultats longs encore à établir, aucune stabilité
   ou réussite générale revendiquée. Bruts et fichier de fin attendu :

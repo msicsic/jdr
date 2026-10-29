@@ -2,7 +2,7 @@
 
 Branche `codex-a5-agenda-hameau`, **non fusionnée**, base intégration
 `7ec839e`, 29 octobre 2026. Données et tests seulement ; aucun moteur
-ni MJ modifié. **Vérification détachée en préparation**, résultats longs
+ni MJ modifié. **Vérification détachée lancée sur `8145e48`**, résultats longs
 encore à établir. Ni Luna ni suite complète.
 
 **Invariant.** Le dérivé du hameau déclare la responsabilité d'évacuation
@@ -37,14 +37,15 @@ import de support et placements superposés) sont corrigées ; aucun oracle
 du moteur affaibli. Temporaires Windows refusés sous sandbox ; passes
 retenues hors sandbox. `git diff --check` vert.
 
-**Vérification longue prévue.** Crue d'origine : empreintes 2 h × quatre
+**Vérification longue en cours.** Crue d'origine : empreintes 2 h × quatre
 graines ; hameau : banc 4 h × quatre graines, référence figée `7ec839e`,
 cache commun, référence puis branche, deux travailleurs réduits maximum.
 Captures latérales du premier choix et de l'état final, sans changer les
 résultats du comparateur ; rechargement et rendu contrôlés, devis chiffrés
 conservés. Compteurs A5 publics, états d'évacuation, présences finales à
 la galerie, suspects 219 par nuit, boucles et usurpations à lire avant
-clôture. Une présence initiale ou finale ne prouve pas à elle seule une
+clôture. Lanceur détaché PID **41884**, priorité `BelowNormal`. Une
+présence initiale ou finale ne prouve pas à elle seule une
 évacuation causée par Gorm. Aucune donnée ne sera ajustée après mesure.
 
 Bruts : `C:/Users/msics/donjon/artifacts/agenda-hameau-306/` ; lanceur,
