@@ -22,6 +22,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   examiner <objet>                     voir les composants accessibles
   lire <inscription>                   tenter d'en comprendre le sens
   prendre <objet> | poser <objet>
+  mettre <objet> dans <contenant>       déposer, ou alimenter une source avec un combustible
   prelever <lot>                       séparer une pièce du lot, dans la besace
   acheter <objet>                       auprès de son vendeur présent
   voler <objet>                        tentative discrète, jet de DEX si observé
@@ -115,10 +116,12 @@ class DescripteurPublic:
     contenu: object
 
 
-def geste_local(action, cible, outil="", methode="simple"):
+def geste_local(action, cible, outil="", methode="simple", destination=""):
     """La même proposition canonique pour le texte local et le choix structuré."""
-    if action in {"manger", "prelever"}:
+    if action in {"manger", "prelever", "alimenter", "mettre"}:
         from .operations import etape, sequence
+        if action == "mettre":
+            return sequence(etape("deplacer", cible, destination, methode=methode))
         return sequence(etape(action, cible, outil=outil, methode=methode))
     return proposition(action, cible, outil, methode)
 
@@ -142,15 +145,19 @@ def proposition_descripteur(monde, descripteur):
                           "descripteur : geste et cible non vides, parametres optionnels ; aucun autre champ.")
     action, cible = d["geste"], d["cible"]
     actions = {"examiner", "observer", "lire", "allumer", "eteindre", "manger", "ouvrir", "fermer",
-               "prendre", "poser", "remettre", "prelever", "deverrouiller", "crocheter", "tourner", "marcher"}
+               "prendre", "poser", "remettre", "prelever", "deverrouiller", "crocheter", "tourner", "marcher",
+               "frapper", "alimenter", "mettre"}
     if action not in actions:
         raise ErreurMonde("Je ne connais pas ce geste direct.",
                           f"descripteur.geste : reçu {action!r} ; acceptés : {', '.join(sorted(actions))}.")
     parametres = d.get("parametres", {})
-    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode", "destinataire", "quantite"}
+    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode", "destinataire", "quantite", "destination"}
             or any(not isinstance(v, str) or len(v) > 1000 for k, v in parametres.items() if k != "quantite")):
         raise ErreurMonde("Je n'ai pas compris les paramètres de ce geste.",
-                          f"descripteur.parametres : reçu {parametres!r} ; outil, methode, destinataire : chaînes de 1000 caractères au plus ; quantite entière.")
+                          f"descripteur.parametres : reçu {parametres!r} ; outil, methode, destinataire, destination : chaînes de 1000 caractères au plus ; quantite entière.")
+    if action != "mettre" and "destination" in parametres:
+        raise ErreurMonde("Ce geste ne prend pas de destination.",
+                          f"descripteur.parametres.destination : reçu {parametres['destination']!r} pour {action} ; accepté : champ absent.")
     if "quantite" in parametres and (action not in {"manger", "prelever"}
             or type(parametres["quantite"]) is not int or parametres["quantite"] != 1):
         raise ErreurMonde("Ce geste ne permet pas cette quantité.",
@@ -172,7 +179,18 @@ def proposition_descripteur(monde, descripteur):
         return id
 
     if action not in {"tourner", "marcher"}:
-        cible = exacte(cible, "cible", action in {"poser", "remettre", "prelever", "manger", "allumer", "eteindre"})
+        cible = exacte(cible, "cible", action in {"poser", "remettre", "prelever", "manger", "allumer", "eteindre", "alimenter", "mettre", "frapper"})
+    if action in {"frapper", "mettre", "alimenter"}:
+        from .noms import PERSONNES
+        if monde.objets[cible]["type"] in (*PERSONNES, "partie_corps"):
+            raise ErreurMonde("Ce menu demande un objet, pas un corps.",
+                              f"descripteur.cible : reçu {cible!r} ; accepté : objet hors personnage, depouille et partie_corps.")
+    if action == "mettre":
+        if "outil" in parametres:
+            raise ErreurMonde("Ce dépôt demande seulement une destination.",
+                              f"descripteur.parametres.outil : reçu {parametres['outil']!r} ; accepté : champ absent.")
+        destination = exacte(parametres.get("destination", ""), "parametres.destination", True)
+        return geste_local(action, cible, methode=parametres.get("methode", "simple"), destination=destination)
     if action == "remettre":
         destinataire = exacte(parametres.get("destinataire", ""), "parametres.destinataire")
         if monde.objets[destinataire]["type"] != "personnage":
@@ -184,7 +202,7 @@ def proposition_descripteur(monde, descripteur):
         return geste_local(action, cible, destinataire, parametres.get("methode", "simple"))
     outil = parametres.get("outil", "")
     if outil:
-        outil = exacte(outil, "parametres.outil")
+        outil = exacte(outil, "parametres.outil", True)
     return geste_local(action, cible, outil, parametres.get("methode", "simple"))
 
 
@@ -423,9 +441,11 @@ def analyser(monde, texte):
         from .operations import etape, sequence
         return sequence(etape("emettre_son", "joueur", methode=sons[texte]), justification="")
     if texte.startswith("alimenter ") and " avec " in texte:
-        from .operations import etape, sequence
         foyer, _, bois = texte[10:].partition(" avec ")
-        return sequence(etape("alimenter", monde.trouver(foyer), outil=monde.trouver(bois)))
+        return geste_local("alimenter", monde.trouver(foyer), monde.trouver(bois))
+    if texte.startswith("mettre ") and " dans " in texte:
+        cible, _, destination = texte[7:].partition(" dans ")
+        return geste_local("mettre", monde.trouver(cible), destination=monde.trouver(destination))
     if texte.startswith("manger "):
         return geste_local("manger", monde.trouver(texte[7:]))
     if texte.startswith("prelever "):

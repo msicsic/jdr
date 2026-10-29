@@ -113,6 +113,14 @@ class CatalogueTests(unittest.TestCase):
                     gestes_web = [d for choix in web["choix"].values() for d in choix
                                   if isinstance(d, dict) and d["geste"] != "tourner"]
                     terminal = [c.descripteur.contenu for c in liste_gestes(s)]
+                    # U-M outils complète les offres paramétrées par un second
+                    # choix. Le terminal premier geste conserve ses offres
+                    # simples ; sa sélection des ressources attend U-T outils.
+                    parametrees = {(o["id"], g) for n in s["niveaux"]
+                                   for o, porte in ([(o, False) for o in n["objets"]] +
+                                                    [(x["porte"], True) for x in n["sorties"] if x.get("porte")])
+                                   for g, _, _ in offres(o, porte, parametrees=True)}
+                    terminal = [d for d in terminal if (d["cible"], d["geste"]) not in parametrees]
                     # Le web montre un niveau à la fois ; les scènes du test en ont un.
                     self.assertEqual({json.dumps(d, sort_keys=True) for d in gestes_web},
                                      {json.dumps(d, sort_keys=True) for d in terminal})
