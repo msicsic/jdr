@@ -9,9 +9,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   avant affichage, dont `regarder`. Autres actes et dialogues libres toujours
   contrôlés ; interprétation du libre non garantie. **117 tests / onze fichiers
   verts**, 24,480 s, deux travailleurs réduits, monde/scène/carte rechargés.
-  Luna : une passe des quatre scripts G5 à lancer détachée ; aucune référence
+  Luna : une passe des quatre scripts G5 en cours, détachée à priorité réduite ; aucune référence
   correspondante dans le cache de `main c870c8b`, aucune référence relancée.
-  Reprise sur `C:/Users/msics/donjon/artifacts/g5-323/fin-luna.json` pour analyse
+  Reprise sur `C:/Users/msics/donjon/artifacts/g5-323/fin-luna-passe.json` pour analyse
   puis clôture. Ni décision PNJ, ni banc PNJ, ni suite complète modifiés/lancés.
   Recouvrements 320 (`narration.py`) et 319 (`rendu.py`, `jeu.py`).
   [Rapport 323](taches/rapport-codex-323-g5-perception.md).

@@ -39,12 +39,14 @@ L'oracle historique du refus dans le noir devient un constat sans signe révél�
 le test du refus de fidélité est porté sur une attente, avec ses assertions de
 motif, plan et non-publication conservées. Bruts initiaux conservés séparément.
 
-**Luna : une passe à lancer détachée**, quatre scripts : `signes-guet`, `signes-noir`,
+**Luna : une passe en cours, détachée et à priorité réduite**, quatre scripts : `signes-guet`, `signes-noir`,
 `luna-restes-ambiance`, `atelier`. Le cache du commit local de `main`
 `c870c8b4797b5c4072a3b0a63043e212aae62a39` ne contient aucune partie correspondant
 aux clés actuelles : aucune référence relancée, aucune comparaison chiffrée encore
-disponible. La commande exacte, les sorties et le fichier de fin sont rangés dans
-`C:/Users/msics/donjon/artifacts/g5-323/` ; reprendre après `fin-luna.json` pour lire
+disponible. Le premier lanceur a échoué avant tout appel modèle ; son
+`fin-luna.json` en conserve la cause. Le lanceur corrigé et le banc sont
+confirmés actifs, priorité `BelowNormal`. La commande exacte, les sorties et le fichier de fin sont rangés dans
+`C:/Users/msics/donjon/artifacts/g5-323/` ; reprendre après `fin-luna-passe.json` pour lire
 la passe et clore le lot. Aucun résultat Luna revendiqué à ce stade.
 
 **Limites.** Le libre nécessite toujours l'interprétation de Luna ; son choix
