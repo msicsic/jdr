@@ -2753,9 +2753,17 @@ def _suites(v, e, vises, but, conclure=False):
     return _normaliser_suites(v, e, vises, but, gestes(v, e, vises, but), conclure)
 
 
+def _participants_a_localiser(v, e, etapes):
+    """Participants supplémentaires inconnus, hors des venues déjà convenues."""
+    return {x for etape in etapes for x in pnj._a_reunir(
+        v.monde, v.id, etape, e.portes, venues=True, contacts=False)
+        if v.salle(e, x) is None}
+
+
 def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
     """Même contrat pour les gestes immédiats et les suites révélées à leur borne."""
     suites = []
+    contacts_prepares = set()
     for geste in possibles:
         if isinstance(geste, SuiteDifferee):
             suites.append(geste)
@@ -2797,6 +2805,17 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
         if isinstance(geste, TransitionMesuree):
             pression = geste[6]
         elif ajout and not suivant.fait("estimation"):
+            # Un participant perdu de vue reste un but possible, mais sa
+            # présence ne peut être gratuite dans le devis. Chercher par les
+            # moyens communs, puis replanifier après le préfixe incertain.
+            inconnus = _participants_a_localiser(v, e, ajout)
+            if inconnus:
+                for x in sorted(inconnus - contacts_prepares):
+                    contacts_prepares.add(x)
+                    recherche = _chercher(v, e, x)
+                    if recherche is not None:
+                        suites.extend(_normaliser_suites(v, e, vises, but, [recherche]))
+                continue
             mesure = _mesurer(v, e, ajout, suivant, duree)
             if mesure is None:
                 continue
@@ -2869,8 +2888,7 @@ def _mesurer_direct(v, e, ajout, suivant, ancienne_duree):
         if op == "aller":
             route = v.route(courant, etape["lieu"])
         else:
-            touches = pnj._a_toucher(v.monde, v.id, etape, courant.portes)
-            if any(not v.present(courant, x) and (x in touches or v.salle(courant, x) is not None)
+            if any(not v.present(courant, x)
                    for x in pnj._a_reunir(v.monde, v.id, etape, courant.portes, venues=True)):
                 return None
             route = v.approche(courant, etape)
@@ -3301,6 +3319,7 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     from .deliberation import salle_crue
     from .echanges import tache as sorte
     o = condition.get("objet")
+    geste = None
     if "pres" in condition:
         sujet = condition["pres"]
         v = vue(monde, id)
@@ -3325,6 +3344,7 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         but, vises = (lambda v, e: e.fait("inspecte", lieu)), {"inspecter": (lieu,)}
     elif "servir" in condition:
         but, vises = (lambda v, e: e.fait("servi", o)), {"servir": {o: (condition["servir"],)}}
+        geste = _etape("servir", o, contenu={"pour": condition["servir"]})
     elif "allume" in condition:
         etat = _cru(monde, id, o, "etat") or {}
         salle = salle_crue(monde, id, o)
@@ -3354,6 +3374,20 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
             return None
         but = lambda v, e: v.verrouille(e, o) and not v.ouvert(e, o)  # noqa: E731
         vises = {"fermer": (o,)}
+    if geste is not None:
+        # La charge reste la même pendant le contact, y compris quand son
+        # moyen matériel doit être retrouvé ou remplacé après la rencontre.
+        # Les participants et les venues viennent du contrat commun du geste.
+        v = vue(monde, id)
+        e = depart(monde, id, v)
+        inconnus = _participants_a_localiser(v, e, [geste])
+        if inconnus:
+            contacts = [_chercher(v, e, x) for x in sorted(inconnus)]
+            contacts = [r for r in contacts if r is not None]
+            if not contacts:
+                return None
+            r = min(contacts, key=lambda r: r[1] + r[6])
+            return r[1] + r[6], {"type": "pulsion", **condition}, _couper(r[2])
     if tache and sorte(condition) and "allume" not in condition:
         vises["confier"] = (dict(condition),)
     depuis = None
