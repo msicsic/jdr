@@ -12,12 +12,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   de parole et autres voies conservées ; aucune mécanique PNJ modifiée.
   **209 tests distincts / 16 fichiers verts**, dont sept nouveaux tests
   console, monde, texte moteur et rendu après recharge ; durées retenues
-  377,879 s. Aucune suite complète. **Luna en cours**, une passe sur quatre
-  scripts ciblés, comparaison à la base avec cache, copies seulement ;
-  un travailleur en priorité réduite. Démarrage confirmé le 29 octobre à
-  13:03:43 (Paris) sur `031e664`. Pas de gain Luna annoncé avant lecture
-  de `C:/Users/msics/donjon/artifacts/g2-291/fin-luna.json` et
-  `mesures-luna.json`. Bruts au même endroit ;
+  377,879 s. Aucune suite complète. **Lot terminé : Luna une passe sur
+  quatre scripts, sans rejeu**, copies seulement, un travailleur réduit.
+  Six tours refusés : messages publics exacts, aucun `attendu`, **zéro
+  appel final d'explication et zéro audit après le refus public par tour**.
+  Référence → lot : 60 → 57 appels, 2,86 → 2,59 appels/tour MJ,
+  8,84 → 5,75 s/tour ; refus 12 → 9, replis 2 → 0, relances 3 → 3.
+  Limite : un délai réseau dans `sous-obstacle-relais` de référence ;
+  pas de gain causal déduit d'une passe. Surcoûts atelier outils
+  (2 → 4 appels) et saut (1 → 4, un refus de forme en plus) : relances
+  narratives des voies conservées, aucune après refus public. Analyse initiale
+  trop stricte sur l'incident de référence, compteur mélangeant générations
+  et audits ; script seul corrigé, code 0, invariant vérifié 6/6.
+  Huit parties et fils, mesures et empreintes archivés dans
+  `C:/Users/msics/donjon/artifacts/g2-291/` ; statut final `fin-analyse.json`,
+  ancien `fin-luna.json` conservé. Aucun calcul actif du lot ;
   [rapport 291](taches/rapport-codex-291-g2-refus-moteur.md).
 
 - **Branche `ds-service-lieu-inconnu`, lot 289, fusionnée**, diagnostic

@@ -1,62 +1,61 @@
 # Lot 291 — G2 : les refus publics appartiennent au moteur
 
-2026-10-29. Branche `codex-g2-refus-moteur`, base intégration
-`931b22bcfc2c19f00d58e9b82c2810f7d94a32d2` (brief présent). Code : `031e664`.
-**Non fusionnée ; tests ciblés verts, mesure Luna en cours.**
+2026-10-29. Branche `codex-g2-refus-moteur`, base intégration `931b22b`
+(brief présent), code `031e664`. **Lot terminé, non fusionné.**
 
-Dans `MJ._echanger_prepare`, une proposition d'action refusée reste sans effet.
-La correction bornée reçoit toujours `retour_refus` et son `attendu` ; si elle
-ne fournit pas d'action admise, le joueur lit `reponse_du_moteur`, avec les
-messages publics exacts, distincts, dans l'ordre et sans `attendu`. Cela vaut
-aussi lorsque la correction revient en dialogue ou en avis : leur prose
-écartée ne déclenche plus d'audit. Un second refus de portée conserve le
-premier refus au lieu de le remplacer. Aucune branche propre à un objet,
-un scénario ou une formulation n'a été ajoutée.
+`MJ._echanger_prepare` garde la correction bornée sur copie et `retour_refus`
+avec `attendu`. Sans action admise, `reponse_du_moteur` affiche les messages
+publics exacts, distincts et ordonnés, sans audit. Forme persistante : demande
+de précision moteur. Appel final d'explication, `ExplicationCedee` et
+`_sans_relance` supprimés. Contre-revue, fidélité de parole, qualifications
+et audits des autres voies conservés ; aucune mécanique PNJ modifiée,
+aucune exception propre aux exemples.
 
-L'appel final d'explication, `ExplicationCedee`, `_sans_relance` et les chemins
-qui les utilisaient sont supprimés. Les erreurs de forme persistantes,
-y compris celles de l'enveloppe, donnent une demande de précision moteur :
-« Précise la manœuvre que tu veux tenter. Corvus n'a rien tenté. »
-Les bornes existantes restent : correction de proposition ordinaire plus
-correction de forme, trois propositions au plus ; correction d'enveloppe
-distincte dans `_appeler`. Le refus de portée garde sa sortie immédiate.
-La contre-revue d'action, la fidélité de parole, les qualifications et les
-audits des autres voies restent en place. Aucun changement des mécaniques
-PNJ, du fournisseur, du modèle `gpt-6-luna` ou de `donjon/refus.py`.
-
-**Vérification : 209 tests distincts, 16 fichiers verts**, zéro échec, erreur
-ou ignoré ; somme des durées des fichiers retenus **377,879 s** (temps sous
-la charge d'intégration, aucune comparaison de vitesse). Les sept nouveaux
-tests console à fournisseur simulé vérifient le coup de pied réel dans la
-poutre hors de portée puis les crochets ; le passage à 10 cm au Relais et
-sous une table d'auberge ; deux formes persistantes et l'enveloppe invalide ;
-deux refus différents, y compris une portée en correction ; dialogue et
-avis de correction écartés. Ils contrôlent le texte exact sauvegardé comme
-source moteur, les appels, l'absence d'`attendu` affiché, les objets, le
-joueur, le temps, les jets, les esprits, les paroles et le rendu après
-recharge. Les cas répétés vérifient aussi qu'un même message n'est lu qu'une
-fois. Les attentes historiques adaptées concernent uniquement l'explication
-libre ou son coût : `test_artisanat`, `test_defi`, `test_improvisation`,
-`test_contrats_internes`, `test_narration`. Les tests de replis, promesses,
-don, parole, audits, coupe et franchissement restent verts. Le bac à sable
-bloquait les répertoires temporaires des premiers essais ; les résultats
-retenus proviennent du lanceur autorisé, un travailleur en priorité réduite.
+**209 tests distincts / 16 fichiers verts**, zéro échec, erreur ou ignoré ;
+377,879 s. Sept nouveaux tests console : portée (poutre et crochets),
+passage trop bas (Relais et auberge), formes persistantes, deux causes,
+dialogue/avis écartés. Texte sauvegardé, monde et rendu après recharge
+vérifiés. Attentes adaptées uniquement pour l'explication libre ou son
+coût : artisanat, défi, improvisation, contrats internes, narration.
 Ni suite complète ni banc PNJ supplémentaire.
 
-**Luna : une passe détachée**, démarrée le 29 octobre à 13:03:43 (Paris),
-sur le code `031e664`, un travailleur en priorité réduite. Scripts `relais`,
-`sous-obstacle-relais`, `sous-obstacle-trop-bas`, `atelier` ; variantes
-`integ=931b22b`, `lot=.` ; cache commun conservé, références absentes jouées
-une fois. Copies seulement, `SEUIL_AUTH` vers le coffre principal. Le
-lanceur écrit `fin-luna.json` en dernier, même en cas d'échec, et archive
-les parties, les appels/secondes par tour, les explications, les refus par
-message public, les relances, les replis et les textes réellement lus.
-**Ces mesures ne sont pas encore disponibles : ne pas annoncer un gain
-Luna ni la clôture du lot avant leur lecture.** Les secondes du cache ne
-permettent pas de comparaison causale.
+**Luna : une passe, quatre scripts, sans rejeu**, `integ=931b22b` et `lot=.`
+sur `031e664` ; copies, coffre principal, un travailleur réduit. Références
+absentes jouées une fois, aucun cache réutilisé. **Six tours refusés** : texte égal au
+message public, aucun `attendu`, **0 appel final d'explication et 0 audit
+après le refus public, dans chaque tour** :
 
-Bruts : `C:/Users/msics/donjon/artifacts/g2-291/` ; tests `tests-cibles.json`,
-`tests-complement.json`, `tests-g2-final.json` ; exécution `lancer-luna.ps1`,
-`luna.txt`, `debut-luna.json` ; résultats attendus `mesures-luna.json` et
-`fin-luna.json`. Le lot porte la voie de refus d'action ; les autres voies
-non portées gardent leurs contrôles, conformément à la transition G0–G21.
+| Script / tour | Message public lu | Appels totaux / secondes |
+|---|---|---:|
+| relais 21 | Approche-toi de la poutre effondrée : il faut être juste à côté pour agir. | 1 / 1,79 |
+| relais 22 | Approche-toi de la poutre effondrée : il faut être juste à côté pour agir. | 1 / 1,70 |
+| relais 23 | Tu ne vois rien de tel ici. | 3 / 6,55 |
+| sous-obstacle-trop-bas 1 | Le dégagement est trop bas pour passer en rampant. | 2 / 6,85 |
+| atelier 3 | Approche-toi de la perche de bois 1 : il faut être juste à côté pour agir. | 1 / 2,36 |
+| atelier 14 | Approche-toi du mur de l'atelier : il faut être juste à côté pour agir. | 4 / 10,13 |
+
+Corrections après refus aux tours relais 23 et trop-bas 1 ; l'audit de
+l'avis atelier 14 précède le refus public. Sept occurrences publiques,
+six messages affichés ; deux `REEXAMEN` non affichés. Référence :
+**3 générations finales d'explication + 3 audits**, atelier 13 ; dialogue
+de correction et audit aussi au relais 23, désormais remplacés par le moteur.
+
+Global référence → lot : **60 → 57 appels**, **2,86 → 2,59 appels/tour MJ**,
+**8,84 → 5,75 s/tour**, refus **12 → 9**, tours refusés **7 → 6**, replis
+**2 → 0**, relances **3 → 3**. Limite : un délai réseau au premier tour
+`sous-obstacle-relais` de référence (47,96 s) empêche sa tentative suivante ;
+21 tours MJ contre 22. Hors ce script : 2,95 → 2,65 appels/tour,
+6,88 → 5,93 s/tour ; une passe ne démontre aucun gain causal.
+**Surcoûts observés** : atelier 10, outils, **2 → 4 appels**, **4,72 → 9,62 s**,
+une relance de perception ; atelier 14, saut, **1 → 4**, **3,07 → 10,13 s**,
+un refus de forme et une relance de justification supplémentaires avant
+la portée. Atelier 13 perd un repli et trois refus ; relais 20 perd une
+relance. Aucune régression de l'invariant observée ; les autres audits
+restent hors portage.
+
+L'analyse initiale échouait sur l'incident **de référence** ; son compteur
+mélangeait générations et audits (6 au lieu de 3 + 3). Script seul corrigé,
+**code 0, invariant vrai 6/6** ; incident conservé. Bruts et empreintes dans
+`C:/Users/msics/donjon/artifacts/g2-291/` : huit parties et fils, banc complet,
+tests, analyse corrigée, `mesures-luna.json`, `manifest-bruts.json`,
+`fin-analyse.json`. `fin-luna.json` garde l'échec initial pour traçabilité.
