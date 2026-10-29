@@ -3,9 +3,20 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-rester-pres`, non fusionnée**, lot **266**, base `7404d2d`.
-  **Reprise 276 : intégration `1852d6e` fusionnée sans rebase.** Conflit de
-  perception résolu par la purge du soupçon (267), puis la rétention de détresse
-  (266). Diagnostic de divergence Relais 2024 et capture du retour 276 en cours.
+  **Reprise 276 : intégration `1852d6e` fusionnée sans rebase (`18c5523`).**
+  Conflit de perception résolu par la purge du soupçon (267), puis la rétention
+  de détresse (266). Première divergence Relais 2024 à **`288` (28,8 s)** :
+  Aubin garde sa raison de nourrir Brune après moyen manqué, au lieu de clore
+  le parent et passer au recours proposition. Première naissance de `pres`
+  seulement à 217 min : c'est le maintien commun de la demande qui change
+  d'abord la trajectoire. Capture d'intégration avant `117503`, états après
+  `117503`/`117518` et trace brute rangés dans `tests/data/` ; test 276
+  indépendant du déroulement de la nuit, **dix assertions conservées** (AST).
+  Preuve actuelle de maintien du parent ajoutée, monde/rendu/scène rechargés.
+  Deux preuves locales vertes ; **34 fichiers ciblés en cours**, deux processus
+  détachés réduits, aucune suite complète ni nouveau banc. Poussée après bilan.
+  Bruts `C:/Users/msics/donjon/artifacts/rester-266/reprise-276/`, fin attendue
+  `fin-verification.json` ; [rapport de raccord 276](taches/rapport-codex-266-reprise276.md).
   **Reprise suite d'essai `f637396` :** onze cas verts sur la base, onze échecs
   reproduits sur `184ad5d`. Corrections : condition `pres` historique valide
   après décès, préfixe exécutable sans marqueurs de devis, rétention raccordée

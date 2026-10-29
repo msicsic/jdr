@@ -15,6 +15,31 @@ from tests.test_tensions import placer, recharger
 
 
 class ContratEngagementTests(unittest.TestCase):
+    def test_aubin_276_parent_tenu_sur_la_capture_avant_cloture(self):
+        from donjon.pnj import _geste
+        from donjon.scene import scene_percue
+        fichier = Path(__file__).parent / 'data/sonde-276-aubin-relais-2024.json.gz'
+        charge = json.loads(gzip.decompress(fichier.read_bytes()))
+        m = recharger(Monde(charge['avant_117503']))
+        e = lire(m, 'aubin')
+        self.assertEqual(m.data['minutes'] * 600 + m.data['dixiemes'], 117503)
+        ancien = copy.deepcopy(e['intention'])
+        demande = copy.deepcopy(agendas.contrat_intention(m, 'aubin')['demande'])
+        self.assertEqual(demande['raison'], {'qui': 'ilse', 'besoin': 'faim'})
+        self.assertEqual(_geste(ancien['plan'][0]), e['manque']['etape'])
+        self.assertNotIn('ilse', percus(m, 'aubin')[0])
+        self.assertIsNone(d._fin_demande(m, 'aubin', demande))
+        d.choisir(m, 'aubin', m.data['minutes'])
+        self.assertEqual(e['intention']['but'], ancien['but'])
+        self.assertEqual(e['intention']['depuis'], ancien['depuis'])
+        self.assertEqual(agendas.contrat_intention(m, 'aubin')['demande'], demande)
+        if e['intention']['plan']:
+            self.assertNotEqual(_geste(e['intention']['plan'][0]), e['manque']['etape'])
+        n = recharger(m)
+        self.assertEqual(m.data, n.data)
+        self.assertEqual(rendu(m), rendu(n))
+        self.assertEqual(scene_percue(m), scene_percue(n))
+
     def test_aide_attendue_autre_besoin_revalidation_et_abandon_entendu(self):
         from donjon import echanges
         from tests.test_gardien_detresse import GardienDetresseTests

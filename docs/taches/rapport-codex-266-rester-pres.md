@@ -1,6 +1,8 @@
 # Lot 266 — rester près d'un proche effrayé
 
 Branche `codex-rester-pres`, **non fusionnée**, base `7404d2d`.
+**Raccord à l'intégration `1852d6e` :** [divergence Relais 2024, capture 276
+et validation ciblée](rapport-codex-266-reprise276.md), vérification en cours.
 **Reprise ciblée de la suite de fusion `f637396` terminée : 193 tests /
 dix-neuf fichiers verts, consolidés**, assertions existantes conservées.
 [Diagnostic des onze échecs et preuves de reprise](rapport-codex-266-suite.md).
