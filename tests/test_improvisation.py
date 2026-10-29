@@ -195,11 +195,11 @@ class ImprovisationTests(unittest.TestCase):
         invalide = chant()
         invalide["minutes"] = 500
         # Un refus de forme (une borne dépassée) reçoit sa correction à part, en plus de la correction
-        # ordinaire : trois propositions au plus, puis l'explication, jamais le message de forme.
+        # ordinaire : trois propositions au plus, puis une demande de précision moteur (G2).
         with patch.object(MJOpenAI, "_appeler", side_effect=[reponse(invalide), reponse(invalide), reponse(invalide),
                                                          ErreurMonde("narration indisponible")]) as api:
             sortie = MJOpenAI().echanger(self.m, "je chante")
-        self.assertEqual(api.call_count, 4)
+        self.assertEqual(api.call_count, 3)
         self.assertEqual(sortie["mode"], "dialogue")
         self.assertNotIn("sort des limites", sortie["texte"])
 

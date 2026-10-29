@@ -326,11 +326,6 @@ def sans_suite(proposition):
     return proposition
 
 
-class ExplicationCedee(ErreurMonde):
-    """L'explication d'un geste refusé n'est pas admise du premier coup : le refus du monde y répond
-    (``MJ._echanger_prepare``). Ce n'est ni une panne ni un refus à montrer."""
-
-
 class ParoleNonConforme(ErreurMonde):
     """Une parole dont la couverture locale ou la contre-revue refuse la fidélité.
     Aucun secours local ne peut la prononcer en contournant ce refus."""
@@ -441,9 +436,9 @@ def verifier_suite_faits(proposition, geste_requis):
                            "accepté : une action hors clarifier/impossible, une séquence ou une improvisation.")
 
 
-def expliquer_refus(premier, dernier):
-    """Une proposition rejetée ne prouve rien sur les capacités de Corvus."""
-    return "Je n'ai pas pu déterminer une manœuvre fidèle à ta demande. Corvus n'a rien tenté."
+def demande_precision():
+    """Une proposition mal formée ne prouve rien sur les capacités de Corvus."""
+    return "Précise la manœuvre que tu veux tenter. Corvus n'a rien tenté."
 
 
 class MJ:
@@ -459,10 +454,9 @@ class MJ:
         self._audit_courant = None
         self._monde_controle = None
         self._interpretation = False   # l'appel en cours interprète une saisie (et non raconte)
-        self._sans_dialogue = False    # un dialogue serait remplacé par le refus du moteur : pas d'audit
+        self._sans_dialogue = False    # dialogue ou avis remplacé par le refus du moteur : pas d'audit
         self._faisabilite_renvoyee = False  # « puis-je… ? » déjà renvoyé : un dialogue se contrôle
         self._impossible_admis = False  # la boucle de décision lira un « impossible » (réexamen déjà demandé)
-        self._sans_relance = False     # une explication refusée cède au refus du monde, sans relance
         self.journal_complet = False   # trace entière de chaque appel (banc, essais de modèles)
         self.reflexion = "libre"       # Claude : réflexion adaptative (défaut), ou « imposee » : outil imposé, sans réflexion
         # Clé de session stable : elle aiguille les appels vers le même cache de prompt, si bien
@@ -674,8 +668,7 @@ class MJ:
         # la fiche du geste ou par la raison de son refus (une raison du monde, jamais un refus de forme),
         # jamais une explication libre du MJ.
         faisabilite, refus_du_moteur = est_question(intention), None
-        # Les refus du monde (ce qui manque, ce qui est trop loin), quelle que soit l'action : leur message
-        # s'adresse au joueur et vaut réponse si l'explication du MJ n'est pas admise d'emblée.
+        # Les refus du monde, quelle que soit l'action : seul leur message public répond au joueur.
         refus_monde = []
         for tentative in range(3):
             if reponse["mode"] != "action":
@@ -692,9 +685,8 @@ class MJ:
                     if not (correction_utilisee or forme_corrigee):
                         raise RefusDeForme(REEXAMEN, ATTENDU_REEXAMEN)
                 if p.get("action") in ("clarifier", "impossible"):
-                    if faisabilite and refus_du_moteur is not None:
-                        # Le moteur a déjà dit ce qui manque au geste demandé en question : sa raison répond.
-                        return reponse_du_moteur(refus_du_moteur)
+                    if refus_monde:
+                        return reponse_du_moteur(ErreurMonde(" ".join(str(e) for e in refus_monde)))
                     break
                 # Une question sur la faisabilité d'un geste se prépare comme sa demande : la boucle de
                 # jeu ne l'exécute pas (``commandes.PERCEPTIONS``) et montre ce qu'il demanderait.
@@ -728,7 +720,7 @@ class MJ:
                 dernier_refus = (p, str(exc))
                 if premier_refus is None:
                     premier_refus = dernier_refus
-                retour = retour_refus(p, exc, "Corrige uniquement la proposition, sans modifier les faits ni abandonner une partie de l'intention. Sinon explique l'obstacle en dialogue.")
+                retour = retour_refus(p, exc, "Corrige uniquement la proposition de la même intention, sans modifier les faits ni abandonner une partie de l'intention. Sinon renvoie-la telle quelle : le moteur dira ce qui manque au joueur.")
                 if faisabilite and refus_du_moteur is exc:
                     retour["consigne"] = ("C'est une question de faisabilité : corrige la proposition si elle visait mal "
                                           "(identifiants, champs) d'après attendu ; sinon renvoie-la telle quelle, et le "
@@ -747,7 +739,7 @@ class MJ:
                 if isinstance(exc, HorsDePortee):
                     # Seuls les pas du joueur lèvent cet obstacle. Le refus est déjà
                     # une réponse publique : aucune explication ni audit à demander.
-                    return reponse_du_moteur(exc)
+                    return reponse_du_moteur(ErreurMonde(" ".join(str(e) for e in refus_monde)))
                 forme = isinstance(exc, RefusDeForme) and not forme_corrigee and tentative < 2
                 if correction_utilisee and not forme and parole_attendue(monde, intention):
                     # Une parole n'est jamais perdue : le moteur prononce lui-même les mots du joueur.
@@ -755,39 +747,18 @@ class MJ:
                     if reponse["mode"] == "dialogue":
                         return reponse
                     break
-                if correction_utilisee and not forme and faisabilite and refus_du_moteur is not None:
-                    # Rien n'est tenté : le joueur lit pourquoi le monde ne le permet pas, tel quel.
-                    return reponse_du_moteur(refus_du_moteur)
                 if correction_utilisee and not forme:
-                    retour = {"propositions_refusees": [premier_refus, dernier_refus],
-                              "consigne": "Aucune action n'a été exécutée. Explique dans la fiction ce qui gêne les gestes envisagés, à partir des faits fournis, sans parler de proposition, de refus, de moteur ni de déclaration. Ne raconte pas le geste comme fait ni commencé, et ne fais parler aucun personnage : c'est toi qui expliques. Ne conclus pas que l'intention entière est impossible."}
-                    # Avec un refus du monde, l'explication a un seul essai : refusée, le joueur lit ce refus,
-                    # exact et complet, plutôt qu'une explication relancée jusqu'au repli.
-                    self._sans_relance = bool(refus_monde)
-                    try:
-                        explication = self._echanger(monde, intention, proposition_en_attente,
-                                                    enrichir=False, retour_moteur=retour)
-                        if explication.get("mode") != "dialogue" or not explication.get("_audit"):
-                            raise ErreurMonde("L'explication finale doit être un dialogue contrôlé.")
-                        explication["_validation_refusee"] = True
-                        return explication
-                    except ErreurMonde:
-                        pass
-                    finally:
-                        self._sans_relance = False
                     if refus_monde:
                         # Chaque obstacle que le monde a opposé, dans l'ordre, une fois chacun.
                         return reponse_du_moteur(ErreurMonde(" ".join(str(e) for e in refus_monde)))
-                    return {"mode": "dialogue", "texte": expliquer_refus(premier_refus, dernier_refus),
-                            "faits": [], "proposition": None, "_validation_refusee": True,
-                            "_texte_moteur": True}
+                    return reponse_du_moteur(ErreurMonde(demande_precision()))
                 if forme:
                     forme_corrigee = True
                 else:
                     correction_utilisee = True
-                # Une question dont le geste est refusé par le moteur : seule une proposition corrigée peut
-                # encore y répondre ; un dialogue serait remplacé par ce refus, il n'est pas contrôlé.
-                self._sans_dialogue = faisabilite and refus_du_moteur is exc
+                # Seule une proposition corrigée peut encore lever l'obstacle ; une explication ou un
+                # avis ne sera pas lu, et ne doit donc déclencher aucun audit de prose.
+                self._sans_dialogue = bool(refus_monde)
                 # Un « impossible » est lu après un premier réexamen : l'audit de sa justification sert.
                 admis, self._impossible_admis = self._impossible_admis, True
                 try:
@@ -796,10 +767,8 @@ class MJ:
                 finally:
                     self._sans_dialogue = False
                     self._impossible_admis = admis
-        if (reponse["mode"] == "dialogue" and faisabilite and refus_du_moteur is not None
-                and not reponse.get("_validation_refusee")):
-            # Corrigée en dialogue après le refus d'un geste demandé en question : la raison du moteur.
-            return reponse_du_moteur(refus_du_moteur)
+        if reponse["mode"] == "dialogue" and refus_monde:
+            return reponse_du_moteur(ErreurMonde(" ".join(str(e) for e in refus_monde)))
         if (reponse["mode"] == "dialogue" and not reponse.get("_validation_refusee")
                 and parole_attendue(monde, intention)):
             # Corrigée en dialogue après un geste refusé (ou repli du contrôle) : la parole reste au moteur.
@@ -846,7 +815,7 @@ class MJ:
                     if reponse["mode"] == "action" and not recadre:
                         return self._echanger_prepare(monde, intention, proposition_en_attente, suite_fait=suite_fait,
                                                       reponse=reponse, recadre=True)
-                    return {"mode": "dialogue", "texte": expliquer_refus(None, None), "faits": [],
+                    return {"mode": "dialogue", "texte": demande_precision(), "faits": [],
                             "proposition": None, "_validation_refusee": True, "_texte_moteur": True}
                 suite_proposee = reponse["proposition"].get("suite")
                 p = sans_suite(reponse["proposition"])
@@ -1260,10 +1229,6 @@ direction), plus lents, ils ne s'entendent que de tout près.
             self._monde_controle, self._interpretation = monde, enrichir
             reponse = self._appeler(instructions, entree, intention, "repondre_au_joueur", schema)
             trace["reponse"] = copy.deepcopy(reponse)
-        except ExplicationCedee as exc:
-            # Pas une panne : le refus du monde répond à la place de l'explication.
-            trace["cede"] = str(exc)
-            raise
         except ErreurMonde as exc:
             trace["erreur"] = str(exc)
             raise
@@ -1364,14 +1329,21 @@ direction), plus lents, ils ne s'entendent que de tout près.
                         self.observateur({"etape": "validation de forme", "modele": self.modele,
                                           "intention": intention, **retour_refus(reponse, exc,
                                           "Corrige la forme sans abandonner l'intention.")})
-                    if self._sans_relance:
-                        raise ExplicationCedee("L'explication n'est pas admise : le refus du monde y répond.")
                     if forme_corrigee:
+                        if self._interpretation:
+                            return {"mode": "dialogue", "texte": demande_precision(), "faits": [],
+                                    "proposition": None, "_texte_moteur": True}
                         return self._repli(entree, intention, rescapes)
                     forme_corrigee = True
                     reponse = appeler_brut(instructions, {**entree, "retour_forme":
                         retour_refus(reponse, exc, "Corrige la forme sans abandonner l'intention.")},
                         intention, fonction, schema)
+            if self._sans_dialogue and (reponse["mode"] == "dialogue" or
+                    (reponse["mode"] == "action" and
+                     reponse["proposition"].get("action") in ("clarifier", "impossible"))):
+                # La boucle de validation rendra les refus publics déjà recueillis. Cette prose
+                # n'est ni admise, ni publiée ; elle ne passe par aucune revue narrative.
+                return reponse
             # Les phrases comptables sont ajoutées par le moteur à chaque essai,
             # avant les gardes et la preuve exacte. Elles suivent la transaction
             # et la sauvegarde de toute la réponse, jamais un préfixe hors audit.
@@ -1405,8 +1377,6 @@ direction), plus lents, ils ne s'entendent que de tout près.
             refus = (refus_assure(monde, intention, reponse, self._faisabilite_renvoyee
                                   or "retour_moteur" in entree.get("faits", {}), self._impossible_admis)
                      if self._interpretation and monde is not None else "")
-            if self._sans_dialogue and reponse.get("mode") == "dialogue":
-                refus = "Un dialogue ne répond pas à cette question : le refus du moteur y répond."
             if refus and not obstacles:
                 # Le moteur refusera cette réponse quelle qu'en soit la prose : son refus, qui dit ce
                 # qu'il accepterait, passe avant toute contre-revue sémantique, qui ne serait pas lue.
@@ -1559,11 +1529,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 self.observateur({"etape": "contrôle narratif", "modele": self.modele,
                                   "revision": entree.get("faits", {}).get("revision", 0),
                                   "intention": intention, "tentative": tentative + 1,
-                                  "obstacles": copy.deepcopy(obstacles),
-                                  **({"sans_relance": True} if self._sans_relance else {})})
-            if self._sans_relance:
-                # Le refus du monde répond à la place de cette explication (``_echanger_prepare``).
-                raise ExplicationCedee("L'explication n'est pas admise : le refus du monde y répond.")
+                                  "obstacles": copy.deepcopy(obstacles)})
             if tentative == 2:
                 return self._repli(entree, intention, rescapes)
             for o in obstacles:
