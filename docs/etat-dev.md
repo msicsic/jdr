@@ -2,35 +2,35 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Reprise 326 / G17 en cours**, branche `codex-g17-comptes`, non fusionnée :
-  suite du superviseur `bde5993`, **45 incidents (25 échecs, 20 erreurs)**.
-  Intégration `9f261f9` fusionnée sans rebase par `aba1e4b` ; conflit de
-  documentation seul, entrées des deux branches conservées. Défaut G17 :
-  rapport vocal absent pour une admission non vocale, normalisé sans changer
-  ses contrôles. Anciennes attentes du texte/deuxième appel portées à G15/G17,
-  assertions mécaniques conservées. Attribution provisoire : neuf défauts,
-  29 attentes, sept préexistants prouvés (rejeu/audit/huile, lot 339) :
-  référence `9f261f9`, **29 tests, deux échecs/cinq erreurs, 346,410 s**,
-  aucun autre incident. Référence achevée et réutilisée sans relance.
-  **`ad0e5a8` (323/336) fusionné sans rebase par `b33d22a`**, conflit
-  documentaire seul. Premier calcul de branche arrêté avant modification du
-  code, marqueurs conservés. Offres stockées et missions convergent vers
-  l'admission G15 depuis leurs propres résolutions et règlements typés.
-  Référence isolée de 30 méthodes achevée (29 tests comptés, une erreur
-  de classe) ; validation finale de 28 fichiers ciblés, deux travailleurs
-  réduits au plus, calcul détaché. **Aucune suite complète**.
-  Bruts `C:/Users/msics/donjon/artifacts/g17-326/reprise/` ; fin attendue
-  `ad0e5a8/fin-reprise.json`, résultats à attribuer avant clôture.
-  **Nouvelle avance pendant ce calcul : `origin/integration 64130fa` (328/G6).**
-  Ne pas modifier les sources du calcul actif `7b54fa3` avant sa fin. Fusion
-  sans rebase de G6 et vérifications des nouveaux fichiers communs restent
-  à faire après lecture de `reprise/ad0e5a8/fin-reprise.json`. Processus Python
-  **11148 actif, BelowNormal** vérifié à la reprise ; lanceur 44640 aussi
-  réduit. Résultats des 28 fichiers à conserver, pas de nouvelle suite complète.
-  [Matrice 326](taches/attribution-codex-326-g17-comptes-parles.md).
+- **Reprise 326 / G17 terminée, non fusionnée**, branche `codex-g17-comptes` :
+  fusions sans rebase `aba1e4b` (`9f261f9`), `b33d22a` (`ad0e5a8`, 323/336),
+  **`f324cbe` (`64130fa`, 328/G6)** ; conflits documentaires seuls, deux côtés
+  conservés. Suite d'essai `bde5993` : **45 incidents attribués**, neuf dus
+  au rapport optionnel de G17, 29 attentes périmées portées au texte et au
+  registre moteur, sept préexistants prouvés sur l'intégration seule.
+  Inspection et scellement acceptent l'absence de rapport pour les admissions
+  non vocales ; premier correctif incomplet au scellement, six incidents
+  restants corrigés par **`700764d`**, oracles d'état/sauvegarde/panne conservés.
+  Offres stockées et missions convergent vers la même admission G15, termes,
+  paiements et échéances typés ; garde du nom inconnu conservé sur le libre.
+  Référence `9f261f9` : **29 tests, deux échecs/cinq erreurs, 346,410 s** ;
+  aucun autre incident. **156/156 tests verts** après G6 et correctif final,
+  12 fichiers, 185,283 s. Consolidation sans cumul : **403 tests / 32 fichiers,
+  deux échecs et cinq erreurs**, uniquement les sept préexistants du 339 :
+  sonde `_retentir` sans `emission` (rejeu/audit), refus d'huile après 8 h.
+  Une classe de rejeu bloquée ; suite entière non déclarée verte.
+  Deux travailleurs réduits au plus, long calcul détaché ; 358 tests initiaux
+  conservés (605,872 s), résultats non concernés réutilisés, référence non
+  relancée. Ni suite complète, ni Luna ou banc PNJ supplémentaire.
+  **Aucun calcul actif** ; branche poussée. Bruts
+  `C:/Users/msics/donjon/artifacts/g17-326/reprise/64130fa/`,
+  `tests-valides-final.json`, `attribution-finale.json`, `fin-cloture.json`.
+  [Matrice des 45 incidents](taches/attribution-codex-326-g17-comptes-parles.md),
+  [rapport 326](taches/rapport-codex-326-g17-comptes-parles.md).
 
-- **Lot 326 / G17 terminé, branche `codex-g17-comptes`, non fusionnée**,
-  base `integration eb15b5e`, code/tests `cbc5af3` inchangés : comptes parlés
+- **Livraison initiale 326 / G17 terminée avant reprise**, branche
+  `codex-g17-comptes`, non fusionnée ; base `integration eb15b5e`,
+  résultats historiques sur `cbc5af3` : comptes parlés
   formulés depuis les résolutions typées et admis dans G15 avant publication,
   rejoués avec la transaction ; mots, ordre et multiplicité scellés.
   Autres opérations et propos libres résiduels conservés, contrôles des voies
