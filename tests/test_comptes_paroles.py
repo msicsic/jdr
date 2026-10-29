@@ -2,6 +2,7 @@
 from donjon.emissions import pnj as emissions_pnj
 import copy
 import unittest
+from unittest.mock import patch
 
 from donjon.biens import offres_joueur
 from donjon.comptes_narratifs import completer, controler, lire, phrases, nombre
@@ -154,9 +155,12 @@ class ComptesParolesTests(unittest.TestCase):
                 m.objets['vivres'].update(nom='soupe', aliases=['soupe'])
                 condition = {'objet':'vivres', 'servir':'joueur'}
                 avant = m.joueur['or']
-                r, sortie, appels = marche(m, 'vivres', demande={'type':'tache', 'condition':condition},
-                    comptes=[compte('joueur', 'aubin', montant=3, etat='rendu'),
-                             compte('aubin', 'joueur', 'vivres', 1)])
+                # Ce harnais secondaire doit lui aussi envoyer le consentement
+                # explicite avant de contrôler paiement, service et mots G17.
+                with patch('tests.test_part_proposee.jouer', jouer):
+                    r, sortie, appels = marche(m, 'vivres', demande={'type':'tache', 'condition':condition},
+                        comptes=[compte('joueur', 'aubin', montant=3, etat='rendu'),
+                                 compte('aubin', 'joueur', 'vivres', 1)])
                 emission = emissions_pnj(r)[-1]
                 self.assertIn("Tu m'as payé 3 pièces.", emission['texte'])
                 self.assertIn('une part de soupe', emission['texte'])
