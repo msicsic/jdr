@@ -12,6 +12,7 @@ from textual.widgets import Button, Footer, Header, Input, Static, TabbedContent
 
 from .rendu import carte, fiche, regarder
 from .comparaison import texte_resultat, texte_comparaison
+from .gestes_publics import liste_gestes, rendre_liste, choisir_numero
 
 
 # Deux nuances discrètes par terrain gardent le pas d'un mètre lisible sans ponctuation.
@@ -128,7 +129,10 @@ class PontTerminal:
 
     def rafraichir(self, monde, pending, mj):
         # La UI reçoit des valeurs déjà rendues, jamais une référence au monde mutable.
+        from .scene import scene_percue
+        gestes = liste_gestes(scene_percue(monde)) if self._mode_cases(monde) else ()
         self.envoyer(self.app.actualiser, {
+            "gestes": gestes,
             "carte": carte(monde), "fiche": fiche(monde), "scene": regarder(monde),
             "mode_cases": self._mode_cases(monde),
             "salle": monde.data["salles"][monde.joueur["salle"]]["nom"],
@@ -165,6 +169,7 @@ class SeuilApp(App[int]):
         Binding("f4", "copier_echange", "Copier échange"),
         Binding("f5", "debug", "Debug MJ"),
         Binding("f6", "focus_carte", "Déplacement carte"),
+        Binding("f7", "gestes", "Gestes"),
         Binding("ctrl+s", "sauver", "Sauver", priority=True),
         Binding("ctrl+q", "quitter", "Quitter", priority=True),
         # Saisie vide : Espace fait attendre le temps d'un pas ; sinon c'est une espace.
@@ -205,6 +210,9 @@ class SeuilApp(App[int]):
                 with TabPane("Personnage", id="onglet-fiche"):
                     with VerticalScroll():
                         yield Static(id="fiche", markup=False)
+                with TabPane("Gestes (F7)", id="onglet-gestes"):
+                    with VerticalScroll():
+                        yield Static(id="gestes", markup=False)
             with Vertical(id="recit"):
                 with VerticalScroll(id="scene-cadre"):
                     yield Static(id="scene", markup=False)
@@ -230,7 +238,7 @@ class SeuilApp(App[int]):
                 yield Button("Lancer la tentative", variant="primary", id="tenter")
                 yield Button("Tout annuler", id="annuler")
         yield Static("Chargement de la partie…", id="statut", markup=False)
-        yield Saisie(placeholder="Corvus > Que fais-tu ?", id="commande", disabled=True)
+        yield Saisie(placeholder="Corvus > Numéro du geste (F7) ou saisie libre", id="commande", disabled=True)
         yield Footer()
 
     def on_mount(self):
@@ -287,6 +295,7 @@ class SeuilApp(App[int]):
         self.query_one("#legende", Static).update(
             coloriser_legende(texte_legende) if vue.get("mode_cases") else texte_legende)
         self.query_one("#fiche", Static).update(vue["fiche"].strip())
+        self.query_one("#gestes", Static).update(rendre_liste(vue.get("gestes", ())))
         scene = vue["scene"].strip().split("\n\n", 1)[-1]
         # Le terminal gère le repli selon la largeur du panneau.
         scene = "\n\n".join(" ".join(p.splitlines()) for p in scene.split("\n\n"))
@@ -348,6 +357,11 @@ class SeuilApp(App[int]):
         texte = texte.strip()
         if not texte or self.occupe:
             return
+        try:
+            choix = choisir_numero(texte, self.derniere_vue.get("gestes", ()))
+        except ValueError as exc:
+            self.ecrire(str(exc))
+            return
         self.occupe = True
         if enregistrer_historique:
             self.historique.append(texte)
@@ -366,7 +380,13 @@ class SeuilApp(App[int]):
         if enregistrer_historique:
             self.dernier_echange = ["Corvus > " + texte]
             self.ajouter_journal("Corvus > " + texte, style="bold #ddc694")
-        self.pont.commandes.put(texte)
+        self.pont.commandes.put(choix if choix is not None else texte)
+
+    def action_gestes(self):
+        self.focus_carte = False
+        self.fermer_debug()
+        self.query_one("#etat", TabbedContent).active = "onglet-gestes"
+        self.query_one("#commande", Input).focus()
 
     @on(Input.Submitted, "#commande")
     def commande(self, event):

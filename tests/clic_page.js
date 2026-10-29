@@ -23,7 +23,9 @@ const page = fs.readFileSync(process.argv[2], "utf-8");
 (0, eval)(page.match(/<script>([\s\S]*)<\/script>/)[1] + `
 appliquerEtat(ETAT);
 const sortie = {choix: {}, envoisClic: [], chemin: null, cible: null, approches: {}};
-const cases = [...niveau.salles.flatMap(s => s.cases.map(c => c.globale)), ...niveau.sorties.map(s => s.globale)];
+// Les objets ancrés à un mur sont cliquables aussi : leur case n'est pas un sol.
+const cases = [...niveau.salles.flatMap(s => s.cases.map(c => c.globale)),
+  ...niveau.sorties.map(s => s.globale), ...niveau.objets.map(o => o.globale)];
 cases.forEach(g => {
   const {sections, autres} = choixCase(g);
   const cmds = [...sections.flatMap(x => x[1]), ...autres].map(x => x[2]);

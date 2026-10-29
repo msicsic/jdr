@@ -20,6 +20,7 @@ from donjon.spatial import installer, memoriser
 from tests.support import calme, regarder
 from donjon.web.pont import PontWeb
 from donjon.web.serveur import Serveur
+from donjon.gestes_publics import adapter_page
 
 
 class Flux:
@@ -154,8 +155,11 @@ class ClicTests(unittest.TestCase):
                 "proposition": "", "scene": scene_percue(m)}
         page = Path(jeu.__file__).with_name("donjon") / "web" / "page.html"
         sonde = Path(__file__).with_name("clic_page.js")
-        sortie = subprocess.run(["node", str(sonde), str(page)], input=json.dumps(etat), capture_output=True,
-                                text=True, encoding="utf-8", check=True).stdout
+        with tempfile.TemporaryDirectory() as tmp:
+            servie = Path(tmp) / "page.html"
+            servie.write_text(adapter_page(page.read_text(encoding="utf-8")), encoding="utf-8")
+            sortie = subprocess.run(["node", str(sonde), str(servie)], input=json.dumps(etat), capture_output=True,
+                                    text=True, encoding="utf-8", check=True).stdout
         self.clic = json.loads(sortie)
 
     def test_chaque_geste_propose_est_compris_et_a_portee(self):

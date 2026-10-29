@@ -42,7 +42,8 @@ class Gestionnaire(BaseHTTPRequestHandler):
         if not self._local():
             return
         if self.path in ("/", "/index.html"):
-            self._repondre(200, PAGE.read_text(encoding="utf-8"), "text/html; charset=utf-8")
+            from ..gestes_publics import adapter_page
+            self._repondre(200, adapter_page(PAGE.read_text(encoding="utf-8")), "text/html; charset=utf-8")
         elif self.path == "/flux":
             self._flux()
         else:

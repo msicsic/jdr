@@ -2,6 +2,25 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-ut-premier-geste`, lot 299 / U-T, non fusionnée**, base
+  intégration `83a2e89` : console et TUI proposent les premiers gestes de
+  carte en liste numérotée (onglet Gestes / F7 en TUI). Le choix fige le
+  descripteur public U-D jusqu'au moteur, sans analyse de texte ni modèle ;
+  homonymes distingués, numéros inconnus/multiples refusés localement,
+  cible périmée refusée sans report sur une autre. Catalogue commun Python
+  et JavaScript sérialisé dans la page servie ; `page.html` et MJ inchangés.
+  **59 tests distincts / cinq fichiers verts**, dont les **28 TUI existants
+  inchangés**. Quatorze couples objet/porte : parité des descripteurs,
+  plans/journaux, textes et monde/scène/carte après recharge ; matrice
+  inconnu/ambigu/hors-vue console et TUI pour chaque geste, deux suppressions
+  réelles et ouvertures/fermetures à portée. Trois touches par choix mesuré,
+  quatre avec F7, contre 17–27 pour les commandes aux mêmes références ;
+  coût de soumission jusqu'au résultat/refus, déplacements exclus.
+  Zéro appel modèle ; ni Luna, ni banc PNJ, ni suite complète. Numéros
+  propres à chaque vue ; approche automatique réservée au clic web.
+  Bruts : `C:/Users/msics/donjon/artifacts/ut-299/`, `fin-cloture.json`.
+  Aucun calcul actif. [Rapport 299](taches/rapport-codex-299-ut-premier-geste.md).
+
 - **Branche `codex-suite-g2-g4`, lot 295, fusionnée**, base intégration
   `475d29d` : les sept fichiers du brief reproduisent les **15 échecs et
   9 erreurs** initiaux (70 tests), sans défaut supplémentaire U-D. Attentes
