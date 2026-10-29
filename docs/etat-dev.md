@@ -2,6 +2,43 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 336 terminé, branche `codex-occasion-protection`, fusionnée**,
+  base fournie `origin/integration d8769d8` :
+  occasion de protection dans la table commune, proposition puis tâche
+  payée et agenda `protéger` d'origine `contrat`. Peur et fonds crus,
+  force estimée, courage, ambition et disponibilité ; choix explicite
+  du joueur. Avance et dette de remboursement communes, fin sur calme
+  perçu, échéance, mort ou départ crus. **210 tests / 21 fichiers :
+  209 verts, un échec antérieur**, aucune erreur ni saut, 216,920 s ;
+  huit nouveaux tests verts. Ancien appel sur agenda : `chambre_cloche`
+  au lieu d'`echoppe`, même défaut sur la base exacte `d8769d8` au
+  hachage 0 (5/6 dans son fichier). Deux captures rechargées : mêmes
+  positions, scène, rendu et lignes ; écarts d'empreintes internes et
+  de libellé d'une réponse de service consignés. Test non modifié.
+  Source moteur/tests `5219a86` inchangée, empreintes contrôlées ;
+  résultats acquis repris sans relance, témoin de base exigé.
+  **20/20 nuits 4 h conformes** : suspects 219 **0 → 0 par nuit**,
+  zéro plantage/usurpation. Chroniques, récits et souvenirs identiques
+  dans les vingt nuits. **Zéro offre de protection, accord, naissance
+  ou commencement naturels** : service exercé par les tests seulement.
+  Toutes propositions 102 / accords 31 inchangés ; à expliquer 43 → 43,
+  dérives ouvertes 436 → 436, vols tentés 3 → 3. Recherches 43 762 →
+  43 767, neuves 22 355 → 22 360 ; aucune conclusion de vitesse.
+  Empreintes d'état complet identiques 4/20 ; seuls écarts du relevé
+  final : seize empreintes `projets[].croyances` de Brune/Odon.
+  Référence exacte absente : vingt nuits rangées une fois, aucune
+  référence disponible rejouée. Deux travailleurs réduits, ni Luna
+  ni suite complète. Bruts
+  `C:/Users/msics/donjon/artifacts/occasion-336/`, premier échec conservé
+  sous `verification-1/`, diagnostic sous `diagnostic/`, analyse
+  `analyse-cloture.json` ; **`verification-2/fin.json ok=true`**, code 0,
+  885,118 s. Branche poussée, aucun calcul actif. Limites : une occasion
+  par client, suivi vocal 335 distinct, aucun gain naturel démontré ;
+  réserve du test antérieur conservée. Recouvrements 333 :
+  `agendas.py`, `pnj.py` ; 335 : ces deux fichiers et `planification.py`.
+  [Rapport 336](taches/rapport-codex-336-occasion-protection.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Une occasion fait naître, par la table commune des naissances, une offre de protection contre paiement (peur crue d'autrui, moyens crus, intérêt) ; acceptée, agenda protéger d'origine contrat. 209 tests verts (un échec antérieur confirmé), huit nouveaux tests ; vingt nuits conformes, aucune offre naturelle observée : preuve par scènes.
+
 - **Lot 323 clos après relecture / G5 partiel, branche `codex-g5-perception`,
   non fusionnée**, base `integration 4794376`, correctif `d683184` : voie
   dialogue des questions d'information restaurée dans les consignes communes ;

@@ -579,9 +579,16 @@ def executer(monde, id, autre, contenu, lignes):
     e["recours_propositions"].append(entrees)
     e["demande_refusee"] = None
     issue = bilan["cause"] or "accepte"
+    if autre == 'joueur' and issue == 'attente':
+        import copy
+        monde.data.setdefault('offres_joueur', {})['marche_' + id] = {
+            'de': id, 'demande': copy.deepcopy(demande), 'contrepartie': copy.deepcopy(terme), 'statut': 'propose'}
+    agenda = (e['intention'] or {}).get('but', {}).get('agenda')
+    from . import agendas
+    agendas.conclure_offre(monde, id, agenda, issue)
     memoriser(monde, id, {"type": "proposition", "a": autre, "demande": demande,
                           "contrepartie": terme, "issue": issue})
-    if bilan["cause"]:
+    if bilan["cause"] and issue != 'attente':
         retenir_refus(monde, id, autre, "proposer", issue, objet=objet, besoin=besoin,
                       offre=entrees_refus(monde, id, autre, objet, terme))
     recit = f"{_qui(monde, id)} propose à {_qui(monde, autre)} {en_mots(monde, terme)} contre {en_mots(monde, demande)}"
@@ -589,6 +596,12 @@ def executer(monde, id, autre, contenu, lignes):
     reponse = (f"{_qui(monde, autre)} accepte l'échange."
                + (" La remise est promise." if bilan.get("livraison_differee") else " Les biens convenus sont remis.")
                if not bilan["cause"] else f"{_qui(monde, autre)} refuse l'échange.")
+    if issue == 'attente':
+        reponse = ''  # Aucune parole ne doit être prêtée au joueur.
+    elif issue == 'accepte' and (terme['type'] == 'tache' or demande['type'] == 'tache'):
+        reponse = f"{_qui(monde, autre)} accepte l'échange. Le service convenu est promis."
     faire_entendre(monde, id, autre, recit + ".", cites_terme(demande) + cites_terme(terme), lignes,
                    reponse=reponse)
+    if issue == 'attente':
+        lignes.append("Tu peux accepter offre ou refuser offre. Aucun paiement n'a encore lieu.")
     return True  # L'offre est achevée même refusée : la suite sera délibérée de nouveau.
