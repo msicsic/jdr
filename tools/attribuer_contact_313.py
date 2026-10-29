@@ -56,6 +56,7 @@ def main():
     p.add_argument('--integration', type=Path, required=True)
     p.add_argument('--sortie', type=Path, required=True)
     p.add_argument('--journal', type=Path, required=True)
+    p.add_argument('--reference-resultats', type=Path)
     args = p.parse_args()
     dossier = args.sortie.resolve()
     dossier.mkdir(parents=True, exist_ok=True)
@@ -77,6 +78,16 @@ def main():
         env = {**os.environ, 'PYTHONIOENCODING': 'utf-8', 'PYTHONHASHSEED': '313'}
         for variante, arbre in [('integration', args.integration.resolve()), ('313-sans-315', RACINE)]:
             commit = subprocess.check_output(['git', '-C', str(arbre), 'rev-parse', 'HEAD'], text=True).strip()
+            if variante == 'integration' and args.reference_resultats:
+                cache = json.loads(args.reference_resultats.read_text(encoding='utf8'))
+                assert cache['commit'] == commit
+                assert [r['test'] for r in cache['resultats']] == tests
+                ecrire(dossier / 'integration.json', cache)
+                bilan['variantes'][variante] = {'commit': commit, 'cache': str(args.reference_resultats),
+                    'methodes': len(cache['resultats']),
+                    'failures': sum(len(r.get('failures', [])) for r in cache['resultats']),
+                    'errors': sum(len(r.get('errors', [])) for r in cache['resultats']), 'erreurs_outil': 0}
+                continue
             print(f'{variante} {commit[:8]} : {len(tests)} méthodes, deux processus réduits', flush=True)
 
             def lancer(item):

@@ -136,8 +136,14 @@ def parcours(v, e, ouvertes, delai=0, certain=False):
 
 
 def approche(v, e, etape, cibles=None):
-    from .pnj import _a_toucher
+    from .pnj import _a_toucher, _contact_vocal_cru
+    from .deliberation import SOCIALES
     touches = _a_toucher(v.monde, v.id, etape, e.portes)
+    if cibles is None:
+        touches = [x for x in touches if v.case_objet(e, x) is not None
+                   or not (_contact_vocal_cru(v.monde, v.id, etape, x, e.salle)
+                           or etape['operation'] in SOCIALES and x == etape['cible']
+                           and e.fait('cherche', x) and v.salle(e, x) == e.salle)]
     cibles = tuple(v.case_objet(e, x) for x in touches) if cibles is None else tuple(cibles)
     centre = etape["operation"] == "inspecter" and not etape.get("attendre_remise")
     # Une case inconnue prépare la même observation au centre que l'exécution ;

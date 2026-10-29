@@ -186,9 +186,10 @@ class ContactPositionInconnueTests(unittest.TestCase):
 
     def test_approche_ignore_le_deplacement_cache_de_la_source(self):
         marches = []
-        for case in ([0, 3], [7, 3]):
+        for case in ([0, 0], [7, 0]):
             m = self.recharge(capture())
             placer(m, 'vivres', 'echoppe', case)
+            self.assertFalse(pnj.percoit(m, 'marchand', 'vivres'))
             avant = copy.deepcopy(lire(m, 'marchand')['croyances']['vivres'])
             g = lire(m, 'marchand')['intention']['plan'][0]
             duree = pnj._approcher(m, 'marchand', g, [])
@@ -197,6 +198,50 @@ class ContactPositionInconnueTests(unittest.TestCase):
             self.recharge(m)
         self.assertEqual(marches[0], marches[1])
         self.assertEqual(marches[0][0], 30)
+
+    def test_contact_perdu_est_observe_avant_interruption(self):
+        from donjon.esprits import percevoir
+        from donjon.echanges import executer
+        from tests.test_pas_compagnons import scene as compagnons
+        for scenario in ('relais', 'crue_hameau'):
+            with self.subTest(scenario=scenario):
+                m = self.recharge(compagnons(scenario, 'aubin', 'marchand'))
+                placer(m, 'aubin', 'antichambre', (2, 5))
+                m.objets['aubin']['orientation'] = 'sud-ouest'
+                self.assertFalse(pnj.percoit(m, 'aubin', 'marchand'))
+                percevoir(m, 'aubin')
+                self.assertIsNone(d.salle_crue(m, 'aubin', 'marchand'))
+                m = self.recharge(m)
+                geste = {'operation': 'demander', 'cible': 'marchand', 'outil': 'vivres',
+                         'lieu': '', 'condition': ''}
+                self.assertEqual(pnj._approcher(m, 'aubin', geste, []), pnj.TOUR)
+                self.assertEqual(pnj._case_crue(m, 'aubin', 'marchand'), (1, 3))
+                m = self.recharge(m)
+                for _ in range(10):
+                    if pnj._approcher(m, 'aubin', geste, []) == 0:
+                        break
+                else:
+                    self.fail('Contact retrouvé mais jamais atteint')
+                self.assertTrue(executer(m, 'aubin', geste, []))
+                m = self.recharge(m)
+                self.assertTrue(any(c['pnj'] == 'aubin' and 'demande une part' in c['texte']
+                                    and '(promis)' in c['texte'] for c in m.data['chronique']))
+                self.assertTrue(any(s['type'] == 'engagement_pris' and s.get('pour') == 'aubin'
+                                    for s in lire(m, 'marchand')['memoire']))
+
+    def test_case_projetee_prime_sur_le_contenant_ancien(self):
+        m = self.recharge(source_ailleurs())
+        v = p.Vue(m, 'mathe')
+        e = p.depart(m, 'mathe', v)
+        # L'état projeté ne conserve aucune case de l'acteur. Un objet pris
+        # n'hérite donc plus du point de son ancien coffre dans la galerie.
+        porte = e.apres(salle='galerie', portes=e.portes | {'vivres'})
+        self.assertIsNone(v.case_objet(porte, 'vivres'))
+        pose = e.apres(salle='galerie', faits=[(('lieu', 'vivres'), 'galerie'),
+                             (('case_objet', 'vivres'), (3, 2))])
+        self.assertEqual(v.case_objet(pose, 'vivres'), (3, 2))
+        self.assertEqual(v.case_objet(e.apres(salle='galerie'), 'vivres'), (2, 2))
+        self.recharge(m)
 
 
 if __name__ == '__main__':

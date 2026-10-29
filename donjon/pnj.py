@@ -782,12 +782,12 @@ def _hors_d_atteinte(monde, id, objet):
         # La distance ou une place inconnue ne sont pas un constat d'absence.
         # Même au contact, un objet vu dans les mains d'autrui reste présent.
         from .spatial import contact_cases
-        from .deliberation import salle_crue
         o = monde.objets[id]
-        case = _case_crue(monde, id, objet)
+        salle, case = _position_crue(monde, id, objet)
         trop_loin = monde.data.get('mode_cases') and (
-            case is None or not contact_cases(monde, o['lieu'], o.get('position'), o['lieu'], case))
-        if salle_crue(monde, id, objet) != o['lieu'] or percoit(monde, id, objet) or trop_loin:
+            case is None or not contact_cases(monde, o['lieu'], o.get('position'), salle, case))
+        trop_loin = trop_loin or not monde.data.get('mode_cases') and salle != o['lieu']
+        if salle is None or percoit(monde, id, objet) or trop_loin:
             return False
         return _rate(monde, id, objet)
     constater(monde, id, contenant, "essai")
@@ -1607,6 +1607,29 @@ def _a_portee_de(monde, salle, case, cible):
     return contact_cases(monde, salle, case, salle, cible)
 
 
+def _position_crue(monde, id, cible):
+    """Point de contact dans le secteur courant s'il existe, sinon dans le lieu cru."""
+    from .deliberation import salle_crue
+    ici = monde.objets[id]['lieu']
+    case = _case_crue(monde, id, cible, ici)
+    if case is not None:
+        return ici, case
+    salle = salle_crue(monde, id, cible)
+    return salle, _case_crue(monde, id, cible, salle) if salle is not None else None
+
+
+def _contact_vocal_cru(monde, id, etape, cible, salle=None):
+    """Une présence vocale identifiée permet la parole sans inventer sa case.
+
+    La portée acoustique et la présence réelles restent contrôlées par le geste
+    d'échange. Une indication de lieu donnée par un tiers ne vaut pas une voix.
+    """
+    from .deliberation import SOCIALES
+    return (etape['operation'] in SOCIALES and cible == etape['cible']
+            and (salle is None or salle == monde.objets[id]['lieu'])
+            and croit_present(monde, id, cible))
+
+
 def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
     """Il marche vers ce que le geste touche, là où il le croit, jusqu'à l'avoir à portée de main ;
     sur place, le geste constate s'il y est. Renvoie la durée du pas, 0 s'il n'a plus à marcher,
@@ -1614,13 +1637,20 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
     l'atteindre doit lui faire place (``_marcher``)."""
     from .spatial import contact_cases
     o = monde.objets[id]
-    from .deliberation import salle_crue
+    touches = _a_toucher(monde, id, etape)
+    vus = percus(monde, id)[0]
+    # Admettre ce qui est actuellement vu avant de préparer le contact : une
+    # perception fraîche n'est pas encore forcément une croyance enregistrée.
+    if any(x in vus and vus[x][1] is not None
+           and _position_crue(monde, id, x) != (vus[x][0], tuple(vus[x][1])) for x in touches):
+        percevoir(monde, id)
     # La préparation lit les croyances, même si la cible a réellement bougé.
     # Seul le geste final contrôle ensuite la portée physique.
     loin = []
-    for x in _a_toucher(monde, id, etape):
-        salle = salle_crue(monde, id, x)
-        case = _case_crue(monde, id, x, salle)
+    for x in touches:
+        salle, case = _position_crue(monde, id, x)
+        if case is None and _contact_vocal_cru(monde, id, etape, x):
+            continue
         if case is None or not contact_cases(monde, o['lieu'], o['position'], salle, case):
             loin.append(x)
     if not loin:
@@ -1628,8 +1658,7 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
     def places_crues():
         places = []
         for x in loin:
-            salle = salle_crue(monde, id, x)
-            case = _case_crue(monde, id, x, salle)
+            salle, case = _position_crue(monde, id, x)
             places.append((salle, case))
         return places
     crues = places_crues()
@@ -1638,6 +1667,12 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
         # mobile. Le centre et le tour d'horizon sont ceux de l'inspection.
         salle = next(s for s, c in crues if c is None)
         if salle is None:
+            # Une localisation perdue pendant l'approche demande d'abord un
+            # regard depuis la position atteinte. Ne pas interrompre avant
+            # d'admettre un contact devenu perceptible autour de soi.
+            tour_d_horizon(monde, id)
+            if places_crues() != crues:
+                return TOUR
             return _interrompre_contact(monde, id, etape)
         if salle != o['lieu']:
             arrivee = lambda s, c: s == salle

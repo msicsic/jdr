@@ -983,14 +983,17 @@ class Vue:
             return e.salle if x in e.portes or x == self.id else self.lieu(e, x)
 
         def case(x):
-            if x in e.portes or x == self.id:
-                return e.case
-            if ('case_objet', x) in e.faits:
-                return e.fait('case_objet', x)
             cru = lire(self.monde, self.id)['croyances'].get(x, {}).get('lieu') or {}
             return cru.get('case') if cru.get('salle') == e.salle else None
 
-        return case_contact(self.monde, objet, e.salle, lieu, case, vus)
+        def prevue(x):
+            if x in e.portes or x == self.id:
+                return True, e.case
+            if ('case_objet', x) in e.faits:
+                return True, e.fait('case_objet', x)
+            return False, None
+
+        return case_contact(self.monde, objet, e.salle, lieu, case, vus, prevue)
 
     def approche(self, e, etape, cibles=None):
         """Approche moyenne depuis les entrées, sans position projetée."""
