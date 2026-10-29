@@ -170,6 +170,9 @@ class Moteur:
                     None)
 
     def preparer(self, p, origine="règles"):
+        from .commandes import DescripteurPublic, proposition_descripteur
+        if isinstance(p, DescripteurPublic):
+            p = proposition_descripteur(self.monde, p)
         from .noms import texte
         from .tenir import autoriser
         if isinstance(p, dict) and isinstance(p.get("action"), str):

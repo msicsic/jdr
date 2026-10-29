@@ -10,7 +10,7 @@ import threading
 import unittest
 
 import jeu
-from donjon.commandes import analyser
+from donjon.commandes import DescripteurPublic, analyser
 from donjon.defi import nouveau_defi
 from donjon.geometrie import placer
 from donjon.monde import ErreurMonde, Monde
@@ -130,12 +130,12 @@ class InterfaceParDefautTests(unittest.TestCase):
 def jouer(monde, commandes):
     for texte in commandes:
         moteur = Moteur(monde)
-        moteur.executer(moteur.preparer(analyser(monde, texte)))
+        moteur.executer(moteur.preparer(DescripteurPublic(texte) if isinstance(texte, dict) else analyser(monde, texte)))
 
 
 @unittest.skipUnless(shutil.which("node"), "node absent : le script de la page ne peut pas tourner")
 class ClicTests(unittest.TestCase):
-    """Ce que propose un clic sur la carte est une commande que le moteur comprend, à portée."""
+    """Le clic transmet un geste exact au moteur, après approche si nécessaire."""
 
     def setUp(self):
         m = nouveau_defi(depart="fixe")
@@ -159,19 +159,30 @@ class ClicTests(unittest.TestCase):
         self.clic = json.loads(sortie)
 
     def test_chaque_geste_propose_est_compris_et_a_portee(self):
-        gestes = {c for cmds in self.clic["choix"].values() for c in cmds if c != "aller"}
-        self.assertTrue(any(c.startswith("prendre ") for c in gestes))
-        self.assertTrue(any(c.startswith("tourner ") for c in gestes))
-        for texte in sorted(gestes):
+        gestes = [c for cmds in self.clic["choix"].values() for c in cmds if c != "aller"]
+        self.assertTrue(any(isinstance(c, dict) and c["geste"] == "prendre" for c in gestes))
+        self.assertTrue(any(isinstance(c, dict) and c["geste"] == "tourner" for c in gestes))
+        for texte in gestes:
             essai = Monde(copy.deepcopy(self.monde.data))
-            self.assertIsNotNone(analyser(essai, texte), texte)
-            verbe, _, id = texte.partition(" ")
+            if isinstance(texte, dict):
+                verbe, id = texte["geste"], texte["cible"]
+            else:  # « Lui parler » reste une saisie de dialogue.
+                self.assertIsNotNone(analyser(essai, texte), texte)
+                verbe, _, id = texte.partition(" ")
             approche = [] if verbe in ("examiner", "lire", "parler", "tourner") else self.clic["approches"][id]
             self.assertIsNotNone(approche, texte)
             try:
                 jouer(essai, ["pas " + d for d in approche] + [texte])
             except ErreurMonde as e:
                 self.assertNotIn("Approche-toi", str(e), texte)  # Refusé pour une autre raison, pas la distance.
+
+    def test_le_callback_envoie_le_descripteur_exact_sauf_la_parole_libre(self):
+        for clic in self.clic["envoisClic"]:
+            self.assertEqual(clic["envoye"], clic["choix"])
+            if isinstance(clic["choix"], str):
+                self.assertTrue(clic["choix"].startswith("parler "))
+            else:
+                self.assertEqual(set(clic["choix"]), {"geste", "cible"})
 
     def test_les_fleches_suivent_le_regard(self):
         from donjon.spatial import VECTEURS

@@ -2,7 +2,8 @@
 
     GET  /          la page
     GET  /flux      les événements de la partie (Server-Sent Events) : lignes du récit, état, prêt/occupé
-    POST /commande  {"texte": "..."} : une commande, comme au terminal ; 409 si la précédente n'est pas finie
+    POST /commande  {"descripteur": {"geste": "...", "cible": "..."}} ou {"texte": "..."}
+                    409 si la précédente n'est pas finie
 
 Une requête dont l'en-tête Host n'est pas local est refusée (une page d'un autre site ne peut
 pas piloter la partie).
@@ -55,11 +56,18 @@ class Gestionnaire(BaseHTTPRequestHandler):
             return
         try:
             longueur = int(self.headers.get("Content-Length", 0))
-            texte = json.loads(self.rfile.read(longueur) or b"{}").get("texte", "")
+            entree = json.loads(self.rfile.read(longueur) or b"{}")
+            if not isinstance(entree, dict) or set(entree) not in ({"texte"}, {"descripteur"}):
+                raise ValueError("Une seule entrée")
+            if "descripteur" in entree:
+                from ..commandes import DescripteurPublic
+                texte = DescripteurPublic(entree["descripteur"])
+            else:
+                texte = entree["texte"] if isinstance(entree["texte"], str) else ""
         except (ValueError, AttributeError):
             self._repondre(400, json.dumps({"accepte": False}), "application/json")
             return
-        accepte = self.server.pont.soumettre(texte if isinstance(texte, str) else "")
+        accepte = self.server.pont.soumettre(texte)
         self._repondre(200 if accepte else 409, json.dumps({"accepte": accepte}), "application/json")
 
     def _flux(self):
