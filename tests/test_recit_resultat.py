@@ -72,10 +72,11 @@ class RecitResultatTests(unittest.TestCase):
                 self.assertEqual(fonction, "repondre_au_joueur")
                 return {"mode": "action", "texte": "", "faits": [], "proposition": copy.deepcopy(p)}
 
+            tirage = {"side_effect": jet} if callable(jet) else {"return_value": jet}
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=appeler),
                   patch.object(MJOpenAI, "raconter_resultat", side_effect=AssertionError("Aucun récit")) as recit,
-                  patch.object(Monde, "d20", return_value=jet),
+                  patch.object(Monde, "d20", **tirage),
                   patch("sys.stdout", io.StringIO())):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"],
                                           interface=pont), 0)
@@ -161,8 +162,29 @@ class RecitResultatTests(unittest.TestCase):
                               "La personne échappe à ta prise." if action == "saisir" else
                               "le coup manque sa cible.", resultat)
                 self.assertEqual(corps.pv(m, "brune"), pv)
-                self.assertEqual(corps.corps(m, "brune").get("tenu_par"),
-                                 "joueur" if jet == 20 else None)
+                if jet == 20:
+                    from donjon.francais import sujet
+                    reaction = sujet(m.objets["brune"]) + " se dégage."
+                    self.assertLess(resultat.index("Tu saisis cette personne."), resultat.index(reaction))
+                self.assertNotIn("tenu_par", corps.corps(m, "brune"))
+
+    def test_autre_personne_saisie_puis_degagee_et_recharge(self):
+        from tests.test_tenir import situation
+        from donjon.francais import sujet
+        m = situation("marchand")
+        m, resultat, _ = self.console(m, proposition("saisir", "marchand"), "Puis-je saisir Gorm ?")
+        self.assertLess(resultat.index("Tu saisis cette personne."),
+                        resultat.index(sujet(m.objets["marchand"]) + " se dégage."))
+        self.assertNotIn("tenu_par", corps.corps(m, "marchand"))
+
+    def test_degagement_manque_percu_et_prise_conservee(self):
+        from tests.test_tenir import situation
+        from donjon.francais import sujet
+        m = situation("aubin")
+        m, resultat, _ = self.console(m, proposition("saisir", "aubin"), "Puis-je saisir Aubin ?")
+        self.assertLess(resultat.index("Tu saisis cette personne."),
+                        resultat.index(sujet(m.objets["aubin"]) + " ne parvient pas à se dégager."))
+        self.assertEqual(corps.corps(m, "aubin")["tenu_par"], "joueur")
 
     def test_geste_immediat_sans_second_appel(self):
         _, resultat, _ = self.console(nouveau_monde(), ETIREMENT, "je m'étire", confirmer=False)

@@ -5,33 +5,33 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 - **Branche `codex-g4-resultat-public`, lot 292, non fusionnée**, base
   `9e52df4` : résultat moteur mémorisé et sauvegardé avant affichage,
   sans récit ni audit après exécution, console/TUI/web. Blessures visibles
-  et dépôts rendus par le moteur ; aucune mécanique PNJ modifiée.
+  et dépôts rendus par le moteur ; choix et mécaniques PNJ inchangés.
   `raconter` et `--recit-moteur` retirés ; `MJ.raconter_resultat` gardé
-  pour les outils/comparateur, sans appel par le jeu. **Clôture : valeurs
-  de dé masquées comme avant, issue complète conservée ; test TUI original
-  inchangé et vert (28/28)**. Première passe : 362 tests, deux échecs,
-  851,350 s. TUI verte isolément sur la base : régression G4 corrigée dans
-  le code. Reprise de deux fichiers : **34/35 succès, un échec conservé,
-  zéro erreur, 305,990 s** ; bilan retenu **361/362 tests sur 25 fichiers**.
-  Le nouveau test de prise exige une prise persistante ; sa scène console
-  rejouée sur la base échoue aussi : Brune est saisie puis réussit `degager`
-  pendant les deux secondes du geste. Assertion de monde inchangée, aucune
-  mécanique ou donnée ajustée ; dégagement PNJ sans phrase publique,
-  **limite préexistante : complétude générale non garantie**.
-  Dix états/vues comparés au moteur exact de la base **identiques 10/10**.
-  **Luna terminée, une passe des trois scripts**, sur `d1e50c4`, référence
-  absente jouée une fois et rangée : trois exécutions, **0 récit et 0 audit
-  après exécution**, texte exact sauvegardé/affiché, effets conformes.
-  Correction finale du rendu vérifiée sans modèle sur ces trois plans
-  archivés, effets identiques ; pas de seconde passe. **12 → 7 appels**,
-  **28,65 → 22,20 s** ; huit saisies, **1,50 → 0,875 appel/saisie**.
-  Refus **0 → 1** avant ligature (`impossible`, corrigé dans la même
-  saisie), compilation/revue 2 → 3 appels, 6,35 → 8,99 s ; replis et
-  relances narratives 0 → 0, aucun incident. Aucun gain causal de délai
-  déduit d’une passe. Bruts, mesures, attribution et reprises dans
-  `C:/Users/msics/donjon/artifacts/g4-292/`, `fin-cloture.json` expose
-  l’échec résiduel. **Lot clos avec cette limite, aucun calcul actif**,
-  ni suite complète ni banc PNJ supplémentaire.
+  pour outils/comparateur, sans appel par le jeu. Valeurs de dé masquées
+  comme avant, issue complète conservée ; **test TUI original inchangé,
+  28/28 vert**. **Défaut de prise fermé dans G4**, pas conservé comme limite :
+  `defense._rendre_issue` écrit les dégagements réussis/manqués, redditions
+  et fuites perçus au moment de l’événement, dans l’ordre du fil. Aucune
+  phrase visuelle si le PNJ n’est pas vu ; paroles entendues inchangées.
+  La prise de Brune puis son dégagement et l’état non tenu sont vérifiés,
+  de même pour Gorm ; Aubin échoue à se dégager et reste tenu. Neuf scènes
+  des trois défenses vues/dos/noir, texte sauvegardé avant affichage et
+  monde/scène/fiche/carte rechargés. **Dernière reprise : 29 tests / trois
+  fichiers, verts, zéro erreur/ignoré, 125,374 s**, un travailleur réduit.
+  **Bilan retenu : 384 tests / 27 fichiers, tous verts** ; échecs antérieurs
+  archivés. Dix comparaisons au moteur exact de la base : états/vues
+  identiques, textes du journal exclus. **Luna déjà terminée**, une passe
+  des trois scripts sur `d1e50c4`, référence absente jouée une fois et rangée :
+  trois exécutions, **0 récit et 0 audit après exécution**, texte exact
+  sauvegardé/affiché et effets conformes. Aucun rejeu Luna à la correction
+  des défenses. **12 → 7 appels**, **28,65 → 22,20 s**, huit saisies :
+  **1,50 → 0,875 appel/saisie**. Refus 0 → 1 avant ligature (`impossible`
+  corrigé dans la même saisie), compilation/revue 2 → 3 appels,
+  6,35 → 8,99 s ; replis/relances narratives 0 → 0, aucun incident.
+  Pas de gain causal de délai déduit d’une passe. Bruts et mesures dans
+  `C:/Users/msics/donjon/artifacts/g4-292/`, bilans finaux verts
+  `fin-defenses.json` et `fin-cloture.json`. **Lot terminé, aucun calcul
+  actif**, ni suite complète ni banc PNJ supplémentaire.
   [Rapport 292](taches/rapport-codex-292-g4-resultat-public.md).
 
 - **Branche `codex-g2-refus-moteur`, lot 291, fusionnée**, base

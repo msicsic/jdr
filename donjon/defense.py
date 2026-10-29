@@ -290,6 +290,22 @@ def reprendre(monde, id):
     corps.corps(monde, id).pop("reddition", None)
 
 
+def _rendre_issue(monde, id, operation, reussi, lignes):
+    """Une défense vue à cet instant rejoint le fil des gestes, sans bilan différé."""
+    from .combat import voit
+    from .francais import sujet
+    if id == "joueur" or not voit(monde, "joueur", id):
+        return
+    issues = {
+        "degager": (" ne parvient pas à se dégager.", " se dégage."),
+        "se_rendre": ("", " se rend."),
+        "fuite": ("", " a fui."),
+    }
+    issue = issues[operation][bool(reussi)]
+    if issue:
+        lignes.append(sujet(monde.objets[id]) + issue)
+
+
 def se_rendre(monde, id, autre, lignes):
     from .monde import ErreurMonde
     from .refus import cibles
@@ -314,8 +330,8 @@ def se_rendre(monde, id, autre, lignes):
     corps.evenement(monde, "reddition", id, a=autre)
     if id == "joueur":
         lignes.append("Tu dis : « Je me rends ! » Tu cesses de résister.")
-    elif voit(monde, "joueur", id):
-        lignes.append(sujet(monde.objets[id]) + " se rend.")
+    else:
+        _rendre_issue(monde, id, "se_rendre", True, lignes)
     from .pnj import _chroniquer
     _chroniquer(monde, id, ("Tu te rends." if id == "joueur" else sujet(monde.objets[id]) + " se rend."), "violence")
 
@@ -373,6 +389,7 @@ def executer(monde, id, etape, lignes):
         return degager(monde, id, lignes)
     if op == "fuite":
         corps.evenement(monde, "fuite", id, de=cible)
+        _rendre_issue(monde, id, op, True, lignes)
         return True
     return False
 
@@ -391,6 +408,8 @@ def degager(monde, id, lignes):
         corps.corps(monde, id).pop("tenu_par", None)
     if id == "joueur":
         lignes.append("Tu te dégages." if reussi else "Tu ne parviens pas à te dégager.")
+    else:
+        _rendre_issue(monde, id, "degager", reussi, lignes)
     return reussi
 
 

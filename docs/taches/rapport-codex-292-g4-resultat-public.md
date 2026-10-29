@@ -1,66 +1,62 @@
 # Lot 292 — G4 : résultat public du moteur
 
 2026-10-29. Branche `codex-g4-resultat-public`, base `9e52df4`.
-**Non fusionnée ; clôture avec une assertion de monde encore rouge.**
+**Lot terminé, non fusionné ; tous les tests retenus sont verts.**
 
 `jeu.conclure` mémorise et sauvegarde le rendu moteur avant affichage,
 sans récit ni audit après exécution ; même boucle console/TUI/web.
-Propositions, contre-revues et confirmations conservées. Blessures visibles
-et dépôts au sol rendus par le moteur ; aucune mécanique PNJ modifiée.
-`raconter`, `demande_initiale`, `--recit-moteur` supprimés.
-`MJ.raconter_resultat` reste pour les outils explicites et le comparateur,
-sans appel par le jeu ; petits pas silencieux conservés.
+Propositions, contre-revues, confirmations et petits pas silencieux restent.
+Le rendu complète les blessures visibles et les dépôts au sol.
+`raconter`, `demande_initiale`, `--recit-moteur` sont retirés ;
+`MJ.raconter_resultat` reste pour les outils/comparateur, sans appel par le jeu.
+Les valeurs de dé restent masquées comme avant, l’issue est complète et le
+journal conserve le calcul ; le test TUI original est inchangé et vert.
 
-**Correction demandée à la clôture :** le test TUI original reste **inchangé**.
-G4 ne change pas les informations de jet déjà montrées au joueur.
-`rendre_resultat` masque le calcul et les valeurs, conserve une phrase
-« La tentative réussit/échoue. » ; le journal garde le calcul. Les valeurs
-ajoutées aux coups/prises sont retirées. Les nouveaux tests G4 contrôlent
-l’issue et les conséquences ; les commandes locales gardent leur affichage.
+**Défenses perçues, correction finale.** Garder le test de prise rouge était
+une mauvaise clôture : le manque de rendu était bien dans G4. La prise
+réussit, puis Brune se dégage légitimement pendant le geste du joueur.
+`defense._rendre_issue` écrit maintenant les issues communes de dégagement
+(réussi ou manqué), reddition et fuite dans le fil des événements, au moment
+de leur exécution. La perception est contrôlée à cet instant : une défense
+non vue n’ajoute aucune phrase visuelle ; la voie des paroles effectivement
+entendues reste inchangée. Coups et interpositions gardent leurs rendus moteur.
+Aucun choix, jet, déplacement, durée ni effet de défense n’est modifié.
+Pas de règle propre à un personnage, une formulation ou un scénario.
 
-**Tests.** Première passe : **362 tests / 25 fichiers, 2 échecs, 0 erreur,
-851,350 s**, un travailleur réduit. Attribution par rejeux isolés :
+**Vérifications.** La console avec MJ simulé vérifie la prise puis le
+dégagement perçu, dans cet ordre, et l’état sauvegardé non tenu : Brune et
+Gorm ; autre issue sur Aubin, dégagement manqué et prise conservée. L’ancienne
+assertion de prise forcément persistante est remplacée par ces conséquences
+réelles, sans supprimer la vérification de monde. **Neuf scènes** couvrent
+les trois défenses communes vues, dos tourné et dans le noir. Chaque scène
+contrôle texte sauvegardé avant affichage, état complet, scène, fiche et
+carte rechargés, avec zéro appel après exécution.
 
-- TUI `test_manoeuvre_composee_et_recit_echec_partiel` : **vert sur `9e52df4`**,
-  donc régression G4, corrigée dans le code sans changer ce test.
-- Prise réussie : le nouveau test n’existe pas sur la base ; sa scène console
-  et son assertion ont été reproduites sur `9e52df4`, puis la branche.
-  **Même échec** : Brune est saisie puis réussit `defense.degager` durant les
-  deux secondes du geste, `tenu_par=joueur` disparaît. L’assertion de prise
-  persistante reste inchangée et rouge. Le dégagement du PNJ n’a pas de
-  phrase publique : **limite préexistante, complétude générale non garantie**.
+Dernière reprise : **29 tests / trois fichiers**, **0 échec, erreur ou ignoré**,
+**125,374 s**, un travailleur réduit (`test_recit_resultat`,
+`test_defenses_publiques`, `test_defense`). Bilan retenu des vérifications
+successives : **384 tests / 27 fichiers, tous verts**. La TUI originale
+avait été rejouée verte (28/28). Les dix comparaisons déterministes au moteur
+exact de la base conservaient les états/vues rechargés (textes du journal
+exclus). Ni suite complète ni banc PNJ supplémentaire ; **aucune repasse Luna**.
 
-Reprise finale des seuls fichiers concernés : **35 tests, 34 succès, un échec
-conservé, 0 erreur, 305,990 s** ; **TUI originale 28/28 verte**. Bilan retenu
-sur les 25 fichiers : **361 succès / 362 tests**, un échec sur ce comportement
-préexistant, sans le masquer par un changement d’attente de monde.
-Dix comparaisons au moteur exact de la base : **10/10** états mécaniques,
-scènes, fiches et cartes identiques après recharge, textes du journal exclus.
-Ni suite complète ni banc PNJ supplémentaire.
+**Mesures Luna conservées.** Une passe de trois scripts sur copies,
+`integ=9e52df4` → `lot=.` sur `d1e50c4`, référence absente jouée puis rangée
+une fois. Trois exécutions conformes : Gorm assommé et blessé de 1 PV,
+Brune ligotée, torche déposée aux pieds du joueur ; pour chacune,
+**1 récit + 1 audit après exécution → zéro**. Aucun incident.
+Les plans admis avaient aussi été rejoués sans modèle après correction
+d’affichage des dés. Les défenses sont vérifiées par les tests ciblés ci-dessus.
 
-**Luna : une passe**, trois scripts sur copies, `integ=9e52df4` → `lot=.`
-sur `d1e50c4`, un travailleur réduit ; référence absente jouée puis rangée
-une fois. Aucun incident. **Trois résultats exacts, sauvegardés et affichés,
-effets mécaniques identiques à la référence** :
-
-| Résultat | Monde rechargé | Après exécution, référence → lot |
-|---|---|---:|
-| Assommer, tour 2 : coup réussi, 1 PV, effondrement | Gorm inconscient, blessure de 1 PV | 1 récit + 1 audit → 0 |
-| Ligoter, tour 2 : personne maintenant ligotée | Brune liée par `corde_rixe`, corde en entrave sur elle | 1 récit + 1 audit → 0 |
-| Poser, tour 1 : torche au sol, à tes pieds | Salle et case du joueur | 1 récit + 1 audit → 0 |
-
-Après correction du rendu : **ces trois plans admis rejoués sans modèle**,
-mêmes effets, texte corrigé exact/sauvegardé, valeurs masquées. Aucune seconde
-passe Luna ; boucle d’appels inchangée.
-
-Mesures : **12 → 7 appels**, **28,65 → 22,20 s** ; sur huit saisies hors
-quitter : **1,50 → 0,875 appel/saisie**, **3,58 → 2,78 s**. Le résumé par
-tour avec appels donne 2,40 → 2,33 appels et 5,73 → 7,40 s, dénominateur
-cinq → trois tours. **Régression avant ligature** : `impossible` corrigé
+Global : **12 → 7 appels**, **28,65 → 22,20 s** ; sur les mêmes huit saisies
+hors quitter : **1,50 → 0,875 appel/saisie**, **3,58 → 2,78 s**. Le résumé par
+tour avec appels change de dénominateur (cinq → trois) : 2,40 → 2,33 appels,
+5,73 → 7,40 s. Régression observée avant ligature : `impossible` corrigé
 dans la même saisie, refus **0 → 1**, compilation/revue **2 → 3 appels**,
-**6,35 → 8,99 s**. Replis et relances narratives **0 → 0** ; aucune après
-exécution. Pas d’attribution causale des durées avec une seule passe.
+**6,35 → 8,99 s** ; replis et relances narratives **0 → 0**. Pas de gain
+causal de durée déduit d’une seule passe.
 
-Bruts, six parties/fils, états/vues, mesures, reproductions, tests et
-manifeste : `C:/Users/msics/donjon/artifacts/g4-292/`. Fins initiales conservées ;
-`fin-cloture.json` expose le bilan final et l’échec résiduel. Aucun calcul actif.
+Bruts, six parties/fils, états/vues, attribution, reprises et manifeste :
+`C:/Users/msics/donjon/artifacts/g4-292/`. Les échecs historiques sont gardés ;
+`fin-defenses.json` et `fin-cloture.json` donnent le bilan final vert.
+Aucun calcul actif du lot.
