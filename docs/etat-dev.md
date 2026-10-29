@@ -2,6 +2,24 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Vérification d’intégration `0bad227`**, lot **274**, branche
+  `codex-verif-integ-3` : **49/49 nuits terminées**, aucune erreur de calcul,
+  aucun code du jeu modifié, pas de Luna ni de suite complète. Cache `main`
+  (`c870c8b`) relu : 20 paires de préfixes à 4 h divergent, sans attribution
+  causale. Contrôles : zéro plantage, usurpation, mort, écart `VERIFIER` ou
+  assertion spatiale ; 88 recherches bornées, coûts égaux à l’optimum consigné.
+  219 actuel : suspects **23 → 7**, à expliquer **376 → 170** (classes 265/271
+  présentes ici, absentes de la mesure 241) ; 227 : **22 → 19** pertes, aucune
+  marquée fautive dans la campagne actuelle. Nouveau point à instruire :
+  Gorm reprend à 642 min une interposition contre Aubin, parti de
+  l’antichambre pendant l’interruption. Petit lot proposé : revalider la
+  présence des deux cibles avant l’exécution d’un but d’interposition repris.
+  Combat nouveau crue 2024, minute 596 : 15 frappes, six coups portés, Brune
+  inconsciente puis rétablie, sans décès ni coup après l’inconscience.
+  **Intégration non propre pour avancer `main`** avant le diagnostic de la
+  revalidation. [Rapport 274](taches/rapport-codex-274-verif-integ.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 49/49 nuits, zéro plantage, usurpation, mort ou écart VERIFIER/spatial 0,2 ; Lucien auberge 42 à 435 ne réapparaît pas (88 bornes, toutes au coût de l'optimum). Compteur 219 : 7 suspects et 170 à expliquer (241 : 23 et 376) ; 227 : 19 pertes, aucune fautive. Hameau : attente 931 → 1 062 PNJ·min, S 64,5 → 56,25, noir 79 → 133. Alerte nouvelle : Gorm hameau 1985 à 642 reprend une interposition alors qu'Aubin a quitté l'antichambre (intention, pas d'action fautive) ; crue 2024 : six coups en neuf secondes, Brune inconsciente à 600 puis rétablie. Verdict de l'agent : non propre pour avancer main tant que la revalidation de l'interposition n'est pas établie ; main reste à c870c8b.
+
 - **Branche `codex-rester-pres`, fusionnée**, lot **266**, base `7404d2d`.
   **Reprise 276 : intégration `1852d6e` fusionnée sans rebase (`18c5523`).**
   Conflit de perception résolu par la purge du soupçon (267), puis la rétention
