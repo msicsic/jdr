@@ -1,5 +1,62 @@
 # Contrat entre le MJ et le monde
 
+## Contrat cible et transition — G0, 29 octobre 2026
+
+Le contrat adopté est la section « Contrat du MJ » d'[AGENTS.md](../AGENTS.md#contrat-du-mj).
+Les décisions des conceptions [287](conception-refonte-mj.md#10-risques-et-questions-à-lutilisateur)
+et [288](conception-valeur-llm.md#8-questions-restantes-à-lutilisateur) sont consignées
+dans [l'état du développement](etat-dev.md#décisions-prises-le-2026-10-29).
+La [feuille de route](plan-refonte-mj.md) fixe l'ordre et l'état des portages.
+Les anciens numéros de lots et mentions de branches ci-dessous restent des repères
+historiques. Ils ne certifient pas leur état d'intégration actuel.
+
+- **Gameplay d'abord.** Luna reste le MJ, avec `gpt-6-luna`. La comparaison
+  de modèles reste désactivée. Les gestes usuels ont une voie directe sans modèle.
+  Luna comprend et compose le libre. Elle propose des termes, des détails ou
+  un contenu de dialogue inédit. Le moteur décide des conséquences.
+- **Mécanique.** Toute information mécanique affichée vient d'un rendu moteur
+  sur les seules données perceptibles ou connues de Corvus, ou d'une proposition
+  typée admise. Positions, perception, ressources, actions et sauvegardes restent
+  sous l'autorité du moteur. Conséquences et paroles entendues sont enregistrées
+  et sauvegardées avant affichage.
+- **Paroles.** Une parole atteste ses mots et ses auditeurs, pas sa vérité.
+  Le moteur formule les répliques dont il fixe le contenu. Un contenu inédit
+  admis devient une parole enregistrée, sans effet mécanique non typé.
+- **Fidélité.** Un plan valide reste une proposition. Le joueur contrôle le
+  « Compris : … » moteur. Il le lit avant un acte libre lourd ou irréversible,
+  selon ses effets typés, et après les autres. Une composition avec une étape
+  lourde est présentée entière avant exécution. Un clic ou menu garde son acte
+  choisi sans réinterprétation. Les confirmations de risque restent applicables.
+- **Interactif.** Toute cible manipulable existe dans l'état avant le geste.
+  Un détail d'ambiance ciblé est matérialisé par le contrat commun ou déclaré
+  non manipulable. Une propriété inventée non calculable reçoit une revue
+  ciblée à l'admission. La prose ne crée ni capacité, ni indice, ni engagement.
+- **Ambiance.** Le canal cosmétique est distinct et non bloquant. Un indicateur
+  signale sa préparation. Projection publique, gardes de noms, références,
+  voix, nombres et provenance, puis vérification de sens en fond précèdent
+  la publication. Un doute ou un échec fait jeter la sortie entière sans relance.
+  Une sortie arrivée pour un lieu quitté est jetée. Une ambiance admise est
+  sauvegardée avec son lieu avant affichage. Aucune absence universelle de
+  contradiction implicite en français libre n'est garantie.
+
+**Clause de transition.** Une voie non portée garde ses contrôles actuels.
+Un audit ne se retire que dans le lot qui livre sa garantie de remplacement.
+G0 ne change aucun comportement du jeu. Contre-revue et fidélité de parole
+restent en filet pour les seuls actes à effets issus du libre pendant le portage.
+Leur retrait se décide sur mesure, avec U-P/U-C puis bilan G21.
+
+Les annotations ont trois sens : **reste valable** désigne un invariant à
+conserver ; **transitoire** désigne un contrôle encore requis sur sa voie non
+portée ; **caduque sous la cible** désigne une règle que la refonte abandonne,
+sans autoriser son retrait immédiat du code. Une section peut porter plusieurs
+statuts lorsque sa garantie survit mais que son ancien moyen de contrôle change.
+Les gardes communs continuent de garantir de façon déterministe l'absence de
+fuite d'entités non perçues. Aucun exemple n'autorise une exception de contrôle.
+
+> **Reste valable :** avis typé, conviction et dispute ne prouvent pas la vérité.
+> **Transitoire — G1/U-P/U-C/G18, bilan G21 :** reconnaissance et revue de
+> fidélité du libre ci-dessous. Une carte d'opérations ne prouve pas sa fidélité.
+
 Lot 124 (`codex-avis-joueur`, non fusionnée) : `parole_joueur.contenu` admet `avis`
 avec `sujet` = référence publique d'une salle connue de Corvus, `attribut` = `menace`,
 `valeur` = `oui` ou `non`. Le moteur refuse séparément lieu inconnu, prédicat inconnu
@@ -21,10 +78,20 @@ dispenser à tort un `propos` de revue.
 Limite mesurée : Luna a choisi `propos` sur les trois saisies de l'unique passe ; le
 contrat typé est exercé en console avec MJ simulé, pas garanti depuis le langage libre.
 
-Ce document décrit le contrat appliqué entre Luna (le MJ) et le moteur, et ce qui reste à
-construire. Il découle de la section « Contrat du MJ » d'[AGENTS.md](../AGENTS.md).
+La suite décrit les garanties existantes et les contrôles à garder pendant
+la transition. Les annotations indiquent leur devenir sous le contrat cible.
 
 ## Trois niveaux de vérité
+
+> **Reste valable :** séparation mécanique/interactif/ambiance, projection
+> publique et validation des propositions. **Transitoire — G1/G2 :** assemblage
+> de l'interprétation. **Caduque sous la cible — G4 à G7, G15 à G20 :** autoriser
+> Luna à rédiger librement le mécanique au seul motif qu'elle cite des faits.
+> Pour l'ambiance, le tableau décrit la séparation des autorités ; G8 à G11/U-A
+> ajoutent contrôle en fond, rejet entier et publication non bloquante.
+
+> **Statut G0.** Reste valable : repère relatif résolu à chaque étape. G2/G4/U-D conservent ce
+> contrat.
 
 **Destination du sol (lot 173).** Pour `deplacer` et `prelever`, y compris
 dans les séquences et les effets d'improvisation, une destination désignant
@@ -33,6 +100,9 @@ un objet de type `surface`, nommé `sol`, perçu dans la salle courante,
 jamais sur une position propre de la surface. La résolution se fait dans
 l'état de chaque étape ; murs, plafonds, sols non perçus ou d'autres salles
 restent refusés avec `attendu`. Aucun alias propre à un scénario n'intervient.
+
+> **Statut G0.** Reste valable : perception et contact bornent les dossiers. G1 reprend cette
+> projection sans supprimer de faits utiles.
 
 **Dossiers techniques au contact** (lot 152, L4). `atelier`, `franchissements`,
 `passages_obstacles` et `espace` ne décrivent que des objets visibles et proches
@@ -46,6 +116,9 @@ doit s'approcher. Les préparations, refus, trajets et coûts du moteur restent
 ceux du contrat commun. Ce filtre des données ne garantit pas que Luna ne
 proposera jamais spontanément un geste éloigné ; le moteur revalide sa portée.
 
+> **Statut G0.** Reste valable : source stable et disponibilité contrôlée par le moteur.
+> Transitoire — G1/G3 : assemblage actuel ; G8 remplace les consignes de révision cosmétique.
+
 **Consignes d'interprétation invariantes** (lot 161, L3, validation Luna en attente).
 Les règles d'atelier, de franchissement, de passage local, d'espace et de parole
 figurent à chaque appel d'interprétation. Elles renvoient aux dossiers présents ;
@@ -55,6 +128,10 @@ de l'entrée, avec le refus dans `faits.retour_moteur`. Les relances narratives
 gardent leur consigne de révision dans l'entrée. La disponibilité, la portée et
 les effets restent validés par le moteur avant affichage. Les voies de récit
 gardent leurs consignes dédiées ; aucune garantie sémantique nouvelle n'en découle.
+
+> **Statut G0.** Reste valable : schéma stable et refus typés. Transitoire — G1/G2 : modes et
+> enveloppe actuels. Le schéma variable de l’audit disparaît avec ses familles portées, pas dans
+> G0.
 
 **Schéma d'interprétation invariant** (lot 158, L2). Tous les modes et toutes
 les branches de proposition figurent à chaque appel d'interprétation, quel que
@@ -67,6 +144,9 @@ ajout. Les anciennes propositions internes sans `suite` restent lisibles hors
 question de faisabilité. Les voies finales gardent le mode dialogue et les
 mêmes contrôles de sources. L'audit narratif conserve son schéma variable ;
 les consignes conditionnelles ne sont pas modifiées dans ce lot.
+
+> **Statut G0.** Reste valable : mutualiser sans changer le contrat. G1/G3 conservent
+> l’équivalence des schémas.
 
 **Schéma envoyé à OpenAI** (lot 93, `codex-latence-appels`). Le fournisseur
 mutualise les sous-schémas strictement identiques dans `$defs`, référencés par
@@ -84,6 +164,14 @@ affichage ; les instructions, faits, efforts et réponses attendues restent les 
 
 ## Contrôle de la prose
 
+> **Transitoire :** l'audit narratif du mécanique reste décrit jusqu'au portage
+> de chaque famille : G2/G4 à G7/G15 à G20. Révisions et sauvetage de segments
+> sont **caduques sous la cible** d'ambiance ; G8 à G11/U-A les remplacent par
+> un contrôle en fond et le rejet entier sans relance. Les gardes communs restent.
+
+> **Statut G0.** Reste valable : état corporel, conscience et audibilité. Transitoire — G4 : audit
+> du résultat ; G1/U-P/U-C puis G21 : fidélité du geste libre à effets.
+
 **Force, lot 147.** Les gestes 4d/4e ont leurs descriptions dans les mêmes
 consignes que les coups : saisir, ligoter, délier, se libérer, traîner, tuer et
 verrouiller (enfermer par la porte). Le schéma reprend déjà les actions du moteur.
@@ -98,6 +186,9 @@ avec deux personnes mortes ou inconscientes : aucune parole enregistrée.
 La passe Luna n'atteint pas le critère de trois appels pour toutes les saisies ;
 les faux refus de traîner et d'enfermer restent des limites observées.
 
+> **Statut G0.** Reste valable : garde de voix d’auteur. Transitoire — G2 : explication de refus
+> par Luna. G8 réemploie le garde avant publication cosmétique.
+
 **Contrats internes dans les explications** (lot 143). Le garde commun de voix
 d'auteur contrôle aussi la justification d'un avis `impossible` après réexamen
 et le dialogue qui explique un refus du monde. Les constructions où le moteur
@@ -108,6 +199,9 @@ Les noms communs seuls et leurs emplois concrets restent admis (champ, schéma,
 moteur du moulin). Un audit favorable ne dispense pas de ce garde, refait avant
 enregistrement. Les reformulations ambiguës restent en partie sémantiques :
 ce contrôle lexical ne garantit pas toute paraphrase française.
+
+> **Statut G0.** Reste valable : mots historiques, ordre et provenance. Transitoire — G19 :
+> extraction et audit des rappels libres, remplacés par le rappel moteur exact.
 
 **Passé des échanges** (`codex-redire-passe`, lot 112). Le dossier
 `echanges_passes` regroupe, par interlocuteur sous sa référence publique actuelle,
@@ -132,6 +226,8 @@ jamais le champ `texte`. La preuve est recalculée depuis les paroles entendues
 et les interlocuteurs actuels avant sauvegarde. Une attribution libre ou une
 reformulation, même proche, reste soumise à l’audit sémantique.
 
+> **Transitoire — G19 :** extraction des rappels. Les mots et leur provenance restent conservés.
+
 Le schéma d'audit demande `rappels` pour chaque segment, indépendamment du
 verdict : locuteur, affirmation passée et compatibilité avec les échanges ou
 résultats fournis. Un rappel sans fondement ou contraire est refusé même dans
@@ -152,6 +248,10 @@ paraphrases ni preuve déterministe de toute affirmation passée. Les gestes
 restent fondés sur les résultats publics disponibles, sans nouveau registre
 universel des actes anciens.
 
+> **Statut G0.** Reste valable : enveloppe validée avant mutation et refus de forme privé.
+> Transitoire — G1/G2 : boucle actuelle. G8 remplace les trois essais cosmétiques par un seul
+> essai en fond.
+
 **Forme avant narration** (`codex-sans-message-technique`, lot 100). L'enveloppe
 de toute réponse passe par le même contrôle avant ses audits : mode disponible,
 texte adapté au mode, sources en liste, proposition structurée et collections
@@ -161,11 +261,17 @@ essais narratifs. Si elle échoue, le repli commun restitue les acquis du moteur
 ou la perception disponible ; le refus technique n'est pas affiché. Les
 validateurs propres aux contenus restent responsables de leurs contraintes.
 
+> **Statut G0.** Reste valable : mêmes références pour la saisie et les contenus. G1/U-D
+> conservent cette résolution commune.
+
 **Une pièce d'un lot** (`codex-piece-de-lot`, lot 78). Les noms et alias du lot,
 ainsi que son `physique.nom_piece` lorsqu'il est décrit, désignent la même
 référence pour la saisie et la résolution des contenus. Aucun singulier ni nom
 de pièce n'est inventé à partir d'un nom collectif. Les recherches gardent leurs
 contrôles de connaissance, de perception et d'ambiguïté.
+
+> **Statut G0.** Reste valable : source des fonds distincte du bien acheté, sans effacement de
+> champ. Transitoire — G1/U-P/U-C, bilan G21 : revue du libre à effets décrite ensuite.
 
 **Source des pièces** (lot 159). Dans un terme `pieces`, `objet` est facultatif
 et désigne exclusivement le contenant source des pièces, jamais le bien acheté.
@@ -186,6 +292,9 @@ La revue reçoit ce sens calculé avant toute mutation, et les objets des termes
 imbriqués sont nommés comme les autres références. Son jugement de fidélité reste
 sémantique : le dossier n'exempte aucun autre objet ni changement de quantité.
 
+> **Statut G0.** Reste valable : seuls les comptes publics avant mutation fondent les termes.
+> Transitoire — G1/U-P/U-C, bilan G21 : dossier de fidélité du libre à effets.
+
 **Termes implicites des comptes** (`codex-relances-doublees`, lot 113). Le dossier
 de fidélité de toute parole contient aussi `comptes_avant`, construit par
 `biens.etat_comptes_joueur` sur le monde d'origine, avec les destinataires validés.
@@ -197,8 +306,15 @@ Le règlement de la copie préparée n'efface pas ce montant avant la revue. Ce
 dossier ne vaut ni accord ni transfert ; les refus de sens et le contrôle des
 opérations restent actifs. La compréhension sémantique demeure faillible.
 
+> **Transitoire — G2/G4 à G7/G15 à G20 :** segmentation et audit des sorties mécaniques encore
+> libres. Pour l’ambiance, G8 à G11 remplacent la boucle bloquante.
+
 Chaque réponse libre de Luna (dialogue, avis de clarification, explication d'un refus)
 est découpée en segments et relue par un auditeur, qui classe chaque segment :
+
+> **Statut G0.** Transitoire — G2/G4 à G7/G15 à G20 : audit narratif du mécanique par famille. G19
+> conserve la preuve historique. G8 à G11 remplacent le contrôle cosmétique bloquant et ses
+> révisions ; pas la vérification en fond.
 
 **Audit limité à la décision** (`codex-audit-narratif`, lot 95). Un segment
 strictement identique à une attestation, une issue, un résultat ou un message
@@ -231,9 +347,15 @@ de l'auditeur et ses extractions restent en partie sémantiques.
 | `mecanique` | doit citer au moins une clé de fait fournie (`objet:<id>`, `perception`, `salle`…) |
 | `invention_protegee`, `contradictoire` | révision demandée à Luna ; jamais affiché |
 
+> **Transitoire — G8/G10 :** publication cosmétique selon l’ancienne boucle. La continuité par
+> lieu reste valable ; la cible attend les contrôles de fond et la sauvegarde.
+
 Le texte accepté est affiché **tel que Luna l'a écrit**. Les ambiances du lieu courant
 reviennent dans le contexte suivant (`ambiance_etablie`), ce qui permet à Luna de rester
 cohérente et à l'auditeur de refuser une ambiance qui les contredit.
+
+> **Statut G0.** Reste valable : ne pas voir ne prouve ni absence ni silence. Transitoire — G5 :
+> audit des paraphrases mécaniques, remplacées par le rendu canonique.
 
 **Non-perception et absence** (`codex-non-perception`, lot 132). Le dossier
 `perception.non_vus_connus` fournit les références et désignations publiques des
@@ -246,6 +368,10 @@ reconstruite avant sauvegarde. Une absence reste soumise à la couverture et aux
 conditions de détection. Les paraphrases et l'ignorance exprimée en prose libre
 restent jugées sémantiquement. Le contrôle déterministe des fuites est conservé.
 
+> **Statut G0.** Reste valable : aucune parole ne produit un effet non typé. Transitoire — G4 à
+> G7/G15 à G20 : extraction de portée mécanique dans le récit. G8 contrôle l’ambiance en fond sans
+> la rendre source mécanique.
+
 **Portée mécanique indépendante de la forme** (`codex-contenu-vide`, lot 59). Chaque segment
 du rapport d'audit porte aussi `portee_mecanique` : `aucune`, `etablie` (avec sources),
 `sans_fondement` ou `contradictoire` (avec sources). Le moteur vérifie ce champ quel que soit
@@ -254,6 +380,10 @@ d'une opération. La croyance fausse rapportée par un PNJ n'en devient toujours
 La portée sans fondement ou contradictoire est refusée avant affichage et à l'enregistrement ;
 une portée établie sans source est refusée, un rapport sans ce champ est illisible.
 Reconnaître cette portée et juger la pertinence de sa source restent sémantiques.
+
+> **Statut G0.** Transitoire — lots de rendu G4 à G7/G15 à G20, puis G8 : format d’audit narratif
+> et reprise du rapport. Reste valable tant que ce rapport est requis ; aucun audit illisible ne
+> vaut admission.
 
 **Cohérence du rapport** (`codex-verdict-coherent`, lot 83). Un verdict
 `mecanique` avec une portée `sans_fondement` ou `contradictoire`, ou un verdict
@@ -267,6 +397,10 @@ détectée par cette règle. Les rapports historiques N2/N3 du lot 79 sont dans 
 cas et ne sont pas corrigés par ce lot ; aucune garantie générale nouvelle de
 détection des contradictions mécaniques.
 
+> **Statut G0.** Reste valable : lexique dérivé, projection publique et provenance des citations.
+> Transitoire — G8 : révision après fuite cosmétique ; la cible jette la sortie entière. Les
+> gardes eux-mêmes restent.
+
 **Garde-fou déterministe.** Les noms et alias de toutes les entités du monde, y compris
 cachées, et les noms des salles forment un lexique dérivé de l'état
 ([donjon/lexique.py](../donjon/lexique.py)). Un terme du lexique présent dans le texte mais
@@ -278,9 +412,17 @@ personnages présents (`esprits_interlocuteurs`) n'est pas un fondement pour la 
 nom connu seulement par leurs croyances n'est admis que dans une réplique, entre guillemets.
 Ce qu'un personnage croit ne se dit que par sa bouche.
 
+> **Transitoire — G2 et lots de rendu :** reprises de l’ancienne voie. **Caduque sous la cible —
+> G8 :** réviser ou sauver une ambiance refusée ; la sortie entière sera jetée sans relance. La
+> sauvegarde avant affichage reste valable.
+
 Une réponse refusée est révisée au plus deux fois ; aucun texte refusé n'est affiché. Après
 trois échecs, le jeu affiche une phrase sûre du moteur. La réponse acceptée, ses paroles et
 ses ambiances sont enregistrées et sauvegardées avant l'affichage.
+
+> **Statut G0.** Reste valable : cause unique, reçu et attendu privés, incertitude de l’auditeur
+> explicite. Transitoire : usages narratifs jusqu’aux rendus G4 à G7/G15 à G20 ; fidélité jusqu’au
+> bilan G21. G12/G13 gardent les refus d’admission nécessaires.
 
 **Ce que le MJ reçoit d'un refus d'audit** (branche `audits-attendu`). Un refus d'audit suit le
 contrat des refus du moteur (`donjon/refus.py`) : un `motif`, la règle, et un `attendu`, qui dit
@@ -295,6 +437,9 @@ illisible (`refus.RapportIllisible`) ne reproche rien au texte : son `attendu` l
 relance reçoit tous les refus du tour dans `controle_narratif`, et la contre-revue d'action passe
 par `retour_moteur` comme un refus du moteur. Ni le motif ni `attendu` ne s'affichent : un texte
 refusé n'est jamais montré, et le repli ne cite que le moteur ou des phrases admises.
+
+> **Statut G0.** Reste valable : candidats désignables projetés, distincts de l’accès matériel.
+> G2/U-D conservent le contrat commun des refus.
 
 **Cibles proposées par un refus** (`codex-attendu-designable`, lot 65). Toute liste
 d'entités acceptables passe par `refus.cibles` : contraintes du geste, puis
@@ -328,6 +473,10 @@ peut également être cité, sans affirmer qu'il est présent ici.
 | contre-revue d'action (`couverture_action.verifier`) | plan non conforme | titre, action et cible du plan, motif de la revue |
 | rapport illisible | — | « aucune phrase n'est en cause » |
 
+> **Statut G0.** Reste valable : adresse, auditeurs et issue sont moteur. Transitoire — G15/G16 :
+> dépendance entre répondants et narration ; une émission entendue ne se réduit pas à une réponse
+> adressée.
+
 **Ce que dit une parole de Corvus validée** (branche `parole-corrections`). `conversation_validee`
 porte `issue`, la phrase du moteur sur ce qui a eu lieu (Corvus a dit ces mots, à qui, qui lui
 répond, qui l'a entendu sans être interpellé ; « Aucune réponse ne te parvient » sinon), ajoutée aux
@@ -338,6 +487,9 @@ entendue et ont choisi de répondre (`paroles.repondants`). Seuls ceux de `repon
 mesurent : `a_portee_de_main` (toucher d'ici), `a_portee_de_voix` pour un personnage ; la salle,
 `sorties_connues`, avec leurs positions relatives en mètres (n'en connaître aucune n'atteste pas qu'il n'y en a pas).
 
+> **Statut G0.** Reste valable : rôles, soldes et connaissance publique. G17/U-P/K1 conservent les
+> termes ; réclamer reste un acte potentiellement opérant.
+
 **Comptes et sens** (`codex-sens-dette`). `biens.compte` décrit un compte par `debiteur`,
 `creancier`, `objet` (vide pour les pièces), `montant` et `etat` (`du`, `rendu`, `absent`). Pour
 un prêt, le débiteur est l'emprunteur, le créancier est le prêteur. Le MJ reçoit les comptes
@@ -347,6 +499,10 @@ quantité effectivement rendue, solde encore dû, ou absence dans le sens demand
 monétaire ne conclut rien sur les objets prêtés. Le contenu `reclamer` conserve son contrat :
 le destinataire doit à Corvus ; une question d'existence ainsi typée peut déclencher le
 règlement existant, elle n'est pas devenue une consultation sans effet.
+
+> **Statut G0.** Reste valable : phrases comptables déterministes obligatoires, sauvegardées avant
+> affichage. Transitoire — G17 : garde grammaticale des répliques comptables libres ; le moteur
+> formule le contenu fixé.
 
 **Comptes écrits par le moteur et paroles compatibles (lots 180, b et c).**
 `comptes_narratifs.phrases` écrit une phrase naturelle à la deuxième personne
@@ -380,11 +536,18 @@ est obligatoire, leur preuve exacte recalculée par `textes_etablis/segments_eta
 et leurs contrôles répétés par `consigner`, repli compris. Le schéma d'audit
 ne contient plus `comptes` ; ses anciens champs sont ignorés.
 
+> **Statut G0.** Limite transitoire de la garde comptable libre — G17. Elle ne doit pas être
+> présentée comme une preuve exhaustive ; les autres limites sémantiques subsistent sur leurs
+> voies non portées.
+
 **Limite.** La reconnaissance grammaticale reste bornée : les constructions
 implicites ou complexes hors de cette grammaire peuvent échapper au contrôle
 ou rester ambiguës. L'identification exhaustive des comptes en français libre
 n'est pas garantie. Les autres contrôles mécaniques restent en partie
 sémantiques. Les essais 117/117 b/117 c et 168 demeurent abandonnés.
+
+> **Statut G0.** Reste valable : transferts collectés sur copie et comptes publics persistants.
+> G17 conserve les phrases moteur ; K1 ne paie pas un brouillon.
 
 **Comptes de l'issue** (`codex-comptes-issue`, lot 73). Les paiements et remises
 sont collectés par leurs opérations, dans la copie transactionnelle de la conversation ;
@@ -398,6 +561,9 @@ n'est exposée, aucun journal technique supplémentaire n'est sauvegardé.
 Depuis le lot 180, ces comptes ont leur texte moteur propre, obligatoire et prouvé
 exactement avant affichage et enregistrement. L'extraction comptable par l'auditeur
 est supprimée ; les limites de la garde sur la prose libre sont dites ci-dessus.
+
+> **Statut G0.** Reste valable : offre, dette et réalisation sont distinctes. Transitoire — G17 :
+> appui à une reformulation libre ; K0/K1/K2 utilisent les mêmes termes typés.
 
 **Offres conditionnelles** (`codex-prime-offre`, lot 67). Le dossier `comptes.offres`
 sépare les contreparties promises des soldes exigibles : `etat: offre`, `debiteur`
@@ -420,6 +586,10 @@ intermédiaire sauvegardé ; son paiement est fourni comme compte `rendu` au ré
 du résultat. Les autres jugements de portée et d'engagement restent sémantiques ;
 la lecture grammaticale comptable a les limites décrites ci-dessus.
 
+> **Statut G0.** Reste valable : aucun appel sans effet utile, nom déclaré, citation exacte et
+> absence de double rendu. Transitoire — G2 : unique essai d’explication ; G1/U-P/U-C puis G21 :
+> revue du libre à effets. Les répliques fixées passent à G15–G19.
+
 **Ce qui n'appelle pas de relance** (branche `relances-luna`). Un appel au MJ ou à l'auditeur qui ne
 peut rien changer à ce que lira le joueur n'est pas fait :
 - un avis (`clarifier`, `impossible`) que la boucle de décision écartera avant de le lire (un
@@ -439,6 +609,10 @@ peut rien changer à ce que lira le joueur n'est pas fait :
 - un geste fait au joueur (on lui remet un objet, on lui réclame le sien) lui est dit une fois, à la
   deuxième personne ; son ouïe ne le lui redit pas à la troisième (`ouie.retentir`, `appris`).
 
+> **Reste valable :** gardes de voix et de références. **Transitoire — G1/U-P/U-C puis G21 :**
+> consignes de contre-revue du libre à effets ; G15–G19 remplacent la formulation libre des
+> réponses typées.
+
 Ce que le contrôle déterministe exige du texte est aussi dit au MJ, une fois (`narration.REGLE_NARRATION`) :
 deuxième personne, ni « je » hors des répliques, ni Corvus, joueur, moteur, MJ, scénario, faits ou
 données ; une voix inconnue désignée par son nom d'interlocuteur ; une réplique qui ne nomme que qui son
@@ -447,6 +621,10 @@ contre-revue d'action sait que chercher ou fouiller se fait par une perception s
 (la règle même que le moteur prescrit à un arbitrage d'observation) ; l'auditeur, que dire un témoin
 silencieux est attesté, que les mots de qui répond ne sont jamais fournis par les faits, et que ce que
 fait sentir un objet perçu dans son état (le feu allumé qui crépite) est ambiance.
+
+> **Statut G0.** Reste valable : perception exécutée, résultat moteur sauvegardé et question
+> distincte. Transitoire — G1/U-P/U-C, bilan G21 : revue de la perception proposée dans le libre ;
+> G5 achève son rendu canonique.
 
 **Une perception est un geste complet** (branche `codex-perception-geste`). La table
 `moteur.PERCEPTIONS` déclare les perceptions du moteur ; `Plan.perception` en donne l'opération
@@ -460,6 +638,9 @@ déjà le rendu de ce qui est perçu et ne demande pas une seconde rédaction et
 La règle distincte de
 `commandes.PERCEPTIONS`, qui borne l'exécution immédiate d'une question, reste inchangée.
 
+> **Statut G0.** Reste valable : vue, souvenir et recherche ont des portées distinctes. G5 rend
+> ces constats ; G12 interdit de remplacer une recherche par un ajout.
+
 **Vue courante et perception active** (branche `codex-absence-vue`). Le fait `perception`
 porte `objets_visibles`, la liste exhaustive des objets vus maintenant (`objet:<id>` avec
 `visible=true`), avec l'éclairage courant. Une absence limitée à cette vue (« tu ne vois pas
@@ -468,6 +649,10 @@ aucune absence dans toute la salle, derrière une porte, dans un contenant ferm�
 champ de vision ou dans le noir. Un objet accessible avec `visible=false` ou un souvenir
 ne fait pas partie de cette vue. La portée se juge sur l'affirmation, même si la demande
 du joueur propose de chercher ; répondre sur la vue actuelle n'exécute pas ce geste.
+
+> **Statut G0.** Reste valable : couverture déterministe et absence de preuve par omission.
+> Transitoire — G5 : audit d’absence en prose ; G12/G13 : admission des ajouts, avec revue ciblée
+> si non calculable.
 
 **Non-perception et absence** (`codex-absence-noir`, lot 102). Le dossier commun
 porte aussi `perception.couverture_vue` : salle courante et portée `aucune`,
@@ -507,12 +692,19 @@ d'un geste ni à l'absence d'un élément mécanique. La reconnaissance de ce se
 et le jugement de fidélité de la revue restent sémantiques : ce contrat ne garantit pas
 l'absence de toute mauvaise classification par Luna.
 
+> **Statut G0.** Limite toujours valable pour la prose libre. Transitoire — G5/G8/G14 : le rendu
+> mécanique ne dépendra plus du classement narratif ; la matérialisation reste antérieure au
+> geste. Aucune cohérence sémantique universelle annoncée.
+
 **Ce qui reste probabiliste.** Le classement des segments par l'auditeur. Une affirmation
 mécanique fausse formulée sans nom d'entité (« la pièce est plongée dans le noir » alors
 qu'elle est éclairée), ou un objet manipulable présenté comme ambiance, dépend de son
 jugement. Le banc de parties (`tools/banc_parties.py`) mesure ce résidu. Un élément
 d'ambiance ciblé par le joueur doit être matérialisé ou déclaré non manipulable : voir la
 matérialisation à la demande, quand elle sera en place.
+
+> **Statut G0.** Reste valable : géométrie publique et souvenir sans position cachée. Transitoire
+> — G6 : repères mécaniques paraphrasés ; G8 conserve les gardes avant publication de l’ambiance.
 
 **Repères et regard courant** (`codex-orientation`, lot 61). La localisation publique de chaque
 objet porte `orientation_relative` : les demi-plans `devant`, `derriere`, `gauche`, `droite`,
@@ -543,6 +735,10 @@ une voix d'auteur : une décision de personnage se raconte aussi hors des répli
 vocabulaire du jeu déjà contrôlé (moteur, MJ…) établit indépendamment la voix de procédure ;
 « proposition » peut aussi désigner une offre dans la fiction. Un emploi ambigu reste sémantique.
 
+> **Statut G0.** Reste valable : effet perçu distinct de source visible. Transitoire — G5 :
+> extraction narrative des contributions, remplacée par le rendu moteur. G8 garde la projection
+> publique pour l’ambiance.
+
 **Effet lumineux et vue de la source** (`codex-gardes-justes`, lot 74). Les contributions
 du moteur portent séparément `effet_percu` et `source_visible` dans les faits transmis au MJ.
 Un niveau positif établit l'effet lumineux ici, même si la source est hors de vue ; il
@@ -555,11 +751,18 @@ Les anciens rapports sans cette extraction restent lisibles. L'extraction et le 
 sémantiques peuvent encore omettre une affirmation ou refuser à tort un effet pourtant
 établi : la comparaison typée ne garantit pas à elle seule toute prose française.
 
+> **Statut G0.** Limite toujours valable du garde lexical. G6 remplace les paraphrases de position
+> mécanique ; G8 ne prétend pas prouver tout français libre.
+
 **Limite du lot.** La comparaison géométrique et le contrôle de ces locatifs sont déterministes,
 mais ils ne constituent pas une analyse générale du français : une direction implicite ou
 une autre paraphrase, la portée temporelle et le sens d'un pronom restent soumis à l'audit
 sémantique. Des formulations correctes à plusieurs cibles ou avec négation peuvent demander
 une révision. L'invariant pour toute prose arbitraire n'est donc pas garanti par ce garde lexical.
+
+> **Statut G0.** Reste valable : garde commun de voix, personne du récit et provenance.
+> Transitoire — G8 : révision et arbitrage dans la boucle bloquante ; contrôle en fond et rejet
+> entier sous la cible.
 
 **La preuve reste interne** (branches `codex-ambiance`, `codex-mots-courants`). Le récit dit
 ce que tu perçois, sais ou supposes. Le garde lexical exige un emploi technique, et non
@@ -592,6 +795,11 @@ explicite. La distinction grammaticale n'épuise pas les emplois polysémiques e
 paraphrases ; cette limite ne retire pas les refus historiques du contrat d'ambiance.
 
 ### Parole, références et audit après les noms (`codex-luna-noms`)
+
+> **Reste valable :** adresse commune, références publiques, mots imposés,
+> audibilité et enregistrement. **Transitoire — G1/U-P/U-C, bilan G21 :** revue
+> des actes à effets du libre. **Transitoire — G15 à G19 :** extraction narrative
+> des répliques et présentations ; le moteur formulera le contenu qu'il fixe.
 
 Le moteur fixe seul l'adresse : nom ou vocatif, groupe explicite, suite d'un échange.
 Sans adresse ni échange à poursuivre, il choisit celui d'en face ; à égalité, le joueur
@@ -665,6 +873,10 @@ contrôle ; l'interprétation et ses gardes de références restent nécessaires
 que le parseur traite comme parole conservent ce contrat : leur contenu n'est pas analysé
 comme une liste de cibles. Les formulations mixtes gardent donc une part sémantique.
 
+> **Statut G0.** Reste valable : information publique sans présence ni effet. Transitoire —
+> G1/G5/G16 : réponse mécanique libre et audit ; aucune position ou intention privée ne devient
+> accessible.
+
 **Questions sur un absent connu** (`codex-question-absent`). Le nom doit toujours être relié,
 mais une demande d'information ne requiert pas sa présence : elle va au MJ avec les seuls
 faits publics habituels (souvenirs, bruits, signes reçus), puis son audit et sa sauvegarde
@@ -698,6 +910,11 @@ approche d'improvisation (`effort`, `adresse`…) reste une donnée structurée 
 ne devient plus le libellé narratif du geste.
 
 ## Noms et identité perçue (branche `codex-noms`)
+
+> **Reste valable :** noms appris, références opaques, identité revendiquée
+> distincte du corps et contrôle de provenance avant sauvegarde. G1/U-D et
+> G15/G16 conservent ces garanties. **Transitoire — G15/G16/D0 :** paquet privé
+> de formulation et présentation extraite par audit ; jamais au compilateur.
 
 Voir une personne fait connaître son apparence, l'entendre parler sa voix. Aucun de ces deux
 faits ne donne son nom. Le nom est entendu et relié, ou déclaré comme savoir antérieur du
@@ -748,6 +965,10 @@ risque et étapes compris. Aucun substitut textuel ne tire l'apparence d'un corp
 
 ### Désignations enrichies (`codex-designations`, non fusionnée)
 
+> **Reste valable :** noyau public, ambiguïté conservée et qualificatif sans
+> autorité mécanique. **Transitoire — G1/U-P/U-C, bilan G21 :** dossiers de revue
+> du libre à effets. G8/G12/G13 gardent l'admission et les gardes de qualificatifs.
+
 Le noyau d'une désignation publique et les qualificatifs qui l'entourent ont deux rôles
 distincts. `noms.motif_designation` reconnaît ce noyau, avec une insertion après sa tête
 nominale sans changer son complément : « la voix toute proche qui se dit Ilse » garde la
@@ -771,7 +992,15 @@ toujours l'enregistrement et la sauvegarde avant affichage, puis le contrôle à
 
 ## Contrôle des actions
 
+> **Reste valable :** le moteur prépare, valide et revalide chaque effet.
+> G2/U-D unifient les entrées. **Transitoire — G1/U-P/U-C, bilan G21 :** contrôle
+> indépendant de fidélité des actes libres à effets. Un plan valide ne le remplace pas.
+
 ### Portée des gestes (`codex-geste-hors-portee`, non fusionnée)
+
+> **Reste valable :** désignation, contact, portée et absence de déplacement
+> implicite. G2/G6/G7 et U-D conservent ces règles. **Transitoire — G1/U-P/U-C,
+> bilan G21 :** revue du changement de position demandé dans le libre.
 
 La manière d'un geste ne change pas sa portée. Les `cibles` d'`improviser` sont les
 objets impliqués et doivent être à portée de main pour toutes les approches, comme
@@ -792,6 +1021,13 @@ reste faillible ; le contrôle de portée des cibles, lui, est déterministe.
 
 ### Précisions du contrat (`codex-luna-restes`)
 
+> **Reste valable :** repères publics, effets typés, transactions de parole,
+> qualifications avant usage et question sans exécution. **Transitoire :** détails
+> des revues de fidélité (G1/U-P/U-C puis G21), narration des marchés (G15/G17)
+> et formats d'audit narratif (G4 à G7/G15 à G20, puis G8 pour l'ambiance).
+> G12/G13 portent l'admission ciblée ; ils ne retirent pas la revue d'une propriété
+> inconnue que le moteur ne sait pas calculer.
+
 Les localisations transmises au MJ (objets, souvenirs et sorties connues) sont des repères
 calculés en mètres : le plan représente un mètre par unité. Les positions brutes des sorties
 restent privées, comme celles du joueur et des objets. Le récit n'utilise ni cases ni coordonnées.
@@ -799,6 +1035,9 @@ Le contrôle déterministe de la voix d'auteur refuse aussi le vocabulaire du qu
 écritures de coordonnées, y compris dans les répliques et les ajouts persistants ; ce contrôle
 est refait avant l'enregistrement d'une narration, d'un fait, d'un portrait ou d'un savoir. La carte technique conserve ses axes et sa
 légende : cette règle concerne la fiction affichée, pas l'outil cartographique.
+
+> **Transitoire — G1/U-P/U-C, bilan G21 :** protocole détaillé de fidélité de parole ci-dessous.
+> La couverture des effets reconnus et la séparation adresse/contenu restent requises.
 
 Depuis `codex-paiement-effectif` (lot 82), le rapport de fidélité d'une parole porte
 `operations_demandees`, `contenu_conforme` et `motif` (et le `perimetre` du lot 89).
@@ -896,6 +1135,9 @@ joueur après rechargement ; un effet réel du joueur et l'observation de la con
 pour solder la parole. Le texte libre de Luna reste soumis au contrôle narratif existant ;
 le typage d'une formulation libre en proposition n'est pas garanti.
 
+> **Reste valable — G12/G13 :** validation sur copie et revue ciblée des propriétés non
+> calculables. La revue ne migre pas vers l’ambiance.
+
 Toute qualification physique passe d'abord par la validation déterministe sur copie (ancrage,
 propriété encore libre, bornes, masse quand la description la détermine), puis par la revue de
 plausibilité. Celle-ci reçoit les propriétés connues, dont la description physique, le contenu
@@ -913,6 +1155,9 @@ geste garde la voie de qualification puis réexamen lorsque la mécanique la dem
 mais omis du plan, gardent leur voie de correction. Si Luna commence par une qualification valable, elle est enregistrée avant la fiche
 et le geste est réexaminé selon le contrat existant.
 
+> **Reste valable :** admission avant usage, suite revalidée et question sans geste. **Transitoire
+> — G12/G13 et U-P/U-C :** orchestration et compte de trois appels, qui n’est pas une borne cible.
+
 `etablir_faits` porte, à côté des `ajouts`, une `suite` nullable, proposition du geste
 demandé quand elle n'est pas nulle. Pour une question de faisabilité, le moteur exige
 ce geste avant tout ajout si Luna choisit d'établir des faits (lot 158) : le schéma
@@ -926,12 +1171,18 @@ de contrôle ni demander une nouvelle interprétation. Cette composition vaut po
 faits, pas seulement pour la forme d'un obstacle. Les propositions incorrectes peuvent encore
 demander une correction ; trois appels n'est pas une borne absolue en présence d'erreurs du MJ.
 
+> **Reste valable :** omission distincte de contradiction. **Transitoire — G8 :** demande de
+> rapport et réécriture d’ambiance ; la cible contrôle en fond puis jette en cas de doute.
+
 L'absence d'un fait ne prouve pas son contraire. Un verdict narratif `contradictoire` doit citer
 au moins une source fournie : sans elle, le rapport est redemandé à l'auditeur avant toute
 demande de réécriture au MJ. L'ambiance libre compatible avec l'état est perçue et enregistrée
 avec son lieu ; elle ne réclame pas de réserve qui la démente. La révision distingue l'inconnue
 mécanique de cette liberté sensorielle. Une source citée à tort ou une contradiction formulée
 sans élément mécanique explicite dépend encore de la lecture sémantique.
+
+> **Transitoire — G4 à G7/G15 à G20 puis G8 :** normalisation des rapports narratifs. Elle reste
+> exigée sur toute voie qui utilise encore ces rapports.
 
 Depuis `codex-rapports-illisibles` (lot 116), l'auditeur extrait la `nature`
 du segment et sa `portee_mecanique`, sans donner un second verdict indépendant.
@@ -945,6 +1196,9 @@ conserve son refus des paires incompatibles dans un ancien rapport ou un
 rapport forgé, avant publication et à la sauvegarde. Le schéma garantit
 cette cohérence de format ; la justesse du fondement reste sémantique.
 
+> **Transitoire — G1/U-P/U-C, bilan G21 :** contre-revue du libre à effets uniquement pendant le
+> portage. Le clic n’est pas réinterprété ; validité et fidélité restent distinctes.
+
 Avant l'exécution d'une action proposée par Luna, une contre-revue indépendante compare
 la demande du joueur aux opérations du plan. Elle ne juge que l'état : action et cibles,
 changement durable demandé mais absent, changement durable ajouté sans demande. La
@@ -953,6 +1207,11 @@ par l'outil et la méthode. En cas de doute, le plan est accepté : le moteur ga
 l'autorité sur chaque effet. Les conséquences affichées viennent du journal du moteur.
 
 ## Faits typés persistants
+
+> **Reste valable :** ancrage, perception, validation sur copie, citation sans
+> vérité et sauvegarde avant affichage. **Transitoire — G12/G13/D0 :** chemin
+> d'admission et revue de fragments ci-dessous. La revue résiduelle non calculable
+> reste à l'admission ; elle ne devient pas un audit du récit cosmétique.
 
 Luna peut proposer un groupe de faits structurés : détail visible, inscription ou parole. Le
 moteur vérifie les supports et locuteurs disponibles, la perception et la forme des données.
@@ -975,12 +1234,23 @@ est établi comme **texte gravé**, pas comme vérité de ce qu'il affirme.
 
 ## Ce qu'une phrase engage
 
+> **Reste valable :** intention, effet réalisé, mots entendus et vérité sont
+> distincts. **Caduque sous la cible :** une simple compatibilité de prose suffit
+> à autoriser une affirmation mécanique libre ; G4 à G7/G15 à G20 la rendent
+> depuis l'état ou une proposition typée admise. G14 porte le ciblage d'ambiance.
+
 - Une affirmation mécanique du MJ doit être compatible avec l'état déterministe. Une ambiance (une odeur, un aspect décoratif) est enregistrée avec son lieu avant affichage. Si le joueur la cible, elle doit recevoir une identité et des interactions générales, ou être déclarée non manipulable ; une gravure lisible porte son texte et les conditions de lecture.
 - Une parole attribuée à un PNJ établit que ce PNJ a prononcé ces mots, à cet endroit et à cet instant. Le contenu peut être faux. Le moteur détermine les témoins capables de l'entendre et conserve cette parole dans leur mémoire ; elle ne devient pas automatiquement une vérité du monde.
 - Une phrase du joueur établit son intention ou sa parole, pas la réussite du geste ni la vérité de ce qu'il affirme.
 - Une hypothèse, une métaphore ou une possibilité annoncée par le MJ doit rester marquée comme telle. Elle ne peut être réutilisée comme observation certaine.
 
 ## Portée des ajouts
+
+> **Reste valable :** aucune solution, capacité ou évolution clandestine.
+> G12/G13 portent les faits interactifs et G14 leur ciblage. **Caduque sous la
+> cible :** interpréter « ambiance et détail local » comme une seule voie
+> créatrice ; G8 n'admet aucune entité. L'exemple de cloche illustre un scénario,
+> sans devenir une exception du moteur.
 
 1. **Ambiance et détail local** : ajouter un fait descriptif compatible, situé et persistant, sans modifier une mission ni créer une solution.
 2. **Élément interactif** : créer ou compléter une entité du monde avec identité, position, propriétés perceptibles et actions possibles. La validation du moteur précède sa première mention affirmative.
@@ -989,6 +1259,12 @@ est établi comme **texte gravé**, pas comme vérité de ce qu'il affirme.
 Le Relais des crues désigne une cloche précise comme objectif. Une seconde cloche peut exister si une évolution de l'histoire le justifie et si l'état de la mission est mis à jour explicitement. Une seconde cloche affirmée dans la prose est une `invention_protegee`.
 
 ## Objets, capacités et évolutions
+
+> **Reste valable :** identité, support, capacités typées, limites physiques,
+> évolution déclarée et persistance. G12/G13 portent l'admission commune et la
+> reprise de saisie ; G14 la matérialisation avant usage. La revue des propriétés
+> non calculables reste ciblée à l'admission. **Transitoire — U-P/U-C, bilan G21 :**
+> représentation du dépôt dans la contre-revue du libre à effets.
 
 Poser au sol utilise `destination: "sol"` pour `deplacer`, `prelever`, les
 séquences et les effets d'improvisation. Le compilateur résout ce repère relatif
@@ -1075,6 +1351,10 @@ simulées qui contredisent volontairement l'état du monde.
 
 ## Réplique directe du joueur (lot 138)
 
+> **Reste valable :** mots imposés exacts et absence de parole inventée au secours.
+> **Transitoire — G1/U-P/U-C, bilan G21 :** transposition et revue de fidélité
+> des actes libres à effets. U-D dispense une parole structurée de réinterprétation.
+
 `paroles.SENS_REPLIQUE` définit le même contrat pour le schéma d'interprétation,
 les règles de parole et la revue de fidélité : `replique` contient les mots
 prononcés au discours direct. Un cadre narratif introducteur de parole doit être
@@ -1090,6 +1370,16 @@ sémantiques ; l'invariant général n'est pas garanti pour toute formulation li
 
 ## Refus et échecs
 
+> **Reste valable :** refus avant action, une cause par refus, `attendu` privé
+> et message public du moteur. **Transitoire — G2 :** correction et explication
+> narrative après refus. Cette explication est **caduque sous la cible** ; aucun
+> retrait avant le portage de sa voie. Les revues de parole restent en filet
+> sur le libre à effets (G1/U-P/U-C, bilan G21).
+
+> **Statut G0.** Reste valable : refus public direct, attendu privé, aucun geste ni déplacement
+> implicite. G2 généralise la séparation validation/refus sans transformer le premier refus en
+> preuve de toute la suite.
+
 **Portée locale** (lot 151, `codex-portee-locale`). Une proposition refusée par
 `HorsDePortee` reçoit directement `reponse_du_moteur(exc)` : le joueur lit
 le message exact « Approche-toi… », sans explication de Luna ni audit narratif.
@@ -1103,6 +1393,10 @@ les cibles éloignées d’une proposition composée. Les contrôles situés apr
 ce refus n’attestent pas non plus que toute la suite serait valide au contact.
 
 
+> **Statut G0.** Transitoire — G1/U-P/U-C, bilan G21 : obligations de correction et secours pour
+> les actes libres à effets. Reste valable : aucune opération non admise des copies ne passe dans
+> le monde.
+
 **Opérations de parole contestées** (lot 104). Une contre-revue qui refuse le
 sens du contenu ne confirme pas les opérations présentes dans ce contenu,
 même si elle les coche aussi dans `operations_demandees`. Elles restent des
@@ -1112,6 +1406,9 @@ ne sont pas effacées ; une déclaration candidate non examinée n'en crée pas.
 Sans obligation ni opération restant à examiner, le secours peut
 prononcer les mots exacts du joueur sans contenu typé. Le choix sémantique
 des opérations reste probabiliste ; cette règle ne certifie pas leur sens.
+
+> **Statut G0.** Reste valable : schéma et validateur partagent les champs et leur sens. G1/G2/U-D
+> conservent les refus sans effacer de charge.
 
 **Forme des contenus de parole** (lot 96, `codex-relances`). Le schéma
 d'interprétation est dérivé de `paroles.CHAMPS_CONTENU`, comme le validateur :
@@ -1123,6 +1420,10 @@ un champ interdit reçoit toujours le refus de forme avec son `attendu` ; le mot
 n'efface aucune charge pour faire passer une proposition. Cette contrainte évite
 les corrections de forme de cette famille avec une sortie conforme au schéma,
 sans garantir le choix sémantique du type ni la fidélité de la parole.
+
+> **Statut G0.** Reste valable : disponibilité crue distincte de remise et absence mondiale.
+> G1/G16/U-D gardent ce sens. Transitoire — U-P/U-C, bilan G21 : revue sémantique du libre à
+> effets.
 
 **Sens partagé d'une demande de ressource** (`codex-ressource`). Le contenu `ressource`
 demande une disponibilité, sans remise, achat ni promesse. Son `sujet` conserve le bien
@@ -1138,6 +1439,10 @@ bien précis. `paroles.SENS_CONTENU`, le schéma et `sens_contenu` donnent ce m�
 à l'interprétation et à la contre-revue. Celle-ci peut toujours refuser un autre bien
 ou un élargissement de sens ; la correction littérale est acceptée par le moteur.
 Le choix sémantique du contenu et le jugement de fidélité restent probabilistes.
+
+> **Reste valable :** refus technique privé et absence d’effet avant exécution. **Transitoire — G2
+> :** nombre d’essais et explication finale par Luna ; la voie portée rend directement la raison
+> moteur.
 
 Un refus de forme (`refus.RefusDeForme` : un champ, une borne, la mauvaise action, « impossible »
 sans réexamen) ne dit rien du monde : il revient au MJ avec son `attendu`, avec une correction à

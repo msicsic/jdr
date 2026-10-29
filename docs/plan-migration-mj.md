@@ -1,5 +1,44 @@
 # Plan de migration — narrateur libre, moteur souverain
 
+> **G0 — 29 octobre 2026 : plan historique.** Le [contrat adopté](../AGENTS.md#contrat-du-mj)
+> et la [feuille de route unique](plan-refonte-mj.md) remplacent son ordre de travail.
+> Une voie non portée garde ses contrôles. Les phases décrites ci-dessous restent
+> disponibles pour la transition ; leurs états sont datés du 17 octobre.
+>
+> - **Phases 0, 1 et 2 : acquis repris.** Archives de mesure, vérités séparées
+>   et transactions sur copie. G0 aligne le contrat écrit ; G2 porte la validation.
+>   La proposition historique pour `AGENTS.md` en phase 1 n'est plus la cible.
+> - **Phase 3 reportée : pas de reprise globale.** G12/G13 reprennent l'admission
+>   commune des faits et leur validation. L'unification de tous les modes reste
+>   sans nécessité établie. Fusionner les audits n'est pas un objectif acquis.
+>   Une propriété non calculable garde sa revue ciblée à l'admission.
+> - **Phase 4 : remplacée par famille.** G4 à G7/G15 à G20 rendent le mécanique
+>   et les répliques fixées par le moteur. Noms, références et provenance restent
+>   contrôlés. G8 à G11/U-A remplacent la boucle cosmétique bloquante par le fond,
+>   avec contrôle avant publication et rejet entier sans relance si doute.
+> - **Phase 5 : reprise par G14 après G12/G13.** Matérialiser une seule fois
+>   avant manipulation, ou déclarer non manipulable ; reprendre l'intention.
+> - **Phase 6 reportée : reste hors du portage.** La boucle générale d'outils
+>   n'est un préalable ni à G1/G2 ni aux menus directs. Les corrections typées
+>   et bornées ne demandent pas cette réécriture globale des simulations.
+> - **Phase 7 : remplacée par G1/G3.** Petit compilateur public, sources stables
+>   et contrat de transport commun ; pas d'élagage isolé du prompt monolithique.
+> - **Phase 8 : caduque sous la cible pour le mécanique.** G4 à G7/G15 à G20
+>   remplacent le récit de résultat par le moteur. Les contrôles actuels restent
+>   tant que chaque voie n'est pas portée. Luna garde l'ambiance et le contenu
+>   de dialogue inédit admis par D0.
+> - **Phase 9 : budgets d'invention conservés dans G12/G13/G14.** G8 à G11/U-A
+>   portent l'ambiance distincte ; aucun habillage ne crée d'entité.
+> - **Phase 10 : mécaniques existantes conservées.** Leur extension reste un
+>   chantier distinct. G1 et les lots sociaux gardent les interactions actuelles.
+>
+> Le mécanique ne repose plus, à la cible, sur la seule compatibilité d'une prose
+> libre avec l'état. La fidélité du libre à effets garde son filet de transition
+> avec U-P/U-C, puis décision de retrait sur mesure à G21. Le clic n'est pas
+> réinterprété. Le protocole de chaque phase ci-dessous est historique : les lots
+> suivent désormais les vérifications ciblées de la feuille de route. Aucun test
+> de jeu, appel à Luna ou banc dans G0.
+
 Ce plan applique la revue du 17 octobre 2026. Il remplace l'invariant « chaque phrase
 affichée reproduit une attestation du moteur » par « le MJ n'affirme rien que le moteur
 ne puisse honorer ». Le moteur garde l'autorité sur l'état ; Luna retrouve sa voix.
