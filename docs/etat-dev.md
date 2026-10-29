@@ -2,33 +2,35 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 337 clos non validé, branche `codex-fin-garde-ouidire`, non fusionnée**,
-  base `integration 9bef3f6` : propriétés de fin de garde transmises par les
-  nouvelles communes des PNJ, avec droits datés, source et poids de ouï-dire.
-  Identité distincte des accusations de portage ; aucune permission réelle
-  relue à l'adoption. Fin matérielle et désignation observée conservées après
-  retrait des restes ; preuve négative datée contre un ancien récit après
-  réparation, sans nouveau moyen de recherche. Publication différée commune.
-  **196/196 tests, quinze fichiers**, zéro échec/erreur/saut, 132,735 s ;
-  quatorze nouveaux parcours, monde/rendu/scène rechargés, laps entier/découpé.
-  **19/20 nuits de 4 h conformes**, cinq scénarios × quatre graines, aucun
-  plantage/usurpation. Suspects 219 **0 → 0 sur dix-neuf nuits, 0 → 1 dans
-  crue/7** : Gorm, brasero → rejoindre Aubin → brasero, t=69945/70200/70426.
-  Retrouvailles publiées, mais aucune preuve admise par l'audit pour ce
-  `rejoindre` ; piste de défaut d'observation, **aucun reclassement**,
-  seuil du brief non acquis. Constats confiés **148 → 522**, avertissements
-  redits **8 → 27**, bascules **0 → 2**, à expliquer **43 → 51**, dérives
-  **436 → 410**, vols tentés **3 → 4**. Aucune fin d'agenda « bien cru … »
-  au banc : voie vérifiée par les tests seulement, aucun gain général annoncé.
-  Référence exacte 9bef3f6 : vingt nuits absentes calculées/rangées une fois,
-  aucune disponible relancée ; deux travailleurs réduits, tests réutilisés
-  après contrôle des empreintes. Joueur exclu faute de relations subjectives.
-  Ni Luna ni suite complète ; **aucun calcul actif**. Recouvrements 335/336 :
-  `agendas.py`, `planification.py`, documentation. Bruts
-  `C:/Users/msics/donjon/artifacts/garde-337/` : `cibles-finales/fin.json`
-  **ok=true**, **`banc-final/fin.json ok=false`**, 1 149,189 s, échec conservé ;
-  analyse `analyse-cloture.json`. Code/tests `e2822a1` inchangés, branche
-  poussée vers origin ; confidences et alerte 219 à instruire avant validation/fusion.
+- **Lot 337 repris après synchronisation, branche `codex-fin-garde-ouidire`,
+  non fusionnée** : `origin/integration ad0e5a8` fusionnée sans rebase,
+  commit à deux parents `8ddef70`. Preuve négative de fin du 337 et dépendances
+  des offres `offrir` du 336 conservées dans `_croyances` ; ajouts des deux
+  côtés dans `planification.py`, `tests/support.py` et documentation conservés.
+  **219 diagnostiqué : reprise légitime**, crue/7, Gorm brasero → rejoindre
+  Aubin → brasero à t=69945/70200/70426. Rejeu de cette seule nuit après
+  fusion : chronique/récit/souvenirs identiques aux archives, **68 captures**
+  rechargées monde/rendu/scène identiques, 57,036 s. Clôture réelle des deux
+  moitiés du rendez-vous à t=70426 ; plan repris `engager Aubin`, déjà prévu,
+  admissible. La sonde omettait `rejoindre` ; preuve commune désormais
+  symétrique, **moteur inchangé**. Neuf clôtures capturées rejouées, mêmes
+  mondes/rendus/scènes ; certification par la preuve publiée : **1 brut → 0
+  suspect**, `rendez_vous_intermediaire_accompli`. Témoin rouge puis tests
+  attente/déplacement verts, expiration et interlocuteur non utilisé négatifs.
+  **32 fichiers ciblés après fusion en cours**, deux travailleurs réduits,
+  PID réel 48764 vérifié, fin `fusion-validation/fin.json` écrite en dernier
+  même sur échec. Résultats initiaux distincts : 196/196
+  tests, quinze fichiers ; vingt nuits 4 h, zéro plantage/usurpation, 19/20
+  conformes brutes, suspect crue/7 conservé puis certifié. Aucun autre banc
+  rejoué ; moteur inchangé, pas de deuxième graine requise. Constats confiés
+  148 → 522, avertissements redits 8 → 27, bascules 0 → 2 : limites conservées,
+  aucun gain général. PNJ seulement, joueur sans relations subjectives ;
+  aucune fin de garde naturelle au banc. Ni Luna ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/garde-337/` : `rejeu-219/fin.json`
+  **ok=true**, preuves `fusion-validation/classification.json` ; anciennes
+  fins et analyse initiale conservées. Recouvrements 335/336 : `agendas.py`,
+  `planification.py`, `tests/support.py`, documentation. Source fusion/sonde
+  `6ebf13d`, branche poussée ; bilan des tests à lire avant clôture.
   [Rapport 337](taches/rapport-codex-337-fin-garde-ouidire.md).
 
 - **Lot 336 terminé, branche `codex-occasion-protection`, fusionnée**,
