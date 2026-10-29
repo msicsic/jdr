@@ -1646,6 +1646,9 @@ def executer(monde, id, etape, lignes):
                          {"type": "pieces", "montant": contenu.get("prix", 0)}):
             return False
     transmis = []  # Ce que la parole transmet à qui l'entend sans en être le destinataire.
+    if op == 'demander' and contenu.get('cause_detresse'):
+        from .causes import demander
+        return demander(monde, id, autre, lignes)
     reponse, dite = "", True  # Ce que l'autre y répond, et s'il le dit de sa voix.
     if op == "dire" and "annulation" in contenu:
         return annoncer_abandon(monde, id, autre, contenu["annulation"], lignes)

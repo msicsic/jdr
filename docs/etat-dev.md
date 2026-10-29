@@ -2,6 +2,25 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 330 en vérification, branche `codex-demander-cause`, non fusionnée**,
+  base fournie `f08ef58` : une question de cause peut précéder le secours de
+  proximité ; réponse depuis les seules croyances datées du proche, parole
+  commune, ouï-dire pondéré et recours existants. Réponse retenue hors des
+  quarante souvenirs, aucun réessai au seul délai ou estompement relationnel.
+  **Dix nouveaux tests verts**, Relais/mine après coups réellement exécutés,
+  capture réelle de crue, refus/inconscience/croyances fausses/tiers ; monde,
+  émissions, scène et rendu final rechargés, laps entier/découpé contrôlés.
+  Reprise de l'inconscience physique seule verte après ajustement de fixture.
+  PNJ seulement ; schéma MJ et voie joueur inchangés. Recouvrement 326/G17 :
+  documentation seulement. **Tests voisins et banc encore en attente** :
+  lanceur détaché `tools/valider_cause_330.py`, quatorze fichiers ciblés puis
+  4 h × cinq scénarios × quatre graines, deux travailleurs réduits au plus.
+  Référence exacte `f08ef58` : cache consulté, nuits de 4 h absentes à remplir
+  une fois ; aucune référence disponible relancée. Ni Luna ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/cause-330/`, fichier final `fin.json`
+  écrit en dernier même sur échec. Aucun verdict de conformité du banc annoncé.
+  [Rapport 330](taches/rapport-codex-330-demander-cause.md).
+
 - **Lot 327 / G19 terminé, branche `codex-g19-rappels`, fusionnée**, base
   `integration eb15b5e` : rappels exacts reliés aux occurrences entendues
   du registre G15, provenance et absence revérifiées avant sauvegarde.
