@@ -53,9 +53,10 @@ class AutoriteHameauTests(unittest.TestCase):
             for b in esprits.pnjs(m):
                 if a != b:
                     self.assertEqual(relations.axes(m, a, b)['ascendant'], liens.get((a, b), 0))
-        # Aucun mandat ni projet social n'est ajouté par ces données.
+        # L'autorité ne distribue aucun mandat ; le scénario déclare désormais
+        # la responsabilité d'évacuation (306), distincte d'une attribution.
         self.assertEqual(banc_pnj.mesures_mandats(m)['mandats_proposes'], 0)
-        self.assertFalse(any(a['sorte'] in ('amener', 'informer')
+        self.assertFalse(any(a['origine']['type'] == 'mandat'
                              for q in esprits.pnjs(m) for a in agendas.projets(m, q)))
 
     def test_profil_incoherent_refuse_et_limite_statut(self):

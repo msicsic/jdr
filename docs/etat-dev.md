@@ -2,6 +2,21 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-a5-agenda-hameau`, lot 306, non fusionnée**, base
+  intégration `7ec839e` : agenda `evacuer_crue` de Gorm rétabli en données,
+  même charge que la crue, vers `chambre_cloche`, étendue à Maël et Sève
+  en plus d'Ilse et Brune. Aucun mandat initial, lien ou savoir ajouté ;
+  aucun moteur/MJ modifié, aucune charge `informer` sans justification.
+  **45 tests distincts / sept fichiers verts**, monde/scène/rendu/écoute
+  rechargés, accords et marches réels Maël/Sève, temps continu/découpé.
+  **Calcul détaché en préparation** : crue empreintes 2 h × quatre graines,
+  hameau banc 4 h × quatre graines contre `7ec839e`, cache commun, deux
+  travailleurs réduits. Résultats longs encore à établir, aucune stabilité
+  ou réussite générale revendiquée. Bruts et fichier de fin attendu :
+  `C:/Users/msics/donjon/artifacts/agenda-hameau-306/fin.json`.
+  Ni Luna ni suite complète ; ne pas relancer si le calcul est actif.
+  [Rapport 306](taches/rapport-codex-306-a5-agenda-hameau.md).
+
 - **Branche `codex-a5-donnees-hameau`, lot 302 / A5.11, fusionnée**,
   base intégration `79beaf1` : statut local de Gorm connu de lui-même,
   Aubin, Brune et Ilse ; ascendants Aubin→Gorm 60, Maël→Aubin 30 et
