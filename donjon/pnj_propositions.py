@@ -497,9 +497,15 @@ def recours(monde, id, besoin, etapes):
         demande = demande_utile(monde, id, demande)
         if demande is None:
             continue
-        if (autre not in _connus(monde, id) or not monde.objets.get(autre, {}).get("profil")
-                or salle_crue(monde, id, autre) != monde.objets[id]["lieu"]):
+        if autre not in _connus(monde, id) or not monde.objets.get(autre, {}).get("profil"):
             continue
+        contact = None
+        if salle_crue(monde, id, autre) != monde.objets[id]["lieu"]:
+            from .planification import Vue, depart, _appeler, _couper
+            v = Vue(monde, id)
+            contact = _appeler(v, depart(monde, id, v), autre)
+            if contact is None:
+                continue
         # Il sait où le trouver ; la marche sociale normale le rejoint au contact.
         entrees = _entrees(monde, id, autre, besoin, demande)
         cle = json.dumps(['recours_proposition', autre, besoin, demande['objet']], ensure_ascii=False)
@@ -537,6 +543,11 @@ def recours(monde, id, besoin, etapes):
             if complet:
                 retenues[cle] = avec_service if service_devise else sans_service
             continue
+        if contact is not None:
+            # L'appel sert une négociation réellement admissible. Il ne
+            # remplace pas un plan par un contact sans contrepartie possible.
+            # Le choix final de l'offre et son accord attendent la venue.
+            return _couper(contact[2])[0]
         # Prix propre de l'essai par chance d'accord, puis chance pour les ex aequo.
         _, _, terme = min(offres, key=lambda x: (-x[1] / x[0], -x[0]))
         from .propositions import demande_financee

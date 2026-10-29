@@ -788,6 +788,16 @@ class Vue:
         refus = self.retenu(autre, ("acheter", "demander"), o)
         return bool(refus and refus["raison"] not in ("refus", "pauvre"))
 
+    def achat_possible(self, e, autre, o):
+        """Un objet porté peut encore être acheté après un refus de prêt."""
+        from .pnj_propositions import offre_refusee
+        prix = self.objets[o].get("prix")
+        return bool(prix and autre != "joueur" and self.proprietaire[o] in (autre, self.id)
+                    and self.piece and not self.refuse_achat(autre, o)
+                    and self.richesse - (e.fait("depense") or 0) >= prix
+                    and not self._memo(("achat_refuse", autre, o, prix), lambda: offre_refusee(
+                        self.monde, self.id, autre, o, {"type": "pieces", "montant": prix})))
+
     def promesse(self, o, remise=None):
         cle = (o, "promesse", remise)
         crus = self._crus
@@ -1478,6 +1488,14 @@ def gestes(v, e, vises=None, but=None):
         if ailleurs:
             if v.besoin[o]:
                 yield from _parts(v, e, o, dans, vises, but)
+            elif (dans in objets and objets[dans]["type"] == "personnage" and dans != id
+                  and v.profil_de(dans) and (v.utile[o] or o in v_prendre)
+                  and v.moyen_du_but(o, noms_vises) and v.proprietaire[o] in (dans, None, id)
+                  and not v.contrarie(o) and not e.fait("cherche", dans)
+                  and (not v.refuse(dans, o) or v.achat_possible(e, dans, o))):
+                recherche = _chercher(v, e, dans)
+                if recherche is not None:
+                    yield recherche
             continue
         if v.contrarie(o):
             continue   # On s'oppose à lui sur cette chose : il n'y touche pas tant que cela tient.
@@ -1510,8 +1528,9 @@ def gestes(v, e, vises=None, but=None):
         demandable = (utile and porteur and porteur != id and (porteur == "joueur" or v.profil_de(porteur))
                       and o not in e.portes and v.proprietaire[o] in (porteur, None, id)
                       and not (v.besoin[o] and v.proprietaire[o] == porteur))
-        if (demandable and porteur != "joueur" and v.salle(e, porteur) is None and not e.fait("cherche", porteur)
-                and v.moyen_du_but(o, noms_vises) and not v.refuse(porteur, o)):
+        if (demandable and porteur != "joueur" and v.salle(e, porteur) != e.salle and not e.fait("cherche", porteur)
+                and v.moyen_du_but(o, noms_vises)
+                and (not v.refuse(porteur, o) or v.achat_possible(e, porteur, o))):
             # Il ne sait où est celui qui porte ce que le but emploie : il va le chercher, comme pour
             # une part, et l'appelle là où il ne le voit pas (``_chercher``). La suite se décide sur
             # ce qu'il aura trouvé ; la recherche l'y suppose pour la suite du plan (le lui demander,
@@ -1861,7 +1880,7 @@ def _parts_calculer(v, e, o, dans, vises, but):
                 yield (0, 1 + DEMANDE / v.chances_demandes[donneur], [_etape("demander", donneur, outil=o,
                                                 contenu={"foyer": foyer} if foyer else None)],
                        e.apres(faits=promis), 1)
-            elif (ou is None and not e.fait("cherche", donneur)
+            elif (ou != e.salle and not e.fait("cherche", donneur)
                   and (but is None or but(v, e.apres(faits=part)))):
                 # Le chercher ne sert que si sa part atteint le but.
                 recherche = _chercher(v, e, donneur)
@@ -1877,7 +1896,12 @@ def _parts_remises(v, e, o, dans, vises, but=None):
     la demande ou à l'attente, puis se refait sur la part réellement reçue. Aucune
     source du monde n'est réputée chargée à l'accord.
     """
-    repas = o in vises.get('servir', {}) and v.besoin[o] == 'faim'
+    # Pour soi, la remise supplée un service qu'on ne peut pas rejoindre ;
+    # elle ne multiplie pas les offres quand le service ordinaire est accessible.
+    # Une livraison déjà promise conserve toutefois son contrat d'attente.
+    repas = v.besoin[o] == 'faim' and (o in vises.get('servir', {}) or
+        but is not None and but(v, e.apres(faits=[(("part", o), v.proprietaire[o])]))
+        and (v.promesse(o, True) or v.salle(e, o) is None or v.route(e, v.salle(e, o)) is None))
     if o in e.portes or not (repas or "combustible" in v.objets[o].get("usages", ())) or not v.disponible(o):
         return
     donneur = v.proprietaire[o]
@@ -1890,7 +1914,10 @@ def _parts_remises(v, e, o, dans, vises, but=None):
     if not promise and v.promesse(o):
         return   # Une autre façon de servir cette part est déjà promise.
     ou = v.salle(e, donneur)
-    if ou is None and not e.fait("cherche", donneur) and not v.refuse(donneur, o):
+    prix = v.objets[o].get("prix_part", PRIX_PART)
+    achat = (v.piece and not v.refuse_achat(donneur, o)
+             and v.richesse - (e.fait("depense") or 0) >= prix)
+    if ou != e.salle and not e.fait("cherche", donneur) and (not v.refuse(donneur, o) or achat):
         recherche = _chercher(v, e, donneur)
         if recherche is not None:
             yield recherche
@@ -1903,8 +1930,7 @@ def _parts_remises(v, e, o, dans, vises, but=None):
         offres.append((1 + DEMANDE / v.chances_demandes[donneur] + attente,
                        {**_etape("demander", donneur, outil=o, contenu={"remettre_part": True}), "suppose": True},
                        1 + attente, 0))
-    prix = v.objets[o].get("prix_part", PRIX_PART)
-    if not promise and v.piece and not v.refuse_achat(donneur, o) and v.richesse - (e.fait("depense") or 0) >= prix:
+    if not promise and achat:
         offres.append((1 + DEMANDE + v.depense(prix) + attente,
                        {**_etape("acheter", donneur, outil=o, contenu={"prix": prix, "remettre_part": True}),
                         "suppose": True}, 1 + attente, prix))
@@ -1975,6 +2001,12 @@ def _estimer_remise(v, e, o, attente, offres, vises, but):
                     mesure = _mesurer(v, fin, [_etape('servir', o, contenu={'pour': pour})], fin, 1)
                     if mesure:
                         estimations.append((0, v.trajet(depuis, salle, cible=pour) + mesure[0] + mesure[1], mesure[2], 0))
+            elif v.besoin[o] == 'faim':
+                # La même part détachable que pour nourrir un tiers peut être
+                # remise au demandeur. Ni le lot inaccessible ni la faim ne
+                # changent réellement avant la livraison puis la consommation.
+                fin = depuis.apres(faits=[(("part", o), v.proprietaire[o])])
+                estimations = [(0, pnj.DUREES["manger"] / MINUTE, fin, 0)]
             else:
                 estimations = suites(v, depuis.apres(faits=[(("depense",), (e.fait("depense") or 0) + paye)]),
                                      o, vises, but or (lambda v, e: True))
@@ -1990,10 +2022,50 @@ class TransitionMesuree(tuple):
     """Transition déjà mesurée, avec sa pression intégrée en dernier terme."""
 
 
+def _appeler(v, e, sujet):
+    """Contacter un interlocuteur localisé mais inaccessible, par la recherche commune.
+
+    L'inspection locale hèle celui qu'elle ne voit pas (pnj._inspecter) et retient
+    l'échec. La présence simulée ne sert qu'au devis : _couper arrête l'exécution
+    avant tout geste qui dépend de sa venue ou de son accord.
+    """
+    from .ouie import INTENSITES, SEUIL, parvenu, propager
+    salle = v.salle(e, sujet)
+    if (salle is None or salle == e.salle or e.fait("cherche", sujet)
+            or e.salle in appels_vains(v.monde, v.id, sujet) or v.route(e, salle) is not None):
+        return None
+    # Ni position, ni oreille, ni intention réelles du tiers. Les portes sont
+    # celles du monde cru ; une position inconnue garde le calcul sans cases.
+    cru = monde_cru(v.monde, v.id)
+    for porte, objet in cru.objets.items():
+        if objet["type"] == "porte":
+            objet["ouverte"] = v.ouvert(e, porte)
+    sol = cases(v.salles[e.salle]) if v.monde.data.get("mode_cases") else []
+    centre = None
+    if sol:
+        x, y = sum(c[0] for c in sol) / len(sol), sum(c[1] for c in sol) / len(sol)
+        centre = min(sol, key=lambda c: ((c[0] - x) ** 2 + (c[1] - y) ** 2, c))
+    lieu = lire(v.monde, v.id)["croyances"].get(sujet, {}).get("lieu", {})
+    case = lieu.get("case") if lieu.get("salle") == salle else None
+    niveau = parvenu(propager(cru, e.salle, centre, INTENSITES["hele"]), salle, case)
+    if niveau is None or niveau[0] < SEUIL:
+        return None
+    etapes = [{**_etape("inspecter", lieu=e.salle, contenu={"cherche": sujet}), "suppose": True}]
+    suivant = e.apres(faits=[(("lieu", sujet), e.salle), (("cherche", sujet), True)])
+    mesure = _mesurer(v, e, etapes, suivant, 1)
+    if mesure is None:
+        return None
+    temps, pression, suivant = mesure
+    return TransitionMesuree((0, temps + CHERCHER, etapes, suivant, temps, False, pression))
+
+
 def _chercher(v, e, sujet):
-    """Perdu de vue : il va le chercher là où il est passé le moins récemment, et l'y suppose,
+    """Localisé mais inaccessible : l'appeler ; sinon, perdu de vue, le chercher
+    là où il est passé le moins récemment et l'y supposer,
     hors des salles où il l'a cherché en vain (``deliberation.appels_vains``) ; None s'il n'en reste
     aucune. Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
+    if v.salle(e, sujet) is not None:
+        return _appeler(v, e, sujet)
     # Le contact inconnu peut d'abord faire l'objet d'une question présente.
     # Comme l'inspection, cette transition s'arrête avant toute suite supposée.
     question = None
@@ -3595,7 +3667,8 @@ def rejoindre(monde, id, sujet):
     salle = v.salle(e, sujet)
     if salle is not None:
         etapes = aller(monde, id, salle)
-        return None if etapes is None else (etapes, True)
+        if etapes is not None:
+            return etapes, True
     recherche = _chercher(v, e, sujet)
     if recherche is None:
         return None

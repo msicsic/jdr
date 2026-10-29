@@ -2,6 +2,60 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-appeler-donneur`, fusionnée**, lot **275**, base
+  `7b58eb0` (intégration `ac63223`), code corrigé **`eabe202`** : contact d'un
+  interlocuteur localisé mais inaccessible par l'appel négocié commun, portée
+  estimée sur les seules croyances, préfixe coupé avant venue/demande/acquisition,
+  appels vains retenus sans rappel par délai. Raccord des parts et objets portés,
+  achats compris ; remise de nourriture pour soi si service inaccessible ou
+  livraison déjà promise. `pnj_propositions.recours` exige une offre admissible
+  avant l'appel ; ni `deliberation`, ni `agendas`, ni `signes` touchés.
+  **Banc final validé : 20/20 paires 4 h, aucune hausse de suspects 219 par
+  nuit**, Relais/2024 **1 → 1**, les dix-neuf autres **0 → 0**, comme à la
+  première passe `a04090c` ; zéro plantage. Appels **22 → 35** (première : 37),
+  retrouvailles **8 → 19** (première : 19). S total **386 → 417** (première :
+  422), F moyenne **5,45 → 5,45**, D moyenne **1,989 → 1,997** (première :
+  2,014) ; à expliquer **21 → 32** (première : 34), cycles **503 → 506**.
+  Seule la ligne de mesures du **hameau/1985** change depuis la première passe :
+  S 34 → 29, F 8 → 8, D 2,667 → 2,333, appels 2 → 0, retrouvailles 0 → 0 ;
+  les 19 autres lignes sont inchangées. Richesse descriptive, bénéfice universel
+  non démontré ; les retours à expliquer restent supérieurs à la référence.
+  Référence figée `7b58eb0` : **20 nuits lues en cache sans rejeu**, vingt nuits
+  corrigées calculées, **718,259 s**, deux travailleurs réduits au plus.
+  Aucun temps comparé entre campagnes. **`correction/fin.json`, `ok=true`,
+  20 nuits, 77 tests ; aucun calcul actif.**
+  Validation : **227 ciblés initiaux verts** après instruction des trois
+  premières scènes/oracles (refus par objet, cible explicitement perdue de vue,
+  rappel après indice positif). Complément **748 tests : 745 verts, 2 échecs,
+  1 ignoré** (MiMo facultatif), 1 732,113 s. Les deux échecs passent sur la
+  base : régressions du lot, corrigées sans toucher leurs tests ni empreintes.
+  Rémy appelait Bram sans contrepartie puis ne pouvait plus prendre la paie ;
+  les remises accessibles ajoutaient 36 successeurs au graphe auberge/480.
+  **77 ciblés finaux verts**, dix fichiers, **209,391 s** ; six graphes historiques
+  exacts, paie reprise à 1 min. Traces base/branche/correction rechargées
+  monde/rendu/scène, six états chacune. Capture crue 7/270 : Ilse hèle, Gorm ne
+  promet pas de venir ; variante de porte déverrouillée : retrouvailles puis
+  demande/achat/repas. Autre scène à l'auberge ; portée, lieu inconnu, position
+  cachée, délai et négociation éprouvés ; laps entier/découpé identique.
+  Retour d'intégration `c95676f` : interruption du test des propositions redites
+  **légitime**, Rémy hèle Bram à 244 min 06 s pour secourir Josse devenu affamé ;
+  à 240, bureau cru inaccessible (porte verrouillée), voix 4 ≥ 1, puis Corvus
+  entend l'appel depuis la galerie (niveau 3), arrêt à 244 min 15 s. Même trace
+  branche/fusion, preuves rechargeables dans `redites/`. Prémisse du test
+  explicitée : le joueur reprend son attente après les interruptions jusqu'au
+  terme des dix minutes ; **250 min et identité bloc/découpé/recharge conservés**,
+  instants et scènes ajoutés. Nouveau test d'interruption native sur la capture
+  originale, état/rendu/scène rechargés. **Aucun moteur modifié ni banc relancé**.
+  Fichier adapté validé sur la fusion exacte : **5/5 tests**, 24,284 s ; dernière
+  passe de branche **112 tests verts**, treize fichiers ciblés dont celui-ci,
+  **265,454 s**, deux processus réduits, aucune erreur ni échec. Les résultats
+  du banc final ci-dessus restent valables.
+  Ni suite complète ni Luna. Bruts `C:/Users/msics/donjon/artifacts/appeler-275/` ;
+  ancien `fin.json` conservé `ok=false`, les mesures finales sont dans
+  `correction/bilan.json` et `correction/comparaison.json` ;
+  [rapport 275](taches/rapport-codex-275-appeler-donneur.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Quand une étape sociale (demander, acheter, proposer) exige un interlocuteur cru dans un lieu connu mais inaccessible et à portée de voix, l'appeler par l'appel négocié commun est un moyen de cette étape ; l'appelé décide seul de venir, l'appel vain est retenu sans rappel par délai. Ilse (crue 7, 270) hèle Gorm ; Rémy (mine 7, 244) hèle Bram enfermé au bureau. 20/20 nuits 4 h sans hausse de suspects. Suite complète sur la fusion d'essai (c95676f) : 2 708 tests, un échec propre au lot (test_propositions_redites : l'appel de Rémy interrompt légitimement l'attente du joueur ; prémisse explicitée, assertions conservées, 5/5 ensuite) et quatre erreurs de test_connexion dues à l'environnement (DPAPI sans session ouverte après le redémarrage du PC fixe).
+
 - **Branche `codex-sonde-perception`, fusionnée**, lot **276**, base
   `406a795`, outils seulement : la sonde 219 relève les entités effectivement
   perçues (lieu et case) et la source des croyances sur les références du but
