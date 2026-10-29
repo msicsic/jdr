@@ -9,22 +9,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Clôture sur croyance et révision sur constat contraire, aucune arrivée ni
   transmission fictive. Émission persistée unique, doute et voix inconnue
   conservés comme paroles. Protocole joueur inchangé ; jugement et choix
-  faire/confier intacts. **23 tests / quatre fichiers verts, 48,718 s**,
-  dont sept nouveaux ; petit ajustement final de provenance et de fenêtre
-  de suspicion à revérifier dans la campagne finale. Crue du hameau,
+  faire/confier intacts. **529 tests / 53 fichiers verts, 399,515 s**,
+  zéro échec, erreur ou ignoré, dont sept nouveaux tests. Crue du hameau,
   Gorm/Aubin/Brune et autre couple Ilse/Gorm, deux charges, réussite,
   échec, renoncement et mensonge ; recharge monde/rendu/scène/écoute,
   marche réelle et parole d'information, laps entier/découpé identiques.
-  **Lot non clos, vérification détachée en cours** : tests concernés puis
-  empreintes 2 h, cinq scénarios × quatre graines contre la base, un seul
-  travailleur réduit ; banc 4 h conditionné aux mandats naturels constatés.
+  **Lot terminé : empreintes 2 h, 20/20 paires identiques**, chronique,
+  mesures et état final complet ; Relais/mine/auberge/crue/hameau,
+  graines 1985/7/42/2024, départ tiré, `c5a1740` → `2204921`, aucun plantage.
+  Aucun mandat accepté dans les nuits : preuve du changement par les scènes
+  ciblées, banc 4 h conditionnel non lancé. Vingt références manquantes
+  calculées une fois et rangées ; vingt nuits de branche.
   L'absence de preuve d'information ne démontre pas sa non-transmission ;
   pas de nouveau mécanisme de preuve négative, réaffectation ou retour.
-  Fichier attendu `C:/Users/msics/donjon/artifacts/compte-rendu-283/fin-verification.json`.
-  Code local `5aef281` ; poussée rejetée par le contrôle automatique
-  (destination externe origin considérée non vérifiée), autorisation précise
-  demandée ; aucun recours à l'API GitHub.
-  Ni Luna ni suite complète. [Rapport 283](taches/rapport-codex-283-compte-rendu.md).
+  `C:/Users/msics/donjon/artifacts/compte-rendu-283/fin-verification.json`
+  **ok=true**, codes tests/empreintes 0 ; **934,374 s**, un travailleur réduit.
+  Code `5aef281` et documentation `2204921` poussés sur origin après
+  autorisation explicite du dépôt ; refus automatique initial résolu sans
+  contournement. Sources et tests inchangés depuis validation, aucun nouveau
+  calcul à la clôture, aucun calcul actif du lot. Ni Luna ni suite complète.
+  [Rapport 283](taches/rapport-codex-283-compte-rendu.md).
 
 - **Branche `codex-but-protection`, lot 281, fusionnée**, base intégration
   `3470a92` : `planification.reagir` nomme le protégé dans `proteger.qui` ;
