@@ -28,10 +28,13 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sans rebase ; conflit `etat-dev.md` résolu en conservant les deux côtés.
   Fabrication terminal et oracles U-P actualisés conservés. Tests U-C portés
   sur `emissions.joueur/pnj` (G15), textes et contrôles d'état inchangés.
-  Régression ciblée de sept fichiers en cours, sans suite complète ; calcul
-  autonome réduit et observateur détaché vérifié. Résultat attendu :
-  `C:/Users/msics/donjon/artifacts/uc-325/fin-tests-fusion.json`.
-  Reprise non poussée en attendant le vert. G5 `49608db`, arrivé ensuite
+  **94/94 tests verts, sept fichiers complets, 782,847 s**, zéro échec,
+  erreur ou saut : U-C 9, U-P 5, TUI 28, fabrication terminal 10, narration
+  31, transactions 2 et web 9. Tous rejoués après fusion ; aucun résultat
+  conservé dans ce bilan. Zéro appel après les 18 confirmations.
+  **Reprise terminée, branche poussée, aucun calcul actif** ; bruts
+  `C:/Users/msics/donjon/artifacts/uc-325/`, `fin-fusion.json` vert.
+  Aucune suite complète, Luna ou banc. G5 `49608db`, arrivé ensuite
   dans la référence partagée, n'est pas inclus dans cette fusion de `9f261f9`.
   [Rapport 325](taches/rapport-codex-325-uc-consentement.md).
 

@@ -26,31 +26,32 @@ annulation et confirmation contrôlent monde entier, paroles, ressources,
 sauvegarde et rendu après recharge. Prix changé et cible partie sans nouvelle
 révision ; acte léger et consommation par clic/menu. Oracles U-P inchangés.
 
-**Passe groupée : 83 tests, 82 verts, un échec, 557,117 s**, sans erreur ni
-saut. Les huit tests U-C passent, dont les **18 parcours lourds** et le rejet
-d'une ancienne réplique. L'échec TUI révèle une classification trop large :
-`conversation_pnj.proposer` demande les termes d'une récompense, sans
-engagement de Corvus. Il reste léger ; l'acceptation et les offres engagées
-restent lourdes. Quatre nouveaux parcours Gorm/second donneur × console/web
-vérifient l'offre à accepter, les ressources, le monde et le rendu rechargés.
-**Reprise verte : 37/37 tests, 468,682 s**, dont les 9 tests U-C et les
-28 TUI inchangés, sans échec, erreur ni saut. Les 47 autres tests verts,
-sans transaction du type corrigé, sont conservés : **84 tests distincts
-couverts**. Aucun oracle existant affaibli ; passes imparfaites archivées.
+**Après fusion : 94/94 tests verts, sept fichiers, 782,847 s**, zéro échec,
+erreur ou saut : consentement 9, compréhension 5, TUI 28, fabrication terminal
+10, narration 31, transactions 2 et web 9. Tous rejoués, aucun résultat conservé
+pour ce bilan. Les **18 parcours lourds** et le rejet d'une ancienne réplique
+restent verts avec G15 ; code/tests inchangés depuis cette validation.
 
-Mesures de clôture, six cas par interface, secondes min–max :
+Avant fusion, une passe de 83 tests avait révélé une classification trop
+large, corrigée puis vérifiée par 37 tests. Demander les termes d'une
+récompense reste léger ; accepter et faire une offre engagée restent lourds.
+Quatre parcours Gorm/second donneur × console/web vérifient cette distinction,
+ressources, monde et rendu rechargés. Aucun oracle existant affaibli.
+
+Mesures après fusion, six cas par interface, secondes min–max :
 
 | Interface | Saisie → aperçu | Confirmation → effet |
 |---|---:|---:|
-| Console | 0,023–1,951 | 0,018–4,539 |
-| Web | 0,036–3,503 | 0,033–3,097 |
-| TUI | 0,280–5,913 | 2,522–6,938 |
+| Console | 0,025–2,412 | 0,014–6,916 |
+| Web | 0,028–2,926 | 0,024–4,983 |
+| TUI | 0,531–6,433 | 2,134–8,070 |
 
 Temps humain simulé séparé : zéro. **Zéro appel au modèle après confirmation**
 sur les 18 parcours. Ces mesures incluent l'interface, pas la latence de
 Luna réelle. Bruts dans `C:/Users/msics/donjon/artifacts/uc-325/` :
-`tests-finaux.json`, `mesures-cloture.jsonl`, `cloture-37.json` et
-`fin-cloture.json`. `fin.json` initial reste conservé avec `ok=false`.
+`fusion-ciblee.json`, `mesures-fusion.jsonl`, `fin-tests-fusion.json` et
+`fin-fusion.json`. Les passes antérieures, dont `fin.json` avec `ok=false`,
+restent archivées.
 
 ## Limites et intégration
 
@@ -61,8 +62,6 @@ au français reste imparfaite. Aucune revue retirée ni consigne Luna modifiée.
 Pas de Luna, banc ou suite complète ; un travailleur à priorité réduite.
 Recouvrement **321/323 : `jeu.py`** ; aucun changement U-C de la TUI, du
 rendu ou du pont web ; leurs apports d'intégration sont conservés.
-Lot terminé, branche poussée, aucun calcul actif ; `fin-cloture.json` vert.
-Reprise après fusion : sept fichiers ciblés en vérification, sans suite complète.
-Calcul réduit autonome ; résultat attendu `fin-tests-fusion.json`, observateur
-détaché vérifié. Reprise non poussée avant le vert. G5 `49608db`, arrivé
-ensuite dans l'intégration partagée, n'est pas inclus dans la fusion de `9f261f9`.
+Reprise terminée, branche poussée, aucun calcul actif ; `fin-fusion.json` vert.
+G5 `49608db`, arrivé ensuite dans l'intégration partagée, n'est pas inclus
+dans cette fusion de `9f261f9`.
