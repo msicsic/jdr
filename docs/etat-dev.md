@@ -2,6 +2,26 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-demande-sans-renaissance`, lot 286, non fusionnée**,
+  base intégration `f93ba93` : **préalable, second cas établi ; question
+  soumise, aucun correctif moteur**. À 117170, Aubin croit encore la réserve
+  verrouillée (`dit:marchand`, minute 4), avant comme après le refus
+  `necessaire`. À 117312, son inspection la découvre non verrouillée et
+  ouverte : première entrée `[ouvert, reserve, null, null]`, 14,2 s après
+  le refus. Aux captures 117503/117518 rechargées, ce moyen nouveau explique
+  pourquoi `tient` est faux ; seule ablation du verrouillage cru antérieur
+  rend le refus tenant. Quatre captures/contre-épreuves rechargées,
+  **16 contrôles verts** monde/rendu/scène/absence de mutation ; sources
+  historiques intactes. Reconstitution des entrées 117170/117312 depuis la
+  trace, sans prétendre à des mondes complets à ces instants. Un processus
+  réduit, 0,335 s, `renaissance-286/fin-etablissement.json` **ok=true** dans
+  les artefacts du dépôt principal. Aucun calcul actif, aucun code ou test
+  modifié, ni Luna, suite complète ou banc rapide : arrêt conditionnel
+  demandé par le brief. Pas de second cas ni preuve de découpage ; aucune
+  garantie générale nouvelle. **QUESTION : clore sans correctif en
+  requalifiant le retour 117518 comme reprise admissible ?**
+  [Rapport 286](taches/rapport-codex-286-demande-sans-renaissance.md).
+
 - **Branche `codex-allumer-pour-soi`, fusionnée**, lot **277**.
   **Raccord à `bca5061` validé sur `9ff488b`**, fusion sans rebase `59a1388`, conflit
   documentaire seul. Quatre cas instruits : protection (avec et sans agenda),
