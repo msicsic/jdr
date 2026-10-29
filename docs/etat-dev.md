@@ -8139,6 +8139,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   audit 12 h (4 × 4) identique. Temps égaux au bruit près (machine chargée par d'autres calculs). Limites
   dans `docs/plan-relations.md`.
 
+## Décisions prises le 2026-10-29
+
+- **Lot 273, option B** : garder la clôture `dementie` d'une demande sur un moyen démenti et ne corriger que sa renaissance par la seule perception (lot 286). Les deux réalisations du 273 (Sol, DeepSeek), qui gardaient la demande, sont abandonnées : suspects 1 → 3 et richesse de la mine hors étendue dans les deux.
+- **DeepSeek V4.1 Flash** (version Go payante, réflexion high, PC fixe seulement, jamais en heures pleines 01:00-04:00 et 06:00-10:00 UTC) : diagnostics et lots de tests seuls ; le code reste à Sol. Bilan dans `docs/comparaison-deepseek-sol.md`.
+
 ## Décisions prises le 2026-10-28
 
 - **Lot 195 (ouïe des compagnons) : reprendre** (lot 233). Garder l'attribution d'un pas à un compagnon cru proche, mais ce bruit reste une information de présence utilisable pour les initiatives sociales : on ne perd pas la rencontre (S du hameau 40,5 → 27 sur la livraison 195).
