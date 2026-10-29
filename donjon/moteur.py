@@ -73,6 +73,19 @@ class Plan:
     oppose: str = ""           # jet opposé : le personnage qui oppose la même caractéristique (pousser)
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
+    compris: str = ""          # texte libre admis : récapitulatif moteur figé avant affichage
+
+    @property
+    def perception_canonique(self):
+        """Perception seule, sans effet de monde proposé par le MJ.
+
+        Connaître ce qui est perçu est une conséquence du capteur moteur.
+        Les compositions et la lecture avec apprentissage gardent leur revue.
+        """
+        return (self.proposition.get("action") in PERCEPTIONS and not self.etapes
+                and not self.stat and not self.confirmation and not self.echec
+                and not self.echec_critique
+                and all(e[0] == "connaitre" for e in self.effets))
 
     @property
     def perception(self):
@@ -88,6 +101,9 @@ class Plan:
                     or any(p.realise_geste for p in self.plans))
 
     def resume(self, monde, afficher_avis=True):
+        if self.compris:
+            from dataclasses import replace
+            return self.compris + "\n" + replace(self, compris="").resume(monde, afficher_avis)
         from .noms import texte
         if self.etapes:
             plusieurs = len(self.plans) > 1
@@ -262,6 +278,18 @@ class Moteur:
             raise ErreurMonde("Assommer ne vise qu'une personne.",
                               f"methode=assommer, action={action}, cible={cible} : frapper une cible de type personnage, ou methode simple.")
         plan = Plan(dict(p), m.data["revision"], "", origine=origine)
+        # Après validation de forme et rotation éventuelle : seule la vue
+        # publique autorise une conclusion, jamais la position cachée.
+        if (action in ("observer", "examiner") and cible in m.objets
+                and not m.visible(cible) and not outil
+                and p["methode"] == "simple" and not p["difficulte"]):
+            from .rendu import non_perception
+            information = non_perception(m, cible)
+            if information:
+                plan.titre = "Constater la vue actuelle."
+                plan.minutes, plan.dixiemes, plan.effort = 0, 0, False
+                plan.information = information
+                return plan
         if action in ("saisir", "ligoter", "delier", "liberer", "trainer", "tuer"):
             from .tenir import preparer
             return preparer(m, p, plan)
@@ -676,6 +704,8 @@ class Moteur:
         plan = self.preparer(plan.proposition, plan.origine)
         if plan.etapes:
             return self._executer_operations(plan)
+        if plan.perception_canonique and plan.dixiemes == 0 and not plan.effets:
+            return plan.information
         if plan.proposition["action"] == "observer" and plan.proposition["cible"] not in self.monde.objets:
             return plan.information
         travail = self.monde.copier()

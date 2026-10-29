@@ -934,6 +934,8 @@ def _executer_effet(monde, id, etape, lignes, gestes):
         if not _accessible(monde, id, etape["cible"]):
             return False
         e = esprit(monde, id)
+        from .agendas import commencer_service
+        commencer_service(monde, id, etape['cible'])
         depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
         if not any(s["type"] == "compagnie" and s.get("qui") == etape["cible"]
                    and s["minute"] >= depuis for s in e["memoire"]):

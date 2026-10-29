@@ -18,6 +18,7 @@ from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
 from tests.test_tensions import recharger
 from tools.verifier_websocket_jeu import Interface
+from tests.support import question_sans_execution
 
 
 class SansMessageTechniqueTests(unittest.TestCase):
@@ -47,7 +48,7 @@ class SansMessageTechniqueTests(unittest.TestCase):
                     self.assertTrue(r.data["conversation"])
                     self.assertIn(r.data["conversation"][-1]["reponse"], sortie)
                     if corrigee:
-                        self.assertEqual(r.data["conversation"][-1]["reponse"], texte)
+                        self.assertEqual(r.data["conversation"][-1]["reponse"], question_sans_execution(texte))
                     else:
                         self.assertIn("mur" if "mur" in saisie else "bobine",
                                       r.data["conversation"][-1]["reponse"])

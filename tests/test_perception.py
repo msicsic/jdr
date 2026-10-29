@@ -202,7 +202,8 @@ class QuestionsConsoleTests(unittest.TestCase):
             "mode": "dialogue", "texte": reponse, "faits": ["scenario"], "proposition": None})
         self.assertIn(reponse, texte)
         self.assertNotIn("ne sont pas encore définis", texte)
-        self.assertEqual(m.data["conversation"][-1]["reponse"], reponse)
+        from tests.support import question_sans_execution
+        self.assertEqual(m.data["conversation"][-1]["reponse"], question_sans_execution(reponse))
         self.assertEqual(m.data["revision"], 0)
 
     def test_contexte_utilise_dernier_deplacement_sans_inventer_passe(self):
