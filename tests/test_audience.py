@@ -4,18 +4,30 @@ import copy
 import unittest
 
 from donjon.dialogues import interlocuteurs
-from donjon.biens import compte
+from donjon import agendas
+from donjon.biens import bourse, compte
+from donjon.esprits import lire
 from donjon.monde import ErreurMonde
 from donjon.paroles import analyser, en_face, preparer_parole, prevue
+from donjon.rendu import regarder
+from donjon.scene import scene_percue
+from donjon.spatial import porte_par
 from donjon.voix import reel
 from tests.test_audits_attendu import jouer, rapport, ligne
 from tests.test_parole_commune import paroles_retenues
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
-from tests.test_tensions import recharger
+from tests.test_tensions import recharger, vivre
 
 
 class AudienceTests(unittest.TestCase):
+    def verifier_recharge(self, m):
+        r = recharger(m)
+        self.assertEqual(r.data, m.data)
+        self.assertEqual(regarder(r), regarder(m))
+        self.assertEqual(scene_percue(r), scene_percue(m))
+        return r
+
     def verifier_parole(self, m, saisie, besoin, personnage, destinataires):
         avant = copy.deepcopy(m.data)
         attendue = prevue(m, saisie)
@@ -147,6 +159,10 @@ class AudienceTests(unittest.TestCase):
 
     def test_une_intention_nommee_reste_individuelle_sans_devenir_une_parole_forcee(self):
         m = banc("noms-dialogue")
+        # Ce test d'audience attend un achat impossible. Depuis le lot 312,
+        # ignorer le lieu du destinataire permet de le chercher : cela ne
+        # suffit plus à refuser. Ici le lot est explicitement non transportable.
+        m.objets["planches"]["mobile"] = False
         depart = m.joueur["or"]
         # Propositions initiales de Luna dans la passe du lot : elles ne doivent
         # plus être renvoyées au modèle pour réécrire leur audience.
@@ -174,6 +190,9 @@ class AudienceTests(unittest.TestCase):
                                  if f == "repondre_au_joueur" and "conversation_validee" in e["faits"])
                     self.assertIn("ne voit pas comment", " ".join(faits))
                     self.assertEqual(m.objets["planches"]["charges"], 2)
+                    self.assertNotIn("planches_1", m.objets)
+                    self.assertFalse(agendas.en_cours(m, "aubin"))
+                m = self.verifier_recharge(m)
         for saisie in ("je regarde Aubin", "j'observe Ilse"):
             forme = analyser(m, saisie)
             self.assertFalse(forme["explicite"])
@@ -186,3 +205,79 @@ class AudienceTests(unittest.TestCase):
             "proposition": proposition("examiner", "aubin")}], [])
         self.assertFalse(emissions_joueur(r))
         self.assertIn("Aubin", sortie)
+
+    def test_achats_differes_acceptes_et_livres_apres_la_saisie_libre(self):
+        from donjon.banc_pnj import creer
+        from donjon.esprits import percevoir_tous
+        from tests.support import calme, presentes, regarder as orienter
+        from tests.test_tensions import placer
+
+        def relais():
+            # Rejouer la séquence réelle entière : sinon Aubin rembourse
+            # spontanément ces deux pièces pendant la livraison et change
+            # légitimement les deux bourses indépendamment de l'achat.
+            m = banc("noms-dialogue")
+            or_avant = m.joueur["or"]
+            saisie = "je réclame à Aubin les deux pièces qu'il me doit"
+            controle = ligne("mecanique", sources=["conversation_validee", "comptes"])
+            controle["comptes"] = [compte("aubin", "joueur", montant=2, etat="rendu")]
+            m, sortie, appels = jouer(m, saisie, [
+                parole("Aubin, tu me dois deux pièces. Rends-les-moi.",
+                       ("reclamer", "", "", ""), personnage="aubin"),
+                dialogue("Aubin a entendu ta demande.")], [rapport(controle)])
+            self.assertEqual(m.joueur["or"], or_avant + 2)
+            self.assertIn("Aubin a entendu ta demande.", sortie)
+            self.assertEqual(sum(f == "repondre_au_joueur" for f, _ in appels), 2)
+            return m
+
+        def auberge():
+            m = presentes(calme(creer("auberge", 1985, "fixe"), "joss"), "joss")
+            m.objets["fagots_etable"]["charges"] = 3
+            placer(m, "joss", "etable", (5, 3))
+            m.joueur.update(salle="etable", position=[5, 2])
+            orienter(m, "joss", "joueur")
+            orienter(m, "joueur", "joss")
+            percevoir_tous(m)
+            return m
+
+        for fabrique, vendeur, lot, prix, saisie in (
+            (relais, "aubin", "planches", 3,
+             "je paie Aubin trois pièces pour une de ses planches"),
+            (auberge, "joss", "fagots_etable", 1,
+             "je paie Joss une pièce pour une part de ses fagots"),
+        ):
+            with self.subTest(vendeur=vendeur):
+                m = self.verifier_recharge(fabrique())
+                or_avant, vendeur_avant = m.joueur["or"], bourse(m, vendeur)
+                charges = m.objets[lot]["charges"]
+                m, sortie, appels = jouer(m, saisie, [
+                    parole(saisie, ("demande", lot, "", str(prix)), personnage=vendeur),
+                    dialogue("Ta demande a été entendue.")],
+                    [rapport(ligne("mecanique", sources=["conversation_validee", "comptes"]))])
+                self.assertEqual(sum(f == "repondre_au_joueur" for f, _ in appels), 2)
+                self.assertEqual(emissions_joueur(m)[-1]["auditeurs"], [vendeur])
+                self.assertIn(f"Tu paies {prix} pièce", sortie)
+                self.assertIn("qui doit encore te remettre une part", sortie)
+                self.assertIn("Ta demande a été entendue.", str(m.data["conversation"]))
+                piece = lot + "_1"
+                condition = {"objet": piece, "remettre": "joueur"}
+                self.assertEqual(m.joueur["or"], or_avant - prix)
+                self.assertEqual(bourse(m, vendeur), vendeur_avant + prix)
+                self.assertEqual(m.objets[lot]["charges"], charges - 1)
+                self.assertFalse(porte_par(m, piece, "joueur"))
+                self.assertEqual(agendas.en_cours(m, vendeur), [{
+                    "condition": condition, "pour": "joueur", "minute": 0, "lot": lot,
+                    "paye": {"objet": piece, "prix": prix, "quoi": "objet"}}])
+                m = self.verifier_recharge(m)
+                m, lignes = vivre(m, 3, jet=20)
+                self.assertTrue(porte_par(m, piece, "joueur"), lignes)
+                self.assertEqual(m.objets[piece]["proprietaire"], "joueur")
+                self.assertEqual(m.objets[piece]["charges"], 1)
+                self.assertEqual(m.objets[lot]["charges"], charges - 1)
+                self.assertEqual(m.joueur["or"], or_avant - prix)
+                self.assertEqual(bourse(m, vendeur), vendeur_avant + prix)
+                self.assertFalse(agendas.en_cours(m, vendeur))
+                self.assertTrue(any(x["type"] == "engagement_tenu" and x["condition"] == condition
+                                    for x in lire(m, vendeur)["memoire"]))
+                self.assertIn("tu l'avais payé", " ".join(lignes))
+                self.verifier_recharge(m)
