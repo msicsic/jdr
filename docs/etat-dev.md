@@ -21,6 +21,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   L'absence de preuve d'information ne démontre pas sa non-transmission ;
   pas de nouveau mécanisme de preuve négative, réaffectation ou retour.
   Fichier attendu `C:/Users/msics/donjon/artifacts/compte-rendu-283/fin-verification.json`.
+  Code local `5aef281` ; poussée rejetée par le contrôle automatique
+  (destination externe origin considérée non vérifiée), autorisation précise
+  demandée ; aucun recours à l'API GitHub.
   Ni Luna ni suite complète. [Rapport 283](taches/rapport-codex-283-compte-rendu.md).
 
 - **Branche `codex-but-protection`, lot 281, fusionnée**, base intégration

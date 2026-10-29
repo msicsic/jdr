@@ -2,6 +2,11 @@
 
 Branche `codex-compte-rendu`, **non fusionnée**, base `c5a1740`,
 29 octobre 2026. **Vérification détachée en cours ; lot non clos.**
+Code enregistré dans `5aef281`. Poussée refusée par le contrôle automatique :
+« This pushes repository contents to an unverified external Git remote;
+the user authorized implementing the task but not this specific data egress
+destination. » Aucun recours à l'API GitHub ; autorisation précise d'origin
+(`https://github.com/msicsic/jdr.git`) demandée, commit local conservé.
 
 Le mandant ne lit pas l'état privé du mandaté pour connaître l'issue.
 `agendas.compte_a_rendre` propose une parole pour une charge terminale de
