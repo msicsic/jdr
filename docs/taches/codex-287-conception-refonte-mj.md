@@ -18,6 +18,16 @@ est abandonné.
 de cette architecture sur l'intégration actuelle. Les audits de l'intégration ne sont gardés que s'ils protègent une
 garantie que l'architecture découplée ne couvre pas, chaque cas justifié.
 
+**Seconde précision de l'utilisateur, qui prime aussi** : le critère est le **gameplay**, la narration est secondaire.
+Chaque choix et l'ordre des lots se jugent sur, dans l'ordre :
+1. l'interprétation des intentions du joueur ;
+2. la vitesse perçue ;
+3. l'invention à la volée des détails manquants (proposition typée validée, sans bloquer) ;
+4. la richesse des interactions et le comportement visible des PNJ.
+
+Une phrase sobre écrite par le moteur vaut mieux qu'un récit audité. Le document ajoute une section « mesures du
+gameplay » : quelles mesures suivront ces quatre axes au fil des lots.
+
 ## À lire
 - `AGENTS.md` (contrat du MJ : trois niveaux mécanique / interactif / ambiance), `docs/contrat-mj.md`,
   `docs/plan-migration-mj.md` (revue du 17 octobre, phases 3 et 6 reportées), `docs/plan-prompt.md` (L0 à L8).
