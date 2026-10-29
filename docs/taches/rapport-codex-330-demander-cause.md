@@ -1,72 +1,66 @@
 # Lot 330 — Demander à un proche ce qui l'inquiète
 
-29 octobre 2026 — branche `codex-demander-cause`, **non fusionnée**, base
-fournie `f08ef58` (descendante de l'intégration). PC fixe `msi-desktop`.
+29 octobre 2026 — `codex-demander-cause`, **terminée, non fusionnée**, base
+fournie `f08ef58`, descendante de l'intégration. PC fixe `msi-desktop`.
+Code/tests validés : `3ab6aa5`, inchangés depuis le calcul, empreintes vérifiées.
 
-**Invariant.** Le secours de proximité peut commencer par une question lorsque
-le PNJ retient la détresse du proche sans connaître de cause. `planification._pulsion`
-propose un seul geste `demander`, puis le choix reprend sur la réponse réelle.
-Le contact, l'approche et la priorité des périls restent ceux des actions sociales.
-`causes.connues` ne consulte que les croyances du locuteur : violence encore
-active contre lui, menace d'eau à son emplacement, bruit sans auteur identifié
-encore retenu. Un cri attribué au proche est un signe de détresse, pas une
-explication de sa cause. Aucune position de danger n'est ajoutée par la réponse.
+**Invariant et fonctions.** `planification._pulsion` peut faire commencer le
+secours de proximité par une question, puis replanifie sur la réponse effective.
+`echanges.executer` conserve l'approche et le contact communs ; `causes.connues`
+répond depuis les seuls savoirs datés du proche : violence encore active contre
+lui, menace d'eau, bruit sans auteur identifié. Un cri attribué au proche est
+un signe de détresse, pas une explication. Aucun lieu caché du danger n'est lu
+ni ajouté. `social.faire_entendre` et `social.recevoir` diffusent le même contenu
+`cause_detresse` au demandeur et aux témoins ; les émissions sont enregistrées.
+Le ouï-dire conserve date, source et confiance ; les avis d'eau passent par
+`recevoir_prevision`. Une preuve plus récente ou plus solide prime ; une réponse
+fausse peut être transmise. Méfiance, ignorance et inconscience ne donnent rien
+d'utile. `refus` retient la réponse hors des quarante souvenirs ; `deliberation.tient`
+ignore délai, perte du signe, estompement relationnel et date rafraîchie du même
+signe. Une nouvelle entrée perceptive peut réarmer la question.
 
-**Parole et continuité.** `echanges.executer` rejoint `causes.demander` après les
-contrôles communs. Question et réponse passent par `social.faire_entendre` et le
-registre des émissions ; destinataire et tiers reçoivent le même contenu typé
-`cause_detresse` par `social.recevoir`. La réponse conserve la date du fait,
-sa source et sa confiance ; les avis d'eau utilisent `recevoir_prevision`.
-Une preuve propre plus récente ou plus solide prime. La réponse peut être fausse.
-Ignorance, méfiance, rancune ou inconscience ne donnent aucune cause utile.
-La dernière réponse reste dans `refus`, hors des quarante souvenirs ; `deliberation.tient`
-ne la libère que sur une nouvelle entrée de détresse du demandeur. La perte du
-signe, le délai et l'estompement numérique des relations ne suffisent pas.
+**Preuves.** **192 tests ciblés distincts / quatorze fichiers consolidés verts**,
+zéro échec, erreur ou saut : 126 tests repris en 220,043 s, 66 précédemment verts
+conservés sans relance. Dix nouveaux tests : agressions réellement exécutées au
+Relais et à la mine, question autonome, ouï-dire puis fuite/riposte ; capture
+réelle de crue du 266 ; refus, inconscience physique, croyances fausses de
+violence et d'eau, bruit, tiers, absence de position transmise, preuve plus forte,
+nouveau signe et date seule. État complet, émissions, scène et rendu final
+comparés après recharge et laps entier/découpé. Les aperçus intermédiaires du
+joueur dépendent des points d'affichage. Deux tests du 266 adaptés conservent
+leurs assertions de préfixe certain, maintien, apaisement et recharge.
 
-**Preuves déjà exécutées.** Dix tests nouveaux verts, puis reprise du test
-d'inconscience après remplacement de la fixture par `corps.endormir` : vert.
-Deux agressions réellement exécutées, au Relais et à la mine, sont suivies
-d'une question autonome, d'un ouï-dire enregistré et d'une fuite ou riposte
-par les recours existants. Capture réelle de crue du 266 relue sans altération.
-État complet, émissions, scène et rendu final identiques après sauvegarde et
-recharge ; laps entier et découpé comparés. Les aperçus intermédiaires du joueur
-dépendent de ses points d'affichage et ne sont pas annoncés identiques.
-Autres contrôles : cause connue, absence de détresse, ignorance, méfiance,
-inconscience physique, croyances fausses de violence et d'eau, bruit, tiers,
-absence de position transmise, preuve plus forte et nouvelle entrée perceptive.
+**Banc 4 h × cinq scénarios × quatre graines**, référence exacte `f08ef58` puis
+branche, deux travailleurs réduits au plus. Vingt références absentes calculées
+et rangées une fois dans le cache commun, aucune référence disponible relancée.
+**20/20 critères tenus : suspects 219 0 → 0 dans chaque nuit ; zéro plantage,
+zéro usurpation.** Reprise détachée : **fin.json ok=true, code 0, 1 018,634 s**,
+tests compris. Ni Luna ni suite complète ; aucun calcul encore actif.
 
-**Première validation analysée.** `fin.json` initial : échec, code 1,
-169,741 s, 192 tests : 24 erreurs dues à l'import local `demander` qui masquait
-la fonction d'échange d'objets, et quatre échecs de subtests dans deux méthodes
-de proximité. Import renommé ; le test du préfixe suppose désormais la question
-déjà répondue, les assertions de maintien, apaisement et recharge restent.
-Le test du maintien a ensuite révélé deux questions pour un même signe dont
-la date était rafraîchie : la date est désormais exclue de l'identité de la
-réponse, y compris pour les sauvegardes du premier format du lot.
-**24 tests directement concernés verts** (proximité et cause), puis test de
-date renforcé. Aucun banc n'a commencé pendant cette première validation.
+| Scénario | Questions | Causes dites | Réponses crues | Premiers choix suivants |
+|---|---:|---:|---:|---:|
+| Relais | 10 | 9 | 4 | 4 |
+| Mine | 22 | 3 | 2 | 2 |
+| Auberge | 6 | 5 | 2 | 2 |
+| Crue | 29 | 22 | 12 | 12 |
+| Hameau | 45 | 32 | 8 | 8 |
+| Total | **112** | **71** | **28** | **28** |
 
-**Reprise détachée lancée, résultats en attente.** Code/tests `3ab6aa5`
-poussés ; lanceur 46008, Python 46156 et deux travailleurs vérifiés actifs
-à priorité réduite, nouvelle fin absente au contrôle de démarrage.
-`tools/valider_cause_330.py` reprend les neuf fichiers concernés (126 tests),
-les 66 tests des cinq autres fichiers verts restant acquis, puis vingt nuits
-de 4 h : Relais, mine, auberge, crue, hameau × 1985/7/42/2024. Deux travailleurs
-réduits au plus ; ni Luna ni suite complète. Référence exacte `f08ef58`, cache
-commun consulté avant tout calcul ; ses nuits de 4 h sont absentes au lancement
-et seront calculées et rangées une seule fois selon `AGENTS.md`.
-Le bilan contrôle les suspects 219 nuit par nuit, les plantages et usurpations.
-Il compte demandes, réponses crues et premiers choix qui les suivent, avec
-leurs intentions typées : une succession observée ne prouve pas la causalité.
-Bruts : `C:/Users/msics/donjon/artifacts/cause-330/`, première fin conservée ;
-reprise dans `reprise-1/`, `fin.json` écrit en dernier même sur échec.
-**Le critère du banc et la consolidation des tests voisins ne sont pas
-encore validés ; le lot n'est pas déclaré terminé.**
+Les 71 causes dites sont des **bruits** ; eau et violence sont exercées par les
+tests, pas par ces nuits. Autres issues : 38 ignorances, trois méfiances.
+Après réception crue : 23 choix de compagnie de secours, trois inspections,
+une interposition et un engagement. Les trois inspections ont une exécution
+ultérieure dans la chronique ; succession observée, sans preuve causale.
+Les entrées **à expliquer 32 → 43** et les **dérives ouvertes 387 → 436** ne
+sont pas certifiées bénignes ; tentatives de vol **2 → 3**. Aucune amélioration
+uniforme des réactions ni absence universelle de boucle n'est revendiquée.
 
-**Périmètre et limites.** PNJ seulement : `paroles.py`, `CHAMPS_CONTENU`, le
-compilateur du joueur et Luna restent inchangés. La question est un moyen du
-secours de proximité ; elle n'est pas un nouvel objectif prioritaire, ni une
-recherche à distance. Une réponse porte au plus une cause, dans l'ordre
-violence/eau/bruit ; aucune garantie d'exhaustivité ou d'amélioration générale
-des réactions. Recouvrement G17/326 : **`docs/etat-dev.md` seulement**, aucun
-fichier de code commun avec la branche G17 présente sur ce poste.
+**Limites et livraison.** PNJ seulement ; schéma MJ, voie joueur et Luna inchangés.
+Question comme moyen du secours, sans nouvelle priorité ni recherche distante ;
+au plus une cause par réponse, ordre violence/eau/bruit, sans exhaustivité.
+Recouvrement G17/326 : `docs/etat-dev.md` seulement, aucun fichier de code commun.
+Bruts `C:/Users/msics/donjon/artifacts/cause-330/` : échec initial conservé
+(24 erreurs d'import masquant l'échange d'objets, corrigé), puis `reprise-1/`
+verte ; doublon sur date rafraîchie corrigé avant ce banc. `analyse-cloture.json`
+et `tests-consolides.json` explicitent les mesures et leurs preuves. Branche
+poussée vers origin ; clôture `fin-cloture.json` écrite en dernier.

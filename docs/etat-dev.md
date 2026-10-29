@@ -2,34 +2,33 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 330 en vérification, branche `codex-demander-cause`, non fusionnée**,
-  base fournie `f08ef58` : une question de cause peut précéder le secours de
-  proximité ; réponse depuis les seules croyances datées du proche, parole
-  commune, ouï-dire pondéré et recours existants. Réponse retenue hors des
-  quarante souvenirs, aucun réessai au seul délai ou estompement relationnel.
-  **Dix nouveaux tests verts**, Relais/mine après coups réellement exécutés,
-  capture réelle de crue, refus/inconscience/croyances fausses/tiers ; monde,
-  émissions, scène et rendu final rechargés, laps entier/découpé contrôlés.
-  Reprise de l'inconscience physique seule verte après ajustement de fixture.
-  PNJ seulement ; schéma MJ et voie joueur inchangés. Recouvrement 326/G17 :
-  documentation seulement. Première validation arrêtée aux tests : 192 tests,
-  24 erreurs (import `demander` masquant l'échange d'objets), quatre échecs de
-  subtests dans deux méthodes de proximité. Import corrigé ; assertions de
-  maintien conservées après question. Deux questions sur un même signe daté
-  de nouveau détectées et corrigées : date exclue de l'identité retenue,
-  premiers formats de sauvegarde compris. **24 tests directement concernés
-  verts**, test de date renforcé. Aucun banc encore exécuté.
-  **Consolidation et banc en attente** : reprise de neuf fichiers (126 tests),
-  66 autres tests verts conservés, `tools/valider_cause_330.py`, puis
-  4 h × cinq scénarios × quatre graines, deux travailleurs réduits au plus.
-  Référence exacte `f08ef58` : cache consulté, nuits de 4 h absentes à remplir
-  une fois ; aucune référence disponible relancée. Ni Luna ni suite complète.
-  Code initial `5f92299` poussé ; première `fin.json` en échec conservée.
-  Reprise sur code/tests `3ab6aa5` poussé : lanceur 46008/Python 46156 et
-  deux travailleurs vérifiés actifs à priorité réduite, fin encore absente.
-  Bruts `C:/Users/msics/donjon/artifacts/cause-330/`, reprise dans `reprise-1/`,
-  fichier final `fin.json` écrit en dernier même sur échec. Aucun verdict de
-  conformité du banc annoncé.
+- **Lot 330 terminé, branche `codex-demander-cause`, non fusionnée**, base
+  fournie `f08ef58` : question de cause avant secours de proximité, réponse
+  depuis les seules croyances datées du proche, parole commune, ouï-dire
+  pondéré et recours existants. Réponse hors des quarante souvenirs ; délai,
+  perte du signe, estompement relationnel ou date rafraîchie ne réarment pas.
+  **192 tests distincts / quatorze fichiers consolidés verts**, zéro échec,
+  erreur ou saut : 126 repris (220,043 s), 66 acquis conservés. Dix nouveaux
+  tests : coups réellement exécutés au Relais/mine puis question et réaction,
+  capture réelle de crue, négatifs, croyances fausses, tiers, date seule ;
+  monde, émissions, scène et rendu final rechargés, laps entier/découpé.
+  **20/20 nuits de 4 h conformes**, cinq scénarios × quatre graines :
+  suspects 219 **0 → 0 dans chaque nuit**, zéro plantage/usurpation.
+  **112 questions, 71 causes dites (bruits seulement), 28 réponses crues** ;
+  premiers choix suivants : 23 compagnies de secours, trois inspections,
+  une interposition, un engagement ; succession, pas preuve de causalité.
+  Eau et violence validées par les tests, non exercées par le banc passif.
+  Limites visibles : **à expliquer 32 → 43**, dérives ouvertes **387 → 436**,
+  tentatives de vol **2 → 3** ; aucun bénéfice général ni absence universelle
+  de boucle annoncé. PNJ seulement ; schéma MJ et voie joueur inchangés.
+  Recouvrement 326/G17 : documentation seule. Référence exacte `f08ef58` :
+  vingt nuits absentes calculées/rangées une fois, aucune disponible relancée.
+  Deux travailleurs réduits au plus, ni Luna ni suite complète.
+  Code/tests `3ab6aa5` inchangés depuis validation, empreintes vérifiées.
+  Première fin en échec conservée ; reprise **fin.json ok=true, code 0,
+  1 018,634 s**. Aucun calcul actif, branche poussée vers origin.
+  Bruts `C:/Users/msics/donjon/artifacts/cause-330/`, reprise `reprise-1/`,
+  `analyse-cloture.json`, `tests-consolides.json`, fin `fin-cloture.json`.
   [Rapport 330](taches/rapport-codex-330-demander-cause.md).
 
 - **Lot 327 / G19 terminé, branche `codex-g19-rappels`, fusionnée**, base
