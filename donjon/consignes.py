@@ -77,7 +77,9 @@ proposition = {action, cible, outil, methode, difficulte, justification}. Les id
 viennent des faits ; difficulte vaut 0 et le moteur résout les jets. justification est un avis
 court (méthode, risque), jamais un résultat.
 - observer : cible scene (vue d'ensemble), lumiere (obscurité, visibilité) ou contexte
-  (arrivée, passé, quête), sans outil.
+  (arrivée, passé, quête), ou un personnage connu (signes perçus, non-perception et souvenir),
+  sans outil. Une cible connue hors de vue reste une cible de perception : sa position
+  actuelle n'est pas déduite du souvenir ; le moteur borne le constat à la vue couverte.
 - examiner, toucher, lire : cible = un objet, sans outil. Toucher fonctionne dans le noir ;
   pour fouiller un contenant ouvert, touche-le : le moteur dit ce que les mains y trouvent
   (contenu_vide en fait partie). Lire sert aussi à déchiffrer un sens caché.

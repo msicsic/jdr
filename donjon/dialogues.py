@@ -60,6 +60,12 @@ def interlocuteurs(monde):
                             p for p in emissions_publiques(monde, emissions_pnj(monde)) if id in p["auditeurs"]][-4:]),
                         "refuse_ventes_apres_vol": bool(o.get("refuse_ventes_apres_vol")),
                         "signes": []}
+    from .voix import reel
+    for cle, contenu in resultat.items():
+        offres = [{**copy.deepcopy(o), 'de': cle} for o in monde.data.get('offres_joueur', {}).values()
+                  if o['de'] == reel(monde, cle) and o['statut'] == 'propose']
+        if offres:
+            contenu['offres'] = offres
     return resultat
 
 
@@ -141,6 +147,19 @@ def preparer_conversation(monde, p, revision=None):
         if mission_id or p["montant_demande"]:
             raise ErreurMonde("Une discussion simple ne modifie pas un accord.",
                               "discuter : mission vide et montant_demande 0 ; pour un accord : proposer, negocier, accepter ou refuser.")
+    elif mission_id in travail.data.get('offres_joueur', {}):
+        from .echanges import proposer
+        from .propositions import en_mots
+        offre = travail.data['offres_joueur'][mission_id]
+        if offre['de'] != acteur or offre['statut'] != 'propose' or op not in ('accepter', 'refuser') or p['montant_demande']:
+            raise ErreurMonde("Cette offre ne peut pas être acceptée ainsi.",
+                              f"mission={mission_id}, personnage={offre['de']}, operation=accepter|refuser, montant_demande=0 ; statut=propose.")
+        issue = 'refuse'
+        if op == 'accepter':
+            bilan = proposer(travail, acteur, 'joueur', offre['demande'], offre['contrepartie'], accord_joueur=True)
+            issue = bilan['cause'] or 'accepte'
+        travail.data['offres_joueur'][mission_id]['statut'] = issue
+        rapport['faits'].append(f"Offre {issue} : {en_mots(travail, offre['contrepartie'])} contre {en_mots(travail, offre['demande'])}.")
     else:
         mission = travail.data["missions"].get(mission_id)
         if not mission or mission["donneur"] != acteur:
@@ -309,10 +328,16 @@ def commande_sociale(monde, texte):
     if cible == "offre" and operation in ("accepter", "refuser"):
         candidats = [(id, mission) for id, mission in monde.data["missions"].items()
                       if mission["donneur"] in presents and agendas.contrats(monde).get(id, {}).get("statut") == "propose"]
+        candidats += [(id, {'donneur': o['de']}) for id, o in monde.data.get('offres_joueur', {}).items()
+                       if o['de'] in reels(monde) and o['statut'] == 'propose']
     else:
+        from .voix import reel
         acteurs = [id for id in presents if cible in [normaliser(n) for n in
-                  (id, monde.objets[id]["nom"], *monde.objets[id]["aliases"])]]
+                  (id, presents[id]['nom'], *monde.objets.get(id, {}).get('aliases', []))]]
+        acteurs = [reel(monde, a) for a in acteurs]
         candidats = [(id, m) for id, m in monde.data["missions"].items() if m["donneur"] in acteurs]
+        candidats += [(id, {'donneur': o['de']}) for id, o in monde.data.get('offres_joueur', {}).items()
+                       if o['de'] in acteurs and o['statut'] == 'propose' and operation in ('accepter', 'refuser')]
     if len(candidats) != 1:
         raise ErreurMonde("Précise le personnage présent et son offre, ou accepte une offre en attente.")
     id, mission = candidats[0]
