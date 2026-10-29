@@ -16,11 +16,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   inclus ; Mireille historique auberge 1985 **36720** reste signalée,
   archive sans relevés perceptifs. Traces dans
   `artifacts/perception-276/tests.json` du dépôt principal.
-  **Vingt paires 4 h avec/sans sonde en calcul détaché**, cinq scénarios ×
-  quatre graines, un seul processus réduit ; résultats non encore acquis.
-  Avant/après sur les mêmes épisodes, repère archivé 271 conservé ; aucune
-  référence rejouée, ni Luna ni suite complète. Bruts
-  `C:/Users/msics/donjon/artifacts/perception-276/`, **`fin.json` attendu**.
+  **Vingt paires 4 h terminées : 20/20 identités, 200 contrôles verts**, cinq
+  scénarios × quatre graines ; états complets, SHA recalculés/recharges,
+  chroniques, mesures, empreintes, récits, souvenirs et vues identiques.
+  Relecture nuit par nuit des archives dans `exploitation.json`, sans
+  simulation. **616 mêmes retours**, seul Aubin 117518 reclassé : suspects
+  **1 → 0**, renouvellements perceptifs **0 → 1**, entrées nouvelles à
+  expliquer **21 → 21**, **total à examiner 21 → 22**. Autres classes
+  inchangées : cycles **503**, préemptions **49**, entrées publiées **28**,
+  changements de moyen **13**, progression **1** ; dérives **203 → 203**,
+  pertes payées **4 → 4**, zéro violation de service. Repère 271 : suspect
+  **1**, à expliquer **15**, cycles **495**, préemptions **48**, entrées
+  publiées **26**, moyens **14**, progression **1**, dérives **212**, pertes
+  **4** ; écarts intercampagnes déjà présents avant, non attribués au lot.
+  Aucun retour ajouté/retiré, aucune référence rejouée ni temps comparé entre
+  campagnes, ni Luna ni suite complète. Un processus réduit détaché,
+  **2 183,929 s**, `fin.json` (`ok=true`, 20 nuits), **aucun calcul actif**.
+  Bruts `C:/Users/msics/donjon/artifacts/perception-276/`.
   Le défaut moteur de continuité à 117503 reste ouvert ; une différence
   perceptive ne prouve pas que l'obstacle a changé. Horizon et archives sans
   relevé perceptif restent des limites explicites.

@@ -1,69 +1,67 @@
 # Lot 276 — entrées perceptives de la sonde 219
 
 29 octobre 2026, laptop. **Branche `codex-sonde-perception`, non fusionnée**,
-base `406a795`. Outils seulement : aucun fichier de `donjon/` modifié,
-aucune Luna ni suite complète.
+base `406a795`, code `5340a66`. Outils seulement ; aucun fichier de `donjon/`
+modifié, aucune Luna ni suite complète. **Campagne terminée, aucun calcul actif.**
 
-**Invariant.** Une différence de perception invalide l'identité stricte des
-entrées sans certifier la pertinence du retour. `relever_entrees` photographie
-les entités effectivement perçues et leur place par l'API commune `percus`,
-ainsi que les sources des croyances, sans réviser celles-ci. L'analyse compare
-les sources sur les références structurelles du but et des plans de départ et
-de retour, offres imbriquées comprises. Les dates de rafraîchissement seules
-ne comptent pas. Aucun nom de personnage, scénario ou geste n'intervient.
+**Invariant et fonctions.** `relever_entrees` relève les entités effectivement
+perçues et leur place par `percus`, sans réviser les croyances. L'analyse compare
+aussi les sources des croyances sur les références structurelles du but et des
+plans de départ/retour, offres imbriquées comprises ; une date rafraîchie seule
+ne compte pas. `analyser_episodes` nomme les deltas dans `perception_diff_qr`.
+Une différence perceptive seule, à lieu inchangé, devient
+`renouvellement_perceptif`, à examiner ; une différence mêlée reste
+`entree_nouvelle_a_expliquer`. Les preuves existantes, dont celles du 271,
+gardent leur priorité. Le renouvellement rejoint `total_a_expliquer`, les
+synthèses CLI et l'alerte de l'audit, jamais les justifiés.
 
-`analyser_episodes` nomme les deltas dans `perception_diff_qr`. Si seules des
-entrées perceptives changent depuis la sortie, à lieu inchangé, le retour est
-`renouvellement_perceptif`. Un changement mêlé à d'autres entrées reste
-`entree_nouvelle_a_expliquer`. Les preuves instrumentées, dont l'entrée publiée
-employée du lot 271, gardent leur priorité. Le renouvellement n'entre jamais
-dans les justifiés ; il entre dans `total_a_expliquer`, les synthèses CLI et
-l'alerte `avis_a_expliquer` de l'audit. Sans changement, le suspect demeure.
+**Preuves ciblées.** Aubin, Relais 2024, départ tiré, joueur passif
+`chambre_cloche` : à **117518**, Ilse redevient perçue en `antichambre [5,1]`,
+et `ilse.lieu` passe de `entendu` à `vu`, à valeur inchangée. Captures
+117503/117518 identiques après recharge : monde, rendu, scène et relevés.
+Les scènes Odile et lanterne déplacée vérifient le même contrat après
+recharge ; date seule, source hors cible et retour sans changement restent
+suspects. Les preuves du 271 gardent leur classe. **37 tests ciblés verts,
+140,797 s**, contrôle AST du socle agendas inclus, méthodes existantes
+conservées. Mireille historique, auberge 1985 **36720**, reste signalée à la
+relecture de l'archive 219, dépourvue de relevés perceptifs.
 
-**Cas réel.** Relais 2024, départ tiré, joueur passif `chambre_cloche`, 4 h :
-retour d'Aubin à **117518** classé `renouvellement_perceptif`. Ilse devient
-effectivement perçue ; `ilse.lieu` conserve sa valeur mais sa source passe
-de **`entendu` à `vu`**. Captures à 117503 et 117518 : monde, rendu et scène
-identiques après sauvegarde/recharge, relevés perceptifs également identiques.
-Le défaut moteur de clôture à 117503 n'est pas corrigé par ce lot.
+**Identité nuit par nuit.** Les vingt paires de 4 h sont terminées : pour
+**chacun** des scénarios Relais, mine, auberge, crue et crue_hameau, les quatre
+graines **1985, 7, 42, 2024** passent toutes. **20/20 identités, 200 contrôles** :
+monde complet, son SHA-256 recalculé et celui de la recharge, rendu, scène,
+chronique, empreintes, mesures, récit et souvenirs. L'exécution initiale vérifie
+également chaque recharge monde/rendu/scène. Relecture indépendante des vingt
+archives brutes, sans simulation : `exploitation.json` détaille chaque nuit.
+Un seul processus réduit, **2 183,929 s**, `fin.json` : `ok=true`, 20 nuits.
 
-**Contre-épreuves.** Une seconde scène d'auberge change seulement la source
-de localisation d'Odile ; une autre déplace une lanterne effectivement perçue.
-Dans les deux cas, le renouvellement reste à examiner après recharge avec
-monde/rendu/scène inchangés. Rafraîchir seulement la date ou changer la source
-d'un objet hors des références ne lève pas le suspect. Les scènes existantes
-du lot 271 et les contrôles de priorité conservent leur classe justifiée.
-Mireille auberge 1985 à **36720** reste signalée
-`repetition_sans_entree_nouvelle` à la relecture de l'archive 219 ; celle-ci
-ne contient pas les nouvelles entrées perceptives, qui ne sont pas inventées.
+**Compteurs.** Les colonnes 276 analysent les **mêmes 616 retours** actuels avec
+l'ancienne puis la nouvelle sonde ; le repère 271 est lu dans son bilan archivé.
 
-**Vérification ciblée.** **37 tests verts, zéro échec ou erreur,
-140,797 s**, dans `tests.json` et `tests-finaux.log` ; fichier de la sonde et
-trois contrôles du socle agendas, un seul processus réduit.
-Les méthodes existantes sont conservées.
-Les premiers lancements ont révélé les restrictions Windows sur les dossiers
-temporaires et un chemin d'import absent du lanceur ad hoc ; le lancement
-final utilise les droits nécessaires et le chemin `tools` prévu par le dépôt.
+| Classe | Lot 271 | 276 avant | 276 après |
+|---|---:|---:|---:|
+| Suspects | 1 | 1 | 0 |
+| Entrées nouvelles à expliquer | 15 | 21 | 21 |
+| Renouvellements perceptifs | 0 | 0 | 1 |
+| **Total à examiner** | **15** | **21** | **22** |
+| Entrées publiées utilisées | 26 | 28 | 28 |
+| Cycles accomplis | 495 | 503 | 503 |
+| Préemptions | 48 | 49 | 49 |
+| Changements de moyen | 14 | 13 | 13 |
+| Progressions | 1 | 1 | 1 |
 
-**Campagne détachée en cours.** Vingt paires de 4 h, cinq scénarios × quatre
-graines, moteur de cette branche sur l'intégration actuelle ; une exécution
-avec sonde puis une sans, un seul processus réduit. Comparaisons exactes des
-mondes, chroniques, mesures, empreintes, récits, souvenirs et vues après
-recharge ; états et épisodes bruts archivés. Avant/après : les mêmes épisodes
-sont analysés par la sonde de base et la nouvelle, sans rejouer de référence.
-Le lot 271 fournit le repère archivé : **1 suspect, 15 à expliquer, 26 entrées
-publiées utilisées, 495 cycles, 48 préemptions, 14 changements de moyen,
-1 progression, 212 dérives, 4 pertes d'état payé**. Aucun résultat des vingt
-paires de ce lot n'est encore déclaré acquis. Relire `bilan.json` et
-`fin.json` avant validation du lot ; `fin.json` est écrit en dernier.
+**Un seul reclassement**, Aubin 117518 ; aucun retour ajouté ou retiré, aucune
+hausse des justifiés. Dérives **203 → 203** (271 : 212) ; pertes d'état payé
+**4 → 4** (271 : 4), trois cessations physiques et un bénéficiaire parti,
+zéro violation de service. Les écarts intercampagnes figurent déjà dans
+« 276 avant » ; leur cause n'est pas attribuée au lot. Aucune référence rejouée
+ni comparaison des temps entre campagnes. Cette clôture n'a relancé aucun calcul.
 
-**Limites.** Horizon de 60 min et preuves de fin inchangés ; aucun certificat
-causal ni identité exhaustive de toutes les entrées possibles du choix.
-Une archive dépourvue de relevés perceptifs conserve son classement historique,
-sans inventer les perceptions manquantes. La source est comparée sur les
-cibles structurelles connues des plans ; aucune nécessité contrefactuelle
-n'est démontrée.
+**Limites.** Le défaut moteur de clôture à 117503 reste ouvert. Horizon 60 min,
+preuves de fin et références structurelles bornent la sonde ; une archive sans
+relevé perceptif garde son classement sans perception inventée. Aucune preuve
+de nécessité causale ni identité exhaustive de toutes les entrées du choix.
 
-Bruts : `C:/Users/msics/donjon/artifacts/perception-276/` : scripts et sources,
-tests, relecture historique, `aubin.json`, vingt archives des paires,
-`bilan.json`, `sources-campagne.json`, journal et **`fin.json` attendu**.
+Bruts : `C:/Users/msics/donjon/artifacts/perception-276/` : vingt archives
+avec/sans sonde (états et épisodes inclus), sources, tests, `aubin.json`,
+`mireille-historique.json`, `bilan.json`, `exploitation.json`, `fin.json`.
