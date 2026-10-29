@@ -136,6 +136,8 @@ class TachePromiseTests(unittest.TestCase):
                     x['portions'] = 0
             percevoir_tous(m)
             # Plan de recours sauvegardé : publication par le moteur réel.
+            from tests.support import possessions_deja_confiees
+            possessions_deja_confiees(m)  # Le marché étudié suit les inventaires déjà partagés.
             g = recours(m, id, 'faim', [])
             self.assertIsNotNone(g)
             lire(m, id)['intention']['plan'] = [g]

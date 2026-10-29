@@ -867,16 +867,22 @@ def observer_avis():
 
     def retrouves_sondes(m, id, qui):
         observe = m is sonde.monde_services
-        attentes = [(x, y) for x, y in ((id, qui), (qui, id))
-                    if x != "joueur" and (lire(m, x).get("rejoint") or {}).get("qui") == y]
+        # Les deux moitiés du contrat sont closes par le même contact publié :
+        # celui qui attend et celui qui vient. Une expiration sans contact
+        # ne passe pas par cette opération et ne constitue aucune preuve.
+        contrats = {"rejoint": "attendre", "rejoindre": "rejoindre"}
+        attentes = [(x, y, champ) for x, y in ((id, qui), (qui, id))
+                    if x != "joueur" for champ in contrats
+                    if (lire(m, x).get(champ) or {}).get("qui") == y]
         resultat = vrais_retrouves(m, id, qui)
         if not observe:
             return resultat
-        for x, y in attentes:
-            if lire(m, x).get("rejoint") is not None or not sonde.episodes.get(x):
+        for x, y, champ in attentes:
+            if lire(m, x).get(champ) is not None or not sonde.episodes.get(x):
                 continue
             ep = sonde.episodes[x][-1]
-            if ep["decision"]["but"] == {"type": "attendre", "qui": y}:
+            but = ep["decision"]["but"] or {}
+            if but.get("type") == contrats[champ] and but.get("qui") == y:
                 ep.setdefault("faits", []).append({
                     "t": instant(m), "cle": ep["decision"]["cle"], "qui": y,
                     "preuve": "rendez_vous_clos_par_retrouves"})

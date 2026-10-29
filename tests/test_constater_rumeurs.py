@@ -195,6 +195,8 @@ class RumeurAvecLieuTests(unittest.TestCase):
         placer(m, "brune", "echoppe", [1, 1])
         regarder(m, "ilse", "marchand")
         regarder(m, "marchand", "ilse")
+        from tests.support import possessions_deja_confiees
+        possessions_deja_confiees(m)  # Le jet étudié est celui de l'accusation.
         m, _ = attendre(recharger(m))
         self.assertIn("Ilse dit à Gorm que Brune a posé les vivres du refuge (crue).", chronique(m))
         self.assertEqual(lieu_cru(m, "marchand", "vivres"), ("reserve", "savoir"))
@@ -291,6 +293,8 @@ class ChercherQuelquUnTests(unittest.TestCase):
         m.joueur.update(salle="grenier", position=[6, 3])
         m.data["visitees"] = sorted({*m.data["visitees"], "grenier"})
         debut = instant(m)
+        from tests.support import possessions_deja_confiees
+        possessions_deja_confiees(m)  # Les confidences initiales ne retardent pas l'appel.
         m, texte = attendre(recharger(m))
         appels = [b for b, _, _ in entendus(m, debut, ENTENDU)
                   if b["auteur"] == "mathurine" and b["nature"] == "hele"]
@@ -341,6 +345,8 @@ class ChercherQuelquUnTests(unittest.TestCase):
             lire(m, "hugues")["visites"][s] = 0 if s == "dortoir" else 1
         lire(m, "hugues")["besoins"]["devoir"] = 90.0
         self.assertEqual(eclairage(m, "dortoir", [0, 0])["niveau"], 0)
+        from tests.support import possessions_deja_confiees
+        possessions_deja_confiees(m)
         m, _ = attendre(recharger(m))
         self.assertIn("Hugues appelle : « Anselme ? »", chronique(m))
         self.assertIn("Anselme répond : « Qu'est-ce que tu veux ? »", chronique(m))

@@ -8,8 +8,8 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
 - ``lieu`` : valeur = lieu direct (salle, porteur ou contenant) ou None si l'objet n'est plus
   là où on l'attendait ; ``salle`` et ``case`` disent où il a été vu.
   Une preuve ``possession`` peut accompagner ce lieu : porteur, propriétaire,
-  permission et remise autorisée constatés alors. L'adoption de cette preuve
-  par les nouvelles n'est pas encore prise en charge.
+  permission et remise autorisée constatés alors, transmis ensemble par les
+  nouvelles, sans relecture des droits réels par l'auditeur.
 - ``etat`` : état visible (porte ou contenant ouvert, luminaire allumé ; d'un personnage, ce
   qui presse son corps : ``{"faim", "chaleur", "repos"}`` ; d'une salle, sa lumière là où il se
   tenait et celle de ses propres sources : ``{"eclairee", "niveau", "propre"}``,
@@ -18,8 +18,9 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
   demande d'y voir (``constater_lumiere_devant``).
 - ``pieces`` : ce qu'il croit qu'une bourse contient, su en la tenant ou par un savoir ; jamais
   lu sur l'objet (``planification.enrichir``).
-- ``fin`` : destruction ou consommation constatée, datée et conservée même
-  après retrait des restes ; distincte de l'état de disponibilité.
+- ``fin`` : destruction ou consommation constatée, ou None pour un bien
+  encore utilisable ; dernière observation datée, conservée après retrait
+  des restes, distincte de l'état de disponibilité.
 - ``verrouillee`` : appris par essai ou savoir ; ouverture ou destruction vue dément le verrou.
 - ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
 - ``prevision`` (sujet : une salle) : avis reçu, avec source et conviction ; valeur =
@@ -273,7 +274,11 @@ def _croyance_valide(monde, attribut, c):
                             for k in ("porteur", "proprietaire", "remis_par"))
                     and type(p["permis"]) is bool and type(p["remise_autorisee"]) is bool), "Possession constatée invalide"
     elif attribut == "fin":
-        assert c.get("valeur") in ("detruit", "consomme"), "Fin d'objet crue invalide"
+        assert c.get("valeur") in (None, "detruit", "consomme"), "Fin d'objet crue invalide"
+        if "designation" in c:
+            d = c["designation"]
+            assert (isinstance(d, dict) and isinstance(d.get("nom"), str) and d["nom"]
+                    and set(d) <= {"nom", "genre", "pluriel", "nom_propre", "elision"}), "Désignation de fin invalide"
     elif attribut == "detresse":
         p = c.get("preuve", {})
         assert (type(c.get("valeur")) is bool and isinstance(p, dict)
@@ -1182,12 +1187,22 @@ def constater_fin_objet(monde, id, sujet, source):
     assert source in ("vu", "essai")
     cause = fin_objet(monde.objets[sujet])
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get("fin")
-    if cause and (not ancienne or ancienne["valeur"] != cause):
-        croire(monde, id, sujet, "fin", cause, source)
-    elif not cause and ancienne:
-        # Une réparation ou une réserve reconstituée peut démentir le constat.
-        # Cela ne réactive pas les projets déjà terminés.
-        del esprit(monde, id)["croyances"][sujet]["fin"]
+    if (ancienne and ancienne["valeur"] == cause and ancienne["minute"] == monde.data["minutes"]
+            and ancienne["source"] in ("vu", "essai")):
+        return  # Conserver l'essai propre que la perception suit dans le même instant.
+    if ancienne or any(k in monde.objets[sujet] for k in ("integrite", "portions", "charges")):
+        # Constater aussi l'absence de fin : l'effacer perdrait sa date et
+        # laisserait une ancienne nouvelle de destruction revenir après réparation.
+        # Revoir ne rouvre pas un fait déjà dit : son identité exclut la date.
+        # Revoir la même fin confirme aussi la preuve de son propre geste.
+        if ancienne and ancienne["valeur"] == cause and ancienne["source"] == "essai":
+            source = "essai"
+        # Le nom constaté reste formulable après retrait des restes, sans
+        # recréer l'objet ni relire ses propriétés dans le monde réel.
+        designation = ({"designation": {k: copy.deepcopy(monde.objets[sujet][k])
+                         for k in ("nom", "genre", "pluriel", "nom_propre", "elision")
+                         if k in monde.objets[sujet]}} if cause else {})
+        croire(monde, id, sujet, "fin", cause, source, **designation)
 
 
 def constater(monde, id, sujet, source):

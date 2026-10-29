@@ -2222,7 +2222,8 @@ def _entrees_communes(v):
         [k for k in v.connus if porte_par(monde, k, id)],
         # La fin des battants est lue par les gestes et leur restauration.
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()
-         if a != "fin" or monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
+         if a != "fin" or c["valeur"] is not None
+         and monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.

@@ -1,6 +1,47 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
+
+- **Lot 337 terminé avec deux échecs antérieurs réservés**, branche
+  `codex-fin-garde-ouidire`, fusionnée. `origin/integration ad0e5a8`
+  fusionnée sans rebase, deux parents `8ddef70`. Preuve négative de fin du
+  337 et dépendances des offres `offrir` du 336 conservées ; ajouts des deux
+  côtés dans `planification.py`, `tests/support.py`, documentation conservés.
+  Nouvelles communes de possession/droits/fin datés, identité distincte
+  des accusations, publication différée ; aucune permission réelle relue.
+  **219 : reprise légitime certifiée**, crue/7, Gorm brasero → rejoindre
+  Aubin → brasero, t=69945/70200/70426. Rejeu unique après fusion : mêmes
+  chronique/récit/souvenirs, **68 captures** rechargées monde/rendu/scène
+  identiques, 57,036 s. Contrat de contact réellement clos, consommé par
+  `engager Aubin`, plan déjà prévu et admissible. La sonde omettait la moitié
+  `rejoindre` ; preuve symétrique, **moteur inchangé**. Neuf clôtures rejouées
+  sur captures identiques ; **1 brut → 0 suspect**, classe commune
+  `rendez_vous_intermediaire_accompli`. Bruts intacts ; témoin rouge avant
+  correction, deux voies et négatifs testés.
+  **392 tests consolidés / 32 fichiers : 390 verts, deux échecs antérieurs,
+  zéro nouveau**, aucune erreur ni saut. Premier passage : sept échecs,
+  501,239 s. Référence exacte ad0e5a8, sept fichiers : **94 tests, deux
+  échecs**, 173,312 s. Réserves conservées : appel sur agenda attend échoppe
+  (chambre de la cloche sur référence, beffroi ici ; pas de preuve d'identité
+  des trajectoires), et `_retentir` sans `emission` dans le rejeu de l'audit.
+  Cinq prémisses d'inventaires initiaux déjà partagés : **288 assertions
+  AST inchangées**, **53/53 tests** de ces fichiers repris, 229,328 s ;
+  autres acquis réutilisés après contrôle des empreintes. Moteur inchangé.
+  Initial : 196/196 tests distincts, vingt nuits 4 h, aucun plantage/usurpation,
+  dix-neuf sans suspect et crue/7 certifiée ensuite. Aucun autre banc rejoué.
+  Constats 148 → 522, avertissements redits 8 → 27, bascules 0 → 2 : limites
+  conservées, aucun gain général ; aucune fin de garde naturelle au banc.
+  PNJ seulement, joueur sans relations subjectives. Ni Luna ni suite complète.
+  Deux travailleurs réduits au plus ; **aucun calcul actif**. Premier échec
+  de lancement conservé, sans test exécuté. Bruts
+  `C:/Users/msics/donjon/artifacts/garde-337/` : `rejeu-219/fin.json ok=true`,
+  `fusion-validation/classification.json`, `tests-consolides-fusion.json`,
+  `reprise-fixtures-1/fin.json ok=true`, `analyse-cloture-fusion.json`, fin
+  `fin-cloture-fusion.json`. Fins brutes en échec conservées. Source finale
+  `cb26a29` vérifiée, branche poussée. Recouvrements 335/336 : `agendas.py`,
+  `planification.py`, `tests/support.py`, documentation.
+  [Rapport 337](taches/rapport-codex-337-fin-garde-ouidire.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Les propriétés qui terminent une garde (porteur, droits datés, fin d'objet) passent par la voie commune des nouvelles, identité distincte d'une accusation de portage ; le gardien qui croit la nouvelle termine garder comme sur constat. Conflit agendas.py avec 336 résolu par l'agent ; suspect 219 crue/7 certifié reprise légitime (sonde corrigée, moteur inchangé). 390/392 tests verts, deux échecs préexistants sur l'intégration.
 
 - **Reprise 326 / G17 terminée, fusionnée**, branche `codex-g17-comptes` :
   fusions sans rebase `aba1e4b` (`9f261f9`), `b33d22a` (`ad0e5a8`, 323/336),
