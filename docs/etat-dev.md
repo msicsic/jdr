@@ -22,13 +22,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   à 95 min sans entretien adopté, puis lieu du dépôt appris à 110 min.
   **30 assertions inchangées**, test vert (**51,387 s**), neuf contrôles de
   recharge monde/rendu/scène ; les **49 autres tests déjà verts**, moteur
-  inchangé lors de cette reprise. **Banc seul détaché en cours**, vingt
-  paires 4 h, référence `0e3e626`, sonde 265/271, un processus réduit ;
-  compteur 219 par nuit et retours Aubin attendus, aucun résultat revendiqué.
-  Ni Luna ni suite complète. Bruts
-  `C:/Users/msics/donjon/artifacts/demande-273-sol/`, fin attendue
-  **`fin-banc.json`** ; ancien `fin.json` (`ok=false`) conservé comme archive
-  de la première campagne arrêtée avant banc.
+  inchangé lors de cette reprise, poussée **`527b505`**.
+  **Banc terminé : aucune hausse de suspects par nuit, critère tenu sur
+  20/20 paires**, référence `0e3e626`, sonde 265/271 ; suspects **1 → 0**,
+  Aubin Relais 2024 **117518 disparu** (trajectoire entière changée,
+  conservation isolée vérifiée sur capture). Quarante nuits 4 h jouées une
+  fois, cache absent, un processus réduit, **2 515,732 s**, aucun temps
+  comparé. Zéro plantage/usurpation/violation d'audit. Nouvelles observations
+  `voir_alterne` : Gorm, Relais et crue 2024 ; deux bascules en crue 2024,
+  sous le seuil 10. « À expliquer » **21 → 18**, mais hausses sur crue 7
+  **0→2**, crue 2024 **1→2**, hameau 42 **2→4**, hameau 2024 **0→1**, non
+  diagnostiquées ; dérives **203→205**, cycles **503→483**, préemptions
+  **49→62**, pertes de service **4→4**, aucune violation de service.
+  Attente urgente **695→375 PNJ·min**, sans recours **0→0**.
+  **Richesse mine en recul : S/F/D 25,75/5/1,964 → 15,25/5/1,464**
+  (S −40,8 %, D −25,5 %) ; autres scénarios dans le rapport. Aucun progrès
+  général ni stabilité universelle certifiés. Ni Luna ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/demande-273-sol/`,
+  `synthese-finale.json`, **`fin-banc.json` (`ok=true`)** ; ancien `fin.json`
+  (`ok=false`) conservé comme archive de la campagne arrêtée avant banc.
+  **Aucun calcul actif.**
   [Rapport 273](taches/rapport-codex-273-demande-adoptee.md).
 
 - **Branche `codex-retour-aubin`, fusionnée**, lot **272**, diagnostic

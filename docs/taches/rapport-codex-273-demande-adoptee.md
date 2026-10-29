@@ -1,64 +1,69 @@
 # Lot 273 — demande adoptée et moyen démenti
 
-29 octobre 2026. **Branche `codex-demande-adoptee`, non fusionnée**, base
-`c9459ce`, correctif moteur **`3ec23bb`**. **Banc encore à recevoir.**
+29 octobre 2026. **Branche `codex-demande-adoptee`, non fusionnée**,
+base `c9459ce`, moteur **`3ec23bb`**, banc sur **`527b505`**.
 
-**Invariant.** L'échec d'un moyen ne certifie pas la fin d'une demande
-adoptée. `deliberation.choisir` libère ses gestes sans effacer son identité
-ni son palier ; la revalidation existante trouve un autre moyen, attend
-sans geste, constate une fin ou cède à une priorité gagnante. Aucun
-suffixe démenti recopié ni délai ajouté ; refus et renoncements conservés.
-Aucun changement dans `planification`, `agendas`, `echanges` ou `signes`.
-La condition exacte de la demande reste tenue : un autre objet cible
-n'est pas assimilé à un autre moyen de cette condition.
+**Invariant.** `deliberation.choisir` libère le plan démenti sans effacer
+sa demande adoptée ni son palier. Revalidation, attente, fin attestée et
+préemption suivent le contrat existant ; aucun suffixe périmé recopié,
+délai ajouté ou autre fichier moteur modifié. Refus, renoncements et
+condition exacte de la demande conservés.
 
-**Preuves initiales : 21 tests verts**, contrat et empathie entiers,
-**98,600 s**, un processus réduit. Capture réelle **Aubin Relais 2024,
-117503** : Ilse hors perception, demande revalidée, identité et palier
-conservés, aucune sortie ni renaissance sur son retour perceptif. Le refus
-ancien ne tenant plus, la tête peut être reproposée, mais l'exécuteur
-interdit toujours le réessai dans la minute. Deuxième cas **Mathé/Lucien,
-mine** : attente hors perception faute de nourriture, reprise sur constat
-d'un moyen disponible, repas effectivement servi. Monde, rendu et scène
-contrôlés après recharge ; laps entiers/découpés identiques. Fins attestées,
-préemptions et absence de recopie d'un suffixe vérifiées. Les scènes de
-repas isolent explicitement les vivres portés, sans premier but d'achat.
+**Preuves.** 21 tests contrat/empathie verts (**98,600 s**), puis 28/29
+compléments (**398,297 s**). Capture **Aubin Relais 2024, 117503** : demande
+revalidée hors perception, sans sortie ni renaissance ; réessai interdit
+dans la minute. **Mathé/Lucien, mine** : attente, moyen constaté puis
+repas effectif. Recharges monde/rendu/scène et laps entiers/découpés
+identiques ; fins, préemptions et suffixes vérifiés.
 
-**Erreur Lucien instruite.** Les compléments avaient donné **28/29**
-(**398,297 s**) : contrats internes 5/5, dynamique 9/10, échelle 4/4,
-réessai 7/7, secours acquitté 3/3. Le test inchangé de recherche après
-reprise du ballot **passe sur `c9459ce` isolée (92,579 s)** et **échoue sur
-la branche (67,480 s)** : `KeyError: 'anselme'` à 120 minutes.
+**Erreur Lucien instruite.** Test inchangé vert sur `c9459ce` isolée
+(**92,579 s**), `KeyError: 'anselme'` sur branche (**67,480 s**). Anselme
+conserve l'entretien du poêle : attente **palier 4 / valeur
+50**, sécurité **4 / 11,485**, marge **7,5** ; il reste témoin et interdit
+le vol. Après restitution refusée, une autre demande conservée ne lui
+apprend pas le dépôt du ballot. Le test dépendait de ces deux abandons.
+Prémisses explicites : capture historique à 95 min sans entretien
+adopté, puis dépôt réellement effectué appris à 110 min. **30 assertions
+originales identiques** (AST), test vert (**51,387 s**), neuf contrôles de
+recharge. Les 49 autres tests étaient déjà verts ; moteur inchangé lors
+de cette reprise. Preuves : `lucien-*/`, `diagnostic-lucien.json`.
 
-La nouvelle trajectoire est conforme au contrat : Anselme conserve sa
-demande d'entretien du poêle après le refus d'une lanterne. À 120 min,
-fin et reprise sans réponse, attente **palier 4 / valeur 50** ; sécurité
-**4 / 11,485**, marge **7,5**, aucun candidat dominant. Il demeure témoin,
-le renoncement de Lucien tient, le ballot reste dans le coffre : aucun vol
-puis aucune recherche d'Anselme n'ont lieu. En partant du contrôle
-historique à 95 min, une seconde dépendance apparaît : après refus de
-restitution, Anselme conserve aussi cette demande ; il croit le ballot
-sur Lucien et ignore son dépôt à l'étable. L'ancienne trajectoire le
-faisait retrouver fortuitement par un autre plan après abandon du but.
+**Banc terminé : critère « aucune hausse de suspects par nuit » tenu sur
+20/20 paires**, total **1 → 0**. Quatre heures, départ tiré, cinq scénarios,
+quatre graines, référence **`0e3e626`**, sonde actuelle **265/271** des deux
+côtés ; quarante nuits calculées une fois (cache absent), un processus
+réduit, **2 515,732 s**, code 0. Aucune conclusion de vitesse.
+Aubin Relais 2024, retour **117518**, est suspect en référence et absent
+des suspects de la branche. La trajectoire entière a changé ; la preuve
+isolée de conservation de sa demande reste celle de la capture 117503.
 
-**Prémisses du test explicitées, moteur inchangé.** Départ de la capture
-95 min (garde sans demande d'entretien en cours), puis information au
-propriétaire à 110 min sur le dépôt réel. Il reprend légitimement le
-ballot ; Lucien épuise ensuite sa recherche et attend sans nouveau départ.
-**Les 30 assertions originales sont identiques** (comparaison AST) et le
-test passe en **51,387 s**, avec neuf contrôles monde/rendu/scène après
-recharge à 110/120/165 min. Les 49 autres tests étaient déjà verts ;
-aucune nouvelle suite complète ni répétition des fichiers inchangés.
-Bruts : `lucien-base/`, `lucien-branche/`, `lucien-premisse-finale/`,
-`diagnostic-lucien.json`, scripts et captures archivés.
+Ordre des graines : **1985 / 7 / 42 / 2024**. Chaque composante du vecteur
+219 compare une nuit. S/F/D : fonction `cats` du lot 183 inchangée,
+signatures famille × auteur × texte exact, familles, moyenne des familles
+par PNJ ; moyennes sur quatre nuits, PNJ inactifs compris.
 
-**Banc seul détaché**, indépendant du retour des tests : vingt paires
-4 h, Relais/mine/auberge/crue/hameau × 1985/7/42/2024, référence
-`0e3e626` en cache ou calculée une seule fois, sonde actuelle 265/271,
-un processus réduit. Suspects 219 comparés **nuit par nuit** et retours
-Aubin conservés. **Aucun résultat du banc encore revendiqué.** Ni Luna
-ni suite complète. Bruts dans
-`C:/Users/msics/donjon/artifacts/demande-273-sol/` ; fichier attendu
-**`fin-banc.json`**, écrit en dernier. L'ancien `fin.json` (`ok=false`)
-reste l'archive de la première campagne arrêtée avant banc. La garantie
-porte sur les cas vérifiés ; aucune stabilité générale n'est certifiée.
+| Scénario | 219 par nuit, référence → branche | S/F/D, référence → branche |
+|---|---|---|
+| Relais | 0/0/0/1 → 0/0/0/0 | 15,25/4,25/1,750 → 15/4,25/1,625 |
+| Mine | 0/0/0/0 → 0/0/0/0 | 25,75/5/1,964 → 15,25/5/1,464 |
+| Auberge | 0/0/0/0 → 0/0/0/0 | 9,25/4/1 → 9,25/4,25/1,031 |
+| Crue | 0/0/0/0 → 0/0/0/0 | 23,50/6,75/3,063 → 27/6,75/3,250 |
+| Hameau | 0/0/0/0 → 0/0/0/0 | 22,75/7,25/2,167 → 24,75/7,25/2,208 |
+
+**Alertes et limites.** Zéro plantage, usurpation ou violation d'audit.
+Deux nouvelles observations `voir_alterne` : Gorm, Relais et crue 2024,
+relevé 5 min ; elles ne certifient pas une boucle. Deux bascules mesurées
+en crue 2024, sous le seuil d'alerte 10. Entrées « à expliquer » **21 → 18**,
+mais hausses sur **crue 7 : 0→2 ; crue 2024 : 1→2 ; hameau 42 : 2→4 ;
+hameau 2024 : 0→1** ; non diagnostiquées, non déclarées bénignes. Dérives
+ouvertes **203 → 205**, cycles **503 → 483**, préemptions **49 → 62**.
+Pertes de service **4 → 4** (cessation physique 3→4, bénéficiaire parti 1→0),
+aucune violation de service. Attente urgente **695 → 375 PNJ·min**, sans
+recours **0 → 0**. **Recul net de richesse à la mine : S −40,8 %, D −25,5 %,
+F stable** ; aucune amélioration générale ni stabilité universelle revendiquée.
+
+Ni Luna ni suite complète. **Aucun calcul actif.** Bruts :
+`C:/Users/msics/donjon/artifacts/demande-273-sol/`, `banc.json`,
+`bilan.json`, `synthese-finale.json`, script `synthetiser-banc.py` ;
+**`fin-banc.json` (`ok=true`)**. L'ancien `fin.json` (`ok=false`) archive
+la première campagne arrêtée avant banc ; il n'est pas le bilan final.
