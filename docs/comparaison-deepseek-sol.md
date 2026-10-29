@@ -31,3 +31,27 @@ lancement en réflexion par défaut annulé et refait en high). Temps non compar
 - Sol est plus rigoureux sur la preuve causale, mais demande plus de relances (arrêt sur erreur, banc non lancé).
 - Décision provisoire de l'utilisateur (29 octobre) : DeepSeek pour les diagnostics seulement, version non gratuite,
   en attendant le bilan complet du lot 273.
+
+## Lot 273, résultat de la reprise (nuit du 29 octobre, vers 3 h)
+Même consigne de reprise pour les deux (corriger les deux causes du recul de la mine, puis vingt nuits sur les cinq
+scénarios du brief). DeepSeek a repris en version payante `opencode-go/deepseek-v4.1-flash` high (nouvel agent dans
+le même espace, quota gratuit épuisé), banc conforme cette fois (cinq scénarios, deux processus).
+
+| | Sol 6.1 high (`7d0fce7`) | DeepSeek V4.1 Flash Go high (`dfa2181`) |
+|---|---|---|
+| Correctifs | provenance transitive lot → part ; sommeil des demandes sans plan admissible | `_meme_demande_tenue` (même raison = même demande, sauf mission d'objet précis) ; sommeil des demandes sociales de fourniture, garde/lieu/ronde/mission gardent l'attente |
+| Tests | 16 ciblés verts ; 449 compléments, 5 échecs instruits (2 hérités, 3 nouveaux, dont un défaut réel de présence au service de Tilo, déjà présent sur le parent) | 47 + 106 ciblés verts |
+| Suspects 219 (20 nuits) | **1 → 3** : critère non tenu | **1 → 3** (Gorm, crue 42) : critère non tenu |
+| Richesse S mine (référence 19–32, moyenne 25,75) | **16** : hors étendue | **16,75** : hors étendue |
+| Conclusion de l'agent | fusion différée | les deux critères échouent |
+
+**Les deux réalisations indépendantes convergent vers le même échec** : à preuve égale, ce n'est plus une question de
+modèle mais de conception du lot 273. Garder la demande adoptée après l'échec d'un moyen coûte de la richesse à la mine
+et ajoute des suspects, quelle que soit la façon de la revalider. À trancher avec l'utilisateur avant toute nouvelle
+reprise (piste : borner la conservation d'une demande à la revalidation immédiate de ses moyens, ou garder la clôture
+historique et ne corriger que la renaissance perceptive du lot 272).
+
+**Pour l'évaluation de DeepSeek** : sur ce lot de code, il égale Sol sur le résultat mesuré, avec moins de relances et
+plus de tests, mais un écart de méthode (même raison = même demande, que le brief demandait d'éviter hors exception)
+et des écarts de consignes au premier banc. Sol a apporté la preuve causale décisive (part de lot non reconnue) et un
+défaut réel de plus (Tilo).
