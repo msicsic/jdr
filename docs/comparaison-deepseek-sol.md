@@ -55,3 +55,12 @@ historique et ne corriger que la renaissance perceptive du lot 272).
 plus de tests, mais un écart de méthode (même raison = même demande, que le brief demandait d'éviter hors exception)
 et des écarts de consignes au premier banc. Sol a apporté la preuve causale décisive (part de lot non reconnue) et un
 défaut réel de plus (Tilo).
+
+## Lot 279 (diagnostic, DeepSeek Go high seul), nuit du 29 octobre
+Premier lot en version payante `opencode-go/deepseek-v4.1-flash`, réflexion high réglée explicitement, sur le PC fixe.
+Livré complet en un seul tour, sans relance : trois rejeux détachés (un processus à la fois, conformément au brief),
+chronique de `0bad227` identique à l'archive 274, tableau coup par coup avec auteur, cible, but et issue, cinq captures
+rechargées, premier écart entre versions situé (lot 260) et non-reproduction sur l'intégration expliquée sans
+surinterprétation. Un défaut réel de libellé repéré (le but de protection nomme l'agresseur au lieu du protégé), déjà
+entrevu au lot 222. Consignes respectées (aucun fichier de code modifié, échec de poussée laissé local, sans contourner
+par l'API). Qualité comparable à Sol medium sur ce type de diagnostic.
