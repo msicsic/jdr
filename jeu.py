@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import sys
 
-from donjon.commandes import AIDE, DescripteurPublic, analyser, est_question, heler
+from donjon.commandes import AIDE, PERCEPTIONS, DescripteurPublic, analyser, est_question, heler
 from donjon.config import charger_env, MODELE_CLAUDE, MODELE_LOCAL, MODELE_MIMO, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJ
@@ -432,6 +432,8 @@ def main(argv=None, interface=None):
                     if cmd in ("aide", "?"):
                         imprimer(AIDE)
                     elif cmd == "regarder":
+                        m.memoriser(texte, regarder(m).strip(), "resultat_moteur")
+                        m.sauver(args.save)
                         afficher("carte")
                         afficher("scene")
                     elif cmd == "carte":
@@ -521,9 +523,9 @@ def main(argv=None, interface=None):
                         raise ErreurMonde("L'avis du MJ doit être contrôlé comme un dialogue avant affichage.")
                     pending = moteur.preparer(p, origine="reprise mémorisée" if reponse.get("_reprise_locale") else "LLM : " + mj.modele)
                     comparaison_pending = mj.numero if isinstance(mj, Comparateur) else 0
-                    # Une question au MJ prépare son plan sans l'exécuter,
-                    # même si le geste proposé est une perception.
-                    essai_a_blanc = question
+                    # Une consultation de perception répond immédiatement ;
+                    # la faisabilité d'un geste à effet reste une proposition.
+                    essai_a_blanc = question and p.get("action") not in PERCEPTIONS
                     compris = "\n".join(filter(None, (compris_transactions, plan_admis(m, pending))))
                     if not essai_a_blanc and not pending.stat and not pending.echec_critique and not pending.confirmation:
                         plan = pending

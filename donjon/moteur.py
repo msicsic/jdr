@@ -19,7 +19,7 @@ from .refus import cibles, inaccessible, portes_avec_usage, ProprieteInconnue
 
 ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "fermer",
            "deverrouiller", "verrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
-           "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
+           "copier", "lire", "parler", "aller", "attendre", "observer", "reperer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
            "ecouter", "pousser", "ranimer", "fuir", "riposter", "se_rendre", "degager", "saisir", "ligoter", "delier", "liberer", "trainer", "tuer",
            "clarifier", "impossible"]
@@ -27,7 +27,7 @@ TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tra
 METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
 # Gestes dont le résultat est ce que le moteur fait percevoir. À distinguer de
 # commandes.PERCEPTIONS : cette dernière règle borne l'exécution d'une question.
-PERCEPTIONS = ("observer", "examiner", "toucher", "lire", "ecouter")
+PERCEPTIONS = ("observer", "examiner", "toucher", "lire", "ecouter", "reperer")
 
 
 class QualificationRequise(ProprieteInconnue):
@@ -74,6 +74,18 @@ class Plan:
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
     compris: str = ""          # texte libre admis : récapitulatif moteur figé avant affichage
+
+    @property
+    def perception_canonique(self):
+        """Perception seule, sans effet de monde proposé par le MJ.
+
+        Connaître ce qui est perçu est une conséquence du capteur moteur.
+        Les compositions et la lecture avec apprentissage gardent leur revue.
+        """
+        return (self.proposition.get("action") in PERCEPTIONS and not self.etapes
+                and not self.stat and not self.confirmation and not self.echec
+                and not self.echec_critique
+                and all(e[0] == "connaitre" for e in self.effets))
 
     @property
     def perception(self):
@@ -162,8 +174,10 @@ class Moteur:
         par exemple), s'il ne le voit pas de face mais le verrait en se tournant ; None sinon."""
         if not isinstance(p, dict):
             return None
-        if p.get("action") == "trainer":
-            return None  # Le regard suit le pas, la cible reste au contact derrière.
+        if p.get("action") in ("trainer", "reperer"):
+            # Traîner garde le regard du pas ; consulter un repère garde le
+            # regard actuel, même si sa dernière position est derrière Corvus.
+            return None
         from .spatial import regard_vers
         etapes = p.get("etapes") if isinstance(p.get("etapes"), list) else []
         cibles = p.get("cibles") if isinstance(p.get("cibles"), list) else []
@@ -266,6 +280,28 @@ class Moteur:
             raise ErreurMonde("Assommer ne vise qu'une personne.",
                               f"methode=assommer, action={action}, cible={cible} : frapper une cible de type personnage, ou methode simple.")
         plan = Plan(dict(p), m.data["revision"], "", origine=origine)
+        if action == "reperer":
+            for champ, accepte in (("outil", ""), ("methode", "simple"), ("difficulte", 0)):
+                if p[champ] != accepte:
+                    raise ErreurMonde("Consulter un repère se fait sans outil ni jet.",
+                                      f"reperer.{champ} : reçu {p[champ]!r} ; accepté : {accepte!r}.")
+            from .rendu import position
+            plan.information = position(m, cible)
+            plan.titre = "Consulter le repère connu."
+            plan.minutes, plan.dixiemes, plan.effort = 0, 0, False
+            return plan
+        # Après validation de forme et rotation éventuelle : seule la vue
+        # publique autorise une conclusion, jamais la position cachée.
+        if (action in ("observer", "examiner") and cible in m.objets
+                and not m.visible(cible) and not outil
+                and p["methode"] == "simple" and not p["difficulte"]):
+            from .rendu import non_perception
+            information = non_perception(m, cible)
+            if information:
+                plan.titre = "Constater la vue actuelle."
+                plan.minutes, plan.dixiemes, plan.effort = 0, 0, False
+                plan.information = information
+                return plan
         if action in ("saisir", "ligoter", "delier", "liberer", "trainer", "tuer"):
             from .tenir import preparer
             return preparer(m, p, plan)
@@ -680,6 +716,8 @@ class Moteur:
         plan = self.preparer(plan.proposition, plan.origine)
         if plan.etapes:
             return self._executer_operations(plan)
+        if plan.perception_canonique and plan.dixiemes == 0 and not plan.effets:
+            return plan.information
         if plan.proposition["action"] == "observer" and plan.proposition["cible"] not in self.monde.objets:
             return plan.information
         travail = self.monde.copier()

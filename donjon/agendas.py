@@ -15,6 +15,7 @@ CHAMPS = {"engagements": list}
 NAISSANCES = {
     "dette_situation": {"sorte": "obtenir", "valeurs": ("honnetete", "ambition")},
     "bien_spolie": {"sorte": "récupérer", "valeurs": ("ambition", "honnetete", "douceur", "fierte")},
+    "occasion_protection": {"sorte": "offrir", "valeurs": ("ambition",)},
 }
 
 
@@ -52,6 +53,14 @@ def _naitre(monde, id, cause, parametres, origine, empreinte, *, sans_violence=T
 
 def _naissances(monde, id, empreinte):
     from .biens import richesse, VALEUR_OBJET
+    from .occasion_protection import occasions
+    for p in occasions(monde, id):
+        cause = 'occasion_protection'
+        if any(a['origine'].get('cause') == cause and a['parametres']['qui'] == p['qui']
+               for a in (_stock(monde, id) or [])):
+            continue
+        _naitre(monde, id, cause, p, {'type': 'occasion', 'cause': cause,
+                'de': p['qui'], 'minute': monde.data['minutes']}, empreinte)
     for objet, p in _torts_connus(monde, id):
         # L'identité de preuve du portage survit aux regards successifs.
         cause = "bien_spolie"
@@ -827,13 +836,15 @@ def _croyances(monde, id, *, moyens_seuls=False):
             return [contenu(v) for v in x]
         return x
     croyances = contenu(lire(monde, id)["croyances"])
-    if not moyens_seuls and any(a["sorte"] in ("obtenir", "récupérer") for a in (_stock(monde, id) or [])):
+    if not moyens_seuls and any(a["sorte"] in ("obtenir", "récupérer", "offrir") for a in (_stock(monde, id) or [])):
         from .biens import richesse
         from .spatial import porte_par
         e = lire(monde, id)
         croyances = [croyances, richesse(monde, id), _dette_situation(monde, id),
                      contenu(e["refus"]), contenu(e["relations"]), en_cours(monde, id),
                      sorted(o for o in monde.objets if porte_par(monde, o, id))]
+        from .caractere import caracteristiques, VALEURS, valeur
+        croyances += [caracteristiques(monde, id), {v: valeur(monde, id, v) for v in VALEURS}]
     return hashlib.sha256(json.dumps(croyances,
                                     sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
@@ -886,7 +897,9 @@ def actualiser(monde, id):
     _actualiser_epreuves(monde, id)
     if not declarations and not _stock(monde, id):
         from .biens import richesse
-        if _dette_situation(monde, id) <= richesse(monde, id) and not next(_torts_connus(monde, id), None):
+        from .occasion_protection import occasions
+        if (_dette_situation(monde, id) <= richesse(monde, id) and not next(_torts_connus(monde, id), None)
+                and not next(occasions(monde, id), None)):
             return
     empreinte = _croyances(monde, id)
     if declarations and _stock(monde, id) is None:
@@ -904,6 +917,13 @@ def actualiser(monde, id):
         if a["etat"] == "atteint" and a["raison"] == "compte rendu cru" and not _acheve_par_comptes(monde, id, a):
             _changer(monde, id, a, "actif", "compte rendu dementi", empreinte)
         if a["etat"] not in ("actif", "sommeil"):
+            continue
+        if a['sorte'] == 'offrir':
+            continue
+        if a['origine']['type'] == 'contrat':
+            engagements = en_cours(monde, id, actifs=True)
+            if not any(x['condition'] == a['origine']['condition'] and x['minute'] == a['origine']['minute'] for x in engagements):
+                _changer(monde, id, a, 'atteint', 'contrat clos', empreinte)
             continue
         if a.get("echeance", float("inf")) < monde.data["minutes"]:
             _changer(monde, id, a, "abandonne", "echeance", empreinte)
@@ -977,7 +997,7 @@ def essayables(monde, id):
     for a in projets(monde, id):
         if a["etat"] == "actif":
             yield a
-        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener", "garder", "protéger", "obtenir", "récupérer"):
+        elif a["etat"] == "sommeil" and a["sorte"] in ("informer", "amener", "garder", "protéger", "obtenir", "récupérer", "offrir"):
             if empreinte is None:
                 empreinte = _croyances(monde, id)
             if a["croyances"] != empreinte:
@@ -1185,6 +1205,31 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         if not restants:
             return {"type": "agenda", "agenda": identifiant}, []
     empreinte = _croyances(monde, id)
+    if a['sorte'] == 'offrir':
+        from .occasion_protection import peur_crue, fonds_crus
+        from .echanges import offre_sensee
+        from .pnj_propositions import offre_refusee
+        from .planification import rejoindre, _etape, RESTER
+        p = a['parametres']
+        qui = p['qui']
+        c = p['contrepartie']['condition']
+        # La date du devis n'est pas un motif de redémarchage. Les termes sont
+        # remis à jour seulement après le contrôle du refus commun.
+        if (not peur_crue(monde, id, qui) or fonds_crus(monde, id, qui) < p['demande']['montant']
+                or offre_refusee(monde, id, qui, qui, p['contrepartie'])):
+            _changer(monde, id, a, 'sommeil', 'occasion indisponible ou refusee', empreinte)
+            return None
+        c['echeance'] = monde.data['minutes'] + RESTER
+        if not offre_sensee(monde, id, qui, p['demande'], p['contrepartie']):
+            _changer(monde, id, a, 'sommeil', 'offre sans interet', empreinte)
+            return None
+        contact = rejoindre(monde, id, qui)
+        if contact is None:
+            return None
+        suite, trouve = contact
+        if trouve:
+            suite.append(_etape('proposer', qui, contenu={k: copy.deepcopy(p[k]) for k in ('demande', 'contrepartie')}))
+        return {'type': 'agenda', 'agenda': identifiant}, suite
     if a["sorte"] == "récupérer":
         if a["etat"] == "sommeil" and a["croyances"] == empreinte:
             return None
@@ -1456,6 +1501,39 @@ def prendre(monde, id, engagement):
     from .esprits import esprit
     stock = monde.data.setdefault("promesses_joueur", []) if id == "joueur" else esprit(monde, id)["engagements"]
     stock.append(copy.deepcopy(engagement))
+
+
+def admettre_contrat(monde, id, engagement):
+    """Un service durable accepté utilise la responsabilité commune des agendas."""
+    c = engagement['condition']
+    if not c.get('proteger'):
+        return
+    if depart(monde, id) and _stock(monde, id) is None:
+        actualiser(monde, id)
+    stock = _stock(monde, id, creer=True)
+    n = 1
+    while any(a['id'] == f'a{n}' for a in stock):
+        n += 1
+    a = {'id': f'a{n}', 'sorte': 'protéger', 'parametres': {'qui': c['objet']},
+         'echeance': c['echeance'], 'maniere': {'sans_violence': False},
+         'origine': {'type': 'contrat', 'de': engagement['pour'], 'minute': engagement['minute'],
+                     'condition': copy.deepcopy(c)}}
+    _changer(monde, id, a, 'actif', 'tache payee', _croyances(monde, id))
+    stock.append(a)
+    _limiter(monde, id, _croyances(monde, id))
+
+
+def commencer_service(monde, id, cible):
+    from .esprits import esprit
+    for x in esprit(monde, id)['engagements']:
+        if x['condition'].get('proteger') and x['condition']['objet'] == cible and not x.get('annule'):
+            x.setdefault('commence', monde.data['minutes'])
+
+
+def conclure_offre(monde, id, identifiant, issue):
+    a = _projet(monde, id, identifiant)
+    if a and a['sorte'] == 'offrir' and issue in ('accepte', 'attente'):
+        _changer(monde, id, a, 'atteint', 'offre ' + issue, _croyances(monde, id))
 
 
 def retirer_proposition(monde, id, engagement):
@@ -1759,7 +1837,7 @@ def verifier(monde, id):
         _verifier_abus(a)
         assert (a["etat"] in ("actif", "sommeil", "atteint", "abandonne")
                 and type(a["depuis"]) is int and isinstance(a["raison"], str)
-                and a["origine"]["type"] in ("scenario", "situation", "evenement", "mandat") and "plan" not in a
+                and a["origine"]["type"] in ("scenario", "situation", "evenement", "mandat", "occasion", "contrat") and "plan" not in a
                 and isinstance(a["croyances"], str)), "Agenda invalide"
         _verifier_filiation(monde, id, a)
         jugements = a.get("jugements", [])
@@ -1782,7 +1860,7 @@ def verifier(monde, id):
         # reçu (``echanges.engagements_echus``).
         from .biens import QUOI
         paye = engagement.get("paye")
-        assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule"}
+        assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule", "commence"}
                 - ({"realisee"} if id == "joueur" else set()) == {"condition", "pour", "minute"}
                 and ("realisee" not in engagement or engagement["realisee"] is True)
                 and ("objet" not in engagement or isinstance(engagement["objet"], str))
@@ -1790,6 +1868,8 @@ def verifier(monde, id):
                 and condition_valide(monde, engagement["condition"]) and "periode" not in engagement["condition"]
                 and (engagement["pour"] == "joueur" or engagement["pour"] in monde.objets)
                 and type(engagement["minute"]) is int
+                and ('commence' not in engagement or engagement['condition'].get('proteger')
+                     and type(engagement['commence']) is int and engagement['commence'] >= engagement['minute'])
                 and ("lot" not in engagement or isinstance(engagement["lot"], str) and engagement["lot"] in monde.objets
                      and "remettre" in engagement["condition"])
                 and (paye is None or isinstance(paye, dict) and set(paye) == {"objet", "prix", "quoi"}
@@ -1847,6 +1927,16 @@ def echoir(monde, id):
         else:
             restants.append(engagement)
     e["engagements"] = restants
+    for a in _stock(monde, id) or []:
+        if a['origine']['type'] == 'contrat' and a['etat'] in ('actif', 'sommeil'):
+            x = next((x for x in finis if x['condition'] == a['origine']['condition']
+                      and x['minute'] == a['origine']['minute']), None)
+            if x:
+                from .occasion_protection import fin
+                raison = fin(monde, id, x['condition'], x['minute'])
+                reussi = x.get('commence') is not None and raison in ('echeance', 'danger cru passe')
+                _changer(monde, id, a, 'atteint' if reussi else 'abandonne',
+                         raison or 'contrat impossible', _croyances(monde, id))
     for engagement in finis:
         o, de = engagement["condition"].get("objet"), engagement["pour"]
         if ("rendre" in engagement["condition"] or "remettre" in engagement["condition"] or o not in monde.objets

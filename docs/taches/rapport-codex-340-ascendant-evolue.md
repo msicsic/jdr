@@ -2,7 +2,18 @@
 
 Branche `codex-ascendant-evolue`, **non fusionnée**, base fournie `9f261f9`,
 29 octobre 2026. **Lot terminé**, moteur `14ba7f2`, branche poussée vers
-`origin`. Validation finale verte ; aucun calcul actif ni relancé à la clôture.
+`origin`. Validation initiale verte, sans calcul relancé à sa clôture.
+
+**Synchronisation demandée, en cours.** `origin/integration 64130fa`
+(336, G5 et G6) fusionnée sans rebase. Conflit de `planification.py` résolu
+par l'union des lectures : mandats perçus, engagements de protection et
+agendas d'origine contrat dans `_entrees_communes`. Fusions automatiques
+d'`agendas.py` et d'`echanges.py` relues ; les deux invariants conservés.
+Documentation des deux côtés retenue. Validation détachée des fichiers
+ciblés 340 et 336, plus échanges argent/suite, deux travailleurs réduits
+au plus ; aucun nouveau banc, Luna ou suite complète. Fin attendue :
+`C:/Users/msics/donjon/artifacts/ascendant-340/fusion-64130fa/fin.json`.
+L'échec antérieur du 336 reste à attribuer s'il se reproduit.
 
 **Invariant et réalisation.** `relations.EPREUVES` reçoit trois épreuves :
 réussite **+10**, échec/renoncement **−10**, abus **−20**, sur l'ascendant.
