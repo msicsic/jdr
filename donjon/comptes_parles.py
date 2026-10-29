@@ -98,8 +98,11 @@ def formuler(faits, auteur, operation):
         'geste': "Je suis occupé à mon geste.", 'place': "Je n'ai pas la place de m'écarter.",
         'inutile': "Je ne te barre pas le passage."}
     if r.get('etat') == 'refuse':
-        debut.extend(["Je refuse cet échange.", causes[r['cause']],
-                      "Aucun règlement n'est effectué pour cet échange."])
+        if r.get('refus_par') == 'joueur':
+            debut.append("Tu refuses cet échange.")
+        else:
+            debut.extend(["Je refuse cet échange.", causes[r['cause']]])
+        debut.append("Aucun règlement n'est effectué pour cet échange.")
     elif r.get('etat') == 'accepte':
         debut.append("J'accepte cet échange.")
     elif r.get('etat') == 'refus' and r.get('prix'):

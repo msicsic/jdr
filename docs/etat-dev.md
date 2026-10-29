@@ -9,11 +9,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   rapport vocal absent pour une admission non vocale, normalisé sans changer
   ses contrôles. Anciennes attentes du texte/deuxième appel portées à G15/G17,
   assertions mécaniques conservées. Attribution provisoire : neuf défauts,
-  29 attentes, sept préexistants (rejeu/audit/huile, lot 339) à confirmer.
-  Référence isolée limitée à 30 méthodes et validations de branche ciblées,
-  un travailleur réduit chacune, calculs détachés. **Aucune suite complète**.
+  29 attentes, sept préexistants prouvés (rejeu/audit/huile, lot 339) :
+  référence `9f261f9`, **29 tests, deux échecs/cinq erreurs, 346,410 s**,
+  aucun autre incident. Référence achevée et réutilisée sans relance.
+  **`ad0e5a8` (323/336) fusionné sans rebase par `b33d22a`**, conflit
+  documentaire seul. Premier calcul de branche arrêté avant modification du
+  code, marqueurs conservés. Offres stockées et missions convergent vers
+  l'admission G15 depuis leurs propres résolutions et règlements typés.
+  Référence isolée de 30 méthodes achevée (29 tests comptés, une erreur
+  de classe) ; validation finale de 28 fichiers ciblés, deux travailleurs
+  réduits au plus, calcul détaché. **Aucune suite complète**.
   Bruts `C:/Users/msics/donjon/artifacts/g17-326/reprise/` ; fin attendue
-  `fin-reprise.json`, résultats à attribuer avant clôture.
+  `ad0e5a8/fin-reprise.json`, résultats à attribuer avant clôture.
   [Matrice 326](taches/attribution-codex-326-g17-comptes-parles.md).
 
 - **Lot 326 / G17 terminé, branche `codex-g17-comptes`, non fusionnée**,

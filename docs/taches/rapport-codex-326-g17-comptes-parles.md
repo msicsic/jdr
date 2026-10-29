@@ -72,7 +72,14 @@ origin, sans fusion.
 **Reprise de la suite d'essai `bde5993` (en cours).** Le superviseur a relevé
 45 incidents (25 échecs, 20 erreurs). `origin/integration 9f261f9` est fusionné
 sans rebase par `aba1e4b` ; conflit documentaire seul, deux côtés conservés.
-Le fichier de code commun est `narration.py` (G19 et U-P intégrés).
+L'intégration a ensuite avancé à `ad0e5a8` (323 et 336), fusionnée sans
+rebase par `b33d22a`, conflit documentaire seul. Fichiers communs cumulés :
+`narration.py`, `mj.py`, `dialogues.py`. Le premier calcul de branche a été
+arrêté avant cette fusion ; la référence était déjà terminée et reste acquise.
+La compatibilité des offres stockées de 336 avec G17 est portée au contrat
+commun des résolutions : mêmes termes, paiement journalisé et admission G15,
+condition explicite de protection/échéance rendue par le moteur, sans inférence
+à partir de mots. Aucun nouveau comportement de PNJ.
 [La matrice individuelle](attribution-codex-326-g17-comptes-parles.md) suit
 chaque incident. Un défaut G17 explique neuf incidents : une admission non
 vocale peut ne pas avoir de rapport ; `comptes_parles.reponse` accepte cette
@@ -81,9 +88,11 @@ absence et laisse sa voie narrative habituelle, au lieu d'appeler G15 sur
 portés au texte moteur et à l'émission qui conserve les faits ; les oracles
 mécaniques restent inchangés. La contre-épreuve du nom inconnu reste exercée
 sur une réplique libre. Sept incidents du rejeu/audit/huile sont laissés au
-lot 339, sous réserve de leur reproduction sur l'intégration seule.
+lot 339, tous reproduits sur l'intégration seule `9f261f9` : **29 tests comptés,
+deux échecs et cinq erreurs, 346,410 s**, aucun incident supplémentaire.
 Référence : 30 méthodes distinctes, un travailleur réduit, détaché. Branche :
-seuls fichiers en incident et voisins directs du raccord commun ; aucune
+28 fichiers en incident ou directement concernés par les fichiers communs,
+deux travailleurs réduits au plus, calcul détaché ; aucune
 nouvelle suite complète. Bruts `C:/Users/msics/donjon/artifacts/g17-326/reprise/`.
 Résultats et attribution finale encore à lire ; ne pas considérer la reprise
-comme validée avant `fin-reprise.json` et sa lecture.
+comme validée avant `reprise/ad0e5a8/fin-reprise.json` et sa lecture.

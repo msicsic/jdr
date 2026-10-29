@@ -1,6 +1,7 @@
 """G17 : vraie console simulée, état, mots et rendu après sauvegarde."""
 import copy
 import unittest
+from unittest.mock import patch
 
 from donjon.biens import livraisons_dues
 from donjon.comptes_parles import reponse, sceller
@@ -20,6 +21,36 @@ from tests.test_tensions import recharger
 
 
 class ComptesParlesMoteurTests(unittest.TestCase):
+    def test_offre_enregistree_rejoint_le_meme_contrat_que_la_mission(self):
+        from donjon.biens import richesse
+        from donjon.temps import MINUTE
+        from tests.test_corps_blessable import passer
+        from tests.test_occasion_protection import scene as protection
+        for scenario in ('auberge',):
+            for choix in ('accepter offre', 'refuser offre'):
+                with self.subTest(scenario=scenario, choix=choix):
+                    m, acteur, _ = protection(scenario, joueur=True)
+                    with patch.object(type(m), 'd20', return_value=20):
+                        passer(m, 2 * MINUTE)
+                    m = recharger(m)
+                    offre = next(o for o in m.data['offres_joueur'].values() if o['statut'] == 'propose')
+                    prix = offre['demande']['montant']
+                    avant = richesse(m, 'joueur'), richesse(m, acteur)
+                    r, sortie, appels = jouer(m, choix, [], [])
+                    self.assertFalse(appels)
+                    emission = pnj(r)[-1]
+                    self.assertEqual(emission['acte'], 'reponse_comptable')
+                    self.assertEqual(emission['locuteur'], acteur)
+                    if choix == 'accepter offre':
+                        self.assertEqual((richesse(r, 'joueur'), richesse(r, acteur)),
+                                         (avant[0] - prix, avant[1] + prix))
+                        self.assertIn(f"Tu m'as payé {prix} pièce", emission['texte'])
+                    else:
+                        self.assertEqual((richesse(r, 'joueur'), richesse(r, acteur)), avant)
+                        self.assertIn('Tu refuses cet échange.', emission['texte'])
+                    self.assertIn("jusqu'à la minute", emission['texte'])
+                    self.assertRecharge(r, sortie)
+
     def assertRecharge(self, m, sortie):
         rr = recharger(m)
         self.assertEqual(rr.data, m.data)

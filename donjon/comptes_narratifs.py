@@ -382,6 +382,9 @@ def phrases(faits, locuteur=None):
         if t['type'] == 'rien': return 'rien'
         if t['type'] == 'tache':
             c = t['condition']
+            if c.get('proteger'):
+                return ('la protection ' + groupe_nominal(personne(c['objet']), 'de')
+                        + " jusqu'à la minute " + str(c['echeance']))
             nom = bien(c['objet'])
             if 'servir' in c:
                 return ("le service d'une part " + groupe_nominal(bien(c['objet'], False), 'de')
