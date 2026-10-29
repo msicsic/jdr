@@ -1,4 +1,5 @@
 """4a : corps et conséquences perçues, dans le monde sauvegardé, pour plusieurs personnes."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import json
 import unittest
@@ -209,7 +210,7 @@ class CorpsBlessableTests(unittest.TestCase):
                     "salle": salle, "minute": 0, "auditeurs": ["joueur"], "revision": 0})
                 corps.mourir(m, id, cause="épreuve")
                 m = recharger(m)
-                self.assertEqual(m.data["paroles_pnj"][-1]["locuteur"], id)
+                self.assertEqual(emissions_pnj(m)[-1]["locuteur"], id)
                 self.assertEqual(m.objets[id]["type"], "depouille")
                 self.assertNotIn(id, m.data["esprits"])
                 self.assertNotIn("orientation", m.objets[id])

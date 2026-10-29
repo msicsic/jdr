@@ -1,4 +1,5 @@
 """Qui doit quoi à qui : vraie boucle console, MJ simulé, état et rendu rechargés."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import unittest
 
@@ -32,11 +33,11 @@ class SensDetteTests(unittest.TestCase):
         r, sortie, appels = jouer(recharger(monde), mots, reponses, audits)
         self.assertIn(bon, sortie)
         self.assertIn(bon, str(r.data["conversation"]))
-        self.assertEqual(r.data["paroles_pnj"][-1]["texte"], bon)
+        self.assertEqual(emissions_pnj(r)[-1]["texte"], bon)
         if mauvais:
             self.assertNotIn(mauvais, sortie)
             self.assertNotIn(mauvais, str(r.data["conversation"]))
-            self.assertNotIn(mauvais, str(r.data["paroles_pnj"]))
+            self.assertNotIn(mauvais, str(emissions_pnj(r)))
             correction = next(e for f, e in appels if "controle_narratif" in e)
             refus = correction["controle_narratif"]
             self.assertIn("debiteur", refus[0]["attendu"])
@@ -97,7 +98,7 @@ class SensDetteTests(unittest.TestCase):
             audit_compte(bon, compte("joueur", "aubin", "lanterne", 1))])
         self.assertNotIn(mauvais, sortie)
         self.assertIn(bon, sortie)
-        self.assertEqual(r.data["paroles_pnj"][-1]["texte"], bon)
+        self.assertEqual(emissions_pnj(r)[-1]["texte"], bon)
         self.assertEqual(r.objets["lanterne"]["lieu"], "joueur")
         self.assertEqual(r.data["permissions"][-1]["a"], "joueur")
         self.assertIn("Aubin t'a prêté la lanterne", fiche(r))

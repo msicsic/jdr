@@ -7,6 +7,7 @@ domaines est refusée. L'ambiance est libre et enregistrée avec son lieu. Un no
 d'entité absent de tout ce que le MJ a reçu est refusé sans dépendre de l'auditeur.
 Le texte libre accepté est complété par les comptes rédigés par le moteur.
 """
+from .emissions import pnj as emissions_pnj, joueur as emissions_joueur
 from . import agendas
 
 import copy
@@ -33,8 +34,9 @@ def echanges_passes(monde, interlocuteurs):
     """
     from .voix import reel
     dossier = {ref: [{k: copy.deepcopy(p[k]) for k in ("texte", "revision", "minute") if k in p}
-                 for p in monde.data.get("paroles_pnj", [])
-                  if p["locuteur"] == reel(monde, ref) and "joueur" in p["auditeurs"]]
+                 for p in emissions_pnj(monde)
+                  if p["locuteur"] == reel(monde, ref) and "joueur" in p["auditeurs"]
+                  and p.get("forme", "citation") == "citation"]
             for ref in interlocuteurs}
     for ref, paroles in dossier.items():
         # La révision est un compteur croissant, pas un numéro de tentative
@@ -367,8 +369,13 @@ n'a à prévoir ni à fournir mot pour mot : ses mots manquent toujours des fait
 invention ni une contradiction ; seul ce qu'elle affirme peut contredire l'issue, et ce qu'elle
 promet est un engagement. Dire que l'un d'eux se tait, ne répond pas ou ne l'a pas entendu est
 contradictoire. repondent vide :
-personne ne lui répond. Les temoins l'ont entendue et se taisent : dire qu'ils se taisent est
-mecanique, source conversation_validee. Dans objet:<id>, a_portee_de_main
+personne ne lui répond. Les temoins l'ont entendue sans être interpellés. Le flux emissions
+distingue les réponses à Corvus (acte reponse_corvus, statut a_formuler) des réactions entre PNJ
+déjà prononcées (statut prononcee). Ces dernières gardent leurs mots exacts : leur rendu est un fait
+mécanique attestant l'émission et l'audition, jamais la vérité du contenu. Un témoin peut donc
+avoir parlé à un autre PNJ sans répondre à Corvus. Lorsque issue atteste des témoins silencieux
+d'après ce flux, dire qu'ils se taisent est mecanique, source conversation_validee.
+Dans objet:<id>, a_portee_de_main
 dit si Corvus peut le toucher d'ici ; a_portee_de_voix, si un personnage et lui s'entendent.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur
 contenu. resultat_resolu.gestes sont les gestes que Corvus vient d'accomplir, exécutés par le
@@ -475,9 +482,9 @@ def hors_paroles_etablies(monde, texte, paroles=(), faits=None, historique=True)
     citations = list(CITATIONS.finditer(texte))
     actuelles = {p['texte'].strip() for p in paroles if p.get('passage') == texte
                  and sum(c.group()[1:-1].strip() == p['texte'].strip() for c in citations) == 1}
-    mots = {p['texte'].strip() for p in monde.data.get('paroles_joueur', [])}
-    mots.update(p['texte'].strip() for p in monde.data.get('paroles_pnj',[]) if 'joueur' in p['auditeurs'])
-    mots.update(s for p in monde.data.get('paroles_pnj', []) if 'joueur' in p['auditeurs']
+    mots = {p['texte'].strip() for p in emissions_joueur(monde)}
+    mots.update(p['texte'].strip() for p in emissions_pnj(monde) if 'joueur' in p['auditeurs'])
+    mots.update(s for p in emissions_pnj(monde) if 'joueur' in p['auditeurs']
                 for s in segments(p['texte']))
     validee = (faits or {}).get('conversation_validee') or {}
     if validee.get('operation') == 'parole_joueur' and isinstance(validee.get('replique_joueur'), str):
@@ -810,10 +817,42 @@ def destinataires_parole(faits, locuteur):
     destinataires, et qui l'a entendue à la cantonade et a choisi de répondre), seuls à lui répondre ;
     sans parole de Corvus validée, rien ne restreint ``locuteur``."""
     validee = faits.get("conversation_validee")
+    if isinstance(validee, dict) and "emissions" in validee:
+        from .emissions import reponses
+        return list(dict.fromkeys(p["locuteur"] for p in reponses(validee)))
     for cle in ("repondent", "destinataires"):
         if isinstance(validee, dict) and isinstance(validee.get(cle), list):
             return [x for x in validee[cle] if isinstance(x, str)]
     return [locuteur]
+
+
+def raccorder_emissions(reponse, rapport):
+    """Publie les paroles moteur une fois, dans leur ordre, avant les mots du MJ.
+
+    Une reprise exacte ne crée aucune émission. Les segments libres gardent
+    les contrôles de leur voie, pas encore portée par les lots suivants.
+    """
+    from .emissions import entendues
+    fixes = [s for p in entendues(rapport) for s in segments(p.get("rendu_public", p.get("rendu", "")))]
+    if not fixes:
+        return reponse
+    precedents = segments(reponse["texte"])
+    audit_ = reponse.get("_audit")
+    lignes = audit_["segments"] if audit_ else []
+    lignes = list(lignes.values()) if isinstance(lignes, dict) else lignes
+    from .emissions import reprise
+    reprises = {i for i, ligne in enumerate(lignes)
+                if reprise(rapport, ligne.get("locuteur"), ligne.get("citation", ""))}
+    gardes = [i for i, s in enumerate(precedents) if s not in fixes and i not in reprises]
+    texte = " ".join([*fixes, *(precedents[i] for i in gardes)])
+    if audit_:
+        etablis = segments_etablis(" ".join(fixes), audit_["faits"])
+        nouvelles = [etablis[str(i)] for i in range(len(fixes))]
+        nouvelles += [lignes[i] for i in gardes]
+        reponse["_audit"] = {**audit_, "texte_initial": texte,
+            "segments": [{**ligne, "indice": i} for i, ligne in enumerate(nouvelles)]}
+    reponse["texte"] = texte
+    return reponse
 
 
 # Les formes par lesquelles une réplique dit qui parle : ce qui suit est un nom que seul le moteur peut
@@ -1225,6 +1264,8 @@ def controler(texte, rapport, faits, partie="texte"):
         # La citation est le texte entre les guillemets : ceux que l'auditeur recopie avec elle
         # ne la rendent pas fausse (« D'accord » cité « « D'accord » »).
         locuteur, citation = ligne["locuteur"], ligne["citation"].strip().strip("«»\"“”  ")
+        from .emissions import reprise
+        emission_reprise = reprise(faits.get("conversation_validee") or {}, locuteur, citation)
         def refuser(motif, accepte, recu=None):
             # Le verdict est celui de l'auditeur, rendu tel quel avec son motif : rien de plus sûr.
             obstacles.append(audit(motif, accepte, partie=partie, segment=indice, texte=passage, recu=recu,
@@ -1246,10 +1287,17 @@ def controler(texte, rapport, faits, partie="texte"):
             refuser("Seul un personnage présent peut parler ; aucun locuteur présent ne correspond à cette parole.",
                     f"un locuteur parmi les interlocuteurs présents ({presents}), ou le passage sans parole",
                     f"locuteur {locuteur}" if locuteur else None)
-        elif verdict in ("parole", "engagement") and locuteur not in destinataires_parole(faits, locuteur):
+        elif (verdict in ("parole", "engagement") and locuteur not in destinataires_parole(faits, locuteur)
+              and emission_reprise is None):
             # Le moteur a décidé l'issue de la parole de Corvus pour ses destinataires seulement.
             destinataires = destinataires_parole(faits, locuteur)
-            refuser(("Seuls " + ", ".join(destinataires) + " répondent à Corvus" if destinataires
+            if "emissions" in (faits.get("conversation_validee") or {}):
+                refuser(f"Aucune autorisation n'établit ces nouveaux mots de {locuteur}.",
+                        f"une réponse nouvelle de {en_liste(destinataires)} seulement ; sinon la restitution "
+                        "des mots d'une émission enregistrée de cet auteur dans conversation_validee.emissions",
+                        f"locuteur {locuteur}")
+            else:
+                refuser(("Seuls " + ", ".join(destinataires) + " répondent à Corvus" if destinataires
                      else "Personne ne répond à Corvus") + " ; les autres l'ont entendu sans être interpellés et "
                     "se taisent.",
                     f"une réponse de {en_liste(destinataires)} seulement (conversation_validee.repondent) ; "
@@ -1284,6 +1332,7 @@ def controler(texte, rapport, faits, partie="texte"):
                     ligne = {**ligne, "presentation": ""}
                     lignes_validees[-1] = ligne
                 paroles.append({"locuteur": locuteur, "texte": citation, "passage": passage,
+                                **({"emission": emission_reprise["id"]} if emission_reprise else {}),
                                 **({'presentation':ligne['presentation']} if ligne['presentation'] else {})})
         elif verdict == "ambiance":
             ambiances.append({"texte": passage,
@@ -1331,6 +1380,10 @@ def repli(monde, faits, message, *, defaut=None):
     qu'elle vise (les attestations du moteur qui le nomment), puis ce qui manque pour en dire plus."""
     validee = faits.get("conversation_validee")
     if isinstance(validee, dict) and validee.get("operation") == "parole_joueur":
+        from .emissions import entendues
+        dites = [p.get("rendu_public", p.get("rendu", "")) for p in entendues(validee)]
+        if any(dites):
+            return " ".join(s for s in dites if s)
         noms = [monde.objets[d]["nom"].split(",")[0] for d in validee.get("destinataires") or []
                 if d in monde.objets]
         if not noms:
@@ -1414,6 +1467,14 @@ def consigner(monde, reponse):
         from .dialogues import reels
         from .voix import connaitre, reel
         for parole in rapport["paroles"]:
+            if "emission" in parole:
+                from .emissions import lire, memes_mots
+                p = next((p for p in lire(monde) if p["id"] == parole["emission"]), None)
+                if (not p or p["locuteur"] != reel(monde, parole["locuteur"])
+                        or "joueur" not in p["auditeurs"] or not memes_mots(p["texte"], parole["texte"])):
+                    raise ErreurMonde("Cette citation ne correspond plus à la parole entendue.",
+                                      f"emission = {parole['emission']} : auteur et mots enregistrés identiques.")
+                continue
             # Le MJ désigne une voix inconnue comme le joueur (voix_<n>) : le moteur sait qui parle.
             locuteur = monde.objets[reel(monde, parole["locuteur"])]
             entendants = auditeurs_parole(monde, locuteur["id"])
@@ -1429,18 +1490,23 @@ def consigner(monde, reponse):
                 if parole.get('presentation'):
                     from .noms import presenter
                     presenter(monde,auditeur,locuteur['id'],parole['presentation'],parole['texte'])
-            paroles.append({
-                "locuteur": locuteur["id"], "texte": parole["texte"], "salle": _place(monde, locuteur["id"])[0],
-                "minute": monde.data["minutes"], "auditeurs": entendants,
-                "revision": monde.data["revision"],
-                **({'presentation':parole['presentation']} if parole.get('presentation') else {}),
-            })
+            from .emissions import reponses
+            validee = audit["faits"].get("conversation_validee") or {}
+            autorisation = next((p for p in reponses(validee)
+                                 if reel(monde, p["locuteur"]) == locuteur["id"]), None)
+            paroles.append((locuteur["id"], parole, entendants, autorisation))
     monde.data.setdefault("narrations_mj", []).append({
         "texte": texte, "revision": monde.data["revision"],
         "sources": sorted({source for ligne in rapport["segments"] for source in ligne["sources"]}),
     })
     monde.data["narrations_mj"] = monde.data["narrations_mj"][-60:]
-    monde.data.setdefault("paroles_pnj", []).extend(paroles)
+    from .emissions import enregistrer
+    for locuteur, parole, entendants, autorisation in paroles:
+        enregistrer(monde, locuteur, acte="reponse_corvus" if autorisation else "dialogue_admis",
+                    parametres=(autorisation or {}).get("parametres", {}), modalite="constat",
+                    evenement=(autorisation or {}).get("evenement", {"type": "dialogue_audite"}),
+                    auditeurs=entendants, a=["joueur"], texte=parole["texte"],
+                    presentation=parole.get("presentation", ""))
     if rapport["ambiances"]:
         lieu = monde.data.setdefault("ambiances", {}).setdefault(salle, [])
         lieu.extend({**a, "revision": monde.data["revision"]} for a in rapport["ambiances"])

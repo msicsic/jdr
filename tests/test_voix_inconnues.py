@@ -16,6 +16,7 @@
 
 Chaque cas vérifie l'état après rechargement, et ce que lit le joueur quand il est là.
 """
+from donjon.emissions import pnj as emissions_pnj
 import json
 import unittest
 from unittest.mock import patch
@@ -194,7 +195,7 @@ class RepliquesTests(unittest.TestCase):
                                                "fondement_paroles": lexique.corpus("Gorm, vannes")}}
         consigner(m, reponse(citation))
         m = recharger(m)
-        self.assertEqual((m.data["paroles_pnj"][-1]["locuteur"], m.data["paroles_pnj"][-1]["texte"]),
+        self.assertEqual((emissions_pnj(m)[-1]["locuteur"], emissions_pnj(m)[-1]["texte"]),
                          ("brune", citation))
         self.assertNotIn("brune", m.data["voix_connues"])  # Il ne la voit pas : toujours une voix inconnue.
         with self.assertRaisesRegex(ErreurMonde, "Aucun changement enregistré"):

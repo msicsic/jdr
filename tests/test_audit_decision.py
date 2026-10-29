@@ -1,4 +1,5 @@
 """Le texte exact et la prose libre passent par le même contrat sauvegardé."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import io
 from pathlib import Path
@@ -143,7 +144,7 @@ class AuditDecisionTests(unittest.TestCase):
                 reprise = recharger(m)
                 self.assertEqual(reprise.objets, avant)
                 self.assertEqual(reprise.data['narrations_mj'][-1]['texte'], texte)
-                self.assertFalse(reprise.data.get('paroles_pnj'))
+                self.assertFalse(emissions_pnj(reprise))
 
     def test_couverture_exacte_issue_ne_credite_pas_une_issue_partielle(self):
         from donjon.biens import compte

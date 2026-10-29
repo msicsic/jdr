@@ -3,6 +3,7 @@
 Le fournisseur est simulé ; les campagnes réelles sont décrites dans le rapport.
 Chaque scène est sauvée avant la saisie et rechargée après par ``jouer``.
 """
+from donjon.emissions import pnj as emissions_pnj, joueur as emissions_joueur
 import copy
 import unittest
 
@@ -34,7 +35,7 @@ class AdresseTests(unittest.TestCase):
                     [rapport(ligne("mecanique", sources=["conversation_validee"]))])
                 self.assertIn(f"Tu dis à Ilse : « {saisie} »", sortie)
                 self.assertNotIn("Tu dis à Aubin", sortie)
-                p = r.data["paroles_joueur"][-1]
+                p = emissions_joueur(r)[-1]
                 self.assertEqual(p["auditeur"], "ilse")
                 self.assertEqual(p["auditeurs"], ["ilse"])
                 self.assertEqual(p["texte"], saisie)
@@ -51,8 +52,8 @@ class AdresseTests(unittest.TestCase):
                     revues=[{"conforme": True, "motif": ""}])
                 self.assertIn("Tu dis à Ilse :", sortie)
                 self.assertNotIn("Tu dis à Aubin", sortie)
-                self.assertEqual(len(r.data["paroles_joueur"]), 1)
-                self.assertEqual(r.data["paroles_joueur"][0]["auditeur"], "ilse")
+                self.assertEqual(len(emissions_joueur(r)), 1)
+                self.assertEqual(emissions_joueur(r)[0]["auditeur"], "ilse")
                 plans = [e["plan"]["parole"] for f, e in appels if f == "auditer_action"]
                 self.assertEqual(len(plans), 0)  # Adresse fixée et mots exacts sans opération.
 
@@ -67,7 +68,7 @@ class AdresseTests(unittest.TestCase):
         self.assertNotIn("Précise ce que tu veux dire", sortie)
         self.assertNotIn("Précise à qui", sortie)
         self.assertIn("Tu dis à", sortie)
-        self.assertEqual(r.data["paroles_joueur"][-1]["texte"], "qui peut nous aider ?")
+        self.assertEqual(emissions_joueur(r)[-1]["texte"], "qui peut nous aider ?")
         self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
 
     def test_repondre_apres_s_etre_ecarte_ne_depend_pas_de_rester_en_vue(self):
@@ -91,8 +92,8 @@ class AdresseTests(unittest.TestCase):
                 self.assertIn(qui, r.data["entendus"])
                 self.assertNotEqual(r.objets[qui]["position"], m.objets[qui]["position"])
                 self.assertFalse(r.visible(qui))
-                self.assertEqual(r.data["paroles_pnj"][-1]["locuteur"], qui)
-                self.assertEqual(r.data["paroles_pnj"][-1]["texte"], citation)
+                self.assertEqual(emissions_pnj(r)[-1]["locuteur"], qui)
+                self.assertEqual(emissions_pnj(r)[-1]["texte"], citation)
 
     def test_question_sans_nom_a_celui_d_en_face_sans_changer_les_mots(self):
         for saisie, besoin in [("est-ce que quelqu'un a du bois ?", "chaleur"),
@@ -104,11 +105,11 @@ class AdresseTests(unittest.TestCase):
                     dialogue("Tu as posé ta question.")],
                     [rapport(ligne("mecanique", sources=["conversation_validee"]))])
                 self.assertIn(f"Tu dis à Ilse : « {saisie} »", sortie)
-                self.assertEqual(r.data["paroles_joueur"][-1]["auditeur"], "ilse")
-                self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
+                self.assertEqual(emissions_joueur(r)[-1]["auditeur"], "ilse")
+                self.assertEqual(emissions_joueur(r)[-1]["texte"], saisie)
                 for qui in ("aubin", "ilse"):
                     self.assertEqual(paroles_retenues(r, qui)[-1][2], saisie)
-                    self.assertEqual(r.data["paroles_joueur"][-1]["auditeurs"], ["ilse"])
+                    self.assertEqual(emissions_joueur(r)[-1]["auditeurs"], ["ilse"])
                 self.assertEqual(appels[0][1]["faits"]["parole_prevue"]["personnage"], "ilse")
                 # Le choix de parler est encore celui de l'interprétation ;
                 # fournir une question au MJ ne la déclare pas déjà prononcée.
@@ -134,7 +135,7 @@ class AdresseTests(unittest.TestCase):
                 r, sortie, appels = jouer(m, saisie, [], [])
                 self.assertEqual(appels, [])
                 self.assertIn("Précise ce que tu veux dire", sortie)
-                self.assertEqual(r.data.get("paroles_joueur", []), [])
+                self.assertEqual(emissions_joueur(r), [])
                 self.assertEqual(r.data.get("sons", []), m.data.get("sons", []))
                 self.assertIsNone(lire(r, "aubin")["rejoint"])
 
@@ -148,7 +149,7 @@ class AdresseTests(unittest.TestCase):
                 self.assertEqual(appels, [])
                 self.assertIn("Tu ne connais personne du nom " + complement, sortie)
                 self.assertEqual(r.data["noms_connus"], [])
-                self.assertEqual(r.data.get("paroles_joueur", []), [])
+                self.assertEqual(emissions_joueur(r), [])
 
     def test_une_question_nominale_sans_lien_demande_une_designation_publique(self):
         from tests.test_noms import relais
@@ -160,7 +161,7 @@ class AdresseTests(unittest.TestCase):
                 self.assertEqual(appels, [])
                 self.assertEqual(r.data["noms_connus"], [])
                 self.assertEqual(r.data.get("narrations_mj", []), m.data.get("narrations_mj", []))
-                self.assertEqual(r.data.get("paroles_pnj", []), [])
+                self.assertEqual(emissions_pnj(r), [])
 
 
 class NarrationTests(unittest.TestCase):
@@ -184,9 +185,9 @@ class NarrationTests(unittest.TestCase):
                     parole(p["replique"], personnage="tous"), dialogue(texte)],
                     [rapport(ligne("parole", locuteur=reference, citation="Pas sur moi."))])
                 self.assertIn(texte, sortie)
-                self.assertEqual(r.data["paroles_pnj"][-1]["locuteur"], qui)
-                self.assertEqual(r.data["paroles_pnj"][-1]["salle"], "echoppe")
-                self.assertIn("joueur", r.data["paroles_pnj"][-1]["auditeurs"])
+                self.assertEqual(emissions_pnj(r)[-1]["locuteur"], qui)
+                self.assertEqual(emissions_pnj(r)[-1]["salle"], "echoppe")
+                self.assertIn("joueur", emissions_pnj(r)[-1]["auditeurs"])
                 faits = next(e["faits"] for f, e in appels if f == "auditer_narration")
                 self.assertIn(reference, faits["interlocuteurs"])
                 # Même source et mêmes auditeurs par la voie des faits typés.
@@ -197,8 +198,8 @@ class NarrationTests(unittest.TestCase):
                     {"perception_requise": False, "indice": False, "motif": "Parole entendue."}]}
                 f, rendu, _ = jouer(apercu, "que dit cette voix ?", [ajout, usage], [])
                 self.assertIn("Je t'entends.", rendu)
-                self.assertEqual(f.data["paroles_pnj"][-1]["salle"], "echoppe")
-                self.assertEqual(f.data["paroles_pnj"][-1]["auditeurs"], r.data["paroles_pnj"][-1]["auditeurs"])
+                self.assertEqual(emissions_pnj(f)[-1]["salle"], "echoppe")
+                self.assertEqual(emissions_pnj(f)[-1]["auditeurs"], emissions_pnj(r)[-1]["auditeurs"])
 
     def test_une_presentation_absente_des_mots_n_etablit_aucun_nom_sans_relance(self):
         for nom in ("Aubin", "Ilse"):
@@ -214,7 +215,7 @@ class NarrationTests(unittest.TestCase):
                 self.assertIn(texte, sortie)
                 self.assertEqual([f for f, _ in appels].count("auditer_narration"), 1)
                 self.assertEqual([f for f, _ in appels].count("repondre_au_joueur"), 2)
-                self.assertNotIn("presentation", r.data["paroles_pnj"][-1])
+                self.assertNotIn("presentation", emissions_pnj(r)[-1])
 
     def test_chaque_locuteur_est_audite_et_retenu_dans_son_segment(self):
         for premier, second in [("Oui.", "Moi aussi."), ("Du bois ?", "Pas sur moi !")]:
@@ -227,9 +228,9 @@ class NarrationTests(unittest.TestCase):
                     [rapport(ligne("parole", locuteur="aubin", citation=premier),
                              ligne("parole", locuteur="ilse", citation=second))])
                 self.assertIn(texte, sortie)
-                self.assertEqual([(p["locuteur"], p["texte"]) for p in r.data["paroles_pnj"][-2:]],
+                self.assertEqual([(p["locuteur"], p["texte"]) for p in emissions_pnj(r)[-2:]],
                                  [("aubin", premier), ("ilse", second)])
-                self.assertTrue(all("joueur" in p["auditeurs"] for p in r.data["paroles_pnj"][-2:]))
+                self.assertTrue(all("joueur" in p["auditeurs"] for p in emissions_pnj(r)[-2:]))
 
     def test_sensoriel_d_un_objet_percu_est_enregistre_avant_affichage(self):
         from tests.test_paroles import relais
@@ -253,7 +254,7 @@ class NarrationTests(unittest.TestCase):
                 m = scene()
                 r, sortie, _ = jouer(m, "est-ce faisable ?", [dialogue(texte)], [verdicts(NEUTRE)])
                 self.assertIn(texte, sortie)
-                self.assertEqual(r.data.get("paroles_joueur", []), [])
+                self.assertEqual(emissions_joueur(r), [])
 
     def test_le_refus_de_proximite_ne_montre_pas_les_coordonnees(self):
         from tests.test_relances_luna import loin_de_la_poutre, CONTRADICTOIRE
@@ -309,7 +310,7 @@ class TypesActionsTests(unittest.TestCase):
                     [rapport(ligne("parole", locuteur="marchand", citation="Je ne sais pas."))])
                 self.assertIn("Tu dis à Gorm", sortie)
                 self.assertIn(texte, sortie)
-                self.assertEqual(len(r.data["paroles_joueur"]), 1)
+                self.assertEqual(len(emissions_joueur(r)), 1)
                 self.assertEqual(r.data["journal"], [])
 
     def test_une_question_au_mj_ne_devient_pas_une_question_au_pnj(self):
@@ -326,7 +327,7 @@ class TypesActionsTests(unittest.TestCase):
                 # L'adresse ne rend pas la poutre, à deux mètres, manipulable.
                 self.assertIn(attendu, sortie)
                 self.assertNotIn("Tu dis à", sortie)
-                self.assertEqual(r.data.get("paroles_joueur", []), [])
+                self.assertEqual(emissions_joueur(r), [])
                 self.assertEqual(r.data["journal"], [])
                 self.assertTrue(any("retour_moteur" in e.get("faits", {}) for _, e in appels))
                 # Même frontière lorsque la parole arrive comme correction d'une
@@ -334,7 +335,7 @@ class TypesActionsTests(unittest.TestCase):
                 r, sortie, _ = jouer(m, saisie, [
                     action(operation("franchir", cible)), parole(saisie, personnage="marchand")], [])
                 self.assertNotIn("Tu dis à", sortie)
-                self.assertEqual(r.data.get("paroles_joueur", []), [])
+                self.assertEqual(emissions_joueur(r), [])
                 self.assertEqual(r.data["journal"], [])
 
     def test_franchir_un_autre_type_n_impose_pas_une_echelle(self):

@@ -2,6 +2,39 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 320 / G15 terminé, branche `codex-g15-emissions`, fusionnée**, base
+  `integration 0fcc99e` : registre unique des émissions de parole, admission
+  avant affichage, auteur/acte/paramètres/modalité/source/auditeurs/ordre.
+  Réponses autorisées à Corvus distinctes des réactions déjà prononcées entre
+  PNJ ; rapport, garde, écoute et rendu lisent ce flux, sans gonfler les
+  répondants. Archives réelles 86/87 disponibles sur le PC fixe : deuxième
+  saisie de la passe 1 (indice 1, galerie de ronde), premier tour rejoué
+  auparavant ; propositions/dialogues/audits d'origine, sans réseau.
+  Trois citations conservées, Gorm seul répondant, aucune nouvelle émission
+  par leur restitution. Silence des témoins dérivé de leurs émissions réelles ;
+  une réaction entendue sans réponse nouvelle autorisée n'est pas déclarée
+  absente. Onze nouveaux tests verts, monde/texte/scène/rendu rechargés.
+  **579 tests / 53 fichiers consolidés : 577 verts, deux échecs préexistants,
+  zéro erreur ni saut**. Base 0fcc99e : mêmes `23 != 26` sur l'achat de
+  planches et plan d'inspection dans la réserve au lieu de None ; aucun oracle
+  affaibli. Reprises **146/146** puis **33/33**, sans cumul. **8/8 paires**
+  Relais/crue, 2 h × quatre graines : chroniques, mesures et état complet
+  identiques hors `emissions_parole` et `bruits[].emission` ; empreintes brutes
+  distinctes conservées, **386 émissions**, aucun plantage. Huit références
+  absentes rangées une fois ; 159,797 s. Luna **une passe** sur 6f60266 avant
+  clôture du silence, sans relance de référence : six tours MJ, **33 → 25 appels**,
+  **6 → 1 obstacles**, **5 → 1 relances**, refus **1 → 1**, aucun repli ni
+  erreur technique/recharge. Référence historique c9459ce, aucun gain général
+  ni de vitesse revendiqué. Deux travailleurs réduits au plus par vérification,
+  aucune suite complète, aucun calcul actif. Branche poussée vers origin.
+  Bruts `C:/Users/msics/donjon/artifacts/g15-320/` : `fin.json` initial
+  **ok=false conservé**, `tests-consolides.json`, `fin-cloture.json`.
+  G16–G19 non réalisés ; ordre historique intra-tour inconnu explicitement
+  signalé lors de la migration ; discours indirect sans fausse citation exacte.
+  Aucun recouvrement U-P 319 sur moteur.py/rendu.py/jeu.py.
+  [Rapport 320](taches/rapport-codex-320-g15-emissions.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Registre unique des émissions (donjon/emissions.py) : auteur, acte, paramètres, modalité, événement source, destinataires, auditeurs et ordre ; issue, faits de la conversation, dossier d'audit et rendu lisent ce flux. Cas avis-joueur 86/87 rejoué sans contradiction. 577/579 tests ciblés verts, deux échecs présents sur la base ; 8/8 empreintes identiques hors ajouts de schéma ; une passe Luna sans repli.
+
 - **Lot 321 / U-T fabrication terminé, branche `codex-ut-fabrication`, base
   `integration 0fcc99e`, fusionnée** : `0` ouvre une recette numérotée
   commune console/TUI, issue du catalogue et des ressources publiques du web.
