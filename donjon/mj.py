@@ -1142,37 +1142,8 @@ class MJ:
             locuteur = reel(monde, reference)
             if locuteur in monde.objets:
                 esprit["nom_du_locuteur"] = monde.objets[locuteur]["nom"].split(",")[0]
-        schema_faits_suite = copy.deepcopy(SCHEMA_FAITS)
-        schema_geste = copy.deepcopy(SCHEMA)
-        schema_geste["properties"]["action"]["enum"] = [
-            a for a in schema_geste["properties"]["action"]["enum"] if a not in ("clarifier", "impossible")]
-        schema_faits_suite["properties"]["suite"] = {
-            "description": "Le geste demandé, à préparer après validation des ajouts, sans supposer leur acceptation.",
-            "anyOf": [schema_geste, SCHEMA_SEQUENCE, SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, {"type": "null"}]}
-        schema_faits_suite["required"].append("suite")
-        from .paroles import SCHEMA_OPERATIONS
-        schema_parole = copy.deepcopy(SCHEMA_PAROLE)
-        # L'analyse de la saisie précède le choix du contenu : elle ne doit pas
-        # être une justification a posteriori des seuls types déjà proposés.
-        schema_parole["properties"] = {"operations_demandees": SCHEMA_OPERATIONS,
-                                       **schema_parole["properties"]}
-        schema_parole["required"] = ["operations_demandees", *schema_parole["required"]]
-        schema = {
-            "type": "object", "additionalProperties": False,
-            "properties": {
-                "mode": {"type": "string", "enum": ["dialogue", "action", "enrichir_joueur", "enrichir",
-                                                       "conversation_pnj", "parole_joueur", "enrichir_savoirs", "etablir_faits"]},
-                "texte": {"type": "string"},
-                "faits": {"type": "array", "items": {"type": "string"}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}, SCHEMA_PROFIL,
-                                          SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE,
-                                          SCHEMA_COMPLEMENTS, SCHEMA_CONVERSATION, schema_parole,
-                                          SCHEMA_SAVOIRS, schema_faits_suite]},
-            },
-            "required": ["mode", "texte", "faits", "proposition"],
-        }
-        instructions = (INTERPRETATION + REGLES_ATELIER + REGLES_FRANCHISSEMENT
-                        + REGLES_OBSTACLES + REGLES_ESPACE + REGLES_PAROLE)
+        from .compilateur import SCHEMA_COMPILATEUR
+        schema = copy.deepcopy(SCHEMA_COMPILATEUR)
         consigne_retour = None
         if retour_moteur:
             consigne_retour = RETOUR_INTERPRETATION
@@ -1187,21 +1158,13 @@ class MJ:
                 instructions = INSTRUCTIONS_RESULTAT
             if retour_moteur:
                 consigne_retour = RETOUR_REFUSE
-        instructions += REGLE_NARRATION
-        from .localisation import REGLES as REGLES_LOCALISATION
-        instructions += REGLES_LOCALISATION
+        if not enrichir:
+            instructions += REGLE_NARRATION
+            from .localisation import REGLES as REGLES_LOCALISATION
+            instructions += REGLES_LOCALISATION
         if enrichir:
-            instructions += """\nEn mode_cases, le joueur se déplace à pied avec les touches de la carte : une cible trop loin
-(a_portee_de_main=false) appelle une invitation à s'approcher, car voir un objet ne suffit pas à le
-manipuler ; un personnage hors de portée de main peut être à portée de voix (a_portee_de_voix).
-salle.sorties_connues liste les sorties que Corvus connaît : d'autres peuvent lui échapper. La vue s'arrête aux murs, aux portes fermées et à l'obscurité : à distance, Corvus
-ne connaît ni les détails, ni ce qui est derrière un mur, et il ne se déplace que par ses pas.
-Il voit devant lui (120°) et à ses côtés, pas derrière : ce qui est dans son dos n'est pas dans
-objets_perceptibles, mais dans souvenirs_visuels s'il l'a déjà vu. Pour regarder ailleurs sans bouger : action tourner, cible une direction
-(nord, sud-est…). Un geste sur un objet qu'il verrait en se tournant le tourne d'abord vers lui.
-Ses pas s'entendent de près et font se retourner ; à pas feutrés (action faufiler, cible une
-direction), plus lents, ils ne s'entendent que de tout près.
-"""
+            from .compilateur import prompt_compilateur
+            instructions = prompt_compilateur(self.fournisseur)
         conversation = monde.data["conversation"][-2 if resultat_resolu is not None else -6:]
         if enrichir and not est_question(intention) and proposition_en_attente is None:
             from .commandes import analyser
@@ -1215,19 +1178,28 @@ direction), plus lents, ils ne s'entendent que de tout près.
         entree = ordonner_entree({"faits": faits, "conversation": conversation, "message": intention})
         if consigne_retour:
             entree["consigne_retour_moteur"] = consigne_retour.strip()
+        entree_mesuree = entree
+        if enrichir:
+            from .compilateur import extraire_contexte
+            entree_mesuree = ordonner_entree({**entree, "faits": extraire_contexte(monde, intention, faits=faits),
+                                              "compilation": True})
         debut = time.monotonic()
         self.derniere_utilisation = None
         trace = {"modele": self.modele, "revision": monde.data["revision"], "intention": intention,
                  "correction": retour_moteur is not None,
-                 "taille_contexte": len(json.dumps(entree, ensure_ascii=False)),
+                 "taille_contexte": len(json.dumps(entree_mesuree, ensure_ascii=False)),
                  "etape": "interprétation" if enrichir else "narration du résultat" if resultat_resolu is not None else "réponse du PNJ" if conversation_validee is not None else "narration après enrichissement",
                  "empreinte_requete": hashlib.sha256(json.dumps(
-                     [instructions, entree, schema], sort_keys=True, ensure_ascii=False).encode()).hexdigest()}
+                     [instructions, entree_mesuree, schema], sort_keys=True, ensure_ascii=False).encode()).hexdigest()}
         try:
             self._audit_courant = None
             # Le monde sert au contrôle lexical de la prose, jamais à la requête.
             self._monde_controle, self._interpretation = monde, enrichir
-            reponse = self._appeler(instructions, entree, intention, "repondre_au_joueur", schema)
+            if enrichir:
+                from .compilateur import compiler
+                reponse = compiler(self._appeler, self.fournisseur, entree, intention, schema)
+            else:
+                reponse = self._appeler(instructions, entree, intention, "repondre_au_joueur", schema)
             trace["reponse"] = copy.deepcopy(reponse)
         except ErreurMonde as exc:
             trace["erreur"] = str(exc)
@@ -1300,6 +1272,10 @@ direction), plus lents, ils ne s'entendent que de tout près.
         def appeler_brut(*arguments):
             nonlocal usage_total
             instructions_appel, entree_appel, *suite = arguments
+            if entree_appel.get("compilation") and self._monde_controle is not None:
+                from .compilateur import extraire_contexte
+                entree_appel = {**entree_appel, "faits": extraire_contexte(
+                    self._monde_controle, intention, faits=entree_appel["faits"])}
             sortie = self._appeler_brut(instructions_appel, ordonner_entree(entree_appel), *suite)
             if isinstance(sortie, dict) and "_texte_moteur" in sortie:
                 raise ErreurMonde("Le MJ ne peut pas déclarer lui-même un texte comme validé par le moteur.")

@@ -72,6 +72,7 @@ ORDRE_ENTREE = (
 )
 
 SLOTS_VOIE = {
+    "compiler_intention": 0,
     "interpreter": 0,
     "raconter": 1,
     "raconter_resultat": 1,
@@ -142,6 +143,8 @@ def voie_cache(fonction, entree, interpretation=None):
     """Identifie la voie de cache KV d'un appel pour éviter qu'interprétation, narration de dialogue,
     narration de résultat et audits n'évincent mutuellement leur préfixe."""
     if fonction == "repondre_au_joueur":
+        if isinstance(entree, dict) and entree.get("compilation"):
+            return "compiler_intention"
         faits = entree.get("faits", {}) if isinstance(entree, dict) else {}
         if isinstance(faits, dict) and "resultat_resolu" in faits:
             return "raconter_resultat"

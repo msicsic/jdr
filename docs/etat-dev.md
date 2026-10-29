@@ -2,6 +2,19 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-g1-compilateur`, lot 294 / G1, non fusionnée**, base
+  intégration `230e7b3` : compilateur du libre sur sélection du dossier
+  public, contrats typés actuels (gestes, opérations, douze actes, marchés,
+  missions), sans réparations sémantiques silencieuses ni repli vers l'ancien
+  interprète. Corrections sur copie, fidélité, contre-revue, G2/G4 conservés ;
+  les voies narratives transitoires gardent leurs contrôles. Deux scènes,
+  sans réseau : consignes 40 364 → 3 547 caractères, requête complète environ
+  −45 %, schéma actuel conservé. **172 tests / quinze fichiers verts**, paroles et résultat compris. **Passe Luna unique détachée en cours**,
+  six scripts, un travailleur réduit ; bruts
+  `C:/Users/msics/donjon/artifacts/g1-294/`, fin attendue `fin-luna.json`.
+  Analyse des intentions et de la négociation encore requise ; lot non clôturé.
+  [Rapport 294](taches/rapport-codex-294-g1-compilateur.md).
+
 - **Branche `codex-ud-descripteur`, lot 293 / U-D, fusionnée**, base
   intégration `8acbbd9` : le clic d'objet/porte, la marche au clic et la
   rotation transmettent un descripteur public jusqu'à `Moteur.preparer`.

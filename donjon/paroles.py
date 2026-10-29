@@ -59,6 +59,16 @@ SENS_CONTENU = {
     "ressource": "Demander si l'interlocuteur possède le bien nommé par sujet (nom, alias, matière ou catégorie), sans le prendre ni le payer. Les codes faim et chaleur demandent plus largement de quoi satisfaire ce besoin ; ils ne remplacent pas un bien précis nommé par le joueur.",
 }
 RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
+
+
+def section_contenu():
+    """Le prompt sans schéma lit les mêmes définitions que le contrat joueur."""
+    return "\n".join(f"- {t} : {SENS_CONTENU[t]} Champs utiles : "
+                     + (", ".join(CHAMPS_CONTENU[t]) or "aucun")
+                     + ". Les autres champs restent vides."
+                     for t in TYPES_JOUEUR)
+
+
 OPERATIONS = {t: sens for t, sens in SENS_CONTENU.items() if t != "propos"}
 SCHEMA_OPERATIONS = {"type": "object", "additionalProperties": False,
     "description": "Analyser d'abord le sens de la saisie seule, avant de choisir le contenu. Pour chaque opération disponible, vrai si les mots du joueur en expriment le sens, même sans demander explicitement un effet du moteur, même sous forme déclarative, négative ou incertaine. La vérité de la parole et la réussite de ses conséquences ne décident pas de son typage. Toutes sont fausses seulement si aucune définition ne s'applique ; cette conclusion permet de dispenser la parole de contre-revue.",

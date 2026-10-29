@@ -200,8 +200,15 @@ class PrefixeKVTests(unittest.TestCase):
         self.assertEqual(list(appels_mj[1][1])[-2:], ["controle_narratif", "consigne_revision"])
         # Le préfixe d'entrée avant controle_narratif est conservé à plus de 95 %.
         self.assertGreater(prefixe_commun(appels_mj[0][2], appels_mj[1][2]) / len(appels_mj[0][2]), 0.95)
-        # L'audit partage le préfixe de faits avec l'appel du MJ.
-        self.assertGreater(prefixe_commun(appels_mj[0][2], appels_audit[0][2]) / len(appels_audit[0][2]), 0.80)
+        # G1 : le compilateur reçoit le petit contexte ; l'audit conserve son
+        # dossier complet et sa propre voie de cache.
+        self.assertTrue(appels_mj[0][1]['compilation'])
+        self.assertNotIn('attestations', appels_mj[0][1]['faits'])
+        self.assertIn('attestations', appels_audit[0][1]['faits'])
+        for cle, objet in appels_mj[0][1]['faits'].items():
+            if cle.startswith('objet:'):
+                for champ, valeur in objet.items():
+                    self.assertEqual(valeur, appels_audit[0][1]['faits'][cle][champ])
 
 
 class FournisseurLocalTests(unittest.TestCase):
@@ -284,11 +291,12 @@ class FournisseurLocalTests(unittest.TestCase):
                 self.assertTrue(r["recit_sauve_avant_affichage"])
                 self.assertTrue(r["etat_identique_apres_reprise"])
                 self.assertEqual(r["executions_action"], 1)
-                self.assertGreaterEqual(len(requetes), 3)
+                # G4 : aucun récit après exécution ; compilation puis revue.
+                self.assertEqual(len(requetes), 2)
                 # Le fournisseur local active cache_prompt, route id_slot par voie et remonte cache_n.
                 self.assertTrue(all(req["cache_prompt"] is True for req in requetes))
                 slots_vus = [req["id_slot"] for req in requetes]
-                self.assertEqual(slots_vus[:3], [0, 3, 1])
+                self.assertEqual(slots_vus, [0, 3])
                 self.assertEqual(traces[0]["usage"]["prompt_tokens_details"]["cached_tokens"], 1050)
 
 
