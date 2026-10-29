@@ -2,6 +2,22 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-but-protection`, lot 281, non fusionnée**, base intégration
+  `3470a92` : `planification.reagir` nomme le protégé dans `proteger.qui` ;
+  l'agresseur reste la cible du plan. Lecteurs récit/paroles/audit/sonde 219,
+  défense, délibération et exécution vérifiés, sans autre code modifié ;
+  fonctions du lot 277 intactes, anciennes sauvegardes non migrées.
+  **Deux nouveaux tests verts** : capture 279 avant premier coup (quinze
+  gestes, six coups portés inchangés ; sept protections d'Aubin contre Brune)
+  et autre victime 4c (Ilse). Monde/rendu/scène, récit et texte MJ après
+  recharge ; laps entier/découpé identique. **Validation restante en cours** :
+  18 fichiers ciblés, comparaison courte base/branche puis empreintes 2 h,
+  cinq scénarios × quatre graines contre la base figée, cache réutilisé.
+  Deux travailleurs au plus, priorité réduite ; calcul séquentiel détaché,
+  fin attendue `C:/Users/msics/donjon/artifacts/protection-281/fin-verification.json`.
+  Relire ce fichier et les rapports avant de clore le lot. Ni Luna ni suite
+  complète. [Rapport 281](taches/rapport-codex-281-but-protection.md).
+
 - **Branche `codex-interposition-reprise`, fusionnée**, lot **278**, base
   `792816c` : **lot clos, diagnostic seul, sans code**, aucun correctif moteur.
   Alerte 274 requalifiée comme reprise admissible selon les croyances de Gorm.
