@@ -2,6 +2,36 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-richesse-hameau`, lot 282, diagnostic seul**, base intégration
+  `3470a92` : **aucun défaut établi, aucun fichier de code, test ou scénario
+  modifié.** Quatre nuits rejouées détachées (`0bad227` et `c870c8b`, graines
+  1985 et 2024, 12 h, départ tiré, joueur passif), **un processus à la fois,
+  priorité réduite, 688,9 s**, identité aux archives 274 (chronique, mesures,
+  récit, souvenirs, empreintes, relevés, plantage). Mesures reproduites :
+  attente **931 → 1 062**, S/F/D **64,5/8,75/3,46 → 56,25/8,5/3,42**, noir
+  **79 → 133**, propositions/acceptées **17/3 → 11,25/2,25** ; par graine,
+  attente 840→1 010, 1 155→1 165, 525→485, 1 205→1 590. Attentes attribuées :
+  1985 Gorm/devoir **0 → 395** et Aubin/chaleur 380→530 ; 7 Gorm/devoir
+  0→440 ; 2024 Maël/chaleur 0→365, Brune/chaleur 0→360, Sève/faim 5→335.
+  **Premier écart substantiel des quatre nuits à la minute 1-2** sur l'offre
+  que Brune choisit (vente de crochets 8 pièces contre la promesse d'allumer
+  la torche) : effet décrit et accepté au **lot 228** (`8567c47`/`e8feb8f`).
+  1985 et 7 : Gorm sans plan de devoir (interposition sans approche perçue,
+  crypte/beffroi/échoppe crues menacées par l'eau, brasero non allumable,
+  vérifié sur 1985 ; 7 même profil par la mesure, non instrumenté). 2024 : Aubin allume
+  à 82 l'unique torche (60 min, non rechargeable, vide à ~142) ; plus aucune
+  flamme portable (briquet et lanterne au joueur, fanal fixe), les deux foyers
+  restent éteints malgré le bois, puis la réserve vidée à 195 fait croire à
+  une disparition (Gorm garde). **Contrainte réelle, pas de recours refusé ;
+  aucun petit lot de correction.** Le seul moyen qui romprait la nuit 2024 —
+  emporter une flamme d'un foyer fixe allumé — n'existe pas et n'est pas
+  couvert par le lot 277 (non fusionné), qui exige un porteur de flamme.
+  **40 captures** (dix instants × quatre nuits) : monde, rendu et scène
+  identiques après recharge. Ni Luna, ni suite complète, ni banc comparatif ;
+  aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/richesse-282/` ;
+  [rapport 282](taches/rapport-codex-282-richesse-hameau.md). Commit local,
+  poussée non faite depuis le PC fixe (hash donné au superviseur).
+
 - **Branche `codex-interposition-reprise`, fusionnée**, lot **278**, base
   `792816c` : **lot clos, diagnostic seul, sans code**, aucun correctif moteur.
   Alerte 274 requalifiée comme reprise admissible selon les croyances de Gorm.
