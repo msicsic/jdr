@@ -2,6 +2,28 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-ut-inventaire`, lot 301 / U-T inventaire, non fusionnée**,
+  base `integration 79beaf1`, reprise par fusion sans rebase de `2537e4f`
+  (outils 300), fusion `99855aa` : console et TUI proposent les gestes de
+  besace dans la liste numérotée. Chaque ligne fige le descripteur U-D du
+  web, avec bien exact, quantité admise et destinataire public ; aucun
+  analyseur ni modèle. Projections communes dans `inventaire_public.py`,
+  réexportées par le pont web ; catalogue des outils 300 conservé,
+  `page.html` identique à l'intégration. Une remise complète par numéro,
+  homonymes distingués par référence ; moteur seul juge du choix périmé.
+  **87 tests distincts / huit fichiers verts**, dont les **28 TUI existants
+  inchangés** et les outils 300. Douze couples geste/bien dans les deux
+  interfaces : descripteur, plan, texte exact et monde/scène/fiche/carte
+  après recharge ; biens/destinataires homonymes, lots, refus périmés,
+  noir et sans carte. Zéro analyseur ou modèle sur les choix.
+  **24 parcours mesurés : 3 touches**, 4 avec F7 en TUI. Deux travailleurs
+  réduits au plus ; sept fichiers voisins de la reprise conservés,
+  seul le fichier inventaire rejoué après correction de sa sonde.
+  Ni Luna, ni banc PNJ, ni suite complète. Branche poussée vers origin,
+  aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/ut-inventaire-301/`,
+  bilan retenu `bilan.json`, clôture `fin-cloture.json`.
+  [Rapport 301](taches/rapport-codex-301-ut-inventaire.md).
+
 - **Branche `codex-um-outils`, lot 300 / U-M outils, fusionnée**,
   base `2d893e0`, reprise par fusion sans rebase d'`origin/integration`
   `f1cb8fd` (U-T 299 inclus) : choix explicite d'outil, clé, combustible

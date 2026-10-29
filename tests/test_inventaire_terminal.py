@@ -116,7 +116,8 @@ class Parcours:
                 if mutation:
                     mutation(moteur.monde)
             plan = preparer(moteur, p, *args, **kwargs)
-            plans.append(copy.deepcopy(plan.__dict__))
+            if isinstance(p, DescripteurPublic):
+                plans.append(copy.deepcopy(plan.__dict__))
             return plan
 
         with patch.object(Moteur, "preparer", preparation):
@@ -155,6 +156,12 @@ class Parcours:
                     self.assertEqual(obtenu.objets[autre]["allume"], geste == "eteindre")
                 if geste == "remettre":
                     self.assertEqual(obtenu.objets[cible]["lieu"], "autre_personne")
+                if geste == "poser":
+                    self.assertEqual(obtenu.objets[cible]["lieu"], m.joueur["salle"])
+                if geste == "manger":
+                    self.assertEqual(obtenu.objets[cible]["portions"], m.objets[cible]["portions"] - 1)
+                if geste in ("allumer", "eteindre"):
+                    self.assertEqual(obtenu.objets[cible]["allume"], geste == "allumer")
                 if geste == "prelever":
                     self.assertEqual(obtenu.objets[cible]["physique"]["pieces"], m.objets[cible]["physique"]["pieces"] - 1)
                 if geste in ("poser", "remettre") and modele == "planches":
