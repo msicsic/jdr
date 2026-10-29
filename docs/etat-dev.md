@@ -2,6 +2,24 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 334 terminé, branche `codex-empreintes-monde`, non fusionnée**,
+  base `5f4e0d5` : hameau, parent `37f68d4` vert / fusion 302 `99143c2`
+  rouge ; statut de Gorm et trois ascendants légitimes conservés par
+  l'inverse du 200. Captures mine/auberge : seuls les ajouts G15
+  `emissions_parole` / `bruits[].emission` diffèrent, autres oracles
+  inchangés ; parent `6037855` vert, fusion 320 `e0be70d` rouge.
+  États et observations complets identiques aux bornes sous 313/42.
+  **8 tests distincts / deux fichiers, deux passes 8/8 vertes**,
+  41,011 + 38,105 s, zéro échec/erreur/saut ; monde/rendu/scène rechargés.
+  Trois empreintes recalées, moteur inchangé. Recouvrement de fichier
+  avec 313 (`test_etapes_chainees.py`), aucune visite modifiée.
+  Bruts `C:/Users/msics/donjon/artifacts/empreintes-334/` ; calculs détachés
+  réduits, un travailleur à la fois ; **`fin-verification.json ok=true`**,
+  99,140 s, bissection 112,753 s. Ni Luna, banc PNJ ni suite complète.
+  Branche poussée vers origin ; aucun calcul actif. Limite : trois
+  trajectoires historiques, aucune preuve universelle de déterminisme.
+  [Rapport 334](taches/rapport-codex-334-empreintes-monde.md).
+
 - **Lot 331 terminé, branche `codex-achat-planches`, fusionnée**, base
   `origin/integration 7e65907` : attente d'achat impossible périmée depuis
   le lot 312. Bissection sur onze versions, **parent direct `2ddfbe0`

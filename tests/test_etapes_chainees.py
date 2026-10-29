@@ -219,10 +219,19 @@ class EtapesTests(unittest.TestCase):
                                 'n_visites': 8573,
                                 'diagnostics': '713286253ce4161d93c4833e73e951671caacd67758398a206448edb605acadd'}
                                if scenario == 'auberge' else {})
+                    # 320/e0be70d : seul le registre emissions_parole et ses
+                    # liens bruits[].emission enrichissent le monde rechargé.
+                    # Diff exhaustif et parent direct vert : rapport 334.
+                    # Garder ce monde complet, sans exclure le nouveau registre
+                    # ni modifier les oracles de visites, plans, lignes ou vues.
+                    emissions = {'monde': {
+                        'mine': '4c2140914c86251d1bf1790bb37a9debd9e0344340040196d2fa4520b3a2047f',
+                        'auberge': '3eb6aaf37b22ff4667d8effe512125dbaef60d720bf9645662d41a2bac89abd3',
+                    }[scenario]}
                     self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures,
                                                                  **paroles[scenario], **contacts[scenario],
                                                                  **rendez_vous.get(scenario, {}), **pas[scenario],
-                                                                 **compensation, **reserve})
+                                                                 **compensation, **reserve, **emissions})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})
