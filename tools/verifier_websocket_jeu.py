@@ -76,7 +76,9 @@ def parcours(cas):
         recharge = Monde.charger(chemin)
         assert recharge.objets[cible]['lieu'] == 'joueur', interface.sorties
         dernier = recharge.data['conversation'][-1]['reponse']
-        assert resultats == [dernier], (resultats, dernier)
+        compris = recharge.data['conversation'][-1]['compris']
+        assert compris.startswith('Compris :'), compris
+        assert len(resultats) == 1 and dernier == resultats[0] + '\n' + compris, (resultats, dernier)
         assert recharge.data['conversation'][-1]['nature'] == 'resultat_moteur'
         assert dernier in interface.deja_sauves
         etat = copy.deepcopy(recharge.data)
