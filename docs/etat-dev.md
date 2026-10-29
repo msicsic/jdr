@@ -2,6 +2,23 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-a5-reaffecter`, lot 297 / A5.7, non fusionnée**, base
+  intégration `83a2e89`, moteur `4c634cb` : attribution connue unique par
+  charge, historique conservé, choix de remplacement par devis fermé du
+  mandant, refus inchangé retenu, titulaires déjà essayés exclus et
+  hystérésis VOL. Retrait par parole commune, jamais à distance ; tentative
+  manquée persistée, retrouvailles et résultat appris en route contrôlés.
+  **86 tests / 12 fichiers verts**, dont dix nouveaux ; hameau et mine,
+  ramener et informer, monde/rendu/scène/écoute après recharge et laps
+  entier/découpé avec intervenants actifs. Pas de délai inventé pour un
+  devis incertain, ni conversion des anciens accords sans échéance ; deux
+  intervenants peuvent agir tant que le retrait n'est pas entendu.
+  **Empreintes 2 h en cours**, hameau/mine/Relais × quatre graines, contre
+  la base d'intégration et cache, deux travailleurs réduits. Calcul détaché
+  démarré, PID 43184 ; fin attendue (même en cas d'échec) :
+  `C:/Users/msics/donjon/artifacts/reaffecter-297/fin-verification.json`.
+  Ni Luna ni suite complète. [Rapport 297](taches/rapport-codex-297-a5-reaffecter.md).
+
 - **Branche `codex-suite-g2-g4`, lot 295, fusionnée**, base intégration
   `475d29d` : les sept fichiers du brief reproduisent les **15 échecs et
   9 erreurs** initiaux (70 tests), sans défaut supplémentaire U-D. Attentes
