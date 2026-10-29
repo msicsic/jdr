@@ -2,6 +2,22 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-a5-donnees-hameau`, lot 302 / A5.11, non fusionnée**,
+  base intégration `79beaf1` : statut local de Gorm connu de lui-même,
+  Aubin, Brune et Ilse ; ascendants Aubin→Gorm 60, Maël→Aubin 30 et
+  Sève→Aubin 40. Aucun agenda ni attribution ajouté, aucun moteur/MJ modifié.
+  Compteurs du banc par registres publics : propositions, accords, refus
+  par cause, confirmations, comptes rendus et réaffectations à un tiers.
+  **69 tests distincts / onze fichiers verts**, monde/scène/rendu rechargés,
+  deux charges et demandes ordinaires hors crue, réaffectation hameau/mine.
+  **Banc 4 h × quatre graines à clôturer**, détaché, deux processus réduits,
+  référence intégration par cache ; fin attendue
+  `C:/Users/msics/donjon/artifacts/hameau-302/fin.json`.
+  Limites : aucune charge `amener/informer` naturelle déclarée ou née par
+  l'autorité seule ; validation historique des statuts sans `attendu`,
+  correction moteur hors périmètre. Ni Luna ni suite complète.
+  [Rapport 302](taches/rapport-codex-302-a5-donnees-hameau.md).
+
 - **Branche `codex-a5-reaffecter`, lot 297 / A5.7, fusionnée**, base
   intégration `83a2e89`, moteur `4c634cb` : attribution connue unique par
   charge, historique conservé, choix de remplacement par devis fermé du

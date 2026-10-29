@@ -136,10 +136,50 @@ def _nouvelles(avant, apres):
     return list(apres)
 
 
+def mesures_mandats(monde):
+    """Registres persistants, via les copies publiques ; aucune lecture de prose.
+
+    Une proposition est un jugement nouveau, hors confirmation. Une réaffectation
+    est une nouvelle filiation vers un autre titulaire pour une charge recouvrée.
+    La reprise par le mandant n'est pas une nouvelle attribution à un tiers.
+    Les projets terminaux et les esprits des morts restent dans le relevé.
+    """
+    from . import agendas
+    projets = {(id, a['id']): a for id in monde.data.get('esprits', {})
+               for a in agendas.projets(monde, id)}
+    compte = Counter({k: 0 for k in ('mandats_proposes', 'mandats_acceptes',
+        'mandats_refuses', 'mandats_confirmes', 'comptes_rendus', 'reaffectations')})
+    for (id, identifiant), a in projets.items():
+        for j in a.get('jugements', []):
+            if j['raison'] == 'confirmation':
+                compte['mandats_confirmes'] += 1
+                continue
+            compte['mandats_proposes'] += 1
+            if j['issue'] == 'accepte':
+                compte['mandats_acceptes'] += 1
+            else:
+                compte['mandats_refuses'] += 1
+                compte['mandats_refuses_' + j['raison']] += 1
+        compte['comptes_rendus'] += 'compte_rendu' in a
+        precedents = []
+        for ref in agendas.enfants(monde, id, identifiant):
+            enfant = projets[(ref['titulaire'], ref['agenda'])]
+            p = enfant['parametres']
+            qui = {p['qui']} if isinstance(p['qui'], str) else set(p['qui'])
+            contenu = {k: v for k, v in p.items() if k != 'qui'}
+            compte['reaffectations'] += any(
+                titulaire != ref['titulaire'] and sorte == enfant['sorte']
+                and ancien == contenu and bool(cibles & qui)
+                for titulaire, sorte, ancien, cibles in precedents)
+            precedents.append((ref['titulaire'], enfant['sorte'], contenu, qui))
+    return dict(compte)
+
+
 def executer(monde, minutes, recit=None, empreintes=None):
     """Observe les tentatives au registre, sans ajouter d'état au monde joué."""
     if recit is not None:
         return _executer(monde, minutes, recit, empreintes)
+    mandats_avant = mesures_mandats(monde)
     from unittest.mock import patch
     from . import pnj
     tentatives, vus = set(), set()
@@ -160,6 +200,9 @@ def executer(monde, minutes, recit=None, empreintes=None):
     # Les anciennes mesures restent disponibles : elles décrivent les souvenirs finaux.
     mesures["vols_vus_nuit"] = len({(a, o) for a, o, _ in vus})
     mesures["temoins_vols_nuit"] = len(vus)
+    mandats_apres = mesures_mandats(monde)
+    mesures.update({k: mandats_apres.get(k, 0) - mandats_avant.get(k, 0)
+                    for k in mandats_apres.keys() | mandats_avant.keys()})
     return chronique, mesures
 
 
