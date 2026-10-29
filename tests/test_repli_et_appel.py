@@ -61,7 +61,8 @@ def jouer(monde, saisie, reponses, audits, jet=20, options=()):
                 return {"contenu_conforme": True, "motif": "", "perimetre": "sens",
                         "operations_demandees": {t: t in operations_contenu(entree["plan"]["parole"]["contenu"])
                                                  for t in OPERATIONS}}
-            return {"conforme": True, "motif": ""}
+            return {"conforme": True, "motif": "",
+                    **({"evenements_requis": []} if "evenements_requis" in schema["properties"] else {})}
         return (audits if fonction == "auditer_narration" else reponses).pop(0)
     with tempfile.TemporaryDirectory() as tmp:
         chemin = Path(tmp) / "partie.json"

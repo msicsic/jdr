@@ -24,7 +24,7 @@ class RefusMoteurTests(unittest.TestCase):
     def console(self, monde, saisie, reponses, texte, nombre):
         avant = copy.deepcopy(monde)
         reprise, sortie, appels = jouer(monde, "mj " + saisie, reponses, [])
-        self.assertEqual([f for f, _ in appels], ["repondre_au_joueur"] * nombre)
+        self.assertEqual([f for f, _ in appels if f != "auditer_action"], ["repondre_au_joueur"] * nombre)
         self.assertIn(texte, sortie)
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], texte)
         self.assertEqual(reprise.data["narrations_mj"][-1]["sources"], ["moteur"])

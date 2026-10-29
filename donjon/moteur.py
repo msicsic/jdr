@@ -17,7 +17,7 @@ from .capacites_objet import statut as statut_capacite, absence as absence_capac
 from .refus import cibles, inaccessible, portes_avec_usage, ProprieteInconnue
 
 
-ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "fermer",
+ACTIONS = ["examiner", "toucher", "prix", "prendre", "poser", "acheter", "ouvrir", "fermer",
            "deverrouiller", "verrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
            "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
@@ -28,6 +28,9 @@ METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
 # Gestes dont le résultat est ce que le moteur fait percevoir. À distinguer de
 # commandes.PERCEPTIONS : cette dernière règle borne l'exécution d'une question.
 PERCEPTIONS = ("observer", "examiner", "toucher", "lire", "ecouter")
+SENS_CONSULTATIONS = {
+    "prix": "Consulter le prix annoncé d'un bien visible en vente (cible objet) ou d'une mission discutable (cible mission). Information moteur sans achat, proposition, réservation, accord ni paiement. Outil vide, methode simple, difficulte 0.",
+}
 SENS_PERCEPTIONS = {
     "observer": "Percevoir la scène, la lumière ou le contexte ; le résultat est calculé à l'exécution.",
     "examiner": "Examiner visuellement la cible ; le résultat et les découvertes restent au moteur.",
@@ -206,7 +209,9 @@ class Moteur:
                               "auteur=joueur, conscient=false : accepté conscient=true ; actions acceptées : aucune.")
         from .noms import references
         p = references(self.monde, p)
-        vers = self._regard(p)
+        # Une consultation lit une cotation déjà publique ; elle ne fait pas
+        # tourner le corps et ne découvre pas de cible hors du champ visible.
+        vers = None if p.get('action') == 'prix' else self._regard(p)
         if vers is None:
             return self._preparer(p, origine)
         from .spatial import QUART, quarts
@@ -269,6 +274,23 @@ class Moteur:
             raise ErreurMonde("Assommer ne vise qu'une personne.",
                               f"methode=assommer, action={action}, cible={cible} : frapper une cible de type personnage, ou methode simple.")
         plan = Plan(dict(p), m.data["revision"], "", origine=origine)
+        if action == "prix":
+            from .biens import information_prix
+            from .dialogues import missions_discutables, prix_mission
+            if outil or p['methode'] != 'simple' or p['difficulte']:
+                raise ErreurMonde("Une consultation de prix ne propose aucune transaction.",
+                                  "prix : outil vide, methode simple, difficulte 0.")
+            if cible in missions_discutables(m):
+                cotation = prix_mission(m, cible)
+            elif m.visible(cible) and m.objets[cible].get('en_vente'):
+                cotation = information_prix(cible, prix(m, m.objets[cible]), 'tarif')
+            else:
+                raise inaccessible(m, cible)
+            plan.titre = "Consulter le prix annoncé."
+            plan.minutes, plan.dixiemes, plan.effort = 0, 0, False
+            plan.cotation = cotation
+            plan.information = f"Prix annoncé : {quantite(cotation['montant'], 'pièce')}. Aucun accord ni paiement."
+            return plan
         if action in ("saisir", "ligoter", "delier", "liberer", "trainer", "tuer"):
             from .tenir import preparer
             return preparer(m, p, plan)
@@ -678,6 +700,8 @@ class Moteur:
         if plan.revision != self.monde.data["revision"]:
             raise ErreurMonde("Le monde a changé : demandez un nouvel arbitrage.")
         plan = self.preparer(plan.proposition, plan.origine)
+        if hasattr(plan, 'cotation'):
+            return plan.information
         if plan.etapes:
             return self._executer_operations(plan)
         if plan.proposition["action"] == "observer" and plan.proposition["cible"] not in self.monde.objets:

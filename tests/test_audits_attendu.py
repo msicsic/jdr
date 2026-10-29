@@ -53,6 +53,8 @@ def jouer(monde, saisie, reponses, audits, revues=()):
             revue = revues.pop(0) if revues else {"conforme": True, "motif": ""}
             if callable(revue):
                 revue = revue(entree)
+            if "evenements_requis" in schema["properties"]:
+                revue.setdefault("evenements_requis", [])
             if "contenu_conforme" in schema["properties"] and "conforme" in revue:
                 revue = {"contenu_conforme": revue["conforme"], "motif": revue["motif"],
                          **({"operations_demandees": revue["operations_demandees"]}

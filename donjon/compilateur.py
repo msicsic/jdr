@@ -12,10 +12,11 @@ from .paroles import SCHEMA_PAROLE, SCHEMA_OPERATIONS, section_contenu
 def schema_compilateur():
     # Imports différés : mj définit encore le contrat des actions simples.
     from .mj import SCHEMA
-    from .moteur import SENS_PERCEPTIONS
+    from .moteur import SENS_PERCEPTIONS, SENS_CONSULTATIONS
     from .operations import SCHEMA_SEQUENCE
     from .artisanat import SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE
-    from .improvisation import SCHEMA as improvisation
+    from .improvisation import schema_proposition
+    improvisation = schema_proposition()
     from .dialogues import SCHEMA_CONVERSATION
     from .faits_locaux import SCHEMA_FAITS
     from .enrichissement import SCHEMA_COMPLEMENTS
@@ -33,7 +34,7 @@ def schema_compilateur():
                              **parole["properties"]}
     parole["required"].insert(0, "operations_demandees")
     simple = copy.deepcopy(SCHEMA)
-    simple["properties"]["action"]["description"] = " ".join(f"{op} : {sens}" for op, sens in SENS_PERCEPTIONS.items())
+    simple["properties"]["action"]["description"] = " ".join(f"{op} : {sens}" for op, sens in (SENS_PERCEPTIONS | SENS_CONSULTATIONS).items())
     return {"type": "object", "additionalProperties": False, "properties": {
         "mode": {"type": "string", "enum": ["action", "parole_joueur", "conversation_pnj",
             "etablir_faits", "enrichir", "enrichir_savoirs", "enrichir_joueur", "dialogue"],
@@ -80,7 +81,7 @@ une opération disponible, même pour une phrase déclarative, négative ou ince
 
 mode conversation_pnj : opérations sur une mission configurée et son offre.
 personnage est le donneur public, mission son identifiant, sujet la demande.
-proposer demande la prime ; negocier soumet montant_demande ; accepter ou refuser
+prix consulte la prime sans proposition ; proposer présente l'offre de base ; negocier soumet un montant positif ; accepter ou refuser
 porte sur l'offre ; discuter n'engage rien (mission vide, montant_demande 0).
 La négociation d'une mission relève de ce contrat, y compris sous forme de parole.
 Un marché libre utilise parole_joueur/contenu proposition avec ses deux termes.

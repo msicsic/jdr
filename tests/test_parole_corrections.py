@@ -242,7 +242,7 @@ class FaisabiliteTests(unittest.TestCase):
         self.assertIn(demande_precision(), sortie)
         self.assertEqual(reprise.data['conversation'][-1]['reponse'], demande_precision())
         self.assertEqual(reprise.data['narrations_mj'][-1]['sources'], ['moteur'])
-        self.assertEqual([f for f, _ in appels], ['repondre_au_joueur'] * 3)
+        self.assertEqual([f for f, _ in appels if f != 'auditer_action'], ['repondre_au_joueur'] * 3)
         self.assertEqual((reprise.objets, reprise.joueur), (m.objets, m.joueur))
         # Chaque refus de forme est revenu au MJ, avec ce qu'il attend.
         retours = [e["faits"]["retour_moteur"] for e in mj(appels) if "retour_moteur" in e["faits"]]

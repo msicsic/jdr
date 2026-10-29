@@ -321,6 +321,11 @@ def payer(monde, de, a, montant):
     noter_compte(monde, compte(de, a, montant=montant, etat="rendu"))
 
 
+def information_prix(reference, montant, source):
+    """Une cotation publique est une information, jamais une offre exécutable."""
+    return {"acte": "information", "reference": reference, "montant": montant, "source": source}
+
+
 def prix(monde, objet, part=False):
     """Le prix d'une part d'une ressource comptée, ou d'un objet qui en déclare un ; None sinon."""
     o = monde.objets[objet]

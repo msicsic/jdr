@@ -9,11 +9,13 @@ from .francais import designer, groupe_nominal
 from .esprits import dernier_son
 
 
-OPERATIONS = ("discuter", "proposer", "negocier", "accepter", "refuser")
+OPERATIONS = ("discuter", "prix", "proposer", "negocier", "ameliorer", "accepter", "refuser")
 SENS_OPERATIONS = {
     "discuter": "Discussion sans engagement : mission vide, montant_demande 0.",
-    "proposer": "Demander ou rappeler la récompense existante, sans demander mieux : mission exacte de missions_discutables, montant_demande 0.",
-    "negocier": "Demander explicitement une amélioration de la récompense : mission exacte, montant demandé, ou 0 seulement si le joueur demande mieux sans chiffrer. 0 sollicite le plafond calculé par le moteur, ce n'est pas une simple demande de prix.",
+    "prix": "Consulter le prix existant (prime_base ou accord), sans proposer, réserver, accepter ni payer. montant_demande 0.",
+    "proposer": "Présenter explicitement une nouvelle offre d'accord à la prime de base ; ne pas utiliser pour une consultation du prix. Mission exacte, montant_demande 0.",
+    "negocier": "Présenter une contre-proposition chiffrée, montant_demande positif. Sans montant, aucune proposition n'est présentée : consultation du prix seulement, sans modification d'accord.",
+    "ameliorer": "Demander explicitement une meilleure récompense sans montant chiffré ; le moteur calcule son plafond. Ce n'est pas une question sur le prix existant.",
     "accepter": "Accepter explicitement une offre existante, sans paiement immédiat ; mission exacte, montant_demande 0.",
     "refuser": "Refuser explicitement une offre existante ; mission exacte, montant_demande 0.",
 }
@@ -122,6 +124,15 @@ def disponible(monde, donneur, sauf=None):
     return monde.data["finances_pnj"].get(donneur, 0) - reserves
 
 
+def prix_mission(monde, mission):
+    """Consultation typée et sans effet, distincte d'une offre présentée."""
+    from .biens import information_prix
+    accord = agendas.contrats(monde).get(mission)
+    return information_prix(mission,
+        accord["montant"] if accord else monde.data["missions"][mission]["prime_base"],
+        "accord" if accord else "prime_base")
+
+
 def preparer_conversation(monde, p, revision=None):
     if revision is not None and revision != monde.data["revision"]:
         raise ErreurMonde("Le monde a changé avant la fin de la conversation.", "re-propose à partir des faits actuels.")
@@ -162,7 +173,13 @@ def preparer_conversation(monde, p, revision=None):
         engagements = agendas.contrats(travail)
         accord = engagements.get(mission_id)
         statut = accord["statut"] if accord else None
-        if statut == "paye":
+        if op == "prix" or op == "negocier" and not p["montant_demande"]:
+            # Zéro n'est pas une contre-proposition. Aucun accord ni réserve
+            # n'est créé ou augmenté par une consultation, quelle que soit sa formulation.
+            lecture = prix_mission(travail, mission_id)
+            rapport["prix"] = lecture
+            rapport["faits"].append(f"La récompense annoncée est de {quantite(lecture['montant'], 'pièce')}, contre la remise de l'objet. Aucun nouvel accord ni paiement.")
+        elif statut == "paye":
             rapport["faits"].append(f"La récompense de {quantite(accord['montant'], 'pièce')} a déjà été versée. Aucun nouveau paiement.")
         elif statut == "accepte":
             rapport["faits"].append(f"L'accord accepté reste de {quantite(accord['montant'], 'pièce')}, payable{'s' if accord['montant'] > 1 else ''} contre la remise de l'objet. Il ne change pas pendant cette discussion.")
@@ -181,8 +198,8 @@ def preparer_conversation(monde, p, revision=None):
                 rapport["faits"].append("Il ne dispose pas actuellement de l'argent nécessaire pour une nouvelle offre.")
             else:
                 montant = ancien or base
-                if op == "negocier":
-                    souhait = p["montant_demande"] or plafond
+                if op in ("negocier", "ameliorer"):
+                    souhait = p["montant_demande"] if op == "negocier" else plafond
                     montant = max(montant, min(souhait, plafond))
                 agendas.proposer_contrat(travail, mission_id, montant)
                 rapport["faits"].append(f"Offre de {quantite(montant, 'pièce')} contre la remise de l'objet. Le joueur ne l'a pas encore acceptée. Aucun paiement immédiat.")
@@ -293,7 +310,9 @@ def commande_sociale(monde, texte):
     if operation not in operations:
         return None
     montant = 0
+    chiffre = False
     if operation == "negocier" and cible.rsplit(" ", 1)[-1].isdigit():
+        chiffre = True
         cible, _, montant_str = cible.rpartition(" ")
         montant = int(montant_str)
     presents = interlocuteurs(monde)
@@ -307,5 +326,6 @@ def commande_sociale(monde, texte):
     if len(candidats) != 1:
         raise ErreurMonde("Précise le personnage présent et son offre, ou accepte une offre en attente.")
     id, mission = candidats[0]
-    return {"personnage": mission["donneur"], "sujet": texte, "operation": operations[operation],
+    acte = "ameliorer" if operation == "negocier" and not chiffre else operations[operation]
+    return {"personnage": mission["donneur"], "sujet": texte, "operation": acte,
             "mission": id, "montant_demande": montant}

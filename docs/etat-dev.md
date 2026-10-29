@@ -2,6 +2,21 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-g1-compilateur`, lot 304 / G1 c, non fusionnée** :
+  intégration `37f68d4` fusionnée sans rebase (`c542807`). Cotation typée
+  commune, consultation sans offre/paiement, `negocier/0` sans hausse implicite,
+  amélioration non chiffrée explicitement typée ; consultation moteur des biens
+  sans geste ni délai. Revue du candidat invalide avant conservation de son
+  obstacle, sans justification faisant preuve ; événements d'improvisation
+  déclarés et couverture locale, grammaire avec/sans jet. **156 tests distincts
+  / 14 fichiers verts**, aucune suite complète ; rejeu de 15 charges sur huit
+  tours archivés, limites de reconstruction documentées. Requêtes complètes
+  71 792 / 73 170 caractères, 79,1 / 78,4 % de la référence. **Une passe Luna
+  reste à analyser**, six scripts, référence `230e7b3` exclusivement en cache.
+  Aucun critère par famille déclaré acquis avant mesure. Bruts et fichier de
+  fin attendu : `C:/Users/msics/donjon/artifacts/g1c-304/fin-luna.json` ;
+  [rapport 304](taches/rapport-codex-304-g1c-familles.md).
+
 - **Branche `codex-g1-compilateur`, suite 296 / G1 b, non fusionnée**, code
   mesuré `dd56232`, intégration `48767fd` fusionnée sans rebase (`64b09b5`),
   lot 295 conservé. **Analyse terminée, branche non prête à fusionner.**

@@ -68,6 +68,30 @@ SCHEMA["description"] = ("Geste plausible hors actions spécialisées. Les réci
     "Un geste simple est sans jet ; un son demandé exige l'effet son. Aucun effet ne crée de savoir, d'objet ou de réaction d'un tiers.")
 
 
+def schema_proposition():
+    """Les deux formes exécutables du même contrat : sans jet ou avec jet.
+
+    La grammaire transporte aussi les dépendances que preparer vérifie ; une
+    branche d'échec vide n'est donc plus générable pour une tentative à jet.
+    """
+    variantes = []
+    for jet in (False, True):
+        variante = copy.deepcopy(SCHEMA)
+        champs = variante['properties']
+        champs['reussite'] = copy.deepcopy(SCHEMA_ISSUE)
+        champs['echec'] = copy.deepcopy(SCHEMA_ISSUE)
+        champs['stat']['enum'] = list(STAT[1:]) if jet else ['']
+        champs['difficulte'].update(minimum=10 if jet else 0, maximum=18 if jet else 0)
+        champs['reussite']['properties']['recit'].update(minLength=1, maxLength=600)
+        if jet:
+            champs['echec']['properties']['recit'].update(minLength=1, maxLength=600)
+        else:
+            champs['echec']['properties']['recit']['enum'] = ['']
+            champs['echec']['properties']['effets']['maxItems'] = 0
+        variantes.append(variante)
+    return {'anyOf': variantes}
+
+
 
 def texte_valide(s, maxi, vide=False):
     return isinstance(s, str) and (vide or bool(s.strip())) and len(s) <= maxi and all(ord(c) >= 32 for c in s)

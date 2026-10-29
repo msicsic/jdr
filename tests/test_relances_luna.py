@@ -189,7 +189,7 @@ class ExplicationTests(unittest.TestCase):
             [verdicts(("mecanique", ("retour_moteur",), ""))])
         self.assertNotIn("La poutre effondrée est à plusieurs pas de toi.", sortie)
         self.assertIn("Approche-toi", sortie)
-        self.assertEqual(fonctions(appels), ["repondre_au_joueur"])
+        self.assertEqual(fonctions(appels), ["repondre_au_joueur", "auditer_action"])
 
 
 def replique(locuteur, citation):

@@ -412,6 +412,10 @@ class Monde:
             if not self.accessible(o["id"]):
                 continue
             vue = copy.deepcopy(o)
+            if o.get("en_vente"):
+                from .rendu import prix
+                # Même prix public que la description et l'achat, sans transaction.
+                vue["prix_annonce"] = prix(self, o)
             # L'esprit d'un PNJ (profil, besoins, pulsions) reste interne au moteur.
             vue.pop("profil", None)
             vue.pop("humeur", None)

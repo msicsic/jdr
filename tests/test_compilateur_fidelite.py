@@ -101,7 +101,7 @@ class CompilateurFideliteTests(unittest.TestCase):
                 self.reprise(r)
 
     def test_prix_de_mission_et_amelioration_ne_sont_pas_confondus(self):
-        for saisie, operation, montant in (("Gorm, combien me donnes-tu pour l'anneau ?", 'proposer', 0),
+        for saisie, operation, montant in (("Gorm, combien me donnes-tu pour l'anneau ?", 'prix', 0),
                                            ('Gorm, je veux vingt-quatre pièces pour cet anneau.', 'negocier', 24)):
             with self.subTest(operation=operation):
                 m = crypte()
@@ -113,9 +113,12 @@ class CompilateurFideliteTests(unittest.TestCase):
                     [dict(mode='conversation_pnj', texte='', faits=[], proposition=p), dialogue('Ta demande est entendue.')],
                     [rapport(ligne('mecanique', sources=['conversation_validee']))])
                 self.assertEqual(contrats(r), contrats(attendu))
-                self.assertEqual(contrats(r)[mission]['montant'], 20 if operation == 'proposer' else 22)
+                if operation == 'prix':
+                    self.assertNotIn(mission, contrats(r))
+                else:
+                    self.assertEqual(contrats(r)[mission]['montant'], 22)
                 self.assertEqual(r.joueur['or'], m.joueur['or'])
-                self.assertIn(str(contrats(r)[mission]['montant']), sortie)
+                self.assertIn(str(20 if operation == 'prix' else 22), sortie)
                 self.assertEqual(appels[0][1]['faits']['missions_discutables'].keys(), {mission})
                 self.reprise(r)
 

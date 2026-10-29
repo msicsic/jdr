@@ -10,6 +10,7 @@ from .monde import ErreurMonde
 from .refus import RapportIllisible, attendu_audit
 from .noms import REGLE_DESIGNATIONS, reperes_designations
 from .paroles import SENS_CONTENU, operations_contenu, offre, OPERATIONS, SCHEMA_OPERATIONS
+from .improvisation import SENS_EFFETS
 
 
 SCHEMA = {
@@ -20,6 +21,12 @@ SCHEMA = {
     },
     "required": ["conforme", "motif"],
 }
+EVENEMENTS = tuple(SENS_EFFETS)
+SCHEMA_EXPRESSION = {**SCHEMA, "properties": {**SCHEMA["properties"],
+    "evenements_requis": {"type": "array",
+        "items": {"type": "string", "enum": list(EVENEMENTS)},
+        "description": "Analyser les phénomènes demandés dans la saisie, indépendamment de la proposition. Un son émis est un événement, même sans changement durable. Ne pas effacer une obligation parce que le plan ne la produit pas."}},
+    "required": [*SCHEMA["required"], "evenements_requis"]}
 
 # L'adresse est fixée par le moteur avant la revue ; seul le sens du contenu
 # reste à contrôler ici.
@@ -35,7 +42,9 @@ SCHEMA_PAROLE = {
 
 
 def schema(plan):
-    return SCHEMA_PAROLE if plan.parole is not None else SCHEMA
+    if plan.parole is not None:
+        return SCHEMA_PAROLE
+    return SCHEMA_EXPRESSION if plan.proposition.get("action") == "improviser" and not hasattr(plan, "proposition_non_admise") else SCHEMA
 
 INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
@@ -46,10 +55,16 @@ moteur ; ils ne font pas partie de ce dossier ni du sens à contrôler. contenu 
 qui est demandé ou affirmé, pas les opérations de transfert ou de paiement à exécuter.
 Les opérations désignent chaque chose par « nom (identifiant) » : le nom est celui que le joueur
 emploie, l'identifiant n'est qu'une étiquette technique.
-Le plan représente l'état du monde : action, cibles, outil, et changements durables
+Le plan représente les actes et événements du monde : action, cibles, outil, et changements
 (objet déplacé, détaché, allumé, marqué, son émis, blessure, usure). La manière du geste
-(position des mains, style, intention affichée, caractère d'un son ou d'un air) relève du
+(position des mains, style, intention affichée, caractère d'un son ou d'un air déjà émis) relève du
 récit et n'a pas à figurer dans les opérations ; l'outil et la méthode la portent déjà.
+L'émission elle-même exige un événement son ; un récit de son ne l'émet pas.
+Quand proposition_non_admise est présent, compare cette proposition brute à la saisie :
+elle n'est pas exécutée et ses contraintes mécaniques ne sont pas à juger ici.
+Refuse une action ou cible étrangère avant d'en réparer les champs. La saisie reste
+la référence, jamais la proposition précédente. Pour un geste improvisé admis,
+rends aussi les evenements_requis d'après la saisie, avant de juger leur couverture.
 Une question sur la faisabilité d'un geste (« puis-je… ? ») se juge comme la demande de ce geste.
 Réponds conforme=false seulement pour un écart d'état net :
 - une action ou une cible différente de celle demandée ;
@@ -75,8 +90,8 @@ ne révèle pas, est le résultat que le moteur décide, et elle couvre la deman
 agresseur que le titre du plan nomme (« qui t'a agressé »), se défendre se fait en ripostant (le
 frapper), en fuyant, en se dégageant ou en se rendant : la cible de cette réaction est cet agresseur,
 que le moteur fixe seul quand la demande ne le nomme pas ; ce n'est ni une cible ni une action ajoutée. Un geste
-improvisé (geste_improvise) accomplit un geste sur ses cibles : sa forme (coup de
-pied, poussée, caresse, air sifflé) relève du récit ; juge seulement ses changements durables.
+improvisé (geste_improvise) accomplit un geste sur ses cibles : sa manière relève du
+récit ; juge les événements demandés et ses changements durables.
 Il ne déplace pas Corvus : un déplacement demandé exige une opération qui le produit.
 N'exige ni résultat incertain, ni réaction d'un tiers, ni effet non demandé.
 La branche d'échec d'un jet peut ne pas atteindre le but ; juge sa cohérence avec le risque.
@@ -126,6 +141,23 @@ def sens_parole(contenu, monde):
             for c, sens in zip(contenu, sens_contenu(contenu, monde))]
 
 
+def proposition_brute(p):
+    """Le candidat exécutable, sans sa propre explication de fidélité.
+
+    Les textes d'effets typés (inscription, catégorie acoustique) restent ;
+    les brouillons de résultat et de justification ne prouvent aucun acte.
+    """
+    import copy
+    candidat = copy.deepcopy(p)
+    candidat.pop('justification', None)
+    if candidat.get('action') == 'improviser':
+        candidat.pop('intention', None)
+        for branche in ('reussite', 'echec'):
+            if isinstance(candidat.get(branche), dict):
+                candidat[branche].pop('recit', None)
+    return candidat
+
+
 def _operations(plan, monde=None):
     from .moteur import SENS_PERCEPTIONS
     from .deplacement_objet import presenter_effet
@@ -138,6 +170,7 @@ def _operations(plan, monde=None):
     improvise = plan.proposition.get("action") == "improviser"
     return {
         "titre": plan.titre,
+        **({"cotation": plan.cotation} if hasattr(plan, 'cotation') else {}),
         **({"deplacements": _deplacements(plan, monde)}
            if monde is not None and hasattr(plan, "deplacements") else {}),
         **({"passages": passages} if monde is not None and (passages := _passages(plan, monde)) else {}),
@@ -146,6 +179,7 @@ def _operations(plan, monde=None):
         **({"perception": plan.perception} if plan.perception is not None else {}),
         **({"contrat_perception": SENS_PERCEPTIONS[plan.perception["action"]]}
            if plan.perception is not None else {}),
+        **({"proposition_non_admise": plan.proposition_non_admise} if hasattr(plan, "proposition_non_admise") else {}),
         **({"parole": plan.parole} if plan.parole is not None else {}),
         **({"geste_improvise": {"approche": plan.proposition.get("approche"),
                                 "cibles": plan.proposition.get("cibles", []),
@@ -329,9 +363,30 @@ def verifier(rapport, plan=None, operations_demandees=None):
                               "les mots et le contenu de la demande, sans changement de sens",
                               ("contenu non conforme", motif)))
         return
-    if (not isinstance(rapport, dict) or set(rapport) != {"conforme", "motif"}
+    expression = plan is not None and schema(plan) is SCHEMA_EXPRESSION
+    champs = {"conforme", "motif", "evenements_requis"} if expression else {"conforme", "motif"}
+    if (not isinstance(rapport, dict) or set(rapport) != champs
             or type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)):
         raise RapportInvalide("La contre-revue de la manœuvre est invalide.")
+    if expression:
+        requis = rapport["evenements_requis"]
+        if (not isinstance(requis, list) or any(not isinstance(e, str) or e not in EVENEMENTS for e in requis)
+                or len(set(requis)) != len(requis)):
+            raise RapportInvalide("Les événements de la contre-revue sont invalides.")
+        if operations_demandees is not None:
+            operations_demandees.update(requis)
+            requis = [e for e in EVENEMENTS if e in operations_demandees]
+        # Seuls les effets effectivement compilés comptent ; le titre, le récit
+        # et le booléen de la revue ne peuvent produire un événement absent.
+        internes = {"son": "son_improvise", "marquer": "marque_improvisee",
+                    "deplacer": "transferer", "user": "endommager", "blesser": "blessure_improvisee"}
+        produits = {e[0] for e in plan.effets}
+        manquants = [e for e in requis if internes[e] not in produits]
+        if manquants:
+            evenement = manquants[0]
+            raise ErreurMonde("La manœuvre proposée ne couvre pas la demande : un événement demandé manque.",
+                attendu_audit("proposition.reussite.effets", json.dumps(plan.proposition["reussite"]["effets"], ensure_ascii=False),
+                              SENS_EFFETS[evenement], ("non conforme", evenement)))
     if not rapport["conforme"]:
         # Le motif n'est qu'une explication transmise au MJ : un motif trop long est abrégé.
         motif = rapport["motif"].strip()
