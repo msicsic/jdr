@@ -1,7 +1,8 @@
 # Lot 340 — A5.8, ascendant et issue perçue du mandat
 
 Branche `codex-ascendant-evolue`, **non fusionnée**, base fournie `9f261f9`,
-29 octobre 2026. Code livré ; **validation finale détachée en cours**.
+29 octobre 2026. **Lot terminé**, moteur `14ba7f2`, branche poussée vers
+`origin`. Validation finale verte ; aucun calcul actif ni relancé à la clôture.
 
 **Invariant et réalisation.** `relations.EPREUVES` reçoit trois épreuves :
 réussite **+10**, échec/renoncement **−10**, abus **−20**, sur l'ascendant.
@@ -36,25 +37,26 @@ choix ; interruption et devis ne publient rien. La nouvelle lecture figure
 dans `planification._entrees_communes`. Aucun scénario, modèle, MJ, réputation
 publique, sanction ni règle de violence modifié.
 
-**Preuves acquises.** **19/19 tests verts**, dont treize nouvelles scènes et
-les six tests du socle, en **23,603 s** : Gorm → Aubin, puis Bram → Josse à la
+**Preuves finales. 218/218 tests, 23 fichiers verts, 186,271 s**, zéro échec,
+erreur ou saut. Treize nouvelles scènes : Gorm → Aubin, puis Bram → Josse à la
 mine, réussite/échec/abus ; marche et parole réellement exécutées, ordre refusé,
 témoin ignorant, doute, voix inconnue, ouï-dire puis constat, mémoire courte
 saturée, estompement, publication imbriquée et interruption. Monde complet,
 rendu, scène et paroles entendues sont comparés après recharge. Les fins au
-hameau et à la mine sont identiques en laps entier/découpé. Passes voisines
-acquises : 24/24 puis 31/31, avec recouvrement. Les essais initiaux et leurs
-prémisses corrigées restent archivés, sans effacement des échecs.
+hameau et à la mine sont identiques en laps entier/découpé. Les essais initiaux
+et leurs prémisses corrigées restent archivés, sans effacement des échecs.
 
-**Validation finale à lire.** `tools/valider_ascendant_340.py` lance les
-**23 fichiers ciblés**, puis **20 paires de nuits de 4 h**, cinq scénarios ×
-quatre graines, référence exacte `9f261f9`. Cache commun réutilisé ; seules
-les références manquantes sont calculées/rangées. Critère par nuit : suspects
-219 sans hausse, zéro plantage et zéro usurpation. Le bilan compte les mandats
-naturels et leurs réussites ; **leur exercice naturel n'est pas encore établi**.
-Empreintes du code/tests avant/après ; deux travailleurs réduits au plus.
-Ni Luna ni suite complète. Fin écrite en dernier :
-`C:/Users/msics/donjon/artifacts/ascendant-340/fin.json`.
+**Banc rapide : 20/20 paires conformes**, 4 h, Relais/mine/auberge/crue/hameau
+× 1985/7/42/2024, référence exacte `9f261f9`. Suspects 219 **0 → 0 dans chaque
+nuit**, zéro plantage/usurpation. Chroniques, mesures de jeu, avis et constats
+d'audit identiques nuit par nuit. **Aucun mandat naturel, donc aucun mandat
+abouti** : la preuve du nouveau comportement passe par les scènes.
+Les vingt références exactes manquantes ont été calculées/rangées une fois
+dans le cache commun ; aucune référence disponible relancée. Aucun bilan de
+performance déduit des temps. `tools/valider_ascendant_340.py` : **fin.json
+ok=true**, codes tests/banc **0**, **1 137,994 s**, deux travailleurs réduits
+au plus ; ni Luna ni suite complète. Empreintes du code/tests inchangées
+avant/après et encore identiques au moteur livré à la clôture.
 
 **Limites.** Les croyances peuvent être fausses : ce lot fait évoluer une
 autorité subjective, pas une vérité publique. L'abus est établi par les
@@ -62,5 +64,6 @@ prédicats ci-dessus ; aucune inférence générale sur une morale narrative,
 un risque de trajet non calculé ou une violence future n'est garantie.
 Recouvrements à intégrer : **336** (`agendas.py`, `echanges.py`,
 `planification.py`) ; **337** (`agendas.py`, `social.py`, `planification.py`).
-Bruts, tests, journaux, bilan et empreintes :
-`C:/Users/msics/donjon/artifacts/ascendant-340/`.
+Bruts : `C:/Users/msics/donjon/artifacts/ascendant-340/` : `tests.json`,
+`comparaison.json`, `bilan.json`, `debut.json`, `fin.json`, journaux et
+`analyse-cloture.json` (lecture des résultats existants, sans rejeu).
