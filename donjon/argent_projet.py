@@ -14,7 +14,8 @@ def _borne_marche(valeur_but, valeur_gain, peine=0):
     return (1 + DEMANDE + peine) * valeur_but / valeur_gain if valeur_gain else float("inf")
 
 
-def obtenir(monde, id, montant, budget):
+def obtenir(monde, id, montant, budget, *, cout=None):
+    mesure_cout = cout
     from .biens import richesse, prix, proprietaire
     from .caractere import ARGENT, valeur_pieces
     from .deliberation import _connus, besoin_de_part, parts
@@ -110,4 +111,7 @@ def obtenir(monde, id, montant, budget):
         return None
     # Les annotations de projection (suppose, part_estimee...) appartiennent
     # au devis. Comme tout recours, ne publier que son préfixe exécutable.
-    return _couper(min(candidats, key=lambda c: (c[0], c[1]))[2])
+    retenu = min(candidats, key=lambda c: (c[0], c[1]))
+    if mesure_cout is not None:
+        mesure_cout.append(retenu[0])
+    return _couper(retenu[2])

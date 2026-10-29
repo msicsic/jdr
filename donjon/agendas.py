@@ -7,6 +7,7 @@ Les lectures renvoient des copies : toute mutation passe par une opération nomm
 import copy
 import hashlib
 import json
+import math
 from contextlib import contextmanager
 
 CHAMPS = {"engagements": list}
@@ -108,6 +109,8 @@ def retenir_intention(monde, id, contrat):
     from .esprits import esprit
     e = esprit(monde, id)
     i = e["intention"]
+    if i['but'].get('agenda'):
+        contrat = {**contrat, 'recours': entrees_recours(monde, id, i['but']['agenda'])}
     e["contrat_intention"] = {**{k: copy.deepcopy(i[k]) for k in ("but", "motif", "depuis")},
                               "contrat": copy.deepcopy(contrat)}
     a = _projet(monde, id, i['but'].get('agenda'))
@@ -654,6 +657,38 @@ def _croyances(monde, id, *, moyens_seuls=False):
                                     sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
+def entrees_recours(monde, id, identifiant):
+    """Événements qui rouvrent les moyens d'un projet, hors déplacement propre.
+
+    Les dates de regard et le prix changeant du trajet ne sont pas des
+    nouvelles. Les accords, refus, ressources, états crus et échéances le sont.
+    Le suffixe exécuté et le contrôle d'admissibilité restent dans l'intention.
+    """
+    from .esprits import lire
+    from .spatial import porte_par
+    e = lire(monde, id)
+    def contenu(x):
+        if isinstance(x, dict):
+            return {k: contenu(v) for k, v in x.items()
+                    if k not in ('minute', 'depuis', 'source', 'origine')}
+        if isinstance(x, list):
+            return [contenu(v) for v in x]
+        return x
+    croyances = contenu(e['croyances'])
+    # Son propre trajet n'est pas une nouvelle sur les moyens de son but.
+    soi = croyances.get(id, {})
+    for cle in ('lieu', 'position', 'orientation'):
+        soi.pop(cle, None)
+    a = _projet(monde, id, identifiant)
+    donnees = [croyances, contenu(e['refus']), contenu(e['relations']),
+               en_cours(monde, id), e['aides_attendues'],
+               [aide_echue(monde, x) for x in e['aides_attendues'].values()],
+               sorted(o for o in monde.objets if porte_par(monde, o, id)),
+               monde.objets[id].get('profil'),
+               [a[k] for k in ('sorte', 'parametres', 'etat')] if a else None]
+    return hashlib.sha256(json.dumps(donnees, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
 def poids(monde, id, agenda):
     """Valeurs, situation et liens courants ; jamais de score sauvegardé."""
     from .caractere import valeur
@@ -861,6 +896,17 @@ def planifier(monde, id, identifiant, *, cout=None):
             return planifier(monde, id, identifiant, cout=cout)
     mesure = [] if cout is None else cout
     resultat = _prochain_sous_but(monde, id, identifiant, cout=mesure)
+    # Tous les chemins directs passent le même contrat, y compris un constat
+    # ou une attente. L'absence de coût n'est jamais assimilée à l'impossible.
+    if resultat is not None and not mesure:
+        from .planification import mesure_recours
+        devis = mesure_recours(monde, id, resultat[1])
+        if devis is None:
+            resultat = None
+        else:
+            mesure.append(sum(devis))
+    if resultat is not None and (len(mesure) != 1 or not math.isfinite(mesure[0])):
+        raise ValueError("Recours admissible sans coût fini")
     if cout is not None or getattr(monde, "_contexte_devis", None) is not None:
         return resultat
     a = _projet(monde, id, identifiant)
@@ -931,7 +977,9 @@ def choisir_mandataire(monde, id, identifiant, propre, mesure):
         from .social import avis_exprime
         avis = p["avis"]
         paroles.append({"avis": avis_exprime(monde, id, avis["objet"], avis["valeur"])})
-    choix = [(mesure[0] if mesure else float("inf"), id, propre)]
+    if propre is not None and (not mesure or not math.isfinite(mesure[0])):
+        raise ValueError("Recours admissible sans devis")
+    choix = [(mesure[0] if propre is not None else float("inf"), id, propre)]
     for acteur in sorted(croyances):
         if acteur in exclus or acteur == "joueur" or not _personne_disponible_crue(monde, id, acteur):
             continue
@@ -1020,6 +1068,8 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
             _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
             return None
         from .planification import _couper
+        if cout is not None:
+            cout.append(trouve[0])
         _changer(monde, id, a, "actif", "plan admissible", empreinte)
         _limiter(monde, id, empreinte)
         return ({"type": "agenda", "agenda": identifiant, "objet": objet}, _couper(trouve[1])) if a["etat"] == "actif" else None
@@ -1030,7 +1080,7 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         # Le prix reçu pour un travail n'efface pas la parole : laisser le
         # recours d'engagement l'accomplir avant de rechercher une autre paie.
         resultat = None if any(x.get("paye") for x in en_cours(monde, id, actifs=True)) else obtenir(
-            monde, id, a["parametres"]["pieces"], poids(monde, id, a))
+            monde, id, a["parametres"]["pieces"], poids(monde, id, a), cout=cout)
         if resultat is None:
             _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
             return None
@@ -1061,7 +1111,7 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
                     return None
             return poste
         salle = salle_crue(monde, id, c["objet"]) if "objet" in c else c["lieu"]
-        etapes = garder(monde, id, salle) if salle in monde.data["salles"] else None
+        etapes = garder(monde, id, salle, cout=cout) if salle in monde.data["salles"] else None
         if etapes is None:
             _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
             return None
@@ -1524,9 +1574,11 @@ def verifier(monde, id):
                 and isinstance(c["but"], dict) and isinstance(c["motif"], str)
                 and type(c["depuis"]) is int), "Provenance d'intention invalide"
         contrat = c["contrat"]
-        assert (isinstance(contrat, dict) and set(contrat) - {"phase", "sortie"} == {"palier", "valeur", "demande"}
+        assert (isinstance(contrat, dict) and set(contrat) - {"phase", "sortie", "recours"} == {"palier", "valeur", "demande"}
                 and type(contrat["palier"]) is int and contrat["palier"] in list(Palier)
                 and isinstance(contrat["valeur"], (int, float))), "Contrat d'intention invalide"
+        assert 'recours' not in contrat or (isinstance(contrat['recours'], str)
+                and len(contrat['recours']) == 64), "Entrées de recours invalides"
         assert contrat.get("phase", "continuer") in (
             "naitre", "continuer", "attendre", "finir", "indeterminee"), "Phase d'intention invalide"
         sortie = contrat.get("sortie")

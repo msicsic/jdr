@@ -2,6 +2,23 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 338 en vérification, branche `codex-recours-sans-cout`, non fusionnée**,
+  base `integration e37d9ee` : coût fini obligatoire de tout recours d'agenda
+  admissible, composition commune des suites directes (inspection/attente
+  comprises), coût des recherches conservé pour récupération, pièces et garde.
+  Empreinte persistante des entrées du moyen dans le contrat d'intention :
+  suffixe admissible ou attente adoptée conservés sans nouvelle entrée, hors
+  déplacement propre ; démenti, événement pertinent et préemption gardés.
+  `INERTIE` inchangée. Cinq régressions en précontrôle vertes : capture 317 à
+  160 min, inspection à 170 puis arrêt du circuit jusqu'à 175 ; monde, rendu
+  et scène après recharge, bloc/découpé identiques ; autre attente à l'auberge,
+  continuité d'`informer` et nouvelle localisation. Seize tests existants verts
+  avant consolidation. Passe ciblée élargie, banc 4 h × cinq scénarios × quatre
+  graines puis crue 3 sur 12 h détachés, deux travailleurs réduits au plus.
+  **Ne pas clore sans lire `C:/Users/msics/donjon/artifacts/recours-338/fin.json`**
+  et qualifier tests, suspects nuit par nuit, usurpations et maximum horaire.
+  Aucun Luna ni suite complète. [Rapport 338](taches/rapport-codex-338-recours-sans-cout.md).
+
 - **Lot 317 terminé, branche `codex-boucles-progression`, fusionnée**,
   base `integration 2ddfbe0`, diagnostic seul : les deux nuits du 284 sur
   `27ff8c4` reproduisent exactement chronique, empreintes, récit, souvenirs,
