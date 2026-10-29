@@ -2,8 +2,8 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 273, `codex-demande-adoptee`, non fusionnée : correction du défaut
-  lot→part et du sommeil livrée, confirmation en cours.** Les reçus publiés
+- **Lot 273, `codex-demande-adoptee`, non fusionnée, moteur `4047c16` :
+  les deux critères échouent, fusion à différer.** Les reçus publiés
   persistent comme provenance transitive dans l'esprit ; `choisir` revalide
   les moyens concrets en gardant la demande, le but, le début et le palier.
   Aucune équivalence par simple raison ; pas de substitution pour les missions
@@ -13,12 +13,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `deliberation.py` ; aucun changement d'agendas/échanges/signes.
   **16 tests ciblés verts**, captures Josse 373 et Aubin 117503 (repas effectifs),
   seconde chaîne de fourniture, sommeil/réveil Anselme, recharges et laps découpés.
-  Compléments des fichiers de choix/reprise puis **20 nuits de branche seules**
-  en fond réduit, référence `0e3e626` strictement relue dans les archives,
-  sonde 265/271, compteur 219, S/F/D `cats` 183. **Aucune hausse de suspects par
-  nuit et richesse mine revenue : non certifiées avant lecture des résultats.**
-  Fin attendue : `C:/Users/msics/donjon/artifacts/demande-273-sol/correction/fin.json`.
+  Compléments **449 tests / 47 fichiers : 444 succès, cinq échecs instruits**.
+  Rejeu inchangé sur le parent `9a1ba3e` isolé : deux écarts hérités
+  `pas_compagnons` (ordre de vente, lieu cru au service), trois nouveaux :
+  Brune sans retour daté 929, Lucien trouvant Anselme à 115 min avant recherche
+  épuisée, **Tilo servant un bénéficiaire de lieu inconnu puis rejeté**.
+  Même capture : le parent admet aussi ce geste ; lacune commune de présence,
+  correction proposée, non livrée ici. Assertions inchangées.
+  **20 nuits de branche seules**, référence `0e3e626` relue dans les archives,
+  sonde 265/271, compteur 219, S/F/D `cats` 183. **Suspects : critère non tenu**,
+  19/20 sans hausse, total **1→3**, Crue 42 **0→3** (Gorm, interpositions,
+  retours 32490/33234/33255) ; suspect Aubin Relais 2024 toujours absent.
+  **Mine : critère non tenu**, S/F/D **25,75/5/1,964→16/4,5/1,679**,
+  S sous l'étendue **19–32**, F sous **5** ; perte restante non légitimée.
+  Signatures **60 perdues / 21 gagnées**, repas **19→19**, crédits **8→9**.
+  À expliquer **21→35**, dérives ouvertes **203→172** ; Gorm
+  **62→88→77** (réf./avant correction/correction), donc sommeil localement
+  vérifié mais explication générale des dérives non établie. Minutes urgentes
+  en attente **695→1060**, zéro plantage/usurpation ; ni Luna ni suite complète.
+  Aucun nouveau moteur ni test modifié pour ce bilan ; aucun calcul actif.
+  `C:/Users/msics/donjon/artifacts/demande-273-sol/correction/fin.json` : **ok=false**.
   [Rapport actualisé](taches/rapport-codex-273-demande-adoptee.md).
+  [Bilan détaillé des échecs et mesures](taches/bilan-codex-273-correction.md).
   Le diagnostic et le banc antérieurs ci-dessous restent historiques.
 
 - **Branche `codex-demande-adoptee`, non fusionnée**, lot **273**, base `c9459ce`.

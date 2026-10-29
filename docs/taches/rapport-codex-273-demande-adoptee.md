@@ -1,73 +1,58 @@
 # Lot 273 — demande adoptée et moyen démenti
 
 29 octobre 2026. **`codex-demande-adoptee`, non fusionnée**, base `c9459ce`,
-moteur initial `3ec23bb`, banc antérieur sur `527b505` ; correction des
-fournitures et du sommeil ajoutée dans le même lot.
+moteur **`4047c16`**. **Deux critères non tenus : fusion à différer.**
 
-**Verdict avant fusion : correction livrée, mesures de confirmation en cours.**
-Une demande typée survit au démenti d'un moyen. Sa continuation suit les
-provenances publiées des fournitures ; sans plan admissible, elle dort et
-libère son palier. Le banc antérieur ne certifie pas cette nouvelle version.
+**Changement.** `poursuites.py`, `esprits.py` et `deliberation.py` font suivre
+à la demande conservée les fournitures reçues, par provenance publiée
+transitive, sans perdre but, début ou palier. Aucune équivalence par simple
+raison ni substitution pour une mission d'objet précis. Sans plan admissible,
+la demande dort et libère son palier ; elle se réveille sur croyance/moyen
+nouveau, jamais par délai. Les plans vides valides restent actifs.
+Aucun cas par PNJ/objet/scénario, ni modification d'agendas/échanges/signes.
 
-**Contrat commun corrigé.** `poursuites.py` conserve les liens source→résultat
-des reçus/remises (`lot`, `objet`), transitivement et hors mémoire bornée ;
-`esprits.py` les enregistre avant éviction et migre les reçus encore présents
-dans les anciennes sauvegardes. `deliberation._reprendre_demande` replanifie
-le service/la fourniture avec le moyen concret tout en gardant la condition
-adoptée, son but et son palier. `_fin_demande` évalue les mêmes liaisons.
-Une condition exigeant l'identité d'un objet (localisation, garde, restitution,
-état) ne reçoit aucune substitution. L'égalité des raisons ne vaut jamais
-égalité des demandes. Aucun cas par PNJ, objet, scénario ou prompt ; ni
-`agendas.py`, ni `echanges.py`, ni `signes.py` modifiés.
+**Tests.** 16 cas ciblés verts ; **449 compléments : 444 succès, cinq échecs**.
+Rejeu inchangé sur `9a1ba3e` isolé : deux écarts hérités de `pas_compagnons`
+(ordre de vente, lieu cru au service), trois nouveaux. Brune n'a plus le
+retour daté 929 ; Lucien trouve Anselme à 115 min avant recherche épuisée.
+**Défaut réel Tilo : service admis avec bénéficiaire de lieu inconnu, puis
+rejeté dans une autre salle.** La même capture sur le parent expose la même
+lacune commune de présence. Aucun oracle affaibli ; preuves rechargées et
+correction proposée au [bilan détaillé](bilan-codex-273-correction.md).
 
-**Sommeil sans délai.** Un résultat de planification `None` conserve la demande
-dans `demandes_suspendues`, avec son but, début et urgence, et libère l'arbitrage.
-Un plan vide admissible (livraison, délégation, garde) reste actif. Le réveil
-replanifie seulement après changement des croyances/moyens ; le passage du
-temps seul ne le provoque pas. Une fin attestée retire la demande. La lecture
-seule du rapport `origin/ds-demande-adoptee` confirme sa limite déclarée,
-mais sa généralisation par « même raison » n'est pas reprise. L'immobilisation
-est reproduite sur Anselme au poêle (capture 120) ; les simples plans vides
-de garde de Bram ou de vente ne prouvent pas un épuisement. L'attribution
-individuelle des dérives ouvertes de Gorm reste à vérifier avec le nouveau banc.
+**Banc.** Vingt nuits de branche seules, cinq scénarios × quatre graines ×
+4 h ; référence **`0e3e626` relue**, sonde 265/271, compteur 219, `cats` 183.
+Passe de **2 126,692 s**, priorité réduite, zéro plantage/usurpation.
+Ni Luna ni suite complète ; moteur et tests inchangés pour ce bilan.
 
-**Contrôles ciblés : 16 tests verts** (137,136 s pour 15 succès et une prémisse
-à actualiser ; Aubin corrigé puis rejoué seul : 1,906 s, vert). Capture mine
-1985 **373** : Josse sert `biscuits_1` à Odon, même demande, début et palier,
-phase `continuer`. Autre PNJ : chaîne de deux détachements reçus, mémoire vidée,
-recharge puis repas effectif ; mission d'objet précis non substituée. Capture
-**Aubin 117503** : la part déjà reçue est servie immédiatement, faim réelle
-**70,209→20,329** ; la prémisse d'une attente jusqu'au retour perceptif est donc
-remplacée par le service effectif, sans renaissance. Anselme libère son palier,
-ne réessaie pas après 60 min de seule horloge, puis reprend la même demande
-avec bois et flamme réellement disponibles et rallume le poêle. Égalités du
-monde, rendu et scène après recharge, laps entier/découpé, contrôlées.
+**Suspects : critère non tenu**, 19/20 nuits sans hausse, total **1→3**.
+Aubin Relais 2024 reste corrigé ; Crue 42 fait **0→3** : interpositions de
+Gorm, retours 32490/33234/33255, répétitions sans entrée nouvelle,
+sans preuve permettant de les excuser.
 
-**Calcul détaché de confirmation**, priorité réduite : les 47 autres fichiers (49 au total) qui
-exercent `choisir`/`_reprendre_demande` et les schémas d'esprit, puis **vingt nuits
-de branche seules**, cinq scénarios × quatre graines × 4 h, un processus.
-La référence `0e3e626` provient exclusivement des vingt nuits archivées dans
-`banc.json`, avec empreinte SHA-256 ; aucun rejeu de référence. Le banc se lance
-même si les tests complémentaires échouent. Critères encore **non certifiés** :
-aucune hausse de suspects **par nuit**, mine S/F/D dans l'étendue de référence
-(toute perte résiduelle exige une justification). Sonde actuelle 265/271,
-compteur 219, fonction `cats` du lot 183 identique. Fin attendue :
-`C:/Users/msics/donjon/artifacts/demande-273-sol/correction/fin.json`.
+| Moyenne sur quatre nuits | S réf→corr. | F réf→corr. | D réf→corr. |
+|---|---:|---:|---:|
+| Relais | 15,25→14 | 4,25→4,5 | 1,750→1,750 |
+| Mine | **25,75→16** | **5→4,5** | **1,964→1,679** |
+| Auberge | 9,25→14,75 | 4→4,25 | 1,000→1,156 |
+| Crue | 23,5→21,5 | 6,75→7,5 | 3,063→3,250 |
+| Hameau | 22,75→22 | 7,25→7,25 | 2,167→2,125 |
 
-**Mesures antérieures (avant cette correction).** Vingt paires de nuits 4 h,
-référence `0e3e626`, sonde 265/271 : aucune hausse de suspects par nuit,
-**1→0**, suspect Aubin Relais 2024 `117518` absent. Mais mine S/F/D
-**25,75/5/1,964→15,25/5/1,464** ; S par graine 1985/7/42/2024 :
-**32→12 / 19→18 / 24→13 / 28→18**, soit 64 pertes et 22 gains.
-Le défaut lot→part prouvé à 373 interdit d'excuser ce recul comme légitime.
-Les familles/auteurs, premières divergences, contre-épreuve de service
-(faim Odon 85,077→35,077) et alertes crue/hameau restent dans le
-[diagnostic détaillé](diagnostic-codex-273-richesse-alertes.md).
+**Mine : critère non tenu.** S reste sous l'étendue de référence **19–32**,
+F sous **5** ; D seul revient dans son étendue. S par graine :
+**32→16 / 19→16 / 24→19 / 28→13**. **60 signatures perdues, 21 gagnées** ;
+repas **19→19**, crédits **8→9**, Odon nourri dès la minute zéro par Josse.
+Le cas 373 s'améliore ; **la perte restante n'est pas prouvée légitime**.
 
-**Limites.** Le changement des entrées réveille une replanification, pas une
-promesse de réussite. Une ancienne sauvegarde dont le reçu a déjà été évincé
-ne permet pas de reconstruire sa provenance manquante. La causalité de
-chaque signature perdue et de chaque dérive ouverte n'est pas certifiée.
-`fin-banc.json` (`ok=true`) reste le résultat antérieur. Bruts dans
-`C:/Users/msics/donjon/artifacts/demande-273-sol/`, nouvelle passe dans
-`correction/`. **Ni Luna ni suite complète.**
+**Autres signaux.** À expliquer **21→35** (hausses Relais 1985, Auberge 1985,
+Crue 1985/42, Hameau 2024) ; une observation `voir_alterne` au Relais 2024.
+Dérives ouvertes **203→172**, minutes urgentes en attente **695→1060**.
+Le sommeil fonctionne localement chez Anselme, mais n'explique pas toutes
+les dérives de Gorm : **62→88→77** (référence / avant correction / correction).
+Une garde vide valide ou une vente ne prouve pas un épuisement.
+
+**Suite avant fusion.** Contrat commun de présence, prémisses stables des
+tests, trois suspects et recul restant de la mine. Diagnostics et bruts :
+`C:/Users/msics/donjon/artifacts/demande-273-sol/correction/instruction/`.
+**`correction/fin.json : ok=false` ; aucun calcul actif.** Le
+[diagnostic initial](diagnostic-codex-273-richesse-alertes.md) reste historique.
