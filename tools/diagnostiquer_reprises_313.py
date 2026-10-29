@@ -7,6 +7,7 @@ import gzip
 import json
 from pathlib import Path
 import sys
+import tempfile
 import time
 import traceback
 from unittest.mock import patch
@@ -29,7 +30,6 @@ def travail(arguments):
     from donjon.rendu import regarder
     from donjon.scene import scene_percue
     from donjon.temps import instant
-    from tests.test_tensions import recharger
 
     scenario, graine, dossier, archive = arguments
     dossier = Path(dossier)
@@ -43,6 +43,12 @@ def travail(arguments):
     relever, creer = banc._oisifs_urgents, banc.creer
     chroniquer = pnj._chroniquer
     capture, monde_joue = {}, []
+
+    def recharger(m):
+        with tempfile.TemporaryDirectory(dir=dossier) as tmp:
+            chemin = Path(tmp) / 'partie.json'
+            m.sauver(chemin)
+            return Monde.charger(chemin)
 
     def etat(m, qui, g=None):
         e, o = lire(m, qui), m.objets[qui]
