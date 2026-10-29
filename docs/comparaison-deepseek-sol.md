@@ -64,3 +64,10 @@ rechargées, premier écart entre versions situé (lot 260) et non-reproduction 
 surinterprétation. Un défaut réel de libellé repéré (le but de protection nomme l'agresseur au lieu du protégé), déjà
 entrevu au lot 222. Consignes respectées (aucun fichier de code modifié, échec de poussée laissé local, sans contourner
 par l'API). Qualité comparable à Sol medium sur ce type de diagnostic.
+
+## Lot 282 (diagnostic, DeepSeek Go high seul)
+Livré en deux tours (relecture des archives, puis rejeu détaché de quatre nuits, un processus, exploitation). Rejeu
+identique aux archives 274, 40 captures rechargées, attentes ventilées par PNJ et besoin et par graine, premier écart
+situé et rattaché au lot 228 déjà accepté, conclusion « aucun défaut » argumentée par le catalogue de recours. Consignes
+respectées (scénario et graines exacts, un processus, commit local laissé sans poussée). Comme au lot 279, qualité
+comparable à Sol medium sur un diagnostic à brief précis.
