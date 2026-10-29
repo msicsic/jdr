@@ -2,26 +2,32 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 326 / G17, branche `codex-g17-comptes`, non fusionnée**, base
-  `integration eb15b5e` : répliques comptables formulées par le moteur depuis
-  les résolutions typées, admises dans G15 avant publication et rejouées avec
-  la transaction ; aucun appel de rédaction ni audit de ces mots fixés.
-  Rôles, termes, règlement, cumuls, autres opérations et propos libres
-  résiduels distingués. Sceau de publication contrôlé sur les émissions
-  réellement enregistrées. **203 tests distincts / 18 fichiers verts**, zéro
-  échec, erreur ou saut dans les dernières validations par fichier ; monde,
-  mots et rendu rechargés, archives G15 86/87 conservées. Raccord commun :
-  frontières de segments prouvées, sans fusion de citations. Une seule passe
-  Luna `comptes` / `soir-appel` **en cours sur `cbc5af3`**, référence `cdaf371`
-  en cache retrouvée sans relance. PID Python **38496 actif, BelowNormal**
-  vérifié ; un travailleur Luna au plus, lanceur 49156 aussi réduit.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/g17-326/fin-luna.json`,
-  écrite en dernier même en cas d'échec. Résultats Luna à lire à la reprise.
-  Branche poussée vers origin ; code/tests figés pendant le calcul.
-  Pas de suite complète ni de banc PNJ.
-  Bruts `C:/Users/msics/donjon/artifacts/g17-326/`.
-  Recouvrement G19/327 : `narration.consigner` et raccord des segments
-  dans `raccorder_emissions`.
+- **Lot 326 / G17 terminé, branche `codex-g17-comptes`, non fusionnée**,
+  base `integration eb15b5e`, code/tests `cbc5af3` inchangés : comptes parlés
+  formulés depuis les résolutions typées et admis dans G15 avant publication,
+  rejoués avec la transaction ; mots, ordre et multiplicité scellés.
+  Autres opérations et propos libres résiduels conservés, contrôles des voies
+  non portées maintenus. Raccord commun sans fusion de segments prouvés.
+  **203 tests distincts / 18 fichiers verts**, zéro échec, erreur ou saut ;
+  état, mots et rendu rechargés, archives G15 86/87 conservées.
+  **Luna une passe `comptes` / `soir-appel`**, référence historique `cdaf371`
+  entièrement en cache, jamais relancée : six tours MJ, **26 → 16 appels**,
+  rédaction **5 → 2**, audits narratifs **7 → 2**, révisions **2 → 0**,
+  obstacles **3 → 0**, refus de validation **1 → 0**, aucun repli ni erreur
+  technique/recharge. Quatre tours comptables : interprétation et fidélité
+  seulement, **zéro réécriture, audit ou repli comptable**. Gorm/Aubin rendent
+  deux pièces, Brune refuse et reste débitrice. Achat de planche refusé par
+  le moteur : termes conservés, aucun paiement ; achat réussi couvert sans
+  réseau, pas par cette passe. Rejeu des 16 réponses sans réseau : **14 sorties
+  et projections identiques** au fil live ; bourses, comptes, citations et
+  états complets du rejeu identiques après recharge. Aucun modèle relancé.
+  Calcul détaché réduit **80,974 s**, `fin-luna.json` **ok=true, code 0**.
+  Aucun gain général ni de vitesse revendiqué sur la référence historique.
+  Pas de suite complète ni de banc PNJ ; **aucun calcul actif**.
+  Bruts `C:/Users/msics/donjon/artifacts/g17-326/`, `analyse-luna.json` et
+  `fin-cloture.json`. Branche poussée vers origin, sans fusion.
+  Recouvrement G19/327 : `narration.consigner` et `raccorder_emissions`,
+  aucune règle de rappels modifiée.
   [Rapport 326](taches/rapport-codex-326-g17-comptes-parles.md).
 
 - **Lot 320 / G15 terminé, branche `codex-g15-emissions`, fusionnée**, base
