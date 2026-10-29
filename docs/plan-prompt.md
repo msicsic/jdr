@@ -1,5 +1,36 @@
 # Plan — le prompt du MJ : stable, borné à la perception, prêt pour un modèle local
 
+> **G0 — 29 octobre 2026 : plan historique, suivi repris dans la
+> [feuille de route unique](plan-refonte-mj.md).** Le [contrat adopté](../AGENTS.md#contrat-du-mj)
+> et sa clause de transition priment sur les décisions et états datés ci-dessous.
+> Une voie non portée garde ses contrôles. Aucun lot L n'est rouvert par ce document.
+>
+> - **L0 : repris comme diagnostic historique.** Les mesures futures suivent
+>   les quatre axes du gameplay et séparent chemin bloquant et fond.
+> - **L1 : repris par G1/G3.** Sources ordonnées et contrat de transport commun.
+>   Le local peut attendre ; Luna reste `gpt-6-luna`, sans comparaison de modèles.
+> - **L2 : schéma d'interprétation repris par G1/G2.** La piste d'audit invariant
+>   du lot 162 devient sans objet pour les familles rendues par le moteur.
+>   Son échec reste documenté. Aucun changement du rapport d'une voie non portée.
+> - **L3 : source stable reprise par G1/G3.** Le compilateur remplace les longues
+>   consignes monolithiques ; la disponibilité reste validée par le moteur.
+> - **L4 : projection publique au contact conservée dans G1/G5/G6/U-D.**
+>   Un filtre de dossier n'est pas une garantie de fidélité du libre.
+> - **L5 : refus public direct repris et étendu par G2.** Aucun appel
+>   d'explication ; la portée et les raisons moteur restent contrôlées.
+> - **L6, lot 170 : absorbé par G1.** Ne pas porter séparément l'allègement
+>   des consignes de l'ancienne architecture.
+> - **L7, lot 166 : abandonné par décision utilisateur.** La règle d'omission
+>   paresseuse des surfaces ci-dessous est caduque sous la cible. G1 garde les
+>   faits utiles ; G12/G13/G14 portent admission et matérialisation communes.
+> - **L8 : contrat du dépôt au sol conservé.** G2/G4/U-D et U-P le reprennent
+>   sans exposer le lieu interne comme destination publique.
+>
+> L'ancien protocole final à deux passes n'est plus celui d'un lot de portage.
+> Tests ciblés, une passe Luna si le chemin MJ change ; preuve de parité pour
+> une interface pure. Le lourd est groupé à l'intégration. G0 reste en lecture
+> et rédaction seulement, sans tests de jeu, Luna ni banc.
+
 Décidé le 2026-10-27 avec l'utilisateur, d'après la revue d'Argon (taille du prompt et stabilité du préfixe KV) et la
 branche d'essai `cache-kv-local` (`9d53229`, non fusionnée). Objectif : le **temps avant réponse** du MJ, sur Luna
 (`gpt-6-luna`) comme sur un serveur local OpenAI-compatible ; pas le coût en jetons pour lui-même.

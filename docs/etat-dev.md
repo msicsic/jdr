@@ -2,6 +2,22 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-g0-contrat`, lot 290 / G0, fusionnée**, base intégration
+  `4d9aad7`, brief présent dans cette base. Documentation seule sur le PC fixe.
+  Le [contrat MJ](contrat-mj.md) expose la cible adoptée et annote les garanties
+  conservées, contrôles transitoires et règles caduques sous la cible.
+  Aucun contrôle retiré : le retrait attend le lot qui livre sa garantie.
+  Encadrés de reprise dans les plans prompt et migration. La
+  [feuille de route unique](plan-refonte-mj.md) reprend l'ordre du 288,
+  G0–G21, U, K0/K1/K2 et D0. Menus et terminal sont séparés par famille.
+  Les mesures suivent les quatre axes du gameplay. G0 reste en cours dans
+  cette feuille jusqu'à fusion ; aucun portage n'est annoncé livré.
+  `AGENTS.md` inchangé ; aucun fichier sous `donjon/`, `tests/` ou `tools/`
+  modifié. Contrôles documentaires seulement : périmètre, liens ajoutés,
+  couverture des sections/lots et `git diff --check`. Ni Luna, ni banc,
+  ni test moteur. Aucun calcul actif. [Rapport 290](taches/rapport-codex-290-g0-contrat.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Documentation seulement. contrat-mj.md annoté section par section (valable, transitoire avec son lot de remplacement, caduque) ; plan-prompt.md et plan-migration-mj.md renvoient à la feuille de route ; nouvelle feuille de route docs/plan-refonte-mj.md (46 lots, dépendances, mesures I/V/F/P, état), tenue par le superviseur. AGENTS.md inchangé.
+
 - **Branche `codex-capacite-nouvelle-1`, fusionnée**, lot **285**, base
   intégration `51d66e6` : **diagnostic clos, C1 mesurée sans gain** ; aucun fichier
   de code, test ou scénario modifié. Captures historiques mine/auberge 1985 à
@@ -8678,6 +8694,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `tools/tests.py` (ceux du clic demandent Node ; `jsonschema` est facultatif pour MiMo).
 
 ## À revoir
+
+- **MJ : suivi unique dans la [feuille de route de refonte](plan-refonte-mj.md).**
+  Les pistes L2 à L8 et les audits ne forment plus un plan parallèle.
+  L2/L3 vont à G1/G2/G3 ; L4 à G1/G5/G6/U-D ; L5 à G2 ; L6/170 est absorbé
+  par G1 ; L7/166 est abandonné ; L8 reste un contrat de G2/G4/U-D/U-P.
+  L'audit invariant 162 devient sans objet pour les voies portées ; les mesures
+  171 vont à G6/G7, les attitudes 176 à G20. Les audits mécaniques restent
+  jusqu'aux rendus de G4 à G7/G15 à G20. G8 à G11/U-A portent le contrôle
+  cosmétique en fond, avec abandon entier sans relance si doute. G12/G13
+  gardent les revues d'admission non calculable. U-P/U-C puis G21 règlent le
+  filet de fidélité du libre à effets. Aucun retrait anticipé par G0.
 
 - **Coût, suites retenues** (revue externe du 2026-10-24, retenue par l'utilisateur) :
   - **C1, mesurée sans gain, retirée des pistes actives (lot 285)** : sur les deux captures
