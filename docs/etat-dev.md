@@ -2,70 +2,49 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 313 rouvert avant fusion, branche `codex-contact-inconnu`, non fusionnée**, base
-  `integration d76f272` : position de contact commune au plan et à
-  l'exécution, héritée des seuls liens crus contenant/support/porteur.
-  Une portée insuffisante ou une case inconnue ne dément plus la présence ;
-  l'approche prépare l'observation dans le lieu cru. Capture Relais 7
-  reconstruite à l'instant 856 (archives 308 absentes du poste) : approche
-  **0 → 30 dixièmes**, charge conservée, Gorm sert Brune. Autre source
-  contenue dans une autre salle à la mine ; service, monde/rendu/scène
-  rechargés et laps entier/découpé vérifiés. Disparition réelle : un seul
-  démenti au contact pendant six minutes, aucun service ni répétition.
-  **100 tests / onze fichiers verts**, 81,247 s ; sept nouvelles régressions,
-  plus deux tests verts du lanceur. Première passe achevée sur `5660366` :
-  douze paires 4 h × quatre graines × Relais/auberge/mine,
-  référence figée `d76f272`, deux travailleurs réduits, 854,913 s cumulées.
-  Douze références absentes calculées une fois puis rangées en cache.
-  Refus matériels **4→0**, interruptions d'approche **0→12**, parts
-  **30→31** (Relais 3→5, auberge 11→11, mine 16→15). Relais 7 : Gorm sert
-  Brune à 1009. Mine 1985 : biscuit de Bram à Josse à 114316 remplace pain
-  de Lucien à 115149 puis service de Mathe à 115200. Aucun plantage ni
-  usurpation, suspects 219 **0→0 dans chaque nuit**, bascules **0→0**.
-  Maximum de passages/h **26→25**, avertissements redits **4→7**,
-  appels à l'aide **3→1** ; répétition Lucien/Hugues auberge 2024 subsistante.
-  Avis à expliquer **11→14**, dérives **186→161**, non certifiés bénins.
-  Limite observée : cinq interruptions du même demander d'Ilse à Gorm,
-  Relais 1985, minutes 235–239 avant le service ; zéro suspect 219 ne
-  certifie pas la progression d'un plan inchangé. Une observation sans
-  preuve (notamment le noir) reste inconnue ; ni recherche exhaustive ni
-  absence universelle de boucle garanties. Premier lanceur arrêté avant
-  les tests : imports/cwd corrigés, bilan écrit même en échec, anciens
-  journaux conservés. Bruts `C:/Users/msics/donjon/artifacts/contact-313/`,
-  `fin.json` **ok=true, codes 0/0**, analyse sans rejeu `analyse-cloture.json`.
-  Première passe achevée ; branche poussée vers origin. Aucun changement de
-  `planifier_tache`/`echanges.empeche`, ni Luna ni suite complète.
-  **Complément demandé avant fusion** : établir sur capture rechargée la
-  cause de chacune des cinq interruptions Ilse (141060–143400), regarder
-  les autres interruptions et avertissements 4→7 ; corriger le contrat
-  commun si le seul filet de la minute les relance. Diagnostic détaché de
-  sept nuits de branche seulement (cinq avec interruptions, deux avec
-  avertissements en hausse), aucune référence relancée. Captures, traces
-  des entrées sans dates et reprises depuis bornes rechargées dans
-  `C:/Users/msics/donjon/artifacts/contact-313/reprises-avant-fusion/` ;
-  Sept nuits identiques aux archives (chronique/récit/mesures/souvenirs/état
-  final). Diagnostic initial `ok=false` conservé : erreur de paramètre de
-  reprise (minute finale absolue) et borne Ilse manquante, outil corrigé.
-  Preuve séparée : capture réelle **141000**, rechargée sur `112ecd4`,
-  cinq interruptions reproduites exactement ; monde/rendu/scène identiques
-  à la recharge avant et après. **141060** : localisation perdue pendant
-  la marche ; **141600** : nouvelle indication d'Aubin et déplacement ;
-  **142200/142800/143400** : croyances/perception/position inchangées,
-  **filet seul confirmé**. Autres interruptions : premiers échecs après
-  perte de localisation, aucun autre réessai identique dans les sept nuits.
-  Avertissements supplémentaires : torche rallumée à 1163 puis éteinte à
-  43800 ; Odile parle de `marmite_3` puis `marmite_2`, Hugues de `marmite_3`
-  puis `marmite` sous le même nom rendu. Preuves `classification.json`.
-  **Correction écrite** : obstacle `contact` dans les renoncements communs,
-  revalidation commune avant une nouvelle approche ; dates et filet ne
-  rouvrent pas le contact, information spatiale/lumière/moyen pertinent ou
-  perception positive de la cible/support le rouvrent. Charge conservée,
-  aucun nouvel accès aux positions réelles cachées. **Trois nouveaux
-  parcours verts**, 10,690 s : cas réel, autre contact et charge dans le noir,
-  monde/rendu/scène rechargés et laps entier/découpé. Validation élargie et
-  cinq nuits de branche nécessaires seulement en préparation, références
-  et sept nuits sans interruption réutilisées ; bilan attendu dans
-  `C:/Users/msics/donjon/artifacts/contact-313/reprises-validation/fin.json`.
+- **Lot 313 terminé, branche `codex-contact-inconnu`, non fusionnée**, base
+  `integration d76f272`, moteur final validé sur `c6cad4a` : contact commun
+  au plan et à l'exécution, hérité des seuls liens crus contenant/support/
+  porteur. Une distance ou une case inconnue ne dément plus la présence ;
+  l'approche prépare l'observation. Capture Relais 7 reconstruite à 856 :
+  **0→30 dixièmes**, Gorm sert Brune à **1009** ; source d'une autre salle
+  à la mine, disparition réelle, charge conservée dans le noir et reprise
+  après localisation nouvelle vérifiées. Monde/rendu/scène rechargés,
+  textes et monde identiques sur laps entiers/découpés.
+  **Complément avant fusion résolu** : capture Ilse à **141000** rechargée
+  sur `112ecd4`, cinq interruptions reproduites exactement ; **141060**
+  perd la localisation pendant la marche, **141600** suit une indication
+  d'Aubin et un déplacement, **142200/142800/143400** sont le seul filet,
+  croyances/perception/position identiques. Correction commune : cause
+  typée `contact` persistée dans les renoncements du 225 ; revalidation
+  avant approche sur liens/positions crus, lumière, portes, moyens et
+  perception de cible/support. Ni dates ni filet ne rouvrent le contact ;
+  nouvelle entrée pertinente admise, recherches alternatives possibles,
+  charge conservée. Aucun nouvel accès aux positions mobiles cachées.
+  **Validation finale : 72 tests / neuf fichiers verts**, 48,636 s,
+  dont trois nouveaux parcours ; première passe 100/11 et deux tests
+  du lanceur verts. Cinq nuits 4 h rejouées, sept nuits sans interruption
+  réutilisées (nouveau chemin jamais exercé), aucune référence rejouée,
+  deux travailleurs réduits. Bilan `reprises-validation/fin.json`
+  **ok=true**, zéro reprise sans entrée, zéro plantage et usurpation.
+  Refus matériels **4→0**, interruptions première version→final **12→7**,
+  parts référence→final **30→32** (Relais 3→5, auberge 11→11, mine 16→16),
+  suspects 219 **0→0 dans chaque nuit**, bascules 0, passages/h max 26→25,
+  appels à l'aide 3→1. Sept interruptions restantes : premiers échecs
+  (Brune ×2, Lucien auberge 42, Mireille/Joss auberge 2024, Rémy mine 1985,
+  Lucien mine 7), aucun autre essai identique interrompu sur ces nuits.
+  Avertissements **4→8** : deux nouvelles extinctions de torche (Relais
+  2024 et 1985), deux portions distinctes sous le même nom « marmite de
+  soupe » (auberge 1985) ; noyaux reçus et transmissions établis. Avis à
+  expliquer **11→15**, dérives **186→160**, non certifiés bénins ; répétition
+  Lucien/Hugues auberge 2024 préexistante. Ni recherche exhaustive dans le
+  noir ni absence universelle de boucle garanties. Diagnostic initial
+  `ok=false` conservé et qualifié (paramètre de reprise erroné et borne
+  Ilse absente) ; preuve Ilse rechargée séparée entièrement verte.
+  Bruts `C:/Users/msics/donjon/artifacts/contact-313/`, sous-dossiers
+  `reprises-avant-fusion/` et `reprises-validation/`. Aucun calcul actif,
+  branche poussée vers origin. `planifier_tache`/`echanges.empeche`
+  inchangés ; ni Luna ni suite complète.
   [Rapport 313](taches/rapport-codex-313-contact-position-inconnue.md).
 
 - **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :

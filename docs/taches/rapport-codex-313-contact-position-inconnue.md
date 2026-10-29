@@ -1,123 +1,95 @@
 # Lot 313 — contact sans position connue
 
-29 octobre 2026. Branche `codex-contact-inconnu`, **rouverte avant fusion**,
-base `integration d76f272`. Première passe sur `5660366` ; correction des
-reprises en validation (complément ci-dessous).
+29 octobre 2026. Branche `codex-contact-inconnu`, **terminée, non fusionnée**,
+base `integration d76f272`, moteur final validé sur `c6cad4a`.
 
-**Invariant et correction.** Une portée insuffisante ou une case inconnue
-ne prouve pas l'absence. `positions_crues.case_contact`, commun à
-`pnj._case_crue` et `Vue.case_objet`, suit les seuls liens crus de contenant,
-support ou porteur, avec arrêt sur cycle ; la chaîne prime sur l'ancienne
-case du contenu. Aucun emplacement réel de mobile ne résout ce contact.
-`_approcher` marche vers le point cru ou prépare l'observation dans le lieu
-cru (salle, centre, tour d'horizon). `trajet_estime.approche` mesure ce
-préparatif ; `_mesurer_direct` conserve le contrôle des présences projetées.
-Le geste vérifie la portée physique ; `_hors_d_atteinte` ne dément la
-présence qu'à un emplacement cru effectivement touché, hors d'un objet vu
-ou d'un contenant fermé rencontré. `planifier_tache` et `echanges.empeche`
-restent inchangés (lot 312).
+**Contrat commun.** Une portée insuffisante ou une case inconnue ne prouve
+pas l'absence. `positions_crues.case_contact`, commun à `pnj._case_crue`
+et `Vue.case_objet`, suit les seuls liens crus contenant/support/porteur,
+avec arrêt sur cycle. `_approcher` marche au point cru ou prépare une
+observation dans le lieu cru ; `trajet_estime.approche` la mesure, tour
+compris. Le geste contrôle la portée physique ; `_hors_d_atteinte` ne
+dément pas une présence à distance. Une observation sans contact à
+poursuivre retient sa cause typée `contact` dans les renoncements du 225.
+`refus_etape` et `obstacle_patience` revalident le même repère : positions
+et liens crus, lumière des lieux visés, portes connues, moyens portés et
+états connus, perception de la cible/support. Dates et filet ne le lèvent
+pas. Les autres recherches restent possibles, la charge est conservée.
+Aucun emplacement mobile caché, délai nouveau, exception de scénario ou
+changement de `planifier_tache`/`echanges.empeche` (lot 312).
 
-**Chaîne complète.** Archives 308 absentes du poste : capture Relais 7
-reconstruite sur la base à **856 dixièmes**, générateur versionné
-`tools/capturer_contact_313.py`. Gorm croit les vivres dans la réserve,
-sans salle/case propre : approche **0 → 30 dixièmes**, charge conservée,
-puis service à Brune. Autre cas : source contenue dans une autre salle
-à la mine. Services réussis, monde et textes identiques après six minutes
-d'un bloc ou minute par minute ; monde/rendu/scène identiques après
-sauvegarde/recharge. Source réellement déplacée : un seul démenti au
-contact pendant six minutes, aucune portion servie ni nouvelle tentative
-sur ces vivres. Sept régressions couvrent aussi observation, devis pur,
-cycles et déplacement réel caché sans changement du premier pas.
+**Preuves après recharge.** Capture Relais 7 reconstruite sur la base à
+856 : approche **0→30 dixièmes**, puis Gorm sert Brune à **1009**. Autre
+source contenue dans une autre salle à la mine ; services, monde complet,
+textes, rendu et scène vérifiés après recharge et temps entier/découpé.
+Source réellement déplacée : un démenti au contact, aucune nouvelle
+contre-tentative en six minutes. Trois parcours supplémentaires : Ilse,
+autre contact bloqué puis repris après localisation nouvelle, charge et
+présence crue conservées dans le noir ; recharge et découpage vérifiés.
 
-**Validation.** **100 tests / onze fichiers verts**, 81,247 s ; deux tests
-supplémentaires du lanceur verts. Douze paires **4 h × quatre graines**,
-référence figée `d76f272`, puis branche ; deux travailleurs réduits,
-854,913 s cumulées pour le banc. Douze références absentes calculées une
-fois et rangées avec les nouveaux compteurs ; aucune référence relancée.
-Ni Luna ni suite complète. Le premier lancement a échoué avant les tests ;
-imports/cwd corrigés, initialisation protégée par le bilan final,
-anciens journaux conservés. `fin.json` : **ok=true, codes 0/0**.
+Capture Ilse **141000**, rechargée avec `112ecd4` : cinq interruptions
+reproduites exactement, monde/rendu/scène rechargés avant et après.
 
-Valeurs **référence → lot**. Refus = geste rejeté par `_hors_d_atteinte` ;
-interruption = `_approcher` renvoie `None`. Parts comptées dans la chronique.
-P/h = maximum de passages d'un PNJ en une heure. Suspects = sonde 219.
-
-| Nuit | Refus | Interruptions | Parts | Suspects | P/h |
-|---|---:|---:|---:|---:|---:|
-| Relais 1985 | 2→0 | 0→7 | 1→2 | 0→0 | 9→8 |
-| Relais 7 | 1→0 | 0→0 | 0→1 | 0→0 | 10→7 |
-| Relais 42 | 0→0 | 0→0 | 0→0 | 0→0 | 8→8 |
-| Relais 2024 | 1→0 | 0→0 | 2→2 | 0→0 | 10→8 |
-| Auberge 1985 | 0→0 | 0→0 | 3→3 | 0→0 | 20→12 |
-| Auberge 7 | 0→0 | 0→0 | 2→2 | 0→0 | 12→12 |
-| Auberge 42 | 0→0 | 0→1 | 3→3 | 0→0 | 15→15 |
-| Auberge 2024 | 0→0 | 0→2 | 3→3 | 0→0 | 26→25 |
-| Mine 1985 | 0→0 | 0→1 | 6→5 | 0→0 | 9→9 |
-| Mine 7 | 0→0 | 0→1 | 3→3 | 0→0 | 9→9 |
-| Mine 42 | 0→0 | 0→0 | 4→4 | 0→0 | 9→9 |
-| Mine 2024 | 0→0 | 0→0 | 3→3 | 0→0 | 9→9 |
-
-**Lecture et limites.** Refus matériels **4→0**, interruptions **0→12**,
-parts **30→31** (Relais 3→5, auberge 11→11, mine 16→15). Relais 7 : Gorm
-sert Brune à **1009**. Mine 1985 : Josse reçoit un biscuit de Bram à 114316,
-au lieu du pain de Lucien à 115149 puis du service de Mathe à 115200.
-Aucun plantage/usurpation ; bascules **0→0** dans chaque nuit. Maximum de
-passages **26→25**, avertissements répétés **4→7**, appels à l'aide **3→1**.
-La répétition d'appels Lucien/Hugues à l'auberge 2024 subsiste (déjà présente).
-Avis à expliquer **11→14**, dérives ouvertes **186→161** : non certifiés bénins.
-Relais 1985 : **cinq interruptions du même demander d'Ilse à Gorm**, aux
-instants 141060 puis 141600/142200/142800/143400, avant son service à 143873.
-Ce maintien sans progression reste une limite ; zéro suspect 219 ne
-certifie pas l'absence de répétitions dans un plan inchangé. Une observation
-insuffisante, notamment dans le noir, reste inconnue : ni recherche
-exhaustive ni absence universelle de boucle garanties.
-
-Bruts et analyse sans rejeu : `C:/Users/msics/donjon/artifacts/contact-313/`
-(`tests.json`, `comparaison.json`, `mesures.json`, `analyse-cloture.json`,
-`fin.json`). Première passe achevée, branche poussée vers origin.
-
-**Complément avant fusion — cause établie.** Les sept nuits instrumentées
-sont identiques aux archives (chronique/récit/mesures/souvenirs/état final).
-Le bilan initial `ok=false` est conservé : la reprise utilisait une durée
-au lieu d'une minute finale absolue ; la borne Ilse manquait. Outil corrigé,
-sans relance des sept nuits. Preuve distincte : capture propre **141000**
-sur `112ecd4`, sauvegardée/rechargée, cinq interruptions reproduites
-exactement ; monde/rendu/scène identiques à la recharge avant et après.
-
-| Interruption Ilse | Ce qui précède et autorise, ou non, l'essai |
+| Instant | Preuve avant correction |
 |---|---|
-| 141060 | Premier échec : progression puis localisation de Gorm perdue pendant la marche. |
-| 141600 | Nouvelle indication d'Aubin à 141120 (`None → antichambre`) et déplacement `[4,1] → [5,2]`. |
-| 142200 | Même position, contacts, croyances sans dates et perception : **filet seul**. |
-| 142800 | Entrées toujours identiques : **filet seul**. |
-| 143400 | Entrées toujours identiques : **filet seul**. |
+| 141060 | Premier échec : progression puis localisation de Gorm perdue. |
+| 141600 | Indication d'Aubin à 141120 (`None→antichambre`), déplacement `[4,1]→[5,2]`. |
+| 142200 | Position, croyances sans dates et perception identiques : **filet seul**. |
+| 142800 | Entrées identiques : **filet seul**. |
+| 143400 | Entrées identiques : **filet seul**. |
 
-Les sept autres interruptions (Brune ×2, Lucien auberge 42, Mireille/Joss
-auberge 2024, Rémy mine 1985, Lucien mine 7) sont des premiers échecs :
-localisation perdue, sans réessai du même contact interrompu sur la nuit.
-Les trois avertissements supplémentaires sont expliqués par les captures :
-torche rallumée à 1163 puis nouvelle extinction à 43800 ; deux homonymies
-de portions distinctes, Odile `marmite_3 → marmite_2` (73200/73800), Hugues
-`marmite_3 → marmite` (58200/103800). Les noyaux reçus et registres des
-faits dits distinguent ces objets, malgré la même phrase affichée.
-Bruts `reprises-avant-fusion/classification.json` et
-`preuve-ilse-base-rechargee.json` ; aucun résultat du diagnostic en échec
-n'est déclaré globalement vert.
+Les sept nuits du diagnostic sont identiques aux archives (chronique,
+récit, mesures, souvenirs, état final). Son premier `fin.json`, `ok=false`,
+reste conservé : paramètre de reprise erroné et borne Ilse manquante,
+outils corrigés ; preuve rechargée distincte ci-dessus. Les trois reprises
+au seul filet ont motivé la correction, elles ne sont plus une limite acceptée.
 
-**Correction commune.** Une observation sans contact à poursuivre retient
-sa cause typée `contact` dans les renoncements du lot 225. `refus_etape`
-et `obstacle_patience` consultent le même repère : liens et positions crus,
-lumière des lieux visés, portes connues, moyens portés et états connus,
-perception de la cible ou de ses supports. Ni une date fraîche ni une
-perte de vue seule ne le lèvent. Une nouvelle entrée pertinente le lève ;
-les recherches et observations alternatives restent possibles. Aucune
-position mobile cachée, aucun délai nouveau, aucune branche par PNJ.
-La charge reste enregistrée, seul le moyen échoué est interrompu.
+**Validation finale.** **72 tests / neuf fichiers verts**, 48,636 s ;
+première passe 100/11, deux tests du lanceur verts. Cinq nuits de branche
+4 h rejouées, deux travailleurs réduits ; sept nuits sans interruption
+réutilisées (le nouveau chemin n'y était jamais exercé), aucune référence
+rejouée. Tests et calcul final : 144,863 s écoulées, `fin.json` **ok=true**.
+Ni Luna ni suite complète. Valeurs référence→final ; I = interruptions
+première version 313→final, A = avertissements redits, parts = chronique.
 
-**Trois nouveaux parcours verts** (10,690 s) : Ilse depuis 141000,
-autre contact à la mine bloqué puis repris après localisation nouvelle,
-source non localisée dans le noir avec charge et présence crue conservées.
-Monde/rendu/scène rechargés, temps entier/découpé identiques. Validation
-élargie et seules cinq nuits de branche avec interruptions restent à lire
-avant clôture ; aucune référence rejouée, sept nuits sans interruption
-réutilisées. Bilan attendu `contact-313/reprises-validation/fin.json`.
+| Nuit | Refus | I | Parts | Suspects 219 | A |
+|---|---:|---:|---:|---:|---:|
+| Relais 1985 | 2→0 | 7→2 | 1→2 | 0→0 | 0→1 |
+| Relais 7 | 1→0 | 0→0 | 0→1 | 0→0 | 0→0 |
+| Relais 42 | 0→0 | 0→0 | 0→0 | 0→0 | 1→1 |
+| Relais 2024 | 1→0 | 0→0 | 2→2 | 0→0 | 0→1 |
+| Auberge 1985 | 0→0 | 0→0 | 3→3 | 0→0 | 0→2 |
+| Auberge 7 | 0→0 | 0→0 | 2→2 | 0→0 | 0→0 |
+| Auberge 42 | 0→0 | 1→1 | 3→3 | 0→0 | 1→1 |
+| Auberge 2024 | 0→0 | 2→2 | 3→3 | 0→0 | 0→0 |
+| Mine 1985 | 0→0 | 1→1 | 6→6 | 0→0 | 1→1 |
+| Mine 7 | 0→0 | 1→1 | 3→3 | 0→0 | 1→1 |
+| Mine 42 | 0→0 | 0→0 | 4→4 | 0→0 | 0→0 |
+| Mine 2024 | 0→0 | 0→0 | 3→3 | 0→0 | 0→0 |
+
+**Lecture des restes.** Refus matériels **4→0**, interruptions **12→7**,
+parts **30→32**, dont 5 au Relais, 11 à l'auberge, 16 à la mine. Les sept
+interruptions restantes sont des premiers échecs après perte de
+localisation : Brune ×2 au Relais 1985 (1326/37275), Lucien auberge 42
+(11532), Mireille/Joss auberge 2024 (142789/143072), Rémy mine 1985
+(114630), Lucien mine 7 (101516). Aucun réessai du même contact interrompu
+sur ces nuits ; sonde de revalidation : **zéro reprise sans entrée**.
+Aucun plantage/usurpation, bascules 0 dans chaque nuit, passages/h max
+26→25, appels à l'aide 3→1. Mine 1985 : Bram sert Josse à 114316 puis
+Mathe à 116485 ; aucun gain général d'efficacité alimentaire revendiqué.
+
+Avertissements **4→8**, quatre ajouts expliqués : Relais 2024, torche
+rallumée à 1163 puis nouvelle extinction annoncée à 43800 ; auberge 1985,
+Odile parle de `marmite_3` puis `marmite_2` (73200/73800), Hugues de
+`marmite_3` puis `marmite` (58200/103800), sous le même nom rendu ; Relais
+1985, torche allumée à 1581, extinction annoncée par Brune à 37800 puis
+relayée par Aubin à 50205 (noyau reçu, observation 63). Identités, états
+et transmissions enregistrés distinguent ces nouvelles d'un simple délai.
+
+**Limites.** Avis à expliquer **11→15**, dérives ouvertes **186→160**, non
+certifiés bénins ; répétition Lucien/Hugues auberge 2024 déjà présente.
+Ni recherche exhaustive dans le noir ni absence universelle de boucle
+revendiquées. Bruts `C:/Users/msics/donjon/artifacts/contact-313/` : première
+passe conservée, `reprises-avant-fusion/` (captures, classification et
+preuve Ilse), `reprises-validation/` (tests, comparaison, mesures, analyse
+finale et bilan). Aucun calcul actif, branche poussée vers origin.
