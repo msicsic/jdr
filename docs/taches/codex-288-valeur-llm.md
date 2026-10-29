@@ -18,8 +18,9 @@ faire. »
   au narrateur, et le cas échéant une vérification **en fond**, qui ne retarde que l'ambiance, sans relance bloquante.
 - **2.** Les répliques à contenu typé sont formulées par le moteur (option A).
 - **3.** Un appel bloquant nominal, avec les corrections bornées qui récupèrent une intention.
-- **4.** Fidélité de la saisie : en discussion. Étudie aussi le rôle d'un récapitulatif du plan visible par le joueur
-  avant ou après exécution, qui en ferait le contrôleur.
+- **4.** Fidélité de la saisie, décidée : le joueur est le contrôleur. Une ligne « Compris : … » précède les actes
+  lourds ou irréversibles (fiche tenter/annuler) et suit les autres ; rien pour une action venue d'un clic. Contre-revue
+  et fidélité de parole restent en filet pour les seuls actes à effets pendant la transition.
 - **5.** Une revue ciblée seulement à l'admission d'une propriété inventée que le moteur ne peut pas calculer.
 - **6.** Une ambiance arrivée pour un lieu quitté est jetée. **Ajout de l'utilisateur** : un retour visuel indique
   qu'une ambiance est en cours de calcul (terminal et page web).
