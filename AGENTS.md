@@ -12,13 +12,50 @@ Si l'invariant ne peut pas encore être garanti, indique clairement cette limite
 
 ## Contrat du MJ
 
-Toute affirmation factuelle du MJ affichée au joueur doit être compatible avec l'état du monde et ses conséquences doivent être enregistrées avant l'affichage. Cette exigence s'applique à toutes les voies de narration, y compris le dialogue ordinaire, les descriptions et les résultats d'action. Une parole de PNJ établit qu'elle a été prononcée et entendue, sans établir que son contenu est vrai.
+Décidé le 2026-10-29 avec l'utilisateur. C'est la cible de la refonte du MJ (`docs/conception-refonte-mj.md`,
+`docs/conception-valeur-llm.md`) : le gameplay d'abord, la narration est secondaire. **Transition** : une voie qui n'est
+pas encore portée garde ses contrôles actuels ; un audit ne se retire que dans le lot de portage qui fournit la garantie
+qui le remplace.
 
-Les affirmations du MJ relèvent de trois niveaux. **Mécanique** : entités identifiées, positions, sorties et passages, possession, ressources, lumière, présence des PNJ, missions et résultats d'action. Ces affirmations doivent être compatibles avec l'état ; une invention dans ces domaines passe par une proposition typée validée avant affichage. **Interactif** : un objet ou un détail que le joueur peut cibler existe dans l'état avant d'être manipulé. **Ambiance** : aspect, odeur, son de fond, impression. L'ambiance est libre, enregistrée avec son lieu avant affichage, et ne crée aucune entité mécanique. Un élément d'ambiance ciblé par le joueur est matérialisé par le moteur ou déclaré non manipulable.
+Luna reste le MJ du jeu avec le modèle `gpt-6-luna`. Le moteur garde l'autorité sur les positions, la perception, les
+ressources, les actes de parole, les actions et les sauvegardes. La comparaison entre modèles reste désactivée.
 
-Luna reste le MJ du jeu avec le modèle `gpt-6-luna`. Le moteur conserve l'autorité sur les positions, la perception, les ressources, les actions et les sauvegardes. La comparaison entre modèles reste désactivée.
+**Ce que fait Luna.** Les gestes usuels passent par des actions directes (clic, menu, touche, commande) que le moteur
+exécute sans modèle. Luna sert à ce qu'un moteur déterministe ne fait pas à coût raisonnable : comprendre une saisie
+libre et la composer en plan, comprendre une négociation, suggérer des termes, admettre un détail ou un contenu de
+dialogue inédit, produire l'ambiance. Elle propose ; le moteur décide de l'accord, du prix, de la croyance et de la
+réalisation.
 
-Le contrôle garantit de façon déterministe l'absence de fuite d'entités non perçues. La détection des contradictions mécaniques reste en partie sémantique. Ne contourne pas ce manque par un nouveau mode, un mot-clé ou une exception propre à un exemple ; renforce le mécanisme commun.
+**Mécanique.** Toute information mécanique affichée (entités identifiées, positions, sorties et passages, distances,
+possession, ressources, lumière, présence des PNJ, signes perçus, comptes, missions, résultats d'action, refus) provient
+d'un rendu déterministe du moteur, sur les seules données perceptibles ou connues de Corvus, ou d'une proposition typée
+admise par le moteur. Ses conséquences, et les paroles effectivement entendues, sont enregistrées et sauvegardées avant
+l'affichage. Une parole établit qu'elle a été prononcée et entendue, sans établir que son contenu est vrai. Une
+réplique de PNJ dont le moteur fixe le contenu est formulée par le moteur. Un contenu de dialogue inédit proposé par
+Luna est admis comme parole enregistrée, sans effet mécanique non typé.
+
+**Fidélité de la saisie.** Une intention compilée reste une proposition : sa validité ne prouve pas sa fidélité à la
+saisie. Le joueur en est le contrôleur : le moteur affiche ce qu'il a compris (« Compris : … »), avant l'exécution pour
+un acte lourd ou irréversible selon ses effets typés, après pour les autres. Une action choisie par clic ou menu n'est
+pas réinterprétée. Pendant la transition, les revues de fidélité restent pour les seuls actes à effets issus d'une
+saisie libre ; leur retrait se décide sur mesure.
+
+**Interactif.** Un objet ou un détail que le joueur peut cibler existe dans l'état avant d'être manipulé. Un élément
+d'ambiance ciblé est matérialisé par le contrat commun des faits interactifs ou déclaré non manipulable ; aucun texte
+cosmétique n'applique un effet, une capacité, un indice ou un engagement. Une propriété inventée que le moteur ne sait
+pas calculer passe une revue ciblée à son admission, pas au récit.
+
+**Ambiance.** Aspect, odeur, son de fond, impression : une prose cosmétique distincte, produite en fond, qui ne bloque
+jamais le jeu (un indicateur visible signale qu'elle est en préparation). Elle ne doit pas contenir d'erreur flagrante
+qui casse l'immersion. Elle n'est jamais une source de vérité mécanique et ne crée aucune entité. Les gardes
+déterministes (noms, références, voix, nombres, provenance) et, au besoin, une vérification en fond s'appliquent avant
+publication ; un échec ou un doute fait jeter la sortie entière, sans relance. Une ambiance publiée est enregistrée
+avec son lieu avant affichage ; une ambiance arrivée pour un lieu quitté est jetée. Ces contrôles ne garantissent pas
+l'absence de toute contradiction implicite dans du français libre.
+
+Le contrôle garantit de façon déterministe l'absence de fuite d'entités non perçues. Ne contourne pas une limite de
+contrôle par un nouveau mode, un mot-clé ou une exception propre à un exemple ; renforce le mécanisme commun, ou fais
+écrire le fait par le moteur.
 
 ## Travail sur ce dépôt (tous les agents : Claude, Codex et leurs sous-agents)
 
