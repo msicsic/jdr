@@ -559,6 +559,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 
 ## Où on en est
 
+- **`main` avancée à `0bad227`** le 2026-10-29 au matin (autorisation de l'utilisateur la veille : « si propre »). Vérification 274 sur ce commit : 49/49 nuits, zéro plantage, usurpation, mort ou écart VERIFIER/spatial ; ses deux alertes sont levées par les diagnostics 278 (interposition de Gorm reprise à juste titre selon ses croyances) et 279 (coups de la crue 2024 justifiés, seul défaut le libellé du but de protection, corrigé par le lot 281). Les fusions postérieures (lots 266, 275 à 282) attendent la prochaine vérification d'intégration.
+
 - **Vérification Luna c9459ce**, jouée par l'orchestrateur sur le laptop (comme le lot 216), sans agent ni code changé : deux passes des 34 scripts du lot 165, intégration `c9459ce` (lots 244 à 272, dont A5 260) contre `d85fb54` lu du cache. **Appels/tour 2,98 → 3,00**, replis **0,5 → 0**, obstacles narratifs **19,5 → 15**, relances **16,5 → 13**, refus **22 → 24** (dans l'étendue des passes 21-27) ; aucune erreur technique ni de recharge sur les 68 parties. Secondes/tour **10,5 → 5,8** (médiane 9,0 → 5,1) : non comparables, référence mesurée un autre soir ; le premier delta moyen baisse aussi d'environ 40 % sur toutes les fonctions, signe d'un service plus rapide plutôt que d'un gain du jeu. Aucune régression du MJ. Lecture qualitative des textes non faite saisie par saisie. Bruts `C:/Users/msics/donjon/artifacts/bancs-multi/20261028-235223-6688/`.
 
 - **Branche `codex-faire-ou-confier-b`, fusionnée, prête pour une nouvelle
