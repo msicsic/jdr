@@ -323,9 +323,9 @@ class DefiRelaisTests(unittest.TestCase):
         mj = MJOpenAI("gpt-6-luna")
         with patch.object(mj, "_appeler", side_effect=[lire, allumer, ErreurMonde("narration indisponible")]) as appel:
             reponse = mj._echanger_prepare(self.m, "je lis la consigne")
-        self.assertEqual(appel.call_count, 3)
+        self.assertEqual(appel.call_count, 2)
         self.assertEqual(reponse["mode"], "dialogue")
-        # Sans explication du MJ, chaque refus du monde, dans l'ordre (branche relances-luna).
+        # G2 : chaque refus du monde dans l'ordre, sans appel d'explication.
         self.assertEqual(reponse["texte"], "La lumière est trop faible pour lire avec précision. "
                                            "La torche n'a plus de combustible.")
         self.assertTrue(reponse["_validation_refusee"])
@@ -338,7 +338,7 @@ class DefiRelaisTests(unittest.TestCase):
         mj = MJOpenAI("gpt-6-luna")
         with patch.object(mj, "_appeler", side_effect=[ouvrir, ouvrir, ErreurMonde("narration indisponible")]) as appel:
             reponse = mj.echanger(self.m, "j'ouvre le coffre d'entretien")
-        self.assertEqual(appel.call_count, 3)
+        self.assertEqual(appel.call_count, 2)
         self.assertEqual(reponse["mode"], "dialogue")
         self.assertEqual(reponse["texte"], "Le coffre d'entretien ouvert n'est pas ici.")
         self.assertTrue(reponse["_validation_refusee"])

@@ -2,6 +2,34 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-g2-refus-moteur`, lot 291, fusionnée**, base
+  intégration `931b22b`, code `031e664` : les refus d'action se lisent par
+  leurs messages publics exacts, distincts et ordonnés, sans `attendu`
+  affiché ni appel d'explication. Corrections bornées conservées ; dialogue
+  ou avis de correction après refus du monde écarté sans audit ; forme
+  persistante → demande de précision moteur, pas impossibilité fictive.
+  `ExplicationCedee` et `_sans_relance` supprimés ; contre-revue, fidélité
+  de parole et autres voies conservées ; aucune mécanique PNJ modifiée.
+  **209 tests distincts / 16 fichiers verts**, dont sept nouveaux tests
+  console, monde, texte moteur et rendu après recharge ; durées retenues
+  377,879 s. Aucune suite complète. **Lot terminé : Luna une passe sur
+  quatre scripts, sans rejeu**, copies seulement, un travailleur réduit.
+  Six tours refusés : messages publics exacts, aucun `attendu`, **zéro
+  appel final d'explication et zéro audit après le refus public par tour**.
+  Référence → lot : 60 → 57 appels, 2,86 → 2,59 appels/tour MJ,
+  8,84 → 5,75 s/tour ; refus 12 → 9, replis 2 → 0, relances 3 → 3.
+  Limite : un délai réseau dans `sous-obstacle-relais` de référence ;
+  pas de gain causal déduit d'une passe. Surcoûts atelier outils
+  (2 → 4 appels) et saut (1 → 4, un refus de forme en plus) : relances
+  narratives des voies conservées, aucune après refus public. Analyse initiale
+  trop stricte sur l'incident de référence, compteur mélangeant générations
+  et audits ; script seul corrigé, code 0, invariant vérifié 6/6.
+  Huit parties et fils, mesures et empreintes archivés dans
+  `C:/Users/msics/donjon/artifacts/g2-291/` ; statut final `fin-analyse.json`,
+  ancien `fin-luna.json` conservé. Aucun calcul actif du lot ;
+  [rapport 291](taches/rapport-codex-291-g2-refus-moteur.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. G2 : un refus du monde est affiché tel que le moteur l'écrit (reponse_du_moteur), sans appel d'explication ni audit ; correction bornée sur copie conservée. Luna une passe, quatre scripts : 6/6 refus exacts, appels/tour 2,86 → 2,59, s/tour 8,84 → 5,75, replis 2 → 0 ; surcoûts ponctuels à l'atelier (outils, saut), sur voies encore contrôlées.
+
 - **Branche `codex-g0-contrat`, lot 290 / G0, fusionnée**, base intégration
   `4d9aad7`, brief présent dans cette base. Documentation seule sur le PC fixe.
   Le [contrat MJ](contrat-mj.md) expose la cible adoptée et annote les garanties

@@ -71,11 +71,11 @@ class ContratsInternesTests(unittest.TestCase):
         self.assertNotIn('moteur', sortie.split('Le MJ réfléchit')[-1].lower())
         self.assertNotIn('identifiant', sortie.lower())
         self.assertIn('Tu ne vois rien de tel ici.', sortie)
-        self.assertEqual(sum(f == 'repondre_au_joueur' for f, _ in appels), 3)
+        # G2 : le dialogue de correction n'est ni audité ni lu ; le refus public répond.
+        self.assertEqual([f for f, _ in appels], ['repondre_au_joueur'] * 2)
         correction = [e for f, e in appels if f == 'repondre_au_joueur'][-1]
         self.assertIn('retour_moteur', correction['faits'])
-        self.assertTrue(any(r['partie'] == 'texte' and 'moteur' in r['attendu']
-                            for r in correction['controle_narratif']))
+        self.assertNotIn('controle_narratif', correction)
         self.assertMonde(avant, reprise)
 
     def test_categorie_et_emplois_ordinaires(self):

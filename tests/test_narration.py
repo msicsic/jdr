@@ -253,7 +253,7 @@ class NarrationTests(unittest.TestCase):
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], phrase)
         self.assertFalse(reprise.data["journal"])
 
-    def test_obstacles_expliques_apres_deux_refus_sans_action_fictive(self):
+    def test_messages_moteur_apres_deux_refus_sans_action_fictive(self):
         from donjon.operations import etape, sequence
         from donjon.moteur import proposition
         from donjon.spatial import installer
@@ -281,9 +281,12 @@ class NarrationTests(unittest.TestCase):
                 self.assertEqual(jeu.main(["--defi", "--console", "--save", str(chemin),
                                            "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
-        self.assertIn(explication, sortie.getvalue())
+        # G2 remplace l'explication libre par les deux messages publics, exacts et ordonnés.
+        attendu = "La lumière est trop faible pour lire avec précision. La torche n'a plus de combustible."
+        self.assertIn(attendu, sortie.getvalue())
+        self.assertNotIn(explication, sortie.getvalue())
         self.assertFalse(reprise.data["journal"])
-        self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], explication)
+        self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], attendu)
 
     def test_refus_repetes_ne_montrent_aucune_invention(self):
         invention = "Une seconde cloche est cachée sous le plancher."
