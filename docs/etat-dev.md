@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 333 / A4b, branche `codex-garder-lieu`, non fusionnée**, base
+- **Lot 333 / A4b terminé, branche `codex-garder-lieu`, non fusionnée**, base
   d'intégration `4a54090` : interposition commune pour biens, protégés et
   lieux gardés. Seuil déclaré, approche réellement vue en continu, poste
   libre/atteignable dès l'événement et revalidé à chaque pas ; aucune
@@ -13,12 +13,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   auberge/Lucien ; monde, rendu, scène et parole entendue rechargés,
   laps entier/découpé identiques. Reprise de 22 après la dernière garde
   visuelle verte, puis huit tests du registre des paroles verts. Code/tests
-  `887a5b0` poussés vers origin. Ni Luna ni suite complète. **Banc détaché en cours**,
-  4 h × cinq scénarios × quatre graines, un travailleur réduit ; référence
-  `f08ef58` identique en code à la base, vingt nuits relues du cache,
-  aucun recalcul de référence. Bruts `C:/Users/msics/donjon/artifacts/lieu-333/`,
-  fin attendue **`fin.json`**, écrite en dernier même en échec ; banc non
-  encore validé. Démarrage réel vérifié, PID `47816`, priorité `BelowNormal`.
+  `887a5b0` poussés vers origin. Ni Luna ni suite complète. **20/20 paires
+  du banc 4 h vertes**, cinq scénarios × quatre graines, un travailleur réduit ;
+  référence `f08ef58` identique en code à la base, vingt nuits relues du cache,
+  aucune rejouée. Suspects 219 **0 → 0 par nuit**, zéro plantage/usurpation/
+  coup/poussée. Sept chroniques, six états complets identiques ; paroles
+  d'interposition 21 → 9. Deux alertes de répétition d'agenda de Brune,
+  crue 42 (sept passages actif/sommeil → dix), origine générale non établie,
+  à surveiller ; une bascule isolée de réserve, crue 2024. Aucune garantie
+  générale sur les boucles. **714,694 s**, CPU branche 663,141 s, sans
+  comparaison aux temps du cache. Bruts `C:/Users/msics/donjon/artifacts/lieu-333/`,
+  **`fin.json ok=true`**, `bilan.json`, `analyse-cloture.json`. Empreintes
+  des sources exécutées vérifiées ; aucun calcul actif.
   Recouvrements 330 : `pnj.py` ; 332 : `esprits.py`, `pnj.py`.
   [Rapport 333](taches/rapport-codex-333-garder-un-lieu.md).
 
