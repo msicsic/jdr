@@ -472,13 +472,28 @@ def _pieces(n):
     return quantite(n, "pièce")
 
 
-def nie_recemment(monde, a, de):
-    """``a`` a réclamé son dû à ``de``, qui a refusé de le lui rendre, il y a moins de ``REDEMANDE``
-    minutes : il ne le lui redemande pas de sitôt."""
-    from .deliberation import REDEMANDE
+def reponse_creance_retenue(monde, a, de):
+    """La dernière réponse à cette créance tient selon sa cause, sans délai."""
+    from .deliberation import refus_retenu
+    return a != "joueur" and refus_retenu(monde, a, de, ("reclamer_dette",)) is not None
+
+
+def entrees_creance(monde, a, de):
+    """Obligations connues et fonds identifiés par le créancier, sans bourse privée.
+
+    Une autre position, une date de regard ou une diminution des moyens ne
+    lèvent pas la réponse. Un remboursement ou une nouvelle obligation, oui.
+    Le débiteur reste libre de rembourser spontanément (``solder``).
+    """
     from .esprits import lire
-    return a != "joueur" and any(s["type"] == "dette_niee" and s["auteur"] == de
-                                 and monde.data["minutes"] - s["minute"] < REDEMANDE for s in lire(monde, a)["memoire"])
+    from .deliberation import _lieu_cru
+    faits = [["dette", d["objet"], d["quoi"], d["montant"]] for d in dues(monde, de, a)]
+    for k, c in lire(monde, a)["croyances"].items():
+        if k in monde.objets and _lieu_cru(monde, a, k) == de:
+            pieces = c.get("pieces", {}).get("valeur", 0)
+            if pieces:
+                faits.append(["pieces", k, de, pieces])
+    return sorted(faits, key=str)
 
 
 def regler(monde, d, reclamee, lignes):
@@ -489,25 +504,26 @@ def regler(monde, d, reclamee, lignes):
     « silence » (il garde ce qu'on ne lui a pas réclamé). Le reste demeure dû.
 
     Un refus se voit : le créancier PNJ cesse de le croire fiable et s'en souvient comme d'une
-    nouvelle qu'il peut confier (``social``, « dette_niee »). Retrouvé sans le sou, il ne le relance
-    pas de sitôt (``creance_vaine``)."""
-    from .deliberation import REDEMANDE
-    from .esprits import esprit, memoriser
+    nouvelle qu'il peut confier (``social``, « dette_niee »). La réponse est aussi retenue hors
+    mémoire bornée, jusqu'à une obligation ou un moyen connu nouveau."""
+    from .deliberation import retenir_refus, oublier_refus
+    from .esprits import memoriser
     from .francais import designer, groupe_nominal
     from .pnj import _chroniquer
     from .social import _qui
     from .voix import personne_pour_joueur
     de, a = d["de"], d["a"]
+    # Le règlement automatique et un ancien plan lisent la même réponse.
+    reclamee = reclamee and not reponse_creance_retenue(monde, a, de)
     possible = min(d["montant"], richesse(monde, de))
-    if not possible:
-        if reclamee and a != "joueur" and not any(
-                s["type"] == "creance_vaine" and s["de"] == de and monde.data["minutes"] - s["minute"] < REDEMANDE
-                for s in esprit(monde, a)["memoire"]):
-            memoriser(monde, a, {"type": "creance_vaine", "de": de})
-        return "sans_le_sou"
     if reclamee and a != "joueur":
         _chroniquer(monde, a, f"{_qui(monde, a)} réclame à {_qui(monde, de)} les {_pieces(d['montant'])} qu'on lui doit.",
                     "compte")
+    if not possible:
+        if reclamee and a != "joueur":
+            memoriser(monde, a, {"type": "creance_vaine", "de": de})
+            retenir_refus(monde, a, de, "reclamer_dette", "sans_le_sou", souvenir=False)
+        return "sans_le_sou"
     if garde_du(monde, de, possible):
         if not reclamee:
             return "silence"
@@ -522,12 +538,19 @@ def regler(monde, d, reclamee, lignes):
         else:
             # Le créancier le constate : il ne s'y fie plus, et peut le dire (``social.NOUVELLES``).
             memoriser(monde, a, {"type": "dette_niee", "auteur": de, "victime": a, "montant": d["montant"]})
+            # dette_niee porte déjà l'effet social ; la mémoire de décision
+            # ne doit pas créer un deuxième événement de refus.
+            retenir_refus(monde, a, de, "reclamer_dette", "garde", souvenir=False)
             if monde.visible(de) or monde.visible(a):
                 lignes.append(f"{designer(monde.objets[de], debut=True)} refuse de rendre à "
                               f"{designer(monde.objets[a])} ce qu'{il} lui doit.")
         return "garde"
     payer(monde, de, a, possible)
     d["montant"] -= possible
+    if a != "joueur":
+        oublier_refus(monde, a, de, "reclamer_dette")
+        if d["montant"]:
+            retenir_refus(monde, a, de, "reclamer_dette", "sans_le_sou", souvenir=False)
     pieces = _pieces(possible)
     pour = _ce_qui(monde, d)
     _chroniquer(monde, de, f"{_qui(monde, de)} rend {pieces} à {_qui(monde, a)}" + (f" : {pour}." if pour else "."),
@@ -548,14 +571,14 @@ def regler(monde, d, reclamee, lignes):
 def solder(monde, lignes):
     """Chaque débiteur qui sait son créancier là et peut lui parler (``pnj.pourraient_se_parler``)
     lui rend ce qu'il doit, s'il le veut ; un créancier PNJ qui le sait là le lui réclame, sauf s'il
-    vient d'essuyer un refus (``nie_recemment``). Le débiteur rend autant qu'il le peut ; le reste
+    vient d'essuyer un refus (``reponse_creance_retenue``). Le débiteur rend autant qu'il le peut ; le reste
     demeure dû (``regler``)."""
     from .pnj import pourraient_se_parler
     for d in list(dettes(monde)):
         de, a = d["de"], d["a"]
         if de not in monde.objets or not (a == "joueur" or a in monde.objets):
             continue
-        reclamee = a != "joueur" and not nie_recemment(monde, a, de) and pourraient_se_parler(monde, a, de)
+        reclamee = a != "joueur" and not reponse_creance_retenue(monde, a, de) and pourraient_se_parler(monde, a, de)
         if reclamee or pourraient_se_parler(monde, de, a):
             regler(monde, d, reclamee, lignes)
     monde.data["dettes"] = [d for d in dettes(monde) if d["montant"] > 0]
