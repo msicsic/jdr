@@ -101,7 +101,13 @@ def _releve(monde):
 def _final(monde):
     """Ce qui reste dû à la fin : dettes, prêts, engagements, attentes, renoncements."""
     from donjon.esprits import lire, pnjs
+    # Outil courant, même sur une référence dont le banc n'a pas ces compteurs.
+    spec = importlib.util.spec_from_file_location('donjon._banc_observation', RACINE / 'donjon/banc_pnj.py')
+    observation = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(observation)
     return {"minute": monde.data["minutes"],
+            "mandats": observation.mesures_mandats(monde),
+            "projets": {id: agendas.projets(monde, id) for id in monde.data.get('esprits', {})},
             "dettes": monde.data.get("dettes"), "permissions": monde.data.get("permissions"),
             "engagements": {id: agendas.en_cours(monde, id) for id in pnjs(monde) if agendas.en_cours(monde, id)},
             "rejoint": {id: lire(monde, id)["rejoint"] for id in pnjs(monde) if lire(monde, id)["rejoint"]},

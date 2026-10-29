@@ -2,6 +2,31 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-a5-donnees-hameau`, lot 302 / A5.11, fusionnée**,
+  base intégration `79beaf1` : statut local de Gorm connu de lui-même,
+  Aubin, Brune et Ilse ; ascendants Aubin→Gorm 60, Maël→Aubin 30 et
+  Sève→Aubin 40. Aucun agenda ni attribution ajouté, aucun moteur/MJ modifié.
+  Compteurs du banc par registres publics : propositions, accords, refus
+  par cause, confirmations, comptes rendus et réaffectations à un tiers.
+  **69 tests distincts / onze fichiers verts**, monde/scène/rendu rechargés,
+  deux charges et demandes ordinaires hors crue, réaffectation hameau/mine.
+  **Lot terminé, banc 4 h × quatre graines validé**, `79beaf1` → `d28317f` :
+  chroniques, boucles et constats identiques ; zéro plantage, usurpation,
+  mandat proposé/accepté/refusé, compte rendu et réaffectation dans chaque
+  nuit. Suspects 219 **0 → 0**, entrées à expliquer **2/2/7/4 inchangées**.
+  Seul projet naturel : `obtenir` de Brune pour sa dette ; aucune charge
+  `amener/informer` ne parvient au devis ou au jugement du mandat.
+  Quatre références manquantes calculées une fois puis mises en cache,
+  quatre nuits de branche ; deux travailleurs réduits, **643,966 s**.
+  `C:/Users/msics/donjon/artifacts/hameau-302/fin.json` : **ok=true, code 0**.
+  Branche poussée vers origin, aucun calcul actif ni relancé à la clôture ;
+  code et tests inchangés depuis la validation.
+  Limites : aucune charge `amener/informer` naturelle déclarée ou née par
+  l'autorité seule ; validation historique des statuts sans `attendu`,
+  correction moteur hors périmètre. Ni Luna ni suite complète.
+  [Rapport 302](taches/rapport-codex-302-a5-donnees-hameau.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Données seulement : statut de Gorm sourcé (cinq salles du Relais, amener et informer, connu de lui, Aubin, Brune, Ilse), ascendants Aubin→Gorm 60, Maël→Aubin 30, Sève→Aubin 40 ; banc_pnj.mesures_mandats compte propositions, acceptations, refus, comptes rendus et réaffectations. 69 tests verts ; quatre nuits 4 h identiques à la base, zéro mandat naturel : le hameau ne déclare aucun agenda amener ou informer, l'autorité seule ne crée pas de charge à déléguer. Limite : le validateur du statut incohérent n'a pas d'attendu.
+
 - **Branche `codex-um-outils`, lot 300 / U-M outils, fusionnée**,
   base `2d893e0`, reprise par fusion sans rebase d'`origin/integration`
   `f1cb8fd` (U-T 299 inclus) : choix explicite d'outil, clé, combustible
