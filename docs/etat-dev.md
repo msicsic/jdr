@@ -2,6 +2,31 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base
+  `integration 60f857c`** : aucune dépendance au hachage reproduite.
+  Hameau/Relais 2024 identiques sous 1/42/310/2024 ; hameau historique
+  13ce328 identique sous 1/310, état/rendu/scène conservés à la recharge.
+  Bissection depuis 271 : retour 929 présent à d7302a4, absent à 8406756,
+  fusion 303. À 479, Maël croit le lieu de Brune inconnu : le contact
+  préparé par une question à Aubin change légitimement la suite de nuit.
+  Test historique porté sur une capture réelle 591/929 du parent du 303 ;
+  mêmes assertions entree_publiee_utilisee et preuves possession_nouvelle /
+  lieu_cru_change, classement recalculé. Monde/rendu/scène/entrées rechargés
+  vérifiés ; identité avec/sans sonde de la nuit actuelle conservée dans
+  un test distinct. Moteur et outils inchangés. **48/48 tests / trois
+  fichiers verts**, 109,976 s ; test historique vert sous quatre hachages.
+  L'échec initial de tests-audit (46/47) était uniquement ce KeyError 929.
+  **20/20 paires d'empreintes 2 h identiques** contre 60f857c, cinq scénarios
+  × quatre graines, références absentes rangées une fois. Calcul initial
+  détaché réduit, deux travailleurs au plus ; ni Luna ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/hachage-316/` : fin.json en échec
+  conservé, fin-bissection.json et analyse-causalite.json verts,
+  **fin-cloture.json ok=true**, 113,099 s. Aucun calcul actif, worktrees
+  temporaires retirés. Garantie bornée à ces nuits, pas de preuve universelle
+  de déterminisme ni amélioration du gameplay revendiquée.
+  [Rapport 316](taches/rapport-codex-316-hachage-reveils.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Tests seulement. La nuit hameau 2024 est identique sous les hachages 1, 42, 310 et 2024 ; le retour attendu à 929 manquait partout : le lot 303 (contact avant un service) a changé légitimement la nuit. Le test utilise désormais une capture historique (tests/data/sonde-271-brune-hameau-2024), assertions et preuves inchangées. 48 tests verts sous quatre hachages, 20/20 empreintes 2 h identiques.
+
 - **Branche `codex-ut-outils`, lot 307 / U-T outils, fusionnée**,
   base `d7302a4`, reprise sans rebase de `43440c6` (305 inclus),
   clôture précédente `9457ea5`. **Correction des offres validée `5c383bf`** après
