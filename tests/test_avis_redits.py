@@ -14,12 +14,17 @@ from tests.test_social import recharger
 
 
 class AvisReditsReelsTests(unittest.TestCase):
-    def parcours(self, scenario, minute, duree):
+    def parcours(self, scenario, minute, duree, secours_spontane=True):
         chemin = Path(__file__).parent / 'fixtures/avis_redits' / f'{scenario}-2024-{minute}.json.gz'
         resultats = []
         for tranches in ((duree,), (150,) * (duree // 150)):
             with gzip.open(chemin, 'rt', encoding='utf-8') as f:
                 m = recharger(Monde(json.load(f)))
+            if not secours_spontane:
+                # L'oracle porte sur l'audience de deux faits : conserver
+                # les déplacements historiques sans nouveau secours autonome.
+                from tests.support import sans_souci
+                sans_souci(m)
             lignes = []
             rallumages = []
             transmissions = []
@@ -51,7 +56,7 @@ class AvisReditsReelsTests(unittest.TestCase):
         return m
 
     def test_mine_2024_deux_lampes_homonymes_restent_deux_faits(self):
-        m = self.parcours('mine', 70, 12 * 600)
+        m = self.parcours('mine', 70, 12 * 600, secours_spontane=False)
         dits = [c for c in m.data['chronique'] if c['pnj'] == 'josse' and c.get('constat_confie')
                 and 'Lucien' in c['texte'] and 'rechange' in c['texte']]
         # Les secours déplacent Rémy : il peut annoncer une des lampes à Mathe

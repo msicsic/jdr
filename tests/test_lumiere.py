@@ -21,12 +21,17 @@ from tests.test_tensions import chronique, recharger, relais, vivre
 MINEURS = ("bram", "gaspard", "josse", "lucien", "mathe", "odon", "remy")
 
 
-def mine_noire(bois=False):
+def mine_noire(bois=False, secours_spontane=True):
     """Placement d'auteur : la nuit est avancée, le poêle et la lampe du baraquement sont à sec et
     éteints ; personne ne presse, les rondes viennent d'être faites. Sans ``bois``, le bois du camp
     est brûlé : personne ne peut rallumer le poêle, le baraquement reste obscur."""
     m = creer("mine", 1985, "fixe")
     calme(m, *MINEURS)
+    if not secours_spontane:
+        # Ce parcours isole la lampe et l'abri propre de Rémy : Lucien et
+        # Mathe ne viennent pas le rassurer à la place de son trajet vers Josse.
+        from tests.support import sans_souci
+        sans_souci(m, 'lucien', 'mathe')
     for k in ("lampe_baraque", "poele"):
         m.objets[k].update(allume=False, combustible=0)
     if not bois:
@@ -51,7 +56,7 @@ def inquiet(m, id="remy", securite=70.0):
 
 class MineTests(unittest.TestCase):
     def test_dans_le_noir_remy_allume_sa_lampe_au_briquet_et_la_garde_allumee(self):
-        m = avec_briquet(mine_noire())
+        m = avec_briquet(mine_noire(secours_spontane=False))
         m.objets["lampe_remy"]["allume"] = False
         m, _ = vivre(inquiet(m), 3)
         self.assertTrue(m.objets["lampe_remy"]["allume"])
@@ -113,7 +118,7 @@ class MineTests(unittest.TestCase):
                         chronique(m).index("Rémy, jeune mineur allume la lampe de mineur de rechange."))
 
     def test_une_lampe_vide_se_remplit_d_huile_puis_s_allume(self):
-        m = avec_briquet(mine_noire())
+        m = avec_briquet(mine_noire(secours_spontane=False))
         m.objets["lampe_remy"].update(allume=False, combustible=0)
         deplacer(m, "bidon_huile", "remy")
         m, _ = vivre(inquiet(m), 4)
