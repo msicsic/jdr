@@ -48,11 +48,12 @@ Premier passage voisin : **159 tests, cinq échecs**, conservé dans
 initiales par un placement d'auteur avec leurs faits déjà partagés, sans
 modifier leurs assertions. Rémy a révélé un lecteur de fin oublié dans les
 capacités ; corrigé, le test historique repasse inchangé. Reprises conservées
-dans `reprise-1/` et `reprise-2/`. **Banc rapide détaché en préparation** :
+dans `reprise-1/` et `reprise-2/`. **Banc rapide détaché en cours** :
 cinq scénarios, quatre graines, 4 h, aucune hausse des suspects 219 par nuit.
 Référence exacte `9bef3f6`, nuits présentes relues du cache, absentes seulement
 jouées et rangées. Fin attendue `banc-final/fin.json`, écrite en dernier même
-sur échec. Tests réutilisés après contrôle des empreintes ; ni autre passe
+sur échec. PID réel **48324**, priorité réduite et activité vérifiées au départ.
+Branche poussée vers origin, code/tests `e2822a1`. Tests réutilisés après contrôle des empreintes ; ni autre passe
 de tests ni temps du cache comparés. Bilan du banc à lire avant clôture.
 
 **Limites et recouvrements.** PNJ seulement : le joueur n'a pas les relations

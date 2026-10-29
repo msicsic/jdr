@@ -18,13 +18,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   rendu et scène rechargés, laps entier/découpé. Quinze fichiers ciblés
   détachés réduits, au plus deux travailleurs ; premières erreurs et
   reprises conservées. **Banc rapide 4 h × cinq scénarios × quatre graines
-  en préparation détachée** ; aucune hausse des suspects 219 admise.
+  détaché en cours**, PID réel 48324 vérifié, priorité réduite ; aucune hausse des suspects 219 admise.
   Référence exacte 9bef3f6, cache réutilisé ; tests réutilisés après contrôle
   des empreintes. Bilan du banc à lire avant clôture.
   Joueur exclu faute de relations subjectives ; ni Luna ni suite complète.
   Recouvrements 335/336 : `agendas.py`, `planification.py`, documentation.
   Bruts `C:/Users/msics/donjon/artifacts/garde-337/`, tests finaux
   `cibles-finales/fin.json ok=true` ; fin du banc `banc-final/fin.json`.
+  Code/tests `e2822a1`, branche poussée vers origin ; non clôturé avant bilan.
   [Rapport 337](taches/rapport-codex-337-fin-garde-ouidire.md).
 
 - **Lot 330 terminé, branche `codex-demander-cause`, fusionnée**, base
