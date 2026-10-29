@@ -3,18 +3,30 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-g1-compilateur`, lot 304 / G1 c, non fusionnée** :
-  intégration `37f68d4` fusionnée sans rebase (`c542807`). Cotation typée
-  commune, consultation sans offre/paiement, `negocier/0` sans hausse implicite,
-  amélioration non chiffrée explicitement typée ; consultation moteur des biens
-  sans geste ni délai. Revue du candidat invalide avant conservation de son
-  obstacle, sans justification faisant preuve ; événements d'improvisation
-  déclarés et couverture locale, grammaire avec/sans jet. **156 tests distincts
-  / 14 fichiers verts**, aucune suite complète ; rejeu de 15 charges sur huit
-  tours archivés, limites de reconstruction documentées. Requêtes complètes
-  71 792 / 73 170 caractères, 79,1 / 78,4 % de la référence. **Une passe Luna
-  reste à analyser**, six scripts, référence `230e7b3` exclusivement en cache.
-  Aucun critère par famille déclaré acquis avant mesure. Bruts et fichier de
-  fin attendu : `C:/Users/msics/donjon/artifacts/g1c-304/fin-luna.json` ;
+  code mesuré `e0d87c6`, intégration `37f68d4` fusionnée sans rebase (`c542807`).
+  **Analyse terminée, invariant non atteint, non fusionnable.** Une passe,
+  six scripts, référence `230e7b3` exclusivement en cache et empreintes vérifiées ;
+  aucun incident réseau, arrêt, échec de recharge, calcul actif ni rejeu.
+  Admission 22 → 23/30, fidélité admise au premier coup 20 → 20 ; **pertes par
+  famille** : odeur éludée, son à jet non exécuté, passage perdu en dialogue,
+  coup mal référencé, question au MJ devenue parole. Vol récupéré avec refus
+  moteur fidèle ; cible du bien inconnu conservée, avis de groupe récupéré.
+  Prix 20 pièces, or 24 inchangé et aucun accord après recharge : montant
+  fidèle, **nouvelle opération prix non exercée par Luna**, voie parole/propos.
+  Cotation typée et `negocier/0` sans hausse éprouvés en tests seulement.
+  Refus 8 → 11 : quatre familles absentes de la référence (paramètres et forme
+  sonore, opération incompatible, contenu de parole omis). La revue préalable
+  ajoute trois faux refus « candidat non admis = geste absent ». Abandons
+  formels 1 → 0, hors les dégradations ci-dessus ; aucun message interne affiché.
+  Appels 99 → 115, 3,30 → 3,83/tour ; 9,82 → 8,48 secondes modèle/tour,
+  référence historique sans causalité de vitesse. Entrée 22 572 → 13 657
+  jetons/compilation, cache 52,3 → 40,4 % ; requêtes hors ligne 79,1 / 78,4 %
+  de la taille ancienne. Relances narratives 8 → 6, replis 0 → 0.
+  **156 tests distincts / 14 fichiers verts**, aucune suite relancée ; rejeu
+  local de 15 charges sur huit tours, limites documentées. Aucun correctif
+  après la passe ; voies transitoires et audits conservés. Bruts et mesures :
+  `C:/Users/msics/donjon/artifacts/g1c-304/`, `analyse-passe.json`,
+  `familles.json`, `familles-refus.json`, `mission-jouee.json`, `tableau-tours.md` ;
   [rapport 304](taches/rapport-codex-304-g1c-familles.md).
 
 - **Branche `codex-g1-compilateur`, suite 296 / G1 b, non fusionnée**, code
