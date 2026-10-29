@@ -2,6 +2,22 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 327 / G19, branche `codex-g19-rappels`, non fusionnée**, base
+  `integration eb15b5e` : rappels exacts reliés aux occurrences entendues
+  du registre G15, provenance et absence revérifiées avant sauvegarde.
+  Mémoire d'un locuteur parti distincte des interlocuteurs présents ;
+  désignation historique sans acquisition d'identité. Citations exactes
+  et constat moteur d'absence de mots sans audit ; rappels libres gardés
+  sous leurs contrôles actuels. **153 tests distincts / douze fichiers
+  verts**, dont huit nouveaux ; monde, mémoire, conversation, scène et
+  rendu après recharge, MJ simulé sans réseau. Deux travailleurs réduits
+  au plus, ni suite complète ni banc PNJ. **Luna à conclure** : une passe
+  détachée `soir-noir` / `echanges`, référence `cdaf371` relue seulement,
+  bruts `C:/Users/msics/donjon/artifacts/g19-327/`, `fin.json` écrit en
+  dernier même en échec. Résultats Luna non revendiqués à ce stade.
+  Recouvrements G5/323 et G17/326 : `narration.py` seulement.
+  [Rapport 327](taches/rapport-codex-327-g19-rappels.md).
+
 - **Lot 320 / G15 terminé, branche `codex-g15-emissions`, fusionnée**, base
   `integration 0fcc99e` : registre unique des émissions de parole, admission
   avant affichage, auteur/acte/paramètres/modalité/source/auditeurs/ordre.
