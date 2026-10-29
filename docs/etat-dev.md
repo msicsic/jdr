@@ -25,6 +25,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Référence exacte `f08ef58` : cache consulté, nuits de 4 h absentes à remplir
   une fois ; aucune référence disponible relancée. Ni Luna ni suite complète.
   Code initial `5f92299` poussé ; première `fin.json` en échec conservée.
+  Reprise sur code/tests `3ab6aa5` poussé : lanceur 46008/Python 46156 et
+  deux travailleurs vérifiés actifs à priorité réduite, fin encore absente.
   Bruts `C:/Users/msics/donjon/artifacts/cause-330/`, reprise dans `reprise-1/`,
   fichier final `fin.json` écrit en dernier même sur échec. Aucun verdict de
   conformité du banc annoncé.

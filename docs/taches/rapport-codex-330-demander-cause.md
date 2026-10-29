@@ -46,7 +46,9 @@ réponse, y compris pour les sauvegardes du premier format du lot.
 **24 tests directement concernés verts** (proximité et cause), puis test de
 date renforcé. Aucun banc n'a commencé pendant cette première validation.
 
-**Reprise détachée préparée, résultats en attente.**
+**Reprise détachée lancée, résultats en attente.** Code/tests `3ab6aa5`
+poussés ; lanceur 46008, Python 46156 et deux travailleurs vérifiés actifs
+à priorité réduite, nouvelle fin absente au contrôle de démarrage.
 `tools/valider_cause_330.py` reprend les neuf fichiers concernés (126 tests),
 les 66 tests des cinq autres fichiers verts restant acquis, puis vingt nuits
 de 4 h : Relais, mine, auberge, crue, hameau × 1985/7/42/2024. Deux travailleurs
