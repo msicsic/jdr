@@ -2,6 +2,26 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-allumer-pour-soi`, non fusionnée**, lot **277**, base
+  `1852d6e` : recours d'allumage d'un foyer fixe pour soi par `confier` ou
+  `engager`, sur les seules croyances de flamme et de position. Demande
+  incertaine coupée avant réalisation ; attente commune du travail gratuit
+  ou payé, sans effet mécanique à l'accord. Aucun changement à `agendas.py`,
+  `signes.py` ou `deliberation.py`, ni Luna ni suite complète.
+  Diagnostic préalable sur les captures 269 à 615 et 652 : aucune offre
+  chaleur, condition admise, aucun refus de tâche ; poste non gardé.
+  **Devis de Gorm impossible pour les deux foyers dans les deux captures** :
+  le nouveau recours ne garantit pas d'éviter le coup. Deux captures
+  monde/rendu/scène identiques après recharge. Fixture historique et scènes
+  d'auteur brasero/poêle, recharges et laps entier/découpé, contre-épreuves,
+  service payé et parole du joueur préparés.
+  **Validation en cours**, ne pas fusionner : première sélection de vingt
+  fichiers puis sélection finale des appelants et banc 20 paires 4 h,
+  référence `1852d6e`, deux travailleurs réduits au plus. Résultat terminal
+  attendu `C:/Users/msics/donjon/artifacts/allumer-277/fin.json` ; vérifier
+  `ok`, les tests, chaque nuit suspecte 219 et S/F/D avant livraison finale.
+  [Rapport 277](taches/rapport-codex-277-allumer-pour-soi.md).
+
 - **Branche `codex-appeler-donneur`, fusionnée**, lot **275**, base
   `7b58eb0` (intégration `ac63223`), code corrigé **`eabe202`** : contact d'un
   interlocuteur localisé mais inaccessible par l'appel négocié commun, portée

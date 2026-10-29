@@ -899,6 +899,7 @@ def engager(monde, payeur, autre, condition, prix):
     memoriser(monde, autre, {"type": "engagement_pris", "pour": payeur, "condition": dict(condition), "prix": prix})
     if payeur != "joueur":
         memoriser(monde, payeur, {"type": "tache_payee", "a": autre, "condition": dict(condition), "prix": prix})
+    _retenir_aide(monde, payeur, autre, condition, devis)
     return "accepte"
 
 
@@ -1208,6 +1209,12 @@ def confier(monde, demandeur, auditeur, condition=None, *, mandat=None):
         memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": dict(condition)})
     else:
         agendas.renouveler(monde, auditeur, engagement, monde.data['minutes'])
+    _retenir_aide(monde, demandeur, auditeur, condition, devis)
+    return "accepte"
+
+
+def _retenir_aide(monde, demandeur, auditeur, condition, devis):
+    """Le bénéficiaire attend le travail accepté, gratuit ou payé, jusqu'à sa réalisation réelle."""
     if demandeur != "joueur" and "objet" in condition:
         esprit(monde, demandeur)["aides_attendues"][condition["objet"]] = {
             "qui": auditeur, "condition": dict(condition), "minute": monde.data["minutes"]}
@@ -1217,7 +1224,6 @@ def confier(monde, demandeur, auditeur, condition=None, *, mandat=None):
         if duree is not None:
             esprit(monde, demandeur)["aides_attendues"][condition["objet"]]["echeance"] = (
                 monde.data["minutes"] + ceil(monde.data.get('dixiemes', 0) / 600 + duree))
-    return "accepte"
 
 
 def remettre(monde, donneur, receveur, objet, demande=False, achat=False):

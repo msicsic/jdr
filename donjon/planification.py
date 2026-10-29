@@ -484,7 +484,9 @@ class Vue:
                       if monde.data["minutes"] - x["minute"] <= ENGAGEMENT_MAX
                       and not agendas.aide_echue(monde, x)
                       and not se_mefie(monde, id, x["qui"])
-                      and not refus_retenu(monde, id, x["qui"], ("confier",), x["condition"]["objet"])]
+                      and not ((refus := refus_retenu(monde, id, x["qui"], ("confier", "engager"),
+                                                     x["condition"]["objet"]))
+                               and refus["minute"] > x["minute"])]
         intention = lire(monde, id)["intention"]
         # L'aide acceptée reste une cause d'ouverture quand son bénéficiaire
         # attend sa réalisation, même si l'adoption a reclassé le besoin
@@ -1483,6 +1485,7 @@ def gestes(v, e, vises=None, but=None):
     for o, ailleurs, dans, ici, contenant in v.situations_gestes(e, agissables):
         x = objets[o]
         yield from _aide_sur_place(v, e, o, vises, noms_vises)
+        yield from _allumer_pour_soi(v, e, o)
         # Un objet qu'il ne porte pas et qu'il croit dans une autre salle (sans être une porte de
         # celle-ci) n'offre ici aucun geste : on ne peut qu'en demander une part.
         if ailleurs:
@@ -1703,24 +1706,48 @@ def _aide_sur_place(v, e, o, vises, noms_vises):
             and not v.doublon(e, o, noms_vises, vises.get("entretenir", ()))):
         conditions.append({"objet": o, "remettre": v.id})
     for condition in conditions:
-        effets = effets_tache(condition)
-        suivant = e.apres(faits=effets, portes=e.portes | {o} if "remettre" in condition else e.portes)
-        if all(e.fait(*cle) == valeur for cle, valeur in effets):
+        yield from _confier_tache(v, e, condition,
+                                 v.personnes() if v.motif in v.detresses else ())
+
+
+def _confier_tache(v, e, condition, personnes):
+    """Une demande incertaine, ou l'attente d'une aide déjà acceptée ; aucun effet réel anticipé."""
+    o = condition["objet"]
+    effets = effets_tache(condition)
+    suivant = e.apres(faits=effets, portes=e.portes | {o} if "remettre" in condition else e.portes)
+    if all(e.fait(*cle) == valeur for cle, valeur in effets):
+        return
+    if any(x["condition"] == condition for _, x in v.aides):
+        yield 0, TACHE, [{**_etape("inspecter"), "attendre_remise": True}], suivant, TACHE
+        return
+    for autre in personnes:
+        if v.salle(e, autre) != e.salle or v.se_mefie(autre) or v.retenu(autre, ("confier",), o):
             continue
-        pending = next(((autre, x) for autre, x in v.aides if x["condition"] == condition), None)
-        if pending:
-            # Il ne répète pas une parole en cours. Pas d'effet dans le monde avant le geste.
-            yield 0, TACHE, [{**_etape("inspecter"), "attendre_remise": True}], suivant, TACHE
-            continue
-        if v.motif not in v.detresses:
-            continue   # Une parole en cours n'ouvre pas d'autres demandes.
-        for autre in v.personnes():
-            if v.salle(e, autre) != e.salle or v.se_mefie(autre) or v.retenu(autre, ("confier",), o):
-                continue
-            attente = v.attente_part(e, autre, o, e.salle, o)
-            yield (0, 1 + DEMANDE / v.chances_demandes[autre] + attente,
-                   [{**_etape("confier", autre, contenu=condition), "suppose": True}],
-                   suivant, 1 + attente)
+        attente = v.attente_part(e, autre, o, e.salle, o)
+        yield (0, 1 + DEMANDE / v.chances_demandes[autre] + attente,
+               [{**_etape("confier", autre, contenu=condition), "suppose": True}],
+               suivant, 1 + attente)
+
+
+def _allumer_pour_soi(v, e, o):
+    """Une flamme crue chez un tiers permet de lui demander le travail sur un foyer fixe.
+
+    Le catalogue ne préjuge ni de ses moyens privés ni de son accord : devis,
+    jugement, réalisation et refus restent ceux de confier/engager.
+    """
+    x = v.objets[o]
+    if (v.seul or "allume" not in x or x.get("mobile") or v.illicite[o]
+            or not v.disponible(o) or v.contrarie(o) or v.salle(e, o) in v.menacees
+            or v.feu(e, o) != (False, True)
+            or any(v.flamme(e, k) for k in e.portes)):
+        return
+    condition = {"objet": o, "allume": True}
+    personnes = sorted({autre for autre, _ in v.flammes_d_autrui(e)})
+    yield from _confier_tache(v, e, condition, personnes)
+    if not any(x["condition"] == condition for _, x in v.aides):
+        for g in _engager(v, e, condition, personnes=personnes):
+            # La réalisation reste à venir après l'accord payé, comme après l'accord gratuit.
+            yield (*g[:2], [{**etape, "suppose": True} for etape in g[2]], *g[3:])
 
 
 def effets_tache(condition):
@@ -1755,7 +1782,7 @@ def hausse(prix):
     return max(prix + 1, math.ceil(prix * PALIER))
 
 
-def _engager(v, e, condition):
+def _engager(v, e, condition, *, personnes=None):
     """Payer quelqu'un, là où il se tient avec lui, pour qu'il fasse en sorte que ``condition`` soit
     vraie (``echanges.engager``), sur ce qu'il pourrait faire lui-même sans faute : il propose ses
     pièces à qui il ne se méfie pas et qui ne vient pas de refuser ; l'autre accepte si ces pièces valent pour lui la peine. Comme une demande, ce n'est pas
@@ -1779,7 +1806,7 @@ def _engager(v, e, condition):
     prix = prix_tache(peine)
     if v.richesse - (e.fait("depense") or 0) < prix or v.depense(prix) > peine:
         return
-    for autre in v.personnes():
+    for autre in v.personnes() if personnes is None else personnes:
         if v.salle(e, autre) != e.salle or v.se_mefie(autre):
             continue
         # Un refus qui tient l'écarte ; trop peu payé, il ne tient que pour ce prix : il offre un
