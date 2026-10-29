@@ -45,7 +45,7 @@ class CompositionEtendueTests(unittest.TestCase):
                   patch("builtins.input", side_effect=[
                       "je crochète la porte, je l'ouvre et je la cale avec le marteau", "tenter", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
-                self.assertEqual(jeu.main(["--recit-moteur", "--console", "--save", str(chemin),
+                self.assertEqual(jeu.main(["--console", "--save", str(chemin),
                                            "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
         porte = reprise.objets["porte"]

@@ -59,7 +59,7 @@ class CoupeTests(unittest.TestCase):
                       "je coupe la plaque d'acier avec la scie à métaux", "tenter",
                       "examiner plaque d'acier", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
-                self.assertEqual(jeu.main(["--recit-moteur", "--console", "--atelier", "--save",
+                self.assertEqual(jeu.main(["--console", "--atelier", "--save",
                                            str(chemin), "--connexion", "api"]), 0)
             self.assertEqual(appel.call_count, 5)
             self.assertEqual(appel.call_args_list[3].args[1]["qualifications"][0]
@@ -129,7 +129,7 @@ class CoupeTests(unittest.TestCase):
                   patch("builtins.input", side_effect=[
                       "couper plaque d'acier avec scie à métaux", "tenter", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
-                self.assertEqual(jeu.main(["--recit-moteur", "--console", "--atelier", "--save",
+                self.assertEqual(jeu.main(["--console", "--atelier", "--save",
                                            str(chemin), "--connexion", "api"]), 0)
             fin = Monde.charger(chemin)
             self.assertNotIn("seuil_coupe", fin.objets["plaque"])
@@ -270,7 +270,7 @@ class CoupeTests(unittest.TestCase):
                           f"couper {depart.objets[cible]['nom']} avec hache",
                           "tenter", "quitter"]),
                       patch("sys.stdout", io.StringIO()) as sortie):
-                    self.assertEqual(jeu.main(["--recit-moteur", "--console", "--atelier", "--save",
+                    self.assertEqual(jeu.main(["--console", "--atelier", "--save",
                                                str(chemin), "--connexion", "api"],
                                                interface=interface), 0)
                 affichage = ("\n".join(str(a.args[0]) for a in interface.ecrire.call_args_list)

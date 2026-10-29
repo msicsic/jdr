@@ -49,7 +49,7 @@ def jouer_physique(m, saisies, reponses, jugements=()):
               patch.object(MJOpenAI, "_appeler_brut", side_effect=appel),
               patch("builtins.input", side_effect=lire),
               patch("sys.stdout", flux) as sortie):
-            jeu.main(["--console", "--connexion", "api", "--recit-moteur", "--save", str(chemin)])
+            jeu.main(["--console", "--connexion", "api", "--save", str(chemin)])
         return Monde.charger(chemin), sortie.getvalue(), appels
 
 

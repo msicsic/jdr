@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from .monde import ErreurMonde, objet
 from .francais import accorder, complement_de, designer, sujet, groupe_nominal
 from .geometrie import position_entree
-from .deplacement_objet import deplacer
+from .deplacement_objet import deplacer, SOL_AUX_PIEDS
 from .rendu import decrire, decrire_contexte, decrire_perception, regarder, prix, toucher
 from .perception import avancer_combustion, eclairage
 from .dialogues import verifier_remise, payer_remise
@@ -1098,11 +1098,26 @@ class Moteur:
             return
         if op == "tenir_personne":
             from .tenir import commencer
-            return commencer(m, "joueur", valeur["operation"], cible, valeur["outil"], lignes,
-                             valeur["rotation_dixiemes"])
+            resultat = commencer(m, "joueur", valeur["operation"], cible, valeur["outil"], lignes,
+                                 valeur["rotation_dixiemes"])
+            if valeur["operation"] == "saisir":
+                # L'événement garde le jet effectivement tiré, sans second calcul.
+                evenement = m.data["historique_corps"][-1]
+                lignes.append(f"Jet de prise : 1d20({evenement['jet']}) : "
+                              + ("REUSSITE." if resultat else "ECHEC."))
+            return resultat
         if op == "frapper_personne":
             from .combat import frapper
-            return frapper(m, "joueur", cible, lignes=lignes, **valeur)
+            resultat = frapper(m, "joueur", cible, lignes=lignes, **valeur)
+            # Le jet du joueur et la blessure infligée ne doivent pas dépendre
+            # d'un récit. Ne pas exposer les caractéristiques de l'adversaire.
+            if resultat["jet"] is not None:
+                lignes.append(f"Jet du coup : 1d20({resultat['jet']}) : "
+                              + ("REUSSITE." if resultat["touche"] else "ECHEC."))
+            if resultat["touche"] and m.visible(cible):
+                lignes.append(designer(m.objets[cible], debut=True)
+                              + f" perd {resultat['degats']} PV.")
+            return resultat
         if op in ("fuir", "se_rendre", "degager"):
             from .defense import appliquer_joueur
             return appliquer_joueur(m, op, cible, valeur, lignes)
@@ -1165,13 +1180,13 @@ class Moteur:
         o = m.objets.get(cible)
         if op == "liberer":
             deplacer(m, cible, valeur)
-            lignes.append(designer(o, debut=True) + " est libéré et déposé au sol.")
+            lignes.append(designer(o, debut=True) + " est libéré et déposé " + SOL_AUX_PIEDS + ".")
         elif op == "transferer":
             deplacer(m, cible, valeur)
             # Porter ne distingue pas la main du sac : le message ne prétend à aucun rangement.
             lignes.append("Tu portes maintenant " + designer(o) + "." if valeur == "joueur" and o.get("longueur_cm", 0) >= 100 else
                           "Tu prends " + designer(o) + "." if valeur == "joueur" else
-                          designer(o, debut=True) + (" est " + accorder(o, "posé") + " au sol." if valeur in m.data["salles"] else
+                          designer(o, debut=True) + (" est " + accorder(o, "posé") + " " + SOL_AUX_PIEDS + "." if valeur in m.data["salles"] else
                           " est " + accorder(o, "placé") + " dans " + designer(m.objets[valeur]) + "."))
         elif op == "remarquer":
             from .esprits import memoriser
@@ -1196,7 +1211,7 @@ class Moteur:
                           + designer(m.objets[valeur]) + ".")
         elif op == "deplacer":
             deplacer(m, cible, valeur)
-            lignes.append("Tu prends " + designer(o) + "." if valeur == "joueur" else designer(o, debut=True) + " est " + accorder(o, "posé") + " au sol.")
+            lignes.append("Tu prends " + designer(o) + "." if valeur == "joueur" else designer(o, debut=True) + " est " + accorder(o, "posé") + " " + SOL_AUX_PIEDS + ".")
         elif op == "payer":
             montant, vendeur = valeur["montant"], valeur["vendeur"]
             m.joueur["or"] -= montant
