@@ -1098,22 +1098,12 @@ class Moteur:
             return
         if op == "tenir_personne":
             from .tenir import commencer
-            resultat = commencer(m, "joueur", valeur["operation"], cible, valeur["outil"], lignes,
-                                 valeur["rotation_dixiemes"])
-            if valeur["operation"] == "saisir":
-                # L'événement garde le jet effectivement tiré, sans second calcul.
-                evenement = m.data["historique_corps"][-1]
-                lignes.append(f"Jet de prise : 1d20({evenement['jet']}) : "
-                              + ("REUSSITE." if resultat else "ECHEC."))
-            return resultat
+            return commencer(m, "joueur", valeur["operation"], cible, valeur["outil"], lignes,
+                             valeur["rotation_dixiemes"])
         if op == "frapper_personne":
             from .combat import frapper
             resultat = frapper(m, "joueur", cible, lignes=lignes, **valeur)
-            # Le jet du joueur et la blessure infligée ne doivent pas dépendre
-            # d'un récit. Ne pas exposer les caractéristiques de l'adversaire.
-            if resultat["jet"] is not None:
-                lignes.append(f"Jet du coup : 1d20({resultat['jet']}) : "
-                              + ("REUSSITE." if resultat["touche"] else "ECHEC."))
+            # La blessure publique ne doit pas dépendre d'un récit.
             if resultat["touche"] and m.visible(cible):
                 lignes.append(designer(m.objets[cible], debut=True)
                               + f" perd {resultat['degats']} PV.")

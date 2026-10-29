@@ -117,8 +117,15 @@ def attestations(monde, contexte):
 
 
 def rendre_resultat(resultat):
-    """Rendu public du moteur : conserve aussi les jets et leurs issues."""
-    return resultat.strip() or "Action accomplie."
+    """Rendu public : l'issue du jet est visible, son calcul reste au journal."""
+    lignes = []
+    for ligne in resultat.splitlines():
+        if ligne.startswith("1d20("):
+            lignes.append("La tentative réussit." if ligne.endswith("REUSSITE") else
+                          "La tentative échoue.")
+        else:
+            lignes.append(ligne)
+    return "\n".join(lignes).strip() or "Action accomplie."
 
 
 SCHEMA_AUDIT = {

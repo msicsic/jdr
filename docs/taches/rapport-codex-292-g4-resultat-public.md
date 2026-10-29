@@ -1,61 +1,66 @@
 # Lot 292 — G4 : résultat public du moteur
 
-2026-10-29. Branche `codex-g4-resultat-public`, base intégration `9e52df4`.
-Code `d1e50c4` poussé sur origin. **Non fusionnée ; vérifications en cours.**
+2026-10-29. Branche `codex-g4-resultat-public`, base `9e52df4`.
+**Non fusionnée ; clôture avec une assertion de monde encore rouge.**
 
-`jeu.conclure` enregistre le résultat public dans la conversation et sauvegarde
-avant affichage. Il ne demande plus de récit ni d’audit après exécution.
-La proposition et sa contre-revue, la fiche tenter/annuler, les contrôles
-d’admission et les dialogues restent inchangés. TUI (`SeuilApp.boucle_jeu`)
-et web (`lancer_web` / `PontWeb`) utilisent cette même boucle et ce même
-`conclure` pour les propositions du MJ, immédiates ou confirmées. Les commandes
-locales avaient déjà leur rendu et leur sauvegarde sans modèle ; leur silence
-sur les petits pas reste conservé (G7 hors périmètre).
+`jeu.conclure` mémorise et sauvegarde le rendu moteur avant affichage,
+sans récit ni audit après exécution ; même boucle console/TUI/web.
+Propositions, contre-revues et confirmations conservées. Blessures visibles
+et dépôts au sol rendus par le moteur ; aucune mécanique PNJ modifiée.
+`raconter`, `demande_initiale`, `--recit-moteur` supprimés.
+`MJ.raconter_resultat` reste pour les outils explicites et le comparateur,
+sans appel par le jeu ; petits pas silencieux conservés.
 
-`narration.rendre_resultat` conserve maintenant les jets et leurs issues.
-Le rendu commun des effets dans `Moteur._appliquer_effet` complète les coups du
-joueur par son jet et, si la cible est visible, la perte de PV infligée ;
-la prise affiche son jet réellement enregistré. Aucune caractéristique adverse
-supplémentaire n’est publiée par ces ajouts. Les dépôts réutilisent le repère
-commun `SOL_AUX_PIEDS`. Blessure, inconscience, issue de ligature/traînage,
-transfert et allumage sont des phrases moteur, sauvegardées avec le résultat.
-Aucune mécanique PNJ n’est modifiée, aucune consigne Luna ajoutée.
+**Correction demandée à la clôture :** le test TUI original reste **inchangé**.
+G4 ne change pas les informations de jet déjà montrées au joueur.
+`rendre_resultat` masque le calcul et les valeurs, conserve une phrase
+« La tentative réussit/échoue. » ; le journal garde le calcul. Les valeurs
+ajoutées aux coups/prises sont retirées. Les nouveaux tests G4 contrôlent
+l’issue et les conséquences ; les commandes locales gardent leur affichage.
 
-`raconter` et `demande_initiale` sont supprimés, comme `--recit-moteur` :
-ce rendu est désormais le défaut unique du jeu. `MJ.raconter_resultat` et
-la voie du comparateur restent pour leurs appelants explicites :
-`tools/test_operations_reel.py`, `tools/valider_mimo_parties.py` et les tests
-unitaires de narration/admission. Ils ne sont plus appelés par la boucle.
-Les audits des voies non portées sont conservés.
+**Tests.** Première passe : **362 tests / 25 fichiers, 2 échecs, 0 erreur,
+851,350 s**, un travailleur réduit. Attribution par rejeux isolés :
 
-**Vérifications déterministes.** Dix scènes sur copies comparées au moteur
-exact de `9e52df4` : assommer, autre coup blessant et coup manqué, ligoter,
-traîner, prise réussie/manquée, poser/prendre/allumer. État mécanique complet
-identique après recharge (seul le texte du journal est exclu), fiche, carte
-et scène identiques **10/10**. Le nouveau contrat console avec MJ simulé
-vérifie les trois scènes réelles et leurs autres cas, la confirmation,
-le geste immédiat, le succès/l’échec, l’absence d’appel après tenter et la
-présence sur disque du texte avant affichage. Les anciennes attentes de
-`test_recit_resultat` fondées sur un récit Luna/repli sont remplacées par ces
-attentes moteur ; les autres fichiers retirent seulement l’option devenue
-inutile ou transforment un récit simulé en interdiction d’appel.
-Tests ciblés : 25 fichiers, un travailleur réduit ; résultats à reprendre dans
-`fin-tests.json` / `tests-g4.json`, archivés automatiquement à la fin du processus.
-Ni suite complète ni banc PNJ : aucun changement de décision mécanique.
+- TUI `test_manoeuvre_composee_et_recit_echec_partiel` : **vert sur `9e52df4`**,
+  donc régression G4, corrigée dans le code sans changer ce test.
+- Prise réussie : le nouveau test n’existe pas sur la base ; sa scène console
+  et son assertion ont été reproduites sur `9e52df4`, puis la branche.
+  **Même échec** : Brune est saisie puis réussit `defense.degager` durant les
+  deux secondes du geste, `tenu_par=joueur` disparaît. L’assertion de prise
+  persistante reste inchangée et rouge. Le dégagement du PNJ n’a pas de
+  phrase publique : **limite préexistante, complétude générale non garantie**.
 
-**Luna.** Une seule passe, trois scripts `force-4b-assommer`,
-`force-4f-ligoter`, `poser-sol-relais`, `integ=9e52df4` et `lot=.`, un
-travailleur réduit, copies et coffre principal. Référence lue du cache ou
-jouée une seule fois si absente. L’observateur archive les résultats bruts,
-le monde et les vues rechargés ; l’analyse compte les appels suivant chaque
-exécution, vérifie le texte exact sauvegardé et affiché, expose les refus
-par cause et sépare les incidents de référence du contrôle de l’invariant.
-Aucun gain de délai annoncé avant lecture des mesures ; une passe reste
-insuffisante pour attribuer causalement les écarts de temps.
+Reprise finale des seuls fichiers concernés : **35 tests, 34 succès, un échec
+conservé, 0 erreur, 305,990 s** ; **TUI originale 28/28 verte**. Bilan retenu
+sur les 25 fichiers : **361 succès / 362 tests**, un échec sur ce comportement
+préexistant, sans le masquer par un changement d’attente de monde.
+Dix comparaisons au moteur exact de la base : **10/10** états mécaniques,
+scènes, fiches et cartes identiques après recharge, textes du journal exclus.
+Ni suite complète ni banc PNJ supplémentaire.
 
-Bruts, scripts et empreintes : `C:/Users/msics/donjon/artifacts/g4-292/`.
-Démarrage vérifié : premiers fichiers de partie produits (`demarrage-verifie.json`).
-Fichier de reprise écrit en dernier même en cas d’erreur : `fin-luna.json`.
-Le lot reste ouvert jusqu’à lecture et analyse de cette passe. La complétude
-est éprouvée sur les familles ciblées ; les déplacements cumulés et les paroles
-typées restent leurs lots dédiés, sans retrait de leurs contrôles transitoires.
+**Luna : une passe**, trois scripts sur copies, `integ=9e52df4` → `lot=.`
+sur `d1e50c4`, un travailleur réduit ; référence absente jouée puis rangée
+une fois. Aucun incident. **Trois résultats exacts, sauvegardés et affichés,
+effets mécaniques identiques à la référence** :
+
+| Résultat | Monde rechargé | Après exécution, référence → lot |
+|---|---|---:|
+| Assommer, tour 2 : coup réussi, 1 PV, effondrement | Gorm inconscient, blessure de 1 PV | 1 récit + 1 audit → 0 |
+| Ligoter, tour 2 : personne maintenant ligotée | Brune liée par `corde_rixe`, corde en entrave sur elle | 1 récit + 1 audit → 0 |
+| Poser, tour 1 : torche au sol, à tes pieds | Salle et case du joueur | 1 récit + 1 audit → 0 |
+
+Après correction du rendu : **ces trois plans admis rejoués sans modèle**,
+mêmes effets, texte corrigé exact/sauvegardé, valeurs masquées. Aucune seconde
+passe Luna ; boucle d’appels inchangée.
+
+Mesures : **12 → 7 appels**, **28,65 → 22,20 s** ; sur huit saisies hors
+quitter : **1,50 → 0,875 appel/saisie**, **3,58 → 2,78 s**. Le résumé par
+tour avec appels donne 2,40 → 2,33 appels et 5,73 → 7,40 s, dénominateur
+cinq → trois tours. **Régression avant ligature** : `impossible` corrigé
+dans la même saisie, refus **0 → 1**, compilation/revue **2 → 3 appels**,
+**6,35 → 8,99 s**. Replis et relances narratives **0 → 0** ; aucune après
+exécution. Pas d’attribution causale des durées avec une seule passe.
+
+Bruts, six parties/fils, états/vues, mesures, reproductions, tests et
+manifeste : `C:/Users/msics/donjon/artifacts/g4-292/`. Fins initiales conservées ;
+`fin-cloture.json` expose le bilan final et l’échec résiduel. Aucun calcul actif.

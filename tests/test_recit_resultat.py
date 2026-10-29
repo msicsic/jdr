@@ -108,7 +108,7 @@ class RecitResultatTests(unittest.TestCase):
                     "Puis-je " + ("assommer Gorm par derrière ?" if methode == "assommer" else "frapper Gorm ?"), jet)
                 self.assertIn("« tenter »", texte)
                 self.assertIn("le coup porte", resultat)
-                self.assertIn("1d20(" + str(jet) + ") : REUSSITE", resultat)
+                self.assertNotIn("1d20(", resultat)
                 self.assertIn(str(pv - corps.pv(m, "marchand")) + " PV", resultat)
                 self.assertEqual(corps.conscient(m, "marchand"), methode != "assommer")
                 if methode == "assommer":
@@ -148,7 +148,7 @@ class RecitResultatTests(unittest.TestCase):
                     if action == "allumer":
                         self.assertTrue(m.objets["torche"]["allume"])
 
-    def test_prise_et_coup_manque_ne_cachent_pas_leur_jet(self):
+    def test_prise_et_coup_manque_rendent_leur_issue(self):
         from tests.test_tenir import situation
         for action, jet in (("saisir", 20), ("saisir", 1), ("frapper", 1)):
             with self.subTest(action=action, jet=jet):
@@ -156,8 +156,10 @@ class RecitResultatTests(unittest.TestCase):
                 pv = corps.pv(m, "brune")
                 m, resultat, _ = self.console(m, proposition(action, "brune"),
                                              "Puis-je " + action + " Brune ?", jet)
-                self.assertIn("1d20(" + str(jet) + ") : "
-                              + ("REUSSITE" if jet == 20 else "ECHEC"), resultat)
+                self.assertNotIn("1d20(", resultat)
+                self.assertIn("Tu saisis cette personne." if jet == 20 else
+                              "La personne échappe à ta prise." if action == "saisir" else
+                              "le coup manque sa cible.", resultat)
                 self.assertEqual(corps.pv(m, "brune"), pv)
                 self.assertEqual(corps.corps(m, "brune").get("tenu_par"),
                                  "joueur" if jet == 20 else None)
@@ -172,8 +174,8 @@ class RecitResultatTests(unittest.TestCase):
         for jet in (1, 20):
             with self.subTest(jet=jet):
                 m, resultat, _ = self.console(nouveau_monde(), p, "Puis-je bondir sur place ?", jet)
-                self.assertIn("1d20(" + str(jet) + ")", resultat)
-                self.assertIn("ECHEC" if jet == 1 else "REUSSITE", resultat)
+                self.assertNotIn("1d20(", resultat)
+                self.assertIn("La tentative échoue." if jet == 1 else "La tentative réussit.", resultat)
                 self.assertEqual(m.data["journal"][-1]["reussite"], jet == 20)
 
     def test_le_plan_garde_les_gestes_accomplis_pour_les_outils(self):
