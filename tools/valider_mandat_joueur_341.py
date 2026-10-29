@@ -34,6 +34,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--sortie', type=Path, required=True)
     p.add_argument('--reference', default='fff9aab')
+    p.add_argument('--tests-valides', type=Path,
+                   help='résultats consolidés déjà acquis, avec empreintes exactes des sources')
     args = p.parse_args()
     ceder()
     sortie = args.sortie.resolve()
@@ -50,8 +52,14 @@ def main():
     try:
         ecrire(sortie / 'debut.json', {'sources': sources, 'pid': os.getpid(), 'reference': args.reference,
             'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=RACINE, text=True).strip()})
-        if not lancer('tests', ['tools/tests.py', '--processus', '2', '--sortie', str(sortie / 'tests.json'),
-                               *[f'tests/test_{nom}.py' for nom in TESTS]]):
+        if args.tests_valides:
+            acquis = json.loads(args.tests_valides.read_text(encoding='utf-8'))
+            if acquis['sources'] != sources or not acquis['tests']['succes']:
+                raise ValueError('Résultats de tests absents, en échec ou périmés')
+            ecrire(sortie / 'tests.json', acquis['tests'])
+            fin.update(tests_code=0, tests_reutilises=str(args.tests_valides.resolve()))
+        elif not lancer('tests', ['tools/tests.py', '--processus', '2', '--sortie', str(sortie / 'tests.json'),
+                                 *[f'tests/test_{nom}.py' for nom in TESTS]]):
             return 1
         if not lancer('empreintes', ['tools/comparer_bancs.py', '--reference', args.reference,
             '--empreintes', '--heures', '2', '--scenarios', 'relais', 'crue_hameau', '--processus', '2',

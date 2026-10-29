@@ -33,25 +33,31 @@ Le devis du joueur utilise un acteur neutre dans une copie fermée du mandant,
 sans lire ses caractéristiques privées. Une date explicitement convenue est
 conservée ; sans date ni durée calculable, aucune échéance n'est inventée.
 
-**Vérification acquise avant lancement groupé.** Sept méthodes du nouveau
-fichier vertes, 32,910 s ; puis négatif supplémentaire voix audible dans le
-noir, inconnue/prétendue, vert, 0,150 s ; devis pur et indépendant des
-caractéristiques privées vert, 0,250 s. Les scènes contrôlent monde, fiche,
-comptes, vue et sauvegarde/recharge ; trois saisies passent par la vraie
-boucle avec MJ simulé (deux charges et refus). Premiers échecs conservés :
-accès aux temporaires Windows, coordonnées et connaissances initiales des
-fixtures, rendu « Compris » manquant corrigé. Aucun de ces passages n'est
-présenté comme validation finale des modifications suivantes.
+**Tests consolidés : 169/169 verts, 17 fichiers**, aucune erreur ni saut,
+dont les neuf méthodes du lot. Les scènes contrôlent monde, fiche, comptes,
+vue et sauvegarde/recharge ; trois saisies passent par la vraie boucle avec
+MJ simulé (deux charges et refus). Voix inconnue/prétendue réellement audible,
+devis pur et indépendant des capacités privées, réaffectation couverts.
+Première passe : 168/169, une erreur, 227,198 s. Le rejeu 86/87 fournissait
+l'ancienne carte des opérations ; son adaptateur complète le schéma courant
+sans modifier l'archive, les mots, les contenus ou les assertions historiques.
+Reprise du seul fichier : **11/11, 51,369 s**, paroles, ordre et recharge
+conservés. Consolidation sans nouvelle exécution des seize autres fichiers ;
+empreintes du code du jeu et des tests inchangés contrôlées.
+Preuve : `tests-valides-final.json`. Le bilan brut initial `ok=false` reste
+intact. Les erreurs de fixtures et de temporaires des passes de travail
+restent également archivées.
 
-**Validation groupée préparée, résultats à relire.**
-`tools/valider_mandat_joueur_341.py` enchaîne 17 fichiers ciblés, huit paires
-d'empreintes 2 h (Relais/hameau, quatre graines), puis **une passe Luna** sur
+**Suite de validation détachée, résultats à relire.**
+`tools/valider_mandat_joueur_341.py` réemploie les tests consolidés après
+vérification de leurs empreintes, puis joue huit paires d'empreintes 2 h
+(Relais/hameau, quatre graines) et **une passe Luna** sur
 `tests/data/bancs/mandat-joueur.json`. Référence exacte de la base fournie,
 résultats réemployés dans le cache commun ; les références absentes sont
 calculées une fois. Deux travailleurs réduits au plus, calcul détaché,
 `fin.json` écrit en dernier, empreintes des sources contrôlées. Ni suite
 complète, ni campagne de modèles. Bruts et fin attendue :
-`C:/Users/msics/donjon/artifacts/mandat-joueur-341/validation/fin.json`.
+`C:/Users/msics/donjon/artifacts/mandat-joueur-341/validation-suite/fin.json`.
 
 **Limites.** Le choix autonome des mandataires d'A5 reste inchangé : ce lot
 ouvre les gestes et paroles explicites avec le joueur, sans nouvelle

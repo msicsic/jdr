@@ -10,14 +10,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Offre reçue et accord du joueur distincts ; aucun geste forcé.
   Réponses moteur admises G15/G17, actes dans « Compris », fiche/comptes
   persistants ; aucune publication des agendas privés des interlocuteurs.
-  Sept scènes ciblées vertes (32,910 s), puis voix inconnue/prétendue
-  réellement audible et devis fermé indépendant des capacités privées verts.
-  Sources encore modifiées ensuite : le lancement groupé est la validation
-  finale à relire, pas un résultat déjà acquis. Dix-sept fichiers ciblés,
-  empreintes Relais/hameau 2 h × quatre graines, une passe Luna du script
-  `mandat-joueur.json`, deux travailleurs réduits au plus. Bruts :
-  `C:/Users/msics/donjon/artifacts/mandat-joueur-341/` ; fin attendue
-  `validation/fin.json`. Choix autonome PNJ inchangé ; sans date convenue
+  **169/169 tests consolidés verts, 17 fichiers**, aucune erreur ni saut,
+  dont neuf méthodes du lot. Première passe : 168/169, 227,198 s ; archive
+  86/87 au schéma ancien adaptée au rejeu, mots/contenus/assertions conservés.
+  Seul fichier repris : 11/11, 51,369 s. Code du jeu inchangé ; acquis des
+  seize autres fichiers réutilisés après contrôle des empreintes, certificat
+  `tests-valides-final.json`. Bilan brut initial en échec conservé.
+  Suite détachée : empreintes Relais/hameau 2 h × quatre graines, une passe
+  Luna du script `mandat-joueur.json`, deux travailleurs réduits au plus.
+  Bruts : `C:/Users/msics/donjon/artifacts/mandat-joueur-341/` ; fin attendue
+  `validation-suite/fin.json`. Choix autonome PNJ inchangé ; sans date convenue
   ni durée calculable, pas d'échéance inventée. Ni suite complète ni fusion.
   [Rapport 341](taches/rapport-codex-341-mandat-joueur.md).
 
