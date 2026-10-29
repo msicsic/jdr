@@ -27,11 +27,12 @@ du MJ, de `page.html`, des règles d'atelier ou des mécaniques PNJ.
 
 ## Vérification et mesures
 
-Vérification ciblée en cours : 13 tests nouveaux, puis huit fichiers
-voisins (85 tests, dont les 28 TUI existants et cinq tests de cases),
-enchaînés automatiquement si le ciblage passe ; fin :
-`fin-verification.json`. Aucun résultat provisoire n'est une
-validation. Les tests utilisent les vrais callbacks Node de la page,
+**98 tests distincts / neuf fichiers verts**, aucun échec, erreur ou test
+ignoré : 13 nouveaux tests, puis 85 tests voisins, dont les **28 TUI
+existants inchangés** et cinq tests de cases. Deux étapes détachées,
+349,652 s puis 685,068 s ; deux travailleurs réduits au plus.
+`fin-verification.json` : **ok=true, code 0**, bilan `bilan.json`.
+Les tests utilisent les vrais callbacks Node de la page,
 les vrais numéros console et les touches de la TUI, avec analyseur et
 appels du MJ interdits. Descripteur, plan et texte public exact, monde,
 scène, fiche, carte et état web sont comparés après sauvegarde/recharge.
@@ -39,10 +40,15 @@ scène, fiche, carte et état web sont comparés après sauvegarde/recharge.
 Deux scènes par geste : contenant/porte, foyer/lampe et destinations au
 sol/portées, avec deux ressources homonymes. Ressource partie, destination
 fermée, mauvais outil, propriété inconnue, numéro inconnu ou ambigu,
-besace dans le noir et sans carte sont aussi exercés. Les conditions et
-libellés du catalogue sont modifiés en test pour prouver leur lecture
-effective par les deux interfaces. Les mesures comptent les chiffres du
-numéro et Entrée, ainsi que F7 pour ouvrir la liste TUI.
+besace dans le noir et sans carte sont aussi exercés. Les filtres de
+ressources et libellés du catalogue sont modifiés en test pour prouver
+leur lecture effective par les deux interfaces.
+
+`mesures.json` : **20 parcours**, dix par interface ; **3 touches** pour
+déverrouiller, crocheter, frapper et alimenter, **4 pour mettre dans**
+(numéros à trois chiffres), depuis la liste jusqu'à l'effet. **4 à 5 avec
+F7 en TUI**. Hors déplacement préalable et temps de lecture de la liste ;
+zéro appel modèle, aucun délai humain ou réseau déduit.
 
 ## Limites et livraison
 
@@ -54,10 +60,13 @@ Les propriétés inconnues gardent leur voie d'admission distincte.
 
 Les premiers essais de sauvegarde dans le bac à sable Windows ont été
 refusés par les droits des dossiers temporaires ; les vérifications
-retenues se lancent hors de ce bac, sur copies, avec deux travailleurs
+retenues ont tourné hors de ce bac, sur copies, avec deux travailleurs
 au plus, à priorité réduite. Ni Luna, ni banc PNJ, ni suite complète.
 Bruts : `C:/Users/msics/donjon/artifacts/ut-outils-307/`.
-`origin/integration` relue et fusionnée sans rebase : toujours `d7302a4`
-au lancement. Le lot 305 n'y est pas encore présent ; relire et fusionner
-à la clôture s'il y est entré. Intégration du lot et suite complète
-laissées au superviseur.
+`origin/integration` relue et fusionnée sans rebase au lancement puis à
+la clôture : toujours `d7302a4`, branche à jour. Le lot 305 n'y est pas
+encore présent ; aucune compatibilité avec son futur catalogue n'est
+prétendue. Code et tests validés au commit `79c9b89`, inchangés depuis.
+Branche poussée vers `origin/codex-ut-outils`, aucun calcul actif.
+Clôture `fin-cloture.json` écrite en dernier ; intégration du lot et
+suite complète laissées au superviseur.

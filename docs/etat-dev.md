@@ -10,16 +10,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun analyseur ni modèle. `ressources_publiques` déplacée dans
   `inventaire_public.py`, réexportée par le pont web ; adaptateur terminal
   commun enrichi, sans modification de `jeu.py`, `tui.py` ni `page.html`.
-  **Vérification ciblée en cours**, 13 tests nouveaux, deux scènes par
-  geste, callbacks Node réels, état et vues après recharge ; refus et
-  propriétés inconnues, noir/sans carte. Les 28 TUI existants et fichiers
-  voisins restent à valider. Les essais de sauvegarde dans le bac à sable
-  Windows ont rencontré les droits des dossiers temporaires ; lancement
-  retenu détaché, hors de ce bac, priorité réduite et deux travailleurs
-  au plus. Ni Luna, ni banc PNJ, ni suite complète.
+  **98 tests distincts / neuf fichiers verts**, dont les **28 TUI
+  existants inchangés** ; 13 tests nouveaux, deux scènes par geste,
+  callbacks Node réels, plans et texte exact, monde/scène/fiche/carte
+  après recharge. Refus périmés sans substitution, destination fermée,
+  mauvais outil, propriété inconnue, noir/sans carte, numéros invalides.
+  **20 parcours mesurés : 3 à 4 touches**, 4 à 5 avec F7 en TUI.
+  Deux étapes détachées, 349,652 s puis 685,068 s, deux travailleurs
+  réduits au plus ; hors bac à sable après ses refus d'accès aux dossiers
+  temporaires. `origin/integration` relue et fusionnée à la clôture :
+  toujours `d7302a4`, à jour ; lot 305 pas encore présent, compatibilité
+  avec son futur catalogue non validée. Code/tests `79c9b89` inchangés
+  depuis la validation. Liste plus longue avec davantage de ressources ;
+  capacité maximale des destinations absente du moteur, comme au lot 300.
+  Ni Luna, ni banc PNJ, ni suite complète.
   Bruts `C:/Users/msics/donjon/artifacts/ut-outils-307/`,
-  ciblage puis huit fichiers voisins enchaînés automatiquement,
-  fichier final attendu `fin-verification.json` ; aucune validation anticipée.
+  `bilan.json` et `fin-verification.json` : **ok=true, code 0** ;
+  clôture `fin-cloture.json` écrite en dernier. Branche poussée vers
+  origin, aucun calcul actif ni relancé à la clôture.
   [Rapport 307](taches/rapport-codex-307-ut-outils.md).
 
 - **Branche `codex-ut-inventaire`, lot 301 / U-T inventaire, fusionnée**,
