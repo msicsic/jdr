@@ -2,6 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-pret-reclame`, fusionnée**, lot **280**, base `427fb36`.
+  Cause établie avant modification : secours alimentaire à Rémy à `t=0`,
+  appel de Bram (`62`), attente négociée (`162`), proximité de Lucien tremblant
+  (`203`, peur perçue, palier SECOURS 12 avant ARGENT 14). Pas de défaut moteur
+  établi : après calme perçu des bénéficiaires, le prêt est réclamé à la
+  minute 2. Contre-épreuves peur/appel séparées : réclamation avant deux minutes.
+  Prémisse du test de réclamation immédiate : Gaspard sans souci spontané ;
+  **89 assertions préexistantes conservées (AST)**. Deux cas ajoutés : report
+  réel et autre prêteur/objet au Relais ; monde, rendu et scène identiques
+  après recharge. **Validation terminée sur `be99757` : 211 tests verts /
+  14 fichiers entiers, 1 613,326 s**, zéro échec, erreur ou ignoré ; dont
+  **23 tests** des échanges. Cinq tests de prêt initiaux verts en 50,545 s,
+  inclus dans les 211. Un travailleur à priorité réduite, vérification détachée
+  terminée, `fin-verification.json` **code 0**. Aucun fichier `donjon/` modifié,
+  ni Luna, banc ou suite complète ; aucun nouveau calcul à la clôture. Suite
+  complète sur fusion d'essai à la charge du superviseur. Bruts :
+  `C:/Users/msics/donjon/artifacts/pret-280/` (`tests.json`, `tests.log`,
+  `fin-verification.json`).
+  [Rapport 280](taches/rapport-codex-280-pret-reclame.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Tests seulement. Sur la scène du test PretReclame (mine 1985), Gaspard choisit d'abord deux secours (nourrir Rémy affamé, en appelant Bram par le moyen du lot 275 ; rester près de Lucien qui tremble, lot 266) au palier 12, avant la créance au palier 14 : comportement juste, moteur inchangé. Prémisse explicitée par placement d'auteur, assertions conservées. 211 tests verts sur 14 fichiers ; le fichier passe dans la suite complète de la fusion d'essai 78d62ef.
+
 - **Branche `codex-richesse-hameau`, lot 282, diagnostic seul**, base intégration
   `3470a92` : **aucun défaut établi, aucun fichier de code, test ou scénario
   modifié.** Quatre nuits rejouées détachées (`0bad227` et `c870c8b`, graines
