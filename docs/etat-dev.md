@@ -2,6 +2,24 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-capacite-nouvelle-1`, non fusionnée**, lot **285**, base
+  intégration `51d66e6` : **diagnostic clos, C1 mesurée sans gain** ; aucun fichier
+  de code, test ou scénario modifié. Captures historiques mine/auberge 1985 à
+  480 min rechargées, trois buts directs par PNJ (`a_mange`, `rechauffe`,
+  `eclaire`), 21/24 recherches par version. Aucun état observé avec deux objets
+  d'une même catégorie hors lumière : **0/2 868 mine, 0/2 083 auberge**
+  (choc, coupe, crochetage, clés). Nœuds base → prototype temporaire :
+  **3 185 → 3 185 et 2 034 → 2 034**, 45 résultats complets identiques ;
+  monde/rendu/scène inchangés après recharge des 90 appels. Gain **0 % < 5 %** :
+  pas de généralisation de `capacite`/`doublon`, piste C1 retirée des suites actives.
+  Un travailleur réduit, 12,809 s, `fin-diagnostic.json` **ok=true** dans
+  `C:/Users/msics/donjon/artifacts/capacite-285/`. Captures et buts directs seuls,
+  sans vie de nuit, pulsions ni exécution des plans : coût actuel de fin de nuit
+  non attribué, invariant général non garanti. Aucun test moteur, banc, suite
+  complète ou Luna ajouté à la clôture. Branche locale effective suffixée `-1`
+  dans le worktree fourni ; cible de poussée demandée `codex-capacite-nouvelle`.
+  [Rapport et limites 285](taches/rapport-codex-285-capacite-nouvelle.md).
+
 - **Branche `codex-allumer-pour-soi`, fusionnée**, lot **277**.
   **Raccord à `bca5061` validé sur `9ff488b`**, fusion sans rebase `59a1388`, conflit
   documentaire seul. Quatre cas instruits : protection (avec et sans agenda),
@@ -8525,23 +8543,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## À revoir
 
 - **Coût, suites retenues** (revue externe du 2026-10-24, retenue par l'utilisateur) :
-  - **C1, une capacité nouvelle ou rien** : généraliser la règle du lot 46 (une seconde lampe sans capacité
-    nouvelle n'ouvre aucun geste) à toute catégorie d'objets que lisent les gestes (couper, frapper, combustible,
-    clé, contenant) : ne prendre, demander, acheter ou saisir un objet non visé par le but que s'il apporte une
-    capacité absente de ce qu'on porte. Le diagnostic mesurait 94 à 99 % d'états de fin de nuit avec préparatifs.
-    Prochain lot de coût, contrat des lots 46 et 48.
+  - **C1, mesurée sans gain, retirée des pistes actives (lot 285)** : sur les deux captures
+    historiques mine/auberge 1985 à 480 min, aucun doublon hors lumière parmi 2 868/2 083 états
+    observés ; nœuds 3 185/2 034 inchangés avec le prototype. Gain 0 %, arrêt au seuil du brief,
+    aucun code livré. Les 94 à 99 % d'états avec préparatifs du diagnostic ancien ne prouvaient
+    pas une redondance de capacités. Portée limitée aux captures et recherches du
+    [rapport 285](taches/rapport-codex-285-capacite-nouvelle.md), sans conclusion sur toute une nuit actuelle.
   - **A, les entrées de la mémoire des recherches** : `_entrees` est un relevé écrit à la main (chaque lot qui lit
     une donnée doit l'y ajouter, sinon `VERIFIER` casse). Le lot 71, non fusionné, partage sa partie commune
     dans un même choix ; elle est encore refaite au choix suivant. Pistes : un compteur de révision par facette de
     l'esprit, incrémenté dans les seules portes d'écriture (`esprits.croire`, `relations`, `agendas`, refus,
-    mémoire) ; ou une trace automatique des lectures de la recherche. Après C1 ; lot risqué (toute la mémoire).
+    mémoire) ; ou une trace automatique des lectures de la recherche. Lot risqué (toute la mémoire).
   - **Le stratège Luna des PNJ** (historique, retiré au lot 130) : son interception des plans illicites
     contourne l'arbitrage moral du moteur (`prix_faute`) et son vocabulaire ignore les gestes récents ; retiré
     par le lot de ménage 130.
   - **Principe : réduire l'espace plutôt qu'ajouter un cache** (revue externe du 2026-10-24, retenue). Chaque cache
     (`_MEMOIRE`, les deux graphes repris, le certificat `_sans_plan`, la perception incrémentale, le court-circuit
     des devis) impose une clé exacte que tout lot doit tenir et que `VERIFIER`/`spatial.VERIFICATION` contrôlent.
-    Préférer les gains d'algorithme (C1, saillance) ; après chacun, mesurer ce que rapporte encore chaque cache et
+    Préférer les gains d'algorithme (saillance ; C1 mesurée sans gain au lot 285) ; après chacun, mesurer ce que rapporte encore chaque cache et
     retirer celui qui ne rapporte plus.
   - **Réduire l'espace sans perdre un plan** (revue externe du 2026-10-24, vérifiée dans le code à 5125d06). Rappel :
     68 à 88 % du coût de fin de nuit vient de recherches **sans plan**, qu'une borne A* n'accélère pas (il faut tout
@@ -8552,7 +8571,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     de personne. (P2) **Pertinence par chaînage arrière** : `Vue.pertinent` rend pertinents tous les outils de choc et
     de coupe dès qu'une serrure est crue verrouillée quelque part (`self.verrous`) ; ne garder que les moyens qui lèvent
     un obstacle entre le PNJ et ce que vise le but (contenant fermé, porte verrouillée sur le chemin), par une clôture
-    complète sur les préconditions des gestes, fautes comprises. Prolonge C1 (lot 52). Contrat des lots 46 et 48 pour
+    complète sur les préconditions des gestes, fautes comprises. Piste distincte des doublons de C1. Contrat des lots 46 et 48 pour
     les deux. (P1) Une borne A* par « ancres de but » (distance minimale à la salle où le but se conclut) n'aide que les
     recherches qui trouvent un plan ; à mesurer après P2 et P3.
   - **Coût fixe, mêmes nœuds** (revue externe du 2026-10-24, vérifiée dans le code à 5125d06) : gains à décisions et
@@ -8563,15 +8582,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
     copie `etapes + ajout` à chaque transition poussée et `deepcopy` le chemin trouvé : un maillon (parent, ajout) et
     la liste reconstruite une seule fois. (d) `signes.percevoir_tous` recalcule les émissions et une signature (`repr`)
     de tous les acteurs à chaque événement : à profiler (la mine avait pris +35 % avec 3c). Les imports locaux des
-    fonctions chaudes, aussi relevés, sont déjà sortis (lot 38). Un ou deux lots après C1 (lot 52), qui touche aussi
-    la `Vue`.
+    fonctions chaudes, aussi relevés, sont déjà sortis (lot 38). À mesurer indépendamment de C1,
+    close sans gain au lot 285.
   - **Bitsets dans l'état de recherche** : objets portés et faits de `Etat` en entiers à bits au lieu de `frozenset`
-    (hachage, comparaison et `Etat.apres` moins chers, mêmes décisions). Lot de coût possible après C1, si la part
+    (hachage, comparaison et `Etat.apres` moins chers, mêmes décisions). Lot de coût possible si la part
     d'`Etat.apres` au profil le justifie.
   - **Rust (PyO3) : rester en Python pendant les agendas.** La lenteur des bancs vient du nombre d'états explorés
     (planificateur 94-95 % en fin de nuit de 12 h), pas du langage ; PyPy était 1,5 à 1,7 fois plus lent. Option
-    datée, rien avant A5 : extraire le seul noyau géométrique (vue, lumière, ouïe, trajets sur cases) si, après C1
-    et la saillance, il dépasse ~30 % d'une nuit et que son contrat est stable ; condition : empreintes identiques
+    datée, rien avant A5 : extraire le seul noyau géométrique (vue, lumière, ouïe, trajets sur cases) si, après
+    la saillance, il dépasse ~30 % d'une nuit et que son contrat est stable ; condition : empreintes identiques
     au bit près (arrondis de flottants), chaîne de compilation sur les deux postes.
 - **Après la peur transmise (lot 53)** : demander « qu'est-ce qu'il y a ? » à l'allié
   et suivre le regard d'un autre (attention conjointe) restent à faire ; coût de perception à mesurer.
