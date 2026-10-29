@@ -1,0 +1,1388 @@
+[
+ {
+  "campagne": "230e7b3",
+  "id": "avis-joueur/2",
+  "tour": {
+   "saisie": "à tous : l'eau ne menace pas le refuge du relais",
+   "propositions": [
+    {
+     "operations_demandees": {
+      "localisation": false,
+      "avis": true,
+      "proposition": false,
+      "affirmation": false,
+      "demande": false,
+      "passage": false,
+      "aveu": false,
+      "nom": false,
+      "qui": false,
+      "reclamer": false,
+      "ressource": false
+     },
+     "personnage": "tous",
+     "replique": "L’eau ne menace pas le refuge du relais.",
+     "contenu": [
+      {
+       "type": "avis",
+       "attribut": "menace",
+       "sujet": "Refuge du relais",
+       "valeur": "non"
+      }
+     ]
+    }
+   ],
+   "refus": [],
+   "texte": "Tu dis à tous : « l'eau ne menace pas le refuge du relais »\nAubin acquiesce d’un bref signe de tête : « Peut-être. Je surveille l’eau, mais je ne peux pas en être sûr. » Ilse reprend doucement : « Tant mieux si le refuge est à l’abri ; j’espère que l’eau ne montera pas jusque-là. » Gorm répond d’un ton mesuré : « Je l’espère aussi. Gardons tout de même l’œil sur les vannes. »",
+   "etat": {
+    "salle": "antichambre",
+    "position": [
+     2,
+     3
+    ],
+    "orientation": "sud-est",
+    "dixiemes": 93000,
+    "jets": 0,
+    "porte": [
+     "briquet",
+     "cire",
+     "couteau",
+     "lanterne"
+    ],
+    "promesses_joueur": [],
+    "personnages": {
+     "marchand": [
+      "antichambre",
+      [
+       3,
+       5
+      ]
+     ],
+     "brune": [
+      "echoppe",
+      [
+       1,
+       1
+      ]
+     ],
+     "ilse": [
+      "antichambre",
+      [
+       3,
+       4
+      ]
+     ],
+     "aubin": [
+      "antichambre",
+      [
+       2,
+       4
+      ]
+     ]
+    },
+    "passages": {},
+    "bloquants": []
+   },
+   "appels": 4,
+   "fil": [
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0e784b1967650f9c016ae35457774481919302806378ad0e6b",
+       "call_id": "call_cb58f52e39f642e3b691cac626eb3267",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"parole_joueur\",\"texte\":\"\",\"faits\":[\"parole_prevue\",\"paroles_entendues\",\"joueur.salle_nom\"],\"proposition\":{\"operations_demandees\":{\"localisation\":false,\"avis\":true,\"proposition\":false,\"affirmation\":false,\"demande\":false,\"passage\":false,\"aveu\":false,\"nom\":false,\"qui\":false,\"reclamer\":false,\"ressource\":false},\"personnage\":\"tous\",\"replique\":\"L’eau ne menace pas le refuge du relais.\",\"contenu\":[{\"type\":\"avis\",\"attribut\":\"menace\",\"sujet\":\"Refuge du relais\",\"valeur\":\"non\"}]}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "auditer_action",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_01230c147b2b8cba016ae3545a50a48191af762c9a93699cc3",
+       "call_id": "call_d43fe8f1aaab442a893b7cd06f8c3419",
+       "namespace": "donjon",
+       "name": "auditer_action",
+       "arguments": "{\"contenu_conforme\":true,\"motif\":\"La réplique exprime bien la prévision que l’eau ne menace pas le refuge du relais ; elle correspond à l’avis de menace évalué à non.\",\"perimetre\":\"sens\",\"operations_demandees\":{\"localisation\":false,\"avis\":true,\"proposition\":false,\"affirmation\":false,\"demande\":false,\"passage\":false,\"aveu\":false,\"nom\":false,\"qui\":false,\"reclamer\":false,\"ressource\":false}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "couverture de l'action",
+     "modele": "gpt-6-luna",
+     "revision": 2,
+     "intention": "à tous : l'eau ne menace pas le refuge du relais",
+     "rapport": {
+      "contenu_conforme": true,
+      "motif": "La réplique exprime bien la prévision que l’eau ne menace pas le refuge du relais ; elle correspond à l’avis de menace évalué à non.",
+      "perimetre": "sens",
+      "operations_demandees": {
+       "localisation": false,
+       "avis": true,
+       "proposition": false,
+       "affirmation": false,
+       "demande": false,
+       "passage": false,
+       "aveu": false,
+       "nom": false,
+       "qui": false,
+       "reclamer": false,
+       "ressource": false
+      }
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0ff5abeba8099879016ae3545dab0881919e3eccf541d4340d",
+       "call_id": "call_7437c1bcd98a4a5da8a1411e83da939a",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"dialogue\",\"texte\":\"Aubin acquiesce d’un bref signe de tête : « Peut-être. Je surveille l’eau, mais je ne peux pas en être sûr. » Ilse reprend doucement : « Tant mieux si le refuge est à l’abri ; j’espère que l’eau ne montera pas jusque-là. » Gorm répond d’un ton mesuré : « Je l’espère aussi. Gardons tout de même l’œil sur les vannes. »\",\"faits\":[\"Aubin, vieux passeur retient ton avis sur la menace de l'eau.\",\"Ilse, meunière évacuée retient ton avis sur la menace de l'eau.\",\"Gorm, gardien du relais retient ton avis sur la menace de l'eau.\"] ,\"proposition\":null}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {
+       "conversation_validee": {}
+      }
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "auditer_narration",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0124544a661601dd016ae35462ef9c8191a879d03c31ec9120",
+       "call_id": "call_c077f92bfdfd4e22bfc1232e32cec5b6",
+       "namespace": "donjon",
+       "name": "auditer_narration",
+       "arguments": "{\"segments\":{\"0\":{\"nature\":\"parole\",\"sources\":[\"objet:aubin\",\"conversation_validee\"],\"portee_mecanique\":\"etablie\",\"locuteur\":\"aubin\",\"citation\":\"Peut-être. Je surveille l’eau, mais je ne peux pas en être sûr.\",\"presentation\":\"\",\"rappels\":[],\"eclairages\":[]},\"1\":{\"nature\":\"parole\",\"sources\":[\"objet:ilse\",\"conversation_validee\"],\"portee_mecanique\":\"etablie\",\"locuteur\":\"ilse\",\"citation\":\"Tant mieux si le refuge est à l’abri ; j’espère que l’eau ne montera pas jusque-là.\",\"presentation\":\"\",\"rappels\":[],\"eclairages\":[]},\"2\":{\"nature\":\"parole\",\"sources\":[\"objet:marchand\",\"conversation_validee\"],\"portee_mecanique\":\"etablie\",\"locuteur\":\"marchand\",\"citation\":\"Je l’espère aussi. Gardons tout de même l’œil sur les vannes.\",\"presentation\":\"\",\"rappels\":[],\"eclairages\":[]}}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {
+       "conversation_validee": {}
+      }
+     }
+    }
+   ]
+  }
+ },
+ {
+  "campagne": "230e7b3",
+  "id": "crypte/9",
+  "tour": {
+   "saisie": "j'écoute à la porte pour savoir s'il y a quelque chose derrière",
+   "propositions": [
+    {
+     "action": "ecouter",
+     "cible": "",
+     "outil": "",
+     "methode": "simple",
+     "difficulte": 0,
+     "justification": ""
+    },
+    {
+     "action": "ecouter",
+     "cible": "porte",
+     "outil": "",
+     "methode": "simple",
+     "difficulte": 0,
+     "justification": ""
+    }
+   ],
+   "refus": [
+    "La manœuvre proposée ne couvre pas la demande : La demande vise à écouter à la porte de la crypte ; la perception prévue n’a pas de cible.",
+    "Écouter se fait sur place, sans cible ni outil : on tend l'oreille."
+   ],
+   "texte": "Écouter se fait sur place, sans cible ni outil : on tend l'oreille.",
+   "etat": {
+    "salle": "antichambre",
+    "position": [
+     4,
+     0
+    ],
+    "orientation": "nord",
+    "dixiemes": 85,
+    "jets": 0,
+    "porte": [
+     "briquet",
+     "cire",
+     "couteau",
+     "lanterne"
+    ],
+    "promesses_joueur": [],
+    "personnages": {
+     "marchand": [
+      "echoppe",
+      [
+       1,
+       1
+      ]
+     ]
+    },
+    "passages": {},
+    "bloquants": []
+   },
+   "appels": 3,
+   "fil": [
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0445d1840697d633016ae353150f0c8191b74b96cbb697ff89",
+       "call_id": "call_46b47f6a5d21486e8bf139fc4db6b3fc",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"action\",\"texte\":\"\",\"faits\":[\"objet:porte\",\"joueur.salle\",\"perception.etat\"],\"proposition\":{\"action\":\"ecouter\",\"cible\":\"\",\"outil\":\"\",\"methode\":\"simple\",\"difficulte\":0,\"justification\":\"Tu écoutes à la porte pour tenter de percevoir ce qui se passe derrière.\"}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "auditer_action",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_07e9378508d83155016ae35318724c8191ad88264e85d8933d",
+       "call_id": "call_a0de7a0f61604f6fb861b3e2b0e3c01c",
+       "namespace": "donjon",
+       "name": "auditer_action",
+       "arguments": "{\"conforme\":false,\"motif\":\"La demande vise à écouter à la porte de la crypte ; la perception prévue n’a pas de cible.\"}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "couverture de l'action",
+     "modele": "gpt-6-luna",
+     "revision": 6,
+     "intention": "j'écoute à la porte pour savoir s'il y a quelque chose derrière",
+     "rapport": {
+      "conforme": false,
+      "motif": "La demande vise à écouter à la porte de la crypte ; la perception prévue n’a pas de cible."
+     }
+    },
+    {
+     "etape": "validation",
+     "modele": "gpt-6-luna",
+     "intention": "j'écoute à la porte pour savoir s'il y a quelque chose derrière",
+     "revision": 6,
+     "tentative": 1,
+     "proposition_refusee": {
+      "action": "ecouter",
+      "cible": "",
+      "outil": "",
+      "methode": "simple",
+      "difficulte": 0,
+      "justification": ""
+     },
+     "obstacle": "La manœuvre proposée ne couvre pas la demande : La demande vise à écouter à la porte de la crypte ; la perception prévue n’a pas de cible.",
+     "consigne": "Corrige uniquement la proposition de la même intention, sans modifier les faits ni abandonner une partie de l'intention. Sinon renvoie-la telle quelle : le moteur dira ce qui manque au joueur.",
+     "attendu": "proposition, reçu « Tendre l'oreille quelques minutes. (action ecouter) » ; selon l'auditeur (verdict non conforme) : « La demande vise à écouter à la porte de la crypte ; la perception prévue n’a pas de cible. » ; accepté : le même geste, dont les changements durables sont ceux de la demande : retire celui qu'elle ne demande pas, ou ajoute l'étape qui manque"
+    },
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0a59f9c2dafad7ee016ae3531cc1a48191b9cc2de94d12cfff",
+       "call_id": "call_7a028f05f52c439ea753fb994e3cc498",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"action\",\"texte\":\"\",\"faits\":[\"objet:porte\",\"objet:serrure\",\"objet:porte.localisation\",\"joueur.salle\"],\"proposition\":{\"action\":\"ecouter\",\"cible\":\"porte\",\"outil\":\"\",\"methode\":\"simple\",\"difficulte\":0,\"justification\":\"Tu tends l’oreille près de la porte de la crypte pour percevoir ce qui vient de l’autre côté.\"}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "validation",
+     "modele": "gpt-6-luna",
+     "intention": "j'écoute à la porte pour savoir s'il y a quelque chose derrière",
+     "revision": 6,
+     "tentative": 2,
+     "proposition_refusee": {
+      "action": "ecouter",
+      "cible": "porte",
+      "outil": "",
+      "methode": "simple",
+      "difficulte": 0,
+      "justification": ""
+     },
+     "obstacle": "Écouter se fait sur place, sans cible ni outil : on tend l'oreille.",
+     "consigne": "Corrige uniquement la proposition de la même intention, sans modifier les faits ni abandonner une partie de l'intention. Sinon renvoie-la telle quelle : le moteur dira ce qui manque au joueur.",
+     "attendu": "ecouter : cible et outil vides."
+    }
+   ]
+  }
+ },
+ {
+  "campagne": "230e7b3",
+  "id": "crypte/10",
+  "tour": {
+   "saisie": "je glisse mon couteau sous la tête de l'axe supérieur et fais levier",
+   "propositions": [
+    {
+     "action": "detacher",
+     "cible": "axe_haut",
+     "outil": "couteau",
+     "methode": "levier",
+     "difficulte": 17,
+     "justification": ""
+    }
+   ],
+   "refus": [],
+   "texte": "\nTentative proposée :\nLibérer l'axe du gond supérieur avec le couteau à lame fine.\nTest DEX (+3), outil +0, difficulté 17.\nRisque sur un 1 naturel : outil endommagé.\nDurée : 3 min. Bruit : 1.\n« tenter » lance l'ensemble ; « annuler » abandonne sans exécuter aucune étape.",
+   "etat": {
+    "salle": "antichambre",
+    "position": [
+     4,
+     0
+    ],
+    "orientation": "nord",
+    "dixiemes": 85,
+    "jets": 0,
+    "porte": [
+     "briquet",
+     "cire",
+     "couteau",
+     "lanterne"
+    ],
+    "promesses_joueur": [],
+    "personnages": {
+     "marchand": [
+      "echoppe",
+      [
+       1,
+       1
+      ]
+     ]
+    },
+    "passages": {},
+    "bloquants": []
+   },
+   "appels": 2,
+   "fil": [
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_06186d6da54e5930016ae353201098819194eb486785deb25a",
+       "call_id": "call_6d117f26ad9a413e9ee88b16aa64b2bd",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"action\",\"texte\":\"\",\"faits\":[\"objet:axe_haut\",\"objet:couteau\",\"objet:porte\"],\"proposition\":{\"action\":\"detacher\",\"cible\":\"axe_haut\",\"outil\":\"couteau\",\"methode\":\"levier\",\"difficulte\":17,\"justification\":\"Tu fais levier avec la lame fine sous la tête de l’axe ; outil fragile et risque de l’endommager.\"}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "auditer_action",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0cc90e77ff160ed4016ae3532295488191a5dcd72c0b4e3a06",
+       "call_id": "call_7fb6fa3c78cf4be7b872d8953c2e506a",
+       "namespace": "donjon",
+       "name": "auditer_action",
+       "arguments": "{\"conforme\":true,\"motif\":\"Le plan tente de libérer l’axe supérieur avec le couteau, ce qui correspond au levier demandé. Aucun changement durable supplémentaire n’est ajouté.\"}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "couverture de l'action",
+     "modele": "gpt-6-luna",
+     "revision": 6,
+     "intention": "je glisse mon couteau sous la tête de l'axe supérieur et fais levier",
+     "rapport": {
+      "conforme": true,
+      "motif": "Le plan tente de libérer l’axe supérieur avec le couteau, ce qui correspond au levier demandé. Aucun changement durable supplémentaire n’est ajouté."
+     }
+    }
+   ]
+  }
+ },
+ {
+  "campagne": "230e7b3",
+  "id": "crypte/26",
+  "tour": {
+   "saisie": "J'attends que Gorm ait le dos tourné pour prendre discrètement les crochets",
+   "propositions": [
+    {
+     "action": "composer",
+     "justification": "",
+     "etapes": [
+      {
+       "operation": "patienter",
+       "cible": "",
+       "destination": "",
+       "outil": "",
+       "methode": "simple",
+       "difficulte": 0
+      },
+      {
+       "operation": "deplacer",
+       "cible": "crochets",
+       "destination": "joueur",
+       "outil": "",
+       "methode": "discret",
+       "difficulte": 0
+      }
+     ]
+    }
+   ],
+   "refus": [
+    "Approche-toi de la trousse de crochets : il faut être juste à côté pour agir."
+   ],
+   "texte": "Approche-toi de la trousse de crochets : il faut être juste à côté pour agir.",
+   "etat": {
+    "salle": "echoppe",
+    "position": [
+     2,
+     0
+    ],
+    "orientation": "ouest",
+    "dixiemes": 300,
+    "jets": 0,
+    "porte": [
+     "briquet",
+     "cire",
+     "couteau",
+     "lanterne"
+    ],
+    "promesses_joueur": [],
+    "personnages": {
+     "marchand": [
+      "echoppe",
+      [
+       1,
+       1
+      ]
+     ]
+    },
+    "passages": {},
+    "bloquants": []
+   },
+   "appels": 1,
+   "fil": [
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_06645afceb720fab016ae35351c138819186bb9b00991fc59b",
+       "call_id": "call_8deba7548e48408b8c6ee20fba1cfd12",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"action\",\"texte\":\"\",\"faits\":[\"objet:crochets\",\"souvenirs_visuels\",\"objet:marchand\",\"joueur.orientation\"],\"proposition\":{\"action\":\"composer\",\"justification\":\"Tu guettes une occasion, puis tentes de prendre discrètement la trousse appartenant à Gorm ; il reste vigilant et peut te surprendre.\",\"etapes\":[{\"operation\":\"patienter\",\"cible\":\"\",\"destination\":\"\",\"outil\":\"\",\"methode\":\"simple\",\"difficulte\":0},{\"operation\":\"deplacer\",\"cible\":\"crochets\",\"destination\":\"joueur\",\"outil\":\"\",\"methode\":\"discret\",\"difficulte\":0}]}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "validation",
+     "modele": "gpt-6-luna",
+     "intention": "J'attends que Gorm ait le dos tourné pour prendre discrètement les crochets",
+     "revision": 19,
+     "tentative": 1,
+     "proposition_refusee": {
+      "action": "composer",
+      "justification": "",
+      "etapes": [
+       {
+        "operation": "patienter",
+        "cible": "",
+        "destination": "",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0
+       },
+       {
+        "operation": "deplacer",
+        "cible": "crochets",
+        "destination": "joueur",
+        "outil": "",
+        "methode": "discret",
+        "difficulte": 0
+       }
+      ]
+     },
+     "obstacle": "Approche-toi de la trousse de crochets : il faut être juste à côté pour agir.",
+     "consigne": "Corrige uniquement la proposition de la même intention, sans modifier les faits ni abandonner une partie de l'intention. Sinon renvoie-la telle quelle : le moteur dira ce qui manque au joueur.",
+     "attendu": "étape 2 (deplacer) : cible = crochets : hors de portée de main ; position = (5, 11) ; le joueur doit s'approcher."
+    }
+   ]
+  }
+ },
+ {
+  "campagne": "304",
+  "id": "crypte/41",
+  "tour": {
+   "saisie": "qu'est-ce qu'il y a derrière la porte, selon toi ?",
+   "propositions": [
+    {
+     "operations_demandees": {
+      "localisation": false,
+      "avis": true,
+      "proposition": false,
+      "affirmation": false,
+      "demande": false,
+      "passage": false,
+      "aveu": false,
+      "nom": false,
+      "qui": false,
+      "reclamer": false,
+      "ressource": false
+     },
+     "personnage": "personne",
+     "replique": "Qu’est-ce qu’il y a derrière la porte, selon toi ?",
+     "contenu": [
+      {
+       "type": "propos",
+       "sujet": "",
+       "attribut": "",
+       "valeur": ""
+      }
+     ]
+    },
+    {
+     "operations_demandees": {
+      "localisation": false,
+      "avis": true,
+      "proposition": false,
+      "affirmation": false,
+      "demande": false,
+      "passage": false,
+      "aveu": false,
+      "nom": false,
+      "qui": false,
+      "reclamer": false,
+      "ressource": false
+     },
+     "personnage": "personne",
+     "replique": "Qu’est-ce qu’il y a derrière la porte, selon toi ?",
+     "contenu": [
+      {
+       "type": "avis",
+       "attribut": "menace",
+       "sujet": "porte de la crypte",
+       "valeur": "oui"
+      }
+     ]
+    }
+   ],
+   "refus": [
+    "Le contenu proposé ne porte pas ce que tu demandes."
+   ],
+   "texte": "Tu dis : « qu'est-ce qu'il y a derrière la porte, selon toi ? »\nTa question résonne dans l’antichambre, mais aucune réponse ne te parvient. La porte de chêne reste fermée et verrouillée ; tu ne sais pas ce qui se trouve derrière elle.",
+   "etat": {
+    "salle": "antichambre",
+    "position": [
+     4,
+     0
+    ],
+    "orientation": "nord",
+    "dixiemes": 4715,
+    "jets": 1,
+    "porte": [
+     "briquet",
+     "cire",
+     "couteau",
+     "lanterne",
+     "pied_de_biche"
+    ],
+    "promesses_joueur": [],
+    "personnages": {
+     "marchand": [
+      "echoppe",
+      [
+       1,
+       1
+      ]
+     ]
+    },
+    "passages": {},
+    "bloquants": []
+   },
+   "appels": 5,
+   "fil": [
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_010cbdaf94e417a1016ae3729da6bc81919682686bfcfa9900",
+       "call_id": "call_dfb77effc0ec458bb39af002a0a2750f",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"parole_joueur\",\"texte\":\"\",\"faits\":[],\"proposition\":{\"operations_demandees\":{\"localisation\":false,\"avis\":true,\"proposition\":false,\"affirmation\":false,\"demande\":false,\"passage\":false,\"aveu\":false,\"nom\":false,\"qui\":false,\"reclamer\":false,\"ressource\":false},\"personnage\":\"personne\",\"replique\":\"Qu’est-ce qu’il y a derrière la porte, selon toi ?\",\"contenu\":[{\"type\":\"propos\",\"sujet\":\"\",\"attribut\":\"\",\"valeur\":\"\"}]}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "validation",
+     "modele": "gpt-6-luna",
+     "intention": "qu'est-ce qu'il y a derrière la porte, selon toi ?",
+     "revision": 33,
+     "tentative": 1,
+     "proposition_refusee": {
+      "operations_demandees": {
+       "localisation": false,
+       "avis": true,
+       "proposition": false,
+       "affirmation": false,
+       "demande": false,
+       "passage": false,
+       "aveu": false,
+       "nom": false,
+       "qui": false,
+       "reclamer": false,
+       "ressource": false
+      },
+      "personnage": "personne",
+      "replique": "Qu’est-ce qu’il y a derrière la porte, selon toi ?",
+      "contenu": [
+       {
+        "type": "propos",
+        "sujet": "",
+        "attribut": "",
+        "valeur": ""
+       }
+      ]
+     },
+     "obstacle": "Le contenu proposé ne porte pas ce que tu demandes.",
+     "consigne": "Corrige les destinataires, les mots et le contenu de la parole pour respecter la saisie ; elle ne nomme que ce que Corvus connaît d'après les faits, le message et la conversation. Rien n'est encore dit.",
+     "attendu": "proposition.contenu, reçu « [{\"type\": \"propos\", \"sujet\": \"\", \"attribut\": \"\", \"valeur\": \"\"}] » ; selon l'auditeur (verdict opération demandée absente) : « avis » ; accepté : avis : Prévoir qu'une menace atteindra ou épargnera un lieu : annoncer une évolution future est un avis, même formulé comme une certitude, sans marque d'opinion ni échéance explicite. sujet est la référence publique du lieu connu de Corvus, attribut menace, valeur oui (menacé) ou non (épargné). Le prédicat disponible évalue la menace d'eau ; son horizon de calcul est fixé par le moteur, il n'est pas une condition à exprimer dans la parole. Le contenu transmet la prévision du joueur, jamais un fait établi ; sa conviction est calculée par le moteur sur ses perceptions."
+    },
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_00d80b2c420a9adf016ae372a029748191bcf3d6893e698f73",
+       "call_id": "call_d942e44ebf5d429fbff2abd0060db3a3",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"parole_joueur\",\"texte\":\"\",\"faits\":[],\"proposition\":{\"operations_demandees\":{\"localisation\":false,\"avis\":true,\"proposition\":false,\"affirmation\":false,\"demande\":false,\"passage\":false,\"aveu\":false,\"nom\":false,\"qui\":false,\"reclamer\":false,\"ressource\":false},\"personnage\":\"personne\",\"replique\":\"Qu’est-ce qu’il y a derrière la porte, selon toi ?\",\"contenu\":[{\"type\":\"avis\",\"attribut\":\"menace\",\"sujet\":\"porte de la crypte\",\"valeur\":\"oui\"}]}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "auditer_action",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_09058a1b1c4f2bf3016ae372a387a481919ae5fa65ea5a2d84",
+       "call_id": "call_d20bd449f5b74051a2fc4ab66a0e6bed",
+       "namespace": "donjon",
+       "name": "auditer_action",
+       "arguments": "{\"contenu_conforme\":true,\"motif\":\"La réplique demande bien ce qu'il y a derrière la porte et sollicite l'avis de l'interlocuteur.\",\"perimetre\":\"sens\",\"operations_demandees\":{\"localisation\":false,\"avis\":false,\"proposition\":false,\"affirmation\":false,\"demande\":false,\"passage\":false,\"aveu\":false,\"nom\":false,\"qui\":false,\"reclamer\":false,\"ressource\":false}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "couverture de l'action",
+     "modele": "gpt-6-luna",
+     "revision": 33,
+     "intention": "qu'est-ce qu'il y a derrière la porte, selon toi ?",
+     "rapport": {
+      "contenu_conforme": true,
+      "motif": "La réplique demande bien ce qu'il y a derrière la porte et sollicite l'avis de l'interlocuteur.",
+      "perimetre": "sens",
+      "operations_demandees": {
+       "localisation": false,
+       "avis": false,
+       "proposition": false,
+       "affirmation": false,
+       "demande": false,
+       "passage": false,
+       "aveu": false,
+       "nom": false,
+       "qui": false,
+       "reclamer": false,
+       "ressource": false
+      }
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0301e920373dd762016ae372a604788191b6fdb996b89415ad",
+       "call_id": "call_5bd63205b76d4dff934d71d99bb245f9",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"dialogue\",\"texte\":\"Ta question résonne dans l’antichambre, mais aucune réponse ne te parvient. La porte de chêne reste fermée et verrouillée ; tu ne sais pas ce qui se trouve derrière elle.\",\"faits\":[\"conversation_validee.issue\",\"objet:porte\",\"objet:serrure\",\"salle\"] ,\"proposition\":null}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {
+       "conversation_validee": {}
+      }
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "auditer_narration",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_056ca6fe484fc8fb016ae372a8a9a481918be968f2e75e1256",
+       "call_id": "call_85d7d09e711b4cdbaa117a79976a535a",
+       "namespace": "donjon",
+       "name": "auditer_narration",
+       "arguments": "{\"segments\":{\"0\":{\"nature\":\"mecanique\",\"sources\":[\"conversation_validee\"],\"portee_mecanique\":\"etablie\",\"rappels\":[],\"eclairages\":[]},\"1\":{\"nature\":\"mecanique\",\"sources\":[\"objet:porte\",\"perception\"],\"portee_mecanique\":\"etablie\",\"rappels\":[],\"eclairages\":[]}}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {
+       "conversation_validee": {}
+      }
+     }
+    }
+   ]
+  }
+ },
+ {
+  "campagne": "311",
+  "id": "crypte/26",
+  "tour": {
+   "saisie": "J'attends que Gorm ait le dos tourné pour prendre discrètement les crochets",
+   "propositions": [
+    {
+     "action": "voler",
+     "cible": "crochets",
+     "outil": "",
+     "methode": "simple",
+     "difficulte": 0,
+     "justification": ""
+    }
+   ],
+   "refus": [
+    "Approche-toi de la trousse de crochets : il faut être juste à côté pour agir."
+   ],
+   "texte": "Approche-toi de la trousse de crochets : il faut être juste à côté pour agir.",
+   "etat": {
+    "salle": "echoppe",
+    "position": [
+     2,
+     0
+    ],
+    "orientation": "ouest",
+    "dixiemes": 2100,
+    "jets": 0,
+    "porte": [
+     "briquet",
+     "cire",
+     "couteau",
+     "lanterne"
+    ],
+    "promesses_joueur": [],
+    "personnages": {
+     "marchand": [
+      "echoppe",
+      [
+       1,
+       1
+      ]
+     ]
+    },
+    "passages": {},
+    "bloquants": []
+   },
+   "appels": 2,
+   "fil": [
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0621ce6d75a88592016ae387c12f3881918238da7202aad775",
+       "call_id": "call_69da621a444f43ce88c090a3db070add",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"action\",\"texte\":\"\",\"faits\":[],\"proposition\":{\"action\":\"voler\",\"cible\":\"crochets\",\"outil\":\"\",\"methode\":\"simple\",\"difficulte\":0,\"justification\":\"Attendre que Gorm ait le dos tourné pour prendre discrètement la trousse de crochets.\"}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "auditer_action",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0c41bb1e71a61430016ae387c29b248191bc45d24ef9966042",
+       "call_id": "call_71184eebbec944dbbede15c325c6abc0",
+       "namespace": "donjon",
+       "name": "auditer_action",
+       "arguments": "{\"conforme\":true,\"motif\":\"La proposition vise bien à prendre les crochets. Attendre que Gorm ait le dos tourné et agir discrètement relèvent de la manière du geste ; cela n'ajoute pas un changement d'état durable à la demande.\",\"perimetre\":\"sens\"}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "couverture de l'action",
+     "modele": "gpt-6-luna",
+     "revision": 20,
+     "intention": "J'attends que Gorm ait le dos tourné pour prendre discrètement les crochets",
+     "rapport": {
+      "conforme": true,
+      "motif": "La proposition vise bien à prendre les crochets. Attendre que Gorm ait le dos tourné et agir discrètement relèvent de la manière du geste ; cela n'ajoute pas un changement d'état durable à la demande.",
+      "perimetre": "sens"
+     }
+    },
+    {
+     "etape": "validation",
+     "modele": "gpt-6-luna",
+     "intention": "J'attends que Gorm ait le dos tourné pour prendre discrètement les crochets",
+     "revision": 20,
+     "tentative": 1,
+     "proposition_refusee": {
+      "action": "voler",
+      "cible": "crochets",
+      "outil": "",
+      "methode": "simple",
+      "difficulte": 0,
+      "justification": ""
+     },
+     "obstacle": "Approche-toi de la trousse de crochets : il faut être juste à côté pour agir.",
+     "consigne": "Refus public du moteur ; intention conservée.",
+     "attendu": "cible = crochets : hors de portée de main ; position = (5, 11) ; le joueur doit s'approcher."
+    }
+   ]
+  }
+ },
+ {
+  "campagne": "311",
+  "id": "crypte/41",
+  "tour": {
+   "saisie": "qu'est-ce qu'il y a derrière la porte, selon toi ?",
+   "propositions": [
+    {
+     "operations_demandees": {
+      "localisation": false,
+      "avis": true,
+      "proposition": false,
+      "affirmation": false,
+      "demande": false,
+      "passage": false,
+      "aveu": false,
+      "nom": false,
+      "qui": false,
+      "reclamer": false,
+      "ressource": false
+     },
+     "personnage": "personne",
+     "replique": "Qu'y a-t-il derrière la porte, selon toi ?",
+     "contenu": [
+      {
+       "type": "avis",
+       "attribut": "menace",
+       "sujet": "porte",
+       "valeur": "non"
+      }
+     ]
+    }
+   ],
+   "refus": [
+    "Corvus ne connaît pas ce lieu."
+   ],
+   "texte": "Tu ne connais pas ce qu’il y a derrière la porte : elle est fermée et verrouillée, et tu n’as pas encore exploré la crypte. Rien dans les faits connus ne permet de l’affirmer.",
+   "etat": {
+    "salle": "antichambre",
+    "position": [
+     4,
+     0
+    ],
+    "orientation": "nord",
+    "dixiemes": 4715,
+    "jets": 1,
+    "porte": [
+     "briquet",
+     "cire",
+     "couteau",
+     "lanterne",
+     "pied_de_biche"
+    ],
+    "promesses_joueur": [],
+    "personnages": {
+     "marchand": [
+      "echoppe",
+      [
+       1,
+       1
+      ]
+     ]
+    },
+    "passages": {},
+    "bloquants": []
+   },
+   "appels": 3,
+   "fil": [
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_08b991d98ddd4951016ae387c731608191ae2f376d4e9a944a",
+       "call_id": "call_f49eef512ef84bb1badfefeaa6bdac2e",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"parole_joueur\",\"texte\":\"\",\"faits\":[],\"proposition\":{\"operations_demandees\":{\"localisation\":false,\"avis\":true,\"proposition\":false,\"affirmation\":false,\"demande\":false,\"passage\":false,\"aveu\":false,\"nom\":false,\"qui\":false,\"reclamer\":false,\"ressource\":false},\"personnage\":\"personne\",\"replique\":\"Qu'y a-t-il derrière la porte, selon toi ?\",\"contenu\":[{\"type\":\"avis\",\"attribut\":\"menace\",\"sujet\":\"porte\",\"valeur\":\"non\"}]}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "validation",
+     "modele": "gpt-6-luna",
+     "intention": "qu'est-ce qu'il y a derrière la porte, selon toi ?",
+     "revision": 33,
+     "tentative": 1,
+     "proposition_refusee": {
+      "operations_demandees": {
+       "localisation": false,
+       "avis": true,
+       "proposition": false,
+       "affirmation": false,
+       "demande": false,
+       "passage": false,
+       "aveu": false,
+       "nom": false,
+       "qui": false,
+       "reclamer": false,
+       "ressource": false
+      },
+      "personnage": "personne",
+      "replique": "Qu'y a-t-il derrière la porte, selon toi ?",
+      "contenu": [
+       {
+        "type": "avis",
+        "attribut": "menace",
+        "sujet": "porte",
+        "valeur": "non"
+       }
+      ]
+     },
+     "obstacle": "Corvus ne connaît pas ce lieu.",
+     "consigne": "Corrige les destinataires, les mots et le contenu de la parole pour respecter la saisie ; elle ne nomme que ce que Corvus connaît d'après les faits, le message et la conversation. Rien n'est encore dit.",
+     "attendu": "contenu[0].sujet : salle connue parmi ['antichambre', 'echoppe'] ; reçu 'porte'."
+    },
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_053f7f9232d6658a016ae387ca29708191953d00204f43ac5b",
+       "call_id": "call_b0ab80e59e2e4a68bb2395b9adfabe1b",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"dialogue\",\"texte\":\"Tu ne connais pas ce qu’il y a derrière la porte : elle est fermée et verrouillée, et tu n’as pas encore exploré la crypte. Rien dans les faits connus ne permet de l’affirmer.\",\"faits\":[\"retour_moteur.obstacle\",\"objet:porte\",\"scenario.objectif\"],\"proposition\":null}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "auditer_narration",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_075b54a1ac4f9872016ae387cc08a48191ae3a1dd052381b74",
+       "call_id": "call_b42f74409db542678e04be32b6766cc4",
+       "namespace": "donjon",
+       "name": "auditer_narration",
+       "arguments": "{\"segments\":{\"0\":{\"nature\":\"mecanique\",\"sources\":[\"objet:porte\",\"scenario\",\"attestations\"],\"portee_mecanique\":\"etablie\",\"rappels\":[],\"eclairages\":[]},\"1\":{\"nature\":\"neutre\",\"sources\":[],\"portee_mecanique\":\"aucune\",\"rappels\":[],\"eclairages\":[]}}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    }
+   ]
+  }
+ },
+ {
+  "campagne": "311",
+  "id": "soir-appel/5",
+  "tour": {
+   "saisie": "je paie Aubin trois pièces pour une de ses planches",
+   "propositions": [
+    {
+     "operations_demandees": {
+      "localisation": false,
+      "avis": false,
+      "proposition": true,
+      "affirmation": false,
+      "demande": false,
+      "passage": false,
+      "aveu": false,
+      "nom": false,
+      "qui": false,
+      "reclamer": false,
+      "ressource": false
+     },
+     "personnage": "aubin",
+     "replique": "Je te paie trois pièces pour une de tes planches.",
+     "contenu": [
+      {
+       "type": "proposition",
+       "demande": {
+        "type": "part",
+        "objet": "planches"
+       },
+       "contrepartie": {
+        "type": "pieces",
+        "montant": 3
+       }
+      }
+     ]
+    }
+   ],
+   "refus": [],
+   "texte": "Tu dis à Aubin : « Je te paie trois pièces pour une de tes planches. »\nAubin garde son visage fermé et secoue la tête. « Non. Ces planches ne sont pas à vendre. »",
+   "etat": {
+    "salle": "antichambre",
+    "position": [
+     1,
+     3
+    ],
+    "orientation": "sud",
+    "dixiemes": 60,
+    "jets": 2,
+    "porte": [
+     "briquet",
+     "cire",
+     "couteau",
+     "lanterne"
+    ],
+    "promesses_joueur": [],
+    "personnages": {
+     "marchand": [
+      "echoppe",
+      [
+       4,
+       1
+      ]
+     ],
+     "brune": [
+      "antichambre",
+      [
+       0,
+       3
+      ]
+     ],
+     "ilse": [
+      "antichambre",
+      [
+       3,
+       5
+      ]
+     ],
+     "aubin": [
+      "antichambre",
+      [
+       1,
+       4
+      ]
+     ]
+    },
+    "passages": {},
+    "bloquants": []
+   },
+   "appels": 4,
+   "fil": [
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0135a646fa9d3fdd016ae3885b61f08191b037b49f859ac724",
+       "call_id": "call_df2a0ce472a944318e1d4ee671f5347b",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"parole_joueur\",\"texte\":\"\",\"faits\":[],\"proposition\":{\"operations_demandees\":{\"localisation\":false,\"avis\":false,\"proposition\":true,\"affirmation\":false,\"demande\":false,\"passage\":false,\"aveu\":false,\"nom\":false,\"qui\":false,\"reclamer\":false,\"ressource\":false},\"personnage\":\"aubin\",\"replique\":\"Je te paie trois pièces pour une de tes planches.\",\"contenu\":[{\"type\":\"proposition\",\"demande\":{\"type\":\"part\",\"objet\":\"planches\"},\"contrepartie\":{\"type\":\"pieces\",\"montant\":3}}]}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "auditer_action",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_02e01ec99c600e89016ae38862cc74819198f557895e625005",
+       "call_id": "call_4fa01d8cb8204b0ab766799bf6efeb12",
+       "namespace": "donjon",
+       "name": "auditer_action",
+       "arguments": "{\"contenu_conforme\":true,\"motif\":\"La réplique directe « Je te paie trois pièces pour une de tes planches » transpose fidèlement la demande : une planche d’Aubin contre trois pièces.\",\"perimetre\":\"sens\",\"operations_demandees\":{\"localisation\":false,\"avis\":false,\"proposition\":true,\"affirmation\":false,\"demande\":true,\"passage\":false,\"aveu\":false,\"nom\":false,\"qui\":false,\"reclamer\":false,\"ressource\":false}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "couverture de l'action",
+     "modele": "gpt-6-luna",
+     "revision": 5,
+     "intention": "je paie Aubin trois pièces pour une de ses planches",
+     "rapport": {
+      "contenu_conforme": true,
+      "motif": "La réplique directe « Je te paie trois pièces pour une de tes planches » transpose fidèlement la demande : une planche d’Aubin contre trois pièces.",
+      "perimetre": "sens",
+      "operations_demandees": {
+       "localisation": false,
+       "avis": false,
+       "proposition": true,
+       "affirmation": false,
+       "demande": true,
+       "passage": false,
+       "aveu": false,
+       "nom": false,
+       "qui": false,
+       "reclamer": false,
+       "ressource": false
+      }
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_097131704e44ee34016ae388667a508191a2048d9d55345b21",
+       "call_id": "call_80da9f59f8bb422a9fcdbbf46e97816e",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"dialogue\",\"texte\":\"Aubin garde son visage fermé et secoue la tête. « Non. Ces planches ne sont pas à vendre. »\",\"faits\":[\"Aubin, vieux passeur refuse l'échange : tu ne l’as pas convaincu.\"],\"proposition\":null}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {
+       "conversation_validee": {}
+      }
+     }
+    },
+    {
+     "etape": "appel",
+     "fonction": "auditer_narration",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_01ee1d089a727c0e016ae38868621c81918ddccc85ddc935c5",
+       "call_id": "call_ee37980f34f74df3bbf6e00338f80335",
+       "namespace": "donjon",
+       "name": "auditer_narration",
+       "arguments": "{\"segments\":{\"0\":{\"nature\":\"mecanique\",\"sources\":[\"objet:aubin\",\"conversation_validee\"],\"portee_mecanique\":\"etablie\",\"rappels\":[], \"eclairages\":[]},\"1\":{\"nature\":\"parole\",\"sources\":[\"conversation_validee\"],\"portee_mecanique\":\"etablie\",\"locuteur\":\"aubin\",\"citation\":\"Non. Ces planches ne sont pas à vendre.\",\"presentation\":\"\",\"rappels\":[],\"eclairages\":[]}}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {
+       "conversation_validee": {}
+      }
+     }
+    }
+   ]
+  }
+ },
+ {
+  "campagne": "c9459ce",
+  "id": "atelier/13",
+  "tour": {
+   "saisie": "je prends une perche et je tente un saut à la perche pour monter sur la terrasse",
+   "texte": "Approche-toi du mur de l'atelier : il faut être juste à côté pour agir.",
+   "refus": [
+    "Approche-toi du mur de l'atelier : il faut être juste à côté pour agir."
+   ],
+   "propositions": [
+    {
+     "action": "composer",
+     "justification": "",
+     "etapes": [
+      {
+       "operation": "deplacer",
+       "cible": "perche_3",
+       "destination": "joueur",
+       "outil": "",
+       "methode": "simple",
+       "difficulte": 0
+      },
+      {
+       "operation": "franchir_obstacle",
+       "cible": "mur_atelier",
+       "destination": "terrasse",
+       "outil": "perche_3",
+       "methode": "appui_mobile",
+       "difficulte": 19
+      }
+     ]
+    }
+   ],
+   "etat": {
+    "salle": "cour",
+    "position": [
+     3,
+     2
+    ],
+    "orientation": "est",
+    "dixiemes": 1240,
+    "jets": 0,
+    "porte": [
+     "couteau",
+     "ficelle",
+     "hache",
+     "lanterne"
+    ],
+    "promesses_joueur": [],
+    "personnages": {},
+    "passages": {},
+    "bloquants": []
+   },
+   "appels": 1,
+   "fil": [
+    {
+     "etape": "appel",
+     "fonction": "repondre_au_joueur",
+     "brut": [
+      {
+       "type": "function_call",
+       "id": "fc_0ac0476d533bc64c016ae27ceb99188191a663f29db88eb07e",
+       "call_id": "call_a3c7ae0ae3ee4ae899e0dccb2f669b45",
+       "namespace": "donjon",
+       "name": "repondre_au_joueur",
+       "arguments": "{\"mode\":\"action\",\"texte\":\"\",\"faits\":[\"objet:perche_3\",\"objet:mur_atelier\",\"atelier\",\"joueur\",\"mode_cases\"],\"proposition\":{\"action\":\"composer\",\"justification\":\"Tu prends la perche et tentes de t'en servir comme appui pour franchir le mur d'un saut ; le saut vers le palier comporte un risque de chute.\",\"etapes\":[{\"operation\":\"deplacer\",\"cible\":\"perche_3\",\"destination\":\"joueur\",\"outil\":\"\",\"methode\":\"simple\",\"difficulte\":0},{\"operation\":\"franchir_obstacle\",\"cible\":\"mur_atelier\",\"destination\":\"terrasse\",\"outil\":\"perche_3\",\"methode\":\"appui_mobile\",\"difficulte\":19}]}}",
+       "status": "completed"
+      }
+     ],
+     "entree": {
+      "faits": {}
+     }
+    },
+    {
+     "etape": "validation",
+     "modele": "gpt-6-luna",
+     "intention": "je prends une perche et je tente un saut à la perche pour monter sur la terrasse",
+     "revision": 7,
+     "tentative": 1,
+     "proposition_refusee": {
+      "action": "composer",
+      "justification": "",
+      "etapes": [
+       {
+        "operation": "deplacer",
+        "cible": "perche_3",
+        "destination": "joueur",
+        "outil": "",
+        "methode": "simple",
+        "difficulte": 0
+       },
+       {
+        "operation": "franchir_obstacle",
+        "cible": "mur_atelier",
+        "destination": "terrasse",
+        "outil": "perche_3",
+        "methode": "appui_mobile",
+        "difficulte": 19
+       }
+      ]
+     },
+     "obstacle": "Approche-toi du mur de l'atelier : il faut être juste à côté pour agir.",
+     "consigne": "Corrige uniquement la proposition, sans modifier les faits ni abandonner une partie de l'intention. Sinon explique l'obstacle en dialogue.",
+     "attendu": "étape 2 (franchir_obstacle) : cible = mur_atelier : hors de portée de main ; position = (20, 10) ; le joueur doit s'approcher."
+    }
+   ]
+  }
+ }
+]

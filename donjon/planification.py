@@ -2106,11 +2106,19 @@ def _appeler(v, e, sujet):
     return TransitionMesuree((0, temps + CHERCHER, etapes, suivant, temps, False, pression))
 
 
+def _contact_possible(v, sujet):
+    """Un lieu inconnu reste à chercher ; un départ ou une mort crus l'excluent."""
+    etat = v.cru(sujet, 'etat') or {}
+    return not etat.get('mort') and not etat.get('parti')
+
+
 def _chercher(v, e, sujet):
     """Localisé mais inaccessible : l'appeler ; sinon, perdu de vue, le chercher
     là où il est passé le moins récemment et l'y supposer,
     hors des salles où il l'a cherché en vain (``deliberation.appels_vains``) ; None s'il n'en reste
     aucune. Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
+    if not _contact_possible(v, sujet):
+        return None
     if v.salle(e, sujet) is not None:
         return _appeler(v, e, sujet)
     # Le contact inconnu peut d'abord faire l'objet d'une question présente.
@@ -2756,6 +2764,13 @@ def _participants_a_localiser(v, e, etapes):
         if v.salle(e, x) is None}
 
 
+def _localiser(v, e, sujets):
+    """Le meilleur préfixe de contact, chiffré par les moyens communs."""
+    contacts = [_chercher(v, e, x) for x in sorted(sujets)]
+    return min((r for r in contacts if r is not None),
+               key=lambda r: r[1] + r[6], default=None)
+
+
 def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
     """Même contrat pour les gestes immédiats et les suites révélées à leur borne."""
     suites = []
@@ -3378,11 +3393,9 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         e = depart(monde, id, v)
         inconnus = _participants_a_localiser(v, e, [geste])
         if inconnus:
-            contacts = [_chercher(v, e, x) for x in sorted(inconnus)]
-            contacts = [r for r in contacts if r is not None]
-            if not contacts:
+            r = _localiser(v, e, inconnus)
+            if r is None:
                 return None
-            r = min(contacts, key=lambda r: r[1] + r[6])
             return r[1] + r[6], {"type": "pulsion", **condition}, _couper(r[2])
     if tache and sorte(condition) and "allume" not in condition:
         vises["confier"] = (dict(condition),)
@@ -3450,18 +3463,32 @@ def _rendre(monde, id, o, condition):
 
 def _devis_remise(monde, id, o, condition, seul):
     """Acquisition et livraison chiffrées ensemble, comme tout autre service."""
-    trouve = chercher(monde, id, lambda v, e: o in e.portes and e.salle == v.salle(e, condition['remettre']),
+    destinataire = condition['remettre']
+    v = vue(monde, id)
+    if not _contact_possible(v, destinataire):
+        return None
+    inconnu = v.salle(depart(monde, id, v), destinataire) is None
+    trouve = chercher(monde, id, lambda v, e: o in e.portes and (inconnu or e.salle == v.salle(e, destinataire)),
                       {'prendre': (o,)}, nom='remettre:' + o,
-                      memo=['remettre', o, condition['remettre']], emplois=(), seul=seul)
+                      memo=['remettre', o, destinataire], emplois=(), seul=seul)
     if trouve is None:
         return None
+    but = {'type': 'pulsion', **condition}
+    if inconnu:
+        contact = _localiser(v, trouve[2], [destinataire])
+        if contact is None:
+            return None
+        etapes = _couper(trouve[1])
+        if not any(g.get('attendre_remise') or g.get('suppose') for g in trouve[1]):
+            etapes += _couper(contact[2])
+        # Ni remise ni restauration depuis une présence supposée : elles
+        # seront recalculées après ce que la recherche aura réellement appris.
+        return trouve[0] + contact[1] + contact[6], but, etapes
     remise = _etape('remettre', condition['remettre'], outil=o)
-    v = vue(monde, id)
     mesure = _mesurer(v, trouve[2], [remise], trouve[2], 1)
     if mesure is None:
         return None
     cout = trouve[0] + mesure[0] + mesure[1]
-    but = {'type': 'pulsion', **condition}
     charges = suspensions(monde, id, trouve[1], but)
     fin = mesure[2].apres(portes=mesure[2].portes - {o}, faits=[(("lieu", o), condition['remettre'])])
     restauration = restaurer_charges(monde, id, charges, depuis=fin)
@@ -3757,6 +3784,8 @@ def rejoindre(monde, id, sujet):
     """(étapes, trouvé) : aller là où il croit quelqu'un, sinon le chercher là où il est passé le
     moins récemment ; None si rien n'est atteignable."""
     v = vue(monde, id)
+    if not _contact_possible(v, sujet):
+        return None
     e = depart(monde, id, v)
     salle = v.salle(e, sujet)
     if salle is not None:

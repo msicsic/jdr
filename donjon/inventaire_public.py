@@ -31,3 +31,33 @@ def destinataires_publics(monde):
                          and (not monde.data.get("mode_cases") or proche(monde, id))])
 
 
+def ressources_publiques(monde, decrire_physique=False):
+    """Choix matériels connus, sans capacités, règles ni inventaire d'autrui."""
+    from .francais import designer
+    from .noms import public
+    from .gestes_publics import ressource_connue
+    from .moyens_materiels import APTITUDES
+
+    # Les aptitudes ne sont calculées que vers des cibles actuellement vues
+    # ou directement portées. Aucun résultat sur une entité cachée ne sort.
+    cibles = [o for id, o in monde.objets.items() if ressource_connue(monde, id, exiger_portee=False)]
+
+    biens = []
+    for id, o in monde.objets.items():
+        if not ressource_connue(monde, id):
+            continue
+        vu = monde.visible(id)
+        bien = {"id": id, "nom": designer(o), "type": o["type"]}
+        if not decrire_physique:
+            bien["aptitudes"] = {
+                nom: [c["id"] for c in cibles if c["id"] != id and regle(c, o)]
+                for nom, regle in APTITUDES.items()}
+        if decrire_physique:
+            from .matiere import decrire
+            physique = o.get("physique")
+            bien["description_physique"] = (physique["forme"] + " : " + decrire(o) if physique else
+                                            "Description physique manquante : forme et dimensions à établir séparément.")
+        if vu and o.get("foyer"):
+            bien["foyer"] = True
+        biens.append(bien)
+    return public(monde, biens)

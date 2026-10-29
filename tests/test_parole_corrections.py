@@ -14,6 +14,7 @@ l'état après rechargement.
   (portée de main, portée de voix) ; la parole à la cantonade y figure comme dite.
 - On n'atteste pas l'absence d'une sortie qu'on ne connaît pas.
 - Se dire quelqu'un d'autre est enregistré comme une imposture : le nom que disent les mots."""
+from donjon.emissions import pnj as emissions_pnj, joueur as emissions_joueur
 import json
 from pathlib import Path
 import tempfile
@@ -107,7 +108,7 @@ class VocatifTests(unittest.TestCase):
         # Après rechargement : Ilse a reçu la question, Aubin l'a entendue sans qu'elle lui soit adressée.
         self.assertEqual(paroles_retenues(reprise, "ilse")[-1], ("joueur", ["ilse"], saisie))
         self.assertEqual(paroles_retenues(reprise, "aubin")[-1], ("joueur", ["ilse"], saisie))
-        self.assertEqual(reprise.data["paroles_joueur"][-1]["auditeurs"], ["ilse"])
+        self.assertEqual(emissions_joueur(reprise)[-1]["auditeurs"], ["ilse"])
 
     def test_meme_nature_le_nom_au_milieu_entre_guillemets(self):
         m = banc("soir-appel")
@@ -129,7 +130,7 @@ class NomInconnuTests(unittest.TestCase):
         self.assertIn("Tu ne connais personne du nom de Brune ici.", sortie)
         self.assertNotIn("Tu dis à Gorm", sortie)
         # Rien n'a été dit, à personne.
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
         self.assertEqual(paroles_retenues(reprise, "marchand"), [])
         self.assertEqual(paroles_retenues(reprise, "brune"), [])
 
@@ -144,7 +145,7 @@ class NomInconnuTests(unittest.TestCase):
             parole("Brune, rends-moi mes pièces.", ("reclamer", "", "", ""), personnage=designation(m,'marchand'))], [])
         self.assertEqual(len(mj(appels)), 0)
         self.assertIn("Tu ne connais personne du nom de Brune ici.", sortie)
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
         self.assertEqual(paroles_retenues(reprise, "marchand"), [])
 
 
@@ -172,7 +173,7 @@ class CantonadeTests(unittest.TestCase):
         self.assertEqual(paroles_retenues(reprise, "ilse")[-1][0::2], ("joueur", "Qui est là ?"))
         self.assertEqual(reprise.data["voix_entendues"]["ilse"]["se_dit"], "ilse")
         self.assertIn("voix_1", interlocuteurs(reprise))
-        self.assertEqual(reprise.data["paroles_pnj"][-1]["locuteur"], "ilse")
+        self.assertEqual(emissions_pnj(reprise)[-1]["locuteur"], "ilse")
         reprise, sortie, appels = jouer(reprise, "« Tu as de quoi manger ? »", [
             parole("Tu as de quoi manger ?", ("ressource", "faim", "", ""), personnage="voix_1"),
             dialogue("La voix répond : « Rien du tout. »")], [audit(ligne("parole", "voix_1", "Rien du tout."))])

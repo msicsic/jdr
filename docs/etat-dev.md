@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 313 terminé, branche `codex-contact-inconnu`, non fusionnée**, base
+- **Lot 313 rouvert pour attribution de la suite, branche `codex-contact-inconnu`, non fusionnée**, base
   `integration d76f272`, moteur final validé sur `c6cad4a` : contact commun
   au plan et à l'exécution, hérité des seuls liens crus contenant/support/
   porteur. Une distance ou une case inconnue ne dément plus la présence ;
@@ -45,7 +45,243 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `reprises-avant-fusion/` et `reprises-validation/`. Aucun calcul actif,
   branche poussée vers origin. `planifier_tache`/`echanges.empeche`
   inchangés ; ni Luna ni suite complète.
+  **Attribution de la fusion d’essai 61ced73 en cours** : 23 incidents
+  (22 échecs, une erreur), 21 méthodes ciblées. Comparaison avec
+  `origin/integration eb15b5e` (322 inclus) puis 313 fusionné avec cette
+  intégration, sans 315 ; deux processus réduits au plus, aucune suite
+  complète. Bruts dans `artifacts/contact-313/attribution-suite/`.
   [Rapport 313](taches/rapport-codex-313-contact-position-inconnue.md).
+
+- **Lot 320 / G15 terminé, branche `codex-g15-emissions`, fusionnée**, base
+  `integration 0fcc99e` : registre unique des émissions de parole, admission
+  avant affichage, auteur/acte/paramètres/modalité/source/auditeurs/ordre.
+  Réponses autorisées à Corvus distinctes des réactions déjà prononcées entre
+  PNJ ; rapport, garde, écoute et rendu lisent ce flux, sans gonfler les
+  répondants. Archives réelles 86/87 disponibles sur le PC fixe : deuxième
+  saisie de la passe 1 (indice 1, galerie de ronde), premier tour rejoué
+  auparavant ; propositions/dialogues/audits d'origine, sans réseau.
+  Trois citations conservées, Gorm seul répondant, aucune nouvelle émission
+  par leur restitution. Silence des témoins dérivé de leurs émissions réelles ;
+  une réaction entendue sans réponse nouvelle autorisée n'est pas déclarée
+  absente. Onze nouveaux tests verts, monde/texte/scène/rendu rechargés.
+  **579 tests / 53 fichiers consolidés : 577 verts, deux échecs préexistants,
+  zéro erreur ni saut**. Base 0fcc99e : mêmes `23 != 26` sur l'achat de
+  planches et plan d'inspection dans la réserve au lieu de None ; aucun oracle
+  affaibli. Reprises **146/146** puis **33/33**, sans cumul. **8/8 paires**
+  Relais/crue, 2 h × quatre graines : chroniques, mesures et état complet
+  identiques hors `emissions_parole` et `bruits[].emission` ; empreintes brutes
+  distinctes conservées, **386 émissions**, aucun plantage. Huit références
+  absentes rangées une fois ; 159,797 s. Luna **une passe** sur 6f60266 avant
+  clôture du silence, sans relance de référence : six tours MJ, **33 → 25 appels**,
+  **6 → 1 obstacles**, **5 → 1 relances**, refus **1 → 1**, aucun repli ni
+  erreur technique/recharge. Référence historique c9459ce, aucun gain général
+  ni de vitesse revendiqué. Deux travailleurs réduits au plus par vérification,
+  aucune suite complète, aucun calcul actif. Branche poussée vers origin.
+  Bruts `C:/Users/msics/donjon/artifacts/g15-320/` : `fin.json` initial
+  **ok=false conservé**, `tests-consolides.json`, `fin-cloture.json`.
+  G16–G19 non réalisés ; ordre historique intra-tour inconnu explicitement
+  signalé lors de la migration ; discours indirect sans fausse citation exacte.
+  Aucun recouvrement U-P 319 sur moteur.py/rendu.py/jeu.py.
+  [Rapport 320](taches/rapport-codex-320-g15-emissions.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Registre unique des émissions (donjon/emissions.py) : auteur, acte, paramètres, modalité, événement source, destinataires, auditeurs et ordre ; issue, faits de la conversation, dossier d'audit et rendu lisent ce flux. Cas avis-joueur 86/87 rejoué sans contradiction. 577/579 tests ciblés verts, deux échecs présents sur la base ; 8/8 empreintes identiques hors ajouts de schéma ; une passe Luna sans repli.
+
+- **Lot 321 / U-T fabrication terminé, branche `codex-ut-fabrication`, base
+  `integration 0fcc99e`, fusionnée** : `0` ouvre une recette numérotée
+  commune console/TUI, issue du catalogue et des ressources publiques du web.
+  Usage, rôles, lien, outil, dimensions et rythme composent le même
+  descripteur U-D sans analyseur ni modèle. Physique connue affichée,
+  manque signalé, accès et droits revalidés par le moteur sans substitut.
+  Quatre parcours du 305 dans chaque interface, références périmées ou
+  éloignées, physique inconnue, propriété et recharge contrôlées ;
+  **115 tests / dix fichiers verts**, zéro échec/erreur/saut : dix nouveaux
+  et 105 voisins, dont les **28 TUI existants inchangés**. 1 166,769 s
+  cumulées (58,216 + 1 108,553). Suivi détaché réduit, sans relancer les
+  tests, `fin.json` écrit en dernier : **ok=true, code de clôture 0**.
+  Deux travailleurs réduits au plus au total, sur copies.
+  Huit parcours : **23 touches pour assembler, 12 pour découper**,
+  **24/13 avec F7** en TUI, ouverture et dimensions comprises.
+  **Recouvrement 319 : `jeu.py`**, boucle console seulement ; rendu,
+  moteur, MJ et web inchangés. Ni Luna, ni banc, ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/ut-fabrication-321/`.
+  Code/tests `23a7c60` inchangés depuis validation, empreintes contrôlées ;
+  **branche poussée vers origin, aucun calcul actif**, aucune relance à la clôture.
+  [Rapport 321](taches/rapport-codex-321-ut-fabrication.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Console et TUI assemblent et découpent avec la même recette paramétrée que le formulaire web (descripteur U-D, ressources connues de Corvus, catalogue gestes_publics), sans analyse de texte ni modèle. 115 tests ciblés verts, dont les 28 tests TUI inchangés ; 23 touches pour assembler, 12 pour découper (une de plus avec F7).
+
+- **Lot 324 terminé, fusionnée, branche `codex-g1-a0-oracle`, base
+  intégration `884b8d7`** : oracle fermé de sens, aucun fichier `donjon/`
+  modifié. Attentes et témoins versionnés pour 91 positions / 30 tours MJ ;
+  six campagnes (294/296/304/311, référence historique 230e7b3 et référence
+  demandée c9459ce) relues sans modèle : **546 positions, zéro inconnue**.
+  Admissions 22 → 18/23/23/21 retrouvées ; quinze familles et grille 311
+  23/27 → 20/23 retrouvées. c9459ce est une autre passe, gardée séparée.
+  Six obligations explicites, dont perche/saut hors des 91 ; **15 tests
+  ciblés verts**, faux pendants des charges, refus, confirmation et rendu.
+  Une observation nouvelle reste non évaluée, code 1, jamais fidèle par
+  défaut ; annotations humaines à fournir sans modifier l'attente gelée.
+  Projections rechargées seulement, pas de preuve de sauvegarde intégrale ;
+  voies locales conservées sans certification de réussite. F, latences et
+  nouvelles contre-offres restent non évalués ; aucun axe global validé.
+  Un seul Python réduit à la fois, ni Luna, banc ni suite complète ; aucun
+  calcul actif. Bruts `C:/Users/msics/donjon/artifacts/g1-a0-324/`.
+  [Rapport 324](taches/rapport-codex-324-g1-a0-oracle.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Outil et données seulement. tools/oracle_g1.py classe chaque position du corpus G1 (proposition fidèle, admission, exécution ou refus, attente de consentement, texte vu) depuis les fils archivés, sans appel au modèle ; attentes figées dans tests/data/oracle_g1.json ; 546 positions classées, chiffres du rapport 318 retrouvés, 15 tests verts. Une observation nouvelle reste non évaluée jusqu'à annotation humaine.
+
+- **Lot 322 terminé, branche `codex-trois-echecs`, base `0a0bc9d`** :
+  bissection des trois échecs nouveaux : **fusion 303 `8406756` rouge,
+  parent direct `d7302a4` vert**, six références, trois tests chacune,
+  414,998 s. Changements légitimes : Mathurine appelle réellement pour
+  rejoindre Mireille qu'elle veut nourrir ; Corvus saisit ses mots depuis
+  le couloir puis le grenier. L'inspection Mathe/Odon sans lieu connu est
+  un préfixe de contact, pas un service franchissant le verrou ; la demande
+  effective reste impossible. Prémisses des deux scènes de voix isolées et
+  du lieu entendu d'Odon précisées, assertions historiques conservées ;
+  nouveau test du tiers actif et de son anonymat après recharge.
+  **54/54 tests distincts verts, trois fichiers**, zéro échec/erreur/saut.
+  Première passe : import sans_souci oublié, corrigé ; seuls les 18 tests
+  du fichier concerné relancés (83,205 s), les 36 autres verts inchangés.
+  Moteur inchangé ; ni Luna, banc ni suite complète. Deux travailleurs
+  réduits au plus sur copies ; aucun calcul actif. Bruts
+  `C:/Users/msics/donjon/artifacts/trois-echecs-322/` : échec initial
+  `fin-calcul.json` conservé, **fin-cloture.json ok=true**.
+  Branche poussée vers origin ; aucune garantie universelle de secours
+  ou d'absence de boucle revendiquée.
+  [Rapport 322](taches/rapport-codex-322-trois-echecs.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Tests seulement, moteur inchangé. Bissection : les trois échecs apparus entre d1c0722 et 79fca6a viennent du lot 303 (contact commun avant un service), changements légitimes ; prémisses des scènes ajustées, assertions conservées. 54 tests verts sur les trois fichiers.
+
+- **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base
+  `integration 60f857c`** : aucune dépendance au hachage reproduite.
+  Hameau/Relais 2024 identiques sous 1/42/310/2024 ; hameau historique
+  13ce328 identique sous 1/310, état/rendu/scène conservés à la recharge.
+  Bissection depuis 271 : retour 929 présent à d7302a4, absent à 8406756,
+  fusion 303. À 479, Maël croit le lieu de Brune inconnu : le contact
+  préparé par une question à Aubin change légitimement la suite de nuit.
+  Test historique porté sur une capture réelle 591/929 du parent du 303 ;
+  mêmes assertions entree_publiee_utilisee et preuves possession_nouvelle /
+  lieu_cru_change, classement recalculé. Monde/rendu/scène/entrées rechargés
+  vérifiés ; identité avec/sans sonde de la nuit actuelle conservée dans
+  un test distinct. Moteur et outils inchangés. **48/48 tests / trois
+  fichiers verts**, 109,976 s ; test historique vert sous quatre hachages.
+  L'échec initial de tests-audit (46/47) était uniquement ce KeyError 929.
+  **20/20 paires d'empreintes 2 h identiques** contre 60f857c, cinq scénarios
+  × quatre graines, références absentes rangées une fois. Calcul initial
+  détaché réduit, deux travailleurs au plus ; ni Luna ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/hachage-316/` : fin.json en échec
+  conservé, fin-bissection.json et analyse-causalite.json verts,
+  **fin-cloture.json ok=true**, 113,099 s. Aucun calcul actif, worktrees
+  temporaires retirés. Garantie bornée à ces nuits, pas de preuve universelle
+  de déterminisme ni amélioration du gameplay revendiquée.
+  [Rapport 316](taches/rapport-codex-316-hachage-reveils.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Tests seulement. La nuit hameau 2024 est identique sous les hachages 1, 42, 310 et 2024 ; le retour attendu à 929 manquait partout : le lot 303 (contact avant un service) a changé légitimement la nuit. Le test utilise désormais une capture historique (tests/data/sonde-271-brune-hameau-2024), assertions et preuves inchangées. 48 tests verts sous quatre hachages, 20/20 empreintes 2 h identiques.
+
+- **Branche `codex-ut-outils`, lot 307 / U-T outils, fusionnée**,
+  base `d7302a4`, reprise sans rebase de `43440c6` (305 inclus),
+  clôture précédente `9457ea5`. **Correction des offres validée `5c383bf`** après
+  la suite d'intégration : les formulaires du catalogue nomment une
+  aptitude moteur commune (clé, crochetage, impact/coupe, recharge, dépôt).
+  La projection ne publie que les couples admis entre ressources connues
+  et cibles vues/portées, sans bien privé de PNJ ; web et terminaux lisent
+  cette même matrice. Aucune surface fixe comme outil, aucune matière
+  incompatible ou propriété inconnue déduite. L'arbitrage revalide le
+  descripteur exact ; accès, droits et réussite restent son verdict.
+  Libellés : désignation publique et rang des homonymes, aucune référence
+  de transport ni coordonnée de carte ; références conservées dans les
+  descripteurs. Conduite réelle : **39 → 11 offres**, 3 touches pour
+  éteindre la lanterne ; autre cas lampe à huile vérifié après recharge.
+  **166 tests distincts verts**, zéro échec, erreur ou ignoré : 161 tests
+  sur seize fichiers (interfaces, fabrication, opérations, capacités,
+  lumière, moteur à cases, nouveaux cas), puis **5/5 FormeTests** de
+  `test_luna_restes`. **5/5 `test_attendu_designable`**, dont le cas réel
+  conduite ; les régressions des coordonnées/références sont levées.
+  **28 TUI existants verts**, Node syntaxe et callbacks réels verts.
+  **20 parcours outils : 3 touches**, 4 avec F7 en TUI ; deux cas
+  conduite/lampe supplémentaires à 3 touches, zéro appel modèle sur les choix.
+  Calcul détaché **837,209 s** (161 tests : 824,206 s, FormeTests :
+  12,639 s), deux travailleurs réduits au plus, copies hors bac Windows.
+  Code/tests inchangés depuis validation, aucune relance à la clôture.
+  Limites : droits/accès/réussite revalidés, capacité maximale des
+  destinations absente du moteur. Ni Luna réel, ni banc, ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/ut-outils-307/`,
+  `bilan-correction-offres.json` et `fin-correction-offres.json` :
+  **ok=true, code 0** ; clôture `fin-cloture-correction-offres.json`
+  écrite en dernier. Bilans précédents (98 puis 105 tests) conservés sans
+  cumul. Branche poussée vers origin, aucun calcul actif.
+  [Rapport 307](taches/rapport-codex-307-ut-outils.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Console et TUI proposent les gestes avec outil ou destination par le même descripteur U-D que le menu web. Correction après la suite complète : un geste avec outil n'est proposé que si la ressource a la capacité que le moteur requiert (capacités partagées moteur/catalogue), surfaces fixes exclues ; conduite 39 → 11 choix ; libellés publics sans référence opaque ni coordonnées de carte (test_luna_restes FormeTests et test_attendu_designable cas réel conduite, en échec depuis 299/301, désormais verts). 166 tests ciblés verts. Suite complète sur 9457ea5 avant correction : 2 856 tests, échecs connus seulement hors trois nouveaux venus de l'intégration (lot 303 ou 312), non dus au lot.
+
+- **Lot 318, branche `codex-g1-repense`, conception seule**, base
+  `integration 79fca6a` : lecture des quatre campagnes 294/296/304/311,
+  91 positions chacune, 30 tours MJ et 61 sans modèle. Diagnostic par saisie :
+  provenance de lecture retirée au 294 mais texte encore présent ; opérations
+  de levier/passage/attente disponibles au 311 malgré les pertes ; revues
+  trop strictes et trop permissives distinguées. Deux formes évaluées,
+  recommandation A : contexte public conservateur pour tout le libre,
+  suspension du raccord compact et préparation U-P/U-C sur les plans actuels.
+  **Proposition, pas décision adoptée** ; G1 reste non fusionnable, aucune
+  dépendance ni contrôle retiré. Couverture réelle des U-* distinguée des
+  potentiels 70,1 % / 82,1 %. Aucun code du jeu, test, banc, rejeu moteur ou
+  Luna ; aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/g1-318/`.
+  [Conception](conception-g1.md),
+  [rapport 318](taches/rapport-codex-318-g1-repense.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Conception seulement. Relecture des quatre campagnes G1 (294, 296, 304, 311), 91 positions chacune : les pertes ne viennent pas surtout du contexte réduit (le 311 nie detacher/levier avec opération, axe et outil fournis ; passage et attente dans son schéma ; revues trop permissives ou privées de l'intention). Deux formes évaluées : A, compilateur général à projection publique conservatrice ; B, compilateur résiduel derrière les menus, frontière de routage non résolue. Recommandation : suspendre le compact, faire U-P/U-C sur les plans actuels, puis reprendre G1 sous la forme A. Décision à l'utilisateur.
+
+- **Branche `codex-livraison-inconnu`, lot 312, fusionnée**, base
+  `06465d9` : `_devis_remise` prépare le contact commun d'un destinataire
+  inconnu après vérification des moyens d'acquisition ; `_localiser` partagé
+  avec le service du 303. Devis, plan et empêchement restent le même contrat.
+  Mort et départ crus excluent le contact, aucune position cachée ni délai
+  ajouté. Capture Relais 7 à 856 reprise avant annulation : Gorm demande Aubin
+  à Brune puis livre ; Mathe/Lucien à la mine aussi. Parent, charges suspendues,
+  monde/rendu/scène et huit minutes entières ou découpées vérifiés après recharge.
+  **95/95 tests verts, onze fichiers, 1 328,220 s**, zéro échec/erreur/ignoré.
+  **Douze paires de 4 h achevées**, Relais/auberge/mine × 1985/7/42/2024,
+  `06465d9` → `cf0adfd`, un travailleur réduit, référence puis branche,
+  1 352,251 s cumulées ; douze références manquantes rangées une fois en cache.
+  Livraisons tenues **14 → 22**, annulées **6 → 0**, portions **30 → 32** ;
+  reçus partagés dédoublonnés par preuve (récapitulatif initial double conservé).
+  Zéro plantage/usurpation ; **suspects 219 : 0 → 0 dans chaque nuit**.
+  Huit chroniques identiques, aucune répétition nouvelle de question/appel ni
+  bascule ; les reprises des quatre nuits modifiées ont les mêmes textes et
+  instants qu'en référence. Aucun essai nouveau repris par le seul délai identifié.
+  Deux nouveaux avis de Gorm aux Relais 7/2024 : retour après rencontre d'Aubin
+  (1710/1342), lieu `entendu → vu`, puis remise réussie (1772/1650).
+  Avis à expliquer **11 → 12**, dérives **186 → 199** : pas tous certifiés bénins,
+  aucune garantie universelle contre les boucles. Aucun Luna ni suite complète ;
+  échéance générale historique des paroles à 240 min inchangée.
+  **Lot terminé, branche poussée, aucun calcul actif** ; `fin-cloture.json`
+  **ok=true**, `fin.json` brut conservé. Code/tests inchangés depuis vérification.
+  Bruts `C:/Users/msics/donjon/artifacts/livraison-312/`, analyses des alertes et
+  répétitions archivées, tableau des douze nuits dans le rapport.
+  [Rapport 312](taches/rapport-codex-312-livraison-destinataire-inconnu.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Devis, plan et empêchement d'une remise passent d'abord par les moyens communs de rejoindre le destinataire (inspection, appel, question), comme le service du lot 303 ; annulation seulement sur un empêchement réellement cru. Capture Relais 7 (Gorm livre à Aubin) et autre cas. 95 tests verts ; 12 paires 4 h : livraisons tenues 14 → 22, annulées 6 → 0, portions 30 → 32, suspects 219 nuls ; avis à expliquer et dérives en hausse, non certifiés bénins ; aucun réessai par le seul délai identifié.
+
+- **Lot 314 terminé, branche `codex-achat-promis`, base `integration c4f6d46`** :
+  `_remettre_part` transmet le refus d'une livraison annulée conservée pour
+  annoncer son abandon, au lieu de publier un faux accord qui efface le refus
+  du demandeur. Capture réelle 306 hameau 7 avant t=36582 : **28 achats promis
+  → un refus, zéro achat**, aucun paiement ; autre cas d'huile à l'auberge.
+  Quatre nouveaux tests verts, monde/rendu/scène rechargés et laps entier/
+  découpé contrôlés. Ordre des observations du bilan des présences dépend du
+  regroupement des actions, multiplicité et état final identiques.
+  **49 tests / six fichiers verts**, sans échec, erreur ni saut, 285,625 s.
+  **16/16 paires d'empreintes 2 h identiques**, Relais/mine/auberge/crue ×
+  quatre graines, chronique/mesures/état final complet ; références absentes
+  calculées une fois et rangées. **Banc hameau 4 h × quatre graines validé**,
+  données 306 fusionnées seulement dans un worktree temporaire, supprimé.
+  Sur toute la nuit 7 : **28 achats promis → zéro**, une demande refusée à
+  t=36477, aucun achat d'Aubin ni paiement ; zéro accord sur annulation sur
+  les quatre nuits. Références 306 réutilisées sans relance. Suspects
+  **0/0/0/7 inchangés**, avis à expliquer **7/5/0/10 inchangés**, aucun
+  plantage/usurpation ; chroniques/mesures/états finaux identiques pour les
+  trois autres graines. Limites en 7 : dérives ouvertes **31 → 33**, tentatives
+  de vol **1 → 2**, noir **15 → 65 min**, mandats proposés **5 → 2** ; aucun
+  bénéfice général revendiqué. Sept suspects Sève 2024 laissés au lot 315.
+  Calcul détaché, deux travailleurs réduits au plus, 969,696 s, **fin.json
+  ok=true**, codes **0/0/0**. Ni Luna ni suite complète, aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/achat-314/`, `analyse-cloture.json`.
+  Branche poussée vers origin, correction/tests inchangés depuis validation.
+  [Rapport 314](taches/rapport-codex-314-achat-promis-repete.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Capture de la graine 7 du hameau avec l'agenda du 306 : les 28 annonces d'achat promis d'Aubin disparaissent (un refus à t=36477, puis plus rien). 49 tests verts, 16/16 paires d'empreintes 2 h identiques, suspects 219 inchangés sur quatre nuits du hameau. La graine 7 évolue ensuite autrement (deux dérives ouvertes et une tentative de vol de plus), sans amélioration générale revendiquée.
 
 - **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :
   union des clés de mesures de mandat triée dans `banc_pnj.executer`,
@@ -820,6 +1056,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   [rapport 279](taches/rapport-codex-279-coups-crue-2024.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement (DeepSeek V4.1 Flash Go high). Sur 0bad227 : Brune, affamée, tente d'assommer Aubin pour ses vivres ; Gorm protège Aubin (devoir), Aubin et Brune ripostent ; six coups, Brune inconsciente puis ranimée, chaque geste justifié par les règles existantes. Défaut de libellé : le but de protection de Gorm est nommé « protéger Brune » (planification.reagir rend qui=brune, l'agresseur) au lieu du protégé Aubin ; petit lot proposé. Non reproduit sur l'intégration 792816c (Aubin nourrit Brune à 5 min) ; premier écart c870c8b → 0bad227 à la minute 1 (activation evacuer_crue « mandataire estimé », lot 260).
 
+- **Vérification d’intégration `27ff8c4`**, lot **284**, branche
+  `codex-verif-integ-4`, témoin `0bad227` : **49/49 archives achevées**, sans
+  modification de `donjon/` ou `tools/`, ni Luna ni suite complète. Zéro
+  plantage, usurpation, mort, coup ou écart `VERIFIER`/spatial ; 202 recherches
+  bornées, coûts tous égaux à l’optimum. La sonde 219 actuelle relève **112
+  suspects / 440 à expliquer** (contre 7/170 au 274, sans la classe
+  `renouvellement_perceptif`) ; 227 : 22 pertes, aucune fautive. **Défaut
+  nouveau :** hameau/1985, Aubin répète 109 fois un `rejoindre` sans nouvelle
+  entrée et passe 120 fois par heure autour des salles des vannes ; crue/3,
+  Gorm fait 299 passages par heure en boucle de cinq salles. Ces boucles ne sont
+  pas observées aux mêmes nuits sur `0bad227`. Attente moyenne du hameau
+  1 062,5 → 352,5, richesse S 56,25 → 80,5, noir 132,5 → 621,3. L’allumage
+  naturel Ilse→Aubin du poêle du guet réussit en crue/7 à 218 min ; suspect
+  Aubin Relais/2024 du 273 absent ; aucun mandat oral naturel. **Intégration non
+  propre pour avancer `main`** avant diagnostic général de la progression des
+  trajets repris. Bruts :
+  `C:/Users/msics/donjon/artifacts/verif-integ-27ff8c4/` ; [rapport 284](taches/rapport-codex-284-verif-integ.md).
 - **Vérification d’intégration `0bad227`**, lot **274**, branche
   `codex-verif-integ-3` : **49/49 nuits terminées**, aucune erreur de calcul,
   aucun code du jeu modifié, pas de Luna ni de suite complète. Cache `main`
@@ -837,6 +1090,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   **Intégration non propre pour avancer `main`** avant le diagnostic de la
   revalidation. [Rapport 274](taches/rapport-codex-274-verif-integ.md).
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 49/49 nuits, zéro plantage, usurpation, mort ou écart VERIFIER/spatial 0,2 ; Lucien auberge 42 à 435 ne réapparaît pas (88 bornes, toutes au coût de l'optimum). Compteur 219 : 7 suspects et 170 à expliquer (241 : 23 et 376) ; 227 : 19 pertes, aucune fautive. Hameau : attente 931 → 1 062 PNJ·min, S 64,5 → 56,25, noir 79 → 133. Alerte nouvelle : Gorm hameau 1985 à 642 reprend une interposition alors qu'Aubin a quitté l'antichambre (intention, pas d'action fautive) ; crue 2024 : six coups en neuf secondes, Brune inconsciente à 600 puis rétablie. Verdict de l'agent : non propre pour avancer main tant que la revalidation de l'interposition n'est pas établie ; main reste à c870c8b.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement (Luna high). 49/49 archives, zéro plantage, usurpation, mort ou coup ; VERIFIER et spatial sans écart, 202 bornes au coût de l'optimum. Non déclarée propre pour avancer main : deux boucles nouvelles, absentes du témoin 0bad227 : hameau 1985, Aubin reprend 109 fois rejoindre Sève au beffroi sans entrée nouvelle (540-649, 120 passages/h) ; crue 3, Gorm 299 passages/h sur un circuit de cinq salles sous le but informer Ilse. Six nuits au-delà de 64 passages/h (aucune au témoin). Lot de diagnostic désigné (317). Allumage 277 confirmé en crue 7 à 218.
 
 - **Branche `codex-rester-pres`, fusionnée**, lot **266**, base `7404d2d`.
   **Reprise 276 : intégration `1852d6e` fusionnée sans rebase (`18c5523`).**

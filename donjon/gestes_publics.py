@@ -10,14 +10,14 @@ from .commandes import DescripteurPublic
 
 
 # Le quatrième champ, optionnel, décrit un choix explicite encore à compléter.
-# Le terminal « premier geste » ne soumet que les entrées sans ce champ.
+# Les interfaces complètent ce champ avec une référence publique explicite.
 OUTIL = {"champ": "outil", "ressources": {}}
 DESTINATION = {"champ": "destination", "ressources": [
-    {"type": "contenant"}, {"type": "luminaire"}, {"foyer": True}]}
+    {"type": "contenant"}, {"type": "luminaire"}, {"foyer": True}], "aptitude": "depot"}
 CORPS = ("personnage", "depouille", "partie_corps")
 
 
-def ressource_connue(monde, id):
+def ressource_connue(monde, id, exiger_portee=True):
     """Frontière commune des choix matériels : portée et perception actuelles."""
     from .noms import PERSONNES
     from .spatial import proche
@@ -31,7 +31,7 @@ def ressource_connue(monde, id):
         if parent["type"] in PERSONNES:
             return False
     return ((o["lieu"] == "joueur" and monde.present_physique(id)) or
-            (monde.visible(id) and (not monde.data.get("mode_cases") or proche(monde, id))))
+            (monde.visible(id) and (not exiger_portee or not monde.data.get("mode_cases") or proche(monde, id))))
 
 
 # Conditions sur les seuls champs déjà envoyés à la page. Même table en Python
@@ -47,10 +47,10 @@ OBJETS = (
     ("ouvrir", "Ouvrir", {"type": "contenant"}),
     ("fermer", "Fermer", {"type": "contenant"}),
     ("prendre", "Prendre", {"mobile": True}),
-    ("deverrouiller", "Déverrouiller avec…", {"type": "contenant"}, OUTIL),
-    ("crocheter", "Crocheter avec…", [{"type": "contenant"}, {"type": "serrure"}], OUTIL),
-    ("frapper", "Forcer / frapper avec…", {}, OUTIL),
-    ("alimenter", "Alimenter avec…", [{"type": "luminaire"}, {"foyer": True}], OUTIL),
+    ("deverrouiller", "Déverrouiller avec…", {"type": "contenant"}, {**OUTIL, "aptitude": "cle"}),
+    ("crocheter", "Crocheter avec…", [{"type": "contenant"}, {"type": "serrure"}], {**OUTIL, "aptitude": "crochetage"}),
+    ("frapper", "Forcer / frapper avec…", {}, {**OUTIL, "aptitude": "impact"}),
+    ("alimenter", "Alimenter avec…", [{"type": "luminaire"}, {"foyer": True}], {**OUTIL, "aptitude": "recharge"}),
     ("mettre", "Mettre dans…", {"mobile": True}, DESTINATION),
 )
 PORTES = (
@@ -59,9 +59,9 @@ PORTES = (
     ("fermer", "Fermer", {"etat": "ouverte"}),
     ("deverrouiller", "Déverrouiller", {"etat": "verrouillee"}),
     ("crocheter", "Crocheter", {"etat": "verrouillee"}),
-    ("deverrouiller", "Déverrouiller avec…", {}, OUTIL),
-    ("crocheter", "Crocheter avec…", {}, OUTIL),
-    ("frapper", "Forcer / frapper avec…", {}, OUTIL),
+    ("deverrouiller", "Déverrouiller avec…", {}, {**OUTIL, "aptitude": "cle"}),
+    ("crocheter", "Crocheter avec…", {}, {**OUTIL, "aptitude": "crochetage"}),
+    ("frapper", "Forcer / frapper avec…", {}, {**OUTIL, "aptitude": "impact"}),
 )
 
 
@@ -75,8 +75,7 @@ def correspond(cible, conditions):
 def offres(cible, porte=False, parametrees=False):
     """Le même catalogue ; les offres paramétrées exposent aussi leur formulaire.
 
-    Une entrée paramétrée n'est jamais transformée en descripteur incomplet par
-    la liste terminal. Son interface de choix des ressources relève d'U-T outils.
+    Une entrée paramétrée n'est soumise qu'après sélection de sa ressource.
     """
     if porte and cible.get("souvenir"):
         return []
@@ -98,14 +97,38 @@ class ChoixPublic:
     descripteur: DescripteurPublic
 
 
-def liste_gestes(scene, inventaire=(), destinataires=()):
+def noms_des_choix(*groupes):
+    """Désignations publiques ; un rang visible distingue les homonymes.
+
+    Les références de transport restent dans les descripteurs, jamais dans
+    les libellés. Le numéro de ligne suffit pour choisir l'entité exacte.
+    """
+    entites = {o["id"]: o["nom"] for groupe in groupes for o in groupe}
+    return {id: nom + (f" ({ids.index(id) + 1}/{len(ids)})" if len(ids) > 1 else "")
+            for id, nom in entites.items()
+            for ids in [sorted(i for i, n in entites.items() if n == nom)]}
+
+
+def ressource_admise(cible, ressource, formulaire):
+    return (ressource["id"] != cible["id"]
+            and correspond(ressource, formulaire["ressources"])
+            and cible["id"] in ressource.get("aptitudes", {}).get(formulaire["aptitude"], ()))
+
+
+def liste_gestes(scene, inventaire=(), destinataires=(), ressources=()):
     """Fige les choix des seules projections publiques, sans lire le monde."""
-    liste, vus = [], set()
+    liste, materiels, vus = [], [], set()
+    entites = [o for n in (scene or {}).get("niveaux", []) for o in n["objets"]]
+    entites += [s["porte"] for n in (scene or {}).get("niveaux", [])
+                for s in n["sorties"] if s.get("visible") and s.get("porte")]
+    noms = noms_des_choix(entites, inventaire, destinataires, ressources)
     for niveau in (scene or {}).get("niveaux", []):
         cibles = [(o, False, o["salle"], o["globale"]) for o in niveau["objets"]]
         cibles += [(s["porte"], True, s["salle"], s["globale"])
                    for s in niveau["sorties"] if s.get("visible") and s.get("porte")]
         for cible, porte, salle, case in cibles:
+            repere = noms[cible["id"]] + " · scène"
+            materiels.extend(gestes_materiels(cible, ressources, repere, porte, noms))
             for geste, libelle in offres(cible, porte):
                 if geste == "parler":  # La conversation libre reste hors de ce premier lot.
                     continue
@@ -114,14 +137,44 @@ def liste_gestes(scene, inventaire=(), destinataires=()):
                     continue
                 vus.add(cle)
                 # La référence publique distingue aussi les homonymes à la même case.
-                repere = f'{cible["nom"]} [{cible["id"]}] · {salle}, carte ({case[0]}, {case[1]})'
                 liste.append(ChoixPublic(f"{libelle} — {repere}",
                                         DescripteurPublic({"geste": geste, "cible": cible["id"]})))
-    liste.extend(gestes_inventaire(inventaire, destinataires))
+    liste.extend(gestes_inventaire(inventaire, destinataires, noms))
+    for bien in inventaire:
+        repere = noms[bien["id"]] + " · besace"
+        materiels.extend(gestes_materiels({**bien, "mobile": True}, ressources, repere, noms=noms))
+    # Une porte peut figurer sur plusieurs sorties. Figer une seule fois chaque
+    # choix complet, sans modifier les numéros des gestes simples précédents.
+    vus_materiels = set()
+    for choix in materiels:
+        d = choix.descripteur.contenu
+        cle = (d["geste"], d["cible"], tuple(d["parametres"].items()))
+        if cle not in vus_materiels:
+            vus_materiels.add(cle)
+            liste.append(choix)
     return tuple(liste)
 
 
-def gestes_inventaire(inventaire, destinataires):
+def gestes_materiels(cible, ressources, repere, porte=False, noms=None):
+    """Même formulaire que la page ; aucune capacité ni réussite présumée.
+
+    Chaque ligne fige le second choix avec sa référence, y compris pour deux
+    ressources homonymes. Aucun formulaire incomplet ne quitte cette projection.
+    """
+    liste = []
+    noms = noms if noms is not None else noms_des_choix(ressources)
+    for geste, libelle, formulaire in offres(cible, porte, parametrees=True):
+        for ressource in ressources:
+            if not ressource_admise(cible, ressource, formulaire):
+                continue
+            d = {"geste": geste, "cible": cible["id"],
+                 "parametres": {formulaire["champ"]: ressource["id"]}}
+            nom = noms[ressource["id"]]
+            liste.append(ChoixPublic(f"{libelle} {nom} — {repere}", DescripteurPublic(d)))
+    return tuple(liste)
+
+
+def gestes_inventaire(inventaire, destinataires, noms=None):
     """Un numéro par choix complet : bien, quantité admise et destinataire.
 
     Comme le menu de la page, seules les quantités déjà proposées par le
@@ -129,9 +182,10 @@ def gestes_inventaire(inventaire, destinataires):
     L'absence d'état lumineux perçu laisse les deux gestes à la revalidation.
     """
     liste = []
+    noms = noms if noms is not None else noms_des_choix(inventaire, destinataires)
     for bien in inventaire:
         lot = bien.get("pieces", 0) > 1
-        repere = f'{bien["nom"]} [{bien["id"]}] · besace'
+        repere = noms[bien["id"]] + " · besace"
 
         def ajouter(geste, libelle, parametres=None):
             d = {"geste": geste, "cible": bien["id"]}
@@ -142,7 +196,7 @@ def gestes_inventaire(inventaire, destinataires):
         ajouter("poser", "Poser le lot entier" if lot else "Poser")
         for personne in destinataires:
             libelle = "Remettre le lot entier à" if lot else "Remettre à"
-            ajouter("remettre", f'{libelle} {personne["nom"]} [{personne["id"]}]',
+            ajouter("remettre", f'{libelle} {noms[personne["id"]]}',
                     {"destinataire": personne["id"]})
         if bien["type"] == "nourriture":
             ajouter("manger", "Manger une portion", {"quantite": 1})
@@ -158,10 +212,11 @@ def gestes_inventaire(inventaire, destinataires):
 
 def gestes_du_monde(monde):
     """Adaptateur commun aux terminaux ; le catalogue ne reçoit que du public."""
-    from .inventaire_public import inventaire_public, destinataires_publics
+    from .inventaire_public import inventaire_public, destinataires_publics, ressources_publiques
     from .scene import scene_percue
     scene = scene_percue(monde) if monde.data.get("mode_cases") else None
-    return liste_gestes(scene, inventaire_public(monde), destinataires_publics(monde))
+    return liste_gestes(scene, inventaire_public(monde), destinataires_publics(monde),
+                        ressources_publiques(monde))
 
 
 def rendre_liste(liste):
@@ -169,6 +224,7 @@ def rendre_liste(liste):
     lignes.extend(f"{i}. {choix.libelle}" for i, choix in enumerate(liste, 1))
     if not liste:
         lignes.append("Aucun geste disponible dans cette vue.")
+    lignes.append("0. Fabrication — choisir une recette et ses paramètres.")
     return "\n".join(lignes)
 
 

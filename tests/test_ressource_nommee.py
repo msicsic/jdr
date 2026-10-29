@@ -1,4 +1,5 @@
 """Même demande entre saisie, contenu, enquête, revue et sauvegarde."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import unittest
 
@@ -20,8 +21,8 @@ class RessourceNommeeTests(unittest.TestCase):
         self.assertNotIn('Précise', texte)
         self.assertIn(reponse, texte)
         self.assertIn(reponse, str(r.data['conversation']))
-        self.assertEqual(len(r.data['paroles_joueur']), 1)
-        self.assertEqual(r.data['paroles_joueur'][0]['texte'], mots)
+        self.assertEqual(len(emissions_joueur(r)), 1)
+        self.assertEqual(emissions_joueur(r)[0]['texte'], mots)
         for k in m.objets:
             self.assertEqual(r.objets[k].get('lieu'), avant['objets'][k].get('lieu'))
         faits = next(e['faits']['conversation_validee']['faits'] for f, e in appels

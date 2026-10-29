@@ -847,11 +847,13 @@ def _remettre_part(monde, vendeur, acheteur, lot, prix, persuasion=None):
     from .planification import devis_pulsion
     from .spatial import porte_par
     import copy
-    # Une parole encore due ne prélève pas une deuxième part.
+    # Une livraison annulée reste enregistrée jusqu'à l'annonce de l'abandon.
+    # La retrouver transmet son refus, jamais un accord qui effacerait ce refus
+    # chez l'acheteur et relancerait le même plan sans entrée nouvelle.
     for engagement in agendas.en_cours(monde, vendeur):
         c = engagement["condition"]
         if c.get("remettre") == acheteur and engagement.get("lot") == lot:
-            return "promis"
+            return engagement.get("annule") or "promis"
     avant = copy.deepcopy(monde.objets[lot])
     piece = detacher_part(monde, lot)
     o = monde.objets[piece]

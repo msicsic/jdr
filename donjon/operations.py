@@ -248,6 +248,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
     if op == "alimenter":
         from .matiere import SUBSTANCES
         from .perception import brule, combustible, recharge
+        from .moyens_materiels import charge_compatible
         if destination or methode != "simple":
             raise ErreurMonde("Recharger une source n'a pas de destination et se fait simplement.",
                               "alimenter : cible = la source à recharger, outil = le combustible (ou vide), "
@@ -260,18 +261,18 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         # Une brassée se prend sur le tas : le combustible est porté ou à portée de main.
         t = monde.objets.get(outil) if outil else next(
             (e for e in sorted(monde.objets.values(), key=lambda e: not monde.est_porte(e["id"]))
-             if combustible(e) and recharge(o, e) and a_portee(monde, e["id"])), None)
+             if charge_compatible(o, e) and a_portee(monde, e["id"])), None)
         if t and not monde.est_porte(t["id"]) and monde.accessible(t["id"]):
             exiger(monde, t["id"])
         if t and combustible(t) and not recharge(o, t):
             matiere = brule(o)
             reserves = sorted(x["id"] for x in monde.objets.values()
-                              if combustible(x) and recharge(o, x) and a_portee(monde, x["id"]))
+                              if charge_compatible(o, x) and a_portee(monde, x["id"]))
             raise ErreurMonde(designer(o, debut=True) + " brûle " + SUBSTANCES[matiere]["article"] + ".",
                               f"{cible} se recharge de {matiere} ; {t['id']} n'en est pas : outil parmi {cibles(monde, reserves)}.")
         if not t or not combustible(t) or not a_portee(monde, t["id"]):
             combustibles = sorted(x["id"] for x in monde.objets.values()
-                                  if combustible(x) and recharge(o, x) and a_portee(monde, x["id"]))
+                                  if charge_compatible(o, x) and a_portee(monde, x["id"]))
             raise ErreurMonde("Il faut porter un combustible dont il reste une charge, ou en avoir un à portée de main.",
                               f"outil : un combustible pour {cible} porté ou à portée de main, parmi {cibles(monde, combustibles)}.")
         victime = proprietaire(monde, t)
@@ -370,7 +371,8 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
             if contenant and contenant["type"] == "personnage":
                 raise ErreurMonde("On ne pose pas un objet sur un personnage.",
                                   f"pour donner {cible} à {destination} : action remettre, cible {cible}, outil {destination}.")
-            if (not contenant or contenant["type"] != "contenant" or not contenant.get("ouverte")
+            from .moyens_materiels import depot_possible
+            if (not contenant or not depot_possible(o, contenant)
                     or not monde.accessible(destination)):
                 ouverts = sorted(i for i, x in monde.objets.items()
                                  if x["type"] == "contenant" and x.get("ouverte") and monde.accessible(i) and i != cible)

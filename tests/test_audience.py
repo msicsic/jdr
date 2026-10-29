@@ -1,4 +1,5 @@
 """Une seule adresse, de la saisie à la sauvegarde ; cas du banc et autre scénario."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import unittest
 
@@ -31,7 +32,7 @@ class AudienceTests(unittest.TestCase):
         annonce = "Tu dis :" if personnage == "personne" else "Tu dis à "
         self.assertIn(annonce, sortie)
         self.assertNotIn("Précise à qui", sortie)
-        p = r.data["paroles_joueur"][-1]
+        p = emissions_joueur(r)[-1]
         mots = analyser(m, saisie)["mots"] or saisie
         self.assertEqual((p["auditeur"], p["texte"]), (reel(m, personnage), mots))
         self.assertTrue(p["auditeurs"])
@@ -53,7 +54,7 @@ class AudienceTests(unittest.TestCase):
         m = recharger(m)
         self.assertEqual(en_face(m, [reel(m, x) for x in interlocuteurs(m)]), "aubin")
         r, validee, sortie = self.verifier_parole(m, "est-ce que quelqu'un a du bois ?", "chaleur", "aubin", ["aubin"])
-        self.assertEqual(r.data["paroles_joueur"][-1]["auditeurs"], ["aubin"])
+        self.assertEqual(emissions_joueur(r)[-1]["auditeurs"], ["aubin"])
         self.assertEqual(validee["repondent"], ["aubin"])
         self.assertIn("Tu dis à Aubin : « est-ce que quelqu'un a du bois ? »", sortie)
         for qui in ("brune", "ilse", "marchand"):
@@ -66,14 +67,14 @@ class AudienceTests(unittest.TestCase):
         cible = prevue(m, "Avez-vous de quoi manger ?")["personnage"]
         self.assertEqual(reel(m, cible), "lucien")
         r, validee, _ = self.verifier_parole(m, "Avez-vous de quoi manger ?", "faim", cible, ["lucien"])
-        self.assertEqual(r.data["paroles_joueur"][-1]["auditeurs"], ["lucien"])
+        self.assertEqual(emissions_joueur(r)[-1]["auditeurs"], ["lucien"])
         self.assertEqual(validee["repondent"], [cible])
 
     def test_sans_interlocuteur_percu_la_cantonade_garde_ses_repondants(self):
         m = banc("soir-noir")
         self.assertFalse(interlocuteurs(m))
         r, validee, sortie = self.verifier_parole(m, "Avez-vous de quoi manger ?", "faim", "personne", [])
-        self.assertEqual(r.data["paroles_joueur"][-1]["auditeurs"], ["ilse"])
+        self.assertEqual(emissions_joueur(r)[-1]["auditeurs"], ["ilse"])
         self.assertEqual(validee["repondent"], ["voix_1"])
         self.assertIn("Tu dis : « Avez-vous de quoi manger ? »", sortie)
 
@@ -84,7 +85,7 @@ class AudienceTests(unittest.TestCase):
                 seul = banc("soir-noir")
                 r, sortie, appels = jouer(seul, saisie, [], [])
                 self.assertFalse(appels)
-                self.assertFalse(r.data.get("paroles_joueur"))
+                self.assertFalse(emissions_joueur(r))
                 self.assertNotIn("Tu dis", sortie)
 
     def test_a_tous_adresse_le_groupe_malgre_aubin_en_face(self):
@@ -92,7 +93,7 @@ class AudienceTests(unittest.TestCase):
         dest = [reel(m, x) for x in prevue(m, "à tous : avez-vous du bois ?")["destinataires"]]
         r, validee, sortie = self.verifier_parole(m, "à tous : avez-vous du bois ?", "chaleur", "tous", dest)
         self.assertTrue({"aubin", "brune", "ilse"} <= set(dest))
-        self.assertEqual(set(r.data["paroles_joueur"][-1]["auditeurs"]), {"aubin", "brune", "ilse", "marchand"})
+        self.assertEqual(set(emissions_joueur(r)[-1]["auditeurs"]), {"aubin", "brune", "ilse", "marchand"})
         self.assertIn("Tu dis à tous", sortie)
 
     def test_des_guillemets_poursuivent_ilse_malgre_aubin_en_face(self):
@@ -116,7 +117,7 @@ class AudienceTests(unittest.TestCase):
                 retour = next(e["faits"]["retour_moteur"] for f, e in appels
                               if f == "repondre_au_joueur" and "retour_moteur" in e["faits"])
                 self.assertIn(f"personnage = {cible}", retour["attendu"])
-                self.assertEqual(r.data["paroles_joueur"][-1]["auditeurs"], [cible])
+                self.assertEqual(emissions_joueur(r)[-1]["auditeurs"], [cible])
                 self.assertIn("Tu dis à", sortie)
                 self.assertNotIn("Précise à qui", sortie)
 
@@ -131,8 +132,8 @@ class AudienceTests(unittest.TestCase):
             revues=[{"conforme": False, "motif": "Du combustible est demandé, pas de la nourriture."},
                     {"conforme": True, "motif": ""}])
         self.assertNotIn("Précise à qui", sortie)
-        self.assertEqual(len(r.data["paroles_joueur"]), 1)
-        self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
+        self.assertEqual(len(emissions_joueur(r)), 1)
+        self.assertEqual(emissions_joueur(r)[-1]["texte"], saisie)
         self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 2)
 
     def test_sans_adresse_ni_question_l_audience_ne_change_pas(self):
@@ -166,7 +167,7 @@ class AudienceTests(unittest.TestCase):
                 self.assertIn(recit, str(m.data["conversation"]))
                 self.assertIn("Tu dis à Aubin", sortie)
                 self.assertEqual(m.joueur["or"], pieces)
-                self.assertEqual(m.data["paroles_joueur"][-1]["auditeurs"], ["aubin"])
+                self.assertEqual(emissions_joueur(m)[-1]["auditeurs"], ["aubin"])
                 self.assertEqual(sum(f == "repondre_au_joueur" for f, _ in appels), 2)
                 if contenu[0] == "demande":
                     faits = next(e["faits"]["conversation_validee"]["faits"] for f, e in appels
@@ -183,5 +184,5 @@ class AudienceTests(unittest.TestCase):
         m = banc("noms-dialogue")
         r, sortie, _ = jouer(m, "je regarde Aubin", [{"mode": "action", "texte": "", "faits": [],
             "proposition": proposition("examiner", "aubin")}], [])
-        self.assertFalse(r.data.get("paroles_joueur"))
+        self.assertFalse(emissions_joueur(r))
         self.assertIn("Aubin", sortie)
