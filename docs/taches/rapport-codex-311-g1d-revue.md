@@ -1,62 +1,83 @@
-# Lot 311 — G1 d, dernière reprise : mesure Luna à analyser
+# Lot 311 — G1 d : terminé, non fusionnable
 
-29 octobre 2026 — branche `codex-g1-compilateur`, **non fusionnée** ;
-intégration `d58b343` fusionnée sans rebase (`1b16cdd`). Dernière reprise
-décidée par l'utilisateur : aucune G1 e programmée. **Pas de verdict de fusion
-avant la passe.**
+29 octobre 2026 — code `4c9120f`, intégration `d58b343` fusionnée sans rebase
+(`1b16cdd`). Une passe, six scripts, référence `230e7b3` exclusivement en cache,
+copies vérifiées par SHA-256. Aucun incident réseau, arrêt, échec de recharge
+ou calcul actif. **Dernière reprise : pas de G1 e. Aucun correctif après mesure.**
 
-`MJ._echanger_prepare` utilise un pipeline commun : préparation pure du dossier
-(sans effet ni décision publiée), fidélité, puis admission. Une erreur calculée
-pendant la préparation reste interne jusqu'à la décision de sens. Un obstacle
-du monde rend ensuite son refus public directement, sans recompilation ni seconde
-fidélité. Les corrections de forme et admissions de propriétés restent distinctes.
-`couverture_action` porte le périmètre typé `sens/admission` : seul un écart de
-sens peut refuser. Le dossier ne qualifie plus le candidat de « non admis » et
-expose la proposition hypothétique sans sa justification. **Le périmètre reste
-un jugement du modèle ; une mauvaise classification en `sens` reste possible.**
-
-| Famille d'intention | Cause et contrat commun corrigé | Preuve hors réseau ; Luna en attente |
-|---|---|---|
-| Écoute | Confusion admission/sens, dossier à double statut | Objection `admission` ignorée ; écoute exécutée, état et rendu après recharge. |
-| Passage, coup, prise hors de portée | Non-admission assimilée à absence de geste, puis boucle de correction | Une revue puis refus moteur, sans autre compilation ; deux gestes et deux sources de portée. |
-| Expression sonore | Champs incompatibles, jet arbitraire pour expression | Une variante par effet dans le schéma commun ; expression/observation hors approches à jet. Deux sons émis, sans jet, enregistrés et rechargés. |
-| Ambiance sensorielle | Règle de liberté déjà présente dans narration, omise par le compilateur | `REGLE_AMBIANCE` commune au récit et au compilateur ; deux sensations admises sans effet mécanique et persistantes. Le cas d'odeur est **relais/1**, pas crypte/1 (lumière). |
-| Question au MJ / parole | Audience possible présentée comme parole déjà prévue | `parole_possible`, conditionnée au mode choisi, pour les saisies non explicitement parlées ; citations gardent `parole_prevue`. Deux questions ne créent aucune parole. |
-| Mémoire, description, geste outillé | Garanties 296/304 à conserver | Tests ciblés conservés ; comparaison par famille attendue. |
-| PNJ, avis, ressources, marché | Adresse et effets moteur à conserver | Simulations adaptées au périmètre et au catalogue conditionnel ; mêmes mots, auditeurs, état et rendu. |
-| Mission et prix | Consultation distincte de proposition | Contrat 304 conservé ; prix et absence d'engagement restent à contrôler dans la passe. |
-
-| Famille de refus | Situation locale ; aucune disparition Luna déclarée |
+| Critère | Atteint ? Référence → lot |
 |---|---|
-| Faux refus de fidélité pour non-admission | Ancien rapport sans périmètre illisible ; rapport annoté `admission` ne refuse plus le sens. |
-| Paramètres du son, forme acoustique | Grammaire corrélée : cible, destination, catégorie et bornes de l'effet. |
-| Issue improvisée / jet d'expression | Variantes avec/sans jet et approches autorisées ; ancien CHA/expression exclu. |
-| Opération incompatible | Sens de `franchir` partagé avec le schéma d'action simple ; admission mécanique conservée. |
-| Cible manquante, avis sur lieu inconnu, parole omise | Gardes conservées ; absence de nouvelles familles à mesurer sur les fils réels. |
+| Admission au premier coup | **Non**, 22 → 21/30. |
+| Fidélité, refus publics fidèles compris | **Non**, 23 → 20 au premier coup ; 27 → 23 après corrections. Familles perdues ci-dessous. |
+| Abandons au plus égaux | **Non**, 1 → 3 : écoute de référence ; levier, passage et coup du lot. |
+| Aucune famille de refus nouvelle | **Non**, 8 → 9 refus ; avis sur lieu inconnu absent de la référence. |
+| Revue distincte de l'admission | **Partiellement, invariant complet non atteint.** Protocole acquis : une compilation et une revue pour chacun des deux refus publics, sans relance. Mais faux refus de style et attente omise demeurent. |
+| Appels/tour ≤ 3,30 | **Non**, 104/30 = **3,47**, contre 99/30 = 3,30. |
+| Prix demandé fidèle | **Oui**, 20 pièces, or 24 inchangé et engagements vides après recharge. Voie parole/propos ; opération `prix` toujours non jouée par Luna. |
+| Taille et préfixe mesurés | **Oui**, 22 572 → 13 858 jetons/compilation ; cache 11 812 → 5 113, soit 52,3 → 36,9 %. |
+| Aucun texte interne affiché | **Non**, justification technique d'`impossible` publiée en crypte/10. |
 
-**Vérification** : 211 tests distincts / 21 fichiers, **207 réussis, quatre
-ignorés** (dépendances facultatives), sans suite complète. Résultats consolidés
-par dernier passage de chaque fichier, sans compter les répétitions. Rejeu des
-sept tours ciblés du 304 : quatre anciens verdicts faux (écoute comprise), trois
-charges sonores exactes et témoins. Les anciens rapports n'ont pas le champ
-de périmètre ; leurs annotations de test sont séparées, jamais présentées comme
-de nouveaux verdicts Luna. Les archives n'ont pas de sauvegarde intégrale par
-tour ; le rejeu des charges ne prouve pas une nouvelle réponse du modèle.
-`Test-Json` confirme six charges contre les schémas anciens, nouveaux et
-mutualisés : trois charges sonores anciennes et un témoin négatif exclus,
-deux témoins positifs admis. Aucun appel au modèle pendant ces vérifications.
+La fidélité crédite les **intentions entières** conservées par un refus moteur,
+y compris après correction. Comme au 304, recherche de traces non certifiée et
+mission en `propos` restent exclues du score de contrat des deux côtés ; montant
+du prix évalué séparément. Un refus de proximité exact ne couvre pas une attente
+omise : `voler/simple` compile seulement `deplacer`, `finesse` ajoute `patienter`.
 
-**Taille** : 80 466 / 81 874 caractères complets contre 90 759 / 93 305
-(88,7 / 87,8 %), prompt 3 945, schéma brut 62 921. Aucun retour à l'ancien
-interprète ni normalisation de sens ; les effets ne sont pas appliqués par le
-texte. Narration, qualifications/faits et voies PNJ gardent leurs contrôles.
+| Famille (indices zéro) | Fidèles finales réf. → lot | Résultat |
+|---|---:|---|
+| Sensoriel, relais/1 et crypte/1 | 2 → 2 | Odeur récupérée, enregistrée et relue ; lumière conservée. |
+| Son, relais/2 | 1 → 0 | Son omis puis corrigé ; approche **effort/CHA 10**, confirmation, aucune émission au tour. |
+| Mémoire/description, quatre tours | 4 → 4 | Conservées ; conduite et échoppe nécessitent une reprise. |
+| Recherche, relais/5 | 0 → 0 | Examen du sol, traces non certifiées des deux côtés. |
+| Écoute, crypte/9 | 0 → 1 | Exécutée dès le premier candidat, deux appels, aucun faux refus. |
+| Levier, crypte/10 | 1 → 0 | **Nouvelle perte** : le modèle nie l'opération disponible, répète `impossible`. |
+| Passage, relais/20 | 1 → 0 | Deux `faufiler/sud` étrangers, refus de sens justifiés, puis précision moteur. |
+| Coup, relais/21 | 1 → 0 | Poussée étrangère, puis improvisation refusée pour manière absente du dossier ; abandon. |
+| Bien absent, relais/22 | 1 → 1 | Prendre le bien demandé ; refus de visibilité fidèle, sans substitution. |
+| Attente/vol, crypte/26 | 1 → 0 | Refus de proximité exact, mais `voler/simple` perd l'attente ; revue trop permissive. |
+| Prix mission, crypte/24 | 0 → 0 | Montant correct, typage de consultation non exercé. |
+| Question MJ, crypte/41 | 1 → 1 | Encore parole/avis au départ ; lieu refusé, puis dialogue, **aucune parole prononcée**. |
+| Questions PNJ, trois tours | 3 → 3 | Gardien conservé comme sujet libre. |
+| Avis, quatre tours | 4 → 4 | Clauses et destinataires conservés. |
+| Ressources/comptes/marché, sept tours | 7 → 7 | Part contre trois pièces fidèle ; refus commercial, pas abandon. |
 
-**Passe unique** : six scripts, copies, un travailleur réduit, référence
-`230e7b3` précontrôlée et exclusivement en cache ; absence d'une référence =
-arrêt, jamais rejeu. Admission, fidélité par famille (refus public fidèle
-compris), abandons, familles de refus, prix, appels **≤ 3,30/tour**, secondes,
-jetons et préfixe sont **à analyser**, sans extrapolation des tests simulés.
+| Famille de refus, même classement qu'au 304 | Référence → lot |
+|---|---:|
+| Fidélité de l'action | 1 → 5 |
+| Portée | 3 → 1 |
+| Visibilité/référence | 1 → 1 |
+| Réexamen d'impossible | 1 → 1 |
+| **Avis sur lieu inconnu** | **0 → 1** |
+| Arguments d'écoute | 1 → 0 |
+| Personne inconnue | 1 → 0 |
 
-Bruts : `C:/Users/msics/donjon/artifacts/g1d-311/`, `tests-consolides.json`,
-`rejeu-exact.json`, `grammaire-rejeu.json`, `taille-avant-luna.json`,
-`precontrole-cache.json` et scripts ; fin attendue `fin-luna.json`.
+Les cinq refus de fidélité : son omis (contrôle déterministe), deux passages
+étrangers, poussée étrangère, puis **faux refus de manière**. Les anciens motifs
+« non admis = absent » disparaissent, sans rendre la revue juste. Paramètres
+sonores, catégorie acoustique, opération incompatible et parole omise du 304
+n'apparaissent plus ; une famille nouvelle suffit à faire échouer le critère.
+
+En crypte/10, le faux manque d'opération vient d'abord de Luna ; sa justification
+reste dans `retour_moteur.proposition_refusee`, puis l'audit la traite comme source
+mécanique. Le joueur lit cette explication technique. Le moteur n'avait pas
+établi l'absence d'opération : c'est une perte de contrat, pas un incident réseau.
+
+**Coût** : 91 saisies, 30 tours MJ, 61 sans modèle. Appels de réponse 57 → 55,
+revues d'action 15 → 21, audits narratifs 27 → 28 : total 99 → 104.
+Secondes modèle/tour 9,82 → 7,71 (référence historique, aucun gain causal établi).
+Compilations 36 → 37, tours repris 5 → 7 ; obstacles narratifs 9 → 6,
+relances 8 → 5, replis détectés 0 → 2. Entrée JSON 21 609 → 18 786 caractères ;
+requêtes complètes hors ligne à 88,7 / 87,8 % de la référence.
+
+**Preuves** : 207 tests réussis / 211 distincts, quatre ignorés, 21 fichiers ;
+aucune suite ni Luna relancée. Rejeu de sept tours archivés : charges exactes,
+annotations de périmètre séparées des verdicts Luna, pas de sauvegarde intégrale
+par tour. Schémas avant/après et mutualisés contrôlés sur six charges.
+Ancien interprète non réintroduit ; narration, PNJ, qualifications/faits et prix
+via parole gardent leurs voies et contrôles transitoires.
+
+Bruts : `C:/Users/msics/donjon/artifacts/g1d-311/`, passe
+`20261029-184942-30520/` ; `analyse-passe.json`, `familles.json`,
+`familles-refus.json`, `revue-admission.json`, `preuves-pertes.json`,
+`mission-jouee.json`, `manifest-bruts.json`, `tableau-tours.md` (30 tours,
+cause → correction → résultat et coût). **Critères de fusion non atteints.**

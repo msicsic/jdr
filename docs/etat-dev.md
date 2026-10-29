@@ -3,23 +3,34 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-g1-compilateur`, lot 311 / G1 d, non fusionnée** :
-  intégration `d58b343` fusionnée sans rebase (`1b16cdd`), seul conflit
-  documentaire, historiques conservés. **Dernière reprise G1**, sans G1 e.
-  Pipeline commun : préparation pure, revue de sens à périmètre typé,
-  admission ; refus du monde direct, sans seconde fidélité ni recompilation.
-  Candidat hypothétique sans étiquette « non admis ». Effets d'improvisation
-  corrélés, approches à jet explicites ; règle commune d'ambiance restaurée,
-  audience seulement possible distinguée d'une parole explicitement annoncée.
-  **207 réussis / 211 tests distincts, quatre ignorés, 21 fichiers** ; aucune
-  suite complète. Écoute et deux refus de portée : monde/rendu après recharge.
-  Rejeu de sept tours archivés du 304 ; annotations de périmètre séparées des
-  verdicts Luna, limites de reconstruction indiquées. Six cas JSON avant/après
-  et schéma mutualisé contrôlés. Requêtes 80 466 / 81 874 caractères,
-  88,7 / 87,8 % de la référence. **Passe Luna unique à analyser**, six scripts,
-  référence `230e7b3` en cache sans rejeu ; seuil d'appels 3,30/tour et fidélité
-  comptant les refus publics qui conservent l'intention. Aucun critère déclaré
-  acquis avant mesure. Bruts et fin attendue :
-  `C:/Users/msics/donjon/artifacts/g1d-311/fin-luna.json` ;
+  code mesuré `4c9120f`, intégration `d58b343` fusionnée sans rebase (`1b16cdd`).
+  **Analyse terminée, non fusionnable ; dernière reprise, pas de G1 e.**
+  Une passe, six scripts, référence `230e7b3` exclusivement en cache,
+  empreintes vérifiées ; aucun incident réseau, arrêt, échec de recharge,
+  calcul actif ni rejeu. Admission **22 → 21/30** ; fidélité selon G2,
+  refus publics fidèles compris, **23 → 20 au premier coup, 27 → 23 finales**
+  (mêmes exclusions recherche non certifiée / mission en propos qu'au 304).
+  Odeur et écoute récupérées ; question MJ finalement en dialogue, sans parole
+  prononcée, mais routage initial encore erroné. Son toujours à jet et non émis,
+  **nouvelle perte du levier**, passage et coup abandonnés, clause d'attente du
+  vol omise malgré un refus de proximité exact. Abandons **1 → 3**.
+  Refus **8 → 9** : lieu d'avis inconnu nouveau face à la référence. Anciens
+  faux motifs « non admis = absent » disparus ; protocole sans relance après
+  refus public acquis, **garantie de sens non acquise** : faux refus de manière
+  et attente acceptée comme style. Justification technique d'impossible affichée
+  en crypte/10, prise pour source mécanique par l'audit ; pas un incident réseau.
+  Prix fidèle : **20 pièces**, or 24 inchangé, aucun accord après recharge ;
+  nouvelle opération prix toujours non jouée par Luna, voie parole/propos.
+  Appels **99 → 104, 3,30 → 3,47/tour**, seuil non atteint ; 9,82 → 7,71 s/tour,
+  référence historique sans causalité de vitesse. Entrée **22 572 → 13 858**
+  jetons/compilation, cache 52,3 → 36,9 % ; requête brute hors ligne à
+  88,7 / 87,8 % de l'ancienne taille. Relances 8 → 5, replis 0 → 2.
+  **207 tests réussis / 211 distincts, quatre ignorés, 21 fichiers**, sans
+  suite relancée. Rejeu des sept tours et six cas JSON documenté, annotations
+  de test distinctes des verdicts Luna ; aucun correctif après la passe.
+  Bruts : `C:/Users/msics/donjon/artifacts/g1d-311/`, `analyse-passe.json`,
+  `familles.json`, `familles-refus.json`, `revue-admission.json`,
+  `preuves-pertes.json`, `mission-jouee.json`, `tableau-tours.md` ;
   [rapport 311](taches/rapport-codex-311-g1d-revue.md).
 
 - **Branche `codex-g1-compilateur`, lot 304 / G1 c, non fusionnée** :
