@@ -1896,8 +1896,12 @@ def _parts_remises(v, e, o, dans, vises, but=None):
     la demande ou à l'attente, puis se refait sur la part réellement reçue. Aucune
     source du monde n'est réputée chargée à l'accord.
     """
+    # Pour soi, la remise supplée un service qu'on ne peut pas rejoindre ;
+    # elle ne multiplie pas les offres quand le service ordinaire est accessible.
+    # Une livraison déjà promise conserve toutefois son contrat d'attente.
     repas = v.besoin[o] == 'faim' and (o in vises.get('servir', {}) or
-        but is not None and but(v, e.apres(faits=[(("part", o), v.proprietaire[o])])))
+        but is not None and but(v, e.apres(faits=[(("part", o), v.proprietaire[o])]))
+        and (v.promesse(o, True) or v.salle(e, o) is None or v.route(e, v.salle(e, o)) is None))
     if o in e.portes or not (repas or "combustible" in v.objets[o].get("usages", ())) or not v.disponible(o):
         return
     donneur = v.proprietaire[o]

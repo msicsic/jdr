@@ -1,78 +1,70 @@
 # Lot 275 — Appeler un interlocuteur inaccessible
 
-Branche **`codex-appeler-donneur`, non fusionnée**, base `7b58eb0` (code de
-l'intégration `ac63223`). Aucune donnée de scénario modifiée, aucun appel Luna.
+Branche **`codex-appeler-donneur`, non fusionnée**, base `7b58eb0` (intégration
+`ac63223`). Aucune donnée de scénario modifiée, ni Luna, ni suite complète.
 
-**Invariant.** Une étape sociale peut chercher le contact par l'appel négocié si
-son interlocuteur est localisé, inaccessible et cru à portée de voix. Le préfixe
-ne réalise ni venue, ni demande, ni acquisition ; la suite est replanifiée après
-contact réel. Les échecs emploient le registre commun des recherches, sans délai
-de rappel. Aucune position réelle du tiers n'entre dans la décision de l'appeler.
+**Invariant et code.** Une étape sociale admissible peut préparer le contact par
+l'appel négocié si l'interlocuteur est localisé, inaccessible et cru à portée de
+voix. `planification._appeler`, `_chercher` et `rejoindre` raccordent demandes,
+achats et négociations à l'inspection/appel existants. Propagation sur les portes
+et positions crues, sans position réelle du tiers ; `_couper` arrête le préfixe
+avant toute présence ou acquisition supposée. L'appelé garde son libre choix ;
+les appels vains restent dans le registre commun, sans rappel par délai. La
+remise de nourriture déjà prévue par le moteur supplée le service inaccessible.
+Raccord de `pnj_propositions.recours`, sans modification de `deliberation.py`,
+`agendas.py` ou `signes.py`.
 
-**Code.** `planification._appeler` estime la propagation sonore commune sur les
-portes crues, la position connue du tiers et le centre de l'inspection locale.
-`_chercher` et `rejoindre` raccordent ce moyen aux contacts ; `_parts_calculer`,
-`_parts_remises` et les acquisitions d'objets portés y donnent accès aux demandes
-et achats admissibles. L'inspection existante appelle `pnj.appeler` puis le
-contrat négocié, sans nouvelle opération ou nouveau mode. `_couper` conserve la
-frontière d'incertitude. La remise de nourriture déjà exécutée par le moteur est
-également accessible à celui qui veut manger lui-même : attendre à une réserve
-inaccessible ne doit pas être son seul devis. Le lot n'invente aucune livraison.
-Raccord supplémentaire nécessaire dans **`pnj_propositions.recours`** : une
-négociation après refus peut préparer le contact ; la contrepartie se décide
-ensuite, sans offre présumée. **Ni `deliberation.py`, ni `agendas.py`, ni
-`signes.py` modifiés.**
+**Scènes.** Capture exacte crue 7/270 : Ilse hèle, Gorm ne promet pas de venir,
+appel retenu. Variante où seul Gorm sait la porte déverrouillée : venue,
+retrouvailles, demande, achat, repas, dans cet ordre. Auberge : achat d'une
+lanterne portée, silence par méfiance, aucune acquisition supposée. Contrôles de
+portée, lieu inconnu, position cachée, délai, négociation ; mondes/rendus/scènes
+rechargés et cinq minutes entières/découpées identiques.
 
-**Scènes.** La capture exacte crue 7, minute 270, est conservée en fixture
-compressée. Ilse hèle Gorm ; il répond « Ici, viens ! », elle répond de même ;
-aucune venue promise, appel retenu. Dans la variante où la porte est réellement
-déverrouillée et où seul Gorm le sait, il promet de venir ; les retrouvailles
-précèdent la demande, l'achat et le repas. Autre scénario : Hugues cherche à
-acheter sa lanterne à Anselme après un refus de prêt ; le préfixe s'arrête à
-l'appel et la méfiance conserve la lanterne chez Anselme. Contre-épreuves :
-pièce sans ouverture acoustique, localisation inconnue, positions réelles cachées
-modifiées, délai seul, recours de négociation. Mondes, rendus et scènes vérifiés
-après recharge ; cinq minutes entières et découpées comparées intégralement sur
-la capture et sa variante de venue.
+**Échecs instruits.** Les 227 tests ciblés distincts sont passés après correction
+de trois scènes/oracles : refus indexé par objet, cible explicitement perdue de
+vue dans l'épreuve de coût, rappel d'Hugues exigeant une réouverture positive
+(bruit nouveau à 16 min, appel à 18). Le complément : **748 tests, 745 verts,
+2 échecs, 1 ignoré** (dépendance MiMo facultative absente), 1 732,113 s.
+Les deux épreuves en échec **passent sur `7b58eb0`**, preuves archivées ; elles
+sont causées par le lot, non préexistantes :
 
-**Arrêt instruit.** Le premier `fin.json`, `ok=false`, signale l'arrêt sur les
-tests, **avant complément et banc**. Passe ciblée : 182 tests, 179 verts, une
-assertion et deux erreurs, **591,132 s**, deux processus réduits. Les deux
-épreuves existantes passent sur la base exacte `7b58eb0` (preuves conservées) :
-les écarts sont donc liés au lot, pas des dettes préexistantes. Dans l'épreuve
-de coût de `_chercher`, la cible était déjà localisée et joignable : la scène
-précise maintenant qu'elle est perdue de vue, conformément à l'objet du test.
-Pour Hugues, la trace base/branche est identique jusqu'au bruit nouveau du
-couloir à **16 min**, qui rouvre ce lieu dans les deux versions. La branche
-peut ensuite appeler à **18 min** Anselme localisé par Mathurine à 3 min,
-contrairement à la base dépourvue de ce moyen. L'ancien oracle « jamais deux
-appels dans un lieu, tous avant 12 min » était trop fort : chaque répétition
-doit désormais consommer une **réouverture positive**, avec vérification de
-l'absence de marqueur vain avant chaque cri et recharge monde/rendu/scène.
-Enfin le test nouveau de négociation stockait à tort `besoin=faim` sur un refus
-de bien ; celui-ci est indexé par objet, le besoin étant porté par son parent.
-Ces **trois corrections portent sur les tests**, sans nouvelle règle du jeu.
-Les **9 vérifications concernées passent**, **17,515 s**, puis les trois
-fichiers complets : **47 tests verts, 36,518 s**. Les 17 fichiers déjà verts ne
-sont pas rejoués : agrégat sourcé **182/182 verts**, sans temps de campagne
-reconstitué (`test-cibles-275-verifie.json`). Avec les **45 tests verts**
-initiaux (39,573 s), **227 tests distincts acquis**. Le complément des
-importeurs directs est lancé séparément ; aucune suite complète ni Luna.
+- Rémy appelle Bram sans contrepartie admissible ; sa venue empêche ensuite le
+  vol de la paie. `recours` valide désormais l'existence d'une offre avant de
+  préparer le contact, par le jugement commun, sans présumer son acceptation.
+- Le graphe faim d'auberge/480 gagne 36 successeurs superflus, malgré un service
+  accessible. La remise pour soi est proposée seulement si le service est
+  inaccessible, ou déjà promise. **Aucun hash ni oracle remplacé** ; les six
+  graphes historiques et l'acquisition effective de la paie restent exigés.
 
-**Banc non encore exécuté ; critère « aucune hausse de suspects par nuit »
-non établi.** Référence `7b58eb0` résolue une fois,
-cache commun réutilisé quand disponible ; vingt nuits de branche, cinq scénarios
-× quatre graines, 4 h, sonde 265/271 actuelle. Référence puis branche,
-deux travailleurs réduits au plus, après les tests. `comparaison.json` conserve
-les nuits, `bilan.json` compare les suspects 219 **nuit par nuit**, les appels,
-les retrouvailles et S/F/D avec la fonction `cats` exacte du lot 183.
-**Aucune absence de hausse ni amélioration naturelle n'est encore affirmée.**
+Les dix fichiers directement concernés passent : **77 tests verts, 209,391 s**,
+dont les sept régressions nouvelles et les oracles intacts des deux échecs.
+Traces base/branche avant et après correction de Rémy : six états chacune,
+mondes/rendus/scènes identiques après recharge ; la paie est reprise à 1 min.
 
-Bruts et lanceur : `C:/Users/msics/donjon/artifacts/appeler-275/` ;
-**`fin.json` écrit en dernier**. Le premier arrêt est archivé séparément. La
-reprise exécute le complément puis le banc, et signale tout échec de tests,
-plantage ou hausse des suspects par `ok=false`.
-Limites : la portée est une estimation sur les croyances (position inconnue :
-calcul sans cases), l'appelé garde ses priorités et son chemin propres ; aucun
-accord ni résultat universel garanti. Lot à reprendre au fichier de fin avant
-validation et fusion.
+**Banc acquis avant ces deux corrections, code `a04090c`.** Vingt paires 4 h,
+cinq scénarios × graines 1985/7/42/2024, sonde 265/271. **Critère « aucune hausse
+de suspects 219 par nuit » tenu sur 20/20** : Relais/2024 **1 → 1**, les dix-neuf
+autres nuits **0 → 0** ; zéro plantage. Appels nommés **22 → 37**, retrouvailles
+**8 → 19**, à expliquer **21 → 34**, cycles accomplis **503 → 506**. S/F/D selon
+la fonction `cats` exacte du 183 : épisodes distincts, familles, diversité
+moyenne par PNJ ; moyennes sur quatre nuits :
+
+| Scénario | S avant → après | F avant → après | D avant → après |
+|---|---:|---:|---:|
+| Relais | 15,25 → 15,25 | 4,25 → 4,25 | 1,75 → 1,75 |
+| Mine | 25,75 → 30,75 | 5 → 4,5 | 1,964 → 1,964 |
+| Auberge | 9,25 → 9,25 | 4 → 4 | 1 → 1 |
+| Crue | 23,5 → 23,75 | 6,75 → 7 | 3,063 → 3,063 |
+| Hameau | 22,75 → 26,5 | 7,25 → 7,5 | 2,167 → 2,292 |
+
+**Ces chiffres ne valident pas encore le code corrigé.** La correction du moteur
+exige une nouvelle passe de branche détachée, deux travailleurs réduits ; les
+vingt références `7b58eb0` seront lues en cache, sans rejeu. Ni complément entier
+ni autre campagne relancés. Bruts : `C:/Users/msics/donjon/artifacts/appeler-275/` ;
+attendre **`correction/fin.json`**, écrit en dernier. L'ancien `fin.json` reste
+`ok=false` et conserve fidèlement les deux échecs de sa version.
+
+Limites : portée estimée sur les croyances (sans cases si position inconnue),
+venue et accord incertains ; richesse descriptive sans preuve universelle de
+bénéfice. Aucun calcul long à surveiller par l'agent.

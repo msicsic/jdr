@@ -26,11 +26,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   **47 tests verts** dans les trois fichiers complets, 36,518 s. Les 17
   fichiers déjà verts sont conservés : **182/182 ciblés verts** après reprise,
   agrégat sourcé ; avec les 45 initiaux, **227 tests distincts acquis**.
-  Complément des importeurs puis banc détaché 20 nuits × 4 h relancés, référence figée `7b58eb0`,
-  cache commun, deux travailleurs réduits au plus. **Critère « aucune hausse
-  de suspects 219 par nuit » non établi : banc non exécuté.**
-  Appels/retrouvailles et S/F/D 183 encore à mesurer ; ni suite complète ni Luna. Bruts
-  `C:/Users/msics/donjon/artifacts/appeler-275/`, attendre **`fin.json`** ;
+  Complément **748 tests : 745 verts, 2 échecs, 1 ignoré** (MiMo facultatif),
+  1 732,113 s. Les deux tests passent sur la base `7b58eb0` : régressions du
+  lot confirmées, corrigées **sans toucher les tests ni leurs empreintes**.
+  `recours` ne prépare plus un appel avant de disposer d'une offre admissible
+  (Rémy faisait venir Bram puis ne pouvait plus prendre la paie). La remise
+  de nourriture pour soi supplée seulement un service inaccessible ou conserve
+  une livraison promise ; elle n'ajoute plus les 36 successeurs superflus du
+  graphe auberge/480. Six graphes historiques et acquisition de la paie exigés.
+  **77 tests verts**, dix fichiers directement concernés, **209,391 s**,
+  deux processus réduits ; sept scènes nouvelles conservées. Traces corrigées
+  de Rémy rechargées monde/rendu/scène, six états ; paie reprise à 1 min.
+  **Banc avant correction (`a04090c`) : 20/20 paires 4 h, aucune hausse de
+  suspects 219 par nuit**, Relais/2024 1 → 1, dix-neuf autres 0 → 0 ; zéro
+  plantage. Appels 22 → 37, retrouvailles 8 → 19 ; S total 386 → 422,
+  F moyenne 5,45 → 5,45, D moyenne 1,989 → 2,014 ; à expliquer 21 → 34.
+  **Critère tenu pour ce code antérieur ; code corrigé encore à vérifier au
+  banc.** Une passe de branche seule relancée en fond, référence `7b58eb0`
+  réutilisée en cache, deux travailleurs réduits ; ni complément entier,
+  suite complète ou Luna. Bruts `C:/Users/msics/donjon/artifacts/appeler-275/`,
+  attendre **`correction/fin.json`** ; ancien `fin.json` conservé `ok=false` ;
   [rapport 275](taches/rapport-codex-275-appeler-donneur.md).
 
 - **Branche `codex-soupcon-deduit`, fusionnée**, lot **267**, base
