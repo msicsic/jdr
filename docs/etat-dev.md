@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 321 / U-T fabrication, branche `codex-ut-fabrication`, base
+- **Lot 321 / U-T fabrication terminé, branche `codex-ut-fabrication`, base
   `integration 0fcc99e`, non fusionnée** : `0` ouvre une recette numérotée
   commune console/TUI, issue du catalogue et des ressources publiques du web.
   Usage, rôles, lien, outil, dimensions et rythme composent le même
@@ -10,16 +10,18 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   manque signalé, accès et droits revalidés par le moteur sans substitut.
   Quatre parcours du 305 dans chaque interface, références périmées ou
   éloignées, physique inconnue, propriété et recharge contrôlées ;
-  **10 nouveaux tests verts**, zéro échec/erreur/saut, 58,216 s.
-  Neuf fichiers voisins en cours, dont les 28 TUI existants inchangés ;
-  aucun bilan global déclaré. Suivi détaché réduit, sans relancer les tests,
-  `fin.json` écrit en dernier même en échec. Deux travailleurs réduits
-  au plus au total ; bilan à lire à la reprise pour clore le rapport.
+  **115 tests / dix fichiers verts**, zéro échec/erreur/saut : dix nouveaux
+  et 105 voisins, dont les **28 TUI existants inchangés**. 1 166,769 s
+  cumulées (58,216 + 1 108,553). Suivi détaché réduit, sans relancer les
+  tests, `fin.json` écrit en dernier : **ok=true, code de clôture 0**.
+  Deux travailleurs réduits au plus au total, sur copies.
   Huit parcours : **23 touches pour assembler, 12 pour découper**,
   **24/13 avec F7** en TUI, ouverture et dimensions comprises.
   **Recouvrement 319 : `jeu.py`**, boucle console seulement ; rendu,
   moteur, MJ et web inchangés. Ni Luna, ni banc, ni suite complète.
   Bruts `C:/Users/msics/donjon/artifacts/ut-fabrication-321/`.
+  Code/tests `23a7c60` inchangés depuis validation, empreintes contrôlées ;
+  **branche poussée vers origin, aucun calcul actif**, aucune relance à la clôture.
   [Rapport 321](taches/rapport-codex-321-ut-fabrication.md).
 
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base

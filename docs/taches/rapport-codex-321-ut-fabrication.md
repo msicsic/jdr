@@ -29,12 +29,12 @@ Les gestes numérotés précédents gardent leurs numéros.
 
 ## Vérification et mesures
 
-**10 nouveaux tests verts**, zéro échec, erreur ou saut, 58,216 s. Les neuf
-fichiers voisins, dont les **28 tests TUI existants inchangés**, restent en
-cours : aucun bilan global revendiqué. Suivi détaché à priorité réduite,
-`fin.json` écrit en dernier même en échec ; processus des tests déjà lancé,
-sans relance. Ni Luna, ni banc PNJ, ni suite complète ; deux travailleurs
-réduits au plus au total, sur copies.
+**115 tests / dix fichiers verts**, zéro échec, erreur ou saut : dix nouveaux
+tests en 58,216 s et 105 tests voisins en 1 108,553 s, dont les **28 tests TUI
+existants inchangés**. Temps cumulé des deux commandes : **1 166,769 s**.
+Suivi détaché à priorité réduite, sans relance des tests ; `fin.json` écrit
+en dernier, **ok=true, code de clôture 0**. Ni Luna, ni banc PNJ, ni suite
+complète ; deux travailleurs réduits au plus au total, sur copies.
 
 Les quatre parcours du 305 sont refaits par les vraies saisies des deux
 interfaces : échelles de perches normale et de planches soignée, ficelle et
@@ -65,5 +65,7 @@ exécution ou annulation ; les paramètres se ressaisissent pour recommencer.
 console ; ni `executer_local`, ni `conclure`, ni `rendu.py` ne sont modifiés.
 Web, MJ, règles d'atelier et moteur inchangés. Fusion au superviseur.
 Bruts : `C:/Users/msics/donjon/artifacts/ut-fabrication-321/`.
-Reprise : lire `fin.json`, puis les résultats détaillés et mettre ce rapport
-et `docs/etat-dev.md` à jour avant de déclarer le lot terminé.
+Bilans retenus : `tests-nouveaux-finaux.json`, `tests-voisins.json`,
+`mesures.json`, `bilan.json` et `fin.json`. Empreintes du code et des tests
+identiques à la validation de `23a7c60` ; aucune relance à la clôture.
+**Lot terminé, branche poussée vers origin, non fusionnée ; aucun calcul actif.**
