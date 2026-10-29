@@ -2,22 +2,28 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 323 / G5, relecture avant fusion, branche `codex-g5-perception`,
-  non fusionnée**, base `integration 4794376` : la première passe avait
-  transformé les deux questions de signes-guet en paroles. **Régression**,
-  référence historique `c9459ce` lue sur le PC fixe (deux passes, sans parole).
-  Voie dialogue d'information rétablie dans les consignes communes, sans
-  exception de saisie ; rendu moteur des perceptions typées conservé.
-  **67 tests / six fichiers verts**, 52,673 s cumulées, sans erreur ni saut :
-  aucune parole de Corvus enregistrée pour les questions réelles, monde/PNJ/
-  texte/scène/carte rechargés vérifiés ; paroles explicites et perceptions
-  noires sans modèle conservées. Les 117 tests initiaux restent archivés.
-  Relecture Luna : une passe de signes-guet, noms-dialogue et echanges
-  en cours, détachée ; deux processus BelowNormal vérifiés ; reprise sur
-  `C:/Users/msics/donjon/artifacts/g5-323/relecture/fin-luna-passe.json`.
-  Douze références historiques des six scripts concernés lues sans relance.
-  G5 global reste partiel, dialogues d'information toujours audités.
-  Ni banc PNJ ni suite complète. Recouvrements 320/319 signalés au rapport.
+- **Lot 323 clos après relecture / G5 partiel, branche `codex-g5-perception`,
+  non fusionnée**, base `integration 4794376`, correctif `d683184` : voie
+  dialogue des questions d'information restaurée dans les consignes communes ;
+  rendu moteur des perceptions typées conservé. **67 tests / six fichiers
+  verts**, 52,673 s cumulées : aucune parole de Corvus pour les questions
+  réelles, monde/PNJ/texte/scène/carte rechargés vérifiés. 117 tests initiaux
+  archivés séparément. Code/tests inchangés depuis les 67 tests verts.
+  **Luna de correction : une passe**, signes-guet/noms-dialogue/echanges,
+  115,391 s, code 0, 36 appels, zéro erreur technique/recharge ni repli.
+  **Guet : deux réponses au MJ sans parole de Corvus**, quatre appels ;
+  six/quatre dans les deux références c9459ce, état observé identique.
+  Routage parole identique aux deux références pour les **17 tours**.
+  Bois de noms-dialogue et salut/citation d'echanges déjà parlés dans les
+  références : aucune conversion nouvelle. Appels noms-dialogue **19 contre
+  13/17**, echanges **13 contre 15/11**, aucun gain global revendiqué.
+  Trois mentions d'echanges : noms saisis repris dans les refus locaux,
+  pas de nouvelle identité. Douze archives des six scripts lues sans relance.
+  Bruts `C:/Users/msics/donjon/artifacts/g5-323/relecture/`,
+  `analyse-relecture.json`, `fin-luna-passe.json ok=true` ; aucun calcul actif.
+  G5 global reste partiel, dialogues d'information toujours audités ; pas de
+  garantie universelle du routage libre. Ni banc PNJ ni suite complète.
+  Recouvrements 320/319 signalés ; branche poussée.
   [Rapport 323](taches/rapport-codex-323-g5-perception.md).
 
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base
