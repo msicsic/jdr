@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 327 / G19, branche `codex-g19-rappels`, non fusionnée**, base
+- **Lot 327 / G19 terminé, branche `codex-g19-rappels`, non fusionnée**, base
   `integration eb15b5e` : rappels exacts reliés aux occurrences entendues
   du registre G15, provenance et absence revérifiées avant sauvegarde.
   Mémoire d'un locuteur parti distincte des interlocuteurs présents ;
@@ -11,10 +11,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sous leurs contrôles actuels. **153 tests distincts / douze fichiers
   verts**, dont huit nouveaux ; monde, mémoire, conversation, scène et
   rendu après recharge, MJ simulé sans réseau. Deux travailleurs réduits
-  au plus, ni suite complète ni banc PNJ. **Luna à conclure** : une passe
-  détachée `soir-noir` / `echanges`, référence `cdaf371` relue seulement,
-  bruts `C:/Users/msics/donjon/artifacts/g19-327/`, `fin.json` écrit en
-  dernier même en échec. Résultats Luna non revendiqués à ce stade.
+  au plus, ni suite complète ni banc PNJ. **Luna, une passe détachée**
+  `soir-noir` / `echanges`, référence `cdaf371` relue seulement : huit
+  tours MJ, **34 appels**, zéro obstacle/relance/repli/erreur, trois refus
+  de validation. **Zéro citation exacte auditée, zéro rappel exact proposé** :
+  voie exacte validée par les tests, non exercée dans cette passe Luna.
+  Limite observée : faux passé sur un nom donné par Corvus admis au tour
+  de l'imposture avec `rappels=[]` ; voie libre et contrôles conservés.
+  Bruts `C:/Users/msics/donjon/artifacts/g19-327/`, **fin.json ok=true**,
+  code 0, 83,130 s ; premier échec de lanceur avant tout appel conservé.
+  Code/tests `8c2614a` inchangés, empreintes vérifiées ; branche poussée
+  vers origin, aucun calcul actif. Aucun gain général revendiqué.
   Recouvrements G5/323 et G17/326 : `narration.py` seulement.
   [Rapport 327](taches/rapport-codex-327-g19-rappels.md).
 

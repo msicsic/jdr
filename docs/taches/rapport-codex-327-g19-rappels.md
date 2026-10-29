@@ -1,8 +1,9 @@
 # Lot 327 — G19, les rappels
 
 Branche `codex-g19-rappels`, **non fusionnée**, base `integration eb15b5e`.
-Implémentation et tests ciblés validés ; passe Luna à conclure depuis
-`C:/Users/msics/donjon/artifacts/g19-327/fin.json`.
+Lot terminé ; code/tests `8c2614a` inchangés depuis validation, empreintes
+contrôlées. Bruts `C:/Users/msics/donjon/artifacts/g19-327/` ;
+`fin.json` : **ok=true**, code Luna 0, **83,130 s**, aucun calcul actif.
 
 **Invariant.** Relire une parole entendue restitue ses mots historiques sans
 nouvelle émission ni acquisition de connaissance. Les lots 135/156 avaient
@@ -40,14 +41,28 @@ la carte et deux refus du rendu nouveau ; leurs bruts sont conservés.
 Le bac Windows refuse les copies temporaires Python : tests exécutés hors
 bac, priorité réduite, deux travailleurs au plus. Ni suite complète ni banc PNJ.
 
-**Luna.** Lanceur détaché préparé pour **une passe**, `soir-noir` et `echanges`,
-ChatGPT `gpt-6-luna`, medium/libre, un travailleur réduit. Référence historique
-`cdaf371` relue du cache pour les deux scripts, jamais rejouée. Commande exacte,
-copies, empreintes, journaux et analyse dans le dossier du lot ; `fin.json`
-est écrit en dernier, même en échec. Les résultats Luna ne sont pas encore
-revendiqués. Leur analyse compte séparément les propositions exactes et les
-citations exactes envoyées à l'audit ; zéro ajout mécanique est prouvé par
-les parcours console simulés, pas inféré d'une seule sortie narrative.
+**Luna, une passe.** `soir-noir` et `echanges`, ChatGPT `gpt-6-luna`,
+medium/libre, copies temporaires, un travailleur détaché réduit dont le
+processus actif a été vérifié. Référence historique `cdaf371` relue du cache,
+jamais rejouée. Huit tours MJ, **34 appels**, aucun obstacle narratif,
+relance, repli, erreur technique ou de recharge. Refus de validation : trois.
+
+| Script | Appels référence → lot | Secondes/tour du lot |
+|---|---:|---:|
+| soir-noir | 23 → 21 | 7,642 |
+| echanges | 10 → 13 | 9,357 |
+
+**Zéro citation exacte auditée, mais zéro proposition de rappel exact.**
+Cette passe n'exerce donc pas cette voie : zéro émission ou connaissance
+créée par restitution est prouvé par les tests console, pas par ce compteur
+Luna. Au dernier tour de `soir-noir`, la voix refuse actuellement son nom,
+sans rappel. Au tour de l'imposture, elle affirme à tort que Corvus lui
+avait déjà donné un autre nom ; l'audit libre l'admet avec `rappels=[]`.
+Ce défaut d'extraction sémantique reste ouvert, sans contrôle retiré sur
+cette voie. Référence ancienne et charges différentes : aucun gain général
+ou causal de latence revendiqué. Commande, SHA et fils conservés. Le premier
+lanceur a échoué sur le type du handle Windows avant tout appel modèle ;
+`fin-demarrage-echoue.json` est conservé. Un seul lancement Luna effectif.
 
 **Limites et intégration.** Une paraphrase, une attribution libre, un fragment
 arbitraire ou un geste passé garde sa voie sémantique actuelle. La preuve
