@@ -196,6 +196,127 @@ def enfants(monde, titulaire, identifiant):
     return copy.deepcopy(a.get("confies", []))
 
 
+ISSUES_COMPTE_RENDU = ("reussi", "echoue", "renonce")
+
+
+def compte_a_rendre(monde, id):
+    """Une charge terminale reste à annoncer, sans lire la situation du mandant."""
+    from .pnj import pourraient_se_parler
+    from .caractere import prix_faute
+    for a in projets(monde, id):
+        o = a["origine"]
+        if (o["type"] != "mandat" or a["etat"] not in ("atteint", "abandonne")
+                or "compte_rendu" in a or not pourraient_se_parler(monde, id, o["de"])):
+            continue
+        issue = ("reussi" if a["etat"] == "atteint" else
+                 "renonce" if a["raison"] == "supplante" else "echoue")
+        # Dissimuler son échec reste une faute pesée par l'honnêteté commune.
+        faute = prix_faute(monde, id)
+        if issue != "reussi" and faute is not None and faute < poids(monde, id, a):
+            issue = "reussi"
+        return {"type": "compte_rendu", "charge": {
+            "mandant": o["de"], "parent": o["parent"], "agenda": a["id"],
+            "sorte": a["sorte"], "parametres": a["parametres"]}, "issue": issue}
+    return None
+
+
+def retenir_compte_emis(monde, id, contenu):
+    a = _projet(monde, id, contenu["charge"]["agenda"])
+    _verifier_compte(monde, id, a, contenu)
+    assert a["etat"] in ("atteint", "abandonne"), "Charge non terminée"
+    if "compte_rendu" in a:
+        return False
+    a["compte_rendu"] = {"contenu": copy.deepcopy(contenu), "minute": monde.data["minutes"]}
+    return True
+
+
+def _constat_charge(monde, id, charge):
+    """Issue prouvée par le porteur ; l'absence de preuve n'est pas un échec."""
+    from .esprits import lire, RECENT
+    from .social import transmission_attestee
+    p = charge["parametres"]
+    if charge["sorte"] == "informer":
+        if all(transmission_attestee(monde, id, q, _noyau(charge)) for q in p["qui"]):
+            return "reussi"
+        return None
+    constats = [lire(monde, id)["croyances"].get(q, {}).get("lieu", {}) for q in p["qui"]]
+    propres = [c for c in constats if c.get("source") in ("vu", "essai")
+               and monde.data["minutes"] - c["minute"] <= RECENT and c["valeur"] is not None]
+    if any(c["valeur"] != p["lieu"] for c in propres):
+        return "echoue"
+    if len(propres) == len(constats):
+        return "reussi"
+    return None
+
+
+def recevoir_compte(monde, id, locuteur, contenu):
+    """Parole sur un contrat partagé, jamais lecture de l'état privé de l'enfant."""
+    from .esprits import memoriser, poids_source
+    from .echanges import jet_persuasion, clarte
+    from .voix import source_dite, identifie, se_mefier
+    charge = contenu["charge"]
+    source = source_dite(monde, id, locuteur)
+    memoriser(monde, id, {"type": "compte_rendu", "de": source,
+                          "contenu": copy.deepcopy(contenu)})
+    if charge["mandant"] != id or not identifie(monde, id, locuteur):
+        return None
+    parent = _projet(monde, id, charge["parent"])
+    if parent is None or {"titulaire": locuteur, "agenda": charge["agenda"]} not in parent.get("confies", []):
+        return None
+    enfant = _projet(monde, locuteur, charge["agenda"])
+    if (contenu["issue"] not in ISSUES_COMPTE_RENDU or charge["sorte"] != enfant["sorte"]
+            or charge["parametres"] != enfant["parametres"]):
+        return None
+    propre = _constat_charge(monde, id, charge)
+    dementi = propre is not None and propre != contenu["issue"]
+    if dementi:
+        se_mefier(monde, id, locuteur, "vu")
+    accepte = not dementi and jet_persuasion(monde, id, locuteur, 10)[0]
+    croyance = {"valeur": propre if propre is not None else contenu["issue"] if accepte else None,
+                "source": ("entendu" if charge["sorte"] == "informer" else "vu") if propre is not None else source,
+                "minute": monde.data["minutes"], "confiance": 1 if propre is not None else round(.7 * clarte(monde, id), 2)}
+    croyance["poids"] = poids_source(monde, id, croyance)
+    rapports = parent.setdefault("comptes_recus", [])
+    rapports[:] = [r for r in rapports if (r["de"], r["contenu"]["charge"]["agenda"]) != (locuteur, charge["agenda"])]
+    rapports.append({"de": locuteur, "contenu": copy.deepcopy(contenu), "croyance": croyance})
+    return "dementi" if dementi else "crue" if accepte else "doute"
+
+
+def _reviser_comptes(monde, id, a):
+    from .esprits import memoriser, RECENT
+    for r in a.get("comptes_recus", []):
+        charge = r["contenu"]["charge"]
+        propre = _constat_charge(monde, id, charge)
+        source = "entendu" if charge["sorte"] == "informer" else "vu"
+        c = r["croyance"]
+        if propre is not None and (c["source"] != source or c["valeur"] != propre):
+            if (c["source"].startswith("dit:") and c["valeur"] is not None and c["valeur"] != propre
+                    and monde.data["minutes"] - c["minute"] <= RECENT):
+                memoriser(monde, id, {"type": "mensonge_decouvert", "locuteur": r["de"],
+                                      "sujet": id})
+            c.update(valeur=propre, source=source, minute=monde.data["minutes"], confiance=1,
+                     poids=.8 if source == "entendu" else 1)
+
+
+def _acheve_par_comptes(monde, id, a):
+    from .esprits import poids_source
+    rapports = a.get("comptes_recus", [])
+    if not rapports or a["sorte"] not in ("amener", "informer"):
+        return False
+    for qui in _destinataires(a):
+        charge = {"sorte": a["sorte"], "parametres": {**a["parametres"], "qui": [qui]}}
+        if _constat_charge(monde, id, charge) == "reussi":
+            continue
+        if not any(r["contenu"]["charge"]["sorte"] == a["sorte"]
+                   and {k: v for k, v in r["contenu"]["charge"]["parametres"].items() if k != "qui"}
+                       == {k: v for k, v in a["parametres"].items() if k != "qui"}
+                   and qui in r["contenu"]["charge"]["parametres"]["qui"]
+                   and r["croyance"]["valeur"] == "reussi"
+                   and poids_source(monde, id, r["croyance"]) > 0 for r in rapports):
+            return False
+    return True
+
+
 def retenir_jugement(monde, mandant, parent, jugement):
     """Décision du destinataire conservée avant tout récit, y compris un refus."""
     if getattr(monde, "_evaluation_agendas", None) is not None:
@@ -463,6 +584,9 @@ def actualiser(monde, id):
             stock.append(a)
     _naissances(monde, id, empreinte)
     for a in _stock(monde, id) or []:
+        _reviser_comptes(monde, id, a)
+        if a["etat"] == "atteint" and a["raison"] == "compte rendu cru" and not _acheve_par_comptes(monde, id, a):
+            _changer(monde, id, a, "actif", "compte rendu dementi", empreinte)
         if a["etat"] not in ("actif", "sommeil"):
             continue
         if a.get("echeance", float("inf")) < monde.data["minutes"]:
@@ -470,6 +594,9 @@ def actualiser(monde, id):
             continue
         if a["sorte"] in ("amener", "informer") and not _destinataires_disponibles(monde, id, a):
             _changer(monde, id, a, "abandonne", "destinataires crus indisponibles", empreinte)
+            continue
+        if _acheve_par_comptes(monde, id, a):
+            _changer(monde, id, a, "atteint", "compte rendu cru", empreinte)
             continue
         if a["sorte"] == "obtenir":
             from .biens import richesse
@@ -1141,8 +1268,40 @@ def declares(rapport):
     return copy.deepcopy(rapport.get("engagements"))
 
 
+def _verifier_compte(monde, id, a, contenu):
+    assert (isinstance(contenu, dict) and set(contenu) == {"type", "charge", "issue"}
+            and contenu["type"] == "compte_rendu" and contenu["issue"] in ISSUES_COMPTE_RENDU), "Contenu de compte rendu invalide"
+    charge, o = contenu["charge"], a["origine"]
+    assert (o["type"] == "mandat" and charge == {
+        "mandant": o["de"], "parent": o["parent"], "agenda": a["id"],
+        "sorte": a["sorte"], "parametres": a["parametres"]}), "Charge rapportée incohérente"
+
+
 def _verifier_filiation(monde, id, a):
     origine = a["origine"]
+    emis = a.get("compte_rendu")
+    if emis is not None:
+        assert (origine["type"] == "mandat" and a["etat"] in ("atteint", "abandonne")
+                and set(emis) == {"contenu", "minute"} and type(emis["minute"]) is int), "Compte rendu émis invalide"
+        _verifier_compte(monde, id, a, emis["contenu"])
+    rapports = a.get("comptes_recus", [])
+    assert isinstance(rapports, list), "Comptes rendus reçus invalides"
+    identites = set()
+    for r in rapports:
+        assert isinstance(r, dict) and set(r) == {"de", "contenu", "croyance"}, "Compte rendu reçu invalide"
+        c, charge = r["croyance"], r["contenu"]["charge"]
+        cle = (r["de"], charge["agenda"])
+        assert cle not in identites, "Compte rendu dupliqué"
+        identites.add(cle)
+        assert {"titulaire": r["de"], "agenda": charge["agenda"]} in a.get("confies", []), "Charge rapportée inconnue"
+        enfant = _projet(monde, r["de"], charge["agenda"])
+        _verifier_compte(monde, r["de"], enfant, r["contenu"])
+        assert charge["mandant"] == id and charge["parent"] == a["id"], "Mandant rapporté incohérent"
+        assert (set(c) == {"valeur", "source", "minute", "confiance", "poids"}
+                and c["valeur"] in (None, *ISSUES_COMPTE_RENDU)
+                and c["source"] in ("vu", "entendu", "dit:" + r["de"])
+                and type(c["minute"]) is int and 0 <= c["confiance"] <= 1
+                and 0 <= c["poids"] <= 1.05), "Croyance de compte rendu invalide"
     if origine["type"] == "mandat":
         assert (set(origine) == {"type", "de", "parent", "minute"}
                 and isinstance(origine["de"], str) and isinstance(origine["parent"], str)

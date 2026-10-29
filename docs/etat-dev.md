@@ -2,6 +2,35 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-compte-rendu`, fusionnée**, lot **283**, base
+  `c5a1740` : compte rendu typé des charges terminales `mandat`, parole
+  commune et attribution de voix ; le parent conserve une croyance `dit`,
+  jugée par persuasion/confiance, sans lire l'issue privée du mandaté.
+  Clôture sur croyance et révision sur constat contraire, aucune arrivée ni
+  transmission fictive. Émission persistée unique, doute et voix inconnue
+  conservés comme paroles. Protocole joueur inchangé ; jugement et choix
+  faire/confier intacts. **529 tests / 53 fichiers verts, 399,515 s**,
+  zéro échec, erreur ou ignoré, dont sept nouveaux tests. Crue du hameau,
+  Gorm/Aubin/Brune et autre couple Ilse/Gorm, deux charges, réussite,
+  échec, renoncement et mensonge ; recharge monde/rendu/scène/écoute,
+  marche réelle et parole d'information, laps entier/découpé identiques.
+  **Lot terminé : empreintes 2 h, 20/20 paires identiques**, chronique,
+  mesures et état final complet ; Relais/mine/auberge/crue/hameau,
+  graines 1985/7/42/2024, départ tiré, `c5a1740` → `2204921`, aucun plantage.
+  Aucun mandat accepté dans les nuits : preuve du changement par les scènes
+  ciblées, banc 4 h conditionnel non lancé. Vingt références manquantes
+  calculées une fois et rangées ; vingt nuits de branche.
+  L'absence de preuve d'information ne démontre pas sa non-transmission ;
+  pas de nouveau mécanisme de preuve négative, réaffectation ou retour.
+  `C:/Users/msics/donjon/artifacts/compte-rendu-283/fin-verification.json`
+  **ok=true**, codes tests/empreintes 0 ; **934,374 s**, un travailleur réduit.
+  Code `5aef281` et documentation `2204921` poussés sur origin après
+  autorisation explicite du dépôt ; refus automatique initial résolu sans
+  contournement. Sources et tests inchangés depuis validation, aucun nouveau
+  calcul à la clôture, aucun calcul actif du lot. Ni Luna ni suite complète.
+  [Rapport 283](taches/rapport-codex-283-compte-rendu.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `echanges.py`, fusionnés sans conflit textuel. Fichiers de code touchés aussi depuis la base : `echanges.py` (lot 277), fusionné sans conflit textuel. Suite complète sur la fusion d'essai 22990c7 (`tools/tests.py --processus 3`, PC fixe) : 2 748 tests, verte (2 172,9 s). Le mandataire rend compte au mandant par la parole commune ; 529 tests ciblés verts, 20/20 empreintes 2 h identiques (aucun mandat accepté dans les nuits : preuve par scènes).
+
 - **Branche `codex-conception-refonte-mj`, lot 287, fusionnée**,
   base intégration `a3666ee` : conception de l'achèvement et du portage de
   **`origin/prompt-simplifie` (`3c0dcd0`)**, base imposée par l'utilisateur.

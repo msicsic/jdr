@@ -61,6 +61,8 @@ def faits_dits(noyau):
     la date ou la case depuis lesquelles le témoin l'a appris.
     """
     t = noyau["type"]
+    if t == "compte_rendu":
+        return [(_cle({"type": t, "charge": noyau["charge"]}), noyau["issue"])]
     if t in ("affirmation", "constat", "avis"):
         sujet = noyau.get("sujet", noyau.get("objet"))
         attribut, valeur = noyau["attribut"], noyau["valeur"]
@@ -136,8 +138,8 @@ def _audience_connue(monde, locuteur, contenu, geste, observateur=None):
                 continue
             compris = min(capacite, capacite_transmission(_stats_pnj(monde, autre)["INT"]))
             for c in contenu[:compris]:
-                if c["type"] in ("affirmation", "rumeur", "aveu"):
-                    suivis.append((observateur, autre, c if c["type"] == "affirmation" else c["evenement"]))
+                if c["type"] in ("affirmation", "rumeur", "aveu", "compte_rendu"):
+                    suivis.append((observateur, autre, c if c["type"] in ("affirmation", "compte_rendu") else c["evenement"]))
     return suivis
 
 
@@ -591,8 +593,8 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
                   if avis and not avis.get("dispute") else None)
     if id != "joueur" and auditeur != "joueur" and conscient(monde, auditeur):
         for c in contenu:
-            if c["type"] in ("affirmation", "rumeur", "aveu"):
-                retenir_dit(monde, id, auditeur, c if c["type"] == "affirmation" else c["evenement"])
+            if c["type"] in ("affirmation", "rumeur", "aveu", "compte_rendu"):
+                retenir_dit(monde, id, auditeur, c if c["type"] in ("affirmation", "compte_rendu") else c["evenement"])
     if suites and id != "joueur" and auditeur != "joueur" and conscient(monde, auditeur):
         from .relations import annoncer_suites
         annoncer_suites(monde, id, auditeur, lignes)
@@ -840,6 +842,9 @@ def recevoir(monde, id, locuteur, c):
     from .corps import conscient
     if not conscient(monde, id):
         return None
+    if c["type"] == "compte_rendu":
+        from .agendas import recevoir_compte
+        return recevoir_compte(monde, id, locuteur, c)
     if c["type"] == "nom":
         from .voix import se_nommer
         return se_nommer(monde, id, locuteur, c["sujet"])
@@ -908,6 +913,12 @@ def bavarder(monde, id, lignes):
         return False
     if lire(monde, id)["derniere_confidence"] == monde.data["minutes"]:
         return False
+    from . import agendas
+    from .echanges import rendre_compte
+    compte = agendas.compte_a_rendre(monde, id)
+    if compte is not None and rendre_compte(monde, id, compte, lignes):
+        esprit(monde, id)["derniere_confidence"] = monde.data["minutes"]
+        return True
     connues = list(nouvelles(monde, id))
     # Même une rumeur de constat reste moins urgente qu'une accusation.
     for souvenir, noyau, rang, source in sorted(reversed(connues), key=lambda x: x[1]["type"] in ("constat", "avis")):
