@@ -5,6 +5,28 @@ from unittest.mock import patch
 from donjon.mj import MJOpenAI
 
 
+def sans_indices_soupcon_passifs(monde):
+    """Projection des oracles antérieurs au 267, sans changer leurs hashes.
+
+    Le monde entier reste validé et rechargé par les appelants. Seul le
+    registre perceptif additionnel peut sortir de l'oracle ancien ; toute
+    épreuve de soupçon, même levée ou oubliée en mémoire courte, l'interdit.
+    """
+    import copy
+    monde.verifier()
+    causes = {"soupcon_deduit", "soupcon_leve"}
+    assert not any(c.get("cause") in causes for c in monde.data.get("chronique", [])), "Soupçon dans la chronique historique"
+    for e in monde.data["esprits"].values():
+        assert not e.get("indices_soupcon", {}).get("soupcons"), "Soupçon actif dans la capture historique"
+        assert not any(":soupcon:" in p for p in e["preuves_relations"]), "Épreuve de soupçon dans la capture historique"
+        assert not any(s["type"] in causes for s in e["memoire"]), "Souvenir de soupçon dans la capture historique"
+        assert not any(m["type"] in causes for r in e["relations"].values() for m in r["motifs"]), "Motif de soupçon dans la capture historique"
+    historique = copy.deepcopy(monde.data)
+    for e in historique["esprits"].values():
+        e.pop("indices_soupcon", None)
+    return historique
+
+
 def simuler_couverture(test):
     """Les tests des autres contrats fournissent un plan tenu pour fidèle.
 

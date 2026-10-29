@@ -16,6 +16,7 @@ from donjon.rendu import regarder
 from donjon.scene import scene_percue
 from tests.test_planification import relais
 from tests.test_tensions import recharger
+from tests.support import sans_indices_soupcon_passifs
 
 
 DONNEES = Path(__file__).parent / "data/cout-12h"
@@ -114,7 +115,7 @@ def observer_capture(scenario):
         from donjon.echanges import valeur_proposition
         assert valeur_capacites(recharge, 'lucien', 'crochets_lucien') > valeur_proposition(
             recharge, 'lucien', {'type': 'part', 'objet': 'burette_huile'}, 'lucien', sans='crochets_lucien')
-    historique = copy.deepcopy(recharge.data)
+    historique = sans_indices_soupcon_passifs(recharge)
     # Les preuves de fin (175) et de possession (179) ne figurent pas dans
     # l'oracle ancien. Monde et rendus complets restent comparés après
     # recharge ci-dessus ; seuls ces savoirs nouveaux sortent de la projection.

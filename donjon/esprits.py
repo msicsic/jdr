@@ -699,7 +699,7 @@ def memoriser(monde, id, evenement):
         # La précision de l'indice reste dans son registre ; l'identité
         # de la preuve commune reste celle du moteur antérieur.
         gestes = esprit(monde, id)["indices_soupcon"]["gestes"]
-        gestes.append({"objet": souvenir["objet"], "instant": instant(monde)})
+        gestes.append({"objet": souvenir["objet"], "instant": _date_indices_soupcon(monde)})
         del gestes[:-GESTES_SOUPCON_MAX]
     identifier(souvenir, instant(monde))
     memoire.append(souvenir)
@@ -718,13 +718,22 @@ def _retenir_presences(monde, id, vus):
         _retenir_presence(monde, id, qui, salle)
 
 
+def _date_indices_soupcon(monde):
+    """Même grain que les croyances : une perception répétée dans la minute
+    ne mémorise pas le pas arbitraire qui a interrompu l'avancée du monde.
+    L'unité reste le dixième de seconde pour les intervalles déjà enregistrés.
+    """
+    from .temps import MINUTE
+    return monde.data["minutes"] * MINUTE
+
+
 def _retenir_presence(monde, id, qui, salle):
-    from .temps import instant
     if qui == id:
         return
     r = esprit(monde, id)["indices_soupcon"]
     r["presences"] = [s for s in r["presences"] if (s["qui"], s["salle"]) != (qui, salle)]
-    r["presences"].append({"qui": qui, "salle": salle, "instant": instant(monde)})
+    r["presences"].append({"qui": qui, "salle": salle, "instant": _date_indices_soupcon(monde)})
+    r["presences"].sort(key=lambda s: (s["instant"], s["salle"], s["qui"]))
     _purger_indices_soupcon(monde, id)
 
 
@@ -734,7 +743,6 @@ def _purger_indices_soupcon(monde, id):
     Une troncature de capacité interdit l'attribution d'un intervalle devenu
     incomplet : oublier un second passant ne doit pas en désigner un seul.
     """
-    from .temps import instant
     r = esprit(monde, id)["indices_soupcon"]
     debuts = {}
     for cs in r["constats"].values():
@@ -742,7 +750,7 @@ def _purger_indices_soupcon(monde, id):
             utile = c["valeur"] is False if champ == "vide" else bool(c["valeur"]) and champ != "charge"
             if utile:
                 debuts[c["salle"]] = min(debuts.get(c["salle"], c["instant"]), c["instant"])
-    maintenant = instant(monde)
+    maintenant = _date_indices_soupcon(monde)
     r["presences"] = [s for s in r["presences"] if s["instant"] >= debuts.get(s["salle"], maintenant)]
     for s in r["presences"][:-PRESENCES_MAX]:
         r["oublis"][s["salle"]] = max(r["oublis"].get(s["salle"], -1), s["instant"])
@@ -760,20 +768,20 @@ def _constater_bien(monde, id, sujet, faits, salle, source="vu"):
     """
     if id == "joueur" or salle is None:
         return
-    from .temps import instant
     from .relations import deduire_soupcon, reviser_soupcons
     e = esprit(monde, id)
     reviser_soupcons(monde, id, sujet, faits, salle=salle)
     r = e["indices_soupcon"]
+    maintenant = _date_indices_soupcon(monde)
     constats = r["constats"].setdefault(sujet, {})
     for champ, valeur in faits.items():
         avant = constats.get(champ)
         proprietaire = (_proprietaire(monde, monde.objets[sujet]) if faits.get("present") is True
                         else (avant or {}).get("proprietaire"))
         lieu_cru = croyance(monde, id, sujet, "lieu") or {}
-        constats[champ] = {"valeur": valeur, "salle": salle, "instant": instant(monde),
+        constats[champ] = {"valeur": valeur, "salle": salle, "instant": maintenant,
                            "proprietaire": proprietaire, "lieu": lieu_cru.get("valeur")}
-        if not avant or avant["proprietaire"] is None or avant["salle"] != salle or avant["instant"] >= instant(monde):
+        if not avant or avant["proprietaire"] is None or avant["salle"] != salle or avant["instant"] >= maintenant:
             continue
         atteint = (valeur < avant["valeur"] if champ == "integrite" else
                    valeur and not avant["valeur"] if champ == "vide" else not valeur and avant["valeur"])
@@ -792,7 +800,7 @@ def _constater_bien(monde, id, sujet, faits, salle, source="vu"):
         if r["oublis"].get(salle, -1) >= avant["instant"]:
             continue
         suspects = {s["qui"] for s in r["presences"]
-                    if s["salle"] == salle and avant["instant"] <= s["instant"] <= instant(monde)}
+                    if s["salle"] == salle and avant["instant"] <= s["instant"] <= maintenant}
         if len(suspects) == 1:
             auteur = next(iter(suspects))
             if auteur != avant["proprietaire"]:

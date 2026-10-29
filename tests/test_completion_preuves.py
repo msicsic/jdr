@@ -13,6 +13,7 @@ from donjon import planification as p
 from donjon.monde import Monde
 from donjon.rendu import regarder
 from donjon.scene import scene_percue
+from tests.support import sans_indices_soupcon_passifs
 
 DATA = Path(__file__).parent / "data"
 
@@ -68,7 +69,7 @@ class CompletionTests(unittest.TestCase):
                 m.sauver(fichier)
                 recharge = Monde.charger(fichier)
                 self.assertEqual(m.data, recharge.data)
-                historique = copy.deepcopy(recharge.data)
+                historique = sans_indices_soupcon_passifs(recharge)
                 for e in historique['esprits'].values():
                     # L'oracle précède le service spontané. Seuls ses registres
                     # vides peuvent être exclus, jamais une tentative réelle.

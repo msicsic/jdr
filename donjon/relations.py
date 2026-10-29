@@ -469,8 +469,7 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
 
 def deduire_soupcon(monde, id, auteur, objet, champ, avant):
     """Un indice faillible, distinct de tout portage constaté et du témoignage."""
-    from .esprits import esprit, memoriser
-    from .temps import instant
+    from .esprits import esprit, memoriser, _date_indices_soupcon
     e = esprit(monde, id)
     # Deux conséquences concomitantes (coffre vide et bien absent) étayent
     # le même indice ; elles ne multiplient pas la peine relationnelle.
@@ -478,8 +477,9 @@ def deduire_soupcon(monde, id, auteur, objet, champ, avant):
         if s["auteur"] == auteur and s["salle"] == avant["salle"] and avant["instant"] <= s["fin"]:
             s["indices"].setdefault(objet, {})[champ] = avant["valeur"]
             return
-    preuve = f"soupcon:{id}:{objet}:{champ}:{avant['instant']}:{instant(monde)}"
-    s = {"auteur": auteur, "salle": avant["salle"], "debut": avant["instant"], "fin": instant(monde),
+    maintenant = _date_indices_soupcon(monde)
+    preuve = f"soupcon:{id}:{objet}:{champ}:{avant['instant']}:{maintenant}"
+    s = {"auteur": auteur, "salle": avant["salle"], "debut": avant["instant"], "fin": maintenant,
          "indices": {objet: {champ: avant["valeur"]}}, "perte": 0}
     e["indices_soupcon"]["soupcons"][preuve] = s
     confiance_avant = envers(monde, id, auteur)["confiance"]

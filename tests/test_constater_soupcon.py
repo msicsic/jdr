@@ -303,3 +303,45 @@ class SoupconTests(unittest.TestCase):
                 chemin.write_text(json.dumps(m.data, ensure_ascii=False), encoding='utf-8')
                 with self.assertRaises(ErreurMonde):
                     Monde.charger(chemin)
+
+    def test_perceptions_dans_la_meme_minute_meme_registre_recharge(self):
+        m, victime, _, _, _, salle, *_ = scene()
+        registres = []
+        for dixiemes, personnes in ((0, ('brune', 'ilse')), (5, ('ilse', 'brune')), (599, ('brune', 'ilse'))):
+            n = recharger(m.copier())
+            n.data['dixiemes'] = dixiemes
+            for qui in personnes:
+                _retenir_presence(n, victime, qui, salle)
+            percevoir(n, victime)
+            n = self.recharge(n)
+            registres.append(copy.deepcopy(lire(n, victime)['indices_soupcon']))
+        self.assertEqual(registres[0], registres[1])
+        self.assertEqual(registres[0], registres[2])
+
+    def test_registre_passif_ne_change_pas_les_entrees_de_recherche(self):
+        from donjon.planification import Vue, _entrees_communes
+        m, victime, _, _, _, salle, *_ = scene()
+        avant = _entrees_communes(Vue(m, victime))
+        memoire = copy.deepcopy(lire(m, victime)['memoire'])
+        for i in range(PRESENCES_MAX + 1):
+            _retenir_presence(m, victime, 'passant-' + str(i), salle)
+        m = self.recharge(m)
+        self.assertEqual(_entrees_communes(Vue(m, victime)), avant)
+        self.assertEqual(lire(m, victime)['memoire'], memoire)
+
+    def test_projection_historique_refuse_un_soupcon_meme_leve(self):
+        from tests.support import sans_indices_soupcon_passifs
+        s = scene()
+        m, victime, _, coffre, bien, *_ = s
+        historique = sans_indices_soupcon_passifs(m)
+        self.assertNotIn('indices_soupcon', historique['esprits'][victime])
+        self.assertIn('indices_soupcon', m.data['esprits'][victime])
+        m = disparition(s)
+        with self.assertRaises(AssertionError):
+            sans_indices_soupcon_passifs(m)
+        m.objets[bien]['lieu'] = coffre
+        percevoir(m, victime)
+        m = self.recharge(m)
+        self.assertFalse(lire(m, victime)['indices_soupcon']['soupcons'])
+        with self.assertRaises(AssertionError):
+            sans_indices_soupcon_passifs(m)

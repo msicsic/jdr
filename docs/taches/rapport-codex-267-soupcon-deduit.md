@@ -1,71 +1,69 @@
 # Lot 267 — Soupçon déduit
 
-Branche `codex-soupcon-deduit`, **non fusionnée**, base `7404d2d`, code
-`27e2aee`. Bruts : `C:/Users/msics/donjon/artifacts/soupcon-267/` ;
-correctif du registre et vérifications terminées dans `registre/`.
+Branche `codex-soupcon-deduit`, **non fusionnée**, base `7404d2d`.
+Bruts : `C:/Users/msics/donjon/artifacts/soupcon-267/` ; correctif
+d'intégration et traces ciblées dans `decoupage/`.
 
-**Invariant corrigé.** Les indices d'une déduction ne prennent aucune des
-quarante places de la mémoire commune. `esprits._retenir_presence` écrit
-uniquement dans `indices_soupcon`, registre séparé qui réunit présences,
-gestes datés, constats de biens, soupçons actifs et bornes d'oubli. Il n'ajoute
-aucun souvenir ni nom et ne consulte aucune position cachée. Les dates fines
-des gestes restent également dans ce registre : aucun champ ajouté au
-souvenir commun, aucune modification de l'identité de sa preuve.
+**Invariant.** Les indices de soupçon restent dans le seul registre
+`indices_soupcon`, séparé des quarante souvenirs communs, sans lecture de
+position cachée ni chronique. Présences et gestes bornés chacun à 40 ;
+purge des intervalles dépassés, attribution interdite sur un intervalle
+tronqué, validation au chargement. L'épreuve commune reste révisable :
+confiance −6 à −18 selon PSY, source `devine`, jamais un portage établi ni
+une naissance de récupération sur ce seul indice. Retour, réparation ou
+attribution apprise compensent la seule perte effectivement appliquée.
 
-Présences et gestes sont chacun bornés à **40 entrées**. Les présences
-répétées sont rafraîchies ; `_purger_indices_soupcon` supprime ce qui précède
-les intervalles utiles. Une troncature interdit l'attribution sur l'intervalle
-incomplet : oublier un second passant ne désigne pas le premier. Structure,
-dates, lieux et bornes sont validés au chargement ; anciens champs et
-souvenirs de présence du 267 migrés.
+**Correctif du découpage temporel.** Les 25 échecs de temps venaient des
+dates fines prises au passage de la boucle (`3000` contre `3005`).
+`esprits._date_indices_soupcon` fixe désormais le grain **minute des
+croyances**, dans l'unité de stockage antérieure (600 dixièmes/minute).
+Présences, gestes, constats, purge, bornes et preuves de déduction partagent
+ce grain ; les présences de même date ont un ordre canonique lieu/personne.
+Aucun pas supplémentaire ne rafraîchit une date à un autre dixième.
+Deux constats dans la même minute ne constituent donc pas un intervalle
+distinct pour une déduction. Aucun cas propre à une scène ni modification
+des entrées du planificateur ou de la mémoire commune.
 
-L'inférence conserve ses deux constats propres et son épreuve relationnelle
-commune : un seul suspect, confiance **−6 à −18 selon PSY**, preuve **0,4**,
-source `devine`, jamais un portage établi. Geste connu/propre et extinction
-par épuisement exclus ; conséquences concomitantes regroupées. Retour,
-réparation ou attribution apprise lèvent l'indice en compensant la seule
-perte appliquée. Aucune naissance de `récupérer` sur ce seul indice.
+**Six hashes historiques.** Sur les quatre captures de complétion, le
+retrait du seul champ ajouté retrouve exactement les anciens hashes.
+`tests.support.sans_indices_soupcon_passifs` valide le monde complet,
+puis n'exclut ce registre de l'oracle ancien qu'en l'absence de **toute
+trace d'épreuve**, y compris un soupçon levé : état actif, preuves
+relationnelles persistantes, motifs, souvenirs et chronique contrôlés.
+Les hashes attendus restent inchangés. Les égalités intégrales du monde
+avant/après recharge, plans, visites et rendus restent contrôlées, sans
+projection du registre sur les tests de découpage. Contre-épreuve nouvelle :
+la projection refuse un soupçon actif puis levé. Les deux captures mine et
+auberge des étapes chaînées emploient la même projection restrictive.
 
-**Vérifications ciblées : 121 tests, 120 verts, un échec préexistant de dette**,
-onze fichiers, **51,858 s**, deux processus réduits. Les onze tests de scènes
-existants passent, avec monde/rendu/scène rechargés, laps entier/découpé,
-Gorm/réserve et Anselme/coffre et leurs contre-épreuves. Trois nouveaux tests
-contrôlent saturation sans éviction commune, purge et refus des registres
-invalides au chargement. Captures `registre/{relais,auberge}.json`, traces
-`registre/tests.json`. Ni suite complète ni Luna.
+**Vérification demandée.** Copie isolée de la fusion d'essai **732e26a**
+avec le diff du correctif, pour conserver les autres lots d'intégration.
+Tous les fichiers de `echecs-suite-732e26a.txt` (**18 fichiers**), plus les
+onze fichiers ciblés du 267 : **29 fichiers**, deux processus réduits,
+aucune suite complète ni Luna. Première passe : **314 tests**, aucun
+échec de découpage ; seules les six comparaisons historiques ci-dessus
+restaient rouges. Les trois nouveaux tests contrôlent les perceptions à
+0/5/599 dixièmes et leur ordre après recharge, l'absence d'effet du registre
+passif sur `_entrees_communes` et la mémoire, et le refus de la projection
+après une vraie épreuve. Les dix-sept tests du soupçon passent séparément,
+avec les deux scènes rechargées et leurs contre-épreuves.
 
-L'échec isolé de
-`tests.test_relations_graduees.TempsEtContratsTests.test_dette_soldee_une_fois_par_demande_acceptee`
-est déjà prouvé sur **7404d2d** et **61a1a67** : chacun 1 échec `40 != 20`,
-ligne 325, aucune erreur, même fichier de test. Preuves `dette-base` et
-`dette-branche` JSON/log ; le même échec subsiste dans les 121 ciblés.
+Résultat final : **317 tests verts, 29 fichiers, 213,100 s**, aucune erreur,
+aucun échec. Les 18 fichiers de la liste sont tous présents ; aucune
+assertion de laps ou de recharge supprimée, aucun hash attendu remplacé.
+Les six captures historiques retrouvent leurs oracles ; la comparaison
+du registre complet fait partie des tests de découpage et de recharge.
+Fichiers détaillés : `decoupage/fichiers.txt`, `tests-premiere-passe.json`,
+`tests-finaux.json`, `sources-verifiees.json`, `correctif-source.patch`.
+Copie de vérification retirée après archivage ; aucun calcul actif.
 
-**Banc validé : 20/20 paires identiques hors seul registre.** Référence exacte
-`7404d2d`, cinq scénarios × graines 1985/7/42/2024, **4 h**, départ tiré,
-branche `27e2aee`. Comparateur commun : **vingt références lues dans le
-cache, aucune rejouée ; vingt nuits de branche calculées**. **20/20
-chroniques, toutes les mesures et les états finaux hors registre sont
-identiques**. Les états bruts diffèrent dans chaque paire uniquement par
-**`esprits[*].indices_soupcon`**, absent de la base. Aucune autre exclusion
-ni normalisation. Recalcul indépendant des empreintes des vingt états
-complets archivés : hash brut conforme à la capture ; après retrait du
-seul registre, hash exactement égal à celui de la base.
-
-**Zéro plantage/usurpation, zéro soupçon né dans chaque nuit** ; aucun
-effet hors registre observé sur ce banc. La preuve du soupçon vient des
-scènes ciblées, sans gain naturel démontré. Suspects 219 **2 → 2**, sans
-hausse par nuit (auberge 2024 et crue 7 : 1 → 1 ; autres : 0 → 0), à expliquer
-**55 → 55**, dérives **233 → 233**, cycles **489 → 489**. Richesse S/F/D
-identique, puisque les chroniques sont inchangées. Calcul détaché réduit,
-deux travailleurs au plus, **349,601 s**, `fin.json` code **0** ; aucun
-calcul actif. Preuves : `registre/comparaison.json`, `registre/fin.json`,
-`registre/identite-verifiee.json` (empreintes et chemins exclus par nuit),
-`registre/etats-branche/*.json.gz`, `registre/banc.log`.
-
-Ancien défaut d'Ilse à **39 min 31 s** corrigé par l'isolement du registre ;
-diagnostic conservé dans `localisation-base/`. L'ancien banc contre
-`main c870c8b` n'isolait pas le lot. Limites : identité vérifiée sur ces
-vingt nuits, migration incapable de recréer un souvenir déjà perdu ;
-effraction par dégradation constatée seulement, sans crochetage invisible
-ni disparition distante inventée. `agendas.py`, `echanges.py`, choix de
-délibération, scénarios et MJ inchangés.
+**Banc antérieur (`27e2aee`).** 20/20 paires 4 h contre `7404d2d` : chronique,
+mesures et état final identiques hors seul registre, 20 références en cache,
+zéro plantage/usurpation/soupçon né ; suspects 219 2 → 2. Preuves
+`registre/identite-verifiee.json` et états bruts archivés. Ce banc précède
+le présent changement de grain ; aucun nouveau banc relancé ici, comme
+aucune suite complète. L'effet du soupçon est prouvé par les scènes ciblées,
+sans bénéfice naturel démontré. Limites : pas de crochetage invisible,
+ni disparition distante inventée ; une migration ne recrée pas un souvenir
+anciennement perdu. `agendas.py`, `echanges.py`, choix de délibération,
+scénarios et MJ inchangés.

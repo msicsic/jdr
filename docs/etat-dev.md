@@ -1,16 +1,35 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-soupcon-deduit`, non fusionnée**, lot **267**, base
-  `7404d2d` : **correctif du stockage des présences**. Un seul champ
+  `7404d2d` : **correctif d'intégration du découpage temporel**. Les dates
+  de tout le registre suivent désormais le grain minute des croyances,
+  avec ordre canonique des présences de même date ; plus de `3000/3005`
+  selon les interruptions de la boucle. Aucun changement de mémoire
+  commune ni d'entrée de recherche. Deux oracles historiques projettent
+  le seul registre passif après validation du monde et refus de toute
+  trace d'épreuve de soupçon, même levée ; **hashes attendus inchangés**,
+  comparaisons intégrales monde/recharge/plans/visites/rendu conservées.
+  Dix-sept tests du soupçon verts, dont trois nouveaux (même minute,
+  indépendance des entrées de recherche/mémoire, projection refusée après
+  épreuve). Vérification sur copie de **732e26a + correctif** : 18 fichiers
+  de la liste des 31 échecs et 11 ciblés, **29 fichiers, 317 tests verts**,
+  **213,100 s**, deux processus réduits, aucune erreur ni échec. Oracles
+  historiques retrouvés, aucun hash remplacé ; égalités complètes des laps
+  et recharges conservées, registre inclus. Traces et sources exactes dans
+  `artifacts/soupcon-267/decoupage/` du dépôt principal ; copie retirée,
+  aucun calcul actif. Pas de suite complète ni Luna.
+  Le banc 20/20 ci-dessous concerne le code antérieur `27e2aee`, pas ce
+  changement de grain ; aucune nouvelle campagne relancée.
+  **Stockage séparé conservé.** Un seul champ
   `indices_soupcon` réunit présences, gestes datés, constats et soupçons ;
   aucune place prise dans les quarante souvenirs communs, aucun champ
   ajouté à leurs preuves. Présences/gestes bornés chacun à 40 ; purge
   selon les intervalles utiles, attribution interdite après troncature,
   validation à la recharge et migration des premières sauvegardes 267.
   Déduction sans position cachée ; confiance −6 à −18 selon PSY, indice
-  révisable, sans portage ni naissance de récupération. **121 ciblés :
+  révisable, sans portage ni naissance de récupération. **Ancienne passe : 121 ciblés,
   120 verts, un échec de dette préexistant**, onze fichiers, 51,858 s,
   deux processus réduits ; onze scènes existantes et trois contrôles du
   registre, monde/rendu/scène rechargés et laps entier/découpé.
