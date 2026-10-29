@@ -229,6 +229,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   [rapport 279](taches/rapport-codex-279-coups-crue-2024.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement (DeepSeek V4.1 Flash Go high). Sur 0bad227 : Brune, affamée, tente d'assommer Aubin pour ses vivres ; Gorm protège Aubin (devoir), Aubin et Brune ripostent ; six coups, Brune inconsciente puis ranimée, chaque geste justifié par les règles existantes. Défaut de libellé : le but de protection de Gorm est nommé « protéger Brune » (planification.reagir rend qui=brune, l'agresseur) au lieu du protégé Aubin ; petit lot proposé. Non reproduit sur l'intégration 792816c (Aubin nourrit Brune à 5 min) ; premier écart c870c8b → 0bad227 à la minute 1 (activation evacuer_crue « mandataire estimé », lot 260).
 
+- **Vérification d’intégration `27ff8c4`**, lot **284**, branche
+  `codex-verif-integ-4`, témoin `0bad227` : **49/49 archives achevées**, sans
+  modification de `donjon/` ou `tools/`, ni Luna ni suite complète. Zéro
+  plantage, usurpation, mort, coup ou écart `VERIFIER`/spatial ; 202 recherches
+  bornées, coûts tous égaux à l’optimum. La sonde 219 actuelle relève **112
+  suspects / 440 à expliquer** (contre 7/170 au 274, sans la classe
+  `renouvellement_perceptif`) ; 227 : 22 pertes, aucune fautive. **Défaut
+  nouveau :** hameau/1985, Aubin répète 109 fois un `rejoindre` sans nouvelle
+  entrée et passe 120 fois par heure autour des salles des vannes ; crue/3,
+  Gorm fait 299 passages par heure en boucle de cinq salles. Ces boucles ne sont
+  pas observées aux mêmes nuits sur `0bad227`. Attente moyenne du hameau
+  1 062,5 → 352,5, richesse S 56,25 → 80,5, noir 132,5 → 621,3. L’allumage
+  naturel Ilse→Aubin du poêle du guet réussit en crue/7 à 218 min ; suspect
+  Aubin Relais/2024 du 273 absent ; aucun mandat oral naturel. **Intégration non
+  propre pour avancer `main`** avant diagnostic général de la progression des
+  trajets repris. Bruts :
+  `C:/Users/msics/donjon/artifacts/verif-integ-27ff8c4/` ; [rapport 284](taches/rapport-codex-284-verif-integ.md).
 - **Vérification d’intégration `0bad227`**, lot **274**, branche
   `codex-verif-integ-3` : **49/49 nuits terminées**, aucune erreur de calcul,
   aucun code du jeu modifié, pas de Luna ni de suite complète. Cache `main`
