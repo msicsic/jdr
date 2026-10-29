@@ -1567,7 +1567,7 @@ def _classer(monde, id, pressants, liste, essais, minute):
         issues = [essais.get(i) for i, (motif, _) in enumerate(liste) if motif == b]
         if "plan" in issues:
             etat = "presse"
-        elif all(x in ("rien", "renonce") for x in issues):
+        elif all(x in ("rien", "renonce", "sommeil") for x in issues):
             etat = "attente"
         else:
             continue
@@ -1842,19 +1842,215 @@ def _domine(autre, actif, marge=INERTIE):
             or autre.palier == actif.palier and autre.valeur >= actif.valeur + marge)
 
 
-def _meme_demande_tenue(a, b):
-    """Deux demandes typées désignent la même fin : la même raison commune, ou la même
-    demande (condition, agenda). La condition retenue, l'objet servi, est un moyen : en
-    changer ne clôt pas la demande adoptée, et un autre moyen la continue."""
+def _moyen_du_moyen(monde, id, demande, moyen):
+    """Un moyen publié satisfait l'objet demandé : le lot reçu, sa part, sa remise.
+
+    La provenance est celle que le porteur a publiée : réception d'une part
+    avec son lot, promesse d'une part, ou engagement qui nomme encore le lot.
+    Le nom d'un objet ou son utilité ne suffisent pas ; une mission qui exige
+    un objet précis ne devient pas satisfaite par un autre objet de même usage.
+    """
+    if demande == moyen:
+        return True
+    if not (isinstance(demande, str) and isinstance(moyen, str)) or monde is None or id is None:
+        return False
+    e = lire(monde, id)
+    for s in e.get("memoire", ()):
+        # Reçu (ou restitution) d'une part : ``lot`` est la provenance publiée.
+        if s.get("objet") == moyen and s.get("lot") == demande:
+            return True
+        # Une part promise sous le nom de son lot reste le même moyen.
+        if s.get("type") == "promis" and s.get("objet") == demande and s.get("part") == moyen:
+            return True
+    for x in e.get("engagements", ()):
+        if x.get("lot") == demande and (x.get("condition") or {}).get("objet") == moyen:
+            return True
+    return False
+
+
+def _memes_conditions(monde, id, a, b):
+    """Même condition, à la provenance publiée de l'objet près.
+
+    Les autres rôles (servir, remettre, rendre, lieu, allumer) restent
+    identiques : un objet de même raison ne remplace pas une mission précise.
+    Une localisation, une garde ou une restitution ne changent pas d'objet :
+    seule une fourniture remise ou servie peut suivre sa part.
+    """
+    if set(a) != set(b):
+        return False
+    fourniture = "servir" in a or "remettre" in a
+    for cle, valeur in a.items():
+        if cle == "objet":
+            if valeur == b[cle]:
+                continue
+            # ``b`` nomme la demande ; ``a`` le moyen proposé.
+            if not fourniture or not _moyen_du_moyen(monde, id, b[cle], valeur):
+                return False
+        elif valeur != b[cle]:
+            return False
+    return True
+
+
+def _meme_demande_tenue(a, b, monde=None, id=None):
+    """Deux demandes typées désignent la même fin.
+
+    Une demande de secours est identifiée par sa raison commune (qui, besoin) :
+    l'objet servi est un moyen, et en changer ne clôt pas la demande adoptée.
+    Une demande sans raison, ou qui exige un objet précis (``tache``), garde son
+    objet : seule une provenance publiée le relie à un autre objet (lot → part,
+    remise, transformation). « Même raison » ne vaut donc pas « même demande »
+    quand la mission nomme l'objet.
+    """
     if not a or not b:
         return False
-    return a == b or bool(a.get("raison") and a["raison"] == b.get("raison"))
+    if a == b:
+        return True
+    if "agenda" in a or "agenda" in b:
+        return a.get("agenda") == b.get("agenda")
+    if ("condition" in a) != ("condition" in b):
+        return False
+    raison_a, raison_b = a.get("raison"), b.get("raison")
+    if raison_a or raison_b:
+        if raison_a != raison_b:
+            return False
+        if a.get("tache") or b.get("tache"):
+            return (bool(a.get("tache")) == bool(b.get("tache"))
+                    and _memes_conditions(monde, id, a["condition"], b["condition"]))
+        return True
+    return (bool(a.get("tache")) == bool(b.get("tache"))
+            and _memes_conditions(monde, id, a["condition"], b["condition"]))
 
 
-def _meme_demande_adoptee(candidat, intention, resultat, contrat):
+def _meme_demande_adoptee(candidat, intention, resultat, contrat, monde=None, id=None):
     demande = contrat.get("demande")
-    return (_meme_demande_tenue(candidat.demande, demande) if demande
+    return (_meme_demande_tenue(candidat.demande, demande, monde, id) if demande
             else resultat[0] == intention["but"])
+
+
+def _entrees(monde, id):
+    """Les croyances et les moyens du porteur, jamais l'âge d'un regard ni d'un refus.
+
+    Le sommeil d'une demande ne se lève que sur une entrée nouvelle : une
+    croyance, une relation, un refus, un objet porté et sa quantité. Le simple
+    passage du temps ne change pas cette empreinte.
+    """
+    import hashlib
+    import json
+
+    def contenu(x):
+        if isinstance(x, dict):
+            return {k: contenu(v) for k, v in x.items()
+                    if k not in ("minute", "depuis", "instant", "preuve")}
+        if isinstance(x, list):
+            return [contenu(v) for v in x]
+        return x
+
+    e = lire(monde, id)
+    portes = {k: {a: o[a] for a in ("portions", "charges", "pieces", "allume", "combustible") if a in o}
+              for k, o in monde.objets.items() if porte_par(monde, k, id)}
+    x = [contenu(e["croyances"]), contenu(e["refus"]), contenu(e["relations"]),
+         portes, monde.objets[id]["lieu"], monde.objets[id].get("position")]
+    return hashlib.sha256(json.dumps(x, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def _sommeils(monde, id):
+    """Les demandes tenues sans moyen admissible, hors du palier actif.
+
+    L'état vit dans les données du monde : une demande endormie survit à la
+    sauvegarde, au rechargement et au découpage du temps comme un agenda.
+    """
+    return monde.data.setdefault("demandes_sommeil", {}).setdefault(id, [])
+
+
+def _retirer_sommeil(monde, id, record=None, demande=None):
+    stock = _sommeils(monde, id)
+    if record is not None:
+        stock[:] = [r for r in stock if r is not record]
+    elif demande is not None:
+        stock[:] = [r for r in stock if not _meme_demande_tenue(r["demande"], demande, monde, id)]
+
+
+def _peut_dormir(demande):
+    """Une fourniture sociale sans moyen s'endort ; une garde, un lieu ou une
+    ronde attend son occasion. Un agenda tient déjà son propre sommeil : sa
+    reprise est un candidat, pas une intention conservée hors palier. Une
+    mission précise garde aussi son attente : elle nomme son objet, et la
+    fourniture reçue ne s'y substitue que par sa provenance publiée.
+    """
+    if not demande or "agenda" in demande:
+        return False
+    condition = demande.get("condition") or {}
+    return bool(demande.get("raison") or "servir" in condition or "remettre" in condition)
+
+
+def _endormir(monde, id, courant, contrat):
+    """Sans moyen admissible, la demande garde son identité mais libère son palier.
+
+    Même règle que les agendas (lot 213) : elle ne se réveille que sur une
+    entrée nouvelle (croyance ou moyen), jamais par un délai.
+    """
+    import copy
+    demande = (contrat or {}).get("demande")
+    if not _peut_dormir(demande):
+        return None
+    record = {"demande": copy.deepcopy(demande),
+              "but": copy.deepcopy(courant["but"]),
+              "motif": courant["motif"],
+              "depuis": courant["depuis"],
+              "attente": courant.get("attente", 0),
+              "palier": int(contrat["palier"]),
+              "valeur": contrat["valeur"],
+              "entrees": _entrees(monde, id)}
+    _retirer_sommeil(monde, id, demande=demande)
+    _sommeils(monde, id).append(record)
+    return record
+
+
+def _reveiller(monde, id):
+    """Rend les demandes dont l'entrée a changé ; une fin attestée les retire."""
+    stock = _sommeils(monde, id)
+    if not stock:
+        return []
+    stock[:] = [r for r in stock if not _fin_demande(monde, id, r["demande"])]
+    empreinte = _entrees(monde, id)
+    return [r for r in stock if r["entrees"] != empreinte]
+
+
+def _candidat_sommeil(monde, id, record):
+    valeur = record["valeur"]
+    raison = (record["demande"] or {}).get("raison")
+    if raison:
+        valeur = _poids_secours(monde, id, raison["qui"])
+        valeur = 0 if valeur is None else valeur
+    return Candidat(record["motif"],
+                    lambda m, i, d=record["demande"]: _reprendre_demande(m, i, d),
+                    False, True, Urgence(Palier(record["palier"]), valeur, ()), record["demande"])
+
+
+def _moyens_concrets(monde, id, buts):
+    """Parmi les moyens d'une même fourniture, la part reçue et tenue remplace le lot.
+
+    Le lot générique reste un moyen possible, mais la part que le porteur tient
+    déjà est le moyen concret que sa provenance publiée lui donne. Le choix ne
+    redemande donc pas le lot pour une part qu'il possède. Aucune autre
+    condition (lieu, garde, restitution, objet précis) n'est remplacée.
+    """
+    def objet(candidat):
+        c = (candidat.demande or {}).get("condition") or {}
+        return c.get("objet") if ("servir" in c or "remettre" in c) else None
+
+    gardes = []
+    for candidat in buts:
+        o = objet(candidat)
+        remplace = any(
+            autre is not candidat
+            and _meme_demande_tenue(candidat.demande, autre.demande, monde, id)
+            and (a := objet(autre)) is not None
+            and a != o and porte_par(monde, a, id) and _moyen_du_moyen(monde, id, o, a)
+            for autre in buts)
+        if not remplace:
+            gardes.append(candidat)
+    return gardes
 
 
 def _candidats(monde, id):
@@ -2001,7 +2197,7 @@ def _candidats(monde, id):
     # Ce qu'on lui doit d'abord, puis des pièces à prendre.
     ajouter(ARGENT, _plan_creance, Palier.ARGENT, (0,), routine=True)
     ajouter(ARGENT, _plan_argent, Palier.ARGENT, (1,), routine=True)
-    yield from sorted(buts, key=lambda c: c.urgence.cle())
+    yield from sorted(_moyens_concrets(monde, id, buts), key=lambda c: c.urgence.cle())
 
 
 def constater_pulsions(monde, id):
@@ -2110,6 +2306,8 @@ def choisir(monde, id, minute):
     contrat_precedent = agendas.contrat_intention(monde, id) or {}
     charges_precedentes = agendas.charges_suspendues(monde, id)
     sortie = None
+    sommeil = None
+    reveils = _reveiller(monde, id)
     manque = e["manque"]
     if courant and courant["plan"] and manque and manque["minute"] == minute:
         from .pnj import _geste
@@ -2131,6 +2329,13 @@ def choisir(monde, id, minute):
             if fin:
                 sortie = _sortie(courant, minute, *fin)
         tous = list(_candidats(monde, id))
+        # Une demande endormie ne revient qu'avec une entrée nouvelle : elle
+        # concourt à son palier conservé, sans renaître ni en perdre un.
+        reprises = []
+        for record in reveils:
+            candidat = _candidat_sommeil(monde, id, record)
+            reprises.append((candidat, record))
+            tous.append(candidat)
         # Vérifier une occasion n'est pas reprendre le geste abandonné. La
         # ronde existante met les croyances à jour, même sans nouvelle reçue.
         lieux = {r["cause"]["salle"] for rs in e["renoncements"].values()
@@ -2184,10 +2389,10 @@ def choisir(monde, id, minute):
             demande = contrat.get("demande")
             correspondants = [(n, c) for n, c in enumerate(tous)
                               if c.besoin == courant["motif"]
-                              and (not demande or _meme_demande_tenue(c.demande, demande))]
+                              and (not demande or _meme_demande_tenue(c.demande, demande, monde, id))]
             for n, candidat in correspondants:
                 proposition = evaluer(n, candidat)
-                if proposition and _meme_demande_adoptee(candidat, courant, proposition, contrat):
+                if proposition and _meme_demande_adoptee(candidat, courant, proposition, contrat, monde, id):
                     actif = (candidat, proposition)
                     moyens_revalides = True
                     break
@@ -2210,11 +2415,16 @@ def choisir(monde, id, minute):
                         sortie = _sortie(courant, minute, *fin)
                     from .pnj import refus_etape
                     if sortie is None and refus_etape(monde, id, []) is None:
-                        # Une recherche sans réponse ne certifie ni la fin
-                        # ni le démenti de la demande. Attendre un moyen ou
-                        # une information garde son identité et son palier,
-                        # sans réinstaller de geste périmé ; jamais dans l'eau.
-                        actif = (candidat, (courant["but"], []))
+                        # Une recherche sans réponse ne certifie ni la fin ni
+                        # le démenti de la demande. Une fourniture sans moyen
+                        # suit la règle des agendas : elle dort et libère son
+                        # palier, plutôt que d'attendre sans borne. Une garde,
+                        # un lieu ou une mission précise attendent leur
+                        # occasion, et un agenda tient déjà son sommeil.
+                        if _peut_dormir(demande):
+                            sommeil = (courant, contrat)
+                        else:
+                            actif = (candidat, (courant["but"], []))
             # Le geste manqué est un démenti du plan courant, pas une preuve
             # que tous les moyens vers le même but sont impossibles. Seule la
             # nouvelle planification ci-dessus peut le réinstaller.
@@ -2264,6 +2474,15 @@ def choisir(monde, id, minute):
                 else:
                     # Accompli ou aucun moyen admissible : plus de suspension.
                     charges_precedentes = {}
+        if sommeil:
+            if actif:
+                # La remise en état des préparatifs est un moyen : la demande
+                # reste tenue et ne s'endort pas.
+                sommeil = None
+            else:
+                # Sans moyen, la demande libère son palier pour ce choix : elle
+                # n'est ni préemptée ni close par le but qui prend sa place.
+                precedent, courant, contrat_precedent = None, None, {}
         for n, candidat in enumerate(tous):
             # Un autre moyen de la même demande n'est pas une préemption : il la
             # continue, même à palier et valeur égaux (l'ancien moyen a manqué).
@@ -2282,6 +2501,29 @@ def choisir(monde, id, minute):
                                       "valeur_active": actif[0].urgence.valeur,
                                       "valeur_nouvelle": candidat.urgence.valeur, "marge": marge})
                 break
+        reprise = (next((record for candidat, record in reprises if candidat is choisi), None)
+                   if resultat is not None else None)
+        if sommeil and resultat is not None:
+            courant_sommeil, contrat_sommeil = sommeil
+            demande_sommeil = (contrat_sommeil or {}).get("demande")
+            if demande_sommeil and _meme_demande_tenue(
+                    choisi.demande, demande_sommeil, monde, id):
+                # Le moyen retrouvé au même choix est la continuation de la
+                # demande : elle ne renaît pas et ne perd pas son palier.
+                reprise = {"demande": demande_sommeil, "but": courant_sommeil["but"],
+                           "motif": courant_sommeil["motif"], "depuis": courant_sommeil["depuis"],
+                           "attente": courant_sommeil.get("attente", 0),
+                           "palier": contrat_sommeil["palier"], "valeur": contrat_sommeil["valeur"]}
+        if sommeil and reprise is None:
+            _endormir(monde, id, *sommeil)
+        # Une demande réveillée sans moyen reste endormie jusqu'à une autre
+        # entrée ; un moyen trouvé mais non choisi la laisse disponible.
+        for candidat, record in reprises:
+            if reprise is not None and record is reprise:
+                continue
+            n = next((i for i, c in enumerate(tous) if c is candidat), None)
+            if n is not None and n in essais and essais[n] != "plan":
+                record["entrees"] = _entrees(monde, id)
         if resultat is None and actif:
             choisi, resultat = actif
             if (moyens_revalides and courant["plan"] and resultat[1]
@@ -2315,29 +2557,39 @@ def choisir(monde, id, minute):
         intention = precedent
         meme = bool(intention) and intention["but"] == but
         meme_engagement = bool(intention) and _meme_demande_adoptee(
-            choisi, intention, (but, etapes), contrat_precedent)
+            choisi, intention, (but, etapes), contrat_precedent, monde, id)
         if intention and not meme_engagement and sortie is None:
             sortie = _sortie(intention, minute, None, {"evaluation": "indeterminee"})
-        if sortie is None and meme_engagement:
+        if sortie is None and meme_engagement and reprise is None:
             # Une continuation ne gomme pas la dernière sortie attestée.
             # Un seul événement est conservé : ce n'est pas une pile de buts.
             sortie = contrat_precedent.get("sortie")
+        depuis = (reprise["depuis"] if reprise
+                  else intention["depuis"] if meme else minute)
+        attente = (reprise["attente"] if reprise
+                   else intention["attente"] if meme else 0)
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
-                          "depuis": intention["depuis"] if meme else minute,
-                          "attente": intention["attente"] if meme else 0,
-                          **({"attitude": intention["attitude"]} if meme and "attitude" in intention else {})}
+                          "depuis": depuis, "attente": attente,
+                          **({"attitude": intention["attitude"]}
+                             if meme and "attitude" in intention else {})}
         from .planification import suspensions
-        charges = list(charges_precedentes.get("conditions", ())) if meme_engagement else []
+        charges = list(charges_precedentes.get("conditions", ())) if meme_engagement and not reprise else []
         for c in suspensions(monde, id, etapes, but):
             if c not in charges:
                 charges.append(c)
         agendas.retenir_charges(monde, id, charges,
                                restaurer=restauration and meme_engagement)
-        agendas.retenir_intention(monde, id, {"palier": int(choisi.urgence.palier),
-                                             "valeur": choisi.urgence.valeur,
+        agendas.retenir_intention(monde, id, {"palier": int(reprise["palier"] if reprise
+                                                            else choisi.urgence.palier),
+                                             "valeur": reprise["valeur"] if reprise else choisi.urgence.valeur,
                                              "demande": choisi.demande,
-                                             "phase": "attendre" if not etapes else "continuer" if meme_engagement else "naitre",
+                                             "phase": ("attendre" if not etapes else "continuer")
+                                             if meme_engagement or reprise else "naitre",
                                              "sortie": sortie})
+        if reprise is not None:
+            _retirer_sommeil(monde, id, record=reprise)
+        else:
+            _retirer_sommeil(monde, id, demande=choisi.demande)
         if not meme:
             e["patience"] = None  # Un autre but : ce qu'il attendait pour l'ancien ne compte plus.
         _classer(monde, id, pressants, liste, essais, minute)

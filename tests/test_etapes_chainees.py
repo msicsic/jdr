@@ -218,10 +218,31 @@ class EtapesTests(unittest.TestCase):
                                 'n_visites': 8573,
                                 'diagnostics': '713286253ce4161d93c4833e73e951671caacd67758398a206448edb605acadd'}
                                if scenario == 'auberge' else {})
+                    # 273 : une fourniture sans moyen s'endort (au lieu
+                    # d'attendre sans borne) et une part reçue remplace le lot
+                    # qu'elle provient. Les décisions, plans et le monde de ces
+                    # captures changent donc ; les deux vues du joueur et la
+                    # recharge restent vérifiées dans ``observer_capture``.
+                    lot273 = {
+                        'mine': {
+                            'visites': 'f7bb1a6f955cbf404553b69754da95d5327fe1975018690f2a8dabaa246d16eb',
+                            'n_visites': 17139,
+                            'plans': '750f079d19993a238b2b0b3d085de33039170d1289290b9e801241523c183353',
+                            'n_plans': 171,
+                            'diagnostics': '81d892f9beeb8428407be5cb747a0a44b9ed9490e48d68cbb2a69d88958d3381',
+                            'monde': '125bf8509aca2faa9bf194e90ffda2b169ec6fb41e2c3b182f2d8c9e9b5e1dbf'},
+                        'auberge': {
+                            'visites': '7c1d40e545726eaaaceb0b885f35323bc619732eb7d98914363666c5e3060272',
+                            'n_visites': 8795,
+                            'plans': '606b6c789b5879a5827f23f2e5f990489f26e24de54dd66d36ecd2198cb76a06',
+                            'n_plans': 82,
+                            'diagnostics': 'e2c431cde2bc72ac37c3aa269a5a1068aebcbba82ef7762cb2fd8eda42dd36f8',
+                            'monde': '494cc7e55b2268594b464244d224b57746ffdeb4122e72147d40b9fc1a41b5bf'}}
                     self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures,
                                                                  **paroles[scenario], **contacts[scenario],
                                                                  **rendez_vous.get(scenario, {}), **pas[scenario],
-                                                                 **compensation, **reserve})
+                                                                 **compensation, **reserve,
+                                                                 **lot273[scenario]})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})

@@ -74,8 +74,12 @@ class PasCompagnonsTests(unittest.TestCase):
             refus = copy.deepcopy(e['refus'])
             self.assertEqual(e['manque']['etape']['operation'], 'demander')
             choisir(m, 'aubin', m.data['minutes'])
-            self.assertEqual(e['intention']['but'], {'type': 'pulsion', 'objet': 'vivres', 'servir': 'brune'})
-            self.assertEqual([x['operation'] for x in e['intention']['plan']], ['ouvrir', 'servir'])
+            # Le refus portait sur le lot ; Aubin tient déjà deux parts reçues
+            # de ce lot (provenance publiée). Il sert la sienne au lieu de
+            # redemander ou d'ouvrir la réserve d'autrui.
+            self.assertEqual(e['intention']['but'],
+                             {'type': 'pulsion', 'objet': 'vivres_1', 'servir': 'brune'})
+            self.assertEqual([x['operation'] for x in e['intention']['plan']], ['servir'])
             self.assertEqual(e['refus'], refus)
             demandes = [c for c in m.data['chronique'] if c['pnj'] == 'aubin' and 'demande une part' in c['texte']]
             for dt in laps:

@@ -91,6 +91,12 @@ class ContratEngagementTests(unittest.TestCase):
             if eligible:
                 hors_vue.append(auteur)
                 apres = lire(m, auteur)['intention']
+                # Une demande de secours sans moyen admissible s'endort et
+                # libère son palier : ce n'est ni une fin ni une préemption.
+                endormie = any(d._meme_demande_tenue(r['demande'], demande, m, auteur)
+                               for r in m.data.get('demandes_sommeil', {}).get(auteur, []))
+                if endormie:
+                    return resultat
                 if apres is None:
                     # La part peut avoir été réellement servie avant que
                     # la croyance de faim du bénéficiaire soit rafraîchie.

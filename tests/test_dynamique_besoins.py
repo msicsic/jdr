@@ -162,7 +162,11 @@ class TenirTests(unittest.TestCase):
 
     def test_lucien_attend_une_information_apres_la_reprise_du_ballot(self):
         import copy
+        import gzip
+        import json
+        from pathlib import Path
         from donjon import deliberation, pnj
+        from donjon.monde import Monde
         from donjon.agendas import contrat_intention
         from donjon.deliberation import obstacle_patience
         from donjon.ouie import nature
@@ -170,11 +174,16 @@ class TenirTests(unittest.TestCase):
         from donjon.rendu import regarder as rendu
         from donjon.temps import instant, MINUTE
         from tools.detecter_changements_avis import observer_avis, analyser_episodes
-        # Scène historique complète : conserver le contrôle 229 à 95 min.
-        # Le recours débloqué change ensuite sa place et la fenêtre du vol.
-        from donjon.geometrie import position_entree
+        # Prémisse du contrôle 229 à 95 min : Anselme garde ses biens sans
+        # demande d'entretien en cours. Le test porte sur la reprise après
+        # son départ, puis la recherche épuisée après la reprise du ballot.
+        # Rejouer depuis zéro dépendait de l'abandon erroné de demandes
+        # d'Anselme (273) : entretien du poêle, puis restitution du ballot.
+        # Conservées, elles retiennent le témoin ou le propriétaire privé
+        # d'un moyen. Isoler le départ du témoin et l'information donnée au
+        # propriétaire rend ces prémisses explicites, sans changer l'oracle.
         retenu, croyance95 = None, None
-        vols, reprises, reprise_ballot, deplacements, mises_en_scene = [], [], [], [], []
+        vols, reprises, reprise_ballot, deplacements = [], [], [], []
         with observer_avis() as sonde:
             executer, choisir, agir = pnj._executer, deliberation.choisir, pnj.agir
 
@@ -209,27 +218,6 @@ class TenirTests(unittest.TestCase):
                 return resultat
 
             def agir_sonde(m, id, t, *args, **kwargs):
-                if not mises_en_scene and m.data["minutes"] >= 107:
-                    # Placement d'auteur : le témoin quitte sa chambre et son souci du
-                    # poêle à la minute où la scène le demande. Le contrat 273 le retient
-                    # près du poêle tant que sa demande tient ; c'est l'obstacle de Lucien
-                    # qui est éprouvé ici, pas la mobilité d'Anselme.
-                    mises_en_scene.append(t)
-                    p = m.objets["anselme"]["profil"]
-                    p["pulsions"] = [x for x in p["pulsions"]
-                                     if x["condition"].get("objet") != "poele"]
-                    e_anselme = lire(m, "anselme")
-                    e_anselme["pulsions"] = []
-                    e_anselme["intention"] = None
-                    placer(m, "anselme", "salle_commune", position_entree(m, "salle_commune"))
-                    percevoir_tous(m)
-                if len(mises_en_scene) == 1 and m.data["minutes"] >= 111:
-                    # Second temps de la mise en scène : le témoin revient vers la table
-                    # à la minute où le vol est constaté. Sa pulsion « ballot à la
-                    # chambre chaude » renaît alors et Lucien le croit porteur du ballot.
-                    mises_en_scene.append(t)
-                    placer(m, "anselme", "etable", position_entree(m, "etable"))
-                    percevoir_tous(m)
                 avant = m.objets[id]["lieu"]
                 resultat = agir(m, id, t, *args, **kwargs)
                 if id == "lucien" and avant != m.objets[id]["lieu"]:
@@ -238,12 +226,20 @@ class TenirTests(unittest.TestCase):
 
             with patch.object(pnj, "_executer", executer_sonde), \
                  patch.object(deliberation, "choisir", choisir_sonde), patch.object(pnj, "agir", agir_sonde):
-                m, _ = suivre(self.lucien_au_grenier_noir(), "lucien", 95, pas=5)
+                fichier = Path(__file__).parent / 'data/lucien-273-auberge-95-garde.json.gz'
+                m = recharger(Monde(json.loads(gzip.decompress(fichier.read_bytes()))))
                 retenu = copy.deepcopy(lire(m, "lucien")["renoncements"]["biens"][0])
                 croyance95 = copy.deepcopy(lire(m, "lucien")["croyances"]["anselme"]["lieu"])
                 self.assertTrue(obstacle_patience(m, "lucien", retenu["cause"]))
                 self.assertNotEqual(lire(m, "lucien")["intention"]["but"], retenu["but"])
-                m, _ = suivre(m, "lucien", 25, pas=5)
+                m, _ = suivre(m, "lucien", 15, pas=5)
+                # Le propriétaire apprend où le ballot vient d'être déposé.
+                # Il peut reprendre sa demande par ce moyen admissible,
+                # sans devoir abandonner son but pour suivre un autre plan
+                # qui le ferait passer fortuitement devant le ballot.
+                croire(m, "anselme", "ballot", "lieu", "etable", "entendu",
+                       salle="etable", case=m.objets["ballot"]["position"])
+                m, _ = suivre(m, "lucien", 10, pas=5)
                 recherche = dict(lire(m, "lucien")["recherches"]["anselme"])
                 self.assertEqual(set(recherche), set(m.data["salles"]))
                 m, _ = suivre(m, "lucien", 45, pas=5)
