@@ -23,12 +23,17 @@ caractères ; dernier récapitulatif relu au démarrage sans réexécution.
 | 24 | Attentes textuelles antérieures à U-P : réponse suivie du constat « Question au MJ : aucune action exécutée », ou résultat suivi de « Compris ». Comparaison adaptée à **tout** le texte attendu, sans retrait des oracles du monde, des appels, de la recharge ou du refus de prose inventée. Le témoin de `recit_resultat` capture le résultat composé exact à l'affichage. |
 | 12 | Tests U-P de parole lisant `data['paroles_joueur']`, retiré par G15 : portage à l'accès commun `emissions.joueur`, sans réintroduire l'ancien registre. |
 | 4 | Préexistants corrigés dans l'intégration : audience/planches (331), occasion du hameau et empreintes mine/auberge (334). Correctifs conservés. |
-| 7 | Incidents étrangers à U-P à comparer sur référence : cinq erreurs de rejeu et un échec d'audit par `_retentir` sans argument `emission`, plus refus de vente d'huile après 8 h dans la voie directe `preparer_parole`. |
+| 7 | Préexistants tous reproduits sur l'intégration seule : cinq erreurs de rejeu et un échec d'audit par `_retentir` sans argument `emission`, plus refus de vente d'huile après 8 h dans la voie directe `preparer_parole`. Ils restent hors du lot 319. |
 
-**Validation de reprise en cours.** Référence isolée `9237e14`, limitée aux
-méthodes en incident ; dix fichiers corrigés exécutés intégralement sur la
-branche. Deux travailleurs réduits au plus, lanceurs détachés, fichiers de
-fin même en échec. Matrice individuelle et mesures à clôturer après sorties.
+**Reprise terminée.** Référence isolée `9237e14`, limitée aux méthodes en
+incident : **23 tests comptés, 1 431,539 s, deux échecs et cinq erreurs**,
+exactement les sept préexistants, aucun incident supplémentaire. Les quatre
+incidents corrigés par 331/334 et les anciennes attentes textuelles passent
+sur cette référence. Branche corrigée `3ee69d4` : **102/102 tests verts**,
+dix fichiers complets, **714,982 s**, zéro échec, erreur ou saut.
+Les [47 attributions individuelles](attribution-codex-319-up-recapitulatif.md)
+relient chaque incident à sa preuve. Deux travailleurs réduits au plus,
+lanceurs détachés ; **`fin-reprise.json ok=true`**, aucun calcul actif.
 Aucun changement supplémentaire du moteur pour satisfaire une assertion de
 texte. Les oracles U-P couvrent treize parcours × console/pont web/vraie TUI,
 texte exact et état complet après recharge, cible périmée, choix directs,
@@ -43,5 +48,6 @@ historique, pas une confirmation restaurée. Les improvisations exposent leurs
 effets typés sans garantir leur manière libre. Ancienne passe ciblée : un
 échec TUI repassé seul et un test facultatif ignoré, traces conservées.
 
-Bruts initiaux : `C:/Users/msics/donjon/artifacts/up-319/` ; reprise :
-`artifacts/reprise319/` dans le worktree, à archiver sous `up-319/reprise/`.
+Bruts archivés : `C:/Users/msics/donjon/artifacts/up-319/`, reprise dans
+`reprise/` (matrice JSON, journaux et résultats intégraux). Aucun code ou test
+modifié depuis cette validation ; clôture documentaire seulement.

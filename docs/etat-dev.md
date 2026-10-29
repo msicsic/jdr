@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Reprise du lot 319 / U-P, non fusionnée**, branche
+- **Reprise du lot 319 / U-P terminée, non fusionnée**, branche
   `codex-up-recapitulatif` : intégration `9237e14` fusionnée sans rebase par
   `cf797cb`, conflit documentaire seul résolu en conservant les deux côtés.
   Suite d'essai du superviseur sur `3fd819d` : 47 incidents suivis (30 échecs,
@@ -10,13 +10,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   exacte du texte composé et tous les oracles mécaniques conservés ; 12
   erreurs des nouveaux tests U-P portées de l'ancien registre des paroles à
   l'accès commun G15. Quatre incidents déjà corrigés par 331/334 conservés.
-  Sept incidents PNJ/rejeu à attribuer sur référence isolée `9237e14` :
+  Sept incidents PNJ/rejeu tous reproduits sur référence isolée `9237e14` :
   `_retentir` sans argument `emission` (cinq erreurs et un audit en échec),
   vente d'huile refusée après 8 h (voie directe sans récapitulatif).
-  **Référence ciblée et dix fichiers corrigés en cours**, deux travailleurs
-  réduits au plus, lanceurs détachés avec fichiers de fin même en échec ;
-  aucun Luna ni nouvelle suite complète. Bruts `artifacts/reprise319/`,
-  témoins `fin-reference.json` / `fin-branche.json`.
+  **102/102 tests verts, dix fichiers complets, 714,982 s**, zéro échec,
+  erreur ou saut sur `3ee69d4`. Référence : **23 tests comptés, 1 431,539 s**,
+  deux échecs/cinq erreurs reproduisant exactement les sept préexistants,
+  aucun incident supplémentaire. Les quatre incidents corrigés par 331/334
+  et les anciennes attentes textuelles passent sur l'intégration seule.
+  [Matrice des 47 incidents](taches/attribution-codex-319-up-recapitulatif.md).
+  Deux travailleurs réduits au plus, lanceurs détachés, aucun calcul actif ;
+  aucun Luna ni nouvelle suite complète. Bruts archivés dans
+  `C:/Users/msics/donjon/artifacts/up-319/reprise/`, **fin-reprise.json ok=true**.
+  Code/tests inchangés depuis validation ; clôture documentaire seulement.
   [Rapport 319](taches/rapport-codex-319-up-recapitulatif.md).
 
 - **Lot 319 / U-P, branche `codex-up-recapitulatif`, non fusionnée**, base
