@@ -1,89 +1,69 @@
-# Lot 306 — responsabilité d'évacuation dans le hameau
+# Lot 306 — agenda d'évacuation du hameau
 
-Branche **codex-a5-agenda-hameau**, non fusionnée, base initiale 7ec839e,
-données/tests 8145e48, 29 octobre 2026. **Reprise après 309 en cours** :
-fusion sans rebase de origin/integration **13ce328** dans **081e65b**.
-Seul conflit de documentation, deux historiques conservés. Aucun changement
-propre au lot 306 dans le moteur/MJ ; données inchangées après mesure.
+Branche **codex-a5-agenda-hameau**, non fusionnée, base 7ec839e ;
+fusion sans rebase de **13ce328** dans **081e65b**.
+**Livraison close, banc non validé pour intégration.** Aucun changement
+propre au lot dans le moteur/MJ, aucune donnée ajustée après mesure.
 
-**48 tests / huit fichiers verts après fusion**, sept fichiers du lot
-et test_recit_agendas, 68,601 s, deux travailleurs réduits. Le test connu
-d'ordre des mesures, pris en charge par le lot 310, n'est ni lancé ni
-compté contre ce lot. Court témoin de capture : état final, chronique et
-mesures identiques avec/sans captures supplémentaires.
+**Invariant.** Gorm reçoit evacuer_crue, amener vers chambre_cloche,
+comme dans la crue : Ilse, Brune, Maël, Sève. Ces derniers évacués ignorent
+les salles basses ; Maël connaît Gorm, Sève connaît Aubin/Ilse. Gorm
+accueille les évacués ; Aubin surveille les vannes. Aucun mandat initial,
+lien, coût ou savoir ajouté ; aucune charge informer sans justification.
 
-**Banc détaché lancé sur 081e65b**, hameau 4 h × 1985/7/42/2024 contre
-13ce328, cache commun, deux travailleurs réduits maximum, PID 20232.
-Bruts séparés : C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-309/,
-fichier de fin attendu fin.json. Épisodes complets de la sonde commune
-219/271/276, captures aux transitions et aux publications pour Aubin/Gorm
-en 7 et Gorm en 2024, état final rechargé. **Instruction à terminer après
-le calcul** : entrées publiées utilisées, renouvellement perceptif à
-examiner, répétition sans entrée ou autre classe ; aucune alerte ne sera
-déclarée légitime sur le seul compteur de suspects. Ni Luna ni suite
-complète. Les résultats ci-dessous décrivent la première passe, avant 309.
+**52 tests distincts / neuf fichiers verts** : 48 après fusion, puis
+quatre tests d'occasions et trois d'agenda revérifiés, sans double compte.
+Marches Maël/Sève, monde/scène/rendu/écoute rechargés et temps découpé.
+Inverse attendu du hameau **85955d0e…** : égalité exhaustive avec la base
+historique 23aba63 enrichie du statut/trois ascendants 302 et de l'agenda
+306. Corrections inverses et six autres empreintes inchangées : seules
+les occasions 200 sont retirées. Test d'ordre du lot 310 hors bilan ;
+ni Luna ni suite complète.
 
-**Invariant livré.** Gorm reçoit evacuer_crue, sorte amener, vers
-chambre_cloche (la galerie), comme dans la crue. Ilse et Brune restent
-concernées ; Maël et Sève s'ajoutent : évacués de maisons noyées, accueillis
-au Relais, ignorants des salles basses. Gorm est décrit comme protecteur
-des évacués ; Maël le connaît et lui fait confiance, Sève connaît Aubin et
-Ilse. Sa garde ne suppose pas qu'elle connaisse son statut. Aubin conserve
-sa surveillance des vannes. Aucun mandat initial, coût, lien, statut ou
-savoir ajouté ; aucune raison pour une seconde charge informer.
-Comparaison exhaustive contre la base : seul l'agenda change.
-Liste fixée avant mesure et inchangée ensuite.
+**Quatre paires 4 h contre 13ce328, aucun plantage/usurpation.**
 
-**45 tests distincts / sept fichiers verts**, deux travailleurs réduits
-maximum. Déclaration, activation unique sur quatre graines sans
-attribution ; Maël/Sève : accord réel puis marche autonome, monde,
-scène, rendu et écoute rechargés, même temps continu/découpé.
-Voisins : hameau, autorité, déplacement Ilse/Brune, faire/confier, compte
-rendu, réaffectation. Premières erreurs des nouvelles scènes corrigées
-sans affaiblir d'oracle ; temporaires Windows accessibles hors sandbox.
-Sources/tests inchangés depuis cette validation.
-
-**Crue : 4/4 paires 2 h identiques**, graines 1985/7/42/2024 : chronique,
-mesures et empreinte de l'état final complet, aucun plantage.
-**Hameau : trois nuits 4 h achevées, une interrompue** :
-
-| Graine | Proposés / acceptés / refusés | Refus par cause | Galerie à 4 h, référence → branche | Agenda de Gorm |
+| Graine | Proposés / acceptés / refusés | Causes des refus | Galerie réf. → branche | Agenda de Gorm |
 |---|---|---|---|---|
-| 1985 | 4 / 0 / 4 | jet 3, impossible 1 | 2 → 4 | atteint, min 62 |
-| 7 | 5 / 2 / 3 | méfiance 1, impossible 2 | 1 → 2 | sommeil, refus |
-| 42 | 3 / 3 / 0 à 5 min | aucun à l'arrêt | 0 → inconnu à 4 h | sommeil à l'arrêt |
-| 2024 | 1 / 1 / 0 | aucun | 0 → 4 | atteint, min 161 |
+| 1985 | 4 / 0 / 4 | jet 3, impossible 1 | 1 → 4 | atteint, min 70 |
+| 7 | 5 / 2 / 3 | méfiance 1, impossible 2 | 1 → 2 | sommeil, min 189 |
+| 42 | 3 / 3 / 0 | — | 0 → 3 | sommeil, min 129 |
+| 2024 | 1 / 1 / 0 | — | 1 → 2 | sommeil, min 217 |
 
-Sous-mandats inclus (42 : Aubin → Ilse pour Brune). Confirmations,
-comptes rendus, réaffectations : **zéro par nuit**, y compris avant
-l'arrêt. Mandats atteints : **0/2/1 partiel/1**. En 1985, Gorm → Aubin
-est refusé malgré coût 0,26 et bonus 4,8 : total 2 < DD 3,152.
-Galerie : les quatre destinataires ; Sève y est déjà initialement.
-Présence finale et arrivée crue ne prouvent pas une causalité exclusive
-de l'agenda, ni le maintien ultérieur sur place.
+Sous-mandats inclus. Mandats atteints **0/2/3/1** ; **un compte rendu en
+42**, zéro confirmation/réaffectation. Galerie : quatre destinataires,
+Sève déjà présente au départ ; aucune causalité exclusive revendiquée.
 
-**Échec hors périmètre.** Graine 42, minute 5 :
-audit_nuits._releve → recit_pnj._but lève KeyError: 'qui' sur le but
-valide d'Aubin {"type":"agenda","agenda":"a1"}. L'observateur suppose
-une cible pour tout agenda. Reproduit sur capture rechargée ; monde
-valide, rendu joueur et scène conservés. Cela prouve l'interruption du
-banc, pas un plantage de l'exécution du jeu. **4/4 captures finales**
-(dont celle à 5 min) conservent état, rendu, scène et empreinte.
+**Instruction 219/271/276, sans nouvelle simulation :**
 
-Suspects 219 **0 → 0 par nuit**, quatrième branche limitée à 5 min.
-À expliquer **2/2/7/4 → 0/5/0 partiel/11**. Bascules détectées zéro ;
-passages horaires maximaux des trois paires complètes **12→33, 6→27,
-20→25**. Nouvelles alertes en 7 : actif/sommeil d'Aubin 9/8 occurrences,
-sommeil de Gorm 9, achat promis d'Aubin 28 ; en 2024, une alternance
-« aller voir ». Elles restent à instruire ; aucune absence générale de
-boucle revendiquée. Usurpations zéro sur les trois nuits et le début
-de la quatrième.
+- **Aubin, 7 :** neuf actifs/huit sommeils, huit paires intermédiaires
+  d'une évaluation, monde identique hors chronique, état publié actif.
+  Entre évaluations : six deltas mixtes, deux perceptifs seuls
+  (t=1473/1573), à examiner selon 276 ; aucune preuve causale générale.
+- **Gorm, 7 :** neuf sommeils. Reprises **2293/75105** justifiées par 271
+  (lieux Maël/Ilse appris et utilisés). À **75000**, réessai licite :
+  refus de Maël minute 4 expiré après 120 min. Classes brutes inchangées ;
+  **1219** reste à expliquer (autre sous-but, accompagnement accepté).
+  Trois paires sommeil/actif ne changent que la chronique.
+- **Achat promis, 7 : répétition réelle.** 28 annonces, t=36582–39282 ;
+  **26 comparaisons successives sans entrée nouvelle**, même lieu,
+  promesse de minute 0 et engagement annulé. Aucun nouveau paiement.
+  Intention continue, hors retours A→B→A de 219 ; ni preuve 271 ni delta 276.
+- **« Aller voir », 2024 : préemption justifiée.** Ancien triplet
+  105/120/125 : **12→9**, examen achevé (219). Alerte grossière absente
+  après reprise ; garde interrompue à 99 min : **13→9**, examen achevé.
+- **Sève, 2024 : sept retours sans entrée**, réclamations Gorm/Brune,
+  83–95 min : repetition_sans_entree_nouvelle, aucune preuve 271 ni
+  différence perceptive 276. Correction moteur distincte requise.
 
-Calcul détaché, deux travailleurs réduits, **851,143 s** : huit références
-absentes calculées une fois et rangées, huit nuits de branche tentées.
-Aucun gain de performance déduit. Bruts :
-C:/Users/msics/donjon/artifacts/agenda-hameau-306/ ; résultats, captures,
-traces et analyse-cloture.json. **fin.json conservé : ok=false**, codes
-empreintes/banc **0/1**. Aucun rejeu à la clôture.
-**Non validé pour intégration** : rendu des buts A5 puis répétitions à
-traiter dans des lots distincts, sans ajuster le scénario.
+Suspects **0/0/0/0 → 0/0/0/7** ; à expliquer **1/2/7/4 → 7/5/0/10** ;
+passages horaires maximaux **16/6/16/8 → 33/27/28/95**.
+Achats répétés et réclamations empêchent la validation.
+
+**160 recharges identiques**, monde/rendu/scène ; réanalyse des quatre
+archives d'épisodes identique au banc. Calcul détaché, deux travailleurs
+réduits, **464,417 s** ; quatre références absentes rangées une fois,
+quatre nuits de branche. Crue initiale : **4/4 empreintes 2 h identiques**
+conservées. Bruts : C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-309/
+(diagnostic-final.json, publications-detail.json, preuve-inverse.json,
+captures, tests). **fin.json conservé : ok=false, code_banc=0**.
+Aucun calcul actif ou relancé à la clôture, aucun gain de performance déduit.

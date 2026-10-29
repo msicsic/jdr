@@ -3,46 +3,50 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-a5-agenda-hameau`, lot 306, non fusionnée**, base
-  intégration `7ec839e` : agenda `evacuer_crue` de Gorm rétabli en données,
-  même charge que la crue, vers `chambre_cloche`, étendue à Maël et Sève
-  en plus d'Ilse et Brune. Aucun mandat initial, lien ou savoir ajouté ;
-  aucun moteur/MJ modifié, aucune charge `informer` sans justification.
-  **45 tests distincts / sept fichiers verts**, monde/scène/rendu/écoute
-  rechargés, accords et marches réels Maël/Sève, temps continu/découpé.
-  **Reprise après 309 en cours** : fusion sans rebase de
-  `origin/integration 13ce328` dans `081e65b`, seul conflit documentaire,
-  deux historiques conservés. **48 tests / huit fichiers verts** après
-  fusion, 68,601 s ; test d'ordre des mesures du lot 310 hors bilan.
-  Capture/témoin court : état, chronique et mesures identiques.
-  **Banc détaché lancé sur `081e65b`**, hameau 4 h × quatre graines
-  contre `13ce328`, cache commun, deux travailleurs réduits, PID 20232.
-  Épisodes 219/271/276 et captures ciblées conservés pour instruire
-  actif/sommeil d'Aubin, sommeil de Gorm, achat promis en 7 et « aller
-  voir » de 2024 ; aucune conclusion de légitimité avant cette lecture.
-  Fichier de fin attendu :
-  `C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-309/fin.json`.
-  Ni Luna ni suite complète ; ne pas doubler ce calcul actif.
-  **Première passe avant 309, non validée pour intégration** : crue
-  **4/4 empreintes 2 h identiques** ; hameau 4 h contre `7ec839e`, trois
-  nuits achevées, graine **42 interrompue à 5 min** par le rendu de banc
-  `recit_pnj._but` : `KeyError: 'qui'` sur le but d'Aubin
-  `{"type":"agenda","agenda":"a1"}`. Reproduit sur capture rechargée ;
-  monde/rendu joueur/scène valides et conservés, aucune preuve de plantage
-  d'exécution du jeu. Mandats proposés/acceptés/refusés : **4/0/4,
-  5/2/3, 3/3/0 partiel, 1/1/0** ; zéro compte rendu et réaffectation.
-  Agenda de Gorm atteint en 1985/62 et 2024/161, sommeil en 7 et à
-  l'arrêt de 42. Galerie à 4 h : **2/1/0/0 → 4/2/inconnu/4**.
-  Suspects 219 **0 partout**, branche 42 limitée à 5 min ; usurpations
-  zéro sur les trois nuits complètes et le début de la quatrième.
-  Nouvelles répétitions en 7 (agendas, achat promis), entrées à expliquer
-  **2/2/7/4 → 0/5/0 partiel/11** ; aucune absence générale de boucle
-  revendiquée. **4/4 captures finales identiques après recharge**.
-  Deux travailleurs réduits, **851,143 s**, huit références absentes
-  rangées une fois. `C:/Users/msics/donjon/artifacts/agenda-hameau-306/fin.json`
-  **ok=false**, codes empreintes/banc **0/1**, conservé ; analyse de
-  clôture séparée. Sources/tests inchangés depuis `8145e48`, branche
-  poussée lors de cette clôture initiale ; résultats conservés sans
-  écrasement. Le rendu A5 est corrigé par 309 ; reprise décrite plus haut.
+  initiale `7ec839e`, reprise par fusion sans rebase de `13ce328` dans
+  `081e65b` (309 inclus). Agenda d'évacuation de Gorm vers la galerie,
+  Ilse/Brune/Maël/Sève ; aucun mandat initial, lien, coût ou savoir ajouté.
+  Aucun changement propre au lot dans le moteur/MJ.
+  **Livraison et diagnostic clos, banc non validé pour intégration.**
+  **52 tests distincts / neuf fichiers verts** : 48 après fusion puis
+  occasions/agendas 7/7, sans double compte. Inverse attendu du hameau
+  corrigé sans affaiblissement : base 23aba63 + statut/trois ascendants
+  302 + agenda 306, égalité exhaustive ; fabrique et six autres empreintes
+  inchangées. Monde/scène/rendu/écoute rechargés, marches Maël/Sève.
+  Test d'ordre du lot 310 hors bilan ; ni Luna ni suite complète.
+  **Quatre paires hameau 4 h achevées**, `13ce328` → `081e65b`,
+  zéro plantage/usurpation. Mandats proposés/acceptés/refusés :
+  **4/0/4, 5/2/3, 3/3/0, 1/1/0** ; un compte rendu en 42, zéro
+  confirmation/réaffectation. Gorm atteint en 1985/70, sommeil en 7/189,
+  42/129 et 2024/217 ; galerie **1/1/0/1 → 4/2/3/2**.
+  Suspects 219 **0/0/0/0 → 0/0/0/7**, à expliquer
+  **1/2/7/4 → 7/5/0/10**, passages max/h **16/6/16/8 → 33/27/28/95**.
+  **Instruction 219/271/276 terminée** : Aubin 7, huit paires
+  sommeil/actif intermédiaires, même monde hors chronique et état publié
+  actif ; six deltas mixtes et deux perceptifs seuls entre évaluations,
+  ces derniers non certifiés légitimes (276). Gorm 7, lieux Maël/Ilse
+  utilisés reconnus par 271 (t=2293/75105), deux reprises à expliquer
+  dans les classes brutes (1219/75000) : 75000 justifié manuellement par
+  l'expiration du refus de Maël (minute 4, délai moteur 120 min), 1219
+  reste à expliquer ; trois paires sans effet hors chronique. Achat promis :
+  **28 annonces, 26 comparaisons strictes sans entrée**, même promesse
+  de minute 0 et engagement annulé ; intention continue, hors retours
+  A→B→A de 219, défaut réel sans nouveau paiement. Ancienne alternance
+  « aller voir » 2024 justifiée par préemption 12→9 et examen achevé,
+  absente après reprise (garde actuelle 13→9 également justifiée).
+  **Sept retours de Sève sans entrée en 2024**, réclamations Gorm/Brune
+  à 83–95 min ; ni preuve 271 ni delta 276. Achats et réclamations
+  requièrent des corrections moteur distinctes, sans ajuster le scénario.
+  **160 captures rechargées identiques**, monde/rendu/scène ; quatre
+  analyses d'épisodes reproduites. Deux travailleurs réduits, **464,417 s**,
+  quatre références absentes rangées une fois puis quatre nuits de branche.
+  Crue initiale **4/4 empreintes 2 h identiques**, conservée sans rejeu.
+  Bruts `C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-309/` :
+  `fin.json` conservé **ok=false, code_banc=0**, diagnostic-final,
+  preuve-inverse, captures et tests ; clôture séparée. Branche poussée,
+  aucun calcul actif ou relancé ; aucune absence générale de boucle
+  revendiquée. Première passe arrêtée en 42 conservée dans le dossier
+  parent, rendu corrigé par 309.
   [Rapport 306](taches/rapport-codex-306-a5-agenda-hameau.md).
 
 - **Branche `codex-recit-buts-agenda`, lot 309, fusionnée**, base
