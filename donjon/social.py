@@ -845,6 +845,9 @@ def recevoir(monde, id, locuteur, c):
     from .corps import conscient
     if not conscient(monde, id):
         return None
+    if c['type'] == 'cause_detresse':
+        from .causes import recevoir as recevoir_cause
+        return recevoir_cause(monde, id, locuteur, c)
     if c["type"] == "compte_rendu":
         from .agendas import recevoir_compte
         return recevoir_compte(monde, id, locuteur, c)

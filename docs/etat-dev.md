@@ -2,6 +2,36 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 330 terminé, branche `codex-demander-cause`, fusionnée**, base
+  fournie `f08ef58` : question de cause avant secours de proximité, réponse
+  depuis les seules croyances datées du proche, parole commune, ouï-dire
+  pondéré et recours existants. Réponse hors des quarante souvenirs ; délai,
+  perte du signe, estompement relationnel ou date rafraîchie ne réarment pas.
+  **192 tests distincts / quatorze fichiers consolidés verts**, zéro échec,
+  erreur ou saut : 126 repris (220,043 s), 66 acquis conservés. Dix nouveaux
+  tests : coups réellement exécutés au Relais/mine puis question et réaction,
+  capture réelle de crue, négatifs, croyances fausses, tiers, date seule ;
+  monde, émissions, scène et rendu final rechargés, laps entier/découpé.
+  **20/20 nuits de 4 h conformes**, cinq scénarios × quatre graines :
+  suspects 219 **0 → 0 dans chaque nuit**, zéro plantage/usurpation.
+  **112 questions, 71 causes dites (bruits seulement), 28 réponses crues** ;
+  premiers choix suivants : 23 compagnies de secours, trois inspections,
+  une interposition, un engagement ; succession, pas preuve de causalité.
+  Eau et violence validées par les tests, non exercées par le banc passif.
+  Limites visibles : **à expliquer 32 → 43**, dérives ouvertes **387 → 436**,
+  tentatives de vol **2 → 3** ; aucun bénéfice général ni absence universelle
+  de boucle annoncé. PNJ seulement ; schéma MJ et voie joueur inchangés.
+  Recouvrement 326/G17 : documentation seule. Référence exacte `f08ef58` :
+  vingt nuits absentes calculées/rangées une fois, aucune disponible relancée.
+  Deux travailleurs réduits au plus, ni Luna ni suite complète.
+  Code/tests `3ab6aa5` inchangés depuis validation, empreintes vérifiées.
+  Première fin en échec conservée ; reprise **fin.json ok=true, code 0,
+  1 018,634 s**. Aucun calcul actif, branche poussée vers origin.
+  Bruts `C:/Users/msics/donjon/artifacts/cause-330/`, reprise `reprise-1/`,
+  `analyse-cloture.json`, `tests-consolides.json`, fin `fin-cloture.json`.
+  [Rapport 330](taches/rapport-codex-330-demander-cause.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Un PNJ qui perçoit la détresse d'un proche sans en connaître la cause lui demande ce qui l'inquiète (contenu cause_detresse, parole commune) ; réponse d'après les seuls savoirs datés du proche (violence active, menace d'eau, bruit sans auteur), apprise comme ouï-dire, réponse retenue sans réessai par le délai. PNJ seulement, voie du joueur à faire. 192 tests verts ; 20 nuits 4 h, suspects 219 0 → 0, 112 questions, 28 réponses crues suivies d'un choix. À surveiller à la prochaine vérification d'intégration : à expliquer 32 → 43, dérives ouvertes 387 → 436, tentatives de vol 2 → 3 ; les causes dites dans les nuits sont toutes des bruits.
+
 - **Lot 334 terminé, branche `codex-empreintes-monde`, fusionnée**,
   base `5f4e0d5` : hameau, parent `37f68d4` vert / fusion 302 `99143c2`
   rouge ; statut de Gorm et trois ascendants légitimes conservés par
