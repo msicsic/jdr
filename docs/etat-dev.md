@@ -41,14 +41,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `tests.json`, `reference-tests.json`, `analyse-cloture.json` ;
   **fin-cloture.json ok=true avec réserve**, fin brute rouge et erreur du
   premier lanceur conservées. Branche poussée, aucun calcul actif.
-  **Seconde synchronisation en cours** : intégration exacte `c9b972b`
-  (G17/326 et fin de garde par ouï-dire/337), fusion sans rebase. Aucun
+  **Seconde synchronisation terminée** : fusion sans rebase `c84ba5a`, deux
+  parents (`e29d1bd`, intégration exacte `c9b972b`, G17/326 et 337). Aucun
   conflit de code ; documentation des deux côtés conservée. Lectures des
   mandats, protections et preuves négatives de fin maintenues dans `_entrees` ;
   contrôle AST et prémisse d'inventaire du 337 conservés ensemble.
-  Validation ciblée 340 et fichiers communs, deux travailleurs réduits
-  au plus, aucun banc, Luna ni suite complète. Fin attendue
-  `C:/Users/msics/donjon/artifacts/ascendant-340/fusion-c9b972b/fin.json`.
+  **495 tests / 48 fichiers : 492 verts, trois échecs antérieurs**, aucune
+  erreur ni saut, 536,659 s. Treize tests 340, quatorze de garde par ouï-dire
+  et onze de comptes parlés moteur verts. Deux attentes `ouie_temoins` sur
+  les nouvelles de Bram et une attente `voix` sur la persuasion après appel
+  reproduites sur **c9b972b exact**, deux fichiers, 28 tests / trois échecs,
+  18,878 s ; traces identiques hors chemins absolus. Tests inchangés,
+  aucun échec nouveau. Sources/tests vérifiés inchangés. Deux travailleurs
+  réduits au plus, aucun banc, Luna ni suite complète ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/ascendant-340/fusion-c9b972b/` :
+  `tests.json`, `reference-tests.json`, `analyse-cloture.json`,
+  **fin-cloture.json ok=true avec trois réserves**, fin brute rouge conservée.
+  Branche poussée ; ancienne réserve d'appel de la première synchronisation
+  conservée, non réexercée par cette sélection ciblée.
+
 - **Lot 337 terminé avec deux échecs antérieurs réservés**, branche
   `codex-fin-garde-ouidire`, fusionnée. `origin/integration ad0e5a8`
   fusionnée sans rebase, deux parents `8ddef70`. Preuve négative de fin du
