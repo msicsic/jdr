@@ -9,7 +9,7 @@ import unittest
 from donjon.commandes import DescripteurPublic, analyser, proposition_descripteur
 from donjon.defi import nouveau_defi
 from donjon.geometrie import placer
-from donjon.gestes_publics import catalogue_public, correspond, offres
+from donjon.gestes_publics import catalogue_public, correspond, offres, ressource_admise
 from donjon.monde import ErreurMonde, Monde
 from donjon.moteur import Moteur
 from donjon.spatial import memoriser
@@ -100,7 +100,7 @@ class OutilsPublicsTests(unittest.TestCase):
                         for o, porte in cibles:
                             for action, libelle, formulaire in offres(o, porte, parametrees=True):
                                 for r in e["ressources"]:
-                                    if r["id"] == o["id"] or not correspond(r, formulaire["ressources"]):
+                                    if not ressource_admise(o, r, formulaire):
                                         continue
                                     d = {"geste": action, "cible": o["id"],
                                          "parametres": {formulaire["champ"]: r["id"]}}
@@ -207,16 +207,17 @@ class OutilsPublicsTests(unittest.TestCase):
                     self.assertIn("Tu ne vois plus cette cible ici.", lignes)
                     self.assertNotIn("descripteur.", "\n".join(lignes))
 
-    def test_destination_fermee_et_outils_inadaptes_restent_proposes_refus_moteur(self):
+    def test_destination_fermee_et_outils_inadaptes_retires_puis_refus_du_choix_perime(self):
         for geste in ("deverrouiller", "crocheter", "frapper", "alimenter", "mettre"):
             with self.subTest(geste=geste):
                 m, cible, _ = situation(geste)
                 ressource = "autre_cible" if geste == "mettre" else "outil_deux"
+                clic = choisir(m, geste, cible, ressource)
                 if geste == "mettre":
                     m.objets[ressource]["ouverte"] = False
                 else:
                     m.objets[ressource].update(ouvre=[], usages=[], puissance=0)
-                clic = choisir(m, geste, cible, ressource)
+                self.assertNotIn(clic["envoye"], [c["envoye"] for c in page(m)["outils"] + page(m)["inventaire"]])
                 avant = copy.deepcopy(m.data)
                 a, lignes = self.comparer(m, clic)
                 self.assertEqual(a.data, avant)
@@ -240,7 +241,7 @@ class OutilsPublicsTests(unittest.TestCase):
         self.assertIn("outil_deux", ids)
         self.assertFalse(ids & {"loin", "invisible", "bien_prive", "cache_ferme", "marchand"})
         for o in ressources:
-            self.assertLessEqual(set(o), {"id", "nom", "type", "foyer"})
+            self.assertLessEqual(set(o), {"id", "nom", "type", "foyer", "aptitudes"})
         m.data["mode_cases"] = False
         self.assertIn("proche", {o["id"] for o in etat(m)["ressources"]})
 
@@ -275,9 +276,10 @@ class OutilsPublicsTests(unittest.TestCase):
         for variante in (0, 1):
             with self.subTest(variante=variante):
                 m, cible, _ = situation("frapper", variante)
+                clic = choisir(m, "frapper", cible)
                 m.objets["outil_deux"]["usages"] = ["couper"]
                 m.objets[cible].pop("seuil_coupe", None)
-                clic = choisir(m, "frapper", cible)
+                self.assertNotIn(clic["envoye"], [c["envoye"] for c in page(m)["outils"] + page(m)["inventaire"]])
                 avant = copy.deepcopy(m.data)
                 a, lignes = self.boucle(m, DescripteurPublic(clic["envoye"]))
                 self.assertEqual(a.data, avant)

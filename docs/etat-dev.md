@@ -2,6 +2,41 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-ut-outils`, lot 307 / U-T outils, fusionnée**,
+  base `d7302a4`, reprise sans rebase de `43440c6` (305 inclus),
+  clôture précédente `9457ea5`. **Correction des offres validée `5c383bf`** après
+  la suite d'intégration : les formulaires du catalogue nomment une
+  aptitude moteur commune (clé, crochetage, impact/coupe, recharge, dépôt).
+  La projection ne publie que les couples admis entre ressources connues
+  et cibles vues/portées, sans bien privé de PNJ ; web et terminaux lisent
+  cette même matrice. Aucune surface fixe comme outil, aucune matière
+  incompatible ou propriété inconnue déduite. L'arbitrage revalide le
+  descripteur exact ; accès, droits et réussite restent son verdict.
+  Libellés : désignation publique et rang des homonymes, aucune référence
+  de transport ni coordonnée de carte ; références conservées dans les
+  descripteurs. Conduite réelle : **39 → 11 offres**, 3 touches pour
+  éteindre la lanterne ; autre cas lampe à huile vérifié après recharge.
+  **166 tests distincts verts**, zéro échec, erreur ou ignoré : 161 tests
+  sur seize fichiers (interfaces, fabrication, opérations, capacités,
+  lumière, moteur à cases, nouveaux cas), puis **5/5 FormeTests** de
+  `test_luna_restes`. **5/5 `test_attendu_designable`**, dont le cas réel
+  conduite ; les régressions des coordonnées/références sont levées.
+  **28 TUI existants verts**, Node syntaxe et callbacks réels verts.
+  **20 parcours outils : 3 touches**, 4 avec F7 en TUI ; deux cas
+  conduite/lampe supplémentaires à 3 touches, zéro appel modèle sur les choix.
+  Calcul détaché **837,209 s** (161 tests : 824,206 s, FormeTests :
+  12,639 s), deux travailleurs réduits au plus, copies hors bac Windows.
+  Code/tests inchangés depuis validation, aucune relance à la clôture.
+  Limites : droits/accès/réussite revalidés, capacité maximale des
+  destinations absente du moteur. Ni Luna réel, ni banc, ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/ut-outils-307/`,
+  `bilan-correction-offres.json` et `fin-correction-offres.json` :
+  **ok=true, code 0** ; clôture `fin-cloture-correction-offres.json`
+  écrite en dernier. Bilans précédents (98 puis 105 tests) conservés sans
+  cumul. Branche poussée vers origin, aucun calcul actif.
+  [Rapport 307](taches/rapport-codex-307-ut-outils.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Console et TUI proposent les gestes avec outil ou destination par le même descripteur U-D que le menu web. Correction après la suite complète : un geste avec outil n'est proposé que si la ressource a la capacité que le moteur requiert (capacités partagées moteur/catalogue), surfaces fixes exclues ; conduite 39 → 11 choix ; libellés publics sans référence opaque ni coordonnées de carte (test_luna_restes FormeTests et test_attendu_designable cas réel conduite, en échec depuis 299/301, désormais verts). 166 tests ciblés verts. Suite complète sur 9457ea5 avant correction : 2 856 tests, échecs connus seulement hors trois nouveaux venus de l'intégration (lot 303 ou 312), non dus au lot.
+
 - **Lot 318, branche `codex-g1-repense`, conception seule**, base
   `integration 79fca6a` : lecture des quatre campagnes 294/296/304/311,
   91 positions chacune, 30 tours MJ et 61 sans modèle. Diagnostic par saisie :
