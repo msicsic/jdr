@@ -2,6 +2,24 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-g2-refus-moteur`, lot 291, non fusionnée**, base
+  intégration `931b22b`, code `031e664` : les refus d'action se lisent par
+  leurs messages publics exacts, distincts et ordonnés, sans `attendu`
+  affiché ni appel d'explication. Corrections bornées conservées ; dialogue
+  ou avis de correction après refus du monde écarté sans audit ; forme
+  persistante → demande de précision moteur, pas impossibilité fictive.
+  `ExplicationCedee` et `_sans_relance` supprimés ; contre-revue, fidélité
+  de parole et autres voies conservées ; aucune mécanique PNJ modifiée.
+  **209 tests distincts / 16 fichiers verts**, dont sept nouveaux tests
+  console, monde, texte moteur et rendu après recharge ; durées retenues
+  377,879 s. Aucune suite complète. **Luna en cours**, une passe sur quatre
+  scripts ciblés, comparaison à la base avec cache, copies seulement ;
+  un travailleur en priorité réduite. Démarrage confirmé le 29 octobre à
+  13:03:43 (Paris) sur `031e664`. Pas de gain Luna annoncé avant lecture
+  de `C:/Users/msics/donjon/artifacts/g2-291/fin-luna.json` et
+  `mesures-luna.json`. Bruts au même endroit ;
+  [rapport 291](taches/rapport-codex-291-g2-refus-moteur.md).
+
 - **Branche `ds-service-lieu-inconnu`, lot 289, fusionnée**, diagnostic
   seul, base intégration `980d802` : la capture 273 (auberge, 226 min +
   352 dixièmes) admet puis refuse `servir marmite_1_1 pour mathurine`.
