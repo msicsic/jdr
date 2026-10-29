@@ -3,7 +3,6 @@
 Ce sont des offres d'interface, pas une promesse de faisabilité. Le moteur
 revalide chaque descripteur, y compris une référence devenue périmée.
 """
-import json
 import re
 from dataclasses import dataclass
 
@@ -11,7 +10,7 @@ from .commandes import DescripteurPublic
 
 
 # Conditions sur les seuls champs déjà envoyés à la page. Même table en Python
-# et dans l'adaptateur JS servi, sans lire de précondition privée du moteur.
+# et dans les données du pont web, sans lire de précondition privée du moteur.
 OBJETS = (
     ("examiner", "Examiner", {}),
     ("observer", "Observer son attitude", {"type": "personnage"}),
@@ -95,22 +94,11 @@ def choisir_numero(texte, liste):
     return None
 
 
-def adapter_page(page):
-    """Partage le catalogue avec la page sans modifier son fichier (lot U-M).
+def catalogue_public():
+    """Données JSON du catalogue commun, indépendantes de toute partie.
 
-    Les deux fonctions de menu sont redéfinies à la fin de son script. Le reste
-    de la page, notamment l'approche et la parole libre, conserve son contrat.
+    Une copie des conditions empêche un consommateur de modifier les offres
+    Python ; la sérialisation appartient au transport habituel du serveur.
     """
-    tables = json.dumps({"objets": OBJETS, "portes": PORTES}, ensure_ascii=True)
-    script = "\nconst catalogueGestes = " + tables + ";\n" + """
-function offresPubliques(cible, porte) {
-  if (porte && cible.souvenir) return [];
-  return catalogueGestes[porte ? "portes" : "objets"].filter(([geste, libelle, conditions]) =>
-    Object.entries(conditions).every(([k, v]) => (cible[k] ?? false) === v) &&
-    !(!porte && cible.type === "personnage" && geste === "prendre")
-  ).map(([geste, libelle]) => [geste, libelle]);
-}
-function gestes(o) { return offresPubliques(o, false); }
-function gestesPorte(p) { return offresPubliques(p, true); }
-"""
-    return page.replace("</script>", script + "</script>", 1)
+    return {famille: [[geste, libelle, dict(conditions)] for geste, libelle, conditions in table]
+            for famille, table in (("objets", OBJETS), ("portes", PORTES))}

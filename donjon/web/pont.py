@@ -11,6 +11,36 @@ import threading
 HISTORIQUE_MAX = 400
 
 
+def inventaire_public(monde):
+    """Les affaires de la besace, sans le contenu caché des contenants portés."""
+    from ..francais import designer
+    from ..noms import public, PERSONNES
+    biens = []
+    for id, o in monde.objets.items():
+        if o["lieu"] != "joueur" or o["type"] in PERSONNES:
+            continue
+        bien = {"id": id, "nom": designer(o), "type": o["type"]}
+        # La quantité des affaires portées figure déjà dans le nom de la fiche,
+        # même dans le noir ; elle ne dépend pas d'un nouvel examen visuel.
+        if "physique" in o:
+            bien["pieces"] = o["physique"]["pieces"]
+        if monde.visible(id):
+            if "allume" in o:
+                bien["allume"] = bool(o["allume"])
+        biens.append(bien)
+    return public(monde, biens)
+
+
+def destinataires_publics(monde):
+    """Présence et portée publiques ; aucune acceptation de don présumée."""
+    from ..francais import designer
+    from ..noms import public
+    from ..spatial import proche
+    return public(monde, [{"id": id, "nom": designer(o)} for id, o in monde.objets.items()
+                         if o["type"] == "personnage" and monde.visible(id)
+                         and (not monde.data.get("mode_cases") or proche(monde, id))])
+
+
 class PontWeb:
     def __init__(self):
         self.commandes = Queue()
@@ -71,11 +101,14 @@ class PontWeb:
         from ..carte import carte
         from ..rendu import fiche, regarder
         from ..francais import quantite
+        from ..gestes_publics import catalogue_public
         self.termine = bool(monde.data.get("fin"))
         cases = bool(monde.data.get("mode_cases"))
         etat = {"type": "etat", "fin": monde.data.get("fin"),
+                "catalogue_gestes": catalogue_public(),
                 "scene": None, "carte_texte": "" if cases else carte(monde),
                 "fiche": fiche(monde), "regard": regarder(monde),
+                "inventaire": inventaire_public(monde), "destinataires": destinataires_publics(monde),
                 "salle": monde.data["salles"][monde.joueur["salle"]]["nom"],
                 "pv": f'{monde.joueur["pv"]}/{monde.joueur["pv_max"]}', "or": monde.joueur["or"], "or_texte": quantite(monde.joueur["or"], "pièce"),
                 "minutes": monde.data["minutes"],

@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import jeu
 from donjon.commandes import DescripteurPublic
-from donjon.gestes_publics import adapter_page, choisir_numero, liste_gestes, offres, rendre_liste
+from donjon.gestes_publics import catalogue_public, choisir_numero, liste_gestes, offres, rendre_liste
 from donjon.monde import Monde
 from donjon.moteur import Moteur
 from donjon.noms import reference
@@ -73,28 +73,39 @@ class CatalogueTests(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which("node"), "Node requis pour le menu web réel")
     def test_page_servie_catalogue_commun_et_callbacks_web(self):
+        from tests.test_web import Flux
         pont, serveur = PontWeb(), None
+        pont.rafraichir(ud.scene("prendre")[0], None, None)
+        pont.occupe = False
         serveur = Serveur(pont, 0)
         threading.Thread(target=serveur.serve_forever, daemon=True).start()
         try:
             c = http.client.HTTPConnection("127.0.0.1", serveur.server_address[1], timeout=20)
-            c.request("GET", "/")
-            r = c.getresponse()
-            self.assertEqual(r.status, 200)
-            page = r.read().decode("utf-8")
+            for url in ("/", "/index.html"):
+                c.request("GET", url)
+                r = c.getresponse()
+                self.assertEqual(r.status, 200)
+                self.assertEqual(r.read(), PAGE.read_bytes())
             c.close()
+            flux = Flux(serveur.server_address[1])
+            try:
+                evenement = next(e for e in flux.jusqu_a_pret() if e["type"] == "etat")
+                self.assertEqual(evenement["catalogue_gestes"], catalogue_public())
+            finally:
+                flux.reponse.close()
+                flux.connexion.close()
         finally:
             serveur.arreter()
-        self.assertEqual(page, adapter_page(PAGE.read_text(encoding="utf-8")))
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "page.html"
-            chemin.write_text(page, encoding="utf-8")
+            chemin.write_bytes(PAGE.read_bytes())
             for porte, geste in CAS:
                 with self.subTest(porte=porte, geste=geste):
                     m, _, cible = ud.scene(geste, porte)
-                    s = scene_percue(m)
-                    etat = {"type": "etat", "scene": s, "salle": "", "pv": 1, "or": 0,
-                            "minutes": 0, "connexion": "", "fiche": "", "proposition": ""}
+                    pont.rafraichir(m, None, None)
+                    etat = pont.dernier_etat
+                    s = etat["scene"]
+                    self.assertEqual(etat["catalogue_gestes"], catalogue_public())
                     sortie = subprocess.run(["node", str(Path(__file__).with_name("clic_page.js")), str(chemin)],
                                             input=json.dumps(etat), capture_output=True, text=True,
                                             encoding="utf-8", check=True)

@@ -1,6 +1,8 @@
 # Lot 299 — U-T : premier geste au terminal
 
-Branche `codex-ut-premier-geste`, base intégration `83a2e89`, **non fusionnée**.
+Branche `codex-ut-premier-geste`, **non fusionnée**. Base initiale `83a2e89` ;
+reprise après `f758eee` : fusion **sans rebase** d'`origin/integration`
+`2d893e0`, qui contient le lot 298 (U-M inventaire).
 
 ## Invariant et changement
 
@@ -20,18 +22,23 @@ cibles. Numéro inconnu ou plusieurs numéros : refus local, sans effet.
 puis Entrée envoient le descripteur à `executer_local`, partagé avec le web.
 La saisie libre suit son parcours habituel.
 
-Le serveur applique `adapter_page` au HTML servi : les deux fonctions de menu
-utilisent le catalogue commun sérialisé en JavaScript. `page.html` reste
-inchangé pour le chantier U-M concurrent ; les tests Node exécutent le HTML
-adapté, comme le serveur. Aucun fichier du MJ ni mécanique PNJ modifié.
+**Reprise : réécriture du HTML supprimée.** `catalogue_public()` fournit des
+données JSON copiées ; `PontWeb` les joint à l'état public sous
+`catalogue_gestes`, sérialisé par le flux habituel du serveur. Dans le fichier
+`page.html`, `gestes` et `gestesPorte` lisent directement ce catalogue commun.
+Les réponses `/` et `/index.html` servent les **octets exacts du fichier**.
+Aucune génération de JavaScript ni transformation du HTML. Les boutons de
+besace, quantités et destinataires du 298 sont conservés. Le conflit de sonde
+Node conserve ses callbacks d'inventaire et les clics sur objets muraux.
 
 ## Vérification et mesures
 
-**59 tests distincts, cinq fichiers**, zéro échec, erreur ou ignoré ; deux
-travailleurs au plus, priorité réduite. Les **28 tests TUI existants sont
-inchangés et verts**. Bilan retenu : `tests-cibles.json` pour TUI/U-D,
-`tests-cloture.json` pour terminal/web, `tests-perimes.json` pour la matrice
-des refus ; assemblage sans rejeu dans `fin-cloture.json`.
+**95 tests / huit fichiers**, zéro échec, erreur ou ignoré, deux travailleurs
+au plus à priorité réduite. Rejoués seulement : terminal, matrice de refus,
+les **28 TUI existants inchangés**, web/Node, U-D, inventaire 298, diagonales
+de la sonde et matière prélevée. Bruts de reprise :
+`C:/Users/msics/donjon/artifacts/ut-299/tests-reprise-integration.json` ;
+bilan `fin-reprise-integration.json`.
 
 Les quatorze couples famille/geste passent par les saisies réelles console et
 TUI : second homonyme, descripteur exact, même plan/journal, même texte,
@@ -39,8 +46,10 @@ monde, scène et carte après recharge que le parcours U-D. Pour chacun,
 numéro inconnu, numéros multiples et cible devenue hors de vue à réception
 restent sans effet ni modèle. Deux suppressions réelles (`prendre`, `lire`),
 ouverture/fermeture à portée, référence de personnage inconnu et sorties
-mémorisées complètent ces preuves. Node exécute les callbacks du HTML servi,
-y compris les objets muraux que la sonde omettait auparavant.
+mémorisées complètent ces preuves. HTTP contrôle les octets du HTML et le
+catalogue reçu par SSE ; Node exécute les callbacks du fichier, y compris
+les objets muraux. Inventaire 298 : biens et destinataires homonymes, lots,
+portions, sources, choix périmés, noir et contenus cachés.
 
 **Touches mesurées sur les quatorze choix : 3** (deux chiffres et Entrée),
 contre **17 à 27** pour la commande explicite avec la même référence publique.
@@ -49,9 +58,8 @@ geste, jusqu'au résultat ou au refus, hors déplacement préalable ; aucune
 mesure de délai humain ou réseau. **Zéro appel modèle** et analyseur interdit
 dans les parcours numérotés.
 
-Les essais préliminaires sont archivés mais exclus du bilan : instrumentation
-des appels récursifs corrigée, puis sonde des murs complétée. Bruts et mesures :
-`C:/Users/msics/donjon/artifacts/ut-299/`. Aucun calcul actif à la clôture.
+Première livraison : 59 tests verts, résultats et essais préliminaires
+archivés sans les compter à nouveau. Aucun calcul actif à la clôture.
 
 ## Portée et limites
 
@@ -64,8 +72,7 @@ terminal conserve ses déplacements directs et peut recevoir un refus de portée
 
 La numérotation est renouvelée à chaque nouvelle vue, sans conserver un numéro
 comme identité durable. L'identité conservée jusqu'à l'exécution est celle du
-descripteur capturé dans cette vue. L'adaptateur de page redéfinit les fonctions
-de menu à la fin du script ; une extension de ces fonctions par U-M devra passer
-par le catalogue commun. Le fichier HTML ouvert seul hors serveur conserve son
-ancien catalogue. Pas de Luna, de banc PNJ ni de suite complète : parcours
-d'interface seulement. Fusion et vérification d'intégration laissées au superviseur.
+descripteur capturé dans cette vue. Le catalogue vient du flux du jeu,
+sans catalogue concurrent dans la page. Aucun changement du MJ ni des
+mécaniques PNJ. Pas de Luna, de banc PNJ ni de suite complète : parcours
+d'interface seulement. Fusion sur l'intégration laissée au superviseur.

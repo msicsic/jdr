@@ -3,13 +3,16 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-ut-premier-geste`, lot 299 / U-T, non fusionnée**, base
-  intégration `83a2e89` : console et TUI proposent les premiers gestes de
+  initiale `83a2e89`, reprise par fusion sans rebase d'`origin/integration`
+  `2d893e0` (298 inclus) : console et TUI proposent les premiers gestes de
   carte en liste numérotée (onglet Gestes / F7 en TUI). Le choix fige le
   descripteur public U-D jusqu'au moteur, sans analyse de texte ni modèle ;
   homonymes distingués, numéros inconnus/multiples refusés localement,
-  cible périmée refusée sans report sur une autre. Catalogue commun Python
-  et JavaScript sérialisé dans la page servie ; `page.html` et MJ inchangés.
-  **59 tests distincts / cinq fichiers verts**, dont les **28 TUI existants
+  cible périmée refusée sans report sur une autre. Catalogue Python commun
+  envoyé comme donnée de l'état public SSE ; `gestes` et `gestesPorte`
+  le lisent dans `page.html`. Adaptation du HTML supprimée : serveur testé
+  sur les octets exacts du fichier. Inventaire 298 et clics muraux conservés.
+  **95 tests / huit fichiers verts**, dont les **28 TUI existants
   inchangés**. Quatorze couples objet/porte : parité des descripteurs,
   plans/journaux, textes et monde/scène/carte après recharge ; matrice
   inconnu/ambigu/hors-vue console et TUI pour chaque geste, deux suppressions
@@ -18,8 +21,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   coût de soumission jusqu'au résultat/refus, déplacements exclus.
   Zéro appel modèle ; ni Luna, ni banc PNJ, ni suite complète. Numéros
   propres à chaque vue ; approche automatique réservée au clic web.
-  Bruts : `C:/Users/msics/donjon/artifacts/ut-299/`, `fin-cloture.json`.
+  Reprise ciblée : terminal, web/Node, U-D, inventaire 298 et dépendances
+  directes diagonales/matière ; aucun rejeu de référence.
+  Bruts : `C:/Users/msics/donjon/artifacts/ut-299/`, `fin-reprise-integration.json`.
   Aucun calcul actif. [Rapport 299](taches/rapport-codex-299-ut-premier-geste.md).
+
+- **Branche `codex-um-inventaire`, lot 298 / U-M inventaire, fusionnée**,
+  base intégration `83a2e89` : panneau de besace, poser/remettre, manger une
+  portion, sources portées et prélèvement d'une pièce. Descripteur U-D exact,
+  quantité et destinataire publics ; mêmes plans, effets et rendus que les
+  commandes, sans analyse du clic ni modèle. Destinataire vu à portée, refus
+  si périmé ; biens portés connus dans le noir, aucun contenu fermé exposé.
+  **42 tests / quatre fichiers verts**, Node réel, monde/scène/fiche/carte
+  après recharge, homonymes, lots, absence et portée. Dix parcours mesurés :
+  dix saisies évitées, deux clics, trois pour la remise. Une portion/pièce
+  à la fois, poser/remettre le lot entier ; outils/destinations hors lot.
+  Ni MJ, `jeu.py`, `tui.py`, mécanique PNJ, Luna, banc ou suite complète.
+  Bruts : `C:/Users/msics/donjon/artifacts/um-inventaire-298/`, bilan retenu
+  `fin-cloture.json`. Aucun calcul actif ; branche poussée vers origin.
+  [Rapport 298](taches/rapport-codex-298-um-inventaire.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Panneau d'inventaire de la page : poser, remettre à une personne choisie (vue et à portée), manger une portion, allumer ou éteindre, prélever une pièce d'un lot ; chaque choix envoie un DescripteurPublic U-D (référence exacte, destinataire public, quantité), même plan que la commande équivalente, sans analyse de texte ni modèle. 42 tests ciblés verts ; 10 saisies évitées, 2 clics jusqu'à l'effet (3 pour une remise).
 
 - **Branche `codex-suite-g2-g4`, lot 295, fusionnée**, base intégration
   `475d29d` : les sept fichiers du brief reproduisent les **15 échecs et
