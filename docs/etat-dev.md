@@ -2,6 +2,29 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-valeur-llm`, lot 288, fusionnée**, base intégration
+  `c90cbea` : regard de game designer et révision du plan MJ G0–G21.
+  Gestes directs avant génération ; menu actuel, commandes, actes sociaux,
+  contrats/mission et conversation ouverte confrontés au moteur existant.
+  **68 parties récentes, 368 saisies / 184 positions de script** : direct
+  simple **70,1 %**, social structurable **12,0 %**, soit **82,1 %** de
+  candidats avec formulaires ; disponibilité en scène non rejouée, pas de
+  gain de temps annoncé. **136 empreintes inchangées**, anciennes parties
+  à saisies identiques exclues des pourcentages. Décision utilisateur
+  **fidélité c avec b en filet** intégrée : récapitulatif moteur avant actes
+  libres lourds/irréversibles, après actes légers ; clic sans contrôle de
+  fidélité, revues transitoires des seuls actes à effets, retrait sur mesure.
+  Lots menu par famille, terminal, récapitulatif/consentement et indicateur
+  d'ambiance ; suggestion de contrat typé à comparer au déterministe,
+  ouvert personnel soumis à décision. Ambiance contrôlée en fond avant
+  publication proposée, sans relance ni garantie sémantique universelle.
+  **Documentation seule**, contrat inchangé, aucun code/test/outil modifié,
+  ni Luna, banc ou suite ; un processus Python léger à la fois, aucun calcul
+  actif. Bruts : `C:/Users/msics/donjon/artifacts/valeur-llm-288/`.
+  [Conception](conception-valeur-llm.md) ;
+  [rapport 288](taches/rapport-codex-288-valeur-llm.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Conception seulement. Sur 368 saisies des bancs, 70 % sont des gestes simples qu'une action directe servirait (82 % avec les formulaires sociaux) ; le LLM vaut pour composer une intention libre, comprendre une négociation, suggérer des termes de contrat, admettre un détail ou un contenu de dialogue inédit. Plan G0-G21 révisé, lots d'interface ajoutés (récapitulatif, consentement, descripteur public, menu étendu, terminal, indicateur d'ambiance), lots de valeur K0-K2 et D0 ; cinq questions à l'utilisateur.
+
 - **Branche `codex-compte-rendu`, fusionnée**, lot **283**, base
   `c5a1740` : compte rendu typé des charges terminales `mandat`, parole
   commune et attribution de voix ; le parent conserve une croyance `dit`,
