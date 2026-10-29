@@ -27,7 +27,7 @@ global.ETAT = JSON.parse(fs.readFileSync(0, "utf-8"));
 const page = fs.readFileSync(process.argv[2], "utf-8");
 (0, eval)(page.match(/<script>([\s\S]*)<\/script>/)[1] + `
 appliquerEtat(ETAT);
-const sortie = {choix: {}, envoisClic: [], chemin: null, cible: null, approches: {}};
+const sortie = {choix: {}, envoisClic: [], outils: [], chemin: null, cible: null, approches: {}};
 sortie.inventaire = [];
 for (const li of $("inventaire").children) {
   const bouton = li.children[0];
@@ -49,7 +49,7 @@ if (niveau) {
 const cases = [...niveau.salles.flatMap(s => s.cases.map(c => c.globale)), ...niveau.sorties.map(s => s.globale)];
 cases.forEach(g => {
   const {sections, autres} = choixCase(g);
-  const cmds = [...sections.flatMap(x => x[1]), ...autres].map(x => x[2]);
+  const cmds = [...sections.flatMap(x => x[1]), ...autres].map(x => x[2]).filter(x => x !== undefined);
   if (cmds.length) sortie.choix[cle(g)] = cmds;
   // Exécuter les vrais callbacks de chaque geste et regarder le corps HTTP.
   const origine = scene.joueur.globale;
@@ -57,7 +57,11 @@ cases.forEach(g => {
   for (const choix of sections.flatMap(x => x[1])) {
     occupe = false; envois.length = 0;
     choix[1]();
-    sortie.envoisClic.push({choix: choix[2], envoye: envois[0]});
+    if (choix[2] !== undefined) sortie.envoisClic.push({choix: choix[2], envoye: envois[0]});
+    else for (const p of $("menu").children.filter(b => b.onclick)) {
+      occupe = false; envois.length = 0; p.onclick();
+      if (envois.length) sortie.outils.push({libelle: choix[0], ressource: p.textContent, envoye: envois[0], clics: 3});
+    }
   }
   scene.joueur.globale = origine;
 });

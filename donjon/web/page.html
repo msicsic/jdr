@@ -121,6 +121,7 @@ const $ = id => document.getElementById(id);
 const canvas = $("carte"), ctx = canvas.getContext("2d");
 let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, surligne = null;
 let destinataires = [];
+let ressources = [];
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
 let occupe = true, historique = [], indice = 0, brouillon = "";
@@ -397,6 +398,7 @@ function ajouterLigne(texte) {
 function appliquerEtat(e) {
   fermerMenu();
   destinataires = e.destinataires || [];
+  ressources = e.ressources || [];
   afficherInventaire(e.inventaire || []);
   $("lieu").textContent = e.salle;
   $("compteurs").textContent = `PV ${e.pv} · ${e.or_texte} · ${e.minutes} min · MJ : ${e.connexion}`;
@@ -619,8 +621,36 @@ function gestesPorte(p) {
   const liste = [["examiner", "Examiner"]];
   if (p.etat === "fermee") liste.push(["ouvrir", "Ouvrir"]);
   if (p.etat === "ouverte") liste.push(["fermer", "Fermer"]);
-  if (p.etat === "verrouillee") liste.push(["deverrouiller", "Déverrouiller"], ["crocheter", "Crocheter"]);
   return liste;
+}
+function choixRessource(o, geste, champ, candidats, executer, x, y, titre) {
+  // La page ne connaît aucune capacité : même un mauvais outil se choisit explicitement.
+  return [titre, () => {
+    if (occupe) return;
+    const choix = candidats.filter(r => r.id !== o.id).map((r, i, tous) => {
+      const homonymes = tous.filter(a => a.nom === r.nom);
+      const nom = r.nom + (homonymes.length > 1 ? " (" + (homonymes.indexOf(r) + 1) + "/" + homonymes.length + ")" : "");
+      const d = {geste, cible: o.id, parametres: {[champ]: r.id}};
+      return [nom, () => executer(d), d];
+    });
+    ouvrirMenu(x, y, [[choix.length ? titre : "Aucune ressource connue à portée", choix]]);
+  }];
+}
+function choixMateriels(o, executer, x, y, porte = false) {
+  if (["personnage", "depouille", "partie_corps"].includes(o.type)) return [];
+  const choix = [];
+  const outil = (geste, titre) => choix.push(choixRessource(o, geste, "outil", ressources, executer, x, y, titre));
+  if (porte || o.type === "contenant") {
+    outil("deverrouiller", "Déverrouiller avec…");
+  }
+  if (porte || ["contenant", "serrure"].includes(o.type)) outil("crocheter", "Crocheter avec…");
+  outil("frapper", "Forcer / frapper avec…");
+  if (o.type === "luminaire" || o.foyer) outil("alimenter", "Alimenter avec…");
+  if (o.mobile || o.porte) {
+    const destinations = ressources.filter(r => r.type === "contenant" || r.type === "luminaire" || r.foyer);
+    choix.push(choixRessource(o, "mettre", "destination", destinations, executer, x, y, "Mettre dans…"));
+  }
+  return choix;
 }
 function choixInventaire(o, x, y) {
   const choix = [];
@@ -645,6 +675,7 @@ function choixInventaire(o, x, y) {
     if (o.allume !== false) ajouter("Éteindre", "eteindre");
   }
   if (o.pieces > 1) ajouter("Prélever une pièce du lot (" + o.pieces + ")", "prelever", {quantite: 1});
+  choix.push(...choixMateriels({...o, porte: true}, d => { arreter(null); envoyer(d); }, x, y));
   return choix;
 }
 function afficherInventaire(biens) {
@@ -678,7 +709,7 @@ function ouvrirMenu(x, y, sections) {
   menu.style.left = Math.min(x, window.innerWidth - 200) + "px";
   menu.style.top = Math.max(8, Math.min(y, window.innerHeight - menu.offsetHeight - 8)) + "px";
 }
-function choixCase(g) {
+function choixCase(g, x = 20, y = 20) {
   // Ce qu'on peut faire sur une case : un geste par chose qui s'y trouve, y aller, regarder par là.
   const k = cle(g), j = scene.joueur.globale, ici = j && cle(j) === k;
   const commande = texte => () => { arreter(null); envoyer(texte); };
@@ -686,9 +717,11 @@ function choixCase(g) {
   const choix = (verbe, id) => verbe === "parler" ? `parler ${id}` : {geste: verbe, cible: id};
   const sections = [];
   niveau.objets.filter(o => cle(o.globale) === k).forEach(o =>
-    sections.push([o.nom, gestes(o).map(([verbe, libelle]) => [libelle, geste(choix(verbe, o.id)), choix(verbe, o.id)])]));
+    sections.push([o.nom, [...gestes(o).map(([verbe, libelle]) => [libelle, geste(choix(verbe, o.id)), choix(verbe, o.id)]),
+      ...choixMateriels(o, d => aPortee(g, d), x, y)]]));
   niveau.sorties.filter(s => s.porte && cle(s.globale) === k).forEach(s =>
-    sections.push([s.porte.nom, gestesPorte(s.porte).map(([verbe, libelle]) => [libelle, geste(choix(verbe, s.porte.id)), choix(verbe, s.porte.id)])]));
+    sections.push([s.porte.nom, [...gestesPorte(s.porte).map(([verbe, libelle]) => [libelle, geste(choix(verbe, s.porte.id)), choix(verbe, s.porte.id)]),
+      ...choixMateriels(s.porte, d => aPortee(g, d), x, y, true)]]));
   const autres = [];
   if (!ici && praticables().has(k)) autres.push(["Aller ici", () => allerA(g), "aller"]);
   if (!ici && j && vers(g)) autres.push(["Regarder par là", commande({geste: "tourner", cible: vers(g)}), {geste: "tourner", cible: vers(g)}]);
@@ -698,7 +731,7 @@ canvas.addEventListener("click", e => {
   if (!bornes || !scene || occupe) return;
   const r = canvas.getBoundingClientRect();
   const g = [Math.floor((e.clientX - r.left) / CS) + bornes.xmin, Math.floor((e.clientY - r.top) / CS) + bornes.ymin];
-  const {sections, autres} = choixCase(g);
+  const {sections, autres} = choixCase(g, e.clientX + 6, e.clientY + 6);
   e.stopPropagation();
   // Une case de sol libre : on y va tout de suite, sans menu.
   if (!sections.length && autres.length && autres[0][0] === "Aller ici") { fermerMenu(); allerA(g); return; }

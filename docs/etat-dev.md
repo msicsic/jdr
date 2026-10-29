@@ -2,6 +2,23 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-um-outils`, lot 300 / U-M outils, non fusionnée**,
+  base intégration `2d893e0` : choix explicite d'outil, clé, combustible
+  ou destination sur carte et besace, par références publiques U-D exactes.
+  Ressources portées ou vues à portée, sans capacité, précondition, contenu
+  fermé ou bien privé d'un PNJ. Même plan et moteur que le texte ; commande
+  locale « mettre dans » ajoutée vers l'opération de dépôt existante.
+  Refus si ressource périmée, sans substitution ; propriété inconnue laissée
+  à son admission distincte. **69 tests distincts / six fichiers verts**,
+  Node réel et monde/scène/fiche/carte après recharge, aucun appel modèle.
+  Dix parcours mesurés : **10 saisies évitées, 3 clics** à portée.
+  **Limite : destination pleine non garantie**, aucune capacité maximale
+  définie par le moteur actuel. Ni MJ, `jeu.py`, `tui.py`, mécanique PNJ,
+  Luna, banc ni suite complète. Bruts dans
+  `C:/Users/msics/donjon/artifacts/um-outils-300/`, `fin-cloture.json`.
+  Aucun calcul actif ; branche poussée vers origin.
+  [Rapport 300](taches/rapport-codex-300-um-outils.md).
+
 - **Branche `codex-um-inventaire`, lot 298 / U-M inventaire, fusionnée**,
   base intégration `83a2e89` : panneau de besace, poser/remettre, manger une
   portion, sources portées et prélèvement d'une pièce. Descripteur U-D exact,
