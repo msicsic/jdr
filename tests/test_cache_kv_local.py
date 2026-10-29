@@ -297,6 +297,9 @@ class FournisseurLocalTests(unittest.TestCase):
                 self.assertTrue(all(req["cache_prompt"] is True for req in requetes))
                 slots_vus = [req["id_slot"] for req in requetes]
                 self.assertEqual(slots_vus, [0, 3])
+                self.assertEqual([t['fonction'] for t in traces if t['etape'] == 'appel'],
+                                 ['repondre_au_joueur', 'auditer_action'])
+                self.assertEqual(r['conversation'][-1]['reponse'], r['resultat_moteur'])
                 self.assertEqual(traces[0]["usage"]["prompt_tokens_details"]["cached_tokens"], 1050)
 
 

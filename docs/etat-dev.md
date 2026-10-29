@@ -26,6 +26,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `fin-luna.json` et `analyse-passe.json` ;
   [rapport 294](taches/rapport-codex-294-g1-compilateur.md).
 
+- **Branche `codex-suite-g2-g4`, lot 295, fusionnée**, base intégration
+  `475d29d` : les sept fichiers du brief reproduisent les **15 échecs et
+  9 erreurs** initiaux (70 tests), sans défaut supplémentaire U-D. Attentes
+  périmées G4 : transports et approche structurée ; G2 : explication finale
+  après refus de forme. Régression G2 corrigée : une enveloppe invalide ne
+  supprime plus le repli sur les attestations perceptibles de la cible ; sans
+  réponse perceptible, précision moteur conservée. Aucun cas particulier.
+  **147 tests / 12 fichiers verts**, zéro échec, erreur ou ignoré, 87,162 s,
+  deux travailleurs réduits. Mur et bobine, question et impératif, deux modes
+  invalides : texte sauvé avant affichage, monde/scène/fiche/carte et reprise.
+  Parcours de transport : rendu moteur exact, coupure sans fragment avant
+  action ou après sauvegarde, reconnexion aux deux appels restants, exécution
+  unique. Ni Luna, ni banc, ni suite complète ; aucun calcul actif.
+  Bruts : `C:/Users/msics/donjon/artifacts/suite-295/`, `fin-cloture.json`.
+  [Rapport 295 et attribution](taches/rapport-codex-295-suite-g2-g4.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Les 15 échecs et 9 erreurs de la suite 8acbbd9 reproduits exactement, aucun dû à U-D : 22 attentes périmées par G4 (récit et audit après exécution retirés) ou G2 (explication d'un refus de forme), tests adaptés pour vérifier le rendu moteur exact, l'exécution unique, l'absence de fragment et la reprise ; une régression G2 corrigée dans le contrat commun (MJ._appeler repasse par MJ._repli : une forme invalide persistante sur une description rend ce que Corvus perçoit de la cible, sinon la précision du moteur). 147 tests ciblés verts.
+
 - **Branche `codex-ud-descripteur`, lot 293 / U-D, fusionnée**, base
   intégration `8acbbd9` : le clic d'objet/porte, la marche au clic et la
   rotation transmettent un descripteur public jusqu'à `Moteur.preparer`.
