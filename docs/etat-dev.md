@@ -2,6 +2,30 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `ds-service-lieu-inconnu`, lot 289, non fusionnée**, diagnostic
+  seul, base intégration `980d802` : la capture 273 (auberge, 226 min +
+  352 dixièmes) admet puis refuse `servir marmite_1_1 pour mathurine`.
+  Tilo en cuisine, Mathurine au cellier, lieu cru **nul** (`vu`, minute 226) ;
+  `_mesurer_direct` admet (0,5167 min, sans marche), `pnj.refus_etape` est
+  nul, la revalidation de `pnj.agir` aussi ; `echanges.servir` refuse sur la
+  seule inégalité de salle, sans effet ni parole. **Ce n'est pas un défaut de
+  contrat** : c'est l'admission voulue par le 259 (une localisation inconnue
+  n'est pas une absence) et un constat sur place ; la correction proposée par
+  le bilan 273 reviendrait sur ce choix. Coût rejoué (12 min, bloc et
+  découpé identiques) : un geste perdu, service rendu 5,6 s plus tard après
+  une croyance apprise par ouï-dire ; aucun plan identique reproposé, aucune
+  boucle. Variante bénéficiaire muette : pulsion en attente, service rendu à
+  son retour. Autre cas (mine, Mathe/Lucien/vivres, cru nulle part) :
+  admission identique, donc générale ; la pulsion naturelle ne s'y forme pas
+  (`deliberation.secours` exige la vue), plan posé refusé une fois, sans
+  reproposition en 12 min. Limite conservée : un plan peut être mesuré sans
+  place projetée pour le participant (geste dépensé) ; recherche/appel avant
+  service = lot de planification distinct, sans relire la position réelle.
+  Aucun code, test ou scénario modifié ; un processus à la fois, priorité
+  réduite ; ni Luna, ni banc, ni suite. Bruts
+  `C:/Users/msics/donjon/artifacts/service-289/` ;
+  [rapport 289](taches/rapport-codex-289-service-lieu-inconnu.md).
+
 - **Branche `codex-compte-rendu`, fusionnée**, lot **283**, base
   `c5a1740` : compte rendu typé des charges terminales `mandat`, parole
   commune et attribution de voix ; le parent conserve une croyance `dit`,
