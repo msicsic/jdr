@@ -279,10 +279,9 @@ def main(argv=None, interface=None):
                 imprimer("Ta partie est terminée : " + m.data["fin"]["cause"] + ".")
                 return 0
             gestes = ()
-            if interface is None and m.data.get("mode_cases"):
-                from donjon.scene import scene_percue
-                from donjon.gestes_publics import liste_gestes, rendre_liste
-                gestes = liste_gestes(scene_percue(m))
+            if interface is None:
+                from donjon.gestes_publics import gestes_du_monde, rendre_liste
+                gestes = gestes_du_monde(m)
                 imprimer(rendre_liste(gestes))
             try:
                 entree = lire("\nCorvus > ")
