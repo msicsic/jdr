@@ -5,6 +5,7 @@ Cas d'une partie (sauvegarde du défi, révisions 188-189 et 240-422) : « je do
 Gorm » partait au MJ ; l'explication du refus faisait parler Gorm ; Brune répondait « Je vais me
 pousser » sans que rien ne la fasse bouger, et le MJ le rappelait ensuite comme acquis.
 """
+from donjon.emissions import pnj as emissions_pnj
 from tests.support import presentes
 import io
 from pathlib import Path
@@ -219,7 +220,7 @@ class PromesseEnPartieTests(unittest.TestCase):
             [parole(locuteur, saisie), dialogue(texte), dialogue(reformulee[0] + " : « " + reformulee[1] + " »")],
             [audit(ligne("engagement", locuteur=locuteur, citation=promesse[1])),
              audit(ligne("parole", locuteur=locuteur, citation=reformulee[1]))]))
-        dites = [p["texte"] for p in recharge.data["paroles_pnj"] if p["locuteur"] == locuteur]
+        dites = [p["texte"] for p in emissions_pnj(recharge) if p["locuteur"] == locuteur]
         self.assertNotIn(promesse[1], dites)
         self.assertIn(reformulee[1], dites)
         self.assertNotIn(promesse[1], sortie)

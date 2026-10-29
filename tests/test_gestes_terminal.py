@@ -49,7 +49,8 @@ class CatalogueTests(unittest.TestCase):
         self.assertEqual(choisir_numero("0" + numero, liste), descripteur)
         self.assertEqual(len({c.libelle for c in liste}), len(liste))
         self.assertNotEqual(menu(m, premiere, "prendre")[1], numero)
-        self.assertIn(reference(m, seconde), rendre_liste(liste))
+        self.assertIn("cible identique (2/2)", rendre_liste(liste))
+        self.assertNotIn("[" + reference(m, seconde) + "]", rendre_liste(liste))
         self.assertNotIn("parler", {c.descripteur.contenu["geste"] for c in liste})
         for texte in ("0", "99999", "1 2", "1,2", "1/2", "1-2"):
             with self.subTest(texte=texte), self.assertRaises(ValueError):

@@ -1,4 +1,5 @@
 """La revue juge le sens ; adresse et validation restent au moteur, jusqu'à la recharge."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import unittest
 
@@ -32,9 +33,9 @@ class FideliteAudienceTests(unittest.TestCase):
                     dialogue("Ta question est entendue.")],
                     [rapport(ligne("mecanique", sources=["conversation_validee"]))])
                 self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
-                self.assertEqual(len(r.data["paroles_joueur"]), 1)
-                self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
-                self.assertEqual(r.data["paroles_joueur"][-1]["auditeur"], qui)
+                self.assertEqual(len(emissions_joueur(r)), 1)
+                self.assertEqual(emissions_joueur(r)[-1]["texte"], saisie)
+                self.assertEqual(emissions_joueur(r)[-1]["auditeur"], qui)
                 self.assertIn(saisie, sortie)
                 self.assertEqual(r.joueur["or"], m.joueur["or"])
                 self.assertIn("Ta question est entendue.", str(recharger(r).data["conversation"]))
@@ -58,8 +59,8 @@ class FideliteAudienceTests(unittest.TestCase):
                     revues=[revue("adresse", "ressource")])
                 self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
                 self.assertFalse(any("retour_moteur" in e.get("faits", {}) for _, e in appels))
-                self.assertEqual(r.data["paroles_joueur"][-1]["auditeur"], reel(r, cible))
-                self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
+                self.assertEqual(emissions_joueur(r)[-1]["auditeur"], reel(r, cible))
+                self.assertEqual(emissions_joueur(r)[-1]["texte"], saisie)
                 self.assertEqual(r.joueur["or"], m.joueur["or"])
                 self.assertIn(saisie, sortie)
                 self.assertIn("Ta question est entendue.", str(r.data["conversation"]))
@@ -94,7 +95,7 @@ class FideliteAudienceTests(unittest.TestCase):
                         revues=[revue("validation_moteur", "proposition")])
                     self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
                     self.assertEqual(r.joueur["or"], m.joueur["or"] - prix)
-                    self.assertEqual(len(r.data["paroles_joueur"]), 1)
+                    self.assertEqual(len(emissions_joueur(r)), 1)
                     self.assertIn(texte, sortie)
                     sens = next(e["plan"]["parole"]["sens_contenu"][0]
                                 for f, e in appels if f == "auditer_action")
@@ -133,8 +134,8 @@ class FideliteAudienceTests(unittest.TestCase):
                 [rapport(ligne("mecanique", sources=["conversation_validee"]))],
                 revues=[revue("sens", "ressource"), revue("sens", "ressource", conforme=True)])
             self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 2)
-            self.assertEqual(len(r.data["paroles_joueur"]), 1)
-            self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
+            self.assertEqual(len(emissions_joueur(r)), 1)
+            self.assertEqual(emissions_joueur(r)[-1]["texte"], saisie)
             self.assertNotIn("Je ne veux pas de bois.", sortie)
             self.assertIn(saisie, sortie)
 
@@ -149,6 +150,6 @@ class FideliteAudienceTests(unittest.TestCase):
             revues=[revue("adresse", "proposition"), revue("validation_moteur"), revue("adresse")])
         self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
         self.assertEqual(r.joueur["or"], m.joueur["or"])
-        self.assertFalse(r.data.get("paroles_joueur"))
+        self.assertFalse(emissions_joueur(r))
         self.assertNotIn("Tu dis", sortie)
         self.assertIn("Tu n'as encore rien dit", sortie)

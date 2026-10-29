@@ -172,6 +172,10 @@ def _rendre(monde, entendus_):
     from .voix import nom_pour_joueur
     lignes, groupes = [], {}
     for b, niveau, direction in entendus_:
+        if "emission" in b:
+            from .emissions import lire
+            p = next(p for p in lire(monde) if p["id"] == b["emission"])
+            b = {**b, "auteur": p["locuteur"], "texte": p["rendu"]}
         mots = MOTS.search(b["texte"]) if nette(b, niveau) else None
         if connus(monde, b) and reconnue(monde, b, niveau):
             texte = f"Tu entends, {_lieu(direction)} : {b['texte']}"
@@ -217,7 +221,7 @@ CHAMPS = {"instant", "auteur", "salle", "nature", "niveau", "par", "texte", "cit
 def verifier(monde):
     bruits = monde.data.get("bruits", [])
     assert isinstance(bruits, list) and len(bruits) <= BRUITS_MAX and all(
-        isinstance(b, dict) and CHAMPS <= set(b) <= CHAMPS | {"a", "vu"}
+        isinstance(b, dict) and CHAMPS <= set(b) <= CHAMPS | {"a", "vu", "emission"}
         and isinstance(b.get("a", []), list) and b.get("vu", True) is True
         and b["nature"] in INTENSITES and b["salle"] in monde.data["salles"] and isinstance(b["auteur"], str)
         and type(b["instant"]) is int and b["instant"] >= 0 and type(b["niveau"]) is int

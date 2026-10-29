@@ -1,4 +1,5 @@
 """Paroles du joueur : réplique selon INT et CHA, croyances transmises, après rechargement."""
+from donjon.emissions import joueur as emissions_joueur
 import io
 import re
 from pathlib import Path
@@ -127,7 +128,7 @@ class ExpressionTests(unittest.TestCase):
         reprise, sortie, _ = jouer(m, "je lui dis « Bonsoir, vieux grincheux. »", [
             parole("Bonsoir à toi, Gorm.", ("propos", "", "", "")), reponse_pnj("Gorm grogne.")])
         self.assertIn("Tu dis à Gorm : « Bonsoir, vieux grincheux. »", sortie)
-        self.assertEqual(reprise.data["paroles_joueur"][-1]["texte"], "Bonsoir, vieux grincheux.")
+        self.assertEqual(emissions_joueur(reprise)[-1]["texte"], "Bonsoir, vieux grincheux.")
         self.assertEqual(lire(reprise, "marchand")["memoire"][-1]["texte"], "Bonsoir, vieux grincheux.")
 
 

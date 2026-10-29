@@ -1,4 +1,5 @@
 """Marchés du joueur : état, paroles et promesses relus depuis la sauvegarde."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import unittest
 from unittest.mock import patch
@@ -136,7 +137,7 @@ class PropositionsTests(unittest.TestCase):
                 self.assertEqual(m.objets["vivres"]["portions"], 7)
                 self.assertTrue(any(porte_par(m, i, "joueur") for i in m.objets if i.startswith("vivres_")))
                 self.assertIn("accepte l'échange", " ".join(r["faits"]))
-                self.assertIn("Je te donne", m.data["paroles_joueur"][-1]["texte"])
+                self.assertIn("Je te donne", emissions_joueur(m)[-1]["texte"])
 
     def test_mefiance_et_rancune_sans_remise(self):
         for confiance, rancune, cause in ((10, 0, "confiance"), (70, 80, "veut encore")):

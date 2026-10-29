@@ -651,8 +651,11 @@ function choixRessource(o, geste, champ, candidats, executer, x, y, titre) {
   }];
 }
 function choixMateriels(o, executer, x, y, porte = false) {
-  return offresPubliques(o, porte, true).map(([geste, titre, formulaire]) =>
-    choixRessource(o, geste, formulaire.champ, ressources.filter(r => correspondPublic(r, formulaire.ressources)), executer, x, y, titre));
+  return offresPubliques(o, porte, true).flatMap(([geste, titre, formulaire]) => {
+    const candidats = ressources.filter(r => correspondPublic(r, formulaire.ressources) &&
+      (r.aptitudes?.[formulaire.aptitude] || []).includes(o.id));
+    return candidats.length ? [choixRessource(o, geste, formulaire.champ, candidats, executer, x, y, titre)] : [];
+  });
 }
 $("fabriquer").onclick = e => {
   if (occupe) return;

@@ -16,6 +16,7 @@
 
 Chaque cas vérifie l'état après rechargement, et ce que lit le joueur quand il est là.
 """
+from donjon.emissions import pnj as emissions_pnj
 import json
 import unittest
 from unittest.mock import patch
@@ -83,6 +84,10 @@ class DemandeDUneVoixInconnueTests(unittest.TestCase):
         répondre la même chose."""
         for connue in (True, False):
             m = baraquement("reserve", voix_connue=connue)
+            # Le lieu du bénéficiaire est acquis : éprouver l'accès aux
+            # vivres, sans le préfixe de contact incertain introduit en 303.
+            croire(m, "mathe", "odon", "lieu", "reserve", "entendu", salle="reserve", case=[5, 3])
+            m = recharger(m)
             self.assertIsNone(_plan_pulsion(m, "mathe", {"objet": "vivres", "servir": "odon"}))
             # Éprouver cette demande, pas le choix autonome entre demander
             # la part et rechercher un autre fournisseur (226).
@@ -190,7 +195,7 @@ class RepliquesTests(unittest.TestCase):
                                                "fondement_paroles": lexique.corpus("Gorm, vannes")}}
         consigner(m, reponse(citation))
         m = recharger(m)
-        self.assertEqual((m.data["paroles_pnj"][-1]["locuteur"], m.data["paroles_pnj"][-1]["texte"]),
+        self.assertEqual((emissions_pnj(m)[-1]["locuteur"], emissions_pnj(m)[-1]["texte"]),
                          ("brune", citation))
         self.assertNotIn("brune", m.data["voix_connues"])  # Il ne la voit pas : toujours une voix inconnue.
         with self.assertRaisesRegex(ErreurMonde, "Aucun changement enregistré"):

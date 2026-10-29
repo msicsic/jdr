@@ -574,7 +574,7 @@ def _apprendre_lieu(monde, auditeur, noyau, source, confiance):
 
 
 def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), reponse="", dite=True, suites=True,
-                  geste="dire"):
+                  geste="dire", acte="reaction_pnj"):
     """Une parole retentit avec ses mots (``ouie``) : qui en saisit les mots sans en être le
     destinataire retient ce qu'elle transmet (``contenu``, typé : ``recevoir``). ``reponse`` : ce que
     l'auditeur y répond (accepter, refuser), de sa voix si ``dite`` (sinon un geste, lui remettre
@@ -607,7 +607,10 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
     diffuse = [dict(c, dispute=True) if opposition and c is avis else c for c in contenu]
     audience = _audience_connue(monde, id, diffuse, geste)
     retentir(monde, id, geste, texte=texte, cites=[auditeur, *cites],
-             parole={"a": [auditeur], "contenu": diffuse})
+             parole={"a": [auditeur], "contenu": diffuse},
+             emission={"acte": acte, "parametres": {"contenu": diffuse, "geste": geste},
+                       "modalite": "croyance" if contenu else "constat",
+                       "evenement": {"type": "echange_social", "acte": acte, "a": auditeur}})
     # Après réception : réviser une croyance pendant la parole ne doit pas
     # effacer la preuve que sa nouvelle valeur vient d'être entendue ensemble.
     _retenir_audience(monde, audience)
@@ -721,7 +724,7 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
     faire_entendre(monde, contradicteur, locuteur,
                    f"{_qui(monde, contradicteur)} : « Non, {phrase(monde, contraire)}. »", [salle], lignes,
                    [{"type": "rumeur", "evenement": contraire, "rang": propre.get("rang", 0), "dispute": True}],
-                   geste="contredire")
+                   geste="contredire", acte="dispute")
     auditeurs_avis = set(entendus)
     if locuteur != "joueur":
         recevoir_prevision(monde, locuteur, contradicteur, contraire, propre.get("rang", 0))
@@ -731,14 +734,14 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
         auditeurs_avis.update(_avis_entendus(monde, locuteur, salle))
         faire_entendre(monde, locuteur, contradicteur,
                        f"{_qui(monde, locuteur)} : « Je maintiens : {phrase(monde, avis)}. »", [salle], lignes,
-                       [{"type": "rumeur", "evenement": avis, "rang": rang, "dispute": True}])
+                       [{"type": "rumeur", "evenement": avis, "rang": rang, "dispute": True}], acte="dispute")
         colere = emotion(monde, locuteur)
         if valeur(monde, locuteur, "fierte") > 60 or colere and colere["niveau"] >= 20:
             auditeurs_avis.update(_avis_entendus(monde, locuteur, salle, "disputer"))
             faire_entendre(monde, locuteur, contradicteur,
                            f"{_qui(monde, locuteur)} hausse la voix : « {phrase(monde, avis).capitalize()} ! »",
                            [salle], lignes,
-                           [{"type": "rumeur", "evenement": avis, "rang": rang, "dispute": True}], geste="disputer")
+                           [{"type": "rumeur", "evenement": avis, "rang": rang, "dispute": True}], geste="disputer", acte="dispute")
             _chroniquer(monde, locuteur, f"{_qui(monde, locuteur)} hausse la voix dans la dispute.", "social")
             monde.data["chronique"][-1]["eclat"] = True
     partis = {locuteur: [], contradicteur: []}
@@ -778,7 +781,7 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
         rang_parti = courant.get("rang", 0)
         faire_entendre(monde, temoin, gagnant,
                        f"{_qui(monde, temoin)} : « Je suis de ton avis : {phrase(monde, retenu)}. »", [salle], lignes,
-                       [{"type": "rumeur", "evenement": parti, "rang": rang_parti, "dispute": True}])
+                       [{"type": "rumeur", "evenement": parti, "rang": rang_parti, "dispute": True}], acte="dispute")
         if rang_parti < RANG_MAX:
             for qui in recoivent_parti:
                 if qui != "joueur":
