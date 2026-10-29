@@ -1,6 +1,58 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
+
+- **Branche `codex-soupcon-deduit`, fusionnée**, lot **267**, base
+  `7404d2d` : **correctif d'intégration du découpage temporel**. Les dates
+  de tout le registre suivent désormais le grain minute des croyances,
+  avec ordre canonique des présences de même date ; plus de `3000/3005`
+  selon les interruptions de la boucle. Aucun changement de mémoire
+  commune ni d'entrée de recherche. Deux oracles historiques projettent
+  le seul registre passif après validation du monde et refus de toute
+  trace d'épreuve de soupçon, même levée ; **hashes attendus inchangés**,
+  comparaisons intégrales monde/recharge/plans/visites/rendu conservées.
+  Dix-sept tests du soupçon verts, dont trois nouveaux (même minute,
+  indépendance des entrées de recherche/mémoire, projection refusée après
+  épreuve). Vérification sur copie de **732e26a + correctif** : 18 fichiers
+  de la liste des 31 échecs et 11 ciblés, **29 fichiers, 317 tests verts**,
+  **213,100 s**, deux processus réduits, aucune erreur ni échec. Oracles
+  historiques retrouvés, aucun hash remplacé ; égalités complètes des laps
+  et recharges conservées, registre inclus. Traces et sources exactes dans
+  `artifacts/soupcon-267/decoupage/` du dépôt principal ; copie retirée,
+  aucun calcul actif. Pas de suite complète ni Luna.
+  Le banc 20/20 ci-dessous concerne le code antérieur `27e2aee`, pas ce
+  changement de grain ; aucune nouvelle campagne relancée.
+  **Stockage séparé conservé.** Un seul champ
+  `indices_soupcon` réunit présences, gestes datés, constats et soupçons ;
+  aucune place prise dans les quarante souvenirs communs, aucun champ
+  ajouté à leurs preuves. Présences/gestes bornés chacun à 40 ; purge
+  selon les intervalles utiles, attribution interdite après troncature,
+  validation à la recharge et migration des premières sauvegardes 267.
+  Déduction sans position cachée ; confiance −6 à −18 selon PSY, indice
+  révisable, sans portage ni naissance de récupération. **Ancienne passe : 121 ciblés,
+  120 verts, un échec de dette préexistant**, onze fichiers, 51,858 s,
+  deux processus réduits ; onze scènes existantes et trois contrôles du
+  registre, monde/rendu/scène rechargés et laps entier/découpé.
+  Dette déjà prouvée isolément sur base `7404d2d` et code `61a1a67`
+  (`40 != 20`, même test), traces conservées. Ni suite complète ni Luna.
+  **Banc validé : 20/20 paires 4 h identiques hors seul registre**, cinq
+  scénarios × quatre graines, départ tiré, code `27e2aee` ; vingt références
+  `7404d2d` lues en cache sans rejeu, vingt nuits de branche calculées.
+  Chroniques, toutes les mesures et états finaux identiques après retrait
+  du **seul** champ `esprits[*].indices_soupcon`, absent de la base ;
+  aucun autre écart. Empreintes recalculées indépendamment depuis les vingt
+  états bruts archivés (`registre/identite-verifiee.json`). Zéro plantage,
+  usurpation ou soupçon né ; effet ajouté prouvé par les scènes ciblées,
+  aucun bénéfice naturel démontré. Suspects 219 **2 → 2**, sans hausse par
+  nuit, à expliquer **55 → 55**, dérives **233 → 233**, cycles **489 → 489** ;
+  richesse S/F/D identique. Calcul détaché réduit, deux travailleurs au plus,
+  **349,601 s**, `registre/fin.json` code 0 ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/soupcon-267/registre/`.
+  Ancien défaut localisé (Ilse, crue 2024, 39 min 31 s : abri évincé
+  par les présences), preuves dans `localisation-base/` ; corrigé sur les
+  vingt nuits vérifiées. Effraction visible par
+  intégrité seulement ; [rapport 267](taches/rapport-codex-267-soupcon-deduit.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Un bien constaté intact puis atteint, avec un seul passant perçu dans l'intervalle, fait naître un soupçon faillible (relations.EPREUVES.soupcon_deduit, confiance −6 à −18 selon PSY, preuve 0,4, source devine), levé au retour, à la réparation ou à l'auteur appris ; zéro ou plusieurs passants : aucune attribution. Présences retenues dans un registre à part (indices_soupcon), daté à la minute, hors des quarante souvenirs et indépendant du découpage du temps (deux corrections après la suite complète). Preuve par scènes (Gorm/réserve, Anselme/coffre) ; aucun soupçon né dans les 20 nuits, identiques à la base hors registre. Suite complète sur la fusion d'essai (97e8159) : 2 701 tests, verte.
 
 - **Branche `codex-retour-aubin`, fusionnée**, lot **272**, diagnostic
   seul, base `aaaf4cf` : Aubin Relais 2024, départ tiré, joueur passif,
