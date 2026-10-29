@@ -53,6 +53,216 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   une fusion d'essai et la suite complète ; aucun nouveau calcul de clôture.
   [Rapport 277](taches/rapport-codex-277-allumer-pour-soi.md).
 
+- **Branche `codex-pret-reclame`, fusionnée**, lot **280**, base `427fb36`.
+  Cause établie avant modification : secours alimentaire à Rémy à `t=0`,
+  appel de Bram (`62`), attente négociée (`162`), proximité de Lucien tremblant
+  (`203`, peur perçue, palier SECOURS 12 avant ARGENT 14). Pas de défaut moteur
+  établi : après calme perçu des bénéficiaires, le prêt est réclamé à la
+  minute 2. Contre-épreuves peur/appel séparées : réclamation avant deux minutes.
+  Prémisse du test de réclamation immédiate : Gaspard sans souci spontané ;
+  **89 assertions préexistantes conservées (AST)**. Deux cas ajoutés : report
+  réel et autre prêteur/objet au Relais ; monde, rendu et scène identiques
+  après recharge. **Validation terminée sur `be99757` : 211 tests verts /
+  14 fichiers entiers, 1 613,326 s**, zéro échec, erreur ou ignoré ; dont
+  **23 tests** des échanges. Cinq tests de prêt initiaux verts en 50,545 s,
+  inclus dans les 211. Un travailleur à priorité réduite, vérification détachée
+  terminée, `fin-verification.json` **code 0**. Aucun fichier `donjon/` modifié,
+  ni Luna, banc ou suite complète ; aucun nouveau calcul à la clôture. Suite
+  complète sur fusion d'essai à la charge du superviseur. Bruts :
+  `C:/Users/msics/donjon/artifacts/pret-280/` (`tests.json`, `tests.log`,
+  `fin-verification.json`).
+  [Rapport 280](taches/rapport-codex-280-pret-reclame.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Tests seulement. Sur la scène du test PretReclame (mine 1985), Gaspard choisit d'abord deux secours (nourrir Rémy affamé, en appelant Bram par le moyen du lot 275 ; rester près de Lucien qui tremble, lot 266) au palier 12, avant la créance au palier 14 : comportement juste, moteur inchangé. Prémisse explicitée par placement d'auteur, assertions conservées. 211 tests verts sur 14 fichiers ; le fichier passe dans la suite complète de la fusion d'essai 78d62ef.
+
+- **Branche `codex-richesse-hameau`, lot 282, diagnostic seul**, base intégration
+  `3470a92` : **aucun défaut établi, aucun fichier de code, test ou scénario
+  modifié.** Quatre nuits rejouées détachées (`0bad227` et `c870c8b`, graines
+  1985 et 2024, 12 h, départ tiré, joueur passif), **un processus à la fois,
+  priorité réduite, 688,9 s**, identité aux archives 274 (chronique, mesures,
+  récit, souvenirs, empreintes, relevés, plantage). Mesures reproduites :
+  attente **931 → 1 062**, S/F/D **64,5/8,75/3,46 → 56,25/8,5/3,42**, noir
+  **79 → 133**, propositions/acceptées **17/3 → 11,25/2,25** ; par graine,
+  attente 840→1 010, 1 155→1 165, 525→485, 1 205→1 590. Attentes attribuées :
+  1985 Gorm/devoir **0 → 395** et Aubin/chaleur 380→530 ; 7 Gorm/devoir
+  0→440 ; 2024 Maël/chaleur 0→365, Brune/chaleur 0→360, Sève/faim 5→335.
+  **Premier écart substantiel des quatre nuits à la minute 1-2** sur l'offre
+  que Brune choisit (vente de crochets 8 pièces contre la promesse d'allumer
+  la torche) : effet décrit et accepté au **lot 228** (`8567c47`/`e8feb8f`).
+  1985 et 7 : Gorm sans plan de devoir (interposition sans approche perçue,
+  crypte/beffroi/échoppe crues menacées par l'eau, brasero non allumable,
+  vérifié sur 1985 ; 7 même profil par la mesure, non instrumenté). 2024 : Aubin allume
+  à 82 l'unique torche (60 min, non rechargeable, vide à ~142) ; plus aucune
+  flamme portable (briquet et lanterne au joueur, fanal fixe), les deux foyers
+  restent éteints malgré le bois, puis la réserve vidée à 195 fait croire à
+  une disparition (Gorm garde). **Contrainte réelle, pas de recours refusé ;
+  aucun petit lot de correction.** Le seul moyen qui romprait la nuit 2024 —
+  emporter une flamme d'un foyer fixe allumé — n'existe pas et n'est pas
+  couvert par le lot 277 (non fusionné), qui exige un porteur de flamme.
+  **40 captures** (dix instants × quatre nuits) : monde, rendu et scène
+  identiques après recharge. Ni Luna, ni suite complète, ni banc comparatif ;
+  aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/richesse-282/` ;
+  [rapport 282](taches/rapport-codex-282-richesse-hameau.md). Commit local,
+  poussée non faite depuis le PC fixe (hash donné au superviseur).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement (DeepSeek V4.1 Flash Go high). Hameau 12 h, c870c8b → 0bad227 : aucun défaut établi. Premier écart des quatre nuits à la minute 1-2 sur l'offre de Brune (vente des crochets contre l'allumage de la torche), effet accepté au lot 228. 1985 et 7 : Gorm sans plan de devoir admissible (lieux crus menacés par l'eau, brasero non allumable), d'où 395 et 440 PNJ·min d'attente. 2024 : l'unique torche, allumée à 82 et non rechargeable, est vide vers 142 ; plus personne ne porte de flamme, les foyers restent éteints malgré le bois. Quatre nuits rejouées identiques aux archives, 40 captures rechargées.
+
+- **Branche `codex-interposition-reprise`, fusionnée**, lot **278**, base
+  `792816c` : **lot clos, diagnostic seul, sans code**, aucun correctif moteur.
+  Alerte 274 requalifiée comme reprise admissible selon les croyances de Gorm.
+  Nuit hameau
+  1985 rejouée sur `0bad227`, identité à l’archive 274 (empreintes, chronique,
+  mesures, récit, souvenirs), douze captures rechargées, **36 égalités
+  monde/rendu/scène**. À `385475`, Gorm croit Aubin en `antichambre`, `[5,1]`,
+  source `entendu`, minute 642 ; Aubin y est réellement revenu à `385373`.
+  **« Refuge du relais » est le nom de `antichambre`** : la lecture du 274
+  comme départ avant reprise est rectifiée. Brune est l’approchante, Aubin
+  le protégé. Choix par le candidat `defense.interposition` du lot 167,
+  recalculé avant le pas par `pnj.agir`, sans reprise d’agenda ni suffixe
+  recopié. Localisation d’Aubin perdue à `385490`, intention retirée à
+  `385500`. Le compteur 219 de `0bad227` (avant le lot 276) ne relevait ni
+  la provenance de la croyance ni la position entendue ; son classement
+  brut reste dans l’archive, l’alerte est requalifiée par le diagnostic.
+  Aucun nouveau banc, test de lot, Luna ni suite complète.
+  Contrat général et découpage non certifiés par cet établissement.
+  Un processus réduit, 296,773 s, `fin-etablissement.json` **ok=true**,
+  aucun calcul actif du lot ; bruts dans
+  `C:/Users/msics/donjon/artifacts/interposition-278/`.
+  Poussée échouée (authentification Git `wincredman`) ; commit local conservé,
+  aucun recours à l’API GitHub.
+  [Rapport 278](taches/rapport-codex-278-interposition-reprise.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. À 642 (hameau 1985, 0bad227), Gorm entend Aubin et le croit dans l'antichambre, où Aubin est réellement revenu : le « départ » relevé par la 274 était son retour au Refuge. defense.interposition recalcule le but contre Brune ; l'intention disparaît à 385500 quand Gorm perd sa localisation. Douze captures rechargées, aucun moteur modifié. L'alerte 274 est requalifiée en reprise admissible ; le compteur 219 de 0bad227 (avant le lot 276) ne relevait ni la provenance ni la position entendue.
+
+- **Branche `codex-coups-crue-2024`, lot 279, diagnostic seul**, base intégration
+  `792816c` : les coups de la crue 2024 de `0bad227` sont **justifiés** par les
+  contrats existants ; le seul défaut établi est le libellé du but de protection.
+  Rejeu détaché de `0bad227` : 15 frappes, 6 coups portés, 16 PV, Brune 16 → 0,
+  inconsciente de `357710` à `360087` (3,96 min), ranimée à 1 PV, aucun mort ;
+  chronique de 698 lignes, empreintes, récit et souvenirs identiques à l’archive
+  274. Le dernier coup (Aubin, `357710`) neutralise Brune, `constater_fin` ferme
+  les croyances (`clos`), aucun coup ne suit ; les six souvenirs `secours` de
+  Brune sont `examine`, Gorm la ranime et Aubin lui donne une part. `c870c8b` :
+  aucun coup, 796 lignes identiques à son archive. `792816c` : **aucun coup** ;
+  premier écart avec `0bad227` à la minute 5 (Aubin donne une part à Brune,
+  `service_rendu vivres_1`), faim 45 au lieu de 95 ; piste 266, non certifiée.
+  Premier écart `c870c8b` → `0bad227` à l’instant `978` (min 1) : activation
+  `evacuer_crue` « mandataire estimé » du lot 260 (`c5d7301`), absent de
+  `c870c8b` ; la suite diverge, aucun lot causal unique de l’échauffourée n’est
+  désigné sans bissection. Défaut : `planification.reagir` rend
+  `proteger qui=brune` alors que Gorm protège Aubin ; `recit_pnj.but_en_mots` et
+  les paroles fournies au MJ disent « protéger Brune ». Petit lot proposé : le
+  but de protection nomme le protégé, l’agresseur reste la cible du plan.
+  Cinq captures `0bad227` (595, avant le premier coup, 597, 600, 605) : monde,
+  rendu et scène identiques après recharge, sans mutation ; quatre captures pour
+  `792816c` et `c870c8b`. Aucun fichier de code, de test ou de scénario modifié,
+  ni Luna, suite complète ou banc comparatif ; un processus détaché à la fois,
+  priorité réduite. Bruts `C:/Users/msics/donjon/artifacts/coups-279/` ;
+  [rapport 279](taches/rapport-codex-279-coups-crue-2024.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement (DeepSeek V4.1 Flash Go high). Sur 0bad227 : Brune, affamée, tente d'assommer Aubin pour ses vivres ; Gorm protège Aubin (devoir), Aubin et Brune ripostent ; six coups, Brune inconsciente puis ranimée, chaque geste justifié par les règles existantes. Défaut de libellé : le but de protection de Gorm est nommé « protéger Brune » (planification.reagir rend qui=brune, l'agresseur) au lieu du protégé Aubin ; petit lot proposé. Non reproduit sur l'intégration 792816c (Aubin nourrit Brune à 5 min) ; premier écart c870c8b → 0bad227 à la minute 1 (activation evacuer_crue « mandataire estimé », lot 260).
+
+- **Vérification d’intégration `0bad227`**, lot **274**, branche
+  `codex-verif-integ-3` : **49/49 nuits terminées**, aucune erreur de calcul,
+  aucun code du jeu modifié, pas de Luna ni de suite complète. Cache `main`
+  (`c870c8b`) relu : 20 paires de préfixes à 4 h divergent, sans attribution
+  causale. Contrôles : zéro plantage, usurpation, mort, écart `VERIFIER` ou
+  assertion spatiale ; 88 recherches bornées, coûts égaux à l’optimum consigné.
+  219 actuel : suspects **23 → 7**, à expliquer **376 → 170** (classes 265/271
+  présentes ici, absentes de la mesure 241) ; 227 : **22 → 19** pertes, aucune
+  marquée fautive dans la campagne actuelle. Nouveau point à instruire :
+  Gorm reprend à 642 min une interposition contre Aubin, parti de
+  l’antichambre pendant l’interruption. Petit lot proposé : revalider la
+  présence des deux cibles avant l’exécution d’un but d’interposition repris.
+  Combat nouveau crue 2024, minute 596 : 15 frappes, six coups portés, Brune
+  inconsciente puis rétablie, sans décès ni coup après l’inconscience.
+  **Intégration non propre pour avancer `main`** avant le diagnostic de la
+  revalidation. [Rapport 274](taches/rapport-codex-274-verif-integ.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 49/49 nuits, zéro plantage, usurpation, mort ou écart VERIFIER/spatial 0,2 ; Lucien auberge 42 à 435 ne réapparaît pas (88 bornes, toutes au coût de l'optimum). Compteur 219 : 7 suspects et 170 à expliquer (241 : 23 et 376) ; 227 : 19 pertes, aucune fautive. Hameau : attente 931 → 1 062 PNJ·min, S 64,5 → 56,25, noir 79 → 133. Alerte nouvelle : Gorm hameau 1985 à 642 reprend une interposition alors qu'Aubin a quitté l'antichambre (intention, pas d'action fautive) ; crue 2024 : six coups en neuf secondes, Brune inconsciente à 600 puis rétablie. Verdict de l'agent : non propre pour avancer main tant que la revalidation de l'interposition n'est pas établie ; main reste à c870c8b.
+
+- **Branche `codex-rester-pres`, fusionnée**, lot **266**, base `7404d2d`.
+  **Reprise 276 : intégration `1852d6e` fusionnée sans rebase (`18c5523`).**
+  Conflit de perception résolu par la purge du soupçon (267), puis la rétention
+  de détresse (266). Première divergence Relais 2024 à **`288` (28,8 s)** :
+  Aubin garde sa raison de nourrir Brune après moyen manqué, au lieu de clore
+  le parent et passer au recours proposition. Première naissance de `pres`
+  seulement à 217 min : c'est le maintien commun de la demande qui change
+  d'abord la trajectoire. Capture d'intégration avant `117503`, états après
+  `117503`/`117518` et trace brute rangés dans `tests/data/` ; test 276
+  indépendant du déroulement de la nuit, **dix assertions conservées** (AST).
+  Preuve actuelle de maintien du parent ajoutée, monde/rendu/scène rechargés.
+  **Validation terminée : 380 tests verts / 34 fichiers ciblés, 846,205 s**,
+  zéro échec, erreur ou ignoré, deux processus détachés à priorité réduite.
+  Code fusion `18c5523`, capture/tests `98c6d2b`. Disparition du retour attribuée
+  au maintien commun de la raison de secours, éprouvé sur la capture avant
+  clôture. Aucune suite complète ni nouveau banc ; clôture sans nouveau calcul.
+  Bruts `C:/Users/msics/donjon/artifacts/rester-266/reprise-276/`,
+  `fin-verification.json` **code 0**, aucun calcul actif ;
+  [rapport de raccord 276](taches/rapport-codex-266-reprise276.md).
+  **Reprise suite d'essai `f637396` :** onze cas verts sur la base, onze échecs
+  reproduits sur `184ad5d`. Corrections : condition `pres` historique valide
+  après décès, préfixe exécutable sans marqueurs de devis, rétention raccordée
+  à la cadence commune de perception (première vue/geste propre).
+  Les autres parcours changent par secours peur ou maintien du secours
+  alimentaire ; leurs prémisses sont explicitées, **aucune assertion existante
+  changée**, contrôle AST. Quatre contrôles de contrat ajoutés ; cinq cas réels
+  rechargés conservés. **193 tests / dix-neuf fichiers verts, consolidés sur
+  la fusion d'essai corrigée**, dont quatorze tests de proximité. Onze cas
+  signalés corrigés. La première passe de branche avait trois autres échecs
+  sur deux méthodes (mémoire lumière ; occasion d'Aubin Relais/hameau),
+  tous reproduits aussi avant reprise sur `184ad5d`, tous verts sur la fusion.
+  Contre-épreuve stricte du réveil de rétention : deux lampes vertes sur `184ad5d`.
+  **Validation ciblée de fusion terminée**, worktree isolé `f637396` + seul
+  correctif ; corrections de présence de l'intégration conservées sans les
+  recopier sur la vieille branche. Les dix-huit fichiers déjà verts avant le
+  redémarrage Windows n'ont pas été rejoués. Dernier fichier repris : **20 tests
+  verts en 8,437 s**. Scène commerciale capturée sur `7404d2d` à `t=656`,
+  rechargée avant l'offre ; service admissible relu sans mutation, ordre et
+  prix conservés. Le délai de disponibilité `libre=600` est retiré.
+  Bruts `C:/Users/msics/donjon/artifacts/rester-266/suite-reprise/essai-corrige/`
+  (`consolides.json`, `pas-compagnons-final.json`, `fin-cloture.json`).
+  Commits locaux, non fusionnée ; ni suite complète ni nouveau banc.
+  [Preuves de reprise 266](taches/rapport-codex-266-suite.md).
+  Le bilan vingt nuits ci-dessous reste celui de `21d5f5b`, pas de cette reprise.
+  **Reprise du 29 octobre : précédent verdict « cinq surplus légitimes » retiré.**
+  Les pertes/reprises sur regard étaient un défaut de continuité. `signes`
+  retient désormais une croyance de détresse datée, avec preuve et confiance,
+  révisée par la perception commune seulement : calme discernable, nouvelle
+  lecture contradictoire du même signe, départ/mort/inconscience connus.
+  Ni perte de vue, ni regard, ni ancienneté d'affichage ne la suppriment.
+  `esprits` valide/sauvegarde ; `deliberation` tient le secours sur cette
+  croyance, après besoins propres et avec le souci du 197. Un moyen manqué
+  libère son plan/préférences sans clore la demande portant une raison ;
+  autre moyen admissible pour la même raison possible, jamais reprise aveugle
+  du geste manqué. Les autres charges gardent leur arbitrage. Aucun délai,
+  scénario ni modèle modifié ; `agendas`/`echanges` inchangés à cette reprise.
+  **93 ciblés distincts verts / dix fichiers**, bilan consolidé ; dernière
+  reprise 37 tests en 79,443 s, dix de proximité en 14,675 s.
+  Cinq cas réels rechargés, quatre
+  intervalles courts sans rupture, Maël/Ilse tenu de 38 jusqu'au vrai démenti
+  perçu à 60 (`mefiance`), état entier/rendu/scène et laps découpés vérifiés.
+  Oracle de garde de Lucien intact ; oracle de clôture sur simple échec corrigé.
+  **Banc détaché terminé**, code `21d5f5b`, sortie 0 en 374,736 s : branche
+  seule, vingt nuits 4 h, vingt références `7404d2d` en cache exclusivement,
+  deux travailleurs à priorité réduite.
+  Même sonde que le premier banc (`0ff727d`, blob
+  `4e2c68d073fcdf71d4996da93527bf3cdd02267b`, instrumentation `1f6b05da83`),
+  sonde 265/271 non utilisée. **Critère « aucune hausse de suspects par nuit »
+  tenu sur 20/20 : 2 → 0**, zéro suspect à chaque nuit de branche.
+  **183 secours, 202,393 min** de sécurité urgente en baisse sous compagnie
+  (mesure vécue, pas gain causal). Aucun plantage, usurpations 0 → 0 ;
+  cycles 489 → 420, à expliquer 55 → 56, bascules 3 → 1, appels 8 → 3,
+  avertissements redits 3 → 6. Gorm hameau 7 : sans but pressé 195 → 0 min
+  aux relevés, ancienne attente nouvelle de 155 min disparue ; toutefois
+  44 départs de secours de Gorm, cycles de la nuit 14 → 50 classés accomplis,
+  zéro minute urgente apaisée : fréquence encore à examiner, pas légitimée.
+  Alertes nouvelles documentées : marchand relais 7/Josse mine 7 sous devoir
+  sans but, Lucien auberge 42 dans le noir avec `pres`, appel répété de Brune
+  crue 1985 ; deux cessations physiques de torche sans violation.
+  Ancien 2 → 6 retiré ; les autres écarts ne sont pas déclarés corrigés.
+  Bruts `C:/Users/msics/donjon/artifacts/rester-266/continuite-captures/` et
+  `continuite-banc/` (`fin.json`, `bilan.json`, `validation.json`).
+  Clôture précédente avant la reprise de suite ci-dessus ; ni Luna ni suite
+  complète dans le lot, branche non fusionnée.
+  [Rapport 266](taches/rapport-codex-266-rester-pres.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Un proche dont la détresse est perçue et qui tient encore pousse à rester près de lui (3d, la peur), jusqu'au démenti, sans flicker au regard (continuité des signes du lot 21). Suite complète sur la fusion d'essai 1951fb9 : 2 719 tests, seule erreur du lot dans le test 276 d'Aubin (nuit Relais 2024 changée par l'invariant ; test rendu indépendant de la trajectoire par une capture de l'intégration, assertions conservées), quatre erreurs test_connexion dues à l'environnement (DPAPI sans session ouverte). Raccord avec 276 : 380 tests verts sur 34 fichiers. Suite complète à refaire sur l'intégration (lots 266 et 275 touchent planification.py).
+
 - **Branche `codex-appeler-donneur`, fusionnée**, lot **275**, base
   `7b58eb0` (intégration `ac63223`), code corrigé **`eabe202`** : contact d'un
   interlocuteur localisé mais inaccessible par l'appel négocié commun, portée

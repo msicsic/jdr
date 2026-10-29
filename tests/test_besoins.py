@@ -94,6 +94,10 @@ class GardeMangerTests(unittest.TestCase):
 
     def test_crochets_disparus_elle_replanifie_et_reste_sans_plan(self):
         m = relais()
+        # L'absence d'outil laisse Brune sans recours propre ; cette scène
+        # exclut aussi le secours alimentaire de Gorm, qui peut ouvrir sa réserve.
+        from tests.support import sans_souci
+        sans_souci(m, 'marchand')
         # Cette scène exclut le forçage : à douceur 75, Brune peut désormais prévoir des coups.
         m.objets["brune"]["profil"]["valeurs"]["douceur"] = 100
         # Cette scène isole l'outil absent : aucun service d'allumage à offrir.

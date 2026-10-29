@@ -1213,7 +1213,7 @@ def verifier(monde, id):
             raison = demande["raison"]
             assert (isinstance(raison, dict) and set(raison) == {"qui", "besoin"}
                     and (raison["qui"] == "joueur" or raison["qui"] in monde.objets)
-                    and raison["besoin"] in ("faim", "chaleur")), "Raison d'intention invalide"
+                    and raison["besoin"] in ("faim", "chaleur", "peur")), "Raison d'intention invalide"
     stock = projets(monde, id)
     assert len([a for a in stock if a["etat"] == "actif"]) <= 3, "Trop d'agendas actifs"
     assert len({a["id"] for a in stock}) == len(stock), "Identifiants d'agenda dupliqués"

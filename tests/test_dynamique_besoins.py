@@ -91,11 +91,16 @@ class SeuilTests(unittest.TestCase):
 class TenirTests(unittest.TestCase):
     """Un but qui se tient en restant compte ce que le lieu laisse monter chez les autres besoins."""
 
-    def lucien_au_grenier_noir(self):
+    def lucien_au_grenier_noir(self, secours_spontane=True):
         """Placement d'auteur, l'auberge telle qu'écrite : Lucien, qui craint le noir, garde son
         coffret au grenier sans lumière ; ses biens et sa sécurité pressent. Le cas réel : il
         allait au couloir éclairé, puis revenait garder ses biens, et ainsi de suite."""
         m = creer("auberge", 1985, "fixe")
+        # Garde et recherche d'un porteur isolées du secours spontané à un effrayé.
+        # La compagnie de secours est exercée avec les profils actifs dans test_empathie_peur.
+        from tests.support import sans_souci
+        if not secours_spontane:
+            sans_souci(m)
         calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
         m.objets["poele"].update(allume=False, combustible=0)
         m.objets["bois_anselme"]["charges"] = 0
@@ -216,7 +221,7 @@ class TenirTests(unittest.TestCase):
 
             with patch.object(pnj, "_executer", executer_sonde), \
                  patch.object(deliberation, "choisir", choisir_sonde), patch.object(pnj, "agir", agir_sonde):
-                m, _ = suivre(self.lucien_au_grenier_noir(), "lucien", 95, pas=5)
+                m, _ = suivre(self.lucien_au_grenier_noir(secours_spontane=False), "lucien", 95, pas=5)
                 retenu = copy.deepcopy(lire(m, "lucien")["renoncements"]["biens"][0])
                 croyance95 = copy.deepcopy(lire(m, "lucien")["croyances"]["anselme"]["lieu"])
                 self.assertTrue(obstacle_patience(m, "lucien", retenu["cause"]))
@@ -260,7 +265,7 @@ class TenirTests(unittest.TestCase):
         self.assertEqual(m.data, apres.data)
         self.assertEqual(texte, rendu(apres))
 
-    def bram_au_bureau_noir(self, lampe=True):
+    def bram_au_bureau_noir(self, lampe=True, secours_spontane=True):
         """Placement d'auteur, la mine telle qu'écrite : la chandelle du bureau est à sec ; Bram, qui
         craint fort le noir, garde le coffre de la paie ; ses biens et sa sécurité pressent. Avec
         ``lampe``, il sait la lampe du filon allumée. Odon, dont il se méfie, ne convoite pas la paie
@@ -269,6 +274,10 @@ class TenirTests(unittest.TestCase):
         # Recours de lumière isolé du marché supplémentaire du bois d’Odon.
         from tests.scenarios_contractuels import creer as creer_contractuel
         m = creer_contractuel("mine", 1985, "fixe")
+        # Isoler le recours de lumière des compagnons qui viendraient rassurer Bram.
+        from tests.support import sans_souci
+        if not secours_spontane:
+            sans_souci(m)
         calme(m, *[k for k, o in m.objets.items() if o.get("profil")])
         m.objets["odon"]["profil"]["valeurs"]["honnetete"] = 100
         m.objets["chandelle"].update(allume=False, combustible=0)
@@ -283,7 +292,7 @@ class TenirTests(unittest.TestCase):
     def test_bram_va_prendre_la_lampe_du_filon_et_revient_garder_la_paie_eclaire(self, _constats):
         # Isoler ce recours de lumière des nouvelles qui lui feraient choisir un autre moyen.
         from donjon.deliberation import autour
-        m, lieux = suivre(self.bram_au_bureau_noir(), "bram", 3)
+        m, lieux = suivre(self.bram_au_bureau_noir(secours_spontane=False), "bram", 3)
         self.assertEqual(lieux, ["bureau", "filon", "bureau"])
         self.assertEqual(m.objets["lampe_filon"]["lieu"], "bram")
         self.assertTrue(m.objets["lampe_filon"]["allume"])

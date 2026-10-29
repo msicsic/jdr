@@ -120,21 +120,27 @@ class DetecterAvisTests(unittest.TestCase):
         self.assertEqual(eps[2]["debut_entrees"], d.relever_entrees(m, acteur, 2))
 
     def test_aubin_relais_2024_perception_nommee_et_recharge(self):
-        from donjon import banc_pnj, planification
+        from donjon.monde import Monde
         from donjon.rendu import regarder
         from donjon.scene import scene_percue
         from tests.test_tensions import recharger
-        captures = {}
-        planification._IMPOSSIBLES.clear()
-        with d.observer_avis() as sonde:
-            choisir = d.deliberation.choisir
-            def observer(m, id, minute):
-                resultat = choisir(m, id, minute)
-                if id == "aubin" and d.instant(m) in (117503, 117518):
-                    captures[d.instant(m)] = m.copier()
-                return resultat
-            with patch.object(d.deliberation, "choisir", observer):
-                banc_pnj.nuit("relais", 2024, 4, "chambre_cloche", depart="tire")
+        # Le moteur corrigé ne clôt plus ce parent sur un moyen manqué.
+        # La sonde doit néanmoins savoir relire ce retour réellement observé
+        # sur l'intégration : états et épisodes bruts, aucun classement figé.
+        fichier = Path(__file__).parent / "data/sonde-276-aubin-relais-2024.json.gz"
+        charge = json.loads(gzip.decompress(fichier.read_bytes()))
+        captures = {int(t): Monde(etat) for t, etat in charge["captures"].items()}
+        sonde = d.SondeAvis()
+        sonde.episodes = copy.deepcopy(charge["episodes"])
+        # JSON conserve les coordonnées mais pas les tuples de l'API percus.
+        # Restaurer leur type sur toute la trace, sans recalculer les lectures.
+        for eps in sonde.episodes.values():
+            for ep in eps:
+                for champ in ("debut_entrees", "quitte_entrees"):
+                    entrees = ep.get(champ)
+                    if entrees and "perception" in entrees["_details"]:
+                        entrees["_details"]["perception"] = {
+                            id: tuple(place) for id, place in entrees["_details"]["perception"].items()}
         retour = next(r for r in sonde.analyser()["allers_retours"]
                       if r["id"] == "aubin" and r["retour_t"] == 117518)
         self.assertEqual(retour["classe"], "renouvellement_perceptif")

@@ -1464,6 +1464,11 @@ def gestes(v, e, vises=None, but=None):
         qui = etape["cible"]
         if v.salle(e, qui) == e.salle and not e.fait("parle", qui):
             yield 0, 1, [etape], e.apres(faits=[(("parle", qui), True)])
+    # Séjour à portée d'une personne : même approche, présence et coûts que
+    # les gestes ciblés. Le fait projeté certifie l'arrivée, pas la fin du séjour.
+    for qui in vises.get("pres", ()):
+        if v.salle(e, qui) == e.salle and not e.fait("pres", qui):
+            yield 0, 1, [_etape("rester", qui, lieu=e.salle)], e.apres(faits=[(("pres", qui), True)])
     # Les gestes de défense sont offerts seulement aux buts qui les emploient.
     yield from _gestes_defense(v, e, vises)
     agissables, a_porter = v.agissables(vises)
@@ -2155,6 +2160,8 @@ def _entrees(v, vises, profondeur, noeuds):
             v.contexte.observateur, v.contexte.acteur, v.contexte.transmis,
             v.monde.data], ensure_ascii=False, sort_keys=True))
     return communes, json.dumps([
+        # Le terminal de proximité et sa cible sont dans vises ; ses lieux,
+        # cases crues, routes et tarifs sont dans les entrées communes.
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), v.eclairer,
         [[x, v.violence(x) is not None] for x in v.personnes()], _entrees_defense(v, vises)
     ], ensure_ascii=False, check_circular=False)
@@ -3275,6 +3282,17 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     from .deliberation import salle_crue
     from .echanges import tache as sorte
     o = condition.get("objet")
+    if "pres" in condition:
+        sujet = condition["pres"]
+        v = vue(monde, id)
+        if v.salle(depart(monde, id, v), sujet) is None:
+            contact = rejoindre(monde, id, sujet)
+            return None if contact is None else (0, {"type": "pulsion", **condition}, contact[0])
+        trouve = chercher(monde, id, lambda v, e: e.fait("pres", sujet), {"pres": (sujet,)},
+                          nom="pres:" + sujet, memo=["pres", sujet], emplois=(), tenir=True)
+        # Les devis peuvent contenir une acquisition encore supposée. Comme
+        # les autres pulsions, n'exécuter que son préfixe certain et propre.
+        return None if trouve is None else (trouve[0], {"type": "pulsion", **condition}, _couper(trouve[1]))
     if "rendre" in condition:
         trouve = _rendre(monde, id, o, condition)
         return None if trouve is None else (0, *trouve)
