@@ -1957,13 +1957,20 @@ def _sommeils(monde, id):
     """Les demandes tenues sans moyen admissible, hors du palier actif.
 
     L'état vit dans les données du monde : une demande endormie survit à la
-    sauvegarde, au rechargement et au découpage du temps comme un agenda.
+    sauvegarde, au rechargement et au découpage du temps comme un agenda. Une
+    lecture ne crée rien : le monde d'une nuit sans sommeil reste identique.
     """
+    return monde.data.get("demandes_sommeil", {}).get(id, [])
+
+
+def _entrer_sommeil(monde, id):
     return monde.data.setdefault("demandes_sommeil", {}).setdefault(id, [])
 
 
 def _retirer_sommeil(monde, id, record=None, demande=None):
     stock = _sommeils(monde, id)
+    if not stock:
+        return
     if record is not None:
         stock[:] = [r for r in stock if r is not record]
     elif demande is not None:
@@ -2002,7 +2009,7 @@ def _endormir(monde, id, courant, contrat):
               "valeur": contrat["valeur"],
               "entrees": _entrees(monde, id)}
     _retirer_sommeil(monde, id, demande=demande)
-    _sommeils(monde, id).append(record)
+    _entrer_sommeil(monde, id).append(record)
     return record
 
 

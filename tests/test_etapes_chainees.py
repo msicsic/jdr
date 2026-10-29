@@ -230,14 +230,13 @@ class EtapesTests(unittest.TestCase):
                             'plans': '750f079d19993a238b2b0b3d085de33039170d1289290b9e801241523c183353',
                             'n_plans': 171,
                             'diagnostics': '81d892f9beeb8428407be5cb747a0a44b9ed9490e48d68cbb2a69d88958d3381',
-                            'monde': '125bf8509aca2faa9bf194e90ffda2b169ec6fb41e2c3b182f2d8c9e9b5e1dbf'},
+                            'monde': '01d6fd87464a2de32df814503ebd64133d26060171e4d5e3b9d455b4dba015c3'},
                         'auberge': {
                             'visites': '7c1d40e545726eaaaceb0b885f35323bc619732eb7d98914363666c5e3060272',
                             'n_visites': 8795,
                             'plans': '606b6c789b5879a5827f23f2e5f990489f26e24de54dd66d36ecd2198cb76a06',
                             'n_plans': 82,
-                            'diagnostics': 'e2c431cde2bc72ac37c3aa269a5a1068aebcbba82ef7762cb2fd8eda42dd36f8',
-                            'monde': '494cc7e55b2268594b464244d224b57746ffdeb4122e72147d40b9fc1a41b5bf'}}
+                            'diagnostics': 'e2c431cde2bc72ac37c3aa269a5a1068aebcbba82ef7762cb2fd8eda42dd36f8'}}
                     self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures,
                                                                  **paroles[scenario], **contacts[scenario],
                                                                  **rendez_vous.get(scenario, {}), **pas[scenario],
