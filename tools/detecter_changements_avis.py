@@ -5,11 +5,14 @@ sans modifier aucun état du monde, aucun tirage aléatoire ni aucune mémoire d
 planificateur. Pour chaque transition, conserve les entrées du choix et les preuves observées :
 palier du candidat essayé, étape exécutée et condition de fin devenue vraie.
 Les règles sont ordonnées : cycle accompli, préemption stricte, satisfaction ou
-démenti pendant l'action d'un tiers, progression, répétition, entrée à expliquer.
+démenti pendant l'action d'un tiers, progression, moyen évitant le geste manqué,
+rendez-vous intermédiaire clos, entrée publiée utilisée par le plan repris,
+renouvellement perceptif à examiner, répétition, entrée à expliquer.
 Les dérives ouvertes et les pertes d'état payé sont des observations séparées.
 Aucune durée de maintien n'est inventée pour les services instantanés.
 Les pertes sont attribuées aux gestes exécutés ou aux transitions physiques
-sondés, avec la présence crue avant le geste ; ailleurs la cause reste inconnue.
+sondés, avec la présence crue avant le geste et les clôtures publiées auparavant ;
+ailleurs la cause reste inconnue.
 
 La couverture demeure partielle (horizon, prédicats de fin et candidats sans
 palier publié) : une entrée changée ne constitue pas un certificat causal.
@@ -27,8 +30,8 @@ import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from donjon import agendas, banc_pnj, corps, defense, deliberation, eau, planification, pnj, relations  # noqa: E402
-from donjon.esprits import RECENT, lire, pnjs  # noqa: E402
+from donjon import agendas, appel, banc_pnj, biens, corps, defense, deliberation, eau, planification, pnj, relations  # noqa: E402
+from donjon.esprits import RECENT, lire, percus, pnjs  # noqa: E402
 from donjon.temps import MINUTE, instant  # noqa: E402
 
 SCENARIOS_DEFAUT = ("relais", "mine", "auberge", "crue", "crue_hameau")
@@ -41,7 +44,8 @@ SALLES_JOUEUR = {
 }
 GRAINES_DEFAUT = (1985, 7, 42, 2024)
 CLASSES_SERVICES = ("prestataire_beneficiaire_present", "prestataire_beneficiaire_parti",
-                    "beneficiaire_ou_tiers", "cessation_physique", "cause_non_observee")
+                    "beneficiaire_ou_tiers", "cessation_physique", "cause_non_observee",
+                    "service_clos_avant_perte")
 
 CATEGORIES_EXTERNES = (
     "croyances_valeurs",
@@ -50,7 +54,11 @@ CATEGORIES_EXTERNES = (
     "alarmes_et_dangers",
     "social_et_engagements",
     "inventaire_et_droits",
+    "perception_effective",
+    "provenance_croyances",
 )
+CLASSES_A_EXPLIQUER = ("entree_nouvelle_a_expliquer", "renouvellement_perceptif")
+CATEGORIES_PERCEPTIVES = ("perception_effective", "provenance_croyances")
 
 SEUILS_FIN = {
     "repos": deliberation.REPOS_FIN,
@@ -93,6 +101,7 @@ def _resume_decision(intention):
         "cle": _cle_decision(intention),
         "tete_plan": tete,
         "nb_etapes": len(plan),
+        "plan": copy.deepcopy(plan),
     }
 
 
@@ -196,6 +205,12 @@ def relever_entrees(monde, id, minute):
     croyances_dict["__apport__"] = _canon([
         [o, v.apport(o)] for o in sorted(v.connus) if "lumiere" in croyances.get(o, ())
     ])
+    # API perceptive commune, sans percevoir/reviser : aucune croyance créée.
+    # Les dates de rafraîchissement ne constituent pas une entrée nouvelle.
+    perception_dict = percus(monde, id)[0]
+    provenance_dict = {f"{s}.{a}": c.get("source")
+                       for s, d in sorted(croyances.items()) for a, c in sorted(d.items())
+                       if a != "fin"}
 
     besoins_dict = {
         "pressants": sorted(pressants),
@@ -272,7 +287,9 @@ def relever_entrees(monde, id, minute):
             if s["type"] == "creance_vaine" and minute - s["minute"] < deliberation.REDEMANDE
         }),
         "recherches": [[q, sorted(deliberation.appels_vains(monde, id, q))] for q in sorted(e.get("recherches", ()))],
-        "engagements": [[x["pour"], x["condition"], bool(x.get("annule"))] for x in agendas.en_cours(monde, id)],
+        "charges": [[x["pour"], x["condition"], bool(x.get("annule"))] for x in agendas.en_cours(monde, id)],
+        "engagements_tenus": [copy.deepcopy(s) for s in e["memoire"]
+                              if s["type"] == "engagement_tenu" and "pour" in s],
         "agendas": [[a["id"], a.get("etat"), a.get("raison_sommeil")] for a in agendas.projets(monde, id)],
         "a_prevenir": [
             [s.get("victime"), s.get("auteur")]
@@ -285,6 +302,7 @@ def relever_entrees(monde, id, minute):
 
     inventaire_dict = {
         "portes": sorted(k for k in v.connus if planification.porte_par(monde, k, id)),
+        "possedes": sorted(k for k in v.connus if v.proprietaire[k] == id),
         "richesse": [v.richesse, v.piece],
         "illicites": [
             sorted(o for o in v.connus if v.illicite[o]),
@@ -314,6 +332,8 @@ def relever_entrees(monde, id, minute):
         "social_et_engagements": _canon(social_dict),
         "inventaire_et_droits": _canon(inventaire_dict),
         "position_et_progres": _canon(position_dict),
+        "perception_effective": _canon(perception_dict),
+        "provenance_croyances": _canon(provenance_dict),
         "_details": {
             "croyances": croyances_dict,
             "besoins": besoins_dict,
@@ -321,20 +341,114 @@ def relever_entrees(monde, id, minute):
             "alarmes": alarmes_dict,
             "social": social_dict,
             "inventaire": inventaire_dict,
+            "perception": perception_dict,
+            "provenance": provenance_dict,
         },
         "lieu": ici,
         "besoins_continus": {b: round(val, 1) for b, val in sorted(e["besoins"].items())},
     }
 
 
-def _diff_categories(e1, e2, categories=CATEGORIES_EXTERNES):
-    return [c for c in categories if e1[c] != e2[c]]
+def _diff_categories(e1, e2, categories=CATEGORIES_EXTERNES, cibles=None):
+    differences = []
+    for c in categories:
+        if c == "provenance_croyances" and cibles is not None:
+            p1, p2 = (_provenance_cibles(e, cibles) for e in (e1, e2))
+            change = p1 != p2
+        else:
+            # Anciennes captures : aucune preuve perceptive ne peut être inventée.
+            change = c in e1 and c in e2 and e1[c] != e2[c]
+        if change:
+            differences.append(c)
+    return differences
+
+
+def _provenance_cibles(entrees, cibles):
+    return {k: v for k, v in entrees["_details"].get("provenance", {}).items()
+            if k.rsplit(".", 1)[0] in cibles}
+
+
+def _diff_perception(e1, e2, cibles):
+    """Deltas nommés, sans prétendre prouver la nécessité de la reprise."""
+    resultat = {}
+    for champ in ("perception", "provenance"):
+        if any(champ not in e["_details"] for e in (e1, e2)):
+            continue
+        a, b = ((e["_details"][champ] if champ == "perception"
+                 else _provenance_cibles(e, cibles)) for e in (e1, e2))
+        diff = {k: [a.get(k), b.get(k)] for k in sorted(a.keys() | b.keys())
+                if a.get(k) != b.get(k)}
+        if diff:
+            resultat[champ] = diff
+    return resultat
 
 
 def _diff_croyances(e1, e2):
     c1, c2 = e1["_details"]["croyances"], e2["_details"]["croyances"]
     cles = sorted(set(c1) | set(c2))
     return {k: [c1.get(k), c2.get(k)] for k in cles if c1.get(k) != c2.get(k)}
+
+
+def _references_plan(valeur):
+    """Identifiants des étapes, y compris les conditions des offres imbriquées.
+
+    Les noms d'opération, types d'offre et textes ne sont pas des références.
+    On ne déduit aucune dépendance à partir du nom du but ou d'un personnage.
+    """
+    if isinstance(valeur, list):
+        return set().union(*(_references_plan(x) for x in valeur))
+    if not isinstance(valeur, dict):
+        return set()
+    refs = {v for k, v in valeur.items()
+            if k in ("cible", "outil", "objet", "qui", "de", "pour", "servir", "lieu", "destination")
+            and isinstance(v, str) and v}
+    for v in valeur.values():
+        if isinstance(v, (dict, list)):
+            refs.update(_references_plan(v))
+    return refs
+
+
+def _entrees_utilisees(ep_depart, intermediaires, ep_retour):
+    """Preuves publiées depuis la sortie, reliées au plan réellement repris.
+
+    Une simple différence d'empreinte, une perte de possession, une position
+    oubliée ou une annulation d'engagement ne sont jamais des preuves.
+    Les archives dépourvues de ces relevés restent sans certificat.
+    """
+    plan = ep_retour["decision"].get("plan")
+    if not plan or not ep_retour.get("moyen_admissible"):
+        return []
+    refs = _references_plan(plan)
+    avant = (ep_depart.get("quitte_entrees") or ep_depart["debut_entrees"])["_details"]
+    apres = ep_retour["debut_entrees"]["_details"]
+    preuves = []
+    for champ, preuve in (("portes", "possession_nouvelle"), ("possedes", "propriete_nouvelle")):
+        inv1, inv2 = avant.get("inventaire", {}), apres.get("inventaire", {})
+        if champ not in inv1 or champ not in inv2:
+            continue
+        for objet in sorted((set(inv2[champ]) - set(inv1[champ])) & refs):
+            preuves.append({"preuve": preuve, "objet": objet})
+    for cible in sorted(refs):
+        cle = cible + ".lieu"
+        v1, v2 = avant["croyances"].get(cle), apres["croyances"].get(cle)
+        # Les valeurs sont canoniques ; null et la chaîne vide ne localisent rien.
+        if v2 is not None and v2 not in ("null", '""') and v1 != v2:
+            preuves.append({"preuve": "lieu_cru_change", "cible": cible, "avant": v1, "apres": v2})
+    social1, social2 = avant.get("social", {}), apres.get("social", {})
+    # Le moteur publie engagement_tenu ; la seule disparition du stock ne suffit
+    # pas. Exiger aussi la charge observée active puis retirée et son objet utilisé.
+    releves = [avant, *(entrees["_details"] for e in intermediaires
+                        for entrees in (e["debut_entrees"], e.get("quitte_entrees")) if entrees)]
+    charges = [x for details in releves for x in details.get("social", {}).get("charges", ())]
+    for recu in social2.get("engagements_tenus", ()):
+        charge = [recu["pour"], recu["condition"], False]
+        if (recu not in social1.get("engagements_tenus", ())
+                and charge in charges
+                and not any(x[:2] == charge[:2] for x in social2.get("charges", ()))
+                and recu["condition"].get("objet") in refs
+                and ep_depart["quitte_minute"] <= recu["minute"] <= ep_retour["debut_minute"]):
+            preuves.append({"preuve": "engagement_accompli_publie", "recu": recu})
+    return preuves
 
 
 class SondeAvis:
@@ -347,6 +461,24 @@ class SondeAvis:
         self.gestes_contraires = []
         self.candidats = {}
         self.services = {}
+        self.monde_services = None
+
+    def cloturer_services(self, monde, avant):
+        """Ne retient que les retraits effectivement publiés par le choix complet."""
+        for trace in avant:
+            if trace in monde.data.get("services_rendus", ()):
+                continue
+            for service in self.services.values():
+                if (service["prestataire"] == trace["de"] and service["payeur"] == trace["pour"]
+                        and service["condition"] == trace["condition"]
+                        and service["reussite_t"] is not None and service["perte_t"] is None
+                        and "cloture" not in service):
+                    service["cloture"] = {
+                        "t": instant(monde), "preuve": "retrait_publie_services_rendus",
+                        "trace": copy.deepcopy(trace),
+                        "presence": self.presence_service(monde, service, trace),
+                        "croyances": copy.deepcopy(lire(monde, trace["de"])["croyances"]),
+                    }
 
     def accomplissements(self, monde):
         resultat = {}
@@ -369,22 +501,31 @@ class SondeAvis:
                     "t": instant(monde), "cle": cle, "autrui": acteur != qui,
                     "acteur": acteur, "preuve": "condition_de_fin_devenue_vraie"})
 
-    def presence_service(self, monde, service):
+    def presence_service(self, monde, service, trace=None):
         """Lecture pure du même critère de départ cru que biens.services_proteges."""
         id, pour = service["prestataire"], service["payeur"]
         objet = service["condition"]["objet"]
         lieu = deliberation.salle_crue(monde, id, objet)
         beneficiaire = deliberation.salle_crue(monde, id, pour)
         porteur = deliberation._lieu_cru(monde, id, objet)
-        parti = porteur != pour and lieu is not None and beneficiaire is not None and lieu != beneficiaire
+        from donjon.monde import mobile_par_nature
+        if trace is None:
+            trace = next((s for s in monde.data.get("services_rendus", ())
+                          if s["de"] == id and s["pour"] == pour
+                          and s["condition"] == service["condition"]), {})
+        reference = trace.get("lieu_beneficiaire",
+                              None if mobile_par_nature(monde.objets.get(objet, {})) else lieu)
+        parti = (porteur != pour and reference is not None and lieu is not None
+                 and beneficiaire is not None and reference != beneficiaire and lieu != beneficiaire)
         return {"parti": parti, "lieu_objet_cru": lieu, "lieu_beneficiaire_cru": beneficiaire,
-                "porteur_cru": porteur}
+                "porteur_cru": porteur, "lieu_reference": reference}
 
     def presences_services(self, monde):
         return {id(s): self.presence_service(monde, s) for s in self.services.values()
                 if s["perte_t"] is None and s["reussite_t"] is not None}
 
     def relever_services(self, monde, acteur=None, cause=None, presences=None):
+        self.monde_services = monde
         # Conditions d'état, lues dans la réalité ; les conditions de gestes
         # (servir/remettre) n'impliquent aucun état durable de l'objet.
         for qui in self.episodes:
@@ -423,6 +564,8 @@ class SondeAvis:
                                   else "prestataire_beneficiaire_present")
                 service.update(classe=classe, acteur=acteur, cause=cause, presence_avant=presence,
                                violation=classe == "prestataire_beneficiaire_present")
+                if "cloture" in service and service["cloture"]["t"] <= instant(monde):
+                    service.update(classe="service_clos_avant_perte", violation=False)
 
     def analyser(self):
         analyse = analyser_episodes(self.episodes)
@@ -432,7 +575,7 @@ class SondeAvis:
                                           for c in CLASSES_SERVICES}
         return analyse
 
-    def enregistrer_choix(self, monde, id, minute, cause):
+    def enregistrer_choix(self, monde, id, minute, cause, manque=None):
         dec = _resume_decision(lire(monde, id)["intention"])
         t = instant(monde)
         eps = self.episodes.setdefault(id, [])
@@ -453,6 +596,10 @@ class SondeAvis:
             precedent["accompli_au_depart"] = _est_accompli(
                 monde, id, precedent["decision"], minute, cause_sortie=cause
             )
+            if manque and cause.startswith("manque:"):
+                precedent.setdefault("faits", []).append({
+                    "t": t, "cle": precedent["decision"]["cle"],
+                    "preuve": "etape_manquee", "etape": copy.deepcopy(manque["etape"])})
         eps.append({
             "id": id,
             "debut_t": t,
@@ -470,6 +617,11 @@ class SondeAvis:
             "accompli_au_depart": False,
             "palier": self.candidats.get(id, {}).get(dec["cle"]),
             "faits": [],
+            "moyen_admissible": not any(
+                deliberation.renoncement_tient(monde, id, r,
+                                               (dec["but"], dec.get("plan", [])))
+                for retenus in lire(monde, id).get("renoncements", {}).values()
+                if isinstance(retenus, list) for r in retenus) if dec["cle"] else False,
         })
 
 
@@ -505,9 +657,14 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             e_quitte = ep_depart["quitte_entrees"] or ep_depart["debut_entrees"]
             e_retour = ep_retour["debut_entrees"]
 
-            diff_quitte_retour = _diff_categories(e_quitte, e_retour)
-            diff_debut_retour = _diff_categories(e_debut, e_retour)
-            diff_debut_quitte = _diff_categories(e_debut, e_quitte)
+            cibles = _references_plan([ep_depart["decision"].get("but"),
+                                       ep_depart["decision"].get("plan"),
+                                       ep_retour["decision"].get("but"),
+                                       ep_retour["decision"].get("plan")])
+            diff_quitte_retour = _diff_categories(e_quitte, e_retour, cibles=cibles)
+            diff_debut_retour = _diff_categories(e_debut, e_retour, cibles=cibles)
+            diff_debut_quitte = _diff_categories(e_debut, e_quitte, cibles=cibles)
+            perception_qr = _diff_perception(e_quitte, e_retour, cibles)
             meme_lieu_quitte_retour = e_quitte["lieu"] == e_retour["lieu"]
             meme_lieu_debut_retour = e_debut["lieu"] == e_retour["lieu"]
 
@@ -542,6 +699,20 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             palier_suivant = suivant.get("palier")
             faits = [f for e in [ep_depart, *intermediaires] for f in e.get("faits", ())
                      if (ep_depart["quitte_t"] or ep_depart["fin_t"]) <= f["t"] <= ep_retour["debut_t"]]
+            plan_retour = ep_retour["decision"].get("plan")
+            echecs_evites = [f for f in ep_depart.get("faits", ())
+                             if f.get("preuve") == "etape_manquee"
+                             and f["t"] == ep_depart["quitte_t"]
+                             and plan_retour and ep_retour.get("moyen_admissible")
+                             and not any(all(p.get(k) == f["etape"].get(k)
+                                             for k in ("operation", "cible", "lieu"))
+                                         for p in plan_retour)]
+            rendez_vous = [f for m in intermediaires for f in m.get("faits", ())
+                          if f.get("preuve") == "rendez_vous_clos_par_retrouves"
+                          and f.get("cle") == m["decision"]["cle"]
+                          and m["debut_t"] <= f["t"] <= ep_retour["debut_t"]
+                          and plan_retour and any(p.get("cible") == f["qui"] for p in plan_retour)]
+            entrees_utilisees = _entrees_utilisees(ep_depart, intermediaires, ep_retour)
             if ep_depart["accompli_au_depart"]:
                 classe = "cycle_accompli"
             elif palier is not None and palier_suivant is not None and palier_suivant < palier:
@@ -553,6 +724,19 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             elif any(f.get("cle") == cle and f.get("progression") for f in faits):
                 classe = "progression_reelle"
                 preuves = [f for f in faits if f.get("cle") == cle and f.get("progression")]
+            elif echecs_evites:
+                classe = "changement_moyen_admissible"
+                preuves = echecs_evites + [{"preuve": "plan_retour_admissible", "plan": plan_retour}]
+            elif rendez_vous:
+                classe = "rendez_vous_intermediaire_accompli"
+                preuves = rendez_vous
+            elif entrees_utilisees:
+                classe = "entree_publiee_utilisee"
+                preuves = entrees_utilisees + [{"preuve": "plan_retour_admissible", "plan": plan_retour}]
+            elif perception_qr:
+                classe = ("renouvellement_perceptif" if meme_lieu_quitte_retour
+                          and set(diff_quitte_retour) <= set(CATEGORIES_PERCEPTIVES)
+                          else "entree_nouvelle_a_expliquer")
             elif intermediaires_reels and all(m["accompli_au_depart"] for m in intermediaires_reels):
                 # Un résultat intermédiaire demande une explication causale ;
                 # cette prudence vaut pour tous les buts, sans exception de garde.
@@ -615,6 +799,7 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
                 "croyances_diff_dq": croyances_dq,
                 "croyances_diff_qr": croyances_qr,
                 "croyances_diff_dr": croyances_dr,
+                "perception_diff_qr": perception_qr,
                 "besoins_debut": e_debut["besoins_continus"],
                 "besoins_quitte": e_quitte["besoins_continus"],
                 "besoins_retour": e_retour["besoins_continus"],
@@ -640,10 +825,11 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
         "comptes": dict(comptes),
         "total_non_justifies": comptes.get("repetition_sans_entree_nouvelle", 0),
         "total_justifies": sum(comptes.get(k, 0) for k in (
-            "preemption_palier_superieur", "progression_reelle", "satisfaction_ou_dementi_autrui")),
+            "preemption_palier_superieur", "progression_reelle", "satisfaction_ou_dementi_autrui",
+            "changement_moyen_admissible", "rendez_vous_intermediaire_accompli", "entree_publiee_utilisee")),
         "derives_ouvertes": derives,
         "total_derives_ouvertes": len(derives),
-        "total_a_expliquer": comptes.get("entree_nouvelle_a_expliquer", 0),
+        "total_a_expliquer": sum(comptes.get(c, 0) for c in CLASSES_A_EXPLIQUER),
         "certification_complete": False,
         "horizon_minutes": horizon_minutes,
         "par_pnj": {id: dict(Counter(r["classe"] for r in allers_retours if r["id"] == id))
@@ -665,6 +851,36 @@ def observer_avis():
     vrai_agir = pnj.agir
     vrai_menager = deliberation.menager_flamme
     vrais_candidats = deliberation._candidats
+    vraies_clotures = biens.clotures_services_du_choix
+    vrais_retrouves = appel.retrouves
+
+    @contextmanager
+    def clotures_sondees(m):
+        observe = m is sonde.monde_services
+        avant = copy.deepcopy(m.data.get("services_rendus", []))
+        if observe:
+            sonde.relever_services(m)
+        with vraies_clotures(m):
+            yield
+        if observe:
+            sonde.cloturer_services(m, avant)
+
+    def retrouves_sondes(m, id, qui):
+        observe = m is sonde.monde_services
+        attentes = [(x, y) for x, y in ((id, qui), (qui, id))
+                    if x != "joueur" and (lire(m, x).get("rejoint") or {}).get("qui") == y]
+        resultat = vrais_retrouves(m, id, qui)
+        if not observe:
+            return resultat
+        for x, y in attentes:
+            if lire(m, x).get("rejoint") is not None or not sonde.episodes.get(x):
+                continue
+            ep = sonde.episodes[x][-1]
+            if ep["decision"]["but"] == {"type": "attendre", "qui": y}:
+                ep.setdefault("faits", []).append({
+                    "t": instant(m), "cle": ep["decision"]["cle"], "qui": y,
+                    "preuve": "rendez_vous_clos_par_retrouves"})
+        return resultat
 
     def transition(original, physique=False):
         def observer(monde, *args, **kwargs):
@@ -695,10 +911,12 @@ def observer_avis():
             sonde.dans_deliberer = False
 
     def choisir_sonde(m, id, minute):
+        sonde.relever_services(m)
         cause = "minute" if sonde.dans_deliberer else sonde.intentions_agir.pop(id, "eveil")
+        manque = copy.deepcopy(lire(m, id).get("manque"))
         sonde.candidats[id] = {}
         res = vrai_choisir(m, id, minute)
-        sonde.enregistrer_choix(m, id, minute, cause)
+        sonde.enregistrer_choix(m, id, minute, cause, manque)
         sonde.relever_services(m)
         return res
 
@@ -743,6 +961,8 @@ def observer_avis():
     with ExitStack() as pile, patch.object(deliberation, "choisir", choisir_sonde), \
          patch.object(deliberation, "deliberer", deliberer_sonde), \
          patch.object(pnj, "agir", agir_sonde), \
+         patch.object(biens, "clotures_services_du_choix", clotures_sondees), \
+         patch.object(appel, "retrouves", retrouves_sondes), \
          patch.object(deliberation, "_candidats", candidats_sondes), \
          patch.object(deliberation, "menager_flamme", menager_sonde):
         for module, nom, physique in ((pnj, "_executer", False),
@@ -861,7 +1081,7 @@ def main(argv=None):
             "total_services_etat_perdu": sum(r["analyse"]["total_services_etat_perdu"]
                                              for r in resultats if r["scenario"] == scenario),
             "total_non_justifies": c_scen.get("repetition_sans_entree_nouvelle", 0),
-            "total_a_expliquer": c_scen.get("entree_nouvelle_a_expliquer", 0),
+            "total_a_expliquer": sum(c_scen.get(c, 0) for c in CLASSES_A_EXPLIQUER),
             "total_cycles_accomplis": (
                 c_scen.get("cycle_accompli", 0) + c_scen.get("garde_interruption_accomplie", 0)
             ),
@@ -880,7 +1100,7 @@ def main(argv=None):
         "total_derives_ouvertes": sum(r["analyse"]["total_derives_ouvertes"] for r in resultats),
         "total_services_etat_perdu": sum(r["analyse"]["total_services_etat_perdu"] for r in resultats),
         "total_non_justifies": totaux.get("repetition_sans_entree_nouvelle", 0),
-        "total_a_expliquer": totaux.get("entree_nouvelle_a_expliquer", 0),
+        "total_a_expliquer": sum(totaux.get(c, 0) for c in CLASSES_A_EXPLIQUER),
         "total_cycles_accomplis": (
             totaux.get("cycle_accompli", 0) + totaux.get("garde_interruption_accomplie", 0)
         ),

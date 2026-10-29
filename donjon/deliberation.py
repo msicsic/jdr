@@ -257,12 +257,12 @@ def _disponible_cru(monde, id, objet):
 # et tout autre, tient ``REDEMANDE`` minutes. Chaque demande a sa dernière réponse refusée, gardée à
 # part des souvenirs, que le temps n'efface pas (``esprit["refus"]``) ; une demande accordée l'efface.
 CAUSES = ("impossible", "necessaire", "absent", "eteinte", "rien", "indication", "inconnu")
-DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre", "contre_offre", "condition_tenue", "information", "repere")
+DETAILS_REFUS = ("objet", "besoin", "prix", "tache", "flamme", "offre", "contre_offre", "condition_tenue", "information", "repere", "mandat")
 
 
-def _meme_demande(s, autre, operations, objet, besoin):
+def _meme_demande(s, autre, operations, objet, besoin, mandat=None):
     return (s["de"] == autre and s["operation"] in operations and s.get("objet", objet) == objet
-            and s.get("besoin") == besoin)
+            and s.get("besoin") == besoin and s.get("mandat") == mandat)
 
 
 def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
@@ -286,7 +286,7 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
                               **{k: v for k, v in detail.items() if k in ("objet", "besoin")}})
     if raison == "qui_va_la":
         return
-    oublier_refus(monde, id, autre, operation, detail.get("objet"), detail.get("besoin"))
+    oublier_refus(monde, id, autre, operation, detail.get("objet"), detail.get("besoin"), mandat=detail.get("mandat"))
     if operation == "acheter":
         # L'achat est la nouvelle réponse à cette demande de bien. À minute
         # égale, l'ancien refus gratuit ne doit pas cacher celui du marché.
@@ -318,18 +318,19 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
                                                 "besoin": intention["motif"]}
 
 
-def oublier_refus(monde, id, autre, operation, objet=None, besoin=None):
+def oublier_refus(monde, id, autre, operation, objet=None, besoin=None, *, mandat=None):
     """La demande accordée (ou refusée de nouveau) : la réponse retenue ne vaut plus."""
     e = esprit(monde, id)
     e["refus"] = [s for s in e["refus"] if not (s["de"] == autre and s["operation"] == operation
-                                                 and s.get("objet") == objet and s.get("besoin") == besoin)]
+                                                 and s.get("objet") == objet and s.get("besoin") == besoin
+                                                 and s.get("mandat") == mandat)]
 
 
-def refus_retenu(monde, id, autre, operations, objet=None, besoin=None):
+def refus_retenu(monde, id, autre, operations, objet=None, besoin=None, *, mandat=None):
     """La dernière réponse refusée d'``autre`` à cette demande (``operations`` : les façons de la faire,
     demander ou acheter), si elle tient encore (``tient``) ; None sinon. Un refus sans objet (le
     passage) vaut pour tout objet."""
-    refus = [s for s in lire(monde, id).get("refus", ()) if _meme_demande(s, autre, operations, objet, besoin)]
+    refus = [s for s in lire(monde, id).get("refus", ()) if _meme_demande(s, autre, operations, objet, besoin, mandat)]
     dernier = max(refus, key=lambda s: s["minute"], default=None)
     return dernier if dernier is not None and tient(monde, id, dernier) else None
 
@@ -428,6 +429,12 @@ def moyens_crus(monde, id, s, connus=None):
     connus = _connus(monde, id) if connus is None else connus
     op, o = s["operation"], s.get("objet")
     faits, abords = set(), []
+
+    if s.get("mandat"):
+        # Une impossibilité de mandat porte sur le plan social complet estimé,
+        # pas seulement sur la position de sa cible. Dates de regard exclues.
+        from .agendas import _croyances
+        return [["mandat", o, _croyances(monde, id, moyens_seuls=True), None]]
 
     if op == "enqueter_lieu":
         # Seulement les entrées du demandeur, jamais le savoir privé du témoin.

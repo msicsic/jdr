@@ -1663,11 +1663,20 @@ def executer(monde, id, etape, lignes):
             if objet["id"] in monde.objets:
                 constater(monde, id, objet["id"], "vu")
     elif op == "confier":
-        issue = confier(monde, id, autre, contenu)
+        mandat = contenu.get("mandat")
+        issue = confier(monde, id, autre, mandat=mandat) if mandat else confier(monde, id, autre, contenu)
         for s in lire(monde, id)['recours_intermediaires']:
             if s['via'] == autre and s['objet'] == contenu['objet'] and s['issue'] == 'preparee':
                 s['issue'] = issue
-        recit = f"{a} demande à {b} de faire en sorte que {phrase_condition(monde, contenu)}"
+        if mandat:
+            p = mandat["parametres"]
+            if mandat["sorte"] == "amener":
+                charge = phrase_condition(monde, {"objet": contenu["objet"], "lieu": p["lieu"]})
+            else:
+                charge = "l'information soit transmise à " + _qui(monde, contenu["objet"])
+            recit = f"{a} confie à {b} la tâche de faire en sorte que {charge}"
+        else:
+            recit = f"{a} demande à {b} de faire en sorte que {phrase_condition(monde, contenu)}"
         clair = recit + "."
         reponse = f"{b} accepte." if issue in ("accepte", "deja") else f"{b} refuse."
         cites = [contenu["objet"], contenu.get("lieu")]
@@ -1714,10 +1723,11 @@ def executer(monde, id, etape, lignes):
                 else contenu["condition"]["objet"] if op == "engager" else contenu.get("objet"))
         if reussi:
             for x in (("demander", "acheter") if op in ("demander", "acheter") else (op,)):
-                oublier_refus(monde, id, autre, x, vise)
+                oublier_refus(monde, id, autre, x, vise, mandat=contenu.get("mandat"))
         elif not offre:
             condition = contenu["condition"] if op == "engager" else contenu if op == "confier" else None
             retenir_refus(monde, id, autre, op, issue, objet=vise,
+                          mandat=contenu.get("mandat"),
                           prix=contenu["prix"] if op in ("engager", "acheter") else None,
                           tache=tache(condition) if condition else None,
                           flamme=objet["id"] if op == "demander_feu" and objet else None)

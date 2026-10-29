@@ -153,18 +153,45 @@ class HelerTests(unittest.TestCase):
 
     def test_un_appel_sans_reponse_n_est_pas_repete_en_boucle(self):
         """Anselme, enfermé, se méfie d'Hugues et ne répond pas. Hugues hèle une fois dans chaque
-        salle où il peut aller, puis cesse : chaque appel resté sans réponse compte la salle pour
-        parcourue (``deliberation.appels_vains``)."""
+        salle où il peut aller, puis cesse, sauf indice nouveau dans ce lieu : chaque appel resté
+        sans réponse compte la salle pour parcourue (``deliberation.appels_vains``)."""
+        from unittest.mock import patch
+        from donjon import deliberation as d, pnj
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        heler, indice = pnj.heler, d.indice_recherche
+        cris, reouvertures = [], []
+        def nouveau(monde, id, salle, qui=None, **kw):
+            avant = salle in d.appels_vains(monde, id, 'anselme')
+            resultat = indice(monde, id, salle, qui, **kw)
+            if id == 'hugues' and avant and salle not in d.appels_vains(monde, id, 'anselme'):
+                reouvertures.append(salle)
+            return resultat
+        def appeler(monde, id, qui, lignes):
+            if id == 'hugues' and qui == 'anselme':
+                salle = monde.objets[id]['lieu']
+                self.assertNotIn(salle, d.appels_vains(monde, id, qui))
+                if salle in cris:
+                    # Toute nouvelle tentative consomme une réouverture
+                    # positive, jamais le simple passage d'un délai.
+                    self.assertIn(salle, reouvertures)
+                    reouvertures.remove(salle)
+                cris.append(salle)
+            return heler(monde, id, qui, lignes)
         m = recharger(hugues_cherche_anselme(verrou=True))
-        for _ in range(6):
-            m, _ = attendre(m)
-        m = recharger(m)
+        with patch.object(pnj, 'heler', appeler), patch.object(d, 'indice_recherche', nouveau):
+            for _ in range(6):
+                m, _ = attendre(m)
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        self.assertEqual(regarder(m), regarder(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
+        m = recharge
         faits = appels(m, "hugues")
         salles = [s["salle"] for s in lire(m, "hugues")["memoire"] if s["type"] == "appel_sans_reponse"]
         self.assertEqual(len(faits), len(salles))
-        self.assertEqual(len(salles), len(set(salles)))
+        self.assertEqual(salles, cris)
         self.assertNotIn("chambre_chaude", salles)
-        self.assertTrue(all(minute < 12 for minute, _ in faits))
         self.assertFalse([t for t in chronique(m) if t.startswith("Anselme répond")])
 
     def test_un_cri_sans_les_mots_inquiete_les_mots_non(self):

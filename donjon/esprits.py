@@ -46,6 +46,8 @@ from .spatial import (CLES_VUE, _champ, _memo_vue, _murs, _position_vue, a_verif
 from .vol import proprietaire as _proprietaire
 
 MEMOIRE_MAX = 40
+PRESENCES_MAX = 40     # Indépendant des souvenirs employés par le comportement.
+GESTES_SOUPCON_MAX = 40
 RECENT = 30            # minutes pendant lesquelles ce qu'on a vu, ou ce qu'on vient d'entendre, fait foi
 SOURCES = ("vu", "savoir", "essai", "entendu", "se_dit", "devine")   # se_dit : une voix inconnue a dit être lui
 ETATS_VISIBLES = {"porte": ("ouverte",), "contenant": ("ouverte",), "luminaire": ("allume", "faible", "charge"),
@@ -106,7 +108,8 @@ CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": 
           "recherches": dict,
           # Contenus des indices déjà utilisés par personne et lieu, hors mémoire bornée.
           "indices_recherche": dict,
-          "presence_recherche": dict}  # Dernière localisation positive, même après un constat d'absence.
+          "presence_recherche": dict,  # Dernière localisation positive, même après un constat d'absence.
+          "indices_soupcon": lambda: {"presences": [], "gestes": [], "constats": {}, "soupcons": {}, "oublis": {}}}
 ETAPE = {"operation", "cible", "outil", "lieu", "condition"}
 CLES_INTENTION = {"but", "motif", "plan", "depuis", "attente"}
 
@@ -172,6 +175,20 @@ def installer(monde):
         from .relations import installer as installer_relations
         installer_relations(monde, id)
         e = esprit(monde, id)
+        # Migration des premières sauvegardes du 267 : aucune présence ne
+        # reste dans les quarante souvenirs employés par le comportement.
+        r = e["indices_soupcon"]
+        migration_soupcon = any(k in e for k in ("constats_biens", "soupcons"))
+        for ancien, destination in (("constats_biens", "constats"), ("soupcons", "soupcons")):
+            if ancien in e:
+                r[destination].update(e.pop(ancien))
+        for s in list(e["memoire"]):
+            if s["type"] == "presence_percue":
+                migration_soupcon = True
+                e["memoire"].remove(s)
+                r["presences"].append({k: s[k] for k in ("qui", "salle", "instant")})
+        if migration_soupcon:
+            _purger_indices_soupcon(monde, id)
         for fait in e["faits_dits"].values():
             if isinstance(fait["dit_a"], list):
                 fait["dit_a"] = {a: copy.deepcopy(fait["valeur"]) for a in fait["dit_a"]}
@@ -448,6 +465,27 @@ def verifier(monde):
         assert (isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX
                 and all(isinstance(s, dict) and isinstance(s.get("type"), str) and type(s.get("minute")) is int
                         for s in e["memoire"])), "Mémoire de PNJ invalide"
+        r = e["indices_soupcon"]
+        assert isinstance(r, dict) and set(r) == {"presences", "gestes", "constats", "soupcons", "oublis"}, "Registre de soupçon invalide"
+        assert isinstance(r["presences"], list) and len(r["presences"]) <= PRESENCES_MAX, "Présences d'inférence invalides"
+        assert all(set(s) == {"qui", "salle", "instant"} and s["qui"] != id and isinstance(s["qui"], str)
+                   and s["salle"] in monde.data["salles"] and type(s["instant"]) is int and s["instant"] >= 0
+                   for s in r["presences"]), "Présence d'inférence invalide"
+        assert isinstance(r["gestes"], list) and len(r["gestes"]) <= GESTES_SOUPCON_MAX and all(
+            set(s) == {"objet", "instant"} and isinstance(s["objet"], str)
+            and type(s["instant"]) is int and s["instant"] >= 0 for s in r["gestes"]), "Gestes d'inférence invalides"
+        assert isinstance(r["oublis"], dict) and all(s in monde.data["salles"] and type(t) is int and t >= 0
+                                                   for s, t in r["oublis"].items()), "Oublis d'inférence invalides"
+        assert isinstance(r["constats"], dict), "Constats de biens invalides"
+        for o, cs in r["constats"].items():
+            assert isinstance(o, str) and isinstance(cs, dict) and set(cs) <= {
+                "present", "integrite", "vide", "allume", "charge", "disponible"}, "Propriétés constatées invalides"
+            for champ, c in cs.items():
+                assert (set(c) == {"valeur", "salle", "instant", "proprietaire", "lieu"}
+                        and c["salle"] in monde.data["salles"] and type(c["instant"]) is int
+                        and (c["proprietaire"] is None or isinstance(c["proprietaire"], str))
+                        and (c["lieu"] is None or isinstance(c["lieu"], str))
+                        and (type(c["valeur"]) is int if champ == "integrite" else type(c["valeur"]) is bool)), "Constat de bien invalide"
         from .social import DITS_MAX
         assert (isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX
                 and all(isinstance(k, str) and isinstance(v, dict) and {"valeur", "dit_a"} <= set(v)
@@ -542,6 +580,9 @@ def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    if (id != "joueur" and attribut == "lieu" and source == "entendu" and valeur in monde.data["salles"]
+            and (sujet == "joueur" or monde.objets.get(sujet, {}).get("type") == "personnage")):
+        _retenir_presence(monde, id, sujet, valeur)
     if attribut == "lieu" and source in ("vu", "entendu") and valeur in monde.data["salles"]:
         # Le contexte d'une réponse retenue change avec un déplacement
         # réellement perçu de la personne, jamais avec une date, une autre
@@ -661,6 +702,12 @@ def memoriser(monde, id, evenement):
     souvenir = copy.deepcopy({"minute": monde.data["minutes"], **evenement})
     from .relations import identifier
     from .temps import instant
+    if id != "joueur" and souvenir["type"] in ("vu_agir", "entendu_agir", "vu_porter", "vol_surpris"):
+        # La précision de l'indice reste dans son registre ; l'identité
+        # de la preuve commune reste celle du moteur antérieur.
+        gestes = esprit(monde, id)["indices_soupcon"]["gestes"]
+        gestes.append({"objet": souvenir["objet"], "instant": _date_indices_soupcon(monde)})
+        del gestes[:-GESTES_SOUPCON_MAX]
     identifier(souvenir, instant(monde))
     memoire.append(souvenir)
     del memoire[:-MEMOIRE_MAX]
@@ -668,6 +715,104 @@ def memoriser(monde, id, evenement):
     eprouver_souvenir(monde, id, souvenir)
     from .defense import retenir as retenir_violence
     retenir_violence(monde, id, souvenir)
+
+
+def _retenir_presences(monde, id, vus):
+    """Indices perceptifs bornés, sans écrire dans la mémoire du comportement."""
+    for qui, (salle, _) in vus.items():
+        if qui == id or not salle or (qui != "joueur" and monde.objets[qui]["type"] != "personnage"):
+            continue
+        _retenir_presence(monde, id, qui, salle)
+
+
+def _date_indices_soupcon(monde):
+    """Même grain que les croyances : une perception répétée dans la minute
+    ne mémorise pas le pas arbitraire qui a interrompu l'avancée du monde.
+    L'unité reste le dixième de seconde pour les intervalles déjà enregistrés.
+    """
+    from .temps import MINUTE
+    return monde.data["minutes"] * MINUTE
+
+
+def _retenir_presence(monde, id, qui, salle):
+    if qui == id:
+        return
+    r = esprit(monde, id)["indices_soupcon"]
+    r["presences"] = [s for s in r["presences"] if (s["qui"], s["salle"]) != (qui, salle)]
+    r["presences"].append({"qui": qui, "salle": salle, "instant": _date_indices_soupcon(monde)})
+    r["presences"].sort(key=lambda s: (s["instant"], s["salle"], s["qui"]))
+    _purger_indices_soupcon(monde, id)
+
+
+def _purger_indices_soupcon(monde, id):
+    """Purger ce qui précède les intervalles encore ouverts, sans état caché.
+
+    Une troncature de capacité interdit l'attribution d'un intervalle devenu
+    incomplet : oublier un second passant ne doit pas en désigner un seul.
+    """
+    r = esprit(monde, id)["indices_soupcon"]
+    debuts = {}
+    for cs in r["constats"].values():
+        for champ, c in cs.items():
+            utile = c["valeur"] is False if champ == "vide" else bool(c["valeur"]) and champ != "charge"
+            if utile:
+                debuts[c["salle"]] = min(debuts.get(c["salle"], c["instant"]), c["instant"])
+    maintenant = _date_indices_soupcon(monde)
+    r["presences"] = [s for s in r["presences"] if s["instant"] >= debuts.get(s["salle"], maintenant)]
+    for s in r["presences"][:-PRESENCES_MAX]:
+        r["oublis"][s["salle"]] = max(r["oublis"].get(s["salle"], -1), s["instant"])
+    del r["presences"][:-PRESENCES_MAX]
+    r["oublis"] = {s: t for s, t in r["oublis"].items() if t >= debuts.get(s, maintenant)}
+    debut = min(debuts.values(), default=maintenant)
+    r["gestes"] = [s for s in r["gestes"] if s["instant"] >= debut][-GESTES_SOUPCON_MAX:]
+
+
+def _constater_bien(monde, id, sujet, faits, salle, source="vu"):
+    """Comparer des propriétés réellement constatées, jamais un état caché.
+
+    Chaque propriété garde son propre dernier constat (le contenu d'un coffre
+    fermé n'est pas revu). Les présences et gestes viennent du registre perceptif.
+    """
+    if id == "joueur" or salle is None:
+        return
+    from .relations import deduire_soupcon, reviser_soupcons
+    e = esprit(monde, id)
+    reviser_soupcons(monde, id, sujet, faits, salle=salle)
+    r = e["indices_soupcon"]
+    maintenant = _date_indices_soupcon(monde)
+    constats = r["constats"].setdefault(sujet, {})
+    for champ, valeur in faits.items():
+        avant = constats.get(champ)
+        proprietaire = (_proprietaire(monde, monde.objets[sujet]) if faits.get("present") is True
+                        else (avant or {}).get("proprietaire"))
+        lieu_cru = croyance(monde, id, sujet, "lieu") or {}
+        constats[champ] = {"valeur": valeur, "salle": salle, "instant": maintenant,
+                           "proprietaire": proprietaire, "lieu": lieu_cru.get("valeur")}
+        if not avant or avant["proprietaire"] is None or avant["salle"] != salle or avant["instant"] >= maintenant:
+            continue
+        atteint = (valeur < avant["valeur"] if champ == "integrite" else
+                   valeur and not avant["valeur"] if champ == "vide" else not valeur and avant["valeur"])
+        if not atteint or source != "vu" or getattr(monde, "_agit", None) == id:
+            continue
+        # L'extinction par épuisement n'est pas une atteinte imputable.
+        if champ == "allume" and not faits.get("charge", False):
+            continue
+        if champ == "charge":
+            continue
+        lies = {sujet, avant["lieu"]} | {o for o, cs in r["constats"].items()
+                                        if cs.get("present", {}).get("lieu") == sujet}
+        connus = [s for s in r["gestes"] if s["objet"] in lies and s["instant"] >= avant["instant"]]
+        if connus or sujet in e["portages"]:
+            continue
+        if r["oublis"].get(salle, -1) >= avant["instant"]:
+            continue
+        suspects = {s["qui"] for s in r["presences"]
+                    if s["salle"] == salle and avant["instant"] <= s["instant"] <= maintenant}
+        if len(suspects) == 1:
+            auteur = next(iter(suspects))
+            if auteur != avant["proprietaire"]:
+                deduire_soupcon(monde, id, auteur, sujet, champ, avant)
+    _purger_indices_soupcon(monde, id)
 
 
 def dernier_son(monde, id):
@@ -993,6 +1138,9 @@ def constater_possession(monde, id, sujet, source, *, salle=None, case=None, rem
             p["remise_autorisee"] = precedent.get("remise_autorisee", False)
         details["possession"] = p
     reviser(monde, id, sujet, "lieu", o["lieu"], source, salle=salle, case=case, **details)
+    if id != "joueur" and porteur == id and details["possession"]["proprietaire"] == id:
+        from .relations import reviser_soupcons
+        reviser_soupcons(monde, id, sujet, {"present": True}, rendu=True)
 
 
 def _vu_porter(monde, id, sujet):
@@ -1107,6 +1255,17 @@ def constater(monde, id, sujet, source):
                 if ancien and "vide" in ancien["valeur"]:
                     etat["vide"] = ancien["valeur"]["vide"]
         croire(monde, id, sujet, "etat", etat, source)
+    if source in ("vu", "essai") and _proprietaire(monde, o) is not None:
+        lieu = croyance(monde, id, sujet, "lieu") or {}
+        salle = lieu.get("salle")
+        if _porteur(monde, o) == id:
+            salle = monde.objets[id]["lieu"]
+        faits = {"present": True}
+        if "integrite" in o:
+            faits["integrite"] = o["integrite"]
+        if etats:
+            faits.update({k: v for k, v in etat.items() if k in ("vide", "allume", "charge", "disponible")})
+        _constater_bien(monde, id, sujet, faits, salle, source)
 
 
 def _flamme_sous_les_yeux(monde, id, sujet, lieu):
@@ -1227,6 +1386,7 @@ def percevoir(monde, id):
 
 def _percevoir(monde, id):
     vus, champ = percus(monde, id)
+    _retenir_presences(monde, id, vus)
     croyances = esprit(monde, id)["croyances"]
     # Une disparition du registre n'apprend rien à un observateur distant.
     # Conserver aussi une fin déjà constatée, même si ses restes sont retirés.
@@ -1267,6 +1427,9 @@ def _percevoir(monde, id):
             valeur = etat["valeur"]
             reviser(monde, id, sujet, "etat", {**valeur, "allume": False, "faible": False,
                                                "charge": bool(valeur.get("charge")) and not valeur.get("faible")})
+            _constater_bien(monde, id, sujet, {"allume": False,
+                             "charge": bool(valeur.get("charge")) and not valeur.get("faible")},
+                             (attributs.get("lieu") or {}).get("salle"))
             change = True
     for sujet, attributs in croyances.items():
         lieu = attributs.get("lieu")
@@ -1283,6 +1446,8 @@ def _percevoir(monde, id):
             continue  # Un objet fixe fait partie du lieu : ne pas le voir d'ici ne le déplace pas.
         reviser(monde, id, sujet, "lieu", None, salle=None, case=None)
         if sujet != "joueur" and monde.objets[sujet]["type"] != "personnage":
+            if sujet in e["indices_soupcon"]["constats"]:
+                _constater_bien(monde, id, sujet, {"present": False}, lieu["salle"])
             change = True  # Ce qu'il attendait là n'y est plus.
             memoriser(monde, id, {"type": "absence", "objet": sujet, "salle": lieu["salle"]})
             from .vol import proprietaire
@@ -1292,6 +1457,7 @@ def _percevoir(monde, id):
     # Ce qu'il voit changer par son propre geste (ses pas, se tourner, une porte qu'il ouvre), il s'y
     # attendait : son plan le prévoyait, il le poursuit (la fin du plan, un geste manqué et la minute
     # le font choisir de nouveau). Seul ce que font les autres, ou le monde, l'éveille.
+    _purger_indices_soupcon(monde, id)
     from .signes import retenir_detresses, percus as signes_percus
     change |= retenir_detresses(monde, id, signes_percus(monde, id))
     if change and not premiere and getattr(monde, "_agit", None) != id:

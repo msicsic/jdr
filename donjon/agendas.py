@@ -220,21 +220,54 @@ def devis_observateur(monde, observateur, parent, acteur, sorte, parametres, *, 
 
     Les connaissances partagées ou à transmettre sont explicites ; le mandat
     hypothétique ne publie rien. Le jugement réel reste ``devis_mandat``.
-    Aucun appelant autonome n'utilise ce devis.
     """
     from .planification import ContexteDevis
+    p = _condition_mandat(monde, sorte, parametres)
+    if (not _personne_disponible_crue(monde, observateur, acteur)
+            or any(not _personne_disponible_crue(monde, observateur, q) for q in p["qui"])):
+        return None
     contexte = ContexteDevis(observateur, acteur, transmis)
     copie = contexte.projeter(monde)
     if copie is None:
         return None
-    a = confier(copie, observateur, parent, acteur, sorte, parametres, accepte=True)
+    if any(q not in copie.objets for q in p["qui"]):
+        # Une identité dans l'agenda ne fournit pas à elle seule les
+        # connaissances nécessaires à son apparition dans le modèle fermé.
+        return None
+    # Un devis n'est pas une publication : reconstruire une filiation lirait
+    # les esprits des ancêtres, absents à juste titre du modèle fermé.
+    a = copy.deepcopy(_projet(monde, observateur, parent))
+    if a is None:
+        raise ValueError("Parent de mandat absent")
+    a.update(id="devis", sorte=sorte, parametres=_condition_mandat(copie, sorte, p),
+             etat="actif", origine={"type": "scenario"})
+    for champ in ("confies", "jugements"):
+        a.pop(champ, None)
+    copie.data["esprits"][acteur]["agendas"] = [a]
+    if sorte == "informer" and "avis" in parametres:
+        from .eau import menacee
+        from .esprits import croire
+        from .social import avis_exprime
+        avis = parametres["avis"]
+        if menacee(monde, observateur, avis["objet"]) != avis["valeur"]:
+            return None
+        dit = avis_exprime(copie, observateur, avis["objet"], avis["valeur"])
+        # Hypothèse explicite d'une parole acceptée, comme les faits transmis.
+        # La réception réelle garde son jugement ; aucune mesure ne voyage ici.
+        croire(copie, acteur, avis["objet"], "prevision", dit["valeur"],
+               "dit:" + observateur, dit["conviction"])
     cout = []
     resultat = planifier(copie, acteur, a["id"], cout=cout)
     return (cout[0], resultat[1]) if resultat is not None and cout else None
 
 
 def _condition_mandat(monde, sorte, parametres):
-    """Identité du sous-but indépendante de l'ordre des destinataires."""
+    """Structure et identité persistantes, indépendantes de la disponibilité.
+
+    Un jugement et une filiation restent valides après la mort d'une cible.
+    L'admissibilité du prochain geste dépend des croyances, séparément.
+    """
+    from .noms import PERSONNES
     if sorte not in ("amener", "informer") or not isinstance(parametres, dict):
         raise ValueError("Sorte de mandat invalide")
     p = copy.deepcopy(parametres)
@@ -242,7 +275,7 @@ def _condition_mandat(monde, sorte, parametres):
     qui = [qui] if isinstance(qui, str) else qui
     if (not isinstance(qui, list) or not qui
             or any(not isinstance(q, str) or q not in monde.objets
-                   or monde.objets[q]["type"] != "personnage" for q in qui)):
+                   or monde.objets[q]["type"] not in PERSONNES for q in qui)):
         raise ValueError("Destinataires de mandat invalides")
     p["qui"] = sorted(set(qui))
     if sorte == "amener":
@@ -348,7 +381,7 @@ def evaluation(monde, id, *, publier=True):
         monde._evaluation_agendas = ancien
 
 
-def _croyances(monde, id):
+def _croyances(monde, id, *, moyens_seuls=False):
     """Une nouvelle date de regard ne constitue pas un nouveau moyen."""
     from .esprits import lire
     def contenu(x):
@@ -358,7 +391,7 @@ def _croyances(monde, id):
             return [contenu(v) for v in x]
         return x
     croyances = contenu(lire(monde, id)["croyances"])
-    if any(a["sorte"] in ("obtenir", "récupérer") for a in (_stock(monde, id) or [])):
+    if not moyens_seuls and any(a["sorte"] in ("obtenir", "récupérer") for a in (_stock(monde, id) or [])):
         from .biens import richesse
         from .spatial import porte_par
         e = lire(monde, id)
@@ -435,6 +468,9 @@ def actualiser(monde, id):
         if a.get("echeance", float("inf")) < monde.data["minutes"]:
             _changer(monde, id, a, "abandonne", "echeance", empreinte)
             continue
+        if a["sorte"] in ("amener", "informer") and not _destinataires_disponibles(monde, id, a):
+            _changer(monde, id, a, "abandonne", "destinataires crus indisponibles", empreinte)
+            continue
         if a["sorte"] == "obtenir":
             from .biens import richesse
             if (a["origine"]["type"] == "situation" and not _dette_situation(monde, id)):
@@ -509,6 +545,19 @@ def _destinataires(a):
     return [qui] if isinstance(qui, str) else qui
 
 
+def _personne_disponible_crue(monde, id, qui):
+    """Identité connue, ni mort ni départ crus ; aucune lecture du corps réel."""
+    from .esprits import lire
+    from .noms import PERSONNES
+    etat = lire(monde, id)["croyances"].get(qui, {}).get("etat", {}).get("valeur", {})
+    return (monde.objets.get(qui, {}).get("type") in PERSONNES
+            and not etat.get("mort") and not etat.get("parti"))
+
+
+def _destinataires_disponibles(monde, id, a):
+    return [q for q in _destinataires(a) if _personne_disponible_crue(monde, id, q)]
+
+
 def _route_coupee(monde, id, a):
     """Une coupure prouvée, pas l'échec d'une recherche bornée ou d'une serrure.
 
@@ -547,19 +596,132 @@ def _informe(monde, id, a):
 
 
 def planifier(monde, id, identifiant, *, cout=None):
+    """Choisir le sous-but, puis son exécutant ; les devis restent directs."""
+    contexte = getattr(monde, "_evaluation_agendas", None)
+    if contexte is None or contexte[0] != id:
+        with evaluation(monde, id, publier=False):
+            return planifier(monde, id, identifiant, cout=cout)
+    mesure = [] if cout is None else cout
+    resultat = _prochain_sous_but(monde, id, identifiant, cout=mesure)
+    if cout is not None or getattr(monde, "_contexte_devis", None) is not None:
+        return resultat
+    return choisir_mandataire(monde, id, identifiant, resultat, mesure)
+
+
+def choisir_mandataire(monde, id, identifiant, propre, mesure):
+    """Comparer les coûts espérés depuis le seul esprit du mandant.
+
+    La confiance dirigée représente la fiabilité crue. L'autorité estimée
+    améliore l'espoir d'accord, jamais le jugement réel du destinataire.
+    Les faits nécessaires sont des paroles préparatoires ordinaires.
+    """
+    from .deliberation import salle_crue, refus_retenu
+    from .esprits import lire
+    from .relations import axes, chance_demande, autorite_estimee
+    from .planification import chercher, _etape
+    from .pnj import DUREES
+    a = _projet(monde, id, identifiant)
+    if a["etat"] not in ("actif", "sommeil") or a["sorte"] not in ("amener", "informer"):
+        return propre
+    qui = propre[0].get("qui") if propre else None
+    if propre is None:
+        attribues = {q for j in a.get("jugements", []) if j["issue"] == "accepte"
+                     and j["sorte"] == a["sorte"] for q in _destinataires(j)}
+        cibles = [q for q in _destinataires_disponibles(monde, id, a) if q not in attribues]
+        if a["sorte"] == "amener":
+            cibles = [q for q in cibles if salle_crue(monde, id, q) != a["parametres"]["lieu"]]
+        else:
+            from .social import deja_dit
+            cibles = [q for q in cibles if not deja_dit(monde, id, q, _noyau(a))]
+        qui = min(cibles, default=None)
+    if qui is None:
+        return propre
+    if not _personne_disponible_crue(monde, id, qui):
+        return None
+    p = copy.deepcopy(a["parametres"])
+    p["qui"] = [qui]
+    mandat = {"parent": identifiant, "sorte": a["sorte"], "parametres": p}
+    # L'acceptation entendue appartient au mandant ; aucune lecture de
+    # l'avancement privé de l'enfant, aucun renouvellement automatique.
+    if any(j["issue"] == "accepte" and j["sorte"] == a["sorte"]
+           and _condition_mandat(monde, a["sorte"], j["parametres"]) == p
+           for j in a.get("jugements", [])):
+        return propre[0], []
+    chaine = filiation(monde, id, identifiant)
+    if len(chaine) >= 3:
+        return propre
+    exclus = {r["titulaire"] for r in chaine} | set(p["qui"])
+    croyances = lire(monde, id)["croyances"]
+    transmis = [(qui, "lieu")] if "lieu" in croyances.get(qui, {}) else []
+    if a["sorte"] == "informer" and "fait" in p:
+        fait = p["fait"]
+        cle = (fait["sujet"], fait["attribut"])
+        if cle not in transmis:
+            transmis.append(cle)
+    paroles = []
+    for sujet, attribut in transmis:
+        c = croyances.get(sujet, {}).get(attribut)
+        if c is None:
+            return propre
+        paroles.append({"sujet": sujet, "attribut": attribut, "valeur": copy.deepcopy(c["valeur"])})
+    if a["sorte"] == "informer" and "avis" in p:
+        from .social import avis_exprime
+        avis = p["avis"]
+        paroles.append({"avis": avis_exprime(monde, id, avis["objet"], avis["valeur"])})
+    choix = [(mesure[0] if mesure else float("inf"), id, propre)]
+    for acteur in sorted(croyances):
+        if acteur in exclus or acteur == "joueur" or not _personne_disponible_crue(monde, id, acteur):
+            continue
+        if refus_retenu(monde, id, acteur, ("confier",), qui, mandat=mandat):
+            continue
+        salle = salle_crue(monde, id, acteur)
+        if salle is None:
+            continue
+        devis = devis_observateur(monde, id, identifiant, acteur, a["sorte"], p, transmis=transmis)
+        if devis is None:
+            continue
+        route = chercher(monde, id, lambda v, e: e.salle == salle,
+                         nom="mandataire:" + acteur, memo=["mandataire", acteur, salle],
+                         emplois=(), endurer=poids(monde, id, a))
+        if route is None:
+            continue
+        autorite = autorite_estimee(monde, id, acteur, salle, a["sorte"])
+        chance = min(.95, chance_demande(monde, id, acteur) + autorite["bonus"] / 20)
+        fiabilite = max(.1, axes(monde, id, acteur)["confiance"] / 100)
+        cout = route[0] + (len(paroles) * DUREES["dire"] + DUREES["confier"]) / 600
+        cout += devis[0] / (chance * fiabilite)
+        suite = route[1] + [_etape("dire", acteur, contenu=c) for c in paroles]
+        suite.append(_etape("confier", acteur, contenu={"mandat": mandat, "objet": qui}))
+        but = propre[0] if propre else {"type": "agenda", "agenda": identifiant, "qui": qui}
+        choix.append((cout, acteur, (but, suite)))
+    retenu = min(choix, key=lambda x: (x[0], x[1]))
+    if retenu[1] != id:
+        _changer(monde, id, a, "actif", "mandataire estime", _croyances(monde, id))
+        _limiter(monde, id, _croyances(monde, id))
+        if a["etat"] != "actif":
+            return None
+    return retenu[2]
+
+
+def _prochain_sous_but(monde, id, identifiant, *, cout=None):
     """Un seul prochain sous-but recherché ; aucun plan conservé dans l'agenda."""
     from .esprits import lire
     from .deliberation import salle_crue
     from .planification import chercher, _etape
     from .social import deja_dit, avis_exprime
-    contexte = getattr(monde, "_evaluation_agendas", None)
-    # Une requête isolée reste un devis : aucune transition ni chronique.
-    if contexte is None or contexte[0] != id:
-        with evaluation(monde, id, publier=False):
-            return planifier(monde, id, identifiant, cout=cout)
     a = next(a for a in _stock(monde, id) if a["id"] == identifiant)
     if a["etat"] not in ("actif", "sommeil"):
         return None
+    if a["sorte"] in ("amener", "informer"):
+        disponibles = _destinataires_disponibles(monde, id, a)
+        if not disponibles:
+            _changer(monde, id, a, "sommeil", "destinataires crus indisponibles", _croyances(monde, id))
+            return None
+        confies = {q for j in a.get("jugements", []) if j["issue"] == "accepte"
+                   and j["sorte"] == a["sorte"] for q in _destinataires(j)}
+        restants = [q for q in disponibles if q not in confies]
+        if not restants:
+            return {"type": "agenda", "agenda": identifiant}, []
     empreinte = _croyances(monde, id)
     if a["sorte"] == "récupérer":
         if a["etat"] == "sommeil" and a["croyances"] == empreinte:
@@ -600,7 +762,7 @@ def planifier(monde, id, identifiant, *, cout=None):
         _limiter(monde, id, empreinte)
         return ({"type": "agenda", "agenda": identifiant, "pieces": a["parametres"]["pieces"]}, resultat) if a["etat"] == "actif" else None
     if a["sorte"] == "amener":
-        return _amener(monde, id, a, empreinte, cout=cout)
+        return _amener(monde, id, a, empreinte, cout=cout, cibles=restants)
     if a["sorte"] == "protéger":
         from .defense import interposition
         poste = interposition(monde, id)
@@ -646,7 +808,7 @@ def planifier(monde, id, identifiant, *, cout=None):
     if not connu:
         _changer(monde, id, a, "sommeil", "contenu non cru", empreinte)
         return None
-    cibles = [qui for qui in _destinataires(a) if not deja_dit(monde, id, qui, noyau)]
+    cibles = [qui for qui in restants if not deja_dit(monde, id, qui, noyau)]
     if not cibles:
         _changer(monde, id, a, "sommeil", "transmission non attestee", empreinte)
         return None
@@ -677,7 +839,7 @@ def planifier(monde, id, identifiant, *, cout=None):
     return {"type": "agenda", "agenda": identifiant, "qui": qui}, trouve[1] + [_etape("dire", qui, contenu=contenu)]
 
 
-def _amener(monde, id, a, empreinte, *, cout=None):
+def _amener(monde, id, a, empreinte, *, cout=None, cibles=None):
     """Parole, demande, puis marche propre ; seules les traces du porteur font foi."""
     from .deliberation import salle_crue, refus_retenu
     from .eau import menacee
@@ -688,7 +850,8 @@ def _amener(monde, id, a, empreinte, *, cout=None):
     destination = a["parametres"]["lieu"]
     v = vue(monde, id)
     e = etat_depart(monde, id, v)
-    cibles = [q for q in _destinataires(a) if salle_crue(monde, id, q) != destination]
+    cibles = [q for q in (_destinataires(a) if cibles is None else cibles)
+              if salle_crue(monde, id, q) != destination]
     def distance(q):
         from .spatial import distance as distance_spatiale
         salle = salle_crue(monde, id, q)
