@@ -2,6 +2,21 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 318, branche `codex-g1-repense`, conception seule**, base
+  `integration 79fca6a` : lecture des quatre campagnes 294/296/304/311,
+  91 positions chacune, 30 tours MJ et 61 sans modèle. Diagnostic par saisie :
+  provenance de lecture retirée au 294 mais texte encore présent ; opérations
+  de levier/passage/attente disponibles au 311 malgré les pertes ; revues
+  trop strictes et trop permissives distinguées. Deux formes évaluées,
+  recommandation A : contexte public conservateur pour tout le libre,
+  suspension du raccord compact et préparation U-P/U-C sur les plans actuels.
+  **Proposition, pas décision adoptée** ; G1 reste non fusionnable, aucune
+  dépendance ni contrôle retiré. Couverture réelle des U-* distinguée des
+  potentiels 70,1 % / 82,1 %. Aucun code du jeu, test, banc, rejeu moteur ou
+  Luna ; aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/g1-318/`.
+  [Conception](conception-g1.md),
+  [rapport 318](taches/rapport-codex-318-g1-repense.md).
+
 - **Branche `codex-livraison-inconnu`, lot 312, fusionnée**, base
   `06465d9` : `_devis_remise` prépare le contact commun d'un destinataire
   inconnu après vérification des moyens d'acquisition ; `_localiser` partagé
