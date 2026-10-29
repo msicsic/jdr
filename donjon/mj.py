@@ -168,8 +168,10 @@ Si conversation_validee est présente, fais parler directement le personnage ind
 attribuant clairement ses mots entre « et ». Si elle contient replique_joueur, cette réplique
 de Corvus est déjà dite et affichée (issue) : ne la répète pas ; ceux de conversation_validee.repondent,
 et eux seuls, y répondent d'après conversation_validee.faits et ce qu'ils croient
-(esprits_interlocuteurs) ; repondent vide, personne ne répond ; les temoins l'ont entendue sans être
-interpellés et se taisent. Réponds à son sujet avec ses savoirs
+(esprits_interlocuteurs). Le flux emissions distingue les paroles déjà prononcées des réponses
+encore à formuler : statut a_formuler autorise une réponse ; statut prononcee porte des mots
+déjà entendus, à restituer exactement, sans créer une nouvelle réplique. Les réactions entre PNJ
+ne sont pas des réponses à Corvus. Les temoins ont entendu sans être interpellés. Réponds à son sujet avec ses savoirs
 (connaissances_pnj), son profil, ses intentions et sa relation au joueur. Une liste
 conversation_validee.faits vide signifie seulement qu'aucun accord n'a changé : le personnage
 doit quand même répondre. Reprends exactement les montants, conditions et refus validés ; une
@@ -976,6 +978,8 @@ class MJ:
         nature = {"conversation_pnj": "conversation_pnj", "enrichir": "complements",
                   "enrichir_savoirs": "savoirs", "parole_joueur": "parole"}[reponse["mode"]]
         if nature == "parole":
+            from .narration import raccorder_emissions
+            narration = raccorder_emissions(narration, rapport)
             narration["_prefixe_moteur"] = annonce_parole(travail, rapport)
         return ajouter_transaction(narration, nature, revision, complements,
                                    rapport if reponse["mode"] in ("conversation_pnj", "parole_joueur") else None)

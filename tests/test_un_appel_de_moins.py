@@ -1,4 +1,5 @@
 """Interprétation et contrôle local des opérations, jusqu'à la sauvegarde rechargée."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import unittest
 
@@ -23,8 +24,8 @@ class UnAppelDeMoinsTests(unittest.TestCase):
                 self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
                 self.assertEqual(sum(f == "repondre_au_joueur" for f, _ in appels), 2)
                 r = recharger(r)
-                self.assertEqual(len(r.data["paroles_joueur"]), 1)
-                self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
+                self.assertEqual(len(emissions_joueur(r)), 1)
+                self.assertEqual(emissions_joueur(r)[-1]["texte"], saisie)
                 self.assertIn(saisie, sortie)
                 self.assertIn("Ta parole est entendue.", str(r.data["conversation"]))
                 self.assertEqual(r.joueur["or"], m.joueur["or"])
@@ -43,7 +44,7 @@ class UnAppelDeMoinsTests(unittest.TestCase):
                 retours = [e["faits"]["retour_moteur"] for _, e in appels if "retour_moteur" in e.get("faits", {})]
                 self.assertIn("operations_demandees", retours[0]["attendu"])
                 self.assertNotIn(retours[0]["attendu"], sortie)
-                self.assertEqual(len(recharger(r).data["paroles_joueur"]), 1)
+                self.assertEqual(len(emissions_joueur(recharger(r))), 1)
                 self.assertIn("Ilse, tu m'entends ?", sortie)
 
     def test_reformulation_typee_garde_la_revue(self):
@@ -58,5 +59,5 @@ class UnAppelDeMoinsTests(unittest.TestCase):
                     revues=[{"conforme": True, "motif": "Le bien demandé est conservé."}])
                 self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
                 self.assertIn(replique, sortie)
-                self.assertEqual(len(recharger(r).data["paroles_joueur"]), 1)
+                self.assertEqual(len(emissions_joueur(recharger(r))), 1)
                 self.assertEqual(r.joueur["or"], m.joueur["or"])

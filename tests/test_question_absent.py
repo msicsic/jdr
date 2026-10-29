@@ -1,4 +1,6 @@
 """La question porte sur un savoir ; le geste et la perception exigent l'accès à leur cible."""
+from donjon.emissions import pnj as emissions_pnj
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import gzip
 import json
@@ -17,6 +19,7 @@ from tests.test_nom_non_relie import jouer_local
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, verdicts, NEUTRE
 from tests.test_tensions import placer, recharger
+from tests.support import question_sans_execution
 
 
 def scene(nom):
@@ -50,13 +53,15 @@ class QuestionAbsentTests(unittest.TestCase):
                 self.assertEqual(regarder(r), rendu)
 
     def assertQuestionSauvee(self, r, avant, texte, rendu):
-        self.assertEqual(r.data['conversation'][-1]['reponse'], texte)
+        self.assertEqual(r.data['conversation'][-1]['reponse'], question_sans_execution(texte))
         self.assertEqual(r.data['narrations_mj'][-1]['texte'], texte)
         self.assertEqual(r.data.get('paroles_pnj', []), avant.get('paroles_pnj', []))
         self.assertEqual(r.data.get('paroles_joueur', []), avant.get('paroles_joueur', []))
+        self.assertEqual(emissions_joueur(r), emissions_joueur(avant))
         # La phrase d'information ne devient ni une parole entendue, ni une
         # croyance ou une réaction de PNJ, même quand plusieurs voix sont là.
         self.assertEqual(r.data.get('esprits'), avant.get('esprits'))
+        self.assertEqual(emissions_pnj(r), emissions_pnj(avant))
         # Seuls l'échange et son récit audité sont nouveaux, aucun fait mécanique.
         apres = copy.deepcopy(r.data)
         for cle in ('conversation', 'narrations_mj', 'paroles_pnj'):
@@ -130,6 +135,7 @@ class QuestionAbsentTests(unittest.TestCase):
                 self.assertIn('ne permet pas de conclure à une absence', sortie)
                 self.assertEqual(r.data['objets'], avant['objets'])
                 self.assertEqual(r.data.get('paroles_joueur', []), avant.get('paroles_joueur', []))
+                self.assertEqual(emissions_joueur(r), emissions_joueur(avant))
                 self.assertEqual(r.data['conversation'][-1]['nature'], 'resultat_moteur')
                 self.assertIn(r.data['conversation'][-1]['reponse'], sortie)
                 self.assertEqual(recharger(r).data, r.data)

@@ -13,6 +13,7 @@ from textual.widgets import Button, Footer, Header, Input, Static, TabbedContent
 from .rendu import carte, fiche, regarder
 from .comparaison import texte_resultat, texte_comparaison
 from .gestes_publics import gestes_du_monde, rendre_liste, choisir_numero
+from .fabrication_terminal import RecetteTerminal, fabrication_publique
 
 
 # Deux nuances discrètes par terrain gardent le pas d'un mètre lisible sans ponctuation.
@@ -132,6 +133,7 @@ class PontTerminal:
         gestes = gestes_du_monde(monde)
         self.envoyer(self.app.actualiser, {
             "gestes": gestes,
+            "fabrication": fabrication_publique(monde),
             "carte": carte(monde), "fiche": fiche(monde), "scene": regarder(monde),
             "mode_cases": self._mode_cases(monde),
             "salle": monde.data["salles"][monde.joueur["salle"]]["nom"],
@@ -275,6 +277,7 @@ class SeuilApp(App[int]):
             self.exit(0)
 
     def actualiser(self, vue):
+        self.recette = None
         self.derniere_vue = vue
         self.mouvement_local_en_cours = False
         self.mode_cases = bool(vue.get("mode_cases"))
@@ -356,8 +359,31 @@ class SeuilApp(App[int]):
         texte = texte.strip()
         if not texte or self.occupe:
             return
+        recette = getattr(self, "recette", None)
+        if recette and not enregistrer_historique:
+            return
         try:
-            choix = choisir_numero(texte, self.derniere_vue.get("gestes", ()))
+            if texte.casefold() in ("quitter", "q", "exit"):
+                self.recette = None
+                choix = None
+            elif recette:
+                choix = recette.saisir(texte)
+                self.query_one("#commande", Input).value = ""
+                if recette.terminee:
+                    self.recette = None
+                    self.query_one("#gestes", Static).update(rendre_liste(self.derniere_vue.get("gestes", ())))
+                else:
+                    self.query_one("#gestes", Static).update(recette.rendre())
+                if choix is None:
+                    return
+            elif texte == "0":
+                self.recette = RecetteTerminal(self.derniere_vue["fabrication"])
+                self.action_gestes()
+                self.query_one("#gestes", Static).update(self.recette.rendre())
+                self.query_one("#commande", Input).value = ""
+                return
+            else:
+                choix = choisir_numero(texte, self.derniere_vue.get("gestes", ()))
         except ValueError as exc:
             self.ecrire(str(exc))
             return
@@ -470,7 +496,7 @@ class SeuilApp(App[int]):
             else "Commande active · F6 pour déplacer sur la carte")
 
     def _marcher(self, direction, chasse=False, feutre=False):
-        if not self.mode_cases or self.occupe:
+        if not self.mode_cases or self.occupe or getattr(self, "recette", None):
             return
         saisie = self.query_one("#commande", Input)
         brouillon, curseur = saisie.value, saisie.cursor_position

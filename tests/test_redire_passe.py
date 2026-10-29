@@ -1,4 +1,5 @@
 """Rappels du passé : vraie boucle console, sauvegarde et références publiques."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import json
 from pathlib import Path
@@ -48,7 +49,7 @@ class RedirePasseTests(unittest.TestCase):
                                  'reponse_en_cours_non_encore_prononcee')
                 recharge = recharger(r)
                 self.assertEqual(recharge.data, r.data)
-                self.assertEqual(recharge.data['paroles_pnj'][-1]['texte'], rappel)
+                self.assertEqual(emissions_pnj(recharge)[-1]['texte'], rappel)
                 self.assertIn(rappel, recharge.data['conversation'][-1]['reponse'])
                 self.assertEqual(recharge.data['jets'], avant['jets'])
                 for identifiant, objet in avant['objets'].items():
@@ -85,15 +86,15 @@ class RedirePasseTests(unittest.TestCase):
             [controle('voix_1', faux, 'contradictoire'), controle('voix_1', bon, 'etablie')])
         self.assertNotIn(faux, sortie)
         self.assertIn(bon, sortie)
-        self.assertEqual(r.data['paroles_pnj'][-1]['texte'], bon)
+        self.assertEqual(emissions_pnj(r)[-1]['texte'], bon)
         self.assertNotIn(faux, str(r.data['conversation']))
-        self.assertNotIn(faux, str(r.data['paroles_pnj']))
+        self.assertNotIn(faux, str(emissions_pnj(r)))
         historique = narration(appels)['faits']['echanges_passes']
         self.assertEqual(historique['voix_1'][0]['texte'], 'C’est Ilse. Qui va là ?')
         self.assertNotIn('ilse', historique)
         corrections = [e['controle_narratif'] for e in mj(appels) if 'controle_narratif' in e]
         self.assertIn('C’est Ilse. Qui va là ?', str(corrections))
-        self.assertEqual(len(r.data['paroles_pnj']), 4)
+        self.assertEqual(len(emissions_pnj(r)), 4)
         self.assertEqual(recharger(r).data['conversation'], r.data['conversation'])
 
     def test_autre_cas_part_servie_puis_faux_refus(self):
@@ -126,13 +127,13 @@ class RedirePasseTests(unittest.TestCase):
         self.assertEqual(r.objets['vivres']['portions'], avant - 1)
         self.assertLess(valeurs(r, 'joueur')['faim'], 80)
         self.assertNotIn(faux, str(r.data['conversation']))
-        self.assertEqual(r.data['paroles_pnj'][-1]['texte'], bon)
+        self.assertEqual(emissions_pnj(r)[-1]['texte'], bon)
         self.assertIn(dit, str(narration(appels)['faits']['echanges_passes']['marchand']))
 
     def test_historique_sans_fenetre_globale_et_sans_auditeurs_prives(self):
         m = banc('soir-noir')
         m = self.dire(m, 'personne', 'Qui est là ?', 'C’est Ilse.', ('qui', '', '', ''))
-        m.data['paroles_pnj'].extend([dict(locuteur='aubin', texte='Un autre échange.',
+        m.data.setdefault('paroles_pnj', []).extend([dict(locuteur='aubin', texte='Un autre échange.',
             auditeurs=['joueur'], revision=1, salle='beffroi', minute=0)] * 12)
         m.data['paroles_pnj'].append(dict(locuteur='ilse', texte='Secret.', auditeurs=['aubin'], revision=1, salle='beffroi', minute=0))
         faits = echanges_passes(recharger(m), interlocuteurs(m))

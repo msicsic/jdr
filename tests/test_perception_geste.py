@@ -15,6 +15,7 @@ from tests.test_ecoute import au_palier, parler_pendant
 from tests.test_relances_luna import action
 from tests.test_repli_et_appel import dialogue
 from tests.test_tensions import recharger, relais
+from tests.support import question_sans_execution
 
 
 class PerceptionGesteTests(unittest.TestCase):
@@ -62,7 +63,9 @@ class PerceptionGesteTests(unittest.TestCase):
                     self.assertIn("Tu entends une voix à l'ouest.", texte)
                 else:
                     self.assertEqual(r.data["minutes"], avant["minutes"])
-                    self.assertEqual(resultat["reponse"], regarder(r).strip())
+                    compris = "Compris : Observer la scène. (cible : scene)"
+                    self.assertEqual(resultat["compris"], compris)
+                    self.assertEqual(resultat["reponse"], regarder(r).strip() + "\n" + compris)
                     self.assertNotIn("aucune trace", texte)
 
     def test_une_perception_corrigee_ne_devient_pas_un_geste_vide(self):
@@ -127,7 +130,7 @@ class VueCouranteTests(unittest.TestCase):
                 self.assertNotIn(faux, str(r.data["conversation"]))
                 self.assertNotIn(faux, str(r.data["narrations_mj"]))
                 self.assertIn(corrige, texte)
-                self.assertEqual(r.data["conversation"][-1]["reponse"], corrige)
+                self.assertEqual(r.data["conversation"][-1]["reponse"], question_sans_execution(corrige))
                 revision = [e for f, e in appels if f == "repondre_au_joueur"][1]
                 self.assertIn("couverture_vue", str(revision["controle_narratif"]))
                 self.assertIn("objets_visibles", str(revision["controle_narratif"]))
@@ -171,7 +174,7 @@ class VueCouranteTests(unittest.TestCase):
         faits = self.assertVueFournie(r, appels)
         self.assertTrue(faits["objet:coffre"]["contenu_vide"])
         self.assertIn(phrase, visible)
-        self.assertEqual(suite.data["conversation"][-1]["reponse"], phrase)
+        self.assertEqual(suite.data["conversation"][-1]["reponse"], question_sans_execution(phrase))
         self.assertEqual(suite.data["journal"], r.data["journal"])
 
     def assertSansGeste(self, avant, reprise):
@@ -205,7 +208,8 @@ class VueCouranteTests(unittest.TestCase):
                 self.assertSansGeste(avant, r)
                 self.assertIn(phrase, texte)
                 self.assertEqual(r.data["narrations_mj"][-1]["texte"], phrase)
-                self.assertEqual(r.data["conversation"][-1]["reponse"], phrase)
+                attendu = question_sans_execution(phrase) if saisie.endswith("?") else phrase
+                self.assertEqual(r.data["conversation"][-1]["reponse"], attendu)
                 self.assertFalse(r.data.get("ambiances", {}))
                 self.assertEqual(regarder(r), regarder(m))
 

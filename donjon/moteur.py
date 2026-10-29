@@ -73,6 +73,7 @@ class Plan:
     oppose: str = ""           # jet opposé : le personnage qui oppose la même caractéristique (pousser)
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
+    compris: str = ""          # texte libre admis : récapitulatif moteur figé avant affichage
 
     @property
     def perception_canonique(self):
@@ -100,6 +101,9 @@ class Plan:
                     or any(p.realise_geste for p in self.plans))
 
     def resume(self, monde, afficher_avis=True):
+        if self.compris:
+            from dataclasses import replace
+            return self.compris + "\n" + replace(self, compris="").resume(monde, afficher_avis)
         from .noms import texte
         if self.etapes:
             plusieurs = len(self.plans) > 1

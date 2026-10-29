@@ -1,4 +1,5 @@
 """Rejeu du fil 102 : mots inchangés, localisation:false ajouté au format 221."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import json
 from pathlib import Path
@@ -23,7 +24,7 @@ class N3Tests(unittest.TestCase):
         self.assertIn('Tu dis', sortie)
         self.assertNotIn('Reformule', sortie)
         self.assertEqual(len([a for a in traces if a[0] == 'auditer_action']), 2)
-        self.assertEqual([p['texte'] for p in recharger(r).data['paroles_joueur']], [saisie])
+        self.assertEqual([p['texte'] for p in emissions_joueur(recharger(r))], [saisie])
 
     def test_fil_reel_et_question_dans_une_salle_eclairee(self):
         fil = json.loads((Path(__file__).parent / 'data/n3-lot102.json').read_text(encoding='utf-8'))
@@ -48,7 +49,7 @@ class N3Tests(unittest.TestCase):
                 self.assertNotIn('Reformule', sortie)
                 self.assertEqual(len([a for a in traces if a[0] == 'auditer_action']), 1)
                 r = recharger(r)
-                self.assertEqual([p['texte'] for p in r.data['paroles_joueur']], [saisie])
+                self.assertEqual([p['texte'] for p in emissions_joueur(r)], [saisie])
                 self.assertEqual(r.joueur['or'], m.joueur['or'])
                 self.assertEqual(r.data['journal'], m.data['journal'])
                 self.assertIn('Ta question est entendue.', str(r.data['conversation']))
@@ -57,7 +58,7 @@ class N3Tests(unittest.TestCase):
         r, sortie, _ = jouer(banc('soir-noir'), '??? zxq',
             [dialogue('Que veux-tu faire ?')], [rapport(ligne('neutre'))])
         self.assertNotIn('Tu dis', sortie)
-        self.assertFalse(recharger(r).data.get('paroles_joueur'))
+        self.assertFalse(emissions_joueur(recharger(r)))
         self.assertIn('Que veux-tu faire ?', sortie)
 
 

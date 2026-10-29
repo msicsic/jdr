@@ -1,4 +1,5 @@
 """Faits narratifs typés, validés et appliqués sur une copie du monde."""
+from .emissions import pnj as emissions_pnj
 
 import copy
 import math
@@ -448,11 +449,11 @@ def preparer_faits(monde, proposition, revision=None):
                 if presentation:
                     from .noms import presenter
                     presenter(travail,auditeur,ancrage,presentation,texte)
-            evenement = {"locuteur": ancrage, "texte": texte, "salle": source,
-                         "minute": travail.data["minutes"], "auditeurs": entendants,
-                         "revision": monde.data["revision"] + 1,
-                         **({'presentation':presentation} if presentation else {})}
-            travail.data.setdefault("paroles_pnj", []).append(evenement)
+            from .emissions import enregistrer
+            enregistrer(travail, ancrage, acte="dialogue_admis", parametres={}, modalite="constat",
+                        evenement={"type": "fait_local", "nature": nature}, auditeurs=entendants,
+                        a=["joueur"], texte=texte, revision=monde.data["revision"] + 1,
+                        presentation=presentation)
             rendus.append(nom[0].upper() + nom[1:] + " dit : « " + texte + " ».")
             etablis.append({"type": nature, "locuteur": designe})
             continue
@@ -600,9 +601,8 @@ def verifier(monde):
                     and s["salle"] in monde.data["salles"]
                     and all(isinstance(s[k], str) for k in s)
                     for s in monde.data.get("faits_vus", []))), "Souvenirs de faits invalides"
-    for parole in monde.data.get("paroles_pnj", []):
-        assert (set(parole) - {'presentation'} == {"locuteur", "texte", "salle", "minute", "auditeurs", "revision"}
-                and parole["locuteur"] in monde.objets
+    for parole in emissions_pnj(monde):
+        assert (parole["locuteur"] in monde.objets
                 and monde.objets[parole["locuteur"]]["type"] in ("personnage", "depouille")
                 and parole["salle"] in monde.data["salles"]
                 and _texte(parole["texte"], LONGUEUR_PAROLE)

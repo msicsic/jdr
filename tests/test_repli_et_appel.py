@@ -10,6 +10,7 @@ MJ ; s'il en fait une parole, le moteur en fixe le destinataire. Quand aucune r�
 le joueur lit ce que le moteur a établi, les phrases admises de la réponse, ou ce que Corvus perçoit
 de ce qu'il vise et ce qui manque. Chaque cas vérifie ce que lit le joueur et l'état après
 rechargement."""
+from donjon.emissions import joueur as emissions_joueur
 import io
 from pathlib import Path
 import tempfile
@@ -119,7 +120,7 @@ class ParoleExpliciteTests(unittest.TestCase):
             [verdicts(NEUTRE)] * 2)
         self.assertIn("Dis ce que Corvus dit à Ilse, entre guillemets ou après un deux-points.", sortie)
         self.assertNotIn("Tu demandes son aide", sortie)
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
         self.assertEqual(paroles_retenues(reprise, "ilse"), [])
 
 
@@ -136,7 +137,7 @@ class InterpellationTests(unittest.TestCase):
         self.assertNotIn("retour_moteur", mj(appels)[0]["faits"])
         self.assertEqual(mj(appels)[1]["faits"]["retour_moteur"]["obstacle"], "Rien n'a encore été dit à Aubin.")
         self.assertIn("Aubin est à quelques pas.", sortie)
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
 
     def test_s_il_en_fait_une_parole_le_moteur_fixe_le_destinataire_et_garde_les_mots(self):
         m = scene()
@@ -166,7 +167,7 @@ class InterpellationTests(unittest.TestCase):
         self.assertEqual(appels, [])
         self.assertIn(manque, sortie)
         self.assertEqual(reprise.data["conversation"], m.data["conversation"])
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
 
 
 class ReplisTests(unittest.TestCase):

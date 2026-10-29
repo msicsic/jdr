@@ -1,4 +1,5 @@
 """Lot 180 b : paroles compatibles, offres et polysémie, jusqu'à la recharge."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import unittest
 
@@ -51,7 +52,7 @@ class ComptesParolesTests(unittest.TestCase):
                 rr = recharger(r)
                 self.assertEqual(rr.data, r.data)
                 self.assertIn(citation, str(rr.data['conversation']))
-                self.assertEqual(rr.data['paroles_pnj'][-1]['texte'], citation)
+                self.assertEqual(emissions_pnj(rr)[-1]['texte'], citation)
                 if qui == 'brune': self.assertIn('Brune te doit 2 pièces', decrire_comptes(rr))
 
     def test_prime_reelle_et_autre_montant_invente_refuse(self):

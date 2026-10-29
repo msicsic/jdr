@@ -1,0 +1,15 @@
+{
+  "offre": "Compris : Tu dis à Aubin : « Je te paie trois pièces pour une de tes planches. » (à voix haute)\noffrir 3 pièces contre une part des planches de bac (les planches de bac [planches])",
+  "autre_offre": "Compris : Tu dis à Aubin : « Je te paie trois pièces pour une de tes planches. » (à voix haute)\noffrir 2 pièces contre une part de la réserve d'huile (la réserve d'huile [huile_test])",
+  "avis": "Compris : Tu dis à Gorm : « l'eau va gagner la conduite basse » (à voix haute)\nannoncer une prévision : Conduite basse [echoppe], menace de l'eau",
+  "tous": "Compris : Tu dis à tous : « l'eau ne menace pas le refuge du relais » (à voix haute)\nannoncer une prévision : Refuge du relais [antichambre], absence de menace de l'eau",
+  "parole": "Compris : Tu dis à Brune : « bonsoir » (à voix haute)\npropos sans effet mécanique typé",
+  "chuchotement": "Compris : Tu chuchotes à Brune : « Je me méfie d'Aubin. » (chuchotement)\npropos sans effet mécanique typé",
+  "question": "Question au MJ : aucune action exécutée.",
+  "vol": "Compris :\n1. Guetter une occasion pendant deux minutes.\n2. Prendre la trousse de crochets. (cible : la trousse de crochets [crochets]; destination : toi; méthode : discret)\nArrêt au premier échec ; les étapes déjà réussies restent acquises.",
+  "vol_direct": "Compris :\n1. Prendre la trousse de crochets. (cible : la trousse de crochets [crochets]; destination : toi; méthode : discret)",
+  "sequence": "Compris :\n1. Prendre et porter la perche de bois 1. (cible : la perche de bois 1 [perche_1]; destination : toi)\n2. Sauter 2.4 m en contrebas vers passage extérieur au nord. (cible : le bord nord [appui_terrasse_nord]; destination : Passage extérieur au nord [abord_terrasse_nord])\nArrêt au premier échec ; les étapes déjà réussies restent acquises.",
+  "leger": "Compris :\n1. Prendre la clé du veilleur. (cible : la clé du veilleur [cle]; destination : toi)",
+  "faisabilite": "Compris :\n1. Prendre la clé du veilleur. (cible : la clé du veilleur [cle]; destination : toi)",
+  "question_perception": "Compris : Examiner la clé du veilleur. (cible : la clé du veilleur [cle])"
+}

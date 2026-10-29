@@ -1,5 +1,6 @@
 """Etat sérialisable, relations spatiales et perception. Aucune dépendance externe."""
 from __future__ import annotations
+from .emissions import pnj as emissions_pnj, publiques as emissions_publiques
 from . import agendas
 
 import copy
@@ -163,14 +164,16 @@ class Monde:
         installer_eau(self)
         from .noms import installer as installer_noms
         installer_noms(self)
+        from .emissions import installer as installer_emissions
+        installer_emissions(self)
         self.verifier()
 
     def _installer_recit(self):
         self.data.setdefault("conversation", [])
 
-    def memoriser(self, joueur, reponse, nature="dialogue"):
+    def memoriser(self, joueur, reponse, nature="dialogue", *, complet=False):
         """Mémoire de conversation, jamais une source de nouvelles vérités physiques."""
-        self.data["conversation"].append({"joueur": joueur[:2000], "reponse": reponse[:4000],
+        self.data["conversation"].append({"joueur": joueur[:2000], "reponse": reponse if complet else reponse[:4000],
                                           "nature": nature, "revision": self.data["revision"]})
         self.data["conversation"] = self.data["conversation"][-12:]
 
@@ -517,7 +520,7 @@ class Monde:
                 "connaissances_pnj": connaissances_pnj(self),
                 # Qui parlait, sous le nom que le joueur lui connaît (``voix.designation``).
                 "paroles_entendues": [{**copy.deepcopy(p), "locuteur": designation(self, p["locuteur"])}
-                                      for p in self.data.get("paroles_pnj", []) if "joueur" in p["auditeurs"]][-10:],
+                                      for p in emissions_publiques(self, emissions_pnj(self))][-10:],
                 "souvenirs_faits": copy.deepcopy(self.data.get("faits_vus", [])[-20:]),
                 "ambiance_etablie": ambiance_etablie(self),
                 "minutes": self.data["minutes"], "bruit": self.data["bruit"],
@@ -540,6 +543,8 @@ class Monde:
     def verifier(self):
         d = self.data
         try:
+            from .emissions import verifier as verifier_emissions
+            verifier_emissions(self)
             from .noms import verifier as verifier_noms
             verifier_noms(self)
             agendas.verifier(self, "joueur")
