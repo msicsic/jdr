@@ -33,6 +33,65 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   ni durée calculable, pas d'échéance inventée.
   [Rapport 341](taches/rapport-codex-341-mandat-joueur.md).
 
+- **Lot 340 terminé, branche `codex-ascendant-evolue`, fusionnée**, base fournie
+  `9f261f9` : ascendant éprouvé par réussite, échec et abus perçus du mandat,
+  table commune des relations, preuve durable et complément du ouï-dire par
+  constat. Contrat réellement entendu conservé pour les témoins ; aucune
+  lecture d'avancement privé. Ordre abusif refusé compris, prix commun de faute,
+  aucune double pénalité à l'acceptation. Publication différée avec le choix,
+  registre facultatif validé et lectures de recherche couvertes. **218/218 tests
+  verts / 23 fichiers, 186,271 s**, zéro échec/erreur/saut, treize nouvelles
+  scènes ; Gorm/Aubin et Bram/Josse, monde/rendu/scène/paroles rechargés,
+  temps entier/découpé. **20/20 paires de nuits 4 h conformes**, cinq scénarios
+  × quatre graines, référence exacte `9f261f9` : suspects 219 **0 → 0 dans
+  chaque nuit**, zéro plantage/usurpation, chroniques/mesures de jeu/avis/constats
+  identiques. **Aucun mandat naturel ni aboutissement** : preuve du comportement
+  par les scènes. Vingt références exactes manquantes calculées/rangées une
+  fois, aucune référence disponible relancée ; aucun bilan de performance.
+  Deux travailleurs réduits au plus, ni Luna ni suite complète. Bruts
+  `C:/Users/msics/donjon/artifacts/ascendant-340/`, **fin.json ok=true**, codes
+  tests/banc 0, 1 137,994 s ; analyse de clôture sans rejeu. Moteur/tests
+  `14ba7f2` inchangés, empreintes vérifiées ; branche poussée vers origin,
+  aucun calcul actif. Abus limité
+  aux prédicats mécaniques de péril au lieu imposé et de contenu contraire
+  aux croyances ; aucune garantie morale narrative ou de risque de trajet
+  non calculé. Recouvrements 336 : agendas/echanges/planification ; 337 :
+  agendas/social/planification.
+  [Rapport 340](taches/rapport-codex-340-ascendant-evolue.md).
+  **Synchronisation terminée**, fusion sans rebase `a5368a3`, à deux parents
+  (`1dbd57e`, `origin/integration 64130fa`, 336/G5/G6). Union des lectures des
+  mandats perçus, engagements de protection et agendas contractuels dans
+  `_entrees_communes` ; documentation des deux côtés conservée. **442 tests /
+  44 fichiers : 441 verts, un échec antérieur**, zéro erreur/saut, 420,721 s.
+  Treize scènes du 340 et huit tests du 336 verts. Ancien appel sur agenda :
+  `chambre_cloche` au lieu d'`echoppe`, reproduit sur **64130fa exact**,
+  fichier 5/6 en 6,455 s ; mêmes traces hors chemins. Test inchangé, aucun
+  échec nouveau ; sources/tests vérifiés inchangés. Deux travailleurs réduits
+  au plus, aucun nouveau banc, Luna ni suite complète. Bruts
+  `C:/Users/msics/donjon/artifacts/ascendant-340/fusion-64130fa/`,
+  `tests.json`, `reference-tests.json`, `analyse-cloture.json` ;
+  **fin-cloture.json ok=true avec réserve**, fin brute rouge et erreur du
+  premier lanceur conservées. Branche poussée, aucun calcul actif.
+  **Seconde synchronisation terminée** : fusion sans rebase `c84ba5a`, deux
+  parents (`e29d1bd`, intégration exacte `c9b972b`, G17/326 et 337). Aucun
+  conflit de code ; documentation des deux côtés conservée. Lectures des
+  mandats, protections et preuves négatives de fin maintenues dans `_entrees` ;
+  contrôle AST et prémisse d'inventaire du 337 conservés ensemble.
+  **495 tests / 48 fichiers : 492 verts, trois échecs antérieurs**, aucune
+  erreur ni saut, 536,659 s. Treize tests 340, quatorze de garde par ouï-dire
+  et onze de comptes parlés moteur verts. Deux attentes `ouie_temoins` sur
+  les nouvelles de Bram et une attente `voix` sur la persuasion après appel
+  reproduites sur **c9b972b exact**, deux fichiers, 28 tests / trois échecs,
+  18,878 s ; traces identiques hors chemins absolus. Tests inchangés,
+  aucun échec nouveau. Sources/tests vérifiés inchangés. Deux travailleurs
+  réduits au plus, aucun banc, Luna ni suite complète ; aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/ascendant-340/fusion-c9b972b/` :
+  `tests.json`, `reference-tests.json`, `analyse-cloture.json`,
+  **fin-cloture.json ok=true avec trois réserves**, fin brute rouge conservée.
+  Branche poussée ; ancienne réserve d'appel de la première synchronisation
+  conservée, non réexercée par cette sélection ciblée.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. L'ascendant d'un mandant évolue une fois par issue perçue (abouti, échec, abus) par la table commune des relations, hystérésis et estompement ; témoin ignorant inchangé, compte rendu incertain pesé comme ouï-dire. Intégration c9b972b fusionnée par l'agent : 492/495 tests verts, trois échecs préexistants ; 20 nuits 4 h conformes, aucun mandat naturel (preuve par scènes).
+
 - **Lot 337 terminé avec deux échecs antérieurs réservés**, branche
   `codex-fin-garde-ouidire`, fusionnée. `origin/integration ad0e5a8`
   fusionnée sans rebase, deux parents `8ddef70`. Preuve négative de fin du
@@ -130,45 +189,6 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucune règle de rappels modifiée.
   [Rapport 326](taches/rapport-codex-326-g17-comptes-parles.md).
 
-- **Lot 340 terminé, branche `codex-ascendant-evolue`, non fusionnée**, base fournie
-  `9f261f9` : ascendant éprouvé par réussite, échec et abus perçus du mandat,
-  table commune des relations, preuve durable et complément du ouï-dire par
-  constat. Contrat réellement entendu conservé pour les témoins ; aucune
-  lecture d'avancement privé. Ordre abusif refusé compris, prix commun de faute,
-  aucune double pénalité à l'acceptation. Publication différée avec le choix,
-  registre facultatif validé et lectures de recherche couvertes. **218/218 tests
-  verts / 23 fichiers, 186,271 s**, zéro échec/erreur/saut, treize nouvelles
-  scènes ; Gorm/Aubin et Bram/Josse, monde/rendu/scène/paroles rechargés,
-  temps entier/découpé. **20/20 paires de nuits 4 h conformes**, cinq scénarios
-  × quatre graines, référence exacte `9f261f9` : suspects 219 **0 → 0 dans
-  chaque nuit**, zéro plantage/usurpation, chroniques/mesures de jeu/avis/constats
-  identiques. **Aucun mandat naturel ni aboutissement** : preuve du comportement
-  par les scènes. Vingt références exactes manquantes calculées/rangées une
-  fois, aucune référence disponible relancée ; aucun bilan de performance.
-  Deux travailleurs réduits au plus, ni Luna ni suite complète. Bruts
-  `C:/Users/msics/donjon/artifacts/ascendant-340/`, **fin.json ok=true**, codes
-  tests/banc 0, 1 137,994 s ; analyse de clôture sans rejeu. Moteur/tests
-  `14ba7f2` inchangés, empreintes vérifiées ; branche poussée vers origin,
-  aucun calcul actif. Abus limité
-  aux prédicats mécaniques de péril au lieu imposé et de contenu contraire
-  aux croyances ; aucune garantie morale narrative ou de risque de trajet
-  non calculé. Recouvrements 336 : agendas/echanges/planification ; 337 :
-  agendas/social/planification.
-  [Rapport 340](taches/rapport-codex-340-ascendant-evolue.md).
-  **Synchronisation terminée**, fusion sans rebase `a5368a3`, à deux parents
-  (`1dbd57e`, `origin/integration 64130fa`, 336/G5/G6). Union des lectures des
-  mandats perçus, engagements de protection et agendas contractuels dans
-  `_entrees_communes` ; documentation des deux côtés conservée. **442 tests /
-  44 fichiers : 441 verts, un échec antérieur**, zéro erreur/saut, 420,721 s.
-  Treize scènes du 340 et huit tests du 336 verts. Ancien appel sur agenda :
-  `chambre_cloche` au lieu d'`echoppe`, reproduit sur **64130fa exact**,
-  fichier 5/6 en 6,455 s ; mêmes traces hors chemins. Test inchangé, aucun
-  échec nouveau ; sources/tests vérifiés inchangés. Deux travailleurs réduits
-  au plus, aucun nouveau banc, Luna ni suite complète. Bruts
-  `C:/Users/msics/donjon/artifacts/ascendant-340/fusion-64130fa/`,
-  `tests.json`, `reference-tests.json`, `analyse-cloture.json` ;
-  **fin-cloture.json ok=true avec réserve**, fin brute rouge et erreur du
-  premier lanceur conservées. Branche poussée, aucun calcul actif.
 
 - **Lot 328 / G6, synchronisation terminée**, branche `codex-g6-reperes`,
   fusionnée dans integration : fusion sans rebase de `integration 49608db`
