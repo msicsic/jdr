@@ -1,9 +1,27 @@
 # Lot 306 — responsabilité d'évacuation dans le hameau
 
-Branche **codex-a5-agenda-hameau**, non fusionnée, base intégration
-7ec839e, données/tests 8145e48, 29 octobre 2026. **Vérification close,
-banc du hameau non validé.** Aucun moteur/MJ modifié, ni Luna ni suite
-complète. Aucun calcul actif ou relancé à la clôture.
+Branche **codex-a5-agenda-hameau**, non fusionnée, base initiale 7ec839e,
+données/tests 8145e48, 29 octobre 2026. **Reprise après 309 en cours** :
+fusion sans rebase de origin/integration **13ce328** dans **081e65b**.
+Seul conflit de documentation, deux historiques conservés. Aucun changement
+propre au lot 306 dans le moteur/MJ ; données inchangées après mesure.
+
+**48 tests / huit fichiers verts après fusion**, sept fichiers du lot
+et test_recit_agendas, 68,601 s, deux travailleurs réduits. Le test connu
+d'ordre des mesures, pris en charge par le lot 310, n'est ni lancé ni
+compté contre ce lot. Court témoin de capture : état final, chronique et
+mesures identiques avec/sans captures supplémentaires.
+
+**Banc détaché lancé sur 081e65b**, hameau 4 h × 1985/7/42/2024 contre
+13ce328, cache commun, deux travailleurs réduits maximum, PID 20232.
+Bruts séparés : C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-309/,
+fichier de fin attendu fin.json. Épisodes complets de la sonde commune
+219/271/276, captures aux transitions et aux publications pour Aubin/Gorm
+en 7 et Gorm en 2024, état final rechargé. **Instruction à terminer après
+le calcul** : entrées publiées utilisées, renouvellement perceptif à
+examiner, répétition sans entrée ou autre classe ; aucune alerte ne sera
+déclarée légitime sur le seul compteur de suspects. Ni Luna ni suite
+complète. Les résultats ci-dessous décrivent la première passe, avant 309.
 
 **Invariant livré.** Gorm reçoit evacuer_crue, sorte amener, vers
 chambre_cloche (la galerie), comme dans la crue. Ilse et Brune restent

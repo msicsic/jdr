@@ -9,7 +9,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun moteur/MJ modifié, aucune charge `informer` sans justification.
   **45 tests distincts / sept fichiers verts**, monde/scène/rendu/écoute
   rechargés, accords et marches réels Maël/Sève, temps continu/découpé.
-  **Vérification close, lot non validé pour intégration** : crue
+  **Reprise après 309 en cours** : fusion sans rebase de
+  `origin/integration 13ce328` dans `081e65b`, seul conflit documentaire,
+  deux historiques conservés. **48 tests / huit fichiers verts** après
+  fusion, 68,601 s ; test d'ordre des mesures du lot 310 hors bilan.
+  Capture/témoin court : état, chronique et mesures identiques.
+  **Banc détaché lancé sur `081e65b`**, hameau 4 h × quatre graines
+  contre `13ce328`, cache commun, deux travailleurs réduits, PID 20232.
+  Épisodes 219/271/276 et captures ciblées conservés pour instruire
+  actif/sommeil d'Aubin, sommeil de Gorm, achat promis en 7 et « aller
+  voir » de 2024 ; aucune conclusion de légitimité avant cette lecture.
+  Fichier de fin attendu :
+  `C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-309/fin.json`.
+  Ni Luna ni suite complète ; ne pas doubler ce calcul actif.
+  **Première passe avant 309, non validée pour intégration** : crue
   **4/4 empreintes 2 h identiques** ; hameau 4 h contre `7ec839e`, trois
   nuits achevées, graine **42 interrompue à 5 min** par le rendu de banc
   `recit_pnj._but` : `KeyError: 'qui'` sur le but d'Aubin
@@ -28,9 +41,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   rangées une fois. `C:/Users/msics/donjon/artifacts/agenda-hameau-306/fin.json`
   **ok=false**, codes empreintes/banc **0/1**, conservé ; analyse de
   clôture séparée. Sources/tests inchangés depuis `8145e48`, branche
-  poussée ; aucun calcul actif ni relancé. Ni Luna ni suite complète.
-  Suite requise hors périmètre : rendu des buts A5 puis répétitions,
-  dans des lots distincts ; aucun ajustement du scénario après mesure.
+  poussée lors de cette clôture initiale ; résultats conservés sans
+  écrasement. Le rendu A5 est corrigé par 309 ; reprise décrite plus haut.
   [Rapport 306](taches/rapport-codex-306-a5-agenda-hameau.md).
 
 - **Branche `codex-recit-buts-agenda`, lot 309, fusionnée**, base
