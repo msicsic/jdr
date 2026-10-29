@@ -35,7 +35,9 @@ Autres contrôles : cause connue, absence de détresse, ignorance, méfiance,
 inconscience physique, croyances fausses de violence et d'eau, bruit, tiers,
 absence de position transmise, preuve plus forte et nouvelle entrée perceptive.
 
-**Vérification détachée préparée, résultats en attente.**
+**Vérification détachée lancée, résultats en attente.** Code/tests `5f92299`
+poussés vers origin ; lanceur 42608 et Python 8480 vérifiés vivants à priorité
+réduite, deux travailleurs ciblés effectivement actifs.
 `tools/valider_cause_330.py` exécute quatorze fichiers ciblés, puis vingt nuits
 de 4 h : Relais, mine, auberge, crue, hameau × 1985/7/42/2024. Deux travailleurs
 réduits au plus ; ni Luna ni suite complète. Référence exacte `f08ef58`, cache

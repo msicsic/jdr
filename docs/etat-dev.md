@@ -17,7 +17,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   4 h × cinq scénarios × quatre graines, deux travailleurs réduits au plus.
   Référence exacte `f08ef58` : cache consulté, nuits de 4 h absentes à remplir
   une fois ; aucune référence disponible relancée. Ni Luna ni suite complète.
-  Bruts `C:/Users/msics/donjon/artifacts/cause-330/`, fichier final `fin.json`
+  Code/tests `5f92299` poussés vers origin ; lanceur 42608/Python 8480 et
+  deux travailleurs vérifiés actifs, priorité réduite. Bruts
+  `C:/Users/msics/donjon/artifacts/cause-330/`, fichier final `fin.json`
   écrit en dernier même sur échec. Aucun verdict de conformité du banc annoncé.
   [Rapport 330](taches/rapport-codex-330-demander-cause.md).
 
