@@ -52,13 +52,22 @@ class ReperesMoteurTests(unittest.TestCase):
         self.assertEqual(r.data, avant)
         return r
 
-    def interroger(self, m, cible, demande):
+    def interroger(self, m, cible, demande, libelle=None):
         attendu = position(m, cible)
+        libelle = libelle or {"mur_atelier": "le mur de l'atelier [mur_atelier]",
+                              "aubin": "Aubin [aubin]", "marchand": "Gorm [marchand]",
+                              "poutre_conduite": "la poutre effondrée [poutre_conduite]"}[cible]
+        compris = f"Compris : Consulter le repère connu. (cible : {libelle})"
         avant = copy.deepcopy(m.data)
         r, sortie, appels = jouer(m, demande, [action(proposition("reperer", reference(m, cible)))], [])
         self.assertEqual([f for f, _ in appels], ["repondre_au_joueur"])
         self.assertIn(attendu, sortie)
-        self.assertEqual(r.data["conversation"][-1]["reponse"], attendu)
+        # La réponse exacte de G6 demeure entière ; U-P y joint son récapitulatif
+        # exact, sans fiche, proposition en attente ni confirmation.
+        self.assertEqual(r.data["conversation"][-1]["reponse"], attendu + "\n" + compris)
+        self.assertEqual(r.data["conversation"][-1]["compris"], compris)
+        self.assertNotIn("Faisabilité seulement", r.data["conversation"][-1]["reponse"])
+        self.assertNotIn("tenter", r.data["conversation"][-1]["reponse"])
         self.assertEqual(r.data["conversation"][-1]["nature"], "resultat_moteur")
         for champ in ("objets", "joueur", "souvenirs_visuels", "journal", "temps"):
             self.assertEqual(r.data.get(champ), avant.get(champ), champ)
@@ -102,7 +111,8 @@ class ReperesMoteurTests(unittest.TestCase):
 
     def test_nom_prive_ne_devient_pas_identite_par_la_position(self):
         m = self.aubin(connu=False)
-        _, texte = self.interroger(m, "aubin", "où se trouve cette personne ?")
+        _, texte = self.interroger(m, "aubin", "où se trouve cette personne ?",
+                                   "le vieil homme voûté [personne_1]")
         self.assertNotIn("Aubin", texte)
 
     def test_cible_sans_repere_ne_divulgue_pas_sa_position(self):

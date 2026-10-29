@@ -5,6 +5,15 @@ from unittest.mock import patch
 from donjon.mj import MJOpenAI
 
 
+def question_sans_execution(texte):
+    """Oracle U-P : réponse inchangée, suivie du constat moteur sans action.
+
+    Cette valeur attendue n'appelle pas le rendu de production. Les tests
+    continuent de comparer le texte entier et tous leurs oracles du monde.
+    """
+    return texte + "\nQuestion au MJ : aucune action exécutée."
+
+
 def sans_indices_soupcon_passifs(monde):
     """Projection des oracles antérieurs au 267, sans changer leurs hashes.
 

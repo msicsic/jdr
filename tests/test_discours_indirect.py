@@ -1,4 +1,5 @@
 """Discours direct, fidélité et secours, dans la console avec recharge."""
+from donjon.emissions import joueur as emissions_joueur
 import unittest
 from donjon.mj import parole_du_moteur
 from donjon.paroles import analyser, mots_dits, prevue, SENS_REPLIQUE, SCHEMA_PAROLE
@@ -30,7 +31,7 @@ class DiscoursIndirectTests(unittest.TestCase):
                 r = recharger(r)
                 self.assertIn(bonne, sortie)
                 self.assertNotIn(mauvaise, sortie)
-                self.assertEqual([p["texte"] for p in r.data["paroles_joueur"]], [bonne])
+                self.assertEqual([p["texte"] for p in emissions_joueur(r)], [bonne])
                 self.assertEqual(r.joueur["or"], m.joueur["or"])
                 self.assertEqual(r.objets["brune"]["lieu"], m.objets["brune"]["lieu"])
                 dossiers = [e["plan"]["parole"] for f, e in appels if f == "auditer_action"]
@@ -47,7 +48,7 @@ class DiscoursIndirectTests(unittest.TestCase):
             [parole("Réécriture interdite", personnage="brune"), dialogue("Ta parole est entendue.")],
             [rapport(ligne("mecanique", sources=["conversation_validee"]))])
         self.assertIn(mots, sortie)
-        self.assertEqual(recharger(r).data["paroles_joueur"][-1]["texte"], mots)
+        self.assertEqual(emissions_joueur(recharger(r))[-1]["texte"], mots)
 
     def test_secours_ne_reprend_pas_le_cadre_narratif(self):
         m = banc("ressources")
@@ -68,6 +69,6 @@ class DiscoursIndirectTests(unittest.TestCase):
         p = parole("Tu demandes à Brune si elle a de quoi manger.", personnage="brune")
         r, sortie, _ = jouer(m, saisie, [p, p], [],
             revues=[{"conforme": False, "motif": "Cadre narratif."}]*2)
-        self.assertFalse(recharger(r).data.get("paroles_joueur"))
+        self.assertFalse(emissions_joueur(recharger(r)))
         self.assertNotIn("Tu dis à", sortie)
         self.assertIn("Précise ce que tu veux dire", sortie)

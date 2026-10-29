@@ -7,6 +7,7 @@ cases, proposé en etablir_faits et refusé trois fois par la contre-revue séma
 règle du moteur (le détail exige d'être à portée) ne soit lue ; « est-ce que je peux fabriquer une
 échelle ? » expliqué par Luna (« en principe, les perches pourraient servir ») au lieu du moteur.
 Chaque cas vérifie ce que lit le joueur et l'état après rechargement."""
+from donjon.emissions import joueur as emissions_joueur
 import unittest
 
 from donjon.atelier import nouveau_atelier
@@ -89,7 +90,7 @@ class InterpellationTests(unittest.TestCase):
         self.assertIn("Corvus n'a rien dit", mj(appels)[1]["controle_narratif"][0]["motif"])
         self.assertIn("Tu peux demander de l'aide à Ilse", sortie)
         self.assertNotIn("Tu demandes à Ilse", sortie)
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
         self.assertEqual(paroles_retenues(reprise, "ilse"), [])
 
     def test_le_mj_peut_repondre_a_une_interpellation_sans_rien_faire_dire(self):
@@ -100,7 +101,7 @@ class InterpellationTests(unittest.TestCase):
         self.assertEqual(len(mj(appels)), 2)
         self.assertNotIn("acquiesce", sortie)
         self.assertIn("Ilse est à deux pas, au sud.", sortie)
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
 
 
     def test_meme_nature_un_don_raconte_comme_accepte(self):

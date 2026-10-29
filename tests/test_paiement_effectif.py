@@ -1,4 +1,5 @@
 """Couverture des opérations demandées : console, transaction et rendu rechargés."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import unittest
 
@@ -60,7 +61,7 @@ class PaiementEffectifTests(unittest.TestCase):
                 self.assertIn("proposition.contenu", retours[0]["attendu"])
                 self.assertIn("contrepartie", retours[0]["attendu"])
                 self.assertNotIn(retours[0]["attendu"], sortie)
-                self.assertEqual(len(r.data["paroles_joueur"]), 1)
+                self.assertEqual(len(emissions_joueur(r)), 1)
                 self.assertIn(texte, sortie)
                 self.assertIn(texte, str(r.data["conversation"]))
                 r, _ = vivre(r, 3)
@@ -94,7 +95,7 @@ class PaiementEffectifTests(unittest.TestCase):
                 self.assertEqual(r.joueur["or"], m.joueur["or"] - 2)
                 self.assertEqual(r.objets["vivres"]["portions"], m.objets["vivres"]["portions"] - 1)
                 self.assertTrue(porte_par(r, piece, "joueur"))
-                self.assertEqual(len(r.data["paroles_joueur"]), 1)
+                self.assertEqual(len(emissions_joueur(r)), 1)
                 self.assertIn(texte, sortie)
                 self.assertIn(r.objets[piece]["nom"], fiche(recharger(r)))
 
@@ -110,7 +111,7 @@ class PaiementEffectifTests(unittest.TestCase):
                                  revues=[revue("proposition"), revue(), revue()])
         self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
         self.assertEqual(r.joueur["or"], avant["joueur"]["or"])
-        self.assertFalse(r.data.get("paroles_joueur"))
+        self.assertFalse(emissions_joueur(r))
         self.assertIn("Tu n'as encore rien dit", sortie)
         self.assertNotIn("Tu dis", sortie)
 
@@ -122,7 +123,7 @@ class PaiementEffectifTests(unittest.TestCase):
             [rapport(ligne("mecanique", sources=["conversation_validee"]))], revues=[revue()])
         self.assertIn("Tu dis", sortie)
         self.assertEqual(r.joueur["or"], m.joueur["or"])
-        self.assertTrue(r.data["paroles_joueur"])
+        self.assertTrue(emissions_joueur(r))
         # La même couverture protège aussi une réclamation, sans lexique de verbes.
         from tests.test_parole_corrections import banc
         m = banc("soir-appel")
@@ -145,7 +146,7 @@ class PaiementEffectifTests(unittest.TestCase):
         r, sortie, appels = jouer(m, saisie, [faux, faux], [], revues=[{}] * 6)
         self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 6)
         self.assertEqual(r.joueur["or"], m.joueur["or"])
-        self.assertFalse(recharger(r).data.get('paroles_joueur'))
+        self.assertFalse(emissions_joueur(recharger(r)))
         self.assertNotIn("Tu dis", sortie)
         self.assertIn("Tu n'as encore rien dit", sortie)
         self.assertNotIn("operations_demandees", sortie)

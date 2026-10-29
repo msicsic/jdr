@@ -259,12 +259,12 @@ def mots_saisis(monde, id, niveau):
     return niveau >= max(SEUIL, seuil(monde, id))
 
 
-def saisissent(monde, auteur, geste="parler"):
+def saisissent(monde, auteur, geste="parler", force=None):
     """Les personnages qui saisiraient, ici et maintenant, les mots d'une parole de ``auteur`` :
     {id: niveau parvenu}."""
     from .corps import conscient
     from .esprits import pnjs
-    n = nature(geste)
+    n = force or nature(geste)
     salle, case = _place(monde, auteur)
     if n is None or salle not in monde.data["salles"]:
         return {}
@@ -280,14 +280,14 @@ def saisissent(monde, auteur, geste="parler"):
     return resultat
 
 
-def saisit(monde, auteur, auditeur, geste="parler"):
+def saisit(monde, auteur, auditeur, geste="parler", force=None):
     """``auditeur`` (un PNJ ou le joueur) saisirait-il, ici et maintenant, les mots d'une parole
     d'``auteur`` ? Par l'atténuation commune (distance réelle, passages, porte fermée) : un PNJ par
     ``mots_saisis``, le joueur quand elle lui parvient au seuil commun (une parole nette, ``ecoute``)."""
     from .corps import conscient
     if not conscient(monde, auditeur):
         return False
-    n = nature(geste)
+    n = force or nature(geste)
     salle, case = _place(monde, auteur)
     if n is None or salle not in monde.data["salles"]:
         return False
@@ -305,11 +305,11 @@ def s_entendent(monde, a, b):
     return saisit(monde, a, b) and saisit(monde, b, a)
 
 
-def auditeurs_parole(monde, auteur):
+def auditeurs_parole(monde, auteur, geste="parler", force=None):
     """Auditeurs réels d'une réplique affichée : les PNJ et le joueur soumis
     au même trajet acoustique, sans supposer qu'il est dans la salle du locuteur."""
-    auditeurs = set(saisissent(monde, auteur))
-    if auteur != "joueur" and saisit(monde, auteur, "joueur"):
+    auditeurs = set(saisissent(monde, auteur, geste, force))
+    if auteur != "joueur" and saisit(monde, auteur, "joueur", geste, force):
         auditeurs.add("joueur")
     return sorted(auditeurs)
 
@@ -330,7 +330,7 @@ def entend(monde, auteur, auditeur, geste="dire", force=None):
 
 
 def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None, vers=(), force=None,
-             dits=None, appris=False):
+             dits=None, appris=False, emission=None):
     """Le geste de ``auteur`` (un PNJ ou le joueur) retentit maintenant, là où il se tient : qui
     l'entend l'interprète ; ce qui parvient au joueur est rangé pour lui. Une ``parole`` ({a :
     ses destinataires, contenu : ce qu'elle transmet, typé}) est retenue par ceux qui en saisissent
@@ -353,9 +353,19 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
     from .temps import instant
     entrees = propager(monde, salle, case, INTENSITES[n])
     t = instant(monde)
+    emission_dite = None
+    if texte and (n in VOCALES or dits is not None):
+        from .emissions import diffuser
+        a = list(parole["a"]) if parole else list(vers)
+        auditeurs = auditeurs_parole(monde, auteur, geste, n)
+        if geste == "chuchoter":
+            auditeurs = [id for id in auditeurs if id in a]
+        emission_dite = diffuser(monde, auteur, geste, texte, dits,
+                 list(parole["contenu"]) if parole else [], a, auditeurs, emission, cites)
     if auteur != "joueur" and not appris:
         _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, [c for c in cites if c],
-                   list(parole["a"]) if parole else list(vers), list(parole["contenu"]) if parole else [])
+                   list(parole["a"]) if parole else list(vers), list(parole["contenu"]) if parole else [],
+                   emission_dite["id"] if emission_dite else None)
     retournes, temoins, saisis = [], [], []
     for id in pnjs(monde):
         o = monde.objets[id]
@@ -402,7 +412,7 @@ def retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), p
 BRUITS_MAX = 80
 
 
-def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites, a=(), contenu=()):
+def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites, a=(), contenu=(), emission_id=None):
     """Ce qui parvient au joueur : son niveau, d'où il arrive (``par`` : une sortie de sa salle,
     ``None`` tout près, « piece » plus loin dans la pièce). Le même bruit sans paroles, au même
     niveau et d'où il venait déjà, ne se range qu'une fois. Une parole dont il saisit les mots se
@@ -438,6 +448,8 @@ def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites, a=(), co
         par = None if case is None or position is None or distance(case, position) <= PROCHE else "piece"
     entree = {"instant": t, "auteur": auteur, "salle": salle, "nature": n, "niveau": niveau, "par": par,
               "texte": texte, "cites": cites, **({"a": list(a)} if a and mots else {}), **({"vu": True} if vu else {})}
+    if emission_id is not None:
+        entree["emission"] = emission_id
     bruits = monde.data.setdefault("bruits", [])
     if not texte:
         semblable = next((i for i, b in enumerate(bruits) if not b["texte"] and all(

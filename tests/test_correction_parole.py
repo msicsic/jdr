@@ -1,4 +1,5 @@
 """Une déclaration refusée reste candidate ; une revue lisible oblige les corrections."""
+from donjon.emissions import joueur as emissions_joueur
 import json
 from pathlib import Path
 import unittest
@@ -18,8 +19,8 @@ class CorrectionParoleTests(unittest.TestCase):
         self.assertIn('Tu dis', sortie)
         self.assertNotIn("Tu n'as encore rien dit", sortie)
         rr = recharger(r)
-        self.assertEqual([p['texte'] for p in rr.data['paroles_joueur']],
-                         [p['texte'] for p in m.data.get('paroles_joueur', [])] + [saisie.strip('«» ')])
+        self.assertEqual([p['texte'] for p in emissions_joueur(rr)],
+                         [p['texte'] for p in emissions_joueur(m)] + [saisie.strip('«» ')])
         self.assertEqual(rr.joueur['or'], m.joueur['or'])
         self.assertEqual({i: o['lieu'] for i, o in rr.objets.items()},
                          {i: o['lieu'] for i, o in m.objets.items()})
@@ -84,7 +85,7 @@ class CorrectionParoleTests(unittest.TestCase):
         self.assertNotIn('Tu dis', sortie)
         self.assertIn("Tu n'as encore rien dit", sortie)
         rr = recharger(r)
-        self.assertFalse(rr.data.get('paroles_joueur'))
+        self.assertFalse(emissions_joueur(rr))
         self.assertEqual(rr.objets, m.objets)
         self.assertEqual(rr.joueur['or'], m.joueur['or'])
         self.assertEqual(regarder(rr), regarder(r))

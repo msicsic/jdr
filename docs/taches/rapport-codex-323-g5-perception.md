@@ -56,10 +56,23 @@ relance. Aucun temps comparé entre campagnes de charges différentes. Les trois
 autres scripts G5 ne sont pas rejoués avec Luna, conformément à la relecture ;
 leurs voies sont couvertes avec MJ simulé. Bruts, provenance, empreintes et
 `analyse-relecture.json` : `C:/Users/msics/donjon/artifacts/g5-323/relecture/` ;
-`fin-luna-passe.json ok=true`. Code/tests inchangés depuis les 67 tests verts.
+`fin-luna-passe.json ok=true`. Code/tests de relecture inchangés avant cette synchronisation.
 
 **Limites.** Une passe ne garantit pas le routage de tout texte libre. G5 global
 reste partiel : dialogues d'information toujours audités, G6 à porter ; détails
 inconnus et ambiance gardent leurs contrôles. Ni suite complète ni banc PNJ.
 Recouvrements à l'intégration : `narration.py` avec 320 ; `rendu.py` et `jeu.py`
 avec 319. Branche poussée vers origin, sans fusion.
+
+Reprise de synchronisation : `origin/integration 9f261f9` fusionnée sans rebase
+dans la branche. Deux conflits résolus en conservant les deux côtés : état de
+développement et test des questions sur les absents. Les sept méthodes restent
+présentes ; les contrôles G15 des émissions de PNJ et de Corvus complètent les
+assertions G5 (56 assertions contre 53 avant fusion). Adaptation U-P du texte
+composé conservée intégralement. **306 tests / 28 fichiers ciblés verts**,
+297,978 s, deux travailleurs réduits, zéro échec, erreur ou saut. G5, MJ, moteur,
+narration, boucle de jeu, trois interfaces U-P, émissions G15 et rappels G19
+couverts ; ni suite complète ni nouvel appel Luna. Empreintes des six fichiers
+communs inchangées depuis les tests. Bruts `artifacts/g5-323/fusion/` du dépôt
+principal : `tests-fusion.json` et `fusion-resolution.json`. Aucun calcul actif.
+Commit de fusion à deux parents, poussé vers origin, sans rebase.

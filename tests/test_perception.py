@@ -64,8 +64,21 @@ class EclairageTests(unittest.TestCase):
         self.obscurcir()
         self.assertIn("non visible", fiche(self.m))
         self.assertIn("matériau", self.agir("toucher couteau"))
-        with self.assertRaises(ErreurMonde):
-            self.agir("examiner couteau")
+        # G5 : la cible déjà reconnue au toucher reçoit un constat de
+        # non-perception, sans nouveau détail visuel ni effet de monde.
+        avant = copy.deepcopy(self.m.data)
+        attendu = ("Tu ne vois pas couteau à lame fine en ce moment. Ta vue ne couvre pas toute la salle ; "
+                   "ne pas voir ne permet pas de conclure à une absence.")
+        self.assertEqual(self.agir("examiner couteau"), attendu)
+        self.assertEqual(self.m.data, avant)
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "partie.json"
+            self.m.sauver(chemin)
+            recharge = Monde.charger(chemin)
+            self.assertEqual(recharge.data, avant)
+            moteur = Moteur(recharge)
+            self.assertEqual(moteur.executer(moteur.preparer(proposition("examiner", "couteau"))), attendu)
+            self.assertEqual(recharge.data, avant)
         self.agir("allumer lanterne")
         self.assertEqual(eclairage(self.m)["niveau"], 2)
         self.assertIn("chevalier", self.agir("examiner gravure"))
@@ -202,7 +215,8 @@ class QuestionsConsoleTests(unittest.TestCase):
             "mode": "dialogue", "texte": reponse, "faits": ["scenario"], "proposition": None})
         self.assertIn(reponse, texte)
         self.assertNotIn("ne sont pas encore définis", texte)
-        self.assertEqual(m.data["conversation"][-1]["reponse"], reponse)
+        from tests.support import question_sans_execution
+        self.assertEqual(m.data["conversation"][-1]["reponse"], question_sans_execution(reponse))
         self.assertEqual(m.data["revision"], 0)
 
     def test_contexte_utilise_dernier_deplacement_sans_inventer_passe(self):

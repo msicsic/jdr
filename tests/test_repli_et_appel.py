@@ -10,6 +10,7 @@ MJ ; s'il en fait une parole, le moteur en fixe le destinataire. Quand aucune r�
 le joueur lit ce que le moteur a établi, les phrases admises de la réponse, ou ce que Corvus perçoit
 de ce qu'il vise et ce qui manque. Chaque cas vérifie ce que lit le joueur et l'état après
 rechargement."""
+from donjon.emissions import joueur as emissions_joueur
 import io
 from pathlib import Path
 import tempfile
@@ -119,7 +120,7 @@ class ParoleExpliciteTests(unittest.TestCase):
             [verdicts(NEUTRE)] * 2)
         self.assertIn("Dis ce que Corvus dit à Ilse, entre guillemets ou après un deux-points.", sortie)
         self.assertNotIn("Tu demandes son aide", sortie)
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
         self.assertEqual(paroles_retenues(reprise, "ilse"), [])
 
 
@@ -136,7 +137,7 @@ class InterpellationTests(unittest.TestCase):
         self.assertNotIn("retour_moteur", mj(appels)[0]["faits"])
         self.assertEqual(mj(appels)[1]["faits"]["retour_moteur"]["obstacle"], "Rien n'a encore été dit à Aubin.")
         self.assertIn("Aubin est à quelques pas.", sortie)
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
 
     def test_s_il_en_fait_une_parole_le_moteur_fixe_le_destinataire_et_garde_les_mots(self):
         m = scene()
@@ -166,7 +167,7 @@ class InterpellationTests(unittest.TestCase):
         self.assertEqual(appels, [])
         self.assertIn(manque, sortie)
         self.assertEqual(reprise.data["conversation"], m.data["conversation"])
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
 
 
 class ReplisTests(unittest.TestCase):
@@ -197,15 +198,24 @@ class ReplisTests(unittest.TestCase):
                                                               "sources": ["objet:brasero"]})
 
     def test_sans_phrase_admise_le_moteur_dit_ce_que_corvus_percoit_et_ce_qui_manque(self):
+        from donjon.narration import attestations
+        from donjon.rendu import position
+        phrase_position = "Le brasero : Echoppe de Gorm."
+        # Preuve exacte, disponible avant toute réponse du MJ : ce troisième
+        # segment du repli vient du même rendu public que la consultation.
+        self.assertEqual(position(self.m, "brasero"), phrase_position)
+        self.assertIn(phrase_position, attestations(self.m, self.m.contexte()))
         refus = verdicts(("invention_protegee", (), "Chaleur non établie."))
         reprise, sortie, _ = jouer(self.m, "mj le brasero, il chauffe à quel point ?",
                                    [dialogue("Le brasero ferait fondre du fer.")] * 3, [refus] * 3)
-        attendu = ("Le brasero éclaire la pièce. Un brasero en fer est allumé. Ce que tu perçois et ce que tu "
+        attendu = ("Le brasero éclaire la pièce. Un brasero en fer est allumé. Le brasero : Echoppe de Gorm. Ce que tu perçois et ce que tu "
                    "sais n'en disent pas davantage.")
         self.assertIn(attendu, sortie)
         self.assertNotIn("fondre", sortie)
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], attendu)
         self.assertEqual(reprise.data["narrations_mj"][-1]["sources"], ["moteur"])
+        self.assertEqual(position(reprise, "brasero"), phrase_position)
+        self.assertIn(phrase_position, attestations(reprise, reprise.contexte()))
 
     def test_cas_reel_pousse_toi_l_issue_du_moteur_plutot_qu_un_repli_vide(self):
         # Brune au contact ; les trois réponses lui font promettre de bouger sans que le moteur l'ait prévu.

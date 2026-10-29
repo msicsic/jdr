@@ -11,6 +11,7 @@
 - Le joueur hèle quelqu'un par son nom (« j'appelle Gorm ») : un geste du moteur, par la règle des
   PNJ ; l'appelé répond et l'attend, le joueur entend sa réponse par l'ouïe commune.
 Chaque cas vérifie l'état après rechargement et ce que lit le joueur."""
+from donjon.emissions import joueur as emissions_joueur
 
 from tests.support import lier
 import unittest
@@ -72,7 +73,7 @@ class NommerTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "je dis à Ilse : viens m'aider", [], [])
         self.assertEqual(appels, [])
         self.assertIn("Tu ne vois pas Ilse d'ici : approche-toi pour lui parler.", sortie)
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
 
     def test_donner_a_qui_n_est_plus_la_le_moteur_dit_qu_il_ne_le_voit_pas(self):
         m = place_videe()
