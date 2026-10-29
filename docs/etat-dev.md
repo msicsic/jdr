@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 313, branche `codex-contact-inconnu`, non fusionnée**, base
+- **Lot 313 terminé, branche `codex-contact-inconnu`, non fusionnée**, base
   `integration d76f272` : position de contact commune au plan et à
   l'exécution, héritée des seuls liens crus contenant/support/porteur.
   Une portée insuffisante ou une case inconnue ne dément plus la présence ;
@@ -12,23 +12,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   contenue dans une autre salle à la mine ; service, monde/rendu/scène
   rechargés et laps entier/découpé vérifiés. Disparition réelle : un seul
   démenti au contact pendant six minutes, aucun service ni répétition.
-  **35 tests ciblés verts / quatre fichiers** ; sept nouvelles régressions.
-  Validation élargie et banc rapide détachés, deux travailleurs réduits :
-  onze fichiers, puis 4 h × quatre graines × Relais/auberge/mine,
-  référence figée `d76f272` avec cache. Refus de contact et approches sans
-  chemin comptés séparément ; services, suspects 219 et boucles par nuit.
-  **Résultats longs à lire avant clôture** dans
-  `C:/Users/msics/donjon/artifacts/contact-313/fin.json`, écrit en dernier.
-  Premier lancement arrêté avant les tests (import `donjon` introuvable dans
-  le lanceur) ; correction du chemin d'import et du cwd des sous-processus,
-  initialisation sous le bloc qui écrit le bilan même en échec. Relance
-  détachée vérifiée sur `5660366` : PID **45596** vivant en `BelowNormal`,
-  journal « 11 fichiers, 2 processus, priorité réduite ». Deux tests du
-  lanceur verts ; anciens journaux conservés, nouveaux dans `relance.log`.
-  Limite : observation sans preuve (notamment le noir) conservée comme
-  inconnue ; ni recherche exhaustive ni absence universelle de boucle
-  garanties. Aucun changement de `planifier_tache`/`echanges.empeche`,
-  ni Luna ni suite complète.
+  **100 tests / onze fichiers verts**, 81,247 s ; sept nouvelles régressions,
+  plus deux tests verts du lanceur. Banc détaché achevé sur `5660366`,
+  moteur inchangé : douze paires 4 h × quatre graines × Relais/auberge/mine,
+  référence figée `d76f272`, deux travailleurs réduits, 854,913 s cumulées.
+  Douze références absentes calculées une fois puis rangées en cache.
+  Refus matériels **4→0**, interruptions d'approche **0→12**, parts
+  **30→31** (Relais 3→5, auberge 11→11, mine 16→15). Relais 7 : Gorm sert
+  Brune à 1009. Mine 1985 : biscuit de Bram à Josse à 114316 remplace pain
+  de Lucien à 115149 puis service de Mathe à 115200. Aucun plantage ni
+  usurpation, suspects 219 **0→0 dans chaque nuit**, bascules **0→0**.
+  Maximum de passages/h **26→25**, avertissements redits **4→7**,
+  appels à l'aide **3→1** ; répétition Lucien/Hugues auberge 2024 subsistante.
+  Avis à expliquer **11→14**, dérives **186→161**, non certifiés bénins.
+  Limite observée : cinq interruptions du même demander d'Ilse à Gorm,
+  Relais 1985, minutes 235–239 avant le service ; zéro suspect 219 ne
+  certifie pas la progression d'un plan inchangé. Une observation sans
+  preuve (notamment le noir) reste inconnue ; ni recherche exhaustive ni
+  absence universelle de boucle garanties. Premier lanceur arrêté avant
+  les tests : imports/cwd corrigés, bilan écrit même en échec, anciens
+  journaux conservés. Bruts `C:/Users/msics/donjon/artifacts/contact-313/`,
+  `fin.json` **ok=true, codes 0/0**, analyse sans rejeu `analyse-cloture.json`.
+  Aucun calcul actif ; branche poussée vers origin. Aucun changement de
+  `planifier_tache`/`echanges.empeche`, ni Luna ni suite complète.
   [Rapport 313](taches/rapport-codex-313-contact-position-inconnue.md).
 
 - **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :

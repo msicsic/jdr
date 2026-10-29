@@ -1,75 +1,76 @@
 # Lot 313 — contact sans position connue
 
-29 octobre 2026. Branche `codex-contact-inconnu`, **non fusionnée** ; base
-`integration d76f272`. Validation longue en cours ; aucun résultat du banc
-n'est encore déclaré acquis. Ni Luna, ni suite complète.
+29 octobre 2026. Branche `codex-contact-inconnu`, **terminée, non fusionnée**,
+base `integration d76f272`. Moteur validé sur `5660366`, inchangé depuis.
 
-**Invariant.** Une portée insuffisante ou une case inconnue ne prouve pas
-l'absence. `positions_crues.case_contact` est l'accès commun de
-`pnj._case_crue` et `Vue.case_objet` : il suit les seuls liens crus de
-contenant, support ou porteur, avec arrêt sur cycle. La chaîne prime sur
-l'ancienne case du contenu. Les effets projetés du plan restent privés ;
-aucune position réelle de mobile n'est utilisée pour résoudre ce contact.
-Les objets fixes conservent leur position de lieu connue.
+**Invariant et correction.** Une portée insuffisante ou une case inconnue
+ne prouve pas l'absence. `positions_crues.case_contact`, commun à
+`pnj._case_crue` et `Vue.case_objet`, suit les seuls liens crus de contenant,
+support ou porteur, avec arrêt sur cycle ; la chaîne prime sur l'ancienne
+case du contenu. Aucun emplacement réel de mobile ne résout ce contact.
+`_approcher` marche vers le point cru ou prépare l'observation dans le lieu
+cru (salle, centre, tour d'horizon). `trajet_estime.approche` mesure ce
+préparatif ; `_mesurer_direct` conserve le contrôle des présences projetées.
+Le geste vérifie la portée physique ; `_hors_d_atteinte` ne dément la
+présence qu'à un emplacement cru effectivement touché, hors d'un objet vu
+ou d'un contenant fermé rencontré. `planifier_tache` et `echanges.empeche`
+restent inchangés (lot 312).
 
-`pnj._approcher` juge désormais la distance au point cru et prépare une
-observation dans le lieu cru si la case manque : marche vers la salle,
-puis son centre et tour d'horizon. Le geste physique contrôle ensuite sa
-portée réelle. `trajet_estime.approche` mesure le même préparatif, tour
-compris, au lieu d'une approche gratuite. `_mesurer_direct` conserve son
-contrôle des présences projetées. `_hors_d_atteinte` ne dément plus une
-présence à distance ou sans case : il faut un emplacement cru touché ; un
-objet vu ou caché dans un contenant fermé reste présent. Aucun changement
-de `planifier_tache` ni d'`echanges.empeche` (lot 312).
+**Chaîne complète.** Archives 308 absentes du poste : capture Relais 7
+reconstruite sur la base à **856 dixièmes**, générateur versionné
+`tools/capturer_contact_313.py`. Gorm croit les vivres dans la réserve,
+sans salle/case propre : approche **0 → 30 dixièmes**, charge conservée,
+puis service à Brune. Autre cas : source contenue dans une autre salle
+à la mine. Services réussis, monde et textes identiques après six minutes
+d'un bloc ou minute par minute ; monde/rendu/scène identiques après
+sauvegarde/recharge. Source réellement déplacée : un seul démenti au
+contact pendant six minutes, aucune portion servie ni nouvelle tentative
+sur ces vivres. Sept régressions couvrent aussi observation, devis pur,
+cycles et déplacement réel caché sans changement du premier pas.
 
-**Cas réel.** Les archives `services-308` sont absentes de ce poste. Le
-rejeu déterministe de la base reproduit Relais 7 à **856 dixièmes** : Gorm
-sert les vivres à Brune, croyance `vivres → reserve`, salle/case nulles ;
-ancienne approche **0**. Capture reconstruite et versionnée
-`tests/captures/contact-313-relais-7.json.gz`, générateur
-`tools/capturer_contact_313.py`. La correction déclenche une marche de
-**30 dixièmes**, conserve la charge, puis Gorm sert Brune.
+**Validation.** **100 tests / onze fichiers verts**, 81,247 s ; deux tests
+supplémentaires du lanceur verts. Douze paires **4 h × quatre graines**,
+référence figée `d76f272`, puis branche ; deux travailleurs réduits,
+854,913 s cumulées pour le banc. Douze références absentes calculées une
+fois et rangées avec les nouveaux compteurs ; aucune référence relancée.
+Ni Luna ni suite complète. Le premier lancement a échoué avant les tests ;
+imports/cwd corrigés, initialisation protégée par le bilan final,
+anciens journaux conservés. `fin.json` : **ok=true, codes 0/0**.
 
-**Épreuves ciblées.** Sept régressions dans
-`tests/test_contact_position_inconnue.py`. Cas réel et mine : source dans
-un contenant d'une autre salle, service réussi, aucun service exécuté en
-échec, monde complet et textes identiques après six minutes d'un bloc ou
-minute par minute. Monde, rendu et scène identiques après sauvegarde et
-rechargement. Contre-épreuve : source réellement déplacée hors du
-contenant attendu, un seul démenti au contact pendant six minutes, aucune
-portion servie, absence crue enregistrée puis rechargée. Autres contrôles :
-case inconnue, observation, lien au porteur, cycle, devis pur et déplacement
-réel caché sans changement du premier pas.
+Valeurs **référence → lot**. Refus = geste rejeté par `_hors_d_atteinte` ;
+interruption = `_approcher` renvoie `None`. Parts comptées dans la chronique.
+P/h = maximum de passages d'un PNJ en une heure. Suspects = sonde 219.
 
-**Mesures.** Contact/marche/trajets : **35 tests verts**, quatre fichiers,
-13,079 s, deux travailleurs à priorité réduite. Comparateur : six tests
-verts (passe précédente). Validation élargie détachée : onze fichiers
-ciblés, puis **4 h × quatre graines × Relais/auberge/mine**, référence
-figée `d76f272`, cache commun, référence puis branche, deux travailleurs
-réduits au plus. Le comparateur expose `gestes_refuses_contact` (appels au
-refus matériel `_hors_d_atteinte`) et `approches_impossibles` (approche
-renvoyant `None`), avec leurs occurrences ; sa clé d'instrumentation
-invalide automatiquement les anciennes archives dépourvues des compteurs.
-Les références absentes sont calculées une fois et rangées, jamais
-relancées pour comparer des temps.
+| Nuit | Refus | Interruptions | Parts | Suspects | P/h |
+|---|---:|---:|---:|---:|---:|
+| Relais 1985 | 2→0 | 0→7 | 1→2 | 0→0 | 9→8 |
+| Relais 7 | 1→0 | 0→0 | 0→1 | 0→0 | 10→7 |
+| Relais 42 | 0→0 | 0→0 | 0→0 | 0→0 | 8→8 |
+| Relais 2024 | 1→0 | 0→0 | 2→2 | 0→0 | 10→8 |
+| Auberge 1985 | 0→0 | 0→0 | 3→3 | 0→0 | 20→12 |
+| Auberge 7 | 0→0 | 0→0 | 2→2 | 0→0 | 12→12 |
+| Auberge 42 | 0→0 | 0→1 | 3→3 | 0→0 | 15→15 |
+| Auberge 2024 | 0→0 | 0→2 | 3→3 | 0→0 | 26→25 |
+| Mine 1985 | 0→0 | 0→1 | 6→5 | 0→0 | 9→9 |
+| Mine 7 | 0→0 | 0→1 | 3→3 | 0→0 | 9→9 |
+| Mine 42 | 0→0 | 0→0 | 4→4 | 0→0 | 9→9 |
+| Mine 2024 | 0→0 | 0→0 | 3→3 | 0→0 | 9→9 |
 
-Bruts : `C:/Users/msics/donjon/artifacts/contact-313/` ; `tests.json`,
-`comparaison.json`, `mesures.json` (services, refus, suspects 219 et boucles
-par nuit), journaux et **`fin.json` écrit en dernier** par
-`tools/verifier_contact_313.py`. Les résultats de cette passe restent à
-lire avant clôture du lot.
+**Lecture et limites.** Refus matériels **4→0**, interruptions **0→12**,
+parts **30→31** (Relais 3→5, auberge 11→11, mine 16→15). Relais 7 : Gorm
+sert Brune à **1009**. Mine 1985 : Josse reçoit un biscuit de Bram à 114316,
+au lieu du pain de Lucien à 115149 puis du service de Mathe à 115200.
+Aucun plantage/usurpation ; bascules **0→0** dans chaque nuit. Maximum de
+passages **26→25**, avertissements répétés **4→7**, appels à l'aide **3→1**.
+La répétition d'appels Lucien/Hugues à l'auberge 2024 subsiste (déjà présente).
+Avis à expliquer **11→14**, dérives ouvertes **186→161** : non certifiés bénins.
+Relais 1985 : **cinq interruptions du même demander d'Ilse à Gorm**, aux
+instants 141060 puis 141600/142200/142800/143400, avant son service à 143873.
+Ce maintien sans progression reste une limite ; zéro suspect 219 ne
+certifie pas l'absence de répétitions dans un plan inchangé. Une observation
+insuffisante, notamment dans le noir, reste inconnue : ni recherche
+exhaustive ni absence universelle de boucle garanties.
 
-Le premier lancement a échoué avant les tests : `priorite.ceder` ne trouvait
-pas `donjon`. Le lanceur ajoute maintenant la racine du worktree aux imports,
-fixe le cwd des sous-processus et protège aussi l'import et l'initialisation
-de priorité par le bilan final. Deux épreuves couvrent ces échecs de démarrage.
-La relance sur `5660366` conserve les anciens journaux : PID **45596**
-constaté vivant en `BelowNormal`, `relance.log` annonce la racine et le
-démarrage des tests ; `tests.log` confirme « 11 fichiers, 2 processus,
-priorité réduite ». Deux tests du lanceur verts. Aucune surveillance répétée.
-
-**Limites.** Une observation sans preuve suffisante, notamment dans le
-noir, ne devient pas une absence : ce lot ne garantit ni recherche
-exhaustive ni absence universelle de boucle. L'admissibilité d'un plan
-reste une projection conditionnelle, jamais une preuve de présence réelle.
-Les statistiques du banc et les éventuels nouveaux avis restent à examiner.
+Bruts et analyse sans rejeu : `C:/Users/msics/donjon/artifacts/contact-313/`
+(`tests.json`, `comparaison.json`, `mesures.json`, `analyse-cloture.json`,
+`fin.json`). Aucun calcul actif, branche poussée vers origin.

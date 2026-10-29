@@ -59,6 +59,8 @@ def main():
                     ligne[cote] = {'plantage': n['plantage'], 'cache': n.get('cache'),
                                    'gestes_refuses_contact': mesures.get('gestes_refuses_contact'),
                                    'approches_impossibles': mesures.get('approches_impossibles'),
+                                   'parts_servies': sum('donne une part' in c['texte']
+                                                       for c in (n.get('donnees') or {}).get('chronique', [])),
                                    'services': {k: v for k, v in mesures.items() if 'serv' in k or 'portion' in k},
                                    'suspects_219': avis.get('total_non_justifies'), 'boucles': n.get('boucles')}
                 nuits.append(ligne)
