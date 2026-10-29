@@ -2,6 +2,40 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-services-apres-303`, lot 308, diagnostic seul**, base
+  `integration 36189aa` : les portions **33 → 30** résultent de quatre
+  services disparus et d'un supplémentaire. Mine 7 : deux parts supprimées
+  après le pain mangé par Lucien, faim **70,033 → 20,033**, charge de Mathe
+  conservée jusqu'au constat de satisfaction. Relais 1985 : Ilse n'est pas
+  encore affamée à la minute 235 puis Gorm ne la voit pas, ou traite le
+  brasero avant le secours ; pas de charge adoptée puis perdue. Relais 7 :
+  service à Brune refusé, source hors de portée sans case crue ; elle achète
+  et mange ensuite une part. Défaut général antérieur : `_approcher` peut
+  renvoyer zéro sans case, puis `_hors_d_atteinte` dément l'objet trop loin.
+  Petit lot proposé sur le contrat des positions de contact, sans correction
+  ici. Autre petit lot proposé : ne pas annuler une livraison parce que son
+  destinataire est inconnu ; sur la même capture, `planifier_tache` renvoie
+  `None` alors que `_remettre` et `rejoindre` préparent une question à Brune.
+  Défaut aussi présent sur `79beaf1`, contrat `_devis_remise`/`echanges.empeche`.
+  L'alerte Gorm auprès d'Aubin est expliquée : biens **69,124**, réserve
+  verrouillée, vivres en place ; seuls restent des gardes routinières au
+  palier **13**, derrière le secours au palier **12**, même sur la base.
+  Douze rejeux nécessaires, un seul travailleur réduit : chronique, récit,
+  souvenirs, mesures historiques et état final identiques aux bruts du 303.
+  **132 captures**, monde/rendu/scène identiques après recharge ; reprises
+  croisées sur `79beaf1` et le moteur actuel, dont **48** encadrent les
+  premiers écarts de chronique ; devis et contre-épreuves.
+  Questions **50 → 88**, dérives **162 → 186** : zéro retour classé
+  `repetition_sans_entree_nouvelle`. Une seule nuit supplémentaire, Auberge
+  2024 sous sonde, identique aux archives : **32 questions, 16 déjà posées**,
+  toutes les reprises après localisation ou repère de présence nouveau,
+  aucune ancienne réponse encore valable. Les onze avis à expliquer et
+  toutes les dérives ne sont pas certifiés bénins. Ni Luna, ni suite complète,
+  ni nouveau banc comparatif. Bruts `C:/Users/msics/donjon/artifacts/services-308/`.
+  **Lot terminé, branche poussée vers origin, aucun calcul actif** ;
+  `fin-cloture.json` : **ok=true**, 132 captures, 96 reprises croisées au total.
+  [Rapport 308](taches/rapport-codex-308-services-apres-303.md).
+
 - **Branche `codex-service-rejoindre`, lot 303, fusionnée**, base
   intégration `79beaf1` : un participant requis de lieu inconnu prépare le
   contact commun (inspection, appel ou question) avant le geste, sans lire
