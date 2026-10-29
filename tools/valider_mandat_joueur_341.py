@@ -16,7 +16,7 @@ from priorite import ceder
 TESTS = ('mandat_joueur', 'agendas_socle', 'agendas_mandat', 'agendas_jugement_mandat',
          'agendas_compte_rendu', 'agendas_reaffecter', 'agendas_ascendant_evolue', 'agendas_evaluation',
          'agendas_devis_observateur', 'paroles', 'contenus_parole', 'parole_commune',
-         'emissions_parole', 'comptes_paroles', 'comptes_issue', 'comprehension', 'noms')
+         'emissions_parole', 'comptes_paroles', 'comptes_issue', 'comprehension', 'noms', 'banc_multi')
 
 
 def ecrire(p, v):
@@ -25,6 +25,7 @@ def ecrire(p, v):
 
 def empreintes():
     fichiers = [*sorted((RACINE / 'donjon').glob('*.py')), Path(__file__),
+                RACINE / 'tools/banc_parties.py',
                 RACINE / 'tests/data/bancs/mandat-joueur.json',
                 *[RACINE / f'tests/test_{nom}.py' for nom in TESTS]]
     return {str(p.relative_to(RACINE)): hashlib.sha256(p.read_bytes()).hexdigest() for p in fichiers}
@@ -36,6 +37,8 @@ def main():
     p.add_argument('--reference', default='fff9aab')
     p.add_argument('--tests-valides', type=Path,
                    help='résultats consolidés déjà acquis, avec empreintes exactes des sources')
+    p.add_argument('--sans-empreintes', action='store_true',
+                   help='reprise après fusion documentaire, sans rejouer les empreintes déjà acquises')
     args = p.parse_args()
     ceder()
     sortie = args.sortie.resolve()
@@ -61,7 +64,8 @@ def main():
         elif not lancer('tests', ['tools/tests.py', '--processus', '2', '--sortie', str(sortie / 'tests.json'),
                                  *[f'tests/test_{nom}.py' for nom in TESTS]]):
             return 1
-        if not lancer('empreintes', ['tools/comparer_bancs.py', '--reference', args.reference,
+        fin['empreintes_rejouees'] = not args.sans_empreintes
+        if not args.sans_empreintes and not lancer('empreintes', ['tools/comparer_bancs.py', '--reference', args.reference,
             '--empreintes', '--heures', '2', '--scenarios', 'relais', 'crue_hameau', '--processus', '2',
             '--sortie', str(sortie / 'empreintes.json')]):
             return 1

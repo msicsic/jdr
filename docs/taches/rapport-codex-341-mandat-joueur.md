@@ -5,6 +5,38 @@ Branche `codex-mandat-joueur`, **non fusionnée**, base fournie `fff9aab`
 branche poussée. Dépendance 340 intégrée sans rebase par `82f5884` : conflit
 documentaire seul, deux côtés conservés. `jeu.py` inchangé.
 
+**Reprise avant fusion, demandée après livraison : validation en cours.**
+`origin/integration 4379616` fusionnée sans rebase par `417e67f`, parents
+`a54b3f2` et `4379616`. Conflit documentaire seul ; les sources du jeu sont
+identiques avant/après, dont les sept modules partagés avec 340. Invariants
+340 et 341 conservés. Reprise des 18 fichiers ciblés, dont les deux fichiers
+explicitement demandés du 340 ; aucune suite complète ni nouvelle nuit.
+
+Précision saisie par saisie sur la **première passe Luna** :
+
+| Saisie | Contenu de Luna | Décision moteur et preuve |
+| --- | --- | --- |
+| « Aubin, je te confie la charge d'amener Brune dans l'échoppe. » | Deux propositions `type=mandat`, `sorte=amener`, `qui=[brune]`, `lieu=l'échoppe`. | Rejet de référence inconnue avant parole. Aucun jugement PNJ et aucune charge publiée. Ce n'est pas un refus d'Aubin. |
+| « Aubin, je te confie la charge d'informer Brune que le brasero est dans l'antichambre. » | `type=mandat`, `sorte=informer`, `qui=[brune]`, `fait={type:affirmation, sujet:brasero, attribut:lieu, valeur:antichambre}`. | Parole prononcée ; jugement persisté : `issue=impossible`, `raison=impossible`, avant jet. Abus aussi enregistré : `cause=honnetete`, `prix=37,142857` ; Aubin croit le brasero à l'échoppe. |
+| `fiche` | Commande directe, aucun appel Luna. | Lecture de la fiche. |
+
+Aucun échec de typage dans cette passe : ni `propos` ni autre opération à la
+place du mandat. Les propositions historiques ont été rejouées sans modèle,
+causes conservées après recharge dans `rejeu-original.json` ; analyse
+`analyse-luna-originale.json`. Aucun changement du contrat d'opérations requis.
+
+Le script conserve ces saisies et ajoute « Aubin, Brune est ici, dans le
+refuge du relais. », puis la charge d'informer Brune que le fanal est dans
+ce refuge. Cette information permet la perception ordinaire ; le devis de
+la nouvelle charge est réalisable. Son jugement réel sans jet forcé est
+accepté (`total=6`, `dd=4,033333`, `raison=adhesion`) et rechargé dans le
+nouveau test. Une nouvelle passe Luna est lancée, sans promesse de son issue.
+Le banc enregistre désormais les charges du joueur depuis chaque sauvegarde
+rechargée, permettant de lire les jugements réellement persistés. Bruts et
+fin attendue : `reprise-integration/validation/fin.json` dans le dossier du lot.
+
+Les résultats ci-dessous restent ceux de la livraison initiale.
+
 **Invariant.** `mandat` passe par `echanges.confier` : accueil, devis, jet,
 autorité perçue, dette, jugement et filiation communs. `agendas.charge_joueur`
 fournit le parent de Corvus ; le compte rendu reprend le lot 283.

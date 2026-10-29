@@ -2,7 +2,24 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
-- **Lot 341 / A5.9 terminé**, branche
+- **Reprise 341 avant fusion : synchronisée, validation en cours**,
+  branche `codex-mandat-joueur`, **non fusionnée**. `origin/integration`
+  **4379616** fusionnée sans rebase par **417e67f** (parents `a54b3f2`,
+  `4379616`) ; conflit documentaire seul, aucun changement de code du jeu.
+  Ancienne Luna : deux saisies correctement typées `mandat` ; déplacement
+  rejeté avant parole pour lieu inconnu, information prononcée et refusée
+  par le jugement `impossible` (abus d'honnêteté aussi enregistré).
+  Script enrichi d'une information de position puis d'une charge réalisable
+  sur le fanal ; vrai jet, accord et recharge vérifiés sans jet forcé.
+  Les bruts du banc conserveront les charges/jugements du joueur relus
+  depuis la sauvegarde. Reprise détachée : 18 fichiers ciblés, dont
+  `test_agendas_ascendant_evolue` et `test_agendas_socle`, puis une passe
+  Luna du script enrichi. Aucune suite complète, aucune nouvelle nuit
+  d'empreintes (code du jeu identique). Bruts
+  `C:/Users/msics/donjon/artifacts/mandat-joueur-341/reprise-integration/` ;
+  fin attendue `validation/fin.json`.
+
+- **Livraison initiale 341 / A5.9 terminée**, branche
   `codex-mandat-joueur`, **non fusionnée**, base fournie `fff9aab`.
   Dépendance 340 intégrée par `82f5884`, conflit documentaire seul ;
   `jeu.py` inchangé. Paroles `mandat`, `reponse_mandat`, `bilan_mandat` :

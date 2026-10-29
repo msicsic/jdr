@@ -255,6 +255,33 @@ class MandatJoueurTests(unittest.TestCase):
         self.assertEqual(duree, autre_duree)
         self.persiste(m)
 
+    def test_charge_du_banc_apres_information_sans_jet_force(self):
+        from tests.test_parole_corrections import banc
+        m = banc('mandat-joueur')
+        def prononcer(c, mots):
+            nonlocal m
+            m, r = paroles.preparer_parole(m, {'personnage': 'aubin', 'replique': mots,
+                'contenu': [c], '_intention': mots})
+            return r
+        prononcer({'type': 'mandat', 'sorte': 'informer', 'qui': ['brune'], 'fait': {
+            'type': 'affirmation', 'sujet': 'brasero', 'attribut': 'lieu', 'valeur': 'antichambre'}},
+            "Aubin, je te confie la charge d'informer Brune que le brasero est dans l'antichambre.")
+        self.assertEqual(agendas.projets(m, 'joueur')[0]['jugements'][-1]['issue'], 'impossible')
+        prononcer({'type': 'affirmation', 'sujet': 'brune', 'attribut': 'lieu', 'valeur': 'antichambre'},
+                  'Aubin, Brune est ici, dans le refuge du relais.')
+        r = prononcer({'type': 'mandat', 'sorte': 'informer', 'qui': ['brune'], 'fait': {
+            'type': 'affirmation', 'sujet': 'fanal', 'attribut': 'lieu', 'valeur': 'antichambre'}},
+            "Aubin, je te confie la charge d'informer Brune que le fanal est dans le refuge du relais.")
+        jugement = agendas.projets(m, 'joueur')[-1]['jugements'][-1]
+        self.assertEqual(jugement['issue'], 'accepte')
+        self.assertIn('autorite', jugement)
+        self.assertIn("J'accepte cette charge", str(r['faits']))
+        m = self.persiste(m)
+        self.assertEqual(agendas.projets(m, 'aubin')[0]['origine']['type'], 'mandat')
+        self.assertIn("J'accepte cette charge", emissions.pnj(m)[-1]['texte'])
+        from tools.banc_parties import resume_etat
+        self.assertEqual(resume_etat(m)['charges_joueur'][-1]['jugements'][-1]['issue'], 'accepte')
+
 
 if __name__ == '__main__':
     unittest.main()
