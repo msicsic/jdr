@@ -25,7 +25,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `tests-consolides.json`, **`fin-validation.json ok=true`**,
   clôture et poussée dans `fin-lot.json`. Deux commits distincts.
   [Rapport 339](taches/rapport-codex-339-suite-rouge-integration.md).
-  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Le rejeu et l'audit appellent ouie._retentir avec l'émission G15 (six erreurs préexistantes depuis le lot 320) ; l'attente de vente d'huile après 8 h, périmée, adaptée avec preuve, PNJ inchangés. 68 tests ciblés verts.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Le rejeu et l'audit appellent ouie._retentir avec l'émission G15 (six erreurs préexistantes depuis le lot 320) ; l'attente de vente d'huile après 8 h, périmée, adaptée avec preuve, PNJ inchangés. 68 tests ciblés verts.
 
 
 - **Lot 340 terminé, branche `codex-ascendant-evolue`, fusionnée**, base fournie
