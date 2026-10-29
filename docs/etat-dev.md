@@ -12,10 +12,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `INERTIE` inchangée. Cinq régressions en précontrôle vertes : capture 317 à
   160 min, inspection à 170 puis arrêt du circuit jusqu'à 175 ; monde, rendu
   et scène après recharge, bloc/découpé identiques ; autre attente à l'auberge,
-  continuité d'`informer` et nouvelle localisation. Seize tests existants verts
-  avant consolidation. Passe ciblée élargie, banc 4 h × cinq scénarios × quatre
-  graines puis crue 3 sur 12 h détachés, deux travailleurs réduits au plus.
-  **Ne pas clore sans lire `C:/Users/msics/donjon/artifacts/recours-338/fin.json`**
+  continuité d'`informer` et nouvelle localisation. **206 tests / 29 fichiers,
+  205 succès, un échec préexistant, zéro erreur/saut**, 697,746 s.
+  L'appel de protection échoue identiquement sur la base exacte `e37d9ee`
+  (Gorm en `chambre_cloche`, attendu `echoppe`), 7,382 s ; aucune correction
+  ni oracle modifié. Premier lanceur arrêté avant les bancs, `fin.json` conservé.
+  Reprise des seuls bancs 4 h × cinq scénarios × quatre graines puis crue 3
+  sur 12 h détachée, deux travailleurs réduits au plus.
+  **Ne pas clore sans lire `C:/Users/msics/donjon/artifacts/recours-338/reprise-1/fin.json`**
   et qualifier tests, suspects nuit par nuit, usurpations et maximum horaire.
   Aucun Luna ni suite complète. [Rapport 338](taches/rapport-codex-338-recours-sans-cout.md).
 

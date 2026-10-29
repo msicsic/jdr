@@ -1,8 +1,8 @@
 # Lot 338 — Deviser et conserver le recours jusqu'au constat
 
 Branche `codex-recours-sans-cout`, **non fusionnée**, base `integration e37d9ee`.
-Code prêt à vérifier ; passe ciblée élargie et bancs détachés, clôture en attente.
-Bruts : `C:/Users/msics/donjon/artifacts/recours-338/`, fichier final `fin.json`.
+Code/tests validés : `03be84c` ; bancs détachés, clôture en attente.
+Bruts : `C:/Users/msics/donjon/artifacts/recours-338/`, reprise `reprise-1/fin.json`.
 
 **Invariant et correction.** `agendas.planifier` exige un coût fini pour toute
 proposition admissible. Les branches de recherche conservent leur coût complet
@@ -24,7 +24,9 @@ lieu interdit, identité de PNJ ou sorte d'agenda codée dans cette continuité.
 Les lectures nouvelles de composition utilisent la Vue et ses tarifs existants ;
 aucune entrée nouvelle de recherche mémorisée hors de `_entrees`.
 
-**Preuves préalables.** Cinq nouvelles régressions vertes, 24,354 s : capture
+**Preuves.** **206 tests ciblés / 29 fichiers, 205 succès, un échec préexistant,
+zéro erreur ni saut**, 697,746 s, deux travailleurs réduits. Les cinq nouvelles
+régressions passent : capture
 réelle du 317 crue 3 à 160 min ; inspection et attente confrontées à une
 délégation possible ; suffixe de l'agenda `informer` conservé après déplacement,
 rouvert sur une localisation nouvelle ; attente `garder` à l'auberge ; refus
@@ -34,8 +36,12 @@ avec recharge à chaque frontière : états finaux identiques. Gorm inspecte la
 galerie à 170 min, y connaît Ilse et ne repasse plus entre 171 et 175 min.
 Cela ne certifie pas l'achèvement de tout l'agenda, qui vise aussi Brune.
 Autre scénario : garde à l'auberge, même laps de 3 min entier ou découpé.
-Premier précontrôle existant : 16 tests verts, 21,873 s. Ces précontrôles
-précèdent la validation consolidée du code final ; ne pas les additionner.
+L'unique échec, `test_appel_reconnu_et_course_reels_sur_agenda_seul`, est
+reproduit isolément sur **la base exacte `e37d9ee`**, 7,382 s : après l'appel,
+Gorm est en `chambre_cloche` au lieu d'`echoppe`, même assertion qu'en branche.
+Aucun oracle modifié ; aucune correction de protection ajoutée. Attribution
+dans `attribution-base.json`. La passe initiale s'est arrêtée avant les bancs
+(`fin.json ok=false` conservé) ; aucun test relancé dans la reprise.
 
 **Calculs et limites.** Le lanceur enchaîne les fichiers ciblés (deux travailleurs
 réduits), le banc 4 h × Relais/mine/auberge/crue/hameau × quatre graines, puis
