@@ -202,7 +202,7 @@ def executer(monde, minutes, recit=None, empreintes=None):
     mesures["temoins_vols_nuit"] = len(vus)
     mandats_apres = mesures_mandats(monde)
     mesures.update({k: mandats_apres.get(k, 0) - mandats_avant.get(k, 0)
-                    for k in mandats_apres.keys() | mandats_avant.keys()})
+                    for k in sorted(mandats_apres.keys() | mandats_avant.keys())})
     return chronique, mesures
 
 

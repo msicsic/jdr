@@ -2,6 +2,20 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :
+  union des clés de mesures de mandat triée dans `banc_pnj.executer`,
+  aucune valeur ni test existant modifié. Test d'origine inchangé vert sous
+  trois PYTHONHASHSEED, puis dans sa suite. 73 tests / sept fichiers :
+  72 verts, une erreur préexistante d'audit Brune (`KeyError: 929`),
+  reproduite avec le module de base en mémoire ; aucun oracle affaibli.
+  Huit paires d'empreintes 2 h Relais/hameau × quatre graines identiques,
+  chronique, valeurs des mesures et état final complet ; seul l'ordre du
+  bloc mandat change. Avis inchangés. Priorité réduite, deux travailleurs
+  au plus ; ni Luna ni suite complète, aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/ordre-310/`, `fin.json` en échec
+  conservé, diagnostic `fin-diagnostic.json`. Branche livrée vers origin.
+  [Rapport 310](taches/rapport-codex-310-ordre-mesures.md).
+
 - **Branche `codex-recit-buts-agenda`, lot 309, fusionnée**, base
   intégration `02c7330` : rendu commun des buts d'agenda par leur titulaire
   et leur référence locale, sorte/paramètres/filiation lus via `agendas.py`.
