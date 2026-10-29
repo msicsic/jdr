@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import jeu
 from donjon.commandes import DescripteurPublic
-from donjon.gestes_publics import catalogue_public, choisir_numero, liste_gestes, offres, rendre_liste
+from donjon.gestes_publics import catalogue_public, choisir_numero, gestes_du_monde, liste_gestes, offres, rendre_liste
 from donjon.monde import Monde
 from donjon.moteur import Moteur
 from donjon.noms import reference
@@ -28,7 +28,7 @@ CAS = [(False, g) for g in ud.GESTES[:9]] + [
 
 
 def menu(m, cible, geste):
-    liste = liste_gestes(scene_percue(m))
+    liste = gestes_du_monde(m)
     d = {"geste": geste, "cible": reference(m, cible)}
     numero = next(i for i, c in enumerate(liste, 1) if c.descripteur.contenu == d)
     return liste, str(numero), DescripteurPublic(d)

@@ -2,6 +2,29 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-ut-inventaire`, lot 301 / U-T inventaire, fusionnée**,
+  base `integration 79beaf1`, reprise par fusion sans rebase de `2537e4f`
+  (outils 300), fusion `99855aa` : console et TUI proposent les gestes de
+  besace dans la liste numérotée. Chaque ligne fige le descripteur U-D du
+  web, avec bien exact, quantité admise et destinataire public ; aucun
+  analyseur ni modèle. Projections communes dans `inventaire_public.py`,
+  réexportées par le pont web ; catalogue des outils 300 conservé,
+  `page.html` identique à l'intégration. Une remise complète par numéro,
+  homonymes distingués par référence ; moteur seul juge du choix périmé.
+  **87 tests distincts / huit fichiers verts**, dont les **28 TUI existants
+  inchangés** et les outils 300. Douze couples geste/bien dans les deux
+  interfaces : descripteur, plan, texte exact et monde/scène/fiche/carte
+  après recharge ; biens/destinataires homonymes, lots, refus périmés,
+  noir et sans carte. Zéro analyseur ou modèle sur les choix.
+  **24 parcours mesurés : 3 touches**, 4 avec F7 en TUI. Deux travailleurs
+  réduits au plus ; sept fichiers voisins de la reprise conservés,
+  seul le fichier inventaire rejoué après correction de sa sonde.
+  Ni Luna, ni banc PNJ, ni suite complète. Branche poussée vers origin,
+  aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/ut-inventaire-301/`,
+  bilan retenu `bilan.json`, clôture `fin-cloture.json`.
+  [Rapport 301](taches/rapport-codex-301-ut-inventaire.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Console et TUI listent les gestes d'inventaire numérotés (poser, remettre, manger une portion, allumer/éteindre, prélever), depuis la projection commune (donjon/inventaire_public.py, sortie de web/pont.py) et le catalogue gestes_publics ; le choix envoie le même descripteur U-D que le menu web, sans analyse de texte ni modèle. 87 tests verts ; 3 touches par choix (4 avec F7).
+
 - **Branche `codex-a5-donnees-hameau`, lot 302 / A5.11, fusionnée**,
   base intégration `79beaf1` : statut local de Gorm connu de lui-même,
   Aubin, Brune et Ilse ; ascendants Aubin→Gorm 60, Maël→Aubin 30 et

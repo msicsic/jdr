@@ -12,7 +12,7 @@ from textual.widgets import Button, Footer, Header, Input, Static, TabbedContent
 
 from .rendu import carte, fiche, regarder
 from .comparaison import texte_resultat, texte_comparaison
-from .gestes_publics import liste_gestes, rendre_liste, choisir_numero
+from .gestes_publics import gestes_du_monde, rendre_liste, choisir_numero
 
 
 # Deux nuances discrètes par terrain gardent le pas d'un mètre lisible sans ponctuation.
@@ -129,8 +129,7 @@ class PontTerminal:
 
     def rafraichir(self, monde, pending, mj):
         # La UI reçoit des valeurs déjà rendues, jamais une référence au monde mutable.
-        from .scene import scene_percue
-        gestes = liste_gestes(scene_percue(monde)) if self._mode_cases(monde) else ()
+        gestes = gestes_du_monde(monde)
         self.envoyer(self.app.actualiser, {
             "gestes": gestes,
             "carte": carte(monde), "fiche": fiche(monde), "scene": regarder(monde),
