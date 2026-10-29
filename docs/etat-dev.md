@@ -2,6 +2,25 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 328 / G6, branche `codex-g6-reperes`, non fusionnée**, base
+  `origin/codex-g5-perception c4cd83f` (323), sans fusion d'intégration :
+  requête typée `reperer` dans le contrat d'action existant, réponse moteur
+  depuis les seuls repères publics perçus ou mémorisés. Axes métriques,
+  distance euclidienne, regard actuel, souvenir explicitement passé ; pas
+  de rotation, de temps ni d'effet physique. Reprises exactes par les
+  attestations communes, revalidées avant sauvegarde ; prose libre toujours
+  auditée. **162 tests distincts verts / quinze fichiers** après ajout du
+  nouveau champ distance à l'attendu exact d'un souvenir ; reprise **18/18**.
+  Cas 171 mur, Aubin à 1 m, rotation, autre objet/personne hors de vue,
+  noms privés et faux plan ; monde/texte/scène/carte rechargés contrôlés.
+  **Luna unique préparée, validation en attente** : atelier/noms-dialogue,
+  références historiques c9459ce lues des archives du 323 sans relance.
+  Bruts `C:/Users/msics/donjon/artifacts/g6-328/` ; fichier attendu
+  `fin-luna-passe.json`, écrit en dernier même en cas d'échec ; commande
+  `luna-a-jouer.txt`. Ni suite complète ni banc PNJ. Recouvrements 326/327
+  sur `narration.py` ; garantie du routage libre non revendiquée.
+  [Rapport 328](taches/rapport-codex-328-g6-reperes.md).
+
 - **Lot 323 clos après relecture / G5 partiel, branche `codex-g5-perception`,
   non fusionnée**, base `integration 4794376`, correctif `d683184` : voie
   dialogue des questions d'information restaurée dans les consignes communes ;
