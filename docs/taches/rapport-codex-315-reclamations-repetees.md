@@ -1,69 +1,69 @@
 # Lot 315 — réclamations et contact du débiteur
 
-Branche `codex-reclamations-repetees`, base intégration **c4f6d46**.
-**Reprise de vérification détachée ; lot non déclaré terminé.**
+Branche `codex-reclamations-repetees`, base **c4f6d46**, moteur final
+**faa5967**. **Lot terminé ; identité stricte non atteinte.**
 
-**Cause établie.** Les sept retours de Sève en 2024 ne suivent aucun
-refus de remboursement. La capture 306 t=22057, rejouée sur le moteur de
-base jusqu’à la minute 82, porte deux dettes (Gorm 2 pièces, Brune 1),
-aucun souvenir `dette_niee`/`creance_vaine`. Le plan `reclamer` ne contient
-que `aller` : arrivé dans la salle sans avoir établi la parole, le PNJ
-écarte ce débiteur et repart vers l’autre. Les deux recours se relancent.
-La mémoire des réponses aux dettes était en outre bornée et temporisée.
+**Invariant et cause.** Les sept retours de Sève 2024 du 306 ne suivaient
+aucun refus : capture t=22057 rejouée sur la base jusqu’à 82, deux dettes
+(Gorm 2 pièces, Brune 1), aucun `dette_niee`/`creance_vaine`. Le plan
+`reclamer` s’arrêtait à `aller` ; arrivé dans la salle sans établir la
+parole, le créancier repartait vers l’autre dette. La mémoire des réponses
+aux dettes était en outre bornée et temporisée.
 
-**Contrat corrigé.** `planification.reclamer` termine le trajet par une
-demande typée, exécutée par `echanges.executer` avec le contact et la parole
-communs. Entrer dans une salle n’est plus une restitution accomplie.
-`biens.regler` enregistre la réponse dans les refus durables ;
-`deliberation.retenir_refus/tient/moyens_crus` et
-`biens.reponse_creance_retenue/entrees_creance` servent au choix, au
-règlement automatique et aux anciens plans. Aucun délai : changement
-d’obligation ou fonds positivement appris ; ni nouvelle position, ni date,
-ni diminution des fonds connus, ni bourse privée. Le débiteur conserve le
-règlement spontané. Aucune donnée de scénario ni consigne MJ modifiée.
+**Correction.** `planification.reclamer` termine par une demande typée ;
+`echanges.executer` utilise la parole commune, passages audibles compris.
+`biens.regler/reponse_creance_retenue/entrees_creance` et
+`deliberation.retenir_refus/tient/moyens_crus` partagent une réponse durable
+entre choix, règlement automatique et ancien plan. Aucun délai : obligation
+nouvelle ou fonds appris, jamais position, date, diminution des moyens ou
+bourse privée. Règlement spontané conservé. Aucun scénario/MJ modifié.
 
-**Preuves déjà obtenues.** Cinq nouveaux tests verts (9,683 s), dont la
-capture réelle avant 83 : les deux dettes sont rendues aux minutes **83 et
-84**, quatre déplacements de Sève dans le rejeu de seize minutes. État
-complet et textes identiques pour un laps entier et seize tranches ; monde,
-rendu et scène identiques après sauvegarde/recharge. Refus réels dans le
-Relais et l’auberge : réponse conservée après deux fois REDEMANDE et
-éviction des souvenirs, ancien plan neutralisé, bourse cachée sans effet,
-nouvelle obligation/fonds appris admis, règlement spontané conservé.
+**Tests et recharge.** **127 tests distincts verts / neuf fichiers** :
+85 résultats conservés, **42 verts en reprise** (44,936 s), dont six tests
+nouveaux. Les deux régressions initiales sont corrigées sans toucher aux
+tests existants : mémoire de décision sans second événement social
+(`souvenir=False`), débiteur encore audible jamais déclaré absent pour
+le seul changement de salle. Capture réelle avant 83 : deux remboursements
+en **83/84**, quatre déplacements en seize minutes ; monde/rendu/scène et
+textes identiques après recharge et laps entier/découpé. Refus réels au
+Relais et à l’auberge conservés après délai et éviction des souvenirs ;
+ancien plan neutralisé, fonds cachés sans effet, moyens nouveaux admis.
 
-**Premier calcul, 890,531 s.** Neuf fichiers : **124/126 tests verts**.
-Deux régressions corrigées sans changer les tests existants : `retenir_refus`
-créait un second souvenir social après `dette_niee` ; la nouvelle demande
-déclarait absent un débiteur passé dans une autre salle mais encore audible.
-Mémoire de décision sans événement social supplémentaire (`souvenir=False`)
-et même portée de parole que `solder`. Les deux tests existants repassent ;
-un sixième test vérifie la parole par le passage et la recharge du témoin.
+**Trois écarts d’empreinte qualifiés : effets voulus du contact accompli.**
+Ce sont des **premières demandes remboursées**, pas des relances après
+refus ; la rétention selon la cause est éprouvée par les tests précédents.
+Les instants sont en dixièmes de seconde depuis le début de la partie.
 
-**Hameau validé sur b05bb80**, données 306 inchangées, worktree retiré :
-quatre nuits de 4 h, zéro plantage/usurpation ; suspects **0/0/0/7 → 0/0/0/0**,
-à expliquer **7/5/0/10 → 2/5/0/4**. Aucun refus de créance dans ces nuits.
-Monde/rendu/scène rechargés identiques pour chaque graine. Résultats conservés,
-sans rejouer ce banc réussi ; aucune absence universelle de boucle déduite.
+| Nuit | Premier écart de choix ; premier écart raconté | Effet dans l’état, branche contre référence |
+|---|---|---|
+| Relais 7 | t=1188, demande ajoutée au trajet ; t=1255 (min 2), Aubin réclame au lieu de rester près d’Ilse | Gorm rend 2 pièces à t=1255 contre 1800 (min 3). Soldes Gorm/Aubin 52/3 → 50/5 ; dette 2 → 0. |
+| Auberge 1985 | t=37505 (min 62), Mathurine réclame au lieu de proposer l’achat de soupe épuisée | Mireille rend 1 pièce à t=37505 contre 37800 (min 63). Soldes 7/5 → 6/6 ; dette 1 → 0. |
+| Crue 1985 | t=2102, demande ajoutée au trajet ; t=2300 (min 3), Aubin réclame au lieu de négocier des vivres | Gorm rend 2 pièces à t=2300 contre 4800 (min 8). Soldes 52/3 → 50/5 ; dette 2 → 0. |
 
-**Empreintes : 13/16 paires 2 h identiques.** Relais 7, auberge 1985 et
-crue 1985 diffèrent : premières réclamations nouvelles aux minutes 2, 62,
-3, contre 3, 63, 8 sur la base. Le nouveau geste rend possible une demande
-avant le règlement automatique à la minute ronde : identité stricte non
-atteinte. La sortie d’échec est conservée, aucun oracle modifié. Le détail
-des trois nuits corrigées reste à relire avant qualification finale.
+**Preuve causale :** six courts rejeux, horizons 5/65/10 min. Rétablir
+uniquement l’ancien plan (avec son ancien lecteur de refus, inactif ici)
+reproduit **exactement les trois préfixes de référence** ; le moteur final
+reproduit exactement ceux de la branche. Un seul remboursement par dette,
+conservation des pièces, aucune dette résiduelle, six recharges
+monde/rendu/scène identiques. Bruts `qualification-preuves.json` et
+`preuve-*-monde.json`. Les trois nuits 2 h restent non identiques :
+chronique, mesures et état complet changent ; aucune égalité fabriquée.
+Les treize paires initialement identiques sont conservées, sans relance.
+Zéro plantage/usurpation/suspect dans les trois nuits corrigées.
 
-**Reprise lancée :** uniquement les deux fichiers en échec et le fichier
-de régression (42 tests attendus), puis les trois nuits divergentes.
-Références déjà calculées réutilisées, treize autres paires et hameau non
-rejoués. Deux travailleurs réduits, aucune suite complète ni Luna.
-`C:/Users/msics/donjon/artifacts/reclamations-315/fin.json` (échec initial)
-et `fin-reprise.json` (dernier fichier du nouveau calcul).
+**Hameau conservé sur b05bb80 :** quatre nuits 4 h, données 306 intactes,
+suspects **0/0/0/7 → 0/0/0/0**, à expliquer **7/5/0/10 → 2/5/0/4**,
+monde/rendu/scène rechargés identiques. Aucun refus de créance dans ces
+nuits ; banc réussi non rejoué. Worktree temporaire retiré. Deux travailleurs
+réduits au plus, références réutilisées, ni Luna ni suite complète.
 
-**Limites et intégration.** Le cas réel est un contact jamais accompli,
-pas un refus : aucune fausse cause de refus n’est créée pour le masquer.
-Les anciennes sauvegardes sans refus durable peuvent refaire une demande
-avant de retenir sa réponse ; pas de migration inventant les moyens jadis
-connus. Les prêts et les autres demandes gardent leurs contrôles existants.
-Pas de preuve universelle d’absence de boucle. Recouvrement avec 314 :
-`echanges.py`, fonctions distinctes (`executer` ici, `_remettre_part` pour
-314 au relevé de travail) ; aucune reprise du correctif d’achat promis.
+**Limites.** Les conséquences ultérieures des trois nouvelles chronologies
+ne sont pas certifiées bénignes une à une (dont dérives et tentatives de
+prise) ; aucune absence universelle de boucle ni gain de coût revendiqué.
+Anciennes sauvegardes sans refus durable : une demande peut précéder sa
+rétention ; pas de migration inventant les moyens jadis connus. Prêts et
+autres demandes inchangés. Recouvrement 314 : `echanges.py`, fonctions
+distinctes (`executer` ici, `_remettre_part` pour 314 au relevé initial).
+Bruts : `C:/Users/msics/donjon/artifacts/reclamations-315/` ; `fin.json`
+et `fin-reprise.json`, **ok=false**, conservés ; qualification finale dans
+`fin-cloture.json`, **identite_stricte=false**. Aucun calcul actif.
