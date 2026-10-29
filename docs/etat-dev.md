@@ -8,12 +8,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   payée et agenda `protéger` d'origine `contrat`. Peur et fonds crus,
   force estimée, courage, ambition et disponibilité ; choix explicite
   du joueur. Avance et dette de remboursement communes, fin sur calme
-  perçu, échéance, mort ou départ crus. Sélection préliminaire 10/10
-  verte (38,238 s), deux derniers parcours joueur verts (10,078 s).
-  Consolidation de 21 fichiers et vingt nuits 4 h par lanceur détaché,
+  perçu, échéance, mort ou départ crus. **210 tests / 21 fichiers :
+  209 verts, un échec antérieur**, aucune erreur ni saut, 216,920 s ;
+  huit nouveaux tests verts. Ancien appel sur agenda : `chambre_cloche`
+  au lieu d'`echoppe`, même défaut sur la base exacte `d8769d8` au
+  hachage 0 (5/6 dans son fichier). Deux captures rechargées : mêmes
+  positions, scène, rendu et lignes ; écarts d'empreintes internes et
+  de libellé d'une réponse de service consignés. Test non modifié.
+  Source moteur/tests `5219a86` inchangée, empreintes contrôlées ;
+  résultats acquis repris sans relance, témoin de base exigé.
+  Vingt nuits 4 h par lanceur détaché,
   deux travailleurs réduits ; ni Luna ni suite complète. Bruts
-  `C:/Users/msics/donjon/artifacts/occasion-336/verification-1/`,
-  fin attendue **`fin.json`** ; résultats à relire avant clôture.
+  `C:/Users/msics/donjon/artifacts/occasion-336/`, premier échec conservé
+  sous `verification-1/`, diagnostic sous `diagnostic/` ; fin attendue
+  **`verification-2/fin.json`** ; banc à relire avant clôture.
   Limites : une occasion par client, suivi vocal 335 distinct, aucun
   résultat de nuit naturelle encore annoncé. Recouvrements 333 :
   `agendas.py`, `pnj.py` ; 335 : ces deux fichiers et `planification.py`.

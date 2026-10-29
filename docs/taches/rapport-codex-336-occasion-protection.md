@@ -27,16 +27,26 @@ lui sont prêtés. Une acceptation revalide contact, moyens, prix et échéance.
 Les identités inconnues restent désignées par leur référence perceptible.
 Les nouvelles obligations et responsabilités entrent dans `_entrees`.
 
-**Preuves acquises et calcul demandé.** Sélection préliminaire : **10 tests
-verts en 38,238 s**, dont trois contrôles AST du stockage unique. Auberge
+**Preuves acquises et calcul demandé.** Consolidation : **210 tests / 21 fichiers,
+209 verts, un échec antérieur**, 216,920 s ; aucune erreur ni saut.
+Les huit nouveaux tests sont verts. Auberge
 Hugues/Anselme et Relais Aubin/Ilse : offre autonome, accord, paiement,
 service commencé, fin sur calme, monde/rendu/scène rechargés et même laps
 entier/découpé. Négatifs : peur, fonds, intérêt, courage, disponibilité,
-refus conservé ; fins sur échéance, mort et départ crus. Les derniers
-parcours joueur sont repris **2/2 verts en 10,078 s** ; le nouveau contrôle
-du plan périmé est vert. Les scènes sont des épreuves de mécanisme avec
+refus conservé ; fins sur échéance, mort et départ crus, plan périmé,
+acceptation/refus du joueur sans parole ni paiement implicites.
+Les scènes sont des épreuves de mécanisme avec
 placements et savoirs explicites en données de tests, sans donnée de scénario
 ajoutée au jeu. Aucun gain en nuit naturelle encore mesuré.
+
+L'échec `test_appel_reconnu_et_course_reels_sur_agenda_seul` donne Gorm
+en `chambre_cloche` à six minutes, contre `echoppe` attendu. Même échec
+sur la copie exacte de `d8769d8`, au même hachage 0 ; son fichier donne
+5/6 verts sur la base (5,350 s). Deux captures monde/rendu/scène rechargées :
+mêmes positions, lignes et observations au joueur. Différences complètes
+consignées : empreintes `agendas[].croyances` et libellé d'une réponse de
+service dans le registre des paroles. **Le test reste rouge**, non modifié.
+Moteur et tests `5219a86` inchangés, empreintes contrôlées avant reprise.
 
 `tools/valider_occasion_336.py` consolide **21 fichiers ciblés**, puis compare
 4 h × cinq scénarios × quatre graines à la base exacte : références déjà
@@ -44,8 +54,12 @@ cachées relues, absentes calculées une fois ; suspects 219 par nuit,
 plantages/usurpations, offres, accords et protections nées/commencées.
 Deux travailleurs réduits au plus ; ni Luna ni suite complète.
 Bruts `C:/Users/msics/donjon/artifacts/occasion-336/`, calcul final sous
-`verification-1/`, fichier de fin `verification-1/fin.json`, écrit en dernier
-même en cas d'échec. **Résultats consolidés et banc à relire avant clôture.**
+`verification-1/fin.json` conserve l'échec initial avant tout banc ; reprise
+sous `verification-2/`, fin attendue `verification-2/fin.json`, écrite en
+dernier même en cas d'échec. Les tests acquis ne sont pas rejoués : le
+lanceur exige sources inchangées et traces identiques au témoin de base,
+hors chemins absolus, sans exception par nom de test.
+**Banc à relire avant clôture ; réserve du test antérieur conservée.**
 
 **Limites et recouvrements.** Le projet conserve une seule occasion par
 client ; la renaissance après un contrat terminé n'est pas livrée. La peur

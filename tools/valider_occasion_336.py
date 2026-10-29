@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -29,6 +30,39 @@ TESTS = ('occasion_protection', 'agendas_socle', 'agendas_naissance', 'agendas_e
 
 def ecrire(chemin, contenu):
     chemin.write_text(json.dumps(contenu, ensure_ascii=False, indent=2), encoding='utf-8')
+
+
+def reprendre_tests(dossier, temoin, sortie):
+    """Reprendre des résultats inchangés ; un défaut antérieur reste explicitement rouge.
+
+    Le témoin contient les mêmes fichiers en défaut, joués sur la base exacte.
+    Aucune exception par nom de test : identité des traces hors chemins absolus.
+    """
+    debut = json.loads((dossier / 'debut.json').read_text(encoding='utf-8'))
+    for nom, empreinte in debut['empreintes'].items():
+        p = RACINE / nom
+        if p.resolve() == Path(__file__).resolve():
+            continue  # Seul le lanceur de reprise vient d'être étendu.
+        if hashlib.sha256(p.read_bytes()).hexdigest() != empreinte:
+            raise ValueError('Source modifiée depuis les tests : ' + nom)
+    tests = json.loads((dossier / 'tests.json').read_text(encoding='utf-8'))
+    base = json.loads(temoin.read_text(encoding='utf-8')) if temoin else {'fichiers': []}
+
+    def defauts(rapport):
+        return sorted((Path(f['fichier']).name, categorie, id,
+                       re.sub(r'File "[^"\n]*[/\\](tests[/\\][^"\n]*)"', r'File "\1"', trace))
+                      for f in rapport['fichiers'] for categorie in ('failures', 'errors', 'unexpectedSuccesses')
+                      for id, trace in f.get(categorie, []))
+
+    if any(f.get('skipped') or f.get('expectedFailures') for f in tests['fichiers']):
+        raise ValueError('La reprise exige des tests sans saut ni échec attendu')
+    if defauts(tests) != defauts(base):
+        raise ValueError('Défauts des tests différents du témoin de base')
+    preuve = dict(dossier=str(dossier), temoin=str(temoin), tests=tests['tests'],
+                  succes_brut=tests['succes'], defauts_anterieurs=len(defauts(base)),
+                  defauts_nouveaux=0, sources_inchangees=True)
+    ecrire(sortie / 'tests-repris.json', preuve)
+    return preuve
 
 
 def jouer_branche(tache):
@@ -112,6 +146,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--sortie', type=Path, required=True)
     parser.add_argument('--reference', default='d8769d8')
+    parser.add_argument('--reprendre-tests', type=Path)
+    parser.add_argument('--temoin-tests', type=Path)
     args = parser.parse_args()
     sortie = args.sortie.resolve()
     sortie.mkdir(parents=True, exist_ok=True)
@@ -125,14 +161,19 @@ def main():
             commit=banc.git(RACINE, 'rev-parse', 'HEAD'),
             empreintes={str(p.relative_to(RACINE)): hashlib.sha256(p.read_bytes()).hexdigest()
                         for p in fichiers}))
-        commande = [sys.executable, 'tools/tests.py', '--processus', '2',
-                    '--sortie', str(sortie / 'tests.json'),
-                    *[f'tests/test_{nom}.py' for nom in TESTS]]
-        with (sortie / 'tests.log').open('w', encoding='utf-8') as flux:
-            fin['tests_code'] = subprocess.run(commande, cwd=RACINE, stdout=flux,
-                stderr=subprocess.STDOUT, check=False).returncode
-        if fin['tests_code'] != 0:
-            return 1
+        if args.reprendre_tests:
+            preuve = reprendre_tests(args.reprendre_tests, args.temoin_tests, sortie)
+            fin['tests_code'] = int(not preuve['succes_brut'])
+            fin['tests_repris'] = preuve
+        else:
+            commande = [sys.executable, 'tools/tests.py', '--processus', '2',
+                        '--sortie', str(sortie / 'tests.json'),
+                        *[f'tests/test_{nom}.py' for nom in TESTS]]
+            with (sortie / 'tests.log').open('w', encoding='utf-8') as flux:
+                fin['tests_code'] = subprocess.run(commande, cwd=RACINE, stdout=flux,
+                    stderr=subprocess.STDOUT, check=False).returncode
+            if fin['tests_code'] != 0:
+                return 1
         fin['banc_ok'] = comparer(sortie, args.reference)
         fin['ok'] = fin['banc_ok']
         return int(not fin['ok'])
