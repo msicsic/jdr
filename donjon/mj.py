@@ -1167,7 +1167,15 @@ class MJ:
             "properties": {
                 "mode": {"type": "string", "enum": ["dialogue", "action", "enrichir_joueur", "enrichir",
                                                        "conversation_pnj", "parole_joueur", "enrichir_savoirs", "etablir_faits"]},
-                "texte": {"type": "string"},
+                "texte": {"anyOf": [{"type": "string"}, {
+                    "type": "object", "additionalProperties": False,
+                    "description": "En dialogue, une demande de signes ou d'attitudes se décrit par "
+                        "cette sélection de personnages. Le moteur écrit leurs signes et impressions "
+                        "actuellement perçus ; aucun texte libre ni état mental à inventer.",
+                    "properties": {"signes_de": {"type": "array", "minItems": 1, "maxItems": 12,
+                        "items": {"type": "string"},
+                        "description": "Références publiques des personnages visés par la question."}},
+                    "required": ["signes_de"]}]},
                 "faits": {"type": "array", "items": {"type": "string"}},
                 "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}, SCHEMA_PROFIL,
                                           SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE,
@@ -1295,11 +1303,14 @@ direction), plus lents, ils ne s'entendent que de tout près.
         elif (reponse["mode"] == "action" and reponse["proposition"]["action"] in
               ("clarifier", "impossible") and self._audit_courant):
             reponse["_audit_justification"] = self._audit_courant
+        if reponse["mode"] == "dialogue" and getattr(self, "_description_signes_courante", None) is not None:
+            reponse["_description_signes"] = self._description_signes_courante
         return reponse
 
     def _appeler(self, instructions, entree, intention, fonction, schema):
         """Contrôle toute narration sortante, indépendamment de son mode d'origine."""
         self._audit_courant = None
+        self._description_signes_courante = None
         usage_total = None
 
         def appeler_brut(*arguments):
@@ -1324,6 +1335,23 @@ direction), plus lents, ils ne s'entendent que de tout près.
         for tentative in range(3):
             while True:
                 try:
+                    if (isinstance(reponse, dict) and isinstance(reponse.get("texte"), dict)
+                            and self._interpretation and self._monde_controle is not None):
+                        selection = reponse["texte"]
+                        if (set(reponse) != {"mode", "texte", "faits", "proposition"}
+                                or reponse.get("mode") != "dialogue" or reponse.get("proposition") is not None
+                                or not isinstance(reponse.get("faits"), list)
+                                or set(selection) != {"signes_de"}):
+                            raise RefusDeForme("La description de signes doit être une sélection de personnages.",
+                                f"réponse reçue {reponse!r} ; accepté : dialogue, proposition=null, "
+                                "faits=[], texte={signes_de: [références publiques]}.")
+                        from .rendu import decrire_signes
+                        try:
+                            rendu = decrire_signes(self._monde_controle, selection["signes_de"])
+                        except ErreurMonde as exc:
+                            raise RefusDeForme(str(exc), exc.attendu) from exc
+                        self._description_signes_courante = copy.deepcopy(selection["signes_de"])
+                        return {**reponse, "texte": rendu, "_texte_moteur": True}
                     verifier_forme_reponse(reponse, schema)
                     if len(schema.get("properties", {}).get("mode", {}).get("enum", [])) > 1:
                         verifier_disponibilite(reponse, entree["faits"],

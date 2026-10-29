@@ -1,0 +1,132 @@
+{
+ "scenario": "crue",
+ "seed": 1985,
+ "preparation": {
+  "salle": "antichambre",
+  "position": [
+   1,
+   2
+  ],
+  "orientation": "sud",
+  "personnages": {
+   "ilse": {
+    "salle": "antichambre",
+    "position": [
+     0,
+     4
+    ],
+    "orientation": "nord"
+   },
+   "brune": {
+    "salle": "antichambre",
+    "position": [
+     2,
+     4
+    ],
+    "orientation": "nord"
+   },
+   "marchand": {
+    "salle": "antichambre",
+    "position": [
+     2,
+     5
+    ],
+    "orientation": "nord"
+   },
+   "aubin": {
+    "salle": "antichambre",
+    "position": [
+     1,
+     3
+    ],
+    "orientation": "sud"
+   }
+  },
+  "calmes": [
+   "ilse",
+   "brune",
+   "marchand",
+   "aubin"
+  ],
+  "noms_connus": [
+   "ilse",
+   "brune",
+   "marchand",
+   "aubin"
+  ],
+  "relations": {
+   "ilse": {
+    "brune": {
+     "peur": 70,
+     "confiance": 0
+    },
+    "marchand": {
+     "affection": 0,
+     "confiance": 0
+    }
+   },
+   "marchand": {
+    "brune": {
+     "confiance": 0,
+     "peur": 30
+    }
+   },
+   "aubin": {
+    "brune": {
+     "confiance": 0
+    }
+   },
+   "brune": {
+    "aubin": {
+     "confiance": 0
+    }
+   }
+  },
+  "previsions": [
+   {
+    "personnage": "aubin",
+    "salle": "antichambre",
+    "valeur": [
+     0,
+     10000,
+     1
+    ],
+    "confiance": 0.8
+   },
+   {
+    "personnage": "brune",
+    "salle": "antichambre",
+    "valeur": [
+     0,
+     -10000,
+     1
+    ]
+   }
+  ],
+  "bavardages": [
+   "aubin"
+  ],
+  "surveillent": [
+   "marchand"
+  ],
+  "repos_social": [
+   "ilse"
+  ],
+  "lecture_signes": true,
+  "valeurs": {
+   "aubin": {
+    "fierte": 80,
+    "altruisme": 100,
+    "empathie": 100
+   }
+  }
+ },
+ "tours": [
+  "Comment va Ilse ?",
+  "Gorm a l'air de quoi ?",
+  "Brune m'en veut ?",
+  "je regarde la salle",
+  "je dis à Gorm : je te propose de partager mes vivres si tu me laisses passer",
+  "Comment réagissent-ils à ma proposition ?"
+ ]
+}

@@ -1361,6 +1361,10 @@ def consigner(monde, reponse):
     if not audit:
         if reponse.get("_texte_moteur") is not True:
             raise ErreurMonde("Réponse du MJ sans contrôle narratif.")
+        if "_description_signes" in reponse:
+            from .rendu import decrire_signes
+            # La préparation n'est pas une preuve de perception à l'écriture.
+            reponse["texte"] = decrire_signes(monde, reponse["_description_signes"])
         monde.data.setdefault("narrations_mj", []).append({
             "texte": reponse["texte"], "revision": monde.data["revision"],
             "sources": ["moteur"]})

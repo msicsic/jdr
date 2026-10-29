@@ -619,6 +619,16 @@ def impressions(m):
             for _, _, c in actives(m, "joueur") for cle in [c["signe"]] if cle in signes]
 
 
+def textes(m, personnages=None):
+    """Projection actuelle, sans nouveau jet ni lecture de l'intention privée.
+
+    Les impressions exigent toujours leur signe encore perçu. Le même rendu
+    sert à la scène et aux descriptions demandées au MJ.
+    """
+    return list(dict.fromkeys(s["texte"] for s in publics(m) + impressions(m)
+                             if personnages is None or s["personnage"] in personnages))
+
+
 def _impression(m, c):
     qui = _nom(m, c["personnage"])
     from .francais import accorder

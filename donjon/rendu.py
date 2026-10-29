@@ -205,6 +205,30 @@ def non_perception(monde, id):
     return " ".join(lignes)
 
 
+def decrire_signes(monde, personnages):
+    """Une sélection publique n'autorise que les signes encore perceptibles."""
+    from .noms import reference
+    from .signes import textes
+    from .voix import nom_pour_joueur
+    connus = {reference(monde, i): i for i, o in monde.objets.items()
+              if o["type"] == "personnage" and
+              (monde.visible(i) or i in monde.data.get("noms_connus", [])
+               or i in monde.data.get("souvenirs_visuels", {}))}
+    if (not isinstance(personnages, list) or not 1 <= len(personnages) <= 12
+            or any(not isinstance(p, str) or p not in connus for p in personnages)):
+        from .monde import ErreurMonde
+        raise ErreurMonde("Cette description doit viser des personnages que tu connais ou perçois.",
+                          f"texte.signes_de : reçu {personnages!r} ; acceptés : {sorted(connus)!r}, "
+                          "liste de 1 à 12 références publiques.")
+    lignes = []
+    for ref in dict.fromkeys(personnages):
+        id = connus[ref]
+        signes = textes(monde, {id})
+        lignes.extend(signes or [non_perception(monde, id) or
+            f"Tu ne discernes aucun signe particulier chez {nom_pour_joueur(monde, id)}."])
+    return "\n".join(dict.fromkeys(lignes))
+
+
 def regarder(monde):
     if monde.joueur.get("parti"):
         return "Tu as quitté les lieux. Ta partie est terminée."
@@ -303,9 +327,8 @@ def regarder(monde):
         fin = "\n\nSorties que tu connais : " + (", ".join(sorties) or "aucune pour l'instant") + "."
     else:
         fin = "\n\nSorties : " + (", ".join(sorties) or "aucun passage directement praticable") + "."
-    from .signes import publics, impressions
-    # Deux signes peuvent laisser la même impression : elle ne se dit qu'une fois.
-    fin += "\n" + "\n".join(dict.fromkeys(s["texte"] for s in publics(monde) + impressions(monde)))
+    from .signes import textes
+    fin += "\n" + "\n".join(textes(monde))
     return titre + "\n\n" + fill(" ".join(lignes), width=88) + fin
 
 

@@ -455,8 +455,8 @@ def main(argv=None, interface=None):
                                   "parole_joueur" if "parole" in types else
                                   "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
                         prefixe = reponse.get("_prefixe_moteur")
-                        travail.memoriser(texte, "\n".join(filter(None, (prefixe, reponse["texte"]))), nature)
                         consigner_narration(travail, reponse)
+                        travail.memoriser(texte, "\n".join(filter(None, (prefixe, reponse["texte"]))), nature)
                         # Ne montrer la nouvelle fiction qu'après sa sauvegarde réussie.
                         travail.sauver(args.save)
                         m.data, pending = travail.data, suite

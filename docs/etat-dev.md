@@ -2,6 +2,24 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 329 / G20, branche `codex-g20-signes`, non fusionnée**, base
+  `origin/codex-g5-perception c4cd83f` (323), sans fusion avec integration :
+  sélection typée `texte.signes_de` dans le dialogue existant ; rendu commun
+  `signes.textes` / `rendu.decrire_signes`, recalculé par `consigner` avant
+  mémorisation, sauvegarde et affichage. Signes disparus exclus, impressions
+  faillibles, références publiques seulement, aucun nouveau jet ni geste.
+  Aucun audit des seules descriptions typées ; prose libre toujours contrôlée.
+  Banc 176 repris, extraction de sa branche non fusionnée absente de cette base.
+  **119 tests / neuf fichiers verts**, 24,457 s cumulées, deux travailleurs
+  réduits ; huit nouveaux tests, Ilse/Gorm/Brune, signe périmé à l'écriture,
+  monde/texte/scène/carte rechargés et sauvegarde avant affichage vérifiés.
+  **Luna à lire avant clôture** : une passe détachée signes-ecart/signes-guet/
+  attitudes, fin écrite en dernier même en échec :
+  `C:/Users/msics/donjon/artifacts/g20-329/fin-luna.json`.
+  Référence c9459ce archivée, sans rejouer ; référence attitudes indisponible.
+  Ni suite complète ni banc PNJ. Recouvrements 328/G6 : mj/rendu/narration/jeu.
+  [Rapport 329](taches/rapport-codex-329-g20-signes.md).
+
 - **Lot 323 clos après relecture / G5 partiel, branche `codex-g5-perception`,
   non fusionnée**, base `integration 4794376`, correctif `d683184` : voie
   dialogue des questions d'information restaurée dans les consignes communes ;
