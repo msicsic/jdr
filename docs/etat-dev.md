@@ -2,6 +2,20 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 323 / G5, branche `codex-g5-perception`, non fusionnée**, base
+  `integration 4794376` : rendu commun de non-perception, couverture et souvenir,
+  sans position cachée ; une absence ne porte que sur la surface visible.
+  Perceptions seules sans contre-revue ; commandes et résultats sauvegardés
+  avant affichage, dont `regarder`. Autres actes et dialogues libres toujours
+  contrôlés ; interprétation du libre non garantie. **117 tests / onze fichiers
+  verts**, 24,480 s, deux travailleurs réduits, monde/scène/carte rechargés.
+  Luna : une passe des quatre scripts G5 à lancer détachée ; aucune référence
+  correspondante dans le cache de `main c870c8b`, aucune référence relancée.
+  Reprise sur `C:/Users/msics/donjon/artifacts/g5-323/fin-luna.json` pour analyse
+  puis clôture. Ni décision PNJ, ni banc PNJ, ni suite complète modifiés/lancés.
+  Recouvrements 320 (`narration.py`) et 319 (`rendu.py`, `jeu.py`).
+  [Rapport 323](taches/rapport-codex-323-g5-perception.md).
+
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base
   `integration 60f857c`** : aucune dépendance au hachage reproduite.
   Hameau/Relais 2024 identiques sous 1/42/310/2024 ; hameau historique

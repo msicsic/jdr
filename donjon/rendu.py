@@ -174,6 +174,37 @@ def prix(monde, objet):
     return max(1, objet["prix"] - max(0, (monde.joueur["stats"]["CHA"] - 10) // 2))
 
 
+def non_perception(monde, id):
+    """Un constat public, jamais une lecture de la position cachée de la cible.
+
+    La couverture borne l'absence ; le souvenir ne décrit que l'observation
+    passée. Une cible inconnue n'acquiert ni nom ni existence par cette voie.
+    """
+    from .perception import non_vus_connus, couverture_vue
+    from .noms import reference
+    entite = next((e for e in non_vus_connus(monde) if e["id"] == reference(monde, id)), None)
+    if entite is None:
+        return None
+    lignes = [f"Tu ne vois pas {entite['nom']} en ce moment."]
+    couverture = couverture_vue(monde)
+    if couverture["portee"] == "salle":
+        lignes.append("Tu constates son absence dans la partie visible de la salle ; "
+                      "ce constat ne porte pas sur les contenus cachés.")
+    else:
+        lignes.append("Ta vue ne couvre pas toute la salle ; ne pas voir ne permet pas de conclure à une absence.")
+    souvenir = monde.data.get("souvenirs_visuels", {}).get(id)
+    if souvenir:
+        salle = souvenir["salle"]
+        lieux = {monde.joueur["salle"], *monde.data["visitees"]}
+        lieu = monde.data["salles"][salle]["nom"] if salle in lieux else "un lieu encore sans nom"
+        position = ""
+        if salle == monde.joueur["salle"]:
+            from .localisation import relatif
+            position = ", " + relatif(monde, salle, souvenir.get("contact", souvenir["position"]))[1]
+        lignes.append(f"Dernière observation : {lieu}{position}. Cela ne garantit pas sa position actuelle.")
+    return " ".join(lignes)
+
+
 def regarder(monde):
     if monde.joueur.get("parti"):
         return "Tu as quitté les lieux. Ta partie est terminée."

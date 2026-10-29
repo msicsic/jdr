@@ -394,6 +394,8 @@ def main(argv=None, interface=None):
                     if cmd in ("aide", "?"):
                         imprimer(AIDE)
                     elif cmd == "regarder":
+                        m.memoriser(texte, regarder(m).strip(), "resultat_moteur")
+                        m.sauver(args.save)
                         afficher("carte")
                         afficher("scene")
                     elif cmd == "carte":

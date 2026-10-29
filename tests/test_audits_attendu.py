@@ -317,18 +317,18 @@ class ChaineTests(Commun, unittest.TestCase):
 
     def test_contre_revue_non_conforme_la_correction_recoit_le_plan_et_le_motif(self):
         m = nouveau_monde()
-        examiner = {"mode": "action", "texte": "", "faits": [],
-                    "proposition": proposition("examiner", "torche", justification="")}
-        recit = dialogue("Tu examines la torche.")
-        reprise, sortie, appels = jouer(m, "j'examine la torche", [examiner, examiner, recit],
+        attendre = {"mode": "action", "texte": "", "faits": [],
+                    "proposition": proposition("attendre", "600", justification="")}
+        recit = dialogue("Tu attends dix minutes.")
+        reprise, sortie, appels = jouer(m, "mj je patiente dix minutes", [attendre, attendre, recit],
                                         [verdicts(("mecanique", ("resultat_resolu",), ""))],
-                                        [{"conforme": False, "motif": "Le joueur veut aussi la prendre."},
+                                        [{"conforme": False, "motif": "Le joueur veut attendre dix minutes."},
                                          {"conforme": True, "motif": ""}])
         retour = mj(appels)[1]["faits"]["retour_moteur"]
         self.assertEqual(retour["obstacle"],
-                         "La manœuvre proposée ne couvre pas la demande : Le joueur veut aussi la prendre.")
-        self.assertIn("(action examiner, cible torche) » ; selon l'auditeur (verdict non conforme) : « Le joueur "
-                      "veut aussi la prendre. »", retour["attendu"])
+                         "La manœuvre proposée ne couvre pas la demande : Le joueur veut attendre dix minutes.")
+        self.assertIn("(action attendre, cible 600) » ; selon l'auditeur (verdict non conforme) : « Le joueur "
+                      "veut attendre dix minutes. »", retour["attendu"])
         self.assertJamaisAffiche(sortie, [retour])
         self.assertNotIn(retour["obstacle"], sortie)
         self.assertEqual(reprise.objets["torche"]["lieu"], "antichambre")

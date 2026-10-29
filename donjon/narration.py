@@ -111,7 +111,9 @@ def attestations(monde, contexte):
             from .voix import reel
             textes.append(decrire(monde, reel(monde, objet["id"]), technique=False))
     from .perception import non_vus_connus
-    textes.extend(f"Tu ne vois pas {entite['nom']} en ce moment."
+    from .rendu import non_perception
+    from .voix import reel
+    textes.extend(non_perception(monde, reel(monde, entite["id"]))
                   for entite in non_vus_connus(monde))
     return list(dict.fromkeys(p for texte in textes for p in segments(texte) if p))
 

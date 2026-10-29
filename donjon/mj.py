@@ -477,6 +477,11 @@ class MJ:
         return references(monde,reponse)
 
     def _auditer_action(self, intention, plan, revision, monde=None, operations_demandees=None):
+        # Le moteur rend seul les perceptions sans effet proposé. Leur
+        # interprétation reste visible dans le résultat ; aucune prose du MJ
+        # n'est publiée. Les autres plans gardent la revue de fidélité.
+        if plan.perception_canonique:
+            return
         from .couverture_action import (schema as schema_couverture,
                                         INSTRUCTIONS as INSTRUCTIONS_COUVERTURE,
                                         INSTRUCTIONS_PAROLE,
