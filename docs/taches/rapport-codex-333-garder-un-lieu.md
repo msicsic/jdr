@@ -1,6 +1,7 @@
 # Lot 333 — A4b, interposition d'un lieu gardé
 
-Branche `codex-garder-lieu`, **non fusionnée**, base d'intégration `4a54090`.
+Branche `codex-garder-lieu`, **non fusionnée**, base d'intégration `4a54090`,
+code et tests `887a5b0`, poussés vers origin.
 Bruts : `C:/Users/msics/donjon/artifacts/lieu-333/`. Aucun scénario historique,
 MJ ou modèle modifié ; ni Luna ni suite complète.
 
@@ -28,7 +29,8 @@ existante, même lorsqu'il est trop tard pour intercepter sans déplacer autrui.
 
 **Vérification ciblée.** **135 tests distincts, douze fichiers verts**,
 première consolidation 63,188 s ; reprise de 22 tests après l'exigence de
-source visuelle précédente, 19,649 s. Huit nouveaux tests : Gorm à l'accès
+source visuelle précédente, 19,649 s ; huit nouveaux tests repris après ajout
+du contrôle du registre des paroles, 16,161 s. Huit nouveaux tests : Gorm à l'accès
 d'une salle du Relais contre Corvus ; Hugues devant le cellier de l'auberge
 contre Lucien. Gardes déclarées dans les seules données d'épreuve. Poste,
 parole typée réellement entendue, confiance/rancune, monde, rendu et scène
@@ -40,13 +42,15 @@ du montage, puis défauts de vue et d'accès rétroactif corrigés. L'ancien tes
 de protection regarde maintenant le joueur avant ses deux positions, au lieu
 de seulement le retrouver dans son champ ; ses assertions sont conservées.
 
-**Banc en attente.** `tools/valider_lieu_333.py` lance 4 h × Relais, mine,
+**Banc en cours.** `tools/valider_lieu_333.py` lance 4 h × Relais, mine,
 auberge, crue, hameau × 1985/7/42/2024, un travailleur réduit. Référence
 `f08ef58` : `git diff --quiet f08ef58 4a54090 -- donjon tools` vaut 0 ;
-les vingt nuits déjà disponibles sont lues du cache, aucun recalcul de
+les vingt nuits ont été relues du cache, aucun recalcul de
 référence autorisé par le lanceur. Il conserve chaque nuit, exige aucune
 hausse des suspects 219 par paire, zéro plantage/usurpation/coup, et écrit
-`bilan.json`, puis **`fin.json` en dernier, même en échec**. Aucune conclusion
+`bilan.json`, puis **`fin.json` en dernier, même en échec**. Démarrage réel
+vérifié : PID Python `47816`, priorité `BelowNormal`, `debut.json` sur
+`887a5b0`, vingt références chargées ; fenêtre cachée. Aucune conclusion
 de banc ni de vitesse avant lecture de ce fichier.
 
 **Recouvrements et limites.** Lot 330 : `pnj.py` ; lot 332 : `esprits.py` et

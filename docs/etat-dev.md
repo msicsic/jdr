@@ -12,12 +12,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   distincts / douze fichiers verts**, dont huit nouveaux : Relais/Corvus,
   auberge/Lucien ; monde, rendu, scène et parole entendue rechargés,
   laps entier/découpé identiques. Reprise de 22 après la dernière garde
-  visuelle verte. Ni Luna ni suite complète. **Banc détaché à lancer**,
+  visuelle verte, puis huit tests du registre des paroles verts. Code/tests
+  `887a5b0` poussés vers origin. Ni Luna ni suite complète. **Banc détaché en cours**,
   4 h × cinq scénarios × quatre graines, un travailleur réduit ; référence
-  `f08ef58` identique en code à la base, vingt nuits disponibles en cache,
+  `f08ef58` identique en code à la base, vingt nuits relues du cache,
   aucun recalcul de référence. Bruts `C:/Users/msics/donjon/artifacts/lieu-333/`,
   fin attendue **`fin.json`**, écrite en dernier même en échec ; banc non
-  encore validé. Recouvrements 330 : `pnj.py` ; 332 : `esprits.py`, `pnj.py`.
+  encore validé. Démarrage réel vérifié, PID `47816`, priorité `BelowNormal`.
+  Recouvrements 330 : `pnj.py` ; 332 : `esprits.py`, `pnj.py`.
   [Rapport 333](taches/rapport-codex-333-garder-un-lieu.md).
 
 - **Lot 331 terminé, branche `codex-achat-planches`, fusionnée**, base
