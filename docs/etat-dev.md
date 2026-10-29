@@ -2,6 +2,21 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 314, branche `codex-achat-promis`, base `integration c4f6d46`** :
+  `_remettre_part` transmet le refus d'une livraison annulée conservée pour
+  annoncer son abandon, au lieu de publier un faux accord qui efface le refus
+  du demandeur. Capture réelle 306 hameau 7 avant t=36582 : **28 achats promis
+  → un refus, zéro achat**, aucun paiement ; autre cas d'huile à l'auberge.
+  Quatre nouveaux tests verts, monde/rendu/scène rechargés et laps entier/
+  découpé contrôlés. Ordre des observations du bilan des présences dépend du
+  regroupement des actions, multiplicité et état final identiques.
+  **Vérification élargie en attente**, deux travailleurs réduits : tests voisins,
+  empreintes 2 h quatre scénarios × quatre graines, banc hameau avec données
+  306, 4 h × quatre graines. Ni Luna ni suite complète, réclamations 315
+  inchangées. Bruts `C:/Users/msics/donjon/artifacts/achat-314/`, fin attendue
+  `fin.json`. Ne pas déclarer le lot clos avant lecture des résultats.
+  [Rapport 314](taches/rapport-codex-314-achat-promis-repete.md).
+
 - **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :
   union des clés de mesures de mandat triée dans `banc_pnj.executer`,
   aucune valeur ni test existant modifié. Test d'origine inchangé vert sous
