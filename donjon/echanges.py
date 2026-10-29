@@ -872,6 +872,7 @@ def engager(monde, payeur, autre, condition, prix):
         return arret
     # Celui qui le paie sait la tâche à faire : seul ce qu'il voit à l'instant la lui dit faite.
     if tenu(monde, autre, condition, monde.data["minutes"]):
+        _retenir_aide(monde, payeur, autre, condition, (0, []))
         return "deja"
     if prix <= 0 or richesse(monde, payeur) < prix:
         return "pauvre"
@@ -898,8 +899,9 @@ def engager(monde, payeur, autre, condition, prix):
     payer(monde, payeur, autre, prix)
     memoriser(monde, autre, {"type": "engagement_pris", "pour": payeur, "condition": dict(condition), "prix": prix})
     if payeur != "joueur":
-        memoriser(monde, payeur, {"type": "tache_payee", "a": autre, "condition": dict(condition), "prix": prix})
-    _retenir_aide(monde, payeur, autre, condition, devis)
+        echeance = _echeance_devis(monde, autre, devis)
+        memoriser(monde, payeur, {"type": "tache_payee", "a": autre, "condition": dict(condition), "prix": prix,
+                                 **({"echeance": echeance} if echeance is not None else {})})
     return "accepte"
 
 
@@ -1185,6 +1187,10 @@ def confier(monde, demandeur, auditeur, condition=None, *, mandat=None):
     if arret:
         return arret
     if tenu(monde, auditeur, condition):
+        # Une réponse positive est retenue même sans nouveau travail : elle
+        # ouvre le contrôle ordinaire, sans établir le fait dans les croyances
+        # du demandeur ni lui faire répéter la même question avant ce contrôle.
+        _retenir_aide(monde, demandeur, auditeur, condition, (0, []))
         return "deja"
     siens_a_portee(monde, auditeur)
     # Une tâche sur un bien de celui qui la confie en confie la garde (``biens.gardes``) : il juge
@@ -1214,16 +1220,22 @@ def confier(monde, demandeur, auditeur, condition=None, *, mandat=None):
 
 
 def _retenir_aide(monde, demandeur, auditeur, condition, devis):
-    """Le bénéficiaire attend le travail accepté, gratuit ou payé, jusqu'à sa réalisation réelle."""
+    """Attendre l'aide acceptée ou contrôler une réalisation annoncée, sans créer le fait."""
     if demandeur != "joueur" and "objet" in condition:
         esprit(monde, demandeur)["aides_attendues"][condition["objet"]] = {
             "qui": auditeur, "condition": dict(condition), "minute": monde.data["minutes"]}
-        from .planification import duree_devis
-        from math import ceil
-        duree = duree_devis(monde, auditeur, devis[1])
-        if duree is not None:
-            esprit(monde, demandeur)["aides_attendues"][condition["objet"]]["echeance"] = (
-                monde.data["minutes"] + ceil(monde.data.get('dixiemes', 0) / 600 + duree))
+        echeance = _echeance_devis(monde, auditeur, devis)
+        if echeance is not None:
+            esprit(monde, demandeur)["aides_attendues"][condition["objet"]]["echeance"] = echeance
+
+
+def _echeance_devis(monde, auditeur, devis):
+    """Date physique estimée, sans conférer une urgence au travail ni à son contrôle."""
+    from .planification import duree_devis
+    from math import ceil
+    duree = duree_devis(monde, auditeur, devis[1])
+    return (None if duree is None else
+            monde.data["minutes"] + ceil(monde.data.get('dixiemes', 0) / 600 + duree))
 
 
 def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
@@ -1684,7 +1696,8 @@ def executer(monde, id, etape, lignes):
         else:
             recit = f"{a} demande à {b} de faire en sorte que {phrase_condition(monde, contenu)}"
         clair = recit + "."
-        reponse = f"{b} accepte." if issue in ("accepte", "deja") else f"{b} refuse."
+        reponse = (f"{b} dit que c'est déjà fait." if issue == "deja" and not mandat
+                   else f"{b} accepte." if issue in ("accepte", "deja") else f"{b} refuse.")
         cites = [contenu["objet"], contenu.get("lieu")]
         reussi = issue in ("accepte", "deja")
     else:

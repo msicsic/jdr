@@ -478,7 +478,7 @@ class Vue:
         self._parts_lues, self._sources_vides, self._attentes_parts = {}, {}, {}
         self._contexte_parts = None
         # Un recours ordinaire épuisé ouvre l'aide sur place ; la garde ne se lève pas.
-        from .deliberation import attentes, _lieux_gardes
+        from .deliberation import attentes, _lieux_gardes, tache_payee
         from .echanges import ENGAGEMENT_MAX
         self.aides = [(x["qui"], x) for x in lire(monde, id)["aides_attendues"].values()
                       if monde.data["minutes"] - x["minute"] <= ENGAGEMENT_MAX
@@ -487,6 +487,13 @@ class Vue:
                       and not ((refus := refus_retenu(monde, id, x["qui"], ("confier", "engager"),
                                                      x["condition"]["objet"]))
                                and refus["minute"] > x["minute"])]
+        # Le travail payé possède déjà son contrat dans la mémoire du payeur.
+        # Il ne crée pas une nouvelle délégation à échéance ni une visite urgente.
+        self.travaux_payes = [(s["condition"], qui, s.get("echeance"),
+                              "echeance" in s and monde.data["minutes"] > s["echeance"])
+                             for s in lire(monde, id)["memoire"]
+                             if s["type"] == "tache_payee"
+                             and (qui := tache_payee(monde, id, s["condition"]))]
         intention = lire(monde, id)["intention"]
         # L'aide acceptée reste une cause d'ouverture quand son bénéficiaire
         # attend sa réalisation, même si l'adoption a reclassé le besoin
@@ -782,6 +789,10 @@ class Vue:
         """Les PNJ qu'il connaît, dans un ordre stable."""
         return self._memo(("personnes",), lambda: [x for x in self.connus if self.objets[x]["type"] == "personnage"
                                                     and x != self.id and profil(self.monde, x)])
+
+    def attend_tache(self, condition):
+        return (any(x["condition"] == condition for _, x in self.aides)
+                or any(c == condition for c, *_ in self.travaux_payes))
 
     def refuse_achat(self, autre, o):
         """Un refus qui tient, de lui vendre ou de donner, pour une raison que payer ne lève pas : il le
@@ -1722,7 +1733,15 @@ def _confier_tache(v, e, condition, personnes):
     suivant = e.apres(faits=effets, portes=e.portes | {o} if "remettre" in condition else e.portes)
     if all(e.fait(*cle) == valeur for cle, valeur in effets):
         return
-    if any(x["condition"] == condition for _, x in v.aides):
+    if v.attend_tache(condition):
+        salle = v.salle(e, o)
+        if any(c == condition and echue and lire(v.monde, v.id)["visites"].get(salle, -1) <= echeance
+               for c, _, echeance, echue in v.travaux_payes):
+            # Le contrôle reste un moyen du besoin courant ; il n'est jamais
+            # publié comme un nouveau devoir pressant devant les secours.
+            if e.salle == salle:
+                yield (0, 1, [{**_etape("inspecter", lieu=salle), "suppose": True}], suivant, 1)
+            return
         yield 0, TACHE, [{**_etape("inspecter"), "attendre_remise": True}], suivant, TACHE
         return
     for autre in personnes:
@@ -1742,14 +1761,14 @@ def _allumer_pour_soi(v, e, o):
     """
     x = v.objets[o]
     if (v.seul or not x.get("foyer") or x.get("mobile") or v.illicite[o]
-            or not v.disponible(o) or v.contrarie(o) or v.salle(e, o) in v.menacees
+            or not v.disponible(o) or v.cru(o, "fin") or v.contrarie(o) or v.salle(e, o) in v.menacees
             or v.feu(e, o) != (False, True)
             or any(v.flamme(e, k) for k in e.portes)):
         return
     condition = {"objet": o, "allume": True}
     personnes = sorted({autre for autre, _ in v.flammes_d_autrui(e)})
     yield from _confier_tache(v, e, condition, personnes)
-    if not any(x["condition"] == condition for _, x in v.aides):
+    if not v.attend_tache(condition):
         for g in _engager(v, e, condition, personnes=personnes):
             # La réalisation reste à venir après l'accord payé, comme après l'accord gratuit.
             yield (*g[:2], [{**etape, "suppose": True} for etape in g[2]], *g[3:])
@@ -2210,7 +2229,7 @@ def _entrees_communes(v):
           None if o.get("mobile") or "lieu" in croyances.get(k, ()) else o.get("lieu")]
          for k, o in monde.objets.items()],
         [[o, v.proprietaire[o]] for o in v.connus], v.salles, v.gardes,
-        v.prix_gardes, v.chances_demandes, v.detresses, v.poste_garde, v.aides,
+        v.prix_gardes, v.chances_demandes, v.detresses, v.poste_garde, v.aides, v.travaux_payes,
         # Ce qu'un prêt ou une garde permettent (``biens.permis``), ce qu'il peut payer et ce que
         # vaut pour lui une pièce.
         [o for o in v.connus if v.illicite[o]], [o for o in v.connus if v.consomme_illicite[o]],

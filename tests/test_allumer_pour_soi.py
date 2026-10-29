@@ -138,6 +138,10 @@ class AllumerPourSoiTests(unittest.TestCase):
         m=self.recharge(m)
         self.assertEqual(self.offres(m),[])
         self.assertIsNone(p.planifier(m,'aubin','chaleur'))
+        m=scene()
+        m.objets['brasero']['integrite']=0
+        croire(m,'aubin','brasero','fin','detruit','vu')
+        self.assertEqual(self.offres(self.recharge(m)),[])
 
     def test_refus_retenu_sans_redemande_par_delai_et_offre_payee(self):
         m=scene()
@@ -163,12 +167,33 @@ class AllumerPourSoiTests(unittest.TestCase):
         offre['contenu']['prix']=20
         self.assertTrue(echanges.executer(m,'aubin',offre,[]))
         self.assertFalse(m.objets['brasero']['allume'])
+        # Le paiement garde son contrat propre ; il ne publie pas une
+        # nouvelle délégation dont l'échéance passerait devant un secours.
+        self.assertNotIn('brasero',lire(m,'aubin')['aides_attendues'])
         m=self.recharge(m)
         self.assertEqual(p.planifier(m,'aubin','chaleur')[1],[])
         m,_=vivre(m,8,jet=20)
         self.assertTrue(m.objets['brasero']['allume'])
         self.assertLess(lire(m,'aubin')['besoins']['chaleur'],100)
         self.recharge(m)
+
+    def test_realisation_annoncee_retenue_sans_fait_ni_redemande(self):
+        for foyer in ('brasero','poele_guet'):
+            with self.subTest(foyer=foyer):
+                m=scene(foyer)
+                # Gorm croit le travail déjà fait ; l'annonce ne prouve pas
+                # son contenu, et le demandeur croit encore le foyer éteint.
+                croire(m,'marchand',foyer,'etat',
+                       {'allume':True,'charge':True,'faible':False},'vu')
+                demande=p._etape('confier','marchand',contenu={'objet':foyer,'allume':True})
+                self.assertTrue(echanges.executer(m,'aubin',demande,[]))
+                self.assertFalse(m.objets[foyer]['allume'])
+                self.assertFalse(lire(m,'aubin')['croyances'][foyer]['etat']['valeur']['allume'])
+                self.assertFalse(lire(m,'marchand')['engagements'])
+                m=self.recharge(m)
+                self.assertFalse(any(g[2][0]['operation'] in ('confier','engager')
+                                     for g in self.offres(m,foyer)))
+                self.assertEqual(lire(m,'aubin')['aides_attendues'][foyer]['echeance'],m.data['minutes'])
 
     def test_parole_du_joueur_utilise_le_meme_service(self):
         from donjon.paroles import preparer_parole

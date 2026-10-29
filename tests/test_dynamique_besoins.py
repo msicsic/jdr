@@ -221,7 +221,19 @@ class TenirTests(unittest.TestCase):
 
             with patch.object(pnj, "_executer", executer_sonde), \
                  patch.object(deliberation, "choisir", choisir_sonde), patch.object(pnj, "agir", agir_sonde):
-                m, _ = suivre(self.lucien_au_grenier_noir(secours_spontane=False), "lucien", 95, pas=5)
+                depart = self.lucien_au_grenier_noir(secours_spontane=False)
+                # La scène de la reprise du ballot garde la chambre noire.
+                # Depuis 277, l'absence de pièces n'empêche plus Anselme de
+                # chercher un allumage gratuit : à 32 min, aller parler au
+                # porteur d'une flamme modifie légitimement la fenêtre du vol.
+                # Le poêle est ici hors d'usage, ce que les habitants savent :
+                # même un allumage gratuit ne rend pas de lumière. Les buts,
+                # les ressources et les témoins restent ceux de la scène.
+                depart.objets["poele"]["integrite"] = 0
+                for qui, objet in depart.objets.items():
+                    if objet.get("profil"):
+                        croire(depart, qui, "poele", "fin", "detruit", "vu")
+                m, _ = suivre(depart, "lucien", 95, pas=5)
                 retenu = copy.deepcopy(lire(m, "lucien")["renoncements"]["biens"][0])
                 croyance95 = copy.deepcopy(lire(m, "lucien")["croyances"]["anselme"]["lieu"])
                 self.assertTrue(obstacle_patience(m, "lucien", retenu["cause"]))

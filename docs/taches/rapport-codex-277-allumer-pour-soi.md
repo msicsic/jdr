@@ -1,5 +1,53 @@
 # Lot 277 — demander l'allumage d'un foyer fixe pour soi
 
+**Raccord à l'intégration `bca5061` en cours**, fusion sans rebase
+`59a1388` (seul conflit : documentation). Les mesures de `bbab808` ci-dessous
+restent historiques ; nouvelle validation dans
+`artifacts/allumer-277/raccord-266/fin.json` du dépôt principal.
+
+La fusion d'essai 277+280 a révélé quatre cas :
+
+- Protection et agenda de protection : Gorm répond bien à l'alarme et
+  inspecte l'échoppe (600 → 836 dixièmes), puis Brune propose l'allumage payé
+  (859). Le nouveau registre d'aide payée ajoutait un contrôle devenu devoir
+  pressant ; avec 266, la poursuite du protégé finissait dans la crypte.
+  La panne subsiste sans le nouveau recours et disparaît sans cette
+  publication. Correction : conserver le travail et son estimation physique
+  dans le contrat payé connu du payeur ; contrôler comme moyen du besoin
+  courant, sans publier de nouvelle urgence de délégation. Alarmes inchangées.
+- Voix inconnue : Odon reçoit effectivement sa part, mais Josse redemande
+  l'allumage à Rémy, qui répond « déjà fait » (89 demandes relevées) ; la
+  chronique bornée évacue le repas. La réponse positive sans nouveau travail
+  est désormais retenue pour contrôle ordinaire, sans créer le fait dans les
+  croyances ni un nouvel engagement. Même contrat pour deux foyers dans un
+  nouveau test ; aucun recours, nom ou palier particulier ajouté.
+- Lucien : à 19340 dixièmes (32 min), Anselme, biens 100, choisit légitimement
+  d'approcher Hugues pour demander gratuitement l'allumage ; refus à 19381,
+  puis recherche d'une flamme. L'absence de pièces n'interdit plus ce moyen :
+  sa sortie modifie la fenêtre du vol, et l'information disponible à Lucien.
+  L'ablation du recours rétablit toutes les assertions historiques. La scène
+  de contrôle précise donc le poêle connu hors d'usage, garde tous les buts,
+  et conserve toutes les assertions (95 min, vol 107–110, reprise du ballot,
+  recherche, état/rendu/recharge). Le scénario normal garde le foyer utilisable.
+  Cette contre-épreuve a révélé une lacune d'admission : `disponible` ne
+  décrit que les réserves épuisées. Le recours écarte aussi la fin connue
+  (`fin`) du foyer, sans consulter son intégrité réelle cachée.
+  La scène précisée repasse avec toutes les assertions et retrouve les
+  136 changements de choix et 191 gestes du témoin sans nouveau recours.
+
+Fonctions supplémentaires du raccord : `Vue.attend_tache`,
+`echanges._echeance_devis` ; raccord de `_entrees_communes` pour le contrat
+payé et son contrôle, sans lecture privée. Neuf tests du lot verts
+(43,747 s), dont attente payée sans délégation urgente, foyer connu détruit et
+réalisation annoncée sans fait créé. Une ancienne sauvegarde sans estimation
+de durée ne reçoit aucune date de contrôle inventée. Les diagnostics avec et sans recours, avec et sans
+publication payée, conservent monde/rendu/scène rechargés dans
+`allumer-277/integration/`. Tests des quatre fichiers et des appelants, puis
+banc 4 h × vingt nuits sur la référence `bca5061`, en reprise détachée.
+Ni suite complète ni Luna ; aucune fusion vers l'intégration effectuée.
+Les quatre cas sont repassés pendant l'instruction ; leurs fichiers complets
+et les appelants restent à valider dans le calcul détaché.
+
 29 octobre 2026, branche `codex-allumer-pour-soi`, **non fusionnée**, code
 **`bbab808`**, référence **`1852d6e`**. **Validation du lot terminée :
 314 tests verts, 20/20 paires de nuits 4 h sans hausse de suspects, aucun

@@ -2,7 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Branche `codex-allumer-pour-soi`, non fusionnée**, lot **277**, base
+- **Branche `codex-allumer-pour-soi`, non fusionnée**, lot **277**.
+  **Raccord à `bca5061` en cours**, fusion sans rebase `59a1388`, conflit
+  documentaire seul. Quatre cas instruits : protection (avec et sans agenda),
+  le paiement publiait à tort une délégation dont le contrôle devenait un
+  devoir pressant ; attente et date estimée restent dans le contrat payé,
+  contrôle comme moyen du besoin, alarmes inchangées. Voix inconnue : repas
+  servi, puis 89 demandes d'allumage « déjà fait » de Josse évacuant la
+  chronique ; réponse positive retenue sans fait ni engagement créé.
+  Lucien : le recours gratuit fait légitimement partir Anselme vers Hugues
+  à 32 min malgré sa pauvreté, changeant la fenêtre du vol ; la scène de
+  contrôle précise un poêle connu hors d'usage, tous les buts et assertions
+  conservés ; admission d'un foyer connu détruit rejetée par son `fin` cru,
+  sans consulter son intégrité réelle. Diagnostics et ablations monde/rendu/scène rechargés.
+  Les quatre cas repassent pendant l'instruction ; Lucien retrouve les
+  136 changements de choix et 191 gestes du témoin sans nouveau recours.
+  **9 tests du lot verts, 43,747 s** ; fichiers concernés et banc vingt
+  paires 4 h à reprendre, référence `bca5061`, deux travailleurs réduits au
+  plus. Fichier attendu du dépôt principal :
+  `artifacts/allumer-277/raccord-266/fin.json`. Résultats ci-dessous antérieurs
+  au raccord, ni suite complète ni Luna.
+  Base initiale
   `1852d6e` : recours d'allumage d'un foyer fixe pour soi par `confier` ou
   `engager`, sur les seules croyances de flamme et de position. Demande
   incertaine coupée avant réalisation ; attente commune du travail gratuit
