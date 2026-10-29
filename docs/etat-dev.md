@@ -2,6 +2,28 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-ud-descripteur`, lot 293 / U-D, fusionnée**, base
+  intégration `8acbbd9` : le clic d'objet/porte, la marche au clic et la
+  rotation transmettent un descripteur public jusqu'à `Moteur.preparer`.
+  Référence exacte encore perçue, sans recherche de nom, analyse de texte,
+  compilation ni revue ; refus public si périmée. Construction canonique
+  et exécution locale partagées avec le texte, sauvegarde avant affichage.
+  Aucun préalable envoyé au navigateur, aucun changement des mécaniques
+  PNJ ni des voies MJ. « Lui parler » reste une saisie de dialogue libre.
+  Mesure sans réseau, boucle de la base et du lot : 14 couples objet/porte
+  plus marche et rotation, **0 → 0 appel modèle** ; clé/outil absent,
+  **0 → 0 renvoi au MJ**. Sans portrait, un renvoi `echanger` de l'ancien
+  clic supprimé (appels internes non mesurés), zéro après le lot.
+  **70 tests / six fichiers verts**, zéro erreur/ignoré, 448.460 s
+  cumulées ; 28 tests TUI inchangés. Deux homonymes (second choisi), cibles
+  périmées/supprimées, paramètres, personnage inconnu, transport HTTP réel
+  et recharge monde/scène/carte/fiche ; callbacks Node effectivement exécutés.
+  Ni Luna, ni banc PNJ, ni suite complète. Bruts :
+  `C:/Users/msics/donjon/artifacts/ud-293/` ;
+  `fin-cloture.json` : `ok=true`, aucun calcul actif.
+  [rapport 293](taches/rapport-codex-293-ud-descripteur.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. U-D : un clic d'objet, de porte, de marche ou de rotation transmet {geste, cible, parametres} avec la référence publique de la scène ; commandes.DescripteurPublic, indépendant du web, passe par Moteur.preparer et son validateur habituel, sans analyse de texte ni MJ ; cible disparue ou hors de vue refusée publiquement, jamais un homonyme. Boucle locale de jeu.py extraite (executer_local), partagée avec le texte. 17 cas : 0 appel au modèle (examiner un personnage sans portrait passait avant au MJ). « Lui parler » inchangé. 70 tests ciblés verts, pas de passe Luna (aucun chemin du modèle touché).
+
 - **Branche `codex-g4-resultat-public`, lot 292, fusionnée**, base
   `9e52df4` : résultat moteur mémorisé et sauvegardé avant affichage,
   sans récit ni audit après exécution, console/TUI/web. Blessures visibles

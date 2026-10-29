@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import sys
 
-from donjon.commandes import AIDE, PERCEPTIONS, analyser, est_question, heler
+from donjon.commandes import AIDE, PERCEPTIONS, DescripteurPublic, analyser, est_question, heler
 from donjon.config import charger_env, MODELE_CLAUDE, MODELE_LOCAL, MODELE_MIMO, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJ
@@ -238,6 +238,39 @@ def main(argv=None, interface=None):
                 mj.noter_resultat(resultat, numero=numero)
             imprimer(affichage)
 
+        def executer_local(p, texte):
+            nonlocal pending, comparaison_pending
+            plan = moteur.preparer(p)
+            p = plan.proposition
+            if p["action"] != "observer":
+                pending = None
+            if plan.confirmation:
+                pending = plan
+                comparaison_pending = 0
+                resume_geste = plan.resume(m)
+                m.memoriser(texte, resume_geste, "proposition_non_executee")
+                m.sauver(args.save)
+                imprimer("\n" + resume_geste)
+                imprimer("« tenter » pour agir ; « annuler » pour abandonner.")
+                return
+            resultat = moteur.executer(plan)
+            mouvement = m.data.get("mode_cases") and p["action"] in ("marcher", "aller")
+            # Un instant d'attente (la touche Espace, le temps d'un pas) se tait comme un pas.
+            instant = p["action"] == "attendre" and p["cible"] and plan.dixiemes <= PAS_JOUEUR
+            if not (mouvement or instant):
+                m.memoriser(texte, resultat, "resultat_moteur")
+            m.sauver(args.save)
+            if not (mouvement or instant) or interface is None:
+                imprimer(resultat)
+            else:
+                silencieux = ("Tu avances d'un pas.", "Tu attends " + dire_duree(plan.dixiemes or 0) + ".")
+                evenements = [ligne for ligne in resultat.splitlines() if ligne not in silencieux]
+                if evenements:
+                    imprimer("\n".join(evenements))
+            if p["action"] == "aller" and not mouvement:
+                afficher("carte")
+                afficher("scene")
+
         while True:
             if interface:
                 interface.rafraichir(m, pending, mj)
@@ -246,14 +279,18 @@ def main(argv=None, interface=None):
                 imprimer("Ta partie est terminée : " + m.data["fin"]["cause"] + ".")
                 return 0
             try:
-                texte = lire("\nCorvus > ").strip()
+                entree = lire("\nCorvus > ")
+                texte = entree.strip() if isinstance(entree, str) else ""
             except (EOFError, KeyboardInterrupt):
                 imprimer()
-                texte = "quitter"
+                entree = texte = "quitter"
             cmd = normaliser(texte)
-            if not cmd:
+            if not cmd and not isinstance(entree, DescripteurPublic):
                 continue
             try:
+                if isinstance(entree, DescripteurPublic):
+                    executer_local(entree, "Geste direct")
+                    continue
                 if cmd in ("quitter", "q", "exit"):
                     m.sauver(args.save)
                     imprimer("Partie sauvegardée. A bientôt.")
@@ -447,35 +484,7 @@ def main(argv=None, interface=None):
                         imprimer(" ".join(filter(None, ("Rien n'est encore tenté." if essai_a_blanc else "",
                                                         suite_fiche))))
                 else:
-                    if p["action"] != "observer":
-                        pending = None
-                    plan = moteur.preparer(p)
-                    if plan.confirmation:
-                        pending = plan
-                        comparaison_pending = 0
-                        resume_geste = plan.resume(m)
-                        m.memoriser(texte, resume_geste, "proposition_non_executee")
-                        m.sauver(args.save)
-                        imprimer("\n" + resume_geste)
-                        imprimer("« tenter » pour agir ; « annuler » pour abandonner.")
-                        continue
-                    resultat = moteur.executer(plan)
-                    mouvement = m.data.get("mode_cases") and p["action"] in ("marcher", "aller")
-                    # Un instant d'attente (la touche Espace, le temps d'un pas) se tait comme un pas.
-                    instant = p["action"] == "attendre" and p["cible"] and plan.dixiemes <= PAS_JOUEUR
-                    if not (mouvement or instant):
-                        m.memoriser(texte, resultat, "resultat_moteur")
-                    m.sauver(args.save)
-                    if not (mouvement or instant) or interface is None:
-                        imprimer(resultat)
-                    else:
-                        silencieux = ("Tu avances d'un pas.", "Tu attends " + dire_duree(plan.dixiemes or 0) + ".")
-                        evenements = [ligne for ligne in resultat.splitlines() if ligne not in silencieux]
-                        if evenements:
-                            imprimer("\n".join(evenements))
-                    if p["action"] == "aller" and not mouvement:
-                        afficher("carte")
-                        afficher("scene")
+                    executer_local(p, texte)
             except ErreurMonde as exc:
                 pending = None
                 imprimer(str(exc))

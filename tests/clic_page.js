@@ -17,17 +17,26 @@ global.document = { getElementById: el, createElement: () => ({ style: {} }), do
 global.getComputedStyle = () => ({ getPropertyValue: () => "#333" });
 global.EventSource = function () { return {}; };
 const envois = global.envois = [];
-global.fetch = async (url, options) => { if (url === "/commande") envois.push(JSON.parse(options.body).texte); return { status: 200 }; };
+global.fetch = async (url, options) => { if (url === "/commande") envois.push(JSON.parse(options.body).descripteur || JSON.parse(options.body).texte); return { status: 200 }; };
 global.ETAT = JSON.parse(fs.readFileSync(0, "utf-8"));
 const page = fs.readFileSync(process.argv[2], "utf-8");
 (0, eval)(page.match(/<script>([\s\S]*)<\/script>/)[1] + `
 appliquerEtat(ETAT);
-const sortie = {choix: {}, chemin: null, cible: null, approches: {}};
+const sortie = {choix: {}, envoisClic: [], chemin: null, cible: null, approches: {}};
 const cases = [...niveau.salles.flatMap(s => s.cases.map(c => c.globale)), ...niveau.sorties.map(s => s.globale)];
 cases.forEach(g => {
   const {sections, autres} = choixCase(g);
   const cmds = [...sections.flatMap(x => x[1]), ...autres].map(x => x[2]);
   if (cmds.length) sortie.choix[cle(g)] = cmds;
+  // Exécuter les vrais callbacks de chaque geste et regarder le corps HTTP.
+  const origine = scene.joueur.globale;
+  scene.joueur.globale = g;  // Déjà à portée : l'approche est sondée séparément.
+  for (const choix of sections.flatMap(x => x[1])) {
+    occupe = false; envois.length = 0;
+    choix[1]();
+    sortie.envoisClic.push({choix: choix[2], envoye: envois[0]});
+  }
+  scene.joueur.globale = origine;
 });
 praticables().forEach(k => { const g = k.split(",").map(Number), p = chemin(scene.joueur.globale, g);
   if (p && (!sortie.chemin || p.length > sortie.chemin.length)) { sortie.cible = g; sortie.chemin = p; } });

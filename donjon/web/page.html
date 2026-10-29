@@ -424,15 +424,16 @@ function etatOccupe(oui) {
   $("statut").textContent = oui ? "En cours…" : "À toi de jouer";
   if (!oui && document.activeElement !== $("carte-cadre")) $("commande").focus();
 }
-async function envoyer(texte, historiser = true) {
-  texte = texte.trim();
-  if (!texte || occupe) return;
+async function envoyer(entree, historiser = true) {
+  const direct = typeof entree === "object";
+  const texte = direct ? "" : entree.trim();
+  if ((!direct && !texte) || occupe) return;
   const m = texte.match(/^(?:pas|chasse|faufiler)\s+(\S+(?:-\S+)*)/i);
-  derniereDirectionTentee = m && DIRS[m[1]] ? m[1] : null;
-  if (historiser) { historique.push(texte); historique = historique.slice(-100); indice = historique.length; brouillon = ""; }
+  derniereDirectionTentee = direct ? (entree.geste === "marcher" ? entree.cible : null) : m && DIRS[m[1]] ? m[1] : null;
+  if (historiser && !direct) { historique.push(texte); historique = historique.slice(-100); indice = historique.length; brouillon = ""; }
   etatOccupe(true);
   try {
-    const r = await fetch("/commande", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({texte})});
+    const r = await fetch("/commande", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(direct ? {descripteur: entree} : {texte})});
     if (r.status === 409) $("statut").textContent = "Attends la fin de l'action en cours.";
   } catch (err) { $("statut").textContent = "Le jeu ne répond plus."; }
 }
@@ -501,7 +502,7 @@ canvas.addEventListener("mousemove", e => {
 });
 canvas.addEventListener("mouseleave", () => bulle.style.display = "none");
 
-// --- Agir par clic : chaque choix devient la commande qu'on taperait --------------------------
+// --- Agir par clic : transmettre le geste et sa référence publique exacte --------------------------
 const VERS = Object.fromEntries(Object.entries(DIRS).map(([nom, d]) => [d.join(","), nom]));
 let marche = null;
 function praticables() {
@@ -576,22 +577,23 @@ function poursuivre() {
   if ($("proposition").style.display === "block") return arreter(null);
   if (!marche.pas.length) { const puis = marche.puis; arreter(null); if (puis) envoyer(puis); return; }
   marche.ici = ici;
-  envoyer("pas " + marche.pas.shift(), false);
+  envoyer({geste: "marcher", cible: marche.pas.shift()}, false);
 }
 function allerA(g, puis = null) {
-  // ``puis`` : la commande à donner une fois arrivé (un geste qui demande d'être à portée de main).
+  // ``puis`` : le descripteur (ou la parole libre) à donner une fois arrivé (un geste qui demande d'être à portée de main).
   const pas = scene.joueur.globale && chemin(scene.joueur.globale, g);
   if (!pas) { ajouterLigne("Tu ne connais pas de chemin jusque-là."); return; }
   marche = {pas, vus: new Set(personnes.map(p => p.id)), ici: null, puis};
   poursuivre();
 }
 const A_DISTANCE = ["observer", "examiner", "lire", "parler"];   // le reste se fait sur la case ou juste à côté
-function aPortee(g, commande) {
+function aPortee(g, entree) {
   const j = scene.joueur.globale;
-  if (A_DISTANCE.includes(commande.split(" ")[0]) || Math.max(Math.abs(j[0] - g[0]), Math.abs(j[1] - g[1])) <= 1) {
-    arreter(null); envoyer(commande); return;
+  const verbe = typeof entree === "object" ? entree.geste : entree.split(" ")[0];
+  if (A_DISTANCE.includes(verbe) || Math.max(Math.abs(j[0] - g[0]), Math.abs(j[1] - g[1])) <= 1) {
+    arreter(null); envoyer(entree); return;
   }
-  allerA(q => Math.max(Math.abs(q[0] - g[0]), Math.abs(q[1] - g[1])) <= 1, commande);
+  allerA(q => Math.max(Math.abs(q[0] - g[0]), Math.abs(q[1] - g[1])) <= 1, entree);
 }
 function vers(g) {
   const j = scene.joueur.globale, a = Math.atan2(g[1] - j[1], g[0] - j[0]);
@@ -633,15 +635,16 @@ function choixCase(g) {
   // Ce qu'on peut faire sur une case : un geste par chose qui s'y trouve, y aller, regarder par là.
   const k = cle(g), j = scene.joueur.globale, ici = j && cle(j) === k;
   const commande = texte => () => { arreter(null); envoyer(texte); };
-  const geste = texte => () => aPortee(g, texte);
+  const geste = entree => () => aPortee(g, entree);
+  const choix = (verbe, id) => verbe === "parler" ? `parler ${id}` : {geste: verbe, cible: id};
   const sections = [];
   niveau.objets.filter(o => cle(o.globale) === k).forEach(o =>
-    sections.push([o.nom, gestes(o).map(([verbe, libelle]) => [libelle, geste(`${verbe} ${o.id}`), `${verbe} ${o.id}`])]));
+    sections.push([o.nom, gestes(o).map(([verbe, libelle]) => [libelle, geste(choix(verbe, o.id)), choix(verbe, o.id)])]));
   niveau.sorties.filter(s => s.porte && cle(s.globale) === k).forEach(s =>
-    sections.push([s.porte.nom, gestesPorte(s.porte).map(([verbe, libelle]) => [libelle, geste(`${verbe} ${s.porte.id}`), `${verbe} ${s.porte.id}`])]));
+    sections.push([s.porte.nom, gestesPorte(s.porte).map(([verbe, libelle]) => [libelle, geste(choix(verbe, s.porte.id)), choix(verbe, s.porte.id)])]));
   const autres = [];
   if (!ici && praticables().has(k)) autres.push(["Aller ici", () => allerA(g), "aller"]);
-  if (!ici && j && vers(g)) autres.push(["Regarder par là", commande("tourner " + vers(g)), "tourner " + vers(g)]);
+  if (!ici && j && vers(g)) autres.push(["Regarder par là", commande({geste: "tourner", cible: vers(g)}), {geste: "tourner", cible: vers(g)}]);
   return {sections, autres};
 }
 canvas.addEventListener("click", e => {

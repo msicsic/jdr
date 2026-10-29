@@ -3,7 +3,7 @@
 Même contrat que ``tui.PontTerminal`` : la boucle écrit des lignes, lit des commandes, demande
 qu'on rafraîchisse l'état ou qu'on montre une vue. Le pont diffuse tout cela aux pages
 abonnées et reçoit leurs commandes, une à la fois. La page n'a aucun pouvoir sur l'état : elle
-envoie ce que le joueur taperait au terminal.
+envoie une saisie libre ou un descripteur de geste explicite.
 """
 from queue import Empty, Queue
 import threading
@@ -92,12 +92,14 @@ class PontWeb:
 
     def soumettre(self, texte):
         """Une commande de la page ; refusée si la précédente n'est pas finie."""
-        texte = (texte or "").strip()
+        from ..commandes import DescripteurPublic
+        direct = isinstance(texte, DescripteurPublic)
+        texte = texte if direct else (texte or "").strip()
         if not texte or self.occupe or self.termine:
             return False
         self.occupe = True
         self.diffuser({"type": "occupe"})
-        self.ecrire("Corvus > " + texte)
+        self.ecrire("Corvus > " + ("Geste direct" if direct else texte))
         self.commandes.put(texte)
         return True
 

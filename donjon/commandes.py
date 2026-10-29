@@ -1,5 +1,6 @@
 """Syntaxe locale volontairement limitée ; les intentions libres vont au MJ."""
 import re
+from dataclasses import dataclass
 
 from .monde import normaliser
 from .moteur import proposition
@@ -105,6 +106,66 @@ VERBES = {
 # qu'elle évoque (« puis-je allumer ? ») se prépare sans s'exécuter : le joueur voit ce qu'il
 # demanderait, puis le tente ou l'annule.
 PERCEPTIONS = ("observer", "examiner")
+
+
+@dataclass(frozen=True)
+class DescripteurPublic:
+    """Un choix explicite, indépendant de son interface et de toute grammaire de saisie."""
+    contenu: object
+
+
+def geste_local(action, cible, outil="", methode="simple"):
+    """La même proposition canonique pour le texte local et le choix structuré."""
+    if action == "manger":
+        from .operations import etape, sequence
+        return sequence(etape(action, cible, outil=outil, methode=methode))
+    return proposition(action, cible, outil, methode)
+
+
+def proposition_descripteur(monde, descripteur):
+    """Décode des références exactes ; aucune recherche de nom, ni préalable inventé.
+
+    Le validateur du moteur appelle cette entrée avant ses contrôles usuels. Une
+    cible du clic doit toujours être perçue à réception, même si son nom a changé.
+    Les paramètres optionnels ne portent que des choix publics, jamais des effets.
+    """
+    from .monde import ErreurMonde
+    from .noms import reference
+    from .voix import reel
+    d = descripteur.contenu
+    if (not isinstance(d, dict) or not {"geste", "cible"} <= d.keys()
+            or d.keys() - {"geste", "cible", "parametres"}
+            or any(not isinstance(d[k], str) or not d[k] or len(d[k]) > 1000 for k in ("geste", "cible"))):
+        raise ErreurMonde("Je n'ai pas compris ce geste : aucune modification.",
+                          "descripteur : geste et cible non vides, parametres optionnels ; aucun autre champ.")
+    action, cible = d["geste"], d["cible"]
+    actions = {"examiner", "observer", "lire", "allumer", "eteindre", "manger", "ouvrir", "fermer",
+               "prendre", "deverrouiller", "crocheter", "tourner", "marcher"}
+    if action not in actions:
+        raise ErreurMonde("Je ne connais pas ce geste direct.",
+                          f"descripteur.geste : reçu {action!r} ; acceptés : {', '.join(sorted(actions))}.")
+    parametres = d.get("parametres", {})
+    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode"}
+            or any(not isinstance(v, str) or len(v) > 1000 for v in parametres.values())):
+        raise ErreurMonde("Je n'ai pas compris les paramètres de ce geste.",
+                          "descripteur.parametres : outil et methode optionnels, chaînes de 1000 caractères au plus.")
+
+    def exacte(ref, champ):
+        id = reel(monde, ref)
+        # Les références opaques sont des identités stables, y compris après
+        # apprentissage du nom. Un nom ou un alias ne remplace jamais une référence.
+        if (id not in monde.objets or not monde.visible(id)
+                or ref == id and reference(monde, id) != ref):
+            raise ErreurMonde("Tu ne vois plus cette cible ici.",
+                              f"descripteur.{champ} : reçu {ref!r} ; une référence publique encore perçue.")
+        return id
+
+    if action not in {"tourner", "marcher"}:
+        cible = exacte(cible, "cible")
+    outil = parametres.get("outil", "")
+    if outil:
+        outil = exacte(outil, "parametres.outil")
+    return geste_local(action, cible, outil, parametres.get("methode", "simple"))
 
 
 def est_question(texte):
@@ -319,9 +380,9 @@ def analyser(monde, texte):
     if texte.startswith(("pas chasse ", "chasse ")):
         return proposition("chasser", texte.split(" ", 2)[-1] if texte.startswith("pas ") else texte[7:])
     if texte.startswith("pas "):
-        return proposition("marcher", texte[4:])
+        return geste_local("marcher", texte[4:])
     if texte.startswith(("tourner ", "se tourner ", "me tourner ")):
-        return proposition("tourner", texte.rsplit(" ", 1)[-1])
+        return geste_local("tourner", texte.rsplit(" ", 1)[-1])
     if texte in ("demi-tour", "faire demi-tour"):
         from .spatial import VECTEURS
         regard = monde.joueur.get("orientation")
@@ -346,8 +407,7 @@ def analyser(monde, texte):
         foyer, _, bois = texte[10:].partition(" avec ")
         return sequence(etape("alimenter", monde.trouver(foyer), outil=monde.trouver(bois)))
     if texte.startswith("manger "):
-        from .operations import etape, sequence
-        return sequence(etape("manger", monde.trouver(texte[7:])))
+        return geste_local("manger", monde.trouver(texte[7:]))
     if texte.startswith("sonner "):
         from .operations import etape, sequence
         return sequence(etape("emettre_son", monde.trouver(texte[7:]), methode="simple"))
@@ -413,4 +473,4 @@ def analyser(monde, texte):
         t = monde.objets.get(outil_id, {})
         usages = t.get("usages", [])
         methode = ("percussion" if "percussion" in usages and "levier" not in usages else "levier") if outil_id else "simple"
-    return proposition(action, cible_id, outil_id, methode)
+    return geste_local(action, cible_id, outil_id, methode)
