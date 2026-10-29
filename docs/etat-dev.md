@@ -14,14 +14,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun service exécuté en échec ; monde/rendu/scène et textes identiques
   après recharge, six minutes entières ou découpées. Les questions fondées
   sur une croyance périmée d'un tiers peuvent toujours échouer.
-  Vérification ciblée en cours (neuf fichiers), résultat `tests-cibles.json` ;
-  le lanceur détaché attend sa fin et sa réussite avant le banc, sans rejeu.
-  **Banc rapide détaché à terminer** : auberge/mine/Relais × quatre graines
-  × 4 h, intégration `79beaf1` par cache, un travailleur réduit. Les critères
-  de boucle, usurpation et suspects 219 restent à lire avant clôture ;
-  services, appels, questions et recherches du planificateur comptés.
-  Bruts : `C:/Users/msics/donjon/artifacts/service-303/`, **`fin.json` écrit
-  en dernier**, même en cas d'échec. Ni Luna ni suite complète.
+  **53 tests / neuf fichiers verts**, zéro échec, erreur ou ignoré,
+  509,704 s (`tests-cibles.json`). **Banc achevé, code 0 : douze paires 4 h**,
+  auberge/mine/Relais × 1985/7/42/2024, `79beaf1` → `066c12d` (moteur
+  `7937fdd`), un travailleur réduit. Douze références absentes rangées une
+  fois, puis douze nuits de branche ; 1 424,115 s cumulées. Aucun plantage,
+  usurpation ni hausse des suspects 219 (**0 → 0 pour chaque nuit**).
+  Services **33 → 30**, appels **34 → 43**, questions **50 → 88**, recherches
+  du planificateur **13 979 → 14 897**, avis à expliquer **9 → 11**, dérives
+  **162 → 186** : aucun gain général de services ou de coût revendiqué.
+  Deux seuils nouveaux (onze appels Lucien/Hugues, auberge 2024) instruits
+  par une seule nuit de branche sous sonde : les trois rappels suivent
+  localisation, contact ou bruit positifs ; aucun rappel dans un lieu
+  encore vain. Chronique/récit/souvenirs/mesures/état final identiques au
+  banc original ; aucun oracle changé, aucune référence relancée. Le bilan
+  brut **`fin.json`, `ok=false`**, est conservé ; bilan retenu
+  **`fin-cloture.json`, `ok=true`**. Limites : avis/dérives supplémentaires
+  et nouveau `but_hors_besoin` Relais 7 non certifiés bénins ; pas de preuve
+  universelle d'absence de boucle. Bruts :
+  `C:/Users/msics/donjon/artifacts/service-303/`. Branche poussée ; **lot
+  terminé, aucun calcul actif**, ni Luna ni suite complète.
   [Rapport 303](taches/rapport-codex-303-service-rejoindre.md).
 
 - **Branche `codex-a5-reaffecter`, lot 297 / A5.7, fusionnée**, base
