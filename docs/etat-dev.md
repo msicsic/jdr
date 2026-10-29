@@ -8166,6 +8166,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
 ## Décisions prises le 2026-10-29
 
 - **Lot 273, option B** : garder la clôture `dementie` d'une demande sur un moyen démenti et ne corriger que sa renaissance par la seule perception (lot 286). Les deux réalisations du 273 (Sol, DeepSeek), qui gardaient la demande, sont abandonnées : suspects 1 → 3 et richesse de la mine hors étendue dans les deux.
+- **Refonte du MJ** : ce qui peut être écrit mécaniquement l'est par le moteur, de façon déterministe (regards, signes, pas, distances…) ; la narration est cosmétique et ne bloque pas la boucle de jeu, dans l'esprit de la branche `prompt-simplifie` (non terminée). Lot de conception 287 d'abord, sans code. Les lots 176, 170, 162 et 171 y sont versés ; le lot 166 (faits à la demande) est abandonné.
 - **DeepSeek V4.1 Flash** (version Go payante, réflexion high, PC fixe seulement, jamais en heures pleines 01:00-04:00 et 06:00-10:00 UTC) : diagnostics et lots de tests seuls ; le code reste à Sol. Bilan dans `docs/comparaison-deepseek-sol.md`.
 
 ## Décisions prises le 2026-10-28
