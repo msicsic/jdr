@@ -3338,6 +3338,10 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     if "pres" in condition:
         sujet = condition["pres"]
         v = vue(monde, id)
+        from .causes import demander_possible
+        if v.salle(depart(monde, id, v), sujet) == monde.objets[id]['lieu'] and demander_possible(monde, id, sujet):
+            return (0, {"type": "pulsion", **condition},
+                    [_etape('demander', sujet, contenu={'cause_detresse': True})])
         if v.salle(depart(monde, id, v), sujet) is None:
             contact = rejoindre(monde, id, sujet)
             return None if contact is None else (0, {"type": "pulsion", **condition}, contact[0])
