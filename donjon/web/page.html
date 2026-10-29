@@ -58,6 +58,9 @@
   button:disabled, input:disabled { opacity: .5; cursor: default; }
   .aide { color: var(--doux); font-size: 12px; }
   #statut { font-weight: 600; }
+  #fabrication label { display: block; margin: 8px 0; }
+  #fabrication select, #fabrication input { width: 100%; background: var(--fond); color: var(--texte); padding: 4px; }
+  #fabrication .aide { display: block; }
 </style>
 </head>
 <body>
@@ -72,6 +75,9 @@
   <aside>
     <h2>Inventaire — choisir un geste</h2>
     <ul id="inventaire"></ul>
+    <h2>Fabrication</h2>
+    <button id="fabriquer">Assembler / découper…</button>
+    <form id="fabrication" hidden></form>
     <h2>Autour de toi</h2>
     <ul id="personnes"></ul>
     <h2>Objets en vue</h2>
@@ -122,6 +128,7 @@ const canvas = $("carte"), ctx = canvas.getContext("2d");
 let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, surligne = null;
 let destinataires = [];
 let ressources = [];
+let ressourcesFabrication = [];
 let catalogueGestes = {objets: [], portes: []};
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
@@ -401,6 +408,9 @@ function appliquerEtat(e) {
   catalogueGestes = e.catalogue_gestes || {objets: [], portes: []};
   destinataires = e.destinataires || [];
   ressources = e.ressources || [];
+  ressourcesFabrication = e.fabrication || [];
+  $("fabrication").hidden = true;
+  $("fabrication").innerHTML = "";
   afficherInventaire(e.inventaire || []);
   $("lieu").textContent = e.salle;
   $("compteurs").textContent = `PV ${e.pv} · ${e.or_texte} · ${e.minutes} min · MJ : ${e.connexion}`;
@@ -482,6 +492,7 @@ document.addEventListener("keydown", ev => {
   if (dansSaisie && ev.key === "Enter") { arreter(null); envoyer(saisie.value); saisie.value = ""; ev.preventDefault(); return; }
   // Espace, saisie vide : attendre le temps d'un pas (un bouton ou une case à cocher garde son Espace).
   const champ = document.activeElement && document.activeElement.tagName;
+  if (!dansSaisie && ["INPUT", "SELECT", "TEXTAREA"].includes(champ)) return;
   if (ev.key === " " && (dansSaisie ? !saisie.value : !["BUTTON", "INPUT", "SELECT", "TEXTAREA"].includes(champ))) {
     ev.preventDefault(); envoyer("attendre 1,5 s", false); return;
   }
@@ -642,6 +653,65 @@ function choixRessource(o, geste, champ, candidats, executer, x, y, titre) {
 function choixMateriels(o, executer, x, y, porte = false) {
   return offresPubliques(o, porte, true).map(([geste, titre, formulaire]) =>
     choixRessource(o, geste, formulaire.champ, ressources.filter(r => correspondPublic(r, formulaire.ressources)), executer, x, y, titre));
+}
+$("fabriquer").onclick = e => {
+  if (occupe) return;
+  e.stopPropagation();
+  ouvrirMenu(e.clientX, e.clientY, [["Choisir une fabrication", (catalogueGestes.fabrication || []).map(f =>
+    [f.libelle, () => ouvrirFabrication(f)])]]);
+};
+function ouvrirFabrication(offre) {
+  if (occupe) return;
+  const form = $("fabrication"); form.innerHTML = ""; form.hidden = false;
+  const titre = document.createElement("p"); titre.textContent = offre.libelle; form.appendChild(titre);
+  const aide = document.createElement("p"); aide.className = "aide";
+  aide.textContent = "Choisis les ressources et les dimensions voulues. Le moteur vérifie les pièces et les droits. Les formes et mesures inconnues doivent d'abord être établies séparément.";
+  form.appendChild(aide);
+  const champs = offre.champs.map(c => {
+    const label = document.createElement("label"), nom = document.createElement("span");
+    nom.textContent = c.libelle; label.appendChild(nom);
+    const input = document.createElement(c.type === "nombre" ? "input" : "select");
+    input.required = true;
+    if (c.type === "nombre") {
+      input.type = "number"; input.step = "1"; input.min = c.minimum;
+      if (c.maximum !== undefined) input.max = c.maximum;
+    } else {
+      const vide = document.createElement("option"); vide.value = ""; vide.textContent = "Choisir…"; input.appendChild(vide);
+      const choix = c.type === "ressource" ? ressourcesFabrication.map(r => [r.id, r.nom + " [" + r.id + "]"]) : c.choix.map(v => [v, v]);
+      for (const [valeur, texte] of choix) {
+        const option = document.createElement("option"); option.value = valeur; option.textContent = texte; input.appendChild(option);
+      }
+    }
+    label.appendChild(input);
+    if (c.type === "ressource" && c.chemin[0] !== "outil") {
+      const detail = document.createElement("span"); detail.className = "aide";
+      input.onchange = () => { detail.textContent = ressourcesFabrication.find(r => r.id === input.value)?.description_physique || ""; };
+      label.appendChild(detail);
+    }
+    form.appendChild(label);
+    return [c, input];
+  });
+  const message = document.createElement("p"); message.className = "aide"; form.appendChild(message);
+  const envoyerChoix = document.createElement("button"); envoyerChoix.type = "submit";
+  envoyerChoix.textContent = "Exécuter ce choix"; form.appendChild(envoyerChoix);
+  const annuler = document.createElement("button"); annuler.type = "button"; annuler.textContent = "Fermer";
+  annuler.onclick = () => { form.hidden = true; }; form.appendChild(annuler);
+  form.onsubmit = e => {
+    e.preventDefault();
+    if (occupe) return;
+    const d = {geste: offre.geste, cible: offre.cible, parametres: {}};
+    for (const [c, input] of champs) {
+      const valeur = c.type === "nombre" ? Number(input.value) : input.value;
+      if (input.value === "" || (c.type === "nombre" && (!Number.isSafeInteger(valeur) || valeur < c.minimum || (c.maximum !== undefined && valeur > c.maximum)))) {
+        message.textContent = "Complète chaque choix et dimension dans les limites indiquées."; return;
+      }
+      if (c.chemin[0] === "cible") { d.cible = valeur; continue; }
+      let parent = d.parametres;
+      c.chemin.slice(0, -1).forEach((k, i) => { parent = parent[k] ??= typeof c.chemin[i + 1] === "number" ? [] : {}; });
+      parent[c.chemin[c.chemin.length - 1]] = valeur;
+    }
+    arreter(null); envoyer(d); form.hidden = true;
+  };
 }
 function choixInventaire(o, x, y) {
   const choix = [];

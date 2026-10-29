@@ -2,6 +2,34 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-um-fabrication`, lot 305 / U-M fabrication, fusionnée**,
+  base intégration `37f68d4`, reprise par fusion sans rebase de `01a95e0`
+  (U-T inventaire 301 inclus) : formulaire web d'assemblage et découpe, usages
+  et rôles dérivés des schémas moteur dans le catalogue commun. Ressources
+  portées ou perçues à portée, références publiques exactes, physique connue
+  affichée ou manque signalé sans valeur inventée. Même proposition, plan,
+  effet et rendu que les commandes explicites ; moteur seul juge des pièces
+  et droits. Référence périmée refusée sans substitut. **Reprise : 133 tests /
+  onze fichiers verts**, dont sept nouveaux et les 28 TUI inchangés ; Node
+  réel puis boucle sans MJ,
+  monde/scène/fiche/carte après recharge. Quatre parcours : quatre commandes
+  composées évitées, 17 clics pour assembler, 8 pour découper selon la
+  convention Node ; deux dimensions / une dimension restent à saisir.
+  Limites : échelle seule modélisée, pas de qualification ni prélèvement
+  automatique, ni approche vers plusieurs ressources éloignées. Ni MJ,
+  `jeu.py`, `tui.py`, règles atelier/matière, Luna, banc ou suite complète.
+  Pont web : projection commune d'inventaire du 301 conservée et réexportée
+  depuis `inventaire_public.py` ; ressources de fabrication conservées.
+  `jeu.py`, `tui.py` et projection commune identiques à `01a95e0`.
+  Tous les tests ciblés du 305 et les tests inventaire terminal/gestes/TUI
+  du 301 relancés, 573,705 s à deux travailleurs réduits ; zéro échec,
+  erreur ou ignoré, 24 parcours 301 extraits. Ni Luna ni suite complète.
+  Bruts : `C:/Users/msics/donjon/artifacts/um-fabrication-305/`, `fin.json`
+  initial et `fin-reprise-integration.json` pour la reprise.
+  Aucun calcul actif ; branche poussée vers origin.
+  [Rapport 305](taches/rapport-codex-305-um-fabrication.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Fichiers de code touchés aussi depuis la base : gestes_publics.py et web/pont.py (lot 301), conflit résolu sur la branche (projection commune conservée). Le formulaire propose les usages assemblables, les pièces candidates par rôle et l'outil parmi les seules ressources connues de Corvus ; même descripteur U-D que la commande, sans modèle ; forme inconnue dite sans valeur proposée. 133 tests ciblés verts. Suite complète sur la branche (d1c0722, intégration incluse) : 2 835 tests, cinq échecs, tous présents sur l'intégration avant 305 : ordre des mesures du banc (lot 302, corrigé par 310), inverse des occasions du hameau (données du lot 302), et trois tests qui refusent les références opaques personne_<n> et les coordonnées de carte dans la sortie console, affichées par la liste numérotée des gestes du terminal (lots 299 et 301).
+
 - **Branche `codex-recit-buts-agenda`, lot 309, fusionnée**, base
   intégration `02c7330` : rendu commun des buts d'agenda par leur titulaire
   et leur référence locale, sorte/paramètres/filiation lus via `agendas.py`.
