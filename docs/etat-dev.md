@@ -3,34 +3,27 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-ut-outils`, lot 307 / U-T outils, non fusionnée**,
-  base `integration d7302a4`, reprise par fusion sans rebase de
-  `43440c6` (U-M fabrication 305 inclus), commit **`958a5cc`** : console
-  et TUI proposent les couples geste–outil/destination par numéro, depuis
-  le catalogue et la projection publique de la page. Références exactes,
-  homonymes distingués ; moteur seul juge des choix périmés, sans substitut.
-  Aucun analyseur ni modèle. `ressources_publiques` dans
-  `inventaire_public.py`, réexportée par le pont web : frontière
-  `ressource_connue` et descriptions physiques du 305 conservées, ainsi
-  que les formulaires du catalogue et l'entrée SSE de fabrication.
-  Conflits pont/état résolus ; page et sonde Node identiques à `43440c6`.
-  **Reprise : 105 tests distincts / dix fichiers verts**, zéro échec,
-  erreur ou ignoré, **621,557 s**, deux travailleurs réduits au plus.
-  Tous les neuf fichiers précédents et les sept tests de fabrication
-  relancés, dont les **28 TUI existants inchangés** ; syntaxe Node verte,
-  callbacks réels, plans/texte exact et monde/scène/fiche/carte rechargés.
-  Refus périmés, destination fermée, mauvais outil, propriété inconnue,
-  noir/sans carte, numéros invalides. **20 parcours : 3 à 4 touches**,
-  4 à 5 avec F7 en TUI ; zéro appel modèle. Tests/code `958a5cc` inchangés
-  depuis validation ; aucune relance à la clôture. Bilan initial 98 tests
-  conservé, sans cumul avec la reprise. Liste plus longue avec davantage
-  de ressources ; capacité maximale des destinations absente du moteur.
-  Les trois échecs d'intégration signalés sur les références opaques et
-  coordonnées console restent réservés au lot séparé demandé, inchangés.
-  Ni Luna, ni banc PNJ, ni suite complète.
-  Bruts `C:/Users/msics/donjon/artifacts/ut-outils-307/`,
-  `tests-reprise-integration.json`, `fin-reprise-integration.json` :
-  **ok=true, code 0** ; clôture `fin-cloture-reprise-integration.json`
-  écrite en dernier. Branche poussée vers origin, aucun calcul actif.
+  base `d7302a4`, reprise sans rebase de `43440c6` (305 inclus),
+  clôture précédente `9457ea5`. **Correction des offres en cours** après
+  la suite d'intégration : les formulaires du catalogue nomment une
+  aptitude moteur commune (clé, crochetage, impact/coupe, recharge, dépôt).
+  La projection ne publie que les couples admis entre ressources connues
+  et cibles vues/portées, sans bien privé de PNJ ; web et terminaux lisent
+  cette même matrice. Aucune surface fixe comme outil, aucune matière
+  incompatible ou propriété inconnue déduite. L'arbitrage revalide le
+  descripteur exact ; accès, droits et réussite restent son verdict.
+  Libellés : désignation publique et rang des homonymes, aucune référence
+  de transport ni coordonnée de carte ; références conservées dans les
+  descripteurs. Conduite réelle : **39 → 11 offres**, 3 touches pour
+  éteindre la lanterne ; autre cas lampe à huile vérifié après recharge.
+  Premiers contrôles ciblés verts ; **validation finale encore attendue**,
+  fichiers des interfaces, fabrication, opérations, capacités, lumière,
+  moteur à cases, cas réel conduite et `test_luna_restes.FormeTests`.
+  Deux travailleurs réduits au plus, copies hors bac Windows, ni Luna
+  réel, ni banc, ni suite complète. Bruts dans
+  `C:/Users/msics/donjon/artifacts/ut-outils-307/`, fichier attendu
+  `fin-correction-offres.json`. Les bilans précédents (98 puis 105 tests)
+  sont conservés, sans prétendre valider cette correction.
   [Rapport 307](taches/rapport-codex-307-ut-outils.md).
 
 - **Branche `codex-um-fabrication`, lot 305 / U-M fabrication, fusionnée**,

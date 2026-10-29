@@ -94,7 +94,9 @@ class ProjectionTests(unittest.TestCase):
                 if champ in p:
                     self.assertIn(p[champ], ids)
         for r in ressources:
-            self.assertLessEqual(set(r), {"id", "nom", "type", "foyer"})
+            self.assertLessEqual(set(r), {"id", "nom", "type", "foyer", "aptitudes"})
+            for cibles in r["aptitudes"].values():
+                self.assertFalse(set(cibles) & {"secret", "prive", "cache", "marchand"})
 
 
 class Parcours:
@@ -187,23 +189,25 @@ class Parcours:
 
                 await self.jouer(m, cible, geste, retirer)
 
-    async def test_destination_fermee_et_mauvais_outils_offerts_refus_moteur(self):
+    async def test_destination_refermee_et_outils_perdant_leur_capacite_refus_moteur(self):
         for geste in GESTES:
             with self.subTest(geste=geste):
                 m, cible, _ = web.situation(geste)
-                if geste == "mettre":
-                    m.objets["autre_cible"]["ouverte"] = False
-                else:
-                    m.objets["outil_deux"].update(ouvre=[], usages=[], puissance=0)
-                await self.jouer(m, cible, geste)
+                def mutation(monde):
+                    if geste == "mettre":
+                        monde.objets["autre_cible"]["ouverte"] = False
+                    else:
+                        monde.objets["outil_deux"].update(ouvre=[], usages=[], puissance=0)
+                await self.jouer(m, cible, geste, mutation)
 
     async def test_propriete_inconnue_deux_cibles_ne_declenche_aucun_modele(self):
         for variante in (0, 1):
             with self.subTest(variante=variante):
                 m, cible, _ = web.situation("frapper", variante)
-                m.objets["outil_deux"]["usages"] = ["couper"]
-                m.objets[cible].pop("seuil_coupe", None)
-                await self.jouer(m, cible, "frapper")
+                def mutation(monde):
+                    monde.objets["outil_deux"]["usages"] = ["couper"]
+                    monde.objets[cible].pop("seuil_coupe", None)
+                await self.jouer(m, cible, "frapper", mutation)
 
     async def test_besace_dans_le_noir_avec_et_sans_carte(self):
         for cases in (False, True):
