@@ -3847,7 +3847,8 @@ def reagir(monde, id, dangers, aide=None):
         etapes = trouve[1]
         fuite = trouve[2].fait("fui")
         genre = "fuir" if fuite else "proteger" if protection else "riposter"
-        return {"type": genre, "qui": ennemis[0]}, etapes
+        # Le but nomme celui qu'on protège ; les gestes du plan visent l'agresseur.
+        return {"type": genre, "qui": aide[0] if protection else ennemis[0]}, etapes
     if corps.blessure(monde, id) == 2 and dangers:
         return {"type": "reddition", "qui": dangers[0]}, [_etape("se_rendre", dangers[0])]
     return None

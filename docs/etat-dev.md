@@ -73,6 +73,39 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   une fusion d'essai et la suite complète ; aucun nouveau calcul de clôture.
   [Rapport 277](taches/rapport-codex-277-allumer-pour-soi.md).
 
+- **Branche `codex-but-protection`, lot 281, fusionnée**, base intégration
+  `3470a92` : `planification.reagir` nomme le protégé dans `proteger.qui` ;
+  l'agresseur reste la cible du plan. Lecteurs récit/paroles/audit/sonde 219,
+  défense, délibération et exécution vérifiés, sans autre code modifié ;
+  fonctions du lot 277 intactes, anciennes sauvegardes non migrées.
+  **Deux nouveaux tests verts** : capture 279 avant premier coup (quinze
+  gestes, six coups portés inchangés ; sept protections d'Aubin contre Brune)
+  et autre victime 4c (Ilse). Monde/rendu/scène, récit et texte MJ après
+  recharge ; laps entier/découpé identique. **206 tests / 18 fichiers ciblés
+  verts**, 401,523 s, aucun échec/erreur/ignoré, résultats non relancés.
+  La preuve détachée a échoué sur un oracle trop strict : le but est aussi
+  copié dans le contrat de clôture (`faits.reaction`). Comparateur de preuve
+  corrigé pour toutes les copies typées `proteger`, égalité stricte des
+  autres champs ; aucun nouveau code moteur ou test modifié.
+  **Lot terminé** : comparaison au `reagir` exact de la base, quinze frappes
+  identiques sur la capture, deux sur l'autre épreuve ; seuls les champs `qui`
+  des buts typés diffèrent pendant la protection, états finaux entièrement
+  égaux. Huit captures rechargées, monde/rendu/scène/texte MJ identiques.
+  **Empreintes 2 h : 20/20 paires identiques**, chronique/mesures/état final,
+  cinq scénarios × quatre graines, `3470a92` → `85105dd`, aucun plantage.
+  **Ces nuits n'exercent aucun but de protection, d'où leur identité** ; les
+  preuves du changement sont les deux scènes ciblées. Vingt références
+  absentes du cache calculées une fois et rangées, vingt nuits de branche.
+  Reprise détachée 333,621 s, deux travailleurs réduits au plus,
+  `C:/Users/msics/donjon/artifacts/protection-281/fin-reprise1.json` **ok=true**,
+  empreintes code 0 ; aucun calcul actif. Ancien `fin-verification.json` en
+  échec conservé avec son journal ; aucun nouveau test ou banc à la clôture.
+  Ni Luna ni suite complète. Correctif local `1a1627c` ; poussée refusée par le contrôle
+  automatique (propriété d'`origin` non établie). Consigne de reprise : ne
+  pas pousser depuis le PC fixe ; aucun recours à l'API GitHub.
+  [Rapport 281](taches/rapport-codex-281-but-protection.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. planification.reagir : le but proteger nomme le protégé (qui), l'agresseur reste la cible du plan ; récit, texte au MJ et sauvegarde ne présentent plus l'agresseur comme le protégé (« protéger Brune » pour Gorm qui protège Aubin, lot 279). Capture 279 rejouée à l'identique (mêmes quinze gestes, six coups), autre victime de l'épreuve 4c ; 206 tests verts, 20/20 empreintes 2 h identiques (aucun but de protection dans ces nuits). Suite complète sur la fusion d'essai 09770cc : 2 732 tests, seules les 4 erreurs test_connexion d'environnement (DPAPI sans session ouverte).
+
 - **Branche `codex-pret-reclame`, fusionnée**, lot **280**, base `427fb36`.
   Cause établie avant modification : secours alimentaire à Rémy à `t=0`,
   appel de Bram (`62`), attente négociée (`162`), proximité de Lucien tremblant
@@ -596,6 +629,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement (Beam Free). Réserve du superviseur : l'appel à travers la porte (héler, appel négocié « Ici, viens ! ») pour faire venir le donneur n'est pas envisagé par le recours de faim ; piste à instruire.
 
 ## Où on en est
+
+- **`main` avancée à `0bad227`** le 2026-10-29 au matin (autorisation de l'utilisateur la veille : « si propre »). Vérification 274 sur ce commit : 49/49 nuits, zéro plantage, usurpation, mort ou écart VERIFIER/spatial ; ses deux alertes sont levées par les diagnostics 278 (interposition de Gorm reprise à juste titre selon ses croyances) et 279 (coups de la crue 2024 justifiés, seul défaut le libellé du but de protection, corrigé par le lot 281). Les fusions postérieures (lots 266, 275 à 282) attendent la prochaine vérification d'intégration.
 
 - **Vérification Luna c9459ce**, jouée par l'orchestrateur sur le laptop (comme le lot 216), sans agent ni code changé : deux passes des 34 scripts du lot 165, intégration `c9459ce` (lots 244 à 272, dont A5 260) contre `d85fb54` lu du cache. **Appels/tour 2,98 → 3,00**, replis **0,5 → 0**, obstacles narratifs **19,5 → 15**, relances **16,5 → 13**, refus **22 → 24** (dans l'étendue des passes 21-27) ; aucune erreur technique ni de recharge sur les 68 parties. Secondes/tour **10,5 → 5,8** (médiane 9,0 → 5,1) : non comparables, référence mesurée un autre soir ; le premier delta moyen baisse aussi d'environ 40 % sur toutes les fonctions, signe d'un service plus rapide plutôt que d'un gain du jeu. Aucune régression du MJ. Lecture qualitative des textes non faite saisie par saisie. Bruts `C:/Users/msics/donjon/artifacts/bancs-multi/20261028-235223-6688/`.
 
