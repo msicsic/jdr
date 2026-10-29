@@ -882,6 +882,9 @@ def recevoir(monde, id, locuteur, c):
     if c["type"] == "compte_rendu":
         from .agendas import recevoir_compte
         return recevoir_compte(monde, id, locuteur, c)
+    if c["type"] == "ordre_mandat":
+        from .agendas import percevoir_mandat
+        return percevoir_mandat(monde, id, locuteur, c["charge"], c["titulaire"])
     if c["type"] == "nom":
         from .voix import se_nommer
         return se_nommer(monde, id, locuteur, c["sujet"])
