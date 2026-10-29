@@ -1,8 +1,8 @@
 # Lot 335 — protéger à portée de voix
 
 Branche `codex-suivi-vocal`, **non fusionnée**, base `origin/integration 9237e14`.
-Implémentation livrée ; **validation élargie en cours**, aucun verdict final de banc.
-Bruts attendus : `C:/Users/msics/donjon/artifacts/vocal-335/verification/`.
+**Lot terminé**, code/tests `6eaf80b`, branche poussée vers origin.
+Bruts : `C:/Users/msics/donjon/artifacts/vocal-335/verification/`.
 
 **Invariant.** L'agenda `protéger` réutilise le séjour `rester` du lot 266,
 avec une portée vocale typée. `planification.proximite` est commun aux deux
@@ -30,8 +30,8 @@ gardent leurs contrats. Aucun agenda historique ajouté aux scénarios.
 Le rendu dit « reste à l'écoute », sans affirmer une présence réelle ni
 révéler une personne cachée ; le souvenir de veille est sauvegardé.
 
-**Épreuves courtes.** **13 tests verts / deux fichiers, 12,011 s** avant
-le dernier retrait de rotation vocale, repris dans la consolidation prévue.
+**Épreuves consolidées.** **131 tests verts / quinze fichiers, 161,514 s**,
+zéro échec, erreur ou saut ; code final, retrait de rotation vocale compris.
 Sept nouveaux tests : déplacements vers la crypte du Relais et le filon de
 la mine, appel réel reconnu et intervention, recherche sans localisation,
 désespoir prioritaire, limite de portée stable, portes réelles distinctes
@@ -40,14 +40,17 @@ case. Mondes entiers, rendu et scène rechargés ; mêmes laps entiers/découpé
 Les déplacements du protégé et sa nouvelle localisation sont des données
 d'épreuve ; sa marche autonome de bout en bout n'est pas démontrée ici.
 
-**Validation à terminer.** `tools/valider_vocal_335.py` consolide quinze
-fichiers ciblés, puis vingt nuits de 4 h, cinq scénarios × quatre graines,
-un travailleur réduit. Vingt références `f08ef58` présentes en cache,
-moteur/outils identiques à la base (diff git vide), jamais rejouées.
-Critères : aucune hausse des suspects 219 par nuit, zéro plantage/usurpation,
-identité des états complets, chroniques et mesures sans agenda déclaré.
-`verification/fin.json` est écrit en dernier, même en échec.
-Ni Luna ni suite complète. Aucun résultat de banc revendiqué avant lecture.
+**Banc terminé.** **20/20 nuits de 4 h identiques**, cinq scénarios × quatre
+graines (1985/7/42/2024), états complets, chroniques et mesures compris.
+Les nuits historiques sans agenda `protéger` déclaré restent inchangées.
+Suspects 219 **0 → 0 dans chaque nuit**, zéro plantage et usurpation.
+Vingt références `f08ef58` relues du cache, moteur/outils identiques à la base
+(diff git vide), aucune référence rejouée. Un travailleur à priorité réduite,
+calcul détaché vérifié actif au départ ; **`fin.json ok=true`, code tests 0**,
+826,612 s au total, écrit en dernier. Empreintes de tous les fichiers validés
+inchangées à la clôture ; aucun calcul actif, aucune relance.
+Ni Luna ni suite complète. Ces nuits sans agenda nouveau prouvent la
+non-régression historique ; le suivi actif est éprouvé par les tests.
 
 **Recouvrements.** Lot 330 : `planification.py`, `pnj.py`.
 Lot 333 : `agendas.py`, `pnj.py`, `tests/test_agendas_proteger.py`.

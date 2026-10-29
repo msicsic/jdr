@@ -2,21 +2,23 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 335 implémenté, branche `codex-suivi-vocal`, non fusionnée**,
+- **Lot 335 terminé, branche `codex-suivi-vocal`, non fusionnée**,
   base `origin/integration 9237e14` : agenda `protéger` raccordé au terminal
   de séjour 266 avec portée vocale, propagation acoustique commune sur lieux,
   cases et portes crus ; marche et coût communs, place admissible conservée.
   Recherche commune si lieu inconnu, inspection si case inconnue ; aucun
   agenda ajouté aux scénarios. Rendu de veille sans présence cachée affirmée.
-  **13 tests / deux fichiers verts, 12,011 s**, avant le dernier retrait de
-  rotation vers la cible vocale, repris dans la consolidation à venir.
-  **Validation élargie en cours** : quinze fichiers ciblés, puis banc 4 h ×
-  cinq scénarios × quatre graines, un travailleur réduit ; vingt références
-  `f08ef58` en cache, moteur/outils identiques à la base, aucun rejeu prévu.
-  Résultat attendu :
-  `C:/Users/msics/donjon/artifacts/vocal-335/verification/fin.json`, écrit
-  en dernier même en échec. Critères 219 et identité des nuits historiques
-  encore à vérifier ; ni Luna ni suite complète.
+  **131 tests / quinze fichiers verts, 161,514 s**, zéro échec/erreur/saut,
+  dont sept nouveaux ; monde/rendu/scène rechargés, laps entier/découpé.
+  **20/20 nuits de 4 h identiques**, cinq scénarios × quatre graines :
+  états complets, chroniques et mesures inchangés sans agenda déclaré ;
+  suspects 219 **0 → 0 par nuit**, zéro plantage/usurpation. Vingt références
+  `f08ef58` relues du cache, moteur/outils identiques à la base, aucun rejeu.
+  Calcul détaché réduit, un travailleur ; **fin.json ok=true**, code tests 0,
+  826,612 s au total. Bruts
+  `C:/Users/msics/donjon/artifacts/vocal-335/verification/`.
+  Code/tests `6eaf80b` inchangés depuis validation, empreintes contrôlées ;
+  branche poussée vers origin, aucun calcul actif. Ni Luna ni suite complète.
   Recouvrements 330 : `planification.py`, `pnj.py` ; 333 : `agendas.py`,
   `pnj.py`, `test_agendas_proteger.py`. Suivi selon croyances, sans garantie
   générale de retrouvailles ou de correction d'une localisation périmée.
