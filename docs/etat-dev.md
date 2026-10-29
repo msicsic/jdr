@@ -1,6 +1,31 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
+
+- **Branche `ds-demande-adoptee`, non fusionnée**, lot **273**, base `0e3e626`,
+  moteur : `deliberation.py` seulement. Un geste manqué dément le moyen, pas la
+  demande adoptée : le plan périmé est écarté, l'intention tenue, et la
+  revalidation existante retrouve un autre moyen ou met en attente ; la sortie
+  `dementie` sur `manque` disparaît. `_meme_demande_tenue` identifie une demande
+  par sa raison commune (changer d'objet servi est un nouveau moyen), employée
+  par `_meme_demande_adoptee`, `correspondants` et la boucle d'arbitrage — un
+  autre moyen n'est pas une préemption. Capture **117503** : la demande d'Aubin
+  n'est plus close, passe à `attendre` puis sollicite Gorm ; seconde nature mine
+  1985 (pain refusé → `vivres`, même raison) ; vraie fin (`dementie`) et vraie
+  préemption (`palier`) toujours des sorties. **92 tests ciblés verts** (326 s) ;
+  quatre attentes périmées réécrites (contrat d'échec, ordre des ventes, lieu du
+  bénéficiaire, scène de Lucien complétée). Monde/rendu/scène identiques après
+  recharge et 60 min d'un tenant ou découpées. **Banc rapide** 20 paires 4 h,
+  référence `0e3e626` (calculée, rangée) : **20/20 identités**, zéro plantage,
+  usurpation ou violation ; suspects 219 **1 → 0** (Aubin Relais 2024 disparu),
+  à expliquer **16 → 13**, cycles 558 → 515, préemptions 38 → 57, pertes de
+  service 8 → 8. Richesse S/F/D : auberge et crue en hausse, Relais et rixe
+  stables, **mine 25,75 → 17,25** et Marchand en dérives ouvertes (crue 18 → 32)
+  — coût de la limite déclarée : une demande tenue sans moyen admissible attend
+  sans borne (Anselme, Bram, Marchand), la mise en sommeil reste à faire. (Banc
+  joué avec `rixe` au lieu du hameau et quatre processus au lieu de deux.) Bruts
+  `C:/Users/msics/donjon/artifacts/demande-273-ds/`.
+  [Rapport 273](taches/rapport-codex-273-demande-adoptee.md).
 
 - **Branche `codex-retour-aubin`, fusionnée**, lot **272**, diagnostic
   seul, base `aaaf4cf` : Aubin Relais 2024, départ tiré, joueur passif,
