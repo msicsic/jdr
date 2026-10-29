@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 314, branche `codex-achat-promis`, base `integration c4f6d46`** :
+- **Lot 314 terminé, branche `codex-achat-promis`, base `integration c4f6d46`** :
   `_remettre_part` transmet le refus d'une livraison annulée conservée pour
   annoncer son abandon, au lieu de publier un faux accord qui efface le refus
   du demandeur. Capture réelle 306 hameau 7 avant t=36582 : **28 achats promis
@@ -10,11 +10,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Quatre nouveaux tests verts, monde/rendu/scène rechargés et laps entier/
   découpé contrôlés. Ordre des observations du bilan des présences dépend du
   regroupement des actions, multiplicité et état final identiques.
-  **Vérification élargie en attente**, deux travailleurs réduits : tests voisins,
-  empreintes 2 h quatre scénarios × quatre graines, banc hameau avec données
-  306, 4 h × quatre graines. Ni Luna ni suite complète, réclamations 315
-  inchangées. Bruts `C:/Users/msics/donjon/artifacts/achat-314/`, fin attendue
-  `fin.json`. Ne pas déclarer le lot clos avant lecture des résultats.
+  **49 tests / six fichiers verts**, sans échec, erreur ni saut, 285,625 s.
+  **16/16 paires d'empreintes 2 h identiques**, Relais/mine/auberge/crue ×
+  quatre graines, chronique/mesures/état final complet ; références absentes
+  calculées une fois et rangées. **Banc hameau 4 h × quatre graines validé**,
+  données 306 fusionnées seulement dans un worktree temporaire, supprimé.
+  Sur toute la nuit 7 : **28 achats promis → zéro**, une demande refusée à
+  t=36477, aucun achat d'Aubin ni paiement ; zéro accord sur annulation sur
+  les quatre nuits. Références 306 réutilisées sans relance. Suspects
+  **0/0/0/7 inchangés**, avis à expliquer **7/5/0/10 inchangés**, aucun
+  plantage/usurpation ; chroniques/mesures/états finaux identiques pour les
+  trois autres graines. Limites en 7 : dérives ouvertes **31 → 33**, tentatives
+  de vol **1 → 2**, noir **15 → 65 min**, mandats proposés **5 → 2** ; aucun
+  bénéfice général revendiqué. Sept suspects Sève 2024 laissés au lot 315.
+  Calcul détaché, deux travailleurs réduits au plus, 969,696 s, **fin.json
+  ok=true**, codes **0/0/0**. Ni Luna ni suite complète, aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/achat-314/`, `analyse-cloture.json`.
+  Branche poussée vers origin, correction/tests inchangés depuis validation.
   [Rapport 314](taches/rapport-codex-314-achat-promis-repete.md).
 
 - **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :
