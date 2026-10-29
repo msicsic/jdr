@@ -1,8 +1,8 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
-- **Lot 338 en vérification, branche `codex-recours-sans-cout`, non fusionnée**,
+- **Lot 338 terminé, branche `codex-recours-sans-cout`, non fusionnée**,
   base `integration e37d9ee` : coût fini obligatoire de tout recours d'agenda
   admissible, composition commune des suites directes (inspection/attente
   comprises), coût des recherches conservé pour récupération, pièces et garde.
@@ -17,10 +17,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   L'appel de protection échoue identiquement sur la base exacte `e37d9ee`
   (Gorm en `chambre_cloche`, attendu `echoppe`), 7,382 s ; aucune correction
   ni oracle modifié. Premier lanceur arrêté avant les bancs, `fin.json` conservé.
-  Reprise des seuls bancs 4 h × cinq scénarios × quatre graines puis crue 3
-  sur 12 h détachée, deux travailleurs réduits au plus.
-  **Ne pas clore sans lire `C:/Users/msics/donjon/artifacts/recours-338/reprise-1/fin.json`**
-  et qualifier tests, suspects nuit par nuit, usurpations et maximum horaire.
+  **20/20 nuits 4 h conformes**, cinq scénarios × quatre graines : suspects
+  219 0 → 0 dans chaque nuit, zéro plantage/usurpation. Vingt références
+  manquantes calculées et rangées une fois, puis branche, aucun témoin relancé.
+  Avis à expliquer 43 → 38, dérives ouvertes 436 → 422, sans garantie causale.
+  **Crue 3 sur 12 h : maximum Gorm 30 passages/h**, contre le repère historique
+  298 du 317 sur `75b6dfb` ; pas de nouvelle référence 12 h sur la base.
+  D'autres allers-retours subsistent ; aucune absence générale de boucle.
+  Reprise détachée **ok=true**, 2 164,787 s, deux travailleurs réduits au plus ;
+  aucun calcul actif. Code/tests `03be84c` inchangés depuis validation ; clôture
+  documentaire poussée. Bruts `C:/Users/msics/donjon/artifacts/recours-338/`,
+  `fin-cloture.json`, premier `fin.json` rouge conservé, reprise verte.
   Aucun Luna ni suite complète. [Rapport 338](taches/rapport-codex-338-recours-sans-cout.md).
 
 - **Lot 317 terminé, branche `codex-boucles-progression`, fusionnée**,
