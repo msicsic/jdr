@@ -2,19 +2,26 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 323 / G5, branche `codex-g5-perception`, non fusionnée**, base
-  `integration 4794376` : rendu commun de non-perception, couverture et souvenir,
-  sans position cachée ; une absence ne porte que sur la surface visible.
-  Perceptions seules sans contre-revue ; commandes et résultats sauvegardés
-  avant affichage, dont `regarder`. Autres actes et dialogues libres toujours
-  contrôlés ; interprétation du libre non garantie. **117 tests / onze fichiers
-  verts**, 24,480 s, deux travailleurs réduits, monde/scène/carte rechargés.
-  Luna : une passe des quatre scripts G5 en cours, détachée à priorité réduite ; aucune référence
-  correspondante dans le cache de `main c870c8b`, aucune référence relancée.
-  Reprise sur `C:/Users/msics/donjon/artifacts/g5-323/fin-luna-passe.json` pour analyse
-  puis clôture. Ni décision PNJ, ni banc PNJ, ni suite complète modifiés/lancés.
+- **Lot 323 clos / G5 partiel, branche `codex-g5-perception`, non fusionnée**,
+  base `integration 4794376` : rendu commun de non-perception, couverture et
+  souvenir, sans position cachée ; absence bornée à la surface visible.
+  Perceptions typées seules sans contre-revue, texte sauvé avant affichage,
+  dont `regarder`. **117 tests / onze fichiers verts**, 24,480 s, monde/scène/
+  carte rechargés. Code/tests inchangés depuis cette vérification.
+  **Luna une passe achevée**, quatre scripts, 104,896 s, code 0, 36 appels,
+  zéro erreur technique/recharge ; aucun calcul actif. Noir : observation et
+  regard sans modèle ; atelier : mur et recherche de pierre, une interprétation
+  chacun sans audit. **Routage libre G5 non garanti** : guet interprète les deux
+  questions comme paroles (un repli) ; outils et souvenir de poutre encore
+  audités. Critère global G5 sans audit **non atteint**, aucun audit de dialogue
+  retiré. Écoute en question seulement préparée, non exécutée. Deux tours
+  refusés à l'atelier (échelle/saut hors de portée), sans réalisation annoncée.
+  Aucune référence en cache de `main c870c8b`, aucune référence relancée ni
+  comparaison revendiquée. Bruts `C:/Users/msics/donjon/artifacts/g5-323/`,
+  `analyse-luna.json`, `fin-luna-passe.json ok=true` ; premier échec du lanceur
+  avant appel modèle conservé dans `fin-luna.json`. Ni banc PNJ ni suite complète.
   Recouvrements 320 (`narration.py`) et 319 (`rendu.py`, `jeu.py`).
-  [Rapport 323](taches/rapport-codex-323-g5-perception.md).
+  Branche poussée ; [rapport 323](taches/rapport-codex-323-g5-perception.md).
 
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base
   `integration 60f857c`** : aucune dépendance au hachage reproduite.

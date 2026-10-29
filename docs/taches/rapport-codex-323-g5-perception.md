@@ -1,6 +1,7 @@
 # Lot 323 — G5, perception canonique
 
-Branche `codex-g5-perception`, **non fusionnée**, base `integration 4794376`.
+Lot clos le 2026-10-29 ; **livraison G5 partielle**, branche `codex-g5-perception`,
+**non fusionnée**, base `integration 4794376`.
 
 La perception calculable utilise les actions actuelles du moteur. `observer` et
 `examiner` sur une cible connue non visible rendent désormais un constat public
@@ -39,21 +40,42 @@ L'oracle historique du refus dans le noir devient un constat sans signe révél�
 le test du refus de fidélité est porté sur une attente, avec ses assertions de
 motif, plan et non-publication conservées. Bruts initiaux conservés séparément.
 
-**Luna : une passe en cours, détachée et à priorité réduite**, quatre scripts : `signes-guet`, `signes-noir`,
-`luna-restes-ambiance`, `atelier`. Le cache du commit local de `main`
-`c870c8b4797b5c4072a3b0a63043e212aae62a39` ne contient aucune partie correspondant
-aux clés actuelles : aucune référence relancée, aucune comparaison chiffrée encore
-disponible. Le premier lanceur a échoué avant tout appel modèle ; son
-`fin-luna.json` en conserve la cause. Le lanceur corrigé et le banc sont
-confirmés actifs, priorité `BelowNormal`. La commande exacte, les sorties et le fichier de fin sont rangés dans
-`C:/Users/msics/donjon/artifacts/g5-323/` ; reprendre après `fin-luna-passe.json` pour lire
-la passe et clore le lot. Aucun résultat Luna revendiqué à ce stade.
+**Luna : une passe achevée**, `gpt-6-luna`, priorité réduite, code 0,
+104,896 s de bout en bout, 24 tours hors « quitter », dont 17 avec modèle.
 
-**Limites.** Le libre nécessite toujours l'interprétation de Luna ; son choix
-sémantique du mode n'est pas garanti par ce lot. S'il choisit encore une prose de
-dialogue, ses audits restent actifs : aucun dialogue libre n'est dispensé de contrôle.
-Un détail inconnu conserve son admission actuelle ; ambiance et autres voies
-inchangées. L'absence porte sur la surface couverte, jamais sur une cache ou une
-salle hors de vue. Aucun fichier de décision PNJ modifié : ni banc PNJ, ni suite
-complète. Recouvrements : `narration.py` avec G15/320 ; `rendu.py` et `jeu.py` avec
-U-P/319, à vérifier à l'intégration.
+| Script | Appels | Constat |
+| --- | ---: | --- |
+| signes-guet | 9 | Deux questions prises pour des paroles ; un repli après trois rédactions contrôlées. |
+| signes-noir | 2 | Observer Ilse et regarder : zéro appel ; peur d'Ilse : dialogue audité, sans absence inventée. |
+| luna-restes-ambiance | 7 | Ambiance conservée ; écoute seulement préparée ; position mémorisée reformulée une fois. |
+| atelier | 18 | Mur et recherche de pierre : une interprétation chacun, résultat moteur sans audit ; outils : dialogue encore audité. |
+
+Total **36 appels** : 18 interprétations, 10 audits narratifs, quatre
+contre-revues d'autres actes, trois révisions et un récit après parole.
+Aucune erreur technique, erreur de recharge ou mention sans fondement signalée
+par le banc ; ces compteurs ne prouvent pas toute la fidélité des réponses.
+Deux tours refusés à l'atelier : lien manquant puis perche hors de portée pour
+l'échelle ; mur hors de portée pour le saut. Aucun acte annoncé comme réalisé.
+Dans `signes-guet`, « Que fait Brune ? » est prononcé puis reçoit un repli de
+paroles ; « Que fait Gorm en ce moment ? » reçoit une demande de destinataire.
+Ces demandes d'information n'ont donc pas atteint la voie de perception G5.
+
+**Limite de clôture : G5 partiel.** La perception typée moteur est livrée ; le
+routage général du libre n'est pas garanti et le critère global de réponses de
+perception sans audit n'est pas atteint. Aucun contrôle de dialogue n'a été
+retiré pour masquer ce défaut. La question sur les bruits prépare `ecouter`
+sans l'exécuter, selon la frontière actuelle des questions dans `commandes.py` ;
+aucun résultat d'écoute n'est revendiqué. La dernière position de la poutre
+reste un souvenir correctement borné, mais audité (suite G6). Un détail inconnu
+conserve son admission ; ambiance et autres voies conservent leurs contrôles.
+L'absence ne porte jamais sur une cache ou une salle hors de vue.
+
+Aucune référence correspondante dans le cache de `main c870c8b` ; aucune
+référence relancée, aucun gain comparatif revendiqué. Bruts, analyse détaillée
+`analyse-luna.json` et `fin-luna-passe.json` (`ok=true`) dans
+`C:/Users/msics/donjon/artifacts/g5-323/`. Le premier échec du lanceur, avant tout
+appel modèle, reste dans `fin-luna.json`. Aucun calcul actif ; code et tests
+inchangés depuis les 117 tests verts, sans relance à la clôture.
+Aucun fichier de décision PNJ modifié : ni banc PNJ, ni suite complète.
+Recouvrements : `narration.py` avec G15/320 ; `rendu.py` et `jeu.py` avec U-P/319,
+à vérifier à l'intégration. Branche poussée vers origin, **non fusionnée**.
