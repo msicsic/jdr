@@ -2,6 +2,43 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-sonde-perception`, fusionnée**, lot **276**, base
+  `406a795`, outils seulement : la sonde 219 relève les entités effectivement
+  perçues (lieu et case) et la source des croyances sur les références du but
+  et des plans. Une variation perceptive seule devient
+  `renouvellement_perceptif`, à examiner et jamais justifiée d'office ; les
+  preuves du 271 gardent leur priorité, raccord audit et synthèses compris.
+  Aubin Relais 2024 **117518** reproduit : Ilse de nouveau perçue,
+  `ilse.lieu` de `entendu` à `vu` ; captures 117503/117518 identiques après
+  recharge monde/rendu/scène et relevés. Scènes Odile et lanterne,
+  date seule, référence étrangère et priorité des preuves contrôlées.
+  **37 tests ciblés verts**, zéro échec/erreur, **140,797 s**, contrôles AST
+  inclus ; Mireille historique auberge 1985 **36720** reste signalée,
+  archive sans relevés perceptifs. Traces dans
+  `artifacts/perception-276/tests.json` du dépôt principal.
+  **Vingt paires 4 h terminées : 20/20 identités, 200 contrôles verts**, cinq
+  scénarios × quatre graines ; états complets, SHA recalculés/recharges,
+  chroniques, mesures, empreintes, récits, souvenirs et vues identiques.
+  Relecture nuit par nuit des archives dans `exploitation.json`, sans
+  simulation. **616 mêmes retours**, seul Aubin 117518 reclassé : suspects
+  **1 → 0**, renouvellements perceptifs **0 → 1**, entrées nouvelles à
+  expliquer **21 → 21**, **total à examiner 21 → 22**. Autres classes
+  inchangées : cycles **503**, préemptions **49**, entrées publiées **28**,
+  changements de moyen **13**, progression **1** ; dérives **203 → 203**,
+  pertes payées **4 → 4**, zéro violation de service. Repère 271 : suspect
+  **1**, à expliquer **15**, cycles **495**, préemptions **48**, entrées
+  publiées **26**, moyens **14**, progression **1**, dérives **212**, pertes
+  **4** ; écarts intercampagnes déjà présents avant, non attribués au lot.
+  Aucun retour ajouté/retiré, aucune référence rejouée ni temps comparé entre
+  campagnes, ni Luna ni suite complète. Un processus réduit détaché,
+  **2 183,929 s**, `fin.json` (`ok=true`, 20 nuits), **aucun calcul actif**.
+  Bruts `C:/Users/msics/donjon/artifacts/perception-276/`.
+  Le défaut moteur de continuité à 117503 reste ouvert ; une différence
+  perceptive ne prouve pas que l'obstacle a changé. Horizon et archives sans
+  relevé perceptif restent des limites explicites.
+  [Rapport 276](taches/rapport-codex-276-sonde-perception.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Outils seulement. relever_entrees relève les entités perçues et la provenance des croyances sur les cibles du plan ; un retour dont seule une entrée perceptive change est classé renouvellement_perceptif, à examiner, jamais justifié d'office. Aubin (Relais 2024, 117518 : Ilse redevient perçue) reclassé, suspects 1 → 0 ; Mireille auberge 1985 toujours signalée. 20/20 nuits 4 h identiques avec et sans sonde. Le défaut moteur de clôture à 117503 reste ouvert (lot 273, décision en attente).
+
 - **Branche `codex-soupcon-deduit`, fusionnée**, lot **267**, base
   `7404d2d` : **correctif d'intégration du découpage temporel**. Les dates
   de tout le registre suivent désormais le grain minute des croyances,

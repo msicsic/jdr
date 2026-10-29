@@ -29,6 +29,132 @@ def episode(but, debut, quitte, valeur=0, accompli=False):
 
 
 class DetecterAvisTests(unittest.TestCase):
+    def test_renouvellement_perceptif_reste_a_expliquer_et_preuves_prioritaires(self):
+        for champ in ("perception", "provenance"):
+            eps = [episode("a", 0, 1), episode("b", 1, 2), episode("a", 2, 3)]
+            for ep in eps:
+                ep["decision"]["plan"] = [{"operation": "demander", "cible": "tiers"}]
+                for cle in ("debut_entrees", "quitte_entrees"):
+                    ep[cle]["_details"].update(perception={}, provenance={"tiers.lieu": "entendu"})
+            retour = eps[2]["debut_entrees"]
+            retour["_details"][champ].update(
+                {"tiers": ["salle", [2, 3]]} if champ == "perception" else {"tiers.lieu": "vu"})
+            retour["perception_effective" if champ == "perception" else "provenance_croyances"] = 1
+            with self.subTest(champ=champ):
+                a = self.analyser(eps)
+                self.assertEqual(a["comptes"], {"renouvellement_perceptif": 1})
+                self.assertEqual((a["total_non_justifies"], a["total_justifies"], a["total_a_expliquer"]), (0, 0, 1))
+                self.assertTrue(a["allers_retours"][0]["perception_diff_qr"][champ])
+                n = {"scenario": "scene", "graine": 0, "heures": 1, "donnees": {"mesures": {}}}
+                audit.ajouter_avis(n, a)
+                self.assertEqual(n["donnees"]["mesures"]["avis_a_expliquer"], 1)
+                self.assertIn("avis_a_expliquer", {x["code"] for x in audit.analyser_nuit(n)})
+                # Une autre entrée changée reste à expliquer, sans être masquée.
+                retour["alarmes_et_dangers"] = 1
+                self.assertEqual(self.analyser(eps)["comptes"], {"entree_nouvelle_a_expliquer": 1})
+                retour["alarmes_et_dangers"] = 0
+                # L'entrée publiée employée conserve sa priorité du lot 271.
+                eps[0]["quitte_entrees"]["_details"]["inventaire"] = {"portes": []}
+                retour["_details"]["inventaire"] = {"portes": ["tiers"]}
+                retour["inventaire_et_droits"] = 1
+                eps[2]["moyen_admissible"] = True
+                self.assertEqual(self.analyser(eps)["comptes"], {"entree_publiee_utilisee": 1})
+
+    def test_provenance_en_scene_cibles_dates_et_recharge(self):
+        from donjon.esprits import croire
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from tests.test_tache_promise_recours import reserve
+        from tests.test_tensions import recharger
+        m, acteur, cible, _ = reserve()
+        m.data["minutes"] = 2
+        localisation = d.lire(m, acteur)["croyances"][cible]["lieu"]
+        lieu = localisation["valeur"]
+        place = {k: localisation[k] for k in ("salle", "case")}
+        croire(m, acteur, cible, "lieu", lieu, "entendu", **place)
+        d.lire(m, acteur)["croyances"][cible]["lieu"]["minute"] = 1
+        eps = [episode("a", 0, 1), episode("b", 1, 2), episode("a", 2, 3)]
+        for ep in (eps[0], eps[2]):
+            ep["decision"]["plan"] = [{"operation": "demander", "cible": cible}]
+        avant = copy.deepcopy(m.data)
+        eps[0]["debut_entrees"] = eps[0]["quitte_entrees"] = d.relever_entrees(m, acteur, 2)
+        self.assertEqual(avant, m.data)
+        for source, classe in (("entendu", "repetition_sans_entree_nouvelle"),
+                              ("vu", "renouvellement_perceptif")):
+            m.data["minutes"] = 2
+            croire(m, acteur, cible, "lieu", lieu, source, **place)
+            eps[2]["debut_entrees"] = d.relever_entrees(m, acteur, 2)
+            self.assertEqual(self.analyser(eps)["comptes"], {classe: 1})
+            etat, vue = copy.deepcopy(m.data), (regarder(m), scene_percue(m))
+            m = recharger(m)
+            self.assertEqual(etat, m.data)
+            self.assertEqual(vue, (regarder(m), scene_percue(m)))
+            eps[2]["debut_entrees"] = d.relever_entrees(m, acteur, 2)
+            self.assertEqual(self.analyser(eps)["comptes"], {classe: 1})
+        # Une source changée sur un autre objet n'est pas une cible du plan.
+        eps[0]["quitte_entrees"] = eps[2]["debut_entrees"]
+        croire(m, acteur, "garde_manger", "verrouillee", False, "vu")
+        eps[2]["debut_entrees"] = d.relever_entrees(m, acteur, 2)
+        self.assertEqual(self.analyser(eps)["total_non_justifies"], 1)
+
+    def test_objet_percu_deplace_sans_revision_de_croyance_et_recharge(self):
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from tests.test_tache_promise_recours import reserve
+        from tests.test_tensions import placer, recharger
+        m, acteur, _, _ = reserve()
+        m.data["minutes"] = 2
+        eps = [episode("a", 0, 1), episode("b", 1, 2), episode("a", 2, 3)]
+        avant = d.relever_entrees(m, acteur, 2)
+        self.assertIn("lanterne_couloir", avant["_details"]["perception"])
+        eps[0]["debut_entrees"] = eps[0]["quitte_entrees"] = avant
+        placer(m, "lanterne_couloir", "cellier", [3, 2])
+        etat, vue = copy.deepcopy(m.data), (regarder(m), scene_percue(m))
+        eps[2]["debut_entrees"] = d.relever_entrees(m, acteur, 2)
+        self.assertEqual(etat, m.data)
+        self.assertEqual(self.analyser(eps)["comptes"], {"renouvellement_perceptif": 1})
+        self.assertIn("lanterne_couloir", self.analyser(eps)["allers_retours"][0]["perception_diff_qr"]["perception"])
+        m = recharger(m)
+        self.assertEqual(etat, m.data)
+        self.assertEqual(vue, (regarder(m), scene_percue(m)))
+        self.assertEqual(eps[2]["debut_entrees"], d.relever_entrees(m, acteur, 2))
+
+    def test_aubin_relais_2024_perception_nommee_et_recharge(self):
+        from donjon import banc_pnj, planification
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from tests.test_tensions import recharger
+        captures = {}
+        planification._IMPOSSIBLES.clear()
+        with d.observer_avis() as sonde:
+            choisir = d.deliberation.choisir
+            def observer(m, id, minute):
+                resultat = choisir(m, id, minute)
+                if id == "aubin" and d.instant(m) in (117503, 117518):
+                    captures[d.instant(m)] = m.copier()
+                return resultat
+            with patch.object(d.deliberation, "choisir", observer):
+                banc_pnj.nuit("relais", 2024, 4, "chambre_cloche", depart="tire")
+        retour = next(r for r in sonde.analyser()["allers_retours"]
+                      if r["id"] == "aubin" and r["retour_t"] == 117518)
+        self.assertEqual(retour["classe"], "renouvellement_perceptif")
+        self.assertFalse(retour["non_justifie"])
+        self.assertEqual(retour["perception_diff_qr"]["provenance"]["ilse.lieu"], ["entendu", "vu"])
+        self.assertIsNone(retour["perception_diff_qr"]["perception"]["ilse"][0])
+        self.assertIsNotNone(retour["perception_diff_qr"]["perception"]["ilse"][1])
+        self.assertEqual(set(captures), {117503, 117518})
+        releves = []
+        for t, m in sorted(captures.items()):
+            etat, vue = copy.deepcopy(m.data), (regarder(m), scene_percue(m))
+            entrees_avant = d.relever_entrees(m, "aubin", m.data["minutes"])
+            m = recharger(m)
+            self.assertEqual(etat, m.data)
+            self.assertEqual(vue, (regarder(m), scene_percue(m)))
+            entrees_apres = d.relever_entrees(m, "aubin", m.data["minutes"])
+            self.assertEqual(entrees_avant, entrees_apres)
+            releves.append(entrees_apres)
+        self.assertEqual(d._diff_perception(*releves, {"ilse"}), retour["perception_diff_qr"])
+
     def test_entrees_publiees_exigent_un_lien_avec_le_plan_admissible(self):
         for nature in ("portes", "possedes", "lieu", "engagement"):
             eps = [episode("agenda", 0, 1), episode("garder", 1, 2), episode("agenda", 2, 3)]

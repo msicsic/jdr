@@ -541,7 +541,7 @@ def analyser_nuit(n):
         noter("avis_non_mesures", None, None, "Archive sans sonde de décisions ; aucune garantie disponible")
     else:
         for r in avis["allers_retours"]:
-            if r["non_justifie"] or r["classe"] == "entree_nouvelle_a_expliquer":
+            if r["non_justifie"] or r["classe"] in detecteur_avis().CLASSES_A_EXPLIQUER:
                 noter("avis_non_justifie" if r["non_justifie"] else "avis_a_expliquer",
                       r["id"], r["retour_minute"], json.dumps(r, ensure_ascii=False), 1)
         for r in avis.get("derives_ouvertes", ()):
