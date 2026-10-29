@@ -278,6 +278,12 @@ def main(argv=None, interface=None):
                 m.sauver(args.save)
                 imprimer("Ta partie est terminée : " + m.data["fin"]["cause"] + ".")
                 return 0
+            gestes = ()
+            if interface is None and m.data.get("mode_cases"):
+                from donjon.scene import scene_percue
+                from donjon.gestes_publics import liste_gestes, rendre_liste
+                gestes = liste_gestes(scene_percue(m))
+                imprimer(rendre_liste(gestes))
             try:
                 entree = lire("\nCorvus > ")
                 texte = entree.strip() if isinstance(entree, str) else ""
@@ -288,6 +294,15 @@ def main(argv=None, interface=None):
             if not cmd and not isinstance(entree, DescripteurPublic):
                 continue
             try:
+                if interface is None and isinstance(entree, str):
+                    from donjon.gestes_publics import choisir_numero
+                    try:
+                        choix = choisir_numero(entree, gestes)
+                    except ValueError as exc:
+                        imprimer(str(exc))
+                        continue
+                    if choix is not None:
+                        entree = choix
                 if isinstance(entree, DescripteurPublic):
                     executer_local(entree, "Geste direct")
                     continue

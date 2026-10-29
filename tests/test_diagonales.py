@@ -167,13 +167,14 @@ class TrajetTests(unittest.TestCase):
     @unittest.skipUnless(shutil.which("node"), "node absent : le script de la page ne peut pas tourner")
     def test_le_clic_de_la_page_suit_la_meme_regle(self):
         from donjon.scene import scene_percue
+        from donjon.gestes_publics import catalogue_public
         from donjon.spatial import memoriser
         m = galerie()
         m.joueur["orientation"] = "sud-est"
         memoriser(m)
         piece = m.data["salles"]["chambre_cloche"]
         etat = {"type": "etat", "salle": "", "pv": 1, "or": 0, "minutes": 0, "connexion": "", "fiche": "",
-                "proposition": "", "scene": scene_percue(m),
+                "proposition": "", "scene": scene_percue(m), "catalogue_gestes": catalogue_public(),
                 "sonde_buts": [list(_global(piece, (3, 3))), list(_global(piece, (4, 0)))]}
         page = Path(__file__).parents[1] / "donjon" / "web" / "page.html"
         sortie = subprocess.run(["node", str(Path(__file__).with_name("clic_page.js")), str(page)],

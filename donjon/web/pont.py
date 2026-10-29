@@ -101,9 +101,11 @@ class PontWeb:
         from ..carte import carte
         from ..rendu import fiche, regarder
         from ..francais import quantite
+        from ..gestes_publics import catalogue_public
         self.termine = bool(monde.data.get("fin"))
         cases = bool(monde.data.get("mode_cases"))
         etat = {"type": "etat", "fin": monde.data.get("fin"),
+                "catalogue_gestes": catalogue_public(),
                 "scene": None, "carte_texte": "" if cases else carte(monde),
                 "fiche": fiche(monde), "regard": regarder(monde),
                 "inventaire": inventaire_public(monde), "destinataires": destinataires_publics(monde),

@@ -20,6 +20,7 @@ from donjon.spatial import installer, memoriser
 from tests.support import calme, regarder
 from donjon.web.pont import PontWeb
 from donjon.web.serveur import Serveur
+from donjon.gestes_publics import catalogue_public
 
 
 class Flux:
@@ -151,7 +152,7 @@ class ClicTests(unittest.TestCase):
         regarder(m, "marchand", "joueur")
         self.monde = m
         etat = {"type": "etat", "salle": "", "pv": 1, "or": 0, "minutes": 0, "connexion": "", "fiche": "",
-                "proposition": "", "scene": scene_percue(m)}
+                "proposition": "", "scene": scene_percue(m), "catalogue_gestes": catalogue_public()}
         page = Path(jeu.__file__).with_name("donjon") / "web" / "page.html"
         sonde = Path(__file__).with_name("clic_page.js")
         sortie = subprocess.run(["node", str(sonde), str(page)], input=json.dumps(etat), capture_output=True,

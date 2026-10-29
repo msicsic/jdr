@@ -121,6 +121,7 @@ const $ = id => document.getElementById(id);
 const canvas = $("carte"), ctx = canvas.getContext("2d");
 let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, surligne = null;
 let destinataires = [];
+let catalogueGestes = {objets: [], portes: []};
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
 let occupe = true, historique = [], indice = 0, brouillon = "";
@@ -396,6 +397,7 @@ function ajouterLigne(texte) {
 }
 function appliquerEtat(e) {
   fermerMenu();
+  catalogueGestes = e.catalogue_gestes || {objets: [], portes: []};
   destinataires = e.destinataires || [];
   afficherInventaire(e.inventaire || []);
   $("lieu").textContent = e.salle;
@@ -605,23 +607,15 @@ function vers(g) {
   const j = scene.joueur.globale, a = Math.atan2(g[1] - j[1], g[0] - j[0]);
   return VERS[[Math.round(Math.cos(a)), Math.round(Math.sin(a))].join(",")];
 }
-function gestes(o) {
-  const liste = [["examiner", "Examiner"]];
-  if (o.type === "personnage") return [...liste, ["observer", "Observer son attitude"], ["parler", "Lui parler"]];
-  if (o.type === "motif") liste.push(["lire", "Lire"]);
-  if (o.type === "luminaire") liste.push(o.allume ? ["eteindre", "Éteindre"] : ["allumer", "Allumer"]);
-  if (o.type === "nourriture") liste.push(["manger", "Manger"]);
-  if (o.type === "contenant") liste.push(["ouvrir", "Ouvrir"], ["fermer", "Fermer"]);
-  if (o.mobile) liste.push(["prendre", "Prendre"]);
-  return liste;
+function offresPubliques(cible, porte) {
+  if (porte && cible.souvenir) return [];
+  return catalogueGestes[porte ? "portes" : "objets"].filter(([geste, libelle, conditions]) =>
+    Object.entries(conditions).every(([k, v]) => (cible[k] ?? false) === v) &&
+    !(!porte && cible.type === "personnage" && geste === "prendre")
+  ).map(([geste, libelle]) => [geste, libelle]);
 }
-function gestesPorte(p) {
-  const liste = [["examiner", "Examiner"]];
-  if (p.etat === "fermee") liste.push(["ouvrir", "Ouvrir"]);
-  if (p.etat === "ouverte") liste.push(["fermer", "Fermer"]);
-  if (p.etat === "verrouillee") liste.push(["deverrouiller", "Déverrouiller"], ["crocheter", "Crocheter"]);
-  return liste;
-}
+function gestes(o) { return offresPubliques(o, false); }
+function gestesPorte(p) { return offresPubliques(p, true); }
 function choixInventaire(o, x, y) {
   const choix = [];
   const ajouter = (libelle, geste, parametres) => {
