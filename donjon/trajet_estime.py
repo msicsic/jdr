@@ -137,6 +137,10 @@ def parcours(v, e, ouvertes, delai=0, certain=False):
 
 def approche(v, e, etape, cibles=None):
     from .pnj import _a_toucher
+    from .proximite_vocale import vocale
+    if vocale(etape):
+        duree = moyenne(v, e, e.salle, v.cases_vocales(e, etape['cible']))
+        return Route(fin=(e.salle, None), sejours=((e.salle, duree),)) if duree is not None else None
     touches = _a_toucher(v.monde, v.id, etape, e.portes)
     cibles = tuple(v.case_objet(e, x) for x in touches) if cibles is None else tuple(cibles)
     centre = etape["operation"] == "inspecter" and not etape.get("attendre_remise")

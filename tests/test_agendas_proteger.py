@@ -100,14 +100,16 @@ class ProtegerTests(unittest.TestCase):
         self.assertEqual(entier.data, recharger(entier).data)
         self.assertEqual(regarder(entier), regarder(recharger(morceaux)))
 
-    def test_suivi_non_livre_endort_sans_perdre_responsabilite(self):
+    def test_suivi_vocal_actif_sans_perdre_responsabilite(self):
         m = declarer(relais())
         agendas.actualiser(m, "marchand")
         avant = copy.deepcopy(m.data)
-        self.assertIsNone(agendas.planifier(m, "marchand", "a1"))
+        plan = agendas.planifier(m, "marchand", "a1")
+        self.assertEqual(plan[0]['agenda'], 'a1')
+        self.assertEqual(plan[1][-1]['contenu'], {'portee': 'voix'})
         self.assertEqual(m.data, avant)
         with planification.vues_du_choix(m, "marchand"):
             agendas.planifier(m, "marchand", "a1")
         m = recharger(m)
-        self.assertEqual(agendas.projets(m, "marchand")[0]["etat"], "sommeil")
+        self.assertEqual(agendas.projets(m, "marchand")[0]["etat"], "actif")
         self.assertIn("ilse", defense.charges(m, "marchand"))

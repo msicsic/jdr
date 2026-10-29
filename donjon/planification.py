@@ -1002,6 +1002,17 @@ class Vue:
             return Route(fin=(e.salle, None))
         return trajet_estime.approche(self, e, etape, cibles)
 
+    def cases_vocales(self, e, sujet):
+        from .proximite_vocale import arrivees
+        portes = tuple((p, self.ouvert(e, p)) for p, o in self.objets.items() if o['type'] == 'porte')
+        cle = ('proximite_vocale', e.salle, sujet, portes)
+        def calculer():
+            possible = arrivees(self.monde, self.id, sujet, portes=portes)
+            if not self.monde.data.get('mode_cases'):
+                return frozenset((None,)) if possible(e.salle, None) else frozenset()
+            return frozenset(c for c in cases(self.salles[e.salle]) if possible(e.salle, c))
+        return self._memo(cle, calculer)
+
     def present(self, e, cible):
         """La présence commune d'exécution, sur les lieux et ouvertures projetés.
 
@@ -1478,8 +1489,11 @@ def gestes(v, e, vises=None, but=None):
     # Séjour à portée d'une personne : même approche, présence et coûts que
     # les gestes ciblés. Le fait projeté certifie l'arrivée, pas la fin du séjour.
     for qui in vises.get("pres", ()):
-        if v.salle(e, qui) == e.salle and not e.fait("pres", qui):
-            yield 0, 1, [_etape("rester", qui, lieu=e.salle)], e.apres(faits=[(("pres", qui), True)])
+        vocale = vises.get('portee') == 'voix'
+        possible = bool(v.cases_vocales(e, qui)) if vocale else v.salle(e, qui) == e.salle
+        if possible and not e.fait("pres", qui):
+            contenu = {'portee': 'voix'} if vocale else None
+            yield 0, 1, [_etape("rester", qui, lieu=e.salle, contenu=contenu)], e.apres(faits=[(("pres", qui), True)])
     # Les gestes de défense sont offerts seulement aux buts qui les emploient.
     yield from _gestes_defense(v, e, vises)
     agissables, a_porter = v.agissables(vises)
@@ -2190,8 +2204,16 @@ def _entrees(v, vises, profondeur, noeuds):
         # Le terminal de proximité et sa cible sont dans vises ; ses lieux,
         # cases crues, routes et tarifs sont dans les entrées communes.
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), v.eclairer,
-        [[x, v.violence(x) is not None] for x in v.personnes()], _entrees_defense(v, vises)
+        [[x, v.violence(x) is not None] for x in v.personnes()], _entrees_defense(v, vises),
+        _entrees_proximite(v, vises)
     ], ensure_ascii=False, check_circular=False)
+
+
+def _entrees_proximite(v, vises):
+    if (vises or {}).get('portee') != 'voix':
+        return None
+    from .proximite_vocale import entrees
+    return entrees(v.monde, v.id)
 
 
 def _entrees_communes(v):
@@ -3329,6 +3351,39 @@ def duree_devis(monde, id, etapes):
     return total
 
 
+def proximite(monde, id, sujet, *, portee=None, endurer=None):
+    """Coût et préfixe certain du séjour ciblé ; contact ou portée vocale."""
+    v = vue(monde, id)
+    e = depart(monde, id, v)
+    if v.salle(e, sujet) is None:
+        if portee == 'voix':
+            recherche = _chercher(v, e, sujet)
+            return None if recherche is None else (recherche[1] + recherche[6], _couper(recherche[2]))
+        contact = rejoindre(monde, id, sujet)
+        return None if contact is None else (0, contact[0])
+    vises = {'pres': (sujet,)}
+    if portee == 'voix':
+        from .proximite_vocale import arrivees
+        lieu = lire(monde, id)['croyances'].get(sujet, {}).get('lieu', {})
+        if monde.data.get('mode_cases') and lieu.get('case') is None:
+            contact = rejoindre(monde, id, sujet)
+            if contact is None:
+                return None
+            etapes = contact[0] + [_etape('inspecter', lieu=v.salle(e, sujet), contenu={'cherche': sujet})]
+            mesure = _mesurer_direct(v, e, etapes, e, 0)
+            return None if mesure is None else (mesure[0] + mesure[1], etapes)
+        o = monde.objets[id]
+        # Déjà en portée : aucune optimisation de trajet ne le fait repartir
+        # vers un autre seuil. Un pas non perçu du tiers ne change pas ce test.
+        if arrivees(monde, id, sujet)(o['lieu'], tuple(o['position']) if monde.data.get('mode_cases') else None):
+            return 0, [_etape('rester', sujet, lieu=o['lieu'], contenu={'portee': 'voix'})]
+        vises['portee'] = portee
+    trouve = chercher(monde, id, lambda v, e: e.fait('pres', sujet), vises,
+                      nom='pres:' + sujet, memo=['pres', sujet] + ([portee] if portee else []),
+                      emplois=(), tenir=True, endurer=endurer)
+    return None if trouve is None else (trouve[0], _couper(trouve[1]))
+
+
 def _pulsion(monde, id, condition, tache, entretenir=None):
     """(coût, but, étapes) de ``planifier_pulsion``, ou None."""
     from .deliberation import salle_crue
@@ -3337,15 +3392,8 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     geste = None
     if "pres" in condition:
         sujet = condition["pres"]
-        v = vue(monde, id)
-        if v.salle(depart(monde, id, v), sujet) is None:
-            contact = rejoindre(monde, id, sujet)
-            return None if contact is None else (0, {"type": "pulsion", **condition}, contact[0])
-        trouve = chercher(monde, id, lambda v, e: e.fait("pres", sujet), {"pres": (sujet,)},
-                          nom="pres:" + sujet, memo=["pres", sujet], emplois=(), tenir=True)
-        # Les devis peuvent contenir une acquisition encore supposée. Comme
-        # les autres pulsions, n'exécuter que son préfixe certain et propre.
-        return None if trouve is None else (trouve[0], {"type": "pulsion", **condition}, _couper(trouve[1]))
+        trouve = proximite(monde, id, sujet)
+        return None if trouve is None else (trouve[0], {"type": "pulsion", **condition}, trouve[1])
     if "rendre" in condition:
         trouve = _rendre(monde, id, o, condition)
         return None if trouve is None else (0, *trouve)

@@ -1046,8 +1046,16 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
             _changer(monde, id, a, "actif", "interposition", empreinte)
             _limiter(monde, id, empreinte)
             return poste if a["etat"] == "actif" else None
-        _changer(monde, id, a, "sommeil", "suivi vocal non pris en charge", empreinte)
-        return None
+        from .planification import proximite
+        trouve = proximite(monde, id, a['parametres']['qui'], portee='voix', endurer=poids(monde, id, a))
+        if trouve is None:
+            _changer(monde, id, a, 'sommeil', 'sans plan admissible au cout', empreinte)
+            return None
+        _changer(monde, id, a, 'actif', 'proximite vocale', empreinte)
+        _limiter(monde, id, empreinte)
+        if cout is not None:
+            cout.append(trouve[0])
+        return ({'type': 'agenda', 'agenda': identifiant, 'qui': a['parametres']['qui']}, trouve[1]) if a['etat'] == 'actif' else None
     if a["sorte"] == "garder":
         from .planification import garder
         from .defense import interposition

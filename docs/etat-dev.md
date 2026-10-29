@@ -2,6 +2,26 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 335 implémenté, branche `codex-suivi-vocal`, non fusionnée**,
+  base `origin/integration 9237e14` : agenda `protéger` raccordé au terminal
+  de séjour 266 avec portée vocale, propagation acoustique commune sur lieux,
+  cases et portes crus ; marche et coût communs, place admissible conservée.
+  Recherche commune si lieu inconnu, inspection si case inconnue ; aucun
+  agenda ajouté aux scénarios. Rendu de veille sans présence cachée affirmée.
+  **13 tests / deux fichiers verts, 12,011 s**, avant le dernier retrait de
+  rotation vers la cible vocale, repris dans la consolidation à venir.
+  **Validation élargie en cours** : quinze fichiers ciblés, puis banc 4 h ×
+  cinq scénarios × quatre graines, un travailleur réduit ; vingt références
+  `f08ef58` en cache, moteur/outils identiques à la base, aucun rejeu prévu.
+  Résultat attendu :
+  `C:/Users/msics/donjon/artifacts/vocal-335/verification/fin.json`, écrit
+  en dernier même en échec. Critères 219 et identité des nuits historiques
+  encore à vérifier ; ni Luna ni suite complète.
+  Recouvrements 330 : `planification.py`, `pnj.py` ; 333 : `agendas.py`,
+  `pnj.py`, `test_agendas_proteger.py`. Suivi selon croyances, sans garantie
+  générale de retrouvailles ou de correction d'une localisation périmée.
+  [Rapport 335](taches/rapport-codex-335-suivi-vocal.md).
+
 - **Lot 334 terminé, branche `codex-empreintes-monde`, fusionnée**,
   base `5f4e0d5` : hameau, parent `37f68d4` vert / fusion 302 `99143c2`
   rouge ; statut de Gorm et trois ascendants légitimes conservés par
