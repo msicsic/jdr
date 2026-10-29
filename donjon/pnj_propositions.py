@@ -497,8 +497,16 @@ def recours(monde, id, besoin, etapes):
         demande = demande_utile(monde, id, demande)
         if demande is None:
             continue
-        if (autre not in _connus(monde, id) or not monde.objets.get(autre, {}).get("profil")
-                or salle_crue(monde, id, autre) != monde.objets[id]["lieu"]):
+        if autre not in _connus(monde, id) or not monde.objets.get(autre, {}).get("profil"):
+            continue
+        if salle_crue(monde, id, autre) != monde.objets[id]["lieu"]:
+            from .planification import Vue, depart, _appeler, _couper
+            v = Vue(monde, id)
+            contact = _appeler(v, depart(monde, id, v), autre)
+            if contact is not None:
+                # La contrepartie se décide au contact : aucune offre ni aucun
+                # accord ne sont présumés par ce préfixe de négociation.
+                return _couper(contact[2])[0]
             continue
         # Il sait où le trouver ; la marche sociale normale le rejoint au contact.
         entrees = _entrees(monde, id, autre, besoin, demande)

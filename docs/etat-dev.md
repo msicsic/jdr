@@ -2,6 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-appeler-donneur`, non fusionnée**, lot **275**, base
+  `7b58eb0` (code d'intégration `ac63223`) : contact d'un interlocuteur localisé
+  mais inaccessible par l'appel négocié commun, portée estimée sur les seules
+  croyances, préfixe coupé avant venue/demande/acquisition, appels vains retenus
+  sans rappel par délai. Raccord des parts et objets portés, achats compris ;
+  remise de nourriture accessible au demandeur lui-même par le contrat existant.
+  Raccord minimal de `pnj_propositions.recours` pour préparer une négociation
+  après refus ; ni `deliberation`, ni `agendas`, ni `signes` touchés. Capture
+  crue 7/270 : Ilse hèle, Gorm ne promet pas de venir ; variante de porte
+  déverrouillée : retrouvailles puis demande/achat/repas. Autre scène à l'auberge
+  pour l'achat d'un objet porté. Recharges monde/rendu/scène et laps entier/
+  découpé, contre-épreuves de portée, lieu inconnu, position réelle et délai.
+  **45 tests existants verts**, puis **6 nouvelles régressions vertes** ; une
+  septième ajoutée pour la négociation. Vingt fichiers ciblés en cours,
+  complément des importeurs puis banc détaché 20 nuits × 4 h, référence figée
+  `7b58eb0`, cache commun, deux travailleurs réduits au plus. Suspects 219
+  nuit par nuit, appels/retrouvailles et S/F/D 183 encore à valider.
+  **Pas de conclusion sur le banc ni de suite complète ou Luna.** Bruts
+  `C:/Users/msics/donjon/artifacts/appeler-275/`, attendre **`fin.json`** ;
+  [rapport 275](taches/rapport-codex-275-appeler-donneur.md).
+
 - **Branche `codex-soupcon-deduit`, fusionnée**, lot **267**, base
   `7404d2d` : **correctif d'intégration du découpage temporel**. Les dates
   de tout le registre suivent désormais le grain minute des croyances,
