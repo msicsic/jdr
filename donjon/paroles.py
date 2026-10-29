@@ -29,7 +29,9 @@ from .monde import ErreurMonde, normaliser
 from .relations import FIABLE
 
 ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
-TYPES = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "localisation", "proposition")
+TYPES_JOUEUR = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "localisation", "proposition")
+# Le transport PNJ dispose du compte rendu ; le protocole joueur attend A5/10.
+TYPES = (*TYPES_JOUEUR, "compte_rendu")
 CHAMPS_CONTENU = {
     "propos": (), "affirmation": ("sujet", "attribut", "valeur"),
     "demande": ("sujet", "valeur"), "passage": ("sujet", "valeur"),
@@ -82,7 +84,7 @@ SCHEMA_PAROLE = {
         "contenu": {"type": "array", "maxItems": 3, "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "type": {"type": "string", "enum": list(TYPES)},
+                "type": {"type": "string", "enum": list(TYPES_JOUEUR)},
                 "sujet": {"type": "string"}, "attribut": {"type": "string", "enum": ["", *ATTRIBUTS]},
                 "valeur": {"type": "string"},
             },
@@ -91,7 +93,7 @@ SCHEMA_PAROLE = {
     "required": ["personnage", "replique", "contenu"],
 }
 SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["type"]["description"] = " ".join(
-    f"{t} : {SENS_CONTENU[t]}" for t in TYPES)
+    f"{t} : {SENS_CONTENU[t]}" for t in TYPES_JOUEUR)
 SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["sujet"]["description"] = (
     "Pour ressource : le bien nommé, sans article (nom, alias, matière ou catégorie), même inconnu de Corvus ; pour un besoin général seulement : " + "; ".join(f"{b} = {RESSOURCES_DEMANDEES[b]}" for b in BESOINS_DEMANDES)
     + ". Sinon, la référence du sujet selon le type.")
@@ -101,7 +103,7 @@ _contenu_ordinaire = SCHEMA_PAROLE["properties"]["contenu"]["items"]
 # sens pour ce type est vide. Chaque variante décrit seulement son type,
 # sans annoncer les sens exclus par son discriminant.
 _variantes_contenu = []
-for _type_contenu in TYPES:
+for _type_contenu in TYPES_JOUEUR:
     if _type_contenu == "proposition":
         continue
     _variante = copy.deepcopy(_contenu_ordinaire)

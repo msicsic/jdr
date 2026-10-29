@@ -2,6 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-compte-rendu`, non fusionnée**, lot **283**, base
+  `c5a1740` : compte rendu typé des charges terminales `mandat`, parole
+  commune et attribution de voix ; le parent conserve une croyance `dit`,
+  jugée par persuasion/confiance, sans lire l'issue privée du mandaté.
+  Clôture sur croyance et révision sur constat contraire, aucune arrivée ni
+  transmission fictive. Émission persistée unique, doute et voix inconnue
+  conservés comme paroles. Protocole joueur inchangé ; jugement et choix
+  faire/confier intacts. **23 tests / quatre fichiers verts, 48,718 s**,
+  dont sept nouveaux ; petit ajustement final de provenance et de fenêtre
+  de suspicion à revérifier dans la campagne finale. Crue du hameau,
+  Gorm/Aubin/Brune et autre couple Ilse/Gorm, deux charges, réussite,
+  échec, renoncement et mensonge ; recharge monde/rendu/scène/écoute,
+  marche réelle et parole d'information, laps entier/découpé identiques.
+  **Lot non clos, vérification détachée en cours** : tests concernés puis
+  empreintes 2 h, cinq scénarios × quatre graines contre la base, un seul
+  travailleur réduit ; banc 4 h conditionné aux mandats naturels constatés.
+  L'absence de preuve d'information ne démontre pas sa non-transmission ;
+  pas de nouveau mécanisme de preuve négative, réaffectation ou retour.
+  Fichier attendu `C:/Users/msics/donjon/artifacts/compte-rendu-283/fin-verification.json`.
+  Ni Luna ni suite complète. [Rapport 283](taches/rapport-codex-283-compte-rendu.md).
+
 - **Branche `codex-but-protection`, lot 281, fusionnée**, base intégration
   `3470a92` : `planification.reagir` nomme le protégé dans `proteger.qui` ;
   l'agresseur reste la cible du plan. Lecteurs récit/paroles/audit/sonde 219,

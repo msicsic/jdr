@@ -418,6 +418,32 @@ def clarte(monde, auditeur):
     return 0.5 if _stats_pnj(monde, auditeur)["INT"] <= 8 else 1.0
 
 
+def rendre_compte(monde, id, contenu, lignes):
+    """Le résultat raconté ne produit aucun geste ni transmission fictive."""
+    from .pnj import se_parler, _chroniquer
+    from .social import faire_entendre, recevoir, _qui
+    from .ouie import saisit
+    charge = contenu["charge"]
+    autre = charge["mandant"]
+    if not se_parler(monde, id, autre) or not saisit(monde, id, autre, "dire"):
+        return False
+    if not agendas.retenir_compte_emis(monde, id, contenu):
+        return False
+    recevoir(monde, autre, id, contenu)
+    p = charge["parametres"]
+    personnes = ", ".join(_qui(monde, q, id) for q in p["qui"])
+    if charge["sorte"] == "amener":
+        from .francais import lieu
+        tache_dite = "amener " + personnes + " dans " + lieu(monde.data["salles"][p["lieu"]])
+    else:
+        tache_dite = "transmettre l'information à " + personnes
+    resultat = {"reussi": "avoir réussi", "echoue": "avoir échoué", "renonce": "avoir renoncé"}[contenu["issue"]]
+    texte = f"{_qui(monde, id)} rend compte à {_qui(monde, autre)} : déclare {resultat} à {tache_dite}."
+    _chroniquer(monde, id, texte, "social")
+    faire_entendre(monde, id, autre, texte, p["qui"], lignes, [contenu])
+    return True
+
+
 def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
     """« dementi », « doute », « crue » ou « decouvert » (crue puis démentie sous ses yeux)."""
     e = esprit(monde, auditeur)

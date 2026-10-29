@@ -4,7 +4,7 @@ import unittest
 
 from donjon.monde import ErreurMonde
 from donjon.refus import RefusDeForme
-from donjon.paroles import CHAMPS_CONTENU, SCHEMA_PAROLE, TYPES, verifier_contenus
+from donjon.paroles import CHAMPS_CONTENU, SCHEMA_PAROLE, TYPES_JOUEUR as TYPES, verifier_contenus
 from donjon.voix import connait_nom, designation
 from donjon.carte import carte
 from donjon.rendu import regarder
