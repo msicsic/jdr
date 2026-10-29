@@ -2211,6 +2211,7 @@ def _entrees_communes(v):
     metrique = v._metrique
     from .biens import services_proteges
     return json.dumps([
+        agendas.mandats_percus(monde, id),  # Contrats et issues propres au témoin.
         [x for x in agendas.en_cours(monde, id) if x['condition'].get('proteger')],
         [[a['id'], a['etat'], a['parametres'], a.get('echeance')]
          for a in agendas.projets(monde, id) if a['origine']['type'] == 'contrat'],
