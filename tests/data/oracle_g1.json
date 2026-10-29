@@ -783,7 +783,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "710d51acc69c78ec7e05752e59e00c7221ecffcbf5d9e5367b2c3224cf1c46c6": {
      "proposition_fidele": true,
@@ -792,7 +793,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "d56cc0205fbb05a76bc1e63d74c5bf6ebdb6f30c8e2f1920559c9f7129538702": {
      "proposition_fidele": true,
@@ -801,7 +803,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "5fa207e43172b66a57c4aff25557cd8d15f85b4dfad0180b85116662f20c8e09": {
      "proposition_fidele": true,
@@ -810,7 +813,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "20c627f114f22f67dd432b2225d49943b6c3d69e51285fd007581506b00a6f96": {
      "proposition_fidele": true,
@@ -819,7 +823,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "337d3e9caccac972dab42180cabb019634c1ce21ef9352f4a27a3bd29fce86a4": {
      "proposition_fidele": true,
@@ -828,7 +833,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -846,7 +852,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "697efbb771a4336e4dbc38aa7b020aa9946bf3fc8dabd576cc1d8465d2d5bd63": {
      "proposition_fidele": true,
@@ -855,7 +862,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "2aee6c35747722cacf5699a0ef17e7f10d4f0b4a9a6d6782d69c6d7cf7c33afb": {
      "proposition_fidele": true,
@@ -864,7 +872,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "d7c60d8dc627477bc80a989fe2bd30d84a674ac24c9d284e70171cd1212c4759": {
      "proposition_fidele": true,
@@ -873,7 +882,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "f0a37e3f4da95bc2764e7346fe781d54c4568ab1e445f457d62c23c4eba1f458": {
      "proposition_fidele": true,
@@ -882,7 +892,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "9a7792b4ae8e882ac31fde8ecf87b68abbebdfa49cd7404461720503a22243e2": {
      "proposition_fidele": true,
@@ -891,7 +902,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -909,7 +921,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "1a9c09652bd8bb0233617e7d5e767b62e9de7d82b1de082f31db78f864e64529": {
      "proposition_fidele": true,
@@ -918,7 +931,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "327cad57b609d66213f02377203ba958e8c59261c36d8668fd7a749f24921650": {
      "proposition_fidele": true,
@@ -927,7 +941,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "0d96c4be163b676858e5fd5a3b3ad3cd1335a199ed8a000b649f80d64267e67b": {
      "proposition_fidele": true,
@@ -936,7 +951,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "391aa3a6a72b5d5f6c10acfdf9dfbcba4899519dcddc660184e2863d2fd8c13f": {
      "proposition_fidele": true,
@@ -945,7 +961,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "fb28391756f7de28accd1d282975500304808a0df17dab5078da8cbeb87f2ad6": {
      "proposition_fidele": true,
@@ -954,7 +971,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -972,7 +990,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -990,7 +1009,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "a5c2195193d034136a91c38bfe0a18279f14e399b8edbabc6e399b8f303b7d73": {
      "proposition_fidele": false,
@@ -999,7 +1019,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "c0bafb16bb2abb907f70ac68add703af45c59dd8152e07200a4223b6ac420642": {
      "proposition_fidele": true,
@@ -1008,7 +1029,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "d59fb15ddbf5004d9e4cd57d623373a92d1a8d8195839e17d89f41a5499d85cf": {
      "proposition_fidele": true,
@@ -1017,7 +1039,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "34f81df58d3481a3aa63e16e5dbb302718c8bd987b73daaaae57eeb6365258a2": {
      "proposition_fidele": true,
@@ -1026,7 +1049,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "a378bd39b6f3813522f13bd11de9d51ffbb997e30b0499098f410520e92abc75": {
      "proposition_fidele": true,
@@ -1035,7 +1059,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     }
    }
   },
@@ -1053,7 +1078,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1071,7 +1097,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1089,7 +1116,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1107,7 +1135,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1125,7 +1154,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1143,7 +1173,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1161,7 +1192,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "9d065101664a5bab174cb8fbe063237a5fe9b1449234837a1cc5f16b1ca64aa4": {
      "proposition_fidele": true,
@@ -1170,7 +1202,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "d5d547109451cc38105e93ec5f2b53ba34e3d46431f20deb45cef4149b63aa8d": {
      "proposition_fidele": true,
@@ -1179,7 +1212,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "2fa4f250255ffd12e1b1c4d625faf336ede64f25bf77b56ceb6c8daf6cc4a505": {
      "proposition_fidele": true,
@@ -1188,7 +1222,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "e6f199f2cb421b232c9f84040ef9baca7df2506280615e9d7aab136a297aecf6": {
      "proposition_fidele": true,
@@ -1197,7 +1232,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "636674ffd7a3416a389cc6e0be456d0017e32ed87b44d664a39490b2f8e68a39": {
      "proposition_fidele": true,
@@ -1206,7 +1242,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     }
    }
   },
@@ -1224,7 +1261,8 @@
      "execution": "non_execute",
      "consentement": "non",
      "abandon": true,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "a43a9a85d79a39268a48fb1af0202b8534d932f517636086f366a6708fdc4419": {
      "proposition_fidele": true,
@@ -1233,7 +1271,8 @@
      "execution": "non_execute",
      "consentement": "non",
      "abandon": true,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "db6a24faa34673e5b362fe82b16eb076566d9dc0191aaf501c3105a537e6dd1f": {
      "proposition_fidele": true,
@@ -1242,7 +1281,8 @@
      "execution": "action",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "25231d99d9b2b79fd91d3c876b35501c52a50901c3e6afd22ca8c06bdd949afd": {
      "proposition_fidele": true,
@@ -1251,7 +1291,8 @@
      "execution": "action",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "622e77cf1acb9b3a50636a62bcccb127c21c960198b5a7c3d5d3e93637874ef5": {
      "proposition_fidele": true,
@@ -1260,7 +1301,8 @@
      "execution": "action",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "9d283bd871e76d148d99053d8c8630e5054d962c86af0fe5a7e9ab09083c0087": {
      "proposition_fidele": true,
@@ -1269,7 +1311,8 @@
      "execution": "non_execute",
      "consentement": "non",
      "abandon": true,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     }
    }
   },
@@ -1287,7 +1330,8 @@
      "execution": "non_execute",
      "consentement": "attente",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "666a792716b063ec383f04d8062a57b4df55f83d55f92613f70d5e84ff5234db": {
      "proposition_fidele": true,
@@ -1296,7 +1340,8 @@
      "execution": "non_execute",
      "consentement": "attente",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "108d0c2b4b5cef5afbaf5a3cdc193ad54c38bb3f00bcde2a283237d5a1134924": {
      "proposition_fidele": true,
@@ -1305,7 +1350,8 @@
      "execution": "non_execute",
      "consentement": "attente",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "362c807608ecacc5112c964b0337fd85e10803fe64e8e1091306c34bdd7e5969": {
      "proposition_fidele": true,
@@ -1314,7 +1360,8 @@
      "execution": "non_execute",
      "consentement": "attente",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "f25a2ec44f14406d146f83661712956a670f8f73aaa901e27550544ce8ad003d": {
      "proposition_fidele": false,
@@ -1323,7 +1370,8 @@
      "execution": "non_execute",
      "consentement": "non",
      "abandon": true,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "59eb8d790a5b3040534b8209f4e6b9489b4e2ddf923097036bb6b55d74cd1c4e": {
      "proposition_fidele": true,
@@ -1332,7 +1380,8 @@
      "execution": "non_execute",
      "consentement": "attente",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -1350,7 +1399,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "302ed9fed52eda0bce22e7a590e4c82fa04e396a813bbdce2b263e395891ab01": {
      "proposition_fidele": null,
@@ -1359,7 +1409,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1377,7 +1428,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "407df05328bf806cee0bfd6eabbb9fe55d0769a7ef5ca0cbbda3c05976e0e100": {
      "proposition_fidele": null,
@@ -1386,7 +1438,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1404,7 +1457,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "4b175f52375c4b32ef9e5d130ab7f1e6d4b1ca8f4ce3b1f71d1afcdd4452dece": {
      "proposition_fidele": null,
@@ -1413,7 +1467,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1431,7 +1486,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "fba4eafc8cd34ea71226b19103d5bb272b28d3702b6a52ca38b5ac563517c5c2": {
      "proposition_fidele": null,
@@ -1440,7 +1496,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1458,7 +1515,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "3d70b6f710dbc77f8b13928f19c6f24493c0722dd7ad14be1d08b0db0a30baec": {
      "proposition_fidele": null,
@@ -1467,7 +1525,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1485,7 +1544,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "f37af9881988447582ba74209cfcc558f02dcfdb71162bd61b7c14d9016b7981": {
      "proposition_fidele": null,
@@ -1494,7 +1554,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1512,7 +1573,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "0180106fea49da768d27d75a1a9a7c929bd506f0360a5e07c171d01ad5edcd78": {
      "proposition_fidele": null,
@@ -1521,7 +1583,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1539,7 +1602,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "e06944bffdcb18458f4a7a06ddf8867e05128bc92c4969fc3979843eefa1f808": {
      "proposition_fidele": null,
@@ -1548,7 +1612,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1566,7 +1631,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "11019d2fe4176024f3d878594df3f4d105d995e2def84ac958b6c8fb4d30b4c0": {
      "proposition_fidele": null,
@@ -1575,7 +1641,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1593,7 +1660,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "72aa5cf6e1341bea1b2ac9a936da8472194ec8234b895cb809dd88fa996d749b": {
      "proposition_fidele": null,
@@ -1602,7 +1670,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1620,7 +1689,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "66d941b8cf6a8edcf3a0d9cbe28022d6a2cd2bdad2604e2ce4c8973f49e7846f": {
      "proposition_fidele": null,
@@ -1629,7 +1699,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1647,7 +1718,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "a773fc3c8f3f4b42c115dd35ef12efc1c5d34fc5ffbae916cacdda1faa20bd01": {
      "proposition_fidele": null,
@@ -1656,7 +1728,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1674,7 +1747,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "2435898d571a466b16d635f39861cb5daf6e600856f8085742e52a8e07580536": {
      "proposition_fidele": true,
@@ -1683,7 +1757,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "af8e1541a2e5d61a18a9e4fd9800f9f53406b4f05631900c7713fb08c2791a27": {
      "proposition_fidele": true,
@@ -1692,7 +1767,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "5056c5e3171eb1b035cb6d5f9e4251ad427efe62ec9b58d9791fb00770b77df6": {
      "proposition_fidele": true,
@@ -1701,7 +1777,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "0a4871e5658d2c8c4e6179b267d3823338cc4ee990c308d7dce22003108ed05f": {
      "proposition_fidele": true,
@@ -1710,7 +1787,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "328c94d8b791d9392cc78ea16d4b8bb00fec3ea921ef4f2547781a8bfa2b13b8": {
      "proposition_fidele": true,
@@ -1719,7 +1797,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -1737,25 +1816,28 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "2b9eea232e6bbcab1cbec5b5fde387f8f87af0f117d837329cefe7f16cf537d3": {
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "refus",
+     "execution": "negociation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "98db9709afb0f308888580fd8f88aa6cbfbb26166b1ce393b172d33024bcc0e6": {
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "consultation",
+     "execution": "negociation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "bd40650c73c775cf1fd113aff267c20249cffa46d4433ed461d21fea318f59d8": {
      "proposition_fidele": false,
@@ -1764,7 +1846,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "f072c36a235788b4ba999c5d9b2746f54b101110248f24582ee77d9146a05487": {
      "proposition_fidele": false,
@@ -1773,7 +1856,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "0509f97cb2464ff0c6c6d43814d8937d8a6c090ff73a9f04293322402c0a6db0": {
      "proposition_fidele": false,
@@ -1782,7 +1866,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -1800,7 +1885,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "cce5ab767e483407ddd3483d26c4a20da5c504f6bf5b626509f45561498ed526": {
      "proposition_fidele": false,
@@ -1809,7 +1895,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "2526700f37490bb3701fa8a4ca922ae5df51dc214e755de4c6dddb1d975a2bbf": {
      "proposition_fidele": true,
@@ -1818,7 +1905,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "096d8a743c759d8c629352237d21cdb6606c6366af4065ba9add64d9f85749cd": {
      "proposition_fidele": true,
@@ -1827,7 +1915,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "a20aa89cad45ec5eff66793de93375b6ff5a05088986f2f6eaacb6d47ad5a25c": {
      "proposition_fidele": false,
@@ -1836,7 +1925,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "baaba93e733bac55bd2afcd9bcbdbeb50315e8c81a504fecf5f026ffbc43b444": {
      "proposition_fidele": true,
@@ -1845,7 +1935,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     }
    }
   },
@@ -1863,7 +1954,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     },
     "420e685a607dadac46e5c388012ed7421c6ef90dcbdbc211c25342d6a71911f7": {
      "proposition_fidele": false,
@@ -1872,7 +1964,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "11bb9704c90a6dc28b313d49df4484b5306901630ea8c48ec2c9ccefaad4f112": {
      "proposition_fidele": false,
@@ -1881,7 +1974,8 @@
      "execution": "non_execute",
      "consentement": "non",
      "abandon": true,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "6ce6b1b84208708a7c64972deeb52dbe456b17f1275e4fc1dcdd0f6c913dc509": {
      "proposition_fidele": true,
@@ -1890,7 +1984,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     },
     "98804ee42c3d965074e4e83ed8bda97695c4bf27352617837d753354e88e6bd1": {
      "proposition_fidele": false,
@@ -1899,7 +1994,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "056a8d6e995e978e0b68ebe556d26fb7e92d264b1a16b2c95aa06a5d480c9ef9": {
      "proposition_fidele": true,
@@ -1908,7 +2004,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     }
    }
   },
@@ -1926,7 +2023,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "9eeaca06b30570e7d1d267d39c9804da843348491d10980d3ffad62e71e27887": {
      "proposition_fidele": null,
@@ -1935,7 +2033,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1953,7 +2052,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "4301e6b7e0200923fc9abe55c86c1d4dab47b72d88dec7644cff05140e2eb25b": {
      "proposition_fidele": null,
@@ -1962,7 +2062,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -1980,7 +2081,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "73eee48ea44f068806119026af9cd9ec54b3dc76d957820030b0487dff70f76a": {
      "proposition_fidele": null,
@@ -1989,7 +2091,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2007,7 +2110,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "f04462ac2debfcddda23b1c7a8f43e47422dd8ea13cfd08edcdfd6d69e5d1b29": {
      "proposition_fidele": null,
@@ -2016,7 +2120,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2034,7 +2139,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "97b581be8b4190c9c12ba63fa0df0b26ca1c7a9fc8719029d222d918ca20ec36": {
      "proposition_fidele": null,
@@ -2043,7 +2149,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2061,7 +2168,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "5beb4626b05b14c4698dea264844d78094970cc974da90b56e09fde6413ccb24": {
      "proposition_fidele": null,
@@ -2070,7 +2178,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2088,7 +2197,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "42bd9eac69c371e72de5a9befa8e779eaaf8a94d635f8ae31dbc0be9d83a74eb": {
      "proposition_fidele": null,
@@ -2097,7 +2207,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2115,7 +2226,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "d1ca3b47c55682015468f0d474ef180b61ba563ec08f2cd4c8865fb12199b444": {
      "proposition_fidele": null,
@@ -2124,7 +2236,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2142,7 +2255,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "442bbef7d9202391d9177215aad845bf5205ee201c0a59bce502eefe08e7e38d": {
      "proposition_fidele": null,
@@ -2151,7 +2265,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2169,7 +2284,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "95b88fd28637aaf6dee9428be975a653e14fd60455d60f78b5021bf8f8acad98": {
      "proposition_fidele": null,
@@ -2178,7 +2294,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2196,7 +2313,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "63c72411d65cefdc1d769896964c4df56087e55d150f4dbaff3eea346a9e6fb2": {
      "proposition_fidele": null,
@@ -2205,7 +2323,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2223,7 +2342,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "8ac0278e8fb21d3a59cd4199cc04db5c9e3a4dc6c38eff12d6c6b493938de788": {
      "proposition_fidele": null,
@@ -2232,7 +2352,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2250,7 +2371,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "ec104742c92b10ca83f7c47cccaa23331d1573d1a7a8836ee13ac35e09e3cf80": {
      "proposition_fidele": null,
@@ -2259,7 +2381,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2277,7 +2400,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "eed6d9374fdf89cd7be9933db4e11da02772200181428239f669d8b5a3f49cb5": {
      "proposition_fidele": null,
@@ -2286,7 +2410,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "a207fc1e68722c1417724de2a539382f0a8e6b5c73f7eb4b01b4efd2a87ca04b": {
      "proposition_fidele": null,
@@ -2295,7 +2420,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2307,13 +2433,14 @@
    "attente": "Réponse au joueur, sans parole de Corvus ni acte exécuté.",
    "preuves": {
     "a71058a35573a6773a77b99869aa3adb2d656e7d04df838d7aa6c3b559db64b6": {
-     "proposition_fidele": false,
+     "proposition_fidele": true,
      "proposition_finale_fidele": true,
      "intention_servie": true,
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "60b91a3d162a24a72db9ae3e07dffb2c4b40a35ae4bce2df0d97425e3e0a03e8": {
      "proposition_fidele": false,
@@ -2322,25 +2449,28 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "cfe859bb0202e3c0c34abb1bd184947e92dd4b227cd687a35a85f5d893a8b2ab": {
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "refus",
+     "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "9060cf75116b54a0435df347b011c5feeb64985208b2487454fac07f5d546f32": {
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "refus",
+     "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "0045e5bab95284a34469f73085cd265a0703ce6b377650b716fabe6896e41a27": {
      "proposition_fidele": false,
@@ -2349,7 +2479,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "a94aac546b5bb9dbe182186ec98514f0f84bcf324cc4865485d782d35e954789": {
      "proposition_fidele": false,
@@ -2358,7 +2489,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     }
    }
   },
@@ -2376,7 +2508,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2394,7 +2527,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "bf5e1a3e1c351f9b891289796b6cef17af8c9f2d29c804daee024d5537af81f1": {
      "proposition_fidele": true,
@@ -2403,7 +2537,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "d51ebfad8065dd0afa994c8d72345d0c4163bc2481d23f02342369ef581746d4": {
      "proposition_fidele": true,
@@ -2412,7 +2547,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "69c4500f78624a172ab1f6fd3a18258f7932d7fa3d7841127e66bb6790a8e83f": {
      "proposition_fidele": true,
@@ -2421,7 +2557,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "7278996771dd733e6bdff7c886ed7bfbd870353bded439ec093571d2841f293d": {
      "proposition_fidele": true,
@@ -2430,7 +2567,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "89b0f6b366929574f281f6e53bc19f069341a640b738a1312886b9a27af184c2": {
      "proposition_fidele": true,
@@ -2439,7 +2577,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -2457,7 +2596,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "c14e2ac905c391e0b19abc13450bad60b35d8b905f02de0e6339883e928199bf": {
      "proposition_fidele": false,
@@ -2466,7 +2606,8 @@
      "execution": "non_execute",
      "consentement": "non",
      "abandon": true,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "c895818a62638ae0e063db8759b96211c5fabf91f6ada306730ccaa4f2bf33bc": {
      "proposition_fidele": true,
@@ -2475,7 +2616,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "ad7e0ec0510b30c444c46c03d437678d4c4e64b0afd328023e3038f5573aedfc": {
      "proposition_fidele": true,
@@ -2484,7 +2626,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "c12d48c9fbded3c7308310fe1d379b26e4fa60e8432b974a959302de274a99da": {
      "proposition_fidele": true,
@@ -2493,7 +2636,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "7cc58349b4a61a5cedd41646521a49f26727dd1a80317d7ad10086c82e35e9af": {
      "proposition_fidele": false,
@@ -2502,7 +2646,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -2520,7 +2665,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "df9136e6faf176c2ffa1b07b35388faa1a560fb2741aca89c36203e3ebca6dd0": {
      "proposition_fidele": true,
@@ -2529,7 +2675,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "b4709e9f7de80f6874b136a4395b7a4ad05c4eaf9ff7695f2ed7431949f009e1": {
      "proposition_fidele": false,
@@ -2538,7 +2685,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "7d9094acd8113de47509956f3e54a6088ac618fa4f55f144e7f94d423387a152": {
      "proposition_fidele": true,
@@ -2547,7 +2695,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "c31bc5e3419b284a58f39cd6e8583ab40ccc0ef2ecc8726873994fdfa82792a6": {
      "proposition_fidele": true,
@@ -2556,7 +2705,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "e7b22f9faa83a99e005bbcff42795e75bddcce5f5118bb260f059639b8e23474": {
      "proposition_fidele": true,
@@ -2565,7 +2715,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -2583,7 +2734,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2601,7 +2753,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2619,7 +2772,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2637,7 +2791,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2655,7 +2810,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2673,7 +2829,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2691,7 +2848,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2709,7 +2867,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "5c272f3678b20c5b0be7ec64865fb314208c26f224acc09229bf5ce71849711b": {
      "proposition_fidele": false,
@@ -2718,7 +2877,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "4826aec966cd17ee50932fcaab0d2dc4aee9c97c15e1b030933a64c59b6431fc": {
      "proposition_fidele": false,
@@ -2727,7 +2887,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "d72da0e8f8799ee4aad5cf3462519451df3689509599b06bd0d72243cc00069e": {
      "proposition_fidele": false,
@@ -2736,7 +2897,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "3261cd0948d5eb85afb54512f0be3dadbaf1493ec6bde3d6bbcf826b11e2793d": {
      "proposition_fidele": true,
@@ -2745,7 +2907,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "90085aba38170005af4d5f5cb9f7c307924541ea2f7e6a581c8139dde82d1ab7": {
      "proposition_fidele": true,
@@ -2754,7 +2917,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     }
    }
   },
@@ -2772,7 +2936,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "3e95eae6c7c8f2704c841941fc2b97b7d1a4d6dc2561fc0b9de2db71d6191ace": {
      "proposition_fidele": false,
@@ -2781,7 +2946,8 @@
      "execution": "non_execute",
      "consentement": "attente",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "2c04e3c0f61a0f2bf923b91087a4016913c6cc3177e401700846338a25361e49": {
      "proposition_fidele": false,
@@ -2790,7 +2956,8 @@
      "execution": "non_execute",
      "consentement": "attente",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "0ee295867f2a13a1c6719a5bb1b050cfdb8b7950fe7648660a6f005f2da8b049": {
      "proposition_fidele": false,
@@ -2799,7 +2966,8 @@
      "execution": "non_execute",
      "consentement": "attente",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "4f7b30a87c2d6156b509ed2eb0d6837cc8ebef9333bd0bd4845189722ffb27ff": {
      "proposition_fidele": false,
@@ -2808,7 +2976,8 @@
      "execution": "non_execute",
      "consentement": "attente",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "3dceef8d6e443e9ff6701c7b1959231d7429ef4073f14bbcb3f4ac0a8dc15cc4": {
      "proposition_fidele": false,
@@ -2817,7 +2986,8 @@
      "execution": "action",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -2835,7 +3005,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "e9bf2530de7016ab4e8ee924c5d4aabbf686e94e1b56590ad7e6627c8b306971": {
      "proposition_fidele": null,
@@ -2844,7 +3015,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -2862,7 +3034,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "c46af268e39f802c600c5ac7eb96311bf1868a9a1d78bd1ccb66fd7272a8972d": {
      "proposition_fidele": false,
@@ -2871,7 +3044,8 @@
      "execution": "non_execute",
      "consentement": "attente",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "6d620a5c3307b57aef4697f861d15fe69b0b931bc060f87898ee17567e2ca743": {
      "proposition_fidele": true,
@@ -2880,7 +3054,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "9a2b4e1608db2879c6c5fa2ef0a49fc73b621c7270053995e4d462f265c11270": {
      "proposition_fidele": true,
@@ -2889,7 +3064,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "9463fbc2d1f0a8d3022079fd75a58f59c796fd6e6efda983ad62d06d607438af": {
      "proposition_fidele": true,
@@ -2898,7 +3074,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     }
    }
   },
@@ -2913,55 +3090,61 @@
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "consultation",
+     "execution": "action",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "1bd9695a0a272a7c16e2bebf70f436d5c0d94ee1d42511ac2fb2db6bcc2028db": {
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "consultation",
+     "execution": "action",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "478b1946d54225ef190e099ccd876bcb9eee701a682be8d1c1c2f751db65ab5d": {
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "consultation",
+     "execution": "action",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "a8d64ab15c3a190ad11e90f4246882c5fa49fc6d94f9f9996941a14f67ee47a3": {
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "consultation",
+     "execution": "action",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "5c6eefcb074d2ad394e4979828924445bf6d18b47620bc2682f388a3057c530f": {
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "consultation",
+     "execution": "action",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "bac93d6a84de28ae6d0cd10ec6ff6398e64f48e43b017e841b149cd7e4cfc622": {
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "consultation",
+     "execution": "action",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -2979,7 +3162,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "dcbbc206459c2f30326944bb7c45a5cb372725a9efbfe3f548f726535fbadf76": {
      "proposition_fidele": null,
@@ -2988,7 +3172,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "d5968a1f03aa4c87bc5263c8dc58ed147505d3d89b968dd1e79648debd1ef907": {
      "proposition_fidele": null,
@@ -2997,7 +3182,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3015,7 +3201,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "cb24d2e9878250d997f14344e3024dc10602fbc62d22492e8c8ca85f34a69f62": {
      "proposition_fidele": null,
@@ -3024,7 +3211,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "589c282a619c4840845ea56f18ab0dd307846f0b85d49a226a610e3755d14269": {
      "proposition_fidele": null,
@@ -3033,7 +3221,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3051,7 +3240,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "97f37ab0df612ee2d6b880b84205e82ac9339405f18855cf82c38237fcd08b3f": {
      "proposition_fidele": null,
@@ -3060,7 +3250,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "af34e3f97a76d8b691a95bffbc69afa3393ee7d97a1f49265e4d137b20435d04": {
      "proposition_fidele": null,
@@ -3069,7 +3260,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3087,7 +3279,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "d6f86865973c6613f41c044e9fae8d0eea2fb2b35dc44db33eabd470a83b8ee2": {
      "proposition_fidele": null,
@@ -3096,7 +3289,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "a0fc3d2058f02a1c1ddbfca9b94caf4dc806e15cb51d0d343a8855673f8b49cf": {
      "proposition_fidele": null,
@@ -3105,7 +3299,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3123,7 +3318,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "bdad2277dba3c0807972783da60062605344d9421b6d025af113523effc3e668": {
      "proposition_fidele": null,
@@ -3132,7 +3328,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "fb45d711bda82afcaf80fa6463ba6a046de1cc24b4bc1c6138cf8edfe13ec971": {
      "proposition_fidele": null,
@@ -3141,7 +3338,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3159,7 +3357,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "21b1f61985f09228141e8fd1ae16a11185b84b6f5a72530610e2c935f6641962": {
      "proposition_fidele": null,
@@ -3168,7 +3367,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "825c11f7e2908104ff6f3989c206707ff7429d2cf365c9e257001cb1bd7391e6": {
      "proposition_fidele": null,
@@ -3177,7 +3377,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3195,7 +3396,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "6e63e721ae9c6c79e03d544613eddd9cbced17b7f88a3b5c7c6294967c2f67f2": {
      "proposition_fidele": null,
@@ -3204,7 +3406,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "8314196c64e963dc940736e5f5299d43c1e4939abec1a4ae176223e9985e0822": {
      "proposition_fidele": null,
@@ -3213,7 +3416,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3231,7 +3435,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "bc1a77008c9b8f948047426907a20342171f23a43c868e0a7d14f9a43fe20136": {
      "proposition_fidele": null,
@@ -3240,7 +3445,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "19f8d849a581a3805a2669298fefd2519598184ee14c2cc99bdb2e13499d11d2": {
      "proposition_fidele": null,
@@ -3249,7 +3455,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3267,7 +3474,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "ec8376363777621f69e013c679b14db036c45785063428f2455b026db81349c1": {
      "proposition_fidele": null,
@@ -3276,7 +3484,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "d73eccb5c43b189e5d3d548890c1e0a44bc63ac1a0e51bdd2a2fd4a4dc5bf076": {
      "proposition_fidele": null,
@@ -3285,7 +3494,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3303,7 +3513,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "b983aac7f2d708c240a7223cd0f2b77c3c8fefb3d426e1f49c270f466e30dfc4": {
      "proposition_fidele": null,
@@ -3312,7 +3523,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "0fb4b2ee83539abf21aa92c1e46cf839f895a905eb40ed59d1a46ba0da1aec0b": {
      "proposition_fidele": null,
@@ -3321,7 +3533,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3339,7 +3552,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "23028c88c9c0fe476168397274ae26cd2d98979931b70ab2f783162f98d68b88": {
      "proposition_fidele": null,
@@ -3348,7 +3562,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "8881f5d5c1ace9adf543b8144faf96fe87c6cd852626952ea9d6b7ba8ad6eb5e": {
      "proposition_fidele": null,
@@ -3357,7 +3572,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3375,7 +3591,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "ca29a2a1da0fa20177b6739698a106d8c0f726d38562362c6ac7fb8abac3aa0f": {
      "proposition_fidele": null,
@@ -3384,7 +3601,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "074ccb0527e849ede99b900712a5f62da009a9ae600450da2a077df053ff6875": {
      "proposition_fidele": null,
@@ -3393,7 +3611,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3411,7 +3630,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "592bc25a2533dea99ce240e2781cbea14149dca7618f74237744970a41593526": {
      "proposition_fidele": null,
@@ -3420,7 +3640,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "589b446b371bb19550a58675772c8a8527f5cf7b988350459d8ec621a55d999d": {
      "proposition_fidele": null,
@@ -3429,7 +3650,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3447,7 +3669,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "1224c7337d7dbeafdb8a77c0291b27345a5be238d511f7ca8755797cdbbc84e0": {
      "proposition_fidele": false,
@@ -3456,7 +3679,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "e3133f1801f8aebad45f978bb89af25584acde8312bebba5b76b3452c3e172ef": {
      "proposition_fidele": true,
@@ -3465,7 +3689,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "b7de1ac541336103ff8ac6ca3be13e4c336a076b7709e7d994c12584910596a4": {
      "proposition_fidele": true,
@@ -3474,7 +3699,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "7f727ad7dde7b3dd67623159a3c5c4449a16d42aed91019ffbdb9fb4855ec607": {
      "proposition_fidele": false,
@@ -3483,7 +3709,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "d37b878ac8219a86c5999d5c5b77b56df9f29ffb18ced2d6ce85ce19fa5a16d2": {
      "proposition_fidele": false,
@@ -3492,7 +3719,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     }
    }
   },
@@ -3510,7 +3738,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     },
     "236981be3ab4668761d73719762c227d8d080035149ea19485658c2c345b3ea4": {
      "proposition_fidele": false,
@@ -3519,7 +3748,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "4f23e1a46d3db8785174018d622f201851bed03f80c8170c8af84a6fe65d3ab5": {
      "proposition_fidele": false,
@@ -3528,16 +3758,18 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     },
     "b1701b2db3c805859fc375d180b6236fa83527c52b7fe36a51083cb59ddf47fb": {
      "proposition_fidele": false,
      "proposition_finale_fidele": false,
      "intention_servie": false,
-     "execution": "refus",
+     "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     },
     "bf11e3231c40a87e22d350c39f342e1bd67bb446c1580274b5d8ee6b4886a231": {
      "proposition_fidele": false,
@@ -3546,7 +3778,8 @@
      "execution": "non_execute",
      "consentement": "non",
      "abandon": true,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "0bcc412123dba9b3dc580cd7ea9f7feca17219faadf579ed54f1ab013c41fd52": {
      "proposition_fidele": true,
@@ -3555,7 +3788,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     }
    }
   },
@@ -3573,7 +3807,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     },
     "ce9a1dfb8a53907dcb5161933d990b91c58a49a48d1066db310d95938ca1173e": {
      "proposition_fidele": false,
@@ -3582,7 +3817,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     },
     "29dacce396ebe7c80494f78f79f0b5ce2c066b9975b3e7c840046ec028c37d06": {
      "proposition_fidele": false,
@@ -3591,7 +3827,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     },
     "0eb8c2555059c4961a2e2068fada760b30071d7eff6d069143e36a94d7a5577c": {
      "proposition_fidele": false,
@@ -3600,7 +3837,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "2866a5dabf313cffc6c15d97b47d20c18dc68cfb7a3fbb393944fbff589da473": {
      "proposition_fidele": false,
@@ -3609,7 +3847,8 @@
      "execution": "non_execute",
      "consentement": "non",
      "abandon": true,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "0ef330717456d62ac70be629dead2e803af1e534fc0494df320647f76b315702": {
      "proposition_fidele": true,
@@ -3618,7 +3857,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     }
    }
   },
@@ -3636,7 +3876,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     },
     "ce4643fccb352bc720be30098577c8c3df60bcf3f7177c5b01b62afe5cdd0cec": {
      "proposition_fidele": false,
@@ -3645,7 +3886,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "3b9bf590a2c8f301284bdb5a93267a6a4154af3eea84a9f052266dcc90886f81": {
      "proposition_fidele": false,
@@ -3654,7 +3896,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "6662022fe294ec28445cc21fb74442bf58d28078c17fdf31cb57729a78123f6c": {
      "proposition_fidele": false,
@@ -3663,7 +3906,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     },
     "9b240c656fb0bc04604fe2952860e52c113ff6d938680de33f9a5dda1f2bdc43": {
      "proposition_fidele": true,
@@ -3672,7 +3916,8 @@
      "execution": "refus",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": true
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
     },
     "f139a78517e6feec99d8b2b38c2c4a91f4ba0102c20d5d80ffa8e813dab4ae96": {
      "proposition_fidele": false,
@@ -3681,7 +3926,8 @@
      "execution": "consultation",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
     }
    }
   },
@@ -3699,7 +3945,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "bd535040f2c3a99982966ecbcaf6210d68649ea26f3abd5fc295a72a4ae39f33": {
      "proposition_fidele": true,
@@ -3708,7 +3955,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "81cce858be0456041ac55fed9f6cea5ed43339c1a9ada0a3b60a05ef49ed3e06": {
      "proposition_fidele": true,
@@ -3717,7 +3965,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "b36d8c7968fedc1d37e47077317f69ccc8773bbf7085a3d95efb9a1528fb3c13": {
      "proposition_fidele": true,
@@ -3726,7 +3975,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "54ead451fb4593a5126a5453a68ef7d41a5a3f4eecc0118161c261390093c7c6": {
      "proposition_fidele": true,
@@ -3735,7 +3985,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "7666599ec1f470f824d31cc1413bd1811082e5bf4c97f3522653d90e6e3450c7": {
      "proposition_fidele": true,
@@ -3744,7 +3995,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -3762,7 +4014,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "810425b1602201ee91792450a9fa1ce4b5aea49f9c3fc4b18347c5cef41d98d9": {
      "proposition_fidele": true,
@@ -3771,7 +4024,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "44390e895aa599fe3e4a3bd9cc152048d25dd2e333951a5b1a6bac473b90c04f": {
      "proposition_fidele": true,
@@ -3780,7 +4034,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "89d51586ca698b4e78f4ce530931f884344f066487ef58ec37c3113e3ccdd870": {
      "proposition_fidele": true,
@@ -3789,7 +4044,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "e8f7f030470adc109aaa281bb47e870c6cfa1e5a0add0a4fb961d8b6b136a0db": {
      "proposition_fidele": true,
@@ -3798,7 +4054,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "e00c031c858b7dec34a29c8d036570d354aa6c3a6a65371252bc11e2fa09f252": {
      "proposition_fidele": true,
@@ -3807,7 +4064,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -3825,7 +4083,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "91ec8c7b831ae7ed61d124e8ac44ae1c8df07eaeaae4d5ceaa2bb170fafbc6e6": {
      "proposition_fidele": true,
@@ -3834,7 +4093,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "efc99a5767da388e12ba46235f6792676eff2bd09530d01fddf4898c15f519a6": {
      "proposition_fidele": true,
@@ -3843,7 +4103,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "ecf8ff066e8f1272f4f73cecfbdf12d59f535c2a07fe39a64eac710e3c99a9ca": {
      "proposition_fidele": true,
@@ -3852,7 +4113,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "6eae2c8af5873c1a0f304799bdb40b6f36e6e7f9d123b4a68dccfbd26ebbf74f": {
      "proposition_fidele": true,
@@ -3861,7 +4123,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "f31b910d90896e1069c6a4bd01657bc56b118d230aa0e1c3bb51647cafdad1a9": {
      "proposition_fidele": true,
@@ -3870,7 +4133,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -3888,7 +4152,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3906,7 +4171,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -3924,7 +4190,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "102106572a8bc747c0dc3b7c650e4f746deea88ae2818afdf2d58496bad3047f": {
      "proposition_fidele": true,
@@ -3933,7 +4200,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "2ef1ab38115b0a2b17bcf9900ad214c17d877dea34a63e8f2635af52edfc75e0": {
      "proposition_fidele": true,
@@ -3942,7 +4210,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "af7fe45de72db75332c74af72c680d1d07f8b6316024d934d14605e3540343bc": {
      "proposition_fidele": true,
@@ -3951,7 +4220,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "ebafd9781ac6d019034239de7e93fac669f09587a3294ab8f481cee4a3dac8b9": {
      "proposition_fidele": true,
@@ -3960,7 +4230,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "89da2187420239d9c9a52f43a34da223d5a0c712b12a7f2c2151d5c3c47f7cda": {
      "proposition_fidele": false,
@@ -3969,7 +4240,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -3987,7 +4259,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "f41c7157bd6b239c484f8cf8ba65d89c90f8aa1d797a7780d75b109a18ef34c8": {
      "proposition_fidele": true,
@@ -3996,7 +4269,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "30e2b64e151a4977f64e8f89616eea345aaf9fd595cafd9dfb1c73e01d6996df": {
      "proposition_fidele": true,
@@ -4005,7 +4279,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "32ec3fa8818ef8c64801efc346581d9f2807e1fad467a2cb7293f7a9304d5bfb": {
      "proposition_fidele": true,
@@ -4014,7 +4289,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "cfeb9d0b3994ef9b179b1ee8a07c89bcbfa9472feffaad95c6723bd9ae3382e9": {
      "proposition_fidele": true,
@@ -4023,7 +4299,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "b30b115307c6b63515deec65036d555a86c2ee5a803be13b19526d95e1c64a20": {
      "proposition_fidele": true,
@@ -4032,7 +4309,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -4050,7 +4328,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "3ee0c0b17114a7ef44264859dd2996b4fe5bc9afd2c57c3dcf0e48680e318e20": {
      "proposition_fidele": true,
@@ -4059,7 +4338,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "ac3442864bff19a41e96eed4c1fa463a8edbcd8355333d65ad3abf0c081b6c65": {
      "proposition_fidele": true,
@@ -4068,7 +4348,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "730c8e2db0134e0e1188925a6c70fb547c04ca58ccf525cdddc9c3dc1d715d30": {
      "proposition_fidele": true,
@@ -4077,7 +4358,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "7f9bd504239e86445a97e34d353f5df51d015c6ee1885bf1100ab3b443030d8e": {
      "proposition_fidele": true,
@@ -4086,7 +4368,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "93b9ca90a2611bcb80e0f92a8539dadc5075886ad5fa2dcc212b8d445207cf40": {
      "proposition_fidele": true,
@@ -4095,7 +4378,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -4113,7 +4397,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "f3141a1277f194aadd25f063e77b29eaa575fcf0ae813d6795182e2ea9891c53": {
      "proposition_fidele": false,
@@ -4122,7 +4407,8 @@
      "execution": "non_execute",
      "consentement": "non",
      "abandon": true,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
     },
     "a29b9c193dba7898a438535e8e179b4d4f9759278c0aad9e824b2cce71392b20": {
      "proposition_fidele": true,
@@ -4131,7 +4417,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "4408ef0b38579a766fdb7bf89819be0b87ecddb289932ef7b10e65ecf037f6bd": {
      "proposition_fidele": true,
@@ -4140,7 +4427,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "e44ddb03e4a7c96479af278e81476576f5a7cd2eb808c3dbc71c38a2176da6b8": {
      "proposition_fidele": true,
@@ -4149,7 +4437,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     },
     "05b4287b227c0a5489a58b1e2dd1eee5e3c0421c1f54eaacf5bc724b4951dfda": {
      "proposition_fidele": true,
@@ -4158,7 +4447,8 @@
      "execution": "parole",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
     }
    }
   },
@@ -4176,7 +4466,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "69beea56a7ad741124653ff2d112918a18fa0c603c8a1b3d37948ed08dc5fad3": {
      "proposition_fidele": null,
@@ -4185,7 +4476,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -4203,7 +4495,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "374e8b6109b5d23b64be0516652e5a5a5bc4de90900da3b45c5d1c5055151ad6": {
      "proposition_fidele": null,
@@ -4212,7 +4505,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -4230,7 +4524,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "20ab93cdd7187ebfca5b1c9e0324e7bd9c44ec10555382ee34c2ad84a34074f1": {
      "proposition_fidele": null,
@@ -4239,7 +4534,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   },
@@ -4257,7 +4553,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     },
     "c364530391b7882b479fa18c102bd4fd674854e617de0692e0c83de6c3941dc4": {
      "proposition_fidele": null,
@@ -4266,7 +4563,8 @@
      "execution": "voie_locale",
      "consentement": "non",
      "abandon": false,
-     "refus_public_fidele": false
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
     }
    }
   }
@@ -4290,5 +4588,19 @@
    },
    "limite": "Projection rechargée : perche_3 absente du porté ; aucune sauvegarde intégrale annexée."
   }
- ]
+ ],
+ "protocole": {
+  "proposition_fidele": "Jugement humain de couverture du premier candidat, distinct du verdict Luna ; dernière proposition séparée.",
+  "intention_servie": "Grille 311 : intention entière conservée à la sortie, refus publics fidèles compris. Les corrections narratives excluent le premier coup historique.",
+  "execution": "Issue attestée par le fil et le rendu publié ; pas déduite de la seule admission. voie_locale = issue locale non ventilée, pas preuve de succès.",
+  "consentement": "attente = fiche proposée, aucun geste exécuté ; non = aucune attente de confirmation attestée.",
+  "texte": "texte_vu est recopié du texte publié, pas du texte candidat.",
+  "limites": "Oracle fermé de non-régression : une charge/prose/état non reconnus exige une annotation humaine fondée sur les attentes déjà gelées. Aucun juge automatique du français inédit. Les locaux sont conservés, mais leur réussite mécanique n’est pas évaluée. Les projections ne prouvent pas une recharge intégrale."
+ },
+ "provenance": {
+  "saisies_318_sha256": "4d62afc23a430916a4c6db19ebd198623cf6b7e495b230403ccd30d14fd0a9f7",
+  "conception": "docs/conception-g1.md, §1, §2 et §5",
+  "rapport": "docs/taches/rapport-codex-318-g1-repense.md",
+  "annotations": "Jugements de sens scellés par observation ; pas une déduction depuis conforme=true. Initiales corrigées uniquement sur preuve historique ; aucun résultat A1-A6 disponible."
+ }
 }
