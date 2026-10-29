@@ -17,7 +17,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   attitudes, fin écrite en dernier même en échec :
   `C:/Users/msics/donjon/artifacts/g20-329/fin-luna.json`.
   Référence c9459ce archivée, sans rejouer ; référence attitudes indisponible.
-  Ni suite complète ni banc PNJ. Recouvrements 328/G6 : mj/rendu/narration/jeu.
+  Ni suite complète ni banc PNJ. Recouvrements 328/G6 : rendu/narration/état-dev.
   [Rapport 329](taches/rapport-codex-329-g20-signes.md).
 
 - **Lot 323 clos après relecture / G5 partiel, branche `codex-g5-perception`,

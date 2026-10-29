@@ -44,8 +44,8 @@ ces archives ni dans le cache partagé. Pas de comparaison de temps entre charge
 **Limites et intégration.** La fidélité de la sélection à toute saisie libre
 reste le travail du MJ ; cette garantie porte sur le rendu typé, pas sur toute
 prose française. Aucun bénéfice Luna revendiqué avant lecture de la passe.
-Recouvrements possibles avec 328/G6 : `donjon/mj.py` (schéma et admission des
-descriptions), `donjon/rendu.py`, `donjon/narration.py`, `jeu.py` ; conserver les
+Recouvrements constatés avec `origin/codex-g6-reperes` (328/G6) :
+`donjon/rendu.py`, `donjon/narration.py` et `docs/etat-dev.md` ; conserver les
 deux rendus et l'ordre écriture → mémorisation → sauvegarde → affichage.
 Bruts : `C:/Users/msics/donjon/artifacts/g20-329/`, notamment
 `tests-cibles.json`, `references.json`, `luna-a-jouer.txt`, `luna-branche/` et
