@@ -4,6 +4,16 @@ Branche `codex-ascendant-evolue`, **non fusionnée**, base fournie `9f261f9`,
 30 octobre 2026. **Lot terminé après synchronisation**, fusion `a5368a3`,
 branche poussée vers `origin`. Validation initiale du moteur `14ba7f2` verte.
 
+**Seconde synchronisation demandée, en cours.** Intégration exacte
+`c9b972b` (G17/326 et fin de garde par ouï-dire/337), sans rebase.
+Aucun conflit de code ; conflit documentaire résolu en conservant les deux
+côtés. Mandats perçus, obligations de protection et filtrage des preuves
+négatives de fin coexistent dans `_entrees`. Contrôle AST des mandats perçus
+et nouvelle prémisse d'inventaire du 337 conservés ensemble.
+Tests ciblés 340 et des fichiers communs en validation détachée, deux
+travailleurs réduits au plus ; aucun banc, Luna ni suite complète.
+Fin attendue : `C:/Users/msics/donjon/artifacts/ascendant-340/fusion-c9b972b/fin.json`.
+
 **Synchronisation terminée.** `origin/integration 64130fa`
 (336, G5 et G6) fusionnée sans rebase par `a5368a3`, à deux parents
 (`1dbd57e`, `64130fa`). Conflit de `planification.py` résolu

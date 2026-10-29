@@ -212,7 +212,7 @@ class ParoleTests(unittest.TestCase):
                 m.objets[cible].update(proprietaire="aubin", lieu="aubin")
                 saisie = f"je paie Aubin trois pièces pour une part de {m.objets[cible]['nom']}"
                 rendu = cible == "planches"
-                recit = "Ta demande est entendue."
+                recit = "Tu m'as payé 3 pièces."
                 controle = ligne("mecanique", sources=["conversation_validee", "comptes"])
                 controle["comptes"] = [compte("joueur", "aubin", montant=3, etat="rendu"),
                     compte("aubin", "joueur", id_piece(m, cible) if rendu else cible,

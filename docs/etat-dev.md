@@ -41,6 +41,111 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `tests.json`, `reference-tests.json`, `analyse-cloture.json` ;
   **fin-cloture.json ok=true avec réserve**, fin brute rouge et erreur du
   premier lanceur conservées. Branche poussée, aucun calcul actif.
+  **Seconde synchronisation en cours** : intégration exacte `c9b972b`
+  (G17/326 et fin de garde par ouï-dire/337), fusion sans rebase. Aucun
+  conflit de code ; documentation des deux côtés conservée. Lectures des
+  mandats, protections et preuves négatives de fin maintenues dans `_entrees` ;
+  contrôle AST et prémisse d'inventaire du 337 conservés ensemble.
+  Validation ciblée 340 et fichiers communs, deux travailleurs réduits
+  au plus, aucun banc, Luna ni suite complète. Fin attendue
+  `C:/Users/msics/donjon/artifacts/ascendant-340/fusion-c9b972b/fin.json`.
+- **Lot 337 terminé avec deux échecs antérieurs réservés**, branche
+  `codex-fin-garde-ouidire`, fusionnée. `origin/integration ad0e5a8`
+  fusionnée sans rebase, deux parents `8ddef70`. Preuve négative de fin du
+  337 et dépendances des offres `offrir` du 336 conservées ; ajouts des deux
+  côtés dans `planification.py`, `tests/support.py`, documentation conservés.
+  Nouvelles communes de possession/droits/fin datés, identité distincte
+  des accusations, publication différée ; aucune permission réelle relue.
+  **219 : reprise légitime certifiée**, crue/7, Gorm brasero → rejoindre
+  Aubin → brasero, t=69945/70200/70426. Rejeu unique après fusion : mêmes
+  chronique/récit/souvenirs, **68 captures** rechargées monde/rendu/scène
+  identiques, 57,036 s. Contrat de contact réellement clos, consommé par
+  `engager Aubin`, plan déjà prévu et admissible. La sonde omettait la moitié
+  `rejoindre` ; preuve symétrique, **moteur inchangé**. Neuf clôtures rejouées
+  sur captures identiques ; **1 brut → 0 suspect**, classe commune
+  `rendez_vous_intermediaire_accompli`. Bruts intacts ; témoin rouge avant
+  correction, deux voies et négatifs testés.
+  **392 tests consolidés / 32 fichiers : 390 verts, deux échecs antérieurs,
+  zéro nouveau**, aucune erreur ni saut. Premier passage : sept échecs,
+  501,239 s. Référence exacte ad0e5a8, sept fichiers : **94 tests, deux
+  échecs**, 173,312 s. Réserves conservées : appel sur agenda attend échoppe
+  (chambre de la cloche sur référence, beffroi ici ; pas de preuve d'identité
+  des trajectoires), et `_retentir` sans `emission` dans le rejeu de l'audit.
+  Cinq prémisses d'inventaires initiaux déjà partagés : **288 assertions
+  AST inchangées**, **53/53 tests** de ces fichiers repris, 229,328 s ;
+  autres acquis réutilisés après contrôle des empreintes. Moteur inchangé.
+  Initial : 196/196 tests distincts, vingt nuits 4 h, aucun plantage/usurpation,
+  dix-neuf sans suspect et crue/7 certifiée ensuite. Aucun autre banc rejoué.
+  Constats 148 → 522, avertissements redits 8 → 27, bascules 0 → 2 : limites
+  conservées, aucun gain général ; aucune fin de garde naturelle au banc.
+  PNJ seulement, joueur sans relations subjectives. Ni Luna ni suite complète.
+  Deux travailleurs réduits au plus ; **aucun calcul actif**. Premier échec
+  de lancement conservé, sans test exécuté. Bruts
+  `C:/Users/msics/donjon/artifacts/garde-337/` : `rejeu-219/fin.json ok=true`,
+  `fusion-validation/classification.json`, `tests-consolides-fusion.json`,
+  `reprise-fixtures-1/fin.json ok=true`, `analyse-cloture-fusion.json`, fin
+  `fin-cloture-fusion.json`. Fins brutes en échec conservées. Source finale
+  `cb26a29` vérifiée, branche poussée. Recouvrements 335/336 : `agendas.py`,
+  `planification.py`, `tests/support.py`, documentation.
+  [Rapport 337](taches/rapport-codex-337-fin-garde-ouidire.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Les propriétés qui terminent une garde (porteur, droits datés, fin d'objet) passent par la voie commune des nouvelles, identité distincte d'une accusation de portage ; le gardien qui croit la nouvelle termine garder comme sur constat. Conflit agendas.py avec 336 résolu par l'agent ; suspect 219 crue/7 certifié reprise légitime (sonde corrigée, moteur inchangé). 390/392 tests verts, deux échecs préexistants sur l'intégration.
+
+- **Reprise 326 / G17 terminée, fusionnée**, branche `codex-g17-comptes` :
+  fusions sans rebase `aba1e4b` (`9f261f9`), `b33d22a` (`ad0e5a8`, 323/336),
+  **`f324cbe` (`64130fa`, 328/G6)** ; conflits documentaires seuls, deux côtés
+  conservés. Suite d'essai `bde5993` : **45 incidents attribués**, neuf dus
+  au rapport optionnel de G17, 29 attentes périmées portées au texte et au
+  registre moteur, sept préexistants prouvés sur l'intégration seule.
+  Inspection et scellement acceptent l'absence de rapport pour les admissions
+  non vocales ; premier correctif incomplet au scellement, six incidents
+  restants corrigés par **`700764d`**, oracles d'état/sauvegarde/panne conservés.
+  Offres stockées et missions convergent vers la même admission G15, termes,
+  paiements et échéances typés ; garde du nom inconnu conservé sur le libre.
+  Référence `9f261f9` : **29 tests, deux échecs/cinq erreurs, 346,410 s** ;
+  aucun autre incident. **156/156 tests verts** après G6 et correctif final,
+  12 fichiers, 185,283 s. Consolidation sans cumul : **403 tests / 32 fichiers,
+  deux échecs et cinq erreurs**, uniquement les sept préexistants du 339 :
+  sonde `_retentir` sans `emission` (rejeu/audit), refus d'huile après 8 h.
+  Une classe de rejeu bloquée ; suite entière non déclarée verte.
+  Deux travailleurs réduits au plus, long calcul détaché ; 358 tests initiaux
+  conservés (605,872 s), résultats non concernés réutilisés, référence non
+  relancée. Ni suite complète, ni Luna ou banc PNJ supplémentaire.
+  **Aucun calcul actif** ; branche poussée. Bruts
+  `C:/Users/msics/donjon/artifacts/g17-326/reprise/64130fa/`,
+  `tests-valides-final.json`, `attribution-finale.json`, `fin-cloture.json`.
+  [Matrice des 45 incidents](taches/attribution-codex-326-g17-comptes-parles.md),
+  [rapport 326](taches/rapport-codex-326-g17-comptes-parles.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. G17 : les mots des répliques gardent rôles, termes et règlements de l'issue. Suite d'essai bde5993 (2 921 tests, 25 échecs, 20 erreurs) attribuée : 9 défauts corrigés, 29 attentes portées avec preuve, 7 préexistants laissés au lot 339 ; intégration (jusqu'à G6) fusionnée dans la branche, 403 tests consolidés sans nouvel incident.
+
+- **Livraison initiale 326 / G17 terminée avant reprise**, branche
+  `codex-g17-comptes`, non fusionnée ; base `integration eb15b5e`,
+  résultats historiques sur `cbc5af3` : comptes parlés
+  formulés depuis les résolutions typées et admis dans G15 avant publication,
+  rejoués avec la transaction ; mots, ordre et multiplicité scellés.
+  Autres opérations et propos libres résiduels conservés, contrôles des voies
+  non portées maintenus. Raccord commun sans fusion de segments prouvés.
+  **203 tests distincts / 18 fichiers verts**, zéro échec, erreur ou saut ;
+  état, mots et rendu rechargés, archives G15 86/87 conservées.
+  **Luna une passe `comptes` / `soir-appel`**, référence historique `cdaf371`
+  entièrement en cache, jamais relancée : six tours MJ, **26 → 16 appels**,
+  rédaction **5 → 2**, audits narratifs **7 → 2**, révisions **2 → 0**,
+  obstacles **3 → 0**, refus de validation **1 → 0**, aucun repli ni erreur
+  technique/recharge. Quatre tours comptables : interprétation et fidélité
+  seulement, **zéro réécriture, audit ou repli comptable**. Gorm/Aubin rendent
+  deux pièces, Brune refuse et reste débitrice. Achat de planche refusé par
+  le moteur : termes conservés, aucun paiement ; achat réussi couvert sans
+  réseau, pas par cette passe. Rejeu des 16 réponses sans réseau : **14 sorties
+  et projections identiques** au fil live ; bourses, comptes, citations et
+  états complets du rejeu identiques après recharge. Aucun modèle relancé.
+  Calcul détaché réduit **80,974 s**, `fin-luna.json` **ok=true, code 0**.
+  Aucun gain général ni de vitesse revendiqué sur la référence historique.
+  Pas de suite complète ni de banc PNJ ; **aucun calcul actif**.
+  Bruts `C:/Users/msics/donjon/artifacts/g17-326/`, `analyse-luna.json` et
+  `fin-cloture.json`. Branche poussée vers origin, sans fusion.
+  Recouvrement G19/327 : `narration.consigner` et `raccorder_emissions`,
+  aucune règle de rappels modifiée.
+  [Rapport 326](taches/rapport-codex-326-g17-comptes-parles.md).
+
 
 - **Lot 328 / G6, synchronisation terminée**, branche `codex-g6-reperes`,
   fusionnée dans integration : fusion sans rebase de `integration 49608db`

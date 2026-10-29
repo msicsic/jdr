@@ -152,6 +152,8 @@ class ChaineTests(unittest.TestCase):
         m, avant = self.abandon_paye()
         odile = bourse(m, 'odile')
         total = m.joueur['or'] + sum(m.data['finances_pnj'].values())
+        from tests.support import possessions_deja_confiees
+        possessions_deja_confiees(m)  # La fenêtre de deux minutes porte sur achat puis solde.
         m, lignes = vivre(m, 2)
         m = recharger(m)
         # Parcours naturel 228 : une pièce réellement payée à Odile pour le

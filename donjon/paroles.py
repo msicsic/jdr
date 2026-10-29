@@ -1400,6 +1400,7 @@ def _se_nommer(travail, auditeur, nom_dit, faits):
     }[issue])
 
 
+
 def _qui_est_la(travail, auditeur, faits):
     """Corvus demande qui parle : le personnage se nomme, sauf s'il se méfie de lui."""
     from .relations import mefiance, percue
@@ -1467,6 +1468,12 @@ def _demander(travail, auditeur, objet, faits, prix=0):
                    f"{nom} accepte de t'en donner une part : " + servie),
         "impossible": f"{nom} ne voit pas comment te donner {o}.",
     }[issue])
+    if vend or prix:
+        return {"etat": issue, "prix": vend or 0, "objet": objet,
+            **({"offre": {"demande": {"type": "part" if part else "objet", "objet": objet},
+                          "contrepartie": {"type": "pieces", "montant": prix}}}
+               if prix and issue not in ("vendu", "remis", "rendu", "promis") else {})}
+    return None
 
 
 def _part_vendue(travail, auditeur, lot, nom, il, prix):
@@ -1508,7 +1515,7 @@ def _reclamer(travail, auditeur, objet, faits, comptes):
         if "sans_le_sou" in issues and not lignes:
             faits.append(f"{nom} n'a pas de quoi te rendre {quantite(montant, 'pièce', determinant='defini')} "
                          f"qu'{il} te doit.")
-        return
+        return {"reglements": issues}
     o = travail.objets.get(objet)
     if o is None or o["type"] == "personnage" or proprietaire(travail, o) != "joueur" \
             or not porte_par(travail, objet, auditeur):
@@ -1565,6 +1572,7 @@ def _demander_passage(travail, auditeur, faits, prix=0):
         "refus": f"{nom} n'est pas convaincu{e} et reste où {il} est.",
         "inutile": f"{nom} ne te barre pas le passage.",
     }[issue])
+    return {"etat": issue} if prix else None
 
 
 # Ce qu'un contenu demande à qui l'entend : il appelle une réponse, comme toute question.
@@ -1755,6 +1763,7 @@ def preparer_parole(monde, p, revision=None):
     autorisations = []
     for auditeur in [*dest, *repondent]:
         debut_reponse = len(faits)
+        resolutions = []
         capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
         transmis = [x for x in (_typer(travail, c, auditeur) for c in contenu) if x]
         for c in transmis[:capacite]:
@@ -1764,6 +1773,7 @@ def preparer_parole(monde, p, revision=None):
             noms_avant = {id: {k: copy.deepcopy(o[k]) for k in
                 ('nom', 'type', 'genre', 'pluriel', 'nom_propre', 'elision', 'aliases') if k in o}
                 for id, o in travail.objets.items()}
+            resolution = None
             if c["type"] == "rumeur":
                 evenement = c["evenement"]
                 debat = next(d for d in debats if d[0]["evenement"] == evenement)
@@ -1772,11 +1782,12 @@ def preparer_parole(monde, p, revision=None):
                     faits.append(f"{_personne(travail, auditeur)[0]} " +
                                  ("retient ton avis sur la menace de l'eau." if issue_avis == "crue" else "doute de ton avis sur la menace de l'eau."))
             elif c["type"] == "proposition":
-                offres.extend(_proposer(travail, auditeur, c, faits))
+                nouvelles_offres, resolution = _proposer(travail, auditeur, c, faits)
+                offres.extend(nouvelles_offres)
             elif c["type"] == "affirmation":
                 _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], faits)
             elif c["type"] == "passage":
-                _demander_passage(travail, auditeur, faits, c["prix"])
+                resolution = _demander_passage(travail, auditeur, faits, c["prix"])
             elif c["type"] == "aveu":
                 _avouer(travail, auditeur, c, faits)
             elif c["type"] == "nom":
@@ -1784,7 +1795,7 @@ def preparer_parole(monde, p, revision=None):
             elif c["type"] == "qui":
                 _qui_est_la(travail, auditeur, faits)
             elif c["type"] == "reclamer":
-                _reclamer(travail, auditeur, c["objet"], faits, comptes)
+                resolution = _reclamer(travail, auditeur, c["objet"], faits, comptes)
             elif c["type"] == "localisation":
                 from .echanges import enqueter, reponse_localisation
                 issue_lieu, dit = enqueter(travail, "joueur", auditeur, sujet=c["sujet"])
@@ -1792,8 +1803,14 @@ def preparer_parole(monde, p, revision=None):
             elif c["type"] == "ressource":
                 _enqueter(travail, auditeur, c["besoin"], faits)
             else:
-                _demander(travail, auditeur, c["sujet"], faits, c["prix"])
+                resolution = _demander(travail, auditeur, c["sujet"], faits, c["prix"])
             apres_comptes = (comptes, travail.data["_comptes_echange"], livraisons_dues(travail))
+            from .comptes_parles import difference
+            cs = difference(avant_comptes, apres_comptes)
+            if resolution or cs or len(offres) != debut_offres:
+                resolutions.append({"contenu": copy.deepcopy(c), "resolution": resolution or {},
+                    "comptes": cs, "offres": copy.deepcopy(offres[debut_offres:]),
+                    "faits": faits[debut_faits:]})
             # Provenance des textes, liée aux effets typés, jamais à leurs mots
             # ni au type d'opération. Les autres contenus de la parole restent.
             if avant_comptes != apres_comptes or len(offres) != debut_offres:
@@ -1821,8 +1838,10 @@ def preparer_parole(monde, p, revision=None):
         if transmis[capacite:]:
             faits.append(f"{_personne(travail, auditeur)[0]} ne retient pas tout : une partie de ce que tu as dit se perd.")
         autorisations.append({"statut": "a_formuler", "locuteur": auditeur,
-            "acte": "reponse_corvus", "a": ["joueur"], "parametres": {"contenu": copy.deepcopy(transmis[:capacite])},
-            "modalite": "constat", "evenement": {"type": "parole_joueur", "faits": faits[debut_reponse:]}})
+            "acte": "reponse_corvus", "a": ["joueur"], "parametres": {"contenu": copy.deepcopy(transmis[:capacite]),
+                "contenu_libre": any(isinstance(c, dict) and c.get("type") == "propos" for c in contenu[:capacite])},
+            "modalite": "constat", "evenement": {"type": "parole_joueur", "faits": faits[debut_reponse:],
+                **({"resolutions_comptables": resolutions} if resolutions else {})}})
         rejoint(travail, auditeur, "joueur")  # Il attendait que Corvus le rejoigne : ils se parlent.
         memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "a": list(dest), "texte": replique[:240],
                                       "cites": [], **({} if identifie(travail, auditeur, "joueur")
@@ -1845,6 +1864,9 @@ def preparer_parole(monde, p, revision=None):
     travail.data["revision"] += 1
     comptes.extend(travail.data.pop("_comptes_echange"))
     comptes.extend(c for c in livraisons_dues(travail) if c not in livraisons_avant and c not in comptes)
+    from .comptes_parles import admettre
+    admettre(travail, autorisations, {"comptes": comptes, "offres": offres,
+        "parts_comptables": parts_comptables, "biens_comptables": biens_comptables})
     travail.verifier()
     from .voix import reel
     presents = {reel(monde, d) for d in interlocuteurs(monde)}
@@ -1896,7 +1918,7 @@ def _proposer(travail, auditeur, c, faits):
               "persuasion": "tu ne l'as pas convaincu"}
     if bilan["cause"]:
         faits.append(nom + " refuse l'échange : " + causes[bilan["cause"]] + ".")
-        return []
+        return [], {"etat": "refuse", "cause": bilan["cause"], "offre": copy.deepcopy(c)}
     def terme(t):
         if t["type"] == "rien":
             return "sans contrepartie"
@@ -1913,4 +1935,4 @@ def _proposer(travail, auditeur, c, faits):
                  "Les biens et pièces convenus sont remis ; les tâches convenues sont enregistrées comme engagements.")
     faits.extend(agendas.promesses_visibles(travail))
     from .propositions import offre
-    return [offre("joueur", auditeur, c["demande"], c["contrepartie"])]
+    return [offre("joueur", auditeur, c["demande"], c["contrepartie"])], {"etat": "accepte"}

@@ -246,6 +246,8 @@ class DefenseTests(unittest.TestCase):
             orienter(m, "marchand", "brune")
             m.objets["marchand"]["profil"]["valeurs"]["douceur"] = 100
             percevoir_tous(m)
+            from tests.support import possessions_deja_confiees
+            possessions_deja_confiees(m)  # Les jets préparés portent sur l'intervention.
             with patch.object(type(m), "d20", side_effect=[20, 1]):
                 combat.frapper(m, "brune", cible)
             with patch.object(type(m), "d20", side_effect=cycle([20, 1])):

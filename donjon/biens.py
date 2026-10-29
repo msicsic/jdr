@@ -338,7 +338,7 @@ def capacites_crues(monde, id, objet):
     from .esprits import croyance, lire
     from .force import COUPE
     o = monde.objets[objet]
-    if croyance(monde, id, objet, "fin"):
+    if (croyance(monde, id, objet, "fin") or {}).get("valeur"):
         return set()
     usages = set(o.get("usages", ()))
     profil = monde.objets.get(id, {}).get("profil") or {}

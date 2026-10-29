@@ -1,5 +1,5 @@
 """Une seule adresse, de la saisie à la sauvegarde ; cas du banc et autre scénario."""
-from donjon.emissions import joueur as emissions_joueur
+from donjon.emissions import joueur as emissions_joueur, pnj as emissions_pnj
 import copy
 import unittest
 
@@ -173,7 +173,8 @@ class AudienceTests(unittest.TestCase):
         for saisie, replique, contenu, pieces in cas:
             with self.subTest(saisie=saisie):
                 self.assertEqual(prevue(m, saisie)["personnage"], "aubin")
-                recit = "Aubin a entendu ta demande."
+                recit = ("Je te rends 2 pièces." if contenu[0] == 'reclamer' else
+                         "Je ne vois pas comment exécuter cette demande.")
                 controle = ligne("mecanique", sources=["conversation_validee", "comptes"])
                 if contenu[0] == "reclamer":
                     controle["comptes"] = [compte("aubin", "joueur", montant=2, etat="rendu")]
@@ -184,10 +185,9 @@ class AudienceTests(unittest.TestCase):
                 self.assertIn("Tu dis à Aubin", sortie)
                 self.assertEqual(m.joueur["or"], pieces)
                 self.assertEqual(emissions_joueur(m)[-1]["auditeurs"], ["aubin"])
-                self.assertEqual(sum(f == "repondre_au_joueur" for f, _ in appels), 2)
+                self.assertEqual(sum(f == "repondre_au_joueur" for f, _ in appels), 1)
                 if contenu[0] == "demande":
-                    faits = next(e["faits"]["conversation_validee"]["faits"] for f, e in appels
-                                 if f == "repondre_au_joueur" and "conversation_validee" in e["faits"])
+                    faits = emissions_pnj(m)[-1]['evenement']['faits']
                     self.assertIn("ne voit pas comment", " ".join(faits))
                     self.assertEqual(m.objets["planches"]["charges"], 2)
                     self.assertNotIn("planches_1", m.objets)
@@ -226,8 +226,8 @@ class AudienceTests(unittest.TestCase):
                        ("reclamer", "", "", ""), personnage="aubin"),
                 dialogue("Aubin a entendu ta demande.")], [rapport(controle)])
             self.assertEqual(m.joueur["or"], or_avant + 2)
-            self.assertIn("Aubin a entendu ta demande.", sortie)
-            self.assertEqual(sum(f == "repondre_au_joueur" for f, _ in appels), 2)
+            self.assertIn("Je te rends 2 pièces.", sortie)
+            self.assertEqual(sum(f == "repondre_au_joueur" for f, _ in appels), 1)
             return m
 
         def auberge():
@@ -254,11 +254,12 @@ class AudienceTests(unittest.TestCase):
                     parole(saisie, ("demande", lot, "", str(prix)), personnage=vendeur),
                     dialogue("Ta demande a été entendue.")],
                     [rapport(ligne("mecanique", sources=["conversation_validee", "comptes"]))])
-                self.assertEqual(sum(f == "repondre_au_joueur" for f, _ in appels), 2)
+                self.assertEqual(sum(f == "repondre_au_joueur" for f, _ in appels), 1)
                 self.assertEqual(emissions_joueur(m)[-1]["auditeurs"], [vendeur])
-                self.assertIn(f"Tu paies {prix} pièce", sortie)
-                self.assertIn("qui doit encore te remettre une part", sortie)
-                self.assertIn("Ta demande a été entendue.", str(m.data["conversation"]))
+                self.assertIn(f"Tu m'as payé {prix} pièce", sortie)
+                self.assertIn("Je dois encore te remettre une part", sortie)
+                self.assertIn(emissions_pnj(m)[-1]['texte'], str(m.data['conversation']))
+                self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
                 piece = lot + "_1"
                 condition = {"objet": piece, "remettre": "joueur"}
                 self.assertEqual(m.joueur["or"], or_avant - prix)
