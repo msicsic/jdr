@@ -2,7 +2,8 @@
 
 29 octobre 2026, PC fixe. Branche `codex-demande-sans-renaissance`, base
 intégration **`f93ba93`**, brief présent, **non fusionnée**.
-**Second cas du préalable : aucun correctif moteur.** Le refus de 117170
+**Lot clos, diagnostic seul, sans correctif moteur**, selon la décision
+de clôture du 29 octobre. Second cas du préalable : le refus de 117170
 cesse de tenir parce qu’Aubin apprend une entrée pertinente après ce refus.
 La seule perception renouvelée d’Ilse ne décrit donc pas toute la séquence.
 
@@ -22,6 +23,11 @@ Le premier constat dans la trace intervient **14,2 secondes après** le refus,
 bien que les deux portent la même minute entière, 195. Le fait `ouvert` de
 `moyens_crus` signifie ici **absence de verrouillage cru** : il ne dépend
 pas à lui seul de l’attribut `ouverte`.
+
+**Retour requalifié.** La clôture `dementie` à **117503**, suivie de la
+reprise à **117518**, constitue une interruption de **1,5 seconde**, sans
+défaut établi. Cette reprise est admissible selon les croyances d’Aubin :
+la réserve a été vue déverrouillée à 117312, après le refus de 117170.
 
 **Preuve causale.** Dans chacune des deux captures rechargées, remplacer
 uniquement la croyance `reserve.verrouillee` par celle d’avant le refus
@@ -47,6 +53,6 @@ inchangé ; le retour est expliqué selon le juge des croyances existant.
 Bruts : `C:/Users/msics/donjon/artifacts/renaissance-286/` : `etablir.py`,
 `preuve.json`, quatre captures et leurs vues, `fin-etablissement.json`.
 
-**QUESTION : le déverrouillage étant appris à 117312 après le refus de
-117170, faut-il clore le lot 286 sans correctif et requalifier le retour
-117518 comme reprise admissible selon les croyances d’Aubin ?**
+**LOT TERMINÉ : retour 117518 requalifié comme reprise admissible selon les
+croyances d’Aubin ; interruption de 1,5 s après la clôture `dementie` de
+117503, sans défaut établi. Aucun correctif ni nouveau calcul à la clôture.**

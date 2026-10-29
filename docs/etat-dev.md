@@ -3,8 +3,8 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-demande-sans-renaissance`, lot 286, non fusionnée**,
-  base intégration `f93ba93` : **préalable, second cas établi ; question
-  soumise, aucun correctif moteur**. À 117170, Aubin croit encore la réserve
+  base intégration `f93ba93` : **lot clos, diagnostic seul, sans correctif
+  moteur**, décision du 29 octobre. À 117170, Aubin croit encore la réserve
   verrouillée (`dit:marchand`, minute 4), avant comme après le refus
   `necessaire`. À 117312, son inspection la découvre non verrouillée et
   ouverte : première entrée `[ouvert, reserve, null, null]`, 14,2 s après
@@ -18,8 +18,11 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   les artefacts du dépôt principal. Aucun calcul actif, aucun code ou test
   modifié, ni Luna, suite complète ou banc rapide : arrêt conditionnel
   demandé par le brief. Pas de second cas ni preuve de découpage ; aucune
-  garantie générale nouvelle. **QUESTION : clore sans correctif en
-  requalifiant le retour 117518 comme reprise admissible ?**
+  garantie générale nouvelle. **Retour 117518 requalifié comme reprise
+  admissible selon les croyances d’Aubin** : réserve vue déverrouillée à
+  117312, après le refus de 117170. Clôture `dementie` à 117503 puis reprise
+  à 117518 : **interruption de 1,5 s, sans défaut établi**. Aucun nouveau
+  calcul à la clôture.
   [Rapport 286](taches/rapport-codex-286-demande-sans-renaissance.md).
 
 - **Branche `codex-allumer-pour-soi`, fusionnée**, lot **277**.
