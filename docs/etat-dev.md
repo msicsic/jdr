@@ -3,21 +3,53 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-um-outils`, lot 300 / U-M outils, non fusionnée**,
-  base intégration `2d893e0` : choix explicite d'outil, clé, combustible
+  base `2d893e0`, reprise par fusion sans rebase d'`origin/integration`
+  `f1cb8fd` (U-T 299 inclus) : choix explicite d'outil, clé, combustible
   ou destination sur carte et besace, par références publiques U-D exactes.
   Ressources portées ou vues à portée, sans capacité, précondition, contenu
   fermé ou bien privé d'un PNJ. Même plan et moteur que le texte ; commande
   locale « mettre dans » ajoutée vers l'opération de dépôt existante.
   Refus si ressource périmée, sans substitution ; propriété inconnue laissée
-  à son admission distincte. **69 tests distincts / six fichiers verts**,
+  à son admission distincte. Catalogue commun `gestes_publics.OBJETS/PORTES`
+  enrichi de formulaires outil/destination, transmis par SSE et lu par la
+  carte : aucune liste parallèle de verbes dans la page. Le terminal garde
+  ses premiers gestes simples ; choix des ressources réservé à U-T outils.
+  Reprise **90 tests / huit fichiers verts**, dont les 28 TUI inchangés ;
+  outils, inventaire, terminal 299/périmés, web/Node, U-D et diagonales.
   Node réel et monde/scène/fiche/carte après recharge, aucun appel modèle.
   Dix parcours mesurés : **10 saisies évitées, 3 clics** à portée.
   **Limite : destination pleine non garantie**, aucune capacité maximale
   définie par le moteur actuel. Ni MJ, `jeu.py`, `tui.py`, mécanique PNJ,
   Luna, banc ni suite complète. Bruts dans
-  `C:/Users/msics/donjon/artifacts/um-outils-300/`, `fin-cloture.json`.
+  `C:/Users/msics/donjon/artifacts/um-outils-300/`, `fin-cloture.json`
+  puis `fin-reprise-integration.json` pour la reprise sur 299.
   Aucun calcul actif ; branche poussée vers origin.
   [Rapport 300](taches/rapport-codex-300-um-outils.md).
+
+- **Branche `codex-ut-premier-geste`, lot 299 / U-T, fusionnée**, base
+  initiale `83a2e89`, reprise par fusion sans rebase d'`origin/integration`
+  `2d893e0` (298 inclus) : console et TUI proposent les premiers gestes de
+  carte en liste numérotée (onglet Gestes / F7 en TUI). Le choix fige le
+  descripteur public U-D jusqu'au moteur, sans analyse de texte ni modèle ;
+  homonymes distingués, numéros inconnus/multiples refusés localement,
+  cible périmée refusée sans report sur une autre. Catalogue Python commun
+  envoyé comme donnée de l'état public SSE ; `gestes` et `gestesPorte`
+  le lisent dans `page.html`. Adaptation du HTML supprimée : serveur testé
+  sur les octets exacts du fichier. Inventaire 298 et clics muraux conservés.
+  **95 tests / huit fichiers verts**, dont les **28 TUI existants
+  inchangés**. Quatorze couples objet/porte : parité des descripteurs,
+  plans/journaux, textes et monde/scène/carte après recharge ; matrice
+  inconnu/ambigu/hors-vue console et TUI pour chaque geste, deux suppressions
+  réelles et ouvertures/fermetures à portée. Trois touches par choix mesuré,
+  quatre avec F7, contre 17–27 pour les commandes aux mêmes références ;
+  coût de soumission jusqu'au résultat/refus, déplacements exclus.
+  Zéro appel modèle ; ni Luna, ni banc PNJ, ni suite complète. Numéros
+  propres à chaque vue ; approche automatique réservée au clic web.
+  Reprise ciblée : terminal, web/Node, U-D, inventaire 298 et dépendances
+  directes diagonales/matière ; aucun rejeu de référence.
+  Bruts : `C:/Users/msics/donjon/artifacts/ut-299/`, `fin-reprise-integration.json`.
+  Aucun calcul actif. [Rapport 299](taches/rapport-codex-299-ut-premier-geste.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Console et TUI (onglet Gestes, F7) listent les gestes publics de la scène, numérotés ; le numéro envoie le descripteur U-D de la liste affichée à executer_local, partagé avec le web, sans analyse de texte ni modèle. Catalogue commun donjon/gestes_publics.py, lu aussi par page.html (transmis comme donnée par SSE, sans réécriture du HTML). Homonymes distingués, numéro inconnu ou multiple refusé localement, référence périmée refusée par le moteur. 95 tests ciblés verts, 28 tests TUI inchangés.
 
 - **Branche `codex-um-inventaire`, lot 298 / U-M inventaire, fusionnée**,
   base intégration `83a2e89` : panneau de besace, poser/remettre, manger une

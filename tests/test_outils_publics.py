@@ -9,6 +9,7 @@ import unittest
 from donjon.commandes import DescripteurPublic, analyser, proposition_descripteur
 from donjon.defi import nouveau_defi
 from donjon.geometrie import placer
+from donjon.gestes_publics import catalogue_public, correspond, offres
 from donjon.monde import ErreurMonde, Monde
 from donjon.moteur import Moteur
 from donjon.spatial import memoriser
@@ -63,10 +64,11 @@ def situation(geste, variante=0):
     return m, cible, autre
 
 
-def page(m):
+def page(m, etat_public=None):
     racine = Path(__file__).resolve().parents[1]
     p = subprocess.run(["node", str(racine / "tests/clic_page.js"), str(racine / "donjon/web/page.html")],
-                       input=json.dumps(etat(m)), capture_output=True, text=True, encoding="utf-8", check=True)
+                       input=json.dumps(etat(m) if etat_public is None else etat_public),
+                       capture_output=True, text=True, encoding="utf-8", check=True)
     return json.loads(p.stdout)
 
 
@@ -81,6 +83,52 @@ def choisir(m, geste, cible, ressource="outil_deux"):
 @unittest.skipUnless(shutil.which("node"), "node absent")
 class OutilsPublicsTests(unittest.TestCase):
     boucle = support.DescripteurPublicTests.boucle
+
+    def test_catalogue_commun_sse_pilote_toutes_les_offres_de_carte(self):
+        for geste in ("deverrouiller", "crocheter", "frapper", "alimenter", "mettre"):
+            for variante in (0, 1):
+                with self.subTest(geste=geste, variante=variante):
+                    m, _, _ = situation(geste, variante)
+                    e = etat(m)
+                    self.assertEqual(e["catalogue_gestes"], catalogue_public())
+                    attendus = {}
+                    for niveau in e["scene"]["niveaux"]:
+                        if niveau["niveau"] != e["scene"]["joueur"]["niveau"]:
+                            continue
+                        cibles = [(o, False) for o in niveau["objets"]]
+                        cibles += [(s["porte"], True) for s in niveau["sorties"] if s.get("porte")]
+                        for o, porte in cibles:
+                            for action, libelle, formulaire in offres(o, porte, parametrees=True):
+                                for r in e["ressources"]:
+                                    if r["id"] == o["id"] or not correspond(r, formulaire["ressources"]):
+                                        continue
+                                    d = {"geste": action, "cible": o["id"],
+                                         "parametres": {formulaire["champ"]: r["id"]}}
+                                    attendus[json.dumps(d, sort_keys=True)] = libelle
+                    obtenus = {json.dumps(c["envoye"], sort_keys=True): c["libelle"] for c in page(m, e)["outils"]}
+                    self.assertTrue(attendus)
+                    self.assertEqual(obtenus, attendus)
+                    # Retirer les formulaires des données SSE retire les sous-menus :
+                    # aucune liste de verbes de repli n'existe dans la page.
+                    for famille in ("objets", "portes"):
+                        e["catalogue_gestes"][famille] = [ligne for ligne in e["catalogue_gestes"][famille] if len(ligne) == 3]
+                    self.assertEqual(page(m, e)["outils"], [])
+                    self.assertTrue(any(len(ligne) == 4 for ligne in catalogue_public()["objets"]))
+
+    def test_formulaire_et_libelle_viennent_des_donnees_du_catalogue(self):
+        m, _, _ = situation("mettre")
+        e = etat(m)
+        for famille in ("objets", "portes"):
+            for ligne in e["catalogue_gestes"][famille]:
+                if len(ligne) == 4:
+                    ligne[1] = "Choix du catalogue"
+                    ligne[3]["ressources"] = {"type": "outil"}
+        resultat = page(m, e)["outils"]
+        self.assertTrue(resultat)
+        for clic in resultat:
+            self.assertEqual(clic["libelle"], "Choix du catalogue")
+            r = next(iter(clic["envoye"]["parametres"].values()))
+            self.assertEqual(next(o["type"] for o in e["ressources"] if o["id"] == r), "outil")
 
     def comparer(self, m, clic):
         d = DescripteurPublic(clic["envoye"])

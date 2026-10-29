@@ -122,6 +122,7 @@ const canvas = $("carte"), ctx = canvas.getContext("2d");
 let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, surligne = null;
 let destinataires = [];
 let ressources = [];
+let catalogueGestes = {objets: [], portes: []};
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
 let occupe = true, historique = [], indice = 0, brouillon = "";
@@ -397,6 +398,7 @@ function ajouterLigne(texte) {
 }
 function appliquerEtat(e) {
   fermerMenu();
+  catalogueGestes = e.catalogue_gestes || {objets: [], portes: []};
   destinataires = e.destinataires || [];
   ressources = e.ressources || [];
   afficherInventaire(e.inventaire || []);
@@ -607,21 +609,22 @@ function vers(g) {
   const j = scene.joueur.globale, a = Math.atan2(g[1] - j[1], g[0] - j[0]);
   return VERS[[Math.round(Math.cos(a)), Math.round(Math.sin(a))].join(",")];
 }
-function gestes(o) {
-  const liste = [["examiner", "Examiner"]];
-  if (o.type === "personnage") return [...liste, ["observer", "Observer son attitude"], ["parler", "Lui parler"]];
-  if (o.type === "motif") liste.push(["lire", "Lire"]);
-  if (o.type === "luminaire") liste.push(o.allume ? ["eteindre", "Éteindre"] : ["allumer", "Allumer"]);
-  if (o.type === "nourriture") liste.push(["manger", "Manger"]);
-  if (o.type === "contenant") liste.push(["ouvrir", "Ouvrir"], ["fermer", "Fermer"]);
-  if (o.mobile) liste.push(["prendre", "Prendre"]);
-  return liste;
+function correspondPublic(cible, conditions) {
+  if (Array.isArray(conditions)) return conditions.some(groupe => correspondPublic(cible, groupe));
+  return Object.entries(conditions).every(([k, v]) => (cible[k] ?? false) === v);
 }
+function offresPubliques(cible, porte, parametrees = false) {
+  if (porte && cible.souvenir) return [];
+  return catalogueGestes[porte ? "portes" : "objets"].filter(([geste, libelle, conditions, formulaire]) =>
+    Boolean(formulaire) === parametrees && correspondPublic(cible, conditions) &&
+    !(formulaire && ["personnage", "depouille", "partie_corps"].includes(cible.type)) &&
+    !(!porte && cible.type === "personnage" && geste === "prendre")
+  ).map(([geste, libelle, conditions, formulaire]) => [geste, libelle, formulaire]);
+}
+function gestes(o) { return offresPubliques(o, false); }
 function gestesPorte(p) {
-  const liste = [["examiner", "Examiner"]];
-  if (p.etat === "fermee") liste.push(["ouvrir", "Ouvrir"]);
-  if (p.etat === "ouverte") liste.push(["fermer", "Fermer"]);
-  return liste;
+  const parametres = new Set(offresPubliques(p, true, true).map(([geste]) => geste));
+  return offresPubliques(p, true).filter(([geste]) => !parametres.has(geste));
 }
 function choixRessource(o, geste, champ, candidats, executer, x, y, titre) {
   // La page ne connaît aucune capacité : même un mauvais outil se choisit explicitement.
@@ -637,20 +640,8 @@ function choixRessource(o, geste, champ, candidats, executer, x, y, titre) {
   }];
 }
 function choixMateriels(o, executer, x, y, porte = false) {
-  if (["personnage", "depouille", "partie_corps"].includes(o.type)) return [];
-  const choix = [];
-  const outil = (geste, titre) => choix.push(choixRessource(o, geste, "outil", ressources, executer, x, y, titre));
-  if (porte || o.type === "contenant") {
-    outil("deverrouiller", "Déverrouiller avec…");
-  }
-  if (porte || ["contenant", "serrure"].includes(o.type)) outil("crocheter", "Crocheter avec…");
-  outil("frapper", "Forcer / frapper avec…");
-  if (o.type === "luminaire" || o.foyer) outil("alimenter", "Alimenter avec…");
-  if (o.mobile || o.porte) {
-    const destinations = ressources.filter(r => r.type === "contenant" || r.type === "luminaire" || r.foyer);
-    choix.push(choixRessource(o, "mettre", "destination", destinations, executer, x, y, "Mettre dans…"));
-  }
-  return choix;
+  return offresPubliques(o, porte, true).map(([geste, titre, formulaire]) =>
+    choixRessource(o, geste, formulaire.champ, ressources.filter(r => correspondPublic(r, formulaire.ressources)), executer, x, y, titre));
 }
 function choixInventaire(o, x, y) {
   const choix = [];
@@ -675,7 +666,7 @@ function choixInventaire(o, x, y) {
     if (o.allume !== false) ajouter("Éteindre", "eteindre");
   }
   if (o.pieces > 1) ajouter("Prélever une pièce du lot (" + o.pieces + ")", "prelever", {quantite: 1});
-  choix.push(...choixMateriels({...o, porte: true}, d => { arreter(null); envoyer(d); }, x, y));
+  choix.push(...choixMateriels({...o, mobile: true}, d => { arreter(null); envoyer(d); }, x, y));
   return choix;
 }
 function afficherInventaire(biens) {

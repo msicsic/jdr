@@ -1,6 +1,7 @@
 # Lot 300 — U-M outils et destinations
 
-Branche `codex-um-outils`, base intégration `2d893e0`, **non fusionnée**.
+Branche `codex-um-outils`, base `2d893e0`, **non fusionnée**. Reprise par
+fusion sans rebase d'`origin/integration` figé à `f1cb8fd` (U-T 299 inclus).
 
 ## Invariant et changement
 
@@ -20,6 +21,14 @@ Les références sont revalidées à réception sans recherche de nom ou substit
 Les affaires portées restent connues dans le noir ; corps et personnes sont
 hors de ces nouveaux gestes.
 
+Après la fusion de 299, `gestes_publics.OBJETS` et `PORTES` portent aussi les
+offres paramétrées : libellé, conditions publiques, champ outil/destination
+et sélection publique des ressources. Le catalogue est transmis par SSE ;
+`page.html` le lit pour les gestes de carte et leurs sous-menus, sans liste
+de verbes parallèle. Le terminal premier geste conserve les entrées simples ;
+les formulaires ne deviennent jamais des descripteurs incomplets. Le choix
+des ressources au terminal reste le futur lot U-T outils.
+
 `geste_local` construit les mêmes propositions pour le texte et le clic.
 L'opération moteur de dépôt existait, mais aucune commande locale « mettre
 dans » : elle est ajoutée comme entrée vers `deplacer`. Alimenter partage
@@ -29,23 +38,26 @@ de `jeu.py`, de `tui.py` ou des mécaniques PNJ.
 
 ## Vérification et mesures
 
-Bilan retenu : **69 tests distincts / six fichiers verts**, zéro échec,
-erreur ou ignoré, 241,451 s cumulées pour les résultats retenus. Première
-passe groupée : 65 tests en 146,024 s ; après
-les parcours supplémentaires, neuf tests outils verts en 90,855 s et les
-neuf tests web verts. Deux travailleurs réduits au plus. Interpréteur du dépôt principal,
-la `.venv` étant absente de ce worktree. Callbacks Node réels puis boucle de
+Bilan de reprise : **90 tests / huit fichiers verts**, zéro échec, erreur
+ou ignoré. Outils, inventaire 298, terminal 299 et cibles périmées, TUI,
+web/Node, descripteur : 77 tests en 299,178 s ; diagonales de la sonde Node :
+13 tests en 1,036 s. Les **28 TUI existants sont inchangés**. Deux travailleurs
+réduits au plus. Interpréteur du dépôt principal, `.venv` absente du worktree.
+Callbacks Node réels puis boucle de
 jeu avec analyseur interdit pour les clics et MJ interdit d'appel ; mêmes
 plans, effets, texte public et monde/scène/fiche/carte après recharge.
 
 Cas : coffre et porte, deux outils homonymes, deux destinations homonymes,
 foyer au bois et lampe à huile, ressource partie/supprimée/éloignée, mauvais
 outil, contenant fermé, besace dans le noir, propriété de coupe inconnue
-laissée à l'admission distincte. Les échecs initiaux venaient de trois fixtures
-incorrectes (contenant fermé, foyer utilisé comme contenant, serrure sans
-projection cartographique), corrigées sans changement moteur. Un lancement sous bac à sable
-ne pouvait pas écrire ses fichiers temporaires ; les passes avec accès disque
-et leurs résultats sont conservées.
+laissée à l'admission distincte. Les résultats antérieurs (69 tests) et
+les essais préliminaires restent dans les bruts, sans être recomptés.
+
+La reprise compare les offres paramétrées Python aux callbacks de la carte
+sur les cinq gestes et leurs deux scènes. Retirer les formulaires des données
+SSE retire les sous-menus ; modifier leur libellé ou leur sélection de
+ressources change effectivement la page. Les premiers gestes terminal et
+leurs descripteurs restent inchangés, y compris leurs refus sans outil.
 
 `mesures.json` : **10 parcours, 10 saisies évitées, 3 clics** jusqu'à l'effet
 avec cible déjà à portée (cible, geste, ressource). Marche éventuelle en sus.
@@ -60,6 +72,6 @@ accès et charge de portage ; aucune règle de remplissage n'est ajoutée par
 ce lot. Les menus n'inventent ni propriété ni combustible compatible.
 
 Bruts et sonde : `C:/Users/msics/donjon/artifacts/um-outils-300/`.
-Bilan retenu : `fin-cloture.json`, avec les résultats sources par fichier.
+Bilan initial : `fin-cloture.json` ; reprise : `fin-reprise-integration.json`.
 Branche livrée sur `origin/codex-um-outils`. Fusion et suite complète laissées
 au superviseur ; aucun calcul actif, aucun calcul long lancé.

@@ -46,7 +46,9 @@ for (const li of $("inventaire").children) {
   }
 }
 if (niveau) {
-const cases = [...niveau.salles.flatMap(s => s.cases.map(c => c.globale)), ...niveau.sorties.map(s => s.globale)];
+// Les objets ancrés à un mur sont cliquables aussi : leur case n'est pas un sol.
+const cases = [...niveau.salles.flatMap(s => s.cases.map(c => c.globale)),
+  ...niveau.sorties.map(s => s.globale), ...niveau.objets.map(o => o.globale)];
 cases.forEach(g => {
   const {sections, autres} = choixCase(g);
   const cmds = [...sections.flatMap(x => x[1]), ...autres].map(x => x[2]).filter(x => x !== undefined);
