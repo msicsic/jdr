@@ -2,6 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-interposition-reprise`, non fusionnée**, lot **278**, base
+  `792816c` : établissement terminé, **aucun correctif moteur**. Nuit hameau
+  1985 rejouée sur `0bad227`, identité à l’archive 274 (empreintes, chronique,
+  mesures, récit, souvenirs), douze captures rechargées, **36 égalités
+  monde/rendu/scène**. À `385475`, Gorm croit Aubin en `antichambre`, `[5,1]`,
+  source `entendu`, minute 642 ; Aubin y est réellement revenu à `385373`.
+  **« Refuge du relais » est le nom de `antichambre`** : la lecture du 274
+  comme départ avant reprise est rectifiée. Brune est l’approchante, Aubin
+  le protégé. Choix par le candidat `defense.interposition` du lot 167,
+  recalculé avant le pas par `pnj.agir`, sans reprise d’agenda ni suffixe
+  recopié. Localisation d’Aubin perdue à `385490`, intention retirée à
+  `385500`. Clause d’arrêt du brief : **QUESTION**, reprise admissible sur
+  cette capture, aucun nouveau banc, test de lot, Luna ni suite complète.
+  Contrat général et découpage non certifiés par cet établissement.
+  Un processus réduit, 296,773 s, `fin-etablissement.json` **ok=true**,
+  aucun calcul actif du lot ; bruts dans
+  `C:/Users/msics/donjon/artifacts/interposition-278/`.
+  Poussée échouée (authentification Git `wincredman`) ; commit local conservé,
+  aucun recours à l’API GitHub.
+  [Rapport 278](taches/rapport-codex-278-interposition-reprise.md).
+
 - **Vérification d’intégration `0bad227`**, lot **274**, branche
   `codex-verif-integ-3` : **49/49 nuits terminées**, aucune erreur de calcul,
   aucun code du jeu modifié, pas de Luna ni de suite complète. Cache `main`
