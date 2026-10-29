@@ -16,6 +16,7 @@ from tests.test_nom_non_relie import jouer_local
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, verdicts, NEUTRE
 from tests.test_tensions import placer, recharger
+from tests.support import question_sans_execution
 
 
 def scene(nom):
@@ -49,7 +50,7 @@ class QuestionAbsentTests(unittest.TestCase):
                 self.assertEqual(regarder(r), rendu)
 
     def assertQuestionSauvee(self, r, avant, texte, rendu):
-        self.assertEqual(r.data['conversation'][-1]['reponse'], texte)
+        self.assertEqual(r.data['conversation'][-1]['reponse'], question_sans_execution(texte))
         self.assertEqual(r.data['narrations_mj'][-1]['texte'], texte)
         self.assertEqual(emissions_pnj(r), emissions_pnj(avant))
         # Seuls l'échange et son récit audité sont nouveaux, aucun fait mécanique.
