@@ -2,6 +2,25 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-recit-buts-agenda`, lot 309, non fusionnée**, base
+  intégration `02c7330` : rendu commun des buts d'agenda par leur titulaire
+  et leur référence locale, sorte/paramètres/filiation lus via `agendas.py`.
+  Aucun champ ajouté au but ni branche par sorte ; moteur, scénario et MJ
+  inchangés. Titulaire transmis au récit texte/données, au relevé, au rejeu
+  et au rendu des intentions enregistrées. Capture 306 hameau 42 à 5 min :
+  `KeyError: 'qui'` reproduit sur la base ; mandat d'Aubin et sous-mandat
+  d'Ilse rendus, état/rendu/scène/relevé/récit identiques après recharge.
+  **Trois nouveaux tests verts**, six sortes et quatre formes de sous-but,
+  références locales distinguées ; bruts de reproduction archivés.
+  **Vérification groupée en cours**, neuf fichiers ciblés (AST compris),
+  puis huit paires d'empreintes 2 h Relais/crue, quatre graines,
+  contre `02c7330` avec cache. Calcul détaché, priorité réduite, deux
+  travailleurs au plus. Bilan attendu, écrit en dernier :
+  **`C:/Users/msics/donjon/artifacts/recit-309/fin.json`**.
+  Ne pas déclarer validé avant lecture du bilan. Ni Luna ni suite complète.
+  Les répétitions du lot 306 restent hors périmètre.
+  [Rapport 309](taches/rapport-codex-309-recit-buts-agenda.md).
+
 - **Branche `codex-service-rejoindre`, lot 303, fusionnée**, base
   intégration `79beaf1` : un participant requis de lieu inconnu prépare le
   contact commun (inspection, appel ou question) avant le geste, sans lire
