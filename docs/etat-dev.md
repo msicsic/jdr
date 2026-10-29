@@ -2,18 +2,30 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
-- **Reprise 338 après fusion de l'intégration, en vérification** : fusion sans
+- **Reprise 338 terminée, non fusionnée**, fusion sans rebase **`20e1f41`**
+  (parents `38bc65d` et `fff9aab`) :
   rebase de `origin/integration fff9aab` (code de `c9b972b`, seul ajout ensuite :
   brief 341). Aucun conflit de code ; conflit de `etat-dev.md` résolu en
   conservant les deux côtés. Coûts/continuité du 338, offres/contrats du 336,
   preuves de fin du 337 et leurs entrées de recherche conservés.
-  Tests 338 et union des ciblés 336/337, puis seule nuit crue 3 de 12 h,
-  détachés, deux travailleurs réduits au plus. Aucun banc 4 h ni suite complète.
-  Résultats ci-dessous historiques avant cette fusion ; ne pas les étendre
-  au code fusionné avant lecture de
-  `C:/Users/msics/donjon/artifacts/recours-338/fusion-validation/fin.json`.
+  **518 tests / 52 fichiers : 513 succès, quatre échecs préexistants, un saut
+  facultatif (`jsonschema` absent), zéro erreur**, 2 130,177 s. Les quatre
+  assertions reproduites identiquement sur l'intégration exacte `fff9aab`,
+  11,552 s : appel de protection (beffroi/échoppe), réaction au feu (600/205),
+  geste illicite non vu et sonde `_retentir` sans `emission`. Aucun oracle porté,
+  aucun code modifié après fusion ; 5/5 régressions 338, 8/8 offres 336 et
+  14/14 fins de garde 337 vertes. `_entrees_communes` et six fonctions communes
+  identiques à l'intégration au contrôle AST ; garanties des trois lots gardées.
+  **Crue 3, 12 h : maximum Gorm 26 passages/h**, zéro usurpation, 282,450 s.
+  Calcul détaché fini en 2 416,177 s, deux travailleurs réduits au plus.
+  Aucun banc 4 h ni suite complète rejoué ; aucun calcul actif. Bruts
+  `C:/Users/msics/donjon/artifacts/recours-338/fusion-validation/` :
+  `fin.json` rouge conservé, `attribution-echecs.json`, `fin-cloture.json`
+  qualifié. Branche poussée ; chiffres de la livraison initiale ci-dessous
+  historiques, sans garantie universelle contre les boucles.
 
-- **Lot 338 terminé, branche `codex-recours-sans-cout`, non fusionnée**,
+- **Livraison initiale 338 avant synchronisation**, branche
+  `codex-recours-sans-cout`, non fusionnée,
   base `integration e37d9ee` : coût fini obligatoire de tout recours d'agenda
   admissible, composition commune des suites directes (inspection/attente
   comprises), coût des recherches conservé pour récupération, pièces et garde.

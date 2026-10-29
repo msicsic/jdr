@@ -1,66 +1,61 @@
 # Lot 338 — Deviser et conserver le recours jusqu'au constat
 
-30 octobre 2026 — `codex-recours-sans-cout`, **terminée, non fusionnée**, base
-`integration e37d9ee`. Code/tests `03be84c`, inchangés depuis les vérifications.
-Bruts : `C:/Users/msics/donjon/artifacts/recours-338/` ; `fin-cloture.json`.
+30 octobre 2026 — `codex-recours-sans-cout`, **terminée, non fusionnée**.
+Fusion sans rebase **`20e1f41`**, parents `38bc65d` et `fff9aab` : code de
+l'intégration `c9b972b`, seul ajout suivant documentaire (brief 341).
+Aucun conflit de code ; deux côtés de `etat-dev.md` conservés. Branche poussée.
+Bruts : `C:/Users/msics/donjon/artifacts/recours-338/`.
 
-**Synchronisation demandée, en vérification.** `origin/integration fff9aab`
-fusionnée sans rebase : même code que `c9b972b`, ajout documentaire du brief 341
-seul après celui-ci. Aucun conflit de code ; les deux côtés de `etat-dev.md`
-conservés. Offres et contrats du 336, preuves de fin du 337 et entrées communes
-de recherche gardés. Validation détachée : ciblés 338 et union 336/337, puis
-seule nuit crue 3 de 12 h. Ni suite complète ni banc 4 h. Fichier final attendu :
-`fusion-validation/fin.json`. Les chiffres suivants précèdent cette fusion.
+**Invariant.** Toute proposition admissible d'agenda porte un coût fini.
+`agendas.planifier` conserve le coût complet des recherches (récupération,
+pièces, garde) ; `planification.mesure_recours` compose approches, gestes et
+pression des suites directes, inspection et attente comprises. L'attente sans
+geste coûte zéro ; l'impossible n'a pas de mesure. `duree_devis` partage la
+composition physique ; `choisir_mandataire` réserve l'infini au recours absent.
 
-**Invariant.** `agendas.planifier` exige un coût fini de toute proposition
-admissible. Les recherches transmettent leur coût complet : récupération,
-acquisition monétaire et garde comprises. Les suites directes, inspection et
-attente incluses, passent par `planification.mesure_recours` : approches, gestes
-et pression aux tarifs communs. Une attente sans geste coûte zéro ; un moyen
-impossible n'a pas de mesure. `duree_devis` partage la composition physique,
-sans convertir la pression en durée. `choisir_mandataire` refuse un recours
-propre sans devis fini ; seul l'absent reçoit l'infini.
+Le contrat sauvegardé d'intention retient les entrées du moyen.
+`deliberation.choisir` garde son suffixe admissible jusqu'au terme ou son attente
+adoptée jusqu'à une entrée nouvelle. Déplacement propre et dates de regard ne
+rouvrent pas les moyens ; états crus, ressources, accords, refus, relations et
+échéances le peuvent. Démenti, fin du projet et urgences gardent leurs contrôles.
+Ni changement d'`INERTIE`, délai ajouté, lieu interdit ou exception de scénario.
+Après fusion, contrôle AST : `_entrees_communes` et six fonctions communes
+(croyances, naissances, fin de garde, contrat, conditions et satisfaction)
+identiques à l'intégration. Entrées des contrats du 336 et preuves de fin du
+337 conservées ; aucun nouveau lecteur de recherche hors de `_entrees`.
 
-Le contrat d'intention conserve dans l'esprit l'empreinte des entrées du recours.
-`deliberation.choisir` garde son suffixe admissible jusqu'au terme, ou l'attente
-adoptée, tant que ces entrées ne changent pas. Déplacement propre et dates de
-regard ne rouvrent pas les moyens ; états crus, possessions, accords, refus,
-relations et échéances le peuvent. Démenti, inadmissibilité, fin du projet et
-urgences concurrentes conservent leurs contrôles. `INERTIE` inchangée, aucun
-délai ni lieu interdit, aucune exception de personnage ou sorte d'agenda.
-La composition réutilise les lectures et tarifs de la Vue, couverts par
-`_entrees` ; l'empreinte persistante concerne le choix, pas le cache de recherche.
+**Validation après fusion : 518 tests / 52 fichiers**, union des ciblés 338,
+336 et 337, **513 succès, quatre échecs préexistants, un saut facultatif,
+zéro erreur**, 2 130,177 s. Tous les incidents rejoués isolément sur
+**l'intégration exacte `fff9aab`**, 11,552 s : mêmes quatre assertions,
+hors chemins de worktree. Appel de protection : Gorm en `beffroi`, attendu
+`echoppe` ; réaction au feu : 600 au lieu de 205 ; geste illicite sans
+`vu_agir` ; audit : `_retentir` refuse l'argument `emission`. Aucune correction
+ni adaptation d'oracle. Saut : validation JSON Schema, `jsonschema` absent.
+Les fichiers de régression **338 5/5, 336 8/8, 337 14/14** sont verts.
 
-**Tests : 206 / 29 fichiers, 205 succès, un échec préexistant, zéro erreur/saut**,
-697,746 s, deux travailleurs réduits. Les cinq régressions nouvelles passent.
-Capture 317 crue 3 à 160 min : Gorm inspecte à 170, connaît Ilse dans la galerie
-et cesse les navettes jusqu'à 175. Monde complet, rendu et scène identiques
-après recharge ; 15 min en bloc ou minute par minute avec recharges identiques.
-Autre scénario : attente de garde à l'auberge, 3 min entières ou découpées.
-Inspection/attente contre délégation, maintien d'`informer` après déplacement,
-réouverture sur localisation nouvelle et refus des coûts infinis aussi vérifiés.
+La capture réelle 317 crue 3 à 160 min conserve son inspection à 170 et
+l'arrêt des navettes jusqu'à 175 ; monde, rendu et scène après recharge,
+15 min entières ou découpées, identiques. Autre scénario : attente de garde à
+l'auberge, 3 min entières/découpées. Devis inspection/attente, continuité
+d'`informer` après déplacement et réouverture sur localisation nouvelle testés.
 
-L'échec `test_appel_reconnu_et_course_reels_sur_agenda_seul` est reproduit sur
-**la base exacte `e37d9ee`**, 7,382 s : Gorm en `chambre_cloche`, attendu
-`echoppe`, même assertion. Aucun oracle ni code de protection modifié.
-`attribution-base.json` le qualifie ; premier `fin.json ok=false` conservé.
-Aucun test relancé dans la reprise.
+**Crue 3, 12 h après fusion : maximum Gorm 26 passages/h**, zéro usurpation,
+282,450 s. Par heure : **5, 10, 22, 0, 0, 4, 4, 26, 12, 4, 0, 26**.
+Tests puis nuit détachés, deux travailleurs réduits au plus : 2 416,177 s.
+`fusion-validation/fin.json` brut rouge conservé ; quatre défauts attribués
+dans `attribution-echecs.json`, clôture qualifiée `fin-cloture.json`.
+Code et tests inchangés depuis `20e1f41` ; aucun calcul actif.
 
-**Banc : 20/20 nuits de 4 h conformes**, Relais/mine/auberge/crue/hameau,
-graines 1985/7/42/2024 : suspects 219 **0 → 0 dans chaque nuit**, zéro plantage,
-zéro usurpation. Vingt références absentes calculées et rangées une fois,
-puis vingt nuits de branche ; aucune référence disponible relancée.
-Avis à expliquer **43 → 38**, dérives ouvertes **436 → 422** ; ces catégories
-ne deviennent pas des garanties d'innocuité. Pas de comparaison de temps.
+**Mesures initiales conservées, non rejouées après fusion.** Avant
+synchronisation : 206 tests, 205 succès/un échec antérieur ; vingt nuits 4 h,
+suspects 219 **0 → 0 par nuit**, zéro plantage/usurpation. Vingt références
+absentes calculées/rangées une fois, aucune disponible relancée. Avis à expliquer
+43 → 38, dérives ouvertes 436 → 422 ; maximum crue 3 à 30 passages/h.
+Repère du diagnostic 317 : 298 sur `75b6dfb`, sans nouvelle référence 12 h.
 
-**Crue 3, 12 h : maximum Gorm 30 passages/h**, contre 298 dans le diagnostic
-317 sur `75b6dfb` (repère historique, pas une nouvelle référence 12 h de la base).
-Par heure : **5, 10, 20, 4, 0, 30, 0, 4, 4, 8, 0, 0**. Zéro usurpation.
-La reprise détachée finit **ok=true**, 2 164,787 s ; aucun calcul actif.
-
-**Limites.** Des allers-retours sur d'autres buts restent visibles : aucune
-absence générale de boucle revendiquée. L'inspection ne clôt pas tout l'agenda,
-qui vise aussi Brune. Devis du prochain sous-but, sans garantie d'accord ou
-réussite ; empreinte conservatrice, sans preuve de dépendance causale minimale.
-Ni Luna, suite complète, ni correctif du contact Aubin/Sève. Branche poussée ;
-clôture documentaire seulement depuis validation du code.
+**Limites.** D'autres allers-retours subsistent ; aucune absence générale de
+boucle ni réussite de tout l'agenda (qui vise aussi Brune) revendiquée.
+Devis du prochain sous-but, sans garantie d'accord ; empreinte conservatrice,
+sans preuve de dépendance causale minimale. Ni Luna, suite complète, banc
+4 h après fusion ou correctif du contact Aubin/Sève.
