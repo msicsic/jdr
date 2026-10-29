@@ -1,6 +1,23 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
+
+- **Vérification d’intégration `0bad227`**, lot **274**, branche
+  `codex-verif-integ-3` : **49/49 nuits terminées**, aucune erreur de calcul,
+  aucun code du jeu modifié, pas de Luna ni de suite complète. Cache `main`
+  (`c870c8b`) relu : 20 paires de préfixes à 4 h divergent, sans attribution
+  causale. Contrôles : zéro plantage, usurpation, mort, écart `VERIFIER` ou
+  assertion spatiale ; 88 recherches bornées, coûts égaux à l’optimum consigné.
+  219 actuel : suspects **23 → 7**, à expliquer **376 → 170** (classes 265/271
+  présentes ici, absentes de la mesure 241) ; 227 : **22 → 19** pertes, aucune
+  marquée fautive dans la campagne actuelle. Nouveau point à instruire :
+  Gorm reprend à 642 min une interposition contre Aubin, parti de
+  l’antichambre pendant l’interruption. Petit lot proposé : revalider la
+  présence des deux cibles avant l’exécution d’un but d’interposition repris.
+  Combat nouveau crue 2024, minute 596 : 15 frappes, six coups portés, Brune
+  inconsciente puis rétablie, sans décès ni coup après l’inconscience.
+  **Intégration non propre pour avancer `main`** avant le diagnostic de la
+  revalidation. [Rapport 274](taches/rapport-codex-274-verif-integ.md).
 
 - **Branche `codex-retour-aubin`, fusionnée**, lot **272**, diagnostic
   seul, base `aaaf4cf` : Aubin Relais 2024, départ tiré, joueur passif,
