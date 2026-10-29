@@ -2,6 +2,25 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 325 / U-C, branche `codex-uc-consentement`, non fusionnée**, base
+  `codex-up-recapitulatif 865aff3` (lot 319, sans fusion d'integration) :
+  préparation du libre sur copie, transactions et plan entier ; gravité sur
+  les effets typés de toutes les branches et sous-plans, nouvel effet lourd
+  par défaut. Aperçu « Compris » avant acte lourd, annulation sans publication,
+  confirmation sans modèle après revalidation ; état ou rapport modifié,
+  même sans nouvelle révision, impose un nouvel aperçu. Narration périmée
+  remplacée par les faits publics recalculés. Résultat et mots sauvegardés
+  avant affichage ; actes légers et gestes directs conservent leur politique.
+  **28 tests TUI préexistants inchangés verts, 306,864 s**, première passe.
+  Dix-huit parcours lourds validés ; fixtures et synchronisation des nouveaux
+  tests corrigées, trois méthodes reprises vertes (20,223 s), rejet de
+  narration périmée vert (3,565 s) ; traces des passes imparfaites conservées.
+  Nouveaux parcours console/web/TUI et régression ciblée **en vérification**,
+  résultat attendu `C:/Users/msics/donjon/artifacts/uc-325/fin.json`.
+  Aucun Luna, banc, suite complète ou retrait de revue ; recouvrements avec
+  321/323 sur `jeu.py` seulement. Bruts `C:/Users/msics/donjon/artifacts/uc-325/`.
+  [Rapport 325](taches/rapport-codex-325-uc-consentement.md).
+
 - **Lot 319 / U-P, branche `codex-up-recapitulatif`, non fusionnée**, base
   `integration 75b6dfb` : récapitulatif moteur « Compris : … » des plans issus
   du libre et des actes de parole admis. Titres et sous-plans des compilateurs,

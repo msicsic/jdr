@@ -60,12 +60,14 @@ def cas(nom):
         r = dire(m, saisie, "Je te paie trois pièces pour une de tes planches.",
                  [{"type": "proposition", "demande": {"type": "part", "objet": lot},
                    "contrepartie": {"type": "pieces", "montant": prix}}])
+        commandes = ["tenter"]
     elif nom in ("avis", "tous"):
         m = scene_avis()
         saisie = ("je dis à Gorm : l'eau va gagner la conduite basse" if nom == "avis" else
                   "à tous : l'eau ne menace pas le refuge du relais")
         r = dire(m, saisie, saisie.split(": ", 1)[1], [{"type": "avis", "attribut": "menace",
                  "sujet": "echoppe" if nom == "avis" else "antichambre", "valeur": "oui" if nom == "avis" else "non"}])
+        commandes = ["tenter"]
     elif nom in ("parole", "chuchotement"):
         m = scene_parole(brune=(2, 3))
         saisie = ("je dis à Brune : bonsoir" if nom == "parole" else
@@ -217,7 +219,9 @@ class ComprehensionTests(unittest.TestCase):
                 def perimer(moteur, *a, **kw):
                     plan = preparer(moteur, *a, **kw)
                     if not direct:
-                        moteur.monde.objets["cle"]["lieu"] = "crypte"
+                        # La préparation du libre est désormais sur copie ;
+                        # périmer le monde vivant, comme une cible réellement partie.
+                        faux.monde.objets["cle"]["lieu"] = "crypte"
                     return plan
                 with patch.object(jeu, "MJ", return_value=faux), \
                      patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
