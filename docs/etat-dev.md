@@ -2,6 +2,33 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-conception-refonte-mj`, lot 287, fusionnée**,
+  base intégration `a3666ee` : conception de l'achèvement et du portage de
+  **`origin/prompt-simplifie` (`3c0dcd0`)**, base imposée par l'utilisateur.
+  Compilateur à petit contexte, narration d'ambiance découplée, gardes
+  déterministes et fournisseur local unifié ; inventaire des phrases moteur,
+  priorité gameplay : intentions, vitesse perçue, invention ciblée, richesse
+  PNJ ; ordre des lots et mesures selon ces quatre axes, coût/protection de
+  chaque appel actuel, aucune cible de qualité littéraire ;
+  deux options de répliques, sort des audits et lots 176/170/162/171 ; 166
+  reste abandonné. Contrat proposé, **décisions utilisateur ouvertes**,
+  aucun changement à `AGENTS.md` ni garantie nouvelle. Plan de lots bornés,
+  maintien ciblé des revues de fidélité/admission interactive seulement
+  lorsqu'une garantie n'est pas couverte par le découplage.
+  **136 parties archivées lues, 136 empreintes inchangées** : c9459ce,
+  187 tours MJ, 561 appels, 30 obstacles narratifs, 26 relances, 48 refus,
+  zéro repli ; récit/audit/révision = 43,54 % de l'attente. Secondes non
+  comparables causalement entre campagnes. Git : 225 commits d'intégration
+  depuis c870c8b mais fichiers MJ/narration/comptes/fournisseurs identiques ;
+  180, actes, avis et rappels déjà hérités, raccords à achever. Sources
+  contradictoires sur les témoins d'un avis relevées, sans correctif.
+  **Documentation seule**, aucun code/test/outil modifié, aucun Luna, banc
+  ni suite ; un processus Python léger à la fois. Bruts et scripts dans
+  `C:/Users/msics/donjon/artifacts/refonte-287/`. Aucun calcul actif.
+  [Conception](conception-refonte-mj.md) ;
+  [rapport 287](taches/rapport-codex-287-conception-refonte-mj.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Conception seulement, soumise à décision. Base prompt-simplifie (compilateur d'intention, rendu mécanique par le moteur, ambiance en fond sans audit ni relance). Mesure sur 136 parties archivées (c9459ce) : récit, audit narratif et révision font 43,5 % de l'attente ; interprétation 44,7 %. Sept décisions à l'utilisateur (section 10), contrat du MJ proposé (section 7), plan G0-G21 ordonné par le gameplay.
+
 - **Branche `codex-demande-sans-renaissance`, lot 286, fusionnée**,
   base intégration `f93ba93` : **lot clos, diagnostic seul, sans correctif
   moteur**, décision du 29 octobre. À 117170, Aubin croit encore la réserve
