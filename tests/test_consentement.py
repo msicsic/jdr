@@ -26,6 +26,11 @@ from tests.test_comprehension import MJSimule, PontScript, cas, action
 from tests.test_enfermer import scene
 
 
+COMPTE_OFFRE = ("J'accepte cet échange. Tu m'as payé 3 pièces. "
+                "Je te remets une part des planches de bac. "
+                "Tu m'offres 3 pièces contre une part de planches de bac.")
+
+
 def etat(m):
     return json.loads(json.dumps({k: v for k, v in m.data.items() if k != "conversation"}))
 
@@ -33,16 +38,6 @@ def etat(m):
 def scenario(nom):
     if nom in ("offre", "avis", "leger", "mixte"):
         m, saisie, r, _ = cas("offre" if nom == "mixte" else nom)
-        if nom == "offre":
-            from donjon import lexique
-            from tests.test_narration import segment
-            citation = "Bonsoir."
-            r["texte"] = "Aubin dit : « " + citation + " »"
-            r["_audit"] = {"texte_initial": r["texte"],
-                           "segments": segment("parole", locuteur="aubin", citation=citation)["segments"],
-                           "faits": {"interlocuteurs": {"aubin": {"nom": "Aubin"}}},
-                           "fondement": lexique.corpus("Aubin"),
-                           "fondement_paroles": lexique.corpus(citation)}
         if nom == "mixte":
             r.update(mode="action", texte="", proposition=proposition("poser", "couteau"))
             saisie += " puis je pose mon couteau"
@@ -101,7 +96,7 @@ class Parcours:
         t.assertEqual((regarder(recharge), fiche(recharge), scene_percue(recharge)),
                       (regarder(monde), fiche(monde), scene_percue(monde)))
         if self.nom == "offre" and emissions_pnj(recharge):
-            t.assertEqual(emissions_pnj(recharge)[-1]["texte"], "Bonsoir.")
+            t.assertEqual(emissions_pnj(recharge)[-1]["texte"], COMPTE_OFFRE)
         return recharge
 
     def effet(self, monde):
@@ -114,7 +109,7 @@ class Parcours:
             t.assertEqual(monde.objets["planches"]["charges"], self.avant["objets"]["planches"]["charges"] - 1)
             t.assertIn("Je te paie trois pièces", emissions_joueur(monde)[-1]["texte"])
             if self.nom == "offre":
-                t.assertEqual(emissions_pnj(monde)[-1]["texte"], "Bonsoir.")
+                t.assertEqual(emissions_pnj(monde)[-1]["texte"], COMPTE_OFFRE)
             else:
                 t.assertEqual(monde.objets["couteau"]["lieu"], monde.joueur["salle"])
         elif self.nom == "avis":
@@ -157,6 +152,7 @@ class ConsentementTests(unittest.TestCase):
                     # reste un effet lourd, sur le même contrat de transaction.
                     d = preparer(m, r, "LLM")
                     self.assertFalse(d.confirmation)
+                    r.update(d.compte_parle())
                     accepte = copy.deepcopy(r)
                     accepte["_transactions"][0]["revision"] = d.travail.data["revision"]
                     accepte["_transactions"][0]["proposition"]["operation"] = "accepter"
@@ -333,39 +329,52 @@ class ConsentementTests(unittest.TestCase):
                 else:
                     self.assertEqual(recharge.objets["cle"]["lieu"], "joueur")
 
-    def test_parole_revalidee_jette_la_narration_de_l_ancien_etat(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            m, saisie, r = scenario("offre")
-            chemin = Path(tmp) / "partie.json"
-            m.sauver(chemin)
-            faux = MJSimule(r)
-            class Pont(PontWeb):
-                def __init__(pont):
-                    super().__init__()
-                    pont.tour = 0
-                def lire(pont, *_):
-                    pont.tour += 1
-                    if pont.tour == 1:
-                        return "mj " + saisie
-                    if pont.tour == 2:
-                        faux.monde.data["bruit"] += 1
-                        pont.avant = etat(faux.monde)
-                        return "tenter"
-                    if pont.tour == 3:
-                        self.assertEqual(etat(faux.monde), pont.avant)
-                        self.assertIn("nouvel aperçu", "\n".join(pont.historique))
-                        return "tenter"
-                    return "quitter"
-            pont = Pont()
-            with patch.object(jeu, "MJ", return_value=faux), \
-                 patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
-                jeu.main(["--console", "--connexion", "api", "--save", str(chemin)], pont)
-            self.assertEqual(faux.appels, 1)
-            self.assertEqual(faux.monde.joueur["or"], m.joueur["or"] - 3)
-            self.assertNotIn("Bonsoir.", "\n".join(pont.historique))
-            self.assertFalse(emissions_pnj(faux.monde))
-            self.assertIn("accepte l'échange", "\n".join(pont.historique))
-            Parcours(self, "offre", chemin, faux, "web").recharge(faux.monde)
+    def test_revalidation_actualise_le_sceau_et_garde_toute_la_composition(self):
+        from donjon.emissions import enregistrer
+        for nom in ("offre", "mixte"):
+            with self.subTest(cas=nom), tempfile.TemporaryDirectory() as tmp:
+                m, saisie, r = scenario(nom)
+                chemin = Path(tmp) / "partie.json"
+                m.sauver(chemin)
+                faux = MJSimule(r)
+                class Pont(PontWeb):
+                    def __init__(pont):
+                        super().__init__()
+                        pont.tour = 0
+                        pont.pending = None
+                    def rafraichir(pont, monde, pending, mj):
+                        pont.pending = pending
+                        super().rafraichir(monde, pending, mj)
+                    def lire(pont, *_):
+                        pont.tour += 1
+                        if pont.tour == 1:
+                            return "mj " + saisie
+                        if pont.tour == 2:
+                            self.assertEqual(pont.pending.reponse["_comptes_parles"], [2])
+                            enregistrer(faux.monde, "joueur", acte="parole_joueur", parametres={},
+                                modalite="constat", evenement={"type": "dialogue_audite"},
+                                auditeurs=["aubin"], a=["aubin"], texte="Je réfléchis.")
+                            pont.avant = etat(faux.monde)
+                            return "tenter"
+                        if pont.tour == 3:
+                            self.assertEqual(etat(faux.monde), pont.avant)
+                            self.assertIn("nouvel aperçu", "\n".join(pont.historique))
+                            self.assertEqual(pont.pending.reponse["_comptes_parles"], [3])
+                            self.assertEqual(pont.pending.reponse["mode"], r["mode"])
+                            return "tenter"
+                        return "quitter"
+                pont = Pont()
+                with patch.object(jeu, "MJ", return_value=faux), \
+                     patch.dict("os.environ", {"OPENAI_API_KEY": "test"}):
+                    jeu.main(["--console", "--connexion", "api", "--save", str(chemin)], pont)
+                self.assertEqual(faux.appels, 1)
+                self.assertEqual(faux.monde.joueur["or"], m.joueur["or"] - 3)
+                comptes = [p for p in emissions_pnj(faux.monde) if p["acte"] == "reponse_comptable"]
+                self.assertEqual([(p["id"], p["texte"]) for p in comptes], [(3, COMPTE_OFFRE)])
+                self.assertEqual("\n".join(pont.historique).count(COMPTE_OFFRE), 1)
+                if nom == "mixte":
+                    self.assertEqual(faux.monde.objets["couteau"]["lieu"], faux.monde.joueur["salle"])
+                Parcours(self, nom, chemin, faux, "web").recharge(faux.monde)
 
 
 class ConsentementTUITests(unittest.IsolatedAsyncioTestCase):

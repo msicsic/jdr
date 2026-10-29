@@ -190,14 +190,17 @@ class DialoguesTests(unittest.TestCase):
             return dialogue()
         with patch.object(MJOpenAI, "_appeler", side_effect=appel) as api:
             r = MJOpenAI().echanger(self.m, question)
-        self.assertEqual(api.call_count, 2)
-        self.assertIsNotNone(du_type(r, "conversation_pnj"))
+        self.assertEqual(api.call_count, 1)
+        transaction = du_type(r, "conversation_pnj")
+        self.assertEqual(transaction['rapport']['sujet'], question)
+        self.assertEqual(transaction['rapport']['engagement'], {'statut': 'propose', 'montant': 20})
+        self.assertIn("Je t'offre 20 pièces", r['texte'])
         self.assertEqual(self.m.data, avant)
 
     def test_question_ne_peut_pas_accepter_et_panne_narration_ne_cree_pas_offre(self):
         # Le refus est d'abord recadré : le MJ reçoit son attendu et peut corriger une fois.
         for message, sorties in (("Puis-je accepter ?", [reponse(conversation("accepter"))] * 2),
-                                 ("Je demande la récompense", [reponse(conversation()), ErreurMonde("Réseau")])):
+                                 ("Je demande des nouvelles", [reponse(conversation("discuter", mission="")), ErreurMonde("Réseau")])):
             avant = copy.deepcopy(self.m.data)
             with patch.object(MJOpenAI, "_appeler", side_effect=sorties), self.assertRaises(ErreurMonde):
                 MJOpenAI().echanger(self.m, message)
@@ -235,7 +238,7 @@ class DialoguesTests(unittest.TestCase):
                 traces = []
                 mj = MJOpenAI()
                 mj.observateur = traces.append
-                with patch.object(mj, "_appeler", side_effect=[reponse(conversation()), resultat]), self.assertRaisesRegex(ErreurMonde, erreur):
+                with patch.object(mj, "_appeler", side_effect=[reponse(conversation("discuter", mission="")), resultat]), self.assertRaisesRegex(ErreurMonde, erreur):
                     mj.echanger(self.m, "Gorm, quelle récompense ?")
                 self.assertEqual(traces[-1]["reponse"], resultat)
                 self.assertEqual(self.m.data, avant)
@@ -247,7 +250,7 @@ class DialoguesTests(unittest.TestCase):
             with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "_appeler", side_effect=[reponse(conversation()), dialogue()]), patch("builtins.input", side_effect=["je demande a gorn ce que j'y gagne a retrouver cet anneau", "accepter offre", "quitter"]), patch("sys.stdout", io.StringIO()) as sortie:
                 jeu.main(["--console", "--connexion", "api", "--save", str(path)])
             recharge = Monde.charger(path)
-            self.assertIn("Je te propose 20 pièces", sortie.getvalue())
+            self.assertIn("Je t'offre 20 pièces", sortie.getvalue())
             self.assertNotIn("Un bon levier", sortie.getvalue())
             self.assertEqual(recharge.data["engagements"]["anneau_veilleur"]["statut"], "accepte")
 

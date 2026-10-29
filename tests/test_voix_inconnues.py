@@ -108,7 +108,7 @@ class DemandeDUneVoixInconnueTests(unittest.TestCase):
             parole("Gorm, une part des vivres, s'il te plaît.", ("demande", "vivres", "", "")),
             reponse_pnj("Gorm grogne.")], jet=20)
         self.assertIn("Gorm, gardien du relais accepte de t'en donner une part : il te la servira là où sont "
-                      "les vivres.", entrees[1]["faits"]["conversation_validee"]["faits"])
+                      "les vivres.", emissions_pnj(reprise)[-1]['evenement']['faits'])
         gorm = lire(reprise, "marchand")
         self.assertIn({"objet": "vivres", "servir": "joueur"}, [x["condition"] for x in gorm["engagements"]])
         self.assertIn("joueur", gorm["voix_entendues"])

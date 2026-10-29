@@ -39,8 +39,16 @@ def action(p):
 def dire(m, saisie, replique, contenu):
     p = {"personnage": prevue(m, saisie)["personnage"], "_intention": saisie,
          "replique": replique, "contenu": contenu}
-    return ajouter({"mode": "dialogue", "texte": "Parole enregistrée.", "proposition": None},
-                   "parole", m.data["revision"], p)
+    r = ajouter({"mode": "dialogue", "texte": "Parole enregistrée.", "proposition": None},
+                "parole", m.data["revision"], p)
+    # Le MJ simulé respecte aussi G17 : ces mots sont déjà fixés par le moteur.
+    from donjon.paroles import preparer_parole
+    from donjon.comptes_parles import reponse, sceller
+    _, rapport = preparer_parole(m, p, m.data["revision"])
+    compte = reponse(rapport)
+    if compte:
+        r.update(sceller(compte, rapport))
+    return r
 
 
 def cas(nom):
@@ -163,10 +171,30 @@ class ComprehensionTests(unittest.TestCase):
         self.assertEqual((regarder(recharge), fiche(recharge), scene_percue(recharge)),
                          (regarder(vivant), fiche(vivant), scene_percue(vivant)))
         if nom in ("question", "faisabilite", "question_perception"):
+            attendu = m
+            if nom == "question_perception":
+                # Même observation que la commande directe : seul connaître
+                # la cible et son journal sont admis, aucun transfert ni jet.
+                attendu = m.copier()
+                moteur = Moteur(attendu)
+                plan = moteur.preparer(proposition("examiner", "cle"), "LLM : gpt-6-luna")
+                self.assertTrue(plan.perception_canonique)
+                self.assertEqual(plan.effets, [("connaitre", "cle", None)])
+                self.assertFalse(plan.stat)
+                resultat = moteur.executer(plan)
             self.assertEqual(recharge.objets, m.objets)
-            self.assertEqual(recharge.joueur, m.joueur)
-            self.assertEqual(recharge.data["journal"], m.data["journal"])
-            self.assertIn("aucune action exécutée", reponse)
+            self.assertEqual(recharge.joueur, attendu.joueur)
+            self.assertEqual(recharge.data["journal"], attendu.data["journal"])
+            if nom == "question_perception":
+                self.assertEqual(reponse, resultat + "\n" + ORACLES[nom])
+                self.assertEqual(recharge.data["conversation"][-1]["nature"], "resultat_moteur")
+                self.assertIn("cle", recharge.data["connus"])
+                self.assertEqual(recharge.data["minutes"], m.data["minutes"])
+                self.assertEqual(recharge.data["dixiemes"], m.data["dixiemes"])
+                self.assertNotIn("Faisabilité seulement", reponse)
+                self.assertNotIn("tenter", reponse)
+            else:
+                self.assertIn("aucune action exécutée", reponse)
         elif nom in ("offre", "autre_offre"):
             self.assertEqual(recharge.joueur["or"], m.joueur["or"] - (3 if nom == "offre" else 2))
             lot = "planches" if nom == "offre" else "huile_test"

@@ -3,7 +3,8 @@ import unittest
 
 from donjon.biens import compte, rembourser
 from donjon.rendu import fiche
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_comptes_issue import audit
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
@@ -36,7 +37,7 @@ class ComptesFideliteTests(unittest.TestCase):
                 avant = m.joueur["or"]
                 mots = ("Gorm, rends-moi les deux pièces que tu me dois." if montant == 2
                         else "Aubin, rends-moi les cinq pièces que tu me dois.")
-                texte = "D’accord."
+                texte = f"Je te rends {montant} pièces."
                 r, sortie, appels = jouer(m, mots, [
                     parole(mots, ("reclamer", "", "", ""), personnage=qui), dialogue(f"« {texte} »")],
                     [audit(texte, [], qui)],

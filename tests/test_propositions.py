@@ -113,7 +113,7 @@ class PropositionsTests(unittest.TestCase):
         for confiance in (10, 70):
             m = scene(confiance=confiance)
             saisie = "Gorm, je te donne ma cloche contre une part de vivres."
-            texte = "Gorm refuse l'échange." if confiance == 10 else "Gorm accepte l'échange."
+            texte = "Je refuse cet échange." if confiance == 10 else "J'accepte cet échange."
             reponse = {"mode": "parole_joueur", "texte": "", "faits": ["interlocuteurs"],
                        "proposition": {"personnage": "marchand", "replique": saisie,
                                        "contenu": [{"type": "proposition", "demande": PART, "contrepartie": CLOCHE}]}}

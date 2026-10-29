@@ -76,6 +76,7 @@ class PropositionLibre:
     etat_initial: str = ""
     erreur: str = ""
     attendu: str = ""
+    avis_narration: str = ""
 
     def est_actuel(self, monde):
         return self.etat_initial == _empreinte(_etat(monde))
@@ -99,24 +100,45 @@ class PropositionLibre:
             return self.compris + "\nPlan indisponible : " + self.erreur + "\nAucune action exécutée."
         return self.compris + ("\n" + self.plan.resume(self.travail) if self.plan else "")
 
+    def compte_parle(self):
+        """Mots réellement entendus, issus des transactions de cette réponse."""
+        from .emissions import entendues
+        from .comptes_parles import reponse, sceller
+        rapport = {"emissions": [p for r in self.rapports if r for p in entendues(r)]}
+        texte = reponse(rapport)
+        return sceller(texte, rapport) if texte else None
+
     def revalider(self, monde):
         try:
             suite = preparer(monde, self.reponse, self.origine, rebaser=True)
             if suite.signature != self.signature or self.reponse.get("_narration_perimee"):
                 # Un récit admis dans l'ancien état ne décrit pas le nouvel
                 # accord. Restituer les faits publics recalculés, sans modèle.
-                from .noms import texte
                 from .paroles import annonce
-                lignes = []
+                from .emissions import entendues, reponses
+                lignes, prefixes = [], []
+                rapport_courant = {"emissions": [p for r in suite.rapports if r
+                                                for p in r.get("emissions", [])]}
                 for t, rapport in zip(suite.reponse.get("_transactions", []), suite.rapports):
                     if t["type"] == "parole":
-                        lignes.append(annonce(monde, rapport))
-                    if t["type"] in ("parole", "conversation_pnj"):
-                        lignes.extend(texte(monde, fait) for fait in rapport["faits"])
+                        prefixes.append(annonce(monde, rapport))
+                lignes.extend(p.get("rendu_public", p.get("rendu", ""))
+                              for p in entendues(rapport_courant))
                 suite.reponse.pop("_audit", None)
                 suite.reponse.pop("_prefixe_moteur", None)
-                suite.reponse.update(texte="\n".join(lignes) or "Proposition revalidée par le moteur.",
-                                     _texte_moteur=True, _narration_perimee=True)
+                suite.reponse.pop("_comptes_parles", None)
+                compte = suite.compte_parle()
+                suite.reponse.update({k: compte[k] for k in
+                    ("texte", "_texte_moteur", "_comptes_parles")} if compte else {
+                    "texte": "\n".join(lignes) or "Proposition revalidée par le moteur.",
+                    "_texte_moteur": True})
+                suite.reponse["_prefixe_moteur"] = "\n".join(prefixes)
+                suite.reponse["_narration_perimee"] = True
+                if reponses(rapport_courant) and (self.reponse.get("_audit")
+                                                  or self.reponse.get("_narration_perimee")):
+                    # Une autorisation de réponse n'est pas une parole entendue.
+                    # Ne pas publier ses faits en guise de nouvelle réplique.
+                    suite.avis_narration = "La réplique libre préparée dans l'ancien état a été écartée."
             return suite
         except ErreurMonde as exc:
             return PropositionLibre(self.reponse, self.origine, None, [], None,

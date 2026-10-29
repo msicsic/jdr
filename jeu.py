@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 import sys
 
-from donjon.commandes import AIDE, DescripteurPublic, analyser, est_question, heler
+from donjon.commandes import AIDE, PERCEPTIONS, DescripteurPublic, analyser, est_question, heler
 from donjon.config import charger_env, MODELE_CLAUDE, MODELE_LOCAL, MODELE_MIMO, MODELE_PAR_DEFAUT
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJ
@@ -284,7 +284,11 @@ def main(argv=None, interface=None):
             transactions, rapports = reponse.get("_transactions", []), dossier.rapports
             if dossier.plan:
                 resultat = Moteur(travail).executer(dossier.plan)
-                affichage = rendre_resultat(resultat) + "\n" + dossier.compris
+                compte = dossier.compte_parle()
+                if compte:
+                    consigner_narration(travail, compte)
+                affichage = "\n".join(filter(None, (
+                    compte["texte"] if compte else "", rendre_resultat(resultat), dossier.compris)))
                 nature = "resultat_moteur"
             else:
                 types = [t["type"] for t in transactions]
@@ -292,7 +296,7 @@ def main(argv=None, interface=None):
                           "parole_joueur" if "parole" in types else
                           "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
                 affichage = "\n".join(filter(None, (reponse.get("_prefixe_moteur"),
-                                                   reponse["texte"], dossier.compris)))
+                                                   reponse["texte"], dossier.avis_narration, dossier.compris)))
                 consigner_narration(travail, reponse)
             # La préparation précède l'aperçu : conserver aussi son historique,
             # sans restaurer une ancienne copie du monde à la confirmation.
@@ -562,9 +566,11 @@ def main(argv=None, interface=None):
                     comparaison_pending = mj.numero if isinstance(mj, Comparateur) else 0
                     if question and not reponse.get("_transactions") and not dossier.plan:
                         dossier.compris = "Question au MJ : aucune action exécutée."
-                    if dossier.confirmation or (question and dossier.plan):
+                    essai_a_blanc = bool(question and dossier.plan
+                                         and dossier.plan.proposition["action"] not in PERCEPTIONS)
+                    if dossier.confirmation or essai_a_blanc:
                         pending = dossier
-                        montrer_libre(dossier, texte, faisabilite=question)
+                        montrer_libre(dossier, texte, faisabilite=essai_a_blanc)
                     else:
                         executer_libre(dossier, texte, comparaison_pending)
                 else:

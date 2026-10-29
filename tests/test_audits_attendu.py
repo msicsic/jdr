@@ -43,7 +43,7 @@ def rapport(*lignes):
     return {"segments": {str(i): l for i, l in enumerate(lignes)}}
 
 
-def jouer(monde, saisie, reponses, audits, revues=()):
+def jouer(monde, saisie, reponses, audits, revues=(), *, suite=()):
     """La vraie boucle de jeu, le fournisseur simulé appel par appel (MJ, auditeur, contre-revue)."""
     reponses, audits, revues, appels = list(reponses), list(audits), list(revues), []
 
@@ -74,7 +74,7 @@ def jouer(monde, saisie, reponses, audits, revues=()):
         with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
               patch.object(MJOpenAI, "_appeler_brut", side_effect=appel),
               patch.object(Monde, "d20", return_value=20),
-              patch("builtins.input", side_effect=[saisie, "quitter"]),
+              patch("builtins.input", side_effect=[saisie, *suite, "quitter"]),
               patch("sys.stdout", io.StringIO()) as sortie):
             assert jeu.main(["--console", "--connexion", "api", "--save", str(chemin)]) == 0
         return Monde.charger(chemin), sortie.getvalue(), appels

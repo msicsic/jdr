@@ -5,7 +5,8 @@ import unittest
 from donjon.biens import offres_joueur
 from donjon.comptes_narratifs import comptable
 from tests.support import presentes, regarder
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_comptes_issue import audit
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
@@ -28,12 +29,15 @@ class ComptesNaturelsTests(unittest.TestCase):
                 r, sortie, appels = jouer(m, mots, [
                     parole(mots, ('reclamer', '', '', ''), personnage=qui),
                     dialogue(faux), dialogue('« Entendu. »')], [audit('Entendu.', [], qui)])
-                attendu = '« Entendu. » ' + moteur
+                nom = 'Brune' if qui == 'brune' else 'Gorm' if qui == 'marchand' else 'Aubin'
+                citation = ('Je refuse de te rembourser. Je te dois encore 2 pièces.' if qui == 'brune'
+                            else 'Je te rends 2 pièces.')
+                attendu = f'{nom} : « {citation} »'
                 self.assertEqual(r.data['narrations_mj'][-1]['texte'], attendu)
                 self.assertIn(attendu, sortie)
                 self.assertNotIn(faux, sortie)
                 self.assertEqual(r.joueur['or'], avant + gain)
-                self.assertTrue(any('narrateur' in str(e.get('controle_narratif', '')) for _, e in appels))
+                self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
                 rr = recharger(r)
                 self.assertEqual(rr.data, r.data)
                 self.assertIn(attendu, str(rr.data['conversation']))
@@ -49,7 +53,7 @@ class ComptesNaturelsTests(unittest.TestCase):
                 r, sortie, appels = jouer(m, mots, [
                     parole(mots, ('reclamer', '', '', ''), personnage=qui),
                     dialogue('« ' + texte + ' »')], [audit(texte, [], qui)])
-                attendu = '« ' + texte + ' » ' + moteur
+                attendu = ('Gorm' if qui == 'marchand' else 'Aubin') + ' : « Je te rends 2 pièces. »'
                 self.assertEqual(r.data['narrations_mj'][-1]['texte'], attendu)
                 self.assertIn(attendu, sortie)
                 self.assertEqual(r.joueur['or'], avant + 2)
@@ -101,8 +105,14 @@ class ComptesNaturelsTests(unittest.TestCase):
                     'contrepartie':{'type':'pieces', 'montant':prix}}]
                 if qui == 'joss': p = parole(mots, ('demande', lot, '', str(prix)), personnage=qui)
                 r, sortie, _ = jouer(monde, mots, [p, *[dialogue('Tu paies mille pièces.') for _ in range(3)]], [])
-                self.assertEqual(r.data['narrations_mj'][-1]['texte'], moteur)
-                self.assertIn(moteur, sortie)
+                citation = ("J'accepte cet échange. " if qui == 'aubin' else '')
+                citation += f"Tu m'as payé {prix} pièce{'s' if prix > 1 else ''}. Je dois encore te remettre une part des "
+                citation += 'planches de bac.' if qui == 'aubin' else 'fagots de bois.'
+                if qui == 'aubin':
+                    citation += " Tu m'offres 3 pièces contre une part de planches de bac."
+                attendu = f"{qui.capitalize()} : « {citation} »"
+                self.assertEqual(r.data['narrations_mj'][-1]['texte'], attendu)
+                self.assertIn(attendu, sortie)
                 self.assertEqual(r.joueur['or'], avant - prix)
                 self.assertEqual(recharger(r).data, r.data)
                 for interdit in ('Remise effectuée', 'Reste dû', '1 ×', 'engagement enregistré', ',,', 'Offre de'):
@@ -125,9 +135,11 @@ class ComptesNaturelsTests(unittest.TestCase):
         mots = 'Rends-moi les pièces dues et dis-moi si tu as du bois.'
         p = parole(mots, ('reclamer', '', '', ''), ('ressource', 'bois', '', ''), personnage='marchand')
         r, _, appels = jouer(m, mots, [p, *[dialogue('Gorm te rend deux pièces.') for _ in range(3)]], [])
-        faits = next(e['faits'] for _, e in appels if 'conversation_validee' in e.get('faits', {}))
-        bloc = faits['conversation_validee']
-        autres = [t for t in bloc['faits'] if t not in bloc['faits_comptables']]
+        from donjon.emissions import pnj
+        from donjon.paroles import preparer_parole, SCHEMA_PAROLE
+        _, bloc = preparer_parole(m, {**{k: p['proposition'][k] for k in SCHEMA_PAROLE['required']}, '_intention': p['proposition']['replique']})
+        autres = [t for t in pnj(r)[-1]['evenement']['faits'] if t not in bloc['faits_comptables']]
         self.assertTrue(autres)
         for texte in autres: self.assertIn(texte, r.data['narrations_mj'][-1]['texte'])
+        self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
         self.assertEqual(recharger(r).data, r.data)
