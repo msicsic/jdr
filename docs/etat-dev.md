@@ -40,11 +40,16 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   G5 (323) et les offres de protection (336), fusionnée sans rebase.
   Seul conflit documentaire, deux côtés conservés ; l'enregistrement de
   « regarder » de G5 et le chemin de consentement U-C coexistent dans `jeu.py`.
-  Les sept fichiers précédents et `test_perception_geste.py` /
-  `test_question_absent.py` sont en vérification, sans suite complète.
-  Calcul détaché réduit, résultat attendu
-  `C:/Users/msics/donjon/artifacts/uc-325/fusion-ad0e5a8/fin.json`.
-  Nouvelle reprise non poussée en attendant le vert.
+  **110 tests distincts validés, neuf fichiers** : 101 verts conservés et
+  neuf tests web rejoués verts (**13,296 s**), code/tests inchangés.
+  Passe initiale **881,138 s**, 109 verts et une erreur TCP `WinError 10053`
+  au contrôle HTTP 403 d'un hôte externe ; cause exacte non établie,
+  fichier et assertions inchangés, premier bilan en erreur conservé.
+  Aucun échec d'assertion ni saut. U-C 9, TUI 28, perception 9 et questions
+  sur absents 7 verts ; zéro appel après les 18 confirmations.
+  **Reprise terminée, branche poussée, aucun calcul actif**, sans suite
+  complète, Luna ou banc. Bruts `C:/Users/msics/donjon/artifacts/uc-325/` :
+  `fusion-ad0e5a8/fin-cloture.json` vert, `fin.json` initial avec `ok=false`.
   [Rapport 325](taches/rapport-codex-325-uc-consentement.md).
 
 - **Lot 336 terminé, branche `codex-occasion-protection`, fusionnée**,

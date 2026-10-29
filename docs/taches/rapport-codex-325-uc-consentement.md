@@ -2,23 +2,21 @@
 
 29 octobre 2026. Branche `codex-uc-consentement`, **non fusionnée**, base
 initiale `origin/codex-up-recapitulatif`, commit `865aff3`.
-Première reprise : intégration `9f261f9` fusionnée sans rebase après U-P,
-fabrication terminal conservée, tests U-C portés sur G15 sans changer leurs
-oracles. Nouvelle reprise : intégration `ad0e5a8` (G5 et 336), sans rebase ;
-conflit documentaire seul, deux côtés conservés. L'enregistrement de
-« regarder » de G5 et le consentement U-C coexistent dans `jeu.py`.
+Intégrations `9f261f9`, puis `ad0e5a8` (G5 et 336), fusionnées sans rebase ;
+conflits documentaires seuls, deux côtés conservés. Fabrication terminal,
+enregistrement de « regarder » et consentement U-C conservés. Tests portés
+sur G15 sans changement d'oracles.
 
 `donjon/consentement.py` prépare sur copie les transactions, admissions et
 plans entiers. La gravité porte sur les effets typés de toutes les branches
 et sous-plans, paroles et accords compris. Un nouvel effet est lourd par
 défaut ; une étape lourde retient toute la composition.
 
-`jeu.py` montre la fiche U-P avant effet lourd. Annuler ne publie aucune
-conséquence. Tenter revalide sans modèle : état, plan ou rapport changé,
-même sans nouvelle révision, impose un nouvel aperçu ; un plan impossible
-reste indisponible. Une narration périmée cède aux faits publics recalculés.
-Résultats et paroles sont sauvegardés avant affichage. Actes légers et
-gestes directs gardent leur politique.
+`jeu.py` montre la fiche U-P avant effet lourd. Annuler n'exécute rien.
+Tenter revalide sans modèle : changement, même sans nouvelle révision,
+impose un nouvel aperçu ; un plan impossible reste indisponible. Résultats,
+paroles et faits recalculés sont sauvegardés avant affichage. Actes légers
+et gestes directs gardent leur politique.
 
 ## Vérification
 
@@ -28,43 +26,39 @@ annulation et confirmation contrôlent monde entier, paroles, ressources,
 sauvegarde et rendu après recharge. Prix changé et cible partie sans nouvelle
 révision ; acte léger et consommation par clic/menu. Oracles U-P inchangés.
 
-**Première fusion : 94/94 tests verts, sept fichiers, 782,847 s**, zéro échec,
-erreur ou saut : consentement 9, compréhension 5, TUI 28, fabrication terminal
-10, narration 31, transactions 2 et web 9. Tous rejoués, aucun résultat conservé
-pour ce bilan. Les **18 parcours lourds** et le rejet d'une ancienne réplique
-restent verts avec G15 ; code/tests inchangés depuis cette validation.
+**Dernière fusion : 110 tests distincts validés sur neuf fichiers** : 101
+résultats verts conservés, neuf tests web rejoués verts en **13,296 s**.
+La passe initiale (**881,138 s**) comptait 109 verts et une erreur TCP
+`WinError 10053` dans le contrôle HTTP 403 d'un hôte externe. Le fichier web
+repasse inchangé ; cause exacte de l'interruption non établie. Aucun échec
+d'assertion ni saut. Les 9 tests U-C, 28 TUI, 9 perceptions et 7 questions sur
+absents passent. Les **18 parcours lourds**, les paroles et les recharges
+restent verts avec G15/G5 ; code/tests inchangés depuis validation.
 
-Avant fusion, une passe de 83 tests avait révélé une classification trop
-large, corrigée puis vérifiée par 37 tests. Demander les termes d'une
-récompense reste léger ; accepter et faire une offre engagée restent lourds.
-Quatre parcours Gorm/second donneur × console/web vérifient cette distinction,
-ressources, monde et rendu rechargés. Aucun oracle existant affaibli.
+Demander les termes reste léger ; accepter et offrir restent lourds.
+Quatre parcours Gorm/second donneur × console/web le vérifient. Aucun oracle
+affaibli. Première fusion : 94/94 verts, archivés séparément.
 
-Mesures de la première fusion, six cas par interface, secondes min–max :
+Mesures de la dernière fusion, six cas par interface, secondes min–max :
 
 | Interface | Saisie → aperçu | Confirmation → effet |
 |---|---:|---:|
-| Console | 0,025–2,412 | 0,014–6,916 |
-| Web | 0,028–2,926 | 0,024–4,983 |
-| TUI | 0,531–6,433 | 2,134–8,070 |
+| Console | 0,024–5,185 | 0,019–10,540 |
+| Web | 0,032–3,167 | 0,032–4,732 |
+| TUI | 0,343–3,971 | 2,356–7,451 |
 
-Temps humain simulé séparé : zéro. **Zéro appel au modèle après confirmation**
-sur les 18 parcours. Ces mesures incluent l'interface, pas la latence de
-Luna réelle. Bruts dans `C:/Users/msics/donjon/artifacts/uc-325/` :
-`fusion-ciblee.json`, `mesures-fusion.jsonl`, `fin-tests-fusion.json` et
-`fin-fusion.json`. Les passes antérieures, dont `fin.json` avec `ok=false`,
-restent archivées.
+Temps humain simulé séparé : zéro. **Zéro appel après les 18 confirmations**.
+Mesures avec interface, sans latence Luna réelle. Bruts dans
+`C:/Users/msics/donjon/artifacts/uc-325/fusion-ad0e5a8/` :
+`tests.json`, `reprise-web.json`, `mesures.jsonl`, `analyse-cloture.json` et
+`fin-cloture.json`. `fin.json` initial avec `ok=false` conservé ; autres
+passes archivées dans le dossier parent.
 
 ## Limites et intégration
 
-La revalidation est conservatrice : tout changement d'état hors historique
-d'affichage peut redemander un aperçu, même sans conséquence sur l'acte.
-Une fiche relue après recharge ne réactive pas le consentement. La fidélité
-au français reste imparfaite. Aucune revue retirée ni consigne Luna modifiée.
-Pas de Luna, banc ou suite complète ; un travailleur à priorité réduite.
-Recouvrement **321/323 : `jeu.py`** ; aucun changement U-C de la TUI, du
-rendu ou du pont web ; leurs apports d'intégration sont conservés.
-Première reprise poussée, `fin-fusion.json` vert. Nouvelle reprise en
-vérification : les sept fichiers précédents, `test_perception_geste.py` et
-`test_question_absent.py`, sans suite complète. Calcul détaché réduit,
-résultat `fusion-ad0e5a8/fin.json` ; branche non poussée avant le vert.
+Tout changement d'état hors historique peut redemander un aperçu, même
+sans conséquence sur l'acte. Une fiche relue ne réactive pas le consentement.
+Fidélité au français imparfaite ; aucune revue retirée ni consigne modifiée
+par U-C. Pas de Luna, banc ou suite complète ; un travailleur réduit.
+Recouvrement **321/323 : `jeu.py`**, apports d'intégration conservés.
+Reprise poussée, aucun calcul actif ; `fusion-ad0e5a8/fin-cloture.json` vert.
