@@ -2,6 +2,32 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-coups-crue-2024`, lot 279, diagnostic seul**, base intégration
+  `792816c` : les coups de la crue 2024 de `0bad227` sont **justifiés** par les
+  contrats existants ; le seul défaut établi est le libellé du but de protection.
+  Rejeu détaché de `0bad227` : 15 frappes, 6 coups portés, 16 PV, Brune 16 → 0,
+  inconsciente de `357710` à `360087` (3,96 min), ranimée à 1 PV, aucun mort ;
+  chronique de 698 lignes, empreintes, récit et souvenirs identiques à l’archive
+  274. Le dernier coup (Aubin, `357710`) neutralise Brune, `constater_fin` ferme
+  les croyances (`clos`), aucun coup ne suit ; les six souvenirs `secours` de
+  Brune sont `examine`, Gorm la ranime et Aubin lui donne une part. `c870c8b` :
+  aucun coup, 796 lignes identiques à son archive. `792816c` : **aucun coup** ;
+  premier écart avec `0bad227` à la minute 5 (Aubin donne une part à Brune,
+  `service_rendu vivres_1`), faim 45 au lieu de 95 ; piste 266, non certifiée.
+  Premier écart `c870c8b` → `0bad227` à l’instant `978` (min 1) : activation
+  `evacuer_crue` « mandataire estimé » du lot 260 (`c5d7301`), absent de
+  `c870c8b` ; la suite diverge, aucun lot causal unique de l’échauffourée n’est
+  désigné sans bissection. Défaut : `planification.reagir` rend
+  `proteger qui=brune` alors que Gorm protège Aubin ; `recit_pnj.but_en_mots` et
+  les paroles fournies au MJ disent « protéger Brune ». Petit lot proposé : le
+  but de protection nomme le protégé, l’agresseur reste la cible du plan.
+  Cinq captures `0bad227` (595, avant le premier coup, 597, 600, 605) : monde,
+  rendu et scène identiques après recharge, sans mutation ; quatre captures pour
+  `792816c` et `c870c8b`. Aucun fichier de code, de test ou de scénario modifié,
+  ni Luna, suite complète ou banc comparatif ; un processus détaché à la fois,
+  priorité réduite. Bruts `C:/Users/msics/donjon/artifacts/coups-279/` ;
+  [rapport 279](taches/rapport-codex-279-coups-crue-2024.md).
+
 - **Vérification d’intégration `0bad227`**, lot **274**, branche
   `codex-verif-integ-3` : **49/49 nuits terminées**, aucune erreur de calcul,
   aucun code du jeu modifié, pas de Luna ni de suite complète. Cache `main`
