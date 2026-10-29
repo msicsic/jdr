@@ -2,6 +2,34 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 317 terminé, branche `codex-boucles-progression`, fusionnée**,
+  base `integration 2ddfbe0`, diagnostic seul : les deux nuits du 284 sur
+  `27ff8c4` reproduisent exactement chronique, empreintes, récit, souvenirs,
+  mesures, relevés et sonde. Bissection commune au **lot 266, `01d32e5`**,
+  parent direct `1852d6e` contrôlé négatif. **Deux causes distinctes** :
+  Aubin rejoint réellement Sève (110 appels / 110 retrouvailles de 540 à
+  649 min), puis repart aider Gorm avant sa demande ; le contact préparatoire
+  n'est pas conservé jusqu'à sa tentative. Recoupement avec l'approche du 313,
+  sans en certifier la suffisance. Gorm poursuit l'agenda `amener` d'évacuation,
+  mal rendu « informer Ilse » avant le 309 : l'inspection du rendez-vous est
+  admissible mais sans mesure de coût ; `choisir_mandataire` la compte à
+  l'infini, préfère une délégation puis revient au rendez-vous. Sur l'intégration
+  figée `75b6dfb`, maximum horaire Aubin **120 → 6**, Gorm **299 → 298** ;
+  fusions ultérieures non rejouées, aucune correction générale revendiquée.
+  Captures avant circuits, monde/rendu/scène identiques après recharge ;
+  reprises de 15 min identiques aux chroniques archivées (547 / 113 lignes),
+  état/rendu/scène bloc-découpé identiques, bilans textuels intermédiaires
+  dépendants du découpage. Quatorze nuits ciblées, séquentielles et réduites ;
+  aucun code du jeu, Luna, suite complète ou banc comparatif. Deux petits
+  correctifs proposés : continuité du contact jusqu'au geste préparé ; coût
+  et maintien du recours admissible de constat/attente. Bruts
+  `C:/Users/msics/donjon/artifacts/boucles-317/`, `fin-diagnostic.json` et
+  `fin-consolidation.json` ; assertion exploratoire « plan vide » erronée
+  conservée dans `fin-cloture.json`, remplacée par le constat d'inspection
+  sans coût. Aucun calcul actif.
+  [Rapport 317](taches/rapport-codex-317-boucles-progression.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. Deux causes distinctes apparues au lot 266 : Aubin rejoint Sève puis repart avant sa demande ; Gorm abandonne une inspection admissible sans coût mesuré et reconduit son circuit (298 passages/h sur 75b6dfb). Deux petits lots correctifs proposés.
+
 - **Reprise du lot 319 / U-P terminée, fusionnée**, branche
   `codex-up-recapitulatif` : intégration `9237e14` fusionnée sans rebase par
   `cf797cb`, conflit documentaire seul résolu en conservant les deux côtés.
