@@ -78,10 +78,11 @@ def main():
         lignes = []
         for a, b in zip(rapport['reference']['nuits'], rapport['branche']['nuits']):
             ma, mb = ((n.get('donnees') or {}).get('mesures', {}) for n in (a, b))
-            avant, apres = (n.get('avis', {}).get('total_non_justifies') for n in (a, b))
+            suspects_avant, suspects_apres = (n.get('avis', {}).get('total_non_justifies') for n in (a, b))
             lignes.append({'scenario': b['scenario'], 'graine': b['graine'],
-                           'suspects_reference': avant, 'suspects_branche': apres,
-                           'sans_hausse': avant is not None and apres is not None and apres <= avant,
+                           'suspects_reference': suspects_avant, 'suspects_branche': suspects_apres,
+                           'sans_hausse': (suspects_avant is not None and suspects_apres is not None
+                                          and suspects_apres <= suspects_avant),
                            'plantage': b['plantage'], 'usurpations': mb.get('usurpations'),
                            'regards_suivis': mb.get('regards_suivis'),
                            'rotation_attention': mb.get('rotation_attention'),

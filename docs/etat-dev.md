@@ -2,19 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 332, branche `codex-attention-conjointe`, non fusionnée**, base
+- **Lot 332 terminé, branche `codex-attention-conjointe`, non fusionnée**, base
   `integration 7e65907` : direction des regards réellement perçus, sans cible
   cachée ; suivi par un proche disponible, coût de rotation commun et acquisition
   par sa seule vue. Direction physique persistante et suivi par épisode sans
   échéance, impressions historiques filtrées. **94 tests ciblés distincts verts,
   huit fichiers**, dont neuf nouveaux ; vrais coups de la rixe, Relais/auberge,
   cas négatifs, monde/rendu/scène rechargés et laps entier/découpé.
-  Banc détaché de vingt nuits de 4 h lancé sur `0b60a91`, deux travailleurs réduits, référence puis
-  branche ; aucune référence compatible locale pour 7e65907, calcul unique des
-  manquantes par le cache commun. **Résultats du banc encore attendus** dans
-  `C:/Users/msics/donjon/artifacts/regard-332/fin.json`, écrit en dernier même
-  en échec. PID initial 43552 / enfant 33816 vérifiés actifs en `BelowNormal`,
-  sans erreur de démarrage, le 29 octobre à 22 h 05. Ni Luna ni suite complète.
+  Banc détaché terminé, vingt paires de nuits de 4 h, deux travailleurs réduits :
+  **20/20 sans hausse des suspects 219 (0 → 0), zéro plantage/usurpation**.
+  Vingt références 7e65907 absentes calculées une fois et rangées ; moteur/tests
+  `0b60a91` inchangés, `fbd234b` documentaire seulement. **133 regards suivis,
+  118 s de rotation**, CPU branche 1 817,078 s ; perception des signes 104,766 s,
+  choix d'attention 9,281 s inclusives (se recouvrent), aucun gain de vitesse revendiqué.
+  Autres observations : entrées à expliquer 32 → 35 ; Hameau 42, nouveaux noirs
+  prolongés de Brune/Ilse (100 min) et Aubin (105 min), Hameau 2024, alternance
+  aller voir de Maël. Conservées pour l'intégration, sans verdict de légitimité.
+  `fin.json` initial en échec de lanceur après écriture des résultats : variable
+  de référence écrasée par un compteur. Lanceur seul corrigé ; quarante archives
+  revalidées et clôture relue sans nuit rejouée : **`fin-cloture.json ok=true`, code 0**.
+  Bruts `C:/Users/msics/donjon/artifacts/regard-332/`, échec initial conservé,
+  branche poussée vers origin, aucun calcul actif. Ni Luna ni suite complète.
   Joueur : direction affichée, suivi manuel ;
   anciennes attitudes sans direction conservées jusqu'au prochain regard décidé.
   Recouvrement possible 330 : `esprits.py`, `pnj.py`, `signes.py`.
