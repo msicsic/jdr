@@ -373,7 +373,9 @@ personne ne lui répond. Les temoins l'ont entendue sans être interpellés. Le 
 distingue les réponses à Corvus (acte reponse_corvus, statut a_formuler) des réactions entre PNJ
 déjà prononcées (statut prononcee). Ces dernières gardent leurs mots exacts : leur rendu est un fait
 mécanique attestant l'émission et l'audition, jamais la vérité du contenu. Un témoin peut donc
-avoir parlé à un autre PNJ sans répondre à Corvus. Dans objet:<id>, a_portee_de_main
+avoir parlé à un autre PNJ sans répondre à Corvus. Lorsque issue atteste des témoins silencieux
+d'après ce flux, dire qu'ils se taisent est mecanique, source conversation_validee.
+Dans objet:<id>, a_portee_de_main
 dit si Corvus peut le toucher d'ici ; a_portee_de_voix, si un personnage et lui s'entendent.
 L'historique, une proposition non exécutée et une parole de personnage ne prouvent pas leur
 contenu. resultat_resolu.gestes sont les gestes que Corvus vient d'accomplir, exécutés par le
@@ -1289,7 +1291,13 @@ def controler(texte, rapport, faits, partie="texte"):
               and emission_reprise is None):
             # Le moteur a décidé l'issue de la parole de Corvus pour ses destinataires seulement.
             destinataires = destinataires_parole(faits, locuteur)
-            refuser(("Seuls " + ", ".join(destinataires) + " répondent à Corvus" if destinataires
+            if "emissions" in (faits.get("conversation_validee") or {}):
+                refuser(f"Aucune autorisation n'établit ces nouveaux mots de {locuteur}.",
+                        f"une réponse nouvelle de {en_liste(destinataires)} seulement ; sinon la restitution "
+                        "des mots d'une émission enregistrée de cet auteur dans conversation_validee.emissions",
+                        f"locuteur {locuteur}")
+            else:
+                refuser(("Seuls " + ", ".join(destinataires) + " répondent à Corvus" if destinataires
                      else "Personne ne répond à Corvus") + " ; les autres l'ont entendu sans être interpellés et "
                     "se taisent.",
                     f"une réponse de {en_liste(destinataires)} seulement (conversation_validee.repondent) ; "

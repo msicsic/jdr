@@ -269,7 +269,7 @@ class SuiteTests(unittest.TestCase):
         placer(m, "brune", "echoppe", (7, 1))  # Partie dans la conduite : hors de portée de voix.
         self.assertEqual(self.a_qui(recharger(m), "« tu es là ? »"), ["ilse"])
         # Une interpellation dans les guillemets l'emporte sur la suite de l'échange.
-        emissions_joueur(m)[0].update(auditeur="aubin", auditeurs=["aubin"])
+        m.data["paroles_joueur"][0].update(auditeur="aubin", auditeurs=["aubin"])
         self.assertEqual(self.a_qui(m, "« Ilse, tu viens ? »"), ["ilse"])
 
 

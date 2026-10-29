@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 320 / G15, branche `codex-g15-emissions`, non fusionnée**, base
+- **Lot 320 / G15 terminé, branche `codex-g15-emissions`, non fusionnée**, base
   `integration 0fcc99e` : registre unique des émissions de parole, admission
   avant affichage, auteur/acte/paramètres/modalité/source/auditeurs/ordre.
   Réponses autorisées à Corvus distinctes des réactions déjà prononcées entre
@@ -11,20 +11,27 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   saisie de la passe 1 (indice 1, galerie de ronde), premier tour rejoué
   auparavant ; propositions/dialogues/audits d'origine, sans réseau.
   Trois citations conservées, Gorm seul répondant, aucune nouvelle émission
-  par leur restitution. Extraction portable et dix nouveaux tests : autre
-  dispute, écoute distante, inconscients, migration, répétition et noms masqués,
-  avec état/texte/scène/rendu rechargés. Passes de développement 38/38 puis
-  29/29, sans cumul ; **10/10 nouveaux tests verts**, 36,279 s, archives réelles
-  incluses. Vérifications finales **en cours, non validées** : tous
-  les fichiers de tests touchés et voisins directs, empreintes 2 h Relais/crue
-  × quatre graines, une passe Luna avis-joueur/echanges ; deux travailleurs
-  réduits au plus, aucune suite complète. Schéma des sauvegardes enrichi :
-  empreintes brutes conservées, identité hors registre et liens d'écoute
-  contrôlée séparément. Référence Luna historique lue dans l'archive c9459ce.
-  Bruts `C:/Users/msics/donjon/artifacts/g15-320/`, fichier de fin `fin.json`
-  écrit en dernier même en cas d'échec. G16–G19 non réalisés ; ordre historique
-  intra-tour inconnu explicitement signalé lors de la migration. Aucun
-  recouvrement U-P 319 sur moteur.py/rendu.py/jeu.py.
+  par leur restitution. Silence des témoins dérivé de leurs émissions réelles ;
+  une réaction entendue sans réponse nouvelle autorisée n'est pas déclarée
+  absente. Onze nouveaux tests verts, monde/texte/scène/rendu rechargés.
+  **579 tests / 53 fichiers consolidés : 577 verts, deux échecs préexistants,
+  zéro erreur ni saut**. Base 0fcc99e : mêmes `23 != 26` sur l'achat de
+  planches et plan d'inspection dans la réserve au lieu de None ; aucun oracle
+  affaibli. Reprises **146/146** puis **33/33**, sans cumul. **8/8 paires**
+  Relais/crue, 2 h × quatre graines : chroniques, mesures et état complet
+  identiques hors `emissions_parole` et `bruits[].emission` ; empreintes brutes
+  distinctes conservées, **386 émissions**, aucun plantage. Huit références
+  absentes rangées une fois ; 159,797 s. Luna **une passe** sur 6f60266 avant
+  clôture du silence, sans relance de référence : six tours MJ, **33 → 25 appels**,
+  **6 → 1 obstacles**, **5 → 1 relances**, refus **1 → 1**, aucun repli ni
+  erreur technique/recharge. Référence historique c9459ce, aucun gain général
+  ni de vitesse revendiqué. Deux travailleurs réduits au plus par vérification,
+  aucune suite complète, aucun calcul actif. Branche poussée vers origin.
+  Bruts `C:/Users/msics/donjon/artifacts/g15-320/` : `fin.json` initial
+  **ok=false conservé**, `tests-consolides.json`, `fin-cloture.json`.
+  G16–G19 non réalisés ; ordre historique intra-tour inconnu explicitement
+  signalé lors de la migration ; discours indirect sans fausse citation exacte.
+  Aucun recouvrement U-P 319 sur moteur.py/rendu.py/jeu.py.
   [Rapport 320](taches/rapport-codex-320-g15-emissions.md).
 
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base

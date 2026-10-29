@@ -133,9 +133,9 @@ class RedirePasseTests(unittest.TestCase):
     def test_historique_sans_fenetre_globale_et_sans_auditeurs_prives(self):
         m = banc('soir-noir')
         m = self.dire(m, 'personne', 'Qui est là ?', 'C’est Ilse.', ('qui', '', '', ''))
-        emissions_pnj(m).extend([dict(locuteur='aubin', texte='Un autre échange.',
+        m.data.setdefault('paroles_pnj', []).extend([dict(locuteur='aubin', texte='Un autre échange.',
             auditeurs=['joueur'], revision=1, salle='beffroi', minute=0)] * 12)
-        emissions_pnj(m).append(dict(locuteur='ilse', texte='Secret.', auditeurs=['aubin'], revision=1, salle='beffroi', minute=0))
+        m.data['paroles_pnj'].append(dict(locuteur='ilse', texte='Secret.', auditeurs=['aubin'], revision=1, salle='beffroi', minute=0))
         faits = echanges_passes(recharger(m), interlocuteurs(m))
         self.assertEqual([p['texte'] for p in faits['voix_1']], ['C’est Ilse.'])
         self.assertNotIn('auditeurs', str(faits))

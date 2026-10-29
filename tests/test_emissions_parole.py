@@ -141,6 +141,8 @@ class EmissionsTests(unittest.TestCase):
         texte = 'Ilse répond : « Je te le promets. »'
         r = narration.controler(texte, audit(ligne('parole', 'ilse', 'Je te le promets.')), faits)
         self.assertTrue(r['obstacles'])
+        self.assertNotIn('se taisent', r['obstacles'][0]['motif'])
+        self.assertIn('conversation_validee.emissions', r['obstacles'][0]['attendu'])
         # Les mots exacts de la dispute sont déjà prononcés : aucun nouvel acte.
         fixes = [p.get('rendu_public', p['rendu']) for p in emissions.entendues(rapport)]
         if fixes:
@@ -208,6 +210,24 @@ class EmissionsTests(unittest.TestCase):
         self.assertNotIn('Aubin', p['rendu_public'])
         self.assertIn('Écoute-moi.', p['rendu_public'])
         self.assertRecharge(m)
+
+    def test_cantonade_avec_reaction_entendue_sans_reponse_nouvelle(self):
+        m = dispute()
+        m.joueur['orientation'] = 'nord'
+        m.data['entendus'] = []
+        croire(m, 'marchand', 'echoppe', 'prevision', [m.data['minutes'], -10000, 1], 'vu', 1, rang=0)
+        saisie = "je dis : l'eau va gagner la conduite basse"
+        self.assertEqual(paroles.prevue(m, saisie)['personnage'], 'personne')
+        proposition = parole("l'eau va gagner la conduite basse", ('avis', 'echoppe', 'menace', 'oui'), personnage='personne')
+        r, sortie, appels = jouer(m, saisie, [proposition, dialogue('Ta voix résonne.')], [verdicts(NEUTRE)])
+        rapport = next(e['faits']['conversation_validee'] for f, e in appels
+                       if f == 'repondre_au_joueur' and 'conversation_validee' in e['faits'])
+        self.assertEqual(rapport['repondent'], [])
+        self.assertTrue(emissions.entendues(rapport))
+        self.assertNotIn('Aucune réponse', rapport['issue'])
+        for p in emissions.entendues(rapport):
+            self.assertIn(p['rendu'], sortie)
+        self.assertRecharge(r)
 
 
 if __name__ == '__main__':

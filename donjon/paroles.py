@@ -1607,7 +1607,7 @@ def entendre_repondant(monde, id):
         entendus.append(id)
 
 
-def issue(monde, forme, dest, repondent, temoins, replique):
+def issue(monde, forme, dest, repondent, temoins, replique, emissions=()):
     """Ce que le moteur a établi de cette parole, en une phrase pour le MJ et l'auditeur : Corvus l'a
     dite, à qui, qui lui répond, qui l'a entendue sans être interpellé ; ce qui n'y est pas n'a pas
     eu lieu (une réponse d'un autre, un silence de qui répond)."""
@@ -1625,6 +1625,9 @@ def issue(monde, forme, dest, repondent, temoins, replique):
         phrase += (f" {qui[:1].upper() + qui[1:]} t'{'a' if un else 'ont'} entendu et te répond{'' if un else 'ent'} : "
                    "ses mots ne sont pas fixés par le moteur, c'est une parole nouvelle, d'après les faits de cette "
                    "parole, ce qu'il croit et ses valeurs.")
+    elif any(p.get("statut") == "prononcee" and p["locuteur"] != "joueur"
+             and "joueur" in p.get("auditeurs", []) for p in emissions):
+        phrase += " Les répliques déjà entendues sont enregistrées dans les émissions."
     else:
         phrase += " Aucune réponse ne te parvient."
     if temoins:
@@ -1632,6 +1635,13 @@ def issue(monde, forme, dest, repondent, temoins, replique):
         un = len(temoins) == 1
         phrase += (f" {qui[:1].upper() + qui[1:]} {'a' if un else 'ont'} aussi entendu ces mots, sans qu'ils "
                    f"{'lui' if un else 'leur'} soient adressés.")
+        # Être témoin ne prouve pas le silence : seule l'absence d'émission
+        # de cet auteur dans le flux réellement exécuté l'établit ici.
+        auteurs = {p["locuteur"] for p in emissions if p.get("statut") == "prononcee"}
+        silencieux = [id for id in temoins if id not in auteurs]
+        if silencieux:
+            qui = noms(silencieux)
+            phrase += f" {qui[:1].upper() + qui[1:]} se {'tait' if len(silencieux) == 1 else 'taisent'}."
     return phrase
 
 
@@ -1849,6 +1859,7 @@ def preparer_parole(monde, p, revision=None):
         autorisation["ordre"] = len(flux) + 1
         flux.append(autorisation)
     reponses = [p["locuteur"] for p in emissions.reponses({"emissions": flux})]
+    issue_dite = issue(travail, forme, dest, reponses, temoins_vus, replique, flux)
     flux = emissions.publiques(travail, flux)
     rapport = {"personnage": attendu, "destinataires": [designation(monde, x) for x in dest],
                **({"a_qui": nom_pour_joueur(monde, dest[0])} if len(dest) == 1 and not forme["groupe"] else {}),
@@ -1857,7 +1868,7 @@ def preparer_parole(monde, p, revision=None):
                "maniere": "chuchotement" if chuchote else "à voix haute", "sujet": replique,
                "operation": "parole_joueur", "replique_joueur": replique,
                "emissions": flux,
-               "issue": issue(travail, forme, dest, reponses, temoins_vus, replique),
+               "issue": issue_dite,
                "faits": emissions.faits({"emissions": flux}),
                **({"comptes": comptes} if comptes else {}),
                **({"offres": offres} if offres else {}),

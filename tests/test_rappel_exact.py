@@ -87,7 +87,7 @@ class RappelExactTests(unittest.TestCase):
         phrase = next(iter(rappels_exacts(faits)))
         reponse = {'texte': phrase, '_audit': {'texte_initial': phrase,
                     'segments': segments_etablis(phrase, faits), 'faits': faits}}
-        emissions_pnj(m).clear()
+        m.data['emissions_parole'][:] = [p for p in m.data['emissions_parole'] if p['locuteur'] == 'joueur']
         with self.assertRaisesRegex(ErreurMonde, 'rappel'):
             consigner(m, reponse)
 

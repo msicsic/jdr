@@ -15,3 +15,7 @@ la tentative qui annonce le silence est rejetée par son audit original ;
 la suivante restitue les trois citations déjà entendues. G15 les rattache
 à leurs émissions et publie leur rendu moteur dans l'ordre, sans nouvelles
 émissions ni ajout d'Aubin ou d'Ilse aux répondants à Corvus.
+
+Le silence d'un témoin qui n'a réellement émis aucune parole reste attesté
+depuis ce même flux. Une réaction entendue à la cantonade n'est jamais niée
+par la seule absence d'autorisation d'une réponse nouvelle.
