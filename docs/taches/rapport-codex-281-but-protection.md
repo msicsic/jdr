@@ -1,6 +1,6 @@
 # Lot 281 — le but de protection nomme le protégé
 
-29 octobre 2026, branche `codex-but-protection`, **non fusionnée**, base
+29 octobre 2026, branche `codex-but-protection`, **lot terminé, non fusionnée**, base
 intégration `3470a92`. Bruts :
 `C:/Users/msics/donjon/artifacts/protection-281/`.
 Correctif et preuves : commit local `1a1627c`. Poussée demandée vers
@@ -45,7 +45,7 @@ identiques ; texte MJ, récit, audit et résumé de la sonde nomment le
 protégé. Les deux scènes vérifient aussi l'identité d'un laps entier et
 du même laps découpé avec recharge intermédiaire.
 
-## Validation et reprise détachée
+## Validation terminée
 
 Les **206 tests / 18 fichiers ciblés sont verts**, 401,523 s, deux
 travailleurs réduits : nouveaux tests, défense/combat/secours,
@@ -61,18 +61,25 @@ l'agresseur au protégé attendu, tous les autres champs restent égaux,
 y compris les copies historiques inchangées. Il conserve les chemins
 exacts des écarts. Ancien script, journal et fin en échec conservés.
 
-La reprise détachée compare
-les deux scènes courtes au `reagir` exact de `3470a92` (chargé sans changer
-le checkout). Il conserve les captures et tous les résultats de coups.
-Ensuite : `tools/comparer_bancs.py --reference 3470a92 --empreintes --heures 2`
-sur Relais, mine, auberge, crue, hameau, graines 1985/7/42/2024, deux
-travailleurs réduits. Référence réutilisée depuis son cache quand présente ;
-seules les nuits manquantes sont calculées. Aucun temps comparé au cache.
+La reprise détachée est **terminée, ok=true, 333,621 s**. Comparaison des
+deux scènes courtes au `reagir` exact de `3470a92` (chargé sans changer
+le checkout) : **quinze frappes identiques** sur la capture 279, **deux**
+sur l'autre épreuve. Pendant la protection, seul `qui` change dans le but
+actif et, pour Aubin, sa copie dans le contrat de clôture ; tous les autres
+champs restent égaux. États finaux base/branche entièrement égaux.
+**Huit captures rechargées**, monde/rendu/scène/texte MJ identiques à chaque fois.
 
-**Preuves et empreintes encore à relire** dans `preuves.json`,
-`preuves-reprise1.log`, `empreintes.json` ; les tests acquis sont dans
-`tests-cibles.json`. **`fin-reprise1.json`** est écrit en dernier et
-indique le succès ou l'erreur ; `fin-verification.json` reste l'échec
-initial. Une divergence d'empreinte devra être instruite : seuls le
-champ et ses textes peuvent différer. Pas de Luna ni de suite complète.
+**Empreintes 2 h : 20/20 paires identiques**, chronique, mesures et état
+final complet, zéro plantage et aucune divergence. Relais, mine, auberge,
+crue, hameau × graines 1985/7/42/2024, départ tiré, `3470a92` → `85105dd`.
+Les vingt références manquaient au cache : calculées une fois et rangées ;
+vingt nuits de branche calculées. **Ces nuits de 2 h n'exercent aucun but
+de protection, d'où leur identité** : la couverture du changement vient
+des deux scènes ciblées, pas de ces empreintes.
+
+Résultats relus : `preuves.json`, `preuves-reprise1.log`, `empreintes.json`
+et `tests-cibles.json`. **`fin-reprise1.json` : ok=true, empreintes code 0** ;
+`fin-verification.json` reste l'échec initial. Deux travailleurs réduits
+au plus, **aucun calcul actif** du lot. Pas de Luna ni de suite complète,
+aucun test ou banc relancé pour cette clôture documentaire.
 Le lot ne certifie pas la cohérence sémantique générale des narrations.

@@ -16,13 +16,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   copié dans le contrat de clôture (`faits.reaction`). Comparateur de preuve
   corrigé pour toutes les copies typées `proteger`, égalité stricte des
   autres champs ; aucun nouveau code moteur ou test modifié.
-  **Reprise en cours** : comparaison courte base/branche puis empreintes 2 h,
-  cinq scénarios × quatre graines contre la base figée, cache réutilisé.
-  Deux travailleurs au plus, priorité réduite ; calcul séquentiel détaché,
-  fin attendue `C:/Users/msics/donjon/artifacts/protection-281/fin-reprise1.json`.
-  Ancien `fin-verification.json` en échec conservé avec son journal.
-  Relire ce fichier et les rapports avant de clore le lot. Ni Luna ni suite
-  complète. Correctif local `1a1627c` ; poussée refusée par le contrôle
+  **Lot terminé** : comparaison au `reagir` exact de la base, quinze frappes
+  identiques sur la capture, deux sur l'autre épreuve ; seuls les champs `qui`
+  des buts typés diffèrent pendant la protection, états finaux entièrement
+  égaux. Huit captures rechargées, monde/rendu/scène/texte MJ identiques.
+  **Empreintes 2 h : 20/20 paires identiques**, chronique/mesures/état final,
+  cinq scénarios × quatre graines, `3470a92` → `85105dd`, aucun plantage.
+  **Ces nuits n'exercent aucun but de protection, d'où leur identité** ; les
+  preuves du changement sont les deux scènes ciblées. Vingt références
+  absentes du cache calculées une fois et rangées, vingt nuits de branche.
+  Reprise détachée 333,621 s, deux travailleurs réduits au plus,
+  `C:/Users/msics/donjon/artifacts/protection-281/fin-reprise1.json` **ok=true**,
+  empreintes code 0 ; aucun calcul actif. Ancien `fin-verification.json` en
+  échec conservé avec son journal ; aucun nouveau test ou banc à la clôture.
+  Ni Luna ni suite complète. Correctif local `1a1627c` ; poussée refusée par le contrôle
   automatique (propriété d'`origin` non établie). Consigne de reprise : ne
   pas pousser depuis le PC fixe ; aucun recours à l'API GitHub.
   [Rapport 281](taches/rapport-codex-281-but-protection.md).
