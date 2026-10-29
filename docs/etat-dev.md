@@ -2,6 +2,23 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 322 en vérification, branche `codex-trois-echecs`, base `0a0bc9d`** :
+  diagnostic des trois échecs nouveaux. Mathurine appelle réellement pour
+  rejoindre Mireille qu'elle veut nourrir ; Corvus saisit ses mots depuis
+  le couloir puis le grenier. L'inspection Mathe/Odon sans lieu connu est
+  un préfixe de contact, pas un service franchissant le verrou ; la demande
+  effective reste impossible. Prémisses des deux scènes de voix isolées et
+  du lieu entendu d'Odon précisées, assertions historiques conservées ;
+  nouveau test du tiers actif et de son anonymat après recharge.
+  Moteur inchangé. Bissection sur copies et trois fichiers ciblés en fond,
+  deux travailleurs réduits au plus ; pas de Luna, banc ou suite complète.
+  `d1c0722` vert, `79fca6a` et `f8fbff2` rouges sur les trois tests originaux ;
+  fusion introductrice et parent encore à établir. Bruts
+  `C:/Users/msics/donjon/artifacts/trois-echecs-322/`,
+  `fin-calcul.json` attendu avant clôture (agrège bissection et tests,
+  même en échec) ; processus détachés vérifiés actifs.
+  [Rapport 322](taches/rapport-codex-322-trois-echecs.md).
+
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base
   `integration 60f857c`** : aucune dépendance au hachage reproduite.
   Hameau/Relais 2024 identiques sous 1/42/310/2024 ; hameau historique
