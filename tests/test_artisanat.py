@@ -317,7 +317,7 @@ class HarnaisTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "atelier.json"
             with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "echanger", return_value=action(fabriquer())), patch.object(MJOpenAI, "raconter_resultat", side_effect=AssertionError("Le résultat vient du moteur")), patch.object(Monde, "d20", return_value=20), patch("builtins.input", side_effect=["je fabrique une échelle", "tenter", "quitter"]), patch("sys.stdout", io.StringIO()) as out:
-                jeu.main(["--recit-moteur", "--console", "--atelier", "--connexion", "api", "--save", str(path)])
+                jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(path)])
             self.assertIn("échelle", out.getvalue())
             self.assertIn("26 min", out.getvalue())
             m = Monde.charger(path)
@@ -329,7 +329,7 @@ class HarnaisTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "atelier.json"
             with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "echanger", return_value=action(fabriquer())), patch.object(MJOpenAI, "raconter_resultat", side_effect=AssertionError("Rien n'est raconté")), patch("builtins.input", side_effect=["est-ce que je peux fabriquer une échelle ?", "quitter"]), patch("sys.stdout", io.StringIO()) as out:
-                jeu.main(["--recit-moteur", "--console", "--atelier", "--connexion", "api", "--save", str(path)])
+                jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(path)])
             self.assertIn("26 min", out.getvalue())
             self.assertIn("Rien n'est encore tenté.", out.getvalue())
             m = Monde.charger(path)

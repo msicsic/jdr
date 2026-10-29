@@ -162,7 +162,7 @@ class EnrichissementTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
             with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "_appeler", side_effect=reponses), patch.object(Monde, "d20", return_value=20), patch("builtins.input", side_effect=["mj je retire l'axe", "Ses yeux sont comment ?", "tenter", "quitter"]), patch("sys.stdout", io.StringIO()) as sortie:
-                self.assertEqual(jeu.main(["--recit-moteur", "--console", "--save", str(chemin), "--connexion", "api"]), 0)
+                self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             m = Monde.charger(chemin)
             self.assertIn("detail_marchand_yeux", m.objets)
             self.assertIn("gris clair", sortie.getvalue())

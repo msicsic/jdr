@@ -70,7 +70,7 @@ def jouer(m, saisies, reponses=()):
               patch.object(Monde, "d20", return_value=20),
               patch("builtins.input", side_effect=[*saisies, "quitter"]),
               patch("sys.stdout", io.StringIO()) as sortie):
-            jeu.main(["--console", "--connexion", "api", "--recit-moteur", "--save", str(chemin_)])
+            jeu.main(["--console", "--connexion", "api", "--save", str(chemin_)])
         return Monde.charger(chemin_), sortie.getvalue()
 
 

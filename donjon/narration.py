@@ -117,8 +117,14 @@ def attestations(monde, contexte):
 
 
 def rendre_resultat(resultat):
-    """Affiche les conséquences rédigées par le moteur, sans la ligne de calcul du jet."""
-    lignes = [ligne for ligne in resultat.splitlines() if not ligne.startswith("1d20(")]
+    """Rendu public : l'issue du jet est visible, son calcul reste au journal."""
+    lignes = []
+    for ligne in resultat.splitlines():
+        if ligne.startswith("1d20("):
+            lignes.append("La tentative réussit." if ligne.endswith("REUSSITE") else
+                          "La tentative échoue.")
+        else:
+            lignes.append(ligne)
     return "\n".join(lignes).strip() or "Action accomplie."
 
 

@@ -1,129 +1,212 @@
+"""G4 : résultat public sauvegardé, sans récit ni audit après exécution."""
+import copy
 import io
+import json
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
 
 import jeu
+from donjon import corps
+from donjon.config import MODELE_PAR_DEFAUT
 from donjon.improvisation import issue, proposition as improviser
 from donjon.mj import MJOpenAI
-from donjon.monde import ErreurMonde, Monde, nouveau_monde
-
-
-def audit(texte):
-    from donjon.narration import segments
-    return {"segments": [{"portee_mecanique": "aucune", "indice": i, "verdict": "ambiance", "sources": [], "locuteur": "",
-                          "citation": "", "entites": [], "comptes": [], "motif": ""}
-                         for i, _ in enumerate(segments(texte))]}
-
-
-def jouer(saisies, recit, proposition, d20=None):
-    """Joue les saisies avec un MJ simulé ; recit est le texte de narration ou une exception."""
-    vus = []
-
-    def repondre(instructions, entree, intention, fonction, schema):
-        if fonction == "auditer_action":
-            return {"conforme": True, "motif": ""}
-        if fonction == "auditer_narration":
-            return audit(recit)
-        if "resultat_resolu" in entree["faits"]:
-            vus.append(entree["faits"]["resultat_resolu"])
-            if isinstance(recit, Exception):
-                raise recit
-            return {"mode": "dialogue", "texte": recit, "faits": ["resultat_resolu"], "proposition": None}
-        return {"mode": "action", "texte": "", "faits": [], "proposition": proposition}
-
-    with tempfile.TemporaryDirectory() as tmp:
-        chemin = Path(tmp) / "partie.json"
-        nouveau_monde().sauver(chemin)
-        correctifs = [patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
-                      patch.object(MJOpenAI, "_appeler_brut", side_effect=repondre),
-                      patch("builtins.input", side_effect=[*saisies, "quitter"])]
-        if d20 is not None:
-            correctifs.append(patch.object(Monde, "d20", return_value=d20))
-        with patch("sys.stdout", io.StringIO()) as sortie:
-            for c in correctifs:
-                c.start()
-            try:
-                code = jeu.main(["--console", "--save", str(chemin), "--connexion", "api"])
-            finally:
-                for c in reversed(correctifs):
-                    c.stop()
-        return code, sortie.getvalue(), Monde.charger(chemin), vus
+from donjon.monde import Monde, nouveau_monde
+from donjon.moteur import Moteur, gestes_accomplis, proposition
+from donjon.narration import rendre_resultat
+from donjon.rendu import regarder, carte, fiche
+from tools.banc_parties import preparer
 
 
 ETIREMENT = improviser("S'étirer", issue("Brouillon non affiché.", []), approche="effort")
 
 
 class RecitResultatTests(unittest.TestCase):
-    def test_geste_raconte_par_luna_apres_application(self):
-        # Cas réel du banc : « je m'étire » affichait « Tu réalises ce geste d'effort. »
-        recit = "Tu étires longuement les bras au-dessus de la tête, et tes épaules se dénouent."
-        code, sortie, reprise, vus = jouer(["je m'étire"], recit, ETIREMENT)
-        self.assertEqual(code, 0)
-        self.assertIn(recit, sortie)
-        self.assertNotIn("Tu réalises ce geste.", sortie)
-        self.assertEqual(vus[0]["intention"], "je m'étire")
-        # Le journal garde le résultat du moteur ; la conversation garde ce que le joueur a lu.
-        self.assertIn("Tu réalises ce geste.", reprise.data["journal"][-1]["faits"])
-        self.assertEqual(reprise.data["conversation"][-1]["reponse"], recit)
-        self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], recit)
+    def console(self, monde, p, demande, jet=20, confirmer=True):
+        """Le faux MJ ne sait que proposer et revoir ; tout appel après tenter échoue."""
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "copie.json"
+            monde.sauver(chemin)
+            commandes = iter(["mj " + demande, *(["tenter"] if confirmer else []), "quitter"])
+            appels, affiches, captures = [], [], []
+            phase = {"execution": False}
+            test = self
 
-    def test_le_recit_recoit_les_gestes_accomplis(self):
-        """Banc Luna : « je ramasse la bobine » racontée « Tu ramasses la bobine » était jugée
-        contradictoire, le résultat ne disant que « Tu portes maintenant… » ; le geste exécuté est
-        désormais un fait du résultat. Une manœuvre arrêtée au premier échec ne donne que ses
-        étapes exécutées."""
-        _, _, _, vus = jouer(["je m'étire"], "Tu t'étires.", ETIREMENT)
-        # Le geste dans les mots du moteur ; la manière demandée reste dans l'intention.
-        self.assertEqual((vus[0]["gestes"], vus[0]["intention"]), (["Geste."], "je m'étire"))
-        from donjon.moteur import Moteur, gestes_accomplis
+            class Pont:
+                def rafraichir(self, m, *_):
+                    self.monde = m
+
+                def lire(self, *_):
+                    saisie = next(commandes)
+                    if saisie == "tenter" or (not confirmer and saisie.startswith("mj ")):
+                        # Témoin moteur direct : mêmes jets, mêmes effets que la voie console.
+                        self.temoin = self.monde.copier()
+                        moteur = Moteur(self.temoin)
+                        self.resultat = rendre_resultat(moteur.executer(moteur.preparer(p, "LLM : " + MODELE_PAR_DEFAUT)))
+                        phase["execution"] = saisie == "tenter"
+                    return saisie
+
+                def ecrire(self, *valeurs, **_options):
+                    texte = " ".join(str(v) for v in valeurs)
+                    affiches.append(texte)
+                    if hasattr(self, "resultat") and texte == self.resultat:
+                        recharge = Monde.charger(chemin)
+                        # Tout ce qui est montré existe déjà sur disque, texte compris.
+                        test.assertEqual(recharge.data, self.monde.data)
+                        test.assertEqual(recharge.data["conversation"][-1]["reponse"], texte)
+                        test.assertEqual(recharge.data["conversation"][-1]["nature"], "resultat_moteur")
+                        test.assertEqual((regarder(recharge), fiche(recharge), carte(recharge)),
+                                         (regarder(self.monde), fiche(self.monde), carte(self.monde)))
+                        captures.append(copy.deepcopy(recharge.data))
+
+                def montrer(self, *_):
+                    pass
+
+            pont = Pont()
+            def appeler(_instructions, _entree, _intention, fonction, _schema):
+                self.assertFalse(phase["execution"], "Appel MJ après exécution : " + fonction)
+                appels.append(fonction)
+                if fonction == "auditer_action":
+                    return {"conforme": True, "motif": ""}
+                self.assertEqual(fonction, "repondre_au_joueur")
+                return {"mode": "action", "texte": "", "faits": [], "proposition": copy.deepcopy(p)}
+
+            tirage = {"side_effect": jet} if callable(jet) else {"return_value": jet}
+            with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
+                  patch.object(MJOpenAI, "_appeler_brut", side_effect=appeler),
+                  patch.object(MJOpenAI, "raconter_resultat", side_effect=AssertionError("Aucun récit")) as recit,
+                  patch.object(Monde, "d20", **tirage),
+                  patch("sys.stdout", io.StringIO())):
+                self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"],
+                                          interface=pont), 0)
+            recharge = Monde.charger(chemin)
+            self.assertEqual(len(captures), 1)
+            self.assertEqual(recharge.data, captures[0])
+            recit.assert_not_called()
+            self.assertEqual(appels, ["repondre_au_joueur", "auditer_action"])
+            # Le journal de résultat peut être enrichi, jamais l'effet du geste.
+            reel, temoin = copy.deepcopy(recharge.data), copy.deepcopy(pont.temoin.data)
+            reel.pop("conversation", None)
+            temoin.pop("conversation", None)
+            self.assertEqual(reel, temoin)
+            self.assertFalse(recharge.data.get("narrations_mj"))
+            return recharge, pont.resultat, "\n".join(affiches)
+
+    def scene_banc(self, nom):
+        donnees = json.loads(Path("tests/data/bancs/" + nom + ".json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as tmp:
+            chemin = Path(tmp) / "scene.json"
+            preparer(donnees, chemin)
+            return Monde.charger(chemin)
+
+    def test_assommer_reel_et_autre_coup_blessant(self):
+        for methode, jet in (("assommer", 20), ("simple", 15)):
+            with self.subTest(methode=methode):
+                m = self.scene_banc("force-4b-assommer")
+                pv = corps.pv(m, "marchand")
+                m, resultat, texte = self.console(m, proposition("frapper", "marchand", "", methode),
+                    "Puis-je " + ("assommer Gorm par derrière ?" if methode == "assommer" else "frapper Gorm ?"), jet)
+                self.assertIn("« tenter »", texte)
+                self.assertIn("le coup porte", resultat)
+                self.assertNotIn("1d20(", resultat)
+                self.assertIn(str(pv - corps.pv(m, "marchand")) + " PV", resultat)
+                self.assertEqual(corps.conscient(m, "marchand"), methode != "assommer")
+                if methode == "assommer":
+                    self.assertIn("sans connaissance", resultat)
+
+    def test_ligoter_reel_et_autre_contrainte(self):
+        m = self.scene_banc("force-4f-ligoter")
+        m, resultat, _ = self.console(m, proposition("ligoter", "brune", "corde_rixe"),
+                                     "Puis-je la ligoter avec la corde ?")
+        self.assertIn("maintenant ligotée", resultat)
+        self.assertEqual(corps.corps(m, "brune")["lie"]["lien"], "corde_rixe")
+        from tests.test_trainer import scene
+        m, cible = scene()
+        depart = m.joueur["position"][:]
+        m, resultat, _ = self.console(m, proposition("trainer", cible, "est"),
+                                     "Puis-je traîner Brune vers est ?")
+        self.assertIn("Tu as traîné le corps d’une case.", resultat)
+        self.assertEqual(m.objets[cible]["position"], depart)
+        self.assertNotEqual(m.joueur["position"], depart)
+
+    def test_depot_reel_et_autres_possessions_et_lumiere(self):
+        for action in ("poser", "prendre", "allumer"):
+            with self.subTest(action=action):
+                m = self.scene_banc("poser-sol-relais")
+                if action == "prendre":
+                    from donjon.deplacement_objet import deplacer
+                    deplacer(m, "torche", m.joueur["salle"])
+                m, resultat, _ = self.console(m, proposition(action, "torche"),
+                                             "Puis-je " + action + " ma torche ?")
+                if action == "poser":
+                    self.assertIn("au sol, à tes pieds", resultat)
+                    self.assertEqual(m.objets["torche"]["lieu"], m.joueur["salle"])
+                    self.assertEqual(m.objets["torche"]["position"], m.joueur["position"])
+                else:
+                    self.assertEqual(m.objets["torche"]["lieu"], "joueur")
+                    self.assertIn("s'allume" if action == "allumer" else "Tu prends", resultat)
+                    if action == "allumer":
+                        self.assertTrue(m.objets["torche"]["allume"])
+
+    def test_prise_et_coup_manque_rendent_leur_issue(self):
+        from tests.test_tenir import situation
+        for action, jet in (("saisir", 20), ("saisir", 1), ("frapper", 1)):
+            with self.subTest(action=action, jet=jet):
+                m = situation()
+                pv = corps.pv(m, "brune")
+                m, resultat, _ = self.console(m, proposition(action, "brune"),
+                                             "Puis-je " + action + " Brune ?", jet)
+                self.assertNotIn("1d20(", resultat)
+                self.assertIn("Tu saisis cette personne." if jet == 20 else
+                              "La personne échappe à ta prise." if action == "saisir" else
+                              "le coup manque sa cible.", resultat)
+                self.assertEqual(corps.pv(m, "brune"), pv)
+                if jet == 20:
+                    from donjon.francais import sujet
+                    reaction = sujet(m.objets["brune"]) + " se dégage."
+                    self.assertLess(resultat.index("Tu saisis cette personne."), resultat.index(reaction))
+                self.assertNotIn("tenu_par", corps.corps(m, "brune"))
+
+    def test_autre_personne_saisie_puis_degagee_et_recharge(self):
+        from tests.test_tenir import situation
+        from donjon.francais import sujet
+        m = situation("marchand")
+        m, resultat, _ = self.console(m, proposition("saisir", "marchand"), "Puis-je saisir Gorm ?")
+        self.assertLess(resultat.index("Tu saisis cette personne."),
+                        resultat.index(sujet(m.objets["marchand"]) + " se dégage."))
+        self.assertNotIn("tenu_par", corps.corps(m, "marchand"))
+
+    def test_degagement_manque_percu_et_prise_conservee(self):
+        from tests.test_tenir import situation
+        from donjon.francais import sujet
+        m = situation("aubin")
+        m, resultat, _ = self.console(m, proposition("saisir", "aubin"), "Puis-je saisir Aubin ?")
+        self.assertLess(resultat.index("Tu saisis cette personne."),
+                        resultat.index(sujet(m.objets["aubin"]) + " ne parvient pas à se dégager."))
+        self.assertEqual(corps.corps(m, "aubin")["tenu_par"], "joueur")
+
+    def test_geste_immediat_sans_second_appel(self):
+        _, resultat, _ = self.console(nouveau_monde(), ETIREMENT, "je m'étire", confirmer=False)
+        self.assertEqual(resultat, "Tu réalises ce geste.")
+
+    def test_echec_et_reussite_du_jet_restent_affiches(self):
+        p = improviser("Bondir", issue("Brouillon.", []), issue("Brouillon.", []),
+                       approche="adresse", stat="DEX", difficulte=12)
+        for jet in (1, 20):
+            with self.subTest(jet=jet):
+                m, resultat, _ = self.console(nouveau_monde(), p, "Puis-je bondir sur place ?", jet)
+                self.assertNotIn("1d20(", resultat)
+                self.assertIn("La tentative échoue." if jet == 1 else "La tentative réussit.", resultat)
+                self.assertEqual(m.data["journal"][-1]["reussite"], jet == 20)
+
+    def test_le_plan_garde_les_gestes_accomplis_pour_les_outils(self):
         m = nouveau_monde()
-        etape = lambda op, cible, **k: {"operation": op, "cible": cible, "destination": "", "outil": "",
-                                        "methode": "simple", "difficulte": 0, **k}
-        prises = [o for o, x in m.objets.items() if x.get("mobile") and x["lieu"] == m.joueur["salle"]
-                  and m.accessible(o)]
+        from tests.test_poser_sol import sequence, etape
         moteur = Moteur(m)
-        plan = moteur.preparer({"action": "composer", "justification": "", "etapes": [
-            etape("deplacer", prises[0], destination="joueur")]})
+        plan = moteur.preparer(sequence(etape("deplacer", "torche", "joueur")))
         moteur.executer(plan)
         self.assertEqual(gestes_accomplis(plan, m), [plan.plans[0].titre])
-        self.assertTrue(plan.plans[0].titre.startswith("Prendre "))
-
-    def test_nombre_invente_rend_le_texte_du_moteur(self):
-        recit = "Tu t'étires et perds 5 PV dans un faux mouvement."
-        _, sortie, reprise, _ = jouer(["je m'étire"], recit, ETIREMENT)
-        self.assertNotIn(recit, sortie)
-        self.assertIn("Tu réalises ce geste.", sortie)
-        self.assertEqual(reprise.joueur["pv"], nouveau_monde().joueur["pv"])
-        self.assertEqual(reprise.data["conversation"][-1]["reponse"], "Tu réalises ce geste.")
-
-    def test_panne_du_recit_rend_le_texte_du_moteur_sans_rejouer(self):
-        _, sortie, reprise, _ = jouer(["je m'étire"], ErreurMonde("réseau"), ETIREMENT)
-        self.assertIn("Tu réalises ce geste.", sortie)
-        self.assertEqual(len(reprise.data["journal"]), 1)
-
-    def test_tenter_raconte_la_demande_d_origine(self):
-        saut = improviser("Bondir", issue("Brouillon.", []), issue("Brouillon.", []),
-                         approche="adresse", stat="DEX", difficulte=12)
-        recit = "Tu prends ton élan et bondis souplement."
-        _, sortie, reprise, vus = jouer(["je bondis sur place", "tenter"], recit, saut, d20=20)
-        self.assertEqual(vus[0]["intention"], "je bondis sur place")
-        self.assertIn(recit, sortie)
-        self.assertTrue(reprise.data["journal"][-1]["reussite"])
-
-    def test_option_recit_moteur_sans_appel(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            chemin = Path(tmp) / "partie.json"
-            with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
-                  patch.object(MJOpenAI, "_appeler_brut", side_effect=lambda *a: (
-                      {"conforme": True, "motif": ""} if a[3] == "auditer_action" else
-                      {"mode": "action", "texte": "", "faits": [], "proposition": ETIREMENT})) as appel,
-                  patch("builtins.input", side_effect=["je m'étire", "quitter"]),
-                  patch("sys.stdout", io.StringIO()) as sortie):
-                jeu.main(["--recit-moteur", "--console", "--save", str(chemin), "--connexion", "api"])
-        self.assertEqual(appel.call_count, 2)
-        self.assertIn("Tu réalises ce geste.", sortie.getvalue())
 
 
 if __name__ == "__main__":

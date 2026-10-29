@@ -393,7 +393,7 @@ class JoueurFeuTests(unittest.TestCase):
                   patch("builtins.input", side_effect=[
                       "je ramasse les fagots et j'en mets une brassée dans le feu du brasero", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
-                self.assertEqual(jeu.main(["--recit-moteur", "--console", "--defi", "--save", str(chemin),
+                self.assertEqual(jeu.main(["--console", "--defi", "--save", str(chemin),
                                            "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
         self.assertIn("Le brasero est rechargé avec les fagots de bois sec.", sortie.getvalue())

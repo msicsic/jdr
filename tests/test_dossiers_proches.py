@@ -47,7 +47,7 @@ def console(m, p, tenter=False, requetes=None):
               patch.object(Monde, "d20", return_value=20),
               patch("builtins.input", side_effect=[*saisies, "quitter"]),
               patch("sys.stdout", io.StringIO()) as sortie):
-            jeu.main(["--console", "--connexion", "api", "--recit-moteur", "--save", str(path)])
+            jeu.main(["--console", "--connexion", "api", "--save", str(path)])
         return Monde.charger(path), sortie.getvalue(), faits
 
 

@@ -33,7 +33,7 @@ class PoserSolTests(unittest.TestCase):
                  patch.object(MJOpenAI, "_appeler", return_value=reponse), \
                  patch("builtins.input", side_effect=["je pose au sol", "tenter", "quitter"]), \
                  patch("sys.stdout", io.StringIO()) as sortie:
-                jeu.main(["--recit-moteur", "--console", "--connexion", "api", "--save", str(path)])
+                jeu.main(["--console", "--connexion", "api", "--save", str(path)])
             return Monde.charger(path), sortie.getvalue()
 
     def verifier_sol(self, m, cible):

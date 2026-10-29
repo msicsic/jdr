@@ -12,10 +12,9 @@ from donjon.config import charger_env, MODELE_CLAUDE, MODELE_LOCAL, MODELE_MIMO,
 from donjon.connexion import Coffre, connecter
 from donjon.mj import MJ
 from donjon.monde import ErreurMonde, Monde, normaliser, nouveau_monde
-from donjon.moteur import Moteur, QualificationRequise, gestes_accomplis
+from donjon.moteur import Moteur, QualificationRequise
 from donjon.noms import NomNonResolu, verifier_saisie
-from donjon.narration import (consigner as consigner_narration, rendre_resultat,
-                              chiffres_sans_fondement)
+from donjon.narration import consigner as consigner_narration, rendre_resultat
 from donjon.dialogues import preparer_conversation, commande_sociale
 from donjon.commandes import repondre as repondre_appel
 from donjon.transactions import appliquer as appliquer_transactions
@@ -105,8 +104,6 @@ def main(argv=None, interface=None):
     parser.add_argument("--web", action="store_true",
                         help="jouer dans le navigateur (serveur local 127.0.0.1) ; le défaut dans un terminal")
     parser.add_argument("--port", type=int, default=8765, help="port local de --web")
-    parser.add_argument("--recit-moteur", action="store_true",
-                        help="affiche les résultats d'action rédigés par le moteur, sans récit de Luna")
     args = parser.parse_args(argv)
     if args.model is None:
         args.model = MODELE_MIMO if args.connexion == "mimo" else os.environ.get("LOCAL_LLM_MODEL", MODELE_LOCAL) if args.connexion == "local" else os.environ.get("OPENAI_MODEL", MODELE_PAR_DEFAUT)
@@ -231,42 +228,15 @@ def main(argv=None, interface=None):
         pending = None
         comparaison_pending = 0
 
-        def demande_initiale(intention):
-            # « tenter » confirme la dernière proposition : son récit part de la demande d'origine.
-            if normaliser(intention) != "tenter":
-                return intention
-            return next((e["joueur"] for e in reversed(m.data["conversation"])
-                         if e.get("nature") == "proposition_non_executee"), intention)
-
-        def raconter(affichage, intention, gestes):
-            """Récit de Luna d'un résultat déjà appliqué et sauvegardé ; le moteur reste le repli."""
-            if mj is None or args.recit_moteur:
-                return None
-            try:
-                recit = mj.raconter_resultat(m, {"intention": demande_initiale(intention), "gestes": gestes,
-                                                 "faits": affichage.splitlines()})
-            except ErreurMonde:
-                return None
-            if (recit.get("mode") != "dialogue" or not recit.get("_audit")
-                    or chiffres_sans_fondement(recit["texte"], affichage, m.joueur)):
-                return None
-            return recit
-
         def conclure(plan, resultat, intention, numero=0):
-            # Le moteur a déjà produit les conséquences ; son journal garde le détail du jet.
+            # Le résultat et sa trace de conversation sont sauvegardés avant affichage.
+            # Aucun appel au MJ : les conséquences publiques viennent du moteur.
             affichage = rendre_resultat(resultat)
-            m.sauver(args.save)
-            # Une perception a déjà pour résultat ce que le moteur fait percevoir :
-            # le rendre directement conserve cette portée sans seconde interprétation.
-            recit = None if plan.perception is not None else raconter(affichage, intention, gestes_accomplis(plan, m))
-            texte_affiche = recit["texte"] if recit else affichage
-            m.memoriser(intention, texte_affiche, "resultat_moteur")
-            if recit:
-                consigner_narration(m, recit)
+            m.memoriser(intention, affichage, "resultat_moteur")
             m.sauver(args.save)
             if isinstance(mj, Comparateur) and numero:
                 mj.noter_resultat(resultat, numero=numero)
-            imprimer(texte_affiche)
+            imprimer(affichage)
 
         while True:
             if interface:

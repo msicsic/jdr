@@ -185,7 +185,7 @@ class QuestionsConsoleTests(unittest.TestCase):
         self.assertIn("« tenter » lance l'ensemble", texte)
         self.assertTrue(m.objets["lanterne"]["allume"])
         # Le joueur tente ensuite la même fiche (le moteur la raconte lui-même).
-        with patch.object(MJOpenAI, "raconter_resultat", side_effect=ErreurMonde("récit indisponible")):
+        with patch.object(MJOpenAI, "raconter_resultat", side_effect=AssertionError("Aucun récit après exécution")):
             texte, m, _ = self.lancer(["Puis-je éteindre ma lanterne ?", "tenter"], {
                 "mode": "action", "texte": "", "faits": [], "proposition": proposition("eteindre", "lanterne")})
         self.assertFalse(m.objets["lanterne"]["allume"])

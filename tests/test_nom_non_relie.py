@@ -27,7 +27,7 @@ def jouer_local(m, saisie, offline=False):
               patch.object(MJOpenAI, '_appeler_brut') as appeler,
               patch('builtins.input', side_effect=[saisie, 'quitter']),
               patch('sys.stdout', io.StringIO()) as sortie):
-            args = ['--console', '--recit-moteur', '--save', str(chemin)]
+            args = ['--console', '--save', str(chemin)]
             args += ['--offline'] if offline else ['--connexion', 'api']
             assert jeu.main(args) == 0
         return Monde.charger(chemin), sortie.getvalue(), appeler.call_count

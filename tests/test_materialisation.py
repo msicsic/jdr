@@ -62,7 +62,7 @@ class MaterialisationTests(unittest.TestCase):
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=repondre),
                   patch("builtins.input", side_effect=["je ramasse un gravat", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
-                self.assertEqual(jeu.main(["--recit-moteur", "--console", "--save", str(chemin), "--connexion", "api"]), 0)
+                self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
         self.assertEqual(vus["premier"][0]["entites"], ["gravats au sol"])
         self.assertEqual(len(vus["reexamen"]), 1)
