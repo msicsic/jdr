@@ -36,7 +36,8 @@ def travail(arguments):
     nom = f'{scenario}-{graine}'
     attendus = {(x['pnj'], x['instant']) for x in archive['approches_impossibles']}
     acteurs = {qui for qui, t in attendus}
-    debut = min((t for qui, t in attendus), default=144000) // 3000 * 5
+    bornes = {t // 3000 * 5 for qui, t in attendus}
+    debut = min(bornes, default=240)
     dernier_choix, filet, traces, avertissements, erreurs = {}, [False], [], [], []
     dites, sauvegardes = set(), []
     approcher, choisir, deliberer = pnj._approcher, d.choisir, d.deliberer
@@ -100,8 +101,9 @@ def travail(arguments):
             filet[0] = ancien
 
     def releve(m):
-        if m.data['minutes'] == debut and attendus and 'data' not in capture:
-            capture['data'] = sauver(m, f'borne-{debut}')
+        if m.data['minutes'] in bornes:
+            capture['data'] = sauver(m, f"borne-{m.data['minutes']}")
+            capture['borne'] = m.data['minutes']
         return relever(m)
 
     def nouveau(*args, **kwargs):
@@ -145,9 +147,10 @@ def travail(arguments):
             for objet, attr, fonction in [(pnj, '_approcher', approche), (d, 'choisir', choix),
                                          (d, 'deliberer', deliberation)]:
                 pile.enter_context(patch.object(objet, attr, fonction))
-            banc.executer(m, 240 - debut)
+            banc.executer(m, 240)
         recharge = recharger(m)
-        reprise = {'borne': debut, 'avant_premiere_interruption': debut * 600 < min(t for q, t in attendus),
+        borne = capture['borne']
+        reprise = {'borne': borne, 'avant_premiere_interruption': any(borne * 600 < t < (borne + 5) * 600 for q, t in attendus),
                    'etat_final_identique': c.empreinte(m.data) == archive['etat_final'],
                    'monde_recharge': m.data == recharge.data,
                    'rendu_recharge': regarder(m) == regarder(recharge),

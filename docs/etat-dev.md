@@ -13,8 +13,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   rechargés et laps entier/découpé vérifiés. Disparition réelle : un seul
   démenti au contact pendant six minutes, aucun service ni répétition.
   **100 tests / onze fichiers verts**, 81,247 s ; sept nouvelles régressions,
-  plus deux tests verts du lanceur. Banc détaché achevé sur `5660366`,
-  moteur inchangé : douze paires 4 h × quatre graines × Relais/auberge/mine,
+  plus deux tests verts du lanceur. Première passe achevée sur `5660366` :
+  douze paires 4 h × quatre graines × Relais/auberge/mine,
   référence figée `d76f272`, deux travailleurs réduits, 854,913 s cumulées.
   Douze références absentes calculées une fois puis rangées en cache.
   Refus matériels **4→0**, interruptions d'approche **0→12**, parts
@@ -33,7 +33,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   les tests : imports/cwd corrigés, bilan écrit même en échec, anciens
   journaux conservés. Bruts `C:/Users/msics/donjon/artifacts/contact-313/`,
   `fin.json` **ok=true, codes 0/0**, analyse sans rejeu `analyse-cloture.json`.
-  Aucun calcul actif ; branche poussée vers origin. Aucun changement de
+  Première passe achevée ; branche poussée vers origin. Aucun changement de
   `planifier_tache`/`echanges.empeche`, ni Luna ni suite complète.
   **Complément demandé avant fusion** : établir sur capture rechargée la
   cause de chacune des cinq interruptions Ilse (141060–143400), regarder
@@ -43,7 +43,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   avertissements en hausse), aucune référence relancée. Captures, traces
   des entrées sans dates et reprises depuis bornes rechargées dans
   `C:/Users/msics/donjon/artifacts/contact-313/reprises-avant-fusion/` ;
-  `fin.json` écrit en dernier, résultats à lire avant clôture.
+  Sept nuits identiques aux archives (chronique/récit/mesures/souvenirs/état
+  final). Diagnostic initial `ok=false` conservé : erreur de paramètre de
+  reprise (minute finale absolue) et borne Ilse manquante, outil corrigé.
+  Preuve séparée : capture réelle **141000**, rechargée sur `112ecd4`,
+  cinq interruptions reproduites exactement ; monde/rendu/scène identiques
+  à la recharge avant et après. **141060** : localisation perdue pendant
+  la marche ; **141600** : nouvelle indication d'Aubin et déplacement ;
+  **142200/142800/143400** : croyances/perception/position inchangées,
+  **filet seul confirmé**. Autres interruptions : premiers échecs après
+  perte de localisation, aucun autre réessai identique dans les sept nuits.
+  Avertissements supplémentaires : torche rallumée à 1163 puis éteinte à
+  43800 ; Odile parle de `marmite_3` puis `marmite_2`, Hugues de `marmite_3`
+  puis `marmite` sous le même nom rendu. Preuves `classification.json`.
+  **Correction écrite** : obstacle `contact` dans les renoncements communs,
+  revalidation commune avant une nouvelle approche ; dates et filet ne
+  rouvrent pas le contact, information spatiale/lumière/moyen pertinent ou
+  perception positive de la cible/support le rouvrent. Charge conservée,
+  aucun nouvel accès aux positions réelles cachées. **Trois nouveaux
+  parcours verts**, 10,690 s : cas réel, autre contact et charge dans le noir,
+  monde/rendu/scène rechargés et laps entier/découpé. Validation élargie et
+  cinq nuits de branche nécessaires seulement en préparation, références
+  et sept nuits sans interruption réutilisées ; bilan attendu dans
+  `C:/Users/msics/donjon/artifacts/contact-313/reprises-validation/fin.json`.
   [Rapport 313](taches/rapport-codex-313-contact-position-inconnue.md).
 
 - **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :

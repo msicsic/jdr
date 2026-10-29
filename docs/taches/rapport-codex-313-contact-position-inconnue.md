@@ -1,7 +1,8 @@
 # Lot 313 — contact sans position connue
 
 29 octobre 2026. Branche `codex-contact-inconnu`, **rouverte avant fusion**,
-base `integration d76f272`. Moteur validé sur `5660366`, inchangé depuis.
+base `integration d76f272`. Première passe sur `5660366` ; correction des
+reprises en validation (complément ci-dessous).
 
 **Invariant et correction.** Une portée insuffisante ou une case inconnue
 ne prouve pas l'absence. `positions_crues.case_contact`, commun à
@@ -73,16 +74,50 @@ exhaustive ni absence universelle de boucle garanties.
 
 Bruts et analyse sans rejeu : `C:/Users/msics/donjon/artifacts/contact-313/`
 (`tests.json`, `comparaison.json`, `mesures.json`, `analyse-cloture.json`,
-`fin.json`). Aucun calcul actif, branche poussée vers origin.
+`fin.json`). Première passe achevée, branche poussée vers origin.
 
-**Complément avant fusion en cours.** La seule absence de suspects 219 ne
-répond pas à la décision du 27 octobre : reprise seulement après entrée
-nouvelle ou progression réelle. `tools/diagnostiquer_reprises_313.py`
-rejoue uniquement les sept nuits concernées par interruptions ou hausse
-d'avertissements. Il compare chronique/récit/mesures/souvenirs/état final
-aux archives, capture les bornes précédant les interruptions (235 min pour
-Ilse), vérifie monde/rendu/scène à la recharge, puis reprend les sauvegardes
-effectivement rechargées. Les traces conservent positions crues, croyances
-sans dates, perception, mouvements et origine des choix (filet ou éveil).
-Bruts `contact-313/reprises-avant-fusion/`, bilan `fin.json` en dernier.
-La cause des reprises et l'éventuelle correction restent à établir.
+**Complément avant fusion — cause établie.** Les sept nuits instrumentées
+sont identiques aux archives (chronique/récit/mesures/souvenirs/état final).
+Le bilan initial `ok=false` est conservé : la reprise utilisait une durée
+au lieu d'une minute finale absolue ; la borne Ilse manquait. Outil corrigé,
+sans relance des sept nuits. Preuve distincte : capture propre **141000**
+sur `112ecd4`, sauvegardée/rechargée, cinq interruptions reproduites
+exactement ; monde/rendu/scène identiques à la recharge avant et après.
+
+| Interruption Ilse | Ce qui précède et autorise, ou non, l'essai |
+|---|---|
+| 141060 | Premier échec : progression puis localisation de Gorm perdue pendant la marche. |
+| 141600 | Nouvelle indication d'Aubin à 141120 (`None → antichambre`) et déplacement `[4,1] → [5,2]`. |
+| 142200 | Même position, contacts, croyances sans dates et perception : **filet seul**. |
+| 142800 | Entrées toujours identiques : **filet seul**. |
+| 143400 | Entrées toujours identiques : **filet seul**. |
+
+Les sept autres interruptions (Brune ×2, Lucien auberge 42, Mireille/Joss
+auberge 2024, Rémy mine 1985, Lucien mine 7) sont des premiers échecs :
+localisation perdue, sans réessai du même contact interrompu sur la nuit.
+Les trois avertissements supplémentaires sont expliqués par les captures :
+torche rallumée à 1163 puis nouvelle extinction à 43800 ; deux homonymies
+de portions distinctes, Odile `marmite_3 → marmite_2` (73200/73800), Hugues
+`marmite_3 → marmite` (58200/103800). Les noyaux reçus et registres des
+faits dits distinguent ces objets, malgré la même phrase affichée.
+Bruts `reprises-avant-fusion/classification.json` et
+`preuve-ilse-base-rechargee.json` ; aucun résultat du diagnostic en échec
+n'est déclaré globalement vert.
+
+**Correction commune.** Une observation sans contact à poursuivre retient
+sa cause typée `contact` dans les renoncements du lot 225. `refus_etape`
+et `obstacle_patience` consultent le même repère : liens et positions crus,
+lumière des lieux visés, portes connues, moyens portés et états connus,
+perception de la cible ou de ses supports. Ni une date fraîche ni une
+perte de vue seule ne le lèvent. Une nouvelle entrée pertinente le lève ;
+les recherches et observations alternatives restent possibles. Aucune
+position mobile cachée, aucun délai nouveau, aucune branche par PNJ.
+La charge reste enregistrée, seul le moyen échoué est interrompu.
+
+**Trois nouveaux parcours verts** (10,690 s) : Ilse depuis 141000,
+autre contact à la mine bloqué puis repris après localisation nouvelle,
+source non localisée dans le noir avec charge et présence crue conservées.
+Monde/rendu/scène rechargés, temps entier/découpé identiques. Validation
+élargie et seules cinq nuits de branche avec interruptions restent à lire
+avant clôture ; aucune référence rejouée, sept nuits sans interruption
+réutilisées. Bilan attendu `contact-313/reprises-validation/fin.json`.

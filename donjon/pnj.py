@@ -1638,7 +1638,7 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
         # mobile. Le centre et le tour d'horizon sont ceux de l'inspection.
         salle = next(s for s, c in crues if c is None)
         if salle is None:
-            return None
+            return _interrompre_contact(monde, id, etape)
         if salle != o['lieu']:
             arrivee = lambda s, c: s == salle
         else:
@@ -1653,10 +1653,25 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
         # Même si le regard dément la présence, ne pas exécuter l'ancien geste.
         if places_crues() != crues:
             return TOUR
-        return None
+        return _interrompre_contact(monde, id, etape)
     arrivee = lambda salle, case: all(contact_cases(monde, salle, case, s, c) for s, c in crues)
     pas = _marcher(monde, id, arrivee, lignes, gestes)
     return _impasse(monde, id, etape, arrivee, compter) if pas is None else pas
+
+
+def _interrompre_contact(monde, id, etape):
+    """L'observation n'a aucun contact à poursuivre : retenir sa cause, sans délai.
+
+    La charge reste au registre des agendas ; seul ce moyen est interrompu.
+    Les autres recherches/observations peuvent toujours apporter une entrée.
+    """
+    from .deliberation import renoncer
+    from .positions_crues import repere_contact
+    if lire(monde, id)['intention']:
+        cause = {'type': 'contact', 'salle': monde.objets[id]['lieu'],
+                 'etape': dict(etape), 'repere': repere_contact(monde, id, etape)}
+        renoncer(monde, id, monde.data['minutes'], cause)
+    return None
 
 
 def _impasse(monde, id, etape, arrivee, compter=True):
@@ -1834,6 +1849,13 @@ def refus_etape(monde, id, etapes):
     ici = monde.objets[id]["lieu"]
     tete = next((x for x in etapes if x["operation"] != "aller" or x["lieu"] != ici), None)
     if tete is not None and tete["operation"] != "aller":
+        from .positions_crues import contact_interrompu_tient
+        for retenus in lire(monde, id)['renoncements'].values():
+            for r in retenus if isinstance(retenus, list) else ():
+                cause = r['cause']
+                if (cause['type'] == 'contact' and _geste(tete) == _geste(cause['etape'])
+                        and contact_interrompu_tient(monde, id, cause)):
+                    return 'contact interrompu sans entrée nouvelle'
         from .planification import vue, depart
         v = vue(monde, id)
         e = depart(monde, id, v)

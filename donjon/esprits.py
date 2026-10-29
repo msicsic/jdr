@@ -384,15 +384,18 @@ def verifier(monde):
                 isinstance(r, dict) and set(r) == {"instant", "but", "cause"}
                 and type(r["instant"]) is int and r["instant"] >= 0 and isinstance(r["but"], dict)
                 and isinstance(r["cause"], dict)
-                and r["cause"].get("type") in ("temoins", "passage", "corps")
+                and r["cause"].get("type") in ("temoins", "passage", "corps", "contact")
                 and r["cause"].get("salle") in monde.data["salles"]
                 and isinstance(r["cause"].get("etape"), dict)
                 and (r["cause"]["type"] == "corps" or
-                     (isinstance(r["cause"].get("temoins"), dict) and "nature" in r["cause"]
-                     if r["cause"]["type"] == "temoins" else
-                     isinstance(r["cause"].get("arrivees"), list)
+                     r['cause']['type'] == 'contact' and isinstance(r['cause'].get('repere'), dict)
+                     and set(r['cause']['repere']) == {'contacts', 'lumiere', 'portes', 'moyens', 'perception'}
+                     and all(isinstance(r['cause']['repere'][k], list) for k in r['cause']['repere'])
+                     or r['cause']['type'] == 'temoins'
+                     and isinstance(r["cause"].get("temoins"), dict) and "nature" in r["cause"]
+                     or r['cause']['type'] == 'passage' and isinstance(r["cause"].get("arrivees"), list)
                      and all(s in monde.data["salles"] and isinstance(c, list) and len(c) == 2
-                             and all(type(x) is int for x in c) for s, c in r["cause"]["arrivees"])))
+                             and all(type(x) is int for x in c) for s, c in r["cause"]["arrivees"]))
                 for r in v)) for k, v in e["renoncements"].items()), "Renoncements invalides"
         assert isinstance(e["attentes_bornees"], dict) and all(
             isinstance(k, str) and isinstance(v, str) for k, v in e["attentes_bornees"].items()
