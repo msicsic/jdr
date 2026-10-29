@@ -31,12 +31,14 @@ rendu, scène et texte identiques après recharge, six minutes entières ou
 découpées. La capture n'est adaptée que par le retrait des deux champs
 expérimentaux du 273, comme au diagnostic 289.
 
-La passe des neuf fichiers directement concernés est consignée dans
-`tests-cibles.json` ; les contre-épreuves 251 pour un lieu cru connu sont
+La passe des neuf fichiers directement concernés est en cours ; son résultat
+sera consigné dans `tests-cibles.json`. Les contre-épreuves 251 pour un lieu cru connu sont
 conservées sans modification. Les premiers onze tests voisins et les cinq
 nouvelles épreuves ont aussi été exécutés séparément pendant le travail.
 
-**Banc rapide en attente.** Auberge, mine, Relais × 1985/7/42/2024 × quatre
+**Calcul détaché.** Le lanceur attend la fin de cette passe ciblée déjà
+lancée ; il ne démarre le banc que si elle est verte, sans rejouer les tests.
+Auberge, mine, Relais × 1985/7/42/2024 × quatre
 heures, référence intégration `79beaf1` par le cache commun du comparateur,
 puis worktree courant. Un travailleur, priorité réduite ; sortie et fichier
 de fin même en cas d'échec dans

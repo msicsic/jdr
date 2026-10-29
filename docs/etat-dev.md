@@ -14,7 +14,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun service exécuté en échec ; monde/rendu/scène et textes identiques
   après recharge, six minutes entières ou découpées. Les questions fondées
   sur une croyance périmée d'un tiers peuvent toujours échouer.
-  Vérification ciblée consignée dans `tests-cibles.json` (neuf fichiers).
+  Vérification ciblée en cours (neuf fichiers), résultat `tests-cibles.json` ;
+  le lanceur détaché attend sa fin et sa réussite avant le banc, sans rejeu.
   **Banc rapide détaché à terminer** : auberge/mine/Relais × quatre graines
   × 4 h, intégration `79beaf1` par cache, un travailleur réduit. Les critères
   de boucle, usurpation et suspects 219 restent à lire avant clôture ;
