@@ -28,11 +28,29 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   joueur au contact avec un contenu `proposition` existant.
   **8/8 tests propres au lot verts, 31,031 s** ; monde final de la scène
   Bram corrigée identique à celui de `1852d6e`, six graphes historiques exacts.
-  **Validation en cours**, ne pas fusionner : reprise des 34 fichiers et
-  banc 20 paires 4 h, référence `1852d6e`, deux travailleurs réduits au plus.
-  Ancien `fin.json` négatif conservé ; résultat terminal de reprise
-  attendu `C:/Users/msics/donjon/artifacts/allumer-277/correction/fin.json` ; vérifier
-  `ok`, les tests, chaque nuit suspecte 219 et S/F/D avant livraison finale.
+  **Validation finale du code `bbab808` terminée : 314 tests verts dans
+  34 fichiers, zéro échec/erreur/saut, 878,547 s ; six captures de scène
+  avant/accord/travail, tous contrôles monde/rendu/scène rechargés verts.**
+  **20/20 paires 4 h sans hausse des suspects 219 : 0 → 0 pour chaque
+  scénario (relais, mine, auberge, crue, crue_hameau) × graine (1985, 7,
+  42, 2024). Coups 0 → 0 dans chaque nuit**, zéro plantage.
+  Demandes/offres d'allumage naturelles **13 → 14**, aucune acceptée :
+  treize offres payées impossibles de Gorm conservées ; seul ajout,
+  **Ilse → Aubin, poêle du guet, crue/42, 215 min, instant 129220, refus**.
+  Aucun ajout au hameau. S total **417 → 416**, F moyen **5,45 → 5,45**,
+  D moyen **1,997024 → 2,034524**, référence `1852d6e`.
+  Trois triplets S/F/D changent : relais/42 **8/3/0,75 → 7/3/0,75**,
+  relais/2024 **19/5/2,25 → 18/5/2,75**, crue/42 **29/7/3,25 → 30/7/3,5** ;
+  dix-sept autres identiques. Réussite naturelle et bénéfice universel non
+  démontrés ; le coup historique à 652 min est hors du banc de 4 h.
+  Référence non en cache : vingt nuits calculées une fois ; chaîne
+  **2 684,018 s**, deux travailleurs réduits au plus, aucun temps comparé
+  entre campagnes. **`correction/fin.json`, `ok=true`, aucun calcul actif**.
+  Ancien `fin.json` négatif conservé ; bruts et instruction dans
+  `C:/Users/msics/donjon/artifacts/allumer-277/`.
+  **Non fusionnée** : l'intégration contient depuis le lot 266 « rester
+  près » ; ces mesures précèdent sa fusion avec 277. Le superviseur fera
+  une fusion d'essai et la suite complète ; aucun nouveau calcul de clôture.
   [Rapport 277](taches/rapport-codex-277-allumer-pour-soi.md).
 
 - **Branche `codex-appeler-donneur`, fusionnée**, lot **275**, base

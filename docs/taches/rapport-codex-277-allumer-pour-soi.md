@@ -1,83 +1,82 @@
 # Lot 277 — demander l'allumage d'un foyer fixe pour soi
 
-29 octobre 2026, branche `codex-allumer-pour-soi`, **non fusionnée**, base
-`1852d6e` (intégration avec 275). **Vérification en cours : ne pas fusionner
-avant lecture de `artifacts/allumer-277/correction/fin.json` du dépôt principal.**
+29 octobre 2026, branche `codex-allumer-pour-soi`, **non fusionnée**, code
+**`bbab808`**, référence **`1852d6e`**. **Validation du lot terminée :
+314 tests verts, 20/20 paires de nuits 4 h sans hausse de suspects, aucun
+plantage ; `correction/fin.json`, `ok=true`.** L'intégration contient depuis
+le lot 266 « rester près » : ces résultats ne portent pas sur sa fusion
+avec 277. Le superviseur fera la fusion d'essai et la suite complète.
 
-**Diagnostic préalable, sans modification du moteur.** Captures 269
-`choix-369211` et `choix-391200` : la condition `allume` est admise pour
-le brasero et le poêle du guet ; aucune offre `confier`/`engager` n'est
-produite dans les recherches chaleur, aucun refus de cette tâche n'est
-retenu. Aubin n'a pas de poste gardé : l'aide gratuite existante ne s'ouvre
-pas ; les tâches payées ne sont offertes que pour une pulsion explicitement
-visée. Gorm est cru porter la torche allumée. **Son devis est néanmoins
-impossible sur les deux captures et pour les deux foyers**, même avec un
-jet de 20 : le recours manquant ne garantit donc pas d'éviter le coup.
-Monde, rendu et scène des deux captures identiques après recharge.
+**Diagnostic préalable.** Captures 269 à 615 et 652 min, brasero et poêle :
+condition `allume` admise, aucune offre chaleur `confier`/`engager`, aucun
+refus de tâche retenu. Aubin ne garde pas son poste ; l'aide gratuite ne
+s'ouvre pas et le travail payé exige une pulsion explicitement visée.
+Gorm est cru porter une flamme, mais **son devis reste impossible sur les
+quatre cas** : ajouter le recours ne garantit pas d'éviter le coup.
+Monde/rendu/scène des captures identiques après recharge.
 
-**Invariant et raccord.** Un foyer mécanique (`foyer=True`) fixe cru éteint et chargé, hors de l'eau
-attendue, utilisable sans faute, peut ouvrir une demande à qui est cru
-porter une flamme, lorsque le demandeur n'en porte aucune. Les lieux des
-tiers et les flammes proviennent des croyances. `confier` et `engager`
-conservent leurs devis, jugement, coût, refus et exécution ordinaires.
-La projection sert à comparer les moyens ; le plan exécutable s'arrête
-à la demande et attend ensuite le travail accepté. L'accord ne change ni
-le feu ni la position du destinataire. La parole du joueur emploie la voie
-de service déjà existante, sans changement de prompt ni appel à Luna.
+**Invariant et fonctions.** Un foyer mécanique (`foyer=True`) fixe cru
+éteint et chargé, utilisable sans faute et hors de l'eau attendue, ouvre
+une demande à qui est cru porter une flamme si le demandeur n'en porte
+aucune. Positions et moyens viennent des croyances. Devis, jugement,
+priorités, refus et réalisation restent ceux de `confier`/`engager`.
+La projection compare les moyens ; le plan s'arrête à la demande, puis
+attend le travail réel. Aucun feu ni déplacement n'est produit à l'accord.
+Fonctions touchées : `planification.Vue.__init__`, `gestes`,
+`_aide_sur_place`, `_confier_tache`, `_allumer_pour_soi`, `_engager` ;
+`echanges.engager`, `confier`, `_retenir_aide` partagent l'attente gratuite
+ou payée et sa durée physique. Ni `agendas.py`, `signes.py`,
+`deliberation.py` ni prompt modifiés ; pas de Luna.
 
-Fonctions touchées : `planification.Vue.__init__` (une aide acceptée prime
-un refus antérieur), `gestes` (raccord du recours), `_aide_sur_place`
-(extraction sans changer ses conditions d'ouverture), `_confier_tache`
-(demande et attente communes), `_allumer_pour_soi` (admission sur les
-croyances), `_engager` (filtre facultatif des interlocuteurs).
-`echanges.engager` et `confier` partagent `_retenir_aide` : l'attente du
-bénéficiaire et sa durée physique sont enregistrées pour le travail gratuit
-comme payé. Aucun changement à `agendas.py`, `signes.py` ou `deliberation.py`.
+**Épreuves et correction.** Scènes d'auteur brasero/poêle : permission
+de Maël, demande, déplacement/allumage/chauffage réels ; accords gratuits
+et payés, parole du joueur par `proposition`, huit minutes en bloc/découpées,
+monde/rendu/scène après recharge. Contre-épreuves : flamme crue éteinte,
+foyer vide sans combustible, eau crue, position cachée, refus sans rappel
+par délai. Six captures avant/accord/travail rechargées, tous contrôles verts.
+Sur `d306370`, les huit erreurs venaient de la fixture `foyer=False` ;
+les deux échecs historiques passent sur `1852d6e` (8/8, 96,496 s) :
+régressions du lot. L'admission trop large aux luminaires fixes ajoutait
+des états au graphe faim de Rémy et des demandes à la chronique bornée de
+Bram, évacuant son ancien appel. Admission corrigée sur la mécanique
+`foyer`, sans nom ni motif de besoin ; **six empreintes historiques
+inchangées, monde final de Bram identique au témoin**. Fixtures précisées
+sans retirer leurs assertions : chaleur en lumière naturelle, permission
+sans restitution concurrente, réserve inconnue, joueur au contact et foyer
+connu. Les prêts ordinaires peuvent légitimement privilégier la restitution.
+Passe finale : **34 fichiers, 314 tests, zéro échec/erreur/saut, 878,547 s**.
 
-**Épreuves préparées.** Capture historique 615 conservée en fixture ;
-scènes d'auteur au hameau pour le brasero et le poêle du guet, torche de Maël
-mise à disposition de Gorm, accord sans effet immédiat, déplacement/allumage/chauffage
-réels ; comparaison de huit minutes en bloc et découpées, monde/rendu/scène
-après recharge. Contre-épreuves : flamme crue éteinte, charge absente,
-lieu cru sous l'eau, position réelle cachée, refus d'impossibilité retenu
-sans redemande par délai, travail payé après refus gratuit, parole du joueur.
+**Banc final, `1852d6e` → `bbab808`.** Suspects 219 par nuit :
 
-**Instruction des échecs de `d306370`.** La passe détachée a arrêté le banc :
-314 tests, deux échecs historiques et huit erreurs de fixture. Les erreurs
-proviennent de `foyer=False`, donnée interdite par le schéma : le champ
-est retiré pour les autres sources de la scène. Les deux fichiers
-historiques passent sur une copie exacte de `1852d6e` : **8/8, 96,496 s**.
-Ils échouent donc à cause du lot, sans dette préexistante trouvée.
-Le générateur visait tous les luminaires fixes au lieu des foyers mécaniques :
-Rémy, faim, explore lampe/chandelle (mine/480 : 503 → 567 états,
-2 383 → 2 697 successeurs) ; Bram sollicite les luminaires, grossit la
-chronique bornée à 300 et en évacue son ancien appel (1 → 0), sans nouvel
-appel. Le témoin conserve l'appel (1 → 1). Admission corrigée sur la
-mécanique `foyer`, sans nom, scénario ou motif de besoin. **8/8 historiques
-verts ensuite, 100,469 s ; les six empreintes attendues sont conservées.**
-Monde/rendu/scène des rejeux de Bram identiques après recharge ; monde final
-du corrigé identique au témoin `1852d6e`.
+| Scénario | 1985 | 7 | 42 | 2024 |
+|---|---:|---:|---:|---:|
+| relais | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
+| mine | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
+| auberge | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
+| crue | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
+| crue_hameau | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
 
-Les scènes propres au lot sont précisées sans retirer leurs assertions :
-besoin de chaleur isolé en lumière naturelle, permission de Maël sans
-engagement concurrent de restitution, réserve privée inconnue d'Aubin,
-foyer réellement vide dans l'épreuve sans combustible ; joueur au contact,
-foyer connu et contenu `proposition` existant pour sa demande de travail.
-Les prêts ordinaires peuvent légitimement faire passer leur restitution
-avant ce service : aucun ordre de priorité du destinataire n'est changé.
-**Les huit tests propres au lot passent : 31,031 s**, accords gratuits et
-payés, parole du joueur, chaleur réelle, recharges et découpage inclus.
+**Coups : 0 → 0 dans chaque nuit.** Demandes/offres naturelles d'allumage
+**13 → 14**, aucune acceptée : les treize offres payées de Gorm, impossibles,
+sont conservées ; seul ajout, crue/42 à **215 min, instant 129220**, Ilse
+demande à Aubin d'allumer le poêle du guet, **refus**. Aucun ajout au hameau.
+S/F/D (`cats` du lot 183) : **S total 417 → 416**, **F moyen 5,45 → 5,45**,
+**D moyen 1,997024 → 2,034524**. Seules trois nuits changent ces mesures :
 
-**Mesures finales en attente.** Reprise détachée des 34 fichiers concernés,
-puis banc 4 h, cinq scénarios × quatre graines ; référence `1852d6e` en
-cache ou calculée une fois. Deux travailleurs réduits au plus. Le lanceur
-s'arrête avant le banc si les tests échouent ; `fin.json` est écrit en dernier.
-Suspects 219 par nuit, violences et S/F/D (`cats` du lot 183), sans comparaison
-de temps entre campagnes. Ni suite complète ni Luna. L'ancien résultat
-`fin.json` négatif reste conservé ; reprise dans `correction/`.
+| Nuit | S | F | D |
+|---|---:|---:|---:|
+| relais/42 | 8 → 7 | 3 → 3 | 0,75 → 0,75 |
+| relais/2024 | 19 → 18 | 5 → 5 | 2,25 → 2,75 |
+| crue/42 | 29 → 30 | 7 → 7 | 3,25 → 3,5 |
 
-**Limites.** Validation finale et absence de hausse des suspects non encore
-établies ; aucune réussite universelle du service annoncée. Les captures
-historiques restent impossibles pour Gorm ; les scènes de réussite sont
-des scènes d'auteur avec combustible disponible. Bruts et lanceur dans
-`C:/Users/msics/donjon/artifacts/allumer-277/`.
+Les dix-sept autres triplets sont identiques. Référence absente du cache :
+vingt nuits calculées une fois ; deux travailleurs réduits au plus,
+**2 684,018 s** pour la chaîne entière. Aucun temps comparé entre campagnes.
+
+**Limites et preuves.** Réussite naturelle et bénéfice universel non
+démontrés ; le banc 4 h ne couvre pas le coup historique à 652 min.
+Réussite prouvée sur les scènes d'auteur ; refus impossible conservé sur
+les captures historiques. Ni nouveau calcul de clôture ni suite complète.
+Aucun calcul actif. Bruts dans `C:/Users/msics/donjon/artifacts/allumer-277/` :
+ancien `fin.json` négatif conservé, instruction base/branche/corrigé ; bilan
+final dans `correction/{fin,tests,scenes,comparaison,bilan}.json`.
