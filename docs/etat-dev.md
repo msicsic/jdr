@@ -2,6 +2,28 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 322 terminé, branche `codex-trois-echecs`, base `0a0bc9d`** :
+  bissection des trois échecs nouveaux : **fusion 303 `8406756` rouge,
+  parent direct `d7302a4` vert**, six références, trois tests chacune,
+  414,998 s. Changements légitimes : Mathurine appelle réellement pour
+  rejoindre Mireille qu'elle veut nourrir ; Corvus saisit ses mots depuis
+  le couloir puis le grenier. L'inspection Mathe/Odon sans lieu connu est
+  un préfixe de contact, pas un service franchissant le verrou ; la demande
+  effective reste impossible. Prémisses des deux scènes de voix isolées et
+  du lieu entendu d'Odon précisées, assertions historiques conservées ;
+  nouveau test du tiers actif et de son anonymat après recharge.
+  **54/54 tests distincts verts, trois fichiers**, zéro échec/erreur/saut.
+  Première passe : import sans_souci oublié, corrigé ; seuls les 18 tests
+  du fichier concerné relancés (83,205 s), les 36 autres verts inchangés.
+  Moteur inchangé ; ni Luna, banc ni suite complète. Deux travailleurs
+  réduits au plus sur copies ; aucun calcul actif. Bruts
+  `C:/Users/msics/donjon/artifacts/trois-echecs-322/` : échec initial
+  `fin-calcul.json` conservé, **fin-cloture.json ok=true**.
+  Branche poussée vers origin ; aucune garantie universelle de secours
+  ou d'absence de boucle revendiquée.
+  [Rapport 322](taches/rapport-codex-322-trois-echecs.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Tests seulement, moteur inchangé. Bissection : les trois échecs apparus entre d1c0722 et 79fca6a viennent du lot 303 (contact commun avant un service), changements légitimes ; prémisses des scènes ajustées, assertions conservées. 54 tests verts sur les trois fichiers.
+
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base
   `integration 60f857c`** : aucune dépendance au hachage reproduite.
   Hameau/Relais 2024 identiques sous 1/42/310/2024 ; hameau historique

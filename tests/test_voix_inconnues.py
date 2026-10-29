@@ -83,6 +83,10 @@ class DemandeDUneVoixInconnueTests(unittest.TestCase):
         répondre la même chose."""
         for connue in (True, False):
             m = baraquement("reserve", voix_connue=connue)
+            # Le lieu du bénéficiaire est acquis : éprouver l'accès aux
+            # vivres, sans le préfixe de contact incertain introduit en 303.
+            croire(m, "mathe", "odon", "lieu", "reserve", "entendu", salle="reserve", case=[5, 3])
+            m = recharger(m)
             self.assertIsNone(_plan_pulsion(m, "mathe", {"objet": "vivres", "servir": "odon"}))
             # Éprouver cette demande, pas le choix autonome entre demander
             # la part et rechercher un autre fournisseur (226).
