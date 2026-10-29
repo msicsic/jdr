@@ -16,7 +16,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Deux travailleurs au plus, priorité réduite ; calcul séquentiel détaché,
   fin attendue `C:/Users/msics/donjon/artifacts/protection-281/fin-verification.json`.
   Relire ce fichier et les rapports avant de clore le lot. Ni Luna ni suite
-  complète. [Rapport 281](taches/rapport-codex-281-but-protection.md).
+  complète. Correctif local `1a1627c` ; poussée refusée par le contrôle
+  automatique (propriété d'`origin` non établie), destination soumise à
+  confirmation, aucun recours à l'API GitHub.
+  [Rapport 281](taches/rapport-codex-281-but-protection.md).
 
 - **Branche `codex-interposition-reprise`, fusionnée**, lot **278**, base
   `792816c` : **lot clos, diagnostic seul, sans code**, aucun correctif moteur.

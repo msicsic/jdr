@@ -3,6 +3,12 @@
 29 octobre 2026, branche `codex-but-protection`, **non fusionnée**, base
 intégration `3470a92`. Bruts :
 `C:/Users/msics/donjon/artifacts/protection-281/`.
+Correctif et preuves : commit local `1a1627c`. Poussée demandée vers
+`origin` (`https://github.com/msicsic/jdr.git`), **refusée par le contrôle
+automatique avant exécution** : propriété de la destination jugée non
+établie, même après rapprochement avec le dépôt de reprise documenté.
+Autorisation de cette destination demandée à l'utilisateur ; aucun
+contournement ni recours à l'API GitHub.
 
 ## Invariant et correction
 
