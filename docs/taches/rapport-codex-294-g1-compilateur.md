@@ -1,58 +1,69 @@
 # Lot 294 — G1, compilateur public
 
-29 octobre 2026 — branche `codex-g1-compilateur`, **non fusionnée**, base
-intégration `230e7b3`. **Vérification Luna en cours ; lot non clôturé.**
+29 octobre 2026 — `codex-g1-compilateur`, **non fusionnée**, base `230e7b3`,
+code mesuré `7525f83`. **Analyse terminée ; invariant G1 non atteint, portage
+non prêt à fusionner.** Aucun calcul actif ni rejeu Luna.
 
-La voie libre de `MJ._echanger` appelle le compilateur sur une sélection du
-dossier public. `compilateur.py` reprend le contrat du prototype avec les
-propositions actuelles : gestes, séquences, improvisation, fabrication,
-douze actes de parole, marchés et opérations de mission. Le schéma est
-invariant entre scènes et catalogues. La mission possède sa branche typée,
-son donneur, son identifiant, son opération et son montant ; elle n'est pas
-convertie en simple propos. Aucune bascule vers l'ancien interprète.
+`compilateur.py` raccorde le libre aux contrats canoniques sur sélection du
+contexte public ; `normaliser_proposition` copie sans réparer le sens,
+`paroles.section_contenu` dérive le contrat, `sources` distingue le cache.
+Copies, fidélité, contre-revue, G2/G4 conservés. **Aucun retour à l'ancien
+interprète** ; réponses PNJ, descriptions, faits/qualifications gardent leurs
+voies et contrôles transitoires. **172 tests / quinze fichiers verts**.
 
-Les références et les sorties proviennent de la projection publique existante,
-jamais du parcours de tous les objets du monde comme dans le prototype.
-Les propriétés mécaniques publiques et les catalogues d'admission sont
-conservés, sans plafond de taille. Portraits et dossiers d'esprit, attestations
-et historique narratif détaillé sont écartés de la compilation. Les contrôles
-locaux conservent leur dossier complet. Toutes les corrections de compilation
-repassent par cette sélection avant l'appel fournisseur.
+**Une passe, six scripts, référence exacte jouée puis cachée**, variantes
+successives, un travailleur réduit : 91 saisies/variante, 30 tours MJ,
+61 sans modèle. Aucun incident réseau, arrêt ou échec de recharge signalé.
 
-`normaliser_proposition` copie seulement : aucun destinataire ou outil déduit,
-aucun montant, type de parole, champ ou étape remplacé silencieusement.
-`paroles.section_contenu` dérive les définitions du contrat joueur actuel,
-sans revenir sur `TYPES_JOUEUR`/`compte_rendu`. Le nom de fonction de transport
-historique `repondre_au_joueur` reste compatible avec les fournisseurs et les
-fils rejouables ; `compilation=true` distingue la voie de cache (slot 0).
-Contre-revue et fidélité de parole, admission sur copie, G2 et G4 sont conservés.
-Les réponses PNJ, faits, qualifications et prose transitoire gardent leurs
-contrôles et appels actuels ; ce lot ne livre pas leur découplage.
+| Mesure | Référence → lot |
+|---|---|
+| Appels ; appels/tour MJ | 99 → 98 ; 3,30 → 3,27 |
+| Secondes/tour ; médiane | 9,82 → 9,95 ; 9,13 → 8,39 |
+| Compilations corrigées comprises ; tours recompilés | 36 → 43 ; 5 → 11 |
+| Admission au premier coup ; fidèle au contrat, lecture manuelle | 22/30 → 18/30 ; 20/30 → 14/30 |
+| Refus de validation ; tours concernés | 8 → 14 ; 6 → 9 |
+| Obstacles / relances narratives ; replis détectés | 9 → 9 / 8 → 5 ; 0 → 1 |
+| Abandons explicites hors vrais obstacles du monde | 1 → 3 |
 
-**Mesures sans réseau**, deux scènes exactes, requête de la base capturée en
-mémoire sans modifier le worktree : consignes **40 364 → 3 547 caractères** ;
-entrée **14 467 → 10 786** (antichambre) et **17 013 → 12 032** (échoppe).
-Consignes + entrée + schéma : **90 759 → 50 153** et **93 305 → 51 399**
-caractères, soit environ **−45 %**. Le schéma garde sa largeur actuelle
-(35 928 → 35 820 caractères) pour ne pas perdre les variantes de contrat.
-Ce sont des caractères sérialisés, pas des jetons ni une mesure de latence.
+Admission ne prouve pas fidélité : mission en `propos` exclue de la référence,
+deux questions devenues paroles et relecture superflue exclues du lot ; recherche
+de traces non certifiée dans chaque variante. **Après refus : 3 → 8 tours
+corrigés**. Référence : parole récupérée, refus correct retrouvé, écoute perdue.
+Lot : mission et fredonnement admis mais infidèles, coup corrigé avec refus
+parasite, cinq intentions non récupérées. Corrections de description :
+deux demandes récupérées dans la référence, trois dans le lot.
 
-**Tests : 172 tests distincts / quinze fichiers verts**, paroles et résultat
-moteur compris. Gestes simples et séquences
-sur deux objets, deux montants de mission comparés à l'admission directe,
-copies, refus corrigés, noms opaques et objet caché, état et rendu après
-recharge. Les tests de schéma du prototype sont adaptés aux propositions
-canoniques actuelles, sans dépendance nouvelle à `jsonschema`. Les assertions
-de cache séparent désormais contexte de compilation et dossier d'audit ;
-le test local attend les deux appels de G4 (compilation/revue), sans récit
-après exécution. Aucun oracle métier retiré. Ni suite complète ni banc PNJ.
+| Famille | Écarts contre la référence |
+|---|---|
+| Perception/rappel/ambiance, relais | Odeur devenue parole ; consigne connue remplacée par lecture INT 12/2 min non exécutée ; ambiance récupérée après deux relances. 15 → 23 appels, 4,08 → 12,63 s/tour. |
+| Gestes/opérations | Fredonnement sans son ; mauvaise opération sous poutre ; visibilité parasite avant bon refus du coup ; pied-de-biche remplacé par brasero. Vol composé devenu improvisation inventant « Gorm a le dos tourné », refusée sur la portée avant admission. Écoute toujours perdue, repli nouveau. |
+| Mission, crypte/24 | **Typée et jouée après correction**, mission vide puis `anneau_veilleur` ; engagement moteur proposé à **22 pièces**, ni accepté ni payé, rendu/recharge valides. **Infidèle** : demande de prix devenue `negocier/0` au plafond, contre 20 dans la référence. Script : 25 → 25 appels. |
+| Parole ouverte, echanges | Gardien abandonné sans parole, message « Réponse du MJ sans contrôle narratif. », contre question corrigée puis prononcée. 11 → 9 appels, baisse due à l'échec. |
+| Ressources/comptes | Bois, nourriture, réclamations conservés. Achat de planche : réplique vide, mauvais objet, part devenue objet ; ni parole ni achat. Ressources 12 → 12 appels, soir-appel 22 → 15, baisse comprenant l'abandon. |
+| Avis | Trois avis typés conservés ; avis-joueur 14 → 14 appels. |
 
-**Luna : une passe détachée** sur `relais`, `crypte`, `echanges`, `ressources`,
-`soir-appel`, `avis-joueur`, référence `integ=230e7b3` puis `lot=.`, un seul
-travailleur à priorité réduite, coffre principal, copies seulement. La
-référence absente est jouée une fois puis rangée par `banc_multi`. Bruts,
-usage/cache et fils : `C:/Users/msics/donjon/artifacts/g1-294/` ; fichier de
-fin attendu : `fin-luna.json`, écrit même en cas d'échec. Les réussites au
-premier coup, corrections, intentions abandonnées et négociation réellement
-jouée restent à analyser ; aucun gain de délai ni garantie sémantique
-universelle n'est annoncé avant cette lecture.
+Abandons : écoute commune, gardien et achat en plus ; le compteur de replis
+sous-estime les échecs. Refus par cause : portée 3 → 3 (brasero parasite),
+cible introuvable 1 → 3, personne inconnue 1 → 1, couverture d'écoute 1 → 1 ;
+référence : écoute mal formée 1, impossible prématuré 1 ; lot : difficulté 2,
+mauvaise opération 1, mission vide 1, parole mal formée 1, propriété inconnue 1.
+
+**Taille/cache**, compilations avec corrections : entrée JSON moyenne
+21 609 → 14 807 caractères ; entrée fournisseur **22 572 → 11 082 jetons**,
+préfixe caché **11 812 → 4 700 jetons/appel**, **52,3 → 42,4 %**.
+Au nominal : 22 617 → 11 011 jetons, dont 11 170 → 4 139 cachés. Deux scènes
+sans réseau : environ −45 % de requête totale, consignes 40 364 → 3 547
+caractères, schéma presque inchangé. **Aucun gain global de vitesse observé** ;
+une passe ne démontre pas une causalité de délai.
+
+Aucune suite relancée ni correction des tests préexistants du lot 295.
+Requête d'interprétation aussi concernée dans `test_websocket_jeu`,
+`test_fournisseurs_jeu`, `test_cache_kv_local`, `test_parole_corrections`,
+`test_sans_message_technique`, `test_luna_noms` ; seul `test_cache_kv_local`
+déjà adapté ici, à coordonner. `test_restes_fusions` ne passe pas par le MJ.
+
+Bruts : `C:/Users/msics/donjon/artifacts/g1-294/`, douze parties JSON/HTML sous
+`20261029-150541-9580/`, `fin-luna.json` : `ok=true`. Calculs et preuves :
+`analyse-passe.json`, `tours-analyses.json`, `mission-jouee.json`, script
+`analyser_passe.py`, `rapport-detaille.md`. **Raccord livré, fidélité et
+récupération défaillantes : un correctif général borné reste nécessaire.**

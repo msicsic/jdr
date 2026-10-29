@@ -3,17 +3,28 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-g1-compilateur`, lot 294 / G1, non fusionnée**, base
-  intégration `230e7b3` : compilateur du libre sur sélection du dossier
-  public, contrats typés actuels (gestes, opérations, douze actes, marchés,
-  missions), sans réparations sémantiques silencieuses ni repli vers l'ancien
-  interprète. Corrections sur copie, fidélité, contre-revue, G2/G4 conservés ;
-  les voies narratives transitoires gardent leurs contrôles. Deux scènes,
-  sans réseau : consignes 40 364 → 3 547 caractères, requête complète environ
-  −45 %, schéma actuel conservé. **172 tests / quinze fichiers verts**, paroles et résultat compris. **Passe Luna unique détachée en cours**,
-  six scripts, un travailleur réduit ; bruts
-  `C:/Users/msics/donjon/artifacts/g1-294/`, fin attendue `fin-luna.json`.
-  Analyse des intentions et de la négociation encore requise ; lot non clôturé.
-  [Rapport 294](taches/rapport-codex-294-g1-compilateur.md).
+  `230e7b3`, code mesuré `7525f83`. **Analyse terminée, invariant G1 non
+  atteint : portage non prêt à fusionner.** Compilateur du libre sur sélection
+  publique et contrats actuels, sans normalisation sémantique ni retour à
+  l'ancien interprète ; copies, fidélité, contre-revue, G2/G4 conservés.
+  Réponses PNJ, descriptions, faits/qualifications encore sur leurs voies
+  transitoires. **172 tests / quinze fichiers verts**. Luna unique terminée,
+  six scripts, aucun incident réseau ni échec de recharge, aucun calcul actif.
+  30 tours MJ/variante : appels 99 → 98, 3,30 → 3,27/tour ; 9,82 → 9,95 s/tour.
+  Admission au premier coup 22 → 18, fidèle au contrat à la lecture manuelle
+  20 → 14 ; une recherche non certifiée de chaque côté. Refus 8 → 14,
+  relances narratives 8 → 5, abandons explicites 1 → 3. Entrée fournisseur
+  22 572 → 11 082 jetons/appel de compilation, cache 52,3 → 42,4 % ; aucun
+  gain global de délai. Mission typée puis corrigée et jouée à 22 pièces,
+  mais demande de prix transformée en négociation au plafond. Régressions :
+  questions devenues paroles, lecture à recommencer, son perdu, mauvais plans
+  et cibles, gardien et achat de planche abandonnés. **Limites non corrigées**,
+  correctif général encore nécessaire. Aucun rejeu Luna ni suite complète.
+  Les tests à faux appels préexistants restent au lot 295 ; seul fichier
+  commun déjà adapté ici : `test_cache_kv_local.py`, à coordonner.
+  Bruts et analyse : `C:/Users/msics/donjon/artifacts/g1-294/`,
+  `fin-luna.json` et `analyse-passe.json` ;
+  [rapport 294](taches/rapport-codex-294-g1-compilateur.md).
 
 - **Branche `codex-ud-descripteur`, lot 293 / U-D, fusionnée**, base
   intégration `8acbbd9` : le clic d'objet/porte, la marche au clic et la
