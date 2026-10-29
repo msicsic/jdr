@@ -9,13 +9,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucun moteur/MJ modifié, aucune charge `informer` sans justification.
   **45 tests distincts / sept fichiers verts**, monde/scène/rendu/écoute
   rechargés, accords et marches réels Maël/Sève, temps continu/découpé.
-  **Calcul détaché lancé sur `8145e48`**, PID 41884, priorité réduite :
-  crue empreintes 2 h × quatre graines,
-  hameau banc 4 h × quatre graines contre `7ec839e`, cache commun, deux
-  travailleurs réduits. Résultats longs encore à établir, aucune stabilité
-  ou réussite générale revendiquée. Bruts et fichier de fin attendu :
-  `C:/Users/msics/donjon/artifacts/agenda-hameau-306/fin.json`.
-  Ni Luna ni suite complète ; ne pas relancer si le calcul est actif.
+  **Vérification close, lot non validé pour intégration** : crue
+  **4/4 empreintes 2 h identiques** ; hameau 4 h contre `7ec839e`, trois
+  nuits achevées, graine **42 interrompue à 5 min** par le rendu de banc
+  `recit_pnj._but` : `KeyError: 'qui'` sur le but d'Aubin
+  `{"type":"agenda","agenda":"a1"}`. Reproduit sur capture rechargée ;
+  monde/rendu joueur/scène valides et conservés, aucune preuve de plantage
+  d'exécution du jeu. Mandats proposés/acceptés/refusés : **4/0/4,
+  5/2/3, 3/3/0 partiel, 1/1/0** ; zéro compte rendu et réaffectation.
+  Agenda de Gorm atteint en 1985/62 et 2024/161, sommeil en 7 et à
+  l'arrêt de 42. Galerie à 4 h : **2/1/0/0 → 4/2/inconnu/4**.
+  Suspects 219 **0 partout**, branche 42 limitée à 5 min ; usurpations
+  zéro sur les trois nuits complètes et le début de la quatrième.
+  Nouvelles répétitions en 7 (agendas, achat promis), entrées à expliquer
+  **2/2/7/4 → 0/5/0 partiel/11** ; aucune absence générale de boucle
+  revendiquée. **4/4 captures finales identiques après recharge**.
+  Deux travailleurs réduits, **851,143 s**, huit références absentes
+  rangées une fois. `C:/Users/msics/donjon/artifacts/agenda-hameau-306/fin.json`
+  **ok=false**, codes empreintes/banc **0/1**, conservé ; analyse de
+  clôture séparée. Sources/tests inchangés depuis `8145e48`, branche
+  poussée ; aucun calcul actif ni relancé. Ni Luna ni suite complète.
+  Suite requise hors périmètre : rendu des buts A5 puis répétitions,
+  dans des lots distincts ; aucun ajustement du scénario après mesure.
   [Rapport 306](taches/rapport-codex-306-a5-agenda-hameau.md).
 
 - **Branche `codex-a5-donnees-hameau`, lot 302 / A5.11, fusionnée**,
