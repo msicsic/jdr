@@ -1,4 +1,5 @@
 """Dialogues situés, offres et engagements persistants ; aucune écriture directe du LLM."""
+from .emissions import pnj as emissions_pnj, publiques as emissions_publiques
 from .francais import quantite
 from . import agendas
 import copy
@@ -56,7 +57,7 @@ def interlocuteurs(monde):
         resultat[id] = {"nom": o["nom"], **copy.deepcopy(monde.data["dialogues_pnj"].get(id, {})),
                         "dernier_son_entendu": dernier_son(monde, id),
                         "paroles_entendues": copy.deepcopy([
-                            p for p in monde.data.get("paroles_pnj", []) if id in p["auditeurs"]][-4:]),
+                            p for p in emissions_publiques(monde, emissions_pnj(monde)) if id in p["auditeurs"]][-4:]),
                         "refuse_ventes_apres_vol": bool(o.get("refuse_ventes_apres_vol")),
                         "signes": []}
     return resultat

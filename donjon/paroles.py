@@ -15,6 +15,7 @@ croire le joueur fiable. Tous ceux qui saisissent les mots d'une parole à voix 
 retiennent, destinataires ou non (``ouie``, ``social.retenir_parole``) ; seuls ses destinataires
 y répondent.
 """
+from .emissions import joueur as emissions_joueur
 from .francais import pluriel as nombre_pluriel
 from .francais import quantite
 from . import agendas
@@ -854,10 +855,10 @@ def phrase_regard(vers):
 def precedents(monde, candidats, seul=False):
     """Ceux à qui Corvus a parlé en dernier et qui l'entendent encore (parmi ``candidats``) : la
     suite de l'échange. ``seul`` : un seul est admis (« je lui dis », un chuchotement)."""
-    derniere = (monde.data.get("paroles_joueur") or [None])[-1]
+    derniere = (emissions_joueur(monde) or [None])[-1]
     if not derniere:
         return []
-    auditeurs = [a for a in derniere.get("auditeurs") or [derniere.get("auditeur")] if a in candidats]
+    auditeurs = [a for a in derniere.get("a", derniere.get("auditeurs")) or [derniere.get("auditeur")] if a in candidats]
     return auditeurs if auditeurs and (len(auditeurs) == 1 or not seul) else []
 
 
@@ -1630,7 +1631,7 @@ def issue(monde, forme, dest, repondent, temoins, replique):
         qui = noms(temoins)
         un = len(temoins) == 1
         phrase += (f" {qui[:1].upper() + qui[1:]} {'a' if un else 'ont'} aussi entendu ces mots, sans qu'ils "
-                   f"{'lui' if un else 'leur'} soient adressés, et se {'tait' if un else 'taisent'}.")
+                   f"{'lui' if un else 'leur'} soient adressés.")
     return phrase
 
 
@@ -1677,7 +1678,7 @@ def preparer_parole(monde, p, revision=None):
     replique = (mots_dits(forme, p.get("_intention", "")) or p["replique"]).strip()
     # La réplique affichée obéit au contrôle des mentions : rien que Corvus ne connaisse.
     fondement = lexique.corpus(monde.contexte(), monde.data.get("conversation", []),
-                               monde.data.get("paroles_joueur", []))
+                               emissions_joueur(monde))
     if p.get("_intention"):
         fondement += " " + lexique.corpus(p["_intention"])
     # Une part demandée à son propriétaire se nomme sans avoir été vue.
@@ -1704,6 +1705,8 @@ def preparer_parole(monde, p, revision=None):
     contenu = verifier_nom(monde, p["contenu"], replique)
     from .ouie import _place, retentir, saisissent
     travail = monde.copier()
+    from . import emissions
+    debut_emissions = len(emissions.lire(travail))
     chuchote = forme["maniere"] == "chuchote"
     # Ce qu'en retient qui l'entend sans en être le destinataire : ce qui ne s'adresse pas qu'à lui.
     types = [x for x in (_typer(travail, c) for c in contenu) if x]
@@ -1739,7 +1742,9 @@ def preparer_parole(monde, p, revision=None):
     def quantites():
         return {id: (o.get('charges'), o.get('portions'), o.get('physique', {}).get('pieces'))
                 for id, o in travail.objets.items()}
+    autorisations = []
     for auditeur in [*dest, *repondent]:
+        debut_reponse = len(faits)
         capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
         transmis = [x for x in (_typer(travail, c, auditeur) for c in contenu) if x]
         for c in transmis[:capacite]:
@@ -1805,13 +1810,20 @@ def preparer_parole(monde, p, revision=None):
                                     biens_comptables[terme['objet']] = noms_avant[terme['objet']]
         if transmis[capacite:]:
             faits.append(f"{_personne(travail, auditeur)[0]} ne retient pas tout : une partie de ce que tu as dit se perd.")
+        autorisations.append({"statut": "a_formuler", "locuteur": auditeur,
+            "acte": "reponse_corvus", "a": ["joueur"], "parametres": {"contenu": copy.deepcopy(transmis[:capacite])},
+            "modalite": "constat", "evenement": {"type": "parole_joueur", "faits": faits[debut_reponse:]}})
         rejoint(travail, auditeur, "joueur")  # Il attendait que Corvus le rejoigne : ils se parlent.
         memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "a": list(dest), "texte": replique[:240],
                                       "cites": [], **({} if identifie(travail, auditeur, "joueur")
                                                       else {"voix_inconnue": True})})
     # Sa voix retentit : qui en saisit les mots la retient (``ouie``) ; un chuchotement ne va qu'à son destinataire.
     retentir(travail, "joueur", "chuchoter" if chuchote else "parler", texte=replique, dits=replique,
-             parole=None if chuchote else {"a": [*dest, *repondent], "contenu": publics})
+             parole=None if chuchote else {"a": [*dest, *repondent], "contenu": publics},
+             vers=[*dest, *repondent], emission={"acte": "parole_joueur",
+                 "parametres": {"contenu": contenu, "personnage": personnage(forme, dest)},
+                 "modalite": "croyance", "evenement": {"type": "parole_joueur", "maniere": forme["maniere"]},
+                 "revision": travail.data["revision"] + 1})
     for c, presents, opposition in debats:
         if opposition:
             social._disputer(travail, "joueur", c["evenement"], c["rang"], presents, faits, opposition)
@@ -1821,11 +1833,6 @@ def preparer_parole(monde, p, revision=None):
         entendre_repondant(travail, id)
         retentir(travail, id, "parler")
     travail.data["revision"] += 1
-    travail.data.setdefault("paroles_joueur", []).append(
-        {"revision": travail.data["revision"], "auditeur": personnage(forme, dest), "auditeurs": [*dest, *repondent],
-         "texte": replique,
-         "minute": travail.data["minutes"]})
-    travail.data["paroles_joueur"] = travail.data["paroles_joueur"][-40:]
     comptes.extend(travail.data.pop("_comptes_echange"))
     comptes.extend(c for c in livraisons_dues(travail) if c not in livraisons_avant and c not in comptes)
     travail.verifier()
@@ -1833,13 +1840,25 @@ def preparer_parole(monde, p, revision=None):
     presents = {reel(monde, d) for d in interlocuteurs(monde)}
     from .voix import nom_pour_joueur
     temoins_vus = [id for id in temoins if id in presents]
+    flux = copy.deepcopy(emissions.lire(travail)[debut_emissions:])
+    # Les autorisations suivent les émissions réellement survenues. Elles ne
+    # seront enregistrées comme paroles qu'à l'admission de leurs mots.
+    for autorisation in autorisations:
+        autorisation["evenement"]["emission_joueur"] = next(
+            p["id"] for p in flux if p["acte"] == "parole_joueur")
+        autorisation["ordre"] = len(flux) + 1
+        flux.append(autorisation)
+    reponses = [p["locuteur"] for p in emissions.reponses({"emissions": flux})]
+    flux = emissions.publiques(travail, flux)
     rapport = {"personnage": attendu, "destinataires": [designation(monde, x) for x in dest],
                **({"a_qui": nom_pour_joueur(monde, dest[0])} if len(dest) == 1 and not forme["groupe"] else {}),
-               "repondent": [designation(travail, x) for x in [*dest, *repondent]],
+               "repondent": [designation(travail, x) for x in reponses],
                "temoins": [designation(monde, id) for id in temoins_vus],
                "maniere": "chuchotement" if chuchote else "à voix haute", "sujet": replique,
                "operation": "parole_joueur", "replique_joueur": replique,
-               "issue": issue(travail, forme, dest, [*dest, *repondent], temoins_vus, replique), "faits": faits,
+               "emissions": flux,
+               "issue": issue(travail, forme, dest, reponses, temoins_vus, replique),
+               "faits": emissions.faits({"emissions": flux}),
                **({"comptes": comptes} if comptes else {}),
                **({"offres": offres} if offres else {}),
                **({"faits_comptables": faits_comptables} if faits_comptables else {}),

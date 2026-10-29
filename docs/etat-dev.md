@@ -2,6 +2,31 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 320 / G15, branche `codex-g15-emissions`, non fusionnée**, base
+  `integration 0fcc99e` : registre unique des émissions de parole, admission
+  avant affichage, auteur/acte/paramètres/modalité/source/auditeurs/ordre.
+  Réponses autorisées à Corvus distinctes des réactions déjà prononcées entre
+  PNJ ; rapport, garde, écoute et rendu lisent ce flux, sans gonfler les
+  répondants. Archives réelles 86/87 disponibles sur le PC fixe : deuxième
+  saisie de la passe 1 (indice 1, galerie de ronde), premier tour rejoué
+  auparavant ; propositions/dialogues/audits d'origine, sans réseau.
+  Trois citations conservées, Gorm seul répondant, aucune nouvelle émission
+  par leur restitution. Extraction portable et dix nouveaux tests : autre
+  dispute, écoute distante, inconscients, migration, répétition et noms masqués,
+  avec état/texte/scène/rendu rechargés. Passes de développement 38/38 puis
+  29/29, sans cumul ; **10/10 nouveaux tests verts**, 36,279 s, archives réelles
+  incluses. Vérifications finales **en cours, non validées** : tous
+  les fichiers de tests touchés et voisins directs, empreintes 2 h Relais/crue
+  × quatre graines, une passe Luna avis-joueur/echanges ; deux travailleurs
+  réduits au plus, aucune suite complète. Schéma des sauvegardes enrichi :
+  empreintes brutes conservées, identité hors registre et liens d'écoute
+  contrôlée séparément. Référence Luna historique lue dans l'archive c9459ce.
+  Bruts `C:/Users/msics/donjon/artifacts/g15-320/`, fichier de fin `fin.json`
+  écrit en dernier même en cas d'échec. G16–G19 non réalisés ; ordre historique
+  intra-tour inconnu explicitement signalé lors de la migration. Aucun
+  recouvrement U-P 319 sur moteur.py/rendu.py/jeu.py.
+  [Rapport 320](taches/rapport-codex-320-g15-emissions.md).
+
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base
   `integration 60f857c`** : aucune dépendance au hachage reproduite.
   Hameau/Relais 2024 identiques sous 1/42/310/2024 ; hameau historique

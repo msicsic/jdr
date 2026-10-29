@@ -14,6 +14,7 @@
   le refus du monde dit déjà au joueur, exactement, ce qui manque.
 
 Chaque cas vérifie ce que lit le joueur, l'état après rechargement et les appels faits."""
+from donjon.emissions import pnj as emissions_pnj
 import unittest
 
 from donjon.couverture_action import INSTRUCTIONS as REVUE
@@ -121,7 +122,7 @@ class CitationTests(unittest.TestCase):
         self.assertEqual(fonctions(appels).count("auditer_narration"), 1)
         self.assertIn(texte, sortie)
         self.assertIn(("aubin", "Il gèle, ce soir"),
-                      [(p["locuteur"], p["texte"]) for p in reprise.data["paroles_pnj"]])
+                      [(p["locuteur"], p["texte"]) for p in emissions_pnj(reprise)])
 
     def test_meme_nature_une_citation_qui_ne_recouvre_aucune_replique_reste_refusee(self):
         from donjon.narration import controler
@@ -217,7 +218,7 @@ class NomsConnusTests(unittest.TestCase):
         self.assertIn("Aubin ne connaît pas le nom de Corvus", refus[0]["motif"])
         self.assertIn("Aubin : « Non. »", sortie)
         self.assertNotIn("Non, Corvus", sortie)
-        self.assertNotIn("Corvus", " ".join(p["texte"] for p in reprise.data["paroles_pnj"]))
+        self.assertNotIn("Corvus", " ".join(p["texte"] for p in emissions_pnj(reprise)))
 
     def test_meme_nature_le_nom_dit_dans_la_replique_de_corvus_se_retient(self):
         # Corvus se nomme dans sa réplique : Aubin l'a entendu, il peut l'appeler par son nom ; Brune, qu'Aubin
@@ -231,7 +232,7 @@ class NomsConnusTests(unittest.TestCase):
             dialogue("Aubin : « Brune est là, Corvus. »")], [replique("aubin", "Brune est là, Corvus.")])
         self.assertEqual(len(mj(appels)), 2)
         self.assertIn("Aubin : « Brune est là, Corvus. »", sortie)
-        self.assertIn("Brune est là, Corvus.", [p["texte"] for p in reprise.data["paroles_pnj"]])
+        self.assertIn("Brune est là, Corvus.", [p["texte"] for p in emissions_pnj(reprise)])
 
 
 class DemanderAFaireTests(unittest.TestCase):

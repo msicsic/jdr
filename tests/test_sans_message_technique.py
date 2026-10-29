@@ -1,4 +1,5 @@
 """Une forme refusée et un typage contesté gardent une réponse de jeu, sauvée."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 from pathlib import Path
 import tempfile
@@ -109,8 +110,8 @@ class SansMessageTechniqueTests(unittest.TestCase):
                 self.sans_technique(sortie)
                 self.assertIn(saisie, sortie)
                 self.assertIn("Tu dis", sortie)
-                self.assertEqual(len(r.data["paroles_joueur"]), 1)
-                self.assertEqual(r.data["paroles_joueur"][0]["texte"], saisie)
+                self.assertEqual(len(emissions_joueur(r)), 1)
+                self.assertEqual(emissions_joueur(r)[0]["texte"], saisie)
                 self.assertEqual(r.joueur["or"], m.joueur["or"])
                 self.assertEqual(r.data["journal"], m.data["journal"])
                 self.assertIn("Ta question est entendue.", str(recharger(r).data["conversation"]))
@@ -139,7 +140,7 @@ class SansMessageTechniqueTests(unittest.TestCase):
                 vide = parole(saisie, personnage="aubin")
                 r, sortie, _ = jouer(m, saisie, [faux, vide], [], revues=[{}] * 6)
                 self.assertNotIn("Tu dis", sortie)
-                self.assertFalse(recharger(r).data.get('paroles_joueur'))
+                self.assertFalse(emissions_joueur(recharger(r)))
                 self.assertEqual(r.joueur["or"], m.joueur["or"])
 
 

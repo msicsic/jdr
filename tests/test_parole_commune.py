@@ -8,6 +8,7 @@ ce qu'elle transmet les touche par la même règle ; seuls les destinataires ré
 Cas réel : « je dis : pouvez-vous m'aider à faire bouger Brune ? » devant Ilse et Aubin ; Luna
 choisissait un seul destinataire, et l'autre n'enregistrait rien. Chaque cas vérifie l'état après
 rechargement et ce que lit le joueur."""
+from donjon.emissions import joueur as emissions_joueur
 
 from tests.support import lier, relation
 import unittest
@@ -268,7 +269,7 @@ class SuiteTests(unittest.TestCase):
         placer(m, "brune", "echoppe", (7, 1))  # Partie dans la conduite : hors de portée de voix.
         self.assertEqual(self.a_qui(recharger(m), "« tu es là ? »"), ["ilse"])
         # Une interpellation dans les guillemets l'emporte sur la suite de l'échange.
-        m.data["paroles_joueur"][0].update(auditeur="aubin", auditeurs=["aubin"])
+        emissions_joueur(m)[0].update(auditeur="aubin", auditeurs=["aubin"])
         self.assertEqual(self.a_qui(m, "« Ilse, tu viens ? »"), ["ilse"])
 
 
@@ -297,7 +298,7 @@ class ChuchoterTests(unittest.TestCase):
         # Le moteur le dit avant tout appel : aucune proposition n'y changerait rien.
         self.assertEqual(len(appels), 0)
         self.assertEqual(paroles_retenues(reprise, "brune"), [])
-        self.assertEqual(reprise.data.get("paroles_joueur", []), [])
+        self.assertEqual(emissions_joueur(reprise), [])
 
     def test_jamais_a_un_groupe(self):
         m = scene(brune=(2, 3))

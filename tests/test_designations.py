@@ -1,4 +1,5 @@
 """Noyau public, qualificatifs séparés : saisie, contrôles, affichage et recharge."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import unittest
 
@@ -47,7 +48,7 @@ class DesignationsTests(unittest.TestCase):
                     [rapport(ligne("mecanique", sources=["interlocuteurs"]))])
                 self.assertIn(texte, sortie)
                 self.assertEqual(r.data["narrations_mj"][-1]["texte"], texte)
-                self.assertEqual(r.data["paroles_joueur"][-1]["texte"], "C'est moi, Brune.")
+                self.assertEqual(emissions_joueur(r)[-1]["texte"], "C'est moi, Brune.")
                 self.assertEqual(r.data["noms_connus"], [])
                 self.assertFalse(r.visible(qui))
                 self.assertEqual(nom_pour_joueur(r, qui), nom_pour_joueur(m, qui))

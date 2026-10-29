@@ -1,4 +1,5 @@
 """La question porte sur un savoir ; le geste et la perception exigent l'accès à leur cible."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import gzip
 import json
@@ -50,7 +51,7 @@ class QuestionAbsentTests(unittest.TestCase):
     def assertQuestionSauvee(self, r, avant, texte, rendu):
         self.assertEqual(r.data['conversation'][-1]['reponse'], texte)
         self.assertEqual(r.data['narrations_mj'][-1]['texte'], texte)
-        self.assertEqual(r.data.get('paroles_pnj', []), avant.get('paroles_pnj', []))
+        self.assertEqual(emissions_pnj(r), emissions_pnj(avant))
         # Seuls l'échange et son récit audité sont nouveaux, aucun fait mécanique.
         apres = copy.deepcopy(r.data)
         for cle in ('conversation', 'narrations_mj', 'paroles_pnj'):
