@@ -13,7 +13,7 @@ from .fournisseurs.contrat import Demande
 from .improvisation import FORMES_SONORES, effet, issue, proposition as proposition_improviser
 from .monde import ErreurMonde, normaliser
 from .operations import OPERATIONS as OPERATIONS_COMPOSER
-from .paroles import SCHEMA_PAROLE, TYPES as TYPES_PAROLE
+from .paroles import SCHEMA_PAROLE, TYPES as TYPES_PAROLE, section_contenu
 from .passage import au_contact
 from .refus import RefusDeForme
 from .voix import nom_pour_joueur
@@ -99,19 +99,7 @@ ACTIONS :
   - discuter : parler de la mission sans changer d'accord (mission = "", montant_demande = 0).
 - dialogue : le joueur pose une question ou adresse la parole à un personnage (ou à tous / à la cantonade).
   Une saisie entre guillemets (« ... »), avec un verbe de parole (je dis, je demande, je chuchote...) ou « à tous : ... » est TOUJOURS dialogue (ou conversation_pnj pour négocier une mission), même si ses mots évoquent un geste.
-  Renseigne sujet_parole et contenu (liste de 1 à 3 actes de parole typés) selon ce que Corvus dit :
-  - "propos" -> contenu = [{"type": "propos", "sujet": "", "attribut": "", "valeur": ""}]
-  - "qui" -> contenu = [{"type": "qui", "sujet": "", "attribut": "", "valeur": ""}]
-  - "nom" (sujet = "joueur" ou id du personnage dont il prend le nom) -> contenu = [{"type": "nom", "sujet": "joueur", "attribut": "", "valeur": ""}]
-  - "localisation" (sujet = id dans personnages_connus) -> contenu = [{"type": "localisation", "sujet": id_perso, "attribut": "", "valeur": ""}]
-  - "ressource" (sujet = le bien nommé, sans article, même inconnu de Corvus : nom, alias, matière ou catégorie, ex. "bois", "pain" ; ou besoin général : faim = de quoi manger, chaleur = du combustible) -> contenu = [{"type": "ressource", "sujet": "...", "attribut": "", "valeur": ""}]
-  - "reclamer" (sujet = "" pour des pièces dues, ou id d'un objet appartenant à Corvus) -> contenu = [{"type": "reclamer", "sujet": "", "attribut": "", "valeur": ""}]
-  - "demande" (sujet = id objet ou ressource, valeur = "" ou nombre de pièces offertes en chiffres ex: "2") -> contenu = [{"type": "demande", "sujet": id_objet, "attribut": "", "valeur": ""}]
-  - "passage" (sujet = "", valeur = "" ou pièces offertes en chiffres) -> contenu = [{"type": "passage", "sujet": "", "attribut": "", "valeur": ""}]
-  - "aveu" (sujet = id objet, valeur = geste parmi prendre, poser, ouvrir, fermer, deverrouiller, verrouiller, crocheter, forcer, manger, servir, alimenter, allumer, eteindre) -> contenu = [{"type": "aveu", "sujet": id_objet, "attribut": "", "valeur": geste}]
-  - "affirmation" (sujet = id objet/personnage/"joueur", attribut = "lieu"|"verrouillee"|"fiable", valeur = id lieu/porteur ou "oui"/"non") -> contenu = [{"type": "affirmation", "sujet": ..., "attribut": ..., "valeur": ...}]
-  - "avis" (sujet = id dans salles_connues, attribut = "menace", valeur = "oui"|"non") -> contenu = [{"type": "avis", "sujet": id_salle, "attribut": "menace", "valeur": "oui"}]
-  - "proposition" : proposer un échange lié {"type": "proposition", "demande": terme, "contrepartie": terme} où chaque terme est {"type": "objet"|"part", "objet": id}, {"type": "tache", "condition": {"objet": id, "allume": true|"verrouillee": true|"lieu": id_salle|"servir": id_perso}}, {"type": "pieces", "montant": int} ou (en contrepartie) {"type": "rien"}.
+""" + section_contenu() + """
   Hors dialogue, sujet_parole = "" et contenu = [].
 - clarifier : l'intention est trop ambiguë entre plusieurs cibles ou actions incompatibles (justification = question brève au joueur, à la 2e personne).
 - impossible : aucune action du moteur ne couvre l'intention, ou un retour_moteur montre que le monde empêche réellement le geste. N'utilise JAMAIS impossible au premier essai si une action du moteur existe (propose l'action, même si la cible est verrouillée, fermée ou éloignée : c'est le moteur qui tranche).

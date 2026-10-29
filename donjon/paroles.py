@@ -19,6 +19,7 @@ from .francais import pluriel as nombre_pluriel
 from .francais import quantite
 from . import agendas
 import copy
+import json
 import re
 from contextlib import contextmanager
 
@@ -39,24 +40,60 @@ CHAMPS_CONTENU = {
     "avis": ("sujet", "attribut", "valeur"),
 }
 BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » cherche (``echanges.enqueter``)
-# Sens du protocole, commun au schéma d'interprétation et à la revue. Les codes
-# de besoins restent disponibles pour les demandes générales ; un bien nommé
-# conserve son nom, sans être élargi au besoin qu'il pourrait servir.
+RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
+# Sens du protocole, commun au schéma d'interprétation, à la revue et au prompt
+# du compilateur. Les codes de besoins restent disponibles pour les demandes
+# générales ; un bien nommé conserve son nom, sans être élargi au besoin qu'il
+# pourrait servir.
 SENS_CONTENU = {
-    "localisation": "Demander où se trouve une personne connue, désignée par sujet. La réponse transmet la dernière croyance datée de l'interlocuteur, jamais une position cachée.",
+    "localisation": "Demander où se trouve une personne connue, désignée par sujet, l'id de cette personne dans personnages_connus. La réponse transmet la dernière croyance datée de l'interlocuteur, jamais une position cachée.",
     "avis": "Prévoir qu'une menace atteindra ou épargnera un lieu : annoncer une évolution future est un avis, même formulé comme une certitude, sans marque d'opinion ni échéance explicite. sujet est la référence publique du lieu connu de Corvus, attribut menace, valeur oui (menacé) ou non (épargné). Le prédicat disponible évalue la menace d'eau ; son horizon de calcul est fixé par le moteur, il n'est pas une condition à exprimer dans la parole. Le contenu transmet la prévision du joueur, jamais un fait établi ; sa conviction est calculée par le moteur sur ses perceptions.",
     "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
     "propos": "Parole dont le sens ne relève d'aucune des opérations disponibles. Reproduire les mots du joueur ne dispense pas de typer les opérations qu'ils expriment.",
-    "affirmation": "Affirmer la valeur d'un attribut d'un sujet.",
-    "demande": "Demander un objet ou une part de ressource ; valeur est le prix offert, vide sans offre.",
-    "passage": "Demander de laisser passer ; valeur est le prix offert, vide sans offre.",
-    "aveu": "Avouer le geste valeur sur l'objet sujet.",
-    "nom": "Se présenter sous le nom sujet, sans prouver son identité.",
+    "affirmation": "Affirmer la valeur d'un attribut d'un sujet : attribut parmi lieu, verrouillee, fiable ; valeur est l'id du lieu ou du porteur, ou oui/non selon l'attribut.",
+    "demande": "Demander un objet ou une part de ressource ; sujet est l'id de l'objet ou de la ressource, valeur le nombre de pièces offertes en chiffres, vide sans offre.",
+    "passage": "Demander de laisser passer ; valeur est le nombre de pièces offertes en chiffres, vide sans offre.",
+    "aveu": "Avouer le geste valeur sur l'objet sujet : valeur parmi prendre, poser, ouvrir, fermer, deverrouiller, verrouiller, crocheter, forcer, manger, servir, alimenter, allumer, eteindre.",
+    "nom": "Se présenter sous le nom sujet, sans prouver son identité : sujet vaut « joueur » quand Corvus se nomme lui-même, sinon l'id du personnage dont il prend le nom.",
     "qui": "Demander l'identité de l'interlocuteur.",
     "reclamer": "Interroger l'interlocuteur sur ce qu'il doit au locuteur, ou réclamer ce dû : les pièces si sujet est vide, sinon l'objet sujet. Le moteur décide du règlement ; le contenu n'impose pas une formulation impérative.",
-    "ressource": "Demander si l'interlocuteur possède le bien nommé par sujet (nom, alias, matière ou catégorie), sans le prendre ni le payer. Les codes faim et chaleur demandent plus largement de quoi satisfaire ce besoin ; ils ne remplacent pas un bien précis nommé par le joueur.",
+    "ressource": "Demander si l'interlocuteur possède le bien nommé par sujet, sans article (nom, alias, matière ou catégorie), même inconnu de Corvus, sans le prendre ni le payer. Les besoins généraux demandent plus largement de quoi les satisfaire ("
+                 + "; ".join(f"{besoin} = {RESSOURCES_DEMANDEES[besoin]}" for besoin in BESOINS_DEMANDES)
+                 + ") ; ils ne remplacent pas un bien précis nommé par le joueur.",
 }
-RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
+# Exemple minimal par acte, rendu dans le prompt du compilateur. Il montre la
+# forme des champs utiles ; le sens reste dans SENS_CONTENU.
+EXEMPLE_CONTENU = {
+    "propos": {"type": "propos", "sujet": "", "attribut": "", "valeur": ""},
+    "qui": {"type": "qui", "sujet": "", "attribut": "", "valeur": ""},
+    "nom": {"type": "nom", "sujet": "joueur", "attribut": "", "valeur": ""},
+    "localisation": {"type": "localisation", "sujet": "marchand", "attribut": "", "valeur": ""},
+    "ressource": {"type": "ressource", "sujet": "pain", "attribut": "", "valeur": ""},
+    "reclamer": {"type": "reclamer", "sujet": "", "attribut": "", "valeur": ""},
+    "demande": {"type": "demande", "sujet": "crochets", "attribut": "", "valeur": "2"},
+    "passage": {"type": "passage", "sujet": "", "attribut": "", "valeur": ""},
+    "aveu": {"type": "aveu", "sujet": "crochets", "attribut": "", "valeur": "prendre"},
+    "affirmation": {"type": "affirmation", "sujet": "joueur", "attribut": "lieu", "valeur": "crypte"},
+    "avis": {"type": "avis", "sujet": "crypte", "attribut": "menace", "valeur": "oui"},
+    "proposition": {"type": "proposition",
+                    "demande": {"type": "pieces", "montant": 2},
+                    "contrepartie": {"type": "rien"}},
+}
+
+
+def section_contenu():
+    """Section du prompt du compilateur : un acte par ligne, sens et exemple.
+
+    Le sens vient de ``SENS_CONTENU``, la forme de ``EXEMPLE_CONTENU`` : le
+    prompt ne réécrit pas le contrat, il le rend.
+    """
+    lignes = ["  Renseigne sujet_parole et contenu (liste de 1 à 3 actes de parole typés) "
+              "selon ce que Corvus dit :"]
+    for type_contenu in TYPES:
+        exemple = json.dumps(EXEMPLE_CONTENU[type_contenu], ensure_ascii=False)
+        lignes.append(f'  - "{type_contenu}" : {SENS_CONTENU[type_contenu]} '
+                      f'-> contenu = [{exemple}]')
+    return "\n".join(lignes)
 OPERATIONS = {t: sens for t, sens in SENS_CONTENU.items() if t != "propos"}
 SCHEMA_OPERATIONS = {"type": "object", "additionalProperties": False,
     "description": "Analyser d'abord le sens de la saisie seule, avant de choisir le contenu. Pour chaque opération disponible, vrai si les mots du joueur en expriment le sens, même sans demander explicitement un effet du moteur, même sous forme déclarative, négative ou incertaine. La vérité de la parole et la réussite de ses conséquences ne décident pas de son typage. Toutes sont fausses seulement si aucune définition ne s'applique ; cette conclusion permet de dispenser la parole de contre-revue.",
