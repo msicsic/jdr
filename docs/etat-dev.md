@@ -2,6 +2,52 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Reprise du lot 319 / U-P terminée, fusionnée**, branche
+  `codex-up-recapitulatif` : intégration `9237e14` fusionnée sans rebase par
+  `cf797cb`, conflit documentaire seul résolu en conservant les deux côtés.
+  Suite d'essai du superviseur sur `3fd819d` : 47 incidents suivis (30 échecs,
+  17 erreurs). 24 attentes textuelles adaptées au récapitulatif, comparaison
+  exacte du texte composé et tous les oracles mécaniques conservés ; 12
+  erreurs des nouveaux tests U-P portées de l'ancien registre des paroles à
+  l'accès commun G15. Quatre incidents déjà corrigés par 331/334 conservés.
+  Sept incidents PNJ/rejeu tous reproduits sur référence isolée `9237e14` :
+  `_retentir` sans argument `emission` (cinq erreurs et un audit en échec),
+  vente d'huile refusée après 8 h (voie directe sans récapitulatif).
+  **102/102 tests verts, dix fichiers complets, 714,982 s**, zéro échec,
+  erreur ou saut sur `3ee69d4`. Référence : **23 tests comptés, 1 431,539 s**,
+  deux échecs/cinq erreurs reproduisant exactement les sept préexistants,
+  aucun incident supplémentaire. Les quatre incidents corrigés par 331/334
+  et les anciennes attentes textuelles passent sur l'intégration seule.
+  [Matrice des 47 incidents](taches/attribution-codex-319-up-recapitulatif.md).
+  Deux travailleurs réduits au plus, lanceurs détachés, aucun calcul actif ;
+  aucun Luna ni nouvelle suite complète. Bruts archivés dans
+  `C:/Users/msics/donjon/artifacts/up-319/reprise/`, **fin-reprise.json ok=true**.
+  Code/tests inchangés depuis validation ; clôture documentaire seulement.
+  [Rapport 319](taches/rapport-codex-319-up-recapitulatif.md).
+
+- **Lot 319 / U-P, branche `codex-up-recapitulatif`, non fusionnée**, base
+  `integration 75b6dfb` : récapitulatif moteur « Compris : … » des plans issus
+  du libre et des actes de parole admis. Titres et sous-plans des compilateurs,
+  paramètres typés et références publiques ; attente des raccourcis, ordre,
+  parties, prix, conditions et portée conservés. Ligne après un acte léger,
+  dans la fiche existante avant tentative ; clic/menu sans nouvelle ligne.
+  Questions au MJ et faisabilité sans exécution, perception proposée comprise.
+  Tour complet sauvegardé avant affichage, sans troncature à 4 000 caractères ;
+  dernier récapitulatif relu tel quel au démarrage, sans rejouer l'action.
+  **Treize parcours × console/pont web/vraie TUI**, oracles textuels figés,
+  monde complet sérialisable et rendu après recharge ; cible périmée, menu,
+  clic sans modèle et rendu long. **5 nouveaux tests verts, 72,869 s**.
+  **115 tests de régression, 495,177 s** : 113 verts, un ignoré (`jsonschema`
+  absent), un échec TUI avant envoi de commande ; **ce test seul repasse vert
+  en 5,012 s**, trace initiale conservée, sans modification de son oracle.
+  Aucune revue retirée, compilation/schémas/consignes Luna inchangés ; U-C
+  garde la classification générale des actes lourds. Admissions de savoirs
+  privés non publiées par ce rendu. Aucun changement de `gestes_publics.py`,
+  `tui.py` ni `web/pont.py` ; aucun Luna, banc ou suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/up-319/`.
+  [Rapport 319](taches/rapport-codex-319-up-recapitulatif.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Fusionné sur l'intégration : aucun fichier de code commun depuis la base. U-P : récapitulatif des propositions de Luna écrit par le moteur ; suite d'essai : 47 incidents attribués, 102 tests ciblés verts, sept échecs restants prouvés préexistants sur l'intégration seule.
+
 - **Lot 330 terminé, branche `codex-demander-cause`, fusionnée**, base
   fournie `f08ef58` : question de cause avant secours de proximité, réponse
   depuis les seules croyances datées du proche, parole commune, ouï-dire

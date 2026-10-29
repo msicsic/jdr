@@ -11,6 +11,7 @@ from tests import test_redire_passe
 from tests.test_parole_corrections import banc, ligne, audit
 from tests.test_repli_et_appel import jouer, dialogue
 from tests.test_tensions import recharger
+from tests.support import question_sans_execution
 
 
 class RappelExactTests(unittest.TestCase):
@@ -38,7 +39,7 @@ class RappelExactTests(unittest.TestCase):
             for evenement in dossier.get('paroles_entendues', []):
                 self.assertIn(evenement['texte'], [p['texte'] for p in emissions_pnj(avant)])
             self.assertIn(phrase, sortie)
-            self.assertEqual(r.data['conversation'][-1]['reponse'], phrase)
+            self.assertEqual(r.data['conversation'][-1]['reponse'], question_sans_execution(phrase))
             self.assertEqual(r.data['narrations_mj'][-1]['texte'], phrase)
             self.assertEqual(emissions_pnj(r), emissions_pnj(avant))
             for champ in ('objets', 'joueur', 'minutes', 'jets'):
@@ -78,7 +79,7 @@ class RappelExactTests(unittest.TestCase):
             self.assertNotIn(mauvais, sortie)
             self.assertIn(bon, sortie)
             self.assertEqual(emissions_pnj(r), emissions_pnj(m))
-            self.assertEqual(recharger(r).data['conversation'][-1]['reponse'], bon)
+            self.assertEqual(recharger(r).data['conversation'][-1]['reponse'], question_sans_execution(bon))
 
     def test_preuve_refusee_si_historique_retire_a_la_sauvegarde(self):
         m = self.scenes()[0]
