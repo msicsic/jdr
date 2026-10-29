@@ -978,23 +978,19 @@ class Vue:
 
     def case_objet(self, e, objet, vus=()):
         """Position prévue, sinon crue ; le contenant ou le porteur donne sa case."""
-        if objet in e.portes or objet == self.id:
-            return e.case
-        if objet in vus:
-            return None
-        if ("case_objet", objet) in e.faits:
-            return e.fait("case_objet", objet)
-        lieu = self.lieu(e, objet)
-        if lieu in self.objets or lieu == "joueur":
-            return self.case_objet(e, lieu, (*vus, objet))
-        cru = lire(self.monde, self.id)["croyances"].get(objet, {}).get("lieu", {})
-        if cru.get("salle") == e.salle and cru.get("case") is not None:
-            return tuple(cru["case"])
-        o = self.objets.get(objet, {})
-        if o and not o.get("mobile") and o.get("type") != "personnage":
-            from .spatial import position_cible
-            return position_cible(self.monde, objet, e.salle)
-        return None
+        from .positions_crues import case_contact
+        def lieu(x):
+            return e.salle if x in e.portes or x == self.id else self.lieu(e, x)
+
+        def case(x):
+            if x in e.portes or x == self.id:
+                return e.case
+            if ('case_objet', x) in e.faits:
+                return e.fait('case_objet', x)
+            cru = lire(self.monde, self.id)['croyances'].get(x, {}).get('lieu') or {}
+            return cru.get('case') if cru.get('salle') == e.salle else None
+
+        return case_contact(self.monde, objet, e.salle, lieu, case, vus)
 
     def approche(self, e, etape, cibles=None):
         """Approche moyenne depuis les entrées, sans position projetée."""

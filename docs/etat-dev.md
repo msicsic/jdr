@@ -2,6 +2,29 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 313, branche `codex-contact-inconnu`, non fusionnée**, base
+  `integration d76f272` : position de contact commune au plan et à
+  l'exécution, héritée des seuls liens crus contenant/support/porteur.
+  Une portée insuffisante ou une case inconnue ne dément plus la présence ;
+  l'approche prépare l'observation dans le lieu cru. Capture Relais 7
+  reconstruite à l'instant 856 (archives 308 absentes du poste) : approche
+  **0 → 30 dixièmes**, charge conservée, Gorm sert Brune. Autre source
+  contenue dans une autre salle à la mine ; service, monde/rendu/scène
+  rechargés et laps entier/découpé vérifiés. Disparition réelle : un seul
+  démenti au contact pendant six minutes, aucun service ni répétition.
+  **35 tests ciblés verts / quatre fichiers** ; sept nouvelles régressions.
+  Validation élargie et banc rapide détachés, deux travailleurs réduits :
+  onze fichiers, puis 4 h × quatre graines × Relais/auberge/mine,
+  référence figée `d76f272` avec cache. Refus de contact et approches sans
+  chemin comptés séparément ; services, suspects 219 et boucles par nuit.
+  **Résultats longs à lire avant clôture** dans
+  `C:/Users/msics/donjon/artifacts/contact-313/fin.json`, écrit en dernier.
+  Limite : observation sans preuve (notamment le noir) conservée comme
+  inconnue ; ni recherche exhaustive ni absence universelle de boucle
+  garanties. Aucun changement de `planifier_tache`/`echanges.empeche`,
+  ni Luna ni suite complète.
+  [Rapport 313](taches/rapport-codex-313-contact-position-inconnue.md).
+
 - **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :
   union des clés de mesures de mandat triée dans `banc_pnj.executer`,
   aucune valeur ni test existant modifié. Test d'origine inchangé vert sous

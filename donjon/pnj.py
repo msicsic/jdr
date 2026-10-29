@@ -773,11 +773,22 @@ def _contenant_rencontre(monde, id, objet):
 def _hors_d_atteinte(monde, id, objet):
     """Il ne peut toucher ce qu'il visait : il constate ce que sa main rencontre. Le contenant
     fermé où il le croyait (il l'a essayé : il sait s'il est verrouillé) ; l'objet reste cru
-    dedans, rien ne lui montre qu'il n'y est plus. Sinon, l'objet n'est pas là où il le croyait.
+    dedans, rien ne lui montre qu'il n'y est plus. Un emplacement cru effectivement touché
+    peut démentir la présence ; une distance ou une case inconnue ne le peuvent pas.
     Renvoie False : le geste est manqué."""
     from .esprits import constater, reviser
     contenant = _contenant_rencontre(monde, id, objet)
     if contenant is None:
+        # La distance ou une place inconnue ne sont pas un constat d'absence.
+        # Même au contact, un objet vu dans les mains d'autrui reste présent.
+        from .spatial import contact_cases
+        from .deliberation import salle_crue
+        o = monde.objets[id]
+        case = _case_crue(monde, id, objet)
+        trop_loin = monde.data.get('mode_cases') and (
+            case is None or not contact_cases(monde, o['lieu'], o.get('position'), o['lieu'], case))
+        if salle_crue(monde, id, objet) != o['lieu'] or percoit(monde, id, objet) or trop_loin:
+            return False
         return _rate(monde, id, objet)
     constater(monde, id, contenant, "essai")
     reviser(monde, id, contenant, "verrouillee", bool(monde.objets[contenant].get("verrouillee")), "essai")
@@ -1572,24 +1583,21 @@ def _case_crue(monde, id, x, salle=None):
     Une porte, un objet
     fixe font partie du lieu (``deliberation._lieu_cru``) : il sait leur place sans les avoir
     revus. None s'il ne sait où."""
-    from .spatial import position_cible
-    ici, o = salle or monde.objets[id]["lieu"], monde.objets.get(x)
-    fixe = o is not None and o["type"] != "personnage" and not o.get("mobile")
-    cru = lire(monde, id)["croyances"].get(x, {}).get("lieu")
-    porteur = cru.get("valeur") if cru else None
-    if porteur in monde.objets and monde.objets[porteur]["type"] == "personnage" and porteur != id:
-        etat = lire(monde, id)["croyances"].get(porteur, {}).get("etat", {}).get("valeur", {})
-        if etat.get("conscient") is False:
-            return _case_crue(monde, id, porteur, ici)
-    if cru and (o is None or o["type"] != "porte"):  # Le joueur n'est pas un objet.
-        if cru["valeur"] is None or cru.get("salle") != ici:
-            return None
-        if cru.get("case"):
-            return tuple(cru["case"])
-    if not fixe:
-        return None
-    p = position_cible(monde, x, ici)
-    return tuple(p) if p is not None else None
+    from .deliberation import _lieu_cru
+    from .positions_crues import case_contact
+    ici = salle or monde.objets[id]['lieu']
+    croyances = lire(monde, id)['croyances']
+
+    def lieu(sujet):
+        return monde.objets[id]['lieu'] if sujet == id else _lieu_cru(monde, id, sujet)
+
+    def case(sujet):
+        if sujet == id:
+            return monde.objets[id].get('position') if ici == monde.objets[id]['lieu'] else None
+        cru = croyances.get(sujet, {}).get('lieu') or {}
+        return cru.get('case') if cru.get('salle') == ici else None
+
+    return case_contact(monde, x, ici, lieu, case)
 
 
 def _a_portee_de(monde, salle, case, cible):
@@ -1604,32 +1612,49 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
     sur place, le geste constate s'il y est. Renvoie la durée du pas, 0 s'il n'a plus à marcher,
     None s'il ne voit aucun chemin (``trajet``). Celui qui se tient sur la seule case d'où
     l'atteindre doit lui faire place (``_marcher``)."""
+    from .spatial import contact_cases
     o = monde.objets[id]
-    loin = [x for x in _a_toucher(monde, id, etape) if not _accessible(monde, id, x)]
+    from .deliberation import salle_crue
+    # La préparation lit les croyances, même si la cible a réellement bougé.
+    # Seul le geste final contrôle ensuite la portée physique.
+    loin = []
+    for x in _a_toucher(monde, id, etape):
+        salle = salle_crue(monde, id, x)
+        case = _case_crue(monde, id, x, salle)
+        if case is None or not contact_cases(monde, o['lieu'], o['position'], salle, case):
+            loin.append(x)
     if not loin:
         return 0
     def places_crues():
-        croyances = lire(monde, id)["croyances"]
         places = []
         for x in loin:
-            salle = (croyances.get(x, {}).get("lieu") or {}).get("salle") or o["lieu"]
+            salle = salle_crue(monde, id, x)
             case = _case_crue(monde, id, x, salle)
-            places.append((salle, case) if case is not None else None)
+            places.append((salle, case))
         return places
     crues = places_crues()
-    if None in crues:
-        # Il le croit dans cette salle sans savoir où : il la parcourt des yeux. Ne le voyant
-        # pas, c'est en essayant le geste qu'il constate son absence.
-        croyances = lire(monde, id)["croyances"]
-        if "orientation" in o and any(c is None and (croyances.get(x, {}).get("lieu") or {}).get("salle") == o["lieu"]
-                                      for x, c in zip(loin, crues)):
-            tour_d_horizon(monde, id)
-            if None not in places_crues():
-                return TOUR
-        return 0
-    from .spatial import contact_cases
-    arrivee = lambda salle, case: all(contact_cases(monde, salle, case, s, c, objet=x)
-                                     for x, (s, c) in zip(loin, crues))
+    if any(c is None for s, c in crues):
+        # Une observation se prépare dans le lieu cru, jamais au lieu réel du
+        # mobile. Le centre et le tour d'horizon sont ceux de l'inspection.
+        salle = next(s for s, c in crues if c is None)
+        if salle is None:
+            return None
+        if salle != o['lieu']:
+            arrivee = lambda s, c: s == salle
+        else:
+            centre = _centre(monde, id)
+            arrivee = lambda s, c: s == salle and (centre is None or tuple(c) == tuple(centre))
+        pas = _marcher(monde, id, arrivee, lignes, gestes)
+        if pas is None:
+            return _impasse(monde, id, etape, arrivee, compter)
+        if pas:
+            return pas
+        tour_d_horizon(monde, id)
+        # Même si le regard dément la présence, ne pas exécuter l'ancien geste.
+        if places_crues() != crues:
+            return TOUR
+        return None
+    arrivee = lambda salle, case: all(contact_cases(monde, salle, case, s, c) for s, c in crues)
     pas = _marcher(monde, id, arrivee, lignes, gestes)
     return _impasse(monde, id, etape, arrivee, compter) if pas is None else pas
 
