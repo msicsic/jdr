@@ -3,7 +3,9 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-interposition-reprise`, non fusionnée**, lot **278**, base
-  `792816c` : établissement terminé, **aucun correctif moteur**. Nuit hameau
+  `792816c` : **lot clos, diagnostic seul, sans code**, aucun correctif moteur.
+  Alerte 274 requalifiée comme reprise admissible selon les croyances de Gorm.
+  Nuit hameau
   1985 rejouée sur `0bad227`, identité à l’archive 274 (empreintes, chronique,
   mesures, récit, souvenirs), douze captures rechargées, **36 égalités
   monde/rendu/scène**. À `385475`, Gorm croit Aubin en `antichambre`, `[5,1]`,
@@ -13,8 +15,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   le protégé. Choix par le candidat `defense.interposition` du lot 167,
   recalculé avant le pas par `pnj.agir`, sans reprise d’agenda ni suffixe
   recopié. Localisation d’Aubin perdue à `385490`, intention retirée à
-  `385500`. Clause d’arrêt du brief : **QUESTION**, reprise admissible sur
-  cette capture, aucun nouveau banc, test de lot, Luna ni suite complète.
+  `385500`. Le compteur 219 de `0bad227` (avant le lot 276) ne relevait ni
+  la provenance de la croyance ni la position entendue ; son classement
+  brut reste dans l’archive, l’alerte est requalifiée par le diagnostic.
+  Aucun nouveau banc, test de lot, Luna ni suite complète.
   Contrat général et découpage non certifiés par cet établissement.
   Un processus réduit, 296,773 s, `fin-etablissement.json` **ok=true**,
   aucun calcul actif du lot ; bruts dans

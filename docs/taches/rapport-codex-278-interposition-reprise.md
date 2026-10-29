@@ -2,7 +2,8 @@
 
 29 octobre 2026, branche `codex-interposition-reprise`, base `792816c`,
 **non fusionnée**. **La reprise signalée est admissible : aucun correctif moteur.**
-La clause d’arrêt du brief s’applique ; son hypothèse de départ doit être rectifiée.
+**Lot clos, diagnostic seul, sans code**, conformément à la décision de clôture.
+L’alerte 274 est requalifiée comme reprise admissible selon les croyances de Gorm.
 
 **Preuve réelle.** Rejeu de la nuit hameau 1985 sur les sources exactes de
 `0bad227`, avec la sonde de cette archive, un seul processus à priorité réduite :
@@ -27,6 +28,10 @@ Aubin est donc revenu **10,2 secondes avant** la décision, et sa localisation
 crue a été renouvelée. La capture avant 642, prise à 641, ne suffit pas à
 décrire l’état à `385475`.
 
+Le compteur 219 de `0bad227`, **avant le lot 276**, ne relevait ni la
+provenance de la croyance ni la position entendue. Son classement suspect
+ne permettait donc pas d’établir cette revalidation ; les captures la prouvent.
+
 **Chemin réellement emprunté.** La pile enregistrée donne `pnj._avancer` →
 `deliberation.choisir` → `evaluer` → méthode du candidat
 `defense.interposition` (lot 167), inscrit par `_candidats` au palier
@@ -47,7 +52,8 @@ Pas de nouveau banc 4 h, de Luna ni de suite complète : la correction
 conditionnelle est arrêtée à l’établissement. Le diagnostic porte sur
 `0bad227`, pas sur une nouvelle nuit de `792816c` ; ni un second cas, ni
 l’invariance par découpage temporel, ni le contrat général de toute
-interposition ne sont certifiés. Le classement suspect 219 reste inchangé.
+interposition ne sont certifiés. Le classement brut suspect 219 reste
+inchangé dans l’archive ; l’alerte est requalifiée par le présent diagnostic.
 
 Bruts : `C:/Users/msics/donjon/artifacts/interposition-278/` ;
 `fin-etablissement.json` (`ok=true`), `preuve-diagnostic.json`,
@@ -55,6 +61,6 @@ Bruts : `C:/Users/msics/donjon/artifacts/interposition-278/` ;
 `recharges.json` et captures `choix-385475-96-avant/apres.json`.
 Le script `etablissement.py` et les sources archivées y sont conservés.
 
-**QUESTION : requalifier l’alerte 274 comme reprise admissible, puisque
-Aubin est revenu et que les deux présences sont revalidées, plutôt
-qu’appliquer le correctif fondé sur son départ supposé ?**
+**LOT TERMINÉ : alerte 274 requalifiée comme reprise admissible selon les
+croyances de Gorm ; le « départ » relevé était le retour d’Aubin au Refuge
+(`antichambre`). Aucun correctif du moteur.**
