@@ -2,6 +2,30 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 327 / G19 terminé, branche `codex-g19-rappels`, fusionnée**, base
+  `integration eb15b5e` : rappels exacts reliés aux occurrences entendues
+  du registre G15, provenance et absence revérifiées avant sauvegarde.
+  Mémoire d'un locuteur parti distincte des interlocuteurs présents ;
+  désignation historique sans acquisition d'identité. Citations exactes
+  et constat moteur d'absence de mots sans audit ; rappels libres gardés
+  sous leurs contrôles actuels. **153 tests distincts / douze fichiers
+  verts**, dont huit nouveaux ; monde, mémoire, conversation, scène et
+  rendu après recharge, MJ simulé sans réseau. Deux travailleurs réduits
+  au plus, ni suite complète ni banc PNJ. **Luna, une passe détachée**
+  `soir-noir` / `echanges`, référence `cdaf371` relue seulement : huit
+  tours MJ, **34 appels**, zéro obstacle/relance/repli/erreur, trois refus
+  de validation. **Zéro citation exacte auditée, zéro rappel exact proposé** :
+  voie exacte validée par les tests, non exercée dans cette passe Luna.
+  Limite observée : faux passé sur un nom donné par Corvus admis au tour
+  de l'imposture avec `rappels=[]` ; voie libre et contrôles conservés.
+  Bruts `C:/Users/msics/donjon/artifacts/g19-327/`, **fin.json ok=true**,
+  code 0, 83,130 s ; premier échec de lanceur avant tout appel conservé.
+  Code/tests `8c2614a` inchangés, empreintes vérifiées ; branche poussée
+  vers origin, aucun calcul actif. Aucun gain général revendiqué.
+  Recouvrements G5/323 et G17/326 : `narration.py` seulement.
+  [Rapport 327](taches/rapport-codex-327-g19-rappels.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Un rappel restitue les mots historiques entendus, rattachés au registre des émissions G15, sans nouvelle émission ni connaissance ; preuves reconstruites avant écriture, audit narratif retiré pour ces seuls segments exacts. 153 tests verts ; passe Luna sans erreur.
+
 - **Lot 320 / G15 terminé, branche `codex-g15-emissions`, fusionnée**, base
   `integration 0fcc99e` : registre unique des émissions de parole, admission
   avant affichage, auteur/acte/paramètres/modalité/source/auditeurs/ordre.
