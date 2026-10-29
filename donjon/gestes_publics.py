@@ -17,6 +17,23 @@ DESTINATION = {"champ": "destination", "ressources": [
 CORPS = ("personnage", "depouille", "partie_corps")
 
 
+def ressource_connue(monde, id):
+    """Frontière commune des choix matériels : portée et perception actuelles."""
+    from .noms import PERSONNES
+    from .spatial import proche
+    o = monde.objets.get(id)
+    if not o or o["type"] in (*PERSONNES, "partie_corps"):
+        return False
+    parent, vus = o, set()
+    while parent["lieu"] in monde.objets and parent["lieu"] not in vus:
+        vus.add(parent["lieu"])
+        parent = monde.objets[parent["lieu"]]
+        if parent["type"] in PERSONNES:
+            return False
+    return ((o["lieu"] == "joueur" and monde.present_physique(id)) or
+            (monde.visible(id) and (not monde.data.get("mode_cases") or proche(monde, id))))
+
+
 # Conditions sur les seuls champs déjà envoyés à la page. Même table en Python
 # et dans les données du pont web, sans lire de précondition privée du moteur.
 OBJETS = (
@@ -136,5 +153,38 @@ def catalogue_public():
     Python ; la sérialisation appartient au transport habituel du serveur.
     """
     from copy import deepcopy
-    return {famille: [deepcopy(list(entree)) for entree in table]
-            for famille, table in (("objets", OBJETS), ("portes", PORTES))}
+    catalogue = {famille: [deepcopy(list(entree)) for entree in table]
+                 for famille, table in (("objets", OBJETS), ("portes", PORTES))}
+    catalogue["fabrication"] = formulaires_fabrication()
+    return catalogue
+
+
+def formulaires_fabrication():
+    """Les usages et rôles du moteur, sans prédire l'aptitude d'une ressource."""
+    from .artisanat import SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, USAGES
+
+    def champ(nom, schema, chemin=None):
+        return {"chemin": chemin or [nom], "libelle": nom.replace("_cm", " (cm)").replace("_", " ").capitalize(),
+                **({"type": "nombre", **{k: schema[k] for k in ("minimum", "maximum") if k in schema}}
+                   if schema["type"] == "integer" else
+                   {"type": "choix", "choix": list(schema["enum"])} if "enum" in schema else
+                   {"type": "ressource"})}
+
+    p = SCHEMA_ASSEMBLAGE["properties"]
+    roles = []
+    for nom, schema in p["pieces"]["properties"].items():
+        if schema["type"] == "array":
+            for i in range(schema["minItems"]):
+                c = champ(nom, schema["items"], ["pieces", nom, i])
+                c["libelle"] += f" {i + 1}"
+                roles.append(c)
+        else:
+            roles.append(champ(nom, schema, ["pieces", nom]))
+    return [
+        {"geste": "assembler", "cible": usage, "libelle": "Assembler : " + usage,
+         "champs": roles + [champ(nom, p[nom]) for nom in
+                            ("lien", "outil", "longueur_cm", "largeur_cm", "rythme")]}
+        for usage in USAGES
+    ] + [{"geste": "decouper", "libelle": "Découper à longueur",
+          "champs": [champ(nom, SCHEMA_DECOUPE["properties"][nom]) for nom in
+                     ("cible", "outil", "longueur_cm")]}]

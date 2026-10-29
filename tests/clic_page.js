@@ -94,5 +94,42 @@ for (const [nom, actif, valeur] of [["saisie_vide", $("commande"), ""], ["saisie
   sortie.espace[nom] = {envoi: envois[0] || null, empeche};
 }
 }
+if (ETAT.sonde_fabrication) {
+  appliquerEtat(ETAT); occupe = false; envois.length = 0;
+  $("fabriquer").onclick({clientX: 10, clientY: 10, stopPropagation() {}});
+  const offres = $("menu").children.filter(b => b.onclick);
+  sortie.fabrication = {offres: offres.map(b => b.textContent), champs: [], clics: 2};
+  const f = ETAT.sonde_fabrication;
+  const b = offres[f.index || 0];
+  if (b) {
+    b.onclick();
+    const form = $("fabrication");
+    form.onsubmit({preventDefault() {}});
+    sortie.fabrication.incomplet = envois.length;
+    for (const label of form.children.filter(l => l.tagName === "LABEL")) {
+      const input = label.children.find(c => ["INPUT", "SELECT"].includes(c.tagName));
+      const nom = label.children[0].textContent;
+      const choix = input.children.map(o => ({valeur: o.value, texte: o.textContent}));
+      input.value = String(f.valeurs[nom] ?? "");
+      if (input.tagName === "SELECT" && !choix.some(o => o.valeur === input.value)) throw Error("Choix absent : " + nom + " / " + input.value);
+      if (input.onchange) input.onchange();
+      document.activeElement = input;
+      for (const key of ["ArrowUp", "ArrowDown", " "]) ecouteurs.keydown.forEach(cb => cb({key, preventDefault() {}}));
+      sortie.fabrication.champs.push({nom, choix, valeur: input.value, detail: label.children[2]?.textContent || ""});
+      sortie.fabrication.clics += input.tagName === "SELECT" ? 2 : 1;
+    }
+    sortie.fabrication.clavier = envois.length;
+    document.activeElement = null;
+    occupe = true; form.onsubmit({preventDefault() {}});
+    sortie.fabrication.occupe = envois.length;
+    occupe = false; form.onsubmit({preventDefault() {}});
+    sortie.fabrication.clics++;
+    sortie.fabrication.envoye = envois[0];
+    form.onsubmit({preventDefault() {}});
+    sortie.fabrication.envois = envois.length;
+    appliquerEtat(ETAT);
+    sortie.fabrication.ferme_apres_etat = form.hidden;
+  }
+}
 console.log(JSON.stringify(sortie));
 `);

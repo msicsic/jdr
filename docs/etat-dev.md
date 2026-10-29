@@ -2,6 +2,24 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-um-fabrication`, lot 305 / U-M fabrication, non fusionnée**,
+  base intégration `37f68d4` : formulaire web d'assemblage et découpe, usages
+  et rôles dérivés des schémas moteur dans le catalogue commun. Ressources
+  portées ou perçues à portée, références publiques exactes, physique connue
+  affichée ou manque signalé sans valeur inventée. Même proposition, plan,
+  effet et rendu que les commandes explicites ; moteur seul juge des pièces
+  et droits. Référence périmée refusée sans substitut. **95 tests distincts /
+  neuf fichiers verts**, dont sept nouveaux ; Node réel puis boucle sans MJ,
+  monde/scène/fiche/carte après recharge. Quatre parcours : quatre commandes
+  composées évitées, 17 clics pour assembler, 8 pour découper selon la
+  convention Node ; deux dimensions / une dimension restent à saisir.
+  Limites : échelle seule modélisée, pas de qualification ni prélèvement
+  automatique, ni approche vers plusieurs ressources éloignées. Ni MJ,
+  `jeu.py`, `tui.py`, règles atelier/matière, Luna, banc ou suite complète.
+  Bruts : `C:/Users/msics/donjon/artifacts/um-fabrication-305/`, `fin.json`.
+  Aucun calcul actif ; branche poussée vers origin.
+  [Rapport 305](taches/rapport-codex-305-um-fabrication.md).
+
 - **Branche `codex-um-outils`, lot 300 / U-M outils, fusionnée**,
   base `2d893e0`, reprise par fusion sans rebase d'`origin/integration`
   `f1cb8fd` (U-T 299 inclus) : choix explicite d'outil, clé, combustible
