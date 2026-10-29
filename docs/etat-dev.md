@@ -2,21 +2,25 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 322 en vérification, branche `codex-trois-echecs`, base `0a0bc9d`** :
-  diagnostic des trois échecs nouveaux. Mathurine appelle réellement pour
+- **Lot 322 terminé, branche `codex-trois-echecs`, base `0a0bc9d`** :
+  bissection des trois échecs nouveaux : **fusion 303 `8406756` rouge,
+  parent direct `d7302a4` vert**, six références, trois tests chacune,
+  414,998 s. Changements légitimes : Mathurine appelle réellement pour
   rejoindre Mireille qu'elle veut nourrir ; Corvus saisit ses mots depuis
   le couloir puis le grenier. L'inspection Mathe/Odon sans lieu connu est
   un préfixe de contact, pas un service franchissant le verrou ; la demande
   effective reste impossible. Prémisses des deux scènes de voix isolées et
   du lieu entendu d'Odon précisées, assertions historiques conservées ;
   nouveau test du tiers actif et de son anonymat après recharge.
-  Moteur inchangé. Bissection sur copies et trois fichiers ciblés en fond,
-  deux travailleurs réduits au plus ; pas de Luna, banc ou suite complète.
-  `d1c0722` vert, `79fca6a` et `f8fbff2` rouges sur les trois tests originaux ;
-  fusion introductrice et parent encore à établir. Bruts
-  `C:/Users/msics/donjon/artifacts/trois-echecs-322/`,
-  `fin-calcul.json` attendu avant clôture (agrège bissection et tests,
-  même en échec) ; processus détachés vérifiés actifs.
+  **54/54 tests distincts verts, trois fichiers**, zéro échec/erreur/saut.
+  Première passe : import sans_souci oublié, corrigé ; seuls les 18 tests
+  du fichier concerné relancés (83,205 s), les 36 autres verts inchangés.
+  Moteur inchangé ; ni Luna, banc ni suite complète. Deux travailleurs
+  réduits au plus sur copies ; aucun calcul actif. Bruts
+  `C:/Users/msics/donjon/artifacts/trois-echecs-322/` : échec initial
+  `fin-calcul.json` conservé, **fin-cloture.json ok=true**.
+  Branche poussée vers origin ; aucune garantie universelle de secours
+  ou d'absence de boucle revendiquée.
   [Rapport 322](taches/rapport-codex-322-trois-echecs.md).
 
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base

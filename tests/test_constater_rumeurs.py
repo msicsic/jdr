@@ -20,7 +20,7 @@ from donjon.geometrie import position_entree
 from donjon.perception import eclairage
 from donjon.pnj import se_parler
 from donjon.spatial import installer
-from tests.support import calme, refusee, regarder, sans_evacues
+from tests.support import calme, refusee, regarder, sans_evacues, sans_souci
 from tests.test_temps_etat import intention, plan
 from tests.test_tensions import attendre, chronique, placer, recharger, relais
 

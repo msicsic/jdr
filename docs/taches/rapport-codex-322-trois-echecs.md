@@ -1,7 +1,7 @@
 # Lot 322 — trois échecs nouveaux : diagnostic et oracles
 
 29 octobre 2026. Branche `codex-trois-echecs`, base `integration 0a0bc9d`.
-**Vérification en cours**, deux travailleurs de calcul au plus, priorité réduite.
+**Lot terminé**, deux travailleurs de calcul au plus, priorité réduite.
 Bruts : `C:/Users/msics/donjon/artifacts/trois-echecs-322/`.
 
 **Diagnostic.** Les trois attentes historiques confondent une scène isolée
@@ -32,21 +32,26 @@ les lots 313 et 315 ne sont donc pas concernés par une correction de code.
   désormais le lieu entendu d'Odon dans les deux variantes avant d'éprouver
   l'accès aux vivres ; `None` et le refus `impossible` restent exigés.
 
-**Bissection en cours.** Rejeu des trois tests originaux sur des copies
-`git archive`, sans changer le worktree courant. `d1c0722` : trois verts ;
-`79fca6a` et le milieu `f8fbff2` : les trois échecs attendus. La recherche
-continue jusqu'à la fusion introductrice et son parent direct ; résultats
-par commit dans `bissection.json`, bornes finales dans `bornes.json`.
+**Bissection achevée, 414,998 s.** Les trois tests originaux sont verts sur
+`d1c0722` et sur le parent direct **`d7302a4`**, rouges dès la fusion
+**`8406756` (lot 303)** : deux égalités de voix, puis inspection de la réserve
+au lieu de `None`. Les points `02c7330`, `f8fbff2` et `79fca6a` reproduisent
+ces mêmes échecs. Six références, trois tests chacune, sur copies
+`git archive` sans changer le worktree courant. `bissection.json` et
+`bornes.json` conservent les résultats ; le lot 312 n'introduit aucun des
+trois écarts.
 
-**Vérification ciblée en cours.** Les trois fichiers touchés sont lancés
-par `tools/tests.py --processus 1`, en parallèle du seul travailleur de
-bissection. `fin-bissection.json` et `fin-tests.json` sont écrits en dernier,
-même en cas d'échec. Les contrôles de diagnostic déjà achevés conservent
-l'état complet, le rendu et la scène après recharge pour les six variantes.
+**Vérification ciblée : 54/54 tests distincts verts**, trois fichiers,
+zéro échec, erreur ou saut. Première passe : 53 verts et une erreur
+d'import de `sans_souci` dans le test modifié. Import corrigé ; les
+18 tests du fichier concerné sont verts à la reprise (83,205 s).
+Les deux autres fichiers (12 et 24 tests) sont inchangés depuis leur
+passe verte. Les contrôles de diagnostic conservent l'état complet, le
+rendu et la scène après recharge pour six variantes. `fin-calcul.json`
+conserve l'échec initial ; `bilan-cloture.json` rassemble les dernières
+passes, et **`fin-cloture.json` clôt le lot avec `ok=true`**.
 Pas de Luna, suite complète ni banc : aucun code du jeu ne change.
-Le suivi détaché écrit `fin-calcul.json` après les deux fichiers de fin ;
-les processus ont été vérifiés actifs avant de rendre la main.
 
 **Limites.** Le verdict porte sur ces scènes et les garanties des tests ;
-il ne certifie ni tous les secours, ni toute absence de boucle. La
-clôture du lot attend les bornes historiques et les trois fichiers verts.
+il ne certifie ni tous les secours, ni toute absence de boucle.
+Branche poussée vers origin ; aucun calcul du lot actif.
