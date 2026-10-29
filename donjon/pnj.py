@@ -1883,7 +1883,7 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
             return reste, MANQUE, etape
         arrivee = lambda salle, case: salle == etape["lieu"] and list(case) == etape["contenu"]["position"]
         if not arrivee(o["lieu"], o["position"]):
-            pas = _marcher(monde, id, arrivee, lignes, gestes)
+            pas = _marcher(monde, id, arrivee, lignes)
             return (pas, GESTE, None) if pas else (reste, MANQUE, etape)
     if en_place and operation == "aller":
         # Le seul juge du passage est le chemin en cases : sans chemin, c'est un geste manqué.

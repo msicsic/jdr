@@ -2,6 +2,24 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 333 / A4b, branche `codex-garder-lieu`, non fusionnée**, base
+  d'intégration `4a54090` : interposition commune pour biens, protégés et
+  lieux gardés. Seuil déclaré, approche réellement vue en continu, poste
+  libre/atteignable dès l'événement et revalidé à chaque pas ; aucune
+  interception créée après libération tardive de l'accès. Marche sans
+  poussée pour cette action, parole typée enregistrée, preuve commune
+  sans répétition, persistance relationnelle conservée. **135 tests
+  distincts / douze fichiers verts**, dont huit nouveaux : Relais/Corvus,
+  auberge/Lucien ; monde, rendu, scène et parole entendue rechargés,
+  laps entier/découpé identiques. Reprise de 22 après la dernière garde
+  visuelle verte. Ni Luna ni suite complète. **Banc détaché à lancer**,
+  4 h × cinq scénarios × quatre graines, un travailleur réduit ; référence
+  `f08ef58` identique en code à la base, vingt nuits disponibles en cache,
+  aucun recalcul de référence. Bruts `C:/Users/msics/donjon/artifacts/lieu-333/`,
+  fin attendue **`fin.json`**, écrite en dernier même en échec ; banc non
+  encore validé. Recouvrements 330 : `pnj.py` ; 332 : `esprits.py`, `pnj.py`.
+  [Rapport 333](taches/rapport-codex-333-garder-un-lieu.md).
+
 - **Lot 331 terminé, branche `codex-achat-planches`, fusionnée**, base
   `origin/integration 7e65907` : attente d'achat impossible périmée depuis
   le lot 312. Bissection sur onze versions, **parent direct `2ddfbe0`
