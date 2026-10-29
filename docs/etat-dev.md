@@ -2,6 +2,26 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 321 / U-T fabrication, branche `codex-ut-fabrication`, base
+  `integration 0fcc99e`, non fusionnée** : `0` ouvre une recette numérotée
+  commune console/TUI, issue du catalogue et des ressources publiques du web.
+  Usage, rôles, lien, outil, dimensions et rythme composent le même
+  descripteur U-D sans analyseur ni modèle. Physique connue affichée,
+  manque signalé, accès et droits revalidés par le moteur sans substitut.
+  Quatre parcours du 305 dans chaque interface, références périmées ou
+  éloignées, physique inconnue, propriété et recharge contrôlées ;
+  **10 nouveaux tests verts**, zéro échec/erreur/saut, 58,216 s.
+  Neuf fichiers voisins en cours, dont les 28 TUI existants inchangés ;
+  aucun bilan global déclaré. Suivi détaché réduit, sans relancer les tests,
+  `fin.json` écrit en dernier même en échec. Deux travailleurs réduits
+  au plus au total ; bilan à lire à la reprise pour clore le rapport.
+  Huit parcours : **23 touches pour assembler, 12 pour découper**,
+  **24/13 avec F7** en TUI, ouverture et dimensions comprises.
+  **Recouvrement 319 : `jeu.py`**, boucle console seulement ; rendu,
+  moteur, MJ et web inchangés. Ni Luna, ni banc, ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/ut-fabrication-321/`.
+  [Rapport 321](taches/rapport-codex-321-ut-fabrication.md).
+
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base
   `integration 60f857c`** : aucune dépendance au hachage reproduite.
   Hameau/Relais 2024 identiques sous 1/42/310/2024 ; hameau historique
