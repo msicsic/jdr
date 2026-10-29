@@ -110,6 +110,12 @@ def retenir_intention(monde, id, contrat):
     i = e["intention"]
     e["contrat_intention"] = {**{k: copy.deepcopy(i[k]) for k in ("but", "motif", "depuis")},
                               "contrat": copy.deepcopy(contrat)}
+    a = _projet(monde, id, i['but'].get('agenda'))
+    if a and i['plan'] and not any('mandat' in g.get('contenu', {}) for g in i['plan']):
+        qui = i['but'].get('qui')
+        for x in a.get('attributions', []):
+            if x['etat'] == 'active' and qui in x['parametres']['qui'] and aide_echue(monde, x):
+                x['etat'] = 'reprise'
 
 
 def clore_intention(monde, id, sortie):
@@ -336,7 +342,7 @@ def devis_mandat(monde, mandant, parent, titulaire, sorte, parametres):
     return (cout[0], resultat[1]) if resultat is not None and cout else None
 
 
-def devis_observateur(monde, observateur, parent, acteur, sorte, parametres, *, transmis=()):
+def devis_observateur(monde, observateur, parent, acteur, sorte, parametres, *, transmis=(), duree=None):
     """Prochain sous-but estimé sur les seules données de l'observateur.
 
     Les connaissances partagées ou à transmettre sont explicites ; le mandat
@@ -362,7 +368,7 @@ def devis_observateur(monde, observateur, parent, acteur, sorte, parametres, *, 
         raise ValueError("Parent de mandat absent")
     a.update(id="devis", sorte=sorte, parametres=_condition_mandat(copie, sorte, p),
              etat="actif", origine={"type": "scenario"})
-    for champ in ("confies", "jugements"):
+    for champ in ("confies", "jugements", "attributions"):
         a.pop(champ, None)
     copie.data["esprits"][acteur]["agendas"] = [a]
     if sorte == "informer" and "avis" in parametres:
@@ -379,6 +385,9 @@ def devis_observateur(monde, observateur, parent, acteur, sorte, parametres, *, 
                "dit:" + observateur, dit["conviction"])
     cout = []
     resultat = planifier(copie, acteur, a["id"], cout=cout)
+    if duree is not None and resultat is not None:
+        from .planification import duree_devis
+        duree.append(duree_devis(copie, acteur, resultat[1]))
     return (cout[0], resultat[1]) if resultat is not None and cout else None
 
 
@@ -408,7 +417,7 @@ def _condition_mandat(monde, sorte, parametres):
     return p
 
 
-def confier(monde, mandant, parent, titulaire, sorte, parametres, *, accepte):
+def confier(monde, mandant, parent, titulaire, sorte, parametres, *, accepte, echeance=None):
     """Publier une acceptation déjà jugée ; aucun jet, choix ni ancien contrat.
 
     Refus : aucun effet. Relance : même enfant, même état (même terminal),
@@ -426,6 +435,8 @@ def confier(monde, mandant, parent, titulaire, sorte, parametres, *, accepte):
             or monde.objets[titulaire]["type"] != "personnage"):
         raise ValueError("Titulaire de mandat invalide")
     p = _condition_mandat(monde, sorte, parametres)
+    if echeance is not None and (type(echeance) is not int or echeance < monde.data['minutes']):
+        raise ValueError("Échéance de mandat invalide")
     chaine = filiation(monde, mandant, parent)
     if titulaire in {r["titulaire"] for r in chaine}:
         raise ErreurMonde("Ce mandat reviendrait à l'un de ses mandants.",
@@ -434,6 +445,19 @@ def confier(monde, mandant, parent, titulaire, sorte, parametres, *, accepte):
         raise ErreurMonde("Ce mandat a déjà été confié deux fois de suite.",
                           f"parent={mandant}/{parent}, profondeur={len(chaine)-1} ; attendu : profondeur < 2")
     a = _projet(monde, mandant, parent)
+    precedentes = [x for x in a.get('attributions', []) if _meme_charge(x, sorte, p)]
+    for x in precedentes:
+        if x['titulaire'] == titulaire and x['etat'] != 'active':
+            raise ErreurMonde("Cette charge a déjà été retirée à ce titulaire.",
+                              f"titulaire={titulaire} ; attendu : titulaire non essayé pour {sorte}/{p}")
+        if x['etat'] == 'active' and x['titulaire'] != titulaire and not aide_echue(monde, x):
+            raise ErreurMonde("Cette charge est encore confiée à quelqu'un.",
+                              f"titulaire={titulaire} ; attendu : attribution échue pour {sorte}/{p}")
+        if x['etat'] == 'active' and x['titulaire'] == titulaire:
+            ancien = _projet(monde, titulaire, x['agenda'])
+            if ancien['sorte'] != sorte or _condition_mandat(monde, sorte, ancien['parametres']) != p:
+                raise ErreurMonde("Cette demande recouvre une charge déjà confiée à ce titulaire.",
+                                  f"parametres={p} ; attendu : {ancien['parametres']}")
     for ref in a.get("confies", []):
         enfant = _projet(monde, ref["titulaire"], ref["agenda"])
         if (ref["titulaire"] == titulaire and enfant["sorte"] == sorte
@@ -454,8 +478,115 @@ def confier(monde, mandant, parent, titulaire, sorte, parametres, *, accepte):
     _changer(monde, titulaire, enfant, "actif", "mandat", empreinte)
     _stock(monde, titulaire, creer=True).append(enfant)
     a.setdefault("confies", []).append({"titulaire": titulaire, "agenda": enfant["id"]})
+    for x in precedentes:
+        if x['etat'] == 'active':
+            x['etat'] = 'remplacee'
+    for qui in p['qui']:
+        attribution = {'sorte': sorte, 'parametres': {**copy.deepcopy(p), 'qui': [qui]},
+                       'titulaire': titulaire, 'agenda': enfant['id'],
+                       'minute': monde.data['minutes'], 'etat': 'active'}
+        if echeance is not None:
+            attribution['echeance'] = echeance
+        a.setdefault('attributions', []).append(attribution)
     _limiter(monde, titulaire, empreinte)
     return copy.deepcopy(enfant)
+
+
+def _meme_charge(x, sorte, p):
+    qui = p['qui']
+    return (x['sorte'] == sorte and bool(set(_destinataires(x)) & ({qui} if isinstance(qui, str) else set(qui)))
+            and {k: v for k, v in x['parametres'].items() if k != 'qui'}
+                == {k: v for k, v in p.items() if k != 'qui'})
+
+
+def _confies_attendus(monde, a):
+    """L'accord entendu reste attendu jusqu'à son échéance, sans lire l'enfant.
+
+    Les anciens accords sans attribution datée gardent leur attente historique.
+    """
+    suivies = [x for x in a.get('attributions', []) if _meme_charge(x, a['sorte'], a['parametres'])]
+    anciennes = {q for j in a.get('jugements', []) if j['issue'] == 'accepte'
+                 and _meme_charge(j, a['sorte'], a['parametres']) for q in _destinataires(j)}
+    anciennes -= {q for x in suivies for q in x['parametres']['qui']}
+    return anciennes | {q for x in suivies if x['etat'] == 'active' and not aide_echue(monde, x)
+                         for q in x['parametres']['qui']}
+
+
+def avertissements(monde, id, parent, sorte, p):
+    """Seulement un ancien titulaire cru ici ; pas de détour ni de télépathie."""
+    from .deliberation import salle_crue
+    from .planification import _etape
+    a = _projet(monde, id, parent)
+    return [_etape('dire', x['titulaire'], contenu={'retrait_mandat': {
+                'parent': parent, 'agenda': x['agenda']}})
+            for x in a.get('attributions', [])
+            if _meme_charge(x, sorte, p) and _avertissement_du(monde, id, x)
+            and (x['etat'] != 'active' or aide_echue(monde, x))
+            and salle_crue(monde, id, x['titulaire']) == monde.objets[id]['lieu']]
+
+
+def _presence_connue(monde, id, autre):
+    from .esprits import lire
+    c = lire(monde, id)['croyances'].get(autre, {}).get('lieu', {})
+    return {k: copy.deepcopy(c[k]) for k in ('valeur', 'source', 'salle', 'case') if k in c}
+
+
+def _avertissement_du(monde, id, x):
+    v = x.get('avertissement')
+    return (v is None or not v['entendu']
+            and v['presence'] != _presence_connue(monde, id, x['titulaire']))
+
+
+def avertir_retrait(monde, id, autre, retrait, *, entendu):
+    """Effet d'une tentative de parole, après contrôle de portée et de voix."""
+    a = _projet(monde, id, retrait['parent'])
+    refs = [x for x in a.get('attributions', [])
+            if x['titulaire'] == autre and x['agenda'] == retrait['agenda']]
+    if not refs or not any(_avertissement_du(monde, id, x) for x in refs):
+        return False
+    if not any(x['etat'] != 'active' or aide_echue(monde, x) for x in refs):
+        return False
+    for x in refs:
+        x['avertissement'] = {'minute': monde.data['minutes'], 'entendu': entendu,
+                             'presence': _presence_connue(monde, id, autre)}
+    if entendu:
+        enfant = _projet(monde, autre, retrait['agenda'])
+        if enfant['etat'] in ('actif', 'sommeil'):
+            _changer(monde, autre, enfant, 'abandonne', 'retrait entendu', _croyances(monde, autre))
+            from .esprits import reconsiderer
+            reconsiderer(monde, autre)
+        # Le retrait porte sur la charge entière qui avait été acceptée.
+        for x in refs:
+            if x['etat'] == 'active':
+                x['etat'] = 'reprise'
+    return True
+
+
+def charge_retiree(monde, id, autre, retrait):
+    """Contenu de l'accord connu, sans lire l'avancement privé du titulaire."""
+    a = _projet(monde, id, retrait['parent'])
+    refs = [x for x in a.get('attributions', [])
+            if x['titulaire'] == autre and x['agenda'] == retrait['agenda']]
+    if not refs:
+        return None
+    return {'sorte': refs[0]['sorte'], 'parametres': {
+        **copy.deepcopy(refs[0]['parametres']),
+        'qui': sorted({q for x in refs for q in x['parametres']['qui']})}}
+
+
+def echeance_observee(monde, id, parent, acteur, sorte, parametres):
+    """Date issue du plan fermé du mandant ; un devis incertain n'en reçoit pas."""
+    from .esprits import lire
+    from math import ceil
+    p = _condition_mandat(monde, sorte, parametres)
+    croyances = lire(monde, id)['croyances']
+    transmis = [(q, 'lieu') for q in p['qui'] if 'lieu' in croyances.get(q, {})]
+    if 'fait' in p:
+        transmis.append((p['fait']['sujet'], p['fait']['attribut']))
+    duree = []
+    devis_observateur(monde, id, parent, acteur, sorte, p, transmis=transmis, duree=duree)
+    return (monde.data['minutes'] + ceil(monde.data.get('dixiemes', 0) / 600 + duree[0])
+            if duree and duree[0] is not None else None)
 
 
 def _stock(monde, id, creer=False):
@@ -732,6 +863,13 @@ def planifier(monde, id, identifiant, *, cout=None):
     resultat = _prochain_sous_but(monde, id, identifiant, cout=mesure)
     if cout is not None or getattr(monde, "_contexte_devis", None) is not None:
         return resultat
+    a = _projet(monde, id, identifiant)
+    if a['etat'] in ('actif', 'sommeil'):
+        for x in a.get('attributions', []):
+            if x['etat'] in ('remplacee', 'reprise'):
+                suite = avertissements(monde, id, identifiant, x['sorte'], x['parametres'])
+                if suite:
+                    return {'type': 'agenda', 'agenda': identifiant}, suite
     return choisir_mandataire(monde, id, identifiant, resultat, mesure)
 
 
@@ -752,8 +890,7 @@ def choisir_mandataire(monde, id, identifiant, propre, mesure):
         return propre
     qui = propre[0].get("qui") if propre else None
     if propre is None:
-        attribues = {q for j in a.get("jugements", []) if j["issue"] == "accepte"
-                     and j["sorte"] == a["sorte"] for q in _destinataires(j)}
+        attribues = _confies_attendus(monde, a)
         cibles = [q for q in _destinataires_disponibles(monde, id, a) if q not in attribues]
         if a["sorte"] == "amener":
             cibles = [q for q in cibles if salle_crue(monde, id, q) != a["parametres"]["lieu"]]
@@ -770,14 +907,13 @@ def choisir_mandataire(monde, id, identifiant, propre, mesure):
     mandat = {"parent": identifiant, "sorte": a["sorte"], "parametres": p}
     # L'acceptation entendue appartient au mandant ; aucune lecture de
     # l'avancement privé de l'enfant, aucun renouvellement automatique.
-    if any(j["issue"] == "accepte" and j["sorte"] == a["sorte"]
-           and _condition_mandat(monde, a["sorte"], j["parametres"]) == p
-           for j in a.get("jugements", [])):
+    if qui in _confies_attendus(monde, a):
         return propre[0], []
     chaine = filiation(monde, id, identifiant)
     if len(chaine) >= 3:
         return propre
     exclus = {r["titulaire"] for r in chaine} | set(p["qui"])
+    exclus |= {x['titulaire'] for x in a.get('attributions', []) if _meme_charge(x, a['sorte'], p)}
     croyances = lire(monde, id)["croyances"]
     transmis = [(qui, "lieu")] if "lieu" in croyances.get(qui, {}) else []
     if a["sorte"] == "informer" and "fait" in p:
@@ -822,12 +958,26 @@ def choisir_mandataire(monde, id, identifiant, propre, mesure):
         but = propre[0] if propre else {"type": "agenda", "agenda": identifiant, "qui": qui}
         choix.append((cout, acteur, (but, suite)))
     retenu = min(choix, key=lambda x: (x[0], x[1]))
+    # Conserver le moyen déjà entrepris tant que son surcoût relatif reste
+    # dans la marge de ténacité commune. Ni date ni durée d'attente ajoutée.
+    from .deliberation import marge_engagement
+    intention = lire(monde, id)['intention']
+    if intention and intention['but'].get('agenda') == identifiant:
+        ancien = next((g['cible'] for g in reversed(intention['plan'])
+                       if 'mandat' in g.get('contenu', {})
+                       and g['contenu']['mandat'] == mandat), id)
+        tenu = next((x for x in choix if x[1] == ancien and x[2] is not None), None)
+        if tenu and tenu[0] <= retenu[0] * (1 + marge_engagement(monde, id) / 100):
+            retenu = tenu
     if retenu[1] != id:
         _changer(monde, id, a, "actif", "mandataire estime", _croyances(monde, id))
         _limiter(monde, id, _croyances(monde, id))
         if a["etat"] != "actif":
             return None
-    return retenu[2]
+    if retenu[2] is None:
+        return None
+    but, suite = retenu[2]
+    return but, avertissements(monde, id, identifiant, a['sorte'], p) + suite
 
 
 def _prochain_sous_but(monde, id, identifiant, *, cout=None):
@@ -844,8 +994,7 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         if not disponibles:
             _changer(monde, id, a, "sommeil", "destinataires crus indisponibles", _croyances(monde, id))
             return None
-        confies = {q for j in a.get("jugements", []) if j["issue"] == "accepte"
-                   and j["sorte"] == a["sorte"] for q in _destinataires(j)}
+        confies = _confies_attendus(monde, a)
         restants = [q for q in disponibles if q not in confies]
         if not restants:
             return {"type": "agenda", "agenda": identifiant}, []
@@ -1279,6 +1428,31 @@ def _verifier_compte(monde, id, a, contenu):
 
 def _verifier_filiation(monde, id, a):
     origine = a["origine"]
+    actifs = []
+    attributions = a.get('attributions', [])
+    assert isinstance(attributions, list), 'Attributions invalides'
+    for x in attributions:
+        assert (isinstance(x, dict) and set(x) - {'echeance', 'avertissement'} == {
+            'sorte', 'parametres', 'titulaire', 'agenda', 'minute', 'etat'}
+            and x['etat'] in ('active', 'remplacee', 'reprise')
+            and type(x['minute']) is int and x['minute'] >= 0), 'Attribution invalide'
+        p = _condition_mandat(monde, x['sorte'], x['parametres'])
+        assert p == x['parametres'] and len(p['qui']) == 1, 'Charge attribuée invalide'
+        assert {'titulaire': x['titulaire'], 'agenda': x['agenda']} in a.get('confies', []), 'Attribution sans mandat'
+        enfant = _projet(monde, x['titulaire'], x['agenda'])
+        assert (enfant['sorte'] == x['sorte']
+                and _meme_charge(x, enfant['sorte'], enfant['parametres'])), 'Attribution incohérente'
+        if 'echeance' in x:
+            assert type(x['echeance']) is int and x['echeance'] >= x['minute'], 'Échéance attribuée invalide'
+        if 'avertissement' in x:
+            v = x['avertissement']
+            assert (isinstance(v, dict) and set(v) == {'minute', 'entendu', 'presence'}
+                    and type(v['minute']) is int and v['minute'] >= x['minute']
+                    and type(v['entendu']) is bool and isinstance(v['presence'], dict)
+                    and set(v['presence']) <= {'valeur', 'source', 'salle', 'case'}), 'Avertissement invalide'
+        if x['etat'] == 'active':
+            assert not any(_meme_charge(y, x['sorte'], p) for y in actifs), 'Plusieurs titulaires actifs'
+            actifs.append(x)
     emis = a.get("compte_rendu")
     if emis is not None:
         assert (origine["type"] == "mandat" and a["etat"] in ("atteint", "abandonne")

@@ -52,6 +52,98 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `fin-luna.json` et `analyse-passe.json` ;
   [rapport 294](taches/rapport-codex-294-g1-compilateur.md).
 
+- **Branche `codex-um-outils`, lot 300 / U-M outils, fusionnée**,
+  base `2d893e0`, reprise par fusion sans rebase d'`origin/integration`
+  `f1cb8fd` (U-T 299 inclus) : choix explicite d'outil, clé, combustible
+  ou destination sur carte et besace, par références publiques U-D exactes.
+  Ressources portées ou vues à portée, sans capacité, précondition, contenu
+  fermé ou bien privé d'un PNJ. Même plan et moteur que le texte ; commande
+  locale « mettre dans » ajoutée vers l'opération de dépôt existante.
+  Refus si ressource périmée, sans substitution ; propriété inconnue laissée
+  à son admission distincte. Catalogue commun `gestes_publics.OBJETS/PORTES`
+  enrichi de formulaires outil/destination, transmis par SSE et lu par la
+  carte : aucune liste parallèle de verbes dans la page. Le terminal garde
+  ses premiers gestes simples ; choix des ressources réservé à U-T outils.
+  Reprise **90 tests / huit fichiers verts**, dont les 28 TUI inchangés ;
+  outils, inventaire, terminal 299/périmés, web/Node, U-D et diagonales.
+  Node réel et monde/scène/fiche/carte après recharge, aucun appel modèle.
+  Dix parcours mesurés : **10 saisies évitées, 3 clics** à portée.
+  **Limite : destination pleine non garantie**, aucune capacité maximale
+  définie par le moteur actuel. Ni MJ, `jeu.py`, `tui.py`, mécanique PNJ,
+  Luna, banc ni suite complète. Bruts dans
+  `C:/Users/msics/donjon/artifacts/um-outils-300/`, `fin-cloture.json`
+  puis `fin-reprise-integration.json` pour la reprise sur 299.
+  Aucun calcul actif ; branche poussée vers origin.
+  [Rapport 300](taches/rapport-codex-300-um-outils.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Le menu propose l'outil ou la destination d'un geste (crocheter, déverrouiller, forcer, mettre dans, alimenter) parmi les seules ressources connues de Corvus, sous leurs références publiques ; le descripteur U-D donne au moteur le même plan que la commande, sans analyse de texte ni modèle ; le moteur tranche (refus public, aucun substitut). Libellés et paramètres viennent du catalogue commun donjon/gestes_publics.py. 90 tests ciblés verts.
+
+- **Branche `codex-a5-reaffecter`, lot 297 / A5.7, fusionnée**, base
+  intégration `83a2e89`, moteur `4c634cb` : attribution connue unique par
+  charge, historique conservé, choix de remplacement par devis fermé du
+  mandant, refus inchangé retenu, titulaires déjà essayés exclus et
+  hystérésis VOL. Retrait par parole commune, jamais à distance ; tentative
+  manquée persistée, retrouvailles et résultat appris en route contrôlés.
+  **86 tests / 12 fichiers verts**, dont dix nouveaux ; hameau et mine,
+  ramener et informer, monde/rendu/scène/écoute après recharge et laps
+  entier/découpé avec intervenants actifs. Pas de délai inventé pour un
+  devis incertain, ni conversion des anciens accords sans échéance ; deux
+  intervenants peuvent agir tant que le retrait n'est pas entendu.
+  **Lot terminé : empreintes 2 h, 12/12 paires identiques**, hameau/mine/
+  Relais × 1985/7/42/2024, départ tiré, `83a2e89` → `599dfbb` : chronique,
+  mesures, empreintes et SHA-256 de l'état final complet ; récit/souvenirs
+  identiques aussi. Aucun mandat A5 accepté ni retrait dans ces nuits :
+  pas de réaffectation naturelle, preuve par les scènes ciblées ; aucun
+  banc 4 h ajouté. Zéro plantage, avis non justifiés 0 → 0, entrées à
+  expliquer 16 → 16, avis identiques. Douze références manquantes calculées
+  une fois et rangées, douze nuits de branche, deux travailleurs réduits,
+  242,022 s ; `C:/Users/msics/donjon/artifacts/reaffecter-297/fin-verification.json`
+  **ok=true, code 0**. Bruts et analyse de clôture copiés dans ce dossier.
+  Branche poussée vers origin, aucun calcul actif ni relancé à la clôture ;
+  sources/tests inchangés. Ni Luna ni suite complète.
+  [Rapport 297](taches/rapport-codex-297-a5-reaffecter.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Registre attributions (active, remplacée, reprise) à côté de la filiation confies ; agendas.confier refuse deux attributions qui se recouvrent et le retour à un titulaire retiré. Une charge échue revient au choix faire ou confier (devis vu par le mandant 258/260), un titulaire déjà essayé exclu, hystérésis selon la VOL. L'ancien titulaire cru présent est averti par la parole commune (echanges.avertir_mandat) ; seule une parole entendue et attribuée ferme son agenda : deux intervenants possibles tant qu'il n'a pas entendu. 86 tests verts, 12/12 empreintes 2 h identiques, aucune réaffectation naturelle dans les nuits.
+
+- **Branche `codex-ut-premier-geste`, lot 299 / U-T, fusionnée**, base
+  initiale `83a2e89`, reprise par fusion sans rebase d'`origin/integration`
+  `2d893e0` (298 inclus) : console et TUI proposent les premiers gestes de
+  carte en liste numérotée (onglet Gestes / F7 en TUI). Le choix fige le
+  descripteur public U-D jusqu'au moteur, sans analyse de texte ni modèle ;
+  homonymes distingués, numéros inconnus/multiples refusés localement,
+  cible périmée refusée sans report sur une autre. Catalogue Python commun
+  envoyé comme donnée de l'état public SSE ; `gestes` et `gestesPorte`
+  le lisent dans `page.html`. Adaptation du HTML supprimée : serveur testé
+  sur les octets exacts du fichier. Inventaire 298 et clics muraux conservés.
+  **95 tests / huit fichiers verts**, dont les **28 TUI existants
+  inchangés**. Quatorze couples objet/porte : parité des descripteurs,
+  plans/journaux, textes et monde/scène/carte après recharge ; matrice
+  inconnu/ambigu/hors-vue console et TUI pour chaque geste, deux suppressions
+  réelles et ouvertures/fermetures à portée. Trois touches par choix mesuré,
+  quatre avec F7, contre 17–27 pour les commandes aux mêmes références ;
+  coût de soumission jusqu'au résultat/refus, déplacements exclus.
+  Zéro appel modèle ; ni Luna, ni banc PNJ, ni suite complète. Numéros
+  propres à chaque vue ; approche automatique réservée au clic web.
+  Reprise ciblée : terminal, web/Node, U-D, inventaire 298 et dépendances
+  directes diagonales/matière ; aucun rejeu de référence.
+  Bruts : `C:/Users/msics/donjon/artifacts/ut-299/`, `fin-reprise-integration.json`.
+  Aucun calcul actif. [Rapport 299](taches/rapport-codex-299-ut-premier-geste.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Console et TUI (onglet Gestes, F7) listent les gestes publics de la scène, numérotés ; le numéro envoie le descripteur U-D de la liste affichée à executer_local, partagé avec le web, sans analyse de texte ni modèle. Catalogue commun donjon/gestes_publics.py, lu aussi par page.html (transmis comme donnée par SSE, sans réécriture du HTML). Homonymes distingués, numéro inconnu ou multiple refusé localement, référence périmée refusée par le moteur. 95 tests ciblés verts, 28 tests TUI inchangés.
+
+- **Branche `codex-um-inventaire`, lot 298 / U-M inventaire, fusionnée**,
+  base intégration `83a2e89` : panneau de besace, poser/remettre, manger une
+  portion, sources portées et prélèvement d'une pièce. Descripteur U-D exact,
+  quantité et destinataire publics ; mêmes plans, effets et rendus que les
+  commandes, sans analyse du clic ni modèle. Destinataire vu à portée, refus
+  si périmé ; biens portés connus dans le noir, aucun contenu fermé exposé.
+  **42 tests / quatre fichiers verts**, Node réel, monde/scène/fiche/carte
+  après recharge, homonymes, lots, absence et portée. Dix parcours mesurés :
+  dix saisies évitées, deux clics, trois pour la remise. Une portion/pièce
+  à la fois, poser/remettre le lot entier ; outils/destinations hors lot.
+  Ni MJ, `jeu.py`, `tui.py`, mécanique PNJ, Luna, banc ou suite complète.
+  Bruts : `C:/Users/msics/donjon/artifacts/um-inventaire-298/`, bilan retenu
+  `fin-cloture.json`. Aucun calcul actif ; branche poussée vers origin.
+  [Rapport 298](taches/rapport-codex-298-um-inventaire.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Panneau d'inventaire de la page : poser, remettre à une personne choisie (vue et à portée), manger une portion, allumer ou éteindre, prélever une pièce d'un lot ; chaque choix envoie un DescripteurPublic U-D (référence exacte, destinataire public, quantité), même plan que la commande équivalente, sans analyse de texte ni modèle. 42 tests ciblés verts ; 10 saisies évitées, 2 clics jusqu'à l'effet (3 pour une remise).
+
 - **Branche `codex-suite-g2-g4`, lot 295, fusionnée**, base intégration
   `475d29d` : les sept fichiers du brief reproduisent les **15 échecs et
   9 erreurs** initiaux (70 tests), sans défaut supplémentaire U-D. Attentes
