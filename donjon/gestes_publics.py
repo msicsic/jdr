@@ -224,6 +224,7 @@ def rendre_liste(liste):
     lignes.extend(f"{i}. {choix.libelle}" for i, choix in enumerate(liste, 1))
     if not liste:
         lignes.append("Aucun geste disponible dans cette vue.")
+    lignes.append("0. Fabrication — choisir une recette et ses paramètres.")
     return "\n".join(lignes)
 
 

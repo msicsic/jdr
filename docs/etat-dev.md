@@ -2,6 +2,29 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 321 / U-T fabrication terminé, branche `codex-ut-fabrication`, base
+  `integration 0fcc99e`, fusionnée** : `0` ouvre une recette numérotée
+  commune console/TUI, issue du catalogue et des ressources publiques du web.
+  Usage, rôles, lien, outil, dimensions et rythme composent le même
+  descripteur U-D sans analyseur ni modèle. Physique connue affichée,
+  manque signalé, accès et droits revalidés par le moteur sans substitut.
+  Quatre parcours du 305 dans chaque interface, références périmées ou
+  éloignées, physique inconnue, propriété et recharge contrôlées ;
+  **115 tests / dix fichiers verts**, zéro échec/erreur/saut : dix nouveaux
+  et 105 voisins, dont les **28 TUI existants inchangés**. 1 166,769 s
+  cumulées (58,216 + 1 108,553). Suivi détaché réduit, sans relancer les
+  tests, `fin.json` écrit en dernier : **ok=true, code de clôture 0**.
+  Deux travailleurs réduits au plus au total, sur copies.
+  Huit parcours : **23 touches pour assembler, 12 pour découper**,
+  **24/13 avec F7** en TUI, ouverture et dimensions comprises.
+  **Recouvrement 319 : `jeu.py`**, boucle console seulement ; rendu,
+  moteur, MJ et web inchangés. Ni Luna, ni banc, ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/ut-fabrication-321/`.
+  Code/tests `23a7c60` inchangés depuis validation, empreintes contrôlées ;
+  **branche poussée vers origin, aucun calcul actif**, aucune relance à la clôture.
+  [Rapport 321](taches/rapport-codex-321-ut-fabrication.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Console et TUI assemblent et découpent avec la même recette paramétrée que le formulaire web (descripteur U-D, ressources connues de Corvus, catalogue gestes_publics), sans analyse de texte ni modèle. 115 tests ciblés verts, dont les 28 tests TUI inchangés ; 23 touches pour assembler, 12 pour découper (une de plus avec F7).
+
 - **Lot 324 terminé, fusionnée, branche `codex-g1-a0-oracle`, base
   intégration `884b8d7`** : oracle fermé de sens, aucun fichier `donjon/`
   modifié. Attentes et témoins versionnés pour 91 positions / 30 tours MJ ;
