@@ -17,6 +17,8 @@ def schema_terme(contrepartie=False, service=False):
         ("lieu", {"type": "string"}))]
     if service:
         conditions.append(_forme({"objet": {"type": "string"}, "servir": {"type": "string"}}))
+        conditions.append(_forme({'objet': {'type': 'string'}, 'proteger': {'type': 'boolean', 'enum': [True]},
+                                  'echeance': {'type': 'integer', 'minimum': 0}}))
     formes.append(_forme({"type": {"type": "string", "enum": ["tache"]},
                           "condition": {"anyOf": conditions}}))
     formes.extend([_forme({"type": {"type": "string", "enum": ["pieces"]},
@@ -117,12 +119,15 @@ def erreur_terme(terme, contrepartie=True):
         return ".montant", terme["montant"], "entier strictement positif"
     if t == "tache":
         c = terme["condition"]
-        if (not isinstance(c, dict) or not isinstance(c.get("objet"), str)
+        protection = (isinstance(c, dict) and set(c) == {'objet', 'proteger', 'echeance'}
+                      and isinstance(c['objet'], str) and c['proteger'] is True
+                      and type(c['echeance']) is int and c['echeance'] >= 0)
+        if not protection and (not isinstance(c, dict) or not isinstance(c.get("objet"), str)
                 or not (set(c) in ({"objet", "allume"}, {"objet", "verrouillee"})
                         and next(v for k, v in c.items() if k != "objet") is True
                         or set(c) in ({"objet", "lieu"}, {"objet", "servir"})
                         and isinstance(next(v for k, v in c.items() if k != "objet"), str))):
-            return ".condition", c, "{objet, allume:true | verrouillee:true | lieu:salle | servir:personnage}"
+            return ".condition", c, "{objet, allume:true | verrouillee:true | lieu:salle | servir:personnage} ou {objet:personnage, proteger:true, echeance:minute}"
     return None
 
 
@@ -137,6 +142,9 @@ def verifier(monde, c, champ="contenu", proposant="joueur"):
     from .deliberation import _connus
     from .paroles import resoudre
     connus_pnj = set(_connus(monde, proposant)) if proposant != "joueur" else set()
+    if proposant != 'joueur':
+        from .esprits import lire
+        connus_pnj.update(x for x in ('joueur',) if x in lire(monde, proposant)['croyances'])
     def connu(x):
         return resoudre(monde, x) == x if proposant == "joueur" else x in connus_pnj
     for nom in ("demande", "contrepartie"):
@@ -166,7 +174,7 @@ def verifier(monde, c, champ="contenu", proposant="joueur"):
             from .paroles import resoudre
             condition = terme["condition"]
             if not condition_valide(monde, condition):
-                refuser(chemin + ".condition", condition, "condition exécutable : {objet, allume:true | verrouillee:true | lieu:salle | servir:personnage}")
+                refuser(chemin + ".condition", condition, "condition exécutable : {objet, allume:true | verrouillee:true | lieu:salle | servir:personnage} ou {objet:personnage, proteger:true, echeance:minute}")
             for cle, valeur in condition.items():
                 if cle in ("objet", "lieu", "servir") and not (connu(valeur) or proposant != "joueur" and cle == "lieu" and valeur in monde.data["salles"]):
                     refuser(chemin + ".condition." + cle, valeur, "identifiant connu de Corvus")

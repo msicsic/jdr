@@ -2,6 +2,23 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 336, branche `codex-occasion-protection`, non fusionnée,
+  vérification en cours**, base fournie `origin/integration d8769d8` :
+  occasion de protection dans la table commune, proposition puis tâche
+  payée et agenda `protéger` d'origine `contrat`. Peur et fonds crus,
+  force estimée, courage, ambition et disponibilité ; choix explicite
+  du joueur. Avance et dette de remboursement communes, fin sur calme
+  perçu, échéance, mort ou départ crus. Sélection préliminaire 10/10
+  verte (38,238 s), deux derniers parcours joueur verts (10,078 s).
+  Consolidation de 21 fichiers et vingt nuits 4 h par lanceur détaché,
+  deux travailleurs réduits ; ni Luna ni suite complète. Bruts
+  `C:/Users/msics/donjon/artifacts/occasion-336/verification-1/`,
+  fin attendue **`fin.json`** ; résultats à relire avant clôture.
+  Limites : une occasion par client, suivi vocal 335 distinct, aucun
+  résultat de nuit naturelle encore annoncé. Recouvrements 333 :
+  `agendas.py`, `pnj.py` ; 335 : ces deux fichiers et `planification.py`.
+  [Rapport 336](taches/rapport-codex-336-occasion-protection.md).
+
 - **Lot 330 terminé, branche `codex-demander-cause`, fusionnée**, base
   fournie `f08ef58` : question de cause avant secours de proximité, réponse
   depuis les seules croyances datées du proche, parole commune, ouï-dire
