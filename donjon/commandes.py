@@ -22,6 +22,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   examiner <objet>                     voir les composants accessibles
   lire <inscription>                   tenter d'en comprendre le sens
   prendre <objet> | poser <objet>
+  prelever <lot>                       séparer une pièce du lot, dans la besace
   acheter <objet>                       auprès de son vendeur présent
   voler <objet>                        tentative discrète, jet de DEX si observé
   parler <personnage>
@@ -116,7 +117,7 @@ class DescripteurPublic:
 
 def geste_local(action, cible, outil="", methode="simple"):
     """La même proposition canonique pour le texte local et le choix structuré."""
-    if action == "manger":
+    if action in {"manger", "prelever"}:
         from .operations import etape, sequence
         return sequence(etape(action, cible, outil=outil, methode=methode))
     return proposition(action, cible, outil, methode)
@@ -126,7 +127,8 @@ def proposition_descripteur(monde, descripteur):
     """Décode des références exactes ; aucune recherche de nom, ni préalable inventé.
 
     Le validateur du moteur appelle cette entrée avant ses contrôles usuels. Une
-    cible du clic doit toujours être perçue à réception, même si son nom a changé.
+    cible du clic doit rester perçue, ou être une affaire portée pour un geste
+    d'inventaire, à réception, même si son nom a changé.
     Les paramètres optionnels ne portent que des choix publics, jamais des effets.
     """
     from .monde import ErreurMonde
@@ -140,28 +142,46 @@ def proposition_descripteur(monde, descripteur):
                           "descripteur : geste et cible non vides, parametres optionnels ; aucun autre champ.")
     action, cible = d["geste"], d["cible"]
     actions = {"examiner", "observer", "lire", "allumer", "eteindre", "manger", "ouvrir", "fermer",
-               "prendre", "deverrouiller", "crocheter", "tourner", "marcher"}
+               "prendre", "poser", "remettre", "prelever", "deverrouiller", "crocheter", "tourner", "marcher"}
     if action not in actions:
         raise ErreurMonde("Je ne connais pas ce geste direct.",
                           f"descripteur.geste : reçu {action!r} ; acceptés : {', '.join(sorted(actions))}.")
     parametres = d.get("parametres", {})
-    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode"}
-            or any(not isinstance(v, str) or len(v) > 1000 for v in parametres.values())):
+    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode", "destinataire", "quantite"}
+            or any(not isinstance(v, str) or len(v) > 1000 for k, v in parametres.items() if k != "quantite")):
         raise ErreurMonde("Je n'ai pas compris les paramètres de ce geste.",
-                          "descripteur.parametres : outil et methode optionnels, chaînes de 1000 caractères au plus.")
+                          f"descripteur.parametres : reçu {parametres!r} ; outil, methode, destinataire : chaînes de 1000 caractères au plus ; quantite entière.")
+    if "quantite" in parametres and (action not in {"manger", "prelever"}
+            or type(parametres["quantite"]) is not int or parametres["quantite"] != 1):
+        raise ErreurMonde("Ce geste ne permet pas cette quantité.",
+                          f"descripteur.parametres.quantite : reçu {parametres['quantite']!r} pour {action} ; accepté : 1 pour manger ou prelever, sinon champ absent.")
+    if action != "remettre" and "destinataire" in parametres:
+        raise ErreurMonde("Ce geste ne prend pas de destinataire.",
+                          f"descripteur.parametres.destinataire : reçu {parametres['destinataire']!r} pour {action} ; accepté : champ absent.")
 
-    def exacte(ref, champ):
+    def exacte(ref, champ, porte=False):
         id = reel(monde, ref)
         # Les références opaques sont des identités stables, y compris après
         # apprentissage du nom. Un nom ou un alias ne remplace jamais une référence.
-        if (id not in monde.objets or not monde.visible(id)
+        affaire = (porte and monde.objets.get(id, {}).get("lieu") == "joueur"
+                   and monde.present_physique(id))
+        if (id not in monde.objets or not (monde.visible(id) or affaire)
                 or ref == id and reference(monde, id) != ref):
             raise ErreurMonde("Tu ne vois plus cette cible ici.",
                               f"descripteur.{champ} : reçu {ref!r} ; une référence publique encore perçue.")
         return id
 
     if action not in {"tourner", "marcher"}:
-        cible = exacte(cible, "cible")
+        cible = exacte(cible, "cible", action in {"poser", "remettre", "prelever", "manger", "allumer", "eteindre"})
+    if action == "remettre":
+        destinataire = exacte(parametres.get("destinataire", ""), "parametres.destinataire")
+        if monde.objets[destinataire]["type"] != "personnage":
+            raise ErreurMonde("La remise demande une personne en vue.",
+                              f"descripteur.parametres.destinataire : reçu {parametres.get('destinataire')!r} ; accepté : référence publique d'un personnage perçu.")
+        if "outil" in parametres:
+            raise ErreurMonde("La remise demande seulement un destinataire.",
+                              f"descripteur.parametres.outil : reçu {parametres['outil']!r} ; accepté : champ absent, destinataire dans parametres.destinataire.")
+        return geste_local(action, cible, destinataire, parametres.get("methode", "simple"))
     outil = parametres.get("outil", "")
     if outil:
         outil = exacte(outil, "parametres.outil")
@@ -408,6 +428,8 @@ def analyser(monde, texte):
         return sequence(etape("alimenter", monde.trouver(foyer), outil=monde.trouver(bois)))
     if texte.startswith("manger "):
         return geste_local("manger", monde.trouver(texte[7:]))
+    if texte.startswith("prelever "):
+        return geste_local("prelever", monde.trouver(texte[9:]))
     if texte.startswith("sonner "):
         from .operations import etape, sequence
         return sequence(etape("emettre_son", monde.trouver(texte[7:]), methode="simple"))
