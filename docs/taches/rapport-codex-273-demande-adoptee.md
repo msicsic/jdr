@@ -46,13 +46,52 @@ préemptée par ses propres moyens :
   (retour d'Anselme à l'étable à 111) ; le vol 107–110 sans témoin, la reprise du ballot, l'attente
   d'information et les croyances de Lucien sont reproduits.
 
-## Limite déclarée
+## Limite déclarée, puis reprise
 
-Une demande tenue dont **aucun moyen n'est admissible** reste en attente sans borne : elle n'immobilise
-plus pour un geste, mais peut immobiliser un PNJ tant que sa raison tient (Anselme au poêle, Aubin dans
-l'antichambre, Bram sur `garder ses biens`, Marchand sur ses ventes au banc). La patience existante ne
-court que sur un geste guetté ; la mise en sommeil d'une telle demande est un lot suivant, non traité,
-et c'est la première mesure à reprendre (voir le coût de la mine ci-dessous).
+La première version laissait une demande tenue dont **aucun moyen n'est admissible** en attente sans
+borne : elle n'immobilisait plus pour un geste, mais pouvait immobiliser un PNJ tant que sa raison
+tenait (Anselme au poêle, Aubin dans l'antichambre, Bram sur `garder ses biens`, Marchand sur ses
+ventes au banc). La reprise corrige ce point et le défaut de continuation lot → part.
+
+### Cause 1 — sommeil sans moyen (prouvée sur capture rechargée)
+
+Capture **mine 1985, minute 200**, produite avec le code `20b7601` avant correction : Remy tient
+`pulsion {objet: biscuits, servir: josse}`, plan `[]`, phase `attendre`, `_reprendre_demande` renvoie
+`None` ; six choix et soixante minutes plus tard, même intention, même plan vide, même phase. Après
+correction, `choisir` écrit un record `demandes_sommeil` (palier 12, but et demande conservés) et
+libère le palier : une autre intention (ronde) est adoptée dans le même choix, sans sortie ni
+`dementie`. Six choix à la même minute laissent l'empreinte intacte ; cinq minutes de jeu aussi. Un
+biscuits placé dans sa possession et cru disponible réveille la demande : même but, `depuis` 190,
+palier 12, plan `servir biscuits pour josse`, record retiré, aucune sortie. Monde, rendu et scène
+identiques après recharge aux deux étapes. La règle est celle du lot 213 : sommeil, palier libéré,
+réveil sur croyance ou moyen nouveaux, jamais par délai. Les agendas gardent leur propre sommeil ; une
+garde, un lieu, une ronde ou une mission précise gardent leur attente d'occasion.
+
+### Cause 2 — la part reçue est un moyen de la demande (prouvée sur la capture 373)
+
+Capture réelle de l'analyse indépendante, **mine 1985 minute 373** : Josse tient la demande
+`{objet: biscuits, servir: odon}` et possède `biscuits_1`, reçu avec la provenance publiée `lot:
+biscuits` (souvenir `recu` et promesse). `_meme_demande_tenue` reconnaît la part comme le même but par
+sa provenance ; `_moyens_concrets` retire le lot générique quand la part est tenue ; `choisir` sert
+`biscuits_1` à Odon, conserve le palier 12 et `depuis` 0, sans sortie. Le lot n'est plus redemandé.
+Sur notre propre rejeu de la mine 1985, la part est servie dès la minute 10. Une mission qui nomme un
+objet précis (par exemple une restitution) ne suit pas une part d'un autre lot : même raison ne vaut
+pas même demande. Aucun cas par objet, PNJ ou scénario.
+
+### Vérification de la reprise
+
+- **47 tests ciblés verts** (90 s) : `test_demande_sommeil` (captures 117503, sommeil 200, part 373,
+  objet précis), `test_contrat_engagement`, `test_dynamique_besoins`, `test_pas_compagnons`,
+  `test_etapes_chainees`.
+- **106 tests d'agendas et de reprise verts** (169 s), dont les fichiers du lot 213 et les reprises
+  de demande. Deux oracles réécrits : les empreintes d'étapes de mine et d'auberge (visites, plans,
+  monde) après le changement de décisions, et la scène de Lucien isolée par une capture à 95 min ;
+  les attentes de `vivres_1` et du secours endormi sont explicites.
+- **Banc de reprise en cours** : cinq scénarios (Relais, mine, auberge, crue, hameau) × quatre
+  graines, 4 h, départ tiré, référence `0e3e626`, deux processus. Critères : aucune hausse de
+  suspects par nuit ; richesse S de la mine revenue dans l'étendue de la référence, ou perte
+  restante prouvée légitime. Le résultat sera ajouté au rapport et à `docs/etat-dev.md` à la fin du
+  calcul (`banc2-fin.json`).
 
 ## Mesures
 

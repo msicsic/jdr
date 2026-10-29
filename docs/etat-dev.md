@@ -12,19 +12,35 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   autre moyen n'est pas une préemption. Capture **117503** : la demande d'Aubin
   n'est plus close, passe à `attendre` puis sollicite Gorm ; seconde nature mine
   1985 (pain refusé → `vivres`, même raison) ; vraie fin (`dementie`) et vraie
-  préemption (`palier`) toujours des sorties. **92 tests ciblés verts** (326 s) ;
-  quatre attentes périmées réécrites (contrat d'échec, ordre des ventes, lieu du
-  bénéficiaire, scène de Lucien complétée). Monde/rendu/scène identiques après
-  recharge et 60 min d'un tenant ou découpées. **Banc rapide** 20 paires 4 h,
-  référence `0e3e626` (calculée, rangée) : **20/20 identités**, zéro plantage,
-  usurpation ou violation ; suspects 219 **1 → 0** (Aubin Relais 2024 disparu),
-  à expliquer **16 → 13**, cycles 558 → 515, préemptions 38 → 57, pertes de
-  service 8 → 8. Richesse S/F/D : auberge et crue en hausse, Relais et rixe
-  stables, **mine 25,75 → 17,25** et Marchand en dérives ouvertes (crue 18 → 32)
-  — coût de la limite déclarée : une demande tenue sans moyen admissible attend
-  sans borne (Anselme, Bram, Marchand), la mise en sommeil reste à faire. (Banc
-  joué avec `rixe` au lieu du hameau et quatre processus au lieu de deux.) Bruts
-  `C:/Users/msics/donjon/artifacts/demande-273-ds/`.
+  préemption (`palier`) toujours des sorties.
+  **Reprise : deux causes du recul de la mine.** (1) Une demande sociale sans
+  moyen admissible s'endort au lieu d'attendre sans borne : même règle que les
+  agendas (sommeil, palier libéré, réveil sur croyance ou moyen nouveaux, jamais
+  par délai). Capture **mine 1985 minute 200** (code 20b7601) : Remy tenait
+  `pulsion {objet: biscuits, servir: josse}`, plan `[]`, phase `attendre`,
+  `_reprendre_demande` `None`, inchangé après 6 choix et 60 min. Après : record
+  `demandes_sommeil`, palier 12, une autre intention prend le palier sans
+  clôturer la demande ; 6 choix à la même minute ne changent pas l'empreinte ;
+  un biscuits en sa possession la réveille avec `depuis` 190, même palier,
+  `servir biscuits pour josse`, sans sortie. (2) Une demande conservée
+  reconnaît comme sien un moyen reçu dont la provenance publiée la satisfait
+  (`lot → part`, promesse, engagement), sans assimiler « même raison » à
+  « même demande » quand la mission exige un objet précis. Capture réelle
+  **mine 1985 minute 373** de l'analyse indépendante : Josse tient `biscuits`
+  et possède `biscuits_1` reçu du lot ; les candidats ne redemandent plus le
+  lot, `choisir` sert `biscuits_1` à Odon, palier 12 et `depuis` 0 conservés,
+  sans sortie. Sur notre propre rejeu, Josse sert la part dès la minute 10.
+  **47 tests ciblés verts** (90 s : demande/sommeil, contrat, empathie, besoins,
+  pas-compagnons, étapes) et **106 tests d'agendas/reprise verts** (169 s) ;
+  l'oracle des étapes est réécrit pour mine et auberge (visites/plans/monde),
+  la scène de Lucien passe par une capture à 95 min, les attentes de
+  `vivres_1` et du secours endormi sont explicites. Monde/rendu/scène
+  identiques après recharge. **Banc de reprise en cours** : cinq scénarios
+  (Relais, mine, auberge, crue, hameau) × 1985/7/42/2024, 4 h, départ tiré,
+  référence `0e3e626`, **deux processus**, sortie `banc2-fin.json` ; le banc
+  précédent (20 paires, `rixe` au lieu du hameau, quatre processus) donnait
+  **20/20 identités**, suspects **1 → 0**, mais une mine à **25,75 → 17,25**.
+  Bruts `C:/Users/msics/donjon/artifacts/demande-273-ds/`.
   [Rapport 273](taches/rapport-codex-273-demande-adoptee.md).
 
 - **Branche `codex-retour-aubin`, fusionnée**, lot **272**, diagnostic
