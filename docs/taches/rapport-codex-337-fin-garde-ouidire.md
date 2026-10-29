@@ -37,10 +37,15 @@ mêmes monde/rendu/scène après clôture ; cette seule preuve ajoutée aux
 et déplacement verts ; expiration sans contact et retour vers un autre
 interlocuteur restent suspects. `fusion-validation/classification.json`.
 
-**Tests après fusion : 32 fichiers ciblés 336/337 et sonde, en cours**,
-deux travailleurs réduits ; PID réel 48764 vérifié, fin
-`fusion-validation/fin.json` écrite en dernier, même sur échec. Source
-fusion/sonde `6ebf13d`, branche poussée ; bilan des tests à lire avant clôture.
+**Tests après fusion : 392 tests / 32 fichiers**, 385 verts, sept échecs,
+aucune erreur ni saut, 501,239 s. Référence exacte `ad0e5a8`, sept fichiers
+en défaut seulement : **94 tests, deux échecs**, 173,312 s. Sont antérieurs
+l'appel sur agenda (assertion échoppe, chambre de la cloche sur référence,
+beffroi ici) et `_retentir` sans argument `emission` dans le rejeu de l'audit.
+Cinq autres scènes déclarent désormais les inventaires initiaux déjà partagés ;
+**288 assertions identiques contrôlées par AST**, moteur inchangé. Leur
+reprise par fichiers complets est en cours dans `reprise-fixtures-1/`.
+Premier échec de démarrage du lanceur conservé, aucun test alors exécuté.
 Validation initiale distincte : **196/196**, quinze fichiers, 132,735 s,
 quatorze nouveaux tests ; perte au Relais, restitution à l'auberge, droits
 et fins, monde/rendu/scène rechargés, laps entier/découpé. Quatre scènes

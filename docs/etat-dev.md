@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
 - **Lot 337 repris après synchronisation, branche `codex-fin-garde-ouidire`,
   non fusionnée** : `origin/integration ad0e5a8` fusionnée sans rebase,
@@ -17,9 +17,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   mondes/rendus/scènes ; certification par la preuve publiée : **1 brut → 0
   suspect**, `rendez_vous_intermediaire_accompli`. Témoin rouge puis tests
   attente/déplacement verts, expiration et interlocuteur non utilisé négatifs.
-  **32 fichiers ciblés après fusion en cours**, deux travailleurs réduits,
-  PID réel 48764 vérifié, fin `fusion-validation/fin.json` écrite en dernier
-  même sur échec. Résultats initiaux distincts : 196/196
+  **392 tests / 32 fichiers après fusion : 385 verts, sept échecs**, aucune
+  erreur ni saut, 501,239 s. Attribution sur l'intégration exacte `ad0e5a8`,
+  sept fichiers seulement : **94 tests, deux échecs**, 173,312 s. Antérieurs :
+  appel sur agenda (assertion échoppe ; chambre de la cloche sur référence,
+  beffroi ici) et `_retentir` sans `emission` dans le rejeu de l'audit.
+  Cinq scènes ajustées par leurs inventaires initiaux déjà partagés,
+  **288 assertions AST inchangées**, moteur inchangé. **Reprise des cinq
+  fichiers en cours**, PID réel 46296, deux travailleurs réduits,
+  fin `reprise-fixtures-1/fin.json` écrite en dernier même sur échec.
+  Premier échec de lancement conservé, aucun test alors exécuté.
+  Résultats initiaux distincts : 196/196
   tests, quinze fichiers ; vingt nuits 4 h, zéro plantage/usurpation, 19/20
   conformes brutes, suspect crue/7 conservé puis certifié. Aucun autre banc
   rejoué ; moteur inchangé, pas de deuxième graine requise. Constats confiés
@@ -30,7 +38,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   **ok=true**, preuves `fusion-validation/classification.json` ; anciennes
   fins et analyse initiale conservées. Recouvrements 335/336 : `agendas.py`,
   `planification.py`, `tests/support.py`, documentation. Source fusion/sonde
-  `6ebf13d`, branche poussée ; bilan des tests à lire avant clôture.
+  `6ebf13d`, ajustements de scènes poussés ; bilan de la reprise à lire
+  avant clôture. Bruts d'attribution `attribution-fusion/fin.json ok=true`.
   [Rapport 337](taches/rapport-codex-337-fin-garde-ouidire.md).
 
 - **Lot 336 terminé, branche `codex-occasion-protection`, fusionnée**,
