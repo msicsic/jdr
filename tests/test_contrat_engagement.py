@@ -268,10 +268,13 @@ class ContratEngagementTests(unittest.TestCase):
             self.assertEqual(m.data, n.data)
             self.assertEqual(rendu(m), rendu(n))
 
-    def test_echec_libere_l_engagement_et_ses_preferences_de_cible(self):
+    def test_echec_ecarte_le_moyen_sans_dementir_la_demande(self):
         m, auteur, autre = scene()
         d.choisir(m, auteur, 0)
         i = lire(m, auteur)['intention']
+        but = copy.deepcopy(i['but'])
+        motif = i['motif']
+        demande = copy.deepcopy(agendas.contrat_intention(m, auteur)['demande'])
         self.assertTrue(i['plan'])
         lire(m, auteur)['manque'] = {'minute': 0,
                                     'etape': {k: i['plan'][0][k] for k in ('operation', 'cible', 'outil', 'lieu')}}
@@ -279,16 +282,26 @@ class ContratEngagementTests(unittest.TestCase):
         observes = []
 
         def candidats(monde, id):
-            observes.append(lire(monde, id)['intention'])
+            observes.append(copy.deepcopy(lire(monde, id)['intention']))
             return []
 
         with patch.object(d, '_candidats', candidats):
             d.choisir(m, auteur, 0)
-        self.assertEqual(observes, [None])
-        self.assertIsNone(lire(m, auteur)['intention'])
-        fin = agendas.dernier_contrat_intention(m, auteur)['contrat']
-        self.assertEqual(fin['phase'], 'finir')
-        self.assertEqual(fin['sortie']['cause'], 'dementie')
+        # Le geste manqué dément le moyen employé, pas la demande adoptée :
+        # la revalidation reçoit l'intention tenue, privée de son plan périmé.
+        # Ici le monde autorise encore le même geste, et le planificateur le
+        # redérive ; le contrat vérifie seulement qu'aucune sortie n'est
+        # prononcée et que la demande survit à l'échec.
+        self.assertEqual(len(observes), 1)
+        self.assertEqual(observes[0]['but'], but)
+        self.assertEqual(observes[0]['plan'], [])
+        i = lire(m, auteur)['intention']
+        self.assertEqual(i['but'], but)
+        self.assertEqual(i['motif'], motif)
+        contrat = agendas.contrat_intention(m, auteur)
+        self.assertEqual(contrat['demande'], demande)
+        self.assertIsNone(contrat['sortie'])
+        self.assertNotEqual(contrat['phase'], 'finir')
         n = recharger(m)
         self.assertEqual(m.data, n.data)
         self.assertEqual(rendu(m), rendu(n))

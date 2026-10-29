@@ -1842,9 +1842,19 @@ def _domine(autre, actif, marge=INERTIE):
             or autre.palier == actif.palier and autre.valeur >= actif.valeur + marge)
 
 
+def _meme_demande_tenue(a, b):
+    """Deux demandes typées désignent la même fin : la même raison commune, ou la même
+    demande (condition, agenda). La condition retenue, l'objet servi, est un moyen : en
+    changer ne clôt pas la demande adoptée, et un autre moyen la continue."""
+    if not a or not b:
+        return False
+    return a == b or bool(a.get("raison") and a["raison"] == b.get("raison"))
+
+
 def _meme_demande_adoptee(candidat, intention, resultat, contrat):
     demande = contrat.get("demande")
-    return candidat.demande == demande if demande else resultat[0] == intention["but"]
+    return (_meme_demande_tenue(candidat.demande, demande) if demande
+            else resultat[0] == intention["but"])
 
 
 def _candidats(monde, id):
@@ -2104,11 +2114,12 @@ def choisir(monde, id, minute):
     if courant and courant["plan"] and manque and manque["minute"] == minute:
         from .pnj import _geste
         if _geste(courant["plan"][0]) == manque["etape"]:
-            # R2 : l'échec libère aussi les anciennes préférences de cible
-            # consultées par les générateurs. Un nouveau moyen reste permis.
-            sortie = _sortie(courant, minute, "dementie", {"manque": manque})
-            courant = None
-            e["intention"] = None
+            # Le geste manqué dément ce moyen, jamais la demande adoptée : son
+            # plan périmé est écarté et la revalidation ci-dessous retrouve un
+            # autre moyen, ou la met en attente. Seule une fin attestée ou une
+            # préemption la clôt ; aucun geste périmé n'est réinstallé.
+            courant = {**courant, "plan": []}
+            e["intention"] = courant
     resultat = None
     choisi = None
     marge = marge_engagement(monde, id)
@@ -2173,7 +2184,7 @@ def choisir(monde, id, minute):
             demande = contrat.get("demande")
             correspondants = [(n, c) for n, c in enumerate(tous)
                               if c.besoin == courant["motif"]
-                              and (not demande or c.demande == demande)]
+                              and (not demande or _meme_demande_tenue(c.demande, demande))]
             for n, candidat in correspondants:
                 proposition = evaluer(n, candidat)
                 if proposition and _meme_demande_adoptee(candidat, courant, proposition, contrat):
@@ -2254,7 +2265,10 @@ def choisir(monde, id, minute):
                     # Accompli ou aucun moyen admissible : plus de suspension.
                     charges_precedentes = {}
         for n, candidat in enumerate(tous):
-            if actif and not _domine(candidat.urgence, actif[0].urgence, marge):
+            # Un autre moyen de la même demande n'est pas une préemption : il la
+            # continue, même à palier et valeur égaux (l'ancien moyen a manqué).
+            if (actif and not _domine(candidat.urgence, actif[0].urgence, marge)
+                    and not _meme_demande_tenue(candidat.demande, actif[0].demande)):
                 continue
             proposition = evaluer(n, candidat)
             if proposition:

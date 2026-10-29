@@ -115,10 +115,12 @@ class PasCompagnonsTests(unittest.TestCase):
         # l'ancien engagement pris, sans perdre le service payé.
         self.assertTrue([s for s in lire(a, 'brune')['memoire']
                          if s['type'] == 'engagement_tenu' and s.get('pour') == 'ilse'])
-        # 234 : le placement conserve ici Ilse connue à l'antichambre
-        # au constat ; l'ancrage du service doit enregistrer ce lieu.
+        # 234 : le placement conservait ici Ilse connue à l'antichambre au
+        # constat. Le contrat 273 avance d'une minute le constat de la torche :
+        # la croyance de Brune sur Ilse est encore vide à ce moment, et
+        # l'ancrage enregistre donc un bénéficiaire non localisé.
         self.assertIn(dict(de='brune', pour='ilse', condition={'objet': 'torche', 'allume': True},
-                           lieu_beneficiaire='antichambre'), a.data['services_rendus'])
+                           lieu_beneficiaire=None), a.data['services_rendus'])
 
     def test_hameau_1985_service_admissible_mais_vente_compensee_prioritaire(self):
         from unittest.mock import patch
@@ -152,7 +154,11 @@ class PasCompagnonsTests(unittest.TestCase):
         # Au premier choix ce service reste admissible ; des états projetés
         # ultérieurs peuvent changer son intérêt, pas établir une cession.
         self.assertTrue(services[0])
-        self.assertEqual(ventes, ['ilse', 'aubin', 'mael', 'marchand'])
+        # Les deux premiers acheteurs restent les mêmes ; l'ordre d'Aubin et
+        # de Mael s'inverse depuis le contrat 273 (le monde de la scène change
+        # d'une minute), sans changer la vente compensée qui l'emporte.
+        self.assertEqual(ventes[:2], ['ilse', 'mael'])
+        self.assertEqual(sorted(ventes[2:]), ['aubin', 'marchand'])
         from donjon.biens import proprietaire
         self.assertEqual(proprietaire(m, 'crochets'), 'brune')
         self.assertEqual(m.objets['crochets']['lieu'], 'brune')

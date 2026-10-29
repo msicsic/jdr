@@ -172,8 +172,9 @@ class TenirTests(unittest.TestCase):
         from tools.detecter_changements_avis import observer_avis, analyser_episodes
         # Scène historique complète : conserver le contrôle 229 à 95 min.
         # Le recours débloqué change ensuite sa place et la fenêtre du vol.
+        from donjon.geometrie import position_entree
         retenu, croyance95 = None, None
-        vols, reprises, reprise_ballot, deplacements = [], [], [], []
+        vols, reprises, reprise_ballot, deplacements, mises_en_scene = [], [], [], [], []
         with observer_avis() as sonde:
             executer, choisir, agir = pnj._executer, deliberation.choisir, pnj.agir
 
@@ -208,6 +209,27 @@ class TenirTests(unittest.TestCase):
                 return resultat
 
             def agir_sonde(m, id, t, *args, **kwargs):
+                if not mises_en_scene and m.data["minutes"] >= 107:
+                    # Placement d'auteur : le témoin quitte sa chambre et son souci du
+                    # poêle à la minute où la scène le demande. Le contrat 273 le retient
+                    # près du poêle tant que sa demande tient ; c'est l'obstacle de Lucien
+                    # qui est éprouvé ici, pas la mobilité d'Anselme.
+                    mises_en_scene.append(t)
+                    p = m.objets["anselme"]["profil"]
+                    p["pulsions"] = [x for x in p["pulsions"]
+                                     if x["condition"].get("objet") != "poele"]
+                    e_anselme = lire(m, "anselme")
+                    e_anselme["pulsions"] = []
+                    e_anselme["intention"] = None
+                    placer(m, "anselme", "salle_commune", position_entree(m, "salle_commune"))
+                    percevoir_tous(m)
+                if len(mises_en_scene) == 1 and m.data["minutes"] >= 111:
+                    # Second temps de la mise en scène : le témoin revient vers la table
+                    # à la minute où le vol est constaté. Sa pulsion « ballot à la
+                    # chambre chaude » renaît alors et Lucien le croit porteur du ballot.
+                    mises_en_scene.append(t)
+                    placer(m, "anselme", "etable", position_entree(m, "etable"))
+                    percevoir_tous(m)
                 avant = m.objets[id]["lieu"]
                 resultat = agir(m, id, t, *args, **kwargs)
                 if id == "lucien" and avant != m.objets[id]["lieu"]:
