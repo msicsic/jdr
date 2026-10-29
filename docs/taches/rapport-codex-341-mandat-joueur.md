@@ -1,63 +1,61 @@
 # Lot 341 — A5.9, le joueur mandant et mandaté
 
 Branche `codex-mandat-joueur`, **non fusionnée**, base fournie `fff9aab`
-(`origin/integration`). Dépendance 340 intégrée sans rebase par `82f5884` :
-conflit documentaire seul, entrées des deux côtés conservées. `jeu.py` inchangé.
+(`origin/integration`). **Lot terminé**, moteur `113d15a`, validation `9a8c204`,
+branche poussée. Dépendance 340 intégrée sans rebase par `82f5884` : conflit
+documentaire seul, deux côtés conservés. `jeu.py` inchangé.
 
-**Invariant.** Une parole typée de Corvus confie une charge `amener` ou
-`informer` par `echanges.confier` : même accueil, devis, jet, autorité perçue,
-dette, jugement enregistré, filiation et compte rendu que pour un PNJ.
-`agendas.charge_joueur` fournit le parent explicite ; confirmations et bornes
-de filiation restent communes. Les charges de Corvus sont conservées par la
-façade des agendas, validées à la recharge, sans lui créer un esprit autonome.
-La limite de trois charges actives refuse une nouvelle charge au joueur au
-lieu de choisir à sa place laquelle abandonner.
+**Invariant.** `mandat` passe par `echanges.confier` : accueil, devis, jet,
+autorité perçue, dette, jugement et filiation communs. `agendas.charge_joueur`
+fournit le parent de Corvus ; le compte rendu reprend le lot 283.
+Un geste PNJ `confier` émet une offre ; `reponse_mandat` l'accepte ou la
+refuse. Seul l'accord publie l'enfant, sans exécution forcée. Une voix inconnue
+ou prétendue ne crée aucun mandant identifié. `bilan_mandat` est une parole,
+pas une réussite physique ; le rendu distingue déclaration et réalisation.
+Attributions/retrait 297 et ascendant 340 conservés, sans relations
+subjectives imposées à Corvus. La façade des agendas valide ces données à
+la recharge ; trois charges actives au plus, sans abandon choisi à sa place.
 
-Un geste PNJ `confier` vers Corvus émet une offre déterministe qui attend son
-accord. La réponse typée `reponse_mandat` accepte ou refuse cette offre
-entendue ; seule l'acceptation publie l'enfant et les attributions communes.
-Elle ne déplace personne et n'exécute aucune mission. Une voix inconnue ou
-seulement prétendue ne fournit aucun mandant identifié. `bilan_mandat`
-enregistre une déclaration d'issue : le jugement du destinataire reste celui
-du compte rendu 283, sans réalisation fictive. Le rendu distingue une issue
-déclarée d'une réalisation connue. Suivi et retrait utilisent les attributions
-297 ; ascendant des PNJ envers Corvus : mécanisme 340, sans relations
-subjectives imposées au joueur.
-
-Schéma et contrôle de fidélité des paroles étendus ; `comprehension.contenu`
-rend ces actes dans « Compris ». Les réponses fixées sont admises par G15/G17,
-avant affichage et sauvegarde. Fiche, comptes et contexte ne publient que les
-charges de Corvus et les offres reçues, jamais les autres agendas des PNJ.
-Les listes `qui` passent par le contrôle commun des références publiques.
-Le devis du joueur utilise un acteur neutre dans une copie fermée du mandant,
-sans lire ses caractéristiques privées. Une date explicitement convenue est
-conservée ; sans date ni durée calculable, aucune échéance n'est inventée.
+Schéma, fidélité et « Compris » étendus. Réponses moteur admises G15/G17 avant
+publication ; fiche/comptes persistants ; aucun agenda privé au MJ. Les listes
+`qui` passent par les références publiques. Le devis utilise une copie fermée
+avec acteur neutre, sans capacités privées du joueur. Une date convenue reste
+valide ; sans date ni durée calculable, aucune échéance n'est inventée.
 
 **Tests consolidés : 169/169 verts, 17 fichiers**, aucune erreur ni saut,
 dont les neuf méthodes du lot. Les scènes contrôlent monde, fiche, comptes,
 vue et sauvegarde/recharge ; trois saisies passent par la vraie boucle avec
 MJ simulé (deux charges et refus). Voix inconnue/prétendue réellement audible,
 devis pur et indépendant des capacités privées, réaffectation couverts.
-Première passe : 168/169, une erreur, 227,198 s. Le rejeu 86/87 fournissait
-l'ancienne carte des opérations ; son adaptateur complète le schéma courant
-sans modifier l'archive, les mots, les contenus ou les assertions historiques.
-Reprise du seul fichier : **11/11, 51,369 s**, paroles, ordre et recharge
-conservés. Consolidation sans nouvelle exécution des seize autres fichiers ;
-empreintes du code du jeu et des tests inchangés contrôlées.
-Preuve : `tests-valides-final.json`. Le bilan brut initial `ok=false` reste
-intact. Les erreurs de fixtures et de temporaires des passes de travail
-restent également archivées.
+Première passe : 168/169, une erreur, 227,198 s. L'adaptateur du rejeu 86/87
+complète l'ancienne carte des opérations ; archive, mots, contenus et
+assertions conservés. Seul fichier repris : **11/11, 51,369 s**. Acquis des
+seize autres réutilisés après contrôle des empreintes ; certificat
+`tests-valides-final.json`. Échecs initiaux et erreurs de fixtures conservés.
 
-**Suite de validation détachée, résultats à relire.**
-`tools/valider_mandat_joueur_341.py` réemploie les tests consolidés après
-vérification de leurs empreintes, puis joue huit paires d'empreintes 2 h
-(Relais/hameau, quatre graines) et **une passe Luna** sur
-`tests/data/bancs/mandat-joueur.json`. Référence exacte de la base fournie,
-résultats réemployés dans le cache commun ; les références absentes sont
-calculées une fois. Deux travailleurs réduits au plus, calcul détaché,
-`fin.json` écrit en dernier, empreintes des sources contrôlées. Ni suite
-complète, ni campagne de modèles. Bruts et fin attendue :
-`C:/Users/msics/donjon/artifacts/mandat-joueur-341/validation-suite/fin.json`.
+**Empreintes : 8/8 paires identiques**, Relais/hameau, 2 h, graines
+1985/7/42/2024, `fff9aab` → `9a8c204`. Chronique, mesures et état final
+complet identiques nuit par nuit ; aucun plantage sur les seize nuits.
+Usurpations et avis non justifiés **0 → 0**, avis à expliquer **5 → 5**.
+Aucun mandat naturel : ces nuits prouvent la neutralité hors joueur actif.
+Huit références exactes absentes calculées une fois et rangées dans le cache
+commun ; aucune référence disponible relancée. Aucun gain de temps déduit.
+
+**Luna : une passe**, trois tours/deux MJ/quatre appels, sans erreur technique,
+mention sans fondement ou erreur de recharge. Typage `mandat` correct.
+Échoppe inconnue de Corvus, même sous sa référence canonique : refus avant
+parole, répété une fois par Luna. L'information est ensuite prononcée et
+jugée irréalisable par Aubin sur ses croyances. **Aucun accord accepté** :
+acceptation/exécution/compte rendu prouvés avec MJ simulé, pas par Luna.
+Aucune seconde passe.
+
+Suite détachée : **249,276 s**, deux travailleurs réduits au plus,
+`validation-suite/fin.json` **ok=true**, codes tests/empreintes/Luna **0**.
+Sources et tests encore identiques aux empreintes de validation à la clôture.
+Aucun calcul actif ; ni suite complète ni fusion. Bruts conservés dans
+`C:/Users/msics/donjon/artifacts/mandat-joueur-341/` : tests initiaux,
+certificat consolidé, `validation-suite/empreintes.json`, fil Luna JSON/HTML,
+`analyse-cloture.json` et `fin-cloture.json`.
 
 **Limites.** Le choix autonome des mandataires d'A5 reste inchangé : ce lot
 ouvre les gestes et paroles explicites avec le joueur, sans nouvelle
@@ -65,5 +63,5 @@ initiative PNJ ni sélection automatique de Corvus. Le protocole `informer`
 du joueur porte ici les affirmations typées de lieu/verrouillage ; les avis
 restent disponibles dans les mandats internes existants. Une déclaration
 ne garantit jamais la réussite, ni un retrait l'arrêt d'une action volontaire
-du joueur. Les empreintes passives et la passe Luna restent à analyser avant
-de déclarer la vérification du lot terminée.
+du joueur. La passe Luna ne certifie aucun accord accepté ; la garantie
+est bornée aux scènes testées, sans prétention à couvrir toute formulation.

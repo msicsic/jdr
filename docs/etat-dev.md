@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
-- **Lot 341 / A5.9 implémenté, validation groupée en cours**, branche
+- **Lot 341 / A5.9 terminé**, branche
   `codex-mandat-joueur`, **non fusionnée**, base fournie `fff9aab`.
   Dépendance 340 intégrée par `82f5884`, conflit documentaire seul ;
   `jeu.py` inchangé. Paroles `mandat`, `reponse_mandat`, `bilan_mandat` :
@@ -16,11 +16,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Seul fichier repris : 11/11, 51,369 s. Code du jeu inchangé ; acquis des
   seize autres fichiers réutilisés après contrôle des empreintes, certificat
   `tests-valides-final.json`. Bilan brut initial en échec conservé.
-  Suite détachée : empreintes Relais/hameau 2 h × quatre graines, une passe
-  Luna du script `mandat-joueur.json`, deux travailleurs réduits au plus.
-  Bruts : `C:/Users/msics/donjon/artifacts/mandat-joueur-341/` ; fin attendue
-  `validation-suite/fin.json`. Choix autonome PNJ inchangé ; sans date convenue
-  ni durée calculable, pas d'échéance inventée. Ni suite complète ni fusion.
+  **8/8 empreintes identiques**, Relais/hameau 2 h × quatre graines,
+  chronique/mesures/état complet ; seize nuits sans plantage. Usurpations et
+  avis non justifiés 0 → 0, avis à expliquer 5 → 5, aucun mandat naturel.
+  Huit références exactes absentes calculées une fois puis rangées au cache.
+  **Luna une passe**, trois tours/deux MJ/quatre appels, sans erreur technique
+  ni mention sans fondement. Aucun mandat accepté : destination inconnue
+  refusée avant parole, puis information jugée irréalisable par Aubin ;
+  acceptations/exécution/compte rendu prouvés par les tests avec MJ simulé.
+  Suite détachée 249,276 s, deux travailleurs réduits au plus ;
+  `validation-suite/fin.json ok=true`, codes 0, sources/tests inchangés,
+  aucun calcul actif. Branche poussée, ni suite complète ni fusion.
+  Bruts : `C:/Users/msics/donjon/artifacts/mandat-joueur-341/`,
+  `analyse-cloture.json`, `fin-cloture.json`.
+  Choix autonome PNJ inchangé ; sans date convenue
+  ni durée calculable, pas d'échéance inventée.
   [Rapport 341](taches/rapport-codex-341-mandat-joueur.md).
 
 - **Lot 337 terminé avec deux échecs antérieurs réservés**, branche
