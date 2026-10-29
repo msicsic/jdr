@@ -2,26 +2,23 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 323 clos / G5 partiel, branche `codex-g5-perception`, non fusionnée**,
-  base `integration 4794376` : rendu commun de non-perception, couverture et
-  souvenir, sans position cachée ; absence bornée à la surface visible.
-  Perceptions typées seules sans contre-revue, texte sauvé avant affichage,
-  dont `regarder`. **117 tests / onze fichiers verts**, 24,480 s, monde/scène/
-  carte rechargés. Code/tests inchangés depuis cette vérification.
-  **Luna une passe achevée**, quatre scripts, 104,896 s, code 0, 36 appels,
-  zéro erreur technique/recharge ; aucun calcul actif. Noir : observation et
-  regard sans modèle ; atelier : mur et recherche de pierre, une interprétation
-  chacun sans audit. **Routage libre G5 non garanti** : guet interprète les deux
-  questions comme paroles (un repli) ; outils et souvenir de poutre encore
-  audités. Critère global G5 sans audit **non atteint**, aucun audit de dialogue
-  retiré. Écoute en question seulement préparée, non exécutée. Deux tours
-  refusés à l'atelier (échelle/saut hors de portée), sans réalisation annoncée.
-  Aucune référence en cache de `main c870c8b`, aucune référence relancée ni
-  comparaison revendiquée. Bruts `C:/Users/msics/donjon/artifacts/g5-323/`,
-  `analyse-luna.json`, `fin-luna-passe.json ok=true` ; premier échec du lanceur
-  avant appel modèle conservé dans `fin-luna.json`. Ni banc PNJ ni suite complète.
-  Recouvrements 320 (`narration.py`) et 319 (`rendu.py`, `jeu.py`).
-  Branche poussée ; [rapport 323](taches/rapport-codex-323-g5-perception.md).
+- **Lot 323 / G5, relecture avant fusion, branche `codex-g5-perception`,
+  non fusionnée**, base `integration 4794376` : la première passe avait
+  transformé les deux questions de signes-guet en paroles. **Régression**,
+  référence historique `c9459ce` lue sur le PC fixe (deux passes, sans parole).
+  Voie dialogue d'information rétablie dans les consignes communes, sans
+  exception de saisie ; rendu moteur des perceptions typées conservé.
+  **67 tests / six fichiers verts**, 52,673 s cumulées, sans erreur ni saut :
+  aucune parole de Corvus enregistrée pour les questions réelles, monde/PNJ/
+  texte/scène/carte rechargés vérifiés ; paroles explicites et perceptions
+  noires sans modèle conservées. Les 117 tests initiaux restent archivés.
+  Relecture Luna : une passe de signes-guet, noms-dialogue et echanges
+  en cours, détachée ; deux processus BelowNormal vérifiés ; reprise sur
+  `C:/Users/msics/donjon/artifacts/g5-323/relecture/fin-luna-passe.json`.
+  Douze références historiques des six scripts concernés lues sans relance.
+  G5 global reste partiel, dialogues d'information toujours audités.
+  Ni banc PNJ ni suite complète. Recouvrements 320/319 signalés au rapport.
+  [Rapport 323](taches/rapport-codex-323-g5-perception.md).
 
 - **Lot 316 terminé, fusionnée, branche `codex-hachage-reveils`, base
   `integration 60f857c`** : aucune dépendance au hachage reproduite.
