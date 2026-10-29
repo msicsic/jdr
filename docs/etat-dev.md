@@ -22,7 +22,9 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Premier lancement arrêté avant les tests (import `donjon` introuvable dans
   le lanceur) ; correction du chemin d'import et du cwd des sous-processus,
   initialisation sous le bloc qui écrit le bilan même en échec. Relance
-  détachée à vérifier par PID vivant et premières lignes de journal.
+  détachée vérifiée sur `5660366` : PID **45596** vivant en `BelowNormal`,
+  journal « 11 fichiers, 2 processus, priorité réduite ». Deux tests du
+  lanceur verts ; anciens journaux conservés, nouveaux dans `relance.log`.
   Limite : observation sans preuve (notamment le noir) conservée comme
   inconnue ; ni recherche exhaustive ni absence universelle de boucle
   garanties. Aucun changement de `planifier_tache`/`echanges.empeche`,

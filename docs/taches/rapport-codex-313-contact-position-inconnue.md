@@ -63,8 +63,10 @@ Le premier lancement a échoué avant les tests : `priorite.ceder` ne trouvait
 pas `donjon`. Le lanceur ajoute maintenant la racine du worktree aux imports,
 fixe le cwd des sous-processus et protège aussi l'import et l'initialisation
 de priorité par le bilan final. Deux épreuves couvrent ces échecs de démarrage.
-La relance conserve les anciens journaux et doit être constatée par un PID
-vivant et ses premières lignes, sans surveillance répétée du calcul.
+La relance sur `5660366` conserve les anciens journaux : PID **45596**
+constaté vivant en `BelowNormal`, `relance.log` annonce la racine et le
+démarrage des tests ; `tests.log` confirme « 11 fichiers, 2 processus,
+priorité réduite ». Deux tests du lanceur verts. Aucune surveillance répétée.
 
 **Limites.** Une observation sans preuve suffisante, notamment dans le
 noir, ne devient pas une absence : ce lot ne garantit ni recherche
