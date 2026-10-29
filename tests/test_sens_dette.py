@@ -23,7 +23,6 @@ def audit_compte(texte, c, locuteur="aubin"):
 class SensDetteTests(unittest.TestCase):
     def echanger(self, monde, mots, bon, attendu, mauvais=None, inverse=None, cible="aubin", sujet=""):
         reponses = [parole(mots, ("reclamer", sujet, "", ""), personnage=cible)]
-        bon = "D’accord."
         audits = []
         if mauvais:
             reponses.append(dialogue(f'{cible.capitalize()} répond : « {mauvais} »'))
@@ -38,27 +37,22 @@ class SensDetteTests(unittest.TestCase):
             self.assertNotIn(mauvais, sortie)
             self.assertNotIn(mauvais, str(r.data["conversation"]))
             self.assertNotIn(mauvais, str(emissions_pnj(r)))
-            correction = next(e for f, e in appels if "controle_narratif" in e)
-            refus = correction["controle_narratif"]
-            self.assertIn("debiteur", refus[0]["attendu"])
-            self.assertIn("comptes.issue", refus[0]["attendu"])
-            self.assertNotIn(refus[0]["attendu"], sortie)
+            self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
         return r, sortie, appels
 
     def test_cas_reel_absence_dans_le_sens_demande_et_inverse_refuse(self):
         m = banc("ressources")
-        r, _, appels = self.echanger(m, "Aubin, tu me dois quelque chose ?", "Non, je ne te dois rien.",
+        r, _, appels = self.echanger(m, "Aubin, tu me dois quelque chose ?", "Je ne te dois aucune pièce.",
             compte("aubin", "joueur", etat="absent"), "Tu me dois dix pièces.",
             compte("joueur", "aubin", etat="absent"))
         self.assertEqual(r.joueur["or"], m.joueur["or"])
         self.assertFalse(r.data.get("dettes"))
-        issue = next(e["faits"]["conversation_validee"] for f, e in appels
-                     if f == "repondre_au_joueur" and "conversation_validee" in e["faits"])
-        self.assertEqual(issue["comptes"], [compte("aubin", "joueur", etat="absent")])
+        issue = emissions_pnj(r)[-1]['evenement']['resolutions_comptables'][0]
+        self.assertEqual(issue['comptes'], [compte("aubin", "joueur", etat="absent")])
 
     def test_autre_personnage_meme_absence_et_meme_refus(self):
         m = banc("ressources")
-        r, _, _ = self.echanger(m, "Brune, rends-moi ce que tu me dois.", "Je ne te dois rien.",
+        r, _, _ = self.echanger(m, "Brune, rends-moi ce que tu me dois.", "Je ne te dois aucune pièce.",
             compte("brune", "joueur", etat="absent"), "Tu me dois dix pièces.",
             compte("joueur", "brune", etat="absent"), cible="brune")
         self.assertFalse(r.data.get("dettes"))
@@ -68,7 +62,7 @@ class SensDetteTests(unittest.TestCase):
         rembourser(m, "aubin", "joueur", 2, "vivres", "part")
         avant = m.joueur["or"]
         r, _, _ = self.echanger(m, "Aubin, rends-moi les deux pièces que tu me dois.",
-            "Je te rends les deux pièces.", compte("aubin", "joueur", montant=2, etat="rendu"),
+            "Je te rends 2 pièces.", compte("aubin", "joueur", montant=2, etat="rendu"),
             "Tu me rends les deux pièces.", compte("joueur", "aubin", montant=2, etat="rendu"))
         self.assertEqual(r.joueur["or"], avant + 2)
         self.assertEqual(r.data["dettes"], [])
@@ -78,7 +72,7 @@ class SensDetteTests(unittest.TestCase):
         m = banc("ressources")
         rembourser(m, "brune", "joueur", 2, "vivres", "part")
         r, _, _ = self.echanger(m, "Brune, rends-moi les deux pièces.",
-            "Je te dois deux pièces, mais je les garde.", compte("brune", "joueur", montant=2), cible="brune")
+            "Je refuse de te rembourser. Je te dois encore 2 pièces.", compte("brune", "joueur", montant=2), cible="brune")
         self.assertEqual(r.joueur["or"], m.joueur["or"])
         self.assertEqual(r.data["dettes"][0]["montant"], 2)
         self.assertIn("Brune te doit 2 pièces", fiche(r))
@@ -110,7 +104,7 @@ class SensDetteTests(unittest.TestCase):
         m.objets["couteau"]["proprietaire"] = "joueur"
         m.data["connus"].append("couteau")
         deplacer(m, "couteau", "aubin")
-        r, _, _ = self.echanger(m, "Aubin, rends-moi le couteau.", "Je te rends ton couteau.",
+        r, _, _ = self.echanger(m, "Aubin, rends-moi le couteau.", "Je te remets un couteau à lame fine.",
             compte("aubin", "joueur", "couteau", 1, "rendu"), sujet="couteau")
         self.assertEqual(r.objets["couteau"]["lieu"], "joueur")
         self.assertFalse(r.data.get("permissions"))
@@ -136,7 +130,7 @@ class SensDetteTests(unittest.TestCase):
         for variante in sch['anyOf']:
             self.assertNotIn("comptes", variante['required'])
         texte = 'Aubin répond : « Je ne te dois rien. »'
-        controle = controler(texte, rapport(ligne("parole", locuteur="aubin", citation="Je ne te dois rien.")), faits)
+        controle = controler(texte, rapport(ligne("parole", locuteur="aubin", citation="Je ne te dois aucune pièce.")), faits)
         self.assertTrue(controle["obstacles"])
         self.assertTrue(all(o["attendu"] for o in controle["obstacles"]))
         texte = " ".join(phrases(faits))

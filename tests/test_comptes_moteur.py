@@ -19,8 +19,8 @@ class ComptesMoteurTests(unittest.TestCase):
                 m = recharger(banc(script))
                 avant = m.joueur["or"]
                 mots = "Rends-moi les deux pièces dues."
-                # Même une formulation juste est refusée : Luna ne tient plus
-                # les comptes dans sa prose. Aucune réponse d'auditeur fournie.
+                # Luna ne reçoit plus la rédaction de ce compte typé. Les
+                # réponses supplémentaires ne doivent jamais être consommées.
                 libre = "Tu me rends les deux pièces."
                 r, sortie, appels = jouer(m, mots, [
                     parole(mots, ("reclamer", "", "", ""), personnage=qui),
@@ -29,12 +29,13 @@ class ComptesMoteurTests(unittest.TestCase):
                 self.assertFalse(any(d["de"] == qui for d in r.data["dettes"]))
                 self.assertNotIn(libre, sortie)
                 self.assertFalse(any(f == "auditer_narration" for f, _ in appels))
-                faits = next(e["faits"] for _, e in appels
-                             if "conversation_validee" in e.get("faits", {}))
-                for phrase in phrases(faits):
-                    self.assertIn(phrase, sortie)
-                    self.assertIn(phrase, str(r.data["narrations_mj"]))
-                    self.assertIn(phrase, str(recharger(r).data["conversation"]))
+                from donjon.emissions import pnj
+                moteur = pnj(r)[-1]
+                self.assertEqual(moteur['texte'], 'Je te rends 2 pièces.')
+                self.assertIn(moteur['rendu_public'], sortie)
+                self.assertIn(moteur['rendu_public'], str(r.data['narrations_mj']))
+                self.assertIn(moteur['texte'], str(recharger(r).data['conversation']))
+                self.assertEqual(sum(f == 'repondre_au_joueur' for f, _ in appels), 1)
                 self.assertEqual(recharger(r).data, r.data)
                 self.assertEqual(decrire_comptes(recharger(r)), decrire_comptes(r))
 
