@@ -12,15 +12,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   émissions, scène et rendu final rechargés, laps entier/découpé contrôlés.
   Reprise de l'inconscience physique seule verte après ajustement de fixture.
   PNJ seulement ; schéma MJ et voie joueur inchangés. Recouvrement 326/G17 :
-  documentation seulement. **Tests voisins et banc encore en attente** :
-  lanceur détaché `tools/valider_cause_330.py`, quatorze fichiers ciblés puis
+  documentation seulement. Première validation arrêtée aux tests : 192 tests,
+  24 erreurs (import `demander` masquant l'échange d'objets), quatre échecs de
+  subtests dans deux méthodes de proximité. Import corrigé ; assertions de
+  maintien conservées après question. Deux questions sur un même signe daté
+  de nouveau détectées et corrigées : date exclue de l'identité retenue,
+  premiers formats de sauvegarde compris. **24 tests directement concernés
+  verts**, test de date renforcé. Aucun banc encore exécuté.
+  **Consolidation et banc en attente** : reprise de neuf fichiers (126 tests),
+  66 autres tests verts conservés, `tools/valider_cause_330.py`, puis
   4 h × cinq scénarios × quatre graines, deux travailleurs réduits au plus.
   Référence exacte `f08ef58` : cache consulté, nuits de 4 h absentes à remplir
   une fois ; aucune référence disponible relancée. Ni Luna ni suite complète.
-  Code/tests `5f92299` poussés vers origin ; lanceur 42608/Python 8480 et
-  deux travailleurs vérifiés actifs, priorité réduite. Bruts
-  `C:/Users/msics/donjon/artifacts/cause-330/`, fichier final `fin.json`
-  écrit en dernier même sur échec. Aucun verdict de conformité du banc annoncé.
+  Code initial `5f92299` poussé ; première `fin.json` en échec conservée.
+  Bruts `C:/Users/msics/donjon/artifacts/cause-330/`, reprise dans `reprise-1/`,
+  fichier final `fin.json` écrit en dernier même sur échec. Aucun verdict de
+  conformité du banc annoncé.
   [Rapport 330](taches/rapport-codex-330-demander-cause.md).
 
 - **Lot 327 / G19 terminé, branche `codex-g19-rappels`, fusionnée**, base

@@ -35,10 +35,20 @@ Autres contrôles : cause connue, absence de détresse, ignorance, méfiance,
 inconscience physique, croyances fausses de violence et d'eau, bruit, tiers,
 absence de position transmise, preuve plus forte et nouvelle entrée perceptive.
 
-**Vérification détachée lancée, résultats en attente.** Code/tests `5f92299`
-poussés vers origin ; lanceur 42608 et Python 8480 vérifiés vivants à priorité
-réduite, deux travailleurs ciblés effectivement actifs.
-`tools/valider_cause_330.py` exécute quatorze fichiers ciblés, puis vingt nuits
+**Première validation analysée.** `fin.json` initial : échec, code 1,
+169,741 s, 192 tests : 24 erreurs dues à l'import local `demander` qui masquait
+la fonction d'échange d'objets, et quatre échecs de subtests dans deux méthodes
+de proximité. Import renommé ; le test du préfixe suppose désormais la question
+déjà répondue, les assertions de maintien, apaisement et recharge restent.
+Le test du maintien a ensuite révélé deux questions pour un même signe dont
+la date était rafraîchie : la date est désormais exclue de l'identité de la
+réponse, y compris pour les sauvegardes du premier format du lot.
+**24 tests directement concernés verts** (proximité et cause), puis test de
+date renforcé. Aucun banc n'a commencé pendant cette première validation.
+
+**Reprise détachée préparée, résultats en attente.**
+`tools/valider_cause_330.py` reprend les neuf fichiers concernés (126 tests),
+les 66 tests des cinq autres fichiers verts restant acquis, puis vingt nuits
 de 4 h : Relais, mine, auberge, crue, hameau × 1985/7/42/2024. Deux travailleurs
 réduits au plus ; ni Luna ni suite complète. Référence exacte `f08ef58`, cache
 commun consulté avant tout calcul ; ses nuits de 4 h sont absentes au lancement
@@ -46,8 +56,9 @@ et seront calculées et rangées une seule fois selon `AGENTS.md`.
 Le bilan contrôle les suspects 219 nuit par nuit, les plantages et usurpations.
 Il compte demandes, réponses crues et premiers choix qui les suivent, avec
 leurs intentions typées : une succession observée ne prouve pas la causalité.
-Bruts : `C:/Users/msics/donjon/artifacts/cause-330/` ; `fin.json` est écrit en
-dernier même sur échec. **Le critère du banc et les tests voisins ne sont pas
+Bruts : `C:/Users/msics/donjon/artifacts/cause-330/`, première fin conservée ;
+reprise dans `reprise-1/`, `fin.json` écrit en dernier même sur échec.
+**Le critère du banc et la consolidation des tests voisins ne sont pas
 encore validés ; le lot n'est pas déclaré terminé.**
 
 **Périmètre et limites.** PNJ seulement : `paroles.py`, `CHAMPS_CONTENU`, le

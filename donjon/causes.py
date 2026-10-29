@@ -50,7 +50,7 @@ def contexte(monde, id, proche):
     preuve = c['preuve'] if c else None
     # La date de rafraîchissement ne constitue pas une nouvelle détresse.
     signal = {k: preuve[k] for k in ('canal', 'signe', 'attribut', 'valeur')} if preuve else None
-    return [['detresse', proche, json.dumps(signal, sort_keys=True), c['minute']]] if c else []
+    return [['detresse', proche, json.dumps(signal, sort_keys=True), None]] if c else []
 
 
 def demander_possible(monde, id, proche):

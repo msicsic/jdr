@@ -118,6 +118,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--sortie', type=Path, required=True)
     parser.add_argument('--reference', default='f08ef58')
+    parser.add_argument('--tests', nargs='+', choices=TESTS, default=TESTS,
+                        help='reprise des seuls fichiers concernés ; résultats précédents conservés')
     args = parser.parse_args()
     sortie = args.sortie.resolve()
     sortie.mkdir(parents=True, exist_ok=True)
@@ -133,7 +135,7 @@ def main():
                         for p in fichiers}))
         commande = [sys.executable, 'tools/tests.py', '--processus', '2',
                     '--sortie', str(sortie / 'tests.json'),
-                    *[f'tests/test_{nom}.py' for nom in TESTS]]
+                    *[f'tests/test_{nom}.py' for nom in args.tests]]
         with (sortie / 'tests.log').open('w', encoding='utf-8') as flux:
             fin['tests_code'] = subprocess.run(commande, cwd=RACINE, stdout=flux,
                 stderr=subprocess.STDOUT, check=False).returncode

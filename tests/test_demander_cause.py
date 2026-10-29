@@ -185,7 +185,15 @@ class DemanderCauseTests(unittest.TestCase):
 
     def test_un_nouveau_signe_percu_rearme_mais_pas_une_date_seule(self):
         m, a, b = scene()
+        initiale = copy.deepcopy(lire(m, a)['croyances'][b]['detresse'])
         causes.demander(m, a, b, [])
+        self.assertTrue(d.tient(m, a, lire(m, a)['refus'][-1]))
+        initiale['minute'] += 121
+        initiale['preuve']['minute'] += 121
+        lire(m, a)['croyances'][b]['detresse'] = initiale
+        self.assertTrue(d.tient(m, a, lire(m, a)['refus'][-1]))
+        # Compatibilité avec le premier format du lot qui gardait cette date.
+        lire(m, a)['refus'][-1]['cause'][0][3] = 0
         self.assertTrue(d.tient(m, a, lire(m, a)['refus'][-1]))
         # Une nouvelle observation s'ajoute au dossier du demandeur, sans consulter le proche.
         c = copy.deepcopy(lire(m, a)['croyances'][b]['detresse'])
