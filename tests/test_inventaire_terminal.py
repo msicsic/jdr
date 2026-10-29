@@ -72,7 +72,8 @@ class ProjectionTests(unittest.TestCase):
             with self.subTest(geste=geste, modele=modele, n=n):
                 m, cible, _ = scene(geste, modele, n % 2)
                 liste = gestes_inventaire(inventaire_public(m), destinataires_publics(m))
-                envoyes = [c["envoye"] for c in web.clics(m)]
+                envoyes = [c["envoye"] for c in web.clics(m)
+                           if c["envoye"]["geste"] in dict(CAS)]
                 self.assertCountEqual([c.descripteur.contenu for c in liste], envoyes)
                 self.assertEqual(len({c.libelle for c in liste}), len(liste))
                 self.assertIn(menu(m, cible, geste)[2].contenu, envoyes)

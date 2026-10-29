@@ -9,6 +9,14 @@ from dataclasses import dataclass
 from .commandes import DescripteurPublic
 
 
+# Le quatrième champ, optionnel, décrit un choix explicite encore à compléter.
+# Le terminal « premier geste » ne soumet que les entrées sans ce champ.
+OUTIL = {"champ": "outil", "ressources": {}}
+DESTINATION = {"champ": "destination", "ressources": [
+    {"type": "contenant"}, {"type": "luminaire"}, {"foyer": True}]}
+CORPS = ("personnage", "depouille", "partie_corps")
+
+
 # Conditions sur les seuls champs déjà envoyés à la page. Même table en Python
 # et dans les données du pont web, sans lire de précondition privée du moteur.
 OBJETS = (
@@ -22,6 +30,11 @@ OBJETS = (
     ("ouvrir", "Ouvrir", {"type": "contenant"}),
     ("fermer", "Fermer", {"type": "contenant"}),
     ("prendre", "Prendre", {"mobile": True}),
+    ("deverrouiller", "Déverrouiller avec…", {"type": "contenant"}, OUTIL),
+    ("crocheter", "Crocheter avec…", [{"type": "contenant"}, {"type": "serrure"}], OUTIL),
+    ("frapper", "Forcer / frapper avec…", {}, OUTIL),
+    ("alimenter", "Alimenter avec…", [{"type": "luminaire"}, {"foyer": True}], OUTIL),
+    ("mettre", "Mettre dans…", {"mobile": True}, DESTINATION),
 )
 PORTES = (
     ("examiner", "Examiner", {}),
@@ -29,15 +42,37 @@ PORTES = (
     ("fermer", "Fermer", {"etat": "ouverte"}),
     ("deverrouiller", "Déverrouiller", {"etat": "verrouillee"}),
     ("crocheter", "Crocheter", {"etat": "verrouillee"}),
+    ("deverrouiller", "Déverrouiller avec…", {}, OUTIL),
+    ("crocheter", "Crocheter avec…", {}, OUTIL),
+    ("frapper", "Forcer / frapper avec…", {}, OUTIL),
 )
 
 
-def offres(cible, porte=False):
+def correspond(cible, conditions):
+    """Conditions publiques : champs conjoints, ou alternatives de tels groupes."""
+    if isinstance(conditions, list):
+        return any(correspond(cible, groupe) for groupe in conditions)
+    return all(cible.get(k, False) == v for k, v in conditions.items())
+
+
+def offres(cible, porte=False, parametrees=False):
+    """Le même catalogue ; les offres paramétrées exposent aussi leur formulaire.
+
+    Une entrée paramétrée n'est jamais transformée en descripteur incomplet par
+    la liste terminal. Son interface de choix des ressources relève d'U-T outils.
+    """
     if porte and cible.get("souvenir"):
         return []
-    return [(geste, libelle) for geste, libelle, conditions in (PORTES if porte else OBJETS)
-            if all(cible.get(k, False) == v for k, v in conditions.items())
-            and not (not porte and cible.get("type") == "personnage" and geste == "prendre")]
+    resultat = []
+    for geste, libelle, conditions, *formulaire in (PORTES if porte else OBJETS):
+        if bool(formulaire) != parametrees or not correspond(cible, conditions):
+            continue
+        if formulaire and cible.get("type") in CORPS:
+            continue
+        if not porte and cible.get("type") == "personnage" and geste == "prendre":
+            continue
+        resultat.append((geste, libelle, formulaire[0]) if formulaire else (geste, libelle))
+    return resultat
 
 
 @dataclass(frozen=True)
@@ -144,5 +179,6 @@ def catalogue_public():
     Une copie des conditions empêche un consommateur de modifier les offres
     Python ; la sérialisation appartient au transport habituel du serveur.
     """
-    return {famille: [[geste, libelle, dict(conditions)] for geste, libelle, conditions in table]
+    from copy import deepcopy
+    return {famille: [deepcopy(list(entree)) for entree in table]
             for famille, table in (("objets", OBJETS), ("portes", PORTES))}

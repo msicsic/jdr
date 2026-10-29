@@ -2,6 +2,31 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-um-outils`, lot 300 / U-M outils, fusionnée**,
+  base `2d893e0`, reprise par fusion sans rebase d'`origin/integration`
+  `f1cb8fd` (U-T 299 inclus) : choix explicite d'outil, clé, combustible
+  ou destination sur carte et besace, par références publiques U-D exactes.
+  Ressources portées ou vues à portée, sans capacité, précondition, contenu
+  fermé ou bien privé d'un PNJ. Même plan et moteur que le texte ; commande
+  locale « mettre dans » ajoutée vers l'opération de dépôt existante.
+  Refus si ressource périmée, sans substitution ; propriété inconnue laissée
+  à son admission distincte. Catalogue commun `gestes_publics.OBJETS/PORTES`
+  enrichi de formulaires outil/destination, transmis par SSE et lu par la
+  carte : aucune liste parallèle de verbes dans la page. Le terminal garde
+  ses premiers gestes simples ; choix des ressources réservé à U-T outils.
+  Reprise **90 tests / huit fichiers verts**, dont les 28 TUI inchangés ;
+  outils, inventaire, terminal 299/périmés, web/Node, U-D et diagonales.
+  Node réel et monde/scène/fiche/carte après recharge, aucun appel modèle.
+  Dix parcours mesurés : **10 saisies évitées, 3 clics** à portée.
+  **Limite : destination pleine non garantie**, aucune capacité maximale
+  définie par le moteur actuel. Ni MJ, `jeu.py`, `tui.py`, mécanique PNJ,
+  Luna, banc ni suite complète. Bruts dans
+  `C:/Users/msics/donjon/artifacts/um-outils-300/`, `fin-cloture.json`
+  puis `fin-reprise-integration.json` pour la reprise sur 299.
+  Aucun calcul actif ; branche poussée vers origin.
+  [Rapport 300](taches/rapport-codex-300-um-outils.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Le menu propose l'outil ou la destination d'un geste (crocheter, déverrouiller, forcer, mettre dans, alimenter) parmi les seules ressources connues de Corvus, sous leurs références publiques ; le descripteur U-D donne au moteur le même plan que la commande, sans analyse de texte ni modèle ; le moteur tranche (refus public, aucun substitut). Libellés et paramètres viennent du catalogue commun donjon/gestes_publics.py. 90 tests ciblés verts.
+
 - **Branche `codex-a5-reaffecter`, lot 297 / A5.7, fusionnée**, base
   intégration `83a2e89`, moteur `4c634cb` : attribution connue unique par
   charge, historique conservé, choix de remplacement par devis fermé du

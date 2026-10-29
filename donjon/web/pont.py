@@ -5,11 +5,42 @@ qu'on rafraîchisse l'état ou qu'on montre une vue. Le pont diffuse tout cela a
 abonnées et reçoit leurs commandes, une à la fois. La page n'a aucun pouvoir sur l'état : elle
 envoie une saisie libre ou un descripteur de geste explicite.
 """
-from ..inventaire_public import inventaire_public, destinataires_publics
 from queue import Empty, Queue
 import threading
 
+from ..inventaire_public import inventaire_public, destinataires_publics
+
 HISTORIQUE_MAX = 400
+
+
+def ressources_publiques(monde):
+    """Choix matériels connus, sans capacités, règles ni inventaire d'autrui."""
+    from ..francais import designer
+    from ..noms import public, PERSONNES
+    from ..spatial import proche
+
+    def chez_autrui(o):
+        parents = set()
+        while o["lieu"] in monde.objets and o["lieu"] not in parents:
+            parents.add(o["lieu"])
+            o = monde.objets[o["lieu"]]
+            if o["type"] in PERSONNES:
+                return True
+        return False
+
+    biens = []
+    for id, o in monde.objets.items():
+        if o["type"] in (*PERSONNES, "partie_corps") or chez_autrui(o):
+            continue
+        porte = o["lieu"] == "joueur" and monde.present_physique(id)
+        vu = monde.visible(id)
+        if not porte and not (vu and (not monde.data.get("mode_cases") or proche(monde, id))):
+            continue
+        bien = {"id": id, "nom": designer(o), "type": o["type"]}
+        if vu and o.get("foyer"):
+            bien["foyer"] = True
+        biens.append(bien)
+    return public(monde, biens)
 
 
 class PontWeb:
@@ -80,6 +111,7 @@ class PontWeb:
                 "scene": None, "carte_texte": "" if cases else carte(monde),
                 "fiche": fiche(monde), "regard": regarder(monde),
                 "inventaire": inventaire_public(monde), "destinataires": destinataires_publics(monde),
+                "ressources": ressources_publiques(monde),
                 "salle": monde.data["salles"][monde.joueur["salle"]]["nom"],
                 "pv": f'{monde.joueur["pv"]}/{monde.joueur["pv_max"]}', "or": monde.joueur["or"], "or_texte": quantite(monde.joueur["or"], "pièce"),
                 "minutes": monde.data["minutes"],
