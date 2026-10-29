@@ -228,6 +228,7 @@ class FaisabiliteTests(unittest.TestCase):
         # « est-ce que je pourrais passer sous la poutre effondrée ? » : Luna concluait « impossible », puis
         # proposait un arbitrage sommaire hors de ses bornes ; le joueur lisait la borne.
         from donjon.improvisation import issue, proposition
+        from donjon.mj import demande_precision
         from tests.test_paroles import relais
         m = relais()
         mal_borne = proposition("passer sous la poutre", issue("Tu passes."), cibles=["poutre_conduite"],
@@ -235,12 +236,14 @@ class FaisabiliteTests(unittest.TestCase):
         impossible = action({"action": "impossible", "cible": "", "outil": "", "methode": "simple", "difficulte": 0,
                              "justification": "Tu ne peux pas."})
         reprise, sortie, appels = jouer(m, "est-ce que je pourrais passer sous la poutre effondrée ?", [
-            impossible, action(mal_borne), action(mal_borne),
-            dialogue("La poutre effondrée barre le passage, très bas.")],
-            [verdicts(NEUTRE), verdicts(("mecanique", ("attestations",), ""))])
+            impossible, action(mal_borne), action(mal_borne)], [])
         self.assertNotIn("sort des limites", sortie)
         self.assertNotIn("Réexamine", sortie)
-        self.assertIn("La poutre effondrée barre le passage, très bas.", sortie)
+        self.assertIn(demande_precision(), sortie)
+        self.assertEqual(reprise.data['conversation'][-1]['reponse'], demande_precision())
+        self.assertEqual(reprise.data['narrations_mj'][-1]['sources'], ['moteur'])
+        self.assertEqual([f for f, _ in appels], ['repondre_au_joueur'] * 3)
+        self.assertEqual((reprise.objets, reprise.joueur), (m.objets, m.joueur))
         # Chaque refus de forme est revenu au MJ, avec ce qu'il attend.
         retours = [e["faits"]["retour_moteur"] for e in mj(appels) if "retour_moteur" in e["faits"]]
         self.assertIn("difficulte : entier de 10 à 18", retours[1]["attendu"])

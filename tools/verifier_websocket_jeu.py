@@ -13,6 +13,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import jeu
 from donjon.atelier import nouveau_atelier
 from donjon.monde import Monde, nouveau_monde
+from donjon.moteur import Moteur
+from donjon.narration import rendre_resultat
 from donjon.rendu import regarder, fiche, carte
 from donjon.spatial import installer
 from donjon.transport_openai import ouvrir_websocket
@@ -63,21 +65,33 @@ def parcours(cas):
         monde.sauver(chemin)
         demande = 'mj Je prends ' + ('la clé du veilleur.' if cible == 'cle' else 'la bobine de ficelle solide.')
         interface = Interface([demande, 'quitter'], chemin)
-        assert jeu.main(['--save', str(chemin), '--console', '--connexion', 'chatgpt',
-                         '--model', 'gpt-6-luna', '--effort', 'medium', '--cases'], interface=interface) == 0
+        resultats, executer = [], Moteur.executer
+        def execution(moteur, *a, **kw):
+            resultat = executer(moteur, *a, **kw)
+            resultats.append(rendre_resultat(resultat))
+            return resultat
+        with patch.object(Moteur, 'executer', new=execution):
+            assert jeu.main(['--save', str(chemin), '--console', '--connexion', 'chatgpt',
+                             '--model', 'gpt-6-luna', '--effort', 'medium', '--cases'], interface=interface) == 0
         recharge = Monde.charger(chemin)
         assert recharge.objets[cible]['lieu'] == 'joueur', interface.sorties
         dernier = recharge.data['conversation'][-1]['reponse']
+        assert resultats == [dernier], (resultats, dernier)
+        assert recharge.data['conversation'][-1]['nature'] == 'resultat_moteur'
         assert dernier in interface.deja_sauves
         etat = copy.deepcopy(recharge.data)
+        vues = (regarder(recharge), fiche(recharge), carte(recharge))
         reprise = Interface(['inventaire', 'regarder', 'quitter'], chemin)
         assert jeu.main(['--save', str(chemin), '--offline', '--console'], interface=reprise) == 0
         assert Monde.charger(chemin).data == etat
+        assert (regarder(Monde.charger(chemin)), fiche(Monde.charger(chemin)),
+                carte(Monde.charger(chemin))) == vues
         assert recharge.objets[cible]['nom'].casefold() in '\n'.join(reprise.sorties).casefold()
         # Une exécution peut être un plan simple ou composé : compter les commits moteur.
         executions = len(etat['journal']) - len(monde.data['journal'])
         assert executions == 1
         return {'cas': cas, 'cible': cible, 'lieu': 'joueur', 'recit_sauve_avant_affichage': True,
+                'resultat_moteur': dernier,
                 'executions_action': executions,
                 'actions_journal': etat['journal'][len(monde.data['journal']):],
                 'etat_identique_apres_reprise': True, 'sorties': interface.sorties,

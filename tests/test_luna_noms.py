@@ -269,18 +269,32 @@ class NarrationTests(unittest.TestCase):
 
     def test_l_approche_structuree_ne_devient_pas_la_description_du_geste(self):
         from donjon.atelier import nouveau_atelier
+        from donjon.moteur import Moteur
+        from donjon.narration import rendre_resultat
+        from donjon.rendu import regarder, fiche, carte
+        from tests.test_tensions import recharger
         for saisie, approche, texte in [("je m'étire", "effort", "Tu étires tes bras."),
                                         ("je fais un salut", "expression", "Tu inclines la tête.")]:
             with self.subTest(saisie=saisie):
                 m = nouveau_atelier()
                 p = proposition(saisie, issue("Un brouillon qui ne doit pas être affiché."), approche=approche)
-                r, sortie, _ = jouer(m, saisie, [action(p), dialogue(texte)],
-                    [rapport(ligne("mecanique", sources=["resultat_resolu"]))])
-                self.assertIn(texte, sortie)
+                temoin = m.copier()
+                moteur = Moteur(temoin)
+                attendu = rendre_resultat(moteur.executer(moteur.preparer(p)))
+                r, sortie, appels = jouer(m, saisie, [action(p)], [])
+                self.assertIn(attendu, sortie)
+                self.assertEqual(r.data['conversation'][-1]['reponse'], attendu)
+                self.assertEqual(r.data['conversation'][-1]['nature'], 'resultat_moteur')
+                self.assertNotIn(texte, sortie)
+                self.assertEqual([f for f, _ in appels], ['repondre_au_joueur', 'auditer_action'])
                 self.assertNotIn("geste d'", sortie)
                 self.assertNotIn("brouillon", sortie)
                 self.assertEqual(r.data["gestes_improvises"][-1]["approche"], approche)
                 self.assertEqual(r.joueur["pv"], m.joueur["pv"])
+                recharge = recharger(r)
+                self.assertEqual(recharge.data, r.data)
+                self.assertEqual((regarder(recharge), fiche(recharge), carte(recharge)),
+                                 (regarder(r), fiche(r), carte(r)))
 
 
 class TypesActionsTests(unittest.TestCase):

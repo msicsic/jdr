@@ -1325,7 +1325,7 @@ def rescape(texte, rapport, faits, fautif):
     return nouveau, controle, substance
 
 
-def repli(monde, faits, message):
+def repli(monde, faits, message, *, defaut=None):
     """Ce que dit le moteur quand aucune réponse du MJ n'est admise, sans rien inventer : à une parole,
     que ses destinataires l'ont entendue sans répondre ; à une question, ce que Corvus perçoit de ce
     qu'elle vise (les attestations du moteur qui le nomment), puis ce qui manque pour en dire plus."""
@@ -1348,7 +1348,7 @@ def repli(monde, faits, message):
     phrases = phrases[:3]
     if phrases:
         return " ".join(phrases) + " Ce que tu perçois et ce que tu sais n'en disent pas davantage."
-    return ("Rien de ce que tu perçois ou sais ne permet d'y répondre avec certitude. Précise ce que tu "
+    return defaut or ("Rien de ce que tu perçois ou sais ne permet d'y répondre avec certitude. Précise ce que tu "
             "veux regarder, examiner ou tenter.")
 
 

@@ -1330,10 +1330,11 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                           "intention": intention, **retour_refus(reponse, exc,
                                           "Corrige la forme sans abandonner l'intention.")})
                     if forme_corrigee:
-                        if self._interpretation:
-                            return {"mode": "dialogue", "texte": demande_precision(), "faits": [],
-                                    "proposition": None, "_texte_moteur": True}
-                        return self._repli(entree, intention, rescapes)
+                        # Une forme invalide ne détermine pas ce que le joueur demandait.
+                        # Garder ce qu'il perçoit de sa cible ; sans réponse perceptible,
+                        # l'interprétation attend une précision, sans conclure à l'impossible.
+                        return self._repli(entree, intention, rescapes,
+                            defaut=demande_precision() if self._interpretation else None)
                     forme_corrigee = True
                     reponse = appeler_brut(instructions, {**entree, "retour_forme":
                         retour_refus(reponse, exc, "Corrige la forme sans abandonner l'intention.")},
@@ -1541,7 +1542,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                    intention, fonction, schema)
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")
 
-    def _repli(self, entree, intention, rescapes):
+    def _repli(self, entree, intention, rescapes, *, defaut=None):
         """Aucune réponse du MJ n'est admise après trois essais. Dans l'ordre : ce que le moteur a
         établi pour le joueur (le résultat résolu, l'issue d'une parole de Corvus), puis les segments
         admis de la réponse qui en garde le plus, puis ce que dit le moteur (``narration.repli``).
@@ -1584,7 +1585,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
             return self._noter_repli(intention, "segments admis",
                                      {"mode": "dialogue", "texte": texte, "faits": sources, "proposition": None})
         monde = self._monde_controle
-        texte = (repli_narratif(monde, faits, entree.get("message", "")) if monde is not None
+        texte = (repli_narratif(monde, faits, entree.get("message", ""), defaut=defaut) if monde is not None
                  else "Rien de ce que tu perçois ou sais ne permet d'y répondre avec certitude.")
         return self._noter_repli(intention, "moteur", {"mode": "dialogue", "texte": texte, "faits": [],
                                                        "proposition": None, "_texte_moteur": True})

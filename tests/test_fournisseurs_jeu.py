@@ -101,13 +101,10 @@ class ParcoursFournisseursTests(unittest.TestCase):
                 self.assertTrue(r['recit_sauve_avant_affichage'])
                 self.assertTrue(r['etat_identique_apres_reprise'])
                 self.assertEqual(r['executions_action'], 1)
-                recit = next(t['entree'] for t in traces if t['etape'] == 'appel'
-                    and t['fonction'] == 'repondre_au_joueur' and 'resultat_resolu' in t['entree']['faits'])
-                texte = arguments(cible, 'repondre_au_joueur', recit)['texte']
-                audit_requis = texte not in recit['faits']['resultat_resolu']['faits']
-                fonctions = ['repondre_au_joueur', 'auditer_action', 'repondre_au_joueur']
-                if audit_requis:
-                    fonctions.append('auditer_narration')
+                # Le parcours contrôle le rendu moteur exact, sauvé avant affichage.
+                # Seule la compilation puis sa revue utilisent le fournisseur.
+                fonctions = ['repondre_au_joueur', 'auditer_action']
+                self.assertEqual(r['conversation'][-1]['reponse'], r['resultat_moteur'])
                 if correction:
                     self.assertEqual(fournisseur.numero_appel, len(fonctions) + 1)
                     self.assertEqual(len(journal.appels), len(fonctions) + 1)
