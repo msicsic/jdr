@@ -38,7 +38,14 @@ class ErreurFournisseur(ErreurMonde):
 
 
 class Fournisseur:
-    """État d'une connexion et données de l'appel courant, isolés par instance."""
+    """État d'une connexion et données de l'appel courant, isolés par instance.
+
+    ``schema_lu`` dit si le modèle reçoit les descriptions du schéma (outil,
+    paramètres) ou seulement sa grammaire. Un prompt qui répète le contrat du
+    schéma n'est nécessaire que dans le second cas.
+    """
+    schema_lu = True
+
     def __init__(self):
         self.erreur_auth = None
         self.dernier_brut = None

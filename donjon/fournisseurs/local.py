@@ -61,6 +61,10 @@ def enrichir_usage(resultat):
 
 
 class Local(Fournisseur):
+    # ``format`` (Ollama) et ``response_format`` (llama.cpp) sont des grammaires :
+    # le modèle ne lit pas les descriptions du schéma.
+    schema_lu = False
+
     def __init__(self, url=None, cle=None, contexte=None):
         super().__init__()
         self.url = url

@@ -35,7 +35,7 @@ OPERATIONS_AUTORISEES = ["proposer", "negocier", "accepter", "refuser", "discute
 SUJETS_PAROLE = ["", *TYPES_PAROLE]
 DESTINATIONS_AUTORISEES = ["joueur", "salle", ""]
 
-PROMPT_COMPILATEUR = """Tu es le compilateur d'intention de LE SEUIL.
+_PROMPT_AVANT_ACTES = """Tu es le compilateur d'intention de LE SEUIL.
 Convertis la phrase du joueur en un appel mécanique JSON pour le moteur de jeu.
 Ne produis AUCUN texte hors du JSON. Sois direct et concis dans ta pensée (2 à 3 lignes).
 IMPORTANT : Les champs 'cible' et 'outil' doivent UNIQUEMENT contenir l'identifiant (id) exact tiré du contexte, une forme sonore autorisée, ou une chaîne vide. Ne mets JAMAIS de phrase, nom verbeux ou explication dans ces champs.
@@ -99,7 +99,8 @@ ACTIONS :
   - discuter : parler de la mission sans changer d'accord (mission = "", montant_demande = 0).
 - dialogue : le joueur pose une question ou adresse la parole à un personnage (ou à tous / à la cantonade).
   Une saisie entre guillemets (« ... »), avec un verbe de parole (je dis, je demande, je chuchote...) ou « à tous : ... » est TOUJOURS dialogue (ou conversation_pnj pour négocier une mission), même si ses mots évoquent un geste.
-""" + section_contenu() + """
+"""
+_PROMPT_APRES_ACTES = """
   Hors dialogue, sujet_parole = "" et contenu = [].
 - clarifier : l'intention est trop ambiguë entre plusieurs cibles ou actions incompatibles (justification = question brève au joueur, à la 2e personne).
 - impossible : aucune action du moteur ne couvre l'intention, ou un retour_moteur montre que le monde empêche réellement le geste. N'utilise JAMAIS impossible au premier essai si une action du moteur existe (propose l'action, même si la cible est verrouillée, fermée ou éloignée : c'est le moteur qui tranche).
@@ -107,6 +108,17 @@ ACTIONS :
 CORRECTION SUR RETOUR DU MOTEUR :
 Si retour_moteur est présent dans l'entrée, ta proposition précédente (proposition_refusee) a été refusée par le moteur (obstacle). Corrige la proposition en suivant exactement attendu (identifiant exact, outil requis, étape préalable dans composer comme ouvrir ou detacher avant deplacer, ou action demandée). Si aucune correction mécanique ne peut aboutir d'après attendu, utilise action = "impossible".
 """
+RENVOI_SCHEMA = (
+    "  Les actes de parole (type, sujet, attribut, valeur) et leurs contraintes sont "
+    "décrits dans le schéma de contenu ; respecte-les exactement.")
+PROMPT_COMPILATEUR = _PROMPT_AVANT_ACTES + section_contenu() + _PROMPT_APRES_ACTES
+PROMPT_COMPILATEUR_SCHEMA = _PROMPT_AVANT_ACTES + RENVOI_SCHEMA + _PROMPT_APRES_ACTES
+
+
+def prompt_compilateur(fournisseur):
+    """Le contrat des actes n'est répété que si le modèle ne lit pas le schéma."""
+    return PROMPT_COMPILATEUR_SCHEMA if getattr(fournisseur, "schema_lu", True) else PROMPT_COMPILATEUR
+
 
 SCHEMA_COMPILATEUR = {
     "type": "object",
@@ -926,7 +938,7 @@ def compiler(fournisseur, monde, intention, modele=None, timeout=30, effort=None
         cls_nom = fournisseur.__class__.__name__.lower()
         effort = "none" if "local" in cls_nom or "mimo" in cls_nom else "medium"
     demande = Demande(
-        instructions=PROMPT_COMPILATEUR,
+        instructions=prompt_compilateur(fournisseur),
         entree=entree,
         intention=intention,
         fonction="compiler_intention",
