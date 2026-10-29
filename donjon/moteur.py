@@ -28,6 +28,13 @@ METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
 # Gestes dont le résultat est ce que le moteur fait percevoir. À distinguer de
 # commandes.PERCEPTIONS : cette dernière règle borne l'exécution d'une question.
 PERCEPTIONS = ("observer", "examiner", "toucher", "lire", "ecouter")
+SENS_PERCEPTIONS = {
+    "observer": "Percevoir la scène, la lumière ou le contexte ; le résultat est calculé à l'exécution.",
+    "examiner": "Examiner visuellement la cible ; le résultat et les découvertes restent au moteur.",
+    "toucher": "Percevoir la cible avec les mains, même dans le noir ; ne suppose pas ce qui sera trouvé.",
+    "lire": "Déchiffrer la cible, avec ses coûts et son risque. Restituer un texte déjà lu/connu est une réponse sur la mémoire, sans nouveau geste.",
+    "ecouter": "Perception auditive sur place, cible et outil vides ; couvre les sons qui parviennent, y compris au travers des passages proches. Préciser un voisinage dans la saisie n'exige ni cible d'objet ni déplacement. Le moteur détermine seul ce qui peut être entendu, sans garantir un son ni sa provenance.",
+}
 
 
 class QualificationRequise(ProprieteInconnue):

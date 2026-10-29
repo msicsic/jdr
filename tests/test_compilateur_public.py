@@ -33,8 +33,8 @@ class CompilateurPublicTests(unittest.TestCase):
             faits = entree['faits']
             self.assertNotIn('anneau', {k[6:] for k in faits if k.startswith('objet:')})
             self.assertNotIn('esprits_interlocuteurs', faits)
-            self.assertNotIn('attestations', faits)
-            self.assertNotIn('evenements_recents', faits)
+            self.assertIn('attestations', faits)
+            self.assertIn('evenements_recents', faits)
             self.assertTrue(all('portrait' not in o for k, o in faits.items() if k.startswith('objet:')))
             self.assertEqual(m.data, avant)
             self.assertEqual(regarder(m), regarder(recharger(m)))

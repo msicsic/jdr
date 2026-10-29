@@ -127,6 +127,7 @@ def sens_parole(contenu, monde):
 
 
 def _operations(plan, monde=None):
+    from .moteur import SENS_PERCEPTIONS
     from .deplacement_objet import presenter_effet
     def presenter(effet):
         # La bascule interne « ouverture=False » signifie fermer, pas ouvrir.
@@ -143,6 +144,8 @@ def _operations(plan, monde=None):
         **({"destination_corps": _nommer(plan.destination_corps, monde)}
            if monde is not None and hasattr(plan, "destination_corps") else {}),
         **({"perception": plan.perception} if plan.perception is not None else {}),
+        **({"contrat_perception": SENS_PERCEPTIONS[plan.perception["action"]]}
+           if plan.perception is not None else {}),
         **({"parole": plan.parole} if plan.parole is not None else {}),
         **({"geste_improvise": {"approche": plan.proposition.get("approche"),
                                 "cibles": plan.proposition.get("cibles", []),

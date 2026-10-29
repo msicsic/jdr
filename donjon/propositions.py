@@ -9,7 +9,9 @@ def _forme(proprietes):
 
 
 def schema_terme(contrepartie=False, service=False):
-    formes = [_forme({"type": {"type": "string", "enum": [t]}, "objet": {"type": "string"}})
+    formes = [_forme({"type": {"type": "string", "enum": [t], "description":
+                              "Transférer l'objet entier." if t == "objet" else "Demander une seule pièce/part d'un lot, sans céder le lot entier."},
+                      "objet": {"type": "string", "description": "Référence publique exacte du bien ou du lot fournie par le contexte (id), jamais son nom, sa matière ou une description."}})
               for t in ("objet", "part")]
     conditions = [_forme({"objet": {"type": "string"}, cle: valeur}) for cle, valeur in (
         ("allume", {"type": "boolean", "enum": [True]}),

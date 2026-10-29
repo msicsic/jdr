@@ -45,7 +45,7 @@ BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » che
 # de besoins restent disponibles pour les demandes générales ; un bien nommé
 # conserve son nom, sans être élargi au besoin qu'il pourrait servir.
 SENS_CONTENU = {
-    "localisation": "Demander où se trouve une personne connue, désignée par sujet. La réponse transmet la dernière croyance datée de l'interlocuteur, jamais une position cachée.",
+    "localisation": "Demander où se trouve une personne connue, désignée par sujet, référence exacte de personnages_connus. Une fonction ou une appellation qui ne désigne aucune personne connue reste un sujet de conversation libre (propos), sans inventer de personne ni de position. La réponse transmet la dernière croyance datée de l'interlocuteur, jamais une position cachée.",
     "avis": "Prévoir qu'une menace atteindra ou épargnera un lieu : annoncer une évolution future est un avis, même formulé comme une certitude, sans marque d'opinion ni échéance explicite. sujet est la référence publique du lieu connu de Corvus, attribut menace, valeur oui (menacé) ou non (épargné). Le prédicat disponible évalue la menace d'eau ; son horizon de calcul est fixé par le moteur, il n'est pas une condition à exprimer dans la parole. Le contenu transmet la prévision du joueur, jamais un fait établi ; sa conviction est calculée par le moteur sur ses perceptions.",
     "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
     "propos": "Parole dont le sens ne relève d'aucune des opérations disponibles. Reproduire les mots du joueur ne dispense pas de typer les opérations qu'ils expriment.",
@@ -63,10 +63,25 @@ RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pou
 
 def section_contenu():
     """Le prompt sans schéma lit les mêmes définitions que le contrat joueur."""
-    return "\n".join(f"- {t} : {SENS_CONTENU[t]} Champs utiles : "
-                     + (", ".join(CHAMPS_CONTENU[t]) or "aucun")
-                     + ". Les autres champs restent vides."
-                     for t in TYPES_JOUEUR)
+    lignes = []
+    variantes = SCHEMA_PAROLE["properties"]["contenu"]["items"]["anyOf"]
+    for t in TYPES_JOUEUR:
+        variante = next(v for v in variantes if v["properties"]["type"]["enum"] == [t])
+        lignes.append(f"- {t} : {SENS_CONTENU[t]} Champs requis : " + ", ".join(variante["required"]) + ".")
+        descriptions = []
+        def decrire(schema):
+            if isinstance(schema, dict):
+                d = schema.get("description")
+                if d and d not in descriptions:
+                    descriptions.append(d)
+                for v in schema.values():
+                    decrire(v)
+            elif isinstance(schema, list):
+                for v in schema:
+                    decrire(v)
+        decrire(variante)
+        lignes.extend(descriptions)
+    return "\n".join(lignes)
 
 
 OPERATIONS = {t: sens for t, sens in SENS_CONTENU.items() if t != "propos"}
@@ -90,7 +105,7 @@ SCHEMA_PAROLE = {
     "properties": {
         "personnage": {"type": "string",
                        "description": "parole_prevue.personnage : le destinataire fixé par le moteur, ou tous."},
-        "replique": {"type": "string", "description": SENS_REPLIQUE},
+        "replique": {"type": "string", "minLength": 1, "maxLength": 400, "description": SENS_REPLIQUE},
         "contenu": {"type": "array", "maxItems": 3, "items": {
             "type": "object", "additionalProperties": False,
             "properties": {

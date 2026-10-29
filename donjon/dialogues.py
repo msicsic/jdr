@@ -10,12 +10,21 @@ from .esprits import dernier_son
 
 
 OPERATIONS = ("discuter", "proposer", "negocier", "accepter", "refuser")
+SENS_OPERATIONS = {
+    "discuter": "Discussion sans engagement : mission vide, montant_demande 0.",
+    "proposer": "Demander ou rappeler la récompense existante, sans demander mieux : mission exacte de missions_discutables, montant_demande 0.",
+    "negocier": "Demander explicitement une amélioration de la récompense : mission exacte, montant demandé, ou 0 seulement si le joueur demande mieux sans chiffrer. 0 sollicite le plafond calculé par le moteur, ce n'est pas une simple demande de prix.",
+    "accepter": "Accepter explicitement une offre existante, sans paiement immédiat ; mission exacte, montant_demande 0.",
+    "refuser": "Refuser explicitement une offre existante ; mission exacte, montant_demande 0.",
+}
 SCHEMA_CONVERSATION = {
     "type": "object", "additionalProperties": False,
     "properties": {
         "personnage": {"type": "string"}, "sujet": {"type": "string"},
-        "operation": {"type": "string", "enum": list(OPERATIONS)},
-        "mission": {"type": "string"}, "montant_demande": {"type": "integer"},
+        "operation": {"type": "string", "enum": list(OPERATIONS),
+                      "description": " ".join(f"{op} : {SENS_OPERATIONS[op]}" for op in OPERATIONS)},
+        "mission": {"type": "string", "description": "Clé exacte de missions_discutables correspondant à l'offre et au donneur, obligatoire hors discuter. Ni nom d'objet ni nom de mission."},
+        "montant_demande": {"type": "integer", "minimum": 0, "maximum": 1_000_000},
     },
     "required": ["personnage", "sujet", "operation", "mission", "montant_demande"],
 }

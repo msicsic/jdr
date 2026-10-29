@@ -12,6 +12,7 @@ from .paroles import SCHEMA_PAROLE, SCHEMA_OPERATIONS, section_contenu
 def schema_compilateur():
     # Imports différés : mj définit encore le contrat des actions simples.
     from .mj import SCHEMA
+    from .moteur import SENS_PERCEPTIONS
     from .operations import SCHEMA_SEQUENCE
     from .artisanat import SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE
     from .improvisation import SCHEMA as improvisation
@@ -31,12 +32,15 @@ def schema_compilateur():
     parole["properties"] = {"operations_demandees": copy.deepcopy(SCHEMA_OPERATIONS),
                              **parole["properties"]}
     parole["required"].insert(0, "operations_demandees")
+    simple = copy.deepcopy(SCHEMA)
+    simple["properties"]["action"]["description"] = " ".join(f"{op} : {sens}" for op, sens in SENS_PERCEPTIONS.items())
     return {"type": "object", "additionalProperties": False, "properties": {
         "mode": {"type": "string", "enum": ["action", "parole_joueur", "conversation_pnj",
-            "etablir_faits", "enrichir", "enrichir_savoirs", "enrichir_joueur", "dialogue"]},
-        "texte": {"type": "string"},
+            "etablir_faits", "enrichir", "enrichir_savoirs", "enrichir_joueur", "dialogue"],
+            "description": "dialogue : question d'information au MJ sur ce qui est perçu, connu ou déjà lu, sans nouvel acte ni parole. action : geste demandé ou question de faisabilité. parole_joueur : le joueur fait parler Corvus (adresse, guillemets, verbe de parole) ; la présence d'un interlocuteur ou d'une parole_prevue possible ne suffit pas à transformer une question au MJ en parole. conversation_pnj : opération de mission configurée, avant la parole libre."},
+        "texte": {"type": "string", "description": "Réponse finale non vide au joueur en dialogue ; jamais analyse du choix de mode. Vide pour les propositions typées."},
         "faits": {"type": "array", "items": {"type": "string"}},
-        "proposition": {"anyOf": [copy.deepcopy(SCHEMA), SCHEMA_SEQUENCE, improvisation,
+        "proposition": {"anyOf": [simple, SCHEMA_SEQUENCE, improvisation,
             SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, SCHEMA_CONVERSATION, parole, faits,
             SCHEMA_COMPLEMENTS, SCHEMA_SAVOIRS, profil, {"type": "null"}]}},
         "required": ["mode", "texte", "faits", "proposition"]}
@@ -114,6 +118,8 @@ def extraire_contexte(monde, intention="", *, faits=None):
     complet côté moteur, notamment pour auditer la prose transitoire.
     """
     from .noms import public
+    from .paroles import analyser
+    from .commandes import faisabilite
     if faits is None:
         from . import paroles
         faits = monde.contexte()
@@ -125,8 +131,13 @@ def extraire_contexte(monde, intention="", *, faits=None):
         "expression_joueur", "echanges_passes", "proposition_en_attente", "derniere_tentative",
         "atelier", "franchissements", "passages_obstacles", "espace", "improvisation",
         "descriptions_a_completer", "connaissances_a_completer", "profil_joueur_a_completer",
-        "faits_narratifs_proposables", "ambiance_ciblee", "retour_moteur")
+        "faits_narratifs_proposables", "ambiance_ciblee", "retour_moteur",
+        "scenario", "attestations", "evenements_recents", "paroles_entendues", "ambiance_etablie")
     ctx = {k: copy.deepcopy(faits[k]) for k in cles if k in faits}
+    forme = analyser(monde, intention)
+    ctx["saisie"] = {"parole_explicite": bool(forme["explicite"]),
+                     "interlocuteur_nomme": bool(forme.get("nomme") or forme.get("groupe")),
+                     "question_faisabilite": bool(faisabilite(intention))}
     # La salle garde ses sorties connues et leur état, pas la description d'auteur.
     ctx["salle"] = {k: v for k, v in ctx.get("salle", {}).items()
                     if k in ("id", "nom", "sorties", "sorties_connues", "eau")}
@@ -135,6 +146,9 @@ def extraire_contexte(monde, intention="", *, faits=None):
     ctx["interlocuteurs"] = {ref: {k: v for k, v in p.items()
         if k in ("nom", "voix_inconnue", "personne_inconnue", "entendue", "genre")}
         for ref, p in ctx.get("interlocuteurs", {}).items()}
+    # Le niveau d'éclairage est public, pas l'identité de ses sources invisibles.
+    ctx["perception"] = {k: copy.deepcopy(v) for k, v in faits.get("perception", {}).items()
+                         if k in ("niveau", "etat", "objets_visibles", "couverture_vue", "non_vus_connus")}
     for cle, o in faits.items():
         if cle.startswith("objet:"):
             ctx[cle] = {k: copy.deepcopy(v) for k, v in o.items() if k not in CHAMPS_OBJET_OMIS}

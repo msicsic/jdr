@@ -39,8 +39,16 @@ FORMES_SONORES = {
     "corps_rythmique": "Tu frappes un rythme avec ton corps.",
     "corps_bref": "Tu produis un bruit bref avec ton corps.",
 }
+SENS_EFFETS = {
+    "marquer": "Inscription littérale sur un support avec un outil qui grave/coupe. Une inscription n'établit jamais la vérité de son texte, ni l'état, la posture ou la décision d'un tiers.",
+    "deplacer": "Déplacement d'un objet libre vers joueur, sol ou contenant ouvert. Ni vol, ni voyage ; utiliser les actions et opérations spécialisées pour ceux-ci.",
+    "son": "Son effectivement émis : cible joueur, destination vide, valeur 1 à 3, texte forme sonore parmi " + ", ".join(FORMES_SONORES) + ". Une intention ou un récit sonore sans cet effet ne produit aucun son.",
+    "user": "User l'outil de 1 ; un jet et une raison physique sont requis.",
+    "blesser": "Blessure mineure de Corvus, valeur 1 à 3 ; un jet et une raison physique sont requis.",
+}
 SCHEMA_EFFET = {"type": "object", "additionalProperties": False, "properties": {
-    "operation": {"type": "string", "enum": ["marquer", "deplacer", "user", "blesser", "son"]},
+    "operation": {"type": "string", "enum": list(SENS_EFFETS),
+                  "description": " ".join(f"{op} : {sens}" for op, sens in SENS_EFFETS.items())},
     "cible": {"type": "string"}, "destination": {"type": "string"},
     "texte": {"type": "string"}, "valeur": {"type": "integer"}}, "required": list(effet(""))}
 SCHEMA_ISSUE = {"type": "object", "additionalProperties": False, "properties": {
@@ -50,11 +58,14 @@ SCHEMA = {"type": "object", "additionalProperties": False, "properties": {
     "action": {"type": "string", "enum": ["improviser"]}, "intention": {"type": "string"},
     "cibles": {"type": "array", "maxItems": 6, "items": {"type": "string"}},
     "outil": {"type": "string"}, "approche": {"type": "string", "enum": list(APPROCHES)},
-    "stat": {"type": "string", "enum": list(STAT)}, "difficulte": {"type": "integer", "minimum": 0, "maximum": 18},
+    "stat": {"type": "string", "enum": list(STAT), "description": "Geste usuel simple : vide, difficulte 0, echec vide. Sinon une caractéristique et difficulte 10 à 18."}, "difficulte": {"type": "integer", "minimum": 0, "maximum": 18},
     "minutes": {"type": "integer", "minimum": 0, "maximum": 15},
     "bruit": {"type": "integer", "minimum": 0, "maximum": 3},
     "reussite": SCHEMA_ISSUE, "echec": SCHEMA_ISSUE},
     "required": list(proposition("", issue("")))}
+SCHEMA["description"] = ("Geste plausible hors actions spécialisées. Les récits sont des brouillons ; seuls les effets typés sont réalisés. "
+    "Ne remplace pas une opération spécialisée par une improvisation. Un public n'est pas une cible physique. "
+    "Un geste simple est sans jet ; un son demandé exige l'effet son. Aucun effet ne crée de savoir, d'objet ou de réaction d'un tiers.")
 
 
 

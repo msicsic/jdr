@@ -17,6 +17,13 @@ OPERATIONS = ("patienter", "deplacer", "prelever", "detacher", "allumer", "etein
               "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)
 METHODES = ("simple", "discret", "levier", "finesse", "percussion", "assommer", "appui_mobile", "appel", "cri", "sifflement",
             "heler", "repondre", "arriver", "demander_raison", "dessous", "dessus")
+SENS_OPERATIONS = {
+    "patienter": "Guetter deux minutes ; tous les champs vides, methode simple, difficulte 0. Facilite le vol discret suivant, sans détourner ni changer l'orientation d'un tiers.",
+    "deplacer": "Prendre : destination joueur ; poser : destination sol ; ranger : contenant ouvert. methode discret pour voler. Guetter puis voler se compose en patienter puis deplacer discret, sans ajouter de réaction du propriétaire.",
+    "prelever": "Séparer une seule pièce d'un lot décrit, puis la déplacer vers destination. Ne déplace pas le lot entier.",
+    "passer_obstacle": "Passage local sous/sur un obstacle : cible sa référence exacte, methode dessous/dessus, destination et outil vides, difficulte 0. Reste cette opération même loin ou en souvenir ; le moteur juge portée et géométrie. franchir est réservé à un assemblage installé.",
+    "emettre_son": "Émission vocale cri/appel/sifflement : cible joueur ; objet sonore : cible objet et methode simple. L'audition et les réactions sont calculées par le moteur.",
+}
 
 
 def etape(operation, cible="", destination="", outil="", methode="simple", difficulte=0):
@@ -36,8 +43,9 @@ SCHEMA_SEQUENCE = {
         "etapes": {"type": "array", "minItems": 1, "maxItems": 6, "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "operation": {"type": "string", "enum": list(OPERATIONS)},
-                "cible": {"type": "string"}, "destination": {"type": "string"},
+                    "operation": {"type": "string", "enum": list(OPERATIONS),
+                                  "description": " ".join(f"{op} : {sens}" for op, sens in SENS_OPERATIONS.items())},
+                    "cible": {"type": "string", "description": "Référence publique exacte de la cible fournie par le contexte ; joueur pour une émission vocale, vide pour patienter. Jamais son nom ou une description."}, "destination": {"type": "string"},
                 "outil": {"type": "string"}, "methode": {"type": "string", "enum": list(METHODES)},
                 "difficulte": {"type": "integer"},
             }, "required": list(etape("deplacer")),

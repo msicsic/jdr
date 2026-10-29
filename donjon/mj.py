@@ -200,7 +200,7 @@ SCHEMA = {
     "type": "object",
     "properties": {
         "action": {"type": "string", "enum": ACTIONS},
-        "cible": {"type": "string", "description": "Identifiant exact de la cible visible, direction, ou chaîne vide."},
+        "cible": {"type": "string", "description": "Référence publique exacte fournie pour l'entité perçue ou connue, jamais son nom ou une description ; direction ou durée selon l'action, ou chaîne vide. Une correction conserve l'entité visée par la saisie, sans lui substituer une autre cible pour lever un refus."},
         "outil": {"type": "string", "description": "Identifiant d'un outil possédé, ou chaîne vide. Pour remettre : identifiant du PNJ destinataire ; pour pousser : direction de la poussée ou vide."},
         "methode": {"type": "string", "enum": METHODES},
         "difficulte": {"type": "integer", "description": "0 hors détachement ; estimation entre 11 et 22 pour une fixation."},
@@ -565,7 +565,7 @@ class MJ:
         from .espace import a_completer, preparer, SCHEMA as SCHEMA_ESPACE
         cadres = a_completer(monde)
         if not cadres:
-            return self._echanger_prepare(monde, intention, proposition_en_attente)
+            return self._admettre_sortie(self._echanger_prepare(monde, intention, proposition_en_attente))
         entree = {"cadres_autorises": cadres,
                   "consigne": "Complète chaque cadre une fois. Choisis uniquement le terrain, sans tenir compte d'une réussite souhaitée. Les dimensions et appuis sont imposés par le moteur."}
         debut = time.monotonic()
@@ -586,8 +586,20 @@ class MJ:
             if self.observateur:
                 trace.update(secondes=round(time.monotonic()-debut, 3), usage=copy.deepcopy(self.derniere_utilisation))
                 self.observateur(trace)
-        reponse = copy.deepcopy(self._echanger_prepare(travail, intention, proposition_en_attente))
+        reponse = copy.deepcopy(self._admettre_sortie(self._echanger_prepare(travail, intention, proposition_en_attente)))
         return ajouter_transaction(reponse, "espace", monde.data["revision"], p, debut=True)
+
+    @staticmethod
+    def _admettre_sortie(reponse):
+        """La préparation ne publie jamais une prose que ses gardes ont écartée.
+
+        Une prévalidation peut court-circuiter l'audit d'une sortie qui sera
+        rejetée ensuite. Si une correction abandonne ce chemin, elle ne gagne
+        pas pour autant le droit d'afficher cette prose ni ses transactions.
+        """
+        if reponse.get("mode") == "dialogue" and not reponse.get("_audit") and not reponse.get("_texte_moteur"):
+            return reponse_du_moteur(ErreurMonde(demande_precision()))
+        return reponse
 
     def _echanger_prepare(self, monde, intention, proposition_en_attente=None,
                           suite_fait=False, reponse=None, recadre=False):
@@ -937,7 +949,9 @@ class MJ:
                                              enrichir=True, retour_moteur=retour)
                     if reponse["mode"] != "parole_joueur":
                         if reponse["mode"] == "dialogue":
-                            return reponse
+                            if reponse.get("_audit") or reponse.get("_texte_moteur"):
+                                return reponse
+                            return reponse_du_moteur(exc)
                         raise ErreurMonde("La correction de la parole n'a pas abouti.")
         else:
             try:

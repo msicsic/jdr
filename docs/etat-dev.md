@@ -2,6 +2,24 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-g1-compilateur`, suite 296 / G1 b, non fusionnée** :
+  `origin/integration` `48767fd` fusionnée sans rebase (`64b09b5`), lot 295
+  et ses garanties de transport/repli conservés. Contrats de modes, missions,
+  opérations, effets improvisés et marchés enrichis dans les schémas ;
+  mémoire publique réintroduite, perception sans source invisible, forme
+  de saisie issue du parseur existant. Portée des perceptions partagée avec
+  la contre-revue ; correction non auditée rendue en refus/précision moteur,
+  jamais en message interne. Aucun changement des mécaniques PNJ ou de G4.
+  **194 tests découverts / 18 fichiers : 189 réussis, 5 ignorés** (quatre
+  MiMo facultatifs et un jsonschema), zéro échec retenu ; cas réels/autres
+  cas en console et recharge. Pas de suite complète ni banc PNJ.
+  Deux scènes sans réseau : requête totale 90 759 → 63 254 et
+  93 305 → 64 632 caractères, référence du 294 réutilisée. **Passe Luna
+  unique détachée en cours**, six scripts, référence `230e7b3` déjà en cache,
+  un travailleur réduit ; analyse et critères de fusion encore en attente.
+  Bruts : `C:/Users/msics/donjon/artifacts/g1b-296/`, fin `fin-luna.json`.
+  [Rapport 296](taches/rapport-codex-296-g1b-fidelite.md).
+
 - **Branche `codex-g1-compilateur`, lot 294 / G1, non fusionnée**, base
   `230e7b3`, code mesuré `7525f83`. **Analyse terminée, invariant G1 non
   atteint : portage non prêt à fusionner.** Compilateur du libre sur sélection

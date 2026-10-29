@@ -203,7 +203,7 @@ class PrefixeKVTests(unittest.TestCase):
         # G1 : le compilateur reçoit le petit contexte ; l'audit conserve son
         # dossier complet et sa propre voie de cache.
         self.assertTrue(appels_mj[0][1]['compilation'])
-        self.assertNotIn('attestations', appels_mj[0][1]['faits'])
+        self.assertNotIn('esprits_interlocuteurs', appels_mj[0][1]['faits'])
         self.assertIn('attestations', appels_audit[0][1]['faits'])
         for cle, objet in appels_mj[0][1]['faits'].items():
             if cle.startswith('objet:'):
