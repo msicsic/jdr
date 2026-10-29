@@ -2,6 +2,32 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-a5-reaffecter`, lot 297 / A5.7, fusionnée**, base
+  intégration `83a2e89`, moteur `4c634cb` : attribution connue unique par
+  charge, historique conservé, choix de remplacement par devis fermé du
+  mandant, refus inchangé retenu, titulaires déjà essayés exclus et
+  hystérésis VOL. Retrait par parole commune, jamais à distance ; tentative
+  manquée persistée, retrouvailles et résultat appris en route contrôlés.
+  **86 tests / 12 fichiers verts**, dont dix nouveaux ; hameau et mine,
+  ramener et informer, monde/rendu/scène/écoute après recharge et laps
+  entier/découpé avec intervenants actifs. Pas de délai inventé pour un
+  devis incertain, ni conversion des anciens accords sans échéance ; deux
+  intervenants peuvent agir tant que le retrait n'est pas entendu.
+  **Lot terminé : empreintes 2 h, 12/12 paires identiques**, hameau/mine/
+  Relais × 1985/7/42/2024, départ tiré, `83a2e89` → `599dfbb` : chronique,
+  mesures, empreintes et SHA-256 de l'état final complet ; récit/souvenirs
+  identiques aussi. Aucun mandat A5 accepté ni retrait dans ces nuits :
+  pas de réaffectation naturelle, preuve par les scènes ciblées ; aucun
+  banc 4 h ajouté. Zéro plantage, avis non justifiés 0 → 0, entrées à
+  expliquer 16 → 16, avis identiques. Douze références manquantes calculées
+  une fois et rangées, douze nuits de branche, deux travailleurs réduits,
+  242,022 s ; `C:/Users/msics/donjon/artifacts/reaffecter-297/fin-verification.json`
+  **ok=true, code 0**. Bruts et analyse de clôture copiés dans ce dossier.
+  Branche poussée vers origin, aucun calcul actif ni relancé à la clôture ;
+  sources/tests inchangés. Ni Luna ni suite complète.
+  [Rapport 297](taches/rapport-codex-297-a5-reaffecter.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Registre attributions (active, remplacée, reprise) à côté de la filiation confies ; agendas.confier refuse deux attributions qui se recouvrent et le retour à un titulaire retiré. Une charge échue revient au choix faire ou confier (devis vu par le mandant 258/260), un titulaire déjà essayé exclu, hystérésis selon la VOL. L'ancien titulaire cru présent est averti par la parole commune (echanges.avertir_mandat) ; seule une parole entendue et attribuée ferme son agenda : deux intervenants possibles tant qu'il n'a pas entendu. 86 tests verts, 12/12 empreintes 2 h identiques, aucune réaffectation naturelle dans les nuits.
+
 - **Branche `codex-ut-premier-geste`, lot 299 / U-T, fusionnée**, base
   initiale `83a2e89`, reprise par fusion sans rebase d'`origin/integration`
   `2d893e0` (298 inclus) : console et TUI proposent les premiers gestes de

@@ -444,6 +444,33 @@ def rendre_compte(monde, id, contenu, lignes):
     return True
 
 
+def avertir_mandat(monde, id, autre, retrait, lignes):
+    """La charge ne s'arrête chez son titulaire qu'après une parole comprise."""
+    from .pnj import se_parler, _chroniquer
+    from .social import faire_entendre, _qui
+    from .ouie import saisit
+    from .voix import identifie
+    entendu = se_parler(monde, id, autre) and saisit(monde, id, autre, 'dire')
+    attribue = entendu and identifie(monde, autre, id)
+    if not agendas.avertir_retrait(monde, id, autre, retrait, entendu=bool(attribue)):
+        return True
+    if entendu:
+        charge = agendas.charge_retiree(monde, id, autre, retrait)
+        p = charge['parametres']
+        personnes = ', '.join(_qui(monde, q, id) for q in p['qui'])
+        if charge['sorte'] == 'amener':
+            from .francais import lieu
+            tache = 'amener ' + personnes + ' dans ' + lieu(monde.data['salles'][p['lieu']])
+        else:
+            tache = "transmettre l'information à " + personnes
+        texte = f"{_qui(monde, id)} avertit {_qui(monde, autre)} qu'il reprend la charge confiée : {tache}."
+        _chroniquer(monde, id, texte, 'social')
+        faire_entendre(monde, id, autre, texte, p['qui'], lignes)
+    # Un avertissement impossible ne doit pas empêcher le secours ni être
+    # retenté en boucle. L'absence de réception reste explicitement enregistrée.
+    return True
+
+
 def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
     """« dementi », « doute », « crue » ou « decouvert » (crue puis démentie sous ses yeux)."""
     e = esprit(monde, auditeur)
@@ -1199,7 +1226,9 @@ def _confier_mandat(monde, demandeur, auditeur, mandat):
     jugement.setdefault("raison", issue)
     agendas.retenir_jugement(monde, demandeur, parent, jugement)
     if issue == "accepte":
-        agendas.confier(monde, demandeur, parent, auditeur, sorte, parametres, accepte=True)
+        echeance = agendas.echeance_observee(monde, demandeur, parent, auditeur, sorte, parametres)
+        agendas.confier(monde, demandeur, parent, auditeur, sorte, parametres,
+                        accepte=True, echeance=echeance)
     return issue
 
 
@@ -1587,6 +1616,15 @@ def executer(monde, id, etape, lignes):
     from .social import _qui, faire_entendre
     from .spatial import porte_par
     autre, op = etape["cible"], etape["operation"]
+    contenu = etape.get('contenu', {})
+    charge = contenu.get('mandat') or contenu.get('retrait_mandat')
+    if charge:
+        agendas.actualiser(monde, id)
+        parent = next((a for a in agendas.projets(monde, id) if a['id'] == charge['parent']), None)
+        if parent is None or parent['etat'] in ('atteint', 'abandonne'):
+            return True  # Résultat appris depuis la préparation du geste.
+    if op == 'dire' and 'retrait_mandat' in contenu:
+        return avertir_mandat(monde, id, autre, contenu['retrait_mandat'], lignes)
     o = monde.objets.get(autre)
     from .pnj import _rate, se_parler
     if autre == "joueur":
