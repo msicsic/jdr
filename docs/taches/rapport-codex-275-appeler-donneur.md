@@ -35,15 +35,32 @@ modifiées, délai seul, recours de négociation. Mondes, rendus et scènes vér
 après recharge ; cinq minutes entières et découpées comparées intégralement sur
 la capture et sa variante de venue.
 
-**Vérifications acquises.** Première passe : **45 tests verts** (planification,
-appel négocié, contact sous le but), **39,573 s**, deux processus réduits. Puis
-les six premières régressions nouvelles : **6 vertes**, **16,387 s**. Une
-septième couvre la négociation après refus. Une passe de vingt fichiers ciblés
-incluant les sept scènes est lancée ; le complément des importeurs directs de
-la planification et de l'appel est enchaîné au calcul détaché. Ce sous-ensemble
-explicite ne constitue pas la suite complète.
+**Arrêt instruit.** Le premier `fin.json`, `ok=false`, signale l'arrêt sur les
+tests, **avant complément et banc**. Passe ciblée : 182 tests, 179 verts, une
+assertion et deux erreurs, **591,132 s**, deux processus réduits. Les deux
+épreuves existantes passent sur la base exacte `7b58eb0` (preuves conservées) :
+les écarts sont donc liés au lot, pas des dettes préexistantes. Dans l'épreuve
+de coût de `_chercher`, la cible était déjà localisée et joignable : la scène
+précise maintenant qu'elle est perdue de vue, conformément à l'objet du test.
+Pour Hugues, la trace base/branche est identique jusqu'au bruit nouveau du
+couloir à **16 min**, qui rouvre ce lieu dans les deux versions. La branche
+peut ensuite appeler à **18 min** Anselme localisé par Mathurine à 3 min,
+contrairement à la base dépourvue de ce moyen. L'ancien oracle « jamais deux
+appels dans un lieu, tous avant 12 min » était trop fort : chaque répétition
+doit désormais consommer une **réouverture positive**, avec vérification de
+l'absence de marqueur vain avant chaque cri et recharge monde/rendu/scène.
+Enfin le test nouveau de négociation stockait à tort `besoin=faim` sur un refus
+de bien ; celui-ci est indexé par objet, le besoin étant porté par son parent.
+Ces **trois corrections portent sur les tests**, sans nouvelle règle du jeu.
+Les **9 vérifications concernées passent**, **17,515 s**, puis les trois
+fichiers complets : **47 tests verts, 36,518 s**. Les 17 fichiers déjà verts ne
+sont pas rejoués : agrégat sourcé **182/182 verts**, sans temps de campagne
+reconstitué (`test-cibles-275-verifie.json`). Avec les **45 tests verts**
+initiaux (39,573 s), **227 tests distincts acquis**. Le complément des
+importeurs directs est lancé séparément ; aucune suite complète ni Luna.
 
-**Calcul demandé, encore à valider.** Référence `7b58eb0` résolue une fois,
+**Banc non encore exécuté ; critère « aucune hausse de suspects par nuit »
+non établi.** Référence `7b58eb0` résolue une fois,
 cache commun réutilisé quand disponible ; vingt nuits de branche, cinq scénarios
 × quatre graines, 4 h, sonde 265/271 actuelle. Référence puis branche,
 deux travailleurs réduits au plus, après les tests. `comparaison.json` conserve
@@ -52,8 +69,9 @@ les retrouvailles et S/F/D avec la fonction `cats` exacte du lot 183.
 **Aucune absence de hausse ni amélioration naturelle n'est encore affirmée.**
 
 Bruts et lanceur : `C:/Users/msics/donjon/artifacts/appeler-275/` ;
-**`fin.json` écrit en dernier**. Un échec des tests arrête le calcul avant le
-banc ; un plantage ou une hausse des suspects rend `ok=false`.
+**`fin.json` écrit en dernier**. Le premier arrêt est archivé séparément. La
+reprise exécute le complément puis le banc, et signale tout échec de tests,
+plantage ou hausse des suspects par `ok=false`.
 Limites : la portée est une estimation sur les croyances (position inconnue :
 calcul sans cases), l'appelé garde ses priorités et son chemin propres ; aucun
 accord ni résultat universel garanti. Lot à reprendre au fichier de fin avant

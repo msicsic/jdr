@@ -14,12 +14,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   déverrouillée : retrouvailles puis demande/achat/repas. Autre scène à l'auberge
   pour l'achat d'un objet porté. Recharges monde/rendu/scène et laps entier/
   découpé, contre-épreuves de portée, lieu inconnu, position réelle et délai.
-  **45 tests existants verts**, puis **6 nouvelles régressions vertes** ; une
-  septième ajoutée pour la négociation. Vingt fichiers ciblés en cours,
-  complément des importeurs puis banc détaché 20 nuits × 4 h, référence figée
-  `7b58eb0`, cache commun, deux travailleurs réduits au plus. Suspects 219
-  nuit par nuit, appels/retrouvailles et S/F/D 183 encore à valider.
-  **Pas de conclusion sur le banc ni de suite complète ou Luna.** Bruts
+  **Premier calcul arrêté avant complément et banc** : ciblés 182 tests,
+  179 verts, trois échecs instruits. Les deux tests existants passent sur
+  `7b58eb0` : l'épreuve de coût utilisait une cible déjà localisée/joignable,
+  désormais explicitement perdue de vue ; l'oracle d'Hugues interdisait tout
+  rappel, alors qu'un bruit nouveau rouvre le couloir à 16 min et justifie
+  l'appel à 18 min. Il exige maintenant une réouverture positive par
+  répétition, jamais un délai. Le nouveau test de négociation indexait à tort
+  son refus de bien par besoin ; corrigé par objet. Aucun code du jeu modifié
+  à la reprise. **Neuf vérifications concernées vertes**, 17,515 s ; puis
+  **47 tests verts** dans les trois fichiers complets, 36,518 s. Les 17
+  fichiers déjà verts sont conservés : **182/182 ciblés verts** après reprise,
+  agrégat sourcé ; avec les 45 initiaux, **227 tests distincts acquis**.
+  Complément des importeurs puis banc détaché 20 nuits × 4 h relancés, référence figée `7b58eb0`,
+  cache commun, deux travailleurs réduits au plus. **Critère « aucune hausse
+  de suspects 219 par nuit » non établi : banc non exécuté.**
+  Appels/retrouvailles et S/F/D 183 encore à mesurer ; ni suite complète ni Luna. Bruts
   `C:/Users/msics/donjon/artifacts/appeler-275/`, attendre **`fin.json`** ;
   [rapport 275](taches/rapport-codex-275-appeler-donneur.md).
 

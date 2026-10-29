@@ -578,6 +578,9 @@ class FuiteTests(unittest.TestCase):
         from donjon.planification import Vue, depart, _chercher, CHERCHER
         from donjon.obstacles import cout_route
         m = corridor()
+        # Cette épreuve mesure une recherche de localisation inconnue. Une
+        # personne déjà localisée et joignable relève de rejoindre, pas d'un appel.
+        croire(m, "marchand", "ilse", "lieu", None, "essai", salle=None, case=None)
         v = Vue(m, "marchand")
         e = depart(m, "marchand", v)
         route = v.route(e, "antichambre")

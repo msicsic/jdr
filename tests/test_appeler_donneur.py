@@ -114,7 +114,9 @@ class AppelerDonneurTests(unittest.TestCase):
     def test_negociation_apres_refus_contact_sans_offre_presumee(self):
         from donjon.pnj_propositions import recours
         m = capture()
-        retenir_refus(m, 'ilse', 'marchand', 'demander', 'refus', objet='vivres', besoin='faim')
+        # Le refus de bien est indexé par objet ; le besoin appartient au
+        # déclencheur demande_refusee, comme dans le moteur d'échange.
+        retenir_refus(m, 'ilse', 'marchand', 'demander', 'refus', objet='vivres')
         e = lire(m, 'ilse')
         e['demande_refusee'] = {'de': 'marchand', 'objet': 'vivres', 'besoin': 'faim'}
         avant = copy.deepcopy(m.data)
