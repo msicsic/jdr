@@ -3,43 +3,34 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-ut-outils`, lot 307 / U-T outils, non fusionnée**,
-  **Reprise en cours par fusion sans rebase d'`origin/integration 43440c6`**
-  (U-M fabrication 305 inclus). Conflits de `web/pont.py` et documentation
-  résolus en conservant les deux apports : ressources connues et descriptions
-  physiques du 305 dans la projection commune, réexportée par le pont ;
-  catalogue de fabrication et choix d'outils terminal conservés.
-  Relance détachée des neuf fichiers précédents et de
-  `tests/test_fabrication_publique.py`, Node syntaxe et callbacks réels,
-  deux travailleurs réduits au plus. **Bilan de reprise encore attendu** :
-  `C:/Users/msics/donjon/artifacts/ut-outils-307/fin-reprise-integration.json`.
-  Les trois échecs d'intégration signalés (références opaques et coordonnées
-  dans la liste console) sont réservés au lot séparé demandé, inchangés ici.
-  Bilan initial conservé ci-dessous ; il ne valide pas cette reprise.
-  base `integration d7302a4` : console et TUI proposent les couples complets
-  geste–outil/destination par numéro, depuis les mêmes formulaires du
-  catalogue et la même projection publique que la page. Références exactes,
-  homonymes distingués, choix périmé soumis au moteur sans substitut ;
-  aucun analyseur ni modèle. `ressources_publiques` déplacée dans
-  `inventaire_public.py`, réexportée par le pont web ; adaptateur terminal
-  commun enrichi, sans modification de `jeu.py`, `tui.py` ni `page.html`.
-  **98 tests distincts / neuf fichiers verts**, dont les **28 TUI
-  existants inchangés** ; 13 tests nouveaux, deux scènes par geste,
-  callbacks Node réels, plans et texte exact, monde/scène/fiche/carte
-  après recharge. Refus périmés sans substitution, destination fermée,
-  mauvais outil, propriété inconnue, noir/sans carte, numéros invalides.
-  **20 parcours mesurés : 3 à 4 touches**, 4 à 5 avec F7 en TUI.
-  Deux étapes détachées, 349,652 s puis 685,068 s, deux travailleurs
-  réduits au plus ; hors bac à sable après ses refus d'accès aux dossiers
-  temporaires. `origin/integration` relue et fusionnée à la clôture :
-  toujours `d7302a4`, à jour ; lot 305 pas encore présent, compatibilité
-  avec son futur catalogue non validée. Code/tests `79c9b89` inchangés
-  depuis la validation. Liste plus longue avec davantage de ressources ;
-  capacité maximale des destinations absente du moteur, comme au lot 300.
+  base `integration d7302a4`, reprise par fusion sans rebase de
+  `43440c6` (U-M fabrication 305 inclus), commit **`958a5cc`** : console
+  et TUI proposent les couples geste–outil/destination par numéro, depuis
+  le catalogue et la projection publique de la page. Références exactes,
+  homonymes distingués ; moteur seul juge des choix périmés, sans substitut.
+  Aucun analyseur ni modèle. `ressources_publiques` dans
+  `inventaire_public.py`, réexportée par le pont web : frontière
+  `ressource_connue` et descriptions physiques du 305 conservées, ainsi
+  que les formulaires du catalogue et l'entrée SSE de fabrication.
+  Conflits pont/état résolus ; page et sonde Node identiques à `43440c6`.
+  **Reprise : 105 tests distincts / dix fichiers verts**, zéro échec,
+  erreur ou ignoré, **621,557 s**, deux travailleurs réduits au plus.
+  Tous les neuf fichiers précédents et les sept tests de fabrication
+  relancés, dont les **28 TUI existants inchangés** ; syntaxe Node verte,
+  callbacks réels, plans/texte exact et monde/scène/fiche/carte rechargés.
+  Refus périmés, destination fermée, mauvais outil, propriété inconnue,
+  noir/sans carte, numéros invalides. **20 parcours : 3 à 4 touches**,
+  4 à 5 avec F7 en TUI ; zéro appel modèle. Tests/code `958a5cc` inchangés
+  depuis validation ; aucune relance à la clôture. Bilan initial 98 tests
+  conservé, sans cumul avec la reprise. Liste plus longue avec davantage
+  de ressources ; capacité maximale des destinations absente du moteur.
+  Les trois échecs d'intégration signalés sur les références opaques et
+  coordonnées console restent réservés au lot séparé demandé, inchangés.
   Ni Luna, ni banc PNJ, ni suite complète.
   Bruts `C:/Users/msics/donjon/artifacts/ut-outils-307/`,
-  `bilan.json` et `fin-verification.json` : **ok=true, code 0** ;
-  clôture `fin-cloture.json` écrite en dernier. Branche poussée vers
-  origin, aucun calcul actif ni relancé à la clôture.
+  `tests-reprise-integration.json`, `fin-reprise-integration.json` :
+  **ok=true, code 0** ; clôture `fin-cloture-reprise-integration.json`
+  écrite en dernier. Branche poussée vers origin, aucun calcul actif.
   [Rapport 307](taches/rapport-codex-307-ut-outils.md).
 
 - **Branche `codex-um-fabrication`, lot 305 / U-M fabrication, fusionnée**,
