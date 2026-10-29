@@ -2,6 +2,32 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
+- **Lot 342 en cours — attribution du groupe 1**, branche
+  `codex-attribution-groupe1`, base fournie `16b18a7`.
+  Suite source `6f490ba` : 33 incidents (13 échecs, 20 erreurs), six
+  incidents `_retentir/emission` réservés au 339, aucune correction faite.
+  Témoins isolés sur **`e37d9ee`**, intégration exacte du premier essai :
+  référence, puis chacun des lots 313/315/332/333 seul. Conflits de
+  `deliberation.tient` résolus en gardant les deux branches ; dictionnaires
+  313/334 des étapes chaînées conservés comme dans l'essai du superviseur.
+  Rejeu des seules méthodes en incident, pas de suite complète, banc ou Luna.
+  Calcul détaché, deux travailleurs réduits au plus ; fin attendue :
+  `C:/Users/msics/donjon/artifacts/groupe1-342/reprise-1/fin-attribution.json`.
+  **La fin atteste les rejeux, pas des tests verts** ; contrôler
+  `rejeux_produits` et les traces par fichier avant attribution.
+  Première tentative technique invalide (masquage du paquet namespace
+  `tests` par `tools/tests.py`) conservée à la racine des bruts ; seul
+  `reprise-1/` est exploitable. Chargement corrigé, deux premiers témoins
+  réels verts : décès Ilse et bourse. Script actif local ignoré :
+  `artifacts/groupe1-342/attribuer.py`, copie brute `attribuer-source.py`.
+  Worktrees détachés sous `.worktrees/*-342` dans ce worktree de tâche ;
+  ne pas changer leurs sources pendant le calcul. Après résultat : attribuer
+  chaque incident, corriger dans les branches fautives sans toucher `jeu.py`,
+  refaire l'essai depuis **origin/integration actualisée**, vérifier les
+  fichiers concernés et pousser. Piste non encore prouvée : nouvel appel
+  vocal 313 → perception d'un devis projeté sans position du joueur.
+  [Point de reprise 342](taches/rapport-codex-342-attribution-groupe1.md).
+
 - **Lot 337 terminé avec deux échecs antérieurs réservés**, branche
   `codex-fin-garde-ouidire`, fusionnée. `origin/integration ad0e5a8`
   fusionnée sans rebase, deux parents `8ddef70`. Preuve négative de fin du
