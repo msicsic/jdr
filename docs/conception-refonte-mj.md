@@ -12,6 +12,14 @@ littéraire n'est pas un objectif de la refonte.
 
 ## 1. Direction et décisions nécessaires
 
+**Révision du 29 octobre, lot 288 :** les décisions désormais acquises,
+notamment le récapitulatif joueur (option c avec b en filet), et le nouvel
+ordre des lots sont dans [Valeur du LLM](conception-valeur-llm.md), sections
+1 et 7. Sa section 8 remplace la liste des questions encore ouvertes de la
+section 10 ci-dessous. Les choix historiques du présent document ne sont
+donc plus tous en attente. Aucun changement du contrat du jeu n'est appliqué
+par ces documents de conception.
+
 Achever le compilateur d'intention à petit contexte, `MJ._echanger_decouple`,
 le narrateur d'ambiance en fond, ses gardes déterministes et le fournisseur
 local unifié. Le moteur écrit toutes les informations mécaniques. Une
