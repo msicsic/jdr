@@ -10,17 +10,22 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Les autres parcours changent par secours peur ou maintien du secours
   alimentaire ; leurs prémisses sont explicitées, **aucune assertion existante
   changée**, contrôle AST. Quatre contrôles de contrat ajoutés ; cinq cas réels
-  rechargés conservés. **193 tests / dix-neuf fichiers** en 488,127 s : onze
-  cas signalés corrigés, quatorze tests de proximité verts, trois autres échecs
-  sur deux méthodes (mémoire lumière : garde de boucle PNJ ; occasion d'Aubin,
-  Relais/hameau). Ce dernier échoue aussi avant reprise sur `184ad5d`.
+  rechargés conservés. **193 tests / dix-neuf fichiers verts, consolidés sur
+  la fusion d'essai corrigée**, dont quatorze tests de proximité. Onze cas
+  signalés corrigés. La première passe de branche avait trois autres échecs
+  sur deux méthodes (mémoire lumière ; occasion d'Aubin Relais/hameau),
+  tous reproduits aussi avant reprise sur `184ad5d`, tous verts sur la fusion.
   Contre-épreuve stricte du réveil de rétention : deux lampes vertes sur `184ad5d`.
-  **Validation de fusion encore en cours**, mêmes dix-neuf fichiers sur un
-  worktree isolé `f637396` + seul correctif, après diagnostic mémoire ; deux
-  travailleurs détachés à priorité réduite au plus. Corrections de présence de
-  l'intégration conservées, sans les recopier sur la vieille branche.
-  Fin `C:/Users/msics/donjon/artifacts/rester-266/suite-reprise/essai-corrige/fin.json`.
-  Pas de suite complète ni nouveau banc ; aucun verdict global avant ce bilan.
+  **Validation ciblée de fusion terminée**, worktree isolé `f637396` + seul
+  correctif ; corrections de présence de l'intégration conservées sans les
+  recopier sur la vieille branche. Les dix-huit fichiers déjà verts avant le
+  redémarrage Windows n'ont pas été rejoués. Dernier fichier repris : **20 tests
+  verts en 8,437 s**. Scène commerciale capturée sur `7404d2d` à `t=656`,
+  rechargée avant l'offre ; service admissible relu sans mutation, ordre et
+  prix conservés. Le délai de disponibilité `libre=600` est retiré.
+  Bruts `C:/Users/msics/donjon/artifacts/rester-266/suite-reprise/essai-corrige/`
+  (`consolides.json`, `pas-compagnons-final.json`, `fin-cloture.json`).
+  Commits locaux, non fusionnée ; ni suite complète ni nouveau banc.
   [Preuves de reprise 266](taches/rapport-codex-266-suite.md).
   Le bilan vingt nuits ci-dessous reste celui de `21d5f5b`, pas de cette reprise.
   **Reprise du 29 octobre : précédent verdict « cinq surplus légitimes » retiré.**

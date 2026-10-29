@@ -29,6 +29,18 @@ def scene(scenario="relais", auditeur="ilse", auteur="aubin", salle="antichambre
     return recharger(m)
 
 
+def hameau_1985_commerce():
+    """La ronde commerciale historique, juste avant sa première offre.
+
+    Les acheteurs ont les places et disponibilités réellement observées sur
+    la base, après le secours alimentaire manqué de Maël. Aucun délai ajouté.
+    """
+    from donjon.monde import Monde
+    fichier = Path(__file__).parent / 'data/commerce-266-hameau-1985-avant-offre.json.gz'
+    charge = json.loads(gzip.decompress(fichier.read_bytes()))
+    return recharger(Monde(charge['monde']))
+
+
 def hameau_1985_service_annonce():
     """Rejouer explicitement l'offre historique par le contrat typé, puis laisser vivre."""
     from unittest.mock import patch
@@ -127,12 +139,7 @@ class PasCompagnonsTests(unittest.TestCase):
         from unittest.mock import patch
         from donjon import banc_pnj, echanges
         from donjon.geometrie import position_entree
-        m = creer('crue_hameau', 1985)
-        # L'ordre des quatre offres suppose Maël encore occupé au départ,
-        # disponible à la première minute. Sinon le maintien de son secours
-        # alimentaire le fait rejoindre Brune avant l'offre à Aubin.
-        # Disponibilité d'auteur uniquement ; aucun délai ajouté au contrat.
-        lire(m, 'mael')['libre'] = 600
+        m = hameau_1985_commerce()
         m.joueur.update(salle='chambre_cloche', position=list(position_entree(m, 'chambre_cloche')))
         services, ventes = [], []
         sensee, proposer = echanges.offre_sensee, echanges.proposer
@@ -154,6 +161,13 @@ class PasCompagnonsTests(unittest.TestCase):
             return proposer(monde, de, a, demande, terme, **options)
 
         with patch.object(echanges, 'offre_sensee', juger), patch.object(echanges, 'proposer', proposer_vu):
+            # La capture commence après la naissance du projet financier :
+            # certifier sa prémisse de service encore admissible par le vrai
+            # contrat, sans modifier le monde ni imposer le choix du vendeur.
+            avant = copy.deepcopy(m.data)
+            echanges.offre_sensee(m, 'brune', 'ilse', {'type': 'pieces', 'montant': 1},
+                                  {'type': 'tache', 'condition': {'objet': 'torche', 'allume': True}})
+            self.assertEqual(m.data, avant)
             banc_pnj.executer(m, 2)
         m = self.stable(m)
         self.assertTrue(services)
