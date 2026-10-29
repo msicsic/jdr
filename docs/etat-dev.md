@@ -2,6 +2,32 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-interposition-reprise`, fusionnée**, lot **278**, base
+  `792816c` : **lot clos, diagnostic seul, sans code**, aucun correctif moteur.
+  Alerte 274 requalifiée comme reprise admissible selon les croyances de Gorm.
+  Nuit hameau
+  1985 rejouée sur `0bad227`, identité à l’archive 274 (empreintes, chronique,
+  mesures, récit, souvenirs), douze captures rechargées, **36 égalités
+  monde/rendu/scène**. À `385475`, Gorm croit Aubin en `antichambre`, `[5,1]`,
+  source `entendu`, minute 642 ; Aubin y est réellement revenu à `385373`.
+  **« Refuge du relais » est le nom de `antichambre`** : la lecture du 274
+  comme départ avant reprise est rectifiée. Brune est l’approchante, Aubin
+  le protégé. Choix par le candidat `defense.interposition` du lot 167,
+  recalculé avant le pas par `pnj.agir`, sans reprise d’agenda ni suffixe
+  recopié. Localisation d’Aubin perdue à `385490`, intention retirée à
+  `385500`. Le compteur 219 de `0bad227` (avant le lot 276) ne relevait ni
+  la provenance de la croyance ni la position entendue ; son classement
+  brut reste dans l’archive, l’alerte est requalifiée par le diagnostic.
+  Aucun nouveau banc, test de lot, Luna ni suite complète.
+  Contrat général et découpage non certifiés par cet établissement.
+  Un processus réduit, 296,773 s, `fin-etablissement.json` **ok=true**,
+  aucun calcul actif du lot ; bruts dans
+  `C:/Users/msics/donjon/artifacts/interposition-278/`.
+  Poussée échouée (authentification Git `wincredman`) ; commit local conservé,
+  aucun recours à l’API GitHub.
+  [Rapport 278](taches/rapport-codex-278-interposition-reprise.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. À 642 (hameau 1985, 0bad227), Gorm entend Aubin et le croit dans l'antichambre, où Aubin est réellement revenu : le « départ » relevé par la 274 était son retour au Refuge. defense.interposition recalcule le but contre Brune ; l'intention disparaît à 385500 quand Gorm perd sa localisation. Douze captures rechargées, aucun moteur modifié. L'alerte 274 est requalifiée en reprise admissible ; le compteur 219 de 0bad227 (avant le lot 276) ne relevait ni la provenance ni la position entendue.
+
 - **Branche `codex-coups-crue-2024`, lot 279, diagnostic seul**, base intégration
   `792816c` : les coups de la crue 2024 de `0bad227` sont **justifiés** par les
   contrats existants ; le seul défaut établi est le libellé du but de protection.
