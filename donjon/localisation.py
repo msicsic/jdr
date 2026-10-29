@@ -56,6 +56,7 @@ def decrire(monde, id, champ):
                 "meme_salle": salle == actuelle, "porte_par_joueur": porte,
                 "direction": "sur toi" if porte else direction,
                 "position_relative": "dans tes affaires" if porte else position,
+                "distance_metres": 0 if porte else distance(monde, salle, p),
                 "orientation_relative": [] if porte else orientation_relative(monde, salle, p)}
     return None
 
@@ -85,6 +86,59 @@ def orientation_relative(monde, salle, case):
     devant, droite = dx * fx + dy * fy, fx * dy - fy * dx
     return (["devant" if devant > 0 else "derriere"] if devant else []) + (
             ["droite" if droite > 0 else "gauche"] if droite else [])
+
+
+def distance(monde, salle, case):
+    from math import hypot
+    return hypot(*_ecart(monde, salle, case))
+
+
+def phrases_positions(faits):
+    """Rendu exact des seuls repères publics, sans extraction de prose du MJ.
+
+    Le souvenir est reprojeté par le capteur avant cet appel. Aucun état privé
+    ni ancien texte de conversation ne permet de compléter un repère absent.
+    """
+    def repere(localisation):
+        axes = localisation.get("position_relative") or localisation.get("vu_a")
+        if not axes:
+            return ""
+        morceaux = [axes]
+        metres = localisation.get("distance_metres")
+        if metres:
+            nombre = f"{metres:.1f}".rstrip("0").rstrip(".").replace(".", ",")
+            morceaux.append(f"à environ {nombre} mètre{'s' if metres != 1 else ''} de toi")
+        directions = {"devant": "devant toi", "derriere": "derrière toi",
+                      "gauche": "à ta gauche", "droite": "à ta droite"}
+        relatif = " et ".join(directions[d] for d in localisation.get("orientation_relative", []))
+        if relatif:
+            morceaux.append(relatif)
+        return ", ".join(morceaux)
+
+    positions = {}
+    objets = faits.get("objets_perceptibles", [v for k, v in faits.items() if k.startswith("objet:")])
+    from .francais import designer
+    for o in objets:
+        loc = o.get("localisation") or {}
+        porte = loc.get("porte_par_joueur") or o.get("lieu") == "joueur"
+        if not (o.get("visible") or porte):
+            continue
+        nom = designer(o, debut=True)
+        lieu = "dans tes affaires" if porte else repere(loc)
+        if not lieu and not faits.get("mode_cases") and o.get("lieu") == faits.get("salle", {}).get("id"):
+            lieu = faits["salle"]["nom"]
+        if lieu:
+            positions[o["id"]] = f"{nom} : {lieu}."
+    for souvenir in faits.get("souvenirs_visuels", []):
+        if souvenir["id"] in positions:
+            continue
+        lieu = souvenir["derniere_salle"]
+        relatif = repere(souvenir)
+        if relatif:
+            lieu += ", " + relatif
+        positions[souvenir["id"]] = (f"Dernière observation de {souvenir['nom']} : {lieu}. "
+                                      "Ce souvenir ne garantit pas sa position actuelle.")
+    return positions
 
 
 def relatif(monde, salle, case):

@@ -174,6 +174,24 @@ def prix(monde, objet):
     return max(1, objet["prix"] - max(0, (monde.joueur["stats"]["CHA"] - 10) // 2))
 
 
+def position(monde, id):
+    """Position publiée par le moteur, sur la projection publique courante seulement."""
+    from .localisation import phrases_positions
+    from .noms import public, reference
+    from .monde import ErreurMonde
+    faits = public(monde, monde.contexte())
+    positions = phrases_positions(faits)
+    phrase = positions.get(reference(monde, id))
+    if phrase:
+        return phrase
+    # Une cible connue sans repère ne permet aucune lecture de sa position réelle.
+    constat = non_perception(monde, id)
+    if constat:
+        return constat
+    raise ErreurMonde("Tu n'as pas de repère public pour cette cible.",
+                      f"reperer.cible : reçu {reference(monde, id)!r} ; acceptés : {sorted(positions)!r}.")
+
+
 def non_perception(monde, id):
     """Un constat public, jamais une lecture de la position cachée de la cible.
 
