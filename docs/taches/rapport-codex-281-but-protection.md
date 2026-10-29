@@ -8,7 +8,8 @@ Correctif et preuves : commit local `1a1627c`. Poussée demandée vers
 automatique avant exécution** : propriété de la destination jugée non
 établie, même après rapprochement avec le dépôt de reprise documenté.
 Autorisation de cette destination demandée à l'utilisateur ; aucun
-contournement ni recours à l'API GitHub.
+contournement ni recours à l'API GitHub. **Reprise : aucune poussée depuis
+le PC fixe**, selon la consigne reçue.
 
 ## Invariant et correction
 
@@ -44,11 +45,23 @@ identiques ; texte MJ, récit, audit et résumé de la sonde nomment le
 protégé. Les deux scènes vérifient aussi l'identité d'un laps entier et
 du même laps découpé avec recharge intermédiaire.
 
-## Validation restante, détachée
+## Validation et reprise détachée
 
-Les **18 fichiers ciblés** sont lancés via `tools/tests.py --processus 2` :
-nouveaux tests, défense/combat/secours, récit/paroles, agendas et sonde.
-Le calcul détaché attend leur résultat, archive leurs traces puis compare
+Les **206 tests / 18 fichiers ciblés sont verts**, 401,523 s, deux
+travailleurs réduits : nouveaux tests, défense/combat/secours,
+récit/paroles, agendas et sonde. Aucun échec, erreur ni ignoré ; résultats
+réemployés sans relance. La première validation détachée s'est arrêtée
+dans le script de preuve : il attendait un seul chemin `intention.but.qui`,
+mais la clôture commune copie aussi le but dans
+`contrat_intention.contrat.sortie.faits.reaction`. Ce second écart porte
+bien sur un dictionnaire typé `proteger` ; aucun code du jeu à corriger.
+Le comparateur vérifie désormais les copies typées du but par parcours
+structurel, où qu'elles soient enregistrées : seul `qui` peut passer de
+l'agresseur au protégé attendu, tous les autres champs restent égaux,
+y compris les copies historiques inchangées. Il conserve les chemins
+exacts des écarts. Ancien script, journal et fin en échec conservés.
+
+La reprise détachée compare
 les deux scènes courtes au `reagir` exact de `3470a92` (chargé sans changer
 le checkout). Il conserve les captures et tous les résultats de coups.
 Ensuite : `tools/comparer_bancs.py --reference 3470a92 --empreintes --heures 2`
@@ -56,9 +69,10 @@ sur Relais, mine, auberge, crue, hameau, graines 1985/7/42/2024, deux
 travailleurs réduits. Référence réutilisée depuis son cache quand présente ;
 seules les nuits manquantes sont calculées. Aucun temps comparé au cache.
 
-**Résultats ciblés consolidés et empreintes encore à relire** dans
-`tests-cibles.json`, `preuves.json`, `empreintes.json` ;
-`fin-verification.json` est écrit en dernier et indique le succès ou
-l'erreur. Une divergence d'empreinte devra être instruite : seuls le
+**Preuves et empreintes encore à relire** dans `preuves.json`,
+`preuves-reprise1.log`, `empreintes.json` ; les tests acquis sont dans
+`tests-cibles.json`. **`fin-reprise1.json`** est écrit en dernier et
+indique le succès ou l'erreur ; `fin-verification.json` reste l'échec
+initial. Une divergence d'empreinte devra être instruite : seuls le
 champ et ses textes peuvent différer. Pas de Luna ni de suite complète.
 Le lot ne certifie pas la cohérence sémantique générale des narrations.

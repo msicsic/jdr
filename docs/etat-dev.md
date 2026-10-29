@@ -10,15 +10,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   **Deux nouveaux tests verts** : capture 279 avant premier coup (quinze
   gestes, six coups portés inchangés ; sept protections d'Aubin contre Brune)
   et autre victime 4c (Ilse). Monde/rendu/scène, récit et texte MJ après
-  recharge ; laps entier/découpé identique. **Validation restante en cours** :
-  18 fichiers ciblés, comparaison courte base/branche puis empreintes 2 h,
+  recharge ; laps entier/découpé identique. **206 tests / 18 fichiers ciblés
+  verts**, 401,523 s, aucun échec/erreur/ignoré, résultats non relancés.
+  La preuve détachée a échoué sur un oracle trop strict : le but est aussi
+  copié dans le contrat de clôture (`faits.reaction`). Comparateur de preuve
+  corrigé pour toutes les copies typées `proteger`, égalité stricte des
+  autres champs ; aucun nouveau code moteur ou test modifié.
+  **Reprise en cours** : comparaison courte base/branche puis empreintes 2 h,
   cinq scénarios × quatre graines contre la base figée, cache réutilisé.
   Deux travailleurs au plus, priorité réduite ; calcul séquentiel détaché,
-  fin attendue `C:/Users/msics/donjon/artifacts/protection-281/fin-verification.json`.
+  fin attendue `C:/Users/msics/donjon/artifacts/protection-281/fin-reprise1.json`.
+  Ancien `fin-verification.json` en échec conservé avec son journal.
   Relire ce fichier et les rapports avant de clore le lot. Ni Luna ni suite
   complète. Correctif local `1a1627c` ; poussée refusée par le contrôle
-  automatique (propriété d'`origin` non établie), destination soumise à
-  confirmation, aucun recours à l'API GitHub.
+  automatique (propriété d'`origin` non établie). Consigne de reprise : ne
+  pas pousser depuis le PC fixe ; aucun recours à l'API GitHub.
   [Rapport 281](taches/rapport-codex-281-but-protection.md).
 
 - **Branche `codex-interposition-reprise`, fusionnée**, lot **278**, base
