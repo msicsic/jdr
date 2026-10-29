@@ -118,9 +118,12 @@ class SignesTests(unittest.TestCase):
         m = recharger(m)
         self.assertEqual(signes.publics(m), [])
         self.assertEqual(signes.impressions(m), [])
-        with self.assertRaises(ErreurMonde) as refus:
-            Moteur(m).preparer(proposition("observer", "ilse"))
-        self.assertTrue(refus.exception.attendu)
+        plan = Moteur(m).preparer(proposition("observer", "ilse"))
+        self.assertTrue(plan.perception_canonique)
+        texte = Moteur(m).executer(plan)
+        self.assertIn("Tu ne vois pas", texte)
+        self.assertNotIn("semble", texte)
+        self.assertEqual(signes.impressions(recharger(m)), [])
         m = ecarter(scene())
         m.joueur["orientation"] = "sud"
         self.assertEqual(signes.publics(recharger(m)), [])

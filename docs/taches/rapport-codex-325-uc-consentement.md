@@ -2,9 +2,11 @@
 
 29 octobre 2026. Branche `codex-uc-consentement`, **non fusionnée**, base
 initiale `origin/codex-up-recapitulatif`, commit `865aff3`.
-Reprise : intégration `9f261f9` fusionnée sans rebase après fusion d'U-P ;
-seul conflit documentaire, deux côtés conservés. Fabrication terminal
-conservée, tests U-C portés sur le registre G15 sans changer leurs oracles.
+Première reprise : intégration `9f261f9` fusionnée sans rebase après U-P,
+fabrication terminal conservée, tests U-C portés sur G15 sans changer leurs
+oracles. Nouvelle reprise : intégration `ad0e5a8` (G5 et 336), sans rebase ;
+conflit documentaire seul, deux côtés conservés. L'enregistrement de
+« regarder » de G5 et le consentement U-C coexistent dans `jeu.py`.
 
 `donjon/consentement.py` prépare sur copie les transactions, admissions et
 plans entiers. La gravité porte sur les effets typés de toutes les branches
@@ -26,7 +28,7 @@ annulation et confirmation contrôlent monde entier, paroles, ressources,
 sauvegarde et rendu après recharge. Prix changé et cible partie sans nouvelle
 révision ; acte léger et consommation par clic/menu. Oracles U-P inchangés.
 
-**Après fusion : 94/94 tests verts, sept fichiers, 782,847 s**, zéro échec,
+**Première fusion : 94/94 tests verts, sept fichiers, 782,847 s**, zéro échec,
 erreur ou saut : consentement 9, compréhension 5, TUI 28, fabrication terminal
 10, narration 31, transactions 2 et web 9. Tous rejoués, aucun résultat conservé
 pour ce bilan. Les **18 parcours lourds** et le rejet d'une ancienne réplique
@@ -38,7 +40,7 @@ récompense reste léger ; accepter et faire une offre engagée restent lourds.
 Quatre parcours Gorm/second donneur × console/web vérifient cette distinction,
 ressources, monde et rendu rechargés. Aucun oracle existant affaibli.
 
-Mesures après fusion, six cas par interface, secondes min–max :
+Mesures de la première fusion, six cas par interface, secondes min–max :
 
 | Interface | Saisie → aperçu | Confirmation → effet |
 |---|---:|---:|
@@ -62,6 +64,7 @@ au français reste imparfaite. Aucune revue retirée ni consigne Luna modifiée.
 Pas de Luna, banc ou suite complète ; un travailleur à priorité réduite.
 Recouvrement **321/323 : `jeu.py`** ; aucun changement U-C de la TUI, du
 rendu ou du pont web ; leurs apports d'intégration sont conservés.
-Reprise terminée, branche poussée, aucun calcul actif ; `fin-fusion.json` vert.
-G5 `49608db`, arrivé ensuite dans l'intégration partagée, n'est pas inclus
-dans cette fusion de `9f261f9`.
+Première reprise poussée, `fin-fusion.json` vert. Nouvelle reprise en
+vérification : les sept fichiers précédents, `test_perception_geste.py` et
+`test_question_absent.py`, sans suite complète. Calcul détaché réduit,
+résultat `fusion-ad0e5a8/fin.json` ; branche non poussée avant le vert.
