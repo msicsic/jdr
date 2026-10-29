@@ -2,6 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-service-rejoindre`, lot 303, non fusionnée**, base
+  intégration `79beaf1` : un participant requis de lieu inconnu prépare le
+  contact commun (inspection, appel ou question) avant le geste, sans lire
+  sa position réelle. Contrat `pnj._a_reunir`, venues convenues conservées ;
+  mesure, normalisation et revalidation alignées. La charge garde son parent
+  pendant la recherche, y compris lorsque son moyen matériel a changé.
+  Cinq nouvelles épreuves vertes : capture 289 Tilo/Mathurine retrouvée dans
+  les archives 273, mine Mathe/Lucien, positions cachées, devis pur, suffixe
+  supposé non publié et venue convenue. Services réussis après contact,
+  aucun service exécuté en échec ; monde/rendu/scène et textes identiques
+  après recharge, six minutes entières ou découpées. Les questions fondées
+  sur une croyance périmée d'un tiers peuvent toujours échouer.
+  Vérification ciblée consignée dans `tests-cibles.json` (neuf fichiers).
+  **Banc rapide détaché à terminer** : auberge/mine/Relais × quatre graines
+  × 4 h, intégration `79beaf1` par cache, un travailleur réduit. Les critères
+  de boucle, usurpation et suspects 219 restent à lire avant clôture ;
+  services, appels, questions et recherches du planificateur comptés.
+  Bruts : `C:/Users/msics/donjon/artifacts/service-303/`, **`fin.json` écrit
+  en dernier**, même en cas d'échec. Ni Luna ni suite complète.
+  [Rapport 303](taches/rapport-codex-303-service-rejoindre.md).
+
 - **Branche `codex-a5-reaffecter`, lot 297 / A5.7, fusionnée**, base
   intégration `83a2e89`, moteur `4c634cb` : attribution connue unique par
   charge, historique conservé, choix de remplacement par devis fermé du
