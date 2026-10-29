@@ -184,6 +184,10 @@ class PousserJoueurTests(unittest.TestCase):
 
     def test_reussie_elle_recule_et_les_temoins_s_en_souviennent(self):
         m = self.scene()
+        # Aubin reste tourné vers le mur pendant le geste, sans se retourner
+        # pour secourir Brune : seule la parole d'Ilse peut ensuite l'informer.
+        from tests.support import sans_souci
+        sans_souci(m, 'aubin')
         texte = tenter(m, "pousser", "brune", jets=[18, 3])
         self.assertIn("REUSSITE", texte)
         self.assertIn("Tu pousses Brune, batelière évacuée : elle recule d'un pas.", texte)

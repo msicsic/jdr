@@ -1293,7 +1293,7 @@ def _percevoir(monde, id):
     # attendait : son plan le prévoyait, il le poursuit (la fin du plan, un geste manqué et la minute
     # le font choisir de nouveau). Seul ce que font les autres, ou le monde, l'éveille.
     from .signes import retenir_detresses, percus as signes_percus
-    retenir_detresses(monde, id, signes_percus(monde, id))
+    change |= retenir_detresses(monde, id, signes_percus(monde, id))
     if change and not premiere and getattr(monde, "_agit", None) != id:
         reconsiderer(monde, id)
 

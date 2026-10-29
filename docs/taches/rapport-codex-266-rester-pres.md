@@ -1,6 +1,9 @@
 # Lot 266 — rester près d'un proche effrayé
 
 Branche `codex-rester-pres`, **non fusionnée**, base `7404d2d`.
+**Validation réouverte après la suite de la fusion d'essai `f637396` :**
+[diagnostic des onze échecs et reprise ciblée](rapport-codex-266-suite.md).
+Les mesures de vingt nuits ci-dessous portent sur `21d5f5b`, avant cette reprise.
 Reprise du 29 octobre 2026. **Le précédent verdict « cinq surplus légitimes »
 est retiré : les clignotements étaient un défaut de continuité.**
 Ni scénario, Luna, comparaison de modèles ni suite complète. Commit local,

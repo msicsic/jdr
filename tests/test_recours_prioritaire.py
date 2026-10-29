@@ -136,8 +136,11 @@ class RecoursPrioritaireTests(unittest.TestCase):
 
     @patch("donjon.agendas._naissances", return_value=None)
     def test_capture_reelle_sans_navette_meme_monde_et_vue_decoupes(self, _naissance):
-        # Comparer le maintien de l'abri historique, sans projets nouveaux d'autrui.
-        a, b = suite(capture(), False), suite(capture(), True)
+        # Comparer le maintien de l'abri historique, sans projets nouveaux
+        # ni secours spontané : la compagnie peut sinon l'apaiser, puis
+        # faire passer son froid devant sa recherche de lumière.
+        from tests.support import sans_souci
+        a, b = suite(sans_souci(capture()), False), suite(sans_souci(capture()), True)
         self.assertEqual(a.data, b.data)
         self.assertEqual(vue(a), vue(b))
         self.assertLessEqual(len(passages(a, "aubin", 645)), 12)

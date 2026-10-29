@@ -3183,7 +3183,9 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
             return None if contact is None else (0, {"type": "pulsion", **condition}, contact[0])
         trouve = chercher(monde, id, lambda v, e: e.fait("pres", sujet), {"pres": (sujet,)},
                           nom="pres:" + sujet, memo=["pres", sujet], emplois=(), tenir=True)
-        return None if trouve is None else (trouve[0], {"type": "pulsion", **condition}, trouve[1])
+        # Les devis peuvent contenir une acquisition encore supposée. Comme
+        # les autres pulsions, n'exécuter que son préfixe certain et propre.
+        return None if trouve is None else (trouve[0], {"type": "pulsion", **condition}, _couper(trouve[1]))
     if "rendre" in condition:
         trouve = _rendre(monde, id, o, condition)
         return None if trouve is None else (0, *trouve)

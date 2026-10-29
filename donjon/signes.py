@@ -479,8 +479,8 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
             from .pnj import _chroniquer
             _chroniquer(m, observateur, f"Lecture de {s['personnage']} : {sens or 'aucune impression'}.", "lecture")
             m.data["chronique"][-1].update(enregistrement)
-    if not joueur:
-        retenir_detresses(m, observateur, signes)
+    if not joueur and retenir_detresses(m, observateur, signes) and getattr(m, '_agit', None) != observateur:
+        reconsiderer(m, observateur)
     return impressions(m) if joueur else None
 
 
@@ -527,7 +527,8 @@ def retenir_detresses(m, observateur, signes):
     expression serait discernable. Un regard détourné ne contredit jamais une
     lecture d'attitude ; il faut une nouvelle lecture contradictoire du même signe.
     """
-    from .esprits import croire, reconsiderer, percus as objets_percus
+    from .esprits import croire, percus as objets_percus
+    change = False
     e = esprit_lu(m, observateur)
     positifs = {}
     ids = {s["id"] for s in signes}
@@ -585,10 +586,16 @@ def retenir_detresses(m, observateur, signes):
             confiance = (crus.get(preuve["attribut"], {}).get("confiance", .5)
                          if preuve["canal"] in ("lecture", "adoption") else 1.0)
             croire(m, observateur, sujet, "detresse", valeur, source, confiance, preuve=preuve)
-            from .deliberation import _poids_secours
+            from .deliberation import _poids_secours, calme_pour_secourir
             if (ancien is None or ancien["valeur"] != valeur) and (
-                    raison and raison["qui"] == sujet or _poids_secours(m, observateur, sujet) is not None):
-                reconsiderer(m, observateur)
+                    raison and raison["besoin"] == "peur" and raison["qui"] == sujet
+                    or valeur and calme_pour_secourir(m, observateur)
+                    and _poids_secours(m, observateur, sujet) is not None):
+                # Un démenti ne change le choix que si cette détresse portait
+                # sa demande ; une naissance de secours exige sa propre
+                # disponibilité. Mémoriser n'est pas réveiller sans recours.
+                change = True
+    return change
 
 
 def actives(m, observateur):

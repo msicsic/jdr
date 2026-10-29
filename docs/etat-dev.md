@@ -3,6 +3,26 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-rester-pres`, non fusionnée**, lot **266**, base `7404d2d`.
+  **Reprise suite d'essai `f637396` :** onze cas verts sur la base, onze échecs
+  reproduits sur `184ad5d`. Corrections : condition `pres` historique valide
+  après décès, préfixe exécutable sans marqueurs de devis, rétention raccordée
+  à la cadence commune de perception (première vue/geste propre).
+  Les autres parcours changent par secours peur ou maintien du secours
+  alimentaire ; leurs prémisses sont explicitées, **aucune assertion existante
+  changée**, contrôle AST. Quatre contrôles de contrat ajoutés ; cinq cas réels
+  rechargés conservés. **193 tests / dix-neuf fichiers** en 488,127 s : onze
+  cas signalés corrigés, quatorze tests de proximité verts, trois autres échecs
+  sur deux méthodes (mémoire lumière : garde de boucle PNJ ; occasion d'Aubin,
+  Relais/hameau). Ce dernier échoue aussi avant reprise sur `184ad5d`.
+  Contre-épreuve stricte du réveil de rétention : deux lampes vertes sur `184ad5d`.
+  **Validation de fusion encore en cours**, mêmes dix-neuf fichiers sur un
+  worktree isolé `f637396` + seul correctif, après diagnostic mémoire ; deux
+  travailleurs détachés à priorité réduite au plus. Corrections de présence de
+  l'intégration conservées, sans les recopier sur la vieille branche.
+  Fin `C:/Users/msics/donjon/artifacts/rester-266/suite-reprise/essai-corrige/fin.json`.
+  Pas de suite complète ni nouveau banc ; aucun verdict global avant ce bilan.
+  [Preuves de reprise 266](taches/rapport-codex-266-suite.md).
+  Le bilan vingt nuits ci-dessous reste celui de `21d5f5b`, pas de cette reprise.
   **Reprise du 29 octobre : précédent verdict « cinq surplus légitimes » retiré.**
   Les pertes/reprises sur regard étaient un défaut de continuité. `signes`
   retient désormais une croyance de détresse datée, avec preuve et confiance,
@@ -41,7 +61,8 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Ancien 2 → 6 retiré ; les autres écarts ne sont pas déclarés corrigés.
   Bruts `C:/Users/msics/donjon/artifacts/rester-266/continuite-captures/` et
   `continuite-banc/` (`fin.json`, `bilan.json`, `validation.json`).
-  Rapport clos, commit local ; ni Luna ni suite complète, branche non fusionnée.
+  Clôture précédente avant la reprise de suite ci-dessus ; ni Luna ni suite
+  complète dans le lot, branche non fusionnée.
   [Rapport 266](taches/rapport-codex-266-rester-pres.md).
 
 - **Branche `codex-torche-eteinte`, fusionnée**, lot **263**, diagnostic

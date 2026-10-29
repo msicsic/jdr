@@ -57,6 +57,72 @@ def visible(m):
 
 
 class CompagnieTests(unittest.TestCase):
+    def test_deces_de_la_cible_conserve_un_contrat_chargeable(self):
+        from donjon.corps import mourir
+        for nom in ('relais', 'mine'):
+            with self.subTest(nom=nom):
+                m, acteur, autre = scene(nom)
+                d.choisir(m, acteur, m.data['minutes'])
+                self.assertEqual(lire(m, acteur)['intention']['but'], {'type': 'pulsion', 'pres': autre})
+                mourir(m, autre)
+                percevoir_tous(m)
+                d.choisir(m, acteur, m.data['minutes'])
+                self.assertNotEqual((lire(m, acteur)['intention'] or {}).get('but'),
+                                    {'type': 'pulsion', 'pres': autre})
+                m.verifier()
+                n = recharger(m)
+                self.assertEqual(m.data, n.data)
+                self.assertEqual(visible(m), visible(n))
+
+    def test_proximite_ne_sauvegarde_pas_un_suffixe_encore_suppose(self):
+        for nom in ('relais', 'mine'):
+            with self.subTest(nom=nom):
+                m, acteur, autre = scene(nom)
+                certain = p._etape('demander', autre)
+                devis = [{**certain, 'suppose': True, 'part_estimee': 'part'},
+                         p._etape('rester', autre)]
+                with patch.object(p, 'chercher', return_value=(1, devis, None)):
+                    but, plan = p.planifier_pulsion(m, acteur, {'pres': autre})
+                self.assertEqual(plan, [certain])
+                self.assertIn('suppose', devis[0])
+                lire(m, acteur)['intention'] = dict(but=but, plan=plan, motif='empathie', depuis=0, attente=0)
+                n = recharger(m)
+                self.assertEqual(m.data, n.data)
+                self.assertEqual(visible(m), visible(n))
+
+    def test_memoire_de_detresse_sans_recours_ne_reveille_pas(self):
+        m, acteur, autre = scene()
+        e = lire(m, acteur)
+        e['besoins']['securite'] = 90.
+        e['croyances'][autre].pop('detresse', None)
+        with patch('donjon.esprits.reconsiderer') as reveil:
+            change = signes.retenir_detresses(m, acteur, signes.percus(m, acteur))
+        self.assertTrue(e['croyances'][autre]['detresse']['valeur'])
+        self.assertFalse(change)
+        reveil.assert_not_called()
+        n = recharger(m)
+        self.assertEqual(m.data, n.data)
+        self.assertEqual(visible(m), visible(n))
+
+    def test_perception_initiale_et_geste_propre_gardent_la_cadence_commune(self):
+        from donjon.esprits import percevoir
+        for premiere, propre in ((True, False), (False, True), (False, False)):
+            with self.subTest(premiere=premiere, propre=propre):
+                m, acteur, autre = scene()
+                e = lire(m, acteur)
+                e['croyances'][autre].pop('detresse', None)
+                e['eveil'] = None
+                if premiere:
+                    e['en_vue'] = None
+                if propre:
+                    m._agit = acteur
+                percevoir(m, acteur)
+                self.assertTrue(e['croyances'][autre]['detresse']['valeur'])
+                self.assertEqual(e['eveil'] is None, premiere or propre)
+                n = recharger(m)
+                self.assertEqual(m.data, n.data)
+                self.assertEqual(visible(m), visible(n))
+
     def test_lecture_retenue_revisee_par_un_dementi_percu_et_non_par_le_regard(self):
         from donjon.monde import Monde
         fichier = Path(__file__).parent / 'data/scenes/rester-266/suspect-5.json.gz'

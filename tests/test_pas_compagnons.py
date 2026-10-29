@@ -56,6 +56,9 @@ def hameau_1985_service_annonce():
                                     'motif': 'argent', 'depuis': 0, 'attente': 0, 'plan': []}
     with patch.object(Monde, 'd20', return_value=20):
         assert executer(m, 'brune', 'ilse', contenu, [])
+    # Service accepté sans besoin propre pressant : Brune tient sa parole
+    # et Ilse attend l'allumage sans chercher un autre abri.
+    calme(m, 'brune', 'ilse')
     return m
 
 
@@ -125,6 +128,11 @@ class PasCompagnonsTests(unittest.TestCase):
         from donjon import banc_pnj, echanges
         from donjon.geometrie import position_entree
         m = creer('crue_hameau', 1985)
+        # L'ordre des quatre offres suppose Maël encore occupé au départ,
+        # disponible à la première minute. Sinon le maintien de son secours
+        # alimentaire le fait rejoindre Brune avant l'offre à Aubin.
+        # Disponibilité d'auteur uniquement ; aucun délai ajouté au contrat.
+        lire(m, 'mael')['libre'] = 600
         m.joueur.update(salle='chambre_cloche', position=list(position_entree(m, 'chambre_cloche')))
         services, ventes = [], []
         sensee, proposer = echanges.offre_sensee, echanges.proposer

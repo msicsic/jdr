@@ -149,8 +149,10 @@ def condition_valide(monde, c):
     une part de nourriture servie à quelqu'un, un feu entretenu, un objet prêté à rendre, un objet
     vendu à remettre, un séjour près d'une personne."""
     return isinstance(c, dict) and (
+        # Une demande, y compris sa sortie historique, survit au décès de
+        # sa cible. Sa raison crue décide de la fin, pas le validateur.
         (set(c) == {"pres"} and (c["pres"] == "joueur" or c["pres"] in monde.objets
-         and monde.objets[c["pres"]]["type"] == "personnage")) or
+         and monde.objets[c["pres"]]["type"] in ("personnage", "depouille"))) or
         (set(c) == {"objet", "rendre"} and c["objet"] in monde.objets and c["rendre"] in monde.objets
          and monde.objets[c["rendre"]]["type"] in ("personnage", "depouille")) or
         # Un objet vendu à remettre à son acheteur (``echanges.differee``).
