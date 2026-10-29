@@ -2,6 +2,23 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-livraison-inconnu`, lot 312, non fusionnée**, base
+  `06465d9` : `_devis_remise` prépare le contact commun d'un destinataire
+  inconnu après vérification des moyens d'acquisition ; `_localiser` partagé
+  avec le service du 303. Devis, plan et empêchement restent le même contrat.
+  Mort et départ crus excluent le contact, aucune position cachée ni délai
+  ajouté. Capture Relais 7 à 856 reprise avant annulation : Gorm demande Aubin
+  à Brune puis livre ; Mathe/Lucien à la mine aussi. Parent, charges suspendues,
+  monde/rendu/scène et huit minutes entières ou découpées vérifiés après recharge.
+  Cinq tests verts (49,693 s), sixième contre-épreuve sans recours verte (4,620 s).
+  **Vérification détachée à achever** : onze fichiers ciblés, puis banc 4 h,
+  Relais/auberge/mine × 1985/7/42/2024, référence `06465d9` par cache,
+  un travailleur réduit, référence puis branche. Lire `fin.json`, les mesures
+  de `synthese.json` et les nouveaux constats avant clôture. Aucun Luna ni suite
+  complète ; échéance générale historique des paroles à 240 min inchangée.
+  Bruts `C:/Users/msics/donjon/artifacts/livraison-312/`.
+  [Rapport 312](taches/rapport-codex-312-livraison-destinataire-inconnu.md).
+
 - **Branche `codex-services-apres-303`, lot 308, diagnostic seul**, base
   `integration 36189aa` : les portions **33 → 30** résultent de quatre
   services disparus et d'un supplémentaire. Mine 7 : deux parts supprimées
