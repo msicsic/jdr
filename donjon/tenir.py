@@ -9,7 +9,7 @@ from .temps import instant
 DUREES = {"saisir": 20, "ligoter": 300, "delier": 100, "liberer": 6000, "trainer": 45, "tuer": 300}
 PAROLES = {"dire", "parler", "crier", "cri", "appeler", "siffler", "se_rendre"}
 IMMOBILES = {"trainer", "marcher", "aller", "faufiler", "chasser", "fuir", "fuite", "passer_obstacle", "franchir", "sauter", "franchir_obstacle"}
-SANS_MAINS = PAROLES | {"attendre", "patienter", "reposer", "observer", "examiner", "ecouter", "tourner", "degager", "liberer", "emettre_son"}
+SANS_MAINS = PAROLES | {"attendre", "patienter", "reposer", "observer", "examiner", "reperer", "ecouter", "tourner", "degager", "liberer", "emettre_son"}
 
 
 def valider_verrouillage(monde, auteur, cible, outil):

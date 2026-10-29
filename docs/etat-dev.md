@@ -58,6 +58,58 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   [Rapport 326](taches/rapport-codex-326-g17-comptes-parles.md).
 
 
+- **Lot 328 / G6, synchronisation terminée**, branche `codex-g6-reperes`,
+  fusionnée dans integration : fusion sans rebase de `integration 49608db`
+  dans `ced37a3`, sans conflit Git, à deux parents. Les deux apports
+  documentaires et **2 998 assertions / 58 versions de fichiers** conservés
+  avant portage des attentes autorisé par l'utilisateur. Modules communs
+  monde/moteur/narration : G6, U-P, G15 et G19 conservés.
+  Première vérification **421 tests / 39 fichiers**, 401,422 s, huit échecs,
+  sans erreur ni saut. Arbitrage appliqué par la seule règle commune
+  `commandes.PERCEPTIONS` : consultation immédiate, faisabilité d'un geste
+  à effet en fiche. Réponse moteur exacte suivie du « Compris », sans
+  confirmation ; sept attentes G6 adaptées sans perdre les oracles du monde.
+  U-P vérifie l'examen perceptif contre le moteur direct et garde la
+  non-exécution des gestes à effet, en console/web/TUI puis recharge.
+  Phrase de position du repli conservée : attestation exacte du moteur,
+  prouvée avant MJ et après recharge ; autres assertions conservées.
+  Un ancien attendu de `test_perception` (exception après toucher puis
+  examiner le couteau dans le noir) reproduit avec le moteur 49608db en
+  mémoire : portage au constat G5, état complet inchangé après recharge.
+  **42 tests distincts / quatre fichiers verts après correction** :
+  25 tests dans la passe de 54,364 s puis 17 de perception en 0,814 s,
+  sans erreur ni saut, deux travailleurs réduits au plus. Les 421 ne sont
+  pas rejoués. Bruts `C:/Users/msics/donjon/artifacts/g6-328/fusion/`,
+  `reprise-validation.json`, **fin-reprise.json ok=true**, aucun calcul actif.
+  Bilans initiaux rouges conservés ; ni suite complète ni nouvel appel Luna.
+  **Lot initial clos / G6 typé livré**, base
+  `origin/codex-g5-perception c4cd83f` (323), avant cette synchronisation :
+  requête typée `reperer` dans le contrat d'action existant, réponse moteur
+  depuis les seuls repères publics perçus ou mémorisés. Axes métriques,
+  distance euclidienne, regard actuel, souvenir explicitement passé ; pas
+  de rotation, de temps ni d'effet physique. Reprises exactes par les
+  attestations communes, revalidées avant sauvegarde ; prose libre toujours
+  auditée. **162 tests distincts verts / quinze fichiers** après ajout du
+  nouveau champ distance à l'attendu exact d'un souvenir ; reprise **18/18**.
+  Cas 171 mur, Aubin à 1 m, rotation, autre objet/personne hors de vue,
+  noms privés et faux plan ; monde/texte/scène/carte rechargés contrôlés.
+  **Luna unique achevée**, atelier/noms-dialogue : 96,320 s, code 0,
+  43 appels, zéro erreur technique/recharge, repli ou mention sans fondement
+  signalée. Références historiques c9459ce lues sans relance : appels
+  atelier **32 → 26**, noms-dialogue **13 → 17**, aucun gain attribué à G6.
+  **19 états observables comparables identiques** ; noms et souvenirs
+  spatiaux préservés dans les quinze premiers dossiers MJ comparables
+  (hors nouveau champ distance). Zéro relance géométrique, mais **aucune
+  requête reperer ni reprise de position canonique** : adoption Luna non
+  démontrée, garantie typée vérifiée avec MJ simulé seulement. Mur toujours
+  en dialogue libre audité (trois appels, détail distant d'abord refusé).
+  Bruts `C:/Users/msics/donjon/artifacts/g6-328/`, `analyse-luna.json`,
+  **fin-cloture.json ok=true**, aucun calcul actif. Code/tests inchangés
+  depuis validation ; ni seconde passe, suite complète ou banc PNJ.
+  Recouvrements 326/327 sur `narration.py` ; branche poussée.
+  [Rapport 328](taches/rapport-codex-328-g6-reperes.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. G6 : une position publique produit sa phrase par le moteur, sans réinterprétation. Intégration (G5, U-P) fusionnée dans la branche par l'agent ; consultations de perception immédiates, fiche de faisabilité réservée aux gestes à effet (décision du superviseur, règle commandes.PERCEPTIONS) ; repli justifié par une attestation exacte. 42 tests ciblés verts après les 421 de la fusion.
+
 - **Lot 336 terminé, branche `codex-occasion-protection`, fusionnée**,
   base fournie `origin/integration d8769d8` :
   occasion de protection dans la table commune, proposition puis tâche

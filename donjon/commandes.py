@@ -13,6 +13,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   alimenter <source> avec <combustible>  recharger un feu, une lampe, avec un combustible porté ou à portée
   manger <nourriture>                   une part de ce qui est à toi ou à personne (5 min)
   observer <personnage>                lire ses signes (3 secondes), avec le risque de se méprendre
+  reperer <cible>                      consulter sa position perçue ou son dernier repère connu
   écouter                               tendre l'oreille (3 min), mieux collé à une porte
   nord / sud / est / ouest              un pas en mode cases, sinon changement de pièce
   pas nord / pas sud / pas est / pas ouest  te tourner vers la direction puis avancer d'une case (1,5 s)
@@ -95,7 +96,7 @@ VERBES = {
     "acheter": "acheter", "ouvrir": "ouvrir", "fermer": "fermer",
     "voler": "voler", "derober": "voler",
     "tuer": "tuer", "saisir": "saisir", "ligoter": "ligoter", "delier": "delier",
-    "ranimer": "ranimer", "observer": "observer",
+    "ranimer": "ranimer", "observer": "observer", "reperer": "reperer",
     "verrouiller": "verrouiller", "deverrouiller": "deverrouiller", "crocheter": "crocheter",
     "frapper": "frapper", "defoncer": "frapper", "forcer": "frapper",
     "couper": "couper", "decouper": "couper", "trancher": "couper",
@@ -109,7 +110,7 @@ VERBES = {
 # Ce qu'une question peut faire exécuter : percevoir, sans rien changer au monde. Tout autre geste
 # qu'elle évoque (« puis-je allumer ? ») se prépare sans s'exécuter : le joueur voit ce qu'il
 # demanderait, puis le tente ou l'annule.
-PERCEPTIONS = ("observer", "examiner")
+PERCEPTIONS = ("observer", "examiner", "reperer")
 
 
 @dataclass(frozen=True)
