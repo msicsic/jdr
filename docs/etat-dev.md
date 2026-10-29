@@ -2,7 +2,25 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
-<<<<<<< HEAD
+- **Lot 341 / A5.9 implémenté, validation groupée en cours**, branche
+  `codex-mandat-joueur`, **non fusionnée**, base fournie `fff9aab`.
+  Dépendance 340 intégrée par `82f5884`, conflit documentaire seul ;
+  `jeu.py` inchangé. Paroles `mandat`, `reponse_mandat`, `bilan_mandat` :
+  jugement, filiation, compte rendu, attributions et retrait communs.
+  Offre reçue et accord du joueur distincts ; aucun geste forcé.
+  Réponses moteur admises G15/G17, actes dans « Compris », fiche/comptes
+  persistants ; aucune publication des agendas privés des interlocuteurs.
+  Sept scènes ciblées vertes (32,910 s), puis voix inconnue/prétendue
+  réellement audible et devis fermé indépendant des capacités privées verts.
+  Sources encore modifiées ensuite : le lancement groupé est la validation
+  finale à relire, pas un résultat déjà acquis. Dix-sept fichiers ciblés,
+  empreintes Relais/hameau 2 h × quatre graines, une passe Luna du script
+  `mandat-joueur.json`, deux travailleurs réduits au plus. Bruts :
+  `C:/Users/msics/donjon/artifacts/mandat-joueur-341/` ; fin attendue
+  `validation/fin.json`. Choix autonome PNJ inchangé ; sans date convenue
+  ni durée calculable, pas d'échéance inventée. Ni suite complète ni fusion.
+  [Rapport 341](taches/rapport-codex-341-mandat-joueur.md).
+
 - **Lot 337 terminé avec deux échecs antérieurs réservés**, branche
   `codex-fin-garde-ouidire`, fusionnée. `origin/integration ad0e5a8`
   fusionnée sans rebase, deux parents `8ddef70`. Preuve négative de fin du
@@ -100,7 +118,6 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   aucune règle de rappels modifiée.
   [Rapport 326](taches/rapport-codex-326-g17-comptes-parles.md).
 
-=======
 - **Lot 340 terminé, branche `codex-ascendant-evolue`, non fusionnée**, base fournie
   `9f261f9` : ascendant éprouvé par réussite, échec et abus perçus du mandat,
   table commune des relations, preuve durable et complément du ouï-dire par
@@ -140,7 +157,6 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `tests.json`, `reference-tests.json`, `analyse-cloture.json` ;
   **fin-cloture.json ok=true avec réserve**, fin brute rouge et erreur du
   premier lanceur conservées. Branche poussée, aucun calcul actif.
->>>>>>> origin/codex-ascendant-evolue
 
 - **Lot 328 / G6, synchronisation terminée**, branche `codex-g6-reperes`,
   fusionnée dans integration : fusion sans rebase de `integration 49608db`
