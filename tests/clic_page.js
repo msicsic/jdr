@@ -8,11 +8,16 @@ function el(id) {
   if (!elements[id]) elements[id] = { id, style: {}, checked: false, innerHTML: "", textContent: "", children: [], value: "",
     getContext: () => noop, addEventListener() {}, appendChild(c) { this.children.push(c); }, removeChild() {}, focus() {},
     contains: () => false, getBoundingClientRect: () => ({ left: 0, top: 0 }) };
+  if (!Object.getOwnPropertyDescriptor(elements[id], "innerHTML").set) {
+    Object.defineProperty(elements[id], "innerHTML", {get() { return this.html || ""; },
+      set(v) { this.html = v; this.children = []; }});
+  }
   return elements[id];
 }
+let numeroElement = 0;
 global.window = { devicePixelRatio: 1, innerWidth: 1000, innerHeight: 800 };
 const ecouteurs = global.ecouteurs = {};
-global.document = { getElementById: el, createElement: () => ({ style: {} }), documentElement: {}, activeElement: null,
+global.document = { getElementById: el, createElement: tag => Object.assign(el("nouveau-" + (++numeroElement)), {tagName: tag.toUpperCase()}), documentElement: {}, activeElement: null,
   addEventListener(type, f) { (ecouteurs[type] = ecouteurs[type] || []).push(f); } };
 global.getComputedStyle = () => ({ getPropertyValue: () => "#333" });
 global.EventSource = function () { return {}; };
@@ -23,6 +28,24 @@ const page = fs.readFileSync(process.argv[2], "utf-8");
 (0, eval)(page.match(/<script>([\s\S]*)<\/script>/)[1] + `
 appliquerEtat(ETAT);
 const sortie = {choix: {}, envoisClic: [], chemin: null, cible: null, approches: {}};
+sortie.inventaire = [];
+for (const li of $("inventaire").children) {
+  const bouton = li.children[0];
+  if (!bouton) continue;
+  occupe = false;
+  bouton.onclick({clientX: 10, clientY: 10, stopPropagation() {}});
+  const choix = $("menu").children.filter(b => b.onclick);
+  for (const b of choix) {
+    occupe = false; envois.length = 0;
+    b.onclick();
+    if (envois.length) sortie.inventaire.push({bien: bouton.textContent, libelle: b.textContent, envoye: envois[0], clics: 2});
+    else for (const p of $("menu").children.filter(b => b.onclick)) {
+      occupe = false; envois.length = 0; p.onclick();
+      if (envois.length) sortie.inventaire.push({bien: bouton.textContent, libelle: b.textContent, destinataire: p.textContent, envoye: envois[0], clics: 3});
+    }
+  }
+}
+if (niveau) {
 const cases = [...niveau.salles.flatMap(s => s.cases.map(c => c.globale)), ...niveau.sorties.map(s => s.globale)];
 cases.forEach(g => {
   const {sections, autres} = choixCase(g);
@@ -63,6 +86,7 @@ for (const [nom, actif, valeur] of [["saisie_vide", $("commande"), ""], ["saisie
   let empeche = false;
   ecouteurs.keydown.forEach(f => f({key: " ", preventDefault() { empeche = true; }}));
   sortie.espace[nom] = {envoi: envois[0] || null, empeche};
+}
 }
 console.log(JSON.stringify(sortie));
 `);

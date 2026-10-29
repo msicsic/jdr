@@ -27,7 +27,7 @@
                padding: 6px 9px; max-width: 300px; display: none; font-size: 13px; z-index: 5; }
   #infobulle b { color: #fff; }
   #menu { position: fixed; background: #141a17; border: 1px solid #4d5c54; border-radius: 6px; padding: 5px; display: none;
-          z-index: 6; min-width: 170px; box-shadow: 0 4px 14px #0008; }
+          z-index: 6; min-width: 170px; max-height: calc(100vh - 16px); overflow: auto; box-shadow: 0 4px 14px #0008; }
   #menu .titre { font-size: 12px; color: var(--doux); padding: 4px 6px 2px; }
   #menu button { display: block; width: 100%; text-align: left; margin: 2px 0; padding: 4px 8px; }
   .gris { color: var(--doux); }
@@ -70,6 +70,8 @@
 <main>
   <div id="carte-cadre" tabindex="0"><canvas id="carte"></canvas><div id="carte-texte" hidden></div></div>
   <aside>
+    <h2>Inventaire — choisir un geste</h2>
+    <ul id="inventaire"></ul>
     <h2>Autour de toi</h2>
     <ul id="personnes"></ul>
     <h2>Objets en vue</h2>
@@ -118,6 +120,7 @@ const ETATS_PORTE = {ouverte: "ouverte", fermee: "fermée", verrouillee: "verrou
 const $ = id => document.getElementById(id);
 const canvas = $("carte"), ctx = canvas.getContext("2d");
 let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, surligne = null;
+let destinataires = [];
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
 let occupe = true, historique = [], indice = 0, brouillon = "";
@@ -392,6 +395,9 @@ function ajouterLigne(texte) {
   if (suivre) journal.scrollTop = journal.scrollHeight;
 }
 function appliquerEtat(e) {
+  fermerMenu();
+  destinataires = e.destinataires || [];
+  afficherInventaire(e.inventaire || []);
   $("lieu").textContent = e.salle;
   $("compteurs").textContent = `PV ${e.pv} · ${e.or_texte} · ${e.minutes} min · MJ : ${e.connexion}`;
   $("fiche").textContent = e.fiche;
@@ -615,6 +621,47 @@ function gestesPorte(p) {
   if (p.etat === "ouverte") liste.push(["fermer", "Fermer"]);
   if (p.etat === "verrouillee") liste.push(["deverrouiller", "Déverrouiller"], ["crocheter", "Crocheter"]);
   return liste;
+}
+function choixInventaire(o, x, y) {
+  const choix = [];
+  const ajouter = (libelle, geste, parametres) => {
+    const d = {geste, cible: o.id};
+    if (parametres) d.parametres = parametres;
+    choix.push([libelle, () => { arreter(null); envoyer(d); }, d]);
+  };
+  ajouter(o.pieces > 1 ? "Poser le lot entier" : "Poser", "poser");
+  choix.push([o.pieces > 1 ? "Remettre le lot entier à…" : "Remettre à…", () => {
+    if (occupe) return;
+    const dons = destinataires.map(p => {
+      const d = {geste: "remettre", cible: o.id, parametres: {destinataire: p.id}};
+      return [p.nom, () => { arreter(null); envoyer(d); }, d];
+    });
+    ouvrirMenu(x, y, [[dons.length ? "Remettre à…" : "Personne en vue à portée", dons]]);
+  }]);
+  if (o.type === "nourriture") ajouter("Manger une portion", "manger", {quantite: 1});
+  if (o.type === "luminaire") {
+    // Sans état visuel courant, annoncer les deux verbes ; le moteur tranche.
+    if (o.allume !== true) ajouter("Allumer", "allumer");
+    if (o.allume !== false) ajouter("Éteindre", "eteindre");
+  }
+  if (o.pieces > 1) ajouter("Prélever une pièce du lot (" + o.pieces + ")", "prelever", {quantite: 1});
+  return choix;
+}
+function afficherInventaire(biens) {
+  const liste = $("inventaire"); liste.innerHTML = "";
+  for (const o of biens) {
+    const li = document.createElement("li"), b = document.createElement("button");
+    b.textContent = o.nom;
+    b.onclick = e => {
+      if (occupe) return;
+      e.stopPropagation();
+      ouvrirMenu(e.clientX, e.clientY, [[o.nom, choixInventaire(o, e.clientX, e.clientY)]]);
+    };
+    li.appendChild(b); liste.appendChild(li);
+  }
+  if (!biens.length) {
+    const li = document.createElement("li"); li.textContent = "Rien dans la besace"; liste.appendChild(li);
+  }
 }
 function fermerMenu() { $("menu").style.display = "none"; }
 function ouvrirMenu(x, y, sections) {

@@ -2,6 +2,21 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-um-inventaire`, lot 298 / U-M inventaire, non fusionnée**,
+  base intégration `83a2e89` : panneau de besace, poser/remettre, manger une
+  portion, sources portées et prélèvement d'une pièce. Descripteur U-D exact,
+  quantité et destinataire publics ; mêmes plans, effets et rendus que les
+  commandes, sans analyse du clic ni modèle. Destinataire vu à portée, refus
+  si périmé ; biens portés connus dans le noir, aucun contenu fermé exposé.
+  **42 tests / quatre fichiers verts**, Node réel, monde/scène/fiche/carte
+  après recharge, homonymes, lots, absence et portée. Dix parcours mesurés :
+  dix saisies évitées, deux clics, trois pour la remise. Une portion/pièce
+  à la fois, poser/remettre le lot entier ; outils/destinations hors lot.
+  Ni MJ, `jeu.py`, `tui.py`, mécanique PNJ, Luna, banc ou suite complète.
+  Bruts : `C:/Users/msics/donjon/artifacts/um-inventaire-298/`, bilan retenu
+  `fin-cloture.json`. Aucun calcul actif ; branche poussée vers origin.
+  [Rapport 298](taches/rapport-codex-298-um-inventaire.md).
+
 - **Branche `codex-suite-g2-g4`, lot 295, fusionnée**, base intégration
   `475d29d` : les sept fichiers du brief reproduisent les **15 échecs et
   9 erreurs** initiaux (70 tests), sans défaut supplémentaire U-D. Attentes
