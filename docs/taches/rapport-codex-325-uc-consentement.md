@@ -59,6 +59,10 @@ d'affichage peut redemander un aperçu, même sans conséquence sur l'acte.
 Une fiche relue après recharge ne réactive pas le consentement. La fidélité
 au français reste imparfaite. Aucune revue retirée ni consigne Luna modifiée.
 Pas de Luna, banc ou suite complète ; un travailleur à priorité réduite.
-Recouvrement **321/323 : `jeu.py`** ; TUI, rendu et pont web inchangés.
+Recouvrement **321/323 : `jeu.py`** ; aucun changement U-C de la TUI, du
+rendu ou du pont web ; leurs apports d'intégration sont conservés.
 Lot terminé, branche poussée, aucun calcul actif ; `fin-cloture.json` vert.
 Reprise après fusion : sept fichiers ciblés en vérification, sans suite complète.
+Calcul réduit autonome ; résultat attendu `fin-tests-fusion.json`, observateur
+détaché vérifié. Reprise non poussée avant le vert. G5 `49608db`, arrivé
+ensuite dans l'intégration partagée, n'est pas inclus dans la fusion de `9f261f9`.
