@@ -1757,6 +1757,14 @@ def executer(monde, id, etape, lignes):
                 s['issue'] = issue
         if mandat:
             p = mandat["parametres"]
+            if issue != "qui_va_la":
+                enfant = next(a for a in agendas.projets(monde, autre)
+                              if a["origine"]["type"] == "mandat" and a["origine"]["de"] == id
+                              and a["origine"]["parent"] == mandat["parent"]
+                              and a["sorte"] == mandat["sorte"] and a["parametres"] == p) if issue == "accepte" else None
+                transmis.append({"type": "ordre_mandat", "titulaire": autre, "charge": {
+                    "mandant": id, "parent": mandat["parent"], "agenda": enfant["id"] if enfant else None,
+                    "sorte": mandat["sorte"], "parametres": p}})
             if mandat["sorte"] == "amener":
                 charge = phrase_condition(monde, {"objet": contenu["objet"], "lieu": p["lieu"]})
             else:

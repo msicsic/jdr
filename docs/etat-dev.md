@@ -2,6 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 340, branche `codex-ascendant-evolue`, non fusionnée**, base fournie
+  `9f261f9` : ascendant éprouvé par réussite, échec et abus perçus du mandat,
+  table commune des relations, preuve durable et complément du ouï-dire par
+  constat. Contrat réellement entendu conservé pour les témoins ; aucune
+  lecture d'avancement privé. Ordre abusif refusé compris, prix commun de faute,
+  aucune double pénalité à l'acceptation. Publication différée avec le choix,
+  registre facultatif validé et lectures de recherche couvertes. **19/19 tests
+  verts**, treize nouvelles scènes + six tests du socle, 23,603 s ; Gorm/Aubin
+  et Bram/Josse, monde/rendu/scène/paroles rechargés, temps entier/découpé.
+  Passes voisines 24/24 et 31/31 acquises, avec recouvrement. **Validation finale
+  détachée en cours** : 23 fichiers ciblés, puis 20 paires de nuits 4 h,
+  cinq scénarios × quatre graines, référence exacte/cache `9f261f9` ; deux
+  travailleurs réduits au plus, ni Luna ni suite complète. Fin attendue
+  `C:/Users/msics/donjon/artifacts/ascendant-340/fin.json`, à lire avant clôture.
+  Exercice naturel des mandats et critères 219 encore en attente. Abus limité
+  aux prédicats mécaniques de péril au lieu imposé et de contenu contraire
+  aux croyances ; aucune garantie morale narrative ou de risque de trajet
+  non calculé. Recouvrements 336 : agendas/echanges/planification ; 337 :
+  agendas/social/planification.
+  [Rapport 340](taches/rapport-codex-340-ascendant-evolue.md).
+
 - **Lot 317 terminé, branche `codex-boucles-progression`, fusionnée**,
   base `integration 2ddfbe0`, diagnostic seul : les deux nuits du 284 sur
   `27ff8c4` reproduisent exactement chronique, empreintes, récit, souvenirs,

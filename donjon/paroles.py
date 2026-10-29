@@ -31,8 +31,8 @@ from .relations import FIABLE
 
 ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
 TYPES_JOUEUR = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "localisation", "proposition")
-# Le transport PNJ dispose du compte rendu ; le protocole joueur attend A5/10.
-TYPES = (*TYPES_JOUEUR, "compte_rendu")
+# Ordre et compte rendu sont transportés entre PNJ ; le protocole joueur attend A5/9-10.
+TYPES = (*TYPES_JOUEUR, "compte_rendu", "ordre_mandat")
 CHAMPS_CONTENU = {
     "propos": (), "affirmation": ("sujet", "attribut", "valeur"),
     "demande": ("sujet", "valeur"), "passage": ("sujet", "valeur"),

@@ -2211,6 +2211,7 @@ def _entrees_communes(v):
     metrique = v._metrique
     from .biens import services_proteges
     return json.dumps([
+        agendas.mandats_percus(monde, id),  # Contrats et issues propres au témoin.
         services_proteges(monde, id),  # Entrées du filtre des résultats promis.
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         monde.objets[id]["lieu"],

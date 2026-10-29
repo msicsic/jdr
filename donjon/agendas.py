@@ -90,7 +90,7 @@ def pieces_poursuivies(monde, id):
 
 def champs_esprit(e):
     """L'état A4 est facultatif : aucune migration des esprits sans déclaration."""
-    return set(e) - {"agendas", "contrat_intention"}
+    return set(e) - {"agendas", "contrat_intention", "mandats_percus"}
 
 
 def contrat_intention(monde, id):
@@ -264,6 +264,8 @@ def recevoir_compte(monde, id, locuteur, contenu):
     source = source_dite(monde, id, locuteur)
     memoriser(monde, id, {"type": "compte_rendu", "de": source,
                           "contenu": copy.deepcopy(contenu)})
+    if id != charge["mandant"]:
+        return _recevoir_issue(monde, id, locuteur, contenu)
     if charge["mandant"] != id or not identifie(monde, id, locuteur):
         return None
     parent = _projet(monde, id, charge["parent"])
@@ -304,6 +306,171 @@ def _reviser_comptes(monde, id, a):
                      poids=.8 if source == "entendu" else 1)
 
 
+def _percus(monde, id, *, creer=False):
+    from .esprits import lire, esprit
+    evaluation = getattr(monde, "_evaluation_agendas", None)
+    if evaluation is not None and evaluation[0] == id:
+        if evaluation[1]["percus"] is None and creer:
+            evaluation[1]["percus"] = []
+        return evaluation[1]["percus"]
+    return esprit(monde, id).setdefault("mandats_percus", []) if creer else lire(monde, id).get("mandats_percus")
+
+
+def mandats_percus(monde, id):
+    """Contrats entendus, hors mémoire courte ; seules connaissances du porteur."""
+    return copy.deepcopy(_percus(monde, id) or [])
+
+
+def _charge_partagee(monde, titulaire, charge):
+    if not isinstance(charge, dict) or set(charge) != {"mandant", "parent", "agenda", "sorte", "parametres"}:
+        return False
+    if charge["agenda"] is None:
+        parent = _projet(monde, charge["mandant"], charge["parent"])
+        return parent is not None and any(j["qui"] == titulaire and j["sorte"] == charge["sorte"]
+                                         and j["parametres"] == charge["parametres"]
+                                         for j in parent.get("jugements", []))
+    enfant = _projet(monde, titulaire, charge["agenda"])
+    return enfant is not None and charge == {
+        "mandant": enfant["origine"].get("de"), "parent": enfant["origine"].get("parent"),
+        "agenda": enfant["id"], "sorte": enfant["sorte"], "parametres": enfant["parametres"]}
+
+
+def percevoir_mandat(monde, id, locuteur, charge, titulaire):
+    """Réception de la charge effectivement dite ; aucun avancement privé lu."""
+    from .voix import identifie
+    if (id in ("joueur", charge["mandant"], titulaire) or locuteur != charge["mandant"]
+            or not identifie(monde, id, locuteur) or not _charge_partagee(monde, titulaire, charge)):
+        return None
+    stock = _percus(monde, id, creer=True)
+    r = next((r for r in stock if _identite_charge(r["de"], r["charge"]) == _identite_charge(titulaire, charge)), None)
+    if r is None:
+        r = {"de": titulaire, "charge": copy.deepcopy(charge), "minute": monde.data["minutes"], "source": "entendu"}
+        stock.append(r)
+    else:
+        r.update(charge=copy.deepcopy(charge), source="entendu")
+    abus = _abus_charge(monde, id, charge)
+    if abus:
+        r.setdefault("abus", abus)
+    _actualiser_epreuves(monde, id)
+    return "mandat entendu"
+
+
+def _recevoir_issue(monde, id, locuteur, contenu):
+    from .voix import identifie, source_dite
+    from .echanges import jet_persuasion, clarte
+    from .esprits import poids_source
+    charge = contenu["charge"]
+    if (id == "joueur" or not identifie(monde, id, locuteur)
+            or not identifie(monde, id, charge["mandant"])
+            or not _charge_partagee(monde, locuteur, charge)):
+        return None
+    stock = _percus(monde, id, creer=True)
+    r = next((r for r in stock if _identite_charge(r["de"], r["charge"]) == _identite_charge(locuteur, charge)), None)
+    if r is None:
+        r = {"de": locuteur, "charge": copy.deepcopy(charge), "minute": monde.data["minutes"],
+             "source": source_dite(monde, id, locuteur)}
+        stock.append(r)
+    r["charge"] = copy.deepcopy(charge)
+    if r.get("croyance", {}).get("source") in ("vu", "entendu"):
+        return "crue"  # Le résultat déjà constaté n'est pas rejugé sur un nouvel état des lieux.
+    propre = _constat_charge(monde, id, charge)
+    accepte = propre is None and jet_persuasion(monde, id, locuteur, 10)[0]
+    c = {"valeur": propre if propre is not None else contenu["issue"] if accepte else None,
+         "source": ("entendu" if charge["sorte"] == "informer" else "vu") if propre is not None else source_dite(monde, id, locuteur),
+         "minute": monde.data["minutes"], "confiance": 1 if propre is not None else round(.7 * clarte(monde, id), 2)}
+    c["poids"] = poids_source(monde, id, c)
+    r["croyance"] = c
+    _actualiser_epreuves(monde, id)
+    return "crue" if propre is not None or accepte else "doute"
+
+
+def _abus_charge(monde, id, charge):
+    """Exposition crue à un péril ou mensonge imposé, selon le prix commun.
+
+    Autoriser la violence ne suffit pas à la rendre nécessaire. Le contenu
+    d'information doit contredire un savoir pour constituer une faute.
+    """
+    from .caractere import prix_faute
+    from .esprits import croyance, poids_source
+    if charge["sorte"] == "amener":
+        from .eau import en_peril
+        from .defense import lieux_dangereux
+        lieu = charge["parametres"]["lieu"]
+        return {"cause": "peril", "prix": None} if en_peril(monde, id, lieu) or lieu in lieux_dangereux(monde, id) else None
+    fait = _noyau(charge)
+    if fait["type"] == "affirmation":
+        c = croyance(monde, id, fait["sujet"], fait["attribut"])
+        if c and c["valeur"] is not None and poids_source(monde, id, c) > 0 and c["valeur"] != fait["valeur"]:
+            prix = prix_faute(monde, id)
+            if prix is None or prix > 0:
+                return {"cause": "honnetete", "prix": prix}
+    return None
+
+
+def _epreuve(monde, id, mandant, preuve, issue, source="essai", poids=1):
+    evaluation = getattr(monde, "_evaluation_agendas", None)
+    arguments = (id, mandant, preuve, issue, source, poids)
+    if evaluation is not None:
+        evaluation[1]["epreuves"].append(arguments)
+    else:
+        from .relations import eprouver_mandat
+        eprouver_mandat(monde, *arguments)
+
+
+def _poids_abus(abus):
+    from .caractere import FAUTE
+    return 1 if abus["prix"] is None else min(1, abus["prix"] / FAUTE)
+
+
+def _identite_charge(titulaire, charge):
+    return hashlib.sha256(json.dumps([titulaire, charge["mandant"], charge["parent"],
+                                     charge["sorte"], charge["parametres"]], sort_keys=True).encode()).hexdigest()
+
+
+def _actualiser_epreuves(monde, id):
+    from .esprits import lire, poids_source
+    for a in _stock(monde, id) or []:
+        o = a["origine"]
+        if o["type"] != "mandat":
+            continue
+        preuve = f"{id}:{a['id']}"
+        if a["etat"] in ("actif", "sommeil"):
+            abus = _abus_charge(monde, id, a)
+            if abus:
+                a.setdefault("abus", abus)
+        if a.get("abus"):
+            charge = {"mandant": o["de"], "parent": o["parent"], "sorte": a["sorte"], "parametres": a["parametres"]}
+            _epreuve(monde, id, o["de"], _identite_charge(id, charge), "abus", poids=_poids_abus(a["abus"]))
+        if a["etat"] in ("atteint", "abandonne"):
+            issue = "reussi" if a["etat"] == "atteint" else "echoue"
+            sources = ([r["croyance"] for r in a.get("comptes_recus", [])
+                        if r["croyance"]["valeur"] == "reussi"] if a["raison"] == "compte rendu cru" else
+                       [lire(monde, id)["croyances"].get(q, {}).get("lieu", {})
+                        for q in _destinataires(a)] if a["raison"] == "arrivee crue" else [])
+            dites = [c for c in sources if c.get("source", "").startswith("dit:")]
+            _epreuve(monde, id, o["de"], preuve, issue,
+                     dites[0]["source"] if dites else "essai",
+                     min(poids_source(monde, id, c) for c in dites) if dites else 1)
+    for r in _percus(monde, id) or []:
+        charge = r["charge"]
+        # Connaître le contrat permet de reconnaître une arrivée, jamais de
+        # transformer l'absence d'arrivée d'un projet en cours en échec.
+        c = r.get("croyance")
+        propre = (_constat_charge(monde, id, charge) if charge["agenda"] is not None
+                  and (c is None or c["source"].startswith("dit:")) else None)
+        if propre == "reussi" or propre is not None and "croyance" in r:
+            r["croyance"] = {"valeur": propre, "source": "entendu" if charge["sorte"] == "informer" else "vu",
+                             "minute": monde.data["minutes"], "confiance": 1, "poids": 1}
+        preuve = f"{r['de']}:{charge['agenda']}"
+        if r.get("abus"):
+            _epreuve(monde, id, charge["mandant"], _identite_charge(r["de"], charge), "abus", r["source"],
+                     _poids_abus(r["abus"]) * poids_source(monde, id, {"source": r["source"]}))
+        c = r.get("croyance")
+        if c and c["valeur"] is not None:
+            _epreuve(monde, id, charge["mandant"], preuve, c["valeur"], c["source"],
+                     poids_source(monde, id, c) if c["source"].startswith("dit:") else 1)
+
+
 def _acheve_par_comptes(monde, id, a):
     from .esprits import poids_source
     rapports = a.get("comptes_recus", [])
@@ -331,6 +498,14 @@ def retenir_jugement(monde, mandant, parent, jugement):
     if a is None:
         raise ValueError("Parent de mandat absent")
     a.setdefault("jugements", []).append(copy.deepcopy(jugement))
+    from .voix import identifie
+    if identifie(monde, jugement["qui"], mandant):
+        abus = _abus_charge(monde, jugement["qui"], jugement)
+        if abus:
+            a["jugements"][-1]["abus"] = abus
+            charge = {**jugement, "mandant": mandant, "parent": parent}
+            _epreuve(monde, jugement["qui"], mandant, _identite_charge(jugement["qui"], charge),
+                     "abus", poids=_poids_abus(abus))
 
 
 def devis_mandat(monde, mandant, parent, titulaire, sorte, parametres):
@@ -489,6 +664,7 @@ def confier(monde, mandant, parent, titulaire, sorte, parametres, *, accepte, ec
             attribution['echeance'] = echeance
         a.setdefault('attributions', []).append(attribution)
     _limiter(monde, titulaire, empreinte)
+    _actualiser_epreuves(monde, titulaire)
     return copy.deepcopy(enfant)
 
 
@@ -610,7 +786,8 @@ def evaluation(monde, id, *, publier=True):
     imbriquée transmet ses propositions à l'évaluation parente, jamais au monde.
     """
     ancien = getattr(monde, "_evaluation_agendas", None)
-    registre = {"stock": copy.deepcopy(_stock(monde, id)), "chroniques": []}
+    registre = {"stock": copy.deepcopy(_stock(monde, id)), "chroniques": [],
+                "percus": copy.deepcopy(_percus(monde, id)), "epreuves": []}
     monde._evaluation_agendas = (id, registre)
     try:
         yield
@@ -622,13 +799,20 @@ def evaluation(monde, id, *, publier=True):
         elif ancien is not None and ancien[0] == id:
             ancien[1]["stock"] = registre["stock"]
             ancien[1]["chroniques"].extend(registre["chroniques"])
+            ancien[1]["percus"] = registre["percus"]
+            ancien[1]["epreuves"].extend(registre["epreuves"])
         else:
             from .esprits import esprit
             from .pnj import _chroniquer
             if registre["stock"] is not None:
                 esprit(monde, id)["agendas"] = registre["stock"]
+            if registre["percus"] is not None:
+                esprit(monde, id)["mandats_percus"] = registre["percus"]
             for texte in registre["chroniques"]:
                 _chroniquer(monde, id, texte, "decision")
+            from .relations import eprouver_mandat
+            for arguments in registre["epreuves"]:
+                eprouver_mandat(monde, *arguments)
     finally:
         monde._evaluation_agendas = ancien
 
@@ -699,6 +883,7 @@ def _changer(monde, id, a, etat, raison, empreinte):
 def actualiser(monde, id):
     """Activation unique, révision sur les seules croyances du porteur."""
     declarations = depart(monde, id)
+    _actualiser_epreuves(monde, id)
     if not declarations and not _stock(monde, id):
         from .biens import richesse
         if _dette_situation(monde, id) <= richesse(monde, id) and not next(_torts_connus(monde, id), None):
@@ -777,6 +962,7 @@ def actualiser(monde, id):
         if _informe(monde, id, a):
             _changer(monde, id, a, "atteint", "parole entendue", empreinte)
     _limiter(monde, id, empreinte)
+    _actualiser_epreuves(monde, id)
 
 
 def _limiter(monde, id, empreinte):
@@ -1517,6 +1703,25 @@ def _verifier_filiation(monde, id, a):
 
 def verifier(monde, id):
     from .esprits import lire
+    percus = lire(monde, id).get("mandats_percus", [])
+    assert isinstance(percus, list), "Mandats perçus invalides"
+    identites = set()
+    for r in percus:
+        assert (isinstance(r, dict) and set(r) - {"croyance", "abus"} == {"de", "charge", "minute", "source"}
+                and isinstance(r["de"], str) and type(r["minute"]) is int and r["minute"] >= 0
+                and r["source"] in ("entendu", "dit:" + r["de"])
+                and _charge_partagee(monde, r["de"], r["charge"])), "Mandat perçu invalide"
+        cle = _identite_charge(r["de"], r["charge"])
+        assert cle not in identites, "Mandat perçu dupliqué"
+        identites.add(cle)
+        if "croyance" in r:
+            c = r["croyance"]
+            assert (set(c) == {"valeur", "source", "minute", "confiance", "poids"}
+                    and c["valeur"] in (None, *ISSUES_COMPTE_RENDU)
+                    and c["source"] in ("vu", "entendu", "dit:" + r["de"])
+                    and type(c["minute"]) is int and 0 <= c["confiance"] <= 1
+                    and 0 <= c["poids"] <= 1.05), "Issue perçue invalide"
+        _verifier_abus(r)
     c = lire(monde, id).get("contrat_intention") if id != "joueur" else None
     if c is not None:
         from .deliberation import condition_valide, Palier
@@ -1551,6 +1756,7 @@ def verifier(monde, id):
     assert len([a for a in stock if a["etat"] == "actif"]) <= 3, "Trop d'agendas actifs"
     assert len({a["id"] for a in stock}) == len(stock), "Identifiants d'agenda dupliqués"
     for a in stock:
+        _verifier_abus(a)
         assert (a["etat"] in ("actif", "sommeil", "atteint", "abandonne")
                 and type(a["depuis"]) is int and isinstance(a["raison"], str)
                 and a["origine"]["type"] in ("scenario", "situation", "evenement", "mandat") and "plan" not in a
@@ -1560,6 +1766,7 @@ def verifier(monde, id):
         assert isinstance(jugements, list), "Jugements de mandat invalides"
         from .relations import CLES_AUTORITE
         for j in jugements:
+            _verifier_abus(j)
             assert (isinstance(j, dict) and set(j) >= {"qui", "minute", "sorte", "parametres", "issue", "raison"}
                     and j["qui"] in monde.objets and type(j["minute"]) is int
                     and j["issue"] in ("accepte", "refus", "impossible", "mefiance", "rancune", "qui_va_la")
@@ -1589,6 +1796,16 @@ def verifier(monde, id):
                      and paye["quoi"] in QUOI
                      and isinstance(paye["objet"], str) and type(paye["prix"]) is int and paye["prix"] > 0)
                 ), "Engagement de PNJ invalide"
+
+
+def _verifier_abus(a):
+    from .caractere import ENJEU
+    if "abus" in a:
+        abus = a["abus"]
+        assert (isinstance(abus, dict) and set(abus) == {"cause", "prix"}
+                and abus["cause"] in ("peril", "honnetete")
+                and (abus["prix"] is None or isinstance(abus["prix"], (int, float))
+                     and 0 < abus["prix"] <= ENJEU)), "Abus de mandat invalide"
 
 
 def echoir(monde, id):
