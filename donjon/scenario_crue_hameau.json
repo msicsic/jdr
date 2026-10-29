@@ -684,6 +684,14 @@
           "CHA": 9
         },
         "traits": "Bourru, honnête, protecteur des évacués, méfiant envers qui l'a trompé ; lent à faire confiance, lent à la retirer. Il entretient le feu de l'échoppe pour les évacués trempés, avec le bois qu'il a mis de côté. Il ne quitte pas le relais tant que des évacués y sont attendus.",
+        "statuts": [
+          {
+            "titre": "responsable du relais",
+            "lieux": ["echoppe", "antichambre", "chambre_cloche", "crypte", "beffroi"],
+            "domaines": ["amener", "informer"],
+            "connus": ["marchand", "aubin", "brune", "ilse"]
+          }
+        ],
         "limites": [
           "ne_vole_pas",
           "ne_blesse_pas",
@@ -1273,7 +1281,8 @@
           "marchand": {
             "confiance": 65,
             "affection": 20,
-            "dette": 40
+            "dette": 40,
+            "ascendant": 60
           },
           "brune": {
             "confiance": 65,
@@ -1511,7 +1520,8 @@
           },
           "aubin": {
             "confiance": 75,
-            "affection": 35
+            "affection": 35,
+            "ascendant": 30
           }
         }
       },
@@ -1600,7 +1610,8 @@
         "liens": {
           "aubin": {
             "confiance": 80,
-            "affection": 40
+            "affection": 40,
+            "ascendant": 40
           },
           "ilse": {
             "confiance": 70,

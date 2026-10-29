@@ -3,22 +3,79 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-um-fabrication`, lot 305 / U-M fabrication, non fusionnée**,
-  base intégration `37f68d4` : formulaire web d'assemblage et découpe, usages
+  base intégration `37f68d4`, reprise par fusion sans rebase de `01a95e0`
+  (U-T inventaire 301 inclus) : formulaire web d'assemblage et découpe, usages
   et rôles dérivés des schémas moteur dans le catalogue commun. Ressources
   portées ou perçues à portée, références publiques exactes, physique connue
   affichée ou manque signalé sans valeur inventée. Même proposition, plan,
   effet et rendu que les commandes explicites ; moteur seul juge des pièces
-  et droits. Référence périmée refusée sans substitut. **95 tests distincts /
-  neuf fichiers verts**, dont sept nouveaux ; Node réel puis boucle sans MJ,
+  et droits. Référence périmée refusée sans substitut. **Reprise : 133 tests /
+  onze fichiers verts**, dont sept nouveaux et les 28 TUI inchangés ; Node
+  réel puis boucle sans MJ,
   monde/scène/fiche/carte après recharge. Quatre parcours : quatre commandes
   composées évitées, 17 clics pour assembler, 8 pour découper selon la
   convention Node ; deux dimensions / une dimension restent à saisir.
   Limites : échelle seule modélisée, pas de qualification ni prélèvement
   automatique, ni approche vers plusieurs ressources éloignées. Ni MJ,
   `jeu.py`, `tui.py`, règles atelier/matière, Luna, banc ou suite complète.
-  Bruts : `C:/Users/msics/donjon/artifacts/um-fabrication-305/`, `fin.json`.
+  Pont web : projection commune d'inventaire du 301 conservée et réexportée
+  depuis `inventaire_public.py` ; ressources de fabrication conservées.
+  `jeu.py`, `tui.py` et projection commune identiques à `01a95e0`.
+  Tous les tests ciblés du 305 et les tests inventaire terminal/gestes/TUI
+  du 301 relancés, 573,705 s à deux travailleurs réduits ; zéro échec,
+  erreur ou ignoré, 24 parcours 301 extraits. Ni Luna ni suite complète.
+  Bruts : `C:/Users/msics/donjon/artifacts/um-fabrication-305/`, `fin.json`
+  initial et `fin-reprise-integration.json` pour la reprise.
   Aucun calcul actif ; branche poussée vers origin.
   [Rapport 305](taches/rapport-codex-305-um-fabrication.md).
+
+- **Branche `codex-ut-inventaire`, lot 301 / U-T inventaire, fusionnée**,
+  base `integration 79beaf1`, reprise par fusion sans rebase de `2537e4f`
+  (outils 300), fusion `99855aa` : console et TUI proposent les gestes de
+  besace dans la liste numérotée. Chaque ligne fige le descripteur U-D du
+  web, avec bien exact, quantité admise et destinataire public ; aucun
+  analyseur ni modèle. Projections communes dans `inventaire_public.py`,
+  réexportées par le pont web ; catalogue des outils 300 conservé,
+  `page.html` identique à l'intégration. Une remise complète par numéro,
+  homonymes distingués par référence ; moteur seul juge du choix périmé.
+  **87 tests distincts / huit fichiers verts**, dont les **28 TUI existants
+  inchangés** et les outils 300. Douze couples geste/bien dans les deux
+  interfaces : descripteur, plan, texte exact et monde/scène/fiche/carte
+  après recharge ; biens/destinataires homonymes, lots, refus périmés,
+  noir et sans carte. Zéro analyseur ou modèle sur les choix.
+  **24 parcours mesurés : 3 touches**, 4 avec F7 en TUI. Deux travailleurs
+  réduits au plus ; sept fichiers voisins de la reprise conservés,
+  seul le fichier inventaire rejoué après correction de sa sonde.
+  Ni Luna, ni banc PNJ, ni suite complète. Branche poussée vers origin,
+  aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/ut-inventaire-301/`,
+  bilan retenu `bilan.json`, clôture `fin-cloture.json`.
+  [Rapport 301](taches/rapport-codex-301-ut-inventaire.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Console et TUI listent les gestes d'inventaire numérotés (poser, remettre, manger une portion, allumer/éteindre, prélever), depuis la projection commune (donjon/inventaire_public.py, sortie de web/pont.py) et le catalogue gestes_publics ; le choix envoie le même descripteur U-D que le menu web, sans analyse de texte ni modèle. 87 tests verts ; 3 touches par choix (4 avec F7).
+
+- **Branche `codex-a5-donnees-hameau`, lot 302 / A5.11, fusionnée**,
+  base intégration `79beaf1` : statut local de Gorm connu de lui-même,
+  Aubin, Brune et Ilse ; ascendants Aubin→Gorm 60, Maël→Aubin 30 et
+  Sève→Aubin 40. Aucun agenda ni attribution ajouté, aucun moteur/MJ modifié.
+  Compteurs du banc par registres publics : propositions, accords, refus
+  par cause, confirmations, comptes rendus et réaffectations à un tiers.
+  **69 tests distincts / onze fichiers verts**, monde/scène/rendu rechargés,
+  deux charges et demandes ordinaires hors crue, réaffectation hameau/mine.
+  **Lot terminé, banc 4 h × quatre graines validé**, `79beaf1` → `d28317f` :
+  chroniques, boucles et constats identiques ; zéro plantage, usurpation,
+  mandat proposé/accepté/refusé, compte rendu et réaffectation dans chaque
+  nuit. Suspects 219 **0 → 0**, entrées à expliquer **2/2/7/4 inchangées**.
+  Seul projet naturel : `obtenir` de Brune pour sa dette ; aucune charge
+  `amener/informer` ne parvient au devis ou au jugement du mandat.
+  Quatre références manquantes calculées une fois puis mises en cache,
+  quatre nuits de branche ; deux travailleurs réduits, **643,966 s**.
+  `C:/Users/msics/donjon/artifacts/hameau-302/fin.json` : **ok=true, code 0**.
+  Branche poussée vers origin, aucun calcul actif ni relancé à la clôture ;
+  code et tests inchangés depuis la validation.
+  Limites : aucune charge `amener/informer` naturelle déclarée ou née par
+  l'autorité seule ; validation historique des statuts sans `attendu`,
+  correction moteur hors périmètre. Ni Luna ni suite complète.
+  [Rapport 302](taches/rapport-codex-302-a5-donnees-hameau.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Données seulement : statut de Gorm sourcé (cinq salles du Relais, amener et informer, connu de lui, Aubin, Brune, Ilse), ascendants Aubin→Gorm 60, Maël→Aubin 30, Sève→Aubin 40 ; banc_pnj.mesures_mandats compte propositions, acceptations, refus, comptes rendus et réaffectations. 69 tests verts ; quatre nuits 4 h identiques à la base, zéro mandat naturel : le hameau ne déclare aucun agenda amener ou informer, l'autorité seule ne crée pas de charge à déléguer. Limite : le validateur du statut incohérent n'a pas d'attendu.
 
 - **Branche `codex-um-outils`, lot 300 / U-M outils, fusionnée**,
   base `2d893e0`, reprise par fusion sans rebase d'`origin/integration`

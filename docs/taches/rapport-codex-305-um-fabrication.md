@@ -1,6 +1,8 @@
 # Lot 305 — U-M fabrication
 
 Branche `codex-um-fabrication`, base intégration `37f68d4`, **non fusionnée**.
+Reprise par fusion sans rebase d'`origin/integration` figé à `01a95e0`
+(U-T inventaire 301 inclus).
 
 ## Invariant et changement
 
@@ -28,17 +30,30 @@ Le descripteur U-D admet les paramètres publics d'`assembler` et `decouper`.
 (syntaxe dans l'aide locale). La difficulté normale reprend la convention 12
 de la fabrication existante ; le rythme soigné reprend 0 et ses contrôles.
 Le joueur ne choisit pas une difficulté. Les règles de l'atelier, le MJ,
-`jeu.py` et `tui.py` restent inchangés.
+`jeu.py` et `tui.py` ne sont pas modifiés par le lot.
+
+À la reprise, le pont réexporte `inventaire_public` et `destinataires_publics`
+depuis `donjon/inventaire_public.py`, la projection commune du 301. Les copies
+locales sont retirées ; la projection des ressources de fabrication reste
+intacte. Le catalogue conserve les gestes de besace du 301 et les formulaires
+du 305. `jeu.py`, `tui.py`, la projection commune et les tests du 301 sont
+identiques à `01a95e0`. Seul conflit de code : `web/pont.py` ; les entrées
+d'état des lots 305, 301 et 302 sont conservées ensemble.
 
 ## Vérification et mesures
 
-**95 tests distincts / neuf fichiers verts** : fabrication 305, assemblage,
-artisanat, matière, descripteur U-D, menus d'outils, inventaire, web/Node et
-premiers gestes terminal. Deux travailleurs au plus, priorité réduite,
-interpréteur du dépôt principal (`.venv` absente du worktree).
-Les huit fichiers existants donnent 88 tests verts ; les sept nouveaux sont
-repris après correction des fixtures de propriétaire et initialisation de
-scène. Bilan retenu dans `tests-retenus.json`, traces initiales conservées.
+**Reprise : 133 tests / onze fichiers verts, 573,705 s**, zéro échec, erreur
+ou ignoré. Les neuf fichiers du 305 sont tous relancés : fabrication,
+assemblage, artisanat, matière, descripteur U-D, outils, inventaire web,
+web/Node et premiers gestes terminal. S'y ajoutent les dix tests d'inventaire
+terminal 301 et les **28 tests TUI existants inchangés**. La vérification
+syntaxique Node de `tests/clic_page.js` passe ; les callbacks réels sont exécutés.
+Identité des deux fonctions réexportées avec le module commun contrôlée.
+Deux travailleurs au plus, priorité réduite, interpréteur du dépôt principal
+(`.venv` absente du worktree). Aucun rejeu de référence, ni Luna, ni suite
+complète. Bruts : `tests-reprise-integration.json` ; les 24 parcours 301
+extraits de cette relance sont dans `mesures-reprise-301.json`.
+Le bilan initial 95 tests / neuf fichiers reste dans `tests-retenus.json`.
 
 Callbacks Node réels, puis vraie boucle de jeu sur copies, analyseur interdit
 pour les clics et MJ interdit d'appel. Échelles de perches et de planches
@@ -66,6 +81,7 @@ automatique. Le formulaire ne prépare pas les approches vers plusieurs
 matériaux éloignés. Ni Luna, ni banc PNJ, ni suite complète : entrée
 d'interface, sans changement de mécanique.
 
-Bruts : `C:/Users/msics/donjon/artifacts/um-fabrication-305/`, fichier final
-`fin.json`. Branche livrée sur `origin/codex-um-fabrication` ; fusion laissée
+Bruts : `C:/Users/msics/donjon/artifacts/um-fabrication-305/`, clôture initiale
+`fin.json`, reprise `fin-reprise-integration.json`. Branche livrée sur
+`origin/codex-um-fabrication` ; fusion dans l'intégration laissée
 au superviseur. Aucun calcul actif ni calcul long lancé.
