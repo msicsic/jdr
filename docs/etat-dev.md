@@ -2,7 +2,8 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 329 / G20, branche `codex-g20-signes`, non fusionnée**, base
+- **Lot 329 clos / G20 partiel, branche `codex-g20-signes`, non fusionnée,
+  non validée pour intégration**, base
   `origin/codex-g5-perception c4cd83f` (323), sans fusion avec integration :
   sélection typée `texte.signes_de` dans le dialogue existant ; rendu commun
   `signes.textes` / `rendu.decrire_signes`, recalculé par `consigner` avant
@@ -13,10 +14,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   **119 tests / neuf fichiers verts**, 24,457 s cumulées, deux travailleurs
   réduits ; huit nouveaux tests, Ilse/Gorm/Brune, signe périmé à l'écriture,
   monde/texte/scène/carte rechargés et sauvegarde avant affichage vérifiés.
-  **Luna à lire avant clôture** : une passe détachée signes-ecart/signes-guet/
-  attitudes, fin écrite en dernier même en échec :
-  `C:/Users/msics/donjon/artifacts/g20-329/fin-luna.json`.
-  Référence c9459ce archivée, sans rejouer ; référence attitudes indisponible.
+  **Luna unique analysée** : signes-ecart/signes-guet/attitudes, 101,716 s,
+  code 0, 14 tours, 33 appels, 14 audits, un repli, zéro erreur technique/recharge.
+  **Zéro sélection typée malgré 16 schémas d'interprétation la proposant** :
+  les descriptions restent dans la prose auditée. Zéro extraction attitudes
+  était déjà vrai dans la base ; aucun transfert réel vers le moteur prouvé.
+  Gorm regarde Corvus avec une expression bourrue et Aubin hausse les épaules,
+  sans signe/résultat moteur correspondant ; ajouts admis comme partie de parole.
+  Dernière question convertie en parole à Aubin ; aucune référence attitudes
+  disponible pour qualifier ces défauts de régressions. Huit états observés
+  ecart/guet identiques à c9459ce archivé ; appels 8→6 / 6→4, sans gain attribué
+  à la voie typée. Invariant livré seulement sur la voie simulée ; G20 réel
+  reste à porter. Aucun contrôle existant retiré, aucune seconde passe.
+  Bruts `C:/Users/msics/donjon/artifacts/g20-329/`, `analyse-luna.json`,
+  `fin-luna.json ok=true` (technique), `fin-cloture.json` distingue la clôture
+  du lot et l'échec de validation G20. Code/tests inchangés, aucun calcul actif.
   Ni suite complète ni banc PNJ. Recouvrements 328/G6 : rendu/narration/état-dev.
   [Rapport 329](taches/rapport-codex-329-g20-signes.md).
 
