@@ -175,6 +175,9 @@ def admettre(monde, autorisations, rapport):
 def reponse(rapport):
     """Résultat entièrement moteur quand il ne reste rien à faire formuler."""
     from .emissions import entendues, reponses
+    # Les admissions sans conversation (description, fait local...) n'ont
+    # pas de rapport vocal. Elles gardent leur voie de rédaction existante.
+    rapport = rapport or {}
     flux = entendues(rapport)
     if not any(p['acte'] == 'reponse_comptable' for p in flux) or reponses(rapport):
         return None

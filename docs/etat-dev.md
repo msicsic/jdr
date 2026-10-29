@@ -2,6 +2,20 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Reprise 326 / G17 en cours**, branche `codex-g17-comptes`, non fusionnée :
+  suite du superviseur `bde5993`, **45 incidents (25 échecs, 20 erreurs)**.
+  Intégration `9f261f9` fusionnée sans rebase par `aba1e4b` ; conflit de
+  documentation seul, entrées des deux branches conservées. Défaut G17 :
+  rapport vocal absent pour une admission non vocale, normalisé sans changer
+  ses contrôles. Anciennes attentes du texte/deuxième appel portées à G15/G17,
+  assertions mécaniques conservées. Attribution provisoire : neuf défauts,
+  29 attentes, sept préexistants (rejeu/audit/huile, lot 339) à confirmer.
+  Référence isolée limitée à 30 méthodes et validations de branche ciblées,
+  un travailleur réduit chacune, calculs détachés. **Aucune suite complète**.
+  Bruts `C:/Users/msics/donjon/artifacts/g17-326/reprise/` ; fin attendue
+  `fin-reprise.json`, résultats à attribuer avant clôture.
+  [Matrice 326](taches/attribution-codex-326-g17-comptes-parles.md).
+
 - **Lot 326 / G17 terminé, branche `codex-g17-comptes`, non fusionnée**,
   base `integration eb15b5e`, code/tests `cbc5af3` inchangés : comptes parlés
   formulés depuis les résolutions typées et admis dans G15 avant publication,

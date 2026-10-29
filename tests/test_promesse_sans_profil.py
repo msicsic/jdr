@@ -82,7 +82,7 @@ class PromesseSansProfilTests(unittest.TestCase):
                 reponse = {"mode": "parole_joueur", "texte": "", "faits": ["interlocuteurs"],
                            "proposition": {"personnage": "marchand", "replique": saisie,
                                "contenu": contenu, "operations_demandees": {t: t in codes for t in OPERATIONS}}}
-                texte = "Gorm refuse cet échange."
+                texte = "Je refuse cet échange."
                 avant = m.objets[objet]["lieu"]
                 m, sortie, _ = jouer(m, saisie, [reponse, reponse_pnj(texte)])
                 self.assertEqual(m.objets[objet]["lieu"], avant)

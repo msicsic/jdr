@@ -67,3 +67,23 @@ non portées conservés, décisions des PNJ inchangées. Recouvrement G19/327 :
 `narration.consigner` et `raccorder_emissions`, sans modification des règles
 de rappels. Rapport et état de développement clôturés ; branche poussée vers
 origin, sans fusion.
+
+
+**Reprise de la suite d'essai `bde5993` (en cours).** Le superviseur a relevé
+45 incidents (25 échecs, 20 erreurs). `origin/integration 9f261f9` est fusionné
+sans rebase par `aba1e4b` ; conflit documentaire seul, deux côtés conservés.
+Le fichier de code commun est `narration.py` (G19 et U-P intégrés).
+[La matrice individuelle](attribution-codex-326-g17-comptes-parles.md) suit
+chaque incident. Un défaut G17 explique neuf incidents : une admission non
+vocale peut ne pas avoir de rapport ; `comptes_parles.reponse` accepte cette
+absence et laisse sa voie narrative habituelle, au lieu d'appeler G15 sur
+`None`. Les anciennes attentes comptables et accès au deuxième appel sont
+portés au texte moteur et à l'émission qui conserve les faits ; les oracles
+mécaniques restent inchangés. La contre-épreuve du nom inconnu reste exercée
+sur une réplique libre. Sept incidents du rejeu/audit/huile sont laissés au
+lot 339, sous réserve de leur reproduction sur l'intégration seule.
+Référence : 30 méthodes distinctes, un travailleur réduit, détaché. Branche :
+seuls fichiers en incident et voisins directs du raccord commun ; aucune
+nouvelle suite complète. Bruts `C:/Users/msics/donjon/artifacts/g17-326/reprise/`.
+Résultats et attribution finale encore à lire ; ne pas considérer la reprise
+comme validée avant `fin-reprise.json` et sa lecture.
