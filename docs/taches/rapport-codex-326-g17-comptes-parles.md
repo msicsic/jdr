@@ -96,3 +96,13 @@ deux travailleurs réduits au plus, calcul détaché ; aucune
 nouvelle suite complète. Bruts `C:/Users/msics/donjon/artifacts/g17-326/reprise/`.
 Résultats et attribution finale encore à lire ; ne pas considérer la reprise
 comme validée avant `reprise/ad0e5a8/fin-reprise.json` et sa lecture.
+
+
+**Point de reprise après avance G6.** `origin/integration` vaut maintenant
+`64130fa` (328). Le calcul de 28 fichiers reste actif sur le code figé
+`7b54fa3` : PID Python 11148, BelowNormal vérifié ; aucun nouveau calcul
+lancé pendant cette reprise. G6 touche notamment `narration.py`, `jeu.py` et
+les tests de compréhension. Ne fusionner qu'après lecture du fichier de fin
+`reprise/ad0e5a8/fin-reprise.json`, puis reprendre uniquement les fichiers
+nouvellement concernés et les incidents restants. La fusion G6 et la
+validation finale de la reprise ne sont pas encore réalisées.

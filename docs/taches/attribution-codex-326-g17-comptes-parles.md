@@ -67,3 +67,8 @@ de protection et son échéance explicites sont rendues sans relecture de prose.
 Accord et refus du joueur sont vérifiés après recharge, à côté des offres de
 mission déjà couvertes. Il ne s'agit pas d'un incident supplémentaire de la
 suite originale.
+
+Dernière avance à traiter après ce calcul figé : `64130fa` (328/G6), non
+fusionnée à ce stade pour ne pas mélanger les versions durant les tests.
+Les preuves de référence restent acquises ; les résultats des 28 fichiers
+sur `7b54fa3` devront être conservés avant la fusion et ses contrôles ciblés.

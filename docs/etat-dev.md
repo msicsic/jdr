@@ -21,6 +21,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   réduits au plus, calcul détaché. **Aucune suite complète**.
   Bruts `C:/Users/msics/donjon/artifacts/g17-326/reprise/` ; fin attendue
   `ad0e5a8/fin-reprise.json`, résultats à attribuer avant clôture.
+  **Nouvelle avance pendant ce calcul : `origin/integration 64130fa` (328/G6).**
+  Ne pas modifier les sources du calcul actif `7b54fa3` avant sa fin. Fusion
+  sans rebase de G6 et vérifications des nouveaux fichiers communs restent
+  à faire après lecture de `reprise/ad0e5a8/fin-reprise.json`. Processus Python
+  **11148 actif, BelowNormal** vérifié à la reprise ; lanceur 44640 aussi
+  réduit. Résultats des 28 fichiers à conserver, pas de nouvelle suite complète.
   [Matrice 326](taches/attribution-codex-326-g17-comptes-parles.md).
 
 - **Lot 326 / G17 terminé, branche `codex-g17-comptes`, non fusionnée**,
