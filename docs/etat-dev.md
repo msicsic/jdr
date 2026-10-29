@@ -3,49 +3,43 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-appeler-donneur`, non fusionnée**, lot **275**, base
-  `7b58eb0` (code d'intégration `ac63223`) : contact d'un interlocuteur localisé
-  mais inaccessible par l'appel négocié commun, portée estimée sur les seules
-  croyances, préfixe coupé avant venue/demande/acquisition, appels vains retenus
-  sans rappel par délai. Raccord des parts et objets portés, achats compris ;
-  remise de nourriture accessible au demandeur lui-même par le contrat existant.
-  Raccord minimal de `pnj_propositions.recours` pour préparer une négociation
-  après refus ; ni `deliberation`, ni `agendas`, ni `signes` touchés. Capture
-  crue 7/270 : Ilse hèle, Gorm ne promet pas de venir ; variante de porte
-  déverrouillée : retrouvailles puis demande/achat/repas. Autre scène à l'auberge
-  pour l'achat d'un objet porté. Recharges monde/rendu/scène et laps entier/
-  découpé, contre-épreuves de portée, lieu inconnu, position réelle et délai.
-  **Premier calcul arrêté avant complément et banc** : ciblés 182 tests,
-  179 verts, trois échecs instruits. Les deux tests existants passent sur
-  `7b58eb0` : l'épreuve de coût utilisait une cible déjà localisée/joignable,
-  désormais explicitement perdue de vue ; l'oracle d'Hugues interdisait tout
-  rappel, alors qu'un bruit nouveau rouvre le couloir à 16 min et justifie
-  l'appel à 18 min. Il exige maintenant une réouverture positive par
-  répétition, jamais un délai. Le nouveau test de négociation indexait à tort
-  son refus de bien par besoin ; corrigé par objet. Aucun code du jeu modifié
-  à la reprise. **Neuf vérifications concernées vertes**, 17,515 s ; puis
-  **47 tests verts** dans les trois fichiers complets, 36,518 s. Les 17
-  fichiers déjà verts sont conservés : **182/182 ciblés verts** après reprise,
-  agrégat sourcé ; avec les 45 initiaux, **227 tests distincts acquis**.
-  Complément **748 tests : 745 verts, 2 échecs, 1 ignoré** (MiMo facultatif),
-  1 732,113 s. Les deux tests passent sur la base `7b58eb0` : régressions du
-  lot confirmées, corrigées **sans toucher les tests ni leurs empreintes**.
-  `recours` ne prépare plus un appel avant de disposer d'une offre admissible
-  (Rémy faisait venir Bram puis ne pouvait plus prendre la paie). La remise
-  de nourriture pour soi supplée seulement un service inaccessible ou conserve
-  une livraison promise ; elle n'ajoute plus les 36 successeurs superflus du
-  graphe auberge/480. Six graphes historiques et acquisition de la paie exigés.
-  **77 tests verts**, dix fichiers directement concernés, **209,391 s**,
-  deux processus réduits ; sept scènes nouvelles conservées. Traces corrigées
-  de Rémy rechargées monde/rendu/scène, six états ; paie reprise à 1 min.
-  **Banc avant correction (`a04090c`) : 20/20 paires 4 h, aucune hausse de
-  suspects 219 par nuit**, Relais/2024 1 → 1, dix-neuf autres 0 → 0 ; zéro
-  plantage. Appels 22 → 37, retrouvailles 8 → 19 ; S total 386 → 422,
-  F moyenne 5,45 → 5,45, D moyenne 1,989 → 2,014 ; à expliquer 21 → 34.
-  **Critère tenu pour ce code antérieur ; code corrigé encore à vérifier au
-  banc.** Une passe de branche seule relancée en fond, référence `7b58eb0`
-  réutilisée en cache, deux travailleurs réduits ; ni complément entier,
-  suite complète ou Luna. Bruts `C:/Users/msics/donjon/artifacts/appeler-275/`,
-  attendre **`correction/fin.json`** ; ancien `fin.json` conservé `ok=false` ;
+  `7b58eb0` (intégration `ac63223`), code corrigé **`eabe202`** : contact d'un
+  interlocuteur localisé mais inaccessible par l'appel négocié commun, portée
+  estimée sur les seules croyances, préfixe coupé avant venue/demande/acquisition,
+  appels vains retenus sans rappel par délai. Raccord des parts et objets portés,
+  achats compris ; remise de nourriture pour soi si service inaccessible ou
+  livraison déjà promise. `pnj_propositions.recours` exige une offre admissible
+  avant l'appel ; ni `deliberation`, ni `agendas`, ni `signes` touchés.
+  **Banc final validé : 20/20 paires 4 h, aucune hausse de suspects 219 par
+  nuit**, Relais/2024 **1 → 1**, les dix-neuf autres **0 → 0**, comme à la
+  première passe `a04090c` ; zéro plantage. Appels **22 → 35** (première : 37),
+  retrouvailles **8 → 19** (première : 19). S total **386 → 417** (première :
+  422), F moyenne **5,45 → 5,45**, D moyenne **1,989 → 1,997** (première :
+  2,014) ; à expliquer **21 → 32** (première : 34), cycles **503 → 506**.
+  Seule la ligne de mesures du **hameau/1985** change depuis la première passe :
+  S 34 → 29, F 8 → 8, D 2,667 → 2,333, appels 2 → 0, retrouvailles 0 → 0 ;
+  les 19 autres lignes sont inchangées. Richesse descriptive, bénéfice universel
+  non démontré ; les retours à expliquer restent supérieurs à la référence.
+  Référence figée `7b58eb0` : **20 nuits lues en cache sans rejeu**, vingt nuits
+  corrigées calculées, **718,259 s**, deux travailleurs réduits au plus.
+  Aucun temps comparé entre campagnes. **`correction/fin.json`, `ok=true`,
+  20 nuits, 77 tests ; aucun calcul actif.**
+  Validation : **227 ciblés initiaux verts** après instruction des trois
+  premières scènes/oracles (refus par objet, cible explicitement perdue de vue,
+  rappel après indice positif). Complément **748 tests : 745 verts, 2 échecs,
+  1 ignoré** (MiMo facultatif), 1 732,113 s. Les deux échecs passent sur la
+  base : régressions du lot, corrigées sans toucher leurs tests ni empreintes.
+  Rémy appelait Bram sans contrepartie puis ne pouvait plus prendre la paie ;
+  les remises accessibles ajoutaient 36 successeurs au graphe auberge/480.
+  **77 ciblés finaux verts**, dix fichiers, **209,391 s** ; six graphes historiques
+  exacts, paie reprise à 1 min. Traces base/branche/correction rechargées
+  monde/rendu/scène, six états chacune. Capture crue 7/270 : Ilse hèle, Gorm ne
+  promet pas de venir ; variante de porte déverrouillée : retrouvailles puis
+  demande/achat/repas. Autre scène à l'auberge ; portée, lieu inconnu, position
+  cachée, délai et négociation éprouvés ; laps entier/découpé identique.
+  Ni suite complète ni Luna. Bruts `C:/Users/msics/donjon/artifacts/appeler-275/` ;
+  ancien `fin.json` conservé `ok=false`, les mesures finales sont dans
+  `correction/bilan.json` et `correction/comparaison.json` ;
   [rapport 275](taches/rapport-codex-275-appeler-donneur.md).
 
 - **Branche `codex-soupcon-deduit`, fusionnée**, lot **267**, base

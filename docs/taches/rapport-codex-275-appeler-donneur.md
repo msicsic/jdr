@@ -42,11 +42,13 @@ dont les sept régressions nouvelles et les oracles intacts des deux échecs.
 Traces base/branche avant et après correction de Rémy : six états chacune,
 mondes/rendus/scènes identiques après recharge ; la paie est reprise à 1 min.
 
-**Banc acquis avant ces deux corrections, code `a04090c`.** Vingt paires 4 h,
+**Banc final validé, code corrigé `eabe202`.** Vingt paires 4 h,
 cinq scénarios × graines 1985/7/42/2024, sonde 265/271. **Critère « aucune hausse
 de suspects 219 par nuit » tenu sur 20/20** : Relais/2024 **1 → 1**, les dix-neuf
-autres nuits **0 → 0** ; zéro plantage. Appels nommés **22 → 37**, retrouvailles
-**8 → 19**, à expliquer **21 → 34**, cycles accomplis **503 → 506**. S/F/D selon
+autres nuits **0 → 0**, comme lors de la première passe ; zéro plantage.
+Appels nommés **22 → 35** (première passe : 37), retrouvailles **8 → 19**
+(première : 19), à expliquer **21 → 32** (première : 34), cycles accomplis
+**503 → 506** (première : 506). S/F/D selon
 la fonction `cats` exacte du 183 : épisodes distincts, familles, diversité
 moyenne par PNJ ; moyennes sur quatre nuits :
 
@@ -56,15 +58,20 @@ moyenne par PNJ ; moyennes sur quatre nuits :
 | Mine | 25,75 → 30,75 | 5 → 4,5 | 1,964 → 1,964 |
 | Auberge | 9,25 → 9,25 | 4 → 4 | 1 → 1 |
 | Crue | 23,5 → 23,75 | 6,75 → 7 | 3,063 → 3,063 |
-| Hameau | 22,75 → 26,5 | 7,25 → 7,5 | 2,167 → 2,292 |
+| Hameau | 22,75 → 25,25 | 7,25 → 7,5 | 2,167 → 2,208 |
 
-**Ces chiffres ne valident pas encore le code corrigé.** La correction du moteur
-exige une nouvelle passe de branche détachée, deux travailleurs réduits ; les
-vingt références `7b58eb0` seront lues en cache, sans rejeu. Ni complément entier
-ni autre campagne relancés. Bruts : `C:/Users/msics/donjon/artifacts/appeler-275/` ;
-attendre **`correction/fin.json`**, écrit en dernier. L'ancien `fin.json` reste
-`ok=false` et conserve fidèlement les deux échecs de sa version.
+Total S **386 → 417** (première : 422), F moyenne **5,45 → 5,45**, D moyenne
+**1,989 → 1,997** (première : 2,014). La seule ligne de mesures modifiée depuis
+`a04090c` est **hameau/1985** : S 34 → 29, F 8 → 8, D 2,667 → 2,333,
+appels 2 → 0, retrouvailles 0 → 0 ; les 19 autres lignes sont inchangées.
+
+Calcul détaché réduit : **718,259 s**, deux travailleurs au plus ; **20/20
+références `7b58eb0` lues en cache**, aucune rejouée. Ni complément entier ni
+autre campagne relancés, aucun temps comparé entre campagnes. Bruts :
+`C:/Users/msics/donjon/artifacts/appeler-275/` ; **`correction/fin.json`,
+`ok=true`, 20 nuits, 77 tests**, écrit en dernier. L'ancien `fin.json` reste
+`ok=false` et conserve les échecs antérieurs. **Aucun calcul actif.**
 
 Limites : portée estimée sur les croyances (sans cases si position inconnue),
 venue et accord incertains ; richesse descriptive sans preuve universelle de
-bénéfice. Aucun calcul long à surveiller par l'agent.
+bénéfice ; les cas à expliquer restent plus nombreux que sur la référence.
