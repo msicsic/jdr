@@ -12,7 +12,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   échec, erreur ou saut dans les dernières validations par fichier ; monde,
   mots et rendu rechargés, archives G15 86/87 conservées. Raccord commun :
   frontières de segments prouvées, sans fusion de citations. Une seule passe
-  Luna `comptes` / `soir-appel` préparée, référence `cdaf371` en cache.
+  Luna `comptes` / `soir-appel` **en cours sur `cbc5af3`**, référence `cdaf371`
+  en cache retrouvée sans relance. PID Python **38496 actif, BelowNormal**
+  vérifié ; un travailleur Luna au plus, lanceur 49156 aussi réduit.
+  Fin attendue : `C:/Users/msics/donjon/artifacts/g17-326/fin-luna.json`,
+  écrite en dernier même en cas d'échec. Résultats Luna à lire à la reprise.
+  Branche poussée vers origin ; code/tests figés pendant le calcul.
   Pas de suite complète ni de banc PNJ.
   Bruts `C:/Users/msics/donjon/artifacts/g17-326/`.
   Recouvrement G19/327 : `narration.consigner` et raccord des segments

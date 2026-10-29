@@ -48,9 +48,15 @@ Deux travailleurs au plus, priorité réduite, uniquement sur des copies.
 **Luna.** Une seule passe `comptes` / `soir-appel`, référence historique
 `cdaf371` déjà en cache, jamais relancée. Référence relue : six tours MJ,
 26 appels, deux relances, trois obstacles, un refus, zéro repli. Le lanceur refuse une référence
-absente du cache. Passe de branche à lancer détachée ; zéro réécriture et
-zéro repli comptable restent à vérifier sur son fil. `fin-luna.json` est
-écrit en dernier, même en cas d'échec.
+absente du cache. Passe de branche **lancée détachée sur `cbc5af3`**, un
+travailleur Luna au plus, processus Python **38496 réellement actif et
+BelowNormal** au contrôle initial (lanceur 49156 également réduit). Les deux
+parties de référence ont été retrouvées avant tout lancement. Zéro réécriture
+et zéro repli comptable restent à vérifier sur son fil ; aucun résultat Luna
+propre au lot n'est encore revendiqué. Fichier attendu :
+`C:/Users/msics/donjon/artifacts/g17-326/fin-luna.json`, écrit en dernier,
+même en cas d'échec. Branche poussée vers origin ; code/tests inchangés
+pendant le calcul.
 
 **Limites et intégration.** Garantie sur les répliques à contenu comptable
 typé admises par ce contrat, pas sur toute la sémantique du français libre.
