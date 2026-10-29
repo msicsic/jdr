@@ -168,9 +168,9 @@ class Monde:
     def _installer_recit(self):
         self.data.setdefault("conversation", [])
 
-    def memoriser(self, joueur, reponse, nature="dialogue"):
+    def memoriser(self, joueur, reponse, nature="dialogue", *, complet=False):
         """Mémoire de conversation, jamais une source de nouvelles vérités physiques."""
-        self.data["conversation"].append({"joueur": joueur[:2000], "reponse": reponse[:4000],
+        self.data["conversation"].append({"joueur": joueur[:2000], "reponse": reponse if complet else reponse[:4000],
                                           "nature": nature, "revision": self.data["revision"]})
         self.data["conversation"] = self.data["conversation"][-12:]
 

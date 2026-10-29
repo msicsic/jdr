@@ -2,6 +2,28 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 319 / U-P, branche `codex-up-recapitulatif`, non fusionnée**, base
+  `integration 75b6dfb` : récapitulatif moteur « Compris : … » des plans issus
+  du libre et des actes de parole admis. Titres et sous-plans des compilateurs,
+  paramètres typés et références publiques ; attente des raccourcis, ordre,
+  parties, prix, conditions et portée conservés. Ligne après un acte léger,
+  dans la fiche existante avant tentative ; clic/menu sans nouvelle ligne.
+  Questions au MJ et faisabilité sans exécution, perception proposée comprise.
+  Tour complet sauvegardé avant affichage, sans troncature à 4 000 caractères ;
+  dernier récapitulatif relu tel quel au démarrage, sans rejouer l'action.
+  **Treize parcours × console/pont web/vraie TUI**, oracles textuels figés,
+  monde complet sérialisable et rendu après recharge ; cible périmée, menu,
+  clic sans modèle et rendu long. **5 nouveaux tests verts, 72,869 s**.
+  **115 tests de régression, 495,177 s** : 113 verts, un ignoré (`jsonschema`
+  absent), un échec TUI avant envoi de commande ; **ce test seul repasse vert
+  en 5,012 s**, trace initiale conservée, sans modification de son oracle.
+  Aucune revue retirée, compilation/schémas/consignes Luna inchangés ; U-C
+  garde la classification générale des actes lourds. Admissions de savoirs
+  privés non publiées par ce rendu. Aucun changement de `gestes_publics.py`,
+  `tui.py` ni `web/pont.py` ; aucun Luna, banc ou suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/up-319/`.
+  [Rapport 319](taches/rapport-codex-319-up-recapitulatif.md).
+
 - **Lot 318, branche `codex-g1-repense`, conception seule**, base
   `integration 79fca6a` : lecture des quatre campagnes 294/296/304/311,
   91 positions chacune, 30 tours MJ et 61 sans modèle. Diagnostic par saisie :
