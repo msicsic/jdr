@@ -1814,12 +1814,13 @@ def refus_etape(monde, id, etapes):
         e = depart(monde, id, v)
         # Les cibles de contact passent par l'approche et l'observation du
         # geste : les rejeter ici empêcherait d'apprendre leur disparition.
-        # Une localisation inconnue n'est pas une preuve d'absence ; le
-        # geste devra la constater. Seule une présence crue incompatible
-        # rend le participant impossible dans cette projection.
-        if any(v.salle(e, x) is not None and not v.present(e, x) for x in _a_reunir(
-                monde, id, tete, e.portes, venues=True, contacts=False)):
-            return "participant cru absent"
+        # Inconnu ne signifie pas absent : le plan doit d'abord préparer
+        # le contact, sans dépenser le geste final pour le constater.
+        for x in _a_reunir(monde, id, tete, e.portes, venues=True, contacts=False):
+            if v.salle(e, x) is None:
+                return "participant à localiser"
+            if not v.present(e, x):
+                return "participant cru absent"
     from .eau import active, en_peril, menacee
     if not active(monde):
         return None

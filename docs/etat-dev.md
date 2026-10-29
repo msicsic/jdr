@@ -33,6 +33,94 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   dans des lots distincts ; aucun ajustement du scénario après mesure.
   [Rapport 306](taches/rapport-codex-306-a5-agenda-hameau.md).
 
+- **Branche `codex-recit-buts-agenda`, lot 309, fusionnée**, base
+  intégration `02c7330` : rendu commun des buts d'agenda par leur titulaire
+  et leur référence locale, sorte/paramètres/filiation lus via `agendas.py`.
+  Aucun champ ajouté au but ni branche par sorte ; moteur, scénario et MJ
+  inchangés. Titulaire transmis au récit texte/données, au relevé, au rejeu
+  et au rendu des intentions enregistrées. Capture 306 hameau 42 à 5 min :
+  `KeyError: 'qui'` reproduit sur la base ; mandat d'Aubin et sous-mandat
+  d'Ilse rendus, état/rendu/scène/relevé/récit identiques après recharge.
+  **Trois nouveaux tests verts**, six sortes et quatre formes de sous-but,
+  références locales distinguées ; bruts de reproduction archivés.
+  **Lot terminé : 70 tests / neuf fichiers, 69 verts, un échec préexistant**,
+  aucune erreur ni saut, 203,511 s, AST vert. Le test des nuits parallèles
+  échoue aussi sur `02c7330` : seul l'ordre des compteurs de mandat dans
+  « Mesures » diffère, valeurs et autres lignes identiques. Insertion par
+  union des clés dans `banc_pnj.executer` ; code et test inchangés depuis
+  la base. Diagnostic isolé 18,423 s, worktree supprimé, aucun oracle
+  affaibli ni correctif de banc ajouté. **Huit paires d'empreintes 2 h
+  identiques**, Relais/crue × 1985/7/42/2024, `02c7330` → `4eb05f8` :
+  chronique, mesures, état final complet ; zéro plantage et mêmes avis.
+  Huit références absentes calculées une fois puis mises en cache,
+  huit nuits de branche, 154,450 s. Deux travailleurs réduits maximum,
+  référence puis branche. Bruts `C:/Users/msics/donjon/artifacts/recit-309/` :
+  `fin.json` **ok=false conservé**, échec qualifié dans
+  `fin-diagnostic.json`, clôture `fin-cloture.json` ; suite ciblée non
+  déclarée entièrement verte. Code/tests inchangés depuis vérification.
+  Branche poussée vers origin, aucun calcul actif. Ni Luna ni suite complète.
+  Les répétitions et le banc du hameau du lot 306 restent hors périmètre.
+  [Rapport 309](taches/rapport-codex-309-recit-buts-agenda.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Un but d'agenda est une référence locale au titulaire : recit_pnj, audit_nuits, rejeu et paroles.engagements_enregistres lisent la sorte et les paramètres de l'agenda référencé par l'accès commun, sans supposer de cible. Capture réelle du lot 306 (hameau 42, minute 5, KeyError 'qui') et six sortes rendues. 69/70 tests verts ; 8/8 empreintes 2 h identiques. Échec préexistant relevé : test_des_nuits_en_parallele_comme_une_a_une, ordre des clés de mesures dépendant du hachage depuis les compteurs de mandat du lot 302 (lot 310).
+
+- **Branche `codex-service-rejoindre`, lot 303, fusionnée**, base
+  intégration `79beaf1` : un participant requis de lieu inconnu prépare le
+  contact commun (inspection, appel ou question) avant le geste, sans lire
+  sa position réelle. Contrat `pnj._a_reunir`, venues convenues conservées ;
+  mesure, normalisation et revalidation alignées. La charge garde son parent
+  pendant la recherche, y compris lorsque son moyen matériel a changé.
+  Cinq nouvelles épreuves vertes : capture 289 Tilo/Mathurine retrouvée dans
+  les archives 273, mine Mathe/Lucien, positions cachées, devis pur, suffixe
+  supposé non publié et venue convenue. Services réussis après contact,
+  aucun service exécuté en échec ; monde/rendu/scène et textes identiques
+  après recharge, six minutes entières ou découpées. Les questions fondées
+  sur une croyance périmée d'un tiers peuvent toujours échouer.
+  **53 tests / neuf fichiers verts**, zéro échec, erreur ou ignoré,
+  509,704 s (`tests-cibles.json`). **Banc achevé, code 0 : douze paires 4 h**,
+  auberge/mine/Relais × 1985/7/42/2024, `79beaf1` → `066c12d` (moteur
+  `7937fdd`), un travailleur réduit. Douze références absentes rangées une
+  fois, puis douze nuits de branche ; 1 424,115 s cumulées. Aucun plantage,
+  usurpation ni hausse des suspects 219 (**0 → 0 pour chaque nuit**).
+  Services **33 → 30**, appels **34 → 43**, questions **50 → 88**, recherches
+  du planificateur **13 979 → 14 897**, avis à expliquer **9 → 11**, dérives
+  **162 → 186** : aucun gain général de services ou de coût revendiqué.
+  Deux seuils nouveaux (onze appels Lucien/Hugues, auberge 2024) instruits
+  par une seule nuit de branche sous sonde : les trois rappels suivent
+  localisation, contact ou bruit positifs ; aucun rappel dans un lieu
+  encore vain. Chronique/récit/souvenirs/mesures/état final identiques au
+  banc original ; aucun oracle changé, aucune référence relancée. Le bilan
+  brut **`fin.json`, `ok=false`**, est conservé ; bilan retenu
+  **`fin-cloture.json`, `ok=true`**. Limites : avis/dérives supplémentaires
+  et nouveau `but_hors_besoin` Relais 7 non certifiés bénins ; pas de preuve
+  universelle d'absence de boucle. Bruts :
+  `C:/Users/msics/donjon/artifacts/service-303/`. Branche poussée ; **lot
+  terminé, aucun calcul actif**, ni Luna ni suite complète.
+  [Rapport 303](taches/rapport-codex-303-service-rejoindre.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Un geste qui exige la présence d'un participant de lieu inconnu (pnj._a_reunir) passe d'abord par _chercher (inspection, appel, question) ; _mesurer_direct exige la présence projetée, refus_etape revalide les anciens plans, la charge garde son parent pendant le contact. Capture 289 (Tilo/Mathurine) et Mathe/Lucien à la mine. 53 tests verts ; 12 nuits 4 h, suspects 0 → 0 ; portions servies 33 → 30 (Relais 5 → 3), appels 34 → 43, questions de localisation 50 → 88, dérives 162 → 186 : à relire à la prochaine vérification d'intégration.
+
+- **Branche `codex-ut-inventaire`, lot 301 / U-T inventaire, fusionnée**,
+  base `integration 79beaf1`, reprise par fusion sans rebase de `2537e4f`
+  (outils 300), fusion `99855aa` : console et TUI proposent les gestes de
+  besace dans la liste numérotée. Chaque ligne fige le descripteur U-D du
+  web, avec bien exact, quantité admise et destinataire public ; aucun
+  analyseur ni modèle. Projections communes dans `inventaire_public.py`,
+  réexportées par le pont web ; catalogue des outils 300 conservé,
+  `page.html` identique à l'intégration. Une remise complète par numéro,
+  homonymes distingués par référence ; moteur seul juge du choix périmé.
+  **87 tests distincts / huit fichiers verts**, dont les **28 TUI existants
+  inchangés** et les outils 300. Douze couples geste/bien dans les deux
+  interfaces : descripteur, plan, texte exact et monde/scène/fiche/carte
+  après recharge ; biens/destinataires homonymes, lots, refus périmés,
+  noir et sans carte. Zéro analyseur ou modèle sur les choix.
+  **24 parcours mesurés : 3 touches**, 4 avec F7 en TUI. Deux travailleurs
+  réduits au plus ; sept fichiers voisins de la reprise conservés,
+  seul le fichier inventaire rejoué après correction de sa sonde.
+  Ni Luna, ni banc PNJ, ni suite complète. Branche poussée vers origin,
+  aucun calcul actif. Bruts `C:/Users/msics/donjon/artifacts/ut-inventaire-301/`,
+  bilan retenu `bilan.json`, clôture `fin-cloture.json`.
+  [Rapport 301](taches/rapport-codex-301-ut-inventaire.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Console et TUI listent les gestes d'inventaire numérotés (poser, remettre, manger une portion, allumer/éteindre, prélever), depuis la projection commune (donjon/inventaire_public.py, sortie de web/pont.py) et le catalogue gestes_publics ; le choix envoie le même descripteur U-D que le menu web, sans analyse de texte ni modèle. 87 tests verts ; 3 touches par choix (4 avec F7).
+
 - **Branche `codex-a5-donnees-hameau`, lot 302 / A5.11, fusionnée**,
   base intégration `79beaf1` : statut local de Gorm connu de lui-même,
   Aubin, Brune et Ilse ; ascendants Aubin→Gorm 60, Maël→Aubin 30 et

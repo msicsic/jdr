@@ -135,7 +135,7 @@ class Enregistreur:
         e = lire(monde, id)
         i = e["intention"]
         # Une clé par chose suivie (« id|:but », « id|objet ») : seul ce qui change est noté.
-        esprit = {f"{id}|:but": [but_en_mots(monde, i["but"]), i["motif"]] if i else None,
+        esprit = {f"{id}|:but": [but_en_mots(monde, i["but"], titulaire=id), i["motif"]] if i else None,
                   f"{id}|:besoins": {k: round(v) for k, v in e["besoins"].items()}}
         for objet, croyance in e["croyances"].items():
             lieu = croyance.get("lieu")
