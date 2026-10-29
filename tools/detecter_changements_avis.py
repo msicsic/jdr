@@ -7,7 +7,7 @@ palier du candidat essayé, étape exécutée et condition de fin devenue vraie.
 Les règles sont ordonnées : cycle accompli, préemption stricte, satisfaction ou
 démenti pendant l'action d'un tiers, progression, moyen évitant le geste manqué,
 rendez-vous intermédiaire clos, entrée publiée utilisée par le plan repris,
-répétition, entrée à expliquer.
+renouvellement perceptif à examiner, répétition, entrée à expliquer.
 Les dérives ouvertes et les pertes d'état payé sont des observations séparées.
 Aucune durée de maintien n'est inventée pour les services instantanés.
 Les pertes sont attribuées aux gestes exécutés ou aux transitions physiques
@@ -31,7 +31,7 @@ import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from donjon import agendas, appel, banc_pnj, biens, corps, defense, deliberation, eau, planification, pnj, relations  # noqa: E402
-from donjon.esprits import RECENT, lire, pnjs  # noqa: E402
+from donjon.esprits import RECENT, lire, percus, pnjs  # noqa: E402
 from donjon.temps import MINUTE, instant  # noqa: E402
 
 SCENARIOS_DEFAUT = ("relais", "mine", "auberge", "crue", "crue_hameau")
@@ -54,7 +54,11 @@ CATEGORIES_EXTERNES = (
     "alarmes_et_dangers",
     "social_et_engagements",
     "inventaire_et_droits",
+    "perception_effective",
+    "provenance_croyances",
 )
+CLASSES_A_EXPLIQUER = ("entree_nouvelle_a_expliquer", "renouvellement_perceptif")
+CATEGORIES_PERCEPTIVES = ("perception_effective", "provenance_croyances")
 
 SEUILS_FIN = {
     "repos": deliberation.REPOS_FIN,
@@ -201,6 +205,12 @@ def relever_entrees(monde, id, minute):
     croyances_dict["__apport__"] = _canon([
         [o, v.apport(o)] for o in sorted(v.connus) if "lumiere" in croyances.get(o, ())
     ])
+    # API perceptive commune, sans percevoir/reviser : aucune croyance créée.
+    # Les dates de rafraîchissement ne constituent pas une entrée nouvelle.
+    perception_dict = percus(monde, id)[0]
+    provenance_dict = {f"{s}.{a}": c.get("source")
+                       for s, d in sorted(croyances.items()) for a, c in sorted(d.items())
+                       if a != "fin"}
 
     besoins_dict = {
         "pressants": sorted(pressants),
@@ -322,6 +332,8 @@ def relever_entrees(monde, id, minute):
         "social_et_engagements": _canon(social_dict),
         "inventaire_et_droits": _canon(inventaire_dict),
         "position_et_progres": _canon(position_dict),
+        "perception_effective": _canon(perception_dict),
+        "provenance_croyances": _canon(provenance_dict),
         "_details": {
             "croyances": croyances_dict,
             "besoins": besoins_dict,
@@ -329,14 +341,46 @@ def relever_entrees(monde, id, minute):
             "alarmes": alarmes_dict,
             "social": social_dict,
             "inventaire": inventaire_dict,
+            "perception": perception_dict,
+            "provenance": provenance_dict,
         },
         "lieu": ici,
         "besoins_continus": {b: round(val, 1) for b, val in sorted(e["besoins"].items())},
     }
 
 
-def _diff_categories(e1, e2, categories=CATEGORIES_EXTERNES):
-    return [c for c in categories if e1[c] != e2[c]]
+def _diff_categories(e1, e2, categories=CATEGORIES_EXTERNES, cibles=None):
+    differences = []
+    for c in categories:
+        if c == "provenance_croyances" and cibles is not None:
+            p1, p2 = (_provenance_cibles(e, cibles) for e in (e1, e2))
+            change = p1 != p2
+        else:
+            # Anciennes captures : aucune preuve perceptive ne peut être inventée.
+            change = c in e1 and c in e2 and e1[c] != e2[c]
+        if change:
+            differences.append(c)
+    return differences
+
+
+def _provenance_cibles(entrees, cibles):
+    return {k: v for k, v in entrees["_details"].get("provenance", {}).items()
+            if k.rsplit(".", 1)[0] in cibles}
+
+
+def _diff_perception(e1, e2, cibles):
+    """Deltas nommés, sans prétendre prouver la nécessité de la reprise."""
+    resultat = {}
+    for champ in ("perception", "provenance"):
+        if any(champ not in e["_details"] for e in (e1, e2)):
+            continue
+        a, b = ((e["_details"][champ] if champ == "perception"
+                 else _provenance_cibles(e, cibles)) for e in (e1, e2))
+        diff = {k: [a.get(k), b.get(k)] for k in sorted(a.keys() | b.keys())
+                if a.get(k) != b.get(k)}
+        if diff:
+            resultat[champ] = diff
+    return resultat
 
 
 def _diff_croyances(e1, e2):
@@ -356,7 +400,7 @@ def _references_plan(valeur):
     if not isinstance(valeur, dict):
         return set()
     refs = {v for k, v in valeur.items()
-            if k in ("cible", "outil", "objet", "qui", "de", "pour", "lieu", "destination")
+            if k in ("cible", "outil", "objet", "qui", "de", "pour", "servir", "lieu", "destination")
             and isinstance(v, str) and v}
     for v in valeur.values():
         if isinstance(v, (dict, list)):
@@ -613,9 +657,14 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             e_quitte = ep_depart["quitte_entrees"] or ep_depart["debut_entrees"]
             e_retour = ep_retour["debut_entrees"]
 
-            diff_quitte_retour = _diff_categories(e_quitte, e_retour)
-            diff_debut_retour = _diff_categories(e_debut, e_retour)
-            diff_debut_quitte = _diff_categories(e_debut, e_quitte)
+            cibles = _references_plan([ep_depart["decision"].get("but"),
+                                       ep_depart["decision"].get("plan"),
+                                       ep_retour["decision"].get("but"),
+                                       ep_retour["decision"].get("plan")])
+            diff_quitte_retour = _diff_categories(e_quitte, e_retour, cibles=cibles)
+            diff_debut_retour = _diff_categories(e_debut, e_retour, cibles=cibles)
+            diff_debut_quitte = _diff_categories(e_debut, e_quitte, cibles=cibles)
+            perception_qr = _diff_perception(e_quitte, e_retour, cibles)
             meme_lieu_quitte_retour = e_quitte["lieu"] == e_retour["lieu"]
             meme_lieu_debut_retour = e_debut["lieu"] == e_retour["lieu"]
 
@@ -684,6 +733,10 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             elif entrees_utilisees:
                 classe = "entree_publiee_utilisee"
                 preuves = entrees_utilisees + [{"preuve": "plan_retour_admissible", "plan": plan_retour}]
+            elif perception_qr:
+                classe = ("renouvellement_perceptif" if meme_lieu_quitte_retour
+                          and set(diff_quitte_retour) <= set(CATEGORIES_PERCEPTIVES)
+                          else "entree_nouvelle_a_expliquer")
             elif intermediaires_reels and all(m["accompli_au_depart"] for m in intermediaires_reels):
                 # Un résultat intermédiaire demande une explication causale ;
                 # cette prudence vaut pour tous les buts, sans exception de garde.
@@ -746,6 +799,7 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
                 "croyances_diff_dq": croyances_dq,
                 "croyances_diff_qr": croyances_qr,
                 "croyances_diff_dr": croyances_dr,
+                "perception_diff_qr": perception_qr,
                 "besoins_debut": e_debut["besoins_continus"],
                 "besoins_quitte": e_quitte["besoins_continus"],
                 "besoins_retour": e_retour["besoins_continus"],
@@ -775,7 +829,7 @@ def analyser_episodes(episodes_par_pnj, horizon_minutes=60):
             "changement_moyen_admissible", "rendez_vous_intermediaire_accompli", "entree_publiee_utilisee")),
         "derives_ouvertes": derives,
         "total_derives_ouvertes": len(derives),
-        "total_a_expliquer": comptes.get("entree_nouvelle_a_expliquer", 0),
+        "total_a_expliquer": sum(comptes.get(c, 0) for c in CLASSES_A_EXPLIQUER),
         "certification_complete": False,
         "horizon_minutes": horizon_minutes,
         "par_pnj": {id: dict(Counter(r["classe"] for r in allers_retours if r["id"] == id))
@@ -1027,7 +1081,7 @@ def main(argv=None):
             "total_services_etat_perdu": sum(r["analyse"]["total_services_etat_perdu"]
                                              for r in resultats if r["scenario"] == scenario),
             "total_non_justifies": c_scen.get("repetition_sans_entree_nouvelle", 0),
-            "total_a_expliquer": c_scen.get("entree_nouvelle_a_expliquer", 0),
+            "total_a_expliquer": sum(c_scen.get(c, 0) for c in CLASSES_A_EXPLIQUER),
             "total_cycles_accomplis": (
                 c_scen.get("cycle_accompli", 0) + c_scen.get("garde_interruption_accomplie", 0)
             ),
@@ -1046,7 +1100,7 @@ def main(argv=None):
         "total_derives_ouvertes": sum(r["analyse"]["total_derives_ouvertes"] for r in resultats),
         "total_services_etat_perdu": sum(r["analyse"]["total_services_etat_perdu"] for r in resultats),
         "total_non_justifies": totaux.get("repetition_sans_entree_nouvelle", 0),
-        "total_a_expliquer": totaux.get("entree_nouvelle_a_expliquer", 0),
+        "total_a_expliquer": sum(totaux.get(c, 0) for c in CLASSES_A_EXPLIQUER),
         "total_cycles_accomplis": (
             totaux.get("cycle_accompli", 0) + totaux.get("garde_interruption_accomplie", 0)
         ),

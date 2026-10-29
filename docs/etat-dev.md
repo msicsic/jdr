@@ -2,6 +2,30 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-sonde-perception`, non fusionnée**, lot **276**, base
+  `406a795`, outils seulement : la sonde 219 relève les entités effectivement
+  perçues (lieu et case) et la source des croyances sur les références du but
+  et des plans. Une variation perceptive seule devient
+  `renouvellement_perceptif`, à examiner et jamais justifiée d'office ; les
+  preuves du 271 gardent leur priorité, raccord audit et synthèses compris.
+  Aubin Relais 2024 **117518** reproduit : Ilse de nouveau perçue,
+  `ilse.lieu` de `entendu` à `vu` ; captures 117503/117518 identiques après
+  recharge monde/rendu/scène et relevés. Scènes Odile et lanterne,
+  date seule, référence étrangère et priorité des preuves contrôlées.
+  **37 tests ciblés verts**, zéro échec/erreur, **140,797 s**, contrôles AST
+  inclus ; Mireille historique auberge 1985 **36720** reste signalée,
+  archive sans relevés perceptifs. Traces dans
+  `artifacts/perception-276/tests.json` du dépôt principal.
+  **Vingt paires 4 h avec/sans sonde en calcul détaché**, cinq scénarios ×
+  quatre graines, un seul processus réduit ; résultats non encore acquis.
+  Avant/après sur les mêmes épisodes, repère archivé 271 conservé ; aucune
+  référence rejouée, ni Luna ni suite complète. Bruts
+  `C:/Users/msics/donjon/artifacts/perception-276/`, **`fin.json` attendu**.
+  Le défaut moteur de continuité à 117503 reste ouvert ; une différence
+  perceptive ne prouve pas que l'obstacle a changé. Horizon et archives sans
+  relevé perceptif restent des limites explicites.
+  [Rapport 276](taches/rapport-codex-276-sonde-perception.md).
+
 - **Branche `codex-soupcon-deduit`, fusionnée**, lot **267**, base
   `7404d2d` : **correctif d'intégration du découpage temporel**. Les dates
   de tout le registre suivent désormais le grain minute des croyances,
