@@ -37,6 +37,19 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   promet pas de venir ; variante de porte déverrouillée : retrouvailles puis
   demande/achat/repas. Autre scène à l'auberge ; portée, lieu inconnu, position
   cachée, délai et négociation éprouvés ; laps entier/découpé identique.
+  Retour d'intégration `c95676f` : interruption du test des propositions redites
+  **légitime**, Rémy hèle Bram à 244 min 06 s pour secourir Josse devenu affamé ;
+  à 240, bureau cru inaccessible (porte verrouillée), voix 4 ≥ 1, puis Corvus
+  entend l'appel depuis la galerie (niveau 3), arrêt à 244 min 15 s. Même trace
+  branche/fusion, preuves rechargeables dans `redites/`. Prémisse du test
+  explicitée : le joueur reprend son attente après les interruptions jusqu'au
+  terme des dix minutes ; **250 min et identité bloc/découpé/recharge conservés**,
+  instants et scènes ajoutés. Nouveau test d'interruption native sur la capture
+  originale, état/rendu/scène rechargés. **Aucun moteur modifié ni banc relancé**.
+  Fichier adapté validé sur la fusion exacte : **5/5 tests**, 24,284 s ; dernière
+  passe de branche **112 tests verts**, treize fichiers ciblés dont celui-ci,
+  **265,454 s**, deux processus réduits, aucune erreur ni échec. Les résultats
+  du banc final ci-dessus restent valables.
   Ni suite complète ni Luna. Bruts `C:/Users/msics/donjon/artifacts/appeler-275/` ;
   ancien `fin.json` conservé `ok=false`, les mesures finales sont dans
   `correction/bilan.json` et `correction/comparaison.json` ;

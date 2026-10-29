@@ -72,6 +72,24 @@ autre campagne relancés, aucun temps comparé entre campagnes. Bruts :
 `ok=true`, 20 nuits, 77 tests**, écrit en dernier. L'ancien `fin.json` reste
 `ok=false` et conserve les échecs antérieurs. **Aucun calcul actif.**
 
+**Retour d'intégration, fusion d'essai `c95676f`.** La capture mine 7/240 du
+test des propositions redites interrompt légitimement l'attente : Rémy croit
+Bram au bureau, porte crue verrouillée, route inexistante ; portée de voix
+crue **4 ≥ 1**. Josse passe de faim 69,650 à 70,065 et Rémy constate son état
+affamé à 244 min. Son secours cherche les biscuits de Bram : appel à
+**244 min 06 s**, puis Gaspard hèle aussi Bram après sa réponse entendue.
+Corvus, dans la galerie, entend Rémy au niveau **3** ; l'attente cesse à
+**244 min 15 s**, selon `ecoute.eveille`. Même trace sur branche et fusion.
+Prémisse explicitée : le joueur reprend les attentes interrompues jusqu'au
+terme fixé. L'assertion **250 min**, l'identité bloc/découpé/recharge et les
+oracles des refus restent exigés ; égalité des instants et scènes ajoutée.
+Un test distinct conserve la capture et vérifie l'interruption native et sa
+recharge. **Moteur inchangé, aucun nouveau banc.** Le fichier modifié passe
+contre la fusion exacte : **5/5**, 24,284 s.
+Dernière passe de branche : **112 tests verts**, treize fichiers ciblés du lot
+dont ce fichier, **265,454 s**, deux processus réduits ; aucun échec ni erreur.
+Preuves : `redites/fusion/`, `redites/branche/`, `redites/test-fusion.json`.
+
 Limites : portée estimée sur les croyances (sans cases si position inconnue),
 venue et accord incertains ; richesse descriptive sans preuve universelle de
 bénéfice ; les cas à expliquer restent plus nombreux que sur la référence.
