@@ -2,8 +2,33 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Branche `codex-demande-adoptee`, non fusionnée**, lot **273**, base
-  `c9459ce` : `choisir` libère le plan démenti par `manque` sans effacer
+- **Branche `codex-demande-adoptee`, non fusionnée**, lot **273**, base `c9459ce`.
+  **Fusion à différer : correctif incomplet, défaut lot→part établi.**
+  Relecture des archives mine : S **32→12 / 19→18 / 24→13 / 28→18**
+  (graines 1985/7/42/2024), **64 signatures perdues, 22 gagnées**, net −42 ;
+  crédits de service **8→4** (pas un décompte des repas : certains deviennent
+  des prestations promises). Familles/auteurs détaillés dans le diagnostic.
+  Mine 1985 rejouée seulement jusqu'à `268` puis `373` : états avant choix
+  identiques référence/branche à `268`. À `373`, Josse possède la portion
+  `biscuits_1`, reçu `lot=biscuits`, et peut servir Odon immédiatement ;
+  `_meme_demande_adoptee` la traite comme autre demande, urgence égale
+  **12 / 20**, donc il redemande le lot. Sur copie, le service réussit,
+  faim **85,077→35,077**, **21 égalités monde/rendu/scène** rechargées.
+  **Correction proposée, non livrée** : identité du but séparée des moyens,
+  continuation revalidée par provenance publiée (lot→part/remise/transformation),
+  sans simple équivalence de raison ni exception de scénario. Le recul ne
+  peut être déclaré légitime ; causalité de chaque signature non certifiée.
+  Alertes revues : hameau 42, deux abris déjà en référence ; ajouts agenda
+  et interposition. Rejeu ciblé **34,031 s**, dix captures/**30 égalités** :
+  Gorm retrouve la perception, préempte la ronde **13→5** ; Brune obtient
+  un devis à Aubin, cause précise restant ouverte. Ancien/nouveau choix sur
+  les trois mêmes captures donnent les mêmes états complets. Crue 7/2024
+  et hameau 2024 : rendez-vous/recours intermédiaires/changements pertinents
+  documentés, pas de certification générale d'innocuité. **Aucun banc relancé**,
+  ni moteur modifié lors de ce diagnostic, ni calcul actif.
+  [Diagnostic richesse/alertes](taches/diagnostic-codex-273-richesse-alertes.md).
+  Bilan antérieur ci-dessous, conservé sans en déduire l'aptitude à fusion :
+  `choisir` libère le plan démenti par `manque` sans effacer
   sa demande typée ; reprise des moyens, attente sans geste, fin attestée
   et préemption passent par le contrat existant. Pas de recopie du suffixe
   démenti, aucun délai ajouté, refus/renoncements conservés ; seul
