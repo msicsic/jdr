@@ -2,6 +2,21 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :
+  union des clés de mesures de mandat triée dans `banc_pnj.executer`,
+  aucune valeur ni test existant modifié. Test d'origine inchangé vert sous
+  trois PYTHONHASHSEED, puis dans sa suite. 73 tests / sept fichiers :
+  72 verts, une erreur préexistante d'audit Brune (`KeyError: 929`),
+  reproduite avec le module de base en mémoire ; aucun oracle affaibli.
+  Huit paires d'empreintes 2 h Relais/hameau × quatre graines identiques,
+  chronique, valeurs des mesures et état final complet ; seul l'ordre du
+  bloc mandat change. Avis inchangés. Priorité réduite, deux travailleurs
+  au plus ; ni Luna ni suite complète, aucun calcul actif.
+  Bruts `C:/Users/msics/donjon/artifacts/ordre-310/`, `fin.json` en échec
+  conservé, diagnostic `fin-diagnostic.json`. Branche livrée vers origin.
+  [Rapport 310](taches/rapport-codex-310-ordre-mesures.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. banc_pnj.executer ordonne les clés des mesures indépendamment du hachage du processus (compteurs de mandat du lot 302) ; valeurs inchangées. test_des_nuits_en_parallele_comme_une_a_une vert sous trois PYTHONHASHSEED ; 8/8 empreintes 2 h identiques. Relevé : sous PYTHONHASHSEED=310, test_reveils_brune_reels_et_recharges lève KeyError 929 aussi sur la base, autre dépendance au hachage dans la sonde de l'audit, non traitée ici.
+
 - **Branche `codex-services-apres-303`, lot 308, diagnostic seul**, base
   `integration 36189aa` : les portions **33 → 30** résultent de quatre
   services disparus et d'un supplémentaire. Mine 7 : deux parts supprimées
