@@ -1,6 +1,9 @@
 # État du développement
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
+
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Un acte lourd ou irréversible issu du texte libre affiche le plan entier, puis attend une confirmation revalidée ; annulation sans effet, plan périmé refusé. Intégration jusqu'à G17 (60c476a) fusionnée dans la branche ; 200 tests ciblés verts.
+
 - **Lot 339 terminé, branche `codex-suite-rouge`, fusionnée**,
   base `integration e37d9ee` : six incidents de rejeu/audit attribués
   aux parents directs G15 `6037855` vert / `e0be70d` rouge. Signature
@@ -128,6 +131,75 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   [Rapport 337](taches/rapport-codex-337-fin-garde-ouidire.md).
   Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Les propriétés qui terminent une garde (porteur, droits datés, fin d'objet) passent par la voie commune des nouvelles, identité distincte d'une accusation de portage ; le gardien qui croit la nouvelle termine garder comme sur constat. Conflit agendas.py avec 336 résolu par l'agent ; suspect 219 crue/7 certifié reprise légitime (sonde corrigée, moteur inchangé). 390/392 tests verts, deux échecs préexistants sur l'intégration.
 
+- **Lot 325 / U-C, branche `codex-uc-consentement`, non fusionnée**, base
+  initiale `codex-up-recapitulatif 865aff3` (lot 319) :
+  préparation du libre sur copie, transactions et plan entier ; gravité sur
+  les effets typés de toutes les branches et sous-plans, nouvel effet lourd
+  par défaut. Aperçu « Compris » avant acte lourd, annulation sans publication,
+  confirmation sans modèle après revalidation ; état ou rapport modifié,
+  même sans nouvelle révision, impose un nouvel aperçu. Narration périmée
+  remplacée par les faits publics recalculés. Résultat et mots sauvegardés
+  avant affichage ; actes légers et gestes directs conservent leur politique.
+  **83 tests ciblés : 82 verts, un échec TUI, 557,117 s**, aucun saut/erreur.
+  Les huit tests U-C, dont 18 parcours lourds et narration périmée, sont verts.
+  Correction de l'échec : demander les termes d'une récompense ne prend pas
+  l'engagement ; accepter reste lourd. Quatre parcours Gorm/second donneur
+  console/web vérifient l'état et le rendu rechargés. **Reprise verte : 37/37,
+  468,682 s**, dont 9 tests U-C et 28 tests TUI inchangés ; zéro échec/erreur/
+  saut. 47 autres tests conservés, sans transaction du type corrigé :
+  **84 tests distincts couverts**. Zéro appel après les 18 confirmations.
+  **Lot terminé, branche poussée, aucun calcul actif** ;
+  `C:/Users/msics/donjon/artifacts/uc-325/fin-cloture.json` vert.
+  `fin.json` initial avec `ok=false` et sondes imparfaites conservés.
+  Aucun Luna, banc, suite complète ou retrait de revue ; recouvrements avec
+  321/323 sur `jeu.py` seulement. Bruts `C:/Users/msics/donjon/artifacts/uc-325/`.
+  **Reprise après fusion d'U-P** : `origin/integration 9f261f9` fusionnée
+  sans rebase ; conflit `etat-dev.md` résolu en conservant les deux côtés.
+  Fabrication terminal et oracles U-P actualisés conservés. Tests U-C portés
+  sur `emissions.joueur/pnj` (G15), textes et contrôles d'état inchangés.
+  **94/94 tests verts, sept fichiers complets, 782,847 s**, zéro échec,
+  erreur ou saut : U-C 9, U-P 5, TUI 28, fabrication terminal 10, narration
+  31, transactions 2 et web 9. Tous rejoués après fusion ; aucun résultat
+  conservé dans ce bilan. Zéro appel après les 18 confirmations.
+  **Reprise terminée, branche poussée, aucun calcul actif** ; bruts
+  `C:/Users/msics/donjon/artifacts/uc-325/`, `fin-fusion.json` vert.
+  Aucune suite complète, Luna ou banc. G5 `49608db`, arrivé ensuite
+  dans la référence partagée, n'est pas inclus dans cette fusion de `9f261f9`.
+  **Nouvelle reprise demandée** : `origin/integration ad0e5a8`, incluant
+  G5 (323) et les offres de protection (336), fusionnée sans rebase.
+  Seul conflit documentaire, deux côtés conservés ; l'enregistrement de
+  « regarder » de G5 et le chemin de consentement U-C coexistent dans `jeu.py`.
+  **110 tests distincts validés, neuf fichiers** : 101 verts conservés et
+  neuf tests web rejoués verts (**13,296 s**), code/tests inchangés.
+  Passe initiale **881,138 s**, 109 verts et une erreur TCP `WinError 10053`
+  au contrôle HTTP 403 d'un hôte externe ; cause exacte non établie,
+  fichier et assertions inchangés, premier bilan en erreur conservé.
+  Aucun échec d'assertion ni saut. U-C 9, TUI 28, perception 9 et questions
+  sur absents 7 verts ; zéro appel après les 18 confirmations.
+  **Reprise terminée, branche poussée, aucun calcul actif**, sans suite
+  complète, Luna ou banc. Bruts `C:/Users/msics/donjon/artifacts/uc-325/` :
+  `fusion-ad0e5a8/fin-cloture.json` vert, `fin.json` initial avec `ok=false`.
+  **Reprise du 30 octobre : intégration `60c476a` (G6/G17)** fusionnée sans
+  rebase ; `etat-dev.md` conserve les deux côtés. Conflit `jeu.py` résolu :
+  perception immédiate selon le contrat partagé `PERCEPTIONS`, faisabilité
+  des autres gestes et consentement lourd conservés. Comptes G17 repris
+  depuis les émissions réellement admises, aussi en composition et après
+  revalidation ; sceaux recalculés, aucune réplique libre périmée publiée.
+  Précontrôles verts : deux tests / quatre parcours G6 et U-C/G17 (35,023 s),
+  onze tests G17 (96,683 s). Les tests comptables ajoutent explicitement
+  `tenter`, oracles mécaniques inchangés ; U-P conserve la consultation G6
+  immédiate. **200 tests distincts validés, vingt fichiers liés à `jeu.py`** :
+  191 résultats verts conservés et neuf tests des comptes parlés rejoués
+  verts (**65,076 s**). Passe initiale **1 485,276 s**, deux erreurs de
+  sous-cas dans la même méthode (Corvus/Alix), aucun échec d'assertion ni
+  saut : un harnais secondaire quittait avant `tenter`. Raccordé au même
+  parcours de consentement, assertions intactes ; production inchangée.
+  G6 immédiat, sceaux G17 recalculés et composition entière validés ;
+  28 tests TUI verts, zéro appel après les 18 confirmations mesurées.
+  **Reprise terminée, branche poussée, aucun calcul actif** ; sans suite
+  complète, Luna ou banc. Calcul détaché réduit ; bruts sous `uc-325/`,
+  `fusion-60c476a/fin-cloture.json` vert ; premier `fin.json` en erreur conservé.
+  [Rapport 325](taches/rapport-codex-325-uc-consentement.md).
 - **Reprise 326 / G17 terminée, fusionnée**, branche `codex-g17-comptes` :
   fusions sans rebase `aba1e4b` (`9f261f9`), `b33d22a` (`ad0e5a8`, 323/336),
   **`f324cbe` (`64130fa`, 328/G6)** ; conflits documentaires seuls, deux côtés

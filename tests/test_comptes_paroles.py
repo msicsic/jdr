@@ -2,13 +2,15 @@
 from donjon.emissions import pnj as emissions_pnj
 import copy
 import unittest
+from unittest.mock import patch
 
 from donjon.biens import offres_joueur
 from donjon.comptes_narratifs import completer, controler, lire, phrases, nombre
 from donjon.narration import consigner
 from donjon.monde import ErreurMonde
 from donjon.rendu import decrire_comptes
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_comptes_issue import audit
 from tests.test_parole_corrections import banc
 from tests.test_prime_offre import scene
@@ -153,9 +155,12 @@ class ComptesParolesTests(unittest.TestCase):
                 m.objets['vivres'].update(nom='soupe', aliases=['soupe'])
                 condition = {'objet':'vivres', 'servir':'joueur'}
                 avant = m.joueur['or']
-                r, sortie, appels = marche(m, 'vivres', demande={'type':'tache', 'condition':condition},
-                    comptes=[compte('joueur', 'aubin', montant=3, etat='rendu'),
-                             compte('aubin', 'joueur', 'vivres', 1)])
+                # Ce harnais secondaire doit lui aussi envoyer le consentement
+                # explicite avant de contrôler paiement, service et mots G17.
+                with patch('tests.test_part_proposee.jouer', jouer):
+                    r, sortie, appels = marche(m, 'vivres', demande={'type':'tache', 'condition':condition},
+                        comptes=[compte('joueur', 'aubin', montant=3, etat='rendu'),
+                                 compte('aubin', 'joueur', 'vivres', 1)])
                 emission = emissions_pnj(r)[-1]
                 self.assertIn("Tu m'as payé 3 pièces.", emission['texte'])
                 self.assertIn('une part de soupe', emission['texte'])

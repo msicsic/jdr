@@ -17,11 +17,11 @@ from donjon.noms import NomNonResolu, verifier_saisie
 from donjon.narration import consigner as consigner_narration, rendre_resultat
 from donjon.dialogues import preparer_conversation, commande_sociale
 from donjon.commandes import repondre as repondre_appel
-from donjon.transactions import appliquer as appliquer_transactions
 from donjon.comparaison import Comparateur, texte_comparaison
 from donjon.rendu import carte, fiche, regarder, decrire_accords
 from donjon.temps import PAS_JOUEUR, dire_duree
-from donjon.comprehension import plan_admis, transactions_admises
+from donjon.comprehension import plan_admis
+from donjon.consentement import PropositionLibre, preparer as preparer_libre
 
 
 BASE = Path(__file__).resolve().parent
@@ -251,10 +251,76 @@ def main(argv=None, interface=None):
         def actualiser_pending(travail):
             if pending is None:
                 return None
+            if isinstance(pending, PropositionLibre):
+                # Ne jamais remplacer silencieusement ce que le joueur a vu.
+                return pending
             suite = Moteur(travail).preparer(pending.proposition, pending.origine)
             if pending.compris:
                 suite.compris = plan_admis(travail, suite)
             return suite
+
+        def montrer_libre(dossier, intention, *, faisabilite=False, changement=False):
+            fiche_proposition = dossier.resume(m)
+            if changement:
+                fiche_proposition = "Le monde ou le plan a changé : vérifie ce nouvel aperçu.\n" + fiche_proposition
+            if faisabilite:
+                fiche_proposition += "\nFaisabilité seulement : aucune action exécutée."
+            fiche_proposition += "\n« tenter » pour agir ; « annuler » pour abandonner."
+            m.memoriser(intention, fiche_proposition, "proposition_non_executee", complet=True)
+            m.data["conversation"][-1]["compris"] = dossier.compris
+            m.sauver(args.save)
+            imprimer("\n" + fiche_proposition)
+
+        def executer_libre(dossier, intention, numero=0, *, confirme=False):
+            nonlocal pending
+            if not dossier.est_actuel(m):
+                nouveau = dossier.revalider(m)
+                if nouveau.erreur:
+                    raise ErreurMonde(nouveau.erreur, nouveau.attendu)
+                pending = nouveau
+                montrer_libre(nouveau, intention, changement=True)
+                return
+            travail, reponse = dossier.travail, dossier.reponse
+            transactions, rapports = reponse.get("_transactions", []), dossier.rapports
+            if dossier.plan:
+                resultat = Moteur(travail).executer(dossier.plan)
+                compte = dossier.compte_parle()
+                if compte:
+                    consigner_narration(travail, compte)
+                affichage = "\n".join(filter(None, (
+                    compte["texte"] if compte else "", rendre_resultat(resultat), dossier.compris)))
+                nature = "resultat_moteur"
+            else:
+                types = [t["type"] for t in transactions]
+                nature = ("conversation_pnj" if "conversation_pnj" in types else
+                          "parole_joueur" if "parole" in types else
+                          "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
+                affichage = "\n".join(filter(None, (reponse.get("_prefixe_moteur"),
+                                                   reponse["texte"], dossier.avis_narration, dossier.compris)))
+                consigner_narration(travail, reponse)
+            # La préparation précède l'aperçu : conserver aussi son historique,
+            # sans restaurer une ancienne copie du monde à la confirmation.
+            travail.data["conversation"] = list(m.data.get("conversation", []))
+            travail.memoriser(intention, affichage, nature, complet=True)
+            if dossier.compris:
+                travail.data["conversation"][-1]["compris"] = dossier.compris
+            suite = (None if dossier.plan or confirme else
+                     actualiser_pending(travail) if transactions else pending)
+            travail.sauver(args.save)
+            m.data = travail.data
+            pending = suite
+            imprimer(affichage)
+            if isinstance(mj, Comparateur):
+                if dossier.plan and numero:
+                    mj.noter_resultat(resultat, numero=numero)
+                for t, rapport in zip(transactions, rapports):
+                    if t["type"] == "conversation_pnj":
+                        mj.noter_resultat(reponse["texte"], rapport)
+                    elif t["type"] == "savoirs":
+                        mj.noter_savoirs(reponse["texte"], t["proposition"])
+            if dossier.plan and dossier.plan.proposition["action"] == "aller":
+                afficher("carte")
+                afficher("scene")
 
         def executer_local(p, texte):
             nonlocal pending, comparaison_pending
@@ -351,6 +417,14 @@ def main(argv=None, interface=None):
                     if pending is None:
                         imprimer("Aucune proposition en attente.")
                         continue
+                    if isinstance(pending, PropositionLibre):
+                        nouveau = pending.revalider(m)
+                        if nouveau.erreur or nouveau.signature != pending.signature:
+                            pending = nouveau
+                            montrer_libre(pending, texte, changement=True)
+                            continue
+                        executer_libre(nouveau, texte, comparaison_pending, confirme=True)
+                        continue
                     plan = pending
                     resultat = moteur.executer(plan)
                     pending = None
@@ -362,6 +436,7 @@ def main(argv=None, interface=None):
                 if cmd == "annuler":
                     pending = None
                     m.memoriser(texte, "Proposition abandonnée sans exécution.", "annulation")
+                    m.sauver(args.save)
                     imprimer("Proposition abandonnée.")
                     continue
                 if cmd == "connecter":
@@ -483,71 +558,21 @@ def main(argv=None, interface=None):
                     imprimer("Le MJ réfléchit…", flush=True)
                     reponse = mj.echanger(m, texte[3:] if force_mj else texte,
                                          pending.proposition if pending else None)
-                    transactions = reponse.get("_transactions", [])
-                    if reponse["mode"] == "dialogue":
-                        travail, rapports = appliquer_transactions(m, transactions)
-                        compris = transactions_admises(m, transactions, rapports)
-                        if not transactions:
-                            compris = "Question au MJ : aucune action exécutée." if question else ""
-                        suite = actualiser_pending(travail) if transactions else pending
-                        types = [t["type"] for t in transactions]
-                        nature = ("conversation_pnj" if "conversation_pnj" in types else
-                                  "parole_joueur" if "parole" in types else
-                                  "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
-                        prefixe = reponse.get("_prefixe_moteur")
-                        affichage = "\n".join(filter(None, (prefixe, reponse["texte"], compris)))
-                        travail.memoriser(texte, affichage, nature, complet=True)
-                        if compris and transactions:
-                            travail.data["conversation"][-1]["compris"] = compris
-                        consigner_narration(travail, reponse)
-                        # Ne montrer la nouvelle fiction qu'après sa sauvegarde réussie.
-                        travail.sauver(args.save)
-                        m.data, pending = travail.data, suite
-                        imprimer(affichage)
-                        if isinstance(mj, Comparateur):
-                            for t, rapport in zip(transactions, rapports):
-                                if t["type"] == "conversation_pnj":
-                                    mj.noter_resultat(reponse["texte"], rapport)
-                                elif t["type"] == "savoirs":
-                                    mj.noter_savoirs(reponse["texte"], t["proposition"])
-                        continue
-                    p = reponse["proposition"]
-                    compris_transactions = ""
-                    if transactions:
-                        travail, rapports = appliquer_transactions(m, transactions)
-                        compris_transactions = transactions_admises(m, transactions, rapports)
-                        travail.sauver(args.save)
-                        m.data = travail.data
-                    pending = None
-                    if p.get("action") in ("clarifier", "impossible"):
+                    if (reponse["mode"] == "action" and
+                            reponse["proposition"].get("action") in ("clarifier", "impossible")):
                         raise ErreurMonde("L'avis du MJ doit être contrôlé comme un dialogue avant affichage.")
-                    pending = moteur.preparer(p, origine="reprise mémorisée" if reponse.get("_reprise_locale") else "LLM : " + mj.modele)
+                    origine = "reprise mémorisée" if reponse.get("_reprise_locale") else "LLM : " + mj.modele
+                    dossier = preparer_libre(m, reponse, origine)
                     comparaison_pending = mj.numero if isinstance(mj, Comparateur) else 0
-                    # Une consultation de perception répond immédiatement ;
-                    # la faisabilité d'un geste à effet reste une proposition.
-                    essai_a_blanc = question and p.get("action") not in PERCEPTIONS
-                    compris = "\n".join(filter(None, (compris_transactions, plan_admis(m, pending))))
-                    if not essai_a_blanc and not pending.stat and not pending.echec_critique and not pending.confirmation:
-                        plan = pending
-                        resultat = moteur.executer(plan)
-                        pending = None
-                        conclure(plan, resultat, texte, comparaison_pending, compris)
-                        if p["action"] == "aller":
-                            afficher("carte")
-                            afficher("scene")
-                        continue
-                    pending.compris = compris
-                    fiche_proposition = pending.resume(m)
-                    if essai_a_blanc:
-                        fiche_proposition += "\nFaisabilité seulement : aucune action exécutée."
-                    m.memoriser(texte, fiche_proposition, "proposition_non_executee", complet=True)
-                    m.data["conversation"][-1]["compris"] = compris
-                    m.sauver(args.save)
-                    imprimer("\n" + fiche_proposition)
-                    suite_fiche = "" if pending.etapes else "« tenter » pour agir ; « annuler » pour abandonner."
-                    if essai_a_blanc or suite_fiche:
-                        imprimer(" ".join(filter(None, ("Rien n'est encore tenté." if essai_a_blanc else "",
-                                                        suite_fiche))))
+                    if question and not reponse.get("_transactions") and not dossier.plan:
+                        dossier.compris = "Question au MJ : aucune action exécutée."
+                    essai_a_blanc = bool(question and dossier.plan
+                                         and dossier.plan.proposition["action"] not in PERCEPTIONS)
+                    if dossier.confirmation or essai_a_blanc:
+                        pending = dossier
+                        montrer_libre(dossier, texte, faisabilite=essai_a_blanc)
+                    else:
+                        executer_libre(dossier, texte, comparaison_pending)
                 else:
                     executer_local(p, texte)
             except ErreurMonde as exc:

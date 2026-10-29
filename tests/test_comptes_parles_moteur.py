@@ -12,7 +12,7 @@ from donjon.narration import consigner
 from donjon.paroles import SCHEMA_PAROLE, preparer_parole
 from donjon.rendu import decrire_comptes, fiche
 from tests.support import presentes, regarder
-from tests.test_audits_attendu import jouer
+from tests.consentement_support import jouer
 from tests.test_dialogues import conversation, reponse as conversation_mj
 from tests.test_parole_corrections import banc
 from tests.test_prime_offre import scene

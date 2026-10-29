@@ -9,7 +9,8 @@ from donjon.narration import consigner, controler
 from donjon.rendu import decrire_comptes
 from donjon.monde import ErreurMonde
 from donjon.voix import personne_pour_joueur
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
 from tests.test_tensions import recharger

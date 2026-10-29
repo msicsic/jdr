@@ -6,7 +6,7 @@ from donjon.biens import compte
 from donjon.comptes_narratifs import completer, controler, phrases
 from donjon.narration import segments_etablis
 from donjon.rendu import decrire_comptes
-from tests.test_audits_attendu import jouer
+from tests.consentement_support import jouer
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
 from tests.test_tensions import recharger
