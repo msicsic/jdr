@@ -33,7 +33,7 @@ Les premiers échecs de prémisses (cases, visibilité et inconscience) sont con
 dans les bruts ; aucun oracle existant affaibli. Dernière reprise : neuf tests,
 8,319 s ; les sept autres fichiers verts ne sont pas relancés.
 
-**Banc à venir :** vingt nuits de 4 h, cinq scénarios × 1985/7/42/2024,
+**Banc détaché lancé sur `0b60a91` :** vingt nuits de 4 h, cinq scénarios × 1985/7/42/2024,
 deux travailleurs réduits, référence puis branche. Le cache local ne contient
 aucune nuit compatible de la base 7e65907 ; les références manquantes sont calculées
 une seule fois par le comparateur commun, rangées puis réutilisables. La sonde 219
@@ -43,6 +43,9 @@ suspects, aucun plantage ou usurpation ; regards suivis, dixièmes de rotation, 
 de la branche, appels et CPU inclusif des signes perçus et du choix d'attention.
 Ces deux derniers temps se recouvrent et ne s'additionnent pas ; le CPU inclut
 l'instrumentation. Aucun résultat de banc ni gain de performance revendiqué ici.
+Processus initial **43552**, interpréteur enfant **33816**, tous deux constatés
+actifs en `BelowNormal`, le 29 octobre à 22 h 05 (Paris), sans erreur de démarrage.
+`demarrage.json` conserve le lancement ; reprendre sur **`fin.json`**.
 
 **Limites.** Le joueur voit la direction mais la suit manuellement : aucune
 rotation automatique de Corvus. Suivre une direction parallèle au regard du proche
