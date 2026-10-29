@@ -42,6 +42,12 @@ _spec_agendas = importlib.util.spec_from_file_location("donjon.agendas", RACINE 
 agendas = importlib.util.module_from_spec(_spec_agendas)
 _spec_agendas.loader.exec_module(agendas)
 
+# Le rendu appartient aussi à l'observateur courant : celui de la référence
+# peut ignorer le titulaire des références locales d'agenda.
+_spec_recit = importlib.util.spec_from_file_location("donjon.recit_pnj", RACINE / "donjon" / "recit_pnj.py")
+recit_pnj = importlib.util.module_from_spec(_spec_recit)
+_spec_recit.loader.exec_module(recit_pnj)
+
 JOUEURS = {"relais": "chambre_cloche", "mine": "galerie", "auberge": "dortoir", "crue": "chambre_cloche",
            "rixe": "chambre_cloche", "crue_hameau": "chambre_cloche"}
 
@@ -55,7 +61,6 @@ def _releve(monde):
     from donjon.deliberation import attentes, autour, peur_du_noir, seuils, urgents
     from donjon.eau import active, profondeur
     from donjon.esprits import lire, percus, pnjs
-    from donjon.recit_pnj import but_en_mots
     pnj_releves = {}
     for id in pnjs(monde):
         o = monde.objets[id]
@@ -81,7 +86,7 @@ def _releve(monde):
         s = seuils(monde, id)
         pnj_releves[id] = {
             "s": o["lieu"], "p": o.get("position"),
-            "b": but_en_mots(monde, i["but"]) if i else None, "bt": i["but"]["type"] if i else None,
+            "b": recit_pnj.but_en_mots(monde, i["but"], titulaire=id) if i else None, "bt": i["but"]["type"] if i else None,
             "mo": i["motif"] if i else None, "pl": len(i["plan"]) if i else 0,
             "u": urgents(monde, id), "bes": {k: round(v) for k, v in e["besoins"].items() if k in s and v >= s[k] - 5},
             # Le comparateur charge aussi cet observateur sur des références plus anciennes.

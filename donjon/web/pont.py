@@ -82,6 +82,7 @@ class PontWeb:
                 "fiche": fiche(monde), "regard": regarder(monde),
                 "inventaire": inventaire_public(monde), "destinataires": destinataires_publics(monde),
                 "ressources": ressources_publiques(monde),
+                "fabrication": ressources_publiques(monde, decrire_physique=True),
                 "salle": monde.data["salles"][monde.joueur["salle"]]["nom"],
                 "pv": f'{monde.joueur["pv"]}/{monde.joueur["pv_max"]}', "or": monde.joueur["or"], "or_texte": quantite(monde.joueur["or"], "pièce"),
                 "minutes": monde.data["minutes"],

@@ -31,32 +31,24 @@ def destinataires_publics(monde):
                          and (not monde.data.get("mode_cases") or proche(monde, id))])
 
 
-def ressources_publiques(monde):
+def ressources_publiques(monde, decrire_physique=False):
     """Choix matériels connus, sans capacités, règles ni inventaire d'autrui."""
     from .francais import designer
-    from .noms import public, PERSONNES
-    from .spatial import proche
-
-    def chez_autrui(o):
-        parents = set()
-        while o["lieu"] in monde.objets and o["lieu"] not in parents:
-            parents.add(o["lieu"])
-            o = monde.objets[o["lieu"]]
-            if o["type"] in PERSONNES:
-                return True
-        return False
+    from .noms import public
+    from .gestes_publics import ressource_connue
 
     biens = []
     for id, o in monde.objets.items():
-        if o["type"] in (*PERSONNES, "partie_corps") or chez_autrui(o):
+        if not ressource_connue(monde, id):
             continue
-        porte = o["lieu"] == "joueur" and monde.present_physique(id)
         vu = monde.visible(id)
-        if not porte and not (vu and (not monde.data.get("mode_cases") or proche(monde, id))):
-            continue
         bien = {"id": id, "nom": designer(o), "type": o["type"]}
+        if decrire_physique:
+            from .matiere import decrire
+            physique = o.get("physique")
+            bien["description_physique"] = (physique["forme"] + " : " + decrire(o) if physique else
+                                            "Description physique manquante : forme et dimensions à établir séparément.")
         if vu and o.get("foyer"):
             bien["foyer"] = True
         biens.append(bien)
     return public(monde, biens)
-

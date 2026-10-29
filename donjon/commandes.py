@@ -47,6 +47,8 @@ AIDE = """COMMANDES LOCALES — sans appel API
   ramper sous <obstacle> | passer par-dessus <obstacle>  fiche du passage ; « tenter » pour agir
   désinstaller échelle                 retirer l'accès vertical depuis son pied ou son sommet
   fabriquer échelle                    assemblage local si les matériaux sont à portée
+  assembler <usage> montants <a>, <b> barreaux <c> lien <d> outil <e> longueur <cm> largeur <cm> rythme <normal|soigne>
+  découper <pièce> à <cm> cm avec <outil>  couper à longueur, sans décrire ni choisir d'autres matériaux
   attendre [durée]                     5 minutes, ou « attendre 30 s », « attendre 10 min » ; le bruit
                                        diminue ; tu cesses d'attendre si quelqu'un paraît, ou si un
                                        appel, un cri, un fracas, des paroles nettes te parviennent
@@ -126,6 +128,83 @@ def geste_local(action, cible, outil="", methode="simple", destination=""):
     return proposition(action, cible, outil, methode)
 
 
+def fabrication_locale(action, cible, parametres):
+    """Choix de fabrication commun au formulaire et à la commande explicite.
+
+    La difficulté normale reprend la convention de fabrication existante (12).
+    Aucun paramètre ne décrit une propriété nouvelle d'une pièce.
+    """
+    if action == "decouper":
+        return {"action": action, "cible": cible, **parametres, "justification": ""}
+    return {"action": action, "usage": cible, **parametres,
+            "difficulte": 0 if parametres["rythme"] == "soigne" else 12, "justification": ""}
+
+
+def fabrication_descripteur(monde, d):
+    from .monde import ErreurMonde
+    from .voix import reel
+    from .noms import reference
+    from .gestes_publics import formulaires_fabrication, ressource_connue
+    action, cible = d["geste"], d["cible"]
+    p = d.get("parametres", {})
+    offres = [f for f in formulaires_fabrication() if f["geste"] == action
+              and (action == "decouper" or f["cible"] == cible)]
+    if not offres:
+        raise ErreurMonde("Cet usage n'est pas modélisé.",
+                          f"descripteur.cible : reçu {cible!r} ; usages : {[f.get('cible') for f in formulaires_fabrication() if f['geste'] == action]}.")
+    formulaire = offres[0]
+    attendus = {c["chemin"][0] for c in formulaire["champs"]} - {"cible"}
+    if not isinstance(p, dict) or set(p) != attendus:
+        raise ErreurMonde("Paramètres de fabrication incomplets ou inconnus.",
+                          f"descripteur.parametres : reçu {p!r} ; champs exacts : {sorted(attendus)}.")
+    from copy import deepcopy
+    p = deepcopy(p)
+
+    def exacte(ref, champ):
+        id = reel(monde, ref)
+        if not ressource_connue(monde, id) or ref == id and reference(monde, id) != ref:
+            raise ErreurMonde("Tu ne vois plus cette ressource à portée.",
+                              f"descripteur.{champ} : reçu {ref!r} ; référence publique portée ou perçue à portée.")
+        return id
+
+    if action == "assembler":
+        roles = {}
+        for c in formulaire["champs"]:
+            chemin = c["chemin"]
+            if chemin[0] == "pieces":
+                roles[chemin[1]] = max(roles.get(chemin[1], 0), chemin[2] + 1) if len(chemin) == 3 else 0
+        pieces = p["pieces"]
+        if (not isinstance(pieces, dict) or set(pieces) != set(roles)
+                or any(n and (not isinstance(pieces[k], list) or len(pieces[k]) != n) for k, n in roles.items())):
+            raise ErreurMonde("Pièces mal désignées.", f"descripteur.parametres.pieces : reçu {pieces!r} ; rôles et nombres : {roles}.")
+    for c in formulaire["champs"]:
+        chemin = c["chemin"]
+        parent, cle = p, chemin[-1]
+        if chemin == ["cible"]:
+            valeur = cible
+        else:
+            for k in chemin[:-1]:
+                parent = parent[k]
+            valeur = parent[cle]
+        if c["type"] == "ressource":
+            if not isinstance(valeur, str) or not valeur or len(valeur) > 1000:
+                raise ErreurMonde("Choisis une référence publique pour chaque ressource.",
+                                  f"descripteur.{chemin} : reçu {valeur!r} ; chaîne non vide de 1000 caractères au plus.")
+            id = exacte(valeur, ".".join(map(str, chemin)))
+            if chemin == ["cible"]:
+                cible = id
+            else:
+                parent[cle] = id
+        elif c["type"] == "nombre":
+            if type(valeur) is not int or valeur < c["minimum"] or ("maximum" in c and valeur > c["maximum"]):
+                raise ErreurMonde("Choisis une dimension entière dans les limites du formulaire.",
+                                  f"descripteur.{cle} : reçu {valeur!r} ; entier minimum {c['minimum']}, maximum {c.get('maximum', 'selon la pièce')}.")
+        elif valeur not in c["choix"]:
+            raise ErreurMonde("Ce choix de fabrication est inconnu.",
+                              f"descripteur.{cle} : reçu {valeur!r} ; choix {c['choix']}.")
+    return fabrication_locale(action, cible, p)
+
+
 def proposition_descripteur(monde, descripteur):
     """Décode des références exactes ; aucune recherche de nom, ni préalable inventé.
 
@@ -144,6 +223,8 @@ def proposition_descripteur(monde, descripteur):
         raise ErreurMonde("Je n'ai pas compris ce geste : aucune modification.",
                           "descripteur : geste et cible non vides, parametres optionnels ; aucun autre champ.")
     action, cible = d["geste"], d["cible"]
+    if action in {"assembler", "decouper"}:
+        return fabrication_descripteur(monde, d)
     actions = {"examiner", "observer", "lire", "allumer", "eteindre", "manger", "ouvrir", "fermer",
                "prendre", "poser", "remettre", "prelever", "deverrouiller", "crocheter", "tourner", "marcher",
                "frapper", "alimenter", "mettre"}
@@ -386,6 +467,20 @@ def analyser(monde, texte):
     if est_question(texte):
         return None
     texte = normaliser(texte)
+    decoupe = re.fullmatch(r"decouper (.+) a ([0-9]{1,6}) cm avec (.+)", texte)
+    if decoupe:
+        cible, longueur, outil = decoupe.groups()
+        return fabrication_locale("decouper", monde.trouver(cible),
+                                  {"longueur_cm": int(longueur), "outil": monde.trouver(outil)})
+    assemblage = re.fullmatch(
+        r"assembler (\S+) montants (.+?), (.+?) barreaux (.+?) lien (.+?) outil (.+?) "
+        r"longueur ([0-9]{1,6}) largeur ([0-9]{1,6}) rythme (normal|soigne)", texte)
+    if assemblage:
+        usage, a, b, barreaux, lien, outil, longueur, largeur, rythme = assemblage.groups()
+        return fabrication_locale("assembler", usage, {
+            "pieces": {"montants": [monde.trouver(a), monde.trouver(b)], "barreaux": monde.trouver(barreaux)},
+            "lien": monde.trouver(lien), "outil": monde.trouver(outil),
+            "longueur_cm": int(longueur), "largeur_cm": int(largeur), "rythme": rythme})
     for prefixe, methode in (("ramper sous ", "dessous"), ("je rampe sous ", "dessous"),
                               ("passer sous ", "dessous"), ("je passe sous ", "dessous"),
                               ("passer par-dessus ", "dessus"), ("je passe par-dessus ", "dessus"),

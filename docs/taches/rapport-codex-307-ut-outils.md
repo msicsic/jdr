@@ -1,6 +1,8 @@
 # Lot 307 — U-T outils et destinations
 
 Branche `codex-ut-outils`, base `integration d7302a4`, **non fusionnée**.
+Reprise par fusion sans rebase d'`origin/integration 43440c6` (lot 305 inclus),
+résolue ; vérification de reprise en cours, bilan initial conservé.
 
 ## Invariant et changement
 
@@ -63,10 +65,14 @@ refusés par les droits des dossiers temporaires ; les vérifications
 retenues ont tourné hors de ce bac, sur copies, avec deux travailleurs
 au plus, à priorité réduite. Ni Luna, ni banc PNJ, ni suite complète.
 Bruts : `C:/Users/msics/donjon/artifacts/ut-outils-307/`.
-`origin/integration` relue et fusionnée sans rebase au lancement puis à
-la clôture : toujours `d7302a4`, branche à jour. Le lot 305 n'y est pas
-encore présent ; aucune compatibilité avec son futur catalogue n'est
-prétendue. Code et tests validés au commit `79c9b89`, inchangés depuis.
-Branche poussée vers `origin/codex-ut-outils`, aucun calcul actif.
-Clôture `fin-cloture.json` écrite en dernier ; intégration du lot et
-suite complète laissées au superviseur.
+Bilan initial : code/tests `79c9b89`, clôture `81c0d5e` poussée ;
+`fin-cloture.json` conservée. Reprise sur `43440c6` : projection enrichie
+du 305 déplacée dans le module commun, avec `decrire_physique` et
+`ressource_connue` conservés ; pont réexportant la même fonction, entrée
+SSE de fabrication et catalogue intactes. Seuls conflits : pont et état.
+Les trois échecs d'intégration signalés concernant les références opaques
+et coordonnées restent hors périmètre, comme demandé.
+Les neuf fichiers précédents et `test_fabrication_publique.py` sont
+relancés, plus syntaxe Node et callbacks réels :
+`fin-reprise-integration.json` attendu. Aucune validation anticipée de la
+reprise ; intégration du lot et suite complète laissées au superviseur.
