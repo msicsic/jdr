@@ -3,17 +3,22 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Lot 315, branche `codex-reclamations-repetees`, base `c4f6d46`,
-  vérification détachée en cours** : les retours de Sève 2024 du 306 ne
-  suivent aucun refus ; le plan de créance s’arrêtait à l’entrée de salle,
-  sans contact. Demande typée au bout du trajet et réponse aux dettes dans
-  la mémoire commune durable, sans délai ni lecture de bourse cachée.
-  Cinq nouveaux tests verts ; capture réelle avant 83 : deux dettes
-  réglées en 83/84, monde/rendu/scène rechargés, laps entier/découpé et
-  textes identiques. Refus Relais/auberge, anciens plans et moyens nouveaux
-  couverts. Neuf fichiers ciblés, seize paires d’empreintes 2 h et quatre
-  nuits hameau 4 h à instruire après le calcul. Aucun Luna ni suite complète.
-  Bruts : `C:/Users/msics/donjon/artifacts/reclamations-315/fin.json`.
-  Recouvrement 314 : `echanges.py`, fonctions distinctes au relevé.
+  reprise de vérification détachée** : les retours de Sève du 306 suivent
+  un plan de créance sans étape de contact, pas un refus. Demande typée et
+  mémoire commune durable sans délai ni bourse cachée. Capture réelle :
+  deux dettes réglées en 83/84, recharge et laps entier/découpé identiques.
+  Premier calcul : 124/126 tests ; deux régressions corrigées sans changer
+  les oracles (double effet social du refus, fausse absence par le passage
+  encore audible). Les deux tests existants repassent ; sixième test ajouté.
+  Hameau b05bb80 : quatre nuits 4 h vertes, suspects 0/0/0/7 → 0/0/0/0,
+  à expliquer 7/5/0/10 → 2/5/0/4, recharges monde/rendu/scène identiques.
+  Empreintes : 13/16 paires identiques ; trois écarts avec réclamations
+  plus précoces à instruire, identité stricte non revendiquée. Reprise :
+  trois fichiers (deux en échec + régression), seules trois nuits divergentes,
+  références conservées ; ni hameau ni paires réussies rejoués. Aucun Luna
+  ni suite complète. Bruts `C:/Users/msics/donjon/artifacts/reclamations-315/` :
+  `fin.json` en échec conservé ; nouveau fichier attendu `fin-reprise.json`.
+  Recouvrement 314 : `echanges.py`, fonctions distinctes au relevé initial.
   [Rapport 315](taches/rapport-codex-315-reclamations-repetees.md).
 
 - **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :

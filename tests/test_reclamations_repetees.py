@@ -71,6 +71,10 @@ class ReclamationsRepeteesTests(unittest.TestCase):
                     lignes = []
                     self.assertFalse(executer(m, a, geste, lignes))
                     self.assertEqual(m.data['dettes'][0]['montant'], 2)
+                    if not sans_fonds:
+                        from donjon.relations import envers
+                        self.assertEqual(envers(m, a, de)['motifs'][-1]['type'], 'dette_niee')
+                        self.assertFalse(any(s['type'] == 'refus' for s in lire(m, a)['memoire']))
                     self.assertEqual(deliberation.refus_retenu(m, a, de, ('reclamer_dette',))['raison'],
                                      'sans_le_sou' if sans_fonds else 'garde')
                     m = self.recharge(m)
@@ -83,6 +87,28 @@ class ReclamationsRepeteesTests(unittest.TestCase):
                     solder(m, [])
                     self.assertEqual(len(m.data['chronique']), avant)
                     self.recharge(m)
+
+    def test_debiteur_entendu_par_le_passage_n_est_pas_declare_absent(self):
+        from donjon.pnj import pourraient_se_parler
+        m, a, de, objet = self.preparer(honnete=True)
+        # Même configuration de passage que le rejeu Ilse/Gorm : le débiteur
+        # a passé la porte après le dernier regard, sa parole reste audible.
+        placer(m, a, 'crypte', (3, 0))
+        placer(m, de, 'echoppe', (4, 3))
+        from tests.support import regarder
+        m.joueur.update(salle='echoppe', position=[3, 3])
+        regarder(m, 'joueur', de)
+        croire(m, a, de, 'lieu', 'crypte', 'vu', salle='crypte', case=[4, 0])
+        self.assertTrue(pourraient_se_parler(m, a, de))
+        geste = planification.reclamer(m, a)[1][-1]
+        avant = bourse(m, a)
+        lignes = []
+        self.assertTrue(executer(m, a, geste, lignes))
+        self.assertEqual(bourse(m, a), avant + 2)
+        self.assertFalse(any(d['montant'] for d in m.data['dettes']))
+        self.assertIsNotNone(lire(m, a)['croyances'][de]['lieu']['valeur'])
+        self.assertTrue(any('rend' in x for x in lignes))
+        self.recharge(m)
 
     def test_bourse_privee_et_dates_ne_levent_pas_la_reponse(self):
         m, a, de, objet = self.preparer(sans_fonds=True)

@@ -1,7 +1,7 @@
 # Lot 315 — réclamations et contact du débiteur
 
 Branche `codex-reclamations-repetees`, base intégration **c4f6d46**.
-**Vérification détachée en cours ; lot non déclaré terminé.**
+**Reprise de vérification détachée ; lot non déclaré terminé.**
 
 **Cause établie.** Les sept retours de Sève en 2024 ne suivent aucun
 refus de remboursement. La capture 306 t=22057, rejouée sur le moteur de
@@ -31,14 +31,33 @@ Relais et l’auberge : réponse conservée après deux fois REDEMANDE et
 éviction des souvenirs, ancien plan neutralisé, bourse cachée sans effet,
 nouvelle obligation/fonds appris admis, règlement spontané conservé.
 
-**Calcul lancé.** Neuf fichiers de tests concernés ; empreintes 2 h,
-Relais/mine/auberge/crue × quatre graines contre la base figée c4f6d46,
-cache partagé ; puis hameau 4 h × quatre graines, sur worktree temporaire
-avec le seul JSON du 306, inchangé. Référence hameau : les quatre nuits
-archivées du 306, sans les rejouer. Deux travailleurs réduits au plus,
-étapes séquentielles, aucun Luna ni suite complète. Bruts et fichier de fin :
-`C:/Users/msics/donjon/artifacts/reclamations-315/fin.json`.
-Les mesures finales et les éventuels écarts restent à instruire.
+**Premier calcul, 890,531 s.** Neuf fichiers : **124/126 tests verts**.
+Deux régressions corrigées sans changer les tests existants : `retenir_refus`
+créait un second souvenir social après `dette_niee` ; la nouvelle demande
+déclarait absent un débiteur passé dans une autre salle mais encore audible.
+Mémoire de décision sans événement social supplémentaire (`souvenir=False`)
+et même portée de parole que `solder`. Les deux tests existants repassent ;
+un sixième test vérifie la parole par le passage et la recharge du témoin.
+
+**Hameau validé sur b05bb80**, données 306 inchangées, worktree retiré :
+quatre nuits de 4 h, zéro plantage/usurpation ; suspects **0/0/0/7 → 0/0/0/0**,
+à expliquer **7/5/0/10 → 2/5/0/4**. Aucun refus de créance dans ces nuits.
+Monde/rendu/scène rechargés identiques pour chaque graine. Résultats conservés,
+sans rejouer ce banc réussi ; aucune absence universelle de boucle déduite.
+
+**Empreintes : 13/16 paires 2 h identiques.** Relais 7, auberge 1985 et
+crue 1985 diffèrent : premières réclamations nouvelles aux minutes 2, 62,
+3, contre 3, 63, 8 sur la base. Le nouveau geste rend possible une demande
+avant le règlement automatique à la minute ronde : identité stricte non
+atteinte. La sortie d’échec est conservée, aucun oracle modifié. Le détail
+des trois nuits corrigées reste à relire avant qualification finale.
+
+**Reprise lancée :** uniquement les deux fichiers en échec et le fichier
+de régression (42 tests attendus), puis les trois nuits divergentes.
+Références déjà calculées réutilisées, treize autres paires et hameau non
+rejoués. Deux travailleurs réduits, aucune suite complète ni Luna.
+`C:/Users/msics/donjon/artifacts/reclamations-315/fin.json` (échec initial)
+et `fin-reprise.json` (dernier fichier du nouveau calcul).
 
 **Limites et intégration.** Le cas réel est un contact jamais accompli,
 pas un refus : aucune fausse cause de refus n’est créée pour le masquer.

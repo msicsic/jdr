@@ -522,7 +522,7 @@ def regler(monde, d, reclamee, lignes):
     if not possible:
         if reclamee and a != "joueur":
             memoriser(monde, a, {"type": "creance_vaine", "de": de})
-            retenir_refus(monde, a, de, "reclamer_dette", "sans_le_sou")
+            retenir_refus(monde, a, de, "reclamer_dette", "sans_le_sou", souvenir=False)
         return "sans_le_sou"
     if garde_du(monde, de, possible):
         if not reclamee:
@@ -538,7 +538,9 @@ def regler(monde, d, reclamee, lignes):
         else:
             # Le créancier le constate : il ne s'y fie plus, et peut le dire (``social.NOUVELLES``).
             memoriser(monde, a, {"type": "dette_niee", "auteur": de, "victime": a, "montant": d["montant"]})
-            retenir_refus(monde, a, de, "reclamer_dette", "garde")
+            # dette_niee porte déjà l'effet social ; la mémoire de décision
+            # ne doit pas créer un deuxième événement de refus.
+            retenir_refus(monde, a, de, "reclamer_dette", "garde", souvenir=False)
             if monde.visible(de) or monde.visible(a):
                 lignes.append(f"{designer(monde.objets[de], debut=True)} refuse de rendre à "
                               f"{designer(monde.objets[a])} ce qu'{il} lui doit.")
@@ -548,7 +550,7 @@ def regler(monde, d, reclamee, lignes):
     if a != "joueur":
         oublier_refus(monde, a, de, "reclamer_dette")
         if d["montant"]:
-            retenir_refus(monde, a, de, "reclamer_dette", "sans_le_sou")
+            retenir_refus(monde, a, de, "reclamer_dette", "sans_le_sou", souvenir=False)
     pieces = _pieces(possible)
     pour = _ce_qui(monde, d)
     _chroniquer(monde, de, f"{_qui(monde, de)} rend {pieces} à {_qui(monde, a)}" + (f" : {pour}." if pour else "."),
