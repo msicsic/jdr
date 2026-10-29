@@ -62,6 +62,8 @@ def pnjs(monde):
 CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
           "recours_propositions": list, "recours_services": list, "recours_intermediaires": list, "service_en_cours": lambda: None,
           "demande_refusee": lambda: None,
+          "fournitures": dict,  # provenance publique des moyens concrets, hors mémoire bornée
+          "demandes_suspendues": dict,  # demandes sans moyen, réveil sur entrées nouvelles
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, **agendas.CHAMPS,
           "libre": int,   # libre : l'instant (dixièmes de seconde) où il aura fini son geste en cours
           "balayage": lambda: None,   # son dernier tour d'horizon : {salle, case, instant}
@@ -122,10 +124,15 @@ def esprit(monde, id):
     if id == "joueur":
         return monde.data.setdefault("connaissances_joueur", {"croyances": {}, "memoire": [], "faits_dits": {}})
     e = monde.data.setdefault("esprits", {}).setdefault(id, {})
+    migrer_fournitures = 'fournitures' not in e
     if not CHAMPS.keys() <= e.keys():
         for cle, defaut in CHAMPS.items():
             if cle not in e:
                 e[cle] = defaut()
+    if migrer_fournitures:
+        from .poursuites import fourniture
+        for fait in e['memoire']:
+            fourniture(e, fait)
     return e
 
 
@@ -339,6 +346,8 @@ def verifier(monde):
     for id, e in esprits.items():
         assert id in monde.objets and monde.objets[id]["type"] == "personnage", "Esprit sans personnage"
         assert agendas.champs_esprit(e) == set(CHAMPS), "Esprit mal formé"
+        from .poursuites import verifier as verifier_poursuites
+        verifier_poursuites(monde, e)
         from .relations import verifier as verifier_relations
         verifier_relations(monde, id)
         from .pnj_propositions import verifier as verifier_recours
@@ -656,6 +665,8 @@ def memoriser(monde, id, evenement):
     from .temps import instant
     identifier(souvenir, instant(monde))
     memoire.append(souvenir)
+    from .poursuites import fourniture
+    fourniture(esprit(monde, id), souvenir)
     del memoire[:-MEMOIRE_MAX]
     from .relations import souvenir as eprouver_souvenir
     eprouver_souvenir(monde, id, souvenir)

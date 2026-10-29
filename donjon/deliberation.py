@@ -1567,7 +1567,7 @@ def _classer(monde, id, pressants, liste, essais, minute):
         issues = [essais.get(i) for i, (motif, _) in enumerate(liste) if motif == b]
         if "plan" in issues:
             etat = "presse"
-        elif all(x in ("rien", "renonce") for x in issues):
+        elif all(x in ("rien", "renonce", "sommeil") for x in issues):
             etat = "attente"
         else:
             continue
@@ -1776,15 +1776,19 @@ def _reprendre_demande(monde, id, demande):
     if not _raison_tient(monde, id, demande):
         return None
     if "condition" in demande:
-        condition = demande["condition"]
-        if satisfaite(monde, id, condition):
-            return None
-        if demande.get("tache") and _delegue(monde, id, {"condition": condition}):
-            # Une parole payée en cours suspend l'action propre, pas le but.
-            # Refaire une offre à plus bas prix n'est pas sa continuation.
-            intention = lire(monde, id)["intention"]
-            return (intention["but"], []) if intention else None
-        return _plan_pulsion(monde, id, condition, demande.get("tache", False))
+        from .poursuites import conditions
+        for condition in conditions(monde, id, demande):
+            if satisfaite(monde, id, condition):
+                return None
+            if demande.get("tache") and _delegue(monde, id, {"condition": condition}):
+                # Une parole payée est un moyen en cours, pas un épuisement.
+                return {"type": "pulsion", **demande['condition']}, []
+            proposition = _plan_pulsion(monde, id, condition, demande.get("tache", False))
+            if proposition:
+                # Le reçu précise les moyens, pas l'identité du but adopté.
+                but = proposition[0] if condition == demande['condition'] else {"type": "pulsion", **demande['condition']}
+                return but, proposition[1]
+        return None
     if "agenda" in demande:
         if not any(a["id"] == demande["agenda"] and a["etat"] in ("actif", "sommeil")
                    for a in agendas.projets(monde, id)):
@@ -1816,8 +1820,11 @@ def _fin_demande(monde, id, demande):
                 "rancune": rancune(lien), "affection": lien["affection"],
                 "altruisme": valeur(monde, id, "altruisme"),
                 "empathie": valeur(monde, id, "empathie"), "seuil": 100}}
-    if "condition" in demande and satisfaite(monde, id, demande["condition"]):
-        return "accomplie", {"condition": demande["condition"], "satisfaite": True}
+    if "condition" in demande:
+        from .poursuites import conditions
+        for condition in conditions(monde, id, demande):
+            if satisfaite(monde, id, condition):
+                return "accomplie", {"condition": condition, "satisfaite": True}
     if "agenda" in demande:
         projet = next((a for a in agendas.projets(monde, id) if a["id"] == demande["agenda"]), None)
         if projet is None or projet["etat"] == "abandonne":
@@ -2054,6 +2061,7 @@ def choisir(monde, id, minute):
         return
     e = esprit(monde, id)
     installer(monde, id)
+    from . import poursuites
     agendas.clore_aides_constatees(monde, id)
     COMPTES["choix"] += 1
     # Le danger immédiat se traite avant les besoins ordinaires, avec un choix au coût.
@@ -2126,7 +2134,17 @@ def choisir(monde, id, minute):
             fin = _fin_demande(monde, id, contrat_precedent["demande"])
             if fin:
                 sortie = _sortie(courant, minute, *fin)
-        tous = list(_candidats(monde, id))
+        tous = [c for c in _candidats(monde, id)
+                if not poursuites.suspendue(monde, id, c.besoin, c.demande)]
+        reprises = {}
+        for suspendue in poursuites.reveillables(monde, id):
+            methode = lambda m, i, s=suspendue: poursuites.reprendre(m, i, s)
+            reprises[methode] = suspendue
+            valeur = suspendue['valeur']
+            if suspendue['demande'].get('raison'):
+                valeur = _poids_secours(monde, id, suspendue['demande']['raison']['qui']) or 0
+            tous.append(Candidat(suspendue['motif'], methode, False, True,
+                                 Urgence(Palier(suspendue['palier']), valeur, ()), suspendue['demande']))
         # Vérifier une occasion n'est pas reprendre le geste abandonné. La
         # ronde existante met les croyances à jour, même sans nouvelle reçue.
         lieux = {r["cause"]["salle"] for rs in e["renoncements"].values()
@@ -2143,6 +2161,11 @@ def choisir(monde, id, minute):
         def evaluer(n, candidat):
             if n in evaluations:
                 return evaluations[n]
+            if (candidat.methode not in reprises
+                    and poursuites.dort(monde, id, candidat.besoin, candidat.demande)):
+                essais[n] = 'sommeil'
+                evaluations[n] = None
+                return None
             besoin, urgence = candidat.besoin, candidat.urgence
             proposition = candidat.methode(monde, id)
             retenus = e["renoncements"].get(besoin, [])
@@ -2179,8 +2202,7 @@ def choisir(monde, id, minute):
             contrat = agendas.contrat_intention(monde, id) or {}
             demande = contrat.get("demande")
             correspondants = [(n, c) for n, c in enumerate(tous)
-                              if c.besoin == courant["motif"]
-                              and (not demande or c.demande == demande)]
+                              if not demande and c.besoin == courant["motif"]]
             for n, candidat in correspondants:
                 proposition = evaluer(n, candidat)
                 if proposition and _meme_demande_adoptee(candidat, courant, proposition, contrat):
@@ -2204,13 +2226,11 @@ def choisir(monde, id, minute):
                     fin = _fin_demande(monde, id, demande)
                     if fin:
                         sortie = _sortie(courant, minute, *fin)
-                    from .pnj import refus_etape
-                    if sortie is None and refus_etape(monde, id, []) is None:
-                        # Une recherche sans réponse ne certifie ni la fin
-                        # ni le démenti de la demande. Attendre un moyen ou
-                        # une information garde son identité et son palier,
-                        # sans réinstaller de geste périmé ; jamais dans l'eau.
-                        actif = (candidat, (courant["but"], []))
+                    if sortie is None:
+                        # Sans moyen admissible, le but demeure mais libère
+                        # son palier. Un plan vide admissible (livraison,
+                        # délégation, garde) a déjà été retenu plus haut.
+                        poursuites.endormir(monde, id, courant, contrat)
             # Le geste manqué est un démenti du plan courant, pas une preuve
             # que tous les moyens vers le même but sont impossibles. Seule la
             # nouvelle planification ci-dessus peut le réinstaller.
@@ -2305,22 +2325,23 @@ def choisir(monde, id, minute):
             offre = plan_recours(monde, id, besoin, etapes)
             if offre:
                 etapes = offre
-        intention = precedent
+        reprise = reprises.get(choisi.methode)
+        intention = reprise or precedent
         meme = bool(intention) and intention["but"] == but
         meme_engagement = bool(intention) and _meme_demande_adoptee(
-            choisi, intention, (but, etapes), contrat_precedent)
+            choisi, intention, (but, etapes), {'demande': reprise['demande']} if reprise else contrat_precedent)
         if intention and not meme_engagement and sortie is None:
             sortie = _sortie(intention, minute, None, {"evaluation": "indeterminee"})
         if sortie is None and meme_engagement:
             # Une continuation ne gomme pas la dernière sortie attestée.
             # Un seul événement est conservé : ce n'est pas une pile de buts.
-            sortie = contrat_precedent.get("sortie")
+            sortie = None if reprise else contrat_precedent.get("sortie")
         e["intention"] = {"but": but, "motif": besoin, "plan": etapes,
                           "depuis": intention["depuis"] if meme else minute,
-                          "attente": intention["attente"] if meme else 0,
+                          "attente": intention.get("attente", 0) if meme else 0,
                           **({"attitude": intention["attitude"]} if meme and "attitude" in intention else {})}
         from .planification import suspensions
-        charges = list(charges_precedentes.get("conditions", ())) if meme_engagement else []
+        charges = list(charges_precedentes.get("conditions", ())) if meme_engagement and not reprise else []
         for c in suspensions(monde, id, etapes, but):
             if c not in charges:
                 charges.append(c)
@@ -2331,6 +2352,7 @@ def choisir(monde, id, minute):
                                              "demande": choisi.demande,
                                              "phase": "attendre" if not etapes else "continuer" if meme_engagement else "naitre",
                                              "sortie": sortie})
+        poursuites.retirer(monde, id, besoin, choisi.demande)
         if not meme:
             e["patience"] = None  # Un autre but : ce qu'il attendait pour l'ancien ne compte plus.
         _classer(monde, id, pressants, liste, essais, minute)

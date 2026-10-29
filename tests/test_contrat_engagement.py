@@ -89,6 +89,10 @@ class ContratEngagementTests(unittest.TestCase):
                 hors_vue.append(auteur)
                 apres = lire(m, auteur)['intention']
                 if apres is None:
+                    dormantes = lire(m, auteur)['demandes_suspendues'].values()
+                    if any(s['demande'] == demande for s in dormantes):
+                        self.assertIsNone(d._reprendre_demande(m, auteur, demande))
+                        return resultat
                     # La part peut avoir été réellement servie avant que
                     # la croyance de faim du bénéficiaire soit rafraîchie.
                     self.assertTrue(d.satisfaite(m, auteur, demande['condition']))
@@ -97,6 +101,9 @@ class ContratEngagementTests(unittest.TestCase):
                     return resultat
                 self.assertIsNotNone(apres, (auteur, minute, avant))
                 if apres['but'] != avant['but']:
+                    if any(s['demande'] == demande for s in lire(m, auteur)['demandes_suspendues'].values()):
+                        self.assertIsNone(d._reprendre_demande(m, auteur, demande))
+                        return resultat
                     nouveau = agendas.contrat_intention(m, auteur)
                     self.assertIsNotNone(nouveau)
                     self.assertTrue(nouveau['palier'] < contrat['palier']
@@ -324,14 +331,22 @@ class ContratEngagementTests(unittest.TestCase):
         self.assertEqual(apres['palier'], contrat['palier'])
         self.assertEqual(apres['phase'], 'continuer')
         self.assertIsNone(apres['sortie'])
-        # Le refus necessaire historique ne tient plus. Le planificateur peut
-        # reproposer la tête, mais l'exécuteur ne la retente pas dans la minute.
+        # Une part reçue est maintenant liée au but : le service concret peut
+        # remplacer la demande refusée, sans retenter celle-ci dans la minute.
         from donjon.pnj import agir, ATTENTE
         from donjon.temps import instant
-        self.assertEqual(agir(m, 'aubin', instant(m), [])[1], ATTENTE)
+        sonde = self.recharge_complete(m)
+        from donjon.pnj import _geste
+        meme_geste = _geste(lire(sonde, 'aubin')['intention']['plan'][0]) == lire(sonde, 'aubin')['manque']['etape']
+        issue = agir(sonde, 'aubin', instant(sonde), [])[1]
+        if meme_geste:
+            self.assertEqual(issue, ATTENTE)
+        else:
+            self.assertEqual(lire(m, 'aubin')['intention']['plan'][0]['operation'], 'servir')
         m = self.recharge_complete(m)
         n = self.recharge_complete(m)
-        choix, vus, phases = d.choisir, [], []
+        choix, phases = d.choisir, [apres['phase']]
+        faim = lire(m, 'ilse')['besoins']['faim']
 
         def observer(monde, id, minute):
             choix(monde, id, minute)
@@ -339,7 +354,6 @@ class ContratEngagementTests(unittest.TestCase):
                 c = agendas.contrat_intention(monde, id)
                 if c and c['demande'] == contrat['demande']:
                     phases.append(c['phase'])
-                    vus.append('ilse' in percus(monde, id)[0])
                     self.assertIsNone(c['sortie'])
 
         with patch.object(d, 'choisir', observer):
@@ -347,8 +361,12 @@ class ContratEngagementTests(unittest.TestCase):
         for _ in range(2):
             executer(n, 1)
             n = self.recharge_complete(n)
-        self.assertTrue(phases)
-        self.assertIn(True, vus, 'le retour perceptif réel doit être exercé')
+        # La capture possède déjà la part ; le service aboutit avant un
+        # prochain choix. L'ancienne attente d'un retour perceptif n'est plus
+        # sa prémisse : vérifier la conséquence effective, pas seulement le plan.
+        self.assertLess(lire(m, 'ilse')['besoins']['faim'], faim)
+        self.assertTrue(any(c['pnj'] == 'aubin' and 'donne une part' in c['texte']
+                            for c in m.data['chronique']))
         self.assertNotIn('naitre', phases)
         self.assertEqual(m.data, n.data)
         self.assertEqual(rendu(m), rendu(n))
@@ -370,12 +388,12 @@ class ContratEngagementTests(unittest.TestCase):
         for _ in range(3):
             self.assertNotIn(autre, percus(m, auteur)[0])
             d.choisir(m, auteur, m.data['minutes'])
-            self.assertEqual(lire(m, auteur)['intention']['but'], avant['but'])
-            self.assertEqual(lire(m, auteur)['intention']['plan'], [])
-            apres = agendas.contrat_intention(m, auteur)
+            self.assertNotEqual((lire(m, auteur)['intention'] or {}).get('but'), avant['but'])
+            apres = next(iter(lire(m, auteur)['demandes_suspendues'].values()))
             self.assertEqual(apres['demande'], contrat['demande'])
-            self.assertEqual(apres['phase'], 'attendre')
-            self.assertIsNone(apres['sortie'])
+            self.assertEqual(apres['palier'], contrat['palier'])
+            self.assertEqual(apres['depuis'], avant['depuis'])
+            self.assertIsNone(d._reprendre_demande(m, auteur, contrat['demande']))
             m = self.recharge_complete(m)
         n = self.recharge_complete(m)
         executer(m, 2)
@@ -383,7 +401,7 @@ class ContratEngagementTests(unittest.TestCase):
             executer(n, 1)
             n = self.recharge_complete(n)
         self.assertEqual(m.data, n.data)
-        self.assertEqual(lire(m, auteur)['intention']['plan'], [])
+        self.assertTrue(lire(m, auteur)['demandes_suspendues'])
         m = self.recharge_complete(m)
         # Le seul constat nouveau est le moyen redevenu disponible ; la
         # cible reste hors de vue. Aucun délai ni nouvelle naissance requis.

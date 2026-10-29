@@ -1,82 +1,73 @@
 # Lot 273 — demande adoptée et moyen démenti
 
 29 octobre 2026. **`codex-demande-adoptee`, non fusionnée**, base `c9459ce`,
-moteur `3ec23bb`, banc sur `527b505`.
+moteur initial `3ec23bb`, banc antérieur sur `527b505` ; correction des
+fournitures et du sommeil ajoutée dans le même lot.
 
-**Verdict avant fusion : correctif incomplet, défaut commun établi.**
-Conserver la demande après échec d'un moyen est nécessaire, mais sa reprise
-reste liée au lot source après réception d'une portion concrète. La baisse
-de richesse ne peut pas être déclarée légitime. **Fusion à différer ;
-correction proposée, non implémentée dans ce diagnostic.**
+**Verdict avant fusion : correction livrée, mesures de confirmation en cours.**
+Une demande typée survit au démenti d'un moyen. Sa continuation suit les
+provenances publiées des fournitures ; sans plan admissible, elle dort et
+libère son palier. Le banc antérieur ne certifie pas cette nouvelle version.
 
-**Richesse mine**, mêmes signatures `(famille, auteur, texte exact)` du
-lot 183 sur les huit nuits archivées ; aucune simulation supplémentaire
-pour ce tableau :
+**Contrat commun corrigé.** `poursuites.py` conserve les liens source→résultat
+des reçus/remises (`lot`, `objet`), transitivement et hors mémoire bornée ;
+`esprits.py` les enregistre avant éviction et migre les reçus encore présents
+dans les anciennes sauvegardes. `deliberation._reprendre_demande` replanifie
+le service/la fourniture avec le moyen concret tout en gardant la condition
+adoptée, son but et son palier. `_fin_demande` évalue les mêmes liaisons.
+Une condition exigeant l'identité d'un objet (localisation, garde, restitution,
+état) ne reçoit aucune substitution. L'égalité des raisons ne vaut jamais
+égalité des demandes. Aucun cas par PNJ, objet, scénario ou prompt ; ni
+`agendas.py`, ni `echanges.py`, ni `signes.py` modifiés.
 
-| Graine | S référence → branche | Perdues | Gagnées |
-|---|---:|---:|---:|
-| 1985 | 32 → 12 | 24 | 4 |
-| 7 | 19 → 18 | 6 | 5 |
-| 42 | 24 → 13 | 18 | 7 |
-| 2024 | 28 → 18 | 16 | 6 |
+**Sommeil sans délai.** Un résultat de planification `None` conserve la demande
+dans `demandes_suspendues`, avec son but, début et urgence, et libère l'arbitrage.
+Un plan vide admissible (livraison, délégation, garde) reste actif. Le réveil
+replanifie seulement après changement des croyances/moyens ; le passage du
+temps seul ne le provoque pas. Une fin attestée retire la demande. La lecture
+seule du rapport `origin/ds-demande-adoptee` confirme sa limite déclarée,
+mais sa généralisation par « même raison » n'est pas reprise. L'immobilisation
+est reproduite sur Anselme au poêle (capture 120) ; les simples plans vides
+de garde de Bram ou de vente ne prouvent pas un épuisement. L'attribution
+individuelle des dérives ouvertes de Gorm reste à vérifier avec le nouveau banc.
 
-**64 pertes, 22 gains, solde −42** (−10,5 par nuit). Pertes/gains :
-demandes **29/7**, offres **17/4**, appels **7/5**, services **8/4**,
-interpositions **3/1**, promesses **0/1**. Les 27 couples famille/PNJ perdus
-et 13 nouveaux expliquent exactement D −0,5. Les crédits de service
-passent de **8 à 4**, sans être un décompte des repas : en mine 42,
-Gaspard est nourri dans les deux versions, avec crédit spontané seulement
-en référence ; en branche c'est une prestation promise. Une partie du
-recul est légitime ; le défaut ci-dessous interdit de l'excuser globalement.
-Les familles et auteurs par nuit, toutes les signatures et les limites
-causales figurent dans le [diagnostic détaillé](diagnostic-codex-273-richesse-alertes.md).
+**Contrôles ciblés : 16 tests verts** (137,136 s pour 15 succès et une prémisse
+à actualiser ; Aubin corrigé puis rejoué seul : 1,906 s, vert). Capture mine
+1985 **373** : Josse sert `biscuits_1` à Odon, même demande, début et palier,
+phase `continuer`. Autre PNJ : chaîne de deux détachements reçus, mémoire vidée,
+recharge puis repas effectif ; mission d'objet précis non substituée. Capture
+**Aubin 117503** : la part déjà reçue est servie immédiatement, faim réelle
+**70,209→20,329** ; la prémisse d'une attente jusqu'au retour perceptif est donc
+remplacée par le service effectif, sans renaissance. Anselme libère son palier,
+ne réessaie pas après 60 min de seule horloge, puis reprend la même demande
+avec bois et flamme réellement disponibles et rallume le poêle. Égalités du
+monde, rendu et scène après recharge, laps entier/découpé, contrôlées.
 
-**Rejeu mine 1985 borné à la première divergence**, sur référence isolée
-et branche : mondes avant choix **strictement identiques à `268` (26,8 s)**.
-La référence abandonne le secours et achète une part à servir à Josse pour
-1 pièce ; la branche conserve le secours à Odon et achète une part à
-remettre pour 3 pièces. Les effets diffèrent : ce seul prix ne suffit pas
-à conclure à un surcoût injustifié.
+**Calcul détaché de confirmation**, priorité réduite : les 47 autres fichiers (49 au total) qui
+exercent `choisir`/`_reprendre_demande` et les schémas d'esprit, puis **vingt nuits
+de branche seules**, cinq scénarios × quatre graines × 4 h, un processus.
+La référence `0e3e626` provient exclusivement des vingt nuits archivées dans
+`banc.json`, avec empreinte SHA-256 ; aucun rejeu de référence. Le banc se lance
+même si les tests complémentaires échouent. Critères encore **non certifiés** :
+aucune hausse de suspects **par nuit**, mine S/F/D dans l'étendue de référence
+(toute perte résiduelle exige une justification). Sonde actuelle 265/271,
+compteur 219, fonction `cats` du lot 183 identique. Fin attendue :
+`C:/Users/msics/donjon/artifacts/demande-273-sol/correction/fin.json`.
 
-**Défaut prouvé à `373` (37,3 s)** : Josse possède `biscuits_1`, reçu avec
-provenance `lot=biscuits`. Le planificateur produit `servir biscuits_1 pour
-odon`, Odon étant perçu et affamé. Pourtant l'arbitrage le traite comme
-une autre demande ; à urgence égale **12 / 20**, il redemande le lot.
-Sur copie, ce service réussit et fait passer la faim **85,077→35,077**.
-**21 égalités monde/rendu/scène après recharge** sur ces captures et la
-contre-épreuve. L'archive garde le but source jusqu'à `18000`, puis ne
-sert la portion à Odon qu'à `18627`. Toutes les pertes des quatre nuits
-ne sont pas attribuées individuellement à ce défaut.
+**Mesures antérieures (avant cette correction).** Vingt paires de nuits 4 h,
+référence `0e3e626`, sonde 265/271 : aucune hausse de suspects par nuit,
+**1→0**, suspect Aubin Relais 2024 `117518` absent. Mais mine S/F/D
+**25,75/5/1,964→15,25/5/1,464** ; S par graine 1985/7/42/2024 :
+**32→12 / 19→18 / 24→13 / 28→18**, soit 64 pertes et 22 gains.
+Le défaut lot→part prouvé à 373 interdit d'excuser ce recul comme légitime.
+Les familles/auteurs, premières divergences, contre-épreuve de service
+(faim Odon 85,077→35,077) et alertes crue/hameau restent dans le
+[diagnostic détaillé](diagnostic-codex-273-richesse-alertes.md).
 
-**Correction proposée.** Séparer identité du but et liaisons de ses moyens ;
-revalider la continuation sur les reçus/provenances publiés (`lot→part`,
-remise ou transformation), sans renaissance ni perte de palier. Ne pas
-assimiler arbitrairement « même raison » à « même demande » ; une mission
-peut exiger un objet précis. Aucun cas par objet, PNJ, scénario ou prompt.
-
-**Bilan antérieur conservé.** 21 tests contrat/empathie verts, 28 autres
-compléments verts, puis test Lucien vert avec **30 assertions inchangées**
-après explicitation de ses prémisses. Capture Aubin `117503`, autre cas
-Mathé/Lucien, vraies fins/préemptions et laps découpés vérifiés. Banc 4 h :
-**aucune hausse de suspects sur 20/20 paires**, référence `0e3e626`, sonde
-265/271, **1→0**, Aubin Relais 2024 `117518` absent. S/F/D mine
-**25,75/5/1,964→15,25/5/1,464**. Ce critère numérique tenu ne valide pas
-la continuation des moyens. Quarante nuits calculées une fois, **2 515,732 s**,
-un processus réduit ; zéro plantage, usurpation ou violation d'audit.
-
-**Alertes.** Crue 7 : nouveau rendez-vous après clôture attestée, puis
-retour au brasero après évacuation et moyens changés. Crue 2024 : deux
-retours de garde après abri/appels et enquête/entretien. Hameau 2024 :
-retour au froid après sommeil de l'agenda. Hameau 42 : les deux abris
-étaient déjà en référence ; les ajouts sont l'agenda et l'interposition.
-Rejeu ciblé (**34,031 s**, dix captures, **30 égalités de recharge**) :
-perception changée et préemption **13→5** pour Gorm ; devis de Brune
-`None→offre à Aubin`, cause précise encore ouverte. Ancien/nouveau moteur
-produisent les mêmes états sur les trois captures de choix : divergence
-de trajectoire, sans nouvelle différence locale du 273 démontrée.
-
-Bruts : `C:/Users/msics/donjon/artifacts/demande-273-sol/`, notamment
-`diagnostic-richesse-alertes.json`, `preuve-part-recue.json`,
-`alertes-hameau42/`. **Aucun banc relancé, ni Luna ni suite complète ;
-aucun calcul actif.** `fin-banc.json` (`ok=true`) reste le résultat du
-banc antérieur, pas un certificat de correction générale.
+**Limites.** Le changement des entrées réveille une replanification, pas une
+promesse de réussite. Une ancienne sauvegarde dont le reçu a déjà été évincé
+ne permet pas de reconstruire sa provenance manquante. La causalité de
+chaque signature perdue et de chaque dérive ouverte n'est pas certifiée.
+`fin-banc.json` (`ok=true`) reste le résultat antérieur. Bruts dans
+`C:/Users/msics/donjon/artifacts/demande-273-sol/`, nouvelle passe dans
+`correction/`. **Ni Luna ni suite complète.**

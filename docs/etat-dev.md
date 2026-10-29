@@ -2,6 +2,25 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 273, `codex-demande-adoptee`, non fusionnée : correction du défaut
+  lot→part et du sommeil livrée, confirmation en cours.** Les reçus publiés
+  persistent comme provenance transitive dans l'esprit ; `choisir` revalide
+  les moyens concrets en gardant la demande, le but, le début et le palier.
+  Aucune équivalence par simple raison ; pas de substitution pour les missions
+  d'objet précis. Une demande typée sans plan admissible passe en sommeil,
+  libère son palier et se réveille sur croyance/moyen nouveau, jamais par délai ;
+  les plans vides valides restent actifs. `poursuites.py`, `esprits.py`,
+  `deliberation.py` ; aucun changement d'agendas/échanges/signes.
+  **16 tests ciblés verts**, captures Josse 373 et Aubin 117503 (repas effectifs),
+  seconde chaîne de fourniture, sommeil/réveil Anselme, recharges et laps découpés.
+  Compléments des fichiers de choix/reprise puis **20 nuits de branche seules**
+  en fond réduit, référence `0e3e626` strictement relue dans les archives,
+  sonde 265/271, compteur 219, S/F/D `cats` 183. **Aucune hausse de suspects par
+  nuit et richesse mine revenue : non certifiées avant lecture des résultats.**
+  Fin attendue : `C:/Users/msics/donjon/artifacts/demande-273-sol/correction/fin.json`.
+  [Rapport actualisé](taches/rapport-codex-273-demande-adoptee.md).
+  Le diagnostic et le banc antérieurs ci-dessous restent historiques.
+
 - **Branche `codex-demande-adoptee`, non fusionnée**, lot **273**, base `c9459ce`.
   **Fusion à différer : correctif incomplet, défaut lot→part établi.**
   Relecture des archives mine : S **32→12 / 19→18 / 24→13 / 28→18**
