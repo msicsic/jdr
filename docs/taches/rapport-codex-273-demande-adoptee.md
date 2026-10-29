@@ -87,11 +87,42 @@ pas même demande. Aucun cas par objet, PNJ ou scénario.
   de demande. Deux oracles réécrits : les empreintes d'étapes de mine et d'auberge (visites, plans,
   monde) après le changement de décisions, et la scène de Lucien isolée par une capture à 95 min ;
   les attentes de `vivres_1` et du secours endormi sont explicites.
-- **Banc de reprise en cours** : cinq scénarios (Relais, mine, auberge, crue, hameau) × quatre
-  graines, 4 h, départ tiré, référence `0e3e626`, deux processus. Critères : aucune hausse de
-  suspects par nuit ; richesse S de la mine revenue dans l'étendue de la référence, ou perte
-  restante prouvée légitime. Le résultat sera ajouté au rapport et à `docs/etat-dev.md` à la fin du
-  calcul (`banc2-fin.json`).
+- **Banc de reprise** (`banc2-fin.json`, `ok=true`, 372,9 s) : cinq scénarios (Relais, mine,
+  auberge, crue, hameau) × 1985/7/42/2024, 4 h, départ tiré, référence `0e3e626`, **deux
+  processus**, **20/20 identités**, zéro plantage, usurpation ni violation.
+
+### Résultat du banc : les deux critères ne sont pas tenus
+
+| Scénario, 4 h × 4 graines | Suspects réf → branche | À expliquer | Cycles | Préemptions | S/F/D référence → branche |
+|---|---:|---:|---:|---:|---|
+| Relais | 1 → 0 | 2 → 4 | 116 → 110 | 4 → 16 | 15,25/4,25/1,75 → 12,75/4,00/1,62 |
+| Mine | 0 → 0 | 5 → 1 | 120 → 100 | 1 → 0 | **25,75/5,00/1,96 → 16,75/4,50/1,71** |
+| Auberge | 0 → 0 | 1 → 4 | 138 → 135 | 12 → 14 | 9,25/4,00/1,00 → 15,25/4,25/1,19 |
+| Crue | 0 → **3** | 7 → 11 | 72 → 62 | 15 → 16 | 23,50/6,75/3,06 → 21,75/7,25/3,19 |
+| Hameau | 0 → 0 | 6 → 8 | 57 → 57 | 17 → 5 | 22,75/7,25/2,17 → 23,50/7,25/2,12 |
+
+**Critère 1, aucune hausse de suspects par nuit : non tenu.** La référence n'a qu'un suspect
+(Aubin, Relais 2024, disparu sur la branche) ; la branche en a trois, tous sur **crue 42**.
+Ce sont trois `allers_retours` de **Marchand**, `repetition_sans_entree_nouvelle`, motif `devoir`,
+but `interposer` alternant entre `{qui: brune, objet: vivres}` et `{qui: brune, objet: aubin}` aux
+minutes 50–55 ; seule la différence `alarmes_et_dangers` change, `par_famille_non_justifiee` donne
+`marchand | devoir | interposer | interposer` (3). Aucune autre nuit n'augmente. La hausse est
+causée par la scène sociale déplacée par la part reçue, pas par un objet ou un scénario : c'est la
+réaction d'interposition qui change de charge sans entrée nouvelle. Un petit lot doit stabiliser
+cette réaction (garder la charge active tant qu'elle reste valable), sans cas par PNJ.
+
+**Critère 2, richesse S de la mine dans l'étendue de la référence ou perte légitime : non tenu.**
+La référence va de 19 à 32 (moyenne 25,75) ; la branche de 16 à 19 (moyenne 16,75), seule la nuit
+42 atteint 19. Les 36 signatures perdues sur les quatre nuits se répartissent en 24 `demande`,
+11 `offre`, 4 `interposition`, contre 5 `service` et 7 `appel` gagnés. La perte de `demande` est
+cohérente avec la correction (on ne redemande plus le lot quand on tient la part) et les services
+ne reculent pas (4 perdus, 5 gagnés) ; en revanche la perte de 11 `offre` n'est pas expliquée par
+le contrat, et la moyenne reste sous le minimum de référence. La perte restante n'est donc **pas
+prouvée légitime** ; elle demande un petit lot sur les offres de la mine.
+
+**Alertes.** `avis_non_justifie` 1 → 3 (les trois suspects ci-dessus), `avis_a_expliquer` 21 → 28,
+nouveau `voir_alterne` 1 (Marchand, Relais 2024, minute 5) ; à l'inverse `avis_derive_ouverte`
+203 → 178 et `fige_presse` 3 → 1. Aucun plantage, usurpation ou violation.
 
 ## Mesures
 

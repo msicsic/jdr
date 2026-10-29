@@ -35,11 +35,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   l'oracle des étapes est réécrit pour mine et auberge (visites/plans/monde),
   la scène de Lucien passe par une capture à 95 min, les attentes de
   `vivres_1` et du secours endormi sont explicites. Monde/rendu/scène
-  identiques après recharge. **Banc de reprise en cours** : cinq scénarios
-  (Relais, mine, auberge, crue, hameau) × 1985/7/42/2024, 4 h, départ tiré,
-  référence `0e3e626`, **deux processus**, sortie `banc2-fin.json` ; le banc
-  précédent (20 paires, `rixe` au lieu du hameau, quatre processus) donnait
-  **20/20 identités**, suspects **1 → 0**, mais une mine à **25,75 → 17,25**.
+  identiques après recharge. **Banc de reprise terminé** (`banc2-fin.json`,
+  `ok=true`, 372,9 s) : cinq scénarios (Relais, mine, auberge, crue, hameau) ×
+  1985/7/42/2024, 4 h, départ tiré, référence `0e3e626`, **deux processus**,
+  **20/20 identités**, zéro plantage, usurpation ni violation.
+  **Les deux critères ne sont pas tenus.** Suspects : référence **1** (Aubin
+  Relais 2024), branche **3**, tous sur **crue 42** (Marchand, `interposer`
+  alternant `vivres`/`aubin` aux minutes 50–55, `repetition_sans_entree_nouvelle`,
+  seule `alarmes_et_dangers` change) ; hausse sur une nuit, donc critère 1
+  échoue. Richesse S mine : **25,75 → 16,75** (étendue référence 19–32, branche
+  16–19 ; seule la nuit 42 atteint 19) ; 36 signatures perdues dont 24
+  `demande`, 11 `offre`, 4 `interposition`, compensées par 5 `service` et 7
+  `appel` gagnés. La perte de `demande` est cohérente avec l'arrêt du
+  redemande du lot, mais la perte d'`offre` n'est pas expliquée : **perte
+  restante non prouvée légitime**, critère 2 échoue. Autres S/F/D :
+  auberge 9,25/4,00/1,00 → 15,25/4,25/1,19 ; crue 23,50/6,75/3,06 →
+  21,75/7,25/3,19 ; hameau 22,75/7,25/2,17 → 23,50/7,25/2,12 ; Relais
+  15,25/4,25/1,75 → 12,75/4,00/1,62. Alertes nouvelles : `avis_non_justifie`
+  1 → 3 (les mêmes suspects), `avis_a_expliquer` 21 → 28, `voir_alterne` 1
+  (Marchand Relais 2024, minute 5) ; `avis_derive_ouverte` 203 → 178,
+  `fige_presse` 3 → 1. Piste suivante : stabiliser la réaction d'interposition
+  entre deux charges équivalentes sans nouvelle entrée, puis reprendre la
+  richesse de la mine (offres perdues) dans un petit lot.
   Bruts `C:/Users/msics/donjon/artifacts/demande-273-ds/`.
   [Rapport 273](taches/rapport-codex-273-demande-adoptee.md).
 
