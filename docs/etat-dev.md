@@ -11,12 +11,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   même sans nouvelle révision, impose un nouvel aperçu. Narration périmée
   remplacée par les faits publics recalculés. Résultat et mots sauvegardés
   avant affichage ; actes légers et gestes directs conservent leur politique.
-  **28 tests TUI préexistants inchangés verts, 306,864 s**, première passe.
-  Dix-huit parcours lourds validés ; fixtures et synchronisation des nouveaux
-  tests corrigées, trois méthodes reprises vertes (20,223 s), rejet de
-  narration périmée vert (3,565 s) ; traces des passes imparfaites conservées.
-  Nouveaux parcours console/web/TUI et régression ciblée **en vérification**,
-  résultat attendu `C:/Users/msics/donjon/artifacts/uc-325/fin.json`.
+  **83 tests ciblés : 82 verts, un échec TUI, 557,117 s**, aucun saut/erreur.
+  Les huit tests U-C, dont 18 parcours lourds et narration périmée, sont verts.
+  Correction de l'échec : demander les termes d'une récompense ne prend pas
+  l'engagement ; accepter reste lourd. Quatre parcours Gorm/second donneur
+  console/web vérifient l'état et le rendu rechargés. **Reprise verte : 37/37,
+  468,682 s**, dont 9 tests U-C et 28 tests TUI inchangés ; zéro échec/erreur/
+  saut. 47 autres tests conservés, sans transaction du type corrigé :
+  **84 tests distincts couverts**. Zéro appel après les 18 confirmations.
+  **Lot terminé, branche poussée, aucun calcul actif** ;
+  `C:/Users/msics/donjon/artifacts/uc-325/fin-cloture.json` vert.
+  `fin.json` initial avec `ok=false` et sondes imparfaites conservés.
   Aucun Luna, banc, suite complète ou retrait de revue ; recouvrements avec
   321/323 sur `jeu.py` seulement. Bruts `C:/Users/msics/donjon/artifacts/uc-325/`.
   [Rapport 325](taches/rapport-codex-325-uc-consentement.md).

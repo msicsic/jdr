@@ -45,7 +45,9 @@ def transactions_lourdes(transactions):
             effets.extend(("parole:" + c["type"], "", c) for c in p["contenu"]
                           if c["type"] not in CONTENUS_LEGERS)
         elif t["type"] == "conversation_pnj":
-            if p["operation"] != "discuter":
+            # « proposer » demande au PNJ les termes d'une récompense ;
+            # Corvus ne promet rien et doit ensuite accepter séparément.
+            if p["operation"] not in ("discuter", "proposer"):
                 effets.append(("accord:" + p["operation"], "", p))
         elif t["type"] not in ADMISSIONS:
             effets.append((t["type"], "", p))

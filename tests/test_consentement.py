@@ -20,6 +20,7 @@ from donjon.operations import sequence, etape
 from donjon.rendu import regarder, fiche
 from donjon.scene import scene_percue
 from donjon.web.pont import PontWeb
+from donjon.transactions import ajouter
 from tests.test_comprehension import MJSimule, PontScript, cas, action
 from tests.test_enfermer import scene
 
@@ -132,6 +133,56 @@ class ConsentementTests(unittest.TestCase):
         self.assertTrue(plan_lourd(lourd))
         self.assertTrue(plan_lourd(Plan({}, 0, "", plans=[leger, lourd])))
         self.assertTrue(effets_lourds([("effet_futur_non_classe", "", None)]))
+
+    def test_demander_les_termes_ne_prend_pas_l_engagement(self):
+        from donjon import agendas
+        for transport in ("console", "web"):
+            for acteur in ("marchand", "autre_donneur"):
+                with self.subTest(transport=transport, acteur=acteur), tempfile.TemporaryDirectory() as tmp:
+                    m = nouveau_monde()
+                    if acteur != "marchand":
+                        m.objets[acteur] = {**copy.deepcopy(m.objets["marchand"]),
+                                            "id": acteur, "nom": "Maëlle", "aliases": []}
+                        m = Monde(copy.deepcopy(m.data))
+                    m.joueur["salle"] = "echoppe"
+                    m.objets[acteur]["lieu"] = "echoppe"
+                    m.data["missions"]["anneau_veilleur"]["donneur"] = acteur
+                    m.data["finances_pnj"][acteur] = 50
+                    p = {"personnage": acteur, "sujet": "Quelle récompense ?", "operation": "proposer",
+                         "mission": "anneau_veilleur", "montant_demande": 0}
+                    r = ajouter({"mode": "dialogue", "texte": "Une offre reste à accepter.", "proposition": None},
+                                "conversation_pnj", m.data["revision"], p)
+                    # Demander les termes n'engage pas Corvus. Leur acceptation
+                    # reste un effet lourd, sur le même contrat de transaction.
+                    d = preparer(m, r, "LLM")
+                    self.assertFalse(d.confirmation)
+                    accepte = copy.deepcopy(r)
+                    accepte["_transactions"][0]["revision"] = d.travail.data["revision"]
+                    accepte["_transactions"][0]["proposition"]["operation"] = "accepter"
+                    self.assertTrue(preparer(d.travail, accepte, "LLM").confirmation)
+                    chemin = Path(tmp) / "partie.json"
+                    m.sauver(chemin)
+                    faux = MJSimule(r)
+                    commandes = ["mj je demande quelle récompense on me propose", "quitter"]
+                    pont = PontScript(commandes, chemin) if transport == "web" else None
+                    with patch.object(jeu, "MJ", return_value=faux), \
+                         patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), \
+                         patch("builtins.input", side_effect=commandes), patch("sys.stdout", io.StringIO()) as flux:
+                        self.assertEqual(jeu.main(["--console", "--connexion", "api", "--save", str(chemin)], pont), 0)
+                    sorties = "\n".join(pont.historique) if pont else flux.getvalue()
+                    self.assertNotIn("« tenter »", sorties)
+                    self.assertEqual(faux.appels, 1)
+                    recharge = Monde.charger(chemin)
+                    self.assertEqual(recharge.data, json.loads(json.dumps(faux.monde.data)))
+                    self.assertEqual(agendas.contrats(recharge)["anneau_veilleur"]["statut"], "propose")
+                    self.assertEqual(recharge.joueur["or"], m.joueur["or"])
+                    self.assertIn("offre à accepter", fiche(recharge))
+                    self.assertEqual((regarder(recharge), fiche(recharge), scene_percue(recharge)),
+                                     (regarder(faux.monde), fiche(faux.monde), scene_percue(faux.monde)))
+                    avant = copy.deepcopy(recharge.data)
+                    reprise = PontScript(["quitter"], chemin)
+                    jeu.main(["--console", "--offline", "--save", str(chemin)], reprise)
+                    self.assertEqual(Monde.charger(chemin).data, avant)
 
     def jouer(self, transport, nom, *, mutation=None):
         with tempfile.TemporaryDirectory() as tmp:
