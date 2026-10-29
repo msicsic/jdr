@@ -45,14 +45,17 @@ tests prouvent le report réel jusqu'au calme perçu et le même contrat avec
 Gorm prêtant un marteau au Relais : demande, possession, reproche à l'échéance
 et perte de confiance, toujours après recharge.
 
-**Validation.** Les cinq tests de `PretReclameTests` sont verts en **50,545 s**.
-`git diff --check` est propre. Les fichiers touchés par les commits propres
-des lots 266/275 et `test_echanges_suite`, soit **14 fichiers entiers**, sont
-lancés pour une vérification détachée, un seul travailleur à
-priorité réduite ; résultat attendu dans `fin-verification.json`. Validation
-de lot encore à clôturer après ce résultat. Ni Luna, ni suite complète, ni
-banc : aucun comportement du moteur n'a changé. La preuve porte sur ces
-scènes, pas sur l'absence universelle de report des créances.
+**Validation terminée sur `be99757`.** Les cinq tests de `PretReclameTests`
+étaient verts en **50,545 s**. La vérification détachée des fichiers touchés
+par les commits propres des lots 266/275 et de `test_echanges_suite` est
+terminée : **211 tests verts / 14 fichiers entiers, 1 613,326 s**, zéro échec,
+erreur ou ignoré ; dont les **23 tests** de `test_echanges_suite` en 78,122 s.
+Un seul travailleur à priorité réduite ; `fin-verification.json` **code 0**,
+résultats détaillés dans `tests.json`. `git diff --check` est propre. Aucun
+nouveau calcul à la clôture ; ni Luna, ni suite complète, ni banc dans ce
+lot : aucun comportement du moteur n'a changé. La suite complète sur fusion
+d'essai revient au superviseur. La preuve porte sur ces scènes, pas sur
+l'absence universelle de report des créances.
 
 Bruts : `C:/Users/msics/donjon/artifacts/pret-280/` : captures avant/après,
 `diagnostic.json`, `contre-epreuves.json`, `assertions.json`, sélection des

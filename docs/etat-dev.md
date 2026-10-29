@@ -11,11 +11,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Prémisse du test de réclamation immédiate : Gaspard sans souci spontané ;
   **89 assertions préexistantes conservées (AST)**. Deux cas ajoutés : report
   réel et autre prêteur/objet au Relais ; monde, rendu et scène identiques
-  après recharge. **5 tests de prêt verts, 50,545 s** ; vérification détachée
-  des **14 fichiers entiers** des lots 266/275 et des échanges en cours, un
-  travailleur à priorité réduite. Aucun fichier `donjon/` modifié, ni Luna,
-  banc ou suite complète. **Clôture de validation à reprendre** sur
-  `C:/Users/msics/donjon/artifacts/pret-280/fin-verification.json`.
+  après recharge. **Validation terminée sur `be99757` : 211 tests verts /
+  14 fichiers entiers, 1 613,326 s**, zéro échec, erreur ou ignoré ; dont
+  **23 tests** des échanges. Cinq tests de prêt initiaux verts en 50,545 s,
+  inclus dans les 211. Un travailleur à priorité réduite, vérification détachée
+  terminée, `fin-verification.json` **code 0**. Aucun fichier `donjon/` modifié,
+  ni Luna, banc ou suite complète ; aucun nouveau calcul à la clôture. Suite
+  complète sur fusion d'essai à la charge du superviseur. Bruts :
+  `C:/Users/msics/donjon/artifacts/pret-280/` (`tests.json`, `tests.log`,
+  `fin-verification.json`).
   [Rapport 280](taches/rapport-codex-280-pret-reclame.md).
 
 - **Branche `codex-coups-crue-2024`, lot 279, diagnostic seul**, base intégration
