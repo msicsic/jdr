@@ -6,6 +6,7 @@ Chaque test vérifie l'état du monde, et ce que le joueur lit, après rechargem
 """
 
 from tests.support import lier
+from copy import deepcopy
 import unittest
 from unittest.mock import patch
 
@@ -19,7 +20,7 @@ from donjon.monde import ErreurMonde, Monde
 from donjon.paroles import preparer_parole
 from donjon.rendu import fiche
 from donjon.relations import envers
-from tests.support import calme, regarder
+from tests.support import calme, regarder, sans_souci
 from tests.test_entretenir import sans
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
 
@@ -329,6 +330,18 @@ class PretReclameTests(unittest.TestCase):
     """Le prêteur réclame son prêt échu au joueur comme à un PNJ ; l'emprunteur qui ne le rend pas
     perd sa confiance."""
 
+    def recharge_visible(self, m):
+        from donjon.rendu import regarder as rendu
+        from donjon.scene import scene_percue
+        avant = deepcopy(m.data)
+        visible = rendu(m), scene_percue(m)
+        r = recharger(m)
+        self.assertEqual(r.data, avant)
+        self.assertEqual((rendu(r), scene_percue(r)), visible)
+        self.assertEqual(m.data, avant)
+        self.assertEqual(r.data, avant)
+        return r
+
     def lampe_pretee_au_joueur(self):
         """Mine : Gaspard a prêté sa lampe au joueur il y a plus de 240 minutes (placement d'auteur :
         le prêt, daté de l'échéance) ; il est près de lui."""
@@ -342,18 +355,78 @@ class PretReclameTests(unittest.TestCase):
         with patch.object(Monde, "d20", return_value=20):
             self.assertEqual(demander(m, "joueur", "gaspard", "lampe_gaspard"), "remis")
         m.data["permissions"][0]["minute"] = -ENGAGEMENT_MAX
-        return recharger(m)
+        return self.recharge_visible(m)
 
     def test_gaspard_la_redemande_et_le_joueur_qui_la_garde_perd_sa_confiance(self):
         m = self.lampe_pretee_au_joueur()
+        # Placement d'auteur : le prêteur n'a pas de secours spontané à mener.
+        # Sinon Rémy affamé, puis Lucien tremblant passent avant sa créance.
+        sans_souci(m, "gaspard")
+        m = self.recharge_visible(m)
         m, lignes = vivre(m, 2)
+        m = self.recharge_visible(m)
         self.assertIn("Gaspard te demande de lui rendre la lampe de Gaspard : il te l'a prêtée il y a longtemps.",
                       lignes)
         self.assertEqual(memoires(m, "gaspard", "pret_reclame")[-1]["objet"], "lampe_gaspard")
         m, lignes = vivre(m, 31)
+        m = self.recharge_visible(m)
         self.assertIn("Gaspard te reproche de ne pas lui avoir rendu la lampe de Gaspard.", lignes)
         self.assertIs(fiable(m, "gaspard", "joueur"), False)
         self.assertEqual(memoires(m, "gaspard", "pret_garde")[-1]["auteur"], "joueur")
+
+    def test_scene_exacte_le_secours_differe_le_pret_jusqu_au_calme_percu(self):
+        from donjon.deliberation import Palier
+        from donjon.agendas import contrat_intention
+        m = self.lampe_pretee_au_joueur()
+        permission = deepcopy(m.data["permissions"])
+        m, lignes = vivre(m, 2)
+        m = self.recharge_visible(m)
+        contrat = contrat_intention(m, "gaspard")
+        self.assertEqual(contrat["palier"], Palier.SECOURS)
+        self.assertLess(contrat["palier"], Palier.ARGENT)
+        self.assertEqual(contrat["demande"], {"condition": {"pres": "lucien"},
+                         "raison": {"qui": "lucien", "besoin": "peur"}})
+        detresse = lire(m, "gaspard")["croyances"]["lucien"]["detresse"]
+        self.assertTrue(detresse["valeur"])
+        self.assertEqual((detresse["source"], detresse["preuve"]["valeur"]), ("vu", "tremble"))
+        self.assertIn("Gaspard reste près de Lucien.", chronique(m))
+        self.assertFalse(memoires(m, "gaspard", "pret_reclame"))
+        self.assertFalse(any("demande de lui rendre" in ligne for ligne in lignes))
+        self.assertEqual(m.objets["lampe_gaspard"]["lieu"], "joueur")
+        self.assertEqual(m.data["permissions"], permission)
+        # Placement d'auteur : les bénéficiaires sont apaisés. Le prêteur
+        # le constate par la perception commune, sans effacer son contrat.
+        calme(m, "remy", "odon", "lucien")
+        percevoir_tous(m)
+        m, lignes = vivre(self.recharge_visible(m), 2)
+        m = self.recharge_visible(m)
+        self.assertIn("Gaspard te demande de lui rendre la lampe de Gaspard : il te l'a prêtée il y a longtemps.",
+                      lignes)
+        self.assertEqual(memoires(m, "gaspard", "pret_reclame")[-1]["minute"], 2)
+        self.assertFalse(lire(m, "gaspard")["croyances"]["lucien"]["detresse"]["valeur"])
+        self.assertEqual(m.objets["lampe_gaspard"]["lieu"], "joueur")
+        self.assertEqual(m.data["permissions"], permission)
+
+    def test_autre_preteur_au_relais_reclame_son_marteau_et_reproche_le_retard(self):
+        m = sans_souci(calme(relais(), "marchand", "brune", "ilse", "aubin"), "marchand")
+        # Placement d'auteur : Gorm possède et porte le marteau qu'il prête.
+        m.objets["marteau"]["proprietaire"] = "marchand"
+        deplacer(m, "marteau", "marchand")
+        ensemble_joueur(m, "marchand")
+        with patch.object(Monde, "d20", return_value=20):
+            self.assertEqual(demander(m, "joueur", "marchand", "marteau"), "remis")
+        m.data["permissions"][0]["minute"] = -ENGAGEMENT_MAX
+        m, lignes = vivre(self.recharge_visible(m), 2)
+        m = self.recharge_visible(m)
+        self.assertIn("Gorm te demande de lui rendre le marteau : il te l'a prêté il y a longtemps.", lignes)
+        self.assertEqual(memoires(m, "marchand", "pret_reclame")[-1]["objet"], "marteau")
+        self.assertEqual(m.objets["marteau"]["lieu"], "joueur")
+        m, lignes = vivre(m, 31)
+        m = self.recharge_visible(m)
+        self.assertIn("Gorm te reproche de ne pas lui avoir rendu le marteau.", lignes)
+        self.assertIs(fiable(m, "marchand", "joueur"), False)
+        self.assertEqual(memoires(m, "marchand", "pret_garde")[-1]["auteur"], "joueur")
+        self.assertEqual(m.objets["marteau"]["lieu"], "joueur")
 
     def test_rendue_a_temps_rien_ne_lui_est_reproche(self):
         m = self.lampe_pretee_au_joueur()

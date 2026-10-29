@@ -2,6 +2,22 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-pret-reclame`, non fusionnée**, lot **280**, base `427fb36`.
+  Cause établie avant modification : secours alimentaire à Rémy à `t=0`,
+  appel de Bram (`62`), attente négociée (`162`), proximité de Lucien tremblant
+  (`203`, peur perçue, palier SECOURS 12 avant ARGENT 14). Pas de défaut moteur
+  établi : après calme perçu des bénéficiaires, le prêt est réclamé à la
+  minute 2. Contre-épreuves peur/appel séparées : réclamation avant deux minutes.
+  Prémisse du test de réclamation immédiate : Gaspard sans souci spontané ;
+  **89 assertions préexistantes conservées (AST)**. Deux cas ajoutés : report
+  réel et autre prêteur/objet au Relais ; monde, rendu et scène identiques
+  après recharge. **5 tests de prêt verts, 50,545 s** ; vérification détachée
+  des **14 fichiers entiers** des lots 266/275 et des échanges en cours, un
+  travailleur à priorité réduite. Aucun fichier `donjon/` modifié, ni Luna,
+  banc ou suite complète. **Clôture de validation à reprendre** sur
+  `C:/Users/msics/donjon/artifacts/pret-280/fin-verification.json`.
+  [Rapport 280](taches/rapport-codex-280-pret-reclame.md).
+
 - **Branche `codex-coups-crue-2024`, lot 279, diagnostic seul**, base intégration
   `792816c` : les coups de la crue 2024 de `0bad227` sont **justifiés** par les
   contrats existants ; le seul défaut établi est le libellé du but de protection.
