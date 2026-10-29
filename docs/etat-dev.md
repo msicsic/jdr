@@ -2,6 +2,26 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-g1-compilateur`, lot 311 / G1 d, non fusionnée** :
+  intégration `d58b343` fusionnée sans rebase (`1b16cdd`), seul conflit
+  documentaire, historiques conservés. **Dernière reprise G1**, sans G1 e.
+  Pipeline commun : préparation pure, revue de sens à périmètre typé,
+  admission ; refus du monde direct, sans seconde fidélité ni recompilation.
+  Candidat hypothétique sans étiquette « non admis ». Effets d'improvisation
+  corrélés, approches à jet explicites ; règle commune d'ambiance restaurée,
+  audience seulement possible distinguée d'une parole explicitement annoncée.
+  **207 réussis / 211 tests distincts, quatre ignorés, 21 fichiers** ; aucune
+  suite complète. Écoute et deux refus de portée : monde/rendu après recharge.
+  Rejeu de sept tours archivés du 304 ; annotations de périmètre séparées des
+  verdicts Luna, limites de reconstruction indiquées. Six cas JSON avant/après
+  et schéma mutualisé contrôlés. Requêtes 80 466 / 81 874 caractères,
+  88,7 / 87,8 % de la référence. **Passe Luna unique à analyser**, six scripts,
+  référence `230e7b3` en cache sans rejeu ; seuil d'appels 3,30/tour et fidélité
+  comptant les refus publics qui conservent l'intention. Aucun critère déclaré
+  acquis avant mesure. Bruts et fin attendue :
+  `C:/Users/msics/donjon/artifacts/g1d-311/fin-luna.json` ;
+  [rapport 311](taches/rapport-codex-311-g1d-revue.md).
+
 - **Branche `codex-g1-compilateur`, lot 304 / G1 c, non fusionnée** :
   code mesuré `e0d87c6`, intégration `37f68d4` fusionnée sans rebase (`c542807`).
   **Analyse terminée, invariant non atteint, non fusionnable.** Une passe,

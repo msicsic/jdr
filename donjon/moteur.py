@@ -14,7 +14,7 @@ from .perception import avancer_combustion, eclairage
 from .dialogues import verifier_remise, payer_remise
 from .vol import proprietaire, appliquer as appliquer_vol
 from .capacites_objet import statut as statut_capacite, absence as absence_capacite
-from .refus import cibles, inaccessible, portes_avec_usage, ProprieteInconnue
+from .refus import cibles, inaccessible, portes_avec_usage, ProprieteInconnue, RefusDeForme
 
 
 ACTIONS = ["examiner", "toucher", "prix", "prendre", "poser", "acheter", "ouvrir", "fermer",
@@ -390,7 +390,7 @@ class Moteur:
             return plan
         if action == "ecouter":
             if cible or outil:
-                raise ErreurMonde("Écouter se fait sur place, sans cible ni outil : on tend l'oreille.",
+                raise RefusDeForme("Écouter se fait sur place, sans cible ni outil : on tend l'oreille.",
                                   "ecouter : cible et outil vides.")
             plan.titre, plan.minutes, plan.effort = "Tendre l'oreille quelques minutes.", 3, False
             return plan

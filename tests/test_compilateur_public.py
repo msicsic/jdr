@@ -63,7 +63,7 @@ class CompilateurPublicTests(unittest.TestCase):
                     def brut(_self, instructions, entree, intention, fonction, schema):
                         appels.append((fonction, copy.deepcopy(entree)))
                         if fonction == 'auditer_action':
-                            return {'conforme': True, 'motif': ''}
+                            return {'conforme': True, 'motif': '', 'perimetre': 'sens'}
                         self.assertTrue(entree['compilation'])
                         return {'mode': 'action', 'texte': '', 'faits': [], 'proposition': p}
                     with tempfile.TemporaryDirectory() as tmp:

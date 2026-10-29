@@ -21,6 +21,7 @@ SENS_OPERATIONS = {
     "patienter": "Guetter deux minutes ; tous les champs vides, methode simple, difficulte 0. Facilite le vol discret suivant, sans détourner ni changer l'orientation d'un tiers.",
     "deplacer": "Prendre : destination joueur ; poser : destination sol ; ranger : contenant ouvert. methode discret pour voler. Guetter puis voler se compose en patienter puis deplacer discret, sans ajouter de réaction du propriétaire.",
     "prelever": "Séparer une seule pièce d'un lot décrit, puis la déplacer vers destination. Ne déplace pas le lot entier.",
+    "franchir": "Parcourir un assemblage installé d'usage échelle ; cible sa référence, outil vide. Ce n'est pas un déplacement libre ni un passage sous/sur un obstacle.",
     "passer_obstacle": "Passage local sous/sur un obstacle : cible sa référence exacte, methode dessous/dessus, destination et outil vides, difficulte 0. Reste cette opération même loin ou en souvenir ; le moteur juge portée et géométrie. franchir est réservé à un assemblage installé.",
     "emettre_son": "Émission vocale cri/appel/sifflement : cible joueur ; objet sonore : cible objet et methode simple. L'audition et les réactions sont calculées par le moteur.",
 }

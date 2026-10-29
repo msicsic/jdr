@@ -13,7 +13,7 @@ def schema_compilateur():
     # Imports différés : mj définit encore le contrat des actions simples.
     from .mj import SCHEMA
     from .moteur import SENS_PERCEPTIONS, SENS_CONSULTATIONS
-    from .operations import SCHEMA_SEQUENCE
+    from .operations import SCHEMA_SEQUENCE, SENS_OPERATIONS
     from .artisanat import SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE
     from .improvisation import schema_proposition
     improvisation = schema_proposition()
@@ -32,13 +32,18 @@ def schema_compilateur():
     parole = copy.deepcopy(SCHEMA_PAROLE)
     parole["properties"] = {"operations_demandees": copy.deepcopy(SCHEMA_OPERATIONS),
                              **parole["properties"]}
+    parole['properties']['personnage']['description'] = (
+        'Adresse du moteur : parole_prevue.personnage, ou parole_possible.personnage '
+        'si le mode parole_joueur est choisi. Le catalogue ne décide pas de parler.')
     parole["required"].insert(0, "operations_demandees")
     simple = copy.deepcopy(SCHEMA)
-    simple["properties"]["action"]["description"] = " ".join(f"{op} : {sens}" for op, sens in (SENS_PERCEPTIONS | SENS_CONSULTATIONS).items())
+    sens_simples = SENS_PERCEPTIONS | SENS_CONSULTATIONS | {k: v for k, v in SENS_OPERATIONS.items()
+        if k in simple['properties']['action']['enum']}
+    simple["properties"]["action"]["description"] = " ".join(f"{op} : {sens}" for op, sens in sens_simples.items())
     return {"type": "object", "additionalProperties": False, "properties": {
         "mode": {"type": "string", "enum": ["action", "parole_joueur", "conversation_pnj",
             "etablir_faits", "enrichir", "enrichir_savoirs", "enrichir_joueur", "dialogue"],
-            "description": "dialogue : question d'information au MJ sur ce qui est perçu, connu ou déjà lu, sans nouvel acte ni parole. action : geste demandé ou question de faisabilité. parole_joueur : le joueur fait parler Corvus (adresse, guillemets, verbe de parole) ; la présence d'un interlocuteur ou d'une parole_prevue possible ne suffit pas à transformer une question au MJ en parole. conversation_pnj : opération de mission configurée, avant la parole libre."},
+            "description": "dialogue : question d'information au MJ ou ambiance, sans nouvel acte ni parole. action : geste demandé ou question de faisabilité. parole_joueur : le joueur fait parler Corvus à un destinataire ; parole_possible est un catalogue conditionnel, jamais une décision de faire parler Corvus. conversation_pnj : opération de mission configurée, avant la parole libre."},
         "texte": {"type": "string", "description": "Réponse finale non vide au joueur en dialogue ; jamais analyse du choix de mode. Vide pour les propositions typées."},
         "faits": {"type": "array", "items": {"type": "string"}},
         "proposition": {"anyOf": [simple, SCHEMA_SEQUENCE, improvisation,
@@ -75,7 +80,7 @@ L'atelier et les franchissements donnent les ressources et contraintes publiques
 
 mode parole_joueur : Corvus parle, sans effectuer le geste qu'il annonce.
 Replique au discours direct dans sa bande d'expression, mots imposés conservés.
-personnage suit parole_prevue. Analyser operations_demandees depuis la saisie,
+personnage suit parole_prevue, ou parole_possible si une parole est choisie. Analyser operations_demandees depuis la saisie,
 puis fournir tous les actes de contenu correspondants. propos ne remplace pas
 une opération disponible, même pour une phrase déclarative, négative ou incertaine.
 
@@ -100,7 +105,8 @@ sans effacer une clause. Aucun récit de refus ni explication mécanique invent�
 
 
 def prompt_compilateur(fournisseur):
-    return (PROMPT_COMPILATEUR + ("\nLes variantes de contenu du schéma définissent les actes de parole."
+    from .narration import REGLE_AMBIANCE
+    return (PROMPT_COMPILATEUR + "\n" + REGLE_AMBIANCE + ("\nLes variantes de contenu du schéma définissent les actes de parole."
             if getattr(fournisseur, "schema_lu", True) else "\n" + section_contenu()))
 
 
@@ -139,6 +145,10 @@ def extraire_contexte(monde, intention="", *, faits=None):
     ctx["saisie"] = {"parole_explicite": bool(forme["explicite"]),
                      "interlocuteur_nomme": bool(forme.get("nomme") or forme.get("groupe")),
                      "question_faisabilite": bool(faisabilite(intention))}
+    if 'parole_prevue' in ctx and not forme['explicite']:
+        # La préparation d'une audience possible n'établit pas que le joueur
+        # fait parler Corvus. Les mots explicitement annoncés gardent leur voie.
+        ctx['parole_possible'] = {'si_mode': 'parole_joueur', **ctx.pop('parole_prevue')}
     # La salle garde ses sorties connues et leur état, pas la description d'auteur.
     ctx["salle"] = {k: v for k, v in ctx.get("salle", {}).items()
                     if k in ("id", "nom", "sorties", "sorties_connues", "eau")}

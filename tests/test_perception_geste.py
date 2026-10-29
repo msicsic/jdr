@@ -43,11 +43,11 @@ class PerceptionGesteTests(unittest.TestCase):
                 # pas un plan vide réputé conforme sans lire son dossier.
                 from donjon.mj import MJOpenAI
                 original = MJOpenAI._auditer_action
-                def revue(mj, intention, plan, revision, monde):
+                def revue(mj, intention, plan, revision, monde, operations_demandees=None):
                     dossier = entree(intention, plan, monde)["plan"]
                     self.assertEqual(dossier["perception"]["action"], p["action"])
                     self.assertEqual(dossier["perception"]["cible"], p["cible"])
-                    return original(mj, intention, plan, revision, monde)
+                    return original(mj, intention, plan, revision, monde, operations_demandees)
                 with patch.object(MJOpenAI, "_auditer_action", revue):
                     r, texte, appels = jouer(m, "mj " + saisie, [action(p)], [])
                 self.assertEqual([f for f, _ in appels], ["repondre_au_joueur", "auditer_action"])
@@ -70,7 +70,7 @@ class PerceptionGesteTests(unittest.TestCase):
         r, texte, appels = jouer(m, "mj j'écoute à la porte", [
             action(proposition("ecouter", "porte_etanche")),
             action(proposition("ecouter"))], [])
-        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
+        self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 2)
         self.assertEqual(r.data["minutes"], m.data["minutes"] + 3)
         self.assertEqual(r.data["journal"][-1]["action"]["action"], "ecouter")
         self.assertIn("rien de particulier ne te parvient", texte)

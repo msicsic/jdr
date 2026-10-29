@@ -109,10 +109,10 @@ class AdresseTests(unittest.TestCase):
                 for qui in ("aubin", "ilse"):
                     self.assertEqual(paroles_retenues(r, qui)[-1][2], saisie)
                     self.assertEqual(r.data["paroles_joueur"][-1]["auditeurs"], ["ilse"])
-                self.assertEqual(appels[0][1]["faits"]["parole_prevue"]["personnage"], "ilse")
+                self.assertEqual(appels[0][1]["faits"]["parole_possible"]["personnage"], "ilse")
                 # Le choix de parler est encore celui de l'interprétation ;
                 # fournir une question au MJ ne la déclare pas déjà prononcée.
-                self.assertNotIn("mots", appels[0][1]["faits"]["parole_prevue"])
+                self.assertNotIn("mots", appels[0][1]["faits"]["parole_possible"])
                 self.assertNotIn("Une réécriture ajoutée", sortie)
 
     def test_une_adresse_expresse_ne_peut_pas_etre_elargie(self):

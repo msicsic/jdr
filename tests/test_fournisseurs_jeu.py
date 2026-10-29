@@ -28,7 +28,7 @@ except ImportError:
 
 def arguments(cible, fonction, entree):
     if fonction == 'auditer_action':
-        return {'conforme': True, 'motif': ''}
+        return {'conforme': True, 'motif': '', 'perimetre': 'sens'}
     if fonction == 'auditer_narration':
         return {'segments': {i: {"portee_mecanique": "etablie", 'nature': 'mecanique',
             'sources': ['resultat_resolu'],

@@ -58,7 +58,7 @@ class RefusMoteurTests(unittest.TestCase):
                 refus = self.refus(m, p)
                 self.assertIn("trop bas", str(refus))
                 for saisie in ("ramper sous la poutre effondrée", "est-ce que je pourrais passer dessous ?"):
-                    self.console(m, saisie, [action(p), action(p)], str(refus), 2)
+                    self.console(m, saisie, [action(p), action(p)], str(refus), 1)
 
     def test_forme_persistante_ne_dit_pas_impossible(self):
         from tests.test_improvisation import chant
@@ -77,7 +77,7 @@ class RefusMoteurTests(unittest.TestCase):
         self.console(banc("atelier"), "je fredonne", [{"mode": "action"}] * 2,
                      demande_precision(), 2)
 
-    def test_deux_refus_distincts_dans_l_ordre(self):
+    def test_un_refus_admission_ne_propose_pas_un_autre_geste(self):
         m = nouveau_monde()
         for cible in ("torche", "lanterne"):
             m.objets[cible].update(allume=False, combustible=0)
@@ -85,15 +85,13 @@ class RefusMoteurTests(unittest.TestCase):
         allumer = proposition("allumer", "torche", "briquet")
         refus = [self.refus(m, p) for p in (lire, allumer)]
         self.assertNotEqual(str(refus[0]), str(refus[1]))
-        self.console(m, "je lis la consigne", [action(lire), action(allumer)],
-                     " ".join(map(str, refus)), 2)
+        self.console(m, "je lis la consigne", [action(lire), action(allumer)], str(refus[0]), 1)
 
-    def test_refus_de_portee_en_correction_garde_le_premier_refus(self):
+    def test_visibilite_refusee_ne_declenche_pas_correction_de_cible(self):
         m = loin_de_la_poutre()
         propositions = [proposition("prendre", "objet_inexistant"), proposition("prendre", "crochets")]
         refus = [self.refus(m, p) for p in propositions]
-        self.console(m, "je cherche à récupérer les crochets", list(map(action, propositions)),
-                     " ".join(map(str, refus)), 2)
+        self.console(m, "je cherche à récupérer les crochets", list(map(action, propositions)), str(refus[0]), 1)
 
     def test_correction_en_prose_ou_avis_ne_remplace_pas_le_refus(self):
         m = banc("atelier")
@@ -102,7 +100,7 @@ class RefusMoteurTests(unittest.TestCase):
                            avis("impossible", "Il te faut une échelle."),
                            avis("clarifier", "Quel identifiant vises-tu ?")):
             with self.subTest(mode=correction):
-                self.console(m, "je prends la pierre", [action(p), correction], str(self.refus(m, p)), 2)
+                self.console(m, "je prends la pierre", [action(p), correction], str(self.refus(m, p)), 1)
 
 
 if __name__ == "__main__":

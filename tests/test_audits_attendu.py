@@ -53,6 +53,7 @@ def jouer(monde, saisie, reponses, audits, revues=()):
             revue = revues.pop(0) if revues else {"conforme": True, "motif": ""}
             if callable(revue):
                 revue = revue(entree)
+            revue.setdefault('perimetre', 'sens')
             if "evenements_requis" in schema["properties"]:
                 revue.setdefault("evenements_requis", [])
             if "contenu_conforme" in schema["properties"] and "conforme" in revue:
@@ -238,7 +239,7 @@ class ContreRevuesTests(unittest.TestCase):
         m = nouveau_monde()
         plan = Moteur(m).preparer(proposition("detacher", "axe_haut", "couteau", "levier", 18))
         with self.assertRaises(ErreurMonde) as refus:
-            verifier_couverture({"conforme": False, "motif": "Prise non demandée."}, plan)
+            verifier_couverture({"conforme": False, "motif": "Prise non demandée.", "perimetre": "sens"}, plan)
         self.assertEqual(str(refus.exception), "La manœuvre proposée ne couvre pas la demande : Prise non demandée.")
         self.assertEqual(refus.exception.attendu,
                          f"proposition, reçu « {plan.titre} (action detacher, cible axe_haut) » ; selon l'auditeur "

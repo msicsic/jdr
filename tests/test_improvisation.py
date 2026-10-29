@@ -178,7 +178,7 @@ class ImprovisationTests(unittest.TestCase):
     def test_refus_impossible_reexamine_intention_sans_regle_de_mot_cle(self):
         refus = reponse(action("impossible", justification="Je ne vois pas de voie."))
         with patch.object(MJOpenAI, "_appeler", side_effect=[refus, reponse(chant())]) as api, \
-             patch.object(MJOpenAI, "_appeler_brut", return_value={"conforme": True, "motif": "", "evenements_requis": ["son"]}):
+             patch.object(MJOpenAI, "_appeler_brut", return_value={"conforme": True, "motif": "", "perimetre": "sens", "evenements_requis": ["son"]}):
             sortie = MJOpenAI().echanger(self.m, "je chante")
         self.assertEqual(api.call_count, 2)
         self.assertEqual(sortie["proposition"], chant())
@@ -198,7 +198,7 @@ class ImprovisationTests(unittest.TestCase):
         # ordinaire : trois propositions au plus, puis une demande de précision moteur (G2).
         with patch.object(MJOpenAI, "_appeler", side_effect=[reponse(invalide), reponse(invalide), reponse(invalide),
                                                          ErreurMonde("narration indisponible")]) as api, \
-             patch.object(MJOpenAI, "_appeler_brut", return_value={"conforme": True, "motif": ""}):
+             patch.object(MJOpenAI, "_appeler_brut", return_value={"conforme": True, "motif": "", "perimetre": "sens"}):
             sortie = MJOpenAI().echanger(self.m, "je chante")
         self.assertEqual(api.call_count, 3)
         self.assertEqual(sortie["mode"], "dialogue")
@@ -238,7 +238,7 @@ class ImprovisationTests(unittest.TestCase):
                         conforme = any(e[0] == operation for e in effets)
                         appels.append(("audit", conforme))
                         # Même un verdict positif ne peut couvrir un effet absent.
-                        return {"conforme": True, "motif": "",
+                        return {"conforme": True, "motif": "", "perimetre": "sens",
                                 "evenements_requis": ["son" if operation == "son_improvise" else "marquer"]}
                     self.assertEqual(fonction, "repondre_au_joueur")
                     corrige = "retour_moteur" in entree["faits"]

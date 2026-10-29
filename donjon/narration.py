@@ -397,6 +397,11 @@ Les motifs et verdicts servent à corriger le texte, jamais à qualifier le réc
 Ne reproduis aucune phrase refusée. Appelle la fonction demandée une fois.
 """
 
+REGLE_AMBIANCE = """L'ambiance (aspect, odeur, son de fond, texture, impression) est libre
+si elle ne crée ni objet manipulable, ni passage, ni personnage, ni ressource,
+ni indice. Reste cohérent avec ambiance_etablie : une ambiance admise est
+perçue, sans réserve qui la démente. Elle n'a pas à justifier son origine."""
+
 REGLE_NARRATION = """
 Le narrateur raconte le geste et le ton, sans affirmer aucun compte : le moteur écrit
 les comptes et les offres. Seules les répliques citées des PNJ peuvent les évoquer,
@@ -404,10 +409,8 @@ avec un sens, des montants et des conditions compatibles avec l'issue et les off
 fournies ; elles ne créent aucun effet.
 Ce que tu affirmes sur l'état mécanique (objets, personnages, positions, passages, possession,
 ressources, lumière, missions, résultats) doit découler des faits fournis ; pour créer un
-élément mécanique, propose un fait persistant lorsque ce mode est disponible. L'ambiance
-(aspect, odeur, son de fond, texture, impression) est libre si elle ne crée ni objet
-manipulable, ni passage, ni personnage, ni ressource, ni indice. Reste cohérent avec
-ambiance_etablie : une ambiance admise est perçue, sans réserve qui la démente.
+élément mécanique, propose un fait persistant lorsque ce mode est disponible.
+""" + REGLE_AMBIANCE + """
 Ne nomme pas un objet ou un lieu dont les faits ne parlent pas.
 Dis une inconnue mécanique par sa limite de perception ou de savoir dans la fiction.
 Le récit parle de ce que tu perçois, sais ou supposes, jamais du degré de preuve fourni au MJ

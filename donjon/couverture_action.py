@@ -18,8 +18,10 @@ SCHEMA = {
     "properties": {
         "conforme": {"type": "boolean"},
         "motif": {"type": "string"},
+        "perimetre": {"type": "string", "enum": ["sens", "admission"],
+            "description": "sens : différence entre demande et proposition ; admission : portée, visibilité, ressource, faisabilité ou absence d'exécution. Seul sens peut refuser la fidélité."},
     },
-    "required": ["conforme", "motif"],
+    "required": ["conforme", "motif", "perimetre"],
 }
 EVENEMENTS = tuple(SENS_EFFETS)
 SCHEMA_EXPRESSION = {**SCHEMA, "properties": {**SCHEMA["properties"],
@@ -44,15 +46,15 @@ SCHEMA_PAROLE = {
 def schema(plan):
     if plan.parole is not None:
         return SCHEMA_PAROLE
-    return SCHEMA_EXPRESSION if plan.proposition.get("action") == "improviser" and not hasattr(plan, "proposition_non_admise") else SCHEMA
+    return SCHEMA_EXPRESSION if plan.proposition.get("action") == "improviser" and not getattr(plan, 'candidat', False) else SCHEMA
 
-INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
-Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
-Le champ parole est le dossier de contenu d'une parole préparée : replique, contenu et
-sens_contenu. Compare ces mots et ce contenu à la demande du joueur avant enregistrement.
-L'adresse, les auditeurs et les effets mécaniques sont fixés et validés séparément par le
-moteur ; ils ne font pas partie de ce dossier ni du sens à contrôler. contenu décrit ce
-qui est demandé ou affirmé, pas les opérations de transfert ou de paiement à exécuter.
+INSTRUCTIONS = """Tu contrôles seulement le sens d'une interprétation proposée, jamais son admission.
+Compare la demande entière du joueur à proposition. Un plan d'effets, lorsqu'il est
+fourni, précise son sens, sans dire que le geste a eu lieu. La proposition reste
+hypothétique : son impossibilité, sa portée, sa visibilité, ses ressources ou le
+fait qu'elle n'est pas exécutée ne sont jamais une omission de sens.
+Rends perimetre=sens pour une action/cible/clause étrangère ou omise, admission
+pour une objection de faisabilité ou d'exécution. Seul sens peut refuser la fidélité.
 Les opérations désignent chaque chose par « nom (identifiant) » : le nom est celui que le joueur
 emploie, l'identifiant n'est qu'une étiquette technique.
 Le plan représente les actes et événements du monde : action, cibles, outil, et changements
@@ -60,8 +62,6 @@ Le plan représente les actes et événements du monde : action, cibles, outil, 
 (position des mains, style, intention affichée, caractère d'un son ou d'un air déjà émis) relève du
 récit et n'a pas à figurer dans les opérations ; l'outil et la méthode la portent déjà.
 L'émission elle-même exige un événement son ; un récit de son ne l'émet pas.
-Quand proposition_non_admise est présent, compare cette proposition brute à la saisie :
-elle n'est pas exécutée et ses contraintes mécaniques ne sont pas à juger ici.
 Refuse une action ou cible étrangère avant d'en réparer les champs. La saisie reste
 la référence, jamais la proposition précédente. Pour un geste improvisé admis,
 rends aussi les evenements_requis d'après la saisie, avant de juger leur couverture.
@@ -70,7 +70,7 @@ Réponds conforme=false seulement pour un écart d'état net :
 - une action ou une cible différente de celle demandée ;
 - un état durable demandé qui n'est ni déjà vrai d'après le dossier, ni produit par le plan ;
 - un changement durable ajouté que le joueur n'a pas demandé.
-Compare la demande à l'état final établi par le moteur, en lisant ensemble le titre,
+Compare la demande à l'état final visé par la proposition, en lisant ensemble le titre,
 l'information, deplacements, passages, les effets et les étapes. Les déplacements et
 effets que le moteur établit pour accomplir le geste font partie de ce geste : ils
 ne sont pas des changements ajoutés et n'exigent pas une demande séparée. Cela
@@ -97,11 +97,6 @@ N'exige ni résultat incertain, ni réaction d'un tiers, ni effet non demandé.
 La branche d'échec d'un jet peut ne pas atteindre le but ; juge sa cohérence avec le risque.
 En cas de doute, réponds conforme=true : le moteur garde l'autorité sur chaque effet.
 Le motif désigne seulement l'écart d'état, sans inventer un fait du monde.
-Pour un plan de parole, rends contenu_conforme : les mots et le contenu typé traduisent-ils
-la demande ? Un contenu vide ou propos n'attribue aucun effet mécanique aux mots ; il n'est
-pas infidèle par son seul manque de typage. Juge les mots et les effets des seuls contenus
-typés présents, sans exiger d'en inventer un pour toute question. Ne juge dans ce booléen ni l'audience fixée par le moteur, ni les conséquences
-qu'il a calculées. Pour les autres plans, rends conforme et motif.
 Appelle auditer_action une fois.
 """
 
@@ -170,6 +165,7 @@ def _operations(plan, monde=None):
     improvise = plan.proposition.get("action") == "improviser"
     return {
         "titre": plan.titre,
+        "proposition": proposition_brute(plan.proposition),
         **({"cotation": plan.cotation} if hasattr(plan, 'cotation') else {}),
         **({"deplacements": _deplacements(plan, monde)}
            if monde is not None and hasattr(plan, "deplacements") else {}),
@@ -179,7 +175,6 @@ def _operations(plan, monde=None):
         **({"perception": plan.perception} if plan.perception is not None else {}),
         **({"contrat_perception": SENS_PERCEPTIONS[plan.perception["action"]]}
            if plan.perception is not None else {}),
-        **({"proposition_non_admise": plan.proposition_non_admise} if hasattr(plan, "proposition_non_admise") else {}),
         **({"parole": plan.parole} if plan.parole is not None else {}),
         **({"geste_improvise": {"approche": plan.proposition.get("approche"),
                                 "cibles": plan.proposition.get("cibles", []),
@@ -287,6 +282,8 @@ def entree(intention, plan, monde=None):
                                             "outil": _nommer(op["geste_improvise"]["outil"], monde)}}
                        if "geste_improvise" in op else {})}
         operations = nommer_plan(operations)
+        from .noms import public
+        operations['proposition'] = public(monde, operations['proposition'])
     entree_ = {"demande": intention, "plan": operations}
     if monde is not None:
         from .noms import public
@@ -364,9 +361,10 @@ def verifier(rapport, plan=None, operations_demandees=None):
                               ("contenu non conforme", motif)))
         return
     expression = plan is not None and schema(plan) is SCHEMA_EXPRESSION
-    champs = {"conforme", "motif", "evenements_requis"} if expression else {"conforme", "motif"}
+    champs = {"conforme", "motif", "perimetre", "evenements_requis"} if expression else {"conforme", "motif", "perimetre"}
     if (not isinstance(rapport, dict) or set(rapport) != champs
-            or type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)):
+            or type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)
+            or rapport['perimetre'] not in ('sens', 'admission')):
         raise RapportInvalide("La contre-revue de la manœuvre est invalide.")
     if expression:
         requis = rapport["evenements_requis"]
@@ -387,7 +385,7 @@ def verifier(rapport, plan=None, operations_demandees=None):
             raise ErreurMonde("La manœuvre proposée ne couvre pas la demande : un événement demandé manque.",
                 attendu_audit("proposition.reussite.effets", json.dumps(plan.proposition["reussite"]["effets"], ensure_ascii=False),
                               SENS_EFFETS[evenement], ("non conforme", evenement)))
-    if not rapport["conforme"]:
+    if not rapport["conforme"] and rapport['perimetre'] == 'sens':
         # Le motif n'est qu'une explication transmise au MJ : un motif trop long est abrégé.
         motif = rapport["motif"].strip()
         if len(motif) > MOTIF_MAX:

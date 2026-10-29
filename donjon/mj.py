@@ -504,7 +504,7 @@ class MJ:
                             f"contre-revue reçue {json.dumps(rapport, ensure_ascii=False)} ; "
                             "accepté un contenu couvrant les opérations demandées, "
                             "après une contre-revue lisible (contenu_conforme, motif, operations_demandees, perimetre).")
-                    if plan.proposition.get("action") == "improviser" or hasattr(plan, "proposition_non_admise"):
+                    if plan.proposition.get("action") == "improviser" or getattr(plan, 'candidat', False):
                         raise RapportIllisible("La fidélité de la manœuvre n'a pas pu être vérifiée.",
                             "proposition inchangée ; accepté : une contre-revue lisible selon le schéma demandé.")
                     if self.observateur:
@@ -706,18 +706,20 @@ class MJ:
                     break
                 # Une question sur la faisabilité d'un geste se prépare comme sa demande : la boucle de
                 # jeu ne l'exécute pas (``commandes.PERCEPTIONS``) et montre ce qu'il demanderait.
+                refus_admission = None
+                # Préparation pure du dossier : aucune décision publiée et
+                # aucun effet. Même pipeline ensuite, qu'elle ait produit un
+                # plan ou rencontré un obstacle : sens, puis admission.
                 try:
                     plan = Moteur(monde).preparer(p, "MJ")
                 except ErreurMonde as exc:
-                    # La validité n'établit pas la fidélité, et une invalidité
-                    # n'autorise pas à corriger une autre intention. Contrôler
-                    # le candidat brut avant de conserver son obstacle public.
+                    refus_admission = exc
                     from .moteur import Plan
-                    from .noms import public
-                    from .couverture_action import proposition_brute
-                    candidat = Plan(p, revision, "Proposition non admise ; aucun effet exécuté.")
-                    candidat.proposition_non_admise = public(monde, proposition_brute(p))
-                    self._auditer_action(intention, candidat, revision, monde)
+                    plan = Plan(p, revision, "Interprétation proposée.")
+                    plan.candidat = True
+                self._auditer_action(intention, plan, revision, monde, evenements_demandes)
+                if refus_admission is not None:
+                    exc = refus_admission
                     if isinstance(exc, ProprieteInconnue) and geste_en_question(monde, intention):
                         # Une inconnue physique n'est pas une erreur de saisie du
                         # plan : une fiche répond avec ce qui manque, sans inventer
@@ -730,16 +732,19 @@ class MJ:
                                 **retour_refus(p, exc, "Une propriété reste à décrire ; rien n'est tenté.")})
                         return reponse_du_moteur(exc)
                     if not isinstance(exc, (QualificationRequise, RefusDeForme)):
-                        if str(exc) not in map(str, refus_monde):
-                            refus_monde.append(exc)
-                        if p.get("action") not in PERCEPTIONS:
-                            refus_du_moteur = exc
-                    raise
+                        # Le sens est contrôlé ; l'admission rend son propre
+                        # refus public. Elle ne recompile pas une intention
+                        # fidèle et ne déclenche aucune deuxième fidélité.
+                        if self.observateur:
+                            self.observateur({"etape": "validation", "modele": self.modele,
+                                "intention": intention, "revision": revision, "tentative": tentative + 1,
+                                **retour_refus(p, exc, "Refus public du moteur ; intention conservée.")})
+                        return reponse_du_moteur(exc)
+                    raise exc
                 if premier_refus and not plan.realise_geste:
                     raise ErreurMonde("La proposition corrigée ne réalise aucun effet de la manœuvre demandée.",
                                       "garde les gestes de l'intention qui changent le monde ou font percevoir ; si aucun n'est possible, "
                                       "réponds en dialogue sur l'obstacle.")
-                self._auditer_action(intention, plan, revision, monde, evenements_demandes)
                 break
             except ErreurMonde as exc:
                 dernier_refus = (p, str(exc))

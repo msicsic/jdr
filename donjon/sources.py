@@ -42,6 +42,7 @@ ORDRE_APRES_OBJETS = (
     "evenements_recents",
     "echanges_passes",
     "parole_prevue",
+    "parole_possible",
     "ambiance_ciblee",
     "reperes_demandes",
     "revision",

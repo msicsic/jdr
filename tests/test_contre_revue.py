@@ -45,7 +45,7 @@ class RapportTests(unittest.TestCase):
         with self.assertRaises(RapportInvalide):
             verifier({"conforme": "non", "motif": ""})
         with self.assertRaises(ErreurMonde) as refus:
-            verifier({"conforme": False, "motif": "x" * 500})
+            verifier({"conforme": False, "motif": "x" * 500, "perimetre": "sens"})
         self.assertNotIsInstance(refus.exception, RapportInvalide)
         self.assertLessEqual(len(str(refus.exception)), 400)
         self.assertTrue(refus.exception.attendu)
@@ -63,14 +63,14 @@ class RapportTests(unittest.TestCase):
     def test_une_revue_relue_conforme_suffit(self):
         m = nouveau_monde()
         mj = MJOpenAI("gpt-6-luna")
-        with patch.object(mj, "_appeler_brut", side_effect=[{}, {"conforme": True, "motif": ""}]) as appel:
+        with patch.object(mj, "_appeler_brut", side_effect=[{}, {"conforme": True, "motif": "", "perimetre": "sens"}]) as appel:
             mj._auditer_action("je retire l'axe", detacher_axe(m), m.data["revision"])
         self.assertEqual(appel.call_count, 2)
 
     def test_une_revue_non_conforme_reste_un_refus(self):
         m = nouveau_monde()
         mj = MJOpenAI("gpt-6-luna")
-        with patch.object(mj, "_appeler_brut", return_value={"conforme": False, "motif": "Prise non demandée."}):
+        with patch.object(mj, "_appeler_brut", return_value={"conforme": False, "motif": "Prise non demandée.", "perimetre": "sens"}):
             with self.assertRaisesRegex(ErreurMonde, "Prise non demandée"):
                 mj._auditer_action("je fais levier", detacher_axe(m), m.data["revision"])
 

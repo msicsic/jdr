@@ -96,7 +96,7 @@ class VocatifTests(unittest.TestCase):
             parole("As-tu de quoi manger, Aubin ?", ("ressource", "faim", "", ""), personnage="ilse"),
             dialogue("Ilse secoue la tête : « Non, rien. »")],
             [audit(ligne("parole", "ilse", "Non, rien."))])
-        self.assertEqual(mj(appels)[0]["faits"]["parole_prevue"]["personnage"], "ilse")
+        self.assertEqual(mj(appels)[0]["faits"]["parole_possible"]["personnage"], "ilse")
         self.assertIn("personnage = ilse", mj(appels)[1]["faits"]["retour_moteur"]["attendu"])
         # Les mots du joueur sont dits tels quels : la réplique n'est pas réécrite.
         self.assertIn(f"Tu dis à Ilse : « {saisie} »", sortie)
@@ -185,7 +185,7 @@ class CantonadeTests(unittest.TestCase):
             parole("Il y a quelqu'un ?", ("propos", "", "", ""), personnage="personne"),
             dialogue("Une voix répond dans le noir : « Oui, ici. »")], [audit(ligne("parole", "voix_1", "Oui, ici."))])
         # Seul dans le noir, Corvus peut poser sa question à voix haute : le mode parole lui est offert.
-        self.assertEqual(mj(appels)[0]["faits"]["parole_prevue"]["personnage"], "personne")
+        self.assertEqual(mj(appels)[0]["faits"]["parole_possible"]["personnage"], "personne")
         self.assertEqual(narration(appels)["faits"]["conversation_validee"]["repondent"], ["voix_1"])
         self.assertIn("Tu dis : « il y a quelqu'un ? »", sortie)
         self.assertIn("« Oui, ici. »", sortie)
@@ -404,7 +404,7 @@ class NommerUneVoixTests(unittest.TestCase):
         _, sortie, appels = jouer(m, "Ilse, tu as faim ?", [
             parole("Ilse, tu as faim ?", ("ressource", "faim", "", ""), personnage="voix_1"),
             dialogue("La voix : « Un peu. »")], [audit(ligne("parole", "voix_1", "Un peu."))])
-        self.assertEqual(mj(appels)[0]["faits"]["parole_prevue"]["personnage"], "voix_1")
+        self.assertEqual(mj(appels)[0]["faits"]["parole_possible"]["personnage"], "voix_1")
         self.assertIn("Tu dis à une voix qui se dit Ilse : « Ilse, tu as faim ? »", sortie)
 
 

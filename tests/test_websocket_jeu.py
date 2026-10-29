@@ -18,7 +18,7 @@ class ParcoursWebSocketTests(unittest.TestCase):
         fonction = outil['name']
         entree = json.loads(payload['input'][0]['content'])
         if fonction == 'auditer_action':
-            args = {'conforme': True, 'motif': ''}
+            args = {'conforme': True, 'motif': '', 'perimetre': 'sens'}
         elif fonction == 'repondre_au_joueur':
             self.assertNotIn('resultat_resolu', entree.get('faits', {}))
             args = {'mode': 'action', 'texte': '', 'faits': ['joueur'], 'proposition': proposition('prendre', cible)}

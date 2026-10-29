@@ -30,6 +30,7 @@ def proposition(intention, reussite, echec=None, cibles=None, outil="", approche
 
 
 APPROCHES = ("expression", "manipulation", "effort", "adresse", "observation")
+APPROCHES_A_JET = ("manipulation", "effort", "adresse")
 STAT = ("", "FOR", "DEX", "INT", "PER", "CHA")
 FORMES_SONORES = {
     "indetermine": "Tu produis un son.",
@@ -51,8 +52,35 @@ SCHEMA_EFFET = {"type": "object", "additionalProperties": False, "properties": {
                   "description": " ".join(f"{op} : {sens}" for op, sens in SENS_EFFETS.items())},
     "cible": {"type": "string"}, "destination": {"type": "string"},
     "texte": {"type": "string"}, "valeur": {"type": "integer"}}, "required": list(effet(""))}
+
+
+def schema_effet():
+    """Une forme par effet : pas de combinaison de champs contradictoires."""
+    variantes = []
+    for op, sens in SENS_EFFETS.items():
+        v = copy.deepcopy(SCHEMA_EFFET)
+        c = v['properties']
+        c['operation'] = {'type': 'string', 'enum': [op], 'description': sens}
+        c['cible']['minLength'] = 1
+        if op != 'deplacer':
+            c['destination']['enum'] = ['']
+        if op in ('son', 'blesser'):
+            c['cible']['enum'] = ['joueur']
+            c['valeur'].update(minimum=1, maximum=3)
+        else:
+            c['valeur']['enum'] = [1 if op == 'user' else 0]
+        if op == 'son':
+            c['texte']['enum'] = list(FORMES_SONORES)
+        elif op == 'marquer':
+            c['texte']['minLength'] = 1
+        else:
+            c['texte']['enum'] = ['']
+        variantes.append(v)
+    return {'anyOf': variantes}
+
+
 SCHEMA_ISSUE = {"type": "object", "additionalProperties": False, "properties": {
-    "recit": {"type": "string"}, "effets": {"type": "array", "maxItems": 4, "items": SCHEMA_EFFET}},
+    "recit": {"type": "string"}, "effets": {"type": "array", "maxItems": 4, "items": schema_effet()}},
     "required": ["recit", "effets"]}
 SCHEMA = {"type": "object", "additionalProperties": False, "properties": {
     "action": {"type": "string", "enum": ["improviser"]}, "intention": {"type": "string"},
@@ -84,10 +112,12 @@ def schema_proposition():
         champs['difficulte'].update(minimum=10 if jet else 0, maximum=18 if jet else 0)
         champs['reussite']['properties']['recit'].update(minLength=1, maxLength=600)
         if jet:
+            champs['approche']['enum'] = list(APPROCHES_A_JET)
             champs['echec']['properties']['recit'].update(minLength=1, maxLength=600)
         else:
             champs['echec']['properties']['recit']['enum'] = ['']
             champs['echec']['properties']['effets']['maxItems'] = 0
+            champs['echec']['properties']['effets']['items'] = {'type': 'null'}
         variantes.append(variante)
     return {'anyOf': variantes}
 
@@ -241,6 +271,10 @@ def preparer(m, p, origine):
          or any(not isinstance(id, str) for id in p["cibles"]) or len(set(p["cibles"])) != len(p["cibles"]))) if mal]
     if fautes:
         raise RefusDeForme("Précise l'intention et ses cibles existantes.", " ; ".join(fautes) + ".")
+    if p['stat'] and p['approche'] not in APPROCHES_A_JET:
+        raise RefusDeForme("Cette approche ne comporte pas d'épreuve physique.",
+                          "expression ou observation : stat vide, difficulte 0 et branche echec vide ; "
+                          "un jet appartient à manipulation, effort ou adresse.")
     for champ, mini, maxi in (("minutes", 0, 15), ("bruit", 0, 3), ("difficulte", 10 if p["stat"] else 0, 18 if p["stat"] else 0)):
         if type(p[champ]) is not int or not mini <= p[champ] <= maxi:
             # Une cause par refus : le champ fautif, nommé.

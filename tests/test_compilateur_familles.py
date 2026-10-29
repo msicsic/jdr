@@ -40,8 +40,10 @@ class FamillesTests(unittest.TestCase):
             self.assertIn('Tu ne vois rien de tel ici.', sortie)
             self.assertNotIn('Approche-toi', sortie)
             self.assertEqual(r.objets, m.objets)
-            candidat = [e['plan']['proposition_non_admise'] for f, e in appels if f == 'auditer_action'][-1]
+            candidat = [e['plan']['proposition'] for f, e in appels if f == 'auditer_action'][-1]
             self.assertNotIn('justification', candidat)
+            self.assertEqual(candidat['cible'], demande)
+            self.assertEqual(sum(f == 'repondre_au_joueur' for f, _ in appels), 1)
             self.assertEqual(recharger(r).data, r.data)
 
     def test_negociation_non_chiffree_explicite_reste_disponible(self):
