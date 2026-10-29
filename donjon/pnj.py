@@ -1853,7 +1853,10 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
     gestes = [] if gestes is None else gestes
     e = esprit(monde, id)
     intention = e["intention"]
-    from .signes import surveiller
+    from .signes import surveiller, suivre_regard
+    rotation = suivre_regard(monde, id)
+    if rotation:
+        return rotation, GESTE, None
     rotation = surveiller(monde, id)
     intention = e["intention"]
     if rotation:
@@ -2133,7 +2136,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
     from .horloges import declencher as declencher_horloges
     from .perception import avancer_combustion
     from .social import bavarder
-    from .signes import percevoir_tous as percevoir_signes
+    from .signes import percevoir_tous as percevoir_signes, regard_a_suivre
     from .spatial import etat_fige
     from .corps import conscient, corps, reveiller
     from .temps import MINUTE
@@ -2265,7 +2268,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 duree = secours_duree
             elif (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):
                 duree = DUREES["dire"] if en_cases else _jusqu_a_la_minute(t)
-            elif intention:
+            elif intention or regard_a_suivre(monde, id):
                 gestes = []
                 monde._agit = id  # Le temps de son geste et de ce qu'on en voit (``esprits._percevoir``).
                 duree, issue, rate = agir(monde, id, t, lignes, gestes, compter)

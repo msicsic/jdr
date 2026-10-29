@@ -2,6 +2,22 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 332, branche `codex-attention-conjointe`, non fusionnée**, base
+  `integration 7e65907` : direction des regards réellement perçus, sans cible
+  cachée ; suivi par un proche disponible, coût de rotation commun et acquisition
+  par sa seule vue. Direction physique persistante et suivi par épisode sans
+  échéance, impressions historiques filtrées. **94 tests ciblés distincts verts,
+  huit fichiers**, dont neuf nouveaux ; vrais coups de la rixe, Relais/auberge,
+  cas négatifs, monde/rendu/scène rechargés et laps entier/découpé.
+  Banc de vingt nuits de 4 h préparé, deux travailleurs réduits, référence puis
+  branche ; aucune référence compatible locale pour 7e65907, calcul unique des
+  manquantes par le cache commun. **Résultats du banc encore attendus** dans
+  `C:/Users/msics/donjon/artifacts/regard-332/fin.json`, écrit en dernier même
+  en échec. Ni Luna ni suite complète. Joueur : direction affichée, suivi manuel ;
+  anciennes attitudes sans direction conservées jusqu'au prochain regard décidé.
+  Recouvrement possible 330 : `esprits.py`, `pnj.py`, `signes.py`.
+  [Rapport 332](taches/rapport-codex-332-attention-conjointe.md).
+
 - **Lot 327 / G19 terminé, branche `codex-g19-rappels`, fusionnée**, base
   `integration eb15b5e` : rappels exacts reliés aux occurrences entendues
   du registre G15, provenance et absence revérifiées avant sauvegarde.
