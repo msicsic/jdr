@@ -2,6 +2,25 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 324 terminé, fusionnée, branche `codex-g1-a0-oracle`, base
+  intégration `884b8d7`** : oracle fermé de sens, aucun fichier `donjon/`
+  modifié. Attentes et témoins versionnés pour 91 positions / 30 tours MJ ;
+  six campagnes (294/296/304/311, référence historique 230e7b3 et référence
+  demandée c9459ce) relues sans modèle : **546 positions, zéro inconnue**.
+  Admissions 22 → 18/23/23/21 retrouvées ; quinze familles et grille 311
+  23/27 → 20/23 retrouvées. c9459ce est une autre passe, gardée séparée.
+  Six obligations explicites, dont perche/saut hors des 91 ; **15 tests
+  ciblés verts**, faux pendants des charges, refus, confirmation et rendu.
+  Une observation nouvelle reste non évaluée, code 1, jamais fidèle par
+  défaut ; annotations humaines à fournir sans modifier l'attente gelée.
+  Projections rechargées seulement, pas de preuve de sauvegarde intégrale ;
+  voies locales conservées sans certification de réussite. F, latences et
+  nouvelles contre-offres restent non évalués ; aucun axe global validé.
+  Un seul Python réduit à la fois, ni Luna, banc ni suite complète ; aucun
+  calcul actif. Bruts `C:/Users/msics/donjon/artifacts/g1-a0-324/`.
+  [Rapport 324](taches/rapport-codex-324-g1-a0-oracle.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Outil et données seulement. tools/oracle_g1.py classe chaque position du corpus G1 (proposition fidèle, admission, exécution ou refus, attente de consentement, texte vu) depuis les fils archivés, sans appel au modèle ; attentes figées dans tests/data/oracle_g1.json ; 546 positions classées, chiffres du rapport 318 retrouvés, 15 tests verts. Une observation nouvelle reste non évaluée jusqu'à annotation humaine.
+
 - **Lot 322 terminé, branche `codex-trois-echecs`, base `0a0bc9d`** :
   bissection des trois échecs nouveaux : **fusion 303 `8406756` rouge,
   parent direct `d7302a4` vert**, six références, trois tests chacune,
