@@ -10,13 +10,25 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   ajouté. Capture Relais 7 à 856 reprise avant annulation : Gorm demande Aubin
   à Brune puis livre ; Mathe/Lucien à la mine aussi. Parent, charges suspendues,
   monde/rendu/scène et huit minutes entières ou découpées vérifiés après recharge.
-  Cinq tests verts (49,693 s), sixième contre-épreuve sans recours verte (4,620 s).
-  **Vérification détachée à achever** : onze fichiers ciblés, puis banc 4 h,
-  Relais/auberge/mine × 1985/7/42/2024, référence `06465d9` par cache,
-  un travailleur réduit, référence puis branche. Lire `fin.json`, les mesures
-  de `synthese.json` et les nouveaux constats avant clôture. Aucun Luna ni suite
-  complète ; échéance générale historique des paroles à 240 min inchangée.
-  Bruts `C:/Users/msics/donjon/artifacts/livraison-312/`.
+  **95/95 tests verts, onze fichiers, 1 328,220 s**, zéro échec/erreur/ignoré.
+  **Douze paires de 4 h achevées**, Relais/auberge/mine × 1985/7/42/2024,
+  `06465d9` → `cf0adfd`, un travailleur réduit, référence puis branche,
+  1 352,251 s cumulées ; douze références manquantes rangées une fois en cache.
+  Livraisons tenues **14 → 22**, annulées **6 → 0**, portions **30 → 32** ;
+  reçus partagés dédoublonnés par preuve (récapitulatif initial double conservé).
+  Zéro plantage/usurpation ; **suspects 219 : 0 → 0 dans chaque nuit**.
+  Huit chroniques identiques, aucune répétition nouvelle de question/appel ni
+  bascule ; les reprises des quatre nuits modifiées ont les mêmes textes et
+  instants qu'en référence. Aucun essai nouveau repris par le seul délai identifié.
+  Deux nouveaux avis de Gorm aux Relais 7/2024 : retour après rencontre d'Aubin
+  (1710/1342), lieu `entendu → vu`, puis remise réussie (1772/1650).
+  Avis à expliquer **11 → 12**, dérives **186 → 199** : pas tous certifiés bénins,
+  aucune garantie universelle contre les boucles. Aucun Luna ni suite complète ;
+  échéance générale historique des paroles à 240 min inchangée.
+  **Lot terminé, branche poussée, aucun calcul actif** ; `fin-cloture.json`
+  **ok=true**, `fin.json` brut conservé. Code/tests inchangés depuis vérification.
+  Bruts `C:/Users/msics/donjon/artifacts/livraison-312/`, analyses des alertes et
+  répétitions archivées, tableau des douze nuits dans le rapport.
   [Rapport 312](taches/rapport-codex-312-livraison-destinataire-inconnu.md).
 
 - **Branche `codex-services-apres-303`, lot 308, diagnostic seul**, base
