@@ -3,7 +3,7 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-allumer-pour-soi`, non fusionnée**, lot **277**.
-  **Raccord à `bca5061` en cours**, fusion sans rebase `59a1388`, conflit
+  **Raccord à `bca5061` validé sur `9ff488b`**, fusion sans rebase `59a1388`, conflit
   documentaire seul. Quatre cas instruits : protection (avec et sans agenda),
   le paiement publiait à tort une délégation dont le contrôle devenait un
   devoir pressant ; attente et date estimée restent dans le contrat payé,
@@ -17,11 +17,28 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sans consulter son intégrité réelle. Diagnostics et ablations monde/rendu/scène rechargés.
   Les quatre cas repassent pendant l'instruction ; Lucien retrouve les
   136 changements de choix et 191 gestes du témoin sans nouveau recours.
-  **9 tests du lot verts, 43,747 s** ; fichiers concernés et banc vingt
-  paires 4 h à reprendre, référence `bca5061`, deux travailleurs réduits au
-  plus. Fichier attendu du dépôt principal :
-  `artifacts/allumer-277/raccord-266/fin.json`. Résultats ci-dessous antérieurs
-  au raccord, ni suite complète ni Luna.
+  **41 fichiers, 410 tests verts, zéro échec/erreur/saut, 1 314,326 s** ;
+  six captures avant/accord/travail, monde/rendu/scène rechargés identiques.
+  **20/20 paires 4 h, suspects 219 : 0 → 0 dans chaque nuit** (relais, mine,
+  auberge, crue, crue_hameau × 1985/7/42/2024), **coups 0 → 0 partout**,
+  zéro plantage. Demandes/offres d'allumage **9 → 10** : seul ajout crue/7,
+  **Ilse → Aubin, poêle du guet, 218 min / 130969, accepté**. Allumage
+  exécuté à 131032 puis chauffage d'Aubin à 131137, mêmes instants que
+  la référence : aucun gain de vitesse démontré ; aucun ajout au hameau.
+  S total **437 → 436**, F moyen **5,30 → 5,30**, D moyen
+  **2,053571 → 2,053571** ; seul crue/7 change son triplet S/F/D
+  **26/6/3 → 25/6/3**, dix-neuf autres identiques. Référence `bca5061`,
+  vingt nuits absentes du cache calculées une fois ; chaîne **3 320,365 s**,
+  deux travailleurs réduits au plus, aucun temps comparé entre campagnes.
+  **`artifacts/allumer-277/raccord-266/fin.json`, `ok=true`** du dépôt principal.
+  Nouvelle intégration **`30d4611` (280 et 281) fusionnée sans rebase dans
+  `88e54a9`** : conflit documentaire seul ; `planification.reagir` seul
+  changement moteur, fonctions 277 intactes. **Rejeu ciblé : 81 tests verts
+  dans huit fichiers, zéro échec/erreur/saut, 190,888 s**, deux processus
+  réduits : les quatre régressions, allumage, protection 281, tâches payées,
+  planification. Preuve `raccord-266/tests-fusion-30d4611.json` dans les bruts.
+  Aucun calcul actif ; aucun nouveau banc, ni suite complète ni Luna. Les résultats
+  ci-dessous sont antérieurs au raccord.
   Base initiale
   `1852d6e` : recours d'allumage d'un foyer fixe pour soi par `confier` ou
   `engager`, sur les seules croyances de flamme et de position. Demande

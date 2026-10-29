@@ -1,100 +1,67 @@
 # Lot 277 — demander l'allumage d'un foyer fixe pour soi
 
-**Raccord à l'intégration `bca5061` en cours**, fusion sans rebase
-`59a1388` (seul conflit : documentation). Les mesures de `bbab808` ci-dessous
-restent historiques ; nouvelle validation dans
-`artifacts/allumer-277/raccord-266/fin.json` du dépôt principal.
+Branche `codex-allumer-pour-soi`, **non fusionnée**. Raccord validé sur
+**`9ff488b`**, référence **`bca5061`** : **410 tests verts, 20/20 paires
+4 h sans hausse de suspects, aucun plantage**, `raccord-266/fin.json`,
+`ok=true`. Intégrations fusionnées sans rebase : `59a1388` (266), puis
+**`88e54a9` avec `30d4611` (280 et 281)**. Seuls conflits documentaires ;
+le second raccord moteur change uniquement `reagir` pour nommer le protégé,
+sans toucher les fonctions 277. Rejeu de cette dernière fusion : **81 tests
+verts dans huit fichiers, zéro échec/erreur/saut, 190,888 s**, deux processus
+réduits. Fichiers : les quatre régressions, `test_allumer_pour_soi`,
+`test_but_protection`, `test_taches_payees`, `test_planification`.
+**Aucun nouveau banc** : les vingt paires ci-dessous restent celles de `9ff488b`.
 
-La fusion d'essai 277+280 a révélé quatre cas :
+**Invariant et réalisation.** Un foyer mécanique fixe cru éteint et chargé,
+utilisable sans faute, hors de l'eau attendue et sans fin connue, offre
+`confier` gratuit ou `engager` payé à qui est cru porter une flamme lorsque
+le demandeur n'en porte aucune. Positions et moyens viennent des croyances.
+Devis, jugement, refus et exécution sont les mécanismes ordinaires ; le
+plan s'arrête à la demande et aucun feu ni déplacement n'est produit à
+l'accord. La parole du joueur passe par la proposition de tâche existante.
+Le travail payé et son estimation restent dans le contrat connu du payeur ;
+son contrôle sert le besoin courant sans devenir un nouveau devoir pressant.
+Une réponse « déjà fait » déclenche un contrôle, sans créer le fait annoncé.
 
-- Protection et agenda de protection : Gorm répond bien à l'alarme et
-  inspecte l'échoppe (600 → 836 dixièmes), puis Brune propose l'allumage payé
-  (859). Le nouveau registre d'aide payée ajoutait un contrôle devenu devoir
-  pressant ; avec 266, la poursuite du protégé finissait dans la crypte.
-  La panne subsiste sans le nouveau recours et disparaît sans cette
-  publication. Correction : conserver le travail et son estimation physique
-  dans le contrat payé connu du payeur ; contrôler comme moyen du besoin
-  courant, sans publier de nouvelle urgence de délégation. Alarmes inchangées.
-- Voix inconnue : Odon reçoit effectivement sa part, mais Josse redemande
-  l'allumage à Rémy, qui répond « déjà fait » (89 demandes relevées) ; la
-  chronique bornée évacue le repas. La réponse positive sans nouveau travail
-  est désormais retenue pour contrôle ordinaire, sans créer le fait dans les
-  croyances ni un nouvel engagement. Même contrat pour deux foyers dans un
-  nouveau test ; aucun recours, nom ou palier particulier ajouté.
-- Lucien : à 19340 dixièmes (32 min), Anselme, biens 100, choisit légitimement
-  d'approcher Hugues pour demander gratuitement l'allumage ; refus à 19381,
-  puis recherche d'une flamme. L'absence de pièces n'interdit plus ce moyen :
-  sa sortie modifie la fenêtre du vol, et l'information disponible à Lucien.
-  L'ablation du recours rétablit toutes les assertions historiques. La scène
-  de contrôle précise donc le poêle connu hors d'usage, garde tous les buts,
-  et conserve toutes les assertions (95 min, vol 107–110, reprise du ballot,
-  recherche, état/rendu/recharge). Le scénario normal garde le foyer utilisable.
-  Cette contre-épreuve a révélé une lacune d'admission : `disponible` ne
-  décrit que les réserves épuisées. Le recours écarte aussi la fin connue
-  (`fin`) du foyer, sans consulter son intégrité réelle cachée.
-  La scène précisée repasse avec toutes les assertions et retrouve les
-  136 changements de choix et 191 gestes du témoin sans nouveau recours.
+Fonctions touchées : `planification.Vue.__init__`, `Vue.attend_tache`,
+`gestes`, `_aide_sur_place`, `_confier_tache`, `_allumer_pour_soi`, `_engager`,
+`_entrees_communes` ; `echanges.engager`, `confier`, `_retenir_aide`,
+`_echeance_devis`, `executer`. Ni `agendas.py`, `signes.py`,
+`deliberation.py` ni prompt modifiés par 277 ; aucun appel à Luna.
 
-Fonctions supplémentaires du raccord : `Vue.attend_tache`,
-`echanges._echeance_devis` ; raccord de `_entrees_communes` pour le contrat
-payé et son contrôle, sans lecture privée. Neuf tests du lot verts
-(43,747 s), dont attente payée sans délégation urgente, foyer connu détruit et
-réalisation annoncée sans fait créé. Une ancienne sauvegarde sans estimation
-de durée ne reçoit aucune date de contrôle inventée. Les diagnostics avec et sans recours, avec et sans
-publication payée, conservent monde/rendu/scène rechargés dans
-`allumer-277/integration/`. Tests des quatre fichiers et des appelants, puis
-banc 4 h × vingt nuits sur la référence `bca5061`, en reprise détachée.
-Ni suite complète ni Luna ; aucune fusion vers l'intégration effectuée.
-Les quatre cas sont repassés pendant l'instruction ; leurs fichiers complets
-et les appelants restent à valider dans le calcul détaché.
+**Les quatre cas de la fusion d'essai 277+280.**
 
-29 octobre 2026, branche `codex-allumer-pour-soi`, **non fusionnée**, code
-**`bbab808`**, référence **`1852d6e`**. **Validation du lot terminée :
-314 tests verts, 20/20 paires de nuits 4 h sans hausse de suspects, aucun
-plantage ; `correction/fin.json`, `ok=true`.** L'intégration contient depuis
-le lot 266 « rester près » : ces résultats ne portent pas sur sa fusion
-avec 277. Le superviseur fera la fusion d'essai et la suite complète.
+- Protection, avec et sans agenda : Gorm répond à l'alarme et inspecte
+  l'échoppe (600 → 836 dixièmes), puis Brune propose l'allumage payé (859).
+  Le registre ajouté par 277 publiait une délégation dont le contrôle
+  devenait un devoir pressant ; avec 266, Gorm finissait dans la crypte.
+  La panne subsiste sans le recours et disparaît sans cette publication.
+  Le contrat payé conserve maintenant son attente et son estimation, sans
+  cette urgence. Assertions des deux tests inchangées.
+- Voix inconnue : Odon reçoit sa part, puis 89 demandes « déjà fait » de
+  Josse à Rémy évacuent le repas de la chronique bornée. La réponse positive
+  est maintenant retenue pour contrôle, sans nouvel engagement ni fait créé.
+  Le test de voix et ses assertions restent inchangés.
+- Lucien : à 19340 dixièmes (32 min), Anselme, biens 100, va légitimement
+  demander gratuitement l'allumage à Hugues ; refus à 19381, puis recherche
+  d'une flamme. Sa pauvreté n'interdit plus ce recours et son départ change
+  la fenêtre du vol. La prémisse « chambre sans recours de lumière » devient
+  explicite : poêle connu hors d'usage, tous les buts conservés. Le recours
+  vérifie aussi ce `fin` cru, sans lire l'intégrité réelle. Toutes les
+  assertions restent présentes : 95 min, vol 107–110, reprise du ballot,
+  recherche et recharge ; 136 changements de choix et 191 gestes, comme
+  le témoin sans nouveau recours.
 
-**Diagnostic préalable.** Captures 269 à 615 et 652 min, brasero et poêle :
-condition `allume` admise, aucune offre chaleur `confier`/`engager`, aucun
-refus de tâche retenu. Aubin ne garde pas son poste ; l'aide gratuite ne
-s'ouvre pas et le travail payé exige une pulsion explicitement visée.
-Gorm est cru porter une flamme, mais **son devis reste impossible sur les
-quatre cas** : ajouter le recours ne garantit pas d'éviter le coup.
-Monde/rendu/scène des captures identiques après recharge.
+**Validation du raccord à 266.** 41 fichiers, **410 tests**, zéro échec,
+erreur ou saut, **1 314,326 s**. Scènes d'auteur brasero/poêle : permission
+de Maël, accords gratuits/payés, déplacement/allumage/chauffage réels,
+parole du joueur, huit minutes en bloc/découpées. Contre-épreuves : flamme
+crue éteinte, foyer vide, noyé ou connu détruit, position réelle cachée,
+refus sans rappel par délai, réalisation annoncée sans fait créé.
+Six captures avant/accord/travail : monde/rendu/scène identiques après
+recharge. Diagnostics et ablations des quatre cas également rechargés.
 
-**Invariant et fonctions.** Un foyer mécanique (`foyer=True`) fixe cru
-éteint et chargé, utilisable sans faute et hors de l'eau attendue, ouvre
-une demande à qui est cru porter une flamme si le demandeur n'en porte
-aucune. Positions et moyens viennent des croyances. Devis, jugement,
-priorités, refus et réalisation restent ceux de `confier`/`engager`.
-La projection compare les moyens ; le plan s'arrête à la demande, puis
-attend le travail réel. Aucun feu ni déplacement n'est produit à l'accord.
-Fonctions touchées : `planification.Vue.__init__`, `gestes`,
-`_aide_sur_place`, `_confier_tache`, `_allumer_pour_soi`, `_engager` ;
-`echanges.engager`, `confier`, `_retenir_aide` partagent l'attente gratuite
-ou payée et sa durée physique. Ni `agendas.py`, `signes.py`,
-`deliberation.py` ni prompt modifiés ; pas de Luna.
-
-**Épreuves et correction.** Scènes d'auteur brasero/poêle : permission
-de Maël, demande, déplacement/allumage/chauffage réels ; accords gratuits
-et payés, parole du joueur par `proposition`, huit minutes en bloc/découpées,
-monde/rendu/scène après recharge. Contre-épreuves : flamme crue éteinte,
-foyer vide sans combustible, eau crue, position cachée, refus sans rappel
-par délai. Six captures avant/accord/travail rechargées, tous contrôles verts.
-Sur `d306370`, les huit erreurs venaient de la fixture `foyer=False` ;
-les deux échecs historiques passent sur `1852d6e` (8/8, 96,496 s) :
-régressions du lot. L'admission trop large aux luminaires fixes ajoutait
-des états au graphe faim de Rémy et des demandes à la chronique bornée de
-Bram, évacuant son ancien appel. Admission corrigée sur la mécanique
-`foyer`, sans nom ni motif de besoin ; **six empreintes historiques
-inchangées, monde final de Bram identique au témoin**. Fixtures précisées
-sans retirer leurs assertions : chaleur en lumière naturelle, permission
-sans restitution concurrente, réserve inconnue, joueur au contact et foyer
-connu. Les prêts ordinaires peuvent légitimement privilégier la restitution.
-Passe finale : **34 fichiers, 314 tests, zéro échec/erreur/saut, 878,547 s**.
-
-**Banc final, `1852d6e` → `bbab808`.** Suspects 219 par nuit :
+**Banc 4 h, `bca5061` → `9ff488b`.** Suspects 219 par nuit :
 
 | Scénario | 1985 | 7 | 42 | 2024 |
 |---|---:|---:|---:|---:|
@@ -105,26 +72,27 @@ Passe finale : **34 fichiers, 314 tests, zéro échec/erreur/saut, 878,547 s**.
 | crue_hameau | 0 → 0 | 0 → 0 | 0 → 0 | 0 → 0 |
 
 **Coups : 0 → 0 dans chaque nuit.** Demandes/offres naturelles d'allumage
-**13 → 14**, aucune acceptée : les treize offres payées de Gorm, impossibles,
-sont conservées ; seul ajout, crue/42 à **215 min, instant 129220**, Ilse
-demande à Aubin d'allumer le poêle du guet, **refus**. Aucun ajout au hameau.
-S/F/D (`cats` du lot 183) : **S total 417 → 416**, **F moyen 5,45 → 5,45**,
-**D moyen 1,997024 → 2,034524**. Seules trois nuits changent ces mesures :
+**9 → 10** : neuf offres impossibles conservées ; seul ajout, crue/7,
+**Ilse → Aubin**, poêle du guet, **218 min, instant 130969, accepté**.
+Aubin allume à **131032**, puis se chauffe à **131137**, aux mêmes instants
+que dans la référence : aucun gain de vitesse démontré. Aucun ajout au hameau.
+S/F/D (`cats` 183) : **S total 437 → 436**, **F moyen 5,30 → 5,30**,
+**D moyen 2,053571 → 2,053571**. Seul crue/7 change son triplet :
+**26/6/3 → 25/6/3** ; les dix-neuf autres sont identiques.
+Vingt références absentes du cache calculées une fois ; chaîne entière
+**3 320,365 s**, deux travailleurs réduits au plus. Aucun temps comparé
+entre campagnes.
 
-| Nuit | S | F | D |
-|---|---:|---:|---:|
-| relais/42 | 8 → 7 | 3 → 3 | 0,75 → 0,75 |
-| relais/2024 | 19 → 18 | 5 → 5 | 2,25 → 2,75 |
-| crue/42 | 29 → 30 | 7 → 7 | 3,25 → 3,5 |
-
-Les dix-sept autres triplets sont identiques. Référence absente du cache :
-vingt nuits calculées une fois ; deux travailleurs réduits au plus,
-**2 684,018 s** pour la chaîne entière. Aucun temps comparé entre campagnes.
-
-**Limites et preuves.** Réussite naturelle et bénéfice universel non
-démontrés ; le banc 4 h ne couvre pas le coup historique à 652 min.
-Réussite prouvée sur les scènes d'auteur ; refus impossible conservé sur
-les captures historiques. Ni nouveau calcul de clôture ni suite complète.
-Aucun calcul actif. Bruts dans `C:/Users/msics/donjon/artifacts/allumer-277/` :
-ancien `fin.json` négatif conservé, instruction base/branche/corrigé ; bilan
-final dans `correction/{fin,tests,scenes,comparaison,bilan}.json`.
+**Limites et preuves.** Diagnostic initial 269 à 615 et 652 min : condition
+admise mais aucun recours offert ; devis de Gorm toujours impossible pour
+les deux foyers sur les deux captures. Le banc 4 h ne couvre pas ce coup
+tardif ; aucun bénéfice universel annoncé. Anciennes sauvegardes sans
+estimation : aucune date de contrôle inventée. Les corrections de fixture
+et d'admission de `d306370` restent archivées ; six empreintes historiques
+conservées. Les résultats antérieurs (`bbab808` / `1852d6e`) ne sont pas
+ceux du raccord courant. Bruts :
+`C:/Users/msics/donjon/artifacts/allumer-277/`, notamment `integration/`
+et `raccord-266/{fin,tests,scenes,comparaison,bilan}.json`.
+Ni suite complète ni nouveau banc après `30d4611` ; la fusion vers
+l'intégration reste au superviseur. Aucun calcul actif ; résultat du dernier
+rejeu : `raccord-266/tests-fusion-30d4611.json` dans les bruts.
