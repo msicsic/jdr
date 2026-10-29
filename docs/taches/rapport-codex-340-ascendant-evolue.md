@@ -1,19 +1,28 @@
 # Lot 340 — A5.8, ascendant et issue perçue du mandat
 
 Branche `codex-ascendant-evolue`, **non fusionnée**, base fournie `9f261f9`,
-29 octobre 2026. **Lot terminé**, moteur `14ba7f2`, branche poussée vers
-`origin`. Validation initiale verte, sans calcul relancé à sa clôture.
+30 octobre 2026. **Lot terminé après synchronisation**, fusion `a5368a3`,
+branche poussée vers `origin`. Validation initiale du moteur `14ba7f2` verte.
 
-**Synchronisation demandée, en cours.** `origin/integration 64130fa`
-(336, G5 et G6) fusionnée sans rebase. Conflit de `planification.py` résolu
+**Synchronisation terminée.** `origin/integration 64130fa`
+(336, G5 et G6) fusionnée sans rebase par `a5368a3`, à deux parents
+(`1dbd57e`, `64130fa`). Conflit de `planification.py` résolu
 par l'union des lectures : mandats perçus, engagements de protection et
 agendas d'origine contrat dans `_entrees_communes`. Fusions automatiques
 d'`agendas.py` et d'`echanges.py` relues ; les deux invariants conservés.
-Documentation des deux côtés retenue. Validation détachée des fichiers
-ciblés 340 et 336, plus échanges argent/suite, deux travailleurs réduits
-au plus ; aucun nouveau banc, Luna ou suite complète. Fin attendue :
-`C:/Users/msics/donjon/artifacts/ascendant-340/fusion-64130fa/fin.json`.
-L'échec antérieur du 336 reste à attribuer s'il se reproduit.
+Documentation des deux côtés retenue. **442 tests / 44 fichiers : 441 verts,
+un échec antérieur, aucune erreur ni saut, 420,721 s**. Les treize scènes du
+340 et les huit tests du 336 passent. L'unique échec de
+`test_appel_reconnu_et_course_reels_sur_agenda_seul` attend `echoppe` alors
+que Gorm est à `chambre_cloche`. **Même échec sur la référence exacte
+`64130fa`, fichier 5/6, 6,455 s** ; traces identiques hors chemins absolus.
+Test inchangé ; aucun échec nouveau. Empreintes des sources/tests identiques
+à celles de la passe. Deux travailleurs réduits au plus, aucun nouveau banc,
+Luna ou suite complète, aucun calcul actif. Bruts dans
+`C:/Users/msics/donjon/artifacts/ascendant-340/fusion-64130fa/` :
+`tests.json`, `reference-tests.json`, `analyse-cloture.json`,
+**`fin-cloture.json ok=true` avec réserve explicite** ; bilan brut
+`fin.json ok=false` et erreur d'import initiale du lanceur conservés.
 
 **Invariant et réalisation.** `relations.EPREUVES` reçoit trois épreuves :
 réussite **+10**, échec/renoncement **−10**, abus **−20**, sur l'ascendant.
@@ -48,7 +57,7 @@ choix ; interruption et devis ne publient rien. La nouvelle lecture figure
 dans `planification._entrees_communes`. Aucun scénario, modèle, MJ, réputation
 publique, sanction ni règle de violence modifié.
 
-**Preuves finales. 218/218 tests, 23 fichiers verts, 186,271 s**, zéro échec,
+**Preuves initiales. 218/218 tests, 23 fichiers verts, 186,271 s**, zéro échec,
 erreur ou saut. Treize nouvelles scènes : Gorm → Aubin, puis Bram → Josse à la
 mine, réussite/échec/abus ; marche et parole réellement exécutées, ordre refusé,
 témoin ignorant, doute, voix inconnue, ouï-dire puis constat, mémoire courte

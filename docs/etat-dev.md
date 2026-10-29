@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
 - **Lot 340 terminé, branche `codex-ascendant-evolue`, non fusionnée**, base fournie
   `9f261f9` : ascendant éprouvé par réussite, échec et abus perçus du mandat,
@@ -27,14 +27,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   non calculé. Recouvrements 336 : agendas/echanges/planification ; 337 :
   agendas/social/planification.
   [Rapport 340](taches/rapport-codex-340-ascendant-evolue.md).
-  **Synchronisation demandée en cours** : fusion sans rebase de
-  `origin/integration 64130fa` (336, G5 et G6). Union des lectures des
+  **Synchronisation terminée**, fusion sans rebase `a5368a3`, à deux parents
+  (`1dbd57e`, `origin/integration 64130fa`, 336/G5/G6). Union des lectures des
   mandats perçus, engagements de protection et agendas contractuels dans
-  `_entrees_communes` ; documentation des deux côtés conservée. Tests ciblés
-  340 + 336 + échanges argent/suite en validation détachée, deux travailleurs
-  réduits au plus, aucun nouveau banc ni suite complète. Fin attendue
-  `C:/Users/msics/donjon/artifacts/ascendant-340/fusion-64130fa/fin.json`.
-  L'ancien échec d'appel du 336 sera attribué s'il subsiste.
+  `_entrees_communes` ; documentation des deux côtés conservée. **442 tests /
+  44 fichiers : 441 verts, un échec antérieur**, zéro erreur/saut, 420,721 s.
+  Treize scènes du 340 et huit tests du 336 verts. Ancien appel sur agenda :
+  `chambre_cloche` au lieu d'`echoppe`, reproduit sur **64130fa exact**,
+  fichier 5/6 en 6,455 s ; mêmes traces hors chemins. Test inchangé, aucun
+  échec nouveau ; sources/tests vérifiés inchangés. Deux travailleurs réduits
+  au plus, aucun nouveau banc, Luna ni suite complète. Bruts
+  `C:/Users/msics/donjon/artifacts/ascendant-340/fusion-64130fa/`,
+  `tests.json`, `reference-tests.json`, `analyse-cloture.json` ;
+  **fin-cloture.json ok=true avec réserve**, fin brute rouge et erreur du
+  premier lanceur conservées. Branche poussée, aucun calcul actif.
 
 - **Lot 328 / G6, synchronisation terminée**, branche `codex-g6-reperes`,
   fusionnée dans integration : fusion sans rebase de `integration 49608db`
