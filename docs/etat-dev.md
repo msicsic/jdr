@@ -13,10 +13,14 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `117503`/`117518` et trace brute rangés dans `tests/data/` ; test 276
   indépendant du déroulement de la nuit, **dix assertions conservées** (AST).
   Preuve actuelle de maintien du parent ajoutée, monde/rendu/scène rechargés.
-  Deux preuves locales vertes ; **34 fichiers ciblés en cours**, deux processus
-  détachés réduits, aucune suite complète ni nouveau banc. Poussée après bilan.
-  Bruts `C:/Users/msics/donjon/artifacts/rester-266/reprise-276/`, fin attendue
-  `fin-verification.json` ; [rapport de raccord 276](taches/rapport-codex-266-reprise276.md).
+  **Validation terminée : 380 tests verts / 34 fichiers ciblés, 846,205 s**,
+  zéro échec, erreur ou ignoré, deux processus détachés à priorité réduite.
+  Code fusion `18c5523`, capture/tests `98c6d2b`. Disparition du retour attribuée
+  au maintien commun de la raison de secours, éprouvé sur la capture avant
+  clôture. Aucune suite complète ni nouveau banc ; clôture sans nouveau calcul.
+  Bruts `C:/Users/msics/donjon/artifacts/rester-266/reprise-276/`,
+  `fin-verification.json` **code 0**, aucun calcul actif ;
+  [rapport de raccord 276](taches/rapport-codex-266-reprise276.md).
   **Reprise suite d'essai `f637396` :** onze cas verts sur la base, onze échecs
   reproduits sur `184ad5d`. Corrections : condition `pres` historique valide
   après décès, préfixe exécutable sans marqueurs de devis, rétention raccordée

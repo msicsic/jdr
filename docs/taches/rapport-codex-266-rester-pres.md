@@ -2,15 +2,15 @@
 
 Branche `codex-rester-pres`, **non fusionnée**, base `7404d2d`.
 **Raccord à l'intégration `1852d6e` :** [divergence Relais 2024, capture 276
-et validation ciblée](rapport-codex-266-reprise276.md), vérification en cours.
+et validation ciblée](rapport-codex-266-reprise276.md), **380 tests verts /
+34 fichiers, 846,205 s**, vérification terminée.
 **Reprise ciblée de la suite de fusion `f637396` terminée : 193 tests /
 dix-neuf fichiers verts, consolidés**, assertions existantes conservées.
 [Diagnostic des onze échecs et preuves de reprise](rapport-codex-266-suite.md).
 Les mesures de vingt nuits ci-dessous portent sur `21d5f5b`, avant cette reprise.
 Reprise du 29 octobre 2026. **Le précédent verdict « cinq surplus légitimes »
 est retiré : les clignotements étaient un défaut de continuité.**
-Ni scénario, Luna, comparaison de modèles ni suite complète. Commit local,
-push précédemment refusé par la revue automatique (GitHub non vérifié).
+Ni scénario, Luna, comparaison de modèles ni suite complète.
 
 **Invariant corrigé.** Une détresse perçue devient une croyance datée de
 l'observateur, conservée après perte de vue, changement de regard ou péremption
