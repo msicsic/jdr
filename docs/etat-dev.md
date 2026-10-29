@@ -3,19 +3,21 @@
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
 - **Branche `codex-g4-resultat-public`, lot 292, non fusionnée**, base
-  intégration `9e52df4` : résultat moteur mémorisé et sauvegardé avant
+  intégration `9e52df4`, code `d1e50c4` poussé : résultat moteur mémorisé et sauvegardé avant
   affichage, sans récit ni audit après exécution. Jets conservés, coups et
   prises rendus avec leur jet, blessure visible chiffrée, repère commun du
   dépôt au sol ; aucune mécanique PNJ modifiée. `raconter` et l’option
   `--recit-moteur` supprimés ; `MJ.raconter_resultat` gardé pour les outils
   explicites et le comparateur, sans appel par le jeu. **Dix cas comparés
   au moteur exact de la base, 10/10 états mécaniques, scènes, fiches et cartes
-  identiques après recharge** (textes du journal exclus). Tests ciblés en
-  cours, ni suite complète ni banc PNJ. **Luna détachée en cours**, une passe
+  identiques après recharge** (textes du journal exclus). Tests ciblés sur
+  25 fichiers en cours, un travailleur réduit ; archivage automatique de
+  `tests-g4.json` et `fin-tests.json`. Ni suite complète ni banc PNJ. **Luna détachée en cours**, une passe
   des trois scripts du brief, référence `integ=9e52df4`, branche `lot=.`,
   un travailleur réduit ; lecture/analyse à reprendre à l’arrivée de
   `C:/Users/msics/donjon/artifacts/g4-292/fin-luna.json`, écrit même en échec.
-  Bruts et scripts dans ce même dossier. Invariant Luna et mesures non
+  Premières parties produites, démarrage vérifié. Bruts et scripts dans
+  ce même dossier. Invariant Luna et mesures non
   encore conclus ; [rapport 292](taches/rapport-codex-292-g4-resultat-public.md).
 
 - **Branche `codex-g2-refus-moteur`, lot 291, fusionnée**, base

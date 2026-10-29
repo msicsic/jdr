@@ -1,7 +1,7 @@
 # Lot 292 — G4 : résultat public du moteur
 
 2026-10-29. Branche `codex-g4-resultat-public`, base intégration `9e52df4`.
-**Non fusionnée ; code réalisé, passe Luna détachée en cours.**
+Code `d1e50c4` poussé sur origin. **Non fusionnée ; vérifications en cours.**
 
 `jeu.conclure` enregistre le résultat public dans la conversation et sauvegarde
 avant affichage. Il ne demande plus de récit ni d’audit après exécution.
@@ -39,7 +39,8 @@ présence sur disque du texte avant affichage. Les anciennes attentes de
 `test_recit_resultat` fondées sur un récit Luna/repli sont remplacées par ces
 attentes moteur ; les autres fichiers retirent seulement l’option devenue
 inutile ou transforment un récit simulé en interdiction d’appel.
-Tests ciblés : résultats à consigner à la fin de leur exécution.
+Tests ciblés : 25 fichiers, un travailleur réduit ; résultats à reprendre dans
+`fin-tests.json` / `tests-g4.json`, archivés automatiquement à la fin du processus.
 Ni suite complète ni banc PNJ : aucun changement de décision mécanique.
 
 **Luna.** Une seule passe, trois scripts `force-4b-assommer`,
@@ -53,6 +54,7 @@ Aucun gain de délai annoncé avant lecture des mesures ; une passe reste
 insuffisante pour attribuer causalement les écarts de temps.
 
 Bruts, scripts et empreintes : `C:/Users/msics/donjon/artifacts/g4-292/`.
+Démarrage vérifié : premiers fichiers de partie produits (`demarrage-verifie.json`).
 Fichier de reprise écrit en dernier même en cas d’erreur : `fin-luna.json`.
 Le lot reste ouvert jusqu’à lecture et analyse de cette passe. La complétude
 est éprouvée sur les familles ciblées ; les déplacements cumulés et les paroles
