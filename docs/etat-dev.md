@@ -1,6 +1,31 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
+
+- **Lot 339 terminé, branche `codex-suite-rouge`, non fusionnée**,
+  base `integration e37d9ee` : six incidents de rejeu/audit attribués
+  aux parents directs G15 `6037855` vert / `e0be70d` rouge. Signature
+  parallèle de `ouie.retentir` retirée : lecture du contrat moteur,
+  transmission entière de l’appel, registre commun des émissions.
+  **57 tests verts** sur trois fichiers ; nouvelle parole joueur et
+  dispute PNJ, monde/scène/écoute/rendu après sauvegarde-recharge.
+  Huile après 8 h : attente périmée au lot 312, parent `2ddfbe0` vert /
+  fusion `6be4bac` rouge. Lucien reçoit une part à 470 min, stock 3 → 2,
+  réserve d’Odile 2 inchangée, refus légitime sans débit ni nouvelle part.
+  Captures parent/fusion/9237e14 rechargées ; le test déclare son stock
+  initial de vente et cible seulement la nouvelle part, toutes ses
+  assertions historiques conservées. **68 tests distincts verts / quatre
+  fichiers**, zéro échec/erreur/saut ; huile entière **11/11**, les 57
+  autres acquis conservés, code inchangé. **1 027,263 s** cumulées des
+  fichiers verts ; première passe (67/68) conservée.
+  Bissection terminée, `fin-bissection.json ok=true`, 5 159,478 s.
+  Aucun comportement PNJ modifié. Deux calculs au plus après arrêt et
+  correction du lanceur Windows initial, journaux conservés. Ni Luna, banc PNJ, empreintes ni
+  suite complète. Branche poussée, aucun calcul actif. Bruts
+  `C:/Users/msics/donjon/artifacts/suite-rouge-339/` ;
+  `tests-consolides.json`, **`fin-validation.json ok=true`**,
+  clôture et poussée dans `fin-lot.json`. Deux commits distincts.
+  [Rapport 339](taches/rapport-codex-339-suite-rouge-integration.md).
 
 - **Lot 317 terminé, branche `codex-boucles-progression`, fusionnée**,
   base `integration 2ddfbe0`, diagnostic seul : les deux nuits du 284 sur
