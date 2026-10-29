@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 313 rouvert pour attribution de la suite, branche `codex-contact-inconnu`, non fusionnée**, base
+- **Lot 313 terminé après attribution de la suite, branche `codex-contact-inconnu`, non fusionnée**, base
   `integration d76f272`, moteur final validé sur `c6cad4a` : contact commun
   au plan et à l'exécution, hérité des seuls liens crus contenant/support/
   porteur. Une distance ou une case inconnue ne dément plus la présence ;
@@ -45,11 +45,34 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `reprises-avant-fusion/` et `reprises-validation/`. Aucun calcul actif,
   branche poussée vers origin. `planifier_tache`/`echanges.empeche`
   inchangés ; ni Luna ni suite complète.
-  **Attribution de la fusion d’essai 61ced73 en cours** : 23 incidents
-  (22 échecs, une erreur), 21 méthodes ciblées. Comparaison avec
-  `origin/integration eb15b5e` (322 inclus) puis 313 fusionné avec cette
-  intégration, sans 315 ; deux processus réduits au plus, aucune suite
-  complète. Bruts dans `artifacts/contact-313/attribution-suite/`.
+  **Attribution de la fusion d’essai 61ced73 terminée** : 23 incidents
+  (22 échecs, une erreur), 21 méthodes isolées. Référence
+  `origin/integration eb15b5e` (322 inclus), fusionnée par `19b1bf1`,
+  sans 315. **Sept incidents préexistants** (trois résolus par 322,
+  quatre encore rouges), **seize du 313 résolus**, aucun incident
+  de cette liste réservé au 315. Correction `130b57f` : faces locales
+  des ancrages fixes, priorité des positions projetées, perception
+  actuelle admise, contact vocal sans case de main, observation depuis
+  la position atteinte avant interruption, devis sans double inspection.
+  Ni lecture mobile cachée ni changement des règles de perception.
+  Prémisses : marteau vu enregistré, adversaire repéré avant attaque,
+  arrivée du protecteur constatée dans les cinq minutes ; décision
+  autonome historique avant la question à Brune, témoin explicitement
+  replacé au point vu. Toutes les assertions conservées. Captures
+  chaînées : monde complet/plans/textes/deux vues strictement identiques
+  à l’intégration ; seules visites/diagnostics recalées (+40 mine,
+  −48 auberge), empreintes de monde préexistantes laissées rouges.
+  **226 tests distincts / vingt fichiers**, 209,645 s, première passe
+  trois échecs ; **18/18** du fichier de localisation verts après
+  restitution du témoin (52,036 s). Bilan consolidé : seulement les
+  deux sous-tests de monde préexistants, zéro nouvel échec/erreur/saut.
+  Deux régressions ajoutées, cas Relais/crue, monde/parole/engagement
+  rechargés. Deux travailleurs réduits au plus ; aucune suite complète,
+  Luna ou nuit supplémentaire. Les mesures de banc ci-dessus restent
+  celles de `c6cad4a`, pas une mesure de la reprise `130b57f`.
+  Tableau des 23 incidents dans le rapport ; bruts dans
+  `artifacts/contact-313/attribution-suite/` et `attribution-corrections/`.
+  Aucun calcul actif, branche poussée.
   [Rapport 313](taches/rapport-codex-313-contact-position-inconnue.md).
 
 - **Lot 320 / G15 terminé, branche `codex-g15-emissions`, fusionnée**, base

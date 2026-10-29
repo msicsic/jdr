@@ -41,6 +41,11 @@ class LocalisationDemandeeTests(unittest.TestCase):
         self.assertEqual((premier['operation'], premier['cible'], premier['contenu']),
                          ('demander', 'brune', {'localisation': 'marchand'}))
         self.assertFalse(any('où se trouve Gorm' in c['texte'] for c in m.data['chronique']))
+        # Le témoin de cette scène d'auteur reste au point qu'Aubin a vu.
+        # La capture de décision suit déjà son premier pas commercial.
+        from tests.test_tensions import placer
+        placer(m, 'brune', 'beffroi', (2, 2))
+        croire(m, 'aubin', 'brune', 'lieu', 'beffroi', 'vu', salle='beffroi', case=[2, 2])
         m, _ = vivre(self.recharge(m), 5)
         textes = [c['texte'] for c in m.data['chronique']]
         questions = [s for s in textes if 'Aubin demande à Brune où se trouve Gorm' in s]
