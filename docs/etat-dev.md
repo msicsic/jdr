@@ -59,8 +59,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Précontrôles verts : deux tests / quatre parcours G6 et U-C/G17 (35,023 s),
   onze tests G17 (96,683 s). Les tests comptables ajoutent explicitement
   `tenter`, oracles mécaniques inchangés ; U-P conserve la consultation G6
-  immédiate. Campagne ciblée des chemins `jeu.py` en préparation, ni suite
-  complète ni Luna ; bruts attendus `fusion-60c476a/fin.json` sous `uc-325/`.
+  immédiate. Campagne ciblée de vingt fichiers liés à `jeu.py` en cours,
+  incluant G6, G17 et le harnais d'audit modifié ; ni suite complète ni Luna.
+  Calcul détaché réduit ; bruts attendus `fusion-60c476a/fin.json` sous
+  `uc-325/`. Reprise non poussée avant le vert.
   [Rapport 325](taches/rapport-codex-325-uc-consentement.md).
 - **Reprise 326 / G17 terminée, fusionnée**, branche `codex-g17-comptes` :
   fusions sans rebase `aba1e4b` (`9f261f9`), `b33d22a` (`ad0e5a8`, 323/336),

@@ -45,8 +45,9 @@ restent verts avec G15/G5 ; code/tests inchangés depuis validation.
 comptables confirment explicitement par `tenter`, sans changer leurs oracles
 de mots, ressources ou recharge ; U-P conserve ses nouveaux oracles G6.
 La revalidation couvre un décalage réel des identifiants d'émission et
-conserve toute l'action composée. Campagne ciblée des chemins de `jeu.py`
-préparée sous `fusion-60c476a/`, sans suite complète ni Luna.
+conserve toute l'action composée. Campagne détachée de vingt fichiers liés
+à `jeu.py` (ciblés U-C, G6/G17 et harnais d'audit modifié), sous
+`fusion-60c476a/`, sans suite complète ni Luna.
 
 Demander les termes reste léger ; accepter et offrir restent lourds.
 Quatre parcours Gorm/second donneur × console/web le vérifient. Aucun oracle
