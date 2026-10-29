@@ -1,4 +1,5 @@
 """Offres conditionnelles : vraie boucle console/MJ simulé et monde rechargé."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import unittest
 
@@ -42,7 +43,7 @@ class PrimeOffreTests(unittest.TestCase):
                                      [audit(citation, [o])])
             self.assertIn(citation, sortie)
             self.assertIn(citation, str(r.data["conversation"]))
-            self.assertEqual(r.data["paroles_pnj"][-1]["texte"], citation)
+            self.assertEqual(emissions_pnj(r)[-1]["texte"], citation)
             self.assertEqual(r.joueur["or"], avant)
             self.assertFalse(r.data.get("dettes"))
             self.assertNotIn("te doit 20", fiche(r))

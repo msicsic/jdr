@@ -351,6 +351,7 @@ def main(argv=None, interface=None):
                 afficher("carte")
                 afficher("scene")
 
+        recette = None
         while True:
             if interface:
                 interface.rafraichir(m, pending, mj)
@@ -361,8 +362,9 @@ def main(argv=None, interface=None):
             gestes = ()
             if interface is None:
                 from donjon.gestes_publics import gestes_du_monde, rendre_liste
-                gestes = gestes_du_monde(m)
-                imprimer(rendre_liste(gestes))
+                if recette is None:
+                    gestes = gestes_du_monde(m)
+                imprimer(recette.rendre() if recette else rendre_liste(gestes))
             try:
                 entree = lire("\nCorvus > ")
                 texte = entree.strip() if isinstance(entree, str) else ""
@@ -374,6 +376,24 @@ def main(argv=None, interface=None):
                 continue
             try:
                 if interface is None and isinstance(entree, str):
+                    from donjon.fabrication_terminal import RecetteTerminal, fabrication_publique
+                    if cmd in ("quitter", "q", "exit"):
+                        recette = None
+                    elif recette is not None:
+                        try:
+                            choix = recette.saisir(entree)
+                        except ValueError as exc:
+                            imprimer(str(exc))
+                            continue
+                        if recette.terminee:
+                            recette = None
+                        if choix is None:
+                            continue
+                        entree = choix
+                    elif entree.strip() == "0":
+                        recette = RecetteTerminal(fabrication_publique(m))
+                        continue
+                if interface is None and isinstance(entree, str) and cmd not in ("quitter", "q", "exit"):
                     from donjon.gestes_publics import choisir_numero
                     try:
                         choix = choisir_numero(entree, gestes)

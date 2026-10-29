@@ -12,6 +12,7 @@ from donjon.monde import ErreurMonde
 from tests.test_audits_attendu import jouer, ligne, rapport
 from tests.test_repli_et_appel import dialogue
 from tests.test_tensions import recharger
+from tests.support import question_sans_execution
 
 
 class NonPerceptionTests(unittest.TestCase):
@@ -44,7 +45,7 @@ class NonPerceptionTests(unittest.TestCase):
                         self.assertEqual(faits['perception']['couverture_vue']['portee'], 'partielle')
                     self.assertEqual(sum(f == 'auditer_narration' for f,_ in appels), int(not exacte))
                     self.assertIn(phrase, texte)
-                    self.assertEqual(r.data['conversation'][-1]['reponse'], phrase)
+                    self.assertEqual(r.data['conversation'][-1]['reponse'], question_sans_execution(phrase))
                     self.assertEqual(r.data['narrations_mj'][-1]['texte'], phrase)
                     for champ in ('objets','joueur','journal','minutes','jets'):
                         self.assertEqual(r.data[champ], avant[champ])

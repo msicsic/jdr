@@ -1,4 +1,5 @@
 """L'union typée ne peut pas transporter une charge mécanique dans un champ inutilisé."""
+from donjon.emissions import joueur as emissions_joueur
 import json
 import unittest
 
@@ -52,7 +53,7 @@ class ContenusParoleTests(unittest.TestCase):
                                  ['repondre_au_joueur', 'repondre_au_joueur', 'auditer_narration'])
                 self.assertFalse(any('retour_moteur' in e.get('faits', {}) for _, e in appels))
                 rr = recharge(r)
-                self.assertEqual(rr.data['paroles_joueur'][-1]['texte'], mots)
+                self.assertEqual(emissions_joueur(rr)[-1]['texte'], mots)
                 self.assertIn(texte, sortie)
                 self.assertIn(texte, str(rr.data['narrations_mj']))
                 self.assertEqual({id: o.get('lieu') for id, o in rr.objets.items()}, avant)

@@ -23,6 +23,7 @@ from donjon.rendu import regarder, fiche
 from donjon.scene import scene_percue
 from donjon.transactions import ajouter
 from donjon.web.pont import PontWeb
+from donjon.emissions import joueur as emissions_joueur
 from tests.test_avis_joueur import preparer as scene_avis
 from tests.test_espace import terrasse, AJOUT
 from donjon.espace import preparer as preparer_espace
@@ -171,7 +172,7 @@ class ComprehensionTests(unittest.TestCase):
             lot = "planches" if nom == "offre" else "huile_test"
             self.assertEqual(recharge.objets[lot]["charges"], m.objets[lot]["charges"] - 1)
         elif nom in ("avis", "tous", "parole", "chuchotement"):
-            self.assertGreater(len(recharge.data["paroles_joueur"]), len(m.data.get("paroles_joueur", [])))
+            self.assertGreater(len(emissions_joueur(recharge)), len(emissions_joueur(m)))
         elif nom == "sequence":
             self.assertEqual(recharge.objets["perche_1"]["lieu"], "joueur")
             self.assertEqual(recharge.joueur["salle"], "abord_terrasse_nord")

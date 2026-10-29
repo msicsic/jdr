@@ -21,6 +21,7 @@ from donjon.rendu import regarder, fiche
 from donjon.scene import scene_percue
 from donjon.web.pont import PontWeb
 from donjon.transactions import ajouter
+from donjon.emissions import joueur as emissions_joueur, pnj as emissions_pnj
 from tests.test_comprehension import MJSimule, PontScript, cas, action
 from tests.test_enfermer import scene
 
@@ -99,8 +100,8 @@ class Parcours:
         t.assertEqual(recharge.data, json.loads(json.dumps(monde.data)))
         t.assertEqual((regarder(recharge), fiche(recharge), scene_percue(recharge)),
                       (regarder(monde), fiche(monde), scene_percue(monde)))
-        if self.nom == "offre" and recharge.data.get("paroles_pnj"):
-            t.assertEqual(recharge.data["paroles_pnj"][-1]["texte"], "Bonsoir.")
+        if self.nom == "offre" and emissions_pnj(recharge):
+            t.assertEqual(emissions_pnj(recharge)[-1]["texte"], "Bonsoir.")
         return recharge
 
     def effet(self, monde):
@@ -111,13 +112,13 @@ class Parcours:
         elif self.nom in ("offre", "mixte"):
             t.assertEqual(monde.joueur["or"], self.avant["joueur"]["or"] - 3)
             t.assertEqual(monde.objets["planches"]["charges"], self.avant["objets"]["planches"]["charges"] - 1)
-            t.assertIn("Je te paie trois pièces", monde.data["paroles_joueur"][-1]["texte"])
+            t.assertIn("Je te paie trois pièces", emissions_joueur(monde)[-1]["texte"])
             if self.nom == "offre":
-                t.assertEqual(monde.data["paroles_pnj"][-1]["texte"], "Bonsoir.")
+                t.assertEqual(emissions_pnj(monde)[-1]["texte"], "Bonsoir.")
             else:
                 t.assertEqual(monde.objets["couteau"]["lieu"], monde.joueur["salle"])
         elif self.nom == "avis":
-            t.assertEqual(monde.data["paroles_joueur"][-1]["texte"], "l'eau va gagner la conduite basse")
+            t.assertEqual(emissions_joueur(monde)[-1]["texte"], "l'eau va gagner la conduite basse")
         else:
             portes = [i for i, o in self.avant["objets"].items()
                       if o.get("type") == "porte" and not o.get("verrouillee")
@@ -362,7 +363,7 @@ class ConsentementTests(unittest.TestCase):
             self.assertEqual(faux.appels, 1)
             self.assertEqual(faux.monde.joueur["or"], m.joueur["or"] - 3)
             self.assertNotIn("Bonsoir.", "\n".join(pont.historique))
-            self.assertFalse(faux.monde.data.get("paroles_pnj"))
+            self.assertFalse(emissions_pnj(faux.monde))
             self.assertIn("accepte l'échange", "\n".join(pont.historique))
             Parcours(self, "offre", chemin, faux, "web").recharge(faux.monde)
 

@@ -20,6 +20,10 @@ class RendezVousTenuTests(unittest.TestCase):
 
     def test_scene_reelle_sans_invitation_que_mireille_ne_peut_tenir(self):
         m = rumeurs.ChercherQuelquUnTests().mireille_cherche_odile()
+        # Éprouver les invitations de cette paire, sans l'appel légitime
+        # d'un tiers qui cherche à nourrir Mireille (contact du lot 303).
+        from tests.support import sans_souci
+        sans_souci(m, "mathurine")
         m.joueur.update(salle="grenier", position=[6, 3])
         m.data["visitees"] = sorted(set(m.data["visitees"]) | {"grenier"})
         bloc, coupe, debut = reprises(m, 5)
@@ -27,7 +31,7 @@ class RendezVousTenuTests(unittest.TestCase):
         invites = [c for c in bloc.data["chronique"] if c["pnj"] == "mireille" and "Ici, viens !" in c["texte"]]
         self.assertLessEqual(len(invites), 1)
         self.assertTrue(any("Mireille demande une part" in t for t in chronique(bloc)))
-        # La voie joueur conserve l'oracle historique : pas de nom appris,
+        # La voie joueur conserve l'oracle : pas de nom appris,
         # ni de troisième voix entraînée au grenier par les invitations.
         joueur, texte = attendre(recharger(m))
         self.assertEqual(sorted(joueur.data["entendus"]), ["mireille", "odile"])

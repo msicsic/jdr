@@ -1,7 +1,10 @@
 # Lot 325 — U-C, consentement du texte libre
 
 29 octobre 2026. Branche `codex-uc-consentement`, **non fusionnée**, base
-`origin/codex-up-recapitulatif`, commit `865aff3`. Aucune fusion d'integration.
+initiale `origin/codex-up-recapitulatif`, commit `865aff3`.
+Reprise : intégration `9f261f9` fusionnée sans rebase après fusion d'U-P ;
+seul conflit documentaire, deux côtés conservés. Fabrication terminal
+conservée, tests U-C portés sur le registre G15 sans changer leurs oracles.
 
 `donjon/consentement.py` prépare sur copie les transactions, admissions et
 plans entiers. La gravité porte sur les effets typés de toutes les branches
@@ -58,3 +61,4 @@ au français reste imparfaite. Aucune revue retirée ni consigne Luna modifiée.
 Pas de Luna, banc ou suite complète ; un travailleur à priorité réduite.
 Recouvrement **321/323 : `jeu.py`** ; TUI, rendu et pont web inchangés.
 Lot terminé, branche poussée, aucun calcul actif ; `fin-cloture.json` vert.
+Reprise après fusion : sept fichiers ciblés en vérification, sans suite complète.

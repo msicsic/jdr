@@ -8,32 +8,9 @@ envoie une saisie libre ou un descripteur de geste explicite.
 from queue import Empty, Queue
 import threading
 
-from ..inventaire_public import inventaire_public, destinataires_publics
+from ..inventaire_public import inventaire_public, destinataires_publics, ressources_publiques
 
 HISTORIQUE_MAX = 400
-
-
-def ressources_publiques(monde, decrire_physique=False):
-    """Choix matériels connus, sans capacités, règles ni inventaire d'autrui."""
-    from ..francais import designer
-    from ..noms import public
-    from ..gestes_publics import ressource_connue
-
-    biens = []
-    for id, o in monde.objets.items():
-        if not ressource_connue(monde, id):
-            continue
-        vu = monde.visible(id)
-        bien = {"id": id, "nom": designer(o), "type": o["type"]}
-        if decrire_physique:
-            from ..matiere import decrire
-            physique = o.get("physique")
-            bien["description_physique"] = (physique["forme"] + " : " + decrire(o) if physique else
-                                            "Description physique manquante : forme et dimensions à établir séparément.")
-        if vu and o.get("foyer"):
-            bien["foyer"] = True
-        biens.append(bien)
-    return public(monde, biens)
 
 
 class PontWeb:
