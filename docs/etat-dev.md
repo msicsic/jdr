@@ -19,6 +19,10 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   chemin comptés séparément ; services, suspects 219 et boucles par nuit.
   **Résultats longs à lire avant clôture** dans
   `C:/Users/msics/donjon/artifacts/contact-313/fin.json`, écrit en dernier.
+  Premier lancement arrêté avant les tests (import `donjon` introuvable dans
+  le lanceur) ; correction du chemin d'import et du cwd des sous-processus,
+  initialisation sous le bloc qui écrit le bilan même en échec. Relance
+  détachée à vérifier par PID vivant et premières lignes de journal.
   Limite : observation sans preuve (notamment le noir) conservée comme
   inconnue ; ni recherche exhaustive ni absence universelle de boucle
   garanties. Aucun changement de `planifier_tache`/`echanges.empeche`,

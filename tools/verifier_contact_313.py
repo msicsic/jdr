@@ -7,7 +7,8 @@ import sys
 import time
 import traceback
 
-from priorite import ceder
+RACINE = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(RACINE))
 
 
 FICHIERS = [
@@ -22,17 +23,23 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--sortie', type=Path, required=True)
     args = parser.parse_args()
-    ceder()
     dossier = args.sortie.resolve()
     dossier.mkdir(parents=True, exist_ok=True)
     bilan = {'ok': False, 'debut': time.time()}
 
     def lancer(nom, arguments):
+        print(f'Démarrage {nom} : {arguments[0]}', flush=True)
         with (dossier / (nom + '.log')).open('w', encoding='utf8') as log:
-            return subprocess.run([sys.executable, *arguments], stdout=log, stderr=subprocess.STDOUT).returncode
+            code = subprocess.run([sys.executable, *arguments], cwd=RACINE,
+                                  stdout=log, stderr=subprocess.STDOUT).returncode
+        print(f'Fin {nom} : code {code}', flush=True)
+        return code
 
     try:
-        bilan['commit'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+        print(f'Démarrage validation 313 : racine={RACINE}, sortie={dossier}', flush=True)
+        from priorite import ceder
+        ceder()
+        bilan['commit'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=RACINE, text=True).strip()
         bilan['tests_code'] = lancer('tests', [
             'tools/tests.py', '--processus', '2', *['tests/' + f for f in FICHIERS],
             '--sortie', str(dossier / 'tests.json')])
@@ -57,12 +64,14 @@ def main():
                 nuits.append(ligne)
             (dossier / 'mesures.json').write_text(json.dumps(nuits, ensure_ascii=False, indent=2), encoding='utf8')
         bilan['ok'] = bilan['tests_code'] == 0 and bilan['banc_code'] == 0
-    except Exception:
+    except BaseException:
         bilan['erreur'] = traceback.format_exc()
+        print(bilan['erreur'], file=sys.stderr, flush=True)
     finally:
         bilan['fin'] = time.time()
         (dossier / 'fin.json').write_text(json.dumps(bilan, ensure_ascii=False, indent=2), encoding='utf8')
+    return int(not bilan['ok'])
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())
