@@ -32,7 +32,7 @@ def _torts_connus(monde, id):
         p = connu.get("lieu", {}).get("possession", {})
         if (p.get("proprietaire") == id and p.get("porteur") not in (None, id)
                 and p.get("permis") is False
-                and portage["auteur"] == p["porteur"] and not connu.get("fin")):
+                and portage["auteur"] == p["porteur"] and not connu.get("fin", {}).get("valeur")):
             yield objet, portage
 
 
@@ -642,7 +642,11 @@ def _croyances(monde, id, *, moyens_seuls=False):
         if isinstance(x, list):
             return [contenu(v) for v in x]
         return x
-    croyances = contenu(lire(monde, id)["croyances"])
+    # La preuve datée qu'un bien n'est pas fini protège l'adoption des
+    # nouvelles ; elle n'ajoute aucun moyen au plan, qui lisait déjà None.
+    croyances = contenu({s: {a: c for a, c in d.items()
+                            if a != "fin" or c["valeur"] is not None}
+                         for s, d in lire(monde, id)["croyances"].items()})
     if not moyens_seuls and any(a["sorte"] in ("obtenir", "récupérer") for a in (_stock(monde, id) or [])):
         from .biens import richesse
         from .spatial import porte_par
@@ -739,7 +743,7 @@ def actualiser(monde, id):
         if a["sorte"] == "récupérer":
             from .esprits import lire
             connu = lire(monde, id)["croyances"].get(a["parametres"]["objet"], {})
-            if connu.get("fin"):
+            if connu.get("fin", {}).get("valeur"):
                 _changer(monde, id, a, "abandonne", "bien cru " + connu["fin"]["valeur"], empreinte)
             elif connu.get("lieu", {}).get("possession", {}).get("porteur") == id:
                 _changer(monde, id, a, "atteint", "bien cru rendu", empreinte)
@@ -1341,7 +1345,7 @@ def _fin_garde(monde, id, a):
     objet = a["parametres"].get("objet")
     connu = lire(monde, id)["croyances"].get(objet, {})
     fin = connu.get("fin")
-    if fin:
+    if fin and fin["valeur"]:
         return "bien cru " + fin["valeur"]
     lieu = connu.get("lieu", {})
     possession = lieu.get("possession")

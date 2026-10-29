@@ -2,6 +2,31 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 337, branche `codex-fin-garde-ouidire`, non fusionnée**, base
+  `integration 9bef3f6` : fin de garde par les nouvelles communes des PNJ.
+  Lieu et droits observés transmis ensemble, identité distincte d'une
+  accusation de portage ; ancienne accusation incapable de remplacer les
+  droits reçus. Destruction/consommation transmises avec leur désignation
+  constatée, même après retrait des restes. Date, source et confiance du
+  ouï-dire conservées, aucune permission réelle relue à la réception.
+  Preuve négative datée de fin pour refuser un ancien récit après réparation ;
+  lecteurs d'agendas et de capacités adaptés à sa valeur. Pas de nouveau
+  moyen ni de réveil de recherche pour cette seule preuve négative.
+  **196/196 tests verts, quinze fichiers**, zéro échec/erreur/saut,
+  132,735 s : nouveaux parcours, publication différée et
+  interruption, deux scénarios, fausse nouvelle, doutes, relais, monde,
+  rendu et scène rechargés, laps entier/découpé. Quinze fichiers ciblés
+  détachés réduits, au plus deux travailleurs ; premières erreurs et
+  reprises conservées. **Banc rapide 4 h × cinq scénarios × quatre graines
+  en préparation détachée** ; aucune hausse des suspects 219 admise.
+  Référence exacte 9bef3f6, cache réutilisé ; tests réutilisés après contrôle
+  des empreintes. Bilan du banc à lire avant clôture.
+  Joueur exclu faute de relations subjectives ; ni Luna ni suite complète.
+  Recouvrements 335/336 : `agendas.py`, `planification.py`, documentation.
+  Bruts `C:/Users/msics/donjon/artifacts/garde-337/`, tests finaux
+  `cibles-finales/fin.json ok=true` ; fin du banc `banc-final/fin.json`.
+  [Rapport 337](taches/rapport-codex-337-fin-garde-ouidire.md).
+
 - **Lot 330 terminé, branche `codex-demander-cause`, fusionnée**, base
   fournie `f08ef58` : question de cause avant secours de proximité, réponse
   depuis les seules croyances datées du proche, parole commune, ouï-dire
