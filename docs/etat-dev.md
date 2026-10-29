@@ -2,6 +2,27 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 331 terminé, branche `codex-achat-planches`, non fusionnée**, base
+  `origin/integration 7e65907` : attente d'achat impossible périmée depuis
+  le lot 312. Bissection sur onze versions, **parent direct `2ddfbe0`
+  vert, fusion `6be4bac` rouge** ; cause de code `cf0adfd` : le destinataire
+  non localisé peut être cherché après acquisition de la part. Rejeux sans
+  réseau : ancien devis `None`, nouveau préfixe acquisition/contact ;
+  scène actuelle honorée en trois minutes, bourse 26 → 23, engagement soldé.
+  Test d'audience : lot explicitement non transportable, assertions
+  historiques conservées (26 pièces, deux charges, deux appels) ; absence
+  de part et d'engagement ajoutée. Nouveau parcours console complet sur
+  planches d'Aubin et fagots de Joss, état/rendu/scène après recharge.
+  **21/21 tests verts, trois fichiers**, zéro échec/erreur/saut, 185,931 s ;
+  deux premières passes du nouveau test conservées, libellé puis dette
+  antérieure correctement isolés. Moteur inchangé, aucun recouvrement de
+  code avec G17/326 (`paroles.py`, `dialogues.py`). Un travailleur réduit,
+  ni Luna, banc PNJ, empreintes ni suite complète. Branche poussée vers
+  origin, aucun calcul actif. Bruts
+  `C:/Users/msics/donjon/artifacts/planches-331/`,
+  **`fin-verification-finale.json ok=true`**, livraison dans `fin-lot.json`.
+  [Rapport 331](taches/rapport-codex-331-achat-planches.md).
+
 - **Lot 327 / G19 terminé, branche `codex-g19-rappels`, fusionnée**, base
   `integration eb15b5e` : rappels exacts reliés aux occurrences entendues
   du registre G15, provenance et absence revérifiées avant sauvegarde.
