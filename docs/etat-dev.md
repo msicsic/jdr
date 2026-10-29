@@ -2,23 +2,31 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Branche `codex-g1-compilateur`, suite 296 / G1 b, non fusionnée** :
-  `origin/integration` `48767fd` fusionnée sans rebase (`64b09b5`), lot 295
-  et ses garanties de transport/repli conservés. Contrats de modes, missions,
-  opérations, effets improvisés et marchés enrichis dans les schémas ;
-  mémoire publique réintroduite, perception sans source invisible, forme
-  de saisie issue du parseur existant. Portée des perceptions partagée avec
-  la contre-revue ; correction non auditée rendue en refus/précision moteur,
-  jamais en message interne. Aucun changement des mécaniques PNJ ou de G4.
-  **194 tests découverts / 18 fichiers : 189 réussis, 5 ignorés** (quatre
-  MiMo facultatifs et un jsonschema), zéro échec retenu ; cas réels/autres
-  cas en console et recharge. Pas de suite complète ni banc PNJ.
-  Deux scènes sans réseau : requête totale 90 759 → 63 254 et
-  93 305 → 64 632 caractères, référence du 294 réutilisée. **Passe Luna
-  unique détachée en cours**, six scripts, référence `230e7b3` déjà en cache,
-  un travailleur réduit ; analyse et critères de fusion encore en attente.
-  Bruts : `C:/Users/msics/donjon/artifacts/g1b-296/`, fin `fin-luna.json`.
-  [Rapport 296](taches/rapport-codex-296-g1b-fidelite.md).
+- **Branche `codex-g1-compilateur`, suite 296 / G1 b, non fusionnée**, code
+  mesuré `dd56232`, intégration `48767fd` fusionnée sans rebase (`64b09b5`),
+  lot 295 conservé. **Analyse terminée, branche non prête à fusionner.**
+  Luna une passe, référence `230e7b3` entièrement en cache, aucun rejeu,
+  incident réseau, arrêt ou échec de recharge ; aucun calcul actif.
+  30 tours MJ : admission 22 → 23, fidélité au premier coup retenue à la
+  lecture manuelle 20 → 20 ; une recherche non certifiée de chaque côté.
+  Seuils agrégés atteints, **invariant par famille non atteint** : son perdu,
+  vol remplacé par extinction/fermeture, prix encore `negocier/0` à 22
+  contre 20. Abandons formels 1 → 1 (écoute de référence / vol du lot),
+  hors ces infidélités et odeur éludée. **Critères prix et nouvelles familles
+  de refus non atteints** : 8 → 11 refus, cible vide, opération incompatible,
+  issue improvisée, lieu d'avis inconnu et contenu de parole omis nouveaux.
+  Lumière, consigne, gardien, marché de planche et écoute récupérés ; aucun
+  message interne affiché. Normalisation structurelle et revues conservées.
+  Aucun ancien interprète ; voies narratives/qualifications encore transitoires.
+  Appels 99 → 100, 3,30 → 3,33/tour ; 9,82 → 8,02 secondes modèle/tour
+  (référence historique : pas de gain causal). Relances 8 → 6, repli 0 → 1.
+  Entrée compilation 22 572 → 13 252 jetons/appel ; cache 52,3 → 35,0 %.
+  **189 tests réussis, 5 ignorés / 194 découverts, 18 fichiers** ; aucune
+  suite relancée ici. Le superviseur signale 2 772 tests verts sur
+  `4808942`, résultat distinct de cette branche. Aucun correctif à la clôture.
+  Bruts/cache et preuves : `C:/Users/msics/donjon/artifacts/g1b-296/`,
+  `analyse-passe.json`, `mission-jouee.json`, `manifest-bruts.json` ;
+  [rapport 296](taches/rapport-codex-296-g1b-fidelite.md).
 
 - **Branche `codex-g1-compilateur`, lot 294 / G1, non fusionnée**, base
   `230e7b3`, code mesuré `7525f83`. **Analyse terminée, invariant G1 non

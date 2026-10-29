@@ -1,54 +1,58 @@
-# Lot 296 — G1 b, fidélité du compilateur
+# Lot 296 — G1 b, bilan de fidélité
 
-29 octobre 2026 — `codex-g1-compilateur`, **non fusionnée**. Intégration
-`48767fd` fusionnée sans rebase (`64b09b5`), lot 295 compris. Conflits de
-documentation et de cache résolus en conservant les deux garanties.
-**Code et vérification ciblée terminés ; critères Luna encore en attente.**
+29 octobre 2026 — `codex-g1-compilateur`, **non fusionnée**, code `dd56232` ;
+intégration `48767fd` fusionnée sans rebase (`64b09b5`), lot 295 conservé.
+**Analyse terminée, critères de fusion non satisfaits. Aucun calcul actif.**
+Une passe, six scripts, référence `230e7b3` entièrement lue du cache, sans
+rejeu. Aucun incident réseau, arrêt ou échec de recharge signalé.
 
-Invariant : donner au compilateur les preuves publiques et le contrat de
-chaque famille, sans déduire silencieusement un autre acte. Le contexte
-retrouve attestations, événements récents publics, paroles enregistrées,
-prémisse et ambiance admise. La perception expose son niveau et sa couverture,
-sans identifiant de source invisible. Les indicateurs de forme de la saisie
-proviennent du parseur existant, sans nouveau reconnaisseur de formulations.
-
-Les définitions sont dans les schémas des familles (`dialogues`, `operations`,
-`improvisation`, `propositions`, `paroles`), dérivées pour le compilateur.
-`moteur.SENS_PERCEPTIONS` est partagé avec la contre-revue. Aucun effet PNJ,
-calcul physique, prix ou rendu après exécution modifié. Les normalisations
-restent purement structurelles ; aucun contrôle de fidélité n'est retiré.
-
-| Tour réel / autre cas | Cause identifiée | Correction commune / résultat simulé |
+| Critère du brief | Atteint ? | Référence → lot |
 |---|---|---|
-| Odeur / lumière | Adressage possible confondu avec demande de parole ; preuve perceptive omise | Contrat du mode et forme de saisie explicites, niveau perceptif public ; réponse sans parole créée. |
-| Consigne connue / autre inscription | Mémoire moteur retirée, distinction rappel/déchiffrage absente | Historique public réintroduit, coût de lecture explicité dans le contrat ; aucun nouveau jet ni temps. |
-| Fredonnement / rythme corporel | Effet sonore et relation stat/difficulté non décrits | Schéma d'improvisation décrit effets réels et geste simple sans jet ; sons enregistrés, auditeurs et rendu rechargés. |
-| Passage sous/sur obstacle | Opérations spécialisées insuffisamment définies | Schéma distingue `passer_obstacle` de l'assemblage `franchir`, référence exacte ; fiches admises sur copie, sans géométrie inventée. |
-| Attendre pour voler / second bien | `patienter` et `marquer` sans contrat sémantique fourni | Attente puis déplacement discret, inscription physique distincte de vérité ; étapes conservées, aucun tiers détourné ni marqué. |
-| Prix de mission / demande de mieux | Zéro ambigu, mission sans description de référence | Opérations définies par le contrat : `proposer/0` = prix existant, `negocier/0` = demande explicite du plafond ; moteur à 20 contre 22, sans paiement. |
-| Gardien / passeur inconnus | Rôle pris pour identité connue ; correction en dialogue non audité retournée après prévalidation | Sujet libre distinct d'une référence connue ; refus public si correction écartée, admission finale commune interdit toute prose non contrôlée. Paroles libres enregistrées sans personne inventée. |
-| Achat de planche / second prix | Réplique vide permise, nom pris pour référence, part perdue | Bornes de réplique identiques au validateur ; schéma des termes distingue part et objet, référence exacte ; mots, biens et fonds conformes au témoin moteur après recharge. |
-| Écoute à la porte / près d'une ouverture | Revue privée du sens d'une perception sans cible | Contrat de perception sur place transmis à la compilation et à la revue ; écoute exécutée, trois minutes, aucun déplacement ni qualification. |
-| Cible remplacée en correction | Référence et maintien de cible peu définis | Champ de référence décrit l'identifiant public et le maintien de l'entité visée ; aucune réparation par recherche de nom dans Python. Fidélité réelle à confirmer par Luna. |
+| Admission au premier coup | **Oui** | 22 → 23/30 : une compilation sans refus ni reprise. |
+| Fidélité au contrat | **Seuil agrégé oui ; invariant par famille non** | Lecture manuelle : 20 → 20/30 ; des gains compensent des intentions perdues. |
+| Abandons au plus égaux | **Oui au décompte formel** | 1 → 1 : écoute de référence / vol du lot. Son absent, prix infidèle et odeur éludée ne deviennent pas des réussites. |
+| Aucune nouvelle famille de refus | **Non** | 8 → 11 refus ; nouveaux échecs d'issue improvisée, opération incompatible, cible vide, lieu d'avis inconnu et contenu de parole omis. |
+| Prix de mission fidèle | **Non** | `negocier/0` propose 22 contre 20, malgré la simple demande de prix ; engagement à 22 retrouvé au tour suivant, sans paiement. |
+| Taille et préfixe mesurés | **Oui** | Compilation/corrections : 22 572 → 13 252 jetons/appel ; cache 11 812 → 4 638 jetons, part cachée 52,3 → 35,0 %. |
 
-**194 tests découverts / 18 fichiers : 189 réussis, 5 ignorés**, zéro échec
-retenu. Ignorés : quatre MiMo (dépendance facultative absente), un schéma
-`jsonschema` facultatif. Les sept fichiers du lot 295 sont couverts, avec
-parcours de transport et repli perceptible préservés. Les nouveaux cas passent
-par la console, puis contrôlent monde et rendu après recharge. Ils prouvent
-le contrat et l'admission des propositions simulées, pas le choix sémantique
-universel du modèle. Ni suite complète ni banc PNJ.
+La fidélité retenue exclut une recherche de traces non certifiée de chaque
+côté ; mission en `propos` dans la référence ; prix négocié et odeur non
+renseignée dans le lot. Définitions et classements par tour sont archivés.
+**L'invariant de conservation des intentions par famille n'est pas atteint.**
 
-**Coût sans réseau**, référence exacte réutilisée du lot 294 : consignes
-40 364 → 3 547 caractères ; schéma 35 928 → 46 099 ; entrée
-14 467 → 13 608 et 17 013 → 14 986, sur antichambre et échoppe.
-Total : **90 759 → 63 254**, **93 305 → 64 632** (environ −30 %).
-La réintroduction coûte environ 13 k caractères face au 294. Les attestations
-stables précèdent désormais les éléments volatils pour préserver le préfixe.
+| Tour (indices zéro) | Cause | Correction du 296 | Résultat Luna |
+|---|---|---|---|
+| relais/1, crypte/1 | Questions devenues paroles | Mode, forme de saisie, perception | Lumière récupérée sans parole ; odeur en dialogue mais éludée. |
+| relais/4 | Mémoire retirée, relecture | Preuves enregistrées, rappel/lecture | Texte connu exact, aucun nouveau geste. |
+| relais/2 | Son/stat/échec mal représentés | Contrat d'improvisation et effet sonore | **Échec persistant** : CHA 10, aucun effet son ; correction de l'échec seule, revue pourtant conforme. |
+| relais/20 | Mauvaise opération | Contrat du passage spécialisé | `franchir` encore choisi, corrigé en `passer_obstacle/dessous` ; refus correct de proximité. |
+| crypte/26 | Attente/vol et réaction inventée | Contrats patienter/déplacement/marque | **Nouvelle dérive** : éteindre puis fermer la lanterne, ni attente ni vol. Refus sur copie, rien exécuté. |
+| crypte/24 | Prix devenu amélioration | Sens de proposer/negocier/zéro | **Toujours infidèle**, 22 proposé et sauvegardé au lieu de 20. |
+| echanges/2 | Rôle pris pour identité, sortie non auditée | Sujet libre et admission finale | Question prononcée en `propos`, aucun personnage inventé ni message interne affiché. |
+| soir-appel/5 | Réplique vide, référence/part perdues | Bornes de réplique, termes typés | Part `planches` contre 3 pièces fidèle ; refus commercial du PNJ, pas abandon du compilateur. |
+| crypte/9 | Revue sans portée de perception | Contrat moteur partagé | **Récupéré**, écoute exécutée, trois minutes, résultat moteur. |
+| relais/21–22 | Référence/cible changées | Référence publique et maintien de cible | Visibilité parasite pour le coup ; pied-de-biche encore remplacé par brasero. |
+| crypte/41 | Question au MJ mal typée | Mode et admission finale | Avis sur lieu inconnu puis repli perceptible après corrections, sans message interne publié. |
+| echanges/3 | Avis déclaré mais omis | Contrat des actes conservé | Nouveau refus de couverture, puis parole corrigée et entendue. |
 
-**Luna : une passe détachée** des six scripts habituels, référence `230e7b3`
-déjà présente dans le cache (six parties vérifiées), un travailleur réduit.
-Bruts : `C:/Users/msics/donjon/artifacts/g1b-296/`, fin attendue
-`fin-luna.json`, même en cas d'échec. Admission, fidélité, abandons, familles
-de refus, prix de mission, taille en jetons et cache restent à analyser.
-**Le lot n'est pas déclaré prêt à fusionner avant ces résultats.**
+Les règles figurent dans les requêtes mais ne suffisent pas : la revue accepte
+le fredonnement sans effet sonore ; la correction du vol répare une proposition
+étrangère à l'intention. Aucun traitement sémantique silencieux ajouté.
+Aucun ancien interprète ; voies PNJ, faits/qualifications et descriptions
+encore transitoires.
+
+**Mesures** : 91 saisies/variante, 30 tours MJ, 61 sans modèle ; appels
+99 → 100, 3,30 → 3,33/tour. Secondes modèle/tour 9,82 → 8,02, médiane
+9,13 → 7,68 ; référence historique, aucune causalité de délai déduite.
+Compilations 36 → 39, tours repris 5 → 7 ; obstacles narratifs 9 → 12,
+relances 8 → 6, repli détecté 0 → 1. Entrée JSON : 21 609 → 19 035 caractères.
+
+**Tests ciblés inchangés** : 189 réussis, 5 ignorés / 194 découverts,
+18 fichiers. Aucune suite relancée. Le superviseur signale séparément
+**2 772 tests verts sur `4808942`** ; cela ne valide pas cette branche.
+
+Bruts : `C:/Users/msics/donjon/artifacts/g1b-296/`, passe
+`20261029-160454-13148/` (`integ-cache/`, `lot-r1/`), fin Luna `ok=true`.
+Calculs/preuves : `analyse-passe.json`, `tours-analyses.json`,
+`mission-jouee.json`, `manifest-bruts.json`, `analyser_passe.py`,
+`rapport-detaille.md`. **Branche non prête à fusionner.**
