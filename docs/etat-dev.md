@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 328 / G6, branche `codex-g6-reperes`, non fusionnée**, base
+- **Lot 328 clos / G6 typé livré, branche `codex-g6-reperes`, non fusionnée**, base
   `origin/codex-g5-perception c4cd83f` (323), sans fusion d'intégration :
   requête typée `reperer` dans le contrat d'action existant, réponse moteur
   depuis les seuls repères publics perçus ou mémorisés. Axes métriques,
@@ -13,12 +13,20 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   nouveau champ distance à l'attendu exact d'un souvenir ; reprise **18/18**.
   Cas 171 mur, Aubin à 1 m, rotation, autre objet/personne hors de vue,
   noms privés et faux plan ; monde/texte/scène/carte rechargés contrôlés.
-  **Luna unique préparée, validation en attente** : atelier/noms-dialogue,
-  références historiques c9459ce lues des archives du 323 sans relance.
-  Bruts `C:/Users/msics/donjon/artifacts/g6-328/` ; fichier attendu
-  `fin-luna-passe.json`, écrit en dernier même en cas d'échec ; commande
-  `luna-a-jouer.txt`. Ni suite complète ni banc PNJ. Recouvrements 326/327
-  sur `narration.py` ; garantie du routage libre non revendiquée.
+  **Luna unique achevée**, atelier/noms-dialogue : 96,320 s, code 0,
+  43 appels, zéro erreur technique/recharge, repli ou mention sans fondement
+  signalée. Références historiques c9459ce lues sans relance : appels
+  atelier **32 → 26**, noms-dialogue **13 → 17**, aucun gain attribué à G6.
+  **19 états observables comparables identiques** ; noms et souvenirs
+  spatiaux préservés dans les quinze premiers dossiers MJ comparables
+  (hors nouveau champ distance). Zéro relance géométrique, mais **aucune
+  requête reperer ni reprise de position canonique** : adoption Luna non
+  démontrée, garantie typée vérifiée avec MJ simulé seulement. Mur toujours
+  en dialogue libre audité (trois appels, détail distant d'abord refusé).
+  Bruts `C:/Users/msics/donjon/artifacts/g6-328/`, `analyse-luna.json`,
+  **fin-cloture.json ok=true**, aucun calcul actif. Code/tests inchangés
+  depuis validation ; ni seconde passe, suite complète ou banc PNJ.
+  Recouvrements 326/327 sur `narration.py` ; branche poussée.
   [Rapport 328](taches/rapport-codex-328-g6-reperes.md).
 
 - **Lot 323 clos après relecture / G5 partiel, branche `codex-g5-perception`,

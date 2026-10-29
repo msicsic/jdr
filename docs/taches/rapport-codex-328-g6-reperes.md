@@ -1,6 +1,6 @@
 # Lot 328 — G6, repères de position
 
-29 octobre 2026 — Branche `codex-g6-reperes`, **non fusionnée**, base
+29 octobre 2026 — Lot clos, branche `codex-g6-reperes`, **non fusionnée**, base
 `origin/codex-g5-perception c4cd83f` (lot 323). Aucune fusion d'intégration.
 
 **Invariant porté.** La requête typée `reperer` consulte le repère public
@@ -39,17 +39,37 @@ et la carte après recharge sont vérifiés ; le disque est relu pendant l'affic
 Les premiers essais en bac Windows ont échoué sur l'accès aux dossiers temporaires ;
 la validation ci-dessus est exécutée hors bac, deux travailleurs réduits au plus.
 
-**Luna : passe unique préparée, validation en attente.** `atelier` et
-`noms-dialogue`, `gpt-6-luna`, ChatGPT, effort medium, réflexion libre ; références
-historiques `c9459ce` déjà archivées par le 323, lues sans les rejouer. Aucun
-gain d'appels ni absence de relance de position revendiqués avant lecture du bilan.
+**Luna : une passe achevée**, `gpt-6-luna`, ChatGPT, medium, réflexion libre,
+96,320 s écoulées, code 0. Deux processus réduits vérifiés au démarrage ; aucun
+calcul actif. Vingt tours, dont quinze avec modèle, **43 appels**, zéro erreur
+technique/recharge, repli ou mention sans fondement signalée par le banc.
+Références historiques `c9459ce` déjà archivées par le 323, lues sans les rejouer :
+
+| Script | Appels référence → branche | Résultat |
+| --- | ---: | --- |
+| atelier | 32 → 26 | 14 états observables comparables identiques ; premier état absent de la référence. |
+| noms-dialogue | 13 → 17 | 5 états observables identiques, routage des paroles conservé. |
+
+Dans les quinze premiers dossiers MJ comparables, noms connus et souvenirs
+spatiaux identiques, hors ajout de `distance_metres`. Aucune relance ne refuse
+un repère géométrique. Les cinq obstacles narratifs concernent la météo (deux),
+une liste exclusive de visibles, des gestes inventés d'Aubin et « ouest » extrait
+comme identifiant de source lumineuse. Le mur d'atelier reste en dialogue libre :
+trois appels, dont un détail distant refusé puis un audit de la réponse corrigée.
+**Aucune requête `reperer`, aucune reprise de position canonique dans cette passe.**
+Luna ne démontre donc pas l'adoption de G6 ; la garantie des voies typées repose
+sur les tests avec MJ simulé. Aucun gain d'appels attribué à G6, aucun temps
+comparé à la référence historique de charge et de code différents.
+
 Bruts `C:/Users/msics/donjon/artifacts/g6-328/` : `tests-cibles.json`,
-`tests-reprise-contrat.json`, puis `fin-luna-passe.json` attendu, écrit en dernier
-même en cas d'échec ; commande exacte dans `luna-a-jouer.txt`.
+`tests-reprise-contrat.json`, provenance et empreintes dans `references.json`
+et `analyse-luna.json`, `fin-luna-passe.json` puis **`fin-cloture.json ok=true`**.
+Code/tests inchangés depuis validation ; aucune seconde passe ni relance de tests.
 
 **Limites et intégration.** Le moteur garantit les réponses typées et les reprises
 exactes, pas le routage de toute question libre ni toute position implicitement
 exprimée dans une prose française. Aucun audit de cette prose n'est retiré.
+G6 typé est livré ; son adoption par Luna reste non démontrée sur les scripts prescrits.
 Recouvrement avec 326/G17 et 327/G19 : `narration.py`, attestations et rappels à
 conserver ensemble à la fusion. La base G5 reste non fusionnée. Ni suite complète
 ni banc PNJ ; aucun changement de modèle ou de décision des PNJ.
