@@ -12,13 +12,23 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   d'Ilse rendus, état/rendu/scène/relevé/récit identiques après recharge.
   **Trois nouveaux tests verts**, six sortes et quatre formes de sous-but,
   références locales distinguées ; bruts de reproduction archivés.
-  **Vérification groupée en cours**, neuf fichiers ciblés (AST compris),
-  puis huit paires d'empreintes 2 h Relais/crue, quatre graines,
-  contre `02c7330` avec cache. Calcul détaché, priorité réduite, deux
-  travailleurs au plus. Bilan attendu, écrit en dernier :
-  **`C:/Users/msics/donjon/artifacts/recit-309/fin.json`**.
-  Ne pas déclarer validé avant lecture du bilan. Ni Luna ni suite complète.
-  Les répétitions du lot 306 restent hors périmètre.
+  **Lot terminé : 70 tests / neuf fichiers, 69 verts, un échec préexistant**,
+  aucune erreur ni saut, 203,511 s, AST vert. Le test des nuits parallèles
+  échoue aussi sur `02c7330` : seul l'ordre des compteurs de mandat dans
+  « Mesures » diffère, valeurs et autres lignes identiques. Insertion par
+  union des clés dans `banc_pnj.executer` ; code et test inchangés depuis
+  la base. Diagnostic isolé 18,423 s, worktree supprimé, aucun oracle
+  affaibli ni correctif de banc ajouté. **Huit paires d'empreintes 2 h
+  identiques**, Relais/crue × 1985/7/42/2024, `02c7330` → `4eb05f8` :
+  chronique, mesures, état final complet ; zéro plantage et mêmes avis.
+  Huit références absentes calculées une fois puis mises en cache,
+  huit nuits de branche, 154,450 s. Deux travailleurs réduits maximum,
+  référence puis branche. Bruts `C:/Users/msics/donjon/artifacts/recit-309/` :
+  `fin.json` **ok=false conservé**, échec qualifié dans
+  `fin-diagnostic.json`, clôture `fin-cloture.json` ; suite ciblée non
+  déclarée entièrement verte. Code/tests inchangés depuis vérification.
+  Branche poussée vers origin, aucun calcul actif. Ni Luna ni suite complète.
+  Les répétitions et le banc du hameau du lot 306 restent hors périmètre.
   [Rapport 309](taches/rapport-codex-309-recit-buts-agenda.md).
 
 - **Branche `codex-service-rejoindre`, lot 303, fusionnée**, base

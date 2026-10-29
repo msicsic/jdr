@@ -1,7 +1,7 @@
 # Lot 309 — récit des buts d'agenda
 
 Branche **codex-recit-buts-agenda**, base intégration **02c7330**,
-29 octobre 2026. **Code livré ; vérification groupée en cours.**
+29 octobre 2026. **Lot terminé ; un échec préexistant qualifié.**
 
 **Invariant.** Un but d'agenda est une référence locale au titulaire,
 pas une description complète du projet. `recit_pnj.but_en_mots` reçoit
@@ -28,7 +28,9 @@ Gorm/evacuer_crue → Aubin/a1 → Ilse/a1. Monde, rendu joueur, scène,
 relevé et récit sont identiques après sauvegarde/rechargement ; le rendu
 ne modifie pas le monde. Bruts `capture-*` archivés.
 
-**Épreuves initiales : 3 tests verts, 10,721 s.** Six scènes (amener,
+**70 tests / neuf fichiers, 69 verts, un échec, aucune erreur ni saut**,
+203,511 s, deux travailleurs réduits. Contrôle AST du socle vert.
+Les trois nouveaux tests sont verts : six scènes (amener,
 informer, garder, protéger, obtenir par dette et récupérer par spoliation),
 chacune rendue avec quatre formes de sous-but ; capture réelle et
 sous-mandat ; identifiants `a1` locaux distingués et référence absente.
@@ -37,17 +39,33 @@ intentions enregistrées contrôlés. Les premières assertions de noms et
 de prix des nouvelles scènes ont été corrigées d'après leurs données ;
 aucun oracle existant modifié.
 
-**Vérification restante, détachée.** Neuf fichiers ciblés, dont le contrôle
-AST existant du socle, puis empreintes 2 h Relais/crue × 1985/7/42/2024
-contre `02c7330`, avec cache des références. Deux travailleurs maximum,
-priorité réduite, référence puis branche. Ni Luna ni suite complète.
-Le lanceur écrit **`C:/Users/msics/donjon/artifacts/recit-309/fin.json`**
-en dernier ; relire ce bilan avant de déclarer le lot validé.
+**Échec préexistant reproduit sur `02c7330`.**
+`test_des_nuits_en_parallele_comme_une_a_une` compare deux textes complets.
+Seule diffère la ligne « Mesures » : l'union des clés dans
+`banc_pnj.executer` insère les compteurs de mandat dans un ordre dépendant
+du hachage du processus. Valeurs égales, autres lignes identiques.
+`banc_pnj.py` et ce test sont inchangés depuis la base. Diagnostic isolé
+sur la base, 18,423 s, priorité réduite ; worktree temporaire supprimé.
+Aucun oracle affaibli, aucune correction de banc ajoutée à ce lot.
+Traces : `test-base.log`, `diagnostic-base.json`, `fin-diagnostic.json`.
+
+**Empreintes : huit paires 2 h identiques**, Relais/crue ×
+1985/7/42/2024, `02c7330` → `4eb05f8` : chronique, mesures et état final
+complet identiques nuit par nuit, zéro plantage. Huit références absentes
+calculées une fois et rangées, puis huit nuits de branche ; 154,450 s,
+deux travailleurs réduits. Avis à expliquer inchangés : Relais 1985/42
+1/1, crue 1985/42 1/2, zéro pour les autres graines ; aucun avis non
+justifié. Calcul groupé terminé en 358,962 s. Ni Luna ni suite complète.
+**`fin.json` brut conservé, `ok=false`** à cause du test ci-dessus ;
+clôture qualifiée dans `fin-cloture.json`. Code/tests inchangés depuis
+la vérification, seule la documentation est close ensuite. Branche
+poussée vers origin ; aucun calcul actif ou relancé à la clôture.
 
 **Limites.** Le texte des agendas change également lorsqu'il attribuait
 auparavant une mauvaise sorte, par exemple « informer » pour « amener ».
 Les paramètres structurés sont rendus en JSON, sans paraphrase. Un appel
 extérieur sans titulaire garde le but brut. Le correctif ne traite pas
 les répétitions comportementales signalées par le lot 306 et ne valide
-pas son banc du hameau. Les empreintes et fichiers voisins restent à
-qualifier à la reprise. Bruts : `C:/Users/msics/donjon/artifacts/recit-309/`.
+pas son banc du hameau. La suite ciblée garde l'échec d'ordre des mesures
+préexistant ; elle n'est pas déclarée entièrement verte.
+Bruts : `C:/Users/msics/donjon/artifacts/recit-309/`.
