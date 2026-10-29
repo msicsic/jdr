@@ -1,6 +1,6 @@
 # Lot 313 — contact sans position connue
 
-29 octobre 2026. Branche `codex-contact-inconnu`, **terminée, non fusionnée**,
+29 octobre 2026. Branche `codex-contact-inconnu`, **rouverte avant fusion**,
 base `integration d76f272`. Moteur validé sur `5660366`, inchangé depuis.
 
 **Invariant et correction.** Une portée insuffisante ou une case inconnue
@@ -74,3 +74,15 @@ exhaustive ni absence universelle de boucle garanties.
 Bruts et analyse sans rejeu : `C:/Users/msics/donjon/artifacts/contact-313/`
 (`tests.json`, `comparaison.json`, `mesures.json`, `analyse-cloture.json`,
 `fin.json`). Aucun calcul actif, branche poussée vers origin.
+
+**Complément avant fusion en cours.** La seule absence de suspects 219 ne
+répond pas à la décision du 27 octobre : reprise seulement après entrée
+nouvelle ou progression réelle. `tools/diagnostiquer_reprises_313.py`
+rejoue uniquement les sept nuits concernées par interruptions ou hausse
+d'avertissements. Il compare chronique/récit/mesures/souvenirs/état final
+aux archives, capture les bornes précédant les interruptions (235 min pour
+Ilse), vérifie monde/rendu/scène à la recharge, puis reprend les sauvegardes
+effectivement rechargées. Les traces conservent positions crues, croyances
+sans dates, perception, mouvements et origine des choix (filet ou éveil).
+Bruts `contact-313/reprises-avant-fusion/`, bilan `fin.json` en dernier.
+La cause des reprises et l'éventuelle correction restent à établir.

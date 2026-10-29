@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
-- **Lot 313 terminé, branche `codex-contact-inconnu`, non fusionnée**, base
+- **Lot 313 rouvert avant fusion, branche `codex-contact-inconnu`, non fusionnée**, base
   `integration d76f272` : position de contact commune au plan et à
   l'exécution, héritée des seuls liens crus contenant/support/porteur.
   Une portée insuffisante ou une case inconnue ne dément plus la présence ;
@@ -35,6 +35,15 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `fin.json` **ok=true, codes 0/0**, analyse sans rejeu `analyse-cloture.json`.
   Aucun calcul actif ; branche poussée vers origin. Aucun changement de
   `planifier_tache`/`echanges.empeche`, ni Luna ni suite complète.
+  **Complément demandé avant fusion** : établir sur capture rechargée la
+  cause de chacune des cinq interruptions Ilse (141060–143400), regarder
+  les autres interruptions et avertissements 4→7 ; corriger le contrat
+  commun si le seul filet de la minute les relance. Diagnostic détaché de
+  sept nuits de branche seulement (cinq avec interruptions, deux avec
+  avertissements en hausse), aucune référence relancée. Captures, traces
+  des entrées sans dates et reprises depuis bornes rechargées dans
+  `C:/Users/msics/donjon/artifacts/contact-313/reprises-avant-fusion/` ;
+  `fin.json` écrit en dernier, résultats à lire avant clôture.
   [Rapport 313](taches/rapport-codex-313-contact-position-inconnue.md).
 
 - **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :
