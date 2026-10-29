@@ -2,6 +2,20 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 315, branche `codex-reclamations-repetees`, base `c4f6d46`,
+  vérification détachée en cours** : les retours de Sève 2024 du 306 ne
+  suivent aucun refus ; le plan de créance s’arrêtait à l’entrée de salle,
+  sans contact. Demande typée au bout du trajet et réponse aux dettes dans
+  la mémoire commune durable, sans délai ni lecture de bourse cachée.
+  Cinq nouveaux tests verts ; capture réelle avant 83 : deux dettes
+  réglées en 83/84, monde/rendu/scène rechargés, laps entier/découpé et
+  textes identiques. Refus Relais/auberge, anciens plans et moyens nouveaux
+  couverts. Neuf fichiers ciblés, seize paires d’empreintes 2 h et quatre
+  nuits hameau 4 h à instruire après le calcul. Aucun Luna ni suite complète.
+  Bruts : `C:/Users/msics/donjon/artifacts/reclamations-315/fin.json`.
+  Recouvrement 314 : `echanges.py`, fonctions distinctes au relevé.
+  [Rapport 315](taches/rapport-codex-315-reclamations-repetees.md).
+
 - **Lot 310 terminé, branche `codex-ordre-mesures`, base `13ce328`** :
   union des clés de mesures de mandat triée dans `banc_pnj.executer`,
   aucune valeur ni test existant modifié. Test d'origine inchangé vert sous

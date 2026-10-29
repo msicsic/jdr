@@ -1,0 +1,50 @@
+# Lot 315 — réclamations et contact du débiteur
+
+Branche `codex-reclamations-repetees`, base intégration **c4f6d46**.
+**Vérification détachée en cours ; lot non déclaré terminé.**
+
+**Cause établie.** Les sept retours de Sève en 2024 ne suivent aucun
+refus de remboursement. La capture 306 t=22057, rejouée sur le moteur de
+base jusqu’à la minute 82, porte deux dettes (Gorm 2 pièces, Brune 1),
+aucun souvenir `dette_niee`/`creance_vaine`. Le plan `reclamer` ne contient
+que `aller` : arrivé dans la salle sans avoir établi la parole, le PNJ
+écarte ce débiteur et repart vers l’autre. Les deux recours se relancent.
+La mémoire des réponses aux dettes était en outre bornée et temporisée.
+
+**Contrat corrigé.** `planification.reclamer` termine le trajet par une
+demande typée, exécutée par `echanges.executer` avec le contact et la parole
+communs. Entrer dans une salle n’est plus une restitution accomplie.
+`biens.regler` enregistre la réponse dans les refus durables ;
+`deliberation.retenir_refus/tient/moyens_crus` et
+`biens.reponse_creance_retenue/entrees_creance` servent au choix, au
+règlement automatique et aux anciens plans. Aucun délai : changement
+d’obligation ou fonds positivement appris ; ni nouvelle position, ni date,
+ni diminution des fonds connus, ni bourse privée. Le débiteur conserve le
+règlement spontané. Aucune donnée de scénario ni consigne MJ modifiée.
+
+**Preuves déjà obtenues.** Cinq nouveaux tests verts (9,683 s), dont la
+capture réelle avant 83 : les deux dettes sont rendues aux minutes **83 et
+84**, quatre déplacements de Sève dans le rejeu de seize minutes. État
+complet et textes identiques pour un laps entier et seize tranches ; monde,
+rendu et scène identiques après sauvegarde/recharge. Refus réels dans le
+Relais et l’auberge : réponse conservée après deux fois REDEMANDE et
+éviction des souvenirs, ancien plan neutralisé, bourse cachée sans effet,
+nouvelle obligation/fonds appris admis, règlement spontané conservé.
+
+**Calcul lancé.** Neuf fichiers de tests concernés ; empreintes 2 h,
+Relais/mine/auberge/crue × quatre graines contre la base figée c4f6d46,
+cache partagé ; puis hameau 4 h × quatre graines, sur worktree temporaire
+avec le seul JSON du 306, inchangé. Référence hameau : les quatre nuits
+archivées du 306, sans les rejouer. Deux travailleurs réduits au plus,
+étapes séquentielles, aucun Luna ni suite complète. Bruts et fichier de fin :
+`C:/Users/msics/donjon/artifacts/reclamations-315/fin.json`.
+Les mesures finales et les éventuels écarts restent à instruire.
+
+**Limites et intégration.** Le cas réel est un contact jamais accompli,
+pas un refus : aucune fausse cause de refus n’est créée pour le masquer.
+Les anciennes sauvegardes sans refus durable peuvent refaire une demande
+avant de retenir sa réponse ; pas de migration inventant les moyens jadis
+connus. Les prêts et les autres demandes gardent leurs contrôles existants.
+Pas de preuve universelle d’absence de boucle. Recouvrement avec 314 :
+`echanges.py`, fonctions distinctes (`executer` ici, `_remettre_part` pour
+314 au relevé de travail) ; aucune reprise du correctif d’achat promis.

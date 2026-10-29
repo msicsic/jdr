@@ -309,7 +309,7 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
                                    {"type": "pieces", "montant": detail["prix"]})
         if raison == "refus":
             s["raison"] = "persuasion"  # Un achat refusé est déjà une offre, pas une demande gratuite.
-    if (raison in CAUSES or operation == "enqueter_lieu") and "contre_offre" not in s:
+    if (raison in CAUSES or operation in ("enqueter_lieu", "reclamer_dette")) and "contre_offre" not in s:
         s["cause"] = moyens_crus(monde, id, s)
     esprit(monde, id)["refus"].append(s)
     intention = lire(monde, id)["intention"]
@@ -340,6 +340,11 @@ def tient(monde, id, s, connus=None):
     déjà au refus : ce qu'il apprend qui en ôte un (le bois vu épuisé, une porte crue fermée à clé) ne le
     lève pas, revoir la même chose non plus. Pour un prix trop bas, toujours (pour ce prix seulement).
     Sinon, depuis moins de ``REDEMANDE`` minutes."""
+    if s["operation"] == "reclamer_dette":
+        avant = s.get("cause", [])
+        return all(f in avant or f[0] == "pieces" and any(
+            a[:3] == f[:3] and a[3] >= f[3] for a in avant)
+            for f in moyens_crus(monde, id, s, connus))
     if s["operation"] == "enqueter_lieu":
         avant = {tuple(f) for f in s.get("cause", [])}
         return all(tuple(f) in avant for f in moyens_crus(monde, id, s, connus))
@@ -429,6 +434,10 @@ def moyens_crus(monde, id, s, connus=None):
     connus = _connus(monde, id) if connus is None else connus
     op, o = s["operation"], s.get("objet")
     faits, abords = set(), []
+
+    if op == "reclamer_dette":
+        from .biens import entrees_creance
+        return entrees_creance(monde, id, s["de"])
 
     if s.get("mandat"):
         # Une impossibilité de mandat porte sur le plan social complet estimé,
