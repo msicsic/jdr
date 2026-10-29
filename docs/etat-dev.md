@@ -2,6 +2,36 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-recit-buts-agenda`, lot 309, fusionnée**, base
+  intégration `02c7330` : rendu commun des buts d'agenda par leur titulaire
+  et leur référence locale, sorte/paramètres/filiation lus via `agendas.py`.
+  Aucun champ ajouté au but ni branche par sorte ; moteur, scénario et MJ
+  inchangés. Titulaire transmis au récit texte/données, au relevé, au rejeu
+  et au rendu des intentions enregistrées. Capture 306 hameau 42 à 5 min :
+  `KeyError: 'qui'` reproduit sur la base ; mandat d'Aubin et sous-mandat
+  d'Ilse rendus, état/rendu/scène/relevé/récit identiques après recharge.
+  **Trois nouveaux tests verts**, six sortes et quatre formes de sous-but,
+  références locales distinguées ; bruts de reproduction archivés.
+  **Lot terminé : 70 tests / neuf fichiers, 69 verts, un échec préexistant**,
+  aucune erreur ni saut, 203,511 s, AST vert. Le test des nuits parallèles
+  échoue aussi sur `02c7330` : seul l'ordre des compteurs de mandat dans
+  « Mesures » diffère, valeurs et autres lignes identiques. Insertion par
+  union des clés dans `banc_pnj.executer` ; code et test inchangés depuis
+  la base. Diagnostic isolé 18,423 s, worktree supprimé, aucun oracle
+  affaibli ni correctif de banc ajouté. **Huit paires d'empreintes 2 h
+  identiques**, Relais/crue × 1985/7/42/2024, `02c7330` → `4eb05f8` :
+  chronique, mesures, état final complet ; zéro plantage et mêmes avis.
+  Huit références absentes calculées une fois puis mises en cache,
+  huit nuits de branche, 154,450 s. Deux travailleurs réduits maximum,
+  référence puis branche. Bruts `C:/Users/msics/donjon/artifacts/recit-309/` :
+  `fin.json` **ok=false conservé**, échec qualifié dans
+  `fin-diagnostic.json`, clôture `fin-cloture.json` ; suite ciblée non
+  déclarée entièrement verte. Code/tests inchangés depuis vérification.
+  Branche poussée vers origin, aucun calcul actif. Ni Luna ni suite complète.
+  Les répétitions et le banc du hameau du lot 306 restent hors périmètre.
+  [Rapport 309](taches/rapport-codex-309-recit-buts-agenda.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Un but d'agenda est une référence locale au titulaire : recit_pnj, audit_nuits, rejeu et paroles.engagements_enregistres lisent la sorte et les paramètres de l'agenda référencé par l'accès commun, sans supposer de cible. Capture réelle du lot 306 (hameau 42, minute 5, KeyError 'qui') et six sortes rendues. 69/70 tests verts ; 8/8 empreintes 2 h identiques. Échec préexistant relevé : test_des_nuits_en_parallele_comme_une_a_une, ordre des clés de mesures dépendant du hachage depuis les compteurs de mandat du lot 302 (lot 310).
+
 - **Branche `codex-service-rejoindre`, lot 303, fusionnée**, base
   intégration `79beaf1` : un participant requis de lieu inconnu prépare le
   contact commun (inspection, appel ou question) avant le geste, sans lire
