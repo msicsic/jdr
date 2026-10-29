@@ -186,6 +186,23 @@ def preparer_conversation(monde, p, revision=None):
         rapport["engagement"] = agendas.contrats(travail).get(mission_id)
         rapport["offres"] = [o] if (o := offre_mission(travail, mission_id)) else []
     travail.data["revision"] += 1
+    if op != "discuter":
+        from .comptes_parles import admettre
+        from .emissions import lire, publiques
+        debut = len(lire(travail))
+        resolution = {"mission": mission_id, "operation": op,
+            "engagement": copy.deepcopy(rapport["engagement"]), "montant_demande": p["montant_demande"]}
+        from .propositions import offre
+        termes = offre(acteur, "joueur", {"type": "objet", "objet": mission["objet"]},
+            {"type": "pieces", "montant": (rapport["engagement"] or {}).get("montant", mission["prime_base"])})
+        autorisations = [{"locuteur": acteur, "parametres": {"contenu": []},
+            "evenement": {"faits": [], "resolutions_comptables": [{"resolution": resolution,
+                "comptes": [], "offres": rapport["offres"], "termes": [termes], "faits": []}]}}]
+        admettre(travail, autorisations, {**rapport, "offres": [termes]})
+        rapport["emissions"] = publiques(travail, lire(travail)[debut:])
+        # La commande sociale directe publie les faits du rapport sans MJ.
+        # Les mots enregistrés doivent donc aussi figurer dans son résultat.
+        rapport["faits"].extend(p["rendu"] for p in rapport["emissions"])
     travail.data.setdefault("echanges_pnj", []).append({"revision": travail.data["revision"], **copy.deepcopy(rapport)})
     travail.verifier()
     return travail, rapport

@@ -2,6 +2,23 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 326 / G17, branche `codex-g17-comptes`, non fusionnée**, base
+  `integration eb15b5e` : répliques comptables formulées par le moteur depuis
+  les résolutions typées, admises dans G15 avant publication et rejouées avec
+  la transaction ; aucun appel de rédaction ni audit de ces mots fixés.
+  Rôles, termes, règlement, cumuls, autres opérations et propos libres
+  résiduels distingués. Sceau de publication contrôlé sur les émissions
+  réellement enregistrées. **203 tests distincts / 18 fichiers verts**, zéro
+  échec, erreur ou saut dans les dernières validations par fichier ; monde,
+  mots et rendu rechargés, archives G15 86/87 conservées. Raccord commun :
+  frontières de segments prouvées, sans fusion de citations. Une seule passe
+  Luna `comptes` / `soir-appel` préparée, référence `cdaf371` en cache.
+  Pas de suite complète ni de banc PNJ.
+  Bruts `C:/Users/msics/donjon/artifacts/g17-326/`.
+  Recouvrement G19/327 : `narration.consigner` et raccord des segments
+  dans `raccorder_emissions`.
+  [Rapport 326](taches/rapport-codex-326-g17-comptes-parles.md).
+
 - **Lot 320 / G15 terminé, branche `codex-g15-emissions`, fusionnée**, base
   `integration 0fcc99e` : registre unique des émissions de parole, admission
   avant affichage, auteur/acte/paramètres/modalité/source/auditeurs/ordre.

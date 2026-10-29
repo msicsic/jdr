@@ -844,7 +844,13 @@ def raccorder_emissions(reponse, rapport):
     reprises = {i for i, ligne in enumerate(lignes)
                 if reprise(rapport, ligne.get("locuteur"), ligne.get("citation", ""))}
     gardes = [i for i, s in enumerate(precedents) if s not in fixes and i not in reprises]
-    texte = " ".join([*fixes, *(precedents[i] for i in gardes)])
+    # Le raccord conserve le découpage sur lequel chaque preuve a porté.
+    # Un espace suffit seulement si le découpage commun le démontre.
+    morceaux = [*fixes, *(precedents[i] for i in gardes)]
+    texte = morceaux[0]
+    for i, morceau in enumerate(morceaux[1:], 1):
+        jonction = texte + " " + morceau
+        texte = jonction if segments(jonction) == morceaux[:i + 1] else texte + "\n" + morceau
     if audit_:
         etablis = segments_etablis(" ".join(fixes), audit_["faits"])
         nouvelles = [etablis[str(i)] for i in range(len(fixes))]
@@ -1407,6 +1413,8 @@ def repli(monde, faits, message, *, defaut=None):
 
 def consigner(monde, reponse):
     """Enregistre une réponse contrôlée, ses paroles et son ambiance sur l'état à sauvegarder."""
+    from .comptes_parles import verifier_publication
+    verifier_publication(monde, reponse)
     audit = reponse.get("_audit")
     salle = monde.joueur["salle"]
     if not audit:

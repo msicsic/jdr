@@ -34,7 +34,8 @@ class PrimeOffreTests(unittest.TestCase):
         for typed in (False, True):
             m = scene()
             mots = "Gorm, combien me donnes-tu pour l'anneau ?"
-            citation = "Entendu."
+            citation = ("Cette offre attend ton accord. Aucun paiement n'a eu lieu. Je t'offre 20 pièces contre l'anneau du veilleur."
+                        if typed else "Entendu.")
             o = offre("marchand", "joueur", {"type": "objet", "objet": "anneau"},
                       {"type": "pieces", "montant": 20})
             avant = m.joueur["or"]
@@ -48,7 +49,7 @@ class PrimeOffreTests(unittest.TestCase):
             self.assertFalse(r.data.get("dettes"))
             self.assertNotIn("te doit 20", fiche(r))
             self.assertFalse(any("controle_narratif" in e for _, e in appels))
-            self.assertEqual(len(appels), 3)
+            self.assertEqual(len(appels), 1 if typed else 3)
             self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
             self.assertEqual(r.data["engagements"].get("anneau_veilleur", {}).get("statut"),
                              "propose" if typed else None)
@@ -111,7 +112,7 @@ class PrimeOffreTests(unittest.TestCase):
         mots = "Gorm, une part de vivres contre ma promesse d'allumer le brasero."
         premier = parole(mots, personnage="marchand")
         premier["proposition"]["contenu"] = [{"type": "proposition", "demande": PART, "contrepartie": TACHE}]
-        citation = "Entendu."
+        citation = "J'accepte cet échange."
         o = offre("joueur", "marchand", PART, TACHE)
         avant = m.objets["vivres"]["portions"]
         r, sortie, appels = jouer(m, mots, [premier, dialogue(f'Gorm : « {citation} »')],
