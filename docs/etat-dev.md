@@ -2,6 +2,30 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Lot 316 terminé, non fusionnée, branche `codex-hachage-reveils`, base
+  `integration 60f857c`** : aucune dépendance au hachage reproduite.
+  Hameau/Relais 2024 identiques sous 1/42/310/2024 ; hameau historique
+  13ce328 identique sous 1/310, état/rendu/scène conservés à la recharge.
+  Bissection depuis 271 : retour 929 présent à d7302a4, absent à 8406756,
+  fusion 303. À 479, Maël croit le lieu de Brune inconnu : le contact
+  préparé par une question à Aubin change légitimement la suite de nuit.
+  Test historique porté sur une capture réelle 591/929 du parent du 303 ;
+  mêmes assertions entree_publiee_utilisee et preuves possession_nouvelle /
+  lieu_cru_change, classement recalculé. Monde/rendu/scène/entrées rechargés
+  vérifiés ; identité avec/sans sonde de la nuit actuelle conservée dans
+  un test distinct. Moteur et outils inchangés. **48/48 tests / trois
+  fichiers verts**, 109,976 s ; test historique vert sous quatre hachages.
+  L'échec initial de tests-audit (46/47) était uniquement ce KeyError 929.
+  **20/20 paires d'empreintes 2 h identiques** contre 60f857c, cinq scénarios
+  × quatre graines, références absentes rangées une fois. Calcul initial
+  détaché réduit, deux travailleurs au plus ; ni Luna ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/hachage-316/` : fin.json en échec
+  conservé, fin-bissection.json et analyse-causalite.json verts,
+  **fin-cloture.json ok=true**, 113,099 s. Aucun calcul actif, worktrees
+  temporaires retirés. Garantie bornée à ces nuits, pas de preuve universelle
+  de déterminisme ni amélioration du gameplay revendiquée.
+  [Rapport 316](taches/rapport-codex-316-hachage-reveils.md).
+
 - **Lot 314 terminé, branche `codex-achat-promis`, base `integration c4f6d46`** :
   `_remettre_part` transmet le refus d'une livraison annulée conservée pour
   annoncer son abandon, au lieu de publier un faux accord qui efface le refus
