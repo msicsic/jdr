@@ -191,6 +191,7 @@ def reponse(rapport):
 
 def sceller(reponse, rapport):
     """Références à recontrôler sur la transaction réellement appliquée."""
+    rapport = rapport or {}
     fixes = [p['id'] for p in rapport.get('emissions', [])
              if p.get('acte') == 'reponse_comptable' and 'joueur' in p.get('auditeurs', [])]
     if fixes:
