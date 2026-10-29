@@ -1,8 +1,7 @@
 # Tâche Codex 278 : une interposition reprise revalide ses deux cibles
 
-La vérification d'intégration 274 (`docs/taches/rapport-codex-274-verif-integ.md`, fusionné ; archives
-`C:\Users\msics\donjon\artifacts\verif-integ-0bad227\audit-12h\crue_hameau_1985.json.gz` pour le hameau 12 h, dossier
-`hameau-12h` ou équivalent du même lot) relève au hameau 1985 (`crue_hameau`, départ tiré, joueur passif `chambre_cloche`) :
+La vérification d'intégration 274 (`docs/taches/rapport-codex-274-verif-integ.md`, fusionné ; archive
+`C:\Users\msics\donjon\artifacts\verif-integ-0bad227\crue-hameau-12h\crue_hameau_1985.json.gz`) relève au hameau 1985 (`crue_hameau`, départ tiré, joueur passif `chambre_cloche`) :
 Gorm (`marchand`) reprend à `385475` (642 min) le but « interposer Brune contre Aubin dans l'antichambre », 7,38 min
 après sa suspension à 635 ; il s'était interposé à 636, puis avait changé de cible vers Ilse au relevé 640 ; Aubin quitte
 l'antichambre à 642 (conduite basse puis refuge) **avant** la réactivation du but. Le compteur 219 le classe suspect.
