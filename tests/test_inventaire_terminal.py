@@ -97,7 +97,9 @@ class ProjectionTests(unittest.TestCase):
         self.assertNotIn("remettre", {c.descripteur.contenu["geste"] for c in liste})
         self.assertIn(menu(m, cible, "prelever")[2], [c.descripteur for c in liste])
         m.data["mode_cases"] = False
-        self.assertEqual(gestes_du_monde(m), gestes_inventaire(inventaire_public(m), destinataires_publics(m)))
+        # Les offres à ressource s'ajoutent aux gestes simples de besace.
+        simples = gestes_inventaire(inventaire_public(m), destinataires_publics(m))
+        self.assertEqual(gestes_du_monde(m)[:len(simples)], simples)
 
 
 class Parcours:

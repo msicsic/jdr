@@ -10,7 +10,7 @@ from .commandes import DescripteurPublic
 
 
 # Le quatrième champ, optionnel, décrit un choix explicite encore à compléter.
-# Le terminal « premier geste » ne soumet que les entrées sans ce champ.
+# Les interfaces complètent ce champ avec une référence publique explicite.
 OUTIL = {"champ": "outil", "ressources": {}}
 DESTINATION = {"champ": "destination", "ressources": [
     {"type": "contenant"}, {"type": "luminaire"}, {"foyer": True}]}
@@ -58,8 +58,7 @@ def correspond(cible, conditions):
 def offres(cible, porte=False, parametrees=False):
     """Le même catalogue ; les offres paramétrées exposent aussi leur formulaire.
 
-    Une entrée paramétrée n'est jamais transformée en descripteur incomplet par
-    la liste terminal. Son interface de choix des ressources relève d'U-T outils.
+    Une entrée paramétrée n'est soumise qu'après sélection de sa ressource.
     """
     if porte and cible.get("souvenir"):
         return []
@@ -81,14 +80,16 @@ class ChoixPublic:
     descripteur: DescripteurPublic
 
 
-def liste_gestes(scene, inventaire=(), destinataires=()):
+def liste_gestes(scene, inventaire=(), destinataires=(), ressources=()):
     """Fige les choix des seules projections publiques, sans lire le monde."""
-    liste, vus = [], set()
+    liste, materiels, vus = [], [], set()
     for niveau in (scene or {}).get("niveaux", []):
         cibles = [(o, False, o["salle"], o["globale"]) for o in niveau["objets"]]
         cibles += [(s["porte"], True, s["salle"], s["globale"])
                    for s in niveau["sorties"] if s.get("visible") and s.get("porte")]
         for cible, porte, salle, case in cibles:
+            repere = f'{cible["nom"]} [{cible["id"]}] · {salle}, carte ({case[0]}, {case[1]})'
+            materiels.extend(gestes_materiels(cible, ressources, repere, porte))
             for geste, libelle in offres(cible, porte):
                 if geste == "parler":  # La conversation libre reste hors de ce premier lot.
                     continue
@@ -97,10 +98,39 @@ def liste_gestes(scene, inventaire=(), destinataires=()):
                     continue
                 vus.add(cle)
                 # La référence publique distingue aussi les homonymes à la même case.
-                repere = f'{cible["nom"]} [{cible["id"]}] · {salle}, carte ({case[0]}, {case[1]})'
                 liste.append(ChoixPublic(f"{libelle} — {repere}",
                                         DescripteurPublic({"geste": geste, "cible": cible["id"]})))
     liste.extend(gestes_inventaire(inventaire, destinataires))
+    for bien in inventaire:
+        repere = f'{bien["nom"]} [{bien["id"]}] · besace'
+        materiels.extend(gestes_materiels({**bien, "mobile": True}, ressources, repere))
+    # Une porte peut figurer sur plusieurs sorties. Figer une seule fois chaque
+    # choix complet, sans modifier les numéros des gestes simples précédents.
+    vus_materiels = set()
+    for choix in materiels:
+        d = choix.descripteur.contenu
+        cle = (d["geste"], d["cible"], tuple(d["parametres"].items()))
+        if cle not in vus_materiels:
+            vus_materiels.add(cle)
+            liste.append(choix)
+    return tuple(liste)
+
+
+def gestes_materiels(cible, ressources, repere, porte=False):
+    """Même formulaire que la page ; aucune capacité ni réussite présumée.
+
+    Chaque ligne fige le second choix avec sa référence, y compris pour deux
+    ressources homonymes. Aucun formulaire incomplet ne quitte cette projection.
+    """
+    liste = []
+    for geste, libelle, formulaire in offres(cible, porte, parametrees=True):
+        for ressource in ressources:
+            if ressource["id"] == cible["id"] or not correspond(ressource, formulaire["ressources"]):
+                continue
+            d = {"geste": geste, "cible": cible["id"],
+                 "parametres": {formulaire["champ"]: ressource["id"]}}
+            nom = f'{ressource["nom"]} [{ressource["id"]}]'
+            liste.append(ChoixPublic(f"{libelle} {nom} — {repere}", DescripteurPublic(d)))
     return tuple(liste)
 
 
@@ -141,10 +171,11 @@ def gestes_inventaire(inventaire, destinataires):
 
 def gestes_du_monde(monde):
     """Adaptateur commun aux terminaux ; le catalogue ne reçoit que du public."""
-    from .inventaire_public import inventaire_public, destinataires_publics
+    from .inventaire_public import inventaire_public, destinataires_publics, ressources_publiques
     from .scene import scene_percue
     scene = scene_percue(monde) if monde.data.get("mode_cases") else None
-    return liste_gestes(scene, inventaire_public(monde), destinataires_publics(monde))
+    return liste_gestes(scene, inventaire_public(monde), destinataires_publics(monde),
+                        ressources_publiques(monde))
 
 
 def rendre_liste(liste):

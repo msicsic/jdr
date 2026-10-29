@@ -2,6 +2,26 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-ut-outils`, lot 307 / U-T outils, non fusionnée**,
+  base `integration d7302a4` : console et TUI proposent les couples complets
+  geste–outil/destination par numéro, depuis les mêmes formulaires du
+  catalogue et la même projection publique que la page. Références exactes,
+  homonymes distingués, choix périmé soumis au moteur sans substitut ;
+  aucun analyseur ni modèle. `ressources_publiques` déplacée dans
+  `inventaire_public.py`, réexportée par le pont web ; adaptateur terminal
+  commun enrichi, sans modification de `jeu.py`, `tui.py` ni `page.html`.
+  **Vérification ciblée en cours**, 13 tests nouveaux, deux scènes par
+  geste, callbacks Node réels, état et vues après recharge ; refus et
+  propriétés inconnues, noir/sans carte. Les 28 TUI existants et fichiers
+  voisins restent à valider. Les essais de sauvegarde dans le bac à sable
+  Windows ont rencontré les droits des dossiers temporaires ; lancement
+  retenu détaché, hors de ce bac, priorité réduite et deux travailleurs
+  au plus. Ni Luna, ni banc PNJ, ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/ut-outils-307/`,
+  ciblage puis huit fichiers voisins enchaînés automatiquement,
+  fichier final attendu `fin-verification.json` ; aucune validation anticipée.
+  [Rapport 307](taches/rapport-codex-307-ut-outils.md).
+
 - **Branche `codex-ut-inventaire`, lot 301 / U-T inventaire, fusionnée**,
   base `integration 79beaf1`, reprise par fusion sans rebase de `2537e4f`
   (outils 300), fusion `99855aa` : console et TUI proposent les gestes de
