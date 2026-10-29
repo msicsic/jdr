@@ -2,6 +2,36 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-livraison-inconnu`, lot 312, fusionnée**, base
+  `06465d9` : `_devis_remise` prépare le contact commun d'un destinataire
+  inconnu après vérification des moyens d'acquisition ; `_localiser` partagé
+  avec le service du 303. Devis, plan et empêchement restent le même contrat.
+  Mort et départ crus excluent le contact, aucune position cachée ni délai
+  ajouté. Capture Relais 7 à 856 reprise avant annulation : Gorm demande Aubin
+  à Brune puis livre ; Mathe/Lucien à la mine aussi. Parent, charges suspendues,
+  monde/rendu/scène et huit minutes entières ou découpées vérifiés après recharge.
+  **95/95 tests verts, onze fichiers, 1 328,220 s**, zéro échec/erreur/ignoré.
+  **Douze paires de 4 h achevées**, Relais/auberge/mine × 1985/7/42/2024,
+  `06465d9` → `cf0adfd`, un travailleur réduit, référence puis branche,
+  1 352,251 s cumulées ; douze références manquantes rangées une fois en cache.
+  Livraisons tenues **14 → 22**, annulées **6 → 0**, portions **30 → 32** ;
+  reçus partagés dédoublonnés par preuve (récapitulatif initial double conservé).
+  Zéro plantage/usurpation ; **suspects 219 : 0 → 0 dans chaque nuit**.
+  Huit chroniques identiques, aucune répétition nouvelle de question/appel ni
+  bascule ; les reprises des quatre nuits modifiées ont les mêmes textes et
+  instants qu'en référence. Aucun essai nouveau repris par le seul délai identifié.
+  Deux nouveaux avis de Gorm aux Relais 7/2024 : retour après rencontre d'Aubin
+  (1710/1342), lieu `entendu → vu`, puis remise réussie (1772/1650).
+  Avis à expliquer **11 → 12**, dérives **186 → 199** : pas tous certifiés bénins,
+  aucune garantie universelle contre les boucles. Aucun Luna ni suite complète ;
+  échéance générale historique des paroles à 240 min inchangée.
+  **Lot terminé, branche poussée, aucun calcul actif** ; `fin-cloture.json`
+  **ok=true**, `fin.json` brut conservé. Code/tests inchangés depuis vérification.
+  Bruts `C:/Users/msics/donjon/artifacts/livraison-312/`, analyses des alertes et
+  répétitions archivées, tableau des douze nuits dans le rapport.
+  [Rapport 312](taches/rapport-codex-312-livraison-destinataire-inconnu.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Aucun fichier de code commun depuis la base. Devis, plan et empêchement d'une remise passent d'abord par les moyens communs de rejoindre le destinataire (inspection, appel, question), comme le service du lot 303 ; annulation seulement sur un empêchement réellement cru. Capture Relais 7 (Gorm livre à Aubin) et autre cas. 95 tests verts ; 12 paires 4 h : livraisons tenues 14 → 22, annulées 6 → 0, portions 30 → 32, suspects 219 nuls ; avis à expliquer et dérives en hausse, non certifiés bénins ; aucun réessai par le seul délai identifié.
+
 - **Lot 314 terminé, branche `codex-achat-promis`, base `integration c4f6d46`** :
   `_remettre_part` transmet le refus d'une livraison annulée conservée pour
   annoncer son abandon, au lieu de publier un faux accord qui efface le refus
