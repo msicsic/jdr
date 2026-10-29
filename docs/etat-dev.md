@@ -10,9 +10,17 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   par cause, confirmations, comptes rendus et réaffectations à un tiers.
   **69 tests distincts / onze fichiers verts**, monde/scène/rendu rechargés,
   deux charges et demandes ordinaires hors crue, réaffectation hameau/mine.
-  **Banc 4 h × quatre graines à clôturer**, détaché, deux processus réduits,
-  référence intégration par cache ; fin attendue
-  `C:/Users/msics/donjon/artifacts/hameau-302/fin.json`.
+  **Lot terminé, banc 4 h × quatre graines validé**, `79beaf1` → `d28317f` :
+  chroniques, boucles et constats identiques ; zéro plantage, usurpation,
+  mandat proposé/accepté/refusé, compte rendu et réaffectation dans chaque
+  nuit. Suspects 219 **0 → 0**, entrées à expliquer **2/2/7/4 inchangées**.
+  Seul projet naturel : `obtenir` de Brune pour sa dette ; aucune charge
+  `amener/informer` ne parvient au devis ou au jugement du mandat.
+  Quatre références manquantes calculées une fois puis mises en cache,
+  quatre nuits de branche ; deux travailleurs réduits, **643,966 s**.
+  `C:/Users/msics/donjon/artifacts/hameau-302/fin.json` : **ok=true, code 0**.
+  Branche poussée vers origin, aucun calcul actif ni relancé à la clôture ;
+  code et tests inchangés depuis la validation.
   Limites : aucune charge `amener/informer` naturelle déclarée ou née par
   l'autorité seule ; validation historique des statuts sans `attendu`,
   correction moteur hors périmètre. Ni Luna ni suite complète.
