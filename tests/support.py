@@ -156,6 +156,25 @@ def presentes(monde, *ids):
     return monde
 
 
+def possessions_deja_confiees(monde):
+    """Placement d'auteur : les portages actuellement vus ont déjà été racontés.
+
+    Isole les scènes qui éprouvent une autre parole ou un geste en cours des
+    confidences d'inventaire initiales. Un transfert ou un changement de droits
+    ultérieur reste une nouvelle, avec les vrais registres de faits dits.
+    """
+    from donjon.esprits import percevoir_tous, pnjs
+    from donjon.social import nouvelles, retenir_dit
+    percevoir_tous(monde)
+    for id in pnjs(monde):
+        for _, noyau, _, _ in nouvelles(monde, id):
+            if noyau["type"] == "constat" and noyau["attribut"] == "lieu":
+                for autre in pnjs(monde):
+                    if autre != id:
+                        retenir_dit(monde, id, autre, noyau)
+    return monde
+
+
 def lier(monde, id, autre, fiable, source="savoir"):
     """Placement d'auteur : un lien chiffré, remplaçant l'ancien savoir booléen des scènes."""
     from donjon import relations

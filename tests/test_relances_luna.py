@@ -213,6 +213,16 @@ class NomsConnusTests(unittest.TestCase):
             dialogue("Aubin : « Non, Corvus. »"),
             dialogue("Aubin : « Non. »")],
             [replique("aubin", "Non, Corvus."), replique("aubin", "Non.")])
+        self.assertIn("Je ne te dois aucune pièce.", sortie)
+        self.assertEqual(len(mj(appels)), 1)
+        self.assertNotIn("Corvus", " ".join(p["texte"] for p in emissions_pnj(reprise)))
+        # Une réplique libre garde le contrôle N5 ; le compte typé n'a plus
+        # besoin de demander au modèle des mots qui pourraient nommer Corvus.
+        reprise, sortie, appels = jouer(m, "Aubin, bonsoir", [
+            parole("Aubin, bonsoir", ("propos", "", "", ""), personnage="aubin"),
+            dialogue("Aubin : « Non, Corvus. »"),
+            dialogue("Aubin : « Non. »")],
+            [replique("aubin", "Non, Corvus."), replique("aubin", "Non.")])
         refus = mj(appels)[2]["controle_narratif"]
         self.assertEqual(len(refus), 1)
         self.assertIn("Aubin ne connaît pas le nom de Corvus", refus[0]["motif"])

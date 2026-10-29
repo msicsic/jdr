@@ -398,6 +398,12 @@ class DetecterAvisTests(unittest.TestCase):
             self.assertEqual(self.analyser(eps)["total_non_justifies"], 1)
 
     def test_rendez_vous_publie_et_recharge(self):
+        self._rendez_vous_publie_et_recharge("rejoint", "attendre")
+
+    def test_rejoindre_cloture_par_contact_publie_et_recharge(self):
+        self._rendez_vous_publie_et_recharge("rejoindre", "rejoindre")
+
+    def _rendez_vous_publie_et_recharge(self, champ, genre):
         from donjon import appel
         from donjon.rendu import regarder
         from donjon.scene import scene_percue
@@ -409,9 +415,11 @@ class DetecterAvisTests(unittest.TestCase):
             resultats = []
             for observer in (nullcontext, d.observer_avis):
                 m = recharger(initial.copier())
-                d.lire(m, artisan)["rejoint"] = {"qui": payeur, "jusqu_a": 20, "vient": True}
-                eps = [episode("lumiere", 0, 1), episode("attendre", 1, 2), episode("lumiere", 2, 3)]
-                eps[1]["decision"] = d._resume_decision({"but": {"type": "attendre", "qui": payeur}})
+                d.lire(m, artisan)[champ] = ({"qui": payeur, "jusqu_a": 20, "vient": True}
+                    if champ == "rejoint" else {"qui": payeur, "jusqu_a": 20, "depuis": 0,
+                                               "salle": m.objets[payeur]["lieu"]})
+                eps = [episode("lumiere", 0, 1), episode(genre, 1, 2), episode("lumiere", 2, 3)]
+                eps[1]["decision"] = d._resume_decision({"but": {"type": genre, "qui": payeur}})
                 eps[2]["decision"]["plan"] = [{"operation": "engager", "cible": payeur}]
                 with observer() as sonde:
                     if sonde:
@@ -422,7 +430,7 @@ class DetecterAvisTests(unittest.TestCase):
                         appel.retrouves(m, artisan, payeur)
                     else:
                         # Expiration/rupture sans contact : l'absence ne prouve rien.
-                        d.lire(m, artisan)["rejoint"] = None
+                        d.lire(m, artisan)[champ] = None
                     if sonde:
                         sonde.episodes[artisan].append(eps[2])
                         a = sonde.analyser()

@@ -198,15 +198,24 @@ class ReplisTests(unittest.TestCase):
                                                               "sources": ["objet:brasero"]})
 
     def test_sans_phrase_admise_le_moteur_dit_ce_que_corvus_percoit_et_ce_qui_manque(self):
+        from donjon.narration import attestations
+        from donjon.rendu import position
+        phrase_position = "Le brasero : Echoppe de Gorm."
+        # Preuve exacte, disponible avant toute réponse du MJ : ce troisième
+        # segment du repli vient du même rendu public que la consultation.
+        self.assertEqual(position(self.m, "brasero"), phrase_position)
+        self.assertIn(phrase_position, attestations(self.m, self.m.contexte()))
         refus = verdicts(("invention_protegee", (), "Chaleur non établie."))
         reprise, sortie, _ = jouer(self.m, "mj le brasero, il chauffe à quel point ?",
                                    [dialogue("Le brasero ferait fondre du fer.")] * 3, [refus] * 3)
-        attendu = ("Le brasero éclaire la pièce. Un brasero en fer est allumé. Ce que tu perçois et ce que tu "
+        attendu = ("Le brasero éclaire la pièce. Un brasero en fer est allumé. Le brasero : Echoppe de Gorm. Ce que tu perçois et ce que tu "
                    "sais n'en disent pas davantage.")
         self.assertIn(attendu, sortie)
         self.assertNotIn("fondre", sortie)
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], attendu)
         self.assertEqual(reprise.data["narrations_mj"][-1]["sources"], ["moteur"])
+        self.assertEqual(position(reprise, "brasero"), phrase_position)
+        self.assertIn(phrase_position, attestations(reprise, reprise.contexte()))
 
     def test_cas_reel_pousse_toi_l_issue_du_moteur_plutot_qu_un_repli_vide(self):
         # Brune au contact ; les trois réponses lui font promettre de bouger sans que le moteur l'ait prévu.

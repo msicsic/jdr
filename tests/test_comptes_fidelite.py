@@ -36,7 +36,7 @@ class ComptesFideliteTests(unittest.TestCase):
                 avant = m.joueur["or"]
                 mots = ("Gorm, rends-moi les deux pièces que tu me dois." if montant == 2
                         else "Aubin, rends-moi les cinq pièces que tu me dois.")
-                texte = "D’accord."
+                texte = f"Je te rends {montant} pièces."
                 r, sortie, appels = jouer(m, mots, [
                     parole(mots, ("reclamer", "", "", ""), personnage=qui), dialogue(f"« {texte} »")],
                     [audit(texte, [], qui)],

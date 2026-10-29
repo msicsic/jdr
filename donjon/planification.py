@@ -2211,6 +2211,9 @@ def _entrees_communes(v):
     metrique = v._metrique
     from .biens import services_proteges
     return json.dumps([
+        [x for x in agendas.en_cours(monde, id) if x['condition'].get('proteger')],
+        [[a['id'], a['etat'], a['parametres'], a.get('echeance')]
+         for a in agendas.projets(monde, id) if a['origine']['type'] == 'contrat'],
         services_proteges(monde, id),  # Entrées du filtre des résultats promis.
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         monde.objets[id]["lieu"],
@@ -2219,7 +2222,8 @@ def _entrees_communes(v):
         [k for k in v.connus if porte_par(monde, k, id)],
         # La fin des battants est lue par les gestes et leur restauration.
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()
-         if a != "fin" or monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
+         if a != "fin" or c["valeur"] is not None
+         and monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.
@@ -3258,6 +3262,8 @@ def planifier_tache(monde, id, condition, payeur):
     """(but, étapes) pour tenir la parole donnée à ``payeur``, ou None : le plan de son devis
     (``devis_pulsion``), celui sur lequel il l'a acceptée et sur lequel il la jugerait impossible
     (``echanges.empeche``)."""
+    if condition.get('proteger'):
+        condition = {'pres': condition['objet']}
     trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
     return None if trouve is None else trouve[1:]
 

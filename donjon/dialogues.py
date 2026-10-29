@@ -60,6 +60,12 @@ def interlocuteurs(monde):
                             p for p in emissions_publiques(monde, emissions_pnj(monde)) if id in p["auditeurs"]][-4:]),
                         "refuse_ventes_apres_vol": bool(o.get("refuse_ventes_apres_vol")),
                         "signes": []}
+    from .voix import reel
+    for cle, contenu in resultat.items():
+        offres = [{**copy.deepcopy(o), 'de': cle} for o in monde.data.get('offres_joueur', {}).values()
+                  if o['de'] == reel(monde, cle) and o['statut'] == 'propose']
+        if offres:
+            contenu['offres'] = offres
     return resultat
 
 
@@ -136,11 +142,32 @@ def preparer_conversation(monde, p, revision=None):
     if op not in OPERATIONS:
         raise ErreurMonde("Cet engagement n'est pas pris en charge.", f"operation parmi {', '.join(OPERATIONS)} (reçu « {op} »).")
     travail = monde.copier()
+    travail.data['_comptes_echange'] = []
+    resolution_comptable, termes_comptables = None, None
     rapport = {"personnage": acteur, "sujet": p["sujet"], "operation": op, "faits": []}
     if op == "discuter":
         if mission_id or p["montant_demande"]:
             raise ErreurMonde("Une discussion simple ne modifie pas un accord.",
                               "discuter : mission vide et montant_demande 0 ; pour un accord : proposer, negocier, accepter ou refuser.")
+    elif mission_id in travail.data.get('offres_joueur', {}):
+        from .echanges import proposer
+        from .propositions import en_mots
+        offre = travail.data['offres_joueur'][mission_id]
+        if offre['de'] != acteur or offre['statut'] != 'propose' or op not in ('accepter', 'refuser') or p['montant_demande']:
+            raise ErreurMonde("Cette offre ne peut pas être acceptée ainsi.",
+                              f"mission={mission_id}, personnage={offre['de']}, operation=accepter|refuser, montant_demande=0 ; statut=propose.")
+        issue = 'refuse'
+        if op == 'accepter':
+            bilan = proposer(travail, acteur, 'joueur', offre['demande'], offre['contrepartie'], accord_joueur=True)
+            issue = bilan['cause'] or 'accepte'
+        travail.data['offres_joueur'][mission_id]['statut'] = issue
+        rapport['faits'].append(f"Offre {issue} : {en_mots(travail, offre['contrepartie'])} contre {en_mots(travail, offre['demande'])}.")
+        from .propositions import offre as typer_offre
+        termes_comptables = typer_offre(acteur, 'joueur', offre['demande'], offre['contrepartie'])
+        resolution_comptable = {'etat': 'accepte' if issue == 'accepte' else 'refuse',
+            **({'cause': issue, 'refus_par': 'joueur' if op == 'refuser' else acteur}
+               if issue != 'accepte' else {})}
+        rapport['offres'] = [termes_comptables]
     else:
         mission = travail.data["missions"].get(mission_id)
         if not mission or mission["donneur"] != acteur:
@@ -185,7 +212,27 @@ def preparer_conversation(monde, p, revision=None):
         rapport["mission"] = {"id": mission_id, **_mission_publique(travail, mission_id)}
         rapport["engagement"] = agendas.contrats(travail).get(mission_id)
         rapport["offres"] = [o] if (o := offre_mission(travail, mission_id)) else []
+        resolution_comptable = {"mission": mission_id, "operation": op,
+            "engagement": copy.deepcopy(rapport["engagement"]), "montant_demande": p["montant_demande"]}
+        from .propositions import offre
+        termes_comptables = offre(acteur, "joueur", {"type": "objet", "objet": mission["objet"]},
+            {"type": "pieces", "montant": (rapport["engagement"] or {}).get("montant", mission["prime_base"])})
+    comptes = travail.data.pop('_comptes_echange')
+    if comptes:
+        rapport['comptes'] = comptes
     travail.data["revision"] += 1
+    if resolution_comptable is not None:
+        from .comptes_parles import admettre
+        from .emissions import lire, publiques
+        debut = len(lire(travail))
+        autorisations = [{"locuteur": acteur, "parametres": {"contenu": []},
+            "evenement": {"faits": [], "resolutions_comptables": [{"resolution": resolution_comptable,
+                "comptes": comptes, "offres": rapport["offres"], "termes": [termes_comptables], "faits": []}]}}]
+        admettre(travail, autorisations, {**rapport, "offres": [termes_comptables]})
+        rapport["emissions"] = publiques(travail, lire(travail)[debut:])
+        # La commande sociale directe publie les faits du rapport sans MJ.
+        # Les mots enregistrés doivent donc aussi figurer dans son résultat.
+        rapport["faits"].extend(p["rendu"] for p in rapport["emissions"])
     travail.data.setdefault("echanges_pnj", []).append({"revision": travail.data["revision"], **copy.deepcopy(rapport)})
     travail.verifier()
     return travail, rapport
@@ -292,10 +339,16 @@ def commande_sociale(monde, texte):
     if cible == "offre" and operation in ("accepter", "refuser"):
         candidats = [(id, mission) for id, mission in monde.data["missions"].items()
                       if mission["donneur"] in presents and agendas.contrats(monde).get(id, {}).get("statut") == "propose"]
+        candidats += [(id, {'donneur': o['de']}) for id, o in monde.data.get('offres_joueur', {}).items()
+                       if o['de'] in reels(monde) and o['statut'] == 'propose']
     else:
+        from .voix import reel
         acteurs = [id for id in presents if cible in [normaliser(n) for n in
-                  (id, monde.objets[id]["nom"], *monde.objets[id]["aliases"])]]
+                  (id, presents[id]['nom'], *monde.objets.get(id, {}).get('aliases', []))]]
+        acteurs = [reel(monde, a) for a in acteurs]
         candidats = [(id, m) for id, m in monde.data["missions"].items() if m["donneur"] in acteurs]
+        candidats += [(id, {'donneur': o['de']}) for id, o in monde.data.get('offres_joueur', {}).items()
+                       if o['de'] in acteurs and o['statut'] == 'propose' and operation in ('accepter', 'refuser')]
     if len(candidats) != 1:
         raise ErreurMonde("Précise le personnage présent et son offre, ou accepte une offre en attente.")
     id, mission = candidats[0]

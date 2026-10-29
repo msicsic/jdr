@@ -4,6 +4,14 @@
 `integration e37d9ee`. Code/tests `03be84c`, inchangés depuis les vérifications.
 Bruts : `C:/Users/msics/donjon/artifacts/recours-338/` ; `fin-cloture.json`.
 
+**Synchronisation demandée, en vérification.** `origin/integration fff9aab`
+fusionnée sans rebase : même code que `c9b972b`, ajout documentaire du brief 341
+seul après celui-ci. Aucun conflit de code ; les deux côtés de `etat-dev.md`
+conservés. Offres et contrats du 336, preuves de fin du 337 et entrées communes
+de recherche gardés. Validation détachée : ciblés 338 et union 336/337, puis
+seule nuit crue 3 de 12 h. Ni suite complète ni banc 4 h. Fichier final attendu :
+`fusion-validation/fin.json`. Les chiffres suivants précèdent cette fusion.
+
 **Invariant.** `agendas.planifier` exige un coût fini de toute proposition
 admissible. Les recherches transmettent leur coût complet : récupération,
 acquisition monétaire et garde comprises. Les suites directes, inspection et

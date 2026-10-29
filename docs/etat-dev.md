@@ -2,6 +2,17 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
+- **Reprise 338 après fusion de l'intégration, en vérification** : fusion sans
+  rebase de `origin/integration fff9aab` (code de `c9b972b`, seul ajout ensuite :
+  brief 341). Aucun conflit de code ; conflit de `etat-dev.md` résolu en
+  conservant les deux côtés. Coûts/continuité du 338, offres/contrats du 336,
+  preuves de fin du 337 et leurs entrées de recherche conservés.
+  Tests 338 et union des ciblés 336/337, puis seule nuit crue 3 de 12 h,
+  détachés, deux travailleurs réduits au plus. Aucun banc 4 h ni suite complète.
+  Résultats ci-dessous historiques avant cette fusion ; ne pas les étendre
+  au code fusionné avant lecture de
+  `C:/Users/msics/donjon/artifacts/recours-338/fusion-validation/fin.json`.
+
 - **Lot 338 terminé, branche `codex-recours-sans-cout`, non fusionnée**,
   base `integration e37d9ee` : coût fini obligatoire de tout recours d'agenda
   admissible, composition commune des suites directes (inspection/attente
@@ -30,6 +41,225 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `fin-cloture.json`, premier `fin.json` rouge conservé, reprise verte.
   Aucun Luna ni suite complète. [Rapport 338](taches/rapport-codex-338-recours-sans-cout.md).
 
+- **Lot 337 terminé avec deux échecs antérieurs réservés**, branche
+  `codex-fin-garde-ouidire`, fusionnée. `origin/integration ad0e5a8`
+  fusionnée sans rebase, deux parents `8ddef70`. Preuve négative de fin du
+  337 et dépendances des offres `offrir` du 336 conservées ; ajouts des deux
+  côtés dans `planification.py`, `tests/support.py`, documentation conservés.
+  Nouvelles communes de possession/droits/fin datés, identité distincte
+  des accusations, publication différée ; aucune permission réelle relue.
+  **219 : reprise légitime certifiée**, crue/7, Gorm brasero → rejoindre
+  Aubin → brasero, t=69945/70200/70426. Rejeu unique après fusion : mêmes
+  chronique/récit/souvenirs, **68 captures** rechargées monde/rendu/scène
+  identiques, 57,036 s. Contrat de contact réellement clos, consommé par
+  `engager Aubin`, plan déjà prévu et admissible. La sonde omettait la moitié
+  `rejoindre` ; preuve symétrique, **moteur inchangé**. Neuf clôtures rejouées
+  sur captures identiques ; **1 brut → 0 suspect**, classe commune
+  `rendez_vous_intermediaire_accompli`. Bruts intacts ; témoin rouge avant
+  correction, deux voies et négatifs testés.
+  **392 tests consolidés / 32 fichiers : 390 verts, deux échecs antérieurs,
+  zéro nouveau**, aucune erreur ni saut. Premier passage : sept échecs,
+  501,239 s. Référence exacte ad0e5a8, sept fichiers : **94 tests, deux
+  échecs**, 173,312 s. Réserves conservées : appel sur agenda attend échoppe
+  (chambre de la cloche sur référence, beffroi ici ; pas de preuve d'identité
+  des trajectoires), et `_retentir` sans `emission` dans le rejeu de l'audit.
+  Cinq prémisses d'inventaires initiaux déjà partagés : **288 assertions
+  AST inchangées**, **53/53 tests** de ces fichiers repris, 229,328 s ;
+  autres acquis réutilisés après contrôle des empreintes. Moteur inchangé.
+  Initial : 196/196 tests distincts, vingt nuits 4 h, aucun plantage/usurpation,
+  dix-neuf sans suspect et crue/7 certifiée ensuite. Aucun autre banc rejoué.
+  Constats 148 → 522, avertissements redits 8 → 27, bascules 0 → 2 : limites
+  conservées, aucun gain général ; aucune fin de garde naturelle au banc.
+  PNJ seulement, joueur sans relations subjectives. Ni Luna ni suite complète.
+  Deux travailleurs réduits au plus ; **aucun calcul actif**. Premier échec
+  de lancement conservé, sans test exécuté. Bruts
+  `C:/Users/msics/donjon/artifacts/garde-337/` : `rejeu-219/fin.json ok=true`,
+  `fusion-validation/classification.json`, `tests-consolides-fusion.json`,
+  `reprise-fixtures-1/fin.json ok=true`, `analyse-cloture-fusion.json`, fin
+  `fin-cloture-fusion.json`. Fins brutes en échec conservées. Source finale
+  `cb26a29` vérifiée, branche poussée. Recouvrements 335/336 : `agendas.py`,
+  `planification.py`, `tests/support.py`, documentation.
+  [Rapport 337](taches/rapport-codex-337-fin-garde-ouidire.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Les propriétés qui terminent une garde (porteur, droits datés, fin d'objet) passent par la voie commune des nouvelles, identité distincte d'une accusation de portage ; le gardien qui croit la nouvelle termine garder comme sur constat. Conflit agendas.py avec 336 résolu par l'agent ; suspect 219 crue/7 certifié reprise légitime (sonde corrigée, moteur inchangé). 390/392 tests verts, deux échecs préexistants sur l'intégration.
+
+- **Reprise 326 / G17 terminée, fusionnée**, branche `codex-g17-comptes` :
+  fusions sans rebase `aba1e4b` (`9f261f9`), `b33d22a` (`ad0e5a8`, 323/336),
+  **`f324cbe` (`64130fa`, 328/G6)** ; conflits documentaires seuls, deux côtés
+  conservés. Suite d'essai `bde5993` : **45 incidents attribués**, neuf dus
+  au rapport optionnel de G17, 29 attentes périmées portées au texte et au
+  registre moteur, sept préexistants prouvés sur l'intégration seule.
+  Inspection et scellement acceptent l'absence de rapport pour les admissions
+  non vocales ; premier correctif incomplet au scellement, six incidents
+  restants corrigés par **`700764d`**, oracles d'état/sauvegarde/panne conservés.
+  Offres stockées et missions convergent vers la même admission G15, termes,
+  paiements et échéances typés ; garde du nom inconnu conservé sur le libre.
+  Référence `9f261f9` : **29 tests, deux échecs/cinq erreurs, 346,410 s** ;
+  aucun autre incident. **156/156 tests verts** après G6 et correctif final,
+  12 fichiers, 185,283 s. Consolidation sans cumul : **403 tests / 32 fichiers,
+  deux échecs et cinq erreurs**, uniquement les sept préexistants du 339 :
+  sonde `_retentir` sans `emission` (rejeu/audit), refus d'huile après 8 h.
+  Une classe de rejeu bloquée ; suite entière non déclarée verte.
+  Deux travailleurs réduits au plus, long calcul détaché ; 358 tests initiaux
+  conservés (605,872 s), résultats non concernés réutilisés, référence non
+  relancée. Ni suite complète, ni Luna ou banc PNJ supplémentaire.
+  **Aucun calcul actif** ; branche poussée. Bruts
+  `C:/Users/msics/donjon/artifacts/g17-326/reprise/64130fa/`,
+  `tests-valides-final.json`, `attribution-finale.json`, `fin-cloture.json`.
+  [Matrice des 45 incidents](taches/attribution-codex-326-g17-comptes-parles.md),
+  [rapport 326](taches/rapport-codex-326-g17-comptes-parles.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. G17 : les mots des répliques gardent rôles, termes et règlements de l'issue. Suite d'essai bde5993 (2 921 tests, 25 échecs, 20 erreurs) attribuée : 9 défauts corrigés, 29 attentes portées avec preuve, 7 préexistants laissés au lot 339 ; intégration (jusqu'à G6) fusionnée dans la branche, 403 tests consolidés sans nouvel incident.
+
+- **Livraison initiale 326 / G17 terminée avant reprise**, branche
+  `codex-g17-comptes`, non fusionnée ; base `integration eb15b5e`,
+  résultats historiques sur `cbc5af3` : comptes parlés
+  formulés depuis les résolutions typées et admis dans G15 avant publication,
+  rejoués avec la transaction ; mots, ordre et multiplicité scellés.
+  Autres opérations et propos libres résiduels conservés, contrôles des voies
+  non portées maintenus. Raccord commun sans fusion de segments prouvés.
+  **203 tests distincts / 18 fichiers verts**, zéro échec, erreur ou saut ;
+  état, mots et rendu rechargés, archives G15 86/87 conservées.
+  **Luna une passe `comptes` / `soir-appel`**, référence historique `cdaf371`
+  entièrement en cache, jamais relancée : six tours MJ, **26 → 16 appels**,
+  rédaction **5 → 2**, audits narratifs **7 → 2**, révisions **2 → 0**,
+  obstacles **3 → 0**, refus de validation **1 → 0**, aucun repli ni erreur
+  technique/recharge. Quatre tours comptables : interprétation et fidélité
+  seulement, **zéro réécriture, audit ou repli comptable**. Gorm/Aubin rendent
+  deux pièces, Brune refuse et reste débitrice. Achat de planche refusé par
+  le moteur : termes conservés, aucun paiement ; achat réussi couvert sans
+  réseau, pas par cette passe. Rejeu des 16 réponses sans réseau : **14 sorties
+  et projections identiques** au fil live ; bourses, comptes, citations et
+  états complets du rejeu identiques après recharge. Aucun modèle relancé.
+  Calcul détaché réduit **80,974 s**, `fin-luna.json` **ok=true, code 0**.
+  Aucun gain général ni de vitesse revendiqué sur la référence historique.
+  Pas de suite complète ni de banc PNJ ; **aucun calcul actif**.
+  Bruts `C:/Users/msics/donjon/artifacts/g17-326/`, `analyse-luna.json` et
+  `fin-cloture.json`. Branche poussée vers origin, sans fusion.
+  Recouvrement G19/327 : `narration.consigner` et `raccorder_emissions`,
+  aucune règle de rappels modifiée.
+  [Rapport 326](taches/rapport-codex-326-g17-comptes-parles.md).
+
+
+- **Lot 328 / G6, synchronisation terminée**, branche `codex-g6-reperes`,
+  fusionnée dans integration : fusion sans rebase de `integration 49608db`
+  dans `ced37a3`, sans conflit Git, à deux parents. Les deux apports
+  documentaires et **2 998 assertions / 58 versions de fichiers** conservés
+  avant portage des attentes autorisé par l'utilisateur. Modules communs
+  monde/moteur/narration : G6, U-P, G15 et G19 conservés.
+  Première vérification **421 tests / 39 fichiers**, 401,422 s, huit échecs,
+  sans erreur ni saut. Arbitrage appliqué par la seule règle commune
+  `commandes.PERCEPTIONS` : consultation immédiate, faisabilité d'un geste
+  à effet en fiche. Réponse moteur exacte suivie du « Compris », sans
+  confirmation ; sept attentes G6 adaptées sans perdre les oracles du monde.
+  U-P vérifie l'examen perceptif contre le moteur direct et garde la
+  non-exécution des gestes à effet, en console/web/TUI puis recharge.
+  Phrase de position du repli conservée : attestation exacte du moteur,
+  prouvée avant MJ et après recharge ; autres assertions conservées.
+  Un ancien attendu de `test_perception` (exception après toucher puis
+  examiner le couteau dans le noir) reproduit avec le moteur 49608db en
+  mémoire : portage au constat G5, état complet inchangé après recharge.
+  **42 tests distincts / quatre fichiers verts après correction** :
+  25 tests dans la passe de 54,364 s puis 17 de perception en 0,814 s,
+  sans erreur ni saut, deux travailleurs réduits au plus. Les 421 ne sont
+  pas rejoués. Bruts `C:/Users/msics/donjon/artifacts/g6-328/fusion/`,
+  `reprise-validation.json`, **fin-reprise.json ok=true**, aucun calcul actif.
+  Bilans initiaux rouges conservés ; ni suite complète ni nouvel appel Luna.
+  **Lot initial clos / G6 typé livré**, base
+  `origin/codex-g5-perception c4cd83f` (323), avant cette synchronisation :
+  requête typée `reperer` dans le contrat d'action existant, réponse moteur
+  depuis les seuls repères publics perçus ou mémorisés. Axes métriques,
+  distance euclidienne, regard actuel, souvenir explicitement passé ; pas
+  de rotation, de temps ni d'effet physique. Reprises exactes par les
+  attestations communes, revalidées avant sauvegarde ; prose libre toujours
+  auditée. **162 tests distincts verts / quinze fichiers** après ajout du
+  nouveau champ distance à l'attendu exact d'un souvenir ; reprise **18/18**.
+  Cas 171 mur, Aubin à 1 m, rotation, autre objet/personne hors de vue,
+  noms privés et faux plan ; monde/texte/scène/carte rechargés contrôlés.
+  **Luna unique achevée**, atelier/noms-dialogue : 96,320 s, code 0,
+  43 appels, zéro erreur technique/recharge, repli ou mention sans fondement
+  signalée. Références historiques c9459ce lues sans relance : appels
+  atelier **32 → 26**, noms-dialogue **13 → 17**, aucun gain attribué à G6.
+  **19 états observables comparables identiques** ; noms et souvenirs
+  spatiaux préservés dans les quinze premiers dossiers MJ comparables
+  (hors nouveau champ distance). Zéro relance géométrique, mais **aucune
+  requête reperer ni reprise de position canonique** : adoption Luna non
+  démontrée, garantie typée vérifiée avec MJ simulé seulement. Mur toujours
+  en dialogue libre audité (trois appels, détail distant d'abord refusé).
+  Bruts `C:/Users/msics/donjon/artifacts/g6-328/`, `analyse-luna.json`,
+  **fin-cloture.json ok=true**, aucun calcul actif. Code/tests inchangés
+  depuis validation ; ni seconde passe, suite complète ou banc PNJ.
+  Recouvrements 326/327 sur `narration.py` ; branche poussée.
+  [Rapport 328](taches/rapport-codex-328-g6-reperes.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. G6 : une position publique produit sa phrase par le moteur, sans réinterprétation. Intégration (G5, U-P) fusionnée dans la branche par l'agent ; consultations de perception immédiates, fiche de faisabilité réservée aux gestes à effet (décision du superviseur, règle commandes.PERCEPTIONS) ; repli justifié par une attestation exacte. 42 tests ciblés verts après les 421 de la fusion.
+
+- **Lot 336 terminé, branche `codex-occasion-protection`, fusionnée**,
+  base fournie `origin/integration d8769d8` :
+  occasion de protection dans la table commune, proposition puis tâche
+  payée et agenda `protéger` d'origine `contrat`. Peur et fonds crus,
+  force estimée, courage, ambition et disponibilité ; choix explicite
+  du joueur. Avance et dette de remboursement communes, fin sur calme
+  perçu, échéance, mort ou départ crus. **210 tests / 21 fichiers :
+  209 verts, un échec antérieur**, aucune erreur ni saut, 216,920 s ;
+  huit nouveaux tests verts. Ancien appel sur agenda : `chambre_cloche`
+  au lieu d'`echoppe`, même défaut sur la base exacte `d8769d8` au
+  hachage 0 (5/6 dans son fichier). Deux captures rechargées : mêmes
+  positions, scène, rendu et lignes ; écarts d'empreintes internes et
+  de libellé d'une réponse de service consignés. Test non modifié.
+  Source moteur/tests `5219a86` inchangée, empreintes contrôlées ;
+  résultats acquis repris sans relance, témoin de base exigé.
+  **20/20 nuits 4 h conformes** : suspects 219 **0 → 0 par nuit**,
+  zéro plantage/usurpation. Chroniques, récits et souvenirs identiques
+  dans les vingt nuits. **Zéro offre de protection, accord, naissance
+  ou commencement naturels** : service exercé par les tests seulement.
+  Toutes propositions 102 / accords 31 inchangés ; à expliquer 43 → 43,
+  dérives ouvertes 436 → 436, vols tentés 3 → 3. Recherches 43 762 →
+  43 767, neuves 22 355 → 22 360 ; aucune conclusion de vitesse.
+  Empreintes d'état complet identiques 4/20 ; seuls écarts du relevé
+  final : seize empreintes `projets[].croyances` de Brune/Odon.
+  Référence exacte absente : vingt nuits rangées une fois, aucune
+  référence disponible rejouée. Deux travailleurs réduits, ni Luna
+  ni suite complète. Bruts
+  `C:/Users/msics/donjon/artifacts/occasion-336/`, premier échec conservé
+  sous `verification-1/`, diagnostic sous `diagnostic/`, analyse
+  `analyse-cloture.json` ; **`verification-2/fin.json ok=true`**, code 0,
+  885,118 s. Branche poussée, aucun calcul actif. Limites : une occasion
+  par client, suivi vocal 335 distinct, aucun gain naturel démontré ;
+  réserve du test antérieur conservée. Recouvrements 333 :
+  `agendas.py`, `pnj.py` ; 335 : ces deux fichiers et `planification.py`.
+  [Rapport 336](taches/rapport-codex-336-occasion-protection.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Une occasion fait naître, par la table commune des naissances, une offre de protection contre paiement (peur crue d'autrui, moyens crus, intérêt) ; acceptée, agenda protéger d'origine contrat. 209 tests verts (un échec antérieur confirmé), huit nouveaux tests ; vingt nuits conformes, aucune offre naturelle observée : preuve par scènes.
+
+- **Lot 323 clos après relecture / G5 partiel, branche `codex-g5-perception`,
+  non fusionnée**, base `integration 4794376`, correctif `d683184` : voie
+  dialogue des questions d'information restaurée dans les consignes communes ;
+  rendu moteur des perceptions typées conservé. **67 tests / six fichiers
+  verts**, 52,673 s cumulées : aucune parole de Corvus pour les questions
+  réelles, monde/PNJ/texte/scène/carte rechargés vérifiés. 117 tests initiaux
+  archivés séparément. Ces 67 tests précèdent la synchronisation suivante.
+  **Luna de correction : une passe**, signes-guet/noms-dialogue/echanges,
+  115,391 s, code 0, 36 appels, zéro erreur technique/recharge ni repli.
+  **Guet : deux réponses au MJ sans parole de Corvus**, quatre appels ;
+  six/quatre dans les deux références c9459ce, état observé identique.
+  Routage parole identique aux deux références pour les **17 tours**.
+  Bois de noms-dialogue et salut/citation d'echanges déjà parlés dans les
+  références : aucune conversion nouvelle. Appels noms-dialogue **19 contre
+  13/17**, echanges **13 contre 15/11**, aucun gain global revendiqué.
+  Trois mentions d'echanges : noms saisis repris dans les refus locaux,
+  pas de nouvelle identité. Douze archives des six scripts lues sans relance.
+  Bruts `C:/Users/msics/donjon/artifacts/g5-323/relecture/`,
+  `analyse-relecture.json`, `fin-luna-passe.json ok=true` ; aucun calcul actif.
+  G5 global reste partiel, dialogues d'information toujours audités ; pas de
+  garantie universelle du routage libre. Ni banc PNJ ni suite complète.
+  Synchronisation demandée : `origin/integration 9f261f9` fusionnée sans rebase,
+  conflits documentaire et test des questions résolus en gardant les deux côtés.
+  Contrôles G15 joueur/PNJ et G5 conservés, sept méthodes, 56 assertions.
+  **306 tests / 28 fichiers ciblés verts**, 297,978 s, sans échec, erreur ni
+  saut ; deux travailleurs réduits. MJ/moteur/narration/jeu, U-P trois
+  interfaces, G15 et G19 couverts. Empreintes des six fichiers communs
+  inchangées depuis les tests ; aucun calcul actif. Ni suite complète ni
+  nouvel appel Luna. Bruts `artifacts/g5-323/fusion/` du dépôt principal,
+  `tests-fusion.json`, `fusion-resolution.json`. Fusion à deux parents,
+  sans rebase, poussée vers origin ; recouvrements 320/319 conservés.
+  [Rapport 323](taches/rapport-codex-323-g5-perception.md).
 - **Lot 317 terminé, branche `codex-boucles-progression`, fusionnée**,
   base `integration 2ddfbe0`, diagnostic seul : les deux nuits du 284 sur
   `27ff8c4` reproduisent exactement chronique, empreintes, récit, souvenirs,
@@ -57,6 +287,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   sans coût. Aucun calcul actif.
   [Rapport 317](taches/rapport-codex-317-boucles-progression.md).
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. Deux causes distinctes apparues au lot 266 : Aubin rejoint Sève puis repart avant sa demande ; Gorm abandonne une inspection admissible sans coût mesuré et reconduit son circuit (298 passages/h sur 75b6dfb). Deux petits lots correctifs proposés.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. G5 : présent, vu, non vu et souvenir distingués dans les réponses de perception du moteur, sans audit ni révision. Intégration fusionnée dans la branche par l'agent (9772c67), 306 tests ciblés verts sur 28 fichiers, assertions des deux côtés conservées.
 
 - **Reprise du lot 319 / U-P terminée, fusionnée**, branche
   `codex-up-recapitulatif` : intégration `9237e14` fusionnée sans rebase par

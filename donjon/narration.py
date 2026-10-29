@@ -139,8 +139,14 @@ def attestations(monde, contexte):
             from .voix import reel
             textes.append(decrire(monde, reel(monde, objet["id"]), technique=False))
     from .perception import non_vus_connus
-    textes.extend(f"Tu ne vois pas {entite['nom']} en ce moment."
+    from .rendu import non_perception
+    from .voix import reel
+    textes.extend(non_perception(monde, reel(monde, entite["id"]))
                   for entite in non_vus_connus(monde))
+    from .localisation import phrases_positions
+    from .noms import public
+    # Même contrat que la requête moteur ; revalidé aussi à l'enregistrement.
+    textes.extend(phrases_positions(public(monde, contexte)).values())
     return list(dict.fromkeys(p for texte in textes for p in segments(texte) if p))
 
 
@@ -875,7 +881,13 @@ def raccorder_emissions(reponse, rapport):
     reprises = {i for i, ligne in enumerate(lignes)
                 if reprise(rapport, ligne.get("locuteur"), ligne.get("citation", ""))}
     gardes = [i for i, s in enumerate(precedents) if s not in fixes and i not in reprises]
-    texte = " ".join([*fixes, *(precedents[i] for i in gardes)])
+    # Le raccord conserve le découpage sur lequel chaque preuve a porté.
+    # Un espace suffit seulement si le découpage commun le démontre.
+    morceaux = [*fixes, *(precedents[i] for i in gardes)]
+    texte = morceaux[0]
+    for i, morceau in enumerate(morceaux[1:], 1):
+        jonction = texte + " " + morceau
+        texte = jonction if segments(jonction) == morceaux[:i + 1] else texte + "\n" + morceau
     if audit_:
         etablis = segments_etablis(" ".join(fixes), audit_["faits"])
         nouvelles = [etablis[str(i)] for i in range(len(fixes))]
@@ -1438,6 +1450,8 @@ def repli(monde, faits, message, *, defaut=None):
 
 def consigner(monde, reponse):
     """Enregistre une réponse contrôlée, ses paroles et son ambiance sur l'état à sauvegarder."""
+    from .comptes_parles import verifier_publication
+    verifier_publication(monde, reponse)
     audit = reponse.get("_audit")
     salle = monde.joueur["salle"]
     if not audit:
