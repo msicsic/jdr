@@ -42,19 +42,44 @@ def _objet(monde, id):
     return designer(monde.objets[id]) if id in monde.objets else str(id)
 
 
-def but_en_mots(monde, but):
-    mots = _but(monde, but)
+def but_en_mots(monde, but, *, titulaire=None):
+    """Rendu commun ; une référence locale d'agenda se résout avec son titulaire.
+
+    Sans titulaire ou projet trouvé, conserver le but brut plutôt que deviner.
+    """
+    mots = _but(monde, but, titulaire=titulaire)
     return mots.replace(" à le ", " au ").replace(" à les ", " aux ")
 
 
-def _but(monde, but):
+def _valeur_agenda(monde, valeur):
+    """Paramètres rendus sans interpréter la sorte du projet ni compléter le but."""
+    if isinstance(valeur, list):
+        return ", ".join(_valeur_agenda(monde, v) for v in valeur)
+    if isinstance(valeur, str):
+        if valeur in monde.objets or valeur == "joueur":
+            return court(monde, valeur)
+        return _salle(monde, valeur)
+    return json.dumps(valeur, ensure_ascii=False, sort_keys=True)
+
+
+def _but(monde, but, *, titulaire=None):
     t, o = but.get("type"), but.get("objet")
     if t == "agenda":
-        if "pieces" in but:
-            return f"obtenir {but['pieces']} pièces"
-        if "objet" in but:
-            return "récupérer " + _objet(monde, but["objet"])
-        return "informer " + court(monde, but["qui"])
+        from . import agendas
+        # Les identifiants sont locaux au titulaire. Les champs éventuels du
+        # sous-but ne décrivent ni la sorte ni la charge complète de l'agenda.
+        a = next((a for a in agendas.projets(monde, titulaire)
+                  if a["id"] == but.get("agenda")), None) if titulaire is not None else None
+        if a is None:
+            return json.dumps(but, ensure_ascii=False, sort_keys=True)
+        parametres = " ; ".join(f"{k} : {_valeur_agenda(monde, v)}"
+                               for k, v in sorted(a["parametres"].items()))
+        texte = f"{a['sorte']} ({parametres})"
+        chaine = agendas.filiation(monde, titulaire, a["id"])
+        if len(chaine) > 1:
+            texte += " — mandat : " + " → ".join(
+                f"{court(monde, r['titulaire'])}/{r['agenda']}" for r in chaine)
+        return texte
     if t in ("fuir", "riposter", "proteger", "reddition"):
         return {"fuir": "fuir ", "riposter": "riposter contre ", "proteger": "protéger ",
                 "reddition": "se rendre à "}[t] + court(monde, but["qui"])
@@ -256,7 +281,7 @@ class Recit:
             lignes.append(f"  Route écartée pendant l'attente : {raison} ({minutes} min)")
         rondes, sans_geste, faits = Counter(), {}, []
         for ep in self.episodes[id]:
-            mots = but_en_mots(monde, ep["but"])
+            mots = but_en_mots(monde, ep["but"], titulaire=id)
             gestes = self._gestes(monde, id, chronique, ep["debut"], ep["fin"], ep.get("t"), ep.get("t_fin"))
             if ep["but"].get("periode") and not ep["abandon"] and all(g.startswith("inspecte") for g in gestes):
                 rondes[mots.removeprefix("ronde : ")] += 1
@@ -402,7 +427,7 @@ class Recit:
         return "\n".join((crue + [""] if crue else []) + lignes + self.entre_eux(monde, chronique))
 
     def donnees(self, monde, chronique):
-        return {"episodes": {id: [{k: v for k, v in ep.items() if k != "cle"} | {"mots": but_en_mots(monde, ep["but"])}
+        return {"episodes": {id: [{k: v for k, v in ep.items() if k != "cle"} | {"mots": but_en_mots(monde, ep["but"], titulaire=id)}
                                   for ep in self.episodes[id]] for id in self.ids},
                 "urgence": {id: dict(self.urgence[id]) for id in self.ids},
                 "sans_recours": dict(self.sans_recours), "en_attente": dict(self.en_attente),

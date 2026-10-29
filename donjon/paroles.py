@@ -466,7 +466,7 @@ def engagements_enregistres(monde, id):
     phrases = [f"{'abandon à annoncer' if x.get('annule') else 'engagement pris'} envers {_nom(monde, x['pour'])} : "
                + but_en_mots(monde, {"type": "pulsion", **x["condition"]}) for x in agendas.en_cours(monde, id)]
     if e["intention"]:
-        phrases.append("intention en cours : " + but_en_mots(monde, e["intention"]["but"]))
+        phrases.append("intention en cours : " + but_en_mots(monde, e["intention"]["but"], titulaire=id))
     for mission_id, accord in agendas.contrats(monde).items():
         mission = monde.data.get("missions", {}).get(mission_id)
         if mission and mission["donneur"] == id and accord["statut"] in ("propose", "accepte"):

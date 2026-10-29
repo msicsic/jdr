@@ -1,4 +1,4 @@
-"""Catalogue des premiers gestes de carte, sur la seule projection publique.
+"""Catalogue des gestes de carte et de besace, sur la seule projection publique.
 
 Ce sont des offres d'interface, pas une promesse de faisabilité. Le moteur
 revalide chaque descripteur, y compris une référence devenue périmée.
@@ -15,6 +15,23 @@ OUTIL = {"champ": "outil", "ressources": {}}
 DESTINATION = {"champ": "destination", "ressources": [
     {"type": "contenant"}, {"type": "luminaire"}, {"foyer": True}]}
 CORPS = ("personnage", "depouille", "partie_corps")
+
+
+def ressource_connue(monde, id):
+    """Frontière commune des choix matériels : portée et perception actuelles."""
+    from .noms import PERSONNES
+    from .spatial import proche
+    o = monde.objets.get(id)
+    if not o or o["type"] in (*PERSONNES, "partie_corps"):
+        return False
+    parent, vus = o, set()
+    while parent["lieu"] in monde.objets and parent["lieu"] not in vus:
+        vus.add(parent["lieu"])
+        parent = monde.objets[parent["lieu"]]
+        if parent["type"] in PERSONNES:
+            return False
+    return ((o["lieu"] == "joueur" and monde.present_physique(id)) or
+            (monde.visible(id) and (not monde.data.get("mode_cases") or proche(monde, id))))
 
 
 # Conditions sur les seuls champs déjà envoyés à la page. Même table en Python
@@ -81,8 +98,8 @@ class ChoixPublic:
     descripteur: DescripteurPublic
 
 
-def liste_gestes(scene):
-    """Fige les références du menu affiché ; jamais les souvenirs ou l'inventaire."""
+def liste_gestes(scene, inventaire=(), destinataires=()):
+    """Fige les choix des seules projections publiques, sans lire le monde."""
     liste, vus = [], set()
     for niveau in (scene or {}).get("niveaux", []):
         cibles = [(o, False, o["salle"], o["globale"]) for o in niveau["objets"]]
@@ -100,14 +117,58 @@ def liste_gestes(scene):
                 repere = f'{cible["nom"]} [{cible["id"]}] · {salle}, carte ({case[0]}, {case[1]})'
                 liste.append(ChoixPublic(f"{libelle} — {repere}",
                                         DescripteurPublic({"geste": geste, "cible": cible["id"]})))
+    liste.extend(gestes_inventaire(inventaire, destinataires))
     return tuple(liste)
 
 
+def gestes_inventaire(inventaire, destinataires):
+    """Un numéro par choix complet : bien, quantité admise et destinataire.
+
+    Comme le menu de la page, seules les quantités déjà proposées par le
+    moteur sont offertes : lot entier pour poser/remettre, une portion/pièce.
+    L'absence d'état lumineux perçu laisse les deux gestes à la revalidation.
+    """
+    liste = []
+    for bien in inventaire:
+        lot = bien.get("pieces", 0) > 1
+        repere = f'{bien["nom"]} [{bien["id"]}] · besace'
+
+        def ajouter(geste, libelle, parametres=None):
+            d = {"geste": geste, "cible": bien["id"]}
+            if parametres is not None:
+                d["parametres"] = parametres
+            liste.append(ChoixPublic(f"{libelle} — {repere}", DescripteurPublic(d)))
+
+        ajouter("poser", "Poser le lot entier" if lot else "Poser")
+        for personne in destinataires:
+            libelle = "Remettre le lot entier à" if lot else "Remettre à"
+            ajouter("remettre", f'{libelle} {personne["nom"]} [{personne["id"]}]',
+                    {"destinataire": personne["id"]})
+        if bien["type"] == "nourriture":
+            ajouter("manger", "Manger une portion", {"quantite": 1})
+        if bien["type"] == "luminaire":
+            if bien.get("allume") is not True:
+                ajouter("allumer", "Allumer")
+            if bien.get("allume") is not False:
+                ajouter("eteindre", "Éteindre")
+        if lot:
+            ajouter("prelever", f'Prélever une pièce du lot ({bien["pieces"]})', {"quantite": 1})
+    return tuple(liste)
+
+
+def gestes_du_monde(monde):
+    """Adaptateur commun aux terminaux ; le catalogue ne reçoit que du public."""
+    from .inventaire_public import inventaire_public, destinataires_publics
+    from .scene import scene_percue
+    scene = scene_percue(monde) if monde.data.get("mode_cases") else None
+    return liste_gestes(scene, inventaire_public(monde), destinataires_publics(monde))
+
+
 def rendre_liste(liste):
-    lignes = ["Gestes de la scène — numéro puis Entrée ; saisie libre disponible."]
+    lignes = ["Gestes de la scène et de la besace — numéro puis Entrée ; saisie libre disponible."]
     lignes.extend(f"{i}. {choix.libelle}" for i, choix in enumerate(liste, 1))
     if not liste:
-        lignes.append("Aucun geste de carte visible.")
+        lignes.append("Aucun geste disponible dans cette vue.")
     return "\n".join(lignes)
 
 
@@ -136,5 +197,38 @@ def catalogue_public():
     Python ; la sérialisation appartient au transport habituel du serveur.
     """
     from copy import deepcopy
-    return {famille: [deepcopy(list(entree)) for entree in table]
-            for famille, table in (("objets", OBJETS), ("portes", PORTES))}
+    catalogue = {famille: [deepcopy(list(entree)) for entree in table]
+                 for famille, table in (("objets", OBJETS), ("portes", PORTES))}
+    catalogue["fabrication"] = formulaires_fabrication()
+    return catalogue
+
+
+def formulaires_fabrication():
+    """Les usages et rôles du moteur, sans prédire l'aptitude d'une ressource."""
+    from .artisanat import SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, USAGES
+
+    def champ(nom, schema, chemin=None):
+        return {"chemin": chemin or [nom], "libelle": nom.replace("_cm", " (cm)").replace("_", " ").capitalize(),
+                **({"type": "nombre", **{k: schema[k] for k in ("minimum", "maximum") if k in schema}}
+                   if schema["type"] == "integer" else
+                   {"type": "choix", "choix": list(schema["enum"])} if "enum" in schema else
+                   {"type": "ressource"})}
+
+    p = SCHEMA_ASSEMBLAGE["properties"]
+    roles = []
+    for nom, schema in p["pieces"]["properties"].items():
+        if schema["type"] == "array":
+            for i in range(schema["minItems"]):
+                c = champ(nom, schema["items"], ["pieces", nom, i])
+                c["libelle"] += f" {i + 1}"
+                roles.append(c)
+        else:
+            roles.append(champ(nom, schema, ["pieces", nom]))
+    return [
+        {"geste": "assembler", "cible": usage, "libelle": "Assembler : " + usage,
+         "champs": roles + [champ(nom, p[nom]) for nom in
+                            ("lien", "outil", "longueur_cm", "largeur_cm", "rythme")]}
+        for usage in USAGES
+    ] + [{"geste": "decouper", "libelle": "Découper à longueur",
+          "champs": [champ(nom, SCHEMA_DECOUPE["properties"][nom]) for nom in
+                     ("cible", "outil", "longueur_cm")]}]
