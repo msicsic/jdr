@@ -2,6 +2,22 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-29.
 
+- **Branche `codex-suite-g2-g4`, lot 295, non fusionnée**, base intégration
+  `475d29d` : les sept fichiers du brief reproduisent les **15 échecs et
+  9 erreurs** initiaux (70 tests), sans défaut supplémentaire U-D. Attentes
+  périmées G4 : transports et approche structurée ; G2 : explication finale
+  après refus de forme. Régression G2 corrigée : une enveloppe invalide ne
+  supprime plus le repli sur les attestations perceptibles de la cible ; sans
+  réponse perceptible, précision moteur conservée. Aucun cas particulier.
+  **147 tests / 12 fichiers verts**, zéro échec, erreur ou ignoré, 87,162 s,
+  deux travailleurs réduits. Mur et bobine, question et impératif, deux modes
+  invalides : texte sauvé avant affichage, monde/scène/fiche/carte et reprise.
+  Parcours de transport : rendu moteur exact, coupure sans fragment avant
+  action ou après sauvegarde, reconnexion aux deux appels restants, exécution
+  unique. Ni Luna, ni banc, ni suite complète ; aucun calcul actif.
+  Bruts : `C:/Users/msics/donjon/artifacts/suite-295/`, `fin-cloture.json`.
+  [Rapport 295 et attribution](taches/rapport-codex-295-suite-g2-g4.md).
+
 - **Branche `codex-ud-descripteur`, lot 293 / U-D, fusionnée**, base
   intégration `8acbbd9` : le clic d'objet/porte, la marche au clic et la
   rotation transmettent un descripteur public jusqu'à `Moteur.preparer`.

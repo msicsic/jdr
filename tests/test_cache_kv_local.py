@@ -284,11 +284,14 @@ class FournisseurLocalTests(unittest.TestCase):
                 self.assertTrue(r["recit_sauve_avant_affichage"])
                 self.assertTrue(r["etat_identique_apres_reprise"])
                 self.assertEqual(r["executions_action"], 1)
-                self.assertGreaterEqual(len(requetes), 3)
+                self.assertEqual(len(requetes), 2)
                 # Le fournisseur local active cache_prompt, route id_slot par voie et remonte cache_n.
                 self.assertTrue(all(req["cache_prompt"] is True for req in requetes))
                 slots_vus = [req["id_slot"] for req in requetes]
-                self.assertEqual(slots_vus[:3], [0, 3, 1])
+                self.assertEqual(slots_vus, [0, 3])
+                self.assertEqual([t['fonction'] for t in traces if t['etape'] == 'appel'],
+                                 ['repondre_au_joueur', 'auditer_action'])
+                self.assertEqual(r['conversation'][-1]['reponse'], r['resultat_moteur'])
                 self.assertEqual(traces[0]["usage"]["prompt_tokens_details"]["cached_tokens"], 1050)
 
 
