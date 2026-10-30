@@ -63,3 +63,18 @@ conservée (27 échecs de sous-cas, 5 erreurs, 519,474 s) : prémisses
 références/placement/contact/mains/date corrigées, assertions intactes,
 fichiers nouveaux entièrement rejoués. Incidents de droits temporaires
 du bac à sable conservés dans le point de reprise.
+
+## Reprise de l'intégration 014fc35
+
+Fusion sans rebase **`b2c8f53`**, parents `85e39a8` et `014fc35`. Le conflit
+de `commandes.py` conserve direction corporelle et parcours structuré G7,
+avec refus de leur mélange ; les deux intentions des auto-fusions moteur,
+page et sonde Node sont présentes. `etat-dev.md` reprend la version courte
+de l'intégration, puis sept lignes du lot dans « Lots non fusionnés ».
+Mandats 341, provenance 346, conception 347 et correctif « Compris » sont
+conservés. Validation de fusion en cours : **19 fichiers**, dont les tests
+corporels, mandats, repli/appel, consentement, compréhension et déplacements.
+Deux travailleurs réduits au plus, calcul détaché ; pas de Luna ni suite
+complète. Bruts `um-corps-344/fusion-014fc35/`, fin attendue
+`fin-classification.json`. Les bilans initiaux ci-dessus ne valent pas
+validation de cette fusion.
