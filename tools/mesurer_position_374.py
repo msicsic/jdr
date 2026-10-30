@@ -47,13 +47,21 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sortie", required=True, type=Path)
     parser.add_argument("--revision", default="HEAD", help="commit de branche figé au lancement")
+    parser.add_argument("--reference", default="origin/main", help="main distant, le main local de ce poste est ancien")
     args = parser.parse_args()
     dossier = args.sortie.resolve()
     dossier.mkdir(parents=True, exist_ok=True)
     ceder()
-    # main local est ancien sur ce poste. La base exacte isole le lot ; les
+    from donjon import banc_pnj, planification
+    planification.VERIFIER = True
+    debut = time.perf_counter()
+    _, _, donnees = banc_pnj.nuit("relais", 7, 1, "chambre_cloche", depart="tire")
+    ecrire(dossier / "verifier-1h.json", {"scenario": "relais", "graine": 7, "heures": 1,
+                                         "succes": True, "secondes": time.perf_counter() - debut,
+                                         "donnees": donnees})
+    # main local est ancien et incompatible avec l'audit courant. La base exacte isole le lot ; les
     # mêmes nuits de branche sont relues du cache, jamais jouées deux fois.
-    for nom, reference in (("banc", "main"), ("banc-base", "b83f5a5933850907a6a1d7388cf1966944c665f0")):
+    for nom, reference in (("banc-main", args.reference), ("banc-base", "b83f5a5933850907a6a1d7388cf1966944c665f0")):
         commande = [sys.executable, str(RACINE / "tools/comparer_bancs.py"),
                     "--reference", reference, "--branche", args.revision, "--heures", "4",
                     "--scenarios", "relais", "auberge", "mine", "crue",
@@ -67,13 +75,6 @@ def main():
             ecrire(dossier / ("analyse-" + nom + ".json"), analyser(rapport))
         if resultat.returncode:
             return resultat.returncode
-    from donjon import banc_pnj, planification
-    planification.VERIFIER = True
-    debut = time.perf_counter()
-    _, _, donnees = banc_pnj.nuit("relais", 7, 1, "chambre_cloche", depart="tire")
-    ecrire(dossier / "verifier-1h.json", {"scenario": "relais", "graine": 7, "heures": 1,
-                                         "succes": True, "secondes": time.perf_counter() - debut,
-                                         "donnees": donnees})
     return 0
 
 

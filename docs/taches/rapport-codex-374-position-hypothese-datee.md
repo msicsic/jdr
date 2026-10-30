@@ -38,16 +38,19 @@ repos observé, règle sauvegardée et discrétion sont également couverts.
 **8 nouveaux tests verts**, 4,118 s (`tests-nouveaux.json`) ; le voisin de protection
 conserve ses **quinze coups** d'archive, sans changer ses assertions.
 La première passe de 89 tests a révélé les défauts de terminal et de posture du
-joueur corrigés ensuite ; la reprise finale des **13 fichiers / 89 tests** est en cours.
+joueur corrigés ensuite ; la reprise finale est **verte : 13 fichiers / 89 tests,
+416,677 s**, zéro échec, erreur ou saut (`tests-finaux.json`).
 
-**Mesures encore en cours.** Le lanceur attend les tests finaux verts, puis joue
-4 h × quatre graines × Relais/auberge/mine/crue, références en cache, deux travailleurs
-à priorité réduite ; ensuite `planification.VERIFIER` sur Relais 7 pendant 1 h.
-Le `main` local est `c870c8b4`, très antérieur au départ : la comparaison demandée
-est complétée par la base exacte `b83f5a59`, en relisant les mêmes nuits de branche
-dans le cache. `tools/mesurer_position_374.py` produit les deux comparaisons et leurs
-relevés d'appels/retours. Ni suite complète ni Luna. Fichier de fin écrit en dernier :
-`C:/Users/msics/donjon/artifacts/position-hypothese-374/fin-calculs.json`.
+**Mesures encore en cours.** Le premier lanceur a échoué avant les nuits de branche :
+le `main` local `c870c8b4` ne fournit pas `agendas.enfants`, requis par l'audit actuel
+(`banc.stderr.txt`, `fin-calculs.json`). Aucun défaut du jeu n'est établi par cet arrêt.
+Reprise sans relancer les tests : `planification.VERIFIER`, Relais 7, 1 h ; puis
+4 h × quatre graines × Relais/auberge/mine/crue, contre `origin/main` (`0bad2272`)
+et contre la base exacte `b83f5a59`. Cache conservé, mêmes nuits de branche réutilisées,
+deux travailleurs à priorité réduite. `tools/mesurer_position_374.py` produit les deux
+comparaisons et leurs relevés d'appels/retours. Ni suite complète ni Luna.
+Nouvelle fin écrite en dernier :
+`C:/Users/msics/donjon/artifacts/position-hypothese-374/fin-reprise.json`.
 
 **Limites et reprise.** Les demi-vies sont un réglage initial, sans calibration empirique.
 L'absence de boucle nouvelle et l'attribution des changements de nuit restent à valider
