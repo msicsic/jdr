@@ -27,6 +27,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-e4-accord-date` (30ec526a) : lot 355, E4 l'accord initial engage exactement les termes datés. Détail dans l'historique.
 - `codex-um-social-information` (c78b0e8b) : lot 354, U-M social information, l'acte d'information au formulaire. Détail dans l'historique.
 - `codex-e3-delai-cru` (69bba20e) : lot 352, E3 délai jugé sur les moyens crus du contractant. Détail dans l'historique.
 - `codex-um-passage` (a8bc0fce) : lot 349, U-M passage, franchissements qualifiés au menu. Détail dans l'historique.
@@ -38,7 +39,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-conception-menace` (228892f) : lot 347, conception de la menace et de l'échéance négociée. Détail dans l'historique.
 - `codex-a1-provenance` (29079a6) : lot 346, A1 projection publique avec provenance. Détail dans l'historique.
 - `codex-mandat-joueur` (5a3baf0) : lot 341, A5.9 le joueur mandant et mandaté. Détail dans l'historique.
-- `codex-g7-deplacements` (a6b4444) : lot 343, G7 déplacements résolus rendus par le moteur. Détail dans l'historique.
 
 ## Lots non fusionnés
 

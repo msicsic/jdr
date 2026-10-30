@@ -9,6 +9,8 @@ def dossier(monde, rapport):
                         "issue": rapport.get("comptes", []),
                         "offres_a_dire": rapport.get("offres", []),
                         "offres": offres_joueur(monde) + rapport.get("offres", [])}
+    from .temps import instant
+    faits['comptes']['instant'] = instant(monde)
     # Noms grammaticaux des seuls biens cités par les termes publics :
     # aucune position, possession cachée ni propriété physique ajoutée.
     biens_offres = {c['objet'] for c in faits['comptes']['issue'] if c.get('objet') in monde.objets}
@@ -103,10 +105,13 @@ def formuler(faits, auteur, operation):
         if r.get('refus_par') == 'joueur':
             debut.append("Tu refuses cet échange.")
         else:
-            debut.extend(["Je refuse cet échange.", causes[r['cause']]])
+            debut.extend(["Je refuse cet échange.", r['delai']['message'] if r.get('delai') else causes[r['cause']]])
         debut.append("Aucun règlement n'est effectué pour cet échange.")
     elif r.get('etat') == 'accepte':
         debut.append("J'accepte cet échange.")
+        contenu = operation.get('contenu', {})
+        if any('limite' in contenu.get(k, {}) for k in ('demande', 'contrepartie')):
+            debut.append("Les pièces convenues sont payées maintenant, une seule fois.")
     elif r.get('etat') == 'refus' and r.get('prix'):
         from .francais import quantite
         debut.append("Je refuse à ce prix. J'en demande " + quantite(r['prix'], 'pièce') + '.')

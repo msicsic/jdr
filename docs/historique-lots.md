@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **355 — E4 accord daté**, `codex-e4-accord-date`, base `origin/integration 9b66d5a` (PC fixe).
+  Termes `part`/`tache` avec limite absolue : jugement E3, paiement présent et obligation atomiques ;
+  soumission dédupliquée jusque dans l'issue E2, termes et dates rendus par le moteur, recharge validée.
+  151 tests ciblés/voisins : 146 verts, cinq échecs reproduits sur la base ; E4 14/14 et socle 6/6 verts.
+  Banc rapide 4 h × quatre graines × Relais/auberge/mine : 12/12 nuits identiques à la base, audits compris,
+  zéro plantage/nouvelle alerte ; écarts à `main` antérieurs à E4. Bruts : `artifacts/e4-355/` du dépôt principal.
+  E5/E6 et offres/renégociation restent hors périmètre. [Rapport](taches/rapport-codex-355-e4-accord-date.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `paroles.py`, fusionnés sans conflit textuel. 146 tests ciblés verts, cinq échecs préexistants ; banc rapide 12/12 nuits identiques. paroles.py commun avec le lot 354 : tests ciblés des deux lots rejoués avant poussée.
+
 - **354 U-M social information**, `codex-um-social-information`, base `57c9771d`, terminé non fusionné : formulaire public
   pour identité, localisation d'une personne, ressource et annonce de lieu ; entrée U-D commune vers parole/U-C.
   Transport d'adresse structuré dans `preparer_parole`, règles et chemin texte conservés ; zéro modèle au clic.
