@@ -28,6 +28,7 @@ const page = fs.readFileSync(process.argv[2], "utf-8");
 (0, eval)(page.match(/<script>([\s\S]*)<\/script>/)[1] + `
 appliquerEtat(ETAT);
 const sortie = {choix: {}, envoisClic: [], outils: [], chemin: null, cible: null, approches: {}};
+sortie.corps = [];
 sortie.inventaire = [];
 for (const li of $("inventaire").children) {
   const bouton = li.children[0];
@@ -57,6 +58,7 @@ cases.forEach(g => {
   const origine = scene.joueur.globale;
   scene.joueur.globale = g;  // Déjà à portée : l'approche est sondée séparément.
   for (const choix of sections.flatMap(x => x[1])) {
+    if (choix[3] === "corps") continue; // Arbre de méthodes/moyens sondé ci-dessous.
     occupe = false; envois.length = 0;
     choix[1]();
     if (choix[2] !== undefined) sortie.envoisClic.push({choix: choix[2], envoye: envois[0]});
@@ -67,6 +69,18 @@ cases.forEach(g => {
   }
   scene.joueur.globale = origine;
 });
+for (const o of niveau.objets) {
+  const origine = scene.joueur.globale;
+  scene.joueur.globale = o.globale;
+  const parcourir = (b, chemin) => {
+    occupe = false; envois.length = 0; b[1]();
+    if (envois.length) sortie.corps.push({cible: o.id, choix: chemin, envoye: envois[0], clics: chemin.length + 1});
+    else for (const bouton of $("menu").children.filter(b => b.onclick))
+      parcourir([bouton.textContent, bouton.onclick], [...chemin, bouton.textContent]);
+  };
+  choixCorps(o, 10, 10).forEach(b => parcourir(b, [b[0]]));
+  scene.joueur.globale = origine;
+}
 praticables().forEach(k => { const g = k.split(",").map(Number), p = chemin(scene.joueur.globale, g);
   if (p && (!sortie.chemin || p.length > sortie.chemin.length)) { sortie.cible = g; sortie.chemin = p; } });
 // Avec sonde_buts (cases globales), le chemin de la page jusqu'à la première qu'elle juge la plus rapide.

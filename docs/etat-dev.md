@@ -2,6 +2,23 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
+- **Lot 344 / U-M corps : code réalisé, validation en cours**, branche
+  `codex-um-corps`, base `origin/integration 78766d9`, **non fusionnée**.
+  Catalogue public des gestes corporels, méthode/moyen/direction explicites,
+  réactions sur les seuls dangers encore perçus ; aucun préalable envoyé
+  pour ces choix. Descripteurs exacts, commandes équivalentes et gravité U-C.
+  Raccord limité dans `moteur.py` : fiche « Compris », référence du clic
+  conservée et refus du consentement périmé même sans nouvelle révision.
+  Aucun changement de `jeu.py`, `tui.py`, du MJ ou des règles corporelles.
+  Tests ciblés en priorité réduite, deux travailleurs au plus ; compléments
+  enchaînés en fond puis mesures des clics. Ni Luna, suite complète ou banc PNJ.
+  Les lancements en bac à sable ont échoué sur les droits des temporaires ;
+  relance avec accès disque, aucun bilan vert annoncé. Bruts
+  `C:/Users/msics/donjon/artifacts/um-corps-344/` ; fichier de fin attendu
+  **`fin-validation.json`**. Recouvrement explicite **343/G7 : `moteur.py`** ;
+  documentation commune aux lots en cours. Lire les bilans avant clôture.
+  [Rapport 344](taches/rapport-codex-344-um-corps.md).
+
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Un acte lourd ou irréversible issu du texte libre affiche le plan entier, puis attend une confirmation revalidée ; annulation sans effet, plan périmé refusé. Intégration jusqu'à G17 (60c476a) fusionnée dans la branche ; 200 tests ciblés verts.
 
 - **Lot 339 terminé, branche `codex-suite-rouge`, fusionnée**,
