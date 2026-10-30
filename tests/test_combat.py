@@ -266,6 +266,10 @@ class CombatTests(unittest.TestCase):
         m = scene()
         # Le joueur regarde vers l'ouest, l'agresseur est dans son dos au contact.
         m.joueur["orientation"] = "ouest"
+        # Geste commandé contre un adversaire repéré, même si l'agresseur
+        # regarde ensuite ailleurs ; aucune visée sur une position cachée.
+        croire(m, 'brune', 'joueur', 'lieu', m.joueur['salle'], 'vu',
+               salle=m.joueur['salle'], case=list(m.joueur['position']))
         e = lire(m, "brune")
         e["intention"] = {"but": {"type": "manger", "objet": "vivres"}, "motif": "faim",
                           "plan": [_etape("assommer", "joueur")], "depuis": 0, "attente": 0}

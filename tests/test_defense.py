@@ -196,6 +196,9 @@ class DefenseTests(unittest.TestCase):
                 lire(m, x)["besoins"] = {b: v for b, v in lire(m, x)["besoins"].items()
                                           if b in ("faim", "repos", "chaleur")}
             e = lire(m, auteur)
+            # La fixture commande une attaque sur Corvus déjà repéré.
+            croire(m, auteur, 'joueur', 'lieu', m.joueur['salle'], 'vu',
+                   salle=m.joueur['salle'], case=list(m.joueur['position']))
             e.update(libre=0, veille=None, eveil=1, intention={"but": {"type": "frapper", "qui": "joueur"},
                      "motif": "securite", "depuis": 0, "attente": 0,
                      "plan": [{"operation": "assommer", "cible": "joueur", "outil": "", "lieu": "", "condition": ""}]})
