@@ -3,6 +3,7 @@ from __future__ import annotations
 from .francais import quantite
 
 import copy
+import json
 from dataclasses import dataclass, field
 
 from .monde import ErreurMonde, objet
@@ -74,7 +75,7 @@ class Plan:
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
     compris: str = ""          # texte libre admis : récapitulatif moteur figé avant affichage
-    choix_public: object = None  # identité du clic conservée jusqu'à sa confirmation
+    choix_public: object = None  # descripteur et origine d'entrée conservés jusqu'à confirmation
     etat_consentement: str = ""
 
     @property
@@ -206,8 +207,11 @@ class Moteur:
             raise
         plan.titre = texte(self.monde, plan.titre)
         plan.information = texte(self.monde, plan.information)
-        from .gestes_publics import GESTES_CORPS
-        if (p.get("action") in GESTES_CORPS and
+        from .gestes_publics import GESTES_CORPS, GESTES_PASSAGE
+        passage = (p.get("action") in GESTES_PASSAGE or
+                   p.get("action") == "composer" and any(
+                       e.get("operation") in GESTES_PASSAGE for e in p.get("etapes", [])))
+        if (passage or p.get("action") in GESTES_CORPS and
                 (p["action"] != "frapper" or self.monde.objets.get(p["cible"], {}).get("type") == "personnage")):
             from .consentement import plan_lourd, _empreinte, _etat
             from .comprehension import plan_admis
@@ -215,9 +219,14 @@ class Moteur:
             # y compris pour la commande équivalente. Les règles de geste
             # et les confirmations antérieures restent souveraines.
             plan.confirmation = plan.confirmation or plan_lourd(plan)
-            plan.compris = plan_admis(self.monde, plan)
+            if passage:
+                plan.confirmation = plan.confirmation or bool(plan.stat)
+            # Le libre porte déjà son récapitulatif dans PropositionLibre.
+            # Les nouveaux passages directs le portent sur le Plan lui-même.
+            if not passage or choix_public or origine == "règles":
+                plan.compris = plan_admis(self.monde, plan)
             if choix_public and plan.confirmation:
-                plan.choix_public = copy.deepcopy(choix_public)
+                plan.choix_public = (copy.deepcopy(choix_public), origine)
                 plan.etat_consentement = _empreinte(_etat(self.monde))
         return plan
 
@@ -742,7 +751,7 @@ class Moteur:
             from .consentement import _empreinte, _etat
             # Ne jamais remplacer l'aperçu consenti, même si la révision n'a
             # pas bougé. La relecture exacte refuse aussi une référence perdue.
-            nouveau = self.preparer(plan.choix_public, plan.origine)
+            nouveau = self.preparer(*plan.choix_public)
             if plan.etat_consentement != _empreinte(_etat(self.monde)) or nouveau != plan:
                 raise ErreurMonde("Le monde ou le plan a changé : choisis de nouveau ce geste pour vérifier son aperçu.",
                                   "consentement : état et plan identiques à l'aperçu requis ; reçu : choix public périmé.")
@@ -1100,7 +1109,7 @@ class Moteur:
                                if e["operation"] == "sauter" else
                                "La tentative n'aboutit pas. La suite de la manœuvre est abandonnée.")
             trace.append({"numero": numero, "operation": e, "jet": jet, "dd": p.dd, "reussite": reussite,
-                          "minutes": p.minutes, "effets_appliques": [list(effet) for effet in effets], "faits": details[:]})
+                          "minutes": p.minutes, "effets_appliques": json.loads(json.dumps(effets)), "faits": details[:]})
             lignes.extend(details)
             if not reussite or inconscient:
                 break

@@ -114,7 +114,7 @@ class JoueurTests(unittest.TestCase):
                 self.assertIn("Ramper sous", sortie)
                 self.assertIn("12 secondes", sortie)
                 self.assertIn("Bruit feutré", sortie)
-                self.assertIn("Rien n'est encore tenté", sortie)
+                self.assertIn("Faisabilité seulement : aucune action exécutée.", sortie)
                 self.assertNotIn("Il faut une échelle", sortie)
                 self.assertEqual((r.joueur["position"], r.data["jets"], instant(r)), (debut, jets, 0))
                 r, sortie = jouer(m, [question, "tenter"], [reponse])

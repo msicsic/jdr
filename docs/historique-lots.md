@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **349 — U-M passage**, `codex-um-passage`, base intégration `a0f0eba`, terminé, non fusionné.
+  Menu des formes perçues établies : dessous/dessus, échelle installée, perche déjà arbitrée.
+  Même plan que la commande ; consentement et revalidation exacte ; aucune difficulté inventée.
+  71 tests distincts validés (sept fichiers), sans Luna ni suite complète ; état et vues rechargés.
+  10 parcours : 10 saisies évitées, 3 clics confirmation comprise ; zéro appel au modèle.
+  Limites : première qualification et premier arbitrage au libre ; U-T passage à faire.
+  [Rapport](taches/rapport-codex-349-um-passage.md), bruts `artifacts/um-passage-349/` du dépôt principal.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 71 tests distincts verts ; dix parcours : dix saisies évitées, trois clics, zéro appel au modèle ; saut à la perche seulement avec un arbitrage déjà mémorisé (décision du superviseur).
+
 - **351 — `codex-g18-avis`**, base intégration `59e65f81` : avis formulés et scellés par le moteur,
   sans rédaction/audit de leurs répliques ; adoption, dispute et consentement inchangés.
   **89/89 tests, 12 fichiers** ; empreintes 2 h crue/Relais × quatre graines **8/8 identiques**.

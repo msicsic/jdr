@@ -50,7 +50,7 @@ for (const li of $("inventaire").children) {
 if (niveau) {
 // Les objets ancrés à un mur sont cliquables aussi : leur case n'est pas un sol.
 const cases = [...niveau.salles.flatMap(s => s.cases.map(c => c.globale)),
-  ...niveau.sorties.map(s => s.globale), ...niveau.objets.map(o => o.globale)];
+  ...niveau.sorties.map(s => s.globale), ...niveau.objets.map(o => o.globale), ...niveau.echelles.map(e => e.globale)];
 cases.forEach(g => {
   const {sections, autres} = choixCase(g);
   const cmds = [...sections.flatMap(x => x[1]), ...autres].map(x => x[2]).filter(x => x !== undefined);
@@ -62,7 +62,7 @@ cases.forEach(g => {
     if (choix[3] === "corps") continue; // Arbre de méthodes/moyens sondé ci-dessous.
     occupe = false; envois.length = 0;
     choix[1]();
-    if (choix[2] !== undefined) sortie.envoisClic.push({choix: choix[2], envoye: envois[0]});
+    if (choix[2] !== undefined) sortie.envoisClic.push({choix: choix[2], envoye: envois[0], clics: 2});
     else for (const p of $("menu").children.filter(b => b.onclick)) {
       occupe = false; envois.length = 0; p.onclick();
       if (envois.length) sortie.outils.push({libelle: choix[0], ressource: p.textContent, envoye: envois[0], clics: 3});
