@@ -14,8 +14,8 @@ from .refus import ProprieteInconnue
 from .francais import designer
 from .temps import PAS_JOUEUR, MINUTE, duree_pas
 from .spatial import QUART, quarts, VECTEURS
+from .contrats_passage import COTES as METHODES, MANIERES
 
-METHODES = ("dessous", "dessus")
 # Les manipulations ordinaires du joueur sont encore des Plan à une minute ;
 # les PNJ emploient DUREES. La mesure reçoit le tarif de son exécutant.
 DUREES_PORTES_JOUEUR = {"ouvrir": MINUTE, "deverrouiller": MINUTE}
@@ -591,18 +591,13 @@ def compiler(m, e, justification="", origine="règles"):
     from .moteur import Plan
     from .refus import inaccessible
     from .spatial import position_cible
+    from .contrats_passage import verifier
+    verifier(e)
     cible, methode = e["cible"], e["methode"]
     if not m.accessible(cible):
         raise inaccessible(m, cible)
     from .proximite import exiger
     exiger(m, cible)
-    if e["outil"]:
-        raise ErreurMonde("Ce passage se fait sans outil.", f"outil={e['outil']!r} : accepté vide.")
-    if e["destination"]:
-        raise ErreurMonde("Ce passage mène au sol libre juste en face.", f"destination={e['destination']!r} : accepté vide.")
-    if e["difficulte"]:
-        raise ErreurMonde("La difficulté de ce passage est fixée par sa forme.",
-                          f"difficulte={e['difficulte']} : accepté 0.")
     regle = conditions(m, cible, methode)
     if not m.data.get("mode_cases"):
         raise ErreurMonde("Ce franchissement exige une position et un sol de réception décrits.",
@@ -624,9 +619,8 @@ def compiler(m, e, justification="", origine="règles"):
     if occupant:
         raise ErreurMonde("Quelqu'un occupe l'endroit où tu dois ressortir.",
                           f"{salle}.reception={fin}, occupant={occupant} : accepté case inoccupée.")
-    verbes = {"ramper": "Ramper sous ", "enjamber": "Enjamber ", "escalader": "Escalader "}
     p = Plan({"action": "composer", "justification": justification}, m.data["revision"],
-             verbes[regle["maniere"]] + designer(m.objets[cible]) + ".", origine=origine)
+             MANIERES[regle["maniere"]] + designer(m.objets[cible]) + ".", origine=origine)
     p.minutes, p.dixiemes, p.confirmation = 0, choix["dixiemes"], True
     p.stat, p.dd = regle["stat"], regle["dd"]
     p.information = (f"Durée : {p.dixiemes / 10:g} secondes. "

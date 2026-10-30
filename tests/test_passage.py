@@ -162,11 +162,14 @@ class DemanderLePassageTests(unittest.TestCase):
 
     def test_une_demande_pour_un_autre_n_est_pas_un_passage(self):
         m = refuge()
-        travail, rapport = preparer_parole(m, {"personnage": "brune", "replique": "Dis à Ilse de bouger.",
+        avant = recharger(m).data
+        with self.assertRaises(ErreurMonde) as refus:
+            preparer_parole(m, {"personnage": "brune", "replique": "Dis à Ilse de bouger.",
                                                "contenu": [{"type": "passage", "sujet": "ilse", "attribut": "",
                                                             "valeur": ""}]})
-        self.assertEqual(rapport["faits"], [])
-        self.assertEqual(tuple(travail.objets["brune"]["position"]), SEUIL)
+        self.assertIn("sujet", refus.exception.attendu)
+        self.assertEqual(m.data, avant)
+        self.assertEqual(tuple(recharger(m).objets["brune"]["position"]), SEUIL)
 
 
 class PousserJoueurTests(unittest.TestCase):

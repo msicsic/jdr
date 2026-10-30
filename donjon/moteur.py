@@ -308,6 +308,8 @@ class Moteur:
                               f"{action} ne s'exécute pas : réponds en mode dialogue.")
         if action in ("prendre", "poser", "voler", "detacher", "allumer", "eteindre"):
             return preparer_operations(self.monde, p, origine)
+        from .contrats_passage import verifier as verifier_passage
+        verifier_passage(p)
         if action in ("installer", "franchir", "desinstaller"):
             from .artisanat import preparer_usage
             return preparer_usage(self.monde, p, origine)

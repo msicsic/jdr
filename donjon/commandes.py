@@ -128,6 +128,9 @@ def geste_local(action, cible, outil="", methode="simple", destination="", direc
     """La même proposition canonique pour le texte local et le choix structuré."""
     if action in {"pousser", "trainer"}:
         outil = direction
+    if action in {"passer_obstacle", "franchir", "pousser"}:
+        from .contrats_passage import raccourci
+        return raccourci(action, cible, outil=outil, methode=methode, destination=destination)
     if action in {"fuir", "degager"}:
         cible = ""
     if action == "liberer":
@@ -166,12 +169,13 @@ def passage_memorise(monde, cible, outil):
     from .franchissement import cle_arbitrage
     from .operations import etape, sequence
     from .monde import ErreurMonde
+    from .contrats_passage import DIFFICULTES_APPUI_MOBILE
     destination = monde.objets[cible].get("appui_vertical", {}).get("haut")
     try:
         precedent = monde.data["arbitrages"].get(cle_arbitrage(monde, cible, outil, destination))
     except KeyError:
         precedent = None
-    if not precedent or type(precedent.get("dd")) is not int or not 16 <= precedent["dd"] <= 22:
+    if not precedent or type(precedent.get("dd")) is not int or precedent["dd"] not in DIFFICULTES_APPUI_MOBILE:
         raise ErreurMonde("Aucun arbitrage établi ne correspond à ce franchissement.",
                           f"franchir_obstacle : cible={cible!r}, outil={outil!r} ; attendu un arbitrage mémorisé pour la géométrie et la charge actuelles.")
     prise = [] if monde.est_porte(outil) else [etape("deplacer", outil, "joueur")]
@@ -558,10 +562,8 @@ def analyser(monde, texte):
             "pieces": {"montants": [monde.trouver(a), monde.trouver(b)], "barreaux": monde.trouver(barreaux)},
             "lien": monde.trouver(lien), "outil": monde.trouver(outil),
             "longueur_cm": int(longueur), "largeur_cm": int(largeur), "rythme": rythme})
-    for prefixe, methode in (("ramper sous ", "dessous"), ("je rampe sous ", "dessous"),
-                              ("passer sous ", "dessous"), ("je passe sous ", "dessous"),
-                              ("passer par-dessus ", "dessus"), ("je passe par-dessus ", "dessus"),
-                              ("enjamber ", "dessus"), ("escalader ", "dessus")):
+    from .contrats_passage import RACCOURCIS
+    for prefixe, methode in RACCOURCIS.items():
         if texte.startswith(prefixe):
             cible = _nomme(monde, texte[len(prefixe):], False)
             if cible is None:
@@ -635,7 +637,7 @@ def analyser(monde, texte):
         return proposition("installer", monde.trouver(cible), monde.trouver(support))
     for prefixe, action in (("monter ", "franchir"), ("descendre ", "franchir"), ("desinstaller ", "desinstaller")):
         if texte.startswith(prefixe):
-            return proposition(action, monde.trouver(texte[len(prefixe):]))
+            return geste_local(action, monde.trouver(texte[len(prefixe):]))
     for prefixe in DONNER:
         if texte.startswith(prefixe):
             return don(monde, texte[len(prefixe):])

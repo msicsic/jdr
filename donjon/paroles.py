@@ -28,6 +28,7 @@ from .esprits import RECENT, croire, croyance, esprit, lire, memoriser, percevoi
 from .francais import complement_de, designer, lieu, groupe_nominal, de
 from .monde import ErreurMonde, normaliser
 from .relations import FIABLE
+from .contrats_passage import DEMANDE, verifier_destinataire, verifier_demande, schema_demande, typer_demande
 
 ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
 TYPES_JOUEUR = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "localisation", "proposition", "mandat", "reponse_mandat", "bilan_mandat")
@@ -55,7 +56,7 @@ SENS_CONTENU = {
     "propos": "Parole qui n'accomplit aucun des actes disponibles. La visibilité, l'évidence ou la connaissance préalable d'une information ne transforment pas une affirmation en propos sans effet typé. Reproduire les mots du joueur ne dispense pas de typer leur sens.",
     "affirmation": "Communiquer directement à l'interlocuteur un fait représentable par sujet, attribut et valeur. Sa visibilité, son évidence, sa nouveauté et le souhait explicite d'un effet mécanique ne changent pas cet acte. Un contenu à faire transmettre dans un contrat appartient à ce contrat ; il n'est pas une affirmation autonome supplémentaire de Corvus.",
     "demande": "Demander un objet ou une part de ressource ; valeur est le prix offert, vide sans offre.",
-    "passage": "Demander de laisser passer ; valeur est le prix offert, vide sans offre.",
+    "passage": DEMANDE["sens"],
     "aveu": "Avouer le geste valeur sur l'objet sujet.",
     "nom": "Se présenter sous le nom sujet, sans prouver son identité.",
     "qui": "Demander l'identité de l'interlocuteur.",
@@ -120,7 +121,7 @@ for _type_contenu in TYPES_JOUEUR:
     for _champ in ("sujet", "attribut", "valeur"):
         if _champ not in CHAMPS_CONTENU[_type_contenu]:
             _variante["properties"][_champ] = {"type": "string", "enum": [""]}
-    _variantes_contenu.append(_variante)
+    _variantes_contenu.append(schema_demande(_variante) if _type_contenu == "passage" else _variante)
 SCHEMA_PAROLE["properties"]["contenu"]["items"] = {"anyOf": [*_variantes_contenu, SCHEMA_PROPOSITION]}
 
 def _schema_contenu(type_, champs, *, sens=None):
@@ -1350,10 +1351,7 @@ def _typer(monde, c, auditeur=None):
         sujet = _nom_dit(monde, c.get("sujet"))
         return {"type": "nom", "sujet": sujet} if sujet else None
     if isinstance(c, dict) and c.get("type") == "passage":
-        # On demande le passage à celui à qui l'on parle : le sujet, s'il est donné, est lui.
-        sujet = c.get("sujet")
-        return ({"type": "passage", "prix": offre(c)} if not sujet or resoudre(monde, sujet) == auditeur
-                else None)
+        return typer_demande(monde, c, auditeur)
     if not isinstance(c, dict) or c.get("type") not in ("affirmation", "demande", "aveu"):
         return None
     sujet = resoudre(monde, c.get("sujet"))
@@ -1430,6 +1428,8 @@ def verifier_contenus(monde, contenu):
             from .propositions import verifier
             verifier(monde, c, f"contenu[{i}]")
             continue
+        if c.get("type") == "passage":
+            verifier_demande(c)
         utilises = CHAMPS_CONTENU.get(c.get('type'), ())
         for champ in ('sujet', 'attribut', 'valeur'):
             if champ not in utilises and c.get(champ) not in (None, ''):
@@ -1852,6 +1852,7 @@ def preparer_parole(monde, p, revision=None):
                           + " (Corvus ne l'a ni vu ni entendu nommer) ; garde les mots du joueur.")
     verifier_offres(monde, p["contenu"])
     verifier_contenus(monde, p["contenu"])
+    verifier_destinataire(monde, p["contenu"], dest)
     if any(c.get("type") in ("proposition", 'mandat', 'reponse_mandat', 'bilan_mandat') for c in p["contenu"] if isinstance(c, dict)):
         if len(dest) != 1 or len(p["contenu"]) != 1:
             raise ErreurMonde("Une offre liée doit être adressée à une seule personne.",

@@ -66,7 +66,8 @@ def _geste(monde, plan, parametres):
     from .contrats_sequence import precision_publique
     precision = precision_publique(parametres)
     from .contrats_son import precision_publique as precision_son
-    precision = " ".join(p for p in (precision, precision_son(plan, parametres)) if p)
+    from .contrats_passage import precision_publique as precision_passage
+    precision = " ".join(p for p in (precision, precision_son(plan, parametres), precision_passage(parametres)) if p)
     return (plan.titre + (" (" + valeur(monde, details) + ")" if details else "")
             + (" " + precision if precision else ""))
 
@@ -115,7 +116,9 @@ def contenu(monde, c, interlocuteur="", *, reference_ressource=False):
         # Le passage se demande à qui l'on parle : son contenu n'a pas de sujet.
         a = sujet or interlocuteur
         acte = f"demander {sujet}" if t == "demande" else "demander le passage" + (f" à {a}" if a else "")
-        return acte + (f" contre {v} pièces" if v else " sans prix offert")
+        from .contrats_passage import DEMANDE
+        return (acte + (f" contre {v} pièces" if v else " sans prix offert")
+                + (". " + DEMANDE["public"] if t == "passage" else ""))
     if t == "aveu":
         return f"avouer : {v} sur {sujet}"
     if t == "nom":
