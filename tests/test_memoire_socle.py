@@ -241,10 +241,14 @@ class ChaineTests(unittest.TestCase):
         from tests.test_tensions import vivre
         from donjon.rendu import regarder
         from donjon.scene import scene_percue
+        from donjon.emissions import lire as paroles
 
         # Cas historique : Hugues entend l'appel du couloir puis va examiner.
         # Autre cas : Gorm entend derrière la porte étanche du beffroi.
-        for scene, temoin in ((sons.GardienTests().scene, 'hugues'), (sons.PorteFermeeTests().scene, 'marchand')):
+        for scene, temoin, resultat, mots in (
+                (sons.GardienTests().scene, 'hugues', "Hugues va voir d'où venait le bruit : Couloir de l'étage.", None),
+                (sons.PorteFermeeTests().scene, 'marchand', 'Gorm, gardien du relais force la porte étanche du beffroi.',
+                 'Gorm glisse à Aubin que la torche est éteinte.')):
             with self.subTest(temoin=temoin):
                 m = scene()
                 m.objets[temoin]['profil']['alerte'] = 3
@@ -261,13 +265,16 @@ class ChaineTests(unittest.TestCase):
                 # Comparaison sans retrait de champ : valeurs ET ordre JSON.
                 self.assertEqual(entier.data, morcele.data)
                 self.assertEqual(json.dumps(entier.data), json.dumps(morcele.data))
-                self.assertTrue(entier.data['emissions_parole'])
-                self.assertTrue(any('va voir' in c['texte'] for c in entier.data['chronique']))
-                public = (regarder(entier), scene_percue(entier), copy.deepcopy(entier.data['emissions_parole']))
+                self.assertIn(resultat, [c['texte'] for c in entier.data['chronique']])
+                # Un cri d'aide est un son ; il n'impose pas une parole.
+                # Le second parcours produit aussi une confidence entendue.
+                if mots is not None:
+                    self.assertIn(mots, [p['texte'] for p in paroles(entier)])
+                public = (regarder(entier), scene_percue(entier), copy.deepcopy(paroles(entier)))
                 reprise = recharger(entier)
                 self.assertEqual(reprise.data, entier.data)
-                self.assertEqual((regarder(reprise), scene_percue(reprise), reprise.data['emissions_parole']), public)
-                self.assertEqual((regarder(morcele), scene_percue(morcele), morcele.data['emissions_parole']), public)
+                self.assertEqual((regarder(reprise), scene_percue(reprise), paroles(reprise)), public)
+                self.assertEqual((regarder(morcele), scene_percue(morcele), paroles(morcele)), public)
 
 
 if __name__ == '__main__':
