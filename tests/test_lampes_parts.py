@@ -71,6 +71,7 @@ class PartsPourSourcesTests(unittest.TestCase):
         # depuis qu'ils tiennent leurs rendez-vous. Déclarer ensuite la limite
         # à sec que ce test de recharge doit exercer, sans prolonger la nuit.
         m = creer("auberge", 1985, "tire")
+        stock_de_vente = {cle: m.objets["pot_huile"][cle] for cle in ("charges", "masse")}
         m.joueur.update(salle="dortoir", position=[1, 3])
         executer(m, 480)
         m = recharger(m)
@@ -104,6 +105,11 @@ class PartsPourSourcesTests(unittest.TestCase):
         regarder(m, "odile", "joueur")
         # La nuit peut laisser l'huile au cellier et Odile hors de vue dans le
         # noir. La scène de vente établit ce qu'elle a sous la main et sa voix.
+        # Depuis le lot 312, une part peut aussi avoir été livrée aux PNJ :
+        # les deux parts restantes sont sa réserve, qu'elle refuse de vendre.
+        # Ce parcours d'achat/recharge déclare donc le stock initial de vente,
+        # comme il déclare la lanterne vide, et conserve les parts déjà livrées.
+        m.objets["pot_huile"].update(stock_de_vente)
         deplacer(m, "pot_huile", "odile")
         percevoir_tous(m)
         from donjon import ecoute
@@ -116,12 +122,13 @@ class PartsPourSourcesTests(unittest.TestCase):
         m = recharger(m)
         texte = "Odile, je t'achète une part de ton huile pour une pièce."
         bourse_avant = m.joueur["or"]
+        objets_avant = set(m.objets)
         travail, rapport = preparer_parole(m, parole("odile", texte, "demande", "pot_huile", "1"))
         # À portée de main, elle remet la part aussitôt ; sinon elle promet de
         # la remettre. L'état ci-dessous contrôle la livraison dans les deux cas.
         self.assertTrue(any("une part du pot d'huile" in f for f in rapport["faits"]), rapport)
         m = recharger(travail)
-        piece = next(k for k in m.objets if k.startswith("pot_huile_") and k != "pot_huile")
+        piece = next(k for k in m.objets if k not in objets_avant and k.startswith("pot_huile_"))
         for _ in range(20):
             m, _ = vivre(m, 1)
             if m.objets[piece]["lieu"] == "joueur":

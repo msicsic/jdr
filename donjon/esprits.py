@@ -8,8 +8,8 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
 - ``lieu`` : valeur = lieu direct (salle, porteur ou contenant) ou None si l'objet n'est plus
   là où on l'attendait ; ``salle`` et ``case`` disent où il a été vu.
   Une preuve ``possession`` peut accompagner ce lieu : porteur, propriétaire,
-  permission et remise autorisée constatés alors. L'adoption de cette preuve
-  par les nouvelles n'est pas encore prise en charge.
+  permission et remise autorisée constatés alors, transmis ensemble par les
+  nouvelles, sans relecture des droits réels par l'auditeur.
 - ``etat`` : état visible (porte ou contenant ouvert, luminaire allumé ; d'un personnage, ce
   qui presse son corps : ``{"faim", "chaleur", "repos"}`` ; d'une salle, sa lumière là où il se
   tenait et celle de ses propres sources : ``{"eclairee", "niveau", "propre"}``,
@@ -18,8 +18,9 @@ Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueu
   demande d'y voir (``constater_lumiere_devant``).
 - ``pieces`` : ce qu'il croit qu'une bourse contient, su en la tenant ou par un savoir ; jamais
   lu sur l'objet (``planification.enrichir``).
-- ``fin`` : destruction ou consommation constatée, datée et conservée même
-  après retrait des restes ; distincte de l'état de disponibilité.
+- ``fin`` : destruction ou consommation constatée, ou None pour un bien
+  encore utilisable ; dernière observation datée, conservée après retrait
+  des restes, distincte de l'état de disponibilité.
 - ``verrouillee`` : appris par essai ou savoir ; ouverture ou destruction vue dément le verrou.
 - ``eau`` (sujet : une salle) : l'eau qu'il y a vue, en cm (``eau.py``).
 - ``prevision`` (sujet : une salle) : avis reçu, avec source et conviction ; valeur =
@@ -62,6 +63,7 @@ def pnjs(monde):
 
 
 CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
+          "regards_suivis": dict,  # signe -> [épisode physique suivi, direction perçue], sans délai
           "recours_propositions": list, "recours_services": list, "recours_intermediaires": list, "service_en_cours": lambda: None,
           "demande_refusee": lambda: None,
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, **agendas.CHAMPS,
@@ -273,7 +275,11 @@ def _croyance_valide(monde, attribut, c):
                             for k in ("porteur", "proprietaire", "remis_par"))
                     and type(p["permis"]) is bool and type(p["remise_autorisee"]) is bool), "Possession constatée invalide"
     elif attribut == "fin":
-        assert c.get("valeur") in ("detruit", "consomme"), "Fin d'objet crue invalide"
+        assert c.get("valeur") in (None, "detruit", "consomme"), "Fin d'objet crue invalide"
+        if "designation" in c:
+            d = c["designation"]
+            assert (isinstance(d, dict) and isinstance(d.get("nom"), str) and d["nom"]
+                    and set(d) <= {"nom", "genre", "pluriel", "nom_propre", "elision"}), "Désignation de fin invalide"
     elif attribut == "detresse":
         p = c.get("preuve", {})
         assert (type(c.get("valeur")) is bool and isinstance(p, dict)
@@ -343,6 +349,8 @@ def _contre_offre_valide(monde, id, refus):
 
 
 def verifier(monde):
+    agendas.verifier_references_temporelles(monde)
+    agendas.verifier(monde, 'joueur')
     if "connaissances_joueur" in monde.data:
         e = monde.data["connaissances_joueur"]
         assert isinstance(e, dict) and set(e) == {"croyances", "memoire", "faits_dits"}, "Connaissances du joueur invalides"
@@ -384,15 +392,18 @@ def verifier(monde):
                 isinstance(r, dict) and set(r) == {"instant", "but", "cause"}
                 and type(r["instant"]) is int and r["instant"] >= 0 and isinstance(r["but"], dict)
                 and isinstance(r["cause"], dict)
-                and r["cause"].get("type") in ("temoins", "passage", "corps")
+                and r["cause"].get("type") in ("temoins", "passage", "corps", "contact")
                 and r["cause"].get("salle") in monde.data["salles"]
                 and isinstance(r["cause"].get("etape"), dict)
                 and (r["cause"]["type"] == "corps" or
-                     (isinstance(r["cause"].get("temoins"), dict) and "nature" in r["cause"]
-                     if r["cause"]["type"] == "temoins" else
-                     isinstance(r["cause"].get("arrivees"), list)
+                     r['cause']['type'] == 'contact' and isinstance(r['cause'].get('repere'), dict)
+                     and set(r['cause']['repere']) == {'contacts', 'lumiere', 'portes', 'moyens', 'perception'}
+                     and all(isinstance(r['cause']['repere'][k], list) for k in r['cause']['repere'])
+                     or r['cause']['type'] == 'temoins'
+                     and isinstance(r["cause"].get("temoins"), dict) and "nature" in r["cause"]
+                     or r['cause']['type'] == 'passage' and isinstance(r["cause"].get("arrivees"), list)
                      and all(s in monde.data["salles"] and isinstance(c, list) and len(c) == 2
-                             and all(type(x) is int for x in c) for s, c in r["cause"]["arrivees"])))
+                             and all(type(x) is int for x in c) for s, c in r["cause"]["arrivees"]))
                 for r in v)) for k, v in e["renoncements"].items()), "Renoncements invalides"
         assert isinstance(e["attentes_bornees"], dict) and all(
             isinstance(k, str) and isinstance(v, str) for k, v in e["attentes_bornees"].items()
@@ -411,6 +422,10 @@ def verifier(monde):
         assert e["en_vue"] is None or (isinstance(e["en_vue"], list) and e["en_vue"] == sorted(set(e["en_vue"]))
                                        and all(isinstance(x, str) for x in e["en_vue"])), "Personnages en vue invalides"
         b = e["balayage"]
+        from .spatial import VECTEURS
+        assert all(isinstance(k, str) and isinstance(v, list) and len(v) == 2
+                   and type(v[0]) is int and v[0] >= 1 and v[1] in VECTEURS
+                   for k, v in e["regards_suivis"].items()), "Regards suivis invalides"
         assert b is None or (isinstance(b, dict) and set(b) == {"salle", "case", "instant"}
                              and b["salle"] in monde.data["salles"] and isinstance(b["case"], list)
                              and len(b["case"]) == 2 and all(type(v) is int for v in b["case"])
@@ -903,7 +918,9 @@ def _percus(monde, acteur, memo):
             if vu is not None:
                 vus[id] = vu
         j = monde.joueur
-        if not j.get("parti") and (j["salle"], *j["position"]) in champ:
+        # Une localisation inconnue (notamment dans un devis fermé) ne
+        # fournit aucune présence visible, et ne se complète pas sur le réel.
+        if not j.get("parti") and j.get("position") is not None and (j["salle"], *j["position"]) in champ:
             vus["joueur"] = (j["salle"], list(j["position"]))
         return vus, set(champ)
     if eclairage(monde, salle)["niveau"] == 0:
@@ -1182,12 +1199,22 @@ def constater_fin_objet(monde, id, sujet, source):
     assert source in ("vu", "essai")
     cause = fin_objet(monde.objets[sujet])
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get("fin")
-    if cause and (not ancienne or ancienne["valeur"] != cause):
-        croire(monde, id, sujet, "fin", cause, source)
-    elif not cause and ancienne:
-        # Une réparation ou une réserve reconstituée peut démentir le constat.
-        # Cela ne réactive pas les projets déjà terminés.
-        del esprit(monde, id)["croyances"][sujet]["fin"]
+    if (ancienne and ancienne["valeur"] == cause and ancienne["minute"] == monde.data["minutes"]
+            and ancienne["source"] in ("vu", "essai")):
+        return  # Conserver l'essai propre que la perception suit dans le même instant.
+    if ancienne or any(k in monde.objets[sujet] for k in ("integrite", "portions", "charges")):
+        # Constater aussi l'absence de fin : l'effacer perdrait sa date et
+        # laisserait une ancienne nouvelle de destruction revenir après réparation.
+        # Revoir ne rouvre pas un fait déjà dit : son identité exclut la date.
+        # Revoir la même fin confirme aussi la preuve de son propre geste.
+        if ancienne and ancienne["valeur"] == cause and ancienne["source"] == "essai":
+            source = "essai"
+        # Le nom constaté reste formulable après retrait des restes, sans
+        # recréer l'objet ni relire ses propriétés dans le monde réel.
+        designation = ({"designation": {k: copy.deepcopy(monde.objets[sujet][k])
+                         for k in ("nom", "genre", "pluriel", "nom_propre", "elision")
+                         if k in monde.objets[sujet]}} if cause else {})
+        croire(monde, id, sujet, "fin", cause, source, **designation)
 
 
 def constater(monde, id, sujet, source):
@@ -1399,7 +1426,6 @@ def _percevoir(monde, id):
     en_vue = sorted(x for x in vus if x == "joueur" or monde.objets[x]["type"] == "personnage")
     premiere = e["en_vue"] is None
     change = not premiere and en_vue != e["en_vue"]
-    e["en_vue"] = en_vue
     for sujet, (salle, case) in vus.items():
         if sujet == "joueur":
             croire(monde, id, "joueur", "lieu", salle, "vu", salle=salle, case=case)
@@ -1460,6 +1486,9 @@ def _percevoir(monde, id):
     _purger_indices_soupcon(monde, id)
     from .signes import retenir_detresses, percus as signes_percus
     change |= retenir_detresses(monde, id, signes_percus(monde, id))
+    # Les constats de mouvement ont besoin de la vue précédente : retrouver
+    # quelqu'un ailleurs après l'avoir perdu de vue n'est pas voir son approche.
+    e["en_vue"] = en_vue
     if change and not premiere and getattr(monde, "_agit", None) != id:
         reconsiderer(monde, id)
 

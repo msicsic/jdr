@@ -1,4 +1,5 @@
 """Offres conditionnelles : vraie boucle console/MJ simulé et monde rechargé."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import unittest
 
@@ -9,7 +10,8 @@ from donjon.monde import nouveau_monde
 from donjon.propositions import offre
 from donjon.narration import controler, consigner
 from donjon.rendu import decrire_accords, fiche
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_dialogues import conversation, reponse
 from tests.test_repli_et_appel import dialogue, parole
 from tests.test_tensions import placer, recharger
@@ -33,7 +35,8 @@ class PrimeOffreTests(unittest.TestCase):
         for typed in (False, True):
             m = scene()
             mots = "Gorm, combien me donnes-tu pour l'anneau ?"
-            citation = "Entendu."
+            citation = ("Cette offre attend ton accord. Aucun paiement n'a eu lieu. Je t'offre 20 pièces contre l'anneau du veilleur."
+                        if typed else "Entendu.")
             o = offre("marchand", "joueur", {"type": "objet", "objet": "anneau"},
                       {"type": "pieces", "montant": 20})
             avant = m.joueur["or"]
@@ -42,12 +45,12 @@ class PrimeOffreTests(unittest.TestCase):
                                      [audit(citation, [o])])
             self.assertIn(citation, sortie)
             self.assertIn(citation, str(r.data["conversation"]))
-            self.assertEqual(r.data["paroles_pnj"][-1]["texte"], citation)
+            self.assertEqual(emissions_pnj(r)[-1]["texte"], citation)
             self.assertEqual(r.joueur["or"], avant)
             self.assertFalse(r.data.get("dettes"))
             self.assertNotIn("te doit 20", fiche(r))
             self.assertFalse(any("controle_narratif" in e for _, e in appels))
-            self.assertEqual(len(appels), 3)
+            self.assertEqual(len(appels), 1 if typed else 3)
             self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 0)
             self.assertEqual(r.data["engagements"].get("anneau_veilleur", {}).get("statut"),
                              "propose" if typed else None)
@@ -110,7 +113,7 @@ class PrimeOffreTests(unittest.TestCase):
         mots = "Gorm, une part de vivres contre ma promesse d'allumer le brasero."
         premier = parole(mots, personnage="marchand")
         premier["proposition"]["contenu"] = [{"type": "proposition", "demande": PART, "contrepartie": TACHE}]
-        citation = "Entendu."
+        citation = "J'accepte cet échange."
         o = offre("joueur", "marchand", PART, TACHE)
         avant = m.objets["vivres"]["portions"]
         r, sortie, appels = jouer(m, mots, [premier, dialogue(f'Gorm : « {citation} »')],

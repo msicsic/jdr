@@ -66,6 +66,11 @@ def faits_dits(noyau):
     if t in ("affirmation", "constat", "avis"):
         sujet = noyau.get("sujet", noyau.get("objet"))
         attribut, valeur = noyau["attribut"], noyau["valeur"]
+        if attribut == "lieu" and "possession" in noyau.get("details", {}):
+            # Un portage accusé ne dit rien des droits constatés. Le lieu et
+            # ses droits forment un seul fait, distinct d'une localisation nue.
+            return [(_cle([sujet, attribut, "possession"]),
+                     {"valeur": valeur, "possession": noyau["details"]["possession"]})]
         if attribut == "etat":
             return [(_cle([sujet, attribut, k]), v) for k, v in sorted(valeur.items())]
         return [(_cle([sujet, attribut]), valeur)]
@@ -171,8 +176,9 @@ def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details)
         ancienne = ({"valeur": precedente["valeur"], "envers": precedente.get("envers")}
                     if attribut == "intention" else precedente["valeur"])
         avant = dict(faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
-                                "valeur": ancienne}))
-    for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur}):
+                                "valeur": ancienne, "details": precedente}))
+    for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
+                             "valeur": valeur, "details": details}):
         if precedente is None and registre.get(cle, {}).get("valeur_inconnue"):
             # Le contenu entendu n'était pas sa propre conclusion. La première
             # conclusion calculée ne prouve donc aucun changement appris.
@@ -292,8 +298,10 @@ def _nouvelles(monde, id):
         else:
             continue
         if (accuse(noyau) == id
-                or any(k not in monde.objets and k not in monde.data["salles"]
-                       for k in (noyau.get("objet"),) if k and k != "joueur")
+                or (any(k not in monde.objets and k not in monde.data["salles"]
+                        for k in (noyau.get("objet"),) if k and k != "joueur")
+                    and not (noyau["type"] == "constat" and noyau.get("attribut") == "fin"
+                             and noyau.get("details", {}).get("designation")))
                 or not _croit_encore(monde, id, noyau)):
             continue  # Sa propre accusation ne se transmet pas, même depuis une ancienne sauvegarde.
         if "lieu" in noyau and _cru_ailleurs(monde, id, noyau):
@@ -309,9 +317,8 @@ def _nouvelles(monde, id):
 def _meme_constat(croyance, noyau):
     if not croyance:
         return False
-    valeur = croyance["valeur"]
-    return (all(valeur.get(k) == v for k, v in noyau["valeur"].items())
-            if noyau["attribut"] == "etat" else valeur == noyau["valeur"])
+    connus = dict(faits_dits({**noyau, "valeur": croyance["valeur"], "details": croyance}))
+    return all(cle in connus and connus[cle] == valeur for cle, valeur in faits_dits(noyau))
 
 
 def _avis(monde, id):
@@ -350,9 +357,10 @@ def _concerne(monde, id, autre, salle):
 
 def _constats(monde, id):
     for objet, attributs in lire(monde, id)["croyances"].items():
-        if objet not in monde.objets and objet not in monde.data["salles"]:
-            continue
         for attribut, c in attributs.items():
+            if (objet not in monde.objets and objet not in monde.data["salles"]
+                    and not (attribut == "fin" and c.get("designation"))):
+                continue
             if c["source"] not in ("vu", "essai") or monde.data["minutes"] - c["minute"] > RECENT:
                 continue
             valeur = c["valeur"]
@@ -364,13 +372,19 @@ def _constats(monde, id):
                     valeur["parti"] = c["valeur"]["parti"]
                 if not valeur:
                     continue
-            elif not (attribut == "verrouillee" and valeur is True
+            elif not (attribut == "lieu" and c.get("possession")
+                      or attribut == "fin" and valeur is not None
+                      or attribut == "verrouillee" and valeur is True
                       or attribut == "eau" and valeur > 0):
                 continue
             noyau = {"type": "constat", "objet": objet, "attribut": attribut,
                      "valeur": valeur, "observe": c["minute"]}
             if attribut == "eau":
                 noyau["details"] = {k: c[k] for k in ("niveau", "montee", "repere") if k in c}
+            elif attribut == "lieu":
+                noyau["details"] = {k: copy.deepcopy(c[k]) for k in ("salle", "case", "possession")}
+            elif attribut == "fin" and "designation" in c:
+                noyau["details"] = {"designation": copy.deepcopy(c["designation"])}
             yield c, noyau, 0, None
 
 
@@ -448,6 +462,26 @@ def phrase(monde, noyau, locuteur=None):
         return ("l'eau menace " if noyau["valeur"] else "l'eau ne menace pas ") + lieu(monde.data["salles"][noyau["objet"]]) + " dans l'heure"
     if t == "constat":
         from .francais import accorder, lieu
+        if noyau["attribut"] == "lieu":
+            p = noyau["details"]["possession"]
+            if p["porteur"] is None:
+                # Le lieu constaté n'implique pas un porteur ni des droits.
+                # Les anciennes preuves sauvegardées peuvent porter ces nuls.
+                endroit = noyau["valeur"]
+                position = (" aux mains de " + _qui(monde, endroit, locuteur)
+                            if endroit == "joueur" or monde.objets.get(endroit, {}).get("type") == "personnage"
+                            else _ou(monde, {"lieu": {"valeur": endroit}}) or " à un endroit inconnu")
+                return designer(o) + (" sont" if nombre_pluriel(o) else " est") + position
+            return (designer(o) + (" sont " if nombre_pluriel(o) else " est ")
+                    + "aux mains de " + _qui(monde, p["porteur"], locuteur)
+                    + (", à qui ce bien appartient" if p["porteur"] == p["proprietaire"] else
+                       ", avec permission" if p["permis"] else ", sans permission")
+                    + (", après une remise autorisée par " + _qui(monde, p["remis_par"], locuteur)
+                       if p["remise_autorisee"] else ""))
+        if noyau["attribut"] == "fin":
+            o = noyau.get("details", {}).get("designation", o)
+            return (designer(o) + (" sont " if nombre_pluriel(o) else " est ")
+                    + accorder(o, "détruit" if noyau["valeur"] == "detruit" else "consommé"))
         if noyau["attribut"] == "eau":
             return f"l'eau atteint {noyau['valeur']} cm dans " + lieu(monde.data["salles"][noyau["objet"]])
         qualite = ("fermé" if noyau["attribut"] == "verrouillee" else
@@ -499,6 +533,11 @@ def _ou(monde, noyau):
 
 def _lieu_dit(noyau):
     """Le lieu que la nouvelle donne à son objet (``_ou``), pour qui l'entend."""
+    if noyau["type"] == "constat" and noyau.get("attribut") == "lieu":
+        p = noyau["details"]["possession"]
+        references = ((noyau["valeur"],) if p["porteur"] is None
+                      else (p["porteur"], p["proprietaire"], p["remis_par"]))
+        return list(dict.fromkeys(x for x in references if x))
     lieu = (noyau.get("lieu") or {}).get("valeur")
     return [lieu] if lieu and lieu != accuse(noyau) else []
 
@@ -566,15 +605,17 @@ def _apprendre_lieu(monde, auditeur, noyau, source, confiance):
     if not (lieu["valeur"] in monde.data["salles"] or lieu["valeur"] in monde.objets or lieu["valeur"] == "joueur"):
         return  # Le lieu a disparu depuis : il n'y a plus rien à en croire.
     actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get("lieu")
-    if (actuelle and actuelle["valeur"] is not None and actuelle["source"] in ("vu", "essai", "entendu")
-            and actuelle["minute"] > lieu["minute"]):
+    if (actuelle and actuelle["valeur"] is not None and (actuelle["minute"] > lieu["minute"]
+                     or actuelle["minute"] == lieu["minute"]
+                     and (actuelle["source"] in ("vu", "essai", "entendu")
+                          or actuelle.get("possession")))):
         return
     croire(monde, auditeur, objet, "lieu", lieu["valeur"], source, confiance, salle=lieu["salle"],
-           case=lieu["case"])
+           case=lieu["case"], minute=lieu["minute"])
 
 
 def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), reponse="", dite=True, suites=True,
-                  geste="dire"):
+                  geste="dire", acte="reaction_pnj"):
     """Une parole retentit avec ses mots (``ouie``) : qui en saisit les mots sans en être le
     destinataire retient ce qu'elle transmet (``contenu``, typé : ``recevoir``). ``reponse`` : ce que
     l'auditeur y répond (accepter, refuser), de sa voix si ``dite`` (sinon un geste, lui remettre
@@ -607,7 +648,10 @@ def faire_entendre(monde, id, auditeur, texte, cites, lignes, contenu=(), repons
     diffuse = [dict(c, dispute=True) if opposition and c is avis else c for c in contenu]
     audience = _audience_connue(monde, id, diffuse, geste)
     retentir(monde, id, geste, texte=texte, cites=[auditeur, *cites],
-             parole={"a": [auditeur], "contenu": diffuse})
+             parole={"a": [auditeur], "contenu": diffuse},
+             emission={"acte": acte, "parametres": {"contenu": diffuse, "geste": geste},
+                       "modalite": "croyance" if contenu else "constat",
+                       "evenement": {"type": "echange_social", "acte": acte, "a": auditeur}})
     # Après réception : réviser une croyance pendant la parole ne doit pas
     # effacer la preuve que sa nouvelle valeur vient d'être entendue ensemble.
     _retenir_audience(monde, audience)
@@ -721,7 +765,7 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
     faire_entendre(monde, contradicteur, locuteur,
                    f"{_qui(monde, contradicteur)} : « Non, {phrase(monde, contraire)}. »", [salle], lignes,
                    [{"type": "rumeur", "evenement": contraire, "rang": propre.get("rang", 0), "dispute": True}],
-                   geste="contredire")
+                   geste="contredire", acte="dispute")
     auditeurs_avis = set(entendus)
     if locuteur != "joueur":
         recevoir_prevision(monde, locuteur, contradicteur, contraire, propre.get("rang", 0))
@@ -731,14 +775,14 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
         auditeurs_avis.update(_avis_entendus(monde, locuteur, salle))
         faire_entendre(monde, locuteur, contradicteur,
                        f"{_qui(monde, locuteur)} : « Je maintiens : {phrase(monde, avis)}. »", [salle], lignes,
-                       [{"type": "rumeur", "evenement": avis, "rang": rang, "dispute": True}])
+                       [{"type": "rumeur", "evenement": avis, "rang": rang, "dispute": True}], acte="dispute")
         colere = emotion(monde, locuteur)
         if valeur(monde, locuteur, "fierte") > 60 or colere and colere["niveau"] >= 20:
             auditeurs_avis.update(_avis_entendus(monde, locuteur, salle, "disputer"))
             faire_entendre(monde, locuteur, contradicteur,
                            f"{_qui(monde, locuteur)} hausse la voix : « {phrase(monde, avis).capitalize()} ! »",
                            [salle], lignes,
-                           [{"type": "rumeur", "evenement": avis, "rang": rang, "dispute": True}], geste="disputer")
+                           [{"type": "rumeur", "evenement": avis, "rang": rang, "dispute": True}], geste="disputer", acte="dispute")
             _chroniquer(monde, locuteur, f"{_qui(monde, locuteur)} hausse la voix dans la dispute.", "social")
             monde.data["chronique"][-1]["eclat"] = True
     partis = {locuteur: [], contradicteur: []}
@@ -778,7 +822,7 @@ def _disputer(monde, locuteur, avis, rang, entendus, lignes, opposition):
         rang_parti = courant.get("rang", 0)
         faire_entendre(monde, temoin, gagnant,
                        f"{_qui(monde, temoin)} : « Je suis de ton avis : {phrase(monde, retenu)}. »", [salle], lignes,
-                       [{"type": "rumeur", "evenement": parti, "rang": rang_parti, "dispute": True}])
+                       [{"type": "rumeur", "evenement": parti, "rang": rang_parti, "dispute": True}], acte="dispute")
         if rang_parti < RANG_MAX:
             for qui in recoivent_parti:
                 if qui != "joueur":
@@ -842,9 +886,15 @@ def recevoir(monde, id, locuteur, c):
     from .corps import conscient
     if not conscient(monde, id):
         return None
+    if c['type'] == 'cause_detresse':
+        from .causes import recevoir as recevoir_cause
+        return recevoir_cause(monde, id, locuteur, c)
     if c["type"] == "compte_rendu":
         from .agendas import recevoir_compte
         return recevoir_compte(monde, id, locuteur, c)
+    if c["type"] == "ordre_mandat":
+        from .agendas import percevoir_mandat
+        return percevoir_mandat(monde, id, locuteur, c["charge"], c["titulaire"])
     if c["type"] == "nom":
         from .voix import se_nommer
         return se_nommer(monde, id, locuteur, c["sujet"])

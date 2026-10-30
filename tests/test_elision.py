@@ -1,4 +1,5 @@
 """Accord commun des désignations : français, projection, parole et nouvelle rechargées."""
+from donjon.emissions import joueur as emissions_joueur
 import re
 import unittest
 from unittest.mock import patch
@@ -63,8 +64,8 @@ class ChaineTests(unittest.TestCase):
         self.assertEqual(validee["sujet"], "Je me méfie du vieil homme voûté.")
         self.assertIn("Tu chuchotes à Brune : « " + mots + " »", sortie)
         r = recharger(r)
-        self.assertEqual(r.data["paroles_joueur"][-1]["texte"], mots)
-        self.assertEqual(r.data["paroles_joueur"][-1]["auditeurs"], ["brune"])
+        self.assertEqual(emissions_joueur(r)[-1]["texte"], mots)
+        self.assertEqual(emissions_joueur(r)[-1]["auditeurs"], ["brune"])
         self.assertIn(mots, str(r.data["conversation"]))
         self.assertNotIn("aubin", r.data["noms_connus"])
         self.assertEqual(public(r, {"sujet": mots})["sujet"], validee["sujet"])

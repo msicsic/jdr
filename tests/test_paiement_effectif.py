@@ -1,4 +1,5 @@
 """Couverture des opérations demandées : console, transaction et rendu rechargés."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import unittest
 
@@ -8,7 +9,8 @@ from donjon.matiere import id_piece
 from donjon.rendu import fiche
 from donjon.spatial import porte_par
 from tests.support import presentes
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_comptes_issue import audit
 from tests.test_parts_achetees import antichambre_du_banc
 from tests.test_propositions import scene
@@ -45,7 +47,7 @@ class PaiementEffectifTests(unittest.TestCase):
                     bon["proposition"]["contenu"] = [{"type": "proposition",
                         "demande": {"type": "part", "objet": lot},
                         "contrepartie": {"type": "pieces", "montant": prix}}]
-                texte = "Entendu."
+                texte = f"Tu m'as payé {prix} pièces."
                 # Une remise immédiate ou engagée dépend de la position réelle du bien.
                 comptes = [compte("joueur", "aubin", montant=prix, etat="rendu"),
                            compte("aubin", "joueur", piece, 1,
@@ -60,7 +62,7 @@ class PaiementEffectifTests(unittest.TestCase):
                 self.assertIn("proposition.contenu", retours[0]["attendu"])
                 self.assertIn("contrepartie", retours[0]["attendu"])
                 self.assertNotIn(retours[0]["attendu"], sortie)
-                self.assertEqual(len(r.data["paroles_joueur"]), 1)
+                self.assertEqual(len(emissions_joueur(r)), 1)
                 self.assertIn(texte, sortie)
                 self.assertIn(texte, str(r.data["conversation"]))
                 r, _ = vivre(r, 3)
@@ -79,7 +81,7 @@ class PaiementEffectifTests(unittest.TestCase):
                 saisie = "je t'offre deux pièces pour une part de soupe"
                 m.objets["vivres"].update(nom="soupe", aliases=["soupe"], prix_part=2)
                 piece = id_piece(m, "vivres")
-                texte = "Entendu."
+                texte = "Tu m'as payé 2 pièces."
                 bon = parole(saisie, personnage="aubin")
                 bon["proposition"]["contenu"] = [{"type": "proposition",
                     "demande": {"type": "part", "objet": "vivres"},
@@ -94,7 +96,7 @@ class PaiementEffectifTests(unittest.TestCase):
                 self.assertEqual(r.joueur["or"], m.joueur["or"] - 2)
                 self.assertEqual(r.objets["vivres"]["portions"], m.objets["vivres"]["portions"] - 1)
                 self.assertTrue(porte_par(r, piece, "joueur"))
-                self.assertEqual(len(r.data["paroles_joueur"]), 1)
+                self.assertEqual(len(emissions_joueur(r)), 1)
                 self.assertIn(texte, sortie)
                 self.assertIn(r.objets[piece]["nom"], fiche(recharger(r)))
 
@@ -110,7 +112,7 @@ class PaiementEffectifTests(unittest.TestCase):
                                  revues=[revue("proposition"), revue(), revue()])
         self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 1)
         self.assertEqual(r.joueur["or"], avant["joueur"]["or"])
-        self.assertFalse(r.data.get("paroles_joueur"))
+        self.assertFalse(emissions_joueur(r))
         self.assertIn("Tu n'as encore rien dit", sortie)
         self.assertNotIn("Tu dis", sortie)
 
@@ -122,12 +124,12 @@ class PaiementEffectifTests(unittest.TestCase):
             [rapport(ligne("mecanique", sources=["conversation_validee"]))], revues=[revue()])
         self.assertIn("Tu dis", sortie)
         self.assertEqual(r.joueur["or"], m.joueur["or"])
-        self.assertTrue(r.data["paroles_joueur"])
+        self.assertTrue(emissions_joueur(r))
         # La même couverture protège aussi une réclamation, sans lexique de verbes.
         from tests.test_parole_corrections import banc
         m = banc("soir-appel")
         saisie = "Aubin, rends-moi les deux pièces dues."
-        bon = "Entendu."
+        bon = "Je te rends 2 pièces."
         faux = parole(saisie, personnage="aubin")
         faux["proposition"]["operations_demandees"]["reclamer"] = True
         r, sortie, _ = jouer(m, saisie, [faux,
@@ -145,7 +147,7 @@ class PaiementEffectifTests(unittest.TestCase):
         r, sortie, appels = jouer(m, saisie, [faux, faux], [], revues=[{}] * 6)
         self.assertEqual(sum(f == "auditer_action" for f, _ in appels), 6)
         self.assertEqual(r.joueur["or"], m.joueur["or"])
-        self.assertFalse(recharger(r).data.get('paroles_joueur'))
+        self.assertFalse(emissions_joueur(recharger(r)))
         self.assertNotIn("Tu dis", sortie)
         self.assertIn("Tu n'as encore rien dit", sortie)
         self.assertNotIn("operations_demandees", sortie)

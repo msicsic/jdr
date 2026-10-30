@@ -20,7 +20,7 @@ from donjon.geometrie import position_entree
 from donjon.perception import eclairage
 from donjon.pnj import se_parler
 from donjon.spatial import installer
-from tests.support import calme, refusee, regarder, sans_evacues
+from tests.support import calme, refusee, regarder, sans_evacues, sans_souci
 from tests.test_temps_etat import intention, plan
 from tests.test_tensions import attendre, chronique, placer, recharger, relais
 
@@ -195,6 +195,8 @@ class RumeurAvecLieuTests(unittest.TestCase):
         placer(m, "brune", "echoppe", [1, 1])
         regarder(m, "ilse", "marchand")
         regarder(m, "marchand", "ilse")
+        from tests.support import possessions_deja_confiees
+        possessions_deja_confiees(m)  # Le jet étudié est celui de l'accusation.
         m, _ = attendre(recharger(m))
         self.assertIn("Ilse dit à Gorm que Brune a posé les vivres du refuge (crue).", chronique(m))
         self.assertEqual(lieu_cru(m, "marchand", "vivres"), ("reserve", "savoir"))
@@ -256,6 +258,9 @@ class ChercherQuelquUnTests(unittest.TestCase):
         inconnues (``voix.designation``), sans leur identifiant."""
         import json
         m = self.mireille_cherche_odile()
+        # Isoler l'échange : depuis 303, le secours de Mathurine lui fait
+        # chercher Mireille et l'appeler réellement à portée de Corvus.
+        sans_souci(m, "mathurine")
         m.joueur.update(salle="grenier", position=[6, 3])
         m.data["visitees"] = sorted(set(m.data["visitees"]) | {"grenier"})
         m, texte = attendre(recharger(m))
@@ -276,6 +281,36 @@ class ChercherQuelquUnTests(unittest.TestCase):
         self.assertTrue(all(k.startswith("voix_") for k in interlocuteurs))
         self.assertNotIn("Mireille", json.dumps(interlocuteurs, ensure_ascii=False))
         self.assertNotIn("odile", json.dumps(interlocuteurs, ensure_ascii=False))
+
+    def test_un_autre_appelant_reel_est_entendu_sans_reveler_son_identite(self):
+        """Le secours spontané peut ajouter une voix : elle reste anonyme."""
+        from donjon.ecoute import ENTENDU, entendus, rendre
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from donjon.temps import instant
+        from donjon.voix import designation, nom_pour_joueur
+        m = self.mireille_cherche_odile()
+        m.joueur.update(salle="grenier", position=[6, 3])
+        m.data["visitees"] = sorted({*m.data["visitees"], "grenier"})
+        debut = instant(m)
+        from tests.support import possessions_deja_confiees
+        possessions_deja_confiees(m)  # Les confidences initiales ne retardent pas l'appel.
+        m, texte = attendre(recharger(m))
+        appels = [b for b, _, _ in entendus(m, debut, ENTENDU)
+                  if b["auteur"] == "mathurine" and b["nature"] == "hele"]
+        self.assertTrue(appels)
+        self.assertTrue(any("Mathurine appelle :" in t for t in chronique(m)))
+        self.assertEqual(sorted(m.data["entendus"]), ["mathurine", "mireille", "odile"])
+        self.assertIn("une voix inconnue appeler : « la grande fille de vingt-huit ans ? »", texte)
+        self.assertNotIn("Mathurine", texte)
+        self.assertEqual(nom_pour_joueur(m, "mathurine"), "une voix inconnue")
+        self.assertTrue(designation(m, "mathurine").startswith("voix_"))
+        recharge = recharger(m)
+        self.assertEqual(m.data, recharge.data)
+        self.assertEqual(regarder(m), regarder(recharge))
+        self.assertEqual(scene_percue(m), scene_percue(recharge))
+        self.assertEqual(rendre(m, entendus(m, debut, ENTENDU)),
+                         rendre(recharge, entendus(recharge, debut, ENTENDU)))
 
     def test_qui_se_mefie_ne_repond_pas(self):
         m = self.mireille_cherche_odile()
@@ -310,6 +345,8 @@ class ChercherQuelquUnTests(unittest.TestCase):
             lire(m, "hugues")["visites"][s] = 0 if s == "dortoir" else 1
         lire(m, "hugues")["besoins"]["devoir"] = 90.0
         self.assertEqual(eclairage(m, "dortoir", [0, 0])["niveau"], 0)
+        from tests.support import possessions_deja_confiees
+        possessions_deja_confiees(m)
         m, _ = attendre(recharger(m))
         self.assertIn("Hugues appelle : « Anselme ? »", chronique(m))
         self.assertIn("Anselme répond : « Qu'est-ce que tu veux ? »", chronique(m))

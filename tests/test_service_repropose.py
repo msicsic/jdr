@@ -83,6 +83,8 @@ class ServiceReproposeTests(unittest.TestCase):
         self.assertEqual(bloc.data, morceaux.data)
         self.assertEqual(regarder(bloc), regarder(morceaux))
         self.assertEqual(regarder(bloc), regarder(recharger(bloc)))
+        from donjon.scene import scene_percue
+        self.assertEqual(scene_percue(bloc), scene_percue(recharger(bloc)))
 
     def test_beneficiaire_present_sans_exiger_le_contact(self):
         m, auteur, pour = scene()

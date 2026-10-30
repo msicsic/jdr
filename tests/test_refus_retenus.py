@@ -66,7 +66,8 @@ class TacheImpossibleTests(unittest.TestCase):
     rien de nouveau de ce qu'elle emploierait ; elle l'est dès qu'il apprend du bois."""
 
     def test_mireille_ne_repropose_pas_l_impossible_puis_le_repropose_quand_elle_apprend_du_bois(self):
-        m, textes = vivre_long(fourneau_mort(), 30)
+        from tests.support import possessions_deja_confiees
+        m, textes = vivre_long(possessions_deja_confiees(fourneau_mort()), 30)
         self.assertEqual(offres(textes, "Mireille", "Mathurine"),
                          ["Mireille offre 2 pièces à Mathurine pour qu'elle fasse en sorte que le fourneau soit allumé (impossible)."])
         refus = refus_retenu(m, "mireille", "mathurine", ("engager",), "fourneau")

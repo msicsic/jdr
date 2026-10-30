@@ -978,23 +978,22 @@ class Vue:
 
     def case_objet(self, e, objet, vus=()):
         """Position prévue, sinon crue ; le contenant ou le porteur donne sa case."""
-        if objet in e.portes or objet == self.id:
-            return e.case
-        if objet in vus:
-            return None
-        if ("case_objet", objet) in e.faits:
-            return e.fait("case_objet", objet)
-        lieu = self.lieu(e, objet)
-        if lieu in self.objets or lieu == "joueur":
-            return self.case_objet(e, lieu, (*vus, objet))
-        cru = lire(self.monde, self.id)["croyances"].get(objet, {}).get("lieu", {})
-        if cru.get("salle") == e.salle and cru.get("case") is not None:
-            return tuple(cru["case"])
-        o = self.objets.get(objet, {})
-        if o and not o.get("mobile") and o.get("type") != "personnage":
-            from .spatial import position_cible
-            return position_cible(self.monde, objet, e.salle)
-        return None
+        from .positions_crues import case_contact
+        def lieu(x):
+            return e.salle if x in e.portes or x == self.id else self.lieu(e, x)
+
+        def case(x):
+            cru = lire(self.monde, self.id)['croyances'].get(x, {}).get('lieu') or {}
+            return cru.get('case') if cru.get('salle') == e.salle else None
+
+        def prevue(x):
+            if x in e.portes or x == self.id:
+                return True, e.case
+            if ('case_objet', x) in e.faits:
+                return True, e.fait('case_objet', x)
+            return False, None
+
+        return case_contact(self.monde, objet, e.salle, lieu, case, vus, prevue)
 
     def approche(self, e, etape, cibles=None):
         """Approche moyenne depuis les entrées, sans position projetée."""
@@ -2110,11 +2109,19 @@ def _appeler(v, e, sujet):
     return TransitionMesuree((0, temps + CHERCHER, etapes, suivant, temps, False, pression))
 
 
+def _contact_possible(v, sujet):
+    """Un lieu inconnu reste à chercher ; un départ ou une mort crus l'excluent."""
+    etat = v.cru(sujet, 'etat') or {}
+    return not etat.get('mort') and not etat.get('parti')
+
+
 def _chercher(v, e, sujet):
     """Localisé mais inaccessible : l'appeler ; sinon, perdu de vue, le chercher
     là où il est passé le moins récemment et l'y supposer,
     hors des salles où il l'a cherché en vain (``deliberation.appels_vains``) ; None s'il n'en reste
     aucune. Le plan s'arrête après cette recherche : la suite se décide sur ce qu'il aura vu."""
+    if not _contact_possible(v, sujet):
+        return None
     if v.salle(e, sujet) is not None:
         return _appeler(v, e, sujet)
     # Le contact inconnu peut d'abord faire l'objet d'une question présente.
@@ -2203,6 +2210,10 @@ def _entrees_communes(v):
     metrique = v._metrique
     from .biens import services_proteges
     return json.dumps([
+        agendas.mandats_percus(monde, id),  # Contrats et issues propres au témoin.
+        [x for x in agendas.en_cours(monde, id) if x['condition'].get('proteger')],
+        [[a['id'], a['etat'], a['parametres'], a.get('echeance')]
+         for a in agendas.projets(monde, id) if a['origine']['type'] == 'contrat'],
         services_proteges(monde, id),  # Entrées du filtre des résultats promis.
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         monde.objets[id]["lieu"],
@@ -2211,7 +2222,8 @@ def _entrees_communes(v):
         [k for k in v.connus if porte_par(monde, k, id)],
         # La fin des battants est lue par les gestes et leur restauration.
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()
-         if a != "fin" or monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
+         if a != "fin" or c["valeur"] is not None
+         and monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.
@@ -2760,6 +2772,13 @@ def _participants_a_localiser(v, e, etapes):
         if v.salle(e, x) is None}
 
 
+def _localiser(v, e, sujets):
+    """Le meilleur préfixe de contact, chiffré par les moyens communs."""
+    contacts = [_chercher(v, e, x) for x in sorted(sujets)]
+    return min((r for r in contacts if r is not None),
+               key=lambda r: r[1] + r[6], default=None)
+
+
 def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
     """Même contrat pour les gestes immédiats et les suites révélées à leur borne."""
     suites = []
@@ -3243,6 +3262,8 @@ def planifier_tache(monde, id, condition, payeur):
     """(but, étapes) pour tenir la parole donnée à ``payeur``, ou None : le plan de son devis
     (``devis_pulsion``), celui sur lequel il l'a acceptée et sur lequel il la jugerait impossible
     (``echanges.empeche``)."""
+    if condition.get('proteger'):
+        condition = {'pres': condition['objet']}
     trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
     return None if trouve is None else trouve[1:]
 
@@ -3260,17 +3281,60 @@ def planifier_engagement(monde, id, engagement):
     return planifier_tache(monde, id, engagement["condition"], engagement["pour"])
 
 
-def devis_pulsion(monde, id, condition, payeur):
+def devis_pulsion(monde, id, condition, payeur, *, duree=None):
     """(coût, étapes) de rétablir ``condition`` (minutes de son plan, fautes comprises), ou None s'il
     ne voit pas comment : ce qu'une tâche qu'on lui propose lui coûterait (``echanges.engager``). Un
     feu qu'on le paie d'entretenir, il le compte à recharger et rallumer, pas seulement à aller
     voir : celui qui le paie le sait à entretenir. Par ses seuls moyens, ce que la garde du bien de
     ``payeur`` lui permet et les biens que ``payeur`` lui remettrait : il ne compte sur personne
-    pour accomplir le service à sa place (ni part servie, ni feu allumé par un autre)."""
+    pour accomplir le service à sa place (ni part servie, ni feu allumé par un autre).
+    Si ``duree`` est fourni, y ajoute la durée physique du plan complet, ou None
+    s'il reste hypothétique ; jamais la durée de son seul préfixe exécutable.
+    """
     if not monde.objets.get(id, {}).get("profil"):
         raise ValueError(f"devis_pulsion : acteur sans profil autonome : {id}")
-    trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
+    mesure = [] if duree is not None else None
+    trouve = _pulsion(monde, id, condition, False, entretenir=payeur, duree=mesure)
+    if duree is not None:
+        # Mesurer avant de couper les hypothèses : le préfixe exécutable
+        # d'un plan incertain n'est pas un devis de réalisation complète.
+        duree.append(mesure[0] if mesure else None)
     return None if trouve is None else (trouve[0], trouve[2])
+
+
+def mesure_recours(monde, id, etapes):
+    """Temps et pression d'une suite directe, aux tarifs communs du devis.
+
+    Une attente sans geste a un coût nul ; une approche impossible n'a pas
+    de mesure. Les recherches gardent leurs coûts sociaux et probabilistes.
+    """
+    v = vue(monde, id)
+    e, temps, pression = depart(monde, id, v), 0, 0
+    for g in etapes:
+        if g['operation'] not in (*pnj.DUREES, *pnj.DURABLES, 'aller', 'assommer', 'dans_le_dos', 'fuite'):
+            return None
+        mesure = _mesurer_direct(v, e, [g], e, 1)
+        if mesure is None:
+            return None
+        duree, prix, e = mesure
+        temps += duree
+        pression += prix
+        o, op = g['cible'], g['operation']
+        if op == 'aller':
+            e = e.apres(salle=g['lieu'])
+        elif op == 'prendre':
+            e = e.apres(portes=e.portes | {o})
+        elif op == 'poser':
+            e = e.apres(portes=e.portes - {o}, faits=[(('lieu', o), e.salle)])
+        elif op == 'remettre':
+            e = e.apres(portes=e.portes - {g['outil']})
+        elif op in ('ouvrir', 'fermer'):
+            e = e.apres(faits=[(('ouvert', o), op == 'ouvrir')])
+        elif op in ('verrouiller', 'deverrouiller'):
+            e = e.apres(faits=[(('verrou', o), op == 'verrouiller')])
+        elif op in ('allumer', 'eteindre'):
+            e = e.apres(faits=[(('allume', o), op == 'allumer')])
+    return temps, pression
 
 
 def duree_devis(monde, id, etapes):
@@ -3282,39 +3346,17 @@ def duree_devis(monde, id, etapes):
     v = vue(monde, id)
     if v._cru_spatial is None:
         return None
-    e, total = depart(monde, id, v), 0
     for g in etapes:
         op = g['operation']
         if (op not in (*pnj.DUREES, 'aller')
                 or op in ('crocheter', 'frapper', 'demander', 'acheter', 'confier', 'proposer', 'demander_feu')
                 or any(g.get(k) for k in ('suppose', 'attendre_remise', 'condition'))):
             return None
-        mesure = _mesurer_direct(v, e, [g], e, 0)
-        if mesure is None:
-            return None
-        temps, _, e = mesure
-        total += temps
-        o = g['cible']
-        if op == 'aller':
-            e = e.apres(salle=g['lieu'])
-        elif op == 'prendre':
-            e = e.apres(portes=e.portes | {o})
-        elif op == 'poser':
-            e = e.apres(portes=e.portes - {o})
-        elif op == 'remettre':
-            e = e.apres(portes=e.portes - {g['outil']})
-        if op == 'poser':
-            e = e.apres(faits=[(('lieu', o), e.salle)])
-        elif op in ('ouvrir', 'fermer'):
-            e = e.apres(faits=[(('ouvert', o), op == 'ouvrir')])
-        elif op in ('verrouiller', 'deverrouiller'):
-            e = e.apres(faits=[(('verrou', o), op == 'verrouiller')])
-        elif op in ('allumer', 'eteindre'):
-            e = e.apres(faits=[(('allume', o), op == 'allumer')])
-    return total
+    mesure = mesure_recours(monde, id, etapes)
+    return None if mesure is None else mesure[0]
 
 
-def _pulsion(monde, id, condition, tache, entretenir=None):
+def _pulsion(monde, id, condition, tache, entretenir=None, *, duree=None):
     """(coût, but, étapes) de ``planifier_pulsion``, ou None."""
     from .deliberation import salle_crue
     from .echanges import tache as sorte
@@ -3323,6 +3365,10 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     if "pres" in condition:
         sujet = condition["pres"]
         v = vue(monde, id)
+        from .causes import demander_possible
+        if v.salle(depart(monde, id, v), sujet) == monde.objets[id]['lieu'] and demander_possible(monde, id, sujet):
+            return (0, {"type": "pulsion", **condition},
+                    [_etape('demander', sujet, contenu={'cause_detresse': True})])
         if v.salle(depart(monde, id, v), sujet) is None:
             contact = rejoindre(monde, id, sujet)
             return None if contact is None else (0, {"type": "pulsion", **condition}, contact[0])
@@ -3336,7 +3382,7 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         return None if trouve is None else (0, *trouve)
     if "remettre" in condition:
         if entretenir:
-            return _devis_remise(monde, id, o, condition, entretenir)
+            return _devis_remise(monde, id, o, condition, entretenir, duree=duree)
         trouve = _remettre(monde, id, o, condition, seul=entretenir)
         return None if trouve is None else (0, *trouve)
     if "periode" in condition:
@@ -3382,20 +3428,23 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         e = depart(monde, id, v)
         inconnus = _participants_a_localiser(v, e, [geste])
         if inconnus:
-            contacts = [_chercher(v, e, x) for x in sorted(inconnus)]
-            contacts = [r for r in contacts if r is not None]
-            if not contacts:
+            r = _localiser(v, e, inconnus)
+            if r is None:
                 return None
-            r = min(contacts, key=lambda r: r[1] + r[6])
             return r[1] + r[6], {"type": "pulsion", **condition}, _couper(r[2])
     if tache and sorte(condition) and "allume" not in condition:
         vises["confier"] = (dict(condition),)
     depuis = None
     if entretenir and "allume" in condition and _vu_avant_la_tache(monde, id, condition, entretenir):
-        # Celui qui le paie le sait à recharger, et éteint s'il ne le croit pas allumé (l'offre le dit) :
-        # il le compte comme tel, quoi qu'il en ait vu avant que la tâche ne lui soit payée ; ce qu'il en
-        # voit ensuite (qu'il l'a rechargé, rallumé lui-même), il le croit.
-        dit = (_cru(monde, entretenir, o, "etat") or {}) if entretenir != "joueur" else {}
+        # E3 porte les seules obligations datées sur les croyances du
+        # contractant, au jugement comme à l'exécution. Les autres gardent
+        # le contrat historique : l'offre dit le feu à recharger et, si le
+        # payeur ne le croit pas allumé, à rallumer. Mesurer une durée ne
+        # change jamais ce contrat.
+        date = any(agendas.reference_temporelle(x) for x in agendas.en_cours(monde, id)
+                   if x["pour"] == entretenir and x["condition"] == condition and not x.get("annule"))
+        observateur = id if date else entretenir
+        dit = (_cru(monde, observateur, o, "etat") or {}) if observateur != "joueur" else {}
         depuis = depart(monde, id).apres(faits=[(("charge", o), False)]
                                          + ([] if dit.get("allume") else [(("allume", o), False)]))
     trouve = chercher(monde, id, but, vises, depuis=depuis, nom=_nom_condition(condition),
@@ -3404,7 +3453,11 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     if trouve is None:
         return None
     cout, etapes, e = trouve
-    return cout, {"type": "pulsion", **condition}, retablir(vue(monde, id), e, etapes)
+    plan = retablir(vue(monde, id), e, etapes)
+    if duree is not None:
+        incertain = any(g.get('suppose') or g.get('attendre_remise') for g in etapes)
+        duree.append(None if incertain else duree_devis(monde, id, plan))
+    return cout, {"type": "pulsion", **condition}, plan
 
 
 def _vu_avant_la_tache(monde, id, condition, payeur):
@@ -3452,20 +3505,34 @@ def _rendre(monde, id, o, condition):
     return {"type": "pulsion", **condition}, trajet[1] + [_etape("remettre", condition['rendre'], outil=o)]
 
 
-def _devis_remise(monde, id, o, condition, seul):
+def _devis_remise(monde, id, o, condition, seul, *, duree=None):
     """Acquisition et livraison chiffrées ensemble, comme tout autre service."""
-    trouve = chercher(monde, id, lambda v, e: o in e.portes and e.salle == v.salle(e, condition['remettre']),
+    destinataire = condition['remettre']
+    v = vue(monde, id)
+    if not _contact_possible(v, destinataire):
+        return None
+    inconnu = v.salle(depart(monde, id, v), destinataire) is None
+    trouve = chercher(monde, id, lambda v, e: o in e.portes and (inconnu or e.salle == v.salle(e, destinataire)),
                       {'prendre': (o,)}, nom='remettre:' + o,
-                      memo=['remettre', o, condition['remettre']], emplois=(), seul=seul)
+                      memo=['remettre', o, destinataire], emplois=(), seul=seul)
     if trouve is None:
         return None
+    but = {'type': 'pulsion', **condition}
+    if inconnu:
+        contact = _localiser(v, trouve[2], [destinataire])
+        if contact is None:
+            return None
+        etapes = _couper(trouve[1])
+        if not any(g.get('attendre_remise') or g.get('suppose') for g in trouve[1]):
+            etapes += _couper(contact[2])
+        # Ni remise ni restauration depuis une présence supposée : elles
+        # seront recalculées après ce que la recherche aura réellement appris.
+        return trouve[0] + contact[1] + contact[6], but, etapes
     remise = _etape('remettre', condition['remettre'], outil=o)
-    v = vue(monde, id)
     mesure = _mesurer(v, trouve[2], [remise], trouve[2], 1)
     if mesure is None:
         return None
     cout = trouve[0] + mesure[0] + mesure[1]
-    but = {'type': 'pulsion', **condition}
     charges = suspensions(monde, id, trouve[1], but)
     fin = mesure[2].apres(portes=mesure[2].portes - {o}, faits=[(("lieu", o), condition['remettre'])])
     restauration = restaurer_charges(monde, id, charges, depuis=fin)
@@ -3478,6 +3545,9 @@ def _devis_remise(monde, id, o, condition, seul):
     etapes = _couper(trouve[1])
     if complet:
         etapes += [remise] + _couper(restauration[1])
+    if duree is not None:
+        incertain = any(g.get('suppose') or g.get('attendre_remise') for g in restauration[1])
+        duree.append(duree_devis(monde, id, etapes) if complet and not incertain else None)
     return cout, but, etapes
 
 
@@ -3561,19 +3631,17 @@ def reclamer(monde, id):
     """(but, étapes) pour aller trouver qui lui doit des pièces (``biens.dettes``) ou garde un objet
     qu'il lui a prêté au-delà de l'échéance (``biens.echu``), là où il le croit, quand ce qu'il lui
     doit vaut pour lui plus que le chemin (un objet sans prix déclaré vaut ``biens.VALEUR_OBJET``) ;
-    None sinon. Pour une dette, se retrouver suffit : le débiteur rend ce qu'il peut, s'il le veut
-    (``biens.solder``) ; s'il est déjà près de lui, rien à faire. Pour un prêt, il le lui redemande
-    (``demander``), joueur compris. Un débiteur retrouvé sans le sou, ou qui vient de refuser, il ne le
-    relance pas de sitôt ; un emprunteur qui vient de refuser ou à qui il l'a déjà redemandé non plus."""
-    from .biens import VALEUR_OBJET, dettes, echu, nie_recemment, prets, prix
+    None sinon. Le plan aboutit à une demande au débiteur, avec le contact commun des gestes
+    sociaux ; entrer dans sa salle ne suffit pas. Le règlement spontané reste possible. La réponse
+    à la créance tient selon sa cause, sans délai. Pour un prêt, il le lui redemande
+    (``demander``), joueur compris, selon le contrat existant des prêts."""
+    from .biens import VALEUR_OBJET, dettes, echu, reponse_creance_retenue, prets, prix
     from .caractere import ARGENT, valeur_pieces
-    from .deliberation import REDEMANDE
     if not profil(monde, id):
         return None
     du, objets = {}, {}
-    minute = monde.data["minutes"]
-    for d in dettes(monde):
-        if d["a"] == id and d["de"] in monde.objets and not nie_recemment(monde, id, d["de"]):
+    for d in dettes(monde, connues_de=id):
+        if d["de"] in monde.objets and not reponse_creance_retenue(monde, id, d["de"]):
             du[d["de"]] = du.get(d["de"], 0) + d["montant"]
     for p in prets(monde):
         if (p["de"] == id and p["objet"] in monde.objets and (p["a"] == "joueur" or p["a"] in monde.objets)
@@ -3582,16 +3650,15 @@ def reclamer(monde, id):
             objets.setdefault(p["a"], []).append(p["objet"])
     if not du and not objets:
         return None
-    vains = {s["de"] for s in lire(monde, id)["memoire"] if s["type"] == "creance_vaine" and minute - s["minute"] < REDEMANDE}
     v = vue(monde, id)
     e = depart(monde, id, v)
     meilleur = None
     for de in sorted(set(du) | set(objets)):
         salle = v.salle(e, de)
         a_rendre = sorted(objets.get(de, ()))
-        if salle is None or not a_rendre and (de in vains or salle == e.salle):
+        if salle is None:
             continue
-        valeur = (valeur_pieces(monde, id, du[de]) if de in du and de not in vains else 0) + sum(
+        valeur = (valeur_pieces(monde, id, du[de]) if de in du else 0) + sum(
             valeur_pieces(monde, id, prix(monde, o) or VALEUR_OBJET) for o in a_rendre)
         if salle == e.salle:
             trouve = (0, [], e)
@@ -3599,7 +3666,9 @@ def reclamer(monde, id):
             trouve = chercher(monde, id, lambda v, e, s=salle: e.salle == s, nom="reclamer:" + de,
                               memo=["reclamer", de, salle], emplois=(), motif=ARGENT)
         if trouve is not None and valeur > trouve[0] and (meilleur is None or trouve[0] < meilleur[0]):
-            meilleur = (trouve[0], de, _couper(trouve[1]) + [_etape("demander", de, outil=o) for o in a_rendre[:1]])
+            demande = ([_etape("demander", de, contenu={"type": "reclamer_dette"})] if de in du else [])
+            meilleur = (trouve[0], de, _couper(trouve[1]) + demande
+                        + [_etape("demander", de, outil=o) for o in a_rendre[:1]])
     if meilleur is None:
         return None
     return {"type": "reclamer", "qui": meilleur[1]}, meilleur[2]
@@ -3702,12 +3771,14 @@ def eclairer(monde, id):
     return {"type": "lumiere"}, retablir(v, e, etapes)
 
 
-def garder(monde, id, salle):
+def garder(monde, id, salle, *, cout=None):
     """Les étapes pour se tenir là où il garde ses biens, ou None. Il y restera : ce que le lieu
     laisse monter compte (le noir qu'il craint : il y porte de la lumière s'il le peut) ; s'il n'y
     est pas, il n'y va que si cela lui coûte moins que rester où il est, sinon il endure."""
     trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="garder:" + salle, memo=["garder", salle],
                       emplois=(), motif="biens", tenir=True, endurer=0)
+    if trouve is not None and cout is not None:
+        cout.append(trouve[0])
     return None if trouve is None else retablir(vue(monde, id), trouve[2], trouve[1])
 
 
@@ -3761,6 +3832,8 @@ def rejoindre(monde, id, sujet):
     """(étapes, trouvé) : aller là où il croit quelqu'un, sinon le chercher là où il est passé le
     moins récemment ; None si rien n'est atteignable."""
     v = vue(monde, id)
+    if not _contact_possible(v, sujet):
+        return None
     e = depart(monde, id, v)
     salle = v.salle(e, sujet)
     if salle is not None:

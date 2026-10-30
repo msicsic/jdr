@@ -1,4 +1,5 @@
 """Preuve historique exacte, console et recharge."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import unittest
 
@@ -10,6 +11,7 @@ from tests import test_redire_passe
 from tests.test_parole_corrections import banc, ligne, audit
 from tests.test_repli_et_appel import jouer, dialogue
 from tests.test_tensions import recharger
+from tests.support import question_sans_execution
 
 
 class RappelExactTests(unittest.TestCase):
@@ -35,11 +37,11 @@ class RappelExactTests(unittest.TestCase):
             self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
             dossier = appels[0][1]['faits']
             for evenement in dossier.get('paroles_entendues', []):
-                self.assertIn(evenement['texte'], [p['texte'] for p in avant['paroles_pnj']])
+                self.assertIn(evenement['texte'], [p['texte'] for p in emissions_pnj(avant)])
             self.assertIn(phrase, sortie)
-            self.assertEqual(r.data['conversation'][-1]['reponse'], phrase)
+            self.assertEqual(r.data['conversation'][-1]['reponse'], question_sans_execution(phrase))
             self.assertEqual(r.data['narrations_mj'][-1]['texte'], phrase)
-            self.assertEqual(r.data['paroles_pnj'], avant['paroles_pnj'])
+            self.assertEqual(emissions_pnj(r), emissions_pnj(avant))
             for champ in ('objets', 'joueur', 'minutes', 'jets'):
                 self.assertEqual(r.data[champ], avant[champ])
             self.assertEqual(recharger(r).data['conversation'], r.data['conversation'])
@@ -76,8 +78,8 @@ class RappelExactTests(unittest.TestCase):
             self.assertEqual(sum(f == 'auditer_narration' for f, _ in appels), 1)
             self.assertNotIn(mauvais, sortie)
             self.assertIn(bon, sortie)
-            self.assertEqual(r.data['paroles_pnj'], m.data['paroles_pnj'])
-            self.assertEqual(recharger(r).data['conversation'][-1]['reponse'], bon)
+            self.assertEqual(emissions_pnj(r), emissions_pnj(m))
+            self.assertEqual(recharger(r).data['conversation'][-1]['reponse'], question_sans_execution(bon))
 
     def test_preuve_refusee_si_historique_retire_a_la_sauvegarde(self):
         m = self.scenes()[0]
@@ -86,7 +88,7 @@ class RappelExactTests(unittest.TestCase):
         phrase = next(iter(rappels_exacts(faits)))
         reponse = {'texte': phrase, '_audit': {'texte_initial': phrase,
                     'segments': segments_etablis(phrase, faits), 'faits': faits}}
-        m.data['paroles_pnj'].clear()
+        m.data['emissions_parole'][:] = [p for p in m.data['emissions_parole'] if p['locuteur'] == 'joueur']
         with self.assertRaisesRegex(ErreurMonde, 'rappel'):
             consigner(m, reponse)
 
@@ -103,12 +105,12 @@ class RappelExactTests(unittest.TestCase):
             m = recharger(m)
             # Premier segment exact, sans enlever de mots à l'intérieur.
             from donjon.narration import segments
-            mots = segments(m.data['paroles_pnj'][0]['texte'])[0]
+            mots = segments(emissions_pnj(m)[0]['texte'])[0]
             phrase = f'« {mots} »'
             r, sortie, appels = jouer(m, 'mj rappelle-moi ses mots', [dialogue(phrase)], [])
             self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
             self.assertIn(phrase, sortie)
-            self.assertEqual(r.data['paroles_pnj'], m.data['paroles_pnj'])
+            self.assertEqual(emissions_pnj(r), emissions_pnj(m))
             self.assertEqual(recharger(r).data['conversation'][-1]['reponse'], phrase)
             faits = {'interlocuteurs': public(m, interlocuteurs(m))}
             faits['echanges_passes'] = echanges_passes(m, faits['interlocuteurs'])

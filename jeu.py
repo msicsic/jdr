@@ -17,10 +17,11 @@ from donjon.noms import NomNonResolu, verifier_saisie
 from donjon.narration import consigner as consigner_narration, rendre_resultat
 from donjon.dialogues import preparer_conversation, commande_sociale
 from donjon.commandes import repondre as repondre_appel
-from donjon.transactions import appliquer as appliquer_transactions
 from donjon.comparaison import Comparateur, texte_comparaison
 from donjon.rendu import carte, fiche, regarder, decrire_accords
 from donjon.temps import PAS_JOUEUR, dire_duree
+from donjon.comprehension import plan_admis
+from donjon.consentement import PropositionLibre, preparer as preparer_libre
 
 
 BASE = Path(__file__).resolve().parent
@@ -221,6 +222,11 @@ def main(argv=None, interface=None):
         imprimer(m.data["scenario"]["objectif"] + " « aide » : commandes disponibles.")
         if not m.data["journal"]:
             imprimer(m.data["scenario"]["debut"])
+        derniers = m.data.get("conversation", [])
+        if derniers and (derniers[-1].get("compris") or "Compris :" in derniers[-1]["reponse"]):
+            dernier = derniers[-1]
+            imprimer("Dernier tour enregistré :\n" + "\n".join(filter(None, (
+                dernier.get("compris") if "Compris :" not in dernier["reponse"] else "", dernier["reponse"]))))
         if interface is None:
             afficher("carte")
             afficher("scene")
@@ -228,15 +234,93 @@ def main(argv=None, interface=None):
         pending = None
         comparaison_pending = 0
 
-        def conclure(plan, resultat, intention, numero=0):
+        def conclure(plan, resultat, intention, numero=0, compris=""):
             # Le résultat et sa trace de conversation sont sauvegardés avant affichage.
             # Aucun appel au MJ : les conséquences publiques viennent du moteur.
             affichage = rendre_resultat(resultat)
-            m.memoriser(intention, affichage, "resultat_moteur")
+            if compris:
+                affichage += "\n" + compris
+            m.memoriser(intention, affichage, "resultat_moteur", complet=True)
+            if plan.compris or compris:
+                m.data["conversation"][-1]["compris"] = plan.compris or compris
             m.sauver(args.save)
             if isinstance(mj, Comparateur) and numero:
                 mj.noter_resultat(resultat, numero=numero)
             imprimer(affichage)
+
+        def actualiser_pending(travail):
+            if pending is None:
+                return None
+            if isinstance(pending, PropositionLibre):
+                # Ne jamais remplacer silencieusement ce que le joueur a vu.
+                return pending
+            suite = Moteur(travail).preparer(pending.proposition, pending.origine)
+            if pending.compris:
+                suite.compris = plan_admis(travail, suite)
+            return suite
+
+        def montrer_libre(dossier, intention, *, faisabilite=False, changement=False):
+            fiche_proposition = dossier.resume(m)
+            if changement:
+                fiche_proposition = "Le monde ou le plan a changé : vérifie ce nouvel aperçu.\n" + fiche_proposition
+            if faisabilite:
+                fiche_proposition += "\nFaisabilité seulement : aucune action exécutée."
+            fiche_proposition += "\n« tenter » pour agir ; « annuler » pour abandonner."
+            m.memoriser(intention, fiche_proposition, "proposition_non_executee", complet=True)
+            m.data["conversation"][-1]["compris"] = dossier.compris
+            m.sauver(args.save)
+            imprimer("\n" + fiche_proposition)
+
+        def executer_libre(dossier, intention, numero=0, *, confirme=False):
+            nonlocal pending
+            if not dossier.est_actuel(m):
+                nouveau = dossier.revalider(m)
+                if nouveau.erreur:
+                    raise ErreurMonde(nouveau.erreur, nouveau.attendu)
+                pending = nouveau
+                montrer_libre(nouveau, intention, changement=True)
+                return
+            travail, reponse = dossier.travail, dossier.reponse
+            transactions, rapports = reponse.get("_transactions", []), dossier.rapports
+            if dossier.plan:
+                resultat = Moteur(travail).executer(dossier.plan)
+                compte = dossier.compte_parle()
+                if compte:
+                    consigner_narration(travail, compte)
+                affichage = "\n".join(filter(None, (
+                    compte["texte"] if compte else "", rendre_resultat(resultat), dossier.compris)))
+                nature = "resultat_moteur"
+            else:
+                types = [t["type"] for t in transactions]
+                nature = ("conversation_pnj" if "conversation_pnj" in types else
+                          "parole_joueur" if "parole" in types else
+                          "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
+                affichage = "\n".join(filter(None, (reponse.get("_prefixe_moteur"),
+                                                   reponse["texte"], dossier.avis_narration, dossier.compris)))
+                consigner_narration(travail, reponse)
+            # La préparation précède l'aperçu : conserver aussi son historique,
+            # sans restaurer une ancienne copie du monde à la confirmation.
+            travail.data["conversation"] = list(m.data.get("conversation", []))
+            travail.memoriser(intention, affichage, nature, complet=True)
+            if dossier.compris:
+                travail.data["conversation"][-1]["compris"] = dossier.compris
+            suite = (None if dossier.plan or confirme else
+                     actualiser_pending(travail) if transactions else pending)
+            travail.sauver(args.save)
+            m.data = travail.data
+            pending = suite
+            imprimer(affichage)
+            if isinstance(mj, Comparateur):
+                if dossier.plan and numero:
+                    mj.noter_resultat(resultat, numero=numero)
+                for t, rapport in zip(transactions, rapports):
+                    if t["type"] == "conversation_pnj":
+                        mj.noter_resultat(reponse["texte"], rapport)
+                    elif t["type"] == "savoirs":
+                        mj.noter_savoirs(reponse["texte"], t["proposition"])
+            if dossier.plan and dossier.plan.proposition["action"] == "aller":
+                afficher("carte")
+                afficher("scene")
 
         def executer_local(p, texte):
             nonlocal pending, comparaison_pending
@@ -271,6 +355,7 @@ def main(argv=None, interface=None):
                 afficher("carte")
                 afficher("scene")
 
+        recette = None
         while True:
             if interface:
                 interface.rafraichir(m, pending, mj)
@@ -281,8 +366,9 @@ def main(argv=None, interface=None):
             gestes = ()
             if interface is None:
                 from donjon.gestes_publics import gestes_du_monde, rendre_liste
-                gestes = gestes_du_monde(m)
-                imprimer(rendre_liste(gestes))
+                if recette is None:
+                    gestes = gestes_du_monde(m)
+                imprimer(recette.rendre() if recette else rendre_liste(gestes))
             try:
                 entree = lire("\nCorvus > ")
                 texte = entree.strip() if isinstance(entree, str) else ""
@@ -294,6 +380,24 @@ def main(argv=None, interface=None):
                 continue
             try:
                 if interface is None and isinstance(entree, str):
+                    from donjon.fabrication_terminal import RecetteTerminal, fabrication_publique
+                    if cmd in ("quitter", "q", "exit"):
+                        recette = None
+                    elif recette is not None:
+                        try:
+                            choix = recette.saisir(entree)
+                        except ValueError as exc:
+                            imprimer(str(exc))
+                            continue
+                        if recette.terminee:
+                            recette = None
+                        if choix is None:
+                            continue
+                        entree = choix
+                    elif entree.strip() == "0":
+                        recette = RecetteTerminal(fabrication_publique(m))
+                        continue
+                if interface is None and isinstance(entree, str) and cmd not in ("quitter", "q", "exit"):
                     from donjon.gestes_publics import choisir_numero
                     try:
                         choix = choisir_numero(entree, gestes)
@@ -303,6 +407,15 @@ def main(argv=None, interface=None):
                     if choix is not None:
                         entree = choix
                 if isinstance(entree, DescripteurPublic):
+                    from donjon.dialogues import GESTE_INFORMATION, preparer_information
+                    if isinstance(entree.contenu, dict) and entree.contenu.get("geste") == GESTE_INFORMATION:
+                        dossier = preparer_information(m, entree)
+                        if dossier.confirmation:
+                            pending = dossier
+                            montrer_libre(dossier, "Geste direct")
+                        else:
+                            executer_libre(dossier, "Geste direct")
+                        continue
                     executer_local(entree, "Geste direct")
                     continue
                 if cmd in ("quitter", "q", "exit"):
@@ -312,6 +425,14 @@ def main(argv=None, interface=None):
                 if cmd == "tenter":
                     if pending is None:
                         imprimer("Aucune proposition en attente.")
+                        continue
+                    if isinstance(pending, PropositionLibre):
+                        nouveau = pending.revalider(m)
+                        if nouveau.erreur or nouveau.signature != pending.signature:
+                            pending = nouveau
+                            montrer_libre(pending, texte, changement=True)
+                            continue
+                        executer_libre(nouveau, texte, comparaison_pending, confirme=True)
                         continue
                     plan = pending
                     resultat = moteur.executer(plan)
@@ -324,6 +445,7 @@ def main(argv=None, interface=None):
                 if cmd == "annuler":
                     pending = None
                     m.memoriser(texte, "Proposition abandonnée sans exécution.", "annulation")
+                    m.sauver(args.save)
                     imprimer("Proposition abandonnée.")
                     continue
                 if cmd == "connecter":
@@ -384,7 +506,7 @@ def main(argv=None, interface=None):
                 if social:
                     travail, rapport = preparer_conversation(m, social)
                     resultat = " ".join(rapport["faits"])
-                    suite = Moteur(travail).preparer(pending.proposition, pending.origine) if pending else None
+                    suite = actualiser_pending(travail)
                     travail.memoriser(texte, resultat, "conversation_pnj")
                     travail.sauver(args.save)
                     m.data, pending = travail.data, suite
@@ -394,6 +516,8 @@ def main(argv=None, interface=None):
                     if cmd in ("aide", "?"):
                         imprimer(AIDE)
                     elif cmd == "regarder":
+                        m.memoriser(texte, regarder(m).strip(), "resultat_moteur")
+                        m.sauver(args.save)
                         afficher("carte")
                         afficher("scene")
                     elif cmd == "carte":
@@ -443,60 +567,21 @@ def main(argv=None, interface=None):
                     imprimer("Le MJ réfléchit…", flush=True)
                     reponse = mj.echanger(m, texte[3:] if force_mj else texte,
                                          pending.proposition if pending else None)
-                    transactions = reponse.get("_transactions", [])
-                    if reponse["mode"] == "dialogue":
-                        travail, rapports = appliquer_transactions(m, transactions)
-                        suite = (Moteur(travail).preparer(pending.proposition, pending.origine)
-                                 if pending and transactions else pending)
-                        types = [t["type"] for t in transactions]
-                        nature = ("conversation_pnj" if "conversation_pnj" in types else
-                                  "parole_joueur" if "parole" in types else
-                                  "refus_avant_action" if reponse.get("_validation_refusee") else "dialogue")
-                        prefixe = reponse.get("_prefixe_moteur")
-                        travail.memoriser(texte, "\n".join(filter(None, (prefixe, reponse["texte"]))), nature)
-                        consigner_narration(travail, reponse)
-                        # Ne montrer la nouvelle fiction qu'après sa sauvegarde réussie.
-                        travail.sauver(args.save)
-                        m.data, pending = travail.data, suite
-                        if prefixe:
-                            imprimer(prefixe)
-                        imprimer(reponse["texte"])
-                        if isinstance(mj, Comparateur):
-                            for t, rapport in zip(transactions, rapports):
-                                if t["type"] == "conversation_pnj":
-                                    mj.noter_resultat(reponse["texte"], rapport)
-                                elif t["type"] == "savoirs":
-                                    mj.noter_savoirs(reponse["texte"], t["proposition"])
-                        continue
-                    p = reponse["proposition"]
-                    if transactions:
-                        travail, _ = appliquer_transactions(m, transactions)
-                        travail.sauver(args.save)
-                        m.data = travail.data
-                    pending = None
-                    if p.get("action") in ("clarifier", "impossible"):
+                    if (reponse["mode"] == "action" and
+                            reponse["proposition"].get("action") in ("clarifier", "impossible")):
                         raise ErreurMonde("L'avis du MJ doit être contrôlé comme un dialogue avant affichage.")
-                    pending = moteur.preparer(p, origine="reprise mémorisée" if reponse.get("_reprise_locale") else "LLM : " + mj.modele)
+                    origine = "reprise mémorisée" if reponse.get("_reprise_locale") else "LLM : " + mj.modele
+                    dossier = preparer_libre(m, reponse, origine)
                     comparaison_pending = mj.numero if isinstance(mj, Comparateur) else 0
-                    # Une question sur un geste (« puis-je… ? ») le prépare sans l'exécuter : seule une
-                    # perception répond tout de suite.
-                    essai_a_blanc = question and p.get("action") not in PERCEPTIONS
-                    if not essai_a_blanc and not pending.stat and not pending.echec_critique and not pending.confirmation:
-                        plan = pending
-                        resultat = moteur.executer(plan)
-                        pending = None
-                        conclure(plan, resultat, texte, comparaison_pending)
-                        if p["action"] == "aller":
-                            afficher("carte")
-                            afficher("scene")
-                        continue
-                    imprimer("\n" + pending.resume(m))
-                    m.memoriser(texte, pending.resume(m), "proposition_non_executee")
-                    m.sauver(args.save)
-                    suite_fiche = "" if pending.etapes else "« tenter » pour agir ; « annuler » pour abandonner."
-                    if essai_a_blanc or suite_fiche:
-                        imprimer(" ".join(filter(None, ("Rien n'est encore tenté." if essai_a_blanc else "",
-                                                        suite_fiche))))
+                    if question and not reponse.get("_transactions") and not dossier.plan:
+                        dossier.compris = "Question au MJ : aucune action exécutée."
+                    essai_a_blanc = bool(question and dossier.plan
+                                         and dossier.plan.proposition["action"] not in PERCEPTIONS)
+                    if dossier.confirmation or essai_a_blanc:
+                        pending = dossier
+                        montrer_libre(dossier, texte, faisabilite=essai_a_blanc)
+                    else:
+                        executer_libre(dossier, texte, comparaison_pending)
                 else:
                     executer_local(p, texte)
             except ErreurMonde as exc:

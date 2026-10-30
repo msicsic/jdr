@@ -1,4 +1,5 @@
 """Même demande entre saisie, contenu, enquête, revue et sauvegarde."""
+from donjon.emissions import joueur as emissions_joueur, pnj as emissions_pnj
 import copy
 import unittest
 
@@ -18,14 +19,16 @@ class RessourceNommeeTests(unittest.TestCase):
             + [dialogue(reponse)],
             [rapport(ligne('mecanique', sources=['conversation_validee']))], revues=revues)
         self.assertNotIn('Précise', texte)
-        self.assertIn(reponse, texte)
-        self.assertIn(reponse, str(r.data['conversation']))
-        self.assertEqual(len(r.data['paroles_joueur']), 1)
-        self.assertEqual(r.data['paroles_joueur'][0]['texte'], mots)
+        dite = emissions_pnj(r)[-1]
+        self.assertIn(dite["rendu_public"], texte)
+        self.assertIn(dite["texte"], str(r.data["conversation"]))
+        self.assertEqual(dite["acte"], "reponse_information")
+        self.assertFalse(any(f == "auditer_narration" for f, _ in appels))
+        self.assertEqual(len(emissions_joueur(r)), 1)
+        self.assertEqual(emissions_joueur(r)[0]['texte'], mots)
         for k in m.objets:
             self.assertEqual(r.objets[k].get('lieu'), avant['objets'][k].get('lieu'))
-        faits = next(e['faits']['conversation_validee']['faits'] for f, e in appels
-                     if f == 'repondre_au_joueur' and 'conversation_validee' in e['faits'])
+        faits = dite['evenement']['faits']
         revue = [e['plan']['parole'] for f, e in appels if f == 'auditer_action'][-1]
         self.assertEqual(revue['contenu'][-1]['sujet'], sujet)
         self.assertEqual([{k: v for k, v in s.items() if k != 'operations'}

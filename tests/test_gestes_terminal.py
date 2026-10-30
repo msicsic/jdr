@@ -49,7 +49,8 @@ class CatalogueTests(unittest.TestCase):
         self.assertEqual(choisir_numero("0" + numero, liste), descripteur)
         self.assertEqual(len({c.libelle for c in liste}), len(liste))
         self.assertNotEqual(menu(m, premiere, "prendre")[1], numero)
-        self.assertIn(reference(m, seconde), rendre_liste(liste))
+        self.assertIn("cible identique (2/2)", rendre_liste(liste))
+        self.assertNotIn("[" + reference(m, seconde) + "]", rendre_liste(liste))
         self.assertNotIn("parler", {c.descripteur.contenu["geste"] for c in liste})
         for texte in ("0", "99999", "1 2", "1,2", "1/2", "1-2"):
             with self.subTest(texte=texte), self.assertRaises(ValueError):
@@ -112,7 +113,7 @@ class CatalogueTests(unittest.TestCase):
                     web = json.loads(sortie.stdout)
                     gestes_web = [d for choix in web["choix"].values() for d in choix
                                   if isinstance(d, dict) and d["geste"] != "tourner"]
-                    terminal = [c.descripteur.contenu for c in liste_gestes(s)]
+                    terminal = [c.descripteur.contenu for c in liste_gestes(s, passages=etat["passages"])]
                     # U-M outils complète les offres paramétrées par un second
                     # choix. Le terminal premier geste conserve ses offres
                     # simples ; sa sélection des ressources attend U-T outils.

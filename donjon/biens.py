@@ -338,7 +338,7 @@ def capacites_crues(monde, id, objet):
     from .esprits import croyance, lire
     from .force import COUPE
     o = monde.objets[objet]
-    if croyance(monde, id, objet, "fin"):
+    if (croyance(monde, id, objet, "fin") or {}).get("valeur"):
         return set()
     usages = set(o.get("usages", ()))
     profil = monde.objets.get(id, {}).get("profil") or {}
@@ -414,30 +414,38 @@ def valeur_bien(monde, id, objet, part=False, *, sans=None):
     return max(marchande, usage, remede)
 
 
-def dettes(monde):
-    """Les dettes en cours ; les lire ne change rien à l'état."""
-    return monde.data.get("dettes", [])
+def dettes(monde, *, connues_de=None):
+    """Comptes réels, ou créances apprises par ``connues_de`` ; lecture pure.
+
+    Une clôture datée peut créer une dette sans en informer le créancier.
+    Cette dette ne prépare ni une réclamation ni la levée d'un refus retenu.
+    """
+    toutes = monde.data.get("dettes", [])
+    return toutes if connues_de is None else [
+        d for d in toutes if d['a'] == connues_de and not d.get('a_prevenir')]
 
 
 # Ce qu'une dette paie et qui n'a pas été livré : une part, un objet, une tâche (``echanges.engagements_echus``).
 QUOI = ("part", "objet", "tache")
 
 
-def rembourser(monde, de, a, montant, objet, quoi="part"):
+def rembourser(monde, de, a, montant, objet, quoi="part", *, informer=True):
     """Une contrepartie payée d'avance que ``de`` n'a pas livrée à l'échéance (``echanges.engagements_echus``) :
     une part non servie, un objet non remis, une tâche non faite. Il doit le prix à ``a``. La dette
-    est connue des deux (souvenirs ``dette`` et ``creance``) et se règle quand ils se retrouvent
-    (``solder``) : tout de suite s'ils le peuvent déjà."""
+    est connue des deux par défaut (souvenirs ``dette`` et ``creance``). ``informer=False``
+    conserve le compte réel sans prévenir le créancier ; une remise réelle l'en informe.
+    Elle se règle quand ils se retrouvent (``solder``), s'ils le peuvent déjà."""
     from .esprits import memoriser
     monde.data.setdefault("dettes", []).append({"de": de, "a": a, "montant": montant, "objet": objet, "quoi": quoi,
-                                                "minute": monde.data["minutes"]})
+                                                "minute": monde.data["minutes"],
+                                                **({'a_prevenir': True} if not informer else {})})
     memoriser(monde, de, {"type": "dette", "a": a, "montant": montant, "objet": objet, "quoi": quoi})
     from .pnj import _chroniquer
     from .social import _qui
     ce = _ce_qui(monde, {"objet": objet, "quoi": quoi})
     _chroniquer(monde, de, f"{_qui(monde, de)} doit désormais {_pieces(montant)} à {_qui(monde, a)}"
                 + (f" : {ce}." if ce else "."), "compte")
-    if a != "joueur":
+    if informer and a != "joueur":
         memoriser(monde, a, {"type": "creance", "de": de, "montant": montant, "objet": objet, "quoi": quoi})
 
 
@@ -472,13 +480,29 @@ def _pieces(n):
     return quantite(n, "pièce")
 
 
-def nie_recemment(monde, a, de):
-    """``a`` a réclamé son dû à ``de``, qui a refusé de le lui rendre, il y a moins de ``REDEMANDE``
-    minutes : il ne le lui redemande pas de sitôt."""
-    from .deliberation import REDEMANDE
+def reponse_creance_retenue(monde, a, de):
+    """La dernière réponse à cette créance tient selon sa cause, sans délai."""
+    from .deliberation import refus_retenu
+    return a != "joueur" and refus_retenu(monde, a, de, ("reclamer_dette",)) is not None
+
+
+def entrees_creance(monde, a, de):
+    """Obligations connues et fonds identifiés par le créancier, sans bourse privée.
+
+    Une autre position, une date de regard ou une diminution des moyens ne
+    lèvent pas la réponse. Un remboursement ou une nouvelle obligation, oui.
+    Le débiteur reste libre de rembourser spontanément (``solder``).
+    """
     from .esprits import lire
-    return a != "joueur" and any(s["type"] == "dette_niee" and s["auteur"] == de
-                                 and monde.data["minutes"] - s["minute"] < REDEMANDE for s in lire(monde, a)["memoire"])
+    from .deliberation import _lieu_cru
+    faits = [["dette", d["objet"], d["quoi"], d["montant"]]
+             for d in dettes(monde, connues_de=a) if d['de'] == de]
+    for k, c in lire(monde, a)["croyances"].items():
+        if k in monde.objets and _lieu_cru(monde, a, k) == de:
+            pieces = c.get("pieces", {}).get("valeur", 0)
+            if pieces:
+                faits.append(["pieces", k, de, pieces])
+    return sorted(faits, key=str)
 
 
 def regler(monde, d, reclamee, lignes):
@@ -489,25 +513,30 @@ def regler(monde, d, reclamee, lignes):
     « silence » (il garde ce qu'on ne lui a pas réclamé). Le reste demeure dû.
 
     Un refus se voit : le créancier PNJ cesse de le croire fiable et s'en souvient comme d'une
-    nouvelle qu'il peut confier (``social``, « dette_niee »). Retrouvé sans le sou, il ne le relance
-    pas de sitôt (``creance_vaine``)."""
-    from .deliberation import REDEMANDE
-    from .esprits import esprit, memoriser
+    nouvelle qu'il peut confier (``social``, « dette_niee »). La réponse est aussi retenue hors
+    mémoire bornée, jusqu'à une obligation ou un moyen connu nouveau."""
+    from .deliberation import retenir_refus, oublier_refus
+    from .esprits import memoriser
     from .francais import designer, groupe_nominal
     from .pnj import _chroniquer
     from .social import _qui
     from .voix import personne_pour_joueur
     de, a = d["de"], d["a"]
+    # Le règlement automatique et un ancien plan lisent la même réponse.
+    reclamee = reclamee and not reponse_creance_retenue(monde, a, de)
+    if reclamee and d.pop('a_prevenir', None) and a != 'joueur':
+        # La réponse à une réclamation explicite fournit enfin la preuve locale.
+        memoriser(monde, a, {'type': 'creance', 'de': de, 'montant': d['montant'],
+                            'objet': d['objet'], 'quoi': d['quoi']})
     possible = min(d["montant"], richesse(monde, de))
-    if not possible:
-        if reclamee and a != "joueur" and not any(
-                s["type"] == "creance_vaine" and s["de"] == de and monde.data["minutes"] - s["minute"] < REDEMANDE
-                for s in esprit(monde, a)["memoire"]):
-            memoriser(monde, a, {"type": "creance_vaine", "de": de})
-        return "sans_le_sou"
     if reclamee and a != "joueur":
         _chroniquer(monde, a, f"{_qui(monde, a)} réclame à {_qui(monde, de)} les {_pieces(d['montant'])} qu'on lui doit.",
                     "compte")
+    if not possible:
+        if reclamee and a != "joueur":
+            memoriser(monde, a, {"type": "creance_vaine", "de": de})
+            retenir_refus(monde, a, de, "reclamer_dette", "sans_le_sou", souvenir=False)
+        return "sans_le_sou"
     if garde_du(monde, de, possible):
         if not reclamee:
             return "silence"
@@ -522,12 +551,20 @@ def regler(monde, d, reclamee, lignes):
         else:
             # Le créancier le constate : il ne s'y fie plus, et peut le dire (``social.NOUVELLES``).
             memoriser(monde, a, {"type": "dette_niee", "auteur": de, "victime": a, "montant": d["montant"]})
+            # dette_niee porte déjà l'effet social ; la mémoire de décision
+            # ne doit pas créer un deuxième événement de refus.
+            retenir_refus(monde, a, de, "reclamer_dette", "garde", souvenir=False)
             if monde.visible(de) or monde.visible(a):
                 lignes.append(f"{designer(monde.objets[de], debut=True)} refuse de rendre à "
                               f"{designer(monde.objets[a])} ce qu'{il} lui doit.")
         return "garde"
     payer(monde, de, a, possible)
+    d.pop('a_prevenir', None)  # La remise réelle est désormais une preuve reçue.
     d["montant"] -= possible
+    if a != "joueur":
+        oublier_refus(monde, a, de, "reclamer_dette")
+        if d["montant"]:
+            retenir_refus(monde, a, de, "reclamer_dette", "sans_le_sou", souvenir=False)
     pieces = _pieces(possible)
     pour = _ce_qui(monde, d)
     _chroniquer(monde, de, f"{_qui(monde, de)} rend {pieces} à {_qui(monde, a)}" + (f" : {pour}." if pour else "."),
@@ -548,14 +585,15 @@ def regler(monde, d, reclamee, lignes):
 def solder(monde, lignes):
     """Chaque débiteur qui sait son créancier là et peut lui parler (``pnj.pourraient_se_parler``)
     lui rend ce qu'il doit, s'il le veut ; un créancier PNJ qui le sait là le lui réclame, sauf s'il
-    vient d'essuyer un refus (``nie_recemment``). Le débiteur rend autant qu'il le peut ; le reste
+    vient d'essuyer un refus (``reponse_creance_retenue``). Le débiteur rend autant qu'il le peut ; le reste
     demeure dû (``regler``)."""
     from .pnj import pourraient_se_parler
     for d in list(dettes(monde)):
         de, a = d["de"], d["a"]
         if de not in monde.objets or not (a == "joueur" or a in monde.objets):
             continue
-        reclamee = a != "joueur" and not nie_recemment(monde, a, de) and pourraient_se_parler(monde, a, de)
+        reclamee = (not d.get('a_prevenir') and a != "joueur" and not reponse_creance_retenue(monde, a, de)
+                    and pourraient_se_parler(monde, a, de))
         if reclamee or pourraient_se_parler(monde, de, a):
             regler(monde, d, reclamee, lignes)
     monde.data["dettes"] = [d for d in dettes(monde) if d["montant"] > 0]
@@ -629,7 +667,7 @@ def comptes_joueur(monde):
     from .voix import personne_pour_joueur
     lignes = []
     for d in dettes(monde):
-        if d["a"] == "joueur" and d["de"] in monde.objets:
+        if not d.get('a_prevenir') and d["a"] == "joueur" and d["de"] in monde.objets:
             ce = _ce_qui(monde, d, joueur=True)
             lignes.append(f"{personne_pour_joueur(monde, d['de'], court=True)[0]} te doit {_pieces(d['montant'])}"
                           + (f" : {ce}." if ce else "."))
@@ -869,7 +907,8 @@ def verifier(monde):
                 and p["de"] in d["objets"] and d["objets"][p["de"]]["type"] in ("personnage", "depouille")
                 and type(p["minute"]) is int), "Prêt invalide"
     for x in d.get("dettes", []):
-        assert (isinstance(x, dict) and set(x) == {"de", "a", "montant", "objet", "quoi", "minute"}
+        assert (isinstance(x, dict) and set(x) - {'a_prevenir'} == {"de", "a", "montant", "objet", "quoi", "minute"}
+                and ('a_prevenir' not in x or x['a_prevenir'] is True)
                 and x["de"] in d["objets"] and (x["a"] == "joueur" or x["a"] in d["objets"])
                 and type(x["montant"]) is int and x["montant"] > 0 and isinstance(x["objet"], str)
                 and x["quoi"] in QUOI and type(x["minute"]) is int), "Dette invalide"

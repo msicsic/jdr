@@ -98,16 +98,10 @@ def perception(m, id, champ="cible", acceptes=None, valeurs=()):
     valables = f"{champ} : reçu {id!r} hors de vue ; acceptés : {cibles(m, acceptes)}."
     if valeurs:
         valables += f" Ou {liste(map(repr, valeurs))}."
-    if not m.present_physique(id):
-        accord = "présente" if o["type"] == "personnage" else "présent"
-        return ErreurMonde(designation.capitalize() + " n'est pas " + accord + " ici.",
-                           f"{champ}={id!r} : présence requise ; {valables}")
-    from .perception import eclairage
-    from .spatial import _salle_position
-    salle, position = _salle_position(m, id) or (m.joueur["salle"], None)
-    if eclairage(m, salle, position)["niveau"] == 0:
-        return ErreurMonde("Il manque de la lumière pour observer " + designation + ".",
-                           f"{champ}={id!r} : niveau de lumière 0 ; requis : au moins 1 ; {valables}")
+    from .rendu import non_perception
+    constat = non_perception(m, id)
+    if constat:
+        return ErreurMonde(constat, f"{champ}={id!r} : vue requise ; {valables}")
     return ErreurMonde("Tu n'as pas " + designation + " en vue d'ici.",
                        f"{champ}={id!r} : vue requise (champ et ligne de vue) ; {valables}")
 

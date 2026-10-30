@@ -74,8 +74,16 @@ class OccasionsScenariosTests(unittest.TestCase):
         }
         for nom, attendu in attendus.items():
             with self.subTest(scenario=nom):
-                contenu = json.dumps(donnees(nom), sort_keys=True, ensure_ascii=False)
+                d = donnees(nom)
+                contenu = json.dumps(d, sort_keys=True, ensure_ascii=False)
                 self.assertEqual(hashlib.sha256(contenu.encode()).hexdigest(), attendu)
+                if nom == 'crue_hameau':
+                    # L'inverse conserve aussi le statut et les ascendants 302 :
+                    # retirer uniquement l'agenda 306 retrouve l'intégration.
+                    del d['objets']['marchand']['profil']['agendas']
+                    contenu = json.dumps(d, sort_keys=True, ensure_ascii=False)
+                    self.assertEqual(hashlib.sha256(contenu.encode()).hexdigest(),
+                                     '72a33d779454563e03fd69d803fdc57880aa9ec7c2ffd5dee09ba67f8566831e')
 
     def test_moyens_propres_liens_et_observations_persistent(self):
         for scenario, bois, porteur, intermediaire, protege in (

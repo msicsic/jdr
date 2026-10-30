@@ -1,3 +1,4 @@
+from donjon.emissions import pnj as emissions_pnj
 from tests.support import presentes
 import json
 import io
@@ -102,7 +103,7 @@ class NarrationTests(unittest.TestCase):
         with self.assertRaisesRegex(ErreurMonde, "Aucun changement enregistré"):
             consigner(m, sans)
         consigner(m, reponse)
-        self.assertEqual(m.data["paroles_pnj"][-1]["texte"], citation)
+        self.assertEqual(emissions_pnj(m)[-1]["texte"], citation)
         # Une nouvelle attribution reste contrôlée, même si ces mots ont déjà été dits.
         with self.assertRaisesRegex(ErreurMonde, "Aucun changement enregistré"):
             consigner(m, sans)
@@ -425,8 +426,8 @@ class NarrationTests(unittest.TestCase):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
         self.assertIn(texte, sortie.getvalue())
-        self.assertEqual(reprise.data["paroles_pnj"][-1]["texte"], citation)
-        self.assertIn("joueur", reprise.data["paroles_pnj"][-1]["auditeurs"])
+        self.assertEqual(emissions_pnj(reprise)[-1]["texte"], citation)
+        self.assertIn("joueur", emissions_pnj(reprise)[-1]["auditeurs"])
         self.assertNotIn("seconde_cloche", reprise.objets)
 
     def test_une_citation_recopiee_avec_ses_guillemets_reste_la_parole(self):
@@ -448,7 +449,7 @@ class NarrationTests(unittest.TestCase):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
         self.assertIn(texte, sortie.getvalue())
-        self.assertEqual(reprise.data["paroles_pnj"][-1]["texte"], citation)
+        self.assertEqual(emissions_pnj(reprise)[-1]["texte"], citation)
 
     def test_parole_longue_d_un_pnj_sauvegardee_et_rechargee(self):
         # Cas réel du banc : une réponse de Gorm de plus de 240 caractères faisait échouer la sauvegarde.
@@ -471,7 +472,7 @@ class NarrationTests(unittest.TestCase):
             reprise = Monde.charger(chemin)
         self.assertIn(texte, sortie.getvalue())
         self.assertNotIn("invalide", sortie.getvalue())
-        self.assertEqual(reprise.data["paroles_pnj"][-1]["texte"], citation)
+        self.assertEqual(emissions_pnj(reprise)[-1]["texte"], citation)
 
     def test_audit_de_parole_mal_forme_est_revise_avant_affichage(self):
         monde = presentes(nouveau_monde())
@@ -491,8 +492,8 @@ class NarrationTests(unittest.TestCase):
             reprise = Monde.charger(chemin)
         self.assertEqual(appel.call_count, 4)
         self.assertEqual(sortie.getvalue().count(texte), 1)
-        self.assertEqual(len(reprise.data["paroles_pnj"]), 1)
-        self.assertEqual(reprise.data["paroles_pnj"][0]["texte"], citation)
+        self.assertEqual(len(emissions_pnj(reprise)), 1)
+        self.assertEqual(emissions_pnj(reprise)[0]["texte"], citation)
         self.assertNotIn("seconde_cloche", reprise.objets)
 
     def test_ambiance_affichee_enregistree_et_reprise_apres_rechargement(self):

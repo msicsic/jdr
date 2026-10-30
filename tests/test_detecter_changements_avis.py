@@ -226,6 +226,44 @@ class DetecterAvisTests(unittest.TestCase):
         self.assertEqual(self.analyser(eps)["total_justifies"], 0)
 
     def test_reveils_brune_reels_et_recharges(self):
+        from donjon.monde import Monde
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from tests.test_tensions import recharger
+        # Le lot 303 prépare le contact des participants de lieu inconnu :
+        # la nuit actuelle ne contient plus le retour historique à 929.
+        # Relire les états et épisodes réels, sans figer leur classement.
+        fichier = Path(__file__).parent / "data/sonde-271-brune-hameau-2024.json.gz"
+        charge = json.loads(gzip.decompress(fichier.read_bytes()))
+        sonde = d.SondeAvis()
+        sonde.episodes = charge["episodes"]
+        # Restaurer les tuples de l'API percus, comme pour la capture 276.
+        for eps in sonde.episodes.values():
+            for ep in eps:
+                for champ in ("debut_entrees", "quitte_entrees"):
+                    entrees = ep.get(champ)
+                    if entrees and "perception" in entrees["_details"]:
+                        entrees["_details"]["perception"] = {
+                            id: tuple(place) for id, place in entrees["_details"]["perception"].items()}
+        retours = {r["retour_t"]: r for r in sonde.analyser()["allers_retours"]
+                   if r["id"] == "brune" and r["d1_but"].get("type") == "agenda"}
+        for t, preuve in ((591, "possession_nouvelle"), (929, "lieu_cru_change")):
+            self.assertEqual(retours[t]["classe"], "entree_publiee_utilisee")
+            self.assertIn(preuve, {p["preuve"] for p in retours[t]["preuves"]})
+        self.assertEqual(set(charge["captures"]), {"591", "929"})
+        for t, etat in charge["captures"].items():
+            with self.subTest(t=t):
+                m = Monde(etat)
+                vue, etat = (regarder(m), scene_percue(m)), copy.deepcopy(m.data)
+                entrees = d.relever_entrees(m, "brune", m.data["minutes"])
+                ep = next(e for e in sonde.episodes["brune"] if e["debut_t"] == int(t))
+                self.assertEqual(d._canon(entrees), d._canon(ep["debut_entrees"]))
+                m = recharger(m)
+                self.assertEqual(etat, m.data)
+                self.assertEqual(vue, (regarder(m), scene_percue(m)))
+                self.assertEqual(entrees, d.relever_entrees(m, "brune", m.data["minutes"]))
+
+    def test_sonde_ne_change_pas_nuit_hameau_et_recharge(self):
         from donjon import banc_pnj, planification
         from donjon.rendu import regarder
         from donjon.scene import scene_percue
@@ -241,12 +279,6 @@ class DetecterAvisTests(unittest.TestCase):
             with patch.object(banc_pnj, "creer", capturer), observer() as sonde:
                 _, mesures, donnees = banc_pnj.nuit("crue_hameau", 2024, 2/60,
                                                    "chambre_cloche", depart="tire")
-            if sonde:
-                retours = {r["retour_t"]: r for r in sonde.analyser()["allers_retours"]
-                           if r["id"] == "brune" and r["d1_but"].get("type") == "agenda"}
-                for t, preuve in ((591, "possession_nouvelle"), (929, "lieu_cru_change")):
-                    self.assertEqual(retours[t]["classe"], "entree_publiee_utilisee")
-                    self.assertIn(preuve, {p["preuve"] for p in retours[t]["preuves"]})
             m = capture["monde"]
             vue, etat = (regarder(m), scene_percue(m)), copy.deepcopy(m.data)
             m = recharger(m)
@@ -366,6 +398,12 @@ class DetecterAvisTests(unittest.TestCase):
             self.assertEqual(self.analyser(eps)["total_non_justifies"], 1)
 
     def test_rendez_vous_publie_et_recharge(self):
+        self._rendez_vous_publie_et_recharge("rejoint", "attendre")
+
+    def test_rejoindre_cloture_par_contact_publie_et_recharge(self):
+        self._rendez_vous_publie_et_recharge("rejoindre", "rejoindre")
+
+    def _rendez_vous_publie_et_recharge(self, champ, genre):
         from donjon import appel
         from donjon.rendu import regarder
         from donjon.scene import scene_percue
@@ -377,9 +415,11 @@ class DetecterAvisTests(unittest.TestCase):
             resultats = []
             for observer in (nullcontext, d.observer_avis):
                 m = recharger(initial.copier())
-                d.lire(m, artisan)["rejoint"] = {"qui": payeur, "jusqu_a": 20, "vient": True}
-                eps = [episode("lumiere", 0, 1), episode("attendre", 1, 2), episode("lumiere", 2, 3)]
-                eps[1]["decision"] = d._resume_decision({"but": {"type": "attendre", "qui": payeur}})
+                d.lire(m, artisan)[champ] = ({"qui": payeur, "jusqu_a": 20, "vient": True}
+                    if champ == "rejoint" else {"qui": payeur, "jusqu_a": 20, "depuis": 0,
+                                               "salle": m.objets[payeur]["lieu"]})
+                eps = [episode("lumiere", 0, 1), episode(genre, 1, 2), episode("lumiere", 2, 3)]
+                eps[1]["decision"] = d._resume_decision({"but": {"type": genre, "qui": payeur}})
                 eps[2]["decision"]["plan"] = [{"operation": "engager", "cible": payeur}]
                 with observer() as sonde:
                     if sonde:
@@ -390,7 +430,7 @@ class DetecterAvisTests(unittest.TestCase):
                         appel.retrouves(m, artisan, payeur)
                     else:
                         # Expiration/rupture sans contact : l'absence ne prouve rien.
-                        d.lire(m, artisan)["rejoint"] = None
+                        d.lire(m, artisan)[champ] = None
                     if sonde:
                         sonde.episodes[artisan].append(eps[2])
                         a = sonde.analyser()

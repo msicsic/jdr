@@ -78,6 +78,10 @@ class CompagnieTests(unittest.TestCase):
         for nom in ('relais', 'mine'):
             with self.subTest(nom=nom):
                 m, acteur, autre = scene(nom)
+                # La réponse d'ignorance a déjà été entendue ; ce test exerce
+                # le préfixe certain du devis de proximité qui suit la question.
+                from donjon.causes import demander
+                demander(m, acteur, autre, [])
                 certain = p._etape('demander', autre)
                 devis = [{**certain, 'suppose': True, 'part_estimee': 'part'},
                          p._etape('rester', autre)]
@@ -281,7 +285,8 @@ class CompagnieTests(unittest.TestCase):
                     resultat = next(c.methode(m, auteur) for c in candidats
                                     if c.demande and c.demande.get('raison', {}).get('besoin') == 'peur')
                 self.assertEqual(m.data, avant)
-                self.assertEqual(resultat[1][-1]['operation'], 'rester')
+                self.assertEqual(resultat[1], [p._etape('demander', autre,
+                                                       contenu={'cause_detresse': True})])
                 b = recharger(m)
                 passer(m, 4 * MINUTE)
                 for dt in (13, 587, 111, 489, 1200):
@@ -296,6 +301,8 @@ class CompagnieTests(unittest.TestCase):
                 self.assertEqual(sum(s['type'] == 'compagnie' and s.get('qui') == autre
                                      for s in lire(m, auteur)['memoire']), 1)
                 self.assertIn('reste près', str(m.data['chronique']))
+                self.assertEqual(sum(c.get('demande_cause') is not None and c['pnj'] == auteur
+                                     for c in m.data['chronique']), 1)
                 position = copy.deepcopy(m.objets[auteur]['position'])
                 passer(m, MINUTE)
                 self.assertEqual(m.objets[auteur]['position'], position)

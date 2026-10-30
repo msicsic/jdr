@@ -75,7 +75,7 @@ class FinsTests(unittest.TestCase):
             percevoir_tous(m)
             deliberation.choisir(m, "marchand", m.data["minutes"])
             m = recharger(m)
-            self.assertNotIn("fin", lire(m, "marchand")["croyances"][objet])
+            self.assertIsNone(lire(m, "marchand")["croyances"][objet]["fin"]["valeur"])
             self.assertIn(agendas.projets(m, "marchand")[0]["etat"], ("actif", "sommeil"))
             self.assertEqual(regarder(m), regarder(recharger(m)))
 
@@ -118,7 +118,8 @@ class FinsTests(unittest.TestCase):
         preuve = copy.deepcopy(lire(m, "marchand")["croyances"]["couteau"]["fin"])
         m.data["minutes"] += 1
         percevoir_tous(m)
-        self.assertEqual(lire(m, "marchand")["croyances"]["couteau"]["fin"], preuve)
+        self.assertEqual(lire(m, "marchand")["croyances"]["couteau"]["fin"],
+                         {**preuve, "minute": m.data["minutes"]})
         lire(m, "marchand")["memoire"] = []
         del m.objets["couteau"]
         percevoir_tous(m)
@@ -148,8 +149,8 @@ class FinsTests(unittest.TestCase):
         m = self.verifier_fin(m, "couteau", "detruit")
         m.objets["couteau"]["integrite"] = 3
         percevoir_tous(m)
-        self.assertNotIn("fin", lire(m, "marchand")["croyances"]["couteau"])
-        self.assertNotIn("fin", lire(m, "joueur")["croyances"]["couteau"])
+        self.assertIsNone(lire(m, "marchand")["croyances"]["couteau"]["fin"]["valeur"])
+        self.assertIsNone(lire(m, "joueur")["croyances"]["couteau"]["fin"]["valeur"])
         agendas.actualiser(m, "marchand")
         m = recharger(m)
         self.assertEqual(agendas.projets(m, "marchand")[0]["etat"], "abandonne")

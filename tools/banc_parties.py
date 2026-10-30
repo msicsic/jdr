@@ -113,6 +113,7 @@ def resume_etat(m):
             "dixiemes": instant(m), "jets": m.data.get("jets"),
             "porte": sorted(i for i in m.objets if porte_par(m, i, "joueur")),
             "promesses_joueur": agendas.en_cours(m, "joueur"),
+            "charges_joueur": agendas.projets(m, "joueur"),
             "personnages": {i: [m.objets[i]["lieu"], m.objets[i].get("position")] for i in pnjs(m)},
             "passages": {i: o["passage"] for i, o in m.objets.items() if o.get("lieu") == salle and "passage" in o},
             "bloquants": sorted(i for i, o in m.objets.items()

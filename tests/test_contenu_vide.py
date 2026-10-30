@@ -1,4 +1,5 @@
 """Paroles sans effet typé : mots, portée mécanique, sauvegarde et affichage."""
+from donjon.emissions import pnj as emissions_pnj, joueur as emissions_joueur
 import copy
 import unittest
 
@@ -24,8 +25,8 @@ class ContenuVideTests(unittest.TestCase):
                         [rapport(ligne('mecanique', sources=['conversation_validee']))])
                     self.assertNotIn('Précise ce que tu veux dire', sortie)
                     self.assertIn('Tu dis', sortie)
-                    self.assertEqual(len(r.data['paroles_joueur']), 1)
-                    self.assertTrue(r.data['paroles_joueur'][0]['auditeurs'])
+                    self.assertEqual(len(emissions_joueur(r)), 1)
+                    self.assertTrue(emissions_joueur(r)[0]['auditeurs'])
                     self.assertIn('Ta question a été entendue.', str(r.data['conversation']))
                     self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 0)
 
@@ -45,7 +46,7 @@ class ContenuVideTests(unittest.TestCase):
                     revues=[{'conforme': False, 'motif': 'Ce n’est pas une demande de bien.'}] * 2)
                 self.assertNotIn('Précise ce que tu veux dire', sortie)
                 self.assertIn('Tu dis', sortie)
-                self.assertEqual(len(r.data['paroles_joueur']), 1)
+                self.assertEqual(len(emissions_joueur(r)), 1)
                 self.assertEqual(r.joueur['or'], avant)
                 validee = next(e['faits']['conversation_validee'] for f, e in appels if f == 'repondre_au_joueur' and 'conversation_validee' in e['faits'])
                 self.assertEqual(validee['faits'], [])
@@ -77,9 +78,9 @@ class ContenuVideTests(unittest.TestCase):
                     dialogue(f'« {citation} »'), dialogue(f'« {bonne} »')],
                     audits)
                 self.assertNotIn(citation, sortie)
-                self.assertNotIn(citation, str(r.data.get('paroles_pnj')))
+                self.assertNotIn(citation, str(emissions_pnj(r)))
                 self.assertIn(bonne, sortie)
-                self.assertEqual(r.data['paroles_pnj'][-1]['texte'], bonne)
+                self.assertEqual(emissions_pnj(r)[-1]['texte'], bonne)
                 self.assertEqual((r.data['missions'], agendas.contrats(r), r.joueur['or']), avant)
 
     def test_portee_independante_du_verdict_et_rapport_incomplet_refuse(self):

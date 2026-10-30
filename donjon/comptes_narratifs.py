@@ -275,10 +275,11 @@ def compatibles(a, faits):
     return resultat
 
 
-def phrases(faits):
+def phrases(faits, locuteur=None):
     """Rendu naturel de l'état final, sans répéter soldes nuls et offres conclues."""
     def personne(ref):
-        return 'toi' if ref == 'joueur' else personnes(faits).get(ref, 'une personne').split(',')[0]
+        return ('moi' if ref == locuteur else 'toi' if ref == 'joueur'
+                else personnes(faits).get(ref, 'une personne').split(',')[0])
 
     biens = objets_publics(faits)
     parts = faits.get('comptes', {}).get('parts', {})
@@ -306,6 +307,28 @@ def phrases(faits):
         de, vers = c['debiteur'], c['creancier']
         nom = personne(de if vers == 'joueur' else vers)
         q = quantite_compte(c) if c['objet'] else quantite(c['montant'], 'pièce')
+        if locuteur is not None:
+            # Les personnes grammaticales viennent exclusivement des rôles typés.
+            # Aucun mot proposé par le modèle n'entre dans cette formulation.
+            if {de, vers} != {'joueur', locuteur}:
+                continue
+            if c['etat'] == 'rendu':
+                texte = ('Je te remets ' if c['objet'] else 'Je te rends ') + q if de == locuteur else (
+                    "Tu m'as remis " if c['objet'] else "Tu m'as payé ") + q
+            elif c['etat'] == 'du':
+                verbe = ('servir' if c['objet'] in services else 'remettre') if c['objet'] else ''
+                texte = ((('Je dois encore te ' if de == locuteur else 'Tu dois encore me ') + verbe + ' ')
+                         if verbe else ('Je te dois encore ' if de == locuteur else 'Tu me dois encore ')) + q
+            elif c['etat'] == 'absent':
+                texte = (('Je ne te remets pas ' if de == locuteur else 'Tu ne me remets pas ') + q
+                         if c['objet'] else
+                         'Je ne te dois aucune pièce' if de == locuteur else 'Tu ne me dois aucune pièce')
+            else:
+                from .monde import ErreurMonde
+                raise ErreurMonde('Ce compte ne peut pas encore être raconté.',
+                                  f"comptes.issue.etat : reçu {c['etat']!r} ; du, rendu ou absent")
+            textes.append(texte + '.')
+            continue
         if c['etat'] == 'rendu':
             if de == 'joueur':
                 texte = ('Tu remets ' + q if c['objet'] else 'Tu paies ' + q) + ' ' + groupe_nominal(nom, 'à')
@@ -355,10 +378,19 @@ def phrases(faits):
         o = biens.get(ref)
         return (designer(o) if determine else o['nom']) if o else 'le bien convenu'
     def terme(t):
-        if t['type'] == 'pieces': return quantite(t['montant'], 'pièce')
+        from .propositions import en_mots_limite
+        return terme_sans_date(t) + (en_mots_limite(t['limite'], dossier.get('instant', 0))
+                                    if 'limite' in t else '')
+    def terme_sans_date(t):
+        if t['type'] == 'pieces':
+            return quantite(t['montant'], 'pièce') + (((' prise dans ' if t['montant'] == 1 else ' prises dans ')
+                                                     + bien(t['objet'])) if 'objet' in t else '')
         if t['type'] == 'rien': return 'rien'
         if t['type'] == 'tache':
             c = t['condition']
+            if c.get('proteger'):
+                return ('la protection ' + groupe_nominal(personne(c['objet']), 'de')
+                        + " jusqu'à la minute " + str(c['echeance']))
             nom = bien(c['objet'])
             if 'servir' in c:
                 return ("le service d'une part " + groupe_nominal(bien(c['objet'], False), 'de')
@@ -387,7 +419,7 @@ def phrases(faits):
                 textes[indice] = textes[indice][:-1] + ' pour ' + terme(o['condition']) + '.'
             couvertes.append(o)
     def en_compte(t):
-        return t['type'] != 'tache' or any(k in t['condition'] for k in ('servir', 'remettre'))
+        return 'limite' not in t and (t['type'] != 'tache' or any(k in t['condition'] for k in ('servir', 'remettre')))
     for o in offres(faits):
         if o not in actives or o in couvertes: continue
         if o in conclues and en_compte(o['condition']) and en_compte(o['contrepartie']): continue
@@ -395,6 +427,10 @@ def phrases(faits):
         rendu = (f"Tu offres {contre} {groupe_nominal(personne(o['creancier']), 'à')} contre {condition}."
                  if o['debiteur'] == 'joueur' else
                  f"{groupe_nominal(personne(o['debiteur']), debut=True)} t'offre {contre} contre {condition}.")
+        if locuteur is not None:
+            if {o['debiteur'], o['creancier']} != {'joueur', locuteur}:
+                continue
+            rendu = ("Je t'offre " if o['debiteur'] == locuteur else "Tu m'offres ") + contre + ' contre ' + condition + '.'
         if 'joueur' in (o['debiteur'], o['creancier']): textes.append(rendu)
     return list(dict.fromkeys(textes))
 

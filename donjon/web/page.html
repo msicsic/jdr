@@ -58,6 +58,9 @@
   button:disabled, input:disabled { opacity: .5; cursor: default; }
   .aide { color: var(--doux); font-size: 12px; }
   #statut { font-weight: 600; }
+  #fabrication label, #information label { display: block; margin: 8px 0; }
+  #fabrication select, #fabrication input, #information select { width: 100%; background: var(--fond); color: var(--texte); padding: 4px; }
+  #fabrication .aide, #information .aide { display: block; }
 </style>
 </head>
 <body>
@@ -72,6 +75,12 @@
   <aside>
     <h2>Inventaire — choisir un geste</h2>
     <ul id="inventaire"></ul>
+    <h2>Fabrication</h2>
+    <button id="fabriquer">Assembler / découper…</button>
+    <form id="fabrication" hidden></form>
+    <h2>Informations — parler</h2>
+    <button id="informer">Poser une question / dire un lieu…</button>
+    <form id="information" hidden></form>
     <h2>Autour de toi</h2>
     <ul id="personnes"></ul>
     <h2>Objets en vue</h2>
@@ -122,7 +131,11 @@ const canvas = $("carte"), ctx = canvas.getContext("2d");
 let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, surligne = null;
 let destinataires = [];
 let ressources = [];
+let ressourcesFabrication = [];
+let dangers = [];
+let offresPassages = [];
 let catalogueGestes = {objets: [], portes: []};
+let information = {destinataires: [], formulaires: []};
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
 let occupe = true, historique = [], indice = 0, brouillon = "";
@@ -401,6 +414,14 @@ function appliquerEtat(e) {
   catalogueGestes = e.catalogue_gestes || {objets: [], portes: []};
   destinataires = e.destinataires || [];
   ressources = e.ressources || [];
+  ressourcesFabrication = e.fabrication || [];
+  dangers = e.dangers || [];
+  offresPassages = e.passages || [];
+  information = e.information || {destinataires: [], formulaires: []};
+  $("information").hidden = true;
+  $("information").innerHTML = "";
+  $("fabrication").hidden = true;
+  $("fabrication").innerHTML = "";
   afficherInventaire(e.inventaire || []);
   $("lieu").textContent = e.salle;
   $("compteurs").textContent = `PV ${e.pv} · ${e.or_texte} · ${e.minutes} min · MJ : ${e.connexion}`;
@@ -482,6 +503,7 @@ document.addEventListener("keydown", ev => {
   if (dansSaisie && ev.key === "Enter") { arreter(null); envoyer(saisie.value); saisie.value = ""; ev.preventDefault(); return; }
   // Espace, saisie vide : attendre le temps d'un pas (un bouton ou une case à cocher garde son Espace).
   const champ = document.activeElement && document.activeElement.tagName;
+  if (!dansSaisie && ["INPUT", "SELECT", "TEXTAREA"].includes(champ)) return;
   if (ev.key === " " && (dansSaisie ? !saisie.value : !["BUTTON", "INPUT", "SELECT", "TEXTAREA"].includes(champ))) {
     ev.preventDefault(); envoyer("attendre 1,5 s", false); return;
   }
@@ -515,6 +537,7 @@ canvas.addEventListener("mouseleave", () => bulle.style.display = "none");
 // --- Agir par clic : transmettre le geste et sa référence publique exacte --------------------------
 const VERS = Object.fromEntries(Object.entries(DIRS).map(([nom, d]) => [d.join(","), nom]));
 let marche = null;
+let numeroParcours = Date.now();
 function praticables() {
   // Le sol que tu connais, sans personne ni obstacle vu ou dont tu te souviens.
   const ok = new Set();
@@ -587,13 +610,14 @@ function poursuivre() {
   if ($("proposition").style.display === "block") return arreter(null);
   if (!marche.pas.length) { const puis = marche.puis; arreter(null); if (puis) envoyer(puis); return; }
   marche.ici = ici;
-  envoyer({geste: "marcher", cible: marche.pas.shift()}, false);
+  const parcours = {id: marche.id, pas: [...marche.pas]};
+  envoyer({geste: "marcher", cible: marche.pas.shift(), parametres: {parcours}}, false);
 }
 function allerA(g, puis = null) {
   // ``puis`` : le descripteur (ou la parole libre) à donner une fois arrivé (un geste qui demande d'être à portée de main).
   const pas = scene.joueur.globale && chemin(scene.joueur.globale, g);
   if (!pas) { ajouterLigne("Tu ne connais pas de chemin jusque-là."); return; }
-  marche = {pas, vus: new Set(personnes.map(p => p.id)), ici: null, puis};
+  marche = {pas, id: String(++numeroParcours), vus: new Set(personnes.map(p => p.id)), ici: null, puis};
   poursuivre();
 }
 const A_DISTANCE = ["observer", "examiner", "lire", "parler"];   // le reste se fait sur la case ou juste à côté
@@ -622,6 +646,14 @@ function offresPubliques(cible, porte, parametrees = false) {
   ).map(([geste, libelle, conditions, formulaire]) => [geste, libelle, formulaire]);
 }
 function gestes(o) { return offresPubliques(o, false); }
+function choixPassages(o, g) {
+  return offresPassages.filter(p => (p.ancrage || p.cible) === o.id).map(p => {
+    const d = {geste: p.geste, cible: p.cible};
+    if (p.methode) d.parametres = {methode: p.methode};
+    if (p.outil) d.parametres = {outil: p.outil};
+    return [p.libelle, () => aPortee(g, d), d];
+  });
+}
 function gestesPorte(p) {
   const parametres = new Set(offresPubliques(p, true, true).map(([geste]) => geste));
   return offresPubliques(p, true).filter(([geste]) => !parametres.has(geste));
@@ -640,8 +672,143 @@ function choixRessource(o, geste, champ, candidats, executer, x, y, titre) {
   }];
 }
 function choixMateriels(o, executer, x, y, porte = false) {
-  return offresPubliques(o, porte, true).map(([geste, titre, formulaire]) =>
-    choixRessource(o, geste, formulaire.champ, ressources.filter(r => correspondPublic(r, formulaire.ressources)), executer, x, y, titre));
+  return offresPubliques(o, porte, true).flatMap(([geste, titre, formulaire]) => {
+    const candidats = ressources.filter(r => correspondPublic(r, formulaire.ressources) &&
+      (r.aptitudes?.[formulaire.aptitude] || []).includes(o.id));
+    return candidats.length ? [choixRessource(o, geste, formulaire.champ, candidats, executer, x, y, titre)] : [];
+  });
+}
+$("informer").onclick = () => ouvrirInformation();
+function ouvrirInformation(destinataire = "") {
+  if (occupe) return;
+  const form = $("information"); form.hidden = false; form.innerHTML = "";
+  const aide = document.createElement("p"); aide.className = "aide";
+  aide.textContent = "Le moteur décide de la réponse et de ce qui est cru. Le lieu annoncé est ton choix. Demander où se trouve un objet n'est pas encore disponible.";
+  form.appendChild(aide);
+  const select = (parent, titre, choix, valeur = "") => {
+    const label = document.createElement("label"), nom = document.createElement("span");
+    nom.textContent = titre; label.appendChild(nom);
+    const input = document.createElement("select"); input.required = true;
+    const vide = document.createElement("option"); vide.value = "";
+    vide.textContent = choix.length ? "Choisir…" : "Aucun choix public disponible"; input.appendChild(vide);
+    choix.forEach((c, i) => {
+      const option = document.createElement("option"); option.value = c.id;
+      const homonymes = choix.filter(a => a.nom === c.nom);
+      option.textContent = c.nom + (homonymes.length > 1 ? " (" + (homonymes.indexOf(c) + 1) + "/" + homonymes.length + ")" : "");
+      input.appendChild(option);
+    });
+    input.value = valeur; label.appendChild(input); parent.appendChild(label);
+    return input;
+  };
+  const qui = select(form, "À qui parler", information.destinataires, destinataire);
+  const acte = select(form, "Acte d'information", information.formulaires.map(f => ({id: f.acte, nom: f.libelle})));
+  const parametres = document.createElement("div"); form.appendChild(parametres);
+  let champs = [];
+  acte.onchange = () => {
+    parametres.innerHTML = "";
+    const offre = information.formulaires.find(f => f.acte === acte.value);
+    champs = (offre?.champs || []).map(c => [c.champ, select(parametres, c.libelle, information[c.choix] || [])]);
+  };
+  const message = document.createElement("p"); message.className = "aide"; form.appendChild(message);
+  const soumettre = document.createElement("button"); soumettre.type = "submit"; soumettre.textContent = "Dire ces mots"; form.appendChild(soumettre);
+  const fermer = document.createElement("button"); fermer.type = "button"; fermer.textContent = "Fermer";
+  fermer.onclick = () => { form.hidden = true; }; form.appendChild(fermer);
+  form.onsubmit = e => {
+    e.preventDefault();
+    if (occupe) return;
+    if (!qui.value || !acte.value || champs.some(([, input]) => !input.value)) {
+      message.textContent = "Choisis le destinataire, l'acte et tous ses paramètres."; return;
+    }
+    const d = {geste: "information", cible: qui.value,
+      parametres: {acte: acte.value, ...Object.fromEntries(champs.map(([champ, input]) => [champ, input.value]))}};
+    arreter(null); envoyer(d); form.hidden = true;
+  };
+}
+function choixCorps(o, x, y) {
+  if (o.type !== "personnage") return [];
+  // Les réactions partent immédiatement vers le moteur : aucune approche
+  // automatique d'un agresseur pour fuir, se rendre ou se dégager.
+  return (catalogueGestes.corps || []).filter(f => !f.danger || dangers.includes(o.id)).map(f => {
+    const executer = d => {
+      if (f.danger || f.geste === "liberer") { arreter(null); envoyer(d); }
+      else aPortee(o.globale, d);
+    };
+    const choisir = (i, parametres) => {
+      if (occupe) return;
+      if (i === f.champs.length) {
+        const d = {geste: f.geste, cible: o.id};
+        if (Object.keys(parametres).length) d.parametres = parametres;
+        executer(d); return;
+      }
+      const c = f.champs[i];
+      const candidats = c.type === "ressource" ?
+        [...(c.vide ? [["", c.vide]] : []), ...ressources.map(r => [r.id, r.nom +
+          (ressources.filter(a => a.nom === r.nom).length > 1 ? " (" + (ressources.filter(a => a.nom === r.nom).findIndex(a => a.id === r.id) + 1) + "/" + ressources.filter(a => a.nom === r.nom).length + ")" : "")])] :
+        c.choix.map(v => [v, v || "Dans l'axe du geste"]);
+      ouvrirMenu(x, y, [[c.libelle, candidats.map(([valeur, nom]) =>
+        [nom, () => choisir(i + 1, {...parametres, [c.champ]: valeur})])]]);
+    };
+    return [f.libelle, () => choisir(0, {}), undefined, "corps"];
+  });
+}
+$("fabriquer").onclick = e => {
+  if (occupe) return;
+  e.stopPropagation();
+  ouvrirMenu(e.clientX, e.clientY, [["Choisir une fabrication", (catalogueGestes.fabrication || []).map(f =>
+    [f.libelle, () => ouvrirFabrication(f)])]]);
+};
+function ouvrirFabrication(offre) {
+  if (occupe) return;
+  const form = $("fabrication"); form.innerHTML = ""; form.hidden = false;
+  const titre = document.createElement("p"); titre.textContent = offre.libelle; form.appendChild(titre);
+  const aide = document.createElement("p"); aide.className = "aide";
+  aide.textContent = "Choisis les ressources et les dimensions voulues. Le moteur vérifie les pièces et les droits. Les formes et mesures inconnues doivent d'abord être établies séparément.";
+  form.appendChild(aide);
+  const champs = offre.champs.map(c => {
+    const label = document.createElement("label"), nom = document.createElement("span");
+    nom.textContent = c.libelle; label.appendChild(nom);
+    const input = document.createElement(c.type === "nombre" ? "input" : "select");
+    input.required = true;
+    if (c.type === "nombre") {
+      input.type = "number"; input.step = "1"; input.min = c.minimum;
+      if (c.maximum !== undefined) input.max = c.maximum;
+    } else {
+      const vide = document.createElement("option"); vide.value = ""; vide.textContent = "Choisir…"; input.appendChild(vide);
+      const choix = c.type === "ressource" ? ressourcesFabrication.map(r => [r.id, r.nom + " [" + r.id + "]"]) : c.choix.map(v => [v, v]);
+      for (const [valeur, texte] of choix) {
+        const option = document.createElement("option"); option.value = valeur; option.textContent = texte; input.appendChild(option);
+      }
+    }
+    label.appendChild(input);
+    if (c.type === "ressource" && c.chemin[0] !== "outil") {
+      const detail = document.createElement("span"); detail.className = "aide";
+      input.onchange = () => { detail.textContent = ressourcesFabrication.find(r => r.id === input.value)?.description_physique || ""; };
+      label.appendChild(detail);
+    }
+    form.appendChild(label);
+    return [c, input];
+  });
+  const message = document.createElement("p"); message.className = "aide"; form.appendChild(message);
+  const envoyerChoix = document.createElement("button"); envoyerChoix.type = "submit";
+  envoyerChoix.textContent = "Exécuter ce choix"; form.appendChild(envoyerChoix);
+  const annuler = document.createElement("button"); annuler.type = "button"; annuler.textContent = "Fermer";
+  annuler.onclick = () => { form.hidden = true; }; form.appendChild(annuler);
+  form.onsubmit = e => {
+    e.preventDefault();
+    if (occupe) return;
+    const d = {geste: offre.geste, cible: offre.cible, parametres: {}};
+    for (const [c, input] of champs) {
+      const valeur = c.type === "nombre" ? Number(input.value) : input.value;
+      if (input.value === "" || (c.type === "nombre" && (!Number.isSafeInteger(valeur) || valeur < c.minimum || (c.maximum !== undefined && valeur > c.maximum)))) {
+        message.textContent = "Complète chaque choix et dimension dans les limites indiquées."; return;
+      }
+      if (c.chemin[0] === "cible") { d.cible = valeur; continue; }
+      let parent = d.parametres;
+      c.chemin.slice(0, -1).forEach((k, i) => { parent = parent[k] ??= typeof c.chemin[i + 1] === "number" ? [] : {}; });
+      parent[c.chemin[c.chemin.length - 1]] = valeur;
+    }
+    arreter(null); envoyer(d); form.hidden = true;
+  };
 }
 function choixInventaire(o, x, y) {
   const choix = [];
@@ -709,7 +876,13 @@ function choixCase(g, x = 20, y = 20) {
   const sections = [];
   niveau.objets.filter(o => cle(o.globale) === k).forEach(o =>
     sections.push([o.nom, [...gestes(o).map(([verbe, libelle]) => [libelle, geste(choix(verbe, o.id)), choix(verbe, o.id)]),
-      ...choixMateriels(o, d => aPortee(g, d), x, y)]]));
+      ...choixMateriels(o, d => aPortee(g, d), x, y), ...choixCorps(o, x, y), ...choixPassages(o, g)]]));
+  // Un support se représente aussi par le bout connu de son échelle,
+  // notamment depuis le palier où son objet de pied n'est pas dessiné.
+  niveau.echelles.filter(e => cle(e.globale) === k && !niveau.objets.some(o => o.id === e.support)).forEach(e => {
+    const gestes = choixPassages({id: e.support}, g);
+    if (gestes.length) sections.push([e.nom, gestes]);
+  });
   niveau.sorties.filter(s => s.porte && cle(s.globale) === k).forEach(s =>
     sections.push([s.porte.nom, [...gestesPorte(s.porte).map(([verbe, libelle]) => [libelle, geste(choix(verbe, s.porte.id)), choix(verbe, s.porte.id)]),
       ...choixMateriels(s.porte, d => aPortee(g, d), x, y, true)]]));

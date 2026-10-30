@@ -43,7 +43,7 @@ def rapport(*lignes):
     return {"segments": {str(i): l for i, l in enumerate(lignes)}}
 
 
-def jouer(monde, saisie, reponses, audits, revues=()):
+def jouer(monde, saisie, reponses, audits, revues=(), *, suite=()):
     """La vraie boucle de jeu, le fournisseur simulé appel par appel (MJ, auditeur, contre-revue)."""
     reponses, audits, revues, appels = list(reponses), list(audits), list(revues), []
 
@@ -74,7 +74,7 @@ def jouer(monde, saisie, reponses, audits, revues=()):
         with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
               patch.object(MJOpenAI, "_appeler_brut", side_effect=appel),
               patch.object(Monde, "d20", return_value=20),
-              patch("builtins.input", side_effect=[saisie, "quitter"]),
+              patch("builtins.input", side_effect=[saisie, *suite, "quitter"]),
               patch("sys.stdout", io.StringIO()) as sortie):
             assert jeu.main(["--console", "--connexion", "api", "--save", str(chemin)]) == 0
         return Monde.charger(chemin), sortie.getvalue(), appels
@@ -317,18 +317,18 @@ class ChaineTests(Commun, unittest.TestCase):
 
     def test_contre_revue_non_conforme_la_correction_recoit_le_plan_et_le_motif(self):
         m = nouveau_monde()
-        examiner = {"mode": "action", "texte": "", "faits": [],
-                    "proposition": proposition("examiner", "torche", justification="")}
-        recit = dialogue("Tu examines la torche.")
-        reprise, sortie, appels = jouer(m, "j'examine la torche", [examiner, examiner, recit],
+        attendre = {"mode": "action", "texte": "", "faits": [],
+                    "proposition": proposition("attendre", "600", justification="")}
+        recit = dialogue("Tu attends dix minutes.")
+        reprise, sortie, appels = jouer(m, "mj je patiente dix minutes", [attendre, attendre, recit],
                                         [verdicts(("mecanique", ("resultat_resolu",), ""))],
-                                        [{"conforme": False, "motif": "Le joueur veut aussi la prendre."},
+                                        [{"conforme": False, "motif": "Le joueur veut attendre dix minutes."},
                                          {"conforme": True, "motif": ""}])
         retour = mj(appels)[1]["faits"]["retour_moteur"]
         self.assertEqual(retour["obstacle"],
-                         "La manœuvre proposée ne couvre pas la demande : Le joueur veut aussi la prendre.")
-        self.assertIn("(action examiner, cible torche) » ; selon l'auditeur (verdict non conforme) : « Le joueur "
-                      "veut aussi la prendre. »", retour["attendu"])
+                         "La manœuvre proposée ne couvre pas la demande : Le joueur veut attendre dix minutes.")
+        self.assertIn("(action attendre, cible 600) » ; selon l'auditeur (verdict non conforme) : « Le joueur "
+                      "veut attendre dix minutes. »", retour["attendu"])
         self.assertJamaisAffiche(sortie, [retour])
         self.assertNotIn(retour["obstacle"], sortie)
         self.assertEqual(reprise.objets["torche"]["lieu"], "antichambre")
