@@ -12,6 +12,7 @@ from .esprits import dernier_son
 
 OPERATIONS = ("discuter", "proposer", "negocier", "accepter", "refuser")
 GESTE_INFORMATION = "information"
+AIDE_INFORMATION = "information. Demander ou transmettre une information."
 
 
 def formulaires_information():
@@ -56,6 +57,74 @@ def information_publique(monde):
             "personnes": [{"id": "joueur", "nom": monde.joueur["nom"]}, *personnes],
             "lieux": lieux,
             "ressources": [*ressources, *({"id": b, "nom": n} for b, n in RESSOURCES_DEMANDEES.items())]}
+
+
+class InformationTerminal:
+    """Formulaire numéroté sur les mêmes paramètres publics que le web."""
+
+    def __init__(self, public):
+        self.public = copy.deepcopy(public)
+        self.formulaires = formulaires_information()
+        self.destinataire = None
+        self.formulaire = None
+        self.valeurs = []
+        self.terminee = False
+
+    @property
+    def champ(self):
+        return self.formulaire["champs"][len(self.valeurs)]
+
+    def choix(self):
+        if self.destinataire is None:
+            return [(x["id"], x["nom"] + " [" + x["id"] + "]")
+                    for x in self.public["destinataires"]]
+        if self.formulaire is None:
+            return [(f, f["libelle"]) for f in self.formulaires]
+        return [(x["id"], x["nom"] + " [" + x["id"] + "]")
+                for x in self.public[self.champ["choix"]]]
+
+    def rendre(self):
+        lignes = ["Information — numéro puis Entrée ; annuler pour fermer.",
+                  "Le dernier choix transmet la parole ; une affirmation demande confirmation.",
+                  "Demander où est un objet reste indisponible."]
+        if self.destinataire:
+            lignes.append("À qui parler : " + self.destinataire[1])
+        if self.formulaire:
+            lignes.append(self.formulaire["libelle"])
+            lignes.extend(c["libelle"] + " : " + v[1]
+                          for c, v in zip(self.formulaire["champs"], self.valeurs))
+        lignes.append("À qui parler :" if self.destinataire is None else
+                      "Acte d'information :" if self.formulaire is None else self.champ["libelle"] + " :")
+        choix = self.choix()
+        lignes.extend(f"{i}. {libelle}" for i, (_, libelle) in enumerate(choix, 1))
+        if not choix:
+            lignes.append("Aucun choix connu à portée. Annule pour revenir au jeu.")
+        return "\n".join(lignes)
+
+    def saisir(self, texte):
+        from .commandes import DescripteurPublic
+        if self.terminee:
+            raise ValueError("Ce formulaire est fermé.")
+        texte = texte.strip()
+        if texte.casefold() == "annuler":
+            self.terminee = True
+            return None
+        selection = next(((v, l) for i, (v, l) in enumerate(self.choix(), 1)
+                          if texte.lstrip("0") == str(i)), None)
+        if selection is None:
+            raise ValueError("Choisis un seul numéro du formulaire affiché.")
+        if self.destinataire is None:
+            self.destinataire = selection
+        elif self.formulaire is None:
+            self.formulaire = selection[0]
+        else:
+            self.valeurs.append(selection)
+        if self.formulaire is None or len(self.valeurs) < len(self.formulaire["champs"]):
+            return None
+        self.terminee = True
+        return DescripteurPublic({"geste": GESTE_INFORMATION, "cible": self.destinataire[0],
+            "parametres": {"acte": self.formulaire["acte"],
+                           **{c["champ"]: v[0] for c, v in zip(self.formulaire["champs"], self.valeurs)}}})
 
 
 def parole_information(monde, d):
