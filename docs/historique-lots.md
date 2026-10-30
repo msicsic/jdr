@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **348 — E1 référence temporelle**, `codex-e1-reference-temporelle`, base `origin/integration 014fc35`.
+  Référence facultative identité/version/création/limite en dixièmes ; aucun champ ajouté aux obligations ordinaires.
+  Validation commune à la recharge, `attendu` préservé par le chargeur ; accès au stockage borné par le contrôle AST.
+  126 ciblés : 124 verts, 2 échecs de protection reproduits sur la base.
+  Empreintes 2 h × 4 graines, Relais/auberge/mine : 12/12 identiques à la base ; écart avec `main` antérieur à E1.
+  Limites : socle interne, aucun appelant ni effet d'expiration ; réalisation et accord datés restent à E2–E6.
+  [Rapport](taches/rapport-codex-348-e1-reference-temporelle.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Socle interne, aucun appelant ; empreintes 12/12 identiques ; 124/126 ciblés, deux échecs de protection préexistants.
+
 - **345 / G16 terminé — `codex-g16-information`, fusionnée**, base `3e3afe2`, fusion sans rebase `e792251` de `014fc35`.
   Identité, ressource et localisation crue formulées par le moteur ; publication G15–G17 commune.
   **310 tests / 23 fichiers : cinq assertions antérieures reproduites sur `014fc35`, zéro erreur/saut ni incident nouveau.**

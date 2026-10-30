@@ -718,5 +718,7 @@ class Monde:
     def charger(cls, chemin):
         try:
             return cls(json.loads(Path(chemin).read_text(encoding="utf-8")))
+        except ErreurMonde:
+            raise  # Conserver le champ fautif et l'attendu de la validation d'état.
         except (OSError, ValueError, TypeError) as exc:
             raise ErreurMonde(f"Impossible de charger la sauvegarde : {exc}") from exc

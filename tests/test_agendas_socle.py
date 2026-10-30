@@ -35,10 +35,10 @@ def acces(source):
               and n.func.attr in ("get", "setdefault", "pop", "__getitem__", "__setitem__", "__delitem__")
               and n.args):
             cle = n.args[0]
-        if isinstance(cle, ast.Constant) and cle.value in ("engagements", "agendas", "confies", "confirme", "attributions", "mandats_percus", "agendas_joueur", "offres_mandat_joueur"):
+        if isinstance(cle, ast.Constant) and cle.value in ("engagements", "agendas", "confies", "confirme", "attributions", "mandats_percus", "agendas_joueur", "offres_mandat_joueur", "reference_temporelle", "sequence_obligations"):
             lignes.append(n.lineno)
         if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "update":
-            lignes.extend(n.lineno for k in n.keywords if k.arg in ("engagements", "agendas", "confies", "confirme", "attributions", "mandats_percus", "agendas_joueur", "offres_mandat_joueur"))
+            lignes.extend(n.lineno for k in n.keywords if k.arg in ("engagements", "agendas", "confies", "confirme", "attributions", "mandats_percus", "agendas_joueur", "offres_mandat_joueur", "reference_temporelle", "sequence_obligations"))
     return lignes
 
 
@@ -60,7 +60,9 @@ class AccesTests(unittest.TestCase):
                        'a["confies"]', 'a.get("confirme")', 'a.update(confies=[])',
                        'a.get("attributions")', 'a.update(attributions=[])',
                        'a.get("agendas_joueur")', 'a.update(offres_mandat_joueur=[])',
-                       'e.get("mandats_percus")', 'e.update(mandats_percus=[])'):
+                       'e.get("mandats_percus")', 'e.update(mandats_percus=[])',
+                       'e.get("reference_temporelle")', 'e.update(reference_temporelle={})',
+                       'e.get("sequence_obligations")', 'e.update(sequence_obligations=1)'):
             with self.subTest(source=source):
                 self.assertEqual(acces(source), [1])
 

@@ -348,6 +348,7 @@ def _contre_offre_valide(monde, id, refus):
 
 
 def verifier(monde):
+    agendas.verifier_references_temporelles(monde)
     agendas.verifier(monde, 'joueur')
     if "connaissances_joueur" in monde.data:
         e = monde.data["connaissances_joueur"]

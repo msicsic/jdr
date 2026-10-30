@@ -1717,11 +1717,104 @@ def en_cours(monde, id, *, condition=None, objet=None, personne=None, actifs=Fal
             and (not actifs or not x.get("annule"))]
 
 
-def prendre(monde, id, engagement):
-    """Inscrire aussi la proposition provisoire, retirée si le devis ou le jet refuse."""
+def reference_temporelle(engagement):
+    """Référence acceptée, en dixièmes absolus, ou None ; jamais une date déduite.
+
+    L'identité est celle de l'obligation datée ; version 1 désigne ses termes initiaux.
+    Ni la minute renouvelable, ni le devis, ni une fin de protection ne la modifient.
+    La copie retournée n'autorise aucune renégociation implicite.
+    """
+    return copy.deepcopy(engagement.get('reference_temporelle'))
+
+
+def _verifier_reference_temporelle(monde, engagement, chemin, sequence):
+    from .monde import ErreurMonde
+    from .temps import instant
+
+    def refuser(champ, recu, accepte):
+        raise ErreurMonde('Référence temporelle d’obligation invalide.',
+                          f'{chemin}.{champ} : reçu {recu!r} ; accepté : {accepte}.')
+
+    r = reference_temporelle(engagement)
+    if 'reference_temporelle' not in engagement:
+        return None
+    champs = {'id', 'version', 'creation', 'limite'}
+    if not isinstance(r, dict):
+        refuser('reference_temporelle', r, f'un dictionnaire de champs {sorted(champs)}')
+    if set(r) != champs:
+        refuser('reference_temporelle', sorted(r), f'exactement {sorted(champs)}')
+    chemin += '.reference_temporelle'
+    if type(r['id']) is not int:
+        refuser('id', r['id'], 'un entier')
+    if not 0 < r['id'] <= sequence:
+        refuser('id', r['id'], f'un identifiant entre 1 et sequence_obligations={sequence}')
+    if type(r['version']) is not int or r['version'] != 1:
+        refuser('version', r['version'], '1 (termes initiaux ; révision non portée)')
+    if type(r['creation']) is not int:
+        refuser('creation', r['creation'], 'un entier en dixièmes de seconde')
+    if r['creation'] < 0:
+        refuser('creation', r['creation'], 'un instant positif ou nul')
+    if r['creation'] > instant(monde):
+        refuser('creation', r['creation'], f'un instant <= {instant(monde)}')
+    if type(r['limite']) is not int:
+        refuser('limite', r['limite'], 'un entier en dixièmes de seconde')
+    if r['limite'] < 0:
+        refuser('limite', r['limite'], 'un instant positif ou nul')
+    if r['limite'] < r['creation']:
+        refuser('limite', r['limite'], f'un instant >= creation={r["creation"]}')
+    return r
+
+
+def verifier_references_temporelles(monde):
+    """Validation commune de recharge, joueur et PNJ ; aucune migration de date.
+
+    La séquence ne recule pas quand un engagement est retiré, même provisoire.
+    Elle n'existe que si une première référence a été explicitement créée.
+    """
+    from .monde import ErreurMonde
+    sequence = monde.data.get('sequence_obligations', 0)
+    if type(sequence) is not int or sequence < 0:
+        raise ErreurMonde('Compteur d’obligations invalide.',
+                          f'sequence_obligations : reçu {sequence!r} ; accepté : un entier >= 0.')
+    stocks = [('joueur', monde.data.get('promesses_joueur', []))]
+    stocks.extend((id, e['engagements']) for id, e in monde.data.get('esprits', {}).items())
+    identites = set()
+    for id, stock in stocks:
+        for rang, engagement in enumerate(stock):
+            chemin = f'obligations.{id}[{rang}]'
+            r = _verifier_reference_temporelle(monde, engagement, chemin, sequence)
+            if r is None:
+                continue
+            if r['id'] in identites:
+                raise ErreurMonde('Identité d’obligation dupliquée.',
+                                  f'{chemin}.reference_temporelle.id : reçu {r["id"]!r} ; '
+                                  'accepté : un identifiant distinct de toute autre obligation.')
+            identites.add(r['id'])
+
+
+def prendre(monde, id, engagement, *, limite=None):
+    """Inscrire aussi la proposition provisoire, retirée si le devis ou le jet refuse.
+
+    E1 : ``limite`` est interne, sans appelant de jeu avant le portage E4.
+    Aucune métadonnée ajoutée aux engagements ordinaires ou aux anciennes parties.
+    """
     from .esprits import esprit
+    from .monde import ErreurMonde
+    from .temps import instant
+    engagement = copy.deepcopy(engagement)
+    if 'reference_temporelle' in engagement:
+        raise ErreurMonde('Cette référence d’obligation ne peut pas être réutilisée.',
+                          f'reference_temporelle : reçu {engagement["reference_temporelle"]!r} ; '
+                          'accepté : champ absent ; prendre alloue identité et version.')
+    if limite is not None:
+        verifier_references_temporelles(monde)
+        sequence = monde.data.get('sequence_obligations', 0) + 1
+        engagement['reference_temporelle'] = {
+            'id': sequence, 'version': 1, 'creation': instant(monde), 'limite': limite}
+        _verifier_reference_temporelle(monde, engagement, f'obligations.{id}', sequence)
+        monde.data['sequence_obligations'] = sequence
     stock = monde.data.setdefault("promesses_joueur", []) if id == "joueur" else esprit(monde, id)["engagements"]
-    stock.append(copy.deepcopy(engagement))
+    stock.append(engagement)
 
 
 def admettre_contrat(monde, id, engagement):
@@ -2104,7 +2197,7 @@ def verifier(monde, id):
         # reçu (``echanges.engagements_echus``).
         from .biens import QUOI
         paye = engagement.get("paye")
-        assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule", "commence"}
+        assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule", "commence", "reference_temporelle"}
                 - ({"realisee"} if id == "joueur" else set()) == {"condition", "pour", "minute"}
                 and ("realisee" not in engagement or engagement["realisee"] is True)
                 and ("objet" not in engagement or isinstance(engagement["objet"], str))
