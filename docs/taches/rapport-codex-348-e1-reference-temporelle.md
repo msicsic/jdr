@@ -1,6 +1,6 @@
 # Lot 348 — E1, référence temporelle canonique
 
-Branche `codex-e1-reference-temporelle`, base `origin/integration 014fc35`.
+Branche `codex-e1-reference-temporelle`, base `origin/integration 014fc35` ; code mesuré `06ad173`.
 
 Une obligation peut porter une référence temporelle explicite, sans convertir une durée
 de devis, une fin de protection, une échéance de suivi ou le maximum générique d'abandon
@@ -33,14 +33,20 @@ rendu, scène perçue et paroles enregistrées après sauvegarde/recharge ; ils 
 les laps continu/découpé, la lecture sans mutation, le renouvellement, les doublons et
 les corruptions de JSON réellement chargées.
 
-**Mesure neutre en attente.** Empreintes 2 h, quatre graines 1985/7/42/2024,
-Relais/auberge/mine, deux processus au plus à priorité réduite. La référence `main` locale
-est ancienne (`c870c8b`) ; utiliser son état publié `origin/main 0bad227`, conformément
-au point de reprise, sans déplacer de branche locale. Comparer aussi la base exacte
-`014fc35` pour isoler E1 des lots déjà intégrés après `main`. Cache commun réutilisé
-par commit ; la branche mesurée sera figée en commit et réutilisée entre comparaisons.
-Bruts : `C:\Users\msics\donjon\artifacts\e1-348\` ; fin attendue : `fin-bancs.json`.
-Mesure lancée détachée ; ne pas annoncer l'identité des empreintes avant sa lecture.
+**Neutralité prouvée sur les nuits demandées.** Empreintes 2 h, graines 1985/7/42/2024,
+Relais/auberge/mine, deux processus à priorité réduite : **12/12 nuits identiques à la
+base exacte `014fc35`**, chroniques, mesures et état final complet. Les audits `avis` et
+`constats` sont également identiques : zéro avis non justifié, dix avis à expliquer déjà
+sur la base. Aucun plantage dans les trois versions mesurées.
+La comparaison avec `origin/main 0bad227` diverge dès Relais/1985, minute 0 ; l'identité
+complète avec la base établit que cet écart précède E1. `origin/main` est le `main` publié
+du point de reprise ; la branche locale `main`, ancienne (`c870c8b`), n'a pas été déplacée.
+Les références manquantes ont été calculées une fois et rangées dans le cache commun ;
+les douze nuits du lot ont été relues du cache pour la seconde comparaison, sans rejeu.
+Aucune comparaison de temps CPU n'en est tirée. Bruts :
+`C:\Users\msics\donjon\artifacts\e1-348\` (`empreintes-main.json`, `empreintes-base.json`,
+`synthese-finale.json`). Le lanceur laisse ses codes de sortie à `null` dans
+`fin-bancs.json` ; les conclusions reposent sur les résultats JSON complets et leurs journaux.
 
 **Limites.** Socle interne uniquement : aucun appelant du jeu ne passe de limite,
 aucun schéma, prompt ou rendu nouveau. Le franchissement d'une limite n'a encore aucun

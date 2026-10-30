@@ -15,7 +15,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Fusionnés récemment : G2, G4, U-D, G5, G6, G7, G15, G17, G19, U-P, U-C, U-M outils/inventaire/fabrication,
   U-T premier geste/outils/inventaire/fabrication, A0 (oracle G1).
 - **PNJ** : A5 (mandat) fini sauf 306 (lots 338, 340, 341 fusionnés). A1 provenance publique fusionnée (346, non branchée).
-  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 = lot 348 en cours.
+  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 = lot 348 livré, non fusionné.
 - **Groupe 1 en attente de fusion** (corrections d'attribution par le lot 342) : 313 `codex-contact-inconnu`
   (contact de position inconnue), 315 réclamations répétées, 332 attention conjointe, 333 `codex-garder-lieu`.
   Après lui : 335 `codex-suivi-vocal` (refusionner l'intégration, refaire ses ciblés), 306 (A5 agenda du hameau,
@@ -38,7 +38,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - **348 — E1 référence temporelle**, `codex-e1-reference-temporelle`, base `origin/integration 014fc35`.
   Référence facultative identité/version/création/limite en dixièmes ; aucun champ ajouté aux obligations ordinaires.
   Validation commune à la recharge, `attendu` préservé par le chargeur ; accès au stockage borné par le contrôle AST.
-  126 ciblés : 124 verts, 2 échecs de protection reproduits sur la base ; empreintes 2 h × 4 graines en cours.
+  126 ciblés : 124 verts, 2 échecs de protection reproduits sur la base.
+  Empreintes 2 h × 4 graines, Relais/auberge/mine : 12/12 identiques à la base ; écart avec `main` antérieur à E1.
   Limites : socle interne, aucun appelant ni effet d'expiration ; réalisation et accord datés restent à E2–E6.
   [Rapport](taches/rapport-codex-348-e1-reference-temporelle.md).
 
