@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **364 / intégration 362**, `codex-e6-libre-date`, base `ba05abe5`, fusion sans rebase `869c867c`.
+  Blocage TUI reproduit sans clé API : le MJ simulé n'était pas activé ; même activation avant/après le contrat 362.
+  Contexte commun `mj_simule` pour E6 et E5, indépendant du `.env` ; 122 assertions identiques, gardes 362 inchangées.
+  **64 tests / neuf fichiers verts**, zéro échec, erreur ou saut, sans clé ambiante ; deux travailleurs réduits, sans Luna.
+  Fusion partielle E6 autorisée par l'utilisateur ; les limites Luna du 364 restent acquises comme réserves.
+  [Rapport](taches/rapport-codex-364-integration-362.md), bruts `artifacts/e6-364/integration-362/`, `fin-correction.json` vert.
+  Fusionné sur l'intégration : conflits de documentation et de `tests/support.py` (double du lot 360 et contexte MJ simulé d'E6, réunis) ; fichiers de code touchés aussi depuis la base : `paroles.py`. Décision de l'utilisateur : E6 partiel. Barrières sûres (aucun accord daté sans formulaire ni validation U-C) ; limite : Luna refuse encore à tort « demain » et le verrou, à reprendre avec K2. 64 tests verts après réaccordance au 362.
+
 - **360 — `codex-regressions-337`**, base `integration 0b62a4fa`, **terminé, non fusionné ; poussé**.
   Contrat commun : droits ⇒ lieu sans réciproque ; inventaire et états portés initiaux silencieux,
   changements appris transmis ; les événements mémorisés gardent leur nouveauté. Source validée `861d88d1`.

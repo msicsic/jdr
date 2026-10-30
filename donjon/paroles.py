@@ -51,7 +51,7 @@ SENS_CONTENU = {
     "bilan_mandat": "Rendre compte à son mandant d'une charge acceptée : agenda est son identifiant public, issue est reussi, echoue ou renonce. Cela établit une parole, jamais la vérité de son résultat.",
     "localisation": "Demander où se trouve une personne connue, désignée par sujet. La réponse transmet la dernière croyance datée de l'interlocuteur, jamais une position cachée.",
     "avis": "Prévoir qu'une menace atteindra ou épargnera un lieu : annoncer une évolution future est un avis, même formulé comme une certitude, sans marque d'opinion ni échéance explicite. sujet est la référence publique du lieu connu de Corvus, attribut menace, valeur oui (menacé) ou non (épargné). Le prédicat disponible évalue la menace d'eau ; son horizon de calcul est fixé par le moteur, il n'est pas une condition à exprimer dans la parole. Le contenu transmet la prévision du joueur, jamais un fait établi ; sa conviction est calculée par le moteur sur ses perceptions.",
-    "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
+    "proposition": "Proposer un échange indivisible : demande et contrepartie. Une part ou tâche ponctuelle peut porter une limite d'accomplissement, contre des pièces payées maintenant. Chaque clause appartient aux termes typés ; les seuls mots ne la portent pas. Le moteur tranche et enregistre avant la réponse.",
     "propos": "Parole qui n'accomplit aucun des actes disponibles. La visibilité, l'évidence ou la connaissance préalable d'une information ne transforment pas une affirmation en propos sans effet typé. Reproduire les mots du joueur ne dispense pas de typer leur sens.",
     "affirmation": "Communiquer directement à l'interlocuteur un fait représentable par sujet, attribut et valeur. Sa visibilité, son évidence, sa nouveauté et le souhait explicite d'un effet mécanique ne changent pas cet acte. Un contenu à faire transmettre dans un contrat appartient à ce contrat ; il n'est pas une affirmation autonome supplémentaire de Corvus.",
     "demande": "Demander un objet ou une part de ressource ; valeur est le prix offert, vide sans offre.",
@@ -101,7 +101,8 @@ SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["type"]["descripti
 SCHEMA_PAROLE["properties"]["contenu"]["items"]["properties"]["sujet"]["description"] = (
     "Pour ressource : le bien nommé, sans article (nom, alias, matière ou catégorie), même inconnu de Corvus ; pour un besoin général seulement : " + "; ".join(f"{b} = {RESSOURCES_DEMANDEES[b]}" for b in BESOINS_DEMANDES)
     + ". Sinon, la référence du sujet selon le type.")
-from .propositions import SCHEMA as SCHEMA_PROPOSITION
+from .propositions import schema_compilation
+SCHEMA_PROPOSITION = schema_compilation()
 _contenu_ordinaire = SCHEMA_PAROLE["properties"]["contenu"]["items"]
 # Le schéma annonce le même contrat que verifier_contenus : un champ sans
 # sens pour ce type est vide. Chaque variante décrit seulement son type,
@@ -188,9 +189,15 @@ def _biens_contenu(monde, contenu):
             "quantite": 1, "unite": terme["type"]})
 
     if contenu.get("type") == "proposition":
-        return {champ: b for champ in ("demande", "contrepartie")
+        from .propositions import en_mots
+        from .noms import texte
+        return {'termes_executables': {champ: texte(monde, en_mots(monde, contenu[champ]))
+                                      for champ in ('demande', 'contrepartie')},
+                **({'paiement': 'présent, aucun crédit ni paiement différé'}
+                   if any(contenu[champ]['type'] == 'pieces' for champ in ('demande', 'contrepartie')) else {}),
+                **{champ: b for champ in ("demande", "contrepartie")
                 if contenu.get(champ, {}).get("type") in ("objet", "part")
-                and (b := bien(contenu[champ])) is not None}
+                and (b := bien(contenu[champ])) is not None}}
     if contenu.get("type") == "demande":
         identifiant = resoudre(monde, contenu.get("sujet"))
         if identifiant in monde.objets:
@@ -269,6 +276,15 @@ contenu (3 éléments au plus) dit ce que la réplique transmet :
   différée. Une offre liée à une demande forme un seul contenu proposition, jamais deux
   demandes indépendantes. Le moteur fixe acceptation, refus, remises et engagements ;
   la réponse respecte ses faits. Une proposition s'adresse à une seule personne.
+  Une prestation ponctuelle (part livrée ou tâche allume, verrouillee, lieu, servir)
+  datée passe par le mode accord et son formulaire de choix direct, jamais par
+  une proposition exécutée depuis parole_joueur. Ne calcule aucune date.
+  L'accomplissement avant la limite n'est pas le maintien d'un état pendant une durée.
+  Toutes les clauses de l'accord doivent être représentables ensemble : ni paiement
+  différé, ni prêt daté, ni maintien continu, ni alternative ne peuvent être exécutés
+  par ces termes. Une clause non portée se signale par obstacle du mode accord ;
+  ne la convertis ni en propos ni en marché réduit. Une référence temporelle
+  sans repère public ouvre aussi le formulaire, avec le délai vide à préciser.
 Une voix inconnue (interlocuteur voix_<n>) : Corvus l'entend sans savoir à qui elle est ; ce
 qu'elle dit d'elle-même n'est que ce qu'elle prétend. Ne lui donne pas d'autre nom que le sien
 (« une voix inconnue », « une voix qui se dit … »).

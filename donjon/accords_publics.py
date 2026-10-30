@@ -83,11 +83,25 @@ class AccordTerminal:
     """Formulaire local figé, modifiable avant de soumettre à U-C."""
     champs = ('destinataire', 'prestation', 'prix', 'delai')
 
-    def __init__(self, public):
+    def __init__(self, public, initial=None):
         self.public = copy.deepcopy(public)
         self.valeurs = {}
         self.etape = 'destinataire'
         self.terminee = False
+        initial = initial or {}
+        for cle, liste, champ in (('destinataire', 'destinataires', 'id'), ('prestation', 'prestations', 'terme')):
+            for x in self.public[liste]:
+                if cle in initial and x[champ] == initial[cle]:
+                    self.valeurs[cle] = (copy.deepcopy(x[champ]), x['nom'])
+                    break
+        prix = initial.get('prix')
+        if type(prix) is int and 1 <= prix <= self.public['or']:
+            self.valeurs['prix'] = (prix, f'{prix} pièces payées maintenant')
+        limite = initial.get('limite')
+        if type(limite) is int and limite >= self.public['instant']:
+            from .propositions import en_mots_limite
+            self.valeurs['delai'] = (limite, en_mots_limite(limite, self.public['instant']).strip())
+        self.etape = next((c for c in self.champs if c not in self.valeurs), None)
 
     def choix(self):
         if self.etape == 'destinataire':

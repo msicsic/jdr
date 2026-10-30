@@ -99,7 +99,14 @@ INSTRUCTIONS_PAROLE = """Tu contrôles le sens d'une parole préparée, avant so
 Compare la demande du joueur à replique et au sens exécutable du contenu fourni.
 Analyse séparément operations_demandees dans la saisie, même si le contenu proposé les omet.
 contenu_conforme juge uniquement une contradiction ou une omission de sens : mots,
-biens, quantités, prix, attributs, engagements. Un contenu propos ne couvre pas une
+biens, quantités, prix, attributs, engagements, clauses et repères temporels.
+Les termes exécutables portent le paiement présent et les limites absolues avec leur
+durée restante. Compare chaque clause de la demande à ces termes, même si les mots
+de la réplique la reproduisent. Une limite absente, déplacée, un maintien converti
+en accomplissement ponctuel, un paiement futur converti en paiement présent ou une
+alternative réduite à une seule branche sont des omissions ou contradictions de sens.
+Une clause sans représentation ne peut pas être abandonnée pour exécuter le reste.
+Un contenu propos ne couvre pas une
 opération demandée ; le moteur contrôle séparément la couverture des opérations.
 L'adresse est déjà décidée par destinataires, y compris le sens des mots qui la
 portent : pronoms, indéfinis, vocatifs, groupes. Ces mots ne permettent pas de

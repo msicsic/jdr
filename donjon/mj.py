@@ -410,6 +410,7 @@ def verifier_disponibilite(reponse, faits, geste_requis=False):
     """Les possibilités du tour sont des données, jamais des variantes du schéma."""
     disponibles = {
         "dialogue": True, "action": True,
+        "accord": True,
         "enrichir_joueur": bool(faits.get("profil_joueur_a_completer")),
         "enrichir": bool(faits.get("descriptions_a_completer")),
         "conversation_pnj": bool(faits.get("interlocuteurs")),
@@ -605,6 +606,9 @@ class MJ:
         Aucune écriture : seule la boucle de jeu applique les propositions validées.
         """
         revision = monde.data["revision"]
+        from .accords_libres import ouvrir as ouvrir_accord, depuis_parole
+        if reponse is not None and reponse.get('mode') == 'accord':
+            return ouvrir_accord(monde, reponse['proposition'], intention)
         if (reponse is None and not est_question(intention) and proposition_en_attente is None and
                 normaliser(intention) in ("je retente", "je rentente", "je reessaie", "je recommence", "retenter", "reessayer")):
             dernier = derniere_tentative(monde)
@@ -633,6 +637,12 @@ class MJ:
                 return {"mode": "dialogue", "texte": annoncee["impossible"], "faits": [], "proposition": None,
                         "_texte_moteur": True, "_validation_refusee": True}
             reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True)
+            if reponse.get('mode') == 'accord':
+                return ouvrir_accord(monde, reponse['proposition'], intention)
+            if reponse.get('mode') == 'parole_joueur':
+                brouillon = depuis_parole(monde, reponse['proposition'], intention)
+                if brouillon:
+                    return brouillon
             if reponse["mode"] == "dialogue" and parole_attendue(monde, intention):
                 # Une parole passe par le moteur, qui la fait entendre avant qu'on la raconte. Après un
                 # repli du contrôle narratif (aucune réponse admise), le moteur la prononce sans relance.
@@ -857,6 +867,12 @@ class MJ:
             return ajouter_transaction({"mode": "dialogue", "texte": texte, "faits": [],
                                         "proposition": None, "_texte_moteur": True},
                                        "faits", revision, p)
+        if reponse.get('mode') == 'accord':
+            return ouvrir_accord(monde, reponse['proposition'], intention)
+        if reponse.get('mode') == 'parole_joueur':
+            brouillon = depuis_parole(monde, reponse['proposition'], intention)
+            if brouillon:
+                return brouillon
         if reponse["mode"] == "action" and reponse["proposition"]["action"] in ("clarifier", "impossible"):
             if "_audit_justification" not in reponse:
                 raise ErreurMonde("L'avis du MJ n'a pas été contrôlé.")
@@ -891,6 +907,9 @@ class MJ:
                         operations_declarees - operations_contenu(complements["contenu"]))
                     # Une préparation refusée ne confirme aucune opération de
                     # cette interprétation ; les obligations reconnues restent.
+                    brouillon = depuis_parole(monde, complements, intention)
+                    if brouillon:
+                        return brouillon
                     travail, rapport = preparer_parole(monde, complements, revision)
                     self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
                                                    operations_demandees, declaration_connue, operations_declarees,
@@ -1135,27 +1154,36 @@ class MJ:
         schema_faits_suite["required"].append("suite")
         from .paroles import SCHEMA_OPERATIONS
         schema_parole = copy.deepcopy(SCHEMA_PAROLE)
+        # Le protocole du MJ ne propose plus de date à exécuter. Le contrat
+        # moteur E4 reste disponible au choix direct, et les anciennes réponses
+        # datées sont interceptées avant leur préparation puis au rejeu U-C.
+        for contenu in schema_parole['properties']['contenu']['items']['anyOf']:
+            if contenu['properties']['type']['enum'] == ['proposition']:
+                for nom in ('demande', 'contrepartie'):
+                    contenu['properties'][nom]['anyOf'] = [t for t in contenu['properties'][nom]['anyOf']
+                                                            if 'limite' not in t['properties']]
         # L'analyse de la saisie précède le choix du contenu : elle ne doit pas
         # être une justification a posteriori des seuls types déjà proposés.
         schema_parole["properties"] = {"operations_demandees": SCHEMA_OPERATIONS,
                                        **schema_parole["properties"]}
         schema_parole["required"] = ["operations_demandees", *schema_parole["required"]]
+        from .accords_libres import SCHEMA as SCHEMA_ACCORD, REGLES as REGLES_ACCORD
         schema = {
             "type": "object", "additionalProperties": False,
             "properties": {
                 "mode": {"type": "string", "enum": ["dialogue", "action", "enrichir_joueur", "enrichir",
-                                                       "conversation_pnj", "parole_joueur", "enrichir_savoirs", "etablir_faits"]},
+                                                       "conversation_pnj", "parole_joueur", "enrichir_savoirs", "etablir_faits", "accord"]},
                 "texte": {"type": "string"},
                 "faits": {"type": "array", "items": {"type": "string"}},
                 "proposition": {"anyOf": [SCHEMA, SCHEMA_SEQUENCE, {"type": "null"}, SCHEMA_PROFIL,
                                           SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE,
                                           SCHEMA_COMPLEMENTS, SCHEMA_CONVERSATION, schema_parole,
-                                          SCHEMA_SAVOIRS, schema_faits_suite]},
+                                          SCHEMA_SAVOIRS, schema_faits_suite, SCHEMA_ACCORD]},
             },
             "required": ["mode", "texte", "faits", "proposition"],
         }
         instructions = (INTERPRETATION + REGLES_ATELIER + REGLES_FRANCHISSEMENT
-                        + REGLES_OBSTACLES + REGLES_ESPACE + REGLES_PAROLE)
+                        + REGLES_OBSTACLES + REGLES_ESPACE + REGLES_PAROLE + REGLES_ACCORD)
         consigne_retour = None
         if retour_moteur:
             consigne_retour = RETOUR_INTERPRETATION
@@ -1248,6 +1276,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
         elif reponse["mode"] == "action":
             if reponse["texte"] or not isinstance(reponse["proposition"], dict):
                 raise ErreurMonde("Proposition du MJ invalide. Aucune action appliquée.")
+        elif reponse['mode'] == 'accord':
+            if reponse['texte'] or not isinstance(reponse['proposition'], dict):
+                raise ErreurMonde('Brouillon d’accord invalide : rien n’a été engagé.')
         elif reponse["mode"] == "enrichir":
             if not disponibles or reponse["texte"] or not isinstance(reponse["proposition"], dict):
                 raise ErreurMonde("Complément descriptif invalide. Aucun ajout appliqué.")

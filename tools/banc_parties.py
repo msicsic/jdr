@@ -126,6 +126,12 @@ class Interface:
     def __init__(self, saisies, sauvegarde, compteur):
         self.saisies, self.sauvegarde, self.compteur = list(saisies), sauvegarde, compteur
         self.tours, self.courant, self.affiches = [], None, []
+        self.recette = None
+
+    def ouvrir_accord(self, brouillon):
+        from donjon.accords_publics import AccordTerminal
+        self.recette = AccordTerminal(brouillon['public'], brouillon['initial'])
+        self.ecrire(self.recette.rendre())
 
     def _etat(self):
         return Monde.charger(self.sauvegarde) if self.sauvegarde.exists() else None
@@ -178,6 +184,19 @@ class Interface:
         saisie = self.saisies.pop(0)
         self.courant = {"saisie": saisie, "sorties": [], "_appels": len(self.compteur.appels),
                         "_traces": len(self.compteur.traces), "_avant": self._etat()}
+        if self.recette is not None and saisie != 'quitter':
+            try:
+                choix = self.recette.saisir(saisie)
+            except ValueError as exc:
+                self.ecrire(str(exc))
+                return self.lire()
+            if self.recette.terminee:
+                self.recette = None
+            else:
+                self.ecrire(self.recette.rendre())
+            if choix is None:
+                return self.lire()
+            return choix
         return saisie
 
     def ecrire(self, *valeurs, **_options):

@@ -128,11 +128,15 @@ class PontTerminal:
     def comparaison(self, fiche):
         self.envoyer(self.app.recevoir_comparaison, fiche)
 
+    def ouvrir_accord(self, brouillon):
+        self.brouillon_accord = brouillon
+
     def rafraichir(self, monde, pending, mj):
         # La UI reçoit des valeurs déjà rendues, jamais une référence au monde mutable.
         from .accords_publics import accords_publics
         gestes = gestes_du_monde(monde)
         self.envoyer(self.app.actualiser, {
+            'brouillon_accord': self.__dict__.pop('brouillon_accord', None),
             "gestes": gestes,
             "fabrication": fabrication_publique(monde),
             "accord": accords_publics(monde),
@@ -314,6 +318,12 @@ class SeuilApp(App[int]):
         for bouton in self.query("#choix Button"):
             bouton.disabled = False
         self.query_one("#statut", Static).update("MJ : " + vue["connexion"] + " · À toi de jouer")
+        if vue.get('brouillon_accord'):
+            from .accords_publics import AccordTerminal
+            b = vue['brouillon_accord']
+            self.recette = AccordTerminal(b['public'], b['initial'])
+            self.action_gestes()
+            self.query_one('#gestes', Static).update(self.recette.rendre())
         if self.focus_carte and self.mode_cases:
             self.query_one("#plan", Static).focus()
             self.query_one("#statut", Static).update("Carte active · flèches : marcher · Maj+flèches : pas chassé · Échap/Entrée : commande")

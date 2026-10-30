@@ -25,6 +25,7 @@ from tests import test_gestes_terminal as terminal_support
 from tests.test_gestes_terminal import sans_saisie
 from tests.test_inventaire_public import etat
 from tests.test_outils_publics import page
+from tests.support import mj_simule
 
 
 def situation(tache=False):
@@ -284,8 +285,7 @@ class AccordTuiTests(unittest.IsolatedAsyncioTestCase):
                     f = Path(tmp) / 'partie.json'; m.sauver(f)
                     faux = MagicMock(connexion='api', erreur_auth=None)
                     faux.echanger.side_effect = AssertionError('Appel au modèle')
-                    with (patch('jeu.MJ', return_value=faux),
-                          patch.dict('os.environ', {'OPENAI_API_KEY': 'test'}),
+                    with (mj_simule(faux),
                           patch('jeu.analyser', side_effect=AssertionError('Analyse du choix')),
                           patch.object(Monde, 'd20', return_value=20)):
                         app = SeuilApp(['--connexion', 'api', '--save', str(f)])
