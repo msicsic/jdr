@@ -16,7 +16,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   corps/passage/information, U-T premier geste/outils/inventaire/fabrication/corps/passage, A0 (oracle G1).
 - **Groupe 1** (313, 315, 332, 333) et 335 (suivi vocal) fusionnés le 2026-10-30.
 - **PNJ** : A5 (mandat) complet (lots 338, 340, 341, 306 fusionnés). A1 provenance publique fusionnée (346, non branchée).
-  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E5 fusionnés (348, 350, 352 et 357, 355, 359) ; E6 (363) non validé, reprise 364.
+  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E5 fusionnés (348, 350, 352 et 357, 355, 359) ; E6 (363 puis 364) non validé.
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
 - **Abandonnés** : archivés par tags `archive/<branche>` le 2026-10-30 (33, 36, 117 b/c, 162, 166, 168, 170, 176,
@@ -40,14 +40,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 - **364 E6 reprise**, `codex-e6-libre-date`, base `origin/integration e6555c51` fusionnée sans rebase :
-  le libre ouvre un brouillon E5 ; aucun accord daté exécuté depuis sa compilation ou son rejeu.
-  Dates préremplies seulement depuis une durée explicite des mots ; autres champs incomplets visibles, validation E5/U-C.
-  Console, web et TUI raccordés ; parité, refus, annulation et recharge éprouvés. **Validation finale en cours**.
-  Première Luna 14 scripts/23 appels : refus sans effets, mais faux motifs et mauvais préremplissages ; schéma resserré.
-  Voisins puis schéma final et trois scripts ciblés en fond, deux travailleurs réduits ; aucune suite complète.
-  Bruts `C:/Users/msics/donjon/artifacts/e6-364/`, fin attendue `fin-verification-364.json` ; [rapport 364](taches/rapport-codex-364-e6-libre-vers-formulaire.md).
+  **clos non validé, ne pas fusionner comme E6 acquis**, code `197c0600` ; formulaire E5/U-C et barrières de rejeu portés.
+  139 tests distincts verts / 15 fichiers ; E6 et schéma (17 tests inclus) rejoués verts, sources finales stables.
+  Luna 14 scripts/23 appels puis schéma corrigé 3 scripts/9 appels : huile réussie, « demain » et verrou faussement refusés.
+  Le préremplissage et le motif de refus restent faillibles ; 16 alertes de catalogue par scène reproduites dans E5 inchangé.
+  Aucun calcul actif ni suite complète ; bruts `C:/Users/msics/donjon/artifacts/e6-364/`, `fin-cloture.json` valide=false.
+  [Rapport 364](taches/rapport-codex-364-e6-libre-vers-formulaire.md).
 
-Lots en cours : 360 (régressions du lot 337), 362 (16 rouges restants hors 337), 364 (E6 reprise : le libre ouvre le choix direct).
+Lots en cours : 360 (régressions du lot 337), 362 (16 rouges restants hors 337). E6 reste à reprendre après la clôture non validée du 364.
 **Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
 dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361, fusionné), 10 autres anciennes
 et 6 nouvelles (362). Leurs entrées arrivent ici à leur livraison. 

@@ -1,69 +1,58 @@
 # Lot 364 — E6 reprise, le libre ouvre le formulaire E5
 
 Branche `codex-e6-libre-date`, base `origin/integration e6555c51` fusionnée
-sans rebase (`284f9d38`). Seul conflit : `etat-dev.md`, version d'intégration
-retenue. **Vérification finale en cours, non fusionné, validation à conclure.**
+sans rebase (`284f9d38`). Code final `197c0600`, sources finales stables.
+**Lot clos, E6 non validé : ne pas fusionner cette réalisation comme E6 acquis.**
 
-**Invariant porté.** `accords_libres` distingue l'orientation vers le choix
-direct d'une parole exécutable. Son brouillon ne parle, ne paie, ne promet et
-ne modifie rien. Destinataire, prestation et prix ne sont préremplis que s'ils
-appartiennent aux choix publics E5 et aux fonds disponibles. Les autres
-champs restent vides. Le joueur corrige et soumet le formulaire, puis U-C
-demande `tenter` et revalide l'accord direct, avec sa date absolue conservée.
+**Raccord.** `accords_libres` produit un brouillon sans parole, paiement ou
+engagement. Destinataire, prestation et prix passent les choix publics E5 ;
+les champs non admissibles restent vides. Seule une durée explicite retrouvée
+dans les mots préremplit la date, résolue une fois par le moteur. Un repère
+inconnu reste à préciser. Un obstacle signalé par Luna reçoit un refus moteur.
+Console/TUI et web réemploient leurs formulaires E5 ; validation puis U-C.
+Les anciennes compilations datées sont interceptées et leur rejeu sans choix
+direct refusé. Le schéma final du MJ n'expose plus de limite calculée.
+Effets E4 et contrôles transitoires inchangés. Recouvrements : `mj.py`,
+`paroles.py`, `transactions.py` ; `propositions.py` du 363 reste inchangé.
 
-Le schéma de brouillon ne comporte aucun instant calculé : un fragment
-temporel doit être présent dans la saisie et appartenir à une grammaire de
-durées explicites. Les minutes entières sont résolues une fois par le moteur.
-« Demain », un nombre inventé ou une durée non reconnue laisse le délai vide,
-avec la consigne publique de le préciser. Un obstacle typé refuse l'accord
-entier avec une raison moteur : paiement différé, prêt daté, maintien continu
-ou alternative. Aucune réplique PNJ ne peut être produite sur cette voie.
-Le schéma de parole fourni au MJ n'expose plus les termes à limite ; une
-ancienne réponse datée ouvre un formulaire sans reprendre sa date. Le rejeu
-transactionnel d'une parole datée sans choix direct est refusé avant effet.
-Le contrat E4 d'exécution reste disponible au formulaire E5.
+**Tests : 139 méthodes distinctes vertes, 15 fichiers**, zéro échec, erreur
+ou saut, 583,898 s avec deux travailleurs réduits. Les 17 tests E6/schéma,
+inclus dans les 139, sont rejoués verts sur le code final en 60,273 s.
+Huile/verrou : formulaire, correction, refus, annulation, parité E5 des
+comptes/paroles/état, date figée, revalidation et rendu après recharge ;
+Node et vraie TUI. Un échec de lecture de « vingt et une minutes » a été
+corrigé ; une découverte accidentelle de classe importée a été interrompue.
+Aucun oracle affaibli. Pendant les voisins, seuls `accords_libres.py`,
+`mj.py` et le test E6 ont changé pour resserrer le schéma ; E6/schéma et
+la dernière Luna vérifient les empreintes finales. Aucune suite complète.
 
-**Interfaces.** Console et TUI réemploient `AccordTerminal`, désormais
-initialisable avec un sous-ensemble de champs admissibles. Le web reçoit
-le même brouillon avec l'état public et ouvre son formulaire existant ; sa
-date se fige sur l'instant du brouillon. Fermer, corriger, quitter ou annuler
-avant U-C n'émet aucune parole. Les scripts de banc utilisent le même
-formulaire terminal ; ils contrôlent prestation et délai avant validation.
-Recouvrements avec 360/362 : `mj.py`, `paroles.py`, `transactions.py` ;
-`propositions.py` du 363 est conservé, sans changement dans cette reprise.
+**Luna : les critères réels ne sont pas tous satisfaits.** Première passe :
+14 scripts/23 appels : huit refus publics pour les clauses non portées,
+mais aussi des faux refus et des prestations datées ou mal typées. Schéma
+resserré, reprise de trois scripts/9 appels, sans seconde campagne complète.
+Aucun arrêt, erreur technique ou échec de recharge signalé.
 
-**Épreuves.** Dix méthodes ciblent huile et verrou : vraie boucle libre →
-formulaire → consentement, parité de l'état avec E5 et des comptes/paroles,
-recharge du monde et du rendu, annulation aux deux étapes, correction de
-« demain », champs inconnus, date figée à instant non entier, refus des quatre
-clauses, interception et rejet au rejeu d'une ancienne compilation. La page
-réelle est exécutée sous Node ; deux parcours de la vraie TUI sont éprouvés.
-La première reprise (9 méthodes) n'avait qu'un échec : lecture de « vingt et
-une minutes », corrigée dans la grammaire commune. Un lancement antérieur
-a été interrompu après découverte accidentelle d'une classe de tests importée.
-Les oracles de monde, de parole et de recharge restent inchangés.
+- L'huile dans dix minutes ouvre le formulaire correctement prérempli :
+  un appel, accord réel après `valider` puis `tenter`, sans autre appel.
+- « Huile demain » est encore faussement classé `paiement_differe` et
+  refusé. Le formulaire au délai vide n'arrive qu'après une nouvelle saisie :
+  la poursuite automatique du script ne valide pas le critère.
+- Le verrou subit aussi des faux refus `paiement_differe` et une tâche
+  `lieu:cellier` au lieu du verrouillage ; un formulaire incomplet arrive
+  tardivement, sans accord ni parole d'accord.
 
-Quinze fichiers ciblés/voisins E1–E5, compréhension, consentement, schéma,
-paroles/comptes et interfaces sont en vérification, deux travailleurs réduits
-au plus. Le schéma a ensuite été resserré pour ne plus annoncer de variante
-datée ; E6 et l'invariance du schéma sont vérifiés de nouveau sur ce code final.
-Pas de suite complète ni de banc autonome : aucun effet moteur n'est modifié.
+**Alertes du catalogue.** Seize entités sont signalées lors de l'affichage
+des choix, pour chacun des deux scénarios concernés. Sur les copies de
+départ, elles ne sont ni visibles, ni dans `connus`, ni dans les souvenirs
+visuels ; `_connu_du_joueur` les admet néanmoins. Attribution reproduite
+avec les références publiques ; `accords_publics` est identique par AST à
+`e6555c51`. Ces alertes préexistantes ne sont pas neutralisées : le fondement
+lexical de cette admission et l'absence de fuite restent à examiner.
 
-**Luna et limites.** Une première passe de 14 scripts, 23 appels, sans erreur
-technique ou de recharge, a exercé le raccord. Les huit saisies avec clauses
-non portées ont reçu des refus publics sans parole ni contrat. Mais des offres
-admissibles ont aussi reçu de faux motifs, et les prestations proposées étaient
-souvent datées ou mal typées : ces champs ont été laissés vides. Cette passe
-ne valide donc pas l'exactitude de l'orientation et du préremplissage. Le schéma
-exposait encore des variantes datées héritées d'E4 ; elles sont maintenant
-retirées du brouillon et du protocole de parole libre. Une reprise ciblée de
-trois scripts (huile, « demain », verrou) doit vérifier ce schéma final, sans
-seconde campagne des quatorze cas. Les signalements lexicaux du banc sur les
-listes de choix publics restent à attribuer. L'orientation sémantique peut
-rester faillible ; aucune prétention de compréhension universelle du français.
-
-Bruts `C:/Users/msics/donjon/artifacts/e6-364/` : `luna/`, `luna-a-jouer.txt`,
-`tests-finaux.json`, puis `tests-schema-final.json`, `luna-schema-final/` et
-`sources-finales.json`. Le gardien écrit **`fin-verification-364.json` en
-dernier** ; analyser ces résultats avant de conclure la validation. Commande
-exacte de la reprise ciblée dans `luna-schema-final-a-jouer.txt`.
+**Conclusion.** Le raccord et les barrières d'exécution sont éprouvés ;
+l'orientation de la phrase et le motif de refus restent incorrects dans les
+cas requis. E6 n'est donc pas acquis. Aucun ajustement de prompt, mot-clé ou
+cas particulier supplémentaire n'est ajouté pour masquer ces résultats.
+Bruts `C:/Users/msics/donjon/artifacts/e6-364/` : tests, deux dossiers Luna,
+commandes exactes, `sources-finales.json` et `analyse-cloture.json`.
+**`fin-cloture.json` : valide=false**, aucun calcul actif. Branche poussée.
