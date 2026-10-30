@@ -23,6 +23,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-revalider-apres-refus` (63d55dcd) : lot 358, une action différée est revalidée contre un refus encore valable. Détail dans l'historique.
+- `codex-suivi-vocal` (c020b62a) : lot 335, suivi vocal. Détail dans l'historique.
 - `codex-reclamations-repetees` (0925c556) : lot 315, réclamations répétées. Détail dans l'historique.
 - `codex-e3-taches-payees` (999e4c67) : lot 357, régression d'E3 sur les tâches payées corrigée. Détail dans l'historique.
 - `codex-attribution-groupe1` (8d1a4c3f) : lot 342, attribution du groupe 1. Détail dans l'historique.
@@ -33,22 +35,20 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-e4-accord-date` (30ec526a) : lot 355, E4 l'accord initial engage exactement les termes datés. Détail dans l'historique.
 - `codex-um-social-information` (c78b0e8b) : lot 354, U-M social information, l'acte d'information au formulaire. Détail dans l'historique.
 - `codex-e3-delai-cru` (69bba20e) : lot 352, E3 délai jugé sur les moyens crus du contractant. Détail dans l'historique.
-- `codex-um-passage` (a8bc0fce) : lot 349, U-M passage, franchissements qualifiés au menu. Détail dans l'historique.
-- `codex-g18-avis` (d162988a) : lot 351, G18 l'avis formulé par le moteur, parole sans vérité. Détail dans l'historique.
 
 ## Lots non fusionnés
 
-- **306 — `codex-a5-agenda-hameau`**, base `7ec839e`, fusion sans rebase de l'intégration `c9b066bb` (`2d696f65`).
-  Données : Gorm évacue Ilse, Brune, Maël et Sève vers la galerie ; moteur/MJ inchangés, aucune attribution forcée.
-  **54 tests / neuf fichiers verts** ; banc hameau 4 h × quatre graines : 20 propositions, six accords, cinq comptes rendus.
-  Quatre évacués à la galerie dans chaque graine ; zéro plantage/usurpation ; crue 4/4 empreintes 2 h identiques.
-  **Banc non validé pour intégration** : en 1985, à t=4200, `confier` réexécuté malgré un refus encore retenu.
-  Capture rechargée et préfixe de 8 min identique ; revalidation commune du plan différé à corriger hors 306.
-  Suspects 219 zéro ; 23 retours à expliquer. Calcul terminé (936,969 s), aucun calcul actif ; ni suite complète ni Luna.
-  [Rapport et bruts](taches/rapport-codex-306-a5-agenda-hameau.md) ; `conclusion.json` : validation_integration=false.
+- **306 — `codex-a5-agenda-hameau`**, base `7ec839e`, fusion sans rebase de `19c9b6da` (358 et 335).
+  Gorm déclare l'évacuation d'Ilse, Brune, Maël et Sève vers la galerie ; données seules, aucun mandat forcé.
+  **69 tests / onze fichiers verts**, 149,283 s ; capture originale 1985 : aucun `confier` à t=4200, refus sans effet.
+  Recharges monde/rendu/scène/écoute et reprises sur deux minutes en bloc/demi-minutes identiques.
+  Banc détaché hameau 4 h × quatre graines en cours : deux travailleurs réduits ; quatre références `main` en cache.
+  Crue 2 h × quatre graines contre l'intégration ensuite ; aucune suite complète ni Luna.
+  Bruts et fin attendue : `C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-358-335/fin.json`.
+  [Rapport](taches/rapport-codex-306-a5-agenda-hameau.md) ; validation comportementale en attente du banc.
 
-Lots en cours : 356 (suite rouge, attribution), 357 (régression d'E3 sur les tâches payées). 315 réaccordée
-(`codex-reclamations-repetees` 7826c3a) en attente : une erreur nouvelle de rendu social (`porteur=None`) à comprendre.
+Lots en cours : 335 (suivi vocal, reprise, banc en cours), 356 (suite rouge, attribution), 358 (revalider une action
+différée après refus). 306 (agenda du hameau) attend le 358 : un mandat refusé y est réexécuté.
 Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
 écrits avant le consentement U-C, d'autres familles à attribuer) : lot 356 (attribution, harnais) en cours ; la
 vérification d'intégration et l'avance de `main` attendent une suite redevenue témoin fiable.

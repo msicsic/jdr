@@ -339,6 +339,58 @@ def refus_retenu(monde, id, autre, operations, objet=None, besoin=None, *, manda
     return dernier if dernier is not None and tient(monde, id, dernier) else None
 
 
+def refus_geste(monde, id, etape):
+    """Un refus encore valable interdit-il ce geste social, même préparé avant sa réponse ?
+
+    Les étapes emploient les identifiants de leurs demandes, pas toujours leur nom
+    d'opération (une enquête est une étape ``demander``). Les règles de levée restent
+    celles des refus et des offres ; un autre mandat ou un meilleur prix reste possible.
+    Aucune parole, observation ou nouvelle réponse n'est produite par ce contrôle.
+    """
+    if not lire(monde, id).get("refus"):
+        return False
+    op, autre, objet = etape["operation"], etape["cible"], etape["outil"]
+    contenu = etape.get("contenu") or {}
+    besoin, mandat = None, None
+    if op == "demander":
+        if "ressource" in contenu:
+            op, objet, besoin = "enqueter", None, contenu["ressource"]
+        elif "localisation" in contenu:
+            op, objet = "enqueter_lieu", contenu["localisation"]
+        elif contenu.get("cause_detresse"):
+            op, objet = "enqueter_cause", None
+        elif contenu.get("type") == "reclamer_dette":
+            op, objet = "reclamer_dette", None
+        else:
+            from .planification import vue
+            return bool(vue(monde, id).refuse(autre, objet))
+    elif op in ("acheter", "proposer"):
+        from .pnj_propositions import offre_refusee
+        terme = (contenu["contrepartie"] if op == "proposer"
+                 else {"type": "pieces", "montant": contenu.get("prix", 0)})
+        objet = contenu["demande"].get("objet", autre) if op == "proposer" else objet
+        if offre_refusee(monde, id, autre, objet, terme):
+            return True
+        if op == "proposer":
+            return False
+        retenu = refus_retenu(monde, id, autre, ("acheter", "demander"), objet)
+        if retenu and "offre" in retenu:
+            return False  # La nouvelle contrepartie vient d'être jugée par offre_refusee.
+        from .planification import vue
+        return vue(monde, id).refuse_achat(autre, objet)
+    elif op in ("confier", "engager"):
+        condition = contenu["condition"] if op == "engager" else contenu
+        objet, mandat = condition["objet"], contenu.get("mandat")
+    elif op == "demander_feu":
+        objet = contenu.get("allumer")
+    else:
+        return False
+    refus = refus_retenu(monde, id, autre, (op,), objet, besoin, mandat=mandat)
+    if refus and op == "engager" and refus["raison"] == "cher":
+        return contenu["prix"] <= refus["prix"]
+    return refus is not None
+
+
 def tient(monde, id, s, connus=None):
     """Le refus ``s`` tient-il encore ? Pour une cause, tant qu'il ne croit aucun moyen qu'il ne croyait
     déjà au refus : ce qu'il apprend qui en ôte un (le bois vu épuisé, une porte crue fermée à clé) ne le
