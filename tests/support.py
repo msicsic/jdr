@@ -1,8 +1,30 @@
 """Doubles de test communs aux parcours qui simulent déjà les réponses du MJ."""
 
 from unittest.mock import patch
+from functools import wraps
 
 from donjon.mj import MJOpenAI
+
+
+def canal_constats_anterieur_337(test):
+    """Prémisse des oracles antérieurs : les constats de 55 seuls se confient.
+
+    Les anciens oracles déclarent leurs constats de 55 récemment appris,
+    sans confidence de possession/fin concurrente. Une vraie prise ou
+    consommation peut désormais ouvrir cette conversation (337) et un
+    savoir initial reste silencieux (360) : ces deux garanties sont éprouvées
+    sans ce double dans test_garde_ouidire et test_nouvelles_initiales.
+    Accusations, enquêtes, constats de 55 et réception restent réels.
+    """
+    @wraps(test)
+    def avec_canal(*args, **kwargs):
+        from donjon import social
+        constats = social._constats
+        def precedents(monde, id):
+            return (n for n in constats(monde, id) if n[1]["attribut"] not in ("lieu", "fin"))
+        with patch.object(social, "_constats", precedents), patch.object(social, "_initial", return_value=False):
+            return test(*args, **kwargs)
+    return avec_canal
 
 
 def question_sans_execution(texte):

@@ -11,6 +11,7 @@ Chaque test vérifie l'état du monde après rechargement, et ce que le joueur l
 """
 
 from tests.support import lier, relation
+from tests.support import canal_constats_anterieur_337
 import unittest
 from unittest.mock import patch
 
@@ -116,6 +117,7 @@ class ContenantFermeTests(unittest.TestCase):
 
 
 class RumeurAvecLieuTests(unittest.TestCase):
+    @canal_constats_anterieur_337
     def test_hugues_voit_lucien_poser_le_ballot_et_anselme_va_le_reprendre(self):
         """Cas réel (auberge, graine 42) : Lucien pose le ballot d'Anselme à l'étable sous les yeux
         d'Hugues. Hugues sait où il est ; il prévient Anselme, et lui dit où est le ballot ;

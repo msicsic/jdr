@@ -39,14 +39,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **360 — `codex-regressions-337`**, base `integration 0b62a4fa`, **en cours, non validé**.
-  Décision utilisateur : l'inventaire initial n'est pas une nouvelle ; provenance sauvegardée,
-  ancrage retiré au changement appris, droits du 337 conservés. 18/23 méthodes vertes au dernier rejeu ;
-  cinq réserves restent à résoudre, aucune assertion mécanique affaiblie. Contrôles courts 337 verts.
-  Fichiers ciblés et empreintes 2 h × 5 scénarios × 4 graines lancés détachés (2 travailleurs).
-  Fin attendue : `artifacts/regressions-337-360/validation/fin.json` dans le dépôt principal.
-  Migration : passé initial absent non reconstructible ; recouvrement passage/361 limité et autorisé.
-  [Rapport intermédiaire](taches/rapport-codex-360-regressions-337.md).
+- **360 — `codex-regressions-337`**, base `integration 0b62a4fa`, **validation finale en cours**.
+  Contrat commun : droits ⇒ lieu sans réciproque ; inventaire et états portés initiaux silencieux,
+  changements appris transmis. Tests du 337 verts ; tous les anciens incidents ont un témoin corrigé.
+  Prémisses des anciens oracles explicites ; 453 assertions AST conservées hors deux textes G7 autorisés.
+  Premier banc 20/20 sans plantage (102/179 constats, comparaison main cumulée) ; reprise sources finales :
+  31 fichiers et empreintes 2 h × 5 scénarios × 4 graines, 2 travailleurs, fin `regressions-337-360/validation-finale/fin.json`.
+  Migration : passé initial absent non reconstructible ; aucune garantie globale de calendrier ou de boucles.
+  [Rapport](taches/rapport-codex-360-regressions-337.md) ; recouvrement passage/361 limité et autorisé.
 
 Lots en cours : 359 (E5 choix direct), 360 (régressions du lot 337), 361 (attentes périmées encore rouges).
 **Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes

@@ -25,7 +25,15 @@ class FlammeNecessaireTests(unittest.TestCase):
     def test_capture_1985_avant_premier_allumage_sans_cycle(self):
         with gzip.open(Path(__file__).parent / 'data/amener-1985-avant-allumer.json.gz',
                        'rt', encoding='utf8') as f:
-            m = self.recharge(Monde(json.load(f)))
+            donnees = json.load(f)
+        # 360 : la capture porte déjà le levier chez Ilse (t=102), mais
+        # Aubin le croit encore au sol depuis t=98. Isoler le plan de flamme
+        # de cette découverte tardive, désormais racontable selon 337.
+        # Seul ce savoir initial change ; objets, besoins et assertions restent.
+        connu = donnees['esprits']['aubin']['croyances']['pied_de_biche']['lieu']
+        ilse = donnees['objets']['ilse']
+        connu.update(valeur='ilse', source='savoir', salle=ilse['lieu'], case=ilse['position'])
+        m = self.recharge(Monde(donnees))
         # On isole la lumière nécessaire au propre plan de Brune : aucun
         # repas de secours livré par un tiers ne vient achever ce plan.
         from tests.support import sans_souci

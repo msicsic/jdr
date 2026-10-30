@@ -18,7 +18,8 @@ TESTS = ("amener_flamme", "appel_negocie", "appeler_donneur", "boucles_pnj",
          "gardien_detresse", "intermediaires", "ouie", "ouie_temoins", "recours_prioritaire",
          "soi_meme", "tenir", "voix", "nouvelles_initiales", "garde_ouidire", "constats_partages",
          "agendas_fins", "agendas_socle", "constater_rumeurs", "defense", "detecter_changements_avis",
-         "propositions_redites", "refus_retenus", "social", "tache_promise_recours")
+         "propositions_redites", "refus_retenus", "social", "tache_promise_recours",
+         "deja_dit", "parole_commune", "esprits")
 
 
 def ecrire(p, x):
@@ -27,6 +28,7 @@ def ecrire(p, x):
 
 def empreintes():
     fichiers = [*sorted((RACINE / "donjon").rglob("*.py")),
+                RACINE / "tests/support.py",
                 *[RACINE / f"tests/test_{t}.py" for t in (*TESTS, "passage")]]
     return {str(p.relative_to(RACINE)): hashlib.sha256(p.read_bytes()).hexdigest() for p in fichiers}
 

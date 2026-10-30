@@ -6,7 +6,7 @@ from unittest.mock import patch
 from donjon import social
 from donjon.banc_pnj import creer
 from donjon.deplacement_objet import deplacer
-from donjon.esprits import constater, constater_possession, croire, lire, percevoir_tous
+from donjon.esprits import constater, constater_fin_objet, constater_possession, croire, lire, percevoir_tous
 from donjon.monde import Monde
 from donjon.rendu import regarder
 from donjon.scene import scene_percue
@@ -35,6 +35,23 @@ class NouvellesInitialesTests(unittest.TestCase):
                     m = self.recharge(m)
                     ecouler(m, 600)
                 self.assertFalse(any(c.get("constat_confie") for c in m.data.get("chronique", [])))
+
+    def test_les_droits_entendus_attestent_aussi_le_lieu_sans_reciproque(self):
+        for scenario, objet in (("relais", "cle_reserve"), ("auberge", "ballot")):
+            with self.subTest(scenario=scenario):
+                m, gardien, temoin, porteur = garde(scenario, objet)
+                n = noyau(m, temoin, objet)
+                lieu_seul = {k: v for k, v in n.items() if k != "details"}
+                social.retenir_dit(m, temoin, gardien, lieu_seul)
+                self.assertFalse(social.deja_dit(m, temoin, gardien, n))
+                lignes = []
+                with patch.object(Monde, "d20", return_value=20):
+                    self.assertTrue(social.bavarder(m, temoin, lignes))
+                m = self.recharge(m)
+                self.assertIn("sans permission", "\n".join(lignes))
+                self.assertTrue(social.deja_dit(m, temoin, gardien, lieu_seul))
+                self.assertTrue(social._sait(m, gardien, lieu_seul))
+                self.assertTrue(social._sait(m, gardien, n))
 
     def test_un_transfert_appris_puis_son_retour_ne_redeviennent_pas_initiaux(self):
         for scenario, id, autre, objet in (("mine", "bram", "josse", "cle_paie"),
@@ -100,4 +117,30 @@ class NouvellesInitialesTests(unittest.TestCase):
                 c = lire(m, gardien)["croyances"][objet]["lieu"]
                 self.assertEqual(c["possession"]["porteur"], porteur)
                 self.assertEqual(c["source"], "dit:" + temoin)
+                self.recharge(m)
+
+    def test_consommations_anciennes_portees_silencieuses_puis_nouvelle_consommation(self):
+        for objet, champ, porteur in (("vivres", "portions", "marchand"),
+                                      ("bois_bateliere", "charges", "brune")):
+            with self.subTest(objet=objet):
+                m = creer("crue_hameau", 1985, "fixe")
+                deplacer(m, objet, porteur)
+                m.objets[objet][champ] = 0
+                donnees = copy.deepcopy(m.data)
+                # Ancienne capture : la provenance n'était pas encore enregistrée.
+                for e in donnees["esprits"].values():
+                    e.pop("faits_initiaux", None)
+                m = Monde(donnees)
+                ecouler(m, 600)
+                constater(m, porteur, objet, "vu")
+                self.assertFalse(any(n[1].get("objet") == objet and n[1].get("attribut") in ("fin", "etat")
+                                     for n in social.nouvelles(m, porteur)))
+                m = self.recharge(m)
+                m.objets[objet][champ] = 1
+                constater_fin_objet(m, porteur, objet, "vu")
+                ecouler(m, 600)
+                m.objets[objet][champ] = 0
+                constater(m, porteur, objet, "vu")
+                self.assertTrue(any(n[1].get("objet") == objet and n[1].get("attribut") == "fin"
+                                    for n in social.nouvelles(m, porteur)))
                 self.recharge(m)

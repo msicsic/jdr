@@ -10,6 +10,7 @@ délibération des PNJ. Chaque cas se vérifie sur l'état du monde après recha
 """
 
 from tests.support import lier
+from tests.support import canal_constats_anterieur_337
 import unittest
 from unittest.mock import patch
 
@@ -262,6 +263,7 @@ def galerie_ou_refuge():
 
 
 class RecoursTests(unittest.TestCase):
+    @canal_constats_anterieur_337
     def test_par_le_palier_menace_elles_gagnent_un_abri_sans_alternance(self):
         # Sur ``main`` : 16 et 19 passages entre la galerie et le palier en quinze minutes.
         m, _ = attendre(palier_menace(), 3)

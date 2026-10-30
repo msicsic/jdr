@@ -17,6 +17,7 @@ from donjon.scene import scene_percue
 from tests.test_planification import relais
 from tests.test_tensions import recharger
 from tests.support import sans_indices_soupcon_passifs
+from tests.support import canal_constats_anterieur_337
 
 
 DONNEES = Path(__file__).parent / "data/cout-12h"
@@ -65,6 +66,7 @@ def _etat(e):
     return e.salle, sorted(e.portes), sorted(e.faits.items(), key=repr), e.allure
 
 
+@canal_constats_anterieur_337
 def observer_capture(scenario):
     """Oracle enregistré sur la base : toutes les sorties du tas et tous les plans,
     puis la chaîne moteur, monde, journal et vue après recharge (480–485 min).
@@ -131,6 +133,9 @@ def observer_capture(scenario):
     if "connaissances_joueur" in historique and not any(historique["connaissances_joueur"].values()):
         del historique["connaissances_joueur"]
     for e in historique["esprits"].values():
+        # 360 : provenance initiale uniquement ; le monde complet reste
+        # comparé après recharge, avant cette projection pré-337.
+        e.pop("faits_initiaux", None)
         # Le contrat 213 ajoute la provenance de l'intention à la sauvegarde.
         # Sa persistance est vérifiée dans test_contrat_engagement ; l'oracle
         # historique conserve ici les décisions, plans, monde et vues du joueur.

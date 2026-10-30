@@ -1230,6 +1230,37 @@ def constater_fin_objet(monde, id, sujet, source):
         croire(monde, id, sujet, "fin", cause, source, **designation)
 
 
+def etat_materiel(monde, sujet, *, contenu_visible=True):
+    """Les seules propriétés matérielles constatables, sans créer de croyance."""
+    o = monde.objets[sujet]
+    etats = ETATS_VISIBLES.get(o["type"])
+    if not etats:
+        return None
+    valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
+               "charge": o.get("combustible", 0) > 0}
+    etat = {k: bool(valeurs.get(k)) for k in etats}
+    if o["type"] == "contenant" and o.get("ouverte") and contenu_visible:
+        etat["vide"] = not any(x["lieu"] == sujet for x in monde.objets.values())
+    return etat
+
+
+def faits_materiels(monde, sujet):
+    """Provenance initiale des propriétés, avec les mêmes contrats que le constat.
+
+    Ces valeurs ne sont jamais versées aux croyances d'un observateur.
+    """
+    from .perception import fin_objet
+    o = monde.objets[sujet]
+    p = preuve_possession(monde, sujet)
+    yield "lieu", o["lieu"], {"possession": p} if p else {}
+    yield "fin", fin_objet(o), {}
+    etat = etat_materiel(monde, sujet)
+    if etat is not None:
+        yield "etat", etat, {}
+    if o["type"] in ("porte", "contenant"):
+        yield "verrouillee", bool(o.get("verrouillee") and not o.get("ouverte") and o.get("integrite") != 0), {}
+
+
 def constater(monde, id, sujet, source):
     """Croit l'état visible de l'objet tel qu'il est : vu, ou laissé ainsi de sa propre main.
     D'un personnage, joueur compris, se voit ce qui presse son corps : la faim, le froid, la
@@ -1282,14 +1313,11 @@ def constater(monde, id, sujet, source):
         croire(monde, id, sujet, "pieces", o["pieces"], source)
     etats = ETATS_VISIBLES.get(o["type"])
     if etats:
-        valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
-                   "charge": o.get("combustible", 0) > 0}
-        etat = {k: bool(valeurs.get(k)) for k in etats}
+        visible = (o["type"] != "contenant" or not o.get("ouverte") or source == "vu"
+                   or (monde.visible(sujet) if id == "joueur" else sujet in percus(monde, id)[0]))
+        etat = etat_materiel(monde, sujet, contenu_visible=visible)
         if o["type"] == "contenant" and o.get("ouverte"):
-            visible = source == "vu" or (monde.visible(sujet) if id == "joueur" else sujet in percus(monde, id)[0])
-            if visible:
-                etat["vide"] = not any(x["lieu"] == sujet for x in monde.objets.values())
-            else:
+            if not visible:
                 # Toucher le battant dans le noir ne dément pas le contenu vu.
                 ancien = croyance(monde, id, sujet, "etat")
                 if ancien and "vide" in ancien["valeur"]:
