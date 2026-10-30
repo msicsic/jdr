@@ -23,6 +23,7 @@ from contextlib import contextmanager, ExitStack
 from unittest.mock import patch
 import copy
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import sys
@@ -31,9 +32,17 @@ import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from donjon import agendas, appel, banc_pnj, biens, corps, defense, deliberation, eau, planification, pnj, relations  # noqa: E402
-from donjon.memoire import episodes
 from donjon.esprits import RECENT, lire, percus, pnjs  # noqa: E402
 from donjon.temps import MINUTE, instant  # noqa: E402
+
+# Comme audit_nuits et son rendu, la porte de lecture appartient à
+# l'observateur courant. Ses imports relatifs lisent le moteur comparé,
+# même si sa référence précède l'introduction de cette vue pure.
+_spec_memoire = importlib.util.spec_from_file_location(
+    "donjon._memoire_observation", Path(__file__).resolve().parents[1] / "donjon/memoire.py")
+_memoire_observation = importlib.util.module_from_spec(_spec_memoire)
+_spec_memoire.loader.exec_module(_memoire_observation)
+episodes = _memoire_observation.episodes
 
 SCENARIOS_DEFAUT = ("relais", "mine", "auberge", "crue", "crue_hameau")
 SALLES_JOUEUR = {

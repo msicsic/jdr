@@ -7,7 +7,6 @@ et les minutes où rien ne s'offrait à lui. Entre eux : les échanges et leur i
 illicites vus, ce qu'ils pensent les uns des autres à la fin. Le banc observe chaque PNJ
 après sa délibération de la minute, sans rien changer au monde.
 """
-from .memoire import episodes
 from collections import Counter
 from contextlib import contextmanager
 import json
@@ -176,6 +175,7 @@ class Recit:
             yield self
 
     def _noter(self, monde, id, minute):
+        from .memoire import episodes
         from .deliberation import inactivite, seuils, urgents
         e = lire(monde, id)
         for x in relations.connus(monde, id):
