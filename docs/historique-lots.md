@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **351 — `codex-g18-avis`**, base intégration `59e65f81` : avis formulés et scellés par le moteur,
+  sans rédaction/audit de leurs répliques ; adoption, dispute et consentement inchangés.
+  **89/89 tests, 12 fichiers** ; empreintes 2 h crue/Relais × quatre graines **8/8 identiques**.
+  Luna une passe : 3/3 avis typés, confirmés hors réseau avec recharge identique, dont une dispute.
+  Limites : français libre ; `echanges` garde un refus de fidélité et trois noms non reliés.
+  Code `b0c0413c`, branche poussée ; `artifacts/g18-351/fin-cloture.json` **ok=true**, aucun calcul actif.
+  [Rapport](taches/rapport-codex-351-g18-avis.md). Recouvrements : paroles/émissions/formateur commun ; fichiers 349/350 intacts.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 89/89 tests ciblés verts, 8/8 empreintes identiques ; trois avis Luna confirmés hors réseau, recharge identique.
+
 - **350 — `codex-e2-realisation-datee`**, base `integration 59e65f8` : E2, réalisation moteur
   datée unique et verdict persistant ; T inclus, clôture à T+1, remboursement unique et arrêt du plan périmé.
   Réalisation, constat et connaissance du compte séparés ; aucune réaction relationnelle distante.

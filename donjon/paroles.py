@@ -1835,6 +1835,7 @@ def preparer_parole(monde, p, revision=None):
                 for id, o in travail.objets.items()}
             resolution = None
             information = None
+            avis = None
             if c["type"] == "rumeur":
                 evenement = c["evenement"]
                 debat = next(d for d in debats if d[0]["evenement"] == evenement)
@@ -1842,6 +1843,7 @@ def preparer_parole(monde, p, revision=None):
                     issue_avis = social.recevoir(travail, auditeur, "joueur", c)
                     faits.append(f"{_personne(travail, auditeur)[0]} " +
                                  ("retient ton avis sur la menace de l'eau." if issue_avis == "crue" else "doute de ton avis sur la menace de l'eau."))
+                    avis = {"etat": issue_avis}
             elif c['type'] in ('mandat', 'reponse_mandat', 'bilan_mandat'):
                 resolution = _mandat(travail, auditeur, c, faits)
                 if resolution.get('contenu_transmis'):
@@ -1879,7 +1881,10 @@ def preparer_parole(monde, p, revision=None):
                 resolutions.append({"contenu": copy.deepcopy(c), "resolution": resolution or {},
                     "comptes": cs, "offres": copy.deepcopy(offres[debut_offres:]),
                     "faits": faits[debut_faits:]})
-            if information is not None:
+            if avis is not None:
+                resolutions_parlees.append({"contenu": copy.deepcopy(c), "avis": avis,
+                    "resolution": {}, "comptes": [], "offres": [], "faits": faits[debut_faits:]})
+            elif information is not None:
                 resolutions_parlees.append({"contenu": copy.deepcopy(c), "information": information,
                     "resolution": {}, "comptes": [], "offres": [], "faits": faits[debut_faits:]})
             elif resolution or cs or len(offres) != debut_offres:
@@ -1910,12 +1915,19 @@ def preparer_parole(monde, p, revision=None):
                                     biens_comptables[terme['objet']] = noms_avant[terme['objet']]
         if transmis[capacite:]:
             faits.append(f"{_personne(travail, auditeur)[0]} ne retient pas tout : une partie de ce que tu as dit se perd.")
-        autorisations.append({"statut": "a_formuler", "locuteur": auditeur,
-            "acte": "reponse_corvus", "a": ["joueur"], "parametres": {"contenu": copy.deepcopy(transmis[:capacite]),
-                "contenu_libre": any(isinstance(c, dict) and c.get("type") == "propos" for c in contenu[:capacite])},
-            "modalite": "constat", "evenement": {"type": "parole_joueur", "faits": faits[debut_reponse:],
-                **({"resolutions_comptables": resolutions} if resolutions else {}),
-                **({"resolutions_parlees": resolutions_parlees} if resolutions_parlees else {})}})
+        # Une dispute prononce déjà les réponses de cet avis. Elle ne donne
+        # pas en plus une autorisation de réplique libre sur le même contenu.
+        a_repondre = [c for c in transmis[:capacite] if not (c['type'] == 'rumeur'
+            and any(opposition and c['evenement'] == debat['evenement']
+                    for debat, _, opposition in debats))]
+        contenu_libre = any(isinstance(c, dict) and c.get("type") == "propos" for c in contenu[:capacite])
+        if a_repondre or contenu_libre or not transmis[:capacite]:
+            autorisations.append({"statut": "a_formuler", "locuteur": auditeur,
+                "acte": "reponse_corvus", "a": ["joueur"], "parametres": {"contenu": copy.deepcopy(a_repondre),
+                    "contenu_libre": contenu_libre},
+                "modalite": "constat", "evenement": {"type": "parole_joueur", "faits": faits[debut_reponse:],
+                    **({"resolutions_comptables": resolutions} if resolutions else {}),
+                    **({"resolutions_parlees": resolutions_parlees} if resolutions_parlees else {})}})
         rejoint(travail, auditeur, "joueur")  # Il attendait que Corvus le rejoigne : ils se parlent.
         memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "a": list(dest), "texte": replique[:240],
                                       "cites": [], **({} if identifie(travail, auditeur, "joueur")

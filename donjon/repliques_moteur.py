@@ -1,6 +1,16 @@
 """Publication commune des répliques typées, fixées dans G15 avant affichage."""
 
-ACTES = ('reponse_comptable', 'reponse_information')
+ACTES = ('reponse_comptable', 'reponse_information', 'reponse_avis')
+
+
+def est_fixee(emission):
+    """Réplique admise ou avis social déjà formulé et enregistré par le moteur."""
+    contenus = emission.get('parametres', {}).get('contenu', [])
+    return (emission.get('acte') in ACTES
+        or emission.get('evenement', {}).get('replique_moteur', False)
+        or bool(contenus) and all(
+            c.get('type') == 'rumeur' and c.get('evenement', {}).get('type') == 'avis'
+            for c in contenus))
 
 
 def admettre(monde, autorisations, rapport):
@@ -28,7 +38,9 @@ def admettre(monde, autorisations, rapport):
         if refusees:
             faits = {'comptes': dossier(monde, {**rapport, 'offres': rapport.get('offres', []) + refusees})}
         from .informations_parlees import formuler as informer
-        mots = ' '.join(informer(monde, auteur, op['contenu'], op['information']) if 'information' in op
+        from .avis_parles import formuler as donner_avis
+        mots = ' '.join(donner_avis(monde, op['contenu'], op['avis']) if 'avis' in op
+                        else informer(monde, auteur, op['contenu'], op['information']) if 'information' in op
                         else formuler(faits, auteur, op) for op in operations)
         couverts = [f for op in operations for f in op['faits']]
         autres = [f for f in a['evenement']['faits'] if f not in couverts]
@@ -36,8 +48,9 @@ def admettre(monde, autorisations, rapport):
                     if not any(c == op.get('contenu') for op in operations)]
         libre = restants or a['parametres'].get('contenu_libre')
         rendu = ' '.join([f'{nom_pour_joueur(monde, auteur)} : « {mots} »', *([] if libre else autres)])
-        comptable = any('information' not in op for op in operations)
-        acte = 'reponse_comptable' if comptable else 'reponse_information'
+        comptable = any(not ({'information', 'avis'} & op.keys()) for op in operations)
+        acte = 'reponse_comptable' if comptable else 'reponse_information' if any(
+            'information' in op for op in operations) else 'reponse_avis'
         auditeurs = auditeurs_parole(monde, auteur)
         presentation = next((op['information']['nom'] for op in operations
             if op.get('contenu', {}).get('type') == 'qui'
@@ -49,14 +62,16 @@ def admettre(monde, autorisations, rapport):
             entendre(monde, auditeur, auteur, mots)
             if presentation:
                 presenter(monde, auditeur, auteur, presentation, mots)
-        evenement = {**a['evenement'], 'faits': couverts if libre else a['evenement']['faits'], 'type': 'compte_parle' if comptable else 'information_parlee',
+        evenement = {**a['evenement'], 'faits': couverts if libre else a['evenement']['faits'], 'type': {
+            'reponse_comptable': 'compte_parle', 'reponse_information': 'information_parlee',
+            'reponse_avis': 'avis_parle'}[acte],
             'emission_joueur': next((p['id'] for p in reversed(lire(monde)) if p['locuteur'] == 'joueur'), None)}
         emission = enregistrer(monde, auteur, acte=acte, parametres={**a['parametres'],
             'contenu': [op['contenu'] for op in operations if 'contenu' in op], 'contenu_libre': False},
             modalite='refus' if any(op['resolution'].get('etat') == 'refuse' or
                 'garde' in op['resolution'].get('reglements', []) or
                 op.get('information', {}).get('etat') in ('refus', 'mefiance', 'rancune', 'qui_va_la')
-                for op in operations) else 'croyance' if any('information' in op for op in operations) else 'constat',
+                for op in operations) else 'croyance' if any({'information', 'avis'} & op.keys() for op in operations) else 'constat',
             evenement=evenement, a=['joueur'], auditeurs=auditeurs,
             texte=mots, rendu=rendu, presentation=presentation)
         if emission and 'joueur' in emission['auditeurs']:
@@ -75,7 +90,7 @@ def reponse(rapport):
     # pas de rapport vocal. Elles gardent leur voie de rédaction existante.
     rapport = rapport or {}
     flux = entendues(rapport)
-    if not any(p['acte'] in ACTES for p in flux) or reponses(rapport):
+    if not any(est_fixee(p) for p in flux) or reponses(rapport):
         return None
     texte = ' '.join(p.get('rendu_public', p.get('rendu', '')) for p in flux)
     return {'mode': 'dialogue', 'texte': texte, 'faits': [], 'proposition': None,
@@ -86,7 +101,7 @@ def sceller(reponse, rapport):
     """Références à recontrôler sur la transaction réellement appliquée."""
     rapport = rapport or {}
     fixes = [p['id'] for p in rapport.get('emissions', [])
-             if p.get('acte') in ACTES and 'joueur' in p.get('auditeurs', [])]
+             if p.get('statut') == 'prononcee' and est_fixee(p) and 'joueur' in p.get('auditeurs', [])]
     if fixes:
         reponse['_repliques_moteur'] = fixes
     return reponse
@@ -98,7 +113,7 @@ def verifier_publication(monde, reponse):
     passages = segments(reponse['texte'])
     attendus = []
     for ref in reponse.get('_repliques_moteur', []):
-        p = next((p for p in lire(monde) if p['id'] == ref and p['acte'] in ACTES
+        p = next((p for p in lire(monde) if p['id'] == ref and est_fixee(p)
                   and 'joueur' in p['auditeurs']), None)
         fixes = segments(p.get('rendu_public', '')) if p else []
         if not fixes:
