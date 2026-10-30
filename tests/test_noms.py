@@ -1,4 +1,5 @@
 """Les noms sont entendus, les corps reconnus : chaîne moteur/rendus/sauvegarde."""
+from donjon.emissions import pnj as emissions_pnj, joueur as emissions_joueur
 import json
 import unittest
 from pathlib import Path
@@ -401,7 +402,7 @@ class NomsTests(unittest.TestCase):
         self.assertFalse(connait_nom(m,'joueur','aubin'))
         m=recharge(m)
         self.assertNotIn('Gorm',self.rendus(m))
-        self.assertIn(citation,m.data['paroles_pnj'][-1]['texte'])
+        self.assertIn(citation,emissions_pnj(m)[-1]['texte'])
         premiere=appels[0][1]['faits']['esprits_interlocuteurs'][alias]
         self.assertNotIn('noms_pour_repliques',premiere)
         narration=next(e['faits']['esprits_interlocuteurs'][alias] for f,e in appels
@@ -534,7 +535,7 @@ class NomsTests(unittest.TestCase):
         mots='Je cherche Gorm.'
         m,_=dire(m,mots)
         m=recharge(m)
-        self.assertEqual(m.data['paroles_joueur'][-1]['texte'],mots)
+        self.assertEqual(emissions_joueur(m)[-1]['texte'],mots)
         self.assertFalse(connait_nom(m,'joueur','marchand'))
         citation='« '+mots+' »'
         self.assertFalse(voix_inconnues(m,[],{},citation))
@@ -549,7 +550,7 @@ class NomsTests(unittest.TestCase):
                          [rapport(ligne('mecanique',sources=['evenements_recents']))])
         m=recharge(m)
         self.assertIn(citation,sortie)
-        self.assertEqual(m.data['paroles_joueur'][-1]['texte'],mots)
+        self.assertEqual(emissions_joueur(m)[-1]['texte'],mots)
         self.assertFalse(connait_nom(m,'joueur','marchand'))
         self.assertNotIn('Gorm',self.rendus(m))
 
@@ -589,7 +590,7 @@ class NomsTests(unittest.TestCase):
                 self.assertNotIn(faux,sortie)
                 self.assertFalse(connait_nom(m,'joueur',id_))
                 self.assertNotIn(nom_,self.rendus(m))
-                self.assertFalse(any(p['texte']==mots for p in m.data.get('paroles_pnj',[])))
+                self.assertFalse(any(p['texte']==mots for p in emissions_pnj(m)))
 
     def test_deux_presentations_nominales_typees_relient_le_locuteur(self):
         from tests.test_audits_attendu import jouer, rapport, ligne
@@ -610,7 +611,7 @@ class NomsTests(unittest.TestCase):
                 m=recharge(m)
                 self.assertTrue(connait_nom(m,'joueur',id))
                 self.assertIn(nom_,self.rendus(m))
-                self.assertEqual(m.data['paroles_pnj'][-1]['presentation'],nom_)
+                self.assertEqual(emissions_pnj(m)[-1]['presentation'],nom_)
                 self.assertIn(citation,sortie)
 
     def test_presentation_typee_ne_peut_pas_ajouter_un_nom_non_prononce(self):
@@ -636,7 +637,7 @@ class NomsTests(unittest.TestCase):
         m=recharge(m)
         self.assertTrue(connait_nom(m,'joueur','marchand'))
         self.assertIn('Gorm',self.rendus(m))
-        self.assertEqual(m.data['paroles_pnj'][-1]['presentation'],'Gorm')
+        self.assertEqual(emissions_pnj(m)[-1]['presentation'],'Gorm')
         avant=json.dumps(m.data,sort_keys=True)
         with self.assertRaises(ErreurMonde):
             preparer(m,{'ajouts':[{'type':'parole','ancrage':'marchand','nom':'','genre':'',

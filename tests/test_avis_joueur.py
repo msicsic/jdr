@@ -1,4 +1,5 @@
 """Avis exprimés : console/MJ, conséquences et paroles rechargées ensemble."""
+from donjon.emissions import joueur as emissions_joueur
 import copy
 import unittest
 
@@ -174,7 +175,7 @@ class AvisJoueurTests(unittest.TestCase):
                 recharge = recharger(m)
                 self.assertEqual(recharge.data, m.data)
                 self.assertIn(mots, sortie)
-                self.assertEqual(recharge.data["paroles_joueur"][-1]["texte"], mots)
+                self.assertEqual(emissions_joueur(recharge)[-1]["texte"], mots)
                 # Réception n'est pas adoption : Gorm peut opposer sa propre observation.
                 self.assertTrue(social.transmission_attestee(recharge, "joueur", "marchand",
                     {"type": "avis", "sujet": salle, "attribut": "menace", "valeur": valeur == "oui"}))
@@ -189,7 +190,7 @@ class AvisJoueurTests(unittest.TestCase):
             {**dialogue("Gorm t'écoute."), "faits": ["conversation_validee"]}], [verdicts(NEUTRE)])
         recharge = recharger(m)
         self.assertIn("bonsoir", sortie)
-        self.assertEqual(recharge.data["paroles_joueur"][-1]["texte"], "bonsoir")
+        self.assertEqual(emissions_joueur(recharge)[-1]["texte"], "bonsoir")
         self.assertIsNone(prevision(recharge, "marchand", "echoppe"))
         self.assertFalse(any(f == "auditer_action" for f, _ in appels))
         self.assertEqual(rendu(m), rendu(recharge))
@@ -208,7 +209,7 @@ class AvisJoueurTests(unittest.TestCase):
                 m, sortie, appels = jouer(m, saisie, [omise, correcte,
                     {**dialogue("Gorm t'écoute."), "faits": ["conversation_validee"]}], [verdicts(NEUTRE)])
                 recharge = recharger(m)
-                self.assertEqual(len(recharge.data["paroles_joueur"]), 1)
+                self.assertEqual(len(emissions_joueur(recharge)), 1)
                 self.assertEqual(prevision(recharge, "marchand", salle)["source"], "dit:joueur")
                 self.assertIn(mots, sortie)
                 self.assertNotIn("Le contenu proposé ne porte pas", sortie)

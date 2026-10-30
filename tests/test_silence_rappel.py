@@ -1,4 +1,5 @@
 """L'issue courante se contrôle sur ses sources, sans réécrire le passé."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import unittest
 
@@ -30,7 +31,7 @@ class SilenceRappelTests(unittest.TestCase):
         self.assertEqual(recharge.data, r.data)
         self.assertEqual(rendu.regarder(recharge), rendu.regarder(r))
         self.assertIn('Aucune réponse ne te parvient.', recharge.data['conversation'][-1]['reponse'])
-        self.assertFalse(recharge.data.get('paroles_pnj'))
+        self.assertFalse(emissions_pnj(recharge))
 
     def test_temoins_du_cas_reel_et_autre_scene_apres_recharge(self):
         cas = [
@@ -62,7 +63,7 @@ class SilenceRappelTests(unittest.TestCase):
                 faits = entree(appels)['faits']
                 self.assertIn(temoin, faits['conversation_validee']['temoins'])
                 self.assertIn('se tai', faits['conversation_validee']['issue'])
-                anciennes = [p for p in avant.get('paroles_pnj', []) if p['locuteur'] == temoin]
+                anciennes = [p for p in emissions_pnj(avant) if p['locuteur'] == temoin]
                 self.assertEqual([p['texte'] for p in faits['echanges_passes'][temoin]],
                                  [p['texte'] for p in anciennes])
                 recharge = recharger(r)
@@ -73,7 +74,7 @@ class SilenceRappelTests(unittest.TestCase):
                 for identifiant, objet in avant['objets'].items():
                     for champ in ('salle', 'position', 'porteur', 'portions'):
                         self.assertEqual(recharge.objets[identifiant].get(champ), objet.get(champ))
-                self.assertEqual([p for p in recharge.data['paroles_pnj'] if p['locuteur'] == temoin],
+                self.assertEqual([p for p in emissions_pnj(recharge) if p['locuteur'] == temoin],
                                  anciennes)
 
     def test_sources_courantes_et_rappels_restent_deux_controles(self):

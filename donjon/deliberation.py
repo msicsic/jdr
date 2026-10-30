@@ -345,6 +345,12 @@ def tient(monde, id, s, connus=None):
         return all(f in avant or f[0] == "pieces" and any(
             a[:3] == f[:3] and a[3] >= f[3] for a in avant)
             for f in moyens_crus(monde, id, s, connus))
+    if s['operation'] == 'enqueter_cause':
+        from .causes import contexte
+        # Une date rafraîchie du même signe n'est pas une nouvelle cause.
+        # Relire aussi les premières sauvegardes du lot qui portaient cette date.
+        return all(f[:3] in [a[:3] for a in s.get('cause', [])]
+                   for f in contexte(monde, id, s['de']))
     if s["operation"] == "enqueter_lieu":
         avant = {tuple(f) for f in s.get("cause", [])}
         return all(tuple(f) in avant for f in moyens_crus(monde, id, s, connus))

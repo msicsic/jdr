@@ -73,6 +73,7 @@ class Plan:
     oppose: str = ""           # jet opposé : le personnage qui oppose la même caractéristique (pousser)
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
+    compris: str = ""          # texte libre admis : récapitulatif moteur figé avant affichage
 
     @property
     def perception(self):
@@ -88,6 +89,9 @@ class Plan:
                     or any(p.realise_geste for p in self.plans))
 
     def resume(self, monde, afficher_avis=True):
+        if self.compris:
+            from dataclasses import replace
+            return self.compris + "\n" + replace(self, compris="").resume(monde, afficher_avis)
         from .noms import texte
         if self.etapes:
             plusieurs = len(self.plans) > 1
@@ -520,7 +524,8 @@ class Moteur:
                                   f"{cible} est de type {o['type']}.")
             if action == "deverrouiller" or (action == "ouvrir" and o["verrouillee"] and t):
                 cles = sorted(i for i, x in m.objets.items() if x["lieu"] == "joueur" and cible in x.get("ouvre", []))
-                if not t or cible not in t.get("ouvre", []):
+                from .moyens_materiels import cle_adaptee
+                if not cle_adaptee(o, t):
                     raise ErreurMonde(("Il te faut une clé pour cela." if not t else
                                        designer(t, debut=True) + " ne convient pas à cette serrure."),
                                       f"outil : une clé en main qui ouvre {cible}, parmi {cibles(m, cles)}"
@@ -555,7 +560,8 @@ class Moteur:
             if o.get("bloquee") or any(e.get("bloquee") for e in m.enfants(parent_id)):
                 raise ErreurMonde("La serrure est bloquée ; le crochetage ne peut plus fonctionner.",
                                   f"serrure de {parent_id} grippée : il faut sa clé, ou forcer (frapper).")
-            if not t or "crochetage" not in t.get("usages", []):
+            from .moyens_materiels import outil_crochetage
+            if not outil_crochetage(o, t):
                 raise ErreurMonde("Il faut un outil adapté pour crocheter.",
                                   f"outil : un objet en main d'usage crochetage, parmi {cibles(m, portes_avec_usage(m, 'crochetage'))}.")
             from .pnj import seuil_crochetage
@@ -598,7 +604,8 @@ class Moteur:
                                   f"puissance de {outil} : {puissance}"
                                   + (f", seuil de coupe de {cible} : {o['seuil_coupe']}" if "seuil_coupe" in o else "")
                                   + " ; il faut un outil plus puissant.")
-            if action == "frapper" and not (coupe or choc or not t and o["type"] == "porte"):
+            from .moyens_materiels import impact_objet
+            if action == "frapper" and not (impact_objet(o, t) or not t and o["type"] == "porte"):
                 chocs = sorted(set(portes_avec_usage(m, "percussion")) | set(portes_avec_usage(m, "levier")))
                 raise ErreurMonde("Il faut un outil adapté à cette cible pour la frapper ou l'entamer.",
                                   f"outil : un objet en main d'usage percussion ou levier, parmi {cibles(m, chocs)}"

@@ -1,3 +1,4 @@
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import io
 from pathlib import Path
@@ -172,7 +173,7 @@ class ConnaissancesTests(unittest.TestCase):
         self.assertIn(citation, sortie.getvalue())
         self.assertEqual(reprise.data["savoirs_pnj"]["marchand"]
                          ["souvenir_personnel"]["texte"], souvenir)
-        self.assertEqual(reprise.data["paroles_pnj"][-1]["texte"], citation)
+        self.assertEqual(emissions_pnj(reprise)[-1]["texte"], citation)
 
     def test_savoir_qui_invente_solution_de_quete_refuse_avant_sauvegarde(self):
         invention = "Une seconde cloche est cachée sous le plancher."

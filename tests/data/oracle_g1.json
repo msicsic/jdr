@@ -1,0 +1,4606 @@
+{
+ "version": 1,
+ "portee": "Oracle fermé de preuves humaines ; toute observation nouvelle est non évaluée, jamais fidèle par défaut. Les propositions et le texte seuls ne prouvent pas une sauvegarde intégrale.",
+ "gel": "2026-10-29, A0, avant résultats A1-A6",
+ "sources": [
+  {
+   "campagne": "230e7b3",
+   "path": "g1-294/20261029-150541-9580/integ-r1/20261029-150548-29192-integ-r1-avis-joueur.json",
+   "sha256": "7d13672f3ec7a2c588c2eb12bbffae85dc3940a139d17f716b677b8da7645508"
+  },
+  {
+   "campagne": "230e7b3",
+   "path": "g1-294/20261029-150541-9580/integ-r1/20261029-150548-29192-integ-r1-crypte.json",
+   "sha256": "e589b8642a40b3afda6851ce7b7b828ba6d320ff20e0f4285b64251c7976b143"
+  },
+  {
+   "campagne": "230e7b3",
+   "path": "g1-294/20261029-150541-9580/integ-r1/20261029-150548-29192-integ-r1-echanges.json",
+   "sha256": "82dc3623974008569f642359481ec8daf776763be6ba827fe0ebeee57d7b671a"
+  },
+  {
+   "campagne": "230e7b3",
+   "path": "g1-294/20261029-150541-9580/integ-r1/20261029-150548-29192-integ-r1-relais.json",
+   "sha256": "0e962d38daf04a4c4acee929f1951f9be3c402b9ee20a413c31f01abdb220c1c"
+  },
+  {
+   "campagne": "230e7b3",
+   "path": "g1-294/20261029-150541-9580/integ-r1/20261029-150548-29192-integ-r1-ressources.json",
+   "sha256": "cddfe7eb18d52bdb3d431e0f21e783f0cb2978da8243cfaebd17e6402029f248"
+  },
+  {
+   "campagne": "230e7b3",
+   "path": "g1-294/20261029-150541-9580/integ-r1/20261029-150548-29192-integ-r1-soir-appel.json",
+   "sha256": "6fd8b79c3167178beede70c6b4c28ca7d89ebbbc1cb93fa176c1fefb73524688"
+  },
+  {
+   "campagne": "294",
+   "path": "g1-294/20261029-150541-9580/lot-r1/20261029-151256-2480-lot-r1-avis-joueur.json",
+   "sha256": "bc76c944764845f22fd9dd45a7f5e31d5336f4a7b6dc5e4354769c4e370ddd4c"
+  },
+  {
+   "campagne": "294",
+   "path": "g1-294/20261029-150541-9580/lot-r1/20261029-151256-2480-lot-r1-crypte.json",
+   "sha256": "6673d61ea1b046a52ab67e412d6eab849ba073aa70b2e0e0e95961b62f6b60a8"
+  },
+  {
+   "campagne": "294",
+   "path": "g1-294/20261029-150541-9580/lot-r1/20261029-151256-2480-lot-r1-echanges.json",
+   "sha256": "8f3307b406bc4cd0ecb2005d29c723aadc0eedc4799e8c744e84b09b9daf581a"
+  },
+  {
+   "campagne": "294",
+   "path": "g1-294/20261029-150541-9580/lot-r1/20261029-151256-2480-lot-r1-relais.json",
+   "sha256": "2ad7e2c61e21b8b13b03696f9448abd1bfb83ec90ca4cd06c29df35626c57169"
+  },
+  {
+   "campagne": "294",
+   "path": "g1-294/20261029-150541-9580/lot-r1/20261029-151256-2480-lot-r1-ressources.json",
+   "sha256": "fd143a80349223b5beaeb55423b812ba840a994a01f55ff302f9f6dd68b0f110"
+  },
+  {
+   "campagne": "294",
+   "path": "g1-294/20261029-150541-9580/lot-r1/20261029-151256-2480-lot-r1-soir-appel.json",
+   "sha256": "51acc916644a1d97d22cbbe3229332d5ccce5664a0814f7819d6b0d4c2e7df2e"
+  },
+  {
+   "campagne": "296",
+   "path": "g1b-296/20261029-160454-13148/lot-r1/20261029-160454-36852-lot-r1-avis-joueur.json",
+   "sha256": "14e048f884bd04bce4cec5958e4a68494aa49288f68f0d5d35fcaef8b6fe4d62"
+  },
+  {
+   "campagne": "296",
+   "path": "g1b-296/20261029-160454-13148/lot-r1/20261029-160454-36852-lot-r1-crypte.json",
+   "sha256": "44e5eda998cd4ab9eb5b9f0d586938a4569b9354b90b58cafc3b014e1df06136"
+  },
+  {
+   "campagne": "296",
+   "path": "g1b-296/20261029-160454-13148/lot-r1/20261029-160454-36852-lot-r1-echanges.json",
+   "sha256": "a8e449d05d12787cea9913283f491a5a07ff6a6291e9a558461a1ed8668a11b9"
+  },
+  {
+   "campagne": "296",
+   "path": "g1b-296/20261029-160454-13148/lot-r1/20261029-160454-36852-lot-r1-relais.json",
+   "sha256": "40bc4b02ef65f7984bb9ff60f180b25fb34f8cc63bd1541339eb0a9f87dd064f"
+  },
+  {
+   "campagne": "296",
+   "path": "g1b-296/20261029-160454-13148/lot-r1/20261029-160454-36852-lot-r1-ressources.json",
+   "sha256": "d2788e6b7b9ac939b4f73adcd9597378103c04df916a3e488ff06ee4c0c2b848"
+  },
+  {
+   "campagne": "296",
+   "path": "g1b-296/20261029-160454-13148/lot-r1/20261029-160454-36852-lot-r1-soir-appel.json",
+   "sha256": "84222a8644d6c86fa67af3d178fdfd7d962299b09b529bd0aedfb4ef97e52bb0"
+  },
+  {
+   "campagne": "304",
+   "path": "g1c-304/20261029-171905-16976/lot-r1/20261029-171906-34912-lot-r1-avis-joueur.json",
+   "sha256": "2a735d5196752e158f764995df1efb4c87e3a4c1711b85c0de9dad36308358a6"
+  },
+  {
+   "campagne": "304",
+   "path": "g1c-304/20261029-171905-16976/lot-r1/20261029-171906-34912-lot-r1-crypte.json",
+   "sha256": "6c193fd21cd7a0d180b6e83fdc66303673355cc99709b3d8153646567f14d874"
+  },
+  {
+   "campagne": "304",
+   "path": "g1c-304/20261029-171905-16976/lot-r1/20261029-171906-34912-lot-r1-echanges.json",
+   "sha256": "479eb3f56ef136bc5fa9a3a15fbcabd06470886a43f8ce3c2e1bfc80bcbaa539"
+  },
+  {
+   "campagne": "304",
+   "path": "g1c-304/20261029-171905-16976/lot-r1/20261029-171906-34912-lot-r1-relais.json",
+   "sha256": "daa40f747e638b255d7fb43afca939a5c8bc7be31ef9b34ba2ee126e0d33356a"
+  },
+  {
+   "campagne": "304",
+   "path": "g1c-304/20261029-171905-16976/lot-r1/20261029-171906-34912-lot-r1-ressources.json",
+   "sha256": "b657e62569eae23e1733bf7ade37482206dfc7694576432465c1eba68c17d8dc"
+  },
+  {
+   "campagne": "304",
+   "path": "g1c-304/20261029-171905-16976/lot-r1/20261029-171906-34912-lot-r1-soir-appel.json",
+   "sha256": "0277c4ed085627db605c3c32979d72657e34fc7b68f8443662d9f63ee285587d"
+  },
+  {
+   "campagne": "311",
+   "path": "g1d-311/20261029-184942-30520/lot-r1/20261029-184945-37724-lot-r1-avis-joueur.json",
+   "sha256": "4f12c24581574560a65c40f61dddb21c6b844b89de1de526e07a28ffd85c7bfe"
+  },
+  {
+   "campagne": "311",
+   "path": "g1d-311/20261029-184942-30520/lot-r1/20261029-184945-37724-lot-r1-crypte.json",
+   "sha256": "a304b81e238d46e9772e29e940289ff212d419a34818f2c8b9d3be1f224e192f"
+  },
+  {
+   "campagne": "311",
+   "path": "g1d-311/20261029-184942-30520/lot-r1/20261029-184945-37724-lot-r1-echanges.json",
+   "sha256": "1cbf3b28e0f606c54f811b275ef559f149cfc4fc7e163d0ccbe224053e39a314"
+  },
+  {
+   "campagne": "311",
+   "path": "g1d-311/20261029-184942-30520/lot-r1/20261029-184945-37724-lot-r1-relais.json",
+   "sha256": "669279be82cff985a0fde9988d9d50148282ff1dca2e7dc27742c6df5bfc9c24"
+  },
+  {
+   "campagne": "311",
+   "path": "g1d-311/20261029-184942-30520/lot-r1/20261029-184945-37724-lot-r1-ressources.json",
+   "sha256": "256ff335eaf1ab40ede6af33cf60859e3fbed8f263d7b106cf865ca50293984f"
+  },
+  {
+   "campagne": "311",
+   "path": "g1d-311/20261029-184942-30520/lot-r1/20261029-184945-37724-lot-r1-soir-appel.json",
+   "sha256": "5fb86bc444f100c1c236b67df275e928769753ca9525ef506d26b036cf1bb24d"
+  },
+  {
+   "campagne": "c9459ce",
+   "path": "references/c9459ceedce4ce98b8463fab2ca8c56942d7befa/banc_multi/avis-joueur-chatgpt-medium-libre-m500-b72e6f9a5e/partie-1.json",
+   "sha256": "0092c1111a63f4632f34d48bafd41998bae34e7c703cd384795bf4d84bd31744"
+  },
+  {
+   "campagne": "c9459ce",
+   "path": "references/c9459ceedce4ce98b8463fab2ca8c56942d7befa/banc_multi/crypte-chatgpt-medium-libre-m500-4c9410a403/partie-1.json",
+   "sha256": "7e20435f6e7dc34820329e2c1f08d710c3c244cf2835a49d0e5b6b8ef29e4d02"
+  },
+  {
+   "campagne": "c9459ce",
+   "path": "references/c9459ceedce4ce98b8463fab2ca8c56942d7befa/banc_multi/echanges-chatgpt-medium-libre-m500-9feb66654f/partie-1.json",
+   "sha256": "4d6bd01ad8acaa31fb6e302d15e673f0df357bccdcbb472e35ddffbaeeeba798"
+  },
+  {
+   "campagne": "c9459ce",
+   "path": "references/c9459ceedce4ce98b8463fab2ca8c56942d7befa/banc_multi/relais-chatgpt-medium-libre-m500-9075061395/partie-1.json",
+   "sha256": "222ba50c1e6d3bf76a12f2078bc0085627a18d6013cd2291c721e172bfc7fc33"
+  },
+  {
+   "campagne": "c9459ce",
+   "path": "references/c9459ceedce4ce98b8463fab2ca8c56942d7befa/banc_multi/ressources-chatgpt-medium-libre-m500-065b9b192d/partie-1.json",
+   "sha256": "c5f599394ddcbd3bc43cc6918d19389a8c11bd79af3c1251403229f32d4a285b"
+  },
+  {
+   "campagne": "c9459ce",
+   "path": "references/c9459ceedce4ce98b8463fab2ca8c56942d7befa/banc_multi/soir-appel-chatgpt-medium-libre-m500-10dc772c84/partie-1.json",
+   "sha256": "569d5c7c00ef7c5030097e160b717d6ec4d57cab51a9023f6f3fe5e4f6eac450"
+  }
+ ],
+ "familles_reference": {
+  "information_sensorielle": 2,
+  "expression_sonore": 1,
+  "memoire_description": 4,
+  "recherche": 0,
+  "ecoute": 0,
+  "geste_outille": 1,
+  "passage": 1,
+  "coup": 1,
+  "cible_inconnue": 1,
+  "attente_vol": 1,
+  "prix_mission": 0,
+  "question_au_mj": 1,
+  "parole_question": 3,
+  "avis": 4,
+  "ressources_comptes_marche": 7
+ },
+ "obligatoires": [
+  {
+   "nom": "prix",
+   "positions": [
+    "crypte/24"
+   ],
+   "contrats": {
+    "crypte/24": {
+     "all": [
+      {
+       "path": [
+        "candidats",
+        -1,
+        "mode"
+       ],
+       "eq": "conversation_pnj"
+      },
+      {
+       "all": [
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "operation"
+         ],
+         "eq": "prix"
+        },
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "personnage"
+         ],
+         "eq": "marchand"
+        },
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "mission"
+         ],
+         "eq": "anneau_veilleur"
+        }
+       ]
+      }
+     ]
+    }
+   }
+  },
+  {
+   "nom": "avis",
+   "positions": [
+    "avis-joueur/0",
+    "avis-joueur/1",
+    "avis-joueur/2"
+   ],
+   "contrats": {
+    "avis-joueur/0": {
+     "all": [
+      {
+       "path": [
+        "candidats",
+        -1,
+        "mode"
+       ],
+       "eq": "parole_joueur"
+      },
+      {
+       "all": [
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "personnage"
+         ],
+         "eq": "marchand"
+        }
+       ]
+      },
+      {
+       "any": [
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "contenu",
+          0,
+          "sujet"
+         ],
+         "eq": "conduite basse"
+        }
+       ]
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition",
+        "contenu",
+        0,
+        "type"
+       ],
+       "eq": "avis"
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition",
+        "contenu",
+        0,
+        "attribut"
+       ],
+       "eq": "menace"
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition",
+        "contenu",
+        0,
+        "valeur"
+       ],
+       "eq": "oui"
+      }
+     ]
+    },
+    "avis-joueur/1": {
+     "all": [
+      {
+       "path": [
+        "candidats",
+        -1,
+        "mode"
+       ],
+       "eq": "parole_joueur"
+      },
+      {
+       "all": [
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "personnage"
+         ],
+         "eq": "marchand"
+        }
+       ]
+      },
+      {
+       "any": [
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "contenu",
+          0,
+          "sujet"
+         ],
+         "eq": "galerie de ronde"
+        }
+       ]
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition",
+        "contenu",
+        0,
+        "type"
+       ],
+       "eq": "avis"
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition",
+        "contenu",
+        0,
+        "attribut"
+       ],
+       "eq": "menace"
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition",
+        "contenu",
+        0,
+        "valeur"
+       ],
+       "eq": "oui"
+      }
+     ]
+    },
+    "avis-joueur/2": {
+     "all": [
+      {
+       "path": [
+        "candidats",
+        -1,
+        "mode"
+       ],
+       "eq": "parole_joueur"
+      },
+      {
+       "all": [
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "personnage"
+         ],
+         "eq": "tous"
+        }
+       ]
+      },
+      {
+       "any": [
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "contenu",
+          0,
+          "sujet"
+         ],
+         "eq": "antichambre"
+        },
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "contenu",
+          0,
+          "sujet"
+         ],
+         "eq": "Refuge du relais"
+        }
+       ]
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition",
+        "contenu",
+        0,
+        "type"
+       ],
+       "eq": "avis"
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition",
+        "contenu",
+        0,
+        "attribut"
+       ],
+       "eq": "menace"
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition",
+        "contenu",
+        0,
+        "valeur"
+       ],
+       "eq": "non"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "nom": "part_contre_pieces",
+   "positions": [
+    "soir-appel/5"
+   ],
+   "contrats": {
+    "soir-appel/5": {
+     "all": [
+      {
+       "path": [
+        "candidats",
+        -1,
+        "mode"
+       ],
+       "eq": "parole_joueur"
+      },
+      {
+       "all": [
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "personnage"
+         ],
+         "eq": "aubin"
+        }
+       ]
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition",
+        "contenu"
+       ],
+       "eq": [
+        {
+         "type": "proposition",
+         "demande": {
+          "type": "part",
+          "objet": "planches"
+         },
+         "contrepartie": {
+          "type": "pieces",
+          "montant": 3
+         }
+        }
+       ]
+      }
+     ]
+    }
+   }
+  },
+  {
+   "nom": "question_mj_sans_execution",
+   "positions": [
+    "crypte/41"
+   ],
+   "contrats": {
+    "crypte/41": {
+     "all": [
+      {
+       "path": [
+        "candidats",
+        -1,
+        "mode"
+       ],
+       "eq": "dialogue"
+      },
+      {
+       "path": [
+        "candidats",
+        -1,
+        "proposition"
+       ],
+       "eq": null
+      }
+     ]
+    }
+   }
+  },
+  {
+   "nom": "attente_vol",
+   "positions": [
+    "crypte/26"
+   ],
+   "contrats": {
+    "crypte/26": {
+     "any": [
+      {
+       "all": [
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "action"
+         ],
+         "eq": "voler"
+        },
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "cible"
+         ],
+         "eq": "crochets"
+        },
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "methode"
+         ],
+         "eq": "finesse"
+        }
+       ]
+      },
+      {
+       "all": [
+        {
+         "all": [
+          {
+           "path": [
+            "candidats",
+            -1,
+            "proposition",
+            "action"
+           ],
+           "eq": "composer"
+          }
+         ]
+        },
+        {
+         "path": [
+          "candidats",
+          -1,
+          "proposition",
+          "etapes"
+         ],
+         "items": [
+          {
+           "all": [
+            {
+             "path": [
+              "operation"
+             ],
+             "eq": "patienter"
+            }
+           ]
+          },
+          {
+           "all": [
+            {
+             "path": [
+              "operation"
+             ],
+             "eq": "deplacer"
+            },
+            {
+             "path": [
+              "cible"
+             ],
+             "eq": "crochets"
+            },
+            {
+             "path": [
+              "destination"
+             ],
+             "eq": "joueur"
+            },
+            {
+             "path": [
+              "methode"
+             ],
+             "eq": "discret"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   }
+  },
+  {
+   "nom": "perche_puis_saut",
+   "positions": [],
+   "attente": "Deux étapes ordonnées : prise de la perche puis saut avec cette même perche ; refus fidèle possible ; pas de prise déjà exécutée si plan refusé.",
+   "contrat": {
+    "all": [
+     {
+      "all": [
+       {
+        "path": [
+         "proposition",
+         "action"
+        ],
+        "eq": "composer"
+       }
+      ]
+     },
+     {
+      "path": [
+       "proposition",
+       "etapes"
+      ],
+      "items": [
+       {
+        "all": [
+         {
+          "path": [
+           "operation"
+          ],
+          "eq": "deplacer"
+         },
+         {
+          "path": [
+           "cible"
+          ],
+          "eq": "perche_3"
+         },
+         {
+          "path": [
+           "destination"
+          ],
+          "eq": "joueur"
+         }
+        ]
+       },
+       {
+        "all": [
+         {
+          "path": [
+           "operation"
+          ],
+          "eq": "franchir_obstacle"
+         },
+         {
+          "path": [
+           "cible"
+          ],
+          "eq": "mur_atelier"
+         },
+         {
+          "path": [
+           "destination"
+          ],
+          "eq": "terrasse"
+         },
+         {
+          "path": [
+           "outil"
+          ],
+          "eq": "perche_3"
+         },
+         {
+          "path": [
+           "methode"
+          ],
+          "eq": "appui_mobile"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "cas": [
+  {
+   "id": "avis-joueur/0",
+   "saisie": "je dis à Gorm : l'eau va gagner la conduite basse",
+   "modele": true,
+   "famille": "avis",
+   "attente": "Adresse, sujet et négation conservés ; la parole ne prouve pas son contenu.",
+   "preuves": {
+    "1a552731ca693c04d24d2186ee57c72e0cf5e85016e28243aa038fc8f4f1e7f6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "710d51acc69c78ec7e05752e59e00c7221ecffcbf5d9e5367b2c3224cf1c46c6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "d56cc0205fbb05a76bc1e63d74c5bf6ebdb6f30c8e2f1920559c9f7129538702": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "5fa207e43172b66a57c4aff25557cd8d15f85b4dfad0180b85116662f20c8e09": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "20c627f114f22f67dd432b2225d49943b6c3d69e51285fd007581506b00a6f96": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "337d3e9caccac972dab42180cabb019634c1ce21ef9352f4a27a3bd29fce86a4": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "avis-joueur/1",
+   "saisie": "je dis à Gorm : l'eau va gagner la galerie de ronde",
+   "modele": true,
+   "famille": "avis",
+   "attente": "Adresse, sujet et négation conservés ; la parole ne prouve pas son contenu.",
+   "preuves": {
+    "cc3a7e477eb668449694c5674580a285963c0e675af56fcd8f040ccf91436da3": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "697efbb771a4336e4dbc38aa7b020aa9946bf3fc8dabd576cc1d8465d2d5bd63": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "2aee6c35747722cacf5699a0ef17e7f10d4f0b4a9a6d6782d69c6d7cf7c33afb": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "d7c60d8dc627477bc80a989fe2bd30d84a674ac24c9d284e70171cd1212c4759": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "f0a37e3f4da95bc2764e7346fe781d54c4568ab1e445f457d62c23c4eba1f458": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "9a7792b4ae8e882ac31fde8ecf87b68abbebdfa49cd7404461720503a22243e2": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "avis-joueur/2",
+   "saisie": "à tous : l'eau ne menace pas le refuge du relais",
+   "modele": true,
+   "famille": "avis",
+   "attente": "Adresse, sujet et négation conservés ; la parole ne prouve pas son contenu.",
+   "preuves": {
+    "fc459d36023ba072d78c9e0344343aa2a773b0eeb7bf93b03fde5e33709cdfa9": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "1a9c09652bd8bb0233617e7d5e767b62e9de7d82b1de082f31db78f864e64529": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "327cad57b609d66213f02377203ba958e8c59261c36d8668fd7a749f24921650": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "0d96c4be163b676858e5fd5a3b3ad3cd1335a199ed8a000b649f80d64267e67b": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "391aa3a6a72b5d5f6c10acfdf9dfbcba4899519dcddc660184e2863d2fd8c13f": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "fb28391756f7de28accd1d282975500304808a0df17dab5078da8cbeb87f2ad6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "crypte/0",
+   "saisie": "regarder",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "f3c9c25023b0251d52ecb3de731c2a8a7242903e8dc85d04a1c78b828c12a4c4": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/1",
+   "saisie": "il fait sombre ici ?",
+   "modele": true,
+   "famille": "information_sensorielle",
+   "attente": "Répondre à la question sensorielle sans parole de Corvus inventée ; odeur effectivement décrite.",
+   "preuves": {
+    "3b6c6339186bdbe23b51282e6d9f5c5397a8eb0d7502779448f5a925c0748816": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "a5c2195193d034136a91c38bfe0a18279f14e399b8edbabc6e399b8f303b7d73": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "c0bafb16bb2abb907f70ac68add703af45c59dd8152e07200a4223b6ac420642": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "d59fb15ddbf5004d9e4cd57d623373a92d1a8d8195839e17d89f41a5499d85cf": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "34f81df58d3481a3aa63e16e5dbb302718c8bd987b73daaaae57eeb6365258a2": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "a378bd39b6f3813522f13bd11de9d51ffbb997e30b0499098f410520e92abc75": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    }
+   }
+  },
+  {
+   "id": "crypte/2",
+   "saisie": "est",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "ae7ed1b99fe7e6a7a17f0c0b02753876855a5a1b012eaeb4573a7bd568656230": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/3",
+   "saisie": "est",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "6f476a2fed2e3523211ee65b7482b74975d267a8ba1dfd9a888ac4ac817680b7": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/4",
+   "saisie": "est",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "ab8e1a6b0fd3439f5c1e2ff6da820e0aa4b5959df2fb9e555ad2b5a866324f8b": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/5",
+   "saisie": "nord",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "1045c71a5b9b6ac3f063262b1715db6f7c6044a27a84f6e0dcdf216501629147": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/6",
+   "saisie": "nord",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "b46ec05e93d4e5ed9db2e4001ba426661fbcf5aa60a273a351cad108822f4b04": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/7",
+   "saisie": "examiner gravure",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "31b37203d33ca36fe52b90dbcef0b4cf250ef15d869df273e9dedb91dbbb92b1": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/8",
+   "saisie": "que représente la gravure ?",
+   "modele": true,
+   "famille": "memoire_description",
+   "attente": "Rendre la connaissance publique et sa provenance ; rappel sans relecture ni effet nouveau.",
+   "preuves": {
+    "5699e57a34fa04d687fe5be54918df202fffc51c6b9044b6a334c21e7af63409": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "9d065101664a5bab174cb8fbe063237a5fe9b1449234837a1cc5f16b1ca64aa4": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "d5d547109451cc38105e93ec5f2b53ba34e3d46431f20deb45cef4149b63aa8d": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "2fa4f250255ffd12e1b1c4d625faf336ede64f25bf77b56ceb6c8daf6cc4a505": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "e6f199f2cb421b232c9f84040ef9baca7df2506280615e9d7aab136a297aecf6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "636674ffd7a3416a389cc6e0be456d0017e32ed87b44d664a39490b2f8e68a39": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    }
+   }
+  },
+  {
+   "id": "crypte/9",
+   "saisie": "j'écoute à la porte pour savoir s'il y a quelque chose derrière",
+   "modele": true,
+   "famille": "ecoute",
+   "attente": "Écouter sur place sans cible ni outil ; distinguer bonne proposition et faux refus de revue.",
+   "preuves": {
+    "a23473574f92ee13d350256a185851107e76870dccab16c7873f06e59c3e4624": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "non",
+     "abandon": true,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "a43a9a85d79a39268a48fb1af0202b8534d932f517636086f366a6708fdc4419": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "non",
+     "abandon": true,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "db6a24faa34673e5b362fe82b16eb076566d9dc0191aaf501c3105a537e6dd1f": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "action",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "25231d99d9b2b79fd91d3c876b35501c52a50901c3e6afd22ca8c06bdd949afd": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "action",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "622e77cf1acb9b3a50636a62bcccb127c21c960198b5a7c3d5d3e93637874ef5": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "action",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "9d283bd871e76d148d99053d8c8630e5054d962c86af0fe5a7e9ab09083c0087": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "non",
+     "abandon": true,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    }
+   }
+  },
+  {
+   "id": "crypte/10",
+   "saisie": "je glisse mon couteau sous la tête de l'axe supérieur et fais levier",
+   "modele": true,
+   "famille": "geste_outille",
+   "attente": "Détacher axe_haut avec couteau par levier ; aucun remplacement par impossible.",
+   "preuves": {
+    "e7f82b1998007486610eedb9ee47d8749a3d7011c519de17a057c858a5cde1c2": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "non_execute",
+     "consentement": "attente",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "666a792716b063ec383f04d8062a57b4df55f83d55f92613f70d5e84ff5234db": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "non_execute",
+     "consentement": "attente",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "108d0c2b4b5cef5afbaf5a3cdc193ad54c38bb3f00bcde2a283237d5a1134924": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "non_execute",
+     "consentement": "attente",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "362c807608ecacc5112c964b0337fd85e10803fe64e8e1091306c34bdd7e5969": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "non_execute",
+     "consentement": "attente",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "f25a2ec44f14406d146f83661712956a670f8f73aaa901e27550544ce8ad003d": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "non",
+     "abandon": true,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "59eb8d790a5b3040534b8209f4e6b9489b4e2ddf923097036bb6b55d74cd1c4e": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "non_execute",
+     "consentement": "attente",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "crypte/11",
+   "saisie": "annuler",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "6ba2db773be3cdc9271fbf6cac03bf0e6f308c83895f5dbdca5ccef593ac0727": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "302ed9fed52eda0bce22e7a590e4c82fa04e396a813bbdce2b263e395891ab01": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/12",
+   "saisie": "sud",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "c9667e889eca05478d213be57ab3bd46b23a59e3df7cd558fca27beb3dd2ae44": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "407df05328bf806cee0bfd6eabbb9fe55d0769a7ef5ca0cbbda3c05976e0e100": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/13",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "b7da8940b5bc3faa6a77efcad099b6a8271923508401726a6c8c0630bb3774fd": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "4b175f52375c4b32ef9e5d130ab7f1e6d4b1ca8f4ce3b1f71d1afcdd4452dece": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/14",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "67824e13c96050d23c253b3b58554da72e9a50ec9c39f21ca6af7e81ecec0034": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "fba4eafc8cd34ea71226b19103d5bb272b28d3702b6a52ca38b5ac563517c5c2": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/15",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "2559dcb69c4e8d1201f83180a91a9a607eeb1942fd86938de1bda4b9199589cb": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "3d70b6f710dbc77f8b13928f19c6f24493c0722dd7ad14be1d08b0db0a30baec": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/16",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "cc285f9776130a7332cba9e253b64b54eeccc9d3e8795b66684c9d1bfbc715bb": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "f37af9881988447582ba74209cfcc558f02dcfdb71162bd61b7c14d9016b7981": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/17",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "ff72ef97326644514dce37a21b32007f5af0b75991a61d8f37b632121cdd2da3": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "0180106fea49da768d27d75a1a9a7c929bd506f0360a5e07c171d01ad5edcd78": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/18",
+   "saisie": "nord",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "762a9fc1dbaa7846a0af2800822eb998449ccfd627eefb896990b493ef07d24d": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "e06944bffdcb18458f4a7a06ddf8867e05128bc92c4969fc3979843eefa1f808": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/19",
+   "saisie": "nord",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "b2341899bc56de86896cd0677be4907508304a3ecb105d2eb6f67440d7319d0c": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "11019d2fe4176024f3d878594df3f4d105d995e2def84ac958b6c8fb4d30b4c0": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/20",
+   "saisie": "nord",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "45ddf064033dc86616438209a956f00ae0d7190f547a3b3bf09d590166f4ed16": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "72aa5cf6e1341bea1b2ac9a936da8472194ec8234b895cb809dd88fa996d749b": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/21",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "e276771343748db1125aa1e8c871a5bfe36d32683bcc215bdeeee79ca529a2b9": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "66d941b8cf6a8edcf3a0d9cbe28022d6a2cd2bdad2604e2ce4c8973f49e7846f": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/22",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "fb38317e04a1a7ac9ea5595ea6c8894533f6210dd2a9d78b1fc9fa4d7e4297aa": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "a773fc3c8f3f4b42c115dd35ef12efc1c5d34fc5ffbae916cacdda1faa20bd01": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/23",
+   "saisie": "Gorm, que sais-tu de cette crypte ?",
+   "modele": true,
+   "famille": "parole_question",
+   "attente": "Adresse et question ouverte conservées ; le rôle gardien ne crée pas une identité.",
+   "preuves": {
+    "744474ba8d25946cb0b96e6c16509c8fc5d8aeba6822f1226c49eddff1d03921": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "2435898d571a466b16d635f39861cb5daf6e600856f8085742e52a8e07580536": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "af8e1541a2e5d61a18a9e4fd9800f9f53406b4f05631900c7713fb08c2791a27": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "5056c5e3171eb1b035cb6d5f9e4251ad427efe62ec9b58d9791fb00770b77df6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "0a4871e5658d2c8c4e6179b267d3823338cc4ee990c308d7dce22003108ed05f": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "328c94d8b791d9392cc78ea16d4b8bb00fec3ea921ef4f2547781a8bfa2b13b8": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "crypte/24",
+   "saisie": "Gorm, combien me donnes-tu pour l'anneau ?",
+   "modele": true,
+   "famille": "prix_mission",
+   "attente": "Consultation typée prix, offre 20 inchangée ; ni négociation ni engagement ni paiement.",
+   "preuves": {
+    "73814452590ca6a1f03f3b7be1ca16660e37b59b2397b3d489d5c59e4979f4ec": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "2b9eea232e6bbcab1cbec5b5fde387f8f87af0f117d837329cefe7f16cf537d3": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "negociation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "98db9709afb0f308888580fd8f88aa6cbfbb26166b1ce393b172d33024bcc0e6": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "negociation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "bd40650c73c775cf1fd113aff267c20249cffa46d4433ed461d21fea318f59d8": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "f072c36a235788b4ba999c5d9b2746f54b101110248f24582ee77d9146a05487": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "0509f97cb2464ff0c6c6d43814d8937d8a6c090ff73a9f04293322402c0a6db0": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "crypte/25",
+   "saisie": "décris-moi l'échoppe",
+   "modele": true,
+   "famille": "memoire_description",
+   "attente": "Rendre la connaissance publique et sa provenance ; rappel sans relecture ni effet nouveau.",
+   "preuves": {
+    "2f6aca7c1683337fb11d55ee8242e27d368bb67cc907a131066d32166a6e2526": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "cce5ab767e483407ddd3483d26c4a20da5c504f6bf5b626509f45561498ed526": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "2526700f37490bb3701fa8a4ca922ae5df51dc214e755de4c6dddb1d975a2bbf": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "096d8a743c759d8c629352237d21cdb6606c6366af4065ba9add64d9f85749cd": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "a20aa89cad45ec5eff66793de93375b6ff5a05088986f2f6eaacb6d47ad5a25c": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "baaba93e733bac55bd2afcd9bcbdbeb50315e8c81a504fecf5f026ffbc43b444": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    }
+   }
+  },
+  {
+   "id": "crypte/26",
+   "saisie": "J'attends que Gorm ait le dos tourné pour prendre discrètement les crochets",
+   "modele": true,
+   "famille": "attente_vol",
+   "attente": "Attendre puis prendre discrètement crochets ; aucune orientation imposée à Gorm.",
+   "preuves": {
+    "66724c79f9a364de45445600575abc0a5d6d75c49058504337a6d23f1f765d67": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    },
+    "420e685a607dadac46e5c388012ed7421c6ef90dcbdbc211c25342d6a71911f7": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "11bb9704c90a6dc28b313d49df4484b5306901630ea8c48ec2c9ccefaad4f112": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "non",
+     "abandon": true,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "6ce6b1b84208708a7c64972deeb52dbe456b17f1275e4fc1dcdd0f6c913dc509": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    },
+    "98804ee42c3d965074e4e83ed8bda97695c4bf27352617837d753354e88e6bd1": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "056a8d6e995e978e0b68ebe556d26fb7e92d264b1a16b2c95aa06a5d480c9ef9": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    }
+   }
+  },
+  {
+   "id": "crypte/27",
+   "saisie": "annuler",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "6dd3a8fb4f158f6d1e7d4887dd4447e32bc8f7956bb94e9fe2ef2d0628211718": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "9eeaca06b30570e7d1d267d39c9804da843348491d10980d3ffad62e71e27887": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/28",
+   "saisie": "acheter pied-de-biche",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "5ee02129a5ddbbfdfafc34a8d14c9f32418b675729fbd8293d6d636a2ee09966": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "4301e6b7e0200923fc9abe55c86c1d4dab47b72d88dec7644cff05140e2eb25b": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/29",
+   "saisie": "est",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "2be753575554049e51ffaa9e6d24f9d9e7638662572669cc4e41b1156d1f7559": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "73eee48ea44f068806119026af9cd9ec54b3dc76d957820030b0487dff70f76a": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/30",
+   "saisie": "est",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "66f4a8a0e602ecdb4a66bcb6db7a348c6e92fc44b74cd9467230600e33530361": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "f04462ac2debfcddda23b1c7a8f43e47422dd8ea13cfd08edcdfd6d69e5d1b29": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/31",
+   "saisie": "sud",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "2ff18fe1f6745e09c0a8cb7de4659240950a73d528e72c00ca2d0d4f8b027109": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "97b581be8b4190c9c12ba63fa0df0b26ca1c7a9fc8719029d222d918ca20ec36": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/32",
+   "saisie": "sud",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "03a350b11d8437fa011e49f9ae2062bf06e59651c881f78cbb7a58738548c601": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "5beb4626b05b14c4698dea264844d78094970cc974da90b56e09fde6413ccb24": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/33",
+   "saisie": "sud",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "2f30fabec7d53dfa0f37a38a1d607cd43d09df00f515870057d830e105cbbffb": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "42bd9eac69c371e72de5a9befa8e779eaaf8a94d635f8ae31dbc0be9d83a74eb": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/34",
+   "saisie": "est",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "d012c8df8ff278430e7c9dcf3129a3614ad6aa632a46cbd1a9bd05396a0b539b": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "d1ca3b47c55682015468f0d474ef180b61ba563ec08f2cd4c8865fb12199b444": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/35",
+   "saisie": "est",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "38d7626616388c38bec25783904fa3a88bb72dc3338901c4845a671ad2174a1f": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "442bbef7d9202391d9177215aad845bf5205ee201c0a59bce502eefe08e7e38d": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/36",
+   "saisie": "est",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "c064e0681252ab0a8ca7f17b06c0146a8ca8fbc95fde8a7216be7681ebef2b23": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "95b88fd28637aaf6dee9428be975a653e14fd60455d60f78b5021bf8f8acad98": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/37",
+   "saisie": "est",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "dea397bb6eae3259d217ee9204f2e5eed355cda62a886e58d712445068603fb8": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "63c72411d65cefdc1d769896964c4df56087e55d150f4dbaff3eea346a9e6fb2": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/38",
+   "saisie": "est",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "6ac7d58e4feaa2692c3d94909776c9fa39a2782c1b07c77865ca5d29a261dbb2": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "8ac0278e8fb21d3a59cd4199cc04db5c9e3a4dc6c38eff12d6c6b493938de788": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/39",
+   "saisie": "nord",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "2e52f2cfa1c5a27d0ffc414e7f1339973b7cb90629ec97e67319fb5fe054347b": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "ec104742c92b10ca83f7c47cccaa23331d1573d1a7a8836ee13ac35e09e3cf80": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/40",
+   "saisie": "retirer axe supérieur avec pied-de-biche",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "dc02bd3c43f4e6c1da0943b605025a56b7341e6eb5cb004daf42cece23950074": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "eed6d9374fdf89cd7be9933db4e11da02772200181428239f669d8b5a3f49cb5": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "a207fc1e68722c1417724de2a539382f0a8e6b5c73f7eb4b01b4efd2a87ca04b": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "crypte/41",
+   "saisie": "qu'est-ce qu'il y a derrière la porte, selon toi ?",
+   "modele": true,
+   "famille": "question_au_mj",
+   "attente": "Réponse au joueur, sans parole de Corvus ni acte exécuté.",
+   "preuves": {
+    "a71058a35573a6773a77b99869aa3adb2d656e7d04df838d7aa6c3b559db64b6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "60b91a3d162a24a72db9ae3e07dffb2c4b40a35ae4bce2df0d97425e3e0a03e8": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "cfe859bb0202e3c0c34abb1bd184947e92dd4b227cd687a35a85f5d893a8b2ab": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "9060cf75116b54a0435df347b011c5feeb64985208b2487454fac07f5d546f32": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "0045e5bab95284a34469f73085cd265a0703ce6b377650b716fabe6896e41a27": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "a94aac546b5bb9dbe182186ec98514f0f84bcf324cc4865485d782d35e954789": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    }
+   }
+  },
+  {
+   "id": "echanges/0",
+   "saisie": "regarder",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "435dc4cf35aa4723efc8b0339ff27861a1b7f2025f5cd365d3f5f993a696b69e": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "echanges/1",
+   "saisie": "bonsoir, vous tenez le coup ?",
+   "modele": true,
+   "famille": "parole_question",
+   "attente": "Adresse et question ouverte conservées ; le rôle gardien ne crée pas une identité.",
+   "preuves": {
+    "696d16de1e09e3221492d984114ce1039d4591e1857db713894ed6815e1b35cf": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "bf5e1a3e1c351f9b891289796b6cef17af8c9f2d29c804daee024d5537af81f1": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "d51ebfad8065dd0afa994c8d72345d0c4163bc2481d23f02342369ef581746d4": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "69c4500f78624a172ab1f6fd3a18258f7932d7fa3d7841127e66bb6790a8e83f": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "7278996771dd733e6bdff7c886ed7bfbd870353bded439ec093571d2841f293d": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "89b0f6b366929574f281f6e53bc19f069341a640b738a1312886b9a27af184c2": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "echanges/2",
+   "saisie": "« Tu sais où est passé le gardien ? »",
+   "modele": true,
+   "famille": "parole_question",
+   "attente": "Adresse et question ouverte conservées ; le rôle gardien ne crée pas une identité.",
+   "preuves": {
+    "0ed39218f91ddbb6e6f6cd4dbf53ae84e7d689803c6ad43661c61dead3cb4c69": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "c14e2ac905c391e0b19abc13450bad60b35d8b905f02de0e6339883e928199bf": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "non",
+     "abandon": true,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "c895818a62638ae0e063db8759b96211c5fabf91f6ada306730ccaa4f2bf33bc": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "ad7e0ec0510b30c444c46c03d437678d4c4e64b0afd328023e3038f5573aedfc": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "c12d48c9fbded3c7308310fe1d379b26e4fa60e8432b974a959302de274a99da": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "7cc58349b4a61a5cedd41646521a49f26727dd1a80317d7ad10086c82e35e9af": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "echanges/3",
+   "saisie": "je dis à tous que l'eau monte et qu'il faut garder le feu",
+   "modele": true,
+   "famille": "avis",
+   "attente": "Adresse, sujet et négation conservés ; la parole ne prouve pas son contenu.",
+   "preuves": {
+    "fafe6a182a820c1c8b368573f75001ec670146cdaa9397fba9cfa90d6414ee2b": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "df9136e6faf176c2ffa1b07b35388faa1a560fb2741aca89c36203e3ebca6dd0": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "b4709e9f7de80f6874b136a4395b7a4ad05c4eaf9ff7695f2ed7431949f009e1": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "7d9094acd8113de47509956f3e54a6088ac618fa4f55f144e7f94d423387a152": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "c31bc5e3419b284a58f39cd6e8583ab40ccc0ef2ecc8726873994fdfa82792a6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "e7b22f9faa83a99e005bbcff42795e75bddcce5f5118bb260f059639b8e23474": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "echanges/4",
+   "saisie": "je chuchote à Brune que je me méfie d'Aubin",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "21a458a695762155824a8e5f57197bfac10d09160c201553b0d27693de7a70a2": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "echanges/5",
+   "saisie": "Brune, laisse-moi passer s'il te plaît",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "936c488786675fd0b6ac733651c0509d9c6d5e37a7b871cf2f8235f680ee664e": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "echanges/6",
+   "saisie": "je pousse Aubin",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "82ecae2570dcf660bfb93131a3ce97b38747347b0fc660dec46cae0531b582f2": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "echanges/7",
+   "saisie": "je donne le bloc de cire à Ilse",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "448a1375d05cc9ea33cdc21f94c44ccdb189ae3cacb29bf9a57c11f730d3b6a8": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "echanges/8",
+   "saisie": "Ilse, qu'est-ce que tu vas en faire ?",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "fa18acd4f6db723321b1e64524c46a039ca889f3994d275d8a7f30657fda9536": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "echanges/9",
+   "saisie": "inventaire",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "2d85228a8d552bbe9022b65252f12e59b78d44dfc09239801fe1208f7c169202": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/0",
+   "saisie": "regarder",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "f3c9c25023b0251d52ecb3de731c2a8a7242903e8dc85d04a1c78b828c12a4c4": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/1",
+   "saisie": "ça sent quoi, ici ?",
+   "modele": true,
+   "famille": "information_sensorielle",
+   "attente": "Répondre à la question sensorielle sans parole de Corvus inventée ; odeur effectivement décrite.",
+   "preuves": {
+    "bbfba5ad667be5266f0c602217983d61e02b72d21cc9bc4c03632f753bd55b9d": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "5c272f3678b20c5b0be7ec64865fb314208c26f224acc09229bf5ce71849711b": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "4826aec966cd17ee50932fcaab0d2dc4aee9c97c15e1b030933a64c59b6431fc": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "d72da0e8f8799ee4aad5cf3462519451df3689509599b06bd0d72243cc00069e": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "3261cd0948d5eb85afb54512f0be3dadbaf1493ec6bde3d6bbcf826b11e2793d": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "90085aba38170005af4d5f5cb9f7c307924541ea2f7e6a581c8139dde82d1ab7": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    }
+   }
+  },
+  {
+   "id": "relais/2",
+   "saisie": "je fredonne doucement",
+   "modele": true,
+   "famille": "expression_sonore",
+   "attente": "Expression simple sans jet ; émission sonore typée immédiate, pas une fiche à confirmer.",
+   "preuves": {
+    "e7f330e237bc5fd4c94dc32a93078cf6e0115340059533cf2444fa3dfc72675d": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "3e95eae6c7c8f2704c841941fc2b97b7d1a4d6dc2561fc0b9de2db71d6191ace": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "attente",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "2c04e3c0f61a0f2bf923b91087a4016913c6cc3177e401700846338a25361e49": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "attente",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "0ee295867f2a13a1c6719a5bb1b050cfdb8b7950fe7648660a6f005f2da8b049": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "attente",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "4f7b30a87c2d6156b509ed2eb0d6837cc8ebef9333bd0bd4845189722ffb27ff": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "attente",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "3dceef8d6e443e9ff6701c7b1959231d7429ef4073f14bbcb3f4ac0a8dc15cc4": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "action",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "relais/3",
+   "saisie": "examiner consigne",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "23462d7385df55f493837228b51f508506f56828d4709d5a46a1813f4a33c9eb": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "e9bf2530de7016ab4e8ee924c5d4aabbf686e94e1b56590ad7e6627c8b306971": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/4",
+   "saisie": "que dit la consigne, exactement ?",
+   "modele": true,
+   "famille": "memoire_description",
+   "attente": "Rendre la connaissance publique et sa provenance ; rappel sans relecture ni effet nouveau.",
+   "preuves": {
+    "24481746365be862e299e761cdb4b675070f3703de048520f3753cbf6d9929a2": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "c46af268e39f802c600c5ac7eb96311bf1868a9a1d78bd1ccb66fd7272a8972d": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "attente",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "6d620a5c3307b57aef4697f861d15fe69b0b931bc060f87898ee17567e2ca743": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "9a2b4e1608db2879c6c5fa2ef0a49fc73b621c7270053995e4d462f265c11270": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "9463fbc2d1f0a8d3022079fd75a58f59c796fd6e6efda983ad62d06d607438af": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    }
+   }
+  },
+  {
+   "id": "relais/5",
+   "saisie": "je cherche des traces de pas sur le sol",
+   "modele": true,
+   "famille": "recherche",
+   "attente": "Recherche de traces distincte ; examen du sol seul non certifié.",
+   "preuves": {
+    "0c15351ffa150b05506c3af356559865e782772ff40b7e952c4464eb7f84e699": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "action",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "1bd9695a0a272a7c16e2bebf70f436d5c0d94ee1d42511ac2fb2db6bcc2028db": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "action",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "478b1946d54225ef190e099ccd876bcb9eee701a682be8d1c1c2f751db65ab5d": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "action",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "a8d64ab15c3a190ad11e90f4246882c5fa49fc6d94f9f9996941a14f67ee47a3": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "action",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "5c6eefcb074d2ad394e4979828924445bf6d18b47620bc2682f388a3057c530f": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "action",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "bac93d6a84de28ae6d0cd10ec6ff6398e64f48e43b017e841b149cd7e4cfc622": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "action",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "relais/6",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "1de42dd25007c9deabc64a2de4c31c1c6925dff62ebab67f6d00b80216b4153a": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "dcbbc206459c2f30326944bb7c45a5cb372725a9efbfe3f548f726535fbadf76": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "d5968a1f03aa4c87bc5263c8dc58ed147505d3d89b968dd1e79648debd1ef907": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/7",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "9f66def1f5f45a55d745d122b3adeefa0f16a6f7b4f5819e999ea61230ae9b16": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "cb24d2e9878250d997f14344e3024dc10602fbc62d22492e8c8ca85f34a69f62": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "589c282a619c4840845ea56f18ab0dd307846f0b85d49a226a610e3755d14269": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/8",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "69d2351ec567133d15da637a3381b81e2717b065851d32dde2357dab96070f84": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "97f37ab0df612ee2d6b880b84205e82ac9339405f18855cf82c38237fcd08b3f": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "af34e3f97a76d8b691a95bffbc69afa3393ee7d97a1f49265e4d137b20435d04": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/9",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "3d0857894ce917b2f6b07f0bb786383f5cd91cdfbfa27b36a1de71c93d0b5f48": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "d6f86865973c6613f41c044e9fae8d0eea2fb2b35dc44db33eabd470a83b8ee2": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "a0fc3d2058f02a1c1ddbfca9b94caf4dc806e15cb51d0d343a8855673f8b49cf": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/10",
+   "saisie": "nord",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "b77474b7eb9c907110dd1644d70fbc53e09d932d8dfdf0f2c88f0fef61867b85": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "bdad2277dba3c0807972783da60062605344d9421b6d025af113523effc3e668": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "fb45d711bda82afcaf80fa6463ba6a046de1cc24b4bc1c6138cf8edfe13ec971": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/11",
+   "saisie": "nord",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "530b0040a0be799c1058c1456c96182a8f4ead3996370284ecc2ea68e9d42674": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "21b1f61985f09228141e8fd1ae16a11185b84b6f5a72530610e2c935f6641962": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "825c11f7e2908104ff6f3989c206707ff7429d2cf365c9e257001cb1bd7391e6": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/12",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "617e48f9dd1059cde325e0760f2b532428c93e8b15adfb7a483e6927e8a4bd54": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "6e63e721ae9c6c79e03d544613eddd9cbced17b7f88a3b5c7c6294967c2f67f2": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "8314196c64e963dc940736e5f5299d43c1e4939abec1a4ae176223e9985e0822": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/13",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "439e076270f0257555822413600315f2e96da7f119f0e9387459fbfc20a28232": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "bc1a77008c9b8f948047426907a20342171f23a43c868e0a7d14f9a43fe20136": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "19f8d849a581a3805a2669298fefd2519598184ee14c2cc99bdb2e13499d11d2": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/14",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "01974f93b9cdb3b8886ff4b3291b544e86f106bfdad516e447d8e3c34385d387": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "ec8376363777621f69e013c679b14db036c45785063428f2455b026db81349c1": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "d73eccb5c43b189e5d3d548890c1e0a44bc63ac1a0e51bdd2a2fd4a4dc5bf076": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/15",
+   "saisie": "regarder",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "1375b9fe1ed11273588a47a0e754e13b6303c0bea8abadadafa53230f3848f6f": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "b983aac7f2d708c240a7223cd0f2b77c3c8fefb3d426e1f49c270f466e30dfc4": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "0fb4b2ee83539abf21aa92c1e46cf839f895a905eb40ed59d1a46ba0da1aec0b": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/16",
+   "saisie": "Gorm, tu peux me décrire le beffroi ?",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "f94346de4c97b74c815bdf3412c2fadc4b9c5723059cf6fa05605b4c8a9ff15b": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "23028c88c9c0fe476168397274ae26cd2d98979931b70ab2f783162f98d68b88": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "8881f5d5c1ace9adf543b8144faf96fe87c6cd852626952ea9d6b7ba8ad6eb5e": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/17",
+   "saisie": "de quelle couleur sont les yeux de Gorm ?",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "38f8ad224c8e809f4658c7efd41d36f1b1c57c2da38d9e6fb53a1de4b10ceb26": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "ca29a2a1da0fa20177b6739698a106d8c0f726d38562362c6ac7fb8abac3aa0f": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "074ccb0527e849ede99b900712a5f62da009a9ae600450da2a077df053ff6875": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/18",
+   "saisie": "Gorm, pourquoi tiens-tu tant à cette cloche ?",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "ca0315858f250e7c670dee086c9efb20d697e1de044e9fb0a70ae283e770cd56": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "592bc25a2533dea99ce240e2781cbea14149dca7618f74237744970a41593526": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "589b446b371bb19550a58675772c8a8527f5cf7b988350459d8ec621a55d999d": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "relais/19",
+   "saisie": "décris-moi l'ambiance de cette conduite",
+   "modele": true,
+   "famille": "memoire_description",
+   "attente": "Rendre la connaissance publique et sa provenance ; rappel sans relecture ni effet nouveau.",
+   "preuves": {
+    "61baa9f1697a801c153e0c8a4badd061d1fa3a752be176bc478494c4a6d800fc": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "1224c7337d7dbeafdb8a77c0291b27345a5be238d511f7ca8755797cdbbc84e0": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "e3133f1801f8aebad45f978bb89af25584acde8312bebba5b76b3452c3e172ef": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "b7de1ac541336103ff8ac6ca3be13e4c336a076b7709e7d994c12584910596a4": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "7f727ad7dde7b3dd67623159a3c5c4449a16d42aed91019ffbdb9fb4855ec607": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "d37b878ac8219a86c5999d5c5b77b56df9f29ffb18ced2d6ce85ce19fa5a16d2": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    }
+   }
+  },
+  {
+   "id": "relais/20",
+   "saisie": "est-ce que je pourrais passer sous la poutre effondrée ?",
+   "modele": true,
+   "famille": "passage",
+   "attente": "Passer sous poutre_conduite par passer_obstacle/dessous ; pas faufiler ni franchir un assemblage.",
+   "preuves": {
+    "178d3d220bbbe3e27470fbda128e9829d3fbda0f258ae8c031dfe8bcc5c0f766": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    },
+    "236981be3ab4668761d73719762c227d8d080035149ea19485658c2c345b3ea4": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "4f23e1a46d3db8785174018d622f201851bed03f80c8170c8af84a6fe65d3ab5": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    },
+    "b1701b2db3c805859fc375d180b6236fa83527c52b7fe36a51083cb59ddf47fb": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    },
+    "bf11e3231c40a87e22d350c39f342e1bd67bb446c1580274b5d8ee6b4886a231": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "non",
+     "abandon": true,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "0bcc412123dba9b3dc580cd7ea9f7feca17219faadf579ed54f1ab013c41fd52": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    }
+   }
+  },
+  {
+   "id": "relais/21",
+   "saisie": "je donne un coup de pied dans la poutre",
+   "modele": true,
+   "famille": "coup",
+   "attente": "Coup sur poutre_conduite sans outil ; pas pousser ni substituer une référence.",
+   "preuves": {
+    "d64e6c00ae30b4992b29a4c8c7799897202549a787f5fb5cedfcb4aba2830eb7": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    },
+    "ce9a1dfb8a53907dcb5161933d990b91c58a49a48d1066db310d95938ca1173e": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    },
+    "29dacce396ebe7c80494f78f79f0b5ce2c066b9975b3e7c840046ec028c37d06": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    },
+    "0eb8c2555059c4961a2e2068fada760b30071d7eff6d069143e36a94d7a5577c": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "2866a5dabf313cffc6c15d97b47d20c18dc68cfb7a3fbb393944fbff589da473": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "non",
+     "abandon": true,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "0ef330717456d62ac70be629dead2e803af1e534fc0494df320647f76b315702": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    }
+   }
+  },
+  {
+   "id": "relais/22",
+   "saisie": "je prends le pied-de-biche",
+   "modele": true,
+   "famille": "cible_inconnue",
+   "attente": "Conserver pied-de-biche non résolu ; refus visible admis, jamais brasero.",
+   "preuves": {
+    "8072663f10a3d5397d16cd2e1943c473fc24936079d70e327e10533d36c95792": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    },
+    "ce4643fccb352bc720be30098577c8c3df60bcf3f7177c5b01b62afe5cdd0cec": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "3b9bf590a2c8f301284bdb5a93267a6a4154af3eea84a9f052266dcc90886f81": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "6662022fe294ec28445cc21fb74442bf58d28078c17fdf31cb57729a78123f6c": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    },
+    "9b240c656fb0bc04604fe2952860e52c113ff6d938680de33f9a5dda1f2bdc43": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "refus",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": true,
+     "admission_moteur": "refuse"
+    },
+    "f139a78517e6feec99d8b2b38c2c4a91f4ba0102c20d5d80ffa8e813dab4ae96": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "consultation",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "sans_proposition"
+    }
+   }
+  },
+  {
+   "id": "ressources/0",
+   "saisie": "Aubin, as-tu du bois ?",
+   "modele": true,
+   "famille": "ressources_comptes_marche",
+   "attente": "Conserver rôles, ressource, dû, unité part et pièces ; refus commercial fidèle servi.",
+   "preuves": {
+    "26e11968a4c2da10bd0dbc91ccfe72e4334a8065ed6f1d3a2bb321a61f77fe43": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "bd535040f2c3a99982966ecbcaf6210d68649ea26f3abd5fc295a72a4ae39f33": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "81cce858be0456041ac55fed9f6cea5ed43339c1a9ada0a3b60a05ef49ed3e06": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "b36d8c7968fedc1d37e47077317f69ccc8773bbf7085a3d95efb9a1528fb3c13": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "54ead451fb4593a5126a5453a68ef7d41a5a3f4eecc0118161c261390093c7c6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "7666599ec1f470f824d31cc1413bd1811082e5bf4c97f3522653d90e6e3450c7": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "ressources/1",
+   "saisie": "je demande à Brune si elle a de quoi manger",
+   "modele": true,
+   "famille": "ressources_comptes_marche",
+   "attente": "Conserver rôles, ressource, dû, unité part et pièces ; refus commercial fidèle servi.",
+   "preuves": {
+    "ebe4dd5c7f0e2e789d64474da4fef4cd244866ac5ed5a2d45031555f58426ee6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "810425b1602201ee91792450a9fa1ce4b5aea49f9c3fc4b18347c5cef41d98d9": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "44390e895aa599fe3e4a3bd9cc152048d25dd2e333951a5b1a6bac473b90c04f": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "89d51586ca698b4e78f4ce530931f884344f066487ef58ec37c3113e3ccdd870": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "e8f7f030470adc109aaa281bb47e870c6cfa1e5a0add0a4fb961d8b6b136a0db": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "e00c031c858b7dec34a29c8d036570d354aa6c3a6a65371252bc11e2fa09f252": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "ressources/2",
+   "saisie": "Aubin, tu me dois quelque chose ?",
+   "modele": true,
+   "famille": "ressources_comptes_marche",
+   "attente": "Conserver rôles, ressource, dû, unité part et pièces ; refus commercial fidèle servi.",
+   "preuves": {
+    "6c9ef281fb7215a7f701d7a6fee12169a710f9e8cd485008a31d849620c90142": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "91ec8c7b831ae7ed61d124e8ac44ae1c8df07eaeaae4d5ceaa2bb170fafbc6e6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "efc99a5767da388e12ba46235f6792676eff2bd09530d01fddf4898c15f519a6": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "ecf8ff066e8f1272f4f73cecfbdf12d59f535c2a07fe39a64eac710e3c99a9ca": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "6eae2c8af5873c1a0f304799bdb40b6f36e6e7f9d123b4a68dccfbd26ebbf74f": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "f31b910d90896e1069c6a4bd01657bc56b118d230aa0e1c3bb51647cafdad1a9": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "soir-appel/0",
+   "saisie": "j'appelle Gorm",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "d6d6f8513fa8725aed194ce2c206e0df17494ae1b6ee782ca794c2aca4438b02": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "soir-appel/1",
+   "saisie": "je réponds",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "7f70c5cd26eca69c9885ef52b1cf708515cb3bd116a3250f3d8d86a8c386c67d": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "soir-appel/2",
+   "saisie": "est-ce que quelqu'un a du bois ?",
+   "modele": true,
+   "famille": "ressources_comptes_marche",
+   "attente": "Conserver rôles, ressource, dû, unité part et pièces ; refus commercial fidèle servi.",
+   "preuves": {
+    "d43821dc41afdbda8a9b51bf3432ce48aa53df732e99e74bb9f642a45ab3aa7f": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "102106572a8bc747c0dc3b7c650e4f746deea88ae2818afdf2d58496bad3047f": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "2ef1ab38115b0a2b17bcf9900ad214c17d877dea34a63e8f2635af52edfc75e0": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "af7fe45de72db75332c74af72c680d1d07f8b6316024d934d14605e3540343bc": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "ebafd9781ac6d019034239de7e93fac669f09587a3294ab8f481cee4a3dac8b9": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "89da2187420239d9c9a52f43a34da223d5a0c712b12a7f2c2151d5c3c47f7cda": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "soir-appel/3",
+   "saisie": "as-tu de quoi manger, Ilse ?",
+   "modele": true,
+   "famille": "ressources_comptes_marche",
+   "attente": "Conserver rôles, ressource, dû, unité part et pièces ; refus commercial fidèle servi.",
+   "preuves": {
+    "6afc85b5d8f35a9599704a54d6da92f7f66c23cccbdea74be6f3d014b5a16eb3": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "f41c7157bd6b239c484f8cf8ba65d89c90f8aa1d797a7780d75b109a18ef34c8": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "30e2b64e151a4977f64e8f89616eea345aaf9fd595cafd9dfb1c73e01d6996df": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "32ec3fa8818ef8c64801efc346581d9f2807e1fad467a2cb7293f7a9304d5bfb": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "cfeb9d0b3994ef9b179b1ee8a07c89bcbfa9472feffaad95c6723bd9ae3382e9": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "b30b115307c6b63515deec65036d555a86c2ee5a803be13b19526d95e1c64a20": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "soir-appel/4",
+   "saisie": "je réclame à Aubin les deux pièces qu'il me doit",
+   "modele": true,
+   "famille": "ressources_comptes_marche",
+   "attente": "Conserver rôles, ressource, dû, unité part et pièces ; refus commercial fidèle servi.",
+   "preuves": {
+    "cfcf5a1db179b534fefacc38387cfbc62c0239b330ac91cb46218b3bc3ef7a4f": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "3ee0c0b17114a7ef44264859dd2996b4fe5bc9afd2c57c3dcf0e48680e318e20": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "ac3442864bff19a41e96eed4c1fa463a8edbcd8355333d65ad3abf0c081b6c65": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "730c8e2db0134e0e1188925a6c70fb547c04ca58ccf525cdddc9c3dc1d715d30": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "7f9bd504239e86445a97e34d353f5df51d015c6ee1885bf1100ab3b443030d8e": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "93b9ca90a2611bcb80e0f92a8539dadc5075886ad5fa2dcc212b8d445207cf40": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "soir-appel/5",
+   "saisie": "je paie Aubin trois pièces pour une de ses planches",
+   "modele": true,
+   "famille": "ressources_comptes_marche",
+   "attente": "Conserver rôles, ressource, dû, unité part et pièces ; refus commercial fidèle servi.",
+   "preuves": {
+    "259ff47e5532fe1a8bcf90278c13f6f6c3c231cc7a2108fd2c410016dc0a8937": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "f3141a1277f194aadd25f063e77b29eaa575fcf0ae813d6795182e2ea9891c53": {
+     "proposition_fidele": false,
+     "proposition_finale_fidele": false,
+     "intention_servie": false,
+     "execution": "non_execute",
+     "consentement": "non",
+     "abandon": true,
+     "refus_public_fidele": false,
+     "admission_moteur": "refuse"
+    },
+    "a29b9c193dba7898a438535e8e179b4d4f9759278c0aad9e824b2cce71392b20": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "4408ef0b38579a766fdb7bf89819be0b87ecddb289932ef7b10e65ecf037f6bd": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "e44ddb03e4a7c96479af278e81476576f5a7cd2eb808c3dbc71c38a2176da6b8": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    },
+    "05b4287b227c0a5489a58b1e2dd1eee5e3c0421c1f54eaacf5bc724b4951dfda": {
+     "proposition_fidele": true,
+     "proposition_finale_fidele": true,
+     "intention_servie": true,
+     "execution": "parole",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "admis"
+    }
+   }
+  },
+  {
+   "id": "soir-appel/6",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "f8e2c4ca3d956e1aab416505a286fb63c2d9ddd44117b7bd2b6fe967d4747710": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "69beea56a7ad741124653ff2d112918a18fa0c603c8a1b3d37948ed08dc5fad3": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "soir-appel/7",
+   "saisie": "ouest",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "7136f56e17321a99f8e82ab81893f9ca0f58fb5b67127c6b122d2a899498be81": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "374e8b6109b5d23b64be0516652e5a5a5bc4de90900da3b45c5d1c5055151ad6": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "soir-appel/8",
+   "saisie": "je donne le briquet à Ilse",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "c62413e7d5647605d88d27c1eef5f3cad23d10ead9af25c2d7b65e474e7b673b": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "20ab93cdd7187ebfca5b1c9e0324e7bd9c44ec10555382ee34c2ad84a34074f1": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  },
+  {
+   "id": "soir-appel/9",
+   "saisie": "Ilse, tu m'entends ?",
+   "modele": false,
+   "famille": "local",
+   "attente": "Voie locale conservée ; ne pas créditer son résultat comme succès de Luna.",
+   "preuves": {
+    "603d39503c4ad525691bc25740a5e0d953dafe5e4b12c5a9ddcda0f53d6fa346": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    },
+    "c364530391b7882b479fa18c102bd4fd674854e617de0692e0c83de6c3941dc4": {
+     "proposition_fidele": null,
+     "proposition_finale_fidele": null,
+     "intention_servie": null,
+     "execution": "voie_locale",
+     "consentement": "non",
+     "abandon": false,
+     "refus_public_fidele": false,
+     "admission_moteur": "voie_locale"
+    }
+   }
+  }
+ ],
+ "complements": [
+  {
+   "id": "atelier/13",
+   "campagne": "c9459ce",
+   "path": "references/c9459ceedce4ce98b8463fab2ca8c56942d7befa/banc_multi/atelier-chatgpt-medium-libre-m500-b998873cbe/partie-1.json",
+   "sha256": "b4f5b7bb2537530a1d09e8304f96df377c8c462ddae12322a79451344e874649",
+   "tour": 13,
+   "saisie": "je prends une perche et je tente un saut à la perche pour monter sur la terrasse",
+   "obligation": "perche_puis_saut",
+   "observation_sha256": "328dec89522397aafceeccb274945ba7e0c34b103803fa35ffd91ba2fe0949d4",
+   "attendu": {
+    "proposition_fidele": true,
+    "admission": "refus_present",
+    "execution": "refus",
+    "consentement": "non",
+    "prise_executee": false
+   },
+   "limite": "Projection rechargée : perche_3 absente du porté ; aucune sauvegarde intégrale annexée."
+  }
+ ],
+ "protocole": {
+  "proposition_fidele": "Jugement humain de couverture du premier candidat, distinct du verdict Luna ; dernière proposition séparée.",
+  "intention_servie": "Grille 311 : intention entière conservée à la sortie, refus publics fidèles compris. Les corrections narratives excluent le premier coup historique.",
+  "execution": "Issue attestée par le fil et le rendu publié ; pas déduite de la seule admission. voie_locale = issue locale non ventilée, pas preuve de succès.",
+  "consentement": "attente = fiche proposée, aucun geste exécuté ; non = aucune attente de confirmation attestée.",
+  "texte": "texte_vu est recopié du texte publié, pas du texte candidat.",
+  "limites": "Oracle fermé de non-régression : une charge/prose/état non reconnus exige une annotation humaine fondée sur les attentes déjà gelées. Aucun juge automatique du français inédit. Les locaux sont conservés, mais leur réussite mécanique n’est pas évaluée. Les projections ne prouvent pas une recharge intégrale."
+ },
+ "provenance": {
+  "saisies_318_sha256": "4d62afc23a430916a4c6db19ebd198623cf6b7e495b230403ccd30d14fd0a9f7",
+  "conception": "docs/conception-g1.md, §1, §2 et §5",
+  "rapport": "docs/taches/rapport-codex-318-g1-repense.md",
+  "annotations": "Jugements de sens scellés par observation ; pas une déduction depuis conforme=true. Initiales corrigées uniquement sur preuve historique ; aucun résultat A1-A6 disponible."
+ }
+}

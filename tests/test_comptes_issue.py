@@ -1,4 +1,5 @@
 """Issue financière complète, vraie console, sauvegarde et rendu rechargés."""
+from donjon.emissions import pnj as emissions_pnj
 import copy
 import unittest
 
@@ -41,7 +42,7 @@ class ComptesIssueTests(unittest.TestCase):
                 for interdit in (faux, inverse):
                     self.assertNotIn(interdit, sortie)
                     self.assertNotIn(interdit, str(r.data["conversation"]))
-                    self.assertNotIn(interdit, str(r.data["paroles_pnj"]))
+                    self.assertNotIn(interdit, str(emissions_pnj(r)))
                 self.assertEqual(r.joueur["or"], avant + 2)
                 self.assertNotIn("_comptes_echange", r.data)
                 self.assertFalse(any(d["de"] == qui for d in r.data.get("dettes", [])))
@@ -108,7 +109,7 @@ class ComptesIssueTests(unittest.TestCase):
                 issue = next(e["faits"]["conversation_validee"] for _, e in appels
                              if "conversation_validee" in e.get("faits", {}))
                 self.assertEqual(issue["comptes"], cs)
-                self.assertEqual(r.data["paroles_pnj"][-1]["texte"], bon)
+                self.assertEqual(emissions_pnj(r)[-1]["texte"], bon)
                 from donjon.comptes_narratifs import phrases
                 dossier = next(e["faits"] for _, e in appels if "conversation_validee" in e.get("faits", {}))
                 for phrase in phrases(dossier):

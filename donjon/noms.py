@@ -371,7 +371,8 @@ def public(monde, valeur, citations=False):
         for champ, contenu in valeur.items():
             champ_public = public(monde, champ)
             if (champ in ('texte', 'presentation') and 'locuteur' in valeur
-                    and 'joueur' in valeur.get('auditeurs', []) and 'revision' in valeur):
+                    and ('joueur' in valeur.get('auditeurs', []) or valeur.get('locuteur') == 'joueur')
+                    and 'revision' in valeur):
                 # Un événement de parole porte des mots déjà prononcés, pas
                 # une description à réécrire avec l'identité publique actuelle.
                 projection[champ_public] = contenu

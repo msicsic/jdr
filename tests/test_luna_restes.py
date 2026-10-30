@@ -1,4 +1,5 @@
 """Contrats communs du MJ : vraie boucle de jeu, état et texte après rechargement."""
+from donjon.emissions import pnj as emissions_pnj, joueur as emissions_joueur
 import copy
 import io
 from pathlib import Path
@@ -161,7 +162,7 @@ class ParoleTests(unittest.TestCase):
                 schema = next(v["properties"] for v in SCHEMA_PAROLE["properties"]["contenu"]["items"]["anyOf"]
                               if "ressource" in v["properties"]["type"]["enum"])
                 self.assertIn(RESSOURCES_DEMANDEES[besoin], schema["sujet"]["description"])
-                self.assertEqual(r.data["paroles_joueur"][-1]["texte"], question)
+                self.assertEqual(emissions_joueur(r)[-1]["texte"], question)
                 self.assertIn(question, texte)
 
     def test_nom_absent_de_la_citation_ecarte_sans_relance_ni_apprentissage(self):
@@ -186,7 +187,7 @@ class ParoleTests(unittest.TestCase):
                 self.assertIn(texte, sortie)
                 self.assertNotIn(nom, sortie)
                 self.assertFalse(connait_nom(r, "joueur", qui))
-                self.assertNotIn("presentation", r.data["paroles_pnj"][-1])
+                self.assertNotIn("presentation", emissions_pnj(r)[-1])
 
     def test_adresse_individuelle_deja_fixee_pour_la_revue(self):
         for saisie in ("est-ce que quelqu'un a du bois ?", "qui peut nous aider ?"):
@@ -196,8 +197,8 @@ class ParoleTests(unittest.TestCase):
                         parole(saisie, personnage=destinataire), dialogue("Ta question résonne.")],
                         [rapport(ligne("mecanique", sources=["conversation_validee"]))],
                         revues=[{"contenu_conforme": True, "motif": ""}])
-                    self.assertEqual(r.data["paroles_joueur"][-1]["auditeur"], destinataire)
-                    self.assertEqual(r.data["paroles_joueur"][-1]["texte"], saisie)
+                    self.assertEqual(emissions_joueur(r)[-1]["auditeur"], destinataire)
+                    self.assertEqual(emissions_joueur(r)[-1]["texte"], saisie)
                     self.assertNotIn("Précise à qui", texte)
                     revues = [e for f, e in appels if f == "auditer_action"]
                     self.assertEqual(len(revues), 0)  # Mots exacts, aucune opération déclarée.
@@ -229,7 +230,7 @@ class ParoleTests(unittest.TestCase):
                 else:
                     self.assertEqual(r.objets[cible], m.objets[cible])
                 self.assertIn(m.objets[cible]["nom"], revue["contenu"][0]["sujet"])
-                self.assertEqual(len(r.data["paroles_joueur"]), 1)
+                self.assertEqual(len(emissions_joueur(r)), 1)
                 self.assertIn("Tu dis", texte)
                 self.assertIn(recit, texte)
                 self.assertIn(recit, str(r.data["conversation"]))

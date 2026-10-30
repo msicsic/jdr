@@ -1,3 +1,4 @@
+from donjon.emissions import pnj as emissions_pnj
 from tests.support import presentes
 import copy
 import io
@@ -224,8 +225,8 @@ class FaitsLocauxTests(unittest.TestCase):
         self.assertIn("Gorm", rendu)
         self.assertIn("tache d'humidité", regarder(travail))
         self.assertEqual(travail.objets[etablis[0]["objet"]]["lieu"], "echoppe_murs")
-        self.assertIn("joueur", travail.data["paroles_pnj"][0]["auditeurs"])
-        self.assertIn("temoin", travail.data["paroles_pnj"][0]["auditeurs"])
+        self.assertIn("joueur", emissions_pnj(travail)[0]["auditeurs"])
+        self.assertIn("temoin", emissions_pnj(travail)[0]["auditeurs"])
         self.assertNotIn("seconde_cloche", travail.objets)
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
@@ -326,7 +327,7 @@ class FaitsLocauxTests(unittest.TestCase):
         self.assertIn("un éclat de peinture", sortie.getvalue().lower())
         self.assertIn("La seconde cloche est sous le plancher.", sortie.getvalue())
         self.assertEqual(reprise.objets[reprise.trouver("éclat de peinture")]["genre"], "m")
-        self.assertEqual(reprise.data["paroles_pnj"][0]["locuteur"], "marchand")
+        self.assertEqual(emissions_pnj(reprise)[0]["locuteur"], "marchand")
         self.assertNotIn("seconde_cloche", reprise.objets)
 
     def test_echec_de_sauvegarde_ne_montre_pas_l_inscription(self):
