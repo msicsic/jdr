@@ -4,6 +4,7 @@ Les souvenirs sont la porte d'écriture (esprits.memoriser). Les lectures sont p
 estompement depuis l'ancre du dernier événement, sans arrondis cumulés ni état caché.
 « fiable » reste un avis dans la parole, jamais un attribut de croyance.
 """
+from .memoire import episodes
 import copy
 import math
 import hashlib
@@ -296,7 +297,7 @@ def chance_demande(monde, id, autre):
              and s["raison"] in ("refus", "mefiance")]
     if refus:
         chance -= 0.3 if any(s["raison"] == "mefiance" for s in refus) else 0.15
-    recents = [s for s in e["memoire"] if monde.data["minutes"] - s["minute"] < REDEMANDE]
+    recents = [s for s in episodes(monde, id, types=('don', 'engagement_tenu', 'se_sait_vu')) if monde.data["minutes"] - s["minute"] < REDEMANDE]
     if any(s["type"] in ("don", "engagement_tenu") and s.get("a", s.get("pour")) == autre
            for s in recents):
         chance += 0.1  # Il espère la réciprocité, sans la savoir acquise.

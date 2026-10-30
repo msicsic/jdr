@@ -67,6 +67,7 @@ def reprendre_tests(dossier, temoin, sortie):
 
 def jouer_branche(tache):
     from donjon import agendas, pnj_propositions
+    from donjon.memoire import episodes
     from donjon.esprits import lire
     offres, contrats, commencements = [], [], []
     proposer = pnj_propositions.executer
@@ -76,7 +77,7 @@ def jouer_branche(tache):
     def offre(m, id, autre, contenu, lignes):
         r = proposer(m, id, autre, contenu, lignes)
         if r and contenu.get('contrepartie', {}).get('condition', {}).get('proteger'):
-            souvenir = next((s for s in reversed(lire(m, id)['memoire']) if s['type'] == 'proposition'), None)
+            souvenir = next((s for s in reversed(episodes(m, id)) if s['type'] == 'proposition'), None)
             if souvenir:
                 offres.append(dict(souvenir, acteur=id))
         return r

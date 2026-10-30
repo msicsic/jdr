@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1e-vues-episodes` — lot 385 clos, base `integration b2028ede` ; `fcb82692` fusionnée (documentation seule).
+  Tous les lecteurs d'épisodes utilisent des copies profondes ; inventaire AST à zéro hors exceptions nommées.
+  Stockage/ordre/plafond inchangés ; rafraîchissement du geste entendu et migration des présences dans la porte.
+  325/326 tests ciblés verts, aucune erreur ni saut ; seul rouge de texte de passage reproduit sur la base exacte.
+  Deux chaînes réelles : état complet/rendu/scène/paroles après recharge et même laps entier/découpé.
+  16/16 empreintes identiques sur 2 h × quatre graines × quatre scénarios ; aucun plantage, aucune suite complète/Luna.
+  Limites : AST syntaxique, oubli historique et rouge hérité. [Rapport](taches/rapport-codex-385-s1e-vues-episodes.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 385, S1e : tous les lecteurs d'épisodes restants (jeu, rendu, récit, banc, outils) passent par des vues pures de donjon/memoire.py ; lectures directes à zéro hors exceptions nommées. 325/326 tests ciblés (rouge hérité de la base), 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-s1d-promesses` — lot 384, base `integration 31f80725`, code `37069459`.
   Promesses, prêts et travaux payés : requêtes nommées et jugement réentrant dans `memoire` ;
   fenêtre 40, ordre et engagements inchangés. Inventaire AST : 78 → 69, sans exemption nouvelle.

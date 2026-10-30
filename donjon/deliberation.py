@@ -10,6 +10,7 @@ son plan, après un geste manqué, et après un événement qui change sa situat
 ``esprits.reconsiderer``). Les étapes sont ensuite revalidées sur l'état réel par ``pnj.py``.
 Tout est déterministe ; Luna n'intervient pas.
 """
+from .memoire import episodes
 from . import agendas
 from collections import Counter
 from enum import IntEnum
@@ -902,7 +903,7 @@ def detresses_percues(monde, id):
     detresses = {s["personnage"] for s in signes if s["signe"] in ("tremble", "fuit")}
     detresses.update(x for x, _, c in actives(monde, id)
                      if c["signe"] in vus and c["valeur"] in ("peur", "crainte", "inquietude"))
-    detresses.update(s["qui"] for s in lire(monde, id)["memoire"]
+    detresses.update(s["qui"] for s in episodes(monde, id, types=('detresse',))
                      if s["type"] == "detresse" and s["minute"] == monde.data["minutes"])
     return detresses
 
@@ -1167,7 +1168,7 @@ def _lieux_a_dire(monde, id, victime, auteur):
     (``pnj._lieu_vu``), pour qu'elle aille les reprendre."""
     from .vol import proprietaire
     objets = []
-    for s in lire(monde, id)["memoire"]:
+    for s in episodes(monde, id, types=('vu_agir',)):
         o = s.get("objet")
         if (s["type"] == "vu_agir" and s["auteur"] == auteur and "lieu" in s and o in monde.objets
                 and o not in objets and proprietaire(monde, monde.objets[o]) == victime):
@@ -1488,7 +1489,7 @@ def _plan_reposer(monde, id):
 def ouvert_par_soi(monde, id, objet, depuis):
     """A-t-il lui-même ouvert ou déverrouillé cet objet dans les ``depuis`` dernières minutes ?"""
     return any(s["type"] == "ouvert_par_soi" and s["objet"] == objet and monde.data["minutes"] - s["minute"] <= depuis
-               for s in lire(monde, id)["memoire"])
+               for s in episodes(monde, id, types=('ouvert_par_soi',)))
 
 
 def garde_sous_cle(monde, id, objet):
@@ -2397,7 +2398,7 @@ def choisir(monde, id, minute):
                 # une parole due s'acquitte par son geste, pas par cet état.
                 if not due and (porteur["motif"] != "engagement" and satisfaite(monde, id, condition) or any(
                         s["type"] == "engagement_tenu" and s.get("condition") == condition
-                        and s["minute"] >= porteur["depuis"] for s in e["memoire"])):
+                        and s["minute"] >= porteur["depuis"] for s in episodes(monde, id, types=('engagement_tenu',)))):
                     fin = ("accomplie", {"condition": condition})
             if (charges_precedentes.get("restaurer") or fin and fin[0] == "accomplie"):
                 from .planification import restaurer_charges, _couper
@@ -2533,7 +2534,7 @@ def menager_flamme(monde, id, minute):
     e = esprit(monde, id)
     plan = e["intention"]["plan"] if e["intention"] else []
     vises = {x["cible"] for x in plan} | {x["outil"] for x in plan}
-    allumees = {s["objet"] for s in e["memoire"] if s["type"] == "flamme_employee"}
+    allumees = {s["objet"] for s in episodes(monde, id, types=('flamme_employee',)) if s["type"] == "flamme_employee"}
     flamme = next((k for k in sorted(allumees) if k in monde.objets and k not in vises
                    and k not in proteges and porte_par(monde, k, id) and allumee(monde.objets[k])), None)
     if flamme is None:

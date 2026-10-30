@@ -228,7 +228,7 @@ def avertir_acces(monde, id, etape, lignes):
 
 
 def souvenirs(monde, id):
-    return monde.data.get("violences_joueur", []) if id == "joueur" else lire(monde, id)["memoire"]
+    return monde.data.get("violences_joueur", []) if id == "joueur" else memoire.episodes(monde, id)
 
 
 def auteurs(monde, id, protege=None):

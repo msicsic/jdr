@@ -21,6 +21,7 @@ affirmation se juge comme une confidence, une nouvelle comme une rumeur, un aveu
 se pèse (``voix.se_nommer``). Qui parle d'une voix que l'auditeur ne sait à qui prêter reste un
 inconnu pour lui : sa méfiance va à cette voix, son ouï-dire ne nomme personne (``voix``).
 """
+from .memoire import episodes
 import copy
 import json
 
@@ -271,7 +272,7 @@ def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details)
 def migrer_dits(monde, id):
     """Reprendre ce qui reste des anciens suivis ; les souvenirs déjà perdus sont irrécupérables."""
     e = esprit(monde, id)
-    for s in e["memoire"]:
+    for s in episodes(monde, id):
         if s["type"] == "dit" and "valeur" in s:
             retenir_dit(monde, id, s["a"], {"type": "affirmation", **{k: s[k] for k in ("sujet", "attribut", "valeur")}})
         elif s["type"] in NOUVELLES or s["type"] == "rumeur":
@@ -348,7 +349,7 @@ def _nouvelles(monde, id):
     # supplémentaire à chaque perception. Placés d'abord, ils passent après les accusations.
     yield from _constats(monde, id)
     yield from _avis(monde, id)
-    for souvenir in lire(monde, id)["memoire"]:
+    for souvenir in episodes(monde, id):
         if souvenir["type"] in NOUVELLES:
             # Ce qu'il n'a fait qu'entendre (``pnj._temoins_a_l_oreille``) se dit avec moins de
             # certitude que ce qu'il a vu : comme de seconde main.
@@ -477,7 +478,7 @@ def _sait(monde, id, noyau):
     fait = faits_dits(noyau)
     return any((faits_dits(s) == fait if s["type"] in NOUVELLES
                 else s["type"] == "rumeur" and faits_dits(s["evenement"]) == fait)
-               for s in lire(monde, id)["memoire"])
+               for s in episodes(monde, id))
 
 
 def _auditeur(monde, id, souvenir, noyau, source):

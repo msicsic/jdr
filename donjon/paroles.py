@@ -15,6 +15,7 @@ croire le joueur fiable. Tous ceux qui saisissent les mots d'une parole à voix 
 retiennent, destinataires ou non (``ouie``, ``social.retenir_parole``) ; seuls ses destinataires
 y répondent.
 """
+from .memoire import episodes
 from .emissions import joueur as emissions_joueur
 from .francais import pluriel as nombre_pluriel
 from .francais import quantite
@@ -455,7 +456,7 @@ def paroles_retenues(monde, id):
     Une parole qui nomme ce que le joueur ne connaît pas reste tue."""
     from .social import _qui
     retenues = []
-    for s in reversed(lire(monde, id)["memoire"]):
+    for s in reversed(episodes(monde, id, types=("parole",))):
         if len(retenues) == 4:
             break
         if s["type"] != "parole":

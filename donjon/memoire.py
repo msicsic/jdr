@@ -1,12 +1,51 @@
 """Porte des épisodes et de leurs requêtes, au format historique.
 
-S1a conserve la liste sauvegardée, son plafond et les crochets réentrants.
-Les autres familles seront portées séparément ; aucune requête de ce
-module ne renvoie le stock mutable aux consommateurs.
+S1 conserve la liste sauvegardée, son plafond et les crochets réentrants.
+Aucune requête de ce module ne renvoie le stock mutable aux consommateurs.
 """
 import copy
 
 MEMOIRE_MAX = 40
+
+
+def episodes(monde, id, *, types=None, derniers=None):
+    """Copies profondes dans l'ordre du tampon, sans créer d'esprit.
+
+    La fenêtre porte sur le tampon entier avant le filtre de types : les trois
+    derniers souvenirs ne sont pas les trois derniers d'une famille choisie.
+    Aucune récence, validité ni connaissance supplémentaire n'est inférée ici.
+    """
+    from .esprits import lire
+    stock = lire(monde, id)['memoire']
+    if derniers is not None:
+        stock = stock[-derniers:] if derniers else []
+    return [copy.deepcopy(s) for s in stock if types is None or s['type'] in types]
+
+
+def rafraichir_geste_entendu(monde, id, objet):
+    """Prolonge le dernier geste anonyme récent sur ce bien, sans crochet.
+
+    Opération d'écriture : conserve l'installation historique de l'esprit,
+    l'identité de l'occurrence et la borne inclusive de récence.
+    """
+    from .esprits import esprit, RECENT
+    for s in reversed(esprit(monde, id)['memoire']):
+        if (s['type'] == 'entendu_agir' and s['objet'] == objet
+                and monde.data['minutes'] - s['minute'] <= RECENT):
+            s['minute'] = monde.data['minutes']
+            return True
+    return False
+
+
+def migrer_presences_percues(monde, id):
+    """Retire les présences anciennes et en rend des copies, dans leur ordre."""
+    from .esprits import lire
+    presences = []
+    for s in list(lire(monde, id)['memoire']):
+        if s['type'] == 'presence_percue':
+            evincer_episodes(monde, id, lambda episode: episode is s)
+            presences.append(copy.deepcopy({k: s[k] for k in ('qui', 'salle', 'instant')}))
+    return presences
 
 
 def episodes_parts_promises(monde, id):

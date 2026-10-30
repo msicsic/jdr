@@ -18,6 +18,7 @@ que le planificateur du moteur exécute quand rien de plus urgent ne presse ; su
 qui la confie, elle en confie la garde (``biens.gardes``). Tout est déterministe hors des jets du
 moteur.
 """
+from .memoire import episodes
 from .francais import pluriel as nombre_pluriel
 from .francais import quantite
 from . import agendas
@@ -655,7 +656,7 @@ def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
     memoriser(monde, auditeur, {"type": "parole_crue", "locuteur": locuteur, "sujet": sujet, "attribut": attribut})
     # Ce qu'il a sous les yeux peut le démentir aussitôt.
     percevoir(monde, auditeur)
-    if any(s["type"] == "mensonge_decouvert" and s.get("sujet") == sujet for s in e["memoire"][-3:]):
+    if any(s["type"] == "mensonge_decouvert" and s.get("sujet") == sujet for s in episodes(monde, auditeur, derniers=3)):
         return "decouvert"
     return "crue"
 
