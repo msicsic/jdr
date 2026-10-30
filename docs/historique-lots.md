@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **344 / U-M corps terminé**, `codex-um-corps`, base `78766d9`, fusionnée ; intégration `014fc35` fusionnée sans rebase.
+  Gestes corporels au menu, références/méthode/moyen/direction exacts ; danger perçu et consentement U-C revalidé.
+  Fusion `b2c8f53` à deux parents : direction/parcours, G7 et mandats 341 conservés ; état court de l'intégration gardé.
+  **179/180 tests verts, 20 fichiers**, zéro échec/saut ; erreur de jets simulés identique sur 014fc35 exact, test inchangé.
+  Quatorze attentes G4 périmées prouvées sur la référence ; auxiliaire porté à « Compris », 19/19 repris, assertions conservées.
+  Treize tests corps et mandats/appel/U-C/Compris/Node/G7 verts ; 14 saisies évitées, 3–5 clics ; sources vérifiées.
+  Offre sans garantie de réussite ; ni Luna ni suite complète ; deux travailleurs réduits au plus, aucun calcul actif, branche poussée.
+  Bruts `um-corps-344/fusion-014fc35/`, `fin-cloture.json` avec réserve ; [rapport](taches/rapport-codex-344-um-corps.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Branche déjà réaccordée à l'intégration 014fc35 par l'agent (conflit commandes.py résolu) ; 179/180 tests ciblés verts, l'erreur restante reproduite sur 014fc35.
+
 - **347 — `codex-conception-menace`**, base `origin/integration 368bf6c`, documentation seule.
   Quatre cas sourcés ; recommandation : échéance négociée sur prestation ponctuelle d'abord.
   Invariant proposé : mêmes termes/version/date de l'accord au constat, aux comptes et à la recharge.

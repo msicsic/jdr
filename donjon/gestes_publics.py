@@ -16,6 +16,50 @@ DESTINATION = {"champ": "destination", "ressources": [
     {"type": "contenant"}, {"type": "luminaire"}, {"foyer": True}], "aptitude": "depot"}
 CORPS = ("personnage", "depouille", "partie_corps")
 
+# Famille portée par U-M corps seulement ; U-T gardera son interface actuelle.
+# Ces choix ne calculent aucune aptitude : toute ressource connue peut être
+# choisie, puis le moteur tranche. La surprise est une défense calculée, pas
+# une méthode que le joueur pourrait imposer.
+GESTES_CORPS = frozenset(("frapper", "saisir", "ligoter", "delier", "liberer",
+                         "trainer", "pousser", "ranimer", "tuer", "fuir",
+                         "riposter", "se_rendre", "degager"))
+REACTIONS = frozenset(("fuir", "riposter", "se_rendre", "degager"))
+
+
+def formulaires_corps():
+    from .spatial import VECTEURS
+    outil = {"champ": "outil", "libelle": "Moyen", "type": "ressource",
+             "vide": "Mains nues"}
+    direction = {"champ": "direction", "libelle": "Direction", "type": "choix",
+                 "choix": list(VECTEURS)}
+    return [
+        {"geste": "frapper", "libelle": "Frapper / assommer…", "champs": [
+            {"champ": "methode", "libelle": "Méthode", "type": "choix",
+             "choix": ["simple", "assommer"]}, outil]},
+        {"geste": "saisir", "libelle": "Saisir", "champs": []},
+        {"geste": "ligoter", "libelle": "Ligoter avec…", "champs": [
+            {"champ": "outil", "libelle": "Lien", "type": "ressource"}]},
+        {"geste": "delier", "libelle": "Délier…", "champs": [outil]},
+        {"geste": "liberer", "libelle": "Défaire mes liens", "champs": []},
+        {"geste": "trainer", "libelle": "Traîner vers…", "champs": [direction]},
+        {"geste": "pousser", "libelle": "Pousser vers…", "champs": [
+            {**direction, "choix": ["", *direction["choix"]]}]},
+        {"geste": "ranimer", "libelle": "Ranimer", "champs": []},
+        {"geste": "tuer", "libelle": "Tuer…", "champs": [outil]},
+        {"geste": "fuir", "libelle": "Fuir par la sortie connue la plus proche", "danger": True, "champs": []},
+        {"geste": "riposter", "libelle": "Riposter avec…", "danger": True, "champs": [outil]},
+        {"geste": "se_rendre", "libelle": "Me rendre à cette personne", "danger": True, "champs": []},
+        {"geste": "degager", "libelle": "Me dégager", "danger": True, "champs": []},
+    ]
+
+
+def dangers_publics(monde):
+    """Références des dangers vus et encore perçus, sans faits privés."""
+    from .defense import dangers_vus
+    from .noms import reference
+    return [reference(monde, d["auteur"]) for d in dangers_vus(monde)
+            if d["auteur"] in monde.objets and monde.visible(d["auteur"])]
+
 
 def ressource_connue(monde, id, exiger_portee=True):
     """Frontière commune des choix matériels : portée et perception actuelles."""
@@ -256,6 +300,7 @@ def catalogue_public():
     catalogue = {famille: [deepcopy(list(entree)) for entree in table]
                  for famille, table in (("objets", OBJETS), ("portes", PORTES))}
     catalogue["fabrication"] = formulaires_fabrication()
+    catalogue["corps"] = formulaires_corps()
     return catalogue
 
 

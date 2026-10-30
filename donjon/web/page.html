@@ -129,6 +129,7 @@ let scene = null, niveau = null, personnes = [], couleur = {}, bornes = null, su
 let destinataires = [];
 let ressources = [];
 let ressourcesFabrication = [];
+let dangers = [];
 let catalogueGestes = {objets: [], portes: []};
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
@@ -409,6 +410,7 @@ function appliquerEtat(e) {
   destinataires = e.destinataires || [];
   ressources = e.ressources || [];
   ressourcesFabrication = e.fabrication || [];
+  dangers = e.dangers || [];
   $("fabrication").hidden = true;
   $("fabrication").innerHTML = "";
   afficherInventaire(e.inventaire || []);
@@ -659,6 +661,33 @@ function choixMateriels(o, executer, x, y, porte = false) {
     return candidats.length ? [choixRessource(o, geste, formulaire.champ, candidats, executer, x, y, titre)] : [];
   });
 }
+function choixCorps(o, x, y) {
+  if (o.type !== "personnage") return [];
+  // Les réactions partent immédiatement vers le moteur : aucune approche
+  // automatique d'un agresseur pour fuir, se rendre ou se dégager.
+  return (catalogueGestes.corps || []).filter(f => !f.danger || dangers.includes(o.id)).map(f => {
+    const executer = d => {
+      if (f.danger || f.geste === "liberer") { arreter(null); envoyer(d); }
+      else aPortee(o.globale, d);
+    };
+    const choisir = (i, parametres) => {
+      if (occupe) return;
+      if (i === f.champs.length) {
+        const d = {geste: f.geste, cible: o.id};
+        if (Object.keys(parametres).length) d.parametres = parametres;
+        executer(d); return;
+      }
+      const c = f.champs[i];
+      const candidats = c.type === "ressource" ?
+        [...(c.vide ? [["", c.vide]] : []), ...ressources.map(r => [r.id, r.nom +
+          (ressources.filter(a => a.nom === r.nom).length > 1 ? " (" + (ressources.filter(a => a.nom === r.nom).findIndex(a => a.id === r.id) + 1) + "/" + ressources.filter(a => a.nom === r.nom).length + ")" : "")])] :
+        c.choix.map(v => [v, v || "Dans l'axe du geste"]);
+      ouvrirMenu(x, y, [[c.libelle, candidats.map(([valeur, nom]) =>
+        [nom, () => choisir(i + 1, {...parametres, [c.champ]: valeur})])]]);
+    };
+    return [f.libelle, () => choisir(0, {}), undefined, "corps"];
+  });
+}
 $("fabriquer").onclick = e => {
   if (occupe) return;
   e.stopPropagation();
@@ -784,7 +813,7 @@ function choixCase(g, x = 20, y = 20) {
   const sections = [];
   niveau.objets.filter(o => cle(o.globale) === k).forEach(o =>
     sections.push([o.nom, [...gestes(o).map(([verbe, libelle]) => [libelle, geste(choix(verbe, o.id)), choix(verbe, o.id)]),
-      ...choixMateriels(o, d => aPortee(g, d), x, y)]]));
+      ...choixMateriels(o, d => aPortee(g, d), x, y), ...choixCorps(o, x, y)]]));
   niveau.sorties.filter(s => s.porte && cle(s.globale) === k).forEach(s =>
     sections.push([s.porte.nom, [...gestesPorte(s.porte).map(([verbe, libelle]) => [libelle, geste(choix(verbe, s.porte.id)), choix(verbe, s.porte.id)]),
       ...choixMateriels(s.porte, d => aPortee(g, d), x, y, true)]]));

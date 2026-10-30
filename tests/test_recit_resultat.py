@@ -10,6 +10,7 @@ from unittest.mock import patch
 import jeu
 from donjon import corps
 from donjon.config import MODELE_PAR_DEFAUT
+from donjon.comprehension import plan_admis
 from donjon.improvisation import issue, proposition as improviser
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde, nouveau_monde
@@ -43,23 +44,26 @@ class RecitResultatTests(unittest.TestCase):
                         # Témoin moteur direct : mêmes jets, mêmes effets que la voie console.
                         self.temoin = self.monde.copier()
                         moteur = Moteur(self.temoin)
-                        self.resultat = rendre_resultat(moteur.executer(moteur.preparer(p, "LLM : " + MODELE_PAR_DEFAUT)))
+                        plan = moteur.preparer(p, "LLM : " + MODELE_PAR_DEFAUT)
+                        self.compris = plan_admis(self.temoin, plan)
+                        self.resultat = rendre_resultat(moteur.executer(plan))
                         phase["execution"] = saisie == "tenter"
                     return saisie
 
                 def ecrire(self, *valeurs, **_options):
                     texte = " ".join(str(v) for v in valeurs)
                     affiches.append(texte)
-                    # Le résultat moteur reste exact ; un geste libre léger
-                    # affiche maintenant aussi son plan admis, après ce résultat.
+                    # Le résultat moteur reste exact ; le libre affiche aussi
+                    # son plan admis après ce résultat, confirmé ou léger (U-C).
                     compris = ("Compris : Geste. (cibles : aucun; approche : effort; minutes : 1; bruit : 0; "
                                "en cas de réussite : effets : aucun; en cas d'échec : effets : aucun)")
-                    attendu = (self.resultat + ("\n" + compris if not confirmer else "")
+                    attendu = (self.resultat + "\n" + self.compris
                                if hasattr(self, "resultat") else None)
                     if texte == attendu:
                         recharge = Monde.charger(chemin)
                         if not confirmer:
-                            test.assertEqual(recharge.data["conversation"][-1]["compris"], compris)
+                            test.assertEqual(self.compris, compris)
+                        test.assertEqual(recharge.data["conversation"][-1]["compris"], self.compris)
                         # Tout ce qui est montré existe déjà sur disque, texte compris.
                         test.assertEqual(recharge.data, self.monde.data)
                         test.assertEqual(recharge.data["conversation"][-1]["reponse"], texte)

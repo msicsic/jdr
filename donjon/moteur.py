@@ -74,6 +74,8 @@ class Plan:
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
     compris: str = ""          # texte libre admis : récapitulatif moteur figé avant affichage
+    choix_public: object = None  # identité du clic conservée jusqu'à sa confirmation
+    etat_consentement: str = ""
 
     @property
     def perception_canonique(self):
@@ -189,6 +191,7 @@ class Moteur:
 
     def preparer(self, p, origine="règles"):
         from .commandes import DescripteurPublic, proposition_descripteur
+        choix_public = p if isinstance(p, DescripteurPublic) else None
         if isinstance(p, DescripteurPublic):
             p = proposition_descripteur(self.monde, p)
         from .noms import texte
@@ -203,6 +206,19 @@ class Moteur:
             raise
         plan.titre = texte(self.monde, plan.titre)
         plan.information = texte(self.monde, plan.information)
+        from .gestes_publics import GESTES_CORPS
+        if (p.get("action") in GESTES_CORPS and
+                (p["action"] != "frapper" or self.monde.objets.get(p["cible"], {}).get("type") == "personnage")):
+            from .consentement import plan_lourd, _empreinte, _etat
+            from .comprehension import plan_admis
+            # La famille portée partage la gravité U-C et le récapitulatif,
+            # y compris pour la commande équivalente. Les règles de geste
+            # et les confirmations antérieures restent souveraines.
+            plan.confirmation = plan.confirmation or plan_lourd(plan)
+            plan.compris = plan_admis(self.monde, plan)
+            if choix_public and plan.confirmation:
+                plan.choix_public = copy.deepcopy(choix_public)
+                plan.etat_consentement = _empreinte(_etat(self.monde))
         return plan
 
     def _preparer_references(self, p, origine="règles"):
@@ -722,6 +738,14 @@ class Moteur:
 
     def executer(self, plan):
         # Ne pas faire confiance à un Plan muté : recompiler depuis la proposition et l'état courant.
+        if plan.choix_public is not None:
+            from .consentement import _empreinte, _etat
+            # Ne jamais remplacer l'aperçu consenti, même si la révision n'a
+            # pas bougé. La relecture exacte refuse aussi une référence perdue.
+            nouveau = self.preparer(plan.choix_public, plan.origine)
+            if plan.etat_consentement != _empreinte(_etat(self.monde)) or nouveau != plan:
+                raise ErreurMonde("Le monde ou le plan a changé : choisis de nouveau ce geste pour vérifier son aperçu.",
+                                  "consentement : état et plan identiques à l'aperçu requis ; reçu : choix public périmé.")
         if plan.revision != self.monde.data["revision"]:
             raise ErreurMonde("Le monde a changé : demandez un nouvel arbitrage.")
         plan = self.preparer(plan.proposition, plan.origine)
