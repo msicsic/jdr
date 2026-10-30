@@ -48,6 +48,9 @@ def _geste(monde, plan, parametres):
     details = {k: v for k, v in parametres.items()
                if k not in ("action", "operation", "justification", "intention", "difficulte", "stat")
                and v != "" and not (k == "methode" and v == "simple")}
+    if parametres.get("action") == "attendre":
+        # La cible transporte les secondes ; le titre donne déjà leur durée.
+        details.pop("cible", None)
     # Le prix et les parties d'un achat sont fixés à la compilation, ils ne
     # figurent pas dans la commande simple. Lire l'effet admis, jamais le prix
     # recalculé après le paiement.
@@ -60,7 +63,10 @@ def _geste(monde, plan, parametres):
             if offre:
                 from .propositions import offre_en_mots
                 details["accord"] = offre_en_mots(monde, offre)
-    return plan.titre + (" (" + valeur(monde, details) + ")" if details else "")
+    from .contrats_sequence import precision_publique
+    precision = precision_publique(parametres)
+    return (plan.titre + (" (" + valeur(monde, details) + ")" if details else "")
+            + (" " + precision if precision else ""))
 
 
 def plan_admis(monde, plan):
@@ -68,7 +74,8 @@ def plan_admis(monde, plan):
         lignes = [f"{i}. {_geste(monde, sous_plan, e)}"
                   for i, (sous_plan, e) in enumerate(zip(plan.plans, plan.etapes), 1)]
         if len(lignes) > 1:
-            lignes.append("Arrêt au premier échec ; les étapes déjà réussies restent acquises.")
+            from .contrats_sequence import COMPOSITION
+            lignes.append(COMPOSITION["arret"])
         return "Compris :\n" + "\n".join(lignes)
     return "Compris : " + _geste(monde, plan, plan.proposition)
 

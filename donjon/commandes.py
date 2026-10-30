@@ -502,7 +502,8 @@ def attente(texte):
     interruptibles aussi."""
     texte = texte.strip()
     if not texte:
-        return proposition("attendre", "300")
+        from .contrats_sequence import ATTENTES
+        return proposition("attendre", str(ATTENTES["bloc"]["minutes"] * 60))
     secondes, fin, precedente = 0.0, 0, 3600
     for nombre in DUREE.finditer(texte):
         if texte[fin:nombre.start()].strip() not in ("", "et"):

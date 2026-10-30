@@ -442,21 +442,8 @@ class Moteur:
             plan.titre, plan.minutes, plan.effort = "Tendre l'oreille quelques minutes.", 3, False
             return plan
         if action == "attendre":
-            if not cible:
-                plan.titre, plan.minutes, plan.effort = "Attendre cinq minutes.", 5, False
-                plan.effets = [("calmer", "", 3)]
-                return plan
-            # Une durée donnée, en secondes : l'attente se fait par tranches et cesse dès que
-            # quelque chose réclame l'attention du joueur (``_attendre``).
-            from .temps import ATTENTE_MAX, MINUTE, dire_duree, lire_duree
-            dixiemes = lire_duree(cible)
-            if dixiemes is None or outil or p["methode"] != "simple" or p["difficulte"]:
-                raise ErreurMonde("Dis combien de temps attendre : « attendre 30 s », « attendre 10 min ».",
-                                  f"attendre : cible vide (cinq minutes) ou une durée en secondes, de 0.1 à "
-                                  f"{ATTENTE_MAX // 10} (reçu « {cible} ») ; outil vide, methode simple, difficulte 0.")
-            plan.titre, plan.effort = "Attendre " + dire_duree(dixiemes) + ".", False
-            plan.minutes, plan.dixiemes = dixiemes // MINUTE, dixiemes
-            return plan
+            from .contrats_sequence import preparer_attente
+            return preparer_attente(plan)
         if action == "aller":
             sorties = m.data["salles"][m.joueur["salle"]]["sorties"]
             sortie = sorties.get(cible)
@@ -1103,7 +1090,8 @@ class Moteur:
             self._terminer_etape(travail, p, details, effets, e["operation"], e["methode"])
             inconscient = inconscient or not conscient(travail) or any("Tu perds connaissance." == ligne for ligne in details)
             if e["operation"] == "patienter":
-                details.append("Deux minutes passent à guetter une occasion ; rien ne garantit que le geste passera inaperçu.")
+                from .contrats_sequence import ATTENTES
+                details.append(ATTENTES["occasion"]["resultat"])
             if not reussite:
                 details.append("Tu atteins le sol mais amortis mal la réception. La suite de la manœuvre est abandonnée."
                                if e["operation"] == "sauter" else

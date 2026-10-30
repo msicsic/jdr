@@ -8,6 +8,7 @@ from .francais import designer
 from .perception import eclairage
 from .vol import proprietaire
 from .refus import cibles, inaccessible, portes_avec_usage
+from .contrats_sequence import COMPOSITION, schema_occasion, preparer_occasion, developper_vol
 
 
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
@@ -30,10 +31,11 @@ def sequence(*etapes, justification=""):
 
 SCHEMA_SEQUENCE = {
     "type": "object", "additionalProperties": False,
+    "description": COMPOSITION["sens"] + " " + COMPOSITION["arret"],
     "properties": {
         "action": {"type": "string", "enum": ["composer"]},
         "justification": {"type": "string"},
-        "etapes": {"type": "array", "minItems": 1, "maxItems": 6, "items": {
+        "etapes": {"type": "array", "minItems": COMPOSITION["minimum"], "maxItems": COMPOSITION["maximum"], "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
                 "operation": {"type": "string", "enum": list(OPERATIONS)},
@@ -44,6 +46,12 @@ SCHEMA_SEQUENCE = {
         }},
     }, "required": ["action", "etapes", "justification"],
 }
+
+_schema_etape = SCHEMA_SEQUENCE["properties"]["etapes"]["items"]
+_autres_etapes = copy.deepcopy(_schema_etape)
+_autres_etapes["properties"]["operation"]["enum"].remove("patienter")
+SCHEMA_SEQUENCE["properties"]["etapes"]["items"] = {
+    "anyOf": [_autres_etapes, schema_occasion(_schema_etape)]}
 
 
 def traduire(monde, p):
@@ -68,7 +76,7 @@ def traduire(monde, p):
                               f"{cible} n'appartient à personne : composer avec une étape deplacer {cible} vers joueur.")
         if proprietaire(monde, o) == "joueur" or o.get("vole_par") == "joueur" or o["lieu"] == "joueur":
             raise ErreurMonde("Cet objet est déjà en ta possession.", f"{cible} est déjà au joueur : rien à voler.")
-        return ([etape("patienter")] if p["methode"] == "finesse" else []) + [etape("deplacer", cible, "joueur", methode="discret")]
+        return developper_vol(cible, p["methode"], etape)
     if action == "poser" and monde.objets.get(cible, {}).get("lieu") != "joueur":
         portes = sorted(i for i, x in monde.objets.items() if x["lieu"] == "joueur")
         raise ErreurMonde("Tu ne portes pas cet objet.", f"poser vise un objet porté, parmi {cibles(monde, portes)}.")
@@ -178,12 +186,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         from .deplacement_objet import destination_depot
         destination = destination_depot(monde, destination)
     if op == "patienter":
-        if cible or destination or outil or methode != "simple":
-            raise ErreurMonde("Patienter n'a ni cible, ni outil, ni destination.",
-                              "patienter : cible, destination et outil vides, methode simple ; attendre ne commande "
-                              "aucun geste à un PNJ.")
-        p.titre, p.minutes, p.effort = "Guetter une occasion pendant deux minutes.", 2, False
-        return p
+        return preparer_occasion(p, e)
     if not monde.accessible(cible):
         raise inaccessible(monde, cible)
     from .proximite import exiger
@@ -506,7 +509,7 @@ def preparer(monde, proposition, origine):
         etapes = proposition["etapes"]
     else:
         etapes = traduire(monde, proposition)
-    if (not isinstance(etapes, list) or not 1 <= len(etapes) <= 6
+    if (not isinstance(etapes, list) or not COMPOSITION["minimum"] <= len(etapes) <= COMPOSITION["maximum"]
             or not isinstance(proposition.get("justification"), str) or len(proposition["justification"]) > 1000):
         raise ErreurMonde("Une manœuvre contient une à six opérations et une justification courte.",
                           f"etapes : une liste de 1 à 6 étapes (reçu {len(etapes) if isinstance(etapes, list) else type(etapes).__name__}) ; "

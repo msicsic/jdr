@@ -39,6 +39,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-a2-sequence-attente` — lot 370, base `integration d856732` : registre partagé
+  séquence/attente, schéma fermé de la famille et limites dans « Compris » ; mécanique valide conservée.
+  Cinq nouveaux tests verts (crochets, autre bien, faux pendant, recharge, laps découpé, schéma effectif).
+  Vérification finale détachée : neuf fichiers, puis empreintes Relais 2 h × quatre graines contre la base.
+  Fin attendue : `C:/Users/msics/donjon/artifacts/a2-sequence-attente-370/fin.json` ; aucun Luna.
+  Limites : événement libre non garanti, API `MJ.proposer` transitoire ; A3/A4/A6 hors périmètre.
+  [Rapport](taches/rapport-codex-370-a2-sequence-attente.md).
+
 Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 371
 (évaluation de l'échéance avant E7-E9), 372 (A6 soupçon déduit). Suite complète de l'intégration relancée après les
 corrections 360 à 368. Leurs entrées arrivent ici à leur livraison. 
