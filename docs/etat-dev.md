@@ -39,15 +39,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **359 — E5 choix direct** (`codex-e5-choix-direct`, base `6d046070`) : formulaire web et
+- **359 — E5 choix direct, terminé non fusionné** (`codex-e5-choix-direct`, base `6d046070`) : formulaire web et
   brouillon console/TUI, mêmes prestation/prix/limite absolue jusqu'à U-C ; revalidation sans modèle.
   Correction et annulation locales sans effet ; offre dépassée non émise, T inclus conservé.
-  Neuf méthodes E5 vertes, E1/information 21 verts ; autres voisins en cours de clôture.
+  98 tests distincts : 97 verts, un saut (`jsonschema` facultatif absent) ; E5 9/9, voisins 52/52.
   Huile auberge + verrou : 9 clics web / 7 saisies terminal, confirmation comprise, zéro appel modèle.
   Minutes entières, sans calendrier, ni révision d'accord conclu ; règles E4 inchangées.
   [Rapport 359](taches/rapport-codex-359-e5-choix-direct.md).
 
-Lots en cours : 359 (E5 choix direct). Suite complète de `f014c80` en cours (PC fixe) : nouvelle base après le
+Suite complète de `f014c80` en cours (PC fixe) : nouvelle base après le
 lot 356 ; ses 38 régressions conservatrices (28 basculent à la fusion du lot 337) seront découpées en petits lots sur les
 échecs qui restent. Leurs entrées arrivent ici à leur livraison. 
 
