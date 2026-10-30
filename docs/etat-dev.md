@@ -39,6 +39,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- **`codex-e3-delai-cru`**, lot **352**, base `integration e7ea375`, code `d03d0d2` :
+  jugement interne crédible/impossible/indéterminé sur le devis cru du contractant ;
+  durée du plan complet distincte du coût, aucun savoir privé du payeur pour le feu.
+  103 tests distincts verts, dont 10 E3 avec `planification.VERIFIER`, effets/recharge/rendu.
+  Banc 4 h × 4 graines × Relais/auberge/mine en cours, deux processus réduits ;
+  fin : `C:/Users/msics/donjon/artifacts/e3-352/fin-bancs.json` ; neutralité à conclure.
+  Aucun schéma ni raccord joueur avant E4–E6. [Rapport](taches/rapport-codex-352-e3-delai-cru.md).
+
 Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 351 (G18 avis), 352 (E3 délai cru).
 Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
 antérieurs sont connus (`test_protection` Gorm au beffroi, trois faisabilités de `test_luna_noms`, persuasion
