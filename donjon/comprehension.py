@@ -116,6 +116,12 @@ def contenu(monde, c, interlocuteur=""):
         return f"réclamer le dû : {sujet or 'pièces'}"
     if t == "ressource":
         # Un nom recherché est du texte, pas l'identifiant d'un bien caché.
+        # Un choix exact peut aussi désigner un bien connu par sa référence
+        # moteur. Son identifiant privé ne devient jamais un mot du joueur.
+        if s in monde.objets:
+            from .paroles import _connu_du_joueur
+            if _connu_du_joueur(monde, s) or monde.visible(s):
+                return "demander si l'interlocuteur possède " + repere(monde, s)
         return "demander si l'interlocuteur possède " + RESSOURCES_DEMANDEES.get(s, s)
     if t == "localisation":
         return "demander où se trouve " + sujet

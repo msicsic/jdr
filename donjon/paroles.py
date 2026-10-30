@@ -1716,16 +1716,28 @@ def preparer_parole(monde, p, revision=None):
     from .dialogues import interlocuteurs
     if revision is not None and revision != monde.data["revision"]:
         raise ErreurMonde("Le monde a changé avant la fin de la conversation.", "re-propose à partir des faits actuels.")
+    forme_directe = None
+    if isinstance(p, dict) and "_adresse" in p:
+        from .dialogues import parole_information
+        canonique = parole_information(monde, p["_adresse"])
+        if {k: v for k, v in p.items() if k != "_adresse"} != canonique:
+            raise ErreurMonde("Le contenu ne correspond plus au choix de parole.",
+                              f"parole : reçu {p!r} ; attendu {canonique!r} avec _adresse inchangée.")
+        # Garder la référence publique : destinataires distingue une voix
+        # choisie de l'identité réelle que Corvus n'a pas encore reconnue.
+        forme_directe = {"maniere": "voix", "groupe": False, "nomme": p["personnage"],
+                         "inconnu": None, "suite": False, "mots": None,
+                         "incomplete": False, "explicite": True}
     if (not isinstance(p, dict) or not set(SCHEMA_PAROLE["required"]) <= set(p)
             or not isinstance(p["replique"], str) or not 1 <= len(p["replique"].strip()) <= 400
             or not isinstance(p["contenu"], list) or len(p["contenu"]) > 3
-            or set(p) - set(SCHEMA_PAROLE["required"]) - {"_intention"}):
+            or set(p) - set(SCHEMA_PAROLE["required"]) - {"_intention", "_adresse"}):
         recus = sorted(k for k in p if k != "_intention") if isinstance(p, dict) else type(p).__name__
         raise ErreurMonde("Parole mal formée.",
                           f"parole_joueur a exactement les champs {', '.join(SCHEMA_PAROLE['required'])} ; replique de "
                           f"1 à 400 caractères ; contenu : liste de 0 à 3 éléments ; reçu : {recus}.")
     # Le moteur fixe à qui Corvus parle : le MJ ne lui substitue personne.
-    forme = analyser(monde, p.get("_intention", ""))
+    forme = forme_directe if forme_directe is not None else analyser(monde, p.get("_intention", ""))
     if forme["incomplete"]:
         raise ParoleImpossible("Précise ce que tu veux dire, entre guillemets ou après un deux-points.",
                                "la saisie ne fournit aucun propos ; ne lui invente ni appel ni mots.")
@@ -1758,6 +1770,10 @@ def preparer_parole(monde, p, revision=None):
                                emissions_joueur(monde))
     if p.get("_intention"):
         fondement += " " + lexique.corpus(p["_intention"])
+    if forme_directe is not None:
+        # Les mots viennent exclusivement des paramètres publics contrôlés
+        # ci-dessus, comme ceux imposés par la saisie sur le chemin texte.
+        fondement += " " + lexique.corpus(p["replique"])
     # Une part demandée à son propriétaire se nomme sans avoir été vue.
     for c in p["contenu"]:
         for auditeur in dest:

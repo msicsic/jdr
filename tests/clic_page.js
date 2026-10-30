@@ -146,6 +146,39 @@ if (ETAT.sonde_fabrication) {
     sortie.fabrication.ferme_apres_etat = form.hidden;
   }
 }
+if (ETAT.sonde_information) {
+  appliquerEtat(ETAT); occupe = false; envois.length = 0;
+  $("informer").onclick();
+  const form = $("information"), f = ETAT.sonde_information;
+  sortie.information = {champs: [], clics: 1};
+  form.onsubmit({preventDefault() {}});
+  sortie.information.incomplet = envois.length;
+  const remplir = label => {
+    const input = label.children.find(c => c.tagName === "SELECT");
+    const nom = label.children[0].textContent;
+    const choix = input.children.map(o => ({valeur: o.value, texte: o.textContent}));
+    input.value = f[nom] || "";
+    if (!choix.some(o => o.valeur === input.value)) throw Error("Choix absent : " + nom + " / " + input.value);
+    if (input.onchange) input.onchange();
+    document.activeElement = input;
+    for (const key of ["ArrowUp", "ArrowDown", " "]) ecouteurs.keydown.forEach(cb => cb({key, preventDefault() {}}));
+    sortie.information.champs.push({nom, choix, valeur: input.value});
+    sortie.information.clics += 2;
+  };
+  form.children.filter(l => l.tagName === "LABEL").forEach(remplir);
+  form.children.filter(l => l.tagName === "DIV").flatMap(l => l.children).forEach(remplir);
+  sortie.information.clavier = envois.length;
+  document.activeElement = null;
+  occupe = true; form.onsubmit({preventDefault() {}});
+  sortie.information.occupe = envois.length;
+  occupe = false; form.onsubmit({preventDefault() {}});
+  sortie.information.clics++;
+  sortie.information.envoye = envois[0];
+  form.onsubmit({preventDefault() {}});
+  sortie.information.envois = envois.length;
+  appliquerEtat(ETAT);
+  sortie.information.ferme_apres_etat = form.hidden;
+}
 if (ETAT.sonde_marche) {
   appliquerEtat(ETAT);
   envois.length = 0; occupe = false;
