@@ -75,7 +75,7 @@ def verifier(monde):
                        and all(type(x) is int for x in g["issue"][k][1]) for k in ("depart", "victime"))) for g in gestes), "Issue de geste invalide"
     chronique = monde.data.get("chronique", [])
     assert (isinstance(chronique, list) and len(chronique) <= CHRONIQUE_MAX
-            and all(isinstance(c, dict) and set(c) - {"nature", "instant", "relation", "cause", "bandes", "mefiance_levee", "service", "observation", "lecture", "jet", "marge", "observateur", "psy", "constat_confie", "avis_exprime", "changement_avis", "dispute", "eclat", "dispute_vue", "parti_pris"} == {"minute", "pnj", "texte"}
+            and all(isinstance(c, dict) and set(c) - {"nature", "instant", "relation", "cause", "bandes", "mefiance_levee", "service", "observation", "lecture", "jet", "marge", "observateur", "psy", "constat_confie", "avis_exprime", "changement_avis", "dispute", "eclat", "dispute_vue", "parti_pris", "demande_cause", "reponse_cause"} == {"minute", "pnj", "texte"}
                     and c.get("nature", "geste") in NATURES and type(c.get("instant", 0)) is int
                     and type(c.get("constat_confie", False)) is bool
                     and type(c.get("avis_exprime", False)) is bool
@@ -84,6 +84,15 @@ def verifier(monde):
                     for c in chronique)), "Chronique invalide"
     from .relations import verifier_chronique
     for c in chronique:
+        for cle, champs in (('demande_cause', {'a', 'issue'}),
+                            ('reponse_cause', {'a', 'sorte', 'reception'})):
+            if cle in c:
+                assert isinstance(c[cle], dict) and set(c[cle]) == champs, "Échange de détresse invalide"
+                assert c[cle]['a'] in monde.objets, "Interlocuteur de détresse invalide"
+                if cle == 'demande_cause':
+                    assert c[cle]['issue'] in ('dit', 'rien', 'mefiance', 'rancune', 'qui_va_la', 'inconscient'), "Réponse de détresse invalide"
+                else:
+                    assert c[cle]['sorte'] in ('violence', 'eau', 'bruit') and c[cle]['reception'] in (None, 'crue', 'doute'), "Cause de détresse invalide"
         if c.get("nature") == "relation":
             verifier_chronique(c)
 

@@ -29,19 +29,27 @@ AMBIANCES_PAR_LIEU = 30
 def echanges_passes(monde, interlocuteurs):
     """Paroles réellement entendues, sans fenêtre globale ni identité privée.
 
-    Les références sont celles de la scène actuelle, même si une présentation
-    a changé depuis la parole. Le texte enregistré reste une citation historique.
+    Les références sont publiques, même si une présentation a changé ou si le
+    locuteur est parti. Le texte enregistré reste une citation historique.
     """
-    from .voix import reel
-    dossier = {ref: [{k: copy.deepcopy(p[k]) for k in ("texte", "revision", "minute") if k in p}
-                 for p in emissions_pnj(monde)
-                  if p["locuteur"] == reel(monde, ref) and "joueur" in p["auditeurs"]
+    from .voix import reel, nom_pour_joueur
+    from .noms import reference
+    # Se souvenir n'exige ni présence actuelle ni nouvelle autorisation de
+    # réponse. Ces références historiques ne rejoignent pas les interlocuteurs.
+    entendues = [p for p in emissions_pnj(monde) if "joueur" in p["auditeurs"]]
+    noms = {reference(monde, p["locuteur"]): {"nom": nom_pour_joueur(monde, p["locuteur"])}
+            for p in entendues}
+    noms.update(interlocuteurs)
+    dossier = {ref: [{k: copy.deepcopy(p[k]) for k in
+                     ("texte", "revision", "minute", "id", "ordre", "ordre_historique_inconnu") if k in p}
+                 for p in entendues
+                  if p["locuteur"] == reel(monde, ref)
                   and p.get("forme", "citation") == "citation"]
-            for ref in interlocuteurs}
+            for ref in noms}
     for ref, paroles in dossier.items():
         # La révision est un compteur croissant, pas un numéro de tentative
         # narrative. Le registre ne contient pas la réponse encore proposée.
-        paroles.sort(key=lambda p: (p.get('revision', 0), p.get('minute', 0)))
+        paroles.sort(key=lambda p: (p.get('revision', 0), p.get('minute', 0), p.get('ordre', 0)))
         for ordre, parole in enumerate(paroles, 1):
             parole['ordre_chronologique'] = ordre
             parole['anteriorite'] = {
@@ -49,7 +57,8 @@ def echanges_passes(monde, interlocuteurs):
                 'statut': 'deja_prononcee_et_entendue_par_Corvus',
                 'revision_courante': monde.data['revision'],
             }
-            parole['rappel_exact'] = _rappel_exact(interlocuteurs[ref]['nom'], parole['texte'])
+            parole['designation'] = noms[ref]['nom']
+            parole['rappel_exact'] = _rappel_exact(noms[ref]['nom'], parole['texte'])
     return dossier
 
 
@@ -63,19 +72,36 @@ def rappels_exacts(faits):
     La phrase entière est construite par le moteur : aucune recherche de mots
     introducteurs dans la prose du MJ ne peut exempter une affirmation libre.
     """
+    return {texte: preuves[0]['locuteur'] for texte, preuves in preuves_rappels(faits).items()}
+
+
+def preuves_rappels(faits):
+    """Chaque rendu exact est relié à ses occurrences historiques, sans les réémettre.
+
+    Plusieurs émissions peuvent avoir les mêmes mots. Garder toutes les preuves
+    évite d'inventer une occurrence unique ou de perdre leur provenance.
+    """
     catalogue = {}
     for ref, paroles in faits.get('echanges_passes', {}).items():
-        if ref not in faits.get('interlocuteurs', {}):
-            continue
+        nom = faits.get('interlocuteurs', {}).get(ref, {}).get('nom')
+        if not paroles and nom:
+            catalogue[f"Tu ne te souviens d’aucun mot exact de {nom}."] = [
+                {'locuteur': ref, 'absence': True}]
         for parole in paroles:
             texte = parole.get('texte')
             if not isinstance(texte, str) or not texte.strip():
                 continue
+            designation = parole.get('designation', nom)
+            preuve = {'locuteur': ref, **{k: parole[k] for k in
+                      ('id', 'ordre', 'revision', 'minute', 'texte') if k in parole}}
             # Le découpage commun du lot 95 borne les citations : jamais un
             # sous-texte arbitraire qui pourrait retirer une négation ou condition.
             for mots in dict.fromkeys([texte, *segments(texte)]):
-                catalogue[_rappel_exact(faits['interlocuteurs'][ref]['nom'], mots)] = ref
-                catalogue[f'« {mots} »'] = ref
+                rendus = [f'« {mots} »']
+                if designation:
+                    rendus.append(_rappel_exact(designation, mots))
+                for rendu in rendus:
+                    catalogue.setdefault(rendu, []).append(preuve)
     return catalogue
 
 
@@ -479,6 +505,11 @@ CITATIONS = re.compile(r"«[^»]*»|“[^”]*”|\"[^\"]*\"")
 
 def hors_paroles_etablies(monde, texte, paroles=(), faits=None, historique=True):
     """Exempte le seul emplacement audité ; un souvenir n'autorise aucune attribution libre."""
+    if historique and texte.strip() in rappels_exacts(faits or {}):
+        # L'attribution aussi est un rendu exact du moteur. Le nom que se
+        # donnait une voix ne devient pas son identité, même après son départ.
+        # consigner revérifie l'occurrence avant toute publication.
+        return ""
     citations = list(CITATIONS.finditer(texte))
     actuelles = {p['texte'].strip() for p in paroles if p.get('passage') == texte
                  and sum(c.group()[1:-1].strip() == p['texte'].strip() for c in citations) == 1}
@@ -1428,10 +1459,12 @@ def consigner(monde, reponse):
         from .noms import public
         courants = {'interlocuteurs': public(monde, interlocuteurs(monde))}
         courants['echanges_passes'] = echanges_passes(monde, courants['interlocuteurs'])
-        actuels = rappels_exacts(courants)
+        actuels = preuves_rappels(courants)
+        precedents = preuves_rappels(audit['faits'])
         for indice, ligne in etablis.items():
             passage = segments(audit['texte_initial'])[int(indice)]
-            if ligne['sources'] == ['echanges_passes'] and passage not in actuels:
+            if ligne['sources'] == ['echanges_passes'] and not any(
+                    preuve in actuels.get(passage, []) for preuve in precedents.get(passage, [])):
                 raise ErreurMonde("Ce rappel ne correspond plus aux paroles entendues.",
                                   f"segment {indice} : reçu {passage!r} ; un rappel exact des échanges enregistrés.")
     if any(ligne["sources"] == ["attestations"] for ligne in etablis.values()):
