@@ -1,4 +1,4 @@
-"""S1a : écritures structurelles fermées, sans porter les lecteurs historiques."""
+"""S1a–b : porte des épisodes et requêtes/opérations sonores historiques."""
 import ast
 from collections import Counter
 import copy
@@ -74,8 +74,52 @@ def controle(source):
         if not changement:
             break
 
+    # S1b ferme aussi les champs des épisodes sonores issus du stock brut.
+    # Les autres familles gardent leurs mutations historiques jusqu'à leur lot.
+    sons = set()
+    for n in ast.walk(arbre):
+        if isinstance(n, ast.Compare):
+            valeurs = [v.value for c in n.comparators for v in ast.walk(c) if isinstance(v, ast.Constant)]
+            if not any(v in ('bruit', 'examen') for v in valeurs):
+                continue
+            for c in ast.walk(n.left):
+                if isinstance(c, ast.Subscript) and cle(c.slice, fonction(n)) == 'type' and isinstance(c.value, ast.Name):
+                    sons.add((fonction(n), c.value.id))
+
+    def derive_stock(n, f):
+        return stock(n, f) or (isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+                              and n.func.id in ('reversed', 'iter', 'list')
+                              and any(derive_stock(a, f) for a in n.args))
+
+    elements = set()
+    for n in ast.walk(arbre):
+        if isinstance(n, (ast.For, ast.comprehension)) and isinstance(n.target, ast.Name):
+            f = fonction(n)
+            if (f, n.target.id) in sons and derive_stock(n.iter, f):
+                elements.add((f, n.target.id))
+
+    def element(n, f):
+        if isinstance(n, ast.Name):
+            return (f, n.id) in elements
+        if isinstance(n, (ast.Subscript, ast.Attribute)):
+            return element(n.value, f)
+        return False
+
+    for _ in range(len(list(ast.walk(arbre)))):
+        avant = len(elements)
+        for n in ast.walk(arbre):
+            if isinstance(n, ast.Assign) and element(n.value, fonction(n)):
+                elements.update((fonction(n), t.id) for t in n.targets if isinstance(t, ast.Name))
+        if len(elements) == avant:
+            break
+
     for n in ast.walk(arbre):
         f = fonction(n)
+        if isinstance(n, ast.Subscript) and isinstance(n.ctx, (ast.Store, ast.Del)) and element(n.value, f):
+            faute(n)
+        if isinstance(n, ast.Attribute) and element(n.value, f) and n.attr in (
+                'update', 'pop', 'clear', 'setdefault', '__setitem__', '__delitem__', 'append', 'extend'):
+            faute(n)
         if isinstance(n, ast.Dict):
             for k, valeur in zip(n.keys, n.values):
                 if cle(k, f) == 'memoire' and (isinstance(valeur, (ast.List, ast.ListComp))
@@ -180,6 +224,15 @@ class AccesTests(unittest.TestCase):
             with self.subTest(source=source):
                 self.assertFalse(controle(source)[1])
 
+    def test_contre_epreuves_des_mutations_de_souvenirs_sonores(self):
+        for mutation in ('s["minute"] = 3', 'alias = s; alias["case"][0] = 1',
+                         's.update(minute=3)', 'del s["qui"]', 's.pop("case")',
+                         'modifier = s.update; modifier(minute=3)'):
+            source = ('stock = e["memoire"]\nfor s in reversed(stock):\n'
+                      ' if s["type"] == "examen":\n  ' + mutation)
+            with self.subTest(source=source):
+                self.assertTrue(controle(source)[1])
+
 
 class PorteTests(unittest.TestCase):
     def test_copie_plafond_dates_ordre_et_identite(self):
@@ -235,7 +288,151 @@ class PorteTests(unittest.TestCase):
         self.assertEqual(recharger(m).data, m.data)
 
 
+class MemoireSonoreTests(unittest.TestCase):
+    def test_requetes_pures_et_copies_profondes_y_compris_la_facade(self):
+        from donjon.ouie import couvert
+        m = relais()
+        avant = copy.deepcopy(m.data)
+        self.assertEqual(memoire.bruits_retenus(m, 'inexistant'), [])
+        self.assertIsNone(memoire.examen_couvrant(m, 'inexistant', 'echoppe', 'pas'))
+        self.assertFalse(memoire.rafraichir_examen_sonore(m, 'inexistant', 'echoppe', 'pas'))
+        self.assertEqual(m.data, avant)
+        for qui in ('marchand', 'joueur'):
+            memoriser(m, qui, dict(type='bruit', salle='echoppe', nature='pas', niveau=2, case=[1, 2]))
+            memoriser(m, qui, dict(type='examen', salle='echoppe', nature='appel', case=[3, 2]))
+            avant = copy.deepcopy(m.data)
+            sons = memoire.bruits_retenus(m, qui, 'echoppe', examens=True)
+            sons[0]['case'][0] = -1
+            sons[1]['minute'] = -1
+            sons.clear()
+            for lecture in (memoire.examen_couvrant, couvert):
+                examen = lecture(m, qui, 'echoppe', 'pas')
+                examen['case'][0] = -1
+                examen['minute'] = -1
+            self.assertEqual(m.data, avant)
+        self.assertEqual(recharger(m).data, m.data)
+
+    def test_rafraichissement_meme_occurrence_sans_crochet_et_bornes_historiques(self):
+        from donjon.esprits import RECENT
+        m = relais()
+        memoriser(m, 'marchand', dict(type='examen', salle='echoppe', nature='bruyant',
+                                     qui='ilse', case=None))
+        stock = lire(m, 'marchand')['memoire']
+        occurrence = stock[-1]
+        date = occurrence['minute']
+        m.data['minutes'] = date + RECENT
+        # Dernier instant inclus ; ni nouvelle preuve, ni déplacement dans la liste.
+        with patch('donjon.relations.souvenir') as relation, patch('donjon.defense.retenir') as defense:
+            self.assertTrue(memoire.rafraichir_examen_sonore(m, 'marchand', 'echoppe', 'pas', 'ilse'))
+            relation.assert_not_called()
+            defense.assert_not_called()
+        self.assertIs(stock[-1], occurrence)
+        self.assertEqual(occurrence['minute'], date + RECENT)
+        avant = copy.deepcopy(m.data)
+        for nature, qui, case in (('appel', None, None), ('pas', 'aubin', None), ('pas', None, [1, 2])):
+            self.assertFalse(memoire.rafraichir_examen_sonore(m, 'marchand', 'echoppe', nature, qui, case))
+        self.assertEqual(m.data, avant)
+        m.data['minutes'] += RECENT + 1
+        self.assertIsNone(memoire.examen_couvrant(m, 'marchand', 'echoppe', 'pas'))
+        self.assertEqual(recharger(m).data, m.data)
+
+    def test_examen_plus_recent_incompatible_ne_reprend_pas_un_ancien(self):
+        m = relais()
+        for nature in ('appel', 'pas'):
+            memoriser(m, 'marchand', dict(type='examen', salle='echoppe', nature=nature, case=[1, 2]))
+        self.assertIsNone(memoire.examen_couvrant(m, 'marchand', 'echoppe', 'bruyant'))
+        self.assertEqual(memoire.examen_couvrant(m, 'marchand', 'echoppe', 'pas')['nature'], 'pas')
+
+    def test_remplacements_conservent_ordre_maximum_et_crochets_reentrants(self):
+        from donjon.ouie import _retenir_seulement, parcouru
+        m = relais()
+        for nature, niveau in (('bruyant', 5), ('pas', 2)):
+            memoriser(m, 'marchand', dict(type='bruit', salle='echoppe', nature=nature, niveau=niveau))
+        memoriser(m, 'marchand', dict(type='examen', salle='antichambre', nature='pas', case=None))
+        survivant = lire(m, 'marchand')['memoire'][-1]
+        visites = []
+
+        def relation(monde, qui, s):
+            visites.append(('relation', s['type']))
+            self.assertIs(lire(monde, qui)['memoire'][-1], s)
+            if s['type'] == 'examen':
+                memoriser(monde, qui, dict(type='attente'))
+
+        def defense(monde, qui, s):
+            visites.append(('defense', s['type']))
+
+        with patch('donjon.relations.souvenir', side_effect=relation), patch('donjon.defense.retenir', side_effect=defense):
+            _retenir_seulement(m, 'marchand', 'echoppe', 'voix', 3)
+            self.assertEqual(memoire.bruits_retenus(m, 'marchand', 'echoppe')[-1]['nature'], 'bruyant')
+            self.assertEqual(memoire.bruits_retenus(m, 'marchand', 'echoppe')[-1]['niveau'], 5)
+            self.assertTrue(parcouru(m, 'marchand', 'echoppe', (1, 2)))
+        self.assertIs(lire(m, 'marchand')['memoire'][0], survivant)
+        self.assertEqual(visites, [('relation', 'bruit'), ('defense', 'bruit'),
+                                  ('relation', 'examen'), ('relation', 'attente'),
+                                  ('defense', 'attente'), ('defense', 'examen')])
+        self.assertFalse(parcouru(m, 'marchand', 'echoppe'))
+        self.assertIsNotNone(memoire.examen_couvrant(m, 'marchand', 'echoppe', 'pas'))
+        self.assertEqual(recharger(m).data, m.data)
+
+
 class ChaineTests(unittest.TestCase):
+    def test_examen_vain_et_appel_repete_mine_et_autre_auditeur_apres_recharges(self):
+        from tests.test_ouie_temoins import creer, calme, MINEURS, placer, percevoir_tous
+        from tests.test_tensions import vivre
+        from donjon.ouie import entendre, parcouru, couvert
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from donjon.emissions import lire as paroles
+
+        # Mine 18, minutes 455–560 : Mathe ne repart plus pour le même appel
+        # du bureau noir. Bram éprouve le même contrat avec un autre observateur.
+        for qui in ('mathe', 'bram'):
+            with self.subTest(qui=qui):
+                m = creer('mine', 18, depart='fixe')
+                calme(m, *MINEURS)
+                m.objets['chandelle'].update(allume=False, combustible=0)
+                m.objets['porte_bureau'].update(verrouillee=False, ouverte=True)
+                placer(m, qui, 'baraquement', (2, 2))
+                placer(m, 'lucien', 'bureau', (0, 3))
+                percevoir_tous(m)
+                # L'émetteur reste sur place pendant cette éprouvette sonore ;
+                # sa voix anonyme n'ouvre pas un secours distinct de l'examen.
+                lire(m, 'lucien')['libre'] = 6000
+                lire(m, qui)['voix'].remove('lucien')
+                entendre(m, qui, 'lucien', 'bureau', (0, 3), 'appel', 0, 6)
+                self.assertTrue(memoire.bruits_retenus(m, qui, 'bureau'))
+                self.assertTrue(parcouru(m, qui, 'bureau'))
+                m = recharger(m)
+                entier, morcele = m.copier(), m.copier()
+                for _ in range(2):
+                    entier, lignes = vivre(entier, 2)
+                    suite = []
+                    for _ in range(2):
+                        morcele, nouvelles = vivre(morcele, 1)
+                        suite.extend(nouvelles)
+                        morcele = recharger(morcele)
+                    self.assertEqual(lignes, suite)
+                    for monde in (entier, morcele):
+                        avant = couvert(monde, qui, 'bureau', 'appel')
+                        self.assertIsNotNone(avant)
+                        entendre(monde, qui, 'lucien', 'bureau', (0, 3), 'appel', 0, 6)
+                        self.assertEqual(memoire.bruits_retenus(monde, qui, 'bureau'), [])
+                        apres = couvert(monde, qui, 'bureau', 'appel')
+                        self.assertEqual(apres, dict(avant, minute=monde.data['minutes']))
+                    self.assertEqual(entier.data, morcele.data)
+                    self.assertEqual(json.dumps(entier.data), json.dumps(morcele.data))
+                    public = (regarder(entier), scene_percue(entier), copy.deepcopy(paroles(entier)))
+                    reprise = recharger(entier)
+                    self.assertEqual(reprise.data, entier.data)
+                    self.assertEqual((regarder(reprise), scene_percue(reprise), paroles(reprise)), public)
+                    self.assertEqual((regarder(morcele), scene_percue(morcele), paroles(morcele)), public)
+                # Mieux situé depuis le bureau : ce son nouveau reste à examiner.
+                for monde in (entier, morcele):
+                    placer(monde, qui, 'bureau', (4, 0))
+                    entendre(monde, qui, 'lucien', 'bureau', (0, 3), 'appel', 0, 6)
+                    self.assertEqual(memoire.bruits_retenus(recharger(monde), qui, 'bureau')[-1]['case'], [0, 3])
+                self.assertEqual(recharger(entier).data, recharger(morcele).data)
+
     def test_appel_auberge_et_relais_etat_complet_et_publication_apres_recharge(self):
         from tests import test_ouie_commune as sons
         from tests.test_tensions import vivre

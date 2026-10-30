@@ -9,10 +9,6 @@
   "donjon/biens.py": {
     "prets_reclames/memoire": 1
   },
-  "donjon/causes.py": {
-    "connues/memoire": 1,
-    "recevoir/memoire": 1
-  },
   "donjon/defense.py": {
     "approche_vue/memoire": 2,
     "auteurs/memoire": 1,
@@ -27,10 +23,7 @@
     "_candidats/memoire": 1,
     "_lieux_a_dire/memoire": 1,
     "_plan_prevenir/memoire": 1,
-    "alarme/memoire": 1,
-    "bruit_a_voir/memoire": 1,
     "choisir/memoire": 1,
-    "consommer_indices_recherche/memoire": 1,
     "detresses_percues/memoire": 1,
     "menager_flamme/memoire": 1,
     "ouvert_par_soi/memoire": 1,
@@ -42,17 +35,9 @@
     "tenu/memoire": 1
   },
   "donjon/esprits.py": {
-    "dernier_son/memoire": 1,
     "installer/memoire": 3,
     "prete/memoire": 1,
     "verifier/memoire": 5
-  },
-  "donjon/ouie.py": {
-    "_bruit_inconnu/memoire": 1,
-    "_retenir_seulement/memoire": 1,
-    "couvert/memoire": 1,
-    "parcouru/memoire": 1,
-    "source/memoire": 1
   },
   "donjon/paroles.py": {
     "paroles_retenues/memoire": 1
@@ -74,9 +59,6 @@
   },
   "donjon/recit_pnj.py": {
     "_noter/memoire": 1
-  },
-  "donjon/rejeu.py": {
-    "_penser/memoire": 1
   },
   "donjon/relations.py": {
     "chance_demande/memoire": 1,

@@ -618,9 +618,9 @@ def consommer_indices_recherche(monde, id, qui, salle):
     if c and c["valeur"] == salle:
         _situer_recherche(monde, id, qui, salle, c.get("case"))
         _retenir_indice(monde, id, qui, salle, _indice_presence(c))
-    for s in lire(monde, id)["memoire"]:
-        if s["type"] in ("bruit", "examen") and s["salle"] == salle:
-            _retenir_indice(monde, id, qui, salle, indice_bruit(s))
+    from .memoire import bruits_retenus
+    for s in bruits_retenus(monde, id, salle, examens=True):
+        _retenir_indice(monde, id, qui, salle, indice_bruit(s))
 
 
 def _indice_presence(c):
@@ -1078,8 +1078,9 @@ def bruit_a_voir(monde, id):
     # Celui qu'il est en train d'aller voir passe d'abord : il ne court pas d'un bruit à l'autre.
     en_cours = _voir_en_cours(e)
     a_voir = []
-    for s in reversed(e["memoire"]):
-        if s["type"] != "bruit" or resolu(monde, id, s):
+    from .memoire import bruits_retenus
+    for s in reversed(bruits_retenus(monde, id)):
+        if resolu(monde, id, s):
             continue
         inhabituel = s["nature"] not in HABITUELS
         if not inhabituel and minute - e["visites"].get(s["salle"], -HABITUDE - 1) <= HABITUDE:
@@ -1099,10 +1100,10 @@ def alarme(monde, id):
     ``bruit_a_voir``."""
     from .ouie import resolu
     p = profil(monde, id) or {}
-    e = lire(monde, id)
     alerte = p.get("alerte")
-    for s in reversed(e["memoire"]):
-        if s["type"] != "bruit" or resolu(monde, id, s):
+    from .memoire import bruits_retenus
+    for s in reversed(bruits_retenus(monde, id)):
+        if resolu(monde, id, s):
             continue
         if s["nature"] == "appel" and s.get("qui") in proteges(monde, id):
             return s["salle"], "devoir"
