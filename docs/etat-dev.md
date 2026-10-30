@@ -44,7 +44,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 378 (S1a, porte des épisodes), 379
-(A2 expression et son), 380 (U-M social comptes). Questions de S0 en arbitrage (1 validée : tri par importance et âge).
+(A2 expression et son), 380 (U-M social comptes). Questions de S0 en arbitrage (1 et 2 tranchées, voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
@@ -69,6 +69,11 @@ Leurs entrées arrivent ici à leur livraison.
   S3, S4 sans lecteur, S5 (vérification d'intégration avant et après) ; S6 sur la table d'A6 ; S7/S8 après A2 à A6 du
   compilateur et D0. A6 (restes) et A7 sont absorbés (S3, S5, S6) ; A8 après S5 et S7 ; 3d porté par S2. Questions
   ouvertes : ordre des actes oui ; biographies à la main pour la tranche, générées ensuite ; tranche sur l'auberge.
+- **Questions de S0** : (1) rétention selon importance et âge, recommandation acceptée ; (2) anciennes sauvegardes :
+  l'utilisateur n'y tient pas et laisse décider ; retenu l'héritage minimal, pour garder les captures réelles des tests
+  (`tests/data`) : S1 relit à l'identique, S2 lit une attitude sans acte comme « héritée, cause inconnue », non
+  compensable par une réparation, estompée par les règles ordinaires ; aucun passé reconstruit, parties neuves pour
+  valider réparation, trahison et repentir.
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 
