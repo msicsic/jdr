@@ -1424,7 +1424,6 @@ def _percevoir(monde, id):
     en_vue = sorted(x for x in vus if x == "joueur" or monde.objets[x]["type"] == "personnage")
     premiere = e["en_vue"] is None
     change = not premiere and en_vue != e["en_vue"]
-    e["en_vue"] = en_vue
     for sujet, (salle, case) in vus.items():
         if sujet == "joueur":
             croire(monde, id, "joueur", "lieu", salle, "vu", salle=salle, case=case)
@@ -1485,6 +1484,9 @@ def _percevoir(monde, id):
     _purger_indices_soupcon(monde, id)
     from .signes import retenir_detresses, percus as signes_percus
     change |= retenir_detresses(monde, id, signes_percus(monde, id))
+    # Les constats de mouvement ont besoin de la vue précédente : retrouver
+    # quelqu'un ailleurs après l'avoir perdu de vue n'est pas voir son approche.
+    e["en_vue"] = en_vue
     if change and not premiere and getattr(monde, "_agit", None) != id:
         reconsiderer(monde, id)
 

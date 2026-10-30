@@ -587,6 +587,31 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   anciennes attitudes sans direction conservées jusqu'au prochain regard décidé.
   Recouvrement possible 330 : `esprits.py`, `pnj.py`, `signes.py`.
   [Rapport 332](taches/rapport-codex-332-attention-conjointe.md).
+- **Lot 333 / A4b terminé, branche `codex-garder-lieu`, non fusionnée**, base
+  d'intégration `4a54090` : interposition commune pour biens, protégés et
+  lieux gardés. Seuil déclaré, approche réellement vue en continu, poste
+  libre/atteignable dès l'événement et revalidé à chaque pas ; aucune
+  interception créée après libération tardive de l'accès. Marche sans
+  poussée pour cette action, parole typée enregistrée, preuve commune
+  sans répétition, persistance relationnelle conservée. **135 tests
+  distincts / douze fichiers verts**, dont huit nouveaux : Relais/Corvus,
+  auberge/Lucien ; monde, rendu, scène et parole entendue rechargés,
+  laps entier/découpé identiques. Reprise de 22 après la dernière garde
+  visuelle verte, puis huit tests du registre des paroles verts. Code/tests
+  `887a5b0` poussés vers origin. Ni Luna ni suite complète. **20/20 paires
+  du banc 4 h vertes**, cinq scénarios × quatre graines, un travailleur réduit ;
+  référence `f08ef58` identique en code à la base, vingt nuits relues du cache,
+  aucune rejouée. Suspects 219 **0 → 0 par nuit**, zéro plantage/usurpation/
+  coup/poussée. Sept chroniques, six états complets identiques ; paroles
+  d'interposition 21 → 9. Deux alertes de répétition d'agenda de Brune,
+  crue 42 (sept passages actif/sommeil → dix), origine générale non établie,
+  à surveiller ; une bascule isolée de réserve, crue 2024. Aucune garantie
+  générale sur les boucles. **714,694 s**, CPU branche 663,141 s, sans
+  comparaison aux temps du cache. Bruts `C:/Users/msics/donjon/artifacts/lieu-333/`,
+  **`fin.json ok=true`**, `bilan.json`, `analyse-cloture.json`. Empreintes
+  des sources exécutées vérifiées ; aucun calcul actif.
+  Recouvrements 330 : `pnj.py` ; 332 : `esprits.py`, `pnj.py`.
+  [Rapport 333](taches/rapport-codex-333-garder-un-lieu.md).
 - **Lot 317 terminé, branche `codex-boucles-progression`, fusionnée**,
   base `integration 2ddfbe0`, diagnostic seul : les deux nuits du 284 sur
   `27ff8c4` reproduisent exactement chronique, empreintes, récit, souvenirs,
