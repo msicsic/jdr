@@ -2,6 +2,58 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
+- **Reprise 338 terminée, fusionnée**, fusion sans rebase **`20e1f41`**
+  (parents `38bc65d` et `fff9aab`) :
+  rebase de `origin/integration fff9aab` (code de `c9b972b`, seul ajout ensuite :
+  brief 341). Aucun conflit de code ; conflit de `etat-dev.md` résolu en
+  conservant les deux côtés. Coûts/continuité du 338, offres/contrats du 336,
+  preuves de fin du 337 et leurs entrées de recherche conservés.
+  **518 tests / 52 fichiers : 513 succès, quatre échecs préexistants, un saut
+  facultatif (`jsonschema` absent), zéro erreur**, 2 130,177 s. Les quatre
+  assertions reproduites identiquement sur l'intégration exacte `fff9aab`,
+  11,552 s : appel de protection (beffroi/échoppe), réaction au feu (600/205),
+  geste illicite non vu et sonde `_retentir` sans `emission`. Aucun oracle porté,
+  aucun code modifié après fusion ; 5/5 régressions 338, 8/8 offres 336 et
+  14/14 fins de garde 337 vertes. `_entrees_communes` et six fonctions communes
+  identiques à l'intégration au contrôle AST ; garanties des trois lots gardées.
+  **Crue 3, 12 h : maximum Gorm 26 passages/h**, zéro usurpation, 282,450 s.
+  Calcul détaché fini en 2 416,177 s, deux travailleurs réduits au plus.
+  Aucun banc 4 h ni suite complète rejoué ; aucun calcul actif. Bruts
+  `C:/Users/msics/donjon/artifacts/recours-338/fusion-validation/` :
+  `fin.json` rouge conservé, `attribution-echecs.json`, `fin-cloture.json`
+  qualifié. Branche poussée ; chiffres de la livraison initiale ci-dessous
+  historiques, sans garantie universelle contre les boucles.
+
+- **Livraison initiale 338 avant synchronisation**, branche
+  `codex-recours-sans-cout`, non fusionnée,
+  base `integration e37d9ee` : coût fini obligatoire de tout recours d'agenda
+  admissible, composition commune des suites directes (inspection/attente
+  comprises), coût des recherches conservé pour récupération, pièces et garde.
+  Empreinte persistante des entrées du moyen dans le contrat d'intention :
+  suffixe admissible ou attente adoptée conservés sans nouvelle entrée, hors
+  déplacement propre ; démenti, événement pertinent et préemption gardés.
+  `INERTIE` inchangée. Cinq régressions en précontrôle vertes : capture 317 à
+  160 min, inspection à 170 puis arrêt du circuit jusqu'à 175 ; monde, rendu
+  et scène après recharge, bloc/découpé identiques ; autre attente à l'auberge,
+  continuité d'`informer` et nouvelle localisation. **206 tests / 29 fichiers,
+  205 succès, un échec préexistant, zéro erreur/saut**, 697,746 s.
+  L'appel de protection échoue identiquement sur la base exacte `e37d9ee`
+  (Gorm en `chambre_cloche`, attendu `echoppe`), 7,382 s ; aucune correction
+  ni oracle modifié. Premier lanceur arrêté avant les bancs, `fin.json` conservé.
+  **20/20 nuits 4 h conformes**, cinq scénarios × quatre graines : suspects
+  219 0 → 0 dans chaque nuit, zéro plantage/usurpation. Vingt références
+  manquantes calculées et rangées une fois, puis branche, aucun témoin relancé.
+  Avis à expliquer 43 → 38, dérives ouvertes 436 → 422, sans garantie causale.
+  **Crue 3 sur 12 h : maximum Gorm 30 passages/h**, contre le repère historique
+  298 du 317 sur `75b6dfb` ; pas de nouvelle référence 12 h sur la base.
+  D'autres allers-retours subsistent ; aucune absence générale de boucle.
+  Reprise détachée **ok=true**, 2 164,787 s, deux travailleurs réduits au plus ;
+  aucun calcul actif. Code/tests `03be84c` inchangés depuis validation ; clôture
+  documentaire poussée. Bruts `C:/Users/msics/donjon/artifacts/recours-338/`,
+  `fin-cloture.json`, premier `fin.json` rouge conservé, reprise verte.
+  Aucun Luna ni suite complète. [Rapport 338](taches/rapport-codex-338-recours-sans-cout.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `agendas.py`, `planification.py`, fusionnés sans conflit textuel. Premier correctif du diagnostic 317 : inspection et attente admissibles ont un coût mesuré, le moyen adopté tient jusqu'à son observation utile. Crue 3, 12 h : Gorm 26 passages/h au plus, zéro usurpation ; 513/518 tests, quatre échecs préexistants confirmés sur l'intégration.
+
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Un acte lourd ou irréversible issu du texte libre affiche le plan entier, puis attend une confirmation revalidée ; annulation sans effet, plan périmé refusé. Intégration jusqu'à G17 (60c476a) fusionnée dans la branche ; 200 tests ciblés verts.
 
 - **Lot 339 terminé, branche `codex-suite-rouge`, fusionnée**,
