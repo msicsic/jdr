@@ -44,7 +44,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
-(U-M social comptes), 381 (A2 passage), 382 (S1b sons et examens). Questions de S0 en arbitrage (1 et 2 tranchées, voir décisions).
+(U-M social comptes), 381 (A2 passage), 383 (S1c approches et secours). Questions de S0 en arbitrage (1 et 2 tranchées, voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
