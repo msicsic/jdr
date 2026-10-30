@@ -1,6 +1,24 @@
 # État du développement
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
+- **Lot 343 / G7, code validé, mesures en cours**, branche
+  `codex-g7-deplacements`, **non fusionnée**, base exacte `dc6da62`.
+  Trace structurée des mouvements accomplis du joueur, cumul canonique par
+  acteur/unité/directions/intervalle ; sons distincts et reliquat des trajets.
+  Marche au clic toujours pas à pas ; même fonction pour les attestations
+  exactes, aucun retrait d'audit de prose libre. `jeu.py` et `transactions.py`
+  intacts. **234 tests distincts / 17 fichiers verts**, zéro incident/saut,
+  453,652 s cumulées ; monde, texte, scène et carte rechargés, refus,
+  faisabilité, clic interrompu, traînage et obstacle. Le cas 171 joue trois
+  pas sur cette base ; autre départ à deux pas vérifié, sons à l'ouest séparés.
+  Empreintes 2 h Relais/auberge × quatre graines puis Luna une passe
+  fuite/traînage lancées détachées, priorité réduite, deux travailleurs au
+  plus ; référence Luna `cdaf371` vérifiée entièrement en cache. Aucun résultat
+  de ces mesures encore revendiqué ; ni suite complète ni banc d'intégration.
+  Bruts `C:/Users/msics/donjon/artifacts/g7-343/` ; attendre puis analyser
+  **`fin-validation.json`**, écrit en dernier, avant clôture du lot.
+  [Rapport 343](taches/rapport-codex-343-g7-deplacements.md).
+
 - **Lot 339 terminé, branche `codex-suite-rouge`, fusionnée**,
   base `integration e37d9ee` : six incidents de rejeu/audit attribués
   aux parents directs G15 `6037855` vert / `e0be70d` rouge. Signature
