@@ -29,6 +29,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-conception-menace` (228892f) : lot 347, conception de la menace et de l'échéance négociée. Détail dans l'historique.
 - `codex-a1-provenance` (29079a6) : lot 346, A1 projection publique avec provenance. Détail dans l'historique.
 - `codex-mandat-joueur` (5a3baf0) : lot 341, A5.9 le joueur mandant et mandaté. Détail dans l'historique.
+- `codex-g7-deplacements` (a6b4444) : lot 343, G7 déplacements résolus rendus par le moteur. Détail dans l'historique.
+- Correctif hors lot (intégration) : la fiche « Compris » d'une demande de passage nomme l'interlocuteur (`comprehension.contenu`) ; tests d'actes lourds écrits avant le lot 325 passent « tenter ».
 
 ## Lots non fusionnés
 

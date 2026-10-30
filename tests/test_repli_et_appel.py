@@ -227,6 +227,7 @@ class ReplisTests(unittest.TestCase):
                                          "citation": "Je vais me pousser.", "entites": [], "comptes": [], "motif": ""}}}
         reprise, sortie, appels = jouer(m, saisie, [parole(saisie, ("passage", "", "", ""), personnage="brune"),
                                                     promesse, promesse, promesse], [engagement] * 3, suite=("tenter",))
+        self.assertIn("demander le passage à Brune", sortie)
         validee = mj(appels)[1]["faits"]["conversation_validee"]
         self.assertTrue(validee["faits"])
         self.assertIn(f"Tu dis à Brune : « {saisie} »", sortie)
