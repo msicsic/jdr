@@ -41,10 +41,15 @@ class ProjectionTests(unittest.TestCase):
         mondes += [web_passage.atelier(echelle=True, haut=h) for h in (False, True)]
         mondes += [web_passage.atelier(porte=p) for p in (False, True)]
         for m in mondes:
-            attendus = [c['envoye'] for c in page(m)['envoisClic'] if c['envoye']['geste'] in GESTES_PASSAGE]
+            attendus = [c['envoye'] for c in page(m)['envoisClic']
+                        if isinstance(c['envoye'], dict) and c['envoye']['geste'] in GESTES_PASSAGE]
             obtenus = [c.descripteur.contenu for c in gestes_du_monde(m) if c.descripteur.contenu['geste'] in GESTES_PASSAGE]
             self.assertTrue(attendus)
-            self.assertCountEqual(obtenus, attendus)
+            # Le web expose un même geste à plusieurs points d'entrée de carte.
+            # Le terminal garde une seule ligne par descripteur complet.
+            exacts = lambda choix: {json.dumps(d, sort_keys=True) for d in choix}
+            self.assertEqual(len(obtenus), len(exacts(obtenus)))
+            self.assertEqual(exacts(obtenus), exacts(attendus))
 
     def test_catalogue_complet_deux_scenes_memes_descripteurs_que_le_web(self):
         for variante in (0, 1):

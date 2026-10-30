@@ -113,7 +113,7 @@ class CatalogueTests(unittest.TestCase):
                     web = json.loads(sortie.stdout)
                     gestes_web = [d for choix in web["choix"].values() for d in choix
                                   if isinstance(d, dict) and d["geste"] != "tourner"]
-                    terminal = [c.descripteur.contenu for c in liste_gestes(s)]
+                    terminal = [c.descripteur.contenu for c in liste_gestes(s, passages=etat["passages"])]
                     # U-M outils complète les offres paramétrées par un second
                     # choix. Le terminal premier geste conserve ses offres
                     # simples ; sa sélection des ressources attend U-T outils.
