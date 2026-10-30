@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **356 `codex-suite-rouge-7eb45ff`**, terminé non fusionné, base `df03dc2f`, synchronisation `19c9b6da`.
+  158 bascules prouvées / 161 incidents ; 48 harnais, 71 attentes périmées prouvées, 39 régressions conservatrices dont une corrigée.
+  Consentement : 811 assertions intactes au premier portage ; attentes G16/U-C portées séparément, frontière commune des répliques corrigée.
+  **201/201 tests, 18 fichiers, 763,976 s**, zéro échec/erreur/saut ; sources stables, `fin-validation-finale.json ok=true`.
+  38 ruptures historiques à traiter/arbitrer, trois incidents non reproduits ; suite globale non déclarée verte. Aucun calcul actif.
+  [Rapport](taches/rapport-codex-356-suite-rouge-7eb45ff.md) et [attribution exhaustive](taches/attribution-codex-356-suite-rouge.md) ; branche poussée.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. 48 harnais du consentement et 71 attentes périmées prouvées adaptés (811 assertions AST inchangées), un correctif G16 d'une ligne ; 38 régressions conservatrices et trois incidents non reproduits restent à traiter ; 201/201 tests ciblés verts.
+
 - **306 — `codex-a5-agenda-hameau`**, base `7ec839e`, fusion sans rebase de `19c9b6da`, mesuré `0c4663a2`.
   Gorm évacue Ilse, Brune, Maël et Sève vers la galerie ; données seules, aucun mandat forcé. **Lot terminé.**
   **69 tests / onze fichiers verts** ; capture originale et nuit complète : aucun mandat réexécuté à t=4200 après 358.

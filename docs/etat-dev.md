@@ -23,6 +23,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-suite-rouge-7eb45ff` (198844a5) : lot 356, attribution de la suite rouge 7eb45ff et harnais du consentement. Détail dans l'historique.
 - `codex-a5-agenda-hameau` (c7f4ed02) : lot 306, A5 agenda d'évacuation du hameau. Détail dans l'historique.
 - `codex-revalider-apres-refus` (63d55dcd) : lot 358, une action différée est revalidée contre un refus encore valable. Détail dans l'historique.
 - `codex-suivi-vocal` (c020b62a) : lot 335, suivi vocal. Détail dans l'historique.
@@ -34,7 +35,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-attention-conjointe` (c3db8e29) : lot 332, attention conjointe. Détail dans l'historique.
 - `codex-contact-inconnu` (cddc76e5) : lot 313, contact de position inconnue. Détail dans l'historique.
 - `codex-e4-accord-date` (30ec526a) : lot 355, E4 l'accord initial engage exactement les termes datés. Détail dans l'historique.
-- `codex-um-social-information` (c78b0e8b) : lot 354, U-M social information, l'acte d'information au formulaire. Détail dans l'historique.
 
 ## Lots non fusionnés
 

@@ -391,7 +391,7 @@ class JoueurFeuTests(unittest.TestCase):
                       {"conforme": True, "motif": ""} if a[3] == "auditer_action" else
                       {"mode": "action", "texte": "", "faits": [], "proposition": proposee})),
                   patch("builtins.input", side_effect=[
-                      "je ramasse les fagots et j'en mets une brassée dans le feu du brasero", "quitter"]),
+                      "je ramasse les fagots et j'en mets une brassée dans le feu du brasero", "tenter", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--defi", "--save", str(chemin),
                                            "--connexion", "api"]), 0)

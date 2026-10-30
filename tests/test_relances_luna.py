@@ -21,6 +21,7 @@ from donjon.couverture_action import INSTRUCTIONS as REVUE
 from donjon.improvisation import issue, proposition
 from donjon.narration import REGLE_NARRATION
 from tests.test_audits_attendu import jouer
+from tests.consentement_support import jouer as jouer_confirme
 from tests.test_parole_commune import paroles_retenues, scene
 from tests.test_repli_et_appel import NEUTRE, dialogue, mj, parole, verdicts
 
@@ -55,7 +56,7 @@ class AvisNonLuTests(unittest.TestCase):
         self.assertEqual(fonctions(appels).count("repondre_au_joueur"), 2)
         retour = mj(appels)[1]["faits"]["retour_moteur"]
         self.assertTrue(retour["obstacle"].startswith("Réexamine l'intention entière"))
-        self.assertIn("Rien n'est encore tenté", sortie)
+        self.assertIn("Faisabilité seulement : aucune action exécutée.", sortie)
         self.assertNotIn("moteur", sortie.split("Le MJ réfléchit")[-1].lower())
         self.assertEqual(reprise.data["journal"], [])
 
@@ -94,12 +95,12 @@ class NomTests(unittest.TestCase):
         # Corvus ; le moteur lit Gorm, sans relance : Corvus ne s'est pas dit Corvus.
         from tests.test_parole_corrections import ImpostureTests as Appel, audit, ligne, narration
         m = Appel().appelee()
-        reprise, sortie, appels = jouer(m, "« Je suis Gorm. »", [
+        reprise, sortie, appels = jouer_confirme(m, "« Je suis Gorm. »", [
             parole("Je suis Gorm.", ("nom", "joueur", "", ""), personnage="voix_1"),
             dialogue("La voix : « Gorm ? Ce n'est pas sa voix. »")],
             [audit(ligne("parole", "voix_1", "Gorm ? Ce n'est pas sa voix."))])
-        self.assertEqual(len(mj(appels)), 2)
-        faits = narration(appels)["faits"]["conversation_validee"]["faits"]
+        self.assertEqual(len(mj(appels)), 1)  # G16 formule directement l'issue du nom.
+        faits = appels.rapports[-1]["faits"]
         self.assertFalse(any("c'est Corvus" in f for f in faits))
         self.assertIn("Tu dis à une voix qui se dit Ilse : « Je suis Gorm. »", sortie)
         from donjon.esprits import lire
@@ -208,7 +209,7 @@ class NomsConnusTests(unittest.TestCase):
         m = banc("ressources")
         from tests.support import presentes
         presentes(m,'aubin')
-        reprise, sortie, appels = jouer(m, "Aubin, tu me dois quelque chose ?", [
+        reprise, sortie, appels = jouer_confirme(m, "Aubin, tu me dois quelque chose ?", [
             parole("Aubin, tu me dois quelque chose ?", ("reclamer", "", "", ""), personnage="aubin"),
             dialogue("Aubin : « Non, Corvus. »"),
             dialogue("Aubin : « Non. »")],

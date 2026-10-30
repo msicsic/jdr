@@ -9,7 +9,8 @@ from donjon.biens import compte
 from donjon.narration import AuditIllisible, consigner, controler
 from donjon.monde import Monde
 from donjon.rendu import decrire_comptes, regarder
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_gardes_justes import crypte
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole

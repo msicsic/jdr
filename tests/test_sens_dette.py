@@ -7,7 +7,8 @@ from donjon.biens import compte, etat_comptes_joueur, preter, rembourser
 from donjon.echanges import ENGAGEMENT_MAX, _avec_joueur
 from donjon.narration import AuditIllisible, consigner, controler, schema_audit
 from donjon.rendu import fiche
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
 from tests.test_tensions import recharger

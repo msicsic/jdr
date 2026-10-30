@@ -118,7 +118,7 @@ class InterpellationTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "Gorm, je te donne la cloche", [
             dialogue("Gorm acquiesce : la cloche est bien revenue au refuge."), remettre,
             dialogue("Le geste est accompli.")],
-            [verdicts(("mecanique", ("resultat_resolu",), ""))])
+            [verdicts(("mecanique", ("resultat_resolu",), ""))], suite=("tenter",))
         self.assertEqual(mj(appels)[1]["faits"]["retour_moteur"]["obstacle"], "Rien n'a encore été dit à Gorm.")
         self.assertNotIn("acquiesce", sortie)
         self.assertEqual(reprise.objets["cloche"]["lieu"], "marchand")

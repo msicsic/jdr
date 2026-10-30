@@ -13,7 +13,8 @@ from donjon.rendu import regarder
 from donjon.scene import scene_percue
 from donjon.spatial import porte_par
 from donjon.voix import reel
-from tests.test_audits_attendu import jouer, rapport, ligne
+from tests.test_audits_attendu import rapport, ligne
+from tests.consentement_support import jouer
 from tests.test_parole_commune import paroles_retenues
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
@@ -38,8 +39,8 @@ class AudienceTests(unittest.TestCase):
             parole(saisie, ("ressource", besoin, "", ""), personnage=personnage),
             dialogue("Ta question a été entendue.")],
             [rapport(ligne("mecanique", sources=["conversation_validee"]))])
-        validee = next(e["faits"]["conversation_validee"] for f, e in appels
-                       if f == "repondre_au_joueur" and "conversation_validee" in e["faits"])
+        # G16 formule ces réponses sans nouvel appel au fournisseur.
+        validee = appels.rapports[-1]
         self.assertEqual([reel(r, x) for x in validee["destinataires"]], destinataires)
         annonce = "Tu dis :" if personnage == "personne" else "Tu dis à "
         self.assertIn(annonce, sortie)
@@ -50,7 +51,11 @@ class AudienceTests(unittest.TestCase):
         self.assertTrue(p["auditeurs"])
         for qui in p["auditeurs"]:
             self.assertEqual(paroles_retenues(r, qui)[-1], ("joueur", destinataires, mots))
-        self.assertIn("Ta question a été entendue.", str(r.data["conversation"]))
+        reponses = emissions_pnj(r)[len(emissions_pnj(m)):]
+        self.assertTrue(reponses)
+        for reponse in reponses:
+            self.assertIn(reponse["texte"], sortie)
+            self.assertIn(reponse["texte"], str(self.verifier_recharge(r).data["conversation"]))
         for f, e in appels:
             if f == "auditer_action":
                 revue = e["plan"]["parole"]
@@ -67,7 +72,8 @@ class AudienceTests(unittest.TestCase):
         self.assertEqual(en_face(m, [reel(m, x) for x in interlocuteurs(m)]), "aubin")
         r, validee, sortie = self.verifier_parole(m, "est-ce que quelqu'un a du bois ?", "chaleur", "aubin", ["aubin"])
         self.assertEqual(emissions_joueur(r)[-1]["auditeurs"], ["aubin"])
-        self.assertEqual(validee["repondent"], ["aubin"])
+        self.assertEqual([p["locuteur"] for p in validee["emissions"]
+                          if p["statut"] == "prononcee" and p["locuteur"] != "joueur"], ["aubin"])
         self.assertIn("Tu dis à Aubin : « est-ce que quelqu'un a du bois ? »", sortie)
         for qui in ("brune", "ilse", "marchand"):
             self.assertEqual(paroles_retenues(r, qui)[-1], ("joueur", ["aubin"], "est-ce que quelqu'un a du bois ?"))
@@ -80,14 +86,16 @@ class AudienceTests(unittest.TestCase):
         self.assertEqual(reel(m, cible), "lucien")
         r, validee, _ = self.verifier_parole(m, "Avez-vous de quoi manger ?", "faim", cible, ["lucien"])
         self.assertEqual(emissions_joueur(r)[-1]["auditeurs"], ["lucien"])
-        self.assertEqual(validee["repondent"], [cible])
+        self.assertEqual([p["locuteur"] for p in validee["emissions"]
+                          if p["statut"] == "prononcee" and p["locuteur"] != "joueur"], [cible])
 
     def test_sans_interlocuteur_percu_la_cantonade_garde_ses_repondants(self):
         m = banc("soir-noir")
         self.assertFalse(interlocuteurs(m))
         r, validee, sortie = self.verifier_parole(m, "Avez-vous de quoi manger ?", "faim", "personne", [])
         self.assertEqual(emissions_joueur(r)[-1]["auditeurs"], ["ilse"])
-        self.assertEqual(validee["repondent"], ["voix_1"])
+        self.assertEqual([p["locuteur"] for p in validee["emissions"]
+                          if p["statut"] == "prononcee" and p["locuteur"] != "joueur"], ["voix_1"])
         self.assertIn("Tu dis : « Avez-vous de quoi manger ? »", sortie)
 
         # Une adresse individuelle ne devient pas publique : sans antécédent ni
@@ -114,7 +122,8 @@ class AudienceTests(unittest.TestCase):
             dialogue("Ilse a entendu ta parole.")], [rapport(ligne("mecanique", sources=["conversation_validee"]))])
         self.assertEqual(en_face(r, [reel(r, x) for x in interlocuteurs(r)]), "aubin")
         r, validee, sortie = self.verifier_parole(r, "« As-tu de quoi manger ? »", "faim", "ilse", ["ilse"])
-        self.assertEqual(validee["repondent"], ["ilse"])
+        self.assertEqual([p["locuteur"] for p in validee["emissions"]
+                          if p["statut"] == "prononcee" and p["locuteur"] != "joueur"], ["ilse"])
         self.assertIn("Tu dis à Ilse", sortie)
 
     def test_une_adresse_contraire_est_refusee_avant_la_revue(self):

@@ -244,7 +244,7 @@ class ImprovisationTests(unittest.TestCase):
 
                 with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                       patch.object(MJOpenAI, "_appeler_brut", side_effect=faux_appel),
-                      patch("builtins.input", side_effect=[phrase, "quitter"]),
+                      patch("builtins.input", side_effect=[phrase, "tenter", "quitter"]),
                       patch("sys.stdout", new_callable=io.StringIO) as output):
                     jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(chemin)])
                 reprise = Monde.charger(chemin)

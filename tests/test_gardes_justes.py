@@ -9,7 +9,8 @@ from donjon.narration import consigner, controler, orientations, schema_audit, v
 from donjon.spatial import installer, memoriser
 from donjon.scenario_crypte import nouveau_monde
 from tests.support import presentes
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
 from tests.test_sous_obstacle import scene

@@ -92,7 +92,7 @@ def reponse(rapport):
     flux = entendues(rapport)
     if not any(est_fixee(p) for p in flux) or reponses(rapport):
         return None
-    texte = ' '.join(p.get('rendu_public', p.get('rendu', '')) for p in flux)
+    texte = '\n'.join(p.get('rendu_public', p.get('rendu', '')) for p in flux)
     return {'mode': 'dialogue', 'texte': texte, 'faits': [], 'proposition': None,
             '_texte_moteur': True}
 
