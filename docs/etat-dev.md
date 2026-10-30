@@ -2,42 +2,33 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
-- **Reprise 341 avant fusion : synchronisée, validation en cours**,
-  branche `codex-mandat-joueur`, **non fusionnée**. `origin/integration`
-  **4379616** fusionnée sans rebase par **417e67f** (parents `a54b3f2`,
-  `4379616`) ; conflit documentaire seul, aucun changement de code du jeu.
-  Ancienne Luna : deux saisies correctement typées `mandat` ; déplacement
-  rejeté avant parole pour lieu inconnu, information prononcée et refusée
-  par le jugement `impossible` (abus d'honnêteté aussi enregistré).
-  Script enrichi d'une information de position puis d'une charge réalisable
-  sur le fanal ; vrai jet, accord et recharge vérifiés sans jet forcé.
-  **174/174 tests verts, 18 fichiers, 214,545 s**, dont ascendant et socle.
-  Première reprise Luna : cinq tours/quatre MJ/douze appels, sans erreur
-  technique mais **échec sémantique** : mandat/informer doublé à tort d'une
-  affirmation autonome, puis information préalable neutralisée en `propos`.
-  Le mandat suivant est bien typé et prononcé mais refusé `impossible` ;
-  aucun accord. Charges/jugements relus des sauvegardes conservés dans le fil.
-  Fin technique verte conservée ; `validation/analyse-luna-posthoc.json`
-  rouge. Définitions communes et portée du fait imbriqué corrigées,
-  couverture stricte conservée et testée sur deux cas rechargés.
-  Correction `b76dd31` : **175/175 tests verts, 18 fichiers, 232,175 s**.
-  Luna : cinq tours/quatre MJ/quatorze appels ; les trois mandats et
-  l'affirmation préalable sont correctement typés, cartes cohérentes.
-  Mais le mandat positif n'atteint pas le jugement : faux refus de fidélité
-  entre le nom public du lieu et son identifiant, faute de référence nommée
-  dans le fait imbriqué. Aucune acceptation ; repli en parole libre distinct
-  d'un refus PNJ. Analyse `validation-portee/analyse-admission-posthoc.json`
-  rouge ; bilan de types initial vert conservé.
-  Projection commune de revue corrigée récursivement sur le registre des
-  références ; aucune exception de lieu ni nouvelle consigne. Deux témoins
-  rouges puis verts (`informer` et `amener`), monde/texte rechargés.
-  Nouvelle validation : vingt fichiers ciblés, dont désignations et fidélité
-  comptable, puis une passe Luna. Le cas réalisable doit atteindre le jet
-  commun (`accepte` ou `refus`), en plus du typage et de la couverture.
-  Aucune suite complète ; nuits passives initiales non rejouées pour ces
-  seules définitions et données de revue du joueur. Bruts
-  `C:/Users/msics/donjon/artifacts/mandat-joueur-341/reprise-integration/` ;
-  fin attendue `validation-references/fin.json`.
+- **Reprise 341 avant fusion terminée**, branche `codex-mandat-joueur`,
+  **non fusionnée**. `origin/integration 4379616` fusionnée sans rebase par
+  **417e67f**, parents `a54b3f2` et `4379616` ; conflit documentaire seul,
+  invariants 340/341 conservés. Définitions communes des actes de parole
+  corrigées (acte immédiat/contenu confié, information visible quand même
+  typée), couverture stricte conservée. Références de revue nommées
+  récursivement à toute profondeur ; deux témoins rouges puis verts,
+  `informer/amener`, monde et mots rechargés. Aucun cas propre au scénario.
+  **185/185 tests, vingt fichiers, 248,170 s**, zéro échec/erreur/saut ;
+  ascendant 340 **13/13**, socle **6/6**, douze méthodes joueur.
+  **Dernière Luna : cinq tours/quatre MJ/dix appels, trois mandats typés,
+  un accord réellement accepté**. Déplacement vers lieu inconnu rejeté
+  avant parole ; brasero refusé par le jugement `impossible` ; information
+  préalable correctement typée `affirmation` ; fanal accepté `adhesion`,
+  total 6 / DD 4,033333. Parent j2 → Aubin/a1, attribution active et mots
+  moteur identiques après recharge et commande fiche. Aucune erreur
+  technique, mention sans fondement ou erreur de recharge. Contrôle des types,
+  opérations et jugements sauvegardés, pas seulement du succès technique.
+  Anciennes reprises 174/175 tests et analyses sémantiques rouges conservées ;
+  aucun accord revendiqué pour leurs replis libres. Huit paires initiales
+  non rejouées pour les seules définitions/données de revue du joueur.
+  Code validé **1a52135**, sources/tests encore identiques à la clôture.
+  `validation-references/fin.json ok=true`, codes 0, 317,267 s ; deux
+  travailleurs réduits au plus, aucun calcul actif, ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/mandat-joueur-341/reprise-integration/`,
+  `analyse-cloture.json`, `fin-cloture.json`. Branche poussée.
+  [Rapport 341](taches/rapport-codex-341-mandat-joueur.md).
 
 - **Livraison initiale 341 / A5.9 terminée**, branche
   `codex-mandat-joueur`, **non fusionnée**, base fournie `fff9aab`.
