@@ -358,8 +358,8 @@ def decrire_comptes(monde):
     """Ce qu'on doit au joueur, ce qu'il a prêté et ce qu'on lui a prêté (``biens.comptes_joueur``)."""
     from .biens import comptes_joueur
     lignes = comptes_joueur(monde)
-    from .agendas import promesses_visibles
-    lignes += promesses_visibles(monde) + monde.data.get("journal_promesses", [])[-10:]
+    from .agendas import promesses_visibles, mandats_visibles
+    lignes += promesses_visibles(monde) + monde.data.get("journal_promesses", [])[-10:] + mandats_visibles(monde)
     return ("\nComptes :\n  " + "\n  ".join(lignes)) if lignes else ""
 
 

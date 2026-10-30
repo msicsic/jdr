@@ -6,6 +6,65 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **Reprise 341 avant fusion terminée**, branche `codex-mandat-joueur`,
+  fusionnée. `origin/integration 4379616` fusionnée sans rebase par
+  **417e67f**, parents `a54b3f2` et `4379616` ; conflit documentaire seul,
+  invariants 340/341 conservés. Définitions communes des actes de parole
+  corrigées (acte immédiat/contenu confié, information visible quand même
+  typée), couverture stricte conservée. Références de revue nommées
+  récursivement à toute profondeur ; deux témoins rouges puis verts,
+  `informer/amener`, monde et mots rechargés. Aucun cas propre au scénario.
+  **185/185 tests, vingt fichiers, 248,170 s**, zéro échec/erreur/saut ;
+  ascendant 340 **13/13**, socle **6/6**, douze méthodes joueur.
+  **Dernière Luna : cinq tours/quatre MJ/dix appels, trois mandats typés,
+  un accord réellement accepté**. Déplacement vers lieu inconnu rejeté
+  avant parole ; brasero refusé par le jugement `impossible` ; information
+  préalable correctement typée `affirmation` ; fanal accepté `adhesion`,
+  total 6 / DD 4,033333. Parent j2 → Aubin/a1, attribution active et mots
+  moteur identiques après recharge et commande fiche. Aucune erreur
+  technique, mention sans fondement ou erreur de recharge. Contrôle des types,
+  opérations et jugements sauvegardés, pas seulement du succès technique.
+  Anciennes reprises 174/175 tests et analyses sémantiques rouges conservées ;
+  aucun accord revendiqué pour leurs replis libres. Huit paires initiales
+  non rejouées pour les seules définitions/données de revue du joueur.
+  Code validé **1a52135**, sources/tests encore identiques à la clôture.
+  `validation-references/fin.json ok=true`, codes 0, 317,267 s ; deux
+  travailleurs réduits au plus, aucun calcul actif, ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/mandat-joueur-341/reprise-integration/`,
+  `analyse-cloture.json`, `fin-cloture.json`. Branche poussée.
+  [Rapport 341](taches/rapport-codex-341-mandat-joueur.md).
+- **Livraison initiale 341 / A5.9 terminée**, branche
+  `codex-mandat-joueur`, **non fusionnée**, base fournie `fff9aab`.
+  Dépendance 340 intégrée par `82f5884`, conflit documentaire seul ;
+  `jeu.py` inchangé. Paroles `mandat`, `reponse_mandat`, `bilan_mandat` :
+  jugement, filiation, compte rendu, attributions et retrait communs.
+  Offre reçue et accord du joueur distincts ; aucun geste forcé.
+  Réponses moteur admises G15/G17, actes dans « Compris », fiche/comptes
+  persistants ; aucune publication des agendas privés des interlocuteurs.
+  **169/169 tests consolidés verts, 17 fichiers**, aucune erreur ni saut,
+  dont neuf méthodes du lot. Première passe : 168/169, 227,198 s ; archive
+  86/87 au schéma ancien adaptée au rejeu, mots/contenus/assertions conservés.
+  Seul fichier repris : 11/11, 51,369 s. Code du jeu inchangé ; acquis des
+  seize autres fichiers réutilisés après contrôle des empreintes, certificat
+  `tests-valides-final.json`. Bilan brut initial en échec conservé.
+  **8/8 empreintes identiques**, Relais/hameau 2 h × quatre graines,
+  chronique/mesures/état complet ; seize nuits sans plantage. Usurpations et
+  avis non justifiés 0 → 0, avis à expliquer 5 → 5, aucun mandat naturel.
+  Huit références exactes absentes calculées une fois puis rangées au cache.
+  **Luna une passe**, trois tours/deux MJ/quatre appels, sans erreur technique
+  ni mention sans fondement. Aucun mandat accepté : destination inconnue
+  refusée avant parole, puis information jugée irréalisable par Aubin ;
+  acceptations/exécution/compte rendu prouvés par les tests avec MJ simulé.
+  Suite détachée 249,276 s, deux travailleurs réduits au plus ;
+  `validation-suite/fin.json ok=true`, codes 0, sources/tests inchangés,
+  aucun calcul actif. Branche poussée, ni suite complète ni fusion.
+  Bruts : `C:/Users/msics/donjon/artifacts/mandat-joueur-341/`,
+  `analyse-cloture.json`, `fin-cloture.json`.
+  Choix autonome PNJ inchangé ; sans date convenue
+  ni durée calculable, pas d'échéance inventée.
+  [Rapport 341](taches/rapport-codex-341-mandat-joueur.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `agendas.py`, fusionnés sans conflit textuel. Après fusion, les saisies simulées des tests de mandat et d'avis passent « tenter » après l'aperçu de consentement du lot 325 (acte lourd).
+
 ## Ancien contenu d'etat-dev.md (jusqu'au 2026-10-30)
 
 # État du développement

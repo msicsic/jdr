@@ -1227,10 +1227,15 @@ def _confier_mandat(monde, demandeur, auditeur, mandat):
     from .relations import autorite_mandat
     if getattr(monde, "_evaluation_agendas", None) is not None:
         raise ValueError("Publier le jugement après le devis")
+    if auditeur == 'joueur':
+        offre = agendas.proposer_mandat_joueur(monde, demandeur, mandat)
+        return ('accepte' if offre['statut'] == 'accepte' else
+                'refus' if offre['statut'] == 'refuse' else 'attente') if offre else 'qui_va_la'
     parent, sorte, parametres = mandat["parent"], mandat["sorte"], mandat["parametres"]
     # Valider filiation et contenu avant accueil, jet ou écriture sur le monde réel.
     copie = monde.copier()
-    candidat = agendas.confier(copie, demandeur, parent, auditeur, sorte, parametres, accepte=True)
+    candidat = agendas.confier(copie, demandeur, parent, auditeur, sorte, parametres, accepte=True,
+                              echeance=mandat.get('echeance'))
     existant = next((a for a in agendas.projets(monde, auditeur) if a["id"] == candidat["id"]
                      and a["origine"] == candidat["origine"]), None)
     jugement = {"qui": auditeur, "minute": monde.data["minutes"], "sorte": sorte,
@@ -1260,7 +1265,8 @@ def _confier_mandat(monde, demandeur, auditeur, mandat):
     jugement.setdefault("raison", issue)
     agendas.retenir_jugement(monde, demandeur, parent, jugement)
     if issue == "accepte":
-        echeance = agendas.echeance_observee(monde, demandeur, parent, auditeur, sorte, parametres)
+        echeance = mandat['echeance'] if 'echeance' in mandat else agendas.echeance_observee(
+            monde, demandeur, parent, auditeur, sorte, parametres)
         agendas.confier(monde, demandeur, parent, auditeur, sorte, parametres,
                         accepte=True, echeance=echeance)
     return issue
@@ -1488,6 +1494,21 @@ def _avec_joueur(monde, id, etape, lignes):
     from .spatial import porte_par
     from .voix import personne_pour_joueur
     op = etape["operation"]
+    if op == 'confier' and etape.get('contenu', {}).get('mandat'):
+        if monde.joueur['salle'] != monde.objets[id]['lieu'] or not se_parler(monde, id, 'joueur'):
+            return False
+        mandat = etape['contenu']['mandat']
+        issue = confier(monde, id, 'joueur', mandat=mandat)
+        from .social import faire_entendre
+        texte = f"{_qui(monde, id)} te propose une charge : " + agendas.phrase_charge(
+            monde, mandat['sorte'], mandat['parametres']) + (
+                f", avant la minute {mandat['echeance']}" if 'echeance' in mandat else '') + '. Elle attend ton accord.'
+        _chroniquer(monde, id, texte, 'social')
+        faire_entendre(monde, id, 'joueur', texte, mandat['parametres']['qui'], lignes,
+                       acte='offre_mandat')
+        from .deliberation import retenir_refus
+        retenir_refus(monde, id, 'joueur', 'confier', issue, objet=etape['contenu']['objet'], mandat=mandat)
+        return issue == 'accepte'
     if op == "dire" and "annulation" in etape.get("contenu", {}):
         return annoncer_abandon(monde, id, "joueur", etape["contenu"]["annulation"], lignes)
     if op == 'proposer':

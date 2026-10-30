@@ -78,6 +78,14 @@ def contenu(monde, c):
     from .propositions import en_mots
     from .paroles import RESSOURCES_DEMANDEES, resoudre
     t = c["type"]
+    if t == 'mandat':
+        from .agendas import phrase_charge
+        from .paroles import _typer
+        return 'confier la charge de ' + phrase_charge(monde, c['sorte'], _typer(monde, c)['parametres'])
+    if t == 'reponse_mandat':
+        return ('accepter' if c['accepter'] else 'refuser') + ' le mandat ' + c['offre']
+    if t == 'bilan_mandat':
+        return 'déclarer ' + c['issue'] + ' pour le mandat ' + c['agenda']
     if t == "proposition":
         from .propositions import cites_terme
         def terme(t):

@@ -24,6 +24,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - **Abandonnés, branches gardées sur origin** (à rediscuter avec l'utilisateur) : 33, 36, 117 b, 117 c, 162, 166,
   168, 170, 176, 198, 206, 235, diagnostics/coût 62, 63, 66, 75, 85 b, 118, 119, ancien C1.
 
+## Dernières fusions
+
+- `codex-mandat-joueur` (5a3baf0) : lot 341, A5.9 le joueur mandant et mandaté. Détail dans l'historique.
+
 ## Lots non fusionnés
 
 Lots en cours : 341 (mandat du joueur), 342 (attribution du groupe 1), 344 (U-M corps), 345 (G16 information
