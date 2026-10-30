@@ -44,8 +44,9 @@ isolée (`attribution-base-exacte.json`, `attribution-synthese.json`) : l'assert
 anonymes du parcours Relais comptent onze lignes de plus en bloc. Cette limite
 antérieure n'est pas corrigée en S1d. Le test renforcé garde les égalités intégrales
 d'état, ordre JSON, rendu, scène et paroles sauvegardées, sans revendiquer l'égalité
-de ces notifications. Les deux fichiers modifiés sont en nouvelle vérification ;
-les treize autres ne sont pas relancés.
+de ces notifications. Les deux fichiers modifiés repassent : **34/34 tests verts**,
+53,2 s. Bilan des quinze fichiers : **191/192 verts**, seul rouge hérité de Gaspard,
+sans erreur ni test ignoré. Les treize autres fichiers ne sont pas relancés.
 
 **Empreintes et livraison provisoire.** Calcul détaché, séquentiel après les tests :
 2 h × quatre graines 1985/7/42/2024 × Relais/mine/auberge/crue, référence exacte

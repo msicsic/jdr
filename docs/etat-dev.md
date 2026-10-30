@@ -46,8 +46,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1d-promesses` — lot 384, base `integration 31f80725`, code `37069459`.
   Promesses, prêts et travaux payés : requêtes nommées et jugement réentrant dans `memoire` ;
   fenêtre 40, ordre et engagements inchangés. Inventaire AST : 78 → 69, sans exemption nouvelle.
-  Tests : 192, trois rouges initiaux ; fixture corrigée, deux autres attribués à la base exacte.
-  Relance de deux fichiers puis empreintes 2 h × quatre graines × quatre scénarios détachées.
+  Tests : 191/192 verts après relance 34/34 ; seul rouge hérité de Gaspard attribué à la base exacte.
+  Empreintes 2 h × quatre graines × quatre scénarios en cours, détachées après les tests corrigés.
   Fin : `C:/Users/msics/donjon/artifacts/s1d-384/fin-empreintes.json` ; lot non clos avant lecture.
   Limites : autres lecteurs et oubli hors lot ; [rapport 384](taches/rapport-codex-384-s1d-promesses.md).
 
