@@ -63,6 +63,7 @@ def pnjs(monde):
 
 
 CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
+          "regards_suivis": dict,  # signe -> [épisode physique suivi, direction perçue], sans délai
           "recours_propositions": list, "recours_services": list, "recours_intermediaires": list, "service_en_cours": lambda: None,
           "demande_refusee": lambda: None,
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, **agendas.CHAMPS,
@@ -421,6 +422,10 @@ def verifier(monde):
         assert e["en_vue"] is None or (isinstance(e["en_vue"], list) and e["en_vue"] == sorted(set(e["en_vue"]))
                                        and all(isinstance(x, str) for x in e["en_vue"])), "Personnages en vue invalides"
         b = e["balayage"]
+        from .spatial import VECTEURS
+        assert all(isinstance(k, str) and isinstance(v, list) and len(v) == 2
+                   and type(v[0]) is int and v[0] >= 1 and v[1] in VECTEURS
+                   for k, v in e["regards_suivis"].items()), "Regards suivis invalides"
         assert b is None or (isinstance(b, dict) and set(b) == {"salle", "case", "instant"}
                              and b["salle"] in monde.data["salles"] and isinstance(b["case"], list)
                              and len(b["case"]) == 2 and all(type(v) is int for v in b["case"])

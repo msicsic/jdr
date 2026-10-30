@@ -23,6 +23,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-attention-conjointe` (c3db8e29) : lot 332, attention conjointe. Détail dans l'historique.
 - `codex-contact-inconnu` (cddc76e5) : lot 313, contact de position inconnue. Détail dans l'historique.
 - `codex-um-passage` (a8bc0fce) : lot 349, U-M passage, franchissements qualifiés au menu. Détail dans l'historique.
 - `codex-g18-avis` (d162988a) : lot 351, G18 l'avis formulé par le moteur, parole sans vérité. Détail dans l'historique.
@@ -34,7 +35,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-a1-provenance` (29079a6) : lot 346, A1 projection publique avec provenance. Détail dans l'historique.
 - `codex-mandat-joueur` (5a3baf0) : lot 341, A5.9 le joueur mandant et mandaté. Détail dans l'historique.
 - `codex-g7-deplacements` (a6b4444) : lot 343, G7 déplacements résolus rendus par le moteur. Détail dans l'historique.
-- Correctif hors lot (intégration) : la fiche « Compris » d'une demande de passage nomme l'interlocuteur (`comprehension.contenu`) ; tests d'actes lourds écrits avant le lot 325 passent « tenter ».
 
 ## Lots non fusionnés
 

@@ -62,9 +62,19 @@ class MineTests(unittest.TestCase):
         self.assertTrue(m.objets["lampe_remy"]["allume"])
         self.assertEqual(m.objets["lampe_remy"]["lieu"], "remy")
         self.assertIn("Rémy, jeune mineur allume la lampe de Rémy.", chronique(m))
-        # Au baraquement obscur, la lampe est gardée. Le parcours 202/228
-        # mène ensuite Rémy au bureau éclairé : il peut alors l'économiser.
-        m, _ = vivre(m, 10)
+        # L'attention conjointe peut le laisser au baraquement : aller au
+        # bureau en dix minutes n'est pas le contrat de gestion de la lampe.
+        # Préparer explicitement son second stimulus : une source connue de
+        # niveau 2, au bureau, puis laisser le moteur décider de l'extinction.
+        # La lampe d'auteur de la mine vaut 1 : elle ne justifiait déjà pas
+        # l'ancienne assertion finale de niveau 2 sur l'intégration seule.
+        from tests.test_tensions import placer
+        from tests.support import regarder as orienter
+        m.objets['chandelle']['luminosite'] = 2
+        placer(m, 'remy', 'bureau', (2, 1))
+        orienter(m, 'remy', 'chandelle')
+        percevoir_tous(m)
+        m, _ = vivre(m, 1)
         self.assertFalse(m.objets["lampe_remy"]["allume"])
         self.assertEqual(m.objets['remy']['lieu'], 'bureau')
         self.assertTrue(lire(m, 'remy')['croyances']['chandelle']['etat']['valeur']['allume'])
