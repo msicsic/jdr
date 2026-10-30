@@ -2,7 +2,7 @@
 
 Branche `codex-refus-leve-contrepartie`, issue d'`integration 60f857c5`,
 travail commencé sur `dea991a5` (briefs ajoutés). PC fixe `msi-desktop`.
-**Code livré ; validation voisine et empreintes en cours, lot non encore validé.**
+**Lot terminé, non fusionné ; code validé `9c03d7ac`, branche poussée. Aucun calcul actif.**
 
 **Invariant et cause.** Le lot 358 faisait passer les recours conservés par
 `deliberation.refus_geste`, qui consultait le refus ordinaire sans reconnaître
@@ -28,27 +28,45 @@ Le prêt de clé est retrouvé après service, recharge et laps découpé ; la l
 est vendue à Bram pour **17 pièces**, avec contrôle des finances, de la capacité
 compensée, de la propriété et du rendu rechargé. Les **8 tests du 358 passent**,
 dont la capture réelle du mandat refusé à Maël, sans réexécution ni effet.
-Les bruts d'un premier lanceur à import erroné et d'une première attente de
-test trop stricte restent conservés : payer après un refus gratuit d'humeur
-peut ouvrir un nouveau jugement, même sous le prix de la contre-offre ; le
-contrôle de répétition porte donc sur la même demande gratuite.
+Les essais préliminaires restent dans les bruts. Le nouveau test final contrôle
+la répétition de la même demande gratuite : payer après un refus d'humeur
+peut ouvrir un autre jugement, même sous le prix de la contre-offre.
 
-**Preuves ajoutées et validation restante.** Trois tests couvrent deux biens
+**Preuves ajoutées et validation finale.** Trois tests couvrent deux biens
 achetés, la demande gratuite toujours bloquée, la prestation enregistrée
 distincte d'une simple faim apaisée, l'enquête distincte et une seconde clé
 prêtée après service dans un laps de cinq minutes, en bloc ou par minutes
 rechargées. Ils comparent état des PNJ, finances, permissions, chronique et
 vues publiques (regard, scène, écoute), ainsi que la persistance complète.
-La passe finale porte sur **8 fichiers** : ces preuves, 358, contre-offres,
+**57/57 tests, 207,968 s, zéro échec, erreur ou saut**, sur **8 fichiers** : ces preuves, 358, contre-offres,
 vérification eau, refus retenus, recours, compensation d'outils et contreparties.
-Elle est suivie des empreintes **2 h, 4 graines, Relais/mine/auberge/crue**.
-Référence `origin/main 0bad2272` (le `main` local est ancien), cache partagé
-réutilisé ; les écarts à cette référence antérieure aux autres lots de la base
-ne suffiront pas à attribuer une divergence au 366. Ni Luna ni suite complète.
+Les empreintes **2 h, 4 graines, Relais/mine/auberge/crue** sont achevées :
+**16 nuits de branche**, seize références `origin/main 0bad2272` toutes relues
+du cache, **zéro plantage et zéro usurpation dans les deux versions**.
 
-**Calcul détaché.** Deux travailleurs réduits au plus, tests puis empreintes,
-empreintes SHA-256 des sources enregistrées par le lanceur. Bruts et scripts :
-`C:/Users/msics/donjon/artifacts/refus-leve-366/` ; résultats attendus
-`tests-final.json`, `empreintes.json`, puis **`fin-validation.json` écrit en dernier**.
-La livraison ne déclare pas encore les voisins ou les empreintes validés ;
-la lecture de ces résultats et l'explication des écarts restent nécessaires.
+| Scénario | Retours non justifiés | À expliquer | Dérives ouvertes |
+|---|---:|---:|---:|
+| Relais | 0 → 0 | 1 → 0 | 24 → 33 |
+| Mine | 0 → 0 | 4 → 4 | 48 → 57 |
+| Auberge | 0 → 0 | 0 → 0 | 9 → 10 |
+| Crue | 0 → 0 | 5 → 5 | 33 → 66 |
+
+**Écarts et limites.** Aucun des seize états finaux n'est identique à `main`.
+La première divergence (Relais 1985, minute 0 : chronique, mesures, état)
+est déjà décrite dans le [rapport 360](rapport-codex-360-regressions-337.md),
+fusionné dans la base : la confidence initiale d'Aubin sur la torche est absente,
+selon le contrat des nouvelles initiales. La comparaison cumule les lots depuis
+`main` ; elle n'attribue pas tous les écarts au 366, ne prouve pas une identité des
+nuits ni l'absence générale de boucles. Une répétition est signalée sur la branche :
+Aubin appelle huit fois Brune, crue 42 ; les appels de cette nuit étaient déjà une
+limite du [358](rapport-codex-358-revalider-apres-refus.md). Les dérives restent
+ouvertes, sans retours classés non justifiés. Pas de conclusion de performance
+contre les temps mis en cache, ni Luna ni suite complète.
+
+**Bruts et clôture.** `C:/Users/msics/donjon/artifacts/refus-leve-366/` :
+`tests-final.json`, `empreintes.json`, `fin-validation.json`, `conclusion.json`
+et lanceurs conservés. Exécution détachée **381,652 s**, deux travailleurs
+réduits au plus. `fin-validation.json ok=false` est conservé : tests **0**,
+empreintes **1** pour divergence, sans erreur de calcul. La synthèse explique
+ce résultat ; les SHA-256 confirment le code et les tests inchangés depuis
+validation. Aucun calcul restant ; clôture documentaire seule.
