@@ -43,7 +43,7 @@ Deux processus au plus, priorité réduite. Les empreintes précèdent la fusion
 
 **Bruts et limites.** `C:/Users/msics/donjon/artifacts/s1a-378/` :
 `empreintes-main.json`, `empreintes-base.json`, `tests.json`,
-`tests-socle-corrige.json`, `tests-apres-integration.json` et journaux.
+`tests-socle-corrige.json`, `tests-apres-integration.json`, `conclusion.json` et journaux.
 Le contrôle AST suit les alias locaux explicites, pas tous les flux interprocéduraux
 possibles de Python. Lectures mutables et modifications du contenu des épisodes restent
 pour S1b–e ; aucune API du nouveau module ne renvoie le stock. L'oubli âge/importance reste
