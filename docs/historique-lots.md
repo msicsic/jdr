@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-ut-social-information` — lot 369, base d'intégration `e0826efc`, non fusionné.
+  Console et TUI ouvrent `information` sur les mêmes choix publics et le même descripteur U-D que le web.
+  Parole typée, réponse G16, confirmation et révalidation existantes ; aucun changement du catalogue ou de `paroles.py`.
+  79 tests distincts verts (TUI/cases inchangés inclus) ; 2/2 repris en 114,198 s, production inchangée ; zéro appel modèle.
+  32 parcours : 16–29 touches (17–30 avec F7 en TUI) ; `fin-cloture.json` vert, branche poussée, aucun calcul actif.
+  Limite conservée : demander « où est » un objet reste indisponible ; ni Luna, banc ni suite complète.
+  [Rapport 369](taches/rapport-codex-369-ut-social-information.md), bruts `artifacts/ut-social-information-369/` du dépôt principal.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 79 tests validés ; parité console/TUI/web après recharge, zéro appel au modèle.
+
 - `codex-soupcon-deduit` — lot 372 / A6, base `origin/integration d8567324`.
   Candidats pondérés sur présences perçues, guet lu et prises connues ; égalité sans accusation.
   Disparition propre : projet de récupération sur soupçon, enquête commune sans portage inventé ;
