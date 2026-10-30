@@ -40,13 +40,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - **351 — `codex-g18-avis`**, base intégration `59e65f81` : avis formulés et scellés par le moteur,
   sans rédaction/audit de leurs répliques ; adoption, dispute et consentement inchangés.
-  7 nouveaux tests verts ; G16/disputes 13 verts ; avis joueur/émissions 23 verts.
-  Luna une passe : 3/3 avis typés, aperçus U-C ; `echanges` garde un refus de fidélité et trois noms non reliés.
-  Voisins, confirmation hors réseau des archives Luna et empreintes 2 h crue/Relais : calcul en cours,
-  fin attendue `C:/Users/msics/donjon/artifacts/g18-351/fin-cloture.json` ; résultat à relire avant fusion.
+  **89/89 tests, 12 fichiers** ; empreintes 2 h crue/Relais × quatre graines **8/8 identiques**.
+  Luna une passe : 3/3 avis typés, confirmés hors réseau avec recharge identique, dont une dispute.
+  Limites : français libre ; `echanges` garde un refus de fidélité et trois noms non reliés.
+  Code `b0c0413c`, branche poussée ; `artifacts/g18-351/fin-cloture.json` **ok=true**, aucun calcul actif.
   [Rapport](taches/rapport-codex-351-g18-avis.md). Recouvrements : paroles/émissions/formateur commun ; fichiers 349/350 intacts.
 
-Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 350 (E2 réalisation datée), 351 (G18 avis).
+Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 350 (E2 réalisation datée).
 Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
 antérieurs sont connus (`test_protection` Gorm au beffroi, trois faisabilités de `test_luna_noms`, persuasion
 Hugues/Anselme) ; un petit lot les traitera avant la vérification d'intégration.

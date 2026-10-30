@@ -1,7 +1,8 @@
 # Lot 351 — G18, avis parlés
 
-Branche `codex-g18-avis`, base `integration` **`59e65f81`**. Vérification ciblée
-en cours ; aucune suite complète ni campagne longue lancée.
+Branche `codex-g18-avis`, **terminée, non fusionnée**, base `integration`
+**`59e65f81`**, code validé **`b0c0413c`**. Aucun calcul actif ; aucune suite
+complète ni campagne longue lancée.
 
 **Invariant.** Le moteur formule la réception d'un avis depuis son issue typée :
 « Je retiens ton avis » ou « Je doute de ton avis », suivi du sujet annoncé
@@ -21,25 +22,36 @@ une seconde autorisation de réponse libre sur ce même contenu. Les autres
 contenus, notamment les propos libres résiduels, gardent leurs contrôles.
 Le consentement U-C et la revue de fidélité de la saisie sont conservés.
 
-**Tests.** Sept nouveaux tests verts (161,147 s) : avis positif et négatif,
+**Tests : 89/89 verts, 12 fichiers distincts.** Sept nouveaux tests (161,147 s) : avis positif et négatif,
 deux lieux, doute sans adoption, avis contraire et dispute, PNJ entendus,
 composition avec information, propos résiduel audité, omission/altération/
 double publication refusées. Les parcours console vérifient monde, sources,
 mots entendus, conversation, scène et rendu après recharge, sans appel de
 rédaction ou d'audit de ces répliques. G16 (7) et disputes (6) verts sur
-la première passe. Avis joueur (12) et émissions (11) verts après portage des
-harnais ; tests voisins en cours. Empreintes prévues : 2 h crue/Relais, quatre
-graines, contre la base exacte `59e65f81` (cache réutilisé), pour isoler G18
-des changements d'intégration déjà hérités depuis `main`.
+la première passe, résultats conservés. Vérification finale : **69/69 tests,
+neuf fichiers, 629,681 s**, dont avis joueur, émissions, contenus de parole,
+avis réels/redits/menace, compréhension, consentement et comptes parlés.
+Zéro échec, erreur ou ignoré ; deux travailleurs réduits au plus.
 Les tests d'avis anciens confirment désormais l'aperçu par « tenter » ; les
 oracles G15 lisent les préparations réelles au lieu d'attendre l'appel narratif
 retiré. Aucun oracle mécanique n'est retiré.
+
+**Empreintes : 8/8 paires identiques**, chronique, mesures et état final
+complet, sans plantage : 2 h crue/Relais × graines 1985, 7, 42, 2024. Référence
+exacte `59e65f81`, pour isoler G18 des changements d'intégration hérités depuis
+`main` ; huit références manquantes calculées une fois et rangées en cache.
+Avis non justifiés : zéro ; sept avis à expliquer inchangés, sans prétendre
+les certifier bénins. Aucune comparaison de vitesse revendiquée.
 
 **Luna, une seule passe.** `avis-joueur` : trois avis typés sur trois, six
 appels (compilation et fidélité), zéro rédaction/audit narratif, repli, refus
 ou erreur de recharge. Le script original s'arrête aux aperçus U-C ; ses
 réponses archivées sont confirmées hors réseau sur copies indépendantes du
-même état initial, sans deuxième passe Luna (résultat à compléter).
+même état initial, sans deuxième passe Luna : **3/3 exécutées**, dont une
+dispute et une adresse à tous. Chaque rejeu ne consomme que ses deux réponses
+archivées (compilation/fidélité), sans nouvel appel réseau ni audit narratif.
+Mots publiés présents dans les émissions ; crue inchangée, monde, scène et
+rendu identiques après recharge (`rejeu-luna.json`).
 `echanges` : dix appels, zéro repli ou erreur technique/recharge ; un refus
 de fidélité sur une parole mixte et trois noms non reliés refusés localement.
 Ce script ne démontre pas l'exécution d'un avis G18. Aucun script de dispute
@@ -51,7 +63,8 @@ toute la compréhension du français libre ; prédicat d'avis existant limité
 de `page.html`, `agendas.py`, `echanges.py` ou `biens.py`. Fichiers communs
 à surveiller à la fusion : `paroles.py`, `emissions.py`, `repliques_moteur.py`
 et `etat-dev.md`. Bruts dans `C:/Users/msics/donjon/artifacts/g18-351/`.
-Vérification restante détachée, deux travailleurs réduits au plus, fichier
-de fin écrit en dernier : **`fin-cloture.json`**, à relire avant fusion.
-Le superviseur doit reprendre ce lot pour intégrer ses résultats et clôturer
-ce rapport ; la livraison n'est pas encore déclarée validée.
+Bilan final **`fin-cloture.json`, `ok=true`**, terminé le 2026-10-30 à
+03:22:29 +01:00 ; `voisins.json`, `nouveaux.json`, `premiers.json`,
+`empreintes.json` et `rejeu-luna.json` conservent les preuves. Les échecs du
+premier passage des anciens harnais restent archivés, corrigés et rejoués.
+Code et clôture documentaire poussés vers origin ; validation du lot achevée.
