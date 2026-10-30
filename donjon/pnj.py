@@ -2359,7 +2359,8 @@ def _avancer(monde, minutes, lignes, dixiemes):
             secours_duree = en_cours["fin"] - t if en_cours else secours(monde, id, lignes)
             if secours_duree is not None:
                 duree = secours_duree
-            elif (not intention or intention["attente"] and temoins_crus(monde, id)) and bavarder(monde, id, lignes):
+            elif ((not intention or intention["attente"] and temoins_crus(monde, id))
+                  and not regard_a_suivre(monde, id) and bavarder(monde, id, lignes)):
                 duree = DUREES["dire"] if en_cases else _jusqu_a_la_minute(t)
             elif intention or regard_a_suivre(monde, id):
                 gestes = []
