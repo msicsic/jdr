@@ -44,7 +44,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
-(U-M social comptes), 381 (A2 passage), 385 (S1e vues des épisodes). Questions de S0 en arbitrage (1 à 4 tranchées, voir décisions).
+(U-M social comptes), 381 (A2 passage), 385 (S1e vues des épisodes). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
@@ -76,7 +76,9 @@ Leurs entrées arrivent ici à leur livraison.
   valider réparation, trahison et repentir ; (3) compenser un tort : seul un acte rattaché au tort identifié
   (restitution, réparation, équivalent) le compense ; un service sans lien ajoute du crédit (affection, dette morale)
   sans effacer le tort ; des actes répétés peuvent réviser un trait cru ; les créances matérielles suivent leurs actes ; (4) deux ouï-dire incompatibles de même force : incertitude gardée
-  et racontable, vérification ou question à un tiers si l'action l'exige (jets actuels en S1, règle en lot S2).
+  et racontable, vérification ou question à un tiers si l'action l'exige (jets actuels en S1, règle en lot S2) ; (5) le grief durable alimente la bande de refus, la colère aiguë
+  module l'expression et l'urgence sans décider seule d'un refus ; hystérésis et signatures gardées, mesure au lot de
+  séparation colère/grief de S2. Ces décisions entrent dans les briefs de bascule de S2.
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 
