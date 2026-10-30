@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **362 — `codex-rouges-restants`, base `integration 52b2a27c`, terminé, poussé, fusionné.**
+Seize rouges attribués ; huit méthodes corrigées/portées, huit réservées (358 ×2, 306 ×2, 313, 332, 333, 330).
+Connaissance publique sans multiplication d'identités homonymes, noms uniques historiques conservés ; préfixe KV réordonné.
+Archives 341, réponse G16, nouvel aperçu U-C et catalogue 353 portés ; essai lampe retiré, fichier identique à la base.
+**202 tests / 19 fichiers consolidés verts**, reprise 55/55 ; **8/8 paires d'empreintes 2 h Relais/mine identiques**.
+Anciens non-reproduits rejoués par fichiers entiers et basculés sur 313/332/333 ; témoins d'identité rouges puis verts sur deux scènes.
+Limites et suites précises dans le [rapport et l'annexe](taches/rapport-codex-362-rouges-restants.md) ; tests 360 intacts, ni suite complète ni Luna.
+Bruts `artifacts/rouges-restants-362/fin-cloture.json` ; aucun calcul actif, suite globale non déclarée verte.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `paroles.py`, fusionnés sans conflit textuel. Huit méthodes résolues, huit réservées avec leurs questions (358, 306, 313, 332, 333, 330).
+
 - **359 — E5 choix direct, terminé non fusionné** (`codex-e5-choix-direct`, base `6d046070`) : formulaire web et
   brouillon console/TUI, mêmes prestation/prix/limite absolue jusqu'à U-C ; revalidation sans modèle.
   Correction et annulation locales sans effet ; offre dépassée non émise, T inclus conservé.

@@ -4,17 +4,26 @@ import json
 import unittest
 
 from donjon.commandes import DescripteurPublic
-from donjon.gestes_publics import gestes_du_monde, rendre_liste
+from donjon.gestes_publics import CORPS, GESTES_CORPS, gestes_du_monde, rendre_liste
 from donjon.moteur import Moteur
+from donjon.voix import reel
 from tests import test_attendu_designable as designable
 from tests import test_gestes_terminal as terminal
 from tests import test_outils_publics as web
 from tests.test_tensions import recharger
 
 
+def offre_objet(m, d):
+    # « frapper » appartient aussi aux offres sur un objet : le type public
+    # de la cible distingue le formulaire corporel, pas le verbe seul.
+    return (d["geste"] not in GESTES_CORPS
+            or m.objets.get(reel(m, d["cible"]), {}).get("type") not in CORPS)
+
+
 def materiels(m):
     return [c.descripteur.contenu for c in gestes_du_monde(m)
-            if c.descripteur.contenu.get("parametres", {}).keys() & {"outil", "destination"}]
+            if offre_objet(m, c.descripteur.contenu)
+            and c.descripteur.contenu.get("parametres", {}).keys() & {"outil", "destination"}]
 
 
 class OffresMateriellesTests(unittest.TestCase):
@@ -28,7 +37,10 @@ class OffresMateriellesTests(unittest.TestCase):
                     # Dans cette capture aucun combustible compatible, contenant
                     # ouvert ou outil d'impact/crochetage/clé n'est disponible.
                     self.assertEqual(materiels(m), [])
-                    self.assertLess(len(gestes_du_monde(m)), 39)
+                    # 353 porte les gestes du corps au terminal ; ce comptage
+                    # bornait les offres d'objets, avant leur ajout documenté.
+                    self.assertLess(sum(offre_objet(m, c.descripteur.contenu)
+                                        for c in gestes_du_monde(m)), 39)
                 else:
                     m, cible, _ = web.situation("alimenter", 1)
                     d = DescripteurPublic(web.choisir(m, "alimenter", cible)["envoye"])
