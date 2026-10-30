@@ -35,12 +35,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **345 / G16 — `codex-g16-information`, non fusionnée**, base `3e3afe2`, fusion de `014fc35` en validation.
-  Identité, ressource et localisation crue formulées par le moteur ; admission/publication G15–G17 communes.
-  Garanties des mandats 341, déplacements G7 et confirmations des actes lourds conservées.
-  Livraison initiale : 265 tests, quatre assertions antérieures attribuées ; Luna une passe, 28 appels.
-  Reprise après fusion : tests ciblés et recouvrements en cours, deux travailleurs réduits au plus.
-  Aucune nouvelle passe Luna ni banc PNJ ; quatre réserves historiques à réattribuer à la nouvelle base.
+- **345 / G16 terminé — `codex-g16-information`, non fusionnée**, base `3e3afe2`, fusion sans rebase `e792251` de `014fc35`.
+  Identité, ressource et localisation crue formulées par le moteur ; publication G15–G17 commune.
+  **310 tests / 23 fichiers : cinq assertions antérieures reproduites sur `014fc35`, zéro erreur/saut ni incident nouveau.**
+  Mandat 12/12, « Compris » 5/5, G15 11/11, G16 7/7, G17 11/11 et consentement 9/9 verts ; « tenter » conservé.
+  Treize comparaisons AST vertes ; sources/tests figés, traces des cinq réserves identiques hors chemins/lignes, oracles inchangés.
+  Luna initiale : une passe, 28 appels ; non relancée après fusion. Deux travailleurs réduits au plus, aucun calcul actif ; branche poussée.
   [Rapport et limites](taches/rapport-codex-345-g16-information-parlee.md) ; bruts `artifacts/g16-345/fusion-014fc35/` du dépôt principal.
 
 Lots en cours : 342 (attribution du groupe 1), 344 (U-M corps), 345 (G16 information parlée), 348 (E1 référence
