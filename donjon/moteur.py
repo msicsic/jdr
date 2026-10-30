@@ -811,7 +811,8 @@ class Moteur:
         travail.data["journal"].append({"tour": travail.data["revision"],
             "minutes": travail.data["minutes"], "action": self._action_journal(travail, plan.proposition),
             "origine": plan.origine, "dd": plan.dd, "jet": jet,
-            "reussite": reussite, "faits": lignes[:], "deplacements": deplacements})
+            "reussite": reussite, "faits": lignes[:],
+            **({"deplacements": deplacements} if deplacements["mouvements"] else {})})
         travail.verifier()
         self.monde.data = travail.data
         return "\n".join(lignes) or "Action accomplie."
@@ -1090,7 +1091,8 @@ class Moteur:
         travail.data["journal"].append({"tour": travail.data["revision"], "minutes": travail.data["minutes"],
             "action": self._action_journal(travail, sequence.proposition),
             "origine": sequence.origine, "dd": dernier_dd,
-            "jet": dernier_jet, "reussite": reussite, "etapes": trace, "faits": lignes[:], "deplacements": deplacements})
+            "jet": dernier_jet, "reussite": reussite, "etapes": trace, "faits": lignes[:],
+            **({"deplacements": deplacements} if deplacements["mouvements"] else {})})
         travail.verifier()
         self.monde.data = travail.data
         return "\n".join(lignes) or "Manœuvre accomplie."

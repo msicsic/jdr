@@ -29,6 +29,21 @@ def pas(direction, restants, identifiant='trajet-343'):
 
 
 class DeplacementsResolusTests(unittest.TestCase):
+    def test_geste_sans_mouvement_garde_le_journal_sans_trace_vide(self):
+        for scenario in ('relais', 'auberge'):
+            with self.subTest(scenario=scenario):
+                m, _ = corps_a_trainer(scenario)
+                avant = m.joueur['salle'], m.joueur['position'][:]
+                moteur = Moteur(m)
+                resultat = moteur.executer(moteur.preparer(proposition('attendre', '1.5')))
+                self.assertNotIn('deplacements', m.data['journal'][-1])
+                r = recharger(m)
+                self.assertEqual(r.data, m.data)
+                self.assertEqual((r.joueur['salle'], r.joueur['position']), avant)
+                self.assertNotIn('Tu as avancé', resultat)
+                self.assertEqual((regarder(r), scene_percue(r), carte(r)),
+                                 (regarder(m), scene_percue(m), carte(m)))
+
     def recharge(self, m, texte):
         vues = regarder(m), scene_percue(m), carte(m)
         data = copy.deepcopy(m.data)
