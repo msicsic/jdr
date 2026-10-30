@@ -23,6 +23,7 @@ from tests import test_information_publique as information_support
 from tests.test_gestes_terminal import sans_saisie
 from tests.test_inventaire_public import etat
 from tests.test_outils_publics import page
+from tests.support import mj_simule
 
 
 def phrase(d):
@@ -189,7 +190,7 @@ class AccordLibreTerminalTests(unittest.IsolatedAsyncioTestCase):
                 f = Path(tmp) / 'partie.json'; m.sauver(f)
                 faux = MagicMock(connexion='api', erreur_auth=None)
                 faux.echanger.return_value = ouvrir(m, interpretation(m, d)['proposition'], phrase(d))
-                with patch('jeu.MJ', return_value=faux), patch.object(Monde, 'd20', return_value=20):
+                with mj_simule(faux), patch.object(Monde, 'd20', return_value=20):
                     app = SeuilApp(['--connexion', 'api', '--save', str(f)])
                     async with app.run_test(size=(120, 40)) as pilot:
                         support = TerminalTests(); await support.pret(app)

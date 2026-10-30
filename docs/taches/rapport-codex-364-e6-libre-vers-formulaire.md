@@ -4,6 +4,10 @@ Branche `codex-e6-libre-date`, base `origin/integration e6555c51` fusionnée
 sans rebase (`284f9d38`). Code final `197c0600`, sources finales stables.
 **Lot clos, E6 non validé : ne pas fusionner cette réalisation comme E6 acquis.**
 
+Décision ultérieure de l'utilisateur : **fusion partielle autorisée avec ces
+limites conservées**. Le [correctif d'intégration 362](rapport-codex-364-integration-362.md)
+traite séparément la dépendance du harnais TUI à la connexion du poste.
+
 **Raccord.** `accords_libres` produit un brouillon sans parole, paiement ou
 engagement. Destinataire, prestation et prix passent les choix publics E5 ;
 les champs non admissibles restent vides. Seule une durée explicite retrouvée

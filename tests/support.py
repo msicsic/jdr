@@ -1,8 +1,22 @@
 """Doubles de test communs aux parcours qui simulent déjà les réponses du MJ."""
 
 from unittest.mock import patch
+from contextlib import contextmanager
 
 from donjon.mj import MJOpenAI
+
+
+@contextmanager
+def mj_simule(mj):
+    """Un fournisseur simulé implique une connexion activée, sans secret local.
+
+    La boucle commune choisit d'instancier le MJ avant d'appeler la fabrique :
+    remplacer la fabrique seule ne suffit pas sur un poste sans clé API.
+    Une configuration .env du poste ne doit pas réécrire ce contexte de test.
+    """
+    with (patch.dict('os.environ', {'OPENAI_API_KEY': 'test'}),
+          patch('jeu.charger_env'), patch('jeu.MJ', return_value=mj)):
+        yield mj
 
 
 def question_sans_execution(texte):

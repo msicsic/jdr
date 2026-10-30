@@ -16,7 +16,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   corps/passage/information, U-T premier geste/outils/inventaire/fabrication/corps/passage, A0 (oracle G1).
 - **Groupe 1** (313, 315, 332, 333) et 335 (suivi vocal) fusionnés le 2026-10-30.
 - **PNJ** : A5 (mandat) complet (lots 338, 340, 341, 306 fusionnés). A1 provenance publique fusionnée (346, non branchée).
-  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E5 fusionnés (348, 350, 352 et 357, 355, 359) ; E6 (363 puis 364) non validé.
+  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E5 fusionnés (348, 350, 352 et 357, 355, 359) ; E6 (363) non validé, reprise 364.
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
 - **Abandonnés** : archivés par tags `archive/<branche>` le 2026-10-30 (33, 36, 117 b/c, 162, 166, 168, 170, 176,
@@ -24,6 +24,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-regressions-337` (2166b971) : lot 360, régressions de la fin de garde apprise par ouï-dire (lot 337). Détail dans l'historique.
 - `codex-rouges-restants` (48d107bc) : lot 362, rouges restants de la suite hors lot 337. Détail dans l'historique.
 - `codex-e5-choix-direct` (1bd2642f) : lot 359, E5 le choix direct conserve l'accord daté affiché jusqu'à la validation. Détail dans l'historique.
 - `codex-attentes-perimees` (9f9d6fdd) : lot 361, attentes périmées encore rouges portées au contrat actuel. Détail dans l'historique.
@@ -35,23 +36,19 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-e3-taches-payees` (999e4c67) : lot 357, régression d'E3 sur les tâches payées corrigée. Détail dans l'historique.
 - `codex-attribution-groupe1` (8d1a4c3f) : lot 342, attribution du groupe 1. Détail dans l'historique.
 - `codex-ut-corps-passage` (fe464411) : lot 353, U-T corps et passage au terminal. Détail dans l'historique.
-- `codex-garder-lieu` (40bd537e) : lot 333, garder un lieu. Détail dans l'historique.
-- `codex-attention-conjointe` (c3db8e29) : lot 332, attention conjointe. Détail dans l'historique.
 
 ## Lots non fusionnés
 
-- **364 E6 reprise**, `codex-e6-libre-date`, base `origin/integration e6555c51` fusionnée sans rebase :
-  **clos non validé, ne pas fusionner comme E6 acquis**, code `197c0600` ; formulaire E5/U-C et barrières de rejeu portés.
-  139 tests distincts verts / 15 fichiers ; E6 et schéma (17 tests inclus) rejoués verts, sources finales stables.
-  Luna 14 scripts/23 appels puis schéma corrigé 3 scripts/9 appels : huile réussie, « demain » et verrou faussement refusés.
-  Le préremplissage et le motif de refus restent faillibles ; 16 alertes de catalogue par scène reproduites dans E5 inchangé.
-  Aucun calcul actif ni suite complète ; bruts `C:/Users/msics/donjon/artifacts/e6-364/`, `fin-cloture.json` valide=false.
-  [Rapport 364](taches/rapport-codex-364-e6-libre-vers-formulaire.md).
+- **364 / intégration 362**, `codex-e6-libre-date`, base `ba05abe5`, fusion sans rebase `869c867c`.
+  Blocage TUI reproduit sans clé API : le MJ simulé n'était pas activé ; même activation avant/après le contrat 362.
+  Contexte commun `mj_simule` pour E6 et E5, indépendant du `.env` ; 122 assertions identiques, gardes 362 inchangées.
+  **64 tests / neuf fichiers verts**, zéro échec, erreur ou saut, sans clé ambiante ; deux travailleurs réduits, sans Luna.
+  Fusion partielle E6 autorisée par l'utilisateur ; les limites Luna du 364 restent acquises comme réserves.
+  [Rapport](taches/rapport-codex-364-integration-362.md), bruts `artifacts/e6-364/integration-362/`, `fin-correction.json` vert.
 
-Lots en cours : 360 (régressions du lot 337), 362 (16 rouges restants hors 337). E6 reste à reprendre après la clôture non validée du 364.
-**Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
-dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361, fusionné), 10 autres anciennes
-et 6 nouvelles (362). Leurs entrées arrivent ici à leur livraison. 
+Lots en cours : 364 (E6, réaccordance après le 362), 365 (catalogue des choix : fuite possible), 366 (levée d'un
+refus par contrepartie, 358), 367 (service payé et évacuation, 306), 368 (quatre régressions isolées). Leurs entrées
+arrivent ici à leur livraison.
 
 ## Décisions prises le 2026-10-30
 
