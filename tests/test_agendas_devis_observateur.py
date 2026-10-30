@@ -13,6 +13,32 @@ from tests.test_tensions import recharger
 
 
 class DevisObservateurTests(unittest.TestCase):
+    def test_perception_du_devis_sans_position_joueur_ni_fuite_du_reel(self):
+        from donjon.esprits import percus
+        from donjon import pnj
+        for sorte, cible in [('amener', 'brune'), ('informer', 'ilse')]:
+            with self.subTest(sorte=sorte):
+                m, p, transmis = self.scene(sorte, cible)
+                avant = copy.deepcopy(m.data)
+                contexte = planification.ContexteDevis('marchand', 'aubin', transmis)
+                projection = contexte.projeter(m)
+                self.assertNotIn('position', projection.joueur)
+                vus, champ = percus(projection, 'aubin')
+                self.assertNotIn('joueur', vus)
+                etape = planification._etape('confier', cible)
+                contact = pnj._contact_vocal_cru(projection, 'aubin', etape, cible)
+                # Le joueur réel peut changer de côté ; le même devis garde
+                # strictement les données et perceptions de l'observateur.
+                n = m.copier()
+                n.joueur.update(salle='crypte', position=[1, 1])
+                autre = contexte.projeter(n)
+                self.assertEqual(percus(autre, 'aubin'), (vus, champ))
+                self.assertEqual(pnj._contact_vocal_cru(autre, 'aubin', etape, cible), contact)
+                self.assertEqual(projection.data, autre.data)
+                self.assertIsNotNone(self.devis(m, p, transmis))
+                self.assertEqual(m.data, avant)
+                self.recharge(m)
+
     def scene(self, sorte='amener', cible='brune'):
         m, p = jugement.JugementMandatTests().scene(sorte, cible)
         if sorte == 'informer':

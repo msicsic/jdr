@@ -131,6 +131,9 @@ class GesteManqueTests(unittest.TestCase):
         loin(m, "brune", "ilse", "aubin")
         placer(m, "marchand", "echoppe", (7, 4))
         regarder(m, "marchand", "marteau")
+        # Orienter le regard ne l'enregistre pas : le marteau a été vu avant
+        # son déplacement, prémisse du démenti de présence attendu plus bas.
+        percevoir_tous(m)
         m.objets["marteau"].update(lieu="crypte", position=[1, 1], position_salle="crypte")
         lire(m, "marchand")["visites"]["antichambre"] = -500
         intention(m, "marchand", plan("prendre", "marteau"), but="prendre", motif="devoir")

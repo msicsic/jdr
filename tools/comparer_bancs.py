@@ -86,6 +86,21 @@ def jouer_nuit(tache):
     creer, oisifs, percevoir = banc.creer, banc._oisifs_urgents, pnj.percevoir_tous
     commencer, tentatives = pnj.commencer_geste, set()
     temoins, vus = pnj._temoins, set()
+    hors, approcher = pnj._hors_d_atteinte, pnj._approcher
+    refus_contact, approches_impossibles = [], []
+
+    def hors_sonde(monde, auteur, objet):
+        from donjon.temps import instant
+        refus_contact.append({'pnj': auteur, 'objet': objet, 'instant': instant(monde)})
+        return hors(monde, auteur, objet)
+
+    def approche_sonde(monde, auteur, etape, *args, **kwargs):
+        resultat = approcher(monde, auteur, etape, *args, **kwargs)
+        if resultat is None:
+            from donjon.temps import instant
+            approches_impossibles.append({'pnj': auteur, 'etape': dict(etape), 'instant': instant(monde)})
+        return resultat
+
     def contrainte(monde, operation, objet):
         # Une contrainte vise une personne (frapper, pousser) ; forcer un objet reste un geste sur un bien.
         if hasattr(pnj, "est_contrainte"):
@@ -139,6 +154,8 @@ def jouer_nuit(tache):
         pile.enter_context(patch.object(banc, "creer", creer_capture))
         pile.enter_context(patch.object(pnj, "commencer_geste", compter))
         pile.enter_context(patch.object(pnj, "_temoins", voir))
+        pile.enter_context(patch.object(pnj, '_hors_d_atteinte', hors_sonde))
+        pile.enter_context(patch.object(pnj, '_approcher', approche_sonde))
         if not config["empreintes"]:
             pile.enter_context(patch.object(banc, "_oisifs_urgents", relever))
         if config.get("localiser"):
@@ -150,6 +167,8 @@ def jouer_nuit(tache):
             donnees["mesures"]["vols_tentes"] = len(tentatives)
             donnees["mesures"]["vols_vus_nuit"] = len({(a, o) for a, o, _ in vus})
             donnees["mesures"]["temoins_vols_nuit"] = len(vus)
+            donnees['mesures']['gestes_refuses_contact'] = len(refus_contact)
+            donnees['mesures']['approches_impossibles'] = len(approches_impossibles)
             resultat["donnees"] = donnees
         except Exception as erreur:
             monde = capture.get("monde")
@@ -159,6 +178,8 @@ def jouer_nuit(tache):
         resultat.update(secondes=time.perf_counter() - debut,
                         secondes_cpu=time.process_time() - cpu)
     monde = capture.get("monde")
+    resultat['refus_contact'] = refus_contact
+    resultat['approches_impossibles'] = approches_impossibles
     if monde is not None:
         resultat["etat_final"] = empreinte(monde.data)
     if config.get("localiser"):

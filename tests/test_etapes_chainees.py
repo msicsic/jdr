@@ -228,10 +228,25 @@ class EtapesTests(unittest.TestCase):
                         'mine': '4c2140914c86251d1bf1790bb37a9debd9e0344340040196d2fa4520b3a2047f',
                         'auberge': '3eb6aaf37b22ff4667d8effe512125dbaef60d720bf9645662d41a2bac89abd3',
                     }[scenario]}
+                    # 313 : les positions inconnues/incluses sont mesurées au
+                    # contact commun. Comparaison eb15b5e : monde COMPLET,
+                    # plans, lignes et deux vues rechargées identiques ; seules
+                    # les visites changent (+40 mine, -48 auberge), avec leurs
+                    # diagnostics. Ne pas recaler les empreintes de monde déjà
+                    # rouges sur cette intégration (attribution-suite/).
+                    contact_inconnu = {
+                        'mine': {'visites': '381b569e7d5a4ec6b9071e96a2530d3f2665b5c7ff7545c9a1e4ac724b7a1e8a',
+                                 'n_visites': 16349},
+                        'auberge': {'visites': 'f87967ccef03c066d0c76604790559ffd87bba3c3a9a0bf0682e0432dc0c174a',
+                                    'n_visites': 8525,
+                                    'diagnostics': '0ac8422ae26c05775ec4d05db80943c9eacd60d9ec8ee6e6a7047ef9abc6e878'}}
+                    self.assertLessEqual(set(contact_inconnu[scenario]),
+                                         {'visites', 'n_visites', 'diagnostics'})
                     self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures,
                                                                  **paroles[scenario], **contacts[scenario],
                                                                  **rendez_vous.get(scenario, {}), **pas[scenario],
-                                                                 **compensation, **reserve, **emissions})
+                                                                 **compensation, **reserve, **contact_inconnu[scenario],
+                                                                 **emissions})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})
