@@ -89,6 +89,49 @@ def faits_dits(noyau):
     return faits
 
 
+def installer_faits_initiaux(monde, id, *, perception=False):
+    """Ancrage de provenance de la scène de départ, distinct des croyances.
+
+    L'installation du contrat sur une ancienne sauvegarde n'invente pas de
+    transfert à partir de ses inventaires actuels. Le passé absent ne peut pas
+    être reconstruit. Aucun savoir sur un tiers n'est ajouté aux croyances.
+    """
+    from .esprits import preuve_possession
+    e = esprit(monde, id)
+    initiaux = e["faits_initiaux"]
+    for sujet, attributs in e["croyances"].items():
+        for attribut, c in attributs.items():
+            # Les anciennes localisations sans droits ne deviennent pas une
+            # nouvelle par la seule installation de la preuve de possession.
+            localisation_ancienne = attribut == "lieu" and "possession" not in c
+            if c["source"] != "savoir" and not (c["source"] == "vu" and (perception or localisation_ancienne)):
+                continue
+            noyau = {"type": "affirmation", "sujet": sujet, "attribut": attribut,
+                     "valeur": c["valeur"], "details": c}
+            initiaux.update(copy.deepcopy(faits_dits(noyau)))
+            if attribut == "lieu" and sujet in monde.objets and c["valeur"] == monde.objets[sujet]["lieu"]:
+                p = preuve_possession(monde, sujet, precedente=c)
+                if p:
+                    initiaux.update(copy.deepcopy(faits_dits({**noyau, "details": {"possession": p}})))
+    for sujet, o in monde.objets.items():
+        p = preuve_possession(monde, sujet)
+        if p:
+            # Provenance de l'état initial, pas une croyance : découvrir plus
+            # tard un inventaire inchangé ne constitue pas un transfert appris.
+            # Le filtre ne consulte ensuite que le fait effectivement perçu.
+            initiaux.update(copy.deepcopy(faits_dits({"type": "constat", "objet": sujet,
+                "attribut": "lieu", "valeur": o["lieu"], "details": {"possession": p}})))
+
+
+def _initial(monde, id, noyau):
+    initiaux = lire(monde, id)["faits_initiaux"]
+    if noyau.get("attribut") == "lieu":
+        cle = _cle([noyau.get("objet", noyau.get("sujet")), "lieu"])
+        if cle in initiaux and initiaux[cle] == noyau["valeur"]:
+            return True
+    return all(cle in initiaux and initiaux[cle] == valeur for cle, valeur in faits_dits(noyau))
+
+
 def transmission_attestee(monde, id, auditeur, noyau):
     """Preuve positive du contenu partagé ; le registre plein n'en est pas une."""
     registre = lire(monde, id)["faits_dits"]
@@ -171,6 +214,18 @@ def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details)
     if attribut == "intention":
         valeur = {"valeur": valeur, "envers": details.get("envers")}
     registre = lire(monde, id)["faits_dits"]
+    if id != "joueur":
+        initiaux = esprit(monde, id)["faits_initiaux"]
+        for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
+                                  "valeur": valeur, "details": details}):
+            lieu_change = (attribut == "lieu" and _cle([sujet, attribut]) in initiaux
+                           and initiaux[_cle([sujet, attribut])] != valeur)
+            if lieu_change or cle in initiaux and initiaux[cle] != v:
+                initiaux.pop(cle, None)
+                # Les deux identités partagent le même ancrage de départ.
+                if attribut == "lieu":
+                    initiaux.pop(_cle([sujet, attribut]), None)
+                    initiaux.pop(_cle([sujet, attribut, "possession"]), None)
     avant = {}
     if precedente:
         ancienne = ({"valeur": precedente["valeur"], "envers": precedente.get("envers")}
@@ -297,7 +352,7 @@ def _nouvelles(monde, id):
             noyau, rang, source = {"observe": souvenir["minute"], **souvenir["evenement"]}, souvenir["rang"], souvenir["de"]
         else:
             continue
-        if (accuse(noyau) == id
+        if (_initial(monde, id, noyau) or accuse(noyau) == id
                 or (any(k not in monde.objets and k not in monde.data["salles"]
                         for k in (noyau.get("objet"),) if k and k != "joueur")
                     and not (noyau["type"] == "constat" and noyau.get("attribut") == "fin"
@@ -385,6 +440,8 @@ def _constats(monde, id):
                 noyau["details"] = {k: copy.deepcopy(c[k]) for k in ("salle", "case", "possession")}
             elif attribut == "fin" and "designation" in c:
                 noyau["details"] = {"designation": copy.deepcopy(c["designation"])}
+            if _initial(monde, id, noyau):
+                continue
             yield c, noyau, 0, None
 
 

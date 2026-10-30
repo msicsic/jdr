@@ -39,6 +39,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- **360 — `codex-regressions-337`**, base `integration 0b62a4fa`, **en cours, non validé**.
+  Décision utilisateur : l'inventaire initial n'est pas une nouvelle ; provenance sauvegardée,
+  ancrage retiré au changement appris, droits du 337 conservés. 18/23 méthodes vertes au dernier rejeu ;
+  cinq réserves restent à résoudre, aucune assertion mécanique affaiblie. Contrôles courts 337 verts.
+  Fichiers ciblés et empreintes 2 h × 5 scénarios × 4 graines lancés détachés (2 travailleurs).
+  Fin attendue : `artifacts/regressions-337-360/validation/fin.json` dans le dépôt principal.
+  Migration : passé initial absent non reconstructible ; recouvrement passage/361 limité et autorisé.
+  [Rapport intermédiaire](taches/rapport-codex-360-regressions-337.md).
+
 Lots en cours : 359 (E5 choix direct), 360 (régressions du lot 337), 361 (attentes périmées encore rouges).
 **Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
 dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361), 10 autres anciennes et 6

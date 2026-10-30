@@ -64,7 +64,9 @@ class LaisserPasserJoueurTests(unittest.TestCase):
         m = refuge()
         texte = faire(m, "marcher", "ouest")
         self.assertIn("Brune, batelière évacuée, s'écarte pour te laisser passer.", texte)
-        self.assertIn("Tu avances d'un pas.", texte)
+        # G7/343 formule le mouvement résolu ; seule cette méthode relève
+        # du lot 360 (DemanderLePassageTests reste au lot 361).
+        self.assertIn("Tu as avancé de 1 pas vers ouest en 4,5 secondes.", texte)
         m = recharger(m)
         brune = m.objets["brune"]
         self.assertEqual((m.joueur["salle"], tuple(m.joueur["position"])), ("antichambre", SEUIL))
@@ -74,7 +76,7 @@ class LaisserPasserJoueurTests(unittest.TestCase):
         self.assertEqual(brune["position"][0], 0)
         self.assertTrue(any("s'écarte pour laisser passer" in c["texte"] for c in m.data["chronique"]))
         # La sortie est libre : le pas suivant mène dans la conduite basse.
-        self.assertIn("Tu entres dans : Conduite basse.", faire(m, "marcher", "ouest"))
+        self.assertIn("Tu as avancé de 1 pas vers ouest", faire(m, "marcher", "ouest"))
         self.assertEqual(recharger(m).joueur["salle"], "echoppe")
 
     def test_ilse_au_milieu_du_refuge_s_ecarte_aussi(self):
