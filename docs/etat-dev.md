@@ -39,6 +39,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-quatre-regressions` — lot 368, base `origin/integration dea991a5`, PC fixe.
+  Prêt, enfermement et installation déjà verts après le 360 ; son ablation reproduit les trois rouges.
+  Lampe vide : stimulus d'extinction explicite après remplissage/allumage, 12 assertions conservées.
+  77 tests / huit fichiers verts ; sept parcours réels/analogues, monde/rendu/scène et laps rechargés.
+  Code du jeu inchangé ; pas de garantie nouvelle sur les trajectoires sociales. Aucune empreinte requise.
+  Recouvrement 364–367 : `docs/etat-dev.md` seul. [Rapport](taches/rapport-codex-368-quatre-regressions.md).
+
 Lots en cours : 364 (E6, réaccordance après le 362), 365 (catalogue des choix : fuite possible), 366 (levée d'un
 refus par contrepartie, 358), 367 (service payé et évacuation, 306), 368 (quatre régressions isolées). Leurs entrées
 arrivent ici à leur livraison. 

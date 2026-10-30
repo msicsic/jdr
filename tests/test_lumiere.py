@@ -131,7 +131,30 @@ class MineTests(unittest.TestCase):
         m = avec_briquet(mine_noire(secours_spontane=False))
         m.objets["lampe_remy"].update(allume=False, combustible=0)
         deplacer(m, "bidon_huile", "remy")
-        m, _ = vivre(inquiet(m), 4)
+        m = inquiet(m)
+        decoupe = recharger(m)
+        m, _ = vivre(m, 3)
+        for _ in range(3):
+            decoupe, _ = vivre(decoupe, 1)
+        self.assertEqual(m.data, decoupe.data)
+        self.assertTrue(m.objets["lampe_remy"]["allume"])
+        self.assertEqual(m.objets["bidon_huile"]["charges"], 2)
+        # Depuis le secours interrogé (330), son abri autonome au bureau
+        # n'est plus acquis : sa lampe lui sert encore au baraquement.
+        # Même stimulus explicite que pour la lampe déjà chargée ci-dessus :
+        # une source fixe suffisante, réellement vue, rend sa flamme inutile.
+        from tests.test_tensions import placer
+        from tests.support import regarder as orienter
+        from tests.test_corps_blessable import passer
+        for monde in (m, decoupe):
+            monde.objets['chandelle']['luminosite'] = 2
+            placer(monde, 'remy', 'bureau', (2, 1))
+            orienter(monde, 'remy', 'chandelle')
+            percevoir_tous(monde)
+        m, _ = vivre(recharger(m), 1)
+        for dt in (13, 47, 540):
+            passer(decoupe, dt)
+            decoupe = recharger(decoupe)
         lampe = m.objets["lampe_remy"]
         # Elle a été remplie et allumée, puis ménagée au bureau éclairé.
         self.assertFalse(lampe["allume"])
@@ -152,6 +175,9 @@ class MineTests(unittest.TestCase):
         self.assertEqual(m.data, recharge.data)
         from donjon.rendu import regarder
         from donjon.scene import scene_percue
+        self.assertEqual(m.data, decoupe.data)
+        self.assertEqual(regarder(m), regarder(decoupe))
+        self.assertEqual(scene_percue(m), scene_percue(decoupe))
         self.assertEqual(regarder(m), regarder(recharge))
         self.assertEqual(scene_percue(m), scene_percue(recharge))
 
