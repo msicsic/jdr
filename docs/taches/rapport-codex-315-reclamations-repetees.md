@@ -1,6 +1,6 @@
 # Lot 315 — réclamations et constat sans porteur
 
-Branche `codex-reclamations-repetees`, reprise de **7826c3a**.
+Branche `codex-reclamations-repetees`, reprise de **7826c3a**, code final **8c7d227**.
 Fusion sans rebase de `origin/integration` **07c9b62e**, E1 à E4 et correction
 357 comprises. `etat-dev` et l'historique reprennent les versions d'intégration ;
 seule l'entrée du 315 (huit lignes au plus) est ajoutée au point de reprise.
@@ -39,8 +39,16 @@ que le bien réel est désormais ailleurs ; mots et croyance suivent la preuve,
 l'objet réel reste inchangé. Un contenant privé est effectivement caché au
 joueur. État complet, rendu et scène sont vérifiés après sauvegarde/recharge.
 La validation groupée de **54 fichiers**, couvrant 315, E1–E4, 357 et les modules
-concernés, est en cours, à deux processus à priorité réduite. Fin attendue :
-`C:/Users/msics/donjon/artifacts/reclamations-315/social-07c9b62/fin.json`.
+concernés, donne **529 tests : 515 verts, 14 tests rouges (20 assertions), aucune
+erreur**, en 602,371 s, deux processus à priorité réduite. Les 46 tests E1–E4
+et les onze tâches payées passent. Les sources testées sont inchangées ;
+la réserve `porteur=None` est levée. Les **20 assertions des 14 tests rouges
+sont reproduites à l'identique hors chemins sur l'intégration intacte
+`07c9b62e`** : comptes naturels, événements perçus, prêt de lampe, parts
+proposées, sens des comptes et console du brasero. Cette reprise limitée aux
+six fichiers concernés donne 74 tests, 20 assertions rouges, aucune erreur,
+en 116,632 s. Aucun nouvel incident ciblé ; la validation globale reste rouge
+à cause de ces tests antérieurs. Aucun calcul actif.
 
 **Mesures et limites.** La passe précédente sur 8f410f7 comptait 357 tests :
 347 verts, neuf échecs identiques sur cette référence et la réserve sociale
@@ -52,4 +60,5 @@ ultérieures de ces chronologies ne sont pas toutes certifiées bénignes.
 Ni suite complète, ni Luna, ni nouvelle campagne de bancs. Détails historiques :
 rapport au commit 7826c3a et bruts `artifacts/reclamations-315/` du dépôt principal.
 Reproduction, état fautif, témoin sans 315 et résultats de cette reprise :
-sous-dossier `social-07c9b62/`.
+sous-dossier `social-07c9b62/` (`tests.json`, `tests-reference-07c9b62.json`,
+`qualification.json`, `reproduction.json`, `reference-service.json`).

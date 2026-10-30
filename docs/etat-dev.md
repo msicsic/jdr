@@ -42,8 +42,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   fusion sans rebase de l'intégration `07c9b62e` (E1–E4 et 357 compris).
   Défaut social du 337 révélé par la chronologie du 315 ; aucune obligation/clôture E2 dans le cas réel.
   Le constat sans porteur décrit son lieu connu ; références citées et non-divulgation conservées.
-  28 tests ciblés verts ; validation de 54 fichiers en cours (deux processus à priorité réduite).
-  Fin : `artifacts/reclamations-315/social-07c9b62/fin.json` dans le dépôt principal.
+  529 tests / 54 fichiers : 515 verts, aucune erreur ; 14 tests rouges (20 assertions) identiques à l'intégration.
+  Cas réel, 315, E1–E4 et tâches payées verts ; réserve `porteur=None` levée, aucun nouveau rouge ciblé.
   Mesures et limites : [rapport 315](taches/rapport-codex-315-reclamations-repetees.md).
 
 Lots en cours : 356 (suite rouge, attribution), 357 (régression d'E3 sur les tâches payées). 315 réaccordée
