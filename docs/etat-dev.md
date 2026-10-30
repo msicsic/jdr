@@ -43,15 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-um-social-avis` — lot 386, base `integration` `cbecf8c8`, code livré, vérification en cours.
+- `codex-um-social-avis` — lot 386 terminé, non fusionné, base `integration` `cbecf8c8`, code `060a4930`.
   Le formulaire web conserve lieu connu et valeur de l'avis via U-D information ; mêmes U-C/G18, zéro modèle.
   5/5 nouveaux tests verts (111,385 s) : deux lieux, valeurs et disputes, recharge et laps découpés.
-  Voisins (huit fichiers) et empreintes 2 h crue/Relais × quatre graines détachés, deux travailleurs réduits au plus.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/um-social-avis-386/fin-verification.json`.
+  Total 73/78 verts ; cinq erreurs U-T information héritées prouvées sur la base (fixture `bois` non connu).
+  Empreintes 2 h crue/Relais × quatre graines : 8/8 identiques. Aucun calcul actif ; clôture poussée.
   Limite : prédicat menace d'eau existant ; pas d'U-T. [Rapport](taches/rapport-codex-386-um-social-avis.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
-(U-M social comptes), 381 (A2 passage), 386 (U-M social avis). S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
+(U-M social comptes), 381 (A2 passage). S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
