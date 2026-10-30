@@ -6,6 +6,67 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **357 — `codex-e3-taches-payees`**, base `origin/integration 9ea8523`, terminé, poussé, non fusionné :
+  les obligations sans limite retrouvent leur devis autonome historique ; E3 reste propre aux obligations datées.
+  169 tests ciblés/voisins : 164 verts, dont tâches payées et E1–E4 (57) ; cinq tests voisins rouges
+  (onze assertions) reproduits sur la base intacte. Deux régressions ajoutées, monde et rendu après recharge.
+  Empreintes 2 h × quatre graines × Relais/auberge/mine : 12/12 identiques à la base `9ea8523`, zéro plantage.
+  0/12 identiques à `dbb122b0`, mêmes écarts sur la base intacte ; lecture historique du payeur gardée sans limite.
+  [Rapport](taches/rapport-codex-357-e3-taches-payees.md). Ni suite complète, ni Luna, ni banc long.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. 57 tests tâches payées et E1-E4 verts, cinq voisins rouges préexistants ; empreintes 12/12 identiques à la base d'intégration.
+
+- **Lot 342 terminé avec huit réserves d'intégration**, branche documentaire
+  `codex-attribution-groupe1`, base `16b18a7`. **33 incidents attribués** :
+  17 incidents de défaut corrigés (treize sur le même contrat de perception),
+  neuf attentes/scènes périmées, sept préexistants. Référence `e37d9ee`,
+  chaque lot seul et retraits d'un seul lot, 2 177,100 s ; matrice exhaustive.
+  Branches corrigées poussées : 313 `cddc76e` (position inconnue dans le devis
+  fermé, sans joueur réel), 315 `beaecc7` (ordre et borne de règlement),
+  333 `40bd537` (scène de prêt sans secours concurrent), 332 `c3db8e2` :
+  direction sans relation incomplète ni réveil du but avant rotation ; geste
+  perceptif disponible avant bavardage facultatif, gestes engagés respectés.
+  Quatre captures : ancien hash exact après retrait strict du registre vide.
+  Deux captures : seuls registres/provenance des regards changent, huit
+  autres oracles identiques. Lampe : second stimulus connu de niveau 2
+  explicite, toutes assertions finales conservées ; oracle d'abri initial
+  entièrement restauré. **12/12 tests ciblés verts**, deux scénarios,
+  monde/rendu/scène rechargés et même laps entier/découpé.
+  **Essai poussé `93d5a25`**, base `da5f795`, quatre branches corrigées.
+  **279 tests / 27 fichiers : sept échecs, une erreur, zéro saut, 755,310 s.**
+  Huit réserves aussi rouges sur la base récente à la même assertion/accès :
+  deux boucles, deux dynamiques, deux captures chaînées, lampe vide, aide 541.
+  Trajectoires non certifiées identiques ; aucun oracle recalé pour masquer
+  ces réserves. Six incidents initiaux du 339 et celui de mine désormais
+  verts, sans crédit aux correctifs de ce lot. `jeu.py` inchangé.
+  **20/20 nuits 4 h**, cinq scénarios × quatre graines : zéro plantage,
+  usurpation ou suspect certifié 219 dans chaque nuit ; **366 suivis,
+  247 s de rotation**. Vingt références historiques `c870c8b`, instrumentation
+  `1f6b05da83`, relues du cache sans réexécution dans cette reprise ; pas de
+  comparaison de vitesse ni d'attribution à un seul lot. Première tentative
+  invalide dans l'observateur de référence (`agendas.enfants`) conservée ;
+  aucune nuit de branche alors jouée. Reprise finale 1 368,014 s. Deux
+  travailleurs réduits au plus ; ni Luna ni suite complète.
+  **Limites conservées : 200 alertes à expliquer**, dont 153 répétitions.
+  Variante sans 332 sur la base récente : 33 passages d'Aubin, sans 313 :
+  dix ; interaction 313/base non déclarée corrigée en général par le retour
+  à l'abri dans l'assemblage. Aucune absence générale de boucle garantie.
+  Bruts intacts `C:/Users/msics/donjon/artifacts/groupe1-342/`, analyse
+  `analyse-cloture.json`, **fin `fin-cloture.json` avec réserves**, aucun
+  calcul actif. Tests/monde de l'essai inchangés après validation.
+  [Rapport 342](taches/rapport-codex-342-attribution-groupe1.md),
+  [matrice des 33 incidents et réserves](taches/attribution-codex-342-groupe1.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport et matrice seulement ; 313, 332, 333 fusionnés séparément ; 315 réaccordée à E1/E2 (7826c3a) mais une erreur nouvelle de rendu social (porteur=None) à comprendre avant sa fusion.
+
+- **353 — U-T corps et passage**, `codex-ut-corps-passage`, base `57c9771d` : terminé, non fusionné.
+  Catalogue commun déplié en choix numérotés complets ; réactions sur danger perçu, franchissements
+  qualifiés et arbitrages mémorisés ; ancien préfixe conservé, aucun analyseur ni modèle.
+  **126 tests distincts validés / 12 fichiers**, dont 28 TUI et 5 TUI cases inchangés ; zéro incident retenu.
+  80 parcours mesurés : 2–11 touches, confirmation comprise, +1 avec F7 ; zéro appel modèle.
+  Bruts : `C:/Users/msics/donjon/artifacts/ut-corps-passage-353/fin-cloture.json` ; production inchangée depuis `cbc4744d`.
+  Liste potentiellement longue ; premier arbitrage et forme inconnue restent au libre. Aucun code commun avec 354.
+  [Rapport](taches/rapport-codex-353-ut-corps-passage.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 126 tests distincts verts, 80 parcours mesurés, zéro appel au modèle ; jeu.py modifié aussi par le lot 354 : tests du terminal et de l'information publique rejoués après fusion.
+
 - **Lot 333 / A4b terminé, branche `codex-garder-lieu`, fusionnée**, base
   d'intégration `4a54090` : interposition commune pour biens, protégés et
   lieux gardés. Seuil déclaré, approche réellement vue en continu, poste
@@ -31,7 +92,7 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
   des sources exécutées vérifiées ; aucun calcul actif.
   Recouvrements 330 : `pnj.py` ; 332 : `esprits.py`, `pnj.py`.
   [Rapport 333](taches/rapport-codex-333-garder-un-lieu.md).
-  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `agendas.py`, `defense.py`, `esprits.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses ; fusion du groupe 1 validée par suite complète comparée à l'intégration.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `agendas.py`, `defense.py`, `esprits.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses. Suite complète de l'essai origin/essai-integration-g1 (8f410f7) : 104 tests rouges contre 108 sur 7eb45ff, aucun nouveau venu du groupe 1 (un rouge du catalogue terminal/web, attribuable au lot 349).
 
 - **Lot 332 terminé, branche `codex-attention-conjointe`, fusionnée**, base
   `integration 7e65907` : direction des regards réellement perçus, sans cible
@@ -58,7 +119,7 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
   anciennes attitudes sans direction conservées jusqu'au prochain regard décidé.
   Recouvrement possible 330 : `esprits.py`, `pnj.py`, `signes.py`.
   [Rapport 332](taches/rapport-codex-332-attention-conjointe.md).
-  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `esprits.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses ; fusion du groupe 1 validée par suite complète comparée à l'intégration.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `esprits.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses. Suite complète de l'essai origin/essai-integration-g1 (8f410f7) : 104 tests rouges contre 108 sur 7eb45ff, aucun nouveau venu du groupe 1 (un rouge du catalogue terminal/web, attribuable au lot 349).
 
 - **Lot 313 terminé après attribution de la suite, branche `codex-contact-inconnu`, fusionnée**, base
   `integration d76f272`, moteur final validé sur `c6cad4a` : contact commun
@@ -132,7 +193,34 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
   `artifacts/contact-313/attribution-suite/` et `attribution-corrections/`.
   Aucun calcul actif, branche poussée.
   [Rapport 313](taches/rapport-codex-313-contact-position-inconnue.md).
-  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `esprits.py`, `planification.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses ; fusion du groupe 1 validée par suite complète comparée à l'intégration.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `esprits.py`, `planification.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses. Suite complète de l'essai origin/essai-integration-g1 (8f410f7) : 104 tests rouges contre 108 sur 7eb45ff, aucun nouveau venu du groupe 1 (un rouge du catalogue terminal/web, attribuable au lot 349).
+
+- **355 — E4 accord daté**, `codex-e4-accord-date`, base `origin/integration 9b66d5a` (PC fixe).
+  Termes `part`/`tache` avec limite absolue : jugement E3, paiement présent et obligation atomiques ;
+  soumission dédupliquée jusque dans l'issue E2, termes et dates rendus par le moteur, recharge validée.
+  151 tests ciblés/voisins : 146 verts, cinq échecs reproduits sur la base ; E4 14/14 et socle 6/6 verts.
+  Banc rapide 4 h × quatre graines × Relais/auberge/mine : 12/12 nuits identiques à la base, audits compris,
+  zéro plantage/nouvelle alerte ; écarts à `main` antérieurs à E4. Bruts : `artifacts/e4-355/` du dépôt principal.
+  E5/E6 et offres/renégociation restent hors périmètre. [Rapport](taches/rapport-codex-355-e4-accord-date.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `paroles.py`, fusionnés sans conflit textuel. 146 tests ciblés verts, cinq échecs préexistants ; banc rapide 12/12 nuits identiques. paroles.py commun avec le lot 354 : tests ciblés des deux lots rejoués avant poussée.
+
+- **354 U-M social information**, `codex-um-social-information`, base `57c9771d`, terminé non fusionné : formulaire public
+  pour identité, localisation d'une personne, ressource et annonce de lieu ; entrée U-D commune vers parole/U-C.
+  Transport d'adresse structuré dans `preparer_parole`, règles et chemin texte conservés ; zéro modèle au clic.
+  Raccord minimal `jeu.py` autorisé, fichier commun avec 353. Questions sur la position d'un objet hors périmètre,
+  limite acceptée et affichée. **112 tests / dix fichiers verts**, 24 rejoués, 17 mesures Node : 6/8/11 clics, zéro modèle.
+  Régression du récapitulatif corrigée, chemin texte conservé par AST ; `fin-cloture.json` vert, aucun calcul actif.
+  Rapport : [lot 354](taches/rapport-codex-354-um-social-information.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 112 tests ciblés verts ; raccord minimal dans jeu.py et adresse structurée dans paroles.py (autorisés par le superviseur, même validation que le texte) ; « où est » d'un objet reste une limite (règle joueur inchangée).
+
+- **`codex-e3-delai-cru`**, lot **352**, base `integration e7ea375`, code `d03d0d2` :
+  jugement interne crédible/impossible/indéterminé sur le devis cru du contractant ;
+  durée du plan complet distincte du coût, aucun savoir privé du payeur pour le feu.
+  103 tests distincts verts, dont 10 E3 avec `planification.VERIFIER`, effets/recharge/rendu.
+  Banc 4 h × 4 graines × Relais/auberge/mine : 12/12 nuits identiques à la base, audits compris,
+  zéro plantage ; 27 avis à expliquer préexistants. Écarts avec `main` antérieurs à E3.
+  Aucun schéma ni raccord joueur avant E4–E6. [Rapport](taches/rapport-codex-352-e3-delai-cru.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Socle interne jusqu'à E4-E6 ; 103 tests ciblés verts ; banc rapide 12/12 nuits identiques à la base.
 
 - **349 — U-M passage**, `codex-um-passage`, base intégration `a0f0eba`, terminé, non fusionné.
   Menu des formes perçues établies : dessous/dessus, échelle installée, perche déjà arbitrée.

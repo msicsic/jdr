@@ -3281,16 +3281,24 @@ def planifier_engagement(monde, id, engagement):
     return planifier_tache(monde, id, engagement["condition"], engagement["pour"])
 
 
-def devis_pulsion(monde, id, condition, payeur):
+def devis_pulsion(monde, id, condition, payeur, *, duree=None):
     """(coût, étapes) de rétablir ``condition`` (minutes de son plan, fautes comprises), ou None s'il
     ne voit pas comment : ce qu'une tâche qu'on lui propose lui coûterait (``echanges.engager``). Un
     feu qu'on le paie d'entretenir, il le compte à recharger et rallumer, pas seulement à aller
     voir : celui qui le paie le sait à entretenir. Par ses seuls moyens, ce que la garde du bien de
     ``payeur`` lui permet et les biens que ``payeur`` lui remettrait : il ne compte sur personne
-    pour accomplir le service à sa place (ni part servie, ni feu allumé par un autre)."""
+    pour accomplir le service à sa place (ni part servie, ni feu allumé par un autre).
+    Si ``duree`` est fourni, y ajoute la durée physique du plan complet, ou None
+    s'il reste hypothétique ; jamais la durée de son seul préfixe exécutable.
+    """
     if not monde.objets.get(id, {}).get("profil"):
         raise ValueError(f"devis_pulsion : acteur sans profil autonome : {id}")
-    trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
+    mesure = [] if duree is not None else None
+    trouve = _pulsion(monde, id, condition, False, entretenir=payeur, duree=mesure)
+    if duree is not None:
+        # Mesurer avant de couper les hypothèses : le préfixe exécutable
+        # d'un plan incertain n'est pas un devis de réalisation complète.
+        duree.append(mesure[0] if mesure else None)
     return None if trouve is None else (trouve[0], trouve[2])
 
 
@@ -3348,7 +3356,7 @@ def duree_devis(monde, id, etapes):
     return None if mesure is None else mesure[0]
 
 
-def _pulsion(monde, id, condition, tache, entretenir=None):
+def _pulsion(monde, id, condition, tache, entretenir=None, *, duree=None):
     """(coût, but, étapes) de ``planifier_pulsion``, ou None."""
     from .deliberation import salle_crue
     from .echanges import tache as sorte
@@ -3374,7 +3382,7 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         return None if trouve is None else (0, *trouve)
     if "remettre" in condition:
         if entretenir:
-            return _devis_remise(monde, id, o, condition, entretenir)
+            return _devis_remise(monde, id, o, condition, entretenir, duree=duree)
         trouve = _remettre(monde, id, o, condition, seul=entretenir)
         return None if trouve is None else (0, *trouve)
     if "periode" in condition:
@@ -3428,10 +3436,15 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
         vises["confier"] = (dict(condition),)
     depuis = None
     if entretenir and "allume" in condition and _vu_avant_la_tache(monde, id, condition, entretenir):
-        # Celui qui le paie le sait à recharger, et éteint s'il ne le croit pas allumé (l'offre le dit) :
-        # il le compte comme tel, quoi qu'il en ait vu avant que la tâche ne lui soit payée ; ce qu'il en
-        # voit ensuite (qu'il l'a rechargé, rallumé lui-même), il le croit.
-        dit = (_cru(monde, entretenir, o, "etat") or {}) if entretenir != "joueur" else {}
+        # E3 porte les seules obligations datées sur les croyances du
+        # contractant, au jugement comme à l'exécution. Les autres gardent
+        # le contrat historique : l'offre dit le feu à recharger et, si le
+        # payeur ne le croit pas allumé, à rallumer. Mesurer une durée ne
+        # change jamais ce contrat.
+        date = any(agendas.reference_temporelle(x) for x in agendas.en_cours(monde, id)
+                   if x["pour"] == entretenir and x["condition"] == condition and not x.get("annule"))
+        observateur = id if date else entretenir
+        dit = (_cru(monde, observateur, o, "etat") or {}) if observateur != "joueur" else {}
         depuis = depart(monde, id).apres(faits=[(("charge", o), False)]
                                          + ([] if dit.get("allume") else [(("allume", o), False)]))
     trouve = chercher(monde, id, but, vises, depuis=depuis, nom=_nom_condition(condition),
@@ -3440,7 +3453,11 @@ def _pulsion(monde, id, condition, tache, entretenir=None):
     if trouve is None:
         return None
     cout, etapes, e = trouve
-    return cout, {"type": "pulsion", **condition}, retablir(vue(monde, id), e, etapes)
+    plan = retablir(vue(monde, id), e, etapes)
+    if duree is not None:
+        incertain = any(g.get('suppose') or g.get('attendre_remise') for g in etapes)
+        duree.append(None if incertain else duree_devis(monde, id, plan))
+    return cout, {"type": "pulsion", **condition}, plan
 
 
 def _vu_avant_la_tache(monde, id, condition, payeur):
@@ -3488,7 +3505,7 @@ def _rendre(monde, id, o, condition):
     return {"type": "pulsion", **condition}, trajet[1] + [_etape("remettre", condition['rendre'], outil=o)]
 
 
-def _devis_remise(monde, id, o, condition, seul):
+def _devis_remise(monde, id, o, condition, seul, *, duree=None):
     """Acquisition et livraison chiffrées ensemble, comme tout autre service."""
     destinataire = condition['remettre']
     v = vue(monde, id)
@@ -3528,6 +3545,9 @@ def _devis_remise(monde, id, o, condition, seul):
     etapes = _couper(trouve[1])
     if complet:
         etapes += [remise] + _couper(restauration[1])
+    if duree is not None:
+        incertain = any(g.get('suppose') or g.get('attendre_remise') for g in restauration[1])
+        duree.append(duree_devis(monde, id, etapes) if complet and not incertain else None)
     return cout, but, etapes
 
 

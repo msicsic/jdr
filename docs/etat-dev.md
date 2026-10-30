@@ -15,7 +15,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Fusionnés récemment : G2, G4, U-D, G5, G6, G7, G15, G17, G19, U-P, U-C, U-M outils/inventaire/fabrication,
   U-T premier geste/outils/inventaire/fabrication, A0 (oracle G1).
 - **PNJ** : A5 (mandat) fini sauf 306 (lots 338, 340, 341 fusionnés). A1 provenance publique fusionnée (346, non branchée).
-  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 et E2 fusionnés (348, 350), E3 = 352.
+  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1, E2, E3 fusionnés (348, 350, 352), E4 = 355.
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
 - **Abandonnés, branches gardées sur origin** (à rediscuter avec l'utilisateur) : 33, 36, 117 b, 117 c, 162, 166,
@@ -23,34 +23,34 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-e3-taches-payees` (999e4c67) : lot 357, régression d'E3 sur les tâches payées corrigée. Détail dans l'historique.
+- `codex-attribution-groupe1` (8d1a4c3f) : lot 342, attribution du groupe 1. Détail dans l'historique.
+- `codex-ut-corps-passage` (fe464411) : lot 353, U-T corps et passage au terminal. Détail dans l'historique.
 - `codex-garder-lieu` (40bd537e) : lot 333, garder un lieu. Détail dans l'historique.
 - `codex-attention-conjointe` (c3db8e29) : lot 332, attention conjointe. Détail dans l'historique.
 - `codex-contact-inconnu` (cddc76e5) : lot 313, contact de position inconnue. Détail dans l'historique.
+- `codex-e4-accord-date` (30ec526a) : lot 355, E4 l'accord initial engage exactement les termes datés. Détail dans l'historique.
+- `codex-um-social-information` (c78b0e8b) : lot 354, U-M social information, l'acte d'information au formulaire. Détail dans l'historique.
+- `codex-e3-delai-cru` (69bba20e) : lot 352, E3 délai jugé sur les moyens crus du contractant. Détail dans l'historique.
 - `codex-um-passage` (a8bc0fce) : lot 349, U-M passage, franchissements qualifiés au menu. Détail dans l'historique.
 - `codex-g18-avis` (d162988a) : lot 351, G18 l'avis formulé par le moteur, parole sans vérité. Détail dans l'historique.
 - `codex-e2-realisation-datee` (d9803abd) : lot 350, E2 verdict temporel par réalisation datée unique. Détail dans l'historique.
-- `codex-e1-reference-temporelle` (6d06181f) : lot 348, E1 référence temporelle canonique d'une obligation. Détail dans l'historique.
-- `codex-g16-information` (1ec5525) : lot 345, G16 paroles d'information formulées par le moteur. Détail dans l'historique.
-- `codex-um-corps` (39113e9) : lot 344, U-M corps, gestes de corps et de violence au menu. Détail dans l'historique.
-- `codex-conception-menace` (228892f) : lot 347, conception de la menace et de l'échéance négociée. Détail dans l'historique.
-- `codex-a1-provenance` (29079a6) : lot 346, A1 projection publique avec provenance. Détail dans l'historique.
-- `codex-mandat-joueur` (5a3baf0) : lot 341, A5.9 le joueur mandant et mandaté. Détail dans l'historique.
 
 ## Lots non fusionnés
 
-- **315 — réclamations retenues**, branche `codex-reclamations-repetees`, base `beaecc7` ;
-  réaccordée par fusion (sans rebase) avec `origin/essai-integration-g1` (`8f410f7`).
-  Refus durable, ordre et borne des remboursements conservés ; référence, réalisation datée et
-  remboursement unique d'E1/E2 conservés. Une dette encore inconnue ne prépare aucune réclamation.
-  357 tests / 37 fichiers : 347 verts ; 9 échecs identiques sur l'essai intact `8f410f7`.
-  Réserve supplémentaire : capture de service, `social.phrase` plante sur un bien posé (`porteur=None`).
-  Contrats 315/E1/E2 verts ; ce défaut de rendu social reste à traiter dans un lot distinct.
-  Limites et mesures : [rapport 315](taches/rapport-codex-315-reclamations-repetees.md).
+- **315 — réclamations retenues**, branche `codex-reclamations-repetees`, reprise de `7826c3a` ;
+  fusion sans rebase de l'intégration `07c9b62e` (E1–E4 et 357 compris).
+  Défaut social du 337 révélé par la chronologie du 315 ; aucune obligation/clôture E2 dans le cas réel.
+  Le constat sans porteur décrit son lieu connu ; références citées et non-divulgation conservées.
+  28 tests ciblés verts ; validation de 54 fichiers en cours (deux processus à priorité réduite).
+  Fin : `artifacts/reclamations-315/social-07c9b62/fin.json` dans le dépôt principal.
+  Mesures et limites : [rapport 315](taches/rapport-codex-315-reclamations-repetees.md).
 
-Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 351 (G18 avis), 352 (E3 délai cru).
-Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
-antérieurs sont connus (`test_protection` Gorm au beffroi, trois faisabilités de `test_luna_noms`, persuasion
-Hugues/Anselme) ; un petit lot les traitera avant la vérification d'intégration.
+Lots en cours : 356 (suite rouge, attribution), 357 (régression d'E3 sur les tâches payées). 315 réaccordée
+(`codex-reclamations-repetees` 7826c3a) en attente : une erreur nouvelle de rendu social (`porteur=None`) à comprendre.
+Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
+écrits avant le consentement U-C, d'autres familles à attribuer) : lot 356 (attribution, harnais) en cours ; la
+vérification d'intégration et l'avance de `main` attendent une suite redevenue témoin fiable.
 
 ## Décisions prises le 2026-10-30
 

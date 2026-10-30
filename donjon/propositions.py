@@ -21,6 +21,13 @@ def schema_terme(contrepartie=False, service=False):
                                   'echeance': {'type': 'integer', 'minimum': 0}}))
     formes.append(_forme({"type": {"type": "string", "enum": ["tache"]},
                           "condition": {"anyOf": conditions}}))
+    # Une seule clause nouvelle : une prestation ponctuelle avant un instant absolu.
+    for forme in list(formes):
+        if forme['properties']['type']['enum'][0] in ('part', 'tache'):
+            proprietes = {**forme['properties'], 'limite': {'type': 'integer', 'minimum': 0}}
+            if 'condition' in proprietes:
+                proprietes['condition'] = {'anyOf': [c for c in conditions if 'proteger' not in c['properties']]}
+            formes.append(_forme(proprietes))
     formes.extend([_forme({"type": {"type": "string", "enum": ["pieces"]},
                            "montant": {"type": "integer", "minimum": 1}}),
                    _forme({"type": {"type": "string", "enum": ["pieces"]},
@@ -82,6 +89,20 @@ def prestation(monde, donneur, receveur, terme):
 
 
 def en_mots(monde, terme):
+    from .temps import instant
+    return _en_mots(monde, terme) + (en_mots_limite(terme['limite'], instant(monde))
+                                    if 'limite' in terme else '')
+
+
+def en_mots_limite(limite, maintenant):
+    from .temps import MINUTE, dire_duree
+    minute, reste = divmod(limite, MINUTE)
+    repere = f'la minute de jeu {minute}' + (' et ' + dire_duree(reste) if reste else '')
+    return (' au plus tard à ' + repere + ' ('
+            + (dire_duree(limite - maintenant) + ' restantes' if limite >= maintenant else 'limite passée') + ')')
+
+
+def _en_mots(monde, terme):
     from .francais import designer, complement_de
     from .echanges import phrase_condition
     t = terme["type"]
@@ -107,11 +128,22 @@ def erreur_terme(terme, contrepartie=True):
     if not isinstance(terme, dict) or terme.get("type") not in types:
         return "", terme, types
     t = terme["type"]
+    if 'limite' in terme:
+        if t not in ('part', 'tache'):
+            return '.limite', terme['limite'], 'champ absent : paiement présent ; ni crédit ni prêt daté'
+        if type(terme['limite']) is not int or terme['limite'] < 0:
+            return '.limite', terme['limite'], 'entier >= 0 en dixièmes absolus'
     champs = {"type", *({"objet"} if t in ("objet", "part") else
                         {"condition"} if t == "tache" else {"montant"} if t == "pieces" else set())}
     if t == "pieces" and "objet" in terme:
         champs.add("objet")
+    if 'limite' in terme:
+        champs.add('limite')
     if set(terme) != champs:
+        surplus = sorted(set(terme) - champs)
+        if surplus:
+            cle = surplus[0]
+            return '.' + cle, terme[cle], 'champ absent ; prestation ponctuelle et paiement présent uniquement'
         return "", sorted(terme), sorted(champs)
     if "objet" in terme and not isinstance(terme["objet"], str):
         return ".objet", terme["objet"], "identifiant"
@@ -119,6 +151,9 @@ def erreur_terme(terme, contrepartie=True):
         return ".montant", terme["montant"], "entier strictement positif"
     if t == "tache":
         c = terme["condition"]
+        if 'limite' in terme and isinstance(c, dict) and set(c) not in (
+                {'objet', 'allume'}, {'objet', 'verrouillee'}, {'objet', 'lieu'}, {'objet', 'servir'}):
+            return '.condition', c, 'prestation ponctuelle : allume, verrouillee, lieu ou servir ; ni prêt ni maintien continu'
         protection = (isinstance(c, dict) and set(c) == {'objet', 'proteger', 'echeance'}
                       and isinstance(c['objet'], str) and c['proteger'] is True
                       and type(c['echeance']) is int and c['echeance'] >= 0)
@@ -188,6 +223,10 @@ def verifier(monde, c, champ="contenu", proposant="joueur"):
                             "ce champ ne désigne pas le bien acheté. "
                             f"Pour les fonds du donneur, retirer {chemin}.objet et conserver "
                             f"le terme {{'type': 'pieces', 'montant': {terme['montant']!r}}}")
+    for nom, autre in (('demande', 'contrepartie'), ('contrepartie', 'demande')):
+        if 'limite' in c[nom] and c[autre]['type'] != 'pieces':
+            refuser(f'{champ}.{autre}.type', c[autre]['type'],
+                    'pieces payées maintenant contre la prestation datée')
 
 
 def demande_utile(monde, id, demande):

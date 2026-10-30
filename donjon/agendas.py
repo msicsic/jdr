@@ -1732,6 +1732,17 @@ def issues_temporelles(monde):
     return copy.deepcopy(monde.data.get('issues_obligations', []))
 
 
+def accord_initial(proposant, auditeur, demande, contrepartie):
+    return copy.deepcopy(dict(proposant=proposant, auditeur=auditeur,
+                              demande=demande, contrepartie=contrepartie))
+
+
+def accord_deja_conclu(monde, accord):
+    """Une soumission identique reste acquittée même après livraison ou clôture."""
+    return any(x.get('accord_initial') == accord for _, x in _obligations_datees(monde)) or any(
+        i['engagement'].get('accord_initial') == accord for i in monde.data.get('issues_obligations', []))
+
+
 def prochaine_expiration(monde, defaut):
     return min((reference_temporelle(x)['limite'] + 1
                 for _, x in _obligations_datees(monde)), default=defaut)
@@ -1878,7 +1889,7 @@ def _constater_issues(monde, id, lignes=None):
             lignes.append(texte)
 
 
-def _verifier_reference_temporelle(monde, engagement, chemin, sequence):
+def _verifier_reference_temporelle(monde, engagement, chemin, sequence, titulaire=None):
     from .monde import ErreurMonde
     from .temps import instant
 
@@ -1888,6 +1899,8 @@ def _verifier_reference_temporelle(monde, engagement, chemin, sequence):
 
     r = reference_temporelle(engagement)
     if 'reference_temporelle' not in engagement:
+        if 'accord_initial' in engagement:
+            refuser('accord_initial', engagement['accord_initial'], 'une obligation avec référence temporelle')
         return None
     champs = {'id', 'version', 'creation', 'limite'}
     if not isinstance(r, dict):
@@ -1913,12 +1926,54 @@ def _verifier_reference_temporelle(monde, engagement, chemin, sequence):
         refuser('limite', r['limite'], 'un instant positif ou nul')
     if r['limite'] < r['creation']:
         refuser('limite', r['limite'], f'un instant >= creation={r["creation"]}')
+    chemin = chemin.removesuffix('.reference_temporelle')
     from .deliberation import condition_valide
     c = engagement.get('condition')
     if (not condition_valide(monde, c) or set(c) not in (
             {'objet', 'allume'}, {'objet', 'verrouillee'}, {'objet', 'lieu'},
             {'objet', 'remettre'}, {'objet', 'servir'})):
         refuser('condition', c, 'une prestation ponctuelle : allume, verrouillee, lieu, remettre ou servir')
+    if 'accord_initial' in engagement:
+        from .propositions import erreur_terme
+        a = engagement['accord_initial']
+        if not isinstance(a, dict) or set(a) != {'proposant', 'auditeur', 'demande', 'contrepartie'}:
+            refuser('accord_initial', a, '{proposant, auditeur, demande, contrepartie}')
+        for cle in ('proposant', 'auditeur'):
+            if not isinstance(a[cle], str) or a[cle] != 'joueur' and a[cle] not in monde.data.get('esprits', {}):
+                refuser('accord_initial.' + cle, a[cle], 'joueur ou un identifiant d’esprit')
+        for cle in ('demande', 'contrepartie'):
+            erreur = erreur_terme(a[cle], cle == 'contrepartie')
+            if erreur:
+                suffixe, recu, accepte = erreur
+                refuser('accord_initial.' + cle + suffixe, recu, accepte)
+        service, paiement = ((a['demande'], a['contrepartie']) if 'limite' in a['demande']
+                             else (a['contrepartie'], a['demande']))
+        if service.get('limite') != r['limite']:
+            refuser('accord_initial.limite', service.get('limite'), r['limite'])
+        contractant, beneficiaire = ((a['auditeur'], a['proposant']) if 'limite' in a['demande']
+                                    else (a['proposant'], a['auditeur']))
+        if titulaire is not None and contractant != titulaire:
+            refuser('accord_initial.contractant', contractant, titulaire)
+        if engagement['pour'] != beneficiaire:
+            refuser('accord_initial.beneficiaire', beneficiaire, engagement['pour'])
+        if paiement['type'] != 'pieces':
+            refuser('accord_initial.paiement', paiement, 'pieces payées maintenant')
+        attendu = (service['condition'] if service['type'] == 'tache' else
+                   {'objet': c['objet'], 'remettre': engagement['pour']})
+        if c != attendu or service['type'] == 'part' and engagement.get('lot') != service['objet']:
+            refuser('accord_initial.prestation', service, 'les termes de cette obligation')
+        p = engagement.get('paye')
+        if not isinstance(p, dict) or set(p) != {'objet', 'prix', 'quoi'}:
+            refuser('paye', p, '{objet, prix, quoi}')
+        if type(p['prix']) is not int:
+            refuser('paye.prix', p['prix'], 'un entier strictement positif')
+        if p['prix'] != paiement['montant']:
+            refuser('accord_initial.montant', paiement['montant'], p['prix'])
+        if p['objet'] != c['objet']:
+            refuser('paye.objet', p['objet'], c['objet'])
+        quoi = 'objet' if service['type'] == 'part' else 'tache'
+        if p['quoi'] != quoi:
+            refuser('paye.quoi', p['quoi'], quoi)
     return r
 
 
@@ -1953,7 +2008,7 @@ def verifier_references_temporelles(monde):
             refuser('titulaire', id, 'joueur ou un identifiant d’esprit')
         if not isinstance(x, dict) or reference_temporelle(x) is None:
             refuser('engagement', x, 'une obligation avec reference_temporelle')
-        r = _verifier_reference_temporelle(monde, x, chemin + '.engagement', sequence)
+        r = _verifier_reference_temporelle(monde, x, chemin + '.engagement', sequence, id)
         cloture, fait = issue['cloture'], issue['realisation']
         if type(cloture) is not int or not r['creation'] <= cloture <= instant(monde):
             refuser('cloture', cloture, f'un entier entre {r["creation"]} et {instant(monde)}')
@@ -1967,11 +2022,12 @@ def verifier_references_temporelles(monde):
         if type(issue['constatee']) is not bool:
             refuser('constatee', issue['constatee'], 'un booléen')
         stocks.append((chemin, [x]))
-    identites = set()
+    identites, accords = set(), []
     for id, stock in stocks:
         for rang, engagement in enumerate(stock):
             chemin = f'obligations.{id}[{rang}]'
-            r = _verifier_reference_temporelle(monde, engagement, chemin, sequence)
+            r = _verifier_reference_temporelle(monde, engagement, chemin, sequence,
+                                              id if not id.startswith('issues_obligations[') else None)
             if r is None:
                 continue
             if r['id'] in identites:
@@ -1979,18 +2035,29 @@ def verifier_references_temporelles(monde):
                                   f'{chemin}.reference_temporelle.id : reçu {r["id"]!r} ; '
                                   'accepté : un identifiant distinct de toute autre obligation.')
             identites.add(r['id'])
+            if 'accord_initial' in engagement:
+                accord = engagement['accord_initial']
+                if accord in accords:
+                    raise ErreurMonde('Accord initial dupliqué.',
+                                      f'{chemin}.accord_initial : reçu {accord!r} ; accepté : un accord distinct.')
+                accords.append(accord)
 
 
-def prendre(monde, id, engagement, *, limite=None):
+def prendre(monde, id, engagement, *, limite=None, accord=None):
     """Inscrire aussi la proposition provisoire, retirée si le devis ou le jet refuse.
 
-    E1 : ``limite`` est interne, sans appelant de jeu avant le portage E4.
+    E4 conserve les termes initiaux pour dédupliquer leur soumission après clôture.
     Aucune métadonnée ajoutée aux engagements ordinaires ou aux anciennes parties.
     """
     from .esprits import esprit
     from .monde import ErreurMonde
     from .temps import instant
     engagement = copy.deepcopy(engagement)
+    if accord is not None:
+        if limite is None:
+            raise ErreurMonde('Cet accord doit porter une limite.',
+                              f'limite : reçu {limite!r} ; accepté : un entier >= 0 en dixièmes absolus.')
+        engagement['accord_initial'] = copy.deepcopy(accord)
     if 'reference_temporelle' in engagement:
         raise ErreurMonde('Cette référence d’obligation ne peut pas être réutilisée.',
                           f'reference_temporelle : reçu {engagement["reference_temporelle"]!r} ; '
@@ -2000,7 +2067,7 @@ def prendre(monde, id, engagement, *, limite=None):
         sequence = monde.data.get('sequence_obligations', 0) + 1
         engagement['reference_temporelle'] = {
             'id': sequence, 'version': 1, 'creation': instant(monde), 'limite': limite}
-        _verifier_reference_temporelle(monde, engagement, f'obligations.{id}', sequence)
+        _verifier_reference_temporelle(monde, engagement, f'obligations.{id}', sequence, id)
         monde.data['sequence_obligations'] = sequence
     stock = monde.data.setdefault("promesses_joueur", []) if id == "joueur" else esprit(monde, id)["engagements"]
     stock.append(engagement)
@@ -2390,7 +2457,7 @@ def verifier(monde, id):
         # reçu (``echanges.engagements_echus``).
         from .biens import QUOI
         paye = engagement.get("paye")
-        assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule", "commence", "reference_temporelle"}
+        assert (isinstance(engagement, dict) and set(engagement) - {"paye", "lot", "objet", "annule", "commence", "reference_temporelle", "accord_initial"}
                 - ({"realisee"} if id == "joueur" else set()) == {"condition", "pour", "minute"}
                 and ("realisee" not in engagement or engagement["realisee"] is True)
                 and ("objet" not in engagement or isinstance(engagement["objet"], str))
@@ -2547,5 +2614,21 @@ def promesses_visibles(monde):
     from .echanges import phrase_condition
     from .voix import nom_pour_joueur
     from .francais import groupe_nominal
-    return ["Tu as promis " + groupe_nominal(nom_pour_joueur(monde, x["pour"]), "à") + " que "
-            + phrase_condition(monde, x["condition"]) + "." for x in en_cours(monde, "joueur")]
+    from .propositions import en_mots, en_mots_limite
+    from .temps import instant
+    def date(x):
+        r = reference_temporelle(x)
+        return en_mots_limite(r['limite'], instant(monde)) if r else ''
+    lignes = ["Tu as promis " + groupe_nominal(nom_pour_joueur(monde, x["pour"]), "à") + " que "
+              + phrase_condition(monde, x["condition"]) + date(x) + "." for x in en_cours(monde, "joueur")]
+    for id, x in _obligations_datees(monde):
+        if id == 'joueur' or x['pour'] != 'joueur':
+            continue
+        a = x.get('accord_initial')
+        if not a:
+            continue
+        service, paiement = ((a['demande'], a['contrepartie']) if 'limite' in a['demande']
+                             else (a['contrepartie'], a['demande']))
+        lignes.append(nom_pour_joueur(monde, id) + ' a accepté ' + en_mots(monde, service)
+                      + ' contre un paiement déjà effectué de ' + en_mots(monde, paiement) + '.')
+    return lignes

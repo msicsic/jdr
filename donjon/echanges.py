@@ -33,6 +33,66 @@ PAS_PROPOSITION = 5.0  # minutes de valeur propre par point de persuasion
 PRIX_SANS_PRIX = 1     # convention commune pour un objet sans prix déclaré
 
 
+def juger_delai(monde, contractant, condition, pour, limite):
+    """Jugement interne d'une prestation E1, sans accord, jet ni effet réel.
+
+    ``limite`` est un instant absolu ; coût pondéré et durée physique restent
+    séparés. Aucun devis fourni par un tiers ou conservé par l'appelant n'est
+    accepté : la recherche commune revalide ses entrées crues à chaque appel.
+    Un résultat refusé expose une cause et son attendu, prêts pour E4.
+    """
+    from math import ceil
+    from .monde import ErreurMonde
+    from .planification import devis_pulsion, diagnostics
+    from .temps import instant, MINUTE
+    maintenant = instant(monde)
+    if type(limite) is not int or limite < 0:
+        raise ErreurMonde('Cette limite temporelle est invalide.',
+                          f'limite : reçu {limite!r} ; accepté : un entier >= 0 en dixièmes absolus.')
+    resultat = {'verdict': 'indetermine', 'limite': limite, 'duree': None,
+                'estimation': None, 'cout': None}
+
+    def refuser(verdict, cause, message, accepte):
+        resultat.update(verdict=verdict, cause=cause, message=message,
+                        attendu=f'limite : reçu {limite!r} ; accepté : {accepte}.')
+        return resultat
+
+    if limite < maintenant:
+        return refuser('impossible', 'limite_passee', 'Cette limite est déjà passée.',
+                       f'un instant >= {maintenant}')
+    copie = monde.copier()
+    # Même validation et permissions que l'obligation, sur une copie jetable.
+    agendas.prendre(copie, contractant, {'condition': condition, 'pour': pour,
+                                       'minute': copie.data['minutes']}, limite=limite)
+    if not copie.objets.get(contractant, {}).get('profil'):
+        return refuser('indetermine', 'duree_indeterminee',
+                       'Je ne peux pas m’engager sur ce délai : la durée est incertaine.',
+                       'un accord sans limite, à proposer explicitement')
+    durees = []
+    with diagnostics() as recherches:
+        devis = devis_pulsion(copie, contractant, condition, pour, duree=durees)
+    if devis is None and not any(r['issue'] == 'borne' for r in recherches):
+        return refuser('impossible', 'moyens_insuffisants',
+                       'Je ne vois pas comment accomplir cette prestation avec mes moyens.',
+                       'une prestation réalisable selon les moyens crus du contractant')
+    if devis is not None:
+        resultat['cout'] = devis[0]
+        resultat['duree'] = durees[0]
+    if resultat['duree'] is None:
+        return refuser('indetermine', 'duree_indeterminee',
+                       'Je ne peux pas m’engager sur ce délai : la durée est incertaine.',
+                       'un accord sans limite, à proposer explicitement')
+    # Les tarifs sont en minutes ; un geste doit finir dans un dixième entier.
+    estimation = maintenant + ceil(resultat['duree'] * MINUTE - 1e-9)
+    resultat['estimation'] = estimation
+    if estimation > limite:
+        return refuser('impossible', 'delai_trop_court',
+                       'Je ne pense pas pouvoir terminer avant cette limite.',
+                       f'un instant >= {estimation} selon le devis courant, ou un accord sans limite')
+    resultat['verdict'] = 'credible'
+    return resultat
+
+
 def _devis_proposition(monde, id, condition, pour, devis=None):
     """Le devis existant, sur ses croyances, avec la permission de la tâche proposée."""
     if not monde.objets.get(id, {}).get("profil"):
@@ -174,12 +234,40 @@ def _livraison_proposition(monde, donneur, receveur, terme):
     return _devis_proposition(copie, donneur, condition, receveur) is not None
 
 
+def _juger_termes_dates(monde, proposant, auditeur, demande, contrepartie):
+    """Devis du contractant ; une part est la pièce réellement détachée, sur copie."""
+    from .temps import instant
+    from .spatial import porte_par
+    for terme, de, a in ((demande, auditeur, proposant), (contrepartie, proposant, auditeur)):
+        if 'limite' not in terme:
+            continue
+        condition = terme.get('condition')
+        copie = monde.copier()
+        if terme['type'] == 'part':
+            condition = {'objet': terme['objet'], 'remettre': a}
+            if monde.objets.get(de, {}).get('profil') or porte_par(monde, terme['objet'], de):
+                if _remettre_part(copie, de, a, terme['objet'], 0) == 'impossible':
+                    return {'cause': 'impossible'}
+                x = next((x for x in agendas.en_cours(copie, de)
+                          if x.get('lot') == terme['objet'] and x['pour'] == a), None)
+                if x is None and terme['limite'] >= instant(monde):
+                    continue  # Remise présente : aucune durée future à garantir.
+                condition = x['condition'] if x else condition
+        jugement = juger_delai(copie, de, condition, a, terme['limite'])
+        if jugement['verdict'] != 'credible':
+            return {'cause': 'impossible', 'delai': jugement}
+    return None
+
+
 def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie, *, devis=None):
     """P/G/L et DD communs, indépendants de l'identité du proposant. Aucun jet ni mutation."""
     from .caractere import caracteristique, valeur
     arret = accueil(monde, proposant, auditeur)
     if arret:
         return {"cause": arret}
+    temporel = _juger_termes_dates(monde, proposant, auditeur, demande, contrepartie)
+    if temporel:
+        return temporel
     # Une tâche promise ne vaut que si elle sert un but réellement cru de l'auditeur.
     buts = [x["condition"] for x in (monde.objets[auditeur].get("profil") or {}).get("pulsions", [])]
     buts += [x["condition"] for x in agendas.en_cours(monde, auditeur, actifs=True)]
@@ -332,10 +420,17 @@ def proposer(monde, proposant, auditeur, demande, contrepartie, *, accord_joueur
     from .propositions import verifier, payer_terme
     verifier(monde, {"type": "proposition", "demande": demande, "contrepartie": contrepartie}, proposant=proposant)
     original, monde = monde, monde.copier()
+    date = any('limite' in t for t in (demande, contrepartie))
+    accord = agendas.accord_initial(proposant, auditeur, demande, contrepartie) if date else None
+    if date and agendas.accord_deja_conclu(monde, accord):
+        return {'cause': 'deja'}
     for terme, de, a in ((demande, auditeur, proposant), (contrepartie, proposant, auditeur)):
         if terme["type"] == "tache" and agendas.en_cours(
                 monde, de, condition=terme["condition"], personne=a, actifs=True):
             return {"cause": "deja"}
+        if date and terme['type'] == 'part' and any(
+                x.get('lot') == terme['objet'] and x['pour'] == a for x in agendas.en_cours(monde, de)):
+            return {'cause': 'deja'}
     if contrepartie.get("objet") and demande.get("objet") == contrepartie["objet"]:
         return {"cause": "meme_bien"}
     # Les remises présentes exigent le contact ; parler de loin ne téléporte aucun bien.
@@ -371,8 +466,12 @@ def proposer(monde, proposant, auditeur, demande, contrepartie, *, accord_joueur
                 disponible = richesse(monde, de)
             if disponible < terme["montant"]:
                 return {"cause": "pauvre"}
-    if auditeur == 'joueur' and not accord_joueur:
-        return {'cause': 'attente'}
+    if auditeur == 'joueur':
+        temporel = _juger_termes_dates(monde, proposant, auditeur, demande, contrepartie)
+        if temporel:
+            return temporel
+        if not accord_joueur:
+            return {'cause': 'attente'}
     bilan = ({'cause': None, 'P': 0, 'G': 0} if auditeur == 'joueur' else
              evaluer_proposition(monde, proposant, auditeur, demande, contrepartie))
     if bilan["cause"]:
@@ -383,6 +482,21 @@ def proposer(monde, proposant, auditeur, demande, contrepartie, *, accord_joueur
     original.data["jets"] = monde.data["jets"]
     if not accepte:
         return dict(bilan, cause="marche" if bilan["P"] > bilan["G"] else "persuasion")
+    if date:
+        service, paiement, travailleur, payeur = (
+            (demande, contrepartie, auditeur, proposant) if 'limite' in demande else
+            (contrepartie, demande, proposant, auditeur))
+        if service['type'] == 'part':
+            issue = _remettre_part(monde, travailleur, payeur, service['objet'], paiement['montant'],
+                                  limite=service['limite'], accord=accord, paiement=paiement)
+        else:
+            issue = engager(monde, payeur, travailleur, service['condition'], paiement['montant'],
+                            limite=service['limite'], accord=accord, paiement=paiement)
+        if issue not in ('accepte', 'vendu'):
+            return dict(bilan, cause='marche' if issue == 'cher' else issue)
+        original.adopter(monde)
+        return dict(bilan, cause=None, accepte=True, livraison_differee=bool(
+            service['type'] == 'part' and agendas.en_cours(monde, travailleur, personne=payeur)))
     # Un travail contre numéraire est la même tâche payée que « engager » :
     # avance, garde et remboursement à l'échéance, dans la transaction du marché.
     service_paye = False
@@ -866,7 +980,8 @@ def detacher_part(monde, lot):
     return piece
 
 
-def _remettre_part(monde, vendeur, acheteur, lot, prix, persuasion=None):
+def _remettre_part(monde, vendeur, acheteur, lot, prix, persuasion=None, *,
+                   limite=None, accord=None, paiement=None):
     """Détacher et remettre une part, donnée ou vendue : les mêmes moyens et le même engagement
     de livraison. Impossible ou refusée, rien n'est prélevé ; payée, elle est remboursable comme
     tout objet vendu d'avance. Le demandeur garde l'identité de la part qu'il attend."""
@@ -890,7 +1005,7 @@ def _remettre_part(monde, vendeur, acheteur, lot, prix, persuasion=None):
     condition = {"objet": piece, "remettre": acheteur}
     engagement = {"condition": condition, "pour": acheteur, "minute": monde.data["minutes"], "lot": lot,
                   **({"paye": {"objet": piece, "prix": prix, "quoi": "objet"}} if prix else {})}
-    agendas.prendre(monde, vendeur, engagement)
+    agendas.prendre(monde, vendeur, engagement, limite=limite, accord=accord)
     possible = porte_par(monde, piece, vendeur) or devis_pulsion(monde, vendeur, condition, acheteur) is not None
     issue = "impossible" if not possible else (
         "refus" if persuasion is not None and not jet_persuasion(monde, vendeur, acheteur, persuasion)[0] else None)
@@ -901,7 +1016,7 @@ def _remettre_part(monde, vendeur, acheteur, lot, prix, persuasion=None):
         monde.objets[lot] = avant
         return issue
     if prix:
-        _vendre(monde, vendeur, acheteur, piece, prix)
+        _vendre(monde, vendeur, acheteur, piece, prix, paiement=paiement)
     if porte_par(monde, piece, vendeur):
         remettre(monde, vendeur, acheteur, piece, demande=True, achat=bool(prix))   # payée, ce n'est pas un don
         return "vendu" if prix else "remis"
@@ -933,7 +1048,7 @@ def tache(condition):
     return None if "periode" in condition else next((k for k in TACHES if k in condition), None)
 
 
-def engager(monde, payeur, autre, condition, prix):
+def engager(monde, payeur, autre, condition, prix, *, limite=None, accord=None, paiement=None):
     """« mefiance », « qui_va_la », « deja », « pauvre », « impossible », « necessaire », « cher » ou
     « accepte ».
 
@@ -955,7 +1070,7 @@ def engager(monde, payeur, autre, condition, prix):
     if tenu(monde, autre, condition, monde.data["minutes"]):
         _retenir_aide(monde, payeur, autre, condition, (0, []))
         return "deja"
-    if prix <= 0 or richesse(monde, payeur) < prix:
+    if prix <= 0 or (paiement is None and richesse(monde, payeur) < prix):
         return "pauvre"
     siens_a_portee(monde, autre)
     engagements = agendas.en_cours(monde, autre)
@@ -963,7 +1078,7 @@ def engager(monde, payeur, autre, condition, prix):
         return "deja"
     engagement = {"condition": dict(condition), "pour": payeur, "minute": monde.data["minutes"],
                   "paye": {"objet": condition.get("objet") or condition["lieu"], "prix": prix, "quoi": "tache"}}
-    agendas.prendre(monde, autre, engagement)
+    agendas.prendre(monde, autre, engagement, limite=limite, accord=accord)
     devis = devis_service(monde, autre, condition, payeur)
     if devis is None:
         agendas.retirer_proposition(monde, autre, engagement)
@@ -977,7 +1092,11 @@ def engager(monde, payeur, autre, condition, prix):
     if valeur_pieces(monde, autre, prix) < cout:
         agendas.retirer_proposition(monde, autre, engagement)
         return "cher"
-    payer(monde, payeur, autre, prix)
+    if paiement is None:
+        payer(monde, payeur, autre, prix)
+    else:
+        from .propositions import payer_terme
+        payer_terme(monde, payeur, autre, paiement)
     agendas.admettre_contrat(monde, autre, engagement)
     memoriser(monde, autre, {"type": "engagement_pris", "pour": payeur, "condition": dict(condition), "prix": prix})
     if payeur != "joueur":
@@ -1150,10 +1269,14 @@ def demander_feu(monde, demandeur, auditeur, flamme, source):
     return "allume"
 
 
-def _vendre(monde, vendeur, acheteur, objet, prix):
+def _vendre(monde, vendeur, acheteur, objet, prix, *, paiement=None):
     """L'acheteur paie ; chacun se souvient de la vente."""
     from .biens import payer
-    payer(monde, acheteur, vendeur, prix)
+    if paiement is None:
+        payer(monde, acheteur, vendeur, prix)
+    else:
+        from .propositions import payer_terme
+        payer_terme(monde, acheteur, vendeur, paiement)
     memoriser(monde, vendeur, {"type": "vente", "objet": objet, "a": acheteur, "prix": prix})
     if acheteur != "joueur":
         memoriser(monde, acheteur, {"type": "achat", "objet": objet, "de": vendeur, "prix": prix})
@@ -1346,8 +1469,8 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     utile = don_utile(monde, receveur, objet)
     o = monde.objets[objet]
     rendu_a_proprietaire = proprietaire(monde, o) == receveur
-    e = esprit(monde, donneur) if (monde.objets.get(donneur) or {}).get("profil") else None
-    livre = [x for x in (agendas.en_cours(monde, donneur) if e else []) if x["condition"] == {"objet": objet, "remettre": receveur}]
+    livre = [x for x in agendas.en_cours(monde, donneur)
+             if x["condition"] == {"objet": objet, "remettre": receveur}]
     tenus = list(livre)
     if livre and proprietaire(monde, o) == donneur:
         # Ce qu'il a vendu et vient remettre : l'objet passe à l'acheteur, la parole est tenue.

@@ -73,7 +73,7 @@ def plan_admis(monde, plan):
     return "Compris : " + _geste(monde, plan, plan.proposition)
 
 
-def contenu(monde, c, interlocuteur=""):
+def contenu(monde, c, interlocuteur="", *, reference_ressource=False):
     """Contenu typé d'une parole, distinct de la vérité de ce qu'elle affirme."""
     from .propositions import en_mots
     from .paroles import RESSOURCES_DEMANDEES, resoudre
@@ -116,6 +116,11 @@ def contenu(monde, c, interlocuteur=""):
         return f"réclamer le dû : {sujet or 'pièces'}"
     if t == "ressource":
         # Un nom recherché est du texte, pas l'identifiant d'un bien caché.
+        # Le formulaire fournit une référence exacte validée, le texte une
+        # recherche lexicale. Apprendre un objet ne réinterprète pas cette
+        # recherche, même si ses mots coïncident avec un identifiant interne.
+        if reference_ressource and s in monde.objets:
+            return "demander si l'interlocuteur possède " + repere(monde, s)
         return "demander si l'interlocuteur possède " + RESSOURCES_DEMANDEES.get(s, s)
     if t == "localisation":
         return "demander où se trouve " + sujet
@@ -131,7 +136,8 @@ def transactions_admises(monde, transactions, rapports):
             lignes.append(annonce(monde, rapport) + " (" + rapport["maniere"] + ")")
             qui = rapport["personnage"]
             a = "" if qui in ("personne", "tous") else rapport.get("a_qui") or repere(monde, qui)
-            lignes.extend(contenu(monde, c, a) for c in p["contenu"])
+            lignes.extend(contenu(monde, c, a, reference_ressource="_adresse" in p)
+                          for c in p["contenu"])
         elif transaction["type"] == "conversation_pnj":
             operations = {"discuter": "discuter", "proposer": "demander une offre", "negocier": "négocier",
                           "accepter": "accepter l'offre", "refuser": "refuser l'offre"}

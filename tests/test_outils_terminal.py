@@ -41,7 +41,8 @@ class ProjectionTests(unittest.TestCase):
                    if c.descripteur.contenu.get("parametres", {}).keys() & {"outil", "destination"}}
         self.assertTrue(attendus)
         self.assertEqual(obtenus, attendus)
-        self.assertEqual(liste, gestes_du_monde(m))
+        # Corps et passages suivent les outils, sans renuméroter ce préfixe.
+        self.assertEqual(liste, gestes_du_monde(m)[:len(liste)])
         self.assertEqual(len({c.libelle for c in liste}), len(liste))
         return liste
 

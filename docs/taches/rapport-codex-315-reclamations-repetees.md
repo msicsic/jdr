@@ -1,64 +1,55 @@
-# Lot 315 — réclamations et contact du débiteur
+# Lot 315 — réclamations et constat sans porteur
 
-Branche `codex-reclamations-repetees`. Réaccordance du 2026-10-30 : fusion Git
-**248298c**, sans rebase, du 315 **beaecc7** avec l'essai **8f410f7**.
-**Livré avec une réserve supplémentaire ; validation globale non verte.**
+Branche `codex-reclamations-repetees`, reprise de **7826c3a**.
+Fusion sans rebase de `origin/integration` **07c9b62e**, E1 à E4 et correction
+357 comprises. `etat-dev` et l'historique reprennent les versions d'intégration ;
+seule l'entrée du 315 (huit lignes au plus) est ajoutée au point de reprise.
 
-**Invariant.** La réponse à une créance tient selon sa cause, sans délai ni
-effet d'un simple déplacement. `planification.reclamer` aboutit à une demande
-typée ; `echanges.executer`, `biens.regler/solder/entrees_creance` et
-`deliberation` partagent cette rétention. Les remboursements spontanés restent
-possibles. La fusion conserve l'ordre et la borne des remboursements du 315,
-les références E1 et les réalisations datées et remboursements uniques d'E2.
-`dettes(..., connues_de=...)` fournit aux trois lecteurs de décision les seules
-créances apprises : une dette `a_prevenir` ne prépare aucune demande et ne
-lève aucun refus. Les comptes physiques continuent à inclure toutes les dettes.
-Aucune date ni issue E1/E2 réécrite ; aucun scénario ou MJ modifié.
+**Invariant conservé.** Une réclamation refusée reste retenue selon sa cause,
+sans délai ni effet d'un simple déplacement. Le plan aboutit au contact parlé ;
+ordre et borne des remboursements, paiement spontané, créances réellement
+apprises, références temporelles et remboursement unique E2 sont conservés.
 
-**Épreuves de fusion.** **357 tests / 37 fichiers : 347 verts, neuf échecs,
-une erreur**, 530,644 s, deux processus à priorité réduite. Les huit tests
-315, neuf E1, douze E2, protections et planification sont verts. Les deux
-nouveaux tests croisent chacun livraison d'huile et verrouillage payé :
-dette inconnue, ancien plan silencieux, refus durable, réponse locale,
-remboursement volontaire et archive unique. Ils comparent monde, rendu et
-scène perçue après recharge. La capture réelle Sève/2024 contrôle deux
-remboursements ordonnés, au plus tard à la minute 84, sans relance ensuite ;
-laps entier/découpé et recharges sont identiques. Sources testées inchangées.
-Les **neuf échecs sont identiques hors chemins sur l'essai intact 8f410f7** :
-événements perçus (2), prêt de lampe (1), comptes en console (5), console du
-brasero (1). Reprise des seuls cinq fichiers concernés : 68 tests, neuf
-échecs, aucune erreur, 84,342 s.
-
-**Réserve supplémentaire de la combinaison.** Le test
+**Cause attribuée.** La réserve de 7826c3a est reproduite après fusion :
 `test_service_repropose.ServiceReproposeTests.test_capture_laps_decoupes_et_aucune_execution_invalide`
-plante dans `social.phrase` (`KeyError: None`). Le constat réel de la
-`lanterne_couloir`, posée dans le couloir, porte `possession.porteur=None` ;
-le rendu suppose un porteur nommé. `social.py` est identique à l'essai :
-le même état et le même constat y reproduisent l'erreur, mais le rejeu
-complet sans le 315 ne la déclenche pas. La chronologie du 315 révèle donc
-un défaut du contrat commun des constats de biens posés. **Cette capture
-complète reste non validée.** Un lot distinct doit traiter ce contrat,
-sans exception pour la lanterne. Aucune absence générale de régression
-n'est revendiquée.
+plante en parlant de la lanterne posée dans le couloir. La sauvegarde admet une
+preuve de localisation avec `possession.porteur=None` ; le rendu des constats
+introduit au lot **337**, commit **e2822a1**, suppose pourtant un porteur nommé.
+Le défaut appartient donc au contrat social antérieur, **révélé par la
+chronologie du 315, pas par E2 ni par une rencontre de leurs clauses**.
+Le rejeu de l'intégration intacte sans le 315 passe (quatre tests de service).
+Le rejeu instrumenté avec le 315 compte **zéro obligation datée et zéro clôture
+E2** : ses remboursements datés n'interviennent pas dans ce plantage.
 
-**Mesures antérieures conservées, non rejouées.** Le bilan initial
-(base `c4f6d46`, moteur `faa5967`, rapport détaillé au commit `beaecc7`)
-comptait 127 tests verts. Hameau/306, quatre graines sur 4 h :
-suspects 0/0/0/7 → 0/0/0/0 ; à expliquer 7/5/0/10 → 2/5/0/4.
-Sur les seize empreintes 2 h, treize étaient identiques ; les trois écarts
-Relais/7, auberge/1985 et crue/1985 étaient des premières demandes remboursées,
-pas des relances après refus. Six courts rejeux causaux confirmaient
-l'effet du contact accompli, avec remboursement unique, conservation des
-pièces et recharge fidèle. **Identité stricte non atteinte** ; les effets
-ultérieurs de ces nouvelles chronologies ne sont pas tous certifiés bénins.
-Anciennes sauvegardes sans refus durable : aucune migration n'invente les
-moyens jadis connus. Prêts et autres demandes gardent leur contrat.
+**Correction locale, une cause.** Dans `social.phrase`, une preuve sans porteur
+décrit le lieu enregistré avec le constat : salle, contenant ou porteur désigné
+par cette localisation, sinon lieu inconnu. Elle n'invente ni identité, ni
+propriété, ni permission. Les constats de portage gardent leurs mots et leurs
+droits. `social._lieu_dit` cite la localisation effectivement formulée pour
+appliquer les contrôles communs d'audition et de connaissance ; un contenant
+inconnu n'est pas révélé au joueur. Aucun objet, scénario, prompt ou migration
+spécifique. Les positions privées ne sont pas consultées pour raconter le constat.
 
-**Livraison et bruts.** `docs/etat-dev.md` reprend l'essai, avec la seule entrée
-du 315 ajoutée (huit lignes). Bruts historiques :
-`C:/Users/msics/donjon/artifacts/reclamations-315/`.
-Réaccordance : sous-dossier `fusion-e1-e2/`, `tests.json`,
-`tests-reference-8f410f7.json`, `qualification.json` et
-`social-crash-{monde,noyau,rendu-reference}.json`.
-Ni suite complète, ni Luna, ni nouvelle campagne d'empreintes ; E3 non refusionné.
-Aucun calcul actif.
+**Épreuves.** Les parcours ciblés donnent 28 tests distincts verts : huit
+réclamations, quatre services et seize transmissions de garde. La capture réelle
+passe en quatre minutes de jeu, d'un bloc ou découpées, monde/rendu/scène
+identiques après recharge. Les ajouts transmettent une ancienne preuve sans
+porteur au Relais et à l'auberge, dans une salle et dans un contenant, tandis
+que le bien réel est désormais ailleurs ; mots et croyance suivent la preuve,
+l'objet réel reste inchangé. Un contenant privé est effectivement caché au
+joueur. État complet, rendu et scène sont vérifiés après sauvegarde/recharge.
+La validation groupée de **54 fichiers**, couvrant 315, E1–E4, 357 et les modules
+concernés, est en cours, à deux processus à priorité réduite. Fin attendue :
+`C:/Users/msics/donjon/artifacts/reclamations-315/social-07c9b62/fin.json`.
+
+**Mesures et limites.** La passe précédente sur 8f410f7 comptait 357 tests :
+347 verts, neuf échecs identiques sur cette référence et la réserve sociale
+corrigée ici. Ces résultats ne sont pas présentés comme ceux de la nouvelle
+intégration. Les nuits historiques du 315 ne sont pas rejouées : treize des seize
+empreintes étaient identiques ; trois premières demandes remboursées changeaient
+la chronologie, avec causalité et conservation des pièces établies. Les suites
+ultérieures de ces chronologies ne sont pas toutes certifiées bénignes.
+Ni suite complète, ni Luna, ni nouvelle campagne de bancs. Détails historiques :
+rapport au commit 7826c3a et bruts `artifacts/reclamations-315/` du dépôt principal.
+Reproduction, état fautif, témoin sans 315 et résultats de cette reprise :
+sous-dossier `social-07c9b62/`.
