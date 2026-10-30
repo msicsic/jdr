@@ -10096,5 +10096,3 @@ Non versionnés, donc absents d'un nouveau poste :
   cours de jalon sans accord.
 - Les phrases des docs tirées d'un test ou d'un scénario décrivent ce scénario, pas une règle
   de conception du jeu.
-
-
