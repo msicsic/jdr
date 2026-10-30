@@ -45,13 +45,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-position-hypothese` — lot 374, départ `b83f5a59` (integration ancêtre `60f857c5`), PC fixe.
   Position d'autrui datée (15/60/120 min), contrôle commun plan/geste ; le préfixe de vérification conserve sa progression.
-  Auberge 371/mine 69, parti/resté, rechargés. Première passe 89 verts ; VERIFIER 1 h et 16 nuits sans plantage/usurpation.
+  Auberge 371/mine 69, parti/resté, rechargés ; VERIFIER 1 h vert et 16 nuits × 4 h sans plantage/usurpation sur `7986b7d2`.
   Rafale crue 42 corrigée par la cause typée de vérification ; capture bloc/découpé verte. Oracle mine : plafond 28 conservé par recherche.
-  90 tests distincts, 44 concernés finaux verts (150,032 s), autres voisins verts à la passe précédente ; banc final en cours : `artifacts/position-hypothese-374/fin-final.json`.
+  90 tests distincts, 44 concernés finaux verts (150,032 s), autres voisins verts à la passe précédente. Calculs terminés, références réutilisées.
+  Réserve avant fusion : absence de boucle nouvelle non certifiée (0→3 retours suspects, dont agenda Brune crue 1985 à 190/205).
   Forme S0 et recouvrement esprits avec 372 détaillés au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
 
 Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 372 (A6
-soupçon déduit), 373 (S0 conception de la mémoire), 374 (position crue comme hypothèse datée). Suite complète en cours.
+soupçon déduit), 373 (S0 conception de la mémoire). Suite complète en cours.
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
