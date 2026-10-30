@@ -233,10 +233,16 @@ def proposition_descripteur(monde, descripteur):
         raise ErreurMonde("Je ne connais pas ce geste direct.",
                           f"descripteur.geste : reçu {action!r} ; acceptés : {', '.join(sorted(actions))}.")
     parametres = d.get("parametres", {})
-    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode", "destinataire", "quantite", "destination"}
-            or any(not isinstance(v, str) or len(v) > 1000 for k, v in parametres.items() if k != "quantite")):
+    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode", "destinataire", "quantite", "destination", "parcours"}
+            or any(not isinstance(v, str) or len(v) > 1000 for k, v in parametres.items() if k not in {"quantite", "parcours"})):
         raise ErreurMonde("Je n'ai pas compris les paramètres de ce geste.",
                           f"descripteur.parametres : reçu {parametres!r} ; outil, methode, destinataire, destination : chaînes de 1000 caractères au plus ; quantite entière.")
+    if "parcours" in parametres:
+        if action != "marcher" or set(parametres) != {"parcours"}:
+            raise ErreurMonde("Ce trajet ne décrit pas une marche directe.",
+                              f"descripteur.parametres : reçu {parametres!r}, geste={action!r} ; "
+                              "accepté : parcours seul, avec geste=marcher.")
+        return {**geste_local(action, cible), "parcours": parametres['parcours']}
     if action != "mettre" and "destination" in parametres:
         raise ErreurMonde("Ce geste ne prend pas de destination.",
                           f"descripteur.parametres.destination : reçu {parametres['destination']!r} pour {action} ; accepté : champ absent.")

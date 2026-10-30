@@ -1,6 +1,36 @@
 # État du développement
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
+- **Lot 343 / G7 terminé**, branche
+  `codex-g7-deplacements`, fusionnée, base exacte `dc6da62`.
+  Trace structurée des mouvements accomplis du joueur, cumul canonique par
+  acteur/unité/directions/intervalle ; sons distincts et reliquat des trajets.
+  Marche au clic toujours pas à pas ; même fonction pour les attestations
+  exactes, aucun retrait d'audit de prose libre. `jeu.py` et `transactions.py`
+  intacts. **235 tests distincts / 17 fichiers verts**, zéro incident/saut,
+  452,374 s cumulées ; monde, texte, scène et carte rechargés, refus,
+  faisabilité, clic interrompu, traînage et obstacle. Le cas 171 joue trois
+  pas sur cette base ; autre départ à deux pas vérifié, sons à l'ouest séparés.
+  **8/8 empreintes 2 h identiques**, Relais/auberge × quatre graines,
+  état complet/chroniques/récits/souvenirs/mesures ; zéro plantage. Première
+  passe rouge : trace vide des attentes, cause unique prouvée sur deux scènes
+  avec moteurs base/743e5e9/final et recharge ; trace désormais absente sans
+  mouvement. Huit références exactes `dc6da62` manquantes rangées une fois,
+  toutes relues du cache à la reprise, PNJ inchangés.
+  **Luna une passe fuite/traînage**, 32,182 s, deux exécutions sans aucun appel
+  après confirmation, récit ou audit du total ; zéro erreur/repli/recharge.
+  Référence historique `cdaf371` entièrement en cache : 11 → 6 appels,
+  trois audits narratifs → zéro, aucun gain causal attribué à G7. Refus de
+  fidélité avant traînage conservé ; six réponses rejouées hors réseau avec
+  textes/états rechargés identiques au live. Pas de seconde passe Luna.
+  Deux travailleurs réduits au plus pour les bancs, ni suite complète ni banc
+  d'intégration ; **branche poussée, aucun calcul actif**. Bruts
+  `C:/Users/msics/donjon/artifacts/g7-343/`, `empreintes-corrigees.json`,
+  `analyse-cloture.json`, `tests-final.json`, **`fin-cloture.json`** ; fin
+  initiale rouge `fin-validation.json` conservée.
+  [Rapport 343](taches/rapport-codex-343-g7-deplacements.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. seul conflit de documentation ; aucun fichier de code commun depuis la base. Le moteur relève les mouvements réellement accomplis du joueur (acteur, opération, quantité, unité, direction, bornes temporelles) et écrit le cumul canonique (deplacements.clore/phrases), sauvegardé avant affichage et réemployé par les attestations du lot 95 ; un plan non exécuté n'en produit pas, les sons restent à part. force-4c-fuir : trois pas cumulés, zéro appel Luna après confirmation. 235 tests ciblés verts, 8/8 empreintes 2 h identiques. Fichier commun avec le lot 344 en cours : donjon/web/page.html.
+
 
 - **Reprise 338 terminée, fusionnée**, fusion sans rebase **`20e1f41`**
   (parents `38bc65d` et `fff9aab`) :
