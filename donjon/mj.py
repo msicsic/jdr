@@ -605,6 +605,8 @@ class MJ:
         Aucune écriture : seule la boucle de jeu applique les propositions validées.
         """
         revision = monde.data["revision"]
+        from .temps import instant
+        instant_saisie = instant(monde)
         if (reponse is None and not est_question(intention) and proposition_en_attente is None and
                 normaliser(intention) in ("je retente", "je rentente", "je reessaie", "je recommence", "retenter", "reessayer")):
             dernier = derniere_tentative(monde)
@@ -891,6 +893,8 @@ class MJ:
                         operations_declarees - operations_contenu(complements["contenu"]))
                     # Une préparation refusée ne confirme aucune opération de
                     # cette interprétation ; les obligations reconnues restent.
+                    from .propositions import compiler_limites
+                    complements['contenu'] = compiler_limites(complements['contenu'], instant_saisie)
                     travail, rapport = preparer_parole(monde, complements, revision)
                     self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
                                                    operations_demandees, declaration_connue, operations_declarees,

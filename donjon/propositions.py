@@ -44,6 +44,46 @@ SCHEMA = _forme({"type": {"type": "string", "enum": ["proposition"]},
                  "demande": schema_terme(service=True), "contrepartie": schema_terme(True, service=True)})
 
 
+def schema_compilation():
+    """Entrée libre : le modèle exprime une durée, le moteur fixe l'instant.
+
+    Le contrat d'exécution SCHEMA reste absolu : aucune durée relative ne doit
+    survivre dans une transaction, une confirmation ou une sauvegarde.
+    """
+    import copy
+    s = copy.deepcopy(SCHEMA)
+    for nom in ('demande', 'contrepartie'):
+        for forme in s['properties'][nom]['anyOf']:
+            if 'limite' in forme['properties']:
+                forme['properties']['limite'] = {'anyOf': [
+                    {'type': 'integer', 'minimum': 0,
+                     'description': 'Instant absolu explicitement demandé, en dixièmes de seconde de jeu.'},
+                    _forme({'dans_secondes': {'type': 'integer', 'minimum': 0,
+                        'description': 'Délai relatif depuis la saisie, en secondes ; le moteur calcule la limite.'}})]}
+    return s
+
+
+def compiler_limites(contenu, maintenant):
+    """Résout sur copie les durées de compilation ; jamais appelé à l'exécution."""
+    import copy
+    resultat = copy.deepcopy(contenu)
+    for c in resultat:
+        if not isinstance(c, dict) or c.get('type') != 'proposition':
+            continue
+        for nom in ('demande', 'contrepartie'):
+            terme = c.get(nom, {})
+            if not isinstance(terme, dict):
+                continue  # Le validateur commun porte le refus de forme.
+            limite = terme.get('limite')
+            if isinstance(limite, dict):
+                if (set(limite) != {'dans_secondes'}
+                        or type(limite['dans_secondes']) is not int or limite['dans_secondes'] < 0):
+                    raise ErreurMonde('Précise le délai de cet accord en secondes de jeu.',
+                        f'contenu.{nom}.limite : reçu {limite!r} ; attendu {{dans_secondes: entier >= 0}}.')
+                terme['limite'] = maintenant + limite['dans_secondes'] * 10
+    return resultat
+
+
 SCHEMA_OFFRE = _forme({"etat": {"type": "string", "enum": ["offre"]},
     "debiteur": {"type": "string"}, "creancier": {"type": "string"},
     "condition": schema_terme(True, service=True), "contrepartie": schema_terme(True)})
