@@ -43,6 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-um-social-comptes` — lot 380, base `integration 85052cf8`, non fusionné.
+  Choix web figés sur les comptes de Corvus ; créances, prêts et offres existantes,
+  revalidation des termes et consentement U-C commun aux remises, sans modèle.
+  Arbitrage utilisateur : remboursement volontaire en pièces hors lot ; aucun registre d’esprit.
+  Recouvrement possible avec 375 : `commandes.py` / `moteur.py` ; pas de `jeu.py` / `tui.py`.
+  Vérification finale détachée (ciblés, voisins, empreintes 2 h × 4 graines Relais/auberge).
+  Fin attendue : `C:/Users/msics/donjon/artifacts/um-social-comptes-380/fin-verification.json`.
+  [Rapport et limites](taches/rapport-codex-380-um-social-comptes.md).
+
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 378 (S1a, porte des épisodes), 379
 (A2 expression et son), 380 (U-M social comptes). Questions de S0 en arbitrage (1 validée : tri par importance et âge).
 Leurs entrées arrivent ici à leur livraison. 

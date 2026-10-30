@@ -78,7 +78,7 @@ class PontWeb:
         from ..rendu import fiche, regarder
         from ..francais import quantite
         from ..gestes_publics import catalogue_public, dangers_publics, passages_publics
-        from ..dialogues import information_publique, formulaires_information
+        from ..dialogues import information_publique, formulaires_information, comptes_publics
         from ..accords_publics import accords_publics
         self.termine = bool(monde.data.get("fin"))
         cases = bool(monde.data.get("mode_cases"))
@@ -88,6 +88,7 @@ class PontWeb:
                 "passages": passages_publics(monde),
                 "information": {**information_publique(monde), "formulaires": formulaires_information()},
                 "accord": accords_publics(monde),
+                "comptes": comptes_publics(monde),
                 "scene": None, "carte_texte": "" if cases else carte(monde),
                 "fiche": fiche(monde), "regard": regarder(monde),
                 "inventaire": inventaire_public(monde), "destinataires": destinataires_publics(monde),
