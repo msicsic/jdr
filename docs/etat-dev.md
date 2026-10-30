@@ -35,13 +35,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **344 / U-M corps**, `codex-um-corps`, base `78766d9`, **non fusionnée** ; intégration `014fc35` reprise sans rebase.
+- **344 / U-M corps terminé**, `codex-um-corps`, base `78766d9`, **non fusionnée** ; intégration `014fc35` fusionnée sans rebase.
   Gestes corporels au menu, références/méthode/moyen/direction exacts ; danger perçu et consentement U-C revalidé.
-  Fusion : paramètres direction et parcours de marche conservés ; rendus G7 et mandats 341 maintenus.
-  Validation de fusion en cours, deux travailleurs réduits au plus ; aucun nouveau bilan vert annoncé.
-  Initial : 123/124 ciblés, une erreur antérieure prouvée sur la base ; 13 nouveaux tests verts, 14 saisies évitées, 3–5 clics.
-  Ni Luna ni suite complète ; limite : offre sans garantie de réussite, inconscience jugée par les règles existantes.
-  Bruts `C:/Users/msics/donjon/artifacts/um-corps-344/` ; [rapport](taches/rapport-codex-344-um-corps.md).
+  Fusion `b2c8f53` à deux parents : direction/parcours, G7 et mandats 341 conservés ; état court de l'intégration gardé.
+  **179/180 tests verts, 20 fichiers**, zéro échec/saut ; erreur de jets simulés identique sur 014fc35 exact, test inchangé.
+  Quatorze attentes G4 périmées prouvées sur la référence ; auxiliaire porté à « Compris », 19/19 repris, assertions conservées.
+  Treize tests corps et mandats/appel/U-C/Compris/Node/G7 verts ; 14 saisies évitées, 3–5 clics ; sources vérifiées.
+  Offre sans garantie de réussite ; ni Luna ni suite complète ; deux travailleurs réduits au plus, aucun calcul actif, branche poussée.
+  Bruts `um-corps-344/fusion-014fc35/`, `fin-cloture.json` avec réserve ; [rapport](taches/rapport-codex-344-um-corps.md).
 
 Lots en cours : 342 (attribution du groupe 1), 344 (U-M corps), 345 (G16 information parlée), 348 (E1 référence
 temporelle). Leurs entrées arrivent ici à leur livraison.

@@ -1,80 +1,69 @@
 # Lot 344 — U-M corps
 
-Branche `codex-um-corps`, base `origin/integration 78766d9`, **terminée,
-non fusionnée**. Code et tests : `91cd96d`, `b34315e`.
+Branche `codex-um-corps`, base initiale `78766d9`, **terminée, non fusionnée**.
+Intégration exacte `014fc35` fusionnée sans rebase par **`b2c8f53`**, à deux
+parents (`85e39a8`, `014fc35`).
 
 ## Invariant et changement
 
 Le catalogue `gestes_publics.formulaires_corps` pilote treize gestes sur
-une personne perçue : méthode simple/assommer, moyen connu, direction
+une personne perçue, avec méthode simple/assommer, moyen connu et direction
 explicite. Il ne décide pas de leur aptitude. Les homonymes gardent leurs
 références exactes ; la surprise reste calculée par le moteur.
-`commandes.proposition_descripteur` revalide les références et construit
-la même proposition que la commande locale. Assommer, riposter, se rendre
-à et fuir disposent de commandes explicites. Les réactions apparaissent
-seulement sur les auteurs de `defense.dangers_vus` encore perçus, sans
-approche automatique vers l'agresseur.
+`commandes.proposition_descripteur` produit la même proposition que la
+commande locale. Les réactions apparaissent seulement sur les auteurs de
+`defense.dangers_vus` encore perçus, sans approche vers l'agresseur.
 
-Le raccord limité dans `moteur.py`, nécessaire en plus des fichiers prévus,
-réutilise la gravité U-C et la fiche « Compris ». Le descripteur est conservé
-jusqu'à confirmation : référence perdue ou état/plan changé imposent un
-nouveau choix et aperçu, même sans nouvelle révision. Annuler ne publie
-aucun effet. Sauvegarde et résultat empruntent la boucle existante. MJ,
-`jeu.py`, `tui.py`, `force.py`, `combat.py` et `tenir.py` sont inchangés.
+Le raccord de `moteur.py` réutilise la gravité U-C et la fiche « Compris ».
+Le descripteur conservé jusqu'à confirmation est refusé si sa référence,
+l'état ou le plan changent, même sans nouvelle révision ; annuler ne
+publie aucun effet. Sauvegarde et résultat empruntent la boucle existante.
+Le lot ne modifie ni MJ, `jeu.py`, `tui.py`, ni règles de corps/violence.
 
-## Vérification et mesures
+## Fusion et vérification
 
-**124 tests distincts / 13 fichiers : 123 verts, une erreur antérieure,
-zéro échec et zéro saut**, 2 417,830 s cumulées des deux lancements ; aucun
-bilan de performance. **Les 13 nouveaux tests sont verts** : 30 paires
-clic/commande au Relais et à l'auberge, personnes/moyens homonymes,
-annulation, refus périmés, référence opaque après présentation, danger
-disparu et données cachées. Plans, effets, textes, monde/scène/fiche/carte
-comparés après recharge ; sauvegarde avant affichage, analyseur interdit
-au clic, zéro appel au modèle sur les parcours exécutés. Callbacks Node
-verts. Scripts réels frapper/assommer/fuir et ligature 4d couverts.
-
-Réserve : `test_tenir.test_joueur_tenu_ne_peut_pas_marcher_et_se_degage`
-épuise ses deux jets simulés dans la persuasion d'une rumeur entre PNJ.
-**Reproduit sur 78766d9 exact : 10 tests, même erreur, 8,906 s** ; test
-inchangé, mêmes fonctions de pile et exception `StopIteration`. Aucun
-nouvel incident dans la sélection. Sources/tests conformes aux empreintes
-finales ; aucun calcul actif.
-
-**14 parcours mesurés : 14 saisies évitées, 3 à 5 clics jusqu'à l'effet,
-confirmation comprise**, cible à portée : frappes 5, moyen/direction 4,
-sans paramètre 3. Approche éventuelle en sus.
-
-## Limites et intégration
-
-Moyen inadéquat ou préalable manquant : refus moteur. L'inconscience
-n'interdit pas tout geste : frapper une personne sans défense reste
-autorisé ; survenant après l'aperçu, elle invalide le consentement.
-Les gestes propres à Corvus gardent leur cible moteur propre, la personne
-du menu servant de contexte perçu. U-T corps reste à faire. Ni Luna,
-suite complète ou banc PNJ.
-
-Recouvrement **343/G7 : `moteur.py`**, dont le rendu devra être conservé à
-la fusion ; documentation commune avec 338/341/342. Bruts :
-`C:/Users/msics/donjon/artifacts/um-corps-344/`, bilans, mesures,
-`analyse-cloture.json`, `reference-78766d9.json`, `fin-cloture.json`.
-`fin-validation.json ok=false` intact. Première passe corporelle rouge
-conservée (27 échecs de sous-cas, 5 erreurs, 519,474 s) : prémisses
-références/placement/contact/mains/date corrigées, assertions intactes,
-fichiers nouveaux entièrement rejoués. Incidents de droits temporaires
-du bac à sable conservés dans le point de reprise.
-
-## Reprise de l'intégration 014fc35
-
-Fusion sans rebase **`b2c8f53`**, parents `85e39a8` et `014fc35`. Le conflit
-de `commandes.py` conserve direction corporelle et parcours structuré G7,
-avec refus de leur mélange ; les deux intentions des auto-fusions moteur,
-page et sonde Node sont présentes. `etat-dev.md` reprend la version courte
-de l'intégration, puis sept lignes du lot dans « Lots non fusionnés ».
+Le conflit de `commandes.py` conserve direction corporelle et parcours
+structuré G7 ; leur mélange est refusé. Les auto-fusions de `moteur.py`,
+`web/page.html` et `tests/clic_page.js` conservent les deux intentions.
 Mandats 341, provenance 346, conception 347 et correctif « Compris » sont
-conservés. Validation de fusion en cours : **19 fichiers**, dont les tests
-corporels, mandats, repli/appel, consentement, compréhension et déplacements.
-Deux travailleurs réduits au plus, calcul détaché ; pas de Luna ni suite
-complète. Bruts `um-corps-344/fusion-014fc35/`, fin attendue
-`fin-classification.json`. Les bilans initiaux ci-dessus ne valent pas
-validation de cette fusion.
+présents. `etat-dev.md` reprend l'intégration courte avec huit lignes du lot.
+
+**180 tests distincts / 20 fichiers : 179 verts, une erreur antérieure,
+zéro échec et zéro saut**. Les treize nouveaux tests sont verts : 30 paires
+clic/commande au Relais et à l'auberge, scènes réelles frapper/assommer/fuir
+et ligature 4d, homonymes, références périmées, annulation et confidentialité.
+Plans, effets, textes, monde/scène/fiche/carte comparés après recharge ;
+sauvegarde avant affichage et zéro appel au modèle sur les parcours.
+Mandats **12/12**, repli/appel **10/10**, consentement **9/9**, compréhension
+**5/5**, web/Node et déplacements G7 verts.
+
+Première passe de fusion : **179 tests, 14 échecs de sous-cas, une erreur,
+1 370,972 s**. Référence **014fc35 exacte : 28 tests, mêmes 15 incidents,
+75,045 s** ; mêmes piles hors chemins/numéros de ligne, tests identiques.
+Les 14 attentes G4 ignoraient « Compris » après le résultat confirmé.
+L'auxiliaire attend maintenant résultat exact + plan admis et contrôle le
+champ sauvegardé ; assertions mécaniques, recharge, affichage et absence
+d'appel après confirmation conservées. **Reprise : 19/19 tests, trois
+fichiers, 77,032 s**. Résultats des 17 autres fichiers conservés après
+contrôle des empreintes ; production inchangée depuis `b2c8f53`.
+
+Réserve inchangée : `test_tenir.test_joueur_tenu_ne_peut_pas_marcher_et_se_degage`
+épuise deux jets simulés pendant une persuasion PNJ (`StopIteration`),
+également sur 014fc35. Aucun nouvel incident dans la sélection.
+
+**14 parcours mesurés : 14 saisies évitées, 3–5 clics confirmation comprise**,
+cible à portée ; approche éventuelle en sus. Mesure initiale conservée.
+
+## Limites et livraison
+
+Une offre ne garantit pas sa réussite. L'inconscience est jugée par les
+règles existantes ; si elle survient après l'aperçu, elle invalide le
+consentement. U-T corps reste à faire. Ni Luna, suite complète ou banc PNJ ;
+deux travailleurs réduits au plus, aucun calcul actif.
+
+Bruts : `C:/Users/msics/donjon/artifacts/um-corps-344/fusion-014fc35/` :
+`tests.json`, `reference-tests.json`, `reprise-g4.json`, `analyse-cloture.json`,
+`fin-cloture.json`. Les fins rouges initiales restent intactes. La livraison
+initiale (123/124, réserve prouvée sur 78766d9), les premières prémisses
+corporelles corrigées avec assertions intactes et les incidents de droits
+temporaires restent archivés dans le dossier parent.
