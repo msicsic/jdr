@@ -43,8 +43,16 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 378 (S1a, porte des épisodes), 379
-(A2 expression et son), 380 (U-M social comptes). Questions de S0 en arbitrage (1 validée : tri par importance et âge).
+- `codex-a2-expression-son` — lot 379, base `origin/integration 85052cf8` : contrat commun
+  expression/son pour moteur, schémas, raccourcis et « Compris » ; mécanique inchangée.
+  Cas historique, rythme corporel, faux pendant silencieux, recharge et laps découpé couverts.
+  59 tests finaux verts ; empreintes Relais 2 h × 4 graines identiques. Sept échecs voisins
+  reproduits à l'identique sur la base. Aucune passe Luna ni suite complète ; revues conservées.
+  Fidélité du choix Luna non garantie ; aucun registre d'esprit ajouté.
+  Rapport : [379](taches/rapport-codex-379-a2-expression-son.md).
+
+Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 378 (S1a, porte des épisodes),
+380 (U-M social comptes). Questions de S0 en arbitrage (1 validée : tri par importance et âge).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
