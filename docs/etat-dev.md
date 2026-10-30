@@ -38,17 +38,17 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **306 — `codex-a5-agenda-hameau`**, base `7ec839e`, fusion sans rebase de `19c9b6da` (358 et 335).
-  Gorm déclare l'évacuation d'Ilse, Brune, Maël et Sève vers la galerie ; données seules, aucun mandat forcé.
-  **69 tests / onze fichiers verts**, 149,283 s ; capture originale 1985 : aucun `confier` à t=4200, refus sans effet.
-  Recharges monde/rendu/scène/écoute et reprises sur deux minutes en bloc/demi-minutes identiques.
-  Banc détaché hameau 4 h × quatre graines en cours : deux travailleurs réduits ; quatre références `main` en cache.
-  Crue 2 h × quatre graines contre l'intégration ensuite ; aucune suite complète ni Luna.
-  Bruts et fin attendue : `C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-358-335/fin.json`.
-  [Rapport](taches/rapport-codex-306-a5-agenda-hameau.md) ; validation comportementale en attente du banc.
+- **306 — `codex-a5-agenda-hameau`**, base `7ec839e`, fusion sans rebase de `19c9b6da`, mesuré `0c4663a2`.
+  Gorm évacue Ilse, Brune, Maël et Sève vers la galerie ; données seules, aucun mandat forcé. **Lot terminé.**
+  **69 tests / onze fichiers verts** ; capture originale et nuit complète : aucun mandat réexécuté à t=4200 après 358.
+  Banc hameau 4 h × quatre graines : 19 propositions, six accords, cinq comptes rendus ; quatre évacués dans chaque nuit.
+  Zéro plantage/usurpation ; quatre recharges monde/rendu/scène/écoute identiques ; crue 4/4 empreintes 2 h identiques.
+  Intégration recommandée ; suspects 219 zéro, 23 alertes à expliquer inchangées, aucune absence générale de boucle garantie.
+  Calcul terminé (625,502 s), références main relues du cache ; aucun calcul actif, ni suite complète ni Luna.
+  [Rapport](taches/rapport-codex-306-a5-agenda-hameau.md) ; bruts : `C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-358-335/`.
 
 Lots en cours : 335 (suivi vocal, reprise, banc en cours), 356 (suite rouge, attribution), 358 (revalider une action
-différée après refus). 306 (agenda du hameau) attend le 358 : un mandat refusé y est réexécuté.
+différée après refus). La reprise 306 après 358/335 est achevée (entrée ci-dessus).
 Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
 écrits avant le consentement U-C, d'autres familles à attribuer) : lot 356 (attribution, harnais) en cours ; la
 vérification d'intégration et l'avance de `main` attendent une suite redevenue témoin fiable.
