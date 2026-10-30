@@ -46,9 +46,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-double-promesse` — lot 377, base `origin/integration 2887c541`, PC fixe.
   Les devis et transferts comptent les moyens déjà promis, depuis les engagements existants, sans nouveau registre.
   Capture Mireille/Tilo/Mathurine et autre bien vérifiés après recharge et laps découpés ; parts libres conservées.
-  97 tests verts (234,1 s) ; complément final et empreintes 2 h auberge/Relais × 4 graines en cours.
-  Bilan attendu : `C:/Users/msics/donjon/artifacts/double-promesse-377/fin-lot.json` ; clôture à confirmer.
-  Limite : stock distant seulement cru disponible = une part garantie ; recouvrements possibles 365/375.
+  98 tests distincts verts ; empreintes 2 h auberge/Relais × 4 graines : 4/8 identiques, 4 écarts attribués.
+  Aucun plantage, usurpation ni aller-retour non justifié sur ces nuits ; livraison terminée, branche poussée.
+  Limite : quantité distante inconnue = refus conservateur possible ; recouvrements possibles 365/375.
   [Rapport](taches/rapport-codex-377-double-promesse.md).
 
 Lots en cours : 365 (catalogue), 369 (U-T social), 373 (S0), 374 (position crue), 375 (11 rouges de la suite

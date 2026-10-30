@@ -31,24 +31,36 @@ Les tests couvrent également le combustible d'un service sans métadonnée de
 part, la répétition sans second paiement, la libération après abandon et un
 stock distant caché. État et rendu sont comparés après sauvegarde/recharge.
 
-**Mesures.** Après correction du double comptage provisoire, **97 tests verts**
-sur les onze fichiers concernés (`tests-final.json`, 234,1 s), assertions des tests voisins inchangées. Une première
-passe élargie a aussi validé parts achetées, parts proposées, propositions,
-réalisations datées et lampes ; ses deux fichiers rouges ont motivé le
-recontrôle. Complément sur la dernière version en cours, puis **empreintes 2 h, auberge et Relais,
-1985/7/42/2024**, contre la base figée `2887c541`, référence mise en cache sans
-rejouer les nuits déjà présentes. Deux travailleurs au plus, priorité réduite.
-Pas de suite complète ni Luna. Bruts et lanceur de reprise :
-`C:/Users/msics/donjon/artifacts/double-promesse-377/` ; bilan écrit en dernier
-dans **`fin-lot.json`**. La clôture attend la lecture de ce bilan et des
-éventuelles divergences d'empreintes.
+**Mesures finales.** **98 tests distincts verts** : passe de 97 tests sur onze
+fichiers (`tests-final.json`, 234,1 s), puis complément de 26 tests comprenant
+les sept nouvelles régressions (`tests-complement.json`, 22,7 s). Assertions
+des tests voisins inchangées. Le devis daté remplace sa proposition provisoire
+après détection du double comptage ; les voies historiques gardent leurs contrôles.
+**Empreintes 2 h, auberge et Relais, 1985/7/42/2024**, contre `2887c541` :
+**4/8 identiques**, huit nuits sans plantage, zéro usurpation et zéro aller-retour
+non justifié selon la sonde courte. Les références manquantes ont été jouées une
+fois et mises en cache. Deux travailleurs au plus, priorité réduite ; ni suite
+complète ni Luna, aucune conclusion de performance.
+
+**Divergences attribuées.** Auberge 1985, minute 95 : le refus du troc
+`vivres_1` passe de `garde` à `impossible`, car Odile a déjà promis cette part
+à Mathurine. Relais 7/42/2024, minute 4 : la nouvelle livraison à Aubin est
+refusée ; Gorm est à l'échoppe, ses vivres au refuge, et leur seule disponibilité
+crue ne prouve pas une seconde part libre après celle payée par Brune. La
+promesse à Brune reste tenue. Cet écart expose la borne conservatrice ci-dessous,
+pas une identité générale des nuits. Le code 1 du comparateur et `succes:false`
+de `fin-lot.json` signalent ces différences d'empreintes, sans échec de test.
+Captures d'attribution et synthèse : `analyse-*.json.gz` et `conclusion-lot.json`,
+dans `C:/Users/msics/donjon/artifacts/double-promesse-377/`.
 
 **Limites et recouvrements.** Aucun nombre de parts distant n'est inventé :
 hors des biens propres à portée, la croyance « disponible » ne garantit
-qu'une part. Cette borne conservatrice peut fermer une offre qui demanderait
-de recompter une réserve distante. Ce lot ne promet pas une planification
+qu'une part. Cette borne conservatrice peut fermer une offre matériellement
+possible qui demanderait de recompter une réserve distante : l'absence de
+tout faux refus n'est donc pas garantie. Les parts libres d'un stock propre
+comptable à portée restent vendables, comme vérifié en test. Ce lot ne promet pas une planification
 temporelle globale de tous les engagements, ni leur exécution malgré une
 nouvelle urgence ou une croyance fausse. Recouvrement avec **365** autour des
 échanges/catalogue ; `agendas.py` peut aussi recouper des corrections PNJ de
 **375**. Ni `esprits.py`, ni `planification.py`, ni nouveau registre pour S1.
-La vérification finale reste à confirmer à la reprise ; lot non déclaré terminé.
+Livraison terminée et branche poussée ; fusion laissée au superviseur.
