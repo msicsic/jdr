@@ -198,6 +198,9 @@ def relancer(monde, id, besoin, montant):
 
 def _lieu_cru(monde, id, sujet):
     from .monde import mobile_par_nature
+    from .esprits import position_a_verifier
+    if position_a_verifier(monde, id, sujet):
+        return None
     c = lire(monde, id)["croyances"].get(sujet, {}).get("lieu")
     if c:
         return c["valeur"]

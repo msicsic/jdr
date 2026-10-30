@@ -43,6 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-position-hypothese` — lot 374, départ `b83f5a59` (integration ancêtre `60f857c5`), PC fixe.
+  Position d'autrui : confiance datée, demi-vies sauvegardées 15/60/120 min ; vérification commune au plan et au geste.
+  Auberge 371 et mine 69, parti/resté, monde/croyances/rendu rechargés ; 8 nouveaux tests verts, protection inchangée.
+  Passe finale 13 fichiers/89 tests puis rapide 4 h × 4 graines × 4 scénarios et VERIFIER 1 h en cours, sans Luna.
+  Absence de boucle non encore validée ; fin attendue `artifacts/position-hypothese-374/fin-calculs.json` (dépôt principal).
+  Forme S0 et recouvrement esprits avec 372 détaillés au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
+
 Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 372 (A6
 soupçon déduit), 373 (S0 conception de la mémoire), 374 (position crue comme hypothèse datée). Suite complète en cours.
 Leurs entrées arrivent ici à leur livraison. 

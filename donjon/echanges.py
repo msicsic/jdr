@@ -1176,8 +1176,10 @@ def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
         if appris:
             from .voix import source_dite
             croire(monde, demandeur, sujet, "lieu", c["valeur"], source_dite(monde, demandeur, auditeur),
-                   round(.7 * clarte(monde, demandeur), 2), salle=c["valeur"], case=None,
-                   origine=origine)
+                   min(round(.7 * clarte(monde, demandeur), 2),
+                       lire(monde, auditeur)["croyances"][sujet]["lieu"]["confiance"]),
+                   salle=c["valeur"], case=None,
+                   origine=origine, mobilite=c.get("mobilite", "mobile"))
         if demandeur != "joueur" and issue != "qui_va_la":
             from .deliberation import consommer_indices_recherche
             if appris:

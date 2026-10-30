@@ -1813,9 +1813,10 @@ def croit_present(monde, a, b):
     reconnu à la voix ou entendu se nommer dans sa salle depuis peu (``RECENT``)."""
     if percoit(monde, a, b):
         return True
-    from .esprits import RECENT
+    from .esprits import RECENT, position_a_verifier
     c = lire(monde, a)["croyances"].get(b, {}).get("lieu")
-    return bool(c and c["valeur"] == monde.objets[a]["lieu"] and c["source"] in ("vu", "entendu", "se_dit")
+    return bool(c and not position_a_verifier(monde, a, b)
+                and c["valeur"] == monde.objets[a]["lieu"] and c["source"] in ("vu", "entendu", "se_dit")
                 and monde.data["minutes"] - c["minute"] <= RECENT)
 
 
@@ -2004,6 +2005,21 @@ def _agir(monde, id, t, lignes, gestes=None, compter=True):
             e["intention"] = None
         return reste, FIN, None
     etape = etapes[0]
+    # Un plan déjà sauvegardé peut avoir vieilli depuis son admission. La
+    # réalisation repasse par le même préfixe de contact que la recherche.
+    from .esprits import position_a_verifier
+    requis = _a_reunir(monde, id, etape, venues=True)
+    if etape["condition"] == "sans_temoin":
+        requis = [*requis, *e["croyances"]]
+    incertains = sorted({x for x in requis if position_a_verifier(monde, id, x)})
+    if incertains:
+        percevoir(monde, id)
+        incertains = [x for x in incertains if position_a_verifier(monde, id, x)]
+        if incertains:
+            from .planification import contacter
+            verification = contacter(monde, id, incertains[0])
+            etapes[:] = verification or []
+            return _agir(monde, id, t, lignes, gestes, compter) if etapes else (reste, FIN, None)
     operation = etape["operation"]
     if refus_etape(monde, id, etapes) is not None:
         return reste, MANQUE, etape
