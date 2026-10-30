@@ -594,11 +594,10 @@ def souvenir(monde, id, s):
     if t == "don" and "de" in s:
         t = "recu"
     if t == "dit" and s.get("attribut") == FIABLE and s.get("valeur") is False:
-        from .esprits import lire
-        alerte = next((x for x in lire(monde, id)["memoire"] if x["type"] == "a_prevenir"
-                       and x["victime"] == s["a"] and x["auteur"] == s["sujet"]), None)
+        from .memoire import avertissement_du, acquitter_avertissement
+        alerte = avertissement_du(monde, id, s["a"], s["sujet"])
         if alerte and not alerte.get("tenu") and identifie(monde, s["a"], id):
-            alerte["tenu"] = True
+            acquitter_avertissement(monde, id, s["a"], s["sujet"])
             memoriser(monde, s["a"], {"type": "prevenu", "de": id, "sujet": s["sujet"], "preuve": "service:" + alerte.get("preuve", str(alerte["minute"]))})
         return
     if t == "rumeur":

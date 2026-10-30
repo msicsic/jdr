@@ -10,19 +10,13 @@
     "prets_reclames/memoire": 1
   },
   "donjon/defense.py": {
-    "approche_vue/memoire": 2,
     "auteurs/memoire": 1,
-    "avertir_acces/memoire": 1,
     "constater_fin/memoire": 1,
     "dangers_vus/memoire": 1,
-    "interposition/memoire": 2,
-    "protection/memoire": 2,
     "souvenirs/memoire": 2
   },
   "donjon/deliberation.py": {
-    "_candidats/memoire": 1,
     "_lieux_a_dire/memoire": 1,
-    "_plan_prevenir/memoire": 1,
     "choisir/memoire": 1,
     "detresses_percues/memoire": 1,
     "menager_flamme/memoire": 1,
@@ -48,13 +42,12 @@
   },
   "donjon/planification.py": {
     "__init__/memoire": 1,
-    "_entrees_communes/memoire": 1,
-    "reagir/memoire": 1
+    "_entrees_communes/memoire": 1
   },
   "donjon/pnj.py": {
     "_abriter/memoire": 1,
     "_chauffer/memoire": 1,
-    "_executer_effet/memoire": 2,
+    "_executer_effet/memoire": 1,
     "_temoins_a_l_oreille/memoire": 1
   },
   "donjon/recit_pnj.py": {
@@ -62,7 +55,7 @@
   },
   "donjon/relations.py": {
     "chance_demande/memoire": 1,
-    "souvenir/memoire": 2
+    "souvenir/memoire": 1
   },
   "donjon/signes.py": {
     "percevoir_tous/memoire": 1,

@@ -1141,9 +1141,10 @@ def _a_dire(monde, id, victime, auteur):
 
 def _plan_prevenir(monde, id):
     """Un geste illicite vu contre un protégé : aller lui dire ce qu'il en ignore encore."""
-    e = esprit(monde, id)
-    for s in reversed(e["memoire"]):
-        if s["type"] != "a_prevenir" or s["victime"] not in monde.objets:
+    from .memoire import avertissements_a_donner
+    esprit(monde, id)
+    for s in reversed(avertissements_a_donner(monde, id)):
+        if s["victime"] not in monde.objets:
             continue
         contenus = _a_dire(monde, id, s["victime"], s["auteur"])
         if not contenus:
@@ -2059,7 +2060,8 @@ def _candidats(monde, id):
             from .planification import ranimer
             ajouter("devoir", lambda m, i, x=protege: ranimer(m, i, x), Palier.RANIMER, (-rang,))
     # Un protégé atteint sous ses yeux : il va le prévenir, comme une parole due.
-    if any(s["type"] == "a_prevenir" for s in e["memoire"]):
+    from .memoire import avertissements_a_donner
+    if avertissements_a_donner(monde, id):
         ajouter("devoir", _plan_prevenir, Palier.PREVENIR)
     # « J'arrive ! » à un appel : une parole due, comme une autre (``appel.plan_venir``).
     if e["rejoindre"]:

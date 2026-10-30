@@ -936,11 +936,8 @@ def _executer_effet(monde, id, etape, lignes, gestes):
         _inspecter(monde, id, contenu.get("cherche"), lignes, contenu.get("vers"))
         intention = lire(monde, id)["intention"]
         if intention and intention["but"]["type"] == "proteger":
-            secourus = []
-            for s in lire(monde, id)["memoire"]:
-                if s["type"] == "secours" and s["salle"] == o["lieu"] and not s.get("examine"):
-                    s["examine"] = True
-                    secourus.append(s["qui"])
+            from .memoire import examiner_secours_du_lieu
+            secourus = examiner_secours_du_lieu(monde, id, o["lieu"])
             if secourus:
                 from .corps import evenement
                 evenement(monde, "intervention", id, proteges=sorted(set(secourus)))

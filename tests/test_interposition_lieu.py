@@ -1,5 +1,6 @@
 """Une charge de lieu partage le poste, la parole et la persistance des biens."""
 import copy
+import json
 import unittest
 
 from donjon import agendas, defense, relations
@@ -83,11 +84,14 @@ def epreuve(cas=CAS[0], suspect=True, vu=True, guet=False, obstacle=None):
 
 class InterpositionLieuTests(unittest.TestCase):
     def preuve(self, m):
+        from donjon.emissions import lire as paroles
         rendu, scene = regarder(m), scene_percue(m)
         n = recharger(m)
         self.assertEqual(m.data, n.data)
+        self.assertEqual(json.dumps(m.data), json.dumps(n.data))
         self.assertEqual(rendu, regarder(n))
         self.assertEqual(scene, scene_percue(n))
+        self.assertEqual(paroles(m), paroles(n))
         return n
 
     def test_deux_scenarios_poste_parole_persistance_et_recharge(self):
@@ -136,6 +140,7 @@ class InterpositionLieuTests(unittest.TestCase):
                 b = self.preuve(b)
             a = self.preuve(a)
             self.assertEqual(a.data, b.data)
+            self.assertEqual(json.dumps(a.data), json.dumps(b.data))
             self.assertEqual(regarder(a), regarder(b))
             self.assertEqual(scene_percue(a), scene_percue(b))
 
