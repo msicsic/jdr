@@ -43,8 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- **373 — `codex-s0-conception-memoire`**, base `integration b83f5a59`, documentation seule.
+  S0 : inventaire mesuré, trois couches et registre, vues/invalidation, migration S1a–p et frontière S2.
+  71 accès mémoire / 55 fonctions / 17 fichiers ; 247 accès explicites dans 106 fichiers de tests.
+  Émissions G15 uniques, vérité mécanique et connaissance séparées ; interfaces 372/374 et A1 définies.
+  Ni Luna, banc ni suite ; lacunes de validation et formats concurrents encore à raccorder explicités.
+  [Conception](conception-memoire-unifiee.md), [rapport](taches/rapport-codex-373-s0-conception-memoire.md).
+
 Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 372 (A6
-soupçon déduit), 373 (S0 conception de la mémoire), 374 (position crue comme hypothèse datée). Suite complète en cours.
+soupçon déduit), 374 (position crue comme hypothèse datée). Suite complète en cours.
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
