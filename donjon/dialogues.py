@@ -222,7 +222,7 @@ def preparer_conversation(monde, p, revision=None):
         rapport['comptes'] = comptes
     travail.data["revision"] += 1
     if resolution_comptable is not None:
-        from .comptes_parles import admettre
+        from .repliques_moteur import admettre
         from .emissions import lire, publiques
         debut = len(lire(travail))
         autorisations = [{"locuteur": acteur, "parametres": {"contenu": []},

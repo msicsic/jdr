@@ -90,7 +90,7 @@ class ContenusParoleTests(unittest.TestCase):
         m=recharge(m)
         self.assertTrue(connait_nom(m,'joueur','marchand'))
         self.assertIn('Gorm',rendus(m))
-        self.assertIn(reponse,sortie)
+        self.assertIn('Gorm : « Je m\'appelle Gorm. »',sortie)
         retours=[entree.get('faits',{}).get('retour_moteur',{}) for _,entree in appels]
         self.assertTrue(any('contenu[0].sujet' in str(r) and 'vide' in str(r) for r in retours))
 

@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **345 / G16 terminé — `codex-g16-information`, fusionnée**, base `3e3afe2`, fusion sans rebase `e792251` de `014fc35`.
+  Identité, ressource et localisation crue formulées par le moteur ; publication G15–G17 commune.
+  **310 tests / 23 fichiers : cinq assertions antérieures reproduites sur `014fc35`, zéro erreur/saut ni incident nouveau.**
+  Mandat 12/12, « Compris » 5/5, G15 11/11, G16 7/7, G17 11/11 et consentement 9/9 verts ; « tenter » conservé.
+  Treize comparaisons AST vertes ; sources/tests figés, traces des cinq réserves identiques hors chemins/lignes, oracles inchangés.
+  Luna initiale : une passe, 28 appels ; non relancée après fusion. Deux travailleurs réduits au plus, aucun calcul actif ; branche poussée.
+  [Rapport et limites](taches/rapport-codex-345-g16-information-parlee.md) ; bruts `artifacts/g16-345/fusion-014fc35/` du dépôt principal.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Branche réaccordée à l'intégration 014fc35 par l'agent (conflit test_repli_et_appel résolu, « tenter » conservé) ; 310 tests ciblés, cinq échecs préexistants reproduits sur 014fc35 ; une passe Luna, 28 appels.
+
 - **344 / U-M corps terminé**, `codex-um-corps`, base `78766d9`, fusionnée ; intégration `014fc35` fusionnée sans rebase.
   Gestes corporels au menu, références/méthode/moyen/direction exacts ; danger perçu et consentement U-C revalidé.
   Fusion `b2c8f53` à deux parents : direction/parcours, G7 et mandats 341 conservés ; état court de l'intégration gardé.
