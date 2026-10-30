@@ -19,8 +19,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E4 fusionnés (348, 350, 352 et 357, 355), E5 = 359.
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
-- **Abandonnés, branches gardées sur origin** (à rediscuter avec l'utilisateur) : 33, 36, 117 b, 117 c, 162, 166,
-  168, 170, 176, 198, 206, 235, diagnostics/coût 62, 63, 66, 75, 85 b, 118, 119, ancien C1.
+- **Abandonnés** : archivés par tags `archive/<branche>` le 2026-10-30 (33, 36, 117 b/c, 162, 166, 168, 170, 176,
+  198, 206, 235, 62, 63, 66, 75, 85 b, 118, 119, ancien C1, essais).
 
 ## Dernières fusions
 
@@ -50,6 +50,12 @@ nouvelles à traiter ensuite. Leurs entrées arrivent ici à leur livraison.
   section 6 sont acceptés tels que recommandés (prestation ponctuelle avant une limite, payée maintenant ; dépassement
   = clôture sans sanction nouvelle ; durée incertaine non promise ; renégociation et offres PNJ en E7-E9 ; heure de
   jeu sans calendrier). Lots E1 à E6, puis évaluation avant E7-E9.
+- **Confidences d'inventaire** (question du lot 360) : ce qu'un PNJ sait depuis le début de la partie n'est pas une
+  nouvelle à confier ; seul un changement appris (garde rendue ou perdue, bien pris, déplacé, détruit) se raconte.
+  Constat : les confidences suivent la confiance mais pas les besoins de l'auditeur (le filtre de pertinence reste le
+  chantier 206/235/255, mis de côté).
+- **Branches abandonnées** : 27 branches archivées par tag `archive/<nom>` puis supprimées (abandonnées, essais,
+  `cache-kv-local`) ; gardées : `codex-g1-compilateur`, `codex-g20-signes`, `prompt-simplifie`.
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 
