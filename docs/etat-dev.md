@@ -39,8 +39,16 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 371
-(évaluation de l'échéance avant E7-E9), 372 (A6 soupçon déduit). Suite complète de l'intégration relancée après les
+- `codex-evaluation-echeance` — lot 371, base `d8567324`, PC fixe, mesure seule, aucun code du jeu modifié.
+  Huile auberge/planches Relais : 7 saisies ou 9 clics, zéro modèle ; livraison, remboursement unique,
+  comptes et rendu après recharge ; messages en bloc/découpés différents à l’auberge (état identique).
+  91 tests verts ; 12 nuits de 4 h, 4 graines : 44 prestations promises, 19 payées, 17 devis > 1 min.
+  E6 réel non revalidé : 12 scripts Luna préparés, non joués (« ni Luna » du brief). Catalogue : recouvrement 365.
+  Recommandation : stabiliser E6/catalogue, E7 puis essai E9 borné ; E8 différé, gain autonome non démontré.
+  [Rapport et limites](taches/rapport-codex-371-evaluation-echeance.md) ; bruts `artifacts/evaluation-echeance-371/` du dépôt principal.
+
+Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente),
+372 (A6 soupçon déduit). Suite complète de l'intégration relancée après les
 corrections 360 à 368. Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
