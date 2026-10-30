@@ -24,6 +24,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-regressions-337` (2166b971) : lot 360, régressions de la fin de garde apprise par ouï-dire (lot 337). Détail dans l'historique.
 - `codex-rouges-restants` (48d107bc) : lot 362, rouges restants de la suite hors lot 337. Détail dans l'historique.
 - `codex-e5-choix-direct` (1bd2642f) : lot 359, E5 le choix direct conserve l'accord daté affiché jusqu'à la validation. Détail dans l'historique.
 - `codex-attentes-perimees` (9f9d6fdd) : lot 361, attentes périmées encore rouges portées au contrat actuel. Détail dans l'historique.
@@ -35,8 +36,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-e3-taches-payees` (999e4c67) : lot 357, régression d'E3 sur les tâches payées corrigée. Détail dans l'historique.
 - `codex-attribution-groupe1` (8d1a4c3f) : lot 342, attribution du groupe 1. Détail dans l'historique.
 - `codex-ut-corps-passage` (fe464411) : lot 353, U-T corps et passage au terminal. Détail dans l'historique.
-- `codex-garder-lieu` (40bd537e) : lot 333, garder un lieu. Détail dans l'historique.
-- `codex-attention-conjointe` (c3db8e29) : lot 332, attention conjointe. Détail dans l'historique.
 
 ## Lots non fusionnés
 

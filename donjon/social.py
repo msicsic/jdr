@@ -67,9 +67,11 @@ def faits_dits(noyau):
         sujet = noyau.get("sujet", noyau.get("objet"))
         attribut, valeur = noyau["attribut"], noyau["valeur"]
         if attribut == "lieu" and "possession" in noyau.get("details", {}):
-            # Un portage accusé ne dit rien des droits constatés. Le lieu et
-            # ses droits forment un seul fait, distinct d'une localisation nue.
-            return [(_cle([sujet, attribut, "possession"]),
+            # Les droits constituent une preuve supplémentaire : le contenu
+            # dit aussi le lieu nu. Connaître seulement ce lieu n'atteste pas
+            # les droits ; connaître les droits ne fait pas oublier le lieu.
+            return [(_cle([sujet, attribut]), valeur),
+                    (_cle([sujet, attribut, "possession"]),
                      {"valeur": valeur, "possession": noyau["details"]["possession"]})]
         if attribut == "etat":
             return [(_cle([sujet, attribut, k]), v) for k, v in sorted(valeur.items())]
@@ -87,6 +89,51 @@ def faits_dits(noyau):
     if "lieu" in noyau:
         faits.append((_cle([noyau["objet"], "lieu"]), noyau["lieu"]["valeur"]))
     return faits
+
+
+def installer_faits_initiaux(monde, id, *, perception=False):
+    """Ancrage de provenance de la scène de départ, distinct des croyances.
+
+    L'installation du contrat sur une ancienne sauvegarde n'invente pas de
+    transfert à partir de ses inventaires actuels. Le passé absent ne peut pas
+    être reconstruit. Aucun savoir sur un tiers n'est ajouté aux croyances.
+    """
+    from .esprits import preuve_possession, faits_materiels
+    e = esprit(monde, id)
+    initiaux = e["faits_initiaux"]
+    for sujet in monde.objets:
+        p = preuve_possession(monde, sujet)
+        if p:
+            for attribut, valeur, details in faits_materiels(monde, sujet):
+                # L'inventaire de départ a une provenance matérielle ; celui
+                # qui le porte connaît aussi l'état de ses propres biens.
+                # Aucune propriété cachée d'un bien tiers n'est un savoir.
+                if attribut == "lieu" or p["porteur"] == id:
+                    initiaux.update(copy.deepcopy(faits_dits({"type": "constat", "objet": sujet,
+                        "attribut": attribut, "valeur": valeur, "details": details})))
+    for sujet, attributs in e["croyances"].items():
+        for attribut, c in attributs.items():
+            # Les anciennes localisations sans droits ne deviennent pas une
+            # nouvelle par la seule installation de la preuve de possession.
+            localisation_ancienne = attribut == "lieu" and "possession" not in c
+            if c["source"] != "savoir" and not (c["source"] == "vu" and (perception or localisation_ancienne)):
+                continue
+            noyau = {"type": "affirmation", "sujet": sujet, "attribut": attribut,
+                     "valeur": c["valeur"], "details": c}
+            initiaux.update(copy.deepcopy(faits_dits(noyau)))
+            if attribut == "lieu" and sujet in monde.objets and c["valeur"] == monde.objets[sujet]["lieu"]:
+                p = preuve_possession(monde, sujet, precedente=c)
+                if p:
+                    initiaux.update(copy.deepcopy(faits_dits({**noyau, "details": {"possession": p}})))
+
+
+def _initial(monde, id, noyau):
+    initiaux = lire(monde, id)["faits_initiaux"]
+    if noyau.get("attribut") == "lieu":
+        cle = _cle([noyau.get("objet", noyau.get("sujet")), "lieu"])
+        if cle in initiaux and initiaux[cle] == noyau["valeur"]:
+            return True
+    return all(cle in initiaux and initiaux[cle] == valeur for cle, valeur in faits_dits(noyau))
 
 
 def transmission_attestee(monde, id, auditeur, noyau):
@@ -171,6 +218,19 @@ def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details)
     if attribut == "intention":
         valeur = {"valeur": valeur, "envers": details.get("envers")}
     registre = lire(monde, id)["faits_dits"]
+    if id != "joueur":
+        initiaux = esprit(monde, id)["faits_initiaux"]
+        for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
+                                  "valeur": valeur, "details": details}):
+            lieu_change = (attribut == "lieu" and (
+                _cle([sujet, attribut]) in initiaux and initiaux[_cle([sujet, attribut])] != valeur
+                or precedente and precedente["valeur"] != valeur))
+            if lieu_change or cle in initiaux and initiaux[cle] != v:
+                initiaux.pop(cle, None)
+                # Les deux identités partagent le même ancrage de départ.
+                if attribut == "lieu":
+                    initiaux.pop(_cle([sujet, attribut]), None)
+                    initiaux.pop(_cle([sujet, attribut, "possession"]), None)
     avant = {}
     if precedente:
         ancienne = ({"valeur": precedente["valeur"], "envers": precedente.get("envers")}
@@ -297,6 +357,9 @@ def _nouvelles(monde, id):
             noyau, rang, source = {"observe": souvenir["minute"], **souvenir["evenement"]}, souvenir["rang"], souvenir["de"]
         else:
             continue
+        # Un événement mémorisé n'est pas une simple revue d'état initial :
+        # l'accusation et le démenti restent des actes appris, même lorsque
+        # leur conséquence matérielle ressemble à une propriété de départ.
         if (accuse(noyau) == id
                 or (any(k not in monde.objets and k not in monde.data["salles"]
                         for k in (noyau.get("objet"),) if k and k != "joueur")
@@ -385,6 +448,8 @@ def _constats(monde, id):
                 noyau["details"] = {k: copy.deepcopy(c[k]) for k in ("salle", "case", "possession")}
             elif attribut == "fin" and "designation" in c:
                 noyau["details"] = {"designation": copy.deepcopy(c["designation"])}
+            if _initial(monde, id, noyau):
+                continue
             yield c, noyau, 0, None
 
 

@@ -7,6 +7,7 @@ s'endure), et l'attente d'un besoin qu'aucun plan ne peut apaiser.
 Chaque cas vérifie l'état du monde après rechargement."""
 
 from tests.support import lier
+from tests.support import canal_constats_anterieur_337
 import unittest
 from unittest.mock import patch
 
@@ -165,6 +166,7 @@ class TenirTests(unittest.TestCase):
         self.assertEqual(texte, rendu(apres))
         self.assertEqual(scene_percue(m), scene_percue(apres))
 
+    @canal_constats_anterieur_337
     def test_lucien_attend_une_information_apres_la_reprise_du_ballot(self):
         import copy
         from donjon import deliberation, pnj

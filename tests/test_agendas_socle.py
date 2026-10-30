@@ -16,6 +16,7 @@ from donjon.esprits import lire, percevoir_tous
 from donjon.paroles import engagements_enregistres, preparer_parole
 from donjon.spatial import porte_par
 from tests.support import presentes, regarder
+from tests.support import canal_constats_anterieur_337
 from tests import test_crochetage_surenchere as cs
 from tests.test_parts_achetees import antichambre_du_banc, parole
 from tests.test_taches_payees import sans_flamme
@@ -150,6 +151,7 @@ class ChaineTests(unittest.TestCase):
         self.assertTrue(any(s["type"] == "engagement_abandonne" for s in lire(m, "tilo")["memoire"]))
         self.assertFalse(any("engagement pris" in t for t in engagements_enregistres(m, "tilo")))
 
+    @canal_constats_anterieur_337
     def test_achat_apres_abandon_conserve_la_piece_due_puis_la_solde(self):
         from donjon.biens import payer, solder
         from donjon.rendu import regarder as rendu

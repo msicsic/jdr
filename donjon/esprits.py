@@ -102,6 +102,7 @@ CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": 
           "secours": lambda: None,
           "derniere_confidence": lambda: None,  # minute de la dernière nouvelle confiée
           "faits_dits": dict,  # identités et dernières valeurs dites, hors mémoire courante (social)
+          "faits_initiaux": dict,  # connaissances de départ encore inchangées, jamais des nouvelles
           # Besoins bloqués ayant déjà motivé un appel depuis leur dernier apaisement.
           "detresses_appelees": list,
           "aides_attendues": dict,
@@ -169,6 +170,7 @@ def installer(monde):
         installer_statuts(monde, "joueur")
     personnages = set(pnjs(monde)) | {"joueur"}
     for id in pnjs(monde):
+        nouveaux_faits = "faits_initiaux" not in monde.data["esprits"].get(id, {})
         nouveaux_statuts = "relations" not in monde.data["esprits"].get(id, {})
         nouveau = "voix" not in monde.data["esprits"].get(id, {})
         migrer_confidences = "faits_dits" not in monde.data["esprits"].get(id, {})
@@ -234,6 +236,9 @@ def installer(monde):
                               "depuis": i.get("depuis", monde.data["minutes"]), "attente": 0}
         from .deliberation import installer as installer_besoins
         installer_besoins(monde, id)
+        if nouveaux_faits:
+            from .social import installer_faits_initiaux
+            installer_faits_initiaux(monde, id)
     # Le joueur arrive en étranger : il ne connaît encore aucune voix.
     from .signes import installer as installer_signes
     installer_signes(monde)
@@ -371,6 +376,7 @@ def verifier(monde):
     for id, e in esprits.items():
         assert id in monde.objets and monde.objets[id]["type"] == "personnage", "Esprit sans personnage"
         assert agendas.champs_esprit(e) == set(CHAMPS), "Esprit mal formé"
+        assert isinstance(e["faits_initiaux"], dict) and all(isinstance(k, str) for k in e["faits_initiaux"]), "Faits initiaux invalides"
         from .relations import verifier as verifier_relations
         verifier_relations(monde, id)
         from .pnj_propositions import verifier as verifier_recours
@@ -1129,6 +1135,24 @@ def prete(monde, id, objet, a):
     return any(s["type"] == "pret" and s.get("objet") == objet and s.get("a") == a for s in lire(monde, id)["memoire"])
 
 
+def preuve_possession(monde, sujet, *, precedente=None, remis_par=None, autorise=False):
+    """Droits photographiés au constat ou à l'installation, sans modifier un esprit."""
+    o = monde.objets[sujet]
+    porteur = _porteur(monde, o)
+    if porteur is None:
+        return None
+    proprietaire = _proprietaire(monde, o)
+    p = {"porteur": porteur, "proprietaire": proprietaire,
+         "permis": bool(porteur == proprietaire or _permis(monde, porteur, sujet)),
+         "remis_par": remis_par,
+         "remise_autorisee": bool(remis_par is not None and (porteur == proprietaire or autorise))}
+    precedent = (precedente or {}).get("possession", {})
+    if remis_par is None and all(precedent.get(k) == p[k] for k in ("porteur", "proprietaire")):
+        p["remis_par"] = precedent.get("remis_par")
+        p["remise_autorisee"] = precedent.get("remise_autorisee", False)
+    return p
+
+
 def constater_possession(monde, id, sujet, source, *, salle=None, case=None, remis_par=None, autorise=False):
     """Preuve propre du lieu et des droits lors d'une vue ou d'une remise.
 
@@ -1138,24 +1162,13 @@ def constater_possession(monde, id, sujet, source, *, salle=None, case=None, rem
     """
     assert source in ("vu", "essai")
     o = monde.objets[sujet]
-    porteur = _porteur(monde, o)
     details = {}
-    if porteur is not None:
-        proprietaire = _proprietaire(monde, o)
-        permis = porteur == proprietaire or _permis(monde, porteur, sujet)
-        # Le droit de porter (prêt ou garde confiée) ne décharge pas le
-        # gardien. Il faut une restitution ou une livraison mandatée.
-        p = {"porteur": porteur, "proprietaire": proprietaire,
-             "permis": bool(permis), "remis_par": remis_par,
-             "remise_autorisee": bool(remis_par is not None and (porteur == proprietaire or autorise))}
-        ancienne = croyance(monde, id, sujet, "lieu") or {}
-        precedent = ancienne.get("possession", {})
-        if remis_par is None and all(precedent.get(k) == p[k] for k in ("porteur", "proprietaire")):
-            p["remis_par"] = precedent.get("remis_par")
-            p["remise_autorisee"] = precedent.get("remise_autorisee", False)
+    p = preuve_possession(monde, sujet, precedente=croyance(monde, id, sujet, "lieu"),
+                          remis_par=remis_par, autorise=autorise)
+    if p is not None:
         details["possession"] = p
     reviser(monde, id, sujet, "lieu", o["lieu"], source, salle=salle, case=case, **details)
-    if id != "joueur" and porteur == id and details["possession"]["proprietaire"] == id:
+    if id != "joueur" and p and p["porteur"] == id and p["proprietaire"] == id:
         from .relations import reviser_soupcons
         reviser_soupcons(monde, id, sujet, {"present": True}, rendu=True)
 
@@ -1217,6 +1230,37 @@ def constater_fin_objet(monde, id, sujet, source):
         croire(monde, id, sujet, "fin", cause, source, **designation)
 
 
+def etat_materiel(monde, sujet, *, contenu_visible=True):
+    """Les seules propriétés matérielles constatables, sans créer de croyance."""
+    o = monde.objets[sujet]
+    etats = ETATS_VISIBLES.get(o["type"])
+    if not etats:
+        return None
+    valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
+               "charge": o.get("combustible", 0) > 0}
+    etat = {k: bool(valeurs.get(k)) for k in etats}
+    if o["type"] == "contenant" and o.get("ouverte") and contenu_visible:
+        etat["vide"] = not any(x["lieu"] == sujet for x in monde.objets.values())
+    return etat
+
+
+def faits_materiels(monde, sujet):
+    """Provenance initiale des propriétés, avec les mêmes contrats que le constat.
+
+    Ces valeurs ne sont jamais versées aux croyances d'un observateur.
+    """
+    from .perception import fin_objet
+    o = monde.objets[sujet]
+    p = preuve_possession(monde, sujet)
+    yield "lieu", o["lieu"], {"possession": p} if p else {}
+    yield "fin", fin_objet(o), {}
+    etat = etat_materiel(monde, sujet)
+    if etat is not None:
+        yield "etat", etat, {}
+    if o["type"] in ("porte", "contenant"):
+        yield "verrouillee", bool(o.get("verrouillee") and not o.get("ouverte") and o.get("integrite") != 0), {}
+
+
 def constater(monde, id, sujet, source):
     """Croit l'état visible de l'objet tel qu'il est : vu, ou laissé ainsi de sa propre main.
     D'un personnage, joueur compris, se voit ce qui presse son corps : la faim, le froid, la
@@ -1269,14 +1313,11 @@ def constater(monde, id, sujet, source):
         croire(monde, id, sujet, "pieces", o["pieces"], source)
     etats = ETATS_VISIBLES.get(o["type"])
     if etats:
-        valeurs = {**o, "disponible": o.get("portions", o.get("charges", 0)) > 0, "faible": faible(o),
-                   "charge": o.get("combustible", 0) > 0}
-        etat = {k: bool(valeurs.get(k)) for k in etats}
+        visible = (o["type"] != "contenant" or not o.get("ouverte") or source == "vu"
+                   or (monde.visible(sujet) if id == "joueur" else sujet in percus(monde, id)[0]))
+        etat = etat_materiel(monde, sujet, contenu_visible=visible)
         if o["type"] == "contenant" and o.get("ouverte"):
-            visible = source == "vu" or (monde.visible(sujet) if id == "joueur" else sujet in percus(monde, id)[0])
-            if visible:
-                etat["vide"] = not any(x["lieu"] == sujet for x in monde.objets.values())
-            else:
+            if not visible:
                 # Toucher le battant dans le noir ne dément pas le contenu vu.
                 ancien = croyance(monde, id, sujet, "etat")
                 if ancien and "vide" in ancien["valeur"]:
@@ -1488,6 +1529,11 @@ def _percevoir(monde, id):
     change |= retenir_detresses(monde, id, signes_percus(monde, id))
     # Les constats de mouvement ont besoin de la vue précédente : retrouver
     # quelqu'un ailleurs après l'avoir perdu de vue n'est pas voir son approche.
+    if premiere and monde.data["minutes"] == 0 and not monde.data.get("journal"):
+        # La première vue de l'état de départ complète les savoirs déclarés.
+        # Les essais et les paroles ne sont pas des observations initiales.
+        from .social import installer_faits_initiaux
+        installer_faits_initiaux(monde, id, perception=True)
     e["en_vue"] = en_vue
     if change and not premiere and getattr(monde, "_agit", None) != id:
         reconsiderer(monde, id)

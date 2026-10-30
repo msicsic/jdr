@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **360 — `codex-regressions-337`**, base `integration 0b62a4fa`, **terminé, non fusionné ; poussé**.
+  Contrat commun : droits ⇒ lieu sans réciproque ; inventaire et états portés initiaux silencieux,
+  changements appris transmis ; les événements mémorisés gardent leur nouveauté. Source validée `861d88d1`.
+  Prémisses des anciens oracles explicites ; 453 assertions AST conservées hors deux textes G7 autorisés.
+  **369/369 tests, 32 fichiers**, zéro échec/erreur/saut ; 23 méthodes du brief et 16 tests du 337 verts.
+  Banc 2 h × 5 scénarios × 4 graines : 20/20 sans plantage ni usurpation ; constats main/branche 102/179.
+  Empreintes différentes de main ; 20 références en cache. Migration ancienne limitée ; suite globale non relancée.
+  [Rapport](taches/rapport-codex-360-regressions-337.md) ; recouvrement passage/361 limité et autorisé.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Décision de l'utilisateur appliquée : l'inventaire connu dès le départ n'est pas une nouvelle à confier, seuls les changements appris se racontent. 369 tests verts, vingt nuits sans plantage ni usurpation.
+
 - **362 — `codex-rouges-restants`, base `integration 52b2a27c`, terminé, poussé, fusionné.**
 Seize rouges attribués ; huit méthodes corrigées/portées, huit réservées (358 ×2, 306 ×2, 313, 332, 333, 330).
 Connaissance publique sans multiplication d'identités homonymes, noms uniques historiques conservés ; préfixe KV réordonné.

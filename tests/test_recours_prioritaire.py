@@ -5,6 +5,7 @@ La capture crue provient du lot 88, nuit 2024 à 645 minutes, sans retouche.
 import gzip
 import json
 from pathlib import Path
+from tests.support import canal_constats_anterieur_337
 import unittest
 from unittest.mock import patch
 
@@ -135,12 +136,31 @@ class RecoursPrioritaireTests(unittest.TestCase):
         self.assertTrue(lire(a, 'marchand')['aides_attendues'])
 
     @patch("donjon.agendas._naissances", return_value=None)
+    @canal_constats_anterieur_337
     def test_capture_reelle_sans_navette_meme_monde_et_vue_decoupes(self, _naissance):
         # Comparer le maintien de l'abri historique, sans projets nouveaux
         # ni secours spontané : la compagnie peut sinon l'apaiser, puis
         # faire passer son froid devant sa recherche de lumière.
         from tests.support import sans_souci
-        a, b = suite(sans_souci(capture()), False), suite(sans_souci(capture()), True)
+        def lumiere_seule():
+            m = sans_souci(capture())
+            # Le séjour testé apaise par la lumière ; le souci spontané
+            # écarté ci-dessus n'écarte pas l'apaisement passif des compagnons.
+            m.objets['aubin']['profil'].setdefault('securite', {})['compagnie'] = 0
+            # La capture commence en réalité par un projet de chaleur
+            # (95,967) avec une sécurité déjà à 23,493. La scène de recours
+            # déclare sa prémisse : sécurité pressante, sans froid concurrent.
+            lire(m, 'aubin')['besoins'].update(securite=90.0, chaleur=0.0)
+            lire(m, 'aubin')['intention'] = None
+            # Comme la scène de mine ci-dessus, aucun compagnon connu
+            # ne fournit un autre abri : le recours testé est la lumière.
+            libres = iter(sorted(cases(m.data['salles']['crypte'])))
+            for acteur, o in m.objets.items():
+                if acteur != 'aubin' and o.get('profil'):
+                    placer(m, acteur, 'crypte', next(libres))
+                    croire(m, 'aubin', acteur, 'lieu', None, 'vu', salle=None, case=None)
+            return m
+        a, b = suite(lumiere_seule(), False), suite(lumiere_seule(), True)
         self.assertEqual(a.data, b.data)
         self.assertEqual(vue(a), vue(b))
         self.assertLessEqual(len(passages(a, "aubin", 645)), 12)
