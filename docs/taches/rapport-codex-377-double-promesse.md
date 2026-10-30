@@ -31,12 +31,11 @@ Les tests couvrent également le combustible d'un service sans métadonnée de
 part, la répétition sans second paiement, la libération après abandon et un
 stock distant caché. État et rendu sont comparés après sauvegarde/recharge.
 
-**Mesures.** Après correction du double comptage provisoire, **31 tests verts**
-(`tests-correction.json`), assertions des tests voisins inchangées. Une première
+**Mesures.** Après correction du double comptage provisoire, **97 tests verts**
+sur les onze fichiers concernés (`tests-final.json`, 234,1 s), assertions des tests voisins inchangées. Une première
 passe élargie a aussi validé parts achetées, parts proposées, propositions,
 réalisations datées et lampes ; ses deux fichiers rouges ont motivé le
-recontrôle. Vérification finale des onze fichiers concernés et complément sur
-la dernière version en cours, puis **empreintes 2 h, auberge et Relais,
+recontrôle. Complément sur la dernière version en cours, puis **empreintes 2 h, auberge et Relais,
 1985/7/42/2024**, contre la base figée `2887c541`, référence mise en cache sans
 rejouer les nuits déjà présentes. Deux travailleurs au plus, priorité réduite.
 Pas de suite complète ni Luna. Bruts et lanceur de reprise :
