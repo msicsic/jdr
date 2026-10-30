@@ -46,6 +46,12 @@ class DesignationsTests(unittest.TestCase):
                 r, sortie, appels = jouer(m, "« C'est moi, Brune. »", [
                     parole("C'est moi, Brune.", personnage=ref), dialogue(texte)],
                     [rapport(ligne("mecanique", sources=["interlocuteurs"]))])
+                # G16 / rapport 345 : l'identité reçoit ses mots moteur ; exercer
+                # les qualificatifs libres au tour suivant, après cette même parole.
+                r, description, suite = jouer(r, "mj que perçois-je ?", [dialogue(texte)],
+                    [rapport(ligne("mecanique", sources=["interlocuteurs"]))])
+                sortie += description
+                appels.extend(suite)
                 self.assertIn(texte, sortie)
                 self.assertEqual(r.data["narrations_mj"][-1]["texte"], texte)
                 self.assertEqual(emissions_joueur(r)[-1]["texte"], "C'est moi, Brune.")

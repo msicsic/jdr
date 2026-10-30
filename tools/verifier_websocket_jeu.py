@@ -17,6 +17,7 @@ from donjon.moteur import Moteur
 from donjon.narration import rendre_resultat
 from donjon.rendu import regarder, fiche, carte
 from donjon.spatial import installer
+from tests.perception_support import apres_regarder
 from donjon.transport_openai import ouvrir_websocket
 
 CAS = {'crypte': (nouveau_monde, 'cle'), 'atelier': (nouveau_atelier, 'ficelle')}
@@ -85,7 +86,8 @@ def parcours(cas):
         vues = (regarder(recharge), fiche(recharge), carte(recharge))
         reprise = Interface(['inventaire', 'regarder', 'quitter'], chemin)
         assert jeu.main(['--save', str(chemin), '--offline', '--console'], interface=reprise) == 0
-        assert Monde.charger(chemin).data == etat
+        # G5 / rapport 323 : regarder ajoute son résultat, sans nouvel acte.
+        assert Monde.charger(chemin).data == apres_regarder(etat)
         assert (regarder(Monde.charger(chemin)), fiche(Monde.charger(chemin)),
                 carte(Monde.charger(chemin))) == vues
         assert recharge.objets[cible]['nom'].casefold() in '\n'.join(reprise.sorties).casefold()

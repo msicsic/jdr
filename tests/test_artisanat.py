@@ -331,7 +331,8 @@ class HarnaisTests(unittest.TestCase):
             with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "echanger", return_value=action(fabriquer())), patch.object(MJOpenAI, "raconter_resultat", side_effect=AssertionError("Rien n'est raconté")), patch("builtins.input", side_effect=["est-ce que je peux fabriquer une échelle ?", "quitter"]), patch("sys.stdout", io.StringIO()) as out:
                 jeu.main(["--console", "--atelier", "--connexion", "api", "--save", str(path)])
             self.assertIn("26 min", out.getvalue())
-            self.assertIn("Rien n'est encore tenté.", out.getvalue())
+            # U-C / rapport 325 : même non-exécution, nouvelle fiche.
+            self.assertIn("Faisabilité seulement : aucune action exécutée.", out.getvalue())
             m = Monde.charger(path)
             self.assertFalse(any(o["nom"].startswith("échelle") for o in m.objets.values()))
             self.assertFalse(m.data["journal"])

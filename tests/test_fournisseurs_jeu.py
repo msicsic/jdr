@@ -16,6 +16,7 @@ from donjon.mj import MJ
 from donjon.monde import Monde
 from donjon.moteur import proposition
 from tests.test_claude import anthropic, bloc, reponse
+from tests.perception_support import apres_regarder
 from tools.verifier_websocket_jeu import CAS, Interface, parcours
 from tools.traces_mimo import JournalMiMo
 
@@ -163,4 +164,5 @@ class ParcoursFournisseursTests(unittest.TestCase):
                 self.assertEqual(Monde.charger(sauvegarde).data, avant)
                 reprise = Interface(['inventaire', 'regarder', 'quitter'], sauvegarde)
                 self.assertEqual(jeu.main(['--defi', '--save', str(sauvegarde), '--console', '--offline'], interface=reprise), 0)
-                self.assertEqual(Monde.charger(sauvegarde).data, avant)
+                # G5 / rapport 323 : regarder est une perception sauvegardée.
+                self.assertEqual(Monde.charger(sauvegarde).data, apres_regarder(avant))

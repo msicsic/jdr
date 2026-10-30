@@ -326,7 +326,8 @@ class TypesActionsTests(unittest.TestCase):
         from tests.test_paroles import relais
         for saisie, cible, attendu in [
                 ("est-ce que je pourrais passer sous la poutre effondrée ?", "poutre_conduite", "Approche-toi"),
-                ("est-ce que je peux soulever le brasero ?", "brasero", "Rien n'est encore tenté")]:
+                # U-C / rapport 325 : faisabilité sans exécution.
+                ("est-ce que je peux soulever le brasero ?", "brasero", "Faisabilité seulement : aucune action exécutée.")]:
             with self.subTest(saisie=saisie):
                 m = relais()
                 m.joueur.update(position=[3, 3], orientation="sud-est")
@@ -362,7 +363,8 @@ class TypesActionsTests(unittest.TestCase):
                 r, sortie, appels = jouer(m, saisie, [action(mauvaise), action(bonne)], [])
                 self.assertNotIn("Il faut une échelle", sortie)
                 self.assertNotIn("ne s'applique pas", sortie)
-                self.assertIn("Rien n'est encore tenté", sortie)
+                # U-C / rapport 325 : forme de la fiche, mêmes oracles d'état.
+                self.assertIn("Faisabilité seulement : aucune action exécutée.", sortie)
                 self.assertEqual(r.data["journal"], [])
                 self.assertEqual(r.joueur["position"], m.joueur["position"])
                 self.assertTrue(any("retour_moteur" in e.get("faits", {}) for _, e in appels))

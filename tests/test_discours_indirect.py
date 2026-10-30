@@ -38,7 +38,9 @@ class DiscoursIndirectTests(unittest.TestCase):
                 self.assertEqual(len(dossiers), 2)
                 self.assertEqual([c["type"] for c in dossiers[-1]["contenu"]],
                                  [c[0] for c in contenu])
-                self.assertIn("Ta parole est entendue.", str(r.data["conversation"]))
+                # G16 / rapport 345 : la réponse typée remplace la rédaction simulée.
+                reponse = "Brune : « Je n'en ai pas. »" if contenu else "Ta parole est entendue."
+                self.assertIn(reponse, r.data["conversation"][-1]["reponse"])
 
     def test_guillemets_imposes_et_recharges(self):
         m = banc("ressources")

@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **361 — attentes périmées**, branche `codex-attentes-perimees`, base `integration 0b62a4fa`.
+  Tests portés aux contrats G5/G16/U-C/G6/G7 ; code du jeu inchangé.
+  AST : 846 assertions identiques, 26 substitutions documentées, six assertions supplémentaires.
+  31 méthodes portées vertes ; 190 tests / 21 fichiers, 370,690 s ; deux défauts antérieurs KV/N9 conservés.
+  Zéro erreur/saut ; deux travailleurs réduits ; aucun calcul actif, ni suite complète, Luna ou banc.
+  `test_passage.py` réservé au 360 et laissé intact (une attente G7 restante).
+  [Rapport 361](taches/rapport-codex-361-attentes-perimees.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Tests seulement ; 31 méthodes portées vertes, AST validé ; deux échecs antérieurs (cache KV, N9) restent comme régressions ; test_passage.py laissé au lot 360.
+
 - **356 `codex-suite-rouge-7eb45ff`**, terminé non fusionné, base `df03dc2f`, synchronisation `19c9b6da`.
   158 bascules prouvées / 161 incidents ; 48 harnais, 71 attentes périmées prouvées, 39 régressions conservatrices dont une corrigée.
   Consentement : 811 assertions intactes au premier portage ; attentes G16/U-C portées séparément, frontière commune des répliques corrigée.

@@ -262,11 +262,14 @@ class ObserverSansVoirTests(unittest.TestCase):
     def test_refus_moteur_local_en_ligne_et_hors_ligne_apres_reprise(self):
         import jeu
         from donjon.commandes import analyser
-        from donjon.monde import ErreurMonde, Monde
+        from donjon.monde import Monde
         from donjon.moteur import Moteur
+        from donjon.rendu import non_perception, regarder
         from tools.verifier_websocket_jeu import Interface
         from tests.test_social import placer
-        for cause, mot in (("lumiere", "lumière"), ("presence", "présente"), ("vue", "vue")):
+        # G5 / rapport 323 : ces trois obstacles produisent un constat public,
+        # plus une exception ni une liste de cibles acceptées destinée au MJ.
+        for cause in ("lumiere", "presence", "vue"):
             for offline in (False, True):
                 with self.subTest(cause=cause, offline=offline), tempfile.TemporaryDirectory() as dossier:
                     if cause == "lumiere":
@@ -283,16 +286,15 @@ class ObserverSansVoirTests(unittest.TestCase):
                     spatial.installer(m)  # même connaissance visuelle initiale que l'ouverture du jeu
                     p = analyser(m, "observer Ilse")
                     self.assertEqual(p["cible"], "ilse")
-                    with self.assertRaises(ErreurMonde) as refus:
-                        Moteur(m).preparer(p)
-                    self.assertIn("cette personne", str(refus.exception).lower())
-                    self.assertIn(mot, str(refus.exception))
-                    self.assertIn("ilse", refus.exception.attendu)
-                    acceptes = refus.exception.attendu.split("acceptés : ", 1)[1]
-                    self.assertIn("'scene'", acceptes)
-                    for cible, o in m.objets.items():
-                        if o["type"] != "personnage":
-                            self.assertNotIn(repr(cible), acceptes)
+                    avant_constat = copy.deepcopy(m.data)
+                    attendu = non_perception(m, "ilse")
+                    self.assertIn("Tu ne vois pas Ilse", attendu)
+                    self.assertIn("ne permet pas de conclure à une absence", attendu)
+                    moteur = Moteur(m)
+                    plan = moteur.preparer(p)
+                    self.assertTrue(plan.perception_canonique)
+                    self.assertEqual(moteur.executer(plan), attendu)
+                    self.assertEqual(m.data, avant_constat)
                     chemin = Path(dossier) / "partie.json"
                     m.sauver(chemin)
                     avant = copy.deepcopy(m.data)
@@ -304,9 +306,13 @@ class ObserverSansVoirTests(unittest.TestCase):
                         self.assertEqual(jeu.main(args + (["--offline"] if offline else []), interface=interface), 0)
                     mj.repondre.assert_not_called()
                     mj._appeler_brut.assert_not_called()
-                    self.assertTrue(any("cette personne" in x.lower() and mot in x for x in interface.sorties))
+                    self.assertIn(attendu, interface.deja_sauves)
                     apres = Monde.charger(chemin)
+                    avant['conversation'] = [*avant['conversation'], {
+                        'joueur': 'observer Ilse', 'reponse': attendu,
+                        'nature': 'resultat_moteur', 'revision': avant['revision']}][-12:]
                     self.assertEqual(apres.data, avant)
+                    self.assertEqual(regarder(apres), regarder(m))
                     self.assertFalse(signes.impressions(apres))
 
 

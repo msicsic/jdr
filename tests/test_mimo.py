@@ -177,7 +177,9 @@ class MiMoTests(unittest.TestCase):
                 self.assertEqual(Monde.charger(save).data, avant)
                 reprise = Interface(['inventaire', 'regarder', 'quitter'], save)
                 self.assertEqual(jeu.main(['--defi', '--offline', '--console', '--save', str(save)], interface=reprise), 0)
-                self.assertEqual(Monde.charger(save).data, avant)
+                # G5 / rapport 323 : le résultat de regarder rejoint la conversation.
+                from tests.perception_support import apres_regarder
+                self.assertEqual(Monde.charger(save).data, apres_regarder(avant))
 
     def test_mode_par_defaut_reste_luna_meme_avec_une_cle_mimo(self):
         with patch.dict(os.environ, {'MIMO_API_KEY': 'xiaomi-test'}, clear=True):

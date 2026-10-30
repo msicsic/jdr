@@ -140,6 +140,10 @@ class ComptesNaturelsTests(unittest.TestCase):
         _, bloc = preparer_parole(m, {**{k: p['proposition'][k] for k in SCHEMA_PAROLE['required']}, '_intention': p['proposition']['replique']})
         autres = [t for t in pnj(r)[-1]['evenement']['faits'] if t not in bloc['faits_comptables']]
         self.assertTrue(autres)
-        for texte in autres: self.assertIn(texte, r.data['narrations_mj'][-1]['texte'])
+        # G16 / rapport 345 : le même renseignement est une réplique directe.
+        self.assertEqual(autres, ['Gorm, gardien du relais dit avoir les fagots de bois sec dans la salle des vannes '
+                                 'et la réserve de vivres dans le refuge du relais.'])
+        self.assertIn("J'ai les fagots de bois sec dans la salle des vannes et la réserve de vivres dans le refuge du relais.",
+                      r.data['narrations_mj'][-1]['texte'])
         self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
         self.assertEqual(recharger(r).data, r.data)

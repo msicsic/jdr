@@ -50,7 +50,8 @@ class SurpriseTests(unittest.TestCase):
 
     def test_a_pas_feutres_on_lui_prend_son_bien_dans_le_dos(self):
         m = scene()
-        self.assertIn("Tu avances à pas feutrés.", faire(m, "faufiler est"))
+        # G7 / rapport 343 : cumul du mouvement et de sa durée résolus.
+        self.assertIn("Tu as avancé de 1 pas vers est en 3 secondes.", faire(m, "faufiler est"))
         self.assertEqual(m.objets["marchand"]["orientation"], "est")
         self.assertFalse(percoit(m, "marchand", "joueur"))
         moteur = Moteur(m)
