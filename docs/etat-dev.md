@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-s1b-sons-examens` (30256b08) : lot 382, S1b sons et examens par la porte de la mémoire. Détail dans l'historique.
 - `codex-s1a-porte-episodes` (eecbe2a5) : lot 378, S1a une seule porte pour les épisodes. Détail dans l'historique.
 - `codex-a2-expression-son` (e868d585) : lot 379, A2 famille expression et son. Détail dans l'historique.
 - `codex-messages-decoupage` (9d9fd5fe) : lot 376, les messages ne dépendent pas du découpage du temps. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-a2-sequence-attente` (b75dcf62) : lot 370, A2 famille séquence et attente. Détail dans l'historique.
 - `codex-evaluation-echeance` (76305cc6) : lot 371, évaluation du noyau de l'échéance négociée. Détail dans l'historique.
 - `codex-quatre-regressions` (a4788b4c) : lot 368, quatre régressions isolées (313, 330, 332, 333). Détail dans l'historique.
-- `codex-service-evacuation` (e0c95ced) : lot 367, un service payé reste protégé quand l'évacuation déplace la lumière. Détail dans l'historique.
 
 ## Lots non fusionnés
 

@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1b-sons-examens` (382), base `integration 06895c7d` : sons/examens lus par copies,
+  remplacements et rafraîchissement dans `memoire.py`, format historique et crochets conservés.
+  Inventaire AST : 102 → 90 expressions ; **158 tests ciblés passent** dans 12 fichiers, dont
+  Mathe et Bram après recharge, état complet/rendu/scène/paroles et laps entier/découpé.
+  **16/16 empreintes identiques** (chronique, mesures, état complet) : 2 h × 4 graines × 4 scénarios.
+  Code mesuré `ff467a7b`, base exacte ; aucun plantage. Bruts : `artifacts/s1b-382/` du dépôt principal.
+  Recouvrement 374 : seulement `dernier_son` ; autres familles/oubli hors lot.
+  [Rapport 382](taches/rapport-codex-382-s1b-sons-examens.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 382, S1b : sons et examens lus et modifiés par des requêtes et opérations nommées de donjon/memoire.py, stockage inchangé. 158/158 tests ciblés, 16/16 empreintes identiques à la base. Aucun fichier de code commun depuis la base.
+
 - `codex-s1a-porte-episodes` (378), base `integration eb84aad7` : porte commune des insertions/évictions
   dans `memoire.py`, liste/plafond/crochets historiques conservés ; façade `esprits`, migrations et ouïe portées.
   Contrôle AST fermé et chaînes auberge/Relais ajoutés ; lectures et contenus restent pour S1b–e.

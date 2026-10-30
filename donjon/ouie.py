@@ -588,9 +588,9 @@ def resolu(monde, id, souvenir):
 def source(monde, id, salle):
     """La case d'où venait le plus récent bruit qu'il attend de ``salle`` et qu'il a pu situer
     (il l'a entendu de cette salle même) ; None s'il ne le situe pas plus près que la salle."""
-    from .esprits import lire
-    for s in reversed(lire(monde, id)["memoire"]):
-        if s["type"] == "bruit" and s["salle"] == salle and s.get("case") is not None and not resolu(monde, id, s):
+    from .memoire import bruits_retenus
+    for s in reversed(bruits_retenus(monde, id, salle)):
+        if s.get("case") is not None and not resolu(monde, id, s):
             return tuple(s["case"])
     return None
 
@@ -605,20 +605,8 @@ def parcouru(monde, id, salle, case=None):
     endroit ne l'y renvoie plus tant qu'il continue (``couvert``) ; seul un bruit nouveau le relance :
     plus fort, d'une autre voix, ou qu'il situe mieux. Qui a vu quelqu'un là s'explique le bruit
     (``resolu``) : rien à retenir."""
-    from .esprits import esprit, memoriser
-    memoire = esprit(monde, id)["memoire"]
-    vus = [s for s in memoire if s["type"] == "bruit" and s["salle"] == salle]
-    attendus = [s for s in vus if not resolu(monde, id, s)]
-    from .memoire import evincer_episodes
-    evincer_episodes(monde, id, lambda s: any(s is v for v in vus)
-                     or (s["type"] == "examen" and s["salle"] == salle and attendus))
-    if attendus:
-        qui = {s.get("qui") for s in attendus}
-        memoriser(monde, id, {"type": "examen", "salle": salle,
-                              "case": list(case) if case is not None else None,
-                              "nature": max((s["nature"] for s in attendus), key=INTENSITES.get),
-                              **({"qui": qui.pop()} if len(qui) == 1 and None not in qui else {})})
-    return bool(attendus)
+    from .memoire import retenir_examen_sonore
+    return retenir_examen_sonore(monde, id, salle, case)
 
 
 def couvert(monde, id, salle, n, qui=None, case=None):
@@ -626,32 +614,18 @@ def couvert(monde, id, salle, n, qui=None, case=None):
     rien y trouver, pas plus fort que ce qu'il y attendait, d'aucune autre voix, sans qu'il le situe
     mieux (il avait examiné le lieu entier, et l'entend maintenant d'une case : c'est nouveau), dans
     les ``RECENT`` minutes qui suivent l'examen ou le dernier bruit pareil ; None sinon. Dans une
-    salle où il n'a rien pu voir, des pas de plus ne lui apprennent rien."""
-    from .esprits import RECENT, lire
-    minute = monde.data["minutes"]
-    for s in reversed(lire(monde, id)["memoire"]):
-        if s["type"] != "examen" or s["salle"] != salle or minute - s["minute"] > RECENT:
-            continue
-        if INTENSITES[n] > INTENSITES[s["nature"]] or qui is not None and qui != s.get("qui"):
-            return None
-        if case is not None and s["case"] is None:
-            return None
-        return s
-    return None
+    salle où il n'a rien pu voir, des pas de plus ne lui apprennent rien.
+    La consultation renvoie une copie ; elle ne rafraîchit pas l'examen."""
+    from .memoire import examen_couvrant
+    return examen_couvrant(monde, id, salle, n, qui, case)
 
 
 def _retenir_seulement(monde, id, salle, n, niveau):
     """Un personnage sans profil ne délibère pas (ni inquiétude, ni aller voir) : il retient le bruit
     inhabituel qu'il a entendu sans le voir, le plus fort par lieu, ce que le MJ lit de lui
     (``esprits.dernier_son``)."""
-    from .esprits import esprit, memoriser
-    memoire = esprit(monde, id)["memoire"]
-    anciens = [s for s in memoire if s["type"] == "bruit" and s["salle"] == salle]
-    from .memoire import evincer_episodes
-    evincer_episodes(monde, id, lambda s: any(s is a for a in anciens))
-    memoriser(monde, id, {"type": "bruit", "salle": salle,
-                          "nature": max([n, *(s["nature"] for s in anciens)], key=INTENSITES.get),
-                          "niveau": max([niveau, *(s.get("niveau", niveau) for s in anciens)])})
+    from .memoire import retenir_bruit_sans_profil
+    retenir_bruit_sans_profil(monde, id, salle, n, niveau)
 
 
 def _bruit_inconnu(monde, id, salle, n, niveau, qui=None, case=None):
@@ -661,21 +635,18 @@ def _bruit_inconnu(monde, id, salle, n, niveau, qui=None, case=None):
     appel dont il a reconnu la voix, qui appelait. Un bruit que couvre un examen resté vain (``couvert``)
     ne lui apprend rien : il ne le retient pas ; un appel l'inquiète encore."""
     from .deliberation import inquieter
-    from .esprits import esprit, memoriser, reconsiderer
+    from .esprits import reconsiderer
+    from .memoire import bruits_retenus, retirer_bruits, retenir_episode, rafraichir_examen_sonore
     from .pnj import _chroniquer
     from .social import _qui
-    examen = couvert(monde, id, salle, n, qui, case)
-    if examen is not None:
-        examen["minute"] = monde.data["minutes"]  # Il l'entend encore : c'est le même bruit.
+    if rafraichir_examen_sonore(monde, id, salle, n, qui, case):
         if n in ("appel", "cri"):
             inquieter(monde, id, "bruit", max(0, niveau) / INTENSITES["appel"])
         return
-    memoire = esprit(monde, id)["memoire"]
-    anciens = [s for s in memoire if s["type"] == "bruit" and s["salle"] == salle]
+    anciens = bruits_retenus(monde, id, salle)
     attente = [s for s in anciens if not resolu(monde, id, s)]
     reconsiderer(monde, id)  # Un bruit vers ce lieu, qu'il ira peut-être voir, et qui l'inquiète.
-    from .memoire import evincer_episodes
-    evincer_episodes(monde, id, lambda s: any(s is a for a in anciens))
+    retirer_bruits(monde, id, salle)
     # Un bruit qu'il attend déjà de ce lieu ne l'inquiète pas de nouveau ; un appel, si : chaque
     # appel à l'aide en est un nouveau. Il s'inquiète à la mesure de ce qu'il en entend : un appel
     # tout proche, pleinement ; des pas lointains, à peine.
@@ -692,10 +663,10 @@ def _bruit_inconnu(monde, id, salle, n, niveau, qui=None, case=None):
     # vient, le dernier endroit d'où il l'a situé.
     qui = qui or next((s["qui"] for s in reversed(attente) if s.get("qui")), None)
     case = list(case) if case is not None else next((s["case"] for s in reversed(attente) if s.get("case")), None)
-    memoriser(monde, id, {"type": "bruit", "salle": salle,
-                          "nature": max([n, *(s["nature"] for s in attente)], key=INTENSITES.get),
-                          "niveau": max([niveau, *(s.get("niveau", niveau) for s in attente)]),
-                          **({"qui": qui} if qui else {}), **({"case": case} if case else {})})
+    retenir_episode(monde, id, {"type": "bruit", "salle": salle,
+                               "nature": max([n, *(s["nature"] for s in attente)], key=INTENSITES.get),
+                               "niveau": max([niveau, *(s.get("niveau", niveau) for s in attente)]),
+                               **({"qui": qui} if qui else {}), **({"case": case} if case else {})})
 
 
 def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=None):

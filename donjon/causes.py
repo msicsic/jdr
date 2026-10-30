@@ -33,8 +33,9 @@ def connues(monde, id, proche=None):
             yield dict(type='cause_detresse', sorte='eau', sujet=salle,
                        valeur=deepcopy(predit['valeur']) if predit else True, minute=c['minute'],
                        source=c['source'], confiance=c['confiance'])
-    for s in reversed(lire(monde, id)['memoire']):
-        if s['type'] == 'bruit' and not s.get('qui') and not resolu(monde, id, s):
+    from .memoire import bruits_retenus
+    for s in reversed(bruits_retenus(monde, id)):
+        if not s.get('qui') and not resolu(monde, id, s):
             if proche and s['salle'] != salle:
                 continue
             yield dict(type='cause_detresse', sorte='bruit', sujet=s['salle'],
@@ -90,14 +91,13 @@ def recevoir(monde, id, locuteur, c):
         croire(monde, id, sujet, 'violence', valeurs, source, confiance,
                minute=c['minute'], origine=dict(source=c['source'], minute=c['minute']))
     elif sorte == 'bruit':
-        from .esprits import memoriser
+        from .memoire import bruits_retenus, retenir_episode
         from .ouie import resolu
         son = dict(type='bruit', salle=sujet, minute=c['minute'], **c['valeur'])
         if resolu(monde, id, son) or any(
-                s['type'] == 'bruit' and s['salle'] == sujet and s['minute'] >= c['minute']
-                for s in lire(monde, id)['memoire']):
+                s['minute'] >= c['minute'] for s in bruits_retenus(monde, id, sujet)):
             return 'doute'
-        memoriser(monde, id, dict(son, source=source, confiance=confiance))
+        retenir_episode(monde, id, dict(son, source=source, confiance=confiance))
         from .deliberation import inquieter
         inquieter(monde, id, 'bruit', poids)
     reconsiderer(monde, id)
