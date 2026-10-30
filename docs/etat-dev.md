@@ -38,6 +38,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- **350 — `codex-e2-realisation-datee`**, base `integration 59e65f8` : E2, réalisation moteur
+  datée unique et verdict persistant ; T inclus, clôture à T+1, remboursement unique et arrêt du plan périmé.
+  Réalisation, constat et connaissance du compte séparés ; aucune réaction relationnelle distante.
+  **104 ciblés distincts verts**, monde/rendu/comptes/paroles rechargés et laps continu/découpé.
+  Empreintes 2 h × 4 graines × Relais/auberge/mine : **12/12 identiques à la base**, deux processus réduits.
+  Socle interne sans appelant, schéma ni rendu nouveau ; pas de Luna ni suite complète.
+  [Rapport 350](taches/rapport-codex-350-e2-realisation-datee.md) ; bruts `artifacts/e2-350/` du dépôt principal.
+
 Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 350 (E2 réalisation datée), 351 (G18 avis).
 Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
 antérieurs sont connus (`test_protection` Gorm au beffroi, trois faisabilités de `test_luna_noms`, persuasion
