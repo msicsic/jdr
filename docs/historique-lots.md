@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **306 — `codex-a5-agenda-hameau`**, base `7ec839e`, fusion sans rebase de `19c9b6da`, mesuré `0c4663a2`.
+  Gorm évacue Ilse, Brune, Maël et Sève vers la galerie ; données seules, aucun mandat forcé. **Lot terminé.**
+  **69 tests / onze fichiers verts** ; capture originale et nuit complète : aucun mandat réexécuté à t=4200 après 358.
+  Banc hameau 4 h × quatre graines : 19 propositions, six accords, cinq comptes rendus ; quatre évacués dans chaque nuit.
+  Zéro plantage/usurpation ; quatre recharges monde/rendu/scène/écoute identiques ; crue 4/4 empreintes 2 h identiques.
+  Intégration recommandée ; suspects 219 zéro, 23 alertes à expliquer inchangées, aucune absence générale de boucle garantie.
+  Calcul terminé (625,502 s), références main relues du cache ; aucun calcul actif, ni suite complète ni Luna.
+  [Rapport](taches/rapport-codex-306-a5-agenda-hameau.md) ; bruts : `C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-358-335/`.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Réaccordé à l'intégration 19c9b6da (correction 358 du mandat réexécuté après refus) ; 69 tests verts ; banc : 19 propositions, six accords, cinq comptes rendus, aucun plantage ni usurpation, empreintes crue 4/4 identiques ; 23 alertes à expliquer inchangées.
+
 - **358 terminé — `codex-revalider-apres-refus`**, base `integration a3855ad9`, code `52d2f5b6` :
   `refus_etape` applique les refus retenus au prochain geste, au choix et dans `agir`.
   Capture 306 à 4200 et tâche payée à l'auberge ; recharge monde/rendu/scène/écoute, temps découpé.

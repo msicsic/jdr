@@ -60,22 +60,30 @@ class OccasionsScenariosTests(unittest.TestCase):
         import hashlib
         import json
         from tests.scenarios_contractuels import donnees
-        # Empreintes JSON de la base 23aba63 (avant construction de Monde).
-        # 302/99143c2 : le hameau ajoute le statut de Gorm et trois ascendants,
-        # conservés par l'inverse du 200 ; aucun autre champ ne change.
+        # Empreintes JSON avant construction de Monde : base 23aba63 ; pour
+        # le hameau, plus le statut/trois ascendants 302 et l'agenda 306.
+        # Ces données restent présentes après l'inverse des seules occasions.
         attendus = {
             'relais': '23ba952f562f9bf0de5a3cfebc976443644e02193c31b0c2130d7193c837cb0c',
             'mine': 'cb52faa7ba7241d4d145b1bd0f5148b777147b4798c91281cf9e5aae44b115c7',
             'auberge': '848ac337dd2990a94641c69f77f8ac9f27d033124c39033b88563b691327facb',
             'crue': '6ff6d9e7a1ac1ee934470bf20d7bbc9c648da5decdecb2dfcf58110c1ed63a89',
-            'crue_hameau': '72a33d779454563e03fd69d803fdc57880aa9ec7c2ffd5dee09ba67f8566831e',
+            'crue_hameau': '85955d0edd5cf76a223ef56ddde5103d65bde1eb75f367d599d3a70440c62f10',
             'rixe': '711c3f594711e036b0e60630489d58866708ca34da70913146bc15f0618efc9e',
             'rixe_douce': 'd3cd7ce5b7309bcdd203f9767e150d229b057da6007dcdc266cc3308b62feb92',
         }
         for nom, attendu in attendus.items():
             with self.subTest(scenario=nom):
-                contenu = json.dumps(donnees(nom), sort_keys=True, ensure_ascii=False)
+                d = donnees(nom)
+                contenu = json.dumps(d, sort_keys=True, ensure_ascii=False)
                 self.assertEqual(hashlib.sha256(contenu.encode()).hexdigest(), attendu)
+                if nom == 'crue_hameau':
+                    # L'inverse conserve aussi le statut et les ascendants 302 :
+                    # retirer uniquement l'agenda 306 retrouve l'intégration.
+                    del d['objets']['marchand']['profil']['agendas']
+                    contenu = json.dumps(d, sort_keys=True, ensure_ascii=False)
+                    self.assertEqual(hashlib.sha256(contenu.encode()).hexdigest(),
+                                     '72a33d779454563e03fd69d803fdc57880aa9ec7c2ffd5dee09ba67f8566831e')
 
     def test_moyens_propres_liens_et_observations_persistent(self):
         for scenario, bois, porteur, intermediaire, protege in (
