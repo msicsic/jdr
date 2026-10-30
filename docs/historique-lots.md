@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **`codex-e3-delai-cru`**, lot **352**, base `integration e7ea375`, code `d03d0d2` :
+  jugement interne crédible/impossible/indéterminé sur le devis cru du contractant ;
+  durée du plan complet distincte du coût, aucun savoir privé du payeur pour le feu.
+  103 tests distincts verts, dont 10 E3 avec `planification.VERIFIER`, effets/recharge/rendu.
+  Banc 4 h × 4 graines × Relais/auberge/mine : 12/12 nuits identiques à la base, audits compris,
+  zéro plantage ; 27 avis à expliquer préexistants. Écarts avec `main` antérieurs à E3.
+  Aucun schéma ni raccord joueur avant E4–E6. [Rapport](taches/rapport-codex-352-e3-delai-cru.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Socle interne jusqu'à E4-E6 ; 103 tests ciblés verts ; banc rapide 12/12 nuits identiques à la base.
+
 - **349 — U-M passage**, `codex-um-passage`, base intégration `a0f0eba`, terminé, non fusionné.
   Menu des formes perçues établies : dessous/dessus, échelle installée, perche déjà arbitrée.
   Même plan que la commande ; consentement et revalidation exacte ; aucune difficulté inventée.

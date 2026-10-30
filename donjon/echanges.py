@@ -33,6 +33,66 @@ PAS_PROPOSITION = 5.0  # minutes de valeur propre par point de persuasion
 PRIX_SANS_PRIX = 1     # convention commune pour un objet sans prix déclaré
 
 
+def juger_delai(monde, contractant, condition, pour, limite):
+    """Jugement interne d'une prestation E1, sans accord, jet ni effet réel.
+
+    ``limite`` est un instant absolu ; coût pondéré et durée physique restent
+    séparés. Aucun devis fourni par un tiers ou conservé par l'appelant n'est
+    accepté : la recherche commune revalide ses entrées crues à chaque appel.
+    Un résultat refusé expose une cause et son attendu, prêts pour E4.
+    """
+    from math import ceil
+    from .monde import ErreurMonde
+    from .planification import devis_pulsion, diagnostics
+    from .temps import instant, MINUTE
+    maintenant = instant(monde)
+    if type(limite) is not int or limite < 0:
+        raise ErreurMonde('Cette limite temporelle est invalide.',
+                          f'limite : reçu {limite!r} ; accepté : un entier >= 0 en dixièmes absolus.')
+    resultat = {'verdict': 'indetermine', 'limite': limite, 'duree': None,
+                'estimation': None, 'cout': None}
+
+    def refuser(verdict, cause, message, accepte):
+        resultat.update(verdict=verdict, cause=cause, message=message,
+                        attendu=f'limite : reçu {limite!r} ; accepté : {accepte}.')
+        return resultat
+
+    if limite < maintenant:
+        return refuser('impossible', 'limite_passee', 'Cette limite est déjà passée.',
+                       f'un instant >= {maintenant}')
+    copie = monde.copier()
+    # Même validation et permissions que l'obligation, sur une copie jetable.
+    agendas.prendre(copie, contractant, {'condition': condition, 'pour': pour,
+                                       'minute': copie.data['minutes']}, limite=limite)
+    if not copie.objets.get(contractant, {}).get('profil'):
+        return refuser('indetermine', 'duree_indeterminee',
+                       'Je ne peux pas m’engager sur ce délai : la durée est incertaine.',
+                       'un accord sans limite, à proposer explicitement')
+    durees = []
+    with diagnostics() as recherches:
+        devis = devis_pulsion(copie, contractant, condition, pour, duree=durees)
+    if devis is None and not any(r['issue'] == 'borne' for r in recherches):
+        return refuser('impossible', 'moyens_insuffisants',
+                       'Je ne vois pas comment accomplir cette prestation avec mes moyens.',
+                       'une prestation réalisable selon les moyens crus du contractant')
+    if devis is not None:
+        resultat['cout'] = devis[0]
+        resultat['duree'] = durees[0]
+    if resultat['duree'] is None:
+        return refuser('indetermine', 'duree_indeterminee',
+                       'Je ne peux pas m’engager sur ce délai : la durée est incertaine.',
+                       'un accord sans limite, à proposer explicitement')
+    # Les tarifs sont en minutes ; un geste doit finir dans un dixième entier.
+    estimation = maintenant + ceil(resultat['duree'] * MINUTE - 1e-9)
+    resultat['estimation'] = estimation
+    if estimation > limite:
+        return refuser('impossible', 'delai_trop_court',
+                       'Je ne pense pas pouvoir terminer avant cette limite.',
+                       f'un instant >= {estimation} selon le devis courant, ou un accord sans limite')
+    resultat['verdict'] = 'credible'
+    return resultat
+
+
 def _devis_proposition(monde, id, condition, pour, devis=None):
     """Le devis existant, sur ses croyances, avec la permission de la tâche proposée."""
     if not monde.objets.get(id, {}).get("profil"):
