@@ -38,6 +38,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- **358 en vérification — `codex-revalider-apres-refus`**, base `integration a3855ad9` :
+  `refus_etape` applique les refus retenus au prochain geste, au choix et dans `agir`.
+  Capture 306 à 4200 et tâche payée à l'auberge ; recharge monde/rendu/scène/écoute, temps découpé.
+  Tests ciblés/voisins puis banc 4 h, quatre graines, Relais/mine/crue en série détachée (deux réduits).
+  Fin attendue : `C:/Users/msics/donjon/artifacts/revalider-358/fin.json` ; fusion non validée avant lecture.
+  Recouvrement 335 : `pnj.py` (`refus_etape` seul) ; aucun MJ, scénario ni `planification.py` changé.
+  [Rapport 358](taches/rapport-codex-358-revalider-apres-refus.md).
+
 Lots en cours : 335 (suivi vocal, reprise, banc en cours), 356 (suite rouge, attribution), 358 (revalider une action
 différée après refus). 306 (agenda du hameau) attend le 358 : un mandat refusé y est réexécuté.
 Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
