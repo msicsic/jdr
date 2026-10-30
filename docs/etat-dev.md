@@ -24,6 +24,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-quatre-regressions` (a4788b4c) : lot 368, quatre régressions isolées (313, 330, 332, 333). Détail dans l'historique.
 - `codex-service-evacuation` (e0c95ced) : lot 367, un service payé reste protégé quand l'évacuation déplace la lumière. Détail dans l'historique.
 - `codex-refus-leve-contrepartie` (140cb9f0) : lot 366, un refus retenu se lève par une contrepartie ou un accord nouveau. Détail dans l'historique.
 - `codex-e6-libre-date` (7dc16a0d) : lots 363 et 364, E6 partiel, la proposition datée en texte libre ouvre le choix direct. Détail dans l'historique.
@@ -35,7 +36,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-a5-agenda-hameau` (c7f4ed02) : lot 306, A5 agenda d'évacuation du hameau. Détail dans l'historique.
 - `codex-revalider-apres-refus` (63d55dcd) : lot 358, une action différée est revalidée contre un refus encore valable. Détail dans l'historique.
 - `codex-suivi-vocal` (c020b62a) : lot 335, suivi vocal. Détail dans l'historique.
-- `codex-reclamations-repetees` (0925c556) : lot 315, réclamations répétées. Détail dans l'historique.
 
 ## Lots non fusionnés
 

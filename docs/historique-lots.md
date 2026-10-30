@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-quatre-regressions` — lot 368, base `origin/integration dea991a5`, PC fixe.
+  Prêt, enfermement et installation déjà verts après le 360 ; son ablation reproduit les trois rouges.
+  Lampe vide : stimulus d'extinction explicite après remplissage/allumage, 12 assertions conservées.
+  77 tests / huit fichiers verts ; sept parcours réels/analogues, monde/rendu/scène et laps rechargés.
+  Code du jeu inchangé ; pas de garantie nouvelle sur les trajectoires sociales. Aucune empreinte requise.
+  Recouvrement 364–367 : `docs/etat-dev.md` seul. [Rapport](taches/rapport-codex-368-quatre-regressions.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Trois déjà vertes après le lot 360 (causalité vérifiée), test de la lampe porté sans retirer ses 12 assertions ; code du jeu inchangé ; 77 tests verts.
+
 - `codex-service-evacuation` — lot 367, base `integration dea991a5` : le départ ne clôt plus
   un résultat payé sur un bien mobile connu du bénéficiaire ; `biens.py` seul modifié côté moteur.
   **115 tests / dix fichiers verts**, deux rouges du 362 corrigés, assertions historiques intactes ;
