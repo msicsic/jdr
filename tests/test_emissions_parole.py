@@ -43,7 +43,7 @@ class EmissionsTests(unittest.TestCase):
             codes = paroles.operations_contenu(p['contenu'])
             p['operations_demandees'] = {t: p['operations_demandees'].get(t, t in codes)
                                         for t in paroles.OPERATIONS}
-            m, sortie, appels = jouer(m, tour['saisie'], [proposition, *dialogues], audits)
+            m, sortie, appels = jouer(m, tour['saisie'], [proposition, *dialogues], audits, suite=('tenter',))
             sorties.append(sortie)
             self.assertRecharge(m)
         rapport = next(e['faits']['conversation_validee'] for f, e in appels
@@ -88,7 +88,7 @@ class EmissionsTests(unittest.TestCase):
         # Luna omet les réactions entre PNJ : le raccord commun les conserve.
         reprise, sortie, appels = jouer(m, saisie, [
             parole("l'eau va gagner la conduite basse", ('avis', 'echoppe', 'menace', 'oui'), personnage='marchand'),
-            {**dialogue('Gorm t’écoute.'), 'faits': ['conversation_validee']}], [verdicts(NEUTRE)])
+            {**dialogue('Gorm t’écoute.'), 'faits': ['conversation_validee']}], [verdicts(NEUTRE)], suite=('tenter',))
         self.assertEqual(reprise.data['crue'], avant)
         for p in prononcees:
             self.assertIn(p.get('rendu_public', p['rendu']), sortie)
@@ -227,7 +227,7 @@ class EmissionsTests(unittest.TestCase):
         saisie = "je dis : l'eau va gagner la conduite basse"
         self.assertEqual(paroles.prevue(m, saisie)['personnage'], 'personne')
         proposition = parole("l'eau va gagner la conduite basse", ('avis', 'echoppe', 'menace', 'oui'), personnage='personne')
-        r, sortie, appels = jouer(m, saisie, [proposition, dialogue('Ta voix résonne.')], [verdicts(NEUTRE)])
+        r, sortie, appels = jouer(m, saisie, [proposition, dialogue('Ta voix résonne.')], [verdicts(NEUTRE)], suite=('tenter',))
         rapport = next(e['faits']['conversation_validee'] for f, e in appels
                        if f == 'repondre_au_joueur' and 'conversation_validee' in e['faits'])
         self.assertEqual(rapport['repondent'], [])

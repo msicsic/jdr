@@ -173,7 +173,7 @@ class MandatJoueurTests(unittest.TestCase):
             reponse = {'mode': 'parole_joueur', 'texte': '', 'faits': [], 'proposition': {
                 'personnage': 'aubin', 'replique': mots,
                 'contenu': [c], 'operations_demandees': {t: t == 'mandat' for t in paroles.OPERATIONS}}}
-            n, sortie, appels = jouer(m, '« ' + mots + ' »', [reponse], [])
+            n, sortie, appels = jouer(m, '« ' + mots + ' »', [reponse], [], suite=('tenter',))
             attendu = "J'accepte cette charge" if confiance else 'Je refuse cette charge'
             self.assertIn(attendu, sortie)
             n = self.persiste(n)
@@ -294,7 +294,7 @@ class MandatJoueurTests(unittest.TestCase):
                 'operations_demandees': {t: t == 'mandat' for t in paroles.OPERATIONS}}}
             mauvaise = copy.deepcopy(bonne)
             mauvaise['proposition']['operations_demandees']['affirmation'] = True
-            n, sortie, appels = jouer(m, mots, [mauvaise, bonne], [])
+            n, sortie, appels = jouer(m, mots, [mauvaise, bonne], [], suite=('tenter',))
             retours = [e.get('faits', {}).get('retour_moteur', {}) for _, e in appels]
             self.assertTrue(any('affirmation' in str(r.get('attendu', '')) for r in retours))
             self.assertIn('Je refuse cette charge', sortie)
@@ -315,7 +315,7 @@ class MandatJoueurTests(unittest.TestCase):
                 p = {'mode': 'parole_joueur', 'texte': '', 'faits': [], 'proposition': {
                     'personnage': 'aubin', 'replique': mots, 'contenu': [c],
                     'operations_demandees': {t: t == 'mandat' for t in paroles.OPERATIONS}}}
-                n, sortie, appels = jouer(m, mots, [p], [])
+                n, sortie, appels = jouer(m, mots, [p], [], suite=('tenter',))
                 self.assertIn("J'accepte cette charge", sortie)
                 n = self.persiste(n)
                 self.assertIn("J'accepte cette charge", str(n.data['conversation']))
