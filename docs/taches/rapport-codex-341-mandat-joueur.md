@@ -12,6 +12,36 @@ identiques avant/après, dont les sept modules partagés avec 340. Invariants
 340 et 341 conservés. Reprise des 18 fichiers ciblés, dont les deux fichiers
 explicitement demandés du 340 ; aucune suite complète ni nouvelle nuit.
 
+La première reprise sur `f2e9775` donne **174/174 tests verts, 18 fichiers,
+214,545 s**, dont ascendant et socle. Sa passe Luna (cinq tours, quatre MJ,
+douze appels) est sans erreur technique mais **sémantiquement en échec** :
+
+| Saisie de la reprise | Typage et issue effectivement observés |
+| --- | --- |
+| Amener Brune dans l'échoppe | `mandat/amener`, rejet de référence avant parole ; aucun jugement PNJ. |
+| Informer Brune du brasero dans l'antichambre | `mandat/informer`, mais `operations_demandees.affirmation=true` en plus : couverture rejetée avant parole ; aucun jugement PNJ. |
+| « Aubin, Brune est ici, dans le refuge du relais. » | `propos`, toutes les opérations fausses : la parole est entendue mais l'information n'est pas transmise. Défaut de typage. |
+| Informer Brune du fanal dans le refuge | `mandat/informer`, parole prononcée ; jugement sauvegardé `issue=impossible`, `raison=impossible`. Aucun accord. |
+| `fiche` | Commande directe, jugement précédent conservé. |
+
+Le `fin.json ok=true` de cette reprise ne portait que sur l'exécution
+technique. L'analyse ajoutée ensuite reste rouge :
+`reprise-integration/validation/analyse-luna-posthoc.json`.
+
+**Correction du contrat commun**, sans mot-clé ni exception de scénario :
+les définitions partagées de l'interprétation et de la revue distinguent
+l'acte immédiat de Corvus du contenu confié pour une transmission ultérieure.
+Une information représentable reste une affirmation même visible ou déjà
+connue. Le schéma du fait imbriqué décrit sa portée différée, plutôt que de
+lui attribuer la définition d'un acte direct. Le contrôle de couverture reste
+strict ; deux cas avec MJ simulé conservent croyances, refus et paroles après
+recharge lorsqu'une affirmation autonome a été déclarée à tort.
+La validation contrôle désormais les types attendus du script, la cohérence
+de la carte d'opérations et les jugements effectivement rechargés, en plus du
+code de sortie. Nouvelle passe des tests ciblés et une passe Luna à lire dans
+`reprise-integration/validation-portee/fin.json`. Les huit paires initiales ne
+sont pas rejouées pour ce changement de définitions de parole.
+
 Précision saisie par saisie sur la **première passe Luna** :
 
 | Saisie | Contenu de Luna | Décision moteur et preuve |
@@ -30,10 +60,11 @@ refuge du relais. », puis la charge d'informer Brune que le fanal est dans
 ce refuge. Cette information permet la perception ordinaire ; le devis de
 la nouvelle charge est réalisable. Son jugement réel sans jet forcé est
 accepté (`total=6`, `dd=4,033333`, `raison=adhesion`) et rechargé dans le
-nouveau test. Une nouvelle passe Luna est lancée, sans promesse de son issue.
+nouveau test. La première reprise Luna n'a pas transmis l'information
+préalable ; le cas reste réalisable lorsque celle-ci est correctement typée.
 Le banc enregistre désormais les charges du joueur depuis chaque sauvegarde
 rechargée, permettant de lire les jugements réellement persistés. Bruts et
-fin attendue : `reprise-integration/validation/fin.json` dans le dossier du lot.
+fin attendue : `reprise-integration/validation-portee/fin.json` dans le dossier du lot.
 
 Les résultats ci-dessous restent ceux de la livraison initiale.
 

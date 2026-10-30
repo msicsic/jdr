@@ -46,14 +46,14 @@ BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » che
 # de besoins restent disponibles pour les demandes générales ; un bien nommé
 # conserve son nom, sans être élargi au besoin qu'il pourrait servir.
 SENS_CONTENU = {
-    "mandat": "Confier à l'interlocuteur une charge amener (qui, lieu) ou informer (qui, fait : affirmation sujet/attribut/valeur). Le moteur juge la demande sans accord anticipé.",
+    "mandat": "Confier à l'interlocuteur une charge amener (qui, lieu) ou informer (qui, fait : affirmation sujet/attribut/valeur). Le fait est le contenu à faire transmettre par le mandaté au destinataire qui ; il ne constitue pas une affirmation autonome supplémentaire de Corvus à son interlocuteur actuel. Le moteur juge la demande sans accord anticipé.",
     "reponse_mandat": "Accepter ou refuser une offre de mandat effectivement entendue : offre est son identifiant public mN, accepter est un booléen. Aucun geste n'est exécuté à la place du joueur.",
     "bilan_mandat": "Rendre compte à son mandant d'une charge acceptée : agenda est son identifiant public, issue est reussi, echoue ou renonce. Cela établit une parole, jamais la vérité de son résultat.",
     "localisation": "Demander où se trouve une personne connue, désignée par sujet. La réponse transmet la dernière croyance datée de l'interlocuteur, jamais une position cachée.",
     "avis": "Prévoir qu'une menace atteindra ou épargnera un lieu : annoncer une évolution future est un avis, même formulé comme une certitude, sans marque d'opinion ni échéance explicite. sujet est la référence publique du lieu connu de Corvus, attribut menace, valeur oui (menacé) ou non (épargné). Le prédicat disponible évalue la menace d'eau ; son horizon de calcul est fixé par le moteur, il n'est pas une condition à exprimer dans la parole. Le contenu transmet la prévision du joueur, jamais un fait établi ; sa conviction est calculée par le moteur sur ses perceptions.",
     "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
-    "propos": "Parole dont le sens ne relève d'aucune des opérations disponibles. Reproduire les mots du joueur ne dispense pas de typer les opérations qu'ils expriment.",
-    "affirmation": "Affirmer la valeur d'un attribut d'un sujet.",
+    "propos": "Parole qui n'accomplit aucun des actes disponibles. La visibilité, l'évidence ou la connaissance préalable d'une information ne transforment pas une affirmation en propos sans effet typé. Reproduire les mots du joueur ne dispense pas de typer leur sens.",
+    "affirmation": "Communiquer directement à l'interlocuteur un fait représentable par sujet, attribut et valeur. Sa visibilité, son évidence, sa nouveauté et le souhait explicite d'un effet mécanique ne changent pas cet acte. Un contenu à faire transmettre dans un contrat appartient à ce contrat ; il n'est pas une affirmation autonome supplémentaire de Corvus.",
     "demande": "Demander un objet ou une part de ressource ; valeur est le prix offert, vide sans offre.",
     "passage": "Demander de laisser passer ; valeur est le prix offert, vide sans offre.",
     "aveu": "Avouer le geste valeur sur l'objet sujet.",
@@ -65,7 +65,7 @@ SENS_CONTENU = {
 RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
 OPERATIONS = {t: sens for t, sens in SENS_CONTENU.items() if t != "propos"}
 SCHEMA_OPERATIONS = {"type": "object", "additionalProperties": False,
-    "description": "Analyser d'abord le sens de la saisie seule, avant de choisir le contenu. Pour chaque opération disponible, vrai si les mots du joueur en expriment le sens, même sans demander explicitement un effet du moteur, même sous forme déclarative, négative ou incertaine. La vérité de la parole et la réussite de ses conséquences ne décident pas de son typage. Toutes sont fausses seulement si aucune définition ne s'applique ; cette conclusion permet de dispenser la parole de contre-revue.",
+    "description": "Analyser d'abord le sens de la saisie seule, avant de choisir le contenu. Une opération désigne un acte que Corvus accomplit par cette parole envers son destinataire. Les contenus confiés pour une transmission ou une réalisation ultérieure restent dans leur contrat englobant ; ils ne sont pas aussi des actes autonomes de Corvus. Pour chaque opération disponible, vrai si la saisie accomplit cet acte, même sans demander explicitement un effet du moteur, même sous forme déclarative, négative ou incertaine. La vérité, la connaissance préalable et la réussite ne décident pas du typage. Toutes sont fausses seulement si aucune définition ne s'applique ; cette conclusion permet de dispenser la parole de contre-revue.",
     "properties": {t: {"type": "boolean", "description": sens} for t, sens in OPERATIONS.items()},
     "required": list(OPERATIONS)}
 
@@ -122,10 +122,10 @@ for _type_contenu in TYPES_JOUEUR:
     _variantes_contenu.append(_variante)
 SCHEMA_PAROLE["properties"]["contenu"]["items"] = {"anyOf": [*_variantes_contenu, SCHEMA_PROPOSITION]}
 
-def _schema_contenu(type_, champs):
+def _schema_contenu(type_, champs, *, sens=None):
     return {'type': 'object', 'additionalProperties': False,
             'properties': {'type': {'type': 'string', 'enum': [type_],
-                'description': type_ + ' : ' + SENS_CONTENU[type_]}, **champs},
+                'description': type_ + ' : ' + (sens or SENS_CONTENU[type_])}, **champs},
             'required': ['type', *champs]}
 
 _personnes_mandat = {'type': 'array', 'minItems': 1, 'items': {'type': 'string'}}
@@ -135,7 +135,7 @@ _schemas_mandat = [
     _schema_contenu('mandat', {'sorte': {'type': 'string', 'enum': ['informer']},
         'qui': _personnes_mandat, 'fait': _schema_contenu('affirmation', {
             'sujet': {'type': 'string'}, 'attribut': {'type': 'string', 'enum': ['lieu', 'verrouillee']},
-            'valeur': {'type': 'string'}})}),
+            'valeur': {'type': 'string'}}, sens="Fait de la charge à transmettre par le mandaté au destinataire qui. Cette structure décrit le contenu confié, pas un acte autonome supplémentaire de Corvus dans operations_demandees.")}),
     _schema_contenu('reponse_mandat', {'offre': {'type': 'string'}, 'accepter': {'type': 'boolean'}}),
     _schema_contenu('bilan_mandat', {'agenda': {'type': 'string'},
         'issue': {'type': 'string', 'enum': list(agendas.ISSUES_COMPTE_RENDU)}})]

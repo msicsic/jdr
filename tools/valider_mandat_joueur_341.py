@@ -31,6 +31,38 @@ def empreintes():
     return {str(p.relative_to(RACINE)): hashlib.sha256(p.read_bytes()).hexdigest() for p in fichiers}
 
 
+def analyser_luna(dossier):
+    """Le succès technique ne prouve ni le typage ni un jugement du destinataire."""
+    from donjon.paroles import operations_contenu
+    script = json.loads((RACINE / 'tests/data/bancs/mandat-joueur.json').read_text(encoding='utf-8'))
+    fichiers = list(dossier.glob('*.json'))
+    if len(fichiers) != 1:
+        raise ValueError('Une seule passe Luna attendue')
+    partie = json.loads(fichiers[0].read_text(encoding='utf-8'))
+    lignes, deja = [], {}
+    for tour, attendus in zip(partie['tours'], script['types_attendus']):
+        proposition = (tour['propositions'] or [{}])[-1]
+        contenu = proposition.get('contenu', [])
+        types = [c['type'] for c in contenu]
+        declarees = {k for k, v in proposition.get('operations_demandees', {}).items() if v}
+        jugements = []
+        for a in tour['etat'].get('charges_joueur', []):
+            js = a.get('jugements', [])
+            jugements.extend({'charge': a['id'], **j} for j in js[deja.get(a['id'], 0):])
+            deja[a['id']] = len(js)
+        lignes.append({'saisie': tour['saisie'], 'types': types, 'types_attendus': attendus,
+            'couverture_coherente': declarees == operations_contenu(contenu),
+            'jugements_nouveaux': jugements, 'refus_validation': tour['refus'],
+            'erreurs': tour['erreurs'], 'mentions_sans_fondement': tour['mentions_sans_fondement']})
+    jugements = [j for l in lignes for j in l['jugements_nouveaux']]
+    return {'ok': len(lignes) == len(script['types_attendus']) == len(partie['tours'])
+        and all(l['types'] == l['types_attendus'] and l['couverture_coherente']
+                and not l['erreurs'] and not l['mentions_sans_fondement'] for l in lignes)
+        and bool(jugements) and not partie['arret'] and not partie['erreur_rechargement'],
+        'mandats_types': sum('mandat' in l['types'] for l in lignes),
+        'mandats_acceptes': sum(j['issue'] == 'accepte' for j in jugements), 'tours': lignes}
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--sortie', type=Path, required=True)
@@ -72,8 +104,12 @@ def main():
         if not lancer('luna', ['tools/banc_parties.py', 'tests/data/bancs/mandat-joueur.json',
             '--connexion', 'chatgpt', '--max-appels', '30', '--fil', '--sortie', str(sortie / 'luna')]):
             return 1
-        fin['ok'] = True
-        return 0
+        analyse = analyser_luna(sortie / 'luna')
+        ecrire(sortie / 'analyse-luna.json', analyse)
+        fin['luna_semantique_ok'] = analyse['ok']
+        fin['mandats_acceptes'] = analyse['mandats_acceptes']
+        fin['ok'] = analyse['ok']
+        return int(not fin['ok'])
     except BaseException:
         fin['erreur'] = traceback.format_exc()
         return 1

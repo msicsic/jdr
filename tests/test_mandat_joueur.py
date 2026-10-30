@@ -282,6 +282,26 @@ class MandatJoueurTests(unittest.TestCase):
         from tools.banc_parties import resume_etat
         self.assertEqual(resume_etat(m)['charges_joueur'][-1]['jugements'][-1]['issue'], 'accepte')
 
+    def test_fait_confie_distinct_de_l_affirmation_directe_apres_recharge(self):
+        from tests.test_repli_et_appel import jouer
+        for sujet in ('brasero', 'fanal'):
+            m, c = self.scene('informer')
+            c['fait']['sujet'] = sujet
+            croire(m, 'aubin', sujet, 'lieu', 'echoppe', 'savoir', salle='echoppe', case=None)
+            mots = f"Aubin, je te confie la charge d'informer Brune que le {sujet} est dans l'antichambre."
+            bonne = {'mode': 'parole_joueur', 'texte': '', 'faits': [], 'proposition': {
+                'personnage': 'aubin', 'replique': mots, 'contenu': [c],
+                'operations_demandees': {t: t == 'mandat' for t in paroles.OPERATIONS}}}
+            mauvaise = copy.deepcopy(bonne)
+            mauvaise['proposition']['operations_demandees']['affirmation'] = True
+            n, sortie, appels = jouer(m, mots, [mauvaise, bonne], [])
+            retours = [e.get('faits', {}).get('retour_moteur', {}) for _, e in appels]
+            self.assertTrue(any('affirmation' in str(r.get('attendu', '')) for r in retours))
+            self.assertIn('Je refuse cette charge', sortie)
+            n = self.persiste(n)
+            self.assertEqual(lire(n, 'aubin')['croyances'][sujet]['lieu']['valeur'], 'echoppe')
+            self.assertEqual(agendas.projets(n, 'joueur')[0]['jugements'][-1]['issue'], 'impossible')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -11,13 +11,21 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   par le jugement `impossible` (abus d'honnêteté aussi enregistré).
   Script enrichi d'une information de position puis d'une charge réalisable
   sur le fanal ; vrai jet, accord et recharge vérifiés sans jet forcé.
-  Les bruts du banc conserveront les charges/jugements du joueur relus
-  depuis la sauvegarde. Reprise détachée : 18 fichiers ciblés, dont
-  `test_agendas_ascendant_evolue` et `test_agendas_socle`, puis une passe
-  Luna du script enrichi. Aucune suite complète, aucune nouvelle nuit
-  d'empreintes (code du jeu identique). Bruts
+  **174/174 tests verts, 18 fichiers, 214,545 s**, dont ascendant et socle.
+  Première reprise Luna : cinq tours/quatre MJ/douze appels, sans erreur
+  technique mais **échec sémantique** : mandat/informer doublé à tort d'une
+  affirmation autonome, puis information préalable neutralisée en `propos`.
+  Le mandat suivant est bien typé et prononcé mais refusé `impossible` ;
+  aucun accord. Charges/jugements relus des sauvegardes conservés dans le fil.
+  Fin technique verte conservée ; `validation/analyse-luna-posthoc.json`
+  rouge. Définitions communes et portée du fait imbriqué corrigées,
+  couverture stricte conservée et testée sur deux cas rechargés.
+  Nouvelle validation détachée : tests ciblés puis une passe Luna ; contrôle
+  des types attendus, opérations et jugements en plus du succès technique.
+  Aucune suite complète ; huit paires initiales non rejouées pour les seules
+  définitions de parole. Bruts
   `C:/Users/msics/donjon/artifacts/mandat-joueur-341/reprise-integration/` ;
-  fin attendue `validation/fin.json`.
+  fin attendue `validation-portee/fin.json`.
 
 - **Livraison initiale 341 / A5.9 terminée**, branche
   `codex-mandat-joueur`, **non fusionnée**, base fournie `fff9aab`.
