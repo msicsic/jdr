@@ -41,10 +41,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-service-evacuation` — lot 367, base `integration dea991a5` : le départ ne clôt plus
   un résultat payé sur un bien mobile connu du bénéficiaire ; `biens.py` seul modifié côté moteur.
-  Deux méthodes réservées du 362 et leurs fichiers : 29 tests verts, assertions historiques intactes ;
-  autre parcours payé à l'auberge vert, recharge monde/rendu/scène et laps découpé.
-  Validation détachée : dix fichiers ciblés/voisins, empreintes 2 h × quatre graines, hameau/auberge/Relais.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/service-evacuation-367/fin-validation.json`.
+  **115 tests / dix fichiers verts**, deux rouges du 362 corrigés, assertions historiques intactes ;
+  autre parcours payé à l'auberge, recharge monde/rendu/scène et laps découpé.
+  **12/12 empreintes 2 h identiques**, quatre graines, hameau/auberge/Relais ; aucun plantage.
+  Code mesuré `21bc1897`, branche poussée, non fusionnée ; aucun calcul actif, ni suite complète ni Luna.
   Limites : utilité conservatrice selon propriété connue, aucun entretien ni résurrection d'une trace close.
   [Rapport 367](taches/rapport-codex-367-service-evacuation.md).
 

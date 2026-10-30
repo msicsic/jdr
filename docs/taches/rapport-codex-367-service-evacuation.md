@@ -2,6 +2,7 @@
 
 Branche `codex-service-evacuation`, base `integration dea991a5` ; laptop,
 deux travailleurs réduits au plus. Aucun appel à Luna ni suite complète.
+**Terminé, non fusionné ; code mesuré `21bc1897`, branche poussée.**
 
 **Invariant et cause.** Une réussite payée sur un bien mobile connu comme
 appartenant au bénéficiaire n'est pas abandonnée par son seul départ. Dans
@@ -32,10 +33,17 @@ en bloc et en deux laps ; une cession apprise ne clôt que la trace concernée.
 Les anciennes épreuves de départ sur le bien du prestataire et d'épuisement
 restent conservées.
 
-**Validation finale en cours.** Dix fichiers ciblés/voisins, puis empreintes
-2 h × quatre graines sur hameau, auberge et Relais, contre la base figée.
-Les références disponibles sont relues du cache commun ; seules les absentes
-sont calculées et rangées. Résultats dans `fin-validation.json`.
+**Validation finale.** **115 tests / dix fichiers verts**, 306,812 s,
+zéro échec, erreur ou saut. Les dix méthodes historiques du fichier modifié
+sont identiques en AST ; `test_pas_compagnons.py` est inchangé.
+**12/12 paires d'empreintes 2 h identiques**, quatre graines sur hameau,
+auberge et Relais contre `dea991a5` : chronique, mesures et état complet,
+aucun plantage. Les douze références manquantes ont été calculées une fois
+puis rangées dans le cache commun, aucune référence relancée. Les compteurs
+d'avis restent identiques (zéro non justifié ; deux à expliquer au hameau
+1985 et 7). Ces nuits naturelles identiques ne remplacent pas les captures
+ciblées qui exercent le correctif. `fin-validation.json` : codes tests et
+empreintes **0/0**, sources inchangées, 960,396 s ; aucun calcul actif.
 
 **Limites.** L'utilité reste une estimation conservatrice : la propriété
 connue prolonge la protection même sans besoin actuel ; elle ne lit ni besoin
