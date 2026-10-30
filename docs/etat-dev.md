@@ -41,13 +41,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - **365, `codex-catalogue-connu`**, base `dea991a5` : admission lexicale retirée du lecteur commun des
   connaissances ; sources perceptives, mémorisées et actes typés entendus seuls. Prémisses déclarées dans les scénarios.
-  Alertes huile/verrou : savoirs légitimes séparés des fuites. Recouvrement 360 : `paroles.py`.
-  8/8 empreintes 2 h identiques avant les déclarations ; voisins noms/projection/U-M/U-T/accords verts.
-  Reprise détachée : scènes corrigées, information publique, sonde et delta des seuls savoirs déclarés ; deux travailleurs réduits.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/catalogue-365/fin-reprise.json` ; **lot non validé**, première fin rouge.
+  Validé : 153 tests réussis, un facultatif ignoré (15 fichiers) ; monde/scène/fiche/catalogues après recharge.
+  Empreintes 2 h × quatre graines, Relais/auberge : seul delta final = savoirs de prémisse ajoutés à `connus`.
+  Zéro cible d'accord inconnue ; six noms déclarés connus restent proposés au verrou. Recouvrement 360 : `paroles.py`.
+  `fin-reprise.json` valide dans `C:/Users/msics/donjon/artifacts/catalogue-365/` ; copies originales du 364 absentes.
   [Rapport](taches/rapport-codex-365-catalogue-connu.md) ; pas de migration lexicale de la prose des anciennes sauvegardes.
 
-Lots en cours : 364 (E6, réaccordance après le 362), 365 (catalogue des choix : fuite possible), 366 (levée d'un
+Lots en cours : 364 (E6, réaccordance après le 362), 366 (levée d'un
 refus par contrepartie, 358), 367 (service payé et évacuation, 306), 368 (quatre régressions isolées). Leurs entrées
 arrivent ici à leur livraison. 
 

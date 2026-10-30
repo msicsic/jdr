@@ -1,53 +1,58 @@
 # Lot 365 — Connaissance des entités dans les catalogues
 
-Branche `codex-catalogue-connu`, base intégration `dea991a5` (30 octobre 2026).
+Branche `codex-catalogue-connu`, base intégration `dea991a5` ; code final
+`f8bf55b2`. **Lot validé, non fusionné.**
 
-**Invariant.** Une coïncidence entre un nom/alias du monde et des mots du contexte
-ne constitue pas un apprentissage. `_cites_du_contexte`, règle commune aux choix
-d'information, accords et résolution des références, ne consulte plus le lexique
-pour faire connaître une identité. Ses sources sont les répertoires perceptifs,
-les souvenirs, les références typées des missions publiques et engagements,
-la mémoire propre de Corvus et les renseignements effectivement prononcés et
-entendus, enregistrés dans les résolutions typées des émissions. Aucun parcours
+**Invariant.** Un mot commun à un nom/alias privé et au contexte ne constitue
+pas un apprentissage. `_cites_du_contexte`, commun aux choix d'information,
+accords et résolution des références, ne consulte plus le lexique pour faire
+connaître une identité. Sources : répertoires perceptifs, souvenirs, termes
+typés des missions publiques et engagements, mémoire de Corvus, renseignements
+prononcés et entendus dans les résolutions typées des émissions. Aucun parcours
 des liens physiques, dossiers privés des PNJ, brouillons ou récits cosmétiques.
-Les positions, ressources, noms de personnes et accès physiques gardent leurs
-contrôles distincts. Les prémisses déclarent dans `connus` l'anneau de la crypte,
-la cloche du Relais, l'âtre, le coffre du marchand et les lits du dortoir de
-l'auberge : ces mentions sont légitimes, sans exception dans le moteur.
+Les prémisses déclarent dans `connus` l'anneau de la crypte, la cloche du Relais,
+l'âtre, le coffre du marchand et les lits du dortoir de l'auberge ; aucun cas
+particulier dans le moteur. Noms de personnes, positions et accès gardent leurs
+contrôles distincts.
 
-**Diagnostic.** Les bruts E6 du PC fixe sont absents du laptop. Les deux copies
-sont reproduites par les fabriques utilisées dans `tools/preparer_banc_e6.py`
-du 364 : huile et verrou à l'auberge. Le rapport 364 et son ancien calcul sont
-relus sur `origin/codex-e6-libre-date`. La sonde conserve les catalogues complets
-avant/après, les références publiques et les chemins textuels des admissions.
-Les admissions lexicales sont exposées dans les champs `information` et `accord`
-de l'état web, puis dans les formulaires. Elles mélangent des savoirs légitimes
-de prémisse et de vraies fuites : « ta bourse » ne désigne pas la bourse d'Anselme,
-ni une mention de paille la meule du grenier. Les noms de personnages déclarés
-connus restent légitimes même sans visibilité ni souvenir de position.
+**Diagnostic.** Copies originales du 364 absentes du laptop : reconstruction
+huile/verrou par ses mêmes fabriques, ancien lecteur relu au commit `197c0600`.
+Le compteur exact de **seize n'est pas reproduit** : 42/47 sujets et 17 cibles
+d'accord non perçus pour cette reconstruction et cet ancien lecteur. Identités,
+références publiques et chemins lexicaux sont dans `diagnostic.json` et
+`analyse-cloture.json`. Sur la base actuelle, les alertes de sujets sont :
 
-**Vérification.** En cours ; résultats détaillés dans
-`C:/Users/msics/donjon/artifacts/catalogue-365/`. La première fin est rouge :
-erreurs de préparation des nouvelles scènes, import de la sonde et dépendance
-implicite des choix « cloche »/« bois » au lexique. Préparations corrigées,
-souvenir du bien « bois » explicité dans les tests concernés ; aucune assertion
-d'effet ou de refus retirée. La reprise écrit `fin-reprise.json` après la sonde
-optimisée, les scènes finales et la consolidation par fichier. Les voisins
-déjà verts ne sont pas relancés (un saut : `jsonschema` facultatif absent).
-Les tests ciblent les deux scènes
-E6, le Relais, les homonymes, alias et clés techniques, la conversation sans
-admission, les liens privés, les choix forgés et un renseignement réellement
-entendu. Comparaison de l'état complet, scène, fiche et catalogues après vraie
-sauvegarde/recharge ; voisins noms, projection publique, menus U-M/U-T et accords.
-Le premier relevé d'empreintes (2 h, quatre graines, Relais/auberge, `d21a9ee2`
-contre la base) est intégralement identique. Après les déclarations de prémisse,
-le contrôle isole aussi les seuls ajouts à `connus`, sans les retirer du monde
-joué : comparaison du résultat complet sur une copie, chronique et mesures.
-Deux travailleurs réduits au plus. Ni suite complète ni appel Luna.
+| Scène | Admissions sans vue ni souvenir de position | Qualification |
+|---|---|---|
+| Huile | `atre`, `coffre_marchand`, `bourse_anselme`, `foin`, `paillasse_joss` | Deux savoirs de prémisse ; trois fuites lexicales |
+| Verrou | `atre`, `coffre_marchand`, `bourse_anselme`, `foin`, puis Anselme, Hugues, Lucien, Mathurine, Mireille, Tilo | Deux savoirs de prémisse, six noms déclarés connus ; deux fuites |
 
-**Limites.** La prose seule ne crée plus de référence, même dans une ancienne
-sauvegarde : une mention historique sans apprentissage typé n'est pas migrée
-par une recherche lexicale. Un renseignement entendu reste un ouï-dire, sans
-garantir sa vérité ni l'accès à son objet. Le lot ne porte pas la compilation
-libre d'E6 et ne retire aucun de ses contrôles transitoires. Recouvrement avec
-le 360 fusionné : `paroles.py`, seulement le lecteur commun de connaissance.
+« Ta bourse » ne désigne pas la bourse d'Anselme ; une mention de paille
+n'identifie pas la meule du grenier. Les identités admises atteignent réellement
+`information` et `accord` de l'état web et les formulaires, pas seulement une
+liste interne. Après correction : zéro alerte huile ; six alertes verrou,
+toutes les six des noms déclarés connus ; zéro cible d'accord inconnue.
+
+**Vérification.** **154 tests distincts, 15 fichiers : 153 réussis, un saut**
+(`jsonschema` facultatif absent), aucun échec restant. Scènes E6 et Relais,
+homonymes, alias/clés techniques, conversation sans admission, liens privés,
+choix forgés et renseignement entendu ; état complet, scène, fiche et catalogues
+après sauvegarde/recharge ; voisins noms, projection, menus U-M/U-T et accords.
+Les erreurs initiales de préparation et de sonde sont corrigées ; les deux
+tests de choix du bien « bois » déclarent son souvenir, sans retirer leurs
+assertions d'effet/refus. Consolidation par fichier, voisins verts non relancés.
+
+Empreintes **2 h × quatre graines × Relais/auberge** contre `dea991a5` :
+8/8 entièrement identiques sur `d21a9ee2`. Sur les données finales, nouveau
+relevé des huit nuits : chronique et mesures identiques ; le seul delta de
+l'état complet est l'ajout à `connus` des savoirs de prémisse ci-dessus.
+Preuve : empreinte du résultat complet, puis empreinte d'une copie privée de
+ces seuls ajouts, identique à la référence. Le monde joué n'est pas modifié.
+Deux travailleurs réduits au plus, références en cache ; aucune comparaison
+de temps CPU, suite complète ou Luna. Bruts :
+`C:/Users/msics/donjon/artifacts/catalogue-365/`, `fin-reprise.json` : valide.
+
+**Limites.** Pas de migration lexicale d'une ancienne mention uniquement en
+prose ; un renseignement entendu reste un ouï-dire sans garantir sa vérité ni
+l'accès à son objet. Pas de compilation libre E6 ni retrait de ses contrôles.
+Recouvrement avec le 360 fusionné : `paroles.py`, lecteur de connaissance seul.
