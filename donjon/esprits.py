@@ -1136,7 +1136,8 @@ def reviser(monde, id, sujet, attribut, valeur, source="vu", **lieu):
 
 
 def prete(monde, id, objet, a):
-    return any(s["type"] == "pret" and s.get("objet") == objet and s.get("a") == a for s in lire(monde, id)["memoire"])
+    from .memoire import pret_retenu
+    return pret_retenu(monde, id, objet, a)
 
 
 def preuve_possession(monde, sujet, *, precedente=None, remis_par=None, autorise=False):

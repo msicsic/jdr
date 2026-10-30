@@ -651,13 +651,10 @@ def prets_reclames(monde, lignes):
     """Le joueur à qui un PNJ a réclamé un prêt échu (souvenir ``pret_reclame``, qui date le prêt) et
     qui ne l'a pas rendu ``RENDRE`` minutes après perd sa confiance (``pret_garde``) : il garde ce
     qu'on lui redemande, comme un PNJ qui refuse (``echanges.demander``)."""
-    from .esprits import esprit
+    from .memoire import juger_reclamations_pret
     for p in [p for p in prets(monde) if p["a"] == "joueur" and p["de"] in monde.objets]:
-        for s in esprit(monde, p["de"])["memoire"]:
-            if (s["type"] == "pret_reclame" and s["objet"] == p["objet"] and s["pret"] == p["minute"]
-                    and s["echu"] and not s.get("juge") and monde.data["minutes"] - s["minute"] >= RENDRE):
-                s["juge"] = True
-                pret_garde(monde, p["de"], "joueur", p["objet"], lignes)
+        juger_reclamations_pret(monde, p["de"], p["objet"], p["minute"],
+                               lambda: pret_garde(monde, p["de"], "joueur", p["objet"], lignes))
 
 
 def comptes_joueur(monde):

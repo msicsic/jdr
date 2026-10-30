@@ -1331,15 +1331,8 @@ def tenu(monde, id, condition, depuis=None):
         # survit à une recharge et départage les faits d'une même minute sans
         # inventer l'instant de perception. Une mémoire oubliée ne fait pas
         # preuve : le nouveau suivi repart seulement de ce qu'il croit alors.
-        suivi = None
-        for s in reversed(e["memoire"]):
-            if s.get("condition") != condition:
-                continue
-            if s["type"] in ("engagement_pris", "engagement_tenu", "engagement_abandonne"):
-                break  # Une autre parole identique n'hérite pas de cette preuve.
-            if s["type"] == "suivi_engagement" and s["depuis"] == depuis:
-                suivi = s
-                break
+        from .memoire import suivi_engagement
+        suivi = suivi_engagement(monde, id, condition, depuis)
         if suivi is None:
             memoriser(monde, id, {"type": "suivi_engagement", "depuis": depuis,
                                   "condition": condition, "initiale": preuve})

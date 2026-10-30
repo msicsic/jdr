@@ -1,4 +1,4 @@
-"""Porte des épisodes, sons, approches et secours, au format historique.
+"""Porte des épisodes et de leurs requêtes, au format historique.
 
 S1a conserve la liste sauvegardée, son plafond et les crochets réentrants.
 Les autres familles seront portées séparément ; aucune requête de ce
@@ -7,6 +7,82 @@ module ne renvoie le stock mutable aux consommateurs.
 import copy
 
 MEMOIRE_MAX = 40
+
+
+def episodes_parts_promises(monde, id):
+    """Copies ordonnées des promesses de parts et de leurs suites historiques."""
+    from .esprits import lire
+    return [copy.deepcopy(s) for s in lire(monde, id)['memoire']
+            if s['type'] in ('promis', 'nourri', 'recu', 'promesse_annulee', 'creance')]
+
+
+def travaux_payes_retenus(monde, id):
+    """Tous les travaux du tampon, doublons compris, sans politique de validité."""
+    from .esprits import lire
+    return [copy.deepcopy(s) for s in lire(monde, id)['memoire'] if s['type'] == 'tache_payee']
+
+
+def dernier_travail_paye(monde, id, condition):
+    """Dernier accord et présence d'une créance de tâche ultérieure envers lui.
+
+    L'ordre de la liste, et non la date, départage les occurrences.
+    """
+    from .esprits import lire
+    stock = lire(monde, id)['memoire']
+    for i in range(len(stock) - 1, -1, -1):
+        s = stock[i]
+        if s['type'] == 'tache_payee' and s['condition'] == condition:
+            reclame = any(x['type'] == 'creance' and x['de'] == s['a'] and x.get('quoi') == 'tache'
+                          for x in stock[i + 1:])
+            return copy.deepcopy(s), reclame
+    return None, False
+
+
+def suivi_engagement(monde, id, condition, depuis):
+    """Copie du dernier suivi, arrêtée par toute autre parole de même condition."""
+    from .esprits import lire
+    for s in reversed(lire(monde, id)['memoire']):
+        if s.get('condition') != condition:
+            continue
+        if s['type'] in ('engagement_pris', 'engagement_tenu', 'engagement_abandonne'):
+            break
+        if s['type'] == 'suivi_engagement' and s['depuis'] == depuis:
+            return copy.deepcopy(s)
+    return None
+
+
+def pret_retenu(monde, id, objet, a):
+    """Souvenir du prêt ; ne consulte ni ne modifie la permission réelle."""
+    from .esprits import lire
+    return any(s['type'] == 'pret' and s.get('objet') == objet and s.get('a') == a
+               for s in lire(monde, id)['memoire'])
+
+
+def remise_retenue(monde, id, de, objet, minute):
+    """Réception de la même minute, avant l'épreuve d'engagement tenu.
+
+    Comme le crochet historique, cette consultation installe l'esprit si absent.
+    """
+    from .esprits import esprit
+    return any(s['type'] in ('nourri', 'recu') and s.get('de') == de
+               and s.get('objet') == objet and s['minute'] == minute
+               for s in esprit(monde, id)['memoire'])
+
+
+def juger_reclamations_pret(monde, id, objet, pret, apres_jugement):
+    """Marque chaque réclamation échue avant sa conséquence réentrante.
+
+    L'itération porte le stock vivant : un ajout/une éviction dans la conséquence
+    garde exactement son effet historique sur les occurrences suivantes.
+    Aucun ajout ni crochet propre à cette opération.
+    """
+    from .esprits import esprit
+    from .biens import RENDRE
+    for s in esprit(monde, id)['memoire']:
+        if (s['type'] == 'pret_reclame' and s['objet'] == objet and s['pret'] == pret
+                and s['echu'] and not s.get('juge') and monde.data['minutes'] - s['minute'] >= RENDRE):
+            s['juge'] = True
+            apres_jugement()
 
 
 def derniere_approche(monde, id, auteur, objet, lieu, cible, case=None):

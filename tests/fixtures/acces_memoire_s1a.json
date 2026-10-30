@@ -6,9 +6,6 @@
     "nuit/memoire": 2,
     "resume_diagnostic/memoire": 2
   },
-  "donjon/biens.py": {
-    "prets_reclames/memoire": 1
-  },
   "donjon/defense.py": {
     "auteurs/memoire": 1,
     "constater_fin/memoire": 1,
@@ -20,17 +17,13 @@
     "choisir/memoire": 1,
     "detresses_percues/memoire": 1,
     "menager_flamme/memoire": 1,
-    "ouvert_par_soi/memoire": 1,
-    "promesse_en_cours/memoire": 2,
-    "tache_payee/memoire": 1
+    "ouvert_par_soi/memoire": 1
   },
   "donjon/echanges.py": {
-    "affirmer/memoire": 1,
-    "tenu/memoire": 1
+    "affirmer/memoire": 1
   },
   "donjon/esprits.py": {
     "installer/memoire": 3,
-    "prete/memoire": 1,
     "verifier/memoire": 5
   },
   "donjon/paroles.py": {
@@ -39,10 +32,6 @@
   "donjon/passage.py": {
     "_demande/memoire": 1,
     "a_pousse/memoire": 1
-  },
-  "donjon/planification.py": {
-    "__init__/memoire": 1,
-    "_entrees_communes/memoire": 1
   },
   "donjon/pnj.py": {
     "_abriter/memoire": 1,
@@ -54,8 +43,7 @@
     "_noter/memoire": 1
   },
   "donjon/relations.py": {
-    "chance_demande/memoire": 1,
-    "souvenir/memoire": 1
+    "chance_demande/memoire": 1
   },
   "donjon/signes.py": {
     "percevoir_tous/memoire": 1,
