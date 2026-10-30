@@ -1,5 +1,5 @@
 """La revue juge le sens ; adresse et validation restent au moteur, jusqu'à la recharge."""
-from donjon.emissions import joueur as emissions_joueur
+from donjon.emissions import joueur as emissions_joueur, pnj as emissions_pnj
 import copy
 import unittest
 
@@ -46,9 +46,10 @@ class FideliteAudienceTests(unittest.TestCase):
         autre.joueur["orientation"] = "ouest"
         from donjon.paroles import prevue
         from donjon.voix import reel
-        for m, saisie, bien in (
-            (banc("noms-dialogue"), "est-ce que quelqu'un a du bois ?", "bois"),
-            (autre, "Avez-vous de quoi manger ?", "faim"),
+        for m, saisie, bien, reponse in (
+            (banc("noms-dialogue"), "est-ce que quelqu'un a du bois ?", "bois",
+             "J'ai les planches de bac dans le refuge du relais."),
+            (autre, "Avez-vous de quoi manger ?", "faim", "Je n'en ai pas."),
         ):
             with self.subTest(saisie=saisie):
                 m = recharger(m)
@@ -64,7 +65,8 @@ class FideliteAudienceTests(unittest.TestCase):
                 self.assertEqual(emissions_joueur(r)[-1]["texte"], saisie)
                 self.assertEqual(r.joueur["or"], m.joueur["or"])
                 self.assertIn(saisie, sortie)
-                self.assertIn("Ta question est entendue.", str(r.data["conversation"]))
+                self.assertEqual(emissions_pnj(recharger(r))[-1]["texte"], reponse)
+                self.assertIn(reponse, str(r.data["conversation"]))
 
     def test_formes_validees_du_marche_sans_refus_prealable(self):
         bois = presentes(antichambre_du_banc(), "aubin")

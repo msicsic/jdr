@@ -22,8 +22,8 @@ class RedirePasseTests(unittest.TestCase):
     def test_rappels_rapportes_apres_recharge_et_ordre_explicite(self):
         from tests.test_parole_commune import scene
         scenes = [(self.dire(banc('soir-noir'), 'personne', 'Qui est là ?',
-                            'Je suis Ilse.', ('qui', '', '', '')),
-                   'voix_1', 'Je suis Ilse.', 'Je t’ai déjà dit que je suis Ilse.'),
+                            "Je m'appelle Ilse.", ('qui', '', '', '')),
+                   'voix_1', "Je m'appelle Ilse.", "Je t’ai déjà dit que je m'appelle Ilse."),
                   (scene(), 'aubin', 'La lune est verte.',
                    'Je t’ai dit que la lune est verte.')]
         for m, qui, ancien, rappel in scenes:
@@ -80,7 +80,7 @@ class RedirePasseTests(unittest.TestCase):
         m = self.dire(m, 'voix_1', 'Tu as de quoi manger ?', 'Non, je n’en ai pas.', ('ressource', 'faim', '', ''))
         m = self.dire(m, 'voix_1', "C'est moi, Brune.", 'Tu n’es pas Brune. Qui es-tu ?', ('nom', 'joueur', '', ''))
         faux = 'Je t’ai déjà dit que je ne te dirai pas qui je suis.'
-        bon = 'Je ne te le redirai pas.'
+        bon = "Je refuse de te dire mon nom."
         r, sortie, appels = jouer(recharger(m), "je demande à la voix comment elle s'appelle", [
             parole("Comment tu t'appelles ?", ('qui', '', '', ''), personnage='voix_1'),
             dialogue('La voix répond : « ' + faux + ' »'), dialogue('La voix répond : « ' + bon + ' »')],
@@ -89,12 +89,14 @@ class RedirePasseTests(unittest.TestCase):
         self.assertIn(bon, sortie)
         self.assertEqual(emissions_pnj(r)[-1]['texte'], bon)
         self.assertNotIn(faux, str(r.data['conversation']))
+        self.assertEqual(len(mj(appels)), 1)  # G16 : aucun récit du nom ni faux rappel admis.
+        self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
         self.assertNotIn(faux, str(emissions_pnj(r)))
-        historique = narration(appels)['faits']['echanges_passes']
-        self.assertEqual(historique['voix_1'][0]['texte'], 'C’est Ilse. Qui va là ?')
+        historique = mj(appels)[0]['faits']['echanges_passes']
+        self.assertEqual(historique['voix_1'][0]['texte'], "Je m'appelle Ilse.")
         self.assertNotIn('ilse', historique)
         corrections = [e['controle_narratif'] for e in mj(appels) if 'controle_narratif' in e]
-        self.assertIn('C’est Ilse. Qui va là ?', str(corrections))
+        self.assertEqual(corrections, [])  # G16 : aucune rédaction libre à corriger.
         self.assertEqual(len(emissions_pnj(r)), 4)
         self.assertEqual(recharger(r).data['conversation'], r.data['conversation'])
 
@@ -138,7 +140,7 @@ class RedirePasseTests(unittest.TestCase):
             auditeurs=['joueur'], revision=1, salle='beffroi', minute=0)] * 12)
         m.data['paroles_pnj'].append(dict(locuteur='ilse', texte='Secret.', auditeurs=['aubin'], revision=1, salle='beffroi', minute=0))
         faits = echanges_passes(recharger(m), interlocuteurs(m))
-        self.assertEqual([p['texte'] for p in faits['voix_1']], ['C’est Ilse.'])
+        self.assertEqual([p['texte'] for p in faits['voix_1']], ["Je m'appelle Ilse."])
         self.assertNotIn('auditeurs', str(faits))
         self.assertNotIn('Secret', str(faits))
 

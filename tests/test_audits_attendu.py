@@ -29,6 +29,7 @@ from donjon.narration import controler, mentions, paroles_sans_moteur, voix_aute
 from donjon.portee_narrative import controler as controler_portee
 from donjon.refus import audit_illisible
 from tests.test_parole_commune import paroles_retenues, scene
+from tests.paroles_support import AppelsParole
 from tests.test_repli_et_appel import NEUTRE, dialogue, mj, parole, verdicts
 
 CHAMPS = {"partie", "segment", "texte", "motif", "attendu"}
@@ -45,7 +46,7 @@ def rapport(*lignes):
 
 def jouer(monde, saisie, reponses, audits, revues=(), *, suite=()):
     """La vraie boucle de jeu, le fournisseur simulé appel par appel (MJ, auditeur, contre-revue)."""
-    reponses, audits, revues, appels = list(reponses), list(audits), list(revues), []
+    reponses, audits, revues, appels = list(reponses), list(audits), list(revues), AppelsParole()
 
     def appel(instructions, entree, intention, fonction, schema):
         appels.append((fonction, entree))
@@ -74,6 +75,7 @@ def jouer(monde, saisie, reponses, audits, revues=(), *, suite=()):
         with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
               patch.object(MJOpenAI, "_appeler_brut", side_effect=appel),
               patch.object(Monde, "d20", return_value=20),
+              patch("donjon.mj.preparer_parole", side_effect=appels.preparer),
               patch("builtins.input", side_effect=[saisie, *suite, "quitter"]),
               patch("sys.stdout", io.StringIO()) as sortie):
             assert jeu.main(["--console", "--connexion", "api", "--save", str(chemin)]) == 0

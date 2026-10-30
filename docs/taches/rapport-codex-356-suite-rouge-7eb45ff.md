@@ -1,86 +1,66 @@
-# Lot 356 — attribution de la suite rouge de `7eb45ff`
+# Lot 356 — attribution de la suite rouge et harnais
 
-Branche `codex-suite-rouge-7eb45ff`, base `integration df03dc2f`.
-**En cours : bissection v2 analysée ; compléments et validation des harnais détachés, `fin-complements.json` attendu.**
+Branche `codex-suite-rouge-7eb45ff`, base `integration df03dc2f`, synchronisée
+sans rebase avec **`origin/integration 19c9b6da`** (`47769f26`, conflit documentaire seul).
+**Dernière validation ciblée détachée ; `fin-validation-finale.json` attendu.**
+[Tableau exhaustif des 161 incidents](attribution-codex-356-suite-rouge.md).
 
-L'invariant recherché est la fiabilité de la suite : un test doit continuer à
-contrôler son comportement historique, y compris l'état sauvegardé et le rendu,
-en passant par le consentement lorsque celui-ci est requis. Les 143 échecs et
-18 erreurs de la suite originale couvrent 61 fichiers. Leur origine n'est pas
-présumée commune.
+**Attribution.** 143 échecs et 18 erreurs, 61 fichiers ; **158 bascules sur
+parent direct**. Le témoin après le lot 339 était déjà rouge pour plusieurs
+familles : la recherche remonte donc au-delà de lui. Copies natives du code
+et des tests, mêmes labels de sous-tests aux deux bornes ; une absence ou un
+saut n'est jamais vert. Les deux fichiers devenus verts isolément ont aussi
+été rejoués entiers. Trois incidents restent non reproduits sur le laptop :
+installation gardée, enfermement, rappel du prêt. Leur cause et première
+fusion restent **non établies**, sans correctif supposé.
+Classement : **48 harnais du consentement, 71 attentes périmées prouvées,
+39 régressions conservatrices (dont une corrigée ici), trois non reproduits**.
+Le certificat contrôle les **316 labels et verdicts exacts** des deux bornes.
 
-Le calcul rejoue uniquement les méthodes initialement rouges, dans des copies
-natives du code et des tests de chaque révision. Deux processus de test au
-maximum, priorité réduite ; aucun modèle, banc ou suite complète. Le témoin
-initial est `9e0f86f0` (fusion du lot 339), la borne rouge `7eb45ff9`.
-Les révisions qui modifient seulement la documentation sont écartées ; après
-bissection, le parent direct de chaque première révision rouge est aussi rejoué.
-Les absences de méthode, sauts et erreurs de chargement restent inconclusifs.
-Les incidents déjà rouges au témoin 339 déclenchent une recherche en amont
-sur les parents directs, jusqu'à une borne verte ou inexploitable.
+**Contrat des tests.** Les actes lourds simulés reçoivent `tenter`, avec le
+harnais existant ou la saisie console. La première étape conserve exactement
+**811 assertions AST / 14 fichiers contrôlés**, réponses simulées et oracles
+de paiement, possession, parole, rendu et recharge compris. Elle passe
+100 tests dans neuf fichiers ; cinq fichiers mixtes gardent alors 15 incidents.
+Un second portage, séparé de ces confirmations, traite seulement leurs attentes
+périmées documentées par **U-C / rapport 325** et **G16 / rapport 345** :
+admission et action sur copie jusqu'à confirmation, mots formulés par le
+moteur, observation de ses préparations sans inventer un appel au fournisseur.
+Les identités, adresses, auteurs, montants, propriétés, historique et recharge
+restent contrôlés. Le consentement n'est pas ajouté aux questions de faisabilité.
 
-Un essai du lanceur a reproduit l'échec de
-`PersonnagesTests.test_portrait_connu_sans_personnage_accessible_ni_fuite_a_distance`
-sur `7eb45ff9` : absence du refus `ErreurMonde` attendu. Ce résultat ne suffit
-pas encore à qualifier l'attente ou à désigner une fusion.
+**Correctif commun d'une ligne, exception autorisée par le brief.** Le portage
+révèle que G16 refuse sa propre réponse collective comme « mots non fixés ».
+`repliques_moteur.reponse` joint désormais les émissions par un saut de ligne :
+chaque rendu enregistré conserve sa frontière, même si le prochain locuteur
+commence par une minuscule. Aucun contrôle de publication n'est assoupli.
+Un test fonctionnel reproduit **deux erreurs avant correction**, au Relais et
+à l'auberge ; il contrôle après correction les mots, l'absence de mutation des
+objets/temps/journal, la scène et le monde rechargés. Aucun fichier de code
+des lots 353, 354 ou 355 n'est édité.
+Après correction : fichier d'audience **10/10**, nouveau test Relais/auberge
+vert (**17,918 s**) ; la reprise du premier oracle de ce nouveau test autorise
+le seul changement d'orientation déjà produit par l'ouïe, sans écarter aucun
+autre champ d'objet ni aucune ressource.
 
-Bruts et copie du lanceur :
-`C:/Users/msics/donjon/artifacts/suite-rouge-356/`.
-Fichier de fin attendu : `fin-complements.json` ; les résultats sont persistés
-par fichier dans `attributions/` et par révision dans `rejeux/`.
-Le lanceur vivant est conservé dans `artifacts/suite-rouge-356/bissection.py`
-du worktree ; le dernier lanceur est `continuation.py`, décrit dans `lancement-complements.json`.
+**Mesures et reprise.** Bissection utile v2 : **12 653,186 s** ; compléments
+MiMo/imports/fichiers entiers : **375,509 s**, deux travailleurs réduits au plus.
+Les résultats invalides du premier lanceur (masquage de `tests` par
+`tools/tests.py`) sont gardés et exclus des preuves. `jsonschema` déclaré dans
+`requirements-mimo.txt` est installé dans les seuls artifacts du worktree ;
+aucun saut MiMo ne sert de succès. Les reprises de portage sont conservées,
+y compris les attentes secondaires révélées après la première assertion.
+La validation finale porte sur **18 fichiers ciblés**, tous les tests livrés
+et les répliques G16/G17/G18 voisines, sans suite complète, Luna ou banc.
 
-**Défaut du premier lanceur.** `fin-bissection.json` signalait seulement la
-fin des rejeux, pas une attribution aboutie. L'ajout de `tools/` avant le
-chargement du namespace `tests` faisait masquer celui-ci par `tools/tests.py` :
-154 incidents restaient inexploitables. Les traces correspondantes sont
-conservées dans `rejeux-invalides-import/`, sans valeur d'attribution.
-Le lanceur suit désormais le même ordre d'import que `tools/tests.py` ;
-un rejeu d'audience a chargé les sept méthodes sélectionnées et reproduit
-les neuf incidents attendus. Une erreur d'encodage de l'impression console
-du smoke-test est survenue après l'écriture complète de son JSON UTF-8.
+**Réserves.** Le tableau classe conservativement les ruptures sans preuve de
+changement voulu en régressions à traiter/arbitrer séparément : ouï-dire/337,
+cause/330, plan différé perdu après discussion/U-C, lampe après la nuit/312,
+couverture/341 et préfixe KV/G6. Les scènes déjà portées par d'autres lots
+ne sont pas créditées ici. La suite globale n'est **pas déclarée verte** et
+les trois incidents non reproduits demandent une vérification sur le PC fixe.
 
-**Première adaptation prouvée.** La gravure de
-`test_contre_revue_corrige_deux_effets_omis_avant_affichage_et_sauvegarde`
-est verte sur le parent direct `dc6da621`, rouge à la fusion U-C `37dccfa3`.
-Le harnais fournit désormais `tenter` avant de quitter ; aucune assertion,
-réponse de modèle simulée ou donnée de monde n'a changé. Le même parcours
-contrôle toujours la contre-revue, la révision sauvegardée, le résultat vu et
-la description de la marque après chargement ; le chant du même test reste
-couvert. Le fichier entier passe : **14 tests**, **4,776 s**, zéro incident
-(`artifacts/suite-rouge-356/improvisation-adaptee.json` du worktree).
-
-**Reprise après v2.** Les 161 incidents ont un résultat de rejeu ; 148 ont une
-bascule verte/rouge prouvée sur parent direct, en 12 653,186 s. Répartition :
-U-C `37dccfa3` 61 ; G5 `49608db0` 34 ; ouï-dire `c9b972b7` 28 ; G16 `17212940`
-15 ; mandat joueur `f091c64b` 4 ; G6 `64130fa1` 2 ; demander cause `8d439542`
-2 ; reprise de demande `6be4bace` 1 ; G7 `d20fce9b` 1. Une bascule rouge
-n'est pas en elle-même une preuve d'attente périmée : cette qualification
-demande encore le rapport de conception et l'examen de la trace.
-
-Les treize autres incidents : neuf sous-cas MiMo sautés faute de `jsonschema`,
-deux imports invalides du premier lanceur dont la forme de trace n'avait pas
-été invalidée par v2, et deux méthodes vertes isolément (enfermer, prêt).
-Le complément conserve les preuves déjà acquises, rejoue MiMo avec les
-dépendances déclarées dans `requirements-mimo.txt`, invalide les deux imports
-restants et rejoue les deux derniers fichiers entiers. Dépendances installées
-seulement dans `artifacts/suite-rouge-356/dependances` du worktree.
-
-Intégration courante `origin/integration 19c9b6da` fusionnée sans rebase dans
-`47769f26`, conflit documentaire seul, entrées des deux côtés conservées.
-Douze autres fichiers de tests ont reçu uniquement des confirmations de saisie
-ou un import du harnais existant ; aucune assertion ni réponse simulée changée.
-La phase suivante valide quatorze fichiers complets (les treize adaptés et
-`test_avis_joueur`, déjà adapté par G18), puis écrit `fin-complements.json`.
-Elle conserve une preuve AST de toutes les assertions et les empreintes des
-sources. Des attentes G16 ou de faisabilité et des régressions distinctes
-peuvent rester dans ces fichiers ; aucun résultat vert n'est présumé.
-
-À la reprise : lire `fin-complements.json`, `validation-harnais.json` et
-`assertions-harnais.json`, qualifier chaque incident et compléter
-l'annexe `attribution-codex-356-suite-rouge.md`, rechercher en amont les incidents
-déjà rouges au témoin si la recherche automatique reste inconclusive, puis adapter exclusivement les harnais prouvés concernés
-par le consentement, sans modifier leurs assertions. Rejouer les fichiers
-adaptés sur l'intégration courante, mettre à jour ce rapport et pousser la
-branche. Les régressions du moteur restent pour des lots séparés.
+Bruts : `C:/Users/msics/donjon/artifacts/suite-rouge-356/` :
+`attribution-qualifiee.json`, `certificat-bornes.json`, `assertions-harnais.json`,
+`validation-harnais.json`, lanceurs et journaux ; résultats intermédiaires
+du worktree copiés à la clôture. Fin attendue : **`fin-validation-finale.json`**.

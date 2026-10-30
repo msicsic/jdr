@@ -87,7 +87,7 @@ class FormeTests(unittest.TestCase):
                 self.assertEqual(r.data["minutes"], avant["minutes"])
                 self.assertFalse(unites_moteur(texte))
 
-    def test_description_nouvelle_persistante_avant_la_fiche_puis_le_passage(self):
+    def test_description_et_passage_confirme_persistent_ensemble(self):
         for scenario, cible in (("relais", "poutre_conduite"), ("auberge", "table_longue")):
             with self.subTest(cible=cible):
                 m = scene_obstacle(scenario, cible, forme=False)
@@ -100,14 +100,16 @@ class FormeTests(unittest.TestCase):
                 self.assertEqual([f for f, _ in appels],
                                  ["repondre_au_joueur", "auditer_portee", "auditer_capacites", "auditer_action"])
                 self.assertIn("Ramper sous", texte)
-                self.assertEqual(r.objets[cible]["passage"], FORME)
+                self.assertNotIn("passage", r.objets[cible])  # U-C : admission et suite sur copie.
                 self.assertEqual(r.joueur["position"], m.joueur["position"])
                 entree = next(e for f, e in appels if f == "auditer_capacites")["qualifications"][0]
                 self.assertEqual(entree["champs_a_etablir"], ["passage"])
                 self.assertTrue(entree["objet"]["bloque_passage"])
                 self.assertIn("physique", entree["objet"])
-                r, texte, _ = jouer_physique(r, ["ramper sous " + m.objets[cible]["nom"], "tenter",
-                                                "tourner ouest", "examiner " + m.objets[cible]["nom"]], [])
+                r, texte, _ = jouer_physique(r, [q, "tenter", "tourner ouest",
+                                                "examiner " + m.objets[cible]["nom"]], [ajout],
+                                            [{"compatible": True, "motif": "Disposition plausible."}])
+                self.assertEqual(r.objets[cible]["passage"], FORME)
                 self.assertIn("Tu passes en rampant", texte)
                 self.assertEqual(r.joueur["position"][0], m.joueur["position"][0] + 2)
                 self.assertTrue(r.objets[cible]["bloque_passage"])
@@ -139,10 +141,13 @@ class FormeTests(unittest.TestCase):
         r, texte, appels = jouer_physique(m, ["est-ce que je peux faire sonner la hache ?"], [ajout],
                                          [{"compatible": True, "motif": "Un tintement discret est plausible."}])
         self.assertEqual([f for f, _ in appels], ["repondre_au_joueur", "auditer_portee", "auditer_capacites", "auditer_action"])
-        self.assertEqual(r.objets["hache"]["sonorite"], 1)
+        self.assertNotIn("sonorite", r.objets["hache"])
         self.assertEqual(r.data["minutes"], m.data["minutes"])
         self.assertFalse(r.data["journal"])
-        self.assertIn("Rien n'est encore tenté", texte)
+        self.assertIn("Faisabilité seulement : aucune action exécutée.", texte)
+        r, texte, appels = jouer_physique(r, ["est-ce que je peux faire sonner la hache ?", "tenter"],
+                                         [ajout], [{"compatible": True, "motif": "Un tintement discret est plausible."}])
+        self.assertEqual(r.objets["hache"]["sonorite"], 1)
         r, texte, appels = jouer_physique(r, ["sonner hache"], [])
         self.assertEqual(appels, [])
         self.assertTrue(r.data["journal"])

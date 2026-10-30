@@ -17,6 +17,33 @@ from tests.test_tensions import recharger
 
 
 class InformationsParleesTests(unittest.TestCase):
+    def test_plusieurs_reponses_conservent_leurs_frontieres_apres_recharge(self):
+        for scenario, besoin, mots in (
+            ('noms-dialogue', 'chaleur', 'à tous : avez-vous du bois ?'),
+            ('sous-obstacle-auberge', 'faim', 'à tous : avez-vous de quoi manger ?'),
+        ):
+            with self.subTest(scenario=scenario):
+                m = banc(scenario)
+                avant = copy.deepcopy(m.objets)
+                r, sortie, _ = self.question(m, mots, [('ressource', besoin, '', '')], 'tous')
+                reponses = pnj(r)[len(pnj(m)):]
+                self.assertGreaterEqual(len(reponses), 2)
+                # L'ouïe peut tourner un auditeur vers Corvus ; elle ne
+                # déplace aucun corps ni bien et ne change aucune ressource.
+                sans_orientation = lambda objets: {k: {c: v for c, v in o.items() if c != 'orientation'}
+                                                   for k, o in objets.items()}
+                self.assertEqual(sans_orientation(r.objets), sans_orientation(avant))
+                self.assertEqual(r.joueur, m.joueur)
+                self.assertEqual(r.data['minutes'], m.data['minutes'])
+                self.assertEqual(r.data['journal'], m.data['journal'])
+                # Chaque rendu enregistré reste un passage entier, sans fusion
+                # avec un locuteur décrit en minuscules.
+                from donjon.narration import segments
+                passages = segments(r.data['conversation'][-1]['reponse'])
+                for emission in reponses:
+                    for passage in segments(emission['rendu_public']):
+                        self.assertIn(passage, passages)
+
     def assertRecharge(self, m, sortie):
         r = recharger(m)
         self.assertEqual(r.data, m.data)
