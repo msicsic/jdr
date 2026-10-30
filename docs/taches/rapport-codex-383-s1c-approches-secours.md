@@ -1,7 +1,8 @@
 # Lot 383 — S1c, approches, avertissements et secours
 
 30 octobre 2026 · `codex-s1c-approches-secours` · base exacte `integration 1da5b943`.
-`origin/integration` vérifiée avant les calculs : encore à cette base.
+Code mesuré `739e27eb`. `origin/integration` revérifiée à la conclusion : encore à
+cette base, aucune fusion supplémentaire nécessaire. Branche poussée vers `origin`.
 
 **Invariant et code.** Les approches observées, mises en garde, avertissements dus
 et secours passent par les requêtes nommées de `donjon/memoire.py`. Les lectures
@@ -23,24 +24,31 @@ portées, leurs alias locaux, champs imbriqués, méthodes détachées et sélec
 `next` d'un générateur sur le stock. Il ne prouve pas tous les flux interprocéduraux
 possibles de Python. Les autres familles de mémoire restent dans l'inventaire fermé.
 
-**Tests et mesures.** Les neuf tests de porte/AST ciblés passent après correction
-d'une fixture de croyance qui omettait sa confiance. L'exécution initiale dans la
-restriction Windows ne pouvait pas écrire les sauvegardes temporaires ; la reprise
-hors restriction passe. Les quatre nouveaux tests de porte contrôlent copie/pureté,
+**Tests.** **177/177 passent dans les quatorze fichiers ciblés**, sans échec, erreur
+ni test ignoré (389,5 s écoulées, deux processus et priorité réduite). Les quatre
+nouveaux tests de porte contrôlent copie/pureté,
 identité des occurrences, ordre, absence de crochets, premier avertissement tenu,
 constat strictement postérieur et réentrance du service. Les chaînes existantes
 sont renforcées : captures réelles crue 223-22/26 puis rixe avec Gorm/Ilse ; postes
 du Relais et de l'auberge ; état complet, ordre JSON, rendu, scène et paroles après
-recharge, même laps entier/découpé. Vérification élargie ciblée puis **empreintes
-2 h × quatre graines × Relais/mine/auberge/crue contre `1da5b943`** lancées détachées,
-deux processus au plus et priorité réduite. Résultats encore attendus : ne pas
-considérer l'identité des seize nuits comme acquise avant lecture de `fin.json`.
-Pas de suite complète, ni Luna, ni conclusion de coût sur des temps issus du cache.
+recharge, même laps entier/découpé. La première vérification isolée a nécessité de
+sortir de la restriction Windows sur les fichiers temporaires et de compléter la
+confiance d'une fixture de croyance ; aucun contournement dans le moteur.
+
+**Empreintes.** **16/16 nuits identiques** : 2 h × graines 1985/7/42/2024 ×
+Relais/mine/auberge/crue, chronique, mesures et empreinte de l'état final complet,
+sans exclusion ni plantage, contre la base exacte `1da5b943`. Les seize références
+manquantes ont été calculées une fois, puis rangées dans le cache partagé, comme
+les nuits de la branche. Les avis auxiliaires restent identiques (neuf « à expliquer »,
+aucun « non justifié ») ; aucune correction de ces avis n'est revendiquée. Calculs
+séquentiels référence puis branche, détachés, deux processus au plus et priorité
+réduite. Aucune conclusion de coût, aucune suite complète ni Luna.
 
 **Bruts et limites.** `C:/Users/msics/donjon/artifacts/s1c-383/` : `tests.json`,
-`tests.log`, `empreintes-base.json`, `empreintes-base.log`, `fin.json` écrit en dernier.
+`tests.log`, `empreintes-base.json`, `empreintes-base.log`, `fin.json` écrit en dernier,
+et `conclusion.json` (synthèse vérifiée).
 Recouvrement potentiel 374 : `planification.reagir`, bloc des secours uniquement,
 et imports voisins dans `pnj`/`deliberation` ; aucune localisation ni recherche modifiée.
 Aucun fichier de 380/381 touché. Les lectures générales de violences, les croyances
-et l'oubli par âge/importance restent hors lot. La validation finale des calculs
-et la dernière vérification d'intégration restent à faire à leur réception.
+et l'oubli par âge/importance restent hors lot. Tous les contrôles requis du lot
+sont terminés ; aucune validation ciblée en attente.

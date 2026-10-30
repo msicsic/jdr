@@ -46,9 +46,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1c-approches-secours` — lot 383, base exacte `integration 1da5b943`.
   Approches, mises en garde, avertissements et secours lus/acquittés par `memoire` ;
   mêmes occurrences, ordre, clés et crochets ; inventaire AST 90 → 78.
-  Neuf tests de porte/AST verts ; ciblés élargis puis empreintes 2 h × 4 graines ×
-  Relais/mine/auberge/crue en calcul détaché, résultats non encore validés.
-  Deux processus maximum, priorité réduite ; sans suite complète ni Luna.
+  177/177 tests ciblés verts ; 16/16 empreintes identiques, 2 h × 4 graines ×
+  Relais/mine/auberge/crue ; aucun plantage, sans exclusion de l'état final.
+  Branche poussée ; intégration inchangée ; sans suite complète ni Luna.
   Limites et recouvrement 374 : [rapport 383](taches/rapport-codex-383-s1c-approches-secours.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
