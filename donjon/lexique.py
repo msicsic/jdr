@@ -40,17 +40,24 @@ def corpus(*elements):
     return normaliser(" ".join(morceaux))
 
 
-def entites_citees(monde, texte):
-    """Identifiants nommés dans un texte, le terme le plus long l'emportant sur ceux qu'il contient."""
+def citations(monde, texte):
+    """Termes cités et leurs candidats, en conservant les ambiguïtés.
+
+    Le terme le plus long l'emporte sur ceux qu'il contient. Une occurrence
+    homonyme donne des candidats, sans attester chacun de leurs identifiants.
+    """
     texte = normaliser(texte)
-    ids = set()
     for terme, porteurs in sorted(termes(monde).items(), key=lambda t: -len(t[0])):
         if terme not in texte:
             continue  # Son motif exige le terme tel quel : absent du texte, il ne s'y trouve pas.
         texte, trouves = _motif(terme).subn(" ", texte)
         if trouves:
-            ids |= porteurs
-    return ids
+            yield terme, porteurs
+
+
+def entites_citees(monde, texte):
+    """Tous les candidats nommés, y compris les homonymes restant à résoudre."""
+    return {id for _, porteurs in citations(monde, texte) for id in porteurs}
 
 
 def mentions_sans_fondement(monde, texte, fondement):

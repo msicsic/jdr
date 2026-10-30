@@ -39,16 +39,16 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-**362 — `codex-rouges-restants`, base `integration 52b2a27c`, validation détachée en cours.**
-Seize rouges reproduits ; six nouvelles bascules natives : 354, 353, 306 ×2, 358 ×2.
-Identités publiques issues des références admises (plus d'inférence par homonymie), préfixe KV réordonné ;
-portages de protocole 341, réponses G16, consentement U-C, catalogue 353 et stimulus lumineux explicite.
-Trois anciens incidents reproduits aussi par fichier entier ; sept méthodes réservées, aucune déclarée corrigée.
-Reprise ciblée finale 3/3 verte ; dix-neuf fichiers voisins et empreintes Relais/mine 2 h × quatre graines en calcul.
-Fin attendue : `artifacts/rouges-restants-362/fin-validation.json` ; ni suite complète ni Luna.
-[Rapport provisoire et annexe](taches/rapport-codex-362-rouges-restants.md).
+**362 — `codex-rouges-restants`, base `integration 52b2a27c`, terminé, poussé, non fusionné.**
+Seize rouges attribués ; huit méthodes corrigées/portées, huit réservées (358 ×2, 306 ×2, 313, 332, 333, 330).
+Connaissance publique sans multiplication d'identités homonymes, noms uniques historiques conservés ; préfixe KV réordonné.
+Archives 341, réponse G16, nouvel aperçu U-C et catalogue 353 portés ; essai lampe retiré, fichier identique à la base.
+**202 tests / 19 fichiers consolidés verts**, reprise 55/55 ; **8/8 paires d'empreintes 2 h Relais/mine identiques**.
+Anciens non-reproduits rejoués par fichiers entiers et basculés sur 313/332/333 ; témoins d'identité rouges puis verts sur deux scènes.
+Limites et suites précises dans le [rapport et l'annexe](taches/rapport-codex-362-rouges-restants.md) ; tests 360 intacts, ni suite complète ni Luna.
+Bruts `artifacts/rouges-restants-362/fin-cloture.json` ; aucun calcul actif, suite globale non déclarée verte.
 
-Lots en cours : 359 (E5 choix direct), 360 (régressions du lot 337), 362 (16 rouges restants hors 337).
+Lots en cours : 359 (E5 choix direct), 360 (régressions du lot 337).
 **Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
 dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361, fusionné), 10 autres anciennes
 et 6 nouvelles (362). Leurs entrées arrivent ici à leur livraison. 

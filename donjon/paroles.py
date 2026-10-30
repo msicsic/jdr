@@ -1126,13 +1126,14 @@ def contexte_fige():
 
 
 def _cites_du_contexte(monde):
-    """Identités attestées par les données publiques, jamais déduites d'un nom homonyme.
+    """Identités attestées par les données publiques ou nommées sans ambiguïté.
 
     La prose permet de chercher un nom parmi les entités connues ; elle ne
     fait pas connaître tous les objets privés qui portent ce même nom.
     """
     global _CITES
     from .noms import CHAMPS_REFERENCES
+    from . import lexique
     from .spatial import a_verifier
     from .voix import reel
 
@@ -1152,10 +1153,18 @@ def _cites_du_contexte(monde):
                     else:
                         recueillir(v)
 
-        # Seules les paroles effectivement entendues et les faits admis
-        # ajoutent leurs références ; aucun texte libre ni scénario privé.
-        recueillir(contexte["paroles_entendues"])
-        recueillir(contexte["souvenirs_faits"])
+        # Le même contrat vaut pour les prémisses, missions, connaissances
+        # partageables et paroles entendues : lire leurs références typées,
+        # jamais déduire une identité des mots d'une description.
+        recueillir(contexte)
+        # Une prémisse ou une parole peut nommer une chose jamais vue. Les
+        # homonymes sont alors des candidats, pas autant d'identités apprises.
+        # Les références perceptives/typées ci-dessus restent valables même
+        # lorsqu'un autre objet privé porte le même nom.
+        texte = lexique.corpus(contexte, monde.data.get("conversation", []))
+        for _, candidats in lexique.citations(monde, texte):
+            if len(candidats) == 1:
+                refs.update(candidats)
         return {reel(monde, ref) for ref in refs}
     if _CITES is None:
         return calculer()
