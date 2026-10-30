@@ -1680,6 +1680,18 @@ def executer(monde, id, etape, lignes):
         return _avec_joueur(monde, id, etape, lignes)
     if not o or o["type"] != "personnage" or not o.get("profil"):
         return False
+    if op == "demander" and contenu.get("type") == "reclamer_dette":
+        from .biens import dues, reponse_creance_retenue, reclamer_dette
+        from .pnj import pourraient_se_parler
+        if not dues(monde, autre, id) or reponse_creance_retenue(monde, id, autre):
+            return True  # Soldée ou réponse déjà reçue pendant l'approche.
+        # Même contrat que solder : une créance se réclame par la parole,
+        # y compris à travers un passage audible, sans remise d'objet.
+        if not pourraient_se_parler(monde, id, autre):
+            return _rate(monde, id, autre)
+        if not se_parler(monde, id, autre):
+            return False
+        return all(x == "rendu" for x in reclamer_dette(monde, id, autre, lignes))
     if o["lieu"] != monde.objets[id]["lieu"]:
         # Personne ne lui répond là où il le croyait : il l'apprend, comme tout geste manqué.
         return _rate(monde, id, autre)

@@ -460,6 +460,36 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `tests-fusion.json`, `fusion-resolution.json`. Fusion à deux parents,
   sans rebase, poussée vers origin ; recouvrements 320/319 conservés.
   [Rapport 323](taches/rapport-codex-323-g5-perception.md).
+- **Lot 315 terminé, branche `codex-reclamations-repetees`, base
+  `c4f6d46`, moteur `faa5967`** : le plan de créance s’arrêtait à la salle,
+  sans contact ; les deux recours de Sève 2024 se relançaient sans refus.
+  Demande typée et mémoire commune durable, sans délai ni bourse cachée.
+  **127 tests distincts verts / neuf fichiers** : 85 conservés, 42 en reprise,
+  dont six nouveaux. Deux régressions corrigées sans modifier les anciens
+  tests : double effet social du refus et fausse absence par un passage
+  audible. Capture réelle : deux dettes réglées en 83/84, recharge et laps
+  entier/découpé identiques ; refus durables au Relais et à l’auberge.
+  **Empreintes : treize paires initiales identiques conservées ; trois
+  nuits corrigées toujours divergentes, effets voulus prouvés** : Relais 7,
+  Aubin 2 pièces rendues à t=1255 contre 1800 ; auberge 1985, Mathurine
+  1 pièce à 37505 contre 37800 ; crue 1985, Aubin 2 pièces à 2300 contre
+  4800. Premiers choix différents à 1188/37505/2102. Six courts rejeux :
+  ancien plan seul → préfixes exacts de référence ; moteur final → préfixes
+  exacts de branche. Un remboursement par dette, pièces conservées, aucune
+  dette résiduelle et six recharges monde/rendu/scène identiques. Ce sont
+  des premières demandes abouties, pas des réessais d’un refus ; aucun
+  oracle d’identité affaibli. Zéro plantage/usurpation/hausse de suspects.
+  Hameau b05bb80 conservé : quatre nuits 4 h vertes, suspects 0/0/0/7 →
+  0/0/0/0, à expliquer 7/5/0/10 → 2/5/0/4, recharges identiques. Aucun
+  refus de créance dans ces nuits. Ni banc réussi ni référence rejoué.
+  Limites : conséquences ultérieures non certifiées une à une, anciennes
+  sauvegardes sans refus durable susceptibles d’une nouvelle demande ;
+  aucune preuve universelle d’absence de boucle. Ni Luna ni suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/reclamations-315/` : deux bilans
+  **ok=false** conservés, clôture qualifiée `fin-cloture.json`, identité
+  stricte non atteinte. Aucun calcul actif. Recouvrement 314 : `echanges.py`,
+  fonctions distinctes au relevé initial.
+  [Rapport 315](taches/rapport-codex-315-reclamations-repetees.md).
 - **Lot 317 terminé, branche `codex-boucles-progression`, fusionnée**,
   base `integration 2ddfbe0`, diagnostic seul : les deux nuits du 284 sur
   `27ff8c4` reproduisent exactement chronique, empreintes, récit, souvenirs,
