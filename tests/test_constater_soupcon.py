@@ -92,7 +92,11 @@ class SoupconTests(unittest.TestCase):
             self.assertIn('soupcon_deduit', '\n'.join(Recit(m).entre_eux(m, m.data['chronique'])))
             self.assertNotIn(bien, lire(m, victime)['portages'])
             agendas.actualiser(m, victime)
-            self.assertFalse(any(x['sorte'] == 'récupérer' for x in agendas.projets(m, victime)))
+            projets = [x for x in agendas.projets(m, victime) if x['sorte'] == 'récupérer']
+            self.assertEqual(len(projets), 1)
+            self.assertTrue(projets[0]['origine']['soupcon'])
+            self.assertEqual(projets[0]['parametres']['qui'], suspect)
+            self.assertTrue(projets[0]['maniere']['sans_violence'])
             self.recharge(m)
 
     def test_zero_deux_et_presence_oubliee(self):
@@ -109,7 +113,18 @@ class SoupconTests(unittest.TestCase):
                 for i in range(PRESENCES_MAX + 1):
                     _retenir_presence(m, victime, 'passant-' + str(i), salle)
             m = self.recharge(disparition(s))
-            self.assertFalse(lire(m, victime)['indices_soupcon']['soupcons'], cas)
+            soupcons = lire(m, victime)['indices_soupcon']['soupcons']
+            if cas == 'deux':
+                self.assertEqual(len(soupcons), 1)
+                s = next(iter(soupcons.values()))
+                self.assertEqual(s['candidats'], {'brune': 1.0, 'ilse': 1.0})
+                self.assertIsNone(s['auteur'])
+                self.assertEqual(s['perte'], 0)
+                agendas.actualiser(m, victime)
+                self.assertFalse(any(a['sorte'] == 'récupérer' for a in agendas.projets(m, victime)))
+                self.assertFalse(any(c.get('cause') == 'soupcon_deduit' for c in m.data.get('chronique', [])))
+            else:
+                self.assertFalse(soupcons, cas)
 
     def test_geste_vu_ou_entendu_reste_seul(self):
         for par in ('vue', 'ouie'):

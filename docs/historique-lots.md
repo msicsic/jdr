@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-soupcon-deduit` — lot 372 / A6, base `origin/integration d8567324`.
+  Candidats pondérés sur présences perçues, guet lu et prises connues ; égalité sans accusation.
+  Disparition propre : projet de récupération sur soupçon, enquête commune sans portage inventé ;
+  bien retrouvé ailleurs ou auteur constaté : levée et clôture du projet supposé.
+  161 méthodes distinctes vertes consolidées, deux vols réels rechargés, laps entier/découpé identique.
+  Empreintes 2 h × 4 graines × 6 scénarios : 24/24 identiques, aucun soupçon naturel ; branche poussée.
+  Limites : indices de salle, motifs/lectures bornés ; recouvrement `agendas.py` avec 370.
+  [Rapport 372](taches/rapport-codex-372-soupcon-deduit.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 161 tests verts, 24/24 empreintes identiques ; aucun soupçon naturel observé, comportement prouvé par deux scènes ; deviendra un fait de la mémoire unifiée en S1.
+
 - `codex-a2-sequence-attente` — lot 370, base `integration d856732` : registre partagé
   séquence/attente, schéma fermé de la famille et limites dans « Compris » ; mécanique valide conservée.
   Vérification finale : 106 tests, zéro échec/erreur, trois ignorés (MiMo absent), neuf fichiers, 262,94 s.

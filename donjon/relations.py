@@ -490,24 +490,32 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
                                           mefiance_levee=bandes["mefiance"] and not r["bandes"]["mefiance"], service=s.get("service", s.get("objet")))
 
 
-def deduire_soupcon(monde, id, auteur, objet, champ, avant):
+def deduire_soupcon(monde, id, candidats, objet, champ, avant):
     """Un indice faillible, distinct de tout portage constaté et du témoignage."""
     from .esprits import esprit, memoriser, _date_indices_soupcon
     e = esprit(monde, id)
+    maximum = max(candidats.values())
+    premiers = [qui for qui, poids in candidats.items() if poids == maximum]
+    auteur = premiers[0] if len(premiers) == 1 else None
+    conviction = .4 * maximum / sum(candidats.values())
     # Deux conséquences concomitantes (coffre vide et bien absent) étayent
     # le même indice ; elles ne multiplient pas la peine relationnelle.
     for s in e["indices_soupcon"]["soupcons"].values():
-        if s["auteur"] == auteur and s["salle"] == avant["salle"] and avant["instant"] <= s["fin"]:
+        if (s["auteur"] == auteur and s.get('candidats', {auteur: 1.0}) == candidats
+                and s["salle"] == avant["salle"] and avant["instant"] <= s["fin"]):
             s["indices"].setdefault(objet, {})[champ] = avant["valeur"]
             return
     maintenant = _date_indices_soupcon(monde)
     preuve = f"soupcon:{id}:{objet}:{champ}:{avant['instant']}:{maintenant}"
     s = {"auteur": auteur, "salle": avant["salle"], "debut": avant["instant"], "fin": maintenant,
-         "indices": {objet: {champ: avant["valeur"]}}, "perte": 0}
+         "indices": {objet: {champ: avant["valeur"]}}, "perte": 0,
+         "candidats": candidats, "conviction": conviction}
     e["indices_soupcon"]["soupcons"][preuve] = s
+    if auteur is None:
+        return  # L'égalité ne désigne personne, même par ordre des identifiants.
     confiance_avant = envers(monde, id, auteur)["confiance"]
     memoriser(monde, id, {"type": "soupcon_deduit", "auteur": auteur, "objet": objet,
-                         "preuve": preuve, "source": "devine"})
+                         "preuve": preuve, "source": "devine", "conviction": conviction})
     s["perte"] = confiance_avant - envers(monde, id, auteur)["confiance"]
 
 
@@ -518,21 +526,21 @@ def reviser_soupcons(monde, id, objet, faits=None, *, auteur_appris=False, salle
     for preuve, s in list(e["indices_soupcon"]["soupcons"].items()):
         if objet not in s["indices"]:
             continue
-        if auteur_appris or rendu:
+        retrouve = (faits or {}).get('present') is True and s['indices'][objet].get('present') is True
+        if auteur_appris or rendu or retrouve:
             s["indices"].clear()
         else:
             indices = s["indices"][objet]
             for champ, valeur in list(indices.items()):
-                if champ == "present" and not rendu and salle != s["salle"]:
-                    continue
                 if champ in (faits or {}) and (faits[champ] >= valeur if champ == "integrite" else faits[champ] == valeur):
                     del indices[champ]
             if not indices:
                 del s["indices"][objet]
         if not s["indices"]:
             del e["indices_soupcon"]["soupcons"][preuve]
-            memoriser(monde, id, {"type": "soupcon_leve", "auteur": s["auteur"], "objet": objet,
-                                 "preuve": "leve:" + preuve, "perte": s["perte"], "source": "devine"})
+            if s['auteur'] is not None:
+                memoriser(monde, id, {"type": "soupcon_leve", "auteur": s["auteur"], "objet": objet,
+                                     "preuve": "leve:" + preuve, "perte": s["perte"], "source": "devine"})
 
 
 def souvenir(monde, id, s):
@@ -555,7 +563,7 @@ def souvenir(monde, id, s):
         reviser_soupcons(monde, id, s["evenement"].get("objet"), auteur_appris=True)
     if t in ("soupcon_deduit", "soupcon_leve"):
         from .caractere import caracteristique
-        facteur = (min(1.5, max(.5, caracteristique(monde, id, "PSY") / 10)) if t == "soupcon_deduit"
+        facteur = (min(1.5, max(.5, caracteristique(monde, id, "PSY") / 10)) * s.get('conviction', .4) / .4 if t == "soupcon_deduit"
                    else s["perte"] / EPREUVES[t]["confiance"])
         _appliquer(monde, id, s["auteur"], t, s, facteur)
         return
@@ -733,8 +741,11 @@ def verifier(monde, id):
     e = lire(monde, id)
     assert isinstance(e["indices_soupcon"]["soupcons"], dict), "Soupçons invalides"
     for preuve, s in e["indices_soupcon"]["soupcons"].items():
-        assert (isinstance(preuve, str) and set(s) == {"auteur", "salle", "debut", "fin", "indices", "perte"}
-                and isinstance(s["auteur"], str) and s["salle"] in monde.data["salles"]
+        assert (isinstance(preuve, str) and set(s) in (
+                    {"auteur", "salle", "debut", "fin", "indices", "perte"},
+                    {"auteur", "salle", "debut", "fin", "indices", "perte", "candidats", "conviction"})
+                and (isinstance(s["auteur"], str) or s["auteur"] is None and 'candidats' in s)
+                and s["salle"] in monde.data["salles"]
                 and type(s["debut"]) is int and type(s["fin"]) is int and 0 <= s["debut"] <= s["fin"]
                 and type(s["perte"]) is int and 0 <= s["perte"] <= 18
                 and isinstance(s["indices"], dict) and bool(s["indices"])
@@ -742,6 +753,15 @@ def verifier(monde, id):
                     "present", "integrite", "vide", "allume", "disponible"} and all(
                         type(v) is int if c == "integrite" else type(v) is bool for c, v in cs.items())
                     for o, cs in s["indices"].items())), "Indice de soupçon invalide"
+        if 'candidats' in s:
+            candidats = s['candidats']
+            assert (isinstance(candidats, dict) and candidats and all(
+                isinstance(qui, str) and qui != id and type(p) in (int, float) and 1 <= p <= 2.5
+                for qui, p in candidats.items()) and type(s['conviction']) in (int, float)
+                and s['conviction'] == .4 * max(candidats.values()) / sum(candidats.values())
+                and ([q for q, p in candidats.items() if p == max(candidats.values())] == [s['auteur']]
+                     if s['auteur'] is not None else sum(p == max(candidats.values()) for p in candidats.values()) > 1)
+                and (s['auteur'] is not None or s['perte'] == 0)), 'Pondération de soupçon invalide'
     assert isinstance(e["preuves_relations"], dict) and all(isinstance(p, str) and isinstance(v, dict) and set(v) == {"niveau", "effets"}
         and v["niveau"] in (0.4, 0.5, 0.8, 1.0) and isinstance(v["effets"], dict) and set(v["effets"]) <= set(AXES)
         and all(type(d) is int for d in v["effets"].values()) for p, v in e["preuves_relations"].items()), "Preuves de relation invalides"
