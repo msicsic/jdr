@@ -12,6 +12,7 @@ from .francais import designer
 from .perception import eclairage
 from .vol import proprietaire
 from .refus import cibles, RefusDeForme, inaccessible
+from .contrats_son import FORMES_SONORES, SON_IMPROVISE, schema_effet_son, compiler_son_improvise
 
 
 def effet(operation, cible="", destination="", texte="", valeur=0):
@@ -31,18 +32,11 @@ def proposition(intention, reussite, echec=None, cibles=None, outil="", approche
 
 APPROCHES = ("expression", "manipulation", "effort", "adresse", "observation")
 STAT = ("", "FOR", "DEX", "INT", "PER", "CHA")
-FORMES_SONORES = {
-    "indetermine": "Tu produis un son.",
-    "voix_melodique": "Tu fais entendre des notes de ta voix.",
-    "voix_breve": "Tu fais entendre un son de voix bref.",
-    "souffle": "Tu produis un son de souffle.",
-    "corps_rythmique": "Tu frappes un rythme avec ton corps.",
-    "corps_bref": "Tu produis un bruit bref avec ton corps.",
-}
 SCHEMA_EFFET = {"type": "object", "additionalProperties": False, "properties": {
     "operation": {"type": "string", "enum": ["marquer", "deplacer", "user", "blesser", "son"]},
     "cible": {"type": "string"}, "destination": {"type": "string"},
     "texte": {"type": "string"}, "valeur": {"type": "integer"}}, "required": list(effet(""))}
+SCHEMA_EFFET = schema_effet_son(SCHEMA_EFFET)
 SCHEMA_ISSUE = {"type": "object", "additionalProperties": False, "properties": {
     "recit": {"type": "string"}, "effets": {"type": "array", "maxItems": 4, "items": SCHEMA_EFFET}},
     "required": ["recit", "effets"]}
@@ -55,6 +49,7 @@ SCHEMA = {"type": "object", "additionalProperties": False, "properties": {
     "bruit": {"type": "integer", "minimum": 0, "maximum": 3},
     "reussite": SCHEMA_ISSUE, "echec": SCHEMA_ISSUE},
     "required": list(proposition("", issue("")))}
+SCHEMA["description"] = SON_IMPROVISE["sens"]
 
 
 
@@ -163,17 +158,7 @@ def compiler_effet(simulation, p, e):
                               "approche effort, adresse ou manipulation.")
         effets = [("blessure_improvisee", "joueur", valeur)]
     elif op == "son":
-        if cible != "joueur" or not 1 <= valeur <= 3:
-            raise RefusDeForme("Un son improvisé vient du joueur, avec une intensité de 1 à 3.",
-                              f"son : cible joueur, valeur 1 à 3 (reçu cible « {cible} », valeur {valeur}).")
-        if texte not in FORMES_SONORES:
-            raise RefusDeForme("La forme sonore doit être une catégorie acoustique connue.",
-                              f"son : texte parmi {', '.join(FORMES_SONORES)} (reçu « {texte} »).")
-        forme = texte
-        if forme.startswith("voix_") and simulation.joueur.get("peut_parler") is False:
-            raise ErreurMonde("Ta voix ne peut actuellement pas produire ce son.",
-                              "le joueur ne peut pas parler : une forme sans voix (souffle, corps_rythmique, corps_bref).")
-        effets = [("son_improvise", "joueur", {"intensite": valeur, "forme": forme})]
+        effets = compiler_son_improvise(simulation, e)
     else:
         raise RefusDeForme("Conséquence non autorisée dans cet arbitrage.",
                           f"operation « {op} » : parmi marquer, deplacer, user, blesser, son.")

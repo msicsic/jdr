@@ -139,7 +139,7 @@ class SequenceAttenteTests(unittest.TestCase):
     def test_schema_charge_occasion_fermee_et_sens_partage(self):
         schema = SCHEMA_SEQUENCE
         self.assertEqual(schema["properties"]["etapes"]["maxItems"], COMPOSITION["maximum"])
-        autres, occasion = schema["properties"]["etapes"]["items"]["anyOf"]
+        autres, occasion, *_ = schema["properties"]["etapes"]["items"]["anyOf"]
         self.assertNotIn("patienter", autres["properties"]["operation"]["enum"])
         self.assertEqual(occasion["description"], ATTENTES["occasion"]["sens"])
         self.assertFalse(occasion["additionalProperties"])
