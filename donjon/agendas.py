@@ -1769,6 +1769,97 @@ def en_cours(monde, id, *, condition=None, objet=None, personne=None, actifs=Fal
             and (not actifs or not x.get("annule"))]
 
 
+def moyens_promis(monde, id, condition=None, pour=None):
+    """Charges matérielles des paroles actives, sans nouveau registre persistant.
+
+    Une remise réserve le bien entier ; un service réserve les parts consommées
+    par son devis cru. La parole que l'on revalide n'est comptée qu'une fois.
+    Les outils réutilisables ne sont pas consommés par leur emploi.
+    """
+    from collections import Counter
+    from .planification import devis_pulsion
+    charges, entiers = Counter(), set()
+    propre = False
+    for x in en_cours(monde, id, actifs=True):
+        c = x['condition']
+        if not propre and c == condition and x['pour'] == pour:
+            propre = True
+            continue
+        o = c.get('objet')
+        if any(k in c for k in ('remettre', 'rendre', 'lieu')) and o != id:
+            entiers.add(o)
+        elif 'servir' in c:
+            charges[o] += 1
+        elif x.get('objet'):
+            charges[x['objet']] += 1
+        elif monde.objets.get(id, {}).get('profil'):
+            devis = devis_pulsion(monde, id, c, x['pour'])
+            if devis:
+                for g in devis[1]:
+                    if g['operation'] in ('servir', 'manger'):
+                        charges[g['cible']] += 1
+                    elif g['operation'] == 'alimenter':
+                        charges[g['outil']] += 1
+    return charges, entiers
+
+
+def disponibilite_promise(monde, id, objet, *, part=False, condition=None, pour=None):
+    """Disponibilité crue après les paroles, jamais le stock distant caché.
+
+    À portée, le propriétaire compte ses biens (contrat de siens_a_portee).
+    À distance, « disponible » ne prouve qu'une part, pas un nombre inconnu.
+    """
+    from .deliberation import _disponible_cru, parts
+    from .echanges import siens_a_portee
+    from .spatial import porte_par
+    charges, entiers = moyens_promis(monde, id, condition, pour)
+    if objet in entiers or not part and charges[objet]:
+        return False
+    if not charges[objet]:
+        return True
+    copie = monde.copier()
+    siens = (siens_a_portee(copie, id) if id != 'joueur' else
+             [o for o in copie.objets if porte_par(copie, o, id)])
+    n = parts(copie.objets[objet]) if objet in siens else int(_disponible_cru(monde, id, objet))
+    return n > charges[objet]
+
+
+def monde_devis_libre(monde, id, condition, pour):
+    """Projection jetable des moyens non promis, commune à tous les devis.
+
+    Les réservations ne changent ni les objets réels ni les croyances sauvées.
+    Retirer un moyen épuisé laisse la recherche choisir un autre moyen cru.
+    """
+    from .deliberation import _disponible_cru, parts
+    from .echanges import siens_a_portee
+    from .esprits import esprit
+    from .spatial import porte_par
+    charges, entiers = moyens_promis(monde, id, condition, pour)
+    if not charges and not entiers:
+        return monde
+    copie = monde.copier()
+    siens = siens_a_portee(copie, id)
+    for o in sorted(set(charges) | entiers):
+        if o not in copie.objets:
+            continue
+        n = parts(copie.objets[o]) if o in siens else int(_disponible_cru(monde, id, o))
+        if o not in entiers and n > charges[o]:
+            continue
+        # Sans localisation utilisable, le bien n'est plus un moyen du devis.
+        # Le lieu physique de cette copie ne sert qu'à retirer le porté.
+        if porte_par(copie, o, id):
+            copie.objets[o].update(lieu=copie.objets[id]['lieu'],
+                                   position=copy.deepcopy(copie.objets[id].get('position')),
+                                   position_salle=copie.objets[id]['lieu'])
+        attributs = esprit(copie, id)['croyances'].setdefault(o, {})
+        attributs['lieu'] = {'valeur': None, 'salle': None, 'case': None,
+                            'source': 'savoir', 'minute': copie.data['minutes'], 'confiance': 1}
+        etat = attributs.get('etat')
+        if etat and 'disponible' in etat['valeur']:
+            etat['valeur']['disponible'] = False
+    return copie
+
+
 def reference_temporelle(engagement):
     """Référence acceptée, en dixièmes absolus, ou None ; jamais une date déduite.
 
