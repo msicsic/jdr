@@ -38,12 +38,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **357 — `codex-e3-taches-payees`**, base `origin/integration 9ea8523`, non fusionnée :
+- **357 — `codex-e3-taches-payees`**, base `origin/integration 9ea8523`, terminé, poussé, non fusionné :
   les obligations sans limite retrouvent leur devis autonome historique ; E3 reste propre aux obligations datées.
   169 tests ciblés/voisins : 164 verts, dont tâches payées et E1–E4 (57) ; cinq tests voisins rouges
   (onze assertions) reproduits sur la base intacte. Deux régressions ajoutées, monde et rendu après recharge.
-  Empreintes 2 h × quatre graines × Relais/auberge/mine contre `dbb122b0` en cours, deux processus réduits.
-  Fin : `C:\Users\msics\donjon\artifacts\e3-taches-357\fin-empreintes.json` ; lecture historique du payeur gardée sans limite.
+  Empreintes 2 h × quatre graines × Relais/auberge/mine : 12/12 identiques à la base `9ea8523`, zéro plantage.
+  0/12 identiques à `dbb122b0`, mêmes écarts sur la base intacte ; lecture historique du payeur gardée sans limite.
   [Rapport](taches/rapport-codex-357-e3-taches-payees.md). Ni suite complète, ni Luna, ni banc long.
 
 Lots en cours : 356 (suite rouge, attribution). 315 réaccordée
