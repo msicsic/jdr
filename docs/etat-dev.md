@@ -17,6 +17,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - **Groupe 1** (313, 315, 332, 333) et 335 (suivi vocal) fusionnés le 2026-10-30.
 - **PNJ** : A5 (mandat) complet (lots 338, 340, 341, 306 fusionnés). A1 provenance publique fusionnée (346, non branchée).
   **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E5 fusionnés (348, 350, 352 et 357, 355, 359) ; E6 fusionné partiel (363, 364).
+- **Esprit social des PNJ** (plan du 2026-10-30, [plan-esprit-social.md](plan-esprit-social.md)) : mémoire unifiée
+  (épisodes, faits, dossier par personne, registre de ce qui est dit), passé et failles exploitables, attribution de motif,
+  normes perçues (sanction attendue au lieu de `sans_temoin`), motivations noires. Dix décisions au § 13 ; étapes E0 à E8
+  (§ 11). Placement dans la feuille de route proposé à l'utilisateur, en attente de validation ; aucun lot lancé.
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
 - **Abandonnés** : archivés par tags `archive/<branche>` le 2026-10-30 (33, 36, 117 b/c, 162, 166, 168, 170, 176,
