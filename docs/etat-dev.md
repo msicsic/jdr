@@ -26,6 +26,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-a1-provenance` (29079a6) : lot 346, A1 projection publique avec provenance. Détail dans l'historique.
 - `codex-mandat-joueur` (5a3baf0) : lot 341, A5.9 le joueur mandant et mandaté. Détail dans l'historique.
 
 ## Lots non fusionnés

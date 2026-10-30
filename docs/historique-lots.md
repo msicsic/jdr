@@ -6,6 +6,27 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **Lot 346 / A1 terminé**, branche `codex-a1-provenance`, fusionnée,
+  base fournie `da5f795`. Projection publique conservatrice isolée, non branchée
+  au MJ : chaque donnée gardée porte source, autorité, destination et date
+  lorsqu'elle existe ; conversation intégrale, aucun souvenir tiré de sa prose.
+  Dossiers mixtes fermés aux champs sans contrat ; états mentaux, savoirs
+  privés et identités non connues des sources/auditeurs exclus. Journal des
+  exclusions séparé de la projection publique. Six références A0 `230e7b3`
+  scellées relues : **30 tours / 36 entrées, 23 684 valeurs couvertes,
+  1 597 exclusions secrètes, zéro doublon supprimé**. JSON compact UTF-8 :
+  entrée 736 697 octets, données 680 995, projection avec provenance 5 851 399.
+  **67 tests distincts verts / quatre fichiers** : A1, A0, localisation, noms ;
+  consigne du Relais et autre gravure, souvenir daté hors de vue, faux rappel,
+  PNJ visible avec savoir privé ; monde, projection, texte et scène rechargés.
+  Les souvenirs visuels anciens sans date restent explicitement non datés ;
+  aucun changement de sauvegarde, consigne, schéma, revue ou entrée actuelle.
+  Aucun Luna, banc PNJ ou suite complète ; aucun calcul actif. Aucun fichier
+  de code commun avec 341/342/344/345 ; seul ce document est partagé.
+  Bruts `C:/Users/msics/donjon/artifacts/a1-346/`, **`fin.json`**.
+  [Rapport 346](taches/rapport-codex-346-a1-provenance-publique.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Projection non branchée au MJ (raccord prévu en A6) ; 30 tours A0 couverts, 67 tests ciblés verts sur la branche.
+
 - **Reprise 341 avant fusion terminée**, branche `codex-mandat-joueur`,
   fusionnée. `origin/integration 4379616` fusionnée sans rebase par
   **417e67f**, parents `a54b3f2` et `4379616` ; conflit documentaire seul,
