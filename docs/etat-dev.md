@@ -14,7 +14,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - **Refonte du MJ** : feuille de route [plan-refonte-mj.md](plan-refonte-mj.md) (état de chaque lot G/U/K/A).
   Fusionnés récemment : G2, G4, U-D, G5, G6, G7, G15, G17, G19, U-P, U-C, U-M outils/inventaire/fabrication,
   U-T premier geste/outils/inventaire/fabrication, A0 (oracle G1).
-- **PNJ** : A5 (mandat) en cours de finition (lots 338, 340 fusionnés ; 341 mandat du joueur en cours).
+- **PNJ** : A5 (mandat) fini sauf 306 (lots 338, 340, 341 fusionnés). A1 provenance publique fusionnée (346, non branchée).
+  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 = lot 348 en cours.
 - **Groupe 1 en attente de fusion** (corrections d'attribution par le lot 342) : 313 `codex-contact-inconnu`
   (contact de position inconnue), 315 réclamations répétées, 332 attention conjointe, 333 `codex-garder-lieu`.
   Après lui : 335 `codex-suivi-vocal` (refusionner l'intégration, refaire ses ciblés), 306 (A5 agenda du hameau,
@@ -34,8 +35,17 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 341 (mandat du joueur), 342 (attribution du groupe 1), 344 (U-M corps), 345 (G16 information
-parlée), 346 (A1 provenance publique). Leurs entrées arrivent ici à leur livraison.
+Lots en cours : 342 (attribution du groupe 1), 344 (U-M corps), 345 (G16 information parlée), 348 (E1 référence
+temporelle). Leurs entrées arrivent ici à leur livraison.
+
+## Décisions prises le 2026-10-30
+
+- **Échéance négociée avant la menace** (lot 347, `docs/conception-menace-echeance.md`) : les six arbitrages de sa
+  section 6 sont acceptés tels que recommandés (prestation ponctuelle avant une limite, payée maintenant ; dépassement
+  = clôture sans sanction nouvelle ; durée incertaine non promise ; renégociation et offres PNJ en E7-E9 ; heure de
+  jeu sans calendrier). Lots E1 à E6, puis évaluation avant E7-E9.
+- **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
+  avancé au-delà de l'allègement.
 
 ## Décisions prises le 2026-10-29
 
