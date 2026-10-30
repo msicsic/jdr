@@ -528,6 +528,7 @@ canvas.addEventListener("mouseleave", () => bulle.style.display = "none");
 // --- Agir par clic : transmettre le geste et sa référence publique exacte --------------------------
 const VERS = Object.fromEntries(Object.entries(DIRS).map(([nom, d]) => [d.join(","), nom]));
 let marche = null;
+let numeroParcours = Date.now();
 function praticables() {
   // Le sol que tu connais, sans personne ni obstacle vu ou dont tu te souviens.
   const ok = new Set();
@@ -600,13 +601,14 @@ function poursuivre() {
   if ($("proposition").style.display === "block") return arreter(null);
   if (!marche.pas.length) { const puis = marche.puis; arreter(null); if (puis) envoyer(puis); return; }
   marche.ici = ici;
-  envoyer({geste: "marcher", cible: marche.pas.shift()}, false);
+  const parcours = {id: marche.id, pas: [...marche.pas]};
+  envoyer({geste: "marcher", cible: marche.pas.shift(), parametres: {parcours}}, false);
 }
 function allerA(g, puis = null) {
   // ``puis`` : le descripteur (ou la parole libre) à donner une fois arrivé (un geste qui demande d'être à portée de main).
   const pas = scene.joueur.globale && chemin(scene.joueur.globale, g);
   if (!pas) { ajouterLigne("Tu ne connais pas de chemin jusque-là."); return; }
-  marche = {pas, vus: new Set(personnes.map(p => p.id)), ici: null, puis};
+  marche = {pas, id: String(++numeroParcours), vus: new Set(personnes.map(p => p.id)), ici: null, puis};
   poursuivre();
 }
 const A_DISTANCE = ["observer", "examiner", "lire", "parler"];   // le reste se fait sur la case ou juste à côté

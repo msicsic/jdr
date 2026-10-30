@@ -242,10 +242,16 @@ def proposition_descripteur(monde, descripteur):
         raise ErreurMonde("Je ne connais pas ce geste direct.",
                           f"descripteur.geste : reçu {action!r} ; acceptés : {', '.join(sorted(actions))}.")
     parametres = d.get("parametres", {})
-    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode", "destinataire", "quantite", "destination", "direction"}
-            or any(not isinstance(v, str) or len(v) > 1000 for k, v in parametres.items() if k != "quantite")):
+    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode", "destinataire", "quantite", "destination", "direction", "parcours"}
+            or any(not isinstance(v, str) or len(v) > 1000 for k, v in parametres.items() if k not in {"quantite", "parcours"})):
         raise ErreurMonde("Je n'ai pas compris les paramètres de ce geste.",
-                          f"descripteur.parametres : reçu {parametres!r} ; outil, methode, destinataire, destination, direction : chaînes de 1000 caractères au plus ; quantite entière.")
+                          f"descripteur.parametres : reçu {parametres!r} ; outil, methode, destinataire, destination, direction : chaînes de 1000 caractères au plus ; quantite entière ; parcours structuré de marche.")
+    if "parcours" in parametres:
+        if action != "marcher" or set(parametres) != {"parcours"}:
+            raise ErreurMonde("Ce trajet ne décrit pas une marche directe.",
+                              f"descripteur.parametres : reçu {parametres!r}, geste={action!r} ; "
+                              "accepté : parcours seul, avec geste=marcher.")
+        return {**geste_local(action, cible), "parcours": parametres['parcours']}
     if "direction" in parametres:
         from .spatial import VECTEURS
         if action not in {"pousser", "trainer"} or parametres["direction"] not in ("", *VECTEURS):

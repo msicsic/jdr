@@ -3295,6 +3295,41 @@ def devis_pulsion(monde, id, condition, payeur):
     return None if trouve is None else (trouve[0], trouve[2])
 
 
+def mesure_recours(monde, id, etapes):
+    """Temps et pression d'une suite directe, aux tarifs communs du devis.
+
+    Une attente sans geste a un coût nul ; une approche impossible n'a pas
+    de mesure. Les recherches gardent leurs coûts sociaux et probabilistes.
+    """
+    v = vue(monde, id)
+    e, temps, pression = depart(monde, id, v), 0, 0
+    for g in etapes:
+        if g['operation'] not in (*pnj.DUREES, *pnj.DURABLES, 'aller', 'assommer', 'dans_le_dos', 'fuite'):
+            return None
+        mesure = _mesurer_direct(v, e, [g], e, 1)
+        if mesure is None:
+            return None
+        duree, prix, e = mesure
+        temps += duree
+        pression += prix
+        o, op = g['cible'], g['operation']
+        if op == 'aller':
+            e = e.apres(salle=g['lieu'])
+        elif op == 'prendre':
+            e = e.apres(portes=e.portes | {o})
+        elif op == 'poser':
+            e = e.apres(portes=e.portes - {o}, faits=[(('lieu', o), e.salle)])
+        elif op == 'remettre':
+            e = e.apres(portes=e.portes - {g['outil']})
+        elif op in ('ouvrir', 'fermer'):
+            e = e.apres(faits=[(('ouvert', o), op == 'ouvrir')])
+        elif op in ('verrouiller', 'deverrouiller'):
+            e = e.apres(faits=[(('verrou', o), op == 'verrouiller')])
+        elif op in ('allumer', 'eteindre'):
+            e = e.apres(faits=[(('allume', o), op == 'allumer')])
+    return temps, pression
+
+
 def duree_devis(monde, id, etapes):
     """Durée physique du plan publié, sans convertir ses pénalités en temps.
 
@@ -3304,36 +3339,14 @@ def duree_devis(monde, id, etapes):
     v = vue(monde, id)
     if v._cru_spatial is None:
         return None
-    e, total = depart(monde, id, v), 0
     for g in etapes:
         op = g['operation']
         if (op not in (*pnj.DUREES, 'aller')
                 or op in ('crocheter', 'frapper', 'demander', 'acheter', 'confier', 'proposer', 'demander_feu')
                 or any(g.get(k) for k in ('suppose', 'attendre_remise', 'condition'))):
             return None
-        mesure = _mesurer_direct(v, e, [g], e, 0)
-        if mesure is None:
-            return None
-        temps, _, e = mesure
-        total += temps
-        o = g['cible']
-        if op == 'aller':
-            e = e.apres(salle=g['lieu'])
-        elif op == 'prendre':
-            e = e.apres(portes=e.portes | {o})
-        elif op == 'poser':
-            e = e.apres(portes=e.portes - {o})
-        elif op == 'remettre':
-            e = e.apres(portes=e.portes - {g['outil']})
-        if op == 'poser':
-            e = e.apres(faits=[(('lieu', o), e.salle)])
-        elif op in ('ouvrir', 'fermer'):
-            e = e.apres(faits=[(('ouvert', o), op == 'ouvrir')])
-        elif op in ('verrouiller', 'deverrouiller'):
-            e = e.apres(faits=[(('verrou', o), op == 'verrouiller')])
-        elif op in ('allumer', 'eteindre'):
-            e = e.apres(faits=[(('allume', o), op == 'allumer')])
-    return total
+    mesure = mesure_recours(monde, id, etapes)
+    return None if mesure is None else mesure[0]
 
 
 def _pulsion(monde, id, condition, tache, entretenir=None):
@@ -3740,12 +3753,14 @@ def eclairer(monde, id):
     return {"type": "lumiere"}, retablir(v, e, etapes)
 
 
-def garder(monde, id, salle):
+def garder(monde, id, salle, *, cout=None):
     """Les étapes pour se tenir là où il garde ses biens, ou None. Il y restera : ce que le lieu
     laisse monter compte (le noir qu'il craint : il y porte de la lumière s'il le peut) ; s'il n'y
     est pas, il n'y va que si cela lui coûte moins que rester où il est, sinon il endure."""
     trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="garder:" + salle, memo=["garder", salle],
                       emplois=(), motif="biens", tenir=True, endurer=0)
+    if trouve is not None and cout is not None:
+        cout.append(trouve[0])
     return None if trouve is None else retablir(vue(monde, id), trouve[2], trouve[1])
 
 

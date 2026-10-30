@@ -7,6 +7,7 @@ Les lectures renvoient des copies : toute mutation passe par une opération nomm
 import copy
 import hashlib
 import json
+import math
 from contextlib import contextmanager
 
 CHAMPS = {"engagements": list}
@@ -117,6 +118,8 @@ def retenir_intention(monde, id, contrat):
     from .esprits import esprit
     e = esprit(monde, id)
     i = e["intention"]
+    if i['but'].get('agenda'):
+        contrat = {**contrat, 'recours': entrees_recours(monde, id, i['but']['agenda'])}
     e["contrat_intention"] = {**{k: copy.deepcopy(i[k]) for k in ("but", "motif", "depuis")},
                               "contrat": copy.deepcopy(contrat)}
     a = _projet(monde, id, i['but'].get('agenda'))
@@ -211,6 +214,136 @@ def enfants(monde, titulaire, identifiant):
     return copy.deepcopy(a.get("confies", []))
 
 
+def charge_joueur(monde, sorte, parametres):
+    """Une charge explicite de Corvus, réutilisée pour ses confirmations."""
+    p = _condition_mandat(monde, sorte, parametres)
+    stock = _stock(monde, 'joueur', creer=True)
+    a = next((a for a in stock if a['origine']['type'] == 'evenement'
+              and a['sorte'] == sorte and a['parametres'] == p), None)
+    if a is None:
+        _place_charge_joueur(monde)
+        a = {'id': 'j' + str(len(stock) + 1), 'sorte': sorte, 'parametres': p,
+             'maniere': {'sans_violence': True}, 'origine': {
+                 'type': 'evenement', 'de': 'joueur', 'minute': monde.data['minutes'], 'cause': 'parole'}}
+        _changer(monde, 'joueur', a, 'actif', 'charge explicite', _croyances(monde, 'joueur'))
+        stock.append(a)
+    return copy.deepcopy(a)
+
+
+def _place_charge_joueur(monde):
+    from .monde import ErreurMonde
+    actifs = [a['id'] for a in projets(monde, 'joueur') if a['etat'] == 'actif']
+    if len(actifs) >= 3:
+        raise ErreurMonde("Corvus a déjà trois charges actives.",
+                          f'charges={actifs}; attendu : moins de 3 charges actives avant une nouvelle charge')
+
+
+def offres_mandat_joueur(monde):
+    """Offres effectivement entendues, jamais agendas privés des interlocuteurs."""
+    return copy.deepcopy(monde.data.get('offres_mandat_joueur', []))
+
+
+def proposer_mandat_joueur(monde, mandant, mandat):
+    from .voix import identifie
+    from .ouie import saisit
+    if not saisit(monde, mandant, 'joueur', 'dire') or not identifie(monde, 'joueur', mandant):
+        return None
+    p = _condition_mandat(monde, mandat['sorte'], mandat['parametres'])
+    # La filiation et les attributions sont contrôlées sur copie avant l'offre.
+    confier(monde.copier(), mandant, mandat['parent'], 'joueur', mandat['sorte'], p, accepte=True,
+            echeance=mandat.get('echeance'))
+    stock = monde.data.setdefault('offres_mandat_joueur', [])
+    ancienne = next((o for o in stock if o['mandant'] == mandant and o['parent'] == mandat['parent']
+                     and o['sorte'] == mandat['sorte'] and o['parametres'] == p), None)
+    if ancienne is not None:
+        return copy.deepcopy(ancienne)
+    o = {'id': 'm' + str(len(stock) + 1), 'mandant': mandant, 'parent': mandat['parent'],
+         'sorte': mandat['sorte'], 'parametres': p, 'minute': monde.data['minutes'], 'statut': 'propose'}
+    if 'echeance' in mandat:
+        o['echeance'] = mandat['echeance']
+    stock.append(o)
+    return copy.deepcopy(o)
+
+
+def repondre_mandat_joueur(monde, mandant, identifiant, accepter):
+    from .monde import ErreurMonde
+    o = next((o for o in monde.data.get('offres_mandat_joueur', [])
+              if o['id'] == identifiant and o['mandant'] == mandant), None)
+    if o is None:
+        raise ErreurMonde("Corvus n'a pas reçu cette offre de mandat.",
+                          f'offre={identifiant!r}, mandant={mandant}; attendu : {offres_mandat_joueur(monde)}')
+    if o['statut'] != 'propose':
+        return copy.deepcopy(o)
+    jugement = {'qui': 'joueur', 'minute': monde.data['minutes'], 'sorte': o['sorte'],
+                'parametres': o['parametres'], 'issue': 'accepte' if accepter else 'refus'}
+    jugement['raison'] = 'adhesion' if accepter else 'refus'
+    if accepter:
+        echeance = o['echeance'] if 'echeance' in o else echeance_observee(
+            monde, mandant, o['parent'], 'joueur', o['sorte'], o['parametres'])
+        enfant = confier(monde, mandant, o['parent'], 'joueur', o['sorte'], o['parametres'], accepte=True,
+                        echeance=echeance)
+        o['agenda'] = enfant['id']
+    retenir_jugement(monde, mandant, o['parent'], jugement)
+    o['statut'] = 'accepte' if accepter else 'refuse'
+    return copy.deepcopy(o)
+
+
+def bilan_mandat_joueur(monde, mandant, identifiant, issue):
+    from .monde import ErreurMonde
+    a = _projet(monde, 'joueur', identifiant)
+    if a is None or a['origine']['type'] != 'mandat' or a['origine']['de'] != mandant:
+        raise ErreurMonde("Corvus n'a pas cette charge de cet interlocuteur.",
+                          f'agenda={identifiant!r}, mandant={mandant}; attendu : mandat accepté de ce mandant')
+    if issue not in ISSUES_COMPTE_RENDU:
+        raise ErreurMonde("Cette issue de mandat est inconnue.",
+                          f'issue={issue!r}; attendu : {ISSUES_COMPTE_RENDU}')
+    if 'compte_rendu' in a:
+        if a['compte_rendu']['contenu']['issue'] != issue:
+            raise ErreurMonde("Ce mandat a déjà fait l'objet d'un compte rendu.",
+                              f'issue={issue}; attendu : {a["compte_rendu"]["contenu"]["issue"]}')
+        return copy.deepcopy(a['compte_rendu']['contenu'])
+    contenu = {'type': 'compte_rendu', 'charge': {'mandant': mandant, 'parent': a['origine']['parent'],
+               'agenda': a['id'], 'sorte': a['sorte'], 'parametres': copy.deepcopy(a['parametres'])}, 'issue': issue}
+    if 'compte_rendu' not in a:
+        _changer(monde, 'joueur', a, 'atteint' if issue == 'reussi' else 'abandonne',
+                 'issue declaree', _croyances(monde, 'joueur'))
+        retenir_compte_emis(monde, 'joueur', contenu)
+    return contenu
+
+
+def mandats_visibles(monde):
+    from .voix import nom_pour_joueur
+    lignes = []
+    statuts = {'propose': 'offre à accepter', 'accepte': 'charge acceptée', 'refuse': 'offre refusée'}
+    etats = {'actif': 'en cours', 'sommeil': 'en sommeil', 'atteint': 'terminée', 'abandonne': 'abandonnée'}
+    issues = {'reussi': 'une réussite', 'echoue': 'un échec', 'renonce': 'un renoncement'}
+    for o in offres_mandat_joueur(monde):
+        lignes.append(f"Mandat {o['id']} de {nom_pour_joueur(monde, o['mandant'])} : "
+                      + phrase_charge(monde, o['sorte'], o['parametres']) + ' — ' + statuts[o['statut']] +
+                      (f" ; échéance : minute {o['echeance']}" if 'echeance' in o else '') +
+                      (f" ({o['agenda']})" if o.get('agenda') else '') + '.')
+    for a in projets(monde, 'joueur'):
+        etat = 'issue déclarée' if a['raison'] == 'issue declaree' else etats[a['etat']]
+        lignes.append(f"Charge {a['id']} : " + phrase_charge(monde, a['sorte'], a['parametres']) +
+                      ' — ' + etat + '.')
+        for r in a.get('comptes_recus', []):
+            lignes.append(f"{nom_pour_joueur(monde, r['de'])} déclare {issues[r['contenu']['issue']]}.")
+    return lignes
+
+
+def phrase_charge(monde, sorte, p):
+    from .voix import nom_pour_joueur
+    from .francais import lieu
+    personnes = ', '.join(nom_pour_joueur(monde, q) for q in p['qui'])
+    if sorte == 'amener':
+        return 'amener ' + personnes + ' dans ' + lieu(monde.data['salles'][p['lieu']])
+    from .paroles import _phrase
+    if 'fait' in p:
+        f = p['fait']
+        return 'informer ' + personnes + ' : ' + _phrase(monde, f['sujet'], f['attribut'], f['valeur'])
+    return 'informer ' + personnes + ' de l’avis sur la menace de l’eau'
+
+
 ISSUES_COMPTE_RENDU = ("reussi", "echoue", "renonce")
 
 
@@ -286,13 +419,14 @@ def recevoir_compte(monde, id, locuteur, contenu):
         return None
     propre = _constat_charge(monde, id, charge)
     dementi = propre is not None and propre != contenu["issue"]
-    if dementi:
+    if dementi and id != 'joueur':
         se_mefier(monde, id, locuteur, "vu")
-    accepte = not dementi and jet_persuasion(monde, id, locuteur, 10)[0]
+    # Corvus garde son jugement : le registre conserve seulement le dit.
+    accepte = id != 'joueur' and not dementi and jet_persuasion(monde, id, locuteur, 10)[0]
     croyance = {"valeur": propre if propre is not None else contenu["issue"] if accepte else None,
                 "source": ("entendu" if charge["sorte"] == "informer" else "vu") if propre is not None else source,
                 "minute": monde.data["minutes"], "confiance": 1 if propre is not None else round(.7 * clarte(monde, id), 2)}
-    croyance["poids"] = poids_source(monde, id, croyance)
+    croyance["poids"] = poids_source(monde, id, croyance) if id != 'joueur' or propre is not None else 0
     rapports = parent.setdefault("comptes_recus", [])
     rapports[:] = [r for r in rapports if (r["de"], r["contenu"]["charge"]["agenda"]) != (locuteur, charge["agenda"])]
     rapports.append({"de": locuteur, "contenu": copy.deepcopy(contenu), "croyance": croyance})
@@ -508,7 +642,7 @@ def retenir_jugement(monde, mandant, parent, jugement):
         raise ValueError("Parent de mandat absent")
     a.setdefault("jugements", []).append(copy.deepcopy(jugement))
     from .voix import identifie
-    if identifie(monde, jugement["qui"], mandant):
+    if jugement['qui'] != 'joueur' and identifie(monde, jugement["qui"], mandant):
         abus = _abus_charge(monde, jugement["qui"], jugement)
         if abus:
             a["jugements"][-1]["abus"] = abus
@@ -533,6 +667,23 @@ def devis_observateur(monde, observateur, parent, acteur, sorte, parametres, *, 
     hypothétique ne publie rien. Le jugement réel reste ``devis_mandat``.
     """
     from .planification import ContexteDevis
+    if acteur == 'joueur':
+        # Le calcul traite toute personne comme un acteur neutre. Corvus n'a
+        # pas d'esprit automatique : son substitut existe seulement dans la
+        # copie de calcul, avec les seules croyances du mandant.
+        from .esprits import esprit
+        copie = monde.copier()
+        substitut = '__mandataire__'
+        while substitut in copie.objets:
+            substitut += '_'
+        copie.objets[substitut] = {'id': substitut, 'type': 'personnage', 'nom': 'mandataire',
+                                   'lieu': None, 'mobile': True}
+        connus = esprit(copie, observateur)['croyances']
+        if 'joueur' not in connus:
+            return None
+        connus[substitut] = copy.deepcopy(connus['joueur'])
+        return devis_observateur(copie, observateur, parent, substitut, sorte, parametres,
+                                 transmis=transmis, duree=duree)
     p = _condition_mandat(monde, sorte, parametres)
     if (not _personne_disponible_crue(monde, observateur, acteur)
             or any(not _personne_disponible_crue(monde, observateur, q) for q in p["qui"])):
@@ -615,12 +766,13 @@ def confier(monde, mandant, parent, titulaire, sorte, parametres, *, accepte, ec
         return None
     if getattr(monde, "_evaluation_agendas", None) is not None:
         raise ValueError("Publier le mandat après le devis")
-    if (titulaire not in monde.objets
+    if titulaire != 'joueur' and (titulaire not in monde.objets
             or monde.objets[titulaire]["type"] != "personnage"):
         raise ValueError("Titulaire de mandat invalide")
     p = _condition_mandat(monde, sorte, parametres)
     if echeance is not None and (type(echeance) is not int or echeance < monde.data['minutes']):
-        raise ValueError("Échéance de mandat invalide")
+        raise ErreurMonde("Cette échéance de mandat est dépassée ou invalide.",
+                          f'echeance={echeance!r}; attendu : entier >= {monde.data["minutes"]}, ou None')
     chaine = filiation(monde, mandant, parent)
     if titulaire in {r["titulaire"] for r in chaine}:
         raise ErreurMonde("Ce mandat reviendrait à l'un de ses mandants.",
@@ -648,6 +800,8 @@ def confier(monde, mandant, parent, titulaire, sorte, parametres, *, accepte, ec
                 and _condition_mandat(monde, sorte, enfant["parametres"]) == p):
             enfant["confirme"] = monde.data["minutes"]
             return copy.deepcopy(enfant)
+    if titulaire == 'joueur':
+        _place_charge_joueur(monde)
     actualiser(monde, titulaire)
     stock = _stock(monde, titulaire) or []
     n = 1
@@ -672,7 +826,8 @@ def confier(monde, mandant, parent, titulaire, sorte, parametres, *, accepte, ec
         if echeance is not None:
             attribution['echeance'] = echeance
         a.setdefault('attributions', []).append(attribution)
-    _limiter(monde, titulaire, empreinte)
+    if titulaire != 'joueur':
+        _limiter(monde, titulaire, empreinte)
     _actualiser_epreuves(monde, titulaire)
     return copy.deepcopy(enfant)
 
@@ -739,7 +894,8 @@ def avertir_retrait(monde, id, autre, retrait, *, entendu):
         if enfant['etat'] in ('actif', 'sommeil'):
             _changer(monde, autre, enfant, 'abandonne', 'retrait entendu', _croyances(monde, autre))
             from .esprits import reconsiderer
-            reconsiderer(monde, autre)
+            if autre != 'joueur':
+                reconsiderer(monde, autre)
         # Le retrait porte sur la charge entière qui avait été acceptée.
         for x in refs:
             if x['etat'] == 'active':
@@ -762,6 +918,8 @@ def charge_retiree(monde, id, autre, retrait):
 def echeance_observee(monde, id, parent, acteur, sorte, parametres):
     """Date issue du plan fermé du mandant ; un devis incertain n'en reçoit pas."""
     from .esprits import lire
+    if id == 'joueur':
+        return None  # Aucun plan privé prêté au joueur.
     from math import ceil
     p = _condition_mandat(monde, sorte, parametres)
     croyances = lire(monde, id)['croyances']
@@ -782,6 +940,8 @@ def _stock(monde, id, creer=False):
         if registre["stock"] is None and creer:
             registre["stock"] = []
         return registre["stock"]
+    if id == 'joueur':
+        return monde.data.setdefault('agendas_joueur', []) if creer else monde.data.get('agendas_joueur')
     if creer:
         return esprit(monde, id).setdefault("agendas", [])
     return lire(monde, id).get("agendas")
@@ -814,7 +974,10 @@ def evaluation(monde, id, *, publier=True):
             from .esprits import esprit
             from .pnj import _chroniquer
             if registre["stock"] is not None:
-                esprit(monde, id)["agendas"] = registre["stock"]
+                if id == 'joueur':
+                    monde.data['agendas_joueur'] = registre['stock']
+                else:
+                    esprit(monde, id)["agendas"] = registre["stock"]
             if registre["percus"] is not None:
                 esprit(monde, id)["mandats_percus"] = registre["percus"]
             for texte in registre["chroniques"]:
@@ -851,6 +1014,38 @@ def _croyances(monde, id, *, moyens_seuls=False):
         croyances += [caracteristiques(monde, id), {v: valeur(monde, id, v) for v in VALEURS}]
     return hashlib.sha256(json.dumps(croyances,
                                     sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def entrees_recours(monde, id, identifiant):
+    """Événements qui rouvrent les moyens d'un projet, hors déplacement propre.
+
+    Les dates de regard et le prix changeant du trajet ne sont pas des
+    nouvelles. Les accords, refus, ressources, états crus et échéances le sont.
+    Le suffixe exécuté et le contrôle d'admissibilité restent dans l'intention.
+    """
+    from .esprits import lire
+    from .spatial import porte_par
+    e = lire(monde, id)
+    def contenu(x):
+        if isinstance(x, dict):
+            return {k: contenu(v) for k, v in x.items()
+                    if k not in ('minute', 'depuis', 'source', 'origine')}
+        if isinstance(x, list):
+            return [contenu(v) for v in x]
+        return x
+    croyances = contenu(e['croyances'])
+    # Son propre trajet n'est pas une nouvelle sur les moyens de son but.
+    soi = croyances.get(id, {})
+    for cle in ('lieu', 'position', 'orientation'):
+        soi.pop(cle, None)
+    a = _projet(monde, id, identifiant)
+    donnees = [croyances, contenu(e['refus']), contenu(e['relations']),
+               en_cours(monde, id), e['aides_attendues'],
+               [aide_echue(monde, x) for x in e['aides_attendues'].values()],
+               sorted(o for o in monde.objets if porte_par(monde, o, id)),
+               monde.objets[id].get('profil'),
+               [a[k] for k in ('sorte', 'parametres', 'etat')] if a else None]
+    return hashlib.sha256(json.dumps(donnees, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 def poids(monde, id, agenda):
@@ -897,6 +1092,13 @@ def _changer(monde, id, a, etat, raison, empreinte):
 
 def actualiser(monde, id):
     """Activation unique, révision sur les seules croyances du porteur."""
+    if id == 'joueur':
+        for a in _stock(monde, id) or []:
+            _reviser_comptes(monde, id, a)
+            if a['etat'] in ('actif', 'sommeil') and (
+                    _constat_charge(monde, id, a) == 'reussi' or _acheve_par_comptes(monde, id, a)):
+                _changer(monde, id, a, 'atteint', 'realisation connue', _croyances(monde, id))
+        return
     declarations = depart(monde, id)
     _actualiser_epreuves(monde, id)
     if not declarations and not _stock(monde, id):
@@ -1071,6 +1273,17 @@ def planifier(monde, id, identifiant, *, cout=None):
             return planifier(monde, id, identifiant, cout=cout)
     mesure = [] if cout is None else cout
     resultat = _prochain_sous_but(monde, id, identifiant, cout=mesure)
+    # Tous les chemins directs passent le même contrat, y compris un constat
+    # ou une attente. L'absence de coût n'est jamais assimilée à l'impossible.
+    if resultat is not None and not mesure:
+        from .planification import mesure_recours
+        devis = mesure_recours(monde, id, resultat[1])
+        if devis is None:
+            resultat = None
+        else:
+            mesure.append(sum(devis))
+    if resultat is not None and (len(mesure) != 1 or not math.isfinite(mesure[0])):
+        raise ValueError("Recours admissible sans coût fini")
     if cout is not None or getattr(monde, "_contexte_devis", None) is not None:
         return resultat
     a = _projet(monde, id, identifiant)
@@ -1141,7 +1354,9 @@ def choisir_mandataire(monde, id, identifiant, propre, mesure):
         from .social import avis_exprime
         avis = p["avis"]
         paroles.append({"avis": avis_exprime(monde, id, avis["objet"], avis["valeur"])})
-    choix = [(mesure[0] if mesure else float("inf"), id, propre)]
+    if propre is not None and (not mesure or not math.isfinite(mesure[0])):
+        raise ValueError("Recours admissible sans devis")
+    choix = [(mesure[0] if propre is not None else float("inf"), id, propre)]
     for acteur in sorted(croyances):
         if acteur in exclus or acteur == "joueur" or not _personne_disponible_crue(monde, id, acteur):
             continue
@@ -1255,6 +1470,8 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
             _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
             return None
         from .planification import _couper
+        if cout is not None:
+            cout.append(trouve[0])
         _changer(monde, id, a, "actif", "plan admissible", empreinte)
         _limiter(monde, id, empreinte)
         return ({"type": "agenda", "agenda": identifiant, "objet": objet}, _couper(trouve[1])) if a["etat"] == "actif" else None
@@ -1265,7 +1482,7 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         # Le prix reçu pour un travail n'efface pas la parole : laisser le
         # recours d'engagement l'accomplir avant de rechercher une autre paie.
         resultat = None if any(x.get("paye") for x in en_cours(monde, id, actifs=True)) else obtenir(
-            monde, id, a["parametres"]["pieces"], poids(monde, id, a))
+            monde, id, a["parametres"]["pieces"], poids(monde, id, a), cout=cout)
         if resultat is None:
             _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
             return None
@@ -1296,7 +1513,7 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
                     return None
             return poste
         salle = salle_crue(monde, id, c["objet"]) if "objet" in c else c["lieu"]
-        etapes = garder(monde, id, salle) if salle in monde.data["salles"] else None
+        etapes = garder(monde, id, salle, cout=cout) if salle in monde.data["salles"] else None
         if etapes is None:
             _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
             return None
@@ -1600,7 +1817,7 @@ def oublier_personne(monde, personne):
 
 def depart(monde, id):
     """Données déclarées par le scénario, sans activation ni écriture dans ``data``."""
-    return copy.deepcopy((monde.objets[id].get("profil") or {}).get("agendas", []))
+    return [] if id == 'joueur' else copy.deepcopy((monde.objets[id].get("profil") or {}).get("agendas", []))
 
 
 def _fin_garde(monde, id, a):
@@ -1785,6 +2002,25 @@ def _verifier_filiation(monde, id, a):
 
 def verifier(monde, id):
     from .esprits import lire
+    if id == 'joueur':
+        assert isinstance(monde.data.get('agendas_joueur', []), list), 'Agendas joueur invalides'
+        offres = offres_mandat_joueur(monde)
+        assert isinstance(offres, list), 'Offres de mandat invalides'
+        assert len({o['id'] for o in offres}) == len(offres), 'Offre de mandat dupliquée'
+        for o in offres:
+            assert (isinstance(o, dict) and set(o) - {'agenda', 'echeance'} == {
+                'id', 'mandant', 'parent', 'sorte', 'parametres', 'minute', 'statut'}
+                and o['statut'] in ('propose', 'accepte', 'refuse')
+                and type(o['minute']) is int and o['minute'] >= 0
+                and isinstance(o['id'], str)), 'Offre de mandat invalide'
+            assert _condition_mandat(monde, o['sorte'], o['parametres']) == o['parametres'], 'Charge proposée invalide'
+            assert 'echeance' not in o or type(o['echeance']) is int and o['echeance'] >= o['minute'], 'Échéance proposée invalide'
+            assert _projet(monde, o['mandant'], o['parent']) is not None, 'Parent proposé absent'
+            if o['statut'] == 'accepte':
+                a = _projet(monde, 'joueur', o['agenda'])
+                assert a is not None and a['origine']['de'] == o['mandant'] and a['origine']['parent'] == o['parent'], 'Offre acceptée sans filiation'
+            else:
+                assert 'agenda' not in o, 'Offre sans accord avec agenda'
     percus = lire(monde, id).get("mandats_percus", [])
     assert isinstance(percus, list), "Mandats perçus invalides"
     identites = set()
@@ -1811,9 +2047,11 @@ def verifier(monde, id):
                 and isinstance(c["but"], dict) and isinstance(c["motif"], str)
                 and type(c["depuis"]) is int), "Provenance d'intention invalide"
         contrat = c["contrat"]
-        assert (isinstance(contrat, dict) and set(contrat) - {"phase", "sortie"} == {"palier", "valeur", "demande"}
+        assert (isinstance(contrat, dict) and set(contrat) - {"phase", "sortie", "recours"} == {"palier", "valeur", "demande"}
                 and type(contrat["palier"]) is int and contrat["palier"] in list(Palier)
                 and isinstance(contrat["valeur"], (int, float))), "Contrat d'intention invalide"
+        assert 'recours' not in contrat or (isinstance(contrat['recours'], str)
+                and len(contrat['recours']) == 64), "Entrées de recours invalides"
         assert contrat.get("phase", "continuer") in (
             "naitre", "continuer", "attendre", "finir", "indeterminee"), "Phase d'intention invalide"
         sortie = contrat.get("sortie")
@@ -1838,6 +2076,8 @@ def verifier(monde, id):
     assert len([a for a in stock if a["etat"] == "actif"]) <= 3, "Trop d'agendas actifs"
     assert len({a["id"] for a in stock}) == len(stock), "Identifiants d'agenda dupliqués"
     for a in stock:
+        if id == 'joueur':
+            assert a['parametres'] == _condition_mandat(monde, a['sorte'], a['parametres']), 'Charge joueur invalide'
         _verifier_abus(a)
         assert (a["etat"] in ("actif", "sommeil", "atteint", "abandonne")
                 and type(a["depuis"]) is int and isinstance(a["raison"], str)
@@ -1850,7 +2090,7 @@ def verifier(monde, id):
         for j in jugements:
             _verifier_abus(j)
             assert (isinstance(j, dict) and set(j) >= {"qui", "minute", "sorte", "parametres", "issue", "raison"}
-                    and j["qui"] in monde.objets and type(j["minute"]) is int
+                    and (j["qui"] == 'joueur' or j["qui"] in monde.objets) and type(j["minute"]) is int
                     and j["issue"] in ("accepte", "refus", "impossible", "mefiance", "rancune", "qui_va_la")
                     and j["raison"] in ("adhesion", "dette", "autorite", "confirmation", j["issue"])), "Jugement de mandat invalide"
             _condition_mandat(monde, j["sorte"], j["parametres"])
@@ -1953,6 +2193,7 @@ def echoir(monde, id):
 
 def observer_promesses(monde, lignes):
     """Le bénéficiaire juge une promesse du joueur sur ses observations, jamais à distance."""
+    actualiser(monde, 'joueur')
     from .echanges import ENGAGEMENT_MAX, tenu, phrase_condition
     from .esprits import memoriser
     from .pnj import se_parler

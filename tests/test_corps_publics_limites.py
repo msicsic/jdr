@@ -90,7 +90,9 @@ class CorpsLimitesTests(unittest.TestCase):
     def test_parametres_fautifs_refuses_avec_attendu(self):
         m, cible, _ = support.monde_geste("frapper")
         for geste, p in (("frapper", {"direction": "est"}), ("trainer", {"outil": "moyen_deux"}),
-                         ("pousser", {"direction": "secret"}), ("frapper", {"methode": "surprise"})):
+                         ("pousser", {"direction": "secret"}), ("frapper", {"methode": "surprise"}),
+                         ("frapper", {"parcours": {"id": "trajet", "pas": ["est"]}}),
+                         ("marcher", {"parcours": {"id": "trajet", "pas": ["est"]}, "direction": "est"})):
             with self.subTest(geste=geste, p=p), self.assertRaises(ErreurMonde) as refus:
                 Moteur(m).preparer(DescripteurPublic({"geste": geste, "cible": reference(m, cible), "parametres": p}))
             self.assertTrue(refus.exception.attendu)

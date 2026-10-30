@@ -23,7 +23,7 @@ class ContenusParoleTests(unittest.TestCase):
     def test_schema_et_validateur_partagent_tous_les_champs_sans_sens(self):
         variantes = SCHEMA_PAROLE['properties']['contenu']['items']['anyOf']
         for type_ in TYPES:
-            if type_ == 'proposition':
+            if type_ in ('proposition', 'mandat', 'reponse_mandat', 'bilan_mandat'):
                 continue
             with self.subTest(type=type_):
                 compatibles = [v for v in variantes if type_ in v['properties']['type']['enum']]

@@ -311,6 +311,14 @@ def finir_trajet(monde, g):
         if corps.vivant(monde, acteur):
             tremper(monde, acteur)
     corps.evenement(monde, "trainer", c, auteur=a)
+    if a == "joueur":
+        from .deplacements import noter
+        from .temps import duree_pas
+        from .spatial import VECTEURS
+        # La rotation précède le trajet ; sa durée commune donne son début,
+        # y compris pour un geste rechargé d'une ancienne sauvegarde.
+        debut = g['fin'] - duree_pas(DUREES['trainer'], VECTEURS[g['issue']['outil']])
+        noter(monde, depart, operation="trainer", debut=debut, fin=g['fin'])
     from .esprits import percevoir_tous
     percevoir_tous(monde)
 

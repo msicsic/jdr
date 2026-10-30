@@ -21,6 +21,7 @@ global.document = { getElementById: el, createElement: tag => Object.assign(el("
   addEventListener(type, f) { (ecouteurs[type] = ecouteurs[type] || []).push(f); } };
 global.getComputedStyle = () => ({ getPropertyValue: () => "#333" });
 global.EventSource = function () { return {}; };
+global.requestAnimationFrame = () => 0;
 const envois = global.envois = [];
 global.fetch = async (url, options) => { if (url === "/commande") envois.push(JSON.parse(options.body).descripteur || JSON.parse(options.body).texte); return { status: 200 }; };
 global.ETAT = JSON.parse(fs.readFileSync(0, "utf-8"));
@@ -144,6 +145,15 @@ if (ETAT.sonde_fabrication) {
     appliquerEtat(ETAT);
     sortie.fabrication.ferme_apres_etat = form.hidden;
   }
+}
+if (ETAT.sonde_marche) {
+  appliquerEtat(ETAT);
+  envois.length = 0; occupe = false;
+  allerA(ETAT.sonde_marche.cible);
+  for (const suivant of ETAT.sonde_marche.etats) {
+    appliquerEtat(suivant); occupe = false; poursuivre();
+  }
+  sortie.marche = {envois: [...envois], interrompue: marche === null};
 }
 console.log(JSON.stringify(sortie));
 `);

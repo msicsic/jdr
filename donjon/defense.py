@@ -545,13 +545,17 @@ def appliquer_joueur(monde, action, cible, valeur, lignes):
         return any(e["type"] == "inconscience" and e["id"] == "joueur"
                    for e in monde.data.get("historique_corps", ())[debut_corps:])
 
+    monde._reste_deplacements = len(route)
     for salle, case, porte, vecteur in route:
         if not corps.conscient(monde):
             break
         try:
             if isinstance(porte, dict):
                 # Le même passage que la commande, revalidé sur l'état du moment (``obstacles.compiler``).
-                if not _passer_obstacle(monde, porte, vecteur, lignes) or interrompue():
+                if not _passer_obstacle(monde, porte, vecteur, lignes):
+                    break
+                monde._reste_deplacements -= 1
+                if interrompue():
                     break
                 continue
             if porte:
@@ -569,10 +573,11 @@ def appliquer_joueur(monde, action, cible, valeur, lignes):
         except ErreurMonde as exc:
             lignes.append(str(exc))
             break
-        if interrompue():
-            break   # Le réveil automatique ne reprend pas une fuite interrompue.
         if monde.joueur["salle"] != salle or tuple(monde.joueur["position"]) != tuple(case):
             break
+        monde._reste_deplacements -= 1
+        if interrompue():
+            break   # Le réveil automatique ne reprend pas une fuite interrompue.
     if monde.joueur["salle"] != depart and not interrompue():
         corps.evenement(monde, "fuite", "joueur", de=depart)
         lignes.append("Tu as gagné une autre salle.")

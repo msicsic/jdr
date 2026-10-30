@@ -2207,9 +2207,20 @@ def choisir(monde, id, minute):
             besoin, urgence = candidat.besoin, candidat.urgence
             parent = e["intention"]
             try:
+                from .pnj import refus_etape
                 if moyen_dementi:
                     e["intention"] = None
-                proposition = candidat.methode(monde, id)
+                agenda = (candidat.demande or {}).get('agenda')
+                if (courant and (courant['plan'] or contrat_precedent.get('phase') == 'attendre')
+                        and not moyen_dementi
+                        and agenda and agenda == courant['but'].get('agenda')
+                        and contrat_precedent.get('recours') == agendas.entrees_recours(monde, id, agenda)
+                        and refus_etape(monde, id, courant['plan']) is None):
+                    # Le moyen adopté va jusqu'au constat, sauf nouvelle entrée
+                    # ou démenti. Les urgences concurrentes gardent l'arbitrage.
+                    proposition = (courant['but'], courant['plan'])
+                else:
+                    proposition = candidat.methode(monde, id)
             finally:
                 e["intention"] = parent
             retenus = e["renoncements"].get(besoin, [])
