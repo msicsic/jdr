@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-refus-leve-contrepartie` — **366 terminé, non fusionné**, base `integration 60f857c5`, départ `dea991a5`.
+  `refus_geste` reconnaît la contre-offre honorée via les juges existants, sans effacer le refus ni rouvrir le mandat refusé.
+  **57/57 tests, 8 fichiers, 207,968 s**, dont les deux régressions du 362 intactes, les 8 tests du 358 et trois nouvelles preuves.
+  Autre clé, paiement, état et vues rechargés, bloc/découpé ; code validé `9c03d7ac`, branche poussée, aucun recouvrement annoncé.
+  Empreintes 2 h × 4 graines × 4 scénarios : 16 références `origin/main 0bad2272` en cache, 16 nuits jouées, zéro plantage/usurpation.
+  États différents de main ; premier écart minute 0 déjà au 360. Dérives ouvertes 114 → 166 ; aucune attribution générale au 366.
+  Aucun calcul actif ; bruts `C:/Users/msics/donjon/artifacts/refus-leve-366/`, `conclusion.json` ; [rapport](taches/rapport-codex-366-refus-leve.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Deux régressions du 358 corrigées, huit tests de sécurité du 358 verts ; 57 tests verts, 16 nuits sans plantage ni usurpation.
+
 - **364 / intégration 362**, `codex-e6-libre-date`, base `ba05abe5`, fusion sans rebase `869c867c`.
   Blocage TUI reproduit sans clé API : le MJ simulé n'était pas activé ; même activation avant/après le contrat 362.
   Contexte commun `mj_simule` pour E6 et E5, indépendant du `.env` ; 122 assertions identiques, gardes 362 inchangées.

@@ -362,9 +362,13 @@ def refus_geste(monde, id, etape):
         elif contenu.get("type") == "reclamer_dette":
             op, objet = "reclamer_dette", None
         else:
+            if _contre_offre_honoree(monde, id, autre, objet):
+                return False
             from .planification import vue
             return bool(vue(monde, id).refuse(autre, objet))
     elif op in ("acheter", "proposer"):
+        if op == "acheter" and _contre_offre_honoree(monde, id, autre, objet, contenu.get("prix", 0)):
+            return False
         from .pnj_propositions import offre_refusee
         terme = (contenu["contrepartie"] if op == "proposer"
                  else {"type": "pieces", "montant": contenu.get("prix", 0)})
@@ -389,6 +393,18 @@ def refus_geste(monde, id, etape):
     if refus and op == "engager" and refus["raison"] == "cher":
         return contenu["prix"] <= refus["prix"]
     return refus is not None
+
+
+def _contre_offre_honoree(monde, id, autre, objet, prix=0):
+    """Le même accord cru au recours et à la remise vaut au contrôle du geste.
+
+    Le refus reste mémorisé pour poursuivre son recours, sans rouvrir les
+    demandes ordinaires. Seule la condition annoncée et effectivement remplie
+    lève son obstacle ; la remise et le paiement restent jugés par le moteur.
+    """
+    from .echanges import offre_retenue, condition_remplie
+    retenue = offre_retenue(monde, id, autre, objet)
+    return bool(retenue and condition_remplie(monde, id, retenue, prix))
 
 
 def tient(monde, id, s, connus=None):

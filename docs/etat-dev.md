@@ -24,6 +24,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-refus-leve-contrepartie` (140cb9f0) : lot 366, un refus retenu se lève par une contrepartie ou un accord nouveau. Détail dans l'historique.
 - `codex-e6-libre-date` (7dc16a0d) : lots 363 et 364, E6 partiel, la proposition datée en texte libre ouvre le choix direct. Détail dans l'historique.
 - `codex-regressions-337` (2166b971) : lot 360, régressions de la fin de garde apprise par ouï-dire (lot 337). Détail dans l'historique.
 - `codex-rouges-restants` (48d107bc) : lot 362, rouges restants de la suite hors lot 337. Détail dans l'historique.
@@ -35,8 +36,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-suivi-vocal` (c020b62a) : lot 335, suivi vocal. Détail dans l'historique.
 - `codex-reclamations-repetees` (0925c556) : lot 315, réclamations répétées. Détail dans l'historique.
 - `codex-e3-taches-payees` (999e4c67) : lot 357, régression d'E3 sur les tâches payées corrigée. Détail dans l'historique.
-- `codex-attribution-groupe1` (8d1a4c3f) : lot 342, attribution du groupe 1. Détail dans l'historique.
-- `codex-ut-corps-passage` (fe464411) : lot 353, U-T corps et passage au terminal. Détail dans l'historique.
 
 ## Lots non fusionnés
 
