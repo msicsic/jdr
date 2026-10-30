@@ -6,6 +6,33 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **Lot 333 / A4b terminé, branche `codex-garder-lieu`, fusionnée**, base
+  d'intégration `4a54090` : interposition commune pour biens, protégés et
+  lieux gardés. Seuil déclaré, approche réellement vue en continu, poste
+  libre/atteignable dès l'événement et revalidé à chaque pas ; aucune
+  interception créée après libération tardive de l'accès. Marche sans
+  poussée pour cette action, parole typée enregistrée, preuve commune
+  sans répétition, persistance relationnelle conservée. **135 tests
+  distincts / douze fichiers verts**, dont huit nouveaux : Relais/Corvus,
+  auberge/Lucien ; monde, rendu, scène et parole entendue rechargés,
+  laps entier/découpé identiques. Reprise de 22 après la dernière garde
+  visuelle verte, puis huit tests du registre des paroles verts. Code/tests
+  `887a5b0` poussés vers origin. Ni Luna ni suite complète. **20/20 paires
+  du banc 4 h vertes**, cinq scénarios × quatre graines, un travailleur réduit ;
+  référence `f08ef58` identique en code à la base, vingt nuits relues du cache,
+  aucune rejouée. Suspects 219 **0 → 0 par nuit**, zéro plantage/usurpation/
+  coup/poussée. Sept chroniques, six états complets identiques ; paroles
+  d'interposition 21 → 9. Deux alertes de répétition d'agenda de Brune,
+  crue 42 (sept passages actif/sommeil → dix), origine générale non établie,
+  à surveiller ; une bascule isolée de réserve, crue 2024. Aucune garantie
+  générale sur les boucles. **714,694 s**, CPU branche 663,141 s, sans
+  comparaison aux temps du cache. Bruts `C:/Users/msics/donjon/artifacts/lieu-333/`,
+  **`fin.json ok=true`**, `bilan.json`, `analyse-cloture.json`. Empreintes
+  des sources exécutées vérifiées ; aucun calcul actif.
+  Recouvrements 330 : `pnj.py` ; 332 : `esprits.py`, `pnj.py`.
+  [Rapport 333](taches/rapport-codex-333-garder-un-lieu.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `agendas.py`, `defense.py`, `esprits.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses ; fusion du groupe 1 validée par suite complète comparée à l'intégration.
+
 - **Lot 332 terminé, branche `codex-attention-conjointe`, fusionnée**, base
   `integration 7e65907` : direction des regards réellement perçus, sans cible
   cachée ; suivi par un proche disponible, coût de rotation commun et acquisition

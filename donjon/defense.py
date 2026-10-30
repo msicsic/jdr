@@ -13,11 +13,68 @@ PAROLE = 30
 
 
 def charges(monde, id):
-    from .deliberation import profil, charges_gardees, illicite, proteges
-    p = profil(monde, id) or {}
-    objets = {c["objet"] for c in charges_gardees(monde, id)
-              if "objet" in c and not illicite(monde, id, c["objet"])}
-    return objets | set(proteges(monde, id))
+    from .deliberation import charges_gardees, illicite, proteges
+    return {c.get("objet", c.get("lieu")) for c in charges_gardees(monde, id)
+            if "objet" not in c or not illicite(monde, id, c["objet"])} | set(proteges(monde, id))
+
+
+def _acces_charge(monde, id, charge, salle, case, reel=False):
+    """Ancres et postes d'une charge, dans la salle de l'approchant.
+
+    Un bien a une position crue ; un lieu a les seuils de ses accès déclarés.
+    Ni destination privée de l'approchant, ni position réelle d'un bien au choix.
+    La carte est la même donnée structurelle que pour la marche commune.
+    """
+    from .spatial import _case_interieure, position_cible
+    from .passage import sens
+    if charge in monde.data["salles"]:
+        for sortie in monde.data["salles"].get(salle, {}).get("sorties", {}).values():
+            if sortie["vers"] != charge or sortie.get("exterieur"):
+                continue
+            acces = _case_interieure(monde, salle, sortie)
+            if acces is not None:
+                yield list(sortie["case"]), list(acces)
+    else:
+        c = (dict(valeur=monde.objets[charge]["lieu"], case=position_cible(monde, charge, salle))
+             if reel else lire(monde, id)["croyances"].get(charge, {}).get("lieu", {}))
+        cible = c.get("case")
+        if c.get("valeur") == salle and cible is not None:
+            v = sens(monde, (salle, cible), (salle, case))
+            yield list(cible), [cible[n] + v[n] for n in (0, 1)]
+
+
+def _poste_atteignable(monde, id, salle, acces, personnages):
+    """Lecture sans effet des pas communs, sur les obstacles et places crus.
+
+    Pas de recherche de gestes ni de cache de plan : ces lectures sont refaites
+    à chaque choix et à chaque pas. L'exécution revalide le monde matériel.
+    """
+    from .obstacles import monde_cru, descriptions_crues, metrique_necessaire, transitions
+    from .presence import interieur
+    from .spatial import trajet
+    from .pnj import _franchissable
+    from .eau import noyee_crue
+    croyances = lire(monde, id)["croyances"]
+    occupees = {(c["lieu"].get("valeur"), tuple(c["lieu"]["case"]))
+                for x, c in croyances.items() if x in personnages and x != id
+                and c.get("lieu", {}).get("case") is not None}
+    if (salle, tuple(acces)) in occupees:
+        return False
+    o = monde.objets[id]
+    from .eau import active, menacee
+    if active(monde) and any(menacee(monde, id, s) for s in monde.data["salles"]):
+        from .planification import vue, depart
+        v = vue(monde, id)
+        if v.route(depart(monde, id, v), salle) is None:
+            return False
+    cru = interieur(monde_cru(monde, id))
+    formes = descriptions_crues(monde, id) if metrique_necessaire(monde, id) else {}
+    return trajet(cru, o["lieu"], tuple(o["position"]),
+                  lambda s, p: s == salle and tuple(p) == tuple(acces),
+                  franchissable=lambda p: _franchissable(monde, id, p),
+                  libre=lambda s, p: (s, tuple(p)) not in occupees
+                  and (s == o["lieu"] or not noyee_crue(monde, id, s)),
+                  passages=transitions(cru, id, formes) if formes else None) is not None
 
 
 def approche_vue(monde, id, autre, avant, apres):
@@ -29,10 +86,12 @@ def approche_vue(monde, id, autre, avant, apres):
     from .esprits import pnjs
     if autre == id or autre not in (*pnjs(monde), "joueur") or apres["source"] != "vu":
         return
+    if avant.get("source") != "vu" or autre not in (lire(monde, id).get("en_vue") or ()):
+        return
     if (avant.get("valeur"), avant.get("case")) == (apres.get("valeur"), apres.get("case")):
         return
     case = apres.get("case")
-    if case is None:
+    if case is None or not monde.data.get("mode_cases"):
         return
     from .relations import se_mefie
     from .signes import intentions_lues
@@ -40,21 +99,35 @@ def approche_vue(monde, id, autre, avant, apres):
     for objet in sorted(charges(monde, id) - {autre}):
         if not (se_mefie(monde, id, autre) or guets.get(autre, {}).get("envers") == objet):
             continue
-        cible = lire(monde, id)["croyances"].get(objet, {}).get("lieu", {})
-        if cible.get("valeur") != apres["valeur"] or cible.get("case") is None:
-            continue
-        distance = lambda c: max(abs(c[n] - cible["case"][n]) for n in (0, 1))
-        d = distance(case)
-        ancienne = avant.get("case") if avant.get("valeur") == apres["valeur"] else None
-        if d > 2 or ancienne is not None and distance(ancienne) <= d:
-            continue
-        preuve = f"approche:{autre}:{objet}:{instant(monde)}:{case}"
-        averti = next((s for s in reversed(lire(monde, id)["memoire"])
-                       if s["type"] == "mise_en_garde" and s["a"] == autre and s["objet"] == objet), None)
-        if averti and ancienne is not None and distance(ancienne) <= 2:
-            memoriser(monde, id, {"type": "garde_ignoree", "auteur": autre, "preuve": preuve})
-        memoriser(monde, id, {"type": "approche_charge", "auteur": autre, "objet": objet,
-                              "case": case, "preuve": preuve})
+        for cible, acces in _acces_charge(monde, id, objet, apres["valeur"], case):
+            distance = lambda c: max(abs(c[n] - cible[n]) for n in (0, 1))
+            d = distance(case)
+            ancienne = avant.get("case") if avant.get("valeur") == apres["valeur"] else None
+            if d > 2 or ancienne is not None and distance(ancienne) <= d:
+                continue
+            preuve = f"approche:{autre}:{objet}:{instant(monde)}:{case}"
+            precedente = next((s for s in reversed(lire(monde, id)["memoire"])
+                               if s["type"] == "approche_charge" and s["auteur"] == autre
+                               and s["objet"] == objet and s.get("lieu", apres["valeur"]) == apres["valeur"]
+                               and s.get("cible", cible) == cible), None)
+            averti = next((s for s in reversed(lire(monde, id)["memoire"])
+                           if s["type"] == "mise_en_garde" and s["a"] == autre and s["objet"] == objet
+                           and precedente and s["preuve"] == precedente["preuve"]), None)
+            if precedente and ancienne is not None and distance(ancienne) <= 2:
+                preuve_approche = precedente["preuve"]
+                if averti:
+                    memoriser(monde, id, {"type": "garde_ignoree", "auteur": autre, "preuve": preuve})
+            else:
+                preuve_approche = preuve
+            # L'événement ne réserve pas un poste impossible pour plus tard :
+            # libérer ensuite ce seuil ne fabrique pas une approche nouvelle.
+            # Persister après une parole déjà entendue reste une épreuve, même
+            # lorsque l'approchant est maintenant trop près pour l'intercepter.
+            if not _poste_atteignable(monde, id, apres["valeur"], acces, (*pnjs(monde), "joueur")):
+                continue
+            memoriser(monde, id, {"type": "approche_charge", "auteur": autre, "objet": objet,
+                                  "lieu": apres["valeur"], "cible": cible, "acces": acces,
+                                  "case": case, "preuve": preuve_approche})
 
 
 def interposition(monde, id):
@@ -66,7 +139,6 @@ def interposition(monde, id):
     from .esprits import percoit, pnjs
     from .relations import se_mefie
     from .signes import intentions_lues
-    from .passage import sens
     from .pnj import _etape
     if not monde.data.get("mode_cases"):
         return None
@@ -78,10 +150,6 @@ def interposition(monde, id):
     personnages = (*pnjs(monde), "joueur")
     ici = monde.objets[id]["lieu"]
     for objet in sorted(objets):
-        c = croyances.get(objet, {}).get("lieu", {})
-        cible = c.get("case")
-        if c.get("valeur") != ici or cible is None:
-            continue
         for autre in sorted(personnages):
             if autre == id or autre == objet or not percoit(monde, id, autre):
                 continue
@@ -90,28 +158,27 @@ def interposition(monde, id):
                 continue
             a = croyances.get(autre, {}).get("lieu", {})
             case = a.get("case")
-            if a.get("valeur") != ici or case is None:
+            salle = a.get("valeur")
+            if case is None or salle not in monde.data["salles"]:
                 continue
-            if max(abs(case[n] - cible[n]) for n in (0, 1)) != 2:
+            if ici != salle and objet != ici:
                 continue
-            approche = next((s for s in reversed(lire(monde, id)["memoire"])
+            for cible, acces in _acces_charge(monde, id, objet, salle, case):
+                if max(abs(case[n] - cible[n]) for n in (0, 1)) != 2:
+                    continue
+                approche = next((s for s in reversed(lire(monde, id)["memoire"])
                              if s["type"] == "approche_charge" and s["auteur"] == autre
-                             and s["objet"] == objet and s["case"] == case), None)
-            if approche is None:
-                continue
-            v = sens(monde, (ici, cible), (ici, case))
-            acces = [cible[n] + v[n] for n in (0, 1)]
-            if any(x != id and c.get("lieu", {}).get("valeur") == ici
-                   and c["lieu"].get("case") == acces
-                   for x, c in croyances.items() if x in personnages):
-                continue
-            contenu = {"objet": objet, "position": acces, "preuve": approche["preuve"]}
-            averti = next((s for s in reversed(lire(monde, id)["memoire"])
+                             and s["objet"] == objet and s["case"] == case
+                             and s.get("lieu", salle) == salle and s.get("cible", cible) == cible), None)
+                if approche is None or not _poste_atteignable(monde, id, salle, acces, personnages):
+                    continue
+                contenu = {"objet": objet, "position": acces, "preuve": approche["preuve"]}
+                averti = next((s for s in reversed(lire(monde, id)["memoire"])
                            if s["type"] == "mise_en_garde" and s["a"] == autre
                            and s["objet"] == objet and s["preuve"] == approche["preuve"]), None)
-            en_place = monde.objets[id]["position"] == acces
-            etapes = [] if averti and en_place else [dict(_etape("interposer", autre, lieu=ici), contenu=contenu)]
-            return {"type": "interposer", "qui": autre, "objet": objet, "lieu": ici}, etapes
+                en_place = ici == salle and monde.objets[id]["position"] == acces
+                etapes = [] if averti and en_place else [dict(_etape("interposer", autre, lieu=salle), contenu=contenu)]
+                return {"type": "interposer", "qui": autre, "objet": objet, "lieu": salle}, etapes
     return None
 
 
@@ -144,17 +211,18 @@ def avertir_acces(monde, id, etape, lignes):
     if place(monde, id) != (etape["lieu"], tuple(etape["contenu"]["position"])):
         return False
     autre, objet = etape["cible"], etape["contenu"]["objet"]
-    from .spatial import position_cible
-    from .passage import sens
     # Revalidation matérielle de la charge ; la décision n'en avait lu que
     # la dernière position connue. Pas de poste fictif après son déplacement.
     salle = etape["lieu"]
-    cible = position_cible(monde, objet, salle)
-    if monde.objets[objet]["lieu"] != salle or cible is None:
+    salle_autre, case_autre = place(monde, autre)
+    if salle_autre != salle or not any(acces == etape["contenu"]["position"]
+            for _, acces in _acces_charge(monde, id, objet, salle, case_autre, reel=True)):
         return False
-    v = sens(monde, (salle, cible), place(monde, autre))
-    if [cible[n] + v[n] for n in (0, 1)] != etape["contenu"]["position"]:
-        return False
+    # Un poste tenu ne donne pas une nouvelle parole pour la même approche,
+    # même si le gardien a dû le rejoindre à nouveau.
+    if not r[1] or any(s["type"] == "mise_en_garde" and s["a"] == autre and s["objet"] == objet
+                      and s["preuve"] == etape["contenu"]["preuve"] for s in lire(monde, id)["memoire"]):
+        return True
     if not saisit(monde, id, autre, "dire"):
         return False
     # Inscription avant affichage ; aucune accusation de vol n'est établie.

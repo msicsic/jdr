@@ -1505,7 +1505,7 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         from .defense import interposition
         c = a["parametres"]
         poste = interposition(monde, id)
-        if poste is not None and poste[0]["objet"] == c.get("objet"):
+        if poste is not None and poste[0]["objet"] == c.get("objet", c.get("lieu")):
             if a["etat"] == "sommeil":
                 _changer(monde, id, a, "actif", "plan apres croyance nouvelle", empreinte)
                 _limiter(monde, id, empreinte)
