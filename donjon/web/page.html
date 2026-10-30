@@ -130,6 +130,7 @@ let destinataires = [];
 let ressources = [];
 let ressourcesFabrication = [];
 let dangers = [];
+let offresPassages = [];
 let catalogueGestes = {objets: [], portes: []};
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
@@ -411,6 +412,7 @@ function appliquerEtat(e) {
   ressources = e.ressources || [];
   ressourcesFabrication = e.fabrication || [];
   dangers = e.dangers || [];
+  offresPassages = e.passages || [];
   $("fabrication").hidden = true;
   $("fabrication").innerHTML = "";
   afficherInventaire(e.inventaire || []);
@@ -637,6 +639,14 @@ function offresPubliques(cible, porte, parametrees = false) {
   ).map(([geste, libelle, conditions, formulaire]) => [geste, libelle, formulaire]);
 }
 function gestes(o) { return offresPubliques(o, false); }
+function choixPassages(o, g) {
+  return offresPassages.filter(p => (p.ancrage || p.cible) === o.id).map(p => {
+    const d = {geste: p.geste, cible: p.cible};
+    if (p.methode) d.parametres = {methode: p.methode};
+    if (p.outil) d.parametres = {outil: p.outil};
+    return [p.libelle, () => aPortee(g, d), d];
+  });
+}
 function gestesPorte(p) {
   const parametres = new Set(offresPubliques(p, true, true).map(([geste]) => geste));
   return offresPubliques(p, true).filter(([geste]) => !parametres.has(geste));
@@ -813,7 +823,7 @@ function choixCase(g, x = 20, y = 20) {
   const sections = [];
   niveau.objets.filter(o => cle(o.globale) === k).forEach(o =>
     sections.push([o.nom, [...gestes(o).map(([verbe, libelle]) => [libelle, geste(choix(verbe, o.id)), choix(verbe, o.id)]),
-      ...choixMateriels(o, d => aPortee(g, d), x, y), ...choixCorps(o, x, y)]]));
+      ...choixMateriels(o, d => aPortee(g, d), x, y), ...choixCorps(o, x, y), ...choixPassages(o, g)]]));
   niveau.sorties.filter(s => s.porte && cle(s.globale) === k).forEach(s =>
     sections.push([s.porte.nom, [...gestesPorte(s.porte).map(([verbe, libelle]) => [libelle, geste(choix(verbe, s.porte.id)), choix(verbe, s.porte.id)]),
       ...choixMateriels(s.porte, d => aPortee(g, d), x, y, true)]]));

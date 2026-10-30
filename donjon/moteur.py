@@ -206,8 +206,11 @@ class Moteur:
             raise
         plan.titre = texte(self.monde, plan.titre)
         plan.information = texte(self.monde, plan.information)
-        from .gestes_publics import GESTES_CORPS
-        if (p.get("action") in GESTES_CORPS and
+        from .gestes_publics import GESTES_CORPS, GESTES_PASSAGE
+        passage = (p.get("action") in GESTES_PASSAGE or
+                   p.get("action") == "composer" and any(
+                       e.get("operation") in GESTES_PASSAGE for e in p.get("etapes", [])))
+        if (passage or p.get("action") in GESTES_CORPS and
                 (p["action"] != "frapper" or self.monde.objets.get(p["cible"], {}).get("type") == "personnage")):
             from .consentement import plan_lourd, _empreinte, _etat
             from .comprehension import plan_admis
@@ -215,6 +218,8 @@ class Moteur:
             # y compris pour la commande équivalente. Les règles de geste
             # et les confirmations antérieures restent souveraines.
             plan.confirmation = plan.confirmation or plan_lourd(plan)
+            if passage:
+                plan.confirmation = plan.confirmation or bool(plan.stat)
             plan.compris = plan_admis(self.monde, plan)
             if choix_public and plan.confirmation:
                 plan.choix_public = copy.deepcopy(choix_public)

@@ -62,7 +62,7 @@ cases.forEach(g => {
     if (choix[3] === "corps") continue; // Arbre de méthodes/moyens sondé ci-dessous.
     occupe = false; envois.length = 0;
     choix[1]();
-    if (choix[2] !== undefined) sortie.envoisClic.push({choix: choix[2], envoye: envois[0]});
+    if (choix[2] !== undefined) sortie.envoisClic.push({choix: choix[2], envoye: envois[0], clics: 2});
     else for (const p of $("menu").children.filter(b => b.onclick)) {
       occupe = false; envois.length = 0; p.onclick();
       if (envois.length) sortie.outils.push({libelle: choix[0], ressource: p.textContent, envoye: envois[0], clics: 3});

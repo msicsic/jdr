@@ -23,6 +23,9 @@ AIDE = """COMMANDES LOCALES — sans appel API
   examiner <objet>                     voir les composants accessibles
   lire <inscription>                   tenter d'en comprendre le sens
   prendre <objet> | poser <objet>
+  ramper sous <obstacle> | enjamber <obstacle> | escalader <obstacle>
+  monter <échelle> | descendre <échelle>
+  franchir <obstacle> avec <appui>       reprendre un arbitrage déjà établi pour ce passage
   mettre <objet> dans <contenant>       déposer, ou alimenter une source avec un combustible
   prelever <lot>                       séparer une pièce du lot, dans la besace
   acheter <objet>                       auprès de son vendeur présent
@@ -129,12 +132,51 @@ def geste_local(action, cible, outil="", methode="simple", destination="", direc
         cible = ""
     if action == "liberer":
         cible = "joueur"
-    if action in {"manger", "prelever", "alimenter", "mettre"}:
+    if action in {"manger", "prelever", "alimenter", "mettre", "passer_obstacle"}:
         from .operations import etape, sequence
         if action == "mettre":
             return sequence(etape("deplacer", cible, destination, methode=methode))
         return sequence(etape(action, cible, outil=outil, methode=methode))
     return proposition(action, cible, outil, methode)
+
+
+def passage_descripteur(monde, d):
+    """Un choix encore offert, avec références exactes et paramètres fermés."""
+    from .gestes_publics import passages_publics
+    from .monde import ErreurMonde
+    from .voix import reel
+    p = d.get("parametres", {})
+    attendus = ({"methode"} if d["geste"] == "passer_obstacle" else
+                {"outil"} if d["geste"] == "franchir_obstacle" else set())
+    if not isinstance(p, dict) or set(p) != attendus:
+        raise ErreurMonde("Paramètres de passage incomplets ou inconnus.",
+                          f"descripteur.parametres : reçu {p!r} ; champs exacts : {sorted(attendus)}.")
+    offres = passages_publics(monde)
+    if not any(o["geste"] == d["geste"] and o["cible"] == d["cible"] and
+               o.get("methode") == p.get("methode") and o.get("outil") == p.get("outil") for o in offres):
+        raise ErreurMonde("Ce passage n'est plus perçu avec une forme établie.",
+                          f"descripteur : reçu {d!r} ; passages publics actuels : {offres!r}.")
+    if d["geste"] == "franchir_obstacle":
+        return passage_memorise(monde, reel(monde, d["cible"]), reel(monde, p["outil"]))
+    return geste_local(d["geste"], reel(monde, d["cible"]), methode=p.get("methode", "simple"))
+
+
+def passage_memorise(monde, cible, outil):
+    """Rejouer le même arbitrage établi ; la prise fait partie du plan affiché."""
+    from .franchissement import cle_arbitrage
+    from .operations import etape, sequence
+    from .monde import ErreurMonde
+    destination = monde.objets[cible].get("appui_vertical", {}).get("haut")
+    try:
+        precedent = monde.data["arbitrages"].get(cle_arbitrage(monde, cible, outil, destination))
+    except KeyError:
+        precedent = None
+    if not precedent or type(precedent.get("dd")) is not int or not 16 <= precedent["dd"] <= 22:
+        raise ErreurMonde("Aucun arbitrage établi ne correspond à ce franchissement.",
+                          f"franchir_obstacle : cible={cible!r}, outil={outil!r} ; attendu un arbitrage mémorisé pour la géométrie et la charge actuelles.")
+    prise = [] if monde.est_porte(outil) else [etape("deplacer", outil, "joueur")]
+    return sequence(*prise, etape("franchir_obstacle", cible, destination, outil,
+                                "appui_mobile", precedent["dd"]))
 
 
 def fabrication_locale(action, cible, parametres):
@@ -225,7 +267,7 @@ def proposition_descripteur(monde, descripteur):
     from .monde import ErreurMonde
     from .noms import reference
     from .voix import reel
-    from .gestes_publics import GESTES_CORPS, REACTIONS, dangers_publics
+    from .gestes_publics import GESTES_CORPS, GESTES_PASSAGE, REACTIONS, dangers_publics
     d = descripteur.contenu
     if (not isinstance(d, dict) or not {"geste", "cible"} <= d.keys()
             or d.keys() - {"geste", "cible", "parametres"}
@@ -233,6 +275,8 @@ def proposition_descripteur(monde, descripteur):
         raise ErreurMonde("Je n'ai pas compris ce geste : aucune modification.",
                           "descripteur : geste et cible non vides, parametres optionnels ; aucun autre champ.")
     action, cible = d["geste"], d["cible"]
+    if action in GESTES_PASSAGE:
+        return passage_descripteur(monde, d)
     if action in {"assembler", "decouper"}:
         return fabrication_descripteur(monde, d)
     actions = {"examiner", "observer", "lire", "allumer", "eteindre", "manger", "ouvrir", "fermer",
@@ -521,8 +565,7 @@ def analyser(monde, texte):
             cible = _nomme(monde, texte[len(prefixe):], False)
             if cible is None:
                 return None
-            from .operations import etape, sequence
-            return sequence(etape("passer_obstacle", cible, methode=methode))
+            return geste_local("passer_obstacle", cible, methode=methode)
     # Une prise explicite d'un objet nommé exactement ne nécessite pas de MJ.
     # Le complément entier doit correspondre : ne jamais avaler une condition,
     # une seconde action ou une précision telle que « discrètement ».
@@ -580,6 +623,16 @@ def analyser(monde, texte):
     if texte.startswith("sonner "):
         from .operations import etape, sequence
         return sequence(etape("emettre_son", monde.trouver(texte[7:]), methode="simple"))
+    if texte.startswith("franchir ") and " avec " in texte:
+        cible, _, outil = texte[9:].partition(" avec ")
+        cible, outil = _nomme(monde, cible, False), _nomme(monde, outil, False)
+        if cible is None or outil is None:
+            return None
+        from .monde import ErreurMonde
+        try:
+            return passage_memorise(monde, cible, outil)
+        except ErreurMonde:
+            return None  # Premier arbitrage : le chemin libre reste disponible.
     if texte.startswith("installer ") and " contre " in texte:
         cible, _, support = texte[10:].partition(" contre ")
         return proposition("installer", monde.trouver(cible), monde.trouver(support))
