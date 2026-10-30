@@ -155,6 +155,56 @@ class ServiceNonDefaitTests(unittest.TestCase):
             self.assertNotIn(c, services_proteges(m, id))
         self.assertFalse(self.recharge(m).data['services_rendus'])
 
+    def test_bien_du_beneficiaire_emporte_service_paye_et_autre_trace(self):
+        from donjon.esprits import constater_possession
+        from tests.test_tensions import placer
+        # Autre prestataire, autre lieu et autre source, par un vrai accord payé.
+        initial, id, _, serrure_payee = serrure(payeur='joueur')
+        autre = 'odile'
+        lampe = 'lanterne_couloir'
+        c = {'objet': lampe, 'allume': True}
+        initial.objets[lampe].update(lieu=id, proprietaire=autre, allume=False)
+        constater_possession(initial, id, lampe, 'essai')
+        croire(initial, id, lampe, 'etat', {'allume': False, 'charge': True}, 'vu')
+        initial.data['finances_pnj'][autre] = 20
+        with patch.object(Monde, 'd20', return_value=20):
+            self.assertEqual(engager(initial, autre, id, c, 10), 'accepte')
+        initial, _ = vivre(self.recharge(initial), 2)
+        self.assertTrue(initial.objets[lampe]['allume'])
+        self.assertIn(c, services_proteges(initial, id))
+        self.assertIn(serrure_payee, services_proteges(initial, id))
+        # Le prestataire emporte la source ; le bénéficiaire quitte aussi
+        # le lieu de réussite. Ce n'est pas l'abandon de son propre résultat.
+        placer(initial, id, 'cuisine', [3, 2])
+        placer(initial, autre, 'dortoir', [3, 2])
+        croire(initial, id, autre, 'lieu', 'dortoir', 'vu', salle='dortoir', case=None)
+        resultats = []
+        for laps in ((2,), (1, 1)):
+            m = self.recharge(initial.copier())
+            with planification.vues_du_choix(m, id):
+                self.assertIn(c, services_proteges(m, id))
+            for minutes in laps:
+                m, _ = vivre(m, minutes)
+                m = self.recharge(m)
+            self.assertTrue(m.objets[lampe]['allume'])
+            self.assertIn(c, services_proteges(m, id))
+            self.assertIn(serrure_payee, services_proteges(m, id))
+            self.assertTrue(m.objets[serrure_payee['objet']]['verrouillee'])
+            resultats.append((m.data, regarder(m), scene_percue(m)))
+        self.assertEqual(*resultats)
+        # Un changement caché des droits ne change pas ce qu'il croit devoir
+        # préserver. Une cession apprise, en revanche, libère ce résultat seul.
+        placer(m, id, 'cuisine', [3, 2])
+        placer(m, autre, 'dortoir', [3, 2])
+        croire(m, id, autre, 'lieu', 'dortoir', 'vu', salle='dortoir', case=None)
+        m.objets[lampe].update(lieu=id, proprietaire=id)
+        self.assertIn(c, services_proteges(self.recharge(m), id))
+        constater_possession(m, id, lampe, 'essai')
+        with planification.vues_du_choix(m, id):
+            self.assertNotIn(c, services_proteges(m, id))
+        self.assertNotIn(c, [s['condition'] for s in self.recharge(m).data['services_rendus']])
+        self.assertIn(serrure_payee, services_proteges(m, id))
+
     def test_ancienne_trace_portee_sans_ancrage_ne_prouve_pas_un_depart(self):
         m, _ = vivre(cas_217(), 1)
         trace = next(s for s in m.data['services_rendus'] if s['de'] == 'brune')

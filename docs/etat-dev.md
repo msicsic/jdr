@@ -39,6 +39,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-service-evacuation` — lot 367, base `integration dea991a5` : le départ ne clôt plus
+  un résultat payé sur un bien mobile connu du bénéficiaire ; `biens.py` seul modifié côté moteur.
+  Deux méthodes réservées du 362 et leurs fichiers : 29 tests verts, assertions historiques intactes ;
+  autre parcours payé à l'auberge vert, recharge monde/rendu/scène et laps découpé.
+  Validation détachée : dix fichiers ciblés/voisins, empreintes 2 h × quatre graines, hameau/auberge/Relais.
+  Fin attendue : `C:/Users/msics/donjon/artifacts/service-evacuation-367/fin-validation.json`.
+  Limites : utilité conservatrice selon propriété connue, aucun entretien ni résurrection d'une trace close.
+  [Rapport 367](taches/rapport-codex-367-service-evacuation.md).
+
 Lots en cours : 364 (E6, réaccordance après le 362), 365 (catalogue des choix : fuite possible), 366 (levée d'un
 refus par contrepartie, 358), 367 (service payé et évacuation, 306), 368 (quatre régressions isolées). Leurs entrées
 arrivent ici à leur livraison. 

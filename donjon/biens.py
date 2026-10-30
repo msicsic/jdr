@@ -823,7 +823,9 @@ def services_proteges(monde, id):
     """Résultats encore utiles d'après les seules observations du prestataire.
 
     Le besoin est approché par la présence crue du bénéficiaire au lieu
-    retenu à la réussite ou auprès du résultat (ou son portage).
+    retenu à la réussite ou auprès du résultat (ou son portage). Le résultat
+    mobile connu comme le bien du bénéficiaire reste utile à celui-ci même
+    lorsqu'il s'éloigne : son déplacement ne vaut pas abandon de son bien.
     Un départ connu de ces lieux ou un état constaté défait
     termine la protection définitivement ; ni oubli par délai, ni entretien.
     Un bénéficiaire présent qui n'en a plus besoin reste donc protégé.
@@ -832,6 +834,7 @@ def services_proteges(monde, id):
     """
     from .deliberation import _cru, _lieu_cru, salle_crue
     from .monde import mobile_par_nature
+    from .esprits import lire
     actifs = [{"de": id, "pour": x["pour"], "condition": x["condition"]}
               for x in agendas.en_cours(monde, id) if not x.get("annule")
               and set(x["condition"]) in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})]
@@ -857,7 +860,10 @@ def services_proteges(monde, id):
         # posé ensuite, ne prouve jamais un départ de son bénéficiaire.
         reference = s.get("lieu_beneficiaire",
                           None if mobile_par_nature(monde.objets.get(o, {})) else lieu)
-        parti = (porteur != pour and reference is not None and lieu is not None
+        possession = (lire(monde, id)["croyances"].get(o, {}).get("lieu") or {}).get("possession") or {}
+        bien_beneficiaire = (mobile_par_nature(monde.objets.get(o, {}))
+                            and possession.get("proprietaire") == pour)
+        parti = (not bien_beneficiaire and porteur != pour and reference is not None and lieu is not None
                  and beneficiaire is not None and reference != beneficiaire and lieu != beneficiaire)
         if cesse and not actif or parti:
             if not actif:
