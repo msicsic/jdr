@@ -46,8 +46,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-messages-decoupage` — lot 376, base `origin/integration 2887c541` :
   présences, sons et mémoires publiques relevés aux événements, sans résumé dépendant de l'action.
   Capture 371 auberge et passage au Relais : messages/état/rendu rechargés identiques après découpage.
-  114 tests verts, 12 fichiers ; empreintes 2 h × 4 graines en cours (`fin-empreintes.json` dans les bruts).
-  Le fil devient chronologique ; mémoires publiques modifiées, empreintes anciennes non présumées identiques.
+  114 tests verts ; 8 nuits de 2 h : physique/chroniques/mesures/souvenirs PNJ identiques, zéro plantage/usurpation.
+  Hash d'état complet différent sur 6/8 nuits : journal seul au préfixe Relais ; écarts finaux non intégralement attribués.
   Recouvrement `moteur.py` avec 369/375 ; aucun registre d'esprit ajouté.
   [Rapport 376](taches/rapport-codex-376-messages-decoupage.md).
 
