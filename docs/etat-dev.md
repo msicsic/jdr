@@ -16,7 +16,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   corps/passage/information, U-T premier geste/outils/inventaire/fabrication/corps/passage, A0 (oracle G1).
 - **Groupe 1** (313, 315, 332, 333) et 335 (suivi vocal) fusionnés le 2026-10-30.
 - **PNJ** : A5 (mandat) complet (lots 338, 340, 341, 306 fusionnés). A1 provenance publique fusionnée (346, non branchée).
-  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E5 fusionnés (348, 350, 352 et 357, 355, 359) ; E6 (363) non validé, reprise 364.
+  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E5 fusionnés (348, 350, 352 et 357, 355, 359) ; E6 fusionné partiel (363, 364).
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
 - **Abandonnés** : archivés par tags `archive/<branche>` le 2026-10-30 (33, 36, 117 b/c, 162, 166, 168, 170, 176,
@@ -39,9 +39,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 364 (E6, réaccordance après le 362), 365 (catalogue des choix : fuite possible), 366 (levée d'un
-refus par contrepartie, 358), 367 (service payé et évacuation, 306), 368 (quatre régressions isolées). Leurs entrées
-arrivent ici à leur livraison. 
+Lots en cours : 365 (catalogue des choix : fuite possible), 369 (U-T social information). Suite complète de
+l'intégration relancée après les corrections 360 à 368. Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
 
