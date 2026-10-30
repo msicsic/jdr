@@ -27,7 +27,9 @@ class CatalogueConnuTests(unittest.TestCase):
         public = etat(m)
         vues = regarder(m), fiche(m), scene_percue(m)
         n = recharger(m)
-        self.assertEqual(n.data, avant)
+        # JSON conserve les séquences sous forme de listes, y compris les
+        # couples objet/lieu des renseignements enregistrés.
+        self.assertEqual(n.data, json.loads(json.dumps(avant)))
         self.assertEqual(m.data, avant)  # Consulter n'apprend rien.
         self.assertEqual(etat(n), public)
         self.assertEqual((regarder(n), fiche(n), scene_percue(n)), vues)
@@ -39,10 +41,11 @@ class CatalogueConnuTests(unittest.TestCase):
     def test_scenes_reelles_e6_et_autre_scenario(self):
         for nom, m, secrets, connus in (
             ('huile', situation(False)[0],
-             ('atre', 'paillasse_joss', 'coffre_marchand', 'foin', 'bourse_anselme'), ('pot_huile',)),
+             ('paillasse_joss', 'foin', 'bourse_anselme'),
+             ('pot_huile', 'atre', 'coffre_marchand', 'lits_dortoir')),
             ('verrou', situation(True)[0],
-             ('atre', 'coffre_marchand', 'foin', 'bourse_anselme'), ('garde_manger',)),
-            ('relais', creer('relais', 1985, 'fixe'), ('anneau', 'coffre'), ('porte',)),
+             ('foin', 'bourse_anselme'), ('garde_manger', 'atre', 'coffre_marchand', 'lits_dortoir')),
+            ('relais', creer('relais', 1985, 'fixe'), ('anneau', 'coffre'), ('cloche',)),
         ):
             with self.subTest(scene=nom):
                 for id in secrets:
@@ -78,6 +81,7 @@ class CatalogueConnuTests(unittest.TestCase):
                 m.data.setdefault('conversation', []).append({
                     'joueur': 'Je suppose un secret du catalogue.',
                     'reponse': 'Une impression de secret du catalogue.', 'nature': 'dialogue'})
+                m = recharger(m)  # Installer la référence opaque du nouvel objet.
                 self.assertFalse(_connu_du_joueur(m, 'secret_365'))
                 self.assertNotIn('secret_365', json.dumps(etat(m)))
                 n = self.verifier_recharge(m)
@@ -91,9 +95,10 @@ class CatalogueConnuTests(unittest.TestCase):
     def test_reference_physique_et_savoir_prive_ne_sont_pas_des_sources(self):
         m = banc('ressources')
         m.objets['secret_365'] = objet('secret_365', 'opale hors de vue', 'outil', 'crypte')
-        croire(m, 'aubin', 'secret_365', 'lieu', 'crypte', 'vu')
+        croire(m, 'aubin', 'secret_365', 'lieu', 'crypte', 'vu', salle='crypte', case=None)
         # Un lien d'auteur sur une entité visible n'est pas une perception.
         m.objets['cloche']['support'] = 'secret_365'
+        m = recharger(m)
         self.assertFalse(_connu_du_joueur(m, 'secret_365'))
         self.assertNotIn('secret_365', self.sujets(m))
         n = self.verifier_recharge(m)
@@ -103,12 +108,15 @@ class CatalogueConnuTests(unittest.TestCase):
         m = banc('noms-dialogue')
         id = 'ressource_365'
         m.objets[id] = {**copy.deepcopy(m.objets['planches']), 'id': id,
-                       'nom': 'copeaux du bac', 'aliases': ['bois']}
+                       'nom': 'copeaux du bac', 'aliases': ['copeaux'], 'lieu': 'crypte',
+                       'proprietaire': 'aubin'}
+        croire(m, 'aubin', id, 'lieu', 'crypte', 'savoir', salle='crypte', case=None)
+        croire(m, 'aubin', id, 'etat', {'disponible': True}, 'savoir')
         m = recharger(m)
         # Le joueur demande une catégorie sans connaître les biens du témoin.
         self.assertFalse(_connu_du_joueur(m, id))
         d = DescripteurPublic({'geste': 'information', 'cible': 'aubin',
-                              'parametres': {'acte': 'ressource', 'sujet': 'bois'}})
+                              'parametres': {'acte': 'ressource', 'sujet': 'chaleur'}})
         with patch.object(Monde, 'd20', return_value=20):
             dossier = preparer_information(m, d)
         n = dossier.travail

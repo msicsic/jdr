@@ -11,28 +11,39 @@ la mémoire propre de Corvus et les renseignements effectivement prononcés et
 entendus, enregistrés dans les résolutions typées des émissions. Aucun parcours
 des liens physiques, dossiers privés des PNJ, brouillons ou récits cosmétiques.
 Les positions, ressources, noms de personnes et accès physiques gardent leurs
-contrôles distincts. L'anneau déjà nommé dans la prémisse de la crypte est déclaré
-dans `connus` par les données du scénario, sans exception dans le moteur.
+contrôles distincts. Les prémisses déclarent dans `connus` l'anneau de la crypte,
+la cloche du Relais, l'âtre, le coffre du marchand et les lits du dortoir de
+l'auberge : ces mentions sont légitimes, sans exception dans le moteur.
 
 **Diagnostic.** Les bruts E6 du PC fixe sont absents du laptop. Les deux copies
 sont reproduites par les fabriques utilisées dans `tools/preparer_banc_e6.py`
 du 364 : huile et verrou à l'auberge. Le rapport 364 et son ancien calcul sont
 relus sur `origin/codex-e6-libre-date`. La sonde conserve les catalogues complets
 avant/après, les références publiques et les chemins textuels des admissions.
-Les alertes lexicales sont exposées dans les champs `information` et `accord`
-de l'état web, puis dans les formulaires : ce sont des fuites réelles, pas
-seulement une liste de travail. Un nom de personnage explicitement déclaré connu
-reste légitime même sans visibilité ni souvenir de position.
+Les admissions lexicales sont exposées dans les champs `information` et `accord`
+de l'état web, puis dans les formulaires. Elles mélangent des savoirs légitimes
+de prémisse et de vraies fuites : « ta bourse » ne désigne pas la bourse d'Anselme,
+ni une mention de paille la meule du grenier. Les noms de personnages déclarés
+connus restent légitimes même sans visibilité ni souvenir de position.
 
 **Vérification.** En cours ; résultats détaillés dans
-`C:/Users/msics/donjon/artifacts/catalogue-365/`. Les tests ciblent les deux scènes
+`C:/Users/msics/donjon/artifacts/catalogue-365/`. La première fin est rouge :
+erreurs de préparation des nouvelles scènes, import de la sonde et dépendance
+implicite des choix « cloche »/« bois » au lexique. Préparations corrigées,
+souvenir du bien « bois » explicité dans les tests concernés ; aucune assertion
+d'effet ou de refus retirée. La reprise écrit `fin-reprise.json` après la sonde
+optimisée, les scènes finales et la consolidation par fichier. Les voisins
+déjà verts ne sont pas relancés (un saut : `jsonschema` facultatif absent).
+Les tests ciblent les deux scènes
 E6, le Relais, les homonymes, alias et clés techniques, la conversation sans
 admission, les liens privés, les choix forgés et un renseignement réellement
 entendu. Comparaison de l'état complet, scène, fiche et catalogues après vraie
 sauvegarde/recharge ; voisins noms, projection publique, menus U-M/U-T et accords.
-Empreintes prévues : 2 h, quatre graines, Relais et auberge contre la base
-d'intégration, deux travailleurs au plus et priorité réduite. Ni suite complète
-ni appel Luna.
+Le premier relevé d'empreintes (2 h, quatre graines, Relais/auberge, `d21a9ee2`
+contre la base) est intégralement identique. Après les déclarations de prémisse,
+le contrôle isole aussi les seuls ajouts à `connus`, sans les retirer du monde
+joué : comparaison du résultat complet sur une copie, chronique et mesures.
+Deux travailleurs réduits au plus. Ni suite complète ni appel Luna.
 
 **Limites.** La prose seule ne crée plus de référence, même dans une ancienne
 sauvegarde : une mention historique sans apprentissage typé n'est pas migrée
