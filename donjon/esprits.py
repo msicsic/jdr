@@ -906,7 +906,9 @@ def _percus(monde, acteur, memo):
             if vu is not None:
                 vus[id] = vu
         j = monde.joueur
-        if not j.get("parti") and (j["salle"], *j["position"]) in champ:
+        # Une localisation inconnue (notamment dans un devis fermé) ne
+        # fournit aucune présence visible, et ne se complète pas sur le réel.
+        if not j.get("parti") and j.get("position") is not None and (j["salle"], *j["position"]) in champ:
             vus["joueur"] = (j["salle"], list(j["position"]))
         return vus, set(champ)
     if eclairage(monde, salle)["niveau"] == 0:
