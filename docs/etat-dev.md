@@ -29,7 +29,7 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   `analyse-cloture.json`, `tests-final.json`, **`fin-cloture.json`** ; fin
   initiale rouge `fin-validation.json` conservée.
   [Rapport 343](taches/rapport-codex-343-g7-deplacements.md).
-  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. seul conflit de documentation ; aucun fichier de code commun depuis la base. Le moteur relève les mouvements réellement accomplis du joueur (acteur, opération, quantité, unité, direction, bornes temporelles) et écrit le cumul canonique (deplacements.clore/phrases), sauvegardé avant affichage et réemployé par les attestations du lot 95 ; un plan non exécuté n'en produit pas, les sons restent à part. force-4c-fuir : trois pas cumulés, zéro appel Luna après confirmation. 235 tests ciblés verts, 8/8 empreintes 2 h identiques. Fichier commun avec le lot 344 en cours : donjon/web/page.html.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Le moteur relève les mouvements réellement accomplis du joueur (acteur, opération, quantité, unité, direction, bornes temporelles) et écrit le cumul canonique (deplacements.clore/phrases), sauvegardé avant affichage et réemployé par les attestations du lot 95 ; un plan non exécuté n'en produit pas, les sons restent à part. force-4c-fuir : trois pas cumulés, zéro appel Luna après confirmation. 235 tests ciblés verts, 8/8 empreintes 2 h identiques. Fichier commun avec le lot 344 en cours : donjon/web/page.html.
 
 
 - **Reprise 338 terminée, fusionnée**, fusion sans rebase **`20e1f41`**
