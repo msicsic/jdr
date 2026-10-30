@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir **court** (une à deux pages). Mis à jour le 2026-10-30.
+Point de reprise, à tenir **court** (une à deux pages). Mis à jour le 2026-10-31.
 L'historique détaillé de tous les lots est dans [historique-lots.md](historique-lots.md) : à lire seulement
 quand un lot ancien est en cause, jamais en entier. Les outils de mesure sont dans [outils-mesure.md](outils-mesure.md).
 
@@ -43,16 +43,16 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-s1e-vues-episodes` — lot 385, base `integration b2028ede` ; `fcb82692` fusionnée (documentation seule).
+- `codex-s1e-vues-episodes` — lot 385 clos, base `integration b2028ede` ; `fcb82692` fusionnée (documentation seule).
   Tous les lecteurs d'épisodes utilisent des copies profondes ; inventaire AST à zéro hors exceptions nommées.
   Stockage/ordre/plafond inchangés ; rafraîchissement du geste entendu et migration des présences dans la porte.
-  Deux chaînes réelles vérifiées après recharge ; masquage de vue et chargement des audits corrigés (`a50a3648`).
-  Première passe : 325 tests, 78 erreurs corrigées ; assertion de passage héritée reproduite sur la base exacte.
-  Compatibilité courte identique ; 17 fichiers concernés puis 16 empreintes de 2 h relancés, deux processus.
-  Fin : `C:/Users/msics/donjon/artifacts/s1e-385/fin-corrige.json`. [Rapport](taches/rapport-codex-385-s1e-vues-episodes.md).
+  325/326 tests ciblés verts, aucune erreur ni saut ; seul rouge de texte de passage reproduit sur la base exacte.
+  Deux chaînes réelles : état complet/rendu/scène/paroles après recharge et même laps entier/découpé.
+  16/16 empreintes identiques sur 2 h × quatre graines × quatre scénarios ; aucun plantage, aucune suite complète/Luna.
+  Limites : AST syntaxique, oubli historique et rouge hérité. [Rapport](taches/rapport-codex-385-s1e-vues-episodes.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
-(U-M social comptes), 381 (A2 passage), 385 (S1e vues des épisodes). Les cinq questions de S0 sont tranchées (voir décisions).
+(U-M social comptes), 381 (A2 passage). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
