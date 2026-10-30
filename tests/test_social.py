@@ -213,6 +213,8 @@ class VolDecouvertTests(unittest.TestCase):
         # Sa ronde de l'échoppe est faite, celle du refuge est due.
         lire(m, "ilse")["visites"] = {"echoppe": 0}
         self.assertFalse(percoit(m, "ilse", "brune"))
+        from tests.support import possessions_deja_confiees
+        possessions_deja_confiees(m)  # La scène porte sur le geste vu à l'entrée.
         m, _ = attendre(recharger(m))
         self.assertIn("Brune, batelière évacuée mange une part des vivres du refuge.", chronique(m))
         self.assertIn("vu_agir", [s["type"] for s in lire(m, "ilse")["memoire"]])

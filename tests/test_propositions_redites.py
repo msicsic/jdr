@@ -91,6 +91,8 @@ class PropositionsReditesTests(unittest.TestCase):
         self.assertTrue(v.verrouille(e, 'porte_bureau'))
         self.assertIsNotNone(plans._appeler(v, e, 'bram'))
         self.assertTrue(saisit(m, 'remy', 'bram', 'heler'))
+        from tests.support import possessions_deja_confiees
+        possessions_deja_confiees(m)  # Aucun inventaire initial n'interrompt l'attente mesurée.
         moteur = Moteur(m)
         texte = moteur.executer(moteur.preparer(proposition('attendre', cible='600')))
         self.assertEqual(instant(m), debut + 4 * MINUTE + 150)

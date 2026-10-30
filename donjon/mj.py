@@ -479,6 +479,11 @@ class MJ:
         return references(monde,reponse)
 
     def _auditer_action(self, intention, plan, revision, monde=None, operations_demandees=None):
+        # Le moteur rend seul les perceptions sans effet proposé. Leur
+        # interprétation reste visible dans le résultat ; aucune prose du MJ
+        # n'est publiée. Les autres plans gardent la revue de fidélité.
+        if plan.perception_canonique:
+            return
         from .couverture_action import (schema as schema_couverture,
                                         INSTRUCTIONS as INSTRUCTIONS_COUVERTURE,
                                         INSTRUCTIONS_PAROLE,
@@ -967,7 +972,9 @@ class MJ:
                 corrigee = self._echanger(monde, intention, proposition_en_attente, enrichir=True, retour_moteur=retour)
                 return self._echanger_prepare(monde, intention, proposition_en_attente, suite_fait=suite_fait,
                                               reponse=corrigee, recadre=True)
-        narration = self._echanger(travail, intention, proposition_en_attente, enrichir=False, conversation_validee=rapport)
+        from .repliques_moteur import reponse as reponse_formulee
+        narration = reponse_formulee(rapport) or self._echanger(
+            travail, intention, proposition_en_attente, enrichir=False, conversation_validee=rapport)
         if narration["mode"] != "dialogue":
             raise ErreurMonde("Le MJ n'a pas terminé la description. Aucun complément enregistré.")
         nature = {"conversation_pnj": "conversation_pnj", "enrichir": "complements",
@@ -976,6 +983,8 @@ class MJ:
             from .narration import raccorder_emissions
             narration = raccorder_emissions(narration, rapport)
             narration["_prefixe_moteur"] = annonce_parole(travail, rapport)
+        from .repliques_moteur import sceller
+        narration = sceller(narration, rapport)
         return ajouter_transaction(narration, nature, revision, complements,
                                    rapport if reponse["mode"] in ("conversation_pnj", "parole_joueur") else None)
 
@@ -983,38 +992,8 @@ class MJ:
         contexte = monde.contexte()
         faits = {k: v for k, v in contexte.items() if k != "objets_perceptibles"}
         faits["attestations"] = attestations_narratives(monde, contexte)
-        from .biens import etat_comptes_joueur, offres_joueur
-        faits["comptes"] = {"etat": etat_comptes_joueur(monde, contexte["interlocuteurs"]),
-                            "issue": (conversation_validee or {}).get("comptes", []),
-                            "offres_a_dire": (conversation_validee or {}).get("offres", []),
-                            "offres": offres_joueur(monde) + (conversation_validee or {}).get("offres", [])}
-        # Noms grammaticaux des seuls biens cités par les termes publics :
-        # aucune position, possession cachée ni propriété physique ajoutée.
-        biens_offres = {c['objet'] for c in faits['comptes']['issue'] if c.get('objet') in monde.objets}
-        parts = dict((conversation_validee or {}).get('parts_comptables', {}))
-        services = []
-        from .agendas import en_cours
-        for c in faits['comptes']['issue']:
-            if not c.get('objet') or c['debiteur'] not in monde.objets: continue
-            for engagement in en_cours(monde, c['debiteur'], objet=c['objet']):
-                condition = engagement['condition']
-                if condition.get('servir') == 'joueur':
-                    parts[c['objet']] = c['objet']
-                    services.append(c['objet'])
-                elif engagement.get('lot'):
-                    parts[c['objet']] = engagement['lot']
-        faits['comptes'].update(parts=parts, services=services)
-        biens_offres.update(parts.values())
-        for offre in faits["comptes"]["offres"]:
-            for terme in (offre["condition"], offre["contrepartie"]):
-                bien = terme.get("objet") or terme.get("condition", {}).get("objet")
-                if bien in monde.objets:
-                    biens_offres.add(bien)
-        faits["comptes"]["biens_offres"] = {
-            bien: {k: copy.deepcopy(monde.objets[bien][k]) for k in
-                   ("nom", "type", "genre", "pluriel", "nom_propre", "elision", "aliases")
-                   if k in monde.objets[bien]} for bien in biens_offres if bien in monde.objets}
-        faits['comptes']['biens_offres'].update((conversation_validee or {}).get('biens_comptables', {}))
+        from .comptes_parles import dossier as dossier_comptes
+        faits["comptes"] = dossier_comptes(monde, conversation_validee or {})
         if resultat_resolu is not None:
             from .biens import compte
             from .agendas import contrats

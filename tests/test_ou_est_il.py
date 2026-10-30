@@ -28,17 +28,24 @@ class LocalisationDemandeeTests(unittest.TestCase):
         return r
 
     def test_question_autonome_trajet_verification_et_retrouvailles(self):
+        # Décision autonome historique sur eb15b5e, avant le premier pas et
+        # avant toute question (1800). Le nouveau devis peut préférer un appel
+        # direct : ce test garde le parcours du renseignement, sans lui imposer
+        # de rester le choix le moins coûteux.
+        chemin = Path(__file__).parent / 'captures/contact-313-localisation-temoin.json.gz'
+        donnees = json.loads(gzip.decompress(chemin.read_bytes()))
+        self.assertEqual(donnees['base'], 'eb15b5e')
+        self.assertEqual(donnees['instant'], 1800)
+        m = Monde(donnees['monde'])
+        premier = lire(m, 'aubin')['intention']['plan'][0]
+        self.assertEqual((premier['operation'], premier['cible'], premier['contenu']),
+                         ('demander', 'brune', {'localisation': 'marchand'}))
+        self.assertFalse(any('où se trouve Gorm' in c['texte'] for c in m.data['chronique']))
+        # Le témoin de cette scène d'auteur reste au point qu'Aubin a vu.
+        # La capture de décision suit déjà son premier pas commercial.
         from tests.test_tensions import placer
-        from tests.support import lier
-        from donjon.esprits import connaitre
-        m = aubin_cherche_gorm()
-        # Scène d'auteur : le témoin présent a vu Gorm, qui repart pendant le trajet.
         placer(m, 'brune', 'beffroi', (2, 2))
         croire(m, 'aubin', 'brune', 'lieu', 'beffroi', 'vu', salle='beffroi', case=[2, 2])
-        connaitre(m, 'brune', 'aubin')
-        lier(m, 'brune', 'aubin', True, 'vu')
-        lier(m, 'aubin', 'brune', True, 'vu')
-        croire(m, 'brune', 'marchand', 'lieu', 'crypte', 'vu', salle='crypte', case=None)
         m, _ = vivre(self.recharge(m), 5)
         textes = [c['texte'] for c in m.data['chronique']]
         questions = [s for s in textes if 'Aubin demande à Brune où se trouve Gorm' in s]

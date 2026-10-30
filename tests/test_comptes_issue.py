@@ -9,7 +9,8 @@ from donjon.narration import consigner, controler
 from donjon.rendu import decrire_comptes
 from donjon.monde import ErreurMonde
 from donjon.voix import personne_pour_joueur
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
 from tests.test_tensions import recharger
@@ -38,7 +39,7 @@ class ComptesIssueTests(unittest.TestCase):
                     parole(mots, ("reclamer", "", "", ""), personnage=qui),
                     dialogue(f"« {faux} »"), dialogue(f"« {inverse} »"), dialogue(f"« {bon} »")], [
                     audit(bon, [], qui)])
-                self.assertIn(bon, sortie)
+                self.assertIn('Je te rends 2 pièces.', sortie)
                 for interdit in (faux, inverse):
                     self.assertNotIn(interdit, sortie)
                     self.assertNotIn(interdit, str(r.data["conversation"]))
@@ -50,18 +51,12 @@ class ComptesIssueTests(unittest.TestCase):
                 self.assertNotIn(nom + " te doit 2 pièces", decrire_comptes(r))
                 corrections = [e["controle_narratif"] for _, e in appels if "controle_narratif" in e]
                 self.assertTrue(all("comptes.issue" in str(correction) for correction in corrections))
-                issue = next(e["faits"]["conversation_validee"] for _, e in appels
-                             if "conversation_validee" in e.get("faits", {}))
-                self.assertIn(c, issue["comptes"])
-                from donjon.comptes_narratifs import phrases
-                dossier = next(e["faits"] for _, e in appels if "conversation_validee" in e.get("faits", {}))
-                for phrase in phrases(dossier):
-                    self.assertIn(phrase, sortie)
-                    self.assertIn(phrase, str(recharger(r).data["conversation"]))
-                for fonction, entree in appels:
-                    if fonction == "auditer_narration":
-                        self.assertEqual(list(entree["segments"].values()), [f"« {bon} »"])
-                self.assertIn(bon, str(recharger(r).data["conversation"]))
+                emission = emissions_pnj(r)[-1]
+                self.assertEqual(emission['texte'], 'Je te rends 2 pièces.')
+                self.assertIn(c, emission['evenement']['resolutions_comptables'][0]['comptes'])
+                self.assertIn(emission['texte'], str(recharger(r).data['conversation']))
+                self.assertFalse(corrections)
+                self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
 
     def test_achats_de_parts_payees_et_differees_deux_biens(self):
         from donjon.banc_pnj import creer
@@ -99,22 +94,17 @@ class ComptesIssueTests(unittest.TestCase):
                         "contrepartie": {"type": "pieces", "montant": prix}}]
                 r, sortie, appels = jouer(m, mots, [premier, dialogue(f"« {bon} »")],
                                          [audit(bon, [], qui)])
-                self.assertIn(bon, sortie)
-                self.assertIn(bon, str(r.data["conversation"]))
+                emission = emissions_pnj(r)[-1]
+                self.assertIn(f"Tu m'as payé {prix} pièce", emission['texte'])
+                self.assertIn(emission['rendu_public'], sortie)
+                self.assertIn(emission['texte'], str(r.data['conversation']))
                 self.assertEqual(r.joueur["or"], avant - prix)
                 self.assertIn(cs[1], livraisons_dues(r))
                 self.assertIn("remettre", decrire_comptes(r))
                 self.assertNotIn("_comptes_echange", r.data)
                 self.assertFalse(any("controle_narratif" in e for _, e in appels))
-                issue = next(e["faits"]["conversation_validee"] for _, e in appels
-                             if "conversation_validee" in e.get("faits", {}))
-                self.assertEqual(issue["comptes"], cs)
-                self.assertEqual(emissions_pnj(r)[-1]["texte"], bon)
-                from donjon.comptes_narratifs import phrases
-                dossier = next(e["faits"] for _, e in appels if "conversation_validee" in e.get("faits", {}))
-                for phrase in phrases(dossier):
-                    self.assertIn(phrase, sortie)
-                    self.assertIn(phrase, str(recharger(r).data["conversation"]))
+                self.assertEqual(emission['evenement']['resolutions_comptables'][0]['comptes'], cs)
+                self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
                 self.assertEqual(recharger(r).data, r.data)
 
     def test_couverture_refaite_avant_enregistrement(self):

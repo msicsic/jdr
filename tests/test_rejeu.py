@@ -1,5 +1,6 @@
 """Le rejeu du banc : il observe la nuit sans la changer, et rejoue à chaque instant ce qui a été."""
 import hashlib
+from contextlib import nullcontext
 import json
 from pathlib import Path
 import re
@@ -141,11 +142,11 @@ class AutresNuitsTests(unittest.TestCase):
 
     def test_une_page_par_graine(self):
         with tempfile.TemporaryDirectory() as dossier:
-            nuits("relais", [7, 42], 0.5, "chambre_cloche", rejeu=str(Path(dossier) / "essai.html"))
+            nuits("relais", [7, 42], 0.5, "chambre_cloche", rejeu=str(Path(dossier) / "essai.html"), processus=1)
             for graine in (7, 42):
                 html = (Path(dossier) / f"essai_{graine}.html").read_text(encoding="utf-8")
                 self.assertIn(f"graine {graine}", html)
-            nuits("relais", [7], 0.2, "chambre_cloche", rejeu=dossier)
+            nuits("relais", [7], 0.2, "chambre_cloche", rejeu=dossier, processus=1)
             self.assertTrue((Path(dossier) / "rejeu_7.html").exists())
 
     @unittest.skipUnless(shutil.which("node"), "node absent : le script de la page ne peut pas tourner")
@@ -165,6 +166,48 @@ class AutresNuitsTests(unittest.TestCase):
         self.assertIn("Envers ", panneaux)
         for axe in ("confiance", "affection", "rancune", "peur", "dette"):
             self.assertRegex(panneaux, axe + r" \d+")
+
+
+class EmissionsRejeuTests(unittest.TestCase):
+    def test_parole_joueur_et_dispute_observees_sans_changer_etat_ni_rendu_recharges(self):
+        from donjon import ecoute, emissions, social
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        from tests.test_avis_joueur import preparer, dire
+        from tests.test_disputes import dispute
+        from tests.test_social import recharger
+
+        def bavarder(monde):
+            lignes = []
+            social.bavarder(monde, "aubin", lignes)
+            return monde, lignes
+
+        for creer_scene, parler, acte in ((preparer, dire, "parole_joueur"),
+                                          (dispute, bavarder, "dispute")):
+            with self.subTest(acte=acte):
+                initial = creer_scene()
+                resultats = []
+                for observer in (False, True):
+                    monde = recharger(initial.copier())
+                    enregistreur = Enregistreur(monde)
+                    avant = len(emissions.lire(monde))
+                    with enregistreur.observer() if observer else nullcontext():
+                        monde, resultat = parler(monde)
+                    flux = emissions.lire(monde)[avant:]
+                    self.assertTrue(any(p["acte"] == acte for p in flux))
+                    self.assertTrue(all(p["evenement"]["type"] and p["parametres"] for p in flux))
+                    entendu = ecoute.rendre(monde, ecoute.entendus(monde, -1, 0))
+                    reprise = recharger(monde)
+                    self.assertEqual(monde.data, reprise.data)
+                    self.assertEqual(regarder(monde), regarder(reprise))
+                    self.assertEqual(scene_percue(monde), scene_percue(reprise))
+                    self.assertEqual(entendu, ecoute.rendre(reprise, ecoute.entendus(reprise, -1, 0)))
+                    resultats.append((reprise.data, regarder(reprise), scene_percue(reprise), resultat, entendu))
+                    if observer:
+                        self.assertTrue(enregistreur.bruits)
+                        self.assertTrue(any(b.get("x") for b in enregistreur.bruits))
+                        self.assertIn('"bruits":', page(enregistreur.donnees(reprise, [])))
+                self.assertEqual(resultats[0], resultats[1])
 
 
 def degres(monde, enregistreur):

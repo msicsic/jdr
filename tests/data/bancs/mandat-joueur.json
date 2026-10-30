@@ -1,0 +1,25 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {
+  "salle": "antichambre", "position": [1, 3], "orientation": "sud",
+  "personnages": {
+   "aubin": {"salle": "antichambre", "position": [1, 4], "orientation": "nord"},
+   "brune": {"salle": "antichambre", "position": [0, 3], "orientation": "est"},
+   "ilse": {"salle": "antichambre", "position": [3, 5], "orientation": "nord-ouest"},
+   "marchand": {"salle": "echoppe", "position": [4, 1]}
+  },
+  "calmes": ["brune", "aubin", "ilse", "marchand"],
+  "noms_connus": ["aubin", "brune"],
+  "relations": {"aubin": {"joueur": {"confiance": 100, "affection": 100}}}
+ },
+ "types_attendus": [["mandat"], ["mandat"], ["affirmation"], ["mandat"], []],
+ "issues_attendues": [null, ["impossible"], null, ["accepte", "refus"], null],
+ "tours": [
+  "Aubin, je te confie la charge d'amener Brune dans l'échoppe.",
+  "Aubin, je te confie la charge d'informer Brune que le brasero est dans l'antichambre.",
+  "Aubin, Brune est ici, dans le refuge du relais.",
+  "Aubin, je te confie la charge d'informer Brune que le fanal est dans le refuge du relais.",
+  "fiche"
+ ]
+}

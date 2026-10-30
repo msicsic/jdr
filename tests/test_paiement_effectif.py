@@ -9,7 +9,8 @@ from donjon.matiere import id_piece
 from donjon.rendu import fiche
 from donjon.spatial import porte_par
 from tests.support import presentes
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_comptes_issue import audit
 from tests.test_parts_achetees import antichambre_du_banc
 from tests.test_propositions import scene
@@ -46,7 +47,7 @@ class PaiementEffectifTests(unittest.TestCase):
                     bon["proposition"]["contenu"] = [{"type": "proposition",
                         "demande": {"type": "part", "objet": lot},
                         "contrepartie": {"type": "pieces", "montant": prix}}]
-                texte = "Entendu."
+                texte = f"Tu m'as payé {prix} pièces."
                 # Une remise immédiate ou engagée dépend de la position réelle du bien.
                 comptes = [compte("joueur", "aubin", montant=prix, etat="rendu"),
                            compte("aubin", "joueur", piece, 1,
@@ -80,7 +81,7 @@ class PaiementEffectifTests(unittest.TestCase):
                 saisie = "je t'offre deux pièces pour une part de soupe"
                 m.objets["vivres"].update(nom="soupe", aliases=["soupe"], prix_part=2)
                 piece = id_piece(m, "vivres")
-                texte = "Entendu."
+                texte = "Tu m'as payé 2 pièces."
                 bon = parole(saisie, personnage="aubin")
                 bon["proposition"]["contenu"] = [{"type": "proposition",
                     "demande": {"type": "part", "objet": "vivres"},
@@ -128,7 +129,7 @@ class PaiementEffectifTests(unittest.TestCase):
         from tests.test_parole_corrections import banc
         m = banc("soir-appel")
         saisie = "Aubin, rends-moi les deux pièces dues."
-        bon = "Entendu."
+        bon = "Je te rends 2 pièces."
         faux = parole(saisie, personnage="aubin")
         faux["proposition"]["operations_demandees"]["reclamer"] = True
         r, sortie, _ = jouer(m, saisie, [faux,

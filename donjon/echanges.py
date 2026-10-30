@@ -86,6 +86,9 @@ def devis_service(monde, id, condition, pour):
     # L'absence de devis n'interdit pas une remise déjà possible en main.
     if not monde.objets.get(id, {}).get("profil"):
         return None
+    if condition.get('proteger'):
+        from .occasion_protection import devis
+        return devis(monde, id, condition)
     devis = devis_pulsion(monde, id, condition, pour)
     if devis is None:
         return None
@@ -138,6 +141,10 @@ def valeur_proposition(monde, auditeur, terme, pour, *, devis=None, sans=None):
     if t == "pieces":
         return valeur_pieces(monde, auditeur, terme["montant"])
     if t == "tache":
+        c = terme['condition']
+        if c.get('proteger') and c['objet'] == auditeur:
+            from .occasion_protection import utilite
+            return utilite(monde, auditeur, auditeur, pour)
         trouve = _devis_proposition(monde, auditeur, terme["condition"], pour, devis)
         return None if trouve is None else trouve[0]
     from .biens import valeur_bien
@@ -177,8 +184,10 @@ def evaluer_proposition(monde, proposant, auditeur, demande, contrepartie, *, de
     buts = [x["condition"] for x in (monde.objets[auditeur].get("profil") or {}).get("pulsions", [])]
     buts += [x["condition"] for x in agendas.en_cours(monde, auditeur, actifs=True)]
     g = 0.0
-    if contrepartie["type"] != "tache" or contrepartie["condition"] in buts:
-        g = valeur_proposition(monde, auditeur, contrepartie, auditeur, devis=devis,
+    if (contrepartie["type"] != "tache" or contrepartie["condition"] in buts
+            or contrepartie['condition'].get('proteger') and contrepartie['condition']['objet'] == auditeur):
+        g = valeur_proposition(monde, auditeur, contrepartie,
+                               proposant if contrepartie.get('condition', {}).get('proteger') else auditeur, devis=devis,
                                sans=demande.get("objet") if demande["type"] == "objet" else None)
     if g is None:
         g = 0.0  # Aucun moyen cru : il ne compte pas sur ce service.
@@ -238,6 +247,10 @@ def offre_sensee(monde, proposant, autre, demande, contrepartie, *, devis=None):
     """
     if demande is None:
         return False
+    if proposant != 'joueur' and contrepartie.get('condition', {}).get('proteger'):
+        from .occasion_protection import peur_crue, fonds_crus
+        if not peur_crue(monde, proposant, autre) or fonds_crus(monde, proposant, autre) < demande.get('montant', 0):
+            return False
     if devis is None:
         devis = {}
     if contrepartie["type"] == "tache" and not promesse_autonome(monde, proposant, autre, contrepartie, devis=devis):
@@ -250,6 +263,8 @@ def offre_sensee(monde, proposant, autre, demande, contrepartie, *, devis=None):
     if (demande_utile(monde, proposant, demande) != demande
             or demande_financee(monde, proposant, demande, contrepartie) != demande):
         return False
+    if autre == 'joueur':
+        return True  # Son choix explicite n'est jamais remplacé par une estimation.
     estimation = anticiper_valeur(monde, proposant, autre, demande, contrepartie)
     from .caractere import modificateur
     maximum = 20 + modificateur(monde, proposant, "CHA") + modificateur(monde, proposant, "ELO")
@@ -298,13 +313,16 @@ def anticiper_valeur(monde, proposant, autre, demande, contrepartie):
     p = valeur_proposition(m, autre, demande, proposant)
     g = valeur_proposition(m, autre, contrepartie, autre,
                            sans=demande.get("objet") if demande["type"] == "objet" else None)
+    if contrepartie.get('condition', {}).get('proteger'):
+        from .occasion_protection import utilite
+        g = utilite(monde, proposant, autre, proposant)
     # Les services non connus comme utiles ne sont pas un gain acquis.
     if p is None:
         return {"dd_base": float("inf")}
     return _bilan_valeur(p, g or 0.0, 0, 10, {"affection": 0, "dette": 0, "rancune": 0})
 
 
-def proposer(monde, proposant, auditeur, demande, contrepartie):
+def proposer(monde, proposant, auditeur, demande, contrepartie, *, accord_joueur=False):
     """Marché atomique : devis, jet, transferts et engagements avant publication des faits."""
     from .biens import donner, richesse
     from .deliberation import parts
@@ -321,11 +339,12 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
     if contrepartie.get("objet") and demande.get("objet") == contrepartie["objet"]:
         return {"cause": "meme_bien"}
     # Les remises présentes exigent le contact ; parler de loin ne téléporte aucun bien.
-    if not proche(monde, auditeur, proposant):
+    from .passage import au_contact
+    if not au_contact(monde, auditeur, proposant):
         return {"cause": "portee"}
     # L'auditeur qui refuse même de traiter n'a aucun devis de livraison à faire.
     # Même évaluation que pour un marché recevable, avant les recherches matérielles.
-    if accueil(monde, proposant, auditeur):
+    if auditeur != 'joueur' and accueil(monde, proposant, auditeur):
         return evaluer_proposition(monde, proposant, auditeur, demande, contrepartie)
     if contrepartie["type"] == "tache" and not promesse_autonome(monde, proposant, auditeur, contrepartie):
         return {"cause": "impossible"}
@@ -352,10 +371,15 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
                 disponible = richesse(monde, de)
             if disponible < terme["montant"]:
                 return {"cause": "pauvre"}
-    bilan = evaluer_proposition(monde, proposant, auditeur, demande, contrepartie)
+    if auditeur == 'joueur' and not accord_joueur:
+        return {'cause': 'attente'}
+    bilan = ({'cause': None, 'P': 0, 'G': 0} if auditeur == 'joueur' else
+             evaluer_proposition(monde, proposant, auditeur, demande, contrepartie))
     if bilan["cause"]:
         return bilan
-    accepte, _ = jet_persuasion(monde, auditeur, proposant, bilan["dd_base"])
+    accepte = True
+    if auditeur != 'joueur':
+        accepte, _ = jet_persuasion(monde, auditeur, proposant, bilan["dd_base"])
     original.data["jets"] = monde.data["jets"]
     if not accepte:
         return dict(bilan, cause="marche" if bilan["P"] > bilan["G"] else "persuasion")
@@ -402,6 +426,8 @@ def proposer(monde, proposant, auditeur, demande, contrepartie):
             engagement = {"condition": terme["condition"], "pour": a, "minute": monde.data["minutes"]}
             if not agendas.en_cours(monde, de, condition=terme["condition"], personne=a, actifs=True):
                 agendas.prendre(monde, de, engagement)
+                if de != 'joueur':
+                    agendas.admettre_contrat(monde, de, engagement)
                 if de != "joueur":
                     memoriser(monde, de, {"type": "engagement_pris", "pour": a, "condition": terme["condition"]})
     if demande["type"] != "tache":
@@ -899,7 +925,7 @@ def differee(monde, auditeur, objet, prix):
 
 # Les tâches qu'on peut payer quelqu'un de faire : ce que vise une pulsion qu'on rétablit soi-même
 # d'ordinaire, et que le planificateur sait faire faire (``planification._engager``).
-TACHES = ("allume", "verrouillee", "lieu")
+TACHES = ("allume", "verrouillee", "lieu", "proteger")
 
 
 def tache(condition):
@@ -952,6 +978,7 @@ def engager(monde, payeur, autre, condition, prix):
         agendas.retirer_proposition(monde, autre, engagement)
         return "cher"
     payer(monde, payeur, autre, prix)
+    agendas.admettre_contrat(monde, autre, engagement)
     memoriser(monde, autre, {"type": "engagement_pris", "pour": payeur, "condition": dict(condition), "prix": prix})
     if payeur != "joueur":
         echeance = _echeance_devis(monde, autre, devis)
@@ -1138,6 +1165,11 @@ def tenu(monde, id, condition, depuis=None):
     mettre du bois n'est pas un feu entretenu. Une part à servir ne l'est qu'au geste qui la sert
     (``servir`` solde l'engagement), quoi qu'il croie de la faim de l'autre."""
     from .deliberation import satisfaite
+    if condition.get('proteger'):
+        from .occasion_protection import fin
+        raison = fin(monde, id, condition, depuis if depuis is not None else monde.data['minutes'])
+        return raison in ('echeance', 'danger cru passe') and any(
+            x.get('commence') is not None for x in agendas.en_cours(monde, id, condition=condition, actifs=True))
     if "rendre" in condition:
         return satisfaite(monde, id, condition)  # Le prêt est clos : il le sait de sa main.
     if "servir" in condition or "remettre" in condition:
@@ -1195,10 +1227,15 @@ def _confier_mandat(monde, demandeur, auditeur, mandat):
     from .relations import autorite_mandat
     if getattr(monde, "_evaluation_agendas", None) is not None:
         raise ValueError("Publier le jugement après le devis")
+    if auditeur == 'joueur':
+        offre = agendas.proposer_mandat_joueur(monde, demandeur, mandat)
+        return ('accepte' if offre['statut'] == 'accepte' else
+                'refus' if offre['statut'] == 'refuse' else 'attente') if offre else 'qui_va_la'
     parent, sorte, parametres = mandat["parent"], mandat["sorte"], mandat["parametres"]
     # Valider filiation et contenu avant accueil, jet ou écriture sur le monde réel.
     copie = monde.copier()
-    candidat = agendas.confier(copie, demandeur, parent, auditeur, sorte, parametres, accepte=True)
+    candidat = agendas.confier(copie, demandeur, parent, auditeur, sorte, parametres, accepte=True,
+                              echeance=mandat.get('echeance'))
     existant = next((a for a in agendas.projets(monde, auditeur) if a["id"] == candidat["id"]
                      and a["origine"] == candidat["origine"]), None)
     jugement = {"qui": auditeur, "minute": monde.data["minutes"], "sorte": sorte,
@@ -1228,7 +1265,8 @@ def _confier_mandat(monde, demandeur, auditeur, mandat):
     jugement.setdefault("raison", issue)
     agendas.retenir_jugement(monde, demandeur, parent, jugement)
     if issue == "accepte":
-        echeance = agendas.echeance_observee(monde, demandeur, parent, auditeur, sorte, parametres)
+        echeance = mandat['echeance'] if 'echeance' in mandat else agendas.echeance_observee(
+            monde, demandeur, parent, auditeur, sorte, parametres)
         agendas.confier(monde, demandeur, parent, auditeur, sorte, parametres,
                         accepte=True, echeance=echeance)
     return issue
@@ -1299,6 +1337,7 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     """Remis par son propriétaire, un objet qui dure est prêté, ce qui se consomme est donné ;
     remis à son propriétaire, il lui est rendu (``deplacer`` clôt le prêt) ; remis par un autre,
     il change seulement de mains."""
+    agendas.expirer_obligations(monde)
     from .biens import donner, preter
     from .deliberation import besoin_de_part
     from .deplacement_objet import deplacer
@@ -1359,6 +1398,7 @@ def servir(monde, id, nourriture, pour, lignes):
     """Donner une part à quelqu'un de la même salle, qu'on appelle s'il est hors de vue : il la
     mange, et sait gré de l'avoir reçue. Il faut pouvoir se parler (``pnj.peuvent_se_parler`` :
     s'entendre et savoir qui parle), comme pour tout échange."""
+    agendas.expirer_obligations(monde)
     from .deliberation import SATIETE
     from .esprits import percoit
     from .francais import complement_de
@@ -1456,8 +1496,28 @@ def _avec_joueur(monde, id, etape, lignes):
     from .spatial import porte_par
     from .voix import personne_pour_joueur
     op = etape["operation"]
+    if op == 'confier' and etape.get('contenu', {}).get('mandat'):
+        if monde.joueur['salle'] != monde.objets[id]['lieu'] or not se_parler(monde, id, 'joueur'):
+            return False
+        mandat = etape['contenu']['mandat']
+        issue = confier(monde, id, 'joueur', mandat=mandat)
+        from .social import faire_entendre
+        texte = f"{_qui(monde, id)} te propose une charge : " + agendas.phrase_charge(
+            monde, mandat['sorte'], mandat['parametres']) + (
+                f", avant la minute {mandat['echeance']}" if 'echeance' in mandat else '') + '. Elle attend ton accord.'
+        _chroniquer(monde, id, texte, 'social')
+        faire_entendre(monde, id, 'joueur', texte, mandat['parametres']['qui'], lignes,
+                       acte='offre_mandat')
+        from .deliberation import retenir_refus
+        retenir_refus(monde, id, 'joueur', 'confier', issue, objet=etape['contenu']['objet'], mandat=mandat)
+        return issue == 'accepte'
     if op == "dire" and "annulation" in etape.get("contenu", {}):
         return annoncer_abandon(monde, id, "joueur", etape["contenu"]["annulation"], lignes)
+    if op == 'proposer':
+        if monde.joueur['salle'] != monde.objets[id]['lieu'] or not se_parler(monde, id, 'joueur'):
+            return False
+        from .pnj_propositions import executer
+        return executer(monde, id, 'joueur', etape['contenu'], lignes)
     objet = monde.objets.get(etape["outil"])
     if objet is None or op not in ("remettre", "demander"):
         return False
@@ -1507,6 +1567,9 @@ def _avec_joueur(monde, id, etape, lignes):
 
 
 def phrase_condition(monde, condition):
+    if condition.get('proteger'):
+        from .social import _qui
+        return f"{_qui(monde, condition['objet'])} soit sous protection jusqu'à la minute {condition['echeance']}"
     from .francais import accorder, designer, lieu
     x = monde.objets[condition["objet"]]
     o = designer(x)
@@ -1596,6 +1659,13 @@ def empeche(monde, id, engagement):
     from .deliberation import parts
     from .vol import proprietaire
     paye = engagement.get("paye")
+    if engagement['condition'].get('proteger'):
+        from .occasion_protection import fin
+        raison = fin(monde, id, engagement['condition'], engagement['minute'])
+        if raison:
+            return raison in ('protege cru mort', 'protege cru parti') or engagement.get('commence') is None
+        return not any(a['origine']['type'] == 'contrat' and a['etat'] in ('actif', 'sommeil')
+                       and a['origine']['condition'] == engagement['condition'] for a in agendas.projets(monde, id))
     if engagement.get("annule") or "rendre" in engagement["condition"] or "periode" in engagement["condition"]:
         return False
     if paye and paye["quoi"] != "tache":
@@ -1634,9 +1704,10 @@ def executer(monde, id, etape, lignes):
     if not o or o["type"] != "personnage" or not o.get("profil"):
         return False
     if op == "demander" and contenu.get("type") == "reclamer_dette":
-        from .biens import dues, reponse_creance_retenue, reclamer_dette
+        from .biens import dettes, reponse_creance_retenue, reclamer_dette
         from .pnj import pourraient_se_parler
-        if not dues(monde, autre, id) or reponse_creance_retenue(monde, id, autre):
+        if (not any(d['de'] == autre for d in dettes(monde, connues_de=id))
+                or reponse_creance_retenue(monde, id, autre)):
             return True  # Soldée ou réponse déjà reçue pendant l'approche.
         # Même contrat que solder : une créance se réclame par la parole,
         # y compris à travers un passage audible, sans remise d'objet.
@@ -1769,6 +1840,14 @@ def executer(monde, id, etape, lignes):
                 s['issue'] = issue
         if mandat:
             p = mandat["parametres"]
+            if issue != "qui_va_la":
+                enfant = next(a for a in agendas.projets(monde, autre)
+                              if a["origine"]["type"] == "mandat" and a["origine"]["de"] == id
+                              and a["origine"]["parent"] == mandat["parent"]
+                              and a["sorte"] == mandat["sorte"] and a["parametres"] == p) if issue == "accepte" else None
+                transmis.append({"type": "ordre_mandat", "titulaire": autre, "charge": {
+                    "mandant": id, "parent": mandat["parent"], "agenda": enfant["id"] if enfant else None,
+                    "sorte": mandat["sorte"], "parametres": p}})
             if mandat["sorte"] == "amener":
                 charge = phrase_condition(monde, {"objet": contenu["objet"], "lieu": p["lieu"]})
             else:

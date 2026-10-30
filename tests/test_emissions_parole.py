@@ -35,21 +35,28 @@ class EmissionsTests(unittest.TestCase):
             # Le premier tour prépare réellement les croyances du second.
             dialogues = [tour['dialogues'][-1]] if index == 0 else tour['dialogues'][:2]
             audits = [tour['audits'][-1]] if index == 0 else tour['audits'][:2]
-            m, sortie, appels = jouer(m, tour['saisie'], [tour['proposition'], *dialogues], audits)
+            # L'archive garde le schéma de sa capture. Le rejeu fournit la
+            # carte complète du protocole actuel, sans changer le contenu ni
+            # les mots historiques et sans assouplir leur contrôle moteur.
+            proposition = copy.deepcopy(tour['proposition'])
+            p = proposition['proposition']
+            codes = paroles.operations_contenu(p['contenu'])
+            p['operations_demandees'] = {t: p['operations_demandees'].get(t, t in codes)
+                                        for t in paroles.OPERATIONS}
+            m, sortie, appels = jouer(m, tour['saisie'], [proposition, *dialogues], audits, suite=('tenter',))
             sorties.append(sortie)
             self.assertRecharge(m)
-        rapport = next(e['faits']['conversation_validee'] for f, e in appels
-                       if f == 'repondre_au_joueur' and 'conversation_validee' in e['faits'])
-        self.assertEqual(rapport['repondent'], ['marchand'])
+        rapport = appels.rapports[-1]
+        self.assertEqual(rapport['repondent'], [])
         self.assertNotIn('se taisent', rapport['issue'])
         dites = emissions.entendues(rapport)
         self.assertEqual([p['locuteur'] for p in dites], ['marchand', 'aubin', 'ilse'])
         self.assertEqual([p['rendu'] for p in dites], archive['tours'][1]['rapport']['faits'])
         for p in dites:
             self.assertIn(p['rendu'], sorties[-1])
-        # La tentative 86 reste rejetée ; la reprise des citations de 87 est
-        # admise sans transformer Aubin et Ilse en nouveaux répondants.
-        self.assertEqual(sum(f == 'auditer_narration' for f, _ in appels), 2)
+        # G18 publie directement les mots de l'épisode historique, sans
+        # soumettre les reformulations 86/87 au modèle ni multiplier les voix.
+        self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
         fin = m.data['narrations_mj'][-1]['texte']
         self.assertNotIn('gardent le silence', fin)
         self.assertEqual(fin, ' '.join(p['rendu'] for p in dites))
@@ -70,21 +77,22 @@ class EmissionsTests(unittest.TestCase):
         prepare, rapport = paroles.preparer_parole(m, {"personnage": "marchand",
             "_intention": saisie, "replique": "l'eau va gagner la conduite basse",
             "contenu": [{"type": "avis", "sujet": "echoppe", "attribut": "menace", "valeur": "oui"}]})
-        self.assertEqual(rapport['repondent'], ['marchand'])
+        self.assertEqual(rapport['repondent'], [])
         self.assertNotIn('se taisent', rapport['issue'])
         prononcees = emissions.entendues(rapport)
         self.assertTrue(prononcees)
         self.assertTrue(any(p['locuteur'] != 'marchand' for p in prononcees))
         self.assertEqual(rapport['faits'], emissions.faits(rapport))
         avant = copy.deepcopy(m.data['crue'])
-        # Luna omet les réactions entre PNJ : le raccord commun les conserve.
+        # Les réactions entre PNJ sont rendues directement par le moteur.
         reprise, sortie, appels = jouer(m, saisie, [
             parole("l'eau va gagner la conduite basse", ('avis', 'echoppe', 'menace', 'oui'), personnage='marchand'),
-            {**dialogue('Gorm t’écoute.'), 'faits': ['conversation_validee']}], [verdicts(NEUTRE)])
+            {**dialogue('Gorm t’écoute.'), 'faits': ['conversation_validee']}], [verdicts(NEUTRE)], suite=('tenter',))
         self.assertEqual(reprise.data['crue'], avant)
         for p in prononcees:
             self.assertIn(p.get('rendu_public', p['rendu']), sortie)
-        self.assertIn('Gorm t’écoute.', reprise.data['narrations_mj'][-1]['texte'])
+        self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
+        self.assertNotIn('Gorm t’écoute.', reprise.data['narrations_mj'][-1]['texte'])
         for cle in ('paroles_joueur', 'paroles_pnj'):
             self.assertNotIn(cle, reprise.data)
         ids = [p['id'] for p in emissions.lire(reprise)]
@@ -219,9 +227,8 @@ class EmissionsTests(unittest.TestCase):
         saisie = "je dis : l'eau va gagner la conduite basse"
         self.assertEqual(paroles.prevue(m, saisie)['personnage'], 'personne')
         proposition = parole("l'eau va gagner la conduite basse", ('avis', 'echoppe', 'menace', 'oui'), personnage='personne')
-        r, sortie, appels = jouer(m, saisie, [proposition, dialogue('Ta voix résonne.')], [verdicts(NEUTRE)])
-        rapport = next(e['faits']['conversation_validee'] for f, e in appels
-                       if f == 'repondre_au_joueur' and 'conversation_validee' in e['faits'])
+        r, sortie, appels = jouer(m, saisie, [proposition, dialogue('Ta voix résonne.')], [verdicts(NEUTRE)], suite=('tenter',))
+        rapport = appels.rapports[-1]
         self.assertEqual(rapport['repondent'], [])
         self.assertTrue(emissions.entendues(rapport))
         self.assertNotIn('Aucune réponse', rapport['issue'])

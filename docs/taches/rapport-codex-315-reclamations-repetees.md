@@ -1,5 +1,26 @@
 # Lot 315 — réclamations et contact du débiteur
 
+**Réaccordance du 2026-10-30.** Fusion Git, sans rebase, de l'essai d'intégration
+`8f410f7` dans le 315 `beaecc7`. Les deux intentions de `biens.regler/solder`
+sont conservées : rétention durable du refus et ordre des comptes du 315 ;
+dette non encore apprise, réalisation datée et remboursement unique d'E2.
+Les références E1 et les points de réalisation E2 ne sont pas réécrits.
+`dettes(..., connues_de=...)` fournit une lecture commune des seules créances
+apprises à `planification.reclamer`, `echanges.executer` et `entrees_creance` :
+une dette marquée `a_prevenir` ne prépare aucune demande et ne lève aucun refus.
+Les comptes physiques et le remboursement volontaire gardent toutes les dettes.
+
+**Validation de cette fusion.** 29 tests ciblés verts, dont deux régressions
+de croisement exercées chacune sur l'huile remise et le verrouillage payé :
+échéance dépassée, ancien plan silencieux, refus durable malgré une dette
+nouvelle inconnue, réponse locale, remboursement volontaire et archive unique ;
+monde, rendu et scène perçue comparés après recharge. Les 37 fichiers ciblés
+des rapports 315/348/350 et des modules touchés sont en cours de validation.
+Bruts : `C:/Users/msics/donjon/artifacts/reclamations-315/fusion-e1-e2/`.
+Le point de reprise reprend l'essai, avec la seule entrée du 315 ajoutée.
+Ni suite complète, ni Luna, ni nouvelles empreintes : cette fusion conserve
+les contrats validés par les lots, dont les mesures et limites restent ci-dessous.
+
 Branche `codex-reclamations-repetees`, base **c4f6d46**, moteur final
 **faa5967**. **Lot terminé ; identité stricte non atteinte.**
 

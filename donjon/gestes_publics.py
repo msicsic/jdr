@@ -16,6 +16,105 @@ DESTINATION = {"champ": "destination", "ressources": [
     {"type": "contenant"}, {"type": "luminaire"}, {"foyer": True}], "aptitude": "depot"}
 CORPS = ("personnage", "depouille", "partie_corps")
 
+# Famille portée par U-M corps seulement ; U-T gardera son interface actuelle.
+# Ces choix ne calculent aucune aptitude : toute ressource connue peut être
+# choisie, puis le moteur tranche. La surprise est une défense calculée, pas
+# une méthode que le joueur pourrait imposer.
+GESTES_CORPS = frozenset(("frapper", "saisir", "ligoter", "delier", "liberer",
+                         "trainer", "pousser", "ranimer", "tuer", "fuir",
+                         "riposter", "se_rendre", "degager"))
+REACTIONS = frozenset(("fuir", "riposter", "se_rendre", "degager"))
+GESTES_PASSAGE = frozenset(("passer_obstacle", "franchir", "franchir_obstacle"))
+
+
+def passages_publics(monde):
+    """Formes établies et perçues, jamais les résultats du calcul d'aptitude.
+
+    La page ne reçoit que des choix, sans dimensions ni conditions privées.
+    Une qualification absente reste au chemin libre ; une qualification qui
+    interdit physiquement le passage laisse le moteur expliquer son refus.
+    """
+    from .matiere import valider_passage
+    from .monde import ErreurMonde
+    from .noms import public
+    from .francais import designer
+    from .franchissement import cle_arbitrage
+    offres = []
+    noms = noms_des_choix([{"id": id, "nom": designer(o)} for id, o in monde.objets.items()
+                          if monde.visible(id) or ressource_connue(monde, id)])
+    for id, o in monde.objets.items():
+        if not monde.visible(id):
+            continue
+        if o.get("bloque_passage") and o.get("passage") is not None:
+            try:
+                valider_passage(o, o["passage"])
+            except ErreurMonde:
+                continue
+            offres.extend({"cible": id, "geste": "passer_obstacle", "methode": methode,
+                           "libelle": libelle} for methode, libelle in
+                          (("dessous", "Passer dessous"), ("dessus", "Passer par-dessus")))
+        if o.get("assemblage") and o.get("installation"):
+            support = monde.objets.get(o["installation"].get("support"), {})
+            a = support.get("appui_vertical", {})
+            if (support and monde.visible(support["id"]) and
+                    all(k in a for k in ("bas", "haut", "hauteur_cm", "recul_cm",
+                                         "sol_stable", "sommet_stable"))):
+                offres.append({"cible": id, "ancrage": support["id"], "geste": "franchir",
+                               "libelle": "Franchir par " + noms[id]})
+        a = o.get("appui_vertical", {})
+        if not a or not all(k in a for k in ("bas", "haut", "hauteur_cm", "elan_cm",
+                                             "sol_stable", "reception_stable")):
+            continue
+        for outil, t in monde.objets.items():
+            if (not ressource_connue(monde, outil) or not
+                    (t.get("ressource") == "perche" or "appui_mobile" in t.get("usages", []))):
+                continue
+            try:
+                cle = cle_arbitrage(monde, id, outil, a["haut"])
+            except KeyError:
+                continue  # Une donnée physique manque ; aucun arbitrage inventé.
+            precedent = monde.data["arbitrages"].get(cle)
+            if precedent and type(precedent.get("dd")) is int and 16 <= precedent["dd"] <= 22:
+                offres.append({"cible": id, "geste": "franchir_obstacle", "outil": outil,
+                               "libelle": ("Franchir avec " if monde.est_porte(outil) else "Prendre puis franchir avec ")
+                                          + noms[outil]})
+    return public(monde, offres)
+
+
+def formulaires_corps():
+    from .spatial import VECTEURS
+    outil = {"champ": "outil", "libelle": "Moyen", "type": "ressource",
+             "vide": "Mains nues"}
+    direction = {"champ": "direction", "libelle": "Direction", "type": "choix",
+                 "choix": list(VECTEURS)}
+    return [
+        {"geste": "frapper", "libelle": "Frapper / assommer…", "champs": [
+            {"champ": "methode", "libelle": "Méthode", "type": "choix",
+             "choix": ["simple", "assommer"]}, outil]},
+        {"geste": "saisir", "libelle": "Saisir", "champs": []},
+        {"geste": "ligoter", "libelle": "Ligoter avec…", "champs": [
+            {"champ": "outil", "libelle": "Lien", "type": "ressource"}]},
+        {"geste": "delier", "libelle": "Délier…", "champs": [outil]},
+        {"geste": "liberer", "libelle": "Défaire mes liens", "champs": []},
+        {"geste": "trainer", "libelle": "Traîner vers…", "champs": [direction]},
+        {"geste": "pousser", "libelle": "Pousser vers…", "champs": [
+            {**direction, "choix": ["", *direction["choix"]]}]},
+        {"geste": "ranimer", "libelle": "Ranimer", "champs": []},
+        {"geste": "tuer", "libelle": "Tuer…", "champs": [outil]},
+        {"geste": "fuir", "libelle": "Fuir par la sortie connue la plus proche", "danger": True, "champs": []},
+        {"geste": "riposter", "libelle": "Riposter avec…", "danger": True, "champs": [outil]},
+        {"geste": "se_rendre", "libelle": "Me rendre à cette personne", "danger": True, "champs": []},
+        {"geste": "degager", "libelle": "Me dégager", "danger": True, "champs": []},
+    ]
+
+
+def dangers_publics(monde):
+    """Références des dangers vus et encore perçus, sans faits privés."""
+    from .defense import dangers_vus
+    from .noms import reference
+    return [reference(monde, d["auteur"]) for d in dangers_vus(monde)
+            if d["auteur"] in monde.objets and monde.visible(d["auteur"])]
+
 
 def ressource_connue(monde, id, exiger_portee=True):
     """Frontière commune des choix matériels : portée et perception actuelles."""
@@ -256,6 +355,7 @@ def catalogue_public():
     catalogue = {famille: [deepcopy(list(entree)) for entree in table]
                  for famille, table in (("objets", OBJETS), ("portes", PORTES))}
     catalogue["fabrication"] = formulaires_fabrication()
+    catalogue["corps"] = formulaires_corps()
     return catalogue
 
 

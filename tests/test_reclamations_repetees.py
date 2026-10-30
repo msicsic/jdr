@@ -19,6 +19,95 @@ from tests.test_tensions import placer, recharger, relais, vivre
 
 
 class ReclamationsRepeteesTests(unittest.TestCase):
+    def echeance_payee(self, tache):
+        from tests.test_realisation_datee import RealisationDateeTests
+        cas = RealisationDateeTests()
+        if tache:
+            m, de, a, x = cas.verrou()
+        else:
+            m, x = cas.huile()
+            de, a = 'odile', 'joss'
+        # Isoler le marché réellement payé des autres comptes du scénario.
+        m.data['dettes'] = []
+        m.data['finances_pnj'][de] = 0
+        return m, de, a, x
+
+    def test_echeance_inconnue_ni_plan_ni_ancien_plan_puis_reponse_et_paiement_uniques(self):
+        from copy import deepcopy
+        from donjon import agendas
+        from donjon.planification import _etape
+        from donjon.temps import ecouler
+        for tache in (False, True):
+            with self.subTest(tache=tache):
+                m, de, a, x = self.echeance_payee(tache)
+                ecouler(m, 101)
+                agendas.echoir(m, de)
+                m = self.recharge(m)
+                issue, = agendas.issues_temporelles(m)
+                self.assertEqual(issue['verdict'], 'en_retard')
+                self.assertIsNone(issue['realisation'])
+                dette, = m.data['dettes']
+                self.assertEqual(dette['montant'], 1)
+                self.assertTrue(dette['a_prevenir'])
+                avant = deepcopy(m.data)
+                self.assertIsNone(planification.reclamer(m, a))
+                geste = _etape('demander', de, contenu={'type': 'reclamer_dette'})
+                lignes = []
+                self.assertTrue(executer(m, a, geste, lignes))
+                solder(m, lignes)
+                self.assertEqual(lignes, [])
+                self.assertEqual(m.data, avant)
+                # Une réponse locale apporte la connaissance ; le refus qui
+                # en découle dure, et n'empêche pas un remboursement volontaire.
+                reclamer_dette(m, a, de, [])
+                self.assertNotIn('a_prevenir', dette)
+                self.assertTrue(reponse_creance_retenue(m, a, de))
+                m = self.recharge(m)
+                ecouler(m, deliberation.REDEMANDE * 20)
+                self.assertIsNone(planification.reclamer(m, a))
+                m.objets[de]['profil']['valeurs']['honnetete'] = 100
+                m.data['finances_pnj'][de] = 1
+                avant_paiement = bourse(m, a)
+                solder(m, [])
+                self.assertEqual(bourse(m, a), avant_paiement + 1)
+                self.assertEqual(bourse(m, de), 0)
+                self.assertEqual(m.data['dettes'], [])
+                for _ in range(2):
+                    agendas.echoir(m, de)
+                    solder(m, [])
+                    m = self.recharge(m)
+                self.assertEqual(agendas.issues_temporelles(m), [issue])
+                self.assertEqual(bourse(m, a), avant_paiement + 1)
+
+    def test_echeance_inconnue_ne_leve_pas_un_refus_sur_une_creance_connue(self):
+        from copy import deepcopy
+        from donjon import agendas
+        from donjon.temps import ecouler
+        for tache in (False, True):
+            with self.subTest(tache=tache):
+                m, de, a, x = self.echeance_payee(tache)
+                rembourser(m, de, a, 2, x['condition']['objet'], 'tache')
+                reclamer_dette(m, a, de, [])
+                self.assertTrue(reponse_creance_retenue(m, a, de))
+                entrees = entrees_creance(m, a, de)
+                memoire = deepcopy(lire(m, a)['memoire'])
+                ecouler(m, 101)
+                agendas.echoir(m, de)
+                self.assertEqual(sum(d['montant'] for d in m.data['dettes']), 3)
+                self.assertEqual(entrees_creance(m, a, de), entrees)
+                self.assertEqual(lire(m, a)['memoire'], memoire)
+                self.assertTrue(reponse_creance_retenue(m, a, de))
+                self.assertIsNone(planification.reclamer(m, a))
+                avant = len(m.data['chronique'])
+                for _ in range(2):
+                    solder(m, [])
+                    agendas.echoir(m, de)
+                    m = self.recharge(m)
+                self.assertEqual(len(m.data['chronique']), avant)
+                self.assertEqual(len(agendas.issues_temporelles(m)), 1)
+                self.assertEqual(sum(d['montant'] for d in m.data['dettes']), 3)
+                self.assertEqual(sum(bool(d.get('a_prevenir')) for d in m.data['dettes']), 1)
+
     def test_capture_reelle_306_seve_2024_avant_83(self):
         # Capture 306 t=22057 rejouée avec le moteur de base jusqu'à la minute 82.
         chemin = Path(__file__).parent / 'captures/reclamations-315-hameau-2024.json.gz'

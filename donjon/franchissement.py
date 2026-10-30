@@ -121,6 +121,24 @@ def conditions(m, cible, outil, destination, tenu=True):
     return a, valeurs
 
 
+def cle_arbitrage(m, cible, outil, destination, valeurs=None):
+    """Identité pure d'un arbitrage, sans tester la faisabilité du mouvement.
+
+    La même clé permet à une interface de retrouver une difficulté déjà
+    décidée, sans estimer elle-même cette difficulté ni compiler un plan.
+    """
+    a, t = m.objets[cible]["appui_vertical"], m.objets[outil]
+    if valeurs is None:
+        valeurs = {"hauteur": a["hauteur_cm"], "elan": a["elan_cm"],
+                   "longueur": t["longueur_cm"], "charge": t["charge_jeu_kg"],
+                   "poids": m.joueur["masse_kg"],
+                   "charge_portee": m.charge() + (0 if m.est_porte(outil) else t["masse"])}
+    signature = {"version": 1, "methode": "appui_mobile", "obstacle": cible,
+                 "destination": destination, "valeurs": valeurs,
+                 "matiere": t["materiau"], "appuis": a}
+    return "franchissement:" + hashlib.sha256(json.dumps(signature, sort_keys=True).encode()).hexdigest()
+
+
 def compiler(m, e, justification, origine):
     from .moteur import Plan
     if e["methode"] != "appui_mobile" or not 16 <= e["difficulte"] <= 22:
@@ -131,10 +149,7 @@ def compiler(m, e, justification, origine):
     exiger(m, e["cible"])
     p = Plan({"action": "composer", "justification": justification}, m.data["revision"],
              "Tenter de franchir " + designer(m.objets[e["cible"]]) + " en prenant appui sur " + designer(m.objets[e["outil"]]) + ".", origine=origine)
-    signature = {"version": 1, "methode": e["methode"], "obstacle": e["cible"],
-                 "destination": e["destination"], "valeurs": valeurs,
-                 "matiere": m.objets[e["outil"]]["materiau"], "appuis": a}
-    p.cle_arbitrage = "franchissement:" + hashlib.sha256(json.dumps(signature, sort_keys=True).encode()).hexdigest()
+    p.cle_arbitrage = cle_arbitrage(m, e["cible"], e["outil"], e["destination"], valeurs)
     precedent = m.data["arbitrages"].get(p.cle_arbitrage)
     p.stat, p.dd = "DEX", precedent["dd"] if precedent else e["difficulte"]
     if precedent:

@@ -30,9 +30,9 @@ from .monde import ErreurMonde, normaliser
 from .relations import FIABLE
 
 ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
-TYPES_JOUEUR = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "localisation", "proposition")
-# Le transport PNJ dispose du compte rendu ; le protocole joueur attend A5/10.
-TYPES = (*TYPES_JOUEUR, "compte_rendu")
+TYPES_JOUEUR = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "localisation", "proposition", "mandat", "reponse_mandat", "bilan_mandat")
+# Les contenus de transport restent distincts des actes proposés par le joueur.
+TYPES = (*TYPES_JOUEUR, "compte_rendu", "ordre_mandat")
 CHAMPS_CONTENU = {
     "propos": (), "affirmation": ("sujet", "attribut", "valeur"),
     "demande": ("sujet", "valeur"), "passage": ("sujet", "valeur"),
@@ -46,11 +46,14 @@ BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » che
 # de besoins restent disponibles pour les demandes générales ; un bien nommé
 # conserve son nom, sans être élargi au besoin qu'il pourrait servir.
 SENS_CONTENU = {
+    "mandat": "Confier à l'interlocuteur une charge amener (qui, lieu) ou informer (qui, fait : affirmation sujet/attribut/valeur). Le fait est le contenu à faire transmettre par le mandaté au destinataire qui ; il ne constitue pas une affirmation autonome supplémentaire de Corvus à son interlocuteur actuel. Le moteur juge la demande sans accord anticipé.",
+    "reponse_mandat": "Accepter ou refuser une offre de mandat effectivement entendue : offre est son identifiant public mN, accepter est un booléen. Aucun geste n'est exécuté à la place du joueur.",
+    "bilan_mandat": "Rendre compte à son mandant d'une charge acceptée : agenda est son identifiant public, issue est reussi, echoue ou renonce. Cela établit une parole, jamais la vérité de son résultat.",
     "localisation": "Demander où se trouve une personne connue, désignée par sujet. La réponse transmet la dernière croyance datée de l'interlocuteur, jamais une position cachée.",
     "avis": "Prévoir qu'une menace atteindra ou épargnera un lieu : annoncer une évolution future est un avis, même formulé comme une certitude, sans marque d'opinion ni échéance explicite. sujet est la référence publique du lieu connu de Corvus, attribut menace, valeur oui (menacé) ou non (épargné). Le prédicat disponible évalue la menace d'eau ; son horizon de calcul est fixé par le moteur, il n'est pas une condition à exprimer dans la parole. Le contenu transmet la prévision du joueur, jamais un fait établi ; sa conviction est calculée par le moteur sur ses perceptions.",
     "proposition": "Proposer un échange indivisible : demande (objet, part ou tache) et contrepartie (objet, part, tache promise, pieces ou rien). Le moteur tranche et enregistre avant la réponse.",
-    "propos": "Parole dont le sens ne relève d'aucune des opérations disponibles. Reproduire les mots du joueur ne dispense pas de typer les opérations qu'ils expriment.",
-    "affirmation": "Affirmer la valeur d'un attribut d'un sujet.",
+    "propos": "Parole qui n'accomplit aucun des actes disponibles. La visibilité, l'évidence ou la connaissance préalable d'une information ne transforment pas une affirmation en propos sans effet typé. Reproduire les mots du joueur ne dispense pas de typer leur sens.",
+    "affirmation": "Communiquer directement à l'interlocuteur un fait représentable par sujet, attribut et valeur. Sa visibilité, son évidence, sa nouveauté et le souhait explicite d'un effet mécanique ne changent pas cet acte. Un contenu à faire transmettre dans un contrat appartient à ce contrat ; il n'est pas une affirmation autonome supplémentaire de Corvus.",
     "demande": "Demander un objet ou une part de ressource ; valeur est le prix offert, vide sans offre.",
     "passage": "Demander de laisser passer ; valeur est le prix offert, vide sans offre.",
     "aveu": "Avouer le geste valeur sur l'objet sujet.",
@@ -62,7 +65,7 @@ SENS_CONTENU = {
 RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
 OPERATIONS = {t: sens for t, sens in SENS_CONTENU.items() if t != "propos"}
 SCHEMA_OPERATIONS = {"type": "object", "additionalProperties": False,
-    "description": "Analyser d'abord le sens de la saisie seule, avant de choisir le contenu. Pour chaque opération disponible, vrai si les mots du joueur en expriment le sens, même sans demander explicitement un effet du moteur, même sous forme déclarative, négative ou incertaine. La vérité de la parole et la réussite de ses conséquences ne décident pas de son typage. Toutes sont fausses seulement si aucune définition ne s'applique ; cette conclusion permet de dispenser la parole de contre-revue.",
+    "description": "Analyser d'abord le sens de la saisie seule, avant de choisir le contenu. Une opération désigne un acte que Corvus accomplit par cette parole envers son destinataire. Les contenus confiés pour une transmission ou une réalisation ultérieure restent dans leur contrat englobant ; ils ne sont pas aussi des actes autonomes de Corvus. Pour chaque opération disponible, vrai si la saisie accomplit cet acte, même sans demander explicitement un effet du moteur, même sous forme déclarative, négative ou incertaine. La vérité, la connaissance préalable et la réussite ne décident pas du typage. Toutes sont fausses seulement si aucune définition ne s'applique ; cette conclusion permet de dispenser la parole de contre-revue.",
     "properties": {t: {"type": "boolean", "description": sens} for t, sens in OPERATIONS.items()},
     "required": list(OPERATIONS)}
 
@@ -105,7 +108,7 @@ _contenu_ordinaire = SCHEMA_PAROLE["properties"]["contenu"]["items"]
 # sans annoncer les sens exclus par son discriminant.
 _variantes_contenu = []
 for _type_contenu in TYPES_JOUEUR:
-    if _type_contenu == "proposition":
+    if _type_contenu in ("proposition", "mandat", "reponse_mandat", "bilan_mandat"):
         continue
     _variante = copy.deepcopy(_contenu_ordinaire)
     _variante["properties"]["type"] = {"type": "string", "enum": [_type_contenu],
@@ -118,6 +121,25 @@ for _type_contenu in TYPES_JOUEUR:
             _variante["properties"][_champ] = {"type": "string", "enum": [""]}
     _variantes_contenu.append(_variante)
 SCHEMA_PAROLE["properties"]["contenu"]["items"] = {"anyOf": [*_variantes_contenu, SCHEMA_PROPOSITION]}
+
+def _schema_contenu(type_, champs, *, sens=None):
+    return {'type': 'object', 'additionalProperties': False,
+            'properties': {'type': {'type': 'string', 'enum': [type_],
+                'description': type_ + ' : ' + (sens or SENS_CONTENU[type_])}, **champs},
+            'required': ['type', *champs]}
+
+_personnes_mandat = {'type': 'array', 'minItems': 1, 'items': {'type': 'string'}}
+_schemas_mandat = [
+    _schema_contenu('mandat', {'sorte': {'type': 'string', 'enum': ['amener']},
+        'qui': _personnes_mandat, 'lieu': {'type': 'string'}}),
+    _schema_contenu('mandat', {'sorte': {'type': 'string', 'enum': ['informer']},
+        'qui': _personnes_mandat, 'fait': _schema_contenu('affirmation', {
+            'sujet': {'type': 'string'}, 'attribut': {'type': 'string', 'enum': ['lieu', 'verrouillee']},
+            'valeur': {'type': 'string'}}, sens="Fait de la charge à transmettre par le mandaté au destinataire qui. Cette structure décrit le contenu confié, pas un acte autonome supplémentaire de Corvus dans operations_demandees.")}),
+    _schema_contenu('reponse_mandat', {'offre': {'type': 'string'}, 'accepter': {'type': 'boolean'}}),
+    _schema_contenu('bilan_mandat', {'agenda': {'type': 'string'},
+        'issue': {'type': 'string', 'enum': list(agendas.ISSUES_COMPTE_RENDU)}})]
+SCHEMA_PAROLE['properties']['contenu']['items']['anyOf'].extend(_schemas_mandat)
 
 
 def sens_contenu(contenu, monde=None):
@@ -335,22 +357,23 @@ def _phrase(monde, sujet, attribut, valeur):
     return ""
 
 
-def _ouidire(monde, source):
+def _ouidire(monde, source, *, moi=False):
     """D'où il tient une croyance rapportée, nommé seulement si le joueur connaît ce témoin et que
     le personnage savait qui le lui disait."""
     if source == "se_dit":
-        return " (une voix le lui a dit d'elle-même)"
+        return " (une voix me l'a dit d'elle-même)" if moi else " (une voix le lui a dit d'elle-même)"
     if not source.startswith("dit:"):
         return ""
     from .voix import auteur_dit
     locuteur, inconnue = auteur_dit(source)
     if inconnue:
-        return " (une voix inconnue le lui a dit)"
+        return " (une voix inconnue me l'a dit)" if moi else " (une voix inconnue le lui a dit)"
     if locuteur == "joueur":
-        return " (tu le lui as dit)"
+        return " (tu me l'as dit)" if moi else " (tu le lui as dit)"
     if locuteur in monde.objets and _connu_du_joueur(monde, locuteur):
-        return f" ({monde.objets[locuteur]['nom'].split(',')[0]} le lui a dit)"
-    return " (on le lui a dit)"
+        nom = monde.objets[locuteur]['nom'].split(',')[0]
+        return f" ({nom} me l'a dit)" if moi else f" ({nom} le lui a dit)"
+    return " (on me l'a dit)" if moi else " (on le lui a dit)"
 
 
 def esprits_interlocuteurs(monde, presents):
@@ -468,6 +491,9 @@ def contexte(monde, intention=None):
         return None
     resultat = {"expression_joueur": bande_expression(monde.joueur["stats"]),
                 "esprits_interlocuteurs": esprits_interlocuteurs(monde, presents)}
+    if agendas.offres_mandat_joueur(monde) or agendas.projets(monde, 'joueur'):
+        resultat['mandats_joueur'] = {'offres': agendas.offres_mandat_joueur(monde),
+                                     'charges': agendas.mandats_visibles(monde)}
     if intention is not None:
         resultat["parole_prevue"] = {**prevue(monde, intention), **({"regard": vers} if vers else {})}
     return resultat
@@ -1230,6 +1256,15 @@ def verifier_nom(monde, contenu, replique):
 
 def _typer(monde, c, auditeur=None):
     """Contenu typé exploitable, ou None : ce qui ne peut pas être transmis reste un simple propos."""
+    if isinstance(c, dict) and c.get('type') in ('reponse_mandat', 'bilan_mandat'):
+        return copy.deepcopy(c)
+    if isinstance(c, dict) and c.get('type') == 'mandat':
+        p = {'qui': [resoudre(monde, q) for q in c['qui']]}
+        if c['sorte'] == 'amener':
+            p['lieu'] = resoudre(monde, c['lieu'])
+        else:
+            p['fait'] = _typer(monde, c['fait'], auditeur)
+        return {'type': 'mandat', 'sorte': c['sorte'], 'parametres': agendas._condition_mandat(monde, c['sorte'], p)}
     if isinstance(c, dict) and c.get("type") == "avis":
         from .social import avis_exprime
         return {"type": "rumeur", "evenement": avis_exprime(
@@ -1305,6 +1340,28 @@ def verifier_contenus(monde, contenu):
     """
     for i, c in enumerate(contenu):
         if not isinstance(c, dict):
+            continue
+        if c.get('type') in ('mandat', 'reponse_mandat', 'bilan_mandat'):
+            def conforme(v, s):
+                if s['type'] == 'object':
+                    return (isinstance(v, dict) and set(v) == set(s['required'])
+                            and all(conforme(v[k], schema) for k, schema in s['properties'].items()))
+                if s['type'] == 'array':
+                    return isinstance(v, list) and len(v) >= s.get('minItems', 0) and all(conforme(x, s['items']) for x in v)
+                return ((type(v) is bool if s['type'] == 'boolean' else isinstance(v, str))
+                        and ('enum' not in s or v in s['enum']))
+            if not any(conforme(c, s) for s in _schemas_mandat):
+                raise ErreurMonde("Le contenu du mandat est mal formé.",
+                                  f'contenu[{i}]={c!r}; attendu : {_schemas_mandat}')
+            if c['type'] == 'mandat':
+                try:
+                    t = _typer(monde, c)
+                    agendas._condition_mandat(monde, c['sorte'], t['parametres'])
+                    if c['sorte'] == 'informer' and t['parametres']['fait'] is None:
+                        raise ValueError('Fait inconnu')
+                except ValueError:
+                    raise ErreurMonde("Cette charge ne désigne pas des références connues.",
+                        f'contenu[{i}]={c!r}; attendu : amener/informer, personnes et lieu ou fait connus') from None
             continue
         if c.get("type") == "proposition":
             from .propositions import verifier
@@ -1398,6 +1455,7 @@ def _se_nommer(travail, auditeur, nom_dit, faits):
         "crue": f"{nom} te croit sur parole : pour {lui}, c'est « {dit} » qui parle. Cela ne te vaut pas plus de "
                 "confiance qu'à un inconnu.",
     }[issue])
+    return {"etat": issue, "nom": dit}
 
 
 def _qui_est_la(travail, auditeur, faits):
@@ -1407,10 +1465,11 @@ def _qui_est_la(travail, auditeur, faits):
     nom, il, _ = _personne(travail, auditeur)
     if mefiance(percue(travail, auditeur, "joueur")):
         faits.append(f"{nom} refuse de te dire qui {il} est.")
-        return
+        return {"etat": "refus"}
     vrai = travail.objets[auditeur]["nom"].split(",")[0]
     se_nommer(travail, "joueur", auditeur, auditeur)
     faits.append(f"{nom} se nomme : « {vrai} ».")
+    return {"etat": "nomme", "nom": vrai}
 
 
 def _affirmer(travail, auditeur, sujet, attribut, valeur, faits):
@@ -1467,6 +1526,12 @@ def _demander(travail, auditeur, objet, faits, prix=0):
                    f"{nom} accepte de t'en donner une part : " + servie),
         "impossible": f"{nom} ne voit pas comment te donner {o}.",
     }[issue])
+    if vend or prix:
+        return {"etat": issue, "prix": vend or 0, "objet": objet,
+            **({"offre": {"demande": {"type": "part" if part else "objet", "objet": objet},
+                          "contrepartie": {"type": "pieces", "montant": prix}}}
+               if prix and issue not in ("vendu", "remis", "rendu", "promis") else {})}
+    return None
 
 
 def _part_vendue(travail, auditeur, lot, nom, il, prix):
@@ -1508,7 +1573,7 @@ def _reclamer(travail, auditeur, objet, faits, comptes):
         if "sans_le_sou" in issues and not lignes:
             faits.append(f"{nom} n'a pas de quoi te rendre {quantite(montant, 'pièce', determinant='defini')} "
                          f"qu'{il} te doit.")
-        return
+        return {"reglements": issues}
     o = travail.objets.get(objet)
     if o is None or o["type"] == "personnage" or proprietaire(travail, o) != "joueur" \
             or not porte_par(travail, objet, auditeur):
@@ -1544,6 +1609,7 @@ def _enqueter(travail, auditeur, besoin, faits):
                       "mefiance": f"{nom} refuse de te répondre : {il} ne te fait pas confiance.",
                       "rancune": f"{nom} refuse de te répondre : {il} t'en veut encore.",
                       "rien": f"{nom} dit n'en avoir pas."}[issue])
+    return {"etat": issue, "dit": copy.deepcopy(dit)}
 
 
 def _le(o):
@@ -1565,6 +1631,7 @@ def _demander_passage(travail, auditeur, faits, prix=0):
         "refus": f"{nom} n'est pas convaincu{e} et reste où {il} est.",
         "inutile": f"{nom} ne te barre pas le passage.",
     }[issue])
+    return {"etat": issue} if prix else None
 
 
 # Ce qu'un contenu demande à qui l'entend : il appelle une réponse, comme toute question.
@@ -1706,7 +1773,7 @@ def preparer_parole(monde, p, revision=None):
                           + " (Corvus ne l'a ni vu ni entendu nommer) ; garde les mots du joueur.")
     verifier_offres(monde, p["contenu"])
     verifier_contenus(monde, p["contenu"])
-    if any(c.get("type") == "proposition" for c in p["contenu"] if isinstance(c, dict)):
+    if any(c.get("type") in ("proposition", 'mandat', 'reponse_mandat', 'bilan_mandat') for c in p["contenu"] if isinstance(c, dict)):
         if len(dest) != 1 or len(p["contenu"]) != 1:
             raise ErreurMonde("Une offre liée doit être adressée à une seule personne.",
                               "contenu : une seule proposition ; personnage : un destinataire individuel ; "
@@ -1755,6 +1822,8 @@ def preparer_parole(monde, p, revision=None):
     autorisations = []
     for auditeur in [*dest, *repondent]:
         debut_reponse = len(faits)
+        resolutions = []
+        resolutions_parlees = []
         capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
         transmis = [x for x in (_typer(travail, c, auditeur) for c in contenu) if x]
         for c in transmis[:capacite]:
@@ -1764,6 +1833,9 @@ def preparer_parole(monde, p, revision=None):
             noms_avant = {id: {k: copy.deepcopy(o[k]) for k in
                 ('nom', 'type', 'genre', 'pluriel', 'nom_propre', 'elision', 'aliases') if k in o}
                 for id, o in travail.objets.items()}
+            resolution = None
+            information = None
+            avis = None
             if c["type"] == "rumeur":
                 evenement = c["evenement"]
                 debat = next(d for d in debats if d[0]["evenement"] == evenement)
@@ -1771,29 +1843,52 @@ def preparer_parole(monde, p, revision=None):
                     issue_avis = social.recevoir(travail, auditeur, "joueur", c)
                     faits.append(f"{_personne(travail, auditeur)[0]} " +
                                  ("retient ton avis sur la menace de l'eau." if issue_avis == "crue" else "doute de ton avis sur la menace de l'eau."))
+                    avis = {"etat": issue_avis}
+            elif c['type'] in ('mandat', 'reponse_mandat', 'bilan_mandat'):
+                resolution = _mandat(travail, auditeur, c, faits)
+                if resolution.get('contenu_transmis'):
+                    publics.append(resolution['contenu_transmis'])
             elif c["type"] == "proposition":
-                offres.extend(_proposer(travail, auditeur, c, faits))
+                nouvelles_offres, resolution = _proposer(travail, auditeur, c, faits)
+                offres.extend(nouvelles_offres)
             elif c["type"] == "affirmation":
                 _affirmer(travail, auditeur, c["sujet"], c["attribut"], c["valeur"], faits)
             elif c["type"] == "passage":
-                _demander_passage(travail, auditeur, faits, c["prix"])
+                resolution = _demander_passage(travail, auditeur, faits, c["prix"])
             elif c["type"] == "aveu":
                 _avouer(travail, auditeur, c, faits)
             elif c["type"] == "nom":
-                _se_nommer(travail, auditeur, c["sujet"], faits)
+                information = _se_nommer(travail, auditeur, c["sujet"], faits)
             elif c["type"] == "qui":
-                _qui_est_la(travail, auditeur, faits)
+                information = _qui_est_la(travail, auditeur, faits)
             elif c["type"] == "reclamer":
-                _reclamer(travail, auditeur, c["objet"], faits, comptes)
+                resolution = _reclamer(travail, auditeur, c["objet"], faits, comptes)
             elif c["type"] == "localisation":
                 from .echanges import enqueter, reponse_localisation
                 issue_lieu, dit = enqueter(travail, "joueur", auditeur, sujet=c["sujet"])
                 faits.append(reponse_localisation(travail, auditeur, c["sujet"], issue_lieu, dit))
+                from .esprits import croyance
+                information = {"etat": issue_lieu, "dit": copy.deepcopy(dit),
+                    "croyance": copy.deepcopy(croyance(travail, auditeur, c["sujet"], "lieu"))}
             elif c["type"] == "ressource":
-                _enqueter(travail, auditeur, c["besoin"], faits)
+                information = _enqueter(travail, auditeur, c["besoin"], faits)
             else:
-                _demander(travail, auditeur, c["sujet"], faits, c["prix"])
+                resolution = _demander(travail, auditeur, c["sujet"], faits, c["prix"])
             apres_comptes = (comptes, travail.data["_comptes_echange"], livraisons_dues(travail))
+            from .comptes_parles import difference
+            cs = difference(avant_comptes, apres_comptes)
+            if resolution or cs or len(offres) != debut_offres:
+                resolutions.append({"contenu": copy.deepcopy(c), "resolution": resolution or {},
+                    "comptes": cs, "offres": copy.deepcopy(offres[debut_offres:]),
+                    "faits": faits[debut_faits:]})
+            if avis is not None:
+                resolutions_parlees.append({"contenu": copy.deepcopy(c), "avis": avis,
+                    "resolution": {}, "comptes": [], "offres": [], "faits": faits[debut_faits:]})
+            elif information is not None:
+                resolutions_parlees.append({"contenu": copy.deepcopy(c), "information": information,
+                    "resolution": {}, "comptes": [], "offres": [], "faits": faits[debut_faits:]})
+            elif resolution or cs or len(offres) != debut_offres:
+                resolutions_parlees.append(resolutions[-1])
             # Provenance des textes, liée aux effets typés, jamais à leurs mots
             # ni au type d'opération. Les autres contenus de la parole restent.
             if avant_comptes != apres_comptes or len(offres) != debut_offres:
@@ -1820,9 +1915,19 @@ def preparer_parole(monde, p, revision=None):
                                     biens_comptables[terme['objet']] = noms_avant[terme['objet']]
         if transmis[capacite:]:
             faits.append(f"{_personne(travail, auditeur)[0]} ne retient pas tout : une partie de ce que tu as dit se perd.")
-        autorisations.append({"statut": "a_formuler", "locuteur": auditeur,
-            "acte": "reponse_corvus", "a": ["joueur"], "parametres": {"contenu": copy.deepcopy(transmis[:capacite])},
-            "modalite": "constat", "evenement": {"type": "parole_joueur", "faits": faits[debut_reponse:]}})
+        # Une dispute prononce déjà les réponses de cet avis. Elle ne donne
+        # pas en plus une autorisation de réplique libre sur le même contenu.
+        a_repondre = [c for c in transmis[:capacite] if not (c['type'] == 'rumeur'
+            and any(opposition and c['evenement'] == debat['evenement']
+                    for debat, _, opposition in debats))]
+        contenu_libre = any(isinstance(c, dict) and c.get("type") == "propos" for c in contenu[:capacite])
+        if a_repondre or contenu_libre or not transmis[:capacite]:
+            autorisations.append({"statut": "a_formuler", "locuteur": auditeur,
+                "acte": "reponse_corvus", "a": ["joueur"], "parametres": {"contenu": copy.deepcopy(a_repondre),
+                    "contenu_libre": contenu_libre},
+                "modalite": "constat", "evenement": {"type": "parole_joueur", "faits": faits[debut_reponse:],
+                    **({"resolutions_comptables": resolutions} if resolutions else {}),
+                    **({"resolutions_parlees": resolutions_parlees} if resolutions_parlees else {})}})
         rejoint(travail, auditeur, "joueur")  # Il attendait que Corvus le rejoigne : ils se parlent.
         memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "a": list(dest), "texte": replique[:240],
                                       "cites": [], **({} if identifie(travail, auditeur, "joueur")
@@ -1845,6 +1950,9 @@ def preparer_parole(monde, p, revision=None):
     travail.data["revision"] += 1
     comptes.extend(travail.data.pop("_comptes_echange"))
     comptes.extend(c for c in livraisons_dues(travail) if c not in livraisons_avant and c not in comptes)
+    from .repliques_moteur import admettre
+    admettre(travail, autorisations, {"comptes": comptes, "offres": offres,
+        "parts_comptables": parts_comptables, "biens_comptables": biens_comptables})
     travail.verifier()
     from .voix import reel
     presents = {reel(monde, d) for d in interlocuteurs(monde)}
@@ -1880,6 +1988,47 @@ def preparer_parole(monde, p, revision=None):
     return travail, rapport
 
 
+def _mandat(travail, auditeur, c, faits):
+    from .echanges import confier, accueil
+    nom = _personne(travail, auditeur)[0]
+    if c['type'] == 'mandat':
+        parent = agendas.charge_joueur(travail, c['sorte'], c['parametres'])
+        mandat = {'parent': parent['id'], 'sorte': c['sorte'], 'parametres': c['parametres']}
+        issue = confier(travail, 'joueur', auditeur, mandat=mandat)
+        mots = ("J'accepte cette charge : " if issue == 'accepte' else "Je refuse cette charge : ")
+        causes = {'mefiance': "je ne te fais pas confiance", 'rancune': "je t'en veux encore",
+                  'qui_va_la': "je ne sais pas qui me parle", 'impossible': "je ne vois pas comment la réaliser",
+                  'refus': "tu ne m'as pas convaincu"}
+        mots += agendas.phrase_charge(travail, c['sorte'], c['parametres']) + '.'
+        if issue != 'accepte':
+            mots += ' ' + causes[issue].capitalize() + '.'
+        enfant = next((a for a in agendas.projets(travail, auditeur) if a['origine'].get('de') == 'joueur'
+                       and a['origine'].get('parent') == parent['id'] and a['sorte'] == c['sorte']
+                       and a['parametres'] == c['parametres']), None)
+        transmis = {'type': 'ordre_mandat', 'titulaire': auditeur, 'charge': {
+            'mandant': 'joueur', 'parent': parent['id'], 'agenda': enfant['id'] if enfant else None,
+            'sorte': c['sorte'], 'parametres': c['parametres']}} if issue != 'qui_va_la' else None
+    elif c['type'] == 'reponse_mandat':
+        # L'accueil protège aussi la réponse : une voix prétendue n'accepte
+        # pas un contrat à la place de son titulaire connu.
+        issue = accueil(travail, 'joueur', auditeur)
+        if issue:
+            mots, transmis = "Je ne reconnais pas cet accord avec toi.", None
+        else:
+            offre = agendas.repondre_mandat_joueur(travail, auditeur, c['offre'], c['accepter'])
+            mots = ("Tu as accepté cette charge : " if offre['statut'] == 'accepte' else "Tu as refusé cette charge : ")
+            mots += agendas.phrase_charge(travail, offre['sorte'], offre['parametres']) + '.'
+            transmis = None
+    else:
+        contenu = agendas.bilan_mandat_joueur(travail, auditeur, c['agenda'], c['issue'])
+        agendas.recevoir_compte(travail, auditeur, 'joueur', contenu)
+        mots = 'J’ai entendu ton compte rendu : tu déclares ' + {
+            'reussi': 'avoir réussi', 'echoue': 'avoir échoué', 'renonce': 'avoir renoncé'}[c['issue']] + '.'
+        transmis = contenu
+    faits.append(nom + ' : « ' + mots + ' »')
+    return {'mandat_joueur': True, 'mots': mots, 'contenu_transmis': transmis}
+
+
 def _proposer(travail, auditeur, c, faits):
     from .echanges import proposer
     bilan = proposer(travail, "joueur", auditeur, c["demande"], c["contrepartie"])
@@ -1896,7 +2045,7 @@ def _proposer(travail, auditeur, c, faits):
               "persuasion": "tu ne l'as pas convaincu"}
     if bilan["cause"]:
         faits.append(nom + " refuse l'échange : " + causes[bilan["cause"]] + ".")
-        return []
+        return [], {"etat": "refuse", "cause": bilan["cause"], "offre": copy.deepcopy(c)}
     def terme(t):
         if t["type"] == "rien":
             return "sans contrepartie"
@@ -1913,4 +2062,4 @@ def _proposer(travail, auditeur, c, faits):
                  "Les biens et pièces convenus sont remis ; les tâches convenues sont enregistrées comme engagements.")
     faits.extend(agendas.promesses_visibles(travail))
     from .propositions import offre
-    return [offre("joueur", auditeur, c["demande"], c["contrepartie"])]
+    return [offre("joueur", auditeur, c["demande"], c["contrepartie"])], {"etat": "accepte"}

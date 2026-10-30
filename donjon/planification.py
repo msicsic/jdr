@@ -978,23 +978,22 @@ class Vue:
 
     def case_objet(self, e, objet, vus=()):
         """Position prévue, sinon crue ; le contenant ou le porteur donne sa case."""
-        if objet in e.portes or objet == self.id:
-            return e.case
-        if objet in vus:
-            return None
-        if ("case_objet", objet) in e.faits:
-            return e.fait("case_objet", objet)
-        lieu = self.lieu(e, objet)
-        if lieu in self.objets or lieu == "joueur":
-            return self.case_objet(e, lieu, (*vus, objet))
-        cru = lire(self.monde, self.id)["croyances"].get(objet, {}).get("lieu", {})
-        if cru.get("salle") == e.salle and cru.get("case") is not None:
-            return tuple(cru["case"])
-        o = self.objets.get(objet, {})
-        if o and not o.get("mobile") and o.get("type") != "personnage":
-            from .spatial import position_cible
-            return position_cible(self.monde, objet, e.salle)
-        return None
+        from .positions_crues import case_contact
+        def lieu(x):
+            return e.salle if x in e.portes or x == self.id else self.lieu(e, x)
+
+        def case(x):
+            cru = lire(self.monde, self.id)['croyances'].get(x, {}).get('lieu') or {}
+            return cru.get('case') if cru.get('salle') == e.salle else None
+
+        def prevue(x):
+            if x in e.portes or x == self.id:
+                return True, e.case
+            if ('case_objet', x) in e.faits:
+                return True, e.fait('case_objet', x)
+            return False, None
+
+        return case_contact(self.monde, objet, e.salle, lieu, case, vus, prevue)
 
     def approche(self, e, etape, cibles=None):
         """Approche moyenne depuis les entrées, sans position projetée."""
@@ -2211,6 +2210,10 @@ def _entrees_communes(v):
     metrique = v._metrique
     from .biens import services_proteges
     return json.dumps([
+        agendas.mandats_percus(monde, id),  # Contrats et issues propres au témoin.
+        [x for x in agendas.en_cours(monde, id) if x['condition'].get('proteger')],
+        [[a['id'], a['etat'], a['parametres'], a.get('echeance')]
+         for a in agendas.projets(monde, id) if a['origine']['type'] == 'contrat'],
         services_proteges(monde, id),  # Entrées du filtre des résultats promis.
         [(x, a, c["valeur"], c.get("envers")) for x, a, c in actives(monde, id)],
         monde.objets[id]["lieu"],
@@ -2219,7 +2222,8 @@ def _entrees_communes(v):
         [k for k in v.connus if porte_par(monde, k, id)],
         # La fin des battants est lue par les gestes et leur restauration.
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()
-         if a != "fin" or monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
+         if a != "fin" or c["valeur"] is not None
+         and monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.
@@ -3258,6 +3262,8 @@ def planifier_tache(monde, id, condition, payeur):
     """(but, étapes) pour tenir la parole donnée à ``payeur``, ou None : le plan de son devis
     (``devis_pulsion``), celui sur lequel il l'a acceptée et sur lequel il la jugerait impossible
     (``echanges.empeche``)."""
+    if condition.get('proteger'):
+        condition = {'pres': condition['objet']}
     trouve = _pulsion(monde, id, condition, False, entretenir=payeur)
     return None if trouve is None else trouve[1:]
 
@@ -3288,6 +3294,41 @@ def devis_pulsion(monde, id, condition, payeur):
     return None if trouve is None else (trouve[0], trouve[2])
 
 
+def mesure_recours(monde, id, etapes):
+    """Temps et pression d'une suite directe, aux tarifs communs du devis.
+
+    Une attente sans geste a un coût nul ; une approche impossible n'a pas
+    de mesure. Les recherches gardent leurs coûts sociaux et probabilistes.
+    """
+    v = vue(monde, id)
+    e, temps, pression = depart(monde, id, v), 0, 0
+    for g in etapes:
+        if g['operation'] not in (*pnj.DUREES, *pnj.DURABLES, 'aller', 'assommer', 'dans_le_dos', 'fuite'):
+            return None
+        mesure = _mesurer_direct(v, e, [g], e, 1)
+        if mesure is None:
+            return None
+        duree, prix, e = mesure
+        temps += duree
+        pression += prix
+        o, op = g['cible'], g['operation']
+        if op == 'aller':
+            e = e.apres(salle=g['lieu'])
+        elif op == 'prendre':
+            e = e.apres(portes=e.portes | {o})
+        elif op == 'poser':
+            e = e.apres(portes=e.portes - {o}, faits=[(('lieu', o), e.salle)])
+        elif op == 'remettre':
+            e = e.apres(portes=e.portes - {g['outil']})
+        elif op in ('ouvrir', 'fermer'):
+            e = e.apres(faits=[(('ouvert', o), op == 'ouvrir')])
+        elif op in ('verrouiller', 'deverrouiller'):
+            e = e.apres(faits=[(('verrou', o), op == 'verrouiller')])
+        elif op in ('allumer', 'eteindre'):
+            e = e.apres(faits=[(('allume', o), op == 'allumer')])
+    return temps, pression
+
+
 def duree_devis(monde, id, etapes):
     """Durée physique du plan publié, sans convertir ses pénalités en temps.
 
@@ -3297,36 +3338,14 @@ def duree_devis(monde, id, etapes):
     v = vue(monde, id)
     if v._cru_spatial is None:
         return None
-    e, total = depart(monde, id, v), 0
     for g in etapes:
         op = g['operation']
         if (op not in (*pnj.DUREES, 'aller')
                 or op in ('crocheter', 'frapper', 'demander', 'acheter', 'confier', 'proposer', 'demander_feu')
                 or any(g.get(k) for k in ('suppose', 'attendre_remise', 'condition'))):
             return None
-        mesure = _mesurer_direct(v, e, [g], e, 0)
-        if mesure is None:
-            return None
-        temps, _, e = mesure
-        total += temps
-        o = g['cible']
-        if op == 'aller':
-            e = e.apres(salle=g['lieu'])
-        elif op == 'prendre':
-            e = e.apres(portes=e.portes | {o})
-        elif op == 'poser':
-            e = e.apres(portes=e.portes - {o})
-        elif op == 'remettre':
-            e = e.apres(portes=e.portes - {g['outil']})
-        if op == 'poser':
-            e = e.apres(faits=[(('lieu', o), e.salle)])
-        elif op in ('ouvrir', 'fermer'):
-            e = e.apres(faits=[(('ouvert', o), op == 'ouvrir')])
-        elif op in ('verrouiller', 'deverrouiller'):
-            e = e.apres(faits=[(('verrou', o), op == 'verrouiller')])
-        elif op in ('allumer', 'eteindre'):
-            e = e.apres(faits=[(('allume', o), op == 'allumer')])
-    return total
+    mesure = mesure_recours(monde, id, etapes)
+    return None if mesure is None else mesure[0]
 
 
 def _pulsion(monde, id, condition, tache, entretenir=None):
@@ -3601,8 +3620,8 @@ def reclamer(monde, id):
     if not profil(monde, id):
         return None
     du, objets = {}, {}
-    for d in dettes(monde):
-        if d["a"] == id and d["de"] in monde.objets and not reponse_creance_retenue(monde, id, d["de"]):
+    for d in dettes(monde, connues_de=id):
+        if d["de"] in monde.objets and not reponse_creance_retenue(monde, id, d["de"]):
             du[d["de"]] = du.get(d["de"], 0) + d["montant"]
     for p in prets(monde):
         if (p["de"] == id and p["objet"] in monde.objets and (p["a"] == "joueur" or p["a"] in monde.objets)
@@ -3732,12 +3751,14 @@ def eclairer(monde, id):
     return {"type": "lumiere"}, retablir(v, e, etapes)
 
 
-def garder(monde, id, salle):
+def garder(monde, id, salle, *, cout=None):
     """Les étapes pour se tenir là où il garde ses biens, ou None. Il y restera : ce que le lieu
     laisse monter compte (le noir qu'il craint : il y porte de la lumière s'il le peut) ; s'il n'y
     est pas, il n'y va que si cela lui coûte moins que rester où il est, sinon il endure."""
     trouve = chercher(monde, id, lambda v, e: e.salle == salle, nom="garder:" + salle, memo=["garder", salle],
                       emplois=(), motif="biens", tenir=True, endurer=0)
+    if trouve is not None and cout is not None:
+        cout.append(trouve[0])
     return None if trouve is None else retablir(vue(monde, id), trouve[2], trouve[1])
 
 

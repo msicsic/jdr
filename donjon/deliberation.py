@@ -149,6 +149,10 @@ def condition_valide(monde, c):
     une part de nourriture servie à quelqu'un, un feu entretenu, un objet prêté à rendre, un objet
     vendu à remettre, un séjour près d'une personne."""
     return isinstance(c, dict) and (
+        (set(c) == {'objet', 'proteger', 'echeance'} and c['proteger'] is True
+         and type(c['echeance']) is int and c['echeance'] >= 0
+         and (c['objet'] == 'joueur' or c['objet'] in monde.objets
+              and monde.objets[c['objet']]['type'] in ('personnage', 'depouille'))) or
         # Une demande, y compris sa sortie historique, survit au décès de
         # sa cible. Sa raison crue décide de la fin, pas le validateur.
         (set(c) == {"pres"} and (c["pres"] == "joueur" or c["pres"] in monde.objets
@@ -731,6 +735,8 @@ def promesse_en_cours(monde, id, objet, remise=None):
 
 
 def satisfaite(monde, id, condition):
+    if condition.get('proteger'):
+        return False  # Une responsabilité n'est pas tenue au seul fait d'arriver.
     if "pres" in condition:
         # Un séjour n'est pas acquitté à l'arrivée. Son motif décide de sa fin.
         return False
@@ -2210,9 +2216,20 @@ def choisir(monde, id, minute):
             besoin, urgence = candidat.besoin, candidat.urgence
             parent = e["intention"]
             try:
+                from .pnj import refus_etape
                 if moyen_dementi:
                     e["intention"] = None
-                proposition = candidat.methode(monde, id)
+                agenda = (candidat.demande or {}).get('agenda')
+                if (courant and (courant['plan'] or contrat_precedent.get('phase') == 'attendre')
+                        and not moyen_dementi
+                        and agenda and agenda == courant['but'].get('agenda')
+                        and contrat_precedent.get('recours') == agendas.entrees_recours(monde, id, agenda)
+                        and refus_etape(monde, id, courant['plan']) is None):
+                    # Le moyen adopté va jusqu'au constat, sauf nouvelle entrée
+                    # ou démenti. Les urgences concurrentes gardent l'arbitrage.
+                    proposition = (courant['but'], courant['plan'])
+                else:
+                    proposition = candidat.methode(monde, id)
             finally:
                 e["intention"] = parent
             retenus = e["renoncements"].get(besoin, [])
@@ -2469,6 +2486,9 @@ def obstacle_patience(monde, id, cause):
     """
     from .pnj import temoins_crus, oreilles_crues, _franchissable
     e = lire(monde, id)
+    if cause['type'] == 'contact':
+        from .positions_crues import contact_interrompu_tient
+        return contact_interrompu_tient(monde, id, cause)
     if cause["type"] == "corps":
         from .corps import conscient
         return not conscient(monde, id)

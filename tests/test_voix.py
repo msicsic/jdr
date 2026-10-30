@@ -23,6 +23,7 @@ from donjon.esprits import connaitre, croire, lire, memoriser, percevoir_tous
 from donjon.geometrie import position_entree
 from donjon.monde import Monde
 from donjon.ouie import retentir
+from donjon.emissions import pnj as emissions_pnj
 from donjon.paroles import jet_persuasion
 from donjon.relations import AXES, ETRANGER, confiance, mefiance, percue
 from donjon.spatial import installer
@@ -245,7 +246,7 @@ class VoixInconnueTests(unittest.TestCase):
         reprise, sortie, entrees = jouer(m, "je demande à Gorm une part des vivres", [
             parole("Gorm, une part des vivres, s'il te plaît.", ("demande", "vivres", "", "")),
             reponse_pnj("Gorm ne bouge pas.")], jet=12)
-        faits = entrees[1]["faits"]["conversation_validee"]["faits"]
+        faits = emissions_pnj(reprise)[-1]['evenement']['faits']
         # Refusée, la part reste à vendre : il dit son prix (``echanges-argent``).
         self.assertIn("Gorm, gardien du relais n'est pas convaincu et garde les vivres du refuge ; il en veut "
                       "2 pièces.", faits)
@@ -261,7 +262,7 @@ class VoixInconnueTests(unittest.TestCase):
             parole("Gorm, une part des vivres, s'il te plaît.", ("demande", "vivres", "", "")),
             reponse_pnj("Gorm hoche la tête.")], jet=12)
         self.assertIn("Gorm, gardien du relais accepte de t'en donner une part : il te la servira là où sont "
-                      "les vivres.", entrees[1]["faits"]["conversation_validee"]["faits"])
+                      "les vivres.", emissions_pnj(reprise)[-1]['evenement']['faits'])
 
     def test_le_joueur_se_nomme_sans_rien_gagner(self):
         """« C'est Corvus » : Gorm le croit sur parole et le situe, sans lui accorder plus de
@@ -272,12 +273,11 @@ class VoixInconnueTests(unittest.TestCase):
         reprise, _, entrees = jouer(m, "je demande à Gorm une part des vivres", [
             parole("Une part des vivres ?", ("demande", "vivres", "", "")), reponse_pnj("« Qui va là ? »")])
         self.assertIn("Gorm, gardien du relais ne sait pas qui lui parle : il demande « Qui va là ? » avant toute "
-                      "chose.", entrees[1]["faits"]["conversation_validee"]["faits"])
+                      "chose.", emissions_pnj(reprise)[-1]['evenement']['faits'])
         reprise, _, entrees = jouer(reprise, "je lui dis : c'est Corvus", [
             parole("C'est Corvus.", ("nom", "joueur", "", "")), reponse_pnj("Gorm grogne.")])
-        self.assertEqual(entrees[1]["faits"]["conversation_validee"]["faits"],
-                         ["Gorm, gardien du relais te croit sur parole : pour lui, c'est « Corvus » qui parle. Cela ne te "
-                          "vaut pas plus de confiance qu'à un inconnu."])
+        self.assertIn("Gorm, gardien du relais te croit sur parole : pour lui, c'est « Corvus » qui parle. Cela ne te "
+                          "vaut pas plus de confiance qu'à un inconnu.", entrees.rapports[-1]["faits"])
         gorm = lire(reprise, "marchand")
         self.assertEqual(gorm["voix_entendues"]["joueur"]["se_dit"], "joueur")
         self.assertEqual(lieu_cru(reprise, "marchand", "joueur"), ("echoppe", "se_dit"))
@@ -303,7 +303,7 @@ class VoixInconnueTests(unittest.TestCase):
             parole("Qui est là ?", ("qui", "", "", ""), personnage=alias), reponse_pnj("« C'est Brune. »")])
         self.assertEqual(entrees[0]["faits"]["parole_prevue"]["personnage"], alias)
         self.assertNotIn("Batelière", json.dumps(entrees[0]["faits"]["esprits_interlocuteurs"], ensure_ascii=False))
-        validee = entrees[1]["faits"]["conversation_validee"]
+        validee = entrees.rapports[-1]
         self.assertEqual((validee["personnage"], validee["destinataires"]), (alias, [alias]))
         self.assertIn("Une voix inconnue se nomme : « Brune ».", validee["faits"])
         self.assertIn("Tu dis à une voix inconnue : « Qui est là ? »", sortie)
@@ -444,7 +444,7 @@ class SeNommerTests(unittest.TestCase):
         reprise, _, entrees = jouer(recharger(m), "je dis à Gorm : c'est Brune", [
             parole("C'est Brune.", ("nom", "brune", "", "")), reponse_pnj("Gorm se raidit.")])
         self.assertIn("Gorm, gardien du relais sait que tu n'es pas « Brune ».",
-                      entrees[1]["faits"]["conversation_validee"]["faits"])
+                      entrees.rapports[-1]["faits"])
         self.assertTrue(lire(reprise, "marchand")["voix_entendues"]["joueur"]["mefiance"])
         self.assertTrue(mefiance(percue(reprise, "marchand", "joueur")))
 
