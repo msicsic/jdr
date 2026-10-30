@@ -38,17 +38,20 @@ La première passe a révélé des erreurs dans le montage des nouveaux tests
 (bien absent, clé facultative, repos substitué au guet), corrigées sans
 modifier le moteur pour les faire passer ; ses bruts sont conservés.
 
-**Mesures en cours.** Vérification finale détachée : neuf fichiers concernés
-(les six fichiers de famille et voisins, plus connexion, protocole et
-fournisseurs), deux travailleurs à priorité réduite, puis empreintes 2 h,
-Relais, graines 1985/7/42/2024, contre la base exacte ci-dessus, cache partagé
-réutilisé lorsqu'il existe. Le banc disponible ne possède pas de scénario
-`crypte` ; son cas réel est exercé par les tests de partie. Résultats et
-statut final attendus dans
-`C:/Users/msics/donjon/artifacts/a2-sequence-attente-370/fin.json` ; fichiers
+**Mesures finales.** Sur le code `c6e904db`, arbre propre : **106 tests,
+zéro échec, zéro erreur, trois ignorés** (dépendance MiMo facultative absente),
+neuf fichiers concernés, **262,94 s**, deux travailleurs à priorité réduite.
+Les cinq nouveaux tests et les parcours console/web/TUI de compréhension
+passent. **Empreintes identiques sur les quatre nuits Relais de 2 h**,
+graines 1985/7/42/2024, contre la base exacte ci-dessus : chronique, mesures
+et état final complet, aucun plantage ni divergence. Les quatre nuits de
+référence absentes du cache ont été calculées une fois puis rangées dans
+le cache partagé ; les quatre nuits de branche ne sont pas mises en cache.
+Aucun gain de vitesse revendiqué. Le banc ne possède pas de scénario
+`crypte` ; son cas réel est exercé par les tests de partie. Statut final :
+`tests=0`, `empreintes=0`, `erreur=null` dans
+`C:/Users/msics/donjon/artifacts/a2-sequence-attente-370/fin.json` ; bruts
 `tests-finaux.json`, `empreintes.json` et sorties texte dans le même dossier.
-Les cinq nouveaux tests passent sur le code final ; les 41 tests voisins
-de la première passe passent également, avant la dernière précision de texte.
 
 **Limites.** Ce lot ne garantit ni le choix fidèle de Luna ni l'attente
 jusqu'à un prédicat libre : le moteur ne sait pas promettre qu'un tiers
