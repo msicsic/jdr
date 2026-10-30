@@ -334,7 +334,7 @@ class ImpostureTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "« C'est moi, Brune. »", [
             parole("C'est moi, Brune.", ("nom", "joueur", "", ""), personnage="voix_1"),
             dialogue("La voix répond : « Brune ? Je ne te reconnais pas. »")],
-            [audit(ligne("parole", "voix_1", "Brune ? Je ne te reconnais pas."))])
+            [audit(ligne("parole", "voix_1", "Brune ? Je ne te reconnais pas."))], suite=("tenter",))
         # Typé « Corvus se nomme », le moteur lit le nom dans les mots, Brune, sans relancer le MJ
         # (branche relances-luna : avant, un refus et une seconde proposition).
         self.assertEqual(len(mj(appels)), 1)

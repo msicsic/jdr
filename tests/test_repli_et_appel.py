@@ -49,7 +49,7 @@ def verdicts(*lignes):
 NEUTRE = ("neutre", (), "")
 
 
-def jouer(monde, saisie, reponses, audits, jet=20, options=()):
+def jouer(monde, saisie, reponses, audits, jet=20, options=(), *, suite=()):
     """Une saisie dans la vraie boucle de jeu, le fournisseur simulé appel par appel : ``reponses``
     pour le MJ, ``audits`` pour l'auditeur narratif ; la contre-revue d'une action est conforme."""
     reponses, audits, appels = list(reponses), list(audits), AppelsParole()
@@ -72,7 +72,7 @@ def jouer(monde, saisie, reponses, audits, jet=20, options=()):
               patch.object(MJOpenAI, "_appeler_brut", side_effect=appel),
               patch.object(Monde, "d20", return_value=jet),
               patch("donjon.mj.preparer_parole", side_effect=appels.preparer),
-              patch("builtins.input", side_effect=[saisie, "quitter"]),
+              patch("builtins.input", side_effect=[saisie, *suite, "quitter"]),
               patch("sys.stdout", io.StringIO()) as sortie):
             assert jeu.main(["--console", "--connexion", "api", "--save", str(chemin), *options]) == 0
         return Monde.charger(chemin), sortie.getvalue(), appels
@@ -227,8 +227,9 @@ class ReplisTests(unittest.TestCase):
         engagement = {"segments": {"0": {"portee_mecanique": "aucune", "verdict": "engagement", "sources": [], "locuteur": "brune",
                                          "citation": "Je vais me pousser.", "entites": [], "comptes": [], "motif": ""}}}
         reprise, sortie, appels = jouer(m, saisie, [parole(saisie, ("passage", "", "", ""), personnage="brune"),
-                                                    promesse, promesse, promesse], [engagement] * 3)
-        validee = mj(appels)[1]["faits"]["conversation_validee"]
+                                                    promesse, promesse, promesse], [engagement] * 3,
+                                       suite=("tenter",))
+        validee = appels.rapports[-1]
         self.assertTrue(validee["faits"])
         self.assertIn(f"Tu dis à Brune : « {saisie} »", sortie)
         self.assertIn(" ".join(validee["faits"]), sortie)

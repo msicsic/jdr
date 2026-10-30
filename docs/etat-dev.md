@@ -2,27 +2,33 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
-- **Lot 345 / G16, branche `codex-g16-information`, non fusionnée**, base
-  exacte `3e3afe2` : mots d'identité, ressource et localisation crue formulés
-  depuis les issues typées, admis dans G15 et scellés avant publication.
-  Admission et publication communes extraites de G17 dans `repliques_moteur` ;
-  composition information/compte et contrôles des contenus résiduels conservés.
-  Sept nouvelles scènes sans réseau vertes sur la version intermédiaire,
-  comptes 11/11, noms 33/33, dialogues 18/18 ; **validation finale détachée en
-  cours**, 18 fichiers ciblés et trois méthodes sur la base exacte, deux
-  travailleurs réduits au plus. Aucune suite complète ni banc PNJ.
-  Luna : une passe achevée des trois scripts, **28 appels**, zéro repli/erreur
-  technique/recharge ; sept tours d'information typée sans rédaction ni audit
-  narratif, six exécutés et l'imposture en attente de confirmation. Exécution
-  de l'imposture couverte sans réseau. Témoin historique `cdaf371` relu du
-  cache : 51 appels ; aucune attribution causale ou mesure de vitesse.
-  Hugues/Anselme reproduit rouge sur `3e3afe2`, oracle inchangé ; autres
-  incidents intermédiaires en cours de vérification. **Ne pas clôturer avant
-  lecture de `C:/Users/msics/donjon/artifacts/g16-345/fin-validation.json`**,
-  écrit en dernier ; bruts dans ce dossier, lanceur dans le worktree sous
-  `artifacts/g16-345/valider.py`. Aucun deuxième Luna à lancer.
+- **Lot 345 / G16 terminé, branche `codex-g16-information`, non fusionnée**,
+  base exacte `3e3afe2` : mots d'identité, ressource et localisation crue
+  formulés depuis les issues typées, admis dans G15 et scellés avant affichage.
+  Admission/publication G17 partagées dans `repliques_moteur` ; composition
+  information/compte et contrôles résiduels conservés, dont le passage gratuit.
+  **265 tests consolidés / 18 fichiers, quatre assertions préexistantes,
+  zéro erreur/saut ni incident nouveau.** G16 7/7, G15 11/11, G17 11/11,
+  noms 33/33, narration 31/31, consentement 9/9 verts. Initiale 770,603 s ;
+  quatre fichiers repris (60 tests), 306,030 s ; deux méthodes de passage
+  reprises vertes, 42,121 s. Moteur `8a7ac3a` inchangé ; seuls les tests de
+  sceau/confirmation et leurs lectures d'émissions ont été portés ensuite.
+  Référence exacte : trois méthodes, 12,069 s ; Hugues/Anselme et trois
+  assertions de faisabilité, **assertions/sorties identiques hors chemins**,
+  oracles inchangés. Ni suite complète, banc PNJ, ni modification sociale.
+  Luna : une passe des trois scripts, **28 appels**, zéro repli/refus/erreur
+  technique ou de recharge ; sept tours typés sans rédaction ni audit
+  narratif, six exécutés sans réponse perdue. Imposture en attente de
+  confirmation au script, exécution vérifiée sans réseau. Témoin historique
+  `cdaf371` en cache : 51 appels, aucune attribution causale ou de vitesse.
+  Bruts `C:/Users/msics/donjon/artifacts/g16-345/`, `analyse-cloture.json`,
+  `tests-consolides.json`, `reference.json`, `luna-mesures.json`,
+  **`fin-cloture.json` avec quatre réserves antérieures** ; premières passes
+  rouges et erreur du lanceur conservées. Deux travailleurs réduits au plus ;
+  **branche poussée, aucun calcul actif**, aucune seconde passe Luna.
   Recouvrements : paroles avec 341, narration avec 343 ; ni jeu/tui, ni
-  esprits, ni mécanique sociale modifiés.
+  esprits, ni mécanique sociale modifiés. La localisation est vérifiée par
+  scènes simulées : le script actuel `noms-dialogue` n'en demande pas.
   [Rapport 345](taches/rapport-codex-345-g16-information-parlee.md).
 
 - **Reprise 338 terminée, fusionnée**, fusion sans rebase **`20e1f41`**

@@ -350,7 +350,7 @@ class ConsentementTests(unittest.TestCase):
                         if pont.tour == 1:
                             return "mj " + saisie
                         if pont.tour == 2:
-                            self.assertEqual(pont.pending.reponse["_comptes_parles"], [2])
+                            self.assertEqual(pont.pending.reponse["_repliques_moteur"], [2])
                             enregistrer(faux.monde, "joueur", acte="parole_joueur", parametres={},
                                 modalite="constat", evenement={"type": "dialogue_audite"},
                                 auditeurs=["aubin"], a=["aubin"], texte="Je réfléchis.")
@@ -359,7 +359,7 @@ class ConsentementTests(unittest.TestCase):
                         if pont.tour == 3:
                             self.assertEqual(etat(faux.monde), pont.avant)
                             self.assertIn("nouvel aperçu", "\n".join(pont.historique))
-                            self.assertEqual(pont.pending.reponse["_comptes_parles"], [3])
+                            self.assertEqual(pont.pending.reponse["_repliques_moteur"], [3])
                             self.assertEqual(pont.pending.reponse["mode"], r["mode"])
                             return "tenter"
                         return "quitter"
