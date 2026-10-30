@@ -861,18 +861,20 @@ class Moteur:
 
     @staticmethod
     def _ouvrir_bilan(travail):
-        """Pendant une action, les personnages entrent dans le regard du joueur et en sortent pas
-        à pas, et leurs signes peuvent changer : on n'en dit que le bilan, à la fin de l'action."""
+        """Ouvre les perceptions de l'action ; leurs transitions suivent l'horloge du monde."""
         from .pnj import suivre_presences
         suivre_presences(travail)
+        travail._sons_rendus = []
 
     @staticmethod
     def _clore_bilan(travail, lignes):
-        """Qui le joueur voit désormais ou ne voit plus (``pnj.bilan_presences``), puis les signes
+        """Les dernières transitions (``pnj.bilan_presences``), puis les signes
         qu'il remarque chez ceux qu'il voit encore (``signes.bilan_signes``)."""
         from .pnj import bilan_presences
         suivi = travail.__dict__.get("_presences") or {}
         lignes.extend(bilan_presences(travail))
+        travail.__dict__.pop("_sons_rendus", None)
+        travail.__dict__.pop("_seuil_ecoute", None)
         # Qui il a vu pendant l'action, même un instant, il sait qui c'est (``Monde.identifier``).
         travail.identifier(id for id, s in suivi.items() if s["vu"])
         from .signes import bilan_signes
@@ -962,6 +964,8 @@ class Moteur:
         finally:
             travail.data["minutes"], travail.data["dixiemes"] = fin
         from .pnj import avancer as avancer_pnj
+        from .ecoute import ECOUTE, ENTENDU
+        travail._seuil_ecoute = ECOUTE if plan.proposition.get("action") == "ecouter" else ENTENDU
         apparus = avancer_pnj(travail, minutes, lignes, duree(plan))
         if not conscient(travail):
             Moteur._attendre_reveil(travail, lignes)
@@ -982,7 +986,11 @@ class Moteur:
         ecoute = plan.proposition.get("action") == "ecouter"
         parvenus = entendus(travail, debut, ECOUTE if ecoute else ENTENDU)
         retenir(travail, parvenus)
-        entendu = rendre(travail, parvenus)
+        # Les sons des événements PNJ sont déjà rendus à leur instant. Ceux produits
+        # ensuite (une réponse à l'appel, par exemple) restent à dire, individuellement.
+        deja = {id(b) for b in travail.__dict__.get("_sons_rendus", ())}
+        entendu = [ligne for b, niveau, par in parvenus if id(b) not in deja
+                   for ligne in rendre(travail, [(b, niveau, par)])]
         if ecoute:
             # Le résultat dit la condition que l'ouïe a prise en compte : l'oreille collée à une porte.
             contre = portes_contre(travail)
@@ -1029,8 +1037,7 @@ class Moteur:
             travail.data["bruit"] = max(0, travail.data["bruit"] - calme)
             recit = []
             parvenus = cls._terminer_etape(travail, tranche, recit, (), "attendre", "simple")
-            # Le même bruit d'une tranche à l'autre (des pas qui vont et viennent) se dit une fois.
-            entendu.extend(ligne for ligne in recit if ligne not in entendu)
+            entendu.extend(recit)
             ecoule += tranche.dixiemes
             # Qui il a vu pendant l'attente, même un instant (``pnj.suivre_presences``), ou voit à présent.
             suivi = travail.__dict__.get("_presences") or {}
@@ -1053,7 +1060,7 @@ class Moteur:
         from .deplacements import ouvrir, clore
         ouvrir(travail)
         lignes, trace, precedent = [], [], None
-        # Une manœuvre est une seule action : un seul bilan de ce qu'on perçoit des autres, à la fin.
+        # Une manœuvre garde le même suivi, sans retarder les perceptions jusqu'à sa fin.
         self._ouvrir_bilan(travail)
         if sequence.regard:
             travail.joueur["orientation"] = sequence.regard

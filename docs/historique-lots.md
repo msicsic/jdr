@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-messages-decoupage` — lot 376, base `origin/integration 2887c541` :
+  présences, sons et mémoires publiques relevés aux événements, sans résumé dépendant de l'action.
+  Capture 371 auberge et passage au Relais : messages/état/rendu rechargés identiques après découpage.
+  114 tests verts ; 8 nuits de 2 h : physique/chroniques/mesures/souvenirs PNJ identiques, zéro plantage/usurpation.
+  Hash d'état complet différent sur 6/8 nuits : journal seul au préfixe Relais ; écarts finaux non intégralement attribués.
+  Recouvrement `moteur.py` avec 369/375 ; aucun registre d'esprit ajouté.
+  [Rapport 376](taches/rapport-codex-376-messages-decoupage.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 114 tests verts, huit nuits sans plantage, empreintes physiques identiques ; six écarts d'état complet partiellement attribués (limite).
+
 - `codex-double-promesse` — lot 377, base `origin/integration 2887c541`, PC fixe.
   Les devis et transferts comptent les moyens déjà promis, depuis les engagements existants, sans nouveau registre.
   Capture Mireille/Tilo/Mathurine et autre bien vérifiés après recharge et laps découpés ; parts libres conservées.
