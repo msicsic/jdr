@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **357 — `codex-e3-taches-payees`**, base `origin/integration 9ea8523`, terminé, poussé, non fusionné :
+  les obligations sans limite retrouvent leur devis autonome historique ; E3 reste propre aux obligations datées.
+  169 tests ciblés/voisins : 164 verts, dont tâches payées et E1–E4 (57) ; cinq tests voisins rouges
+  (onze assertions) reproduits sur la base intacte. Deux régressions ajoutées, monde et rendu après recharge.
+  Empreintes 2 h × quatre graines × Relais/auberge/mine : 12/12 identiques à la base `9ea8523`, zéro plantage.
+  0/12 identiques à `dbb122b0`, mêmes écarts sur la base intacte ; lecture historique du payeur gardée sans limite.
+  [Rapport](taches/rapport-codex-357-e3-taches-payees.md). Ni suite complète, ni Luna, ni banc long.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. 57 tests tâches payées et E1-E4 verts, cinq voisins rouges préexistants ; empreintes 12/12 identiques à la base d'intégration.
+
 - **Lot 342 terminé avec huit réserves d'intégration**, branche documentaire
   `codex-attribution-groupe1`, base `16b18a7`. **33 incidents attribués** :
   17 incidents de défaut corrigés (treize sur le même contrat de perception),
