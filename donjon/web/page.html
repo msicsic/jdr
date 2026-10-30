@@ -454,6 +454,7 @@ function appliquerEtat(e) {
     canvas.hidden = true; $("carte-texte").hidden = false; $("carte-texte").textContent = e.carte_texte;
     preparer(null); listes();
   }
+  if (e.brouillon_accord) ouvrirAccord(e.brouillon_accord);
 }
 function etatOccupe(oui) {
   occupe = oui;
@@ -686,10 +687,10 @@ function choixMateriels(o, executer, x, y, porte = false) {
 }
 $("informer").onclick = () => ouvrirInformation();
 $("negocier").onclick = () => ouvrirAccord();
-function ouvrirAccord() {
-  if (occupe) return;
+function ouvrirAccord(brouillon = null) {
+  if (occupe && !brouillon) return;
   // Figer les références et l'instant du formulaire, même si un état arrive ensuite.
-  const projection = JSON.parse(JSON.stringify(accord));
+  const projection = JSON.parse(JSON.stringify(brouillon?.public || accord));
   const form = $("accord"); form.hidden = false; form.innerHTML = "";
   const aide = document.createElement("p");
   aide.textContent = "Prestation ponctuelle, paiement maintenant. Ni prêt daté, ni maintien, ni paiement futur. Une durée indéterminée ne peut être promise : tu peux proposer un nouvel accord sans limite. Demain exige un repère : précise un délai en minutes.";
@@ -713,6 +714,14 @@ function ouvrirAccord() {
   const prestation = champ("Prestation", projection.prestations);
   const prix = champ("Prix payé maintenant"); prix.min = "1"; prix.max = String(projection.or);
   const delai = champ("Délai en minutes (0 = sans limite)");
+  const initial = brouillon?.initial || {};
+  const destinataireInitial = projection.destinataires.findIndex(x => x.id === initial.destinataire);
+  const prestationInitiale = projection.prestations.findIndex(x => JSON.stringify(x.terme) === JSON.stringify(initial.prestation));
+  if (destinataireInitial >= 0) qui.value = String(destinataireInitial);
+  if (prestationInitiale >= 0) prestation.value = String(prestationInitiale);
+  if (Number.isSafeInteger(initial.prix) && initial.prix >= 1 && initial.prix <= projection.or) prix.value = String(initial.prix);
+  if (Number.isSafeInteger(initial.limite) && initial.limite >= projection.instant && (initial.limite - projection.instant) % 600 === 0)
+    delai.value = String((initial.limite - projection.instant) / 600);
   const resume = document.createElement("p"); form.appendChild(resume);
   let limite = null;
   const actualiser = () => {

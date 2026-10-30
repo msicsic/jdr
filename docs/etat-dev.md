@@ -39,6 +39,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- **364 E6 reprise**, `codex-e6-libre-date`, base `origin/integration e6555c51` fusionnée sans rebase :
+  le libre ouvre un brouillon E5 ; aucun accord daté exécuté depuis sa compilation ou son rejeu.
+  Dates préremplies seulement depuis une durée explicite des mots ; autres champs incomplets visibles, validation E5/U-C.
+  Console, web et TUI raccordés ; parité, refus, annulation et recharge éprouvés. **Validation finale en cours**.
+  Première Luna 14 scripts/23 appels : refus sans effets, mais faux motifs et mauvais préremplissages ; schéma resserré.
+  Voisins puis schéma final et trois scripts ciblés en fond, deux travailleurs réduits ; aucune suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/e6-364/`, fin attendue `fin-verification-364.json` ; [rapport 364](taches/rapport-codex-364-e6-libre-vers-formulaire.md).
+
 Lots en cours : 360 (régressions du lot 337), 362 (16 rouges restants hors 337), 364 (E6 reprise : le libre ouvre le choix direct).
 **Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
 dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361, fusionné), 10 autres anciennes

@@ -48,6 +48,12 @@ def preparer(monde, transaction):
     """Valide et applique une transaction sur une copie ; renvoie (copie, rapport)."""
     if not isinstance(transaction, dict) or transaction.get("type") not in TYPES:
         raise ErreurMonde("Transaction du MJ mal formée.")
+    if transaction['type'] == 'parole':
+        p = transaction['proposition']
+        if '_adresse' not in p and any(c.get('type') == 'proposition' and
+                any('limite' in c.get(k, {}) for k in ('demande', 'contrepartie')) for c in p.get('contenu', [])):
+            raise ErreurMonde('Un accord daté doit être validé dans le choix direct avant d’être proposé.',
+                              'transaction.parole : accord daté reçu sans _adresse ; attendu geste direct accord validé par E5/U-C.')
     return _preparateurs()[transaction["type"]](monde, transaction["proposition"],
                                                 transaction["revision"])
 

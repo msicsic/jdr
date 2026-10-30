@@ -188,6 +188,19 @@ if (ETAT.sonde_marche) {
   }
   sortie.marche = {envois: [...envois], interrompue: marche === null};
 }
+if (ETAT.sonde_accord_libre) {
+  occupe = true; envois.length = 0; appliquerEtat(ETAT);
+  const form = $("accord");
+  sortie.accord_libre = {cache: form.hidden, envois_avant: envois.length, champs: {}};
+  for (const label of form.children.filter(l => l.tagName === "LABEL")) {
+    sortie.accord_libre.champs[label.children[0].textContent] = label.children[1].value;
+  }
+  occupe = false; form.onsubmit({preventDefault() {}});
+  sortie.accord_libre.envoye = envois[0];
+  appliquerEtat(ETAT);
+  form.children.filter(c => c.tagName === "BUTTON").at(-1).onclick();
+  sortie.accord_libre.envois_apres_annuler = envois.length;
+}
 if (ETAT.sonde_accord) {
   appliquerEtat(ETAT); occupe = false; envois.length = 0;
   $("negocier").onclick();

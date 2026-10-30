@@ -9,6 +9,7 @@ sys.path[:] = [x for x in sys.path if Path(x or '.').resolve() != BASE / 'tools'
 sys.path.insert(0, str(BASE))
 from tests.test_accords_publics import situation
 from tests.test_accord_libre_date import phrase
+from donjon.accords_publics import accords_publics
 
 
 def main():
@@ -24,12 +25,17 @@ def main():
         source = dossier / (nom + '-source.json')
         m.sauver(source)
         s = phrase(d)
-        cas = {'accepter': [s, 'tenter'], 'annuler': [s, 'annuler'],
+        # Le joueur contrôle le brouillon et choisit explicitement la prestation
+        # correcte avant de valider ; cela couvre aussi un préremplissage incomplet.
+        numero = str(next(i for i, x in enumerate(accords_publics(m)['prestations'], 1)
+                          if x['terme'] == d.contenu['parametres']['prestation']))
+        controle = ['corriger prestation', numero, 'corriger delai', '10']
+        cas = {'accepter': [s, *controle, 'valider', 'tenter'], 'annuler': [s, 'annuler'],
                'paiement-futur': [s + ', mais je ne te paierai que plus tard'],
                'maintien': [s + ' et tu dois maintenir cet état jusqu’à mon retour'],
                'alternative': [s + ' ou me donner six pièces à la place'],
                'pret-date': [s + ' et me prêter ta lampe pour ces dix minutes'],
-               'demain': [s.replace('dans dix minutes', 'demain')]}
+               'demain': [s.replace('dans dix minutes', 'demain'), *controle, 'valider', 'annuler']}
         for cas_nom, tours in cas.items():
             script = dossier / f'e6-{nom}-{cas_nom}.json'
             script.write_text(json.dumps({'scenario': 'auberge', 'seed': 1985,
@@ -40,7 +46,7 @@ def main():
                 "& 'C:\\Users\\msics\\donjon\\.venv\\Scripts\\python.exe' "
                 f"'{BASE / 'tools' / 'banc_parties.py'}' "
                 + ' '.join("'" + str(x) + "'" for x in scripts)
-                + f" --connexion chatgpt --max-appels 160 --etiquette e6-363 --fil --sortie '{dossier / 'luna'}'")
+                + f" --connexion chatgpt --max-appels 160 --etiquette e6-364 --fil --sortie '{dossier / 'luna'}'")
     (dossier / 'luna-a-jouer.txt').write_text(commande + '\n', encoding='utf-8')
     print(dossier / 'luna-a-jouer.txt')
 

@@ -69,6 +69,10 @@ class PontWeb:
     def comparaison(self, fiche):
         pass  # La comparaison entre modèles reste une affaire du terminal.
 
+    def ouvrir_accord(self, brouillon):
+        with self.verrou:
+            self.brouillon_accord = brouillon
+
     def rafraichir(self, monde, pending, mj):
         from ..carte import carte
         from ..rendu import fiche, regarder
@@ -98,6 +102,7 @@ class PontWeb:
             from ..scene import scene_percue
             etat["scene"] = scene_percue(monde)
         with self.verrou:
+            etat['brouillon_accord'] = self.__dict__.pop('brouillon_accord', None)
             self.dernier_etat = etat
         self.diffuser(etat)
 

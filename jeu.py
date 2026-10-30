@@ -571,6 +571,16 @@ def main(argv=None, interface=None):
                     imprimer("Le MJ réfléchit…", flush=True)
                     reponse = mj.echanger(m, texte[3:] if force_mj else texte,
                                          pending.proposition if pending else None)
+                    if '_formulaire_accord' in reponse:
+                        from donjon.accords_publics import AccordTerminal
+                        brouillon = reponse['_formulaire_accord']
+                        pending = None
+                        imprimer(reponse['texte'])
+                        if interface is None:
+                            recette = AccordTerminal(brouillon['public'], brouillon['initial'])
+                        else:
+                            interface.ouvrir_accord(brouillon)
+                        continue
                     if (reponse["mode"] == "action" and
                             reponse["proposition"].get("action") in ("clarifier", "impossible")):
                         raise ErreurMonde("L'avis du MJ doit être contrôlé comme un dialogue avant affichage.")
