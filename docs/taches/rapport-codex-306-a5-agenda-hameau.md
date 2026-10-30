@@ -1,58 +1,68 @@
 # Lot 306 — agenda d'évacuation du hameau
 
 Branche **`codex-a5-agenda-hameau`**, non fusionnée, base initiale `7ec839e`.
-Reprise sur le **laptop**, 30 octobre 2026 : fusion sans rebase de
-`origin/integration` **`c9b066bb`** dans `0a12fd12` (ancienne intégration `13ce3286`).
-**Tests ciblés validés ; nouveau banc détaché en cours, validation comportementale en attente.**
+Reprise laptop du 30 octobre 2026 : fusion sans rebase de l'intégration
+`c9b066bb` dans `0a12fd12`, commit mesuré **`2d696f65`**.
+**Livraison close ; données et tests validés, banc non validé pour intégration.**
+Un refus de mandat encore valable ne bloque pas sa réexécution différée.
 
-**Invariant et données.** Gorm reçoit `evacuer_crue`, `amener` vers
-`chambre_cloche`, comme dans la crue, pour Ilse, Brune, Maël et Sève.
-Ces deux nouveaux évacués ignorent les salles basses ; Maël connaît Gorm,
-Sève connaît Aubin/Ilse ; Gorm accueille les évacués, Aubin surveille les vannes.
-Aucun mandat initial, lien, coût, savoir ou charge `informer` ajouté.
-Aucune donnée ajustée après mesure ; moteur et MJ identiques à l'intégration.
-
-**Fusion et vérification ciblée.** `docs/etat-dev.md` reprend l'intégration
-avec une entrée 306 de huit lignes au plus. Le conflit d'occasions conserve
-les deux intentions : empreinte complète du hameau **85955d0e…**, et
-empreinte intégration **72a33d77…** après retrait du seul agenda 306.
-Les six autres empreintes restent strictes et inchangées.
+**Invariant.** Gorm reçoit `evacuer_crue`, `amener` vers `chambre_cloche`,
+comme dans la crue, pour Ilse, Brune, Maël et Sève. Gorm accueille les évacués ;
+Maël connaît Gorm, Sève connaît Aubin/Ilse ; tous deux ignorent les salles basses.
+Aucun mandat initial, lien, coût, savoir ou charge `informer` ajouté ; aucune
+attribution forcée ni donnée ajustée après mesure. Moteur et MJ inchangés.
 
 **54 tests / neuf fichiers verts, 143,892 s**, deux travailleurs réduits :
-agendas et autorité du hameau, occasions, scénario hameau, faire/confier,
-devis de l'observateur, compte rendu, réaffectation et récit d'agendas.
-Chargement, activation, absence d'attribution imposée, Maël/Sève marchant
-après accord, monde/rendu/scène/écoute rechargés et temps découpé contrôlés.
-Premier lancement sous sandbox inexploitable : fichiers temporaires Windows
-inaccessibles ; passe retenue hors sandbox. Aucune suite complète ni Luna.
+agendas/autorité du hameau, occasions, scénario hameau, faire/confier, devis de
+l'observateur, compte rendu, réaffectation, récit d'agendas. Activation unique,
+Maël/Sève marchant après accord, monde/rendu/scène/écoute rechargés et temps
+découpé vérifiés. Passe retenue hors sandbox (temporaires Windows bloqués dans
+le premier essai). Les deux assertions du conflit d'occasions restent strictes :
+empreinte complète **85955d0e…**, puis **72a33d77…** en retirant le seul agenda 306 ;
+les six autres empreintes sont inchangées. Ni suite complète ni Luna.
 
-**Banc de reprise.** Hameau **4 h × 1985/7/42/2024**, comparaison à `main`
-`0bad2272542abd68f4952ac714838740b3f811dc` (instruction de reprise).
-Le cache commun du laptop est relu avec sa clé d'instrumentation ; les
-quatre nuits hameau manquent dans les références copiées et seront seules
-calculées puis rangées. Branche jouée ensuite, deux processus au plus,
-priorité réduite, captures finales et contrôles de recharge monde/rendu/
-scène/écoute. `analyse.json` et `comparaison.json` contiendront mandats,
-refus par cause, comptes rendus, réaffectations, évacuations, suspects 219,
-boucles, usurpations et plantages. `ok` dans la fin prouve l'achèvement
-technique, pas l'absence de boucle : l'analyse reste à instruire.
+**Banc 4 h, référence `main` `0bad227` → branche `2d696f65`.**
 
-Crue d'origine : empreintes **2 h × quatre graines** refaites contre
-l'intégration fusionnée, dont le moteur est identique, pour isoler les
-seules données du 306. Cette comparaison suit le banc du hameau.
-Les écarts hameau contre `main` comprennent aussi les lots de l'intégration ;
-aucune causalité exclusive ni comparaison de performance avec le cache.
+| Graine | Proposés / acceptés / refusés | Causes des refus | Galerie réf. → branche | Agenda de Gorm atteint | Comptes rendus |
+|---|---|---|---|---|---|
+| 1985 | 7 / 0 / 7 | impossible 7 | 0 → 4 | min 51 | 0 |
+| 7 | 5 / 3 / 2 | impossible 2 | 1 → 4 | min 151 | 3 |
+| 42 | 8 / 3 / 5 | impossible 2, refus 3 | 1 → 4 | min 135 | 2 |
+| 2024 | 0 / 0 / 0 | — | 2 → 4 | min 127 | 0 |
 
-**Mesures antérieures**, contre `13ce3286`, conservées dans l'historique Git
-(`0a12fd12`) et sur le PC fixe : mandats proposés/acceptés/refusés
-**4/0/4, 5/2/3, 3/3/0, 1/1/0** ; évacués à la galerie **4/2/3/2** ;
-mandats atteints **0/2/3/1**, un compte rendu en 42, aucune réaffectation.
-Suspects **0/0/0/7**, 160 recharges identiques, crue 4/4 empreintes identiques.
-Ce banc restait non validé : achats promis répétés en 7 et réclamations de
-Sève en 2024 ; leur état après les lots récents ne sera affirmé qu'après
-lecture du nouveau banc. Les données ne changent pas pour les contourner.
+Sous-mandats inclus : **20 propositions, six acceptations, cinq comptes rendus**,
+mandats atteints **0/3/3/0**, zéro confirmation/réaffectation. Quatre destinataires
+comptés à t=240 ; aucune causalité exclusive attribuée au 306 face à `main`.
+**Aucun plantage/usurpation**, quatre captures finales rechargées identiques
+(monde, rendu, scène, écoute). Crue d'origine : **4/4 empreintes 2 h identiques**
+à l'intégration `c9b066bb` (chronique, mesures, état complet).
 
-Bruts de reprise dans le worktree : `artifacts/agenda-hameau-306/reprise-integration/`
-(`tests.json`, `lancer.py`, `banc.log`, comparaisons, captures, `fin.json` écrit
-même en cas d'échec). Anciennes archives : PC fixe,
-`C:/Users/msics/donjon/artifacts/agenda-hameau-306/reprise-309/`.
+**Limite bloquante instruite.** Graine 1985, sept tentatives `impossible` de
+confier Sève vers la galerie, minutes 4–7. À **t=4200 (min 7)**, le plan conservé
+depuis la minute 4 contient encore `confier` à Maël ; `refus_retenu` retourne le
+refus de minute 6 pour exactement ce mandat, mais l'acte est réexécuté.
+Relecture instrumentée limitée à **8 min**, chronique exactement préfixe du
+banc ; sept captures et leurs recharges monde/rendu/scène/écoute identiques.
+C'est un défaut du contrat commun de revalidation d'une action différée après
+refus, à corriger dans un lot moteur distinct, interdit dans le 306.
+
+**Autres observations.** Suspects 219 : **0/0/0/0 → 0/0/0/0** ; retours à expliquer
+**2/2/2/0 → 4/4/13/2**, passages horaires maximaux **12/7/5/8 → 20/25/29/38**.
+Une seule bascule d'état en 1985. Maël 42 : appels/rencontres répétés, entrées
+nouvelles observées sans preuve causale générale ; 23 retours restent ouverts.
+Aucun achat promis ni réclamation de Sève dans ces quatre chroniques nouvelles :
+les deux défauts de l'ancien banc ne s'y reproduisent pas. Le zéro du détecteur
+ne garantit pas l'absence de répétition continue, comme le montre t=4200.
+En 2024, aucun jugement de mandat : les estimations varient déjà avant min 1
+(direct 0,842 contre Aubin 1,575 à t=97 ; Aubin 0,772 contre direct 0,884 à t=147,
+puis direct 0,260 à t=282). Préfixe de 1 min reproduit à l'identique ; ce relevé
+ne prétend pas expliquer à lui seul les quatre heures sans délégation.
+
+**Calcul terminé**, deux processus réduits, **936,969 s** sur le laptop ; les
+quatre références hameau absentes ont été seules jouées puis rangées dans le
+cache commun ; branche ensuite. Les quatre références crue manquantes ont été
+rangées également. Aucun gain de performance déduit, aucun calcul actif.
+`fin.json` conserve **ok=true** (achèvement technique) ; **`conclusion.json` porte
+validation_integration=false**. Bruts : `artifacts/agenda-hameau-306/reprise-integration/`
+(comparaisons, tests, captures, `diagnostic-repetitions.json`, `conclusion.json`).
+Ancien rapport/mesures conservés dans Git `0a12fd12` et les archives du PC fixe.

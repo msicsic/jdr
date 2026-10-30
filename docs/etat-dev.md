@@ -38,13 +38,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **306 — `codex-a5-agenda-hameau`**, base initiale `7ec839e`, fusion sans rebase de `c9b066bb` (intégration).
-  Le hameau déclare l'évacuation d'Ilse, Brune, Maël et Sève par Gorm vers la galerie ; aucune attribution forcée.
-  Données seules, moteur et MJ inchangés ; **54 tests ciblés / neuf fichiers verts**, 143,892 s sur le laptop.
-  Ancien banc contre `13ce328` non validé : achats/réclamations répétés ; résultats antérieurs conservés au rapport.
-  Banc détaché 4 h × quatre graines en cours : deux processus réduits ; cache `main`, seules nuits manquantes jouées.
-  Fin attendue : `artifacts/agenda-hameau-306/reprise-integration/fin.json`. Ni suite complète ni Luna.
-  [Rapport du lot](taches/rapport-codex-306-a5-agenda-hameau.md).
+- **306 — `codex-a5-agenda-hameau`**, base `7ec839e`, fusion sans rebase de l'intégration `c9b066bb` (`2d696f65`).
+  Données : Gorm évacue Ilse, Brune, Maël et Sève vers la galerie ; moteur/MJ inchangés, aucune attribution forcée.
+  **54 tests / neuf fichiers verts** ; banc hameau 4 h × quatre graines : 20 propositions, six accords, cinq comptes rendus.
+  Quatre évacués à la galerie dans chaque graine ; zéro plantage/usurpation ; crue 4/4 empreintes 2 h identiques.
+  **Banc non validé pour intégration** : en 1985, à t=4200, `confier` réexécuté malgré un refus encore retenu.
+  Capture rechargée et préfixe de 8 min identique ; revalidation commune du plan différé à corriger hors 306.
+  Suspects 219 zéro ; 23 retours à expliquer. Calcul terminé (936,969 s), aucun calcul actif ; ni suite complète ni Luna.
+  [Rapport et bruts](taches/rapport-codex-306-a5-agenda-hameau.md) ; `conclusion.json` : validation_integration=false.
 
 Lots en cours : 356 (suite rouge, attribution), 357 (régression d'E3 sur les tâches payées). 315 réaccordée
 (`codex-reclamations-repetees` 7826c3a) en attente : une erreur nouvelle de rendu social (`porteur=None`) à comprendre.
