@@ -40,14 +40,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 - **363 E6**, `codex-e6-libre-date`, base `integration a9f02e5c` : délai libre structuré résolu une fois
-  avant la transaction ; termes temporels exécutables fournis à la revue, U-C et rendu E4/E5 conservés.
-  Huile/verrou, parité directe, annulation, revalidation et refus de clauses éprouvés après recharge.
-  **Non validé : calcul ciblé en cours**, deux travailleurs réduits, puis une passe Luna sur 14 copies.
-  Bruts `C:/Users/msics/donjon/artifacts/e6-363/`, fin attendue `fin-verification.json` ; analyse à reprendre.
-  Limite : fidélité au français toujours sémantique ; aucune garantie générale d'exhaustivité annoncée.
+  avant transaction ; **clos mais non validé, ne pas fusionner comme E6 acquis**, code `f24c6a06`.
+  145 tests distincts verts / 17 fichiers, zéro erreur ou saut ; parité et recharge huile/verrou simulées.
+  Luna 14 scripts / 83 appels : huile acceptée/annulée ; « demain » invente 24 h, verrou mal compilé,
+  clauses non portées parfois reclassées en parole/propos. Invariant général non acquis ; reprise du contrat requise.
+  Bruts `C:/Users/msics/donjon/artifacts/e6-363/`, `fin-cloture.json` valide=false ; aucun calcul actif.
   [Rapport 363](taches/rapport-codex-363-e6-libre-date.md).
 
-Lots en cours : 360 (régressions du lot 337), 362 (16 rouges restants hors 337), 363 (E6 accord daté en texte libre).
+Lots en cours : 360 (régressions du lot 337), 362 (16 rouges restants hors 337). E6 (363) reste à reprendre après sa clôture non validée.
 **Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
 dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361, fusionné), 10 autres anciennes
 et 6 nouvelles (362). Leurs entrées arrivent ici à leur livraison. 

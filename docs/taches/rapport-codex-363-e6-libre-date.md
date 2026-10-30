@@ -1,56 +1,63 @@
 # Lot 363 — E6, compilation libre d'un accord daté
 
 Branche `codex-e6-libre-date`, base `integration a9f02e5c`, PC fixe.
-**Calcul ciblé en cours ; livraison non validée, non fusionnée.**
+Code vérifié : `f24c6a06`, sources stables pendant les calculs.
+**Lot clos, E6 non validé : ne pas fusionner cette réalisation comme E6 acquis.**
 
-**Contrat porté.** La compilation d'une proposition accepte un délai relatif
-structuré `limite: {dans_secondes: n}`. `propositions.compiler_limites` le résout
-sur copie à l'instant de la saisie, avant la préparation et la revue de parole.
-La transaction ne conserve que la limite absolue E4 ; U-C, l'exécution et la
-sauvegarde refusent toujours une limite relative. L'attente et la confirmation
-ne recalculent pas la date. Le schéma d'exécution et les effets moteur restent
-inchangés ; aucun banc autonome n'est nécessaire pour ce raccord du MJ.
+**Ce qui est porté.** `propositions.schema_compilation` accepte un délai
+structuré `limite: {dans_secondes: n}` ; `compiler_limites` le résout sur copie
+à l'instant de la saisie, avant préparation et revue de parole. La transaction
+ne conserve que la limite absolue E4. U-C, l'exécution et la sauvegarde gardent
+leur contrat absolu : attendre ou confirmer ne recalcule pas la date.
+Le dossier commun de fidélité reçoit les termes exécutables rendus par le
+moteur, leur limite et leur durée restante, ainsi que le paiement présent.
+Les noms passent par la projection publique. Le schéma, les consignes et la
+revue exposent la portée E4 et ses exclusions ; aucun contrôle n'est retiré.
+`comprehension.py`, `consentement.py` et `transactions.py` sont inchangés.
+Recouvrements avec 360/362 : `paroles.py`, `mj.py`, `propositions.py`,
+`couverture_action.py`. Aucun changement aux effets ou à l'autonomie du moteur.
 
-Le dossier commun de fidélité donne les termes exécutables rendus par le moteur,
-avec les repères temporels, la durée restante et le paiement présent lorsqu'il
-y a des pièces. Les noms passent par la projection publique. Les consignes
-communes exposent le périmètre E4, les clauses indivisibles et les voies existantes
-`impossible`/`clarifier` pour les demandes non portées ou sans repère temporel.
-L'aperçu « Compris » réemploie E4/E5 ; aucun changement à `comprehension.py`,
-`consentement.py` ou `transactions.py` n'est nécessaire. Les contrôles de fidélité
-restent en place. Recouvrements à surveiller avec 360/362 : `paroles.py`, `mj.py`,
-`propositions.py` et `couverture_action.py`.
+**Tests : 145 méthodes distinctes vertes dans 17 fichiers**, zéro échec,
+erreur ou saut. Première passe finale : 107 tests en 387,816 s ; complément :
+43 en 75,548 s, dont les cinq E6 rejoués. Deux travailleurs réduits au plus.
+Huile d'Odile et verrou par Joss : compilation simulée, aperçu, consentement,
+annulation, revalidation à instant non entier, termes E5, comptes, engagements,
+réponses PNJ et rendu après recharge. Les paroles imposées gardent leurs mots.
+Les refus simulés prouvent l'absence d'exécution partielle lorsque la revue
+rejette une clause ; ils ne prouvent pas que Luna détecte toutes ces clauses.
+La première passe rouge (onze erreurs de sous-cas, audit narratif absent du
+harnais) est conservée ; aucun oracle moteur n'a été affaibli. Pas de suite
+complète ni de banc autonome, les effets moteur étant inchangés.
 
-**Épreuves.** Cinq méthodes E6 couvrent huile d'Odile et verrou du garde-manger
-par Joss : saisie → interprétation simulée → revue → aperçu → tenter/annuler →
-effets → sauvegarde et recharge, avec contrôle des comptes, engagements,
-paroles et rendu. La parité E5 compare les termes et effets mécaniques ainsi
-que les réponses PNJ ; les mots imposés par le joueur restent ses propres mots.
-La date est aussi éprouvée à un instant non entier puis après revalidation.
-Les tests injectent une revue négative pour une clause omise ou déformée
-(limite, paiement futur, maintien, alternative, prêt ou repère manquant) et
-contrôlent l'absence d'exécution partielle après recharge. Cela prouve la
-réaction à cette revue, pas son discernement sémantique en français réel.
+**Luna, une passe réelle : 14 scripts, 83 appels**, zéro erreur technique,
+mention sans fondement ou erreur de recharge signalée par le banc ; deux
+replis narratifs. Les compteurs techniques verts ne valident pas le contrat.
+L'huile est compilée avec prestation, prix et dix minutes : aperçu puis accord
+effectif après `tenter`, ou annulation sans émission. Son maintien continu est
+refusé explicitement. Mais les critères E6 échouent :
 
-Première passe : quatre méthodes sans erreur, onze erreurs de sous-cas dans
-la méthode de refus (audit narratif manquant dans le harnais). Harnais corrigé,
-sans modifier d'oracle moteur. Douze fichiers ciblés E1–E6/U-C/compréhension/G16
-et contenus sont lancés avec deux travailleurs réduits ; un complément inclut
-la reprise E6, paroles, contre-revue, contenu vide et G17/comptes moteur.
-Résultats définitifs à lire avant de conclure ; aucune suite complète lancée.
+- « huile demain » devient 86 400 secondes et un aperçu à la minute 1440 ;
+  la revue accepte ce repère inventé, sans demander de précision.
+- Le verrou est traduit par une condition `lieu:cellier`, parfois avec les
+  parties inversées. La revue le rejette, mais aucune correction n'aboutit au
+  verrouillage demandé, malgré sa présence dans le schéma fourni.
+- Plusieurs clauses non portées finissent en parole sans effet après refus
+  du typage ; le paiement futur peut être reclassé en `propos`. Alternative,
+  prêt et maintien ne reçoivent pas systématiquement de raison publique de
+  refus. Le prêt à Joss finit même par une réplique « D'accord » sans contrat.
 
-**Luna.** Quatorze scripts sur copies indépendantes, une seule passe : pour
-chaque prestation, acceptation, annulation, paiement futur, maintien, alternative,
-prêt daté et « demain ». `tools/preparer_banc_e6.py` reproduit ces scripts et la
-commande exacte `C:/Users/msics/donjon/artifacts/e6-363/luna-a-jouer.txt`.
-Le gardien détaché attend la fin des tests puis lance le complément et Luna
-séquentiellement, à priorité réduite, sans dépasser deux travailleurs de calcul.
-Les bruts, empreintes des sources et résultats sont rangés dans ce même dossier ;
-`fin-verification.json` est écrit en dernier. Il faut analyser les sorties Luna
-et attribuer tout rouge avant de clore le lot.
+**Conclusion.** La résolution et la conservation du délai typé fonctionnent
+dans les parcours éprouvés. L'invariant demandé n'est pas acquis : le contrat
+commun ne garantit encore ni l'exhaustivité temporelle de la compilation, ni
+la clarification sans calendrier, ni un refus entier sans repli en parole.
+L'enrichissement des consignes et du dossier de revue ne suffit pas. Aucun
+nouveau mot-clé, cas de scénario ou ajustement de prompt n'a été ajouté après
+cette observation ; aucune seconde passe Luna n'est lancée. La reprise doit
+porter le contrat commun de compilation, de refus et de repli, en conservant
+la protection du consentement et les contrôles transitoires.
 
-**Limite explicite.** La résolution et la conservation du contenu typé sont
-déterministes. L'exhaustivité de la traduction d'une phrase libre, notamment
-le refus d'une clause non représentée par le modèle, reste sémantique : revue
-existante et contrôle du joueur, sans garantie universelle nouvelle. Aucun
-prêt daté, maintien continu, crédit, calendrier ni renégociation n'est ajouté.
+Bruts : `C:/Users/msics/donjon/artifacts/e6-363/` : `tests-cibles.json`,
+`tests-complement.json`, `sources.json`, `luna/`, `analyse-cloture.json`.
+`tools/preparer_banc_e6.py` reproduit les copies et `luna-a-jouer.txt` donne
+la commande exacte. `fin-cloture.json` conclut **valide=false**, sans calcul
+actif. Branche poussée ; fusion laissée au superviseur, avec cette réserve.
