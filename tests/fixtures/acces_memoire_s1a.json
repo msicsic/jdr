@@ -1,0 +1,127 @@
+{
+  "donjon/banc_pnj.py": {
+    "_executer/memoire": 4,
+    "issue/memoire": 1,
+    "main/memoire": 1,
+    "nuit/memoire": 2,
+    "resume_diagnostic/memoire": 2
+  },
+  "donjon/biens.py": {
+    "prets_reclames/memoire": 1
+  },
+  "donjon/causes.py": {
+    "connues/memoire": 1,
+    "recevoir/memoire": 1
+  },
+  "donjon/defense.py": {
+    "approche_vue/memoire": 2,
+    "auteurs/memoire": 1,
+    "avertir_acces/memoire": 1,
+    "constater_fin/memoire": 1,
+    "dangers_vus/memoire": 1,
+    "interposition/memoire": 2,
+    "protection/memoire": 2,
+    "souvenirs/memoire": 2
+  },
+  "donjon/deliberation.py": {
+    "_candidats/memoire": 1,
+    "_lieux_a_dire/memoire": 1,
+    "_plan_prevenir/memoire": 1,
+    "alarme/memoire": 1,
+    "bruit_a_voir/memoire": 1,
+    "choisir/memoire": 1,
+    "consommer_indices_recherche/memoire": 1,
+    "detresses_percues/memoire": 1,
+    "menager_flamme/memoire": 1,
+    "ouvert_par_soi/memoire": 1,
+    "promesse_en_cours/memoire": 2,
+    "tache_payee/memoire": 1
+  },
+  "donjon/echanges.py": {
+    "affirmer/memoire": 1,
+    "tenu/memoire": 1
+  },
+  "donjon/esprits.py": {
+    "dernier_son/memoire": 1,
+    "installer/memoire": 3,
+    "prete/memoire": 1,
+    "verifier/memoire": 5
+  },
+  "donjon/ouie.py": {
+    "_bruit_inconnu/memoire": 1,
+    "_retenir_seulement/memoire": 1,
+    "couvert/memoire": 1,
+    "parcouru/memoire": 1,
+    "source/memoire": 1
+  },
+  "donjon/paroles.py": {
+    "paroles_retenues/memoire": 1
+  },
+  "donjon/passage.py": {
+    "_demande/memoire": 1,
+    "a_pousse/memoire": 1
+  },
+  "donjon/planification.py": {
+    "__init__/memoire": 1,
+    "_entrees_communes/memoire": 1,
+    "reagir/memoire": 1
+  },
+  "donjon/pnj.py": {
+    "_abriter/memoire": 1,
+    "_chauffer/memoire": 1,
+    "_executer_effet/memoire": 2,
+    "_temoins_a_l_oreille/memoire": 1
+  },
+  "donjon/recit_pnj.py": {
+    "_noter/memoire": 1
+  },
+  "donjon/rejeu.py": {
+    "_penser/memoire": 1
+  },
+  "donjon/relations.py": {
+    "chance_demande/memoire": 1,
+    "souvenir/memoire": 2
+  },
+  "donjon/signes.py": {
+    "percevoir_tous/memoire": 1,
+    "retenir_detresses/memoire": 1
+  },
+  "donjon/social.py": {
+    "_nouvelles/memoire": 1,
+    "_sait/memoire": 1,
+    "migrer_dits/memoire": 1
+  },
+  "tools/bilan_sous_arbres.py": {
+    "main/memoire": 1
+  },
+  "tools/detecter_changements_avis.py": {
+    "_est_accompli/memoire": 2,
+    "relever_entrees/memoire": 5,
+    "relever_services/memoire": 1
+  },
+  "tools/diagnostiquer_rester_pres.py": {
+    "resume/memoire": 1
+  },
+  "tools/empreintes_nuits.py": {
+    "nuit/memoire": 4
+  },
+  "tools/mesurer_attente_bornee.py": {
+    "observer/memoire": 2
+  },
+  "tools/mesurer_bissection_auberge.py": {
+    "mesurer/memoire": 3
+  },
+  "tools/mesure_cout.py": {
+    "recherche/memoire": 2
+  },
+  "tools/mesure_reflexion_190.py": {
+    "recherche/memoire": 1
+  },
+  "tools/mesure_saillance_210.py": {
+    "esprit_saillant/memoire": 1,
+    "recherche/memoire": 2
+  },
+  "tools/valider_occasion_336.py": {
+    "offre/memoire": 1
+  }
+}

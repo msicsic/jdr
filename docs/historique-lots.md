@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1a-porte-episodes` (378), base `integration eb84aad7` : porte commune des insertions/évictions
+  dans `memoire.py`, liste/plafond/crochets historiques conservés ; façade `esprits`, migrations et ouïe portées.
+  Contrôle AST fermé et chaînes auberge/Relais ajoutés ; lectures et contenus restent pour S1b–e.
+  158 tests ciblés passent (13 fichiers) ; empreintes 2 h/quatre scénarios/quatre graines : 16/16 identiques à la base.
+  Écart à l'ancien main attribué à l'intégration ; `origin/integration c63dd563` fusionné, 30 tests repassés après fusion du code.
+  Aucun stock renvoyé par la nouvelle API ; limite AST : flux interprocéduraux non exhaustifs. Bruts : `artifacts/s1a-378/` du dépôt principal.
+  [Rapport](taches/rapport-codex-378-s1a-porte-episodes.md). Recouvrement 374 limité à `esprits.py`.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 378, S1a : insertion et éviction des épisodes par donjon/memoire.py, stockage inchangé ; contrôle AST des écritures. 16/16 empreintes identiques à la base. Aucun fichier de code commun depuis la base.
+
 - `codex-a2-expression-son` — lot 379, base `origin/integration 85052cf8` : contrat commun
   expression/son pour moteur, schémas, raccourcis et « Compris » ; mécanique inchangée.
   Cas historique, rythme corporel, faux pendant silencieux, recharge et laps découpé couverts.
