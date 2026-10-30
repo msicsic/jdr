@@ -33,6 +33,12 @@ Vérification ciblée en cours, à priorité réduite, deux travailleurs au plus
 `fin-validation.json` sera écrit en dernier après les compléments et les
 mesures. Les lancements en bac à sable ont échoué sur les droits des
 temporaires Python ; relance avec accès disque. Aucun bilan vert annoncé.
+Première passe corporelle : **7 tests, 27 échecs de sous-cas, 5 erreurs,
+519,474 s**. Prémisses corrigées, assertions conservées : admission des
+nouvelles références avant les instantanés, transfert du lieu avec
+l'ancrage, case de poussée libre, mains libres et regard vers le corps,
+une minute écoulée avant ranimer. `corps-initial.json` reste intact ; la
+reprise complète du fichier est incluse dans les compléments détachés.
 Scènes : scripts réels `force-4b-frapper`, `force-4b-assommer`,
 `force-4c-fuir`, ligature 4d et seconde situation à l'auberge. Les parcours
 comparent plan, effet, texte et monde/scène/fiche/carte après recharge,

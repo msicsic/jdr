@@ -12,19 +12,25 @@ from donjon.auberge import nouveau_auberge
 from donjon.commandes import DescripteurPublic, analyser, proposition_descripteur
 from donjon.defi import nouveau_defi
 from donjon.esprits import percevoir_tous
-from donjon.geometrie import placer
+from donjon.geometrie import placer as ancrer
 from donjon.gestes_publics import GESTES_CORPS, REACTIONS, catalogue_public
 from donjon.monde import ErreurMonde, Monde, objet
 from donjon.moteur import Moteur
 from donjon.noms import apprendre, reference
 from donjon.spatial import installer, memoriser
-from donjon.temps import instant, MINUTE
+from donjon.temps import instant, MINUTE, ecouler
 from donjon.web.pont import PontWeb
 from tests.support import calme
 from tests.test_descripteur_public import vues
 from tests.test_inventaire_public import etat
 from tests.test_outils_publics import page
 from tests.test_tenir import situation
+
+
+def placer(o, salle, position):
+    """Placement d'auteur : lieu et ancrage changent ensemble."""
+    o["lieu"] = salle
+    ancrer(o, salle, position)
 
 
 def monde_geste(geste, variante=0):
@@ -49,7 +55,17 @@ def monde_geste(geste, variante=0):
     if geste in ("ligoter", "trainer", "tuer", "delier", "ranimer"):
         corps.endormir(m, cible)
     if geste == "ranimer":
-        corps.corps(m, cible)["inconscient_depuis"] = instant(m) - MINUTE
+        # Une minute réellement écoulée, plutôt qu'une date négative au départ.
+        ecouler(m, MINUTE)
+    if geste in ("pousser", "trainer"):
+        m.joueur.update(position=[3, 5] if geste == "trainer" else [1, 5])
+        placer(m.objets[cible], salle, [2, 5])
+    if geste == "trainer":
+        from donjon.deplacement_objet import deplacer
+        m.joueur["orientation"] = "ouest"  # Le corps choisi doit être actuellement perçu.
+        for id, o in list(m.objets.items()):
+            if o.get("lieu") == "joueur" and o.get("mobile"):
+                deplacer(m, id, salle, [1, 1])
     if geste in ("delier", "liberer"):
         qui = "joueur" if geste == "liberer" else cible
         m.objets["moyen_un"].update(entrave=True, lieu=qui)
@@ -60,6 +76,9 @@ def monde_geste(geste, variante=0):
             corps.corps(m, "joueur")["tenu_par"] = cible
         if not variante:
             m.data.setdefault("exploration", {}).setdefault(salle, []).append([0, 3])
+    # Même admission des nouvelles références qu'à la recharge, avant tout
+    # instantané de contrôle ; aucune assertion d'état n'est écartée ensuite.
+    m = Monde(copy.deepcopy(m.data))
     percevoir_tous(m)
     memoriser(m)
     vues(m)
@@ -142,7 +161,7 @@ class CorpsPublicsTests(unittest.TestCase):
                 if geste == "ligoter":
                     p = {"outil": "moyen_deux"}
                 elif geste in ("trainer", "pousser"):
-                    p = {"direction": "ouest" if geste == "trainer" else "est"}
+                    p = {"direction": "est"}
                 elif geste in ("delier", "tuer", "riposter") or geste == "frapper" and not p:
                     p = {"outil": "", **({"methode": "simple"} if geste == "frapper" else {})}
                 with self.subTest(variante=variante, geste=geste, p=p):

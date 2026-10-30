@@ -13,8 +13,12 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Tests ciblés en priorité réduite, deux travailleurs au plus ; compléments
   enchaînés en fond puis mesures des clics. Ni Luna, suite complète ou banc PNJ.
   Les lancements en bac à sable ont échoué sur les droits des temporaires ;
-  relance avec accès disque, aucun bilan vert annoncé. Bruts
-  `C:/Users/msics/donjon/artifacts/um-corps-344/` ; fichier de fin attendu
+  relance avec accès disque, aucun bilan vert annoncé.
+  Première passe corporelle : 7 tests, 27 échecs de sous-cas et 5 erreurs,
+  519,474 s ; références/placement/contact/mains/date des nouvelles scènes
+  corrigés, assertions conservées, moteur inchangé. Reprise complète du
+  fichier ajoutée aux compléments détachés ; bilan initial conservé.
+  Bruts `C:/Users/msics/donjon/artifacts/um-corps-344/` ; fichier de fin attendu
   **`fin-validation.json`**. Recouvrement explicite **343/G7 : `moteur.py`** ;
   documentation commune aux lots en cours. Lire les bilans avant clôture.
   [Rapport 344](taches/rapport-codex-344-um-corps.md).

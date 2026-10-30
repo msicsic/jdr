@@ -5,7 +5,6 @@ import unittest
 
 from donjon import corps, defense
 from donjon.commandes import DescripteurPublic
-from donjon.geometrie import placer
 from donjon.gestes_publics import GESTES_CORPS, REACTIONS
 from donjon.monde import ErreurMonde, objet
 from donjon.moteur import Moteur
@@ -15,6 +14,8 @@ from tests import test_corps_publics as support
 from tests.test_descripteur_public import vues
 from tests.test_inventaire_public import etat
 from tests.test_outils_publics import page
+
+placer = support.placer
 
 
 class CorpsLimitesTests(unittest.TestCase):
