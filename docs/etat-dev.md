@@ -43,8 +43,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 372 (A6
-soupçon déduit), 373 (S0 conception de la mémoire), 374 (position crue comme hypothèse datée). Suite complète en cours.
+Lots en cours : 365 (catalogue), 369 (U-T social), 373 (S0), 374 (position crue), 375 (11 rouges de la suite
+e0826ef), 376 (messages selon le découpage), 377 (double promesse). Suite e0826ef : 15 échecs, 11 méthodes (104 avant).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
