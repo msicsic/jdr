@@ -42,7 +42,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-ut-social-information` — lot 369, base d'intégration `e0826efc`, non fusionné.
   Console et TUI ouvrent `information` sur les mêmes choix publics et le même descripteur U-D que le web.
   Parole typée, réponse G16, confirmation et révalidation existantes ; aucun changement du catalogue ou de `paroles.py`.
-  Validation ciblée en cours, deux travailleurs réduits : nouveaux parcours, TUI/cases inchangés, U-M/G16/dialogues.
+  Branche poussée (`de4cc369`) ; validation ciblée en cours, deux travailleurs réduits, fin attendue `ut-social-information-369/fin-calcul.json`.
   Limite conservée : demander « où est » un objet reste indisponible ; ni Luna, banc ni suite complète.
   [Rapport 369](taches/rapport-codex-369-ut-social-information.md), bruts `artifacts/ut-social-information-369/` du dépôt principal.
 

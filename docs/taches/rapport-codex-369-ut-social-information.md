@@ -41,6 +41,9 @@ Les premiers lancements dans le bac à sable ont rencontré des refus d'accès
 aux répertoires temporaires ; reprise hors bac à sable, priorité réduite,
 deux travailleurs au plus. Ni Luna, banc PNJ, ni suite complète.
 Bruts : `C:/Users/msics/donjon/artifacts/ut-social-information-369/`.
+Deux passes ciblées restent en cours après la poussée `de4cc369` ; consolidation
+détachée, `fin-calcul.json` écrit en dernier (résultats, mesures et empreintes).
+À la reprise : lire ce fichier et les traces, corriger tout échec avant clôture.
 
 ## Limites et livraison
 
