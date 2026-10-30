@@ -103,7 +103,12 @@ class SignesTests(unittest.TestCase):
                     lectures_visibles.append(id)
                 else:
                     self.assertIn("ne vois plus", texte)
-                    self.assertNotIn("semble", texte)
+                    # Lot 376 : une impression perçue avant le départ reste
+                    # dans le fil ; aucune lecture après sa disparition.
+                    # Voir rapport-codex-376-messages-decoupage.md.
+                    apres_disparition = texte.split("Tu ne vois plus", 1)[1]
+                    self.assertNotIn("semble", apres_disparition)
+                    self.assertFalse(any(s["personnage"] == id for s in signes.impressions(m)))
                 self.assertEqual(rendu(m), rendu(recharger(m)))
         self.assertTrue(lectures_visibles)
 

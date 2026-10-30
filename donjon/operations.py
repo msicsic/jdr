@@ -9,6 +9,7 @@ from .perception import eclairage
 from .vol import proprietaire
 from .refus import cibles, inaccessible, portes_avec_usage
 from .contrats_sequence import COMPOSITION, schema_occasion, preparer_occasion, developper_vol
+from .contrats_son import emissions, schemas_emissions
 
 
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
@@ -16,8 +17,8 @@ ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "verrouiller", "croc
                        "bloquer", "debloquer")
 OPERATIONS = ("patienter", "deplacer", "prelever", "detacher", "allumer", "eteindre", "alimenter", "manger", "franchir_obstacle", "passer_obstacle", "emettre_son",
               "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)
-METHODES = ("simple", "discret", "levier", "finesse", "percussion", "assommer", "appui_mobile", "appel", "cri", "sifflement",
-            "heler", "repondre", "arriver", "demander_raison", "dessous", "dessus")
+METHODES = ("simple", "discret", "levier", "finesse", "percussion", "assommer", "appui_mobile",
+            *(m for m in emissions() if m != "simple"), "dessous", "dessus")
 
 
 def etape(operation, cible="", destination="", outil="", methode="simple", difficulte=0):
@@ -50,8 +51,9 @@ SCHEMA_SEQUENCE = {
 _schema_etape = SCHEMA_SEQUENCE["properties"]["etapes"]["items"]
 _autres_etapes = copy.deepcopy(_schema_etape)
 _autres_etapes["properties"]["operation"]["enum"].remove("patienter")
+_autres_etapes["properties"]["operation"]["enum"].remove("emettre_son")
 SCHEMA_SEQUENCE["properties"]["etapes"]["items"] = {
-    "anyOf": [_autres_etapes, schema_occasion(_schema_etape)]}
+    "anyOf": [_autres_etapes, schema_occasion(_schema_etape), *schemas_emissions(_schema_etape)]}
 
 
 def traduire(monde, p):

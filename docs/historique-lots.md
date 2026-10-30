@@ -6,6 +6,33 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-a2-expression-son` — lot 379, base `origin/integration 85052cf8` : contrat commun
+  expression/son pour moteur, schémas, raccourcis et « Compris » ; mécanique inchangée.
+  Cas historique, rythme corporel, faux pendant silencieux, recharge et laps découpé couverts.
+  59 tests finaux verts ; empreintes Relais 2 h × 4 graines identiques. Sept échecs voisins
+  reproduits à l'identique sur la base. Aucune passe Luna ni suite complète ; revues conservées.
+  Fidélité du choix Luna non garantie ; aucun registre d'esprit ajouté.
+  Rapport : [379](taches/rapport-codex-379-a2-expression-son.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 379, A2 famille expression et son : un contrat commun (contrats_son) pour moteur, schéma et plan public. Aucun fichier de code commun depuis la base. Sept échecs voisins de test_voix/test_voix_inconnues identiques sur la base (rouges traités par le 375).
+
+- `codex-messages-decoupage` — lot 376, base `origin/integration 2887c541` :
+  présences, sons et mémoires publiques relevés aux événements, sans résumé dépendant de l'action.
+  Capture 371 auberge et passage au Relais : messages/état/rendu rechargés identiques après découpage.
+  114 tests verts ; 8 nuits de 2 h : physique/chroniques/mesures/souvenirs PNJ identiques, zéro plantage/usurpation.
+  Hash d'état complet différent sur 6/8 nuits : journal seul au préfixe Relais ; écarts finaux non intégralement attribués.
+  Recouvrement `moteur.py` avec 369/375 ; aucun registre d'esprit ajouté.
+  [Rapport 376](taches/rapport-codex-376-messages-decoupage.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 114 tests verts, huit nuits sans plantage, empreintes physiques identiques ; six écarts d'état complet partiellement attribués (limite).
+
+- `codex-double-promesse` — lot 377, base `origin/integration 2887c541`, PC fixe.
+  Les devis et transferts comptent les moyens déjà promis, depuis les engagements existants, sans nouveau registre.
+  Capture Mireille/Tilo/Mathurine et autre bien vérifiés après recharge et laps découpés ; parts libres conservées.
+  98 tests distincts verts ; empreintes 2 h auberge/Relais × 4 graines : 4/8 identiques, 4 écarts attribués.
+  Aucun plantage, usurpation ni aller-retour non justifié sur ces nuits ; livraison terminée, branche poussée.
+  Limite : quantité distante inconnue = refus conservateur possible ; recouvrements possibles 365/375.
+  [Rapport](taches/rapport-codex-377-double-promesse.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 98 tests verts, quatre divergences d'empreintes expliquées ; limite : une quantité distante inconnue peut donner un refus conservateur.
+
 - **373 — `codex-s0-conception-memoire`**, base `integration b83f5a59`, documentation seule.
   S0 : inventaire mesuré, trois couches et registre, vues/invalidation, migration S1a–p et frontière S2.
   71 accès mémoire / 55 fonctions / 17 fichiers ; 247 accès explicites dans 106 fichiers de tests.

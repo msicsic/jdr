@@ -28,6 +28,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-a2-expression-son` (e868d585) : lot 379, A2 famille expression et son. Détail dans l'historique.
+- `codex-messages-decoupage` (9d9fd5fe) : lot 376, les messages ne dépendent pas du découpage du temps. Détail dans l'historique.
+- `codex-double-promesse` (8558adf4) : lot 377, une même part n'est pas promise deux fois. Détail dans l'historique.
 - `codex-s0-conception-memoire` (202c9fff) : lot 373, S0 conception de la mémoire unifiée des PNJ. Détail dans l'historique.
 - `codex-catalogue-connu` (fdfc31df) : lot 365, le catalogue des choix ne montre que ce que Corvus connaît. Détail dans l'historique.
 - `codex-ut-social-information` (8245d178) : lot 369, U-T social information, l'acte d'information au terminal. Détail dans l'historique.
@@ -37,9 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-quatre-regressions` (a4788b4c) : lot 368, quatre régressions isolées (313, 330, 332, 333). Détail dans l'historique.
 - `codex-service-evacuation` (e0c95ced) : lot 367, un service payé reste protégé quand l'évacuation déplace la lumière. Détail dans l'historique.
 - `codex-refus-leve-contrepartie` (140cb9f0) : lot 366, un refus retenu se lève par une contrepartie ou un accord nouveau. Détail dans l'historique.
-- `codex-e6-libre-date` (7dc16a0d) : lots 363 et 364, E6 partiel, la proposition datée en texte libre ouvre le choix direct. Détail dans l'historique.
-- `codex-regressions-337` (2166b971) : lot 360, régressions de la fin de garde apprise par ouï-dire (lot 337). Détail dans l'historique.
-- `codex-rouges-restants` (48d107bc) : lot 362, rouges restants de la suite hors lot 337. Détail dans l'historique.
 
 ## Lots non fusionnés
 
@@ -51,9 +51,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Fin attendue : `C:/Users/msics/donjon/artifacts/s1a-378/verification-fin.json` ; lot non validé.
   [Rapport](taches/rapport-codex-378-s1a-porte-episodes.md). Recouvrement 374 limité à `esprits.py`.
 
-Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 376 (messages selon le découpage), 377
-(double promesse), 378 (S1a, porte des épisodes). Questions de S0 en cours d'arbitrage avec l'utilisateur (1 : tri des
-souvenirs par importance et âge, validé). Leurs entrées arrivent ici à leur livraison. 
+Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 378 (S1a, porte des épisodes), 379
+(A2 expression et son), 380 (U-M social comptes). Questions de S0 en arbitrage (1 et 2 tranchées, voir décisions).
+Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
 
@@ -77,6 +77,11 @@ souvenirs par importance et âge, validé). Leurs entrées arrivent ici à leur 
   S3, S4 sans lecteur, S5 (vérification d'intégration avant et après) ; S6 sur la table d'A6 ; S7/S8 après A2 à A6 du
   compilateur et D0. A6 (restes) et A7 sont absorbés (S3, S5, S6) ; A8 après S5 et S7 ; 3d porté par S2. Questions
   ouvertes : ordre des actes oui ; biographies à la main pour la tranche, générées ensuite ; tranche sur l'auberge.
+- **Questions de S0** : (1) rétention selon importance et âge, recommandation acceptée ; (2) anciennes sauvegardes :
+  l'utilisateur n'y tient pas et laisse décider ; retenu l'héritage minimal, pour garder les captures réelles des tests
+  (`tests/data`) : S1 relit à l'identique, S2 lit une attitude sans acte comme « héritée, cause inconnue », non
+  compensable par une réparation, estompée par les règles ordinaires ; aucun passé reconstruit, parties neuves pour
+  valider réparation, trahison et repentir.
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 

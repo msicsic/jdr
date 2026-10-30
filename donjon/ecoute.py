@@ -50,7 +50,7 @@ def portes_contre(monde):
             if _a_la_porte(monde, par)]
 
 
-def entendus(monde, depuis, seuil):
+def entendus(monde, depuis, seuil, *, bruits=None):
     """Bruits survenus après l'instant ``depuis`` (en dixièmes de seconde : le début du geste du
     joueur) qui lui parviennent au moins à ``seuil`` : [(bruit, niveau, d'où il arrive)]. Le monde a
     traité jusqu'à cet instant compris pendant le geste précédent, et ce qu'il a fait entendre l'a
@@ -58,13 +58,25 @@ def entendus(monde, depuis, seuil):
     from .ouie import finesse
     ecoute, seuil = seuil <= ECOUTE, seuil - finesse(monde, "joueur")
     resultat = []
-    for b in monde.data.get("bruits", []):
+    for b in monde.data.get("bruits", []) if bruits is None else bruits:
         if b["instant"] <= depuis or b["auteur"] not in monde.objets or b.get("vu"):
             continue
         niveau = b["niveau"] + (1 if ecoute and _a_la_porte(monde, b["par"]) else 0)
         if niveau >= seuil:
             resultat.append((b, niveau, b["par"]))
     return resultat
+
+
+def rendre_evenement(monde, parvenu, precedent=None):
+    """Un son à son instant. Le fond inchangé ne se répète pas : son précédent
+    vient de la file sauvegardée des bruits, jamais de la borne d'une action.
+    Les paroles restent des événements distincts, même si leurs mots se répètent."""
+    b, niveau, direction = parvenu
+    if precedent is not None and not b["texte"] and not precedent[0]["texte"]:
+        a, ancien_niveau, ancienne_direction = precedent
+        if (b["nature"], niveau, direction) == (a["nature"], ancien_niveau, ancienne_direction):
+            return []
+    return rendre(monde, [parvenu])
 
 
 def _lieu(direction):
