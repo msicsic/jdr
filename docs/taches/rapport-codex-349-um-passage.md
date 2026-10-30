@@ -54,5 +54,5 @@ que pour une difficulté déjà mémorisée dans le même contexte physique**.
 Un premier arbitrage reste au chemin libre du MJ ; le joueur ne fixe pas
 sa difficulté. Une forme inconnue reste à qualifier séparément (G13).
 Une offre ne promet jamais la réussite. U-T passage reste à faire.
-Branche à pousser vers `origin` avec ce statut de calcul en cours ; fusion
+Branche poussée vers `origin` avec ce statut de calcul en cours ; fusion
 laissée au superviseur. Aucun résultat final vert n'est encore revendiqué.
