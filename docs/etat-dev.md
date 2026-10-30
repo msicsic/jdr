@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-a2-sequence-attente` (b75dcf62) : lot 370, A2 famille séquence et attente. Détail dans l'historique.
 - `codex-evaluation-echeance` (76305cc6) : lot 371, évaluation du noyau de l'échéance négociée. Détail dans l'historique.
 - `codex-quatre-regressions` (a4788b4c) : lot 368, quatre régressions isolées (313, 330, 332, 333). Détail dans l'historique.
 - `codex-service-evacuation` (e0c95ced) : lot 367, un service payé reste protégé quand l'évacuation déplace la lumière. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-attentes-perimees` (9f9d6fdd) : lot 361, attentes périmées encore rouges portées au contrat actuel. Détail dans l'historique.
 - `codex-suite-rouge-7eb45ff` (198844a5) : lot 356, attribution de la suite rouge 7eb45ff et harnais du consentement. Détail dans l'historique.
 - `codex-a5-agenda-hameau` (c7f4ed02) : lot 306, A5 agenda d'évacuation du hameau. Détail dans l'historique.
-- `codex-revalider-apres-refus` (63d55dcd) : lot 358, une action différée est revalidée contre un refus encore valable. Détail dans l'historique.
 
 ## Lots non fusionnés
 

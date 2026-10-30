@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-a2-sequence-attente` — lot 370, base `integration d856732` : registre partagé
+  séquence/attente, schéma fermé de la famille et limites dans « Compris » ; mécanique valide conservée.
+  Vérification finale : 106 tests, zéro échec/erreur, trois ignorés (MiMo absent), neuf fichiers, 262,94 s.
+  Empreintes Relais 2 h × quatre graines identiques à la base : chronique, mesures et état final complet.
+  Code vérifié `c6e904db` ; bruts `C:/Users/msics/donjon/artifacts/a2-sequence-attente-370/`, `fin.json` vert.
+  Limites : événement libre non garanti, API `MJ.proposer` transitoire ; A3/A4/A6 hors périmètre.
+  [Rapport](taches/rapport-codex-370-a2-sequence-attente.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 103 tests verts, 3 ignorés ; empreintes Relais identiques 2 h × 4 graines ; l'attente d'un événement libre reste non garantie.
+
 - `codex-evaluation-echeance` — lot 371, base `d8567324`, PC fixe, mesure seule, aucun code du jeu modifié.
   Huile auberge/planches Relais : 7 saisies ou 9 clics, zéro modèle ; livraison, remboursement unique,
   comptes et rendu après recharge ; messages en bloc/découpés différents à l’auberge (état identique).
