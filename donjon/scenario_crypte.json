@@ -2,7 +2,9 @@
   "ajouts_savoirs": [],
   "arbitrages": {},
   "bruit": 0,
-  "connus": [],
+  "connus": [
+    "anneau"
+  ],
   "conversation": [],
   "dialogues_pnj": {
     "marchand": {

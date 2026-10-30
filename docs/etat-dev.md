@@ -39,6 +39,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- **365, `codex-catalogue-connu`**, base `dea991a5` : admission lexicale retirée du lecteur commun des
+  connaissances ; sources perceptives, mémorisées et actes typés entendus seuls. Anneau de la prémisse déclaré.
+  Fuites des choix huile/verrou reproduites ; noms déclarés connus conservés. Recouvrement 360 : `paroles.py`.
+  Vérification détachée en cours (deux travailleurs réduits) : catalogues, noms/projection/U-M/U-T/accords,
+  puis empreintes 2 h × quatre graines, Relais/auberge contre la base. Ni suite complète ni Luna.
+  Fin attendue : `C:/Users/msics/donjon/artifacts/catalogue-365/fin-verification.json` ; **lot non validé**.
+  [Rapport](taches/rapport-codex-365-catalogue-connu.md) ; pas de migration lexicale de la prose des anciennes sauvegardes.
+
 Lots en cours : 364 (E6, réaccordance après le 362), 365 (catalogue des choix : fuite possible), 366 (levée d'un
 refus par contrepartie, 358), 367 (service payé et évacuation, 306), 368 (quatre régressions isolées). Leurs entrées
 arrivent ici à leur livraison. 
