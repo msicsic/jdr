@@ -42,8 +42,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   réaccordée par fusion (sans rebase) avec `origin/essai-integration-g1` (`8f410f7`).
   Refus durable, ordre et borne des remboursements conservés ; référence, réalisation datée et
   remboursement unique d'E1/E2 conservés. Une dette encore inconnue ne prépare aucune réclamation.
-  29 tests ciblés verts ; validation des 37 fichiers 315/E1/E2 en cours :
-  `artifacts/reclamations-315/fusion-e1-e2/fin.json` (dépôt principal).
+  357 tests / 37 fichiers : 347 verts ; 9 échecs identiques sur l'essai intact `8f410f7`.
+  Réserve supplémentaire : capture de service, `social.phrase` plante sur un bien posé (`porteur=None`).
+  Contrats 315/E1/E2 verts ; ce défaut de rendu social reste à traiter dans un lot distinct.
   Limites et mesures : [rapport 315](taches/rapport-codex-315-reclamations-repetees.md).
 
 Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 351 (G18 avis), 352 (E3 délai cru).
