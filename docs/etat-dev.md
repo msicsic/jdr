@@ -38,8 +38,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 342 (attribution du groupe 1, 315 à réaccorder), 353 (U-T corps et passage), 355 (E4 accord daté), 356 (suite rouge),
-354 (U-M social information). Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
+Lots en cours : 356 (suite rouge, attribution), 357 (régression d'E3 sur les tâches payées). 315 réaccordée
+(`codex-reclamations-repetees` 7826c3a) en attente : une erreur nouvelle de rendu social (`porteur=None`) à comprendre.
+Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
 écrits avant le consentement U-C, d'autres familles à attribuer) : lot 356 (attribution, harnais) en cours ; la
 vérification d'intégration et l'avance de `main` attendent une suite redevenue témoin fiable.
 
