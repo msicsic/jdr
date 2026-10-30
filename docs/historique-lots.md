@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **353 — U-T corps et passage**, `codex-ut-corps-passage`, base `57c9771d` : terminé, non fusionné.
+  Catalogue commun déplié en choix numérotés complets ; réactions sur danger perçu, franchissements
+  qualifiés et arbitrages mémorisés ; ancien préfixe conservé, aucun analyseur ni modèle.
+  **126 tests distincts validés / 12 fichiers**, dont 28 TUI et 5 TUI cases inchangés ; zéro incident retenu.
+  80 parcours mesurés : 2–11 touches, confirmation comprise, +1 avec F7 ; zéro appel modèle.
+  Bruts : `C:/Users/msics/donjon/artifacts/ut-corps-passage-353/fin-cloture.json` ; production inchangée depuis `cbc4744d`.
+  Liste potentiellement longue ; premier arbitrage et forme inconnue restent au libre. Aucun code commun avec 354.
+  [Rapport](taches/rapport-codex-353-ut-corps-passage.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 126 tests distincts verts, 80 parcours mesurés, zéro appel au modèle ; jeu.py modifié aussi par le lot 354 : tests du terminal et de l'information publique rejoués après fusion.
+
 - **Lot 333 / A4b terminé, branche `codex-garder-lieu`, fusionnée**, base
   d'intégration `4a54090` : interposition commune pour biens, protégés et
   lieux gardés. Seuil déclaré, approche réellement vue en continu, poste
