@@ -39,10 +39,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 360 (régressions du lot 337), 362 (16 rouges restants hors 337), 364 (E6 reprise : le libre ouvre le choix direct).
-**Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
-dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361, fusionné), 10 autres anciennes
-et 6 nouvelles (362). Leurs entrées arrivent ici à leur livraison. 
+Lots en cours : 364 (E6, réaccordance après le 362), 365 (catalogue des choix : fuite possible), 366 (levée d'un
+refus par contrepartie, 358), 367 (service payé et évacuation, 306), 368 (quatre régressions isolées). Leurs entrées
+arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
 
