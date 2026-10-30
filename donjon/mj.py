@@ -972,8 +972,8 @@ class MJ:
                 corrigee = self._echanger(monde, intention, proposition_en_attente, enrichir=True, retour_moteur=retour)
                 return self._echanger_prepare(monde, intention, proposition_en_attente, suite_fait=suite_fait,
                                               reponse=corrigee, recadre=True)
-        from .comptes_parles import reponse as reponse_comptable
-        narration = reponse_comptable(rapport) or self._echanger(
+        from .repliques_moteur import reponse as reponse_formulee
+        narration = reponse_formulee(rapport) or self._echanger(
             travail, intention, proposition_en_attente, enrichir=False, conversation_validee=rapport)
         if narration["mode"] != "dialogue":
             raise ErreurMonde("Le MJ n'a pas terminé la description. Aucun complément enregistré.")
@@ -983,7 +983,7 @@ class MJ:
             from .narration import raccorder_emissions
             narration = raccorder_emissions(narration, rapport)
             narration["_prefixe_moteur"] = annonce_parole(travail, rapport)
-        from .comptes_parles import sceller
+        from .repliques_moteur import sceller
         narration = sceller(narration, rapport)
         return ajouter_transaction(narration, nature, revision, complements,
                                    rapport if reponse["mode"] in ("conversation_pnj", "parole_joueur") else None)

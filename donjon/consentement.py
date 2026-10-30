@@ -103,7 +103,7 @@ class PropositionLibre:
     def compte_parle(self):
         """Mots réellement entendus, issus des transactions de cette réponse."""
         from .emissions import entendues
-        from .comptes_parles import reponse, sceller
+        from .repliques_moteur import reponse, sceller
         rapport = {"emissions": [p for r in self.rapports if r for p in entendues(r)]}
         texte = reponse(rapport)
         return sceller(texte, rapport) if texte else None
@@ -126,10 +126,10 @@ class PropositionLibre:
                               for p in entendues(rapport_courant))
                 suite.reponse.pop("_audit", None)
                 suite.reponse.pop("_prefixe_moteur", None)
-                suite.reponse.pop("_comptes_parles", None)
+                suite.reponse.pop("_repliques_moteur", None)
                 compte = suite.compte_parle()
                 suite.reponse.update({k: compte[k] for k in
-                    ("texte", "_texte_moteur", "_comptes_parles")} if compte else {
+                    ("texte", "_texte_moteur", "_repliques_moteur")} if compte else {
                     "texte": "\n".join(lignes) or "Proposition revalidée par le moteur.",
                     "_texte_moteur": True})
                 suite.reponse["_prefixe_moteur"] = "\n".join(prefixes)

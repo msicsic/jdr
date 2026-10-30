@@ -144,8 +144,9 @@ class ComptesParlesMoteurTests(unittest.TestCase):
                   if t not in rapport['faits_comptables']]
         self.assertTrue(autres)
         r, sortie, _ = jouer(m, mots, [p], [])
-        for texte in autres:
-            self.assertIn(texte, sortie)
+        # G16 formule désormais cette information dans la même émission.
+        self.assertIn("J'ai les fagots de bois sec", pnj(r)[-1]["texte"])
+        self.assertIn(pnj(r)[-1]["rendu_public"], sortie)
         self.assertEqual(r.joueur['or'], m.joueur['or'] + 2)
         self.assertRecharge(r, sortie)
 

@@ -13,7 +13,8 @@ from donjon.scene import scene_percue
 from tests.test_avis_joueur import dire
 from tests.test_disputes import dispute
 from tests.test_parole_corrections import audit, ligne
-from tests.test_repli_et_appel import jouer, parole, dialogue, verdicts, NEUTRE
+from tests.test_repli_et_appel import parole, dialogue, verdicts, NEUTRE
+from tests.consentement_support import jouer
 from tests.test_social import recharger
 from tests.test_avis_menace import relation
 

@@ -276,9 +276,8 @@ class VoixInconnueTests(unittest.TestCase):
                       "chose.", emissions_pnj(reprise)[-1]['evenement']['faits'])
         reprise, _, entrees = jouer(reprise, "je lui dis : c'est Corvus", [
             parole("C'est Corvus.", ("nom", "joueur", "", "")), reponse_pnj("Gorm grogne.")])
-        self.assertEqual(entrees[1]["faits"]["conversation_validee"]["faits"],
-                         ["Gorm, gardien du relais te croit sur parole : pour lui, c'est « Corvus » qui parle. Cela ne te "
-                          "vaut pas plus de confiance qu'à un inconnu."])
+        self.assertIn("Gorm, gardien du relais te croit sur parole : pour lui, c'est « Corvus » qui parle. Cela ne te "
+                          "vaut pas plus de confiance qu'à un inconnu.", entrees.rapports[-1]["faits"])
         gorm = lire(reprise, "marchand")
         self.assertEqual(gorm["voix_entendues"]["joueur"]["se_dit"], "joueur")
         self.assertEqual(lieu_cru(reprise, "marchand", "joueur"), ("echoppe", "se_dit"))
@@ -304,7 +303,7 @@ class VoixInconnueTests(unittest.TestCase):
             parole("Qui est là ?", ("qui", "", "", ""), personnage=alias), reponse_pnj("« C'est Brune. »")])
         self.assertEqual(entrees[0]["faits"]["parole_prevue"]["personnage"], alias)
         self.assertNotIn("Batelière", json.dumps(entrees[0]["faits"]["esprits_interlocuteurs"], ensure_ascii=False))
-        validee = entrees[1]["faits"]["conversation_validee"]
+        validee = entrees.rapports[-1]
         self.assertEqual((validee["personnage"], validee["destinataires"]), (alias, [alias]))
         self.assertIn("Une voix inconnue se nomme : « Brune ».", validee["faits"])
         self.assertIn("Tu dis à une voix inconnue : « Qui est là ? »", sortie)
@@ -445,7 +444,7 @@ class SeNommerTests(unittest.TestCase):
         reprise, _, entrees = jouer(recharger(m), "je dis à Gorm : c'est Brune", [
             parole("C'est Brune.", ("nom", "brune", "", "")), reponse_pnj("Gorm se raidit.")])
         self.assertIn("Gorm, gardien du relais sait que tu n'es pas « Brune ».",
-                      entrees[1]["faits"]["conversation_validee"]["faits"])
+                      entrees.rapports[-1]["faits"])
         self.assertTrue(lire(reprise, "marchand")["voix_entendues"]["joueur"]["mefiance"])
         self.assertTrue(mefiance(percue(reprise, "marchand", "joueur")))
 

@@ -335,22 +335,23 @@ def _phrase(monde, sujet, attribut, valeur):
     return ""
 
 
-def _ouidire(monde, source):
+def _ouidire(monde, source, *, moi=False):
     """D'où il tient une croyance rapportée, nommé seulement si le joueur connaît ce témoin et que
     le personnage savait qui le lui disait."""
     if source == "se_dit":
-        return " (une voix le lui a dit d'elle-même)"
+        return " (une voix me l'a dit d'elle-même)" if moi else " (une voix le lui a dit d'elle-même)"
     if not source.startswith("dit:"):
         return ""
     from .voix import auteur_dit
     locuteur, inconnue = auteur_dit(source)
     if inconnue:
-        return " (une voix inconnue le lui a dit)"
+        return " (une voix inconnue me l'a dit)" if moi else " (une voix inconnue le lui a dit)"
     if locuteur == "joueur":
-        return " (tu le lui as dit)"
+        return " (tu me l'as dit)" if moi else " (tu le lui as dit)"
     if locuteur in monde.objets and _connu_du_joueur(monde, locuteur):
-        return f" ({monde.objets[locuteur]['nom'].split(',')[0]} le lui a dit)"
-    return " (on le lui a dit)"
+        nom = monde.objets[locuteur]['nom'].split(',')[0]
+        return f" ({nom} me l'a dit)" if moi else f" ({nom} le lui a dit)"
+    return " (on me l'a dit)" if moi else " (on le lui a dit)"
 
 
 def esprits_interlocuteurs(monde, presents):
@@ -1398,7 +1399,7 @@ def _se_nommer(travail, auditeur, nom_dit, faits):
         "crue": f"{nom} te croit sur parole : pour {lui}, c'est « {dit} » qui parle. Cela ne te vaut pas plus de "
                 "confiance qu'à un inconnu.",
     }[issue])
-
+    return {"etat": issue, "nom": dit}
 
 
 def _qui_est_la(travail, auditeur, faits):
@@ -1408,10 +1409,11 @@ def _qui_est_la(travail, auditeur, faits):
     nom, il, _ = _personne(travail, auditeur)
     if mefiance(percue(travail, auditeur, "joueur")):
         faits.append(f"{nom} refuse de te dire qui {il} est.")
-        return
+        return {"etat": "refus"}
     vrai = travail.objets[auditeur]["nom"].split(",")[0]
     se_nommer(travail, "joueur", auditeur, auditeur)
     faits.append(f"{nom} se nomme : « {vrai} ».")
+    return {"etat": "nomme", "nom": vrai}
 
 
 def _affirmer(travail, auditeur, sujet, attribut, valeur, faits):
@@ -1551,6 +1553,7 @@ def _enqueter(travail, auditeur, besoin, faits):
                       "mefiance": f"{nom} refuse de te répondre : {il} ne te fait pas confiance.",
                       "rancune": f"{nom} refuse de te répondre : {il} t'en veut encore.",
                       "rien": f"{nom} dit n'en avoir pas."}[issue])
+    return {"etat": issue, "dit": copy.deepcopy(dit)}
 
 
 def _le(o):
@@ -1764,6 +1767,7 @@ def preparer_parole(monde, p, revision=None):
     for auditeur in [*dest, *repondent]:
         debut_reponse = len(faits)
         resolutions = []
+        resolutions_parlees = []
         capacite = min(expression, capacite_transmission(_stats_pnj(travail, auditeur)["INT"]))
         transmis = [x for x in (_typer(travail, c, auditeur) for c in contenu) if x]
         for c in transmis[:capacite]:
@@ -1774,6 +1778,7 @@ def preparer_parole(monde, p, revision=None):
                 ('nom', 'type', 'genre', 'pluriel', 'nom_propre', 'elision', 'aliases') if k in o}
                 for id, o in travail.objets.items()}
             resolution = None
+            information = None
             if c["type"] == "rumeur":
                 evenement = c["evenement"]
                 debat = next(d for d in debats if d[0]["evenement"] == evenement)
@@ -1791,17 +1796,20 @@ def preparer_parole(monde, p, revision=None):
             elif c["type"] == "aveu":
                 _avouer(travail, auditeur, c, faits)
             elif c["type"] == "nom":
-                _se_nommer(travail, auditeur, c["sujet"], faits)
+                information = _se_nommer(travail, auditeur, c["sujet"], faits)
             elif c["type"] == "qui":
-                _qui_est_la(travail, auditeur, faits)
+                information = _qui_est_la(travail, auditeur, faits)
             elif c["type"] == "reclamer":
                 resolution = _reclamer(travail, auditeur, c["objet"], faits, comptes)
             elif c["type"] == "localisation":
                 from .echanges import enqueter, reponse_localisation
                 issue_lieu, dit = enqueter(travail, "joueur", auditeur, sujet=c["sujet"])
                 faits.append(reponse_localisation(travail, auditeur, c["sujet"], issue_lieu, dit))
+                from .esprits import croyance
+                information = {"etat": issue_lieu, "dit": copy.deepcopy(dit),
+                    "croyance": copy.deepcopy(croyance(travail, auditeur, c["sujet"], "lieu"))}
             elif c["type"] == "ressource":
-                _enqueter(travail, auditeur, c["besoin"], faits)
+                information = _enqueter(travail, auditeur, c["besoin"], faits)
             else:
                 resolution = _demander(travail, auditeur, c["sujet"], faits, c["prix"])
             apres_comptes = (comptes, travail.data["_comptes_echange"], livraisons_dues(travail))
@@ -1811,6 +1819,11 @@ def preparer_parole(monde, p, revision=None):
                 resolutions.append({"contenu": copy.deepcopy(c), "resolution": resolution or {},
                     "comptes": cs, "offres": copy.deepcopy(offres[debut_offres:]),
                     "faits": faits[debut_faits:]})
+            if information is not None:
+                resolutions_parlees.append({"contenu": copy.deepcopy(c), "information": information,
+                    "resolution": {}, "comptes": [], "offres": [], "faits": faits[debut_faits:]})
+            elif resolution or cs or len(offres) != debut_offres:
+                resolutions_parlees.append(resolutions[-1])
             # Provenance des textes, liée aux effets typés, jamais à leurs mots
             # ni au type d'opération. Les autres contenus de la parole restent.
             if avant_comptes != apres_comptes or len(offres) != debut_offres:
@@ -1841,7 +1854,8 @@ def preparer_parole(monde, p, revision=None):
             "acte": "reponse_corvus", "a": ["joueur"], "parametres": {"contenu": copy.deepcopy(transmis[:capacite]),
                 "contenu_libre": any(isinstance(c, dict) and c.get("type") == "propos" for c in contenu[:capacite])},
             "modalite": "constat", "evenement": {"type": "parole_joueur", "faits": faits[debut_reponse:],
-                **({"resolutions_comptables": resolutions} if resolutions else {})}})
+                **({"resolutions_comptables": resolutions} if resolutions else {}),
+                **({"resolutions_parlees": resolutions_parlees} if resolutions_parlees else {})}})
         rejoint(travail, auditeur, "joueur")  # Il attendait que Corvus le rejoigne : ils se parlent.
         memoriser(travail, auditeur, {"type": "parole", "locuteur": "joueur", "a": list(dest), "texte": replique[:240],
                                       "cites": [], **({} if identifie(travail, auditeur, "joueur")
@@ -1864,7 +1878,7 @@ def preparer_parole(monde, p, revision=None):
     travail.data["revision"] += 1
     comptes.extend(travail.data.pop("_comptes_echange"))
     comptes.extend(c for c in livraisons_dues(travail) if c not in livraisons_avant and c not in comptes)
-    from .comptes_parles import admettre
+    from .repliques_moteur import admettre
     admettre(travail, autorisations, {"comptes": comptes, "offres": offres,
         "parts_comptables": parts_comptables, "biens_comptables": biens_comptables})
     travail.verifier()

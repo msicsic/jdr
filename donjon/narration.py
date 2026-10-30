@@ -1450,7 +1450,7 @@ def repli(monde, faits, message, *, defaut=None):
 
 def consigner(monde, reponse):
     """Enregistre une réponse contrôlée, ses paroles et son ambiance sur l'état à sauvegarder."""
-    from .comptes_parles import verifier_publication
+    from .repliques_moteur import verifier_publication
     verifier_publication(monde, reponse)
     audit = reponse.get("_audit")
     salle = monde.joueur["salle"]

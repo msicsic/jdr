@@ -2,6 +2,29 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
+- **Lot 345 / G16, branche `codex-g16-information`, non fusionnée**, base
+  exacte `3e3afe2` : mots d'identité, ressource et localisation crue formulés
+  depuis les issues typées, admis dans G15 et scellés avant publication.
+  Admission et publication communes extraites de G17 dans `repliques_moteur` ;
+  composition information/compte et contrôles des contenus résiduels conservés.
+  Sept nouvelles scènes sans réseau vertes sur la version intermédiaire,
+  comptes 11/11, noms 33/33, dialogues 18/18 ; **validation finale détachée en
+  cours**, 18 fichiers ciblés et trois méthodes sur la base exacte, deux
+  travailleurs réduits au plus. Aucune suite complète ni banc PNJ.
+  Luna : une passe achevée des trois scripts, **28 appels**, zéro repli/erreur
+  technique/recharge ; sept tours d'information typée sans rédaction ni audit
+  narratif, six exécutés et l'imposture en attente de confirmation. Exécution
+  de l'imposture couverte sans réseau. Témoin historique `cdaf371` relu du
+  cache : 51 appels ; aucune attribution causale ou mesure de vitesse.
+  Hugues/Anselme reproduit rouge sur `3e3afe2`, oracle inchangé ; autres
+  incidents intermédiaires en cours de vérification. **Ne pas clôturer avant
+  lecture de `C:/Users/msics/donjon/artifacts/g16-345/fin-validation.json`**,
+  écrit en dernier ; bruts dans ce dossier, lanceur dans le worktree sous
+  `artifacts/g16-345/valider.py`. Aucun deuxième Luna à lancer.
+  Recouvrements : paroles avec 341, narration avec 343 ; ni jeu/tui, ni
+  esprits, ni mécanique sociale modifiés.
+  [Rapport 345](taches/rapport-codex-345-g16-information-parlee.md).
+
 - **Reprise 338 terminée, fusionnée**, fusion sans rebase **`20e1f41`**
   (parents `38bc65d` et `fff9aab`) :
   rebase de `origin/integration fff9aab` (code de `c9b972b`, seul ajout ensuite :
