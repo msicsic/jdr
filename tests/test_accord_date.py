@@ -190,7 +190,10 @@ class AccordDateTests(unittest.TestCase):
         self.recharge(a)
 
     def test_schema_et_validation_partagent_les_termes_dates(self):
-        import jsonschema
+        try:
+            import jsonschema
+        except ImportError:
+            self.skipTest('jsonschema, dépendance facultative, absente')
         for fabrique in (huile, travail):
             m, b, q, t, prix = fabrique()
             contenu = {'type': 'proposition', 'demande': t, 'contrepartie': prix}
