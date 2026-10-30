@@ -41,7 +41,7 @@ import copy
 from contextlib import contextmanager
 
 from .biens import permis as _permis
-from .memoire import MEMOIRE_MAX, evincer_episodes, retenir_episode
+from .memoire import MEMOIRE_MAX, episodes, migrer_presences_percues, retenir_episode
 from .perception import _par_case, eclairage, faible
 from .spatial import (CLES_VUE, _champ, _memo_vue, _murs, _position_vue, a_verifier, carte_lumiere, dans_le_regard,
                       etat_fige, porte_par, poses as salles_posees, sans_memoire, vue_memorisee)
@@ -186,11 +186,10 @@ def installer(monde):
         for ancien, destination in (("constats_biens", "constats"), ("soupcons", "soupcons")):
             if ancien in e:
                 r[destination].update(e.pop(ancien))
-        for s in list(e["memoire"]):
-            if s["type"] == "presence_percue":
-                migration_soupcon = True
-                evincer_episodes(monde, id, lambda episode: episode is s)
-                r["presences"].append({k: s[k] for k in ("qui", "salle", "instant")})
+        presences = migrer_presences_percues(monde, id)
+        if presences:
+            migration_soupcon = True
+            r["presences"].extend(presences)
         if migration_soupcon:
             _purger_indices_soupcon(monde, id)
         for fait in e["faits_dits"].values():
@@ -199,7 +198,7 @@ def installer(monde):
         if migrer_confidences:
             from .social import migrer_dits
             migrer_dits(monde, id)
-        for souvenir in e["memoire"]:
+        for souvenir in episodes(monde, id, types=("appel_sans_reponse",)):
             if migrer_recherches and souvenir["type"] == "appel_sans_reponse":
                 salles = e["recherches"].setdefault(souvenir["qui"], {})
                 salles[souvenir["salle"]] = max(salles.get(souvenir["salle"], -1), souvenir["minute"])
@@ -209,7 +208,7 @@ def installer(monde):
                 for salle in salles:
                     consommer_indices_recherche(monde, id, qui, salle)
         if e["secours"] is None:
-            appels = [s for s in e["memoire"] if s["type"] == "appel"]
+            appels = episodes(monde, id, types=("appel",))
             if appels:
                 from .deliberation import DESESPOIR, urgents
                 e["secours"] = {"minute": appels[-1]["minute"],

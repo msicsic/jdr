@@ -12,6 +12,7 @@ réels sont ceux qui voient l'auteur pendant la durée de son geste, joueur comp
 dépend pas du découpage des actions du joueur. Le moteur annonce ce que le joueur perçoit et
 tient une chronique complète, réservée au débogage et au banc. Luna n'intervient pas.
 """
+from .memoire import episodes
 from collections import deque
 from .monde import ErreurMonde
 
@@ -424,10 +425,8 @@ def _temoins_a_l_oreille(monde, geste, souvenir, victime):
         reconnu = id in _crus_la(monde, autre, salle, case)
         if not reconnu:
             # Quelqu'un touche encore à ce bien, il le sait déjà : rien de nouveau, sinon que ça dure.
-            deja = next((x for x in reversed(esprit(monde, autre)["memoire"]) if x["type"] == "entendu_agir"
-                         and x["objet"] == objet and monde.data["minutes"] - x["minute"] <= RECENT), None)
-            if deja is not None:
-                deja["minute"] = monde.data["minutes"]
+            from .memoire import rafraichir_geste_entendu
+            if rafraichir_geste_entendu(monde, autre, objet):
                 continue
         inquieter(monde, autre, "illicite")
         verbe = GESTES.get(geste["operation"], "a touché à")
@@ -960,7 +959,7 @@ def _executer_effet(monde, id, etape, lignes, gestes):
         depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
         if not any(s["type"] == "compagnie" and s.get("qui") == etape["cible"]
                    and s.get('portee') == ('voix' if vocal else None)
-                   and s["minute"] >= depuis for s in e["memoire"]):
+                   and s["minute"] >= depuis for s in episodes(monde, id, types=('compagnie',))):
             # Le contact est revalidé physiquement ; la veille vocale porte
             # seulement sur les arrivées crues, sans prétendre voir sa cible.
             memoriser(monde, id, {"type": "compagnie", "qui": etape["cible"], **({'portee': 'voix'} if vocal else {})})
@@ -1176,7 +1175,7 @@ def _chauffer(monde, id, foyer, lignes):
     if not f.get("allume"):
         return _rate(monde, id, foyer, "etat", {"allume": False, "faible": False, "charge": f["combustible"] > 0})
     depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
-    if not any(s["type"] == "se_chauffe" and s["minute"] >= depuis for s in e["memoire"]):
+    if not any(s["type"] == "se_chauffe" and s["minute"] >= depuis for s in episodes(monde, id, types=('se_chauffe',))):
         memoriser(monde, id, {"type": "se_chauffe", "objet": foyer})
         _raconter(monde, id, "se chauffe près de", f, lignes)
     # La chaleur du feu agit d'elle-même dans sa salle (``corps``) : il reste jusqu'à être réchauffé.
@@ -1199,7 +1198,7 @@ def _abriter(monde, id, lieu, lignes):
         return False
     a = autour(monde, id)
     depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
-    if not any(s["type"] == "abrite" and s["minute"] >= depuis for s in e["memoire"]):
+    if not any(s["type"] == "abrite" and s["minute"] >= depuis for s in episodes(monde, id, types=('abrite',))):
         memoriser(monde, id, {"type": "abrite", "lieu": lieu})
         from .relations import envers
         # Le choix du déplacement utilise ses croyances ; le récit du moteur

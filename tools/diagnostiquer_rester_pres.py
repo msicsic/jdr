@@ -15,6 +15,7 @@ from priorite import ceder
 
 def jouer(tache):
     from donjon import banc_pnj, deliberation as d, signes
+    from donjon.memoire import episodes
     from donjon.esprits import lire
     from donjon.temps import instant
     ceder()
@@ -36,7 +37,7 @@ def jouer(tache):
             'detresses': sorted(d.detresses_percues(m,id)), 'calme': d.calme_pour_secourir(m,id),
             'signes': signes.percus(m,id), 'lectures': signes.actives(m,id),
             'besoins': e['besoins'], 'urgents': d.urgents(m,id), 'manque': e['manque'],
-            'memoire_recente': e['memoire'][-10:]})
+            'memoire_recente': episodes(m, id)[-10:]})
 
     def observer(m, id, minute):
         nonlocal numero

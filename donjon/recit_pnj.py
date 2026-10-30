@@ -7,6 +7,7 @@ et les minutes où rien ne s'offrait à lui. Entre eux : les échanges et leur i
 illicites vus, ce qu'ils pensent les uns des autres à la fin. Le banc observe chaque PNJ
 après sa délibération de la minute, sans rien changer au monde.
 """
+from .memoire import episodes
 from collections import Counter
 from contextlib import contextmanager
 import json
@@ -187,7 +188,7 @@ class Recit:
                                                   "bandes": r["bandes"], "resume": relations.resume(detail), "motifs": detail["motifs"]})
             self._relations[cle] = r["bandes"]
         # Souvenirs nouveaux depuis sa dernière délibération (les sons sont le fond du monde).
-        for s in e["memoire"]:
+        for s in episodes(monde, id):
             cle = json.dumps(s, sort_keys=True, ensure_ascii=False)
             if s["minute"] >= self._derniere[id] and cle not in self._vus[id] and s["type"] != "son":
                 self._vus[id].add(cle)
