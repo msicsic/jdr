@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-a2-expression-son` — lot 379, base `origin/integration 85052cf8` : contrat commun
+  expression/son pour moteur, schémas, raccourcis et « Compris » ; mécanique inchangée.
+  Cas historique, rythme corporel, faux pendant silencieux, recharge et laps découpé couverts.
+  59 tests finaux verts ; empreintes Relais 2 h × 4 graines identiques. Sept échecs voisins
+  reproduits à l'identique sur la base. Aucune passe Luna ni suite complète ; revues conservées.
+  Fidélité du choix Luna non garantie ; aucun registre d'esprit ajouté.
+  Rapport : [379](taches/rapport-codex-379-a2-expression-son.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 379, A2 famille expression et son : un contrat commun (contrats_son) pour moteur, schéma et plan public. Aucun fichier de code commun depuis la base. Sept échecs voisins de test_voix/test_voix_inconnues identiques sur la base (rouges traités par le 375).
+
 - `codex-messages-decoupage` — lot 376, base `origin/integration 2887c541` :
   présences, sons et mémoires publiques relevés aux événements, sans résumé dépendant de l'action.
   Capture 371 auberge et passage au Relais : messages/état/rendu rechargés identiques après découpage.

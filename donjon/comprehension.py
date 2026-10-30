@@ -65,6 +65,8 @@ def _geste(monde, plan, parametres):
                 details["accord"] = offre_en_mots(monde, offre)
     from .contrats_sequence import precision_publique
     precision = precision_publique(parametres)
+    from .contrats_son import precision_publique as precision_son
+    precision = " ".join(p for p in (precision, precision_son(plan, parametres)) if p)
     return (plan.titre + (" (" + valeur(monde, details) + ")" if details else "")
             + (" " + precision if precision else ""))
 

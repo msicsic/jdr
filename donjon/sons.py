@@ -9,13 +9,7 @@ a été émis et de qui l'a entendu.
 from .monde import ErreurMonde
 from .refus import cibles, RefusDeForme
 from .francais import designer, groupe_nominal, complement_de
-
-
-VOIX = {
-    "appel": ("Appeler à l'aide.", "Tu cries à l'aide.", 3),
-    "cri": ("Pousser un cri.", "Tu pousses un cri.", 3),
-    "sifflement": ("Siffler.", "Tu émets un sifflement.", 2),
-}
+from .contrats_son import VOIX, verifier_emission
 
 
 
@@ -41,10 +35,8 @@ def nature_emise(m, effets):
 
 def compiler(m, e, justification, origine):
     from .moteur import Plan
+    verifier_emission(e)
     if e["cible"] in m.objets and e["methode"] == "simple":
-        if e["destination"] or e["outil"] or e["difficulte"]:
-            raise ErreurMonde("Un son d'objet ne demande ni destination ni outil imposé.",
-                              "emettre_son avec un objet : destination et outil vides, methode simple, difficulte 0.")
         id = e["cible"]
         o = m.objets[id]
         from .proximite import exiger
@@ -72,8 +64,7 @@ def compiler(m, e, justification, origine):
     from .appel import METHODES as REPONSES
     if e["methode"] in REPONSES:
         return _compiler_repondre(m, e, justification, origine)
-    if (e["cible"] not in ("", "joueur") or e["destination"] or e["outil"]
-            or e["methode"] not in VOIX or e["difficulte"]):
+    if e["methode"] not in VOIX:
         raise ErreurMonde("Une émission vocale vient du joueur, sans outil ni destination imposée : appel, cri ou sifflement.",
                           f"emettre_son vocal : cible vide ou joueur, destination et outil vides, difficulte 0, methode parmi "
                           f"{', '.join(VOIX)} (reçu cible « {e['cible']} », methode « {e['methode']} ») ; pour un objet : "
@@ -99,10 +90,6 @@ def _compiler_heler(m, e, justification, origine):
     from .paroles import _connu_du_joueur
     from .refus import liste
     qui = e["cible"]
-    if e["destination"] or e["outil"] or e["difficulte"]:
-        raise RefusDeForme("On hèle quelqu'un de sa voix, sans rien d'autre.",
-                          "emettre_son heler : cible = l'identifiant du personnage hélé ; destination et outil vides, "
-                          "difficulte 0.")
     connus = sorted(i for i, o in m.objets.items() if o["type"] == "personnage" and _connu_du_joueur(m, i))
     if qui in ("", "joueur"):
         raise RefusDeForme("Dis qui tu appelles par son nom.",
@@ -139,10 +126,6 @@ def _compiler_repondre(m, e, justification, origine):
     appelants = list(attendent)
     valables = [designation(m, x) for x in appelants]
     methode = e["methode"]
-    if e["destination"] or e["outil"] or e["difficulte"]:
-        raise ErreurMonde("On répond de sa voix, sans rien d'autre.",
-                          f"emettre_son {methode} : cible = qui vient d'appeler Corvus par son nom ; destination et "
-                          "outil vides, difficulte 0.")
     if not appelants:
         raise ErreurMonde("Personne ne vient de t'appeler par ton nom.",
                           f"emettre_son {methode} : seulement juste après un appel de Corvus par son nom ; aucun appel "
