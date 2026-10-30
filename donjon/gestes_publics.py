@@ -16,7 +16,7 @@ DESTINATION = {"champ": "destination", "ressources": [
     {"type": "contenant"}, {"type": "luminaire"}, {"foyer": True}], "aptitude": "depot"}
 CORPS = ("personnage", "depouille", "partie_corps")
 
-# Famille portée par U-M corps seulement ; U-T gardera son interface actuelle.
+# Famille commune aux menus web et aux choix numérotés des terminaux.
 # Ces choix ne calculent aucune aptitude : toute ressource connue peut être
 # choisie, puis le moteur tranche. La surprise est une défense calculée, pas
 # une méthode que le joueur pourrait imposer.
@@ -214,7 +214,8 @@ def ressource_admise(cible, ressource, formulaire):
             and cible["id"] in ressource.get("aptitudes", {}).get(formulaire["aptitude"], ()))
 
 
-def liste_gestes(scene, inventaire=(), destinataires=(), ressources=()):
+def liste_gestes(scene, inventaire=(), destinataires=(), ressources=(), *,
+                 corps=(), dangers=(), passages=()):
     """Fige les choix des seules projections publiques, sans lire le monde."""
     liste, materiels, vus = [], [], set()
     entites = [o for n in (scene or {}).get("niveaux", []) for o in n["objets"]]
@@ -251,6 +252,50 @@ def liste_gestes(scene, inventaire=(), destinataires=(), ressources=()):
         if cle not in vus_materiels:
             vus_materiels.add(cle)
             liste.append(choix)
+    # Les nouveaux choix suivent les anciens : leurs numéros restent stables.
+    personnes = {o["id"]: o for o in entites if o.get("type") == "personnage"}
+    for cible in personnes.values():
+        liste.extend(gestes_corps(cible, ressources, corps, dangers, noms))
+    for offre in passages:
+        # Un palier peut montrer le support plutôt que l'échelle installée.
+        ancrage = offre.get("ancrage") or offre["cible"]
+        if ancrage not in noms:
+            continue
+        d = {"geste": offre["geste"], "cible": offre["cible"]}
+        p = {k: offre[k] for k in ("methode", "outil") if k in offre}
+        if p:
+            d["parametres"] = p
+        liste.append(ChoixPublic(f'{offre["libelle"]} — {noms[ancrage]} · scène',
+                                DescripteurPublic(d)))
+    return tuple(liste)
+
+
+def gestes_corps(cible, ressources, formulaires, dangers, noms):
+    """Déplie les mêmes champs que le web en choix complets et figés.
+
+    Aucun prédicat de capacité ici : même mains nues et mêmes ressources
+    publiques que le formulaire web ; l'aptitude reste jugée par le moteur.
+    """
+    liste = []
+    for f in formulaires:
+        if f.get("danger") and cible["id"] not in dangers:
+            continue
+        choix = [({}, [])]
+        for champ in f["champs"]:
+            if champ["type"] == "ressource":
+                valeurs = ([("", champ["vide"])] if champ.get("vide") else [])
+                valeurs += [(r["id"], noms[r["id"]]) for r in ressources]
+            else:
+                valeurs = [(v, v or "Dans l'axe du geste") for v in champ["choix"]]
+            choix = [({**p, champ["champ"]: valeur}, [*libelles, champ["libelle"] + " : " + nom])
+                     for p, libelles in choix for valeur, nom in valeurs]
+        for parametres, libelles in choix:
+            d = {"geste": f["geste"], "cible": cible["id"]}
+            if parametres:
+                d["parametres"] = parametres
+            detail = " · " + " · ".join(libelles) if libelles else ""
+            liste.append(ChoixPublic(f'{f["libelle"]}{detail} — {noms[cible["id"]]} · scène',
+                                    DescripteurPublic(d)))
     return tuple(liste)
 
 
@@ -315,7 +360,8 @@ def gestes_du_monde(monde):
     from .scene import scene_percue
     scene = scene_percue(monde) if monde.data.get("mode_cases") else None
     return liste_gestes(scene, inventaire_public(monde), destinataires_publics(monde),
-                        ressources_publiques(monde))
+                        ressources_publiques(monde), corps=catalogue_public()["corps"],
+                        dangers=dangers_publics(monde), passages=passages_publics(monde))
 
 
 def rendre_liste(liste):

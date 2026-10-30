@@ -41,6 +41,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- **353 — U-T corps et passage**, `codex-ut-corps-passage`, base `57c9771d` : validation en cours.
+  Catalogue commun déplié en choix numérotés complets ; réactions sur danger perçu, franchissements
+  qualifiés et arbitrages mémorisés ; ancien préfixe conservé, aucun analyseur ni modèle.
+  Projection corporelle deux scènes, frappe avec consentement console/TUI et annulation console validées.
+  Sélection ciblée détachée (deux travailleurs réduits, TUI existante inchangée) ; résultat à lire dans
+  `C:/Users/msics/donjon/artifacts/ut-corps-passage-353/fin.json`, aucun bilan global encore affirmé.
+  Liste potentiellement longue ; premier arbitrage et forme inconnue restent au libre. Aucun code commun avec 354.
+  [Rapport et reprise](taches/rapport-codex-353-ut-corps-passage.md).
+
 Lots en cours : 342 (attribution du groupe 1, 315 à réaccorder), 352 (E3 délai cru), 353 (U-T corps et passage),
 354 (U-M social information). Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
 antérieurs sont connus (`test_protection` Gorm au beffroi, trois faisabilités de `test_luna_noms`, persuasion
