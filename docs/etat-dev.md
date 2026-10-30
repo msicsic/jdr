@@ -36,8 +36,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 342 (attribution du groupe 1), 344 (U-M corps), 345 (G16 information parlée), 348 (E1 référence
-temporelle). Leurs entrées arrivent ici à leur livraison.
+Lots en cours : 342 (attribution du groupe 1), 345 (G16 information parlée), 348 (E1 référence temporelle), 349 (U-M
+passage). Leurs entrées arrivent ici à leur livraison.
 
 ## Décisions prises le 2026-10-30
 
