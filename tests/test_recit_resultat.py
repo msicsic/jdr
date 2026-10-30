@@ -50,8 +50,16 @@ class RecitResultatTests(unittest.TestCase):
                 def ecrire(self, *valeurs, **_options):
                     texte = " ".join(str(v) for v in valeurs)
                     affiches.append(texte)
-                    if hasattr(self, "resultat") and texte == self.resultat:
+                    # Le résultat moteur reste exact ; un geste libre léger
+                    # affiche maintenant aussi son plan admis, après ce résultat.
+                    compris = ("Compris : Geste. (cibles : aucun; approche : effort; minutes : 1; bruit : 0; "
+                               "en cas de réussite : effets : aucun; en cas d'échec : effets : aucun)")
+                    attendu = (self.resultat + ("\n" + compris if not confirmer else "")
+                               if hasattr(self, "resultat") else None)
+                    if texte == attendu:
                         recharge = Monde.charger(chemin)
+                        if not confirmer:
+                            test.assertEqual(recharge.data["conversation"][-1]["compris"], compris)
                         # Tout ce qui est montré existe déjà sur disque, texte compris.
                         test.assertEqual(recharge.data, self.monde.data)
                         test.assertEqual(recharge.data["conversation"][-1]["reponse"], texte)

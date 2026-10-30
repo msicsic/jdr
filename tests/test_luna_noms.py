@@ -282,9 +282,14 @@ class NarrationTests(unittest.TestCase):
                 temoin = m.copier()
                 moteur = Moteur(temoin)
                 attendu = rendre_resultat(moteur.executer(moteur.preparer(p)))
+                # U-P décrit les paramètres admis, sans transformer l'approche
+                # structurée ou le brouillon en une description du geste.
+                compris = (f"Compris : Geste. (cibles : aucun; approche : {approche}; minutes : 1; bruit : 0; "
+                           "en cas de réussite : effets : aucun; en cas d'échec : effets : aucun)")
                 r, sortie, appels = jouer(m, saisie, [action(p)], [])
                 self.assertIn(attendu, sortie)
-                self.assertEqual(r.data['conversation'][-1]['reponse'], attendu)
+                self.assertEqual(r.data['conversation'][-1]['compris'], compris)
+                self.assertEqual(r.data['conversation'][-1]['reponse'], attendu + "\n" + compris)
                 self.assertEqual(r.data['conversation'][-1]['nature'], 'resultat_moteur')
                 self.assertNotIn(texte, sortie)
                 self.assertEqual([f for f, _ in appels], ['repondre_au_joueur', 'auditer_action'])
