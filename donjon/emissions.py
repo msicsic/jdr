@@ -116,6 +116,7 @@ def publiques(monde, flux):
     registre les conserve ; le dossier public ne transporte que leur source.
     """
     from .voix import connait_nom, designation
+    from .repliques_moteur import est_fixee
     connus = {"joueur"} | {id for id in monde.objets
                            if connait_nom(monde, "joueur", id) or monde.visible(id)}
     resultat = []
@@ -133,8 +134,9 @@ def publiques(monde, flux):
             "auditeurs": [a for a in p["auditeurs"] if a in connus],
             "rendu": p.get("rendu_public", ""),
             "parametres": {}, "evenement": {"type": p["evenement"]["type"], "emission": p.get("id"),
+                **({"replique_moteur": True} if est_fixee(p) else {}),
                 **({"faits": copy.deepcopy(p["evenement"].get("faits", []))}
-                   if p["acte"] in ("reponse_comptable", "reponse_information") else {})}})
+                   if p["acte"] in ("reponse_comptable", "reponse_information", "reponse_avis") else {})}})
     return resultat
 
 
@@ -170,7 +172,7 @@ def faits(rapport):
         if p.get("statut") == "a_formuler":
             resultat.extend(p["evenement"].get("faits", []))
         elif "joueur" in p.get("auditeurs", []) and p.get("rendu_public", p.get("rendu")):
-            if p["acte"] in ("reponse_comptable", "reponse_information"):
+            if p["acte"] in ("reponse_comptable", "reponse_information", "reponse_avis"):
                 resultat.extend(p["evenement"].get("faits", []))
             resultat.append(p.get("rendu_public", p["rendu"]))
     return resultat
