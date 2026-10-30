@@ -3,6 +3,7 @@ from __future__ import annotations
 from .francais import quantite
 
 import copy
+import json
 from dataclasses import dataclass, field
 
 from .monde import ErreurMonde, objet
@@ -220,7 +221,10 @@ class Moteur:
             plan.confirmation = plan.confirmation or plan_lourd(plan)
             if passage:
                 plan.confirmation = plan.confirmation or bool(plan.stat)
-            plan.compris = plan_admis(self.monde, plan)
+            # Le libre porte déjà son récapitulatif dans PropositionLibre.
+            # Les nouveaux passages directs le portent sur le Plan lui-même.
+            if not passage or choix_public or origine == "règles":
+                plan.compris = plan_admis(self.monde, plan)
             if choix_public and plan.confirmation:
                 plan.choix_public = copy.deepcopy(choix_public)
                 plan.etat_consentement = _empreinte(_etat(self.monde))
@@ -1105,7 +1109,7 @@ class Moteur:
                                if e["operation"] == "sauter" else
                                "La tentative n'aboutit pas. La suite de la manœuvre est abandonnée.")
             trace.append({"numero": numero, "operation": e, "jet": jet, "dd": p.dd, "reussite": reussite,
-                          "minutes": p.minutes, "effets_appliques": [list(effet) for effet in effets], "faits": details[:]})
+                          "minutes": p.minutes, "effets_appliques": json.loads(json.dumps(effets)), "faits": details[:]})
             lignes.extend(details)
             if not reussite or inconscient:
                 break

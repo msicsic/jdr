@@ -824,6 +824,12 @@ function choixCase(g, x = 20, y = 20) {
   niveau.objets.filter(o => cle(o.globale) === k).forEach(o =>
     sections.push([o.nom, [...gestes(o).map(([verbe, libelle]) => [libelle, geste(choix(verbe, o.id)), choix(verbe, o.id)]),
       ...choixMateriels(o, d => aPortee(g, d), x, y), ...choixCorps(o, x, y), ...choixPassages(o, g)]]));
+  // Un support se représente aussi par le bout connu de son échelle,
+  // notamment depuis le palier où son objet de pied n'est pas dessiné.
+  niveau.echelles.filter(e => cle(e.globale) === k && !niveau.objets.some(o => o.id === e.support)).forEach(e => {
+    const gestes = choixPassages({id: e.support}, g);
+    if (gestes.length) sections.push([e.nom, gestes]);
+  });
   niveau.sorties.filter(s => s.porte && cle(s.globale) === k).forEach(s =>
     sections.push([s.porte.nom, [...gestesPorte(s.porte).map(([verbe, libelle]) => [libelle, geste(choix(verbe, s.porte.id)), choix(verbe, s.porte.id)]),
       ...choixMateriels(s.porte, d => aPortee(g, d), x, y, true)]]));

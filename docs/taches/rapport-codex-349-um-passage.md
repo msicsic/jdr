@@ -27,6 +27,8 @@ pour réutiliser le sceau existant sans tester la faisabilité au menu.
 La signature et les règles de franchissement sont conservées ; ni
 `obstacles.py`, MJ, `jeu.py` ou `tui.py` ne changent. Aucun fichier de code
 commun avec les lots 345/348 ; `etat-dev.md` est commun à la livraison.
+La trace commune des effets composés est normalisée récursivement en JSON
+avant journalisation : les coordonnées imbriquées gardent leur forme à la recharge.
 
 ## Vérification et mesures
 
@@ -40,9 +42,13 @@ Relais, auberge, enjambement, trop bas, trop haut, encombré et forme inconnue.
 référence/qualification périmée, paramètres injectés et homonymes sont couverts.
 
 Bruts : `C:/Users/msics/donjon/artifacts/um-passage-349/`.
-Clôture détachée : `fin-verification.json`, écrit en dernier après le bilan
-`tests-final.json` et les mesures des callbacks (`mesures.json`). Les premiers
-essais restent dans `premiere.json` et `reprise.json` ; ils ne valent pas validation.
+Clôture détachée : `fin-cloture.json`, écrit en dernier après le bilan
+`tests-cloture.json` et les mesures des callbacks (`mesures-cloture.json`).
+La passe initiale de 67 tests (`tests-final.json`, 403,341 s) a révélé l'accès
+au palier, les tuples imbriqués et deux attentes d'un même texte périmé,
+reproduites avec le moteur de la base (`reference-sous-obstacle.json`).
+Les assertions d'état sont conservées ; le saut en contrebas contrôle aussi
+la trace générale. Les premiers essais et leur fin rouge restent archivés.
 Mesures et bilan final à reporter à la reprise, avant de déclarer le lot terminé.
 Deux travailleurs au plus, priorité réduite ; aucune suite complète,
 passe Luna ou banc PNJ, l'entrée d'interface seule étant portée.

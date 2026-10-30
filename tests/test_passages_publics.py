@@ -237,6 +237,21 @@ class PassagesPublicsTests(unittest.TestCase):
         self.assertIsNone(analyser(m, "franchir mur_atelier avec perche_1 puis prendre la hache"))
         self.assertIsNone(analyser(m, "franchir mur_atelier avec perche_1 sans la prendre"))
 
+    def test_trace_persistante_meme_forme_json_pour_un_autre_mouvement_compose(self):
+        m = atelier(echelle=True, haut=True)
+        p = sequence(etape("sauter", "mur_atelier", "cour"))
+        with patch.object(Monde, "d20", return_value=20):
+            Moteur(m).executer(Moteur(m).preparer(p))
+        with tempfile.TemporaryDirectory() as tmp:
+            fichier = Path(tmp) / "partie.json"
+            m.sauver(fichier)
+            r = Monde.charger(fichier)
+            self.assertEqual(r.data, m.data)
+            self.assertEqual(vues(r), vues(m))
+            self.assertEqual(etat(r), etat(m))
+            self.assertEqual(r.joueur["salle"], "cour")
+            self.assertEqual(r.data["journal"][-1]["etapes"][0]["effets_appliques"][0][0], "voyager")
+
 
 if __name__ == "__main__":
     unittest.main()
