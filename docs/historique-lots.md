@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **358 terminé — `codex-revalider-apres-refus`**, base `integration a3855ad9`, code `52d2f5b6` :
+  `refus_etape` applique les refus retenus au prochain geste, au choix et dans `agir`.
+  Capture 306 à 4200 et tâche payée à l'auberge ; recharge monde/rendu/scène/écoute, temps découpé.
+  **81/81 tests verts**, onze fichiers ; 12 paires 4 h Relais/mine/crue, suspects 0 → 0, zéro plantage/usurpation.
+  Alertes à expliquer 15 → 17, dérives 114 → 167 ; écarts avec `main` non attribués causalement au 358.
+  Deux réduits, `artifacts/revalider-358/fin.json` du dépôt principal **ok=true** ; aucun calcul actif.
+  Recouvrement 335 : `pnj.py` (`refus_etape` seul) ; ni Luna ni suite complète.
+  [Rapport 358](taches/rapport-codex-358-revalider-apres-refus.md).
+  Fusionné sur l'intégration : aucun conflit ; fichiers de code touchés aussi depuis la base : `pnj.py`, fusionnés sans conflit textuel. 81 tests ciblés verts, 12 paires de nuits conformes ; pnj.py (refus_etape) commun avec le lot 335 : tests ciblés des deux lots rejoués avant poussée.
+
 - **335 terminé**, `codex-suivi-vocal`, fusionnée ; base `9237e14`, réaccordée sur `c9b066b` (`51fd593`).
   L'agenda protéger rejoint une portée vocale crue ; contact, gardes et accords datés conservés.
   414 tests : 409 verts, cinq échecs identiques sur intégration, aucune erreur. Banc 20 × 4 h achevé : zéro plantage/usurpation/suspect certifié.

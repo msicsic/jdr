@@ -23,6 +23,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-revalider-apres-refus` (63d55dcd) : lot 358, une action différée est revalidée contre un refus encore valable. Détail dans l'historique.
 - `codex-suivi-vocal` (c020b62a) : lot 335, suivi vocal. Détail dans l'historique.
 - `codex-reclamations-repetees` (0925c556) : lot 315, réclamations répétées. Détail dans l'historique.
 - `codex-e3-taches-payees` (999e4c67) : lot 357, régression d'E3 sur les tâches payées corrigée. Détail dans l'historique.
@@ -34,7 +35,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-e4-accord-date` (30ec526a) : lot 355, E4 l'accord initial engage exactement les termes datés. Détail dans l'historique.
 - `codex-um-social-information` (c78b0e8b) : lot 354, U-M social information, l'acte d'information au formulaire. Détail dans l'historique.
 - `codex-e3-delai-cru` (69bba20e) : lot 352, E3 délai jugé sur les moyens crus du contractant. Détail dans l'historique.
-- `codex-um-passage` (a8bc0fce) : lot 349, U-M passage, franchissements qualifiés au menu. Détail dans l'historique.
 
 ## Lots non fusionnés
 

@@ -1914,13 +1914,16 @@ def compter_attente(monde, id, t, continuer=False):
 def refus_etape(monde, id, etapes):
     """Admissibilité du prochain geste, au choix comme juste avant l'exécution.
 
-    Le contrôle porte sur les présences requises, l'eau crue et les routes déjà contrôlées par la
-    marche. Un but sec ne certifie pas un préparatif local dans un péril.
+    Le contrôle porte sur les refus retenus, les présences requises, l'eau crue et les routes déjà
+    contrôlées par la marche. Un but sec ne certifie pas un préparatif local dans un péril.
     Aucun effet, aucune observation supplémentaire de la réalité.
     """
     ici = monde.objets[id]["lieu"]
     tete = next((x for x in etapes if x["operation"] != "aller" or x["lieu"] != ici), None)
     if tete is not None and tete["operation"] != "aller":
+        from .deliberation import refus_geste
+        if refus_geste(monde, id, tete):
+            return "refus retenu encore valable"
         from .positions_crues import contact_interrompu_tient
         for retenus in lire(monde, id)['renoncements'].values():
             for r in retenus if isinstance(retenus, list) else ():
