@@ -2,31 +2,36 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
-- **Lot 342 en cours — attribution du groupe 1**, branche
-  `codex-attribution-groupe1`, base fournie `16b18a7`.
-  Suite source `6f490ba` : 33 incidents (13 échecs, 20 erreurs), six
-  incidents `_retentir/emission` réservés au 339, aucune correction faite.
-  Témoins isolés sur **`e37d9ee`**, intégration exacte du premier essai :
-  référence, puis chacun des lots 313/315/332/333 seul. Conflits de
-  `deliberation.tient` résolus en gardant les deux branches ; dictionnaires
-  313/334 des étapes chaînées conservés comme dans l'essai du superviseur.
-  Rejeu des seules méthodes en incident, pas de suite complète, banc ou Luna.
-  Calcul détaché, deux travailleurs réduits au plus ; fin attendue :
-  `C:/Users/msics/donjon/artifacts/groupe1-342/reprise-1/fin-attribution.json`.
-  **La fin atteste les rejeux, pas des tests verts** ; contrôler
-  `rejeux_produits` et les traces par fichier avant attribution.
-  Première tentative technique invalide (masquage du paquet namespace
-  `tests` par `tools/tests.py`) conservée à la racine des bruts ; seul
-  `reprise-1/` est exploitable. Chargement corrigé, deux premiers témoins
-  réels verts : décès Ilse et bourse. Script actif local ignoré :
-  `artifacts/groupe1-342/attribuer.py`, copie brute `attribuer-source.py`.
-  Worktrees détachés sous `.worktrees/*-342` dans ce worktree de tâche ;
-  ne pas changer leurs sources pendant le calcul. Après résultat : attribuer
-  chaque incident, corriger dans les branches fautives sans toucher `jeu.py`,
-  refaire l'essai depuis **origin/integration actualisée**, vérifier les
-  fichiers concernés et pousser. Piste non encore prouvée : nouvel appel
-  vocal 313 → perception d'un devis projeté sans position du joueur.
-  [Point de reprise 342](taches/rapport-codex-342-attribution-groupe1.md).
+- **Lot 342 : attribution réalisée, validation finale en cours**, branche
+  `codex-attribution-groupe1`, base `16b18a7`. Matrice des 33 incidents prête.
+  Référence exacte `e37d9ee` et quatre lots isolés, 2 177,100 s ; deux
+  travailleurs réduits au plus. Treize erreurs de position au 313 ; trois
+  incidents de délibération/interprétation au 332, six attentes de registres
+  périmées, interactions 313/315 et 313/333 prouvées par retrait d'un seul lot.
+  Six incidents `_retentir/emission` réservés au 339, mine préexistant ; lumière
+  avec une réserve antérieure distincte du nouvel échec en amont du 332.
+  Correctifs poussés : 313 `cddc76e` (perception sans position dans un devis),
+  315 `beaecc7` (borne de règlement), 332 `4da7dc4` (direction sans relation
+  incomplète ni réveil du but avant rotation), 333 `40bd537` (scène de prêt
+  isolée du secours concurrent). Neuf tests de devis verts ; 63/64 tests du
+  332 verts, ancienne attente d'abri adaptée ensuite : Aubin réellement
+  assommé à la fin de cette capture. Nouvelle admission vérifiée dans deux
+  scénarios, monde/texte/scène rechargés. Prototypes 332 écartés et conservés.
+  Essai reconstruit `94329d3` depuis `origin/integration da5f795`, quatre
+  branches corrigées, résolutions communes conservées ; `jeu.py` inchangé.
+  Validation détachée : seuls fichiers concernés, puis banc rapide 4 h,
+  cinq scénarios × quatre graines, références disponibles lues du cache.
+  Pas de Luna ni suite complète. Deux travailleurs réduits au maximum,
+  tests puis banc ; témoins des rouges finaux hors 339 sur `da5f795`.
+  **Fin attendue :**
+  `C:/Users/msics/donjon/artifacts/groupe1-342/validation-finale/fin-validation.json`.
+  Ce fichier atteste la fin des calculs, pas la clôture : résultats à analyser,
+  aucune garantie de réussite finale ou d'absence générale de boucle annoncée.
+  Bruts intacts `groupe1-342/` : `preuve-empreintes.json`, `abri332.json`,
+  `tache-abandon.json`, `retrait*/`, `decomposition332/`, `validation-finale/`.
+  Scripts locaux ignorés dans `artifacts/groupe1-342/`, worktrees figés sous
+  `.worktrees/*342`. [Rapport 342](taches/rapport-codex-342-attribution-groupe1.md),
+  [matrice des 33 incidents](taches/attribution-codex-342-groupe1.md).
 
 - **Lot 337 terminé avec deux échecs antérieurs réservés**, branche
   `codex-fin-garde-ouidire`, fusionnée. `origin/integration ad0e5a8`
@@ -10084,3 +10089,4 @@ Non versionnés, donc absents d'un nouveau poste :
   cours de jalon sans accord.
 - Les phrases des docs tirées d'un test ou d'un scénario décrivent ce scénario, pas une règle
   de conception du jeu.
+
