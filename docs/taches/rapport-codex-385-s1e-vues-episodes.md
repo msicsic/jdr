@@ -1,8 +1,8 @@
 # Lot 385 — S1e, vues pures des épisodes
 
 30 octobre 2026 · `codex-s1e-vues-episodes` · base exacte `integration b2028ede`.
-Code `cad2e15e`, mesuré après fusion documentaire d'`origin/integration 51c3d37d`
-dans `8b5cabfc` ; aucun changement moteur apporté par cette fusion.
+Code corrigé `a50a3648`, mesuré dans `dba080d1` après fusion documentaire
+d'`origin/integration fcb82692` ; aucun changement moteur dans ces fusions.
 
 **Invariant et code.** Tous les lecteurs restants du tampon d'épisodes passent
 par `memoire.episodes`, vue pure qui renvoie des copies profondes, dans l'ordre
@@ -40,17 +40,39 @@ JSON, rendu, scène, paroles émises et retenues ; récit observateur sans mutat
 La restriction Windows sur les sauvegardes temporaires a nécessité l'exécution
 autorisée hors restriction, comme dans les lots précédents.
 
-**Calcul détaché en cours.** 22 fichiers ciblés, deux processus au plus et
-priorité réduite, puis empreintes **2 h × quatre graines × Relais/mine/auberge/crue**
-contre la base exacte `b2028ede`, avec cache partagé. Référence puis branche,
-sans comparaison de coût ; aucune suite complète ni Luna.
-Les résultats ne sont pas encore déclarés acquis. Reprendre à `fin.json`,
-attribuer tout échec puis clore le rapport et l'entrée d'état.
+**Résultats de la première passe et corrections.** Les 22 fichiers ont exécuté
+325 tests : 78 erreurs avaient une cause commune, le dictionnaire local
+`episodes` de `signes.percevoir_tous` masquait la vue importée. L'import est
+maintenant nommé `episodes_retenus`. L'assertion du détecteur de services
+simulait encore `lire` : son mock porte désormais sur la vue `episodes`.
+L'autre échec, `passage.test_cas_reel_acceptee_elle_s_ecarte_vraiment`, se
+reproduit à l'identique sur la base exacte isolée : attente d'une ancienne
+formulation (« Tu avances d'un pas. »), état/recharge parcourus avant ce texte.
+Cette limite héritée est attribuée, sans modifier le comportement du passage.
+
+La campagne d'empreintes initiale s'est arrêtée **avant de jouer une nuit** :
+l'observateur courant importait la vue depuis l'ancienne référence qui ne
+l'expose pas. Le récit importe maintenant sa vue à l'usage ; le détecteur charge
+la porte livrée avec l'observateur, dont les imports relatifs lisent le moteur
+comparé, comme le fait déjà l'audit pour son rendu. Aucun accès brut ajouté.
+Une contre-épreuve simule une référence sans cette API. Les sept tests ciblés
+(AST, compatibilité et service) passent ; comparaison réelle de 1,2 minute au
+Relais : chronique, mesures et état final complet identiques à `b2028ede`.
+
+**Calcul corrigé détaché en cours.** 17 fichiers en échec ou concernés par les
+corrections, puis empreintes **2 h × quatre graines × Relais/mine/auberge/crue**
+contre `b2028ede`, cache partagé. Les autres fichiers déjà verts ne sont pas
+relancés. Deux processus au plus, priorité réduite, référence puis branche ;
+aucune suite complète ni Luna, aucune comparaison de coût. Reprendre à
+`fin-corrige.json`, lire les résultats puis clore le lot. Les empreintes longues
+ne sont pas encore déclarées acquises.
 
 **Bruts et recouvrements.** `C:/Users/msics/donjon/artifacts/s1e-385/` :
 `tests-initiaux.log`, `tests.json`, `tests.log`, `fin-tests.json`,
-`empreintes-base.json`, `empreintes-base.log`, `run.ps1` et `fin.json` écrit
-en dernier. Recouvrement potentiel 374 : lectures seules de `deliberation`,
+`empreintes-base.log`, `fin.json` (première passe),
+`attribution-passage-base.log`, `compatibilite-courte.json` et son journal ;
+`tests-corriges.json/log`, `empreintes-base-corrigees.json/log`,
+`run-corrige.ps1` et `fin-corrige.json` écrit en dernier pour la nouvelle passe. Recouvrement potentiel 374 : lectures seules de `deliberation`,
 `echanges.affirmer`, migration d'`esprits` et audition/services de `pnj` ;
 aucune localisation ni recherche modifiée. Aucun fichier propre à 380/381 touché.
 Rétention selon âge/importance et nouveau stockage restent hors lot.

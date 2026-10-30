@@ -43,13 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-s1e-vues-episodes` — lot 385, base `integration b2028ede` ; `51c3d37d` fusionnée (documentation seule).
+- `codex-s1e-vues-episodes` — lot 385, base `integration b2028ede` ; `fcb82692` fusionnée (documentation seule).
   Tous les lecteurs d'épisodes utilisent des copies profondes ; inventaire AST à zéro hors exceptions nommées.
   Stockage/ordre/plafond inchangés ; rafraîchissement du geste entendu et migration des présences dans la porte.
-  9/9 tests initiaux verts, dont deux chaînes réelles avec état complet/rendu/scène/paroles après recharge.
-  22 fichiers ciblés puis 16 empreintes de 2 h en cours, deux processus, priorité réduite, aucune suite complète/Luna.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/s1e-385/fin.json` ; contrôles à lire avant de clore le lot.
-  Limites : AST syntaxique, oubli historique conservé. [Rapport](taches/rapport-codex-385-s1e-vues-episodes.md).
+  Deux chaînes réelles vérifiées après recharge ; masquage de vue et chargement des audits corrigés (`a50a3648`).
+  Première passe : 325 tests, 78 erreurs corrigées ; assertion de passage héritée reproduite sur la base exacte.
+  Compatibilité courte identique ; 17 fichiers concernés puis 16 empreintes de 2 h relancés, deux processus.
+  Fin : `C:/Users/msics/donjon/artifacts/s1e-385/fin-corrige.json`. [Rapport](taches/rapport-codex-385-s1e-vues-episodes.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
 (U-M social comptes), 381 (A2 passage), 385 (S1e vues des épisodes). Les cinq questions de S0 sont tranchées (voir décisions).
