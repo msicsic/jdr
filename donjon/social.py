@@ -464,6 +464,14 @@ def phrase(monde, noyau, locuteur=None):
         from .francais import accorder, lieu
         if noyau["attribut"] == "lieu":
             p = noyau["details"]["possession"]
+            if p["porteur"] is None:
+                # Le lieu constaté n'implique pas un porteur ni des droits.
+                # Les anciennes preuves sauvegardées peuvent porter ces nuls.
+                endroit = noyau["valeur"]
+                position = (" aux mains de " + _qui(monde, endroit, locuteur)
+                            if endroit == "joueur" or monde.objets.get(endroit, {}).get("type") == "personnage"
+                            else _ou(monde, {"lieu": {"valeur": endroit}}) or " à un endroit inconnu")
+                return designer(o) + (" sont" if nombre_pluriel(o) else " est") + position
             return (designer(o) + (" sont " if nombre_pluriel(o) else " est ")
                     + "aux mains de " + _qui(monde, p["porteur"], locuteur)
                     + (", à qui ce bien appartient" if p["porteur"] == p["proprietaire"] else
@@ -527,7 +535,9 @@ def _lieu_dit(noyau):
     """Le lieu que la nouvelle donne à son objet (``_ou``), pour qui l'entend."""
     if noyau["type"] == "constat" and noyau.get("attribut") == "lieu":
         p = noyau["details"]["possession"]
-        return list(dict.fromkeys(x for x in (p["porteur"], p["proprietaire"], p["remis_par"]) if x))
+        references = ((noyau["valeur"],) if p["porteur"] is None
+                      else (p["porteur"], p["proprietaire"], p["remis_par"]))
+        return list(dict.fromkeys(x for x in references if x))
     lieu = (noyau.get("lieu") or {}).get("valeur")
     return [lieu] if lieu and lieu != accuse(noyau) else []
 

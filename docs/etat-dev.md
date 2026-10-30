@@ -23,6 +23,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-reclamations-repetees` (0925c556) : lot 315, réclamations répétées. Détail dans l'historique.
 - `codex-e3-taches-payees` (999e4c67) : lot 357, régression d'E3 sur les tâches payées corrigée. Détail dans l'historique.
 - `codex-attribution-groupe1` (8d1a4c3f) : lot 342, attribution du groupe 1. Détail dans l'historique.
 - `codex-ut-corps-passage` (fe464411) : lot 353, U-T corps et passage au terminal. Détail dans l'historique.
@@ -34,7 +35,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-e3-delai-cru` (69bba20e) : lot 352, E3 délai jugé sur les moyens crus du contractant. Détail dans l'historique.
 - `codex-um-passage` (a8bc0fce) : lot 349, U-M passage, franchissements qualifiés au menu. Détail dans l'historique.
 - `codex-g18-avis` (d162988a) : lot 351, G18 l'avis formulé par le moteur, parole sans vérité. Détail dans l'historique.
-- `codex-e2-realisation-datee` (d9803abd) : lot 350, E2 verdict temporel par réalisation datée unique. Détail dans l'historique.
 
 ## Lots non fusionnés
 

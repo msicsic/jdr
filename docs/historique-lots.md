@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **315 — réclamations retenues**, branche `codex-reclamations-repetees`, reprise de `7826c3a` ;
+  fusion sans rebase de l'intégration `07c9b62e` (E1–E4 et 357 compris).
+  Défaut social du 337 révélé par la chronologie du 315 ; aucune obligation/clôture E2 dans le cas réel.
+  Le constat sans porteur décrit son lieu connu ; références citées et non-divulgation conservées.
+  529 tests / 54 fichiers : 515 verts, aucune erreur ; 14 tests rouges (20 assertions) identiques à l'intégration.
+  Cas réel, 315, E1–E4 et tâches payées verts ; réserve `porteur=None` levée, aucun nouveau rouge ciblé.
+  Mesures et limites : [rapport 315](taches/rapport-codex-315-reclamations-repetees.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Corrections d'attribution du lot 342, réaccordée à E1/E2/E3 ; défaut porteur=None du lot 337 révélé et corrigé ; 529 tests ciblés : 515 verts, 14 rouges reproduits à l'identique sur l'intégration.
+
 - **357 — `codex-e3-taches-payees`**, base `origin/integration 9ea8523`, terminé, poussé, non fusionné :
   les obligations sans limite retrouvent leur devis autonome historique ; E3 reste propre aux obligations datées.
   169 tests ciblés/voisins : 164 verts, dont tâches payées et E1–E4 (57) ; cinq tests voisins rouges

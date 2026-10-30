@@ -3631,19 +3631,17 @@ def reclamer(monde, id):
     """(but, étapes) pour aller trouver qui lui doit des pièces (``biens.dettes``) ou garde un objet
     qu'il lui a prêté au-delà de l'échéance (``biens.echu``), là où il le croit, quand ce qu'il lui
     doit vaut pour lui plus que le chemin (un objet sans prix déclaré vaut ``biens.VALEUR_OBJET``) ;
-    None sinon. Pour une dette, se retrouver suffit : le débiteur rend ce qu'il peut, s'il le veut
-    (``biens.solder``) ; s'il est déjà près de lui, rien à faire. Pour un prêt, il le lui redemande
-    (``demander``), joueur compris. Un débiteur retrouvé sans le sou, ou qui vient de refuser, il ne le
-    relance pas de sitôt ; un emprunteur qui vient de refuser ou à qui il l'a déjà redemandé non plus."""
-    from .biens import VALEUR_OBJET, dettes, echu, nie_recemment, prets, prix
+    None sinon. Le plan aboutit à une demande au débiteur, avec le contact commun des gestes
+    sociaux ; entrer dans sa salle ne suffit pas. Le règlement spontané reste possible. La réponse
+    à la créance tient selon sa cause, sans délai. Pour un prêt, il le lui redemande
+    (``demander``), joueur compris, selon le contrat existant des prêts."""
+    from .biens import VALEUR_OBJET, dettes, echu, reponse_creance_retenue, prets, prix
     from .caractere import ARGENT, valeur_pieces
-    from .deliberation import REDEMANDE
     if not profil(monde, id):
         return None
     du, objets = {}, {}
-    minute = monde.data["minutes"]
-    for d in dettes(monde):
-        if d["a"] == id and d["de"] in monde.objets and not nie_recemment(monde, id, d["de"]):
+    for d in dettes(monde, connues_de=id):
+        if d["de"] in monde.objets and not reponse_creance_retenue(monde, id, d["de"]):
             du[d["de"]] = du.get(d["de"], 0) + d["montant"]
     for p in prets(monde):
         if (p["de"] == id and p["objet"] in monde.objets and (p["a"] == "joueur" or p["a"] in monde.objets)
@@ -3652,16 +3650,15 @@ def reclamer(monde, id):
             objets.setdefault(p["a"], []).append(p["objet"])
     if not du and not objets:
         return None
-    vains = {s["de"] for s in lire(monde, id)["memoire"] if s["type"] == "creance_vaine" and minute - s["minute"] < REDEMANDE}
     v = vue(monde, id)
     e = depart(monde, id, v)
     meilleur = None
     for de in sorted(set(du) | set(objets)):
         salle = v.salle(e, de)
         a_rendre = sorted(objets.get(de, ()))
-        if salle is None or not a_rendre and (de in vains or salle == e.salle):
+        if salle is None:
             continue
-        valeur = (valeur_pieces(monde, id, du[de]) if de in du and de not in vains else 0) + sum(
+        valeur = (valeur_pieces(monde, id, du[de]) if de in du else 0) + sum(
             valeur_pieces(monde, id, prix(monde, o) or VALEUR_OBJET) for o in a_rendre)
         if salle == e.salle:
             trouve = (0, [], e)
@@ -3669,7 +3666,9 @@ def reclamer(monde, id):
             trouve = chercher(monde, id, lambda v, e, s=salle: e.salle == s, nom="reclamer:" + de,
                               memo=["reclamer", de, salle], emplois=(), motif=ARGENT)
         if trouve is not None and valeur > trouve[0] and (meilleur is None or trouve[0] < meilleur[0]):
-            meilleur = (trouve[0], de, _couper(trouve[1]) + [_etape("demander", de, outil=o) for o in a_rendre[:1]])
+            demande = ([_etape("demander", de, contenu={"type": "reclamer_dette"})] if de in du else [])
+            meilleur = (trouve[0], de, _couper(trouve[1]) + demande
+                        + [_etape("demander", de, outil=o) for o in a_rendre[:1]])
     if meilleur is None:
         return None
     return {"type": "reclamer", "qui": meilleur[1]}, meilleur[2]
