@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-service-evacuation` — lot 367, base `integration dea991a5` : le départ ne clôt plus
+  un résultat payé sur un bien mobile connu du bénéficiaire ; `biens.py` seul modifié côté moteur.
+  **115 tests / dix fichiers verts**, deux rouges du 362 corrigés, assertions historiques intactes ;
+  autre parcours payé à l'auberge, recharge monde/rendu/scène et laps découpé.
+  **12/12 empreintes 2 h identiques**, quatre graines, hameau/auberge/Relais ; aucun plantage.
+  Code mesuré `21bc1897`, branche poussée, fusionnée ; aucun calcul actif, ni suite complète ni Luna.
+  Limites : utilité conservatrice selon propriété connue, aucun entretien ni résurrection d'une trace close.
+  [Rapport 367](taches/rapport-codex-367-service-evacuation.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Deux régressions du 306 corrigées ; 29 tests historiques verts, assertions inchangées.
+
 - `codex-refus-leve-contrepartie` — **366 terminé, non fusionné**, base `integration 60f857c5`, départ `dea991a5`.
   `refus_geste` reconnaît la contre-offre honorée via les juges existants, sans effacer le refus ni rouvrir le mandat refusé.
   **57/57 tests, 8 fichiers, 207,968 s**, dont les deux régressions du 362 intactes, les 8 tests du 358 et trois nouvelles preuves.
