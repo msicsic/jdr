@@ -43,11 +43,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   jugement interne crédible/impossible/indéterminé sur le devis cru du contractant ;
   durée du plan complet distincte du coût, aucun savoir privé du payeur pour le feu.
   103 tests distincts verts, dont 10 E3 avec `planification.VERIFIER`, effets/recharge/rendu.
-  Banc 4 h × 4 graines × Relais/auberge/mine en cours, deux processus réduits ;
-  fin : `C:/Users/msics/donjon/artifacts/e3-352/fin-bancs.json` ; neutralité à conclure.
+  Banc 4 h × 4 graines × Relais/auberge/mine : 12/12 nuits identiques à la base, audits compris,
+  zéro plantage ; 27 avis à expliquer préexistants. Écarts avec `main` antérieurs à E3.
   Aucun schéma ni raccord joueur avant E4–E6. [Rapport](taches/rapport-codex-352-e3-delai-cru.md).
 
-Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 351 (G18 avis), 352 (E3 délai cru).
+Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 351 (G18 avis).
 Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
 antérieurs sont connus (`test_protection` Gorm au beffroi, trois faisabilités de `test_luna_noms`, persuasion
 Hugues/Anselme) ; un petit lot les traitera avant la vérification d'intégration.

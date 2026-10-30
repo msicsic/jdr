@@ -40,16 +40,22 @@ second paiement. Laps continu/découpé identiques, limite absolue conservée.
 Le jugement sans effet couvre l'abandon du brouillon ; aucune interface datée
 n'est encore disponible pour une annulation joueur spécifique.
 
-**Banc rapide en cours.** 4 h de jeu, graines 1985/7/42/2024, Relais/auberge/mine,
-deux processus à priorité réduite. Comparaisons successives avec `origin/main`
-(`0bad227`, le main publié ; le `main` local `c870c8b` est ancien) et la base
-exacte `e7ea375`, sans rejouer les nuits présentes dans le cache commun. Les
-nuits de `d03d0d2` sont mises en cache et réutilisées pour la seconde comparaison.
-Le lanceur compare aussi chroniques, mesures, empreinte finale et audits nuit
-par nuit, sans comparer les temps issus du cache aux temps courants.
-Bruts : `C:\Users\msics\donjon\artifacts\e3-352\` ; résultats `banc-main.json`,
-`banc-base.json`, `synthese-bancs.json` ; fin écrite en dernier : `fin-bancs.json`.
-La neutralité des nuits reste à conclure à la lecture de ces résultats.
+**Banc rapide terminé.** 4 h de jeu, graines 1985/7/42/2024, Relais/auberge/mine,
+deux processus à priorité réduite : **12/12 nuits identiques à la base exacte
+`e7ea375`**, chroniques, mesures et empreinte de l'état final complet. Audits,
+boucles, relevés et état final d'audit également identiques ; seule la durée
+de calcul diffère dans les données brutes. Aucun plantage ni nouvelle décision.
+Zéro avis non justifié ; les 27 avis à expliquer, deux répétitions, deux alertes
+`fige_presse`, une `noir_long` et une `voir_alterne` existaient déjà sur la base.
+La comparaison avec `origin/main 0bad227` (main publié ; le `main` local `c870c8b`
+est ancien) diverge dans les douze nuits dès la minute 0 ; ses neuf avis à expliquer
+deviennent 27 sur l'intégration. L'identité avec la base attribue intégralement
+ces écarts aux changements antérieurs à E3. Les références manquantes ont été
+calculées une fois et rangées dans le cache commun ; les douze nuits de branche
+ont été relues du cache pour la seconde comparaison, sans rejeu. Aucune comparaison
+de temps n'est tirée de ces mesures. Les deux commandes terminent avec code 0.
+Bruts : `C:\Users\msics\donjon\artifacts\e3-352\` (`banc-main.json`, `banc-base.json`,
+`synthese-bancs.json`, `synthese-tests.json` et journaux) ; fin : `fin-bancs.json`.
 
 **Limites.** Socle interne : E1/E2 n'ont préparé aucun point d'évaluation d'offre
 datée. Aucun schéma, rendu, prompt ni appelant de jeu ajouté ; E4–E6 restent
