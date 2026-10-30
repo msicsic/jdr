@@ -146,13 +146,13 @@ if (ETAT.sonde_fabrication) {
     sortie.fabrication.ferme_apres_etat = form.hidden;
   }
 }
-if (ETAT.sonde_information) {
+for (const genre of ["information", "avis"]) if (ETAT["sonde_" + genre]) {
   appliquerEtat(ETAT); occupe = false; envois.length = 0;
-  $("informer").onclick();
-  const form = $("information"), f = ETAT.sonde_information;
-  sortie.information = {champs: [], clics: 1};
+  $(genre === "avis" ? "avertir" : "informer").onclick();
+  const form = $(genre), f = ETAT["sonde_" + genre];
+  sortie[genre] = {champs: [], clics: 1};
   form.onsubmit({preventDefault() {}});
-  sortie.information.incomplet = envois.length;
+  sortie[genre].incomplet = envois.length;
   const remplir = label => {
     const input = label.children.find(c => c.tagName === "SELECT");
     const nom = label.children[0].textContent;
@@ -162,22 +162,22 @@ if (ETAT.sonde_information) {
     if (input.onchange) input.onchange();
     document.activeElement = input;
     for (const key of ["ArrowUp", "ArrowDown", " "]) ecouteurs.keydown.forEach(cb => cb({key, preventDefault() {}}));
-    sortie.information.champs.push({nom, choix, valeur: input.value});
-    sortie.information.clics += 2;
+    sortie[genre].champs.push({nom, choix, valeur: input.value});
+    sortie[genre].clics += 2;
   };
   form.children.filter(l => l.tagName === "LABEL").forEach(remplir);
   form.children.filter(l => l.tagName === "DIV").flatMap(l => l.children).forEach(remplir);
-  sortie.information.clavier = envois.length;
+  sortie[genre].clavier = envois.length;
   document.activeElement = null;
   occupe = true; form.onsubmit({preventDefault() {}});
-  sortie.information.occupe = envois.length;
+  sortie[genre].occupe = envois.length;
   occupe = false; form.onsubmit({preventDefault() {}});
-  sortie.information.clics++;
-  sortie.information.envoye = envois[0];
+  sortie[genre].clics++;
+  sortie[genre].envoye = envois[0];
   form.onsubmit({preventDefault() {}});
-  sortie.information.envois = envois.length;
+  sortie[genre].envois = envois.length;
   appliquerEtat(ETAT);
-  sortie.information.ferme_apres_etat = form.hidden;
+  sortie[genre].ferme_apres_etat = form.hidden;
 }
 if (ETAT.sonde_marche) {
   appliquerEtat(ETAT);
