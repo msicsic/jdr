@@ -241,7 +241,8 @@ class FaisabiliteTests(unittest.TestCase):
         self.assertNotIn("sort des limites", sortie)
         self.assertNotIn("Réexamine", sortie)
         self.assertIn(demande_precision(), sortie)
-        self.assertEqual(reprise.data['conversation'][-1]['reponse'], demande_precision())
+        from tests.support import question_sans_execution
+        self.assertEqual(reprise.data['conversation'][-1]['reponse'], question_sans_execution(demande_precision()))
         self.assertEqual(reprise.data['narrations_mj'][-1]['sources'], ['moteur'])
         self.assertEqual([f for f, _ in appels], ['repondre_au_joueur'] * 3)
         self.assertEqual((reprise.objets, reprise.joueur), (m.objets, m.joueur))
