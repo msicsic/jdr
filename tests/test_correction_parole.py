@@ -10,6 +10,7 @@ from tests.test_audits_attendu import jouer, ligne, rapport
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole
 from tests.test_tensions import recharger
+from tests.paroles_support import porter_operations_archive
 
 
 class CorrectionParoleTests(unittest.TestCase):
@@ -31,7 +32,9 @@ class CorrectionParoleTests(unittest.TestCase):
 
     def test_n9_propositions_historiques_apres_preparation_refusee(self):
         # Format 221 : localisation:false complète le protocole, sans changer les mots archivés.
-        propositions = json.loads((Path(__file__).parent / 'data/n9-lot141.json').read_text(encoding='utf-8-sig'))
+        # 341 / rapport mandat-joueur : la carte complète inclut désormais les mandats.
+        propositions = porter_operations_archive(json.loads(
+            (Path(__file__).parent / 'data/n9-lot141.json').read_text(encoding='utf-8-sig')))
         m = banc('soir-noir')
         # Le tour précédent a fait entendre une voix, comme dans le fil réel.
         m, _, _ = jouer(m, "il y a quelqu'un ?", [
@@ -39,7 +42,8 @@ class CorrectionParoleTests(unittest.TestCase):
             dialogue('Une voix : « Moi. »')],
             [rapport(ligne('parole', locuteur='voix_1', citation='Moi.'))])
         reponses = [dict(mode='parole_joueur', texte='', faits=[], proposition=p) for p in propositions]
-        appels = self.verifier_parole(m, '« Qui est là ? »', *reponses)
+        # G16 / rapport 345 : la réponse « qui » est fixée par le moteur.
+        appels = self.verifier_parole(m, '« Qui est là ? »', *reponses, reponse="Je m'appelle Ilse.")
         self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 1)
 
     def test_autre_script_declaration_fausse_omise_localement(self):

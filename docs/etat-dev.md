@@ -39,6 +39,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+**362 — `codex-rouges-restants`, base `integration 52b2a27c`, validation détachée en cours.**
+Seize rouges reproduits ; six nouvelles bascules natives : 354, 353, 306 ×2, 358 ×2.
+Identités publiques issues des références admises (plus d'inférence par homonymie), préfixe KV réordonné ;
+portages de protocole 341, réponses G16, consentement U-C, catalogue 353 et stimulus lumineux explicite.
+Trois anciens incidents reproduits aussi par fichier entier ; sept méthodes réservées, aucune déclarée corrigée.
+Reprise ciblée finale 3/3 verte ; dix-neuf fichiers voisins et empreintes Relais/mine 2 h × quatre graines en calcul.
+Fin attendue : `artifacts/rouges-restants-362/fin-validation.json` ; ni suite complète ni Luna.
+[Rapport provisoire et annexe](taches/rapport-codex-362-rouges-restants.md).
+
 Lots en cours : 359 (E5 choix direct), 360 (régressions du lot 337), 362 (16 rouges restants hors 337).
 **Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
 dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361, fusionné), 10 autres anciennes

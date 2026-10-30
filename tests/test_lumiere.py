@@ -133,7 +133,18 @@ class MineTests(unittest.TestCase):
         deplacer(m, "bidon_huile", "remy")
         m, _ = vivre(inquiet(m), 4)
         lampe = m.objets["lampe_remy"]
-        # Elle a été remplie et allumée, puis ménagée au bureau éclairé.
+        self.assertTrue(lampe["allume"])
+        # 332 / attention conjointe : le trajet autonome au bureau n'est pas
+        # garanti. Comme dans le test de l'allumage au briquet, donner le
+        # second stimulus : une source de niveau 2 réellement perçue.
+        from tests.test_tensions import placer
+        from tests.support import regarder as orienter
+        m.objets['chandelle']['luminosite'] = 2
+        placer(m, 'remy', 'bureau', (2, 1))
+        orienter(m, 'remy', 'chandelle')
+        percevoir_tous(m)
+        m, _ = vivre(m, 1)
+        lampe = m.objets["lampe_remy"]
         self.assertFalse(lampe["allume"])
         self.assertEqual(m.objets['remy']['lieu'], 'bureau')
         self.assertTrue(lire(m, 'remy')['croyances']['chandelle']['etat']['valeur']['allume'])

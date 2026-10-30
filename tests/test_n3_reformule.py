@@ -10,11 +10,13 @@ from tests.test_audits_attendu import jouer, ligne, rapport
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue
 from tests.test_tensions import recharger
+from tests.paroles_support import porter_operations_archive
 
 
 class N3Tests(unittest.TestCase):
     def test_correction_contestee_aussi_le_secours_prononce_les_mots(self):
-        fil = json.loads((Path(__file__).parent / 'data/n3-lot102.json').read_text(encoding='utf-8'))
+        fil = porter_operations_archive(json.loads(
+            (Path(__file__).parent / 'data/n3-lot102.json').read_text(encoding='utf-8')))
         faux, revue = fil[0]['reponse'], fil[1]['reponse']
         saisie = "il y a quelqu'un ?"
         r, sortie, traces = jouer(banc('soir-noir'), saisie,
@@ -27,7 +29,8 @@ class N3Tests(unittest.TestCase):
         self.assertEqual([p['texte'] for p in emissions_joueur(recharger(r))], [saisie])
 
     def test_fil_reel_et_question_dans_une_salle_eclairee(self):
-        fil = json.loads((Path(__file__).parent / 'data/n3-lot102.json').read_text(encoding='utf-8'))
+        fil = porter_operations_archive(json.loads(
+            (Path(__file__).parent / 'data/n3-lot102.json').read_text(encoding='utf-8')))
         for scenario, saisie in [('soir-noir', "il y a quelqu'un ?"),
                                  ('echanges', 'Vous m’entendez ?')]:
             with self.subTest(scenario=scenario):

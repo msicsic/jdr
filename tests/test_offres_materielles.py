@@ -4,7 +4,7 @@ import json
 import unittest
 
 from donjon.commandes import DescripteurPublic
-from donjon.gestes_publics import gestes_du_monde, rendre_liste
+from donjon.gestes_publics import GESTES_CORPS, gestes_du_monde, rendre_liste
 from donjon.moteur import Moteur
 from tests import test_attendu_designable as designable
 from tests import test_gestes_terminal as terminal
@@ -14,7 +14,8 @@ from tests.test_tensions import recharger
 
 def materiels(m):
     return [c.descripteur.contenu for c in gestes_du_monde(m)
-            if c.descripteur.contenu.get("parametres", {}).keys() & {"outil", "destination"}]
+            if c.descripteur.contenu["geste"] not in GESTES_CORPS
+            and c.descripteur.contenu.get("parametres", {}).keys() & {"outil", "destination"}]
 
 
 class OffresMateriellesTests(unittest.TestCase):
@@ -28,7 +29,10 @@ class OffresMateriellesTests(unittest.TestCase):
                     # Dans cette capture aucun combustible compatible, contenant
                     # ouvert ou outil d'impact/crochetage/clé n'est disponible.
                     self.assertEqual(materiels(m), [])
-                    self.assertLess(len(gestes_du_monde(m)), 39)
+                    # 353 porte les gestes du corps au terminal ; ce comptage
+                    # bornait les offres d'objets, avant leur ajout documenté.
+                    self.assertLess(sum(c.descripteur.contenu["geste"] not in GESTES_CORPS
+                                        for c in gestes_du_monde(m)), 39)
                 else:
                     m, cible, _ = web.situation("alimenter", 1)
                     d = DescripteurPublic(web.choisir(m, "alimenter", cible)["envoye"])

@@ -1104,7 +1104,7 @@ def _connu_du_joueur(monde, id):
     return id in _cites_du_contexte(monde)
 
 
-# Ce que nomme ce que le joueur perçoit et sait (``_cites_du_contexte``), gardé le temps d'un bloc qui
+# Les références de ce que le joueur perçoit et sait (``_cites_du_contexte``), gardées le temps d'un bloc qui
 # ne change rien à l'état (``contexte_fige``) : (monde, identifiants) ; None hors d'un tel bloc.
 _CITES = None
 
@@ -1112,7 +1112,7 @@ _CITES = None
 @contextmanager
 def contexte_fige():
     """Un bloc qui ne fait que lire l'état (ce que le joueur saisit de paroles entendues, ce qu'il en
-    entend) : ce que nomme son contexte (``monde.contexte``, ``lexique``) n'y est calculé qu'une fois.
+    entend) : les références de son contexte n'y sont calculées qu'une fois.
     En vérification (``spatial.VERIFICATION``), chaque lecture gardée est recomparée à un calcul de zéro."""
     global _CITES
     if _CITES is not None:
@@ -1126,13 +1126,37 @@ def contexte_fige():
 
 
 def _cites_du_contexte(monde):
-    """Les identifiants que nomme ce que le joueur perçoit et sait : son contexte et la conversation."""
+    """Identités attestées par les données publiques, jamais déduites d'un nom homonyme.
+
+    La prose permet de chercher un nom parmi les entités connues ; elle ne
+    fait pas connaître tous les objets privés qui portent ce même nom.
+    """
     global _CITES
-    from . import lexique
+    from .noms import CHAMPS_REFERENCES
     from .spatial import a_verifier
+    from .voix import reel
 
     def calculer():
-        return lexique.entites_citees(monde, lexique.corpus(monde.contexte(), monde.data.get("conversation", [])))
+        contexte = monde.contexte()
+        refs = {o["id"] for o in contexte["objets_perceptibles"]}
+        refs.update(contexte["lieux_connus"])
+
+        def recueillir(valeur):
+            if isinstance(valeur, list):
+                for v in valeur:
+                    recueillir(v)
+            elif isinstance(valeur, dict):
+                for champ, v in valeur.items():
+                    if champ in CHAMPS_REFERENCES and isinstance(v, str):
+                        refs.add(v)
+                    else:
+                        recueillir(v)
+
+        # Seules les paroles effectivement entendues et les faits admis
+        # ajoutent leurs références ; aucun texte libre ni scénario privé.
+        recueillir(contexte["paroles_entendues"])
+        recueillir(contexte["souvenirs_faits"])
+        return {reel(monde, ref) for ref in refs}
     if _CITES is None:
         return calculer()
     if not _CITES or _CITES[0] is not monde:
