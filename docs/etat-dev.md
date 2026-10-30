@@ -39,6 +39,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-refus-leve-contrepartie` — **366, validation en cours**, base `integration 60f857c5`, départ `dea991a5`.
+  `refus_geste` reconnaît la contre-offre honorée via les juges existants, sans effacer le refus ni rouvrir le mandat refusé.
+  Deux régressions du 362 : rouges reproduites puis **2/2 vertes**, assertions intactes ; les **8 tests du 358 verts**.
+  Trois preuves ajoutées : autre clé, paiement, état et vues rechargés, bloc/découpé. Aucun recouvrement de code annoncé.
+  Passe finale 8 fichiers puis empreintes 2 h, quatre graines, Relais/mine/auberge/crue, référence `origin/main 0bad2272`.
+  Calcul détaché, 2 travailleurs réduits ; fin attendue `C:/Users/msics/donjon/artifacts/refus-leve-366/fin-validation.json`.
+  Limite : voisins et empreintes pas encore validés ; [rapport](taches/rapport-codex-366-refus-leve.md).
+
 Lots en cours : 364 (E6, réaccordance après le 362), 365 (catalogue des choix : fuite possible), 366 (levée d'un
 refus par contrepartie, 358), 367 (service payé et évacuation, 306), 368 (quatre régressions isolées). Leurs entrées
 arrivent ici à leur livraison. 
