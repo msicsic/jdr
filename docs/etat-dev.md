@@ -38,17 +38,17 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **356 `codex-suite-rouge-7eb45ff`**, base `integration df03dc2f` : attribution des 161 incidents, en cours.
-  158 bascules prouvées ; trois non reproduits. Intégration `19c9b6da` fusionnée ; 811 assertions intactes au portage consentement.
-  Attentes G16/U-C portées séparément ; correctif commun d'une ligne pour les frontières des répliques collectives.
-  Reprise après `C:/Users/msics/donjon/artifacts/suite-rouge-356/fin-validation-finale.json` ;
-  [rapport provisoire](taches/rapport-codex-356-suite-rouge-7eb45ff.md). Ni suite complète, Luna ou banc.
+- **356 `codex-suite-rouge-7eb45ff`**, terminé non fusionné, base `df03dc2f`, synchronisation `19c9b6da`.
+  158 bascules prouvées / 161 incidents ; 48 harnais, 71 attentes périmées prouvées, 39 régressions conservatrices dont une corrigée.
+  Consentement : 811 assertions intactes au premier portage ; attentes G16/U-C portées séparément, frontière commune des répliques corrigée.
+  **201/201 tests, 18 fichiers, 763,976 s**, zéro échec/erreur/saut ; sources stables, `fin-validation-finale.json ok=true`.
+  38 ruptures historiques à traiter/arbitrer, trois incidents non reproduits ; suite globale non déclarée verte. Aucun calcul actif.
+  [Rapport](taches/rapport-codex-356-suite-rouge-7eb45ff.md) et [attribution exhaustive](taches/attribution-codex-356-suite-rouge.md) ; branche poussée.
 
-Lots en cours : 335 (suivi vocal, reprise, banc en cours), 356 (suite rouge, attribution), 358 (revalider une action
-différée après refus). 306 (agenda du hameau) attend le 358 : un mandat refusé y est réexécuté.
-Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
-écrits avant le consentement U-C, d'autres familles à attribuer) : lot 356 (attribution, harnais) en cours ; la
-vérification d'intégration et l'avance de `main` attendent une suite redevenue témoin fiable.
+**Suite complète historique `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs**, attribués par le lot 356 ci-dessus.
+Les autres attentes périmées, les ruptures réservées et les non-reproduits restent à rapprocher des corrections
+déjà fusionnées ; la suite complète courante est à relancer par le superviseur avant l'avance de `main`.
+306 (agenda du hameau) attendait le correctif 358, désormais fusionné.
 
 ## Décisions prises le 2026-10-30
 

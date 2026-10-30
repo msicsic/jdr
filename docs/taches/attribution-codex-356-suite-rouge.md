@@ -202,6 +202,11 @@ prouve pas que les quatre scènes en échec devaient être refusées : elles res
 
 ## Reproduire et limites
 
+**Clôture : 201/201 tests, 18 fichiers ciblés verts**, zéro échec, erreur ou saut,
+sur l'intégration synchronisée `19c9b6da`, en 763,976 s. Les 316 bornes ont toutes
+le label exact et le verdict attendu. La régression G16 de frontière est corrigée
+ici ; les 38 autres ruptures restent historiques, sans verdict courant extrapolé.
+
 Bruts : `C:/Users/msics/donjon/artifacts/suite-rouge-356/`.
 `suite-originale.json` garde les traces d’origine ; `attribution-qualifiee.json` les lie
 aux bornes et catégories. `rejeux/<commit>/<fichier>.json` conserve les résultats natifs,
