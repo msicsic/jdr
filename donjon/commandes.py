@@ -465,8 +465,8 @@ def heler(monde, texte):
     qui = hele(monde, texte)
     if qui is None:
         return None
-    from .operations import etape, sequence
-    return sequence(etape("emettre_son", qui, methode="heler"), justification="")
+    from .contrats_son import raccourci
+    return raccourci(qui, "heler")
 
 
 def repondre(monde, texte):
@@ -478,11 +478,11 @@ def repondre(monde, texte):
     if reponse is None:
         return None
     from .appel import METHODES
-    from .operations import etape, sequence
+    from .contrats_son import raccourci
     from .voix import designation
     qui, sorte = reponse
     methode = next(m for m, s in METHODES.items() if s == sorte)
-    return sequence(etape("emettre_son", designation(monde, qui), methode=methode), justification="")
+    return raccourci(designation(monde, qui), methode)
 
 
 def cri(monde, texte):
@@ -502,7 +502,8 @@ def attente(texte):
     interruptibles aussi."""
     texte = texte.strip()
     if not texte:
-        return proposition("attendre", "300")
+        from .contrats_sequence import ATTENTES
+        return proposition("attendre", str(ATTENTES["bloc"]["minutes"] * 60))
     secondes, fin, precedente = 0.0, 0, 3600
     for nombre in DUREE.finditer(texte):
         if texte[fin:nombre.start()].strip() not in ("", "et"):
@@ -604,12 +605,9 @@ def analyser(monde, texte):
         if "proposition" not in suggestion:
             raise ErreurMonde(suggestion.get("obstacle", "Aucun assemblage d'échelle n'est disponible dans cette situation."))
         return suggestion.get("travail_soigne", {}).get("proposition", suggestion["proposition"])
-    sons = {"crier a l'aide": "appel", "je crie a l'aide": "appel", "appeler a l'aide": "appel",
-            "crier au secours": "appel", "je crie au secours": "appel",
-            "crier": "cri", "je crie": "cri", "siffler": "sifflement", "je siffle": "sifflement"}
-    if texte in sons:
-        from .operations import etape, sequence
-        return sequence(etape("emettre_son", "joueur", methode=sons[texte]), justification="")
+    from .contrats_son import RACCOURCIS_VOCAUX, raccourci
+    if texte in RACCOURCIS_VOCAUX:
+        return raccourci("joueur", RACCOURCIS_VOCAUX[texte])
     if texte.startswith("alimenter ") and " avec " in texte:
         foyer, _, bois = texte[10:].partition(" avec ")
         return geste_local("alimenter", monde.trouver(foyer), monde.trouver(bois))
@@ -621,8 +619,7 @@ def analyser(monde, texte):
     if texte.startswith("prelever "):
         return geste_local("prelever", monde.trouver(texte[9:]))
     if texte.startswith("sonner "):
-        from .operations import etape, sequence
-        return sequence(etape("emettre_son", monde.trouver(texte[7:]), methode="simple"))
+        return raccourci(monde.trouver(texte[7:]), "simple")
     if texte.startswith("franchir ") and " avec " in texte:
         cible, _, outil = texte[9:].partition(" avec ")
         cible, outil = _nomme(monde, cible, False), _nomme(monde, outil, False)

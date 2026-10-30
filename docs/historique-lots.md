@@ -6,6 +6,87 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1a-porte-episodes` (378), base `integration eb84aad7` : porte commune des insertions/évictions
+  dans `memoire.py`, liste/plafond/crochets historiques conservés ; façade `esprits`, migrations et ouïe portées.
+  Contrôle AST fermé et chaînes auberge/Relais ajoutés ; lectures et contenus restent pour S1b–e.
+  158 tests ciblés passent (13 fichiers) ; empreintes 2 h/quatre scénarios/quatre graines : 16/16 identiques à la base.
+  Écart à l'ancien main attribué à l'intégration ; `origin/integration c63dd563` fusionné, 30 tests repassés après fusion du code.
+  Aucun stock renvoyé par la nouvelle API ; limite AST : flux interprocéduraux non exhaustifs. Bruts : `artifacts/s1a-378/` du dépôt principal.
+  [Rapport](taches/rapport-codex-378-s1a-porte-episodes.md). Recouvrement 374 limité à `esprits.py`.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 378, S1a : insertion et éviction des épisodes par donjon/memoire.py, stockage inchangé ; contrôle AST des écritures. 16/16 empreintes identiques à la base. Aucun fichier de code commun depuis la base.
+
+- `codex-a2-expression-son` — lot 379, base `origin/integration 85052cf8` : contrat commun
+  expression/son pour moteur, schémas, raccourcis et « Compris » ; mécanique inchangée.
+  Cas historique, rythme corporel, faux pendant silencieux, recharge et laps découpé couverts.
+  59 tests finaux verts ; empreintes Relais 2 h × 4 graines identiques. Sept échecs voisins
+  reproduits à l'identique sur la base. Aucune passe Luna ni suite complète ; revues conservées.
+  Fidélité du choix Luna non garantie ; aucun registre d'esprit ajouté.
+  Rapport : [379](taches/rapport-codex-379-a2-expression-son.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 379, A2 famille expression et son : un contrat commun (contrats_son) pour moteur, schéma et plan public. Aucun fichier de code commun depuis la base. Sept échecs voisins de test_voix/test_voix_inconnues identiques sur la base (rouges traités par le 375).
+
+- `codex-messages-decoupage` — lot 376, base `origin/integration 2887c541` :
+  présences, sons et mémoires publiques relevés aux événements, sans résumé dépendant de l'action.
+  Capture 371 auberge et passage au Relais : messages/état/rendu rechargés identiques après découpage.
+  114 tests verts ; 8 nuits de 2 h : physique/chroniques/mesures/souvenirs PNJ identiques, zéro plantage/usurpation.
+  Hash d'état complet différent sur 6/8 nuits : journal seul au préfixe Relais ; écarts finaux non intégralement attribués.
+  Recouvrement `moteur.py` avec 369/375 ; aucun registre d'esprit ajouté.
+  [Rapport 376](taches/rapport-codex-376-messages-decoupage.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 114 tests verts, huit nuits sans plantage, empreintes physiques identiques ; six écarts d'état complet partiellement attribués (limite).
+
+- `codex-double-promesse` — lot 377, base `origin/integration 2887c541`, PC fixe.
+  Les devis et transferts comptent les moyens déjà promis, depuis les engagements existants, sans nouveau registre.
+  Capture Mireille/Tilo/Mathurine et autre bien vérifiés après recharge et laps découpés ; parts libres conservées.
+  98 tests distincts verts ; empreintes 2 h auberge/Relais × 4 graines : 4/8 identiques, 4 écarts attribués.
+  Aucun plantage, usurpation ni aller-retour non justifié sur ces nuits ; livraison terminée, branche poussée.
+  Limite : quantité distante inconnue = refus conservateur possible ; recouvrements possibles 365/375.
+  [Rapport](taches/rapport-codex-377-double-promesse.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 98 tests verts, quatre divergences d'empreintes expliquées ; limite : une quantité distante inconnue peut donner un refus conservateur.
+
+- **373 — `codex-s0-conception-memoire`**, base `integration b83f5a59`, documentation seule.
+  S0 : inventaire mesuré, trois couches et registre, vues/invalidation, migration S1a–p et frontière S2.
+  71 accès mémoire / 55 fonctions / 17 fichiers ; 247 accès explicites dans 106 fichiers de tests.
+  Émissions G15 uniques, vérité mécanique et connaissance séparées ; interfaces 372/374 et A1 définies.
+  Ni Luna, banc ni suite ; lacunes de validation et formats concurrents encore à raccorder explicités.
+  [Conception](conception-memoire-unifiee.md), [rapport](taches/rapport-codex-373-s0-conception-memoire.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Documentation seule : inventaire mesuré (71 accès mémoire, 55 fonctions), schéma des trois couches et du registre, migration S1a à S1p à empreintes identiques, cinq questions pour S2 et suivants.
+
+- **365, `codex-catalogue-connu`**, base `dea991a5` : admission lexicale retirée du lecteur commun des
+  connaissances ; sources perceptives, mémorisées et actes typés entendus seuls. Prémisses déclarées dans les scénarios.
+  Validé : 153 tests réussis, un facultatif ignoré (15 fichiers) ; monde/scène/fiche/catalogues après recharge.
+  Empreintes 2 h × quatre graines, Relais/auberge : seul delta final = savoirs de prémisse ajoutés à `connus`.
+  Zéro cible d'accord inconnue ; six noms déclarés connus restent proposés au verrou. Recouvrement 360 : `paroles.py`.
+  `fin-reprise.json` valide dans `C:/Users/msics/donjon/artifacts/catalogue-365/` ; copies originales du 364 absentes.
+  [Rapport](taches/rapport-codex-365-catalogue-connu.md) ; pas de migration lexicale de la prose des anciennes sauvegardes.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `paroles.py`, fusionnés sans conflit textuel. Admission lexicale retirée de _connu_du_joueur, connaissances attestées conservées ; 153 tests, huit nuits conformes ; le compte exact de seize du 364 n'est pas reproduit. paroles.py commun avec l'intégration : tests rejoués avant poussée.
+
+- `codex-ut-social-information` — lot 369, base d'intégration `e0826efc`, non fusionné.
+  Console et TUI ouvrent `information` sur les mêmes choix publics et le même descripteur U-D que le web.
+  Parole typée, réponse G16, confirmation et révalidation existantes ; aucun changement du catalogue ou de `paroles.py`.
+  79 tests distincts verts (TUI/cases inchangés inclus) ; 2/2 repris en 114,198 s, production inchangée ; zéro appel modèle.
+  32 parcours : 16–29 touches (17–30 avec F7 en TUI) ; `fin-cloture.json` vert, branche poussée, aucun calcul actif.
+  Limite conservée : demander « où est » un objet reste indisponible ; ni Luna, banc ni suite complète.
+  [Rapport 369](taches/rapport-codex-369-ut-social-information.md), bruts `artifacts/ut-social-information-369/` du dépôt principal.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 79 tests validés ; parité console/TUI/web après recharge, zéro appel au modèle.
+
+- `codex-soupcon-deduit` — lot 372 / A6, base `origin/integration d8567324`.
+  Candidats pondérés sur présences perçues, guet lu et prises connues ; égalité sans accusation.
+  Disparition propre : projet de récupération sur soupçon, enquête commune sans portage inventé ;
+  bien retrouvé ailleurs ou auteur constaté : levée et clôture du projet supposé.
+  161 méthodes distinctes vertes consolidées, deux vols réels rechargés, laps entier/découpé identique.
+  Empreintes 2 h × 4 graines × 6 scénarios : 24/24 identiques, aucun soupçon naturel ; branche poussée.
+  Limites : indices de salle, motifs/lectures bornés ; recouvrement `agendas.py` avec 370.
+  [Rapport 372](taches/rapport-codex-372-soupcon-deduit.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 161 tests verts, 24/24 empreintes identiques ; aucun soupçon naturel observé, comportement prouvé par deux scènes ; deviendra un fait de la mémoire unifiée en S1.
+
+- `codex-a2-sequence-attente` — lot 370, base `integration d856732` : registre partagé
+  séquence/attente, schéma fermé de la famille et limites dans « Compris » ; mécanique valide conservée.
+  Vérification finale : 106 tests, zéro échec/erreur, trois ignorés (MiMo absent), neuf fichiers, 262,94 s.
+  Empreintes Relais 2 h × quatre graines identiques à la base : chronique, mesures et état final complet.
+  Code vérifié `c6e904db` ; bruts `C:/Users/msics/donjon/artifacts/a2-sequence-attente-370/`, `fin.json` vert.
+  Limites : événement libre non garanti, API `MJ.proposer` transitoire ; A3/A4/A6 hors périmètre.
+  [Rapport](taches/rapport-codex-370-a2-sequence-attente.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 103 tests verts, 3 ignorés ; empreintes Relais identiques 2 h × 4 graines ; l'attente d'un événement libre reste non garantie.
+
 - `codex-evaluation-echeance` — lot 371, base `d8567324`, PC fixe, mesure seule, aucun code du jeu modifié.
   Huile auberge/planches Relais : 7 saisies ou 9 clics, zéro modèle ; livraison, remboursement unique,
   comptes et rendu après recharge ; messages en bloc/découpés différents à l’auberge (état identique).

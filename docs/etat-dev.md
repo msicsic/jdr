@@ -28,18 +28,18 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-s1a-porte-episodes` (eecbe2a5) : lot 378, S1a une seule porte pour les épisodes. Détail dans l'historique.
+- `codex-a2-expression-son` (e868d585) : lot 379, A2 famille expression et son. Détail dans l'historique.
+- `codex-messages-decoupage` (9d9fd5fe) : lot 376, les messages ne dépendent pas du découpage du temps. Détail dans l'historique.
+- `codex-double-promesse` (8558adf4) : lot 377, une même part n'est pas promise deux fois. Détail dans l'historique.
+- `codex-s0-conception-memoire` (202c9fff) : lot 373, S0 conception de la mémoire unifiée des PNJ. Détail dans l'historique.
+- `codex-catalogue-connu` (fdfc31df) : lot 365, le catalogue des choix ne montre que ce que Corvus connaît. Détail dans l'historique.
+- `codex-ut-social-information` (8245d178) : lot 369, U-T social information, l'acte d'information au terminal. Détail dans l'historique.
+- `codex-soupcon-deduit` (6aeec863) : lot 372, A6 le soupçon déduit des croyances. Détail dans l'historique.
+- `codex-a2-sequence-attente` (b75dcf62) : lot 370, A2 famille séquence et attente. Détail dans l'historique.
 - `codex-evaluation-echeance` (76305cc6) : lot 371, évaluation du noyau de l'échéance négociée. Détail dans l'historique.
 - `codex-quatre-regressions` (a4788b4c) : lot 368, quatre régressions isolées (313, 330, 332, 333). Détail dans l'historique.
 - `codex-service-evacuation` (e0c95ced) : lot 367, un service payé reste protégé quand l'évacuation déplace la lumière. Détail dans l'historique.
-- `codex-refus-leve-contrepartie` (140cb9f0) : lot 366, un refus retenu se lève par une contrepartie ou un accord nouveau. Détail dans l'historique.
-- `codex-e6-libre-date` (7dc16a0d) : lots 363 et 364, E6 partiel, la proposition datée en texte libre ouvre le choix direct. Détail dans l'historique.
-- `codex-regressions-337` (2166b971) : lot 360, régressions de la fin de garde apprise par ouï-dire (lot 337). Détail dans l'historique.
-- `codex-rouges-restants` (48d107bc) : lot 362, rouges restants de la suite hors lot 337. Détail dans l'historique.
-- `codex-e5-choix-direct` (1bd2642f) : lot 359, E5 le choix direct conserve l'accord daté affiché jusqu'à la validation. Détail dans l'historique.
-- `codex-attentes-perimees` (9f9d6fdd) : lot 361, attentes périmées encore rouges portées au contrat actuel. Détail dans l'historique.
-- `codex-suite-rouge-7eb45ff` (198844a5) : lot 356, attribution de la suite rouge 7eb45ff et harnais du consentement. Détail dans l'historique.
-- `codex-a5-agenda-hameau` (c7f4ed02) : lot 306, A5 agenda d'évacuation du hameau. Détail dans l'historique.
-- `codex-revalider-apres-refus` (63d55dcd) : lot 358, une action différée est revalidée contre un refus encore valable. Détail dans l'historique.
 
 ## Lots non fusionnés
 
@@ -51,8 +51,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Réserve avant fusion : absence de boucle nouvelle non certifiée (0→3 retours suspects, dont agenda Brune crue 1985 à 190/205).
   Forme S0 et recouvrement esprits avec 372 détaillés au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
 
-Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 372 (A6
-soupçon déduit), 373 (S0 conception de la mémoire). Suite complète en cours.
+Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
+(U-M social comptes), 381 (A2 passage), 382 (S1b sons et examens). Questions de S0 en arbitrage (1 et 2 tranchées, voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
@@ -77,6 +77,11 @@ Leurs entrées arrivent ici à leur livraison.
   S3, S4 sans lecteur, S5 (vérification d'intégration avant et après) ; S6 sur la table d'A6 ; S7/S8 après A2 à A6 du
   compilateur et D0. A6 (restes) et A7 sont absorbés (S3, S5, S6) ; A8 après S5 et S7 ; 3d porté par S2. Questions
   ouvertes : ordre des actes oui ; biographies à la main pour la tranche, générées ensuite ; tranche sur l'auberge.
+- **Questions de S0** : (1) rétention selon importance et âge, recommandation acceptée ; (2) anciennes sauvegardes :
+  l'utilisateur n'y tient pas et laisse décider ; retenu l'héritage minimal, pour garder les captures réelles des tests
+  (`tests/data`) : S1 relit à l'identique, S2 lit une attitude sans acte comme « héritée, cause inconnue », non
+  compensable par une réparation, estompée par les règles ordinaires ; aucun passé reconstruit, parties neuves pour
+  valider réparation, trahison et repentir.
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 

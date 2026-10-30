@@ -44,12 +44,12 @@ import copy
 from contextlib import contextmanager
 
 from .biens import permis as _permis
+from .memoire import MEMOIRE_MAX, evincer_episodes, retenir_episode
 from .perception import _par_case, eclairage, faible
 from .spatial import (CLES_VUE, _champ, _memo_vue, _murs, _position_vue, a_verifier, carte_lumiere, dans_le_regard,
                       etat_fige, porte_par, poses as salles_posees, sans_memoire, vue_memorisee)
 from .vol import proprietaire as _proprietaire
 
-MEMOIRE_MAX = 40
 PRESENCES_MAX = 40     # Indépendant des souvenirs employés par le comportement.
 GESTES_SOUPCON_MAX = 40
 RECENT = 30            # minutes pendant lesquelles ce qu'on a vu, ou ce qu'on vient d'entendre, fait foi
@@ -241,7 +241,7 @@ def installer(monde):
         for s in list(e["memoire"]):
             if s["type"] == "presence_percue":
                 migration_soupcon = True
-                e["memoire"].remove(s)
+                evincer_episodes(monde, id, lambda episode: episode is s)
                 r["presences"].append({k: s[k] for k in ("qui", "salle", "instant")})
         if migration_soupcon:
             _purger_indices_soupcon(monde, id)
@@ -786,27 +786,8 @@ def recevoir_prevision(monde, id, locuteur, noyau, rang, *, departage=False):
 
 
 def memoriser(monde, id, evenement):
-    if evenement["type"] == "dit" and "valeur" in evenement:
-        from .social import retenir_dit
-        retenir_dit(monde, id, evenement["a"], {"type": "affirmation", **{
-            k: evenement[k] for k in ("sujet", "attribut", "valeur")}})
-    memoire = esprit(monde, id)["memoire"]
-    souvenir = copy.deepcopy({"minute": monde.data["minutes"], **evenement})
-    from .relations import identifier
-    from .temps import instant
-    if id != "joueur" and souvenir["type"] in ("vu_agir", "entendu_agir", "vu_porter", "vol_surpris"):
-        # La précision de l'indice reste dans son registre ; l'identité
-        # de la preuve commune reste celle du moteur antérieur.
-        gestes = esprit(monde, id)["indices_soupcon"]["gestes"]
-        gestes.append({"objet": souvenir["objet"], "instant": _date_indices_soupcon(monde)})
-        del gestes[:-GESTES_SOUPCON_MAX]
-    identifier(souvenir, instant(monde))
-    memoire.append(souvenir)
-    del memoire[:-MEMOIRE_MAX]
-    from .relations import souvenir as eprouver_souvenir
-    eprouver_souvenir(monde, id, souvenir)
-    from .defense import retenir as retenir_violence
-    retenir_violence(monde, id, souvenir)
+    """Compatibilité des écrivains historiques ; la porte est dans memoire."""
+    retenir_episode(monde, id, evenement)
 
 
 def _retenir_presences(monde, id, vus):
@@ -900,11 +881,33 @@ def _constater_bien(monde, id, sujet, faits, salle, source="vu"):
             continue
         suspects = {s["qui"] for s in r["presences"]
                     if s["salle"] == salle and avant["instant"] <= s["instant"] <= maintenant}
-        if len(suspects) == 1:
-            auteur = next(iter(suspects))
-            if auteur != avant["proprietaire"]:
-                deduire_soupcon(monde, id, auteur, sujet, champ, avant)
+        if avant['proprietaire'] in suspects:
+            continue  # Une manipulation légitime par le propriétaire reste possible.
+        candidats = _candidats_soupcon(monde, id, suspects, lies)
+        if candidats:
+            deduire_soupcon(monde, id, candidats, sujet, champ, avant)
     _purger_indices_soupcon(monde, id)
+
+
+def _candidats_soupcon(monde, id, presences, objets):
+    """L'occasion est nécessaire ; les signes et antécédents crus la pondèrent.
+
+    Aucun profil d'autrui, position réelle, jet de lecture ni vérité du signe.
+    Une réputation seule ne place jamais quelqu'un sur les lieux.
+    """
+    from .signes import actives
+    e = lire(monde, id)
+    candidats = {qui: 1.0 for qui in sorted(presences)}
+    for qui, _, c in actives(monde, id):
+        if qui in candidats and c['valeur'] == 'guet' and c.get('envers') in objets:
+            candidats[qui] = max(candidats[qui], 1 + c['confiance'])
+    for qui in candidats:
+        motifs = e['relations'].get(qui, {}).get('motifs', [])
+        if any(s['type'] in ('vol_surpris', 'vu_porter') or
+               s['type'] in ('vu_agir', 'tort_tiers') and s.get('operation') == 'prendre'
+               for s in motifs):
+            candidats[qui] += .5
+    return candidats
 
 
 def dernier_son(monde, id):

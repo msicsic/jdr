@@ -38,6 +38,22 @@ def _torts_connus(monde, id):
             yield objet, portage
 
 
+def _biens_soupconnes(monde, id):
+    """Une disparition propre attribuée reste distincte d'un portage prouvé."""
+    from .esprits import lire
+    e = lire(monde, id)
+    r = e['indices_soupcon']
+    for preuve, s in sorted(r['soupcons'].items()):
+        if s['auteur'] is None:
+            continue
+        for objet, indices in sorted(s['indices'].items()):
+            constat = r['constats'].get(objet, {}).get('present', {})
+            if (indices.get('present') is True and constat.get('proprietaire') == id
+                    and constat.get('valeur') is False and objet not in e['portages']
+                    and not e['croyances'].get(objet, {}).get('fin', {}).get('valeur')):
+                yield objet, {'auteur': s['auteur'], 'preuve': preuve}
+
+
 def _naitre(monde, id, cause, parametres, origine, empreinte, *, sans_violence=True):
     stock = _stock(monde, id, creer=True)
     if any(a["origine"] == origine for a in stock):
@@ -74,6 +90,15 @@ def _naissances(monde, id, empreinte):
         _naitre(monde, id, cause, {"objet": objet, "qui": p["auteur"], "prix_cru": prix},
                 {"type": "evenement", "de": p["auteur"], "cause": cause,
                  "preuve": p["preuve"], "minute": monde.data["minutes"]}, empreinte, sans_violence=False)
+    for objet, p in _biens_soupconnes(monde, id):
+        # Le soupçon ouvre une enquête, jamais un droit de prise sur autrui.
+        if any(a['parametres'].get('objet') == objet and a['origine'].get('preuve') == p['preuve']
+               for a in (_stock(monde, id) or [])):
+            continue
+        prix = monde.objets.get(objet, {}).get('prix') or VALEUR_OBJET
+        _naitre(monde, id, 'bien_spolie', {'objet': objet, 'qui': p['auteur'], 'prix_cru': prix},
+                {'type': 'evenement', 'de': p['auteur'], 'cause': 'bien_spolie',
+                 'preuve': p['preuve'], 'soupcon': True, 'minute': monde.data['minutes']}, empreinte)
     dette = _dette_situation(monde, id)
     if dette <= richesse(monde, id):
         return
@@ -1105,6 +1130,7 @@ def actualiser(monde, id):
         from .biens import richesse
         from .occasion_protection import occasions
         if (_dette_situation(monde, id) <= richesse(monde, id) and not next(_torts_connus(monde, id), None)
+                and not next(_biens_soupconnes(monde, id), None)
                 and not next(occasions(monde, id), None)):
             return
     empreinte = _croyances(monde, id)
@@ -1154,6 +1180,8 @@ def actualiser(monde, id):
                 _changer(monde, id, a, "abandonne", "bien cru " + connu["fin"]["valeur"], empreinte)
             elif connu.get("lieu", {}).get("possession", {}).get("porteur") == id:
                 _changer(monde, id, a, "atteint", "bien cru rendu", empreinte)
+            elif a['origine'].get('soupcon') and a['origine']['preuve'] not in lire(monde, id)['indices_soupcon']['soupcons']:
+                _changer(monde, id, a, 'abandonne', 'soupcon leve', empreinte)
             continue
         if a["sorte"] == "garder":
             raison = _fin_garde(monde, id, a)
@@ -1453,6 +1481,22 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         if a["etat"] == "sommeil" and a["croyances"] == empreinte:
             return None
         objet = a["parametres"]["objet"]
+        if a['origine'].get('soupcon'):
+            # Question et recherche de l'interlocuteur sont des moyens communs.
+            # Aucune possession inventée ; un silence ne prouve pas l'innocence.
+            from .deliberation import refus_retenu
+            from .planification import rejoindre
+            qui = a['parametres']['qui']
+            if not refus_retenu(monde, id, qui, ('enqueter_lieu',), objet=objet):
+                contact = rejoindre(monde, id, qui)
+                if contact is not None:
+                    suite, trouve = contact
+                    if trouve:
+                        suite = suite + [_etape('demander', qui, contenu={'localisation': objet})]
+                    if suite:
+                        _changer(monde, id, a, 'actif', 'enquete sur soupcon', empreinte)
+                        _limiter(monde, id, empreinte)
+                        return ({'type': 'agenda', 'agenda': identifiant, 'objet': objet}, suite) if a['etat'] == 'actif' else None
         trouve = None
         # La parole est un recours commun, sans introduire de branche dans le
         # graphe de reprise. Son refus rend ensuite les moyens habituels au but.
@@ -1723,6 +1767,97 @@ def en_cours(monde, id, *, condition=None, objet=None, personne=None, actifs=Fal
             and (personne is None or x["pour"] == personne
                  or any(x["condition"].get(k) == personne for k in ("servir", "rendre", "remettre")))
             and (not actifs or not x.get("annule"))]
+
+
+def moyens_promis(monde, id, condition=None, pour=None):
+    """Charges matérielles des paroles actives, sans nouveau registre persistant.
+
+    Une remise réserve le bien entier ; un service réserve les parts consommées
+    par son devis cru. La parole que l'on revalide n'est comptée qu'une fois.
+    Les outils réutilisables ne sont pas consommés par leur emploi.
+    """
+    from collections import Counter
+    from .planification import devis_pulsion
+    charges, entiers = Counter(), set()
+    propre = False
+    for x in en_cours(monde, id, actifs=True):
+        c = x['condition']
+        if not propre and c == condition and x['pour'] == pour:
+            propre = True
+            continue
+        o = c.get('objet')
+        if any(k in c for k in ('remettre', 'rendre', 'lieu')) and o != id:
+            entiers.add(o)
+        elif 'servir' in c:
+            charges[o] += 1
+        elif x.get('objet'):
+            charges[x['objet']] += 1
+        elif monde.objets.get(id, {}).get('profil'):
+            devis = devis_pulsion(monde, id, c, x['pour'])
+            if devis:
+                for g in devis[1]:
+                    if g['operation'] in ('servir', 'manger'):
+                        charges[g['cible']] += 1
+                    elif g['operation'] == 'alimenter':
+                        charges[g['outil']] += 1
+    return charges, entiers
+
+
+def disponibilite_promise(monde, id, objet, *, part=False, condition=None, pour=None):
+    """Disponibilité crue après les paroles, jamais le stock distant caché.
+
+    À portée, le propriétaire compte ses biens (contrat de siens_a_portee).
+    À distance, « disponible » ne prouve qu'une part, pas un nombre inconnu.
+    """
+    from .deliberation import _disponible_cru, parts
+    from .echanges import siens_a_portee
+    from .spatial import porte_par
+    charges, entiers = moyens_promis(monde, id, condition, pour)
+    if objet in entiers or not part and charges[objet]:
+        return False
+    if not charges[objet]:
+        return True
+    copie = monde.copier()
+    siens = (siens_a_portee(copie, id) if id != 'joueur' else
+             [o for o in copie.objets if porte_par(copie, o, id)])
+    n = parts(copie.objets[objet]) if objet in siens else int(_disponible_cru(monde, id, objet))
+    return n > charges[objet]
+
+
+def monde_devis_libre(monde, id, condition, pour):
+    """Projection jetable des moyens non promis, commune à tous les devis.
+
+    Les réservations ne changent ni les objets réels ni les croyances sauvées.
+    Retirer un moyen épuisé laisse la recherche choisir un autre moyen cru.
+    """
+    from .deliberation import _disponible_cru, parts
+    from .echanges import siens_a_portee
+    from .esprits import esprit
+    from .spatial import porte_par
+    charges, entiers = moyens_promis(monde, id, condition, pour)
+    if not charges and not entiers:
+        return monde
+    copie = monde.copier()
+    siens = siens_a_portee(copie, id)
+    for o in sorted(set(charges) | entiers):
+        if o not in copie.objets:
+            continue
+        n = parts(copie.objets[o]) if o in siens else int(_disponible_cru(monde, id, o))
+        if o not in entiers and n > charges[o]:
+            continue
+        # Sans localisation utilisable, le bien n'est plus un moyen du devis.
+        # Le lieu physique de cette copie ne sert qu'à retirer le porté.
+        if porte_par(copie, o, id):
+            copie.objets[o].update(lieu=copie.objets[id]['lieu'],
+                                   position=copy.deepcopy(copie.objets[id].get('position')),
+                                   position_salle=copie.objets[id]['lieu'])
+        attributs = esprit(copie, id)['croyances'].setdefault(o, {})
+        attributs['lieu'] = {'valeur': None, 'salle': None, 'case': None,
+                            'source': 'savoir', 'minute': copie.data['minutes'], 'confiance': 1}
+        etat = attributs.get('etat')
+        if etat and 'disponible' in etat['valeur']:
+            etat['valeur']['disponible'] = False
+    return copie
 
 
 def reference_temporelle(engagement):

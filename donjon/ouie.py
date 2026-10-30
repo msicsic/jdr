@@ -609,8 +609,9 @@ def parcouru(monde, id, salle, case=None):
     memoire = esprit(monde, id)["memoire"]
     vus = [s for s in memoire if s["type"] == "bruit" and s["salle"] == salle]
     attendus = [s for s in vus if not resolu(monde, id, s)]
-    memoire[:] = [s for s in memoire if not any(s is v for v in vus)
-                  and not (s["type"] == "examen" and s["salle"] == salle and attendus)]
+    from .memoire import evincer_episodes
+    evincer_episodes(monde, id, lambda s: any(s is v for v in vus)
+                     or (s["type"] == "examen" and s["salle"] == salle and attendus))
     if attendus:
         qui = {s.get("qui") for s in attendus}
         memoriser(monde, id, {"type": "examen", "salle": salle,
@@ -646,7 +647,8 @@ def _retenir_seulement(monde, id, salle, n, niveau):
     from .esprits import esprit, memoriser
     memoire = esprit(monde, id)["memoire"]
     anciens = [s for s in memoire if s["type"] == "bruit" and s["salle"] == salle]
-    memoire[:] = [s for s in memoire if not any(s is a for a in anciens)]
+    from .memoire import evincer_episodes
+    evincer_episodes(monde, id, lambda s: any(s is a for a in anciens))
     memoriser(monde, id, {"type": "bruit", "salle": salle,
                           "nature": max([n, *(s["nature"] for s in anciens)], key=INTENSITES.get),
                           "niveau": max([niveau, *(s.get("niveau", niveau) for s in anciens)])})
@@ -672,7 +674,8 @@ def _bruit_inconnu(monde, id, salle, n, niveau, qui=None, case=None):
     anciens = [s for s in memoire if s["type"] == "bruit" and s["salle"] == salle]
     attente = [s for s in anciens if not resolu(monde, id, s)]
     reconsiderer(monde, id)  # Un bruit vers ce lieu, qu'il ira peut-être voir, et qui l'inquiète.
-    memoire[:] = [s for s in memoire if not any(s is a for a in anciens)]
+    from .memoire import evincer_episodes
+    evincer_episodes(monde, id, lambda s: any(s is a for a in anciens))
     # Un bruit qu'il attend déjà de ce lieu ne l'inquiète pas de nouveau ; un appel, si : chaque
     # appel à l'aide en est un nouveau. Il s'inquiète à la mesure de ce qu'il en entend : un appel
     # tout proche, pleinement ; des pas lointains, à peine.

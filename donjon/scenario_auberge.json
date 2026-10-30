@@ -20,7 +20,11 @@
   "savoirs_version": 1,
   "dialogues_version": 1,
   "arbitrages": {},
-  "connus": [],
+  "connus": [
+    "atre",
+    "coffre_marchand",
+    "lits_dortoir"
+  ],
   "lus": [],
   "journal": [],
   "conversation": [],
