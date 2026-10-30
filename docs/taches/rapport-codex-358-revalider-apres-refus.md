@@ -1,7 +1,7 @@
 # Lot 358 — revalider une action différée après refus
 
 Branche `codex-revalider-apres-refus`, base **`integration a3855ad9`**.
-**Vérification en cours ; livraison non encore validée pour fusion.**
+**Lot terminé, non fusionné. Code vérifié : `52d2f5b6`.**
 
 **Invariant.** Une réponse refusée encore valable s'applique au prochain geste
 d'un plan conservé comme à celui d'un nouveau plan. `pnj.refus_etape`, déjà appelé
@@ -24,21 +24,36 @@ préparée avant sa réponse, conservée au-delà de `REDEMANDE`. Les tests cont
 monde complet, rendu, scène et écoute après recharge, reprise en bloc ou par
 demi-minutes, plus les nouveaux moyens et les termes distincts.
 
-**Vérifications lancées.** Onze fichiers ciblés/voisins, deux processus réduits,
-puis version finale des huit régressions du lot ; banc 4 h × quatre graines ×
-Relais/mine/crue, référence `main` en cache, branche seule hors cache.
-Le lanceur détaché enchaîne ces calculs ; fin écrite en dernier :
-`C:/Users/msics/donjon/artifacts/revalider-358/fin.json`.
-Les erreurs initiales de harnais (temporaires Windows, horloge flottante,
-croyance absente et chronique bornée) restent dans les précontrôles bruts.
-Un nouvel apprentissage peut légitimement permettre un autre mandat après
-4200 : la reprise instrumentée vérifie chaque réexécution contre le refus
-alors valable, sans imposer le gel des croyances.
+**81/81 tests distincts verts, onze fichiers**, sans erreur ni saut : 73 voisins
+(refus retenus, mandats/jugement, recours d'agenda, tâches payées, protéger,
+engagement et propositions), puis huit régressions finales du lot, **22,626 s**.
+Le premier passage de 79 tests (**886,013 s**) avait un seul échec de harnais :
+l'attente d'un refus inchangé pendant deux minutes malgré un apprentissage
+nouveau. La reprise contrôle chaque réexécution contre le refus alors valable ;
+à 4200, aucun nouvel essai. Aucun oracle voisin affaibli. Précontrôles et
+premier passage rouge conservés ; les huit tests finaux les remplacent.
 
-**Limites et intégration.** Mesures finales et éventuels échecs voisins à
-instruire après le fichier de fin ; aucune conclusion de banc anticipée.
-Le lot ne prouve pas l'absence générale de boucles ni le changement des règles
-de refus existantes. Recouvrement **335 : `donjon/pnj.py`**, limité ici à
+**Banc achevé : douze paires de nuits, 4 h, graines 1985/7/42/2024.**
+Référence `main 0bad227` → branche `52d2f5b6` : zéro plantage/usurpation,
+retours non justifiés **0 → 0 dans chaque nuit**.
+
+| Scénario | À expliquer | Dérives ouvertes | Maximum de passages/h |
+|---|---:|---:|---:|
+| Relais | 3 → 1 | 27 → 32 | 9 → 11 |
+| Mine | 5 → 8 | 50 → 57 | 11 → 14 |
+| Crue | 7 → 8 | 37 → 78 | 27 → 43 |
+
+Les douze références exactes manquaient au cache : calculées une fois puis
+rangées, avant la branche. Deux travailleurs réduits au plus ; enchaînement
+détaché **696,666 s**, `fin.json ok=true`, codes régressions/banc **0/0**.
+Les écarts avec `main`, antérieur aux autres lots de la base d'intégration,
+ne prouvent pas une causalité du 358 ni une absence générale de boucles.
+Restent notamment les répétitions de Mathe près de Lucien (mine 1985), les
+appels d'Aubin à Brune (crue 42) et la dette de tâche finale (crue 2024).
+Aucune conclusion de performance ; aucun calcul encore actif.
+
+**Intégration.** Recouvrement **335 : `donjon/pnj.py`**, limité ici à
 `refus_etape` ; `agir`, `planification.py`, `trajet_estime.py` et `agendas.py`
-inchangés. Ni Luna ni suite complète. Bruts dans `artifacts/revalider-358/`
-du dépôt principal, précontrôles aussi dans le worktree.
+inchangés. Ni Luna ni suite complète. Bruts et `conclusion.json` dans
+`C:/Users/msics/donjon/artifacts/revalider-358/` ; précontrôles aussi dans le
+worktree. Code/tests inchangés depuis validation ; clôture documentaire seule.

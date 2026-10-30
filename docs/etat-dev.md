@@ -38,16 +38,17 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **358 en vérification — `codex-revalider-apres-refus`**, base `integration a3855ad9` :
+- **358 terminé — `codex-revalider-apres-refus`**, base `integration a3855ad9`, code `52d2f5b6` :
   `refus_etape` applique les refus retenus au prochain geste, au choix et dans `agir`.
   Capture 306 à 4200 et tâche payée à l'auberge ; recharge monde/rendu/scène/écoute, temps découpé.
-  Tests ciblés/voisins puis banc 4 h, quatre graines, Relais/mine/crue en série détachée (deux réduits).
-  Fin attendue : `C:/Users/msics/donjon/artifacts/revalider-358/fin.json` ; fusion non validée avant lecture.
-  Recouvrement 335 : `pnj.py` (`refus_etape` seul) ; aucun MJ, scénario ni `planification.py` changé.
+  **81/81 tests verts**, onze fichiers ; 12 paires 4 h Relais/mine/crue, suspects 0 → 0, zéro plantage/usurpation.
+  Alertes à expliquer 15 → 17, dérives 114 → 167 ; écarts avec `main` non attribués causalement au 358.
+  Deux réduits, `artifacts/revalider-358/fin.json` du dépôt principal **ok=true** ; aucun calcul actif.
+  Recouvrement 335 : `pnj.py` (`refus_etape` seul) ; ni Luna ni suite complète.
   [Rapport 358](taches/rapport-codex-358-revalider-apres-refus.md).
 
-Lots en cours : 335 (suivi vocal, reprise, banc en cours), 356 (suite rouge, attribution), 358 (revalider une action
-différée après refus). 306 (agenda du hameau) attend le 358 : un mandat refusé y est réexécuté.
+Lots en cours : 335 (suivi vocal, reprise, banc en cours), 356 (suite rouge, attribution).
+306 (agenda du hameau) attend l'intégration du 358 : réexécution différée malgré refus corrigée.
 Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
 écrits avant le consentement U-C, d'autres familles à attribuer) : lot 356 (attribution, harnais) en cours ; la
 vérification d'intégration et l'avance de `main` attendent une suite redevenue témoin fiable.
