@@ -15,7 +15,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Fusionnés récemment : G2, G4, U-D, G5, G6, G7, G15, G17, G19, U-P, U-C, U-M outils/inventaire/fabrication,
   U-T premier geste/outils/inventaire/fabrication, A0 (oracle G1).
 - **PNJ** : A5 (mandat) fini sauf 306 (lots 338, 340, 341 fusionnés). A1 provenance publique fusionnée (346, non branchée).
-  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 fusionné (348), E2 = 350.
+  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 et E2 fusionnés (348, 350), E3 = 352.
 - **Groupe 1 en attente de fusion** (corrections d'attribution par le lot 342) : 313 `codex-contact-inconnu`
   (contact de position inconnue), 315 réclamations répétées, 332 attention conjointe, 333 `codex-garder-lieu`.
   Après lui : 335 `codex-suivi-vocal` (refusionner l'intégration, refaire ses ciblés), 306 (A5 agenda du hameau,
@@ -39,7 +39,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 350 (E2 réalisation datée), 351 (G18 avis).
+Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 351 (G18 avis), 352 (E3 délai cru).
 Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
 antérieurs sont connus (`test_protection` Gorm au beffroi, trois faisabilités de `test_luna_noms`, persuasion
 Hugues/Anselme) ; un petit lot les traitera avant la vérification d'intégration.
