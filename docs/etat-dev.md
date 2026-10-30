@@ -20,7 +20,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - **Esprit social des PNJ** (plan du 2026-10-30, [plan-esprit-social.md](plan-esprit-social.md)) : mémoire unifiée
   (épisodes, faits, dossier par personne, registre de ce qui est dit), passé et failles exploitables, attribution de motif,
   normes perçues (sanction attendue au lieu de `sans_temoin`), motivations noires. Dix décisions au § 13 ; étapes E0 à E8
-  (§ 11). Placement dans la feuille de route proposé à l'utilisateur, en attente de validation ; aucun lot lancé.
+  (§ 11). Étapes notées **S0 à S8**. Placement validé le 2026-10-30 (voir décisions).
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
 - **Abandonnés** : archivés par tags `archive/<branche>` le 2026-10-30 (33, 36, 117 b/c, 162, 166, 168, 170, 176,
@@ -43,9 +43,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 371
-(évaluation de l'échéance avant E7-E9), 372 (A6 soupçon déduit). Suite complète de l'intégration relancée après les
-corrections 360 à 368. Leurs entrées arrivent ici à leur livraison. 
+Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 372 (A6
+soupçon déduit), 373 (S0 conception de la mémoire), 374 (position crue comme hypothèse datée). Suite complète en cours.
+Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
 
@@ -62,6 +62,13 @@ corrections 360 à 368. Leurs entrées arrivent ici à leur livraison.
 - **E6, texte libre** (363 non validé : Luna invente un repère pour « demain », refus changés en paroles) : le libre ouvre le
   formulaire du choix direct d'E5, prérempli des seuls termes typés ; Luna ne compile pas seule les dates (ligne du lot 288,
   compilation libre complète avec K2).
+- **Placement de l'esprit social** (validé) : stabilisation d'abord (suite fiable, messages selon le découpage à
+  l'auberge, double promesse, Luna d'E6) ; S0 (conception de la mémoire, lot 373) et le lot « position crue comme
+  hypothèse datée » (374) en parallèle ; puis S1 en plusieurs lots (aucun autre lot PNJ qui ajoute un registre pendant
+  S1 ; la refonte du MJ continue) ; S2 (dossier, compte des échanges), puis E7 et un essai borné d'E9 (E8 reporté) ;
+  S3, S4 sans lecteur, S5 (vérification d'intégration avant et après) ; S6 sur la table d'A6 ; S7/S8 après A2 à A6 du
+  compilateur et D0. A6 (restes) et A7 sont absorbés (S3, S5, S6) ; A8 après S5 et S7 ; 3d porté par S2. Questions
+  ouvertes : ordre des actes oui ; biographies à la main pour la tranche, générées ensuite ; tranche sur l'auberge.
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 
