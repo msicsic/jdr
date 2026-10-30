@@ -11,6 +11,116 @@ from .esprits import dernier_son
 
 
 OPERATIONS = ("discuter", "proposer", "negocier", "accepter", "refuser")
+GESTE_INFORMATION = "information"
+
+
+def formulaires_information():
+    """Actes déjà portés par le moteur ; aucune aptitude sociale présumée."""
+    return [
+        {"acte": "qui", "libelle": "Demander qui parle", "champs": []},
+        {"acte": "localisation", "libelle": "Demander où est une personne…",
+         "champs": [{"champ": "sujet", "libelle": "Personne", "choix": "personnes"}]},
+        {"acte": "affirmation", "libelle": "Dire où se trouve…",
+         "champs": [{"champ": "sujet", "libelle": "Sujet", "choix": "sujets"},
+                    {"champ": "valeur", "libelle": "Lieu annoncé", "choix": "lieux"}]},
+        {"acte": "ressource", "libelle": "Demander si l'autre possède…",
+         "champs": [{"champ": "sujet", "libelle": "Ressource recherchée", "choix": "ressources"}]},
+    ]
+
+
+def information_publique(monde):
+    """Identités et désignations connues, sans position ni croyance d'autrui.
+
+    Les lieux sont des choix d'assertion : ils ne préremplissent jamais la
+    position du sujet. Le joueur peut aussi annoncer une localisation fausse.
+    """
+    from .paroles import _connu_du_joueur, contexte_fige, RESSOURCES_DEMANDEES
+    from .noms import public, reference, PERSONNES
+    from .voix import nom_pour_joueur
+    sujets, personnes, ressources = [], [], []
+    with contexte_fige():
+        for id, o in monde.objets.items():
+            if not _connu_du_joueur(monde, id):
+                continue
+            entree = {"id": reference(monde, id), "nom": (nom_pour_joueur(monde, id)
+                      if o["type"] == "personnage" else public(monde, designer(o)))}
+            sujets.append(entree)
+            if o["type"] == "personnage":
+                personnes.append(entree)
+            elif o["type"] not in (*PERSONNES, "partie_corps"):
+                ressources.append(entree)
+        lieux = [{"id": id, "nom": s["nom"]} for id, s in monde.data["salles"].items()
+                 if _connu_du_joueur(monde, id)]
+    return {"destinataires": [{"id": id, "nom": x["nom"]} for id, x in interlocuteurs(monde).items()],
+            "sujets": [{"id": "joueur", "nom": monde.joueur["nom"]}, *sujets],
+            "personnes": [{"id": "joueur", "nom": monde.joueur["nom"]}, *personnes],
+            "lieux": lieux,
+            "ressources": [*ressources, *({"id": b, "nom": n} for b, n in RESSOURCES_DEMANDEES.items())]}
+
+
+def parole_information(monde, d):
+    """Descripteur U-D → contenu canonique, sans analyse de texte.
+
+    Rejoué à chaque préparation de transaction, aussi après un aperçu U-C.
+    Seuls les choix publics actuels peuvent devenir une parole.
+    """
+    if (not isinstance(d, dict) or set(d) != {"geste", "cible", "parametres"}
+            or d["geste"] != GESTE_INFORMATION or not isinstance(d["cible"], str)):
+        raise ErreurMonde("Ce choix d'information est mal formé.",
+                          f"descripteur : reçu {d!r} ; attendu geste=information, cible publique, parametres.")
+    p = d["parametres"]
+    if not isinstance(p, dict) or not all(isinstance(v, str) and len(v) <= 1000 for v in p.values()):
+        raise ErreurMonde("Les paramètres de cette parole sont mal formés.",
+                          f"descripteur.parametres : reçu {p!r} ; attendu dictionnaire de chaînes.")
+    f = next((f for f in formulaires_information() if f["acte"] == p.get("acte")), None)
+    if not f:
+        raise ErreurMonde("Cet acte d'information n'est pas proposé.",
+                          f"parametres.acte : reçu {p.get('acte')!r} ; attendu {[f['acte'] for f in formulaires_information()]}.")
+    champs = {"acte", *(c["champ"] for c in f["champs"])}
+    if set(p) != champs:
+        raise ErreurMonde("Ce choix d'information est incomplet ou comporte un paramètre inconnu.",
+                          f"descripteur.parametres : reçu {sorted(p)} ; attendu {sorted(champs)}.")
+    choix = information_publique(monde)
+    if d["cible"] not in {x["id"] for x in choix["destinataires"]}:
+        raise ErreurMonde("Tu ne perçois plus cet interlocuteur pour lui parler.",
+                          f"descripteur.cible : reçu {d['cible']!r} ; attendu {[x['id'] for x in choix['destinataires']]}.")
+    noms = {}
+    for c in f["champs"]:
+        candidats = {x["id"]: x["nom"] for x in choix[c["choix"]]}
+        if p[c["champ"]] not in candidats:
+            raise ErreurMonde("Ce choix ne désigne plus un sujet ou un lieu connu de Corvus.",
+                              f"parametres.{c['champ']} : reçu {p[c['champ']]!r} ; attendu {sorted(candidats)}.")
+        noms[c["champ"]] = candidats[p[c["champ"]]]
+    acte = p["acte"]
+    replique = ("Qui es-tu ?" if acte == "qui" else
+                f"Où se trouve {noms['sujet']} ?" if acte == "localisation" else
+                f"Possèdes-tu ceci : {noms['sujet']} ?" if acte == "ressource" else
+                f"La localisation que je t'annonce pour {noms['sujet']} : {noms['valeur']}.")
+    from .voix import reel
+    sujet = reel(monde, p.get("sujet", "")) if acte == "ressource" else p.get("sujet", "")
+    return {"personnage": d["cible"], "replique": replique,
+            "contenu": [{"type": acte, "sujet": sujet,
+                         "attribut": "lieu" if acte == "affirmation" else "",
+                         "valeur": p.get("valeur", "")}]}
+
+
+def preparer_information(monde, descripteur):
+    """Une seule entrée commune vers les transactions de parole et U-C."""
+    from .consentement import preparer
+    from .paroles import annonce
+    d = copy.deepcopy(descripteur.contenu)
+    p = {**parole_information(monde, d), "_adresse": d}
+    r = {"mode": "dialogue", "texte": "Parole enregistrée.", "faits": [], "proposition": None,
+         "_texte_moteur": True,
+         "_transactions": [{"type": "parole", "revision": monde.data["revision"], "proposition": p}]}
+    dossier = preparer(monde, r, "Geste direct")
+    compte = dossier.compte_parle()
+    if compte:
+        dossier.reponse.update(compte)
+    dossier.reponse["_prefixe_moteur"] = annonce(monde, dossier.rapports[0])
+    return dossier
+
+
 SCHEMA_CONVERSATION = {
     "type": "object", "additionalProperties": False,
     "properties": {

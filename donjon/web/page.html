@@ -58,9 +58,9 @@
   button:disabled, input:disabled { opacity: .5; cursor: default; }
   .aide { color: var(--doux); font-size: 12px; }
   #statut { font-weight: 600; }
-  #fabrication label { display: block; margin: 8px 0; }
-  #fabrication select, #fabrication input { width: 100%; background: var(--fond); color: var(--texte); padding: 4px; }
-  #fabrication .aide { display: block; }
+  #fabrication label, #information label { display: block; margin: 8px 0; }
+  #fabrication select, #fabrication input, #information select { width: 100%; background: var(--fond); color: var(--texte); padding: 4px; }
+  #fabrication .aide, #information .aide { display: block; }
 </style>
 </head>
 <body>
@@ -78,6 +78,9 @@
     <h2>Fabrication</h2>
     <button id="fabriquer">Assembler / découper…</button>
     <form id="fabrication" hidden></form>
+    <h2>Informations — parler</h2>
+    <button id="informer">Poser une question / dire un lieu…</button>
+    <form id="information" hidden></form>
     <h2>Autour de toi</h2>
     <ul id="personnes"></ul>
     <h2>Objets en vue</h2>
@@ -132,6 +135,7 @@ let ressourcesFabrication = [];
 let dangers = [];
 let offresPassages = [];
 let catalogueGestes = {objets: [], portes: []};
+let information = {destinataires: [], formulaires: []};
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
 let occupe = true, historique = [], indice = 0, brouillon = "";
@@ -413,6 +417,9 @@ function appliquerEtat(e) {
   ressourcesFabrication = e.fabrication || [];
   dangers = e.dangers || [];
   offresPassages = e.passages || [];
+  information = e.information || {destinataires: [], formulaires: []};
+  $("information").hidden = true;
+  $("information").innerHTML = "";
   $("fabrication").hidden = true;
   $("fabrication").innerHTML = "";
   afficherInventaire(e.inventaire || []);
@@ -670,6 +677,52 @@ function choixMateriels(o, executer, x, y, porte = false) {
       (r.aptitudes?.[formulaire.aptitude] || []).includes(o.id));
     return candidats.length ? [choixRessource(o, geste, formulaire.champ, candidats, executer, x, y, titre)] : [];
   });
+}
+$("informer").onclick = () => ouvrirInformation();
+function ouvrirInformation(destinataire = "") {
+  if (occupe) return;
+  const form = $("information"); form.hidden = false; form.innerHTML = "";
+  const aide = document.createElement("p"); aide.className = "aide";
+  aide.textContent = "Le moteur décide de la réponse et de ce qui est cru. Le lieu annoncé est ton choix. Demander où se trouve un objet n'est pas encore disponible.";
+  form.appendChild(aide);
+  const select = (parent, titre, choix, valeur = "") => {
+    const label = document.createElement("label"), nom = document.createElement("span");
+    nom.textContent = titre; label.appendChild(nom);
+    const input = document.createElement("select"); input.required = true;
+    const vide = document.createElement("option"); vide.value = "";
+    vide.textContent = choix.length ? "Choisir…" : "Aucun choix public disponible"; input.appendChild(vide);
+    choix.forEach((c, i) => {
+      const option = document.createElement("option"); option.value = c.id;
+      const homonymes = choix.filter(a => a.nom === c.nom);
+      option.textContent = c.nom + (homonymes.length > 1 ? " (" + (homonymes.indexOf(c) + 1) + "/" + homonymes.length + ")" : "");
+      input.appendChild(option);
+    });
+    input.value = valeur; label.appendChild(input); parent.appendChild(label);
+    return input;
+  };
+  const qui = select(form, "À qui parler", information.destinataires, destinataire);
+  const acte = select(form, "Acte d'information", information.formulaires.map(f => ({id: f.acte, nom: f.libelle})));
+  const parametres = document.createElement("div"); form.appendChild(parametres);
+  let champs = [];
+  acte.onchange = () => {
+    parametres.innerHTML = "";
+    const offre = information.formulaires.find(f => f.acte === acte.value);
+    champs = (offre?.champs || []).map(c => [c.champ, select(parametres, c.libelle, information[c.choix] || [])]);
+  };
+  const message = document.createElement("p"); message.className = "aide"; form.appendChild(message);
+  const soumettre = document.createElement("button"); soumettre.type = "submit"; soumettre.textContent = "Dire ces mots"; form.appendChild(soumettre);
+  const fermer = document.createElement("button"); fermer.type = "button"; fermer.textContent = "Fermer";
+  fermer.onclick = () => { form.hidden = true; }; form.appendChild(fermer);
+  form.onsubmit = e => {
+    e.preventDefault();
+    if (occupe) return;
+    if (!qui.value || !acte.value || champs.some(([, input]) => !input.value)) {
+      message.textContent = "Choisis le destinataire, l'acte et tous ses paramètres."; return;
+    }
+    const d = {geste: "information", cible: qui.value,
+      parametres: {acte: acte.value, ...Object.fromEntries(champs.map(([champ, input]) => [champ, input.value]))}};
+    arreter(null); envoyer(d); form.hidden = true;
+  };
 }
 function choixCorps(o, x, y) {
   if (o.type !== "personnage") return [];

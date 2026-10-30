@@ -407,6 +407,15 @@ def main(argv=None, interface=None):
                     if choix is not None:
                         entree = choix
                 if isinstance(entree, DescripteurPublic):
+                    from donjon.dialogues import GESTE_INFORMATION, preparer_information
+                    if isinstance(entree.contenu, dict) and entree.contenu.get("geste") == GESTE_INFORMATION:
+                        dossier = preparer_information(m, entree)
+                        if dossier.confirmation:
+                            pending = dossier
+                            montrer_libre(dossier, "Geste direct")
+                        else:
+                            executer_libre(dossier, "Geste direct")
+                        continue
                     executer_local(entree, "Geste direct")
                     continue
                 if cmd in ("quitter", "q", "exit"):

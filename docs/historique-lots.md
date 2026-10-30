@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **354 U-M social information**, `codex-um-social-information`, base `57c9771d`, terminé non fusionné : formulaire public
+  pour identité, localisation d'une personne, ressource et annonce de lieu ; entrée U-D commune vers parole/U-C.
+  Transport d'adresse structuré dans `preparer_parole`, règles et chemin texte conservés ; zéro modèle au clic.
+  Raccord minimal `jeu.py` autorisé, fichier commun avec 353. Questions sur la position d'un objet hors périmètre,
+  limite acceptée et affichée. **112 tests / dix fichiers verts**, 24 rejoués, 17 mesures Node : 6/8/11 clics, zéro modèle.
+  Régression du récapitulatif corrigée, chemin texte conservé par AST ; `fin-cloture.json` vert, aucun calcul actif.
+  Rapport : [lot 354](taches/rapport-codex-354-um-social-information.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 112 tests ciblés verts ; raccord minimal dans jeu.py et adresse structurée dans paroles.py (autorisés par le superviseur, même validation que le texte) ; « où est » d'un objet reste une limite (règle joueur inchangée).
+
 - **`codex-e3-delai-cru`**, lot **352**, base `integration e7ea375`, code `d03d0d2` :
   jugement interne crédible/impossible/indéterminé sur le devis cru du contractant ;
   durée du plan complet distincte du coût, aucun savoir privé du payeur pour le feu.
