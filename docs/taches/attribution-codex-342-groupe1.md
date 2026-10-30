@@ -1,4 +1,4 @@
-# Attribution des 33 incidents du groupe 1 — validation finale en cours
+# Attribution des 33 incidents du groupe 1 — clôture avec réserves
 
 Suite source `6f490ba` : 13 échecs et 20 erreurs. Référence exacte `e37d9ee`.
 Témoins isolés : 313 `e5d5d9e`, 315 `1b6e2b3`, 332 `d42bb4e`, 333 `ac8bf5d`.
@@ -23,7 +23,7 @@ E : même `_retentir/emission` reproduit sur référence exacte, réservé au 33
 | 8 | completion_preuves / mine-480 | 332 / attente périmée | Même preuve → ancien hash exact `9bbfd4…`. |
 | 9 | corps_blessable / dépouilles, crue/Ilse | 313 / défaut | P. |
 | 10 | detecter_changements_avis / audit mesuré | Préexistant | E. |
-| 11 | dynamique_besoins / Lucien après reprise du ballot | 332 / défaut | V référence, R 332 seul ; sans réflexe V. Réveil avant geste retiré, oracle inchangé. |
+| 11 | dynamique_besoins / Lucien après reprise du ballot | 332 / défaut | V référence, R 332 seul ; sans réflexe V. Réveil avant geste retiré, oracle inchangé. Sur la base finale, un autre incident, `KeyError: biens`, se produit aussi sans les quatre lots (R4). |
 | 12 | eau / debout dans l'eau | 313 / défaut | P. |
 | 13 | eau / entrer trempe le joueur | 313 / défaut | P. |
 | 14 | eau / salle noyée infranchissable | 313 / défaut | P. |
@@ -63,11 +63,32 @@ sans être attribués aux correctifs du 342.
 Les trois points restants (regard non suivi dans la fenêtre du test, lampe,
 capture d'abri) sont repris par `3acd5c7` et `c3db8e2` : **12/12 tests ciblés
 verts**, y compris tous les tests d'attention conjointe et les deux scènes
-historiques, monde/rendu/scène et laps découpé conservés. Nouvel essai
-`93d5a25` ; reprise des fichiers concernés et vingt nuits de branche sous
-`cloture-1/`, résultats encore à lire. Référence historique : vingt nuits du
-cache `c870c8b`, instrumentation `1f6b05da83`, sans réexécution ; observation
-distincte de l'outil actuel, aucune comparaison de vitesse.
+historiques, monde/rendu/scène et laps découpé conservés. Essai final
+`93d5a25` : **279 tests / 27 fichiers, sept échecs et une erreur, zéro saut**,
+755,310 s. Les huit incidents restants sont aussi rouges sur la base
+`da5f795`, à la même assertion ou au même accès fautif. Leurs trajectoires
+ne sont pas pour autant déclarées identiques. Aucun oracle supplémentaire
+n'est recalé pour les masquer, notamment les services actifs de la mine.
+
+| Réserve | Incident final | Témoin sur `da5f795` |
+|---|---|---|
+| R1 | boucles_pnj / Brune ne reforce pas la réserve | Même `assertTrue(contrarie(...))` faux. |
+| R2 | boucles_pnj / joueur éteint le brasero | Même `assertFalse(brasero.allume)` faux. |
+| R3 | dynamique_besoins / Lucien rapporte la lanterne | Même oracle de passages rouge ; trois passages supplémentaires ici, sept sur la base : trajectoires distinctes. |
+| R4 | dynamique_besoins / reprise du ballot | Même `KeyError: biens` avant la fenêtre de recherche d'Anselme. |
+| R5 | etapes_chainees / mine | Même refus de projection : `recours_services` contient une tentative réelle. |
+| R6 | etapes_chainees / auberge | Même oracle de captures rouge ; visites et monde non certifiés identiques. |
+| R7 | lumiere / remplir puis allumer une lampe vide | Même `assertFalse(lampe.allume)` faux. |
+| R8 | recours_prioritaire / aide 541 | Même attente d'absence d'abandon rouge ; deux abandons sur les deux arbres, instants distincts. |
+
+Banc terminé : **20/20 nuits de 4 h**, cinq scénarios × quatre graines,
+zéro plantage, usurpation ou suspect certifié par la sonde 219 dans chaque
+nuit. **366 regards suivis, 247 s de rotation**. Vingt références historiques
+du cache `c870c8b`, instrumentation `1f6b05da83`, relues sans réexécution
+dans cette reprise ; observation distincte, aucune comparaison de vitesse
+ni attribution des écarts à un seul lot. **200 alertes à expliquer**, dont
+153 répétitions, restent consignées ; zéro suspect certifié ne les efface
+pas. Analyse : `analyse-cloture.json`, fin : `fin-cloture.json`, aucun calcul actif.
 
 Limite conservée : dans les témoins de retrait sur la base récente, enlever
 332 laisse encore 33 passages d'Aubin, enlever 313 en laisse dix. Cette

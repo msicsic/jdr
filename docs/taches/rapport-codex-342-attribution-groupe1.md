@@ -1,57 +1,52 @@
-# Lot 342 — corrections poussées, reprise de validation en cours
+# Lot 342 — terminé avec huit réserves d'intégration
 
-30 octobre 2026. Branche documentaire `codex-attribution-groupe1`, base
-`16b18a7`. [Matrice des 33 incidents](attribution-codex-342-groupe1.md).
-La fin des nouveaux calculs reste à analyser avant clôture.
+30 octobre 2026. Branche `codex-attribution-groupe1`, base `16b18a7`.
+[Matrice des 33 incidents et des huit réserves finales](attribution-codex-342-groupe1.md).
 
-**Attribution.** Référence exacte `e37d9ee`, puis chacun des lots 313/315/332/333
-seul : 27/22/23/22/22 tests, 8/14/2/11/1 incidents ; 2 177,100 s. Les deux
-interactions sont prouvées par retrait d'un seul lot. Six incidents initiaux
-restent attribués au 339 et celui de la mine à l'intégration antérieure ; ils
-passent dans l'assemblage récent sans être crédités aux correctifs du 342.
-Une méthode absente n'est jamais comptée comme une preuve verte.
+**Attribution.** Référence exacte `e37d9ee`, chaque lot seul et retraits d'un
+seul lot : **17 incidents de défaut corrigés**, dont treize issus du même
+contrat, **neuf attentes ou scènes périmées**, **sept incidents préexistants**.
+Rejeux initiaux : 27/22/23/22/22 tests sur référence/313/315/332/333,
+2 177,100 s. Une méthode absente n'est jamais comptée verte.
 
-**Contrats corrigés.** Le 313 (`cddc76e`, correctif `de03f87`) traite une position
-absente comme inconnue dans la perception commune, sans fournir le joueur réel
-au devis fermé : neuf tests de devis verts. Le 332 (`4da7dc4`, `3acd5c7`)
-distingue direction, interprétation et geste : une référence requise absente
-n'admet aucun savoir relationnel ; le signal prépare la rotation, sans rouvrir
-le but avant la perception. À la disponibilité du PNJ, ce geste préparé passe
-avant le bavardage facultatif. Aucun PNJ ni scénario particulier dans ces règles.
-Les premiers prototypes de priorité/rétention de direction sont écartés.
+**Contrats et branches poussées.** 313 `cddc76e` : `esprits._percus` traite
+une position absente comme inconnue, sans fournir le joueur réel au devis
+fermé. 332 `c3db8e2` : `signes.lire` n'interprète pas une relation privée de
+sa référence requise ; une direction prépare un geste, sans rouvrir le but
+avant sa perception. `pnj._avancer` exécute le regard disponible avant le
+bavardage facultatif, en respectant les gestes engagés. 315 `beaecc7` conserve
+ordre et borne des remboursements ; 333 `40bd537` isole le secours concurrent
+dans la scène de prêt. Aucun cas de PNJ ou de scénario dans les règles.
 
-**Attentes contrôlées.** Quatre captures retrouvent exactement leur ancien hash
-après retrait strict du seul registre vide ; deux autres changent seulement les
-registres/provenances des regards, huit autres oracles identiques. Le 315
-(`beaecc7`) conserve deux remboursements uniques ordonnés et la borne 84, le
-contact pouvant conclure plus tôt. Le 333 (`40bd537`) isole le secours concurrent
-d'Odile dans la scène de prêt, toutes assertions conservées. La scène de lampe
-(`c3db8e2`) fournit explicitement son second stimulus, une source connue de
-niveau 2 : la vraie chandelle vaut 1 et Rémy peut rester au baraquement obscur.
-Toutes assertions finales sont gardées. L'oracle d'abri initial est restauré
-intégralement ; le KO observé dans un témoin antérieur ne sert plus d'oracle.
+**Oracles.** Quatre captures retrouvent leur hash historique exact après
+retrait strict du seul registre vide ; deux changent les registres/provenances
+des regards, huit autres oracles identiques. La scène de lampe fournit son
+second stimulus explicite, une source connue de niveau 2, sans forcer
+l'extinction ; toutes assertions finales sont conservées. L'oracle d'abri
+initial est intégralement restauré. Régressions sur deux scénarios,
+monde/rendu/scène rechargés et temps découpé ; **12/12 ciblés verts**.
 
-**Mesures acquises.** Assemblage `94329d3`, base `da5f795` : **279 tests /
-27 fichiers, 11 incidents**. Les témoins sur cette base reproduisent huit
-réserves restantes après correction des trois points propres à l'assemblage :
-deux boucles, deux dynamiques, deux captures chaînées, lampe vide, aide 541.
-Même assertion rouge ne signifie pas trajectoires identiques. Reprise ciblée :
-**12/12 verts**, attention conjointe dans deux scénarios, lampe réelle, abri,
-monde/rendu/scène rechargés et temps découpé. `jeu.py` inchangé par rapport
-à la base ; ni Luna ni suite complète.
+**Validation finale.** Essai poussé **`93d5a25`**, base `da5f795`, quatre
+branches corrigées. **279 tests / 27 fichiers : sept échecs, une erreur,
+zéro saut, 755,310 s.** Ces huit rouges ont aussi un témoin rouge sur la
+base, à la même assertion ou au même accès : deux boucles, deux dynamiques,
+deux captures chaînées, lampe vide, aide 541. Les trajectoires ne sont pas
+certifiées identiques ; aucun oracle n'est recalé pour les masquer. Les six
+incidents initiaux du 339 et celui de la mine passent désormais, sans crédit
+aux correctifs du 342. `jeu.py` inchangé ; ni Luna ni suite complète.
 
-**Calcul restant.** Essai corrigé `93d5a25`. Les 27 fichiers sont repris après
-le changement de l'ordonnanceur, puis vingt nuits de branche (4 h, cinq scénarios,
-quatre graines). Deux travailleurs réduits au plus, phases séquentielles. La
-première tentative de banc a échoué dans l'observateur récent de la référence
-ancienne (`agendas.enfants`), avant toute nuit de branche ; sortie invalide
-conservée. La reprise relit vingt références historiques `c870c8b` du cache,
-instrumentation `1f6b05da83`, et joue uniquement la branche. Observations de
-versions distinctes, aucune attribution causale à un seul lot ni comparaison
-de vitesse. Aucun résultat de banc n'est encore annoncé.
+**Banc.** **20/20 nuits de 4 h**, cinq scénarios × quatre graines : zéro
+plantage, usurpation ou suspect certifié 219 dans chaque nuit. **366 suivis,
+247 s de rotation**. Vingt références historiques `c870c8b` relues du cache
+sans réexécution dans cette reprise ; instrumentation distincte, aucune
+comparaison de vitesse ni attribution des écarts à un seul lot. Deux
+travailleurs réduits au plus. Première tentative de banc invalide dans
+l'observateur de référence (`agendas.enfants`), conservée ; branche jouée
+seulement lors de la reprise. Calcul final : 1 368,014 s.
 
-**Limite.** La variante sans 332 sur la base récente garde 33 passages d'Aubin,
-celle sans 313 en garde dix. Cette interaction 313/base récente n'est pas
-déclarée corrigée en général par le succès de l'assemblage avec le réflexe.
-Bruts `C:/Users/msics/donjon/artifacts/groupe1-342/`, fin attendue
-**`cloture-1/fin.json`** : fin du calcul, pas attestation de réussite du lot.
+**Limites.** **200 alertes à expliquer**, dont 153 répétitions, restent ouvertes.
+La variante sans 332 sur la base récente garde 33 passages d'Aubin, celle
+sans 313 dix : interaction 313/base non déclarée corrigée en général par le
+succès de l'assemblage. Aucune absence universelle de boucle revendiquée.
+Bruts `C:/Users/msics/donjon/artifacts/groupe1-342/`,
+`analyse-cloture.json`, **`fin-cloture.json`**, aucun calcul actif.
