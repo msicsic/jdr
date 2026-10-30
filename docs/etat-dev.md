@@ -23,6 +23,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-garder-lieu` (40bd537e) : lot 333, garder un lieu. Détail dans l'historique.
 - `codex-attention-conjointe` (c3db8e29) : lot 332, attention conjointe. Détail dans l'historique.
 - `codex-contact-inconnu` (cddc76e5) : lot 313, contact de position inconnue. Détail dans l'historique.
 - `codex-e4-accord-date` (30ec526a) : lot 355, E4 l'accord initial engage exactement les termes datés. Détail dans l'historique.
@@ -34,7 +35,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-e1-reference-temporelle` (6d06181f) : lot 348, E1 référence temporelle canonique d'une obligation. Détail dans l'historique.
 - `codex-g16-information` (1ec5525) : lot 345, G16 paroles d'information formulées par le moteur. Détail dans l'historique.
 - `codex-um-corps` (39113e9) : lot 344, U-M corps, gestes de corps et de violence au menu. Détail dans l'historique.
-- `codex-conception-menace` (228892f) : lot 347, conception de la menace et de l'échéance négociée. Détail dans l'historique.
 
 ## Lots non fusionnés
 
