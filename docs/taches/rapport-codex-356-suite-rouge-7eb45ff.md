@@ -1,7 +1,7 @@
 # Lot 356 — attribution de la suite rouge de `7eb45ff`
 
 Branche `codex-suite-rouge-7eb45ff`, base `integration df03dc2f`.
-**En cours : bissection corrigée détachée le 2026-10-30, `fin-bissection-v2.json` attendu.**
+**En cours : bissection v2 analysée ; compléments et validation des harnais détachés, `fin-complements.json` attendu.**
 
 L'invariant recherché est la fiabilité de la suite : un test doit continuer à
 contrôler son comportement historique, y compris l'état sauvegardé et le rendu,
@@ -26,10 +26,10 @@ pas encore à qualifier l'attente ou à désigner une fusion.
 
 Bruts et copie du lanceur :
 `C:/Users/msics/donjon/artifacts/suite-rouge-356/`.
-Fichier de fin attendu : `fin-bissection-v2.json` ; les résultats sont persistés
+Fichier de fin attendu : `fin-complements.json` ; les résultats sont persistés
 par fichier dans `attributions/` et par révision dans `rejeux/`.
 Le lanceur vivant est conservé dans `artifacts/suite-rouge-356/bissection.py`
-du worktree ; son chemin de dépôt est enregistré dans `lancement-v2.json`.
+du worktree ; le dernier lanceur est `continuation.py`, décrit dans `lancement-complements.json`.
 
 **Défaut du premier lanceur.** `fin-bissection.json` signalait seulement la
 fin des rejeux, pas une attribution aboutie. L'ajout de `tools/` avant le
@@ -51,7 +51,34 @@ la description de la marque après chargement ; le chant du même test reste
 couvert. Le fichier entier passe : **14 tests**, **4,776 s**, zéro incident
 (`artifacts/suite-rouge-356/improvisation-adaptee.json` du worktree).
 
-À la reprise : lire le fichier de fin, qualifier chaque incident et compléter
+**Reprise après v2.** Les 161 incidents ont un résultat de rejeu ; 148 ont une
+bascule verte/rouge prouvée sur parent direct, en 12 653,186 s. Répartition :
+U-C `37dccfa3` 61 ; G5 `49608db0` 34 ; ouï-dire `c9b972b7` 28 ; G16 `17212940`
+15 ; mandat joueur `f091c64b` 4 ; G6 `64130fa1` 2 ; demander cause `8d439542`
+2 ; reprise de demande `6be4bace` 1 ; G7 `d20fce9b` 1. Une bascule rouge
+n'est pas en elle-même une preuve d'attente périmée : cette qualification
+demande encore le rapport de conception et l'examen de la trace.
+
+Les treize autres incidents : neuf sous-cas MiMo sautés faute de `jsonschema`,
+deux imports invalides du premier lanceur dont la forme de trace n'avait pas
+été invalidée par v2, et deux méthodes vertes isolément (enfermer, prêt).
+Le complément conserve les preuves déjà acquises, rejoue MiMo avec les
+dépendances déclarées dans `requirements-mimo.txt`, invalide les deux imports
+restants et rejoue les deux derniers fichiers entiers. Dépendances installées
+seulement dans `artifacts/suite-rouge-356/dependances` du worktree.
+
+Intégration courante `origin/integration 19c9b6da` fusionnée sans rebase dans
+`47769f26`, conflit documentaire seul, entrées des deux côtés conservées.
+Douze autres fichiers de tests ont reçu uniquement des confirmations de saisie
+ou un import du harnais existant ; aucune assertion ni réponse simulée changée.
+La phase suivante valide quatorze fichiers complets (les treize adaptés et
+`test_avis_joueur`, déjà adapté par G18), puis écrit `fin-complements.json`.
+Elle conserve une preuve AST de toutes les assertions et les empreintes des
+sources. Des attentes G16 ou de faisabilité et des régressions distinctes
+peuvent rester dans ces fichiers ; aucun résultat vert n'est présumé.
+
+À la reprise : lire `fin-complements.json`, `validation-harnais.json` et
+`assertions-harnais.json`, qualifier chaque incident et compléter
 l'annexe `attribution-codex-356-suite-rouge.md`, rechercher en amont les incidents
 déjà rouges au témoin si la recherche automatique reste inconclusive, puis adapter exclusivement les harnais prouvés concernés
 par le consentement, sans modifier leurs assertions. Rejouer les fichiers

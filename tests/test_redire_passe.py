@@ -71,7 +71,8 @@ class RedirePasseTests(unittest.TestCase):
 
     def dire(self, m, qui, mots, reponse, contenu=('propos', '', '', '')):
         return jouer(m, '« ' + mots + ' »', [parole(mots, contenu, personnage=qui),
-                     dialogue('Une voix répond : « ' + reponse + ' »')], [controle('voix_1', reponse)])[0]
+                     dialogue('Une voix répond : « ' + reponse + ' »')], [controle('voix_1', reponse)],
+                     suite=("tenter",))[0]
 
     def test_cas_reel_tour_cinq_refuse_corrige_et_recharge(self):
         m = banc('soir-noir')

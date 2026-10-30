@@ -20,7 +20,7 @@ import unittest
 from donjon.couverture_action import INSTRUCTIONS as REVUE
 from donjon.improvisation import issue, proposition
 from donjon.narration import REGLE_NARRATION
-from tests.test_audits_attendu import jouer
+from tests.consentement_support import jouer
 from tests.test_parole_commune import paroles_retenues, scene
 from tests.test_repli_et_appel import NEUTRE, dialogue, mj, parole, verdicts
 

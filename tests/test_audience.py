@@ -13,7 +13,8 @@ from donjon.rendu import regarder
 from donjon.scene import scene_percue
 from donjon.spatial import porte_par
 from donjon.voix import reel
-from tests.test_audits_attendu import jouer, rapport, ligne
+from tests.test_audits_attendu import rapport, ligne
+from tests.consentement_support import jouer
 from tests.test_parole_commune import paroles_retenues
 from tests.test_parole_corrections import banc
 from tests.test_repli_et_appel import dialogue, parole

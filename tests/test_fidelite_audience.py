@@ -8,7 +8,8 @@ from donjon.matiere import id_piece
 from donjon.rendu import fiche
 from donjon.spatial import porte_par
 from tests.support import presentes
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_comptes_issue import audit
 from tests.test_parole_corrections import banc
 from tests.test_parts_achetees import antichambre_du_banc

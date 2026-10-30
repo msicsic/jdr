@@ -39,9 +39,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 - **356 `codex-suite-rouge-7eb45ff`**, base `integration df03dc2f` : attribution des 161 incidents, en cours.
-  Premier lanceur invalidé par un masquage d'import ; traces gardées, lanceur corrigé, deux processus réduits.
-  Gravure : bascule U-C prouvée sur parent direct, harnais `tenter` adapté sans assertion changée ; fichier 14/14 vert.
-  Reprise après `C:/Users/msics/donjon/artifacts/suite-rouge-356/fin-bissection-v2.json` ;
+  V2 : 148 bascules prouvées sur parent direct ; treize compléments (MiMo, imports, rejeu de fichiers entiers).
+  Intégration `19c9b6da` fusionnée ; treize harnais adaptés, assertions inchangées, validation ciblée en cours.
+  Reprise après `C:/Users/msics/donjon/artifacts/suite-rouge-356/fin-complements.json` ;
   [rapport provisoire](taches/rapport-codex-356-suite-rouge-7eb45ff.md). Ni suite complète, Luna ou banc.
 
 Lots en cours : 335 (suivi vocal, reprise, banc en cours), 356 (suite rouge, attribution), 358 (revalider une action

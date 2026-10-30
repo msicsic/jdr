@@ -9,7 +9,7 @@ from donjon.paroles import resoudre, sens_contenu
 from donjon.rendu import decrire_comptes, fiche
 from donjon.spatial import porte_par
 from tests.support import calme, presentes, regarder
-from tests.test_audits_attendu import jouer
+from tests.consentement_support import jouer
 from tests.test_comptes_issue import audit
 from tests.test_parts_achetees import antichambre_du_banc
 from tests.test_repli_et_appel import dialogue, parole
