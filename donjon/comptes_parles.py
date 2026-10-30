@@ -62,6 +62,8 @@ def difference(avant, apres):
 def formuler(faits, auteur, operation):
     from .comptes_narratifs import phrases
     r = operation['resolution']
+    if r.get('mandat_joueur'):
+        return r['mots']
     cs, os = operation['comptes'], operation['offres']
     debut = []
     if r.get('mission'):

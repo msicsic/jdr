@@ -248,7 +248,7 @@ class Moteur:
         if isinstance(p, dict) and p.get("action") == "composer":
             return preparer_operations(self.monde, p, origine)
         attendus = set(proposition("examiner"))
-        if not isinstance(p, dict) or set(p) != attendus:
+        if not isinstance(p, dict) or set(p) - {'parcours'} != attendus:
             recus = sorted(p) if isinstance(p, dict) else type(p).__name__
             raise ErreurMonde("Je n'ai pas compris ce geste : aucune modification.",
                               f"une action simple a exactement les champs {', '.join(sorted(attendus))} ; reçu : {recus}.")
@@ -260,6 +260,17 @@ class Moteur:
         if type(p["difficulte"]) is not int or not 0 <= p["difficulte"] <= 25:
             raise ErreurMonde("Difficulté invalide.", f"difficulte : un entier de 0 à 25 (reçu {p['difficulte']!r}).")
         action, cible, outil = p["action"], p["cible"], p["outil"]
+        if 'parcours' in p:
+            from .spatial import VECTEURS
+            parcours = p['parcours']
+            if (action != 'marcher' or not isinstance(parcours, dict) or set(parcours) != {'id', 'pas'}
+                    or not isinstance(parcours['id'], str) or not 1 <= len(parcours['id']) <= 100
+                    or not isinstance(parcours['pas'], list) or not 1 <= len(parcours['pas']) <= 1000
+                    or any(not isinstance(d, str) or d not in VECTEURS for d in parcours['pas'])
+                    or parcours['pas'][0] != cible):
+                raise ErreurMonde("Ce trajet de marche est illisible.",
+                                  f"parcours : reçu {parcours!r}, action={action!r}, cible={cible!r} ; accepté : "
+                                  "id chaîne de 1 à 100 caractères, pas liste de 1 à 1000 directions ; action=marcher, cible=pas[0].")
         if action not in ACTIONS:
             raise ErreurMonde("Je ne connais pas ce geste.",
                               f"action « {action} » inconnue ; actions : {', '.join(ACTIONS[:-2])} ; ou composer pour "
@@ -730,6 +741,8 @@ class Moteur:
             return self._executer_simple(plan, travail)
 
     def _executer_simple(self, plan, travail):
+        from .deplacements import ouvrir, clore
+        ouvrir(travail)
         from .tenir import lacher
         lacher(travail, "joueur", plan.proposition["action"])
         debut_issues = len(travail.data.get("historique_corps", ()))
@@ -791,13 +804,15 @@ class Moteur:
             from .signes import bilan_signes
             lignes.extend(bilan_signes(travail, plan.proposition["cible"]) or ["Tu ne discernes aucun signe particulier."])
         self._clore_bilan(travail, lignes)
+        lignes, deplacements = clore(travail, lignes, plan)
         from .noms import texte
         lignes = [texte(travail, ligne, citations=True) for ligne in lignes]
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"],
             "minutes": travail.data["minutes"], "action": self._action_journal(travail, plan.proposition),
             "origine": plan.origine, "dd": plan.dd, "jet": jet,
-            "reussite": reussite, "faits": lignes[:]})
+            "reussite": reussite, "faits": lignes[:],
+            **({"deplacements": deplacements} if deplacements["mouvements"] else {})})
         travail.verifier()
         self.monde.data = travail.data
         return "\n".join(lignes) or "Action accomplie."
@@ -913,6 +928,8 @@ class Moteur:
         noter(travail, "joueur", debut, "repos" if action == "attendre"
               else "effort" if plan.effort and action not in CALMES else None)
         minutes = ecouler(travail, duree(plan))
+        from .deplacements import achever
+        achever(travail, instant(travail))
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour. Ce qu'ils
         # en voient date du début du geste, d'où leur vie repart : la minute de fin, plus tardive que
@@ -1013,6 +1030,8 @@ class Moteur:
 
     def _executer_sequence(self, sequence, travail):
         from .operations import compiler
+        from .deplacements import ouvrir, clore
+        ouvrir(travail)
         lignes, trace, precedent = [], [], None
         # Une manœuvre est une seule action : un seul bilan de ce qu'on perçoit des autres, à la fin.
         self._ouvrir_bilan(travail)
@@ -1063,21 +1082,26 @@ class Moteur:
                 break
             precedent = e
         self._clore_bilan(travail, lignes)
+        lignes, deplacements = clore(travail, lignes, sequence)
         from .noms import texte
         lignes = [texte(travail, ligne, citations=True) for ligne in lignes]
         for etape in trace:
-            etape["faits"] = [texte(travail, ligne, citations=True) for ligne in etape["faits"]]
+            etape["faits"] = [texte(travail, ligne, citations=True) for ligne in etape["faits"] if ligne]
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"], "minutes": travail.data["minutes"],
             "action": self._action_journal(travail, sequence.proposition),
             "origine": sequence.origine, "dd": dernier_dd,
-            "jet": dernier_jet, "reussite": reussite, "etapes": trace, "faits": lignes[:]})
+            "jet": dernier_jet, "reussite": reussite, "etapes": trace, "faits": lignes[:],
+            **({"deplacements": deplacements} if deplacements["mouvements"] else {})})
         travail.verifier()
         self.monde.data = travail.data
         return "\n".join(lignes) or "Manœuvre accomplie."
 
     @staticmethod
     def _appliquer(m, effet, lignes):
+        from .deplacements import place, noter
+        depart = place(m)
+        nombre_mouvements = len(m.__dict__.get('_mouvements', ()))
         from .tenir import autoriser, lacher
         operation = effet[2]["operation"] if effet[0] == "tenir_personne" else effet[0]
         if operation == "marcher":
@@ -1090,6 +1114,8 @@ class Moteur:
         from .esprits import constats_geste
         with constats_geste(m, "joueur", effet[1], effet[2] if isinstance(effet[2], str) else None):
             resultat = Moteur._appliquer_effet(m, effet, lignes)
+        if len(m.__dict__.get('_mouvements', ())) == nombre_mouvements:
+            noter(m, depart, lignes, operation=operation)
         services.constater(m, 'joueur', effet[1], service_avant)
         if avant:
             agendas.constater_geste_joueur(m, avant)
@@ -1136,9 +1162,8 @@ class Moteur:
                 m.joueur["orientation"] = valeur["orientation"]
             if valeur["salle"] not in m.data["visitees"]:
                 m.data["visitees"].append(valeur["salle"])
-            lignes.append("Tu entres dans : " + m.data["salles"][valeur["salle"]]["nom"] + "."
-                          if ancienne != valeur["salle"] else
-                          "Tu avances à pas feutrés." if valeur.get("feutre") else "Tu avances d'un pas.")
+            if ancienne != valeur["salle"]:
+                lignes.append("Tu entres dans : " + m.data["salles"][valeur["salle"]]["nom"] + ".")
             return
         if op in ("recit_improvise", "marque_improvisee", "blessure_improvisee", "son_improvise"):
             from .improvisation import appliquer

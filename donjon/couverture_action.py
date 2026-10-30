@@ -230,12 +230,16 @@ def entree(intention, plan, monde=None):
         def nommer_parole(p):
             # Les références sont nommées, les mots libres restent littéraux.
             def nommer_contenu(c):
-                if c.get("type") == "proposition":
-                    return {**c, **{champ: {**c[champ], "objet": _nommer(c[champ]["objet"], monde)}
-                                    for champ in ("demande", "contrepartie")
-                                    if "objet" in c[champ]}}
-                return {**c, **{k: _nommer(c[k], monde) for k in ("sujet", "valeur")
-                               if k in c and c.get("type") != "ressource"}}
+                from .noms import CHAMPS_REFERENCES, LISTES_REFERENCES
+                if isinstance(c, list):
+                    return [nommer_contenu(v) for v in c]
+                if not isinstance(c, dict) or c.get('type') == 'ressource':
+                    return c
+                # Le registre commun des références vaut à toute profondeur :
+                # une charge, un fait ou une condition ne rend pas son lieu
+                # anonyme. Les clés de prose ne sont jamais réécrites.
+                return {k: (_nommer(v, monde) if k in CHAMPS_REFERENCES | LISTES_REFERENCES
+                            else nommer_contenu(v)) for k, v in c.items()}
             return {**p, "contenu": [nommer_contenu(c) for c in p.get("contenu", [])],
                     **({"comptes_avant": _nommer(p["comptes_avant"], monde)}
                        if "comptes_avant" in p else {})}

@@ -405,7 +405,7 @@ def public(monde, valeur, citations=False):
 
 CHAMPS_REFERENCES = {"cible", "outil", "personnage", "sujet", "valeur", "ancrage", "support", "objet", "moyen",
                      "destination", "lieu", "porteur", "auteur", "locuteur"}
-LISTES_REFERENCES = {"cibles", "destinataires"}
+LISTES_REFERENCES = {"cibles", "destinataires", "qui"}
 
 
 def references_fournies(valeur, faits):

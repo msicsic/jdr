@@ -49,9 +49,10 @@ def verdicts(*lignes):
 NEUTRE = ("neutre", (), "")
 
 
-def jouer(monde, saisie, reponses, audits, jet=20, options=(), *, suite=()):
+def jouer(monde, saisie, reponses, audits, jet=20, options=(), suite=()):
     """Une saisie dans la vraie boucle de jeu, le fournisseur simulé appel par appel : ``reponses``
-    pour le MJ, ``audits`` pour l'auditeur narratif ; la contre-revue d'une action est conforme."""
+    pour le MJ, ``audits`` pour l'auditeur narratif ; la contre-revue d'une action est conforme.
+    ``suite`` : commandes saisies après elle (« tenter » après l'aperçu d'un acte lourd, lot 325)."""
     reponses, audits, appels = list(reponses), list(audits), AppelsParole()
 
     def appel(instructions, entree, intention, fonction, schema):
@@ -227,8 +228,8 @@ class ReplisTests(unittest.TestCase):
         engagement = {"segments": {"0": {"portee_mecanique": "aucune", "verdict": "engagement", "sources": [], "locuteur": "brune",
                                          "citation": "Je vais me pousser.", "entites": [], "comptes": [], "motif": ""}}}
         reprise, sortie, appels = jouer(m, saisie, [parole(saisie, ("passage", "", "", ""), personnage="brune"),
-                                                    promesse, promesse, promesse], [engagement] * 3,
-                                       suite=("tenter",))
+                                                    promesse, promesse, promesse], [engagement] * 3, suite=("tenter",))
+        self.assertIn("demander le passage à Brune", sortie)
         validee = appels.rapports[-1]
         self.assertTrue(validee["faits"])
         self.assertIn(f"Tu dis à Brune : « {saisie} »", sortie)

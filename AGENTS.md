@@ -59,7 +59,7 @@ contrôle par un nouveau mode, un mot-clé ou une exception propre à un exemple
 
 ## Travail sur ce dépôt (tous les agents : Claude, Codex et leurs sous-agents)
 
-Le point de reprise est `docs/etat-dev.md` : à lire avant tout chantier, et à tenir à jour.
+Le point de reprise est `docs/etat-dev.md` : à lire avant tout chantier, et à tenir à jour. Il reste court : l'entrée d'un lot tient en 8 lignes au plus (le détail va dans son rapport). L'historique des lots est dans `docs/historique-lots.md`, que le superviseur tient à la fusion : à consulter par recherche ciblée seulement, jamais en entier, et sans y écrire.
 
 - Python : `.venv\Scripts\python.exe` (installation dans le README).
 - Tests sans appel au modèle : `.venv\Scripts\python.exe -m unittest discover -s tests -q`.

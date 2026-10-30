@@ -147,6 +147,9 @@ def attestations(monde, contexte):
     from .noms import public
     # Même contrat que la requête moteur ; revalidé aussi à l'enregistrement.
     textes.extend(phrases_positions(public(monde, contexte)).values())
+    from .deplacements import phrases
+    if monde.data['journal']:
+        textes.extend(phrases(monde.data['journal'][-1].get('deplacements', {})))
     return list(dict.fromkeys(p for texte in textes for p in segments(texte) if p))
 
 

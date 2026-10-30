@@ -2,8 +2,17 @@
 
 Branche `codex-g16-information`, **terminée, non fusionnée**, base exacte
 `origin/integration 3e3afe25c1e1ef377472d7714d7e499c0f72da08`.
-Code moteur `8a7ac3a` inchangé depuis la validation ; clôture des tests et des
-documents poussée. Aucun calcul actif.
+Livraison initiale `8a7ac3a`, clôture `71b7d6e` poussée ; mesures ci-dessous
+historiques avant synchronisation. **Fusion sans rebase de `014fc35` en
+validation** : harnais G16 et confirmations 325 réunis, assertion « Compris »
+du passage conservée, rejoueurs G15 étendus aux opérations de mandat 341.
+Formateur de mandat, typage/validation des nouveaux actes et attestations G7
+identiques à l'intégration au contrôle AST ; formateurs et publication G16
+conservés. `etat-dev.md` reprend la version courte d'intégration avec une entrée
+G16 de sept lignes. Tests ciblés après fusion en fond, deux travailleurs
+réduits au plus ; fin attendue :
+`C:/Users/msics/donjon/artifacts/g16-345/fusion-014fc35/fin.json`.
+Ni nouvelle passe Luna, ni banc PNJ ni suite complète.
 
 **Invariant.** `paroles.preparer_parole` conserve les issues typées d'identité,
 de ressource et de localisation, dont la croyance datée du locuteur.

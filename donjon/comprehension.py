@@ -73,11 +73,19 @@ def plan_admis(monde, plan):
     return "Compris : " + _geste(monde, plan, plan.proposition)
 
 
-def contenu(monde, c):
+def contenu(monde, c, interlocuteur=""):
     """Contenu typé d'une parole, distinct de la vérité de ce qu'elle affirme."""
     from .propositions import en_mots
     from .paroles import RESSOURCES_DEMANDEES, resoudre
     t = c["type"]
+    if t == 'mandat':
+        from .agendas import phrase_charge
+        from .paroles import _typer
+        return 'confier la charge de ' + phrase_charge(monde, c['sorte'], _typer(monde, c)['parametres'])
+    if t == 'reponse_mandat':
+        return ('accepter' if c['accepter'] else 'refuser') + ' le mandat ' + c['offre']
+    if t == 'bilan_mandat':
+        return 'déclarer ' + c['issue'] + ' pour le mandat ' + c['agenda']
     if t == "proposition":
         from .propositions import cites_terme
         def terme(t):
@@ -93,7 +101,9 @@ def contenu(monde, c):
     if t == "affirmation":
         return f"affirmer : {sujet}, {c['attribut']} = {valeur(monde, v)}"
     if t in ("demande", "passage"):
-        acte = f"demander {sujet}" if t == "demande" else f"demander le passage à {sujet}"
+        # Le passage se demande à qui l'on parle : son contenu n'a pas de sujet.
+        a = sujet or interlocuteur
+        acte = f"demander {sujet}" if t == "demande" else "demander le passage" + (f" à {a}" if a else "")
         return acte + (f" contre {v} pièces" if v else " sans prix offert")
     if t == "aveu":
         return f"avouer : {v} sur {sujet}"
@@ -119,7 +129,9 @@ def transactions_admises(monde, transactions, rapports):
         p = transaction["proposition"]
         if transaction["type"] == "parole":
             lignes.append(annonce(monde, rapport) + " (" + rapport["maniere"] + ")")
-            lignes.extend(contenu(monde, c) for c in p["contenu"])
+            qui = rapport["personnage"]
+            a = "" if qui in ("personne", "tous") else rapport.get("a_qui") or repere(monde, qui)
+            lignes.extend(contenu(monde, c, a) for c in p["contenu"])
         elif transaction["type"] == "conversation_pnj":
             operations = {"discuter": "discuter", "proposer": "demander une offre", "negocier": "négocier",
                           "accepter": "accepter l'offre", "refuser": "refuser l'offre"}
