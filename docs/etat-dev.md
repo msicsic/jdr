@@ -43,6 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-messages-decoupage` — lot 376, base `origin/integration 2887c541` :
+  présences, sons et mémoires publiques relevés aux événements, sans résumé dépendant de l'action.
+  Capture 371 auberge et passage au Relais : messages/état/rendu rechargés identiques après découpage.
+  114 tests verts, 12 fichiers ; empreintes 2 h × 4 graines en cours (`fin-empreintes.json` dans les bruts).
+  Le fil devient chronologique ; mémoires publiques modifiées, empreintes anciennes non présumées identiques.
+  Recouvrement `moteur.py` avec 369/375 ; aucun registre d'esprit ajouté.
+  [Rapport 376](taches/rapport-codex-376-messages-decoupage.md).
+
 Lots en cours : 365 (catalogue), 369 (U-T social), 373 (S0), 374 (position crue), 375 (11 rouges de la suite
 e0826ef), 376 (messages selon le découpage), 377 (double promesse). Suite e0826ef : 15 échecs, 11 méthodes (104 avant).
 Leurs entrées arrivent ici à leur livraison. 
