@@ -397,6 +397,10 @@ def main(argv=None, interface=None):
                     elif entree.strip() == "0":
                         recette = RecetteTerminal(fabrication_publique(m))
                         continue
+                    elif cmd == "accord":
+                        from donjon.accords_publics import AccordTerminal, accords_publics
+                        recette = AccordTerminal(accords_publics(m))
+                        continue
                 if interface is None and isinstance(entree, str) and cmd not in ("quitter", "q", "exit"):
                     from donjon.gestes_publics import choisir_numero
                     try:
@@ -407,9 +411,9 @@ def main(argv=None, interface=None):
                     if choix is not None:
                         entree = choix
                 if isinstance(entree, DescripteurPublic):
-                    from donjon.dialogues import GESTE_INFORMATION, preparer_information
-                    if isinstance(entree.contenu, dict) and entree.contenu.get("geste") == GESTE_INFORMATION:
-                        dossier = preparer_information(m, entree)
+                    from donjon.dialogues import GESTE_INFORMATION, preparer_direct
+                    if isinstance(entree.contenu, dict) and entree.contenu.get("geste") in (GESTE_INFORMATION, "accord"):
+                        dossier = preparer_direct(m, entree)
                         if dossier.confirmation:
                             pending = dossier
                             montrer_libre(dossier, "Geste direct")

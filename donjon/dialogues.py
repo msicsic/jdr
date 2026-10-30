@@ -105,11 +105,15 @@ def parole_information(monde, d):
 
 
 def preparer_information(monde, descripteur):
+    return preparer_direct(monde, descripteur)
+
+
+def preparer_direct(monde, descripteur):
     """Une seule entrée commune vers les transactions de parole et U-C."""
     from .consentement import preparer
     from .paroles import annonce
     d = copy.deepcopy(descripteur.contenu)
-    p = {**parole_information(monde, d), "_adresse": d}
+    p = {**parole_directe(monde, d), "_adresse": d}
     r = {"mode": "dialogue", "texte": "Parole enregistrée.", "faits": [], "proposition": None,
          "_texte_moteur": True,
          "_transactions": [{"type": "parole", "revision": monde.data["revision"], "proposition": p}]}
@@ -119,6 +123,13 @@ def preparer_information(monde, descripteur):
         dossier.reponse.update(compte)
     dossier.reponse["_prefixe_moteur"] = annonce(monde, dossier.rapports[0])
     return dossier
+
+
+def parole_directe(monde, d):
+    if isinstance(d, dict) and d.get('geste') == 'accord':
+        from .accords_publics import parole_accord
+        return parole_accord(monde, d)
+    return parole_information(monde, d)
 
 
 SCHEMA_CONVERSATION = {

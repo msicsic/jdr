@@ -1718,8 +1718,8 @@ def preparer_parole(monde, p, revision=None):
         raise ErreurMonde("Le monde a changé avant la fin de la conversation.", "re-propose à partir des faits actuels.")
     forme_directe = None
     if isinstance(p, dict) and "_adresse" in p:
-        from .dialogues import parole_information
-        canonique = parole_information(monde, p["_adresse"])
+        from .dialogues import parole_directe
+        canonique = parole_directe(monde, p["_adresse"])
         if {k: v for k, v in p.items() if k != "_adresse"} != canonique:
             raise ErreurMonde("Le contenu ne correspond plus au choix de parole.",
                               f"parole : reçu {p!r} ; attendu {canonique!r} avec _adresse inchangée.")

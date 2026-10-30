@@ -58,8 +58,8 @@
   button:disabled, input:disabled { opacity: .5; cursor: default; }
   .aide { color: var(--doux); font-size: 12px; }
   #statut { font-weight: 600; }
-  #fabrication label, #information label { display: block; margin: 8px 0; }
-  #fabrication select, #fabrication input, #information select { width: 100%; background: var(--fond); color: var(--texte); padding: 4px; }
+  #fabrication label, #information label, #accord label { display: block; margin: 8px 0; }
+  #fabrication select, #fabrication input, #information select, #accord select, #accord input { width: 100%; background: var(--fond); color: var(--texte); padding: 4px; }
   #fabrication .aide, #information .aide { display: block; }
 </style>
 </head>
@@ -81,6 +81,8 @@
     <h2>Informations — parler</h2>
     <button id="informer">Poser une question / dire un lieu…</button>
     <form id="information" hidden></form>
+    <button id="negocier">Proposer une prestation, un délai et un prix…</button>
+    <form id="accord" hidden></form>
     <h2>Autour de toi</h2>
     <ul id="personnes"></ul>
     <h2>Objets en vue</h2>
@@ -136,6 +138,7 @@ let dangers = [];
 let offresPassages = [];
 let catalogueGestes = {objets: [], portes: []};
 let information = {destinataires: [], formulaires: []};
+let accord = {destinataires: [], prestations: [], or: 0, instant: 0};
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
 let occupe = true, historique = [], indice = 0, brouillon = "";
@@ -418,6 +421,9 @@ function appliquerEtat(e) {
   dangers = e.dangers || [];
   offresPassages = e.passages || [];
   information = e.information || {destinataires: [], formulaires: []};
+  accord = e.accord || {destinataires: [], prestations: [], or: 0, instant: 0};
+  $("accord").hidden = true;
+  $("accord").innerHTML = "";
   $("information").hidden = true;
   $("information").innerHTML = "";
   $("fabrication").hidden = true;
@@ -679,6 +685,62 @@ function choixMateriels(o, executer, x, y, porte = false) {
   });
 }
 $("informer").onclick = () => ouvrirInformation();
+$("negocier").onclick = () => ouvrirAccord();
+function ouvrirAccord() {
+  if (occupe) return;
+  // Figer les références et l'instant du formulaire, même si un état arrive ensuite.
+  const projection = JSON.parse(JSON.stringify(accord));
+  const form = $("accord"); form.hidden = false; form.innerHTML = "";
+  const aide = document.createElement("p");
+  aide.textContent = "Prestation ponctuelle, paiement maintenant. Ni prêt daté, ni maintien, ni paiement futur. Une durée indéterminée ne peut être promise : tu peux proposer un nouvel accord sans limite. Demain exige un repère : précise un délai en minutes.";
+  form.appendChild(aide);
+  const champ = (nom, choix = null) => {
+    const label = document.createElement("label"), titre = document.createElement("span");
+    titre.textContent = nom; label.appendChild(titre);
+    const input = document.createElement(choix ? "select" : "input");
+    if (choix) {
+      const vide = document.createElement("option"); vide.value = ""; vide.textContent = "Choisir…"; input.appendChild(vide);
+      choix.forEach((c, i) => {
+        const o = document.createElement("option"); o.value = String(i);
+        const doubles = choix.filter(x => x.nom === c.nom);
+        o.textContent = c.nom + (doubles.length > 1 ? ` (${doubles.indexOf(c) + 1}/${doubles.length})` : "");
+        input.appendChild(o);
+      });
+    } else { input.type = "number"; input.min = "0"; input.step = "1"; }
+    input.value = ""; label.appendChild(input); form.appendChild(label); return input;
+  };
+  const qui = champ("Destinataire", projection.destinataires);
+  const prestation = champ("Prestation", projection.prestations);
+  const prix = champ("Prix payé maintenant"); prix.min = "1"; prix.max = String(projection.or);
+  const delai = champ("Délai en minutes (0 = sans limite)");
+  const resume = document.createElement("p"); form.appendChild(resume);
+  let limite = null;
+  const actualiser = () => {
+    limite = /^[0-9]{1,9}$/.test(delai.value) && Number(delai.value) > 0 ? projection.instant + Number(delai.value) * 600 : null;
+    const repere = !/^[0-9]{1,9}$/.test(delai.value) ? "délai à préciser" : limite === null ? "sans limite négociée" :
+      `dans ${delai.value} minutes, au plus tard à la minute de jeu ${Math.floor(limite / 600)}${limite % 600 ? ` et ${(limite % 600) / 10} secondes` : ""}`;
+    resume.textContent = (projection.prestations[prestation.value]?.nom || "Choisis une prestation") +
+      ` ; ${prix.value || "?"} pièces payées maintenant ; ${repere}.`;
+  };
+  [qui, prestation, prix, delai].forEach(i => { i.onchange = actualiser; i.oninput = actualiser; });
+  actualiser();
+  const preparer = document.createElement("button"); preparer.type = "submit";
+  preparer.textContent = "Préparer cet accord"; form.appendChild(preparer);
+  const annuler = document.createElement("button"); annuler.type = "button"; annuler.textContent = "Annuler";
+  annuler.onclick = () => { form.hidden = true; }; form.appendChild(annuler);
+  form.onsubmit = e => {
+    e.preventDefault(); if (occupe) return;
+    if (!projection.destinataires[qui.value] || !projection.prestations[prestation.value] ||
+        !/^[0-9]{1,9}$/.test(prix.value) || Number(prix.value) < 1 || Number(prix.value) > projection.or ||
+        !/^[0-9]{1,9}$/.test(delai.value)) {
+      resume.textContent = "Choisis la prestation et le destinataire ; précise le prix et le délai en minutes (0 = sans limite)."; return;
+    }
+    actualiser();
+    const p = {prestation: projection.prestations[prestation.value].terme, prix: Number(prix.value)};
+    if (limite !== null) p.limite = limite;
+    arreter(null); envoyer({geste: "accord", cible: projection.destinataires[qui.value].id, parametres: p}); form.hidden = true;
+  };
+}
 function ouvrirInformation(destinataire = "") {
   if (occupe) return;
   const form = $("information"); form.hidden = false; form.innerHTML = "";

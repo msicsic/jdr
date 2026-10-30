@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **359 — E5 choix direct, terminé non fusionné** (`codex-e5-choix-direct`, base `6d046070`) : formulaire web et
+  brouillon console/TUI, mêmes prestation/prix/limite absolue jusqu'à U-C ; revalidation sans modèle.
+  Correction et annulation locales sans effet ; offre dépassée non émise, T inclus conservé.
+  98 tests distincts : 97 verts, un saut (`jsonschema` facultatif absent) ; E5 9/9, voisins 52/52.
+  Huile auberge + verrou : 9 clics web / 7 saisies terminal, confirmation comprise, zéro appel modèle.
+  Minutes entières, sans calendrier, ni révision d'accord conclu ; règles E4 inchangées.
+  [Rapport 359](taches/rapport-codex-359-e5-choix-direct.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 98 tests distincts, 97 verts, un saut (jsonschema facultatif) ; zéro appel au modèle.
+
 - **361 — attentes périmées**, branche `codex-attentes-perimees`, base `integration 0b62a4fa`.
   Tests portés aux contrats G5/G16/U-C/G6/G7 ; code du jeu inchangé.
   AST : 846 assertions identiques, 26 substitutions documentées, six assertions supplémentaires.

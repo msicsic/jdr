@@ -24,6 +24,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-e5-choix-direct` (1bd2642f) : lot 359, E5 le choix direct conserve l'accord daté affiché jusqu'à la validation. Détail dans l'historique.
 - `codex-attentes-perimees` (9f9d6fdd) : lot 361, attentes périmées encore rouges portées au contrat actuel. Détail dans l'historique.
 - `codex-suite-rouge-7eb45ff` (198844a5) : lot 356, attribution de la suite rouge 7eb45ff et harnais du consentement. Détail dans l'historique.
 - `codex-a5-agenda-hameau` (c7f4ed02) : lot 306, A5 agenda d'évacuation du hameau. Détail dans l'historique.
@@ -35,7 +36,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-ut-corps-passage` (fe464411) : lot 353, U-T corps et passage au terminal. Détail dans l'historique.
 - `codex-garder-lieu` (40bd537e) : lot 333, garder un lieu. Détail dans l'historique.
 - `codex-attention-conjointe` (c3db8e29) : lot 332, attention conjointe. Détail dans l'historique.
-- `codex-contact-inconnu` (cddc76e5) : lot 313, contact de position inconnue. Détail dans l'historique.
 
 ## Lots non fusionnés
 

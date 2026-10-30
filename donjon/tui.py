@@ -130,10 +130,12 @@ class PontTerminal:
 
     def rafraichir(self, monde, pending, mj):
         # La UI reçoit des valeurs déjà rendues, jamais une référence au monde mutable.
+        from .accords_publics import accords_publics
         gestes = gestes_du_monde(monde)
         self.envoyer(self.app.actualiser, {
             "gestes": gestes,
             "fabrication": fabrication_publique(monde),
+            "accord": accords_publics(monde),
             "carte": carte(monde), "fiche": fiche(monde), "scene": regarder(monde),
             "mode_cases": self._mode_cases(monde),
             "salle": monde.data["salles"][monde.joueur["salle"]]["nom"],
@@ -378,6 +380,13 @@ class SeuilApp(App[int]):
                     return
             elif texte == "0":
                 self.recette = RecetteTerminal(self.derniere_vue["fabrication"])
+                self.action_gestes()
+                self.query_one("#gestes", Static).update(self.recette.rendre())
+                self.query_one("#commande", Input).value = ""
+                return
+            elif texte.casefold() == "accord":
+                from .accords_publics import AccordTerminal
+                self.recette = AccordTerminal(self.derniere_vue["accord"])
                 self.action_gestes()
                 self.query_one("#gestes", Static).update(self.recette.rendre())
                 self.query_one("#commande", Input).value = ""

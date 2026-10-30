@@ -370,6 +370,7 @@ def rendre_liste(liste):
     if not liste:
         lignes.append("Aucun geste disponible dans cette vue.")
     lignes.append("0. Fabrication — choisir une recette et ses paramètres.")
+    lignes.append("accord. Proposer une prestation ponctuelle, un délai et un prix.")
     return "\n".join(lignes)
 
 
