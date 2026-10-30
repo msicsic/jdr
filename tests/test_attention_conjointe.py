@@ -38,6 +38,33 @@ def situation(variante="relais"):
 
 
 class AttentionConjointeTests(unittest.TestCase):
+    def test_direction_seule_prepare_le_geste_sans_relation_ni_rechoix(self):
+        for variante in ('relais', 'auberge'):
+            with self.subTest(variante=variante):
+                m, qui, proche, cible = situation(variante)
+                s = next(s for s in signes.percus(m, qui)
+                         if s['personnage'] == proche and 'direction' in s)
+                self.assertIsNone(s['envers'])
+                e = lire(m, qui)
+                e['eveil'] = None
+                avant = copy.deepcopy(e['croyances'])
+                tirages = copy.deepcopy(m.data.get('tirages_lecture_acteurs', {}))
+                signes.lire(m, qui, signes=[s])
+                self.assertEqual(e['croyances'], avant)
+                self.assertEqual(m.data.get('tirages_lecture_acteurs', {}), tirages)
+                self.assertNotIn(s['id'], e['signes_lus'])
+                self.assertIsNone(e['eveil'])
+                self.assertNotIn(cible, e['croyances'])
+                etat = copy.deepcopy(m.data), regarder(m), scene_percue(m)
+                m = recharger(m)
+                self.assertEqual(etat, (m.data, regarder(m), scene_percue(m)))
+                self.assertGreater(agir(m, qui, m.data['minutes'] * 600, [])[0], 0)
+                percevoir_tous(m)
+                self.assertIn(cible, lire(m, qui)['croyances'])
+                etat = copy.deepcopy(m.data), regarder(m), scene_percue(m)
+                n = recharger(m)
+                self.assertEqual(etat, (n.data, regarder(n), scene_percue(n)))
+
     def test_coup_reel_rixe_le_proche_regarde_l_agresseur_hors_champ(self):
         from tests.test_defense import epreuve
         m = epreuve()

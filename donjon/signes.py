@@ -21,24 +21,25 @@ PENOMBRE = 4
 DISSIMULATION = 3
 BANDE_RIEN = 8
 
-# sorte, canal, lumière minimale, portée, difficulté, sens possibles, texte factuel
+# sorte, canal, lumière minimale, portée, difficulté, sens possibles, texte factuel,
+# référence nécessaire pour interpréter le signe (distincte de sa direction visible)
 SIGNES = {
-    "ecart": ("place", "vue", 1, None, 0, ("crainte", "hostilite"), "se tient à l'écart de {cible}"),
-    "proche": ("place", "vue", 1, None, 0, ("attachement", "dependance"), "se tient près de {cible}"),
-    "surveille": ("regard", "vue", 1, None, 0, ("mefiance", "crainte", "attirance"), "ne quitte pas {cible} des yeux"),
-    "convoite": ("regard", "vue", 1, None, 0, ("guet", "garde"), "lance des regards vers {cible}"),
-    "attend": ("duree", "vue", 1, None, 0, ("guet", "fatigue"), "reste à attendre sans rien faire"),
-    "yeux_bas": ("expression", "vue", 2, 4, 2, ("crainte", "honte"), "baisse les yeux devant {cible}"),
-    "dur": ("expression", "vue", 2, 4, 2, ("hostilite", "inquietude"), "a le regard dur et la mâchoire serrée"),
-    "sourit": ("expression", "vue", 2, 4, 2, ("attachement", "flatterie"), "sourit à {cible}"),
-    "doux": ("ton", "mots", 0, None, 3, ("attachement", "flatterie"), "parle doucement à {cible}"),
-    "sec": ("ton", "mots", 0, None, 3, ("hostilite", "fatigue"), "a la voix sèche avec {cible}"),
-    "brusque": ("expression", "vue", 1, None, 2, ("colere", "peur"), "fait des gestes brusques"),
-    "fort": ("ton", "mots", 0, None, 3, ("colere", "peur"), "parle d'une voix forte"),
-    "tremble": ("expression", "vue", 2, 4, 2, ("peur", "froid"), "tremble et se recroqueville"),
-    "fuit": ("place", "vue", 1, None, 0, ("peur", "prudence"), "s'éloigne en fuyant"),
-    "observe": ("regard", "vue", 1, None, 0, ("attention", "mefiance"), "regarde attentivement {cible}"),
-    "hesite": ("ton", "mots", 0, None, 3, ("mensonge", "hesitation"), "hésite dans ses paroles"),
+    "ecart": ("place", "vue", 1, None, 0, ("crainte", "hostilite"), "se tient à l'écart de {cible}", True),
+    "proche": ("place", "vue", 1, None, 0, ("attachement", "dependance"), "se tient près de {cible}", True),
+    "surveille": ("regard", "vue", 1, None, 0, ("mefiance", "crainte", "attirance"), "ne quitte pas {cible} des yeux", True),
+    "convoite": ("regard", "vue", 1, None, 0, ("guet", "garde"), "lance des regards vers {cible}", True),
+    "attend": ("duree", "vue", 1, None, 0, ("guet", "fatigue"), "reste à attendre sans rien faire", False),
+    "yeux_bas": ("expression", "vue", 2, 4, 2, ("crainte", "honte"), "baisse les yeux devant {cible}", True),
+    "dur": ("expression", "vue", 2, 4, 2, ("hostilite", "inquietude"), "a le regard dur et la mâchoire serrée", False),
+    "sourit": ("expression", "vue", 2, 4, 2, ("attachement", "flatterie"), "sourit à {cible}", True),
+    "doux": ("ton", "mots", 0, None, 3, ("attachement", "flatterie"), "parle doucement à {cible}", True),
+    "sec": ("ton", "mots", 0, None, 3, ("hostilite", "fatigue"), "a la voix sèche avec {cible}", True),
+    "brusque": ("expression", "vue", 1, None, 2, ("colere", "peur"), "fait des gestes brusques", False),
+    "fort": ("ton", "mots", 0, None, 3, ("colere", "peur"), "parle d'une voix forte", False),
+    "tremble": ("expression", "vue", 2, 4, 2, ("peur", "froid"), "tremble et se recroqueville", False),
+    "fuit": ("place", "vue", 1, None, 0, ("peur", "prudence"), "s'éloigne en fuyant", True),
+    "observe": ("regard", "vue", 1, None, 0, ("attention", "mefiance"), "regarde attentivement {cible}", True),
+    "hesite": ("ton", "mots", 0, None, 3, ("mensonge", "hesitation"), "hésite dans ses paroles", False),
 }
 SENS = {v for s in SIGNES.values() for v in s[5]}
 
@@ -439,12 +440,17 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
     suivi = _suivi(m, observateur, episodes)
     for s in signes:
         cle = s["id"]
+        regle = SIGNES[s["signe"]]
+        # Une direction sans cible ne donne pas les arguments nécessaires
+        # pour interpréter une relation. Elle reste utilisable pour tourner
+        # le regard, puis apprendre par la perception commune.
+        if s['envers'] is None and regle[7]:
+            continue
         dernier = essais.get(cle)
         episode = episodes[cle]
         if dernier is not None and m.data["minutes"] - dernier < RELECTURE:
             continue
         essais[cle] = m.data["minutes"]
-        regle = SIGNES[s["signe"]]
         bonus = modificateur(m, observateur, "PSY") + (2 if expres else 0)
         if not joueur and (relations.familier(relations.axes(m, observateur, s["personnage"]))
                            or e["compagnie"].get(s["personnage"], 0) >= 60):
@@ -505,8 +511,8 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
             m.data["chronique"][-1].update(enregistrement)
     if not joueur and retenir_detresses(m, observateur, signes) and getattr(m, '_agit', None) != observateur:
         reconsiderer(m, observateur)
-    if not joueur and regard_a_suivre(m, observateur, signes, episodes):
-        reconsiderer(m, observateur)
+    # Le réflexe sera choisi à la prochaine disponibilité dans pnj.agir.
+    # Il ne réouvre pas le choix du but avant la rotation et sa perception.
     return impressions(m) if joueur else None
 
 

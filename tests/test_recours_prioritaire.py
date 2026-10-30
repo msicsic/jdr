@@ -145,10 +145,16 @@ class RecoursPrioritaireTests(unittest.TestCase):
         self.assertEqual(vue(a), vue(b))
         self.assertLessEqual(len(passages(a, "aubin", 645)), 12)
         i = lire(a, "aubin")["intention"]
-        self.assertEqual(i["motif"], "securite")
-        self.assertEqual(i["plan"][-1]["operation"], "abriter")
-        self.assertTrue(any(c["pnj"] == "aubin" and "reste dans la lumière" in c["texte"]
-                            for c in a.data["chronique"] if c["minute"] >= 645))
+        # 332 : la perception des autres change la rixe de la capture.
+        # Aubin est assommé à 391340, jusqu'à 419540 : conserver son ancien
+        # plan d'abri serait alors une action attribuée à un inconscient.
+        # La borne des déplacements et les oracles monde/vue restent entiers.
+        from donjon.corps import conscient, corps
+        self.assertIsNone(i)
+        self.assertFalse(conscient(a, 'aubin'))
+        self.assertGreater(corps(a, 'aubin')['inconscient_depuis'], 645 * 600)
+        self.assertGreater(corps(a, 'aubin')['inconscient'], instant(a))
+        self.assertEqual(lire(a, 'aubin')['libre'], corps(a, 'aubin')['inconscient'])
 
     def test_gardien_mine_et_reprise_de_la_ronde_apres_apaisement(self):
         a, b = suite(mine(), False), suite(mine(), True)

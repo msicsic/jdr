@@ -225,8 +225,11 @@ class EtapesTests(unittest.TestCase):
                     # Garder ce monde complet, sans exclure le nouveau registre
                     # ni modifier les oracles de visites, plans, lignes ou vues.
                     emissions = {'monde': {
-                        'mine': '4c2140914c86251d1bf1790bb37a9debd9e0344340040196d2fa4520b3a2047f',
-                        'auberge': '3eb6aaf37b22ff4667d8effe512125dbaef60d720bf9645662d41a2bac89abd3',
+                        # 332 : seuls registres et provenance des regards
+                        # changent. Diff intégral des mondes dans groupe1-342 ;
+                        # plans, visites, lignes et vues restent identiques.
+                        'mine': 'f6fef42c0ff663398182fcece93c50df3ab43ad071b27a491194ee94f1e9bcd6',
+                        'auberge': '52bb40f121653875af09faa5edd9b5c11654a4ec8c375d00bfd83535ae2636ee',
                     }[scenario]}
                     self.assertEqual(observer_capture(scenario), {**attendu[scenario], **nouvelles_mesures,
                                                                  **paroles[scenario], **contacts[scenario],
