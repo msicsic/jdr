@@ -109,6 +109,45 @@ def position_a_verifier(monde, id, sujet):
                 <= monde.data.get("positions_hypotheses", POSITIONS_HYPOTHESES)["seuil"])
 
 
+def hypothese_consommee(monde, id, sujet):
+    """La piste expirée a déjà été éprouvée, sans nouvelle localisation positive."""
+    c = lire(monde, id)["croyances"].get(sujet, {}).get("lieu") or {}
+    return personne_autre(monde, id, sujet) and "hypothese_consommee" in c
+
+
+def consommer_hypothese(monde, id, sujet):
+    """Une inspection/un appel épuise sa piste, pas la recherche de toute personne.
+
+    Le repère appartient à la croyance, survit à son constat d'absence et aux
+    relais de l'ancien renseignement. Seul croire admet une nouvelle preuve.
+    """
+    if not position_a_verifier(monde, id, sujet) or hypothese_consommee(monde, id, sujet):
+        return
+    c = esprit(monde, id)["croyances"][sujet]["lieu"]
+    c["hypothese_consommee"] = {"minute": monde.data["minutes"], "lieu": c["valeur"]}
+
+
+@contextmanager
+def verification_positions(monde, id, sujets):
+    """Le résultat de sa propre vérification n'en programme pas une autre.
+
+    Retrouver la même personne au même lieu clôt cette piste, même si le
+    regard vient d'en rafraîchir la date. Une position différente reste une
+    nouvelle entrée. Les perceptions ultérieures peuvent rouvrir la piste.
+    """
+    pistes = {s: lire(monde, id)["croyances"][s]["lieu"]["valeur"]
+              for s in sujets if position_a_verifier(monde, id, s)}
+    for s in pistes:
+        consommer_hypothese(monde, id, s)
+    try:
+        yield
+    finally:
+        for s, lieu in pistes.items():
+            c = esprit(monde, id)["croyances"][s]["lieu"]
+            if c["valeur"] in (None, lieu):
+                c["hypothese_consommee"] = {"minute": monde.data["minutes"], "lieu": lieu}
+
+
 def pnjs(monde):
     return [id for id, o in monde.objets.items() if o["type"] == "personnage" and not o.get("parti")]
 
@@ -321,6 +360,10 @@ def _croyance_valide(monde, attribut, c):
         verifier_statuts(monde, c.get("valeur"))
     elif attribut == "lieu":
         assert c.get("mobilite", "mobile") in POSITIONS_HYPOTHESES["demi_vies"], "Mobilité crue invalide"
+        if "hypothese_consommee" in c:
+            p = c["hypothese_consommee"]
+            assert (isinstance(p, dict) and set(p) == {"minute", "lieu"}
+                    and type(p["minute"]) is int and isinstance(p["lieu"], str)), "Hypothèse consommée invalide"
         # Une croyance peut survivre à son objet (détruit, retiré).
         assert (set(c) >= {"valeur", "salle", "case"}
                 and (c["valeur"] is None or isinstance(c["valeur"], str))
@@ -667,8 +710,18 @@ def croyance(monde, id, sujet, attribut):
 
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     monde_minute = monde.data["minutes"]
+    if attribut == "lieu" and valeur is None:
+        # Voir l'ancienne place vide vérifie aussi la piste, même avant le
+        # dernier geste du tour d'horizon prévu par le plan.
+        consommer_hypothese(monde, id, sujet)
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
+    if attribut == "lieu" and (consommee := (ancienne or {}).get("hypothese_consommee")):
+        date = min(croyance["minute"], croyance.get("origine", {}).get("minute", croyance["minute"]))
+        directe = (source in ("vu", "entendu", "essai", "se_dit") and "origine" not in lieu
+                   and ("minute" not in lieu or lieu["minute"] >= monde_minute))
+        if valeur is None or not (directe or date > consommee["minute"]):
+            croyance["hypothese_consommee"] = copy.deepcopy(consommee)
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
     if attribut == "lieu" and personne_autre(monde, id, sujet) and valeur is not None:
         croyance.setdefault("mobilite", mobilite_crue(monde, id, sujet))

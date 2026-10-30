@@ -1188,6 +1188,8 @@ def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
     from .deliberation import oublier_refus, retenir_refus
     arret = accueil(monde, demandeur, auditeur)
     if sujet is not None:
+        from .esprits import consommer_hypothese
+        consommer_hypothese(monde, demandeur, sujet)
         # Une réponse de localisation porte exclusivement la croyance du témoin.
         # La date d'acquisition et la provenance restent distinctes de la réception.
         c = croyance(monde, auditeur, sujet, "lieu")

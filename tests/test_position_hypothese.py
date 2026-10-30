@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from donjon import deliberation as d, planification as p, pnj
 from donjon.esprits import (croire, croyance, lire, percevoir_tous, confiance_position,
-                           position_a_verifier, constater)
+                           position_a_verifier, constater, consommer_hypothese, hypothese_consommee)
 from donjon.monde import Monde
 from donjon.rendu import regarder
 from donjon.scene import scene_percue
@@ -117,6 +117,58 @@ class HypothesePositionTests(unittest.TestCase):
             self.assertTrue(position_a_verifier(m, 'mathurine', 'lucien'))
         self.assertLess(croyance(m, 'mathurine', 'lucien', 'lieu')['confiance'], .1)
 
+    def test_piste_consommee_seule_une_nouvelle_preuve_la_rouvre(self):
+        for fabrique, a, b in ((capture, 'mathurine', 'lucien'), (mine, 'bram', 'remy')):
+            with self.subTest(scenario=a):
+                m = self.recharge(fabrique())
+                ancienne = copy.deepcopy(lire(m, a)['croyances'][b]['lieu'])
+                v = p.Vue(m, a)
+                avant = p._entrees(v, {}, p.PROFONDEUR, p.NOEUDS)
+                consommer_hypothese(m, a, b)
+                self.assertNotEqual(avant, p._entrees(p.Vue(m, a), {}, p.PROFONDEUR, p.NOEUDS))
+                date = m.data['minutes']
+                for delai in (0, 16, 60, 180):
+                    m.data['minutes'] = date + delai
+                    croire(m, a, b, 'lieu', ancienne['valeur'], 'dit:joueur', .7,
+                           salle=ancienne['salle'], case=None,
+                           origine={'source': ancienne['source'], 'minute': ancienne['minute']})
+                    m = self.recharge(m)
+                    self.assertTrue(hypothese_consommee(m, a, b))
+                    geste = p._etape('prendre', 'lanterne_' + a, condition='sans_temoin')
+                    # Le témoin consommé ne peut plus engendrer de nouvelle
+                    # vérification furtive (les autres croyances sont écartées).
+                    with patch.object(p, 'position_a_verifier', side_effect=lambda m, i, s: s == b), \
+                            patch.object(p, '_chercher', side_effect=AssertionError('Piste consommée relancée')):
+                        suites = p._normaliser_suites(p.Vue(m, a), p.depart(m, a), {}, lambda v,e: True,
+                                                     [(0, 1, [geste], p.depart(m, a))])
+                    self.assertFalse(any(g['operation'] == 'inspecter' for s in suites for g in s[2]))
+                croire(m, a, b, 'lieu', None, 'vu', salle=None, case=None)
+                self.assertTrue(hypothese_consommee(self.recharge(m), a, b))
+                # Une voix effectivement reconnue constitue une entrée nouvelle.
+                croire(m, a, b, 'lieu', ancienne['valeur'], 'entendu', salle=ancienne['salle'], case=None)
+                self.assertFalse(hypothese_consommee(self.recharge(m), a, b))
+                m.data['minutes'] += 15
+                consommer_hypothese(m, a, b)
+                m.data['minutes'] += 1
+                croire(m, a, b, 'lieu', ancienne['valeur'], 'dit:joueur', .7,
+                       salle=ancienne['salle'], case=None,
+                       origine={'source': 'vu', 'minute': m.data['minutes']})
+                self.assertFalse(hypothese_consommee(self.recharge(m), a, b))
+
+    def test_bruit_attribue_ne_rouvre_pas_une_piste_sans_voix_reconnue(self):
+        from donjon.ouie import _attribuer
+        for fabrique, a, b in ((capture, 'mathurine', 'lucien'), (mine, 'bram', 'remy')):
+            with self.subTest(scenario=a):
+                m = fabrique()
+                consommer_hypothese(m, a, b)
+                c = copy.deepcopy(lire(m, a)['croyances'][b]['lieu'])
+                for _ in range(2):
+                    m.data['minutes'] += 60
+                    _attribuer(m, a, [b], c['salle'], c.get('case'))
+                    m = self.recharge(m)
+                    self.assertTrue(hypothese_consommee(m, a, b))
+                    self.assertTrue(position_a_verifier(m, a, b))
+                    self.assertEqual(lire(m, a)['croyances'][b]['lieu']['minute'], c['minute'])
     def test_verification_executee_puis_recharge_present_ou_parti(self):
         for fabrique, a, b, salle in ((capture, 'mathurine', 'lucien', 'couloir'),
                                      (mine, 'bram', 'remy', 'baraquement')):
@@ -159,6 +211,7 @@ class HypothesePositionTests(unittest.TestCase):
                         self.assertTrue(m.visible(b))
                         self.assertIn(nom_pour_joueur(m, b).lower(), ' '.join(regarder(m).lower().split()))
                     else:
+                        self.assertTrue(hypothese_consommee(m, a, b))
                         self.assertIn(salle, d.appels_vains(m, a, b))
                         self.assertNotEqual(d.salle_crue(m, a, b), salle)
                         self.assertFalse(m.visible(b))
@@ -218,12 +271,29 @@ class HypothesePositionTests(unittest.TestCase):
         self.assertEqual(lignes, decoupees)
         self.recharge(bloc)
         self.recharge(coupe)
-        # Le parent demeure servir Brune, mais la piste d'Ilse doit aboutir :
+        # Le parent demeure servir Brune, mais la piste d'Ilse est consommée :
         # sur 6614e692, le préparatif à la réserve la précédait de nouveau à
         # chaque minute, produisant plus de trente passages pendant ces 6 min.
         c = lire(bloc, 'aubin')['croyances']['ilse']['lieu']
-        self.assertEqual((c['source'], c['valeur']), ('vu', 'chambre_cloche'))
-        self.assertGreaterEqual(c['minute'], 19)
+        self.assertTrue(hypothese_consommee(bloc, 'aubin', 'ilse'))
         passages = [c for c in bloc.data['chronique'] if c['pnj'] == 'aubin'
                     and c['nature'] == 'deplacement' and c['minute'] >= 18]
         self.assertLessEqual(len(passages), 10)
+
+    def test_capture_agenda_ne_se_reveille_pas_par_expiration_du_resultat_de_sa_propre_inspection(self):
+        fichier = Path(__file__).parent / 'captures/position-374-crue-1985-190.json.gz'
+        m = self.recharge(Monde(json.loads(gzip.decompress(fichier.read_bytes()))))
+        d.choisir(m, 'brune', m.data['minutes'])
+        self.assertEqual(lire(m, 'brune')['intention']['plan'][-1]['contenu']['cherche'], 'aubin')
+        pnj._inspecter(m, 'brune', 'aubin', [])
+        m = self.recharge(m)
+        self.assertEqual(lire(m, 'brune')['croyances']['aubin']['lieu']['minute'], 190)
+        self.assertTrue(hypothese_consommee(m, 'brune', 'aubin'))
+        for minute in (205, 220, 235):
+            m.data['minutes'] = minute
+            m.data['dixiemes'] = 0
+            d.choisir(m, 'brune', minute)
+            m = self.recharge(m)
+            plan = (lire(m, 'brune')['intention'] or {}).get('plan', [])
+            self.assertFalse(any(g['operation'] == 'inspecter'
+                                 and (g.get('contenu') or {}).get('verification') for g in plan))

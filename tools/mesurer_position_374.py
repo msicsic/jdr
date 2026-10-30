@@ -48,6 +48,7 @@ def main():
     parser.add_argument("--sortie", required=True, type=Path)
     parser.add_argument("--revision", default="HEAD", help="commit de branche figé au lancement")
     parser.add_argument("--reference", default="origin/main", help="main distant, le main local de ce poste est ancien")
+    parser.add_argument("--base", default="b83f5a5933850907a6a1d7388cf1966944c665f0")
     args = parser.parse_args()
     dossier = args.sortie.resolve()
     dossier.mkdir(parents=True, exist_ok=True)
@@ -61,7 +62,7 @@ def main():
                                          "donnees": donnees})
     # main local est ancien et incompatible avec l'audit courant. La base exacte isole le lot ; les
     # mêmes nuits de branche sont relues du cache, jamais jouées deux fois.
-    for nom, reference in (("banc-main", args.reference), ("banc-base", "b83f5a5933850907a6a1d7388cf1966944c665f0")):
+    for nom, reference in (("banc-reference", args.reference), ("banc-base", args.base)):
         commande = [sys.executable, str(RACINE / "tools/comparer_bancs.py"),
                     "--reference", reference, "--branche", args.revision, "--heures", "4",
                     "--scenarios", "relais", "auberge", "mine", "crue",

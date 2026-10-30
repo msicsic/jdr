@@ -548,7 +548,9 @@ def _attribuer(monde, id, crus, salle, case):
     # (``se_dit``) ne le croit pas davantage.
     source, confiance = ("se_dit", c["confiance"]) if c["source"] == "se_dit" else ("entendu", 1.0)
     croire(monde, id, x, "lieu", salle, source, confiance, salle=salle,
-           case=list(case) if case is not None else c.get("case"))
+           case=list(case) if case is not None else c.get("case"), minute=c["minute"],
+           origine=c.get("origine") or {"source": c["source"], "minute": c["minute"]},
+           mobilite=c.get("mobilite", "mobile"))
 
 
 def _se_tourner(monde, id, case, t, texte=" se retourne au bruit.", depuis=None):

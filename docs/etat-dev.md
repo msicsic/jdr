@@ -43,13 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-position-hypothese` — lot 374, départ `b83f5a59` (integration ancêtre `60f857c5`), PC fixe.
-  Position d'autrui datée (15/60/120 min), contrôle commun plan/geste ; le préfixe de vérification conserve sa progression.
-  Auberge 371/mine 69, parti/resté, rechargés ; VERIFIER 1 h vert et 16 nuits × 4 h sans plantage/usurpation sur `7986b7d2`.
-  Rafale crue 42 corrigée par la cause typée de vérification ; capture bloc/découpé verte. Oracle mine : plafond 28 conservé par recherche.
-  90 tests distincts, 44 concernés finaux verts (150,032 s), autres voisins verts à la passe précédente. Calculs terminés, références réutilisées.
-  Réserve avant fusion : absence de boucle nouvelle non certifiée (0→3 retours suspects, dont agenda Brune crue 1985 à 190/205).
-  Forme S0 et recouvrement esprits avec 372 détaillés au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
+- `codex-position-hypothese` — lot 374 repris, fusion `origin/integration 06895c7d` dans `a50bbd95`, PC fixe.
+  Hypothèse datée 15/60/120 min ; inspection/appel/question consomment la piste, le temps et les vieux relais ne la rouvrent pas.
+  Le résultat de sa propre inspection ne programme plus un nouvel essai ; bruit attribué distinct d'une voix reconnue.
+  Captures rechargées : Brune crue 1985, répétition 190/205 identifiée ; Brune 2024, nouvelle case acoustique prouvée.
+  12 tests position verts ; première passe voisins 64/65, écart texte reprise-contact aussi reproduit sur la fusion avant correction.
+  Nouvelle passe ciblée, attribution exhaustive des appels et banc 16 nuits × 4 h à terminer ; fusion toujours suspendue.
+  Porte mémoire S1a conservée, aucun épisode écrit hors porte. Bruts et réserves au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
 (U-M social comptes), 381 (A2 passage), 382 (S1b sons et examens). Questions de S0 en arbitrage (1 et 2 tranchées, voir décisions).

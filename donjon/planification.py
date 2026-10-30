@@ -28,7 +28,7 @@ from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vain
                            peur_du_noir, profil, promesse_en_cours, refus_retenu, salle_crue, taux, tient)
 from . import eau, force
 from .biens import PRIX_PART
-from .esprits import lire, position_a_verifier
+from .esprits import lire, position_a_verifier, hypothese_consommee
 from .perception import brule, recharge
 from .relations import se_fie, se_mefie
 from .spatial import porte_par, QUART, VECTEURS, a_verifier
@@ -2159,7 +2159,7 @@ def _chercher(v, e, sujet):
     # Le coût d'une route est celui de toute la recherche (``Vue.allers`` : passages compris).
     # Une hypothèse périmée reste un indice, jamais une présence projetée.
     ancienne = lire(v.monde, v.id)["croyances"].get(sujet, {}).get("lieu", {})
-    perimee = position_a_verifier(v.monde, v.id, sujet)
+    perimee = position_a_verifier(v.monde, v.id, sujet) and not hypothese_consommee(v.monde, v.id, sujet)
     dernier_lieu = ancienne.get("salle") if perimee else None
     salle = min(routes, key=lambda s: (s != dernier_lieu, visites.get(s, -1),
                                       cout_route(routes[s], e.orientation), s))
@@ -2256,7 +2256,7 @@ def _entrees_communes(v):
         # Le graphe lit le seuil, pas une confiance flottante à chaque tick.
         # Dates et provenance agissent via ce booléen ; la règle est sauvegardée.
         monde.data["positions_hypotheses"],
-        [[s, position_a_verifier(monde, id, s)] for s in sorted(croyances)],
+        [[s, position_a_verifier(monde, id, s), hypothese_consommee(monde, id, s)] for s in sorted(croyances)],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.
@@ -2825,7 +2825,8 @@ def verification_en_cours(monde, id, etapes):
     sujet = (fin.get("contenu") or {}).get("cherche")
     preuve = (fin.get("contenu") or {}).get("verification")
     if (fin["operation"] != "inspecter" or not sujet or not preuve
-            or preuve.get("type") != "position" or _lieu_cru(monde, id, sujet) is not None):
+            or preuve.get("type") != "position" or hypothese_consommee(monde, id, sujet)
+            or _lieu_cru(monde, id, sujet) is not None):
         return False
     croyances = lire(monde, id)["croyances"].get(sujet, {})
     etat = (croyances.get("etat") or {}).get("valeur", {})
@@ -2851,7 +2852,8 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
             a_eviter = ([*v.personnes(), "joueur"] if any(x.get("condition") == "sans_temoin" for x in ajout)
                         else [x["cible"] for x in ajout if x.get("condition") == "dans_le_dos"])
             incertains = {x for x in a_eviter
-                          if position_a_verifier(v.monde, v.id, x) and not e.fait("cherche", x)}
+                          if position_a_verifier(v.monde, v.id, x) and not hypothese_consommee(v.monde, v.id, x)
+                          and not e.fait("cherche", x)}
             if incertains:
                 if conclure:
                     continue  # Un préfixe de vérification n'est pas un geste conclusif.

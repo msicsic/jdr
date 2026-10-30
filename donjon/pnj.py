@@ -559,6 +559,16 @@ def _inspecter(monde, id, cherche=None, lignes=None, vers=None):
     """Depuis le centre de la salle (où il a marché), ou d'où il voit l'endroit d'où venait un bruit
     (``vers``), il la parcourt des yeux. S'il y cherche quelqu'un (``cherche``) qu'il ne sait pas là
     (``croit_present`` : il ne l'a pas vu en parcourant la salle des yeux), il l'appelle (``appeler``)."""
+    from .esprits import verification_positions
+    o = monde.objets[id]
+    sujets = [s for s, a in lire(monde, id)["croyances"].items()
+              if s == cherche or (a.get("lieu") or {}).get("salle") == o["lieu"]
+              or (a.get("lieu") or {}).get("valeur") == o["lieu"]]
+    with verification_positions(monde, id, sujets):
+        return _inspecter_salle(monde, id, cherche, lignes, vers)
+
+
+def _inspecter_salle(monde, id, cherche=None, lignes=None, vers=None):
     from .ouie import parcouru
     o = monde.objets[id]
     if cherche:
@@ -613,6 +623,8 @@ def heler(monde, id, qui, lignes):
     from .corps import conscient
     if not conscient(monde, id):
         return False
+    from .esprits import consommer_hypothese
+    consommer_hypothese(monde, id, qui)
     from .ouie import retentir
     from .social import _qui
     a, b = _qui(monde, id), _qui(monde, qui, id)
@@ -2007,11 +2019,13 @@ def _agir(monde, id, t, lignes, gestes=None, compter=True):
     etape = etapes[0]
     # Un plan déjà sauvegardé peut avoir vieilli depuis son admission. La
     # réalisation repasse par le même préfixe de contact que la recherche.
-    from .esprits import position_a_verifier
-    requis = _a_reunir(monde, id, etape, venues=True)
+    from .esprits import position_a_verifier, hypothese_consommee
+    participants = _a_reunir(monde, id, etape, venues=True)
+    requis = list(participants)
     if etape["condition"] == "sans_temoin":
         requis = [*requis, *e["croyances"]]
-    incertains = sorted({x for x in requis if position_a_verifier(monde, id, x)})
+    incertains = sorted({x for x in requis if position_a_verifier(monde, id, x)
+                        and (x in participants or not hypothese_consommee(monde, id, x))})
     if incertains:
         percevoir(monde, id)
         incertains = [x for x in incertains if position_a_verifier(monde, id, x)]
