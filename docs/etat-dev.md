@@ -45,10 +45,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-s1b-sons-examens` (382), base `integration 06895c7d` : sons/examens lus par copies,
   remplacements et rafraîchissement dans `memoire.py`, format historique et crochets conservés.
-  Inventaire AST : 12 expressions retirées ; 11 tests distincts ciblés déjà passés, dont
+  Inventaire AST : 102 → 90 expressions ; **158 tests ciblés passent** dans 12 fichiers, dont
   Mathe et Bram après recharge, état complet/rendu/scène/paroles et laps entier/découpé.
-  Vérification détachée : 12 fichiers, puis empreintes 2 h × 4 graines × 4 scénarios à la base exacte.
-  Bilan attendu : `C:/Users/msics/donjon/artifacts/s1b-382/fin.json` ; empreintes non encore validées.
+  **16/16 empreintes identiques** (chronique, mesures, état complet) : 2 h × 4 graines × 4 scénarios.
+  Code mesuré `ff467a7b`, base exacte ; aucun plantage. Bruts : `artifacts/s1b-382/` du dépôt principal.
   Recouvrement 374 : seulement `dernier_son` ; autres familles/oubli hors lot.
   [Rapport 382](taches/rapport-codex-382-s1b-sons-examens.md).
 
