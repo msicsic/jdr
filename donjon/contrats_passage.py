@@ -101,17 +101,17 @@ def raccourci(operation, cible, *, methode="simple", outil="", destination=""):
             else proposition(operation, cible, outil, methode))
 
 
-def verifier_demande(c):
+def verifier_demande(c, chemin="passage"):
     for champ in ("sujet", "attribut", "valeur"):
         if not isinstance(c.get(champ, ""), str):
             raise RefusDeForme("Les paramètres de la demande de passage sont mal formés.",
-                              f"passage.{champ} : reçu {c.get(champ)!r} ; accepté : chaîne.")
+                              f"{chemin}.{champ} : reçu {c.get(champ)!r} ; accepté : chaîne.")
     if c.get("attribut"):
         raise RefusDeForme("La demande de passage ne porte pas d'attribut.",
-                          f"passage.attribut : reçu {c['attribut']!r} ; accepté : vide.")
+                          f"{chemin}.attribut : reçu {c['attribut']!r} ; accepté : vide.")
     if not re.fullmatch(r"\s*[0-9]*\s*", c.get("valeur", "")):
         raise RefusDeForme("Le prix proposé doit être exprimé en pièces.",
-                          f"passage.valeur : reçu {c['valeur']!r} ; accepté : vide ou entier positif en chiffres.")
+                          f"{chemin}.valeur : reçu {c['valeur']!r} ; accepté : vide ou entier positif en chiffres.")
 
 
 def schema_demande(schema):

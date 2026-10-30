@@ -34,9 +34,16 @@ désormais le refus explicite d'un tiers : l'absence de déplacement est gardée
 et le monde entier doit rester identique. Aucun contrôle de sécurité n'est
 retiré. Le test sonore filtre ses branches pour accepter l'ajout des passages.
 
-**Mesures.** Vérification ciblée et empreintes en cours ; les résultats et codes
-de sortie seront consignés dans `C:/Users/msics/donjon/artifacts/a2-passage-381/`.
-Deux travailleurs au plus, priorité réduite. Ni suite complète ni Luna.
+**Mesures en cours.** Passe ciblée sur onze fichiers, puis contrôle final du
+contrat et des trois voisins de parole ; empreintes de 2 h, Relais et auberge,
+graines 1985/7/42/2024, contre la base exacte `c63dd563` (cache partagé, aucune
+référence relancée). La branche locale `main` est ancienne : elle n'est pas
+utilisée pour attribuer au lot les différences d'intégration. L'ancien attendu
+« Tu avances d'un pas. » est revérifié sur la base, sans modifier son assertion.
+Vérification détachée, deux travailleurs au plus et priorité réduite ; résultats
+dans `C:/Users/msics/donjon/artifacts/a2-passage-381/` : `tests-finaux.json`,
+`tests-sociaux.json`, `test-base.log`, `empreintes.json`, puis **`fin.json` écrit
+en dernier**, avec les codes de sortie et toute erreur. Ni suite complète ni Luna.
 
 **Limites.** Le contrat porte le sens des charges admises, pas la fidélité de
 leur choix par Luna. Une opération voisine bien formée peut encore être choisie

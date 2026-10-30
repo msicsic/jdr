@@ -1388,7 +1388,7 @@ def verifier_offres(monde, contenu):
     for i, c in enumerate(contenu):
         if isinstance(c, dict) and c.get("type") in ("demande", "passage"):
             if c["type"] == "passage":
-                verifier_demande(c)
+                verifier_demande(c, f"contenu[{i}]")
             total += offre(c)
             if total > monde.joueur["or"]:
                 raise ErreurMonde(f"Tu n'as que {quantite(monde.joueur['or'], 'pièce')}.",
@@ -1431,7 +1431,7 @@ def verifier_contenus(monde, contenu):
             verifier(monde, c, f"contenu[{i}]")
             continue
         if c.get("type") == "passage":
-            verifier_demande(c)
+            verifier_demande(c, f"contenu[{i}]")
         utilises = CHAMPS_CONTENU.get(c.get('type'), ())
         for champ in ('sujet', 'attribut', 'valeur'):
             if champ not in utilises and c.get(champ) not in (None, ''):
