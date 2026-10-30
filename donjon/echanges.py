@@ -62,6 +62,12 @@ def juger_delai(monde, contractant, condition, pour, limite):
                        f'un instant >= {maintenant}')
     copie = monde.copier()
     # Même validation et permissions que l'obligation, sur une copie jetable.
+    # Un devis de part peut déjà avoir posé sa livraison provisoire. La dater
+    # remplace cette proposition : ce n'est pas une deuxième charge matérielle.
+    existant = next((x for x in agendas.en_cours(copie, contractant, condition=condition, actifs=True)
+                     if x['pour'] == pour), None)
+    if existant is not None:
+        agendas.retirer_proposition(copie, contractant, existant)
     agendas.prendre(copie, contractant, {'condition': condition, 'pour': pour,
                                        'minute': copie.data['minutes']}, limite=limite)
     if not copie.objets.get(contractant, {}).get('profil'):
@@ -69,6 +75,7 @@ def juger_delai(monde, contractant, condition, pour, limite):
                        'Je ne peux pas m’engager sur ce délai : la durée est incertaine.',
                        'un accord sans limite, à proposer explicitement')
     durees = []
+    copie = agendas.monde_devis_libre(copie, contractant, condition, pour)
     with diagnostics() as recherches:
         devis = devis_pulsion(copie, contractant, condition, pour, duree=durees)
     if devis is None and not any(r['issue'] == 'borne' for r in recherches):
@@ -146,6 +153,7 @@ def devis_service(monde, id, condition, pour):
     # L'absence de devis n'interdit pas une remise déjà possible en main.
     if not monde.objets.get(id, {}).get("profil"):
         return None
+    monde = agendas.monde_devis_libre(monde, id, condition, pour)
     if condition.get('proteger'):
         from .occasion_protection import devis
         return devis(monde, id, condition)
@@ -222,6 +230,9 @@ def _livraison_proposition(monde, donneur, receveur, terme):
     condition = prestation(monde, donneur, receveur, terme)
     if terme["type"] not in ("objet", "part"):
         return True
+    if not agendas.disponibilite_promise(monde, donneur, terme['objet'],
+                                        part=terme['type'] == 'part'):
+        return False
     if porte_par(monde, terme["objet"], donneur):
         return True
     if not monde.objets.get(donneur, {}).get("profil"):
@@ -445,6 +456,8 @@ def proposer(monde, proposant, auditeur, demande, contrepartie, *, accord_joueur
         return {"cause": "impossible"}
     for terme, de in ((demande, auditeur), (contrepartie, proposant)):
         if terme["type"] in ("objet", "part"):
+            if not agendas.disponibilite_promise(monde, de, terme['objet'], part=terme['type'] == 'part'):
+                return {'cause': 'impossible'}
             o = monde.objets[terme["objet"]]
             if proprietaire(monde, o) != de:
                 return {"cause": "propriete"}
@@ -902,6 +915,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
                                   None if vente or accord else dd)
         else:
             condition = {"objet": source, "allume": True}
+        if not agendas.disponibilite_promise(monde, auditeur, objet, part=True,
+                                            condition=condition, pour=demandeur):
+            return 'impossible'
         engagements = agendas.en_cours(monde, auditeur)
         paye = False
         if not any(x["condition"] == condition and not x.get("annule") for x in engagements):
@@ -909,7 +925,8 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
                           "objet": objet,
                           **({"paye": {"objet": objet, "prix": prix, "quoi": "part"}} if vente else {})}
             agendas.prendre(monde, auditeur, engagement)
-            if devis_pulsion(monde, auditeur, condition, demandeur) is None:
+            if devis_pulsion(agendas.monde_devis_libre(monde, auditeur, condition, demandeur),
+                             auditeur, condition, demandeur) is None:
                 agendas.retirer_proposition(monde, auditeur, engagement)
                 return "impossible"
             if not vente and not accord and not jet_persuasion(monde, auditeur, demandeur, dd)[0]:
@@ -925,6 +942,9 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
             memoriser(monde, demandeur, {"type": "promis", "de": auditeur, "objet": objet,
                                          **({"foyer": condition["objet"]} if "allume" in condition else {})})
         return "vendu" if paye else "promis"
+    if not agendas.disponibilite_promise(monde, auditeur, objet,
+                                        condition={'objet': objet, 'remettre': demandeur}, pour=demandeur):
+        return 'impossible'
     if not porte_par(monde, objet, auditeur):
         # Un objet à lui qu'il ne porte pas, acheté à son prix : il s'engage à l'aller chercher et à le
         # remettre ; payé d'avance, non remis à l'échéance, le prix est dû (``engagements_echus``).
@@ -937,7 +957,8 @@ def demander(monde, demandeur, auditeur, objet, foyer=None, prix=0, remettre_par
         engagement = {"condition": condition, "pour": demandeur, "minute": monde.data["minutes"],
                       "paye": {"objet": objet, "prix": prix, "quoi": "objet"}}
         agendas.prendre(monde, auditeur, engagement)
-        if devis_pulsion(monde, auditeur, condition, demandeur) is None:
+        if devis_pulsion(agendas.monde_devis_libre(monde, auditeur, condition, demandeur),
+                         auditeur, condition, demandeur) is None:
             agendas.retirer_proposition(monde, auditeur, engagement)
             return "impossible"
         memoriser(monde, auditeur, {"type": "engagement_pris", "pour": demandeur, "condition": condition})
@@ -995,6 +1016,8 @@ def _remettre_part(monde, vendeur, acheteur, lot, prix, persuasion=None, *,
         c = engagement["condition"]
         if c.get("remettre") == acheteur and engagement.get("lot") == lot:
             return engagement.get("annule") or "promis"
+    if not agendas.disponibilite_promise(monde, vendeur, lot, part=True):
+        return 'impossible'
     avant = copy.deepcopy(monde.objets[lot])
     piece = detacher_part(monde, lot)
     o = monde.objets[piece]
@@ -1006,7 +1029,8 @@ def _remettre_part(monde, vendeur, acheteur, lot, prix, persuasion=None, *,
     engagement = {"condition": condition, "pour": acheteur, "minute": monde.data["minutes"], "lot": lot,
                   **({"paye": {"objet": piece, "prix": prix, "quoi": "objet"}} if prix else {})}
     agendas.prendre(monde, vendeur, engagement, limite=limite, accord=accord)
-    possible = porte_par(monde, piece, vendeur) or devis_pulsion(monde, vendeur, condition, acheteur) is not None
+    possible = porte_par(monde, piece, vendeur) or devis_pulsion(
+        agendas.monde_devis_libre(monde, vendeur, condition, acheteur), vendeur, condition, acheteur) is not None
     issue = "impossible" if not possible else (
         "refus" if persuasion is not None and not jet_persuasion(monde, vendeur, acheteur, persuasion)[0] else None)
     if issue:

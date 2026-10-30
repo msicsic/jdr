@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-double-promesse` — lot 377, base `origin/integration 2887c541`, PC fixe.
+  Les devis et transferts comptent les moyens déjà promis, depuis les engagements existants, sans nouveau registre.
+  Capture Mireille/Tilo/Mathurine et autre bien vérifiés après recharge et laps découpés ; parts libres conservées.
+  98 tests distincts verts ; empreintes 2 h auberge/Relais × 4 graines : 4/8 identiques, 4 écarts attribués.
+  Aucun plantage, usurpation ni aller-retour non justifié sur ces nuits ; livraison terminée, branche poussée.
+  Limite : quantité distante inconnue = refus conservateur possible ; recouvrements possibles 365/375.
+  [Rapport](taches/rapport-codex-377-double-promesse.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 98 tests verts, quatre divergences d'empreintes expliquées ; limite : une quantité distante inconnue peut donner un refus conservateur.
+
 - **373 — `codex-s0-conception-memoire`**, base `integration b83f5a59`, documentation seule.
   S0 : inventaire mesuré, trois couches et registre, vues/invalidation, migration S1a–p et frontière S2.
   71 accès mémoire / 55 fonctions / 17 fichiers ; 247 accès explicites dans 106 fichiers de tests.
