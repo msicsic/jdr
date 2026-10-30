@@ -1142,14 +1142,16 @@ def contexte_fige():
 
 
 def _cites_du_contexte(monde):
-    """Identités attestées par les données publiques ou nommées sans ambiguïté.
+    """Références apprises, jamais déduites du vocabulaire du monde privé.
 
-    La prose permet de chercher un nom parmi les entités connues ; elle ne
-    fait pas connaître tous les objets privés qui portent ce même nom.
+    Un dossier perceptif peut contenir des liens techniques vers des choses
+    cachées ; une conversation contient aussi les suppositions du joueur.
+    Seuls les répertoires publics et les actes admis attestent une identité.
     """
     global _CITES
     from .noms import CHAMPS_REFERENCES
-    from . import lexique
+    from .esprits import lire
+    from .emissions import pnj as emissions_pnj
     from .spatial import a_verifier
     from .voix import reel
 
@@ -1157,6 +1159,8 @@ def _cites_du_contexte(monde):
         contexte = monde.contexte()
         refs = {o["id"] for o in contexte["objets_perceptibles"]}
         refs.update(contexte["lieux_connus"])
+        refs.update(contexte["souvenirs_personnages"])
+        refs.update(contexte["interlocuteurs"])
 
         def recueillir(valeur):
             if isinstance(valeur, list):
@@ -1169,18 +1173,28 @@ def _cites_du_contexte(monde):
                     else:
                         recueillir(v)
 
-        # Le même contrat vaut pour les prémisses, missions, connaissances
-        # partageables et paroles entendues : lire leurs références typées,
-        # jamais déduire une identité des mots d'une description.
-        recueillir(contexte)
-        # Une prémisse ou une parole peut nommer une chose jamais vue. Les
-        # homonymes sont alors des candidats, pas autant d'identités apprises.
-        # Les références perceptives/typées ci-dessus restent valables même
-        # lorsqu'un autre objet privé porte le même nom.
-        texte = lexique.corpus(contexte, monde.data.get("conversation", []))
-        for _, candidats in lexique.citations(monde, texte):
-            if len(candidats) == 1:
-                refs.update(candidats)
+        # Une mission proposée ou un accord admis nomme ses termes. Ne pas
+        # parcourir les dossiers privés des PNJ, les liens physiques des
+        # objets, les propositions non exécutées ni la prose cosmétique.
+        for source in ("missions_discutables", "engagements"):
+            recueillir(contexte[source])
+        # La mémoire du joueur conserve aussi les faits appris par une voix,
+        # même après disparition de la parole de l'historique récent. Ce
+        # souvenir ne prouve ni la vérité du propos ni la présence actuelle.
+        for sujet, attributs in lire(monde, "joueur")["croyances"].items():
+            refs.add(sujet)
+            lieu = attributs.get("lieu", {}).get("valeur")
+            if isinstance(lieu, str):
+                refs.add(lieu)
+        # Les enquêtes sur les ressources gardent leur réponse typée dans
+        # l'émission, sans créer de croyance du joueur. Lire uniquement les
+        # choses effectivement dites, pas les paramètres privés de réception.
+        for p in emissions_pnj(monde):
+            if p.get("statut") != "prononcee" or "joueur" not in p["auditeurs"]:
+                continue
+            for resolution in p["evenement"].get("resolutions_parlees", []):
+                for objet, lieu in resolution.get("information", {}).get("dit", []):
+                    refs.update((objet, lieu))
         return {reel(monde, ref) for ref in refs}
     if _CITES is None:
         return calculer()

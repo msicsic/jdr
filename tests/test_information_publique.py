@@ -136,6 +136,10 @@ class InformationPubliqueTests(unittest.TestCase):
         for qui, sujet in (("aubin", "bois"), ("brune", "faim"), ("aubin", "chaleur")):
             with self.subTest(qui=qui, sujet=sujet):
                 m = banc("ressources")
+                # Ce choix nomme un bien précis, pas la catégorie chaleur :
+                # son souvenir doit être déclaré, jamais inféré d'un alias.
+                if sujet == 'bois':
+                    m.data['connus'].append('bois')
                 avant = copy.deepcopy(m.objets)
                 r, _, _ = self.parite(m, descripteur(qui, "ressource", sujet=sujet))
                 self.assertEqual(r.objets, avant)
@@ -158,6 +162,8 @@ class InformationPubliqueTests(unittest.TestCase):
         for acte in ("ressource", "qui"):
             with self.subTest(acte=acte):
                 m = banc("ressources")
+                if acte == 'ressource':
+                    m.data['connus'].append('bois')
                 relation(m, "aubin", "joueur", confiance=0)
                 d = descripteur("aubin", acte, **({"sujet": "bois"} if acte == "ressource" else {}))
                 r, _, _ = self.parite(m, d)

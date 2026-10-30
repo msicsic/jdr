@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **365, `codex-catalogue-connu`**, base `dea991a5` : admission lexicale retirée du lecteur commun des
+  connaissances ; sources perceptives, mémorisées et actes typés entendus seuls. Prémisses déclarées dans les scénarios.
+  Validé : 153 tests réussis, un facultatif ignoré (15 fichiers) ; monde/scène/fiche/catalogues après recharge.
+  Empreintes 2 h × quatre graines, Relais/auberge : seul delta final = savoirs de prémisse ajoutés à `connus`.
+  Zéro cible d'accord inconnue ; six noms déclarés connus restent proposés au verrou. Recouvrement 360 : `paroles.py`.
+  `fin-reprise.json` valide dans `C:/Users/msics/donjon/artifacts/catalogue-365/` ; copies originales du 364 absentes.
+  [Rapport](taches/rapport-codex-365-catalogue-connu.md) ; pas de migration lexicale de la prose des anciennes sauvegardes.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `paroles.py`, fusionnés sans conflit textuel. Admission lexicale retirée de _connu_du_joueur, connaissances attestées conservées ; 153 tests, huit nuits conformes ; le compte exact de seize du 364 n'est pas reproduit. paroles.py commun avec l'intégration : tests rejoués avant poussée.
+
 - `codex-ut-social-information` — lot 369, base d'intégration `e0826efc`, non fusionné.
   Console et TUI ouvrent `information` sur les mêmes choix publics et le même descripteur U-D que le web.
   Parole typée, réponse G16, confirmation et révalidation existantes ; aucun changement du catalogue ou de `paroles.py`.
