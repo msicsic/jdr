@@ -42,11 +42,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-ut-social-information` — lot 369, base d'intégration `e0826efc`, non fusionné.
   Console et TUI ouvrent `information` sur les mêmes choix publics et le même descripteur U-D que le web.
   Parole typée, réponse G16, confirmation et révalidation existantes ; aucun changement du catalogue ou de `paroles.py`.
-  Branche poussée (`de4cc369`) ; validation ciblée en cours, deux travailleurs réduits, fin attendue `ut-social-information-369/fin-calcul.json`.
+  79 tests distincts verts (TUI/cases inchangés inclus) ; 2/2 repris en 114,198 s, production inchangée ; zéro appel modèle.
+  32 parcours : 16–29 touches (17–30 avec F7 en TUI) ; `fin-cloture.json` vert, branche poussée, aucun calcul actif.
   Limite conservée : demander « où est » un objet reste indisponible ; ni Luna, banc ni suite complète.
   [Rapport 369](taches/rapport-codex-369-ut-social-information.md), bruts `artifacts/ut-social-information-369/` du dépôt principal.
 
-Lots en cours : 365 (catalogue des choix : fuite possible), 369 (U-T social information). Suite complète de
+Lot en cours : 365 (catalogue des choix : fuite possible). Suite complète de
 l'intégration relancée après les corrections 360 à 368. Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30

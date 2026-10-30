@@ -204,9 +204,17 @@ class ParcoursInformation:
         suite = ["annuler" if annuler else "tenter"] if d.contenu["parametres"]["acte"] == "affirmation" else []
         temoin = m.copier()
         if depart == "reception":
-            partir(temoin)
-        attendu, sorties_web, _ = web.InformationPubliqueTests().boucle(
-            temoin, [d, *suite], mutation=partir if depart == "confirmation" else None)
+            # Même instant que le terminal : le destinataire a été perçu lors
+            # de l'ouverture, puis part avant la préparation de la parole.
+            # Le déplacer avant le chargement effacerait ce souvenir public.
+            def preparation_web(monde, choix):
+                partir(monde)
+                return preparer_direct(monde, choix)
+            with patch("donjon.dialogues.preparer_direct", side_effect=preparation_web):
+                attendu, sorties_web, _ = web.InformationPubliqueTests().boucle(temoin, [d, *suite])
+        else:
+            attendu, sorties_web, _ = web.InformationPubliqueTests().boucle(
+                temoin, [d, *suite], mutation=partir if depart == "confirmation" else None)
         obtenu, lignes, captures, publications = await self.jouer(m, [*numeros, *suite], depart=depart, invalide=invalide)
         self.assertEqual(captures, [d.contenu])
         self.assertEqual(sans_saisie(obtenu.data), sans_saisie(attendu.data))
