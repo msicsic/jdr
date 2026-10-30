@@ -85,15 +85,19 @@ class AdresseTests(unittest.TestCase):
                 texte = f"{nom} répond : « {citation} »"
                 r, sortie, appels = jouer(m, f"{nom}, laisse-moi passer", [
                     parole("laisse-moi passer", ("passage", "", "", ""), personnage=qui), dialogue(texte)],
-                    [rapport(ligne("parole", locuteur=qui, citation=citation))])
+                    [rapport(ligne("parole", locuteur=qui, citation=citation))], suite=("tenter",))
+                dites = [p for p in emissions_pnj(r)
+                         if p['locuteur'] == qui and p['texte'] == citation]
+                self.assertEqual(len(dites), 1)
+                dite = dites[0]
                 self.assertIn(texte, sortie)
-                faits = next(e["faits"] for f, e in appels if f == "auditer_narration")
+                faits = next(e['faits'] for f, e in appels if f == 'auditer_narration')
                 self.assertIn(qui, faits["interlocuteurs"])
                 self.assertIn(qui, r.data["entendus"])
                 self.assertNotEqual(r.objets[qui]["position"], m.objets[qui]["position"])
                 self.assertFalse(r.visible(qui))
-                self.assertEqual(emissions_pnj(r)[-1]["locuteur"], qui)
-                self.assertEqual(emissions_pnj(r)[-1]["texte"], citation)
+                self.assertEqual(dite["locuteur"], qui)
+                self.assertEqual(dite["texte"], citation)
 
     def test_question_sans_nom_a_celui_d_en_face_sans_changer_les_mots(self):
         for saisie, besoin in [("est-ce que quelqu'un a du bois ?", "chaleur"),
@@ -282,9 +286,14 @@ class NarrationTests(unittest.TestCase):
                 temoin = m.copier()
                 moteur = Moteur(temoin)
                 attendu = rendre_resultat(moteur.executer(moteur.preparer(p)))
+                # U-P décrit les paramètres admis, sans transformer l'approche
+                # structurée ou le brouillon en une description du geste.
+                compris = (f"Compris : Geste. (cibles : aucun; approche : {approche}; minutes : 1; bruit : 0; "
+                           "en cas de réussite : effets : aucun; en cas d'échec : effets : aucun)")
                 r, sortie, appels = jouer(m, saisie, [action(p)], [])
                 self.assertIn(attendu, sortie)
-                self.assertEqual(r.data['conversation'][-1]['reponse'], attendu)
+                self.assertEqual(r.data['conversation'][-1]['compris'], compris)
+                self.assertEqual(r.data['conversation'][-1]['reponse'], attendu + "\n" + compris)
                 self.assertEqual(r.data['conversation'][-1]['nature'], 'resultat_moteur')
                 self.assertNotIn(texte, sortie)
                 self.assertEqual([f for f, _ in appels], ['repondre_au_joueur', 'auditer_action'])

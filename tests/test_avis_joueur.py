@@ -10,7 +10,8 @@ from donjon.rendu import regarder as rendu
 from tests.support import regarder
 from tests.test_avis_menace import scene, relation
 from tests.test_social import recharger
-from tests.test_repli_et_appel import jouer, parole, dialogue, verdicts, NEUTRE
+from tests.test_repli_et_appel import parole, dialogue, verdicts, NEUTRE
+from tests.consentement_support import jouer
 
 
 def preparer():

@@ -11,11 +11,11 @@ from unittest.mock import patch
 from donjon.banc_pnj import creer
 from donjon.biens import bourse
 from donjon.deliberation import promesse_en_cours, refus_retenu, retenir_refus
-from donjon.echanges import demander, engager, engagements_echus, executer
+from donjon.echanges import demander, empeche, engager, engagements_echus, executer
 from donjon.esprits import croire, lire, percevoir_tous
 from donjon.monde import Monde
 from donjon.paroles import preparer_parole
-from donjon.planification import devis_pulsion
+from donjon.planification import devis_pulsion, planifier_engagement
 from donjon.paroles import engagements_enregistres
 from tests.support import calme, presentes, regarder
 from tests import test_crochetage_surenchere as cs
@@ -44,6 +44,33 @@ def sans_flamme(m, vendeur):
 
 
 class TachesPayeesTests(unittest.TestCase):
+    def test_mesurer_ne_change_pas_le_devis_ni_le_plan_ni_le_refus_sans_limite(self):
+        from donjon import planification
+        from donjon.rendu import regarder as rendu
+        from donjon.scene import scene_percue
+        tilo = cs.TacheAccepteeTests().tilo_paye_pour_l_atre(False)
+        relais = relais_reel()
+        retenir_refus(relais, "aubin", "marchand", "demander", "necessaire", objet="torche")
+        for m, acteur, payeur, objet in ((tilo, "tilo", "odile", "atre"),
+                                         (relais, "aubin", "marchand", "brasero")):
+            with self.subTest(objet=objet), patch.object(planification, "VERIFIER", True):
+                condition = {"objet": objet, "allume": True}
+                engagement = {"condition": condition, "pour": payeur, "minute": m.data["minutes"]}
+                avant = m.copier().data
+                visible, scene = rendu(m), scene_percue(m)
+                self.assertIsNone(devis_pulsion(m, acteur, condition, payeur))
+                durees = []
+                self.assertIsNone(devis_pulsion(m, acteur, condition, payeur, duree=durees))
+                self.assertEqual(durees, [None])
+                self.assertIsNone(planifier_engagement(m, acteur, engagement))
+                self.assertTrue(empeche(m, acteur, engagement))
+                m = recharger(m)
+                self.assertEqual(m.data, avant)
+                self.assertEqual(rendu(m), visible)
+                self.assertEqual(scene_percue(m), scene)
+                self.assertIsNone(planifier_engagement(m, acteur, engagement))
+                self.assertTrue(empeche(m, acteur, engagement))
+
     def test_relais42_la_part_ne_reste_pas_due_soixante_minutes(self):
         m = relais_reel()
         # Sauvegarde exacte de main 06602a6, juste avant l'achat de la minute 151.
@@ -108,6 +135,11 @@ class TachesPayeesTests(unittest.TestCase):
 
     def test_le_bien_du_payeur_peut_etre_emprunte_pour_agir_soi_meme(self):
         m = cs.TacheAccepteeTests().tilo_paye_pour_l_atre(False)
+        # Isoler la fourniture de l'outil du secours spontané d'Odile :
+        # le nouveau contact peut lui faire entreprendre elle-même l'allumage
+        # pour autrui avant le retour de Tilo, et réserver alors son briquet.
+        from tests.support import sans_souci
+        sans_souci(m, 'odile')
         m.joueur.update(salle="salle_commune", position=[3, 3], orientation="ouest")
         # Un autre outil d'allumage, prêté par Odile : c'est Tilo qui allume ensuite.
         m.objets["briquet"].update(lieu="odile", proprietaire="odile")

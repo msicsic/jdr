@@ -171,9 +171,9 @@ class Monde:
     def _installer_recit(self):
         self.data.setdefault("conversation", [])
 
-    def memoriser(self, joueur, reponse, nature="dialogue"):
+    def memoriser(self, joueur, reponse, nature="dialogue", *, complet=False):
         """Mémoire de conversation, jamais une source de nouvelles vérités physiques."""
-        self.data["conversation"].append({"joueur": joueur[:2000], "reponse": reponse[:4000],
+        self.data["conversation"].append({"joueur": joueur[:2000], "reponse": reponse if complet else reponse[:4000],
                                           "nature": nature, "revision": self.data["revision"]})
         self.data["conversation"] = self.data["conversation"][-12:]
 
@@ -482,8 +482,9 @@ class Monde:
                           "hors_de_vue": True}
                 if salle_souvenir == self.joueur["salle"]:
                     # Là où il l'a vu, par rapport à lui maintenant : un souvenir, pas une présence.
-                    from .localisation import relatif, orientation_relative
+                    from .localisation import relatif, orientation_relative, distance
                     position_vue = souvenir.get("contact", souvenir["position"])
+                    entree["distance_metres"] = distance(self, salle_souvenir, position_vue)
                     entree["vu_a"] = relatif(self, salle_souvenir, position_vue)[1]
                     entree["orientation_relative"] = orientation_relative(self, salle_souvenir, position_vue)
                 souvenirs_visuels.append(entree)
@@ -717,5 +718,7 @@ class Monde:
     def charger(cls, chemin):
         try:
             return cls(json.loads(Path(chemin).read_text(encoding="utf-8")))
+        except ErreurMonde:
+            raise  # Conserver le champ fautif et l'attendu de la validation d'état.
         except (OSError, ValueError, TypeError) as exc:
             raise ErreurMonde(f"Impossible de charger la sauvegarde : {exc}") from exc

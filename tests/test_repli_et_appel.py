@@ -18,6 +18,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
+from tests.paroles_support import AppelsParole
 from donjon.esprits import lire
 from donjon.mj import MJOpenAI
 from donjon.monde import Monde, nouveau_monde
@@ -48,10 +49,11 @@ def verdicts(*lignes):
 NEUTRE = ("neutre", (), "")
 
 
-def jouer(monde, saisie, reponses, audits, jet=20, options=()):
+def jouer(monde, saisie, reponses, audits, jet=20, options=(), suite=()):
     """Une saisie dans la vraie boucle de jeu, le fournisseur simulé appel par appel : ``reponses``
-    pour le MJ, ``audits`` pour l'auditeur narratif ; la contre-revue d'une action est conforme."""
-    reponses, audits, appels = list(reponses), list(audits), []
+    pour le MJ, ``audits`` pour l'auditeur narratif ; la contre-revue d'une action est conforme.
+    ``suite`` : commandes saisies après elle (« tenter » après l'aperçu d'un acte lourd, lot 325)."""
+    reponses, audits, appels = list(reponses), list(audits), AppelsParole()
 
     def appel(instructions, entree, intention, fonction, schema):
         appels.append((fonction, entree))
@@ -70,7 +72,8 @@ def jouer(monde, saisie, reponses, audits, jet=20, options=()):
         with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
               patch.object(MJOpenAI, "_appeler_brut", side_effect=appel),
               patch.object(Monde, "d20", return_value=jet),
-              patch("builtins.input", side_effect=[saisie, "quitter"]),
+              patch("donjon.mj.preparer_parole", side_effect=appels.preparer),
+              patch("builtins.input", side_effect=[saisie, *suite, "quitter"]),
               patch("sys.stdout", io.StringIO()) as sortie):
             assert jeu.main(["--console", "--connexion", "api", "--save", str(chemin), *options]) == 0
         return Monde.charger(chemin), sortie.getvalue(), appels
@@ -198,15 +201,24 @@ class ReplisTests(unittest.TestCase):
                                                               "sources": ["objet:brasero"]})
 
     def test_sans_phrase_admise_le_moteur_dit_ce_que_corvus_percoit_et_ce_qui_manque(self):
+        from donjon.narration import attestations
+        from donjon.rendu import position
+        phrase_position = "Le brasero : Echoppe de Gorm."
+        # Preuve exacte, disponible avant toute réponse du MJ : ce troisième
+        # segment du repli vient du même rendu public que la consultation.
+        self.assertEqual(position(self.m, "brasero"), phrase_position)
+        self.assertIn(phrase_position, attestations(self.m, self.m.contexte()))
         refus = verdicts(("invention_protegee", (), "Chaleur non établie."))
         reprise, sortie, _ = jouer(self.m, "mj le brasero, il chauffe à quel point ?",
                                    [dialogue("Le brasero ferait fondre du fer.")] * 3, [refus] * 3)
-        attendu = ("Le brasero éclaire la pièce. Un brasero en fer est allumé. Ce que tu perçois et ce que tu "
+        attendu = ("Le brasero éclaire la pièce. Un brasero en fer est allumé. Le brasero : Echoppe de Gorm. Ce que tu perçois et ce que tu "
                    "sais n'en disent pas davantage.")
         self.assertIn(attendu, sortie)
         self.assertNotIn("fondre", sortie)
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], attendu)
         self.assertEqual(reprise.data["narrations_mj"][-1]["sources"], ["moteur"])
+        self.assertEqual(position(reprise, "brasero"), phrase_position)
+        self.assertIn(phrase_position, attestations(reprise, reprise.contexte()))
 
     def test_cas_reel_pousse_toi_l_issue_du_moteur_plutot_qu_un_repli_vide(self):
         # Brune au contact ; les trois réponses lui font promettre de bouger sans que le moteur l'ait prévu.
@@ -216,8 +228,9 @@ class ReplisTests(unittest.TestCase):
         engagement = {"segments": {"0": {"portee_mecanique": "aucune", "verdict": "engagement", "sources": [], "locuteur": "brune",
                                          "citation": "Je vais me pousser.", "entites": [], "comptes": [], "motif": ""}}}
         reprise, sortie, appels = jouer(m, saisie, [parole(saisie, ("passage", "", "", ""), personnage="brune"),
-                                                    promesse, promesse, promesse], [engagement] * 3)
-        validee = mj(appels)[1]["faits"]["conversation_validee"]
+                                                    promesse, promesse, promesse], [engagement] * 3, suite=("tenter",))
+        self.assertIn("demander le passage à Brune", sortie)
+        validee = appels.rapports[-1]
         self.assertTrue(validee["faits"])
         self.assertIn(f"Tu dis à Brune : « {saisie} »", sortie)
         self.assertIn(" ".join(validee["faits"]), sortie)

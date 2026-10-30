@@ -34,6 +34,9 @@ class ProtegerTests(unittest.TestCase):
             orienter(m, acteur, "brune")
             percevoir_tous(m)
             m.joueur["position"] = [1, 5]
+            # Voir le mouvement, pas seulement retrouver le joueur au bord
+            # du regard après avoir regardé le protégé dans l'autre sens.
+            orienter(m, acteur, "joueur")
             percevoir_tous(m)
             m.joueur["position"] = [2, 5]
             percevoir_tous(m)

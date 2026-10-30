@@ -13,6 +13,7 @@ AIDE = """COMMANDES LOCALES — sans appel API
   alimenter <source> avec <combustible>  recharger un feu, une lampe, avec un combustible porté ou à portée
   manger <nourriture>                   une part de ce qui est à toi ou à personne (5 min)
   observer <personnage>                lire ses signes (3 secondes), avec le risque de se méprendre
+  reperer <cible>                      consulter sa position perçue ou son dernier repère connu
   écouter                               tendre l'oreille (3 min), mieux collé à une porte
   nord / sud / est / ouest              un pas en mode cases, sinon changement de pièce
   pas nord / pas sud / pas est / pas ouest  te tourner vers la direction puis avancer d'une case (1,5 s)
@@ -22,12 +23,17 @@ AIDE = """COMMANDES LOCALES — sans appel API
   examiner <objet>                     voir les composants accessibles
   lire <inscription>                   tenter d'en comprendre le sens
   prendre <objet> | poser <objet>
+  ramper sous <obstacle> | enjamber <obstacle> | escalader <obstacle>
+  monter <échelle> | descendre <échelle>
+  franchir <obstacle> avec <appui>       reprendre un arbitrage déjà établi pour ce passage
   mettre <objet> dans <contenant>       déposer, ou alimenter une source avec un combustible
   prelever <lot>                       séparer une pièce du lot, dans la besace
   acheter <objet>                       auprès de son vendeur présent
   voler <objet>                        tentative discrète, jet de DEX si observé
   parler <personnage>
   saisir <personnage> | ligoter <personnage> avec <lien>
+  assommer <personnage> [avec <arme>]   tenter de l'assommer ; la surprise dépend de ce qu'il perçoit
+  fuir | riposter <agresseur> [avec <arme>] | se rendre à <agresseur>
   délier <personnage> [avec <lame>] | se libérer | se dégager
   traîner <corps> vers <direction>     une case, mains libres, 4,5 secondes
   ranimer <personnage>                 au contact, après une minute d'inconscience (10 secondes)
@@ -95,7 +101,7 @@ VERBES = {
     "acheter": "acheter", "ouvrir": "ouvrir", "fermer": "fermer",
     "voler": "voler", "derober": "voler",
     "tuer": "tuer", "saisir": "saisir", "ligoter": "ligoter", "delier": "delier",
-    "ranimer": "ranimer", "observer": "observer",
+    "ranimer": "ranimer", "observer": "observer", "reperer": "reperer",
     "verrouiller": "verrouiller", "deverrouiller": "deverrouiller", "crocheter": "crocheter",
     "frapper": "frapper", "defoncer": "frapper", "forcer": "frapper",
     "couper": "couper", "decouper": "couper", "trancher": "couper",
@@ -109,7 +115,7 @@ VERBES = {
 # Ce qu'une question peut faire exécuter : percevoir, sans rien changer au monde. Tout autre geste
 # qu'elle évoque (« puis-je allumer ? ») se prépare sans s'exécuter : le joueur voit ce qu'il
 # demanderait, puis le tente ou l'annule.
-PERCEPTIONS = ("observer", "examiner")
+PERCEPTIONS = ("observer", "examiner", "reperer")
 
 
 @dataclass(frozen=True)
@@ -118,14 +124,59 @@ class DescripteurPublic:
     contenu: object
 
 
-def geste_local(action, cible, outil="", methode="simple", destination=""):
+def geste_local(action, cible, outil="", methode="simple", destination="", direction=""):
     """La même proposition canonique pour le texte local et le choix structuré."""
-    if action in {"manger", "prelever", "alimenter", "mettre"}:
+    if action in {"pousser", "trainer"}:
+        outil = direction
+    if action in {"fuir", "degager"}:
+        cible = ""
+    if action == "liberer":
+        cible = "joueur"
+    if action in {"manger", "prelever", "alimenter", "mettre", "passer_obstacle"}:
         from .operations import etape, sequence
         if action == "mettre":
             return sequence(etape("deplacer", cible, destination, methode=methode))
         return sequence(etape(action, cible, outil=outil, methode=methode))
     return proposition(action, cible, outil, methode)
+
+
+def passage_descripteur(monde, d):
+    """Un choix encore offert, avec références exactes et paramètres fermés."""
+    from .gestes_publics import passages_publics
+    from .monde import ErreurMonde
+    from .voix import reel
+    p = d.get("parametres", {})
+    attendus = ({"methode"} if d["geste"] == "passer_obstacle" else
+                {"outil"} if d["geste"] == "franchir_obstacle" else set())
+    if not isinstance(p, dict) or set(p) != attendus:
+        raise ErreurMonde("Paramètres de passage incomplets ou inconnus.",
+                          f"descripteur.parametres : reçu {p!r} ; champs exacts : {sorted(attendus)}.")
+    offres = passages_publics(monde)
+    if not any(o["geste"] == d["geste"] and o["cible"] == d["cible"] and
+               o.get("methode") == p.get("methode") and o.get("outil") == p.get("outil") for o in offres):
+        raise ErreurMonde("Ce passage n'est plus perçu avec une forme établie.",
+                          f"descripteur : reçu {d!r} ; passages publics actuels : {offres!r}.")
+    if d["geste"] == "franchir_obstacle":
+        return passage_memorise(monde, reel(monde, d["cible"]), reel(monde, p["outil"]))
+    return geste_local(d["geste"], reel(monde, d["cible"]), methode=p.get("methode", "simple"))
+
+
+def passage_memorise(monde, cible, outil):
+    """Rejouer le même arbitrage établi ; la prise fait partie du plan affiché."""
+    from .franchissement import cle_arbitrage
+    from .operations import etape, sequence
+    from .monde import ErreurMonde
+    destination = monde.objets[cible].get("appui_vertical", {}).get("haut")
+    try:
+        precedent = monde.data["arbitrages"].get(cle_arbitrage(monde, cible, outil, destination))
+    except KeyError:
+        precedent = None
+    if not precedent or type(precedent.get("dd")) is not int or not 16 <= precedent["dd"] <= 22:
+        raise ErreurMonde("Aucun arbitrage établi ne correspond à ce franchissement.",
+                          f"franchir_obstacle : cible={cible!r}, outil={outil!r} ; attendu un arbitrage mémorisé pour la géométrie et la charge actuelles.")
+    prise = [] if monde.est_porte(outil) else [etape("deplacer", outil, "joueur")]
+    return sequence(*prise, etape("franchir_obstacle", cible, destination, outil,
+                                "appui_mobile", precedent["dd"]))
 
 
 def fabrication_locale(action, cible, parametres):
@@ -216,6 +267,7 @@ def proposition_descripteur(monde, descripteur):
     from .monde import ErreurMonde
     from .noms import reference
     from .voix import reel
+    from .gestes_publics import GESTES_CORPS, GESTES_PASSAGE, REACTIONS, dangers_publics
     d = descripteur.contenu
     if (not isinstance(d, dict) or not {"geste", "cible"} <= d.keys()
             or d.keys() - {"geste", "cible", "parametres"}
@@ -223,19 +275,35 @@ def proposition_descripteur(monde, descripteur):
         raise ErreurMonde("Je n'ai pas compris ce geste : aucune modification.",
                           "descripteur : geste et cible non vides, parametres optionnels ; aucun autre champ.")
     action, cible = d["geste"], d["cible"]
+    if action in GESTES_PASSAGE:
+        return passage_descripteur(monde, d)
     if action in {"assembler", "decouper"}:
         return fabrication_descripteur(monde, d)
     actions = {"examiner", "observer", "lire", "allumer", "eteindre", "manger", "ouvrir", "fermer",
                "prendre", "poser", "remettre", "prelever", "deverrouiller", "crocheter", "tourner", "marcher",
-               "frapper", "alimenter", "mettre"}
+               "frapper", "alimenter", "mettre"} | GESTES_CORPS
     if action not in actions:
         raise ErreurMonde("Je ne connais pas ce geste direct.",
                           f"descripteur.geste : reçu {action!r} ; acceptés : {', '.join(sorted(actions))}.")
     parametres = d.get("parametres", {})
-    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode", "destinataire", "quantite", "destination"}
-            or any(not isinstance(v, str) or len(v) > 1000 for k, v in parametres.items() if k != "quantite")):
+    if (not isinstance(parametres, dict) or parametres.keys() - {"outil", "methode", "destinataire", "quantite", "destination", "direction", "parcours"}
+            or any(not isinstance(v, str) or len(v) > 1000 for k, v in parametres.items() if k not in {"quantite", "parcours"})):
         raise ErreurMonde("Je n'ai pas compris les paramètres de ce geste.",
-                          f"descripteur.parametres : reçu {parametres!r} ; outil, methode, destinataire, destination : chaînes de 1000 caractères au plus ; quantite entière.")
+                          f"descripteur.parametres : reçu {parametres!r} ; outil, methode, destinataire, destination, direction : chaînes de 1000 caractères au plus ; quantite entière ; parcours structuré de marche.")
+    if "parcours" in parametres:
+        if action != "marcher" or set(parametres) != {"parcours"}:
+            raise ErreurMonde("Ce trajet ne décrit pas une marche directe.",
+                              f"descripteur.parametres : reçu {parametres!r}, geste={action!r} ; "
+                              "accepté : parcours seul, avec geste=marcher.")
+        return {**geste_local(action, cible), "parcours": parametres['parcours']}
+    if "direction" in parametres:
+        from .spatial import VECTEURS
+        if action not in {"pousser", "trainer"} or parametres["direction"] not in ("", *VECTEURS):
+            raise ErreurMonde("Choisis une direction de ce geste.",
+                              f"descripteur.parametres.direction : reçu {parametres['direction']!r} pour {action} ; accepté pour pousser/trainer : {list(VECTEURS)}, ou vide pour pousser.")
+    if action in {"pousser", "trainer"} and "outil" in parametres:
+        raise ErreurMonde("Ce geste demande une direction, pas un outil.",
+                          f"descripteur.parametres.outil : reçu {parametres['outil']!r} ; accepté : direction, outil absent.")
     if action != "mettre" and "destination" in parametres:
         raise ErreurMonde("Ce geste ne prend pas de destination.",
                           f"descripteur.parametres.destination : reçu {parametres['destination']!r} pour {action} ; accepté : champ absent.")
@@ -261,7 +329,14 @@ def proposition_descripteur(monde, descripteur):
 
     if action not in {"tourner", "marcher"}:
         cible = exacte(cible, "cible", action in {"poser", "remettre", "prelever", "manger", "allumer", "eteindre", "alimenter", "mettre", "frapper"})
-    if action in {"frapper", "mettre", "alimenter"}:
+    corporel = action in GESTES_CORPS and monde.objets.get(cible, {}).get("type") == "personnage"
+    if action in GESTES_CORPS - {"frapper"} and not corporel:
+        raise ErreurMonde("Ce geste demande une personne en vue.",
+                          f"descripteur.cible : reçu {cible!r} ; accepté : personnage perçu.")
+    if action in REACTIONS and d["cible"] not in dangers_publics(monde):
+        raise ErreurMonde("Cette personne n'est plus un danger perçu.",
+                          f"descripteur.cible : reçu {d['cible']!r} ; accepté : {dangers_publics(monde)} pour {action}.")
+    if action in {"mettre", "alimenter"} or action == "frapper" and not corporel:
         from .noms import PERSONNES
         if monde.objets[cible]["type"] in (*PERSONNES, "partie_corps"):
             raise ErreurMonde("Ce menu demande un objet, pas un corps.",
@@ -284,7 +359,8 @@ def proposition_descripteur(monde, descripteur):
     outil = parametres.get("outil", "")
     if outil:
         outil = exacte(outil, "parametres.outil", True)
-    return geste_local(action, cible, outil, parametres.get("methode", "simple"))
+    return geste_local(action, cible, outil, parametres.get("methode", "simple"),
+                       direction=parametres.get("direction", ""))
 
 
 def est_question(texte):
@@ -489,8 +565,7 @@ def analyser(monde, texte):
             cible = _nomme(monde, texte[len(prefixe):], False)
             if cible is None:
                 return None
-            from .operations import etape, sequence
-            return sequence(etape("passer_obstacle", cible, methode=methode))
+            return geste_local("passer_obstacle", cible, methode=methode)
     # Une prise explicite d'un objet nommé exactement ne nécessite pas de MJ.
     # Le complément entier doit correspondre : ne jamais avaler une condition,
     # une seconde action ou une précision telle que « discrètement ».
@@ -548,6 +623,16 @@ def analyser(monde, texte):
     if texte.startswith("sonner "):
         from .operations import etape, sequence
         return sequence(etape("emettre_son", monde.trouver(texte[7:]), methode="simple"))
+    if texte.startswith("franchir ") and " avec " in texte:
+        cible, _, outil = texte[9:].partition(" avec ")
+        cible, outil = _nomme(monde, cible, False), _nomme(monde, outil, False)
+        if cible is None or outil is None:
+            return None
+        from .monde import ErreurMonde
+        try:
+            return passage_memorise(monde, cible, outil)
+        except ErreurMonde:
+            return None  # Premier arbitrage : le chemin libre reste disponible.
     if texte.startswith("installer ") and " contre " in texte:
         cible, _, support = texte[10:].partition(" contre ")
         return proposition("installer", monde.trouver(cible), monde.trouver(support))
@@ -559,7 +644,7 @@ def analyser(monde, texte):
             return don(monde, texte[len(prefixe):])
     if texte.startswith("trainer "):
         cible, sep, direction = texte[8:].partition(" vers ")
-        return proposition("trainer", monde.trouver(cible), direction.removeprefix("le ").removeprefix("l'"))
+        return geste_local("trainer", monde.trouver(cible), direction=direction.removeprefix("le ").removeprefix("l'"))
     if texte.startswith("pousser "):
         # « pousser brune », « pousser brune vers l'ouest » : la direction est facultative.
         from .spatial import VECTEURS
@@ -573,7 +658,7 @@ def analyser(monde, texte):
         cible = monde.trouver(" ".join(mots))
         if monde.objets[cible]["type"] != "personnage":
             return None
-        return proposition("pousser", cible, direction)
+        return geste_local("pousser", cible, direction=direction)
     if texte in ("contexte", "histoire", "objectif"):
         return proposition("observer", "contexte")
     if texte in ("ecouter", "j'ecoute", "tendre l'oreille", "je tends l'oreille", "ecouter a la porte",
@@ -593,6 +678,14 @@ def analyser(monde, texte):
         return proposition("liberer", "joueur")
     if texte in ("se degager", "me degager", "degager"):
         return proposition("degager")
+    if texte in ("fuir", "s'enfuir"):
+        return geste_local("fuir", "")
+    for prefixe, action in (("riposter ", "riposter"), ("se rendre a ", "se_rendre"),
+                            ("assommer ", "frapper")):
+        if texte.startswith(prefixe):
+            cible, avec, outil = texte[len(prefixe):].partition(" avec ")
+            return geste_local(action, monde.trouver(cible), monde.trouver(outil) if avec else "",
+                               "assommer" if prefixe == "assommer " else "simple")
     verbe, sep, reste = texte.partition(" ")
     if not sep or verbe not in VERBES:
         return None

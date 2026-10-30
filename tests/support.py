@@ -5,6 +5,15 @@ from unittest.mock import patch
 from donjon.mj import MJOpenAI
 
 
+def question_sans_execution(texte):
+    """Oracle U-P : réponse inchangée, suivie du constat moteur sans action.
+
+    Cette valeur attendue n'appelle pas le rendu de production. Les tests
+    continuent de comparer le texte entier et tous leurs oracles du monde.
+    """
+    return texte + "\nQuestion au MJ : aucune action exécutée."
+
+
 def sans_indices_soupcon_passifs(monde):
     """Projection des oracles antérieurs au 267, sans changer leurs hashes.
 
@@ -144,6 +153,25 @@ def presentes(monde, *ids):
     from donjon.noms import apprendre
     for id in ids or tuple(i for i,o in monde.objets.items() if o["type"] == "personnage"):
         apprendre(monde, "joueur", id)
+    return monde
+
+
+def possessions_deja_confiees(monde):
+    """Placement d'auteur : les portages actuellement vus ont déjà été racontés.
+
+    Isole les scènes qui éprouvent une autre parole ou un geste en cours des
+    confidences d'inventaire initiales. Un transfert ou un changement de droits
+    ultérieur reste une nouvelle, avec les vrais registres de faits dits.
+    """
+    from donjon.esprits import percevoir_tous, pnjs
+    from donjon.social import nouvelles, retenir_dit
+    percevoir_tous(monde)
+    for id in pnjs(monde):
+        for _, noyau, _, _ in nouvelles(monde, id):
+            if noyau["type"] == "constat" and noyau["attribut"] == "lieu":
+                for autre in pnjs(monde):
+                    if autre != id:
+                        retenir_dit(monde, id, autre, noyau)
     return monde
 
 

@@ -136,24 +136,38 @@ def parcours(v, e, ouvertes, delai=0, certain=False):
 
 
 def approche(v, e, etape, cibles=None):
-    from .pnj import _a_toucher
+    from .pnj import _a_toucher, _contact_vocal_cru
+    from .deliberation import SOCIALES
     from .proximite_vocale import vocale
     if vocale(etape):
         duree = moyenne(v, e, e.salle, v.cases_vocales(e, etape['cible']))
         return Route(fin=(e.salle, None), sejours=((e.salle, duree),)) if duree is not None else None
     touches = _a_toucher(v.monde, v.id, etape, e.portes)
+    if cibles is None:
+        touches = [x for x in touches if v.case_objet(e, x) is not None
+                   or not (_contact_vocal_cru(v.monde, v.id, etape, x, e.salle)
+                           or etape['operation'] in SOCIALES and x == etape['cible']
+                           and e.fait('cherche', x) and v.salle(e, x) == e.salle)]
     cibles = tuple(v.case_objet(e, x) for x in touches) if cibles is None else tuple(cibles)
     centre = etape["operation"] == "inspecter" and not etape.get("attendre_remise")
+    # Une case inconnue prépare la même observation au centre que l'exécution ;
+    # ce n'est jamais une approche gratuite ni une preuve de présence.
+    observation = bool(cibles) and None in cibles
+    if observation and any(v.salle(e, x) != e.salle for x in touches):
+        return None
+    centre = centre or observation
     if centre:
         sol = cases(v.salles[e.salle])
         x, y = sum(c[0] for c in sol) / len(sol), sum(c[1] for c in sol) / len(sol)
         cibles = (min(sol, key=lambda c: ((c[0]-x)**2 + (c[1]-y)**2, c)),)
-    if not cibles or None in cibles:
+    if not cibles:
         return Route(fin=(e.salle, None))
-    cle = (e.salle, cibles, centre, e.allure, e.portes if v.metrique(e.allure) else frozenset())
+    cle = (e.salle, cibles, centre, observation, e.allure, e.portes if v.metrique(e.allure) else frozenset())
     if cle not in v._approches:
         contacts = v.contacts(e.salle, cibles, centre)
         duree = moyenne(v, e, e.salle, contacts)
+        if duree is not None and observation:
+            duree += pnj.TOUR
         v._approches[cle] = (Route(fin=(e.salle, None), sejours=((e.salle, duree),))
                             if duree is not None else None)
     return v._approches[cle]

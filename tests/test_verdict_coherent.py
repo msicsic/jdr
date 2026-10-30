@@ -133,7 +133,7 @@ class VerdictCoherentTests(unittest.TestCase):
                 m = banc(script, noms_connus=['marchand', 'aubin', 'brune', 'ilse'])
                 avant = m.joueur['or']
                 mots = f'{nom}, rends-moi les deux pièces que tu me dois.'
-                texte = 'Ta demande est entendue.'
+                texte = 'Je te rends 2 pièces.'
                 a = jugement('mecanique', 'etablie', ('comptes',))
                 a['segments']['0']['comptes'] = [compte(nom.lower(), 'Corvus', montant=2, etat='rendu')]
                 r, sortie, appels = jouer(recharger(m), mots,

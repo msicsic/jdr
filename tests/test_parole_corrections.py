@@ -102,9 +102,9 @@ class VocatifTests(unittest.TestCase):
         # Les mots du joueur sont dits tels quels : la réplique n'est pas réécrite.
         self.assertIn(f"Tu dis à Ilse : « {saisie} »", sortie)
         self.assertNotIn("Tu dis à Aubin", sortie)
-        validee = narration(appels)["faits"]["conversation_validee"]
+        validee = appels.rapports[-1]
         self.assertEqual((validee["destinataires"], validee["repondent"], validee["temoins"]),
-                         (["ilse"], ["ilse"], ["aubin", "brune"]))
+                         (["ilse"], [], ["aubin", "brune"]))
         # Après rechargement : Ilse a reçu la question, Aubin l'a entendue sans qu'elle lui soit adressée.
         self.assertEqual(paroles_retenues(reprise, "ilse")[-1], ("joueur", ["ilse"], saisie))
         self.assertEqual(paroles_retenues(reprise, "aubin")[-1], ("joueur", ["ilse"], saisie))
@@ -158,16 +158,16 @@ class CantonadeTests(unittest.TestCase):
             dialogue("Une voix de femme répond, tout près : « Ilse. »")],
             [audit(ligne("parole", "voix_1", "Ilse."))])
         self.assertEqual(mj(appels)[0]["faits"]["parole_prevue"]["personnage"], "personne")
-        faits = narration(appels)["faits"]
-        validee = faits["conversation_validee"]
+        faits = appels.contextes[-1]
+        validee = appels.rapports[-1]
         # Ilse a saisi la question et répond : la voix qu'il ne savait pas là se nomme.
-        self.assertEqual((validee["destinataires"], validee["repondent"]), ([], ["voix_1"]))
+        self.assertEqual((validee["destinataires"], validee["repondent"]), ([], []))
         self.assertIn("Une voix inconnue se nomme : « Ilse ».", validee["faits"])
-        self.assertIn(validee["issue"], faits["attestations"])
+        self.assertFalse(any(f == "auditer_narration" for f, _ in appels))
         self.assertTrue(validee["issue"].startswith("Tu as dit à voix haute, à la cantonade : « Qui est là ? »."))
         self.assertEqual(faits["interlocuteurs"]["voix_1"]["voix_inconnue"], True)
         self.assertIn("Tu dis : « Qui est là ? »", sortie)
-        self.assertIn("« Ilse. »", sortie)
+        self.assertIn("« Je m'appelle Ilse. »", sortie)
         # Après rechargement : Ilse a retenu la question ; Corvus entend une voix qui se dit Ilse, et peut
         # lui parler ; la suite de l'échange va à elle.
         self.assertEqual(paroles_retenues(reprise, "ilse")[-1][0::2], ("joueur", "Qui est là ?"))
@@ -187,7 +187,7 @@ class CantonadeTests(unittest.TestCase):
             dialogue("Une voix répond dans le noir : « Oui, ici. »")], [audit(ligne("parole", "voix_1", "Oui, ici."))])
         # Seul dans le noir, Corvus peut poser sa question à voix haute : le mode parole lui est offert.
         self.assertEqual(mj(appels)[0]["faits"]["parole_prevue"]["personnage"], "personne")
-        self.assertEqual(narration(appels)["faits"]["conversation_validee"]["repondent"], ["voix_1"])
+        self.assertEqual(appels.rapports[-1]["repondent"], ["voix_1"])
         self.assertIn("Tu dis : « il y a quelqu'un ? »", sortie)
         self.assertIn("« Oui, ici. »", sortie)
         self.assertEqual(paroles_retenues(reprise, "ilse")[-1][2], "il y a quelqu'un ?")
@@ -199,7 +199,7 @@ class CantonadeTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "« Qui est là ? »", [
             parole("Qui est là ?", ("qui", "", "", ""), personnage="personne"),
             dialogue("Ta question se perd dans le noir.")], [verdicts(("mecanique", ("conversation_validee",), ""))])
-        validee = narration(appels)["faits"]["conversation_validee"]
+        validee = appels.rapports[-1]
         self.assertEqual(validee["repondent"], [])
         self.assertIn("Aucune réponse ne te parvient.", validee["issue"])
         # Elle l'a entendue sans répondre : elle la retient, Corvus ne la sait pas là.
@@ -212,7 +212,7 @@ class CantonadeTests(unittest.TestCase):
         reprise, _, appels = jouer(m, "« Il fait froid ici. »", [
             parole("Il fait froid ici.", ("propos", "", "", ""), personnage="personne"),
             dialogue("Ta voix se perd dans le noir.")], [verdicts(("mecanique", ("conversation_validee",), ""))])
-        self.assertEqual(narration(appels)["faits"]["conversation_validee"]["repondent"], [])
+        self.assertEqual(appels.rapports[-1]["repondent"], [])
         self.assertEqual(paroles_retenues(reprise, "ilse")[-1][2], "Il fait froid ici.")
 
     def test_seuls_ceux_qui_repondent_parlent(self):
@@ -241,7 +241,8 @@ class FaisabiliteTests(unittest.TestCase):
         self.assertNotIn("sort des limites", sortie)
         self.assertNotIn("Réexamine", sortie)
         self.assertIn(demande_precision(), sortie)
-        self.assertEqual(reprise.data['conversation'][-1]['reponse'], demande_precision())
+        from tests.support import question_sans_execution
+        self.assertEqual(reprise.data['conversation'][-1]['reponse'], question_sans_execution(demande_precision()))
         self.assertEqual(reprise.data['narrations_mj'][-1]['sources'], ['moteur'])
         self.assertEqual([f for f, _ in appels], ['repondre_au_joueur'] * 3)
         self.assertEqual((reprise.objets, reprise.joueur), (m.objets, m.joueur))
@@ -286,7 +287,7 @@ class ChampsTests(unittest.TestCase):
         _, _, appels = jouer(m, "as-tu de quoi manger, Ilse ?", [
             parole("as-tu de quoi manger, Ilse ?", ("ressource", "faim", "", ""), personnage="ilse"),
             dialogue("Ilse : « Non. »")], [audit(ligne("parole", "ilse", "Non."))])
-        ilse = narration(appels)["faits"]["objet:ilse"]
+        ilse = mj(appels)[0]["faits"]["objet:ilse"]
         self.assertNotIn("a_portee", ilse)
         self.assertEqual((ilse["a_portee_de_main"], ilse["a_portee_de_voix"]), (False, True))
 
@@ -333,13 +334,13 @@ class ImpostureTests(unittest.TestCase):
         reprise, sortie, appels = jouer(m, "« C'est moi, Brune. »", [
             parole("C'est moi, Brune.", ("nom", "joueur", "", ""), personnage="voix_1"),
             dialogue("La voix répond : « Brune ? Je ne te reconnais pas. »")],
-            [audit(ligne("parole", "voix_1", "Brune ? Je ne te reconnais pas."))])
+            [audit(ligne("parole", "voix_1", "Brune ? Je ne te reconnais pas."))], suite=("tenter",))
         # Typé « Corvus se nomme », le moteur lit le nom dans les mots, Brune, sans relancer le MJ
         # (branche relances-luna : avant, un refus et une seconde proposition).
-        self.assertEqual(len(mj(appels)), 2)
-        self.assertNotIn("retour_moteur", mj(appels)[1]["faits"])
-        faits = narration(appels)["faits"]["conversation_validee"]["faits"]
-        self.assertEqual(faits, ["Une voix qui se dit Ilse sait que tu n'es pas « Brune »."])
+        self.assertEqual(len(mj(appels)), 1)
+        self.assertFalse(any(f == "auditer_narration" for f, _ in appels))
+        faits = appels.rapports[-1]["faits"]
+        self.assertIn("Une voix qui se dit Ilse sait que tu n'es pas « Brune ».", faits)
         # Après rechargement : Ilse, qui connaît la voix de Brune, retient l'imposture et se méfie de la voix.
         self.assertIn({"type": "imposture", "se_disait": "brune"},
                       [{k: s[k] for k in ("type", "se_disait")} for s in lire(reprise, "ilse")["memoire"]
@@ -352,7 +353,7 @@ class ImpostureTests(unittest.TestCase):
             parole("Je suis Corvus.", ("propos", "", "", ""), personnage="voix_1"),
             dialogue("La voix : « Corvus… »")], [audit(ligne("parole", "voix_1", "Corvus…"))])
         # Le moteur lit le nom dans les mots : Corvus se nomme, même sans contenu typé.
-        faits = narration(appels)["faits"]["conversation_validee"]["faits"]
+        faits = appels.rapports[-1]["faits"]
         self.assertIn("te croit sur parole : pour elle, c'est « Corvus » qui parle", faits[0])
         self.assertEqual(lire(reprise, "ilse")["voix_entendues"]["joueur"]["se_dit"], "joueur")
 
@@ -367,7 +368,7 @@ class ImpostureTests(unittest.TestCase):
             parole("Qui est là ?", ("qui", "", "", ""), personnage="voix_1"),
             dialogue("La voix : « Ilse. »")], [audit(ligne("parole", "voix_1", "Ilse."))])
         self.assertIn("contenu[0] : retire l'élément nom", mj(appels)[1]["faits"]["retour_moteur"]["attendu"])
-        faits = narration(appels)["faits"]["conversation_validee"]["faits"]
+        faits = appels.rapports[-1]["faits"]
         self.assertFalse(any("c'est Corvus" in f for f in faits))
         self.assertNotEqual(lire(reprise, "ilse")["voix_entendues"].get("joueur", {}).get("se_dit"), "joueur")
 

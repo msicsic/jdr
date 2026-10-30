@@ -12,6 +12,8 @@ a fait), ``gestes`` (les gestes illicites : qui était là, qui en a été témo
 ``evenements`` (les « aller voir »). Rien de tout cela n'est lu par le jeu.
 """
 from contextlib import ExitStack, contextmanager
+from functools import wraps
+from inspect import signature
 import json
 from pathlib import Path
 from unittest.mock import patch
@@ -168,6 +170,7 @@ class Enregistreur:
         from . import deliberation, ouie, pnj, social
         choisir, temoigner = deliberation.choisir, pnj.temoigner_en_cours
         retentir, entendre, attribuer = ouie.retentir, ouie.entendre, ouie._attribuer
+        contrat_retentir = signature(retentir)
         se_tourner, bruit_inconnu = ouie._se_tourner, ouie._bruit_inconnu
         retenir, commencer, temoins = social.retenir_parole, pnj.commencer_geste, pnj._temoins
         a_l_oreille = pnj._temoins_a_l_oreille
@@ -184,9 +187,16 @@ class Enregistreur:
             self._noter(monde)
             return resultat
 
-        def _retentir(monde, auteur, geste, discret=False, bruit=0, texte="", cites=(), parole=None, vers=(), force=None,
-                      dits=None, appris=False):
-            n = force or ouie.nature(geste, discret, bruit)
+        @wraps(retentir)
+        def _retentir(*arguments, **options):
+            # L'observateur lit le contrat de l'ouïe, sans en recopier une
+            # signature qui pourrait filtrer les métadonnées des émissions.
+            appel = contrat_retentir.bind(*arguments, **options)
+            appel.apply_defaults()
+            champs = appel.arguments
+            monde, auteur, geste = (champs[k] for k in ("monde", "auteur", "geste"))
+            texte = champs["texte"]
+            n = champs["force"] or ouie.nature(geste, champs["discret"], champs["bruit"])
             salle, case, numero = self._case(monde, auteur)
             evenement, precedent = None, self._bruit
             if n is not None and salle in monde.data["salles"]:
@@ -195,8 +205,7 @@ class Enregistreur:
                     evenement["x"] = texte[:160]
             self._bruit = evenement
             try:
-                return retentir(monde, auteur, geste, discret, bruit, texte, cites, parole, vers, force, dits,
-                                appris)
+                return retentir(*arguments, **options)
             finally:
                 self._bruit = precedent
                 if evenement is not None:

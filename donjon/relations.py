@@ -16,6 +16,9 @@ MEFIANCE, CONFIANCE, RANCUNE, PEUR = 30, 60, 40, 40
 VIF = 60   # un axe qui se montre (``vive``)
 MENTEUSE = 0
 EPREUVES = {
+    "mandat_reussi": {"ascendant": 10},
+    "mandat_echoue": {"ascendant": -10},
+    "mandat_abusif": {"ascendant": -20},
     "garde_ignoree": {"confiance": -10, "rancune": 10},
     "service_rendu": {"confiance": 20, "affection": 10, "rancune": -15, "dette": 20},
     "vu_agir": {"confiance": -40, "affection": -10, "rancune": 40},
@@ -124,7 +127,6 @@ def verifier_chronique(c):
 
 def _estompes(monde, id, autre, r):
     # Ascendant : même retour lent au lien initial que l’affection (1 point/h).
-    # Aucune épreuve du présent lot ne modifie cet axe.
     from .caractere import valeur
     liens = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {})
     demie = max(1, 720 * valeur(monde, id, "fierte") / 50 / (1 + valeur(monde, id, "douceur") / 100))
@@ -223,6 +225,25 @@ def statuts_reconnus(monde, id, autre, lieu, domaine):
 def autorite_reconnue(monde, id, autre):
     """Ascendant qu'id reconnaît à autre, sans statut ni bonus de décision."""
     return _lecture(monde, id, autre)["ascendant"]
+
+
+def eprouver_mandat(monde, id, mandant, preuve, issue, source="essai", poids=1):
+    """Une issue perçue, une preuve durable ; le constat complète le ouï-dire.
+
+    Le registre commun survit à la mémoire courte et à l'estompement. Une
+    parole crue ne pèse que la moitié de son poids de croyance, même certaine.
+    """
+    from .esprits import lire, memoriser
+    if id in ("joueur", mandant) or poids <= 0:
+        return
+    cause = {"reussi": "mandat_reussi", "echoue": "mandat_echoue",
+             "renonce": "mandat_echoue", "abus": "mandat_abusif"}[issue]
+    preuve = "mandat:" + preuve + ":" + cause
+    niveau = .5 if source.startswith("dit:") else 1
+    if lire(monde, id)["preuves_relations"].get(mandant + ":" + preuve, {}).get("niveau", 0) >= niveau:
+        return
+    memoriser(monde, id, {"type": cause, "de": mandant, "preuve": preuve,
+                         "source": source, "poids": poids})
 
 
 # Les champs du bilan d'autorité d'un mandat (``autorite_mandat``), seule source de leurs noms hors de ce module.
@@ -403,7 +424,9 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
     preuve = s.get("preuve") or hashlib.sha256(json.dumps(s, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
     cle = autre + ":" + preuve
     preuves = esprit(monde, id)["preuves_relations"]
-    niveau = 0.4 if cause == "soupcon_deduit" else 0.5 if cause == "rumeur" else 0.8 if cause == "aveu" or s.get("par") == "ouie" else 1.0
+    niveau = (0.5 if cause.startswith("mandat_") and s.get("source", "").startswith("dit:") else
+              0.4 if cause == "soupcon_deduit" else 0.5 if cause == "rumeur" else
+              0.8 if cause == "aveu" or s.get("par") == "ouie" else 1.0)
     precedente = preuves.get(cle)
     if precedente and precedente["niveau"] > niveau:
         return
@@ -518,6 +541,10 @@ def souvenir(monde, id, s):
     from . import agendas
     from .voix import identifie, auteur_dit, source_dite
     t = s["type"]
+    if t in ("mandat_reussi", "mandat_echoue", "mandat_abusif"):
+        _appliquer(monde, id, s["de"], t, s,
+                   .5 * s["poids"] if s["source"].startswith("dit:") else s["poids"])
+        return
     if t == "rumeur" and s.get("evenement", {}).get("type") == "intention_lue":
         return
     if id == "joueur":

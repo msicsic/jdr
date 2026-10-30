@@ -3,6 +3,7 @@ from __future__ import annotations
 from .francais import quantite
 
 import copy
+import json
 from dataclasses import dataclass, field
 
 from .monde import ErreurMonde, objet
@@ -19,7 +20,7 @@ from .refus import cibles, inaccessible, portes_avec_usage, ProprieteInconnue
 
 ACTIONS = ["examiner", "toucher", "prendre", "poser", "acheter", "ouvrir", "fermer",
            "deverrouiller", "verrouiller", "crocheter", "frapper", "couper", "detacher", "bloquer", "debloquer",
-           "copier", "lire", "parler", "aller", "attendre", "observer", "allumer", "eteindre",
+           "copier", "lire", "parler", "aller", "attendre", "observer", "reperer", "allumer", "eteindre",
            "remettre", "voler", "installer", "franchir", "desinstaller", "marcher", "chasser", "faufiler", "tourner",
            "ecouter", "pousser", "ranimer", "fuir", "riposter", "se_rendre", "degager", "saisir", "ligoter", "delier", "liberer", "trainer", "tuer",
            "clarifier", "impossible"]
@@ -27,7 +28,7 @@ TRANCHE = 150      # dixièmes : une attente d'une durée donnée se vit par tra
 METHODES = ["simple", "finesse", "levier", "percussion", "traction", "assommer"]
 # Gestes dont le résultat est ce que le moteur fait percevoir. À distinguer de
 # commandes.PERCEPTIONS : cette dernière règle borne l'exécution d'une question.
-PERCEPTIONS = ("observer", "examiner", "toucher", "lire", "ecouter")
+PERCEPTIONS = ("observer", "examiner", "toucher", "lire", "ecouter", "reperer")
 
 
 class QualificationRequise(ProprieteInconnue):
@@ -73,6 +74,21 @@ class Plan:
     oppose: str = ""           # jet opposé : le personnage qui oppose la même caractéristique (pousser)
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
+    compris: str = ""          # texte libre admis : récapitulatif moteur figé avant affichage
+    choix_public: object = None  # descripteur et origine d'entrée conservés jusqu'à confirmation
+    etat_consentement: str = ""
+
+    @property
+    def perception_canonique(self):
+        """Perception seule, sans effet de monde proposé par le MJ.
+
+        Connaître ce qui est perçu est une conséquence du capteur moteur.
+        Les compositions et la lecture avec apprentissage gardent leur revue.
+        """
+        return (self.proposition.get("action") in PERCEPTIONS and not self.etapes
+                and not self.stat and not self.confirmation and not self.echec
+                and not self.echec_critique
+                and all(e[0] == "connaitre" for e in self.effets))
 
     @property
     def perception(self):
@@ -88,6 +104,9 @@ class Plan:
                     or any(p.realise_geste for p in self.plans))
 
     def resume(self, monde, afficher_avis=True):
+        if self.compris:
+            from dataclasses import replace
+            return self.compris + "\n" + replace(self, compris="").resume(monde, afficher_avis)
         from .noms import texte
         if self.etapes:
             plusieurs = len(self.plans) > 1
@@ -158,8 +177,10 @@ class Moteur:
         par exemple), s'il ne le voit pas de face mais le verrait en se tournant ; None sinon."""
         if not isinstance(p, dict):
             return None
-        if p.get("action") == "trainer":
-            return None  # Le regard suit le pas, la cible reste au contact derrière.
+        if p.get("action") in ("trainer", "reperer"):
+            # Traîner garde le regard du pas ; consulter un repère garde le
+            # regard actuel, même si sa dernière position est derrière Corvus.
+            return None
         from .spatial import regard_vers
         etapes = p.get("etapes") if isinstance(p.get("etapes"), list) else []
         cibles = p.get("cibles") if isinstance(p.get("cibles"), list) else []
@@ -171,6 +192,7 @@ class Moteur:
 
     def preparer(self, p, origine="règles"):
         from .commandes import DescripteurPublic, proposition_descripteur
+        choix_public = p if isinstance(p, DescripteurPublic) else None
         if isinstance(p, DescripteurPublic):
             p = proposition_descripteur(self.monde, p)
         from .noms import texte
@@ -185,6 +207,27 @@ class Moteur:
             raise
         plan.titre = texte(self.monde, plan.titre)
         plan.information = texte(self.monde, plan.information)
+        from .gestes_publics import GESTES_CORPS, GESTES_PASSAGE
+        passage = (p.get("action") in GESTES_PASSAGE or
+                   p.get("action") == "composer" and any(
+                       e.get("operation") in GESTES_PASSAGE for e in p.get("etapes", [])))
+        if (passage or p.get("action") in GESTES_CORPS and
+                (p["action"] != "frapper" or self.monde.objets.get(p["cible"], {}).get("type") == "personnage")):
+            from .consentement import plan_lourd, _empreinte, _etat
+            from .comprehension import plan_admis
+            # La famille portée partage la gravité U-C et le récapitulatif,
+            # y compris pour la commande équivalente. Les règles de geste
+            # et les confirmations antérieures restent souveraines.
+            plan.confirmation = plan.confirmation or plan_lourd(plan)
+            if passage:
+                plan.confirmation = plan.confirmation or bool(plan.stat)
+            # Le libre porte déjà son récapitulatif dans PropositionLibre.
+            # Les nouveaux passages directs le portent sur le Plan lui-même.
+            if not passage or choix_public or origine == "règles":
+                plan.compris = plan_admis(self.monde, plan)
+            if choix_public and plan.confirmation:
+                plan.choix_public = (copy.deepcopy(choix_public), origine)
+                plan.etat_consentement = _empreinte(_etat(self.monde))
         return plan
 
     def _preparer_references(self, p, origine="règles"):
@@ -230,7 +273,7 @@ class Moteur:
         if isinstance(p, dict) and p.get("action") == "composer":
             return preparer_operations(self.monde, p, origine)
         attendus = set(proposition("examiner"))
-        if not isinstance(p, dict) or set(p) != attendus:
+        if not isinstance(p, dict) or set(p) - {'parcours'} != attendus:
             recus = sorted(p) if isinstance(p, dict) else type(p).__name__
             raise ErreurMonde("Je n'ai pas compris ce geste : aucune modification.",
                               f"une action simple a exactement les champs {', '.join(sorted(attendus))} ; reçu : {recus}.")
@@ -242,6 +285,17 @@ class Moteur:
         if type(p["difficulte"]) is not int or not 0 <= p["difficulte"] <= 25:
             raise ErreurMonde("Difficulté invalide.", f"difficulte : un entier de 0 à 25 (reçu {p['difficulte']!r}).")
         action, cible, outil = p["action"], p["cible"], p["outil"]
+        if 'parcours' in p:
+            from .spatial import VECTEURS
+            parcours = p['parcours']
+            if (action != 'marcher' or not isinstance(parcours, dict) or set(parcours) != {'id', 'pas'}
+                    or not isinstance(parcours['id'], str) or not 1 <= len(parcours['id']) <= 100
+                    or not isinstance(parcours['pas'], list) or not 1 <= len(parcours['pas']) <= 1000
+                    or any(not isinstance(d, str) or d not in VECTEURS for d in parcours['pas'])
+                    or parcours['pas'][0] != cible):
+                raise ErreurMonde("Ce trajet de marche est illisible.",
+                                  f"parcours : reçu {parcours!r}, action={action!r}, cible={cible!r} ; accepté : "
+                                  "id chaîne de 1 à 100 caractères, pas liste de 1 à 1000 directions ; action=marcher, cible=pas[0].")
         if action not in ACTIONS:
             raise ErreurMonde("Je ne connais pas ce geste.",
                               f"action « {action} » inconnue ; actions : {', '.join(ACTIONS[:-2])} ; ou composer pour "
@@ -262,6 +316,28 @@ class Moteur:
             raise ErreurMonde("Assommer ne vise qu'une personne.",
                               f"methode=assommer, action={action}, cible={cible} : frapper une cible de type personnage, ou methode simple.")
         plan = Plan(dict(p), m.data["revision"], "", origine=origine)
+        if action == "reperer":
+            for champ, accepte in (("outil", ""), ("methode", "simple"), ("difficulte", 0)):
+                if p[champ] != accepte:
+                    raise ErreurMonde("Consulter un repère se fait sans outil ni jet.",
+                                      f"reperer.{champ} : reçu {p[champ]!r} ; accepté : {accepte!r}.")
+            from .rendu import position
+            plan.information = position(m, cible)
+            plan.titre = "Consulter le repère connu."
+            plan.minutes, plan.dixiemes, plan.effort = 0, 0, False
+            return plan
+        # Après validation de forme et rotation éventuelle : seule la vue
+        # publique autorise une conclusion, jamais la position cachée.
+        if (action in ("observer", "examiner") and cible in m.objets
+                and not m.visible(cible) and not outil
+                and p["methode"] == "simple" and not p["difficulte"]):
+            from .rendu import non_perception
+            information = non_perception(m, cible)
+            if information:
+                plan.titre = "Constater la vue actuelle."
+                plan.minutes, plan.dixiemes, plan.effort = 0, 0, False
+                plan.information = information
+                return plan
         if action in ("saisir", "ligoter", "delier", "liberer", "trainer", "tuer"):
             from .tenir import preparer
             return preparer(m, p, plan)
@@ -671,11 +747,21 @@ class Moteur:
 
     def executer(self, plan):
         # Ne pas faire confiance à un Plan muté : recompiler depuis la proposition et l'état courant.
+        if plan.choix_public is not None:
+            from .consentement import _empreinte, _etat
+            # Ne jamais remplacer l'aperçu consenti, même si la révision n'a
+            # pas bougé. La relecture exacte refuse aussi une référence perdue.
+            nouveau = self.preparer(*plan.choix_public)
+            if plan.etat_consentement != _empreinte(_etat(self.monde)) or nouveau != plan:
+                raise ErreurMonde("Le monde ou le plan a changé : choisis de nouveau ce geste pour vérifier son aperçu.",
+                                  "consentement : état et plan identiques à l'aperçu requis ; reçu : choix public périmé.")
         if plan.revision != self.monde.data["revision"]:
             raise ErreurMonde("Le monde a changé : demandez un nouvel arbitrage.")
         plan = self.preparer(plan.proposition, plan.origine)
         if plan.etapes:
             return self._executer_operations(plan)
+        if plan.perception_canonique and plan.dixiemes == 0 and not plan.effets:
+            return plan.information
         if plan.proposition["action"] == "observer" and plan.proposition["cible"] not in self.monde.objets:
             return plan.information
         travail = self.monde.copier()
@@ -688,6 +774,8 @@ class Moteur:
             return self._executer_simple(plan, travail)
 
     def _executer_simple(self, plan, travail):
+        from .deplacements import ouvrir, clore
+        ouvrir(travail)
         from .tenir import lacher
         lacher(travail, "joueur", plan.proposition["action"])
         debut_issues = len(travail.data.get("historique_corps", ()))
@@ -749,13 +837,15 @@ class Moteur:
             from .signes import bilan_signes
             lignes.extend(bilan_signes(travail, plan.proposition["cible"]) or ["Tu ne discernes aucun signe particulier."])
         self._clore_bilan(travail, lignes)
+        lignes, deplacements = clore(travail, lignes, plan)
         from .noms import texte
         lignes = [texte(travail, ligne, citations=True) for ligne in lignes]
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"],
             "minutes": travail.data["minutes"], "action": self._action_journal(travail, plan.proposition),
             "origine": plan.origine, "dd": plan.dd, "jet": jet,
-            "reussite": reussite, "faits": lignes[:]})
+            "reussite": reussite, "faits": lignes[:],
+            **({"deplacements": deplacements} if deplacements["mouvements"] else {})})
         travail.verifier()
         self.monde.data = travail.data
         return "\n".join(lignes) or "Action accomplie."
@@ -871,6 +961,8 @@ class Moteur:
         noter(travail, "joueur", debut, "repos" if action == "attendre"
               else "effort" if plan.effort and action not in CALMES else None)
         minutes = ecouler(travail, duree(plan))
+        from .deplacements import achever
+        achever(travail, instant(travail))
         travail.data["bruit"] = max(0, travail.data["bruit"] + plan.bruit)
         # Les PNJ voient d'abord le résultat du geste du joueur, puis agissent à leur tour. Ce qu'ils
         # en voient date du début du geste, d'où leur vie repart : la minute de fin, plus tardive que
@@ -971,6 +1063,8 @@ class Moteur:
 
     def _executer_sequence(self, sequence, travail):
         from .operations import compiler
+        from .deplacements import ouvrir, clore
+        ouvrir(travail)
         lignes, trace, precedent = [], [], None
         # Une manœuvre est une seule action : un seul bilan de ce qu'on perçoit des autres, à la fin.
         self._ouvrir_bilan(travail)
@@ -1015,27 +1109,32 @@ class Moteur:
                                if e["operation"] == "sauter" else
                                "La tentative n'aboutit pas. La suite de la manœuvre est abandonnée.")
             trace.append({"numero": numero, "operation": e, "jet": jet, "dd": p.dd, "reussite": reussite,
-                          "minutes": p.minutes, "effets_appliques": [list(effet) for effet in effets], "faits": details[:]})
+                          "minutes": p.minutes, "effets_appliques": json.loads(json.dumps(effets)), "faits": details[:]})
             lignes.extend(details)
             if not reussite or inconscient:
                 break
             precedent = e
         self._clore_bilan(travail, lignes)
+        lignes, deplacements = clore(travail, lignes, sequence)
         from .noms import texte
         lignes = [texte(travail, ligne, citations=True) for ligne in lignes]
         for etape in trace:
-            etape["faits"] = [texte(travail, ligne, citations=True) for ligne in etape["faits"]]
+            etape["faits"] = [texte(travail, ligne, citations=True) for ligne in etape["faits"] if ligne]
         travail.data["revision"] += 1
         travail.data["journal"].append({"tour": travail.data["revision"], "minutes": travail.data["minutes"],
             "action": self._action_journal(travail, sequence.proposition),
             "origine": sequence.origine, "dd": dernier_dd,
-            "jet": dernier_jet, "reussite": reussite, "etapes": trace, "faits": lignes[:]})
+            "jet": dernier_jet, "reussite": reussite, "etapes": trace, "faits": lignes[:],
+            **({"deplacements": deplacements} if deplacements["mouvements"] else {})})
         travail.verifier()
         self.monde.data = travail.data
         return "\n".join(lignes) or "Manœuvre accomplie."
 
     @staticmethod
     def _appliquer(m, effet, lignes):
+        from .deplacements import place, noter
+        depart = place(m)
+        nombre_mouvements = len(m.__dict__.get('_mouvements', ()))
         from .tenir import autoriser, lacher
         operation = effet[2]["operation"] if effet[0] == "tenir_personne" else effet[0]
         if operation == "marcher":
@@ -1048,6 +1147,8 @@ class Moteur:
         from .esprits import constats_geste
         with constats_geste(m, "joueur", effet[1], effet[2] if isinstance(effet[2], str) else None):
             resultat = Moteur._appliquer_effet(m, effet, lignes)
+        if len(m.__dict__.get('_mouvements', ())) == nombre_mouvements:
+            noter(m, depart, lignes, operation=operation)
         services.constater(m, 'joueur', effet[1], service_avant)
         if avant:
             agendas.constater_geste_joueur(m, avant)
@@ -1094,9 +1195,8 @@ class Moteur:
                 m.joueur["orientation"] = valeur["orientation"]
             if valeur["salle"] not in m.data["visitees"]:
                 m.data["visitees"].append(valeur["salle"])
-            lignes.append("Tu entres dans : " + m.data["salles"][valeur["salle"]]["nom"] + "."
-                          if ancienne != valeur["salle"] else
-                          "Tu avances à pas feutrés." if valeur.get("feutre") else "Tu avances d'un pas.")
+            if ancienne != valeur["salle"]:
+                lignes.append("Tu entres dans : " + m.data["salles"][valeur["salle"]]["nom"] + ".")
             return
         if op in ("recit_improvise", "marque_improvisee", "blessure_improvisee", "son_improvise"):
             from .improvisation import appliquer

@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
+from tests.paroles_support import AppelsParole
 from tests.support import refusee, regarder, sans_evacues
 # Scènes de mécanisme : ressources et liens déclarés avant les occasions 186.
 from tests.scenarios_contractuels import nouveau_defi
@@ -44,7 +45,7 @@ def reponse_pnj(texte):
 
 def jouer(monde, saisie, sorties, jet=20):
     """Une saisie passée au MJ simulé, dans la vraie boucle de jeu ; renvoie la partie rechargée."""
-    appels = []
+    appels = AppelsParole()
 
     def appel(instructions, entree, intention, fonction, schema):
         appels.append(entree)
@@ -56,7 +57,8 @@ def jouer(monde, saisie, sorties, jet=20):
               patch.object(MJOpenAI, "_auditer_action"),
               patch.object(MJOpenAI, "_appeler", side_effect=appel),
               patch.object(Monde, "d20", return_value=jet),
-              patch("builtins.input", side_effect=[saisie, "quitter"]),
+              patch("donjon.mj.preparer_parole", side_effect=appels.preparer),
+              patch("builtins.input", side_effect=[saisie, "tenter", "quitter"]),
               patch("sys.stdout", io.StringIO()) as sortie):
             self_code = jeu.main(["--console", "--connexion", "api", "--save", str(chemin)])
         assert self_code == 0
@@ -119,7 +121,7 @@ class ExpressionTests(unittest.TestCase):
         self.assertIn("croit que la cloche d'alarme est dans la galerie de ronde", gorm["croit"])
         self.assertIn("Bourru", gorm["traits"])
         self.assertNotIn("brune", paroles["esprits_interlocuteurs"])
-        self.assertEqual(appels[1]["faits"]["conversation_validee"]["replique_joueur"], "Tout va bien, Gorm ?")
+        self.assertEqual(appels.rapports[-1]["replique_joueur"], "Tout va bien, Gorm ?")
         self.assertIn("Tu dis à Gorm : « Tout va bien, Gorm ? »", sortie)
         self.assertLess(sortie.index("Tu dis à Gorm :"), sortie.index("Gorm : « Ça ira. »"))
 
@@ -159,7 +161,7 @@ class CroyancesTransmisesTests(unittest.TestCase):
             reponse_pnj("Gorm : « Alors je vais la chercher. »")])
         self.assertEqual(croyance(reprise, "cloche")["source"], "dit:joueur")
         self.assertEqual(croyance(reprise, "cloche")["valeur"], "crypte")
-        self.assertIn("retient ce que tu lui dis", " ".join(appels[1]["faits"]["conversation_validee"]["faits"]))
+        self.assertIn("retient ce que tu lui dis", " ".join(appels.rapports[-1]["faits"]))
         # Gorm se met en route vers la salle des vannes, n'y trouve rien et comprend.
         for _ in range(2):
             Moteur(reprise).executer(Moteur(reprise).preparer(proposition("attendre")))
@@ -185,7 +187,7 @@ class CroyancesTransmisesTests(unittest.TestCase):
         self.assertEqual(envers(reprise, "marchand", "joueur")["confiance"], 30)
         self.assertEqual(envers(reprise, "marchand", "joueur")["motifs"][-1]["type"], "mensonge_dementi")
         self.assertEqual(reprise.data["jets"], jets)
-        self.assertIn("de ses propres yeux", " ".join(appels[1]["faits"]["conversation_validee"]["faits"]))
+        self.assertIn("de ses propres yeux", " ".join(appels.rapports[-1]["faits"]))
 
     def test_jet_rate_il_ne_te_croit_pas(self):
         m = relais()
@@ -193,7 +195,7 @@ class CroyancesTransmisesTests(unittest.TestCase):
             parole("La cloche est déjà au refuge.", ("affirmation", "cloche", "lieu", "antichambre")),
             reponse_pnj("Gorm secoue la tête.")], jet=2)
         self.assertEqual(croyance(reprise, "cloche")["source"], "savoir")
-        self.assertIn("ne te croit pas", " ".join(appels[1]["faits"]["conversation_validee"]["faits"]))
+        self.assertIn("ne te croit pas", " ".join(appels.rapports[-1]["faits"]))
 
     def test_int_faible_une_seule_idee_transmise(self):
         m = relais()
@@ -209,7 +211,7 @@ class CroyancesTransmisesTests(unittest.TestCase):
         self.assertEqual(envers(reprise, "marchand", "brune")["confiance"], 57)
         self.assertEqual(envers(reprise, "marchand", "brune")["motifs"][-1]["type"], "rumeur")
         self.assertEqual(croyance(reprise, "cloche")["source"], "savoir")
-        self.assertIn("se perd", " ".join(appels[1]["faits"]["conversation_validee"]["faits"]))
+        self.assertIn("se perd", " ".join(appels.rapports[-1]["faits"]))
 
     def test_on_ne_parle_que_de_ce_qu_on_connait(self):
         m = relais()
@@ -241,7 +243,7 @@ class DemandesTests(unittest.TestCase):
             parole("Gorm, tu me prêterais la clé de la réserve ?", ("demande", "cle_reserve", "", "")),
             reponse_pnj("Gorm : « Non. »")])
         self.assertEqual(reprise.objets["cle_reserve"]["lieu"], "marchand")
-        self.assertIn("refuse de se séparer", " ".join(appels[1]["faits"]["conversation_validee"]["faits"]))
+        self.assertIn("refuse de se séparer", " ".join(appels.rapports[-1]["faits"]))
 
     @patch("donjon.agendas._naissances", return_value=None)
     def test_brune_rend_les_crochets_seulement_si_elle_n_en_a_plus_besoin(self, _naissance):

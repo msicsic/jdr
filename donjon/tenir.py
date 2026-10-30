@@ -9,7 +9,7 @@ from .temps import instant
 DUREES = {"saisir": 20, "ligoter": 300, "delier": 100, "liberer": 6000, "trainer": 45, "tuer": 300}
 PAROLES = {"dire", "parler", "crier", "cri", "appeler", "siffler", "se_rendre"}
 IMMOBILES = {"trainer", "marcher", "aller", "faufiler", "chasser", "fuir", "fuite", "passer_obstacle", "franchir", "sauter", "franchir_obstacle"}
-SANS_MAINS = PAROLES | {"attendre", "patienter", "reposer", "observer", "examiner", "ecouter", "tourner", "degager", "liberer", "emettre_son"}
+SANS_MAINS = PAROLES | {"attendre", "patienter", "reposer", "observer", "examiner", "reperer", "ecouter", "tourner", "degager", "liberer", "emettre_son"}
 
 
 def valider_verrouillage(monde, auteur, cible, outil):
@@ -311,6 +311,14 @@ def finir_trajet(monde, g):
         if corps.vivant(monde, acteur):
             tremper(monde, acteur)
     corps.evenement(monde, "trainer", c, auteur=a)
+    if a == "joueur":
+        from .deplacements import noter
+        from .temps import duree_pas
+        from .spatial import VECTEURS
+        # La rotation précède le trajet ; sa durée commune donne son début,
+        # y compris pour un geste rechargé d'une ancienne sauvegarde.
+        debut = g['fin'] - duree_pas(DUREES['trainer'], VECTEURS[g['issue']['outil']])
+        noter(monde, depart, operation="trainer", debut=debut, fin=g['fin'])
     from .esprits import percevoir_tous
     percevoir_tous(monde)
 

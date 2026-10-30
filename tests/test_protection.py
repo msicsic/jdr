@@ -44,7 +44,12 @@ class AppelTests(unittest.TestCase):
         self.assertEqual(alarme(m, "marchand"), ("echoppe", "devoir"))
         self.assertIn({"type": "voir", "lieu": "echoppe"}, [b for _, _, b in choix.choix])
         self.assertEqual(lire(m, "marchand")["intention"]["but"], {"type": "voir", "lieu": "echoppe"})
-        m, _ = vivre(m, 5)
+        # Constater l'arrivée dans la borne, avant qu'Ilse reparte et que
+        # Gorm la suive : la protection n'est pas une garde fixe de cinq minutes.
+        for _ in range(5):
+            m, _ = vivre(m, 1)
+            if m.objets["marchand"]["lieu"] == "echoppe":
+                break
         self.assertEqual(m.objets["marchand"]["lieu"], "echoppe")
         # Elle n'appelle pas à chaque minute.
         self.assertEqual(chronique(m).count("Ilse appelle à l'aide."), 1)

@@ -2,13 +2,15 @@
 from donjon.emissions import pnj as emissions_pnj
 import copy
 import unittest
+from unittest.mock import patch
 
 from donjon.biens import offres_joueur
 from donjon.comptes_narratifs import completer, controler, lire, phrases, nombre
 from donjon.narration import consigner
 from donjon.monde import ErreurMonde
 from donjon.rendu import decrire_comptes
-from tests.test_audits_attendu import jouer, ligne, rapport
+from tests.test_audits_attendu import ligne, rapport
+from tests.consentement_support import jouer
 from tests.test_comptes_issue import audit
 from tests.test_parole_corrections import banc
 from tests.test_prime_offre import scene
@@ -31,11 +33,11 @@ class ComptesParolesTests(unittest.TestCase):
                 self.assertIn(texte, str(recharger(r).data['conversation']))
 
     def test_repliques_reelles_compatibles_sans_relance(self):
-        cas = [('comptes', 'marchand', "La part des vivres ne t'a pas été servie ; prends ces pièces.", 2),
-               ('comptes', 'brune', 'Je ne te rendrai pas ces pièces.', 0),
-               ('ressources', 'aubin', 'Non. Je ne te dois rien.', 0),
-               ('ressources', 'aubin', 'Aucune dette entre nous.', 0),
-               ('soir-appel', 'aubin', 'Je te rends les deux pièces.', 2)]
+        cas = [('comptes', 'marchand', 'Je te rends 2 pièces.', 2),
+               ('comptes', 'brune', 'Je refuse de te rembourser. Je te dois encore 2 pièces.', 0),
+               ('ressources', 'aubin', 'Je ne te dois aucune pièce.', 0),
+               ('ressources', 'aubin', 'Je ne te dois aucune pièce.', 0),
+               ('soir-appel', 'aubin', 'Je te rends 2 pièces.', 2)]
         for script, qui, citation, gain in cas:
             with self.subTest(citation=citation):
                 m = presentes(banc(script), qui)
@@ -153,15 +155,17 @@ class ComptesParolesTests(unittest.TestCase):
                 m.objets['vivres'].update(nom='soupe', aliases=['soupe'])
                 condition = {'objet':'vivres', 'servir':'joueur'}
                 avant = m.joueur['or']
-                r, sortie, appels = marche(m, 'vivres', demande={'type':'tache', 'condition':condition},
-                    comptes=[compte('joueur', 'aubin', montant=3, etat='rendu'),
-                             compte('aubin', 'joueur', 'vivres', 1)])
-                faits = next(e['faits'] for _, e in appels
-                             if 'conversation_validee' in e.get('faits', {}))
-                for texte in faits['comptes']['formulations_offres']:
-                    self.assertIn('pour toi', texte)
-                    self.assertNotIn(nom, texte)
-                    self.assertNotIn(texte, sortie)
+                # Ce harnais secondaire doit lui aussi envoyer le consentement
+                # explicite avant de contrôler paiement, service et mots G17.
+                with patch('tests.test_part_proposee.jouer', jouer):
+                    r, sortie, appels = marche(m, 'vivres', demande={'type':'tache', 'condition':condition},
+                        comptes=[compte('joueur', 'aubin', montant=3, etat='rendu'),
+                                 compte('aubin', 'joueur', 'vivres', 1)])
+                emission = emissions_pnj(r)[-1]
+                self.assertIn("Tu m'as payé 3 pièces.", emission['texte'])
+                self.assertIn('une part de soupe', emission['texte'])
+                self.assertIn(emission['texte'], sortie)
+                self.assertFalse(any(f == 'auditer_narration' for f, _ in appels))
                 self.assertEqual(r.joueur['or'], avant - 3)
                 self.assertTrue(livraisons_dues(recharger(r)))
                 self.assertEqual(recharger(r).data, r.data)
