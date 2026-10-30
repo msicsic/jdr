@@ -161,8 +161,23 @@ class EnrichissementTests(unittest.TestCase):
                     reponse_enrichir(ajout()), copy.deepcopy(DIALOGUE)]
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
-            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "_appeler", side_effect=reponses), patch.object(Monde, "d20", return_value=20), patch("builtins.input", side_effect=["mj je retire l'axe", "Ses yeux sont comment ?", "tenter", "quitter"]), patch("sys.stdout", io.StringIO()) as sortie:
+            saisies = iter(["mj je retire l'axe", "Ses yeux sont comment ?", "tenter", "tenter", "quitter"])
+            tentatives = []
+            def lire(_):
+                saisie = next(saisies)
+                if saisie == "tenter":
+                    avant = Monde.charger(chemin)
+                    self.assertTrue(avant.objets["axe_haut"]["attache"])
+                    self.assertEqual(avant.data["journal"], [])
+                    tentatives.append(avant.data["conversation"][-1]["reponse"])
+                return saisie
+            # U-C / rapport 325 : l'admission survenue pendant la discussion
+            # impose un nouvel aperçu, puis un accord explicite sans modèle.
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "_appeler", side_effect=reponses) as appels, patch.object(Monde, "d20", return_value=20), patch("builtins.input", side_effect=lire), patch("sys.stdout", io.StringIO()) as sortie:
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin), "--connexion", "api"]), 0)
+            self.assertEqual(len(tentatives), 2)
+            self.assertIn("Le monde ou le plan a changé", tentatives[-1])
+            self.assertEqual(appels.call_count, 3)
             m = Monde.charger(chemin)
             self.assertIn("detail_marchand_yeux", m.objets)
             self.assertIn("gris clair", sortie.getvalue())

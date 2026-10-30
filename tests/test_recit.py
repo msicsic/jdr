@@ -118,8 +118,23 @@ class RecitTests(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
-            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "echanger", side_effect=reponses) as mj, patch.object(Monde, "d20", return_value=20), patch("builtins.input", side_effect=["mj je retire l'axe", "Quel risque pour ma lame ?", "tenter", "quitter"]), patch("sys.stdout", io.StringIO()):
+            saisies = iter(["mj je retire l'axe", "Quel risque pour ma lame ?", "tenter", "tenter", "quitter"])
+            tentatives = []
+            def lire(_):
+                saisie = next(saisies)
+                if saisie == "tenter":
+                    avant = Monde.charger(chemin)
+                    self.assertTrue(avant.objets["axe_haut"]["attache"])
+                    self.assertEqual(avant.data["journal"], [])
+                    tentatives.append(avant.data["conversation"][-1]["reponse"])
+                return saisie
+            # U-C / rapport 325 : l'état conservateur inclut les admissions et
+            # normalisations d'une discussion ; le nouvel aperçu se confirme.
+            with patch.dict("os.environ", {"OPENAI_API_KEY": "test"}), patch.object(MJOpenAI, "echanger", side_effect=reponses) as mj, patch.object(Monde, "d20", return_value=20), patch("builtins.input", side_effect=lire), patch("sys.stdout", io.StringIO()):
                 jeu.main(["--save", str(chemin), "--connexion", "api"])
+            self.assertEqual(len(tentatives), 2)
+            self.assertIn("Le monde ou le plan a changé", tentatives[-1])
+            self.assertEqual(mj.call_count, 2)
             self.assertEqual(mj.call_args_list[1].args[2], p)
             m = Monde.charger(chemin)
             self.assertFalse(m.objets["axe_haut"]["attache"])
