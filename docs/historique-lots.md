@@ -6,6 +6,48 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **Lot 342 terminé avec huit réserves d'intégration**, branche documentaire
+  `codex-attribution-groupe1`, base `16b18a7`. **33 incidents attribués** :
+  17 incidents de défaut corrigés (treize sur le même contrat de perception),
+  neuf attentes/scènes périmées, sept préexistants. Référence `e37d9ee`,
+  chaque lot seul et retraits d'un seul lot, 2 177,100 s ; matrice exhaustive.
+  Branches corrigées poussées : 313 `cddc76e` (position inconnue dans le devis
+  fermé, sans joueur réel), 315 `beaecc7` (ordre et borne de règlement),
+  333 `40bd537` (scène de prêt sans secours concurrent), 332 `c3db8e2` :
+  direction sans relation incomplète ni réveil du but avant rotation ; geste
+  perceptif disponible avant bavardage facultatif, gestes engagés respectés.
+  Quatre captures : ancien hash exact après retrait strict du registre vide.
+  Deux captures : seuls registres/provenance des regards changent, huit
+  autres oracles identiques. Lampe : second stimulus connu de niveau 2
+  explicite, toutes assertions finales conservées ; oracle d'abri initial
+  entièrement restauré. **12/12 tests ciblés verts**, deux scénarios,
+  monde/rendu/scène rechargés et même laps entier/découpé.
+  **Essai poussé `93d5a25`**, base `da5f795`, quatre branches corrigées.
+  **279 tests / 27 fichiers : sept échecs, une erreur, zéro saut, 755,310 s.**
+  Huit réserves aussi rouges sur la base récente à la même assertion/accès :
+  deux boucles, deux dynamiques, deux captures chaînées, lampe vide, aide 541.
+  Trajectoires non certifiées identiques ; aucun oracle recalé pour masquer
+  ces réserves. Six incidents initiaux du 339 et celui de mine désormais
+  verts, sans crédit aux correctifs de ce lot. `jeu.py` inchangé.
+  **20/20 nuits 4 h**, cinq scénarios × quatre graines : zéro plantage,
+  usurpation ou suspect certifié 219 dans chaque nuit ; **366 suivis,
+  247 s de rotation**. Vingt références historiques `c870c8b`, instrumentation
+  `1f6b05da83`, relues du cache sans réexécution dans cette reprise ; pas de
+  comparaison de vitesse ni d'attribution à un seul lot. Première tentative
+  invalide dans l'observateur de référence (`agendas.enfants`) conservée ;
+  aucune nuit de branche alors jouée. Reprise finale 1 368,014 s. Deux
+  travailleurs réduits au plus ; ni Luna ni suite complète.
+  **Limites conservées : 200 alertes à expliquer**, dont 153 répétitions.
+  Variante sans 332 sur la base récente : 33 passages d'Aubin, sans 313 :
+  dix ; interaction 313/base non déclarée corrigée en général par le retour
+  à l'abri dans l'assemblage. Aucune absence générale de boucle garantie.
+  Bruts intacts `C:/Users/msics/donjon/artifacts/groupe1-342/`, analyse
+  `analyse-cloture.json`, **fin `fin-cloture.json` avec réserves**, aucun
+  calcul actif. Tests/monde de l'essai inchangés après validation.
+  [Rapport 342](taches/rapport-codex-342-attribution-groupe1.md),
+  [matrice des 33 incidents et réserves](taches/attribution-codex-342-groupe1.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport et matrice seulement ; 313, 332, 333 fusionnés séparément ; 315 réaccordée à E1/E2 (7826c3a) mais une erreur nouvelle de rendu social (porteur=None) à comprendre avant sa fusion.
+
 - **353 — U-T corps et passage**, `codex-ut-corps-passage`, base `57c9771d` : terminé, non fusionné.
   Catalogue commun déplié en choix numérotés complets ; réactions sur danger perçu, franchissements
   qualifiés et arbitrages mémorisés ; ancien préfixe conservé, aucun analyseur ni modèle.
