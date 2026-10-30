@@ -263,6 +263,19 @@ class InformationPubliqueTests(unittest.TestCase):
         self.assertNotIn("outil_interne_secret_354", "\n".join(lignes))
         self.assertNotIn("outil_interne_secret_354", r.data["conversation"][-1]["reponse"])
 
+    def test_recherche_lexicale_reste_stable_apres_apprentissage_du_bien(self):
+        from donjon.comprehension import contenu
+        m = banc("comptes")
+        for sujet in ("bois", "planches"):
+            with self.subTest(sujet=sujet):
+                c = {"type": "ressource", "sujet": sujet}
+                attendu = "demander si l'interlocuteur possède " + sujet
+                self.assertEqual(contenu(m, c), attendu)
+                if sujet not in m.data["connus"]:
+                    m.data["connus"].append(sujet)
+                m = recharger(m)
+                self.assertEqual(contenu(m, c), attendu)
+
     def test_confirmation_revalide_adresse_et_aucune_parole_si_depart(self):
         m = banc("ressources")
         d = descripteur("aubin", "affirmation", sujet="cloche", valeur="antichambre")

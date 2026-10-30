@@ -41,15 +41,16 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **354 U-M social information**, `codex-um-social-information`, base `57c9771d` : formulaire public
+- **354 U-M social information**, `codex-um-social-information`, base `57c9771d`, terminé non fusionné : formulaire public
   pour identité, localisation d'une personne, ressource et annonce de lieu ; entrée U-D commune vers parole/U-C.
   Transport d'adresse structuré dans `preparer_parole`, règles et chemin texte conservés ; zéro modèle au clic.
   Raccord minimal `jeu.py` autorisé, fichier commun avec 353. Questions sur la position d'un objet hors périmètre,
-  limite acceptée et affichée. Ciblés/Node en validation ; ni Luna, suite complète ou banc PNJ.
+  limite acceptée et affichée. **112 tests / dix fichiers verts**, 24 rejoués, 17 mesures Node : 6/8/11 clics, zéro modèle.
+  Régression du récapitulatif corrigée, chemin texte conservé par AST ; `fin-cloture.json` vert, aucun calcul actif.
   Rapport : [lot 354](taches/rapport-codex-354-um-social-information.md).
 
-Lots en cours : 342 (attribution du groupe 1, 315 à réaccorder), 352 (E3 délai cru), 353 (U-T corps et passage),
-354 (U-M social information). Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
+Lots en cours : 342 (attribution du groupe 1, 315 à réaccorder), 352 (E3 délai cru), 353 (U-T corps et passage).
+Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
 antérieurs sont connus (`test_protection` Gorm au beffroi, trois faisabilités de `test_luna_noms`, persuasion
 Hugues/Anselme) ; un petit lot les traitera avant la vérification d'intégration.
 
