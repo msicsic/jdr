@@ -9,6 +9,7 @@ import jeu
 from donjon.monde import Monde
 from donjon.moteur import proposition
 from tests.faux_websocket import FauxWebSocket, resultat
+from tests.perception_support import apres_regarder
 from tools.verifier_websocket_jeu import CAS, Interface, fixture, parcours
 
 
@@ -77,7 +78,8 @@ class ParcoursWebSocketTests(unittest.TestCase):
                 etat = copy.deepcopy(recharge.data)
                 reprise = Interface(['inventaire', 'regarder', 'quitter'], chemin)
                 self.assertEqual(jeu.main(['--save', str(chemin), '--offline', '--console'], interface=reprise), 0)
-                self.assertEqual(Monde.charger(chemin).data, etat)
+                # G5 / rapport 323 : la reprise conserve aussi le regard publié.
+                self.assertEqual(Monde.charger(chemin).data, apres_regarder(etat))
                 self.assertIn(recharge.objets[cible]['nom'].casefold(), '\n'.join(reprise.sorties).casefold())
 
     def test_transport_perdu_apres_sauvegarde_rend_le_moteur_sans_fragment_ni_reconnexion(self):

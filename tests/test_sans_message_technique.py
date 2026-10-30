@@ -19,6 +19,7 @@ from tests.test_repli_et_appel import dialogue, parole
 from tests.test_tensions import recharger
 from tools.verifier_websocket_jeu import Interface
 from tests.support import question_sans_execution
+from tests.perception_support import apres_regarder
 
 
 class SansMessageTechniqueTests(unittest.TestCase):
@@ -94,7 +95,8 @@ class SansMessageTechniqueTests(unittest.TestCase):
                     reprise = Interface(['regarder', 'inventaire', 'quitter'], chemin)
                     self.assertEqual(jeu.main(['--console', '--offline', '--save', str(chemin)],
                                              interface=reprise), 0)
-                    self.assertEqual(Monde.charger(chemin).data, etat)
+                    # G5 / rapport 323 : consultation sauvée, monde inchangé.
+                    self.assertEqual(Monde.charger(chemin).data, apres_regarder(etat))
 
     def test_typage_refuse_ne_condamne_pas_les_mots_exacts(self):
         for nom, saisie in (("soir-noir", "il y a quelqu'un ?"),

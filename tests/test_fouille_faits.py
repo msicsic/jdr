@@ -49,7 +49,8 @@ class FouilleFaitsTests(unittest.TestCase):
                     r, affichage, appels = jouer(m, "mj " + saisie,
                         [reponse, revue(reponse, perception=True), action(p)], [])
                     self.assertEqual([f for f, _ in appels],
-                        ["repondre_au_joueur", "auditer_portee", "repondre_au_joueur", "auditer_action"])
+                        # G5 / rapport 323 : perception seule sans contre-revue.
+                        ["repondre_au_joueur", "auditer_portee", "repondre_au_joueur"])
                     contexte = appels[1][1]
                     self.assertEqual(contexte["demande"], saisie)
                     self.assertEqual(contexte["proposition_faits"], reponse["proposition"])

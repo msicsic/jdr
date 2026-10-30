@@ -301,12 +301,14 @@ class LocalisationDemandeeTests(unittest.TestCase):
             [parole(mots, ('localisation', 'marchand', '', ''), personnage='aubin'),
              dialogue('Aubin dit avoir vu Gorm dans la crypte.')],
             [rapport(ligne('mecanique', sources=['conversation_validee']))])
-        self.assertIn('Aubin dit avoir vu', texte)
+        # G16 / rapport 345 : localisation formulée depuis la croyance datée.
+        self.assertIn("Aubin : « J'ai vu à la minute", texte)
         rechargee = self.recharge(r)
-        self.assertIn('Aubin dit avoir vu Gorm dans la crypte.', str(rechargee.data['conversation']))
+        self.assertIn('que Gorm se trouvait dans la salle des vannes',
+                      rechargee.data['conversation'][-1]['reponse'])
         c = croyance(rechargee, 'joueur', 'marchand', 'lieu')
         self.assertIsNotNone(c)
         self.assertEqual(c['origine']['source'], 'vu')
-        faits = [e['faits']['conversation_validee']['faits'] for f, e in appels
-                 if f == 'repondre_au_joueur' and 'conversation_validee' in e['faits']]
+        # La préparation réelle est observée ; aucun appel de rédaction inventé.
+        faits = [e['faits'] for e in appels.rapports]
         self.assertTrue(any('minute' in str(f) and 'salle des vannes' in str(f) for f in faits), faits)

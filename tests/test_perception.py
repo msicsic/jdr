@@ -155,7 +155,8 @@ class QuestionsConsoleTests(unittest.TestCase):
                 texte, reprise, _ = self.lancer([phrase], {
                     "mode": "action", "texte": "", "faits": [],
                     "proposition": proposition("eteindre", "lanterne")})
-                self.assertIn("Rien n'est encore tenté.", texte)
+                # U-C / rapport 325 : la fiche garde la consultation sans effet.
+                self.assertIn("Faisabilité seulement : aucune action exécutée.", texte)
                 self.assertTrue(reprise.objets["lanterne"]["allume"])
                 self.assertFalse(reprise.data["journal"])
                 self.assertEqual(reprise.data["conversation"][-1]["nature"], "proposition_non_executee")
@@ -194,7 +195,8 @@ class QuestionsConsoleTests(unittest.TestCase):
         texte, m, _ = self.lancer(["Puis-je éteindre ma lanterne ?"], {
             "mode": "action", "texte": "", "faits": [], "proposition": proposition("eteindre", "lanterne")})
         self.assertIn("Pas de jet nécessaire.", texte)
-        self.assertIn("Rien n'est encore tenté.", texte)
+        # U-C / rapport 325 : seule la forme de la fiche a changé.
+        self.assertIn("Faisabilité seulement : aucune action exécutée.", texte)
         self.assertIn("« tenter » lance l'ensemble", texte)
         self.assertTrue(m.objets["lanterne"]["allume"])
         # Le joueur tente ensuite la même fiche (le moteur la raconte lui-même).

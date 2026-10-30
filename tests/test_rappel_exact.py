@@ -97,7 +97,9 @@ class RappelExactTests(unittest.TestCase):
         faits = {'interlocuteurs': public(m, interlocuteurs(m))}
         faits['echanges_passes'] = echanges_passes(m, faits['interlocuteurs'])
         phrase = next(iter(rappels_exacts(faits)))
-        self.assertFalse(segments_etablis(phrase.replace('Ilse. Et', 'Aubin. Et'), faits))
+        # G16 / rapport 345 : le moteur ne rajoute plus « Et toi, qui es-tu ? ».
+        self.assertIn('Ilse.', phrase)
+        self.assertFalse(segments_etablis(phrase.replace('Ilse.', 'Aubin.'), faits))
         self.assertFalse(segments_etablis(phrase + ' Tu reçois une pièce.', faits).get('1'))
 
     def test_phrase_historique_entiere_sans_audit_apres_recharge(self):

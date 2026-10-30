@@ -13,7 +13,7 @@ from tests.test_tensions import recharger
 
 
 class CorrectionParoleTests(unittest.TestCase):
-    def verifier_parole(self, m, saisie, faux, bon, revues=()):
+    def verifier_parole(self, m, saisie, faux, bon, revues=(), reponse='Ta question est entendue.'):
         r, sortie, appels = jouer(m, saisie, [faux, bon, dialogue('Ta question est entendue.')],
             [rapport(ligne('mecanique', sources=['conversation_validee']))], revues=revues)
         self.assertIn('Tu dis', sortie)
@@ -26,7 +26,7 @@ class CorrectionParoleTests(unittest.TestCase):
                          {i: o['lieu'] for i, o in m.objets.items()})
         self.assertEqual(regarder(rr), regarder(r))
         self.assertEqual(rr.data, r.data)
-        self.assertIn('Ta question est entendue.', str(rr.data['conversation']))
+        self.assertIn(reponse, rr.data['conversation'][-1]['reponse'])
         return appels
 
     def test_n9_propositions_historiques_apres_preparation_refusee(self):
@@ -48,7 +48,8 @@ class CorrectionParoleTests(unittest.TestCase):
         faux = parole(saisie, ('ressource', 'faim', '', ''), personnage='aubin')
         faux['proposition']['operations_demandees']['proposition'] = True
         bon = parole(saisie, ('ressource', 'faim', '', ''), personnage='aubin')
-        appels = self.verifier_parole(m, saisie, faux, bon)
+        # G16 / rapport 345 : ressource négative formulée par le moteur.
+        appels = self.verifier_parole(m, saisie, faux, bon, reponse="Aubin : « Je n'en ai pas. »")
         self.assertEqual(sum(f == 'auditer_action' for f, _ in appels), 1)
 
     def test_revue_illisible_ne_confirme_pas_la_declaration(self):

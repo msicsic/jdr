@@ -226,7 +226,8 @@ class CarteCasesTests(unittest.TestCase):
         with patch("donjon.spatial.champ_visible", return_value={(salle, 1, 2)}):
             # Le souvenir, pas la place réelle : vu_a part de la case où il l'a vue.
             self.assertIn({"id": "cle", "nom": "la clé du veilleur", "derniere_salle": "Antichambre",
-                           "vu_a": "2 mètres vers est", "hors_de_vue": True,
+                           # G6 / rapport 328 : distance du repère public mémorisé.
+                           "vu_a": "2 mètres vers est", "hors_de_vue": True, "distance_metres": 2.0,
                            "orientation_relative": ["devant"]},
                           self.monde.contexte()["souvenirs_visuels"])
 

@@ -39,10 +39,18 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 359 (E5 choix direct), 360 (régressions du lot 337), 361 (attentes périmées encore rouges).
+- **361 — attentes périmées**, branche `codex-attentes-perimees`, base `integration 0b62a4fa`.
+  Tests portés aux contrats G5/G16/U-C/G6/G7 ; code du jeu inchangé.
+  AST : 846 assertions identiques, 26 substitutions documentées, six assertions supplémentaires.
+  31 méthodes portées vertes ; 190 tests / 21 fichiers, 370,690 s ; deux défauts antérieurs KV/N9 conservés.
+  Zéro erreur/saut ; deux travailleurs réduits ; aucun calcul actif, ni suite complète, Luna ou banc.
+  `test_passage.py` réservé au 360 et laissé intact (une attente G7 restante).
+  [Rapport 361](taches/rapport-codex-361-attentes-perimees.md).
+
+Lots en cours : 359 (E5 choix direct), 360 (régressions du lot 337) ; 361 livré ci-dessus.
 **Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
 dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361), 10 autres anciennes et 6
-nouvelles à traiter ensuite. Leurs entrées arrivent ici à leur livraison. 
+nouvelles à traiter ensuite. Les autres entrées arrivent ici à leur livraison.
 
 ## Décisions prises le 2026-10-30
 

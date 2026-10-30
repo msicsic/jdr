@@ -46,11 +46,13 @@ class ContratsInternesTests(unittest.TestCase):
         avant = copy.deepcopy(m)
         bon = "Tu ne distingues pas de pierre mobile ici."
         reprise, sortie, appels = jouer(m, "je cherche une pierre pour caler une échelle", [
-            action({'action': 'examiner', 'cible': 'cour_sol', 'outil': '', 'methode': 'simple',
+            # G5 / rapport 323 : une perception seule n'est plus contre-revue.
+            # Un geste physique infidèle garde ce contrôle et les mêmes refus d'avis.
+            action({'action': 'prendre', 'cible': 'ficelle', 'outil': '', 'methode': 'simple',
                     'difficulte': 0, 'justification': ''}),
             avis('impossible', ATELIER), avis('impossible', bon)],
             [rapport(ligne('neutre'), ligne('neutre')), rapport(ligne('neutre'))],
-            [{'conforme': False, 'motif': 'Ce plan examine le sol sans chercher une pierre.'}])
+            [{'conforme': False, 'motif': 'Ce plan prend la ficelle sans chercher une pierre.'}])
         self.assertNotIn(ATELIER, sortie)
         self.assertIn(bon, sortie)
         correction = [e for f, e in appels if f == 'repondre_au_joueur'][-1]

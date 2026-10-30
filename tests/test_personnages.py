@@ -18,8 +18,18 @@ class PersonnagesTests(unittest.TestCase):
         self.assertEqual(m.trouver("Gorm"), "marchand")
         self.assertTrue(m.designable("marchand"))
         self.assertFalse(m.accessible("marchand"))
-        with self.assertRaises(ErreurMonde):
-            Moteur(m).preparer(proposition("examiner", m.trouver("Gorm")))
+        # G5 / rapport 323 : un connu hors vue reçoit un constat, sans fuite.
+        avant = copy.deepcopy(m.data)
+        moteur = Moteur(m)
+        constat = moteur.executer(moteur.preparer(proposition("examiner", m.trouver("Gorm"))))
+        self.assertIn('Tu ne vois pas Gorm le marchand en ce moment.', constat)
+        self.assertEqual(m.data, avant)
+        from tests.test_tensions import recharger
+        recharge = recharger(m)
+        self.assertEqual(recharge.data, avant)
+        moteur_repris = Moteur(recharge)
+        self.assertEqual(moteur_repris.executer(moteur_repris.preparer(proposition("examiner", "marchand"))), constat)
+        self.assertEqual(recharge.data, avant)
         m.objets["marchand"].update(humeur="inquiet", portrait="Un nouveau portrait.", secret="cachette secrète")
         m.objets["barbe_gorm"]["description_visuelle"] = "Sa barbe a été rasée."
         Moteur(m).executer(Moteur(m).preparer(proposition("attendre")))
