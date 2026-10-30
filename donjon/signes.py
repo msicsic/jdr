@@ -21,24 +21,25 @@ PENOMBRE = 4
 DISSIMULATION = 3
 BANDE_RIEN = 8
 
-# sorte, canal, lumière minimale, portée, difficulté, sens possibles, texte factuel
+# sorte, canal, lumière minimale, portée, difficulté, sens possibles, texte factuel,
+# référence nécessaire pour interpréter le signe (distincte de sa direction visible)
 SIGNES = {
-    "ecart": ("place", "vue", 1, None, 0, ("crainte", "hostilite"), "se tient à l'écart de {cible}"),
-    "proche": ("place", "vue", 1, None, 0, ("attachement", "dependance"), "se tient près de {cible}"),
-    "surveille": ("regard", "vue", 1, None, 0, ("mefiance", "crainte", "attirance"), "ne quitte pas {cible} des yeux"),
-    "convoite": ("regard", "vue", 1, None, 0, ("guet", "garde"), "lance des regards vers {cible}"),
-    "attend": ("duree", "vue", 1, None, 0, ("guet", "fatigue"), "reste à attendre sans rien faire"),
-    "yeux_bas": ("expression", "vue", 2, 4, 2, ("crainte", "honte"), "baisse les yeux devant {cible}"),
-    "dur": ("expression", "vue", 2, 4, 2, ("hostilite", "inquietude"), "a le regard dur et la mâchoire serrée"),
-    "sourit": ("expression", "vue", 2, 4, 2, ("attachement", "flatterie"), "sourit à {cible}"),
-    "doux": ("ton", "mots", 0, None, 3, ("attachement", "flatterie"), "parle doucement à {cible}"),
-    "sec": ("ton", "mots", 0, None, 3, ("hostilite", "fatigue"), "a la voix sèche avec {cible}"),
-    "brusque": ("expression", "vue", 1, None, 2, ("colere", "peur"), "fait des gestes brusques"),
-    "fort": ("ton", "mots", 0, None, 3, ("colere", "peur"), "parle d'une voix forte"),
-    "tremble": ("expression", "vue", 2, 4, 2, ("peur", "froid"), "tremble et se recroqueville"),
-    "fuit": ("place", "vue", 1, None, 0, ("peur", "prudence"), "s'éloigne en fuyant"),
-    "observe": ("regard", "vue", 1, None, 0, ("attention", "mefiance"), "regarde attentivement {cible}"),
-    "hesite": ("ton", "mots", 0, None, 3, ("mensonge", "hesitation"), "hésite dans ses paroles"),
+    "ecart": ("place", "vue", 1, None, 0, ("crainte", "hostilite"), "se tient à l'écart de {cible}", True),
+    "proche": ("place", "vue", 1, None, 0, ("attachement", "dependance"), "se tient près de {cible}", True),
+    "surveille": ("regard", "vue", 1, None, 0, ("mefiance", "crainte", "attirance"), "ne quitte pas {cible} des yeux", True),
+    "convoite": ("regard", "vue", 1, None, 0, ("guet", "garde"), "lance des regards vers {cible}", True),
+    "attend": ("duree", "vue", 1, None, 0, ("guet", "fatigue"), "reste à attendre sans rien faire", False),
+    "yeux_bas": ("expression", "vue", 2, 4, 2, ("crainte", "honte"), "baisse les yeux devant {cible}", True),
+    "dur": ("expression", "vue", 2, 4, 2, ("hostilite", "inquietude"), "a le regard dur et la mâchoire serrée", False),
+    "sourit": ("expression", "vue", 2, 4, 2, ("attachement", "flatterie"), "sourit à {cible}", True),
+    "doux": ("ton", "mots", 0, None, 3, ("attachement", "flatterie"), "parle doucement à {cible}", True),
+    "sec": ("ton", "mots", 0, None, 3, ("hostilite", "fatigue"), "a la voix sèche avec {cible}", True),
+    "brusque": ("expression", "vue", 1, None, 2, ("colere", "peur"), "fait des gestes brusques", False),
+    "fort": ("ton", "mots", 0, None, 3, ("colere", "peur"), "parle d'une voix forte", False),
+    "tremble": ("expression", "vue", 2, 4, 2, ("peur", "froid"), "tremble et se recroqueville", False),
+    "fuit": ("place", "vue", 1, None, 0, ("peur", "prudence"), "s'éloigne en fuyant", True),
+    "observe": ("regard", "vue", 1, None, 0, ("attention", "mefiance"), "regarde attentivement {cible}", True),
+    "hesite": ("ton", "mots", 0, None, 3, ("mensonge", "hesitation"), "hésite dans ses paroles", False),
 }
 SENS = {v for s in SIGNES.values() for v in s[5]}
 
@@ -118,8 +119,10 @@ def _de(m, id):
     for a in i.get("attitude", {}).values():
         if a["signe"] == "fuit" and not _fuit(i):
             continue
-        signes.append(_signe(m, id, a["signe"], a["envers"], a["sens"],
-                             dissimule(m, id, a["envers"])))
+        s = _signe(m, id, a["signe"], a["envers"], a["sens"], dissimule(m, id, a["envers"]))
+        if "direction" in a:
+            s["direction"] = a["direction"]
+        signes.append(s)
     objet = guette(m, id)
     if objet:
         if i["attente"] >= GUET * 600:
@@ -212,6 +215,8 @@ def _posture(m, s):
     """Existence physique du signe, indépendante de l'accès d'un observateur."""
     from .spatial import orientation_vers, position_cible
     o = m.joueur if s["personnage"] == "joueur" else m.objets[s["personnage"]]
+    if SIGNES[s["signe"]][0] == "regard" and "direction" in s:
+        return o.get("orientation") == s["direction"]
     q = position_cible(m, s["envers"], o.get("lieu", o.get("salle"))) if s["envers"] else None
     if s["signe"] in ("ecart", "proche"):
         return q is not None and (distance(o["position"], q) >= 2 if s["signe"] == "ecart"
@@ -243,14 +248,24 @@ def _percus(m, observateur="joueur", tons=(), emissions=None, contexte=None):
                 continue
             if s["dissimule"] and regle[0] == "expression":
                 continue
-            if not _envers_percu(m, observateur, s, vus):
+            regard = regle[0] == "regard"
+            envers_percu = _envers_percu(m, observateur, s, vus)
+            if not envers_percu and not regard:
                 continue
             # L'attitude est la cause d'un choix ; son signe exige encore la position
             # et l'orientation réelles. Une attitude périmée n'est pas un fait.
             if (s["signe"] in ("ecart", "proche") and s["envers"] not in vus
                     and s["envers"] != observateur) or not _posture(m, s):
                 continue
-            resultat.append({**s, "niveau": niveau, "distance": loin})
+            percu = {**s, "niveau": niveau, "distance": loin}
+            if regard:
+                # Le mouvement des yeux est visible sans que sa cible le soit.
+                # Ne transmettre que la direction physique, jamais la case du tiers.
+                o = m.joueur if id == "joueur" else m.objets[id]
+                percu["direction"] = o["orientation"]
+                if not envers_percu:
+                    percu["envers"] = None
+            resultat.append(percu)
     # Les tons sont fournis par une parole effectivement saisie, jamais inférés d'un silence.
     for s in tons:
         if s["personnage"] != observateur and not s["dissimule"] and _envers_percu(m, observateur, s, vus):
@@ -311,6 +326,8 @@ def _nom(m, id):
 
 def _texte(m, s):
     qui = "Tu" if s["personnage"] == "joueur" else _nom(m, s["personnage"])
+    if s.get("direction") and s["envers"] is None:
+        return qui[:1].upper() + qui[1:] + " regarde dans cette direction : " + s["direction"] + "."
     cible = _nom(m, s["envers"])
     from .francais import de
     forme = SIGNES[s["signe"]][6].replace("de {cible}", de(cible))
@@ -320,7 +337,8 @@ def _texte(m, s):
 def publics(m, observateur="joueur"):
     from .temps import instant
     tons_recents = [t["signe"] for t in m.data.get("tons_percus", []) if instant(m) - t["instant"] <= 30]
-    return [{k: s[k] for k in ("id", "personnage", "signe", "envers")} | {"texte": _texte(m, s)}
+    return [{k: s[k] for k in ("id", "personnage", "signe", "envers")} |
+            ({"direction": s["direction"]} if "direction" in s else {}) | {"texte": _texte(m, s)}
             for s in percus(m, observateur, tons=tons_recents if observateur == "joueur" else ())]
 
 
@@ -363,6 +381,13 @@ def _occurrences(m, emissions=None, paroles=()):
            and not (s["dissimule"] and SIGNES[s["signe"]][0] == "expression")}
     for cle in ids - set(suivi["actifs"]):
         suivi["episodes"][cle] = suivi["episodes"].get(cle, 0) + 1
+    directions = {s["id"]: (m.joueur if id == "joueur" else m.objets[id])["orientation"]
+                  for id, signes in emissions.items() for s in signes
+                  if s["id"] in ids and SIGNES[s["signe"]][0] == "regard"}
+    for cle, direction in directions.items():
+        if cle in suivi["actifs"] and suivi.get("directions", {}).get(cle, direction) != direction:
+            suivi["episodes"][cle] += 1
+    suivi["directions"] = directions
     suivi["actifs"] = sorted(ids)
     for s in paroles:
         cle = s["id"]
@@ -415,12 +440,17 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
     suivi = _suivi(m, observateur, episodes)
     for s in signes:
         cle = s["id"]
+        regle = SIGNES[s["signe"]]
+        # Une direction sans cible ne donne pas les arguments nécessaires
+        # pour interpréter une relation. Elle reste utilisable pour tourner
+        # le regard, puis apprendre par la perception commune.
+        if s['envers'] is None and regle[7]:
+            continue
         dernier = essais.get(cle)
         episode = episodes[cle]
         if dernier is not None and m.data["minutes"] - dernier < RELECTURE:
             continue
         essais[cle] = m.data["minutes"]
-        regle = SIGNES[s["signe"]]
         bonus = modificateur(m, observateur, "PSY") + (2 if expres else 0)
         if not joueur and (relations.familier(relations.axes(m, observateur, s["personnage"]))
                            or e["compagnie"].get(s["personnage"], 0) >= 60):
@@ -481,6 +511,8 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
             m.data["chronique"][-1].update(enregistrement)
     if not joueur and retenir_detresses(m, observateur, signes) and getattr(m, '_agit', None) != observateur:
         reconsiderer(m, observateur)
+    # Le réflexe sera choisi à la prochaine disponibilité dans pnj.agir.
+    # Il ne réouvre pas le choix du but avant la rotation et sa perception.
     return impressions(m) if joueur else None
 
 
@@ -614,8 +646,8 @@ def impressions(m):
     # Une impression sauvegardée est une mémoire ; l'affichage actuel exige le signe encore perçu.
     signes = {s["id"]: s for s in publics(m)}
     return [{"id": "impression:" + cle, "personnage": c["personnage"], "lecture": c["valeur"],
-             "envers": c["envers"], "nettete": "nette" if c["confiance"] >= .65 else "vague",
-             "texte": _impression(m, c)}
+             "envers": signes[cle]["envers"], "nettete": "nette" if c["confiance"] >= .65 else "vague",
+             "texte": _impression(m, {**c, "envers": signes[cle]["envers"]})}
             for _, _, c in actives(m, "joueur") for cle in [c["signe"]] if cle in signes]
 
 
@@ -624,6 +656,8 @@ def _impression(m, c):
     from .francais import accorder
     o = m.objets.get(c["personnage"], {})
     cible = _nom(m, c["envers"])
+    if not cible:
+        cible = "quelque chose"  # L'impression ne restitue pas une cible devenue imperceptible.
     mots = {"crainte": "craindre " + cible, "hostilite": "éprouver de l'hostilité envers " + cible,
             "mefiance": "se méfier de " + cible, "attirance": "être " + accorder(o, "attiré") + " par " + cible,
             "attachement": "être " + accorder(o, "attaché") + " à " + cible, "dependance": "dépendre de " + cible,
@@ -716,8 +750,55 @@ def regarder(m, id, i, cible, signe, sens, *, detourner=False):
     if detourner:
         i.get("attitude", {}).pop("regard", None)
     else:
-        i.setdefault("attitude", {})["regard"] = {"signe": signe, "envers": cible, "sens": sens}
+        i.setdefault("attitude", {})["regard"] = {"signe": signe, "envers": cible, "sens": sens,
+                                                "direction": vers}
     return QUART * quarts(avant, vers)
+
+
+def regard_a_suivre(m, id, signes=None, episodes=None):
+    """Un signal présent d'un proche, encore inutilisé ; aucune lecture de sa cible.
+
+    Ce réflexe appartient à l'exécution, hors de la recherche de plans. Il ne
+    remplace pas un geste engagé ni une action qui exige déjà son orientation.
+    """
+    from .corps import conscient
+    if not m.data.get("mode_cases") or not conscient(m, id) or guette(m, id):
+        return None
+    e = esprit_lu(m, id)
+    i = e["intention"]
+    if i and i["plan"] and i["plan"][0]["operation"] not in ("abriter", "chauffer", "reposer", "inspecter"):
+        return None
+    if signes is None:
+        signes = percus(m, id)
+    if episodes is None:
+        episodes = m.data.get("occurrences_signes", {}).get("episodes", {})
+    for s in signes:
+        if "direction" not in s or s["id"] not in episodes:
+            continue
+        if not (relations.se_fie(m, id, s["personnage"])
+                or relations.familier(relations.axes(m, id, s["personnage"]))):
+            continue
+        preuve = [episodes[s["id"]], s["direction"]]
+        if e.get("regards_suivis", {}).get(s["id"]) != preuve:
+            return s, preuve
+    return None
+
+
+def suivre_regard(m, id):
+    """Tourner vers une direction perçue ; la vue commune apprendra ensuite seule."""
+    from .esprits import esprit
+    from .spatial import QUART, quarts
+    candidat = regard_a_suivre(m, id)
+    if candidat is None:
+        return 0
+    s, preuve = candidat
+    esprit(m, id)["regards_suivis"][s["id"]] = preuve
+    o = m.objets[id]
+    cout = QUART * quarts(o.get("orientation"), s["direction"])
+    o["orientation"] = s["direction"]
+    _compter(m, "regards_suivis")
+    _compter(m, "rotation_attention", cout)
+    return cout
 
 
 def surveiller(m, id):
@@ -781,7 +862,9 @@ def verifier(m):
         i = e["intention"]
         if i:
             assert set(i.get("attitude", {})) <= {"place", "regard"}
-            assert all(set(a) == {"signe", "envers", "sens"} and a["signe"] in SIGNES
+            from .spatial import VECTEURS
+            assert all(set(a) - {"direction"} == {"signe", "envers", "sens"} and a["signe"] in SIGNES
+                       and ("direction" not in a or SIGNES[a["signe"]][0] == "regard" and a["direction"] in VECTEURS)
                        and a["sens"] in SENS and isinstance(a["envers"], str) for a in i.get("attitude", {}).values())
 
 
@@ -805,7 +888,8 @@ def percevoir_tous(m):
 
 def mesures(m):
     compte = m.data.get("mesures_signes", {})
-    resultat = {cle: compte.get(cle, 0) for cle in ("lectures", "meprises", "guets_reperes", "attentes_sous_regard")}
+    resultat = {cle: compte.get(cle, 0) for cle in ("lectures", "meprises", "guets_reperes", "attentes_sous_regard",
+                                                 "regards_suivis", "rotation_attention")}
     for sorte in sorted({v[0] for v in SIGNES.values()}):
         resultat["signes_" + sorte] = compte.get("signes_" + sorte, 0)
     for tranche in ("basse", "moyenne", "haute"):

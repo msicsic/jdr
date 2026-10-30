@@ -71,6 +71,10 @@ class CompletionTests(unittest.TestCase):
                 self.assertEqual(m.data, recharge.data)
                 historique = sans_indices_soupcon_passifs(recharge)
                 for e in historique['esprits'].values():
+                    # 332 ajoute ce registre à toute sauvegarde. Aucun regard
+                    # suivi dans ces captures : conserver l'oracle historique
+                    # après contrôle strict de sa vacuité, jamais d'un acte.
+                    self.assertEqual(e.pop('regards_suivis', {}), {})
                     # L'oracle précède le service spontané. Seuls ses registres
                     # vides peuvent être exclus, jamais une tentative réelle.
                     self.assertEqual(e.pop('recours_services', []), [])
