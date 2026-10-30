@@ -2477,6 +2477,9 @@ def obstacle_patience(monde, id, cause):
     """
     from .pnj import temoins_crus, oreilles_crues, _franchissable
     e = lire(monde, id)
+    if cause['type'] == 'contact':
+        from .positions_crues import contact_interrompu_tient
+        return contact_interrompu_tient(monde, id, cause)
     if cause["type"] == "corps":
         from .corps import conscient
         return not conscient(monde, id)

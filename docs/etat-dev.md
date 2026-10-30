@@ -16,10 +16,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   U-T premier geste/outils/inventaire/fabrication, A0 (oracle G1).
 - **PNJ** : A5 (mandat) fini sauf 306 (lots 338, 340, 341 fusionnés). A1 provenance publique fusionnée (346, non branchée).
   **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 et E2 fusionnés (348, 350), E3 = 352.
-- **Groupe 1 en attente de fusion** (corrections d'attribution par le lot 342) : 313 `codex-contact-inconnu`
-  (contact de position inconnue), 315 réclamations répétées, 332 attention conjointe, 333 `codex-garder-lieu`.
-  Après lui : 335 `codex-suivi-vocal` (refusionner l'intégration, refaire ses ciblés), 306 (A5 agenda du hameau,
-  refaire le banc), puis une vérification d'intégration ; `main` n'avance que si elle est propre.
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
 - **Abandonnés, branches gardées sur origin** (à rediscuter avec l'utilisateur) : 33, 36, 117 b, 117 c, 162, 166,
@@ -27,6 +23,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-contact-inconnu` (cddc76e5) : lot 313, contact de position inconnue. Détail dans l'historique.
 - `codex-um-passage` (a8bc0fce) : lot 349, U-M passage, franchissements qualifiés au menu. Détail dans l'historique.
 - `codex-g18-avis` (d162988a) : lot 351, G18 l'avis formulé par le moteur, parole sans vérité. Détail dans l'historique.
 - `codex-e2-realisation-datee` (d9803abd) : lot 350, E2 verdict temporel par réalisation datée unique. Détail dans l'historique.

@@ -6,6 +6,80 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **Lot 313 terminé après attribution de la suite, branche `codex-contact-inconnu`, fusionnée**, base
+  `integration d76f272`, moteur final validé sur `c6cad4a` : contact commun
+  au plan et à l'exécution, hérité des seuls liens crus contenant/support/
+  porteur. Une distance ou une case inconnue ne dément plus la présence ;
+  l'approche prépare l'observation. Capture Relais 7 reconstruite à 856 :
+  **0→30 dixièmes**, Gorm sert Brune à **1009** ; source d'une autre salle
+  à la mine, disparition réelle, charge conservée dans le noir et reprise
+  après localisation nouvelle vérifiées. Monde/rendu/scène rechargés,
+  textes et monde identiques sur laps entiers/découpés.
+  **Complément avant fusion résolu** : capture Ilse à **141000** rechargée
+  sur `112ecd4`, cinq interruptions reproduites exactement ; **141060**
+  perd la localisation pendant la marche, **141600** suit une indication
+  d'Aubin et un déplacement, **142200/142800/143400** sont le seul filet,
+  croyances/perception/position identiques. Correction commune : cause
+  typée `contact` persistée dans les renoncements du 225 ; revalidation
+  avant approche sur liens/positions crus, lumière, portes, moyens et
+  perception de cible/support. Ni dates ni filet ne rouvrent le contact ;
+  nouvelle entrée pertinente admise, recherches alternatives possibles,
+  charge conservée. Aucun nouvel accès aux positions mobiles cachées.
+  **Validation finale : 72 tests / neuf fichiers verts**, 48,636 s,
+  dont trois nouveaux parcours ; première passe 100/11 et deux tests
+  du lanceur verts. Cinq nuits 4 h rejouées, sept nuits sans interruption
+  réutilisées (nouveau chemin jamais exercé), aucune référence rejouée,
+  deux travailleurs réduits. Bilan `reprises-validation/fin.json`
+  **ok=true**, zéro reprise sans entrée, zéro plantage et usurpation.
+  Refus matériels **4→0**, interruptions première version→final **12→7**,
+  parts référence→final **30→32** (Relais 3→5, auberge 11→11, mine 16→16),
+  suspects 219 **0→0 dans chaque nuit**, bascules 0, passages/h max 26→25,
+  appels à l'aide 3→1. Sept interruptions restantes : premiers échecs
+  (Brune ×2, Lucien auberge 42, Mireille/Joss auberge 2024, Rémy mine 1985,
+  Lucien mine 7), aucun autre essai identique interrompu sur ces nuits.
+  Avertissements **4→8** : deux nouvelles extinctions de torche (Relais
+  2024 et 1985), deux portions distinctes sous le même nom « marmite de
+  soupe » (auberge 1985) ; noyaux reçus et transmissions établis. Avis à
+  expliquer **11→15**, dérives **186→160**, non certifiés bénins ; répétition
+  Lucien/Hugues auberge 2024 préexistante. Ni recherche exhaustive dans le
+  noir ni absence universelle de boucle garanties. Diagnostic initial
+  `ok=false` conservé et qualifié (paramètre de reprise erroné et borne
+  Ilse absente) ; preuve Ilse rechargée séparée entièrement verte.
+  Bruts `C:/Users/msics/donjon/artifacts/contact-313/`, sous-dossiers
+  `reprises-avant-fusion/` et `reprises-validation/`. Aucun calcul actif,
+  branche poussée vers origin. `planifier_tache`/`echanges.empeche`
+  inchangés ; ni Luna ni suite complète.
+  **Attribution de la fusion d’essai 61ced73 terminée** : 23 incidents
+  (22 échecs, une erreur), 21 méthodes isolées. Référence
+  `origin/integration eb15b5e` (322 inclus), fusionnée par `19b1bf1`,
+  sans 315. **Sept incidents préexistants** (trois résolus par 322,
+  quatre encore rouges), **seize du 313 résolus**, aucun incident
+  de cette liste réservé au 315. Correction `130b57f` : faces locales
+  des ancrages fixes, priorité des positions projetées, perception
+  actuelle admise, contact vocal sans case de main, observation depuis
+  la position atteinte avant interruption, devis sans double inspection.
+  Ni lecture mobile cachée ni changement des règles de perception.
+  Prémisses : marteau vu enregistré, adversaire repéré avant attaque,
+  arrivée du protecteur constatée dans les cinq minutes ; décision
+  autonome historique avant la question à Brune, témoin explicitement
+  replacé au point vu. Toutes les assertions conservées. Captures
+  chaînées : monde complet/plans/textes/deux vues strictement identiques
+  à l’intégration ; seules visites/diagnostics recalées (+40 mine,
+  −48 auberge), empreintes de monde préexistantes laissées rouges.
+  **226 tests distincts / vingt fichiers**, 209,645 s, première passe
+  trois échecs ; **18/18** du fichier de localisation verts après
+  restitution du témoin (52,036 s). Bilan consolidé : seulement les
+  deux sous-tests de monde préexistants, zéro nouvel échec/erreur/saut.
+  Deux régressions ajoutées, cas Relais/crue, monde/parole/engagement
+  rechargés. Deux travailleurs réduits au plus ; aucune suite complète,
+  Luna ou nuit supplémentaire. Les mesures de banc ci-dessus restent
+  celles de `c6cad4a`, pas une mesure de la reprise `130b57f`.
+  Tableau des 23 incidents dans le rapport ; bruts dans
+  `artifacts/contact-313/attribution-suite/` et `attribution-corrections/`.
+  Aucun calcul actif, branche poussée.
+  [Rapport 313](taches/rapport-codex-313-contact-position-inconnue.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `esprits.py`, `planification.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses ; fusion du groupe 1 validée par suite complète comparée à l'intégration.
+
 - **349 — U-M passage**, `codex-um-passage`, base intégration `a0f0eba`, terminé, non fusionné.
   Menu des formes perçues établies : dessous/dessus, échelle installée, perche déjà arbitrée.
   Même plan que la commande ; consentement et revalidation exacte ; aucune difficulté inventée.
