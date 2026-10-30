@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-s1d-promesses` (ae83ca65) : lot 384, S1d promesses, prêts et travaux payés. Détail dans l'historique.
 - `codex-s1c-approches-secours` (762b3ac7) : lot 383, S1c approches, avertissements et secours. Détail dans l'historique.
 - `codex-s1b-sons-examens` (30256b08) : lot 382, S1b sons et examens par la porte de la mémoire. Détail dans l'historique.
 - `codex-s1a-porte-episodes` (eecbe2a5) : lot 378, S1a une seule porte pour les épisodes. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-ut-social-information` (8245d178) : lot 369, U-T social information, l'acte d'information au terminal. Détail dans l'historique.
 - `codex-soupcon-deduit` (6aeec863) : lot 372, A6 le soupçon déduit des croyances. Détail dans l'historique.
 - `codex-a2-sequence-attente` (b75dcf62) : lot 370, A2 famille séquence et attente. Détail dans l'historique.
-- `codex-evaluation-echeance` (76305cc6) : lot 371, évaluation du noyau de l'échéance négociée. Détail dans l'historique.
 
 ## Lots non fusionnés
 

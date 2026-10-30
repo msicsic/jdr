@@ -489,11 +489,11 @@ class Vue:
                                and refus["minute"] > x["minute"])]
         # Le travail payé possède déjà son contrat dans la mémoire du payeur.
         # Il ne crée pas une nouvelle délégation à échéance ni une visite urgente.
+        from .memoire import travaux_payes_retenus
         self.travaux_payes = [(s["condition"], qui, s.get("echeance"),
                               "echeance" in s and monde.data["minutes"] > s["echeance"])
-                             for s in lire(monde, id)["memoire"]
-                             if s["type"] == "tache_payee"
-                             and (qui := tache_payee(monde, id, s["condition"]))]
+                             for s in travaux_payes_retenus(monde, id)
+                             if (qui := tache_payee(monde, id, s["condition"]))]
         intention = lire(monde, id)["intention"]
         # L'aide acceptée reste une cause d'ouverture quand son bénéficiaire
         # attend sa réalisation, même si l'adoption a reclassé le besoin
@@ -2231,6 +2231,7 @@ def _entrees_communes(v):
     # Les cibles et obstacles restent localisés ; le départ est seulement la salle.
     metrique = v._metrique
     from .biens import services_proteges
+    from .memoire import episodes_parts_promises
     return json.dumps([
         agendas.mandats_percus(monde, id),  # Contrats et issues propres au témoin.
         [x for x in agendas.en_cours(monde, id) if x['condition'].get('proteger')],
@@ -2253,7 +2254,7 @@ def _entrees_communes(v):
         [[s, minute - s["minute"] < ATTENTE_PART,
           # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
-         for s in esprit_["memoire"] if s["type"] in ("promis", "nourri", "recu", "promesse_annulee", "creance")],
+         for s in episodes_parts_promises(monde, id)],
         # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents.
         # Le refus « cher » de cette minute même retient la hausse suivante (``Vue.hausse_faite``).
         [[s, tenu, minute - s["minute"] < REDEMANDE, minute == s["minute"]] for s, tenu in v.refus_tenus()],

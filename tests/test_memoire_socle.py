@@ -1,4 +1,4 @@
-"""S1a–c : porte des épisodes et requêtes/opérations historiques."""
+"""S1a–d : porte des épisodes et requêtes/opérations historiques."""
 import ast
 from collections import Counter
 import copy
@@ -74,14 +74,17 @@ def controle(source):
         if not changement:
             break
 
-    # S1b/c ferment aussi les champs des familles portées issues du stock brut.
+    # S1b–d ferment aussi les champs des familles portées issues du stock brut.
     # Les autres familles gardent leurs mutations historiques jusqu'à leur lot.
     sons = set()
     for n in ast.walk(arbre):
         if isinstance(n, ast.Compare):
             valeurs = [v.value for c in n.comparators for v in ast.walk(c) if isinstance(v, ast.Constant)]
             if not any(v in ('bruit', 'examen', 'approche_charge', 'mise_en_garde',
-                             'a_prevenir', 'secours') for v in valeurs):
+                             'a_prevenir', 'secours', 'promis', 'nourri', 'recu', 'promesse_annulee',
+                             'creance', 'tache_payee', 'suivi_engagement', 'engagement_pris',
+                             'engagement_tenu', 'engagement_abandonne', 'pret', 'pret_reclame',
+                             'abandon_annonce') for v in valeurs):
                 continue
             for c in ast.walk(n.left):
                 if isinstance(c, ast.Subscript) and cle(c.slice, fonction(n)) == 'type' and isinstance(c.value, ast.Name):
@@ -98,6 +101,11 @@ def controle(source):
             f = fonction(n)
             if (f, n.target.id) in sons and derive_stock(n.iter, f):
                 elements.add((f, n.target.id))
+        if isinstance(n, ast.Assign) and isinstance(n.value, ast.Subscript):
+            f = fonction(n)
+            if derive_stock(n.value.value, f):
+                elements.update((f, t.id) for t in n.targets if isinstance(t, ast.Name)
+                                and (f, t.id) in sons)
 
     def element(n, f):
         if isinstance(n, ast.Name):
@@ -253,6 +261,102 @@ class AccesTests(unittest.TestCase):
                       'alias = alerte\nalias["tenu"] = True')
             with self.subTest(selection=famille):
                 self.assertTrue(controle(source)[1])
+
+
+class MemoireEngagementsTests(unittest.TestCase):
+    def test_requetes_pures_copies_et_ordre_de_liste_plutot_que_dates(self):
+        m = relais()
+        avant = copy.deepcopy(m.data)
+        self.assertEqual(memoire.episodes_parts_promises(m, 'inconnu'), [])
+        self.assertEqual(memoire.travaux_payes_retenus(m, 'inconnu'), [])
+        self.assertEqual(memoire.dernier_travail_paye(m, 'inconnu', {}), (None, False))
+        self.assertIsNone(memoire.suivi_engagement(m, 'inconnu', {}, 0))
+        self.assertFalse(memoire.pret_retenu(m, 'inconnu', 'objet', 'joueur'))
+        self.assertEqual(m.data, avant)
+        c = {'objet': 'brasero', 'allume': True}
+        with patch('donjon.relations.souvenir'), patch('donjon.defense.retenir'):
+            for s in ({'type': 'creance', 'de': 'aubin', 'quoi': 'tache', 'minute': 99},
+                      {'type': 'tache_payee', 'a': 'aubin', 'condition': c, 'minute': 2},
+                      {'type': 'tache_payee', 'a': 'aubin', 'condition': c, 'minute': 1},
+                      {'type': 'promis', 'de': 'aubin', 'objet': 'planches', 'part': ['detail']},
+                      {'type': 'suivi_engagement', 'condition': c, 'depuis': 0, 'initiale': {'valeur': [True]}}):
+                memoriser(m, 'marchand', s)
+        avant = copy.deepcopy(m.data)
+        travaux = memoire.travaux_payes_retenus(m, 'marchand')
+        self.assertEqual([s['minute'] for s in travaux], [2, 1])
+        dernier, reclame = memoire.dernier_travail_paye(m, 'marchand', c)
+        self.assertEqual(dernier['minute'], 1)
+        self.assertFalse(reclame)  # La créance plus ancienne dans la liste ne clôt rien.
+        travaux[0]['condition']['allume'] = False
+        dernier['condition']['allume'] = False
+        memoire.episodes_parts_promises(m, 'marchand')[-1]['part'].clear()
+        memoire.suivi_engagement(m, 'marchand', c, 0)['initiale']['valeur'].clear()
+        self.assertEqual(m.data, avant)
+        with patch('donjon.relations.souvenir'), patch('donjon.defense.retenir'):
+            memoriser(m, 'marchand', {'type': 'creance', 'de': 'aubin', 'quoi': 'tache', 'minute': 0})
+        self.assertTrue(memoire.dernier_travail_paye(m, 'marchand', c)[1])
+
+    def test_suivi_arrete_par_autre_parole_et_fenetre_quarante(self):
+        m = relais()
+        c = {'objet': 'brasero', 'allume': True}
+        with patch('donjon.relations.souvenir'), patch('donjon.defense.retenir'):
+            memoriser(m, 'marchand', {'type': 'suivi_engagement', 'condition': c, 'depuis': 0, 'initiale': None})
+            memoriser(m, 'marchand', {'type': 'engagement_pris', 'condition': c})
+            self.assertIsNone(memoire.suivi_engagement(m, 'marchand', c, 0))
+            memoriser(m, 'marchand', {'type': 'pret', 'objet': 'torche', 'a': 'joueur'})
+            self.assertTrue(memoire.pret_retenu(m, 'marchand', 'torche', 'joueur'))
+            for _ in range(40):
+                memoriser(m, 'marchand', {'type': 'examen', 'salle': 'echoppe', 'nature': 'pas', 'case': None})
+        self.assertFalse(memoire.pret_retenu(m, 'marchand', 'torche', 'joueur'))
+        self.assertEqual(len(lire(m, 'marchand')['memoire']), 40)
+        self.assertEqual(memoire.episodes_parts_promises(m, 'marchand'), [])
+        self.assertEqual(recharger(m).data, m.data)
+
+    def test_remise_meme_auteur_objet_et_minute_seulement(self):
+        m = relais()
+        with patch('donjon.relations.souvenir'), patch('donjon.defense.retenir'):
+            memoriser(m, 'marchand', {'type': 'recu', 'de': 'aubin', 'objet': 'torche', 'minute': 3})
+        self.assertTrue(memoire.remise_retenue(m, 'marchand', 'aubin', 'torche', 3))
+        for de, objet, minute in (('ilse', 'torche', 3), ('aubin', 'planches', 3), ('aubin', 'torche', 2)):
+            self.assertFalse(memoire.remise_retenue(m, 'marchand', de, objet, minute))
+
+    def test_jugement_pret_identite_bornes_et_reentrance_sur_stock_vivant(self):
+        from donjon.biens import RENDRE
+        m = relais()
+        with patch('donjon.relations.souvenir'), patch('donjon.defense.retenir'):
+            for _ in range(40):
+                memoriser(m, 'marchand', {'type': 'pret_reclame', 'objet': 'torche', 'pret': 0,
+                                         'echu': True, 'minute': 0})
+        stock = lire(m, 'marchand')['memoire']
+        originaux = list(stock)
+        m.data['minutes'] = RENDRE - 1
+        consequence = []
+        memoire.juger_reclamations_pret(m, 'marchand', 'torche', 0, lambda: consequence.append(True))
+        self.assertEqual(consequence, [])
+        m.data['minutes'] = RENDRE
+        def suite():
+            # Le crochet est appelé après la marque et ajoute un épisode qui
+            # décale le prochain indice de l'itérateur, comme historiquement.
+            consequence.append(True)
+            self.assertTrue(any(s.get('juge') for s in stock))
+            memoriser(m, 'marchand', {'type': 'appel'})
+        with patch('donjon.relations.souvenir') as relation, patch('donjon.defense.retenir') as defense:
+            memoire.juger_reclamations_pret(m, 'marchand', 'torche', 0, suite)
+        self.assertIs(lire(m, 'marchand')['memoire'], stock)
+        self.assertEqual([i for i, s in enumerate(originaux) if s.get('juge')], list(range(0, 40, 2)))
+        self.assertEqual(len(consequence), 20)
+        self.assertEqual(relation.call_count, 20)
+        self.assertEqual(defense.call_count, 20)
+        self.assertIs(stock[0], originaux[20])
+
+    def test_controle_des_marques_de_promesses_et_prets(self):
+        for famille in ('promis', 'nourri', 'recu', 'promesse_annulee', 'creance', 'tache_payee',
+                        'suivi_engagement', 'engagement_pris', 'engagement_tenu',
+                        'engagement_abandonne', 'pret', 'pret_reclame', 'abandon_annonce'):
+            for selection in (f'for s in e["memoire"]:\n if s["type"] == "{famille}":\n  s["juge"] = True',
+                              f'stock = e["memoire"]\ns = stock[0]\nif s["type"] == "{famille}":\n s.update(juge=True)'):
+                with self.subTest(famille=famille, source=selection):
+                    self.assertTrue(controle(selection)[1])
 
 
 class PorteTests(unittest.TestCase):

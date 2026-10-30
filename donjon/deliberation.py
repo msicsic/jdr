@@ -781,8 +781,10 @@ def promesse_en_cours(monde, id, objet, remise=None):
     """Une part promise et pas encore servie, dans le délai où il l'attend. Une recharge est
     servie quand le feu est revu vif ; une part à remettre, seulement à sa réception réelle.
     ``remise`` distingue ces deux services sans les confondre dans un plan."""
+    from .memoire import episodes_parts_promises
     e = lire(monde, id)
-    for s in reversed(e["memoire"]):
+    episodes = episodes_parts_promises(monde, id)
+    for s in reversed(episodes):
         if s["type"] in ("promesse_annulee", "creance") and s.get("objet") == objet:
             return None
         if s["type"] == "nourri" and s.get("objet") == objet:
@@ -792,7 +794,7 @@ def promesse_en_cours(monde, id, objet, remise=None):
                 return None
             # Reçue, annulée ou remboursée : la part à remettre n'est plus attendue.
             if s.get("part") and any(x["type"] in ("recu", "promesse_annulee", "creance") and x.get("objet") == s["part"]
-                                     for x in e["memoire"]):
+                                     for x in episodes):
                 return None
             feu = e["croyances"].get(s.get("foyer"), {}).get("etat")
             if (monde.data["minutes"] - s["minute"] >= ATTENTE_PART or feu and feu["minute"] >= s["minute"]
@@ -1571,15 +1573,14 @@ def tache_payee(monde, id, condition):
     place tant que la parole court (``echanges.ENGAGEMENT_MAX``), qu'il le croit fiable et qu'il n'a
     pas appris qu'elle n'a pas été tenue (une créance de ce travail). Renvoie à qui, ou None."""
     from .echanges import ENGAGEMENT_MAX
-    memoire = lire(monde, id)["memoire"]
-    for i in range(len(memoire) - 1, -1, -1):
-        s = memoire[i]
-        if s["type"] == "tache_payee" and s["condition"] == condition:
-            if monde.data["minutes"] - s["minute"] > ENGAGEMENT_MAX or se_mefie(monde, id, s["a"]):
-                return None
-            if any(x["type"] == "creance" and x["de"] == s["a"] and x.get("quoi") == "tache" for x in memoire[i + 1:]):
-                return None
-            return s["a"]
+    from .memoire import dernier_travail_paye
+    s, reclame = dernier_travail_paye(monde, id, condition)
+    if s is not None:
+        if monde.data["minutes"] - s["minute"] > ENGAGEMENT_MAX or se_mefie(monde, id, s["a"]):
+            return None
+        if reclame:
+            return None
+        return s["a"]
     return None
 
 

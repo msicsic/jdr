@@ -582,10 +582,9 @@ def souvenir(monde, id, s):
         pour = s["pour"]
         if pour != "joueur":
             from .esprits import esprit
+            from .memoire import remise_retenue
             consequence = {"type": t, "de": id, "pour": pour, "condition": s["condition"], "minute": s["minute"], "preuve": s["preuve"]}
-            connus = esprit(monde, pour)["memoire"]
-            recu = any(x["type"] in ("nourri", "recu") and x.get("de") == id
-                       and x.get("objet") == s["condition"].get("objet") and x["minute"] == s["minute"] for x in connus)
+            recu = remise_retenue(monde, pour, id, s["condition"].get("objet"), s["minute"])
             if t == "engagement_tenu" and recu and identifie(monde, pour, id):
                 memoriser(monde, pour, {k: v for k, v in consequence.items() if k != "pour"})
             else:

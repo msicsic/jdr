@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1d-promesses` — lot 384, base `integration 31f80725`, code `37069459`.
+  Promesses, prêts et travaux payés : requêtes nommées et jugement réentrant dans `memoire` ;
+  fenêtre 40, ordre et engagements inchangés. Inventaire AST : 78 → 69, sans exemption nouvelle.
+  Tests : 191/192 verts après relance 34/34 ; seul rouge hérité de Gaspard attribué à la base exacte.
+  Empreintes 2 h × quatre graines × quatre scénarios : 16/16 identiques, aucun plantage.
+  `origin/integration dd133ece` fusionnée (documentation seule). Lot clos, branche poussée.
+  Limites : notifications sonores du laps découpé héritées, autres lecteurs/oubli hors lot ; [rapport 384](taches/rapport-codex-384-s1d-promesses.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 384, S1d : promesses, prêts et travaux payés lisent leurs épisodes par donjon/memoire.py, même fenêtre de 40 ; inventaire AST 78 → 69. 191/192 tests ciblés (l'échec restant est sur la base, suivi par le 375), 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-s1c-approches-secours` — lot 383, base exacte `integration 1da5b943`.
   Approches, mises en garde, avertissements et secours lus/acquittés par `memoire` ;
   mêmes occurrences, ordre, clés et crochets ; inventaire AST 90 → 78.
