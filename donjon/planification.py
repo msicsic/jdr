@@ -2159,12 +2159,15 @@ def _chercher(v, e, sujet):
     # Le coût d'une route est celui de toute la recherche (``Vue.allers`` : passages compris).
     # Une hypothèse périmée reste un indice, jamais une présence projetée.
     ancienne = lire(v.monde, v.id)["croyances"].get(sujet, {}).get("lieu", {})
-    dernier_lieu = ancienne.get("salle") if position_a_verifier(v.monde, v.id, sujet) else None
+    perimee = position_a_verifier(v.monde, v.id, sujet)
+    dernier_lieu = ancienne.get("salle") if perimee else None
     salle = min(routes, key=lambda s: (s != dernier_lieu, visites.get(s, -1),
                                       cout_route(routes[s], e.orientation), s))
     # Il y parcourt la salle des yeux, et l'appelle s'il ne le voit pas (``pnj.appeler``).
     etapes = ([_etape("aller", lieu=salle)] if salle != e.salle else []) + [
-        {**_etape("inspecter", lieu=salle, contenu={"cherche": sujet}), "suppose": True}]
+        {**_etape("inspecter", lieu=salle, contenu={"cherche": sujet,
+                  **({"verification": {"type": "position", "lieu": ancienne["valeur"]}} if perimee else {})}),
+         "suppose": True}]
     suivant = e.apres(salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)])
     mesure = _mesurer(v, e, etapes, suivant, cout_route(routes[salle], e.orientation) + 1)
     if mesure is None:
@@ -2820,14 +2823,16 @@ def verification_en_cours(monde, id, etapes):
         return False
     fin = etapes[-1]
     sujet = (fin.get("contenu") or {}).get("cherche")
-    if fin["operation"] != "inspecter" or not sujet or _lieu_cru(monde, id, sujet) is not None:
+    preuve = (fin.get("contenu") or {}).get("verification")
+    if (fin["operation"] != "inspecter" or not sujet or not preuve
+            or preuve.get("type") != "position" or _lieu_cru(monde, id, sujet) is not None):
         return False
     croyances = lire(monde, id)["croyances"].get(sujet, {})
     etat = (croyances.get("etat") or {}).get("valeur", {})
     lieu = croyances.get("lieu") or {}
     return (not etat.get("mort") and not etat.get("parti")
             and fin["lieu"] not in appels_vains(monde, id, sujet)
-            and (not lieu.get("valeur") or lieu.get("salle") in (None, fin["lieu"])))
+            and lieu.get("valeur") in (None, preuve["lieu"]))
 
 
 def _normaliser_suites(v, e, vises, but, possibles, conclure=False):

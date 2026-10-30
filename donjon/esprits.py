@@ -640,6 +640,13 @@ def verifier(monde):
                 assert (isinstance(etape, dict) and set(etape) in (ETAPE, ETAPE | {"contenu"})
                         and etape["operation"] in OPERATIONS and isinstance(etape.get("contenu", {}), dict)
                         and etape["condition"] in ("", "sans_temoin", "dans_le_dos")), "Étape de plan invalide"
+                contenu = etape.get("contenu", {})
+                if "verification" in contenu:
+                    preuve = contenu["verification"]
+                    assert (etape["operation"] == "inspecter" and isinstance(contenu.get("cherche"), str)
+                            and bool(contenu["cherche"]) and isinstance(preuve, dict)
+                            and set(preuve) == {"type", "lieu"} and preuve["type"] == "position"
+                            and isinstance(preuve["lieu"], str) and bool(preuve["lieu"])), "Vérification de position invalide"
 
 
 def croyance(monde, id, sujet, attribut):

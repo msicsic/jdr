@@ -46,8 +46,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-position-hypothese` — lot 374, départ `b83f5a59` (integration ancêtre `60f857c5`), PC fixe.
   Position d'autrui datée (15/60/120 min), contrôle commun plan/geste ; le préfixe de vérification conserve sa progression.
   Auberge 371/mine 69, parti/resté, rechargés. Première passe 89 verts ; VERIFIER 1 h et 16 nuits sans plantage/usurpation.
-  Rafale crue 42 corrigée : préparatifs réinsérés avant inspection ; capture bloc/découpé verte, 20 ciblés verts.
-  Passe finale 90 tests puis nouveau banc en cours ; boucles non encore validées, sans Luna : `artifacts/position-hypothese-374/fin-contact.json`.
+  Rafale crue 42 corrigée par la cause typée de vérification ; capture bloc/découpé verte. Oracle mine : plafond 28 conservé par recherche.
+  90 tests distincts, 44 concernés finaux verts (150,032 s), autres voisins verts à la passe précédente ; banc final en cours : `artifacts/position-hypothese-374/fin-final.json`.
   Forme S0 et recouvrement esprits avec 372 détaillés au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
 
 Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 372 (A6
