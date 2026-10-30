@@ -2031,6 +2031,7 @@ def _mandat(travail, auditeur, c, faits):
 
 def _proposer(travail, auditeur, c, faits):
     from .echanges import proposer
+    from .propositions import en_mots, offre
     bilan = proposer(travail, "joueur", auditeur, c["demande"], c["contrepartie"])
     nom = _personne(travail, auditeur)[0]
     causes = {"mefiance": "il ne te fait pas confiance", "rancune": "il t'en veut encore",
@@ -2044,22 +2045,14 @@ def _proposer(travail, auditeur, c, faits):
               "marche": "ce qu'il y perd l'emporte sur ce qu'il y gagne",
               "persuasion": "tu ne l'as pas convaincu"}
     if bilan["cause"]:
-        faits.append(nom + " refuse l'échange : " + causes[bilan["cause"]] + ".")
-        return [], {"etat": "refuse", "cause": bilan["cause"], "offre": copy.deepcopy(c)}
-    def terme(t):
-        if t["type"] == "rien":
-            return "sans contrepartie"
-        if t["type"] == "pieces":
-            return str(t["montant"]) + " pièces"
-        if t["type"] == "tache":
-            from .echanges import phrase_condition
-            return "la promesse que " + phrase_condition(travail, t["condition"])
-        o = travail.objets[t["objet"]]
-        return "une part " + complement_de(o) if t["type"] == "part" else designer(o)
-    faits.append(nom + " accepte l'échange : " + terme(c["demande"]) + " contre " + terme(c["contrepartie"]) + ".")
+        motif = bilan['delai']['message'] if 'delai' in bilan else causes[bilan['cause']]
+        faits.append(nom + " refuse l'échange : " + motif.rstrip('.') + ".")
+        return [], {"etat": "refuse", "cause": bilan["cause"], "offre": copy.deepcopy(c),
+                    **({'delai': bilan['delai']} if 'delai' in bilan else {})}
+    faits.append(nom + " accepte l'échange : " + en_mots(travail, c["demande"]) + " contre "
+                 + en_mots(travail, c["contrepartie"]) + ".")
     faits.append("La contrepartie immédiate est remise ; la demande sera livrée selon l'engagement enregistré."
                  if bilan.get("livraison_differee") else
                  "Les biens et pièces convenus sont remis ; les tâches convenues sont enregistrées comme engagements.")
     faits.extend(agendas.promesses_visibles(travail))
-    from .propositions import offre
     return [offre("joueur", auditeur, c["demande"], c["contrepartie"])], {"etat": "accepte"}

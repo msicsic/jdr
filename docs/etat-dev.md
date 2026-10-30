@@ -42,7 +42,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 342 (attribution du groupe 1, 315 à réaccorder), 353 (U-T corps et passage), 355 (E4 accord daté),
+- **355 — E4 accord daté**, `codex-e4-accord-date`, base `origin/integration 9b66d5a` (PC fixe).
+  Termes `part`/`tache` avec limite absolue : jugement E3, paiement présent et obligation atomiques ;
+  soumission dédupliquée jusque dans l'issue E2, termes et dates rendus par le moteur, recharge validée.
+  151 tests ciblés/voisins : 146 verts, cinq échecs reproduits sur la base ; E4 14/14 et socle 6/6 verts.
+  Banc rapide détaché en cours : 4 h × quatre graines × Relais/auberge/mine, deux processus, références en cache.
+  Fin : `C:\Users\msics\donjon\artifacts\e4-355\fin-bancs.json` ; aucune conclusion de banc encore.
+  E5/E6 et offres/renégociation restent hors périmètre. [Rapport](taches/rapport-codex-355-e4-accord-date.md).
+
+Lots en cours : 342 (attribution du groupe 1, 315 à réaccorder), 353 (U-T corps et passage),
 354 (U-M social information). Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
 antérieurs sont connus (`test_protection` Gorm au beffroi, trois faisabilités de `test_luna_noms`, persuasion
 Hugues/Anselme) ; un petit lot les traitera avant la vérification d'intégration.
