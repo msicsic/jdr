@@ -1,7 +1,7 @@
 # Lot 355 — E4, accord initial daté
 
 Branche `codex-e4-accord-date`, base `origin/integration 9b66d5a`, PC fixe
-(`msi-desktop`). La révision mesurée sera inscrite dans `fin-bancs.json`.
+(`msi-desktop`). Code mesuré : `60f340b`.
 
 **Invariant.** Le terme typé existant `part` ou `tache` peut porter `limite`,
 instant absolu en dixièmes. Le moteur refuse toute autre clause temporelle,
@@ -42,19 +42,26 @@ sa livraison future ne reçoit aucune garantie datée.
 expiration passent en bloc et par laps découpés. Le test E1 vérifie désormais
 que le temps restant diminue, tandis que la limite absolue reste identique.
 
-**Banc rapide en cours.** 4 h, graines 1985/7/42/2024, Relais/auberge/mine,
-deux processus à priorité réduite, détaché. Comparaisons séquentielles au `main`
-publié `0bad227`, puis à la base exacte ; références déjà calculées réutilisées,
-nuits de branche mises en cache pour la seconde comparaison. Le `main` local
-ancien n'est pas déplacé. Aucune conclusion de banc ni comparaison CPU annoncée.
-Bruts : `C:\Users\msics\donjon\artifacts\e4-355\`, dont `synthese-tests.json`,
-`tests-base.json`, `banc-main.json`, `banc-base.json`, `synthese-bancs.json`.
-Fin attendue : `fin-bancs.json`, écrit en dernier.
+**Banc rapide terminé.** 4 h, graines 1985/7/42/2024, Relais/auberge/mine,
+deux processus à priorité réduite : **12/12 nuits identiques à la base exacte
+`9b66d5a`**, chroniques, mesures et empreinte de l'état final complet. Audits,
+relevés, boucles et état final d'audit également identiques ; seules les durées
+de calcul diffèrent. Aucun plantage ni nouvelle alerte : zéro avis non justifié,
+27 à expliquer, deux répétitions, deux `fige_presse`, un `noir_long` et un
+`voir_alterne`, tous déjà présents sur la base. Les douze nuits divergent du
+`main` publié `0bad227` dès la minute 0 ; ses neuf avis à expliquer deviennent
+27 sur l'intégration, sans contribution d'E4. Références `main` relues du cache,
+base calculée une fois, branche relue du cache pour la seconde comparaison ;
+aucun rejeu ni comparaison CPU. Les deux commandes terminent avec code 0.
+Bruts : `C:\Users\msics\donjon\artifacts\e4-355\` (`synthese-tests.json`,
+`tests-base.json`, `banc-main.json`, `banc-base.json`, `synthese-bancs.json`,
+`analyse-bancs.json`) ; `fin-bancs.json` confirme la fin sans erreur.
 
 **Limites.** Cette livraison raccorde les propositions typées ; choix direct E5,
 compilation libre E6, cycle durable des offres PNJ E7 et renégociation restent à
 porter. Les mêmes parties et mêmes termes, dont la même limite absolue,
 désignent une seule soumission : ils ne commandent pas une deuxième part.
 Le devis reste subjectif et ne garantit pas la réussite ni une priorité sur la
-survie. Ni suite complète, ni Luna, ni banc long lancés. Les cinq échecs anciens
-restent hors de ce lot ; le banc rapide doit encore être lu avant validation finale.
+survie. Les nuits ordinaires n'introduisent pas spontanément de délai ; aucun
+gain autonome PNJ n'est annoncé. Ni suite complète, ni Luna, ni banc long lancés.
+Les cinq échecs anciens restent hors de ce lot.

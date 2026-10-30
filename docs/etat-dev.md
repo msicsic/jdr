@@ -46,8 +46,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Termes `part`/`tache` avec limite absolue : jugement E3, paiement présent et obligation atomiques ;
   soumission dédupliquée jusque dans l'issue E2, termes et dates rendus par le moteur, recharge validée.
   151 tests ciblés/voisins : 146 verts, cinq échecs reproduits sur la base ; E4 14/14 et socle 6/6 verts.
-  Banc rapide détaché en cours : 4 h × quatre graines × Relais/auberge/mine, deux processus, références en cache.
-  Fin : `C:\Users\msics\donjon\artifacts\e4-355\fin-bancs.json` ; aucune conclusion de banc encore.
+  Banc rapide 4 h × quatre graines × Relais/auberge/mine : 12/12 nuits identiques à la base, audits compris,
+  zéro plantage/nouvelle alerte ; écarts à `main` antérieurs à E4. Bruts : `artifacts/e4-355/` du dépôt principal.
   E5/E6 et offres/renégociation restent hors périmètre. [Rapport](taches/rapport-codex-355-e4-accord-date.md).
 
 Lots en cours : 342 (attribution du groupe 1, 315 à réaccorder), 353 (U-T corps et passage),
