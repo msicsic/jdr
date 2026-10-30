@@ -43,6 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-s1a-porte-episodes` (378), base `integration eb84aad7` : porte commune des insertions/évictions
+  dans `memoire.py`, liste/plafond/crochets historiques conservés ; façade `esprits`, migrations et ouïe portées.
+  Contrôle AST fermé et chaînes auberge/Relais ajoutés ; lectures et contenus restent pour S1b–e.
+  Vérification détachée en cours : empreintes 2 h, quatre scénarios/quatre graines contre main puis base,
+  suivies de 13 fichiers ciblés, deux processus au plus ; aucune réussite encore affirmée.
+  Fin attendue : `C:/Users/msics/donjon/artifacts/s1a-378/verification-fin.json` ; lot non validé.
+  [Rapport](taches/rapport-codex-378-s1a-porte-episodes.md). Recouvrement 374 limité à `esprits.py`.
+
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 376 (messages selon le découpage), 377
 (double promesse), 378 (S1a, porte des épisodes). Questions de S0 en cours d'arbitrage avec l'utilisateur (1 : tri des
 souvenirs par importance et âge, validé). Leurs entrées arrivent ici à leur livraison. 

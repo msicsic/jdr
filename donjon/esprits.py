@@ -41,12 +41,12 @@ import copy
 from contextlib import contextmanager
 
 from .biens import permis as _permis
+from .memoire import MEMOIRE_MAX, evincer_episodes, retenir_episode
 from .perception import _par_case, eclairage, faible
 from .spatial import (CLES_VUE, _champ, _memo_vue, _murs, _position_vue, a_verifier, carte_lumiere, dans_le_regard,
                       etat_fige, porte_par, poses as salles_posees, sans_memoire, vue_memorisee)
 from .vol import proprietaire as _proprietaire
 
-MEMOIRE_MAX = 40
 PRESENCES_MAX = 40     # Indépendant des souvenirs employés par le comportement.
 GESTES_SOUPCON_MAX = 40
 RECENT = 30            # minutes pendant lesquelles ce qu'on a vu, ou ce qu'on vient d'entendre, fait foi
@@ -189,7 +189,7 @@ def installer(monde):
         for s in list(e["memoire"]):
             if s["type"] == "presence_percue":
                 migration_soupcon = True
-                e["memoire"].remove(s)
+                evincer_episodes(monde, id, lambda episode: episode is s)
                 r["presences"].append({k: s[k] for k in ("qui", "salle", "instant")})
         if migration_soupcon:
             _purger_indices_soupcon(monde, id)
@@ -715,27 +715,8 @@ def recevoir_prevision(monde, id, locuteur, noyau, rang, *, departage=False):
 
 
 def memoriser(monde, id, evenement):
-    if evenement["type"] == "dit" and "valeur" in evenement:
-        from .social import retenir_dit
-        retenir_dit(monde, id, evenement["a"], {"type": "affirmation", **{
-            k: evenement[k] for k in ("sujet", "attribut", "valeur")}})
-    memoire = esprit(monde, id)["memoire"]
-    souvenir = copy.deepcopy({"minute": monde.data["minutes"], **evenement})
-    from .relations import identifier
-    from .temps import instant
-    if id != "joueur" and souvenir["type"] in ("vu_agir", "entendu_agir", "vu_porter", "vol_surpris"):
-        # La précision de l'indice reste dans son registre ; l'identité
-        # de la preuve commune reste celle du moteur antérieur.
-        gestes = esprit(monde, id)["indices_soupcon"]["gestes"]
-        gestes.append({"objet": souvenir["objet"], "instant": _date_indices_soupcon(monde)})
-        del gestes[:-GESTES_SOUPCON_MAX]
-    identifier(souvenir, instant(monde))
-    memoire.append(souvenir)
-    del memoire[:-MEMOIRE_MAX]
-    from .relations import souvenir as eprouver_souvenir
-    eprouver_souvenir(monde, id, souvenir)
-    from .defense import retenir as retenir_violence
-    retenir_violence(monde, id, souvenir)
+    """Compatibilité des écrivains historiques ; la porte est dans memoire."""
+    retenir_episode(monde, id, evenement)
 
 
 def _retenir_presences(monde, id, vus):
