@@ -39,16 +39,16 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **360 — `codex-regressions-337`**, base `integration 0b62a4fa`, **validation finale en cours**.
+- **360 — `codex-regressions-337`**, base `integration 0b62a4fa`, **terminé, non fusionné ; poussé**.
   Contrat commun : droits ⇒ lieu sans réciproque ; inventaire et états portés initiaux silencieux,
-  changements appris transmis ; les événements mémorisés gardent leur nouveauté. Tests du 337 verts.
+  changements appris transmis ; les événements mémorisés gardent leur nouveauté. Source validée `861d88d1`.
   Prémisses des anciens oracles explicites ; 453 assertions AST conservées hors deux textes G7 autorisés.
-  Passe 365 tests : deux méthodes rouges corrigées, 74/74 ciblés verts ; banc 20/20 sans plantage (102/179 constats).
-  Clôture 31 fichiers et empreintes 2 h × 5 scénarios × 4 graines, 2 travailleurs, fin `regressions-337-360/validation-cloture/fin.json`.
-  Migration : passé initial absent non reconstructible ; aucune garantie globale de calendrier ou de boucles.
+  **369/369 tests, 32 fichiers**, zéro échec/erreur/saut ; 23 méthodes du brief et 16 tests du 337 verts.
+  Banc 2 h × 5 scénarios × 4 graines : 20/20 sans plantage ni usurpation ; constats main/branche 102/179.
+  Empreintes différentes de main ; 20 références en cache. Migration ancienne limitée ; suite globale non relancée.
   [Rapport](taches/rapport-codex-360-regressions-337.md) ; recouvrement passage/361 limité et autorisé.
 
-Lots en cours : 359 (E5 choix direct), 360 (régressions du lot 337), 361 (attentes périmées encore rouges).
+Lots en cours : 359 (E5 choix direct), 361 (attentes périmées encore rouges).
 **Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
 dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361), 10 autres anciennes et 6
 nouvelles à traiter ensuite. Leurs entrées arrivent ici à leur livraison. 

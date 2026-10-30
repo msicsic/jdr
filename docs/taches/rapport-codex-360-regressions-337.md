@@ -1,7 +1,7 @@
 # Lot 360 — contrat des nouvelles après le 337
 
 Branche `codex-regressions-337`, base `integration 0b62a4fa`.
-**Correctifs et portages réalisés ; validation finale en cours, non fusionné.**
+**Terminé, non fusionné ; branche poussée.** Source validée : `861d88d1`.
 Bruts : `C:/Users/msics/donjon/artifacts/regressions-337-360/`.
 
 **Invariant commun.** Un enrichissement de preuve ne perd pas l'information
@@ -47,24 +47,27 @@ et les deux rendus sont comparés après recharge ; seul le nouveau registre
 de provenance sort de la projection historique d'étapes. Aucun hash attendu
 n'a changé. `DemanderLePassageTests` reste intact pour le 361.
 
-**Mesures.** Premier contrôle groupé : 319 tests, neuf échecs et une erreur ;
-ces incidents ont maintenant leurs témoins ciblés corrigés. Les tests du 337
-restent verts, avec nouveaux témoins Relais/auberge de l'inclusion des preuves,
-et vivres/bois du hameau pour les consommations anciennes puis nouvelles.
-Premier banc : 20/20 nuits achevées sans plantage, sources stables ; constats
-confiés **102 sur main / 179 sur le premier candidat**. Cette comparaison
-cumule les autres lots depuis main, ce n'est pas une mesure causale du 360.
-La passe groupée suivante a joué **365 tests**, sans saut : seuls deux tests
-d'un fichier restaient rouges (deux échecs et deux erreurs de sous-cas), le
-filtre initial appliqué à tort aux événements mémorisés. Ce défaut est corrigé ;
-**74/74 tests ciblés, six fichiers, 57,553 s**, contrôlent la correction, les
-accusations, les nouvelles, les faits dits et la réception. Le banc de cette
-passe garde les mêmes comptes 102/179 et zéro plantage ; bruts conservés.
-La clôture rejoue 31 fichiers ciblés et la classe du passage spontané,
-puis vingt empreintes de 2 h, cinq scénarios et quatre graines, deux travailleurs
-réduits au plus. `origin/main` résout `main 0bad227`, cache partagé conservé.
-Les comptes de clôture seront dans `validation-cloture/constats-confies.json` ;
-fin écrite en dernier : **`validation-cloture/fin.json`**. Ni suite complète ni Luna.
+**Validation finale : 369/369 tests, 32 fichiers**, zéro échec, erreur ou saut :
+365 tests en 497,937 s, puis quatre tests du passage spontané en 0,208 s.
+Les 23 méthodes du brief, les 16 tests du 337 et leurs voisins sont verts.
+Nouveaux témoins Relais/auberge de l'inclusion des preuves, vivres/bois du
+hameau pour les consommations anciennes puis nouvelles ; contrôles de monde,
+de rendu et de scène après rechargement. **`validation-cloture/fin.json ok=true`**,
+sources stables ; clôture totale 737,546 s, deux travailleurs réduits au plus.
+
+**Banc : 20/20 nuits de 2 h**, cinq scénarios, quatre graines, zéro plantage
+et zéro usurpation. Les vingt références de `main 0bad227` sont toutes relues
+du cache, aucune relancée. Constats confiés, main / branche :
+
+| Relais | Mine | Auberge | Crue | Hameau | Total |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 19 / 48 | 41 / 20 | 5 / 31 | 18 / 24 | 19 / 56 | **102 / 179** |
+
+**Les empreintes ne sont pas identiques** : première divergence au Relais,
+1985, minute 0 (chronique, mesures, état final). Cette comparaison cumule les
+autres lots depuis main ; aucun gain causal du 360 ni conservation générale
+des nuits n'est affirmé. Comptes dans `validation-cloture/constats-confies.json`,
+empreintes et anciens essais rouges conservés. Ni suite complète ni Luna.
 
 **Limites.** Le passé initial d'une ancienne sauvegarde sans provenance n'est
 pas reconstructible : l'installation ancre ses inventaires présents et ses
