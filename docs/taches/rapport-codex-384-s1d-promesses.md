@@ -23,9 +23,9 @@ plafond 40, clés, preuves, sérialisation et autorité d'`agendas` sont inchang
 sans nouvelle exemption. Le contrôle des mutations couvre les familles portées,
 y compris la sélection par indice. Cinq nouveaux tests contrôlent copies imbriquées,
 pureté, ordre sans tri chronologique, arrêt du suivi, éviction, remise et réentrance
-à quarante occurrences. Le contrôle AST et les assertions de porte passent ; la
-première exécution restreinte rencontre la restriction Windows sur une sauvegarde
-temporaire. La vérification autorisée hors de cette restriction est en cours.
+à quarante occurrences. La première exécution restreinte rencontre la restriction
+Windows sur une sauvegarde temporaire ; les calculs suivants sont autorisés hors
+de cette restriction.
 
 Quinze fichiers ciblés : les six du brief, `memoire_socle`, `echanges_argent`,
 `relations_graduees`, `lampes_parts`, `tache_promise_recours`, `parts_achetees`,
@@ -33,18 +33,31 @@ Quinze fichiers ciblés : les six du brief, `memoire_socle`, `echanges_argent`,
 l'achat à la minute 151 est renforcée en cinq minutes entières ou découpées avec
 recharges. Autres chaînes : part livrée par Aubin et tâche ponctuelle datée à
 l'auberge. Comparaisons : état complet et ordre JSON, lignes, rendu, scène et
-registre des paroles après recharge. Le résultat de ces contrôles reste à lire.
+registre des paroles après recharge.
+
+Première passe : **192 tests, trois échecs, aucune erreur** (569,2 s). La fixture
+nouvelle remplit à tort le stock d'appels, ce qui déclenche la migration historique
+du secours à la recharge : elle utilise maintenant des examens. Deux autres échecs
+se reproduisent à l'identique sur la base exacte, modules vérifiés dans la copie
+isolée (`attribution-base-exacte.json`, `attribution-synthese.json`) : l'assertion
+« Gaspard reste près de Lucien » est déjà suivie par 375 ; les notifications sonores
+anonymes du parcours Relais comptent onze lignes de plus en bloc. Cette limite
+antérieure n'est pas corrigée en S1d. Le test renforcé garde les égalités intégrales
+d'état, ordre JSON, rendu, scène et paroles sauvegardées, sans revendiquer l'égalité
+de ces notifications. Les deux fichiers modifiés sont en nouvelle vérification ;
+les treize autres ne sont pas relancés.
 
 **Empreintes et livraison provisoire.** Calcul détaché, séquentiel après les tests :
 2 h × quatre graines 1985/7/42/2024 × Relais/mine/auberge/crue, référence exacte
 `31f80725`, branche `37069459`, cache partagé. Deux processus au plus, priorité
 réduite ; pas de suite complète ni Luna. Le lanceur s'arrête avant les empreintes
-si les tests échouent. Aucun résultat d'identité ni conclusion de coût revendiqué
+si les tests corrigés échouent. Aucun résultat d'identité ni conclusion de coût revendiqué
 avant lecture du fichier de fin.
 
 **Bruts et limites.** `C:/Users/msics/donjon/artifacts/s1d-384/` : `tests.json`,
-`tests.log`, `empreintes-base.json`, `empreintes-base.log`, `fin.json` écrit en
-dernier. Lanceur local ignoré : `artifacts/s1d-384/run.ps1`.
+`tests.log`, `tests-corriges.json`, `empreintes-base.json`, `empreintes-base.log`,
+attributions et `fin-empreintes.json` écrit en dernier. L'ancien `fin.json` relate
+l'arrêt initial, avant empreintes. Lanceur local ignoré : `artifacts/s1d-384/run.ps1`.
 Recouvrement potentiel 374 : seules les lectures de promesses de `deliberation`,
 `planification`, la façade `esprits.prete` et `echanges.tenu` sont modifiées ;
 aucune localisation ni recherche changée. Aucun fichier de 380/381 touché.

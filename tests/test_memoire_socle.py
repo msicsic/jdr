@@ -306,7 +306,7 @@ class MemoireEngagementsTests(unittest.TestCase):
             memoriser(m, 'marchand', {'type': 'pret', 'objet': 'torche', 'a': 'joueur'})
             self.assertTrue(memoire.pret_retenu(m, 'marchand', 'torche', 'joueur'))
             for _ in range(40):
-                memoriser(m, 'marchand', {'type': 'appel'})
+                memoriser(m, 'marchand', {'type': 'examen', 'salle': 'echoppe', 'nature': 'pas', 'case': None})
         self.assertFalse(memoire.pret_retenu(m, 'marchand', 'torche', 'joueur'))
         self.assertEqual(len(lire(m, 'marchand')['memoire']), 40)
         self.assertEqual(memoire.episodes_parts_promises(m, 'marchand'), [])
