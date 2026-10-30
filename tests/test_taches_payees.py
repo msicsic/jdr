@@ -108,6 +108,11 @@ class TachesPayeesTests(unittest.TestCase):
 
     def test_le_bien_du_payeur_peut_etre_emprunte_pour_agir_soi_meme(self):
         m = cs.TacheAccepteeTests().tilo_paye_pour_l_atre(False)
+        # Isoler la fourniture de l'outil du secours spontané d'Odile :
+        # le nouveau contact peut lui faire entreprendre elle-même l'allumage
+        # pour autrui avant le retour de Tilo, et réserver alors son briquet.
+        from tests.support import sans_souci
+        sans_souci(m, 'odile')
         m.joueur.update(salle="salle_commune", position=[3, 3], orientation="ouest")
         # Un autre outil d'allumage, prêté par Odile : c'est Tilo qui allume ensuite.
         m.objets["briquet"].update(lieu="odile", proprietaire="odile")
