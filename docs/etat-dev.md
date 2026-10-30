@@ -38,11 +38,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **335, suivi vocal** (`codex-suivi-vocal`, non fusionnée), base `9237e14`, réaccordée sur `c9b066b`.
-  L'agenda protéger rejoint une portée de voix crue par le terminal commun ; contact, gardes et accords datés conservés.
-  Reprise : 414 tests, 409 verts, cinq échecs identiques sur intégration ; aucune erreur. Banc 4 h × 20 en cours, sans Luna.
-  Limite : le terminal garantit l'écoute du protecteur selon ses croyances, pas l'audition réciproque.
-  [Rapport](taches/rapport-codex-335-suivi-vocal.md).
+- **335 terminé**, `codex-suivi-vocal`, non fusionnée ; base `9237e14`, réaccordée sur `c9b066b` (`51fd593`).
+  L'agenda protéger rejoint une portée vocale crue ; contact, gardes et accords datés conservés.
+  414 tests : 409 verts, cinq échecs identiques sur intégration, aucune erreur. Banc 20 × 4 h achevé : zéro plantage/usurpation/suspect certifié.
+  `fin.json ok=true`, sources inchangées ; alertes non attribuées sans référence compatible. Ni suite complète ni Luna.
+  Limites : écoute selon les croyances, sans réciprocité garantie ni garantie générale d'absence de boucle.
+  [Rapport et réserves](taches/rapport-codex-335-suivi-vocal.md).
 
 Lots en cours : 356 (suite rouge, attribution), 357 (régression d'E3 sur les tâches payées). 315 réaccordée
 (`codex-reclamations-repetees` 7826c3a) en attente : une erreur nouvelle de rendu social (`porteur=None`) à comprendre.
