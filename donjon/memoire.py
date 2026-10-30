@@ -1,4 +1,4 @@
-"""Porte des épisodes et de la mémoire sonore, au format historique.
+"""Porte des épisodes, sons, approches et secours, au format historique.
 
 S1a conserve la liste sauvegardée, son plafond et les crochets réentrants.
 Les autres familles seront portées séparément ; aucune requête de ce
@@ -7,6 +7,85 @@ module ne renvoie le stock mutable aux consommateurs.
 import copy
 
 MEMOIRE_MAX = 40
+
+
+def derniere_approche(monde, id, auteur, objet, lieu, cible, case=None):
+    """Dernière approche de la charge ; les anciens lieux/cibles restent implicites."""
+    from .esprits import lire
+    return copy.deepcopy(next((s for s in reversed(lire(monde, id)['memoire'])
+        if s['type'] == 'approche_charge' and s['auteur'] == auteur and s['objet'] == objet
+        and s.get('lieu', lieu) == lieu and s.get('cible', cible) == cible
+        and (case is None or s['case'] == case)), None))
+
+
+def mise_en_garde_retenue(monde, id, destinataire, objet, preuve):
+    """Même preuve d'approche, sans péremption ni effet de lecture."""
+    from .esprits import lire
+    return any(s['type'] == 'mise_en_garde' and s['a'] == destinataire
+               and s['objet'] == objet and s['preuve'] == preuve
+               for s in lire(monde, id)['memoire'])
+
+
+def avertissements_a_donner(monde, id):
+    """Copies dans l'ordre historique, y compris les avertissements déjà tenus."""
+    from .esprits import lire
+    return [copy.deepcopy(s) for s in lire(monde, id)['memoire'] if s['type'] == 'a_prevenir']
+
+
+def _avertissement(monde, id, victime, auteur):
+    from .esprits import lire
+    # Le premier, même déjà tenu : ne pas passer à une autre occurrence.
+    return next((s for s in lire(monde, id)['memoire'] if s['type'] == 'a_prevenir'
+                 and s['victime'] == victime and s['auteur'] == auteur), None)
+
+
+def avertissement_du(monde, id, victime, auteur):
+    return copy.deepcopy(_avertissement(monde, id, victime, auteur))
+
+
+def acquitter_avertissement(monde, id, victime, auteur):
+    """Marque tenu le premier avertissement correspondant, sans crochet."""
+    alerte = _avertissement(monde, id, victime, auteur)
+    if alerte is None or alerte.get('tenu'):
+        return False
+    alerte['tenu'] = True
+    return True
+
+
+def secours_retenus(monde, id, qui=None, *, en_attente=False):
+    """Copies ordonnées des cris ; le lecteur conserve sa borne de récence."""
+    from .esprits import lire
+    return [copy.deepcopy(s) for s in lire(monde, id)['memoire'] if s['type'] == 'secours'
+            and (qui is None or s['qui'] == qui) and (not en_attente or not s.get('examine'))]
+
+
+def _examiner_secours(monde, id, constate):
+    from .esprits import lire
+    secourus = []
+    for s in lire(monde, id)['memoire']:
+        if s['type'] == 'secours' and not s.get('examine') and constate(s):
+            s['examine'] = True
+            secourus.append(s['qui'])
+    return secourus
+
+
+def examiner_secours_du_lieu(monde, id, salle):
+    """Acquitte chaque cri du lieu effectivement inspecté, dans l'ordre."""
+    return _examiner_secours(monde, id, lambda s: s['salle'] == salle)
+
+
+def examiner_secours_constates(monde, id):
+    """Vue actuelle ou état vu strictement après le cri, comme historiquement."""
+    from .esprits import lire, percoit
+    e = lire(monde, id)
+
+    def constate(s):
+        qui = s['qui']
+        etat = e['croyances'].get(qui, {}).get('etat', {})
+        vu = monde.visible(qui) if id == 'joueur' else percoit(monde, id, qui)
+        return vu or etat.get('source') == 'vu' and etat['minute'] > s['minute']
+
+    return _examiner_secours(monde, id, constate)
 
 
 def retenir_episode(monde, id, evenement):

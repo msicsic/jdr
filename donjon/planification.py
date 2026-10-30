@@ -3950,21 +3950,11 @@ def reagir(monde, id, dangers, aide=None):
     """Le graphe compare les moyens de sortir du danger ; un coup est toujours revalidé."""
     from . import corps
     from .defense import etat_cru, lieux_dangereux, protection as proteger
-    from .esprits import lire, percoit
-    e = lire(monde, id)
-    secourus = []
+    from .memoire import examiner_secours_constates
     # Le constat remplace l'appel, même si la défense interrompt l'inspection.
     # Une date à la minute ne départage pas deux événements de la même minute :
     # dans ce cas seule la vue actuelle constitue une preuve suffisante.
-    for s in e["memoire"]:
-        if s["type"] != "secours" or s.get("examine"):
-            continue
-        qui = s["qui"]
-        etat = e["croyances"].get(qui, {}).get("etat", {})
-        vu = monde.visible(qui) if id == "joueur" else percoit(monde, id, qui)
-        if vu or etat.get("source") == "vu" and etat["minute"] > s["minute"]:
-            s["examine"] = True
-            secourus.append(qui)
+    secourus = examiner_secours_constates(monde, id)
     if secourus:
         corps.evenement(monde, "intervention", id, proteges=sorted(set(secourus)))
     if aide and not aide[2] and aide[0] in secourus:

@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1c-approches-secours` — lot 383, base exacte `integration 1da5b943`.
+  Approches, mises en garde, avertissements et secours lus/acquittés par `memoire` ;
+  mêmes occurrences, ordre, clés et crochets ; inventaire AST 90 → 78.
+  177/177 tests ciblés verts ; 16/16 empreintes identiques, 2 h × 4 graines ×
+  Relais/mine/auberge/crue ; aucun plantage, sans exclusion de l'état final.
+  Branche poussée ; intégration inchangée ; sans suite complète ni Luna.
+  Limites et recouvrement 374 : [rapport 383](taches/rapport-codex-383-s1c-approches-secours.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 383, S1c : approches, avertissements et secours lus et acquittés sur la même occurrence par donjon/memoire.py ; inventaire AST 90 → 78. 177/177 tests ciblés, 16/16 empreintes identiques à la base. Aucun fichier de code commun depuis la base.
+
 - `codex-s1b-sons-examens` (382), base `integration 06895c7d` : sons/examens lus par copies,
   remplacements et rafraîchissement dans `memoire.py`, format historique et crochets conservés.
   Inventaire AST : 102 → 90 expressions ; **158 tests ciblés passent** dans 12 fichiers, dont

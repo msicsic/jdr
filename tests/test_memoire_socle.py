@@ -1,4 +1,4 @@
-"""S1a–b : porte des épisodes et requêtes/opérations sonores historiques."""
+"""S1a–c : porte des épisodes et requêtes/opérations historiques."""
 import ast
 from collections import Counter
 import copy
@@ -74,13 +74,14 @@ def controle(source):
         if not changement:
             break
 
-    # S1b ferme aussi les champs des épisodes sonores issus du stock brut.
+    # S1b/c ferment aussi les champs des familles portées issues du stock brut.
     # Les autres familles gardent leurs mutations historiques jusqu'à leur lot.
     sons = set()
     for n in ast.walk(arbre):
         if isinstance(n, ast.Compare):
             valeurs = [v.value for c in n.comparators for v in ast.walk(c) if isinstance(v, ast.Constant)]
-            if not any(v in ('bruit', 'examen') for v in valeurs):
+            if not any(v in ('bruit', 'examen', 'approche_charge', 'mise_en_garde',
+                             'a_prevenir', 'secours') for v in valeurs):
                 continue
             for c in ast.walk(n.left):
                 if isinstance(c, ast.Subscript) and cle(c.slice, fonction(n)) == 'type' and isinstance(c.value, ast.Name):
@@ -108,8 +109,14 @@ def controle(source):
     for _ in range(len(list(ast.walk(arbre)))):
         avant = len(elements)
         for n in ast.walk(arbre):
-            if isinstance(n, ast.Assign) and element(n.value, fonction(n)):
-                elements.update((fonction(n), t.id) for t in n.targets if isinstance(t, ast.Name))
+            if isinstance(n, ast.Assign):
+                valeur = n.value
+                selection = (isinstance(valeur, ast.Call) and isinstance(valeur.func, ast.Name)
+                             and valeur.func.id == 'next' and valeur.args
+                             and isinstance(valeur.args[0], ast.GeneratorExp)
+                             and element(valeur.args[0].elt, fonction(n)))
+                if element(valeur, fonction(n)) or selection:
+                    elements.update((fonction(n), t.id) for t in n.targets if isinstance(t, ast.Name))
         if len(elements) == avant:
             break
 
@@ -231,6 +238,20 @@ class AccesTests(unittest.TestCase):
             source = ('stock = e["memoire"]\nfor s in reversed(stock):\n'
                       ' if s["type"] == "examen":\n  ' + mutation)
             with self.subTest(source=source):
+                self.assertTrue(controle(source)[1])
+
+    def test_contre_epreuves_des_mutations_approches_avertissements_et_secours(self):
+        for famille in ('approche_charge', 'mise_en_garde', 'a_prevenir', 'secours'):
+            for mutation in ('s["examine"] = True', 'alias = s; alias["case"][0] = 1',
+                             's.update(tenu=True)', 'del s["preuve"]', 's.pop("case")',
+                             'modifier = s.update; modifier(tenu=True)'):
+                source = ('stock = e["memoire"]\nfor s in reversed(stock):\n'
+                          f' if s["type"] == "{famille}":\n  ' + mutation)
+                with self.subTest(famille=famille, mutation=mutation):
+                    self.assertTrue(controle(source)[1])
+            source = (f'alerte = next((s for s in e["memoire"] if s["type"] == "{famille}"), None)\n'
+                      'alias = alerte\nalias["tenu"] = True')
+            with self.subTest(selection=famille):
                 self.assertTrue(controle(source)[1])
 
 
@@ -372,6 +393,98 @@ class MemoireSonoreTests(unittest.TestCase):
                                   ('defense', 'attente'), ('defense', 'examen')])
         self.assertFalse(parcouru(m, 'marchand', 'echoppe'))
         self.assertIsNotNone(memoire.examen_couvrant(m, 'marchand', 'echoppe', 'pas'))
+        self.assertEqual(recharger(m).data, m.data)
+
+
+class ApprochesSecoursTests(unittest.TestCase):
+    def test_lectures_pures_copies_et_selection_historique(self):
+        m = relais()
+        avant = copy.deepcopy(m.data)
+        self.assertEqual(memoire.secours_retenus(m, 'absent'), [])
+        self.assertEqual(memoire.avertissements_a_donner(m, 'absent'), [])
+        self.assertIsNone(memoire.derniere_approche(m, 'absent', 'ilse', 'bois', 'echoppe', [1, 2]))
+        self.assertIsNone(memoire.avertissement_du(m, 'absent', 'ilse', 'brune'))
+        self.assertFalse(memoire.mise_en_garde_retenue(m, 'absent', 'ilse', 'bois', 'p'))
+        self.assertFalse(memoire.acquitter_avertissement(m, 'absent', 'ilse', 'brune'))
+        self.assertEqual(memoire.examiner_secours_constates(m, 'absent'), [])
+        self.assertEqual(memoire.examiner_secours_du_lieu(m, 'absent', 'echoppe'), [])
+        self.assertEqual(m.data, avant)
+        for qui in ('marchand', 'joueur'):
+            for preuve in ('ancien', 'recent'):
+                memoriser(m, qui, dict(type='approche_charge', auteur='ilse', objet='bois',
+                                      case=[1, 2], preuve=preuve))
+            memoriser(m, qui, dict(type='mise_en_garde', a='ilse', objet='bois', preuve='ancien'))
+            memoriser(m, qui, dict(type='a_prevenir', victime='ilse', auteur='brune', preuve='alerte'))
+            memoriser(m, qui, dict(type='secours', qui='ilse', salle='echoppe', case=[1, 2]))
+            avant = copy.deepcopy(m.data)
+            approche = memoire.derniere_approche(m, qui, 'ilse', 'bois', 'echoppe', [3, 4])
+            self.assertEqual(approche['preuve'], 'recent')
+            approche['case'][0] = -1
+            self.assertIsNone(memoire.derniere_approche(m, qui, 'ilse', 'bois', 'echoppe', [3, 4], [0, 0]))
+            self.assertTrue(memoire.mise_en_garde_retenue(m, qui, 'ilse', 'bois', 'ancien'))
+            self.assertFalse(memoire.mise_en_garde_retenue(m, qui, 'ilse', 'bois', 'recent'))
+            memoire.secours_retenus(m, qui)[0]['case'][0] = -1
+            memoire.avertissements_a_donner(m, qui)[0]['tenu'] = True
+            memoire.avertissement_du(m, qui, 'ilse', 'brune')['tenu'] = True
+            self.assertEqual(m.data, avant)
+        self.assertEqual(recharger(m).data, m.data)
+
+    def test_acquittements_meme_occurrence_ordre_et_sans_crochet(self):
+        m = relais()
+        for qui in ('marchand', 'joueur'):
+            for _ in range(2):
+                memoriser(m, qui, dict(type='a_prevenir', victime='ilse', auteur='brune'))
+            for personne, salle in (('ilse', 'echoppe'), ('brune', 'antichambre'), ('ilse', 'echoppe')):
+                memoriser(m, qui, dict(type='secours', qui=personne, salle=salle, case=[1, 2]))
+            stock = lire(m, qui)['memoire']
+            occurrences = list(stock)
+            alertes = [s for s in stock if s['type'] == 'a_prevenir']
+            with patch('donjon.relations.souvenir') as relation, patch('donjon.defense.retenir') as defense:
+                self.assertTrue(memoire.acquitter_avertissement(m, qui, 'ilse', 'brune'))
+                self.assertFalse(memoire.acquitter_avertissement(m, qui, 'ilse', 'brune'))
+                self.assertTrue(alertes[0]['tenu'])
+                self.assertNotIn('tenu', alertes[1])
+                self.assertEqual(memoire.examiner_secours_du_lieu(m, qui, 'echoppe'), ['ilse', 'ilse'])
+                self.assertEqual(memoire.examiner_secours_du_lieu(m, qui, 'echoppe'), [])
+                self.assertEqual([s['qui'] for s in memoire.secours_retenus(m, qui, en_attente=True)], ['brune'])
+                relation.assert_not_called()
+                defense.assert_not_called()
+            self.assertIs(stock, lire(m, qui)['memoire'])
+            self.assertTrue(all(a is b for a, b in zip(stock, occurrences)))
+        self.assertEqual(recharger(m).data, m.data)
+
+    def test_constat_strictement_posterieur_ou_vue_actuelle(self):
+        m = relais()
+        for minute in (0, 1):
+            memoriser(m, 'marchand', dict(type='secours', qui='ilse', salle='echoppe', minute=minute))
+        e = lire(m, 'marchand')
+        e['croyances']['ilse']['etat'] = dict(valeur={}, source='vu', minute=1, confiance=1)
+        with patch('donjon.esprits.percoit', return_value=False):
+            self.assertEqual(memoire.examiner_secours_constates(m, 'marchand'), ['ilse'])
+        self.assertEqual([s.get('examine', False) for s in memoire.secours_retenus(m, 'marchand')], [True, False])
+        with patch('donjon.esprits.percoit', return_value=True):
+            self.assertEqual(memoire.examiner_secours_constates(m, 'marchand'), ['ilse'])
+        self.assertEqual(recharger(m).data, m.data)
+
+    def test_avertissement_acquitte_avant_crochet_reentrant_du_service(self):
+        from donjon.relations import FIABLE
+        from donjon.voix import connaitre
+        m = relais()
+        connaitre(m, 'ilse', 'marchand')
+        memoriser(m, 'marchand', dict(type='a_prevenir', victime='ilse', auteur='brune', preuve='alerte'))
+        visites = []
+
+        def defense(monde, qui, souvenir):
+            visites.append((qui, souvenir['type']))
+            if souvenir['type'] == 'prevenu':
+                self.assertTrue(memoire.avertissement_du(monde, 'marchand', 'ilse', 'brune')['tenu'])
+
+        with patch('donjon.defense.retenir', side_effect=defense):
+            for _ in range(2):
+                memoriser(m, 'marchand', dict(type='dit', a='ilse', sujet='brune', attribut=FIABLE, valeur=False))
+        self.assertEqual(visites, [('ilse', 'prevenu'), ('marchand', 'dit'), ('marchand', 'dit')])
+        prevenus = [s for s in lire(m, 'ilse')['memoire'] if s['type'] == 'prevenu']
+        self.assertEqual([s['preuve'] for s in prevenus], ['service:alerte'])
         self.assertEqual(recharger(m).data, m.data)
 
 

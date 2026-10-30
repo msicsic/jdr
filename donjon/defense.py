@@ -6,6 +6,7 @@ Ni adversaires omniscients, ni état « en combat » : souvenirs datés, positio
 from . import corps
 from .esprits import lire, memoriser, reconsiderer
 from .temps import instant
+from . import memoire
 
 RECENT = 30
 EXPOSITION = 5          # surcoût forfaitaire d'un départ exposé, pondéré par la force crue
@@ -106,13 +107,8 @@ def approche_vue(monde, id, autre, avant, apres):
             if d > 2 or ancienne is not None and distance(ancienne) <= d:
                 continue
             preuve = f"approche:{autre}:{objet}:{instant(monde)}:{case}"
-            precedente = next((s for s in reversed(lire(monde, id)["memoire"])
-                               if s["type"] == "approche_charge" and s["auteur"] == autre
-                               and s["objet"] == objet and s.get("lieu", apres["valeur"]) == apres["valeur"]
-                               and s.get("cible", cible) == cible), None)
-            averti = next((s for s in reversed(lire(monde, id)["memoire"])
-                           if s["type"] == "mise_en_garde" and s["a"] == autre and s["objet"] == objet
-                           and precedente and s["preuve"] == precedente["preuve"]), None)
+            precedente = memoire.derniere_approche(monde, id, autre, objet, apres["valeur"], cible)
+            averti = precedente and memoire.mise_en_garde_retenue(monde, id, autre, objet, precedente["preuve"])
             if precedente and ancienne is not None and distance(ancienne) <= 2:
                 preuve_approche = precedente["preuve"]
                 if averti:
@@ -166,16 +162,11 @@ def interposition(monde, id):
             for cible, acces in _acces_charge(monde, id, objet, salle, case):
                 if max(abs(case[n] - cible[n]) for n in (0, 1)) != 2:
                     continue
-                approche = next((s for s in reversed(lire(monde, id)["memoire"])
-                             if s["type"] == "approche_charge" and s["auteur"] == autre
-                             and s["objet"] == objet and s["case"] == case
-                             and s.get("lieu", salle) == salle and s.get("cible", cible) == cible), None)
+                approche = memoire.derniere_approche(monde, id, autre, objet, salle, cible, case)
                 if approche is None or not _poste_atteignable(monde, id, salle, acces, personnages):
                     continue
                 contenu = {"objet": objet, "position": acces, "preuve": approche["preuve"]}
-                averti = next((s for s in reversed(lire(monde, id)["memoire"])
-                           if s["type"] == "mise_en_garde" and s["a"] == autre
-                           and s["objet"] == objet and s["preuve"] == approche["preuve"]), None)
+                averti = memoire.mise_en_garde_retenue(monde, id, autre, objet, approche["preuve"])
                 en_place = ici == salle and monde.objets[id]["position"] == acces
                 etapes = [] if averti and en_place else [dict(_etape("interposer", autre, lieu=salle), contenu=contenu)]
                 return {"type": "interposer", "qui": autre, "objet": objet, "lieu": salle}, etapes
@@ -220,8 +211,7 @@ def avertir_acces(monde, id, etape, lignes):
         return False
     # Un poste tenu ne donne pas une nouvelle parole pour la même approche,
     # même si le gardien a dû le rejoindre à nouveau.
-    if not r[1] or any(s["type"] == "mise_en_garde" and s["a"] == autre and s["objet"] == objet
-                      and s["preuve"] == etape["contenu"]["preuve"] for s in lire(monde, id)["memoire"]):
+    if not r[1] or memoire.mise_en_garde_retenue(monde, id, autre, objet, etape["contenu"]["preuve"]):
         return True
     if not saisit(monde, id, autre, "dire"):
         return False
@@ -407,11 +397,10 @@ def se_rendre(monde, id, autre, lignes):
 def protection(monde, id):
     """Un protégé agressé vu, ou un cri reconnu : le lieu est celui qu'on a appris."""
     from .deliberation import salle_crue, proteges
-    e = lire(monde, id)
     # Le joueur n'a pas de profil autonome ; ses appels reconnus sont déjà
     # consignés dans la même mémoire, sans lui inventer de responsabilité.
     responsables = proteges(monde, id) if id != "joueur" else list(dict.fromkeys(
-        s["qui"] for s in e["memoire"] if s["type"] == "secours"))
+        s["qui"] for s in memoire.secours_retenus(monde, id)))
     for protege in responsables:
         connus = auteurs(monde, id, protege) if id != "joueur" else []
         salle = salle_crue(monde, id, protege)
@@ -420,9 +409,8 @@ def protection(monde, id):
                   and not etat_cru(monde, id, a).get("reddition")]
         if actifs:
             return protege, salle, actifs
-        for s in reversed(e["memoire"]):
-            if (s["type"] == "secours" and s["qui"] == protege and not s.get("examine")
-                    and monde.data["minutes"] - s["minute"] < RECENT):
+        for s in reversed(memoire.secours_retenus(monde, id, protege, en_attente=True)):
+            if monde.data["minutes"] - s["minute"] < RECENT:
                 return protege, s["salle"], []
     return None
 
