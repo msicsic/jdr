@@ -12,10 +12,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - **`main`** : `0bad227` (avancée le 2026-10-29). **Intégration** : à jour sur `origin/integration`.
 - **Refonte du MJ** : feuille de route [plan-refonte-mj.md](plan-refonte-mj.md) (état de chaque lot G/U/K/A).
-  Fusionnés récemment : G2, G4, U-D, G5, G6, G7, G15, G17, G19, U-P, U-C, U-M outils/inventaire/fabrication,
-  U-T premier geste/outils/inventaire/fabrication, A0 (oracle G1).
-- **PNJ** : A5 (mandat) fini sauf 306 (lots 338, 340, 341 fusionnés). A1 provenance publique fusionnée (346, non branchée).
-  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1, E2, E3 fusionnés (348, 350, 352), E4 = 355.
+  Fusionnés récemment : G2, G4, U-D, G5, G6, G7, G15, G16, G17, G18, G19, U-P, U-C, U-M outils/inventaire/fabrication/
+  corps/passage/information, U-T premier geste/outils/inventaire/fabrication/corps/passage, A0 (oracle G1).
+- **Groupe 1** (313, 315, 332, 333) et 335 (suivi vocal) fusionnés le 2026-10-30.
+- **PNJ** : A5 (mandat) complet (lots 338, 340, 341, 306 fusionnés). A1 provenance publique fusionnée (346, non branchée).
+  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E4 fusionnés (348, 350, 352 et 357, 355), E5 = 359.
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
 - **Abandonnés, branches gardées sur origin** (à rediscuter avec l'utilisateur) : 33, 36, 117 b, 117 c, 162, 166,
@@ -38,11 +39,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 335 (suivi vocal, reprise, banc en cours), 356 (suite rouge, attribution), 358 (revalider une action
-différée après refus). 306 (agenda du hameau) attend le 358 : un mandat refusé y est réexécuté.
-Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
-écrits avant le consentement U-C, d'autres familles à attribuer) : lot 356 (attribution, harnais) en cours ; la
-vérification d'intégration et l'avance de `main` attendent une suite redevenue témoin fiable.
+Lots en cours : 359 (E5 choix direct). Suite complète de `f014c80` en cours (PC fixe) : nouvelle base après le
+lot 356 ; ses 38 régressions conservatrices (28 basculent à la fusion du lot 337) seront découpées en petits lots sur les
+échecs qui restent. Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
 
