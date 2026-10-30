@@ -16,7 +16,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   corps/passage/information, U-T premier geste/outils/inventaire/fabrication/corps/passage, A0 (oracle G1).
 - **Groupe 1** (313, 315, 332, 333) et 335 (suivi vocal) fusionnés le 2026-10-30.
 - **PNJ** : A5 (mandat) complet (lots 338, 340, 341, 306 fusionnés). A1 provenance publique fusionnée (346, non branchée).
-  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E5 fusionnés (348, 350, 352 et 357, 355, 359), E6 = 363.
+  **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1 à E5 fusionnés (348, 350, 352 et 357, 355, 359) ; E6 (363) non validé, reprise 364.
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
 - **Abandonnés** : archivés par tags `archive/<branche>` le 2026-10-30 (33, 36, 117 b/c, 162, 166, 168, 170, 176,
@@ -39,15 +39,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **363 E6**, `codex-e6-libre-date`, base `integration a9f02e5c` : délai libre structuré résolu une fois
-  avant transaction ; **clos mais non validé, ne pas fusionner comme E6 acquis**, code `f24c6a06`.
-  145 tests distincts verts / 17 fichiers, zéro erreur ou saut ; parité et recharge huile/verrou simulées.
-  Luna 14 scripts / 83 appels : huile acceptée/annulée ; « demain » invente 24 h, verrou mal compilé,
-  clauses non portées parfois reclassées en parole/propos. Invariant général non acquis ; reprise du contrat requise.
-  Bruts `C:/Users/msics/donjon/artifacts/e6-363/`, `fin-cloture.json` valide=false ; aucun calcul actif.
-  [Rapport 363](taches/rapport-codex-363-e6-libre-date.md).
-
-Lots en cours : 360 (régressions du lot 337), 362 (16 rouges restants hors 337). E6 (363) reste à reprendre après sa clôture non validée.
+Lots en cours : 360 (régressions du lot 337), 362 (16 rouges restants hors 337), 364 (E6 reprise : le libre ouvre le choix direct).
 **Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
 dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361, fusionné), 10 autres anciennes
 et 6 nouvelles (362). Leurs entrées arrivent ici à leur livraison. 
@@ -64,6 +56,9 @@ et 6 nouvelles (362). Leurs entrées arrivent ici à leur livraison.
   chantier 206/235/255, mis de côté).
 - **Branches abandonnées** : 27 branches archivées par tag `archive/<nom>` puis supprimées (abandonnées, essais,
   `cache-kv-local`) ; gardées : `codex-g1-compilateur`, `codex-g20-signes`, `prompt-simplifie`.
+- **E6, texte libre** (363 non validé : Luna invente un repère pour « demain », refus changés en paroles) : le libre ouvre le
+  formulaire du choix direct d'E5, prérempli des seuls termes typés ; Luna ne compile pas seule les dates (ligne du lot 288,
+  compilation libre complète avec K2).
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 
