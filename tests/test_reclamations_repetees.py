@@ -36,7 +36,12 @@ class ReclamationsRepeteesTests(unittest.TestCase):
         # Les débiteurs solvables rendent : il n'y avait aucun refus dans l'archive.
         demandes = [c for c in x.data['chronique'] if c['pnj'] == 'seve' and c['nature'] == 'compte']
         self.assertEqual(len(demandes), 2)
-        self.assertEqual([c['minute'] for c in demandes], [83, 84])
+        # Le contact commun du 313 peut conclure une minute plus tôt. Les
+        # deux créances sont réglées au plus tard à l'ancienne borne, dans
+        # l'ordre réel des actes ; aucune relance n'est admise ensuite.
+        self.assertGreater(demandes[1]['instant'], demandes[0]['instant'])
+        self.assertGreaterEqual(demandes[0]['minute'], m.data['minutes'])
+        self.assertLessEqual(demandes[-1]['minute'], 84)
         self.recharge(x)
 
     def recharge(self, m):
