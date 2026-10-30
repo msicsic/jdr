@@ -39,9 +39,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 359 (E5 choix direct). Suite complète de `f014c80` en cours (PC fixe) : nouvelle base après le
-lot 356 ; ses 38 régressions conservatrices (28 basculent à la fusion du lot 337) seront découpées en petits lots sur les
-échecs qui restent. Leurs entrées arrivent ici à leur livraison. 
+Lots en cours : 359 (E5 choix direct), 360 (régressions du lot 337), 361 (attentes périmées encore rouges).
+**Suite complète `f014c80` : 101 échecs, 3 erreurs, 71 méthodes** (65 déjà rouges sur 7eb45ff, 6 nouvelles) ; listes
+dans `artifacts/suite-f014c80/` : 23 régressions du 337 (360), 32 attentes périmées (361), 10 autres anciennes et 6
+nouvelles à traiter ensuite. Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
 
