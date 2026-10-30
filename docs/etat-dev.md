@@ -41,8 +41,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 342 (attribution du groupe 1), 349 (U-M passage), 351 (G18 avis), 352 (E3 délai cru).
-Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
+Lots en cours : 342 (attribution du groupe 1, 315 à réaccorder), 352 (E3 délai cru), 353 (U-T corps et passage),
+354 (U-M social information). Leurs entrées arrivent ici à leur livraison. Suite complète de l'intégration `7eb45ff` en cours (PC fixe) : des échecs
 antérieurs sont connus (`test_protection` Gorm au beffroi, trois faisabilités de `test_luna_noms`, persuasion
 Hugues/Anselme) ; un petit lot les traitera avant la vérification d'intégration.
 
