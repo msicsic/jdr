@@ -47,9 +47,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Promesses, prêts et travaux payés : requêtes nommées et jugement réentrant dans `memoire` ;
   fenêtre 40, ordre et engagements inchangés. Inventaire AST : 78 → 69, sans exemption nouvelle.
   Tests : 191/192 verts après relance 34/34 ; seul rouge hérité de Gaspard attribué à la base exacte.
-  Empreintes 2 h × quatre graines × quatre scénarios en cours, détachées après les tests corrigés.
-  Fin : `C:/Users/msics/donjon/artifacts/s1d-384/fin-empreintes.json` ; lot non clos avant lecture.
-  Limites : autres lecteurs et oubli hors lot ; [rapport 384](taches/rapport-codex-384-s1d-promesses.md).
+  Empreintes 2 h × quatre graines × quatre scénarios : 16/16 identiques, aucun plantage.
+  `origin/integration dd133ece` fusionnée (documentation seule). Lot clos, branche poussée.
+  Limites : notifications sonores du laps découpé héritées, autres lecteurs/oubli hors lot ; [rapport 384](taches/rapport-codex-384-s1d-promesses.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
 (U-M social comptes), 381 (A2 passage), 384 (S1d promesses, prêts, travaux payés). Questions de S0 en arbitrage (1 à 3 tranchées, voir décisions).
