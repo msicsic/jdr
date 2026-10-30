@@ -26,6 +26,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- **347 — `codex-conception-menace`**, base `origin/integration 368bf6c`, documentation seule.
+  Quatre cas sourcés ; recommandation : échéance négociée sur prestation ponctuelle d'abord.
+  Invariant proposé : mêmes termes/version/date de l'accord au constat, aux comptes et à la recharge.
+  Six lots de noyau, trois suites PNJ/révision ; menace, prêt daté et crédit restent distincts.
+  Lecture du moteur et d'une capture ; aucun code, Python, Luna, banc ou suite exécuté.
+  Six arbitrages proposés, aucun gain de richesse validé ; [rapport](taches/rapport-codex-347-conception-menace-echeance.md).
+
 Lots en cours : 341 (mandat du joueur), 342 (attribution du groupe 1), 344 (U-M corps), 345 (G16 information
 parlée), 346 (A1 provenance publique). Leurs entrées arrivent ici à leur livraison.
 
