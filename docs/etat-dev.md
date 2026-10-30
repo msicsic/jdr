@@ -39,8 +39,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 365 (catalogue des choix : fuite possible), 369 (U-T social information). Suite complète de
-l'intégration relancée après les corrections 360 à 368. Leurs entrées arrivent ici à leur livraison. 
+Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 371
+(évaluation de l'échéance avant E7-E9), 372 (A6 soupçon déduit). Suite complète de l'intégration relancée après les
+corrections 360 à 368. Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
 
