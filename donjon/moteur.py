@@ -75,7 +75,7 @@ class Plan:
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
     compris: str = ""          # texte libre admis : récapitulatif moteur figé avant affichage
-    choix_public: object = None  # identité du clic conservée jusqu'à sa confirmation
+    choix_public: object = None  # descripteur et origine d'entrée conservés jusqu'à confirmation
     etat_consentement: str = ""
 
     @property
@@ -226,7 +226,7 @@ class Moteur:
             if not passage or choix_public or origine == "règles":
                 plan.compris = plan_admis(self.monde, plan)
             if choix_public and plan.confirmation:
-                plan.choix_public = copy.deepcopy(choix_public)
+                plan.choix_public = (copy.deepcopy(choix_public), origine)
                 plan.etat_consentement = _empreinte(_etat(self.monde))
         return plan
 
@@ -751,7 +751,7 @@ class Moteur:
             from .consentement import _empreinte, _etat
             # Ne jamais remplacer l'aperçu consenti, même si la révision n'a
             # pas bougé. La relecture exacte refuse aussi une référence perdue.
-            nouveau = self.preparer(plan.choix_public, plan.origine)
+            nouveau = self.preparer(*plan.choix_public)
             if plan.etat_consentement != _empreinte(_etat(self.monde)) or nouveau != plan:
                 raise ErreurMonde("Le monde ou le plan a changé : choisis de nouveau ce geste pour vérifier son aperçu.",
                                   "consentement : état et plan identiques à l'aperçu requis ; reçu : choix public périmé.")

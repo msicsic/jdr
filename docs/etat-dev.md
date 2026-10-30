@@ -36,11 +36,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- **349 — U-M passage**, `codex-um-passage`, base intégration `a0f0eba`, non fusionné.
+- **349 — U-M passage**, `codex-um-passage`, base intégration `a0f0eba`, terminé, non fusionné.
   Menu des formes perçues établies : dessous/dessus, échelle installée, perche déjà arbitrée.
   Même plan que la commande ; consentement et revalidation exacte ; aucune difficulté inventée.
-  Vérification ciblée en cours (six fichiers, sans Luna ni suite complète).
-  Fin attendue : `C:/Users/msics/donjon/artifacts/um-passage-349/fin-cloture.json`.
+  71 tests distincts validés (sept fichiers), sans Luna ni suite complète ; état et vues rechargés.
+  10 parcours : 10 saisies évitées, 3 clics confirmation comprise ; zéro appel au modèle.
   Limites : première qualification et premier arbitrage au libre ; U-T passage à faire.
   [Rapport](taches/rapport-codex-349-um-passage.md), bruts `artifacts/um-passage-349/` du dépôt principal.
 
