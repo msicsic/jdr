@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **373 — `codex-s0-conception-memoire`**, base `integration b83f5a59`, documentation seule.
+  S0 : inventaire mesuré, trois couches et registre, vues/invalidation, migration S1a–p et frontière S2.
+  71 accès mémoire / 55 fonctions / 17 fichiers ; 247 accès explicites dans 106 fichiers de tests.
+  Émissions G15 uniques, vérité mécanique et connaissance séparées ; interfaces 372/374 et A1 définies.
+  Ni Luna, banc ni suite ; lacunes de validation et formats concurrents encore à raccorder explicités.
+  [Conception](conception-memoire-unifiee.md), [rapport](taches/rapport-codex-373-s0-conception-memoire.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Documentation seule : inventaire mesuré (71 accès mémoire, 55 fonctions), schéma des trois couches et du registre, migration S1a à S1p à empreintes identiques, cinq questions pour S2 et suivants.
+
 - **365, `codex-catalogue-connu`**, base `dea991a5` : admission lexicale retirée du lecteur commun des
   connaissances ; sources perceptives, mémorisées et actes typés entendus seuls. Prémisses déclarées dans les scénarios.
   Validé : 153 tests réussis, un facultatif ignoré (15 fichiers) ; monde/scène/fiche/catalogues après recharge.
