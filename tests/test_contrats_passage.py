@@ -143,7 +143,8 @@ class ContratsPassageTests(unittest.TestCase):
             self.assertIn(SCHEMA_SEQUENCE, variantes)
             for s in SCHEMAS_PASSAGE:
                 self.assertIn(s, variantes)
-        parole = next(s for s in branches if "personnage" in s.get("properties", {}))
+        parole = next(s for s in branches if "contenu" in s.get("properties", {})
+                      and "personnage" in s["properties"])
         demande = next(s for s in parole["properties"]["contenu"]["items"]["anyOf"]
                        if s["properties"]["type"]["enum"] == ["passage"])
         self.assertEqual(demande["description"], DEMANDE["sens"])
@@ -180,7 +181,8 @@ class ContratsPassageTests(unittest.TestCase):
                 self.assertNotEqual(travail.objets[cible]["position"], list(SEUIL))
                 self.assertEqual(travail.joueur["position"], m.joueur["position"])
                 self.assertTrue(rapport["faits"])
-            for champ, valeur in (("sujet", "aubin"), ("attribut", "lieu"), ("valeur", "dessous")):
+            for champ, valeur in (("sujet", "aubin"), ("attribut", "lieu"),
+                                  ("valeur", "dessous"), ("valeur", "²")):
                 q = copy.deepcopy(p)
                 q["contenu"][0][champ] = valeur
                 with self.subTest(cible=cible, champ=champ), self.assertRaises(ErreurMonde) as refus:

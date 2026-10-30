@@ -1387,6 +1387,8 @@ def verifier_offres(monde, contenu):
     total = 0
     for i, c in enumerate(contenu):
         if isinstance(c, dict) and c.get("type") in ("demande", "passage"):
+            if c["type"] == "passage":
+                verifier_demande(c)
             total += offre(c)
             if total > monde.joueur["or"]:
                 raise ErreurMonde(f"Tu n'as que {quantite(monde.joueur['or'], 'pièce')}.",
