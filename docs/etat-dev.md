@@ -44,7 +44,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
-(U-M social comptes), 381 (A2 passage), 384 (S1d promesses, prêts, travaux payés). Questions de S0 en arbitrage (1 et 2 tranchées, voir décisions).
+(U-M social comptes), 381 (A2 passage), 384 (S1d promesses, prêts, travaux payés). Questions de S0 en arbitrage (1 à 3 tranchées, voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
@@ -73,7 +73,9 @@ Leurs entrées arrivent ici à leur livraison.
   l'utilisateur n'y tient pas et laisse décider ; retenu l'héritage minimal, pour garder les captures réelles des tests
   (`tests/data`) : S1 relit à l'identique, S2 lit une attitude sans acte comme « héritée, cause inconnue », non
   compensable par une réparation, estompée par les règles ordinaires ; aucun passé reconstruit, parties neuves pour
-  valider réparation, trahison et repentir.
+  valider réparation, trahison et repentir ; (3) compenser un tort : seul un acte rattaché au tort identifié
+  (restitution, réparation, équivalent) le compense ; un service sans lien ajoute du crédit (affection, dette morale)
+  sans effacer le tort ; des actes répétés peuvent réviser un trait cru ; les créances matérielles suivent leurs actes.
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 
