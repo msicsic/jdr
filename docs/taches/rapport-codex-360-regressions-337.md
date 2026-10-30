@@ -14,6 +14,9 @@ désormais lieu nu **et** droits. Le lieu seul n'atteste toujours pas les droits
 la réception des droits atteste aussi le lieu. Les deux captures d'étapes
 retrouvent **tous leurs hashes attendus**, plans, visites, monde projeté,
 lignes et deux rendus compris, sans recalage d'oracle.
+Le filtre initial porte sur les constats matériels : un acte ou une parole
+mémorisés restent un événement appris, même si leur contenu rappelle un état
+de départ. Cela conserve aussi les accusations explicites et les démentis.
 
 **Décision utilisateur du 30 octobre.** L'inventaire de départ ne se raconte
 pas. `faits_initiaux` est une provenance sauvegardée, distincte des croyances
@@ -51,11 +54,17 @@ et vivres/bois du hameau pour les consommations anciennes puis nouvelles.
 Premier banc : 20/20 nuits achevées sans plantage, sources stables ; constats
 confiés **102 sur main / 179 sur le premier candidat**. Cette comparaison
 cumule les autres lots depuis main, ce n'est pas une mesure causale du 360.
-La reprise finale joue 31 fichiers ciblés et la classe du passage spontané,
+La passe groupée suivante a joué **365 tests**, sans saut : seuls deux tests
+d'un fichier restaient rouges (deux échecs et deux erreurs de sous-cas), le
+filtre initial appliqué à tort aux événements mémorisés. Ce défaut est corrigé ;
+**74/74 tests ciblés, six fichiers, 57,553 s**, contrôlent la correction, les
+accusations, les nouvelles, les faits dits et la réception. Le banc de cette
+passe garde les mêmes comptes 102/179 et zéro plantage ; bruts conservés.
+La clôture rejoue 31 fichiers ciblés et la classe du passage spontané,
 puis vingt empreintes de 2 h, cinq scénarios et quatre graines, deux travailleurs
 réduits au plus. `origin/main` résout `main 0bad227`, cache partagé conservé.
-Les comptes finaux seront dans `validation-finale/constats-confies.json` ;
-fin écrite en dernier : **`validation-finale/fin.json`**. Ni suite complète ni Luna.
+Les comptes de clôture seront dans `validation-cloture/constats-confies.json` ;
+fin écrite en dernier : **`validation-cloture/fin.json`**. Ni suite complète ni Luna.
 
 **Limites.** Le passé initial d'une ancienne sauvegarde sans provenance n'est
 pas reconstructible : l'installation ancre ses inventaires présents et ses

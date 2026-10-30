@@ -357,7 +357,10 @@ def _nouvelles(monde, id):
             noyau, rang, source = {"observe": souvenir["minute"], **souvenir["evenement"]}, souvenir["rang"], souvenir["de"]
         else:
             continue
-        if (_initial(monde, id, noyau) or accuse(noyau) == id
+        # Un événement mémorisé n'est pas une simple revue d'état initial :
+        # l'accusation et le démenti restent des actes appris, même lorsque
+        # leur conséquence matérielle ressemble à une propriété de départ.
+        if (accuse(noyau) == id
                 or (any(k not in monde.objets and k not in monde.data["salles"]
                         for k in (noyau.get("objet"),) if k and k != "joueur")
                     and not (noyau["type"] == "constat" and noyau.get("attribut") == "fin"

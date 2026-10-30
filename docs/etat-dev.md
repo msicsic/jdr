@@ -41,10 +41,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - **360 — `codex-regressions-337`**, base `integration 0b62a4fa`, **validation finale en cours**.
   Contrat commun : droits ⇒ lieu sans réciproque ; inventaire et états portés initiaux silencieux,
-  changements appris transmis. Tests du 337 verts ; tous les anciens incidents ont un témoin corrigé.
+  changements appris transmis ; les événements mémorisés gardent leur nouveauté. Tests du 337 verts.
   Prémisses des anciens oracles explicites ; 453 assertions AST conservées hors deux textes G7 autorisés.
-  Premier banc 20/20 sans plantage (102/179 constats, comparaison main cumulée) ; reprise sources finales :
-  31 fichiers et empreintes 2 h × 5 scénarios × 4 graines, 2 travailleurs, fin `regressions-337-360/validation-finale/fin.json`.
+  Passe 365 tests : deux méthodes rouges corrigées, 74/74 ciblés verts ; banc 20/20 sans plantage (102/179 constats).
+  Clôture 31 fichiers et empreintes 2 h × 5 scénarios × 4 graines, 2 travailleurs, fin `regressions-337-360/validation-cloture/fin.json`.
   Migration : passé initial absent non reconstructible ; aucune garantie globale de calendrier ou de boucles.
   [Rapport](taches/rapport-codex-360-regressions-337.md) ; recouvrement passage/361 limité et autorisé.
 
