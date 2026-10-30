@@ -44,10 +44,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 - `codex-position-hypothese` — lot 374, départ `b83f5a59` (integration ancêtre `60f857c5`), PC fixe.
-  Position d'autrui : confiance datée, demi-vies sauvegardées 15/60/120 min ; vérification commune au plan et au geste.
-  Auberge 371 et mine 69, parti/resté, monde/croyances/rendu rechargés ; 8 nouveaux tests verts, protection inchangée.
-  13 fichiers/89 tests verts (416,677 s). Banc arrêté sur main local obsolète ; reprise origin/main + base et VERIFIER 1 h.
-  Boucles non encore validées ; fin attendue `artifacts/position-hypothese-374/fin-reprise.json` (dépôt principal), sans Luna.
+  Position d'autrui datée (15/60/120 min), contrôle commun plan/geste ; le préfixe de vérification conserve sa progression.
+  Auberge 371/mine 69, parti/resté, rechargés. Première passe 89 verts ; VERIFIER 1 h et 16 nuits sans plantage/usurpation.
+  Rafale crue 42 corrigée : préparatifs réinsérés avant inspection ; capture bloc/découpé verte, 20 ciblés verts.
+  Passe finale 90 tests puis nouveau banc en cours ; boucles non encore validées, sans Luna : `artifacts/position-hypothese-374/fin-contact.json`.
   Forme S0 et recouvrement esprits avec 372 détaillés au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
 
 Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 372 (A6

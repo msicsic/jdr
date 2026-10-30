@@ -203,3 +203,27 @@ class HypothesePositionTests(unittest.TestCase):
         self.assertEqual(entier.data, coupe.data)
         self.assertEqual(lignes, a + b)
         self.recharge(entier)
+
+    def test_capture_crue_42_termine_inspection_avant_de_reprendre_les_preparatifs(self):
+        fichier = Path(__file__).parent / 'captures/position-374-crue-42-18.json.gz'
+        m = Monde(json.loads(gzip.decompress(fichier.read_bytes())))
+        self.assertTrue(position_a_verifier(m, 'aubin', 'ilse'))
+        bloc, lignes = vivre(self.recharge(m), 6)
+        coupe = self.recharge(m)
+        decoupees = []
+        for _ in range(6):
+            coupe, texte = vivre(self.recharge(coupe), 1)
+            decoupees.extend(texte)
+        self.assertEqual(bloc.data, coupe.data)
+        self.assertEqual(lignes, decoupees)
+        self.recharge(bloc)
+        self.recharge(coupe)
+        # Le parent demeure servir Brune, mais la piste d'Ilse doit aboutir :
+        # sur 6614e692, le préparatif à la réserve la précédait de nouveau à
+        # chaque minute, produisant plus de trente passages pendant ces 6 min.
+        c = lire(bloc, 'aubin')['croyances']['ilse']['lieu']
+        self.assertEqual((c['source'], c['valeur']), ('vu', 'chambre_cloche'))
+        self.assertGreaterEqual(c['minute'], 19)
+        passages = [c for c in bloc.data['chronique'] if c['pnj'] == 'aubin'
+                    and c['nature'] == 'deplacement' and c['minute'] >= 18]
+        self.assertLessEqual(len(passages), 10)

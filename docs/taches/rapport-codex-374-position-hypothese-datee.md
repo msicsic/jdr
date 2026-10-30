@@ -22,6 +22,9 @@ figurent dans `_entrees`, y compris dans les devis observateurs. `pnj._agir` rev
 les anciens plans sauvegardés ; `croit_present` lit la même hypothèse.
 Un geste sans témoin vérifie les témoins incertains, une embuscade sa cible.
 Les vérifications suivent un ordre stable plutôt que leurs permutations.
+Une inspection engagée reste tenue sous le même motif, but et demande, tant que sa
+piste tient : une nouvelle localisation, un échec ou une fin connue libèrent le préfixe.
+La recomposition du parent ne remet plus ses préparatifs devant cette inspection.
 Un préfixe de recherche ne peut pas devenir un terminal de devis de part.
 Le ouï-dire de localisation conserve l'origine, la mobilité et une confiance initiale
 au plus égale à celle du témoin : un relais ne rajeunit pas l'observation.
@@ -41,20 +44,29 @@ La première passe de 89 tests a révélé les défauts de terminal et de postur
 joueur corrigés ensuite ; la reprise finale est **verte : 13 fichiers / 89 tests,
 416,677 s**, zéro échec, erreur ou saut (`tests-finaux.json`).
 
-**Mesures encore en cours.** Le premier lanceur a échoué avant les nuits de branche :
-le `main` local `c870c8b4` ne fournit pas `agendas.enfants`, requis par l'audit actuel
-(`banc.stderr.txt`, `fin-calculs.json`). Aucun défaut du jeu n'est établi par cet arrêt.
-Reprise sans relancer les tests : `planification.VERIFIER`, Relais 7, 1 h ; puis
-4 h × quatre graines × Relais/auberge/mine/crue, contre `origin/main` (`0bad2272`)
-et contre la base exacte `b83f5a59`. Cache conservé, mêmes nuits de branche réutilisées,
-deux travailleurs à priorité réduite. `tools/mesurer_position_374.py` produit les deux
-comparaisons et leurs relevés d'appels/retours. Ni suite complète ni Luna.
-Nouvelle fin écrite en dernier :
-`C:/Users/msics/donjon/artifacts/position-hypothese-374/fin-reprise.json`.
+**Première mesure analysée (`6614e692`).** `planification.VERIFIER` vert, Relais 7,
+1 h, **37,982 s**. **16 nuits × 4 h**, quatre graines, Relais/auberge/mine/crue :
+zéro plantage et usurpation. Comparaisons contre `origin/main` (`0bad2272`) puis la
+base exacte `b83f5a59` ; mêmes nuits de branche relues du cache, jamais rejouées.
+La référence locale `main c870c8b4` était incompatible avec l'audit (`agendas.enfants`),
+trace conservée, pas de nouvelle tentative sur cette référence.
+Contre la base, appels totaux **6→5 / 13→45 / 9→29 / 35→36** ; deux retours suspects
+nouveaux (Lucien mine 1985, Brune crue 2024), non certifiés par les seuls relevés.
+La lecture révèle surtout une régression **crue 42 : 112 passages d'Aubin en une heure**.
+De 18 à 33, chaque recomposition réinsère un aller à la réserve avant l'inspection
+d'Ilse : `diagnostic-crue-42.json` et capture `crue-42-18.json.gz`.
+Correction commune dans `verification_en_cours` et `deliberation.choisir` : le
+préfixe incertain progresse jusqu'au constat, sous réserve de la revalidation du
+parent, des refus et des urgences. La capture corrigée retrouve Ilse par la vue à
+**19**, **8 passages en six minutes**, monde/rendu et textes identiques en bloc/découpé.
+**20 ciblés verts**, 16,830 s ; passe finale **13 fichiers / 90 tests** en cours,
+puis nouveau banc et VERIFIER sur la correction, références existantes en cache.
+Résultats dans `apres-progres/` ; fin écrite en dernier :
+`C:/Users/msics/donjon/artifacts/position-hypothese-374/fin-contact.json`.
 
 **Limites et reprise.** Les demi-vies sont un réglage initial, sans calibration empirique.
-L'absence de boucle nouvelle et l'attribution des changements de nuit restent à valider
-sur les bruts : **ne pas considérer le lot validé pour fusion avant cette lecture**.
+L'absence de boucle nouvelle reste à valider sur la mesure après correction :
+**ne pas considérer le lot validé pour fusion avant cette lecture**. Ni suite complète ni Luna.
 Pour S0/373 : pas de nouveau registre ; `croyances[sujet].lieu` conserve ses champs
 actuels et ajoute `mobilite` (`mobile`, `pose`, `retenu`), coefficient initial en
 `confiance`, origine des relais inchangée ; les lecteurs utilisent la confiance dérivée.

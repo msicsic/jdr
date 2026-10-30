@@ -2809,6 +2809,27 @@ def _localiser(v, e, sujets):
                key=lambda r: r[1] + r[6], default=None)
 
 
+def verification_en_cours(monde, id, etapes):
+    """Une inspection engagée reste à terminer tant que son indice tient.
+
+    Recomposer le parent ne doit pas remettre ses préparatifs devant ce
+    préfixe incertain à chaque minute. Un lieu appris, une nouvelle piste,
+    un échec retenu ou une fin connue rendent la main à la planification.
+    """
+    if not etapes:
+        return False
+    fin = etapes[-1]
+    sujet = (fin.get("contenu") or {}).get("cherche")
+    if fin["operation"] != "inspecter" or not sujet or _lieu_cru(monde, id, sujet) is not None:
+        return False
+    croyances = lire(monde, id)["croyances"].get(sujet, {})
+    etat = (croyances.get("etat") or {}).get("valeur", {})
+    lieu = croyances.get("lieu") or {}
+    return (not etat.get("mort") and not etat.get("parti")
+            and fin["lieu"] not in appels_vains(monde, id, sujet)
+            and (not lieu.get("valeur") or lieu.get("salle") in (None, fin["lieu"])))
+
+
 def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
     """Même contrat pour les gestes immédiats et les suites révélées à leur borne."""
     suites = []
