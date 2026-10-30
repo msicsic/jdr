@@ -44,7 +44,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
-(U-M social comptes), 381 (A2 passage), 385 (S1e vues des épisodes). Questions de S0 en arbitrage (1 à 3 tranchées, voir décisions).
+(U-M social comptes), 381 (A2 passage), 385 (S1e vues des épisodes). Questions de S0 en arbitrage (1 à 4 tranchées, voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
@@ -75,7 +75,8 @@ Leurs entrées arrivent ici à leur livraison.
   compensable par une réparation, estompée par les règles ordinaires ; aucun passé reconstruit, parties neuves pour
   valider réparation, trahison et repentir ; (3) compenser un tort : seul un acte rattaché au tort identifié
   (restitution, réparation, équivalent) le compense ; un service sans lien ajoute du crédit (affection, dette morale)
-  sans effacer le tort ; des actes répétés peuvent réviser un trait cru ; les créances matérielles suivent leurs actes.
+  sans effacer le tort ; des actes répétés peuvent réviser un trait cru ; les créances matérielles suivent leurs actes ; (4) deux ouï-dire incompatibles de même force : incertitude gardée
+  et racontable, vérification ou question à un tiers si l'action l'exige (jets actuels en S1, règle en lot S2).
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 
