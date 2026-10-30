@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **335 terminé**, `codex-suivi-vocal`, fusionnée ; base `9237e14`, réaccordée sur `c9b066b` (`51fd593`).
+  L'agenda protéger rejoint une portée vocale crue ; contact, gardes et accords datés conservés.
+  414 tests : 409 verts, cinq échecs identiques sur intégration, aucune erreur. Banc 20 × 4 h achevé : zéro plantage/usurpation/suspect certifié.
+  `fin.json ok=true`, sources inchangées ; alertes non attribuées sans référence compatible. Ni suite complète ni Luna.
+  Limites : écoute selon les croyances, sans réciprocité garantie ni garantie générale d'absence de boucle.
+  [Rapport et réserves](taches/rapport-codex-335-suivi-vocal.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Réaccordé à l'intégration c9b066b ; 414 tests ciblés, 409 verts, cinq échecs reproduits à l'identique sur l'intégration ; 20 nuits 4 h sans plantage, usurpation ni suspect certifié.
+
 - **315 — réclamations retenues**, branche `codex-reclamations-repetees`, reprise de `7826c3a` ;
   fusion sans rebase de l'intégration `07c9b62e` (E1–E4 et 357 compris).
   Défaut social du 337 révélé par la chronologie du 315 ; aucune obligation/clôture E2 dans le cas réel.

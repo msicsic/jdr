@@ -654,6 +654,9 @@ def _a_toucher(monde, id, etape, portes=None):
     fixe s'emploie sur place, un outil mobile se tient en main (on ne marche pas vers lui)."""
     from .deliberation import SOCIALES
     op = etape["operation"]
+    from .proximite_vocale import vocale
+    if vocale(etape):
+        return []  # Le séjour vocal a son propre ensemble d'arrivées.
     if op in A_DISTANCE:
         return []
     touches = []
@@ -947,20 +950,30 @@ def _executer_effet(monde, id, etape, lignes, gestes):
     if op == "abriter":
         return _abriter(monde, id, etape["lieu"], lignes)
     if op == "rester":
-        if not _accessible(monde, id, etape["cible"]):
+        from .proximite_vocale import vocale, arrivees
+        vocal = vocale(etape)
+        o = monde.objets[id]
+        possible = (arrivees(monde, id, etape['cible'])(o['lieu'], tuple(o['position']) if monde.data.get('mode_cases') else None)
+                    if vocal else _accessible(monde, id, etape['cible']))
+        if not possible:
             return False
         e = esprit(monde, id)
         from .agendas import commencer_service
         commencer_service(monde, id, etape['cible'])
         depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
         if not any(s["type"] == "compagnie" and s.get("qui") == etape["cible"]
+                   and s.get('portee') == ('voix' if vocal else None)
                    and s["minute"] >= depuis for s in e["memoire"]):
-            # La présence est revalidée avant toute affirmation de proximité.
-            memoriser(monde, id, {"type": "compagnie", "qui": etape["cible"]})
+            # Le contact est revalidé physiquement ; la veille vocale porte
+            # seulement sur les arrivées crues, sans prétendre voir sa cible.
+            memoriser(monde, id, {"type": "compagnie", "qui": etape["cible"], **({'portee': 'voix'} if vocal else {})})
             from .social import _qui
-            texte = f"{_qui(monde, id)} reste près {de(_qui(monde, etape['cible']))}."
+            # Une croyance peut être fausse : le récit affirme la veille,
+            # jamais la présence réelle de quelqu'un dans la portée prévue.
+            texte = (f"{_qui(monde, id)} reste à l'écoute." if vocal else
+                     f"{_qui(monde, id)} reste près {de(_qui(monde, etape['cible']))}.")
             _chroniquer(monde, id, texte)
-            if monde.visible(id) and (etape["cible"] == "joueur" or monde.visible(etape["cible"])):
+            if monde.visible(id) and (vocal or etape["cible"] == "joueur" or monde.visible(etape["cible"])):
                 lignes.append(texte)
         return None  # La raison du séjour est revalidée par le choix commun.
     from .deliberation import SOCIALES
@@ -1476,7 +1489,8 @@ def _jugement_placement(monde, id, etape):
     from .temps import PAS_FEUTRE
     if not monde.data.get("mode_cases") or etape["operation"] not in DURABLES:
         return None
-    if _a_toucher(monde, id, etape):
+    from .proximite_vocale import vocale
+    if _a_toucher(monde, id, etape) or vocale(etape):
         # Un séjour ciblé tient déjà sa place par l'approche de sa cible.
         return None
     o, e = monde.objets[id], lire(monde, id)
@@ -1653,6 +1667,13 @@ def _approcher(monde, id, etape, lignes, gestes=None, compter=True):
     l'atteindre doit lui faire place (``_marcher``)."""
     from .spatial import contact_cases
     o = monde.objets[id]
+    from .proximite_vocale import vocale, arrivees
+    if vocale(etape):
+        arrivee = arrivees(monde, id, etape['cible'])
+        if arrivee(o['lieu'], tuple(o['position'])):
+            return 0
+        pas = _marcher(monde, id, lambda s, c: s == etape['lieu'] and arrivee(s, c), lignes, gestes)
+        return _impasse(monde, id, etape, arrivee, compter) if pas is None else pas
     touches = _a_toucher(monde, id, etape)
     vus = percus(monde, id)[0]
     # Admettre ce qui est actuellement vu avant de préparer le contact : une
@@ -2091,7 +2112,8 @@ def _agir(monde, id, t, lignes, gestes=None, compter=True):
             return reste, ATTENTE, None
     # Il se tourne vers ce qu'il touche ou voit, jamais vers ce qu'il ignore.
     cible = etape["cible"]
-    tourner = (_faire_face(monde, id, cible) if en_cases and cible and (
+    from .proximite_vocale import vocale
+    tourner = (_faire_face(monde, id, cible) if en_cases and cible and not vocale(etape) and (
         cible in monde.objets and _accessible(monde, id, cible) or percoit(monde, id, cible)) else 0)
     if operation == "assommer" or operation == "frapper" and (cible == "joueur" or monde.objets.get(cible, {}).get("type") == "personnage"):
         from .combat import rotation

@@ -138,6 +138,10 @@ def parcours(v, e, ouvertes, delai=0, certain=False):
 def approche(v, e, etape, cibles=None):
     from .pnj import _a_toucher, _contact_vocal_cru
     from .deliberation import SOCIALES
+    from .proximite_vocale import vocale
+    if vocale(etape):
+        duree = moyenne(v, e, e.salle, v.cases_vocales(e, etape['cible']))
+        return Route(fin=(e.salle, None), sejours=((e.salle, duree),)) if duree is not None else None
     touches = _a_toucher(v.monde, v.id, etape, e.portes)
     if cibles is None:
         touches = [x for x in touches if v.case_objet(e, x) is not None
