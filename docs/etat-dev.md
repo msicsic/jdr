@@ -38,7 +38,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 356 (suite rouge, attribution), 357 (régression d'E3 sur les tâches payées). 315 réaccordée
+- **357 — `codex-e3-taches-payees`**, base `origin/integration 9ea8523`, non fusionnée :
+  les obligations sans limite retrouvent leur devis autonome historique ; E3 reste propre aux obligations datées.
+  169 tests ciblés/voisins : 164 verts, dont tâches payées et E1–E4 (57) ; cinq tests voisins rouges
+  (onze assertions) reproduits sur la base intacte. Deux régressions ajoutées, monde et rendu après recharge.
+  Empreintes 2 h × quatre graines × Relais/auberge/mine contre `dbb122b0` en cours, deux processus réduits.
+  Fin : `C:\Users\msics\donjon\artifacts\e3-taches-357\fin-empreintes.json` ; lecture historique du payeur gardée sans limite.
+  [Rapport](taches/rapport-codex-357-e3-taches-payees.md). Ni suite complète, ni Luna, ni banc long.
+
+Lots en cours : 356 (suite rouge, attribution). 315 réaccordée
 (`codex-reclamations-repetees` 7826c3a) en attente : une erreur nouvelle de rendu social (`porteur=None`) à comprendre.
 Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
 écrits avant le consentement U-C, d'autres familles à attribuer) : lot 356 (attribution, harnais) en cours ; la

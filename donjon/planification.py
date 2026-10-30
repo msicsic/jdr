@@ -3436,9 +3436,15 @@ def _pulsion(monde, id, condition, tache, entretenir=None, *, duree=None):
         vises["confier"] = (dict(condition),)
     depuis = None
     if entretenir and "allume" in condition and _vu_avant_la_tache(monde, id, condition, entretenir):
-        # L'offre établit le besoin de recharge, pas les croyances privées
-        # du payeur. L'allumage reste celui que croit le contractant.
-        dit = _cru(monde, id, o, "etat") or {}
+        # E3 porte les seules obligations datées sur les croyances du
+        # contractant, au jugement comme à l'exécution. Les autres gardent
+        # le contrat historique : l'offre dit le feu à recharger et, si le
+        # payeur ne le croit pas allumé, à rallumer. Mesurer une durée ne
+        # change jamais ce contrat.
+        date = any(agendas.reference_temporelle(x) for x in agendas.en_cours(monde, id)
+                   if x["pour"] == entretenir and x["condition"] == condition and not x.get("annule"))
+        observateur = id if date else entretenir
+        dit = (_cru(monde, observateur, o, "etat") or {}) if observateur != "joueur" else {}
         depuis = depart(monde, id).apres(faits=[(("charge", o), False)]
                                          + ([] if dit.get("allume") else [(("allume", o), False)]))
     trouve = chercher(monde, id, but, vises, depuis=depuis, nom=_nom_condition(condition),
