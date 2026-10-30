@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **347 — `codex-conception-menace`**, base `origin/integration 368bf6c`, documentation seule.
+  Quatre cas sourcés ; recommandation : échéance négociée sur prestation ponctuelle d'abord.
+  Invariant proposé : mêmes termes/version/date de l'accord au constat, aux comptes et à la recharge.
+  Six lots de noyau, trois suites PNJ/révision ; menace, prêt daté et crédit restent distincts.
+  Lecture du moteur et d'une capture ; aucun code, Python, Luna, banc ou suite exécuté.
+  Six arbitrages proposés, aucun gain de richesse validé ; [rapport](taches/rapport-codex-347-conception-menace-echeance.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Documentation seule ; recommande l'échéance négociée d'abord, six arbitrages à l'utilisateur.
+
 - **Lot 346 / A1 terminé**, branche `codex-a1-provenance`, fusionnée,
   base fournie `da5f795`. Projection publique conservatrice isolée, non branchée
   au MJ : chaque donnée gardée porte source, autorité, destination et date
