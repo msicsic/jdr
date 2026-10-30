@@ -27,6 +27,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-e2-realisation-datee` (d9803abd) : lot 350, E2 verdict temporel par réalisation datée unique. Détail dans l'historique.
 - `codex-e1-reference-temporelle` (6d06181f) : lot 348, E1 référence temporelle canonique d'une obligation. Détail dans l'historique.
 - `codex-g16-information` (1ec5525) : lot 345, G16 paroles d'information formulées par le moteur. Détail dans l'historique.
 - `codex-um-corps` (39113e9) : lot 344, U-M corps, gestes de corps et de violence au menu. Détail dans l'historique.

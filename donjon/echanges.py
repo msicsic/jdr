@@ -1337,6 +1337,7 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
     """Remis par son propriétaire, un objet qui dure est prêté, ce qui se consomme est donné ;
     remis à son propriétaire, il lui est rendu (``deplacer`` clôt le prêt) ; remis par un autre,
     il change seulement de mains."""
+    agendas.expirer_obligations(monde)
     from .biens import donner, preter
     from .deliberation import besoin_de_part
     from .deplacement_objet import deplacer
@@ -1397,6 +1398,7 @@ def servir(monde, id, nourriture, pour, lignes):
     """Donner une part à quelqu'un de la même salle, qu'on appelle s'il est hors de vue : il la
     mange, et sait gré de l'avoir reçue. Il faut pouvoir se parler (``pnj.peuvent_se_parler`` :
     s'entendre et savoir qui parle), comme pour tout échange."""
+    agendas.expirer_obligations(monde)
     from .deliberation import SATIETE
     from .esprits import percoit
     from .francais import complement_de

@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **350 — `codex-e2-realisation-datee`**, base `integration 59e65f8` : E2, réalisation moteur
+  datée unique et verdict persistant ; T inclus, clôture à T+1, remboursement unique et arrêt du plan périmé.
+  Réalisation, constat et connaissance du compte séparés ; aucune réaction relationnelle distante.
+  **104 ciblés distincts verts**, monde/rendu/comptes/paroles rechargés et laps continu/découpé.
+  Empreintes 2 h × 4 graines × Relais/auberge/mine : **12/12 identiques à la base**, deux processus réduits.
+  Socle interne sans appelant, schéma ni rendu nouveau ; pas de Luna ni suite complète.
+  [Rapport 350](taches/rapport-codex-350-e2-realisation-datee.md) ; bruts `artifacts/e2-350/` du dépôt principal.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Socle interne, aucun appelant ; 104 tests ciblés verts, empreintes 12/12 identiques.
+
 - **348 — E1 référence temporelle**, `codex-e1-reference-temporelle`, base `origin/integration 014fc35`.
   Référence facultative identité/version/création/limite en dixièmes ; aucun champ ajouté aux obligations ordinaires.
   Validation commune à la recharge, `attendu` préservé par le chargeur ; accès au stockage borné par le contrôle AST.

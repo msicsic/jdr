@@ -870,6 +870,9 @@ def _assez_de_lumiere(monde, id, etape):
 
 
 def _executer(monde, id, etape, lignes, gestes):
+    from . import agendas
+    agendas.expirer_obligations(monde)
+    realisations = agendas.etat_realisations(monde)
     from .tenir import autoriser, lacher
     from .monde import ErreurMonde
     try:
@@ -884,6 +887,8 @@ def _executer(monde, id, etape, lignes, gestes):
         fait = _executer_effet(monde, id, etape, lignes, gestes)
     if fait:
         services.constater(monde, id, etape['cible'], avant)
+    if realisations:
+        agendas.constater_realisations(monde, realisations, id)
     return fait
 
 
@@ -1848,6 +1853,17 @@ def refus_etape(monde, id, etapes):
 
 
 def agir(monde, id, t, lignes, gestes=None, compter=True):
+    """Le déplacement et le geste partagent la preuve de réalisation mécanique."""
+    from . import agendas
+    agendas.expirer_obligations(monde)
+    avant = agendas.etat_realisations(monde)
+    resultat = _agir(monde, id, t, lignes, gestes, compter)
+    if avant:
+        agendas.constater_realisations(monde, avant, id)
+    return resultat
+
+
+def _agir(monde, id, t, lignes, gestes=None, compter=True):
     """Le geste qui commence à l'instant ``t`` (en dixièmes de seconde) selon l'intention
     courante ; renvoie (durée, issue, étape manquée) : l'issue dit s'il agit (``GESTE``), attend
     jusqu'à la minute (``ATTENTE``), a fini ou abandonné son plan (``FIN``) ou manqué un geste
@@ -2200,7 +2216,9 @@ def _avancer(monde, minutes, lignes, dixiemes):
         reveil_joueur = corps(monde, "joueur")["inconscient"] or fin + 1
         prochain = min((_prochain(e) for e in esprits_.values()), default=fin + 1)
         echeance = min((g["fin"] for g in monde.data.get("gestes_en_cours", ()) if "issue" in g), default=fin + 1)
-        prochain = min(prochain, reveil_joueur, echeance)
+        from . import agendas
+        expiration = agendas.prochaine_expiration(monde, fin + 1)
+        prochain = min(prochain, reveil_joueur, echeance, max(t, expiration))
         if min(frontiere, prochain) > fin:
             break
         if frontiere <= prochain:
@@ -2238,6 +2256,7 @@ def _avancer(monde, minutes, lignes, dixiemes):
         t = prochain
         monde.data["minutes"], monde.data["dixiemes"] = divmod(t, MINUTE)
         finir_gestes(monde, t)
+        agendas.expirer_obligations(monde)
         ids = [id for id in ids if id in monde.data["esprits"]]
         esprits_ = {id: esprits_[id] for id in ids}
         if reveil_joueur == t:

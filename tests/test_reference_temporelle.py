@@ -1,4 +1,4 @@
-"""E1 : métadonnée interne facultative, sans nouveau contrat jouable ni expiration."""
+"""E1 : métadonnée interne facultative, sans nouveau contrat jouable."""
 import copy
 import json
 from pathlib import Path
@@ -59,10 +59,10 @@ class ReferenceTemporelleTests(unittest.TestCase):
 
     def test_deux_obligations_meme_minute_une_seule_datee_laps_et_recharge(self):
         m = self.scene()
-        datee = self.inscrire(m, limite=instant(m) + MINUTE)
+        datee = self.inscrire(m, limite=instant(m) + 10 * MINUTE)
         ordinaire = self.inscrire(m, 'torche')
         ref = agendas.reference_temporelle(datee)
-        self.assertEqual(ref, {'id': 1, 'version': 1, 'creation': 137, 'limite': 737})
+        self.assertEqual(ref, {'id': 1, 'version': 1, 'creation': 137, 'limite': 6137})
         self.assertEqual(datee['minute'], ordinaire['minute'])
         self.assertIsNone(agendas.reference_temporelle(ordinaire))
         visibles = agendas.promesses_visibles(m)
@@ -81,8 +81,7 @@ class ReferenceTemporelleTests(unittest.TestCase):
             self.assertEqual(agendas.promesses_visibles(monde), visibles)
             self.assertFalse(x.get('realisee', False))
             self.assertFalse(y.get('realisee', False))
-        # E1 stocke seulement : franchir la limite ne clôt pas encore le contrat.
-        self.assertGreater(instant(a), ref['limite'])
+        self.assertLess(instant(a), ref['limite'])
 
     def test_identites_distinctes_meme_instant_et_memes_termes_sans_reemploi(self):
         m = self.scene()
@@ -103,7 +102,7 @@ class ReferenceTemporelleTests(unittest.TestCase):
 
     def test_lecture_copiee_et_renouvellement_ne_deplacent_pas_la_reference(self):
         m = self.scene()
-        a = self.inscrire(m, limite=1000)
+        a = self.inscrire(m, limite=10000)
         ref = agendas.reference_temporelle(a)
         agendas.reference_temporelle(a)['limite'] = 5000
         m, _ = vivre(m, 2)

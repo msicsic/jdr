@@ -1727,6 +1727,157 @@ def reference_temporelle(engagement):
     return copy.deepcopy(engagement.get('reference_temporelle'))
 
 
+def issues_temporelles(monde):
+    """Histoire mécanique des accords clos, distincte de leur connaissance."""
+    return copy.deepcopy(monde.data.get('issues_obligations', []))
+
+
+def prochaine_expiration(monde, defaut):
+    return min((reference_temporelle(x)['limite'] + 1
+                for _, x in _obligations_datees(monde)), default=defaut)
+
+
+def _obligations_datees(monde):
+    if not monde.data.get('sequence_obligations'):
+        return []
+    stocks = [('joueur', monde.data.get('promesses_joueur', []))]
+    stocks.extend((id, e['engagements']) for id, e in monde.data.get('esprits', {}).items())
+    return [(id, x) for id, stock in stocks for x in stock if reference_temporelle(x)]
+
+
+def _clore_datee(monde, id, engagement, realisation=None, *, connue=False):
+    from .temps import instant
+    from .biens import rembourser
+    from .esprits import esprit
+    r = reference_temporelle(engagement)
+    # La clôture est un événement unique, même si une ancienne copie circule encore.
+    if any(reference_temporelle(x['engagement']) == r for x in issues_temporelles(monde)):
+        return
+    a_temps = realisation is not None and realisation <= r['limite']
+    monde.data.setdefault('issues_obligations', []).append({
+        'titulaire': id, 'engagement': copy.deepcopy(engagement),
+        'realisation': realisation, 'verdict': 'tenue_a_temps' if a_temps else 'en_retard',
+        'cloture': instant(monde), 'constatee': connue})
+    retirer_proposition(monde, id, engagement)
+    if a_temps and id != 'joueur':
+        from .biens import retenir_service
+        retenir_service(monde, id, engagement)
+    if not a_temps and engagement.get('paye'):
+        p = engagement['paye']
+        # Le compte réel n'apprend rien à un créancier distant.
+        rembourser(monde, id, engagement['pour'], p['prix'], p['objet'], p['quoi'], informer=False)
+    if id != 'joueur':
+        e = esprit(monde, id)
+        intention = e['intention']
+        # Le contrat adopté donne la condition exacte, y compris pour un préparatif.
+        demande = (e.get('contrat_intention') or {}).get('demande') or {}
+        but = {k: v for k, v in intention['but'].items() if k != 'type'} if intention else {}
+        if (intention and (demande.get('condition') == engagement['condition']
+                           or intention['motif'] == 'engagement' and but == engagement['condition'])
+                and not any(x['condition'] == engagement['condition'] for x in en_cours(monde, id))):
+            e['intention'] = None
+            e['eveil'] = instant(monde)
+
+
+def expirer_obligations(monde):
+    """T est inclus : la clôture sans réalisation arrive à T+1 dixième."""
+    from .temps import instant
+    for id, x in list(_obligations_datees(monde)):
+        if instant(monde) > reference_temporelle(x)['limite']:
+            _clore_datee(monde, id, x)
+
+
+def etat_realisations(monde):
+    """Photographie avant un effet réel ; une perception ne passe jamais ici."""
+    etats = {}
+    for id, x in _obligations_datees(monde):
+        etats[('obligation', reference_temporelle(x)['id'])] = _etat_realisation(monde, id, x['condition'])
+    return etats
+
+
+def _etat_realisation(monde, id, c):
+    from .spatial import porte_par
+    from .perception import faible, allumee, fin_objet
+    o = monde.objets[c['objet']]
+    if 'lieu' in c:
+        lieu, vus = o['lieu'], set()
+        while lieu in monde.objets and lieu not in vus:
+            vus.add(lieu)
+            lieu = monde.objets[lieu]['lieu']
+        salle = monde.joueur['salle'] if lieu == 'joueur' else lieu
+        return {'lieu': None if porte_par(monde, c['objet'], id) else salle}
+    if 'allume' in c:
+        return {'allume': allumee(o) and not faible(o), 'combustible': o.get('combustible', 0)}
+    if 'verrouillee' in c:
+        return {'verrouillee': o.get('verrouillee') is True and not o.get('ouverte')
+                and fin_objet(o) != 'detruit'}
+    return {}
+
+
+def constater_realisations(monde, avant, auteur='joueur'):
+    from .temps import instant
+    for id, x in list(_obligations_datees(monde)):
+        c = x['condition']
+        # Remise et service ont leur événement propre : un simple lieu ne les prouve pas.
+        if 'remettre' in c or 'servir' in c:
+            continue
+        o = _etat_realisation(monde, id, c)
+        cle = ('obligation', reference_temporelle(x)['id'])
+        if cle not in avant:
+            continue  # Une obligation née dans l'effet n'hérite pas de son état antérieur.
+        ancien = avant[cle]
+        cles = set(c) - {'objet'}
+        change = (o.get('allume') != ancien.get('allume') or
+                  o.get('combustible', 0) > (ancien.get('combustible') or 0)) if 'allume' in c else any(
+                      o.get(k) != ancien.get(k) for k in cles)
+        if change and all(o.get(k) == v for k, v in c.items() if k != 'objet'):
+            connue = id == auteur and id != 'joueur'
+            _clore_datee(monde, id, x, instant(monde), connue=connue)
+            if connue:
+                from .esprits import memoriser
+                memoriser(monde, id, {'type': 'engagement_tenu', 'pour': x['pour'], 'condition': c})
+
+
+def _constater_issues(monde, id, lignes=None):
+    """Publier seulement avec le constat ou la parole réellement reçue."""
+    from .echanges import tenu, phrase_condition
+    from .esprits import memoriser, lire
+    from .voix import nom_pour_joueur
+    for issue in monde.data.get('issues_obligations', []):
+        if issue['titulaire'] != id or issue['constatee']:
+            continue
+        x = issue['engagement']
+        reussie = issue['verdict'] == 'tenue_a_temps'
+        observateur = x['pour'] if id == 'joueur' else id
+        if reussie:
+            c = x['condition']
+            if not tenu(monde, observateur, c, x['minute']):
+                continue
+        elif id == 'joueur':
+            # Pouvoir parler n'est pas une preuve de manquement. Le bénéficiaire
+            # doit avoir reçu un constat négatif après la limite ; le silence ne suffit pas.
+            from .deliberation import satisfaite
+            c = x['condition']
+            attribut = 'etat' if 'allume' in c else 'lieu' if 'lieu' in c else 'verrouillee'
+            preuve = lire(monde, observateur)['croyances'].get(c['objet'], {}).get(attribut)
+            if ('remettre' in c or 'servir' in c or not preuve
+                    or preuve['source'] not in ('vu', 'essai')
+                    or preuve['minute'] * 600 <= reference_temporelle(x)['limite']
+                    or satisfaite(monde, observateur, c)):
+                continue
+        issue['constatee'] = True
+        if id != 'joueur':
+            memoriser(monde, id, {'type': 'engagement_tenu' if reussie else 'engagement_abandonne',
+                                  'pour': x['pour'], 'condition': x['condition']})
+        else:
+            memoriser(monde, x['pour'], {'type': 'engagement_tenu' if reussie else 'engagement_abandonne',
+                                        'de': id, 'condition': x['condition']})
+            texte = ('Tu as tenu ta promesse envers ' if reussie else 'Tu as abandonné ta promesse envers ')
+            texte += nom_pour_joueur(monde, x['pour']) + ' : ' + phrase_condition(monde, x['condition']) + '.'
+            monde.data.setdefault('journal_promesses', []).append(texte)
+            lignes.append(texte)
+
+
 def _verifier_reference_temporelle(monde, engagement, chemin, sequence):
     from .monde import ErreurMonde
     from .temps import instant
@@ -1762,6 +1913,12 @@ def _verifier_reference_temporelle(monde, engagement, chemin, sequence):
         refuser('limite', r['limite'], 'un instant positif ou nul')
     if r['limite'] < r['creation']:
         refuser('limite', r['limite'], f'un instant >= creation={r["creation"]}')
+    from .deliberation import condition_valide
+    c = engagement.get('condition')
+    if (not condition_valide(monde, c) or set(c) not in (
+            {'objet', 'allume'}, {'objet', 'verrouillee'}, {'objet', 'lieu'},
+            {'objet', 'remettre'}, {'objet', 'servir'})):
+        refuser('condition', c, 'une prestation ponctuelle : allume, verrouillee, lieu, remettre ou servir')
     return r
 
 
@@ -1778,6 +1935,38 @@ def verifier_references_temporelles(monde):
                           f'sequence_obligations : reçu {sequence!r} ; accepté : un entier >= 0.')
     stocks = [('joueur', monde.data.get('promesses_joueur', []))]
     stocks.extend((id, e['engagements']) for id, e in monde.data.get('esprits', {}).items())
+    from .temps import instant
+    issues = monde.data.get('issues_obligations', [])
+    if not isinstance(issues, list):
+        raise ErreurMonde('Historique temporel invalide.',
+                          f'issues_obligations : reçu {issues!r} ; accepté : une liste.')
+    for rang, issue in enumerate(issues):
+        chemin = f'issues_obligations[{rang}]'
+        def refuser(champ, recu, accepte):
+            raise ErreurMonde('Issue temporelle invalide.',
+                              f'{chemin}.{champ} : reçu {recu!r} ; accepté : {accepte}.')
+        champs = {'titulaire', 'engagement', 'realisation', 'verdict', 'cloture', 'constatee'}
+        if not isinstance(issue, dict) or set(issue) != champs:
+            refuser('forme', issue, f'exactement les champs {sorted(champs)}')
+        id, x = issue['titulaire'], issue['engagement']
+        if not isinstance(id, str) or id != 'joueur' and id not in monde.data.get('esprits', {}):
+            refuser('titulaire', id, 'joueur ou un identifiant d’esprit')
+        if not isinstance(x, dict) or reference_temporelle(x) is None:
+            refuser('engagement', x, 'une obligation avec reference_temporelle')
+        r = _verifier_reference_temporelle(monde, x, chemin + '.engagement', sequence)
+        cloture, fait = issue['cloture'], issue['realisation']
+        if type(cloture) is not int or not r['creation'] <= cloture <= instant(monde):
+            refuser('cloture', cloture, f'un entier entre {r["creation"]} et {instant(monde)}')
+        if fait is not None and (type(fait) is not int or not r['creation'] <= fait <= cloture):
+            refuser('realisation', fait, f'None ou un entier entre {r["creation"]} et {cloture}')
+        verdict = 'tenue_a_temps' if fait is not None and fait <= r['limite'] else 'en_retard'
+        if issue['verdict'] != verdict:
+            refuser('verdict', issue['verdict'], verdict)
+        if verdict == 'en_retard' and cloture <= r['limite']:
+            refuser('cloture', cloture, f'un instant > limite={r["limite"]}')
+        if type(issue['constatee']) is not bool:
+            refuser('constatee', issue['constatee'], 'un booléen')
+        stocks.append((chemin, [x]))
     identites = set()
     for id, stock in stocks:
         for rang, engagement in enumerate(stock):
@@ -1875,7 +2064,11 @@ def tenir(monde, id, engagement):
         for s in lire(monde, pour)['recours_intermediaires']:
             if s['via'] == id and s['livraison'] == engagement['condition'].get('objet') and s['issue'] == 'accepte':
                 s['abouti'] = True
-    retirer_proposition(monde, id, engagement)
+    if reference_temporelle(engagement):
+        from .temps import instant
+        _clore_datee(monde, id, engagement, instant(monde), connue=True)
+    else:
+        retirer_proposition(monde, id, engagement)
 
 
 def affecter_part(monde, id, lot, part):
@@ -2235,10 +2428,15 @@ def echoir(monde, id):
     from .biens import _cles, preter, rembourser
     from .spatial import porte_par
     from .vol import proprietaire
+    expirer_obligations(monde)
+    _constater_issues(monde, id)
     e = esprit(monde, id)
     restants, finis = [], []
     for engagement in e["engagements"]:
-        if engagement.get("annule"):
+        if reference_temporelle(engagement):
+            # Un état trouvé vrai n'est jamais une réalisation datée.
+            restants.append(engagement)
+        elif engagement.get("annule"):
             restants.append(engagement)  # Il doit encore prévenir, sans savoir magiquement l'autre informé.
         elif tenu(monde, id, engagement["condition"], engagement["minute"]):
             memoriser(monde, id, {"type": "engagement_tenu", "pour": engagement["pour"],
@@ -2291,7 +2489,11 @@ def observer_promesses(monde, lignes):
     from .esprits import memoriser
     from .pnj import se_parler
     from .voix import nom_pour_joueur
+    expirer_obligations(monde)
+    _constater_issues(monde, 'joueur', lignes)
     for engagement in en_cours(monde, "joueur"):
+        if reference_temporelle(engagement):
+            continue
         a, c = engagement["pour"], engagement["condition"]
         faite = engagement.get("realisee", False) and tenu(monde, a, c, engagement["minute"])
         echue = monde.data["minutes"] - engagement["minute"] > ENGAGEMENT_MAX
@@ -2308,7 +2510,8 @@ def observer_promesses(monde, lignes):
 
 def etat_promis(monde):
     """Les seuls attributs qu'un effet doit changer pour réaliser les paroles du joueur."""
-    etats = {}
+    expirer_obligations(monde)
+    etats = etat_realisations(monde)
     for engagement in en_cours(monde, "joueur"):
         c = engagement["condition"]
         o = monde.objets.get(c["objet"], {})
@@ -2324,6 +2527,7 @@ def constater_geste_joueur(monde, avant):
 
     La preuve du moteur persiste ; le bénéficiaire l'apprend seulement par sa perception.
     """
+    constater_realisations(monde, avant)
     for engagement in monde.data.get("promesses_joueur", []):
         c = engagement["condition"]
         o = monde.objets.get(c["objet"], {})
