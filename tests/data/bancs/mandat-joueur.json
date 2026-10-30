@@ -14,6 +14,7 @@
   "relations": {"aubin": {"joueur": {"confiance": 100, "affection": 100}}}
  },
  "types_attendus": [["mandat"], ["mandat"], ["affirmation"], ["mandat"], []],
+ "issues_attendues": [null, ["impossible"], null, ["accepte", "refus"], null],
  "tours": [
   "Aubin, je te confie la charge d'amener Brune dans l'échoppe.",
   "Aubin, je te confie la charge d'informer Brune que le brasero est dans l'antichambre.",

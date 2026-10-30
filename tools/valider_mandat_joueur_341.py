@@ -16,7 +16,8 @@ from priorite import ceder
 TESTS = ('mandat_joueur', 'agendas_socle', 'agendas_mandat', 'agendas_jugement_mandat',
          'agendas_compte_rendu', 'agendas_reaffecter', 'agendas_ascendant_evolue', 'agendas_evaluation',
          'agendas_devis_observateur', 'paroles', 'contenus_parole', 'parole_commune',
-         'emissions_parole', 'comptes_paroles', 'comptes_issue', 'comprehension', 'noms', 'banc_multi')
+         'emissions_parole', 'comptes_paroles', 'comptes_issue', 'comprehension', 'noms', 'banc_multi',
+         'designations', 'comptes_fidelite')
 
 
 def ecrire(p, v):
@@ -40,7 +41,7 @@ def analyser_luna(dossier):
         raise ValueError('Une seule passe Luna attendue')
     partie = json.loads(fichiers[0].read_text(encoding='utf-8'))
     lignes, deja = [], {}
-    for tour, attendus in zip(partie['tours'], script['types_attendus']):
+    for tour, attendus, issues in zip(partie['tours'], script['types_attendus'], script['issues_attendues']):
         proposition = (tour['propositions'] or [{}])[-1]
         contenu = proposition.get('contenu', [])
         types = [c['type'] for c in contenu]
@@ -52,11 +53,14 @@ def analyser_luna(dossier):
             deja[a['id']] = len(js)
         lignes.append({'saisie': tour['saisie'], 'types': types, 'types_attendus': attendus,
             'couverture_coherente': declarees == operations_contenu(contenu),
+            'jugement_attendu': issues,
+            'jugement_conforme': not jugements if issues is None else
+                len(jugements) == 1 and jugements[0]['issue'] in issues,
             'jugements_nouveaux': jugements, 'refus_validation': tour['refus'],
             'erreurs': tour['erreurs'], 'mentions_sans_fondement': tour['mentions_sans_fondement']})
     jugements = [j for l in lignes for j in l['jugements_nouveaux']]
     return {'ok': len(lignes) == len(script['types_attendus']) == len(partie['tours'])
-        and all(l['types'] == l['types_attendus'] and l['couverture_coherente']
+        and all(l['types'] == l['types_attendus'] and l['couverture_coherente'] and l['jugement_conforme']
                 and not l['erreurs'] and not l['mentions_sans_fondement'] for l in lignes)
         and bool(jugements) and not partie['arret'] and not partie['erreur_rechargement'],
         'mandats_types': sum('mandat' in l['types'] for l in lignes),

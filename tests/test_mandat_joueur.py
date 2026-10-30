@@ -302,6 +302,30 @@ class MandatJoueurTests(unittest.TestCase):
             self.assertEqual(lire(n, 'aubin')['croyances'][sujet]['lieu']['valeur'], 'echoppe')
             self.assertEqual(agendas.projets(n, 'joueur')[0]['jugements'][-1]['issue'], 'impossible')
 
+    def test_revue_nomme_les_references_aux_deux_profondeurs(self):
+        from tests.test_repli_et_appel import jouer
+        for sorte in ('informer', 'amener'):
+            with self.subTest(sorte=sorte):
+                m, c = self.scene(sorte)
+                destination = c['fait']['valeur'] if sorte == 'informer' else c['lieu']
+                nom = m.data['salles'][destination]['nom']
+                charge = (f'informer Brune que le brasero est dans {nom}' if sorte == 'informer'
+                          else f'amener Brune dans {nom}')
+                mots = 'Aubin, je te confie la charge de ' + charge + '.'
+                p = {'mode': 'parole_joueur', 'texte': '', 'faits': [], 'proposition': {
+                    'personnage': 'aubin', 'replique': mots, 'contenu': [c],
+                    'operations_demandees': {t: t == 'mandat' for t in paroles.OPERATIONS}}}
+                n, sortie, appels = jouer(m, mots, [p], [])
+                self.assertIn("J'accepte cette charge", sortie)
+                n = self.persiste(n)
+                self.assertIn("J'accepte cette charge", str(n.data['conversation']))
+                self.assertEqual(agendas.projets(n, 'joueur')[0]['jugements'][-1]['issue'], 'accepte')
+                revue = next(e for f, e in appels if f == 'auditer_action')
+                contenu = revue['plan']['parole']['contenu'][0]
+                lieu_revu = contenu['fait']['valeur'] if sorte == 'informer' else contenu['lieu']
+                self.assertEqual(lieu_revu, f'{nom} ({destination})')
+                self.assertIn('(brune)', contenu['qui'][0])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -20,12 +20,24 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Fin technique verte conservée ; `validation/analyse-luna-posthoc.json`
   rouge. Définitions communes et portée du fait imbriqué corrigées,
   couverture stricte conservée et testée sur deux cas rechargés.
-  Nouvelle validation détachée : tests ciblés puis une passe Luna ; contrôle
-  des types attendus, opérations et jugements en plus du succès technique.
-  Aucune suite complète ; huit paires initiales non rejouées pour les seules
-  définitions de parole. Bruts
+  Correction `b76dd31` : **175/175 tests verts, 18 fichiers, 232,175 s**.
+  Luna : cinq tours/quatre MJ/quatorze appels ; les trois mandats et
+  l'affirmation préalable sont correctement typés, cartes cohérentes.
+  Mais le mandat positif n'atteint pas le jugement : faux refus de fidélité
+  entre le nom public du lieu et son identifiant, faute de référence nommée
+  dans le fait imbriqué. Aucune acceptation ; repli en parole libre distinct
+  d'un refus PNJ. Analyse `validation-portee/analyse-admission-posthoc.json`
+  rouge ; bilan de types initial vert conservé.
+  Projection commune de revue corrigée récursivement sur le registre des
+  références ; aucune exception de lieu ni nouvelle consigne. Deux témoins
+  rouges puis verts (`informer` et `amener`), monde/texte rechargés.
+  Nouvelle validation : vingt fichiers ciblés, dont désignations et fidélité
+  comptable, puis une passe Luna. Le cas réalisable doit atteindre le jet
+  commun (`accepte` ou `refus`), en plus du typage et de la couverture.
+  Aucune suite complète ; nuits passives initiales non rejouées pour ces
+  seules définitions et données de revue du joueur. Bruts
   `C:/Users/msics/donjon/artifacts/mandat-joueur-341/reprise-integration/` ;
-  fin attendue `validation-portee/fin.json`.
+  fin attendue `validation-references/fin.json`.
 
 - **Livraison initiale 341 / A5.9 terminée**, branche
   `codex-mandat-joueur`, **non fusionnée**, base fournie `fff9aab`.

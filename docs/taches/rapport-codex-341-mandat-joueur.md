@@ -38,9 +38,27 @@ strict ; deux cas avec MJ simulé conservent croyances, refus et paroles après
 recharge lorsqu'une affirmation autonome a été déclarée à tort.
 La validation contrôle désormais les types attendus du script, la cohérence
 de la carte d'opérations et les jugements effectivement rechargés, en plus du
-code de sortie. Nouvelle passe des tests ciblés et une passe Luna à lire dans
-`reprise-integration/validation-portee/fin.json`. Les huit paires initiales ne
-sont pas rejouées pour ce changement de définitions de parole.
+code de sortie. Cette correction `b76dd31` donne **175/175 tests verts,
+18 fichiers, 232,175 s**. La passe Luna type correctement les trois mandats
+et l'affirmation préalable ; les cartes d'opérations sont cohérentes.
+Le brasero reçoit le jugement `impossible` ; le cas du fanal reste toutefois
+rejeté par la revue de fidélité, qui distingue à tort « refuge du relais »
+et `antichambre`. Aucune acceptation : la réponse libre de repli n'est pas
+un refus PNJ enregistré. Preuve :
+`validation-portee/analyse-admission-posthoc.json`, rouge sur la quatrième
+saisie, malgré le bilan de typages initial vert conservé.
+
+**Références de revue.** Le rendu nommait seulement les champs du premier
+niveau du contenu. Il parcourt désormais le registre commun des références
+à toute profondeur, notamment faits et conditions, sans réécrire la prose.
+Aucune exception propre au lieu, à l'objet ou au mandat. Deux témoins rouges
+avant correction (`antichambre` et `chambre_cloche`) puis verts après,
+avec jugement réel, mots moteur et sauvegarde/recharge. Le validateur exige
+aussi que le cas réalisable atteigne le jet commun (`accepte` ou `refus`).
+Nouvelle vérification détachée : vingt fichiers ciblés et une passe Luna,
+fin `reprise-integration/validation-references/fin.json`. Les huit paires
+initiales ne sont pas rejouées pour les seules définitions et données de
+revue du joueur.
 
 Précision saisie par saisie sur la **première passe Luna** :
 
@@ -64,7 +82,7 @@ nouveau test. La première reprise Luna n'a pas transmis l'information
 préalable ; le cas reste réalisable lorsque celle-ci est correctement typée.
 Le banc enregistre désormais les charges du joueur depuis chaque sauvegarde
 rechargée, permettant de lire les jugements réellement persistés. Bruts et
-fin attendue : `reprise-integration/validation-portee/fin.json` dans le dossier du lot.
+fin attendue : `reprise-integration/validation-references/fin.json` dans le dossier du lot.
 
 Les résultats ci-dessous restent ceux de la livraison initiale.
 
