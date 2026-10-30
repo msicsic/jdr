@@ -188,5 +188,37 @@ if (ETAT.sonde_marche) {
   }
   sortie.marche = {envois: [...envois], interrompue: marche === null};
 }
+if (ETAT.sonde_accord) {
+  appliquerEtat(ETAT); occupe = false; envois.length = 0;
+  $("negocier").onclick();
+  const form = $("accord"), f = ETAT.sonde_accord;
+  sortie.accord = {champs: [], clics: 1};
+  form.onsubmit({preventDefault() {}}); sortie.accord.incomplet = envois.length;
+  for (const label of form.children.filter(l => l.tagName === "LABEL")) {
+    const input = label.children.find(c => ["INPUT", "SELECT"].includes(c.tagName));
+    const nom = label.children[0].textContent;
+    input.value = String(f[nom] ?? "");
+    if (input.onchange) input.onchange();
+    sortie.accord.champs.push({nom, valeur: input.value, choix: input.children.map(o => ({valeur: o.value, texte: o.textContent}))});
+    sortie.accord.clics += input.tagName === "SELECT" ? 2 : 1;
+  }
+  sortie.accord.resume = form.children.filter(c => c.tagName === "P").at(-1).textContent;
+  if (f.correction) {
+    for (const label of form.children.filter(l => l.tagName === "LABEL")) {
+      const nom = label.children[0].textContent, input = label.children[1];
+      if (f.correction[nom] !== undefined) { input.value = String(f.correction[nom]); input.onchange(); }
+    }
+  }
+  if (f.annuler) {
+    form.children.filter(c => c.tagName === "BUTTON").at(-1).onclick();
+  } else {
+    occupe = true; form.onsubmit({preventDefault() {}}); sortie.accord.occupe = envois.length;
+    occupe = false; form.onsubmit({preventDefault() {}}); sortie.accord.clics++;
+    sortie.accord.envoye = envois[0];
+    form.onsubmit({preventDefault() {}});
+  }
+  sortie.accord.envois = envois.length;
+  appliquerEtat(ETAT); sortie.accord.ferme_apres_etat = form.hidden;
+}
 console.log(JSON.stringify(sortie));
 `);

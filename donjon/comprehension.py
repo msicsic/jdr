@@ -91,7 +91,9 @@ def contenu(monde, c, interlocuteur="", *, reference_ressource=False):
         def terme(t):
             refs = [repere(monde, ref) for ref in cites_terme(t)]
             return texte(monde, en_mots(monde, t)) + (" (" + "; ".join(refs) + ")" if refs else "")
-        return f"offrir {terme(c['contrepartie'])} contre {terme(c['demande'])}"
+        return (f"offrir {terme(c['contrepartie'])}"
+                + (" payées maintenant" if c['contrepartie']['type'] == 'pieces' and 'limite' in c['demande'] else "")
+                + f" contre {terme(c['demande'])}")
     s, v = c.get("sujet", ""), c.get("valeur", "")
     sujet = repere(monde, resoudre(monde, s) or s) if s else ""
     if t == "propos":
