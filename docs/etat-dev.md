@@ -43,9 +43,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 - **356 `codex-suite-rouge-7eb45ff`**, base `integration df03dc2f` : attribution des 161 incidents, en cours.
-  Bissection native détachée entre la fusion 339 et `7eb45ff9`, deux processus réduits au plus ;
-  méthodes rouges seules, parent direct vérifié, absence/saut jamais considérés verts. Aucun test adapté encore.
-  Reprise après `C:/Users/msics/donjon/artifacts/suite-rouge-356/fin-bissection.json` ;
+  Premier lanceur invalidé par un masquage d'import ; traces gardées, lanceur corrigé, deux processus réduits.
+  Gravure : bascule U-C prouvée sur parent direct, harnais `tenter` adapté sans assertion changée ; fichier 14/14 vert.
+  Reprise après `C:/Users/msics/donjon/artifacts/suite-rouge-356/fin-bissection-v2.json` ;
   [rapport provisoire](taches/rapport-codex-356-suite-rouge-7eb45ff.md). Ni suite complète, Luna ou banc.
 
 Lots en cours : 342 (attribution du groupe 1, 315 à réaccorder), 353 (U-T corps et passage), 355 (E4 accord daté), 356 (suite rouge),
