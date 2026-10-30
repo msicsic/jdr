@@ -33,11 +33,11 @@ E : même `_retentir/emission` reproduit sur référence exacte, réservé au 33
 | 18 | etapes_chainees / mine | 332 / attente périmée | V référence, R 332 seul. Diff complet : registres/provenance des signes seulement, huit autres oracles identiques. Nouveau hash complet `f6fef4…`, visites 313 conservées. |
 | 19 | etapes_chainees / auberge | 332 / attente périmée | Même preuve : registres vides et `directions={}` ; huit autres oracles identiques. Hash complet `52bb40…`. |
 | 20 | localisation_crue / temps entier ou découpé | 313 / défaut | P. |
-| 21 | lumiere / Rémy allume puis ménage sa lampe | 332 en amont + réserve antérieure | Référence et 315/313/333 seuls atteignent `1 != 2` dans `lumiere_du_geste`. 332 échoue avant, sur lampe encore allumée : causes distinctes. Contrôler le retour à la réserve antérieure après correctif ; oracle inchangé. |
+| 21 | lumiere / Rémy allume puis ménage sa lampe | 332 / attente de parcours périmée, et oracle antérieur incohérent | Sans 332, extinction puis `1 != 2` ; avec 332, Rémy reste au baraquement obscur sans connaître la chandelle et garde légitimement sa lampe. La chandelle réelle a `luminosite=1`. `c3db8e2` prépare explicitement le second stimulus du test (bureau, source connue de niveau 2), sans forcer l'extinction ; toutes assertions finales conservées, test vert. |
 | 22 | mine / noir et protecteurs | Préexistant | Même assertion `False is not true : set()` sur référence et 315 seul. 313/333 rendent parfois la méthode verte sans démontrer la correction de sa cause. Inchangé. |
 | 23 | pas_compagnons / service admissible, vente prioritaire | 332 / défaut | V référence, R 332 seul ; sans interprétation d'une relation privée de référence, ordre original V. Référence exigée par le contrat du signe, pas par sa phrase ; oracle inchangé. |
 | 24 | reclamations_repetees / Sève avant 83 | 313 × 315 / attente périmée | 315 seul ou essai sans 313 : 83/84 ; sans 332 ou sans 333 : 82/83. Deux remboursements uniques, monde/textes bloc-découpé identiques. `dee756a` conserve ordre et borne maximale 84. |
-| 25 | recours_prioritaire / capture sans navette | 332 / attente périmée | V référence, R 332 seul, encore R sans le seul réveil. Aubin réellement assommé depuis 391340 jusqu'à 419540, fin à 405000 : intention vide justifiée par le corps. Attente finale d'abri remplacée par ces propriétés ; déplacements, monde/vue bloc-découpé conservés. |
+| 25 | recours_prioritaire / capture sans navette | 332 / défaut d'ordonnancement, avec interactions ultérieures | V référence initiale, R 332 seul. Le signal préparé devait attendre derrière le bavardage facultatif ; `3acd5c7` le fait exécuter à la disponibilité du PNJ, sans réveiller le choix du but avant sa perception. L'oracle initial d'abri est intégralement restauré par `c3db8e2`, test vert dans l'assemblage. Le KO observé sur l'ancien témoin n'est plus utilisé comme oracle de substitution. |
 | 26 | rejeu / lumière, autre scénario | Préexistant | E. |
 | 27 | rejeu / page et filtres | Préexistant | E. |
 | 28 | rejeu / gestes illicites et témoins | Préexistant | E. |
@@ -52,5 +52,25 @@ Bruts sous `C:/Users/msics/donjon/artifacts/groupe1-342/` :
 `decomposition332/` (ablation d'une seule fonction, pas un correctif),
 `preuve-empreintes.json`, `tache-abandon.json`, `abri332.json`.
 Les prototypes non retenus restent dans `experiences332.diff` et `sonde332-*`.
-**Validation finale à lire dans `validation-finale/` ; aucun succès final
-n'est attesté à ce stade**, en particulier pour la ligne 21.
+Première reconstruction `94329d3` sur `da5f795` : **279 tests / 27 fichiers,
+11 incidents**. Huit réserves finales étaient aussi rouges sur cette nouvelle
+intégration : deux dans `boucles_pnj`, deux dans `dynamique_besoins`, deux
+sous-cas des étapes chaînées, lampe vide et aide 541. Les différences de
+trajectoire ne sont pas déclarées identiques pour cette seule raison.
+Les six incidents du 339 et celui de la mine passent sur cette reconstruction,
+sans être attribués aux correctifs du 342.
+
+Les trois points restants (regard non suivi dans la fenêtre du test, lampe,
+capture d'abri) sont repris par `3acd5c7` et `c3db8e2` : **12/12 tests ciblés
+verts**, y compris tous les tests d'attention conjointe et les deux scènes
+historiques, monde/rendu/scène et laps découpé conservés. Nouvel essai
+`93d5a25` ; reprise des fichiers concernés et vingt nuits de branche sous
+`cloture-1/`, résultats encore à lire. Référence historique : vingt nuits du
+cache `c870c8b`, instrumentation `1f6b05da83`, sans réexécution ; observation
+distincte de l'outil actuel, aucune comparaison de vitesse.
+
+Limite conservée : dans les témoins de retrait sur la base récente, enlever
+332 laisse encore 33 passages d'Aubin, enlever 313 en laisse dix. Cette
+interaction 313/base récente n'est pas déclarée corrigée en général parce
+que l'assemblage avec le réflexe ordonnancé retrouve l'abri ; la preuve du
+342 porte sur ses contrats et ses parcours exercés, pas toutes les variantes.

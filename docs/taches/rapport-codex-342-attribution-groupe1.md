@@ -1,52 +1,57 @@
-# Lot 342 — attribution réalisée, validation finale en cours
+# Lot 342 — corrections poussées, reprise de validation en cours
 
 30 octobre 2026. Branche documentaire `codex-attribution-groupe1`, base
 `16b18a7`. [Matrice des 33 incidents](attribution-codex-342-groupe1.md).
-Le lot ne sera clos qu'après lecture de la validation finale.
+La fin des nouveaux calculs reste à analyser avant clôture.
 
-**Preuve causale.** Référence exacte `e37d9ee`, puis chaque lot 313/315/332/333
-seul : 27/22/23/22/22 tests comptés, 8/14/2/11/1 incidents ; 2 177,100 s,
-deux travailleurs réduits au plus. Une méthode absente n'est pas comptée verte.
-Six incidents `_retentir/emission` restent au 339 ; l'échec mine est aussi
-reproduit sur l'intégration. La lumière superpose un nouvel échec en amont
-et une réserve antérieure distincte. Les interactions sont prouvées par retrait
-d'un seul lot ; aucune attribution sur la seule lecture du code.
+**Attribution.** Référence exacte `e37d9ee`, puis chacun des lots 313/315/332/333
+seul : 27/22/23/22/22 tests, 8/14/2/11/1 incidents ; 2 177,100 s. Les deux
+interactions sont prouvées par retrait d'un seul lot. Six incidents initiaux
+restent attribués au 339 et celui de la mine à l'intégration antérieure ; ils
+passent dans l'assemblage récent sans être crédités aux correctifs du 342.
+Une méthode absente n'est jamais comptée comme une preuve verte.
 
-**Correctifs poussés.** Le 313 (`cddc76e`, correctif `de03f87`) admet une
-position absente comme inconnue dans la perception commune, sans enrichir le
-devis fermé avec le joueur réel. Neuf tests de devis verts : deux charges,
-mutation du joueur réel, monde/rendu/scène rechargés. Le 332 (`4da7dc4`)
-distingue direction et interprétation : une référence requise absente n'admet
-aucun savoir relationnel ; la direction seule ne réveille pas le choix du but
-avant la rotation. L'ordonnanceur commun continue de permettre le réflexe au
-prochain geste libre. Aucun scénario ni prompt modifié. Les prototypes de
-priorité et de rétention de direction sont écartés, sans garantie générale
-revendiquée à leur sujet. Dernière passe 332 : **63/64 tests verts**, réserve
-unique de la capture d'abri, attente corporelle adaptée ensuite ; nouvelle
-régression d'admission verte dans deux scénarios.
+**Contrats corrigés.** Le 313 (`cddc76e`, correctif `de03f87`) traite une position
+absente comme inconnue dans la perception commune, sans fournir le joueur réel
+au devis fermé : neuf tests de devis verts. Le 332 (`4da7dc4`, `3acd5c7`)
+distingue direction, interprétation et geste : une référence requise absente
+n'admet aucun savoir relationnel ; le signal prépare la rotation, sans rouvrir
+le but avant la perception. À la disponibilité du PNJ, ce geste préparé passe
+avant le bavardage facultatif. Aucun PNJ ni scénario particulier dans ces règles.
+Les premiers prototypes de priorité/rétention de direction sont écartés.
 
-**Attentes et scènes.** Quatre captures retrouvent leur hash historique exact
-après retrait strict du seul registre vide. Deux captures des étapes chaînées :
-différences complètes de registres/provenance des signes seulement, huit autres
-oracles identiques ; nouveaux hashes complets, visites 313 conservées. Sève
-conclut à 82/83 plutôt que 83/84 : le 315 (`beaecc7`) conserve deux actes
-uniques ordonnés et la borne 84. Avec 313/333, Odile réserve le briquet pour
-son secours concurrent ; le 333 (`40bd537`) isole ce secours dans la scène qui
-mesure l'emprunt pour agir soi-même, sans changer ses assertions. La capture
-d'abri finit réellement avec Aubin assommé : corps et indisponibilité remplacent
-l'ancien plan attendu ; monde/vue et déplacements bloc-découpé restent exigés.
+**Attentes contrôlées.** Quatre captures retrouvent exactement leur ancien hash
+après retrait strict du seul registre vide ; deux autres changent seulement les
+registres/provenances des regards, huit autres oracles identiques. Le 315
+(`beaecc7`) conserve deux remboursements uniques ordonnés et la borne 84, le
+contact pouvant conclure plus tôt. Le 333 (`40bd537`) isole le secours concurrent
+d'Odile dans la scène de prêt, toutes assertions conservées. La scène de lampe
+(`c3db8e2`) fournit explicitement son second stimulus, une source connue de
+niveau 2 : la vraie chandelle vaut 1 et Rémy peut rester au baraquement obscur.
+Toutes assertions finales sont gardées. L'oracle d'abri initial est restauré
+intégralement ; le KO observé dans un témoin antérieur ne sert plus d'oracle.
 
-**Reconstruction et calcul.** Essai `94329d3`, depuis `origin/integration
-da5f795`, quatre branches corrigées ; documentation des deux côtés conservée,
-aucun changement de `jeu.py` par rapport à cette base. Validation détachée :
-seuls fichiers en incident et tests directement concernés, puis banc 4 h ×
-cinq scénarios × quatre graines, cache de `main` réutilisé, aucune référence
-disponible rejouée. Ni comparaison de vitesse avec des temps de cache, ni Luna,
-ni suite complète. Deux travailleurs réduits au maximum, phases séquentielles.
-Chaque rouge final hors 339 reçoit un témoin sur `da5f795` ; une méthode rouge
-ne suffit pas à établir une cause identique.
+**Mesures acquises.** Assemblage `94329d3`, base `da5f795` : **279 tests /
+27 fichiers, 11 incidents**. Les témoins sur cette base reproduisent huit
+réserves restantes après correction des trois points propres à l'assemblage :
+deux boucles, deux dynamiques, deux captures chaînées, lampe vide, aide 541.
+Même assertion rouge ne signifie pas trajectoires identiques. Reprise ciblée :
+**12/12 verts**, attention conjointe dans deux scénarios, lampe réelle, abri,
+monde/rendu/scène rechargés et temps découpé. `jeu.py` inchangé par rapport
+à la base ; ni Luna ni suite complète.
 
-Bruts `C:/Users/msics/donjon/artifacts/groupe1-342/`, preuves et prototypes
-conservés. Fin attendue : **`validation-finale/fin-validation.json`**.
-`calcul_termine` ne signifie pas `lot_valide` : tests et banc restent à lire.
-Aucun zéro incident final ni absence générale de boucle revendiqué avant cela.
+**Calcul restant.** Essai corrigé `93d5a25`. Les 27 fichiers sont repris après
+le changement de l'ordonnanceur, puis vingt nuits de branche (4 h, cinq scénarios,
+quatre graines). Deux travailleurs réduits au plus, phases séquentielles. La
+première tentative de banc a échoué dans l'observateur récent de la référence
+ancienne (`agendas.enfants`), avant toute nuit de branche ; sortie invalide
+conservée. La reprise relit vingt références historiques `c870c8b` du cache,
+instrumentation `1f6b05da83`, et joue uniquement la branche. Observations de
+versions distinctes, aucune attribution causale à un seul lot ni comparaison
+de vitesse. Aucun résultat de banc n'est encore annoncé.
+
+**Limite.** La variante sans 332 sur la base récente garde 33 passages d'Aubin,
+celle sans 313 en garde dix. Cette interaction 313/base récente n'est pas
+déclarée corrigée en général par le succès de l'assemblage avec le réflexe.
+Bruts `C:/Users/msics/donjon/artifacts/groupe1-342/`, fin attendue
+**`cloture-1/fin.json`** : fin du calcul, pas attestation de réussite du lot.
