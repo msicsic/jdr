@@ -829,11 +829,33 @@ def _constater_bien(monde, id, sujet, faits, salle, source="vu"):
             continue
         suspects = {s["qui"] for s in r["presences"]
                     if s["salle"] == salle and avant["instant"] <= s["instant"] <= maintenant}
-        if len(suspects) == 1:
-            auteur = next(iter(suspects))
-            if auteur != avant["proprietaire"]:
-                deduire_soupcon(monde, id, auteur, sujet, champ, avant)
+        if avant['proprietaire'] in suspects:
+            continue  # Une manipulation légitime par le propriétaire reste possible.
+        candidats = _candidats_soupcon(monde, id, suspects, lies)
+        if candidats:
+            deduire_soupcon(monde, id, candidats, sujet, champ, avant)
     _purger_indices_soupcon(monde, id)
+
+
+def _candidats_soupcon(monde, id, presences, objets):
+    """L'occasion est nécessaire ; les signes et antécédents crus la pondèrent.
+
+    Aucun profil d'autrui, position réelle, jet de lecture ni vérité du signe.
+    Une réputation seule ne place jamais quelqu'un sur les lieux.
+    """
+    from .signes import actives
+    e = lire(monde, id)
+    candidats = {qui: 1.0 for qui in sorted(presences)}
+    for qui, _, c in actives(monde, id):
+        if qui in candidats and c['valeur'] == 'guet' and c.get('envers') in objets:
+            candidats[qui] = max(candidats[qui], 1 + c['confiance'])
+    for qui in candidats:
+        motifs = e['relations'].get(qui, {}).get('motifs', [])
+        if any(s['type'] in ('vol_surpris', 'vu_porter') or
+               s['type'] in ('vu_agir', 'tort_tiers') and s.get('operation') == 'prendre'
+               for s in motifs):
+            candidats[qui] += .5
+    return candidats
 
 
 def dernier_son(monde, id):

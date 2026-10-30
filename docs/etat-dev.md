@@ -39,6 +39,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-soupcon-deduit` — lot 372 / A6, base `origin/integration d8567324`.
+  Candidats pondérés sur présences perçues, guet lu et prises connues ; égalité sans accusation.
+  Disparition propre : projet de récupération sur soupçon, enquête commune sans portage inventé ;
+  bien retrouvé ailleurs ou auteur constaté : levée et clôture du projet supposé.
+  161 méthodes distinctes vertes consolidées, deux vols réels rechargés, laps entier/découpé identique.
+  Empreintes 2 h × 4 graines × 6 scénarios en cours ; sans Luna ni suite complète.
+  Limites : indices de salle, motifs/lectures bornés ; recouvrement `agendas.py` avec 370.
+  [Rapport 372](taches/rapport-codex-372-soupcon-deduit.md).
+
 Lots en cours : 365 (catalogue des choix), 369 (U-T social information), 370 (A2 séquence et attente), 371
 (évaluation de l'échéance avant E7-E9), 372 (A6 soupçon déduit). Suite complète de l'intégration relancée après les
 corrections 360 à 368. Leurs entrées arrivent ici à leur livraison. 
