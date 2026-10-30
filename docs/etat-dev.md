@@ -35,8 +35,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 342 (attribution du groupe 1), 344 (U-M corps), 345 (G16 information parlée), 348 (E1 référence
-temporelle). Leurs entrées arrivent ici à leur livraison.
+- **348 — E1 référence temporelle**, `codex-e1-reference-temporelle`, base `origin/integration 014fc35`.
+  Référence facultative identité/version/création/limite en dixièmes ; aucun champ ajouté aux obligations ordinaires.
+  Validation commune à la recharge, `attendu` préservé par le chargeur ; accès au stockage borné par le contrôle AST.
+  126 ciblés : 124 verts, 2 échecs de protection reproduits sur la base ; empreintes 2 h × 4 graines en cours.
+  Limites : socle interne, aucun appelant ni effet d'expiration ; réalisation et accord datés restent à E2–E6.
+  [Rapport](taches/rapport-codex-348-e1-reference-temporelle.md).
+
+Lots en cours : 342 (attribution du groupe 1), 344 (U-M corps), 345 (G16 information parlée).
+Leurs entrées arrivent ici à leur livraison.
 
 ## Décisions prises le 2026-10-30
 
