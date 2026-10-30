@@ -16,10 +16,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   U-T premier geste/outils/inventaire/fabrication, A0 (oracle G1).
 - **PNJ** : A5 (mandat) fini sauf 306 (lots 338, 340, 341 fusionnés). A1 provenance publique fusionnée (346, non branchée).
   **Échéance négociée** décidée (lot 347, arbitrages acceptés le 2026-10-30) : lots E1 à E6 ; E1, E2, E3 fusionnés (348, 350, 352), E4 = 355.
-- **Groupe 1 en attente de fusion** (corrections d'attribution par le lot 342) : 313 `codex-contact-inconnu`
-  (contact de position inconnue), 315 réclamations répétées, 332 attention conjointe, 333 `codex-garder-lieu`.
-  Après lui : 335 `codex-suivi-vocal` (refusionner l'intégration, refaire ses ciblés), 306 (A5 agenda du hameau,
-  refaire le banc), puis une vérification d'intégration ; `main` n'avance que si elle est propre.
 - **Non validé, à repenser** : 329 G20 `codex-g20-signes` (Luna n'a pas choisi la sélection typée).
 - **Suspendu** : G1 compact (294/296/304/311, `origin/codex-g1-compilateur`) ; reprise sous la forme A (lot 346).
 - **Abandonnés, branches gardées sur origin** (à rediscuter avec l'utilisateur) : 33, 36, 117 b, 117 c, 162, 166,
@@ -27,18 +23,18 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-revalider-apres-refus` (63d55dcd) : lot 358, une action différée est revalidée contre un refus encore valable. Détail dans l'historique.
+- `codex-suivi-vocal` (c020b62a) : lot 335, suivi vocal. Détail dans l'historique.
+- `codex-reclamations-repetees` (0925c556) : lot 315, réclamations répétées. Détail dans l'historique.
+- `codex-e3-taches-payees` (999e4c67) : lot 357, régression d'E3 sur les tâches payées corrigée. Détail dans l'historique.
+- `codex-attribution-groupe1` (8d1a4c3f) : lot 342, attribution du groupe 1. Détail dans l'historique.
+- `codex-ut-corps-passage` (fe464411) : lot 353, U-T corps et passage au terminal. Détail dans l'historique.
+- `codex-garder-lieu` (40bd537e) : lot 333, garder un lieu. Détail dans l'historique.
+- `codex-attention-conjointe` (c3db8e29) : lot 332, attention conjointe. Détail dans l'historique.
+- `codex-contact-inconnu` (cddc76e5) : lot 313, contact de position inconnue. Détail dans l'historique.
+- `codex-e4-accord-date` (30ec526a) : lot 355, E4 l'accord initial engage exactement les termes datés. Détail dans l'historique.
+- `codex-um-social-information` (c78b0e8b) : lot 354, U-M social information, l'acte d'information au formulaire. Détail dans l'historique.
 - `codex-e3-delai-cru` (69bba20e) : lot 352, E3 délai jugé sur les moyens crus du contractant. Détail dans l'historique.
-- `codex-um-passage` (a8bc0fce) : lot 349, U-M passage, franchissements qualifiés au menu. Détail dans l'historique.
-- `codex-g18-avis` (d162988a) : lot 351, G18 l'avis formulé par le moteur, parole sans vérité. Détail dans l'historique.
-- `codex-e2-realisation-datee` (d9803abd) : lot 350, E2 verdict temporel par réalisation datée unique. Détail dans l'historique.
-- `codex-e1-reference-temporelle` (6d06181f) : lot 348, E1 référence temporelle canonique d'une obligation. Détail dans l'historique.
-- `codex-g16-information` (1ec5525) : lot 345, G16 paroles d'information formulées par le moteur. Détail dans l'historique.
-- `codex-um-corps` (39113e9) : lot 344, U-M corps, gestes de corps et de violence au menu. Détail dans l'historique.
-- `codex-conception-menace` (228892f) : lot 347, conception de la menace et de l'échéance négociée. Détail dans l'historique.
-- `codex-a1-provenance` (29079a6) : lot 346, A1 projection publique avec provenance. Détail dans l'historique.
-- `codex-mandat-joueur` (5a3baf0) : lot 341, A5.9 le joueur mandant et mandaté. Détail dans l'historique.
-- `codex-g7-deplacements` (a6b4444) : lot 343, G7 déplacements résolus rendus par le moteur. Détail dans l'historique.
-- Correctif hors lot (intégration) : la fiche « Compris » d'une demande de passage nomme l'interlocuteur (`comprehension.contenu`) ; tests d'actes lourds écrits avant le lot 325 passent « tenter ».
 
 ## Lots non fusionnés
 
@@ -48,8 +44,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Reprise après `C:/Users/msics/donjon/artifacts/suite-rouge-356/fin-bissection-v2.json` ;
   [rapport provisoire](taches/rapport-codex-356-suite-rouge-7eb45ff.md). Ni suite complète, Luna ou banc.
 
-Lots en cours : 342 (attribution du groupe 1, 315 à réaccorder), 353 (U-T corps et passage), 355 (E4 accord daté), 356 (suite rouge),
-354 (U-M social information). Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
+Lots en cours : 335 (suivi vocal, reprise, banc en cours), 356 (suite rouge, attribution), 358 (revalider une action
+différée après refus). 306 (agenda du hameau) attend le 358 : un mandat refusé y est réexécuté.
+Leurs entrées arrivent ici à leur livraison. **Suite complète de l'intégration `7eb45ff` : 3 075 tests, 143 échecs, 18 erreurs** (beaucoup de tests
 écrits avant le consentement U-C, d'autres familles à attribuer) : lot 356 (attribution, harnais) en cours ; la
 vérification d'intégration et l'avance de `main` attendent une suite redevenue témoin fiable.
 

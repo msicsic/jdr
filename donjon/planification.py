@@ -978,29 +978,39 @@ class Vue:
 
     def case_objet(self, e, objet, vus=()):
         """Position prévue, sinon crue ; le contenant ou le porteur donne sa case."""
-        if objet in e.portes or objet == self.id:
-            return e.case
-        if objet in vus:
-            return None
-        if ("case_objet", objet) in e.faits:
-            return e.fait("case_objet", objet)
-        lieu = self.lieu(e, objet)
-        if lieu in self.objets or lieu == "joueur":
-            return self.case_objet(e, lieu, (*vus, objet))
-        cru = lire(self.monde, self.id)["croyances"].get(objet, {}).get("lieu", {})
-        if cru.get("salle") == e.salle and cru.get("case") is not None:
-            return tuple(cru["case"])
-        o = self.objets.get(objet, {})
-        if o and not o.get("mobile") and o.get("type") != "personnage":
-            from .spatial import position_cible
-            return position_cible(self.monde, objet, e.salle)
-        return None
+        from .positions_crues import case_contact
+        def lieu(x):
+            return e.salle if x in e.portes or x == self.id else self.lieu(e, x)
+
+        def case(x):
+            cru = lire(self.monde, self.id)['croyances'].get(x, {}).get('lieu') or {}
+            return cru.get('case') if cru.get('salle') == e.salle else None
+
+        def prevue(x):
+            if x in e.portes or x == self.id:
+                return True, e.case
+            if ('case_objet', x) in e.faits:
+                return True, e.fait('case_objet', x)
+            return False, None
+
+        return case_contact(self.monde, objet, e.salle, lieu, case, vus, prevue)
 
     def approche(self, e, etape, cibles=None):
         """Approche moyenne depuis les entrées, sans position projetée."""
         if self._cru_spatial is None:
             return Route(fin=(e.salle, None))
         return trajet_estime.approche(self, e, etape, cibles)
+
+    def cases_vocales(self, e, sujet):
+        from .proximite_vocale import arrivees
+        portes = tuple((p, self.ouvert(e, p)) for p, o in self.objets.items() if o['type'] == 'porte')
+        cle = ('proximite_vocale', e.salle, sujet, portes)
+        def calculer():
+            possible = arrivees(self.monde, self.id, sujet, portes=portes)
+            if not self.monde.data.get('mode_cases'):
+                return frozenset((None,)) if possible(e.salle, None) else frozenset()
+            return frozenset(c for c in cases(self.salles[e.salle]) if possible(e.salle, c))
+        return self._memo(cle, calculer)
 
     def present(self, e, cible):
         """La présence commune d'exécution, sur les lieux et ouvertures projetés.
@@ -1478,8 +1488,11 @@ def gestes(v, e, vises=None, but=None):
     # Séjour à portée d'une personne : même approche, présence et coûts que
     # les gestes ciblés. Le fait projeté certifie l'arrivée, pas la fin du séjour.
     for qui in vises.get("pres", ()):
-        if v.salle(e, qui) == e.salle and not e.fait("pres", qui):
-            yield 0, 1, [_etape("rester", qui, lieu=e.salle)], e.apres(faits=[(("pres", qui), True)])
+        vocale = vises.get('portee') == 'voix'
+        possible = bool(v.cases_vocales(e, qui)) if vocale else v.salle(e, qui) == e.salle
+        if possible and not e.fait("pres", qui):
+            contenu = {'portee': 'voix'} if vocale else None
+            yield 0, 1, [_etape("rester", qui, lieu=e.salle, contenu=contenu)], e.apres(faits=[(("pres", qui), True)])
     # Les gestes de défense sont offerts seulement aux buts qui les emploient.
     yield from _gestes_defense(v, e, vises)
     agissables, a_porter = v.agissables(vises)
@@ -2190,8 +2203,16 @@ def _entrees(v, vises, profondeur, noeuds):
         # Le terminal de proximité et sa cible sont dans vises ; ses lieux,
         # cases crues, routes et tarifs sont dans les entrées communes.
         vises, profondeur, noeuds, None if v.emplois is None else sorted(v.emplois), v.eclairer,
-        [[x, v.violence(x) is not None] for x in v.personnes()], _entrees_defense(v, vises)
+        [[x, v.violence(x) is not None] for x in v.personnes()], _entrees_defense(v, vises),
+        _entrees_proximite(v, vises)
     ], ensure_ascii=False, check_circular=False)
+
+
+def _entrees_proximite(v, vises):
+    if (vises or {}).get('portee') != 'voix':
+        return None
+    from .proximite_vocale import entrees
+    return entrees(v.monde, v.id)
 
 
 def _entrees_communes(v):
@@ -3357,6 +3378,39 @@ def duree_devis(monde, id, etapes):
     return None if mesure is None else mesure[0]
 
 
+def proximite(monde, id, sujet, *, portee=None, endurer=None):
+    """Coût et préfixe certain du séjour ciblé ; contact ou portée vocale."""
+    v = vue(monde, id)
+    e = depart(monde, id, v)
+    if v.salle(e, sujet) is None:
+        if portee == 'voix':
+            recherche = _chercher(v, e, sujet)
+            return None if recherche is None else (recherche[1] + recherche[6], _couper(recherche[2]))
+        contact = rejoindre(monde, id, sujet)
+        return None if contact is None else (0, contact[0])
+    vises = {'pres': (sujet,)}
+    if portee == 'voix':
+        from .proximite_vocale import arrivees
+        lieu = lire(monde, id)['croyances'].get(sujet, {}).get('lieu', {})
+        if monde.data.get('mode_cases') and lieu.get('case') is None:
+            contact = rejoindre(monde, id, sujet)
+            if contact is None:
+                return None
+            etapes = contact[0] + [_etape('inspecter', lieu=v.salle(e, sujet), contenu={'cherche': sujet})]
+            mesure = _mesurer_direct(v, e, etapes, e, 0)
+            return None if mesure is None else (mesure[0] + mesure[1], etapes)
+        o = monde.objets[id]
+        # Déjà en portée : aucune optimisation de trajet ne le fait repartir
+        # vers un autre seuil. Un pas non perçu du tiers ne change pas ce test.
+        if arrivees(monde, id, sujet)(o['lieu'], tuple(o['position']) if monde.data.get('mode_cases') else None):
+            return 0, [_etape('rester', sujet, lieu=o['lieu'], contenu={'portee': 'voix'})]
+        vises['portee'] = portee
+    trouve = chercher(monde, id, lambda v, e: e.fait('pres', sujet), vises,
+                      nom='pres:' + sujet, memo=['pres', sujet] + ([portee] if portee else []),
+                      emplois=(), tenir=True, endurer=endurer)
+    return None if trouve is None else (trouve[0], _couper(trouve[1]))
+
+
 def _pulsion(monde, id, condition, tache, entretenir=None, *, duree=None):
     """(coût, but, étapes) de ``planifier_pulsion``, ou None."""
     from .deliberation import salle_crue
@@ -3370,14 +3424,8 @@ def _pulsion(monde, id, condition, tache, entretenir=None, *, duree=None):
         if v.salle(depart(monde, id, v), sujet) == monde.objets[id]['lieu'] and demander_possible(monde, id, sujet):
             return (0, {"type": "pulsion", **condition},
                     [_etape('demander', sujet, contenu={'cause_detresse': True})])
-        if v.salle(depart(monde, id, v), sujet) is None:
-            contact = rejoindre(monde, id, sujet)
-            return None if contact is None else (0, {"type": "pulsion", **condition}, contact[0])
-        trouve = chercher(monde, id, lambda v, e: e.fait("pres", sujet), {"pres": (sujet,)},
-                          nom="pres:" + sujet, memo=["pres", sujet], emplois=(), tenir=True)
-        # Les devis peuvent contenir une acquisition encore supposée. Comme
-        # les autres pulsions, n'exécuter que son préfixe certain et propre.
-        return None if trouve is None else (trouve[0], {"type": "pulsion", **condition}, _couper(trouve[1]))
+        trouve = proximite(monde, id, sujet)
+        return None if trouve is None else (trouve[0], {"type": "pulsion", **condition}, trouve[1])
     if "rendre" in condition:
         trouve = _rendre(monde, id, o, condition)
         return None if trouve is None else (0, *trouve)
@@ -3437,9 +3485,15 @@ def _pulsion(monde, id, condition, tache, entretenir=None, *, duree=None):
         vises["confier"] = (dict(condition),)
     depuis = None
     if entretenir and "allume" in condition and _vu_avant_la_tache(monde, id, condition, entretenir):
-        # L'offre établit le besoin de recharge, pas les croyances privées
-        # du payeur. L'allumage reste celui que croit le contractant.
-        dit = _cru(monde, id, o, "etat") or {}
+        # E3 porte les seules obligations datées sur les croyances du
+        # contractant, au jugement comme à l'exécution. Les autres gardent
+        # le contrat historique : l'offre dit le feu à recharger et, si le
+        # payeur ne le croit pas allumé, à rallumer. Mesurer une durée ne
+        # change jamais ce contrat.
+        date = any(agendas.reference_temporelle(x) for x in agendas.en_cours(monde, id)
+                   if x["pour"] == entretenir and x["condition"] == condition and not x.get("annule"))
+        observateur = id if date else entretenir
+        dit = (_cru(monde, observateur, o, "etat") or {}) if observateur != "joueur" else {}
         depuis = depart(monde, id).apres(faits=[(("charge", o), False)]
                                          + ([] if dit.get("allume") else [(("allume", o), False)]))
     trouve = chercher(monde, id, but, vises, depuis=depuis, nom=_nom_condition(condition),
@@ -3626,19 +3680,17 @@ def reclamer(monde, id):
     """(but, étapes) pour aller trouver qui lui doit des pièces (``biens.dettes``) ou garde un objet
     qu'il lui a prêté au-delà de l'échéance (``biens.echu``), là où il le croit, quand ce qu'il lui
     doit vaut pour lui plus que le chemin (un objet sans prix déclaré vaut ``biens.VALEUR_OBJET``) ;
-    None sinon. Pour une dette, se retrouver suffit : le débiteur rend ce qu'il peut, s'il le veut
-    (``biens.solder``) ; s'il est déjà près de lui, rien à faire. Pour un prêt, il le lui redemande
-    (``demander``), joueur compris. Un débiteur retrouvé sans le sou, ou qui vient de refuser, il ne le
-    relance pas de sitôt ; un emprunteur qui vient de refuser ou à qui il l'a déjà redemandé non plus."""
-    from .biens import VALEUR_OBJET, dettes, echu, nie_recemment, prets, prix
+    None sinon. Le plan aboutit à une demande au débiteur, avec le contact commun des gestes
+    sociaux ; entrer dans sa salle ne suffit pas. Le règlement spontané reste possible. La réponse
+    à la créance tient selon sa cause, sans délai. Pour un prêt, il le lui redemande
+    (``demander``), joueur compris, selon le contrat existant des prêts."""
+    from .biens import VALEUR_OBJET, dettes, echu, reponse_creance_retenue, prets, prix
     from .caractere import ARGENT, valeur_pieces
-    from .deliberation import REDEMANDE
     if not profil(monde, id):
         return None
     du, objets = {}, {}
-    minute = monde.data["minutes"]
-    for d in dettes(monde):
-        if d["a"] == id and d["de"] in monde.objets and not nie_recemment(monde, id, d["de"]):
+    for d in dettes(monde, connues_de=id):
+        if d["de"] in monde.objets and not reponse_creance_retenue(monde, id, d["de"]):
             du[d["de"]] = du.get(d["de"], 0) + d["montant"]
     for p in prets(monde):
         if (p["de"] == id and p["objet"] in monde.objets and (p["a"] == "joueur" or p["a"] in monde.objets)
@@ -3647,16 +3699,15 @@ def reclamer(monde, id):
             objets.setdefault(p["a"], []).append(p["objet"])
     if not du and not objets:
         return None
-    vains = {s["de"] for s in lire(monde, id)["memoire"] if s["type"] == "creance_vaine" and minute - s["minute"] < REDEMANDE}
     v = vue(monde, id)
     e = depart(monde, id, v)
     meilleur = None
     for de in sorted(set(du) | set(objets)):
         salle = v.salle(e, de)
         a_rendre = sorted(objets.get(de, ()))
-        if salle is None or not a_rendre and (de in vains or salle == e.salle):
+        if salle is None:
             continue
-        valeur = (valeur_pieces(monde, id, du[de]) if de in du and de not in vains else 0) + sum(
+        valeur = (valeur_pieces(monde, id, du[de]) if de in du else 0) + sum(
             valeur_pieces(monde, id, prix(monde, o) or VALEUR_OBJET) for o in a_rendre)
         if salle == e.salle:
             trouve = (0, [], e)
@@ -3664,7 +3715,9 @@ def reclamer(monde, id):
             trouve = chercher(monde, id, lambda v, e, s=salle: e.salle == s, nom="reclamer:" + de,
                               memo=["reclamer", de, salle], emplois=(), motif=ARGENT)
         if trouve is not None and valeur > trouve[0] and (meilleur is None or trouve[0] < meilleur[0]):
-            meilleur = (trouve[0], de, _couper(trouve[1]) + [_etape("demander", de, outil=o) for o in a_rendre[:1]])
+            demande = ([_etape("demander", de, contenu={"type": "reclamer_dette"})] if de in du else [])
+            meilleur = (trouve[0], de, _couper(trouve[1]) + demande
+                        + [_etape("demander", de, outil=o) for o in a_rendre[:1]])
     if meilleur is None:
         return None
     return {"type": "reclamer", "qui": meilleur[1]}, meilleur[2]

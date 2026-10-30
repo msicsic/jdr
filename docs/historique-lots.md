@@ -6,6 +6,240 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **358 terminé — `codex-revalider-apres-refus`**, base `integration a3855ad9`, code `52d2f5b6` :
+  `refus_etape` applique les refus retenus au prochain geste, au choix et dans `agir`.
+  Capture 306 à 4200 et tâche payée à l'auberge ; recharge monde/rendu/scène/écoute, temps découpé.
+  **81/81 tests verts**, onze fichiers ; 12 paires 4 h Relais/mine/crue, suspects 0 → 0, zéro plantage/usurpation.
+  Alertes à expliquer 15 → 17, dérives 114 → 167 ; écarts avec `main` non attribués causalement au 358.
+  Deux réduits, `artifacts/revalider-358/fin.json` du dépôt principal **ok=true** ; aucun calcul actif.
+  Recouvrement 335 : `pnj.py` (`refus_etape` seul) ; ni Luna ni suite complète.
+  [Rapport 358](taches/rapport-codex-358-revalider-apres-refus.md).
+  Fusionné sur l'intégration : aucun conflit ; fichiers de code touchés aussi depuis la base : `pnj.py`, fusionnés sans conflit textuel. 81 tests ciblés verts, 12 paires de nuits conformes ; pnj.py (refus_etape) commun avec le lot 335 : tests ciblés des deux lots rejoués avant poussée.
+
+- **335 terminé**, `codex-suivi-vocal`, fusionnée ; base `9237e14`, réaccordée sur `c9b066b` (`51fd593`).
+  L'agenda protéger rejoint une portée vocale crue ; contact, gardes et accords datés conservés.
+  414 tests : 409 verts, cinq échecs identiques sur intégration, aucune erreur. Banc 20 × 4 h achevé : zéro plantage/usurpation/suspect certifié.
+  `fin.json ok=true`, sources inchangées ; alertes non attribuées sans référence compatible. Ni suite complète ni Luna.
+  Limites : écoute selon les croyances, sans réciprocité garantie ni garantie générale d'absence de boucle.
+  [Rapport et réserves](taches/rapport-codex-335-suivi-vocal.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Réaccordé à l'intégration c9b066b ; 414 tests ciblés, 409 verts, cinq échecs reproduits à l'identique sur l'intégration ; 20 nuits 4 h sans plantage, usurpation ni suspect certifié.
+
+- **315 — réclamations retenues**, branche `codex-reclamations-repetees`, reprise de `7826c3a` ;
+  fusion sans rebase de l'intégration `07c9b62e` (E1–E4 et 357 compris).
+  Défaut social du 337 révélé par la chronologie du 315 ; aucune obligation/clôture E2 dans le cas réel.
+  Le constat sans porteur décrit son lieu connu ; références citées et non-divulgation conservées.
+  529 tests / 54 fichiers : 515 verts, aucune erreur ; 14 tests rouges (20 assertions) identiques à l'intégration.
+  Cas réel, 315, E1–E4 et tâches payées verts ; réserve `porteur=None` levée, aucun nouveau rouge ciblé.
+  Mesures et limites : [rapport 315](taches/rapport-codex-315-reclamations-repetees.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Corrections d'attribution du lot 342, réaccordée à E1/E2/E3 ; défaut porteur=None du lot 337 révélé et corrigé ; 529 tests ciblés : 515 verts, 14 rouges reproduits à l'identique sur l'intégration.
+
+- **357 — `codex-e3-taches-payees`**, base `origin/integration 9ea8523`, terminé, poussé, non fusionné :
+  les obligations sans limite retrouvent leur devis autonome historique ; E3 reste propre aux obligations datées.
+  169 tests ciblés/voisins : 164 verts, dont tâches payées et E1–E4 (57) ; cinq tests voisins rouges
+  (onze assertions) reproduits sur la base intacte. Deux régressions ajoutées, monde et rendu après recharge.
+  Empreintes 2 h × quatre graines × Relais/auberge/mine : 12/12 identiques à la base `9ea8523`, zéro plantage.
+  0/12 identiques à `dbb122b0`, mêmes écarts sur la base intacte ; lecture historique du payeur gardée sans limite.
+  [Rapport](taches/rapport-codex-357-e3-taches-payees.md). Ni suite complète, ni Luna, ni banc long.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. 57 tests tâches payées et E1-E4 verts, cinq voisins rouges préexistants ; empreintes 12/12 identiques à la base d'intégration.
+
+- **Lot 342 terminé avec huit réserves d'intégration**, branche documentaire
+  `codex-attribution-groupe1`, base `16b18a7`. **33 incidents attribués** :
+  17 incidents de défaut corrigés (treize sur le même contrat de perception),
+  neuf attentes/scènes périmées, sept préexistants. Référence `e37d9ee`,
+  chaque lot seul et retraits d'un seul lot, 2 177,100 s ; matrice exhaustive.
+  Branches corrigées poussées : 313 `cddc76e` (position inconnue dans le devis
+  fermé, sans joueur réel), 315 `beaecc7` (ordre et borne de règlement),
+  333 `40bd537` (scène de prêt sans secours concurrent), 332 `c3db8e2` :
+  direction sans relation incomplète ni réveil du but avant rotation ; geste
+  perceptif disponible avant bavardage facultatif, gestes engagés respectés.
+  Quatre captures : ancien hash exact après retrait strict du registre vide.
+  Deux captures : seuls registres/provenance des regards changent, huit
+  autres oracles identiques. Lampe : second stimulus connu de niveau 2
+  explicite, toutes assertions finales conservées ; oracle d'abri initial
+  entièrement restauré. **12/12 tests ciblés verts**, deux scénarios,
+  monde/rendu/scène rechargés et même laps entier/découpé.
+  **Essai poussé `93d5a25`**, base `da5f795`, quatre branches corrigées.
+  **279 tests / 27 fichiers : sept échecs, une erreur, zéro saut, 755,310 s.**
+  Huit réserves aussi rouges sur la base récente à la même assertion/accès :
+  deux boucles, deux dynamiques, deux captures chaînées, lampe vide, aide 541.
+  Trajectoires non certifiées identiques ; aucun oracle recalé pour masquer
+  ces réserves. Six incidents initiaux du 339 et celui de mine désormais
+  verts, sans crédit aux correctifs de ce lot. `jeu.py` inchangé.
+  **20/20 nuits 4 h**, cinq scénarios × quatre graines : zéro plantage,
+  usurpation ou suspect certifié 219 dans chaque nuit ; **366 suivis,
+  247 s de rotation**. Vingt références historiques `c870c8b`, instrumentation
+  `1f6b05da83`, relues du cache sans réexécution dans cette reprise ; pas de
+  comparaison de vitesse ni d'attribution à un seul lot. Première tentative
+  invalide dans l'observateur de référence (`agendas.enfants`) conservée ;
+  aucune nuit de branche alors jouée. Reprise finale 1 368,014 s. Deux
+  travailleurs réduits au plus ; ni Luna ni suite complète.
+  **Limites conservées : 200 alertes à expliquer**, dont 153 répétitions.
+  Variante sans 332 sur la base récente : 33 passages d'Aubin, sans 313 :
+  dix ; interaction 313/base non déclarée corrigée en général par le retour
+  à l'abri dans l'assemblage. Aucune absence générale de boucle garantie.
+  Bruts intacts `C:/Users/msics/donjon/artifacts/groupe1-342/`, analyse
+  `analyse-cloture.json`, **fin `fin-cloture.json` avec réserves**, aucun
+  calcul actif. Tests/monde de l'essai inchangés après validation.
+  [Rapport 342](taches/rapport-codex-342-attribution-groupe1.md),
+  [matrice des 33 incidents et réserves](taches/attribution-codex-342-groupe1.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport et matrice seulement ; 313, 332, 333 fusionnés séparément ; 315 réaccordée à E1/E2 (7826c3a) mais une erreur nouvelle de rendu social (porteur=None) à comprendre avant sa fusion.
+
+- **353 — U-T corps et passage**, `codex-ut-corps-passage`, base `57c9771d` : terminé, non fusionné.
+  Catalogue commun déplié en choix numérotés complets ; réactions sur danger perçu, franchissements
+  qualifiés et arbitrages mémorisés ; ancien préfixe conservé, aucun analyseur ni modèle.
+  **126 tests distincts validés / 12 fichiers**, dont 28 TUI et 5 TUI cases inchangés ; zéro incident retenu.
+  80 parcours mesurés : 2–11 touches, confirmation comprise, +1 avec F7 ; zéro appel modèle.
+  Bruts : `C:/Users/msics/donjon/artifacts/ut-corps-passage-353/fin-cloture.json` ; production inchangée depuis `cbc4744d`.
+  Liste potentiellement longue ; premier arbitrage et forme inconnue restent au libre. Aucun code commun avec 354.
+  [Rapport](taches/rapport-codex-353-ut-corps-passage.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 126 tests distincts verts, 80 parcours mesurés, zéro appel au modèle ; jeu.py modifié aussi par le lot 354 : tests du terminal et de l'information publique rejoués après fusion.
+
+- **Lot 333 / A4b terminé, branche `codex-garder-lieu`, fusionnée**, base
+  d'intégration `4a54090` : interposition commune pour biens, protégés et
+  lieux gardés. Seuil déclaré, approche réellement vue en continu, poste
+  libre/atteignable dès l'événement et revalidé à chaque pas ; aucune
+  interception créée après libération tardive de l'accès. Marche sans
+  poussée pour cette action, parole typée enregistrée, preuve commune
+  sans répétition, persistance relationnelle conservée. **135 tests
+  distincts / douze fichiers verts**, dont huit nouveaux : Relais/Corvus,
+  auberge/Lucien ; monde, rendu, scène et parole entendue rechargés,
+  laps entier/découpé identiques. Reprise de 22 après la dernière garde
+  visuelle verte, puis huit tests du registre des paroles verts. Code/tests
+  `887a5b0` poussés vers origin. Ni Luna ni suite complète. **20/20 paires
+  du banc 4 h vertes**, cinq scénarios × quatre graines, un travailleur réduit ;
+  référence `f08ef58` identique en code à la base, vingt nuits relues du cache,
+  aucune rejouée. Suspects 219 **0 → 0 par nuit**, zéro plantage/usurpation/
+  coup/poussée. Sept chroniques, six états complets identiques ; paroles
+  d'interposition 21 → 9. Deux alertes de répétition d'agenda de Brune,
+  crue 42 (sept passages actif/sommeil → dix), origine générale non établie,
+  à surveiller ; une bascule isolée de réserve, crue 2024. Aucune garantie
+  générale sur les boucles. **714,694 s**, CPU branche 663,141 s, sans
+  comparaison aux temps du cache. Bruts `C:/Users/msics/donjon/artifacts/lieu-333/`,
+  **`fin.json ok=true`**, `bilan.json`, `analyse-cloture.json`. Empreintes
+  des sources exécutées vérifiées ; aucun calcul actif.
+  Recouvrements 330 : `pnj.py` ; 332 : `esprits.py`, `pnj.py`.
+  [Rapport 333](taches/rapport-codex-333-garder-un-lieu.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `agendas.py`, `defense.py`, `esprits.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses. Suite complète de l'essai origin/essai-integration-g1 (8f410f7) : 104 tests rouges contre 108 sur 7eb45ff, aucun nouveau venu du groupe 1 (un rouge du catalogue terminal/web, attribuable au lot 349).
+
+- **Lot 332 terminé, branche `codex-attention-conjointe`, fusionnée**, base
+  `integration 7e65907` : direction des regards réellement perçus, sans cible
+  cachée ; suivi par un proche disponible, coût de rotation commun et acquisition
+  par sa seule vue. Direction physique persistante et suivi par épisode sans
+  échéance, impressions historiques filtrées. **94 tests ciblés distincts verts,
+  huit fichiers**, dont neuf nouveaux ; vrais coups de la rixe, Relais/auberge,
+  cas négatifs, monde/rendu/scène rechargés et laps entier/découpé.
+  Banc détaché terminé, vingt paires de nuits de 4 h, deux travailleurs réduits :
+  **20/20 sans hausse des suspects 219 (0 → 0), zéro plantage/usurpation**.
+  Vingt références 7e65907 absentes calculées une fois et rangées ; moteur/tests
+  `0b60a91` inchangés, `fbd234b` documentaire seulement. **133 regards suivis,
+  118 s de rotation**, CPU branche 1 817,078 s ; perception des signes 104,766 s,
+  choix d'attention 9,281 s inclusives (se recouvrent), aucun gain de vitesse revendiqué.
+  Autres observations : entrées à expliquer 32 → 35 ; Hameau 42, nouveaux noirs
+  prolongés de Brune/Ilse (100 min) et Aubin (105 min), Hameau 2024, alternance
+  aller voir de Maël. Conservées pour l'intégration, sans verdict de légitimité.
+  `fin.json` initial en échec de lanceur après écriture des résultats : variable
+  de référence écrasée par un compteur. Lanceur seul corrigé ; quarante archives
+  revalidées et clôture relue sans nuit rejouée : **`fin-cloture.json ok=true`, code 0**.
+  Bruts `C:/Users/msics/donjon/artifacts/regard-332/`, échec initial conservé,
+  branche poussée vers origin, aucun calcul actif. Ni Luna ni suite complète.
+  Joueur : direction affichée, suivi manuel ;
+  anciennes attitudes sans direction conservées jusqu'au prochain regard décidé.
+  Recouvrement possible 330 : `esprits.py`, `pnj.py`, `signes.py`.
+  [Rapport 332](taches/rapport-codex-332-attention-conjointe.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `esprits.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses. Suite complète de l'essai origin/essai-integration-g1 (8f410f7) : 104 tests rouges contre 108 sur 7eb45ff, aucun nouveau venu du groupe 1 (un rouge du catalogue terminal/web, attribuable au lot 349).
+
+- **Lot 313 terminé après attribution de la suite, branche `codex-contact-inconnu`, fusionnée**, base
+  `integration d76f272`, moteur final validé sur `c6cad4a` : contact commun
+  au plan et à l'exécution, hérité des seuls liens crus contenant/support/
+  porteur. Une distance ou une case inconnue ne dément plus la présence ;
+  l'approche prépare l'observation. Capture Relais 7 reconstruite à 856 :
+  **0→30 dixièmes**, Gorm sert Brune à **1009** ; source d'une autre salle
+  à la mine, disparition réelle, charge conservée dans le noir et reprise
+  après localisation nouvelle vérifiées. Monde/rendu/scène rechargés,
+  textes et monde identiques sur laps entiers/découpés.
+  **Complément avant fusion résolu** : capture Ilse à **141000** rechargée
+  sur `112ecd4`, cinq interruptions reproduites exactement ; **141060**
+  perd la localisation pendant la marche, **141600** suit une indication
+  d'Aubin et un déplacement, **142200/142800/143400** sont le seul filet,
+  croyances/perception/position identiques. Correction commune : cause
+  typée `contact` persistée dans les renoncements du 225 ; revalidation
+  avant approche sur liens/positions crus, lumière, portes, moyens et
+  perception de cible/support. Ni dates ni filet ne rouvrent le contact ;
+  nouvelle entrée pertinente admise, recherches alternatives possibles,
+  charge conservée. Aucun nouvel accès aux positions mobiles cachées.
+  **Validation finale : 72 tests / neuf fichiers verts**, 48,636 s,
+  dont trois nouveaux parcours ; première passe 100/11 et deux tests
+  du lanceur verts. Cinq nuits 4 h rejouées, sept nuits sans interruption
+  réutilisées (nouveau chemin jamais exercé), aucune référence rejouée,
+  deux travailleurs réduits. Bilan `reprises-validation/fin.json`
+  **ok=true**, zéro reprise sans entrée, zéro plantage et usurpation.
+  Refus matériels **4→0**, interruptions première version→final **12→7**,
+  parts référence→final **30→32** (Relais 3→5, auberge 11→11, mine 16→16),
+  suspects 219 **0→0 dans chaque nuit**, bascules 0, passages/h max 26→25,
+  appels à l'aide 3→1. Sept interruptions restantes : premiers échecs
+  (Brune ×2, Lucien auberge 42, Mireille/Joss auberge 2024, Rémy mine 1985,
+  Lucien mine 7), aucun autre essai identique interrompu sur ces nuits.
+  Avertissements **4→8** : deux nouvelles extinctions de torche (Relais
+  2024 et 1985), deux portions distinctes sous le même nom « marmite de
+  soupe » (auberge 1985) ; noyaux reçus et transmissions établis. Avis à
+  expliquer **11→15**, dérives **186→160**, non certifiés bénins ; répétition
+  Lucien/Hugues auberge 2024 préexistante. Ni recherche exhaustive dans le
+  noir ni absence universelle de boucle garanties. Diagnostic initial
+  `ok=false` conservé et qualifié (paramètre de reprise erroné et borne
+  Ilse absente) ; preuve Ilse rechargée séparée entièrement verte.
+  Bruts `C:/Users/msics/donjon/artifacts/contact-313/`, sous-dossiers
+  `reprises-avant-fusion/` et `reprises-validation/`. Aucun calcul actif,
+  branche poussée vers origin. `planifier_tache`/`echanges.empeche`
+  inchangés ; ni Luna ni suite complète.
+  **Attribution de la fusion d’essai 61ced73 terminée** : 23 incidents
+  (22 échecs, une erreur), 21 méthodes isolées. Référence
+  `origin/integration eb15b5e` (322 inclus), fusionnée par `19b1bf1`,
+  sans 315. **Sept incidents préexistants** (trois résolus par 322,
+  quatre encore rouges), **seize du 313 résolus**, aucun incident
+  de cette liste réservé au 315. Correction `130b57f` : faces locales
+  des ancrages fixes, priorité des positions projetées, perception
+  actuelle admise, contact vocal sans case de main, observation depuis
+  la position atteinte avant interruption, devis sans double inspection.
+  Ni lecture mobile cachée ni changement des règles de perception.
+  Prémisses : marteau vu enregistré, adversaire repéré avant attaque,
+  arrivée du protecteur constatée dans les cinq minutes ; décision
+  autonome historique avant la question à Brune, témoin explicitement
+  replacé au point vu. Toutes les assertions conservées. Captures
+  chaînées : monde complet/plans/textes/deux vues strictement identiques
+  à l’intégration ; seules visites/diagnostics recalées (+40 mine,
+  −48 auberge), empreintes de monde préexistantes laissées rouges.
+  **226 tests distincts / vingt fichiers**, 209,645 s, première passe
+  trois échecs ; **18/18** du fichier de localisation verts après
+  restitution du témoin (52,036 s). Bilan consolidé : seulement les
+  deux sous-tests de monde préexistants, zéro nouvel échec/erreur/saut.
+  Deux régressions ajoutées, cas Relais/crue, monde/parole/engagement
+  rechargés. Deux travailleurs réduits au plus ; aucune suite complète,
+  Luna ou nuit supplémentaire. Les mesures de banc ci-dessus restent
+  celles de `c6cad4a`, pas une mesure de la reprise `130b57f`.
+  Tableau des 23 incidents dans le rapport ; bruts dans
+  `artifacts/contact-313/attribution-suite/` et `attribution-corrections/`.
+  Aucun calcul actif, branche poussée.
+  [Rapport 313](taches/rapport-codex-313-contact-position-inconnue.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `deliberation.py`, `esprits.py`, `planification.py`, `pnj.py`, fusionnés sans conflit textuel. Corrections d'attribution du lot 342 incluses. Suite complète de l'essai origin/essai-integration-g1 (8f410f7) : 104 tests rouges contre 108 sur 7eb45ff, aucun nouveau venu du groupe 1 (un rouge du catalogue terminal/web, attribuable au lot 349).
+
+- **355 — E4 accord daté**, `codex-e4-accord-date`, base `origin/integration 9b66d5a` (PC fixe).
+  Termes `part`/`tache` avec limite absolue : jugement E3, paiement présent et obligation atomiques ;
+  soumission dédupliquée jusque dans l'issue E2, termes et dates rendus par le moteur, recharge validée.
+  151 tests ciblés/voisins : 146 verts, cinq échecs reproduits sur la base ; E4 14/14 et socle 6/6 verts.
+  Banc rapide 4 h × quatre graines × Relais/auberge/mine : 12/12 nuits identiques à la base, audits compris,
+  zéro plantage/nouvelle alerte ; écarts à `main` antérieurs à E4. Bruts : `artifacts/e4-355/` du dépôt principal.
+  E5/E6 et offres/renégociation restent hors périmètre. [Rapport](taches/rapport-codex-355-e4-accord-date.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `paroles.py`, fusionnés sans conflit textuel. 146 tests ciblés verts, cinq échecs préexistants ; banc rapide 12/12 nuits identiques. paroles.py commun avec le lot 354 : tests ciblés des deux lots rejoués avant poussée.
+
+- **354 U-M social information**, `codex-um-social-information`, base `57c9771d`, terminé non fusionné : formulaire public
+  pour identité, localisation d'une personne, ressource et annonce de lieu ; entrée U-D commune vers parole/U-C.
+  Transport d'adresse structuré dans `preparer_parole`, règles et chemin texte conservés ; zéro modèle au clic.
+  Raccord minimal `jeu.py` autorisé, fichier commun avec 353. Questions sur la position d'un objet hors périmètre,
+  limite acceptée et affichée. **112 tests / dix fichiers verts**, 24 rejoués, 17 mesures Node : 6/8/11 clics, zéro modèle.
+  Régression du récapitulatif corrigée, chemin texte conservé par AST ; `fin-cloture.json` vert, aucun calcul actif.
+  Rapport : [lot 354](taches/rapport-codex-354-um-social-information.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. 112 tests ciblés verts ; raccord minimal dans jeu.py et adresse structurée dans paroles.py (autorisés par le superviseur, même validation que le texte) ; « où est » d'un objet reste une limite (règle joueur inchangée).
+
 - **`codex-e3-delai-cru`**, lot **352**, base `integration e7ea375`, code `d03d0d2` :
   jugement interne crédible/impossible/indéterminé sur le devis cru du contractant ;
   durée du plan complet distincte du coût, aucun savoir privé du payeur pour le feu.

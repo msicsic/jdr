@@ -108,6 +108,34 @@ class DelaiCruTests(unittest.TestCase):
             lire(m, q)['croyances'] = croyances
             self.assertEqual(self.juger(m, q, b, c), r)
 
+    def test_devis_et_execution_dates_gardent_les_memes_croyances_propres(self):
+        for fabrique in (huile, lambda: huile('mine'), feu):
+            m, q, b, c = fabrique()
+            with self.subTest(objet=c['objet']):
+                if 'allume' in c:
+                    lire(m, q)['croyances'][c['objet']]['etat']['source'] = 'savoir'
+                x = next((x for x in agendas.en_cours(m, q) if x['condition'] == c), None)
+                if x is not None:
+                    agendas.retirer_proposition(m, q, x)
+                else:
+                    x = {'condition': c, 'pour': b, 'minute': m.data['minutes']}
+                agendas.prendre(m, q, x, limite=6000)
+                x, = agendas.en_cours(m, q)
+                with patch.object(p, 'VERIFIER', True):
+                    devis = p.devis_pulsion(m, q, c, b)
+                    plan = p.planifier_engagement(m, q, x)
+                    self.assertIsNotNone(devis)
+                    self.assertEqual(plan[1], devis[1])
+                    self.assertFalse(echanges.empeche(m, q, x))
+                    jugement = self.juger(m, q, b, c)
+                    lire(m, b)['croyances'].clear()
+                    self.assertEqual(p.devis_pulsion(m, q, c, b), devis)
+                    self.assertEqual(p.planifier_engagement(m, q, x), plan)
+                    self.assertFalse(echanges.empeche(m, q, x))
+                    self.assertEqual(self.juger(m, q, b, c), jugement)
+                    m = self.recharge(m)
+                    self.assertEqual(p.planifier_engagement(m, q, x), plan)
+
     def test_prix_pondere_et_duree_physique_distincts(self):
         m, q, b, c = huile()
         r = self.juger(m, q, b, c)

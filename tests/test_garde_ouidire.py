@@ -73,6 +73,56 @@ def noyau(m, temoin, objet, attribut="lieu"):
 
 
 class GardeOuidireTests(unittest.TestCase):
+    def test_contenant_inconnu_cite_sans_fuite_du_nom_au_joueur(self):
+        from donjon.francais import designer
+        from donjon.paroles import _connu_du_joueur
+        m, g, t, p = garde("auberge", "ballot")
+        contenant = "receptacle_cache"
+        m.objets[contenant] = copy.deepcopy(m.objets["coffre_marchand"])
+        m.objets[contenant]["id"] = contenant
+        m.objets[contenant]["nom"] = "écrin de basalte"
+        m.objets[contenant]["aliases"] = ["écrin de basalte"]
+        self.assertFalse(_connu_du_joueur(m, contenant))
+        croire(m, t, "ballot", "lieu", contenant, "vu",
+               salle=m.objets[contenant]["lieu"], case=[4, 3],
+               possession={"porteur": None, "proprietaire": None, "permis": False,
+                           "remis_par": None, "remise_autorisee": False})
+        m, texte = self.confier(recharger(m), t)
+        self.assertNotIn(designer(m.objets[contenant]), texte)
+        self.assertEqual(lire(m, g)["croyances"]["ballot"]["lieu"]["valeur"], contenant)
+        r = recharger(m)
+        self.assertEqual(m.data, r.data)
+        self.assertEqual(regarder(m), regarder(r))
+        self.assertEqual(scene_web(m), scene_web(r))
+
+    def test_preuves_sans_porteur_salle_et_contenant_transmises_et_rechargees(self):
+        from donjon.francais import designer, lieu
+        for scenario, objet, endroit in (("relais", "cle_reserve", "crypte"),
+                                         ("auberge", "ballot", "coffre_marchand")):
+            with self.subTest(scenario=scenario):
+                m, g, t, p = garde(scenario, objet)
+                possession = {"porteur": None, "proprietaire": None, "permis": False,
+                              "remis_par": None, "remise_autorisee": False}
+                salle = endroit if endroit in m.data["salles"] else m.objets[endroit]["lieu"]
+                # Preuve héritée admise à la recharge. Le bien est depuis
+                # porté ailleurs : le récit ne doit pas lire ce lieu privé.
+                croire(m, t, objet, "lieu", endroit, "vu", salle=salle,
+                       case=[4, 3], possession=possession)
+                m = recharger(m)
+                avant = copy.deepcopy(m.objets[objet])
+                m, texte = self.confier(m, t)
+                attendu = lieu(m.data["salles"][endroit]) if endroit in m.data["salles"] else designer(m.objets[endroit])
+                self.assertIn("dans " + attendu, texte)
+                self.assertNotIn("aux mains de", texte)
+                self.assertNotIn("permission", texte)
+                self.assertEqual(m.objets[objet], avant)
+                c = lire(m, g)["croyances"][objet]["lieu"]
+                self.assertEqual((c["valeur"], c["possession"]), (endroit, possession))
+                r = recharger(m)
+                self.assertEqual(m.data, r.data)
+                self.assertEqual(regarder(m), regarder(r))
+                self.assertEqual(scene_web(m), scene_web(r))
+
     def confier(self, m, temoin):
         lignes = []
         with patch.object(Monde, "d20", return_value=20):

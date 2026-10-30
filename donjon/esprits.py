@@ -63,6 +63,7 @@ def pnjs(monde):
 
 
 CHAMPS = {"emotions": dict, "signes_lus": dict, "relations": dict, "compagnie": dict, "compagnie_minute": lambda: -1, "portages": dict, "suites": list, "preuves_relations": dict, "croyances": dict, "memoire": list, "intention": lambda: None,
+          "regards_suivis": dict,  # signe -> [épisode physique suivi, direction perçue], sans délai
           "recours_propositions": list, "recours_services": list, "recours_intermediaires": list, "service_en_cours": lambda: None,
           "demande_refusee": lambda: None,
           "besoins": dict, "pulsions": list, "renoncements": dict, "visites": dict, **agendas.CHAMPS,
@@ -391,15 +392,18 @@ def verifier(monde):
                 isinstance(r, dict) and set(r) == {"instant", "but", "cause"}
                 and type(r["instant"]) is int and r["instant"] >= 0 and isinstance(r["but"], dict)
                 and isinstance(r["cause"], dict)
-                and r["cause"].get("type") in ("temoins", "passage", "corps")
+                and r["cause"].get("type") in ("temoins", "passage", "corps", "contact")
                 and r["cause"].get("salle") in monde.data["salles"]
                 and isinstance(r["cause"].get("etape"), dict)
                 and (r["cause"]["type"] == "corps" or
-                     (isinstance(r["cause"].get("temoins"), dict) and "nature" in r["cause"]
-                     if r["cause"]["type"] == "temoins" else
-                     isinstance(r["cause"].get("arrivees"), list)
+                     r['cause']['type'] == 'contact' and isinstance(r['cause'].get('repere'), dict)
+                     and set(r['cause']['repere']) == {'contacts', 'lumiere', 'portes', 'moyens', 'perception'}
+                     and all(isinstance(r['cause']['repere'][k], list) for k in r['cause']['repere'])
+                     or r['cause']['type'] == 'temoins'
+                     and isinstance(r["cause"].get("temoins"), dict) and "nature" in r["cause"]
+                     or r['cause']['type'] == 'passage' and isinstance(r["cause"].get("arrivees"), list)
                      and all(s in monde.data["salles"] and isinstance(c, list) and len(c) == 2
-                             and all(type(x) is int for x in c) for s, c in r["cause"]["arrivees"])))
+                             and all(type(x) is int for x in c) for s, c in r["cause"]["arrivees"]))
                 for r in v)) for k, v in e["renoncements"].items()), "Renoncements invalides"
         assert isinstance(e["attentes_bornees"], dict) and all(
             isinstance(k, str) and isinstance(v, str) for k, v in e["attentes_bornees"].items()
@@ -418,6 +422,10 @@ def verifier(monde):
         assert e["en_vue"] is None or (isinstance(e["en_vue"], list) and e["en_vue"] == sorted(set(e["en_vue"]))
                                        and all(isinstance(x, str) for x in e["en_vue"])), "Personnages en vue invalides"
         b = e["balayage"]
+        from .spatial import VECTEURS
+        assert all(isinstance(k, str) and isinstance(v, list) and len(v) == 2
+                   and type(v[0]) is int and v[0] >= 1 and v[1] in VECTEURS
+                   for k, v in e["regards_suivis"].items()), "Regards suivis invalides"
         assert b is None or (isinstance(b, dict) and set(b) == {"salle", "case", "instant"}
                              and b["salle"] in monde.data["salles"] and isinstance(b["case"], list)
                              and len(b["case"]) == 2 and all(type(v) is int for v in b["case"])
@@ -910,7 +918,9 @@ def _percus(monde, acteur, memo):
             if vu is not None:
                 vus[id] = vu
         j = monde.joueur
-        if not j.get("parti") and (j["salle"], *j["position"]) in champ:
+        # Une localisation inconnue (notamment dans un devis fermé) ne
+        # fournit aucune présence visible, et ne se complète pas sur le réel.
+        if not j.get("parti") and j.get("position") is not None and (j["salle"], *j["position"]) in champ:
             vus["joueur"] = (j["salle"], list(j["position"]))
         return vus, set(champ)
     if eclairage(monde, salle)["niveau"] == 0:
@@ -1416,7 +1426,6 @@ def _percevoir(monde, id):
     en_vue = sorted(x for x in vus if x == "joueur" or monde.objets[x]["type"] == "personnage")
     premiere = e["en_vue"] is None
     change = not premiere and en_vue != e["en_vue"]
-    e["en_vue"] = en_vue
     for sujet, (salle, case) in vus.items():
         if sujet == "joueur":
             croire(monde, id, "joueur", "lieu", salle, "vu", salle=salle, case=case)
@@ -1477,6 +1486,9 @@ def _percevoir(monde, id):
     _purger_indices_soupcon(monde, id)
     from .signes import retenir_detresses, percus as signes_percus
     change |= retenir_detresses(monde, id, signes_percus(monde, id))
+    # Les constats de mouvement ont besoin de la vue précédente : retrouver
+    # quelqu'un ailleurs après l'avoir perdu de vue n'est pas voir son approche.
+    e["en_vue"] = en_vue
     if change and not premiere and getattr(monde, "_agit", None) != id:
         reconsiderer(monde, id)
 

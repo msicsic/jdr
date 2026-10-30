@@ -378,7 +378,13 @@ def phrases(faits, locuteur=None):
         o = biens.get(ref)
         return (designer(o) if determine else o['nom']) if o else 'le bien convenu'
     def terme(t):
-        if t['type'] == 'pieces': return quantite(t['montant'], 'pièce')
+        from .propositions import en_mots_limite
+        return terme_sans_date(t) + (en_mots_limite(t['limite'], dossier.get('instant', 0))
+                                    if 'limite' in t else '')
+    def terme_sans_date(t):
+        if t['type'] == 'pieces':
+            return quantite(t['montant'], 'pièce') + (((' prise dans ' if t['montant'] == 1 else ' prises dans ')
+                                                     + bien(t['objet'])) if 'objet' in t else '')
         if t['type'] == 'rien': return 'rien'
         if t['type'] == 'tache':
             c = t['condition']
@@ -413,7 +419,7 @@ def phrases(faits, locuteur=None):
                 textes[indice] = textes[indice][:-1] + ' pour ' + terme(o['condition']) + '.'
             couvertes.append(o)
     def en_compte(t):
-        return t['type'] != 'tache' or any(k in t['condition'] for k in ('servir', 'remettre'))
+        return 'limite' not in t and (t['type'] != 'tache' or any(k in t['condition'] for k in ('servir', 'remettre')))
     for o in offres(faits):
         if o not in actives or o in couvertes: continue
         if o in conclues and en_compte(o['condition']) and en_compte(o['contrepartie']): continue
