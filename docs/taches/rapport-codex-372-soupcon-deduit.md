@@ -2,7 +2,7 @@
 
 30 octobre 2026, PC fixe. Branche `codex-soupcon-deduit`, base
 `origin/integration d8567324` (la référence locale `integration` était ancienne).
-Livraison non fusionnée ; aucun appel à Luna.
+Livraison non fusionnée, code `216d50aa`, branche poussée vers origin ; aucun appel à Luna.
 
 **Invariant.** Le registre perceptif commun compare deux constats, puis conserve
 les candidats et leurs poids. L'occasion exige une présence vue ou entendue dans
@@ -44,10 +44,15 @@ autre porteur vu, égalité, guet/garde, antécédent, écoute, péremption, mé
 vidée, mutation de l'état caché et sauvegarde invalide couverts.
 
 **Empreintes.** Banc de 2 h × quatre graines × six scénarios (Relais, mine,
-auberge, crue, rixe et hameau) en cours, base exacte cachée une seule fois puis
-branche, deux travailleurs réduits. Résultats et captures dans
-`C:/Users/msics/donjon/artifacts/soupcon-deduit-372/` ; fin attendue
-`empreintes.fin.json`. Ni suite complète, ni campagne Luna.
+auberge, crue, rixe et hameau) terminé, code retour 0 : **24/24 paires identiques**
+pour l'état final complet, les chroniques et les mesures ; aucun plantage ni
+usurpation. Les 13 avis « à expliquer » sont identiques à la base, aucun avis
+non justifié. Base exacte cachée une seule fois, puis branche, deux travailleurs
+réduits. Aucun soupçon né naturellement dans ces nuits : le banc prouve l'absence
+de régression observée, les scènes ciblées prouvent le comportement ajouté ; aucun
+gain en nuit libre démontré. Résultats et captures dans
+`C:/Users/msics/donjon/artifacts/soupcon-deduit-372/` (`empreintes.json`,
+`empreintes.fin.json`). Ni suite complète, ni campagne Luna.
 
 **Limites et recouvrements.** Soupçon de salle, pas de reconstitution spatiale fine ;
 antécédents bornés aux motifs relationnels retenus, et convoitise aux lectures encore

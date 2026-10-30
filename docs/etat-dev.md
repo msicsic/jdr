@@ -44,7 +44,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Disparition propre : projet de récupération sur soupçon, enquête commune sans portage inventé ;
   bien retrouvé ailleurs ou auteur constaté : levée et clôture du projet supposé.
   161 méthodes distinctes vertes consolidées, deux vols réels rechargés, laps entier/découpé identique.
-  Empreintes 2 h × 4 graines × 6 scénarios en cours ; sans Luna ni suite complète.
+  Empreintes 2 h × 4 graines × 6 scénarios : 24/24 identiques, aucun soupçon naturel ; branche poussée.
   Limites : indices de salle, motifs/lectures bornés ; recouvrement `agendas.py` avec 370.
   [Rapport 372](taches/rapport-codex-372-soupcon-deduit.md).
 
