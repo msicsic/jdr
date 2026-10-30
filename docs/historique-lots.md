@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-evaluation-echeance` — lot 371, base `d8567324`, PC fixe, mesure seule, aucun code du jeu modifié.
+  Huile auberge/planches Relais : 7 saisies ou 9 clics, zéro modèle ; livraison, remboursement unique,
+  comptes et rendu après recharge ; messages en bloc/découpés différents à l’auberge (état identique).
+  91 tests verts ; 12 nuits de 4 h, 4 graines : 44 prestations promises, 19 payées, 17 devis > 1 min.
+  E6 réel non revalidé : 12 scripts Luna préparés, non joués (« ni Luna » du brief). Catalogue : recouvrement 365.
+  Recommandation : stabiliser E6/catalogue, E7 puis essai E9 borné ; E8 différé, gain autonome non démontré.
+  [Rapport et limites](taches/rapport-codex-371-evaluation-echeance.md) ; bruts `artifacts/evaluation-echeance-371/` du dépôt principal.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Mesure seule (outil tools/evaluation_echeance_371.py) ; 7 saisies ou 9 clics jusqu'à l'accord, 44 occasions de prestation sur 48 h ; Luna non jouée (contradiction du brief), scripts prêts ; recommande E7 puis un essai borné d'E9, E8 reporté.
+
 - `codex-quatre-regressions` — lot 368, base `origin/integration dea991a5`, PC fixe.
   Prêt, enfermement et installation déjà verts après le 360 ; son ablation reproduit les trois rouges.
   Lampe vide : stimulus d'extinction explicite après remplissage/allumage, 12 assertions conservées.
