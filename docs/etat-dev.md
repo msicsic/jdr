@@ -2,7 +2,7 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-30.
 
-- **Lot 344 / U-M corps : code réalisé, validation en cours**, branche
+- **Lot 344 / U-M corps terminé avec une erreur antérieure réservée**, branche
   `codex-um-corps`, base `origin/integration 78766d9`, **non fusionnée**.
   Catalogue public des gestes corporels, méthode/moyen/direction explicites,
   réactions sur les seuls dangers encore perçus ; aucun préalable envoyé
@@ -10,17 +10,26 @@ Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-1
   Raccord limité dans `moteur.py` : fiche « Compris », référence du clic
   conservée et refus du consentement périmé même sans nouvelle révision.
   Aucun changement de `jeu.py`, `tui.py`, du MJ ou des règles corporelles.
-  Tests ciblés en priorité réduite, deux travailleurs au plus ; compléments
-  enchaînés en fond puis mesures des clics. Ni Luna, suite complète ou banc PNJ.
-  Les lancements en bac à sable ont échoué sur les droits des temporaires ;
-  relance avec accès disque, aucun bilan vert annoncé.
-  Première passe corporelle : 7 tests, 27 échecs de sous-cas et 5 erreurs,
-  519,474 s ; références/placement/contact/mains/date des nouvelles scènes
-  corrigés, assertions conservées, moteur inchangé. Reprise complète du
-  fichier ajoutée aux compléments détachés ; bilan initial conservé.
-  Bruts `C:/Users/msics/donjon/artifacts/um-corps-344/` ; fichier de fin attendu
-  **`fin-validation.json`**. Recouvrement explicite **343/G7 : `moteur.py`** ;
-  documentation commune aux lots en cours. Lire les bilans avant clôture.
+  **124 tests / 13 fichiers : 123 verts, une erreur antérieure, zéro échec
+  ou saut**, 2 417,830 s cumulées. Treize nouveaux tests verts, 30 paires
+  clic/commande au Relais et à l'auberge, scènes réelles frapper/assommer/fuir
+  et ligature ; monde, scène, fiche, carte et résultat rechargés. Annulation,
+  refus périmés, identité opaque et confidentialité couverts ; callbacks Node
+  verts, zéro appel modèle sur les parcours. **14 parcours mesurés : 14
+  saisies évitées, 3 à 5 clics confirmation comprise**, approche en sus.
+  Réserve `test_tenir` : deux jets simulés épuisés par une persuasion PNJ,
+  même `StopIteration` sur **78766d9 exact**, fichier 9/10, 8,906 s ; test
+  inchangé, même pile, aucun incident nouveau dans la sélection.
+  Sources/tests conformes aux empreintes finales. Premier bilan corporel
+  rouge conservé (27 échecs de sous-cas, 5 erreurs, 519,474 s), prémisses
+  corrigées avec assertions intactes et deux fichiers nouveaux rejoués.
+  Droits temporaires refusés en bac à sable puis relance avec accès disque.
+  Deux travailleurs réduits au plus ; ni Luna, suite complète ou banc PNJ.
+  **Branche poussée, aucun calcul actif**. Bruts
+  `C:/Users/msics/donjon/artifacts/um-corps-344/` ; `analyse-cloture.json`,
+  `reference-78766d9.json`, **`fin-cloture.json` avec réserve** ;
+  `fin-validation.json ok=false` intact. Recouvrement explicite
+  **343/G7 : `moteur.py`** ; documentation commune aux lots en cours.
   [Rapport 344](taches/rapport-codex-344-um-corps.md).
 
   Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Un acte lourd ou irréversible issu du texte libre affiche le plan entier, puis attend une confirmation revalidée ; annulation sans effet, plan périmé refusé. Intégration jusqu'à G17 (60c476a) fusionnée dans la branche ; 200 tests ciblés verts.
