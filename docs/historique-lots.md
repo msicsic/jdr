@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-coups-hameau` (439, base intégration `60f857c5`, départ `693200b4`) : diagnostic seul sur `4539dd68` ;
+  hameau 2024 reproduit à l'identique, **35 frappes/18 touchées**, cinq épisodes imbriqués en 22,6 s.
+  Deux tentatives d'assomment sans plan pacifique, puis 33 ripostes au coût ; aucune régression de décision établie.
+  Les mêmes 35 photographies donnent les mêmes décisions/coûts avec `0bad227` ; 77 recharges état/rendu stables.
+  Divergence des trajectoires non attribuée, aucune bissection ni correction ; pas de Luna ni de suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/coups-hameau-439/` ; [rapport](taches/rapport-codex-439-coups-hameau.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. Les 35 frappes forment une seule rixe à 674 min (22,6 s) : Aubin, faim 97, sans plan pacifique admissible (demandes refusées « necessaire » retenues, une pièce pour un prix de deux, troc refusé, réserve verrouillée), frappe Maël pour ses vivres (prix 28,5 sous l'enjeu 60, témoins assumés au seuil corporel) ; Ilse, Brune et Gorm ripostent au danger perçu, Aubin riposte, puis tombe à 0 PV et est ranimé. 0bad227 rend les mêmes plans et prix sur les 35 photographies ; la hausse vient d'une trajectoire différente, aucun lot fautif. 77 captures stables après recharge.
+
 - `codex-s1o-aides-contrats` (435), base `364e8722` : aides, rendez-vous, mandats perçus et
   connaissances de contrat passent par `memoire`, archives mécaniques inchangées.
   AST 264 → 106 expressions ; copies profondes, clôture distante distincte du savoir.

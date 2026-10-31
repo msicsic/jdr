@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-coups-hameau` (6b0e9048) : lot 439, diagnostic des coups du hameau 2024. Détail dans l'historique.
 - `codex-s1o-aides-contrats` (6843fe6a) : lot 435, S1o aides, rendez-vous et connaissances de contrat. Détail dans l'historique.
 - `codex-g20-repense` (4acf945a) : lot 436, G20 repensé (conception). Détail dans l'historique.
 - `codex-verif-integ-4` (da693b1e) : lot 402, vérification d’intégration moteur sur 4539dd68 (non validée pour `main`). Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-d0-parole-ouverte` (cf113fba) : lot 428, D0 parole ouverte personnelle. Détail dans l'historique.
 - `codex-creation-utile-luna` (ccb97bd1) : lot 430, diagnostic de la création utile avec Luna. Détail dans l'historique.
 - `codex-g14-ciblage-ambiance` (709f9f85) : lot 427, G14 ciblage d'un élément d'ambiance. Détail dans l'historique.
-- `codex-k0-candidats-contrat` (69080b86) : lot 426, K0 candidats de contrat déterministes. Détail dans l'historique.
 
 ## Lots non fusionnés
 
