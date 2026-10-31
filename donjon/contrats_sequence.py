@@ -49,7 +49,8 @@ def verifier_champs(p, valeurs, operation):
     for champ, accepte in valeurs.items():
         if p[champ] != accepte:
             raise ErreurMonde("Ces paramètres ne décrivent pas cette attente.",
-                              f"{operation}.{champ} : reçu {p[champ]!r} ; accepté : {accepte!r}.")
+                              f"{operation}.{champ} : reçu {p[champ]!r} ; accepté : {accepte!r}.",
+                              champs_corrigeables=(champ,))
 
 
 def preparer_attente(plan):

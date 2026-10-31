@@ -43,6 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-a5-reprise-fidele` (lot 415), base A4 `aaa0b8db`, intégration `2b2e0a94` fusionnée :
+  les reprises conservent les paramètres typés non contestés ; candidat non admis, saisie entière et refus transmis.
+  Revue : comparaison moteur des écarts typés, périmètre cosmétique distinct ; aucun audit retiré.
+  87 tests concernés verts (un ignoré), dont sept nouveaux ; Luna unique (atelier ×2 et trois scripts), banc en cours.
+  **Non validé pour fusion** en attente des fils et mesures ; A4 et A5 se livrent ensemble.
+  Limites : choix initial et périmètre encore sémantiques, chemins de paramètres conservateurs.
+  Bruts `C:/Users/msics/donjon/artifacts/a5-reprise-415/`, fin attendue `fin.json`.
+  Rapport : [lot 415](taches/rapport-codex-415-a5-reprise-fidele.md).
+
 - `codex-a4-dossier-revue` (lot 412), base `integration` `2634e48e` : dossier de fidélité avec sens proposé,
   paramètres/manière, contrats et effets des étapes développées, indépendants du jugement d'admission.
   **Non validé pour fusion** : 0/3 substitutions acceptées sur la base (`40f062d8`), mais régression A4 encore présente

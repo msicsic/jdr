@@ -530,6 +530,8 @@ def preparer(monde, proposition, origine):
             etapes[numero] = e
             p = compiler(simulation, e, precedent, proposition["justification"], origine)
         except ErreurMonde as exc:
+            if proposition["action"] == "composer":
+                exc.champs_corrigeables = tuple(f"etapes.{numero}.{c}" for c in exc.champs_corrigeables)
             if len(etapes) > 1:
                 # Dans une manœuvre, le MJ doit savoir quelle étape corriger.
                 nom = brut.get("operation", "?") if isinstance(brut, dict) else "?"

@@ -85,6 +85,7 @@ def compiler_effets(m, p, branche):
         except ErreurMonde as exc:
             nom = e.get("operation", "?") if isinstance(e, dict) else "?"
             exc.attendu = f"effet {numero + 1} ({nom}) : " + (exc.attendu or str(exc))
+            exc.champs_corrigeables = tuple(f"effets.{numero}.{c}" for c in exc.champs_corrigeables)
             raise
     return resultat
 
@@ -173,6 +174,7 @@ def compiler_branche(m, p, nom):
         return compiler_effets(m, p, p[nom])
     except ErreurMonde as exc:
         exc.attendu = f"branche {nom}, " + (exc.attendu or str(exc))
+        exc.champs_corrigeables = tuple(f"{nom}.{c}" for c in exc.champs_corrigeables)
         raise
 
 

@@ -91,8 +91,13 @@ def verifier(valeur, schema, chemin='reponse'):
         raise ValueError(f"Contraintes de grammaire non prises en charge : {sorted(set(schema) - connus)}")
 
     def refuser(accepte, recu=valeur, champ=chemin):
+        # Chemin structurel du validateur, jamais extrait du message de refus.
+        relatif = re.sub(r'\[(\d+)\]', r'.\1', champ)
+        if '.proposition' in relatif:
+            relatif = relatif.split('.proposition', 1)[1].lstrip('.')
         raise RefusDeForme('La proposition ne respecte pas son contrat de forme.',
-                          f'{champ} : reçu {recu!r} ; accepté : {accepte}.')
+                          f'{champ} : reçu {recu!r} ; accepté : {accepte}.',
+                          champs_corrigeables=(relatif,))
 
     if 'anyOf' in schema:
         options = schema['anyOf']

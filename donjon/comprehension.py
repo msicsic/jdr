@@ -8,6 +8,45 @@ from .francais import designer
 from .noms import reference, texte
 
 
+def parametres_types(proposition, chemin=""):
+    """Empreinte de sens d'un candidat, même non préparé. Aucune prose ne fait foi."""
+    import copy
+    resultat = {}
+    if not isinstance(proposition, dict):
+        return resultat
+    for cle, valeur_ in proposition.items():
+        nom = chemin + cle
+        if cle in {"action", "operation", "methode", "outil", "approche", "cible", "cibles", "destination"}:
+            resultat[nom] = copy.deepcopy(valeur_)
+        if cle == "texte" and proposition.get("operation") == "son":
+            resultat[nom] = valeur_
+        if isinstance(valeur_, dict):
+            resultat.update(parametres_types(valeur_, nom + "."))
+        elif isinstance(valeur_, list) and cle in {"etapes", "effets"}:
+            for i, v in enumerate(valeur_):
+                resultat.update(parametres_types(v, f"{nom}.{i}."))
+    return resultat
+
+
+def verifier_reprise(proposition, invariants):
+    """Seuls les champs explicitement mis en cause peuvent remplacer le candidat refusé."""
+    from .refus import RefusDeForme
+    recus = parametres_types(proposition)
+    for chemin, accepte in invariants.items():
+        if chemin not in recus or recus[chemin] != accepte:
+            raise RefusDeForme("La correction remplace une partie du geste qui n'était pas en cause.",
+                f"proposition.{chemin} : reçu {recus.get(chemin)!r} ; accepté : {accepte!r}. "
+                "Reprendre la saisie entière et le refus ; le candidat précédent reste non admis.")
+
+
+def invariants_reprise(proposition, exc):
+    if proposition.get("action") in {"impossible", "clarifier"}:
+        return {}
+    libres = getattr(exc, "champs_corrigeables", ())
+    return {k: v for k, v in parametres_types(proposition).items()
+            if not any(c == "" or k == c or k.startswith(c + ".") for c in libres)}
+
+
 def _precisions(plan, parametres):
     """Même sens calculé pour le joueur et la revue, sans lire la prose proposée."""
     from .contrats_sequence import precision_publique as sequence
