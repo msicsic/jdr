@@ -49,9 +49,9 @@ Leurs entrées arrivent ici à leur livraison.
 - `codex-s1k-refus-recours` — lot 409, base `integration 64e3b2b4`, première partie : refus retenus
   par vues/opérations de `memoire`, prédicats historiques conservés, copies et validation portées.
   AST refus 64 → 27 (schéma + homonymes uniquement) ; recours 85 → 84, portage restant explicite.
-  Cinq nouveaux tests verts ; 65 métier/socle : deux sous-échecs déjà à la base, une erreur à attribuer.
-  Tests voisins/empreintes détachés : `C:/Users/msics/donjon/artifacts/s1k-409/fin.json` attendu.
-  Aucun fichier attendu du 407 touché ; pas de suite complète ni Luna. S1k reste ouvert pour les recours.
+  210 tests : quatre sous-échecs et une erreur de recharge, tous reproduits à la base ; cinq nouveaux verts.
+  Sonde corrigée ; empreintes détachées : `C:/Users/msics/donjon/artifacts/s1k-409/fin-complement.json` attendu.
+  Intégration `57299df4` fusionnée sans conflit ; S1k reste ouvert pour les recours. Ni suite complète ni Luna.
   [Rapport 409](taches/rapport-codex-409-s1k-refus-recours.md).
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

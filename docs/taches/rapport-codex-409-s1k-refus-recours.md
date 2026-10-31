@@ -39,22 +39,31 @@ réponses à minute égale, survie à 45 épisodes et au temps/perte de fortune,
 validation, puis la capture historique d'Ilse (crue 7, minute 353) et une autre
 fourniture. État complet, ordre JSON, lignes, rendu, scène et émissions sont
 comparés après recharge et deux minutes entières ou quatre tranches.
-**Premiers résultats :** cinq nouveaux tests verts (capture réelle et seconde
-fourniture comprises) ; 65 tests métier/socle exécutés, deux sous-échecs d'une
-même méthode `offre_sensee` reproduits à la base exacte sans modification
-d'assertion. Une erreur de recharge `refus_retenus` (Hugues/Mathurine sur la même
-case) reste à attribuer par rejeu de cette seule méthode sur la base.
-Tests voisins et empreintes lancés par `run409.py` ; **calcul en cours**,
-conclusion attendue dans `fin.json`, écrit en dernier. Celui-ci conserve les
-rouges existants dans son champ `succes`, sans les masquer. Les résultats
-complets restent à lire ; aucune identité des empreintes n'est encore affirmée.
+**Résultats des tests :** 210 exécutions sur 23 fichiers (65 métier/socle,
+145 voisins), dont les cinq nouveaux tests verts. Quatre sous-échecs et une
+erreur, tous reproduits sur `64e3b2b4`, sans modifier d'assertion : `offre_sensee`
+(marchand/Aubin, recours absent après nouvelle localisation), `contre_offre`
+(inspection de vérification au lieu de None), `propositions_redites` (position
+crue de Bram périmée) et `refus_retenus` (Hugues/Mathurine sur la même case).
+L'erreur de recharge est donc **préexistante**, pas causée par le portage.
+
+**Empreintes : première tentative non concluante.** Les 16 nuits de branche
+`30e8d604` ont fini sans plantage, mais les 16 références ont été interrompues
+minute 0 : la sonde commune appelait la nouvelle API dans l'ancien moteur.
+Correction `35cd275a` : la sonde emploie sa propre porte d'observation, comme
+pour les épisodes et croyances ; test de référence sans cette API renforcé.
+Le premier `fin.json` reste rouge et conservé. Contrôles courts de la sonde et
+de la fusion, puis empreintes corrigées sur **`48e4231e`**, en tâche détachée :
+**`fin-complement.json` attendu**. Aucune identité n'est encore affirmée.
 
 **Bruts et suite.** `C:/Users/msics/donjon/artifacts/s1k-409/`.
-Empreintes lancées : 2 h × graines 1985/7/42/2024 × Relais/mine/auberge/crue,
+Empreintes : 2 h × graines 1985/7/42/2024 × Relais/mine/auberge/crue,
 référence exacte en cache, deux travailleurs réduits au plus, côtés successifs.
+L'instrumentation corrigée a une nouvelle clé ; les nuits de l'ancienne sonde
+ne sont pas réutilisées sous cette nouvelle clé.
 Pas de suite complète ni Luna. Aucun fichier attendu du 407 n'est touché ;
-le calcul du 402 reste indépendant. Dernière actualisation : `origin/integration`
-à `64e3b2b4`, pas de fusion supplémentaire requise à ce stade.
+le calcul du 402 reste indépendant. `origin/integration 57299df4` fusionnée
+sans conflit dans `48e4231e` ; aucun recouvrement de code avec le lot 407.
 Restent `demande_refusee`, `recours_propositions`, `recours_services`,
 `recours_intermediaires`, `service_en_cours`, leurs écrivains et validations.
 Le contrôle AST reste syntaxique et local, sans preuve de tous les flux
