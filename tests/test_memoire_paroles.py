@@ -177,6 +177,8 @@ class ParolesTests(unittest.TestCase):
         noyau = dict(type='constat', objet='vivres', attribut='etat',
                      valeur={'disponible': False}, observe=autre.data['minutes'])
         dire(autre, noyau)
+        self.assertTrue(any(p['locuteur'] == 'ilse' for p in emissions(autre)))
+        self.assertTrue(any(p.get('locuteur') == 'ilse' for p in memoire.paroles_retenues(autre, 'brune')))
         self.assertTrue(social.transmission_attestee(autre, 'brune', 'marchand', noyau))
         self.assertFalse(social.transmission_attestee(autre, 'brune', 'aubin', noyau))
         for initial in (historique, autre):
