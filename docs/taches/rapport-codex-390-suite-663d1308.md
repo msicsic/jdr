@@ -1,6 +1,7 @@
 # Lot 390 — Attribution des rouges de 663d1308
 
 Branche `codex-suite-663d1308`, base d'intégration `70b2fdfa`, PC fixe.
+Code vérifié `a351d07d` ; lot clos avec les limites ci-dessous, aucun calcul actif.
 Bruts : `C:/Users/msics/donjon/artifacts/suite-663d1308-390/`.
 
 **Attribution.** Bissection des seules méthodes signalées, sur les arbres historiques
@@ -61,20 +62,37 @@ valides permettent de continuer le contrôle de pureté du devis ? Lots suivants
 Recouvrements : `ouie.py` avec le socle S1 déjà fusionné ; aucun fichier de code de
 374/380/381/389 modifié. Ni Luna ni suite complète ; fusion laissée au superviseur.
 
-**Vérification acquise.** **129 tests validés sur neuf fichiers** : appels négociés,
-voix, voix inconnues, constats/rumeurs, noms, refus, réception des voix, écoute et
-messages découpés. Première passe : 117 tests, deux assertions de harnais corrigées ;
-reprise des deux fichiers et voisins sonores : 30/30, les cinq autres fichiers verts
-réutilisés. Nouveau test : Relais/Aubin puis auberge/Hugues, admission avant chaque
-rendu, absence de fuite du nom, même monde et mêmes lignes en bloc/découpé avec
-recharges, état complet et scène relus identiques. Bruts `tests-premiere.json` et
-`tests-corriges.json`. Une tentative sous restriction Windows a échoué sur les
-répertoires temporaires ; reprise autorisée sans modification du moteur.
+**Tests consolidés : 204/214 passent, vingt fichiers.** Les neuf fichiers du
+correctif apportent 129 succès ; les onze voisins, 75/85 (161,1 s). Les dix méthodes
+rouges produisent onze échecs de sous-tests et deux erreurs : les huit Q du tableau,
+plus intermédiaires/laps et rendez-vous/capture, réservées au 375. Aucune nouvelle
+méthode rouge ; **19 des 27 bascules corrigées**, dont les deux parcours d'appel de
+`question_absent` et `rendez_vous` confirmés par les voisins. Première passe : deux
+assertions de harnais corrigées, puis 30/30 sur ces fichiers et voisins sonores ;
+les cinq fichiers déjà verts sont réutilisés. Relais/Aubin puis auberge/Hugues :
+admission avant rendu, nom caché absent, même monde et mêmes lignes en bloc/découpé
+avec recharges, état complet et scène relus identiques. Bruts `tests-premiere.json`,
+`tests-corriges.json`, `tests-voisins.json`. Une tentative sous restriction Windows
+a échoué sur les temporaires ; reprise autorisée sans adaptation du moteur.
 
-**Calcul détaché en cours.** Onze autres fichiers concernés, puis empreintes
-**2 h × Relais/auberge/mine × quatre graines**, référence exacte `70b2fdfa`, cache
-commun réemployé, deux travailleurs réduits, aucune comparaison de temps au cache.
-Lanceur archivé `verifier.ps1` ; fin écrite en dernier dans
-`C:/Users/msics/donjon/artifacts/suite-663d1308-390/fin-verification.json`.
-La vérification finale et la lecture des divergences éventuelles restent à reprendre
-à cette fin ; ce rapport ne présente pas les empreintes comme déjà validées.
+**Empreintes : identité physique sur 12/12, état complet sur 4/12.** Deux heures
+Relais/auberge/mine × graines 1985/7/42/2024, contre `70b2fdfa` : zéro plantage,
+mêmes empreintes physiques à 5/60/120 min et à l'issue, chroniques, mesures, récits,
+souvenirs PNJ, refus de contact, approches impossibles, avis et constats d'audit.
+Les quatre auberges sont entièrement identiques ; Relais et mine divergent dans
+le hash de l'état complet. Le code 1 du comparateur signale cette divergence stricte.
+Diagnostic borné, graine 1985 : premier pas d'attente de cinq minutes comparé avec
+la seule fonction sonore de la base. Au Relais, seuls changent les rendus publics
+et le journal (« personne inconnue » → « voix inconnue »), ainsi que l'ordre des
+numéros vocaux, désormais celui de la réception ; à la mine, seul le journal change ;
+à l'auberge, aucun écart. **Limite : le comparateur n'archive pas les états complets
+finaux ; ces préfixes n'attribuent donc pas intégralement les huit hashes de 2 h.**
+Aucune garantie d'identité intégrale de ces états n'est revendiquée.
+
+Douze références manquantes jouées une fois et rangées au cache ; branche ensuite,
+deux travailleurs réduits au plus, aucune comparaison de coût, aucune nuit de
+référence de 2 h relancée. `empreintes.json`, `analyse-cloture.json`, préfixes et
+lanceurs archivés ; empreinte du moteur inchangée depuis la vérification.
+`fin-verification.json` reste intact (`tests=1`, `empreintes=1`, `erreur=null`) ;
+`conclusion.json` consigne la clôture partielle et ses limites. Branche poussée,
+fusion et suites de correction au superviseur ; aucun calcul requis en attente.

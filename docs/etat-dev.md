@@ -44,10 +44,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 - `codex-suite-663d1308` — lot 390, base `integration 70b2fdfa` : 27 nouvelles méthodes rouges
-  attribuées par bissection ; admission des voix dès leur réception avant le rendu événementiel.
-  Appels/voix et trois attentes documentées corrigés ; 129 tests validés sur neuf fichiers ciblés.
-  Huit méthodes restent attribuées avec questions précises ; méthodes du 375/387 intactes.
-  Voisins et empreintes 2 h Relais/auberge/mine × quatre graines en cours, deux travailleurs réduits.
+  attribuées, 19 corrigées ; admission des voix dès leur réception avant le rendu événementiel.
+  Clôture : 204/214 tests passent sur 20 fichiers ; huit rouges du lot et deux réservés au 375.
+  Empreintes 2 h Relais/auberge/mine × quatre graines : physique/chronique/mesures identiques sur 12/12.
+  État complet identique sur 4/12 ; huit écarts finaux partiellement attribués au rendu vocal (limite).
+  Aucun calcul actif ; méthodes du 375/387 intactes, questions des huit cas et limites dans le rapport.
   Voir [rapport](taches/rapport-codex-390-suite-663d1308.md), bruts `artifacts/suite-663d1308-390/` du dépôt principal.
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
