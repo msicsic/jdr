@@ -260,6 +260,12 @@ def fabrication_descripteur(monde, d):
     return fabrication_locale(action, cible, p)
 
 
+def consultation_locale(acte, sujet=""):
+    """Choix social structuré vers le contrat de parole, sans réinterprétation."""
+    from .contrats_consultation import contenu
+    return contenu(acte, sujet)
+
+
 def proposition_descripteur(monde, descripteur):
     """Décode des références exactes ; aucune recherche de nom, ni préalable inventé.
 

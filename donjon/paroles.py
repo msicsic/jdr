@@ -31,6 +31,8 @@ from .francais import complement_de, designer, lieu, groupe_nominal, de
 from .monde import ErreurMonde, normaliser
 from .relations import FIABLE
 from .contrats_passage import DEMANDE, verifier_destinataire, verifier_demande, schema_demande, typer_demande
+from .contrats_consultation import (CONSULTATIONS, BESOINS_DEMANDES, RESSOURCES_DEMANDEES,
+    verifier as verifier_consultation, schema_contenu as schema_consultation, typer as typer_consultation)
 
 ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
 TYPES_JOUEUR = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "rembourser", "ressource", "localisation", "proposition", "mandat", "reponse_mandat", "bilan_mandat")
@@ -39,13 +41,12 @@ TYPES = (*TYPES_JOUEUR, "compte_rendu", "ordre_mandat")
 CHAMPS_CONTENU = {
     "propos": (), "affirmation": ("sujet", "attribut", "valeur"),
     "demande": ("sujet", "valeur"), "passage": ("sujet", "valeur"),
-    "aveu": ("sujet", "valeur"), "nom": ("sujet",), "qui": (),
-    "reclamer": ("sujet",), "ressource": ("sujet",), "localisation": ("sujet",),
+    "aveu": ("sujet", "valeur"), "nom": ("sujet",),
+    **{acte: c["champs"] for acte, c in CONSULTATIONS.items()},
     "rembourser": ("montant",),
     "proposition": (),
     "avis": ("sujet", "attribut", "valeur"),
 }
-BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » cherche (``echanges.enqueter``)
 # Sens du protocole, commun au schéma d'interprétation et à la revue. Les codes
 # de besoins restent disponibles pour les demandes générales ; un bien nommé
 # conserve son nom, sans être élargi au besoin qu'il pourrait servir.
@@ -54,7 +55,7 @@ SENS_CONTENU = {
     "mandat": "Confier à l'interlocuteur une charge amener (qui, lieu) ou informer (qui, fait : affirmation sujet/attribut/valeur). Le fait est le contenu à faire transmettre par le mandaté au destinataire qui ; il ne constitue pas une affirmation autonome supplémentaire de Corvus à son interlocuteur actuel. Le moteur juge la demande sans accord anticipé.",
     "reponse_mandat": "Accepter ou refuser une offre de mandat effectivement entendue : offre est son identifiant public mN, accepter est un booléen. Aucun geste n'est exécuté à la place du joueur.",
     "bilan_mandat": "Rendre compte à son mandant d'une charge acceptée : agenda est son identifiant public, issue est reussi, echoue ou renonce. Cela établit une parole, jamais la vérité de son résultat.",
-    "localisation": "Demander où se trouve une personne connue, désignée par sujet. La réponse transmet la dernière croyance datée de l'interlocuteur, jamais une position cachée.",
+    "localisation": CONSULTATIONS["localisation"]["sens"],
     "avis": "Prévoir qu'une menace atteindra ou épargnera un lieu : annoncer une évolution future est un avis, même formulé comme une certitude, sans marque d'opinion ni échéance explicite. sujet est la référence publique du lieu connu de Corvus, attribut menace, valeur oui (menacé) ou non (épargné). Le prédicat disponible évalue la menace d'eau ; son horizon de calcul est fixé par le moteur, il n'est pas une condition à exprimer dans la parole. Le contenu transmet la prévision du joueur, jamais un fait établi ; sa conviction est calculée par le moteur sur ses perceptions.",
     "proposition": "Proposer un échange indivisible : demande et contrepartie. Une part ou tâche ponctuelle peut porter une limite d'accomplissement, contre des pièces payées maintenant. Chaque clause appartient aux termes typés ; les seuls mots ne la portent pas. Le moteur tranche et enregistre avant la réponse.",
     "propos": "Parole qui n'accomplit aucun des actes disponibles. La visibilité, l'évidence ou la connaissance préalable d'une information ne transforment pas une affirmation en propos sans effet typé. Reproduire les mots du joueur ne dispense pas de typer leur sens.",
@@ -63,11 +64,10 @@ SENS_CONTENU = {
     "passage": DEMANDE["sens"],
     "aveu": "Avouer le geste valeur sur l'objet sujet.",
     "nom": "Se présenter sous le nom sujet, sans prouver son identité.",
-    "qui": "Demander l'identité de l'interlocuteur.",
-    "reclamer": "Interroger l'interlocuteur sur ce qu'il doit au locuteur, ou réclamer ce dû : les pièces si sujet est vide, sinon l'objet sujet. Le moteur décide du règlement ; le contenu n'impose pas une formulation impérative.",
-    "ressource": "Demander si l'interlocuteur possède le bien nommé par sujet (nom, alias, matière ou catégorie), sans le prendre ni le payer. Les codes faim et chaleur demandent plus largement de quoi satisfaire ce besoin ; ils ne remplacent pas un bien précis nommé par le joueur.",
+    "qui": CONSULTATIONS["qui"]["sens"],
+    "reclamer": CONSULTATIONS["reclamer"]["sens"],
+    "ressource": CONSULTATIONS["ressource"]["sens"],
 }
-RESSOURCES_DEMANDEES = {"faim": "de quoi manger", "chaleur": "du combustible pour se chauffer"}
 OPERATIONS = {t: sens for t, sens in SENS_CONTENU.items() if t != "propos"}
 SCHEMA_OPERATIONS = {"type": "object", "additionalProperties": False,
     "description": "Analyser d'abord le sens de la saisie seule, avant de choisir le contenu. Une opération désigne un acte que Corvus accomplit par cette parole envers son destinataire. Les contenus confiés pour une transmission ou une réalisation ultérieure restent dans leur contrat englobant ; ils ne sont pas aussi des actes autonomes de Corvus. Pour chaque opération disponible, vrai si la saisie accomplit cet acte, même sans demander explicitement un effet du moteur, même sous forme déclarative, négative ou incertaine. La vérité, la connaissance préalable et la réussite ne décident pas du typage. Toutes sont fausses seulement si aucune définition ne s'applique ; cette conclusion permet de dispenser la parole de contre-revue.",
@@ -130,7 +130,8 @@ for _type_contenu in TYPES_JOUEUR:
             'properties': {'type': _variante['properties']['type'],
                            'montant': {'type': 'string', 'description': 'Entier positif en chiffres ; vide = tout le dû.'}},
             'required': ['type', 'montant']}
-    _variantes_contenu.append(schema_demande(_variante) if _type_contenu == "passage" else _variante)
+    _variantes_contenu.append(schema_consultation(_variante) if _type_contenu in CONSULTATIONS else
+                             schema_demande(_variante) if _type_contenu == "passage" else _variante)
 SCHEMA_PAROLE["properties"]["contenu"]["items"] = {"anyOf": [*_variantes_contenu, SCHEMA_PROPOSITION]}
 
 def _schema_contenu(type_, champs, *, sens=None):
@@ -1348,18 +1349,8 @@ def _typer(monde, c, auditeur=None):
             monde, "joueur", resoudre(monde, c["sujet"]), c["valeur"] == "oui"), "rang": 0}
     if isinstance(c, dict) and c.get("type") == "proposition":
         return copy.deepcopy(c)
-    if isinstance(c, dict) and c.get("type") == "qui":
-        return {"type": "qui"}
-    if isinstance(c, dict) and c.get("type") == "reclamer":
-        sujet = (c.get("sujet") or "").strip()
-        objet = resoudre(monde, sujet) if sujet else None
-        return {"type": "reclamer", "objet": objet} if objet or not sujet else None
-    if isinstance(c, dict) and c.get("type") == "localisation":
-        sujet = resoudre(monde, c.get("sujet"))
-        return {"type": "localisation", "sujet": sujet} if sujet else None
-    if isinstance(c, dict) and c.get("type") == "ressource":
-        sujet = normaliser(c.get("sujet") or "")
-        return {"type": "ressource", "besoin": sujet} if sujet else None
+    if isinstance(c, dict) and c.get("type") in CONSULTATIONS:
+        return typer_consultation(monde, c)
     if isinstance(c, dict) and c.get("type") == "nom":
         sujet = _nom_dit(monde, c.get("sujet"))
         return {"type": "nom", "sujet": sujet} if sujet else None
@@ -1452,6 +1443,8 @@ def verifier_contenus(monde, contenu):
             continue
         if c.get("type") == "passage":
             verifier_demande(c, f"contenu[{i}]")
+        if c.get("type") in CONSULTATIONS:
+            verifier_consultation(c, f"contenu[{i}]")
         utilises = CHAMPS_CONTENU.get(c.get('type'), ())
         for champ in ('sujet', 'attribut', 'valeur'):
             if champ not in utilises and c.get(champ) not in (None, ''):
@@ -1482,10 +1475,6 @@ def verifier_contenus(monde, contenu):
             raise ErreurMonde("Corvus ne sait pas ce qu'il réclame.",
                               f"contenu[{i}].sujet : vide (les pièces que le personnage doit à Corvus) ou un objet "
                               f"que Corvus connaît, en identifiant ; reçu « {sujet} ».")
-        if c.get("type") == "ressource" and not normaliser(sujet):
-            raise ErreurMonde("Corvus ne dit pas ce qu'il cherche.",
-                              f"contenu[{i}].sujet : un nom de bien, alias, matière ou catégorie non vide ; "
-                              f"faim ou chaleur pour un besoin général ; reçu « {sujet} ».")
 
 
 def aveu(monde, locuteur, objet, geste):

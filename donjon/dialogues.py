@@ -200,10 +200,14 @@ def parole_information(monde, d):
                 f"La localisation que je t'annonce pour {noms['sujet']} : {noms['valeur']}.")
     from .voix import reel
     sujet = reel(monde, p.get("sujet", "")) if acte == "ressource" else p.get("sujet", "")
+    from .commandes import consultation_locale
+    from .contrats_consultation import CONSULTATIONS
+    contenu = (consultation_locale(acte, sujet) if acte in CONSULTATIONS else
+               {"type": acte, "sujet": sujet,
+                "attribut": "lieu" if acte == "affirmation" else "menace",
+                "valeur": p.get("valeur", "")})
     return {"personnage": d["cible"], "replique": replique,
-            "contenu": [{"type": acte, "sujet": sujet,
-                         "attribut": "lieu" if acte == "affirmation" else "menace" if acte == "avis" else "",
-                         "valeur": p.get("valeur", "")}]}
+            "contenu": [contenu]}
 
 
 def preparer_information(monde, descripteur):
@@ -361,8 +365,9 @@ def parole_compte(monde, d):
     mots = ('Que me dois-tu en pièces ?' if op == 'question' else
             f'Je te réclame {designer(monde.objets[reel(monde, objet)])} que je t’ai prêté.' if objet else
             f'Je te réclame le solde de {quantite(c["montant"], "pièce")} que tu me dois.')
+    from .commandes import consultation_locale
     return {'personnage': d['cible'], 'replique': public(monde, mots),
-            'contenu': [{'type': 'reclamer', 'sujet': objet, 'attribut': '', 'valeur': ''}]}
+            'contenu': [consultation_locale('reclamer', objet)]}
 
 
 def conversation_compte(monde, d):
