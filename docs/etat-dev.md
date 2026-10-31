@@ -45,9 +45,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-a4-dossier-revue` (lot 412), base `integration` `2634e48e` : dossier de fidélité avec sens proposé,
   paramètres/manière, contrats et effets des étapes développées, indépendants du jugement d'admission.
-  Aucun audit retiré ; mécaniques et registres inchangés. Première passe des cinq nouveaux tests verte (3,05 s),
-  puis scène renforcée pour le Relais ; vérification finale, voisins, passe Luna unique et empreintes en cours.
-  Bruts `C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/`, fin attendue `fin-livraison.json`.
+  Aucun audit retiré ; 171 tests (un ignoré), seul échec textuel adapté puis fichier rejoué vert (18 tests).
+  Cinq tests renforcés verts (13,97 s) ; quatre contre-épreuves Luna justes ; parties et empreintes en cours.
+  Bruts `C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/`, fin attendue `fin-reprise.json`.
   Limites : verdict sémantique non garanti, repli historique illisible conservé ; pas de plan inventé après refus moteur.
   Rapport : [lot 412](taches/rapport-codex-412-a4-dossier-revue.md).
 

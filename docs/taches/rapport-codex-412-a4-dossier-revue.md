@@ -21,7 +21,7 @@ remplacent jamais un effet typé. Le refus conserve le motif de revue dans
 `attendu`, avec le paramètre ou l'effet manquant. Aucun retrait d'audit,
 changement de mécanique, sélection sur la saisie ou registre d'esprit.
 
-**Preuves prévues par les tests.** Cinq nouveaux tests : dossier pur et sans autorité narrative,
+**Preuves.** Cinq nouveaux tests : dossier pur et sans autorité narrative,
 son présent accepté et omission refusée avec `son_improvise` dans `attendu`,
 attente conservée dans le vol développé, manière littérale et branches
 distinctes. La vraie boucle console/PontWeb corrige une omission pour
@@ -30,17 +30,24 @@ affichage : un son et aucun jet, récapitulatif et réponse retrouvés après
 reprise. Deux minutes en bloc ou huit tranches de quinze secondes avec
 recharges donnent le même monde complet et les mêmes vues. Les verdicts de
 ces tests sont simulés ; ils prouvent le raccord, pas la compréhension Luna.
-Les assertions de sécurité des tests voisins restent intactes.
+Le test `ContreRevuesTests.test_contre_revue_d_action_cite_le_plan` conserve
+ses égalités exactes sur le message, le plan cité et `attendu` : seule la fin
+attendue est adaptée au contrat voulu (conséquences observables, clauses et
+manière, au lieu des seuls changements durables).
 
-**Mesures en cours.** Première passe des cinq nouveaux tests verte (3,05 s),
-avant renforcement de la scène de reprise pour utiliser le Relais. La passe
-élargie, puis une seule passe Luna (Relais, atelier, noms-dialogue et script
-sonore dédié, avec contre-épreuves de revue), puis les empreintes Relais et
-auberge de 2 h × quatre graines sont lancées en fond, séquentiellement,
-deux travailleurs au plus et priorité réduite. Résultats à reprendre dans
-`C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/fin-livraison.json`
-(agrège `fin.json` et le rejeu des cinq tests renforcés) ; commandes,
-fils et mesures dans le même dossier. Aucune suite complète.
+**Mesures.** Passe ciblée : 171 tests, un ignoré, un seul échec (texte attendu
+ci-dessus), 462,89 s. Le seul fichier adapté est rejoué : **18 tests verts,
+11,50 s** ; les cinq tests renforcés sur le Relais sont verts, **13,97 s**.
+Première passe Luna : les **quatre contre-épreuves opposées sont justes**,
+quatre appels, 23,75 s avec préparation/fermeture : deux sons présents
+acceptés, deux omissions refusées avec l'effet son manquant dans `attendu`.
+Les quatre parties (Relais, atelier, noms-dialogue, script sonore dédié) et
+les empreintes Relais/auberge de 2 h × quatre graines continuent en fond,
+séquentiellement, deux travailleurs au plus, priorité réduite. Aucune suite
+complète ni seconde passe Luna. Fin attendue :
+`C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/fin-reprise.json`.
+L'arrêt initial est conservé dans `fin-livraison.json` ; un conflit d'import
+du lanceur, corrigé avant tout appel modèle, dans `fin-reprise-import.json`.
 
 **Limites.** Le dossier garantit la présence des propositions et de l'expansion
 dans la revue, pas la justesse de tout verdict sémantique en français libre.
