@@ -2,7 +2,7 @@
 
 31 octobre 2026, PC fixe · branche `codex-obstacle-temoin-expire` · base
 `origin/integration 19b711bf` · moteur final **`bb5dfc5e`**.
-**Code livré ; banc final en cours. Aucune fusion.**
+**Lot clos avec réserves de validation ; non fusionné. Aucun calcul restant.**
 
 **Invariant.** Une position expirée n'est pas un démenti de présence. Le juge
 `deliberation.obstacle_patience` consulte la dernière preuve enregistrée, sans
@@ -45,16 +45,31 @@ cherche Ilse puis revient vers sa localisation apprise. Ce cas ne prouve donc
 pas une reprise de renoncement ; son oracle n'est pas modifié et son trajet
 reste à traiter séparément. Aucune absence générale de boucles n'est certifiée.
 
-**Banc détaché.** Mine et auberge × 1985/7/42/2024 × 4 h, un travailleur réduit,
-référence puis branche, cache partagé. La mesure préliminaire de `9418aba6`
-avait commencé avant l'ajustement du contrôle de position ; elle est conservée
-à part. Le banc final de `bb5dfc5e` attend sa fin et réemploie la référence,
-sans rejouer les nuits déjà rangées. Suspects, appels, plantages et usurpations
-restent à lire dans `banc-final.json` ; bilan final écrit en dernier dans
-**`C:/Users/msics/donjon/artifacts/obstacle-temoin-417/fin-banc-final.json`**.
-Deux travailleurs de tests/simulation au plus pour ce lot ; les coordinateurs
-en attente ne simulent pas. Deux essais de tests ont été bloqués par les droits
-des répertoires temporaires du bac à sable ; le lancement hors bac à sable a
-fonctionné. Un premier lanceur de banc s'est arrêté avant simulation sur son
-chemin d'import, corrigé avant le lancement effectif. Tous les résultats
-conclusifs et diagnostics sont dans `C:/Users/msics/donjon/artifacts/obstacle-temoin-417/`.
+**Banc final achevé.** Huit paires : mine et auberge × 1985/7/42/2024 × 4 h,
+un travailleur réduit, référence puis branche. Les huit références `19b711bf`
+viennent du cache ; les huit nuits `bb5dfc5e` ont été jouées. Aucun temps CPU
+comparé au cache. Zéro plantage et zéro usurpation sur les seize nuits.
+
+| Scénario | Appels base → branche | Retours suspects base → branche |
+|---|---:|---:|
+| Mine | 7 → 5 | 0 → 1 |
+| Auberge | 15 → 13 | 1 → 0 |
+| Total | 22 → 18 | 1 → 1 |
+
+**Critère de non-hausse par scénario non atteint.** `fin-banc-final.json`
+porte bien `code: 0` (exécution achevée) et **`succes: false`**. Le signal nouveau
+est Lucien, mine 1985 : abri au baraquement → repos à 162 → abri à 169,
+toujours au baraquement ; repos 93,1 → 79,1, sécurité 60,5 → 58,1. La chronique
+enregistre qu'il s'assoit puis reste près de Mathe. La sonde ne retient aucune
+entrée nouvelle entre départ et retour. Ces données ne prouvent ni une reprise
+de renoncement ni la légitimité complète de cet arbitrage ; **signal conservé,
+non reclassé, à attribuer séparément**. La disparition du suspect de Lucien à
+l'auberge 7 (ballot, 175 → 183) ne compense pas cette réserve à la mine.
+La validation générale du brief n'est donc pas déclarée verte.
+
+Bruts et analyse : `C:/Users/msics/donjon/artifacts/obstacle-temoin-417/`
+(`banc-final.json`, `fin-banc-final.json`, `analyse-banc-final.json`). La mesure
+préliminaire de `9418aba6` est conservée à part ; aucun moteur changé après
+`bb5dfc5e`, aucune nouvelle simulation à cette clôture. Au plus deux travailleurs
+réduits pendant le lot. Les incidents initiaux de droits temporaires et d'import
+restent documentés dans les bruts. Pas de suite complète ni Luna.
