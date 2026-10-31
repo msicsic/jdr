@@ -43,13 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-a6-raccord-libre` (416), correctif `bcd5729e` : marqueur mécanique `entrave` porté dans A1,
-  sans ouvrir les champs inconnus ni toucher aux gestes sonores. Régression A6 confirmée : base `8c5eaaa7` verte.
-  36 tests ciblés verts (zéro ignoré), dont libération avec deux PNJ et deux producteurs de liens,
-  consentement, monde/rendu après recharge et laps découpés ; autres refus A1 inchangés.
-  Vingt fichiers voisins en fond, deux travailleurs à priorité réduite ; aucune nouvelle passe Luna.
-  Coût, sifflement partiel, repli de crypte et trois méthodes rouges de base acceptés par le superviseur.
-  Fin `C:/Users/msics/donjon/artifacts/a6-raccord-libre-416/entraves/fin.json` ; [rapport](taches/rapport-codex-416-a6-raccord-libre.md).
+- `codex-a6-raccord-libre` (416), correctif `bcd5729e` : régression A6 des entraves corrigée dans A1,
+  sans ouvrir les champs inconnus ni toucher aux gestes sonores ; base `8c5eaaa7` et branche vertes en libération.
+  36 ciblés verts ; deux PNJ/deux producteurs de liens, consentement, monde/rendu après recharge et laps découpés.
+  Vingt voisins : 222 méthodes, 602,59 s, trois ignorés ; seuls trois échecs/une erreur des trois méthodes
+  déjà rouges sur la base et acceptées subsistent ; tous les autres fichiers verts, aucune nouvelle régression observée.
+  Prêt pour fusion sous les limites acceptées (coût, sifflement partiel, repli crypte, rouges de base) ; aucun calcul actif.
+  [Rapport et preuves](taches/rapport-codex-416-a6-raccord-libre.md) ; bruts `artifacts/a6-raccord-libre-416/entraves/`.
 
 Lots en cours : 414 (rouges nouveaux de la suite 4539dd68), 402 (vérification d’intégration moteur) ; S1m attend le 414 (mêmes tests de réessai) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 

@@ -2,7 +2,7 @@
 
 31 octobre 2026 — `codex-a6-raccord-libre` ; raccord `f7dc9203`, revue
 `20ac5f1e`/`3281dc00`, correctif d'entrave `bcd5729e`.
-**Dernier blocage corrigé et ciblés verts ; vingt voisins en cours.**
+**Lot terminé, prêt pour fusion sous les limites acceptées par le superviseur.**
 
 **Régression confirmée.** La méthode
 `ForceLunaTests.test_prendre_lier_delier_liberer_et_tuer_via_console` est verte
@@ -31,13 +31,16 @@ effet, la disparition des liens et du marqueur, le monde, le rendu et la
 conversation après recharge ; un laps entier est comparé à ses tranches.
 Aucune assertion de sécurité existante n'est relâchée.
 
-**Vingt fichiers voisins relancés sur `bcd5729e`.** La liste exacte de la passe
-précédente est réutilisée, deux travailleurs au plus, priorité réduite ;
-commandes et résultats dans `entraves/`. Le bilan sera écrit en dernier dans
-`entraves/fin.json`. Pas de suite complète, pas de recalcul PNJ ni de Luna.
-Les trois méthodes de ressources, matérialisation et refus narratifs qui
-échouent aussi sur la base sont acceptées comme limites par le superviseur ;
-le nouveau bilan doit distinguer ces signaux de toute régression.
+**Vingt fichiers voisins vérifiés sur `bcd5729e` : 222 méthodes,
+602,59 s, trois ignorés.** Le bilan brut reste rouge (trois échecs et une
+erreur), uniquement sur les trois méthodes déjà reproduites sur la base et
+acceptées par le superviseur : description des ressources faim/chaleur
+(deux sous-cas), matérialisation (une erreur), refus narratifs (un échec).
+Les identifiants et catégories de ces signaux correspondent exactement au
+bilan de base archivé. Tous les autres fichiers sont verts, notamment force,
+raccord libre et revue typée. Aucune nouvelle régression observée dans ce
+périmètre ; la libération n'est plus un rouge. Deux travailleurs à priorité
+réduite ; pas de suite complète, de recalcul PNJ ou de nouvelle passe Luna.
 
 **Garanties acquises dans les étapes précédentes.** Le libre et ses reprises
 partagent la forme A ; A1 projette le contexte public, A2/A3 lient les modes
@@ -67,5 +70,5 @@ premières mesures et leurs incidents de lancement restent archivés.
 **Bruts.** `C:/Users/msics/donjon/artifacts/a6-raccord-libre-416/` :
 `reprise/` conserve les preuves de revue et les limites acceptées ;
 `entraves/base.json`, `entraves/tests-cibles.json`, commandes, scripts et
-`entraves/fin.json` portent ce dernier correctif. Validation finale des voisins
-encore attendue ; calcul détaché vivant au lancement.
+`entraves/fin.json` portent ce dernier correctif. `entraves/conclusion.json`
+confirme la correspondance exacte des rouges acceptés. Aucun calcul actif.
