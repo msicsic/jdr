@@ -1,7 +1,8 @@
 # Lot 400 — S1g, vues des états matériels crus
 
 31 octobre 2026 · `codex-s1g-etats-materiels` · base exacte `integration 8fa9e70e`.
-Code à mesurer : **`a3072b47`**. **Vérification complémentaire en cours ; lot non clos.**
+Code mesuré : **`a3072b47`**. Intégration **`d23d081d`** fusionnée à la clôture.
+**Lot clos, non fusionné ; aucun calcul en attente.**
 
 **Invariant et code.** Les preuves matérielles (`etat`, `fin`, `verrouillee`,
 `lumiere`, `pieces`) passent par les vues pures de `memoire`. La façade
@@ -30,29 +31,38 @@ Restent les familles non portées de S1h–j, les schémas et homonymes historiq
 la branche générique de `croyance` n'est empruntée qu'après exclusion explicite
 des familles matérielles et de la localisation.
 
-Première passe : **35/35 verts**, trois fichiers (54,6 s), porte matérielle,
-socle et localisation. Les nouveaux tests contrôlent copies imbriquées, pureté,
+**297/298 tests verts**, 23 fichiers (772,2 s), aucune erreur ni saut.
+Les nouveaux tests contrôlent copies imbriquées, pureté,
 absence/fin négative/propriété inconnue et capacité de lumière crue malgré
 l'épuisement réel non appris, puis disparition de capacité après fin apprise.
 Chaînes : service réel de torche du **cas 217**, puis service de serrure ;
 deux minutes d'un bloc ou deux fois une minute avec recharges, égalité de l'état
 complet et de l'ordre JSON, des lignes, du rendu, de la scène et des paroles.
 
-**Calcul détaché à reprendre.** `run400.py` exécute séquentiellement les tests
-ciblés (23 fichiers, deux travailleurs) puis les empreintes **2 h × quatre
-graines × Relais/mine/auberge/crue**, cache, référence exacte `8fa9e70e`, branche
-mesurée `a3072b47`. Référence puis branche, priorité réduite, jamais plus de deux
-travailleurs ; aucun temps du cache comparé. Aucun résultat d'empreinte ni bilan
-final des tests voisins n'est encore revendiqué. Le marqueur `fin.json`, écrit
-en dernier, contient les codes de sortie ; lire aussi les rapports et attribuer
-les éventuels échecs avant clôture. Aucune suite complète ni Luna.
+Le seul rouge est `planification.MemoireTests.test_une_croyance_une_limite_ou_l_horloge_relancent_la_recherche` :
+le plan inspecte l'échoppe plutôt que d'y demander les vivres au marchand.
+Rejoué isolément sur **la base exacte `8fa9e70e`**, il échoue à la même assertion,
+avec le même plan ; oracle conservé, aucune correction de comportement revendiquée.
+
+**Empreintes : 16/16 identiques.** **2 h × quatre graines
+1985/7/42/2024 × Relais/mine/auberge/crue**, référence exacte `8fa9e70e`,
+branche `a3072b47` : chronique, mesures et état final complet
+concordent, sans exclusion ni plantage. Les 16 nuits de chaque
+côté sont rangées dans le cache. Avis auxiliaires identiques : zéro non justifié,
+vingt à expliquer. Référence puis branche, priorité réduite, deux travailleurs
+au plus ; aucun temps du cache comparé. Aucune suite complète ni Luna.
 
 **Bruts et limites.** `C:/Users/msics/donjon/artifacts/s1g-400/` :
 `tests-porte.json`, `tests-cibles.json/log`, `empreintes-base.json/log`,
-`run400.py`, `lanceur.log/err`, **`fin.json`** attendu. Le contrôle AST reste
+`run400.py`, `fin.json`, `attribution-planification-base.log` et
+`tests-apres-integration-corriges.log`. `fin.json` garde le code rouge des tests ;
+`conclusion.json` consolide l'attribution et la clôture. Le contrôle AST reste
 syntaxique/local, sans preuve exhaustive des flux interprocéduraux Python.
 Pas de nouvelle politique de révision, d'oubli ou de jugement des capacités.
 Aucune fonction de passage de 381 ni terminal de remboursement de 399 modifiés ;
 recouvrement limité aux interfaces communes de perception/propositions.
-`origin/integration 4c160145` fusionnée avant livraison : seulement le brief 401
-et sa mention dans le point de reprise, conflit documentaire résolu ; code mesuré inchangé.
+`origin/integration d23d081d` fusionnée : correctif de raccord des émissions du
+401 et documentation, sans recouvrement du moteur PNJ mesuré ; conflit du point
+de reprise résolu en conservant les deux entrées. Les empreintes portent sur le
+code PNJ inchangé ; **20/20 contrôles verts après fusion** (61,2 s), raccord des
+émissions et inventaires. Aucun calcul ni contrôle ciblé restant.

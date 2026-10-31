@@ -892,7 +892,9 @@ def raccorder_emissions(reponse, rapport):
         jonction = texte + " " + morceau
         texte = jonction if segments(jonction) == morceaux[:i + 1] else texte + "\n" + morceau
     if audit_:
-        etablis = segments_etablis(" ".join(fixes), audit_["faits"])
+        # Établir les preuves sur le même découpage que le texte publié :
+        # deux répliques jointes par un espace peuvent former un seul segment.
+        etablis = segments_etablis(texte, audit_["faits"])
         nouvelles = [etablis[str(i)] for i in range(len(fixes))]
         nouvelles += [lignes[i] for i in gardes]
         reponse["_audit"] = {**audit_, "texte_initial": texte,

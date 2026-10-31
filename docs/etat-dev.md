@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-crash-raccord` (3c506bb1) : lot 401, le raccord des émissions ne plante plus. Détail dans l'historique.
 - `codex-s1f-localisation` (f7ec584b) : lot 397, S1f localisation crue et preuves de possession par une seule interface. Détail dans l'historique.
 - `codex-ut-social-comptes` (628d5da6) : lot 396, U-T social comptes. Détail dans l'historique.
 - `codex-s2-conception` (00b3910d) : lot 398, conception de S2. Détail dans l'historique.
@@ -39,18 +40,17 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-reservation-contrat` (792b3b38) : lot 393, une réservation ne bloque pas son propre contrat. Détail dans l'historique.
 - `codex-um-social-comptes` (0d7039c6) : lot 380, U-M social comptes. Détail dans l'historique.
 - `codex-suite-e0826ef` (c68aff20) : lot 375, rouges de la suite e0826ef. Détail dans l'historique.
-- `codex-suite-663d1308` (db44eef3) : lot 390, rouges nouveaux de la suite 663d1308. Détail dans l'historique.
 
 ## Lots non fusionnés
 
 - `codex-s1g-etats-materiels` — lot 400, base exacte `integration 8fa9e70e`, code `a3072b47`.
   Preuves matérielles et capacités via vues pures ; copies profondes, absence/fin négative/inconnu distincts.
-  Inventaire AST 398 → 168, aucune addition ; première passe 35/35 verts et deux chaînes après recharge.
-  Vérification détachée : 23 fichiers ciblés puis empreintes 2 h × 4 graines × Relais/mine/auberge/crue.
-  Bilan final en attente de `C:/Users/msics/donjon/artifacts/s1g-400/fin.json` ; lot non clos.
+  Inventaire AST 398 → 168 ; 297/298 tests verts, unique rouge de planification reproduit sur la base exacte.
+  Empreintes 16/16 identiques : 2 h × 4 graines × Relais/mine/auberge/crue ; deux chaînes après recharge.
+  Intégration `d23d081d` fusionnée, 20/20 contrôles verts ; lot clos avec le rouge hérité attribué.
   Limite : contrôle AST local ; politiques de révision inchangées. [Rapport](taches/rapport-codex-400-s1g-etats-materiels.md).
 
-Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels), 401 (plantage du jeu dans raccorder_emissions, banc echanges) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels), 403 (rouges nouveaux de la suite c562aa21) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Passe Luna d'E6 (2026-10-31, orchestrateur, laptop)
