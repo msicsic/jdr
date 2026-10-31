@@ -32,7 +32,8 @@ class DepartFeutreTests(unittest.TestCase):
         e = p.Etat("salle", (), {})
         for utile in (False, True):
             v = SimpleNamespace(_cru_spatial=object(), _explore_furtif=False,
-                                _lumiere_lue=False, _discretion_lue=False, seul=None)
+                                _lumiere_lue=False, _discretion_lue=False, seul=None,
+                                monde=relais(), id="brune", personnes=lambda: ())
             def but(v, e):
                 v._lumiere_lue = True
                 return utile

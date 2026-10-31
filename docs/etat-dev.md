@@ -43,7 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 413 (S1l recherche d'une personne), 414 (rouges nouveaux de la suite 4539dd68), 412 (A4 dossier de revue), 402 (vérification d'intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+- `codex-suite-4539dd68` — lot 414, base `integration d54d15ae`, livraison partielle :
+  30 méthodes initialement rouges ; bissection : 29 au 374 (dont étapes chaînées
+  re-verte avant le 374), une au 381. Trois adaptations vertes ; aucun correctif moteur.
+  Les 27 autres restent ouvertes, avec questions par méthode ; renoncements d'Odon et
+  boucles conservés rouges, recouvrement recherche/appels à coordonner avec 413.
+  Fichiers adaptés : 35/37 verts, deux erreurs hors liste reproduites sur base ; ni suite complète ni Luna.
+  [Rapport et tableau d'attribution](taches/rapport-codex-414-suite-4539dd68.md).
+
+Lots en cours : 413 (S1l recherche d'une personne), 412 (A4 dossier de revue), 402 (vérification d'intégration moteur) ; lot 414 livré partiellement ci-dessus. Suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
