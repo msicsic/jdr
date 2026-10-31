@@ -32,7 +32,7 @@ graines, Relais et auberge (changement de comportement des PNJ). Luna : une pass
 remboursement (le banc `comptes` ou un script dédié), sur copie. Pas de suite complète.
 
 ## Contraintes
-**Poste : selon le superviseur.** Lots voisins : 380 (U-M social comptes, `web/page.html`, `dialogues.py`) ; S1
+**Poste : le laptop.** Lots voisins : 380 (U-M social comptes, `web/page.html`, `dialogues.py`) ; S1
 (`donjon/memoire.py`, `esprits.py`) : touche le moins possible leurs fonctions. Le raccourci de menu viendra dans un lot
 U-M/U-T ultérieur. Deux processus au plus, priorité réduite, calculs longs détachés. La poussée de ta branche vers
 origin (https://github.com/msicsic/jdr.git, dépôt de l'utilisateur) est autorisée.
