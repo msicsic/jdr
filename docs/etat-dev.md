@@ -46,9 +46,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-a2-passage` — lot 381, base d'intégration au brief `c63dd563` : contrat commun du passage
   local, de l'assemblage installé, de l'appui mobile, de la demande et de la poussée ; moteur,
   schéma du compilateur actuel, raccourcis et « Compris » gardent la même charge typée.
-  Cas réel/autre cas/faux pendant, recharge et laps découpé ; reprise ciblée **47/47 verte**.
+  Cas réel/autre cas/faux pendant, recharge et laps découpé ; avant fusion, reprise ciblée **47/47 verte**.
   Fusion d'`origin/integration` (`a6f0f00b`) : passages, remboursement, comptes et consentement conservés.
-  Vérification après fusion en cours : tests ciblés/voisins demandés et empreintes 2 h Relais × 4 graines.
+  Vérification après fusion en cours : 8 fichiers puis Relais 2 h × 4 graines ; fin `a2-passage-381/integration/fin.json`.
   Revues conservées ; fidélité Luna non garantie, ancienne API simple transitoire (A3), aucun registre d'esprit.
   [Rapport](taches/rapport-codex-381-a2-passage.md), bruts `artifacts/a2-passage-381/` du dépôt principal.
 
