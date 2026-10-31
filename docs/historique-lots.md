@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-position-hypothese` — lot 374 livré, moteur `66d3efe8`, base `3999bb3a` fusionnée dans `b3233153`, PC fixe.
+  Position datée 15/60/120 min ; inspection/appel/question consomment la piste, y compris pour un contact requis ; seuls de nouveaux faits rouvrent.
+  Aubin crue 42 : 24→54→24 passages en 1 h ; trois retours initiaux corrigés/attribués, seul signal strict final Lucien auberge 7 justifié.
+  16 nuits × 4 h : zéro plantage/usurpation ; appels Relais 4→4, auberge 13→15, mine 9→7, crue 35→43 ; VERIFIER 1 h vert.
+  312 captures anciennes + 121 finales rechargées ; 22 appels finaux attribués, aucune répétition expirée observée dans les vérifications capturées.
+  119 tests ciblés, 117 verts ; 2 échecs de texte hérités reproduits sur la base (lot 390), oracles intacts ; pas de suite complète ni Luna.
+  Portes/vues mémoire S1a–S1e conservées ; mesure bornée à 4 h, demi-vies non calibrées ; aucun calcul en cours. [Rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `ouie.py`, `pnj.py`, fusionnés sans conflit textuel. lot 374 (reprise) : la position d'autrui vieillit à la lecture (demi-vies 15/60/120 min, seuil 0,5) ; inspection, appel, question ou constat d'absence consomment la piste expirée, seule une preuve nouvelle la rouvre. 16 nuits 4 h sans usurpation, Aubin crue 42 24 → 54 → 24 passages, appels auberge 46 → 15 et mine 38 → 7 (base 13/9), crue 35 → 43 ; trois retours suspects corrigés ou attribués. 117/119 tests (deux hérités). Fichiers de code communs : ouie.py (390), pnj.py (391), fusionnés sans conflit textuel, tests ciblés rejoués.
+
 - `codex-don-consentement` — lot 394, base `origin/integration df7352b7`, non fusionné.
   Le don produit `donner`, effet lourd selon U-C : les deux tests anciens passent désormais « tenter ».
   Moteur, classification des effets et protection des termes du lot 380 inchangés.

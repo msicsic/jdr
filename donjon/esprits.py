@@ -7,6 +7,9 @@ fausses ou périmées. Le moteur seul les révise ; Luna ne les modifie pas.
 Croyances : ``croyances[sujet][attribut]``, le sujet étant un objet ou « joueur ».
 - ``lieu`` : valeur = lieu direct (salle, porteur ou contenant) ou None si l'objet n'est plus
   là où on l'attendait ; ``salle`` et ``case`` disent où il a été vu.
+  Pour une autre personne, ``mobilite`` photographie sa mobilité crue à cette
+  observation. La confiance enregistrée est initiale ; ``confiance_position``
+  la vieillit à la lecture, depuis l'origine conservée dans les relais.
   Une preuve ``possession`` peut accompagner ce lieu : porteur, propriétaire,
   permission et remise autorisée constatés alors, transmis ensemble par les
   nouvelles, sans relecture des droits réels par l'auditeur.
@@ -56,6 +59,93 @@ ETATS_VISIBLES = {"porte": ("ouverte",), "contenant": ("ouverte",), "luminaire":
 # Un objet porté par quelqu'un d'autre ne se remarque que s'il est encombrant ou allumé.
 MASSE_APPARENTE_KG = 1
 LONGUEUR_APPARENTE_CM = 50
+
+# Paramètres de partie, persistés : aucune décroissance cumulative par tick.
+POSITIONS_HYPOTHESES = {"seuil": .5, "demi_vies": {"mobile": 15, "pose": 60, "retenu": 120}}
+
+
+def personne_autre(monde, id, sujet):
+    return sujet != id and (sujet == "joueur" or monde.objets.get(sujet, {}).get("type") == "personnage")
+
+
+def mobilite_crue(monde, id, sujet):
+    """Ce qui retient la personne, selon les seules preuves de l'observateur."""
+    c = lire(monde, id)["croyances"].get(sujet, {}).get("lieu", {})
+    preuve = croyance(monde, id, sujet, "etat") or {}
+    etat = preuve.get("valeur", {}) if preuve.get("minute", -1) >= c.get("minute", 0) else {}
+    if any(etat.get(k) for k in ("lie", "tenu", "enferme")) or etat.get("conscient") is False:
+        return "retenu"
+    croyances = lire(monde, id)["croyances"]
+    lieu = croyances.get(sujet, {}).get("lieu", {}).get("salle")
+    sorties = monde.data["salles"].get(lieu, {}).get("sorties", {}).values()
+    if sorties and all(s.get("porte") and
+                       (croyances.get(s["porte"], {}).get("verrouillee") or {}).get("valeur")
+                       and not (croyances.get(s["porte"], {}).get("etat") or {}).get("valeur", {}).get("ouverte")
+                       for s in sorties):
+        return "retenu"
+    intention = (croyance(monde, id, sujet, "intention") or {}).get("valeur")
+    if etat.get("assis") or intention in ("garde", "guet"):
+        return "pose"
+    return "mobile"
+
+
+def confiance_position(monde, id, sujet):
+    """Confiance actuelle, sans effacer la dernière position ni rajeunir un relais."""
+    c = lire(monde, id)["croyances"].get(sujet, {}).get("lieu")
+    if not c:
+        return 0.
+    if not personne_autre(monde, id, sujet) or c["valeur"] is None:
+        return c["confiance"]
+    regle = monde.data.get("positions_hypotheses", POSITIONS_HYPOTHESES)
+    date = min(c["minute"], c.get("origine", {}).get("minute", c["minute"]))
+    age = max(0, monde.data["minutes"] - date)
+    return c["confiance"] * 2 ** (-age / regle["demi_vies"][c.get("mobilite", "mobile")])
+
+
+def position_a_verifier(monde, id, sujet):
+    c = lire(monde, id)["croyances"].get(sujet, {}).get("lieu")
+    return bool(personne_autre(monde, id, sujet) and c and c["valeur"] is not None
+                and confiance_position(monde, id, sujet)
+                <= monde.data.get("positions_hypotheses", POSITIONS_HYPOTHESES)["seuil"])
+
+
+def hypothese_consommee(monde, id, sujet):
+    """La piste expirée a déjà été éprouvée, sans nouvelle localisation positive."""
+    c = lire(monde, id)["croyances"].get(sujet, {}).get("lieu") or {}
+    return personne_autre(monde, id, sujet) and "hypothese_consommee" in c
+
+
+def consommer_hypothese(monde, id, sujet):
+    """Une inspection/un appel épuise sa piste, pas la recherche de toute personne.
+
+    Le repère appartient à la croyance, survit à son constat d'absence et aux
+    relais de l'ancien renseignement. Seul croire admet une nouvelle preuve.
+    """
+    if not position_a_verifier(monde, id, sujet) or hypothese_consommee(monde, id, sujet):
+        return
+    c = esprit(monde, id)["croyances"][sujet]["lieu"]
+    c["hypothese_consommee"] = {"minute": monde.data["minutes"], "lieu": c["valeur"]}
+
+
+@contextmanager
+def verification_positions(monde, id, sujets):
+    """Le résultat de sa propre vérification n'en programme pas une autre.
+
+    Retrouver la même personne au même lieu clôt cette piste, même si le
+    regard vient d'en rafraîchir la date. Une position différente reste une
+    nouvelle entrée. Les perceptions ultérieures peuvent rouvrir la piste.
+    """
+    pistes = {s: lire(monde, id)["croyances"][s]["lieu"]["valeur"]
+              for s in sujets if position_a_verifier(monde, id, s)}
+    for s in pistes:
+        consommer_hypothese(monde, id, s)
+    try:
+        yield
+    finally:
+        for s, lieu in pistes.items():
+            c = esprit(monde, id)["croyances"][s]["lieu"]
+            if c["valeur"] in (None, lieu):
+                c["hypothese_consommee"] = {"minute": monde.data["minutes"], "lieu": lieu}
 
 
 def pnjs(monde):
@@ -165,6 +255,7 @@ def installer_statuts(monde, id):
 
 
 def installer(monde):
+    monde.data.setdefault("positions_hypotheses", copy.deepcopy(POSITIONS_HYPOTHESES))
     monde.data.setdefault("esprits", {})
     if "connaissances_joueur" not in monde.data:
         installer_statuts(monde, "joueur")
@@ -267,6 +358,11 @@ def _croyance_valide(monde, attribut, c):
     if attribut == "statuts":
         verifier_statuts(monde, c.get("valeur"))
     elif attribut == "lieu":
+        assert c.get("mobilite", "mobile") in POSITIONS_HYPOTHESES["demi_vies"], "Mobilité crue invalide"
+        if "hypothese_consommee" in c:
+            p = c["hypothese_consommee"]
+            assert (isinstance(p, dict) and set(p) == {"minute", "lieu"}
+                    and type(p["minute"]) is int and isinstance(p["lieu"], str)), "Hypothèse consommée invalide"
         # Une croyance peut survivre à son objet (détruit, retiré).
         assert (set(c) >= {"valeur", "salle", "case"}
                 and (c["valeur"] is None or isinstance(c["valeur"], str))
@@ -353,6 +449,13 @@ def _contre_offre_valide(monde, id, refus):
 
 
 def verifier(monde):
+    import math
+    r = monde.data["positions_hypotheses"]
+    assert (isinstance(r, dict) and set(r) == {"seuil", "demi_vies"}
+            and type(r["seuil"]) in (int, float) and math.isfinite(r["seuil"]) and 0 < r["seuil"] < 1
+            and isinstance(r["demi_vies"], dict) and set(r["demi_vies"]) == set(POSITIONS_HYPOTHESES["demi_vies"])
+            and all(type(v) in (int, float) and math.isfinite(v) and v > 0
+                    for v in r["demi_vies"].values())), "Règle des positions hypothétiques invalide"
     agendas.verifier_references_temporelles(monde)
     agendas.verifier(monde, 'joueur')
     if "connaissances_joueur" in monde.data:
@@ -579,6 +682,13 @@ def verifier(monde):
                 assert (isinstance(etape, dict) and set(etape) in (ETAPE, ETAPE | {"contenu"})
                         and etape["operation"] in OPERATIONS and isinstance(etape.get("contenu", {}), dict)
                         and etape["condition"] in ("", "sans_temoin", "dans_le_dos")), "Étape de plan invalide"
+                contenu = etape.get("contenu", {})
+                if "verification" in contenu:
+                    preuve = contenu["verification"]
+                    assert (etape["operation"] == "inspecter" and isinstance(contenu.get("cherche"), str)
+                            and bool(contenu["cherche"]) and isinstance(preuve, dict)
+                            and set(preuve) == {"type", "lieu"} and preuve["type"] == "position"
+                            and isinstance(preuve["lieu"], str) and bool(preuve["lieu"])), "Vérification de position invalide"
 
 
 def croyance(monde, id, sujet, attribut):
@@ -592,14 +702,28 @@ def croyance(monde, id, sujet, attribut):
         limite = RECENT if attribut in ("emotion", "intention", "parole_doutee") else 120
         if monde.data["minutes"] - c["minute"] >= limite:
             return None
+    if c and attribut == "lieu" and personne_autre(monde, id, sujet):
+        return {**c, "confiance": confiance_position(monde, id, sujet)}
     return c
 
 
 def croire(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
     monde_minute = monde.data["minutes"]
+    if attribut == "lieu" and valeur is None:
+        # Voir l'ancienne place vide vérifie aussi la piste, même avant le
+        # dernier geste du tour d'horizon prévu par le plan.
+        consommer_hypothese(monde, id, sujet)
     ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
     croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
+    if attribut == "lieu" and (consommee := (ancienne or {}).get("hypothese_consommee")):
+        date = min(croyance["minute"], croyance.get("origine", {}).get("minute", croyance["minute"]))
+        directe = (source in ("vu", "entendu", "essai", "se_dit") and "origine" not in lieu
+                   and ("minute" not in lieu or lieu["minute"] >= monde_minute))
+        if valeur is None or not (directe or date > consommee["minute"]):
+            croyance["hypothese_consommee"] = copy.deepcopy(consommee)
     esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    if attribut == "lieu" and personne_autre(monde, id, sujet) and valeur is not None:
+        croyance.setdefault("mobilite", mobilite_crue(monde, id, sujet))
     if (id != "joueur" and attribut == "lieu" and source == "entendu" and valeur in monde.data["salles"]
             and (sujet == "joueur" or monde.objets.get(sujet, {}).get("type") == "personnage")):
         _retenir_presence(monde, id, sujet, valeur)
@@ -1272,7 +1396,7 @@ def constater(monde, id, sujet, source):
     from .deliberation import proteges
     protege = (sujet == "joueur" or monde.objets[sujet]["type"] in ("personnage", "depouille")) and sujet in proteges(monde, id)
     if sujet == "joueur" or monde.objets[sujet]["type"] == "personnage":
-        from .corps import CORPS, visible
+        from .corps import CORPS, visible, corps
         besoins = monde.joueur.get("besoins", {}) if sujet == "joueur" else lire(monde, sujet)["besoins"]
         ancien = croyance(monde, id, sujet, "etat")
         if ancien and "parti" in ancien["valeur"]:
@@ -1281,7 +1405,13 @@ def constater(monde, id, sujet, source):
             croire(monde, id, sujet, "etat",
                    {**{nom: besoins.get(nom, 0) >= regle["urgence"] for nom, regle in CORPS.items()},
                     **visible(monde, sujet),
+                    **({"assis": True} if sujet != "joueur" and
+                       (corps(monde, sujet).get("vecu") or {}).get("activite") == "repos" else {}),
                     **({"parti": False} if ancien and "parti" in ancien["valeur"] else {})}, source)
+        lieu = lire(monde, id)["croyances"].get(sujet, {}).get("lieu")
+        if (lieu and lieu["source"] == source == "vu" and lieu["minute"] == monde.data["minutes"]
+                and personne_autre(monde, id, sujet)):
+            lieu["mobilite"] = mobilite_crue(monde, id, sujet)
         if (source == "vu" and not visible(monde, sujet)["conscient"]
                 and (not ancien or ancien["valeur"].get("conscient") is not False)
                 and protege):

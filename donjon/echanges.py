@@ -1189,6 +1189,8 @@ def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
     from .deliberation import oublier_refus, retenir_refus
     arret = accueil(monde, demandeur, auditeur)
     if sujet is not None:
+        from .esprits import consommer_hypothese
+        consommer_hypothese(monde, demandeur, sujet)
         # Une réponse de localisation porte exclusivement la croyance du témoin.
         # La date d'acquisition et la provenance restent distinctes de la réception.
         c = croyance(monde, auditeur, sujet, "lieu")
@@ -1201,8 +1203,10 @@ def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
         if appris:
             from .voix import source_dite
             croire(monde, demandeur, sujet, "lieu", c["valeur"], source_dite(monde, demandeur, auditeur),
-                   round(.7 * clarte(monde, demandeur), 2), salle=c["valeur"], case=None,
-                   origine=origine)
+                   min(round(.7 * clarte(monde, demandeur), 2),
+                       lire(monde, auditeur)["croyances"][sujet]["lieu"]["confiance"]),
+                   salle=c["valeur"], case=None,
+                   origine=origine, mobilite=c.get("mobilite", "mobile"))
         if demandeur != "joueur" and issue != "qui_va_la":
             from .deliberation import consommer_indices_recherche
             if appris:

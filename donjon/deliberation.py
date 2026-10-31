@@ -199,6 +199,9 @@ def relancer(monde, id, besoin, montant):
 
 def _lieu_cru(monde, id, sujet):
     from .monde import mobile_par_nature
+    from .esprits import position_a_verifier
+    if position_a_verifier(monde, id, sujet):
+        return None
     c = lire(monde, id)["croyances"].get(sujet, {}).get("lieu")
     if c:
         return c["valeur"]
@@ -2311,6 +2314,13 @@ def choisir(monde, id, minute):
                     proposition = candidat.methode(monde, id)
             finally:
                 e["intention"] = parent
+            if (proposition and courant and not moyen_dementi and proposition[0] == courant["but"]
+                    and candidat.besoin == courant["motif"] and courant["plan"]
+                    and _meme_demande_adoptee(candidat, courant, proposition, contrat_precedent)):
+                from .planification import verification_en_cours
+                if (verification_en_cours(monde, id, courant["plan"])
+                        and refus_etape(monde, id, courant["plan"]) is None):
+                    proposition = (courant["but"], courant["plan"])
             retenus = e["renoncements"].get(besoin, [])
             if (proposition and urgence.palier != Palier.PERIL_EAU
                     and any(renoncement_tient(monde, id, r, proposition)

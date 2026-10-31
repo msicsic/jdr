@@ -558,6 +558,16 @@ def _inspecter(monde, id, cherche=None, lignes=None, vers=None):
     """Depuis le centre de la salle (où il a marché), ou d'où il voit l'endroit d'où venait un bruit
     (``vers``), il la parcourt des yeux. S'il y cherche quelqu'un (``cherche``) qu'il ne sait pas là
     (``croit_present`` : il ne l'a pas vu en parcourant la salle des yeux), il l'appelle (``appeler``)."""
+    from .esprits import verification_positions
+    o = monde.objets[id]
+    sujets = [s for s, a in lire(monde, id)["croyances"].items()
+              if s == cherche or (a.get("lieu") or {}).get("salle") == o["lieu"]
+              or (a.get("lieu") or {}).get("valeur") == o["lieu"]]
+    with verification_positions(monde, id, sujets):
+        return _inspecter_salle(monde, id, cherche, lignes, vers)
+
+
+def _inspecter_salle(monde, id, cherche=None, lignes=None, vers=None):
     from .ouie import parcouru
     o = monde.objets[id]
     if cherche:
@@ -612,6 +622,8 @@ def heler(monde, id, qui, lignes):
     from .corps import conscient
     if not conscient(monde, id):
         return False
+    from .esprits import consommer_hypothese
+    consommer_hypothese(monde, id, qui)
     from .ouie import retentir
     from .social import _qui
     a, b = _qui(monde, id), _qui(monde, qui, id)
@@ -1809,9 +1821,10 @@ def croit_present(monde, a, b):
     reconnu à la voix ou entendu se nommer dans sa salle depuis peu (``RECENT``)."""
     if percoit(monde, a, b):
         return True
-    from .esprits import RECENT
+    from .esprits import RECENT, position_a_verifier
     c = lire(monde, a)["croyances"].get(b, {}).get("lieu")
-    return bool(c and c["valeur"] == monde.objets[a]["lieu"] and c["source"] in ("vu", "entendu", "se_dit")
+    return bool(c and not position_a_verifier(monde, a, b)
+                and c["valeur"] == monde.objets[a]["lieu"] and c["source"] in ("vu", "entendu", "se_dit")
                 and monde.data["minutes"] - c["minute"] <= RECENT)
 
 
@@ -2000,6 +2013,23 @@ def _agir(monde, id, t, lignes, gestes=None, compter=True):
             e["intention"] = None
         return reste, FIN, None
     etape = etapes[0]
+    # Un plan déjà sauvegardé peut avoir vieilli depuis son admission. La
+    # réalisation repasse par le même préfixe de contact que la recherche.
+    from .esprits import position_a_verifier, hypothese_consommee
+    participants = _a_reunir(monde, id, etape, venues=True)
+    requis = list(participants)
+    if etape["condition"] == "sans_temoin":
+        requis = [*requis, *e["croyances"]]
+    incertains = sorted({x for x in requis if position_a_verifier(monde, id, x)
+                        and (x in participants or not hypothese_consommee(monde, id, x))})
+    if incertains:
+        percevoir(monde, id)
+        incertains = [x for x in incertains if position_a_verifier(monde, id, x)]
+        if incertains:
+            from .planification import contacter
+            verification = contacter(monde, id, incertains[0])
+            etapes[:] = verification or []
+            return _agir(monde, id, t, lignes, gestes, compter) if etapes else (reste, FIN, None)
     operation = etape["operation"]
     if refus_etape(monde, id, etapes) is not None:
         return reste, MANQUE, etape

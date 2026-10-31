@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-position-hypothese` (256f903a) : lot 374, la position crue d'autrui comme hypothèse datée. Détail dans l'historique.
 - `codex-don-consentement` (41b0c4e2) : lot 394, le don direct passe par le consentement U-C. Détail dans l'historique.
 - `codex-parite-acoustique` (ce8ea206) : lot 391, parité acoustique après 376. Détail dans l'historique.
 - `codex-reservation-contrat` (792b3b38) : lot 393, une réservation ne bloque pas son propre contrat. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-information-terminal-connu` (7bdf4d1e) : lot 387, tests du terminal d'information après le catalogue connu. Détail dans l'historique.
 - `codex-um-social-avis` (20dcb5d2) : lot 386, U-M social avis. Détail dans l'historique.
 - `codex-s1e-vues-episodes` (56f46332) : lot 385, S1e les lecteurs d'épisodes par des vues pures. Détail dans l'historique.
-- `codex-s1d-promesses` (ae83ca65) : lot 384, S1d promesses, prêts et travaux payés. Détail dans l'historique.
 
 ## Lots non fusionnés
 

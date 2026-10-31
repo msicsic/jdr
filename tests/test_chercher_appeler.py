@@ -30,6 +30,7 @@ class RechercheTests(unittest.TestCase):
         cris = []
         indices = []
         passages_recherche = []
+        passages_verification = {}
         heler = pnj.heler
         chroniquer = pnj._chroniquer
         indice_recherche = deliberation.indice_recherche
@@ -49,12 +50,18 @@ class RechercheTests(unittest.TestCase):
             return heler(monde, id, cherche, lignes)
 
         def noter(monde, id, texte, nature='geste', **k):
-            # Le plafond de la recherche ne compte pas les trajets vers les
-            # marchés d'un projet indépendant. La capture A6 en ajoute 17,
-            # contre 14 passages des recours historiques ; mêmes monde et ouïe.
+            # Chaque recherche garde son plafond. Les marchés d'agenda et les
+            # vérifications typées d'autres personnes servent des prérequis
+            # distincts de la recherche suivie ici, sans lever ses exclusions.
             if (id == qui and nature == 'deplacement' and ' passe dans :' in texte
                     and (lire(monde, id)['intention'] or {}).get('motif') != 'agenda'):
-                passages_recherche.append(texte)
+                plan = (lire(monde, id)['intention'] or {}).get('plan', [])
+                verifie = next((s['contenu']['cherche'] for s in plan
+                                if (s.get('contenu', {}).get('verification') or {}).get('type') == 'position'), None)
+                if verifie and verifie != cible:
+                    passages_verification.setdefault(verifie, []).append(texte)
+                else:
+                    passages_recherche.append(texte)
             return chroniquer(monde, id, texte, nature, **k)
 
         with patch.object(pnj, 'heler', observer), patch.object(deliberation, 'indice_recherche', indice), \
@@ -66,6 +73,8 @@ class RechercheTests(unittest.TestCase):
         self.assertEqual(bloc.data, coupe.data)
         self.assertLessEqual(len(cris), len(m.data['salles']) + len(indices))
         self.assertLessEqual(len(passages_recherche), 4 * len(m.data['salles']))
+        for personne, passages in passages_verification.items():
+            self.assertLessEqual(len(passages), 4 * len(m.data['salles']), personne)
         self.assertEqual(rendre(bloc, entendus(bloc, debut, ENTENDU)),
                          rendre(coupe, entendus(coupe, debut, ENTENDU)))
 
