@@ -11,6 +11,7 @@ from .emissions import pnj as emissions_pnj, joueur as emissions_joueur
 from . import agendas
 
 import copy
+import hashlib
 import re
 
 from .monde import ErreurMonde, normaliser
@@ -165,6 +166,14 @@ def rendre_resultat(resultat):
     return "\n".join(lignes).strip() or "Action accomplie."
 
 
+SCHEMA_ELEMENT_AMBIANCE = {
+    "type": "object", "additionalProperties": False,
+    "properties": {"id": {"type": "string"}, "libelle": {"type": "string"},
+                   "ancrage": {"type": "string"}, "manipulable": {"type": "boolean"}},
+    "required": ["id", "libelle", "ancrage", "manipulable"],
+}
+
+
 SCHEMA_AUDIT = {
     "type": "object", "additionalProperties": False,
     "properties": {"segments": {"type": "array", "maxItems": 24,
@@ -248,6 +257,8 @@ def schema_audit(faits, nombre):
                     retirer.extend(("locuteur", "citation", "presentation"))
                 if nature not in ("ambiance", "engagement"):
                     retirer.append("entites")
+                if nature == "ambiance":
+                    proprietes["entites"]["items"] = copy.deepcopy(SCHEMA_ELEMENT_AMBIANCE)
                 if not refuse:
                     retirer.append("motif")
                 else:
@@ -355,8 +366,12 @@ doivent déjà venir de l'état ou d'une décision typée du moteur. Le fait d'a
 la demande du joueur et un contenu propos vide ne prouvent aucun de ces termes.
 - neutre : aucune affirmation sur le monde (salutation, question, conseil, invitation) ;
 - hypothese : possibilité explicitement présentée comme incertaine ;
-- ambiance : description sensorielle libre ; liste dans entites les éléments évoqués,
-  en quelques mots chacun (« odeur de vase », « gouttes au plafond »). Ce que fait sentir un
+- ambiance : description sensorielle libre ; entites décrit les éléments évoqués :
+  id local distinct, libelle littéral du segment, ancrage = identifiant d'un support
+  public visible (objet:<id> ou faits_narratifs_proposables.supports), ou chaîne vide
+  pour une sensation diffuse du lieu ; manipulable indique si une matérialisation
+  physique peut être proposée, jamais une propriété déjà acquise. Une sensation
+  diffuse n'est pas manipulable. L'enveloppe ne crée aucun objet. Ce que fait sentir un
   objet perçu dans l'état que disent les faits (le crépitement ou la fumée d'un feu allumé, la
   lueur d'une lanterne, l'eau qui clapote là où il y en a) est ambiance : les faits n'ont pas à
   le fournir ;
@@ -1281,7 +1296,7 @@ def controler(texte, rapport, faits, partie="texte"):
                 or not isinstance(ligne["sources"], list)
                 or any(not isinstance(s, str) for s in ligne["sources"])
                 or not isinstance(ligne["entites"], list)
-                or any(not isinstance(e, str) for e in ligne["entites"])
+                or any(not isinstance(e, (str, dict)) for e in ligne["entites"])
                 or any(not isinstance(ligne[k], str) for k in ("locuteur", "citation", "presentation", "motif"))):
             raise AuditIllisible("Contrôle narratif mal formé.")
         verdict = ligne["verdict"]
@@ -1351,7 +1366,8 @@ def controler(texte, rapport, faits, partie="texte"):
                     f"une réponse de {en_liste(destinataires)} seulement (conversation_validee.repondent) ; "
                     f"{locuteur} se tait", f"locuteur {locuteur}")
         elif verdict == "engagement" and (not ligne["entites"] or any(
-                e.strip() not in engagements_prevus(faits, locuteur) for e in ligne["entites"])):
+                not isinstance(e, str) or e.strip() not in engagements_prevus(faits, locuteur)
+                for e in ligne["entites"])):
             # Sa parole atteste qu'il l'a dit ; ce qu'il fera, seul le moteur le décide.
             prevus = sorted(engagements_prevus(faits, locuteur))
             accepte = (f"seulement ce que le moteur a prévu pour {locuteur} : "
@@ -1384,7 +1400,7 @@ def controler(texte, rapport, faits, partie="texte"):
                                 **({'presentation':ligne['presentation']} if ligne['presentation'] else {})})
         elif verdict == "ambiance":
             ambiances.append({"texte": passage,
-                              "entites": [e.strip()[:80] for e in ligne["entites"] if e.strip()]})
+                              "entites": valider_elements_ambiance(ligne["entites"], passage, faits)})
         elif verdict in ("invention_protegee", "contradictoire"):
             refuser(ligne["motif"] or "Affirmation mécanique non établie.", ACCEPTE_VERDICT[verdict])
     return {"segments": copy.deepcopy(lignes_validees), "paroles": paroles, "ambiances": ambiances,
@@ -1453,6 +1469,42 @@ def repli(monde, faits, message, *, defaut=None):
             "veux regarder, examiner ou tenter.")
 
 
+def valider_elements_ambiance(elements, texte, faits):
+    """Une extraction décrit la prose, jamais une existence mécanique.
+
+    Les anciennes listes de libellés restent lisibles mais n'autorisent aucune
+    matérialisation : leur ancrage et leur nature ne sont pas connus.
+    """
+    if len(elements) > 8:
+        raise AuditIllisible("Trop d'éléments d'ambiance.")
+    supports = set((faits.get("faits_narratifs_proposables") or {}).get("supports", {}))
+    supports.update(k[6:] for k, v in faits.items() if k.startswith("objet:")
+                    and v.get("visible") and v.get("type") not in ("personnage", "partie_corps"))
+    resultat, ids = [], set()
+    for e in elements:
+        if isinstance(e, str):
+            if e.strip():
+                resultat.append(e.strip()[:80])
+            continue
+        if (not isinstance(e, dict) or set(e) != set(SCHEMA_ELEMENT_AMBIANCE["required"])
+                or not all(isinstance(e[k], str) for k in ("id", "libelle", "ancrage"))
+                or not re.fullmatch(r"[a-zA-Z0-9_-]{1,60}", e["id"])
+                or e["id"] in ids or not 3 <= len(e["libelle"]) <= 60
+                or e["libelle"] not in texte or type(e["manipulable"]) is not bool
+                or e["ancrage"] and e["ancrage"] not in supports
+                or e["manipulable"] and not e["ancrage"]):
+            raise AuditIllisible("Élément d'ambiance sans libellé littéral, identifiant distinct ou ancrage public.")
+        ids.add(e["id"])
+        resultat.append(copy.deepcopy(e))
+    return resultat
+
+
+def elements_ambiance(monde, salle=None):
+    """Références locales persistées, distinctes des objets du monde."""
+    return [e for a in monde.data.get("ambiances", {}).get(salle or monde.joueur["salle"], [])
+            for e in a["entites"] if isinstance(e, dict)]
+
+
 def consigner(monde, reponse):
     """Enregistre une réponse contrôlée, ses paroles et son ambiance sur l'état à sauvegarder."""
     from .repliques_moteur import verifier_publication
@@ -1472,6 +1524,43 @@ def consigner(monde, reponse):
     if rapport["obstacles"]:
         raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.",
                           rapport["obstacles"][0]["attendu"])
+    # Revalider avant toute écriture, sur le lieu encore courant. Une extraction
+    # portant une référence masquée ou un support quitté ne peut être publiée.
+    precedents = elements_ambiance(monde)
+    for ambiance in rapport["ambiances"]:
+        for e in ambiance["entites"]:
+            if not isinstance(e, dict):
+                continue
+            ancrage = e["ancrage"]
+            if (audit.get("salle_origine", salle) != salle
+                    or audit["faits"].get("salle", {}).get("nom") != monde.data["salles"][salle]["nom"]
+                    or ancrage and (ancrage not in monde.objets or not monde.visible(ancrage)
+                                    or not monde.present_physique(ancrage))):
+                raise ErreurMonde("Cette ambiance ne correspond plus au lieu perçu.",
+                                  f"ancrage reçu {ancrage!r} : accepté un support public visible du lieu courant {salle}.")
+            connu = next((p for p in precedents if p["ancrage"] == ancrage
+                          and normaliser(p["libelle"]) == normaliser(e["libelle"])), None)
+            if connu:
+                if e["manipulable"] != connu["manipulable"]:
+                    raise ErreurMonde("La nature de cet élément d'ambiance est déjà établie.",
+                                      f"manipulable reçu {e['manipulable']!r} pour {connu['id']} : "
+                                      f"accepté {connu['manipulable']!r}.")
+                e["id"] = connu["id"]
+                if "objet" in connu:
+                    e["objet"] = connu["objet"]
+            else:
+                # Identité locale stable même après éviction de l'ancienne prose.
+                # Aucune propriété physique n'est déduite de cette empreinte.
+                cle = repr((salle, ancrage, normaliser(e["libelle"])))
+                e["id"] = "ambiance_" + hashlib.sha256(cle.encode()).hexdigest()[:24]
+                objet = next((o["id"] for o in monde.objets.values()
+                              if o.get("origine_ambiance") == e["id"]), None)
+                if objet:
+                    if not e["manipulable"]:
+                        raise ErreurMonde("Cet élément d'ambiance a déjà été matérialisé.",
+                                          f"manipulable reçu False pour {e['id']} : accepté True, objet {objet}.")
+                    e["objet"] = objet
+                precedents.append(e)
     etablis = segments_etablis(audit["texte_initial"], audit["faits"])
     if any(ligne['sources'] == ['echanges_passes'] for ligne in etablis.values()):
         from .dialogues import interlocuteurs
@@ -1579,12 +1668,13 @@ def ambiance_ciblee(monde, message):
 
     demandes = racines(message)
     return [a for a in ambiance_etablie(monde)
-            if demandes & {r for e in a["entites"] for r in racines(e)}]
+            if demandes & {r for e in a["entites"]
+                           for r in racines(e["libelle"] if isinstance(e, dict) else e)}]
 
 
 def ambiance_etablie(monde, salle=None):
     """Descriptions d'ambiance déjà affichées pour ce lieu, sans valeur mécanique."""
-    return [{"texte": a["texte"], "entites": a["entites"]}
+    return [{"texte": a["texte"], "entites": copy.deepcopy(a["entites"])}
             for a in monde.data.get("ambiances", {}).get(salle or monde.joueur["salle"], [])]
 
 
@@ -1595,7 +1685,17 @@ def verifier(monde):
                 and all(isinstance(a, dict) and set(a) == {"texte", "entites", "revision"}
                         and isinstance(a["texte"], str) and bool(a["texte"].strip())
                         and isinstance(a["entites"], list)
-                        and all(isinstance(x, str) for x in a["entites"])
+                        and all(isinstance(x, str) or (
+                            isinstance(x, dict)
+                            and set(x) in (set(SCHEMA_ELEMENT_AMBIANCE["required"]),
+                                           set(SCHEMA_ELEMENT_AMBIANCE["required"]) | {"objet"})
+                            and all(isinstance(x[k], str) for k in ("id", "libelle", "ancrage"))
+                            and bool(x["id"]) and x["libelle"] in a["texte"]
+                            and type(x["manipulable"]) is bool
+                            and (not x["manipulable"] or x["ancrage"] in monde.objets)
+                            and ("objet" not in x or x["objet"] in monde.objets
+                                 and monde.objets[x["objet"]].get("origine_ambiance") == x["id"]))
+                                for x in a["entites"])
                         and type(a["revision"]) is int for a in liste)), "Ambiance invalide"
     for e in monde.data.get("narrations_mj", []):
         assert (isinstance(e, dict) and set(e) == {"texte", "revision", "sources"}

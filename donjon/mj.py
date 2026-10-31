@@ -714,6 +714,9 @@ class MJ:
                 # Une question sur la faisabilité d'un geste se prépare comme sa demande : la boucle de
                 # jeu ne l'exécute pas (``commandes.PERCEPTIONS``) et montre ce qu'il demanderait.
                 try:
+                    from .faits_locaux import lier_cibles_ambiance
+                    p = lier_cibles_ambiance(monde, p)
+                    reponse["proposition"] = p
                     plan = Moteur(monde).preparer(p, "MJ")
                 except ErreurMonde as exc:
                     if isinstance(exc, ProprieteInconnue) and geste_en_question(monde, intention):
@@ -1483,7 +1486,8 @@ direction), plus lents, ils ne s'entendent que de tout près.
                 if rapport is None:
                     continue
                 audits[nom] = {**rapport, "faits": faits, "texte_initial": texte, "fondement": base,
-                               "fondement_paroles": paroles}
+                               "fondement_paroles": paroles,
+                               **({"salle_origine": monde.joueur["salle"]} if monde is not None else {})}
                 obstacles.extend(rapport["obstacles"])
                 if monde is not None:
                     obstacles.extend(mentions_narratives(monde,texte,base,paroles,partie=nom,

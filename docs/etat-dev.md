@@ -43,7 +43,16 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 426 (K0, candidats de contrat), 427 (G14, ciblage d’ambiance), 428 (D0, parole ouverte), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+- `codex-g14-ciblage-ambiance` — lot 427, base `origin/integration` / `ce64ba7e`.
+  Enveloppe cosmétique validée et persistée ; matérialisation unique par les faits communs,
+  reprise vers le même objet après recharge et éviction de prose ; odeur et budget refusés.
+  Tests : 81/82 verts, dont 5 G14 ; seul échec narratif reproduit sur la base, aucune erreur.
+  Banc rapide Relais : 4 h × 4 graines, chroniques/mesures/états finaux identiques à la base.
+  Luna, une passe : 31 appels / 9 tours MJ, aucun ramassage réussi ; revues sémantiques encore bloquantes.
+  Limites : paraphrases, classification et portée ; anciennes ambiances sans ancrage non reconstruites.
+  [Rapport 427](taches/rapport-codex-427-g14-ciblage-ambiance.md).
+
+Lots en cours : 426 (K0, candidats de contrat), 428 (D0, parole ouverte), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

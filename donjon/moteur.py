@@ -243,6 +243,8 @@ class Moteur:
                               "auteur=joueur, conscient=false : accepté conscient=true ; actions acceptées : aucune.")
         from .noms import references
         p = references(self.monde, p)
+        from .faits_locaux import lier_cibles_ambiance
+        p = lier_cibles_ambiance(self.monde, p)
         vers = self._regard(p)
         if vers is None:
             return self._preparer(p, origine)
