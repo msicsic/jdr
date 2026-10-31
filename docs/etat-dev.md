@@ -43,15 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-a3-liaison-transport` — lot 410, base `57299df4` : mode/charge et contrats A2 liés dans une
-  grammaire commune cloud/local ; enveloppe `reponse`, contrôle avant audit/préparation avec `attendu`.
+- `codex-a3-liaison-transport` — lot 410, base `57299df4`, **NON VALIDÉ côté ChatGPT, ne pas fusionner** :
+  Mode/charge et contrats A2 liés cloud/local ; enveloppe `reponse`, contrôle avant audit/préparation avec `attendu`.
   Parcours réseau simulé Relais/auberge, sons, sauvegarde et reprise ; assertions de sécurité conservées.
-  146 tests verts (4 ignorés), reprise finale 15/15 ; prévol conforme. Lanceur corrigé après collision d'import.
-  Empreintes 2 h × quatre graines puis Luna en cours : `C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/fin-reprise.json`.
-  Aucun choix sémantique de Luna garanti ; voies transitoires et audits conservés.
+  146 tests verts (4 ignorés), reprise finale 15/15 ; prévol conforme ; empreintes Relais/auberge identiques (2 h × 4 graines).
+  Luna, une passe : 27/27 appels interrompus `max_output_tokens`, 27 replis, aucune erreur de recharge ; fidélité non mesurable.
+  Bruts : `C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/conclusion.json` ; voies transitoires et audits conservés.
   [Rapport](taches/rapport-codex-410-a3-liaison-transport.md).
 
-Lots en cours : 409 (S1k refus et recours), 410 (A3 liaison du transport), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 409 (S1k refus et recours), 402 (vérification d'intégration moteur) ; 410 livré non validé (voir ci-dessus) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

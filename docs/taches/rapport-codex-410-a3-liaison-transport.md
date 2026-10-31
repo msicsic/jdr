@@ -1,61 +1,58 @@
 # Lot 410 — A3, liaison du transport
 
-31 octobre 2026 — branche `codex-a3-liaison-transport`, base `integration`
+31 octobre 2026 — `codex-a3-liaison-transport`, base `integration`
 `57299df44e1ca7e7dcbdfa65b320f125c377dcad`, non fusionnée.
 
-**Invariant et changement.** `fournisseurs.contrat.lier_modes` relie chacun
-des neuf modes à sa charge, au texte vide ou au dialogue sans proposition.
-Les charges réemploient les schémas canoniques A2 : attente/séquence,
-expression/son, passage et consultation sociale, y compris la suite après
-admission de faits. L'ancienne API `proposer_action` expose aussi les contrats
-d'attente et de passage. Aucun choix de grammaire selon la saisie ou la scène.
+**Verdict : NON VALIDÉ côté ChatGPT, ne pas fusionner en l'état.** Tests et
+empreintes passent ; les 27 appels de l'unique passe Luna échouent avant une
+réponse complète. Le transport réel et la fidélité sémantique ne sont pas validés.
 
-**Transport et admission.** OpenAI interdit `anyOf` à la racine : une enveloppe
-`reponse` commune à OpenAI et Local porte l'union, mutualisée sans perte de
-contrainte ; les adaptateurs la défont avant le MJ. Instructions de transport,
-entrée et schéma sont identiques. Une ancienne réponse à plat reste soumise
-à la même validation. La validation commune du sous-ensemble de JSON Schema
-employé par ces contrats précède les audits et préparateurs, après le contrôle
-de disponibilité. Le refus conserve chemin, reçu et accepté dans `attendu` et
-reprend la boucle de correction bornée existante. Les champs voisins interdits
-sont diagnostiqués avant le contenu libre manquant. Un mot-clé de schéma non
-pris en charge provoque une erreur explicite, jamais un contrôle ignoré.
+**Invariant et fonctions.** `fournisseurs.contrat.lier_modes` relie les neuf
+modes à leur charge et au texte vide ou au dialogue sans proposition. Les
+charges réemploient les contrats A2 attente/séquence, expression/son, passage
+et consultation sociale, y compris la suite après faits. `proposer_action`
+reprend aussi attente/passage. Aucune sélection selon saisie, lieu ou scénario.
+OpenAI et Local partagent schéma mutualisé, instructions et enveloppe `reponse`
+(OpenAI interdit `anyOf` à la racine), décodée avant le MJ. Une réponse ancienne
+à plat subit le même contrôle. `fournisseurs.schema.verifier` contrôle la
+grammaire avant audit/préparation, après disponibilité, avec chemin/reçu/accepté
+dans `attendu` et correction bornée existante. Un mot-clé inconnu n'est pas ignoré.
 
-**Preuves ciblées.** Croisements des charges entre les neuf modes ; mutations
-des paramètres des quatre familles, dans la proposition et dans la suite ;
-parité exacte des requêtes cloud/local et équivalence après développement des
-références ; précontrôle des limites du fournisseur. Vrais adaptateurs réseau
-simulés, MJ, revue, console/PontWeb : poutre du Relais et table de l'auberge,
-fredonnement et rythme corporel, état complet et réponse sauvés avant affichage,
-« Compris » et vues relus après reprise. Paramètre voisin refusé puis correction
-sur deux scènes : même monde sauvegardé et même rendu que le témoin valide.
-Les tests A2 voisins couvrent aussi le laps en bloc/découpé avec recharges.
-Une seule fixture ancienne est complétée par `proposition('observer')` :
-l'ancien objet réduit à `action` était volontairement hors du schéma ; les
-assertions de disponibilité, relance et identité du schéma restent inchangées.
+**Preuves.** Croisements des charges entre modes, paramètres voisins des quatre
+familles et des suites, parité des requêtes réellement émises cloud/local,
+équivalence des références développées. Vrais adaptateurs réseau simulés, MJ,
+revue et console/PontWeb : poutre du Relais/table de l'auberge, fredonnement/rythme
+corporel, sauvegarde avant affichage, « Compris », état complet et vues après
+reprise. Refus puis correction sur deux scènes : état/rendu identiques au témoin.
+Les voisins A2 contrôlent aussi les laps en bloc/découpés avec recharges.
+Une fixture devient `proposition('observer')` au lieu du seul champ `action`,
+incomplet selon le schéma : toutes ses assertions de sécurité restent intactes.
 
-**Mesures.** Première passe ciblée : **146 tests, zéro échec, zéro erreur,
-quatre ignorés**, treize fichiers, **328,12 s**, deux travailleurs à priorité
-réduite ; pas de suite complète (`tests-cibles.json`). Reprise finale A3/schéma :
-**15/15 verts, 105,51 s**, aucun ignoré (`tests-finaux.json`). Prévol final :
+**Mesures hors modèle.** Treize fichiers : **146 tests, zéro échec/erreur,
+4 ignorés, 328,12 s** ; reprise finale A3/schéma : **15/15, 105,51 s**, aucun
+ignoré. Deux travailleurs à priorité réduite ; aucune suite complète. Prévol :
 **446 propriétés, 473 valeurs d'enum, 6 551 caractères comptés, profondeur 9**,
-62 963 octets de schéma mutualisé ; les limites publiées sont respectées.
-Le premier lanceur s'est arrêté après les tests sur une collision entre
-`tools/tests.py` et le dossier `tests` (`fin.json`) : aucun banc ni appel Luna
-n'avait démarré. Le chemin d'import du lanceur est corrigé, sans modifier le
-jeu ni relancer les tests. La reprise détachée est confirmée vivante à l'étape
-empreintes : Relais/auberge, 2 h × quatre graines, référence exacte ci-dessus
-réemployée depuis le cache ; puis une passe Luna des cinq bancs demandés.
-Le résultat sera inscrit après lecture de **`fin-reprise.json`** ; aucun succès
-de calcul inachevé n'est revendiqué. Commandes exactes : `commandes-reprise.json`. Bruts :
-`C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/`.
+62 963 octets mutualisés, dans les [limites publiées OpenAI](https://developers.openai.com/api/docs/guides/structured-outputs).
+**Empreintes identiques** : chronique, mesures et état complet, Relais/auberge,
+2 h × 1985/7/42/2024, huit nuits par version ; base `57299df4` puis `844ab4fa`,
+`PYTHONHASHSEED=0`. Référence absente calculée une fois puis cachée, branche non
+cachée. L'avis Relais 2024 « à expliquer » existe des deux côtés ; aucun gain
+de vitesse revendiqué.
 
-**Limites.** La grammaire garantit la forme et la liaison des charges des
-contrats portés, pas le choix sémantique de Luna ni la faisabilité dans le monde.
-Les opérations transitoires conservent leurs schémas et contrôles mécaniques ;
-ce lot n'est pas un portage général de leurs paramètres. Aucun audit retiré,
-aucune nouvelle mécanique ni registre d'esprit, A4/A6 hors lot. Le serveur local
-est éprouvé par ses vraies requêtes et réponses simulées ; aucune disponibilité
-d'un serveur local réel n'est revendiquée. La fidélité Luna reste à mesurer.
+**Luna, une passe sur copies.** Appels interrompus : Relais **8/8**, atelier
+**11/11**, échanges **3/3**, noms-dialogue **4/4**, sous-obstacle-relais **1/1**.
+Total : **27 erreurs `incomplète : max_output_tokens`, 27 replis, 131,6 s**,
+aucun audit atteint ni erreur de recharge. Aucun résultat exploitable, brut ou
+usage dans les traces ; cause non isolée. Les codes de sortie 0 de `fin-reprise.json`
+attestent seulement la fin des commandes. Pas de seconde passe. Le premier
+lanceur avait échoué après les tests sur la collision `tools/tests.py`/dossier
+`tests` (`fin.json`) ; corrigé sans changement du jeu ni nouvelle passe de tests,
+il a repris les seuls calculs manquants. Bruts et commandes exactes :
+`C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/`, notamment
+`tests-cibles.json`, `tests-finaux.json`, `empreintes.json`, `luna/`,
+`commandes-reprise.json` et **`conclusion.json`** (verdict interprété).
 
-Limites de schéma vérifiées selon la [documentation OpenAI](https://developers.openai.com/api/docs/guides/structured-outputs).
+**Limites.** La liaison des contrats portés est démontrée hors ligne, pas sur
+ChatGPT ; l'invariant cloud reste non garanti. Les opérations transitoires et
+leurs contrôles restent en place. Aucun audit retiré, aucune mécanique ni
+registre d'esprit ajouté ; A4/A6 hors lot. Aucun serveur local réel éprouvé.
