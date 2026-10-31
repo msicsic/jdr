@@ -36,6 +36,10 @@ class AttenduTests(unittest.TestCase):
     def test_objet_dans_un_contenant_ferme_demande_de_l_ouvrir(self):
         m = nouveau_monde()
         m.joueur["salle"] = "crypte"
+        # Lot 365 : l'anneau est désormais un savoir de prémisse. Examiner
+        # un bien connu mais invisible constate seulement sa non-perception.
+        # Ici, éprouver le refus d'accès à un bien encore inconnu.
+        m.data["connus"].remove("anneau")
         exc = refus(m, proposition("examiner", "anneau"))
         self.assertIn("ouvre d'abord coffre", exc.attendu)
 
@@ -74,7 +78,8 @@ class AttenduTests(unittest.TestCase):
 
     def test_patienter_dit_ses_champs(self):
         exc = refus(nouveau_monde(), sequence(etape("patienter", "marchand")))
-        self.assertIn("cible, destination et outil vides", exc.attendu)
+        # Contrat 370 : une seule cause, champ reçu et valeur admise.
+        self.assertEqual(exc.attendu, "patienter.cible : reçu 'marchand' ; accepté : ''.")
 
 
 class ImprovisationTests(unittest.TestCase):
