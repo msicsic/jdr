@@ -43,7 +43,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 403 (rouges nouveaux de la suite c562aa21), 406 (S1j paroles et voix), 407 (A2 consultation sociale) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 403 (rouges nouveaux de la suite c562aa21), 406 (S1j paroles et voix), 407 (A2 consultation sociale), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
