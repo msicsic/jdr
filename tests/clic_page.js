@@ -154,6 +154,10 @@ if (ETAT.sonde_comptes) {
   form.onsubmit({preventDefault() {}}); sortie.comptes.incomplet = envois.length;
   const label = form.children.find(x => x.tagName === "LABEL"), input = label.children[1];
   input.value = String(f.choix); input.onchange(); sortie.comptes.clics += 2;
+  const champMontant = form.children.filter(x => x.tagName === "LABEL")[1].children[1];
+  sortie.comptes.montant_defaut = champMontant.value;
+  sortie.comptes.montant_visible = !form.children.filter(x => x.tagName === "LABEL")[1].hidden;
+  if (Object.hasOwn(f, "montant")) champMontant.value = String(f.montant);
   sortie.comptes.choix = input.children.map(x => x.textContent);
   sortie.comptes.resume = form.children.filter(x => x.tagName === "P").at(-1).textContent;
   document.activeElement = input;

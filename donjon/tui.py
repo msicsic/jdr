@@ -378,9 +378,9 @@ class SeuilApp(App[int]):
 
     def soumettre(self, texte, enregistrer_historique=True):
         texte = texte.strip()
-        if not texte or self.occupe:
-            return
         recette = getattr(self, "recette", None)
+        if self.occupe or not texte and not getattr(recette, 'accepte_vide', False):
+            return
         if recette and not enregistrer_historique:
             return
         try:

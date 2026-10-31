@@ -59,7 +59,7 @@
   .aide { color: var(--doux); font-size: 12px; }
   #statut { font-weight: 600; }
   #fabrication label, #information label, #avis label, #accord label, #comptes label { display: block; margin: 8px 0; }
-  #fabrication select, #fabrication input, #information select, #avis select, #accord select, #accord input, #comptes select { width: 100%; background: var(--fond); color: var(--texte); padding: 4px; }
+  #fabrication select, #fabrication input, #information select, #avis select, #accord select, #accord input, #comptes select, #comptes input { width: 100%; background: var(--fond); color: var(--texte); padding: 4px; }
   #fabrication .aide, #information .aide, #avis .aide { display: block; }
 </style>
 </head>
@@ -708,7 +708,7 @@ function ouvrirComptes() {
     const p = document.createElement("p"); p.textContent = ligne; form.appendChild(p);
   }
   const aide = document.createElement("p");
-  aide.textContent = "Le moteur décide du règlement, y compris après une question sur le dû. Préparer ne transfère rien ; confirme ensuite avec tenter. Restituer concerne les prêts d’objets. Le remboursement volontaire d’une dette en pièces reste indisponible.";
+  aide.textContent = "Le moteur décide du règlement, y compris après une question sur le dû. Préparer ne transfère rien ; confirme ensuite avec tenter. Restituer concerne les prêts d’objets. Pour rembourser, le montant dû est proposé ; tu peux verser une partie.";
   form.appendChild(aide);
   const label = document.createElement("label"), titre = document.createElement("span");
   titre.textContent = "Choix de compte"; label.appendChild(titre);
@@ -723,8 +723,18 @@ function ouvrirComptes() {
     choix.appendChild(option);
   });
   choix.value = ""; label.appendChild(choix); form.appendChild(label);
+  const labelMontant = document.createElement("label"), titreMontant = document.createElement("span");
+  titreMontant.textContent = "Montant à rembourser en pièces"; labelMontant.appendChild(titreMontant);
+  const montant = document.createElement("input"); montant.type = "number"; montant.min = "1"; montant.step = "1";
+  labelMontant.appendChild(montant); form.appendChild(labelMontant);
   const resume = document.createElement("p"); form.appendChild(resume);
-  choix.onchange = () => { resume.textContent = projection.choix[choix.value]?.nom || "Choisis les termes à soumettre."; };
+  choix.onchange = () => {
+    const c = projection.choix[choix.value];
+    const remboursement = c?.descripteur.parametres.operation === "rembourser";
+    labelMontant.hidden = !remboursement; montant.required = remboursement;
+    montant.value = remboursement ? String(c.descripteur.parametres.montant) : "";
+    resume.textContent = c?.nom || "Choisis les termes à soumettre.";
+  };
   choix.onchange();
   const preparer = document.createElement("button"); preparer.type = "submit";
   preparer.textContent = "Préparer ce choix"; form.appendChild(preparer);
@@ -734,7 +744,14 @@ function ouvrirComptes() {
     e.preventDefault(); if (occupe || form.hidden) return;
     const c = projection.choix[choix.value];
     if (!c) { resume.textContent = "Choisis un compte affiché."; return; }
-    arreter(null); envoyer(c.descripteur); form.hidden = true;
+    const d = JSON.parse(JSON.stringify(c.descripteur));
+    if (d.parametres.operation === "rembourser") {
+      if (!/^[0-9]+$/.test(montant.value) || !Number.isSafeInteger(Number(montant.value)) || Number(montant.value) <= 0) {
+        resume.textContent = "Saisis un nombre entier positif de pièces."; return;
+      }
+      d.parametres.montant = Number(montant.value);
+    }
+    arreter(null); envoyer(d); form.hidden = true;
   };
 }
 $("avertir").onclick = () => ouvrirInformation("", "avis");

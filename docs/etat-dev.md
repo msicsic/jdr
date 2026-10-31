@@ -43,6 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-rembourser-public` (399), base `integration 60f857c5`, départ `561c1d16` : remboursement
+  total ou partiel des dettes publiques de Corvus depuis web/console/TUI, même acte 388, U-D et U-C.
+  Solde figé revalidé ; refus distincts, aucun modèle ni registre ajouté ; recharge et laps découpé.
+  12 nouveaux tests verts (9 + 3 compléments) ; empreintes Relais/auberge 2 h × quatre graines : 8/8 identiques.
+  Vérification groupée de neuf fichiers détachée, deux travailleurs réduits ; bilan attendu :
+  `C:/Users/msics/donjon/artifacts/rembourser-public-399/fin-verification.json`. Pas encore validé globalement.
+  Rapport : [399](taches/rapport-codex-399-rembourser-public.md). Fusion au superviseur.
+
 Lots en cours : 381 (A2 passage), 397 (S1f localisation et possession), 399 (rembourser depuis le menu et le terminal) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 

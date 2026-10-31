@@ -82,23 +82,27 @@ class ComptesPublicsTests(unittest.TestCase):
         self.assertEqual(self.vues(n), self.vues(m))
         return n
 
-    def clic(self, m, x, annuler=False):
+    def clic(self, m, x, annuler=False, montant=None):
         public = etat(m)
         public['sonde_comptes'] = {'choix': public['comptes']['choix'].index(x), 'annuler': annuler}
+        attendu = copy.deepcopy(x['descripteur'])
+        if montant is not None:
+            public['sonde_comptes']['montant'] = montant
+            attendu['parametres']['montant'] = montant
         r = page(m, public)['comptes']
         self.assertEqual((r['incomplet'], r['clavier'], r['occupe']), (0, 0, 0))
         self.assertEqual(r['envois'], 0 if annuler else 1)
         self.assertTrue(r['ferme_apres_etat'])
         self.assertEqual(r['resume'], x['nom'])
         if not annuler:
-            self.assertEqual(r['envoye'], x['descripteur'])
+            self.assertEqual(r['envoye'], attendu)
             self.assertEqual(r['clics'], 4)
         return DescripteurPublic(r.get('envoye'))
 
-    def parite_parole(self, m, x):
+    def parite_parole(self, m, x, montant=None):
         from donjon.spatial import installer
         installer(m)
-        d = self.clic(m, x)
+        d = self.clic(m, x, montant=montant)
         avant = copy.deepcopy(m.data)
         p = parole_compte(m, d.contenu)
         with patch.object(Monde, 'd20', return_value=20):

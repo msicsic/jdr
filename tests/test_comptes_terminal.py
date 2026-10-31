@@ -25,12 +25,21 @@ from tests.test_parole_corrections import banc
 from tests.test_tensions import recharger
 
 
-def parcours(m, x):
+def parcours(m, x, montant=None):
     public = comptes_publics(m)
     numero = str(public['choix'].index(x) + 1)
-    d = ComptesTerminal(public).saisir(numero)
-    assert d.contenu == x['descripteur']
-    return ['comptes', numero]
+    f = ComptesTerminal(public)
+    d = f.saisir(numero)
+    entrees = ['comptes', numero]
+    attendu = copy.deepcopy(x['descripteur'])
+    if attendu['parametres'].get('operation') == 'rembourser':
+        assert d is None
+        entrees.append('' if montant is None else str(montant))
+        d = f.saisir(entrees[-1])
+        if montant is not None:
+            attendu['parametres']['montant'] = montant
+    assert d.contenu == attendu
+    return entrees
 
 
 def vues(m):
@@ -62,7 +71,7 @@ class FormulaireComptesTests(unittest.TestCase):
         m = banc('ressources')
         rembourser(m, 'aubin', 'brune', 937, 'vivres')
         rembourser(m, 'aubin', 'joueur', 851, 'vivres', informer=False)
-        # Le remboursement du 388 est une parole typée, pas un raccourci public.
+        # Le raccourci 399 utilise la dette personnelle, sans révéler celles des tiers.
         rembourser(m, 'joueur', 'brune', 4, 'vivres')
         public = comptes_publics(m)
         f = ComptesTerminal(public)
@@ -71,7 +80,9 @@ class FormulaireComptesTests(unittest.TestCase):
         self.assertNotIn('937', rendu)
         self.assertNotIn('851', rendu)
         self.assertIn('Tu dois 4 pièces', rendu)
-        self.assertNotIn('rembourser', json.dumps(f.public['choix']))
+        remboursement = web.choix(m, 'rembourser', 'brune')['descripteur']
+        self.assertEqual(remboursement['parametres']['montant'], 4)
+        self.assertEqual(remboursement['parametres']['compte']['debiteur'], 'joueur')
         public['choix'].clear()
         public['lignes'].clear()
         self.assertEqual(f.rendre(), rendu)
@@ -79,7 +90,9 @@ class FormulaireComptesTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 f.saisir(texte)
             self.assertFalse(f.terminee)
-        self.assertEqual(f.saisir('01').contenu, f.public['choix'][0]['descripteur'])
+        i = next(i for i, x in enumerate(f.public['choix'], 1)
+                 if x['descripteur']['parametres'].get('operation') == 'question')
+        self.assertEqual(f.saisir('0' + str(i)).contenu, f.public['choix'][i - 1]['descripteur'])
         with self.assertRaises(ValueError):
             f.saisir('1')
         vide = ComptesTerminal({'lignes': [], 'choix': []})
@@ -217,11 +230,11 @@ class ParcoursComptes:
             faux.raconter_resultat.assert_not_called()
             return Monde.charger(fichier), lignes, captures, publications
 
-    async def comparer(self, m, x, *, annuler=False, perime=None, laps=False):
+    async def comparer(self, m, x, *, annuler=False, perime=None, laps=False, montant=None):
         installer(m)
         suite = [] if perime == 'reception' else ['annuler' if annuler else 'tenter']
-        entrees = [*parcours(m, x), *suite]
-        d = web.ComptesPublicsTests().clic(m, x)
+        entrees = [*parcours(m, x, montant), *suite]
+        d = web.ComptesPublicsTests().clic(m, x, montant=montant)
         mutation = (lambda monde: perimer(monde, d.contenu)) if perime else None
         if perime == 'reception':
             # Le choix public est figé avant la mutation pour les deux transports.
