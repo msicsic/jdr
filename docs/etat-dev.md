@@ -43,6 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-verification-contact` — lot 419, base `integration 8c5eaaa7`, moteur `b51cf8f8`.
+  Contact = préfixe du moyen ; aide, offre, parole et termes sauvegardés conservés.
+  Frontière : 57/59 verts, deux oracles adaptés ensuite 2/2 verts ; quatre nouveaux tests verts.
+  Achat/eau adaptés 2/2 verts ; cas Lucien/ballot encore ouvert, oracle intact (renoncement du 417).
+  Validation finale détachée : fichiers concernés, banc 4 h × 4 graines × auberge/mine/crue.
+  Fin attendue : `C:/Users/msics/donjon/artifacts/verification-contact-419/fin.json` ; non-hausse non acquise.
+  [Rapport 419](taches/rapport-codex-419-verification-contact.md).
+
 Lots en cours : 416 (A6 raccord libre), 418 (S1m renoncements et efforts bornés), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
