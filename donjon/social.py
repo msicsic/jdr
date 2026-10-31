@@ -48,125 +48,42 @@ GESTES = {"tuer": "a tenté de tuer", "saisir": "a tenté de saisir", "ligoter":
 
 # Indépendant des quarante souvenirs. À saturation, on garde les faits déjà suivis
 # et on tait les nouveaux : évincer une entrée autoriserait une répétition indue.
-DITS_MAX = 512
+DITS_MAX = memoire.DITS_MAX
 
 
 def _cle(fait):
-    return json.dumps(fait, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    """Façade du contrat historique porté dans :mod:`memoire`."""
+    return memoire._cle(fait)
 
 
 def faits_dits(noyau):
-    """Identités et valeurs transmises, sans texte, date, preuve ni qualité de la source.
-
-    Les constats et les affirmations partagent la même identité de propriété.
-    Un geste reste un fait distinct d'un état ; son lieu dit est une valeur, pas
-    la date ou la case depuis lesquelles le témoin l'a appris.
-    """
-    t = noyau["type"]
-    if t == "compte_rendu":
-        return [(_cle({"type": t, "charge": noyau["charge"]}), noyau["issue"])]
-    if t in ("affirmation", "constat", "avis"):
-        sujet = noyau.get("sujet", noyau.get("objet"))
-        attribut, valeur = noyau["attribut"], noyau["valeur"]
-        if attribut == "lieu" and "possession" in noyau.get("details", {}):
-            # Les droits constituent une preuve supplémentaire : le contenu
-            # dit aussi le lieu nu. Connaître seulement ce lieu n'atteste pas
-            # les droits ; connaître les droits ne fait pas oublier le lieu.
-            return [(_cle([sujet, attribut]), valeur),
-                    (_cle([sujet, attribut, "possession"]),
-                     {"valeur": valeur, "possession": noyau["details"]["possession"]})]
-        if attribut == "etat":
-            return [(_cle([sujet, attribut, k]), v) for k, v in sorted(valeur.items())]
-        return [(_cle([sujet, attribut]), valeur)]
-    if t == "intention_lue":
-        return [(_cle([noyau["auteur"], "intention"]), {"valeur": "guet", "envers": noyau["objet"]})]
-    if t in ("absence", "mort_vue", "vu_porter"):
-        sujet, attribut, valeur = (noyau["objet"], "etat", {"mort": True}) if t == "mort_vue" else (
-            noyau["objet"], "lieu", noyau.get("auteur") if t == "vu_porter" else None)
-        return faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut, "valeur": valeur})
-    identite = {k: noyau[k] for k in ("type", "auteur", "objet", "operation", "locuteur", "sujet", "attribut", "victime")
-                if k in noyau}
-    valeur = {k: noyau[k] for k in ("montant",) if k in noyau}
-    faits = [(_cle(identite), valeur)]
-    if "lieu" in noyau:
-        faits.append((_cle([noyau["objet"], "lieu"]), noyau["lieu"]["valeur"]))
-    return faits
+    """Façade du contrat historique porté dans :mod:`memoire`."""
+    return memoire.faits_dits(noyau)
 
 
 def installer_faits_initiaux(monde, id, *, perception=False):
-    """Ancrage de provenance de la scène de départ, distinct des croyances.
-
-    L'installation du contrat sur une ancienne sauvegarde n'invente pas de
-    transfert à partir de ses inventaires actuels. Le passé absent ne peut pas
-    être reconstruit. Aucun savoir sur un tiers n'est ajouté aux croyances.
-    """
-    from .esprits import preuve_possession, faits_materiels
-    e = esprit(monde, id)
-    initiaux = e["faits_initiaux"]
-    for sujet in monde.objets:
-        p = preuve_possession(monde, sujet)
-        if p:
-            for attribut, valeur, details in faits_materiels(monde, sujet):
-                # L'inventaire de départ a une provenance matérielle ; celui
-                # qui le porte connaît aussi l'état de ses propres biens.
-                # Aucune propriété cachée d'un bien tiers n'est un savoir.
-                if attribut == "lieu" or p["porteur"] == id:
-                    initiaux.update(copy.deepcopy(faits_dits({"type": "constat", "objet": sujet,
-                        "attribut": attribut, "valeur": valeur, "details": details})))
-    for sujet, attributs in memoire.faits_connus(monde, id).items():
-        for attribut, c in attributs.items():
-            # Les anciennes localisations sans droits ne deviennent pas une
-            # nouvelle par la seule installation de la preuve de possession.
-            localisation_ancienne = attribut == "lieu" and "possession" not in c
-            if c["source"] != "savoir" and not (c["source"] == "vu" and (perception or localisation_ancienne)):
-                continue
-            noyau = {"type": "affirmation", "sujet": sujet, "attribut": attribut,
-                     "valeur": c["valeur"], "details": c}
-            initiaux.update(copy.deepcopy(faits_dits(noyau)))
-            if attribut == "lieu" and sujet in monde.objets and c["valeur"] == monde.objets[sujet]["lieu"]:
-                p = preuve_possession(monde, sujet, precedente=c)
-                if p:
-                    initiaux.update(copy.deepcopy(faits_dits({**noyau, "details": {"possession": p}})))
+    """Façade du contrat historique porté dans :mod:`memoire`."""
+    return memoire.installer_faits_initiaux(monde, id, perception=perception)
 
 
 def _initial(monde, id, noyau):
-    initiaux = lire(monde, id)["faits_initiaux"]
-    if noyau.get("attribut") == "lieu":
-        cle = _cle([noyau.get("objet", noyau.get("sujet")), "lieu"])
-        if cle in initiaux and initiaux[cle] == noyau["valeur"]:
-            return True
-    return all(cle in initiaux and initiaux[cle] == valeur for cle, valeur in faits_dits(noyau))
+    """Façade du contrat historique porté dans :mod:`memoire`."""
+    return memoire.fait_initial(monde, id, noyau)
 
 
 def transmission_attestee(monde, id, auditeur, noyau):
-    """Preuve positive du contenu partagé ; le registre plein n'en est pas une."""
-    registre = lire(monde, id)["faits_dits"]
-    return all(cle in registre and (
-               auditeur in registre[cle]["dit_a"] and registre[cle]["dit_a"][auditeur] == valeur
-               or valeur in registre[cle].get("entendu_a", {}).get(auditeur, []))
-               for cle, valeur in faits_dits(noyau))
+    """Façade du contrat historique porté dans :mod:`memoire`."""
+    return memoire.transmission_attestee(monde, id, auditeur, noyau)
 
 
 def deja_dit(monde, id, auditeur, noyau):
-    registre = lire(monde, id)["faits_dits"]
-    return all((cle in registre and auditeur in registre[cle]["dit_a"]
-                and registre[cle]["dit_a"][auditeur] == valeur)
-               or (cle in registre and valeur in registre[cle].get("entendu_a", {}).get(auditeur, []))
-               # Une nouvelle identité ne peut plus être suivie à saturation.
-               or cle not in registre and len(registre) >= DITS_MAX
-               for cle, valeur in faits_dits(noyau))
+    """Façade du contrat historique porté dans :mod:`memoire`."""
+    return memoire.deja_dit(monde, id, auditeur, noyau)
 
 
 def retenir_dit(monde, id, auditeur, noyau):
-    registre = esprit(monde, id)["faits_dits"]
-    for cle, valeur in faits_dits(noyau):
-        if cle not in registre and len(registre) >= DITS_MAX:
-            continue
-        if cle not in registre:
-            registre[cle] = {"valeur": copy.deepcopy(valeur), "dit_a": {}}
-        registre[cle]["valeur"] = copy.deepcopy(valeur)
-        registre[cle].pop("valeur_inconnue", None)
-        registre[cle]["dit_a"][auditeur] = copy.deepcopy(valeur)
+    """Façade du contrat historique porté dans :mod:`memoire`."""
+    return memoire.retenir_dit(monde, id, auditeur, noyau)
 
 
 def _audience_connue(monde, locuteur, contenu, geste, observateur=None):
@@ -198,92 +115,18 @@ def _audience_connue(monde, locuteur, contenu, geste, observateur=None):
 
 
 def _retenir_audience(monde, audience):
-    for observateur, autre, noyau in audience:
-        registre = esprit(monde, observateur)["faits_dits"]
-        for cle, valeur in faits_dits(noyau):
-            if cle not in registre and len(registre) < DITS_MAX:
-                registre[cle] = {"valeur": None, "valeur_inconnue": True, "dit_a": {}}
-            if cle in registre:
-                # Deux positions contraires peuvent avoir été entendues sans
-                # que l'une efface l'autre ni la position personnellement dite.
-                valeurs = registre[cle].setdefault("entendu_a", {}).setdefault(autre, [])
-                if valeur not in valeurs:
-                    valeurs.append(copy.deepcopy(valeur))
+    """Façade du contrat historique porté dans :mod:`memoire`."""
+    return memoire.retenir_audience(monde, audience)
 
 
 def reviser_dits(monde, id, sujet, attribut, valeur, precedente=None, **details):
-    """Seul un changement appris par le destinataire rouvre ce qui lui a été dit.
-
-    La dernière valeur crue par le locuteur sert aussi aux conclusions dérivées
-    (menace). Ses changements ne suppriment pas les valeurs dites aux autres.
-    """
-    if attribut == "intention":
-        valeur = {"valeur": valeur, "envers": details.get("envers")}
-    registre = lire(monde, id)["faits_dits"]
-    if id != "joueur":
-        initiaux = esprit(monde, id)["faits_initiaux"]
-        for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
-                                  "valeur": valeur, "details": details}):
-            lieu_change = (attribut == "lieu" and (
-                _cle([sujet, attribut]) in initiaux and initiaux[_cle([sujet, attribut])] != valeur
-                or precedente and precedente["valeur"] != valeur))
-            if lieu_change or cle in initiaux and initiaux[cle] != v:
-                initiaux.pop(cle, None)
-                # Les deux identités partagent le même ancrage de départ.
-                if attribut == "lieu":
-                    initiaux.pop(_cle([sujet, attribut]), None)
-                    initiaux.pop(_cle([sujet, attribut, "possession"]), None)
-    avant = {}
-    if precedente:
-        ancienne = ({"valeur": precedente["valeur"], "envers": precedente.get("envers")}
-                    if attribut == "intention" else precedente["valeur"])
-        avant = dict(faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
-                                "valeur": ancienne, "details": precedente}))
-    for cle, v in faits_dits({"type": "affirmation", "sujet": sujet, "attribut": attribut,
-                             "valeur": valeur, "details": details}):
-        if precedente is None and registre.get(cle, {}).get("valeur_inconnue"):
-            # Le contenu entendu n'était pas sa propre conclusion. La première
-            # conclusion calculée ne prouve donc aucun changement appris.
-            registre[cle]["valeur"] = copy.deepcopy(v)
-            registre[cle].pop("valeur_inconnue")
-            continue
-        if precedente is None and cle not in registre:
-            # Première conclusion dérivée : aucun changement connu. La suivre
-            # empêche qu'une même conclusion réaffirmée rouvre un avis refusé.
-            if len(registre) < DITS_MAX:
-                esprit(monde, id)["faits_dits"][cle] = {"valeur": copy.deepcopy(v), "dit_a": {}}
-            continue
-        connue = cle in avant if precedente is not None else cle in registre
-        ancienne = avant.get(cle) if precedente is not None else registre.get(cle, {}).get("valeur")
-        if cle in registre:
-            registre[cle]["valeur"] = copy.deepcopy(v)
-            registre[cle].pop("valeur_inconnue", None)
-        if connue and ancienne == v:
-            continue
-        for e in monde.data.get("esprits", {}).values():
-            fait = e.get("faits_dits", {}).get(cle, {})
-            dits = fait.get("dit_a", {})
-            if id in dits and dits[id] != v:
-                del dits[id]
-            entendus = fait.get("entendu_a", {})
-            if id in entendus:
-                entendus[id] = [valeur for valeur in entendus[id] if valeur == v]
+    """Façade du contrat historique porté dans :mod:`memoire`."""
+    return memoire.reviser_dits(monde, id, sujet, attribut, valeur, precedente=precedente, **details)
 
 
 def migrer_dits(monde, id):
-    """Reprendre ce qui reste des anciens suivis ; les souvenirs déjà perdus sont irrécupérables."""
-    e = esprit(monde, id)
-    for s in episodes(monde, id):
-        if s["type"] == "dit" and "valeur" in s:
-            retenir_dit(monde, id, s["a"], {"type": "affirmation", **{k: s[k] for k in ("sujet", "attribut", "valeur")}})
-        elif s["type"] in NOUVELLES or s["type"] == "rumeur":
-            for a in s.get("dit_a", []):
-                retenir_dit(monde, id, a, s["evenement"] if s["type"] == "rumeur" else s)
-    for sujet, attributs in memoire.faits_connus(monde, id).items():
-        for attribut, c in attributs.items():
-            for a in c.get("confie", {}).get("dit_a", []):
-                retenir_dit(monde, id, a, {"type": "affirmation", "sujet": sujet, "attribut": attribut,
-                                         "valeur": c["confie"]["valeur"]})
+    """Façade du contrat historique porté dans :mod:`memoire`."""
+    return memoire.migrer_dits(monde, id)
 
 
 def _noyau(evenement):

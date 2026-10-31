@@ -124,5 +124,6 @@
     "tools/calibrer_signes.py": {
       "classer/t['croyances']": 1
     }
-  }
+  },
+  "dits_restants_s1j": {}
 }

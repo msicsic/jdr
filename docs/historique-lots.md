@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1j-paroles-voix` — 406, base `integration b4130dc3`, code `914dbb07` : première partie,
+  dits, audiences et savoir initial par `memoire`, stockage et comportement historiques conservés.
+  AST dédié 122 → 0 ; 235/235 tests distincts verts, puis 10/10 après fusion ; cinq nouveaux tests.
+  Empreintes 2 h × 4 graines × Relais/mine/auberge/crue : 16/16 identiques à la base exacte ; état complet et rendu après recharge.
+  Intégration `b9bef393` fusionnée (dernier conflit documentaire résolu). Aucun calcul restant ; identité vocale et noms à porter.
+  [Rapport et limites](taches/rapport-codex-406-s1j-paroles-voix.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 406, S1j partiel : paroles retenues, audiences et savoir initial par des vues sourcées ; identité vocale (voix connues, prétentions, imposture) reste à porter. 235 tests puis 10/10 après fusion, 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-suite-c562aa21` — 403 terminé, non fusionné, base `integration d23d081d`, code `e5f5befb`, poussé.
   19 bascules attribuées : 14 au 388, quatre au 380, une au 390 ; tableau dans le rapport.
   Mort : retire l'interlocuteur entendu, conserve sa voix et ses sons, refuse sa réadmission par rejeu.
