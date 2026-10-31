@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-a3-liaison-transport` (86187c83) : lot 410, A3 liaison du transport. Détail dans l'historique.
 - `codex-s1k-refus-recours` (7da401ec) : lot 409, S1k refus retenus par l'interface. Détail dans l'historique.
 - `codex-a2-consultation-sociale` (79663ec3) : lot 407, A2 famille consultation sociale. Détail dans l'historique.
 - `codex-s1j-voix` (146cb136) : lot 408, S1j identité vocale par des vues sourcées. Détail dans l'historique.
@@ -39,18 +40,17 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1h-eau-statuts` (f183d930) : lot 404, S1h eau, prévisions et statuts par leurs vues. Détail dans l'historique.
 - `codex-s1g-etats-materiels` (d3326879) : lot 400, S1g états matériels et capacités crus par leurs vues. Détail dans l'historique.
 - `codex-crash-raccord` (3c506bb1) : lot 401, le raccord des émissions ne plante plus. Détail dans l'historique.
-- `codex-s1f-localisation` (f7ec584b) : lot 397, S1f localisation crue et preuves de possession par une seule interface. Détail dans l'historique.
 
 ## Lots non fusionnés
 
-- `codex-s1k-recours` — lot 411, base `integration 8cb825aa` : cinq registres de recours
-  par les seules vues/opérations de `memoire`, prédicats et publication historiques conservés.
-  AST **84 → 1** (schéma seul) ; 169 tests distincts, six nouveaux verts ; trois sous-échecs
-  et une erreur historiques reproduits sur la base. Empreintes 2 h × 4 graines × 4 scénarios en cours ;
-  aucune identité encore annoncée. Bruts `C:/Users/msics/donjon/artifacts/s1k-411/`, fin attendue `fin.json`.
+- `codex-s1k-recours` — lot 411 clos, non fusionné ; base `integration 8cb825aa`, avance `2634e48e` intégrée.
+  Cinq registres de recours par `memoire`, prédicats et publication historiques conservés ; AST **84 → 1** (schéma).
+  169 tests distincts, six nouveaux verts ; 38/38 après fusion ; trois sous-échecs et une erreur historiques sur la base.
+  Empreintes **16/16 identiques** (2 h × 4 graines × Relais/mine/auberge/crue), code mesuré `c6f029f5`.
+  `fin.json` : succès ; aucun calcul restant. Bruts `C:/Users/msics/donjon/artifacts/s1k-411/`.
   [Rapport 411](taches/rapport-codex-411-s1k-recours.md) ; pas de suite complète ni Luna.
 
-Lots en cours : 411 (S1k recours), 410 (A3 liaison du transport), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 412 (A4 dossier de revue), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

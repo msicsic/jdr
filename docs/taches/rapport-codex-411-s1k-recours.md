@@ -1,8 +1,8 @@
 # Lot 411 — S1k, recours historiques par la porte commune
 
 31 octobre 2026 · `codex-s1k-recours` · base exacte `integration 8cb825aa`.
-Moteur porté **`693a214c`**. **Lot non fusionné ; empreintes en cours.** Le commit
-mesuré et le résultat final des empreintes sont dans `debut.json` et `fin.json`.
+Moteur porté **`693a214c`**, code mesuré **`c6f029f5`**.
+**Lot clos, non fusionné ; aucun calcul restant.** `fin.json` confirme le succès.
 
 **Invariant et code.** Les cinq registres `demande_refusee`, `recours_propositions`,
 `recours_services`, `recours_intermediaires` et `service_en_cours` passent par
@@ -41,14 +41,23 @@ La capture réelle crue 7, minute 353, puis deux services et deux commissions
 contrôlent état complet, ordre JSON, lignes, rendu, scène et paroles après recharge,
 pour deux minutes entières ou quatre tranches. Bruts : `tests-initial.json`,
 `tests-voisins.json` et `tests-recours-final.json` ; les premiers rouges sont conservés.
+Après fusion d'intégration, **38/38 tests verts** (socle, refus et nouvelles chaînes),
+dans `tests-apres-integration.json` ; aucun nouveau banc nécessaire.
 
-**Empreintes en cours.** 2 h × graines 1985/7/42/2024 × Relais/mine/auberge/crue,
-comparées à la base exacte `8cb825aa`, sans exclusion. Référence et branche
-successives, cache partagé par commit, deux travailleurs réduits au plus ;
-`fin.json` est écrit en dernier. Aucune identité n'est annoncée avant ce résultat.
+**Empreintes : 16/16 identiques.** 2 h × graines 1985/7/42/2024 ×
+Relais/mine/auberge/crue, base exacte `8cb825aa` contre `c6f029f5` : chroniques,
+mesures et empreintes de l'état final complet identiques nuit par nuit, sans
+exclusion, divergence ni plantage. Avis concordants : zéro non justifié, vingt
+à expliquer de chaque côté. Référence puis branche jouées et rangées dans le
+cache partagé, deux travailleurs réduits au plus ; aucun temps comparé.
+`empreintes-base.json`, `conclusion.json` et `fin.json` (code 0, `succes: true`)
+portent les résultats définitifs du calcul terminé le 31 octobre à 11 h 09.
 
 **Limites et voisinage.** Contrôle AST syntaxique et local, sans preuve de tous les
 flux interprocéduraux Python ; politiques historiques conservées. Pas de suite
-complète ni Luna. Aucun fichier de `fournisseurs/` du 410 n'est touché ; le 402
-reste un calcul indépendant. Dernière actualisation : `origin/integration 8cb825aa`,
-sans avance à fusionner. Bruts : `C:/Users/msics/donjon/artifacts/s1k-411/`.
+complète ni Luna. Aucun recouvrement de code avec le 410 ; le 402 reste un calcul
+indépendant. Avance `origin/integration 2634e48e` intégrée à la clôture : seul
+conflit documentaire dans `etat-dev`, résolu en conservant l'avancement du 412.
+Les empreintes portent sur `c6f029f5` avant cette fusion ; les fichiers du moteur
+de recours sont inchangés par l'avance. Bruts :
+`C:/Users/msics/donjon/artifacts/s1k-411/`.

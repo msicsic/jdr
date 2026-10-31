@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-a3-liaison-transport` — lot 410, base `57299df4`, **transport validé sur cinq bancs** :
+  Mode/charge et contrats A2 liés cloud/local ; enveloppe `reponse`, contrôle avant audit/préparation avec `attendu`.
+  Parcours réseau simulé Relais/auberge, sons, sauvegarde et reprise ; assertions de sécurité conservées.
+  Tests de reprise 39 verts (3 ignorés), 105 s ; passes précédentes 146 puis 15 vertes ; empreintes Relais/auberge identiques (2 h × 4 graines).
+  Conjonction redondante projetée avec preuve ; aucune limite relevée. Luna : 66 appels/27 tours, 2,44 appels et 10,04 s/tour, zéro erreur/repli.
+  Fidélité non garantie : fredonnement sans effet son ; latence non appariée au repère 8,5 s. Bruts du dépôt principal : `artifacts/a3-liaison-transport-410/reprise-sortie/`.
+  [Rapport](taches/rapport-codex-410-a3-liaison-transport.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 410, A3 : mode et charge, opération et paramètres corrélés par les contrats A2 dans le schéma transmis (OpenAI et local, même sens), vérification avant préparation avec attendu. Première passe 27/27 max_output_tokens (conjonction redondante du schéma), corrigée sans relever la limite ; reprise Luna cinq bancs : 66 appels, 2,44 appels et 10,04 s par tour, zéro interruption ni repli (corpus non apparié au repère 2,3/8,5). 39 tests. Limite : un fredonnement peut encore être compilé sans effet sonore (lot de fidélité à venir).
+
 - `codex-s1k-refus-recours` — lot 409, base `integration 64e3b2b4`, première partie : refus retenus
   par vues/opérations de `memoire`, prédicats historiques conservés, copies et validation portées.
   AST refus 64 → 27 (schéma + homonymes uniquement) ; recours 85 → 84, portage restant explicite.

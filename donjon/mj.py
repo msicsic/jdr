@@ -19,6 +19,8 @@ from .paroles import (REGLES as REGLES_PAROLE, SENS_REPLIQUE, SCHEMA_PAROLE, Par
 from .commandes import PERCEPTIONS, est_question, faisabilite
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
 from .operations import SCHEMA_SEQUENCE
+from .fournisseurs.contrat import lier_modes
+from .fournisseurs.schema import verifier as verifier_grammaire
 from .contrats_sequence import schemas_actions
 from .contrats_passage import schemas as schemas_passages
 from .config import MODELE_PAR_DEFAUT, DEFAUTS_CONNEXION
@@ -216,12 +218,12 @@ SCHEMA = {
 
 # Les familles attente et passage portent leurs contraintes ; les autres actions restent sur
 # leur contrat transitoire. Aucune sélection selon la saisie ou le scénario.
-SCHEMA_PROPOSER = copy.deepcopy(SCHEMA)  # ancienne API simple, transport inchangé (A3)
 SCHEMA = copy.deepcopy(SCHEMA)  # les enums initiaux référencent aussi les listes du moteur
 SCHEMAS_PASSAGE = schemas_passages(SCHEMA, "action", ("franchir", "pousser"))
 for _action in ("franchir", "pousser"):
     SCHEMA["properties"]["action"]["enum"].remove(_action)
 SCHEMA, SCHEMA_ATTENTE = schemas_actions(SCHEMA)
+SCHEMA_PROPOSER = {"anyOf": [SCHEMA, *SCHEMAS_PASSAGE, SCHEMA_ATTENTE]}
 
 
 ATTENDU_PAROLE = ("la saisie est une parole (elle commence par des guillemets, un verbe de parole ou « à tous ») : "
@@ -391,7 +393,9 @@ def verifier_forme_reponse(reponse, schema):
         raise RefusDeForme("Le texte est vide : écris dans texte la réponse destinée au joueur.",
                            f"texte reçu {reponse['texte']!r} ; accepté : une réponse non vide.")
     if reponse["mode"] == "dialogue":
-        reponse["proposition"] = None
+        if reponse["proposition"] is not None:
+            raise RefusDeForme("Un dialogue ne porte pas de proposition mécanique.",
+                               f"dialogue.proposition : reçu {reponse['proposition']!r} ; accepté : null.")
     elif not isinstance(reponse["proposition"], dict):
         raise RefusDeForme("La proposition typée doit être un objet structuré.",
                            f"proposition reçue {reponse['proposition']!r}, mode {reponse['mode']!r} ; "
@@ -1209,6 +1213,15 @@ class MJ:
                 instructions = INSTRUCTIONS_RESULTAT
             if retour_moteur:
                 consigne_retour = RETOUR_REFUSE
+        schema = lier_modes(schema, {
+            "dialogue": {"type": "null"},
+            "action": {"anyOf": [SCHEMA, *SCHEMAS_PASSAGE, SCHEMA_ATTENTE, SCHEMA_SEQUENCE,
+                                  SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE]},
+            "enrichir_joueur": SCHEMA_PROFIL, "enrichir": SCHEMA_COMPLEMENTS,
+            "conversation_pnj": SCHEMA_CONVERSATION, "parole_joueur": schema_parole,
+            "enrichir_savoirs": SCHEMA_SAVOIRS, "etablir_faits": schema_faits_suite,
+            "accord": SCHEMA_ACCORD,
+        })
         instructions += REGLE_NARRATION
         from .localisation import REGLES as REGLES_LOCALISATION
         instructions += REGLES_LOCALISATION
@@ -1334,6 +1347,8 @@ direction), plus lents, ils ne s'entendent que de tout près.
 
         reponse = appeler_brut(instructions, entree, intention, fonction, schema)
         if fonction != "repondre_au_joueur":
+            if 'anyOf' in schema:
+                verifier_grammaire(reponse, schema, fonction)
             return reponse
         # Tout ce qui a été refusé dans ce tour, transmis à chaque relance : une correction ne
         # réintroduit pas ce qu'une précédente avait déjà fait refuser.
@@ -1348,6 +1363,8 @@ direction), plus lents, ils ne s'entendent que de tout près.
                     if len(schema.get("properties", {}).get("mode", {}).get("enum", [])) > 1:
                         verifier_disponibilite(reponse, entree["faits"],
                             self._monde_controle is not None and geste_en_question(self._monde_controle, intention))
+                    if 'anyOf' in schema:
+                        verifier_grammaire(reponse, schema, 'reponse[' + reponse['mode'] + ']')
                     break
                 except RefusDeForme as exc:
                     if self.observateur:

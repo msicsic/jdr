@@ -5,6 +5,26 @@ from typing import Any
 from ..monde import ErreurMonde
 
 
+def lier_modes(schema, charges):
+    """Grammaire canonique : chaque mode porte exclusivement sa propre charge.
+
+    Les propriétés communes restent lisibles par les outils de trace/cache.
+    Le transport place l'union sous une propriété (OpenAI interdit anyOf à la racine).
+    """
+    import copy
+    resultat = copy.deepcopy(schema)
+    branches = []
+    for mode in resultat['properties']['mode']['enum']:
+        branche = copy.deepcopy(schema)
+        branche['properties']['mode'] = {'type': 'string', 'enum': [mode]}
+        branche['properties']['texte'] = ({'type': 'string', 'minLength': 1, 'maxLength': 4000}
+                                          if mode == 'dialogue' else {'type': 'string', 'enum': ['']})
+        branche['properties']['proposition'] = charges[mode]
+        branches.append(branche)
+    resultat['anyOf'] = branches
+    return resultat
+
+
 @dataclass(frozen=True)
 class Demande:
     instructions: str
@@ -17,6 +37,27 @@ class Demande:
     timeout: float = 45
     cle_cache: str | None = None
     reflexion: str = 'libre'
+
+    def schema_transport(self):
+        from .schema import mutualiser, union_seule
+        schema = self.schema
+        if 'anyOf' in schema:
+            schema = {'type': 'object', 'additionalProperties': False,
+                      'properties': {'reponse': union_seule(schema)}, 'required': ['reponse']}
+        return mutualiser(schema)
+
+    def decoder(self, arguments):
+        # Les autres outils et les voies transitoires gardent leur enveloppe.
+        # Une réponse ancienne à plat reste soumise à la même grammaire au MJ.
+        if 'anyOf' in self.schema and isinstance(arguments, dict) and set(arguments) == {'reponse'}:
+            return arguments['reponse']
+        return arguments
+
+    def instructions_transport(self):
+        if 'anyOf' not in self.schema:
+            return self.instructions
+        return self.instructions + ('\nTransport JSON : placer les arguments complets de la fonction '
+                                    'dans le champ reponse de l’enveloppe demandée.')
 
 
 @dataclass(frozen=True)
