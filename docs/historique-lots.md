@@ -6,6 +6,9 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **Vérification d'intégration 4539dd68**, lot **402**, branche `codex-verif-integ-4`, fusionnée (rapport seulement) : 49 archives, 48 nuits achevées ; intégration non validée pour avancer `main`. Arrêt `VERIFIER` auberge 42 à 360→365 (Lucien `garder:chambre_chaude`, reprise d'une recherche bornée au coût 82,72 contre recalcul `None`) ; 29 bornes sans plan quand le contrôle en trouve. Gorm propose 14 fois à Maël et 11 fois à Sève d'évacuer Ilse (hameau 1985, 129–143, `impossible`). Frappes 15 → 50 (hameau 2024 35 contre 0). Attente et noir en forte baisse, S/F/D en hausse ; 219 à expliquer 167 → 475. Zéro violation, mort ou usurpation ; 49 états rechargés stables. Bruts `C:/Users/msics/donjon/artifacts/verif-integ-4539dd68/` ; [rapport 402](taches/rapport-codex-402-verif-integ.md).
+  Fusionné sur l'intégration : rapport seulement. Petits lots ouverts : reprise des recherches bornées (437), réessai d'un mandat refusé (438), coups du hameau 2024 (439).
+
 - `codex-k2-assistance-luna` — lot 434, base `integration` `364e8722` : aide demandée,
   au plus deux alternatives typées, admission commune sur copie puis éditeur K1.
   Aucun accord, prix accepté ou besoin privé décidé par Luna ; clauses inconnues écartées entières.
