@@ -14,8 +14,9 @@ from .rendu import carte, fiche, regarder
 from .comparaison import texte_resultat, texte_comparaison
 from .gestes_publics import gestes_du_monde, rendre_liste, choisir_numero
 from .fabrication_terminal import RecetteTerminal, fabrication_publique
+from .comptes_terminal import AIDE_COMPTES, ComptesTerminal
 from .dialogues import (AIDE_INFORMATION, InformationTerminal, information_publique,
-                        AIDE_AVIS, AvisTerminal, avis_publics)
+                        AIDE_AVIS, AvisTerminal, avis_publics, comptes_publics)
 
 
 # Deux nuances discrètes par terrain gardent le pas d'un mètre lisible sans ponctuation.
@@ -144,6 +145,7 @@ class PontTerminal:
             "accord": accords_publics(monde),
             "information": information_publique(monde),
             "avis": avis_publics(monde),
+            "comptes": comptes_publics(monde),
             "carte": carte(monde), "fiche": fiche(monde), "scene": regarder(monde),
             "mode_cases": self._mode_cases(monde),
             "salle": monde.data["salles"][monde.joueur["salle"]]["nom"],
@@ -225,6 +227,7 @@ class SeuilApp(App[int]):
                     with VerticalScroll():
                         yield Static(AIDE_INFORMATION, markup=False)
                         yield Static(AIDE_AVIS, markup=False)
+                        yield Static(AIDE_COMPTES, markup=False)
                         yield Static(id="gestes", markup=False)
             with Vertical(id="recit"):
                 with VerticalScroll(id="scene-cadre"):
@@ -415,6 +418,12 @@ class SeuilApp(App[int]):
                 return
             elif texte.casefold() == "avis":
                 self.recette = AvisTerminal(self.derniere_vue["avis"])
+                self.action_gestes()
+                self.query_one("#gestes", Static).update(self.recette.rendre())
+                self.query_one("#commande", Input).value = ""
+                return
+            elif texte.casefold() == "comptes":
+                self.recette = ComptesTerminal(self.derniere_vue["comptes"])
                 self.action_gestes()
                 self.query_one("#gestes", Static).update(self.recette.rendre())
                 self.query_one("#commande", Input).value = ""
