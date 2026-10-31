@@ -612,7 +612,8 @@ def preparer_decoupe(m, p, origine):
     if eclairage(m)["niveau"] < 2:
         raise ErreurMonde("Il faut assez de lumière pour couper à la bonne longueur.",
                           "decouper exige une lumière franche : allume d'abord une source.")
-    from .matiere import id_piece
+    from .matiere import id_piece, partager_ressources
+    partager_ressources(o, round(o["masse"] * longueur / total, 3))
     plan = Plan(copy.deepcopy(p), m.data["revision"],
                 f"Couper {designer(o)} à {longueur} cm avec {designer(t)}.", origine=origine)
     plan.minutes, plan.bruit = (5 if physique["forme"] == "barre" else 1), 2
@@ -622,18 +623,21 @@ def preparer_decoupe(m, p, origine):
 
 def decouper(m, cible, longueur, morceau_id):
     """Le morceau coupé devient un objet décrit ; la pièce d'origine garde le reste."""
-    from .matiere import deduire, fixer_longueur
+    from .matiere import deduire, fixer_longueur, partager_ressources
     o = m.objets[cible]
     total = o["physique"]["dimensions"]["longueur_cm"]
     masse = round(o["masse"] * longueur / total, 3)
+    ressources_morceau, ressources_reste = partager_ressources(o, masse)
     morceau = objet(morceau_id, "morceau de " + o["nom"], o["type"], o["lieu"], aliases=["morceau"],
                     genre="m", materiau=o["materiau"], masse=masse, mobile=True,
                     physique={**o["physique"], "dimensions": {**o["physique"]["dimensions"], "longueur_cm": longueur}})
-    for cle in ("usages", "proprietaire", "position", "position_salle", "seuil_coupe", "duree_combustion"):
+    for cle in ("usages", "proprietaire", "position", "position_salle", "seuil_coupe", "luminosite", "allume", "contenu"):
         if cle in o:
-            morceau[cle] = list(o[cle]) if isinstance(o[cle], list) else o[cle]
+            morceau[cle] = copy.deepcopy(o[cle])
+    morceau.update(ressources_morceau)
     deduire(morceau)
     m.objets[morceau_id] = morceau
     o["masse"] = round(o["masse"] - masse, 3)
+    o.update(ressources_reste)
     fixer_longueur(o, total - longueur)
     return morceau

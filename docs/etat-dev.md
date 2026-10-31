@@ -43,7 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 424 (empreintes du 374, famille E), 425 (découpe d’un combustible), 426 (K0, candidats de contrat), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+- `codex-decoupe-combustible` — lot 425, base `integration a874d646` : découpe avec partage
+  des compteurs par masse ; conservation des charges × durée, refus sous l'unité avant mutation.
+  **56 tests ciblés verts** ; planche du Relais, bûche d'auberge, torche, feu joueur/PNJ et rendu après recharge.
+  Empreintes Relais/auberge 2 h × quatre graines : **8/8 identiques**, chronique, mesures et état complet.
+  Arrondi entier avec solde conservé ; aucun appel Luna ni suite complète.
+  [Rapport 425](taches/rapport-codex-425-decoupe-combustible.md) ; bruts `artifacts/decoupe-combustible-425/` du dépôt principal.
+
+Lots en cours : 424 (empreintes du 374, famille E), 426 (K0, candidats de contrat), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
