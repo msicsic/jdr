@@ -8,6 +8,7 @@ from donjon.couverture_action import RapportInvalide, entree, verifier
 from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, nouveau_monde
 from donjon.moteur import Moteur, proposition
+from tests.revue_support import rapport
 
 
 def detacher_axe(m):
@@ -50,27 +51,29 @@ class RapportTests(unittest.TestCase):
         self.assertLessEqual(len(str(refus.exception)), 400)
         self.assertTrue(refus.exception.attendu)
 
-    def test_une_revue_illisible_est_redemandee_puis_le_plan_passe(self):
+    def test_une_revue_illisible_est_redemandee_puis_le_plan_est_refuse(self):
         m = nouveau_monde()
         mj = MJOpenAI("gpt-6-luna")
         traces = []
         mj.observateur = traces.append
         with patch.object(mj, "_appeler_brut", side_effect=[{"conforme": True}, {"avis": "ok"}]) as appel:
-            mj._auditer_action("je retire l'axe", detacher_axe(m), m.data["revision"])
+            with self.assertRaises(ErreurMonde) as refus:
+                mj._auditer_action("je retire l'axe", detacher_axe(m), m.data["revision"])
         self.assertEqual(appel.call_count, 2)
-        self.assertTrue(any("illisible" in t.get("erreur", "") for t in traces))
+        self.assertIn("champs_types", refus.exception.attendu)
+        self.assertIn("retour_revue", appel.call_args.args[1])
 
     def test_une_revue_relue_conforme_suffit(self):
         m = nouveau_monde()
         mj = MJOpenAI("gpt-6-luna")
-        with patch.object(mj, "_appeler_brut", side_effect=[{}, {"conforme": True, "motif": ""}]) as appel:
+        with patch.object(mj, "_appeler_brut", side_effect=[{}, rapport(detacher_axe(m))]) as appel:
             mj._auditer_action("je retire l'axe", detacher_axe(m), m.data["revision"])
         self.assertEqual(appel.call_count, 2)
 
     def test_une_revue_non_conforme_reste_un_refus(self):
         m = nouveau_monde()
         mj = MJOpenAI("gpt-6-luna")
-        with patch.object(mj, "_appeler_brut", return_value={"conforme": False, "motif": "Prise non demandée."}):
+        with patch.object(mj, "_appeler_brut", return_value=rapport(detacher_axe(m), False, "Prise non demandée.")):
             with self.assertRaisesRegex(ErreurMonde, "Prise non demandée"):
                 mj._auditer_action("je fais levier", detacher_axe(m), m.data["revision"])
 

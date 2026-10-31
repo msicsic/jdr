@@ -1,4 +1,5 @@
 """Contrat force : MJ simulé, console, corps et rendu relus depuis la sauvegarde."""
+from tests.revue_support import rapport as rapport_complet, porter as porter_revue
 import copy
 import io
 from pathlib import Path
@@ -26,7 +27,8 @@ def console(m, p, demande, scenario='--rixe', audit=None):
     reponse = {'mode': 'action', 'texte': '', 'faits': [], 'proposition': p}
     def appeler(*args):
         if args[3] == 'auditer_action':
-            return (audit(args[1]) if callable(audit) else audit) if audit is not None else {'conforme': True, 'motif': ''}
+            r = (audit(args[1]) if callable(audit) else audit) if audit is not None else rapport_complet(args[1])
+            return porter_revue(r, args[1]) if set(r) == {'conforme', 'motif'} else r
         return copy.deepcopy(reponse)
     with tempfile.TemporaryDirectory() as tmp:
         chemin = Path(tmp) / 'copie.json'
@@ -241,7 +243,7 @@ class ForceLunaTests(unittest.TestCase):
             self.assertEqual(piece['personnes_retenues_apres_operation'],
                              [x for x in piece['personnes_connues'] if cible in x])
             self.assertEqual(fermeture['passages'][0]['personnes_retenues_apres_operation'], [])
-            verifier({"conforme": True, "motif": "porte fermée et verrouillée"}, plan)
+            verifier(rapport_complet(plan, True, "porte fermée et verrouillée"), plan)
             with self.assertRaises(ErreurMonde):
                 verifier({"conforme": False, "motif": "la demande exige de rouvrir"}, plan)
             def admettre(recu):

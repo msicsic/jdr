@@ -1,3 +1,4 @@
+from tests.revue_support import rapport as rapport_complet
 import copy
 import io
 import tempfile
@@ -178,7 +179,7 @@ class ImprovisationTests(unittest.TestCase):
     def test_refus_impossible_reexamine_intention_sans_regle_de_mot_cle(self):
         refus = reponse(action("impossible", justification="Je ne vois pas de voie."))
         with patch.object(MJOpenAI, "_appeler", side_effect=[refus, reponse(chant())]) as api, \
-             patch.object(MJOpenAI, "_appeler_brut", return_value={"conforme": True, "motif": ""}):
+             patch.object(MJOpenAI, "_appeler_brut", side_effect=lambda *args: rapport_complet(args[1])):
             sortie = MJOpenAI().echanger(self.m, "je chante")
         self.assertEqual(api.call_count, 2)
         self.assertEqual(sortie["proposition"], chant())
@@ -236,7 +237,7 @@ class ImprovisationTests(unittest.TestCase):
                         effets = entree["plan"]["effets_reussite"]
                         conforme = any(e[0] == operation for e in effets)
                         appels.append(("audit", conforme))
-                        return {"conforme": conforme, "motif": "L'effet demandé manque." if not conforme else ""}
+                        return rapport_complet(entree, conforme, "L'effet demandé manque." if not conforme else "")
                     self.assertEqual(fonction, "repondre_au_joueur")
                     corrige = "retour_moteur" in entree["faits"]
                     appels.append(("proposition", corrige))

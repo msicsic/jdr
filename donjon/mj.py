@@ -8,30 +8,26 @@ import os
 import time
 
 from .monde import ErreurMonde, normaliser
-from .moteur import ACTIONS, METHODES, Moteur
+from .moteur import Moteur
 from .fournisseurs import Demande, Reponse, ErreurFournisseur, creer as creer_fournisseur
 from .transport_openai import lire_flux  # réexport pour les anciens outils de diagnostic
-from .enrichissement import SCHEMA_COMPLEMENTS, catalogue, preparer_complements
-from .faits_locaux import SCHEMA_FAITS, catalogue as catalogue_faits, preparer_faits
-from .dialogues import SCHEMA_CONVERSATION, preparer_conversation
-from .paroles import (REGLES as REGLES_PAROLE, SENS_REPLIQUE, SCHEMA_PAROLE, ParoleImpossible, analyser as analyser_parole,
+from .enrichissement import catalogue, preparer_complements
+from .faits_locaux import catalogue as catalogue_faits, preparer_faits
+from .dialogues import preparer_conversation
+from .paroles import (REGLES as REGLES_PAROLE, SENS_REPLIQUE, ParoleImpossible, analyser as analyser_parole,
                       annonce as annonce_parole, contexte as contexte_paroles, preparer_parole)
 from .commandes import PERCEPTIONS, est_question, faisabilite
-from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
-from .operations import SCHEMA_SEQUENCE
-from .fournisseurs.contrat import lier_modes
+from .connaissances import catalogue as catalogue_savoirs, preparer_savoirs
 from .fournisseurs.schema import verifier as verifier_grammaire
-from .contrats_sequence import schemas_actions
-from .contrats_passage import schemas as schemas_passages
 from .config import MODELE_PAR_DEFAUT, DEFAUTS_CONNEXION
 from .francais import designer
-from .artisanat import (SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, dossier as dossier_atelier,
+from .artisanat import (dossier as dossier_atelier,
                         REGLES as REGLES_ATELIER)
 from .harnais import derniere_tentative
 from .consignes import INTERPRETATION, RETOUR_INTERPRETATION, RETOUR_REFUSE
 from .franchissement import dossier as dossier_franchissement, REGLES as REGLES_FRANCHISSEMENT
-from .improvisation import SCHEMA as SCHEMA_IMPROVISATION, contexte as contexte_improvisation
-from .profil_joueur import SCHEMA as SCHEMA_PROFIL, catalogue as catalogue_profil, preparer as preparer_profil, reponse as reponse_profil
+from .improvisation import contexte as contexte_improvisation
+from .profil_joueur import catalogue as catalogue_profil, preparer as preparer_profil, reponse as reponse_profil
 from .narration import (AuditIllisible, schema_audit, voix_auteur, INSTRUCTIONS_AUDIT, INSTRUCTIONS_REVISION, REGLE_NARRATION,
                         ambiance_ciblee,
                         segments as segments_narratifs, controler as controler_narration,
@@ -202,29 +198,8 @@ proposition=null ; faits référence resultat_resolu. Appelle repondre_au_joueur
 """
 
 
-SCHEMA = {
-    "type": "object",
-    "properties": {
-        "action": {"type": "string", "enum": ACTIONS},
-        "cible": {"type": "string", "description": "Identifiant exact de la cible visible, direction, ou chaîne vide."},
-        "outil": {"type": "string", "description": "Identifiant d'un outil possédé, ou chaîne vide. Pour remettre : identifiant du PNJ destinataire ; pour pousser : direction de la poussée ou vide."},
-        "methode": {"type": "string", "enum": METHODES},
-        "difficulte": {"type": "integer", "description": "0 hors détachement ; estimation entre 11 et 22 pour une fixation."},
-        "justification": {"type": "string", "description": "Avis d'arbitrage bref ; ne décrire aucun résultat."},
-    },
-    "required": ["action", "cible", "outil", "methode", "difficulte", "justification"],
-    "additionalProperties": False,
-}
-
-# Les familles attente et passage portent leurs contraintes ; les autres actions restent sur
-# leur contrat transitoire. Aucune sélection selon la saisie ou le scénario.
-SCHEMA = copy.deepcopy(SCHEMA)  # les enums initiaux référencent aussi les listes du moteur
-SCHEMAS_PASSAGE = schemas_passages(SCHEMA, "action", ("franchir", "pousser"))
-for _action in ("franchir", "pousser"):
-    SCHEMA["properties"]["action"]["enum"].remove(_action)
-SCHEMA, SCHEMA_ATTENTE = schemas_actions(SCHEMA)
-SCHEMA_PROPOSER = {"anyOf": [SCHEMA, *SCHEMAS_PASSAGE, SCHEMA_ATTENTE]}
-
+# Réexports historiques : les outils et l'API simple partagent le même contrat.
+from .compilation import SCHEMA, SCHEMA_PROPOSER, SCHEMA_ATTENTE, SCHEMAS_PASSAGE, schema_reponse
 
 ATTENDU_PAROLE = ("la saisie est une parole (elle commence par des guillemets, un verbe de parole ou « à tous ») : "
                   "mode parole_joueur, personnage = parole_prevue.personnage, contenu = ce qu'elle demande ou affirme")
@@ -518,17 +493,19 @@ class MJ:
             rapport = self._appeler_brut(
                 (INSTRUCTIONS_PAROLE + "\n" + SENS_REPLIQUE) if plan.parole is not None else INSTRUCTIONS_COUVERTURE,
                 dossier,
-                "Contrôler la fidélité du plan", "auditer_action", schema_couverture(plan))
+                "Contrôler la fidélité du plan", "auditer_action", schema_couverture(plan, monde))
             if self.observateur:
                 self.observateur({"etape": "couverture de l'action", "modele": self.modele,
                                   "revision": revision, "intention": intention,
                                   "rapport": copy.deepcopy(rapport)})
             try:
-                verifier_couverture(rapport, plan, operations_demandees)
+                verifier_couverture(rapport, plan, operations_demandees, monde=monde)
                 return
-            except RapportInvalide:
-                # Une revue illisible est redemandée une fois. La parole exige
-                # son analyse des opérations ; un geste conserve le repli historique.
+            except RapportInvalide as exc:
+                # Une revue incomplète ne peut pas autoriser un geste. La seconde
+                # lecture garde la même proposition et le refus structuré.
+                dossier["retour_revue"] = {"rapport_refuse": copy.deepcopy(rapport),
+                                           "attendu": exc.attendu}
                 if essai:
                     if plan.parole is not None:
                         raise RapportIllisible("Le contenu de ta parole n'a pas pu être vérifié.",
@@ -536,11 +513,8 @@ class MJ:
                             f"contre-revue reçue {json.dumps(rapport, ensure_ascii=False)} ; "
                             "accepté un contenu couvrant les opérations demandées, "
                             "après une contre-revue lisible (contenu_conforme, motif, operations_demandees, perimetre).")
-                    if self.observateur:
-                        self.observateur({"etape": "couverture de l'action", "modele": self.modele,
-                                          "revision": revision, "intention": intention,
-                                          "erreur": "Contre-revue illisible deux fois : plan accepté sans elle."})
-                    return
+                    raise RapportIllisible("Le geste proposé n'a pas pu être vérifié. Rien n'est tenté.",
+                        exc.attendu or "rapport : accepté une comparaison complète des champs typés du plan.") from exc
 
     def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision,
                                  operations_demandees=None, declaration_connue=True,
@@ -660,7 +634,7 @@ class MJ:
                 # le joueur précise ou s'approche ; aucun appel n'y changerait rien.
                 return {"mode": "dialogue", "texte": annoncee["impossible"], "faits": [], "proposition": None,
                         "_texte_moteur": True, "_validation_refusee": True}
-            reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True)
+            reponse = self._compiler_libre(monde, intention, proposition_en_attente)
             if reponse.get('mode') == 'accord':
                 return ouvrir_accord(monde, reponse['proposition'], intention)
             if reponse.get('mode') == 'parole_joueur':
@@ -676,8 +650,8 @@ class MJ:
                     if self.observateur:
                         self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
                                           "revision": revision, "tentative": 1, **retour})
-                    reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True,
-                                             retour_moteur=retour)
+                    reponse = self._compiler_libre(monde, intention, proposition_en_attente,
+                                                   retour_moteur=retour)
                 if reponse["mode"] == "dialogue":
                     # Le MJ s'obstine : le moteur prononce lui-même les mots du joueur.
                     reponse = parole_du_moteur(monde, intention)
@@ -696,8 +670,8 @@ class MJ:
                                       "revision": revision, "tentative": 1, **retour})
                 self._faisabilite_renvoyee = True
                 try:
-                    reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True,
-                                             retour_moteur=retour)
+                    reponse = self._compiler_libre(monde, intention, proposition_en_attente,
+                                                   retour_moteur=retour)
                 finally:
                     self._faisabilite_renvoyee = False
         correction_utilisee = False
@@ -821,8 +795,8 @@ class MJ:
                 # Un « impossible » est lu après un premier réexamen : l'audit de sa justification sert.
                 admis, self._impossible_admis = self._impossible_admis, True
                 try:
-                    reponse = self._echanger(monde, intention, proposition_en_attente, enrichir=True,
-                                             retour_moteur=retour)
+                    reponse = self._compiler_libre(monde, intention, proposition_en_attente,
+                                                   retour_moteur=retour)
                 finally:
                     self._sans_dialogue = False
                     self._impossible_admis = admis
@@ -859,8 +833,7 @@ class MJ:
                 travail, texte, _ = preparer_faits(monde, p, revision)
             except ErreurMonde as exc:
                 retour = retour_refus(p, exc, "Revois les ancrages et les faits actuels. Ne raconte pas un fait refusé.")
-                reponse = self._echanger(monde, intention, proposition_en_attente,
-                                         enrichir=True, retour_moteur=retour)
+                reponse = self._compiler_libre(monde, intention, proposition_en_attente, retour_moteur=retour)
                 if reponse["mode"] != "etablir_faits":
                     if reponse["mode"] == "dialogue" and "_audit" not in reponse and parole_attendue(monde, intention):
                         # Un dialogue non contrôlé (``refus_assure``) : la parole reste au moteur.
@@ -1003,8 +976,7 @@ class MJ:
                     if self.observateur:
                         self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
                                           "revision": revision, "tentative": 1, **retour})
-                    reponse = self._echanger(monde, intention, proposition_en_attente,
-                                             enrichir=True, retour_moteur=retour)
+                    reponse = self._compiler_libre(monde, intention, proposition_en_attente, retour_moteur=retour)
                     if reponse["mode"] != "parole_joueur":
                         if reponse["mode"] == "dialogue":
                             return reponse
@@ -1032,7 +1004,7 @@ class MJ:
                 if self.observateur:
                     self.observateur({"etape": "validation", "modele": self.modele, "intention": intention,
                                       "revision": revision, "tentative": 1, **retour})
-                corrigee = self._echanger(monde, intention, proposition_en_attente, enrichir=True, retour_moteur=retour)
+                corrigee = self._compiler_libre(monde, intention, proposition_en_attente, retour_moteur=retour)
                 return self._echanger_prepare(monde, intention, proposition_en_attente, suite_fait=suite_fait,
                                               reponse=corrigee, recadre=True)
         from .repliques_moteur import reponse as reponse_formulee
@@ -1050,6 +1022,16 @@ class MJ:
         narration = sceller(narration, rapport)
         return ajouter_transaction(narration, nature, revision, complements,
                                    rapport if reponse["mode"] in ("conversation_pnj", "parole_joueur") else None)
+
+    def _compiler_libre(self, monde, intention, proposition_en_attente=None, *, retour_moteur=None):
+        """Proposer une saisie entière avec la forme A, y compris ses voies transitoires.
+
+        Le même contexte public et les mêmes contrôles servent au nominal et aux
+        corrections. L'admission et l'exécution restent dans leurs chemins actuels.
+        Les commandes directes et la narration seule n'empruntent pas cette entrée.
+        """
+        return self._echanger(monde, intention, proposition_en_attente, enrichir=True,
+                              retour_moteur=retour_moteur)
 
     def _echanger(self, monde, intention, proposition_en_attente, enrichir, conversation_validee=None, resultat_resolu=None, retour_moteur=None):
         contexte = monde.contexte()
@@ -1188,44 +1170,8 @@ class MJ:
             locuteur = reel(monde, reference)
             if locuteur in monde.objets:
                 esprit["nom_du_locuteur"] = monde.objets[locuteur]["nom"].split(",")[0]
-        schema_faits_suite = copy.deepcopy(SCHEMA_FAITS)
-        schema_geste = copy.deepcopy(SCHEMA)
-        schema_geste["properties"]["action"]["enum"] = [
-            a for a in schema_geste["properties"]["action"]["enum"] if a not in ("clarifier", "impossible")]
-        schema_faits_suite["properties"]["suite"] = {
-            "description": "Le geste demandé, à préparer après validation des ajouts, sans supposer leur acceptation.",
-            "anyOf": [schema_geste, *SCHEMAS_PASSAGE, SCHEMA_ATTENTE, SCHEMA_SEQUENCE, SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, {"type": "null"}]}
-        schema_faits_suite["required"].append("suite")
-        from .paroles import SCHEMA_OPERATIONS
-        schema_parole = copy.deepcopy(SCHEMA_PAROLE)
-        # Le protocole du MJ ne propose plus de date à exécuter. Le contrat
-        # moteur E4 reste disponible au choix direct, et les anciennes réponses
-        # datées sont interceptées avant leur préparation puis au rejeu U-C.
-        for contenu in schema_parole['properties']['contenu']['items']['anyOf']:
-            if contenu['properties']['type']['enum'] == ['proposition']:
-                for nom in ('demande', 'contrepartie'):
-                    contenu['properties'][nom]['anyOf'] = [t for t in contenu['properties'][nom]['anyOf']
-                                                            if 'limite' not in t['properties']]
-        # L'analyse de la saisie précède le choix du contenu : elle ne doit pas
-        # être une justification a posteriori des seuls types déjà proposés.
-        schema_parole["properties"] = {"operations_demandees": SCHEMA_OPERATIONS,
-                                       **schema_parole["properties"]}
-        schema_parole["required"] = ["operations_demandees", *schema_parole["required"]]
-        from .accords_libres import SCHEMA as SCHEMA_ACCORD, REGLES as REGLES_ACCORD
-        schema = {
-            "type": "object", "additionalProperties": False,
-            "properties": {
-                "mode": {"type": "string", "enum": ["dialogue", "action", "enrichir_joueur", "enrichir",
-                                                       "conversation_pnj", "parole_joueur", "enrichir_savoirs", "etablir_faits", "accord"]},
-                "texte": {"type": "string"},
-                "faits": {"type": "array", "items": {"type": "string"}},
-                "proposition": {"anyOf": [SCHEMA, *SCHEMAS_PASSAGE, SCHEMA_ATTENTE, SCHEMA_SEQUENCE, {"type": "null"}, SCHEMA_PROFIL,
-                                          SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE,
-                                          SCHEMA_COMPLEMENTS, SCHEMA_CONVERSATION, schema_parole,
-                                          SCHEMA_SAVOIRS, schema_faits_suite, SCHEMA_ACCORD]},
-            },
-            "required": ["mode", "texte", "faits", "proposition"],
-        }
+        from .accords_libres import REGLES as REGLES_ACCORD
+        schema = schema_reponse(enrichir=enrichir)
         instructions = (INTERPRETATION + REGLES_ATELIER + REGLES_FRANCHISSEMENT
                         + REGLES_OBSTACLES + REGLES_ESPACE + REGLES_PAROLE + REGLES_ACCORD)
         consigne_retour = None
@@ -1233,24 +1179,11 @@ class MJ:
             consigne_retour = RETOUR_INTERPRETATION
         if not enrichir:
             instructions = NARRATION
-            schema["properties"]["mode"] = {"type": "string", "enum": ["dialogue"]}
-            schema["properties"]["texte"] = {"type": "string", "minLength": 1,
-                                                "description": "Réponse finale non vide destinée au joueur."}
-            schema["properties"]["proposition"] = {"type": "null"}
             if resultat_resolu is not None:
                 faits = {k: faits[k] for k in ("joueur", "salle", "perception", "resultat_resolu", "attestations", "ambiance_etablie", "comptes")}
                 instructions = INSTRUCTIONS_RESULTAT
             if retour_moteur:
                 consigne_retour = RETOUR_REFUSE
-        schema = lier_modes(schema, {
-            "dialogue": {"type": "null"},
-            "action": {"anyOf": [SCHEMA, *SCHEMAS_PASSAGE, SCHEMA_ATTENTE, SCHEMA_SEQUENCE,
-                                  SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE]},
-            "enrichir_joueur": SCHEMA_PROFIL, "enrichir": SCHEMA_COMPLEMENTS,
-            "conversation_pnj": SCHEMA_CONVERSATION, "parole_joueur": schema_parole,
-            "enrichir_savoirs": SCHEMA_SAVOIRS, "etablir_faits": schema_faits_suite,
-            "accord": SCHEMA_ACCORD,
-        })
         instructions += REGLE_NARRATION
         from .localisation import REGLES as REGLES_LOCALISATION
         instructions += REGLES_LOCALISATION
@@ -1279,6 +1212,19 @@ direction), plus lents, ils ne s'entendent que de tout près.
         entree = ordonner_entree({"faits": faits, "conversation": conversation, "message": intention})
         if consigne_retour:
             entree["consigne_retour_moteur"] = consigne_retour.strip()
+        projection = None
+        if enrichir:
+            from .projection_publique import projeter, ProvenanceAbsente
+            try:
+                projection = projeter(entree)
+            except ProvenanceAbsente as exc:
+                raise ErreurMonde("Le contexte de cette demande ne peut pas encore être préparé.",
+                                  f"contexte{exc.args[0]!r} : accepté un champ couvert par projection_publique.") from exc
+            # Les chemins de provenance restent dans la trace technique. Le modèle
+            # reçoit les valeurs publiques à leurs places habituelles ; le journal
+            # des exclusions peut nommer des secrets et ne lui est jamais envoyé.
+            entree = ordonner_entree(projection.entree)
+            faits = entree["faits"]
         debut = time.monotonic()
         self.derniere_utilisation = None
         trace = {"modele": self.modele, "revision": monde.data["revision"], "intention": intention,
@@ -1287,6 +1233,9 @@ direction), plus lents, ils ne s'entendent que de tout près.
                  "etape": "interprétation" if enrichir else "narration du résultat" if resultat_resolu is not None else "réponse du PNJ" if conversation_validee is not None else "narration après enrichissement",
                  "empreinte_requete": hashlib.sha256(json.dumps(
                      [instructions, entree, schema], sort_keys=True, ensure_ascii=False).encode()).hexdigest()}
+        if projection is not None:
+            trace["projection_publique"] = {"provenances": projection.provenances,
+                                            "exclusions": projection.exclusions}
         try:
             self._audit_courant = None
             # Le monde sert au contrôle lexical de la prose, jamais à la requête.

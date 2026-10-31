@@ -29,18 +29,18 @@ class EntreeCapturee(Exception):
 def entree_actuelle(monde, message):
     """Arrête le vrai producteur avant le transport ; aucun modèle même simulé."""
     mj = MJOpenAI()
-    entree = None
-
-    def capturer(_instructions, e, *_args, **_kwargs):
-        nonlocal entree
-        entree = copy.deepcopy(e)
+    def capturer(*_args, **_kwargs):
         raise EntreeCapturee
 
-    with patch.object(mj, "_appeler", side_effect=capturer):
+    # A6 branche désormais la projection avant _appeler. Ces oracles A1
+    # continuent de contrôler le producteur brut, secrets témoins compris ;
+    # test_raccord_libre contrôle ce qui arrive réellement au compilateur.
+    with patch("donjon.projection_publique.projeter", wraps=projeter) as projection, \
+         patch.object(mj, "_appeler", side_effect=capturer):
         try:
             mj._echanger(monde, message, None, True)
         except EntreeCapturee:
-            return entree
+            return copy.deepcopy(projection.call_args.args[0])
     raise AssertionError("L'entrée actuelle n'a pas été produite")
 
 
@@ -126,6 +126,22 @@ class ProjectionCorpusTests(unittest.TestCase):
             bloc = e["faits"][source] if ref is None else e["faits"][source][ref]
             bloc["nouvelle_propriete_auteur"] = "SECRET_SANS_CONTRAT"
             with self.subTest(source=source), self.assertRaises(ProvenanceAbsente):
+                projeter(e)
+
+    def test_marqueur_entrave_conserve_sans_ouvrir_les_champs_sans_contrat(self):
+        for valeur in (True, False):
+            e = copy.deepcopy(self.corpus[0]["entree"])
+            objet = next(k for k in e["faits"] if k.startswith("objet:"))
+            e["faits"][objet]["entrave"] = valeur
+            p = projeter(e)
+            self.assertIs(p.entree["faits"][objet]["entrave"], valeur)
+            self.assertGreater(verifier_couverture(e, p), 0)
+            chemin = ["faits", objet, "entrave"]
+            preuve = next(v for v in p.provenances if v["chemin"] == chemin)
+            self.assertEqual(preuve["destination"], chemin)
+            # L'admission du marqueur moteur ne rend public aucun autre champ.
+            e["faits"][objet]["capacite_non_portee"] = "SECRET_SANS_CONTRAT"
+            with self.assertRaises(ProvenanceAbsente):
                 projeter(e)
 
     def test_paroles_conservees_sans_croyances_ni_auditeurs_inconnus(self):

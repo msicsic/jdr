@@ -1,4 +1,5 @@
 """Contrats communs du MJ : vraie boucle de jeu, état et texte après rechargement."""
+from tests.revue_support import rapport as rapport_complet
 from donjon.emissions import pnj as emissions_pnj, joueur as emissions_joueur
 import copy
 import io
@@ -33,7 +34,7 @@ def jouer_physique(m, saisies, reponses, jugements=()):
         if fonction == "auditer_capacites":
             return {"jugements": [jugements.pop(0)]}
         if fonction == "auditer_action":
-            return {"conforme": True, "motif": ""}
+            return rapport_complet(entree, True, "")
         return reponses.pop(0)
     with tempfile.TemporaryDirectory() as tmp:
         chemin = Path(tmp) / "partie.json"
