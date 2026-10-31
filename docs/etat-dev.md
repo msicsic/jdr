@@ -47,7 +47,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Hypothèse datée 15/60/120 min ; inspection/appel/question consomment la piste, le temps et les vieux relais ne la rouvrent pas.
   Le résultat de sa propre inspection ne programme plus un nouvel essai ; bruit attribué distinct d'une voix reconnue.
   Captures rechargées : Brune crue 1985, répétition 190/205 identifiée ; Brune 2024, nouvelle case acoustique prouvée.
-  31 tests position/mémoire/témoins verts avant dernière fusion ; 2 écarts de texte voisins reproduits sur la base 3999bb3a.
+  12 tests position verts après dernière fusion ; 2 écarts de texte voisins reproduits sur la base 3999bb3a.
   Lanceur corrigé (import racine, fin même sur erreur, traces d'étape) ; reprise ciblée, attribution et banc 16 nuits × 4 h détachés.
   Fusion suspendue aux résultats ; porte mémoire S1a–S1e conservée. Bruts et réserves au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
 

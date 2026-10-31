@@ -90,7 +90,7 @@ def main():
         fichiers = ['test_chercher_appeler', 'test_ou_est_il',
             'test_contact_sous_but', 'test_reprise_contact', 'test_ouie_temoins', 'test_memoire_socle',
             'test_but_protection', 'test_contact_position_inconnue', 'test_localisation_crue',
-            'test_localisation', 'test_protection', 'test_verifier_contact313', 'test_appels_restes']
+            'test_localisation', 'test_protection', 'test_appels_restes']
         tests = args.sortie / 'tests-reprise.json'
         r = lancer('tests-reprise', [sys.executable, str(RACINE / 'tools/tests.py'),
             *[str(RACINE / 'tests' / (f + '.py')) for f in fichiers],

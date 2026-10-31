@@ -46,6 +46,7 @@ reste à consolider après les captures détachées.
 monde/croyances/rendu/scène après recharge ; pas d'oracle de position cachée.
 **31 tests position/mémoire/témoins verts** avant la dernière fusion, dont 12 de
 position : consommation, vieux relais, bruits attribués, nouvelle voix, agenda et découpage.
+Les **12 tests position passent aussi après la fusion 3999bb3a** (8,600 s).
 Première passe de voisins : **64/65**, 262,384 s. L'échec de texte bloc/découpé de
 `test_ilse_capture_141000_pas_de_reprise_par_la_minute` est aussi reproduit
 sur **a50bbd95 avant ce correctif** ; égalité du monde conservée. Après dernière
@@ -62,7 +63,9 @@ absente de `sys.path` dans `reprendre_position_374.py`. Racine ajoutée avant le
 imports métier, démarrage par `-m`, priorité sous le `try/finally`, fin atomique
 même sur erreur et traces début/fin avec PID. Un second défaut de contrôle est
 corrigé : les échecs hérités déclarés ne bloquent plus l'étape de capture.
-Fin attendue : `C:/Users/msics/donjon/artifacts/position-hypothese-374/fin-consommation.json`.
+Le contrôle du redémarrage a repéré une référence de test inexistante, retirée
+de la liste ; son arrêt a bien écrit le fichier de fin d'échec.
+Fin de la nouvelle relance : `C:/Users/msics/donjon/artifacts/position-hypothese-374/fin-consommation-relance.json`.
 Aucune certification d'absence de boucle ni validation de fusion avant analyse.
 Demi-vies non calibrées. Forme S0 : mobilité/consommation dans la croyance,
 confiance dérivée, cause de vérification dans le plan sauvegardé.
