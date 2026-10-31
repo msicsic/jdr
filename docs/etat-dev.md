@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-s1k-recours` (f5127a4d) : lot 411, S1k recours par l'interface. Détail dans l'historique.
 - `codex-a3-liaison-transport` (86187c83) : lot 410, A3 liaison du transport. Détail dans l'historique.
 - `codex-s1k-refus-recours` (7da401ec) : lot 409, S1k refus retenus par l'interface. Détail dans l'historique.
 - `codex-a2-consultation-sociale` (79663ec3) : lot 407, A2 famille consultation sociale. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-rembourser-public` (3fbe6e74) : lot 399, rembourser depuis le menu et le terminal. Détail dans l'historique.
 - `codex-s1h-eau-statuts` (f183d930) : lot 404, S1h eau, prévisions et statuts par leurs vues. Détail dans l'historique.
 - `codex-s1g-etats-materiels` (d3326879) : lot 400, S1g états matériels et capacités crus par leurs vues. Détail dans l'historique.
-- `codex-crash-raccord` (3c506bb1) : lot 401, le raccord des émissions ne plante plus. Détail dans l'historique.
 
 ## Lots non fusionnés
 
@@ -52,7 +52,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Bruts `C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/correction/` ; limite de revue sémantique explicitée.
   Rapport : [lot 412](taches/rapport-codex-412-a4-dossier-revue.md).
 
-Lots en cours : 411 (S1k recours), 402 (vérification d'intégration moteur) ; 412 livré non validé (voir ci-dessus) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 413 (S1l recherche d'une personne), 414 (rouges nouveaux de la suite 4539dd68), 415 (A5 reprise fidèle, construit sur la branche A4 412, non fusionnée : substitution de manière acceptée), 402 (vérification d'intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
