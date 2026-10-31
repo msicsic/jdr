@@ -289,11 +289,18 @@ class HypothesePositionTests(unittest.TestCase):
         self.assertEqual(lignes, decoupees)
         self.recharge(bloc)
         self.recharge(coupe)
-        # Le parent demeure servir Brune, mais la piste d'Ilse est consommée :
-        # sur 6614e692, le préparatif à la réserve la précédait de nouveau à
-        # chaque minute, produisant plus de trente passages pendant ces 6 min.
+        # Le 419 relie désormais les parts déjà portées au but qui visait leur
+        # lot : Brune est servie dès 18, sans rechercher une nouvelle fourniture
+        # auprès d'Ilse. Sa perception ultérieure peut renouveler cette piste.
+        parts = {o['id']: o.get('portions', 0) for o in m.objets.values()
+                 if o.get('lot_origine') == 'vivres' and o.get('lieu') == 'aubin'}
+        self.assertTrue(parts)
+        self.assertTrue(any(bloc.objets[p].get('portions', 0) < n for p, n in parts.items()))
+        self.assertTrue(any(c['pnj'] == 'aubin' and c['minute'] == 18 and 'donne une part' in c['texte']
+                            for c in bloc.data['chronique']))
         c = lire(bloc, 'aubin')['croyances']['ilse']['lieu']
-        self.assertTrue(hypothese_consommee(bloc, 'aubin', 'ilse'))
+        self.assertEqual(c['source'], 'vu')
+        self.assertGreater(c['minute'], 18)
         passages = [c for c in bloc.data['chronique'] if c['pnj'] == 'aubin'
                     and c['nature'] == 'deplacement' and c['minute'] >= 18]
         self.assertLessEqual(len(passages), 10)
@@ -302,11 +309,15 @@ class HypothesePositionTests(unittest.TestCase):
         fichier = Path(__file__).parent / 'captures/position-374-crue-1985-190.json.gz'
         m = self.recharge(Monde(json.loads(gzip.decompress(fichier.read_bytes()))))
         d.choisir(m, 'brune', m.data['minutes'])
-        self.assertEqual(lire(m, 'brune')['intention']['plan'][-1]['contenu']['cherche'], 'aubin')
-        pnj._inspecter(m, 'brune', 'aubin', [])
+        # Le 419 conserve les offres possibles derrière les vérifications :
+        # le moyen choisi peut changer. Le contrat du 374 porte sur la piste
+        # effectivement vérifiée, pas sur l'interdiction de tout autre contact.
+        sujet = lire(m, 'brune')['intention']['plan'][-1]['contenu']['cherche']
+        self.assertTrue(position_a_verifier(m, 'brune', sujet))
+        pnj._inspecter(m, 'brune', sujet, [])
         m = self.recharge(m)
-        self.assertEqual(lire(m, 'brune')['croyances']['aubin']['lieu']['minute'], 190)
-        self.assertTrue(hypothese_consommee(m, 'brune', 'aubin'))
+        self.assertEqual(lire(m, 'brune')['croyances'][sujet]['lieu']['minute'], 190)
+        self.assertTrue(hypothese_consommee(m, 'brune', sujet))
         for minute in (205, 220, 235):
             m.data['minutes'] = minute
             m.data['dixiemes'] = 0
@@ -314,4 +325,5 @@ class HypothesePositionTests(unittest.TestCase):
             m = self.recharge(m)
             plan = (lire(m, 'brune')['intention'] or {}).get('plan', [])
             self.assertFalse(any(g['operation'] == 'inspecter'
-                                 and (g.get('contenu') or {}).get('verification') for g in plan))
+                                 and (g.get('contenu') or {}).get('verification')
+                                 and g['contenu'].get('cherche') == sujet for g in plan))

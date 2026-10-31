@@ -253,11 +253,17 @@ class PnjTests(unittest.TestCase):
         m.objets["porte"].update(ouverte=True, verrouillee=False)
         m, _ = attendre(m, 80)
         e = lire(m, "ilse")
-        # Elle a vu l'eau monter dans la conduite, à sa vitesse vraie, et fui vers le plus haut lieu sec.
-        self.assertEqual(eau.estimation(m, "ilse")[2], 60)
+        # Depuis le 374, elle gagne l'abri dès 31, avant un second relevé
+        # personnel de l'eau. Le départ sûr ne prouve pas sa vitesse : la
+        # première observation est conservée, aucune pente n'est inventée.
+        conduite = e['croyances']['echoppe']['eau']
+        self.assertEqual(conduite['source'], 'vu')
+        self.assertGreater(conduite['valeur'], 0)
+        self.assertIsNone(conduite['montee'])
+        self.assertIsNone(eau.estimation(m, "ilse"))
         self.assertEqual(m.objets["ilse"]["lieu"], "chambre_cloche")
-        # Rassurée, elle y reste : sa ronde au refuge la couperait de la galerie (la conduite, qu'elle
-        # attend noyée dans l'heure, est entre eux), elle ne l'entreprend pas (branche ``verifier-eau``).
+        # Elle conserve son abri sec en hauteur, sans lui attribuer une
+        # prévision de montée qu'elle n'a pas pu mesurer avant de partir.
         intention = e["intention"]
         if intention and intention["but"] != {"type": "abri", "lieu": "chambre_cloche"}:
             # Le contrat 213 conserve une intention bloquée, sans exécuter ses

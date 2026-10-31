@@ -91,6 +91,17 @@ class ServiceRejoindreTests(unittest.TestCase):
     def test_capture_reelle_289_tilo_mathurine(self):
         self.verifier_chaine(capture, 'tilo', 'mathurine', 'marmite_1_1')
 
+    def test_part_recue_reprend_le_but_du_lot_apres_oubli_de_la_reception(self):
+        from donjon import memoire
+        def apres_oubli():
+            m = self.recharge(capture())
+            self.assertEqual(m.objets['marmite_1_1']['lot_origine'], 'marmite_1')
+            memoire.evincer_episodes(m, 'tilo', lambda s: True)
+            m = self.recharge(m)
+            self.assertEqual(lire(m, 'tilo')['memoire'], [])
+            return m
+        self.verifier_chaine(apres_oubli, 'tilo', 'mathurine', 'marmite_1_1')
+
     def test_mine_mathe_lucien(self):
         self.verifier_chaine(mine, 'mathe', 'lucien', 'vivres')
 

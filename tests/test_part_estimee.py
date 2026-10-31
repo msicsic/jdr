@@ -60,6 +60,50 @@ class PartEstimeeTests(unittest.TestCase):
         self.assertEqual(m.objets[piece]["charges"], 0)
         self.assertIn("éclaire la pièce", decrire_perception(m))
 
+    def test_part_de_bois_recue_reste_moyen_du_feu_avec_ou_sans_contact(self):
+        from donjon import memoire
+        from donjon.esprits import lire
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        for verifier_contact in (False, True):
+            with self.subTest(contact=verifier_contact):
+                m = self.scene()
+                deplacer(m, 'poele', 'reserve', position=[2, 1])
+                m.objets['poele'].update(proprietaire='remy', allume=False, combustible=0)
+                m.objets['poele'].pop('contenu', None)
+                m.objets['bidon_huile']['contenu'] = {'matiere': 'bois'}
+                m.objets['lampe_remy']['contenu'] = {'matiere': 'cire'}
+                m.objets['bois_gaspard']['charges'] = 0
+                percevoir_tous(m)
+                croire(m, 'remy', 'bois_gaspard', 'etat', {'disponible': False}, 'savoir')
+                croire(m, 'remy', 'poele', 'etat', {'allume': False, 'charge': False}, 'savoir')
+                condition = {'objet': 'poele', 'allume': True}
+                with patch.object(Monde, 'd20', return_value=20):
+                    r = p.chercher(m, 'remy', lambda v,e: bool(e.fait('chauffe','poele')),
+                                   {'entretenir': ('poele',)}, emplois=('feu',))
+                    self.assertTrue(echanger(m, 'remy', p._couper(r[1])[0], []))
+                piece = next(s['objet'] for s in memoire.episodes_parts_promises(m, 'remy')
+                             if s['type'] == 'recu' and s.get('lot') == 'bidon_huile')
+                self.assertEqual(m.objets[piece]['lot_origine'], 'bidon_huile')
+                memoire.evincer_episodes(m, 'remy', lambda s: True)
+                if verifier_contact:
+                    pnj._inspecter(m, 'remy', 'gaspard', [])
+                m = recharger(m)
+                but, plan = p.planifier_pulsion(m, 'remy', condition)
+                self.assertEqual(but, {'type': 'pulsion', **condition})
+                self.assertTrue(any(g['operation'] == 'alimenter' and g['outil'] == piece for g in plan))
+                self.assertFalse(any(g['operation'] in ('demander','acheter') for g in plan))
+                for geste in plan:
+                    self.assertTrue(pnj._executer(m, 'remy', geste, [], []))
+                    m = recharger(m)
+                self.assertTrue(m.objets['poele']['allume'])
+                self.assertGreater(m.objets['poele']['combustible'], 0)
+                self.assertEqual(m.objets[piece]['charges'], 0)
+                n = recharger(m)
+                self.assertEqual(m.data, n.data)
+                self.assertEqual(regarder(m), regarder(n))
+                self.assertEqual(scene_percue(m), scene_percue(n))
+
     def test_un_lieu_deja_eclaire_coute_moins_que_demander_et_allumer(self):
         m = self.scene()
         m.data["salles"]["bureau"]["lumiere_naturelle"] = 2

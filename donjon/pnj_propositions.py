@@ -223,12 +223,13 @@ def plan_recours(monde, id, besoin, etapes):
     vide, est au contraire un résultat du but choisi : sans faute à éviter,
     il n'a pas de manque que l'ancien refus d'une autre demande comblerait.
     """
-    if etapes is not None and not any(g["condition"] == "sans_temoin" for g in etapes):
+    from .planification import gestes_conditionnes
+    if etapes is not None and not any(g["condition"] == "sans_temoin" for g in gestes_conditionnes(etapes)):
         return None
     etapes = [] if etapes is None else etapes
     from .biens import richesse
     from .echanges import condition_remplie
-    from .planification import planifier_pulsion, rejoindre
+    from .planification import planifier_pulsion, preparer_contact
     e = lire(monde, id)
     # Une commission acceptée est un moyen attendu, pas un prétexte à tenter
     # aussi une faute pendant que l'autre accomplit sa parole.
@@ -285,7 +286,7 @@ def plan_recours(monde, id, besoin, etapes):
         for s in reversed(memoire.reponses_retenues(monde, id)):
             if s["de"] != refusee["de"] or s.get("objet") != refusee["objet"] or "contre_offre" not in s:
                 continue
-            if etapes and not any(g["condition"] == "sans_temoin" for g in etapes):
+            if etapes and not any(g["condition"] == "sans_temoin" for g in gestes_conditionnes(etapes)):
                 return None  # Les moyens ordinaires sans faute gardent la priorité.
             offre = s["contre_offre"]
             terme = offre["condition"]
@@ -297,22 +298,22 @@ def plan_recours(monde, id, besoin, etapes):
             if prix or condition_remplie(monde, id, s):
                 if prix > richesse(monde, id):
                     return None
-                route = rejoindre(monde, id, autre)
-                return [*route[0], demande] if route and route[1] else None
+                return preparer_contact(monde, id, autre, [demande])
             trouve = planifier_pulsion(monde, id, terme["condition"])
-            if not trouve or any(g["condition"] == "sans_temoin" for g in trouve[1]):
+            if not trouve or any(g["condition"] == "sans_temoin" for g in gestes_conditionnes(trouve[1])):
                 return None
             # Le refus reste le but à poursuivre après le service, même rechargé.
             return trouve[1]
     geste = recours(monde, id, besoin, etapes)
-    return [geste] if geste else None
+    return preparer_contact(monde, id, geste['cible'], [geste]) if geste else None
 
 
 def _dernier_recours(monde, id, autre, etapes):
     from .biens import proprietaire
-    if etapes and not any(g['condition'] == 'sans_temoin' for g in etapes):
+    from .planification import gestes_conditionnes
+    if etapes and not any(g['condition'] == 'sans_temoin' for g in gestes_conditionnes(etapes)):
         return False
-    for g in etapes:
+    for g in gestes_conditionnes(etapes):
         if g['operation'] in ('demander', 'acheter', 'confier', 'engager', 'proposer'):
             return False
         if g['condition'] == 'sans_temoin':
@@ -437,7 +438,9 @@ def recours(monde, id, besoin, etapes):
     """Une seule offre avant la faute retenue, ou après la demande refusée."""
     import json
     from .biens import proprietaire
-    from .deliberation import _connus, salle_crue, refus_retenu
+    from .deliberation import _connus, refus_retenu
+    from .planification import gestes_conditionnes
+    etapes = list(gestes_conditionnes(etapes))
     if etapes and not any(g["condition"] == "sans_temoin" for g in etapes):
         return None  # Un ancien refus ne remplace jamais un moyen ordinaire nouveau.
     candidats = []
@@ -475,14 +478,8 @@ def recours(monde, id, besoin, etapes):
             continue
         if autre not in _connus(monde, id) or not monde.objets.get(autre, {}).get("profil"):
             continue
-        contact = None
-        if salle_crue(monde, id, autre) != monde.objets[id]["lieu"]:
-            from .planification import Vue, depart, _appeler, _couper
-            v = Vue(monde, id)
-            contact = _appeler(v, depart(monde, id, v), autre)
-            if contact is None:
-                continue
-        # Il sait où le trouver ; la marche sociale normale le rejoint au contact.
+        # Choisir des termes admissibles précède le contact ; plan_recours
+        # conserve ensuite cette offre derrière sa vérification éventuelle.
         entrees = _entrees(monde, id, autre, besoin, demande)
         cle = json.dumps(['recours_proposition', autre, besoin, demande['objet']], ensure_ascii=False)
         dependances = _entrees_negatives(monde, id, autre, demande, entrees)
@@ -519,11 +516,6 @@ def recours(monde, id, besoin, etapes):
             if complet:
                 memoire.retenir_effort_du_choix(monde, id, cle, avec_service if service_devise else sans_service)
             continue
-        if contact is not None:
-            # L'appel sert une négociation réellement admissible. Il ne
-            # remplace pas un plan par un contact sans contrepartie possible.
-            # Le choix final de l'offre et son accord attendent la venue.
-            return _couper(contact[2])[0]
         # Prix propre de l'essai par chance d'accord, puis chance pour les ex aequo.
         _, _, terme = min(offres, key=lambda x: (-x[1] / x[0], -x[0]))
         from .propositions import demande_financee

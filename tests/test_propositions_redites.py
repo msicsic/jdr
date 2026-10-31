@@ -85,7 +85,12 @@ class PropositionsReditesTests(unittest.TestCase):
         v = plans.Vue(m, 'remy')
         e = plans.depart(m, 'remy', v)
         self.assertEqual(e.salle, 'baraquement')
-        self.assertEqual(v.salle(e, 'bram'), 'bureau')
+        # Le repère de Bram a expiré (374) : il reste une piste pour
+        # l'appel, sans devenir une présence utilisable pour la demande.
+        from donjon.esprits import position_a_verifier
+        self.assertTrue(position_a_verifier(m, 'remy', 'bram'))
+        self.assertIsNone(v.salle(e, 'bram'))
+        self.assertEqual(lire(m, 'remy')['croyances']['bram']['lieu']['salle'], 'bureau')
         self.assertEqual(m.objets['bram']['lieu'], 'bureau')
         self.assertIsNone(v.route(e, 'bureau'))
         self.assertTrue(v.verrouille(e, 'porte_bureau'))
@@ -95,11 +100,14 @@ class PropositionsReditesTests(unittest.TestCase):
         possessions_deja_confiees(m)  # Aucun inventaire initial n'interrompt l'attente mesurée.
         moteur = Moteur(m)
         texte = moteur.executer(moteur.preparer(proposition('attendre', cible='600')))
-        self.assertEqual(instant(m), debut + 4 * MINUTE + 150)
+        # Le contact vérifie maintenant le repère expiré avant de héler ;
+        # sa durée d'observation ne doit pas devenir un oracle de marché.
+        self.assertLess(instant(m), debut + 10 * MINUTE)
         cris = [c for c in m.data['chronique'] if c['pnj'] == 'remy'
                 and c['instant'] >= debut and ' appelle : ' in c['texte']]
         self.assertEqual(len(cris), 1)
-        self.assertEqual(cris[0]['instant'], debut + 4 * MINUTE + 60)
+        self.assertGreaterEqual(cris[0]['instant'], debut)
+        self.assertGreater(instant(m), cris[0]['instant'])
         self.assertEqual(cris[0]['texte'], 'Rémy appelle : « Bram ? »')
         self.assertIn('Bram ?', texte)
         self.assertIn("tu cesses d'attendre", texte)

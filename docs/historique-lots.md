@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-verification-contact` — lot 419, fusion `integration 07e270be` ; moteur `cd19880e`.
+  Contact = préfixe du moyen ; but du lot repris avec sa part reçue, filiation persistée et privée.
+  Tilo/Mathurine et bois reçu pour un feu verts après recharge ; ancienne livraison stable avant sauvegarde.
+  26 fichiers : 242/247 méthodes vertes, cinq rouges héritées ; douze méthodes du brief acceptées, ballot ouvert.
+  Ancien 42→47 : 47 appels attribués, 38 premiers examens, six preuves nouvelles, trois hypothèses uniques.
+  Reprise crue 4 h × 4 graines : appels 42→39 ; zéro retour suspect, zéro plantage ; aucune répétition sans preuve.
+  **Terminé** ; `verification-contact-419/reprise/conclusion.json` ; pas de suite complète ni Luna.
+  [Rapport 419](taches/rapport-codex-419-verification-contact.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `echanges.py`, `matiere.py`, `projection_publique.py`, fusionnés sans conflit textuel. Conflit de code dans projection_publique.py (deux champs techniques, origine_ambiance de G14 et lot_origine du 419, gardés tous deux). Tests ciblés du 419, K0, K1, découpe, G14, D0 sur la fusion : 159/163 ; quatre rouges préexistants (démenti empathique, deux égalités du suffixe 417, et test_gardien_detresse demander_un_moyen_pour_un_autre_besoin, rouge aussi sur l'intégration sans le 419 : oracle sans suite_conditionnelle). Le contact est un préfixe du moyen : constat puis recompilation sans perdre but, aide ou offre ; filiation lot_origine des parts persistée et privée (Tilo/Mathurine, bois reçu pour un feu). Crue 4 h × 4 graines : appels 42 → 39, zéro retour suspect ; 47 appels historiques attribués un par un. Cinq rouges hérités ouverts (lanterne et ballot de Lucien, démenti empathique, deux égalités du 417).
+
 - `codex-reference-neuve` — **433**, base reçue `1c7df834` (integration), PC fixe.
   Toute création proposée reçoit sa référence sur la copie transactionnelle avant rendu ou suite ;
   inscription commune aux compléments et faits locaux, qualifications stables, rejet sans écriture.

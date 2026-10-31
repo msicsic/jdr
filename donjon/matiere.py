@@ -233,6 +233,26 @@ def installer(m):
     for o in m.objets.values():
         if "physique" in o and "charge_jeu_kg" not in o and o["physique"]["forme"] in ROLES:
             deduire(o)
+    # Migration des anciennes parts : seule une réception typée établit
+    # l'origine. Aucun suffixe d'identifiant ou nom d'objet ne sert de preuve.
+    from .memoire import episodes_parts_promises
+    from .esprits import pnjs
+    for id in pnjs(m):
+        for s in episodes_parts_promises(m, id):
+            if s['type'] == 'recu' and s.get('lot') in m.objets and s.get('objet') in m.objets:
+                m.objets[s['objet']].setdefault('lot_origine', s['lot'])
+
+
+def issu_du_lot(monde, piece, lot):
+    """Filiation de prélèvement explicite, indépendante du nom et du porteur."""
+    vus = {piece}
+    origine = monde.objets[piece].get('lot_origine')
+    while origine in monde.objets and origine not in vus:
+        if origine == lot:
+            return True
+        vus.add(origine)
+        origine = monde.objets[origine].get('lot_origine')
+    return False
 
 
 def decrire(o):
@@ -252,6 +272,11 @@ def decrire(o):
 
 def verifier(m):
     for o in m.objets.values():
+        vus, origine = {o['id']}, o.get('lot_origine')
+        while origine is not None:
+            assert isinstance(origine, str) and origine in m.objets and origine not in vus, 'Origine de lot invalide'
+            vus.add(origine)
+            origine = m.objets[origine].get('lot_origine')
         if "passage" in o:
             try:
                 valider_passage(o, o["passage"])
@@ -388,6 +413,7 @@ def prelever_piece(m, lot_id, piece_id):
         piece["charges"] = 1
         lot["charges"] -= 1
     deduire(piece)
+    piece['lot_origine'] = lot_id
     m.objets[piece_id] = piece
     retirer_piece(lot)
     return piece

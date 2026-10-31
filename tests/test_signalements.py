@@ -147,7 +147,12 @@ class InactiviteTests(unittest.TestCase):
         self.verifier_scene('relais-1985-120', 'marchand', 'confiee', 'Charge confiée à autrui')
 
     def test_hugues_auberge_11_devoir_sans_tache_restante(self):
-        self.verifier_scene('auberge-11-500', 'hugues', 'satisfaite', 'Charge déjà satisfaite')
+        # Le diagnostic porte sur sa charge achevée. Dans la trajectoire du
+        # 374, le secours spontané de Lucien crée un nouvel objectif d'empathie
+        # à 500 ; sa présence ne réfute pas la satisfaction du devoir initial.
+        from tests.support import sans_souci
+        self.verifier_scene('auberge-11-500', 'hugues', 'satisfaite', 'Charge déjà satisfaite',
+                            preparer=sans_souci)
 
     def test_attendre_un_moyen_reste_distinct_du_repit(self):
         from tests.support import calme
@@ -169,8 +174,9 @@ class RechercheTests(unittest.TestCase):
     def verifier_recherche(self, m, qui, minutes):
         from donjon import pnj
         debut = instant(m)
-        cris = []
+        cris, questions = [], []
         heler = pnj.heler
+        executer = pnj._executer
         def observer(monde, id, cible, lignes):
             if id == qui:
                 lieu = lire(monde, id)['croyances'].get(cible, {}).get('lieu') or {}
@@ -178,14 +184,25 @@ class RechercheTests(unittest.TestCase):
                 cris.append((t, cible, salle, depuis))
                 self.assertNotIn(salle, D.appels_vains(monde, id, cible), cris)
             return heler(monde, id, cible, lignes)
+        def question(monde, id, etape, *args, **kwargs):
+            resultat = executer(monde, id, etape, *args, **kwargs)
+            if id == qui and etape['operation'] == 'demander' and 'localisation' in etape.get('contenu', {}):
+                questions.append((etape['cible'], etape['contenu']['localisation']))
+            return resultat
         # Le journal du monde ne garde que 300 entrées ; observer la période entière évite
         # qu'une rafale d'échanges masque ses propres premiers appels.
-        with patch.object(pnj, 'heler', observer):
+        with patch.object(pnj, 'heler', observer), patch.object(pnj, '_executer', question):
             bloc = poursuivre(recharger(m), minutes, minutes)
         coupe = poursuivre(recharger(m), minutes, 5)
         self.assertEqual(bloc.data, coupe.data)
-        self.assertTrue(cris)
-        self.assertTrue(lire(bloc, qui).get('recherches'))
+        # 374 : question et appel sont les deux moyens de vérifier une piste.
+        # Une réponse de localisation évite légitimement la tournée criée.
+        self.assertTrue(cris or questions)
+        if cris:
+            self.assertTrue(lire(bloc, qui).get('recherches'))
+        for interlocuteur, sujet in questions:
+            self.assertTrue(any(s['type'] == 'enquete_lieu' and s['de'] == interlocuteur
+                                and s['objet'] == sujet for s in lire(bloc, qui)['memoire']))
         # Une recherche infructueuse n'établit jamais la présence ni l'identité du répondant.
         for lieu in lire(bloc, qui)['recherches'].values():
             self.assertTrue(all(s in bloc.data['salles'] for s in lieu))
@@ -194,7 +211,14 @@ class RechercheTests(unittest.TestCase):
         return bloc
 
     def test_auberge_3_un_rendez_vous_ne_relance_pas_la_tournee(self):
-        self.verifier_recherche(scene('auberge-3-570'), 'anselme', 30)
+        m = self.verifier_recherche(scene('auberge-3-570'), 'anselme', 30)
+        questions = [s for s in lire(m, 'anselme')['memoire']
+                     if s['type'] == 'enquete_lieu' and s['minute'] >= 570]
+        self.assertEqual(len(questions), 1)
+        self.assertEqual(questions[0]['issue'], 'dit')
+        self.assertEqual(lire(m, 'anselme')['intention']['but'],
+                         {'type': 'pulsion', 'objet': 'poele', 'allume': True})
+        self.assertEqual(lire(m, 'anselme')['intention']['plan'], [])
 
     def test_relais_un_bien_porte_par_une_voix_non_identifiee(self):
         from tests.support import calme, lier

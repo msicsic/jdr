@@ -1037,6 +1037,7 @@ def detacher_part(monde, lot):
     part = copy.deepcopy(o)
     compteur = "portions" if o["type"] == "nourriture" else "charges"
     part.update(id=piece, masse=round(o["masse"] / max(1, o[compteur]), 3))
+    part['lot_origine'] = lot
     part[compteur] = 1
     o[compteur] -= 1
     o["masse"] = round(o["masse"] - part["masse"], 3)
@@ -1562,6 +1563,9 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
             constater_possession(monde, participant, objet, "essai", remis_par=donneur,
                                   autorise=any(x["pour"] == proprietaire(monde, o) for x in livre))
     if livre and 'lot' in livre[0]:
+        # Une ancienne pièce peut être livrée pendant cette partie : la
+        # réception typée établit sa filiation avant toute sauvegarde.
+        o.setdefault('lot_origine', livre[0]['lot'])
         agendas.affecter_part(monde, receveur, livre[0]['lot'], objet)
     from .biens import compte, noter_compte
     noter_compte(monde, compte(donneur, receveur, objet, 1, "rendu"))
@@ -1866,6 +1870,11 @@ def engagements_echus(monde, id):
 
 def executer(monde, id, etape, lignes):
     """Un geste social d'une minute ; renvoie True s'il a obtenu ce qu'il visait."""
+    if 'suite_conditionnelle' in etape.get('contenu', {}):
+        # La provenance du plan décrit ce qu'un constat prépare. Elle ne
+        # fait partie ni de la parole prononcée ni des termes de son accord.
+        etape = {**etape, 'contenu': {k: v for k, v in etape['contenu'].items()
+                                    if k != 'suite_conditionnelle'}}
     from .francais import complement_de, designer, groupe_nominal
     from .pnj import _chroniquer
     from .esprits import percoit
