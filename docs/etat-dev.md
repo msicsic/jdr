@@ -43,6 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- **417 — `codex-obstacle-temoin-expire`**, base `origin/integration 19b711bf`, moteur `bb5dfc5e`.
+  Le renoncement conserve sa cause malgré l'expiration ; les préfixes et suffixes coupés portent leur provenance.
+  Guet engagé conservé, autre moyen permis, validation des suites à la sauvegarde ; cinq oracles 225 intacts.
+  78/79 méthodes vertes aux derniers contrôles ciblés ; banc 4 h mine/auberge × quatre graines en cours.
+  Gorm 317 reste rouge : aucun renoncement dans la capture/rejeu ; oracle intact, trajet hors invariant à reprendre.
+  Bruts `artifacts/obstacle-temoin-417/` du dépôt principal ; fin attendue `fin-banc-final.json`.
+  [Rapport 417](taches/rapport-codex-417-obstacle-temoin-expire.md). Pas de suite complète ni Luna ; non fusionné.
+
 Lots en cours : 416 (A6 raccord libre), 417 (renoncement dû à un témoin dont la position expire, famille R du 414), 402 (vérification d’intégration moteur) ; S1m attend le 417 (mêmes tests de réessai) ; familles C et E du 414 à ouvrir ensuite ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
