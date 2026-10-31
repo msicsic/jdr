@@ -2,7 +2,7 @@
 
 31 octobre 2026 — branche `codex-a2-passage`, base de travail `origin/integration`
 au brief `c63dd5637648523997cc7a3f32966fd63fec6b06`, non fusionnée.
-Rapprochement avec `origin/integration a6f0f00b` demandé le 31 octobre.
+Rapprochement avec `origin/integration a6f0f00b` validé le 31 octobre.
 
 **Invariant.** `donjon/contrats_passage.py` décrit le passage local dessous/dessus,
 l'assemblage installé, l'appui mobile, la poussée et la demande de passage.
@@ -40,11 +40,17 @@ le remboursement individuel. Les raccourcis comptes de 380, le rendu du prix
 de 388 et la remise par U-C sont conservés dans les trois fusions automatiques
 de `commandes`, `comprehension` et `moteur`. Le test du sujet tiers garde son
 refus sans mutation ; l'attendu de déplacement corrigé par 390 est conservé.
-Vérification en cours sur les sept fichiers demandés et `test_don_consentement`,
-puis empreintes Relais, 2 h × 1985/7/42/2024, contre `a6f0f00b`.
+**77/77 tests verts en 369,25 s**, huit fichiers : les sept demandés et
+`test_don_consentement` ; aucun échec, erreur ni test ignoré (`tests.json`).
+Le test de passage auparavant rouge passe désormais. **Empreintes Relais
+identiques**, 2 h × 1985/7/42/2024, `a6f0f00b` contre `ba28d931` : chronique,
+mesures et état final complet, zéro divergence et zéro plantage. Quatre nuits
+par côté, référence puis branche, `PYTHONHASHSEED=0` ; référence calculée une
+fois puis cachée. L'avis « à expliquer » du Relais 2024 existe des deux côtés,
+aucun nouvel écart. Fusion enregistrée par `9b7b12ae` ; arbre testé propre.
 Bruts : `C:/Users/msics/donjon/artifacts/a2-passage-381/integration/` ;
-`fin.json` écrit après `tests.json` et `empreintes.json`. Deux travailleurs
-à priorité réduite ; ni suite complète ni Luna.
+`fin.json` : `tests=0`, `empreintes=0`, `erreur=null`. Deux travailleurs à
+priorité réduite ; ni suite complète ni Luna. Aucun gain de vitesse revendiqué.
 
 **Références initiales conservées.** Reprise **47/47 verte en 73,30 s**
 (`tests-sociaux.json`), après une passe de 138 tests qui avait révélé l'attente
