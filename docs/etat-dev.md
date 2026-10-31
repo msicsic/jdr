@@ -46,6 +46,16 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels), 403 (rouges nouveaux de la suite c562aa21) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
+## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
+
+Deux passes, onze bancs (relais, crypte, atelier, echanges, comptes, don, avis-joueur, mandat-joueur, soir-appel,
+noms-dialogue, ressources), `main` 0bad227 joué en même temps : **appels/tour 3,58 → 2,26**, **s/tour 11,8 → 8,5**
+(médiane 10,9 → 8,1), replis 1 → 0, obstacles narratifs 20 → 3, relances 13,5 → 3, refus 12,5 → 14 ; aucune erreur
+technique ni de recharge sur 22 parties ; mentions sans fondement comparables (5,5 contre 7 par passe). Banc
+`rembourser` (intégration seule) : 2 appels/tour, aucun refus. Première tentative : plantage du jeu sur `echanges`
+(KeyError du raccord des émissions), corrigé par le lot 401 avant cette mesure. Lecture qualitative des textes non
+faite saisie par saisie. Bruts `.worktrees/integration/artifacts/bancs-multi/20261031-062344-21836/` (laptop).
+
 ## Passe Luna d'E6 (2026-10-31, orchestrateur, laptop)
 
 Les 12 scripts de l'évaluation 371 sur copies, intégration `e3adc0f4` : 14 appels, 1 appel et ~4,4 s par tour MJ, aucun repli
