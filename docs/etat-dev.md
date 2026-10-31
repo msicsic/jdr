@@ -43,15 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 409 (S1k refus et recours), 410 (A3 liaison du transport), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 410 (A3 liaison du transport), 402 (vérification d'intégration moteur) ; 409 livré partiellement (refus retenus, recours à porter). Suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 - `codex-s1k-refus-recours` — lot 409, base `integration 64e3b2b4`, première partie : refus retenus
   par vues/opérations de `memoire`, prédicats historiques conservés, copies et validation portées.
   AST refus 64 → 27 (schéma + homonymes uniquement) ; recours 85 → 84, portage restant explicite.
   210 tests : quatre sous-échecs et une erreur de recharge, tous reproduits à la base ; cinq nouveaux verts.
-  Sonde corrigée ; empreintes détachées : `C:/Users/msics/donjon/artifacts/s1k-409/fin-complement.json` attendu.
-  Intégration `57299df4` fusionnée sans conflit ; S1k reste ouvert pour les recours. Ni suite complète ni Luna.
+  Sonde/porte 48/48 et consultations 9/9 verts ; empreintes 2 h × 4 graines × 4 scénarios : 16/16 identiques.
+  Intégration `57299df4` fusionnée ; code mesuré `48e4231e`. Lot clos partiel ; S1k ouvert pour les recours.
   [Rapport 409](taches/rapport-codex-409-s1k-refus-recours.md).
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
