@@ -46,12 +46,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-g12-portee-creation` — lot 421, base `integration` / `78e4133b` : création admise puis
   liaison exacte de sa suite ; projection des objets créés et contexte public de la revue portés.
   Refus de faux indices/perceptions conservés ; recharges et laps découpés sur Relais/atelier.
-  58 tests ciblés verts (216,99 s), test d'ambiguïté vert ; empreintes 2 h × 4 graines et Luna en cours.
-  Limite : sens libre toujours soumis à revue, sans garantie universelle de classement.
-  Bruts `artifacts/g12-portee-creation-421/` du dépôt principal, fin attendue `fin.json`.
+  58 tests verts, puis les 4 tests G12 finaux verts ; empreintes Relais 2 h × 4 graines identiques à la base.
+  Luna : 62 appels / 26 tours (2,38), aucune erreur ; aucune création d'objet proposée, pierre non ramassée.
+  Limites : choix de l'invention utile non acquis ; portée française toujours soumise à revue sémantique.
+  Bruts `artifacts/g12-portee-creation-421/` du dépôt principal ; calculs finis, `fin.json` vert.
   [Rapport](taches/rapport-codex-421-g12-portee-creation.md).
 
-Lots en cours : 421 (G12 portée d'une création), 420 (S1n suivis relationnels), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 420 (S1n suivis relationnels), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
