@@ -49,7 +49,9 @@ class ContactSousButTests(unittest.TestCase):
         i = lire(m, 'brune')['intention']
         self.assertEqual(i['but'], {'type': 'enquete', 'besoin': 'chaleur', 'qui': 'ilse'})
         self.assertEqual(i['motif'], 'chaleur')
-        self.assertEqual(i['plan'][-1]['contenu'], {'localisation': 'ilse'})
+        self.assertEqual(i['plan'][-1]['contenu']['localisation'], 'ilse')
+        self.assertEqual(i['plan'][-1]['contenu']['suite_conditionnelle'], [
+            p._etape('demander', 'ilse', contenu={'ressource': 'chaleur'})])
         self.assertFalse(any(x.get('contenu') == {'ressource': 'chaleur'} for x in i['plan']))
 
     def test_aubin_attend_encore_avec_moyens_connus_inaccessibles(self):

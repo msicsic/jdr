@@ -9,6 +9,7 @@ from donjon import deliberation as d, planification as p
 from donjon.banc_pnj import creer
 from donjon.esprits import lire, croire, percevoir_tous
 from donjon.monde import Monde
+from donjon.temps import instant
 from tests.support import calme, lier
 from tests.test_tensions import placer, recharger, vivre
 
@@ -44,12 +45,17 @@ class GardienDetresseTests(unittest.TestCase):
         m = capture()
         self.assertEqual(lire(m, 'bram')['secours'], {'minute': 462, 'apaise': False})
         self.assertFalse(lire(m, 'bram')['croyances']['biscuits']['etat']['valeur']['disponible'])
+        debut = instant(m)
         avant = len([c for c in m.data['chronique'] if c['pnj'] == 'bram' and "appelle à l'aide" in c['texte']])
         m, _ = self.meme_laps(m, 4)
         self.assertEqual(m.objets['bram']['lieu'], 'bureau')
         self.assertEqual(lire(m, 'bram')['secours']['minute'], 462)
         self.assertGreater(avant, 0)
-        self.assertEqual(avant, len([c for c in m.data['chronique'] if c['pnj'] == 'bram' and "appelle à l'aide" in c['texte']]))
+        # La chronique bornée à 300 entrées évince le cri de 462 pendant
+        # ce laps. Son souvenir durable reste contrôlé ci-dessus ; compter
+        # les seuls cris nouveaux prouve la non-répétition malgré l'éviction.
+        self.assertFalse([c for c in m.data['chronique'] if c['pnj'] == 'bram'
+                          and c['instant'] >= debut and "appelle à l'aide" in c['texte']])
 
     def lumiere(self):
         m = capture()

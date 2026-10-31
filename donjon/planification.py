@@ -1486,6 +1486,10 @@ def gestes(v, e, vises=None, but=None):
         qui = etape["cible"]
         if v.salle(e, qui) == e.salle and not e.fait("parle", qui):
             yield 0, 1, [etape], e.apres(faits=[(("parle", qui), True)])
+        elif v.salle(e, qui) is None and not e.fait("cherche", qui):
+            recherche = _chercher(v, e, qui)
+            if recherche is not None:
+                yield _preparer_suite(recherche, [etape])
     # Séjour à portée d'une personne : même approche, présence et coûts que
     # les gestes ciblés. Le fait projeté certifie l'arrivée, pas la fin du séjour.
     for qui in vises.get("pres", ()):
@@ -1731,7 +1735,8 @@ def _aide_sur_place(v, e, o, vises, noms_vises):
     if ("allume" in x and v.salle(e, o) == e.salle and v.feu(e, o)[0] is False
             and (v.emploie_lumiere or o in vises.get("entretenir", ()))):
         conditions.append({"objet": o, "allume": True})
-    if (x.get("mobile") and o not in e.portes and v.salle(e, o) not in (None, e.salle)
+    if (x.get("mobile") and o not in e.portes and v.salle(e, o) != e.salle
+            and v.lieu(e, o) is not None
             and v.utile[o] and v.pertinent(o, noms_vises)
             and not v.doublon(e, o, noms_vises, vises.get("entretenir", ()))):
         conditions.append({"objet": o, "remettre": v.id})
@@ -2096,6 +2101,12 @@ def _appeler(v, e, sujet):
     """
     from .ouie import INTENSITES, SEUIL, parvenu, propager
     salle = v.salle(e, sujet)
+    verification = None
+    if (salle is None and position_a_verifier(v.monde, v.id, sujet)
+            and not hypothese_consommee(v.monde, v.id, sujet)):
+        ancienne = memoire.fait_brut(v.monde, v.id, sujet, 'lieu', {})
+        salle = ancienne.get('salle')
+        verification = {"type": "position", "lieu": ancienne["valeur"]}
     if (salle is None or salle == e.salle or e.fait("cherche", sujet)
             or e.salle in appels_vains(v.monde, v.id, sujet) or v.route(e, salle) is not None):
         return None
@@ -2115,7 +2126,8 @@ def _appeler(v, e, sujet):
     niveau = parvenu(propager(cru, e.salle, centre, INTENSITES["hele"]), salle, case)
     if niveau is None or niveau[0] < SEUIL:
         return None
-    etapes = [{**_etape("inspecter", lieu=e.salle, contenu={"cherche": sujet}), "suppose": True}]
+    etapes = [{**_etape("inspecter", lieu=e.salle, contenu={"cherche": sujet,
+               **({"verification": verification} if verification else {})}), "suppose": True}]
     suivant = e.apres(faits=[(("lieu", sujet), e.salle), (("cherche", sujet), True)])
     mesure = _mesurer(v, e, etapes, suivant, 1)
     if mesure is None:
@@ -2144,6 +2156,12 @@ def _chercher(v, e, sujet):
         # déjà vérifiée ne devient pas une recherche inconnue à travers toutes
         # les autres salles ; seule une nouvelle localisation la rouvre.
         return None
+    # Un appel déjà capable d'éprouver le dernier repère est lui-même le
+    # moyen de contact. L'expiration n'impose pas de le remplacer par une
+    # question à un tiers ou par une tournée des autres salles.
+    appel = _appeler(v, e, sujet)
+    if appel is not None:
+        return appel
     # Le contact inconnu peut d'abord faire l'objet d'une question présente.
     # Comme l'inspection, cette transition s'arrête avant toute suite supposée.
     question = None
@@ -3388,12 +3406,10 @@ def planifier_tache(monde, id, condition, payeur):
 def planifier_engagement(monde, id, engagement):
     """Tenir sa parole par le plan du devis, ou rejoindre l'autre pour lui annoncer son abandon."""
     if engagement.get("annule"):
-        chemin = rejoindre(monde, id, engagement["pour"])
-        if chemin is None:
+        etapes = preparer_contact(monde, id, engagement["pour"], [
+            _etape("dire", engagement["pour"], contenu={"annulation": engagement["condition"]})])
+        if etapes is None:
             return None
-        etapes, trouve = chemin
-        if trouve:
-            etapes.append(_etape("dire", engagement["pour"], contenu={"annulation": engagement["condition"]}))
         return {"type": "prevenir", "qui": engagement["pour"]}, etapes
     return planifier_tache(monde, id, engagement["condition"], engagement["pour"])
 
@@ -3511,7 +3527,6 @@ def _pulsion(monde, id, condition, tache, entretenir=None, *, duree=None):
     from .deliberation import salle_crue
     from .echanges import tache as sorte
     o = condition.get("objet")
-    geste = None
     if "pres" in condition:
         sujet = condition["pres"]
         v = vue(monde, id)
@@ -3534,7 +3549,6 @@ def _pulsion(monde, id, condition, tache, entretenir=None, *, duree=None):
         but, vises = (lambda v, e: e.fait("inspecte", lieu)), {"inspecter": (lieu,)}
     elif "servir" in condition:
         but, vises = (lambda v, e: e.fait("servi", o)), {"servir": {o: (condition["servir"],)}}
-        geste = _etape("servir", o, contenu={"pour": condition["servir"]})
     elif "allume" in condition:
         etat = _cru(monde, id, o, "etat") or {}
         salle = salle_crue(monde, id, o)
@@ -3564,18 +3578,6 @@ def _pulsion(monde, id, condition, tache, entretenir=None, *, duree=None):
             return None
         but = lambda v, e: v.verrouille(e, o) and not v.ouvert(e, o)  # noqa: E731
         vises = {"fermer": (o,)}
-    if geste is not None:
-        # La charge reste la même pendant le contact, y compris quand son
-        # moyen matériel doit être retrouvé ou remplacé après la rencontre.
-        # Les participants et les venues viennent du contrat commun du geste.
-        v = vue(monde, id)
-        e = depart(monde, id, v)
-        inconnus = _participants_a_localiser(v, e, [geste])
-        if inconnus:
-            r = _localiser(v, e, inconnus)
-            if r is None:
-                return None
-            return r[1] + r[6], {"type": "pulsion", **condition}, _couper(r[2])
     if tache and sorte(condition) and "allume" not in condition:
         vises["confier"] = (dict(condition),)
     depuis = None
@@ -3634,8 +3636,8 @@ def _rendre(monde, id, o, condition):
     v = vue(monde, id)
     salle = v.salle(depart(monde, id, v), condition['rendre'])
     if salle is None:
-        chemin = rejoindre(monde, id, condition['rendre'])
-        return None if chemin is None else ({"type": "pulsion", **condition}, chemin[0])
+        plan = preparer_contact(monde, id, condition['rendre'], [_etape('remettre', condition['rendre'], outil=o)])
+        return None if plan is None else ({"type": "pulsion", **condition}, plan)
     # Même recherche qu'aller, avec son état terminal : tous les moyens du
     # trajet (prises, portes, allumages) restent disponibles jusqu'à la remise.
     trajet = chercher(monde, id, lambda v, e: e.salle == salle,
@@ -3668,7 +3670,8 @@ def _devis_remise(monde, id, o, condition, seul, *, duree=None):
             return None
         etapes = _couper(trouve[1])
         if not any(g.get('attendre_remise') or g.get('suppose') for g in trouve[1]):
-            etapes += _couper(contact[2])
+            remise = _etape('remettre', destinataire, outil=o)
+            etapes += _couper(_preparer_suite(contact, [remise])[2])
         # Ni remise ni restauration depuis une présence supposée : elles
         # seront recalculées après ce que la recherche aura réellement appris.
         return trouve[0] + contact[1] + contact[6], but, etapes
@@ -3707,12 +3710,10 @@ def _remettre(monde, id, o, condition, seul=None):
         if trouve is None:
             return None
         return {"type": "pulsion", **condition}, _couper(trouve[1])
-    chemin = rejoindre(monde, id, condition["remettre"])
-    if chemin is None:
+    etapes = preparer_contact(monde, id, condition["remettre"], [
+        _etape("remettre", condition["remettre"], outil=o)])
+    if etapes is None:
         return None
-    etapes, trouve = chemin
-    if trouve:
-        etapes.append(_etape("remettre", condition["remettre"], outil=o))
     return {"type": "pulsion", **condition}, etapes
 
 
@@ -3901,7 +3902,7 @@ def s_enquerir(monde, id, besoin=None, *, sujet=None, _vue=None, _etat=None):
             candidats.append((longueur, autre, salle))
     for _, autre, salle in sorted(candidats):
         if salle is None:
-            etapes = contacter(monde, id, autre)
+            etapes = preparer_contact(monde, id, autre, [_etape("demander", autre, contenu={"ressource": besoin})])
             if etapes is not None:
                 return {"type": "enquete", "besoin": besoin, "qui": autre}, etapes
             continue
@@ -4013,6 +4014,20 @@ def contacter(monde, id, sujet):
     """
     resultat = rejoindre(monde, id, sujet)
     return None if resultat is None else resultat[0]
+
+
+def preparer_contact(monde, id, sujet, suite):
+    """Composer un moyen direct avec son contact, sans exécuter une hypothèse.
+
+    Le suffixe décrit ce qui motive la vérification ; il sera recalculé après
+    le constat, comme les suites du graphe. Aucun refus, prix ou accord n'est
+    produit par ce préfixe.
+    """
+    contact = rejoindre(monde, id, sujet)
+    if contact is None:
+        return None
+    prefixe, trouve = contact
+    return _couper(prefixe + suite) if trouve else _preparer_suite((0, 0, prefixe), suite)[2]
 
 
 def rejoindre(monde, id, sujet):

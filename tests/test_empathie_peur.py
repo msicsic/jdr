@@ -253,8 +253,15 @@ class CompagnieTests(unittest.TestCase):
                 self.assertTrue(d._delegue(m, 'marchand', m.objets['marchand']['profil']['pulsions'][0]))
                 d.choisir(m, 'marchand', m.data['minutes'])
                 if minute == 85:
+                    # 374/419 : Mael reste un moyen d'enquête, à vérifier
+                    # une fois ; l'ancien oracle ignorait son repère expiré.
+                    intention = lire(m, 'marchand')['intention']
+                    self.assertEqual(intention['but'], {'type': 'enquete', 'besoin': 'chaleur', 'qui': 'mael'})
+                    self.assertEqual(intention['plan'][-1]['contenu']['cherche'], 'mael')
+                    m = recharger(m)
+                    passer(m, MINUTE)
                     self.assertIsNone(lire(m, 'marchand')['intention'])
-                    self.assertEqual(d.inactivite(m, 'marchand'), 'attente')
+                    self.assertEqual(d.inactivite(m, 'marchand'), 'confiee')
                 else:
                     self.assertEqual(lire(m, 'marchand')['intention']['plan'][0]['operation'], 'inspecter')
                     passer(m, MINUTE)

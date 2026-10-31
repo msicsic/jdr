@@ -61,7 +61,18 @@ class AchatPromisAnnuleTests(unittest.TestCase):
         offres = [c for c in bloc.data['chronique']
                   if c['instant'] > debut and c['pnj'] == 'aubin' and 'une part des vivres' in c['texte']]
         self.assertEqual(len(offres), 1, offres)
-        self.assertEqual(offres[0]['instant'], 36477)
+        # 374 : Aubin doit d'abord retrouver Gorm. Brune le renseigne à
+        # 60, puis sa fausse localisation est démentie à 67 ; le contact
+        # explique le retard et ne doit ni recréer un achat ni perdre le refus.
+        enquetes = [s for s in lire(bloc, 'aubin')['memoire']
+                    if s['type'] == 'enquete_lieu' and s['objet'] == 'marchand'
+                    and s['minute'] * 600 > debut]
+        self.assertEqual(len(enquetes), 1)
+        self.assertEqual(enquetes[0]['issue'], 'dit')
+        self.assertLess(enquetes[0]['minute'] * 600, offres[0]['instant'])
+        self.assertTrue(any(s['type'] == 'mensonge_decouvert' and s['sujet'] == 'marchand'
+                            and s['minute'] * 600 <= offres[0]['instant']
+                            for s in lire(bloc, 'aubin')['memoire']))
         self.assertIn('(impossible)', offres[0]['texte'])
         self.assertFalse(any(c['instant'] > debut and c['pnj'] == 'aubin' and 'achète' in c['texte']
                              for c in bloc.data['chronique']))

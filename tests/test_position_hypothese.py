@@ -302,11 +302,15 @@ class HypothesePositionTests(unittest.TestCase):
         fichier = Path(__file__).parent / 'captures/position-374-crue-1985-190.json.gz'
         m = self.recharge(Monde(json.loads(gzip.decompress(fichier.read_bytes()))))
         d.choisir(m, 'brune', m.data['minutes'])
-        self.assertEqual(lire(m, 'brune')['intention']['plan'][-1]['contenu']['cherche'], 'aubin')
-        pnj._inspecter(m, 'brune', 'aubin', [])
+        # Le 419 conserve les offres possibles derrière les vérifications :
+        # le moyen choisi peut changer. Le contrat du 374 porte sur la piste
+        # effectivement vérifiée, pas sur l'interdiction de tout autre contact.
+        sujet = lire(m, 'brune')['intention']['plan'][-1]['contenu']['cherche']
+        self.assertTrue(position_a_verifier(m, 'brune', sujet))
+        pnj._inspecter(m, 'brune', sujet, [])
         m = self.recharge(m)
-        self.assertEqual(lire(m, 'brune')['croyances']['aubin']['lieu']['minute'], 190)
-        self.assertTrue(hypothese_consommee(m, 'brune', 'aubin'))
+        self.assertEqual(lire(m, 'brune')['croyances'][sujet]['lieu']['minute'], 190)
+        self.assertTrue(hypothese_consommee(m, 'brune', sujet))
         for minute in (205, 220, 235):
             m.data['minutes'] = minute
             m.data['dixiemes'] = 0
@@ -314,4 +318,5 @@ class HypothesePositionTests(unittest.TestCase):
             m = self.recharge(m)
             plan = (lire(m, 'brune')['intention'] or {}).get('plan', [])
             self.assertFalse(any(g['operation'] == 'inspecter'
-                                 and (g.get('contenu') or {}).get('verification') for g in plan))
+                                 and (g.get('contenu') or {}).get('verification')
+                                 and g['contenu'].get('cherche') == sujet for g in plan))

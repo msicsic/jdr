@@ -1824,6 +1824,11 @@ def engagements_echus(monde, id):
 
 def executer(monde, id, etape, lignes):
     """Un geste social d'une minute ; renvoie True s'il a obtenu ce qu'il visait."""
+    if 'suite_conditionnelle' in etape.get('contenu', {}):
+        # La provenance du plan décrit ce qu'un constat prépare. Elle ne
+        # fait partie ni de la parole prononcée ni des termes de son accord.
+        etape = {**etape, 'contenu': {k: v for k, v in etape['contenu'].items()
+                                    if k != 'suite_conditionnelle'}}
     from .francais import complement_de, designer, groupe_nominal
     from .pnj import _chroniquer
     from .esprits import percoit

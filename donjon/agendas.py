@@ -1457,7 +1457,7 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         from .occasion_protection import peur_crue, fonds_crus
         from .echanges import offre_sensee
         from .pnj_propositions import offre_refusee
-        from .planification import rejoindre, _etape, RESTER
+        from .planification import preparer_contact, _etape, RESTER
         p = a['parametres']
         qui = p['qui']
         c = p['contrepartie']['condition']
@@ -1471,12 +1471,10 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         if not offre_sensee(monde, id, qui, p['demande'], p['contrepartie']):
             _changer(monde, id, a, 'sommeil', 'offre sans interet', empreinte)
             return None
-        contact = rejoindre(monde, id, qui)
-        if contact is None:
+        suite = preparer_contact(monde, id, qui, [
+            _etape('proposer', qui, contenu={k: copy.deepcopy(p[k]) for k in ('demande', 'contrepartie')})])
+        if suite is None:
             return None
-        suite, trouve = contact
-        if trouve:
-            suite.append(_etape('proposer', qui, contenu={k: copy.deepcopy(p[k]) for k in ('demande', 'contrepartie')}))
         return {'type': 'agenda', 'agenda': identifiant}, suite
     if a["sorte"] == "récupérer":
         if a["etat"] == "sommeil" and a["croyances"] == empreinte:
@@ -1594,7 +1592,7 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         _changer(monde, id, a, "sommeil", "transmission non attestee", empreinte)
         return None
     # La route crue donne le coût de proximité, sans consulter la position réelle.
-    from .planification import vue, depart as etat_depart, cout_route
+    from .planification import vue, depart as etat_depart, cout_route, _couper
     v = vue(monde, id)
     e = etat_depart(monde, id, v)
     def distance(qui):
@@ -1602,10 +1600,12 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         route = v.route(e, salle) if salle is not None else None
         return (float("inf") if route is None else cout_route(route, e.orientation), qui)
     qui = min(cibles, key=distance)
+    from .esprits import position_a_verifier
     salle = salle_crue(monde, id, qui)
-    trouve = None if salle is None else chercher(
-        monde, id, lambda v, e: e.salle == salle, nom="agenda:" + identifiant,
-        memo=["agenda", identifiant, salle], emplois=(), endurer=poids(monde, id, a))
+    suite = [_etape("dire", qui, contenu=contenu)]
+    trouve = None if salle is None and not position_a_verifier(monde, id, qui) else chercher(
+        monde, id, lambda v, e: bool(e.fait("parle", qui)), {"parole": suite}, nom="agenda:" + identifiant,
+        memo=["agenda", identifiant, qui, suite], emplois=(), endurer=poids(monde, id, a))
     if trouve is None:
         _changer(monde, id, a, "sommeil", "sans plan admissible au cout", empreinte)
         return None
@@ -1615,9 +1615,8 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         if a["etat"] != "actif":
             return None
     if cout is not None:
-        from .pnj import DUREES
-        cout.append(trouve[0] + DUREES["dire"] / 600)
-    return {"type": "agenda", "agenda": identifiant, "qui": qui}, trouve[1] + [_etape("dire", qui, contenu=contenu)]
+        cout.append(trouve[0])
+    return {"type": "agenda", "agenda": identifiant, "qui": qui}, _couper(trouve[1])
 
 
 def _amener(monde, id, a, empreinte, *, cout=None, cibles=None):

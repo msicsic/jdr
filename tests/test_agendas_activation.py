@@ -77,6 +77,23 @@ class ActivationTests(unittest.TestCase):
                 but, etapes = resultat
                 self.assertEqual(but["type"], "agenda")
                 lignes = []
+                if etapes[-1]['operation'] != 'dire':
+                    # 374 : le repère initial du destinataire a expiré.
+                    # 419 : le préfixe garde la parole, puis le constat
+                    # autorise sa nouvelle compilation avant transmission.
+                    self.assertTrue(any(g['operation'] == 'dire'
+                                        for g in planification.gestes_conditionnes(etapes)))
+                    self.assertFalse(any(c['pnj'] == acteur and 'dit' in c['texte']
+                                         for c in m.data['chronique']))
+                    # Le placement d'auteur les réunit ici, sans avoir
+                    # actualisé la perception de Gorm dans scene().
+                    from donjon.pnj import tour_d_horizon
+                    tour_d_horizon(m, acteur)
+                    m = recharger(m)
+                    resultat = planifier_choix(m, acteur, 'a1')
+                    self.assertIsNotNone(resultat)
+                    but, etapes = resultat
+                    self.assertEqual(etapes[-1]['operation'], 'dire')
                 self.assertTrue(echanges.executer(m, acteur, etapes[-1], lignes))
                 agendas.actualiser(m, acteur)
                 self.assertEqual(agendas.projets(m, acteur)[0]["etat"], "atteint")
