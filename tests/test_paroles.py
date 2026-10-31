@@ -43,7 +43,7 @@ def reponse_pnj(texte):
             "proposition": None, "_texte_moteur": True}
 
 
-def jouer(monde, saisie, sorties, jet=20):
+def jouer(monde, saisie, sorties, jet=20, *, suite=("tenter",)):
     """Une saisie passée au MJ simulé, dans la vraie boucle de jeu ; renvoie la partie rechargée."""
     appels = AppelsParole()
 
@@ -58,7 +58,7 @@ def jouer(monde, saisie, sorties, jet=20):
               patch.object(MJOpenAI, "_appeler", side_effect=appel),
               patch.object(Monde, "d20", return_value=jet),
               patch("donjon.mj.preparer_parole", side_effect=appels.preparer),
-              patch("builtins.input", side_effect=[saisie, "tenter", "quitter"]),
+              patch("builtins.input", side_effect=[saisie, *suite, "quitter"]),
               patch("sys.stdout", io.StringIO()) as sortie):
             self_code = jeu.main(["--console", "--connexion", "api", "--save", str(chemin)])
         assert self_code == 0

@@ -120,7 +120,7 @@ class PropositionsTests(unittest.TestCase):
             from donjon.paroles import OPERATIONS, operations_contenu
             codes = operations_contenu(reponse["proposition"]["contenu"])
             reponse["proposition"]["operations_demandees"] = {t: t in codes for t in OPERATIONS}
-            m, sortie, _ = jouer(m, saisie, [reponse, reponse_pnj(texte)])
+            m, sortie, _ = jouer(m, saisie, [reponse, reponse_pnj(texte)], suite=("valider", "tenter"))
             self.assertIn(texte, sortie)
             self.assertTrue(any(texte in x["reponse"] for x in m.data["conversation"]))
             self.assertEqual(porte_par(m, "cloche", "marchand"), confiance == 70)

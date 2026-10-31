@@ -6,7 +6,7 @@ const noop = new Proxy(function () {}, { get: (t, k) => k === "measureText" ? ()
 const elements = {};
 function el(id) {
   if (!elements[id]) elements[id] = { id, style: {}, checked: false, innerHTML: "", textContent: "", children: [], value: "",
-    getContext: () => noop, addEventListener() {}, appendChild(c) { this.children.push(c); }, removeChild() {}, focus() {},
+    getContext: () => noop, addEventListener() {}, appendChild(c) { this.children.push(c); c.parentNode = this; }, removeChild() {}, focus() {},
     contains: () => false, getBoundingClientRect: () => ({ left: 0, top: 0 }) };
   if (!Object.getOwnPropertyDescriptor(elements[id], "innerHTML").set) {
     Object.defineProperty(elements[id], "innerHTML", {get() { return this.html || ""; },
@@ -250,6 +250,7 @@ if (ETAT.sonde_accord) {
   for (const label of form.children.filter(l => l.tagName === "LABEL")) {
     const input = label.children.find(c => ["INPUT", "SELECT"].includes(c.tagName));
     const nom = label.children[0].textContent;
+    if (!(nom in f)) continue;
     input.value = String(f[nom] ?? "");
     if (input.onchange) input.onchange();
     sortie.accord.champs.push({nom, valeur: input.value, choix: input.children.map(o => ({valeur: o.value, texte: o.textContent}))});

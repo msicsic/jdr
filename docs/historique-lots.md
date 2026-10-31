@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-k1-editeur-marche` — lot 429, base `integration` `b941c492` : éditeur à deux termes publics,
+  mêmes clauses à l’aperçu et à `echanges.proposer` ; adaptateur K0/E5 conservé, libre non daté après revue.
+  Web, console et TUI partagent les termes ; clauses inconnues refusées avec `attendu`, sans effet.
+  Terminé : 79 tests ciblés, 77 réussis et 2 ignorés (`jsonschema` absent), K1/TUI 5/5 ; sans Luna.
+  Relais et auberge : termes soumis, verdict, état et vues rechargés ; branche poussée sur origin.
+  Extension paroles : 12/14, deux défauts préexistants reproduits sur `b941c492` ; bruts `artifacts/k1-editeur-429/` du dépôt principal.
+  Limites : tâches ponctuelles E5, fidélité libre sémantique conservée ; [rapport](taches/rapport-codex-429-k1-editeur-marche.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `dialogues.py`, `mj.py`, fusionnés sans conflit textuel. Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : dialogues.py, mj.py (D0), fusionnés sans conflit textuel ; tests ciblés K0, K1, D0, paroles, consentement, propositions sur la fusion : 81 verts, deux rouges de test_paroles (ancien contexte esprits_interlocuteurs) reproduits sur la base. L'éditeur compose ce que Corvus donne et demande (objet, part, tâche ponctuelle, pièces, rien) ; les deux termes de l'aperçu sont ceux transmis à echanges.proposer ; clause inconnue refusée avec attendu ; le libre non daté ouvre le même éditeur. Aubin, Odile ; web, console, TUI après recharge.
+
 - `codex-refus-rendu-attendu` — lot 432, base `origin/integration` / `e05e2b5b` : refus du rendu et des
   attestations avec champ, reçu et corrections publiques résolubles ; gardes de publication et audits complétés.
   R58 : Aubin visible, `element_47` neuf indécodable ; aucune fuite, aucun ajout partiel après recharge.
