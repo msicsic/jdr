@@ -114,6 +114,7 @@ class RemboursementVolontaireTests(unittest.TestCase):
                 verifier_contenus(scene(), [{'type': 'rembourser', 'montant': montant}])
         m = scene()
         p = reponse('brune')['proposition']
+        p.pop('operations_demandees')
         p['contenu'].append({'type': 'rembourser', 'montant': '1'})
         with self.assertRaises(ErreurMonde):
             preparer_parole(m, p)
