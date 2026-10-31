@@ -39,6 +39,12 @@ class ComparerBancsTests(unittest.TestCase):
             self.assertEqual(faits, avant['esprits']['marchand']['croyances'])
             for attributs in faits.values():
                 attributs.clear()
+            # S1k : l'ancien moteur n'a pas reponses_retenues non plus.
+            # La vue appartient à l'observateur, sans modifier sa référence.
+            refus = module.reponses_retenues(monde, 'marchand')
+            self.assertEqual(refus, avant['esprits']['marchand']['refus'])
+            self.assertEqual(module.reponses_retenues.__module__, 'donjon._memoire_observation')
+            refus.append({'raison': 'invente'})
         self.assertEqual(monde.data, avant)
 
     def config(self, **options):

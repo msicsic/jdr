@@ -31,7 +31,6 @@ import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from donjon import memoire
 from donjon import agendas, appel, banc_pnj, biens, corps, defense, deliberation, eau, planification, pnj, relations  # noqa: E402
 from donjon.esprits import RECENT, lire, percus, pnjs  # noqa: E402
 from donjon.temps import MINUTE, instant  # noqa: E402
@@ -45,6 +44,7 @@ _memoire_observation = importlib.util.module_from_spec(_spec_memoire)
 _spec_memoire.loader.exec_module(_memoire_observation)
 episodes = _memoire_observation.episodes
 faits_connus = _memoire_observation.faits_connus
+reponses_retenues = _memoire_observation.reponses_retenues
 
 SCENARIOS_DEFAUT = ("relais", "mine", "auberge", "crue", "crue_hameau")
 SALLES_JOUEUR = {
@@ -190,7 +190,7 @@ def _est_accompli(monde, id, decision, minute, cause_sortie=None):
             and s.get("de") == qui
             and s.get("besoin") == besoin
             and deliberation.tient(monde, id, s, v.connus)
-            for s in memoire.reponses_retenues(monde, id)
+            for s in reponses_retenues(monde, id)
         ) or any(
             v.proprietaire[o] == qui and deliberation.part_pour(monde, id, o, besoin, v.connus)
             for o in v.connus
@@ -282,7 +282,7 @@ def relever_entrees(monde, id, minute):
         ],
         "refus_enquete": [
             [{k: s[k] for k in sorted(s) if k != "minute"}, bool(deliberation.tient(monde, id, s, v.connus))]
-            for s in memoire.reponses_retenues(monde, id)
+            for s in reponses_retenues(monde, id)
             if s.get("operation") == "enqueter"
         ],
         "promesses": [
