@@ -43,15 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-a3-liaison-transport` — lot 410, base `57299df4`, **reprise en cours, ne pas fusionner** :
+- `codex-a3-liaison-transport` — lot 410, base `57299df4`, **transport validé sur cinq bancs** :
   Mode/charge et contrats A2 liés cloud/local ; enveloppe `reponse`, contrôle avant audit/préparation avec `attendu`.
   Parcours réseau simulé Relais/auberge, sons, sauvegarde et reprise ; assertions de sécurité conservées.
-  Tests de reprise 39 verts (3 ignorés), 105 s ; anciens 146 + 15 verts ; empreintes Relais/auberge identiques (2 h × 4 graines).
-  Cause isolée sur copie : conjonction redondante union/propriétés ; échec à 0 jeton, union seule complète à 154 (base 139).
-  Projection prouvée sans relever la limite ; nouvelle passe ciblée : `artifacts/a3-liaison-transport-410/reprise-sortie/fin.json` du dépôt principal.
+  Tests de reprise 39 verts (3 ignorés), 105 s ; passes précédentes 146 puis 15 vertes ; empreintes Relais/auberge identiques (2 h × 4 graines).
+  Conjonction redondante projetée avec preuve ; aucune limite relevée. Luna : 66 appels/27 tours, 2,44 appels et 10,04 s/tour, zéro erreur/repli.
+  Fidélité non garantie : fredonnement sans effet son ; latence non appariée au repère 8,5 s. Bruts du dépôt principal : `artifacts/a3-liaison-transport-410/reprise-sortie/`.
   [Rapport](taches/rapport-codex-410-a3-liaison-transport.md).
 
-Lots en cours : 409 (S1k refus et recours), 402 (vérification d'intégration moteur) ; 410 livré non validé (voir ci-dessus) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 409 (S1k refus et recours), 402 (vérification d'intégration moteur) ; 410 livré après reprise (voir ci-dessus) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

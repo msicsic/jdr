@@ -1,75 +1,65 @@
 # Lot 410 — A3, liaison du transport
 
-31 octobre 2026 — `codex-a3-liaison-transport`, base `integration`
-`57299df44e1ca7e7dcbdfa65b320f125c377dcad`, non fusionnée.
+31 octobre 2026 — branche `codex-a3-liaison-transport`, base `integration`
+`57299df44e1ca7e7dcbdfa65b320f125c377dcad`, non fusionnée. Code final `962d81b2`.
 
-**Reprise en cours, ne pas fusionner avant la nouvelle passe ciblée.** Même copie
-du Relais, « je fredonne doucement » : base `origin/integration` **139 jetons,
-0 réflexion, 8,502 s**, schéma 56 424 octets ; branche défaillante **0 jeton
-déclaré, 0 réflexion, aucun delta, 5,838 s**, 62 963 octets. Retirer uniquement
-la conjonction redondante propriétés/union donne une réponse complète de
-**154 jetons, 0 réflexion, 8,251 s**, 60 623 octets, avec les mêmes 69 définitions.
-Aucun `max_output_tokens` envoyé dans les trois cas, terminal reçu sans limite
-chiffrée : aucune limite relevée. L'expérience isole la forme du schéma ; elle
-ne révèle pas le fonctionnement interne du décodeur fournisseur. La correction
-`union_seule` exige une preuve structurelle `restreint` pour chaque branche avant
-de retirer les contraintes déjà présentes. Une contrainte non démontrée fait
-refuser la projection ; les liaisons mode/charge et opération/paramètres restent
-inchangées. Diagnostics et événements sans en-têtes opaques : `reprise-sortie/`.
-Reprise ciblée : **39 tests verts, trois ignorés, 104,61 s**, six fichiers,
-deux travailleurs à priorité réduite. Nouvelle passe des cinq bancs lancée
-séparément ; fichier de fin `reprise-sortie/fin.json`, résultats à lire avant validation.
+**Verdict : transport validé sur les cinq bancs, sans relever la limite.** La
+reprise remplace le verdict initial non validé (27/27 interruptions). Elle ne
+garantit pas la fidélité sémantique de Luna ; une omission sonore est mesurée.
 
-**Première livraison : NON VALIDÉE côté ChatGPT.** Tests et
-empreintes passent ; les 27 appels de l'unique passe Luna échouent avant une
-réponse complète. Le transport réel et la fidélité sémantique ne sont pas validés.
+**Invariant et correction.** `contrat.lier_modes` relie neuf modes à leur charge
+et les contrats A2 aux paramètres des opérations, y compris les suites après
+faits et l'ancienne API simple. OpenAI et Local partagent l'enveloppe `reponse`
+et le schéma mutualisé ; `schema.verifier` contrôle avant audit/préparation,
+après disponibilité, avec `attendu`. Aucun choix selon saisie, lieu ou scénario.
+La conjonction des contraintes communes avec l'union liée faisait échouer le
+fournisseur avant tout jeton déclaré. `schema.union_seule` retire cette
+conjonction seulement si `restreint` prouve que chaque branche la porte déjà.
+Une contrainte non démontrée refuse la projection ; aucun élargissement des
+charges ni des paramètres. Les contrôles moteur et les audits sont conservés.
 
-**Invariant et fonctions.** `fournisseurs.contrat.lier_modes` relie les neuf
-modes à leur charge et au texte vide ou au dialogue sans proposition. Les
-charges réemploient les contrats A2 attente/séquence, expression/son, passage
-et consultation sociale, y compris la suite après faits. `proposer_action`
-reprend aussi attente/passage. Aucune sélection selon saisie, lieu ou scénario.
-OpenAI et Local partagent schéma mutualisé, instructions et enveloppe `reponse`
-(OpenAI interdit `anyOf` à la racine), décodée avant le MJ. Une réponse ancienne
-à plat subit le même contrôle. `fournisseurs.schema.verifier` contrôle la
-grammaire avant audit/préparation, après disponibilité, avec chemin/reçu/accepté
-dans `attendu` et correction bornée existante. Un mot-clé inconnu n'est pas ignoré.
+**Diagnostic réel, même copie du Relais**, « je fredonne doucement » :
 
-**Preuves.** Croisements des charges entre modes, paramètres voisins des quatre
-familles et des suites, parité des requêtes réellement émises cloud/local,
-équivalence des références développées. Vrais adaptateurs réseau simulés, MJ,
-revue et console/PontWeb : poutre du Relais/table de l'auberge, fredonnement/rythme
-corporel, sauvegarde avant affichage, « Compris », état complet et vues après
-reprise. Refus puis correction sur deux scènes : état/rendu identiques au témoin.
-Les voisins A2 contrôlent aussi les laps en bloc/découpés avec recharges.
-Une fixture devient `proposition('observer')` au lieu du seul champ `action`,
-incomplet selon le schéma : toutes ses assertions de sécurité restent intactes.
+| Forme | Schéma, octets | Sortie / réflexion | Temps | Résultat |
+|---|---:|---:|---:|---|
+| Base `origin/integration` | 56 424 | 139 / 0 | 8,502 s | complet |
+| Branche avant correction | 62 963 | 0 / 0 | 5,838 s | `max_output_tokens`, aucun delta |
+| Même requête, union seule | 60 623 | 154 / 0 | 8,251 s | complet |
 
-**Mesures hors modèle.** Treize fichiers : **146 tests, zéro échec/erreur,
-4 ignorés, 328,12 s** ; reprise finale A3/schéma : **15/15, 105,51 s**, aucun
-ignoré. Deux travailleurs à priorité réduite ; aucune suite complète. Prévol :
-**446 propriétés, 473 valeurs d'enum, 6 551 caractères comptés, profondeur 9**,
-62 963 octets mutualisés, dans les [limites publiées OpenAI](https://developers.openai.com/api/docs/guides/structured-outputs).
-**Empreintes identiques** : chronique, mesures et état complet, Relais/auberge,
-2 h × 1985/7/42/2024, huit nuits par version ; base `57299df4` puis `844ab4fa`,
-`PYTHONHASHSEED=0`. Référence absente calculée une fois puis cachée, branche non
-cachée. L'avis Relais 2024 « à expliquer » existe des deux côtés ; aucun gain
-de vitesse revendiqué.
+Les deux formes de branche gardent les mêmes 69 définitions : leur nombre seul
+n'explique pas l'échec. Aucun plafond chiffré envoyé/reçu pour ces appels
+ChatGPT, aucune limite relevée. L'expérience isole la forme du schéma, sans
+prétendre connaître le fonctionnement interne du fournisseur. Le schéma final,
+projeté avant mutualisation, fait **58 775 octets, 27 définitions, profondeur 8,
+424 propriétés, 449 valeurs d'enum et 5 789 caractères comptés** : prévol conforme.
 
-**Luna, une passe sur copies.** Appels interrompus : Relais **8/8**, atelier
-**11/11**, échanges **3/3**, noms-dialogue **4/4**, sous-obstacle-relais **1/1**.
-Total : **27 erreurs `incomplète : max_output_tokens`, 27 replis, 131,6 s**,
-aucun audit atteint ni erreur de recharge. Aucun résultat exploitable, brut ou
-usage dans les traces ; cause non isolée. Les codes de sortie 0 de `fin-reprise.json`
-attestent seulement la fin des commandes. Pas de seconde passe. Le premier
-lanceur avait échoué après les tests sur la collision `tools/tests.py`/dossier
-`tests` (`fin.json`) ; corrigé sans changement du jeu ni nouvelle passe de tests,
-il a repris les seuls calculs manquants. Bruts et commandes exactes :
-`C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/`, notamment
-`tests-cibles.json`, `tests-finaux.json`, `empreintes.json`, `luna/`,
-`commandes-reprise.json` et **`conclusion.json`** (verdict interprété).
+**Preuves et tests.** Croisements de modes, paramètres voisins, suites,
+projection refusée si une contrainte serait perdue, distinction booléen/nombre,
+parité cloud/local et équivalence des langages acceptés. Vraie boucle
+console/PontWeb et adaptateurs réseau simulés : poutre/table, deux sons,
+sauvegarde avant affichage, état complet et vues après reprise ; laps découpés
+dans les voisins A2. **39 tests verts, 3 ignorés, 104,61 s**, six fichiers ;
+auparavant 146 tests (4 ignorés) et reprise 15/15. Une fixture `observer` est
+complétée sans changer ses assertions de sécurité. Deux travailleurs à priorité
+réduite, aucune suite complète. **Empreintes Relais/auberge identiques** à la
+base : chronique, mesures et monde complet, 2 h × 1985/7/42/2024, huit nuits par
+version, référence puis branche ; référence absente calculée une fois et cachée.
+Pas de nouveau calcul PNJ pour la projection, sans modification du moteur.
 
-**Limites.** La liaison des contrats portés est démontrée hors ligne, pas sur
-ChatGPT ; l'invariant cloud reste non garanti. Les opérations transitoires et
-leurs contrôles restent en place. Aucun audit retiré, aucune mécanique ni
-registre d'esprit ajouté ; A4/A6 hors lot. Aucun serveur local réel éprouvé.
+**Nouvelle passe Luna autorisée, cinq bancs sur copies.** **66 appels / 27 tours
+MJ = 2,44 appels et 10,04 s par tour**, médiane 9,08 s ; **zéro interruption,
+erreur technique, erreur de recharge, refus de forme ou repli**. Sortie maximale
+**238 jetons**, réflexion déclarée nulle. Le coût mesuré dépasse le repère fourni
+de 2,3 appels/8,5 s de 6 %/18 % : ordre de coût comparable, mais corpus
+et charge non appariés, aucune non-régression de latence prouvée. Sifflement,
+passage dessous et ressource bois suivent leurs contrats ; le fredonnement au
+Relais devient encore une expression sans effet son, explicitement affichée
+dans « Compris ». Validité de forme et fidélité de saisie restent distinctes.
+
+**Livraison et limites.** Bruts : `C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/` ;
+reprise dans `reprise-sortie/` (`diagnostic.json`, `tests-finaux.json`, `mesures-luna.json`,
+`commande-luna.json`, `conclusion.json`). L'erreur d'agrégation du lanceur après
+les cinq parties est corrigée par relecture seule ; original conservé dans
+`fin-lanceur.json`. Aucun appel supplémentaire. Contrats transitoires conservés,
+aucune mécanique ni registre d'esprit ajouté, A4/A6 hors lot ; serveur local réel
+non éprouvé. Le prochain lot de fidélité doit traiter l'omission sonore.
