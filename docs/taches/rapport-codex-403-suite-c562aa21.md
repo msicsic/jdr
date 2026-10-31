@@ -1,7 +1,7 @@
 # Lot 403 — Rouges de c562aa21
 
 Branche `codex-suite-c562aa21`, base `integration d23d081d`, laptop.
-**Attribution terminée ; vérification finale détachée en cours.**
+**Attribution terminée ; dernière reprise de deux méthodes U-C en cours.**
 
 **Invariant.** Les 19 méthodes sont encore rouges sur la base actuelle. Bissection
 des méthodes historiques sur la première parenté `663d1308..c562aa21`, bornes
@@ -28,6 +28,8 @@ S : un champ sans sens peut être absent d'une forme stricte ; son injection
 reste refusée sans mutation avec `attendu`. U : confirmer les remises U-C,
 selon le [394](rapport-codex-394-don-consentement.md), en conservant transfert,
 homonymie, plans et vues ; seule la bordure blanche des sorties UI est normalisée.
+L'oracle exige un plan pour un geste léger, deux plans identiques lorsque le
+consentement impose aperçu puis revalidation du choix public à la confirmation.
 
 Les noms de méthodes ci-dessous omettent uniquement le préfixe `test_`.
 
@@ -53,18 +55,28 @@ Les noms de méthodes ci-dessous omettent uniquement le préfixe `test_`.
 | reclamations_repetees : echeance_inconnue_ni_plan_ni_ancien_plan_puis_reponse_et_paiement_uniques | 388 `224d972d` | R |
 | tuer : joueur_ligote_cri_temoin_nouvelle | 390 `4e14dc02` | V, interlocuteur devenu défunt |
 
-**Mesures et limites.** Première passe adaptée : 14/19 vertes ; les cinq rouges
-ont motivé la reprise ci-dessus. Le schéma, le contact monétaire et le meurtre
-réel passent en reprise courte ; la nouvelle méthode couvre deux scènes vertes.
-La finale porte sur les 15 fichiers concernés, dont l'autonomie du 388, puis
-les empreintes 2 h Relais/auberge × quatre graines face à la base exacte.
-Deux travailleurs réduits, phases séquentielles ; aucun Luna ni suite complète.
+**Mesures et limites.** Les 15 fichiers donnent **152 méthodes : 149 réussies,
+deux rouges (quatre sous-tests), un saut**, zéro erreur, en 1 837,059 s.
+Le saut est le contrôle facultatif `jsonschema`, absent de l'environnement.
+Les deux rouges d'inventaire ont déjà franchi les contrôles de transfert,
+monde, texte et vues rechargées : le dernier oracle supposait une seule
+préparation, oubliant la revalidation U-C. Cette assertion est corrigée ;
+seules ces deux méthodes complètes sont relancées, à deux travailleurs réduits.
+Les autres résultats, dont les tests d'autonomie du 388, sont conservés.
+Le meurtre réel et la nouvelle méthode de parole/décès sont verts.
+**Empreintes 2 h Relais/auberge × quatre graines : 8/8 identiques** à
+`d23d081d`, chronique, mesures et état final complet ; aucun plantage.
+Huit références manquantes calculées une fois et rangées au cache, puis huit
+nuits de branche ; aucune comparaison de coût entre ces phases successives.
+Les empreintes du code vérifié correspondent aux sources livrées ; seule
+l'assertion de test d'inventaire change depuis. Aucun Luna ni suite complète.
 Pas de registre ajouté. Production limitée à `ecoute.py` et `corps.py` ; aucun
 fichier de production annoncé par 381/399 touché, aucun accès matériel S1g modifié.
-Les deux méthodes d'inventaire et le bilan global restent à valider avant clôture.
+Les deux méthodes d'inventaire restent à valider avant clôture ; aucun autre calcul à relancer.
 
 Bruts : `C:/Users/msics/donjon/artifacts/suite-c562aa21-403/` ; attribution
-`bissection/attribution.json`, sources `sources-finales.json`, nouveau témoin
-de fin **`fin-reprise.json`**. `fin-verification.json` décrit la première passe
-rouge et reste intact. À la reprise : lire `fichiers-final.json` et
-`empreintes-final.json`, conclure les mesures, puis mettre à jour cette limite.
+`bissection/attribution.json`, `fichiers-final.json`, `empreintes-final.json`.
+Les deux anciens témoins rouges restent intacts. Nouveau témoin de fin :
+**`fin-inventaire.json`**, qui consolide les reprises et vérifie les sources
+(`sources-inventaire.json`). À la reprise : lire ce témoin et les résultats
+`inventaire-final/fin.json`, conclure les mesures, puis mettre à jour cette limite.

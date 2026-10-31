@@ -145,7 +145,10 @@ class Parcours:
             self.assertEqual(obtenu.data, temoin.data)
             self.assertTrue(any(l in lignes for l in lignes_web if "Tu ne vois plus" in l or "Approche-toi" in l or "une pièce" in l), lignes)
         else:
-            self.assertEqual(plans, [Moteur(m.copier()).preparer(d).__dict__])
+            plan = Moteur(m.copier()).preparer(d)
+            # U-C prépare l'aperçu puis revalide le choix public à sa
+            # confirmation ; chaque préparation doit garder le même plan.
+            self.assertEqual(plans, [plan.__dict__] * (2 if plan.confirmation else 1))
         return obtenu, numero
 
     async def test_chaque_geste_parite_plan_texte_monde_fiche_scene_carte_recharges(self):
