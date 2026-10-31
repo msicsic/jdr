@@ -1,6 +1,6 @@
-"""Porte des épisodes et de leurs requêtes, au format historique.
+"""Porte des épisodes et des preuves de localisation, au format historique.
 
-S1 conserve la liste sauvegardée, son plafond et les crochets réentrants.
+S1 conserve les clés sauvegardées, l'ordre, le plafond et les crochets réentrants.
 Aucune requête de ce module ne renvoie le stock mutable aux consommateurs.
 """
 import copy
@@ -524,6 +524,7 @@ def verification_positions(monde, id, sujets):
 
 
 def admettre_fait(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
+    """Admission historique : même preuve composée et même ordre des conséquences."""
     from .esprits import (lire, esprit, _retenir_presence, prevision_propre,
                           reconsiderer)
     monde_minute = monde.data["minutes"]

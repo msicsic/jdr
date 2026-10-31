@@ -133,6 +133,16 @@ class AccesLocalisationTests(unittest.TestCase):
         extension = initial + '; lieu = stock[s]["lieu"]; lieu["case"][0] = 8'
         self.assertNotEqual(acces_croyances(initial), acces_croyances(extension))
         self.assertFalse(acces_croyances('c = memoire.localisation(m, a, s); c["case"][0] = 8'))
+        for source, terminal in (
+            ('stock = e["croyances"]; alias = stock; alias[s]["lieu"]["minute"] = 4',
+             "alias[s]['lieu']['minute']"),
+            ('for s, d in e["croyances"].items():\n c = d.get("lieu"); c["case"][0] = 4',
+             "c['case'][0]"),
+            ('stock = e["croyances"]; methode = stock.get; methode(s)', 'stock.get'),
+            ('stock = e["croyances"]; c = next((d for d in stock.values())); c.clear()', 'c.clear()'),
+        ):
+            with self.subTest(terminal=terminal):
+                self.assertIn(('<module>', terminal), acces_croyances(source))
 
 
 class PreuvesComposeesTests(unittest.TestCase):

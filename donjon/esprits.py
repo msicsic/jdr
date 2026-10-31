@@ -588,7 +588,8 @@ def verifier(monde):
 
 def croyance(monde, id, sujet, attribut):
     """Sa croyance sur ``sujet`` (``attribut``), telle quelle, ou None. Ce qu'il éprouve envers une
-    personne ne se lit que par ``relations`` (``relations.croyance``)."""
+    personne ne se lit que par ``relations`` (``relations.croyance``).
+    Une localisation est une copie dont la confiance de position est vieillie."""
     from .relations import FIABLE, croyance as relation
     if attribut == FIABLE:
         return relation(monde, id, sujet)

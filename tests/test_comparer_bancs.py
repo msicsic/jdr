@@ -33,6 +33,12 @@ class ComparerBancsTests(unittest.TestCase):
             vue = module.episodes(monde, 'marchand')
             self.assertEqual(vue[-1]['type'], 'examen')
             vue[-1].clear()
+            # S1f : la même porte d'observation lit les localisations d'une
+            # référence antérieure à faits_connus, sans dépendre de son API.
+            faits = module.faits_connus(monde, 'marchand')
+            self.assertEqual(faits, avant['esprits']['marchand']['croyances'])
+            for attributs in faits.values():
+                attributs.clear()
         self.assertEqual(monde.data, avant)
 
     def config(self, **options):
