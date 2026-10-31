@@ -11,6 +11,7 @@ from donjon.monde import Monde
 from donjon.rendu import regarder
 from donjon.temps import ecouler, instant
 from tests.test_social import recharger
+from tests.support import canal_constats_anterieur_337
 
 
 class AvisReditsReelsTests(unittest.TestCase):
@@ -55,6 +56,9 @@ class AvisReditsReelsTests(unittest.TestCase):
         self.transmissions = transmissions
         return m
 
+    # 360 : cette capture éprouve la non-redite de constats de 55 déclarés
+    # récents ; la provenance réelle reste dans test_nouvelles_initiales.
+    @canal_constats_anterieur_337
     def test_mine_2024_deux_lampes_homonymes_restent_deux_faits(self):
         m = self.parcours('mine', 70, 12 * 600, secours_spontane=False)
         dits = [c for c in m.data['chronique'] if c['pnj'] == 'josse' and c.get('constat_confie')

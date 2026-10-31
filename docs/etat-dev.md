@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-suite-e0826ef` (c68aff20) : lot 375, rouges de la suite e0826ef. Détail dans l'historique.
 - `codex-suite-663d1308` (db44eef3) : lot 390, rouges nouveaux de la suite 663d1308. Détail dans l'historique.
 - `codex-ut-social-avis` (44b4d260) : lot 389, U-T social avis. Détail dans l'historique.
 - `codex-rembourser-dette` (a1a50003) : lot 388, rembourser volontairement une dette en pièces. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1b-sons-examens` (30256b08) : lot 382, S1b sons et examens par la porte de la mémoire. Détail dans l'historique.
 - `codex-s1a-porte-episodes` (eecbe2a5) : lot 378, S1a une seule porte pour les épisodes. Détail dans l'historique.
 - `codex-a2-expression-son` (e868d585) : lot 379, A2 famille expression et son. Détail dans l'historique.
-- `codex-messages-decoupage` (9d9fd5fe) : lot 376, les messages ne dépendent pas du découpage du temps. Détail dans l'historique.
 
 ## Lots non fusionnés
 

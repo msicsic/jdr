@@ -84,7 +84,7 @@ class TrainerTests(unittest.TestCase):
         self.assertEqual(regarder(a), regarder(b))
 
     def test_deces_aucune_contrainte_et_ligote_auberge(self):
-        for scenario, mort in (("relais", True), ("auberge", False)):
+        for scenario, mort in (("relais", True), ("auberge", False), ("relais", False)):
             with self.subTest(scenario=scenario):
                 m, c = scene(scenario)
                 if mort:
@@ -92,6 +92,12 @@ class TrainerTests(unittest.TestCase):
                 else:
                     corps.corps(m, c)["inconscient"] = 0
                     appliquer_etats(m, [c + ":ligote"])
+                    # La méfiance exige un auteur perçu (contrat de tenir).
+                    # Le 360 ne garantit plus les échanges qui retournaient
+                    # fortuitement la cible : poser cette prémisse d'auteur.
+                    m.objets[c]["orientation"] = "est"
+                    percevoir_tous(m)
+                    self.assertTrue(tenir.voit(m, c, "joueur"))
                 avant = place(m, "joueur")
                 tenir.commencer(m, "joueur", "trainer", c, "est")
                 g = m.data["gestes_en_cours"][-1]
@@ -99,8 +105,18 @@ class TrainerTests(unittest.TestCase):
                     self.assertEqual(g["temoins"], [])
                 else:
                     self.assertTrue(any(s.get("operation") == "trainer" and s["type"] == "subi" for s in lire(m, c)["memoire"]))
+                    self.assertTrue(any(s.get("operation") == "trainer" and s["type"] == "subi"
+                                        and s["auteur"] == "joueur" for s in lire(m, c)["memoire"]))
+                coupe = recharger(m)
                 passer(m, 45)
                 m = recharger(m)
+                for dt in (13, 17, 15):
+                    passer(coupe, dt)
+                    coupe = recharger(coupe)
+                self.assertEqual(m.data, coupe.data)
+                self.assertEqual(regarder(m), regarder(coupe))
+                from donjon.scene import scene_percue
+                self.assertEqual(scene_percue(m), scene_percue(coupe))
                 self.assertEqual(place(m, c), avant)
                 self.assertEqual(m.objets[c]["type"], "depouille" if mort else "personnage")
                 if not mort:

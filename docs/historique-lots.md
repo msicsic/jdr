@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-suite-e0826ef` — **375 clos partiel**, `integration 3999bb3a` fusionnée, branche poussée : dix méthodes
+  validées sur onze ; neuf bascules natives au 360, parent direct vert, deux antérieures (337, G7).
+  Campagne : 171 tests, 161 verts, dix échecs dont huit du 390 ; reprise finale 12/12 verte.
+  Crue sans transmission réservée au 360, assertion intacte ; question précise au [rapport](taches/rapport-codex-375-suite-e0826ef.md).
+  526 assertions originales identiques, trois formulations portées, six ajoutées ; aucun moteur changé.
+  Méthodes du 390 intactes ; bruts `artifacts/suite-e0826ef-375/`, `conclusion.json`, aucun calcul actif.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 375, tests seulement : dix méthodes sur onze vertes (neuf basculées au 360, deux plus anciennes), prémisses explicites, 526/529 assertions identiques ; réservée : avis redits crue 2024 (aucune transmission de Brune, à reprendre). Aucun fichier de code commun depuis la base.
+
 - `codex-suite-663d1308` — lot 390, base `integration 70b2fdfa` : 27 nouvelles méthodes rouges
   attribuées, 19 corrigées ; admission des voix dès leur réception avant le rendu événementiel.
   Clôture : 204/214 tests passent sur 20 fichiers ; huit rouges du lot et deux réservés au 375.

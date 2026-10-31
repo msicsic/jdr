@@ -132,7 +132,10 @@ class IntermediairesTests(unittest.TestCase):
                 self.assertEqual(m.objets[s['livraison']]['lieu'], via)
                 faits = ' '.join(f for t in m.data['journal'] for f in t['faits'])
                 self.assertIn('demande', faits)
-                self.assertIn('donne une part', faits)
+                # La remise immédiate et la livraison différée attestent la
+                # même part ; la chaîne et sa consommation sont vérifiées
+                # ci-dessus, indépendamment de cette formulation du journal.
+                self.assertRegex(faits, r'(donne|remet) une part')
                 self.assertTrue(texte)
                 self.assertFalse(agendas.en_cours(m, via, actifs=True))
 

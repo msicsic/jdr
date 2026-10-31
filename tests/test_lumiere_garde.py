@@ -8,7 +8,7 @@
 - un gardien ne laisse pas un bien que menace quelqu'un dont il se méfie pour s'abriter de lui :
   il reste ; il appelle à l'aide si sa crainte l'emporte sur son courage."""
 
-from tests.support import lier
+from tests.support import lier, canal_constats_anterieur_337
 import unittest
 
 from donjon.banc_pnj import executer
@@ -231,7 +231,10 @@ class AttentePartTests(unittest.TestCase):
         self.assertEqual(m.objets["planches"]["charges"], 2)
         self.assertFalse(any("planches" in t for t in vus))
 
+    @canal_constats_anterieur_337
     def test_l_attente_d_une_part_se_compte_la_ou_elle_se_sert(self):
+        # 360 : isoler le coût et la réalisation de la part promise des
+        # nouvelles confidences matérielles, comme les oracles du lot 360.
         # Autre cas de même nature : la part de vivres que Gorm a promise à Brune se sert près des
         # vivres, dans le refuge ; le refuge plongé dans le noir, l'attente y coûte ce noir.
         m = calme(relais(), "marchand", "ilse", "aubin")

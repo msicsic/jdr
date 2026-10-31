@@ -139,7 +139,9 @@ class DemanderLePassageTests(unittest.TestCase):
         self.assertEqual(distance(brune["position"], SEUIL), 1)
         self.assertEqual(brune["position"][0], 0)
         # La sortie est libre.
-        self.assertIn("Tu avances d'un pas.", faire(reprise, "marcher", "ouest"))
+        # G7 (343), comme les autres parcours de passage portés au 360 :
+        # le moteur atteste la direction et la durée du déplacement réel.
+        self.assertIn("Tu as avancé de 1 pas vers ouest en 1,5 seconde.", faire(reprise, "marcher", "ouest"))
 
     def test_refusee_elle_reste_et_le_mj_le_sait(self):
         m = self.orgueilleuse()
