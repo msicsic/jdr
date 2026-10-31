@@ -5,6 +5,7 @@ La vérité et les jets restent au moteur ; ``publics`` ne projette que l'observ
 Les décisions de place/regard conservent leur cause dans l'intention avant de produire
 un signe. Aucune relation n'est reconstruite d'après une simple proximité.
 """
+from . import memoire
 from .memoire import fait_brut, faits_connus
 from .memoire import episodes as episodes_retenus
 import copy
@@ -47,10 +48,7 @@ SENS = {v for s in SIGNES.values() for v in s[5]}
 
 
 def installer(m):
-    for cle, defaut in (("lectures", {}), ("signes_lus_joueur", {}), ("bilan_signes", {}),
-                        ("tirages_lecture", 0), ("tirages_lecture_acteurs", {}), ("mesures_signes", {}), ("tons_percus", []), ("observations_joueur", [])):
-        if cle not in m.data:
-            m.data[cle] = copy.deepcopy(defaut)
+    memoire.installer_signes(m)
 
 
 def emotion(m, id):
@@ -400,16 +398,8 @@ def _occurrences(m, emissions=None, paroles=()):
 
 
 def _suivi(m, observateur, episodes):
-    suivis = m.data.setdefault("suivi_signes", {})
-    suivi = suivis.get(observateur)
-    if suivi is None or suivi.get("version") != 2:
-        # Une migration n'est pas un apprentissage. L'histoire physique absente
-        # des anciennes sauvegardes ne peut pas être reconstruite rétroactivement.
-        suivi = suivis[observateur] = {"version": 2, "retenus": {}, "conclusions": {}}
-        for _, _, c in actives(m, observateur):
-            if c["signe"] in episodes:
-                suivi["retenus"][c["signe"]] = episodes[c["signe"]]
-    return suivi
+    """Prépare le suivi persistant, sans exposer de référence mutable."""
+    memoire.preparer_suivi_signes(m, observateur, episodes)
 
 
 def interpreter(s, jet, bonus, dd):
@@ -433,13 +423,12 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
     installer(m)
     joueur = observateur == "joueur"
     e = None if joueur else esprit(m, observateur)
-    essais = m.data["signes_lus_joueur"] if joueur else e["signes_lus"]
     if signes is None:
         signes = percus(m, observateur)
     signes = [s for s in signes if s["personnage"] != observateur]
     episodes = (_occurrences(m, paroles=[s for s in signes if SIGNES[s["signe"]][1] == "mots"])
                 if occurrences is None else occurrences)
-    suivi = _suivi(m, observateur, episodes)
+    _suivi(m, observateur, episodes)
     for s in signes:
         cle = s["id"]
         regle = SIGNES[s["signe"]]
@@ -448,11 +437,9 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
         # le regard, puis apprendre par la perception commune.
         if s['envers'] is None and regle[7]:
             continue
-        dernier = essais.get(cle)
         episode = episodes[cle]
-        if dernier is not None and m.data["minutes"] - dernier < RELECTURE:
+        if not memoire.tenter_lecture(m, observateur, cle):
             continue
-        essais[cle] = m.data["minutes"]
         bonus = modificateur(m, observateur, "PSY") + (2 if expres else 0)
         if not joueur and (relations.familier(relations.axes(m, observateur, s["personnage"]))
                            or e["compagnie"].get(s["personnage"], 0) >= 60):
@@ -463,13 +450,13 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
         jet = _jet(m, observateur)
         sens, marge = interpreter(s, jet, bonus, dd)
         a = attribut(s)
-        actuelle = (m.data["lectures"].get(cle) if joueur else
-                    e["croyances"].get(s["personnage"], {}).get(a))
-        active = actuelle and any(c is actuelle for _, _, c in actives(m, observateur))
+        actuelle = memoire.lecture_retenue(m, observateur, s["personnage"], a, cle)
+        active = actuelle and memoire.lecture_utilisable(
+            m, observateur, actuelle.get("attribut", "") if joueur else a, actuelle)
         meme = bool(active and actuelle["valeur"] == sens and actuelle.get("envers") == s["envers"]
-                    and suivi["retenus"].get(cle, actuelle.get("episode")) == episode)
-        nouvelle = not meme if sens is not None else not active and suivi["conclusions"].get(cle) != episode
-        suivi["conclusions"][cle] = episode
+                    and memoire.episode_signe_retenu(m, observateur, cle, actuelle.get("episode")) == episode)
+        nouvelle = not meme if sens is not None else not active and memoire.conclusion_signe(m, observateur, cle) != episode
+        memoire.conclure_signe(m, observateur, cle, episode)
         psy = caracteristiques(m, observateur)["PSY"]
         tranche = "basse" if psy <= 9 else "haute" if psy >= 13 else "moyenne"
         _compter(m, "signes_" + regle[0])
@@ -484,12 +471,12 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
                  "envers": s["envers"], "personnage": s["personnage"], "attribut": attribut(s)}
             c.update(apprise=(actuelle.get("apprise", actuelle["minute"]) if meme else m.data["minutes"]),
                      episode=episode)
-            suivi["retenus"][cle] = episode
+            memoire.retenir_episode_signe(m, observateur, cle, episode)
             if joueur:
-                m.data["lectures"][cle] = c
+                memoire.retenir_lecture_joueur(m, cle, c)
             else:
                 utilisables_avant = usages(m, observateur)
-                actuelle = e["croyances"].get(s["personnage"], {}).get(a)
+                actuelle = fait_brut(m, observateur, s["personnage"], a)
                 if not actuelle or actuelle["source"] not in ("vu", "essai", "savoir"):
                     croire(m, observateur, s["personnage"], a, sens, "devine", c["confiance"],
                            signe=cle, envers=s["envers"], apprise=c["apprise"], episode=episode)
@@ -518,130 +505,22 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
     return impressions(m) if joueur else None
 
 
-DETRESSE = ("peur", "crainte", "inquietude")
+DETRESSE = memoire.DETRESSE
 
 
 def detresse_retenue(m, observateur, sujet):
-    """Besoin cru, sans péremption ni lecture privée ; perdre un signe ne le dément pas.
-
-    Les anciennes parties conservent déjà les impressions datées : elles restent
-    utilisables sans leur demander d'être à nouveau dans le champ de vision.
-    """
-    crus = faits_connus(m, observateur, sujet)
-    etat = fait_brut(m, observateur, sujet, "etat", {}).get("valeur", {})
-    if etat.get("parti") or etat.get("mort") or etat.get("conscient") is False:
-        return None
-    if "detresse" in crus:
-        return crus["detresse"] if crus["detresse"]["valeur"] else None
-    anciennes = [c for a, c in crus.items()
-                 if (a in ("emotion", "intention", "parole_doutee") or a.startswith("attitude:"))
-                 and c.get("valeur") in DETRESSE and c.get("signe")]
-    if anciennes:
-        c = max(anciennes, key=lambda c: c.get("apprise", c["minute"]))
-        return {"valeur": True, "source": c["source"], "minute": c["minute"],
-                "preuve": {"canal": "lecture", "signe": c["signe"], "attribut": next(
-                    a for a, v in crus.items() if v is c), "minute": c.get("apprise", c["minute"]),
-                    "valeur": c["valeur"]}}
-    # Une sauvegarde de l'ancien moteur peut porter la raison adoptée sans
-    # avoir enregistré séparément son signe brut. Ne pas effacer cette raison.
-    from .agendas import contrat_intention
-    contrat = contrat_intention(m, observateur) or {}
-    raison = (contrat.get("demande") or {}).get("raison")
-    if raison == {"qui": sujet, "besoin": "peur"}:
-        depuis = esprit_lu(m, observateur)["intention"]["depuis"]
-        return {"valeur": True, "source": "devine", "minute": depuis,
-                "preuve": {"canal": "adoption", "signe": "", "attribut": "", "minute": depuis, "valeur": "peur"}}
-    return None
+    """Façade de la politique subjective historique, portée par memoire."""
+    return memoire.detresse_retenue(m, observateur, sujet)
 
 
 def retenir_detresses(m, observateur, signes):
-    """Réviser seulement aux perceptions : preuve positive ou démenti discernable.
-
-    Une expression corporelle absente est un calme vu seulement quand cette
-    expression serait discernable. Un regard détourné ne contredit jamais une
-    lecture d'attitude ; il faut une nouvelle lecture contradictoire du même signe.
-    """
-    from .esprits import croire, percus as objets_percus
-    change = False
-    e = esprit_lu(m, observateur)
-    positifs = {}
-    ids = {s["id"] for s in signes}
-    for s in signes:
-        if s["signe"] in ("tremble", "fuit"):
-            positifs[s["personnage"]] = ("vu", {"canal": "expression", "signe": s["id"],
-                "attribut": "", "minute": m.data["minutes"], "valeur": s["signe"]})
-    for sujet, a, c in actives(m, observateur):
-        if c["valeur"] in DETRESSE and c["signe"] in ids and sujet not in positifs:
-            positifs[sujet] = (c["source"], {"canal": "lecture", "signe": c["signe"],
-                "attribut": a, "minute": c.get("apprise", c["minute"]), "valeur": c["valeur"]})
-    for s in episodes_retenus(m, observateur, types=("detresse",)):
-        if s["type"] == "detresse" and s["minute"] == m.data["minutes"] and s["qui"] not in positifs:
-            positifs[s["qui"]] = ("entendu", {"canal": "appel", "signe": "", "attribut": "",
-                "minute": s["minute"], "valeur": "appel"})
-    vus = None
-    sujets = set(positifs) | {x for x, d in e["croyances"].items() if "detresse" in d}
-    from .agendas import contrat_intention
-    raison = ((contrat_intention(m, observateur) or {}).get("demande") or {}).get("raison")
-    if raison and raison["besoin"] == "peur":
-        sujets.add(raison["qui"])
-    for sujet in sorted(sujets):
-        crus = faits_connus(m, observateur, sujet)
-        enregistre = crus.get("detresse")
-        ancien = enregistre or detresse_retenue(m, observateur, sujet)
-        source, preuve, valeur = None, None, True
-        etat = fait_brut(m, observateur, sujet, "etat", {})
-        if any(etat.get("valeur", {}).get(k) for k in ("parti", "mort")) or etat.get("valeur", {}).get("conscient") is False:
-            source, valeur = etat["source"], False
-            preuve = {"canal": "etat", "signe": "", "attribut": "etat", "minute": etat["minute"], "valeur": "indisponible"}
-        elif sujet in positifs:
-            source, preuve = positifs[sujet]
-        elif ancien and ancien["valeur"]:
-            p = ancien["preuve"]
-            if p["canal"] == "lecture":
-                revision = crus.get(p["attribut"], {})
-                if (revision.get("signe") == p["signe"] and revision.get("valeur") not in DETRESSE
-                        and revision.get("apprise", revision.get("minute", -1)) >= p["minute"]
-                        and p["signe"] in ids):
-                    source, valeur = revision["source"], False
-                    preuve = {**p, "minute": revision["minute"], "valeur": revision["valeur"]}
-            elif p["canal"] in ("expression", "appel"):
-                if vus is None:
-                    vus = objets_percus(m, observateur)[0]
-                if sujet in vus:
-                    niveau, distance_ = _niveau_distance(m, observateur, sujet)
-                    regle = SIGNES["tremble"]
-                    if niveau >= regle[2] and distance_ <= regle[3]:
-                        source, valeur = "vu", False
-                        preuve = {"canal": "calme", "signe": "", "attribut": "", "minute": m.data["minutes"], "valeur": "calme"}
-        if preuve is None and ancien and not enregistre:
-            source, preuve = ancien["source"], ancien["preuve"]
-        if preuve is not None and (enregistre is None or ancien["valeur"] != valeur or valeur and any(
-                preuve[k] != ancien["preuve"][k] for k in ("canal", "signe", "attribut"))):
-            confiance = (crus.get(preuve["attribut"], {}).get("confiance", .5)
-                         if preuve["canal"] in ("lecture", "adoption") else 1.0)
-            croire(m, observateur, sujet, "detresse", valeur, source, confiance, preuve=preuve)
-            from .deliberation import _poids_secours, calme_pour_secourir
-            if (ancien is None or ancien["valeur"] != valeur) and (
-                    raison and raison["besoin"] == "peur" and raison["qui"] == sujet
-                    or valeur and calme_pour_secourir(m, observateur)
-                    and _poids_secours(m, observateur, sujet) is not None):
-                # Un démenti ne change le choix que si cette détresse portait
-                # sa demande ; une naissance de secours exige sa propre
-                # disponibilité. Mémoriser n'est pas réveiller sans recours.
-                change = True
-    return change
+    """Façade de la politique subjective historique, portée par memoire."""
+    return memoire.retenir_detresses(m, observateur, signes)
 
 
 def actives(m, observateur):
-    """Lectures retenues et non périmées ; leur vérité n'est jamais consultée."""
-    if observateur == "joueur":
-        valeurs = [(c["personnage"], c.get("attribut", ""), c) for c in m.data.get("lectures", {}).values()]
-    else:
-        valeurs = [(x, a, c) for x, d in esprit_lu(m, observateur)["croyances"].items() for a, c in d.items()
-                   if (a in ("emotion", "intention", "parole_doutee") or a.startswith("attitude:"))
-                   and (c["source"] == "devine" or c["source"].startswith("dit:") and "signe" in c)]
-    return [(x, a, c) for x, a, c in valeurs if m.data["minutes"] - c["minute"] <
-            (30 if a in ("emotion", "intention", "parole_doutee") else ATTITUDE_MAX)]
+    """Façade de la politique subjective historique, portée par memoire."""
+    return memoire.lectures_actives(m, observateur)
 
 
 def impressions(m):
@@ -688,7 +567,7 @@ def _bilan_signes(m, observer=None):
             id = None
     else:
         id = observer
-    avant_lectures = {_identite(c) for c in m.data["lectures"].values()}
+    avant_lectures = {_identite(c) for c in memoire.lectures_joueur(m).values()}
     if id:
         lire(m, "joueur", [s for s in percus(m) if s["personnage"] == id], expres=observer is not None)
     signes = publics(m)
@@ -701,7 +580,7 @@ def _bilan_signes(m, observer=None):
     lignes += ["Tu ne distingues plus certains signes chez " + _nom(m, x) + "."
                for x in changes]
     m.data["bilan_signes"] = actuels
-    nouvelles = {cle for cle, c in m.data["lectures"].items() if _identite(c) not in avant_lectures}
+    nouvelles = {cle for cle, c in memoire.lectures_joueur(m).items() if _identite(c) not in avant_lectures}
     # Une demande explicite restitue aussi les lectures déjà acquises ; seul le
     # bilan spontané se limite aux nouveautés. impressions exige leur appui perçu.
     lignes += list(dict.fromkeys(s["texte"] for s in impressions(m) if s["personnage"] == id
@@ -854,6 +733,7 @@ def place(m, id, etape, lignes, jugement=None):
 
 
 def verifier(m):
+    memoire.verifier_signes_retenus(m)
     assert type(m.data.get("tirages_lecture", 0)) is int and m.data.get("tirages_lecture", 0) >= 0
     for id in m.data.get("esprits", {}):
         e = esprit_lu(m, id)
@@ -879,7 +759,7 @@ def percevoir_tous(m):
     episodes = _occurrences(m, emissions)
     acteurs = pnjs(m)
     if not any(emissions.values()) and not any(
-            any(c.get("detresse", {}).get("valeur") for c in esprit_lu(m, id)["croyances"].values())
+            any(c.get("detresse", {}).get("valeur") for c in faits_connus(m, id).values())
             or any(s["type"] == "detresse" and s["minute"] == m.data["minutes"] for s in episodes_retenus(m, id, types=("detresse",)))
             for id in acteurs):
         return

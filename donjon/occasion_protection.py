@@ -3,7 +3,7 @@
 Le marché reste une proposition ordinaire, son exécution une tâche payée.
 Ce module ne donne ni position ni moyens privés au futur protecteur.
 """
-from .memoire import fait_brut
+from .memoire import fait_brut, faits_connus
 from .esprits import lire
 
 
@@ -58,7 +58,7 @@ def occasions(monde, id):
     from . import agendas
     if not valeur(monde, id, 'ambition') or urgents(monde, id) or agendas.en_cours(monde, id, actifs=True) or agendas.proteges(monde, id):
         return
-    for autre in sorted(lire(monde, id)['croyances']):
+    for autre in sorted(faits_connus(monde, id)):
         if autre == id or (autre != 'joueur' and monde.objets.get(autre, {}).get('type') not in ('personnage', 'depouille')):
             continue
         if not peur_crue(monde, id, autre) or fonds_crus(monde, id, autre) <= 0:

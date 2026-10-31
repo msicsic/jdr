@@ -357,7 +357,7 @@ def devis_intermediaire(monde, id, besoin, etapes):
     cle = {**r, 'operation': refus['operation'], 'minute': refus['minute']}
     if any(all(s[k] == v for k, v in cle.items()) for s in e['recours_intermediaires']):
         return None
-    attitudes = e['croyances'].get(r['de'], {})
+    attitudes = memoire.faits_connus(monde, id, r['de'])
     candidats = []
     v = debut = None
     for qui in sorted(_connus(monde, id)):
@@ -365,7 +365,7 @@ def devis_intermediaire(monde, id, besoin, etapes):
             continue
         if attitudes.get('attitude:' + qui, {}).get('valeur') != 'attachement':
             continue
-        if e['croyances'].get(qui, {}).get('attitude:' + id, {}).get('valeur') in ('mefiance', 'hostilite'):
+        if (fait_brut(monde, id, qui, 'attitude:' + id) or {}).get('valeur') in ('mefiance', 'hostilite'):
             continue
         if relations.se_mefie(monde, id, qui):
             continue
