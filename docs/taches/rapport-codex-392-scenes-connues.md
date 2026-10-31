@@ -1,7 +1,7 @@
 # Lot 392 — Connaissances explicites des scènes
 
 Branche `codex-scenes-connues`, base `integration` : `ed5d9765` (laptop).
-Correction livrée ; **vérification des cinq fichiers en cours, lot non validé**.
+Code vérifié `d02624a0` ; **lot validé, non fusionné** le 2026-10-31.
 
 **Invariant.** Une scène qui suppose que Corvus peut désigner une référence ou
 voir son nom la déclare connue ; le savoir privé d'un PNJ et une coïncidence
@@ -43,14 +43,17 @@ assertions supplémentaires d'absence du nom dans les rendus passent ensuite
 (une méthode, quatre variantes, 12,087 s). Le premier lanceur a masqué le
 namespace `tests` ; l'essai suivant a rencontré le refus Windows des temporaires
 dans le bac à sable. Reprise hors bac à sable, sans adaptation du moteur.
-La passe finale détachée porte sur `test_garde_ouidire`, `test_mandat_joueur`,
-`test_occasions_scenarios`, `test_catalogue_connu` et `test_information_terminal`,
-deux travailleurs au plus, priorité réduite. Sa fin est écrite en dernier dans
-`C:/Users/msics/donjon/artifacts/scenes-connues-392/fin-verification.json` ;
-`tests.json` contiendra les résultats et durées. Pas de suite complète, Luna ou
-empreintes de simulation, conformément au brief sans changement du jeu.
+La passe finale détachée valide **47/47 tests, zéro échec, erreur ou saut** :
+`test_garde_ouidire` 16/16 (40,497 s), `test_mandat_joueur` 13/13 (230,577 s),
+`test_occasions_scenarios` 4/4 (89,338 s), `test_catalogue_connu` 5/5 (65,188 s),
+`test_information_terminal` 9/9 (1 466,446 s). Temps écoulé : **1 506,952 s**,
+deux travailleurs au plus, priorité réduite. Les empreintes des six fichiers
+vérifiés sont inchangées depuis le lancement sur `d02624a0`. Le journal TUI
+contient seulement les diagnostics de lenteur asyncio.
+`fin-verification.json` confirme `succes=true`, code 0 ; `tests.json` conserve
+les résultats et durées. Aucun calcul requis ne reste en cours. Pas de suite
+complète, Luna ou empreintes de simulation, conformément au brief sans changement du jeu.
 
-**Limites.** La passe finale reste à lire avant validation et fusion. Ce lot
-ne change ni l'admission d'une parole contenant un référent inconnu ni la
+**Limites.** Ce lot ne change ni l'admission d'une parole contenant un référent inconnu ni la
 migration des mentions en prose anciennes. Bruts dans
-`C:/Users/msics/donjon/artifacts/scenes-connues-392/`. Fusion au superviseur.
+`C:/Users/msics/donjon/artifacts/scenes-connues-392/`. Branche poussée ; fusion au superviseur.

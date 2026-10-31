@@ -46,8 +46,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-scenes-connues` — lot 392, base `integration` `ed5d9765` : prémisses de connaissance explicites,
   sans code du jeu ni scénario modifié ; salle/coffre et deux mandats avec contre-épreuves rechargées.
   Deux hashes actualisés en conservant exactement les savoirs du 365 ; cinq autres inchangés.
-  Ciblés : 4/4 (24,815 s), rendu sans nom 1/1 (12,087 s) ; cinq fichiers en vérification détachée.
-  Non validé avant lecture de `artifacts/scenes-connues-392/fin-verification.json` du dépôt principal.
+  Vérification finale : 47/47, cinq fichiers, zéro échec/erreur/saut (1 506,952 s), code `d02624a0`.
+  Validé, branche poussée ; `fin-verification.json` confirme le succès, aucun calcul restant.
   [Rapport 392](taches/rapport-codex-392-scenes-connues.md). Aucun Luna ni suite complète.
 
 Lots en cours : 374 (position crue), 380
