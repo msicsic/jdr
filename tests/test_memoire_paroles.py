@@ -14,7 +14,7 @@ from donjon.scene import scene_percue
 from donjon.temps import ecouler
 from tests.test_deja_entendu import assemblee, dire
 from tests.test_memoire_localisation import acces_croyances, RACINE
-from tests.test_memoire_socle import AccesTests
+from tests import test_memoire_socle
 from tests.test_tensions import recharger
 
 
@@ -77,7 +77,7 @@ class ParolesTests(unittest.TestCase):
             if acces:
                 mesures[relatif] = {f'{f}/{e}': n for (f, e), n in sorted(acces.items())}
         # Même frontière de schéma que S1a ; aucune création brute supplémentaire.
-        for f, e in (('<module>', AccesTests.schema_champs()),
+        for f, e in (('<module>', test_memoire_socle.AccesTests.schema_champs()),
                      ('esprit', "{'croyances': {}, 'memoire': [], 'faits_dits': {}}")):
             self.assertEqual(mesures['donjon/esprits.py'].pop(f'{f}/{e}'), 1)
         mesures = {f: a for f, a in mesures.items() if a}
