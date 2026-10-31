@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-ut-social-avis` — lot 389, base `integration` `5cc189c9`, code `cf7a421f`.
+  Console/TUI : commande `avis`, catalogue et descripteur du web, réception/dispute G18 conservées.
+  92 tests distincts validés / huit fichiers : 90 conservés, deux erreurs Windows reprises vertes (21,864 s).
+  8/8 empreintes identiques, 2 h crue/Relais × quatre graines ; sources et assertions inchangées.
+  14 parcours mesurés ; 20 touches (21 avec F7), zéro modèle. Ni suite complète ni Luna.
+  Bruts : `C:/Users/msics/donjon/artifacts/ut-social-avis-389/fin-cloture.json`, `succes=true`.
+  Terminé, poussé, aucun calcul actif ; limite : avis de menace d'eau, parole distincte de la vérité.
+  [Rapport 389](taches/rapport-codex-389-ut-social-avis.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 389, U-T social avis : commande avis à la console et à la TUI, même avis structuré que le formulaire web du 386, sans modèle. 92 tests verts, 8/8 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-rembourser-dette` — lot 388, base `integration ea3c70e0` (laptop) : remboursement volontaire typé commun joueur/PNJ ; dette, audience, fonds et montant vérifiés avant transfert.
   U-C confirme le débit de Corvus ; fiche, paroles enregistrées, épreuve relationnelle et sauvegarde raccordées, sans nouveau registre.
   Bilan : 97/98 tests, seul rouge Gaspard reproduit sur la base ; huit nouveaux tests verts. Bancs Relais/auberge 4 h × quatre graines : zéro usurpation ; Luna 4 appels, zéro refus/erreur.

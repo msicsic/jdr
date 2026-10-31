@@ -13,6 +13,7 @@ from .esprits import dernier_son
 OPERATIONS = ("discuter", "proposer", "negocier", "accepter", "refuser")
 GESTE_INFORMATION = "information"
 AIDE_INFORMATION = "information. Demander ou transmettre une information."
+AIDE_AVIS = "avis. Donner un avis sur la menace d'eau."
 
 
 def formulaires_information():
@@ -81,9 +82,14 @@ def avis_publics(monde):
 class InformationTerminal:
     """Formulaire numéroté sur les mêmes paramètres publics que le web."""
 
+    catalogue = staticmethod(formulaires_information)
+    titre = "Information"
+    indications = ("Le dernier choix transmet la parole ; une affirmation demande confirmation.",
+                   "Demander où est un objet reste indisponible.")
+
     def __init__(self, public):
         self.public = copy.deepcopy(public)
-        self.formulaires = formulaires_information()
+        self.formulaires = self.catalogue()
         self.destinataire = None
         self.formulaire = None
         self.valeurs = []
@@ -103,9 +109,7 @@ class InformationTerminal:
                 for x in self.public[self.champ["choix"]]]
 
     def rendre(self):
-        lignes = ["Information — numéro puis Entrée ; annuler pour fermer.",
-                  "Le dernier choix transmet la parole ; une affirmation demande confirmation.",
-                  "Demander où est un objet reste indisponible."]
+        lignes = [self.titre + " — numéro puis Entrée ; annuler pour fermer.", *self.indications]
         if self.destinataire:
             lignes.append("À qui parler : " + self.destinataire[1])
         if self.formulaire:
@@ -144,6 +148,14 @@ class InformationTerminal:
         return DescripteurPublic({"geste": GESTE_INFORMATION, "cible": self.destinataire[0],
             "parametres": {"acte": self.formulaire["acte"],
                            **{c["champ"]: v[0] for c, v in zip(self.formulaire["champs"], self.valeurs)}}})
+
+
+class AvisTerminal(InformationTerminal):
+    """Même sélecteur public ; le catalogue d'avis fixe les champs disponibles."""
+
+    catalogue = staticmethod(formulaires_avis)
+    titre = "Avis"
+    indications = ("Le dernier choix prépare l'avis ; tenter le confirme, annuler l'abandonne.",)
 
 
 def parole_information(monde, d):
