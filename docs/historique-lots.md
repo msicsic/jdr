@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s2-conception` — lot 398, base `integration e3adc0f4`, documentation seule.
+  [Conception S2](conception-s2.md) : 18 sous-lots d'un invariant, oracles et paires de cas,
+  dépendances S1f–p champ par champ ; cinq décisions S0 conservées, paramètres ouverts explicités.
+  Préparation possible pendant S1 ; implémentation après S1p, puis E7 et essai E9 (E8 reporté).
+  Tranche auberge à biographies manuelles et protocole rapide 4 h ; aucune mesure exécutée.
+  Références locales relues ; aucun test, banc ni Luna. Rapport 381 absent de la base.
+  [Rapport 398](taches/rapport-codex-398-s2-conception.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 398, documentation : docs/conception-s2.md, 18 sous-lots d'un invariant (S2a résumé des preuves, S2b oubli selon âge et importance, S2c arbitre des contradictions, S2d localisation et possession…), dépendances S1 champ par champ, captures à constituer, place d'E7/E9 et tranche de l'auberge ; cinq décisions de S0 reportées ; questions de calibration à soumettre dans les briefs concernés.
+
 - `codex-avis-redits-crue` — **395**, base `integration 1fd48fb5`, terminé, non fusionné, poussé.
   Provenance de l'extinction portée par la vue attestée à 97 puis le constat courant à 140 ; moteur inchangé.
   Isolation positive autorisée comme au 375 (buts concurrents), besoins/liens/audience/jets et assertion conservés.
