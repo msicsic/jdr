@@ -43,15 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-s1j-voix` — lot 408, base `integration 44745a89`, code `bea3d8ec` ; non fusionné, empreintes en cours.
+- `codex-s1j-voix` — lot 408 clos, non fusionné ; base `integration 44745a89`, code mesuré `bea3d8ec`.
   Identité vocale, noms et échanges retenus : vues copiées et écritures nommées dans `memoire`, stockage conservé.
   Inventaire AST vocal 98 → 17 (schéma + homonymes exacts), zéro accès brut restant ; 217/217 tests, seize fichiers.
   Présentations de Corvus, imposture différée et capture mine 470 : état complet, rendu, scène et paroles identiques après recharge/découpage.
-  Empreintes 2 h × quatre graines × Relais/mine/auberge/crue détachées, deux travailleurs réduits ; pas de Luna ni suite complète.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/s1j-408/fin.json`. Limite AST locale ; identité des nuits non encore revendiquée.
+  Empreintes 2 h × quatre graines × Relais/mine/auberge/crue : 16/16 identiques (chroniques, mesures, état final complet), aucun plantage.
+  Vérification terminée : `C:/Users/msics/donjon/artifacts/s1j-408/fin.json` réussi ; limite AST locale. Ni Luna ni suite complète.
   [Rapport 408](taches/rapport-codex-408-s1j-voix.md).
 
-Lots en cours : 408 (S1j identité vocale), 407 (A2 consultation sociale), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 407 (A2 consultation sociale), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

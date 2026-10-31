@@ -1,7 +1,7 @@
 # Lot 408 — S1j, identité vocale et noms retenus
 
 31 octobre 2026 · `codex-s1j-voix` · base exacte `integration 44745a89`.
-Code soumis aux empreintes : **`bea3d8ec`**. **Vérification des empreintes en cours ; lot non clos.**
+Code mesuré : **`bea3d8ec`**. **Lot clos, non fusionné ; aucun calcul restant.**
 
 **Invariant et code.** Les voix connues et entendues, leurs signatures, prétentions,
 appellations et méfiances, les noms appris et les échanges retenus passent par
@@ -36,11 +36,15 @@ ordre JSON, lignes, rendu, scène et paroles. Les premiers essais ont révélé 
 écrivant dans un retour désormais copié, une migration testée avant son installation,
 puis un compteur local masquant l'import de mémoire dans le banc ; tous sont corrigés.
 
-**Empreintes et reprise.** Calcul détaché contre la base exacte : 2 h × quatre graines
-1985/7/42/2024 × Relais/mine/auberge/crue, deux travailleurs réduits, référence puis
-branche, cache partagé sans relance des nuits disponibles. Résultat attendu dans
-`C:/Users/msics/donjon/artifacts/s1j-408/fin.json` ; lire aussi `empreintes-base.json`
-avant de clore le lot. Aucun résultat d'identité n'est encore revendiqué.
+**Empreintes : 16/16 identiques.** 2 h × quatre graines 1985/7/42/2024 ×
+Relais/mine/auberge/crue, commits exacts `44745a89` et `bea3d8ec` : chroniques,
+mesures et empreintes de l'état final complet identiques nuit par nuit, sans
+exclusion, divergence ni plantage. Avis et constats auxiliaires concordent aussi :
+zéro avis non justifié et vingt à expliquer de chaque côté. Les seize nuits de
+référence puis de branche ont été jouées et rangées dans le cache partagé ; deux
+travailleurs réduits au plus. Aucun temps comparé : les secondes de calcul sont
+le seul champ différent des données du banc. `fin.json` confirme le code de sortie 0
+et `succes: true` ; `empreintes-base.json` et `conclusion.json` portent les résultats.
 
 **Limites et voisinage.** Contrôle AST syntaxique/local, sans preuve de tous les flux
 interprocéduraux Python ; politiques et limites historiques conservées. Pas de suite
