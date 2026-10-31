@@ -3,7 +3,24 @@
 31 octobre 2026 — `codex-a3-liaison-transport`, base `integration`
 `57299df44e1ca7e7dcbdfa65b320f125c377dcad`, non fusionnée.
 
-**Verdict : NON VALIDÉ côté ChatGPT, ne pas fusionner en l'état.** Tests et
+**Reprise en cours, ne pas fusionner avant la nouvelle passe ciblée.** Même copie
+du Relais, « je fredonne doucement » : base `origin/integration` **139 jetons,
+0 réflexion, 8,502 s**, schéma 56 424 octets ; branche défaillante **0 jeton
+déclaré, 0 réflexion, aucun delta, 5,838 s**, 62 963 octets. Retirer uniquement
+la conjonction redondante propriétés/union donne une réponse complète de
+**154 jetons, 0 réflexion, 8,251 s**, 60 623 octets, avec les mêmes 69 définitions.
+Aucun `max_output_tokens` envoyé dans les trois cas, terminal reçu sans limite
+chiffrée : aucune limite relevée. L'expérience isole la forme du schéma ; elle
+ne révèle pas le fonctionnement interne du décodeur fournisseur. La correction
+`union_seule` exige une preuve structurelle `restreint` pour chaque branche avant
+de retirer les contraintes déjà présentes. Une contrainte non démontrée fait
+refuser la projection ; les liaisons mode/charge et opération/paramètres restent
+inchangées. Diagnostics et événements sans en-têtes opaques : `reprise-sortie/`.
+Reprise ciblée : **39 tests verts, trois ignorés, 104,61 s**, six fichiers,
+deux travailleurs à priorité réduite. Nouvelle passe des cinq bancs lancée
+séparément ; fichier de fin `reprise-sortie/fin.json`, résultats à lire avant validation.
+
+**Première livraison : NON VALIDÉE côté ChatGPT.** Tests et
 empreintes passent ; les 27 appels de l'unique passe Luna échouent avant une
 réponse complète. Le transport réel et la fidélité sémantique ne sont pas validés.
 

@@ -1,10 +1,81 @@
-"""Retirer les répétitions d'un schéma sans changer son contrat de validation."""
+"""Grammaire commune : validation, projection et partage sans perte de contraintes."""
 from collections import Counter
 import json
 import math
 import re
 
 from ..refus import RefusDeForme
+
+
+def restreint(fort, faible):
+    """Preuve structurelle suffisante d'inclusion, avant mutualisation.
+
+    Un cas non démontré retourne faux ; il ne permet jamais de retirer une
+    contrainte. Les annotations de prose n'affectent pas le langage accepté.
+    """
+    if fort is faible or (fort == faible and
+            json.dumps(fort, sort_keys=True) == json.dumps(faible, sort_keys=True)):
+        return True
+    faible = {k: v for k, v in faible.items() if k != 'description'}
+    if not faible:
+        return True
+    if 'anyOf' in fort:
+        return all(restreint(option, faible) for option in fort['anyOf'])
+    if 'anyOf' in faible:
+        commun = {k: v for k, v in faible.items() if k != 'anyOf'}
+        return restreint(fort, commun) and any(restreint(fort, option) for option in faible['anyOf'])
+    for cle, valeur in faible.items():
+        recu = fort.get(cle)
+        if cle == 'type':
+            if recu != valeur and (recu, valeur) != ('integer', 'number'):
+                return False
+        elif cle == 'enum':
+            if recu is None or any(not any(type(v) is type(w) and v == w for w in valeur) for v in recu):
+                return False
+        elif cle == 'required':
+            if not set(valeur) <= set(recu or []):
+                return False
+        elif cle == 'additionalProperties':
+            if type(valeur) is not bool:
+                return False
+            if valeur is False and (recu is not False or
+                    not set(fort.get('properties', {})) <= set(faible.get('properties', {}))):
+                return False
+        elif cle == 'properties':
+            for champ, contrainte in valeur.items():
+                if champ in fort.get('properties', {}):
+                    if not restreint(fort['properties'][champ], contrainte):
+                        return False
+                elif fort.get('additionalProperties') is not False:
+                    return False
+        elif cle == 'items':
+            if recu is None or not restreint(recu, valeur):
+                return False
+        elif cle in ('minItems', 'minLength', 'minimum'):
+            if recu is None or recu < valeur:
+                return False
+        elif cle in ('maxItems', 'maxLength', 'maximum'):
+            if recu is None or recu > valeur:
+                return False
+        elif cle == 'pattern':
+            if recu != valeur:
+                return False
+        else:
+            return False
+    return True
+
+
+def union_seule(schema):
+    """Retirer une conjonction seulement si chaque branche l'implique déjà.
+
+    Le décodeur cloud échoue avant tout jeton sur l'objet combinant propriétés
+    communes et anyOf lié. Une union seule conserve exactement le même langage
+    lorsque toutes ses branches portent déjà ces contraintes communes.
+    """
+    commun = {k: v for k, v in schema.items() if k != 'anyOf'}
+    if not all(restreint(branche, commun) for branche in schema['anyOf']):
+        raise ValueError('La grammaire liée ne prouve pas les contraintes communes de chaque branche.')
+    return {'anyOf': schema['anyOf']}
 
 
 def verifier(valeur, schema, chemin='reponse'):

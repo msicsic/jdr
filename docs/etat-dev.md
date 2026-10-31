@@ -43,12 +43,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-a3-liaison-transport` — lot 410, base `57299df4`, **NON VALIDÉ côté ChatGPT, ne pas fusionner** :
+- `codex-a3-liaison-transport` — lot 410, base `57299df4`, **reprise en cours, ne pas fusionner** :
   Mode/charge et contrats A2 liés cloud/local ; enveloppe `reponse`, contrôle avant audit/préparation avec `attendu`.
   Parcours réseau simulé Relais/auberge, sons, sauvegarde et reprise ; assertions de sécurité conservées.
-  146 tests verts (4 ignorés), reprise finale 15/15 ; prévol conforme ; empreintes Relais/auberge identiques (2 h × 4 graines).
-  Luna, une passe : 27/27 appels interrompus `max_output_tokens`, 27 replis, aucune erreur de recharge ; fidélité non mesurable.
-  Bruts : `C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/conclusion.json` ; voies transitoires et audits conservés.
+  Tests de reprise 39 verts (3 ignorés), 105 s ; anciens 146 + 15 verts ; empreintes Relais/auberge identiques (2 h × 4 graines).
+  Cause isolée sur copie : conjonction redondante union/propriétés ; échec à 0 jeton, union seule complète à 154 (base 139).
+  Projection prouvée sans relever la limite ; nouvelle passe ciblée : `artifacts/a3-liaison-transport-410/reprise-sortie/fin.json` du dépôt principal.
   [Rapport](taches/rapport-codex-410-a3-liaison-transport.md).
 
 Lots en cours : 409 (S1k refus et recours), 402 (vérification d'intégration moteur) ; 410 livré non validé (voir ci-dessus) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).

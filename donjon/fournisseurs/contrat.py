@@ -39,11 +39,11 @@ class Demande:
     reflexion: str = 'libre'
 
     def schema_transport(self):
-        from .schema import mutualiser
+        from .schema import mutualiser, union_seule
         schema = self.schema
         if 'anyOf' in schema:
             schema = {'type': 'object', 'additionalProperties': False,
-                      'properties': {'reponse': schema}, 'required': ['reponse']}
+                      'properties': {'reponse': union_seule(schema)}, 'required': ['reponse']}
         return mutualiser(schema)
 
     def decoder(self, arguments):

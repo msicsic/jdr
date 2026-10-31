@@ -11,7 +11,7 @@ import jeu
 from donjon.fournisseurs.contrat import Demande
 from donjon.fournisseurs.local import Local
 from donjon.fournisseurs.openai import OpenAI
-from donjon.fournisseurs.schema import verifier
+from donjon.fournisseurs.schema import verifier, restreint, union_seule
 from donjon.mj import MJ, SCHEMA_PROPOSER
 from donjon.monde import Monde, nouveau_monde
 from donjon.moteur import proposition
@@ -97,22 +97,45 @@ class LiaisonTransportTests(unittest.TestCase):
         s = d.schema_transport()
         self.assertEqual(s['type'], 'object')
         self.assertNotIn('anyOf', s)
-        self.assertEqual(developper(s)['properties']['reponse'], d.schema)
+        self.assertEqual(developper(s)['properties']['reponse'], {'anyOf': d.schema['anyOf']})
+        commun = {k: v for k, v in d.schema.items() if k != 'anyOf'}
+        self.assertTrue(all(restreint(b, commun) for b in d.schema['anyOf']))
         stats = dimensions(s)
         for cle, maximum in (('proprietes', 5000), ('enums', 1000), ('caracteres', 120000), ('profondeur', 10)):
             self.assertLessEqual(stats[cle], maximum)
         self.assertEqual(d.schema, avant)
 
+    def test_projection_ne_retire_jamais_une_contrainte_non_redondante(self):
+        for champ, contrainte in (('texte', {'type': 'string', 'minLength': 2}),
+                                   ('mode', {'type': 'string', 'enum': ['dialogue']})):
+            s = copy.deepcopy(self.schema)
+            s['properties'][champ] = contrainte
+            with self.subTest(champ=champ), self.assertRaises(ValueError):
+                self.demande(s).schema_transport()
+        s = copy.deepcopy(self.schema)
+        s['required'].append('autre_charge')
+        with self.assertRaises(ValueError):
+            self.demande(s).schema_transport()
+        self.assertFalse(restreint({'type': 'integer'}, {'type': 'integer', 'maximum': 2}))
+        self.assertFalse(restreint({'type': 'object'}, {'type': 'object', 'une_contrainte_inconnue': True}))
+        self.assertFalse(restreint({'enum': [True]}, {'enum': [1]}))
+        self.assertFalse(restreint({'type': 'object'},
+                                  {'type': 'object', 'additionalProperties': {'type': 'integer'}}))
+
     def test_chaque_mode_refuse_toutes_les_charges_des_autres_modes(self):
         temoins = [exemple(s) for s in self.schema['anyOf']]
+        projetee = union_seule(self.schema)
         for bon in temoins:
             verifier(bon, self.schema)
+            verifier(bon, projetee)
             for autre in temoins:
                 if bon['mode'] == autre['mode']:
                     continue
                 with self.subTest(mode=bon['mode'], charge=autre['mode']):
                     with self.assertRaises(RefusDeForme) as refus:
                         verifier({**bon, 'proposition': autre['proposition']}, self.schema)
+                    with self.assertRaises(RefusDeForme):
+                        verifier({**bon, 'proposition': autre['proposition']}, projetee)
                     self.assertIn('proposition', refus.exception.attendu)
         for bon in temoins:
             if bon['mode'] != 'dialogue':
