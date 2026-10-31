@@ -1,6 +1,7 @@
 # Lot 426 — K0, candidats de contrat déterministes
 
-Branche `codex-k0-candidats-contrat`, base `integration` **`a874d646`**.
+Branche `codex-k0-candidats-contrat`, **terminée, non fusionnée**, base
+`integration` **`a874d646`** ; code livré dans **`27ecafa9`**.
 
 **Invariant.** Une suggestion est un brouillon public, jamais un accord, une
 réplique entendue, un paiement ou un engagement. `dialogues.candidats_contrat`
@@ -29,10 +30,13 @@ la prestation, le prix et l'absence de limite restent modifiables. Seul
 le descripteur U-D `accord`. Sa revalidation n'a pas besoin de régénérer les
 suggestions. Le formulaire manuel et le raccord libre restent disponibles.
 
-**Vérification.** **7/7 tests K0 finaux verts**, 181,912 s, sans ignoré
-(`k0-public.json`). Tests voisins
-marché, U-D, E5 et comptes en cours (`voisins.json`, écrit en dernier) ; le
-fichier U-D est déjà vert (10 tests). Cas réel : planches d'Aubin au Relais ; autre
+**Vérification finale.** **62 tests réussis, 2 ignorés, aucun échec ni erreur**
+sur six fichiers (64 tests découverts). K0 : 7/7, 181,912 s ; voisins marché,
+U-D, E5 et comptes : 55 réussis et 2 ignorés, 1 408,337 s, un travailleur à
+priorité réduite. Les deux tests ignorés contrôlent les schémas de proposition
+et de termes datés : dépendance facultative `jsonschema` absente ; les tests
+de validation moteur et les parcours de jeu sont exécutés et verts.
+Cas réel : planches d'Aubin au Relais ; autre
 ressource : huile d'Odile à l'auberge ; autre famille : verrouillage du
 garde-manger. Les parcours console et callbacks web réels comparent les termes,
 l'état après accord et les vues après recharge. Couverture du refus du PNJ,
@@ -51,8 +55,8 @@ social en clause, d'offre spontanée ni de nouvelle échéance. Les objets
 indivisibles et les autres tâches restent accessibles par leurs voies actuelles.
 Le générateur ne garantit jamais l'accord ni la fidélité de toute saisie libre.
 
-Bruts : `C:/Users/msics/donjon/artifacts/k0-candidats-426/`.
-Clôture détachée : `fin.json` écrit après `voisins.json`, avec les deux bilans
-et le journal voisin. **Vérification voisine encore en cours à la poussée** ;
-reprendre ce lot à sa fin avant de le déclarer terminé.
+Bruts : `C:/Users/msics/donjon/artifacts/k0-candidats-426/` :
+`k0-public.json`, `voisins.json`, `voisins.log`, `mesures-public.json` et copies
+des trois scènes. Clôture détachée `fin.json` : `termine=true`, `succes=true`,
+aucune erreur. Aucun calcul du lot encore en cours ; branche poussée sur origin.
 Fusion et vérification complète laissées au superviseur.

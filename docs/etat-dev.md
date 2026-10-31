@@ -45,12 +45,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - **`codex-k0-candidats-contrat` — 426 / K0**, base `integration` `a874d646` : suggestions déterministes
   de parts et tâches visibles, possession publique, admission sur copie ; sélection → formulaire E5/U-D, aucun accord.
-  Cas Aubin/planches, Odile/huile et verrouillage : 7/7 K0 verts ; 10/10 U-D verts, autres voisins en cours.
+  Terminé, non fusionné : cas Aubin/planches, Odile/huile et verrouillage ; 62 tests réussis, 2 ignorés (`jsonschema`).
   Aucun modèle ; besoins secrets ignorés. Référence bornée à E5, pas de troc ni de nouvelles clauses.
-  Bruts `artifacts/k0-candidats-426/` du dépôt principal ; clôture détachée, fin attendue `fin.json`.
+  Bruts `artifacts/k0-candidats-426/` du dépôt principal ; `fin.json` vert, aucun calcul actif ; branche poussée.
   [Rapport](taches/rapport-codex-426-k0-candidats-contrat.md).
 
-Lots en cours : 424 (empreintes du 374, famille E), 425 (découpe d’un combustible), 426 (K0, candidats de contrat), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 424 (empreintes du 374, famille E), 425 (découpe d’un combustible), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
