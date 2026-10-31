@@ -25,7 +25,7 @@ def ecrire(chemin, valeur):
     chemin.write_text(json.dumps(valeur, ensure_ascii=False, indent=2), encoding='utf8')
 
 
-def capturer(scenario, graine, dossier):
+def capturer(scenario, graine, dossier, checkpoints_extra=()):
     from donjon import banc_pnj, deliberation, esprits, pnj, echanges, ouie
     from donjon.temps import instant
     from tools.audit_nuits import JOUEURS
@@ -45,6 +45,9 @@ def capturer(scenario, graine, dossier):
         ('crue', 2024): {'brune': (137384, 137391)},
         ('crue', 42): {'aubin': (10800, 11400, 12000)},
     }.get((scenario, graine), {})
+    for repere in checkpoints_extra:
+        acteur, t = repere.split('=')
+        checkpoints[acteur] = (*checkpoints.get(acteur, ()), int(t))
     deja = set()
 
     def photo(m, etiquette):
@@ -84,7 +87,10 @@ def capturer(scenario, graine, dossier):
             if cle not in bruit_attribue and not verification_propre and (
                     directe or date > consommees.get(cle, {}).get('minute', -10**9)):
                 generations[cle] = generations.get(cle, 0) + 1
-            positives[cle] = copy.deepcopy(c)
+            if cle not in bruit_attribue:
+                # Sur l'ancien moteur, l'attribution d'un bruit rajeunit la
+                # croyance brute. Ce rajeunissement n'est pas une preuve reçue.
+                positives[cle] = copy.deepcopy(c)
         return r
 
     attribuer = ouie._attribuer
@@ -131,17 +137,27 @@ def capturer(scenario, graine, dossier):
         index = ouvrir(m, acteur, cherche, 'inspection')
         en_cours[cle] = index
         try:
-            return inspecter(m, acteur, cherche, *a, **kw)
+            resultat = inspecter(m, acteur, cherche, *a, **kw)
+            if index is not None:
+                evenements[index]['apres'] = photo(m, f'verification-{index}-apres')
+            return resultat
         finally:
             en_cours.pop(cle, None)
 
     heler = pnj.heler
     def heler_observe(m, acteur, sujet, *a, **kw):
+        from donjon.corps import conscient
+        if m is not monde_actif or not conscient(m, acteur):
+            return heler(m, acteur, sujet, *a, **kw)
         index = en_cours.get((acteur, sujet))
         if (acteur, sujet) not in en_cours:
             index = ouvrir(m, acteur, sujet, 'appel')
         appels.append({'instant': instant(m), 'acteur': acteur, 'sujet': sujet,
-                       'salle': m.objets[acteur]['lieu'], 'verification': index})
+                       'salle': m.objets[acteur]['lieu'], 'verification': index,
+                       'generation': generations.get((acteur, sujet), 0),
+                       'croyance': copy.deepcopy(esprits.lire(m, acteur)['croyances'].get(sujet, {}).get('lieu')),
+                       'intention': copy.deepcopy(esprits.lire(m, acteur)['intention']),
+                       'capture': photo(m, f'appel-{len(appels)}')})
         return heler(m, acteur, sujet, *a, **kw)
 
     enqueter = echanges.enqueter
@@ -193,9 +209,10 @@ def main():
     parser.add_argument('--scenario', required=True)
     parser.add_argument('--graine', required=True, type=int)
     parser.add_argument('--sortie', required=True, type=Path)
+    parser.add_argument('--checkpoint', action='append', default=[], metavar='ACTEUR=INSTANT')
     args = parser.parse_args()
     ceder()
-    capturer(args.scenario, args.graine, args.sortie.resolve())
+    capturer(args.scenario, args.graine, args.sortie.resolve(), args.checkpoint)
 
 
 if __name__ == '__main__':

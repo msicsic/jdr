@@ -2138,6 +2138,11 @@ def _chercher(v, e, sujet):
         return None
     if v.salle(e, sujet) is not None:
         return _appeler(v, e, sujet)
+    if hypothese_consommee(v.monde, v.id, sujet):
+        # Le besoin du parent ne crée pas de nouvel indice. Une piste expirée
+        # déjà vérifiée ne devient pas une recherche inconnue à travers toutes
+        # les autres salles ; seule une nouvelle localisation la rouvre.
+        return None
     # Le contact inconnu peut d'abord faire l'objet d'une question présente.
     # Comme l'inspection, cette transition s'arrête avant toute suite supposée.
     question = None
@@ -3834,6 +3839,8 @@ def s_enquerir(monde, id, besoin=None, *, sujet=None, _vue=None, _etat=None):
     v = _vue or vue(monde, id)
     e = _etat or depart(monde, id, v)
     if sujet is not None:
+        if hypothese_consommee(monde, id, sujet):
+            return None
         interroges = {s["de"] for s in lire(monde, id)["refus"]
                       if s["operation"] == "enqueter_lieu" and s.get("objet") == sujet
                       and tient(monde, id, s, v.connus)}

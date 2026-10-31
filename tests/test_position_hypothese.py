@@ -134,6 +134,8 @@ class HypothesePositionTests(unittest.TestCase):
                            origine={'source': ancienne['source'], 'minute': ancienne['minute']})
                     m = self.recharge(m)
                     self.assertTrue(hypothese_consommee(m, a, b))
+                    self.assertIsNone(p.rejoindre(m, a, b))
+                    self.assertIsNone(p.s_enquerir(m, a, sujet=b))
                     geste = p._etape('prendre', 'lanterne_' + a, condition='sans_temoin')
                     # Le témoin consommé ne peut plus engendrer de nouvelle
                     # vérification furtive (les autres croyances sont écartées).
@@ -147,6 +149,7 @@ class HypothesePositionTests(unittest.TestCase):
                 # Une voix effectivement reconnue constitue une entrée nouvelle.
                 croire(m, a, b, 'lieu', ancienne['valeur'], 'entendu', salle=ancienne['salle'], case=None)
                 self.assertFalse(hypothese_consommee(self.recharge(m), a, b))
+                self.assertIsNotNone(p.rejoindre(m, a, b))
                 m.data['minutes'] += 15
                 consommer_hypothese(m, a, b)
                 m.data['minutes'] += 1
@@ -169,6 +172,21 @@ class HypothesePositionTests(unittest.TestCase):
                     self.assertTrue(hypothese_consommee(m, a, b))
                     self.assertTrue(position_a_verifier(m, a, b))
                     self.assertEqual(lire(m, a)['croyances'][b]['lieu']['minute'], c['minute'])
+
+    def test_capture_contact_requis_ne_repart_pas_dans_les_autres_salles(self):
+        fichier = Path(__file__).parent / 'captures/position-374-auberge-42-42-consommee.json.gz'
+        m = self.recharge(Monde(json.loads(gzip.decompress(fichier.read_bytes()))))
+        self.assertTrue(hypothese_consommee(m, 'lucien', 'hugues'))
+        for minute in (42, 60, 180):
+            m.data['minutes'] = minute
+            m = self.recharge(m)
+            self.assertIsNone(p.rejoindre(m, 'lucien', 'hugues'))
+            self.assertIsNone(p.contacter(m, 'lucien', 'hugues'))
+            self.assertIsNone(p.s_enquerir(m, 'lucien', sujet='hugues'))
+        croire(m, 'lucien', 'hugues', 'lieu', 'grenier', 'entendu', salle='grenier', case=None)
+        m = self.recharge(m)
+        self.assertIsNotNone(p.rejoindre(m, 'lucien', 'hugues'))
+
     def test_verification_executee_puis_recharge_present_ou_parti(self):
         for fabrique, a, b, salle in ((capture, 'mathurine', 'lucien', 'couloir'),
                                      (mine, 'bram', 'remy', 'baraquement')):

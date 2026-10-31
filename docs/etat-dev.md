@@ -47,9 +47,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Hypothèse datée 15/60/120 min ; inspection/appel/question consomment la piste, le temps et les vieux relais ne la rouvrent pas.
   Le résultat de sa propre inspection ne programme plus un nouvel essai ; bruit attribué distinct d'une voix reconnue.
   Captures rechargées : Brune crue 1985, répétition 190/205 identifiée ; Brune 2024, nouvelle case acoustique prouvée.
-  12 tests position verts après dernière fusion ; 2 écarts de texte voisins reproduits sur la base 3999bb3a.
-  Lanceur corrigé (import racine, fin même sur erreur, traces d'étape) ; reprise ciblée, attribution et banc 16 nuits × 4 h détachés.
-  Fusion suspendue aux résultats ; porte mémoire S1a–S1e conservée. Bruts et réserves au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
+  Premier banc de consommation : Aubin revenu à 24 passages ; appels auberge 84, mine 25 : reprise par contact requis encore possible.
+  Reprise fermée dans recherche/question communes ; 13 tests position verts, passe ciblée 52/53 (seul écart de texte hérité).
+  Nouvelle mesure 16 nuits et attribution complète à terminer ; 2 écarts hérités prouvés sur 3999bb3a, porte S1a–S1e conservée.
+  Fusion suspendue aux résultats. Bruts et réserves au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
 (U-M social comptes), 381 (A2 passage), 390 (rouges nouveaux de la suite 663d1308 : 42 méthodes, dont 11 au 375 et 5 au 387). Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).

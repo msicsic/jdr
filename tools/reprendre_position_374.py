@@ -25,12 +25,14 @@ def analyser_captures(dossier):
     ancien = json.loads((dossier.parent / 'final/banc-base.json').read_text(encoding='utf8'))
     references = {(n['scenario'], n['graine']): n['donnees']['empreintes']
                   for n in ancien['branche']['nuits']}
+    captures = dossier / 'avant-captures'
     bilan = {'nuits': [], 'captures_rechargees': []}
-    for fichier in sorted((dossier / 'avant-captures').glob('*.json')):
+    for fichier in sorted(captures.glob('*.json')):
         if fichier.name.endswith('-fin.json'):
             continue
         d = json.loads(fichier.read_text(encoding='utf8'))
         assert d['donnees']['empreintes'] == references[d['scenario'], d['graine']], fichier
+        assert len(d['appels']) == d['donnees']['mesures']['appels'], (fichier, 'appels réellement émis')
         appels = []
         for a in d['appels']:
             v = d['verifications'][a['verification']] if a['verification'] is not None else None
@@ -41,7 +43,7 @@ def analyser_captures(dossier):
             'empreintes_ancien_banc_identiques': True, 'appels': appels})
     with tempfile.TemporaryDirectory(prefix='recharge-374-') as tmp:
         sauvegarde = Path(tmp) / 'capture.json'
-        for fichier in sorted((dossier / 'avant-captures').glob('*.json.gz')):
+        for fichier in sorted(captures.glob('*.json.gz')):
             m = Monde(json.loads(gzip.decompress(fichier.read_bytes())))
             m.sauver(sauvegarde)
             n = Monde.charger(sauvegarde)
