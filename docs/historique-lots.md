@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **417 clos avec réserves — `codex-obstacle-temoin-expire`**, base `origin/integration 19b711bf`, moteur `bb5dfc5e`.
+  Le renoncement conserve sa cause malgré l'expiration ; les préfixes et suffixes coupés portent leur provenance.
+  Guet engagé conservé, autre moyen permis, validation des suites à la sauvegarde ; cinq oracles 225 intacts.
+  78/79 méthodes vertes ; Gorm 317 reste rouge sans renoncement dans sa capture/rejeu, oracle intact.
+  Huit paires 4 h : appels mine 7→5, auberge 15→13 ; suspects 0→1 et 1→0 ; zéro plantage/usurpation.
+  Réserve : Lucien mine 1985, abri→repos→abri à 162/169, signal non reclassé ; critère par scénario non atteint.
+  Bruts `artifacts/obstacle-temoin-417/` du dépôt principal ; `fin-banc-final.json` achevé, aucun calcul restant.
+  [Rapport 417](taches/rapport-codex-417-obstacle-temoin-expire.md). Pas de suite complète ni Luna ; non fusionné.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 417, famille R du 414 : l'expiration d'une position de témoin ne dément pas un renoncement, elle permet seulement une vérification ; la cause suit le plan à travers les préfixes de recherche. 78/79 tests (Gorm, recours_agenda, rouge et documenté) ; banc 4 h mine et auberge : appels 22 → 18, zéro plantage ni usurpation ; un retour de Lucien mine 1985 (abri, repos, abri au baraquement), même motif jugé légitime au 374. Aucun fichier de code commun depuis la base.
+
 - `codex-suite-4539dd68` — lot 414, base `integration d54d15ae`, livraison partielle :
   30 méthodes initialement rouges ; bissection : 29 au 374 (dont étapes chaînées
   re-verte avant le 374), une au 381. Trois adaptations vertes ; aucun correctif moteur.

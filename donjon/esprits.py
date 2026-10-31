@@ -479,12 +479,16 @@ def verifier(monde):
                                 or c.get("objet") == id and "lieu" in c)
                             for c in charges["conditions"])), "Charges suspendues invalides"
             from .deliberation import OPERATIONS
-            for etape in i["plan"]:
+            from .planification import gestes_conditionnes
+            for etape in gestes_conditionnes(i["plan"]):
                 # Un geste social porte son contenu : ce qui est affirmé, ou la tâche confiée.
                 assert (isinstance(etape, dict) and set(etape) in (ETAPE, ETAPE | {"contenu"})
                         and etape["operation"] in OPERATIONS and isinstance(etape.get("contenu", {}), dict)
                         and etape["condition"] in ("", "sans_temoin", "dans_le_dos")), "Étape de plan invalide"
                 contenu = etape.get("contenu", {})
+                if "suite_conditionnelle" in contenu:
+                    assert (isinstance(contenu["suite_conditionnelle"], list)
+                            and bool(contenu["suite_conditionnelle"])), "Suite conditionnelle invalide"
                 if "verification" in contenu:
                     preuve = contenu["verification"]
                     assert (etape["operation"] == "inspecter" and isinstance(contenu.get("cherche"), str)
