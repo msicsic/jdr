@@ -57,6 +57,21 @@ def portes_avec_usage(m, usage):
                   if o["lieu"] == "joueur" and usage in o.get("usages", []) and o.get("integrite", 1) > 0)
 
 
+def attendu_rendu(m, recu, champ, admissible):
+    """Une cible de rendu publique et résoluble, sans révéler un objet caché.
+
+    Une référence calculée sur une transaction peut ne pas encore être décodable.
+    Elle reste la valeur reçue ; les corrections proposées doivent, elles, pouvoir
+    revenir à l'objet admis par le sens requis (vue, toucher, position publique).
+    """
+    from .noms import reference
+    from .voix import reel
+    id = reel(m, recu)
+    valeur = (reference(m, id) if m.designable(id) else "cible non désignable") if id in m.objets else recu
+    acceptes = [id for id in m.objets if admissible(id) and reel(m, reference(m, id)) == id]
+    return f"{champ} : reçu {valeur!r} ; acceptés : {cibles(m, acceptes)}."
+
+
 def _contenant_ferme(m, id):
     lieu = m.objets[id]["lieu"]
     while lieu in m.objets:

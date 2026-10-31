@@ -8,8 +8,12 @@ from .francais import accorder, designer, enumerer, pluriel, relation_physique
 
 
 def decrire(monde, id, detail=False, article="defini", technique=True):
+    from .refus import attendu_rendu
+    from .voix import reel
+    recu, id = id, reel(monde, id)
     if not monde.visible(id):
-        raise ErreurMonde("Cet objet n'est pas visible.")
+        raise ErreurMonde("Cet objet n'est pas visible.",
+                          attendu_rendu(monde, recu, "decrire.cible", monde.visible))
     o = monde.objets[id]
     if detail and eclairage(monde)["niveau"] < 2:
         return designer(o, debut=True) + " : la pénombre permet de distinguer sa présence, pas ses détails."
@@ -188,8 +192,9 @@ def position(monde, id):
     constat = non_perception(monde, id)
     if constat:
         return constat
+    from .refus import attendu_rendu
     raise ErreurMonde("Tu n'as pas de repère public pour cette cible.",
-                      f"reperer.cible : reçu {reference(monde, id)!r} ; acceptés : {sorted(positions)!r}.")
+                      attendu_rendu(monde, id, "reperer.cible", lambda id: reference(monde, id) in positions))
 
 
 def non_perception(monde, id):
@@ -404,8 +409,12 @@ def decrire_perception(monde):
 
 
 def toucher(monde, id):
+    from .refus import attendu_rendu
+    from .voix import reel
+    recu, id = id, reel(monde, id)
     if not monde.accessible(id):
-        raise ErreurMonde("Tu ne sais pas où trouver cet objet au toucher.")
+        raise ErreurMonde("Tu ne sais pas où trouver cet objet au toucher.",
+                          attendu_rendu(monde, recu, "toucher.cible", monde.accessible))
     o = monde.objets[id]
     if o["type"] == "contenant" and o["ouverte"]:
         contenu = [e for e in monde.enfants(id) if monde.present_physique(e["id"])]

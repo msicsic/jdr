@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-refus-rendu-attendu` (2b417949) : lot 432, un refus du rendu porte son attendu. Détail dans l'historique.
 - `codex-d0-parole-ouverte` (cf113fba) : lot 428, D0 parole ouverte personnelle. Détail dans l'historique.
 - `codex-creation-utile-luna` (ccb97bd1) : lot 430, diagnostic de la création utile avec Luna. Détail dans l'historique.
 - `codex-g14-ciblage-ambiance` (709f9f85) : lot 427, G14 ciblage d'un élément d'ambiance. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-g12-portee-creation` (7dc862b0) : lot 421, G12 portée d'une création interactive. Détail dans l'historique.
 - `codex-s1n-suivis-relationnels` (36f37037) : lot 420, S1n suivis relationnels par une preuve stable. Détail dans l'historique.
 - `codex-a6-raccord-libre` (8f806a98) : lot 416, A6 raccord du texte libre au compilateur forme A. Détail dans l'historique.
-- `codex-s1m-renoncements` (83ebb7a4) : lot 418, S1m renoncements et efforts bornés publiés au choix réussi. Détail dans l'historique.
 
 ## Lots non fusionnés
 

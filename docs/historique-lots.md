@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-refus-rendu-attendu` — lot 432, base `origin/integration` / `e05e2b5b` : refus du rendu et des
+  attestations avec champ, reçu et corrections publiques résolubles ; gardes de publication et audits complétés.
+  R58 : Aubin visible, `element_47` neuf indécodable ; aucune fuite, aucun ajout partiel après recharge.
+  Six tests ciblés verts ; 120 tests voisins, 3 échecs / 4 erreurs sur cinq méthodes reproduits sur la base.
+  Limites : références neuves et recadrage automatique du MJ inchangés ; correction vérifiée par un nouvel examen.
+  [Rapport](taches/rapport-codex-432-refus-rendu-attendu.md). Aucun appel Luna ni suite complète.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. refus.attendu_rendu : champ, valeur reçue, corrections bornées aux entités désignables dont la référence se résout ; rendu.decrire/toucher résolvent eux-mêmes la référence ; narration.attestations la transmet intacte ; refus de consigner et AuditIllisible complétés. Cause de R58 : complément neuf (detail_aubin_mains → element_47) sans entrée dans references_personnes ; non réparé ici. 6 tests neufs verts ; 5 méthodes voisines rouges, reproduites sur la base (4 test_refus_moteur, 1 test_narration).
+
 - **Lot 428 — `codex-d0-parole-ouverte`, fusionnée**, départ `ce64ba7e`, ancêtre `integration` `60f857c5`.
   Parole personnelle admise dans G15 sans effet mécanique ; refus typés des engagements et sources privées fermées.
   Sujet connu : restitution G19 sans formulation, admission ni réémission ; six tests console/recharge sur Gorm et Odile.

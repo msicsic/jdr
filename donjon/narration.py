@@ -137,8 +137,9 @@ def attestations(monde, contexte):
     textes = [scene, decrire_perception(monde), decrire_contexte(monde)]
     for objet in contexte["objets_perceptibles"]:
         if objet["visible"]:
-            from .voix import reel
-            textes.append(decrire(monde, reel(monde, objet["id"]), technique=False))
+            # Garder la référence reçue pour guider la correction même si elle
+            # ne se résout pas dans cette transaction (aucun détail n'est publié).
+            textes.append(decrire(monde, objet["id"], technique=False))
     from .perception import non_vus_connus
     from .rendu import non_perception
     from .voix import reel
@@ -1220,7 +1221,9 @@ def controler(texte, rapport, faits, partie="texte"):
         lignes = {**lignes, **etablis}
         # Forme demandée à l'auditeur : une entrée par segment, sous la clé de son indice.
         if set(lignes) != {str(i) for i in range(len(passages))}:
-            raise AuditIllisible("Contrôle narratif incomplet.")
+            raise AuditIllisible("Contrôle narratif incomplet.",
+                                 f"rapport.segments : reçu les clés {sorted(lignes, key=str)!r} ; "
+                                 f"acceptées : {[str(i) for i in range(len(passages))]!r}.")
         lignes = [{**lignes[str(i)], "indice": i} if isinstance(lignes[str(i)], dict) else lignes[str(i)]
                   for i in range(len(passages))]
     elif isinstance(lignes, list) and len(lignes) == len(passages):
@@ -1229,7 +1232,9 @@ def controler(texte, rapport, faits, partie="texte"):
                   for i, ligne in enumerate(lignes)]
     if (not passages or len(passages) > 24 or not isinstance(lignes, list)
             or len(lignes) != len(passages)):
-        raise AuditIllisible("Contrôle narratif incomplet.")
+        raise AuditIllisible("Contrôle narratif incomplet.",
+                             f"rapport.segments : reçu {lignes!r} pour {len(passages)} segments ; "
+                             "accepté : une entrée conforme au schéma par segment, de 1 à 24 segments.")
     from .comptes_narratifs import controler as controler_comptes
     locuteurs = {i: l.get('locuteur') for i, l in enumerate(lignes) if isinstance(l, dict)}
     obstacles = orientations(texte, faits, partie) + controler_comptes(texte, faits, partie, locuteurs)
@@ -1241,7 +1246,10 @@ def controler(texte, rapport, faits, partie="texte"):
                 if ("verdict" in ligne or nature not in NATURES
                         or not isinstance(portee, str)
                         or portee not in ("aucune", "etablie", "sans_fondement", "contradictoire")):
-                    raise AuditIllisible("Qualification narrative ambiguë ou mal formée.")
+                    raise AuditIllisible("Qualification narrative ambiguë ou mal formée.",
+                                         f"rapport.segments[{indice}] : reçu {ligne!r} ; accepté : nature parmi "
+                                         f"{NATURES!r}, sans verdict, et portee_mecanique parmi "
+                                         "aucune, etablie, sans_fondement, contradictoire.")
                 verdict = ({"sans_fondement": "invention_protegee", "contradictoire": "contradictoire"}
                            .get(portee, nature) if nature == "mecanique" else nature)
                 ligne = {k: v for k, v in ligne.items() if k != "nature"}
@@ -1265,7 +1273,10 @@ def controler(texte, rapport, faits, partie="texte"):
                     or not all(isinstance(r[k], str) for k in r)
                     or r["compatibilite"] not in ("etablie", "sans_fondement", "contradictoire")
                     for r in rappels)):
-                raise AuditIllisible("Contrôle des échanges passés mal formé.")
+                raise AuditIllisible("Contrôle des échanges passés mal formé.",
+                                     f"rapport.segments[{indice}].rappels : reçu {rappels!r} ; accepté : "
+                                     "0 à 12 entrées locuteur, affirmation, compatibilite "
+                                     "(etablie, sans_fondement ou contradictoire).")
             ligne = {k: v for k, v in ligne.items() if k != "rappels"}
             for rappel in rappels:
                 if (rappel["compatibilite"] != "etablie"
@@ -1279,7 +1290,9 @@ def controler(texte, rapport, faits, partie="texte"):
         if lumieres is not None:
             if (not isinstance(lumieres, list) or len(lumieres) > 12
                     or any(not isinstance(s, str) for s in lumieres)):
-                raise AuditIllisible("Contrôle des contributions lumineuses mal formé.")
+                raise AuditIllisible("Contrôle des contributions lumineuses mal formé.",
+                                     f"rapport.segments[{indice}].eclairages : reçu {lumieres!r} ; "
+                                     "accepté : une liste de 0 à 12 identifiants de sources.")
             ligne = {k: v for k, v in ligne.items() if k != "eclairages"}
             obstacles.extend(eclairages(lumieres, faits, passage, indice, partie))
         # Les anciens rapports restent lisibles ; leur extraction comptable
@@ -1298,23 +1311,33 @@ def controler(texte, rapport, faits, partie="texte"):
                 or not isinstance(ligne["entites"], list)
                 or any(not isinstance(e, (str, dict)) for e in ligne["entites"])
                 or any(not isinstance(ligne[k], str) for k in ("locuteur", "citation", "presentation", "motif"))):
-            raise AuditIllisible("Contrôle narratif mal formé.")
+            raise AuditIllisible("Contrôle narratif mal formé.",
+                                 f"rapport.segments[{indice}] : reçu {ligne!r} ; accepté : "
+                                 f"une entrée conforme au schéma d'audit, indice={indice}.")
         verdict = ligne["verdict"]
         # Deux jugements typés d'un même segment ne peuvent simultanément
         # l'établir et le rejeter. Le motif libre n'est pas un champ de vérité.
         portee = ligne["portee_mecanique"]
         if (verdict == "mecanique" and portee in ("sans_fondement", "contradictoire")
                 or verdict in ("invention_protegee", "contradictoire") and portee == "etablie"):
-            raise AuditIllisible("Le verdict narratif et la portée mécanique se contredisent.")
+            raise AuditIllisible("Le verdict narratif et la portée mécanique se contredisent.",
+                                 f"rapport.segments[{indice}].portee_mecanique : reçu {portee!r} "
+                                 f"avec verdict={verdict!r} ; accepté : un verdict mecanique de portée "
+                                 "aucune ou etablie, ou un verdict de refus sans portée etablie.")
         # Une source inconnue ne prouve rien : elle est écartée, et une affirmation
         # mécanique sans source restante est refusée plus bas.
+        sources_recues = ligne["sources"]
         ligne = {**ligne, "sources": [s for s in ligne["sources"] if s in faits]}
         if verdict == "contradictoire" and not ligne["sources"]:
             # Une absence dans le contexte n'est pas une preuve négative. Ce
             # défaut du rapport revient au lecteur, sans faire réécrire le MJ.
-            raise AuditIllisible("Une contradiction doit citer le fait qu'elle contredit.")
+            raise AuditIllisible("Une contradiction doit citer le fait qu'elle contredit.",
+                                 f"rapport.segments[{indice}].sources : reçu {sources_recues!r} ; "
+                                 f"accepté : au moins une clé fournie parmi {sorted(faits)!r}.")
         if ligne["portee_mecanique"] == "contradictoire" and not ligne["sources"]:
-            raise AuditIllisible("Une contradiction mécanique doit citer le fait qu'elle contredit.")
+            raise AuditIllisible("Une contradiction mécanique doit citer le fait qu'elle contredit.",
+                                 f"rapport.segments[{indice}].sources : reçu {sources_recues!r} ; "
+                                 f"accepté : au moins une clé fournie parmi {sorted(faits)!r}.")
         # Ces champs ne portent aucun sens hors de leur verdict. Les vider évite qu'une
         # erreur de format de l'auditeur rejette un segment contrôlé par son verdict réel.
         if verdict not in ("parole", "engagement"):
@@ -1476,12 +1499,13 @@ def valider_elements_ambiance(elements, texte, faits):
     matérialisation : leur ancrage et leur nature ne sont pas connus.
     """
     if len(elements) > 8:
-        raise AuditIllisible("Trop d'éléments d'ambiance.")
+        raise AuditIllisible("Trop d'éléments d'ambiance.",
+                             f"entites : reçu {len(elements)} éléments ; accepté : au plus 8.")
     supports = set((faits.get("faits_narratifs_proposables") or {}).get("supports", {}))
     supports.update(k[6:] for k, v in faits.items() if k.startswith("objet:")
                     and v.get("visible") and v.get("type") not in ("personnage", "partie_corps"))
     resultat, ids = [], set()
-    for e in elements:
+    for indice, e in enumerate(elements):
         if isinstance(e, str):
             if e.strip():
                 resultat.append(e.strip()[:80])
@@ -1493,7 +1517,10 @@ def valider_elements_ambiance(elements, texte, faits):
                 or e["libelle"] not in texte or type(e["manipulable"]) is not bool
                 or e["ancrage"] and e["ancrage"] not in supports
                 or e["manipulable"] and not e["ancrage"]):
-            raise AuditIllisible("Élément d'ambiance sans libellé littéral, identifiant distinct ou ancrage public.")
+            raise AuditIllisible("Élément d'ambiance sans libellé littéral, identifiant distinct ou ancrage public.",
+                                 f"entites[{indice}] : reçu {e!r} ; accepté : un élément conforme au schéma "
+                                 f"d'ambiance, libellé littéral, id distinct, ancrage parmi {sorted(supports)!r} "
+                                 "(vide seulement si non manipulable).")
         ids.add(e["id"])
         resultat.append(copy.deepcopy(e))
     return resultat
@@ -1513,7 +1540,8 @@ def consigner(monde, reponse):
     salle = monde.joueur["salle"]
     if not audit:
         if reponse.get("_texte_moteur") is not True:
-            raise ErreurMonde("Réponse du MJ sans contrôle narratif.")
+            raise ErreurMonde("Réponse du MJ sans contrôle narratif.",
+                              f"reponse._audit : reçu {audit!r} ; accepté : le contrôle narratif de cette réponse.")
         monde.data.setdefault("narrations_mj", []).append({
             "texte": reponse["texte"], "revision": monde.data["revision"],
             "sources": ["moteur"]})
@@ -1596,12 +1624,20 @@ def consigner(monde, reponse):
         if contraires:
             raise ErreurMonde("Cette direction ne correspond plus à ton regard actuel.",
                               contraires[0]["attendu"])
-    if (rapport["obstacles"] or rapport["texte_controle"] != texte or voix_auteur(texte)
-            or mentions(monde, texte, audit["fondement"], audit.get("fondement_paroles", ""),
-                        paroles_validees=rapport['paroles'])
-            or voix_inconnues(monde, rapport["paroles"], audit["faits"], texte)):
-        # Même base que l'audit : ce qu'un personnage croit peut figurer dans sa propre réplique.
-        raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.")
+    if rapport["texte_controle"] != texte:
+        raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.",
+                          f"reponse.texte : reçu {texte!r} ; accepté : {rapport['texte_controle']!r}.")
+    # Une cause par refus, en conservant l'attendu du garde qui l'a établie.
+    # Même base que l'audit : une croyance peut figurer dans sa propre réplique.
+    for controle in (
+            lambda: voix_auteur(texte),
+            lambda: mentions(monde, texte, audit["fondement"], audit.get("fondement_paroles", ""),
+                             paroles_validees=rapport['paroles']),
+            lambda: voix_inconnues(monde, rapport["paroles"], audit["faits"], texte)):
+        obstacles = controle()
+        if obstacles:
+            raise ErreurMonde("Le MJ n'a pas pu formuler une réponse sûre. Aucun changement enregistré.",
+                              obstacles[0]["attendu"])
     paroles = []
     if rapport["paroles"]:
         from .ouie import auditeurs_parole, _place
