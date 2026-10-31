@@ -1,4 +1,5 @@
 """Présence dans les lieux, distincte de la vie et du dernier emplacement."""
+from .memoire import fait_brut
 
 
 def interieur(monde):
@@ -62,7 +63,7 @@ def franchir(monde, id, salle, destination, lignes):
         return False
     assert len(issues) == 1, "Issue extérieure ambiguë"
     direction, _ = issues[0]
-    from .esprits import pnjs, percoit, croire, lire
+    from .esprits import pnjs, percoit, croire
     temoins = [a for a in pnjs(monde) if a != id and percoit(monde, a, id)]
     if id != "joueur" and monde.visible(id):
         temoins.append("joueur")
@@ -76,7 +77,7 @@ def franchir(monde, id, salle, destination, lignes):
                   "minute": monde.data["minutes"], "instant": instant(monde)}
     monde.data["gestes_en_cours"] = [g for g in monde.data.get("gestes_en_cours", []) if g["auteur"] != id]
     for a in temoins:
-        ancien = lire(monde, a)["croyances"].get(id, {}).get("etat", {}).get("valeur", {})
+        ancien = fait_brut(monde, a, id, "etat", {}).get("valeur", {})
         croire(monde, a, id, "etat", {**ancien, "parti": True}, "vu")
         croire(monde, a, id, "lieu", None, "vu", salle=None, case=None)
     from .pnj import _chroniquer

@@ -1,4 +1,5 @@
 """Un coup, sur l'horloge commune. La décision appartient au joueur ou au planificateur."""
+from .memoire import fait_brut
 from . import corps
 from .caractere import modificateur, prix_faute, valeur, ENJEU
 from .esprits import lire, memoriser, percoit
@@ -199,7 +200,7 @@ def frapper(monde, auteur, cible, outil="", methode="simple", lignes=None):
 
 def force_crue(monde, auteur, autre):
     """Chance estimée sur les seules blessures et armes connues ; FOR adverse invisible = 10."""
-    etat = lire(monde, auteur)["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
+    etat = fait_brut(monde, auteur, autre, "etat", {}).get("valeur", {})
     if etat.get("conscient") is False:
         return 1.0
     from .memoire import faits_connus

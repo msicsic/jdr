@@ -3,13 +3,14 @@
 Le marché reste une proposition ordinaire, son exécution une tâche payée.
 Ce module ne donne ni position ni moyens privés au futur protecteur.
 """
+from .memoire import fait_brut
 from .esprits import lire
 
 
 def peur_crue(monde, id, autre):
     from .signes import detresse_retenue
     from .causes import connues
-    etat = lire(monde, id)['croyances'].get(autre, {}).get('etat', {}).get('valeur', {})
+    etat = fait_brut(monde, id, autre, 'etat', {}).get('valeur', {})
     if etat.get('mort') or etat.get('parti') or etat.get('conscient') is False:
         return False
     return bool(detresse_retenue(monde, id, autre) or next(connues(monde, id, autre), None))
@@ -93,7 +94,8 @@ def utilite(monde, observateur, beneficiaire, protecteur):
 def fin(monde, id, condition, depuis):
     """Une fin positive connue ; aucune absence de signe ne prouve la sécurité."""
     autre = condition['objet']
-    c = lire(monde, id)['croyances'].get(autre, {})
+    from .memoire import faits_connus
+    c = faits_connus(monde, id, autre)
     etat = c.get('etat', {}).get('valeur', {})
     if etat.get('mort'):
         return 'protege cru mort'

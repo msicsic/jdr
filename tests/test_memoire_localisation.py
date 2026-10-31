@@ -1,4 +1,4 @@
-"""S1f : porte des preuves composées et inventaire fermé des autres familles."""
+"""S1f–g : porte des preuves composées et inventaire décroissant des familles."""
 import ast
 from collections import Counter
 import copy
@@ -133,6 +133,10 @@ class AccesLocalisationTests(unittest.TestCase):
         extension = initial + '; lieu = stock[s]["lieu"]; lieu["case"][0] = 8'
         self.assertNotEqual(acces_croyances(initial), acces_croyances(extension))
         self.assertFalse(acces_croyances('c = memoire.localisation(m, a, s); c["case"][0] = 8'))
+        for attribut in memoire.ATTRIBUTS_MATERIELS:
+            with self.subTest(attribut=attribut):
+                source = f'cle = {attribut!r}; stock = e["croyances"]; c = stock[s][cle]; c["valeur"] = None'
+                self.assertIn(('<module>', "c['valeur']"), acces_croyances(source))
         for source, terminal in (
             ('stock = e["croyances"]; alias = stock; alias[s]["lieu"]["minute"] = 4',
              "alias[s]['lieu']['minute']"),

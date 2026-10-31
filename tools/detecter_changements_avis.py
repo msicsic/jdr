@@ -166,7 +166,7 @@ def _est_accompli(monde, id, decision, minute, cause_sortie=None):
         )
     if genre == "ranimer":
         qui = but.get("qui")
-        etat = e["croyances"].get(qui, {}).get("etat", {}).get("valeur", {})
+        etat = faits_connus(monde, id, qui).get("etat", {}).get("valeur", {})
         return etat.get("conscient") is not False
     if genre == "prevenir":
         qui, de = but.get("qui"), but.get("de")
@@ -264,8 +264,8 @@ def relever_entrees(monde, id, minute):
         ],
         "a_ranimer": [
             prot for prot in deliberation.proteges(monde, id)
-            if e["croyances"].get(prot, {}).get("etat", {}).get("valeur", {}).get("conscient") is False
-            and not e["croyances"][prot]["etat"]["valeur"].get("mort")
+            if faits_connus(monde, id, prot).get("etat", {}).get("valeur", {}).get("conscient") is False
+            and not faits_connus(monde, id, prot)["etat"]["valeur"].get("mort")
         ],
     }
 

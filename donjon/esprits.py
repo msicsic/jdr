@@ -589,11 +589,12 @@ def verifier(monde):
 def croyance(monde, id, sujet, attribut):
     """Sa croyance sur ``sujet`` (``attribut``), telle quelle, ou None. Ce qu'il éprouve envers une
     personne ne se lit que par ``relations`` (``relations.croyance``).
-    Une localisation est une copie dont la confiance de position est vieillie."""
+    Les faits matériels sont des copies ; la confiance de position est vieillie."""
     from .relations import FIABLE, croyance as relation
     if attribut == FIABLE:
         return relation(monde, id, sujet)
     c = (memoire.localisation(monde, id, sujet) if attribut == "lieu"
+         else memoire.fait_brut(monde, id, sujet, attribut) if attribut in memoire.ATTRIBUTS_MATERIELS
          else lire(monde, id)["croyances"].get(sujet, {}).get(attribut))
     if c and "signe" in c:
         limite = RECENT if attribut in ("emotion", "intention", "parole_doutee") else 120
@@ -1183,7 +1184,7 @@ def constater_fin_objet(monde, id, sujet, source):
     from .perception import fin_objet
     assert source in ("vu", "essai")
     cause = fin_objet(monde.objets[sujet])
-    ancienne = lire(monde, id)["croyances"].get(sujet, {}).get("fin")
+    ancienne = memoire.fin_connue(monde, id, sujet)
     if (ancienne and ancienne["valeur"] == cause and ancienne["minute"] == monde.data["minutes"]
             and ancienne["source"] in ("vu", "essai")):
         return  # Conserver l'essai propre que la perception suit dans le même instant.
@@ -1518,13 +1519,12 @@ def percevoir_tous(monde):
         for id in pnjs(monde):
             percevoir(monde, id)
         from .perception import fin_objet
-        croyances_joueur = lire(monde, "joueur")["croyances"]
         for sujet, o in monde.objets.items():
-            ancien = croyances_joueur.get(sujet, {}).get("etat")
+            ancien = memoire.etat_connu(monde, "joueur", sujet)
             if ancien and "parti" in ancien["valeur"] and monde.visible(sujet):
                 reviser(monde, "joueur", sujet, "etat", {**ancien["valeur"], "parti": False})
             if _porteur(monde, o) is not None and monde.visible(sujet):
                 constater_possession(monde, "joueur", sujet, "vu")
-            fin_connue = "fin" in croyances_joueur.get(sujet, {})
+            fin_connue = memoire.fin_connue(monde, "joueur", sujet) is not None
             if (fin_objet(o) or fin_connue) and monde.visible(sujet):
                 constater_fin_objet(monde, "joueur", sujet, "vu")

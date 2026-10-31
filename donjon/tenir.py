@@ -1,4 +1,5 @@
 """Prises et liens : mêmes validations et issues différées pour tous les acteurs."""
+from .memoire import faits_connus
 from . import corps
 from .caractere import modificateur
 from .combat import voit, rotation
@@ -31,9 +32,8 @@ def valider_verrouillage(monde, auteur, cible, outil):
 
 def sorties_crues(monde, auteur, salle, fermee=None):
     """Issues connues : inconnu ne signifie jamais verrouillé."""
-    from .esprits import lire
     sorties = monde.data["salles"][salle].get("sorties", {}).values()
-    croyances = lire(monde, auteur)["croyances"] if auteur != "joueur" else {}
+    croyances = faits_connus(monde, auteur) if auteur != "joueur" else {}
     resultat = []
     for s in sorties:
         p = s.get("porte")

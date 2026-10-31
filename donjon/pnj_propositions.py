@@ -3,6 +3,7 @@
 Contreparties portées puis service autonome, sans geste de marché dans la
 recherche. L'auditeur évalue le marché réel par le contrat du joueur.
 """
+from .memoire import fait_brut
 from . import relations, memoire
 from .esprits import lire, memoriser
 
@@ -57,7 +58,7 @@ def _contreparties(monde, id, autre, demande):
         if not offre_sensee(monde, id, autre, demande_financee(monde, id, demande, terme), terme):
             continue
         cout = valeur_proposition(monde, id, terme, autre)
-        etat = lire(monde, id)["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
+        etat = fait_brut(monde, id, autre, "etat", {}).get("valeur", {})
         gain = (prix(monde, o, bool(part)) or PRIX_SANS_PRIX) * (2 if part and etat.get(part) else 1)
         yield terme, cout, gain
     montant = (0 if demande["type"] == "pieces" else min(richesse(monde, id),
@@ -140,7 +141,7 @@ def _entrees_negatives(monde, id, autre, demande, entrees):
           'consomme_illicite', 'brise_illicite', 'richesse', 'piece', 'peur',
           'eau', 'peurs_sociales', 'taux_mefiance', 'dangers')],
         sorted(v.menacees), sorted(v.noyees), v.monte, v.eau_route,
-        [[o, v.apport(o)] for o in connus if 'lumiere' in e['croyances'].get(o, {})],
+        [[o, v.apport(o)] for o in connus if memoire.fait_brut(monde, id, o, 'lumiere') is not None],
         [[o, x.get('lieu'), x.get('position'), x.get('position_salle'), x.get('positions_salles')]
          for o, x in monde.objets.items() if not x.get('mobile') and x['type'] != 'personnage'],
         monde.data.get('mode_cases'), DUREES,
@@ -217,7 +218,7 @@ def reclamation(monde, id, objet):
     porteur = connu.get('lieu', {}).get('possession', {}).get('porteur')
     if not porteur or porteur == id:
         return None
-    etat = lire(monde, id)['croyances'].get(porteur, {}).get('etat', {}).get('valeur', {})
+    etat = fait_brut(monde, id, porteur, 'etat', {}).get('valeur', {})
     if etat.get('conscient') is False:
         return None
     salle = salle_crue(monde, id, porteur)
@@ -442,7 +443,7 @@ def rendre_service(monde, id, besoin, etapes):
     from .biens import proprietaire
     from .spatial import porte_par
     from .deliberation import besoin_de_part, parts
-    etat = e['croyances'].get(autre, {}).get('etat', {}).get('valeur', {})
+    etat = fait_brut(monde, id, autre, 'etat', {}).get('valeur', {})
     for o, x in sorted(monde.objets.items()):
         manque = besoin_de_part(x)
         if (manque and etat.get(manque) and parts(x) > 0

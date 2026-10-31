@@ -4,9 +4,9 @@ Les marchés restent hors du graphe : la marche et la parole sont cherchées,
 le travail et le bien cédé sont chiffrés par leurs devis communs. Aucun accord
 ni richesse adverse n'est supposé acquis.
 """
+from .memoire import fait_brut
 import json
 
-from .esprits import lire
 
 
 def _borne_marche(valeur_but, valeur_gain, peine=0):
@@ -50,7 +50,7 @@ def obtenir(monde, id, montant, budget, *, cout=None):
     prise = devis_enrichissement(monde, id)
     if prise:
         cout, but, etapes = prise
-        connu = lire(monde, id)["croyances"].get(but["objet"], {}).get("pieces", {})
+        connu = fait_brut(monde, id, but["objet"], "pieces", {})
         ajouter(cout, connu.get("valeur", 0), etapes, ("prise", but["objet"]))
 
     biens = []

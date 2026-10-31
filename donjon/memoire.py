@@ -348,6 +348,23 @@ def localisation(monde, id, sujet):
     return fait_brut(monde, id, sujet, "lieu")
 
 
+ATTRIBUTS_MATERIELS = frozenset({"etat", "fin", "verrouillee", "lumiere", "pieces"})
+
+
+def etat_connu(monde, id, sujet):
+    """Preuve d'état, ou None si absente ; les propriétés omises restent inconnues."""
+    return fait_brut(monde, id, sujet, "etat")
+
+
+def fin_connue(monde, id, sujet):
+    """None : aucune preuve ; preuve avec valeur None : fin explicitement démentie.
+
+    La source, la date et la désignation restent celles de la preuve historique.
+    Aucun état réel ni aucune valeur par défaut ne complète une preuve partielle.
+    """
+    return fait_brut(monde, id, sujet, "fin")
+
+
 def rafraichir_mobilite_constatee(monde, id, sujet, source):
     from .esprits import lire
     lieu = lire(monde, id)["croyances"].get(sujet, {}).get("lieu")
