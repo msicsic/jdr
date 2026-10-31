@@ -43,6 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-piece-de-lot-libre` — lot 423, base `integration 07e270be`, code `ab0f9105`.
+  Contrat commun pièce/lot entier, quantités par étape dans la revue et « Compris » ; reprise bornée à l'opération contestée.
+  **72 tests ciblés verts**, vraie boucle et recharge : planche, bûche, quantité multiple, lot entier et dernière pièce.
+  Avant A4–A6 (`91a58c8f`), Luna proposait `prelever`, sans qualification admise ; verrou A5 confirmé sur la trace du 422.
+  Luna branche : 17 appels/6 tours, aucun repli ni erreur ; **prélèvement non démontré**, mauvais mode au tour de prise.
+  Banc rapide branche seule, Relais/auberge 4 h × quatre graines, encore en cours ; `piece-de-lot-423/rapide-fin.json` attendu.
+  Typage libre toujours sémantique ; aucune garantie universelle ni validation Luna de l'invariant complet.
+  [Rapport 423](taches/rapport-codex-423-piece-de-lot-libre.md) ; bruts `C:/Users/msics/donjon/artifacts/piece-de-lot-423/`.
+
 Lots en cours : 423 (une pièce de lot par la saisie libre), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
