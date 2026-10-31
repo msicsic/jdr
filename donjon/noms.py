@@ -2,6 +2,7 @@
 import re
 from functools import lru_cache
 
+from . import memoire
 from .monde import normaliser, ErreurMonde
 from .francais import de, inserer_designation
 
@@ -110,7 +111,7 @@ def _nom_reel(monde, identifiant, objet):
 def installer(monde):
     """Installe les mémoires et attribue les références dans l'ordre des identifiants."""
     donnees = monde.data
-    donnees.setdefault("noms_connus", list(donnees.get("scenario", {}).get("noms_connus", [])))
+    memoire.installer_noms_joueur(monde)
     personnes = donnees.setdefault("personnes", {})
     elements = donnees.setdefault("references_personnes", {})
     for identifiant in sorted(monde.objets):
@@ -158,11 +159,9 @@ def connait(monde, qui, autre):
     if qui == autre:
         return True
     if qui == "joueur":
-        return autre in monde.data.get("noms_connus", [])
-    from .esprits import lire  # esprits installe lui-même la mémoire des noms.
+        return autre in memoire.noms_retenus(monde, "joueur")
     from .memoire import faits_connus
-    esprit = lire(monde, qui)
-    if autre in esprit["noms"] or autre in monde.objets.get(qui, {}).get("connait_noms", []):
+    if autre in memoire.noms_retenus(monde, qui) or autre in monde.objets.get(qui, {}).get("connait_noms", []):
         return True
     # Un savoir est déclaré par l'auteur ; une perception n'est jamais une présentation.
     return any(c.get("source") == "savoir"
@@ -171,12 +170,7 @@ def connait(monde, qui, autre):
 
 def apprendre(monde, qui, autre):
     """Ajoute une fois le nom à la mémoire de son auditeur."""
-    if connait(monde, qui, autre):
-        return False
-    from .esprits import esprit
-    noms = monde.data["noms_connus"] if qui == "joueur" else esprit(monde, qui)["noms"]
-    noms.append(autre)
-    return True
+    return memoire.retenir_nom(monde, qui, autre)
 
 
 def designation(monde, id):
@@ -295,7 +289,7 @@ def _remplacer_noms(monde, partie, observateur):
 def _appellations_voix(monde):
     """Protège les citations et les appellations portées par des voix déjà entendues."""
     # Ces désignations proviennent de voix réellement entendues ; elles ne nomment pas leur corps.
-    portees = {e.get(k) for e in monde.data.get("voix_entendues", {}).values() for k in ("se_dit", "appelee")}
+    portees = {e.get(k) for e in memoire.voix_entendues(monde, "joueur").values() for k in ("se_dit", "appelee")}
     voix = []
     for id in portees:
         if id in monde.objets or id == "joueur":
@@ -567,9 +561,7 @@ def _designation_valide(identifiant, entree):
 
 def verifier(monde):
     """Contrôle séparément la mémoire nominale, les désignations et leurs numéros uniques."""
-    noms = monde.data.get("noms_connus", [])
-    assert (isinstance(noms, list) and all(isinstance(nom, str) for nom in noms)
-            and len(set(noms)) == len(noms)), "Noms appris invalides"
+    memoire.verifier_noms_joueur(monde)
     personnes = monde.data.get("personnes", {})
     assert (isinstance(personnes, dict)
             and all(_designation_valide(identifiant, entree)

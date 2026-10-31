@@ -211,6 +211,7 @@ def _executer(monde, minutes, recit=None, empreintes=None):
     """Avance le monde ; renvoie la chronique produite et les mesures du banc. Un ``recit``
     observe chaque PNJ au passage. Un dictionnaire ``empreintes`` reçoit l'empreinte de l'état à
     chaque minute de ``REPERES`` atteinte, et l'``issue`` de la nuit."""
+    from .memoire import voix_connues, voix_entendues, noms_retenus
     if recit is not None:
         with recit.observer():
             resultat = executer(monde, minutes, empreintes=empreintes)
@@ -224,7 +225,7 @@ def _executer(monde, minutes, recit=None, empreintes=None):
     releves = {}
     vue = list(monde.data.get("chronique", []))
     debut = monde.data["minutes"]
-    voix_debut = sum(len(lire(monde, id)["voix"]) for id in pnjs(monde))
+    voix_debut = sum(len(voix_connues(monde, id)) for id in pnjs(monde))
     def bandes_relations():
         return {(id, x): relations.axes(monde, id, x)["bandes"]
                 for id in pnjs(monde) for x in relations.connus(monde, id)}
@@ -353,12 +354,12 @@ def _executer(monde, minutes, recit=None, empreintes=None):
                # se sont dites quelqu'un, voix qu'une autre a appelées par un nom (``voix.lier``), noms
                # retenus de qui l'on a reconnu (``voix.apprendre_nom``), en fin de nuit ; l'appelé qui se
                # tourne vers qui doit le rejoindre en l'entendant approcher.
-               "voix_apprises": sum(len(lire(monde, id)["voix"]) for id in pnjs(monde)) - voix_debut,
+               "voix_apprises": sum(len(voix_connues(monde, id)) for id in pnjs(monde)) - voix_debut,
                "voix_se_disant": sum(bool(x["se_dit"]) for id in pnjs(monde)
-                                     for x in lire(monde, id)["voix_entendues"].values()),
+                                     for x in voix_entendues(monde, id).values()),
                "voix_appelees": sum(bool(x.get("appelee")) for id in pnjs(monde)
-                                    for x in lire(monde, id)["voix_entendues"].values()),
-               "noms_retenus": sum(len(lire(monde, id).get("noms", [])) for id in pnjs(monde)),
+                                    for x in voix_entendues(monde, id).values()),
+               "noms_retenus": sum(len(noms_retenus(monde, id)) for id in pnjs(monde)),
                "vers_qui_l_a_hele": sum(c["texte"].endswith(", qui arrive comme convenu.") and " se tourne vers " in c["texte"]
                                         for c in chronique),
                # Minutes passées dans le noir par qui le craint (PNJ × minutes).

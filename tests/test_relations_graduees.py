@@ -179,10 +179,10 @@ class TempsEtContratsTests(unittest.TestCase):
     def test_voix_inconnue_ne_prend_pas_la_relation_de_l_identite(self):
         # Les cas complets de voix du dépôt couvrent l'imposture et le nom prétendu.
         m = relais()
-        from donjon.voix import retenir
         lire(m, "marchand")["voix"] = []
         placer(m, "brune", "crypte", [4, 3])
-        retenir(m, "marchand", "brune")["se_dit"] = "ilse"
+        from donjon.memoire import retenir_pretention_vocale
+        retenir_pretention_vocale(m, "marchand", "brune", "ilse")
         self.assertEqual(R.percue(recharger(m), "marchand", "brune")["confiance"], 40)
         self.assertEqual(R.envers(m, "marchand", "ilse")["confiance"], 65)
 

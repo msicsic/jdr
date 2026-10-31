@@ -1295,3 +1295,193 @@ def migrer_dits(monde, id):
             for a in c.get("confie", {}).get("dit_a", []):
                 retenir_dit(monde, id, a, {"type": "affirmation", "sujet": sujet, "attribut": attribut,
                                          "valeur": c["confie"]["valeur"]})
+
+
+# Identités vocales et nominales : format et rétention historiques de S1j.
+def voix_connues(monde, observateur):
+    """Voix reliées à leur porteur par cet observateur, sans apprendre ni créer."""
+    from .esprits import lire
+    return list(monde.data.get('voix_connues', []) if observateur == 'joueur'
+                else lire(monde, observateur)['voix'])
+
+
+def _voix_entendues_stock(monde, observateur, *, ecrire=False):
+    from .esprits import esprit, lire
+    if observateur == 'joueur':
+        return (monde.data.setdefault('voix_entendues', {}) if ecrire
+                else monde.data.get('voix_entendues', {}))
+    return (esprit if ecrire else lire)(monde, observateur)['voix_entendues']
+
+
+def voix_entendues(monde, observateur):
+    """Signature privée, date, rang et noms rapportés ; jamais une identité déduite."""
+    return copy.deepcopy(_voix_entendues_stock(monde, observateur))
+
+
+def noms_retenus(monde, observateur):
+    """Noms appris explicitement ; les savoirs du scénario restent dans les faits."""
+    from .esprits import lire
+    return list(monde.data.get('noms_connus', []) if observateur == 'joueur'
+                else lire(monde, observateur)['noms'])
+
+
+def retenir_nom(monde, observateur, autre):
+    from .esprits import esprit
+    from .noms import connait
+    if connait(monde, observateur, autre):
+        return False
+    noms = (monde.data['noms_connus'] if observateur == 'joueur'
+            else esprit(monde, observateur)['noms'])
+    noms.append(autre)
+    return True
+
+
+def installer_noms_joueur(monde):
+    monde.data.setdefault('noms_connus', list(monde.data.get('scenario', {}).get('noms_connus', [])))
+
+
+def installation_voix(monde, observateur):
+    return 'voix' not in monde.data['esprits'].get(observateur, {})
+
+
+def installer_voix_initiales(monde, observateur, personnages):
+    from .esprits import esprit
+    esprit(monde, observateur)['voix'] = sorted(
+        x for x, attributs in faits_connus(monde, observateur).items()
+        if x in personnages and x != observateur
+        and any(c.get('source') == 'savoir' for c in attributs.values()))
+
+
+def installer_voix_joueur(monde):
+    monde.data.setdefault('voix_connues', [])
+    monde.data.setdefault('voix_entendues', {})
+
+
+def echange_retenu(monde, observateur):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, observateur)['echange'])
+
+
+def _retenir_voix(monde, qui, signature, minute=None):
+    """Il retient une voix inconnue entendue à ``minute`` (maintenant par défaut) ; renvoie ce qu'il
+    en retient."""
+    from .voix import VOIX_MAX
+    minute = monde.data["minutes"] if minute is None else minute
+    voix = _voix_entendues_stock(monde, qui, ecrire=True)
+    entree = voix.get(signature)
+    if entree is None:
+        entree = voix[signature] = {"minute": minute, "se_dit": None, "mefiance": False,
+                                    "n": 1 + max((e["n"] for e in voix.values()), default=0)}
+        for vieille in sorted(voix, key=lambda s: (voix[s]["minute"], voix[s]["n"]))[:max(0, len(voix) - VOIX_MAX)]:
+            del voix[vieille]
+    entree["minute"] = max(entree["minute"], minute)
+    return entree
+
+
+def retenir_voix(monde, observateur, signature, minute=None):
+    """Rafraîchit l'audition et applique l'éviction historique ; rend une copie."""
+    return copy.deepcopy(_retenir_voix(monde, observateur, signature, minute))
+
+
+def retenir_pretention_vocale(monde, observateur, signature, nom, *, mefiance=False):
+    entree = _retenir_voix(monde, observateur, signature)
+    entree['se_dit'] = nom
+    if mefiance:
+        entree['mefiance'] = True
+
+
+def retenir_mefiance_vocale(monde, observateur, signature):
+    _retenir_voix(monde, observateur, signature)['mefiance'] = True
+
+
+def retenir_appellation_vocale(monde, observateur, signature, nom):
+    entree = _retenir_voix(monde, observateur, signature)
+    if entree['se_dit'] or entree['mefiance'] or entree.get('appelee') == nom:
+        return False
+    entree['appelee'] = nom
+    return True
+
+
+def reconnaitre_voix(monde, qui, autre):
+    """``qui`` connaît désormais la voix d'``autre`` : il l'a entendu parler en sachant que c'était
+    lui. Il la compare à ce que les voix inconnues lui ont dit : la voix d'``autre`` s'était dite
+    quelqu'un d'autre, ou il s'en méfiait, il se méfie désormais d'``autre`` ; elle s'était
+    dite ``autre``, c'était bien lui, ce qu'il en croyait sur sa parole devient un constat ; une
+    autre voix s'était dite ``autre``, il sait qu'on lui a menti, sans savoir qui."""
+    from .esprits import esprit, memoriser
+    from .voix import connait_nom, apprendre_nom
+    connues = monde.data.setdefault("voix_connues", []) if qui == "joueur" else esprit(monde, qui)["voix"]
+    if autre == qui or autre in connues:
+        return
+    connues.append(autre)
+    voix = _voix_entendues_stock(monde, qui, ecrire=True)
+    entree = voix.pop(autre, None)
+    if entree and entree['se_dit'] not in (None,autre) and not entree['mefiance'] \
+            and not connait_nom(monde,qui,autre) and not connait_nom(monde,qui,entree['se_dit']):
+        voix[autre] = entree  # Reconnaître le corps ne réfute pas un nom qu'on n'a pas encore relié.
+        entree = None
+    if entree and not entree["mefiance"] and autre in (entree["se_dit"], entree.get("appelee")):
+        apprendre_nom(monde, qui, autre)
+    if qui == "joueur":
+        return  # Le joueur juge lui-même : ce qu'il entend s'affiche (``nom_pour_joueur``).
+    if entree and (entree["mefiance"] or entree["se_dit"] not in (None, autre)):
+        memoriser(monde, qui, {"type": "imposture", "locuteur": autre, "se_disait": entree["se_dit"]})
+    elif entree and entree["se_dit"] == autre:
+        reconnaitre_localisation_vocale(monde, qui, autre)
+    if entree and not entree["mefiance"] and autre in (entree["se_dit"], entree.get("appelee")):
+        apprendre_nom(monde, qui, autre)  # C'était bien lui : son nom ne s'oublie pas avec la voix inconnue.
+    for signature, x in voix.items():
+        if connait_nom(monde,qui,autre) and x["se_dit"] == autre and not x["mefiance"]:
+            x["mefiance"] = True
+            memoriser(monde, qui, {"type": "imposture", "se_disait": autre})
+            reconnaitre_localisation_vocale(monde, qui, autre, imposture=True)
+
+
+def retenir_echange(monde, id, parole):
+    """Un PNJ garde en tête la parole nette qu'il vient de saisir, le temps d'un échange
+    (``ECHANGE``) : c'est par elle qu'il reliera les voix qui suivent (``lier``). Renvoie celles
+    d'avant, encore de l'échange."""
+    from .esprits import esprit
+    from .voix import ECHANGE, ECHANGE_MAX
+    e = esprit(monde, id)
+    recentes = [b for b in e["echange"] if 0 <= parole["instant"] - b["instant"] <= ECHANGE]
+    e["echange"] = [*recentes, copy.deepcopy(parole)][-ECHANGE_MAX:]
+    return copy.deepcopy(recentes)
+
+
+def verifier_echange(echange):
+    from .voix import ECHANGE_MAX
+    assert isinstance(echange, list) and len(echange) <= ECHANGE_MAX and all(
+        isinstance(b, dict) and set(b) == {"instant", "auteur", "a", "noms"} and type(b["instant"]) is int
+        and isinstance(b["auteur"], str) and isinstance(b["a"], list) and isinstance(b["noms"], list)
+        and all(isinstance(x, str) for x in [*b["a"], *b["noms"]]) for b in echange), "Échange retenu invalide"
+
+
+def verifier_entrees(voix):
+    from .voix import CHAMPS_VOIX, OPTIONNELS
+    assert isinstance(voix, dict) and all(
+        isinstance(s, str) and isinstance(e, dict) and CHAMPS_VOIX <= set(e) <= CHAMPS_VOIX | OPTIONNELS
+        and type(e["minute"]) is int and (e["se_dit"] is None or isinstance(e["se_dit"], str))
+        and isinstance(e.get("appelee", ""), str) and type(e["mefiance"]) is bool
+        and type(e["n"]) is int and e["n"] >= 1 for s, e in voix.items()), "Voix entendues invalides"
+    assert len({e["n"] for e in voix.values()}) == len(voix), "Voix entendues invalides"
+
+
+def verifier_identite_vocale(monde, observateur):
+    from .esprits import lire
+    e = lire(monde, observateur) if observateur != 'joueur' else None
+    connues = monde.data.get('voix_connues', []) if observateur == 'joueur' else e['voix']
+    assert isinstance(connues, list) and all(isinstance(x, str) for x in connues) \
+        and len(set(connues)) == len(connues), 'Voix connues invalides'
+    verifier_entrees(_voix_entendues_stock(monde, observateur))
+    if observateur != 'joueur':
+        verifier_echange(e['echange'])
+        noms = e['noms']
+        assert isinstance(noms, list) and all(isinstance(x, str) for x in noms) \
+            and len(set(noms)) == len(noms), 'Noms retenus invalides'
+
+
+def verifier_noms_joueur(monde):
+    noms = monde.data.get('noms_connus', [])
+    assert isinstance(noms, list) and all(isinstance(x, str) for x in noms) \
+        and len(set(noms)) == len(noms), 'Noms appris invalides'

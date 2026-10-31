@@ -645,13 +645,14 @@ class NomsTests(unittest.TestCase):
         self.assertEqual(avant,json.dumps(m.data,sort_keys=True))
 
     def test_une_voix_qui_se_dit_aubin_ne_nomme_pas_le_vrai_corps_d_aubin(self):
-        from donjon.voix import retenir, connait_appellation
+        from donjon.voix import connait_appellation
+        from donjon.memoire import retenir_pretention_vocale
         from donjon.paroles import analyser as analyser_parole, destinataires
         from donjon.noms import reference
         m=relais()
         placer(m,'aubin','echoppe',[2,1])
         placer(m,'ilse','echoppe',[4,3])
-        retenir(m,'joueur','ilse')['se_dit']='aubin'
+        retenir_pretention_vocale(m, 'joueur', 'ilse', 'aubin')
         m.data['entendus']=['ilse']
         m=recharge(m)
         self.assertTrue(connait_appellation(m,'joueur','aubin'))

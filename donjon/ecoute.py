@@ -242,11 +242,8 @@ def verifier(monde):
     entendus_ = monde.data.get("entendus", [])
     assert isinstance(entendus_, list) and all(
         id in monde.objets and monde.objets[id]["type"] == "personnage" for id in entendus_), "Bruits entendus invalides"
-    voix = monde.data.get("voix_connues", [])
-    assert isinstance(voix, list) and len(set(voix)) == len(voix) and all(
-        isinstance(id, str) for id in voix), "Voix connues invalides"
-    from .voix import verifier_entrees
-    verifier_entrees(monde.data.get("voix_entendues", {}))
+    from .memoire import verifier_identite_vocale
+    verifier_identite_vocale(monde, "joueur")
 
 
 def retirer_interlocuteur(monde, id):
