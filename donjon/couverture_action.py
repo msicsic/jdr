@@ -43,6 +43,8 @@ Le sens_propose de chaque étape donne l'opération, ses paramètres, les contra
 et la manière proposée. Ce sens est distinct de l'admission mécanique : un plan possible
 peut être infidèle et un geste fidèle peut être empêché par le monde. Ne déduis jamais
 une omission de son refus ou de sa non-exécution. Compare aussi les clauses transitoires.
+precisions_moteur donne le sens affiché par le moteur depuis ses opérations et effets,
+indépendamment des textes proposés ; il fait autorité sur leurs conséquences.
 Les textes de maniere_proposee sont des propositions, jamais des preuves d'effet :
 seuls les effets typés et les opérations du moteur produisent les conséquences.
 Le champ parole est le dossier de contenu d'une parole préparée : replique, contenu et
@@ -62,7 +64,9 @@ Réponds conforme=false seulement pour un écart net de sens :
 - une conséquence observable demandée qui n'est ni déjà vraie d'après le dossier, ni produite par le plan,
   même temporaire ; le récit, le bruit d'un geste et sa manière ne valent pas un effet typé ;
 - une conséquence ajoutée que le joueur n'a pas demandée ;
-- une clause ou une manière demandée contredite ou omise par les paramètres et la manière proposés.
+- une clause ou une forme concrète du geste demandée contredite ou omise par les paramètres
+  et la manière proposés ; une nuance cosmétique seule n'exige aucun nouveau paramètre
+  d'une opération canonique qui porte déjà le geste.
 Compare la demande à l'état final établi par le moteur, en lisant ensemble le titre,
 l'information, deplacements, passages, les effets et les étapes. Les déplacements et
 effets que le moteur établit pour accomplir le geste font partie de ce geste : ils

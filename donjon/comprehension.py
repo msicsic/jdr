@@ -8,6 +8,14 @@ from .francais import designer
 from .noms import reference, texte
 
 
+def _precisions(plan, parametres):
+    """Même sens calculé pour le joueur et la revue, sans lire la prose proposée."""
+    from .contrats_sequence import precision_publique as sequence
+    from .contrats_son import precision_publique as son
+    from .contrats_passage import precision_publique as passage
+    return [p for p in (sequence(parametres), son(plan, parametres), passage(parametres)) if p]
+
+
 def sens_propose(plan, parametres=None):
     """Dossier de sens, distinct du verdict d'admission et du rendu public.
 
@@ -20,14 +28,15 @@ def sens_propose(plan, parametres=None):
     p = plan.proposition if parametres is None else parametres
     contrats = [s for famille in (contrats_sequence, contrats_son, contrats_passage)
                 if (s := famille.sens_propose(p))]
-    maniere = {k: copy.deepcopy(p[k]) for k in ("intention", "approche") if k in p}
+    maniere = {k: copy.deepcopy(p[k]) for k in ("methode", "outil", "intention", "approche") if k in p}
     for branche in ("reussite", "echec"):
         if isinstance(p.get(branche), dict) and "recit" in p[branche]:
             maniere[branche] = p[branche]["recit"]
     return {"operation": p.get("operation", p.get("action", "")),
             "parametres": copy.deepcopy({k: v for k, v in p.items()
                                          if k not in ("justification", "etapes")}),
-            "contrats": contrats, "maniere_proposee": maniere}
+            "contrats": contrats, "maniere_proposee": maniere,
+            "precisions_moteur": _precisions(plan, p)}
 
 
 def repere(monde, identifiant):
@@ -85,11 +94,7 @@ def _geste(monde, plan, parametres):
             if offre:
                 from .propositions import offre_en_mots
                 details["accord"] = offre_en_mots(monde, offre)
-    from .contrats_sequence import precision_publique
-    precision = precision_publique(parametres)
-    from .contrats_son import precision_publique as precision_son
-    from .contrats_passage import precision_publique as precision_passage
-    precision = " ".join(p for p in (precision, precision_son(plan, parametres), precision_passage(parametres)) if p)
+    precision = " ".join(_precisions(plan, parametres))
     return (plan.titre + (" (" + valeur(monde, details) + ")" if details else "")
             + (" " + precision if precision else ""))
 

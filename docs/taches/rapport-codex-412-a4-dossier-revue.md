@@ -3,9 +3,10 @@
 31 octobre 2026 — `codex-a4-dossier-revue`, base `integration`
 `2634e48e7ba39533bcb9e876487bac7536ee57af`, non fusionnée.
 
-**Verdict : non validé pour fusion.** Le raccord du dossier et la détection
-de l’omission sonore sont prouvés ; la passe Luna révèle une substitution
-de manière sonore acceptée après un refus de fidélité. Aucun audit retiré.
+**Réexamen demandé par le superviseur : correctif en vérification.** La
+substitution n’est acceptée dans aucune des trois parties sur la base.
+La régression observée avec A4 est corrigée dans le contrat commun ; aucun
+audit retiré. La validation finale du correctif reste en cours.
 
 **Invariant et changement.** `comprehension.sens_propose` joint les paramètres,
 la manière et les récits transitoires proposés aux contrats communs de
@@ -43,15 +44,25 @@ préparation/fermeture) : deux sons présents acceptés, deux omissions refusée
 avec le manque dans `attendu`. Fredonnement émis dans les deux scripts ;
 omission du rythme effectivement refusée puis corrigée dans le script dédié.
 
-**Limite bloquante.** Dans `luna/atelier.json`, « je siffle un air joyeux »
-produit d’abord `emettre_son/sifflement`. La revue refuse la manière absente,
-puis accepte `son/voix_melodique` : le rendu fait entendre des notes de voix,
-ce qui substitue la modalité. Le contrat commun entre manière proposée,
-opération et effet n’est donc pas encore garanti ; aucun succès global de
-fidélité revendiqué. Les refus de préparation restent sur leur voie et le
-repli historique après deux revues de geste illisibles reste présent.
+**Comparaison et correction.** `origin/integration` figé en `40f062d8`, sans
+A4, même script et mêmes fichiers de revue que `2634e48e` : **0/3 substitutions
+acceptées**. Deux parties acceptent le sifflement canonique ; la troisième
+refuse successivement voix mélodique et souffle. Le défaut ne peut donc pas
+être classé comme simple limite A5 sur cet échantillon. Dans A4, le critère
+exigeait toute manière, mais le champ correspondant omettait méthode et outil
+canoniques ; il ne portait pas les précisions du rendu calculé. Le contrat
+commun inclut maintenant ces paramètres et partage `_precisions` avec
+« Compris ». La revue distingue forme concrète et nuance cosmétique : cette
+dernière n’exige pas de nouveau paramètre d’une opération qui porte le geste.
+Deux tests ajoutés couvrent méthodes canoniques et modalité réellement rendue,
+même si la prose proposée dit autre chose. Tests concernés, sept revues Luna,
+une partie atelier et empreintes de la branche sont en cours ; fin attendue
+`correction/fin.json`. Aucun succès global de fidélité en français libre
+revendiqué ; les refus de préparation et le repli après deux revues illisibles
+gardent leurs voies actuelles.
 
 Bruts : `C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/`, notamment
 `fin-reprise.json`, `mesures-luna.json`, `contre-epreuves-luna.json`,
 `empreintes.json`, `commandes-reprise.json`. Deux travailleurs au plus,
-priorité réduite ; aucune suite complète ni seconde passe Luna.
+priorité réduite ; aucune suite complète. La comparaison et la vérification
+supplémentaires répondent au réexamen explicitement demandé par le superviseur.

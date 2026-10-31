@@ -7,9 +7,9 @@ import unittest
 from unittest.mock import patch
 
 import jeu
-from donjon.comprehension import sens_propose
+from donjon.comprehension import sens_propose, plan_admis
 from donjon.contrats_sequence import ATTENTES, COMPOSITION
-from donjon.contrats_son import SON_IMPROVISE
+from donjon.contrats_son import SON_IMPROVISE, FORMES_SONORES
 from donjon.couverture_action import entree, verifier
 from donjon.improvisation import effet, issue, proposition as improviser
 from donjon.mj import MJ
@@ -108,6 +108,33 @@ class DossierRevueTests(unittest.TestCase):
         self.assertEqual(d["effets_echec"][0][2]["forme"], "souffle")
         self.assertEqual(d["effets_echec_critique"][0][0], "endommager")
         self.assertEqual(d["conditions_execution"]["stat"], "CHA")
+
+    def test_methode_canonique_presente_et_precisions_partagees_avec_le_joueur(self):
+        m = nouveau_monde()
+        for p in (sequence(etape("emettre_son", "joueur", methode="sifflement")),
+                  sequence(etape("patienter"))):
+            with self.subTest(p=p):
+                plan = Moteur(m).preparer(p)
+                s = entree("la demande entière reste littérale", plan, m)["plan"]["etapes"][0]["sens_propose"]
+                self.assertEqual(s["maniere_proposee"]["methode"], p["etapes"][0]["methode"])
+                self.assertEqual(s["maniere_proposee"]["outil"], "")
+                self.assertTrue(s["precisions_moteur"])
+                for precision in s["precisions_moteur"]:
+                    self.assertIn(precision, plan_admis(m, plan))
+
+    def test_la_prose_ne_masque_pas_la_modalite_sonore_calculee(self):
+        for forme in ("voix_melodique", "souffle", "corps_rythmique"):
+            with self.subTest(forme=forme):
+                m = nouveau_monde()
+                p = expression("Une autre forme est annoncée dans ce brouillon.", forme)
+                plan = Moteur(m).preparer(p)
+                avant = copy.deepcopy(m.data)
+                s = entree("une saisie différente", plan, m)["plan"]["sens_propose"]
+                self.assertEqual(s["maniere_proposee"]["reussite"], p["reussite"]["recit"])
+                self.assertIn(FORMES_SONORES[forme], " ".join(s["precisions_moteur"]))
+                self.assertNotIn(p["reussite"]["recit"], " ".join(s["precisions_moteur"]))
+                self.assertIn(s["precisions_moteur"][0], plan_admis(m, plan))
+                self.assertEqual(m.data, avant)
 
     def test_omission_corrigee_dans_la_boucle_sauvee_et_reprise_avec_laps_decoupe(self):
         for saisie, forme in (("je fredonne doucement", "voix_melodique"),
