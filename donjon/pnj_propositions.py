@@ -115,7 +115,7 @@ def _entrees_negatives(monde, id, autre, demande, entrees):
         sans_dates(monde.data.get('permissions', [])),
         # services_proteges clôt les traces périmées : le relevé d'entrées
         # retient leurs données et les croyances, sans provoquer cette écriture.
-        [s for s in monde.data.get('services_rendus', []) if s['de'] == id],
+        memoire.services_retenus(monde, id),
         list(taches_crues(monde, id, autre)),
         [getattr(v, k) for k in ('salles', 'proprietaire', 'gardes', 'prix_gardes',
           'chances_demandes', 'detresses', 'poste_garde', 'aides', 'illicite',
@@ -236,7 +236,7 @@ def plan_recours(monde, id, besoin, etapes):
     from .deliberation import refus_retenu
     from .echanges import ENGAGEMENT_MAX
     for s in memoire.intermediaires_retenus(monde, id):
-        aide = e['aides_attendues'].get(s['objet'])
+        aide = memoire.aides_attendues(monde, id).get(s['objet'])
         if (s['besoin'] == besoin and not s['abouti'] and s['issue'] == 'accepte'
                 and aide and aide['qui'] == s['via']
                 and _dernier_recours(monde, id, s['de'], etapes)

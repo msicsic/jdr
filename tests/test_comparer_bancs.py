@@ -16,10 +16,15 @@ class ComparerBancsTests(unittest.TestCase):
         from unittest.mock import patch
         from donjon.banc_pnj import creer
         from donjon.esprits import memoriser
+        from donjon import memoire
 
         monde = creer('relais', 7, 'fixe')
         memoriser(monde, 'marchand', {'type': 'examen', 'salle': 'antichambre',
                                     'nature': 'pas', 'case': None})
+        memoire.retenir_attente(monde, 'marchand',
+                               {'qui': 'aubin', 'depuis': 0, 'jusqu_a': 4, 'vient': True})
+        memoire.retenir_service(monde, {'de': 'marchand', 'pour': 'aubin',
+                                       'condition': {'objet': 'brasero', 'allume': True}})
         avant = copy.deepcopy(monde.data)
         # Une référence ancienne ne livre pas episodes. L'observation courante
         # emploie sa propre porte, dont les imports lisent toujours ce moteur.
@@ -50,6 +55,19 @@ class ComparerBancsTests(unittest.TestCase):
             self.assertEqual(recherches, avant['esprits']['marchand']['recherches'])
             self.assertEqual(module.recherches_retenues.__module__, 'donjon._memoire_observation')
             recherches['invente'] = {'antichambre': 0}
+            # S1o : les rendez-vous et services sont aussi lus par la porte
+            # de l'observateur, même sans cette API dans le moteur comparé.
+            attente = module.attente_convenue(monde, 'marchand')
+            self.assertEqual(attente, avant['esprits']['marchand']['rejoint'])
+            attente.clear()
+            services = module.services_retenus(monde, 'marchand')
+            self.assertEqual(services, avant['services_rendus'])
+            services[0]['condition'].clear()
+            spec = importlib.util.spec_from_file_location('_audit_s1o_test', racine / 'tools/audit_nuits.py')
+            audit = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(audit)
+            self.assertEqual(audit.agendas.en_cours(monde, 'marchand'),
+                             avant['esprits']['marchand']['engagements'])
         self.assertEqual(monde.data, avant)
 
     def config(self, **options):

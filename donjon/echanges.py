@@ -1515,11 +1515,12 @@ def confier(monde, demandeur, auditeur, condition=None, *, mandat=None):
 def _retenir_aide(monde, demandeur, auditeur, condition, devis):
     """Attendre l'aide acceptée ou contrôler une réalisation annoncée, sans créer le fait."""
     if demandeur != "joueur" and "objet" in condition:
-        esprit(monde, demandeur)["aides_attendues"][condition["objet"]] = {
+        aide = {
             "qui": auditeur, "condition": dict(condition), "minute": monde.data["minutes"]}
         echeance = _echeance_devis(monde, auditeur, devis)
         if echeance is not None:
-            esprit(monde, demandeur)["aides_attendues"][condition["objet"]]["echeance"] = echeance
+            aide["echeance"] = echeance
+        memoire.retenir_aide(monde, demandeur, condition["objet"], aide)
 
 
 def _echeance_devis(monde, auditeur, devis):
@@ -1832,10 +1833,10 @@ def retenir_abandon(monde, id, engagement, raison=None):
     autre, condition = engagement["pour"], engagement["condition"]
     if autre == "joueur":
         return
-    aides = esprit(monde, autre)["aides_attendues"]
+    aides = memoire.aides_attendues(monde, autre)
     aide = aides.get(condition["objet"])
     if aide and aide["qui"] == id and aide["condition"] == condition:
-        del aides[condition["objet"]]
+        memoire.clore_aide(monde, autre, condition["objet"])
     paye = engagement.get("paye") or {}
     # Une part à remettre a été promise sous le nom de son lot (``_remettre_part``).
     objet = engagement.get("objet") or engagement.get("lot") or paye.get("objet") or condition["objet"]

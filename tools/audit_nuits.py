@@ -41,6 +41,13 @@ import importlib.util
 _spec_agendas = importlib.util.spec_from_file_location("donjon.agendas", RACINE / "donjon" / "agendas.py")
 agendas = importlib.util.module_from_spec(_spec_agendas)
 _spec_agendas.loader.exec_module(agendas)
+# Les vues appartiennent à l'observateur ; elles lisent le stockage historique
+# de la référence sans lui imposer l'API ajoutée dans la branche comparée.
+_spec_memoire = importlib.util.spec_from_file_location(
+    "donjon._memoire_audit", RACINE / "donjon" / "memoire.py")
+_memoire_audit = importlib.util.module_from_spec(_spec_memoire)
+_spec_memoire.loader.exec_module(_memoire_audit)
+agendas.memoire = _memoire_audit
 
 # Le rendu appartient aussi à l'observateur courant : celui de la référence
 # peut ignorer le titulaire des références locales d'agenda.
@@ -96,7 +103,7 @@ def _releve(monde):
             "noir": bool(peur_du_noir(monde, id) and o["lieu"] in monde.data["salles"] and not autour(monde, id)["lumiere"]),
             "eau": profondeur(monde, o["lieu"]) if active(monde) and o["lieu"] in monde.data["salles"] else 0,
             "corps": {k: v for k, v in (o.get("corps") or {}).items() if isinstance(v, (int, float, bool))},
-            "faux": faux, "eng": len(agendas.en_cours(monde, id)), "rej": e["rejoint"]["qui"] if e["rejoint"] else None,
+            "faux": faux, "eng": len(agendas.en_cours(monde, id)), "rej": _memoire_audit.attente_convenue(monde, id)["qui"] if _memoire_audit.attente_convenue(monde, id) else None,
         }
     return {"m": monde.data["minutes"], "pnj": pnj_releves,
             "dettes": len(monde.data.get("dettes", []) or []),
@@ -115,7 +122,7 @@ def _final(monde):
             "projets": {id: agendas.projets(monde, id) for id in monde.data.get('esprits', {})},
             "dettes": monde.data.get("dettes"), "permissions": monde.data.get("permissions"),
             "engagements": {id: agendas.en_cours(monde, id) for id in pnjs(monde) if agendas.en_cours(monde, id)},
-            "rejoint": {id: lire(monde, id)["rejoint"] for id in pnjs(monde) if lire(monde, id)["rejoint"]},
+            "rejoint": {id: _memoire_audit.attente_convenue(monde, id) for id in pnjs(monde) if _memoire_audit.attente_convenue(monde, id)},
             "renoncements": {id: rs for id in pnjs(monde)
                              if (rs := detecteur_avis().renoncements_retenus(monde, id))},
             "urgences": {id: lire(monde, id)["urgences"] for id in pnjs(monde)},

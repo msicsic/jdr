@@ -44,6 +44,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-s1o-aides-contrats` (435), base `364e8722` : aides, rendez-vous, mandats perçus et
+  connaissances de contrat passent par `memoire`, archives mécaniques inchangées.
+  Copies profondes, références sans registre parallèle, clôture distante distincte du savoir.
+  8 épreuves S1o, 6 tests du socle d'agendas et 43 tests des sondes verts ; rouges historiques en attribution.
+  Fusion de `b21d4656` par `c22a8d78`, sans recouvrement de fonction ; contrôles après fusion enchaînés.
+  Empreintes 2 h × quatre graines × quatre scénarios : fin attendue `artifacts/s1o-435/fin-reprise.json`.
+  [Rapport](taches/rapport-codex-435-s1o-aides-contrats.md), bruts `artifacts/s1o-435/` du dépôt principal.
+
 Lots en cours : 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 439 (coups du hameau 2024, diagnostic), 436 (G20 repensé, conception), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 

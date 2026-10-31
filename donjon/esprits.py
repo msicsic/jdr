@@ -371,8 +371,7 @@ def verifier(monde):
                              and len(b["case"]) == 2 and all(type(v) is int for v in b["case"])
                              and type(b["instant"]) is int and b["instant"] >= 0), "Tour d'horizon de PNJ invalide"
         assert all(s in monde.data["salles"] and type(v) is int for s, v in e["visites"].items()), "Visites invalides"
-        from .appel import verifier as verifier_rendez_vous
-        verifier_rendez_vous(monde, e)
+        memoire.verifier_rendez_vous(monde, id)
         memoire.verifier_identite_vocale(monde, id)
         agendas.verifier(monde, id)
         memoire.verifier_faits(monde, id)
@@ -393,20 +392,7 @@ def verifier(monde):
         assert (isinstance(e["detresses_appelees"], list)
                 and all(b in e["besoins"] for b in e["detresses_appelees"])
                 and len(set(e["detresses_appelees"])) == len(e["detresses_appelees"])), "Détresses appelées invalides"
-        from .deliberation import condition_valide
-        assert isinstance(e['aides_attendues'], dict), 'Aides attendues invalides'
-        for o, x in e['aides_attendues'].items():
-            if isinstance(x, dict) and 'echeance' in x and (type(x['echeance']) is not int
-                    or type(x.get('minute')) is not int or x['echeance'] < x['minute']):
-                from .monde import ErreurMonde
-                raise ErreurMonde('Échéance d’aide invalide.',
-                                  f"{id}.aides_attendues.{o}.echeance reçu {x['echeance']!r} ; attendu : entier >= minute ({x.get('minute')!r}).")
-        assert isinstance(e["aides_attendues"], dict) and all(
-            o in monde.objets and isinstance(x, dict) and set(x) - {"echeance"} == {"qui", "condition", "minute"}
-            and x["qui"] in monde.objets and type(x["minute"]) is int
-            and ('echeance' not in x or type(x['echeance']) is int and x['echeance'] >= x['minute'])
-            and x["condition"].get("objet") == o and condition_valide(monde, x["condition"])
-            for o, x in e["aides_attendues"].items()), "Aides attendues invalides"
+        memoire.verifier_aides(monde, id)
         memoire.verifier_recherches(monde, id)
         i = e["intention"]
         assert i is None or (isinstance(i, dict) and set(i) - {"attitude", "charges_suspendues"} == CLES_INTENTION

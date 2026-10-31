@@ -103,8 +103,8 @@ def retenu(monde, qui, autre):
     i = e["intention"]
     return bool(raison_de_rester(monde, qui) == "geste"
                 or i and (i["but"]["type"] == "garder" or _sur_place(monde, qui, i))
-                or e["rejoint"] and e["rejoint"]["qui"] != autre
-                or e["rejoindre"] and e["rejoindre"]["qui"] != autre)
+                or memoire.attente_convenue(monde, qui) and memoire.attente_convenue(monde, qui)["qui"] != autre
+                or memoire.venue_convenue(monde, qui) and memoire.venue_convenue(monde, qui)["qui"] != autre)
 
 
 def _vise(intention, autre):
@@ -149,7 +149,7 @@ def decider(monde, qui, autre, raison=None, prie=False):
     ici = None if part_prioritaire else VIENS
     if part_prioritaire and not _vise(i, autre):
         return None
-    r = lire(monde, qui)["rejoint"]
+    r = memoire.attente_convenue(monde, qui)
     if r and r["qui"] == autre and not prie:
         return ici   # Il l'attend déjà ici ; prié de venir (l'autre ne le peut pas), il en décide de nouveau.
     if not peut_venir(monde, qui, autre) or retenu(monde, qui, autre) or presse_ailleurs(monde, qui, autre):
@@ -225,9 +225,9 @@ def attendre(monde, id, qui, vient):
     from .esprits import reconsiderer
     minute = monde.data["minutes"]
     e = esprit(monde, id)
-    if e["rejoint"] and e["rejoint"]["qui"] != qui:
+    if memoire.attente_convenue(monde, id) and memoire.attente_convenue(monde, id)["qui"] != qui:
         return   # Il attend déjà quelqu'un ici : il y reste, l'autre l'y trouvera ; un rendez-vous à la fois.
-    e["rejoint"] = {"qui": qui, "depuis": minute, "jusqu_a": minute + delai(monde, qui, id), "vient": bool(vient)}
+    memoire.retenir_attente(monde, id, {"qui": qui, "depuis": minute, "jusqu_a": minute + delai(monde, qui, id), "vient": bool(vient)})
     resultat = _plan_attendre(monde, id)
     if resultat and not _passe_avant(monde, id, e["intention"]):
         e["intention"] = {"but": resultat[0], "motif": "rejoint", "plan": resultat[1], "depuis": minute, "attente": 0}
@@ -240,8 +240,8 @@ def venir(monde, id, qui):
     from .esprits import reconsiderer
     from .ouie import _place
     minute = monde.data["minutes"]
-    esprit(monde, id)["rejoindre"] = {"qui": qui, "salle": _place(monde, qui)[0], "depuis": minute,
-                                      "jusqu_a": minute + delai(monde, id, qui)}
+    memoire.retenir_venue(monde, id, {"qui": qui, "salle": _place(monde, qui)[0], "depuis": minute,
+                                      "jusqu_a": minute + delai(monde, id, qui)})
     reconsiderer(monde, id)
 
 
@@ -275,8 +275,8 @@ def dire(monde, qui, autre, sorte, lignes, raison=None, nommer=False):
         if sorte == VIENS:
             attendre(monde, qui, autre, vient=False)
         elif sorte == ARRIVE:
-            if (lire(monde, qui)["rejoint"] or {}).get("qui") == autre:
-                esprit(monde, qui)["rejoint"] = None   # Il ne l'attend plus : il y va.
+            if (memoire.attente_convenue(monde, qui) or {}).get("qui") == autre:
+                memoire.retenir_attente(monde, qui, None)   # Il ne l'attend plus : il y va.
             venir(monde, qui, autre)
     if nommer and entendu:
         se_nommer(monde, autre, qui, qui)
@@ -432,10 +432,10 @@ def rompre_attente(monde, id):
     from .pnj import _chroniquer
     from .voix import source_dite
     e = esprit(monde, id)
-    r = e["rejoint"]
+    r = memoire.attente_convenue(monde, id)
     if not r:
         return
-    e["rejoint"] = None
+    memoire.retenir_attente(monde, id, None)
     qui = r["qui"]
     if qui != "joueur" and qui not in monde.objets:
         return
@@ -454,14 +454,15 @@ def rompre_attente(monde, id):
     if entendu and qui == "joueur":
         croire(monde, qui, id, "lieu", None, source_dite(monde, qui, id), salle=None, case=None)
     if entendu and qui != "joueur":
-        d = esprit(monde, qui)["rejoindre"]
-        attend = esprit(monde, qui)["rejoint"]
+        d = memoire.venue_convenue(monde, qui)
+        attend = memoire.attente_convenue(monde, qui)
         if d and d["qui"] == id or attend and attend["qui"] == id:
             salle = d["salle"] if d and d["qui"] == id else (
                 memoire.fait_brut(monde, qui, id, 'lieu') or {}).get("valeur")
-            for cle in ("rejoindre", "rejoint"):
-                if (esprit(monde, qui)[cle] or {}).get("qui") == id:
-                    esprit(monde, qui)[cle] = None
+            for vue, clore in ((memoire.venue_convenue, memoire.retenir_venue),
+                               (memoire.attente_convenue, memoire.retenir_attente)):
+                if (vue(monde, qui) or {}).get("qui") == id:
+                    clore(monde, qui, None)
             if salle in monde.data["salles"]:
                 recherche_vaine(monde, qui, id, salle)
             croire(monde, qui, id, "lieu", None, source_dite(monde, qui, id), salle=None, case=None)
@@ -504,11 +505,12 @@ def retrouves(monde, id, qui):
             continue
         e = esprit(monde, x)
         change = False
-        for k in ("rejoint", "rejoindre"):
-            if (e[k] or {}).get("qui") == y:
-                if k == "rejoint" and attendait is None:
+        for vue, clore in ((memoire.attente_convenue, memoire.retenir_attente),
+                           (memoire.venue_convenue, memoire.retenir_venue)):
+            if (vue(monde, x) or {}).get("qui") == y:
+                if vue is memoire.attente_convenue and attendait is None:
                     attendait = x, y
-                e[k] = None
+                clore(monde, x, None)
                 change = True
         if change:
             percevoir(monde, x)
@@ -528,12 +530,12 @@ def tenir(monde, id, minute):
     from .social import _qui
     from .voix import se_mefier
     e = esprit(monde, id)
-    r = e["rejoint"]
+    r = memoire.attente_convenue(monde, id)
     if r and r["qui"] != "joueur" and r["qui"] not in monde.objets:
-        e["rejoint"] = None
+        memoire.retenir_attente(monde, id, None)
     elif r and rencontre(monde, id, r["qui"]):
         qui = r["qui"]
-        d = lire(monde, qui)["rejoindre"] if qui != "joueur" else None
+        d = memoire.venue_convenue(monde, qui) if qui != "joueur" else None
         if d and d["qui"] == id and minute < r["jusqu_a"]:
             # Le voyageur traite l'arrivée à son prochain choix, après son geste en cours.
             # Celui qui attend ne repart pas entre l'aperçu au seuil et ce choix.
@@ -545,7 +547,7 @@ def tenir(monde, id, minute):
         else:
             _retrouver(monde, id, qui)
     elif r and minute >= r["jusqu_a"]:
-        e["rejoint"] = None
+        memoire.retenir_attente(monde, id, None)
         if r["vient"]:
             _chroniquer(monde, id, f"{_qui(monde, id)} cesse d'attendre {_qui(monde, r['qui'])}, qui avait promis "
                                    "de venir.", "reponse")
@@ -555,11 +557,11 @@ def tenir(monde, id, minute):
             se_mefier(monde, id, r["qui"], cause="parole_rompue")
         else:
             _chroniquer(monde, id, f"{_qui(monde, id)} cesse d'attendre {_qui(monde, r['qui'])}.", "reponse")
-    d = e["rejoindre"]
+    d = memoire.venue_convenue(monde, id)
     if not d:
         return
     if d["qui"] != "joueur" and d["qui"] not in monde.objets:
-        e["rejoindre"] = None
+        memoire.retenir_venue(monde, id, None)
     # L'aperçu d'une autre salle ne termine pas le trajet promis : les gestes d'interaction
     # exigent d'avoir rejoint le lieu. Une parole échangée clôt aussi la venue, via ``rejoint``.
     elif monde.objets[id]["lieu"] == d["salle"] and rencontre(monde, id, d["qui"]):
@@ -567,7 +569,7 @@ def tenir(monde, id, minute):
     elif monde.objets[id]["lieu"] == d["salle"] and (
               e["visites"].get(d["salle"], -1) > d["depuis"]
               or memoire.lieux_ecartes(monde, id, d["qui"]).get(d["salle"], -1) >= d["depuis"]):
-        e["rejoindre"] = None
+        memoire.retenir_venue(monde, id, None)
         memoriser(monde, id, {"type": "rendez_vous_manque", "qui": d["qui"]})
 
 
@@ -581,8 +583,8 @@ def se_signaler(monde, id, qui):
     from .ouie import retentir, saisit
     from .pnj import _chroniquer
     from .voix import connait_nom, se_nommer
-    if qui == "joueur" or not any((lire(monde, qui)[k] or {}).get("qui") == id
-                                   for k in ("rejoint", "rejoindre")):
+    if qui == "joueur" or not any((vue(monde, qui) or {}).get("qui") == id
+                                   for vue in (memoire.attente_convenue, memoire.venue_convenue)):
         return False
     cri = texte(monde, id, ME_VOICI)
     _chroniquer(monde, id, cri, "reponse")
@@ -601,7 +603,7 @@ def plan_venir(monde, id):
     """Tenir « J'arrive ! » : aller là d'où venait sa voix et y parcourir la salle des yeux, en l'appelant
     s'il ne le voit pas (``pnj._inspecter``)."""
     from .planification import aller
-    d = lire(monde, id)["rejoindre"]
+    d = memoire.venue_convenue(monde, id)
     if not d:
         return None
     regarder = [{"operation": "inspecter", "cible": "", "outil": "", "lieu": d["salle"], "condition": "",
@@ -613,14 +615,3 @@ def plan_venir(monde, id):
     # Un chemin coupé ne permet pas de rappeler depuis un autre lieu :
     # garder la destination jusqu'à un constat ou une rupture entendue.
     return (but, []) if etapes is None else (but, etapes + regarder)
-
-
-def verifier(monde, e):
-    """La forme du rendez-vous dans un esprit (``esprits.verifier``)."""
-    r, d = e["rejoint"], e["rejoindre"]
-    assert r is None or (isinstance(r, dict) and set(r) == {"qui", "depuis", "jusqu_a", "vient"}
-                         and (r["qui"] == "joueur" or r["qui"] in monde.objets) and type(r["vient"]) is bool
-                         and type(r["depuis"]) is int and type(r["jusqu_a"]) is int), "Attente de PNJ invalide"
-    assert d is None or (isinstance(d, dict) and set(d) == {"qui", "salle", "depuis", "jusqu_a"}
-                         and (d["qui"] == "joueur" or d["qui"] in monde.objets) and d["salle"] in monde.data["salles"]
-                         and type(d["depuis"]) is int and type(d["jusqu_a"]) is int), "Rendez-vous de PNJ invalide"

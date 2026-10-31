@@ -109,8 +109,8 @@ def entrees_reemprunt(monde, id, autre, objet):
 
 def retenir_restitution(monde, id, autre, objet):
     """Le retour est appris par son emprunteur, même si le propriétaire l'impose."""
-    retours = monde.data.setdefault("restitutions", {}).setdefault(id, {})
-    retours[objet] = {"a": autre, "entrees": entrees_reemprunt(monde, id, autre, objet)}
+    memoire.retenir_restitution(monde, id, objet,
+                               {"a": autre, "entrees": entrees_reemprunt(monde, id, autre, objet)})
 
 
 def restitution_retenue(monde, id, autre, objet):
@@ -119,7 +119,7 @@ def restitution_retenue(monde, id, autre, objet):
     Un achat ou un don reste une autre réponse : ce contrôle porte sur le prêt.
     La mémoire est durable et commune au joueur et aux personnages.
     """
-    retour = monde.data.get("restitutions", {}).get(id, {}).get(objet)
+    retour = memoire.restitutions_retenues(monde, id).get(objet)
     if not retour or retour["a"] != autre:
         return False
     avant, apres = retour["entrees"], entrees_reemprunt(monde, id, autre, objet)
@@ -421,9 +421,13 @@ def dettes(monde, *, connues_de=None):
     Une clôture datée peut créer une dette sans en informer le créancier.
     Cette dette ne prépare ni une réclamation ni la levée d'un refus retenu.
     """
-    toutes = monde.data.get("dettes", [])
-    return toutes if connues_de is None else [
-        d for d in toutes if d['a'] == connues_de and not d.get('a_prevenir')]
+    return (_dettes_archivees(monde) if connues_de is None
+            else memoire.dettes_connues(monde, connues_de))
+
+
+def _dettes_archivees(monde):
+    """Archive réelle réservée au cycle mécanique des créances."""
+    return monde.data.get("dettes", [])
 
 
 # Ce qu'une dette paie et qui n'a pas été livré : une part, un objet, une tâche (``echanges.engagements_echus``).
@@ -852,12 +856,12 @@ def retenir_service(monde, id, engagement):
         return
     from .deliberation import salle_crue
     trace = {"de": id, "pour": engagement["pour"], "condition": dict(c)}
-    services = monde.data.setdefault("services_rendus", [])
+    services = memoire.services_retenus(monde, id)
     if not any(all(s.get(k) == v for k, v in trace.items()) for s in services):
         # Le prestataire peut déplacer le résultat : cela ne prouve pas que
         # son bénéficiaire est parti. Retenir son lieu au constat de réussite.
         trace["lieu_beneficiaire"] = salle_crue(monde, id, engagement["pour"])
-        services.append(trace)
+        memoire.retenir_service(monde, trace)
 
 
 @contextmanager
@@ -878,8 +882,7 @@ def clotures_services_du_choix(monde):
         if ancien is not None:
             ancien.extend(s for s in clotures if s not in ancien)
         elif clotures:
-            services = monde.data.get("services_rendus", [])
-            services[:] = [s for s in services if s not in clotures]
+            memoire.clore_services(monde, clotures)
     finally:
         monde._clotures_services = ancien
 
@@ -903,7 +906,7 @@ def services_proteges(monde, id):
     actifs = [{"de": id, "pour": x["pour"], "condition": x["condition"]}
               for x in agendas.en_cours(monde, id) if not x.get("annule")
               and set(x["condition"]) in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})]
-    services = monde.data.get("services_rendus", [])
+    services = memoire.services_retenus(monde, id)
     proteges, finis = [], []
     for s, actif in [(s, False) for s in services] + [(s, True) for s in actifs]:
         if s["de"] != id:
@@ -948,30 +951,7 @@ def services_proteges(monde, id):
 
 def verifier(monde):
     d = monde.data
-    from .deliberation import condition_valide
-    assert isinstance(d.get("services_rendus", []), list), "Traces de service invalides"
-    for s in d.get("services_rendus", []):
-        assert (isinstance(s, dict) and set(s) in ({"de", "pour", "condition"},
-                                                {"de", "pour", "condition", "lieu_beneficiaire"})
-                and (s.get("lieu_beneficiaire") is None or s["lieu_beneficiaire"] in monde.data["salles"])
-                and s["de"] in monde.objets and monde.objets[s["de"]]["type"] in ("personnage", "depouille")
-                and (s["pour"] == "joueur" or s["pour"] in monde.objets
-                     and monde.objets[s["pour"]]["type"] in ("personnage", "depouille"))
-                and condition_valide(monde, s["condition"])
-                and set(s["condition"]) in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})
-                ), "Trace de service invalide"
-    for id, retours in d.get("restitutions", {}).items():
-        assert id == "joueur" or id in monde.objets, "Emprunteur restituant inconnu"
-        for objet, retour in retours.items():
-            assert isinstance(objet, str) and set(retour) == {"a", "entrees"}, "Restitution invalide"
-            assert isinstance(retour["a"], str), "Destinataire de restitution invalide"
-            e = retour["entrees"]
-            assert set(e) == {"besoins", "moyens", "pieces", "contenu", "proprietaire", "prix"}, "Entrées de restitution invalides"
-            assert all(isinstance(e[k], list) and all(isinstance(x, str) for x in e[k])
-                       for k in ("besoins", "moyens")), "Moyens de restitution invalides"
-            assert all(type(e[k]) is int and e[k] >= 0 for k in ("pieces", "contenu")), "Fonds de restitution invalides"
-            assert e["proprietaire"] is None or isinstance(e["proprietaire"], str), "Propriété de restitution invalide"
-            assert e["prix"] is None or type(e["prix"]) is int and e["prix"] >= 0, "Prix de restitution invalide"
+    memoire.verifier_services_restitutions(monde)
     for p in d.get("permissions", []):
         assert (set(p) == {"objet", "a", "de", "minute"} and p["objet"] in d["objets"]
                 and (p["a"] == "joueur" or p["a"] in d["objets"] and d["objets"][p["a"]]["type"] in ("personnage", "depouille"))

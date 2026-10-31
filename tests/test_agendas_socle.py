@@ -6,6 +6,7 @@ Les clés de dictionnaires produits pour le MJ/l'audit restent un format public.
 """
 import ast
 import copy
+from collections import Counter
 from pathlib import Path
 import unittest
 from tests.remboursements import rembourser_local
@@ -49,8 +50,36 @@ class AccesTests(unittest.TestCase):
         sources = [*RACINE.glob("*.py"), *(RACINE / "donjon").rglob("*.py"),
                    *(RACINE / "tools").rglob("*.py")]
         self.assertGreater(len(sources), 50)
+        # S1o : seuls les mandats subjectifs et la lecture des engagements
+        # passent à la porte mémoire. L'autorité exécutoire reste à agendas.
+        porte = RACINE / 'donjon/memoire.py'
+        source = porte.read_text(encoding='utf8')
+        arbre = ast.parse(source)
+        parents = {c: n for n in ast.walk(arbre) for c in ast.iter_child_nodes(n)}
+        def fonction(n):
+            while n in parents:
+                n = parents[n]
+                if isinstance(n, ast.FunctionDef):
+                    return n.name
+        lignes = acces(source)
+        admis = Counter((fonction(n), ast.unparse(n), type(n.ctx).__name__ if isinstance(n, ast.Subscript) else None)
+                        for n in ast.walk(arbre) if getattr(n, 'lineno', None) in lignes
+                        and (isinstance(n, ast.Subscript) and isinstance(n.slice, ast.Constant)
+                             and n.slice.value in ('engagements', 'mandats_percus')
+                             or isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                             and n.args and isinstance(n.args[0], ast.Constant)
+                             and n.args[0].value == 'mandats_percus'))
+        attendu = [
+            ('_mandats_stock', "esprit(monde, id).setdefault('mandats_percus', [])", None),
+            ('_mandats_stock', "lire(monde, id).get('mandats_percus')", None),
+            ('publier_mandats', "esprit(monde, id)['mandats_percus']", 'Store'),
+            ('verifier_mandats', "lire(monde, id).get('mandats_percus', [])", None),
+            ('engagements_connus', "lire(monde, id)['engagements']", 'Load'),
+        ]
+        self.assertEqual(admis, Counter(attendu))
+        self.assertEqual(len(lignes), len(attendu))
         fautes = [f"{p.relative_to(RACINE)}:{ligne}" for p in sources
-                  if p != RACINE / "donjon" / "agendas.py"
+                  if p not in (RACINE / "donjon" / "agendas.py", porte)
                   for ligne in acces(p.read_text(encoding="utf-8"))]
         self.assertEqual(fautes, [])
 

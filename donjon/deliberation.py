@@ -625,7 +625,7 @@ def _plan_attendre(monde, id):
     """Attendre sur place d'être rejoint : aucun geste, il reste où il a répondu. Occupé sur place
     (``_sur_place``), il y reste à ce qu'il fait : ce but-là le garde."""
     e = lire(monde, id)
-    r = e["rejoint"]
+    r = memoire.attente_convenue(monde, id)
     return ({"type": "attendre", "qui": r["qui"]}, []) if r and not _sur_place(monde, id, e["intention"]) else None
 
 
@@ -637,7 +637,7 @@ def _attendre_qui_vient(monde, id, resultat, palier=None):
     commence par aller à lui, ou le chercher, devient l'attendre là où il est, le temps convenu ; son
     but reprend quand ils se sont retrouvés. Un plan qui fait d'abord autre chose ici reste tel quel."""
     from .appel import _vise, part, plan_venir, rompre_attente
-    r = lire(monde, id)["rejoint"]
+    r = memoire.attente_convenue(monde, id)
     if resultat and r and part(monde, id, resultat[1]):
         if palier is not None and palier < Palier.ATTENDRE_APPELANT:
             rompre_attente(monde, id)
@@ -646,12 +646,12 @@ def _attendre_qui_vient(monde, id, resultat, palier=None):
     from .eau import en_peril
     if en_peril(monde, id):
         return resultat
-    d = lire(monde, id)["rejoindre"]
+    d = memoire.venue_convenue(monde, id)
     if resultat and d and _vise({"but": resultat[0], "plan": resultat[1]}, d["qui"]):
         # Le même objectif cherche un interlocuteur qui vient de lui dire où venir. Le
         # rendez-vous est un moyen connu de ce plan, même d'une voix encore sans identité.
         return plan_venir(monde, id) or resultat
-    r = lire(monde, id)["rejoint"]
+    r = memoire.attente_convenue(monde, id)
     if not resultat or not r or not r["vient"]:
         return resultat
     but, etapes = resultat
@@ -703,8 +703,8 @@ def satisfaite(monde, id, condition):
         return False  # Un objet vendu se remet de la main à la main : le geste tient la parole.
     if "rendre" in condition:
         # Un objet prêté : rendu quand le prêt est clos (il est revenu à son propriétaire).
-        from .biens import prets
-        return not any(p["objet"] == condition["objet"] and p["a"] == id for p in prets(monde))
+        return not any(p["objet"] == condition["objet"] and p["a"] == id
+                       for p in memoire.permissions_connues(monde, id))
     if "servir" in condition:
         # Nourrir quelqu'un : tant qu'il ne le croit pas affamé (ce qu'il a vu de lui), rien à faire.
         # Une part promise, elle, se solde au geste (``echanges.tenu``).
@@ -1955,12 +1955,12 @@ def _candidats(monde, id):
     if avertissements_a_donner(monde, id):
         ajouter("devoir", _plan_prevenir, Palier.PREVENIR)
     # « J'arrive ! » à un appel : une parole due, comme une autre (``appel.plan_venir``).
-    if e["rejoindre"]:
+    if memoire.venue_convenue(monde, id):
         from .appel import plan_venir
         ajouter("engagement", plan_venir, Palier.REJOINDRE)
     # Il a convenu d'attendre qui l'a hélé ou qu'il a hélé (``appel``), après ce qui presse et la
     # parole due ; un bruit, ce qui ne presse pas et la routine attendent.
-    if e["rejoint"]:
+    if memoire.attente_convenue(monde, id):
         ajouter("rejoint", _plan_attendre, Palier.ATTENDRE_APPELANT)
     # Un bruit inconnu qu'il doit, ou ose, aller voir : après ce qui presse, avant la routine ; une
     # alarme (l'appel d'un protégé, un bruit à son seuil d'alerte), avant tout le reste.

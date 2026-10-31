@@ -47,6 +47,9 @@ faits_connus = _memoire_observation.faits_connus
 reponses_retenues = _memoire_observation.reponses_retenues
 recherches_retenues = _memoire_observation.recherches_retenues
 renoncements_retenus = _memoire_observation.renoncements_retenus
+attente_convenue = _memoire_observation.attente_convenue
+venue_convenue = _memoire_observation.venue_convenue
+services_retenus = _memoire_observation.services_retenus
 
 SCENARIOS_DEFAUT = ("relais", "mine", "auberge", "crue", "crue_hameau")
 SALLES_JOUEUR = {
@@ -310,7 +313,7 @@ def relever_entrees(monde, id, minute):
             for s in episodes(monde, id)
             if s["type"] == "a_prevenir" and deliberation._a_dire(monde, id, s["victime"], s["auteur"])
         ],
-        "rejoint": e.get("rejoint"),
+        "rejoint": attente_convenue(monde, id),
         "aides": v.aides,
     }
 
@@ -480,7 +483,7 @@ class SondeAvis:
     def cloturer_services(self, monde, avant):
         """Ne retient que les retraits effectivement publiés par le choix complet."""
         for trace in avant:
-            if trace in monde.data.get("services_rendus", ()):
+            if trace in services_retenus(monde, trace["de"]):
                 continue
             for service in self.services.values():
                 if (service["prestataire"] == trace["de"] and service["payeur"] == trace["pour"]
@@ -524,7 +527,7 @@ class SondeAvis:
         porteur = deliberation._lieu_cru(monde, id, objet)
         from donjon.monde import mobile_par_nature
         if trace is None:
-            trace = next((s for s in monde.data.get("services_rendus", ())
+            trace = next((s for s in services_retenus(monde, id)
                           if s["de"] == id and s["pour"] == pour
                           and s["condition"] == service["condition"]), {})
         reference = trace.get("lieu_beneficiaire",
@@ -871,7 +874,7 @@ def observer_avis():
     @contextmanager
     def clotures_sondees(m):
         observe = m is sonde.monde_services
-        avant = copy.deepcopy(m.data.get("services_rendus", []))
+        avant = [s for qui in m.data.get("esprits", {}) for s in services_retenus(m, qui)]
         if observe:
             sonde.relever_services(m)
         with vraies_clotures(m):
@@ -884,15 +887,15 @@ def observer_avis():
         # Les deux moitiés du contrat sont closes par le même contact publié :
         # celui qui attend et celui qui vient. Une expiration sans contact
         # ne passe pas par cette opération et ne constitue aucune preuve.
-        contrats = {"rejoint": "attendre", "rejoindre": "rejoindre"}
+        contrats = {attente_convenue: "attendre", venue_convenue: "rejoindre"}
         attentes = [(x, y, champ) for x, y in ((id, qui), (qui, id))
                     if x != "joueur" for champ in contrats
-                    if (lire(m, x).get(champ) or {}).get("qui") == y]
+                    if (champ(m, x) or {}).get("qui") == y]
         resultat = vrais_retrouves(m, id, qui)
         if not observe:
             return resultat
         for x, y, champ in attentes:
-            if lire(m, x).get(champ) is not None or not sonde.episodes.get(x):
+            if champ(m, x) is not None or not sonde.episodes.get(x):
                 continue
             ep = sonde.episodes[x][-1]
             but = ep["decision"]["but"] or {}
