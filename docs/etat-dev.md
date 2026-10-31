@@ -45,11 +45,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-a5-reprise-fidele` (lot 415), base A4 `aaa0b8db`, intégration `2b2e0a94` fusionnée :
   les reprises conservent les paramètres typés non contestés ; candidat non admis, saisie entière et refus transmis.
-  Revue : comparaison moteur des écarts typés, périmètre cosmétique distinct ; aucun audit retiré.
-  87 tests concernés verts (un ignoré), dont sept nouveaux ; Luna unique (atelier ×2 et trois scripts), banc en cours.
-  **Non validé pour fusion** en attente des fils et mesures ; A4 et A5 se livrent ensemble.
-  Limites : choix initial et périmètre encore sémantiques, chemins de paramètres conservateurs.
-  Bruts `C:/Users/msics/donjon/artifacts/a5-reprise-415/`, fin attendue `fin.json`.
+  **Non validé pour fusion** : deux sifflements d'atelier conservés, mais voix mélodique acceptée comme sifflement
+  en contre-épreuve ; six revues sur sept justes. Choix du périmètre encore sémantique ; aucun audit retiré.
+  87 tests concernés verts (un ignoré) ; Luna : 77 appels/37 tours, 2,08 appels et 8,05 s/tour, aucun repli ni erreur.
+  Banc Relais/auberge 4 h × quatre graines : aucun plantage/usurpation ; avis et répétitions à examiner sans référence.
+  A4 et A5 à évaluer ensemble ; bruts `C:/Users/msics/donjon/artifacts/a5-reprise-415/`, `conclusion.json` et `fin.json`.
   Rapport : [lot 415](taches/rapport-codex-415-a5-reprise-fidele.md).
 
 - `codex-a4-dossier-revue` (lot 412), base `integration` `2634e48e` : dossier de fidélité avec sens proposé,
@@ -61,7 +61,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Bruts `C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/correction/` ; limite de revue sémantique explicitée.
   Rapport : [lot 412](taches/rapport-codex-412-a4-dossier-revue.md).
 
-Lots en cours : 413 (S1l recherche d'une personne), 414 (rouges nouveaux de la suite 4539dd68), 415 (A5 reprise fidèle, construit sur la branche A4 412, non fusionnée : substitution de manière acceptée), 402 (vérification d'intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 413 (S1l recherche d'une personne), 414 (rouges nouveaux de la suite 4539dd68), 402 (vérification d'intégration moteur) ; 415 livré non validé, avec A4 412 (voir ci-dessus). Suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
