@@ -272,6 +272,8 @@ def candidats_contrat(monde, projection):
     for qui in sorted(projection['destinataires'], key=lambda x: x['id']):
         for prestation in sorted(projection['prestations'], key=lambda x: json.dumps(x['terme'], sort_keys=True)):
             terme = prestation['terme']
+            if terme['type'] not in ('part', 'tache'):
+                continue  # K0 reste la référence prestation contre pièces.
             id = reel(monde, terme.get('objet') or terme['condition']['objet'])
             # Connaître un nom ne révèle pas la possession ou l'état courant.
             if id not in visibilite:

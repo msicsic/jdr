@@ -762,7 +762,7 @@ function ouvrirAccord(brouillon = null) {
   const projection = JSON.parse(JSON.stringify(brouillon?.public || accord));
   const form = $("accord"); form.hidden = false; form.innerHTML = "";
   const aide = document.createElement("p");
-  aide.textContent = "Prestation ponctuelle, paiement maintenant. Ni prêt daté, ni maintien, ni paiement futur. Une durée indéterminée ne peut être promise : tu peux proposer un nouvel accord sans limite. Demain exige un repère : précise un délai en minutes.";
+  aide.textContent = "Compose les deux termes : ce que Corvus donne et ce qu’il demande. Un objet ou une part est remis si l’accord est accepté ; une tâche reste une promesse. Ni prêt daté, ni maintien, ni paiement futur. Une limite ponctuelle exige des pièces présentes en face.";
   form.appendChild(aide);
   if (!brouillon && projection.suggestions?.length) {
     const titre = document.createElement("p");
@@ -792,27 +792,84 @@ function ouvrirAccord(brouillon = null) {
   };
   const qui = champ("Destinataire", projection.destinataires);
   const prestation = champ("Prestation", projection.prestations);
+  const montantDemande = champ("Montant demandé"); montantDemande.value = "1"; montantDemande.min = "1";
+  const contreparties = [...projection.prestations, {terme: {type: "rien"}, nom: "rien"}];
+  const donne = champ("Contrepartie (Corvus donne)", contreparties);
   const prix = champ("Prix payé maintenant"); prix.min = "1"; prix.max = String(projection.or);
   const delai = champ("Délai en minutes (0 = sans limite)");
-  const initial = brouillon?.initial || {};
+  const delaiDonne = champ("Délai donné en minutes (0 = sans limite)"); delaiDonne.value = "0";
+  // Un repère absolu prérempli peut tomber entre deux minutes. La validation
+  // JS conserve cet instant exact ; les nouvelles durées restent entières.
+  delai.step = "any"; delaiDonne.step = "any";
+  const initial = JSON.parse(JSON.stringify(brouillon?.initial || {}));
+  if (initial.demande) {
+    initial.prestation = {...initial.demande}; delete initial.prestation.limite;
+    initial.limite = initial.demande.limite;
+    initial.sans_limite = initial.limite === undefined;
+  }
+  const meme = (a, b) => {
+    const trier = o => o && typeof o === "object" ? Object.fromEntries(Object.keys(o).sort().map(k => [k, trier(o[k])])) : o;
+    return JSON.stringify(trier(a)) === JSON.stringify(trier(b));
+  };
+  const base = t => { const r = {...t}; delete r.limite; if (r.type === "pieces") r.montant = 1; return r; };
+  const pieces = projection.prestations.findIndex(x => meme(x.terme, {type: "pieces", montant: 1}));
+  donne.value = String(pieces);
   if (initial.sans_limite === true) delai.value = "0";
   const destinataireInitial = projection.destinataires.findIndex(x => x.id === initial.destinataire);
-  const prestationInitiale = projection.prestations.findIndex(x => JSON.stringify(x.terme) === JSON.stringify(initial.prestation));
+  const prestationInitiale = projection.prestations.findIndex(x => meme(x.terme, base(initial.prestation || {})));
   if (destinataireInitial >= 0) qui.value = String(destinataireInitial);
   if (prestationInitiale >= 0) prestation.value = String(prestationInitiale);
+  if (initial.prestation?.type === "pieces") montantDemande.value = String(initial.prestation.montant);
+  if (initial.contrepartie) {
+    donne.value = String(contreparties.findIndex(x => meme(x.terme, base(initial.contrepartie))));
+    if (initial.contrepartie.type === "pieces") prix.value = String(initial.contrepartie.montant);
+    if (initial.contrepartie.limite !== undefined)
+      delaiDonne.value = String((initial.contrepartie.limite - projection.instant) / 600);
+  }
   if (Number.isSafeInteger(initial.prix) && initial.prix >= 1 && initial.prix <= projection.or) prix.value = String(initial.prix);
-  if (Number.isSafeInteger(initial.limite) && initial.limite >= projection.instant && (initial.limite - projection.instant) % 600 === 0)
+  if (Number.isSafeInteger(initial.limite) && initial.limite >= projection.instant)
     delai.value = String((initial.limite - projection.instant) / 600);
   const resume = document.createElement("p"); form.appendChild(resume);
-  let limite = null;
-  const actualiser = () => {
-    limite = /^[0-9]{1,9}$/.test(delai.value) && Number(delai.value) > 0 ? projection.instant + Number(delai.value) * 600 : null;
-    const repere = !/^[0-9]{1,9}$/.test(delai.value) ? "délai à préciser" : limite === null ? "sans limite négociée" :
-      `dans ${delai.value} minutes, au plus tard à la minute de jeu ${Math.floor(limite / 600)}${limite % 600 ? ` et ${(limite % 600) / 10} secondes` : ""}`;
-    resume.textContent = (projection.prestations[prestation.value]?.nom || "Choisis une prestation") +
-      ` ; ${prix.value || "?"} pièces payées maintenant ; ${repere}.`;
+  let limite = null, termes = null;
+  const dater = (t, input, originale) => {
+    const valeurInitiale = originale === undefined ? null : String((originale - projection.instant) / 600);
+    let borne;
+    if (input.value === valeurInitiale) borne = originale;
+    else if (/^[0-9]{1,9}$/.test(input.value)) borne = Number(input.value) ? projection.instant + Number(input.value) * 600 : null;
+    else return false;
+    if (borne !== null) {
+      if (!["part", "tache"].includes(t.type)) return false;
+      t.limite = borne;
+    }
+    return true;
   };
-  [qui, prestation, prix, delai].forEach(i => { i.onchange = actualiser; i.oninput = actualiser; });
+  const nom = t => {
+    let texte = contreparties.find(x => meme(x.terme, base(t)))?.nom || "?";
+    if (t.type === "pieces") texte = `${t.montant} pièce${t.montant > 1 ? "s" : ""}` +
+      (t.objet ? texte.substring(texte.indexOf(" prise")).replace(" prise dans ", t.montant > 1 ? " prises dans " : " prise dans ") : "") + " payées maintenant";
+    if (t.limite !== undefined) texte += ` au plus tard à la minute de jeu ${Math.floor(t.limite / 600)}${t.limite % 600 ? ` et ${(t.limite % 600) / 10} secondes` : ""}`;
+    else if (["part", "tache"].includes(t.type)) texte += " sans limite négociée";
+    return texte;
+  };
+  const actualiser = () => {
+    const demande = projection.prestations[prestation.value]?.terme;
+    const contrepartie = contreparties[donne.value === "" ? pieces : donne.value]?.terme;
+    montantDemande.parentNode.hidden = demande?.type !== "pieces";
+    montantDemande.disabled = demande?.type !== "pieces";
+    prix.parentNode.hidden = contrepartie?.type !== "pieces";
+    prix.disabled = contrepartie?.type !== "pieces";
+    prix.max = contrepartie?.objet ? "999999999" : String(projection.or);
+    termes = demande && contrepartie ? {demande: {...demande}, contrepartie: {...contrepartie}} : null;
+    if (termes) {
+      if (demande.type === "pieces") termes.demande.montant = Number(montantDemande.value);
+      if (contrepartie.type === "pieces") termes.contrepartie.montant = Number(prix.value);
+      if (!dater(termes.demande, delai, initial.limite) ||
+          !dater(termes.contrepartie, delaiDonne, initial.contrepartie?.limite)) termes = null;
+    }
+    limite = termes?.demande.limite ?? null;
+    resume.textContent = termes ? `Corvus donne ${nom(termes.contrepartie)} ; Corvus demande ${nom(termes.demande)}.` : "Choisis les deux termes et précise les délais (0 = sans limite).";
+  };
+  [qui, prestation, montantDemande, donne, prix, delai, delaiDonne].forEach(i => { i.onchange = actualiser; i.oninput = actualiser; });
   actualiser();
   const preparer = document.createElement("button"); preparer.type = "submit";
   preparer.textContent = "Préparer cet accord"; form.appendChild(preparer);
@@ -820,14 +877,19 @@ function ouvrirAccord(brouillon = null) {
   annuler.onclick = () => { form.hidden = true; }; form.appendChild(annuler);
   form.onsubmit = e => {
     e.preventDefault(); if (occupe) return;
-    if (!projection.destinataires[qui.value] || !projection.prestations[prestation.value] ||
-        !/^[0-9]{1,9}$/.test(prix.value) || Number(prix.value) < 1 || Number(prix.value) > projection.or ||
-        !/^[0-9]{1,9}$/.test(delai.value)) {
-      resume.textContent = "Choisis la prestation et le destinataire ; précise le prix et le délai en minutes (0 = sans limite)."; return;
-    }
     actualiser();
-    const p = {prestation: projection.prestations[prestation.value].terme, prix: Number(prix.value)};
-    if (limite !== null) p.limite = limite;
+    if (!projection.destinataires[qui.value] || !termes || Object.values(termes).some(t =>
+        t.type === "pieces" && (!Number.isSafeInteger(t.montant) || t.montant < 1)) ||
+        (termes.contrepartie.type === "pieces" && !termes.contrepartie.objet && termes.contrepartie.montant > projection.or) ||
+        Object.values(termes).some((t, i, ts) => t.limite !== undefined && ts[1-i].type !== "pieces")) {
+      resume.textContent = "Précise les deux termes et leurs montants ; une limite exige des pièces payées maintenant en face."; return;
+    }
+    let p = termes;
+    if (["part", "tache"].includes(termes.demande.type) && termes.contrepartie.type === "pieces" &&
+        Object.keys(termes.contrepartie).sort().join(",") === "montant,type") {
+      p = {prestation: {...termes.demande}, prix: termes.contrepartie.montant}; delete p.prestation.limite;
+      if (limite !== null) p.limite = limite;
+    }
     arreter(null); envoyer({geste: "accord", cible: projection.destinataires[qui.value].id, parametres: p}); form.hidden = true;
   };
 }

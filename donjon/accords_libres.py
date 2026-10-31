@@ -92,6 +92,13 @@ def ouvrir(monde, p, saisie):
     if p['obstacle']:
         return {'mode': 'dialogue', 'texte': REFUS[p['obstacle']] + ' Rien n’a été dit ni engagé.',
                 'faits': [], 'proposition': None, '_texte_moteur': True}
+    if p['prestation'] is not None:
+        from .propositions import erreur_terme
+        erreur = erreur_terme(p['prestation'], False)
+        if erreur:
+            suffixe, recu, attendu = erreur
+            raise ErreurMonde('Précise toutes les clauses de cette prestation.',
+                              f'proposition.prestation{suffixe} : reçu {recu!r} ; attendu {attendu}.')
     public = accords_publics(monde)
     initial = {}
     if p['destinataire'] in [x['id'] for x in public['destinataires']]:
@@ -113,10 +120,36 @@ def ouvrir(monde, p, saisie):
             '_formulaire_accord': {'public': public, 'initial': initial}}
 
 
-def depuis_parole(monde, p, saisie):
-    """Une ancienne compilation datée ne peut plus passer à l'exécution."""
+def depuis_parole(monde, p, saisie, *, marches=False):
+    """Raccord E6, puis marchés relus : aucune proposition n'est exécutée ici."""
     for c in p.get('contenu', []):
+        if c.get('type') == 'proposition':
+            from .propositions import erreur_terme
+            if set(c) != {'type', 'demande', 'contrepartie'}:
+                raise ErreurMonde('Précise les clauses de ce marché.',
+                                  f'contenu : reçu {c!r} ; attendu type, demande, contrepartie.')
+            for nom in ('demande', 'contrepartie'):
+                erreur = erreur_terme(c[nom], nom == 'contrepartie')
+                if erreur:
+                    suffixe, recu, attendu = erreur
+                    raise ErreurMonde('Précise toutes les clauses de ce marché.',
+                                      f'contenu.{nom}{suffixe} : reçu {recu!r} ; attendu {attendu}.')
+        if c.get('type') == 'proposition' and marches:
+            from .accords_publics import accords_publics, parole_accord
+            if len(p['contenu']) != 1:
+                raise ErreurMonde('Compose ce marché séparément des autres actes de parole.',
+                                  f'contenu : reçu {p["contenu"]!r} ; attendu une seule proposition indivisible.')
+            d = {'geste': 'accord', 'cible': p.get('personnage', ''),
+                 'parametres': {k: copy.deepcopy(c[k]) for k in ('demande', 'contrepartie')}}
+            parole_accord(monde, d)  # Admission publique et typée, sans verdict ni effet.
+            return {'mode': 'dialogue', 'texte': 'Prépare ce marché dans le formulaire ; rien n’a été dit ni engagé.',
+                    'faits': [], 'proposition': None, '_texte_moteur': True,
+                    '_formulaire_accord': {'public': accords_publics(monde),
+                        'initial': {'destinataire': d['cible'], **copy.deepcopy(d['parametres'])}}}
         if c.get('type') == 'proposition' and any('limite' in c.get(k, {}) for k in ('demande', 'contrepartie')):
+            if len(p['contenu']) != 1 or set(c['contrepartie']) != {'type', 'montant'} or c['contrepartie']['type'] != 'pieces':
+                raise ErreurMonde('Précise tous les termes de cet accord daté dans le choix direct.',
+                                  f'contenu : reçu {p["contenu"]!r} ; attendu une prestation ponctuelle contre des pièces présentes.')
             return ouvrir(monde, {'destinataire': p.get('personnage', ''),
                 'prestation': {k: v for k, v in c['demande'].items() if k != 'limite'},
                 'prix': c['contrepartie'].get('montant') if c['contrepartie'].get('type') == 'pieces' else None,

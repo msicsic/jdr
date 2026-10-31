@@ -938,6 +938,9 @@ class MJ:
                     self._verifier_fidelite_parole(monde, intention, complements, rapport, revision,
                                                    operations_demandees, declaration_connue, operations_declarees,
                                                    operations_a_examiner)
+                    brouillon = depuis_parole(monde, complements, intention, marches=True)
+                    if brouillon:
+                        return brouillon
                     break
                 except ParoleImpossible as exc:
                     # À qui parler, de quelle façon : c'est au joueur de préciser ou de s'approcher.

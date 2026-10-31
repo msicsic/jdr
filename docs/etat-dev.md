@@ -43,6 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-k1-editeur-marche` — lot 429, base `integration` `b941c492` : éditeur à deux termes publics,
+  mêmes clauses à l’aperçu et à `echanges.proposer` ; adaptateur K0/E5 conservé, libre non daté après revue.
+  Web, console et TUI partagent les termes ; clauses inconnues refusées avec `attendu`, sans effet.
+  Acquis : K0 7/7 (137,8 s), première passe K1 4/4 (177,8 s), scènes Relais et auberge rechargées.
+  Passe finale K1/TUI/source des pièces et six fichiers voisins en fond, priorité réduite, sans Luna.
+  Fin attendue : `C:/Users/msics/donjon/artifacts/k1-editeur-429/fin.json` ; validation non encore acquise.
+  Limites : tâches ponctuelles E5, fidélité libre sémantique conservée ; [rapport](taches/rapport-codex-429-k1-editeur-marche.md).
+
 Lots en cours : 429 (K1, éditeur de marché), 427 (G14, ciblage d’ambiance), 428 (D0, parole ouverte), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
