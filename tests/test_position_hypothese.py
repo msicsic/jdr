@@ -289,11 +289,18 @@ class HypothesePositionTests(unittest.TestCase):
         self.assertEqual(lignes, decoupees)
         self.recharge(bloc)
         self.recharge(coupe)
-        # Le parent demeure servir Brune, mais la piste d'Ilse est consommée :
-        # sur 6614e692, le préparatif à la réserve la précédait de nouveau à
-        # chaque minute, produisant plus de trente passages pendant ces 6 min.
+        # Le 419 relie désormais les parts déjà portées au but qui visait leur
+        # lot : Brune est servie dès 18, sans rechercher une nouvelle fourniture
+        # auprès d'Ilse. Sa perception ultérieure peut renouveler cette piste.
+        parts = {o['id']: o.get('portions', 0) for o in m.objets.values()
+                 if o.get('lot_origine') == 'vivres' and o.get('lieu') == 'aubin'}
+        self.assertTrue(parts)
+        self.assertTrue(any(bloc.objets[p].get('portions', 0) < n for p, n in parts.items()))
+        self.assertTrue(any(c['pnj'] == 'aubin' and c['minute'] == 18 and 'donne une part' in c['texte']
+                            for c in bloc.data['chronique']))
         c = lire(bloc, 'aubin')['croyances']['ilse']['lieu']
-        self.assertTrue(hypothese_consommee(bloc, 'aubin', 'ilse'))
+        self.assertEqual(c['source'], 'vu')
+        self.assertGreater(c['minute'], 18)
         passages = [c for c in bloc.data['chronique'] if c['pnj'] == 'aubin'
                     and c['nature'] == 'deplacement' and c['minute'] >= 18]
         self.assertLessEqual(len(passages), 10)

@@ -1521,6 +1521,9 @@ def remettre(monde, donneur, receveur, objet, demande=False, achat=False):
             constater_possession(monde, participant, objet, "essai", remis_par=donneur,
                                   autorise=any(x["pour"] == proprietaire(monde, o) for x in livre))
     if livre and 'lot' in livre[0]:
+        # Une ancienne pièce peut être livrée pendant cette partie : la
+        # réception typée établit sa filiation avant toute sauvegarde.
+        o.setdefault('lot_origine', livre[0]['lot'])
         agendas.affecter_part(monde, receveur, livre[0]['lot'], objet)
     from .biens import compte, noter_compte
     noter_compte(monde, compte(donneur, receveur, objet, 1, "rendu"))
