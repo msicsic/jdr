@@ -43,6 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-s2-conception` — lot 398, base `integration e3adc0f4`, documentation seule.
+  [Conception S2](conception-s2.md) : 18 sous-lots d'un invariant, oracles et paires de cas,
+  dépendances S1f–p champ par champ ; cinq décisions S0 conservées, paramètres ouverts explicités.
+  Préparation possible pendant S1 ; implémentation après S1p, puis E7 et essai E9 (E8 reporté).
+  Tranche auberge à biographies manuelles et protocole rapide 4 h ; aucune mesure exécutée.
+  Références locales relues ; aucun test, banc ni Luna. Rapport 381 absent de la base.
+  [Rapport 398](taches/rapport-codex-398-s2-conception.md).
+
 Lots en cours : 381 (A2 passage), 396 (U-T social comptes), 397 (S1f localisation et possession), 398 (conception de S2) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
