@@ -9,7 +9,6 @@ from ..monde import ErreurMonde
 from ..sources import voie_cache
 from ..transport_openai import WebSocketResponses, ErreurTransport
 from .contrat import Fournisseur, Reponse
-from .schema import mutualiser
 
 
 class OpenAI(Fournisseur):
@@ -24,7 +23,7 @@ class OpenAI(Fournisseur):
             self._websocket.fermer()
 
     def _appeler(self, demande):
-        instructions, entree = demande.instructions, demande.entree
+        instructions, entree = demande.instructions_transport(), demande.entree
         fonction, schema = demande.fonction, demande.schema
         if self.erreur_auth:
             raise ErreurMonde(self.erreur_auth)
@@ -42,7 +41,7 @@ class OpenAI(Fournisseur):
             "input": [{"role": "user", "content": json.dumps(entree, ensure_ascii=False)}],
             "tools": [{"type": "function", "name": fonction,
                        "description": "Répond au joueur ou soumet une manœuvre au moteur, sans modifier le monde.",
-                       "parameters": mutualiser(schema), "strict": True}],
+                       "parameters": demande.schema_transport(), "strict": True}],
             "tool_choice": {"type": "function", "name": fonction},
             "parallel_tool_calls": False,
             "reasoning": {"effort": demande.effort},
@@ -121,6 +120,6 @@ class OpenAI(Fournisseur):
             p = json.loads(appels[0]["arguments"])
             if not isinstance(p, dict):
                 raise ValueError("La proposition doit être un objet")
-            return Reponse(p, resultat["output"], self.derniere_utilisation, self.derniere_sortie)
+            return Reponse(demande.decoder(p), resultat["output"], self.derniere_utilisation, self.derniere_sortie)
         except (ValueError, KeyError, TypeError):
             raise ErreurMonde("Proposition du MJ illisible. Aucune action appliquée.") from None

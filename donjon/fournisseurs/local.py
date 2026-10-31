@@ -18,7 +18,6 @@ from ..config import MODELE_LOCAL, URL_LOCAL_DEFAUT
 from ..monde import ErreurMonde
 from ..sources import slot_cache, voie_cache
 from .contrat import ErreurFournisseur, Fournisseur, Reponse
-from .schema import mutualiser
 
 
 def normaliser_url(url=None):
@@ -77,11 +76,11 @@ class Local(Fournisseur):
             demande.schema.get("properties", {}).get("mode", {}).get("enum") != ["dialogue"])
         slot = slot_cache(voie)
         cle_cache = f"{demande.cle_cache}:{voie}" if demande.cle_cache else voie
-        schema_compact = mutualiser(demande.schema)
+        schema_compact = demande.schema_transport()
         payload = {
             "model": modele,
             "messages": [
-                {"role": "system", "content": demande.instructions},
+                {"role": "system", "content": demande.instructions_transport()},
                 {"role": "user", "content": json.dumps(demande.entree, ensure_ascii=False)},
             ],
             "response_format": {
@@ -143,4 +142,4 @@ class Local(Fournisseur):
             raise ErreurFournisseur("Proposition du LLM local illisible. Aucune action appliquée.",
                                     brut=brut, utilisation=usage) from exc
         sortie = [{"type": "message", "role": "assistant", "finish_reason": raison, "slot": slot, "voie": voie}]
-        return Reponse(arguments, brut, usage, sortie)
+        return Reponse(demande.decoder(arguments), brut, usage, sortie)
