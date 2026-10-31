@@ -95,7 +95,7 @@ OBJET_PUBLIC |= frozenset(("entrave",))
 # de persistance. Ces dernières ne sont ni une perception ni une capacité.
 OBJET_PUBLIC |= frozenset(("relation_support",))
 OBJET_TECHNIQUE = frozenset(("origine_description", "scene_detail", "detail_local",
-                             "cartographier", "position_autonome", "ancrage_initial"))
+                             "cartographier", "position_autonome", "ancrage_initial", "lot_origine"))
 SOUVENIR_PERSONNAGE_PUBLIC = frozenset(("nom", "portrait", "traits", "details", "source", "minute",
                                        "tour", "maniere_de_parler"))
 SOUVENIR_VISUEL_PUBLIC = frozenset(("id", "nom", "derniere_salle", "hors_de_vue", "distance_metres",

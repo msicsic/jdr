@@ -117,6 +117,15 @@ class ProjectionCorpusTests(unittest.TestCase):
         with self.assertRaises(ProvenanceAbsente):
             projeter(e)
 
+    def test_la_filiation_d_une_part_ne_fait_pas_connaitre_son_lot(self):
+        e = copy.deepcopy(self.corpus[0]["entree"])
+        objet = next(k for k in e["faits"] if k.startswith("objet:"))
+        e["faits"][objet]["lot_origine"] = "LOT_JAMAIS_PERCU"
+        p = projeter(e)
+        self.assertNotIn("LOT_JAMAIS_PERCU", json.dumps(p.publique()))
+        self.assertNotIn("lot_origine", p.entree["faits"][objet])
+        self.assertGreater(verifier_couverture(e, p), 0)
+
     def test_champ_nouveau_des_dossiers_mixtes_ne_devient_pas_public(self):
         for source, ref in (("interlocuteurs", "marchand"),
                             ("esprits_interlocuteurs", "marchand"),

@@ -418,6 +418,8 @@ class Monde:
             if not self.accessible(o["id"]):
                 continue
             vue = copy.deepcopy(o)
+            # La filiation matérielle ne vaut pas connaissance du lot source.
+            vue.pop("lot_origine", None)
             # L'esprit d'un PNJ (profil, besoins, pulsions) reste interne au moteur.
             vue.pop("profil", None)
             vue.pop("humeur", None)

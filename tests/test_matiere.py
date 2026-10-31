@@ -195,6 +195,11 @@ class LotTests(unittest.TestCase):
         self.assertEqual(recharge.objets["planches_1"]["lieu"], "joueur")
         self.assertEqual(recharge.objets['planches_1']['lot_origine'], 'planches')
         self.assertIn("1,5 m", decrire(recharge, "planches_1", detail=True))
+        # La pièce reste manipulable sans publier la filiation interne : le
+        # joueur peut désormais porter cette pièce loin du lot qu'il a quitté.
+        for monde in (m, recharge):
+            contexte = monde.contexte()
+            self.assertNotIn('lot_origine', str(contexte))
 
     def test_un_objet_seul_ne_se_preleve_pas(self):
         from donjon.moteur import Moteur
