@@ -146,7 +146,9 @@ def catalogue(monde):
     from .dialogues import interlocuteurs
     from .transitions_scenario import disponibles
     accessibles = supports(monde)
+    from .narration import elements_ambiance
     return {"supports": accessibles,
+            "elements_ambiance": copy.deepcopy(elements_ambiance(monde)),
             "qualifiables": {id: {"nom": monde.objets[id]["nom"],
                                   "materiau": monde.objets[id]["materiau"],
                                   "description": monde.objets[id].get("description_visuelle", ""),
@@ -218,7 +220,10 @@ def lier_suite(proposition, monde, etablis):
     les mots du joueur ni changer les autres paramètres du geste.
     """
     from .noms import CHAMPS_REFERENCES, LISTES_REFERENCES
-    objets = [monde.objets[f["objet"]] for f in etablis if "objet" in f]
+    objets = [{**monde.objets[f["objet"]], "aliases": [
+        *monde.objets[f["objet"]].get("aliases", []),
+        *([f["ambiance"]] if "ambiance" in f else [])]}
+        for f in etablis if "objet" in f]
 
     def reference(valeur, chemin):
         try:
@@ -247,6 +252,54 @@ def lier_suite(proposition, monde, etablis):
         return copy.deepcopy(valeur)
 
     return parcourir(proposition)
+
+
+def element_ambiance(monde, reference, nom=""):
+    """Résolution exacte seulement ; une paraphrase reste au compilateur."""
+    from .narration import elements_ambiance
+    elements = {e["id"]: e for e in elements_ambiance(monde)}
+    if reference in elements:
+        return elements[reference]
+    candidats = {id: e for id, e in elements.items()
+                 if normaliser(reference) == normaliser(e["libelle"])
+                 or isinstance(nom, str) and nom and normaliser(nom) == normaliser(e["libelle"])}
+    ancrees = {id: e for id, e in candidats.items() if e["ancrage"] == reference}
+    if ancrees:
+        candidats = ancrees
+    if len(candidats) > 1:
+        raise ErreurMonde("Plusieurs éléments d'ambiance correspondent à cette cible.",
+                          f"ancrage reçu {reference!r}, nom {nom!r} : accepté un identifiant parmi "
+                          + ", ".join(sorted(candidats)) + ".")
+    return next(iter(candidats.values()), None)
+
+
+def reference_ambiance(monde, reference):
+    """Une cible cosmétique n'autorise jamais directement une manipulation."""
+    e = element_ambiance(monde, reference)
+    if e is None:
+        return reference
+    if not e["manipulable"]:
+        raise ErreurMonde(f"« {e['libelle']} » est une sensation d'ambiance, sans objet à manipuler.",
+                          f"cible reçu {reference!r} : aucune manipulation pour {e['id']} ; "
+                          "accepté un objet existant du monde.")
+    if "objet" not in e:
+        raise ErreurMonde("Cet élément d'ambiance doit être matérialisé avant le geste.",
+                          f"cible reçu {reference!r} : accepté etablir_faits, ancrage={e['id']!r}, "
+                          f"nom={e['libelle']!r} ; support public {e['ancrage']!r}, budget et usages ordinaires.")
+    return e["objet"]
+
+
+def lier_cibles_ambiance(monde, proposition):
+    """Même liaison pour les actions simples, composées et leurs rejeux."""
+    from .noms import CHAMPS_REFERENCES, LISTES_REFERENCES
+    if isinstance(proposition, list):
+        return [lier_cibles_ambiance(monde, v) for v in proposition]
+    if not isinstance(proposition, dict):
+        return proposition
+    return {k: (reference_ambiance(monde, v) if k in CHAMPS_REFERENCES and isinstance(v, str)
+                else [reference_ambiance(monde, e) for e in v]
+                if k in LISTES_REFERENCES and isinstance(v, list) and all(isinstance(e, str) for e in v)
+                else lier_cibles_ambiance(monde, v)) for k, v in proposition.items()}
 
 
 def _outil_de_coupe(monde, cible, identifiant):
@@ -324,6 +377,25 @@ def preparer_faits(monde, proposition, revision=None):
             etablis.append({"type": nature, "transition": ancrage})
             continue
         ancrage = reference_exacte(travail.objets.values(), ancrage) or ancrage
+        ambiance = (element_ambiance(travail, ancrage, ajout.get("nom", ""))
+                    if nature in ("objet", "detail", "qualification") else None)
+        if ambiance:
+            if not ambiance["manipulable"]:
+                reference_ambiance(travail, ambiance["id"])
+            if nature == "qualification":
+                ancrage = reference_ambiance(travail, ambiance["id"])
+            elif "objet" in ambiance:
+                id = ambiance["objet"]
+                rendus.append("Cet élément existe déjà : " + designer(travail.objets[id]) + ".")
+                etablis.append({"type": nature, "objet": id, "ambiance": ambiance["id"]})
+                continue
+            else:
+                if (nature != "objet" or ajout["nom"] != ambiance["libelle"]
+                        or ancrage not in (ambiance["id"], ambiance["ancrage"])):
+                    raise refus("Cette matérialisation ne correspond pas à l'élément d'ambiance.",
+                                f"type reçu {nature!r}, ancrage {ancrage!r}, nom {ajout.get('nom')!r} : "
+                                f"accepté type objet, ancrage {ambiance['id']!r}, nom {ambiance['libelle']!r}.")
+                ancrage = ambiance["ancrage"]
         if nature == "qualification":
             if ancrage not in autorises["qualifiables"]:
                 # Une cause par refus : la lumière, la vue ou la distance, comme pour un détail ; un objet
@@ -588,7 +660,15 @@ def preparer_faits(monde, proposition, revision=None):
             "objet": id, "nom": detail["nom"], "salle": travail.joueur["salle"],
             "description": detail.get("description_visuelle", ""),
             "inscription": detail.get("inscription", "")})
-        etablis.append({"type": nature, "support": ancrage, "objet": id})
+        etabli = {"type": nature, "support": ancrage, "objet": id}
+        if ambiance:
+            from .narration import elements_ambiance
+            detail["origine_ambiance"] = ambiance["id"]
+            for e in elements_ambiance(travail):
+                if e["id"] == ambiance["id"]:
+                    e["objet"] = id
+            etabli["ambiance"] = ambiance["id"]
+        etablis.append(etabli)
     travail.data["revision"] += 1
     travail.data.setdefault("enrichissements", []).append({
         "revision": travail.data["revision"], "origine": "MJ",
@@ -599,6 +679,9 @@ def preparer_faits(monde, proposition, revision=None):
 
 def verifier(monde):
     from .geometrie import cases
+    origines = [o["origine_ambiance"] for o in monde.objets.values() if "origine_ambiance" in o]
+    assert (all(isinstance(o, str) and re.fullmatch(r"ambiance_[0-9a-f]{24}", o) for o in origines)
+            and len(origines) == len(set(origines))), "Matérialisation d'ambiance dupliquée ou invalide"
     for salle, nombre in monde.data.get("inventions", {}).items():
         budget = monde.data["salles"].get(salle, {}).get("potentiel_invention")
         assert (budget is not None and type(nombre) is int

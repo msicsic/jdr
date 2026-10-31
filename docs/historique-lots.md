@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-g14-ciblage-ambiance` — lot 427, base `origin/integration` / `ce64ba7e`.
+  Enveloppe cosmétique validée et persistée ; matérialisation unique par les faits communs,
+  reprise vers le même objet après recharge et éviction de prose ; odeur et budget refusés.
+  Tests : 81/82 verts, dont 5 G14 ; seul échec narratif reproduit sur la base, aucune erreur.
+  Banc rapide Relais : 4 h × 4 graines, chroniques/mesures/états finaux identiques à la base.
+  Luna, une passe : 31 appels / 9 tours MJ, aucun ramassage réussi ; revues sémantiques encore bloquantes.
+  Limites : paraphrases, classification et portée ; anciennes ambiances sans ancrage non reconstruites.
+  [Rapport 427](taches/rapport-codex-427-g14-ciblage-ambiance.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. L'ambiance publiée porte des références locales (libellé, ancrage, manipulable) validées avant publication ; faits_locaux.preparer_faits matérialise une fois l'élément ciblé par les validations communes, odeur refusée avec attendu, objet unique après recharge. 81/82 tests (échec narratif préexistant reproduit sur la base), banc Relais 4 h identique. Limite : aucun ramassage réussi avec Luna (la revue refuse la création comme perception active), comme pour G12 et G13.
+
 - **`codex-k0-candidats-contrat` — 426 / K0**, base `integration` `a874d646` : suggestions déterministes
   de parts et tâches visibles, possession publique, admission sur copie ; sélection → formulaire E5/U-D, aucun accord.
   Terminé, non fusionné : cas Aubin/planches, Odile/huile et verrouillage ; 62 tests réussis, 2 ignorés (`jsonschema`).

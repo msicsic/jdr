@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-g14-ciblage-ambiance` (709f9f85) : lot 427, G14 ciblage d'un élément d'ambiance. Détail dans l'historique.
 - `codex-k0-candidats-contrat` (69080b86) : lot 426, K0 candidats de contrat déterministes. Détail dans l'historique.
 - `codex-decoupe-combustible` (5af58c58) : lot 425, découper un combustible compté. Détail dans l'historique.
 - `codex-empreintes-374` (dced64c0) : lot 424, empreintes changées par le lot 374 (famille E du 414). Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1m-renoncements` (83ebb7a4) : lot 418, S1m renoncements et efforts bornés publiés au choix réussi. Détail dans l'historique.
 - `codex-obstacle-temoin-expire` (fe612c40) : lot 417, un renoncement dû à un témoin tient quand sa position expire. Détail dans l'historique.
 - `codex-suite-4539dd68` (1edc86e3) : lot 414, attribution des rouges de la suite 4539dd68. Détail dans l'historique.
-- `codex-a5-reprise-fidele` (46274c29) : lots 412 et 415, A4 dossier de revue et A5 reprise fidèle. Détail dans l'historique.
 
 ## Lots non fusionnés
 
