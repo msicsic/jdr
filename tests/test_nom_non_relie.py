@@ -89,7 +89,8 @@ class NomNonRelieTests(unittest.TestCase):
                 apprendre(m, 'joueur', qui)
                 m.objets['cloche'].update(lieu='joueur', position_salle='antichambre')
                 avant = copy.deepcopy(m.objets[qui])
-                r, sortie, appels = jouer(m, saisie, [action(p)], [])
+                r, sortie, appels = jouer(m, saisie, [action(p)], [],
+                                          suite=('tenter',) if qui == 'brune' else ())
                 if qui == 'aubin':
                     self.assertEqual(r.objets[qui], avant)  # fiche seulement, sans « tenter »
                     self.assertIn('pousser', sortie.lower())

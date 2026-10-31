@@ -17,6 +17,7 @@ from tests.support import regarder
 from tests.test_lampes_parts import nuit_noire
 from tests.test_tache_promise_recours import reserve
 from tests.test_tensions import recharger
+from tests.remboursements import rembourser_local
 
 
 def geste(m, qui, op, objet, outil=''):
@@ -80,6 +81,8 @@ class RealisationDateeTests(unittest.TestCase):
                 for _ in range(2):
                     agendas.echoir(m, 'odile')
                     solder(m, [])
+                    if t > 100 and m.data.get('dettes'):
+                        self.assertTrue(rembourser_local(m, 'odile', []))
                     m = self.recharge(m)
                 self.assertEqual(len(agendas.issues_temporelles(m)), 1)
                 self.assertEqual((bourse(m, 'joss'), bourse(m, 'odile')),
@@ -101,6 +104,8 @@ class RealisationDateeTests(unittest.TestCase):
                 for _ in range(2):
                     agendas.echoir(m, qui)
                     solder(m, [])
+                    if t > 100 and m.data.get('dettes'):
+                        self.assertTrue(rembourser_local(m, qui, []))
                     m = self.recharge(m)
                 self.assertEqual(len(agendas.issues_temporelles(m)), 1)
                 self.assertEqual((bourse(m, qui), bourse(m, pour)),
@@ -271,6 +276,7 @@ class RealisationDateeTests(unittest.TestCase):
         percevoir_tous(m)
         lignes = []
         solder(m, lignes)
+        self.assertTrue(rembourser_local(m, 'aubin', lignes))
         m = self.recharge(m)
         self.assertTrue(any('te rend 3 pièces' in t for t in lignes), lignes)
         self.assertEqual(m.joueur['or'], 24)

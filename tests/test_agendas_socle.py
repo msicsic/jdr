@@ -8,6 +8,7 @@ import ast
 import copy
 from pathlib import Path
 import unittest
+from tests.remboursements import rembourser_local
 
 from donjon import agendas
 from donjon.biens import bourse
@@ -140,9 +141,12 @@ class ChaineTests(unittest.TestCase):
         m, avant = self.abandon_paye()
         # Isoler le remboursement intégral d'une autre dépense autonome :
         # Tilo attend ici deux minutes. Le solde normal entre créancier et
-        # débiteur reste exécuté par la vie des PNJ, même pendant cette attente.
+        # débiteur est désormais un geste volontaire (388), qui attend sa liberté.
         lire(m, 'tilo')['libre'] = 2 * 600
         m, lignes = vivre(m, 2)
+        m = recharger(m)
+        self.assertEqual((m.joueur['or'], bourse(m, 'tilo')), (avant[0] - 20, avant[1] + 20))
+        self.assertTrue(rembourser_local(m, 'tilo', lignes))
         m = recharger(m)
         self.assertEqual(agendas.en_cours(m, "tilo"), [])
         self.assertEqual((m.joueur["or"], bourse(m, "tilo")), avant)
@@ -184,6 +188,7 @@ class ChaineTests(unittest.TestCase):
         # Apport explicite, prélevé chez celle qui a reçu la pièce : aucun or créé.
         payer(m, 'odile', 'tilo', 1)
         solder(m, lignes)
+        self.assertTrue(rembourser_local(m, 'tilo', lignes))
         m = recharger(m)
         self.assertEqual((m.joueur['or'], bourse(m, 'tilo')), avant)
         self.assertEqual(bourse(m, 'odile'), odile)

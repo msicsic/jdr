@@ -23,6 +23,7 @@ from donjon.planification import DEMANDE, Vue, depart, gestes, planifier, planif
 from tests.support import calme, refusee, regarder
 from tests.test_planif_defauts import MINEURS
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
+from tests.remboursements import rembourser_local
 
 
 def de(m, id):
@@ -209,6 +210,8 @@ class PartPayeeTests(unittest.TestCase):
         self.assertEqual(m.joueur["or"], or_avant - 2)
         m.objets["vivres"]["portions"] = 0
         m, lignes = vivre(recharger(m), 1)
+        self.assertTrue(rembourser_local(m, 'marchand', lignes))
+        m = recharger(m)
         self.assertEqual(m.joueur["or"], or_avant)
         self.assertEqual(m.data["dettes"], [])
         self.assertIn("Gorm te rend 2 pièces : la part des vivres du refuge que tu avais payée ne t'a pas été "

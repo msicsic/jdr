@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 import gzip
 import json
+from tests.remboursements import rembourser_local
 
 from donjon.biens import (bourse, entrees_creance, reponse_creance_retenue, reclamer_dette,
                           rembourser, solder)
@@ -69,6 +70,7 @@ class ReclamationsRepeteesTests(unittest.TestCase):
                 m.data['finances_pnj'][de] = 1
                 avant_paiement = bourse(m, a)
                 solder(m, [])
+                self.assertTrue(rembourser_local(m, de, []))
                 self.assertEqual(bourse(m, a), avant_paiement + 1)
                 self.assertEqual(bourse(m, de), 0)
                 self.assertEqual(m.data['dettes'], [])
@@ -216,6 +218,7 @@ class ReclamationsRepeteesTests(unittest.TestCase):
         # L'autorité du débiteur sur son règlement spontané est conservée.
         m.objets[de]['profil']['valeurs']['honnetete'] = 100
         solder(m, [])
+        self.assertTrue(rembourser_local(m, de, []))
         self.assertEqual(m.data['dettes'], [])
         self.recharge(m)
 
@@ -238,6 +241,10 @@ class ReclamationsRepeteesTests(unittest.TestCase):
 
     def test_contact_et_reglement_laps_entier_ou_decoupe(self):
         m, a, de, objet = self.preparer(honnete=True)
+        # Le 388 rend aussi les dettes personnelles spontanément : isoler
+        # cette créance, comme dans ses tests d'autonomie documentés.
+        m.objets[a]['profil'].setdefault('situation', {})['dette'] = 0
+        m.objets[de]['profil'].setdefault('situation', {})['dette'] = 0
         salle = m.objets[a]['lieu']
         placer(m, de, salle, (8, 3))
         croire(m, a, de, 'lieu', salle, 'savoir', salle=salle, case=[8, 3])

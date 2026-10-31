@@ -32,8 +32,23 @@ class ContenusParoleTests(unittest.TestCase):
                 for autre in TYPES:
                     self.assertEqual(autre + ' :' in types['description'], autre in types['enum'])
                 for champ in ('sujet', 'attribut', 'valeur'):
-                    p = compatibles[0]['properties'][champ]
-                    self.assertEqual(p.get('enum') == [''], champ not in CHAMPS_CONTENU[type_])
+                    variante = compatibles[0]
+                    p = variante['properties'].get(champ)
+                    if p is None:
+                        self.assertNotIn(champ, CHAMPS_CONTENU[type_])
+                        self.assertIs(variante['additionalProperties'], False)
+                        # Une forme dédiée interdit le champ au lieu de le
+                        # transporter vide (rembourser, lot 388).
+                        m = relais()
+                        avant = json.dumps(m.data, sort_keys=True)
+                        contenu = {'type': type_, **{c: '' for c in CHAMPS_CONTENU[type_]},
+                                   champ: 'inattendu'}
+                        with self.assertRaises(ErreurMonde) as refus:
+                            verifier_contenus(m, [contenu])
+                        self.assertIn(champ, refus.exception.attendu)
+                        self.assertEqual(avant, json.dumps(m.data, sort_keys=True))
+                    else:
+                        self.assertEqual(p.get('enum') == [''], champ not in CHAMPS_CONTENU[type_])
 
     def test_questions_ordinaires_deux_scenarios_sans_correction_apres_recharge(self):
         from tests.test_gardes_justes import crypte
