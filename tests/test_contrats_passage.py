@@ -229,14 +229,29 @@ class ContratsPassageTests(unittest.TestCase):
             self.assertEqual(p, proposition("pousser", cible))
             plan = Moteur(m).preparer(p)
             self.assertEqual((plan.stat, plan.oppose, plan.dixiemes), ("FOR", cible, 30))
-            self.assertIn(PASSAGES["pousser"]["public"], plan_admis(m, plan))
+            compris = plan_admis(m, plan)
+            self.assertIn(PASSAGES["pousser"]["public"], compris)
             joueur = copy.deepcopy(m.joueur["position"])
             with patch.object(Monde, "d20", side_effect=[20, 1, *([10] * 100)]):
-                Moteur(m).executer(plan)
-            m = recharger(m)
-            self.assertEqual(m.joueur["position"], joueur)
-            self.assertNotEqual(m.objets[cible]["position"], list(SEUIL))
-            self.assertEqual(m.data["journal"][-1]["action"]["action"], "pousser")
+                sortie = Moteur(m).executer(plan)
+            m.memoriser("pousser " + cible, sortie + "\n" + compris, "resultat_moteur", complet=True)
+            recharge = recharger(m)
+            with self.subTest(poussee=cible):
+                self.assertIn("REUSSITE", sortie)
+                self.assertIn("recule d'un pas", sortie)
+                self.assertEqual(recharge.data, json.loads(json.dumps(m.data)))
+                self.assertEqual(recharge.joueur["position"], joueur)
+                # La réaction sociale peut déjà ramener la victime au seuil pendant
+                # les trois secondes : l'effet prouvé est le recul réellement appliqué.
+                poussee = next(e for e in reversed(recharge.data["historique_corps"])
+                               if e["type"] == "poussee" and e["id"] == cible and e["auteur"] == "joueur")
+                self.assertTrue(poussee["reussie"])
+                self.assertNotEqual(poussee["arrivee"], poussee["depart"])
+                self.assertEqual(poussee["arrivee"], [plan.effets[0][2]["salle"], plan.effets[0][2]["position"]])
+                self.assertEqual(recharge.data["journal"][-1]["action"]["action"], "pousser")
+                self.assertIn(sortie + "\n" + compris, recharge.data["conversation"][-1]["reponse"])
+                self.assertEqual((regarder(recharge), fiche(recharge), scene_percue(recharge)),
+                                 (regarder(m), fiche(m), scene_percue(m)))
 
     def test_demande_et_propos_persistes_avec_compris_avant_affichage(self):
         from donjon.emissions import joueur as emissions
