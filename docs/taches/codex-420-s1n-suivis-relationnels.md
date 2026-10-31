@@ -10,7 +10,7 @@ Quatorzième lot de S1, le socle de la mémoire unifiée ([plan de l'esprit soci
 **Les suivis relationnels (épreuves reçues, ancrages, compagnie partagée, soupçons déduits du 372, liens et bandes) ont une preuve stable lue et écrite seulement par des vues et opérations nommées de `donjon/memoire.py` (ou de l'interface de croyances du 397), et une seule projection vers les décisions ; `relations.py` reste la seule autorité sur les axes.** Mêmes axes, mêmes ancrages, mêmes effets complémentaires, hystérésis et estompement conservés ; stockage historique inchangé ; aucun changement de choix, de parole, de délai, de tirage ni de classement. L'inventaire AST décroît.
 
 ## Vérification
-Les fichiers que S0 indique pour S1n (`relations_graduees`, `agendas_evenement`, `constater_soupcon`, `soupcon_deduit`) et ceux
+Les fichiers que S0 indique pour S1n (`relations_graduees`, `agendas_evenement`, `constater_soupcon`, et les tests du lot 372) et ceux
 des écrivains touchés, plus `test_memoire_socle` ; cas historique réel et autre cas, état complet, rendu, scène et paroles
 après recharge, même laps entier/découpé. **Empreintes 2 h, quatre graines, Relais, mine, auberge et crue, identiques à
 la base exacte** (`tools/comparer_bancs.py --empreintes`, cache). Pas de suite complète, ni Luna.
