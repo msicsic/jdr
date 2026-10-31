@@ -46,6 +46,17 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 Lots en cours : 381 (A2 passage), 396 (U-T social comptes), 397 (S1f localisation et possession), 398 (conception de S2) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
+## Passe Luna d'E6 (2026-10-31, orchestrateur, laptop)
+
+Les 12 scripts de l'évaluation 371 sur copies, intégration `e3adc0f4` : 14 appels, 1 appel et ~4,4 s par tour MJ, aucun repli
+ni erreur de recharge. **Relais** : « je te paie trois pièces maintenant si tu me livres une part de tes planches dans dix
+minutes » ouvre le formulaire 3/3, et valider puis tenter conclut l'accord (Aubin accepte, pièces payées une fois).
+**Auberge** (même phrase, Odile, huile) : formulaire 1/3 ; 2/3 faux refus typés par Luna (« prêt daté », « clause
+alternative ») ; après valider, le délai n'est pas prérempli. **« demain »** refusé 2/2 avec la mauvaise raison (« prêt
+daté » au lieu de « précise le délai en minutes »). Maintien et paiement futur refusés à juste titre 4/4. Limite d'E6
+confirmée : le typage libre de l'accord daté reste fragile (à reprendre avec K2 ou un lot de typage). Bruts
+`C:/Users/msics/donjon/artifacts/luna-e6-371/` (laptop).
+
 ## Décisions prises le 2026-10-30
 
 - **Échéance négociée avant la menace** (lot 347, `docs/conception-menace-echeance.md`) : les six arbitrages de sa
