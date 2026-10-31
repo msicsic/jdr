@@ -2,6 +2,60 @@
 
 Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-31.
 
+- **Fer & Flamme — pleine inclinaison, poussée et freinage latéraux**.
+  Retrait de l'atténuation cosinus et du plancher 0,25 qui limitaient
+  implicitement l'inclinaison et la poussée. Budget de portance calculé à
+  couple nul sous puissance disponible ; commandes combinées projetées sur
+  le vecteur réalisable. Freinage de translation prioritaire, retour à plat
+  anticipé avec l'allocation physique commune, dernière impulsion sans recul.
+  Sur le plan colonne : 82,06°, HUD 100 %, arrêt X depuis 40 m/s en 1,20 s
+  sur 27,59 m, contre 5,50 s/~75 m auparavant. Perte transitoire d'altitude
+  jusqu'à 1,02 m dans ces essais, puis récupération ; pas d'optimalité globale
+  X/Y/rotation revendiquée. Vérifications : 24 poussées/arrêts, 24 commandes
+  combinées et 24 transitions, trois montages dans les deux sens après deux
+  chargements ; oracles de 80 enveloppes et 16 budgets électriques.
+  Worktree et branche `fer-et-flamme`, publication sur cette branche, `main` intact.
+  [Contrat, limites et mesures](fer-assistance.md#pleine-poussée-latérale-et-freinage-de-la-translation).
+
+- **Fer & Flamme — décollage puis direction, poussée signée et oscillations**.
+  Nouveau plan exact de 479 kg : `tools/fer-build-joueur-colonne.json`.
+  Défaut reproduit : le freinage de montée inversait la poussée, tandis que
+  l'inclinaison supposait une poussée positive ; recul mesuré à 14,37 m/s.
+  Inclinaison et prédiction du freinage utilisent la force mondiale signée.
+  Allocation contrainte dans le sens Q/D, sans perdre les couples purs ;
+  cible d'assiette résolue avec l'anticipation de translation, sans cible
+  qui se déplace à chaque correction. Aucun plafond réintroduit.
+  Vérification : 24 épisodes, trois plans après deux chargements, départ
+  du sol et stationnaire dans les deux sens, arrêt et HUD ; sans tirs ni
+  collisions parasites. Cinq plans du test général et 80 enveloppes verts.
+  Compact toujours au-delà de 7,21 rad/s et 32,94 rad/s², puis stabilisé.
+  [Contrat et test de transition](fer-assistance.md#coordination-de-la-poussée-et-de-la-direction-au-décollage).
+
+- **Fer & Flamme — retrait des plafonds de vol assisté**, même worktree et branche.
+  Suppression des plafonds de rotation/accélération, du couple à 90 %, des
+  dosages Z/S 50/70 % et 8 g, de la marge forfaitaire de portance à 15 %.
+  `domaineGroupe` commun à l'allocation ; freinage prévu selon l'inertie et le
+  travail du contre-couple réalisable sur l'angle restant, puissance comprise.
+  La cible des roues à 9,5 m/s est conservée : son retrait faisait basculer le
+  rover. Les limites physiques et les amortissements des deux modes restent.
+  Passe finale verte : deux builds et compact après deux chargements, 18
+  redressements ; pics 5,78 rad/s sur le build actuel, 7,84 rad/s et 33,49 rad/s²
+  sur le compact, puis stabilisation. 80 enveloppes, cinq plans assistés,
+  latéral unique, moteurs retournés, manuel et frein manuel : verts.
+  [Contrat et vérifications](fer-assistance.md#assistance-sans-plafonds-forfaitaires-de-vol).
+
+- **Fer & Flamme — inversion des réacteurs en assisté**, même worktree et branche.
+  Bornes physiques communes au manuel, à l'assisté et au bilan de conception.
+  Inversion disponible à toute assiette, pour les verticales et les latéraux,
+  dans l'allocation existante qui compense portance et couple. Descente et
+  freinage vertical exploitent la capacité inverse ; bilan et rapport
+  poussée/poids la comptent aussi. Pas de nouveau plafond de vitesse.
+  Deux builds joueur, latéral unique et moteurs retournés, après deux
+  chargements : descente, freinage, déplacement et arrêt stables, bornes et
+  consommation vérifiées. Bilan et capture rapprochée inspectés. Régressions
+  vertes : 80 enveloppes, cinq configurations assistées, manuel et frein de
+  rotation. [Contrat et tests](fer-assistance.md#poussée-inversée-dans-les-deux-modes).
+
 - **Fer & Flamme — freinage de rotation en manuel**, même worktree et branche.
   Q/D gardent le couple choisi par la jauge, 100 % par défaut. Au neutre,
   contre-couple opposé maximal, indépendant de la jauge, puis dernière impulsion

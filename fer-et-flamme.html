@@ -614,7 +614,7 @@ function analyser(list) {
       r.reacteurs.push(b);
       r.poussee += d.thrust;
       const f = forceLocal(b);
-      r.pousseeVerticale += d.thrust * Math.max(0, f.y);
+      r.pousseeVerticale += bornesPoussee(d, f.y).max;
     }
     if (d.cat === 'kinetic' || d.cat === 'energy') r.armes.push(b);
     if (d.cat === 'core') r.postes++;
@@ -1417,7 +1417,7 @@ function construireVehicule(a, opts) {
     altCible: spY, altVerrou: false, xCible: sp.x, latVerrou: false,
     partReacteur: 0, partStock: 0, recharge: 0, rechargeUtile: 0,
     production: 0, puissanceUtilisee: 0,
-    sol: false, torqueAuth: 0, assistOK: false, videMsg: -9,
+    sol: false, assistOK: false, videMsg: -9,
     recul: 0
   };
   for (const b of v.blocks) {
@@ -1503,9 +1503,6 @@ function construireVehicule(a, opts) {
   const verts = v.thrusters.filter(t => Math.abs(t.force.y) > 0.6);
   const xs = verts.map(t => t.rx);
   v.assistOK = verts.length >= 2 && (Math.max(...xs) - Math.min(...xs)) > 0.1;
-  const verticaux = v.thrusters.filter(t => Math.abs(t.force.y) > 0.6);
-  v.torqueAuth = v.assistOK
-    ? verticaux.reduce((s, t) => s + t.def.thrust * Math.abs(t.rx), 0) * 0.9 : 0;
   v.points = [];
   for (const b of v.blocks) {
     const c = cellCentre(b);
@@ -1660,9 +1657,6 @@ function rafraichirVehicule(v) {
   const verts = v.thrusters.filter(t => Math.abs(t.force.y) > 0.6);
   const xs = verts.map(t => t.rx);
   v.assistOK = verts.length >= 2 && (Math.max(...xs) - Math.min(...xs)) > 0.1;
-  const verticaux = v.thrusters.filter(t => Math.abs(t.force.y) > 0.6);
-  v.torqueAuth = v.assistOK
-    ? verticaux.reduce((s, t) => s + t.def.thrust * Math.abs(t.rx), 0) * 0.9 : 0;
   v.thetaUtil = angleInclinaisonMax(restants, v.puissance, v.decharge);
   v.pousseeNette = pousseeNette(restants);
   v.points = [];
@@ -1770,35 +1764,87 @@ function appliquerDegatsBloc(v, bloc, degats) {
 // Inclinaison maximale utilisable pour se déplacer latéralement. Le facteur
 // limitant est la portance : à l'angle θ, la poussée verticale vaut T·cos θ.
 // On prend la poussée réellement disponible (puissance) et la poussée maximale
-// compatible avec une assiette à plat (répartition des tuyères), puis on garde
-// 15 % de marge pour que le contrôle d'altitude puisse encore corriger.
-const MARGE_PORTANCE = 0.85;
+// compatible avec une assiette à plat. La répartition réserve ensuite la
+// force réellement nécessaire au poids, sans marge forfaitaire.
+// Bornes physiques dans un axe local, communes aux deux modes de pilotage
+// et au bilan de conception. L'inversion dépend du réacteur, pas de l'assiette.
+function bornesPoussee(def, sens) {
+  const avant = sens * def.thrust, arriere = -avant * (def.reverse || 0);
+  return { min: Math.min(avant, arriere), max: Math.max(avant, arriere) };
+}
+// Maximum à couple nul sous budget électrique. Le problème linéaire sépare
+// les poussées positives/négatives ; une recherche duale du prix de l'énergie
+// interpole deux solutions de la boîte, chacune déjà à couple nul.
+function portanceSousPuissance(groupe, puissance) {
+  if (!groupe.length || puissance <= 0) return 0;
+  if (!isFinite(puissance)) return pousseeMax(groupe, 0);
+  const variables = groupe.flatMap(t => [
+    { cap: Math.max(0, borneMax(t)), signe: 1, levier: t.rx, cout: t.cout },
+    { cap: Math.max(0, -borneMin(t)), signe: -1, levier: -t.rx, cout: t.cout }
+  ]).filter(t => t.cap > 0);
+  if (!variables.length) return 0;
+  const optimiser = prix => {
+    let couple = 0, force = 0, consommation = 0;
+    const evenements = [];
+    for (const t of variables) {
+      const valeur = t.signe - prix * t.cout;
+      if (Math.abs(t.levier) < 1e-12) {
+        if (valeur > 1e-12) { force += t.signe * t.cap; consommation += t.cout * t.cap; }
+        continue;
+      }
+      const sens = t.levier > 0 ? -1 : 1;
+      if (t.levier > 0) {
+        couple += t.levier * t.cap; force += t.signe * t.cap; consommation += t.cout * t.cap;
+      }
+      evenements.push({ seuil: valeur / t.levier, couple: -Math.abs(t.levier) * t.cap,
+        force: sens * t.signe * t.cap, puissance: sens * t.cout * t.cap });
+    }
+    if (couple <= 1e-9) return { force: Math.max(0, force), puissance: Math.max(0, consommation) };
+    evenements.sort((a, b) => a.seuil - b.seuil);
+    for (let i = 0; i < evenements.length;) {
+      const seuil = evenements[i].seuil;
+      let dc = 0, df = 0, dp = 0;
+      do { const e = evenements[i++]; dc += e.couple; df += e.force; dp += e.puissance; }
+      while (i < evenements.length && Math.abs(evenements[i].seuil - seuil) < 1e-12);
+      if (couple + dc <= 1e-9) {
+        const k = clamp(-couple / dc, 0, 1);
+        return { force: Math.max(0, force + k * df), puissance: Math.max(0, consommation + k * dp) };
+      }
+      couple += dc; force += df; consommation += dp;
+    }
+    return { force: 0, puissance: 0 };
+  };
+  let bas = 0, haut = 2 / Math.min(...variables.map(t => t.cout));
+  let gourmand = optimiser(bas), sobre = optimiser(haut);
+  if (gourmand.puissance <= puissance) return gourmand.force;
+  for (let i = 0; i < 36; i++) {
+    const milieu = (bas + haut) / 2, p = optimiser(milieu);
+    if (p.puissance > puissance) { bas = milieu; gourmand = p; }
+    else { haut = milieu; sobre = p; }
+  }
+  const k = gourmand.puissance > sobre.puissance
+    ? clamp((puissance - sobre.puissance) / (gourmand.puissance - sobre.puissance), 0, 1) : 0;
+  return lerp(sobre.force, gourmand.force, k);
+}
 function angleInclinaisonMax(blocs, puissance, decharge) {
   const verts = [];
-  let demProp = 0, poussee = 0;
   const com = centreMasseCorps(blocs);
   for (const b of blocs) {
     const d = BLOCKS[b.type];
     if (!d) continue;
-    if (d.cat === 'wheel' || d.cat === 'thruster') demProp += d.power;
     if (d.cat !== 'thruster') continue;
     const f = forceLocal(b);
-    if (f.y <= 0.6) continue;
+    if (Math.abs(f.y) <= 0.6) continue;
     const c = cellCentre(b);
-    verts.push({ rx: c.x - com.x, max: d.thrust });
-    poussee += d.thrust;
+    verts.push({ rx: c.x - com.x, ...bornesPoussee(d, f.y), cout: d.power / d.thrust });
   }
-  if (!verts.length || poussee <= 0) return 0;
-  const f = demProp > 0 ? Math.min(1, (puissance + decharge) / demProp) : 1;
-  const Tniv = pousseeMax(verts.map(th => ({ rx: th.rx, max: th.max * f })), 0);
+  if (!verts.length) return 0;
+  const Tniv = portanceSousPuissance(verts, puissance + decharge);
   if (Tniv <= 1) return 0;
   const masse = blocs.reduce((s, b) => s + blockMass(b), 0);
   const survol = (masse * G) / Tniv;
   if (survol >= 1) return 0;
-  // Marge de 15 % sur le collectif quand elle est possible ; sinon on autorise
-  // l'angle de décrochement exact (la portance est alors juste suffisante).
-  const cosMax = survol < MARGE_PORTANCE ? survol / MARGE_PORTANCE : survol;
-  return Math.acos(clamp(cosMax, 0, 1));
+  return Math.acos(clamp(survol, 0, 1));
 }
 
 // Poussée totale réalisable à couple nul. Quand le centre de masse n'est pas
@@ -1811,8 +1857,9 @@ function pousseeNette(blocs) {
   for (const b of blocs) {
     const d = BLOCKS[b.type];
     if (!d || d.cat !== 'thruster') continue;
-    if (forceLocal(b).y <= 0.6) continue;
-    verts.push({ rx: cellCentre(b).x - com.x, max: d.thrust });
+    const sens = forceLocal(b).y;
+    if (Math.abs(sens) <= 0.6) continue;
+    verts.push({ rx: cellCentre(b).x - com.x, ...bornesPoussee(d, sens) });
   }
   if (!verts.length) return 0;
   return pousseeMax(verts, 0);
@@ -2033,20 +2080,16 @@ const pousseeMax = (groupe, tau) => {
 // fixée, toute valeur de couple entre les deux bords est une combinaison
 // convexe de leurs répartitions : les bornes restent donc garanties.
 // Les bornes peuvent être signées, y compris pour la poussée inversée.
-function repartirGroupe(groupe, T, tauCible, Tmin) {
-  if (!groupe.length) return { tau: 0, force: 0 };
-  const points = enveloppeGroupe(groupe);
-  const fmin = Math.min(...points.map(p => p.force));
-  const fmax = Math.max(...points.map(p => p.force));
+function domaineGroupe(points, T, Tmin, limites) {
+  const fmin = Math.max(limites?.min ?? -Infinity, Math.min(...points.map(p => p.force)));
+  const fmax = Math.min(limites?.max ?? Infinity, Math.max(...points.map(p => p.force)));
   const cible = clamp(T, fmin, fmax);
   const neutre = sectionEnveloppe(points, 'tau', 0);
   const support = neutre.possible ? Math.max(0, cible < 0 ? -neutre.lo : neutre.hi) : 0;
-  // Si tenir le poids n'est plus possible, garder une réserve d'assiette
-  // plutôt que saturer toutes les tuyères et interdire le redressement.
+  // Tenir le poids lorsqu'il est réalisable. Sinon libérer l'assiette pour
+  // redresser : saturer toute la portance interdirait le contre-couple.
   const besoin = Math.min(Math.abs(Tmin || 0), Math.abs(cible));
-  const reserve = support > 1e-6
-    ? clamp((support - besoin) / ((1 - MARGE_PORTANCE) * support), 0, 1) : 0;
-  const plancher = besoin * reserve;
+  const plancher = support >= besoin - 1e-6 ? Math.min(support, besoin) : 0;
   const lo = cible < 0 ? fmin : Math.max(fmin, plancher);
   const hi = cible < 0 ? Math.min(fmax, -plancher) : fmax;
   const admissibles = points.filter(p => p.force >= lo && p.force <= hi).map(p => p.tau);
@@ -2054,7 +2097,13 @@ function repartirGroupe(groupe, T, tauCible, Tmin) {
     const b = sectionEnveloppe(points, 'force', f);
     if (b.possible) admissibles.push(b.lo, b.hi);
   }
-  const tau = clamp(tauCible, Math.min(...admissibles), Math.max(...admissibles));
+  return { cible, lo, hi, tauMin: Math.min(...admissibles), tauMax: Math.max(...admissibles) };
+}
+function repartirGroupe(groupe, T, tauCible, Tmin, limites) {
+  if (!groupe.length) return { tau: 0, force: 0 };
+  const points = enveloppeGroupe(groupe);
+  const { cible, lo, hi, tauMin, tauMax } = domaineGroupe(points, T, Tmin, limites);
+  const tau = clamp(tauCible, tauMin, tauMax);
   const bornes = sectionEnveloppe(points, 'tau', tau);
   const force = clamp(cible, Math.max(lo, bornes.lo), Math.min(hi, bornes.hi));
   // Réduire d'abord l'effort maximal nécessaire. Sans cela, deux bords
@@ -2100,6 +2149,52 @@ function repartirGroupe(groupe, T, tauCible, Tmin) {
   return { tau: tauFin, force: forceFin };
 }
 
+// Point de l'enveloppe, sans écrire dans les tuyères : même contrat pour la
+// prédiction et la répartition réelle. La rotation peut employer la force
+// nécessaire à son couple, au plus près de la portance demandée.
+function effortAssiste(points, forceVisee, tauVise, angle, laterale, minX, maxX, reserve, minimum = 0) {
+  const s = Math.sin(angle), c = Math.cos(angle), coefficient = -s;
+  let limites;
+  if (Math.abs(coefficient) > 1e-9) {
+    limites = coefficient > 0 ? { min: minX / coefficient, max: maxX / coefficient }
+      : { min: maxX / coefficient, max: minX / coefficient };
+  }
+  const neutre = sectionEnveloppe(points, 'tau', 0);
+  const support = forceVisee < 0 ? -neutre.lo : neutre.hi;
+  const portance = Math.abs(forceVisee) <= support + 1e-6 ? Math.abs(forceVisee)
+    : minimum <= support + 1e-6 ? minimum : 0;
+  const d = domaineGroupe(points, forceVisee, reserve ?? portance, limites);
+  const tau = clamp(tauVise, d.tauMin, d.tauMax);
+  const section = sectionEnveloppe(points, 'tau', tau);
+  const base = { force: clamp(d.cible, Math.max(d.lo, section.lo), Math.min(d.hi, section.hi)), tau };
+  const cos = Math.abs(c) > 1e-6 ? c : (c < 0 ? -1e-6 : 1e-6);
+  const delta = { force: -laterale.force * s / cos, tau: -laterale.tau };
+  let portion = proportionRealisable(points, base, delta);
+  const xBase = coefficient * base.force;
+  const deltaX = laterale.force * c + coefficient * delta.force;
+  if (deltaX > 1e-9) portion = Math.min(portion, Math.max(0, (maxX - xBase) / deltaX));
+  else if (deltaX < -1e-9) portion = Math.min(portion, Math.max(0, (minX - xBase) / deltaX));
+  return { force: base.force + portion * delta.force, tau: base.tau + portion * delta.tau,
+    couple: base.tau, portion, x: xBase + portion * deltaX, tauMin: d.tauMin, tauMax: d.tauMax };
+}
+
+// Vitesse angulaire permise par l'impulsion de freinage restante, sans
+// plafond de vitesse ni gain proportionnel fixé en secondes.
+function bornesImpulsionFrein(vitesse, masse, dt) {
+  // Rapier accumule les impulsions en float32 : une annulation exacte peut
+  // laisser quelques nanomètres/s signés. Ne pas en faire un nouveau départ.
+  if (Math.abs(vitesse) < 1e-6) return { min: 0, max: 0 };
+  return vitesse > 0 ? { min: -masse * vitesse / dt, max: Infinity }
+    : vitesse < 0 ? { min: -Infinity, max: -masse * vitesse / dt } : { min: 0, max: 0 };
+}
+function coupleVersAngle(erreur, omega, inertie, dt, tauMin, tauMax, freinMin, freinMax, poids, freinCible) {
+  const sens = Math.sign(erreur);
+  const frein = freinCible ?? Math.max(0, sens > 0 ? -(freinMin + poids) : freinMax + poids) / inertie;
+  const h = frein * dt;
+  const vitesse = sens * (Math.sqrt(h * h + 2 * frein * Math.abs(erreur)) - h);
+  return clamp(inertie * (vitesse - omega) / dt - poids, tauMin, tauMax);
+}
+
 // Répartition manuelle des commandes locales. Pas d'angle ni d'altitude cible.
 // Q/D demandent le couple choisi ; au neutre, le contre-couple vise uniquement
 // l'arrêt de la vitesse angulaire, à partir de l'inertie physique courante.
@@ -2112,12 +2207,11 @@ function repartirManuel(v, poussee, rotation, dt) {
   const sensCouple = rotation !== 0 ? Math.sign(rotation) : -Math.sign(omega);
   const groupes = ['y', 'x'].map(axe => {
     const actionneurs = v.thrusters.filter(th => Math.abs(th.force[axe]) > 0.6).map(th => {
-      const sens = th.force[axe], inverse = (th.def.reverse || 0) * th.def.thrust;
+      const sens = th.force[axe];
       return {
         source: th, sens,
         rx: axe === 'y' ? th.rx : -th.ry,
-        min: sens > 0 ? -inverse : -th.def.thrust,
-        max: sens > 0 ? th.def.thrust : inverse,
+        ...bornesPoussee(th.def, sens),
         forceN: 0
       };
     });
@@ -2205,49 +2299,59 @@ function simulerAppareil(v, dt, cmds) {
   // Portance signée : sur le dos, le « haut » du corps pointe vers le sol et la
   // force de sustentation doit donc changer de signe (poussée inversée).
   const cosBrut = Math.cos(ang);
-  const cosInclinaison = Math.abs(cosBrut) < 0.25
-    ? 0.25 * (cosBrut < 0 ? -1 : 1) : cosBrut;
+  const cosInclinaison = Math.abs(cosBrut) < 1e-6
+    ? 1e-6 * (cosBrut < 0 ? -1 : 1) : cosBrut;
   const inverse = cosInclinaison < 0;   // appareil sur le dos
-  let sommeHaut = 0, sommeBas = 0, inverseHaut = 0, inverseBas = 0;
-  for (const th of v.thrusters) {
-    if (th.force.y > 0.6) {
-      sommeHaut += th.def.thrust;
-      inverseHaut += (th.def.reverse || 0) * th.def.thrust;
-    } else if (th.force.y < -0.6) {
-      sommeBas += th.def.thrust;
-      inverseBas += (th.def.reverse || 0) * th.def.thrust;
-    }
-  }
+  const verticales = v.thrusters.filter(th => Math.abs(th.force.y) > 0.6);
+  const actionneurs = verticales.map(th => ({
+    rx: th.rx, ...bornesPoussee(th.def, th.force.y), cout: th.def.power / th.def.thrust, forceN: 0
+  }));
+  const capaciteHaut = actionneurs.reduce((s, th) => s + th.max, 0);
+  const capaciteBas = actionneurs.reduce((s, th) => s - th.min, 0);
+  const sensPortance = inverse ? -1 : 1;
+  const montee = inverse ? capaciteBas : capaciteHaut;
+  const descente = inverse ? capaciteHaut : capaciteBas;
   // Poussée réellement utilisable à plat (centre de masse décalé = moins).
-  const plafond = v.pousseeNette > 1 ? v.pousseeNette : sommeHaut;
-  // Poussée qui tient simplement le poids à l'inclinaison courante : c'est le
-  // plancher que l'assiette ne doit pas compromettre.
-  const sustentation = masse * G / Math.max(0.25, Math.abs(cosInclinaison));
+  const plafond = v.pousseeNette > 1 ? v.pousseeNette : capaciteHaut;
   // La commande latérale maintenue demande une accélération, sans consigne
   // ni plafond de vitesse. Au relâchement, on freine avec les tuyères
   // latérales puis l'inclinaison et on verrouille la position atteinte.
   // Il est calculé avant l'altitude : la poussée latérale a une composante
   // verticale quand le vaisseau est incliné, et la sustentation doit en tenir
   // compte.
-  const latDroite = v.thrusters.reduce((s, th) => s + (th.force.x > 0.6 ? th.def.thrust : 0), 0);
-  const latGauche = v.thrusters.reduce((s, th) => s + (th.force.x < -0.6 ? th.def.thrust : 0), 0);
+  const laterales = v.thrusters.filter(th => Math.abs(th.force.x) > 0.6);
+  const latDroite = laterales.reduce((s, th) => s + bornesPoussee(th.def, th.force.x).max, 0);
+  const latGauche = laterales.reduce((s, th) => s - bornesPoussee(th.def, th.force.x).min, 0);
   // Angle de travail : un pilote peut se limiter à une inclinaison plus faible
   // que le maximum de portance, pour garder de l'autorité d'assiette.
-  const tiltMax = c.tilt != null ? Math.min(v.thetaUtil, c.tilt) : v.thetaUtil;
+  const puissanceDispo = v.puissance + v.stocks.reduce((s, stock) =>
+    s + Math.min(stock.dis, stock.energie / dt), 0);
+  const demandeMax = v.thrusters.reduce((s, th) => s + th.def.power, 0)
+    + v.demandeArmes + v.demandeBouclier;
+  const facteurFrein = demandeMax > 0 ? Math.min(1, puissanceDispo / demandeMax) : 0;
+  const budgetPortance = Math.max(0, puissanceDispo - v.demandeArmes - v.demandeBouclier);
+  if (!v.portanceCache || v.portanceCache.budget !== budgetPortance || v.portanceCache.com !== v.com.x
+      || v.portanceCache.nombre !== verticales.length) {
+    const inversees = actionneurs.map(th => ({ rx: th.rx, min: -th.max, max: -th.min, cout: th.cout }));
+    v.portanceCache = { budget: budgetPortance, com: v.com.x, nombre: verticales.length,
+      haut: portanceSousPuissance(actionneurs, budgetPortance), bas: portanceSousPuissance(inversees, budgetPortance) };
+  }
+  const portanceDispo = v.portanceCache.haut;
+  const angleDispo = portanceDispo > masse * G ? Math.acos(masse * G / portanceDispo) : 0;
+  const tiltMax = Math.min(v.thetaUtil, angleDispo, c.tilt ?? Infinity);
   const latMaxInclinaison = G * Math.tan(tiltMax);
-  let aDesX = 0, latSigne = 0, latRatio = 0;
+  const tReponse = 0.35, kvx = 3.0;
+  let aDesX = 0, latSigne = 0, latRatio = 0, rappelX = 0;
   if (v.assist && !sol) {
     // Accélération commandée, puis freinage jusqu'à l'arrêt et verrouillage.
     // Pendant le freinage, anticiper l'accélération de l'inclinaison en place
     // pour tenir compte du temps nécessaire au changement d'assiette.
-    const tReponse = 0.35;
     // L'axe de portance peut être inversé : sa pente est modulo PI.
     // Borner l'angle du corps directement ferait changer la prédiction de
     // signe entre +PI et -PI et bloquerait le redressement sur le dos.
     const anglePortance = Math.atan2(sA * (inverse ? -1 : 1), Math.abs(cA));
     const aPente = -G * Math.tan(clamp(anglePortance, -v.thetaUtil, v.thetaUtil));
     const vxPredit = lv.x + aPente * tReponse;
-    const kvx = 3.0;
     if (ix !== 0) {
       v.xCible = t.x;
       v.latVerrou = false;
@@ -2255,18 +2359,20 @@ function simulerAppareil(v, dt, cmds) {
       // autorise, plus les tuyères latérales si le vaisseau en a.
       const dispo = ix > 0 ? latDroite : latGauche;
       aDesX = ix * (latMaxInclinaison + dispo / masse);
-      latSigne = ix;
+      latSigne = ix * (cA < 0 ? -1 : 1);
     } else {
       // Freinage puis verrouillage : pendant le freinage la cible suit la
       // position courante (on ne revient pas au point de relâchement), puis
       // on fige la position où le vaisseau s'arrête.
       if (!v.latVerrou) {
         v.xCible = t.x;
-        if (Math.abs(lv.x) < 0.3 && Math.abs(ang) < 0.12) v.latVerrou = true;
+        if (Math.abs(lv.x) < 1e-3 && Math.abs(ang) < 1e-3 && Math.abs(av) < 0.01) v.latVerrou = true;
       }
       const kpx = v.latVerrou ? 2.0 : 0;
-      aDesX = -(kpx * (t.x - v.xCible) + kvx * vxPredit);
-      latSigne = Math.sign(aDesX);
+      rappelX = -(kpx * (t.x - v.xCible) + kvx * lv.x);
+      aDesX = v.latVerrou ? -(kpx * (t.x - v.xCible) + kvx * vxPredit)
+        : -Math.sign(lv.x) * (latMaxInclinaison + (lv.x > 0 ? latGauche : latDroite) / masse);
+      latSigne = Math.sign(aDesX) * (cA < 0 ? -1 : 1);
     }
     aDesX = clamp(aDesX,
       -(latMaxInclinaison + latGauche / masse),
@@ -2275,37 +2381,32 @@ function simulerAppareil(v, dt, cmds) {
     v.xCible = t.x;
     v.latVerrou = false;
     aDesX = ix * latMaxInclinaison;
-    latSigne = ix;
+    latSigne = ix * (cA < 0 ? -1 : 1);
   }
   if (latSigne !== 0) {
     const dispo = latSigne > 0 ? latDroite : latGauche;
     latRatio = dispo > 1 ? clamp(Math.abs(aDesX) * masse / dispo, 0, 1) : 0;
   }
   const latDispo = latSigne > 0 ? latDroite : latGauche;
-  const latForce = latSigne * latRatio * latDispo;
-  const aInclinaison = aDesX - latForce / masse;
+  let latForce = latSigne * latRatio * latDispo;
+  let aInclinaison = aDesX - latForce / masse;
 
   // Force verticale visée dans le repère du corps (positif vers le haut).
   // Les tuyères vers le bas sont incluses : elles servent à freiner une montée
   // et à augmenter l'autorité d'assiette.
   let Fb = 0;
+  let forceYVisee = 0;
   let collectif = 0;
   if (v.assist && !sol) {
     if (iy > 0) {
       v.altCible = t.y;
       v.altVerrou = false;
-      Fb = masse * G / cosInclinaison + 0.5 * sommeHaut;
+      Fb = sensPortance * montee;
     } else if (iy < 0) {
-      // Descente commandée : 70 % de la capacité de poussée vers le bas,
-      // plafonnée à 8 g. Sans tuyère inversée, c'est une chute libre.
+      // Toute la poussée descendante disponible. L'allocation garde l'assiette.
       v.altCible = t.y;
       v.altVerrou = false;
-      if (sommeBas > 1) {
-        const aDown = Math.min(0.7 * (sommeBas / masse + G), 8 * G);
-        Fb = masse * (G - aDown) / cosInclinaison;
-      } else {
-        Fb = 0;
-      }
+      Fb = -sensPortance * descente;
     } else {
       // Freinage puis verrouillage : tant que la vitesse verticale est
       // notable, on ne vise que l'arrêt (pleine autorité, y compris vers le
@@ -2322,96 +2423,206 @@ function simulerAppareil(v, dt, cmds) {
       const kv = 5.0;
       const aDes = -(kp * (t.y - v.altCible) + kv * lv.y);
       Fb = masse * (G + aDes) / cosInclinaison;
+      forceYVisee = masse * (G + aDes);
     }
     // La composante verticale des tuyères latérales sera compensée lors de
     // l'allocation commune, sur leur poussée effectivement réalisable.
-    // Sur le dos, les tuyères peuvent pousser à contre-sens à 50 % pour le
-    // rattraper ; à l'endroit, le freinage reste celui d'avant. Le plafond
-    // laissé ici est la somme des tuyères : c'est la répartition qui décide de
+    // La plage entière, poussée inversée comprise, est disponible à toute
+    // assiette. Le plafond est la somme des tuyères : la répartition décide de
     // ce qui est réellement atteignable avec le couple d'assiette demandé (un
     // couple qui soulage la tuyère la plus proche du centre de masse permet
     // même un peu plus de poussée que le maximum à couple nul).
-    Fb = clamp(Fb,
-      -sommeBas - (inverse ? inverseHaut : 0),
-      sommeHaut + (inverse ? inverseBas : 0));
+    Fb = clamp(Fb, -capaciteBas, capaciteHaut);
     collectif = plafond > 0 ? clamp(Math.abs(Fb) / plafond, 0, 1) : 0;
   } else {
     // Au sol, la commande de montée suit le « haut du monde » : sur le dos,
     // elle passe en poussée inversée pour décoller au lieu de s'écraser.
     // L'assistance seule interprète la commande comme « monter dans le monde » ;
     // Les commandes manuelles seront réparties séparément dans le repère local.
-    const sensMonde = (v.assist && sol && cosInclinaison < 0) ? -1 : 1;
-    Fb = (iy > 0 ? sommeHaut : iy < 0 ? -sommeBas : 0) * sensMonde;
+    Fb = (iy > 0 ? montee : iy < 0 ? -descente : 0) * sensPortance;
     collectif = iy > 0 ? 1 : 0;
     v.altCible = t.y;
     v.altVerrou = false;
   }
   v.collectif = collectif;
-
-
-  const verticales = v.thrusters.filter(th => Math.abs(th.force.y) > 0.6);
-  const actionneurs = verticales.map(th => ({
-    rx: th.rx,
-    min: th.force.y > 0 ? (inverse ? -(th.def.reverse || 0) * th.def.thrust : 0) : -th.def.thrust,
-    max: th.force.y > 0 ? th.def.thrust : (inverse ? (th.def.reverse || 0) * th.def.thrust : 0),
-    forceN: 0
-  }));
-  let couple = 0;
-  let tauMax = 0, tauMaxHaut = 0;
-  for (const th of v.thrusters) {
-    if (Math.abs(th.force.y) <= 0.6) continue;
-    const c = th.def.thrust * Math.abs(th.rx);
-    tauMax += c;
-    if (th.force.y > 0.6) tauMaxHaut += c;
+  if (iy !== 0 || sol) forceYVisee = Fb * cA;
+  if (v.assist && !sol && (ix !== 0 || !v.latVerrou)) {
+    // La force visée doit tenir dans le disque de poussée : demander à la
+    // fois le maximum latéral ET davantage de portance crée une cible hors
+    // de l'enveloppe et fait osciller inclinaison et contrôle d'altitude.
+    const total = forceYVisee < 0 ? v.portanceCache.bas : v.portanceCache.haut;
+    const lateralInclinaison = Math.sqrt(Math.max(0, total * total - forceYVisee * forceYVisee)) / masse;
+    const sens = ix || -Math.sign(lv.x);
+    const dispo = sens > 0 ? latDroite : latGauche;
+    aDesX = sens * (lateralInclinaison + dispo / masse);
+    if (iy > 0 && sens !== 0) {
+      // Deux commandes d'accélération : projeter leur direction commune sur
+      // la poussée disponible, poids compris. Z+D doit encore monter ET
+      // tourner, au lieu d'allouer tout le budget à la verticale.
+      const poids = masse * G, capacite = v.portanceCache.haut;
+      const composante = Math.max(0, (Math.sqrt(Math.max(0, 2 * capacite * capacite - poids * poids)) - poids) / 2);
+      forceYVisee = Math.min(capacite, poids + composante);
+      aDesX = sens * (composante + dispo) / masse;
+      Fb = clamp(forceYVisee / cosInclinaison, -capaciteBas, capaciteHaut);
+    } else if (iy < 0 && sens !== 0) {
+      const angle = Math.min(tiltMax, Math.atan2(Math.abs(sens), Math.abs(iy)));
+      forceYVisee = -v.portanceCache.bas * Math.cos(angle);
+      aDesX = sens * (v.portanceCache.bas * Math.sin(angle) + dispo) / masse;
+      Fb = clamp(forceYVisee / cosInclinaison, -capaciteBas, capaciteHaut);
+    }
+    latSigne = sens * (cA < 0 ? -1 : 1);
+    const localDispo = latSigne > 0 ? latDroite : latGauche;
+    latRatio = localDispo > 1 ? clamp(Math.abs(aDesX) * masse / localDispo, 0, 1) : 0;
+    latForce = latSigne * latRatio * localDispo;
+    aInclinaison = aDesX - latForce / masse;
   }
-  // Plus d'autorité d'assiette (tuyères vers le bas) = rotation plus vive :
-  // on augmente les gains à mesure que le couple disponible dépasse celui du
-  // seul groupe de sustentation.
-  const extraCouple = clamp(tauMax / Math.max(1, tauMaxHaut), 1, 1.8);
+
+
+  let couple = 0;
+  const freinAuto = v.assist && !sol && ix === 0 && !v.latVerrou;
+  const sensTranslation = ix || (freinAuto ? -Math.sign(lv.x) : 0);
+  let minX = ix > 0 ? 0 : -Infinity;
+  let maxX = ix < 0 ? 0 : Infinity;
+  if (freinAuto) {
+    // La dernière impulsion ne doit pas inverser la vitesse. Le couple reste
+    // disponible à force nette nulle pour finir le retour à plat.
+    const bornes = bornesImpulsionFrein(lv.x, masse, dt);
+    minX = Math.max(minX, bornes.min);
+    maxX = Math.min(maxX, bornes.max);
+  }
+  const enveloppe = enveloppeGroupe(actionneurs);
+  const lateralePour = (sens, ratio = 1) => {
+    let force = 0, tau = 0;
+    for (const th of laterales) {
+      const bornes = bornesPoussee(th.def, th.force.x);
+      const f = ratio * (sens > 0 ? bornes.max : sens < 0 ? bornes.min : 0);
+      force += f; tau -= th.ry * f;
+    }
+    return { force, tau };
+  };
+  const lateraleVisee = lateralePour(latSigne, latRatio);
+  let allocationAssistee;
   const peutControler = v.assist && v.assistOK &&
-    (!sol || Math.abs(Fb) > 0.05 * Math.max(1, sommeHaut));
+    (!sol || Math.abs(Fb) > 0.05 * Math.max(1, montee));
   if (peutControler) {
-    // La translation demande une inclinaison à partir d'une assiette droite.
-    // Son autorité décroît avec l'alignement : sur le dos, redresser vers zéro
-    // évite que le freinage latéral fasse alterner le sens de rotation visé.
-    const vise = clamp(-Math.atan2(aInclinaison, G), -tiltMax, tiltMax) * Math.max(0, cA);
-    const err = wrap(vise - ang);
+    // Le sens d'inclinaison dépend de la poussée MONDIALE signée : au freinage
+    // d'une montée, les réacteurs inversés doivent s'incliner de l'autre côté.
+    const forceVerticaleMonde = forceYVisee;
+    // Pleine inclinaison réalisable. La boucle de position est réservée au
+    // stationnaire ; pendant le freinage, la trajectoire de retour décide
+    // quand relâcher l'inclinaison maximale.
+    let basCible = -tiltMax, hautCible = tiltMax;
+    for (let i = 0; i < 24; i++) {
+      const milieu = (basCible + hautCible) / 2;
+      let acceleration = aInclinaison;
+      if (ix === 0 && !sol && v.latVerrou) {
+        const demande = clamp(rappelX + kvx * tReponse * forceVerticaleMonde / masse * Math.tan(milieu),
+          -(latMaxInclinaison + latGauche / masse), latMaxInclinaison + latDroite / masse);
+        const capacite = demande > 0 ? latDroite : latGauche;
+        const laterale = Math.sign(demande) * Math.min(Math.abs(demande), capacite / masse);
+        acceleration = demande - laterale;
+      }
+      const cible = clamp(-Math.atan2(acceleration, Math.abs(forceVerticaleMonde) / masse)
+        * (forceVerticaleMonde < 0 ? -1 : 1), -tiltMax, tiltMax);
+      if (milieu === cible) { basCible = hautCible = milieu; break; }
+      if (milieu < cible) basCible = milieu;
+      else hautCible = milieu;
+    }
+    const vise = (basCible + hautCible) / 2;
     // Anticipation : le poids des roues pendantes tire le corps autour de son
     // centre de masse. On l'annule directement au lieu d'attendre une erreur.
-    let couplePoids = 0;
-    if (v.wheels.length) {
-      const cw = pointLocal(v, v.com);
-      for (const w of v.wheels) {
-        const p = pointLocal(v, w.local);
-        couplePoids += (p.x - cw.x) * (-w.body.mass() * G);
+    const poidsSelonAngle = angle => v.wheels.reduce((s, w) => s - w.body.mass() * G
+      * ((w.local.x - v.com.x) * Math.cos(angle) - (w.local.y - v.com.y) * Math.sin(angle)), 0);
+    const inertie = b.principalInertia() + v.wheels.reduce((s, w) =>
+      s + w.body.mass() * ((w.local.x - v.com.x) ** 2 + (w.local.y - v.com.y) ** 2), 0);
+    const pur = sectionEnveloppe(enveloppe, 'force', 0);
+    const freinMin = pur.lo * facteurFrein, freinMax = pur.hi * facteurFrein;
+    const forceSelonAngle = angle => {
+      const cos = Math.cos(angle);
+      return forceVerticaleMonde / (Math.abs(cos) > 1e-6 ? cos : (cos < 0 ? -1e-6 : 1e-6));
+    };
+    const planAngle = (angle, omega, cible, pas, laterale, borneMin, borneMax) => {
+      const erreur = wrap(cible - angle), sens = Math.sign(erreur), force = forceSelonAngle(angle);
+      const couplePoids = poidsSelonAngle(angle);
+      const minimum = forceVerticaleMonde > 0 ? masse * G / Math.max(1e-6, Math.abs(Math.cos(angle))) : 0;
+      const strict = effortAssiste(enveloppe, force, 0, angle, laterale, borneMin, borneMax, undefined, minimum);
+      const libre = effortAssiste(enveloppe, force, 0, angle, laterale, borneMin, borneMax, 0);
+      const freinA = a => {
+        const poidsMinimal = forceVerticaleMonde > 0 ? masse * G / Math.max(1e-6, Math.abs(Math.cos(a))) : 0;
+        const p = effortAssiste(enveloppe, forceSelonAngle(a), 0, a, laterale, borneMin, borneMax, undefined, poidsMinimal);
+        const poids = poidsSelonAngle(a);
+        return Math.max(0, sens > 0 ? -(p.tauMin * facteurFrein + poids)
+          : p.tauMax * facteurFrein + poids) / inertie;
+      };
+      const frein = (freinA(angle) + 4 * freinA(angle + erreur / 4) + 2 * freinA(angle + erreur / 2)
+        + 4 * freinA(angle + 3 * erreur / 4) + freinA(angle + erreur)) / 12;
+      const demande = coupleVersAngle(erreur, omega, inertie, pas, libre.tauMin, libre.tauMax,
+        freinMin, freinMax, couplePoids, frein);
+      const alpha = Math.max(Math.abs(libre.tauMin), Math.abs(libre.tauMax)) / inertie;
+      const neutre = sectionEnveloppe(enveloppe, 'tau', 0);
+      const support = force < 0 ? -neutre.lo : neutre.hi;
+      const suivant = angle + omega * pas + sens * alpha * pas * pas / 2;
+      const variation = Math.abs(forceSelonAngle(suivant) - force);
+      const depart = erreur * omega <= 0 && Math.abs(erreur) > Math.abs(omega) * pas + alpha * pas * pas / 2
+        && support - Math.abs(force) <= variation;
+      const arretUrgent = erreur * omega > 0 && omega * omega > 2 * freinA(angle) * Math.abs(erreur);
+      return depart || arretUrgent ? demande : clamp(demande, strict.tauMin, strict.tauMax);
+    };
+    couple = planAngle(ang, av, vise, dt, lateraleVisee, minX, maxX);
+    // Prévision du retour à plat avec la même enveloppe et la même allocation
+    // que le moteur. Elle inclut la poussée pendant la rotation : on commence
+    // le retour AVANT que la vitesse horizontale n'atteigne zéro.
+    const prevoirRetour = premierCouple => {
+      let angle = ang, omega = av, vitesse = lv.x;
+      const alpha = Math.max(1e-6, Math.min(-freinMin, freinMax) / inertie);
+      const duree = Math.abs(av) / alpha + 2 * Math.sqrt((Math.abs(ang) + av * av / (2 * alpha)) / alpha);
+      const h = Math.max(dt, duree / 23);
+      const borneMinX = -Infinity, borneMaxX = Infinity;
+      for (let i = 0; i < 25; i++) {
+        const pas = i === 0 ? dt : h;
+        const cos = Math.cos(angle);
+        const cosSecurise = Math.abs(cos) > 1e-6 ? cos : (cos < 0 ? -1e-6 : 1e-6);
+        const force = forceVerticaleMonde / cosSecurise;
+        const laterale = lateralePour(sensTranslation * (cos < 0 ? -1 : 1));
+        const demande = i === 0 ? premierCouple : planAngle(angle, omega, 0, pas, laterale, borneMinX, borneMaxX);
+        const a = effortAssiste(enveloppe, force, demande, angle, laterale, borneMinX, borneMaxX, 0);
+        vitesse = (vitesse + a.x * facteurFrein / masse * pas) / (1 + b.linearDamping() * pas);
+        omega = (omega + (a.couple * facteurFrein + poidsSelonAngle(angle)) / inertie * pas) / (1 + b.angularDamping() * pas);
+        angle = wrap(angle + omega * pas);
+        if (Math.abs(angle) < 1e-6 && Math.abs(omega) < 1e-5) break;
+      }
+      return vitesse;
+    };
+    if (freinAuto && lv.x !== 0) {
+      const sensVitesse = Math.sign(lv.x);
+      const plat = planAngle(ang, av, 0, dt, lateraleVisee, minX, maxX);
+      const finPlat = sensVitesse * prevoirRetour(plat);
+      const finPoussee = sensVitesse * prevoirRetour(couple);
+      if (finPlat <= 0) couple = plat;
+      else if (finPoussee < 0) {
+        let lo = 0, hi = 1;
+        for (let i = 0; i < 6; i++) {
+          const milieu = (lo + hi) / 2;
+          if (sensVitesse * prevoirRetour(lerp(plat, couple, milieu)) > 0) lo = milieu;
+          else hi = milieu;
+        }
+        couple = lerp(plat, couple, (lo + hi) / 2);
       }
     }
-    // La vitesse de rotation doit pouvoir être freinée avant la cible.
-    // Sur un appareil asymétrique, le couple de freinage peut être bien plus
-    // faible que le couple d'accélération ; leur somme ne mesure pas cela.
-    const tauMin = actionneurs.reduce((s, th) => s + Math.min(th.rx * th.min, th.rx * th.max), 0);
-    const tauMax = actionneurs.reduce((s, th) => s + Math.max(th.rx * th.min, th.rx * th.max), 0);
-    const frein = Math.max(0, err > 0 ? -tauMin : tauMax);
-    const omegaCible = Math.sign(err) * Math.min(2.5 * extraCouple, 3 * Math.abs(err),
-      0.65 * Math.sqrt(2 * frein * Math.abs(err) / v.inertie));
-    const alpha = clamp(9.0 * extraCouple * (omegaCible - av),
-      -22 * extraCouple, 22 * extraCouple);
-    couple = clamp(v.inertie * alpha - couplePoids, -v.torqueAuth, v.torqueAuth);
+    allocationAssistee = effortAssiste(enveloppe, Fb, couple, ang, lateraleVisee, minX, maxX, 0);
   }
 
   // Répartition : les tuyères verticales (vers le haut ET vers le bas) portent
   // la sustentation et l'assiette ; les latérales répondent à la commande.
   for (const th of v.thrusters) th.forceN = 0;
-  let couplePassif = 0;
   for (const th of v.thrusters) {
     if (Math.abs(th.force.y) > 0.6) continue;
-    if (Math.abs(th.force.x) > 0.6 && latSigne !== 0 && Math.sign(th.force.x) === latSigne) {
-      th.forceN = th.def.thrust * latRatio;
+    if (Math.abs(th.force.x) > 0.6 && latSigne !== 0) {
+      const bornes = bornesPoussee(th.def, th.force.x);
+      const force = latRatio * (latSigne > 0 ? bornes.max : bornes.min);
+      th.forceN = force * th.force.x;
     }
-    couplePassif += th.rx * th.force.y * th.forceN - th.ry * th.force.x * th.forceN;
   }
-  const groupeHaut = verticales.filter(th => th.force.y > 0.6);
-  const groupeBas = verticales.filter(th => th.force.y < -0.6);
   if (!v.assist) {
     repartirManuel(v, poussee, rotation, dt);
   } else if (peutControler) {
@@ -2423,25 +2634,21 @@ function simulerAppareil(v, dt, cmds) {
     // newton latéral est accompagné de sa compensation de portance ET de
     // couple. Si l'une des deux sature, réduire les latérales, sans introduire
     // un couple parasite que la boucle d'assiette ne pourrait pas annuler.
-    const base = repartirGroupe(actionneurs, Fb, couple, sustentation);
-    const cosPortance = Math.abs(cA) < 1e-6 ? (cA < 0 ? -1e-6 : 1e-6) : cA;
-    const delta = { force: -latForce * sA / cosPortance, tau: -couplePassif };
-    const portion = proportionRealisable(enveloppeGroupe(actionneurs),
-      { force: base.force, tau: base.tau }, delta);
+    const portion = allocationAssistee.portion;
     for (const th of v.thrusters) {
       if (Math.abs(th.force.y) <= 0.6) th.forceN *= portion;
     }
-    repartirGroupe(actionneurs, base.force + portion * delta.force,
-      base.tau + portion * delta.tau);
+    repartirGroupe(actionneurs, allocationAssistee.force, allocationAssistee.tau);
     for (let i = 0; i < verticales.length; i++) {
       verticales[i].forceN = actionneurs[i].forceN * verticales[i].force.y;
     }
   } else {
-    // Assistance au sol sans autorité active : poussée uniforme.
-    if (Fb > 0 && sommeHaut > 0) {
-      for (const th of groupeHaut) th.forceN = (Fb / sommeHaut) * th.def.thrust;
-    } else if (Fb < 0 && sommeBas > 0) {
-      for (const th of groupeBas) th.forceN = (-Fb / sommeBas) * th.def.thrust;
+    // Sans autorité d'assiette : utiliser la même plage physique signée.
+    const capacite = Fb > 0 ? capaciteHaut : capaciteBas;
+    const ratio = capacite > 0 ? clamp(Math.abs(Fb) / capacite, 0, 1) : 0;
+    for (let i = 0; i < verticales.length; i++) {
+      const force = ratio * (Fb > 0 ? actionneurs[i].max : actionneurs[i].min);
+      verticales[i].forceN = force * verticales[i].force.y;
     }
   }
 
