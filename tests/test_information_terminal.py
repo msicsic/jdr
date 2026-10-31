@@ -13,7 +13,7 @@ from donjon.dialogues import InformationTerminal, information_publique, parole_i
 from donjon.emissions import pnj
 from donjon.esprits import croire, croyance
 from donjon.geometrie import placer
-from donjon.monde import Monde, objet
+from donjon.monde import ErreurMonde, Monde, objet
 from donjon.paroles import preparer_parole
 from donjon.rendu import fiche, regarder
 from donjon.scene import scene_percue
@@ -51,6 +51,8 @@ def partir(m):
 class FormulaireTests(unittest.TestCase):
     def test_projection_figee_choix_explicites_et_limite_objet(self):
         m = banc("ressources")
+        # Le choix vise un bien précis : le contexte lexical ne l'apprend pas.
+        m.data["connus"].append("bois")
         avant = copy.deepcopy(m.data)
         public = information_publique(m)
         f = InformationTerminal(public)
@@ -77,6 +79,55 @@ class FormulaireTests(unittest.TestCase):
         self.assertTrue(f.terminee)
         with self.assertRaises(ValueError):
             f.saisir("1")
+
+    def test_biens_connus_ou_inconnus_memes_choix_web_terminal_apres_recharge(self):
+        base = banc("ressources")
+        for sujet in ("bois", "crochets"):
+            self.assertNotIn(sujet, base.data["connus"])
+            self.assertFalse(base.visible(sujet))
+            for connu in (False, True):
+                with self.subTest(sujet=sujet, connu=connu):
+                    m = base.copier()
+                    if connu:
+                        m.data["connus"].append(sujet)
+                    avant = copy.deepcopy(m.data)
+                    vues = regarder(m), fiche(m), scene_percue(m)
+                    public = information_publique(m)
+                    m = recharger(m)
+                    self.assertEqual(m.data, avant)
+                    self.assertEqual((regarder(m), fiche(m), scene_percue(m)), vues)
+                    self.assertEqual(information_publique(m), public)
+                    self.assertEqual(m.objets, base.objets)
+                    self.assertFalse(m.visible(sujet))
+
+                    f = InformationTerminal(public)
+                    f.saisir(next(str(i) for i, (v, _) in enumerate(f.choix(), 1) if v == "aubin"))
+                    f.saisir(next(str(i) for i, (v, _) in enumerate(f.choix(), 1)
+                                  if v["acte"] == "ressource"))
+                    ids = [v for v, _ in f.choix()]
+                    self.assertEqual(sujet in ids, connu)
+                    self.assertEqual("[" + sujet + "]" in f.rendre(), connu)
+                    self.assertEqual(ids, [x["id"] for x in public["ressources"]])
+
+                    # Les vrais callbacks web rendent le même choix, y compris
+                    # en négatif : la catégorie faim permet d'ouvrir le champ.
+                    etat = web.etat(m)
+                    self.assertEqual(etat["information"], {**public, "formulaires": f.formulaires})
+                    etat["sonde_information"] = {"À qui parler": "aubin",
+                        "Acte d'information": "ressource",
+                        "Ressource recherchée": sujet if connu else "faim"}
+                    clic = web.page(m, etat)["information"]
+                    champ = next(c for c in clic["champs"] if c["nom"] == "Ressource recherchée")
+                    self.assertEqual([c["valeur"] for c in champ["choix"] if c["valeur"]], ids)
+                    d = web.descripteur("aubin", "ressource", sujet=sujet)
+                    if connu:
+                        self.assertTrue(parcours(m, d))
+                        self.assertEqual(clic["envoye"], d.contenu)
+                    else:
+                        with self.assertRaises(ErreurMonde) as refus:
+                            parole_information(m, d.contenu)
+                        self.assertTrue(refus.exception.attendu)
+                    self.assertEqual(m.data, avant)
 
     def test_homonymes_references_publiques_et_champs_du_catalogue(self):
         m, cible, autre = web.support_corps.monde_geste("saisir", 1)
@@ -260,9 +311,16 @@ class ParcoursInformation:
                 self.assertNotEqual(croyance(r, "joueur", sujet, "lieu")["source"], "vu")
                 self.assertEqual(r.objets[sujet]["lieu"], lieu_reel)
         for qui, sujet in (("aubin", "bois"), ("brune", "faim")):
-            r = await self.comparer(banc("ressources"), web.descripteur(qui, "ressource", sujet=sujet))
+            m = banc("ressources")
+            if sujet == "bois":
+                m.data["connus"].append(sujet)
+            r = await self.comparer(m, web.descripteur(qui, "ressource", sujet=sujet))
             self.assertTrue(pnj(r)[-1]["texte"].startswith("J'ai ") if qui == "aubin"
                             else pnj(r)[-1]["texte"] == "Je n'en ai pas.")
+        m = banc("ressources")
+        m.data["connus"].append("crochets")
+        r = await self.comparer(m, web.descripteur("aubin", "ressource", sujet="crochets"))
+        self.assertEqual(pnj(r)[-1]["texte"], "Je n'en ai pas.")
         r = await self.comparer(banc("ressources"), web.descripteur("aubin", "affirmation", sujet="cloche", valeur="antichambre"))
         self.assertEqual(croyance(r, "aubin", "cloche", "lieu")["valeur"], "antichambre")
 
@@ -277,6 +335,8 @@ class ParcoursInformation:
         from tests.test_avis_menace import relation
         for acte in ("qui", "ressource"):
             m = banc("ressources")
+            if acte == "ressource":
+                m.data["connus"].append("bois")
             relation(m, "aubin", "joueur", confiance=0)
             r = await self.comparer(m, web.descripteur("aubin", acte, **({"sujet": "bois"} if acte == "ressource" else {})))
             self.assertEqual(pnj(r)[-1]["modalite"], "refus")

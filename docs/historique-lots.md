@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-information-terminal-connu` — lot 387, base `integration` `a77727ab`.
+  Cinq erreurs attribuées au souvenir absent du bois ; seuls les tests qui le choisissent le déclarent.
+  Aucun code du jeu modifié, assertions conservées ; contre-épreuve bois/crochets connu ou inconnu,
+  rendu et état après recharge, vrais choix web identiques au terminal ; parcours crochets ajouté.
+  Validé : 26/26 tests, zéro échec/erreur/saut ; 34 parcours console/TUI, zéro appel au modèle.
+  1 313,203 s, deux travailleurs réduits ; `fin-calcul.json` réussi dans les bruts du dépôt principal.
+  Ni Luna, suite complète ni empreintes. [Rapport](taches/rapport-codex-387-information-terminal-connu.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 387 : cinq prémisses de tests rendues explicites (bois connu déclaré), contre-épreuves bois/crochets, moteur inchangé ; 26/26 tests ciblés. Aucun fichier de code commun depuis la base.
+
 - `codex-um-social-avis` — lot 386 terminé, non fusionné, base `integration` `cbecf8c8`, code `060a4930`.
   Le formulaire web conserve lieu connu et valeur de l'avis via U-D information ; mêmes U-C/G18, zéro modèle.
   5/5 nouveaux tests verts (111,385 s) : deux lieux, valeurs et disputes, recharge et laps découpés.
