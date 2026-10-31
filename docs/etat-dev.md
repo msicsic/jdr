@@ -46,13 +46,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-parite-acoustique` — lot 391, base `integration 55c3a456`.
   Perceptions à chaque événement PNJ ; copies de transaction reconnues sans rejouer les sons.
   Trois méthodes du brief corrigées ; réancrage limité à `/journal/96/faits`, ancienne empreinte restaurée en test.
-  75 tests verts (huit fichiers) ; empreintes 2 h × quatre scénarios × quatre graines détachées en cours.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/parite-acoustique-391/fin-empreintes.json`.
+  75 tests verts ; 16/16 nuits de 2 h sans plantage/usurpation, mêmes empreintes physiques, chroniques et mesures.
+  État complet identique 9/16 ; sept hashes finaux non intégralement attribués (préfixes : journal seul).
   Limite : `entendus` garde son contrat par dernier geste ; aucun registre ajouté, ni suite complète/Luna.
   [Rapport](taches/rapport-codex-391-parite-acoustique-376.md) ; bruts `artifacts/parite-acoustique-391/` du dépôt principal.
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
-(U-M social comptes), 381 (A2 passage), 391 (parité acoustique après 376, question Q1 du 390) ; Q2 (connaissances des scènes depuis 365) et Q3 (réservation du 377) à ouvrir. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
+(U-M social comptes), 381 (A2 passage) ; Q2 (connaissances des scènes depuis 365) et Q3 (réservation du 377) à ouvrir. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30

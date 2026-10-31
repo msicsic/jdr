@@ -2,6 +2,7 @@
 
 Branche `codex-parite-acoustique`, base `integration 55c3a456`, laptop.
 Bruts : `C:/Users/msics/donjon/artifacts/parite-acoustique-391/`.
+Code vérifié `b550b08f` ; calculs terminés, fusion au superviseur.
 
 **Invariant corrigé.** Les perceptions suivent chaque événement du monde,
 indépendamment des frontières d'attente et des copies de transaction.
@@ -41,12 +42,25 @@ La transaction moteur unique et son journal sont également comparés aux
 événements PNJ découpés/rechargés. Les seuls champs neutralisés sont ceux
 du journal et des numéros d'action, comme au 376 ; `entendus` reste comparé.
 
-**Mesure en cours.** Empreintes 2 h × Relais/mine/auberge/crue × quatre graines,
-contre la base figée `55c3a456`, cache commun ; référence puis branche,
-un travailleur réduit (deux avec le dernier fichier de tests). Calcul détaché,
-processus confirmé actif ; fin écrite en dernier :
-`C:/Users/msics/donjon/artifacts/parite-acoustique-391/fin-empreintes.json`.
-Ni suite complète ni Luna. Fusion laissée au superviseur.
+**Empreintes terminées : 16/16 sans plantage ni usurpation.** Deux heures,
+Relais/mine/auberge/crue × graines 1985/7/42/2024, contre `55c3a456`.
+Identiques partout : empreintes physiques à 5/60/120 min et issue, chronique,
+mesures, récit, souvenirs PNJ, refus de contact, approches impossibles, avis
+et constats. Les neuf avis à expliquer et la répétition d'Aubin (crue 42)
+figurent aussi sur la référence. **État complet identique sur 9/16** :
+mine et auberge entières, crue 2024. Les quatre Relais et trois autres crues
+divergent ; première divergence relevée au Relais 1985, minute 5.
+Le code 1 du comparateur signifie cette divergence stricte ; erreur nulle.
+
+Préfixes de cinq minutes Relais/crue 1985 : seul `/journal/0/faits` change
+(sons répétés supprimés), mondes et diff intégral archivés dans `prefixes-*`
+et `differences-prefixes.json`. **Les états complets finaux de 2 h n'étant
+pas archivés par le comparateur, les sept hashes divergents ne sont pas
+intégralement attribués.** Aucune identité complète de ces nuits affirmée.
+`analyse-cloture.json` consolide les résultats ; `conclusion.json` clôt le lot.
+Référence puis branche, un travailleur réduit ; références rangées au cache,
+localisation automatique du premier écart, aucun temps CPU comparé.
+Ni suite complète, ni Luna, ni nouvelle référence de deux heures à la clôture.
 
 **Limite de contrat existante.** `entendus` décrit le dernier geste du joueur
 (`docs/plan-temps.md`, « Entendu vaut pour le dernier geste »). Plusieurs
