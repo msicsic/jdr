@@ -321,5 +321,54 @@
     "tools/diagnostiquer_reprises_313.py": {
       "etat/{'instant': instant(m), 'pnj': qui, 'etape': copy.deepcopy(g), 'lieu': o['lieu'], 'case': copy.deepcopy(o.get('position')), 'orientation': o.get('orientation'), 'dernier_choix': copy.deepcopy(dernier_choix.get(qui)), 'croyances': {s: {a: copy.deepcopy(v['valeur']) for a, v in attrs.items()} for s, attrs in faits_connus(m, qui).items()}, 'perception': copy.deepcopy(percus(m, qui)[0]), 'contacts': {x: {'salle': d.salle_crue(m, qui, x), 'case': pnj._case_crue(m, qui, x, d.salle_crue(m, qui, x))} for x in pnj._a_toucher(m, qui, g)} if g else {}, 'renoncements': renoncements_retenus(m, qui), 'intention': copy.deepcopy(e['intention']), 'manque': copy.deepcopy(e['manque']), 'eveil': e['eveil'], 'libre': e['libre']}": 1
     }
+  },
+  "relationnels_homonymes_s1n": {
+    "donjon/deliberation.py": {
+      "<module>/{'coup': 40, 'violence': 25, 'mort': 30, 'noir': 0.5, 'mefiance': 0.3, 'bruit': 15, 'illicite': 20, 'captif': 1, 'eau': 2, 'menace': 1, 'crue': 10, 'detresse': 0.5, 'lumiere': 0.2, 'compagnie': 0.5, 'ronde': 20}": 1,
+      "autour/{'compagnie': max([p for x, p in poids.items() if x not in detresses] or [0]), 'detresse': max(inquietude or [0]), 'peur': max([r['peur'] / 50 for r in liens.values()] or [0]), 'lumiere': niveau > 0, 'fiables': sorted((x for x, r in liens.items() if confiance(r) and x not in detresses)), 'mefiants': sorted((x for x, r in liens.items() if mefiance(r)))}": 1,
+      "ecart_securite/a['compagnie']": 1
+    },
+    "donjon/esprits.py": {
+      "<module>/{'presences': [], 'gestes': [], 'constats': {}, 'soupcons': {}, 'oublis': {}}": 1
+    },
+    "donjon/faits_locaux.py": {
+      "preparer_faits/autorises['supports'][ancrage]['relations']": 2,
+      "supports/{'nom': o['nom'], 'salle': monde.joueur['salle'], 'relations': (['pose'] if o.get('support_pose') and o['type'] != 'contenant' else []) + (['fixe'] if not o['mobile'] and o['type'] != 'contenant' and (o.get('support_pose') or o.get('ancrage_carte')) else []) + (['contenu'] if o['type'] == 'contenant' and o.get('ouverte') else [])}": 1
+    },
+    "donjon/recit_pnj.py": {
+      "donnees/{'episodes': {id: [{k: v for k, v in ep.items() if k != 'cle'} | {'mots': but_en_mots(monde, ep['but'], titulaire=id)} for ep in self.episodes[id]] for id in self.ids}, 'urgence': {id: dict(self.urgence[id]) for id in self.ids}, 'sans_recours': dict(self.sans_recours), 'en_attente': dict(self.en_attente), 'charges_confiees': dict(self.charges_confiees), 'charges_satisfaites': dict(self.charges_satisfaites), 'souvenirs': self.souvenirs, 'relations': self.changements_relations}": 1
+    },
+    "tools/banc_parties.py": {
+      "preparer/liens.items": 1,
+      "preparer/liens.items()": 1,
+      "preparer/prep.get('relations', {})": 1,
+      "preparer/prep.get('relations', {}).items": 1,
+      "preparer/prep.get('relations', {}).items()": 1
+    },
+    "tools/bilan_allers_utiles.py": {
+      "bilan/total['suites']": 2,
+      "bilan/total['suites'].get": 1,
+      "bilan/total['suites'].get('aller', 0)": 1,
+      "bilan/total['suites'].values": 1,
+      "bilan/total['suites'].values()": 1,
+      "bilan/{'cpu': 0, 'appels': 0, 'noeuds_diagnostic': 0, 'etats': 0, 'classes': 0, 'sans_geste_ni_but': 0, 'suites': Counter(), 'gestes': Counter(), 'issues': Counter(), 'vides_apres_aller': 0, 'vides_structurels': 0, 'vides_structurels_apres_aller': 0, 'candidats_sans_obstacle_preuve': 0, 'structure_tous_etats': 0, 'candidats_majorants_tous_etats': 0, 'retenus_preuve': Counter(), 'retenus_tous_etats': Counter()}": 1
+    },
+    "tools/bilan_recherche_109.py": {
+      "resumer/dict(nombre=n, noeuds=noeuds, noeuds_par_recherche=noeuds / n if n else 0, etats=sum((x.get('diagnostic', {}).get('etats', 0) for x in lignes)), preuve_noeuds=sum((x.get('diagnostic', {}).get('preuve_noeuds', 0) for x in lignes)), cpu=cpu, ms_par_recherche=cpu * 1000 / n if n else 0, us_par_noeud=cpu * 1000000.0 / noeuds if noeuds else None, generations=generations, successeurs=successeurs, developpes=developpes, developpes_par_recherche=developpes / n if n else 0, us_par_developpe=cpu * 1000000.0 / developpes if developpes else None, normalisations=normalisations, suites=suites, suites_par_normalisation=suites / normalisations if normalisations else None, quantiles_noeuds=quantiles([x.get('diagnostic', {}).get('noeuds', 0) for x in lignes]), quantiles_generations=quantiles([x['generations'] for x in lignes]), quantiles_ms=quantiles([x['cpu'] * 1000 for x in lignes]), explorations=dict(explorations), successeurs_par_generation=successeurs / generations if generations else 0, issues=dict(Counter((x.get('diagnostic', {}).get('issue', 'absent') for x in lignes))), familles=dict(familles))": 1,
+      "resumer/x.get('suites', 0)": 1
+    },
+    "tools/detecter_changements_avis.py": {
+      "relever_entrees/{'portes': sorted((k for k in v.connus if planification.porte_par(monde, k, id))), 'possedes': sorted((k for k in v.connus if v.proprietaire[k] == id)), 'richesse': [v.richesse, v.piece], 'illicites': [sorted((o for o in v.connus if v.illicite[o])), sorted((o for o in v.connus if v.consomme_illicite[o])), sorted((o for o in v.connus if v.brise_illicite[o]))], 'gardes': [v.gardes, sorted(v.prix_gardes.items())], 'relations': [[x, {a: r[a] for a in (*relations.AXES, 'bandes')}] for x in sorted(relations.connus(monde, id)) for r in [relations.axes(monde, id, x)]]}": 1
+    },
+    "tools/mesurer_allers_utiles.py": {
+      "observer/{'minute': monde.data['minutes'], 'pnj': qui, 'but': k.get('nom', ''), 'etats': 0, 'classes': 0, 'sans_geste_ni_but': 0, 'vides_apres_aller': 0, 'vides_structurels': 0, 'vides_structurels_apres_aller': 0, 'candidats_sans_obstacle_preuve': 0, 'retenus_preuve': Counter(), 'structure_tous_etats': 0, 'candidats_majorants_tous_etats': 0, 'retenus_tous_etats': Counter(), 'suites': Counter(), 'gestes': Counter(), 'cpu_gestes': Counter()}": 1,
+      "suites/r['suites']": 2,
+      "suites/r['suites']['+'.join((x['operation'] for x in s[2]))]": 1,
+      "suites/r['suites']['differee']": 1
+    },
+    "tools/recherche_tiree_109.py": {
+      "normaliser/pile[-1]['suites']": 1,
+      "rechercher/dict(minute=monde.data['minutes'], pnj=id, but=k.get('nom', ''), generations=0, successeurs=0, familles=Counter(), passes=0, developpes=0, normalisations=0, suites=0, explorations=[], salle=monde.objets[id].get('lieu'), portes=[o for o, x in monde.objets.items() if x.get('lieu') == id])": 1
+    }
   }
 }

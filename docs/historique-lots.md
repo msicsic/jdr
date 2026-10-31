@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1n-suivis-relationnels` — lot 420, base exacte `7f9b08e4`, portage `7c1948e7`.
+  Preuves, ancrages/bandes, portages, suites, compagnie et soupçons par `memoire` ; axes sous `relations`.
+  AST 295 → 28 expressions, aucun accès aux suivis vivants ; stockage et politiques conservés.
+  195 tests distincts : 194 verts, un rouge du MJ reproduit sur la base ; deux reprises complètes du 372.
+  `origin/integration 78e4133b` intégré sans recouvrement de code ; après fusion 52/53 verts, même rouge.
+  Empreintes 2 h × 4 graines × 4 scénarios : 16/16 identiques (chroniques, mesures, état complet), aucun plantage.
+  Lot clos ; `C:/Users/msics/donjon/artifacts/s1n-420/fin.json` réussi ; pas de suite complète ni Luna.
+  [Rapport](taches/rapport-codex-420-s1n-suivis-relationnels.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 420, S1n : épreuves, ancrages, compagnie partagée, soupçons déduits et liens par des vues et opérations nommées, une seule projection vers les décisions, relations.py seule autorité sur les axes ; inventaire AST 295 → 28. 194/195 tests (rouge hérité de la base), 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-a6-raccord-libre` (416), correctif `bcd5729e` : régression A6 des entraves corrigée dans A1,
   sans ouvrir les champs inconnus ni toucher aux gestes sonores ; base `8c5eaaa7` et branche vertes en libération.
   36 ciblés verts ; deux PNJ/deux producteurs de liens, consentement, monde/rendu après recharge et laps découpés.
