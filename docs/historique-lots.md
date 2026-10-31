@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-parite-acoustique` — lot 391, base `integration 55c3a456`.
+  Perceptions à chaque événement PNJ ; copies de transaction reconnues sans rejouer les sons.
+  Trois méthodes du brief corrigées ; réancrage limité à `/journal/96/faits`, ancienne empreinte restaurée en test.
+  75 tests verts ; 16/16 nuits de 2 h sans plantage/usurpation, mêmes empreintes physiques, chroniques et mesures.
+  État complet identique 9/16 ; sept hashes finaux non intégralement attribués (préfixes : journal seul).
+  Limite : `entendus` garde son contrat par dernier geste ; aucun registre ajouté, ni suite complète/Luna.
+  [Rapport](taches/rapport-codex-391-parite-acoustique-376.md) ; bruts `artifacts/parite-acoustique-391/` du dépôt principal.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `moteur.py`, fusionnés sans conflit textuel. lot 391, Q1 du 390 : laps entier ou découpé, même monde et mêmes messages ; empreintes historiques d'etapes_chainees attribuées. 75 tests ; 16/16 nuits 2 h identiques en chronique, mesures, récit, empreintes physiques ; état complet identique 9/16 (sept écarts de hash non intégralement attribués, limite). Fichier de code commun : moteur.py (380), fusionné sans conflit textuel, tests ciblés rejoués.
+
 - `codex-reservation-contrat` — lot 393, base `ca0fc1f0` (`origin/integration`), PC fixe.
   La restitution du prêt acquis pour un transport ne réserve plus deux fois son bien ;
   les autres promesses restent opposables. Pureté du devis testée sur des cases de sol valides.

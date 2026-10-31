@@ -2293,7 +2293,6 @@ def _avancer(monde, minutes, lignes, dixiemes):
     # Les sons, eux aussi, se rendent sur leur perception, avant qu'une autre action
     # ou la limite de la file de bruits puisse changer leur regroupement ou leur voix.
     from .ecoute import ENTENDU, entendus, rendre_evenement
-    from builtins import id as identite
     bruits_vus = list(monde.data.get("bruits", ()))
     if propre:
         monde._sons_rendus = []
@@ -2303,12 +2302,14 @@ def _avancer(monde, minutes, lignes, dixiemes):
         for id, visible in _observer_presences(monde, suivi, lignes).items():
             if visible and not vus.get(id) and id not in apparus:
                 apparus.append(id)
-        anciens = {identite(b) for b in bruits_vus}
         seuil = getattr(monde, "_seuil_ecoute", ENTENDU)
         passes = entendus(monde, -1, seuil, bruits=bruits_vus)
         precedent = passes[-1] if passes else None
         for b, niveau, par in entendus(monde, debut, seuil):
-            if identite(b) not in anciens:
+            # Une transaction adoptée remplace les éléments des listes par
+            # leurs copies validées. L'événement sauvegardé reste le même,
+            # même si son dictionnaire Python n'est plus le même objet.
+            if b not in bruits_vus:
                 parvenu = (b, niveau, par)
                 lignes.extend(rendre_evenement(monde, parvenu, precedent))
                 precedent = parvenu
@@ -2463,7 +2464,6 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     percevoir_tous(monde)
                     monde._agit = None
                     temoigner_en_cours(monde)
-                    observer()
                     if profil:
                         noter(monde, id, t, monde._activite)
                 percevoir_signes(monde)
@@ -2478,6 +2478,10 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 e["libre"], e["veille"] = t, t + duree
             else:
                 e["libre"] = t + max(1, duree)
+            # Toute branche peut avoir fait entendre quelque chose (conversation,
+            # secours, geste). Relever sa perception avant d'avancer l'horloge :
+            # un ton bref ne doit pas attendre la prochaine borne d'action.
+            observer()
     temoigner_en_cours(monde)
     monde.data["minutes"], monde.data["dixiemes"] = fin_minutes, fin_dixiemes
     finir_gestes(monde, fin)  # Ceux qui durent encore attendent l'action suivante du joueur.

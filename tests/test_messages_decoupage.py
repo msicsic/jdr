@@ -57,13 +57,33 @@ def sans_journal(m):
 
 
 class MessagesDecoupageTests(unittest.TestCase):
+    def meme_monde(self, a, b):
+        a, b = sans_journal(a), sans_journal(b)
+        self.assertTrue(a == b, "Champs différents : " + repr(
+            [k for k in a.keys() | b.keys() if a.get(k) != b.get(k)]))
+
     def comparer(self, m, *, moteur=False, laps=(600, 600, 600)):
         a, la = vivre(m.copier(), [sum(laps)], moteur)
         b, lb = vivre(m.copier(), laps, moteur)
         self.assertEqual(la, lb)
-        self.assertEqual(sans_journal(a), sans_journal(b))
+        self.meme_monde(a, b)
         self.assertEqual((regarder(a), scene_percue(a)), (regarder(b), scene_percue(b)))
         return a, la
+
+    def comparer_transaction(self, m, laps):
+        # Une seule commande, comme le bloc : entendus décrit le dernier
+        # geste du joueur et n'est pas réinitialisé entre événements PNJ.
+        # La vie découpée/rechargée sert d'oracle de toutes ses perceptions.
+        m.data['entendus'] = []
+        from donjon.vecu import noter
+        noter(m, 'joueur', instant(m), 'repos')
+        a, la = self.comparer(m, laps=laps)
+        b, lb = vivre(m.copier(), [sum(laps)], moteur=True)
+        from donjon.noms import texte
+        self.assertEqual([texte(a, ligne, citations=True) for ligne in la], lb)
+        self.meme_monde(a, b)
+        self.assertEqual((regarder(a), scene_percue(a)), (regarder(b), scene_percue(b)))
+        return b, lb
 
     def test_capture_371_livraison_extinction_et_depart(self):
         m, lignes = self.comparer(capture())
@@ -112,6 +132,21 @@ class MessagesDecoupageTests(unittest.TestCase):
         a, lignes = self.comparer(m)
         self.assertFalse(a.visible("marchand"))
         self.assertFalse(any("Gorm" in l for l in lignes))
+
+    def test_conversation_et_ton_bref_aux_frontieres(self):
+        from tests.test_contact_position_inconnue import source_ailleurs
+        # Le ton est reçu à 1200, puis expire avant le prochain événement à
+        # 1300. Il doit être publié au même instant, y compris sans borne
+        # d'action à 1200. Les deux voies rechargent après chaque tranche.
+        _, lignes = self.comparer_transaction(source_ailleurs(), (1199, 1, 1, 2399))
+        self.assertEqual(lignes.count("La femme large parle doucement à l'homme taillé en bloc."), 1)
+
+    def test_transaction_pnj_ne_republie_pas_les_sons_copies(self):
+        from tests.test_reprise_contact import capture as contact
+        # La transaction d'Ilse à 143408 adopte des copies de la file de
+        # bruits ; leurs événements et leurs émissions restent les mêmes.
+        # La voie moteur contrôle aussi le dernier rendu et son journal.
+        self.comparer_transaction(contact(), (2399, 1, 7, 1, 1, 591))
 
 
 if __name__ == "__main__":

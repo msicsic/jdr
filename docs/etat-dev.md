@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-parite-acoustique` (ce8ea206) : lot 391, parité acoustique après 376. Détail dans l'historique.
 - `codex-reservation-contrat` (792b3b38) : lot 393, une réservation ne bloque pas son propre contrat. Détail dans l'historique.
 - `codex-um-social-comptes` (0d7039c6) : lot 380, U-M social comptes. Détail dans l'historique.
 - `codex-suite-e0826ef` (c68aff20) : lot 375, rouges de la suite e0826ef. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1e-vues-episodes` (56f46332) : lot 385, S1e les lecteurs d'épisodes par des vues pures. Détail dans l'historique.
 - `codex-s1d-promesses` (ae83ca65) : lot 384, S1d promesses, prêts et travaux payés. Détail dans l'historique.
 - `codex-s1c-approches-secours` (762b3ac7) : lot 383, S1c approches, avertissements et secours. Détail dans l'historique.
-- `codex-s1b-sons-examens` (30256b08) : lot 382, S1b sons et examens par la porte de la mémoire. Détail dans l'historique.
 
 ## Lots non fusionnés
 
