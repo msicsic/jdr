@@ -24,7 +24,7 @@ def revue(reponse, perception=False, indice=False):
                         "motif": "La demande exige une perception." if perception else ""}],
             "descriptions": [{"representation": e["representations_autorisees"][0],
                               "mobilite": [], "placement": "aucun", "impact_scenario": "aucun",
-                              "capacites": [], "fragments": [{"texte": e["texte"],
+                              "capacites": e["sujet"].get("capacites", []), "fragments": [{"texte": e["texte"],
                                   "portee": "sujet", "preuve": "", "motif": ""}]}
                              for e in descriptions(reponse)]}
 
@@ -52,8 +52,10 @@ class FouilleFaitsTests(unittest.TestCase):
                         # G5 / rapport 323 : perception seule sans contre-revue.
                         ["repondre_au_joueur", "auditer_portee", "repondre_au_joueur"])
                     contexte = appels[1][1]
-                    self.assertEqual(contexte["demande"], saisie)
-                    self.assertEqual(contexte["proposition_faits"], reponse["proposition"])
+                    self.assertNotIn("demande", contexte)
+                    self.assertEqual(contexte["proposition_faits"], {"ajouts": reponse["proposition"]["ajouts"]})
+                    self.assertEqual(contexte["monde"]["admissions"][0]["suite_non_executee"],
+                                     reponse["proposition"]["suite"])
                     refus = appels[2][1]["controle_narratif"][0]
                     self.assertIn("examiner", refus["attendu"])
                     self.assertIn(cible, refus["attendu"])
@@ -93,7 +95,8 @@ class FouilleFaitsTests(unittest.TestCase):
                    "capacites": [{"nature": "son", "intensite": 1}]})
         r, texte, appels = jouer(m, "mj je scrute la hache à la recherche de marques", [
             p, revue(p, perception=True), action(proposition("examiner", "hache"))], [])
-        self.assertEqual(appels[1][1]["descriptions"], [])
+        self.assertEqual(len(appels[1][1]["descriptions"]), 1)
+        self.assertEqual(appels[1][1]["descriptions"][0]["sujet"]["propriete"], "capacites")
         self.assertNotIn("auditer_capacites", [f for f, _ in appels])
         self.assertEqual(r.objets["hache"], m.objets["hache"])
         self.assertEqual(r.data["conversation"][-1]["nature"], "resultat_moteur")

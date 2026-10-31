@@ -36,8 +36,7 @@ from .narration import (AuditIllisible, schema_audit, voix_auteur, INSTRUCTIONS_
                         fondement as fondement_narratif, fondement_paroles,
                         mentions as mentions_narratives,
                         mentions_proposees)
-from .portee_narrative import (SCHEMA as SCHEMA_PORTEE, INSTRUCTIONS as INSTRUCTIONS_PORTEE,
-                               SCHEMA_FAITS as SCHEMA_PORTEE_FAITS, controler_usages,
+from .portee_narrative import (INSTRUCTIONS as INSTRUCTIONS_PORTEE, controler_usages,
                                descriptions as descriptions_proposees,
                                controler as controler_portee)
 from .coherence_physique import (SCHEMA as SCHEMA_PHYSIQUE,
@@ -1509,23 +1508,24 @@ direction), plus lents, ils ne s'entendent que de tout près.
             if monde is not None:
                 obstacles.extend(mentions_proposees(monde, reponse, base, paroles))
             try:
-                ajouts = descriptions_proposees(reponse)
+                ajouts = descriptions_proposees(reponse, entree.get("faits", {}))
                 faits_proposes = (reponse.get("proposition")
                                   if reponse.get("mode") == "etablir_faits" else None)
                 if ajouts or faits_proposes is not None:
                     faits = entree.get("faits", {})
-                    from .portee_narrative import contexte_admission
-                    contexte = contexte_admission(faits)
+                    from .portee_narrative import contexte_admission, schema_admission
+                    contexte = contexte_admission(faits, faits_proposes)
+                    # La portée juge la mutation, pas la fidélité à la saisie.
+                    # La suite n'apparaît que comme geste non exécuté du dossier ;
+                    # sa validation et sa revue de fidélité restent dans la voie action.
                     audit = appeler_brut(INSTRUCTIONS_PORTEE,
                                         {"descriptions": [{"sujet": a["sujet"], "texte": a["texte"]}
                                                           for a in ajouts], "monde": contexte,
                                          "attestations": faits.get("attestations", []),
-                                         "demande": intention,
-                                         **({"proposition_faits": faits_proposes}
+                                         **({"proposition_faits": sans_suite(faits_proposes)}
                                             if faits_proposes is not None else {})},
                                         "Contrôler la portée des descriptions proposées",
-                                        "auditer_portee", SCHEMA_PORTEE_FAITS
-                                        if faits_proposes is not None else SCHEMA_PORTEE)
+                                        "auditer_portee", schema_admission(ajouts, faits_proposes))
                     if faits_proposes is not None:
                         obstacles.extend(controler_usages(faits_proposes, audit))
                     obstacles.extend(controler_portee(

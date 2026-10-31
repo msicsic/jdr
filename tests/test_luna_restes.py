@@ -22,6 +22,7 @@ from tests.test_parole_commune import scene, paroles_retenues
 from tests.test_repli_et_appel import dialogue, parole
 from tests.test_sous_obstacle import FORME, passage, scene as scene_obstacle
 from tests.test_tensions import recharger
+from tests.test_fouille_faits import revue as revue_portee
 
 
 def jouer_physique(m, saisies, reponses, jugements=()):
@@ -29,8 +30,7 @@ def jouer_physique(m, saisies, reponses, jugements=()):
     def appel(instructions, entree, intention, fonction, schema):
         appels.append((fonction, entree))
         if fonction == "auditer_portee":
-            return {"descriptions": [], "usages": [{"perception_requise": False, "indice": False, "motif": ""}
-                                                    for _ in entree["proposition_faits"]["ajouts"]]}
+            return revue_portee({"mode": "etablir_faits", "proposition": entree["proposition_faits"]})
         if fonction == "auditer_capacites":
             return {"jugements": [jugements.pop(0)]}
         if fonction == "auditer_action":

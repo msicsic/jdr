@@ -43,7 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 431 (admission préalable d’une création), 432 (refus du rendu sans attendu), 429 (K1, éditeur de marché), 428 (D0, parole ouverte), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+- `codex-admission-prealable` (431), base `integration` / `e05e2b5b` : dossier public par mutation,
+  propriétés établies/manquantes, suite non exécutée, cardinalités fixées avant la revue ; portée séparée de la fidélité.
+  132 tests ciblés couverts ; deux sous-échecs faim/chaleur préexistants, aucune erreur ; gestes vérifiés après recharge.
+  Relais 4 h × 4 graines : états et mesures mécaniques identiques. Luna une passe : 50 appels / 12 tours MJ,
+  17,19 s/tour ; planches admises et pièce prise ; faux refus torche/pierre/éclat encore vus avant les derniers ajustements.
+  Invariant sémantique général non garanti ; pas de seconde passe. [Rapport](taches/rapport-codex-431-admission-prealable.md).
+
+Lots en cours : 432 (refus du rendu sans attendu), 429 (K1, éditeur de marché), 428 (D0, parole ouverte), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

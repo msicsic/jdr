@@ -16,11 +16,8 @@ from donjon.monde import ErreurMonde, Monde, nouveau_monde, objet
 from donjon.moteur import Moteur, QualificationRequise, proposition
 from donjon.rendu import decrire
 from tests.support import simuler_couverture
+from tests.test_fouille_faits import revue as revue_portee
 from donjon.transactions import du_type
-
-
-PORTEE_QUALIFICATION = {"descriptions": [], "usages": [
-    {"perception_requise": False, "indice": False, "motif": ""}]}
 
 
 class CoupeTests(unittest.TestCase):
@@ -49,10 +46,10 @@ class CoupeTests(unittest.TestCase):
             jugement = {"mode": "etablir_faits", "texte": "", "faits": [],
                         "proposition": {"ajouts": [{"type": "qualification",
                             "ancrage": "la plaque d'acier", "moyen": "scie à métaux",
-                            "coupe_possible": True}]}}
+                            "coupe_possible": True}], "suite": None}}
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[
-                      action, jugement, PORTEE_QUALIFICATION, {"jugements": [{"compatible": True, "motif": ""}]},
+                      action, jugement, revue_portee(jugement), {"jugements": [{"compatible": True, "motif": ""}]},
                       action]) as appel,
                   patch.object(Monde, "d20", return_value=20),
                   patch("builtins.input", side_effect=[
@@ -120,10 +117,10 @@ class CoupeTests(unittest.TestCase):
             qualification = {"mode": "etablir_faits", "texte": "", "faits": [],
                              "proposition": {"ajouts": [{"type": "qualification",
                                  "ancrage": "plaque", "moyen": "scie",
-                                 "coupe_possible": True}]}}
+                                 "coupe_possible": True}], "suite": None}}
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=[
-                      action, qualification, PORTEE_QUALIFICATION, {"jugements": [{"compatible": True,
+                      action, qualification, revue_portee(qualification), {"jugements": [{"compatible": True,
                                                                "motif": ""}]}, action]),
                   patch.object(Monde, "d20", return_value=20),
                   patch("builtins.input", side_effect=[
@@ -161,7 +158,7 @@ class CoupeTests(unittest.TestCase):
             exclusion = {"mode": "etablir_faits", "texte": "", "faits": [],
                          "proposition": {"ajouts": [{"type": "qualification",
                              "ancrage": "la dalle de granit", "moyen": "la hache",
-                             "coupe_possible": False}]}}
+                             "coupe_possible": False}], "suite": None}}
             revue = {"jugements": [{"compatible": True,
                                      "motif": "La dalle résiste à cette hache."}]}
             explication = {"mode": "dialogue", "texte": phrase,
@@ -171,7 +168,7 @@ class CoupeTests(unittest.TestCase):
                                    "citation": "", "entites": [], "comptes": [], "motif": ""}]}
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut",
-                               side_effect=[action, exclusion, PORTEE_QUALIFICATION, revue, action,
+                               side_effect=[action, exclusion, revue_portee(exclusion), revue, action,
                                             explication, audit]) as appel,
                   patch("builtins.input", side_effect=[
                       "couper dalle de granit avec hache", "quitter"]),
@@ -221,13 +218,13 @@ class CoupeTests(unittest.TestCase):
         exclusion = {"mode": "etablir_faits", "texte": "", "faits": [],
                      "proposition": {"ajouts": [{"type": "qualification",
                          "ancrage": "dalle", "moyen": "hache",
-                         "coupe_possible": False}]}}
+                         "coupe_possible": False}], "suite": None}}
         invalide = {"mode": "action",
                     "texte": "La dalle de granit résiste à la hache.",
                     "faits": [], "proposition": {}}
         # La forme invalide reçoit sa correction propre avant le repli commun.
         with patch.object(MJOpenAI, "_appeler_brut", side_effect=[
-                action, exclusion, PORTEE_QUALIFICATION, {"jugements": [{"compatible": True,
+                action, exclusion, revue_portee(exclusion), {"jugements": [{"compatible": True,
                     "motif": "Le granit résiste aux outils connus."}]}, invalide, invalide]):
             reponse = MJOpenAI().echanger(m, "couper dalle de granit avec hache")
         self.assertEqual(reponse["mode"], "dialogue")
@@ -256,7 +253,7 @@ class CoupeTests(unittest.TestCase):
                 qualification = {"mode": "etablir_faits", "texte": "", "faits": [],
                                  "proposition": {"ajouts": [{"type": "qualification",
                                      "ancrage": cible, "moyen": "hache",
-                                     "coupe_possible": True}]}}
+                                     "coupe_possible": True}], "suite": None}}
                 revue = {"jugements": [{"compatible": True, "motif": ""}]}
                 interface = Mock() if cible == "perche_2" else None
                 if interface:
@@ -264,7 +261,7 @@ class CoupeTests(unittest.TestCase):
                         f"couper {depart.objets[cible]['nom']} avec hache", "tenter", "quitter"]
                 with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                       patch.object(MJOpenAI, "_appeler_brut",
-                                   side_effect=[action, qualification, PORTEE_QUALIFICATION, revue, action]),
+                                   side_effect=[action, qualification, revue_portee(qualification), revue, action]),
                       patch.object(Monde, "d20", return_value=20),
                       patch("builtins.input", side_effect=[
                           f"couper {depart.objets[cible]['nom']} avec hache",
@@ -311,11 +308,11 @@ class CoupeTests(unittest.TestCase):
                 avant = copy.deepcopy(m.data)
                 demande = {"mode": "etablir_faits", "texte": "", "faits": [],
                            "proposition": {"ajouts": [{"type": "qualification",
-                               "ancrage": "perche_1", **choix}]}}
+                               "ancrage": "perche_1", **choix}], "suite": None}}
                 refus = {"jugements": [{"compatible": False,
                          "motif": "La matière et l'état décrit ne permettent pas cette conclusion."}]}
                 with patch.object(MJOpenAI, "_appeler_brut",
-                                  side_effect=[demande, PORTEE_QUALIFICATION, refus] * 3):
+                                  side_effect=[demande, revue_portee(demande), refus] * 3):
                     reponse = MJOpenAI().echanger(m, "Je coupe la perche avec la hache")
                 self.assertEqual(reponse["mode"], "dialogue")
                 self.assertIsNone(du_type(reponse, "faits"))
@@ -330,7 +327,7 @@ class CoupeTests(unittest.TestCase):
                                                   "tenacite": 2}]}
         reponse = {"mode": "etablir_faits", "texte": "",
                    "faits": ["faits_narratifs_proposables"],
-                   "proposition": {"ajouts": [ajout]}}
+                   "proposition": {"ajouts": [ajout], "suite": None}}
         rapport = {"usages": [{"perception_requise": False, "indice": False, "motif": ""}], "descriptions": [{
             "representation": representation, "mobilite": [], "placement": "aucun",
             "impact_scenario": "aucun", "capacites": ["tranchable"],
