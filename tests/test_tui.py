@@ -473,7 +473,15 @@ class TUITests(unittest.IsolatedAsyncioTestCase):
                 self.assertIn("20 pièces", app.derniere_vue["fiche"])
                 await self.commande(app, pilot, "accepter offre", 0)
                 self.assertIn("accord accepté", app.derniere_vue["fiche"])
-                await self.commande(app, pilot, "remettre anneau", 1)
+                avant_remise = Monde.charger(chemin).data
+                await self.commande(app, pilot, "remettre anneau", 0)
+                self.assertIn("Compris :", "\n".join(app.sorties))
+                apercu = Monde.charger(chemin)
+                self.assertEqual({k: v for k, v in apercu.data.items() if k != "conversation"},
+                                 {k: v for k, v in avant_remise.items() if k != "conversation"})
+                self.assertEqual(apercu.objets["anneau"]["lieu"], "joueur")
+                self.assertEqual(apercu.joueur["or"], 24)
+                await self.commande(app, pilot, "tenter", 1)
                 self.assertIn("récompense payée", app.derniere_vue["fiche"])
                 self.assertIn("44 pièces", app.derniere_vue["fiche"])
                 sauvegarde = Monde.charger(chemin)

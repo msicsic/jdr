@@ -28,6 +28,9 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-ut-social-comptes` (628d5da6) : lot 396, U-T social comptes. Détail dans l'historique.
+- `codex-s2-conception` (00b3910d) : lot 398, conception de S2. Détail dans l'historique.
+- `codex-avis-redits-crue` (c090475f) : lot 395, l'avis redit de Brune en crue 2024. Détail dans l'historique.
 - `codex-scenes-connues` (d87ff509) : lot 392, les scènes de test déclarent ce que Corvus connaît. Détail dans l'historique.
 - `codex-position-hypothese` (256f903a) : lot 374, la position crue d'autrui comme hypothèse datée. Détail dans l'historique.
 - `codex-don-consentement` (41b0c4e2) : lot 394, le don direct passe par le consentement U-C. Détail dans l'historique.
@@ -37,9 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-suite-e0826ef` (c68aff20) : lot 375, rouges de la suite e0826ef. Détail dans l'historique.
 - `codex-suite-663d1308` (db44eef3) : lot 390, rouges nouveaux de la suite 663d1308. Détail dans l'historique.
 - `codex-ut-social-avis` (44b4d260) : lot 389, U-T social avis. Détail dans l'historique.
-- `codex-rembourser-dette` (a1a50003) : lot 388, rembourser volontairement une dette en pièces. Détail dans l'historique.
-- `codex-information-terminal-connu` (7bdf4d1e) : lot 387, tests du terminal d'information après le catalogue connu. Détail dans l'historique.
-- `codex-um-social-avis` (20dcb5d2) : lot 386, U-M social avis. Détail dans l'historique.
 
 ## Lots non fusionnés
 
@@ -51,8 +51,19 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   **À reprendre** à `C:/Users/msics/donjon/artifacts/s1f-397/fin.json` ; identité des nuits non encore certifiée.
   [Rapport et limites](taches/rapport-codex-397-s1f-localisation.md).
 
-Lots en cours : 381 (A2 passage), 392 (connaissances des scènes depuis 365, Q2 du 390), 395 (avis redits crue 2024, reste du 375), 396 (U-T social comptes), 397 (S1f localisation et possession) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 381 (A2 passage), 397 (S1f localisation et possession), 399 (rembourser depuis le menu et le terminal) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
+
+## Passe Luna d'E6 (2026-10-31, orchestrateur, laptop)
+
+Les 12 scripts de l'évaluation 371 sur copies, intégration `e3adc0f4` : 14 appels, 1 appel et ~4,4 s par tour MJ, aucun repli
+ni erreur de recharge. **Relais** : « je te paie trois pièces maintenant si tu me livres une part de tes planches dans dix
+minutes » ouvre le formulaire 3/3, et valider puis tenter conclut l'accord (Aubin accepte, pièces payées une fois).
+**Auberge** (même phrase, Odile, huile) : formulaire 1/3 ; 2/3 faux refus typés par Luna (« prêt daté », « clause
+alternative ») ; après valider, le délai n'est pas prérempli. **« demain »** refusé 2/2 avec la mauvaise raison (« prêt
+daté » au lieu de « précise le délai en minutes »). Maintien et paiement futur refusés à juste titre 4/4. Limite d'E6
+confirmée : le typage libre de l'accord daté reste fragile (à reprendre avec K2 ou un lot de typage). Bruts
+`C:/Users/msics/donjon/artifacts/luna-e6-371/` (laptop).
 
 ## Décisions prises le 2026-10-30
 

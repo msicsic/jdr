@@ -6,6 +6,33 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-ut-social-comptes` — lot 396, base `origin/integration 1fd48fb5`, PC fixe.
+  Console et TUI : `comptes` soumet les descripteurs publics du web, termes figés,
+  sans modèle ; U-C et les validateurs existants gardent l'autorité sur le transfert.
+  90 tests distincts verts (dont 10 nouveaux), recharge et laps découpés ; ancien test TUI
+  adapté à U-C, échec reproduit sur la base ; empreintes 2 h Relais/auberge × 4 graines : 8/8 identiques.
+  Limite : remboursement du 388 absent des choix publics, donc non ajouté.
+  Bilan : `artifacts/ut-social-comptes-396/fin-cloture.json`, `succes=true`, sources contrôlées.
+  [Rapport 396](taches/rapport-codex-396-ut-social-comptes.md). Validé, poussé, aucun calcul restant.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 396, U-T social comptes : commande comptes à la console et à la TUI, mêmes termes que les raccourcis web du 380, transfert après verdict et consentement U-C ; le remboursement en pièces du 388 reste hors des choix publics (lot à ouvrir). 90 tests verts, 8/8 empreintes identiques.
+
+- `codex-s2-conception` — lot 398, base `integration e3adc0f4`, documentation seule.
+  [Conception S2](conception-s2.md) : 18 sous-lots d'un invariant, oracles et paires de cas,
+  dépendances S1f–p champ par champ ; cinq décisions S0 conservées, paramètres ouverts explicités.
+  Préparation possible pendant S1 ; implémentation après S1p, puis E7 et essai E9 (E8 reporté).
+  Tranche auberge à biographies manuelles et protocole rapide 4 h ; aucune mesure exécutée.
+  Références locales relues ; aucun test, banc ni Luna. Rapport 381 absent de la base.
+  [Rapport 398](taches/rapport-codex-398-s2-conception.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 398, documentation : docs/conception-s2.md, 18 sous-lots d'un invariant (S2a résumé des preuves, S2b oubli selon âge et importance, S2c arbitre des contradictions, S2d localisation et possession…), dépendances S1 champ par champ, captures à constituer, place d'E7/E9 et tranche de l'auberge ; cinq décisions de S0 reportées ; questions de calibration à soumettre dans les briefs concernés.
+
+- `codex-avis-redits-crue` — **395**, base `integration 1fd48fb5`, terminé, non fusionné, poussé.
+  Provenance de l'extinction portée par la vue attestée à 97 puis le constat courant à 140 ; moteur inchangé.
+  Isolation positive autorisée comme au 375 (buts concurrents), besoins/liens/audience/jets et assertion conservés.
+  Test négatif ajouté avec les profils d'origine ; la transmission spontanée dans la nuit réelle n'est pas prouvée.
+  **4/4 avis verts** ; voisins : 95/97, deux rouges d'agendas reproduits à l'identique sur la base native (hors lot).
+  [Rapport](taches/rapport-codex-395-avis-redits-crue.md) ; bruts au dépôt principal, `fin.json ok=false` expliqué, `conclusion.json`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 395, reste du 375, tests seulement : provenance historique de Brune retrouvée ; épreuve isolée (souci spontané d'autrui coupé et déclaré dans la scène), cas négatif vérifié sur la scène réelle (aucune redite sans rallumage appris) ; transmission spontanée dans la nuit réelle non prouvée. 4/4 tests d'avis, voisins 95/97 (deux échecs hérités de la base).
+
 - `codex-scenes-connues` — lot 392, base `integration` `ed5d9765` : prémisses de connaissance explicites,
   sans code du jeu ni scénario modifié ; salle/coffre et deux mandats avec contre-épreuves rechargées.
   Deux hashes actualisés en conservant exactement les savoirs du 365 ; cinq autres inchangés.
