@@ -121,14 +121,20 @@ def capturer(scenario, graine, dossier, checkpoints_extra=()):
         cle = acteur, sujet
         ancienne = consommees.get(cle)
         generation = generations.get(cle, 0)
+        expiree = bool(perimee or esprits.position_a_verifier(m, acteur, sujet))
         event = {'instant': instant(m), 'minute': m.data['minutes'], 'acteur': acteur, 'sujet': sujet,
                  'salle': m.objets[acteur]['lieu'], 'moyen': moyen, 'generation': generation,
                  'croyance': copy.deepcopy(c), 'positive': copy.deepcopy(positives.get(cle)),
-                 'repetition_sans_preuve': bool(ancienne and generation <= ancienne['generation']),
+                 'verification_expiree': expiree,
+                 'repetition_sans_preuve': bool(expiree and ancienne and generation <= ancienne['generation']),
                  'exclusions': copy.deepcopy(e['recherches'].get(sujet, {}))}
         event['capture'] = photo(m, f'verification-{len(evenements)}')
         evenements.append(event)
-        consommees[cle] = {'generation': generation, 'minute': m.data['minutes']}
+        # Une cible revue en chemin est une preuve neuve déjà fraîche quand
+        # l'ancien préfixe se termine. Cette inspection ne consomme pas une
+        # hypothèse expirée qui n'a pas encore existé pour cette nouvelle vue.
+        if expiree:
+            consommees[cle] = {'generation': generation, 'minute': m.data['minutes']}
         return len(evenements) - 1
 
     inspecter = pnj._inspecter

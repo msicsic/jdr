@@ -1,62 +1,62 @@
 # Lot 374 — position crue comme hypothèse datée
 
-31 octobre 2026, PC fixe, branche `codex-position-hypothese`. Intégration
-`3999bb3a` fusionnée dans `b3233153`, portes et vues mémoire S1a–S1e conservées.
-Bruts : `C:/Users/msics/donjon/artifacts/position-hypothese-374/`.
-**Fusion suspendue au nouveau banc du contact consommé.**
+31 octobre 2026, PC fixe. Branche `codex-position-hypothese`, moteur mesuré
+**66d3efe8**, intégration **3999bb3a** fusionnée dans `b3233153`. Lot livré,
+non fusionné. Bruts : `C:/Users/msics/donjon/artifacts/position-hypothese-374/` ;
+bilan consolidé : `contact-consomme/bilan-livraison.json`.
 
-**Invariant et réalisation.** Une position d'autrui est datée : confiance initiale
-× `2 ** (-âge / demi_vie)` depuis la preuve d'origine, sans cumul par tick.
-`data.positions_hypotheses` : seuil 0,5 ; demi-vies 15/60/120 min selon mobilité
-crue (mobile, posée, retenue). Soi, objets et feux exclus ; aucune position réelle
-lue pour planifier. `_lieu_cru`, `croit_present`, `_chercher`, `_normaliser_suites`
-et `_agir` partagent le contrôle ; règle, expiration et consommation entrent dans
-`_entrees`. Le préfixe typé conserve sa progression sous le même but/motif/demande.
+**Invariant commun.** La position d'autrui vieillit à la lecture : confiance initiale
+× `2 ** (-âge / demi_vie)` depuis l'observation d'origine, sans cumul par tick.
+`data.positions_hypotheses` conserve seuil 0,5 et demi-vies 15/60/120 min selon
+mobilité crue (mobile, posée, retenue). Soi, objets et feux exclus ; aucune position
+réelle lue pour planifier. `_lieu_cru`, `croit_present`, `_chercher`,
+`_normaliser_suites` et `_agir` partagent le contrôle ; règle, expiration et
+consommation entrent dans `_entrees` et dans les devis observateurs.
 
 Inspection, appel, question et constat d'absence consomment la piste expirée :
-`croyances[sujet].lieu.hypothese_consommee={minute,lieu}` survit à l'absence, au
-temps et aux anciens relais. Retrouver la même position clôt aussi le résultat de
-sa propre inspection. Seule une nouvelle preuve peut rouvrir la piste ; un bruit
-attribué conserve date et origine. Aucun épisode écrit hors porte mémoire.
-La première reprise arrêtait les vérifications de témoins, mais le contact requis
-pouvait encore convertir la piste consommée en recherche des autres salles.
-**Dernière correction : `_chercher` et `s_enquerir` ferment aussi cette reprise.**
-Un contact positivement localisé et frais reste possible.
+`croyances[sujet].lieu.hypothese_consommee={minute,lieu}` survit à l'absence,
+au temps et aux anciens relais. Retrouver la même position clôt aussi le résultat
+de sa propre inspection. Le contact requis ne transforme plus cette piste en
+recherche des autres salles. Une preuve nouvelle peut rouvrir la piste ; un bruit
+attribué conserve date et origine. Le préfixe typé conserve sa progression. Portes et vues mémoire S1a–S1e conservées.
 
-**Attribution rechargée.** Auberge 371/7 à 240 : Lucien cru au couloir depuis 174 ;
-mine 69/7 à 470 : Rémy cru au baraquement. Variantes parti/resté exécutées,
-monde/croyances/rendu/scène rechargés, position réelle cachée modifiée sans changer le plan.
-Les 170 captures anciennes sont rechargeables, leurs 11 rejeux reproduisent les
-empreintes de `7986b7d2` (`reprise/attribution-rechargee.json`).
+**Attribution demandée, monde/rendu/scène rechargés.**
 
-- Aubin crue 42 : deux questions à 10800/10926 sur la voix d'Ilse de minute 3,
-  puis inspection ; consommation commune. Passages de salle première heure : **24→54→24**.
-- Brune crue 1985 : inspection 190 rafraîchit Aubin vu à 175 ; cette propre
-  observation expire à 205 et réveille l'agenda. Répétition corrigée, test 190/205/220/235.
+- Aubin crue 42 : les deux questions sur la voix d'Ilse de minute 3 et la remise
+  des préparatifs devant l'inspection causaient les passages ; **24→54→24 en 1 h**.
+- Brune crue 1985 : l'inspection de 190 rafraîchissait Aubin vu à 175, puis sa
+  propre observation expirait à 205 et réveillait l'agenda. Corrigé ; test 190/205/220/235.
 - Lucien mine 1985 : abri→repos à 102→abri à 108, sans quitter le baraquement ;
   repos 90,1→78,1, Mathe revue à 101/107 : retour légitime après satisfaction du besoin.
 - Brune crue 2024 : après refus, case d'Ilse inconnue→[0,12], entrée acoustique
-  nouvelle qui lève le refus. Confirmé aussi dans le dernier banc à 136784/136791.
-- Nouveau signal Lucien auberge 7 : ancienne question 142, Hugues revu à 168,
-  hypothèse fraîche à 175 puis expirée à 183 : première vérification de cette
-  nouvelle preuve. Pas de répétition de la piste précédente.
+  nouvelle qui lève le refus : retour légitime, disparu de l'audit strict final.
+- Le seul signal strict final, Lucien auberge 7 à 183 : ancienne question à 142,
+  Hugues revu à 168 ; première vérification de cette nouvelle hypothèse expirée,
+  sans consommation précédente. Preuve finale rechargée, pas de répétition de la piste de 142.
 
-**Mesures réalisées (`8a3b0725`, avant dernière fermeture).** 16 nuits × 4 h,
-Relais/auberge/mine/crue, quatre graines ; zéro plantage et usurpation.
-`VERIFIER` Relais 7, 1 h : vert, 30,927 s. Appels base→branche :
-**4→7 / 13→84 / 9→25 / 35→50**. Deux retours stricts attribués ci-dessus.
-Les 84 appels d'auberge restent trop nombreux pour conclure sans la dernière
-fermeture : capture Lucien/Hugues à 42, piste déjà consommée, nouvelle recherche
-dans le couloir (`position-374-auberge-42-42-consommee.json.gz`). La ventilation
-complète de l'ancienne réserve **46/38 appels** est renforcée par les captures de
-chaque appel ; un bruit attribué ancien ne compte plus comme nouvelle preuve.
+**Appels, un par un dans le bilan.** Ancienne réserve auberge **46** : 43 contacts
+frais ou déjà inconnus, 1 vérification expirée unique, **2 répétitions**. Mine
+**38** : 6 contacts hors expiration, 4 vérifications uniques, 4 inspections après
+preuve déjà rafraîchie, **24 répétitions**. Inspections/questions répétées comprises :
+6 à l'auberge et 63 à la mine. Après correction, les **15+7 appels** sont tous
+capturés : **3 vérifications expirées uniques**, **19 contacts frais ou inconnus**,
+**zéro répétition expirée**, tous moyens capturés compris. Les douze appels Lucien/Hugues
+2024 parcourent des pièces distinctes par observation ; les reprises suivent une
+nouvelle vue. Trois signaux de sonde confondaient une preuve déjà rafraîchie en chemin avec
+une piste consommée : reclassés par dates, sans modifier l’audit du jeu. **312 captures anciennes et 121 finales** rechargées ;
+empreintes des rejeux d'attribution identiques aux bancs correspondants.
 
-**Tests.** Avant dernière fermeture : 118 tests ciblés, 116 verts, deux écarts de
-texte déjà reproduits sur `3999bb3a` (contact contenant et reprise Ilse ; lot 390).
-Après fermeture : passe de 53, **52 verts, seul écart contenant hérité** ;
-**13 tests position verts**, dont nouvelle capture de contact requis. Oracles hérités
-intacts. Pas de suite complète ni Luna. Nouveau banc 16 nuits et voisins à finir,
-deux travailleurs, priorité réduite ; base 3999bb3a en cache, historique b83f5a59
-relu sans rejeu, aucun temps CPU comparé au cache. Fin attendue :
-`C:/Users/msics/donjon/artifacts/position-hypothese-374/fin-contact-consomme.json`.
-Aucune certification d'absence de boucle avant ses résultats ; demi-vies non calibrées.
+**Banc final.** 16 nuits × 4 h, graines 1985/7/42/2024, zéro plantage/usurpation.
+Appels base 3999bb3a→branche : **Relais 4→4, auberge 13→15, mine 9→7, crue 35→43**.
+Les trois retours initiaux sont corrigés ou attribués ; le seul signal strict
+restant est justifié ci-dessus. `VERIFIER` Relais 7 : **1 h vert, 30,378 s**.
+16 références et historique b83f5a59 réutilisés ; aucun temps CPU comparé au cache. Les 34 retours « entrée nouvelle à expliquer » restent dans
+les bruts : pas de certification globale des autres cycles de besoins.
+
+**Tests et limites.** **119 ciblés, 117 verts, deux échecs de texte hérités** :
+`test_contenant_dans_une_autre_salle` et
+`test_ilse_capture_141000_pas_de_reprise_par_la_minute`, reproduits sur 3999bb3a
+(`reprise/base-3999.stderr.txt`, lot 390), oracles intacts. Les 13 tests position
+incluent auberge 371/mine 69, parti/resté, position cachée modifiée sans changer le
+plan, sauvegarde/rendu et temps bloc/découpé. Pas de suite complète ni Luna.
+Garantie mesurée sur 4 h ; demi-vies initiales non calibrées. Aucun calcul en cours.

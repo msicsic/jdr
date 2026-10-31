@@ -43,14 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-position-hypothese` — lot 374 repris, fusion `origin/integration 3999bb3a` dans `b3233153`, PC fixe.
-  Hypothèse datée 15/60/120 min ; inspection/appel/question consomment la piste, le temps et les vieux relais ne la rouvrent pas.
-  Le résultat de sa propre inspection ne programme plus un nouvel essai ; bruit attribué distinct d'une voix reconnue.
-  Captures rechargées : Brune crue 1985, répétition 190/205 identifiée ; Brune 2024, nouvelle case acoustique prouvée.
-  Premier banc de consommation : Aubin revenu à 24 passages ; appels auberge 84, mine 25 : reprise par contact requis encore possible.
-  Reprise fermée dans recherche/question communes ; 13 tests position verts, passe ciblée 52/53 (seul écart de texte hérité).
-  Nouvelle mesure 16 nuits et attribution complète à terminer ; 2 écarts hérités prouvés sur 3999bb3a, porte S1a–S1e conservée.
-  Fusion suspendue aux résultats. Bruts et réserves au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
+- `codex-position-hypothese` — lot 374 livré, moteur `66d3efe8`, base `3999bb3a` fusionnée dans `b3233153`, PC fixe.
+  Position datée 15/60/120 min ; inspection/appel/question consomment la piste, y compris pour un contact requis ; seuls de nouveaux faits rouvrent.
+  Aubin crue 42 : 24→54→24 passages en 1 h ; trois retours initiaux corrigés/attribués, seul signal strict final Lucien auberge 7 justifié.
+  16 nuits × 4 h : zéro plantage/usurpation ; appels Relais 4→4, auberge 13→15, mine 9→7, crue 35→43 ; VERIFIER 1 h vert.
+  312 captures anciennes + 121 finales rechargées ; 22 appels finaux attribués, aucune répétition expirée observée dans les vérifications capturées.
+  119 tests ciblés, 117 verts ; 2 échecs de texte hérités reproduits sur la base (lot 390), oracles intacts ; pas de suite complète ni Luna.
+  Portes/vues mémoire S1a–S1e conservées ; mesure bornée à 4 h, demi-vies non calibrées ; aucun calcul en cours. [Rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
 (U-M social comptes), 381 (A2 passage), 390 (rouges nouveaux de la suite 663d1308 : 42 méthodes, dont 11 au 375 et 5 au 387). Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
