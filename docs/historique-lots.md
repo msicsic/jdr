@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-suite-c562aa21` — 403 terminé, non fusionné, base `integration d23d081d`, code `e5f5befb`, poussé.
+  19 bascules attribuées : 14 au 388, quatre au 380, une au 390 ; tableau dans le rapport.
+  Mort : retire l'interlocuteur entendu, conserve sa voix et ses sons, refuse sa réadmission par rejeu.
+  Oracles adaptés aux contrats 388/394 ; cas réel et deux scènes de voix/décès verts après recharge.
+  19/19 rouges corrigés ; 15 fichiers : 151 réussites, un saut facultatif sur 152 ; empreintes 2 h : 8/8 identiques.
+  `fin-inventaire.json` : `ok=true`, sources identiques ; aucun calcul actif, ni Luna ni suite complète.
+  Détail et limites : [rapport 403](taches/rapport-codex-403-suite-c562aa21.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 403 : 19 méthodes attribuées (388 : 14, 380 : 4, 390 : 1) et corrigées ; moteur : un mort sort des interlocuteurs entendus (corps.mourir, ecoute.retenir), défaut révélé par la réception anticipée du 390 ; adaptations documentées : remboursement choisi (388), rang du remboursement dans l'oracle A0, forme stricte de rembourser, remises confirmées par U-C (394). 151 tests, 8/8 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-a2-passage` — lot 381, base d'intégration au brief `c63dd563` : contrat commun du passage
   local, de l'assemblage installé, de l'appui mobile, de la demande et de la poussée ; moteur,
   schéma du compilateur actuel, raccourcis et « Compris » gardent la même charge typée.

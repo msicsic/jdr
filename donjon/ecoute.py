@@ -249,6 +249,12 @@ def verifier(monde):
     verifier_entrees(monde.data.get("voix_entendues", {}))
 
 
+def retirer_interlocuteur(monde, id):
+    """Une voix reste mémorisée, mais son auteur ne peut plus être un interlocuteur."""
+    if 'entendus' in monde.data:
+        monde.data['entendus'] = [x for x in monde.data['entendus'] if x != id]
+
+
 def retenir(monde, entendus_):
     """Ceux dont le joueur a entendu nettement la voix pendant son geste (``nette``) : il peut leur
     répondre, même sans les voir (``dialogues.interlocuteurs``). Une voix qu'il reconnaît lui dit
@@ -258,7 +264,7 @@ def retenir(monde, entendus_):
     from .voix import RECONNUE, reconnaitre, retenir as retenir_voix
     retenus = monde.data.setdefault("entendus", [])
     for b, niveau, _ in entendus_:
-        if not nette(b, niveau) or b["auteur"] not in monde.objets:
+        if not nette(b, niveau) or monde.objets.get(b['auteur'], {}).get('type') != 'personnage':
             continue
         if reconnaitre(monde, "joueur", b["auteur"])[1] != RECONNUE:
             # À la minute où il l'a entendue, pas à la fin de son geste : d'un bloc ou par tranches,

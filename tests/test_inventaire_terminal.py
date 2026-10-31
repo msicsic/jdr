@@ -108,7 +108,8 @@ class Parcours:
         temoin = m.copier()
         if mutation:
             mutation(temoin)
-        attendu, lignes_web = web.InventairePublicTests().boucle(temoin, d)
+        attendu, lignes_web = web.InventairePublicTests().boucle(
+            temoin, d, confirmer=geste == 'remettre' and not mutation)
         plans = []
         preparer = Moteur.preparer
 
@@ -124,11 +125,13 @@ class Parcours:
 
         with patch.object(Moteur, "preparer", preparation):
             if self.interface == "console":
-                obtenu, lignes, menus = terminal.ConsoleTests().jouer_console(m, ["99999", "1 2", numero])
+                obtenu, lignes, menus = terminal.ConsoleTests().jouer_console(
+                    m, ["99999", "1 2", numero, *(['tenter'] if geste == 'remettre' and not mutation else [])])
                 self.assertEqual(menus[0], rendre_liste(liste))
             else:
                 with patch.object(terminal, "menu", return_value=(liste, numero, d)):
-                    obtenu, lignes = await terminal.TerminalTests().jouer_tui(m, geste, cible, invalides=True)
+                    obtenu, lignes = await terminal.TerminalTests().jouer_tui(
+                        m, geste, cible, invalides=True, confirmer=geste == 'remettre' and not mutation)
         self.assertIn("Numéro inconnu dans la liste affichée.", lignes)
         self.assertIn("Choix ambigu : saisis un seul numéro de la liste affichée.", lignes)
         self.assertEqual(terminal.sans_saisie(obtenu.data), terminal.sans_saisie(attendu.data))
@@ -136,13 +139,16 @@ class Parcours:
         self.assertEqual(web.etat(obtenu), web.etat(attendu))
         self.assertEqual(web.vues(obtenu), web.vues(Monde(copy.deepcopy(obtenu.data))))
         for tour in attendu.data.get("conversation", []):
-            self.assertIn(tour["reponse"], lignes)
+            self.assertIn(tour["reponse"].strip(), [l.strip() for l in lignes])
         if mutation:
             # Le refus exact du même descripteur web, sans état mécanique modifié.
             self.assertEqual(obtenu.data, temoin.data)
             self.assertTrue(any(l in lignes for l in lignes_web if "Tu ne vois plus" in l or "Approche-toi" in l or "une pièce" in l), lignes)
         else:
-            self.assertEqual(plans, [Moteur(m.copier()).preparer(d).__dict__])
+            plan = Moteur(m.copier()).preparer(d)
+            # U-C prépare l'aperçu puis revalide le choix public à sa
+            # confirmation ; chaque préparation doit garder le même plan.
+            self.assertEqual(plans, [plan.__dict__] * (2 if plan.confirmation else 1))
         return obtenu, numero
 
     async def test_chaque_geste_parite_plan_texte_monde_fiche_scene_carte_recharges(self):
