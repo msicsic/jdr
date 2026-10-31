@@ -10,6 +10,7 @@ son plan, après un geste manqué, et après un événement qui change sa situat
 ``esprits.reconsiderer``). Les étapes sont ensuite revalidées sur l'état réel par ``pnj.py``.
 Tout est déterministe ; Luna n'intervient pas.
 """
+from .memoire import episodes
 from . import agendas
 from collections import Counter
 from enum import IntEnum
@@ -27,12 +28,12 @@ CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
               "servir", "frapper", "assommer", "dans_le_dos", "ranimer", "fuite", "se_rendre", "degager",
-              "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager", "proposer", "interposer", "rester")
+              "dire", "demander", "acheter", "confier", "remettre", "rembourser", "demander_feu", "engager", "proposer", "interposer", "rester")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter", "rester")  # gestes qui durent : une minute sans les finir n'est pas un échec
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent
 # demander_feu : tendre sa source à qui porte une flamme pour qu'il l'y allume (``echanges.demander_feu``).
 # engager : payer quelqu'un pour une tâche (``echanges.engager``).
-SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager", "proposer")
+SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "rembourser", "demander_feu", "engager", "proposer")
 A_VUE = ("crocheter",)  # gestes qui demandent d'y voir (``planification.chance_crochetage``)
 PROFONDEUR = 4
 PATIENCE = 30          # minutes passées à attendre une occasion (ou un passage) avant de renoncer
@@ -621,9 +622,9 @@ def consommer_indices_recherche(monde, id, qui, salle):
     if c and c["valeur"] == salle:
         _situer_recherche(monde, id, qui, salle, c.get("case"))
         _retenir_indice(monde, id, qui, salle, _indice_presence(c))
-    for s in lire(monde, id)["memoire"]:
-        if s["type"] in ("bruit", "examen") and s["salle"] == salle:
-            _retenir_indice(monde, id, qui, salle, indice_bruit(s))
+    from .memoire import bruits_retenus
+    for s in bruits_retenus(monde, id, salle, examens=True):
+        _retenir_indice(monde, id, qui, salle, indice_bruit(s))
 
 
 def _indice_presence(c):
@@ -784,8 +785,10 @@ def promesse_en_cours(monde, id, objet, remise=None):
     """Une part promise et pas encore servie, dans le délai où il l'attend. Une recharge est
     servie quand le feu est revu vif ; une part à remettre, seulement à sa réception réelle.
     ``remise`` distingue ces deux services sans les confondre dans un plan."""
+    from .memoire import episodes_parts_promises
     e = lire(monde, id)
-    for s in reversed(e["memoire"]):
+    episodes = episodes_parts_promises(monde, id)
+    for s in reversed(episodes):
         if s["type"] in ("promesse_annulee", "creance") and s.get("objet") == objet:
             return None
         if s["type"] == "nourri" and s.get("objet") == objet:
@@ -795,7 +798,7 @@ def promesse_en_cours(monde, id, objet, remise=None):
                 return None
             # Reçue, annulée ou remboursée : la part à remettre n'est plus attendue.
             if s.get("part") and any(x["type"] in ("recu", "promesse_annulee", "creance") and x.get("objet") == s["part"]
-                                     for x in e["memoire"]):
+                                     for x in episodes):
                 return None
             feu = e["croyances"].get(s.get("foyer"), {}).get("etat")
             if (monde.data["minutes"] - s["minute"] >= ATTENTE_PART or feu and feu["minute"] >= s["minute"]
@@ -903,7 +906,7 @@ def detresses_percues(monde, id):
     detresses = {s["personnage"] for s in signes if s["signe"] in ("tremble", "fuit")}
     detresses.update(x for x, _, c in actives(monde, id)
                      if c["signe"] in vus and c["valeur"] in ("peur", "crainte", "inquietude"))
-    detresses.update(s["qui"] for s in lire(monde, id)["memoire"]
+    detresses.update(s["qui"] for s in episodes(monde, id, types=('detresse',))
                      if s["type"] == "detresse" and s["minute"] == monde.data["minutes"])
     return detresses
 
@@ -1081,8 +1084,9 @@ def bruit_a_voir(monde, id):
     # Celui qu'il est en train d'aller voir passe d'abord : il ne court pas d'un bruit à l'autre.
     en_cours = _voir_en_cours(e)
     a_voir = []
-    for s in reversed(e["memoire"]):
-        if s["type"] != "bruit" or resolu(monde, id, s):
+    from .memoire import bruits_retenus
+    for s in reversed(bruits_retenus(monde, id)):
+        if resolu(monde, id, s):
             continue
         inhabituel = s["nature"] not in HABITUELS
         if not inhabituel and minute - e["visites"].get(s["salle"], -HABITUDE - 1) <= HABITUDE:
@@ -1102,10 +1106,10 @@ def alarme(monde, id):
     ``bruit_a_voir``."""
     from .ouie import resolu
     p = profil(monde, id) or {}
-    e = lire(monde, id)
     alerte = p.get("alerte")
-    for s in reversed(e["memoire"]):
-        if s["type"] != "bruit" or resolu(monde, id, s):
+    from .memoire import bruits_retenus
+    for s in reversed(bruits_retenus(monde, id)):
+        if resolu(monde, id, s):
             continue
         if s["nature"] == "appel" and s.get("qui") in proteges(monde, id):
             return s["salle"], "devoir"
@@ -1143,9 +1147,10 @@ def _a_dire(monde, id, victime, auteur):
 
 def _plan_prevenir(monde, id):
     """Un geste illicite vu contre un protégé : aller lui dire ce qu'il en ignore encore."""
-    e = esprit(monde, id)
-    for s in reversed(e["memoire"]):
-        if s["type"] != "a_prevenir" or s["victime"] not in monde.objets:
+    from .memoire import avertissements_a_donner
+    esprit(monde, id)
+    for s in reversed(avertissements_a_donner(monde, id)):
+        if s["victime"] not in monde.objets:
             continue
         contenus = _a_dire(monde, id, s["victime"], s["auteur"])
         if not contenus:
@@ -1166,7 +1171,7 @@ def _lieux_a_dire(monde, id, victime, auteur):
     (``pnj._lieu_vu``), pour qu'elle aille les reprendre."""
     from .vol import proprietaire
     objets = []
-    for s in lire(monde, id)["memoire"]:
+    for s in episodes(monde, id, types=('vu_agir',)):
         o = s.get("objet")
         if (s["type"] == "vu_agir" and s["auteur"] == auteur and "lieu" in s and o in monde.objets
                 and o not in objets and proprietaire(monde, monde.objets[o]) == victime):
@@ -1487,7 +1492,7 @@ def _plan_reposer(monde, id):
 def ouvert_par_soi(monde, id, objet, depuis):
     """A-t-il lui-même ouvert ou déverrouillé cet objet dans les ``depuis`` dernières minutes ?"""
     return any(s["type"] == "ouvert_par_soi" and s["objet"] == objet and monde.data["minutes"] - s["minute"] <= depuis
-               for s in lire(monde, id)["memoire"])
+               for s in episodes(monde, id, types=('ouvert_par_soi',)))
 
 
 def garde_sous_cle(monde, id, objet):
@@ -1572,15 +1577,14 @@ def tache_payee(monde, id, condition):
     place tant que la parole court (``echanges.ENGAGEMENT_MAX``), qu'il le croit fiable et qu'il n'a
     pas appris qu'elle n'a pas été tenue (une créance de ce travail). Renvoie à qui, ou None."""
     from .echanges import ENGAGEMENT_MAX
-    memoire = lire(monde, id)["memoire"]
-    for i in range(len(memoire) - 1, -1, -1):
-        s = memoire[i]
-        if s["type"] == "tache_payee" and s["condition"] == condition:
-            if monde.data["minutes"] - s["minute"] > ENGAGEMENT_MAX or se_mefie(monde, id, s["a"]):
-                return None
-            if any(x["type"] == "creance" and x["de"] == s["a"] and x.get("quoi") == "tache" for x in memoire[i + 1:]):
-                return None
-            return s["a"]
+    from .memoire import dernier_travail_paye
+    s, reclame = dernier_travail_paye(monde, id, condition)
+    if s is not None:
+        if monde.data["minutes"] - s["minute"] > ENGAGEMENT_MAX or se_mefie(monde, id, s["a"]):
+            return None
+        if reclame:
+            return None
+        return s["a"]
     return None
 
 
@@ -1706,6 +1710,11 @@ def _plan_creance(monde, id):
     son débiteur, pour qu'il le lui rende (``planification.reclamer``)."""
     from .planification import reclamer
     return reclamer(monde, id)
+
+
+def _plan_remboursement(monde, id):
+    from .planification import rembourser
+    return rembourser(monde, id)
 
 
 def _plan_froid(monde, id):
@@ -2061,7 +2070,8 @@ def _candidats(monde, id):
             from .planification import ranimer
             ajouter("devoir", lambda m, i, x=protege: ranimer(m, i, x), Palier.RANIMER, (-rang,))
     # Un protégé atteint sous ses yeux : il va le prévenir, comme une parole due.
-    if any(s["type"] == "a_prevenir" for s in e["memoire"]):
+    from .memoire import avertissements_a_donner
+    if avertissements_a_donner(monde, id):
         ajouter("devoir", _plan_prevenir, Palier.PREVENIR)
     # « J'arrive ! » à un appel : une parole due, comme une autre (``appel.plan_venir``).
     if e["rejoindre"]:
@@ -2122,8 +2132,9 @@ def _candidats(monde, id):
                     demande={"condition": x["condition"], "tache": True})
     # L'argent : un poids permanent, qui ne presse jamais ; il ne passe qu'après tout le reste.
     # Ce qu'on lui doit d'abord, puis des pièces à prendre.
-    ajouter(ARGENT, _plan_creance, Palier.ARGENT, (0,), routine=True)
-    ajouter(ARGENT, _plan_argent, Palier.ARGENT, (1,), routine=True)
+    ajouter(ARGENT, _plan_remboursement, Palier.ARGENT, (0,), routine=True)
+    ajouter(ARGENT, _plan_creance, Palier.ARGENT, (1,), routine=True)
+    ajouter(ARGENT, _plan_argent, Palier.ARGENT, (2,), routine=True)
     yield from sorted(buts, key=lambda c: c.urgence.cle())
 
 
@@ -2403,7 +2414,7 @@ def choisir(monde, id, minute):
                 # une parole due s'acquitte par son geste, pas par cet état.
                 if not due and (porteur["motif"] != "engagement" and satisfaite(monde, id, condition) or any(
                         s["type"] == "engagement_tenu" and s.get("condition") == condition
-                        and s["minute"] >= porteur["depuis"] for s in e["memoire"])):
+                        and s["minute"] >= porteur["depuis"] for s in episodes(monde, id, types=('engagement_tenu',)))):
                     fin = ("accomplie", {"condition": condition})
             if (charges_precedentes.get("restaurer") or fin and fin[0] == "accomplie"):
                 from .planification import restaurer_charges, _couper
@@ -2539,7 +2550,7 @@ def menager_flamme(monde, id, minute):
     e = esprit(monde, id)
     plan = e["intention"]["plan"] if e["intention"] else []
     vises = {x["cible"] for x in plan} | {x["outil"] for x in plan}
-    allumees = {s["objet"] for s in e["memoire"] if s["type"] == "flamme_employee"}
+    allumees = {s["objet"] for s in episodes(monde, id, types=('flamme_employee',)) if s["type"] == "flamme_employee"}
     flamme = next((k for k in sorted(allumees) if k in monde.objets and k not in vises
                    and k not in proteges and porte_par(monde, k, id) and allumee(monde.objets[k])), None)
     if flamme is None:

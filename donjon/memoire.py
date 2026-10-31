@@ -1,12 +1,206 @@
-"""Porte des insertions et évictions d'épisodes, au format historique.
+"""Porte des épisodes et de leurs requêtes, au format historique.
 
-S1a conserve la liste sauvegardée, son plafond et les crochets réentrants.
-Les lectures et les modifications du contenu des épisodes seront portées
-séparément ; ce module ne renvoie pas le stock mutable aux consommateurs.
+S1 conserve la liste sauvegardée, son plafond et les crochets réentrants.
+Aucune requête de ce module ne renvoie le stock mutable aux consommateurs.
 """
 import copy
 
 MEMOIRE_MAX = 40
+
+
+def episodes(monde, id, *, types=None, derniers=None):
+    """Copies profondes dans l'ordre du tampon, sans créer d'esprit.
+
+    La fenêtre porte sur le tampon entier avant le filtre de types : les trois
+    derniers souvenirs ne sont pas les trois derniers d'une famille choisie.
+    Aucune récence, validité ni connaissance supplémentaire n'est inférée ici.
+    """
+    from .esprits import lire
+    stock = lire(monde, id)['memoire']
+    if derniers is not None:
+        stock = stock[-derniers:] if derniers else []
+    return [copy.deepcopy(s) for s in stock if types is None or s['type'] in types]
+
+
+def rafraichir_geste_entendu(monde, id, objet):
+    """Prolonge le dernier geste anonyme récent sur ce bien, sans crochet.
+
+    Opération d'écriture : conserve l'installation historique de l'esprit,
+    l'identité de l'occurrence et la borne inclusive de récence.
+    """
+    from .esprits import esprit, RECENT
+    for s in reversed(esprit(monde, id)['memoire']):
+        if (s['type'] == 'entendu_agir' and s['objet'] == objet
+                and monde.data['minutes'] - s['minute'] <= RECENT):
+            s['minute'] = monde.data['minutes']
+            return True
+    return False
+
+
+def migrer_presences_percues(monde, id):
+    """Retire les présences anciennes et en rend des copies, dans leur ordre."""
+    from .esprits import lire
+    presences = []
+    for s in list(lire(monde, id)['memoire']):
+        if s['type'] == 'presence_percue':
+            evincer_episodes(monde, id, lambda episode: episode is s)
+            presences.append(copy.deepcopy({k: s[k] for k in ('qui', 'salle', 'instant')}))
+    return presences
+
+
+def episodes_parts_promises(monde, id):
+    """Copies ordonnées des promesses de parts et de leurs suites historiques."""
+    from .esprits import lire
+    return [copy.deepcopy(s) for s in lire(monde, id)['memoire']
+            if s['type'] in ('promis', 'nourri', 'recu', 'promesse_annulee', 'creance')]
+
+
+def travaux_payes_retenus(monde, id):
+    """Tous les travaux du tampon, doublons compris, sans politique de validité."""
+    from .esprits import lire
+    return [copy.deepcopy(s) for s in lire(monde, id)['memoire'] if s['type'] == 'tache_payee']
+
+
+def dernier_travail_paye(monde, id, condition):
+    """Dernier accord et présence d'une créance de tâche ultérieure envers lui.
+
+    L'ordre de la liste, et non la date, départage les occurrences.
+    """
+    from .esprits import lire
+    stock = lire(monde, id)['memoire']
+    for i in range(len(stock) - 1, -1, -1):
+        s = stock[i]
+        if s['type'] == 'tache_payee' and s['condition'] == condition:
+            reclame = any(x['type'] == 'creance' and x['de'] == s['a'] and x.get('quoi') == 'tache'
+                          for x in stock[i + 1:])
+            return copy.deepcopy(s), reclame
+    return None, False
+
+
+def suivi_engagement(monde, id, condition, depuis):
+    """Copie du dernier suivi, arrêtée par toute autre parole de même condition."""
+    from .esprits import lire
+    for s in reversed(lire(monde, id)['memoire']):
+        if s.get('condition') != condition:
+            continue
+        if s['type'] in ('engagement_pris', 'engagement_tenu', 'engagement_abandonne'):
+            break
+        if s['type'] == 'suivi_engagement' and s['depuis'] == depuis:
+            return copy.deepcopy(s)
+    return None
+
+
+def pret_retenu(monde, id, objet, a):
+    """Souvenir du prêt ; ne consulte ni ne modifie la permission réelle."""
+    from .esprits import lire
+    return any(s['type'] == 'pret' and s.get('objet') == objet and s.get('a') == a
+               for s in lire(monde, id)['memoire'])
+
+
+def remise_retenue(monde, id, de, objet, minute):
+    """Réception de la même minute, avant l'épreuve d'engagement tenu.
+
+    Comme le crochet historique, cette consultation installe l'esprit si absent.
+    """
+    from .esprits import esprit
+    return any(s['type'] in ('nourri', 'recu') and s.get('de') == de
+               and s.get('objet') == objet and s['minute'] == minute
+               for s in esprit(monde, id)['memoire'])
+
+
+def juger_reclamations_pret(monde, id, objet, pret, apres_jugement):
+    """Marque chaque réclamation échue avant sa conséquence réentrante.
+
+    L'itération porte le stock vivant : un ajout/une éviction dans la conséquence
+    garde exactement son effet historique sur les occurrences suivantes.
+    Aucun ajout ni crochet propre à cette opération.
+    """
+    from .esprits import esprit
+    from .biens import RENDRE
+    for s in esprit(monde, id)['memoire']:
+        if (s['type'] == 'pret_reclame' and s['objet'] == objet and s['pret'] == pret
+                and s['echu'] and not s.get('juge') and monde.data['minutes'] - s['minute'] >= RENDRE):
+            s['juge'] = True
+            apres_jugement()
+
+
+def derniere_approche(monde, id, auteur, objet, lieu, cible, case=None):
+    """Dernière approche de la charge ; les anciens lieux/cibles restent implicites."""
+    from .esprits import lire
+    return copy.deepcopy(next((s for s in reversed(lire(monde, id)['memoire'])
+        if s['type'] == 'approche_charge' and s['auteur'] == auteur and s['objet'] == objet
+        and s.get('lieu', lieu) == lieu and s.get('cible', cible) == cible
+        and (case is None or s['case'] == case)), None))
+
+
+def mise_en_garde_retenue(monde, id, destinataire, objet, preuve):
+    """Même preuve d'approche, sans péremption ni effet de lecture."""
+    from .esprits import lire
+    return any(s['type'] == 'mise_en_garde' and s['a'] == destinataire
+               and s['objet'] == objet and s['preuve'] == preuve
+               for s in lire(monde, id)['memoire'])
+
+
+def avertissements_a_donner(monde, id):
+    """Copies dans l'ordre historique, y compris les avertissements déjà tenus."""
+    from .esprits import lire
+    return [copy.deepcopy(s) for s in lire(monde, id)['memoire'] if s['type'] == 'a_prevenir']
+
+
+def _avertissement(monde, id, victime, auteur):
+    from .esprits import lire
+    # Le premier, même déjà tenu : ne pas passer à une autre occurrence.
+    return next((s for s in lire(monde, id)['memoire'] if s['type'] == 'a_prevenir'
+                 and s['victime'] == victime and s['auteur'] == auteur), None)
+
+
+def avertissement_du(monde, id, victime, auteur):
+    return copy.deepcopy(_avertissement(monde, id, victime, auteur))
+
+
+def acquitter_avertissement(monde, id, victime, auteur):
+    """Marque tenu le premier avertissement correspondant, sans crochet."""
+    alerte = _avertissement(monde, id, victime, auteur)
+    if alerte is None or alerte.get('tenu'):
+        return False
+    alerte['tenu'] = True
+    return True
+
+
+def secours_retenus(monde, id, qui=None, *, en_attente=False):
+    """Copies ordonnées des cris ; le lecteur conserve sa borne de récence."""
+    from .esprits import lire
+    return [copy.deepcopy(s) for s in lire(monde, id)['memoire'] if s['type'] == 'secours'
+            and (qui is None or s['qui'] == qui) and (not en_attente or not s.get('examine'))]
+
+
+def _examiner_secours(monde, id, constate):
+    from .esprits import lire
+    secourus = []
+    for s in lire(monde, id)['memoire']:
+        if s['type'] == 'secours' and not s.get('examine') and constate(s):
+            s['examine'] = True
+            secourus.append(s['qui'])
+    return secourus
+
+
+def examiner_secours_du_lieu(monde, id, salle):
+    """Acquitte chaque cri du lieu effectivement inspecté, dans l'ordre."""
+    return _examiner_secours(monde, id, lambda s: s['salle'] == salle)
+
+
+def examiner_secours_constates(monde, id):
+    """Vue actuelle ou état vu strictement après le cri, comme historiquement."""
+    from .esprits import lire, percoit
+    e = lire(monde, id)
+
+    def constate(s):
+        qui = s['qui']
+        etat = e['croyances'].get(qui, {}).get('etat', {})
+        vu = monde.visible(qui) if id == 'joueur' else percoit(monde, id, qui)
+        return vu or etat.get('source') == 'vu' and etat['minute'] > s['minute']
+
+    return _examiner_secours(monde, id, constate)
 
 
 def retenir_episode(monde, id, evenement):
@@ -43,3 +237,79 @@ def evincer_episodes(monde, id, retirer):
     from .esprits import esprit
     memoire = esprit(monde, id)["memoire"]
     memoire[:] = [s for s in memoire if not retirer(s)]
+
+
+def bruits_retenus(monde, id, salle=None, *, examens=False):
+    """Copies ordonnées des bruits, et éventuellement de leurs examens vains.
+
+    Pas de filtre de péremption : chaque lecteur garde sa politique historique.
+    Une consultation, même d'un esprit absent, ne crée rien.
+    """
+    from .esprits import lire
+    types = ('bruit', 'examen') if examens else ('bruit',)
+    return [copy.deepcopy(s) for s in lire(monde, id)['memoire']
+            if s['type'] in types and (salle is None or s['salle'] == salle)]
+
+
+def retirer_bruits(monde, id, salle):
+    """Retire les bruits du lieu, sans toucher aux examens ni aux crochets."""
+    evincer_episodes(monde, id, lambda s: s['type'] == 'bruit' and s['salle'] == salle)
+
+
+def retenir_examen_sonore(monde, id, salle, case=None):
+    """Consomme les bruits parcourus et retient l'examen vain historique."""
+    from .esprits import esprit
+    from .ouie import resolu, INTENSITES
+    stock = esprit(monde, id)['memoire']
+    vus = [s for s in stock if s['type'] == 'bruit' and s['salle'] == salle]
+    attendus = [s for s in vus if not resolu(monde, id, s)]
+    evincer_episodes(monde, id, lambda s: any(s is v for v in vus)
+                     or (s['type'] == 'examen' and s['salle'] == salle and attendus))
+    if attendus:
+        qui = {s.get('qui') for s in attendus}
+        retenir_episode(monde, id, {'type': 'examen', 'salle': salle,
+                                   'case': list(case) if case is not None else None,
+                                   'nature': max((s['nature'] for s in attendus), key=INTENSITES.get),
+                                   **({'qui': qui.pop()} if len(qui) == 1 and None not in qui else {})})
+    return bool(attendus)
+
+
+def _examen_couvrant(monde, id, salle, n, qui, case):
+    """Référence interne uniquement ; même ordre et mêmes bornes historiques."""
+    from .esprits import RECENT, lire
+    from .ouie import INTENSITES
+    minute = monde.data['minutes']
+    for s in reversed(lire(monde, id)['memoire']):
+        if s['type'] != 'examen' or s['salle'] != salle or minute - s['minute'] > RECENT:
+            continue
+        if INTENSITES[n] > INTENSITES[s['nature']] or qui is not None and qui != s.get('qui'):
+            return None
+        if case is not None and s['case'] is None:
+            return None
+        return s
+    return None
+
+
+def examen_couvrant(monde, id, salle, n, qui=None, case=None):
+    """Copie de l'examen qui couvre le bruit, ou None ; aucune écriture."""
+    return copy.deepcopy(_examen_couvrant(monde, id, salle, n, qui, case))
+
+
+def rafraichir_examen_sonore(monde, id, salle, n, qui=None, case=None):
+    """Prolonge le même examen si le bruit est couvert, sans nouvel épisode."""
+    examen = _examen_couvrant(monde, id, salle, n, qui, case)
+    if examen is None:
+        return False
+    examen['minute'] = monde.data['minutes']
+    return True
+
+
+def retenir_bruit_sans_profil(monde, id, salle, n, niveau):
+    """Remplace les bruits du lieu par leur maximum, sans délibération."""
+    from .esprits import esprit
+    from .ouie import INTENSITES
+    anciens = [s for s in esprit(monde, id)['memoire'] if s['type'] == 'bruit' and s['salle'] == salle]
+    retirer_bruits(monde, id, salle)
+    retenir_episode(monde, id, {'type': 'bruit', 'salle': salle,
+                               'nature': max([n, *(s['nature'] for s in anciens)], key=INTENSITES.get),
+                               'niveau': max([niveau, *(s.get('niveau', niveau) for s in anciens)])})

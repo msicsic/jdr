@@ -18,6 +18,7 @@ que le planificateur du moteur exécute quand rien de plus urgent ne presse ; su
 qui la confie, elle en confie la garde (``biens.gardes``). Tout est déterministe hors des jets du
 moteur.
 """
+from .memoire import episodes
 from .francais import pluriel as nombre_pluriel
 from .francais import quantite
 from . import agendas
@@ -655,7 +656,7 @@ def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
     memoriser(monde, auditeur, {"type": "parole_crue", "locuteur": locuteur, "sujet": sujet, "attribut": attribut})
     # Ce qu'il a sous les yeux peut le démentir aussitôt.
     percevoir(monde, auditeur)
-    if any(s["type"] == "mensonge_decouvert" and s.get("sujet") == sujet for s in e["memoire"][-3:]):
+    if any(s["type"] == "mensonge_decouvert" and s.get("sujet") == sujet for s in episodes(monde, auditeur, derniers=3)):
         return "decouvert"
     return "crue"
 
@@ -1335,15 +1336,8 @@ def tenu(monde, id, condition, depuis=None):
         # survit à une recharge et départage les faits d'une même minute sans
         # inventer l'instant de perception. Une mémoire oubliée ne fait pas
         # preuve : le nouveau suivi repart seulement de ce qu'il croit alors.
-        suivi = None
-        for s in reversed(e["memoire"]):
-            if s.get("condition") != condition:
-                continue
-            if s["type"] in ("engagement_pris", "engagement_tenu", "engagement_abandonne"):
-                break  # Une autre parole identique n'hérite pas de cette preuve.
-            if s["type"] == "suivi_engagement" and s["depuis"] == depuis:
-                suivi = s
-                break
+        from .memoire import suivi_engagement
+        suivi = suivi_engagement(monde, id, condition, depuis)
         if suivi is None:
             memoriser(monde, id, {"type": "suivi_engagement", "depuis": depuis,
                                   "condition": condition, "initiale": preuve})
@@ -1840,6 +1834,23 @@ def executer(monde, id, etape, lignes):
     from .spatial import porte_par
     autre, op = etape["cible"], etape["operation"]
     contenu = etape.get('contenu', {})
+    if op == 'rembourser':
+        from .biens import dues, richesse, garde_du, rembourser_dette
+        from .monde import ErreurMonde
+        du = sum(d['montant'] for d in dues(monde, id, autre))
+        if not du:
+            return True  # Compte soldé depuis la préparation du geste.
+        montant = min(du, richesse(monde, id))
+        if not montant or garde_du(monde, id, montant):
+            return False
+        try:
+            issue = rembourser_dette(monde, id, autre, montant, lignes)
+        except ErreurMonde:
+            return False
+        texte = (f"{_qui(monde, id)} dit à {_qui(monde, autre)} : « Je te rends "
+                 f"{quantite(issue['remboursement'], 'pièce')}. »")
+        faire_entendre(monde, id, autre, texte, [], lignes, acte='remboursement')
+        return True
     charge = contenu.get('mandat') or contenu.get('retrait_mandat')
     if charge:
         agendas.actualiser(monde, id)

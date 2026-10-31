@@ -12,6 +12,7 @@ parallèle (une par processus) et termine par leurs mesures et leur moyenne.
 ``--rejeu page.html`` écrit en plus la page où rejouer la nuit ; avec ``--graines``, une page par
 graine (``page_<graine>.html``, ou ``rejeu_<graine>.html`` dans le dossier donné).
 """
+from .memoire import episodes
 import re
 import argparse
 from collections import Counter
@@ -107,7 +108,7 @@ def issue(monde, chronique):
     objets = {id: [o["lieu"] if o.get("mobile") or o["type"] == "personnage" else None,
                    *(o.get(k) for k in ("ouverte", "verrouillee", "allume", "portions"))]
               for id, o in sorted(monde.objets.items())}
-    vols = sorted({(s["auteur"], s["objet"]) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
+    vols = sorted({(s["auteur"], s["objet"]) for id in pnjs(monde) for s in episodes(monde, id)
                    if s["type"] == "vu_agir" and not est_contrainte(monde, s["operation"], s["objet"])})
     texte = json.dumps({"objets": objets, "vols": vols}, sort_keys=True, ensure_ascii=False)
     return hashlib.sha1(texte.encode()).hexdigest()[:12]
@@ -251,14 +252,14 @@ def _executer(monde, minutes, recit=None, empreintes=None):
         # Qui craint le noir et n'y voit pas, là où il se tient (``deliberation.autour``).
         noir += PAS * sum(1 for id in vivants if peur_du_noir(monde, id) and monde.objets[id]["lieu"] in monde.data["salles"]
                           and not autour(monde, id)["lumiere"])
-    memoire = Counter(s["type"] for id in pnjs(monde) for s in lire(monde, id)["memoire"])
+    memoire = Counter(s["type"] for id in pnjs(monde) for s in episodes(monde, id))
     natures = Counter(c.get("nature", "geste") for c in chronique)
     mefiances = sum(1 for id in pnjs(monde) for x in relations.connus(monde, id) if relations.se_mefie(monde, id, x))
     relationnels = [c for c in chronique if c.get("nature") == "relation"]
     liens = [relations.envers(monde, id, x) for id in pnjs(monde) for x in relations.connus(monde, id)]
-    temoins = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
+    temoins = [(id, s) for id in pnjs(monde) for s in episodes(monde, id)
                if s["type"] == "vu_agir" and not est_contrainte(monde, s["operation"], s["objet"]) and s.get("par") != "ouie"]
-    entendus = [(id, s) for id in pnjs(monde) for s in lire(monde, id)["memoire"]
+    entendus = [(id, s) for id in pnjs(monde) for s in episodes(monde, id)
                 if s["type"] == "vu_agir" and s.get("par") == "ouie" or s["type"] == "entendu_agir"]
     examens = [c for c in chronique if " d'où venait le bruit : " in c["texte"]]
     propositions = [c for c in chronique if c.get("nature") == "social" and " propose à " in c["texte"]]
@@ -367,7 +368,7 @@ def _executer(monde, minutes, recit=None, empreintes=None):
                "achats": sum(" achète " in c["texte"] and c["texte"].endswith("(vendu).") for c in chronique),
                "refus_de_vente": sum(" achète " in c["texte"] and not c["texte"].endswith("(vendu).")
                                      for c in chronique),
-               "pieces_payees": sum(s["prix"] for id in pnjs(monde) for s in lire(monde, id)["memoire"]
+               "pieces_payees": sum(s["prix"] for id in pnjs(monde) for s in episodes(monde, id)
                                     if s["type"] == "vente"),
                "prets": memoire["pret"], "rendus": sum(c["texte"].endswith("(rendu).") for c in chronique),
                # Dettes, tâches payées, réclamations et demandes de ce qu'on ne connaît pas (``echanges-suite``).
@@ -544,7 +545,7 @@ def nuit(scenario, graine, heures, joueur, chronique=False, diagnostic=False, re
     lignes.append("Mesures : " + ", ".join(f"{k} {v}" for k, v in mesures.items()))
     donnees = {"graine": graine, "heures": heures, "depart": depart, "empreintes": empreintes, "secondes": secondes,
                "chronique": pas, "mesures": mesures,
-               "recit": recit.donnees(monde, pas), "souvenirs": {id: lire(monde, id)["memoire"] for id in pnjs(monde)}}
+               "recit": recit.donnees(monde, pas), "souvenirs": {id: episodes(monde, id) for id in pnjs(monde)}}
     if diagnostic:
         resume = resume_diagnostic(recherches)
         lignes.append(texte_diagnostic(resume))
@@ -740,7 +741,7 @@ def main(argv=None):
         with open(args.sortie, "w", encoding="utf-8") as f:
             json.dump({"graine": args.graine, "heures": args.heures,
                        "chronique": chronique, "mesures": mesures, "recit": recit.donnees(monde, chronique),
-                       "souvenirs": {id: lire(monde, id)["memoire"] for id in pnjs(monde)},
+                       "souvenirs": {id: episodes(monde, id) for id in pnjs(monde)},
                        **({"diagnostic": diagnostic} if diagnostic else {})},
                       f, ensure_ascii=False, indent=1)
     return 0

@@ -23,6 +23,7 @@ from contextlib import contextmanager, ExitStack
 from unittest.mock import patch
 import copy
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import sys
@@ -33,6 +34,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from donjon import agendas, appel, banc_pnj, biens, corps, defense, deliberation, eau, planification, pnj, relations  # noqa: E402
 from donjon.esprits import RECENT, lire, percus, pnjs  # noqa: E402
 from donjon.temps import MINUTE, instant  # noqa: E402
+
+# Comme audit_nuits et son rendu, la porte de lecture appartient à
+# l'observateur courant. Ses imports relatifs lisent le moteur comparé,
+# même si sa référence précède l'introduction de cette vue pure.
+_spec_memoire = importlib.util.spec_from_file_location(
+    "donjon._memoire_observation", Path(__file__).resolve().parents[1] / "donjon/memoire.py")
+_memoire_observation = importlib.util.module_from_spec(_spec_memoire)
+_spec_memoire.loader.exec_module(_memoire_observation)
+episodes = _memoire_observation.episodes
 
 SCENARIOS_DEFAUT = ("relais", "mine", "auberge", "crue", "crue_hameau")
 SALLES_JOUEUR = {
@@ -123,7 +133,7 @@ def _est_accompli(monde, id, decision, minute, cause_sortie=None):
         salle = but.get("lieu")
         return not any(
             s["type"] == "bruit" and s.get("salle") == salle and not resolu(monde, id, s)
-            for s in e["memoire"]
+            for s in episodes(monde, id)
         )
     if genre in ("manger", "part"):
         return "faim" not in e.get("pressants", ())
@@ -165,7 +175,7 @@ def _est_accompli(monde, id, decision, minute, cause_sortie=None):
                 and s.get("victime") == qui
                 and s.get("auteur") == de
                 and deliberation._a_dire(monde, id, s["victime"], s["auteur"])
-                for s in e["memoire"]
+                for s in episodes(monde, id)
             )
         return True
     if genre == "enquete":
@@ -248,7 +258,7 @@ def relever_entrees(monde, id, minute):
         "bruits_a_voir": deliberation.bruit_a_voir(monde, id),
         "examens": [
             [s.get("salle"), s.get("nature"), s.get("qui"), s.get("case")]
-            for s in e["memoire"]
+            for s in episodes(monde, id)
             if s["type"] == "examen" and minute - s["minute"] <= RECENT
         ],
         "a_ranimer": [
@@ -279,21 +289,21 @@ def relever_entrees(monde, id, minute):
                 minute - s["minute"] < planification.ATTENTE_PART,
                 croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"],
             ]
-            for s in e["memoire"]
+            for s in episodes(monde, id)
             if s["type"] in ("promis", "nourri", "recu", "promesse_annulee", "creance")
         ],
         "creances_vaines": sorted({
-            s["de"] for s in e["memoire"]
+            s["de"] for s in episodes(monde, id)
             if s["type"] == "creance_vaine" and minute - s["minute"] < deliberation.REDEMANDE
         }),
         "recherches": [[q, sorted(deliberation.appels_vains(monde, id, q))] for q in sorted(e.get("recherches", ()))],
         "charges": [[x["pour"], x["condition"], bool(x.get("annule"))] for x in agendas.en_cours(monde, id)],
-        "engagements_tenus": [copy.deepcopy(s) for s in e["memoire"]
+        "engagements_tenus": [copy.deepcopy(s) for s in episodes(monde, id)
                               if s["type"] == "engagement_tenu" and "pour" in s],
         "agendas": [[a["id"], a.get("etat"), a.get("raison_sommeil")] for a in agendas.projets(monde, id)],
         "a_prevenir": [
             [s.get("victime"), s.get("auteur")]
-            for s in e["memoire"]
+            for s in episodes(monde, id)
             if s["type"] == "a_prevenir" and deliberation._a_dire(monde, id, s["victime"], s["auteur"])
         ],
         "rejoint": e.get("rejoint"),
@@ -529,7 +539,7 @@ class SondeAvis:
         # Conditions d'état, lues dans la réalité ; les conditions de gestes
         # (servir/remettre) n'impliquent aucun état durable de l'objet.
         for qui in self.episodes:
-            for souvenir in lire(monde, qui)["memoire"]:
+            for souvenir in episodes(monde, qui):
                 if souvenir.get("type") != "tache_payee":
                     continue
                 condition = souvenir["condition"]

@@ -18,6 +18,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from donjon import banc_pnj as b, planification as p, deliberation as d
+from donjon.memoire import episodes
 from donjon.esprits import lire, RECENT
 from donjon.monde import Monde
 from donjon.rendu import regarder
@@ -65,7 +66,7 @@ def esprit_saillant(v, vises):
               if any(c.get('source') in ('vu', 'entendu', 'essai')
                      and 0 <= maintenant - c.get('minute', -1e9) <= RECENT
                      for c in attributs.values())}
-    lies = set().union(*(noms(s) for s in e['memoire'] if noms(s) & cibles))
+    lies = set().union(*(noms(s) for s in episodes(v.monde, v.id) if noms(s) & cibles))
     # Une clé connue pour la cible est un lien explicite, pas une proximité.
     lies.update(o for o in v.connus if noms(v.objets[o].get('ouvre')) & cibles)
     resultat = frozenset((local | recent | lies | set(depart.portes) | cibles) & set(v.connus))
