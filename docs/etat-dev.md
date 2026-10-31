@@ -1,6 +1,84 @@
 # État du développement
 
-Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-28.
+Point de reprise, à tenir à jour à chaque fin de jalon. Mis à jour le 2026-10-31.
+
+- **Fer & Flamme — freinage de rotation en manuel**, même worktree et branche.
+  Q/D gardent le couple choisi par la jauge, 100 % par défaut. Au neutre,
+  contre-couple opposé maximal, indépendant de la jauge, puis dernière impulsion
+  bornée par l'inertie physique et la vitesse restante. Allocation des tuyères
+  et budget électrique communs, aucun retour à plat ni frein de translation.
+  Deux builds joueur et montage asymétrique, deux sens après deux chargements,
+  chaque pas physique vérifié ; Z maintenu, jauges 30/0, alimentation réduite,
+  faibles vitesses et reprise immédiate Q : verts. Manuel existant et jauge :
+  verts. Aide « rotation / frein auto » et capture après recharge inspectées.
+  [Contrat et vérifications](fer-manuel.md#freinage-de-rotation-au-neutre).
+
+- **Fer & Flamme — réglage du couple en partie**, même worktree et branche.
+  Jauge « Couple manuel », ↑/↓ par dix points de 0 à 100 %, départ à 100 %.
+  Z/S restent la propulsion dans les deux modes ; ↑/↓ sont réservées au réglage.
+  Le pourcentage agit uniquement sur le couple manuel, immédiatement et sans
+  limiter la poussée Z/S. Choix conservé avec le plan, après recharge et X.
+  Deux builds, tous les niveaux et deux sens, réglage pendant Q, HUD/ARIA,
+  sauvegarde/recharge et captures à deux résolutions : verts. Régression du
+  couple maximal à 100 % et des commandes manuelles : verte.
+  [Contrat et vérifications](fer-manuel.md).
+
+- **Fer & Flamme — tout le couple en manuel**, même worktree et branche.
+  Plafond de 3 rad/s² supprimé, sans réglage de remplacement. Q/D demandent
+  toute la capacité de couple dans leur sens ; seule l'alimentation et les
+  limites physiques s'appliquent. Nouveau build joueur de 549 kg conservé dans
+  `tools/fer-build-joueur-actuel.json` : environ 12 727 N·m au lieu de 670.
+  Contrat et contrôles : [pilotage manuel](fer-manuel.md).
+  Passe finale verte : quatre plans après deux chargements et un montage
+  horizontal, maximum vérifié par oracle indépendant dans les deux sens,
+  avec Z maintenu et contrôle moteur par moteur. Nouveau build : 420 kW en
+  rotation seule, 480 kW avec poussée ; alimentation non limitante sur ces essais.
+
+- **Fer & Flamme — réacteurs latéraux et rotation manuelle**, même worktree.
+  La capacité de couple ne suppose plus une force nette nulle par axe : un
+  latéral décalé du centre de masse peut contribuer avec sa dérive physique.
+  Rotation Q/D et combinaison avec Z, moteur et rendu après recharge vérifiés
+  sur le plan joueur et un montage aux latéraux plus hauts, plus les cas
+  précédents ; tous verts. [Rapport](fer-rotation-manuelle.md).
+
+- **Fer & Flamme — pilotage manuel et clavier AZERTY**, même branche et worktree.
+  ZQSD et flèches communs à ON/OFF. Assistance OFF : Z/S demandent une force dans l'axe local, Q/D un couple de
+  rotation inertielle. Répartition réelle dans les tuyères réversibles, budget
+  électrique commun, aide et HUD cohérents ; X conserve le choix d'assistance.
+  Contrat et vérifications : [pilotage manuel](fer-manuel.md).
+  Passe finale verte : deux plans après deux chargements, montage horizontal,
+  oracle 80 groupes, huit combinaisons souris ; six trajectoires assistées
+  comparées à leur référence conservée, écart maximal inférieur à 0,3 mm.
+  Décollage manuel depuis le sol revérifié après signalement ; lecture des
+  touches unifiée, aide ZQSD dans les deux modes et alias sans amplification.
+
+- **Fer & Flamme — stabilité du build joueur**, même branche et worktree.
+  Plan exact conservé dans `tools/fer-build-joueur.json`. Défaut reproduit :
+  tuyères latérales sous le centre de masse, couple parasite non compensable,
+  confusion entre position de l'origine et vitesse du centre de masse.
+  Allocation conjointe bornée et repère commun centre de masse pour le contrôle,
+  les mesures et la caméra ; masses physiques courantes pour les bras de levier.
+  Validation et limites : [stabilité du build](fer-stabilite.md).
+  Passe finale verte : plan exact et deux variantes, droite/gauche après recharge,
+  invariance de grille ; oracle 80 groupes, cinq régressions de vol et huit
+  combinaisons souris. Capture du plan exact inspectée. Aucun changement de main.
+
+- **Fer & Flamme — boutons souris indépendants**, même worktree et branche.
+  Tir gauche et orientation droite suivent le masque `buttons` des événements
+  souris ; relâcher un bouton conserve l'autre. Réinitialisation commune à la
+  sortie, perte de focus, annulation et changement de mode. Défaut reproduit
+  avant correction ; essais canon/laser, deux ordres d'appui et de relâchement,
+  sauvegarde/recharge, état physique et rendu : [rapport](fer-souris.md).
+
+- **Fer & Flamme — assistance au vol**, branche `fer-et-flamme`, worktree
+  `tmp-worktrees/fer-et-flamme`, base distante `main` récupérée au commit
+  `0bad2272` ; `main` local et son HTML conservés. Répartition bornée exacte,
+  poussées inversées avec couple, freinage angulaire asymétrique et accélération
+  latérale sans plafond de vitesse. Rapport et procédure : [assistance au vol](fer-assistance.md).
+  Validation : 80 groupes contre oracle indépendant et cinq vols complets avec
+  sauvegarde/recharge, rendu, accélération maintenue, freinage et redressement,
+  tous verts après retrait du plafond de vitesse.
+  Travail non fusionné ; les sauvegardes du navigateur personnel restent intactes.
 
 - **Branche `codex-retour-aubin`, fusionnée**, lot **272**, diagnostic
   seul, base `aaaf4cf` : Aubin Relais 2024, départ tiré, joueur passif,

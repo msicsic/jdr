@@ -1,0 +1,4770 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fer &amp; Flamme — atelier de véhicules</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --fond:#04090e;
+    --panneau:rgba(6,16,23,.86);
+    --panneau2:rgba(9,23,31,.94);
+    --trait:rgba(126,224,195,.16);
+    --trait2:rgba(126,224,195,.34);
+    --accent:#7fe0c3;
+    --accent2:#f0b45f;
+    --rouge:#ff7a72;
+    --violet:#a98bff;
+    --texte:#dff3ec;
+    --doux:#8aa9a0;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
+    --mono:"Cascadia Mono","SF Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--fond);color:var(--texte);
+    font-family:var(--sans);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  canvas#vue{display:block;width:100vw;height:100vh;touch-action:none;cursor:none}
+  #vignette{position:fixed;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 42%,transparent 45%,rgba(0,0,0,.55) 100%)}
+  #grain{position:fixed;inset:0;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+    background-image:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px)}
+
+  #entete{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;
+    justify-content:space-between;padding:0 20px;pointer-events:none;z-index:6}
+  .marque{font-family:var(--serif);font-size:19px;letter-spacing:.16em;color:var(--texte);
+    text-shadow:0 0 24px rgba(127,224,195,.28)}
+  .marque span{display:block;font-family:var(--sans);font-size:9px;letter-spacing:.34em;
+    color:var(--doux);text-transform:uppercase;margin-top:2px}
+  .badge{font-family:var(--mono);font-size:10px;letter-spacing:.28em;padding:6px 12px;
+    border:1px solid var(--trait2);border-radius:999px;color:var(--accent);
+    background:rgba(6,20,18,.7);transition:color .3s,border-color .3s}
+  body.jeu .badge{color:var(--accent2);border-color:rgba(240,180,95,.45)}
+  #mission{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--accent2);
+    opacity:0;transition:opacity .3s;white-space:nowrap}
+  body.jeu #mission{opacity:.85}
+
+  .panneau{position:fixed;z-index:5;background:var(--panneau);border:1px solid var(--trait);
+    border-radius:14px;padding:14px 15px;backdrop-filter:blur(9px);
+    box-shadow:0 18px 50px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.03);
+    transition:opacity .25s,transform .25s}
+  .panneau h2{margin:0 0 10px;font-family:var(--mono);font-size:10px;font-weight:600;
+    letter-spacing:.26em;text-transform:uppercase;color:var(--doux);display:flex;
+    justify-content:space-between;align-items:center}
+  .panneau h2 b{color:var(--accent);font-weight:600;letter-spacing:.1em}
+
+  #palette{left:18px;top:70px;width:246px;max-height:calc(100vh - 152px);overflow-y:auto;
+    scrollbar-width:thin;scrollbar-color:rgba(127,224,195,.3) transparent}
+  #palette::-webkit-scrollbar{width:8px}
+  #palette::-webkit-scrollbar-thumb{background:rgba(127,224,195,.25);border-radius:9px}
+  #liste-blocs{display:flex;flex-direction:column;gap:5px}
+  .bloc-btn{display:grid;grid-template-columns:22px 9px 1fr auto;gap:8px;align-items:center;
+    width:100%;padding:6px 8px;border:1px solid transparent;border-radius:9px;
+    background:transparent;color:var(--texte);font:inherit;text-align:left;cursor:pointer;
+    transition:background .15s,border-color .15s}
+  .bloc-btn:hover{background:rgba(127,224,195,.06)}
+  .bloc-btn.actif{background:rgba(127,224,195,.12);border-color:var(--trait2)}
+  .bloc-btn .touche{font-family:var(--mono);font-size:10px;color:var(--doux);
+    border:1px solid var(--trait);border-radius:5px;text-align:center;line-height:17px;height:19px}
+  .bloc-btn > span:nth-child(3){min-width:0}
+  .bloc-btn .nom{font-size:12.5px;letter-spacing:.01em;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;display:block}
+  .bloc-btn .cat{display:block;font-size:9.5px;color:var(--doux);letter-spacing:.1em;
+    text-transform:uppercase;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bloc-btn .masse{font-family:var(--mono);font-size:10.5px;color:var(--doux);
+    white-space:nowrap;text-align:right}
+  .bloc-btn .pastille{width:9px;height:9px;border-radius:50%}
+  .aide{margin:11px 2px 0;font-size:10.5px;line-height:1.55;color:var(--doux)}
+  .aide kbd{font-family:var(--mono);font-size:9.5px;color:var(--texte);
+    background:rgba(127,224,195,.1);border:1px solid var(--trait);border-radius:4px;
+    padding:0 4px;line-height:15px;display:inline-block}
+  .aide .note{display:block;margin-top:4px;color:#8fa8ab;font-size:10px;line-height:1.45}
+
+  #stats{right:18px;top:70px;width:262px}
+  #bilan{margin:0;display:grid;grid-template-columns:1fr auto;gap:5px 12px;
+    font-size:12px;align-items:baseline}
+  #bilan dt{color:var(--doux);white-space:nowrap}
+  #bilan dd{margin:0;text-align:right;font-family:var(--mono);font-size:12px;
+    font-variant-numeric:tabular-nums}
+  #bilan dd.grand{font-size:16px;color:var(--accent)}
+  #bilan dd.bon{color:var(--accent)}
+  #bilan dd.faible{color:var(--accent2)}
+  #bilan dd.mauvais{color:var(--rouge)}
+  #alertes{margin-top:10px;display:flex;flex-direction:column;gap:5px}
+  .alerte{font-size:10.5px;line-height:1.4;padding:6px 8px;border-radius:7px;
+    background:rgba(240,180,95,.08);border:1px solid rgba(240,180,95,.22);color:#f3cf9c}
+  .alerte.rouge{background:rgba(255,122,114,.08);border-color:rgba(255,122,114,.28);color:#ffb3ad}
+
+  #barre{left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:8px;
+    align-items:center;padding:9px 10px;white-space:nowrap}
+  #barre button{font:inherit;font-size:12px;color:var(--texte);background:rgba(127,224,195,.06);
+    border:1px solid var(--trait);border-radius:8px;padding:8px 12px;cursor:pointer;
+    transition:background .15s,border-color .15s,opacity .15s}
+  #barre button:hover{background:rgba(127,224,195,.13);border-color:var(--trait2)}
+  #barre button.principal{background:linear-gradient(180deg,rgba(127,224,195,.24),rgba(127,224,195,.12));
+    border-color:rgba(127,224,195,.55);color:#eafff8;font-weight:600;letter-spacing:.02em}
+  #barre button.principal:hover{background:linear-gradient(180deg,rgba(127,224,195,.34),rgba(127,224,195,.16))}
+  #barre button:disabled{opacity:.38;cursor:not-allowed}
+  #barre kbd{font-family:var(--mono);font-size:9px;color:var(--doux);margin-left:6px;
+    border:1px solid var(--trait);border-radius:4px;padding:1px 4px}
+
+  /* ---------- HUD de jeu ---------- */
+  #hud-jeu{left:18px;top:70px;width:236px;display:none}
+  #objectif{right:18px;top:70px;width:236px;display:none}
+  body.jeu #hud-jeu,body.jeu #objectif{display:block;pointer-events:none}
+  body.jeu #palette,body.jeu #stats,body.jeu #barre{display:none}
+  .duo{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;
+    margin:3px 0;color:var(--doux)}
+  .duo b{font-family:var(--mono);font-weight:500;color:var(--texte);font-size:12.5px;
+    font-variant-numeric:tabular-nums;letter-spacing:.02em;white-space:nowrap}
+  .duo b i{font-style:normal;color:var(--texte)}
+  .duo b em{font-style:normal;color:var(--doux);font-size:9.5px;margin-left:2px}
+  .jauge{margin:9px 0 0}
+  .jauge .duo{margin-bottom:4px}
+  .jauge .note-jauge{height:12px;margin-top:3px;font-family:var(--mono);font-size:9.5px;
+    color:var(--doux);letter-spacing:.02em;white-space:nowrap;overflow:hidden}
+  .rail{height:4px;border-radius:3px;background:rgba(127,224,195,.1);overflow:hidden}
+  .rail i{display:block;height:100%;width:0%;border-radius:3px;
+    background:linear-gradient(90deg,rgba(127,224,195,.55),var(--accent));
+    transition:width .08s linear}
+  #j-reacteur{background:linear-gradient(90deg,#f0b45f,#ffe1a8)}
+  #j-conso{background:linear-gradient(90deg,#8fb3c9,#d8ecf7)}
+  #j-bouclier{background:linear-gradient(90deg,#5fb8dd,#c8f0ff)}
+  #jauge-bouclier{display:none}
+  #h-coque.alerte{color:var(--rouge)}
+  #j-poussee{background:linear-gradient(90deg,#5bd3ff,#a8edff)}
+  #h-conso.alerte,#h-profil.alerte{color:var(--rouge)}
+  .stocks{display:flex;gap:3px;height:7px;margin-top:2px}
+  .stocks i{display:block;height:100%;border-radius:2px;background:rgba(127,224,195,.12);overflow:hidden}
+  .stocks i b{display:block;height:100%;width:0%;border-radius:2px;
+    transition:width .08s linear}
+  .stocks i.cond b{background:linear-gradient(90deg,#7f95d8,#c8d6ff)}
+  .stocks i.bat b{background:linear-gradient(90deg,#8fb35f,#d8f0b0)}
+  #h-assist.on{color:var(--accent)}
+  #h-assist.off{color:var(--accent2)}
+  #j-couple-manuel{background:linear-gradient(90deg,#c78d48,#ffd9a8)}
+  #o-alerte{margin:9px 0 0;font-size:10.5px;line-height:1.4;color:var(--accent2);min-height:1em}
+
+  #aide-jeu{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:5;
+    font-size:11px;color:var(--doux);background:rgba(5,13,18,.72);border:1px solid var(--trait);
+    border-radius:999px;padding:7px 16px;backdrop-filter:blur(8px);display:none;
+    width:max-content;max-width:calc(100vw - 24px);box-sizing:border-box;
+    white-space:normal;text-align:center;line-height:1.6}
+  body.jeu #aide-jeu{display:block}
+  #aide-jeu kbd{font-family:var(--mono);font-size:9.5px;color:var(--texte);
+    border:1px solid var(--trait);border-radius:4px;padding:0 4px;margin:0 2px}
+  #aide-jeu .sep{opacity:.35;margin:0 7px}
+
+  #toast{position:fixed;left:50%;top:74px;transform:translate(-50%,-8px);z-index:9;
+    padding:8px 16px;border-radius:999px;font-size:12px;letter-spacing:.01em;
+    background:rgba(10,26,26,.94);border:1px solid var(--trait2);color:var(--texte);
+    opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;white-space:nowrap}
+  #toast.visible{opacity:1;transform:translate(-50%,0)}
+  #toast.rouge{border-color:rgba(255,122,114,.5);color:#ffc0bb}
+  #toast.or{border-color:rgba(240,180,95,.5);color:#ffe0b0}
+
+  #chargement{position:fixed;inset:0;z-index:20;display:grid;place-items:center;
+    background:radial-gradient(ellipse at 50% 45%,#0a1b24,#04090e 70%);transition:opacity .5s}
+  #chargement.fini{opacity:0;pointer-events:none}
+  #chargement .bloc{text-align:center;max-width:520px;padding:0 24px}
+  #chargement h1{font-family:var(--serif);font-weight:400;letter-spacing:.24em;font-size:26px;
+    margin:0 0 14px;color:#e9fff8;text-shadow:0 0 40px rgba(127,224,195,.35)}
+  #chargement p{font-size:12.5px;line-height:1.7;color:var(--doux);margin:0}
+  #chargement .filet{width:64px;height:1px;background:var(--trait2);margin:18px auto}
+
+  @media (max-height:780px){
+    .aide .note{display:none}
+  }
+  @media (max-width:900px){
+    #palette{width:200px}
+    #stats{width:218px}
+    #barre button{padding:8px 9px;font-size:11px}
+    #aide-jeu{font-size:10px;padding:6px 10px}
+  }
+</style>
+</head>
+<body>
+<canvas id="vue"></canvas>
+<div id="vignette"></div>
+<div id="grain"></div>
+
+<header id="entete">
+  <div class="marque">Fer &amp; Flamme<span>atelier de véhicules</span></div>
+  <div id="mission"></div>
+  <div class="badge" id="mode-badge">ATELIER</div>
+</header>
+
+<aside id="palette" class="panneau">
+  <h2>Blocs <b id="compte">0/40</b></h2>
+  <div id="liste-blocs"></div>
+  <p class="aide">
+    <kbd>1</kbd>–<kbd>0</kbd> <kbd>L</kbd> <kbd>B</kbd> choisir · <kbd>R</kbd> orienter<br>
+    clic gauche poser · clic droit retirer
+    <span class="note">Bac à sable : les blocs détruits partent en débris.</span>
+  </p>
+</aside>
+
+<aside id="stats" class="panneau">
+  <h2>Bilan</h2>
+  <dl id="bilan"></dl>
+  <div id="alertes"></div>
+</aside>
+
+<div id="barre" class="panneau">
+  <button id="btn-lancer" class="principal">Lancer sur la piste<kbd>Entrée</kbd></button>
+  <button data-preset="rover">Chenillard</button>
+  <button data-preset="drone">Aérodyne</button>
+  <button data-preset="foudre">Foudre</button>
+  <button id="btn-vider">Vider</button>
+</div>
+
+<div id="hud-jeu" class="panneau">
+  <h2>Véhicule</h2>
+  <div class="duo"><span>Vitesse</span><b><i id="h-vitesse">0</i><em>m/s</em></b></div>
+  <div class="duo"><span>Vitesse X</span><b><i id="h-vx">0</i><em>m/s</em></b></div>
+  <div class="duo"><span>Vitesse Y</span><b><i id="h-vy">0</i><em>m/s</em></b></div>
+  <div class="duo"><span>Altitude</span><b><i id="h-alt">0</i><em>m</em></b></div>
+  <div class="duo"><span>Masse</span><b><i id="h-masse">0</i><em>kg</em></b></div>
+  <div class="duo"><span>Coque</span><b id="h-coque">100 %</b></div>
+  <div class="duo"><span>Assiette</span><b><i id="h-angle">0</i><em>°</em></b></div>
+  <div class="jauge">
+    <div class="duo"><span>Poussée</span><b id="h-poussee">0 %</b></div>
+    <div class="rail"><i id="j-poussee"></i></div>
+  </div>
+  <div class="jauge">
+    <div class="duo"><span>Réacteur</span><b id="h-reacteur">0 / 0 kW</b></div>
+    <div class="rail"><i id="j-reacteur"></i></div>
+  </div>
+  <div class="jauge">
+    <div class="duo"><span>Consommation</span><b id="h-conso">0 kW</b></div>
+    <div class="rail"><i id="j-conso"></i></div>
+  </div>
+  <div class="jauge">
+    <div class="duo"><span>Stock</span><b id="h-reserve">0 / 0 MJ</b></div>
+    <div class="stocks" id="h-stocks"></div>
+    <div class="note-jauge" id="h-flux"></div>
+  </div>
+  <div class="jauge" id="jauge-bouclier">
+    <div class="duo"><span>Bouclier</span><b id="h-bouclier">0 / 0 kJ</b></div>
+    <div class="rail"><i id="j-bouclier"></i></div>
+    <div class="note-jauge" id="h-bouclier-note"></div>
+  </div>
+  <div class="duo"><span>Munitions</span><b id="h-munitions">0</b></div>
+  <div class="duo" id="h-cargaison-ligne" style="display:none"><span>Cargaison</span><b id="h-cargaison">0 / 0</b></div>
+  <div class="duo"><span>Assistance</span><b id="h-assist" class="on">ON</b></div>
+  <div class="jauge" id="jauge-couple-manuel">
+    <div class="duo"><span>Couple manuel</span><b id="h-couple-manuel">100 %</b></div>
+    <div class="rail" id="m-couple-manuel" role="meter" aria-label="Réglage du couple manuel"
+      aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><i id="j-couple-manuel" style="width:100%"></i></div>
+    <div class="note-jauge">↑ augmenter · ↓ réduire</div>
+  </div>
+  <div class="duo"><span>Priorité</span><b id="h-profil">Équilibré</b></div>
+</div>
+
+<aside id="objectif" class="panneau">
+  <h2>Banc de tir</h2>
+  <div class="duo"><span>Cibles</span><b id="o-cibles">0 / 6</b></div>
+  <div class="duo"><span>Distance</span><b id="o-distance">0 m</b></div>
+  <p id="o-alerte"></p>
+</aside>
+
+<div id="aide-jeu">
+  <span id="aide-deplacement">
+  <kbd>Q</kbd><kbd>D</kbd> rouler / incliner <span class="sep">·</span>
+  <kbd>Z</kbd><kbd>S</kbd> poussée <span class="sep">·</span>
+  </span>
+  <kbd>Espace</kbd> frein roues <span class="sep">·</span>
+  souris visée, clic tir <span class="sep">·</span>
+  clic droit bouclier <span class="sep">·</span>
+  <kbd>R</kbd> assistance <span class="sep">·</span>
+  <kbd>↑</kbd><kbd>↓</kbd> couple <span class="sep">·</span>
+  <kbd>E</kbd> ramasser <span class="sep">·</span>
+  <kbd>G</kbd> jeter <span class="sep">·</span>
+  <kbd>P</kbd> priorité <span class="sep">·</span>
+  <kbd>X</kbd> remettre en piste <span class="sep">·</span>
+  <kbd>Échap</kbd> atelier
+</div>
+
+<div id="toast"></div>
+
+<div id="chargement">
+  <div class="bloc">
+    <h1>FER &amp; FLAMME</h1>
+    <p>Chargement du moteur physique…</p>
+    <div class="filet"></div>
+    <p style="font-size:11px">Rapier 2D · masses et inerties calculées bloc par bloc</p>
+  </div>
+</div>
+
+<script type="module">
+// =====================================================================
+//  FER & FLAMME — atelier de véhicules
+//  Physique Rapier 2D. La masse de chaque bloc est réelle. Le réacteur
+//  produit une puissance continue, partagée entre la motricité, la recharge
+//  des armes à énergie et le stockage (condensateurs et batteries), qui
+//  couvre les pointes.
+// =====================================================================
+
+let RAPIER = null;
+const CDNS = [
+  'https://cdn.jsdelivr.net/npm/@dimforge/rapier2d-compat@0.21.0/dist/rapier.mjs',
+  'https://unpkg.com/@dimforge/rapier2d-compat@0.21.0/dist/rapier.mjs'
+];
+for (const url of CDNS) {
+  try { const mod = await import(url); await mod.default.init(); RAPIER = mod.default; break; }
+  catch (err) { console.warn('Rapier indisponible sur', url, err); }
+}
+if (!RAPIER) {
+  document.getElementById('chargement').innerHTML =
+    '<div class="bloc"><h1>FER &amp; FLAMME</h1><p>Le moteur physique n’a pas pu être chargé.<br>' +
+    'Une connexion réseau est nécessaire pour récupérer Rapier 2D (CDN jsDelivr ou unpkg).</p></div>';
+  throw new Error('Rapier introuvable');
+}
+
+// ---------------------------------------------------------------- outils
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const wrap = a => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+const $ = s => document.querySelector(s);
+const mod = (a, n) => ((a % n) + n) % n;
+
+const CELL = 0.5;
+const RAYON_ROUE = 0.36;   // rayon des roues : garde au sol du châssis = RAYON_ROUE - CELL/2 - 0.002
+const HALF = CELL / 2;
+const G = 9.81;
+const FIXED = 1 / 120;
+const MAX_BLOCKS = 40;
+const COLS = 12;
+const ROWS = 9;
+const SHELL_MASS = 0.9;
+// Le monde est décrit en données : bornes jouables, sol, point de départ.
+// Le relief (profil de sol en polyligne) viendra remplacer `sol` par une liste
+// de segments ; la caméra et les murs s'appuient déjà sur ces bornes.
+const MONDE = {
+  bornes: { min: -90, max: 140 },
+  plafond: 45,          // altitude maximale du volume jouable
+  // Relief : points de contrôle [x, y] en mètres. Le profil réel est lissé
+  // (courbes de Chaikin) pour que les roues passent les ruptures de pente.
+  sol: {
+    controle: [
+      [-300, 0], [45, 0],
+      [61, 4], [73, 4],
+      [88, 0],
+      [104, 6], [118, 6],
+      [132, 2], [300, 2]
+    ]
+  },
+  spawn: { x: 0.3 }
+};
+const SPAWN = MONDE.spawn;
+
+// Lissage du relief : densification à pas fixe puis moyenne glissante sur une
+// fenêtre exprimée en mètres. Les ruptures de pente sont arrondies sur ~12 m,
+// ce qui laisse passer les roues sans que le châssis bute sur la cassure.
+function lisserProfil(pts, pas, rayon) {
+  const dense = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+    const n = Math.max(1, Math.round((x1 - x0) / pas));
+    for (let j = 0; j < n; j++) {
+      dense.push([x0 + (x1 - x0) * j / n, y0 + (y1 - y0) * j / n]);
+    }
+  }
+  dense.push(pts[pts.length - 1]);
+  const rayonN = Math.max(1, Math.round(rayon / pas));
+  const out = [];
+  for (let i = 0; i < dense.length; i++) {
+    let s = 0, c = 0;
+    for (let j = Math.max(0, i - rayonN); j <= Math.min(dense.length - 1, i + rayonN); j++) {
+      s += dense[j][1]; c++;
+    }
+    out.push([dense[i][0], s / c]);
+  }
+  return out;
+}
+MONDE.sol.profil = lisserProfil(MONDE.sol.controle, 2, 9);
+
+// Hauteur du sol à l'abscisse x (interpolation linéaire, bornée aux extrémités).
+function solAu(x) {
+  const p = MONDE.sol.profil;
+  if (x <= p[0][0]) return p[0][1];
+  if (x >= p[p.length - 1][0]) return p[p.length - 1][1];
+  let lo = 0, hi = p.length - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (x < p[mid][0]) hi = mid; else lo = mid;
+  }
+  const [x0, y0] = p[lo], [x1, y1] = p[hi];
+  return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+}
+const EVENTS = RAPIER.ActiveEvents.COLLISION_EVENTS;
+const GROUP_TERRAIN = (0x0001 << 16) | 0xFFFF;
+const GROUP_VEHICLE = (0x0004 << 16) | 0x0011;   // sol + tirs ennemis
+const GROUP_ROUE    = (0x0008 << 16) | 0x0001;
+const GROUP_OBUS    = (0x0002 << 16) | 0x0201;   // sol + ennemis
+const GROUP_TIR_ENNEMI = (0x0010 << 16) | 0x0025; // sol + véhicule + bouclier
+const GROUP_BOUCLIER  = (0x0020 << 16) | 0x0010;  // capteur : tirs ennemis
+// Second appareil (rival) : mêmes lois physiques, mais il ne partage aucune
+// collision avec le joueur, ses roues ni ses projectiles — les routes sont des
+// plans indépendants.
+const GROUP_VEHICULE_2 = (0x0040 << 16) | 0x0001; // terrain seulement
+const GROUP_ROUE_2     = (0x0080 << 16) | 0x0001;
+const GROUP_BOUCLIER_2 = (0x0100 << 16) | 0x0001;
+// Adversaires : même plan que le joueur, donc ils encaissent ses obus et
+// ripostent avec les tirs ennemis (qui traversent le bouclier du joueur).
+const GROUP_ENNEMI  = (0x0200 << 16) | 0x0003;   // sol (0x1) + obus joueur (0x2)
+
+// Cohérence des armes : l'obus de 0,9 kg à 245 m/s emporte 27,0 kJ et inflige
+// 38 dégâts (1,41 dégât/kJ). Le laser tire 22 kJ pour 24 dégâts ; si ~78 % de
+// l'énergie est déposée dans la cible (17,2 kJ), il suit la même échelle à
+// 1,40 dégât/kJ. Le reste du rayon part en réflexion, divergence et chaleur.
+
+const BLOCKS = {
+  poste: {
+    label: 'Poste de pilotage', cat: 'core', key: '1', mass: 55, hp: 180,
+    tint: '#7fe0c3', desc: 'Unique et obligatoire. Tous les blocs doivent y être reliés.'
+  },
+  chassis: {
+    label: 'Châssis', cat: 'struct', key: '2', mass: 18, hp: 110,
+    tint: '#5d6f80', desc: 'Structure légère. Peu de résistance aux impacts.'
+  },
+  blindage: {
+    label: 'Blindage', cat: 'struct', key: '3', mass: 42, hp: 520,
+    tint: '#8a9bab', desc: 'Lourd, encaisse les coups. Déplace le centre de masse.'
+  },
+  roue: {
+    label: 'Roue motrice', cat: 'wheel', key: '4', mass: 28, hp: 130,
+    tint: '#33404d', motor: 1400, power: 9000,
+    desc: 'Propulsion au sol. 1 400 N par roue, 9 kW à pleine charge.'
+  },
+  moteur: {
+    label: 'Réacteur', cat: 'thruster', key: '5', mass: 30, hp: 90,
+    tint: '#41607a', thrust: 6800, power: 120000, reverse: 0.5,
+    desc: '6 800 N de poussée, 120 kW. Poussée inversée à 50 %. R pour orienter la tuyère.'
+  },
+  coeur: {
+    label: 'Cœur à fusion', cat: 'power', key: '6', mass: 170, hp: 280,
+    tint: '#2f837a', powerOut: 300000,
+    desc: 'Source d’énergie : 300 kW continus. Tourne à plein tant que le stock n’est pas chargé.'
+  },
+  condensateur: {
+    label: 'Condensateur', cat: 'battery', kind: 'condensateur', key: '7', mass: 26, hp: 120,
+    tint: '#5a6da8', capacity: 9e5, discharge: 120000,
+    desc: '0,9 MJ, décharge 120 kW, 26 kg. Léger et puissant, mais vidé vite : la pointe.'
+  },
+  batterie: {
+    label: 'Batterie', cat: 'battery', kind: 'batterie', key: '8', mass: 100, hp: 220,
+    tint: '#6f8a4a', capacity: 5.4e6, discharge: 45000,
+    desc: '5,4 MJ, décharge 45 kW, 100 kg. Grosse réserve pour durer, mais peu de puissance de sortie.'
+  },
+  soute: {
+    label: 'Soute à munitions', cat: 'ammo', key: '9', mass: 34, hp: 160,
+    tint: '#856a3f', rounds: 50,
+    desc: '50 obus de 0,9 kg. Leur masse pèse sur le véhicule et son inertie.'
+  },
+  canon: {
+    label: 'Canon cinétique', cat: 'kinetic', key: '0', mass: 95, hp: 190,
+    tint: '#6d7a88', rate: 1.15, muzzle: 245, damage: 38,
+    desc: 'Obus 0,9 kg à 245 m/s (27 kJ, 38 dégâts). Recul réel, consomme la soute. Arc ±149° ; R pour orienter.'
+  },
+  laser: {
+    label: 'Canon à énergie', cat: 'energy', key: 'L', mass: 70, hp: 150,
+    tint: '#7a63b8', rate: 2.2, damage: 24, shotEnergy: 22000,
+    desc: '22 kJ par tir, recharge continue ≈ 48 kW sur le même budget que la motricité. Arc ±149° ; R pour orienter.'
+  },
+  bouclier: {
+    label: 'Bouclier', cat: 'shield', key: 'B', mass: 60, hp: 160,
+    tint: '#4fa8c9', capacity: 120000, recharge: 100000,
+    desc: 'Tampon 120 kJ, recharge 100 kW. Champ orientable : quart, demi ou cercle complet.'
+  },
+  cargaison: {
+    label: 'Cargaison', cat: 'cargo', key: 'K', mass: 50, hp: 200, slots: 4,
+    tint: '#a07a4a',
+    desc: '4 blocs de récupération (pas 4 paquets). Le contenu pèse. E ramasser, G jeter.'
+  },
+  noyau: {
+    label: 'Noyau', cat: 'special', key: 'J', mass: 120, hp: 9999, indestructible: true,
+    tint: '#c9b45f',
+    desc: 'Bloc indestructible : il ne peut pas être détruit, seulement emporté.'
+  }
+};
+const ORDRE = ['poste', 'chassis', 'blindage', 'roue', 'moteur', 'coeur', 'condensateur', 'batterie', 'soute', 'canon', 'laser', 'bouclier', 'cargaison', 'noyau'];
+const FORCE_DIRS = [[0, 1], [-1, 0], [0, -1], [1, 0]]; // 0 tuyère en bas -> poussée vers le haut
+const FORCE_LABELS = ['bas', 'droite', 'haut', 'gauche'];
+const CANON_ANGLE = [0, Math.PI / 2, Math.PI, -Math.PI / 2]; // 0 canon vers la droite
+const CANON_LABELS = ['droite', 'haut', 'gauche', 'bas'];
+const CANON_ARC = 2.6;
+const estOrientable = type => type === 'moteur' || type === 'canon' || type === 'laser';
+
+// Ordre de service du stockage. Les consommateurs (canons compris) passent
+// toujours avant la charge ; ces deux listes fixent le reste. Les profils de
+// répartition à venir ne feront que les remplacer.
+const CHARGE_STOCK = ['condensateur', 'batterie'];
+const DECHARGE_STOCK = ['batterie', 'condensateur'];
+
+// Bouclier : 2,5 kJ de bus par kJ absorbé, et une puissance d'arrêt qui décroît
+// comme (90°/angle)^1,5 quand le champ s'étale. L'énergie absorbée se déduit de
+// l'échelle commune des armes (1,41 dégât/kJ).
+const COUT_BOUCLIER = 2.5;
+const DEGATS_PAR_KJ = 1.41;
+const TAILLES_BOUCLIER = [Math.PI / 2, Math.PI, Math.PI * 2];
+const LIBELLES_TAILLE = ['¼', '½', '◯'];
+
+// Profils de répartition de la puissance entre les consommateurs. « Équilibré »
+// applique le même facteur à tous ; les autres servent une catégorie en entier
+// avant de donner le reste.
+const PROFILS = {
+  equilibre: { label: 'Équilibré', ordre: null },
+  armes: { label: 'Armes', ordre: ['armes', 'bouclier', 'propulsion'] },
+  boucliers: { label: 'Boucliers', ordre: ['bouclier', 'armes', 'propulsion'] },
+  propulsion: { label: 'Propulsion', ordre: ['propulsion', 'bouclier', 'armes'] }
+};
+const ORDRE_PROFILS = ['equilibre', 'armes', 'boucliers', 'propulsion'];
+
+const PRESETS = {
+  rover: [
+    ['roue', 1, 0], ['chassis', 2, 0], ['roue', 3, 0], ['chassis', 4, 0],
+    ['coeur', 1, 1], ['poste', 2, 1], ['soute', 3, 1], ['condensateur', 4, 1],
+    ['blindage', 1, 2], ['canon', 2, 2], ['blindage', 3, 2], ['blindage', 4, 2]
+  ],
+  drone: [
+    ['moteur', 1, 0], ['chassis', 2, 0], ['moteur', 3, 0],
+    ['coeur', 0, 1], ['condensateur', 1, 1], ['poste', 2, 1], ['soute', 3, 1],
+    ['blindage', 1, 2], ['canon', 2, 2], ['blindage', 3, 2]
+  ],
+  foudre: [
+    ['moteur', 1, 0], ['chassis', 2, 0], ['moteur', 3, 0],
+    ['coeur', 0, 1], ['batterie', 1, 1], ['poste', 2, 1], ['condensateur', 3, 1],
+    ['blindage', 1, 2], ['laser', 2, 2], ['blindage', 3, 2], ['cargaison', 0, 2]
+  ]
+};
+
+// ------------------------------------------------------------- assemblage
+let design = [];
+let selected = 'poste';
+let ghostRot = 0;
+let reglageCoupleManuel = 100;
+
+const cellCentre = b => ({ x: (b.col + 0.5) * CELL, y: (b.row + 0.5) * CELL });
+const blockMass = b => {
+  const d = BLOCKS[b.type];
+  return d.mass + (d.cat === 'ammo' ? d.rounds * SHELL_MASS : 0);
+};
+const forceLocal = b => {
+  const d = FORCE_DIRS[mod(b.rot | 0, 4)];
+  return { x: d[0], y: d[1] };
+};
+const blockAt = (col, row) => design.find(b => b.col === col && b.row === row);
+
+function connexe(list) {
+  if (!list.length) return true;
+  const set = new Set(list.map(b => b.col + ',' + b.row));
+  const vu = new Set();
+  const pile = [list[0]];
+  while (pile.length) {
+    const b = pile.pop();
+    const k = b.col + ',' + b.row;
+    if (vu.has(k)) continue;
+    vu.add(k);
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nk = (b.col + dx) + ',' + (b.row + dy);
+      if (set.has(nk) && !vu.has(nk)) pile.push(list.find(x => x.col + ',' + x.row === nk));
+    }
+  }
+  return vu.size === list.length;
+}
+
+function analyser(list) {
+  const r = {
+    mass: 0, com: { x: 0, y: 0 }, inertie: 0,
+    poussee: 0, pousseeVerticale: 0, puissance: 0, capacite: 0, decharge: 0, demandeMax: 0,
+    capaciteCond: 0, dechargeCond: 0, capaciteBat: 0, dechargeBat: 0, puissanceArmes: 0,
+    bouclierCap: 0, bouclierRech: 0,
+    obus: 0, masseObus: 0,
+    roues: [], reacteurs: [], armes: [], soutes: [], postes: 0, coeurs: 0,
+    count: list.length
+  };
+  const items = [];
+  for (const b of list) {
+    const d = BLOCKS[b.type];
+    if (!d) continue;
+    const c = cellCentre(b);
+    const m = blockMass(b);
+    r.mass += m;
+    r.com.x += c.x * m; r.com.y += c.y * m;
+    if (d.cat === 'ammo') { r.obus += d.rounds; r.masseObus += d.rounds * SHELL_MASS; r.soutes.push(b); }
+    if (d.cat === 'power') r.puissance += d.powerOut;
+    if (d.cat === 'battery') {
+      r.capacite += d.capacity; r.decharge += d.discharge;
+      if (d.kind === 'batterie') { r.capaciteBat += d.capacity; r.dechargeBat += d.discharge; }
+      else { r.capaciteCond += d.capacity; r.dechargeCond += d.discharge; }
+    }
+    if (d.cat === 'wheel') r.roues.push(b);
+    if (d.cat === 'wheel' || d.cat === 'thruster') r.demandeMax += d.power;
+    // Une arme à énergie se recharge en continu : sa demande est une puissance
+    // comme celle d'une tuyère, pas une dépense instantanée hors budget.
+    if (d.cat === 'energy') { r.demandeMax += d.shotEnergy * d.rate; r.puissanceArmes += d.shotEnergy * d.rate; }
+    if (d.cat === 'shield') {
+      r.bouclierCap += d.capacity;
+      r.bouclierRech += d.recharge;
+      r.demandeMax += d.recharge;
+    }
+    if (d.cat === 'thruster') {
+      r.reacteurs.push(b);
+      r.poussee += d.thrust;
+      const f = forceLocal(b);
+      r.pousseeVerticale += d.thrust * Math.max(0, f.y);
+    }
+    if (d.cat === 'kinetic' || d.cat === 'energy') r.armes.push(b);
+    if (d.cat === 'core') r.postes++;
+    if (d.cat === 'power') r.coeurs++;
+    items.push({ c, m });
+  }
+  if (r.mass > 0) { r.com.x /= r.mass; r.com.y /= r.mass; }
+  for (const it of items) {
+    const dx = it.c.x - r.com.x, dy = it.c.y - r.com.y;
+    r.inertie += it.m * (dx * dx + dy * dy) + it.m * CELL * CELL / 6;
+  }
+  r.twr = r.pousseeVerticale / (r.mass * G || 1);
+  return r;
+}
+
+function erreursDeLancement(a) {
+  const e = [];
+  if (!design.some(b => b.type === 'poste')) e.push('Poste de pilotage manquant.');
+  if (a.puissance <= 0) e.push('Aucune source d’énergie : ajoutez un cœur à fusion.');
+  if (!a.roues.length && !a.reacteurs.length) e.push('Aucune propulsion : roues ou réacteurs.');
+  return e;
+}
+
+function alertesDeConception(a) {
+  const w = [];
+  if (a.armes.some(b => b.type === 'canon') && a.obus <= 0)
+    w.push('Canon cinétique sans soute : munitions vides.');
+  if (a.reacteurs.length && pousseeNette(design) < a.mass * G)
+    w.push('Poussée à couple nul insuffisante pour tenir le poids.');
+  const pointe = a.puissance + a.decharge;
+  if (a.demandeMax > pointe + 1)
+    w.push('Pointe insuffisante : ' + Math.round(a.demandeMax / 1000) + ' kW demandés pour ' +
+      Math.round(pointe / 1000) + ' kW disponibles (réacteur + décharge du stockage).');
+  const verts = a.reacteurs.filter(b => Math.abs(forceLocal(b).y) > 0.6);
+  const xs = verts.map(b => cellCentre(b).x);
+  if (verts.length < 2 || Math.max(...xs) - Math.min(...xs) <= 0.1)
+    w.push('Assistance d’assiette limitée : il faut deux réacteurs verticaux décalés.');
+  return w;
+}
+
+// ------------------------------------------------------------------ DOM
+const canvas = $('#vue');
+const ctx = canvas.getContext('2d');
+const dEl = id => document.getElementById(id);
+const ui = {
+  chargement: dEl('chargement'), badge: dEl('mode-badge'), compte: dEl('compte'),
+  objectif: dEl('mission'),
+  liste: dEl('liste-blocs'), bilan: dEl('bilan'), alertes: dEl('alertes'),
+  lancer: dEl('btn-lancer'), vider: dEl('btn-vider'), toast: dEl('toast'),
+  vitesse: dEl('h-vitesse'), vx: dEl('h-vx'), vy: dEl('h-vy'), alt: dEl('h-alt'), masse: dEl('h-masse'),
+  angle: dEl('h-angle'), poussee: dEl('h-poussee'), reacteur: dEl('h-reacteur'),
+  conso: dEl('h-conso'),
+  reserve: dEl('h-reserve'), flux: dEl('h-flux'), stocks: dEl('h-stocks'),
+  munitions: dEl('h-munitions'), assist: dEl('h-assist'), profil: dEl('h-profil'),
+  coupleManuel: dEl('h-couple-manuel'), metreCoupleManuel: dEl('m-couple-manuel'),
+  cargaison: dEl('h-cargaison'), cargaisonLigne: dEl('h-cargaison-ligne'),
+  coque: dEl('h-coque'), bouclier: dEl('h-bouclier'), bouclierNote: dEl('h-bouclier-note'),
+  jaugeBouclier: dEl('jauge-bouclier'),
+  cibles: dEl('o-cibles'), distance: dEl('o-distance'), oAlerte: dEl('o-alerte'),
+  jauges: {
+    poussee: dEl('j-poussee'), reacteur: dEl('j-reacteur'),
+    conso: dEl('j-conso'), bouclier: dEl('j-bouclier'), coupleManuel: dEl('j-couple-manuel')
+  }
+};
+
+let cw = 0, ch = 0, dpr = 1;
+function redimensionner() {
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  cw = window.innerWidth; ch = window.innerHeight;
+  canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
+  canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (mode === 'atelier') cadrerAtelier();
+}
+window.addEventListener('resize', redimensionner);
+
+const view = { x: 3, y: 2.3, zoom: 90, horizon: 0, off: 90, h: 1, dist: 30 };
+// ------------------------------------------------------- perspective transverse
+// Chaque route est un plan 2D autonome placé à une profondeur z (0 = route du
+// joueur). La caméra est un sténopé de focale fixe, posée à la hauteur h
+// au-dessus du sol et reculée à la distance dist :
+//   - le sol d'une route à la profondeur z se projette à horizon + off·s(z),
+//   - un objet à l'altitude y remonte de off·s(z)·y/h,
+//   - l'échelle horizontale vaut zoom·s(z),
+// où s(z) = dist/(dist+z), off est l'écart sol-horizon et zoom = off/h.
+// Dézoomer = reculer la caméra (dist ↑) : les routes lointaines convergent vers
+// celle du joueur et s'affinent, au lieu de garder leur largeur.
+// En atelier, off = zoom·h et horizon = ch/2 : on retrouve exactement l'ancienne
+// transformation affine, plan par plan.
+const DIST_REF = 30;
+const ROUTES = {
+  joueur: { z: 0, largeur: 0 },
+  parallele: { z: 30, largeur: 14 }
+};
+const kProf = (z, d = view.dist) => d / (d + Math.max(0, z));
+const w2s = (x, y, z = 0) => {
+  const s = kProf(z);
+  return {
+    x: cw / 2 + (x - view.x) * view.zoom * s,
+    y: view.horizon + view.off * s * (1 - y / view.h)
+  };
+};
+const s2w = (x, y) => ({
+  x: view.x + (x - cw / 2) / view.zoom,
+  y: view.h * (1 - (y - view.horizon) / view.off)
+});
+const horizonRendu = () => mode === 'jeu' ? view.horizon : clamp(w2s(0, 0).y, ch * 0.28, ch * 0.9);
+
+function cadrerAtelier() {
+  const larg = Math.min(cw - 590, 980);
+  const haut = Math.min(ch - 210, 640);
+  view.zoom = clamp(Math.min(larg / 8.2, haut / 6.4), 38, 132);
+  view.x = 3.0;
+  view.h = 2.35;
+  view.horizon = ch / 2;
+  view.off = view.zoom * view.h;
+  view.dist = DIST_REF;
+  view.y = view.h;
+}
+
+// ---------------------------------------------------------------- monde
+const monde = new RAPIER.World({ x: 0, y: -G });
+monde.timestep = FIXED;
+const fileEvenements = new RAPIER.EventQueue(true);
+const owners = new Map();
+const projectiles = new Map();
+let listeProjectiles = [];
+let faisceaux = [];
+let particules = [];
+let cibles = [];
+let score = 0;
+let simTime = 0;
+let mode = 'atelier';
+let vehicule = null;
+let secousse = 0;
+let lastEmptyMsg = -9;
+
+// Un collider fixe par segment du profil, incliné le long de la pente.
+const EPAISSEUR_SOL = 4;
+for (let i = 1; i < MONDE.sol.profil.length; i++) {
+  const [x0, y0] = MONDE.sol.profil[i - 1], [x1, y1] = MONDE.sol.profil[i];
+  const dx = x1 - x0, dy = y1 - y0;
+  const len = Math.hypot(dx, dy);
+  if (len < 1e-3) continue;
+  const ang = Math.atan2(dy, dx);
+  const nx = -dy / len, ny = dx / len;          // normale orientée vers le haut
+  const body = monde.createRigidBody(
+    RAPIER.RigidBodyDesc.fixed()
+      .setTranslation((x0 + x1) / 2 - nx * EPAISSEUR_SOL, (y0 + y1) / 2 - ny * EPAISSEUR_SOL)
+      .setRotation(ang)
+  );
+  const col = monde.createCollider(
+    RAPIER.ColliderDesc.cuboid(len / 2 + 0.02, EPAISSEUR_SOL).setFriction(0.92)
+      .setCollisionGroups(GROUP_TERRAIN).setActiveEvents(EVENTS), body
+  );
+  owners.set(col.handle, { kind: 'sol' });
+}
+for (const x of [MONDE.bornes.min, MONDE.bornes.max]) {
+  const mur = monde.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(x, 8));
+  const mc = monde.createCollider(RAPIER.ColliderDesc.cuboid(1, 8).setCollisionGroups(GROUP_TERRAIN), mur);
+  owners.set(mc.handle, { kind: 'sol' });
+}
+
+function creerCibles() {
+  for (const t of cibles) {
+    if (!t.dead) { owners.delete(t.col.handle); monde.removeRigidBody(t.body); }
+  }
+  cibles = [];
+  score = 0;
+  const plans = [
+    { x: 10, y: 0.46, s: 0.9 },
+    { x: 15, y: 0.46, s: 0.9 },
+    { x: 20, y: 0.61, s: 1.2 },
+    { x: 25, y: 0.46, s: 0.9 },
+    { x: 30, y: 0.61, s: 1.2 },
+    { x: 35, y: 0.46, s: 0.9 }
+  ];
+  for (const p of plans) {
+    const ySol = solAu(p.x) + p.y;
+    const body = monde.createRigidBody(
+      RAPIER.RigidBodyDesc.dynamic().setTranslation(p.x, ySol)
+        .setLinearDamping(0.05).setAngularDamping(0.3)
+    );
+    const col = monde.createCollider(
+      RAPIER.ColliderDesc.cuboid(p.s / 2, p.s / 2).setMass(150).setFriction(0.85)
+        .setRestitution(0.02).setCollisionGroups(GROUP_TERRAIN).setActiveEvents(EVENTS), body
+    );
+    const t = { body, col, x: p.x, y: ySol, taille: p.s, hp: 150, max: 150, flash: 0, dead: false };
+    owners.set(col.handle, { kind: 'cible', cible: t });
+    cibles.push(t);
+  }
+  majObjectif();
+}
+
+// ------------------------------------------------------------- tourelles
+// Une tourelle de test : tir fixe vers le haut et un peu à gauche, sans viser
+// le joueur. Elle sert à éprouver le bouclier et la coque.
+let tourelles = [];
+let tirsEnnemis = new Map();
+let listeTirsEnnemis = [];
+
+function creerTourelles() {
+  tourelles = [
+    { x: 13, y: solAu(13) + 0.42, angle: 100 * Math.PI / 180, cool: 0.9, flash: 0 }
+  ];
+}
+
+// Crée un projectile ennemi (même modèle pour la tourelle et les adversaires).
+function tirerProjectileEnnemi(origine, dir, damage) {
+  const body = monde.createRigidBody(
+    RAPIER.RigidBodyDesc.dynamic().setTranslation(origine.x, origine.y)
+      .setLinvel(dir.x * 26, dir.y * 26)
+      .setLinearDamping(0.004).setCcdEnabled(true)
+  );
+  const col = monde.createCollider(
+    RAPIER.ColliderDesc.ball(0.08).setMass(0.4).setFriction(0.3)
+      .setCollisionGroups(GROUP_TIR_ENNEMI).setActiveEvents(EVENTS), body
+  );
+  const p = { body, col, vie: 6, damage, mort: false, prec: { ...origine }, dir: { ...dir } };
+  tirsEnnemis.set(col.handle, p);
+  listeTirsEnnemis.push(p);
+  return p;
+}
+
+function tirerTourelle(t) {
+  const dir = { x: Math.cos(t.angle), y: Math.sin(t.angle) };
+  const origine = { x: t.x + dir.x * 0.55, y: t.y + dir.y * 0.42 };
+  tirerProjectileEnnemi(origine, dir, 22);
+  t.flash = 0.14;
+  etincelles(origine, dir, 6, '#ff9a72');
+  secousse = Math.min(0.4, secousse + 0.05);
+}
+
+function majTourelles(dt) {
+  for (const t of tourelles) {
+    t.flash = Math.max(0, t.flash - dt);
+    t.cool -= dt;
+    if (t.cool <= 0) { t.cool += 1.3; tirerTourelle(t); }
+  }
+}
+
+function detruireTirEnnemi(p) {
+  tirsEnnemis.delete(p.col.handle);
+  try { monde.removeRigidBody(p.body); } catch (e) { }
+}
+function detruireTirsEnnemis() {
+  for (const p of listeTirsEnnemis) detruireTirEnnemi(p);
+  listeTirsEnnemis = [];
+  tirsEnnemis.clear();
+}
+
+function majObjectif() {
+  const vivantes = cibles.filter(t => !t.dead).length;
+  ui.cibles.textContent = (cibles.length - vivantes) + ' / ' + cibles.length;
+}
+
+// ----------------------------------------------------------- persistance
+const CLE = 'fer-et-flamme.design.v2';
+const CLE_V1 = 'fer-et-flamme.design.v1';
+function sauvegarder() {
+  try { localStorage.setItem(CLE, JSON.stringify({ design, selected, ghostRot, coupleManuel: reglageCoupleManuel })); } catch (e) { }
+}
+function charger() {
+  try {
+    let raw = localStorage.getItem(CLE);
+    if (!raw) {
+      // v1 : le bloc « batterie » était le capaciteur (2,2 MJ · 90 kW · 55 kg).
+      // Il correspond au condensateur actuel ; la batterie est un bloc neuf.
+      const ancien = localStorage.getItem(CLE_V1);
+      if (ancien) {
+        raw = ancien.replace(/"batterie"/g, '"condensateur"');
+        try { localStorage.setItem(CLE, raw); localStorage.removeItem(CLE_V1); } catch (e) { }
+      }
+    }
+    if (!raw) return false;
+    const o = JSON.parse(raw);
+    if (!o || !Array.isArray(o.design) || !o.design.length || o.design.length > MAX_BLOCKS) return false;
+    const vus = new Set();
+    for (const b of o.design) {
+      if (!BLOCKS[b.type] || !Number.isInteger(b.col) || !Number.isInteger(b.row)) return false;
+      if (b.col < 0 || b.col >= COLS || b.row < 0 || b.row >= ROWS) return false;
+      const k = b.col + ',' + b.row;
+      if (vus.has(k)) return false;
+      vus.add(k);
+      b.rot = mod(b.rot | 0, 4);
+    }
+    if (!connexe(o.design)) return false;
+    design = o.design;
+    if (BLOCKS[o.selected]) selected = o.selected;
+    ghostRot = mod(o.ghostRot | 0, 4);
+    if (Number.isInteger(o.coupleManuel) && o.coupleManuel >= 0 && o.coupleManuel <= 100 && o.coupleManuel % 10 === 0)
+      reglageCoupleManuel = o.coupleManuel;
+    return true;
+  } catch (e) { return false; }
+}
+
+// ---------------------------------------------------------------- visée
+const souris = { x: 0, y: 0, wx: 0, wy: 0, dedans: false, tir: false, bouclier: false };
+function relacherBoutonsSouris() {
+  souris.tir = false;
+  souris.bouclier = false;
+}
+function synchroniserBoutonsSouris(e) {
+  // `buttons` décrit tous les boutons actuellement maintenus. Un appui ou
+  // relâchement ne doit jamais effacer l'état des autres boutons.
+  const actifs = souris.dedans && mode === 'jeu';
+  souris.tir = actifs && (e.buttons & 1) !== 0;
+  souris.bouclier = actifs && !!vehicule && vehicule.bouclier.capacite > 0 && (e.buttons & 2) !== 0;
+}
+function actualiserPositionSouris(e) {
+  souris.x = e.clientX; souris.y = e.clientY; souris.dedans = true;
+  const w = s2w(e.clientX, e.clientY); souris.wx = w.x; souris.wy = w.y;
+}
+function viserBouclier() {
+  if (!vehicule || mode !== 'jeu') return;
+  const c = pointLocal(vehicule, vehicule.centre);
+  vehicule.bouclier.angle = Math.atan2(souris.wy - c.y, souris.wx - c.x);
+}
+canvas.addEventListener('mousemove', e => {
+  actualiserPositionSouris(e);
+  synchroniserBoutonsSouris(e);
+  if (souris.bouclier) viserBouclier();
+});
+canvas.addEventListener('mouseleave', () => {
+  souris.dedans = false;
+  relacherBoutonsSouris();
+});
+// Les événements souris sont émis pour chaque bouton ; pointerdown/up ne
+// couvrent que le premier appui et le dernier relâchement d'une souris.
+canvas.addEventListener('mousedown', e => {
+  actualiserPositionSouris(e);
+  synchroniserBoutonsSouris(e);
+  if (e.button === 2) {
+    e.preventDefault();
+    if (mode === 'atelier') retirerAuPointeur(e);
+  }
+  if (souris.bouclier) viserBouclier();
+});
+window.addEventListener('mouseup', synchroniserBoutonsSouris);
+canvas.addEventListener('pointercancel', relacherBoutonsSouris);
+canvas.addEventListener('wheel', e => {
+  if (mode !== 'jeu' || !vehicule) return;
+  const b = vehicule.bouclier;
+  if (b.capacite <= 0) return;
+  e.preventDefault();
+  b.taille = mod(b.taille + (e.deltaY < 0 ? 1 : -1), TAILLES_BOUCLIER.length);
+  b.portee = TAILLES_BOUCLIER[b.taille];
+}, { passive: false });
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// --------------------------------------------------------------- clavier
+const touches = new Set();
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if ([' ', 'enter', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
+  touches.add(k);
+  if (mode === 'atelier') {
+    const id = ORDRE.find(t => BLOCKS[t].key.toLowerCase() === k);
+    if (id) {
+      selectionner(id);
+    } else if (k === 'r') {
+      ghostRot = mod(ghostRot + 1, 4);
+      majPalette();
+    } else if (k === 'enter') {
+      lancer();
+    } else if (k === 'backspace' || k === 'delete') {
+      vider();
+    }
+  } else if (mode === 'jeu') {
+    if (k === 'escape') retourAtelier();
+    else if ((k === 'arrowup' || k === 'arrowdown') && vehicule) modifierCoupleManuel(k === 'arrowup' ? 10 : -10);
+    else if (k === 'r' && vehicule && !e.repeat) { vehicule.assist = !vehicule.assist; majAssist(); }
+    else if (k === 'p' && vehicule) {
+      const i = ORDRE_PROFILS.indexOf(vehicule.profil);
+      vehicule.profil = ORDRE_PROFILS[(i + 1) % ORDRE_PROFILS.length];
+      toast('Priorité : ' + PROFILS[vehicule.profil].label + '.', 'or');
+    }
+    else if (k === 'n') { creerCibles(); toast('Cibles réarmées.', 'or'); }
+    else if (k === 'e' && vehicule) {
+      const r = ramasser(vehicule);
+      if (!r.ok && r.msg) toast(r.msg, 'or');
+      else if (r.ok) toast(r.masse.toFixed(0) + ' kg récupérés.', 'or');
+    }
+    else if (k === 'g' && vehicule && jeter(vehicule)) toast('Largué.', 'or');
+    else if (k === 'x' && vehicule) remettreEnPiste();
+  }
+});
+window.addEventListener('keyup', e => touches.delete(e.key.toLowerCase()));
+window.addEventListener('blur', () => { touches.clear(); relacherBoutonsSouris(); });
+
+// Un seul contrat de saisie pour ON et OFF : ZQSD et alias WASD/←→.
+// ↑/↓ sont réservées au réglage du couple dans les deux modes.
+// `key` respecte la disposition AZERTY ; aucune dépendance au code physique.
+const avance = () => touches.has('z') || touches.has('w');
+const recule = () => touches.has('s');
+const gauche = () => touches.has('q') || touches.has('a') || touches.has('arrowleft');
+const droite = () => touches.has('d') || touches.has('arrowright');
+const frein = () => touches.has(' ');
+const pousseeManuelle = () => (avance() ? 1 : 0) - (recule() ? 1 : 0);
+const rotationManuelle = () => (gauche() ? 1 : 0) - (droite() ? 1 : 0);
+
+// ------------------------------------------------------------- atelier
+function majPalette() {
+  ui.liste.innerHTML = '';
+  for (const id of ORDRE) {
+    const d = BLOCKS[id];
+    const actif = id === selected;
+    const b = document.createElement('button');
+    b.className = 'bloc-btn' + (actif ? ' actif' : '');
+    b.type = 'button';
+    b.innerHTML =
+      '<span class="touche">' + d.key + '</span>' +
+      '<span class="pastille" style="background:' + d.tint + '"></span>' +
+      '<span><span class="nom">' + d.label + '</span>' +
+      '<span class="cat">' + (actif && estOrientable(id)
+        ? (id === 'moteur' ? 'tuyère ' : 'canon ') + (id === 'moteur' ? FORCE_LABELS : CANON_LABELS)[ghostRot]
+        : libelleCat(d.cat)) + '</span></span>' +
+      '<span class="masse">' + d.mass + ' kg</span>';
+    b.title = d.desc + ' · ' + libelleCat(d.cat);
+    b.dataset.bloc = id;
+    b.addEventListener('click', () => selectionner(id));
+    ui.liste.appendChild(b);
+  }
+}
+function libelleCat(cat) {
+  return ({
+    core: 'unique', struct: 'structure', wheel: 'propulsion sol',
+    thruster: 'poussée', power: 'source', battery: 'stockage', ammo: 'munitions',
+    kinetic: 'arme balistique', energy: 'arme à énergie', shield: 'champ'
+  })[cat] || cat;
+}
+function selectionner(id) {
+  if (!id) return;
+  selected = id;
+  majPalette();
+  const b = ui.liste.querySelector('[data-bloc="' + id + '"]');
+  if (b) b.scrollIntoView({ block: 'nearest' });
+  sauvegarder();
+}
+
+function majAtelier() {
+  const a = analyser(design);
+  ui.compte.textContent = design.length + '/' + MAX_BLOCKS;
+  ui.compte.style.color = design.length >= MAX_BLOCKS ? 'var(--accent2)' : '';
+  const ligne = (t, v, cls) => '<dt>' + t + '</dt><dd' + (cls ? ' class="' + cls + '"' : '') + '>' + v + '</dd>';
+  const kw = a.puissance / 1000;
+  const dech = a.decharge / 1000;
+  const pointe = kw + dech;
+  const stock = (nom, cap, dis) => cap
+    ? ligne(nom, (cap / 1e6).toFixed(1) + ' MJ · ' + (dis / 1000).toFixed(0) + ' kW') : '';
+  const twrCls = a.pousseeVerticale <= 0 ? '' : a.twr >= 1.02 ? 'bon' : a.twr >= 0.8 ? 'faible' : 'mauvais';
+  const inclMax = angleInclinaisonMax(design, a.puissance, a.decharge) * 180 / Math.PI;
+  ui.bilan.innerHTML =
+    ligne('Masse', a.mass.toFixed(1) + ' kg', 'grand') +
+    ligne('Poussée vert.', (a.pousseeVerticale / 1000).toFixed(1) + ' kN') +
+    ligne('Poussée à couple nul', (pousseeNette(design) / 1000).toFixed(1) + ' kN') +
+    ligne('Poussée / poids', a.pousseeVerticale > 0 ? a.twr.toFixed(2) : '—', twrCls) +
+    ligne('Inclinaison max', inclMax > 0.5 ? inclMax.toFixed(0) + '°' : '—') +
+    ligne('Réacteur', a.puissance ? kw.toFixed(0) + ' kW' : '—') +
+    stock('Condensateurs', a.capaciteCond, a.dechargeCond) +
+    stock('Batteries', a.capaciteBat, a.dechargeBat) +
+    (a.bouclierCap
+      ? ligne('Bouclier', (a.bouclierCap / 1000).toFixed(0) + ' kJ · ' + (a.bouclierRech / 1000).toFixed(0) + ' kW')
+      : '') +
+    (a.capacite ? '' : ligne('Stockage', '—', 'faible')) +
+    ligne('Pointe dispo.', pointe
+      ? pointe.toFixed(0) + ' kW' + (dech > 0 ? ' (' + kw.toFixed(0) + ' + ' + dech.toFixed(0) + ')' : '')
+      : '—') +
+    ligne('Demande max', a.demandeMax ? (a.demandeMax / 1000).toFixed(0) + ' kW' : '—',
+      a.demandeMax > (a.puissance + a.decharge) + 1 ? 'mauvais' : '') +
+    ligne('Munitions', a.obus ? a.obus + ' obus · ' + (a.obus * SHELL_MASS).toFixed(1) + ' kg' : '—') +
+    ligne('Blocs', design.length + ' / ' + MAX_BLOCKS);
+
+  const errs = erreursDeLancement(a);
+  const warns = alertesDeConception(a);
+  ui.alertes.innerHTML =
+    errs.map(t => '<div class="alerte rouge">' + t + '</div>').join('') +
+    warns.map(t => '<div class="alerte">' + t + '</div>').join('') +
+    (!errs.length && !warns.length ? '<div class="alerte" style="background:rgba(127,224,195,.07);border-color:rgba(127,224,195,.22);color:#a9e8d7">Prêt pour la piste.</div>' : '');
+  ui.lancer.disabled = errs.length > 0;
+  sauvegarder();
+}
+
+function poserAuPointeur(e) {
+  const w = s2w(e.clientX, e.clientY);
+  const col = Math.floor(w.x / CELL), row = Math.floor(w.y / CELL);
+  if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return;
+  poser(col, row);
+}
+
+function poser(col, row) {
+  if (design.length === 0) {
+    if (selected !== 'poste') { toast('Commencez par le poste de pilotage.', 'or'); selectionner('poste'); return; }
+  } else if (selected === 'poste') {
+    toast('Un seul poste de pilotage par véhicule.', 'or'); return;
+  }
+  if (design.length >= MAX_BLOCKS) { toast('Limite de ' + MAX_BLOCKS + ' blocs atteinte.', 'or'); return; }
+  if (blockAt(col, row)) return;
+  const adjacent = design.some(b => Math.abs(b.col - col) + Math.abs(b.row - row) === 1);
+  if (design.length && !adjacent) { toast('Le bloc doit toucher la structure existante.', 'or'); return; }
+  design.push({ type: selected, col, row, rot: estOrientable(selected) ? ghostRot : 0 });
+  if (design.length === 1) selectionner('chassis');
+  majAtelier();
+}
+
+function retirerAuPointeur(e) {
+  const w = s2w(e.clientX, e.clientY);
+  const col = Math.floor(w.x / CELL), row = Math.floor(w.y / CELL);
+  retirer(col, row);
+}
+
+function retirer(col, row) {
+  const b = blockAt(col, row);
+  if (!b) return;
+  const reste = design.filter(x => x !== b);
+  if (reste.length && !connexe(reste)) { toast('Ce bloc relie le reste du véhicule.', 'or'); return; }
+  design = reste;
+  majAtelier();
+}
+
+function vider() {
+  if (!design.length) return;
+  design = [];
+  majAtelier();
+  toast('Aire dégagée. Posez un poste de pilotage.', 'or');
+}
+
+function chargerPreset(nom) {
+  const p = PRESETS[nom];
+  if (!p) return;
+  design = p.map(([type, col, row]) => ({ type, col, row, rot: 0 }));
+  majAtelier();
+  toast('Modèle « ' + ({ rover: 'Chenillard', drone: 'Aérodyne', foudre: 'Foudre' })[nom] + ' » chargé.', 'or');
+}
+
+ui.lancer.addEventListener('click', lancer);
+ui.vider.addEventListener('click', vider);
+document.querySelectorAll('[data-preset]').forEach(b => {
+  b.addEventListener('click', () => chargerPreset(b.dataset.preset));
+});
+canvas.addEventListener('mousedown', e => {
+  if (mode === 'atelier' && e.button === 0) poserAuPointeur(e);
+});
+
+// ----------------------------------------------------------- basculement
+function lancer() {
+  if (!design.length) return;
+  const a = analyser(design);
+  const errs = erreursDeLancement(a);
+  if (errs.length) { toast(errs[0], 'rouge'); return; }
+  mode = 'jeu';
+  document.body.classList.add('jeu');
+  ui.badge.textContent = 'PISTE';
+  relacherBoutonsSouris();
+  secousse = 0;
+  faisceaux = [];
+  particules = [];
+  detruireTirsEnnemis();
+  detruireChunks();
+  creerCibles();
+  instancierVehicule(a);
+  creerRival();
+  demarrerNiveau();
+  majAssist();
+  majObjectif();
+  const t = vehicule.body.worldCom();
+  view.x = t.x + 3;
+  view.h = 8;
+  view.horizon = ch * 0.3;
+  view.off = ch * 0.58;
+  view.dist = DIST_REF;
+  view.zoom = view.off / view.h;
+  view.y = view.h;
+  ui.oAlerte.textContent = '';
+  toast(vehicule.bouclier.capacite > 0
+    ? 'Décollage. Clic droit : bouclier, molette : taille du champ.'
+    : 'Décollage. Q/D incline, Z/S pousse, souris pour viser.', 'or');
+}
+
+function retourAtelier() {
+  mode = 'atelier';
+  document.body.classList.remove('jeu');
+  ui.badge.textContent = 'ATELIER';
+  detruireVehicule();
+  detruireRival();
+  detruireEnnemis();
+  MISSION.etat = 'inactive';
+  detruireProjectiles();
+  detruireTirsEnnemis();
+  detruireChunks();
+  faisceaux = []; particules = [];
+  for (const b of touches) if (b === ' ') touches.delete(b);
+  relacherBoutonsSouris();
+  cadrerAtelier();
+  majAtelier();
+}
+function detruireAppareil(v) {
+  if (!v) return;
+  for (const c of v.colliders) owners.delete(c.handle);
+  if (v.bouclier.senseur) owners.delete(v.bouclier.senseur.handle);
+  for (const w of v.wheels) {
+    owners.delete(w.col.handle);
+    try { monde.removeRigidBody(w.body); } catch (e) { }
+  }
+  try { monde.removeRigidBody(v.body); } catch (e) { }
+}
+
+function detruireVehicule() {
+  if (!vehicule) return;
+  detruireAppareil(vehicule);
+  vehicule = null;
+}
+function detruireChunks() {
+  for (const ch of chunks) {
+    try { monde.removeRigidBody(ch.body); } catch (e) { }
+  }
+  chunks = [];
+}
+
+function detruireChunk(ch) {
+  try { monde.removeRigidBody(ch.body); } catch (e) { }
+  chunks = chunks.filter(c => c !== ch);
+}
+
+// Épave indépendante : un petit paquet de blocs posé dans le monde, ramassable.
+function creerEpace(types, x, y, vx, vy) {
+  const body = monde.createRigidBody(
+    RAPIER.RigidBodyDesc.dynamic()
+      .setTranslation(x, y).setLinvel(vx || 0, vy || 0)
+      .setLinearDamping(0.03).setAngularDamping(0.09).setCcdEnabled(true)
+  );
+  const blocs = [];
+  const n = types.length;
+  types.forEach((type, i) => {
+    const d = BLOCKS[type] || BLOCKS.chassis;
+    const lx = (i - (n - 1) / 2) * CELL;
+    const desc = (d.cat === 'wheel'
+      ? RAPIER.ColliderDesc.ball(RAYON_ROUE)
+      : RAPIER.ColliderDesc.cuboid(HALF - 0.002, HALF - 0.002))
+      .setTranslation(lx, 0).setMass(d.mass || 10)
+      .setFriction(0.8).setRestitution(0.02).setCollisionGroups(GROUP_TERRAIN);
+    monde.createCollider(desc, body);
+    blocs.push({ type, rot: 0, lx, ly: 0, hp: d.hp, hpMax: d.hp });
+  });
+  const ch = { body, blocs };
+  chunks.push(ch);
+  return ch;
+}
+
+// La cargaison pèse : sa masse est répartie sur les blocs de cargaison.
+function majMasseCargaison(v) {
+  const c = v && v.cargaison;
+  if (!c || !c.cols.length) return;
+  const totale = c.objets.reduce((s, o) => s + o.masse, 0);
+  const part = totale / c.cols.length;
+  for (const col of c.cols) col.setMass(BLOCKS.cargaison.mass + part);
+}
+
+const occupationCargaison = c => c.objets.reduce((s, o) => s + o.types.length, 0);
+
+function masseObjets(types) {
+  return types.reduce((s, tp) => s + ((BLOCKS[tp] && BLOCKS[tp].mass) || 0), 0);
+}
+
+// Ramasse l'épave la plus proche : la capacité se compte en blocs, pas en
+// paquets. Ce qui ne rentre pas reste au sol dans une épave plus petite.
+function ramasser(v) {
+  if (!v || v.hs) return { ok: false, msg: '' };
+  const c = v.cargaison;
+  if (!c || !c.cap) return { ok: false, msg: 'Aucun bloc de cargaison.' };
+  const libre = c.cap - occupationCargaison(c);
+  if (libre <= 0) return { ok: false, msg: 'Cargaison pleine : G pour larguer.' };
+  const t = v.body.translation();
+  let meilleur = null, dmin = 3.4;
+  for (const ch of chunks) {
+    const ct = ch.body.translation();
+    const d = Math.hypot(ct.x - t.x, ct.y - t.y);
+    if (d < dmin) { dmin = d; meilleur = ch; }
+  }
+  if (!meilleur) return { ok: false, msg: 'Rien à ramasser à portée.' };
+  const types = meilleur.blocs.map(b => b.type);
+  const pris = types.slice(0, libre);
+  const reste = types.slice(libre);
+  const masse = masseObjets(pris);
+  const pos = meilleur.body.translation();
+  c.objets.push({ types: pris, masse });
+  detruireChunk(meilleur);
+  if (reste.length) creerEpace(reste, pos.x, pos.y, 0, 0.6);
+  majMasseCargaison(v);
+  return { ok: true, types: pris, masse, reste: reste.length };
+}
+
+// Largue le dernier objet ramassé : chaque bloc redevient une épave séparée.
+function jeter(v) {
+  if (!v) return null;
+  const c = v.cargaison;
+  if (!c || !c.objets.length) return null;
+  const o = c.objets.pop();
+  const t = v.body.translation();
+  const n = o.types.length;
+  o.types.forEach((tp, i) => {
+    const a = (i / Math.max(1, n)) * 6.283;
+    creerEpace([tp], t.x + Math.cos(a) * 0.7, t.y + 1.4,
+      Math.cos(a) * 1.4, 0.6 + Math.sin(a) * 0.6);
+  });
+  majMasseCargaison(v);
+  return o;
+}
+
+function detruireProjectiles() {
+  for (const p of listeProjectiles) {
+    owners.delete(p.col.handle); projectiles.delete(p.col.handle);
+    try { monde.removeRigidBody(p.body); } catch (e) { }
+  }
+  listeProjectiles = [];
+  projectiles.clear();
+}
+
+let toastTimer = 0;
+function toast(txt, genre) {
+  ui.toast.textContent = txt;
+  ui.toast.className = 'visible' + (genre ? ' ' + genre : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { ui.toast.className = ''; }, 2600);
+}
+
+// -------------------------------------------------------------- véhicule
+// Une jauge par stockage dans le HUD : largeur au prorata de la capacité,
+// remplissage propre à chaque bloc.
+function construireJaugeStocks(v) {
+  ui.stocks.innerHTML = '';
+  const ordre = [...v.stocks].sort((a, b) =>
+    a.genre === b.genre ? 0 : a.genre === 'condensateur' ? -1 : 1);
+  for (const s of ordre) {
+    const seg = document.createElement('i');
+    seg.className = s.genre === 'batterie' ? 'bat' : 'cond';
+    seg.style.flex = String(s.cap / 1e6);
+    const f = document.createElement('b');
+    seg.appendChild(f);
+    ui.stocks.appendChild(seg);
+    s.el = f;
+  }
+}
+
+// Construit un appareil complet (corps, blocs, roues, tuyères, armes, stocks)
+// dans le monde physique. Ne touche pas à `vehicule` : l'appelant décide qui est
+// le joueur et qui est le rival. `opts` fixe le plan (z), les groupes de
+// collision et le point d'apparition.
+function construireVehicule(a, opts) {
+  const o = opts || {};
+  const planches = o.design || design;
+  const sp = o.spawn || SPAWN;
+  const gCorps = (o.groupes && o.groupes.corps) || GROUP_VEHICLE;
+  const gRoue = (o.groupes && o.groupes.roue) || GROUP_ROUE;
+  const gBouclier = o.groupeBouclier || GROUP_BOUCLIER;
+  // Point le plus bas du plan par rapport à l'origine du corps : permet de
+  // poser l'appareil juste au-dessus du sol, roues comprises.
+  let minY = Infinity;
+  for (const b of planches) {
+    const d = BLOCKS[b.type];
+    const c = cellCentre(b);
+    minY = Math.min(minY, d.cat === 'wheel' ? c.y - RAYON_ROUE : c.y - HALF);
+  }
+  if (!isFinite(minY)) minY = 0;
+  const spY = sp.y != null ? sp.y : solAu(sp.x) - minY + 0.01;
+  const body = monde.createRigidBody(
+    RAPIER.RigidBodyDesc.dynamic()
+      .setTranslation(sp.x, spY)
+      .setLinearDamping(0.03)
+      .setAngularDamping(0.09)
+      .setCcdEnabled(true)
+  );
+  const blocs = planches.map(b => ({
+    ...b,
+    hp: BLOCKS[b.type].hp,
+    hpMax: BLOCKS[b.type].hp,
+    detruit: false,
+    detache: false,
+    collider: null,
+    roue: null,
+    flash: 0
+  }));
+  const v = {
+    body, blocks: blocs, colliders: [], wheels: [], thrusters: [], guns: [], mags: [], stocks: [],
+    cargaison: { cap: 0, objets: [], cols: [] },
+    z: o.z || 0, groupeBouclier: gBouclier, estJoueur: !!o.joueur,
+    com: { x: a.com.x, y: a.com.y }, inertie: Math.max(1, a.inertie),
+    pousseeVerticale: a.pousseeVerticale, puissance: a.puissance,
+    capacite: a.capacite, decharge: a.decharge, energie: a.capacite * 0.85,
+    obus: a.obus, obusMax: a.obus,
+    assist: true, coupleManuel: o.joueur ? reglageCoupleManuel : 100, freinRotationManuel: false,
+    collectif: 0, facteur: 1, facteurArmes: 1, facteurBouclier: 1, facteurGlobal: 1,
+    profil: 'equilibre', demande: 0, demandeBrute: 0, demandeArmes: 0,
+    bouclier: {
+      capacite: 0, recharge: 0, energie: 0,
+      angle: Math.PI / 2, taille: 0, portee: TAILLES_BOUCLIER[0],
+      rayon: 0.7, ondes: [], senseur: null
+    },
+    coque: 0, coqueMax: 0, coqueFlash: 0, coqueHS: false, hs: false,
+    altCible: spY, altVerrou: false, xCible: sp.x, latVerrou: false,
+    partReacteur: 0, partStock: 0, recharge: 0, rechargeUtile: 0,
+    production: 0, puissanceUtilisee: 0,
+    sol: false, torqueAuth: 0, assistOK: false, videMsg: -9,
+    recul: 0
+  };
+  for (const b of v.blocks) {
+    const d = BLOCKS[b.type];
+    const c = cellCentre(b);
+    const m = blockMass(b);
+    if (d.cat === 'wheel') {
+      const wp = pointLocal(v, c);
+      const wb = monde.createRigidBody(
+        RAPIER.RigidBodyDesc.dynamic().setTranslation(wp.x, wp.y)
+          .setLinearDamping(0.01).setAngularDamping(0.015)
+      );
+      const wc = monde.createCollider(
+        RAPIER.ColliderDesc.ball(RAYON_ROUE).setMass(d.mass).setFriction(1.6)
+          .setRestitution(0.02).setCollisionGroups(gRoue), wb
+      );
+      owners.set(wc.handle, { kind: 'roue', v });
+      const joint = monde.createImpulseJoint(
+        RAPIER.JointData.revolute({ x: c.x, y: c.y }, { x: 0, y: 0 }), body, wb, true
+      );
+      joint.setContactsEnabled(false);
+      joint.setMotorMaxForce(d.motor * RAYON_ROUE);
+      const w = {
+        local: c, col: wc, body: wb, joint, spin: 0,
+        moteur: d.motor, puissance: d.power, contact: false, wy: 0,
+        cible: 0, cmax: 0, bloc: b
+      };
+      v.wheels.push(w);
+      b.roue = { col: wc, body: wb, joint, objet: w };
+      continue;
+    }
+    const desc = RAPIER.ColliderDesc.cuboid(HALF - 0.002, HALF - 0.002);
+    desc.setTranslation(c.x, c.y).setMass(m)
+      .setFriction(0.8)
+      .setRestitution(0.02)
+      .setCollisionGroups(gCorps)
+      .setActiveEvents(EVENTS);
+    const col = monde.createCollider(desc, body);
+    b.collider = col;
+    owners.set(col.handle, { kind: 'vehicule', v, bloc: b });
+    v.colliders.push(col);
+    if (d.cat === 'thruster') v.thrusters.push({ local: c, col, def: d, force: forceLocal(b), rx: c.x - a.com.x, ry: c.y - a.com.y, forceN: 0, delta: 0, bloc: b });
+    if (d.cat === 'ammo') v.mags.push({ col, cle: b.col + ',' + b.row, base: d.mass, obus: d.rounds, bloc: b });
+    if (d.cat === 'battery') {
+      v.stocks.push({
+        cle: b.col + ',' + b.row, local: c, genre: d.kind,
+        cap: d.capacity, dis: d.discharge,
+        energie: d.capacity * 0.85, charge: 0, debit: 0, el: null, bloc: b
+      });
+    }
+    if (d.cat === 'shield') {
+      v.bouclier.capacite += d.capacity;
+      v.bouclier.recharge += d.recharge;
+    }
+    if (d.cat === 'cargo') {
+      v.cargaison.cap += d.slots;
+      v.cargaison.cols.push(col);
+    }
+    v.coqueMax += d.hp;
+    if (d.cat === 'kinetic' || d.cat === 'energy') {
+      const rot = mod(b.rot | 0, 4);
+      const base = CANON_ANGLE[rot];
+      v.guns.push({
+        local: c, col, def: d, rot, base, aim: base, cible: base, cool: 0,
+        charge: d.cat === 'energy' ? d.shotEnergy : 0, rechargeP: 0, bloc: b
+      });
+    }
+  }
+  v.groupes = {
+    batterie: v.stocks.filter(s => s.genre === 'batterie'),
+    condensateur: v.stocks.filter(s => s.genre === 'condensateur')
+  };
+  v.bouclier.energie = v.bouclier.capacite;
+  v.coque = v.coqueMax;
+  v.com = centreMasseCorps(v.blocks);
+  const positionControle = body.worldCom();
+  v.altCible = positionControle.y;
+  v.xCible = positionControle.x;
+  for (const t of v.thrusters) { t.rx = t.local.x - v.com.x; t.ry = t.local.y - v.com.y; }
+  v.thetaUtil = angleInclinaisonMax(v.blocks, v.puissance, v.decharge);
+  v.pousseeNette = pousseeNette(v.blocks);
+  reconstruireSenseur(v);
+  const verts = v.thrusters.filter(t => Math.abs(t.force.y) > 0.6);
+  const xs = verts.map(t => t.rx);
+  v.assistOK = verts.length >= 2 && (Math.max(...xs) - Math.min(...xs)) > 0.1;
+  const verticaux = v.thrusters.filter(t => Math.abs(t.force.y) > 0.6);
+  v.torqueAuth = v.assistOK
+    ? verticaux.reduce((s, t) => s + t.def.thrust * Math.abs(t.rx), 0) * 0.9 : 0;
+  v.points = [];
+  for (const b of v.blocks) {
+    const c = cellCentre(b);
+    for (const [dx, dy] of [[-HALF, -HALF], [HALF, -HALF], [HALF, HALF], [-HALF, HALF]]) {
+      v.points.push({ x: c.x + dx, y: c.y + dy });
+    }
+  }
+  v.recul = a.com.x;
+  return v;
+}
+
+// Instancie le vaisseau du joueur à partir de l'analyse de son plan.
+function instancierVehicule(a) {
+  detruireVehicule();
+  vehicule = construireVehicule(a, {
+    design,
+    groupes: { corps: GROUP_VEHICLE, roue: GROUP_ROUE },
+    groupeBouclier: GROUP_BOUCLIER,
+    spawn: SPAWN,
+    z: 0,
+    joueur: true
+  });
+  construireJaugeStocks(vehicule);
+}
+
+// Centre de masse du corps rigide : les roues sont des corps séparés, elles ne
+// comptent pas dans la répartition des poussées du corps.
+function centreMasseCorps(blocs) {
+  let m = 0, x = 0, y = 0;
+  for (const b of blocs) {
+    const d = BLOCKS[b.type];
+    if (!d || d.cat === 'wheel' || b.detruit || b.detache) continue;
+    // Recalcul en double précision depuis les masses physiques courantes.
+    // localCom() est arrondi en simple précision par Rapier : soustraire ce
+    // résultat à la grille ferait dépendre les saturations de son placement.
+    const c = cellCentre(b), mb = b.collider ? b.collider.mass() : blockMass(b);
+    m += mb; x += c.x * mb; y += c.y * mb;
+  }
+  return m > 0 ? { x: x / m, y: y / m } : { x: 0, y: 0 };
+}
+
+// Centre visuel (boîte englobante) des blocs encore intacts.
+let chunks = [];
+function majCentreCoque(v) {
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const b of v.blocks) {
+    if (b.detruit) continue;
+    const c = cellCentre(b);
+    minX = Math.min(minX, c.x); maxX = Math.max(maxX, c.x);
+    minY = Math.min(minY, c.y); maxY = Math.max(maxY, c.y);
+  }
+  if (!isFinite(minX)) { minX = maxX = minY = maxY = 0; }
+  v.centre = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+  v.bouclier.rayon = Math.hypot((maxX - minX) / 2, (maxY - minY) / 2) + HALF + 0.3;
+}
+
+// (Re)crée le capteur du bouclier sur la coque restante.
+function reconstruireSenseur(v) {
+  if (v.bouclier.senseur) {
+    owners.delete(v.bouclier.senseur.handle);
+    try { monde.removeCollider(v.bouclier.senseur, true); } catch (e) { }
+    v.bouclier.senseur = null;
+  }
+  majCentreCoque(v);
+  if (v.bouclier.capacite <= 0) return;
+  const sens = RAPIER.ColliderDesc.ball(v.bouclier.rayon)
+    .setTranslation(v.centre.x, v.centre.y)
+    .setDensity(0)
+    .setSensor(true)
+    .setCollisionGroups(v.groupeBouclier || GROUP_BOUCLIER)
+    .setActiveEvents(EVENTS);
+  const col = monde.createCollider(sens, v.body);
+  owners.set(col.handle, { kind: 'bouclier', v });
+  v.bouclier.senseur = col;
+}
+
+// Détruit un bloc : il perd son collisionneur, sa fonction et sa masse. Les
+// morceaux qui ne sont plus reliés au poste se détachent en épaves.
+function retirerBlocDuCorps(v, bloc) {
+  if (bloc.roue) {
+    const r = bloc.roue;
+    owners.delete(r.col.handle);
+    try { monde.removeImpulseJoint(r.joint, true); } catch (e) { }
+    try { monde.removeRigidBody(r.body); } catch (e) { }
+    v.wheels = v.wheels.filter(w => w !== r.objet);
+    bloc.roue = null;
+  } else if (bloc.collider) {
+    owners.delete(bloc.collider.handle);
+    try { monde.removeCollider(bloc.collider, true); } catch (e) { }
+    v.colliders = v.colliders.filter(c => c !== bloc.collider);
+    bloc.collider = null;
+  }
+}
+
+// Composantes connexes (4-voisins) d'une liste de blocs.
+function composantesConnectees(blocs) {
+  const parCle = new Map(blocs.map(b => [b.col + ',' + b.row, b]));
+  const vus = new Set();
+  const comps = [];
+  for (const depart of blocs) {
+    const k0 = depart.col + ',' + depart.row;
+    if (vus.has(k0)) continue;
+    const comp = [];
+    const pile = [depart];
+    while (pile.length) {
+      const x = pile.pop();
+      const k = x.col + ',' + x.row;
+      if (vus.has(k)) continue;
+      vus.add(k);
+      comp.push(x);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const n = parCle.get((x.col + dx) + ',' + (x.row + dy));
+        if (n && !vus.has(n.col + ',' + n.row)) pile.push(n);
+      }
+    }
+    comps.push(comp);
+  }
+  return comps;
+}
+
+// Recalcule tous les agrégats du véhicule à partir des blocs qui lui restent.
+function rafraichirVehicule(v) {
+  v.thrusters = v.thrusters.filter(t => !t.bloc.detruit && !t.bloc.detache);
+  v.guns = v.guns.filter(g => !g.bloc.detruit && !g.bloc.detache);
+  v.mags = v.mags.filter(m => !m.bloc.detruit && !m.bloc.detache);
+  v.stocks = v.stocks.filter(s => !s.bloc.detruit && !s.bloc.detache);
+  const restants = v.blocks.filter(b => !b.detruit && !b.detache);
+  const a = analyser(restants);
+  v.puissance = a.puissance;
+  v.pousseeVerticale = a.pousseeVerticale;
+  v.com = centreMasseCorps(restants);
+  v.inertie = Math.max(1, a.inertie);
+  v.capacite = v.stocks.reduce((t, s) => t + s.cap, 0);
+  v.decharge = v.stocks.reduce((t, s) => t + s.dis, 0);
+  v.energie = v.stocks.reduce((t, s) => t + s.energie, 0);
+  v.obus = v.mags.reduce((t, m) => t + m.obus, 0);
+  v.coque = restants.reduce((t, b) => t + Math.max(0, b.hp), 0);
+  let capB = 0, recB = 0;
+  for (const b of restants) {
+    const d = BLOCKS[b.type];
+    if (d.cat === 'shield') { capB += d.capacity; recB += d.recharge; }
+  }
+  v.bouclier.capacite = capB;
+  v.bouclier.recharge = recB;
+  v.bouclier.energie = Math.min(v.bouclier.energie, capB);
+  v.groupes = {
+    batterie: v.stocks.filter(s => s.genre === 'batterie'),
+    condensateur: v.stocks.filter(s => s.genre === 'condensateur')
+  };
+  if (v === vehicule) construireJaugeStocks(v);
+  for (const t of v.thrusters) { t.rx = t.local.x - v.com.x; t.ry = t.local.y - v.com.y; }
+  const verts = v.thrusters.filter(t => Math.abs(t.force.y) > 0.6);
+  const xs = verts.map(t => t.rx);
+  v.assistOK = verts.length >= 2 && (Math.max(...xs) - Math.min(...xs)) > 0.1;
+  const verticaux = v.thrusters.filter(t => Math.abs(t.force.y) > 0.6);
+  v.torqueAuth = v.assistOK
+    ? verticaux.reduce((s, t) => s + t.def.thrust * Math.abs(t.rx), 0) * 0.9 : 0;
+  v.thetaUtil = angleInclinaisonMax(restants, v.puissance, v.decharge);
+  v.pousseeNette = pousseeNette(restants);
+  v.points = [];
+  for (const b of restants) {
+    const c = cellCentre(b);
+    for (const [dx, dy] of [[-HALF, -HALF], [HALF, -HALF], [HALF, HALF], [-HALF, HALF]]) {
+      v.points.push({ x: c.x + dx, y: c.y + dy });
+    }
+  }
+  reconstruireSenseur(v);
+  if (!restants.length) v.hs = true;
+}
+
+// Détache une composante : elle devient un corps physique indépendant qui tombe.
+function detacherBlocs(v, comp) {
+  if (!comp.length) return;
+  const t = v.body.translation(), a = v.body.rotation();
+  const lv = v.body.linvel(), av = v.body.angvel();
+  let mx = 0, my = 0;
+  for (const b of comp) { const c = cellCentre(b); mx += c.x; my += c.y; }
+  mx /= comp.length; my /= comp.length;
+  const wc = pointLocal(v, { x: mx, y: my });
+  const body = monde.createRigidBody(
+    RAPIER.RigidBodyDesc.dynamic()
+      .setTranslation(wc.x, wc.y).setRotation(a)
+      .setLinvel(lv.x, lv.y).setAngvel(av)
+      .setLinearDamping(0.03).setAngularDamping(0.09).setCcdEnabled(true)
+  );
+  const blocs = [];
+  for (const b of comp) {
+    const d = BLOCKS[b.type];
+    const c = cellCentre(b);
+    retirerBlocDuCorps(v, b);
+    b.detache = true;
+    if (d.cat === 'wheel') {
+      const desc = RAPIER.ColliderDesc.ball(RAYON_ROUE)
+        .setTranslation(c.x - mx, c.y - my).setMass(d.mass)
+        .setFriction(0.9).setRestitution(0.02).setCollisionGroups(GROUP_TERRAIN);
+      monde.createCollider(desc, body);
+    } else {
+      const desc = RAPIER.ColliderDesc.cuboid(HALF - 0.002, HALF - 0.002)
+        .setTranslation(c.x - mx, c.y - my).setMass(blockMass(b))
+        .setFriction(0.7).setRestitution(0.02).setCollisionGroups(GROUP_TERRAIN);
+      monde.createCollider(desc, body);
+    }
+    blocs.push({ type: b.type, rot: b.rot | 0, lx: c.x - mx, ly: c.y - my, hp: b.hp, hpMax: b.hpMax });
+  }
+  chunks.push({ body, blocs });
+  v.blocks = v.blocks.filter(b => !b.detache);
+  v.thrusters = v.thrusters.filter(t => !t.bloc.detache);
+  v.guns = v.guns.filter(g => !g.bloc.detache);
+  v.mags = v.mags.filter(m => !m.bloc.detache);
+  v.stocks = v.stocks.filter(s => !s.bloc.detache);
+  v.wheels = v.wheels.filter(w => !w.bloc || !w.bloc.detache);
+  for (let i = 0; i < 10; i++) {
+    particule(wc.x, wc.y, (Math.random() - 0.5) * 5, Math.random() * 4,
+      0.5 + Math.random() * 0.7, 0.04 + Math.random() * 0.07, '#8a9bab', 'debris');
+  }
+  secousse = Math.min(0.8, secousse + 0.12);
+}
+
+function detruireBloc(v, bloc) {
+  if (!bloc || bloc.detruit || bloc.detache) return;
+  bloc.detruit = true;
+  retirerBlocDuCorps(v, bloc);
+  const restants = v.blocks.filter(b => !b.detruit && !b.detache);
+  const comps = composantesConnectees(restants);
+  const principale = comps.find(c => c.some(b => b.type === 'poste'));
+  for (const comp of comps) if (comp !== principale) detacherBlocs(v, comp);
+  rafraichirVehicule(v);
+
+  const p = pointLocal(v, cellCentre(bloc));
+  for (let i = 0; i < 16; i++) {
+    particule(p.x, p.y, (Math.random() - 0.5) * 8, Math.random() * 6,
+      0.5 + Math.random() * 0.9, 0.04 + Math.random() * 0.09,
+      Math.random() < 0.5 ? '#8a9bab' : '#5d6f80', 'debris');
+  }
+  if (v === vehicule) secousse = Math.min(0.8, secousse + 0.22);
+
+  if (bloc.type === 'poste' && !v.hs) {
+    v.hs = true;
+    if (v === vehicule) toast('Poste de pilotage détruit. X pour repartir.', 'rouge');
+    // Ce qui est indestructible (un noyau) est éjecté pour rester récupérable.
+    const noyau = v.blocks.find(b => !b.detruit && !b.detache &&
+      BLOCKS[b.type] && BLOCKS[b.type].indestructible);
+    if (noyau) detacherBlocs(v, [noyau]);
+  }
+}
+
+function appliquerDegatsBloc(v, bloc, degats) {
+  if (degats <= 0) return;
+  v.coqueFlash = 0.5;
+  if (!bloc || bloc.detruit || bloc.detache) {
+    v.coque = Math.max(0, v.coque - degats);
+    return;
+  }
+  // Un bloc indestructible encaisse tout sans broncher.
+  if (BLOCKS[bloc.type] && BLOCKS[bloc.type].indestructible) return;
+  bloc.hp -= degats;
+  bloc.flash = 1;
+  v.coque = Math.max(0, v.coque - degats);
+  if (bloc.hp <= 0) detruireBloc(v, bloc);
+}
+
+// Inclinaison maximale utilisable pour se déplacer latéralement. Le facteur
+// limitant est la portance : à l'angle θ, la poussée verticale vaut T·cos θ.
+// On prend la poussée réellement disponible (puissance) et la poussée maximale
+// compatible avec une assiette à plat (répartition des tuyères), puis on garde
+// 15 % de marge pour que le contrôle d'altitude puisse encore corriger.
+const MARGE_PORTANCE = 0.85;
+function angleInclinaisonMax(blocs, puissance, decharge) {
+  const verts = [];
+  let demProp = 0, poussee = 0;
+  const com = centreMasseCorps(blocs);
+  for (const b of blocs) {
+    const d = BLOCKS[b.type];
+    if (!d) continue;
+    if (d.cat === 'wheel' || d.cat === 'thruster') demProp += d.power;
+    if (d.cat !== 'thruster') continue;
+    const f = forceLocal(b);
+    if (f.y <= 0.6) continue;
+    const c = cellCentre(b);
+    verts.push({ rx: c.x - com.x, max: d.thrust });
+    poussee += d.thrust;
+  }
+  if (!verts.length || poussee <= 0) return 0;
+  const f = demProp > 0 ? Math.min(1, (puissance + decharge) / demProp) : 1;
+  const Tniv = pousseeMax(verts.map(th => ({ rx: th.rx, max: th.max * f })), 0);
+  if (Tniv <= 1) return 0;
+  const masse = blocs.reduce((s, b) => s + blockMass(b), 0);
+  const survol = (masse * G) / Tniv;
+  if (survol >= 1) return 0;
+  // Marge de 15 % sur le collectif quand elle est possible ; sinon on autorise
+  // l'angle de décrochement exact (la portance est alors juste suffisante).
+  const cosMax = survol < MARGE_PORTANCE ? survol / MARGE_PORTANCE : survol;
+  return Math.acos(clamp(cosMax, 0, 1));
+}
+
+// Poussée totale réalisable à couple nul. Quand le centre de masse n'est pas
+// au milieu des tuyères, il faut pousser plus fort d'un côté pour rester à
+// plat : la tuyère la plus proche sature la première et la poussée utile est
+// inférieure à la somme des tuyères. C'est la vraie limite de sustentation.
+function pousseeNette(blocs) {
+  const verts = [];
+  const com = centreMasseCorps(blocs);
+  for (const b of blocs) {
+    const d = BLOCKS[b.type];
+    if (!d || d.cat !== 'thruster') continue;
+    if (forceLocal(b).y <= 0.6) continue;
+    verts.push({ rx: cellCentre(b).x - com.x, max: d.thrust });
+  }
+  if (!verts.length) return 0;
+  return pousseeMax(verts, 0);
+}
+
+function pointLocal(v, p) {
+  const t = v.body.translation(), a = v.body.rotation();
+  const c = Math.cos(a), s = Math.sin(a);
+  return { x: t.x + p.x * c - p.y * s, y: t.y + p.x * s + p.y * c };
+}
+function vecteurLocal(v, p) {
+  const a = v.body.rotation();
+  const c = Math.cos(a), s = Math.sin(a);
+  return { x: p.x * c - p.y * s, y: p.x * s + p.y * c };
+}
+const masseVehicule = v => v.body.mass() + v.wheels.reduce((s, w) => s + w.body.mass(), 0);
+
+function remettreEnPiste() {
+  const v = vehicule;
+  if (!v) return;
+  // Reset complet : on repart d'un vaisseau intact construit sur le plan d'atelier,
+  // face à un secteur remis à neuf.
+  detruireChunks();
+  instancierVehicule(analyser(design));
+  vehicule.assist = v.assist;
+  majAssist();
+  demarrerNiveau();
+  const t = vehicule.body.translation();
+  view.x = t.x + 3; view.y = 2.4;
+  toast(v.hs ? 'Véhicule réparé.' : 'Véhicule remis en piste et réparé.', 'or');
+}
+
+function majAssist() {
+  if (!vehicule) return;
+  ui.assist.textContent = vehicule.assist ? 'ON' : 'OFF';
+  ui.assist.className = vehicule.assist ? 'on' : 'off';
+  dEl('aide-deplacement').innerHTML = vehicule.assist
+    ? '<kbd>Q</kbd><kbd>D</kbd> rouler / incliner <span class="sep">·</span> ' +
+      '<kbd>Z</kbd><kbd>S</kbd> poussée <span class="sep">·</span> '
+    : '<kbd>Z</kbd><kbd>S</kbd> poussée locale <span class="sep">·</span> ' +
+      '<kbd>Q</kbd><kbd>D</kbd> rotation / frein auto <span class="sep">·</span> ';
+  majCoupleManuel();
+}
+
+function majCoupleManuel() {
+  const valeur = vehicule ? vehicule.coupleManuel : reglageCoupleManuel;
+  ui.coupleManuel.textContent = valeur + ' %';
+  ui.jauges.coupleManuel.style.width = valeur + '%';
+  ui.metreCoupleManuel.setAttribute('aria-valuenow', String(valeur));
+}
+function modifierCoupleManuel(delta) {
+  const valeur = clamp(reglageCoupleManuel + delta, 0, 100);
+  if (valeur === reglageCoupleManuel) return;
+  reglageCoupleManuel = valeur;
+  if (vehicule) vehicule.coupleManuel = valeur;
+  sauvegarder();
+  majCoupleManuel();
+}
+
+// ------------------------------------------------------------ simulation
+// Répartit une puissance de décharge sur un groupe de stockages, au prorata
+// de ce que chacun peut sortir : les blocs d'un même type se vident ensemble.
+function repartirDecharge(groupe, demande, dt) {
+  if (!groupe.length || demande <= 0) return 0;
+  const dispo = groupe.map(s => Math.min(s.dis, s.energie / Math.max(dt, 1e-6)));
+  const total = dispo.reduce((a, b) => a + b, 0);
+  if (total <= 1e-9) return 0;
+  const k = Math.min(1, demande / total);
+  let pris = 0;
+  for (let i = 0; i < groupe.length; i++) {
+    const p = dispo[i] * k;
+    groupe[i].debit = p;
+    pris += p;
+  }
+  return pris;
+}
+
+// Même logique à la charge, au prorata de la place libre.
+function repartirCharge(groupe, surplus, dt) {
+  if (!groupe.length || surplus <= 0) return 0;
+  const place = groupe.map(s => Math.max(0, s.cap - s.energie) / Math.max(dt, 1e-6));
+  const total = place.reduce((a, b) => a + b, 0);
+  if (total <= 1e-9) return 0;
+  const k = Math.min(1, surplus / total);
+  let pris = 0;
+  for (let i = 0; i < groupe.length; i++) {
+    const p = place[i] * k;
+    groupe[i].charge = p;
+    pris += p;
+  }
+  return pris;
+}
+
+// Répartit la puissance disponible entre les catégories de consommateurs.
+// Renvoie un facteur par catégorie ; la somme des puissances servies vaut
+// exactement la puissance fournie.
+function repartirDemande(demandes, fournie, profil) {
+  const ids = Object.keys(demandes);
+  const total = ids.reduce((t, id) => t + demandes[id], 0);
+  const out = {};
+  if (total <= 1e-6) {
+    for (const id of ids) out[id] = 1;
+    return out;
+  }
+  if (!profil.ordre) {
+    const k = clamp(fournie / total, 0, 1);
+    for (const id of ids) out[id] = k;
+    return out;
+  }
+  let reste = Math.max(0, fournie);
+  for (const id of profil.ordre) {
+    if (!(id in demandes)) continue;
+    const d = demandes[id];
+    const f = d > 1e-6 ? clamp(Math.min(d, reste) / d, 0, 1) : 1;
+    out[id] = f;
+    reste = Math.max(0, reste - d * f);
+  }
+  for (const id of ids) if (!(id in out)) out[id] = 1;
+  return out;
+}
+
+// ------------------------------------------------ bouclier et coque
+// Un coup est absorbé si sa direction tombe dans l'arc couvert. La quantité
+// absorbable décroît comme (90°/angle)^1,5 : un champ large arrête peu, un quart
+// de cercle arrête presque tout. Le tampon paie 2,5 kJ par kJ absorbé.
+function absorberDegats(v, degats, angleMonde, pos) {
+  const b = v.bouclier;
+  const rien = { absorbe: 0, passe: degats };
+  if (!b || b.capacite <= 0 || b.energie <= 0 || degats <= 0) return rien;
+  if (Math.abs(wrap(angleMonde - b.angle)) > b.portee / 2 + 1e-6) return rien;
+  const entrants = degats / DEGATS_PAR_KJ;
+  const cap = (b.energie / 1000 / COUT_BOUCLIER) * Math.pow((Math.PI / 2) / b.portee, 1.5);
+  const pris = Math.min(entrants, cap);
+  if (pris <= 1e-9) return rien;
+  b.energie = Math.max(0, b.energie - pris * COUT_BOUCLIER * 1000);
+  b.ondes.push({ x: pos ? pos.x : 0, y: pos ? pos.y : 0, t: 0 });
+  return { absorbe: pris * DEGATS_PAR_KJ, passe: Math.max(0, degats - pris * DEGATS_PAR_KJ) };
+}
+
+function appliquerCoque(v, degats) {
+  if (degats <= 0) return;
+  v.coque = Math.max(0, v.coque - degats);
+  v.coqueFlash = 0.5;
+  if (v.coque <= 0 && !v.coqueHS) {
+    v.coqueHS = true;
+    toast('Coque détruite. X pour revenir en piste.', 'rouge');
+  }
+}
+
+// Enveloppe exacte (force, couple) de tuyères bornées. Chaque tuyère contribue
+// un segment ; les deux bords s'obtiennent en remplissant les leviers dans
+// l'ordre croissant/décroissant. Aucun nombre de tuyères ni symétrie imposé.
+const borneMin = th => th.min == null ? 0 : th.min;
+const borneMax = th => th.max == null ? th.def.thrust : th.max;
+function enveloppeGroupe(groupe) {
+  const ordre = groupe.slice().sort((a, b) => a.rx - b.rx);
+  let force = 0, tau = 0;
+  for (const th of ordre) {
+    force += borneMin(th); tau += th.rx * borneMin(th);
+  }
+  const points = [{ force, tau }];
+  for (const sens of [1, -1]) {
+    for (const th of ordre) {
+      const d = sens * (borneMax(th) - borneMin(th));
+      force += d; tau += th.rx * d;
+      points.push({ force, tau });
+    }
+  }
+  return points;
+}
+
+// Intersection d'une enveloppe avec une droite de force ou de couple donné.
+function sectionEnveloppe(points, axe, valeur) {
+  const autre = axe === 'force' ? 'tau' : 'force';
+  let lo = Infinity, hi = -Infinity;
+  const ajouter = v => { lo = Math.min(lo, v); hi = Math.max(hi, v); };
+  for (let i = 0; i < points.length; i++) {
+    const a = points[i], b = points[(i + 1) % points.length];
+    if (Math.abs(a[axe] - valeur) < 1e-6) ajouter(a[autre]);
+    const d = b[axe] - a[axe];
+    if (Math.abs(d) < 1e-9) continue;
+    const k = (valeur - a[axe]) / d;
+    if (k >= 0 && k <= 1) ajouter(lerp(a[autre], b[autre], k));
+  }
+  return { lo, hi, possible: lo <= hi };
+}
+function bornesGroupe(groupe, tau) {
+  return sectionEnveloppe(enveloppeGroupe(groupe), 'tau', tau);
+}
+// Portion maximale d'une demande supplémentaire qui reste dans l'enveloppe.
+// La base est réalisable. Chaque arête impose une inégalité linéaire sur la
+// portion ; les bornes des axes couvrent aussi les enveloppes dégénérées.
+function proportionRealisable(points, base, delta) {
+  let k = 1;
+  const contraindre = (marge, variation) => {
+    if (variation < -1e-9) k = Math.min(k, Math.max(0, marge) / -variation);
+  };
+  for (const axe of ['force', 'tau']) {
+    const valeurs = points.map(p => p[axe]);
+    contraindre(base[axe] - Math.min(...valeurs), delta[axe]);
+    contraindre(Math.max(...valeurs) - base[axe], -delta[axe]);
+  }
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i], b = points[i + 1];
+    const dx = b.force - a.force, dy = b.tau - a.tau;
+    contraindre(dx * (base.tau - a.tau) - dy * (base.force - a.force),
+      dx * delta.tau - dy * delta.force);
+  }
+  return clamp(k, 0, 1);
+}
+const pousseeMax = (groupe, tau) => {
+  const b = bornesGroupe(groupe, tau);
+  return b.possible ? Math.max(0, b.hi) : 0;
+};
+
+// Choisit un point réellement réalisable : priorité à l'assiette dans la
+// plage qui préserve la sustentation, puis à la force commandée. À force
+// fixée, toute valeur de couple entre les deux bords est une combinaison
+// convexe de leurs répartitions : les bornes restent donc garanties.
+// Les bornes peuvent être signées, y compris pour la poussée inversée.
+function repartirGroupe(groupe, T, tauCible, Tmin) {
+  if (!groupe.length) return { tau: 0, force: 0 };
+  const points = enveloppeGroupe(groupe);
+  const fmin = Math.min(...points.map(p => p.force));
+  const fmax = Math.max(...points.map(p => p.force));
+  const cible = clamp(T, fmin, fmax);
+  const neutre = sectionEnveloppe(points, 'tau', 0);
+  const support = neutre.possible ? Math.max(0, cible < 0 ? -neutre.lo : neutre.hi) : 0;
+  // Si tenir le poids n'est plus possible, garder une réserve d'assiette
+  // plutôt que saturer toutes les tuyères et interdire le redressement.
+  const besoin = Math.min(Math.abs(Tmin || 0), Math.abs(cible));
+  const reserve = support > 1e-6
+    ? clamp((support - besoin) / ((1 - MARGE_PORTANCE) * support), 0, 1) : 0;
+  const plancher = besoin * reserve;
+  const lo = cible < 0 ? fmin : Math.max(fmin, plancher);
+  const hi = cible < 0 ? Math.min(fmax, -plancher) : fmax;
+  const admissibles = points.filter(p => p.force >= lo && p.force <= hi).map(p => p.tau);
+  for (const f of [lo, hi]) {
+    const b = sectionEnveloppe(points, 'force', f);
+    if (b.possible) admissibles.push(b.lo, b.hi);
+  }
+  const tau = clamp(tauCible, Math.min(...admissibles), Math.max(...admissibles));
+  const bornes = sectionEnveloppe(points, 'tau', tau);
+  const force = clamp(cible, Math.max(lo, bornes.lo), Math.min(hi, bornes.hi));
+  // Réduire d'abord l'effort maximal nécessaire. Sans cela, deux bords
+  // extrêmes peuvent se combiner en poussées opposées inutiles, payées sur
+  // le bus électrique. L'enveloppe homothétique donne ce minimum exactement.
+  let effort = 0, areteNonRadiale = false;
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i], b = points[i + 1];
+    const dx = b.force - a.force, dy = b.tau - a.tau;
+    const origine = dx * a.tau - dy * a.force;
+    if (origine < -1e-6) {
+      effort = Math.max(effort, (dx * tau - dy * force) / origine);
+      areteNonRadiale = true;
+    }
+  }
+  const norme = force * force + tau * tau;
+  if (!areteNonRadiale && norme > 1e-9) {
+    const rayon = Math.max(...points.map(p => (p.force * force + p.tau * tau) / norme));
+    effort = rayon > 0 ? 1 / rayon : 1;
+  }
+  effort = clamp(effort, 0, 1);
+  const mins = groupe.map(th => borneMin(th) * effort);
+  const maxs = groupe.map(th => borneMax(th) * effort);
+  const origineForce = mins.reduce((s, f) => s + f, 0);
+  const ordre = groupe.map((th, i) => i).sort((a, b) => groupe[a].rx - groupe[b].rx);
+  const repartirBord = indices => {
+    const fs = mins.slice();
+    let reste = Math.max(0, force - origineForce);
+    for (const i of indices) {
+      const ajout = Math.min(reste, maxs[i] - fs[i]);
+      fs[i] += ajout; reste -= ajout;
+    }
+    return { fs, tau: fs.reduce((s, f, i) => s + groupe[i].rx * f, 0) };
+  };
+  const bas = repartirBord(ordre), haut = repartirBord(ordre.slice().reverse());
+  const k = haut.tau - bas.tau > 1e-9 ? clamp((tau - bas.tau) / (haut.tau - bas.tau), 0, 1) : 0;
+  let tauFin = 0, forceFin = 0;
+  for (let i = 0; i < groupe.length; i++) {
+    const f = clamp(lerp(bas.fs[i], haut.fs[i], k), borneMin(groupe[i]), borneMax(groupe[i]));
+    groupe[i].forceN = f;
+    tauFin += groupe[i].rx * f; forceFin += f;
+  }
+  return { tau: tauFin, force: forceFin };
+}
+
+// Répartition manuelle des commandes locales. Pas d'angle ni d'altitude cible.
+// Q/D demandent le couple choisi ; au neutre, le contre-couple vise uniquement
+// l'arrêt de la vitesse angulaire, à partir de l'inertie physique courante.
+// Chaque tuyère contribue selon son bras de levier réel. Le couple est prioritaire
+// pendant une rotation ; la force reste aussi proche que possible de la demande.
+// Toute action reste produite et payée par les tuyères.
+function repartirManuel(v, poussee, rotation, dt) {
+  for (const th of v.thrusters) th.forceN = 0;
+  const omega = v.body.angvel();
+  const sensCouple = rotation !== 0 ? Math.sign(rotation) : -Math.sign(omega);
+  const groupes = ['y', 'x'].map(axe => {
+    const actionneurs = v.thrusters.filter(th => Math.abs(th.force[axe]) > 0.6).map(th => {
+      const sens = th.force[axe], inverse = (th.def.reverse || 0) * th.def.thrust;
+      return {
+        source: th, sens,
+        rx: axe === 'y' ? th.rx : -th.ry,
+        min: sens > 0 ? -inverse : -th.def.thrust,
+        max: sens > 0 ? th.def.thrust : inverse,
+        forceN: 0
+      };
+    });
+    // Ne pas imposer une force nulle à un groupe : un propulseur peut fournir
+    // un couple utile accompagné d'une translation, même s'il ne peut pas
+    // former un couple pur avec les autres propulseurs de son axe.
+    const autorite = actionneurs.reduce((s, th) => s + Math.max(0,
+      sensCouple > 0 ? th.rx * th.min : -th.rx * th.min,
+      sensCouple > 0 ? th.rx * th.max : -th.rx * th.max), 0);
+    return { axe, actionneurs, autorite };
+  });
+  const disponible = groupes.reduce((s, g) => s + g.autorite, 0);
+  let couple = 0;
+  if (!v.hs) {
+    if (rotation !== 0) {
+      couple = rotation * disponible * (v.coupleManuel ?? 100) / 100;
+    } else {
+      // Maximum opposé tant qu'il reste de l'élan. La dernière impulsion ne
+      // dépasse pas I·omega : elle arrête la rotation sans l'inverser.
+      const arret = v.body.principalInertia() * Math.abs(omega) / dt;
+      couple = sensCouple * Math.min(disponible, arret);
+    }
+  }
+  v.freinRotationManuel = rotation === 0 && couple !== 0;
+  for (const g of groupes) {
+    const total = g.actionneurs.reduce((s, th) => s + (poussee > 0 ? th.max : -th.min), 0);
+    const vise = g.axe === 'y' ? poussee * total : 0;
+    const tau = disponible > 0 ? couple * g.autorite / disponible : 0;
+    const bornes = bornesGroupe(g.actionneurs, tau);
+    const force = bornes.possible ? clamp(vise, bornes.lo, bornes.hi) : 0;
+    repartirGroupe(g.actionneurs, force, tau);
+    for (const th of g.actionneurs) th.source.forceN = th.forceN * th.sens;
+  }
+  v.collectif = Math.abs(poussee);
+}
+
+// Simule un appareil : commandes fournies par l'appelant (joueur ou pilote IA).
+// `cmds` = { ix, iy, frein, tir, alt, poussee, rotation }.
+// `alt` impose une altitude assistée ; `poussee`/`rotation` sont les commandes
+// locales manuelles, comprises entre -1 et 1.
+function simulerAppareil(v, dt, cmds) {
+  if (!v) return;
+  const c = cmds || {};
+  const b = v.body;
+  // linvel est la vitesse du centre de masse, pas celle de l'origine de la
+  // grille. Les deux boucles de position doivent employer ce même point.
+  const origine = b.translation();
+  const t = b.worldCom();
+  // Le moteur physique porte aussi les changements de masse (munitions,
+  // cargaison). Les bras de levier doivent rester relatifs à son centre réel.
+  v.com = centreMasseCorps(v.blocks);
+  for (const th of v.thrusters) {
+    th.rx = th.local.x - v.com.x;
+    th.ry = th.local.y - v.com.y;
+  }
+  const ang = b.rotation();
+  const lv = b.linvel();
+  const av = b.angvel();
+  const cA = Math.cos(ang), sA = Math.sin(ang);
+
+  let bas = Infinity;
+  for (const p of v.points) {
+    const wx = origine.x + p.x * cA - p.y * sA;
+    const wy = origine.y + p.x * sA + p.y * cA;
+    const d = wy - solAu(wx);
+    if (d < bas) bas = d;
+  }
+  let sol = bas <= 0.04;
+  for (const w of v.wheels) {
+    const wt = w.body.translation();
+    w.wy = wt.y;
+    w.contact = wt.y - RAYON_ROUE - solAu(wt.x) <= 0.055;
+    if (w.contact) sol = true;
+  }
+  v.sol = sol;
+
+  const ix = v.hs ? 0 : (c.ix | 0);
+  const iy = v.hs ? 0 : (c.iy | 0);
+  const poussee = v.hs ? 0 : clamp(Number(c.poussee) || 0, -1, 1);
+  const rotation = v.hs ? 0 : clamp(Number(c.rotation) || 0, -1, 1);
+  const freinage = v.hs ? false : !!c.frein;
+  if (v.assist) v.freinRotationManuel = false;
+
+  const masse = masseVehicule(v);
+  // Portance signée : sur le dos, le « haut » du corps pointe vers le sol et la
+  // force de sustentation doit donc changer de signe (poussée inversée).
+  const cosBrut = Math.cos(ang);
+  const cosInclinaison = Math.abs(cosBrut) < 0.25
+    ? 0.25 * (cosBrut < 0 ? -1 : 1) : cosBrut;
+  const inverse = cosInclinaison < 0;   // appareil sur le dos
+  let sommeHaut = 0, sommeBas = 0, inverseHaut = 0, inverseBas = 0;
+  for (const th of v.thrusters) {
+    if (th.force.y > 0.6) {
+      sommeHaut += th.def.thrust;
+      inverseHaut += (th.def.reverse || 0) * th.def.thrust;
+    } else if (th.force.y < -0.6) {
+      sommeBas += th.def.thrust;
+      inverseBas += (th.def.reverse || 0) * th.def.thrust;
+    }
+  }
+  // Poussée réellement utilisable à plat (centre de masse décalé = moins).
+  const plafond = v.pousseeNette > 1 ? v.pousseeNette : sommeHaut;
+  // Poussée qui tient simplement le poids à l'inclinaison courante : c'est le
+  // plancher que l'assiette ne doit pas compromettre.
+  const sustentation = masse * G / Math.max(0.25, Math.abs(cosInclinaison));
+  // La commande latérale maintenue demande une accélération, sans consigne
+  // ni plafond de vitesse. Au relâchement, on freine avec les tuyères
+  // latérales puis l'inclinaison et on verrouille la position atteinte.
+  // Il est calculé avant l'altitude : la poussée latérale a une composante
+  // verticale quand le vaisseau est incliné, et la sustentation doit en tenir
+  // compte.
+  const latDroite = v.thrusters.reduce((s, th) => s + (th.force.x > 0.6 ? th.def.thrust : 0), 0);
+  const latGauche = v.thrusters.reduce((s, th) => s + (th.force.x < -0.6 ? th.def.thrust : 0), 0);
+  // Angle de travail : un pilote peut se limiter à une inclinaison plus faible
+  // que le maximum de portance, pour garder de l'autorité d'assiette.
+  const tiltMax = c.tilt != null ? Math.min(v.thetaUtil, c.tilt) : v.thetaUtil;
+  const latMaxInclinaison = G * Math.tan(tiltMax);
+  let aDesX = 0, latSigne = 0, latRatio = 0;
+  if (v.assist && !sol) {
+    // Accélération commandée, puis freinage jusqu'à l'arrêt et verrouillage.
+    // Pendant le freinage, anticiper l'accélération de l'inclinaison en place
+    // pour tenir compte du temps nécessaire au changement d'assiette.
+    const tReponse = 0.35;
+    // L'axe de portance peut être inversé : sa pente est modulo PI.
+    // Borner l'angle du corps directement ferait changer la prédiction de
+    // signe entre +PI et -PI et bloquerait le redressement sur le dos.
+    const anglePortance = Math.atan2(sA * (inverse ? -1 : 1), Math.abs(cA));
+    const aPente = -G * Math.tan(clamp(anglePortance, -v.thetaUtil, v.thetaUtil));
+    const vxPredit = lv.x + aPente * tReponse;
+    const kvx = 3.0;
+    if (ix !== 0) {
+      v.xCible = t.x;
+      v.latVerrou = false;
+      // Poussée latérale maximale : toute l'inclinaison que la portance
+      // autorise, plus les tuyères latérales si le vaisseau en a.
+      const dispo = ix > 0 ? latDroite : latGauche;
+      aDesX = ix * (latMaxInclinaison + dispo / masse);
+      latSigne = ix;
+    } else {
+      // Freinage puis verrouillage : pendant le freinage la cible suit la
+      // position courante (on ne revient pas au point de relâchement), puis
+      // on fige la position où le vaisseau s'arrête.
+      if (!v.latVerrou) {
+        v.xCible = t.x;
+        if (Math.abs(lv.x) < 0.3 && Math.abs(ang) < 0.12) v.latVerrou = true;
+      }
+      const kpx = v.latVerrou ? 2.0 : 0;
+      aDesX = -(kpx * (t.x - v.xCible) + kvx * vxPredit);
+      latSigne = Math.sign(aDesX);
+    }
+    aDesX = clamp(aDesX,
+      -(latMaxInclinaison + latGauche / masse),
+      latMaxInclinaison + latDroite / masse);
+  } else {
+    v.xCible = t.x;
+    v.latVerrou = false;
+    aDesX = ix * latMaxInclinaison;
+    latSigne = ix;
+  }
+  if (latSigne !== 0) {
+    const dispo = latSigne > 0 ? latDroite : latGauche;
+    latRatio = dispo > 1 ? clamp(Math.abs(aDesX) * masse / dispo, 0, 1) : 0;
+  }
+  const latDispo = latSigne > 0 ? latDroite : latGauche;
+  const latForce = latSigne * latRatio * latDispo;
+  const aInclinaison = aDesX - latForce / masse;
+
+  // Force verticale visée dans le repère du corps (positif vers le haut).
+  // Les tuyères vers le bas sont incluses : elles servent à freiner une montée
+  // et à augmenter l'autorité d'assiette.
+  let Fb = 0;
+  let collectif = 0;
+  if (v.assist && !sol) {
+    if (iy > 0) {
+      v.altCible = t.y;
+      v.altVerrou = false;
+      Fb = masse * G / cosInclinaison + 0.5 * sommeHaut;
+    } else if (iy < 0) {
+      // Descente commandée : 70 % de la capacité de poussée vers le bas,
+      // plafonnée à 8 g. Sans tuyère inversée, c'est une chute libre.
+      v.altCible = t.y;
+      v.altVerrou = false;
+      if (sommeBas > 1) {
+        const aDown = Math.min(0.7 * (sommeBas / masse + G), 8 * G);
+        Fb = masse * (G - aDown) / cosInclinaison;
+      } else {
+        Fb = 0;
+      }
+    } else {
+      // Freinage puis verrouillage : tant que la vitesse verticale est
+      // notable, on ne vise que l'arrêt (pleine autorité, y compris vers le
+      // bas). Dès qu'elle est quasi nulle, on fige l'altitude atteinte.
+      // Un pilote peut aussi imposer une altitude visée (`cmds.alt`).
+      if (c.alt != null) {
+        v.altCible = c.alt;
+        v.altVerrou = true;
+      } else if (!v.altVerrou) {
+        v.altCible = t.y;
+        if (Math.abs(lv.y) < 0.35) v.altVerrou = true;
+      }
+      const kp = v.altVerrou ? 3.5 : 0;
+      const kv = 5.0;
+      const aDes = -(kp * (t.y - v.altCible) + kv * lv.y);
+      Fb = masse * (G + aDes) / cosInclinaison;
+    }
+    // La composante verticale des tuyères latérales sera compensée lors de
+    // l'allocation commune, sur leur poussée effectivement réalisable.
+    // Sur le dos, les tuyères peuvent pousser à contre-sens à 50 % pour le
+    // rattraper ; à l'endroit, le freinage reste celui d'avant. Le plafond
+    // laissé ici est la somme des tuyères : c'est la répartition qui décide de
+    // ce qui est réellement atteignable avec le couple d'assiette demandé (un
+    // couple qui soulage la tuyère la plus proche du centre de masse permet
+    // même un peu plus de poussée que le maximum à couple nul).
+    Fb = clamp(Fb,
+      -sommeBas - (inverse ? inverseHaut : 0),
+      sommeHaut + (inverse ? inverseBas : 0));
+    collectif = plafond > 0 ? clamp(Math.abs(Fb) / plafond, 0, 1) : 0;
+  } else {
+    // Au sol, la commande de montée suit le « haut du monde » : sur le dos,
+    // elle passe en poussée inversée pour décoller au lieu de s'écraser.
+    // L'assistance seule interprète la commande comme « monter dans le monde » ;
+    // Les commandes manuelles seront réparties séparément dans le repère local.
+    const sensMonde = (v.assist && sol && cosInclinaison < 0) ? -1 : 1;
+    Fb = (iy > 0 ? sommeHaut : iy < 0 ? -sommeBas : 0) * sensMonde;
+    collectif = iy > 0 ? 1 : 0;
+    v.altCible = t.y;
+    v.altVerrou = false;
+  }
+  v.collectif = collectif;
+
+
+  const verticales = v.thrusters.filter(th => Math.abs(th.force.y) > 0.6);
+  const actionneurs = verticales.map(th => ({
+    rx: th.rx,
+    min: th.force.y > 0 ? (inverse ? -(th.def.reverse || 0) * th.def.thrust : 0) : -th.def.thrust,
+    max: th.force.y > 0 ? th.def.thrust : (inverse ? (th.def.reverse || 0) * th.def.thrust : 0),
+    forceN: 0
+  }));
+  let couple = 0;
+  let tauMax = 0, tauMaxHaut = 0;
+  for (const th of v.thrusters) {
+    if (Math.abs(th.force.y) <= 0.6) continue;
+    const c = th.def.thrust * Math.abs(th.rx);
+    tauMax += c;
+    if (th.force.y > 0.6) tauMaxHaut += c;
+  }
+  // Plus d'autorité d'assiette (tuyères vers le bas) = rotation plus vive :
+  // on augmente les gains à mesure que le couple disponible dépasse celui du
+  // seul groupe de sustentation.
+  const extraCouple = clamp(tauMax / Math.max(1, tauMaxHaut), 1, 1.8);
+  const peutControler = v.assist && v.assistOK &&
+    (!sol || Math.abs(Fb) > 0.05 * Math.max(1, sommeHaut));
+  if (peutControler) {
+    // La translation demande une inclinaison à partir d'une assiette droite.
+    // Son autorité décroît avec l'alignement : sur le dos, redresser vers zéro
+    // évite que le freinage latéral fasse alterner le sens de rotation visé.
+    const vise = clamp(-Math.atan2(aInclinaison, G), -tiltMax, tiltMax) * Math.max(0, cA);
+    const err = wrap(vise - ang);
+    // Anticipation : le poids des roues pendantes tire le corps autour de son
+    // centre de masse. On l'annule directement au lieu d'attendre une erreur.
+    let couplePoids = 0;
+    if (v.wheels.length) {
+      const cw = pointLocal(v, v.com);
+      for (const w of v.wheels) {
+        const p = pointLocal(v, w.local);
+        couplePoids += (p.x - cw.x) * (-w.body.mass() * G);
+      }
+    }
+    // La vitesse de rotation doit pouvoir être freinée avant la cible.
+    // Sur un appareil asymétrique, le couple de freinage peut être bien plus
+    // faible que le couple d'accélération ; leur somme ne mesure pas cela.
+    const tauMin = actionneurs.reduce((s, th) => s + Math.min(th.rx * th.min, th.rx * th.max), 0);
+    const tauMax = actionneurs.reduce((s, th) => s + Math.max(th.rx * th.min, th.rx * th.max), 0);
+    const frein = Math.max(0, err > 0 ? -tauMin : tauMax);
+    const omegaCible = Math.sign(err) * Math.min(2.5 * extraCouple, 3 * Math.abs(err),
+      0.65 * Math.sqrt(2 * frein * Math.abs(err) / v.inertie));
+    const alpha = clamp(9.0 * extraCouple * (omegaCible - av),
+      -22 * extraCouple, 22 * extraCouple);
+    couple = clamp(v.inertie * alpha - couplePoids, -v.torqueAuth, v.torqueAuth);
+  }
+
+  // Répartition : les tuyères verticales (vers le haut ET vers le bas) portent
+  // la sustentation et l'assiette ; les latérales répondent à la commande.
+  for (const th of v.thrusters) th.forceN = 0;
+  let couplePassif = 0;
+  for (const th of v.thrusters) {
+    if (Math.abs(th.force.y) > 0.6) continue;
+    if (Math.abs(th.force.x) > 0.6 && latSigne !== 0 && Math.sign(th.force.x) === latSigne) {
+      th.forceN = th.def.thrust * latRatio;
+    }
+    couplePassif += th.rx * th.force.y * th.forceN - th.ry * th.force.x * th.forceN;
+  }
+  const groupeHaut = verticales.filter(th => th.force.y > 0.6);
+  const groupeBas = verticales.filter(th => th.force.y < -0.6);
+  if (!v.assist) {
+    repartirManuel(v, poussee, rotation, dt);
+  } else if (peutControler) {
+    // Une seule allocation pour tous les sens de poussée. Une poussée
+    // négative conserve ainsi son couple de redressement, même sans tuyère
+    // orientée vers le bas. `forceN` reste dans le sens propre de la tuyère.
+    // D'abord une demande verticale et d'assiette réalisable sans latérales.
+    // Leur ajout suit ensuite une droite dans cette même enveloppe : chaque
+    // newton latéral est accompagné de sa compensation de portance ET de
+    // couple. Si l'une des deux sature, réduire les latérales, sans introduire
+    // un couple parasite que la boucle d'assiette ne pourrait pas annuler.
+    const base = repartirGroupe(actionneurs, Fb, couple, sustentation);
+    const cosPortance = Math.abs(cA) < 1e-6 ? (cA < 0 ? -1e-6 : 1e-6) : cA;
+    const delta = { force: -latForce * sA / cosPortance, tau: -couplePassif };
+    const portion = proportionRealisable(enveloppeGroupe(actionneurs),
+      { force: base.force, tau: base.tau }, delta);
+    for (const th of v.thrusters) {
+      if (Math.abs(th.force.y) <= 0.6) th.forceN *= portion;
+    }
+    repartirGroupe(actionneurs, base.force + portion * delta.force,
+      base.tau + portion * delta.tau);
+    for (let i = 0; i < verticales.length; i++) {
+      verticales[i].forceN = actionneurs[i].forceN * verticales[i].force.y;
+    }
+  } else {
+    // Assistance au sol sans autorité active : poussée uniforme.
+    if (Fb > 0 && sommeHaut > 0) {
+      for (const th of groupeHaut) th.forceN = (Fb / sommeHaut) * th.def.thrust;
+    } else if (Fb < 0 && sommeBas > 0) {
+      for (const th of groupeBas) th.forceN = (-Fb / sommeBas) * th.def.thrust;
+    }
+  }
+
+  let demande = 0;
+  for (const th of v.thrusters) {
+    demande += Math.abs(th.forceN) * (th.def.power / th.def.thrust);
+  }
+  for (const w of v.wheels) {
+    const om = w.body.angvel();
+    let cible = 0, cmax = 25;
+    if (w.contact) {
+      if (freinage) { cible = 0; cmax = 1600; }
+      else if (ix !== 0) { cible = -ix * 9.5 / RAYON_ROUE; cmax = w.moteur * RAYON_ROUE; }
+      else { cible = 0; cmax = 22; }
+    } else {
+      cible = 0; cmax = 2;
+    }
+    w.cible = cible;
+    w.cmax = cmax;
+    demande += Math.min(w.puissance, Math.abs(om) * cmax)
+      + (w.contact && ix !== 0 ? 260 : 0)
+      + (w.contact && freinage && Math.abs(om) > 1 ? 600 : 0);
+  }
+
+  const demandePropulsion = demande;
+
+  // Les armes à énergie consomment comme les tuyères : leur recharge est une
+  // puissance continue qui entre dans la même demande, avec le même facteur.
+  let demandeArmes = 0;
+  for (const g of v.guns) {
+    if (g.def.cat !== 'energy') continue;
+    const manque = Math.max(0, g.def.shotEnergy - g.charge);
+    g.rechargeP = manque > 1e-6
+      ? Math.min(g.def.shotEnergy * g.def.rate, manque / dt)
+      : 0;
+    demandeArmes += g.rechargeP;
+  }
+  // Le bouclier se recharge en continu tant que son tampon n'est pas plein.
+  const bcl = v.bouclier;
+  const demandeBouclier = bcl.capacite > 0
+    ? Math.min(bcl.recharge, Math.max(0, bcl.capacite - bcl.energie) / Math.max(dt, 1e-6))
+    : 0;
+  const demandeTotale = demandePropulsion + demandeArmes + demandeBouclier;
+
+  // Chaque condensateur et chaque batterie garde sa propre charge. Le réacteur
+  // produit à plein tant qu'il reste de la place dans le stock, puis se cale
+  // sur la demande ; le stock comble le reste selon son ordre de décharge.
+  let capaciteTotale = 0, placeTotale = 0;
+  for (const s of v.stocks) {
+    capaciteTotale += s.cap;
+    placeTotale += Math.max(0, s.cap - s.energie);
+    s.charge = 0; s.debit = 0;
+  }
+  const production = Math.min(v.puissance, demandeTotale + placeTotale / Math.max(dt, 1e-6));
+  const partReacteur = Math.min(demandeTotale, production);
+  let besoin = Math.max(0, demandeTotale - partReacteur);
+  let partStock = 0;
+  for (const genre of DECHARGE_STOCK) {
+    if (besoin <= 1e-6) break;
+    const livre = repartirDecharge(v.groupes[genre], besoin, dt);
+    partStock += livre;
+    besoin -= livre;
+  }
+  const fournie = partReacteur + partStock;
+  const fs = repartirDemande(
+    { propulsion: demandePropulsion, armes: demandeArmes, bouclier: demandeBouclier },
+    fournie, PROFILS[v.profil] || PROFILS.equilibre);
+  const facteur = demandeTotale > 1e-6 ? clamp(fournie / demandeTotale, 0, 1) : 1;
+
+  // Les consommateurs — canons compris — sont déjà servis ; le surplus charge
+  // les condensateurs, puis les batteries.
+  let reste = Math.max(0, production - partReacteur);
+  let rechargeUtile = 0;
+  for (const genre of CHARGE_STOCK) {
+    if (reste <= 1e-6) break;
+    const pris = repartirCharge(v.groupes[genre], reste, dt);
+    rechargeUtile += pris;
+    reste -= pris;
+  }
+  for (const s of v.stocks) {
+    s.energie = clamp(s.energie + (s.charge - s.debit) * dt, 0, s.cap);
+  }
+
+  v.capacite = capaciteTotale;
+  v.decharge = v.stocks.reduce((t, s) => t + s.dis, 0);
+  v.energie = v.stocks.reduce((t, s) => t + s.energie, 0);
+  v.facteur = fs.propulsion;
+  v.facteurArmes = fs.armes;
+  v.facteurBouclier = fs.bouclier;
+  v.facteurGlobal = facteur;
+  v.demandeBrute = demandeTotale;
+  v.demandePropulsion = demandePropulsion;
+  v.demandeArmes = demandeArmes;
+  v.demandeBouclier = demandeBouclier;
+  v.demande = fournie;
+  v.partReacteur = partReacteur;
+  v.partStock = partStock;
+  v.production = production;
+  v.recharge = Math.max(0, production - partReacteur);
+  v.rechargeUtile = rechargeUtile;
+  v.puissanceUtilisee = fournie;
+
+  if (bcl.capacite > 0) {
+    bcl.energie = clamp(bcl.energie + demandeBouclier * v.facteurBouclier * dt, 0, bcl.capacite);
+  }
+
+  for (const g of v.guns) {
+    if (g.def.cat !== 'energy' || g.rechargeP <= 0) continue;
+    g.charge = Math.min(g.def.shotEnergy, g.charge + g.rechargeP * v.facteurArmes * dt);
+  }
+
+  for (const th of v.thrusters) {
+    const f = th.forceN * v.facteur;
+    if (Math.abs(f) < 1e-6) continue;
+    const dir = vecteurLocal(v, th.force);
+    const p = pointLocal(v, th.local);
+    b.applyImpulseAtPoint({ x: dir.x * f * dt, y: dir.y * f * dt }, p, true);
+  }
+  for (const w of v.wheels) {
+    w.joint.configureMotorVelocity(w.cible, 500);
+    w.joint.setMotorMaxForce(w.cmax * v.facteur);
+    w.spin = w.body.rotation() - ang;
+  }
+
+  for (const th of v.thrusters) {
+    const frac = th.forceN / th.def.thrust;
+    if (Math.abs(frac) > 0.03 && Math.random() < 0.75) {
+      const f = th.force;
+      const sg = frac >= 0 ? 1 : -1;
+      const p = pointLocal(v, { x: th.local.x - sg * f.x * 0.3, y: th.local.y - sg * f.y * 0.3 });
+      const dir = vecteurLocal(v, { x: -sg * f.x, y: -sg * f.y });
+      const sp = 3 + 9 * Math.abs(frac);
+      particule(p.x, p.y,
+        dir.x * sp + (Math.random() - 0.5) * 1.6,
+        dir.y * sp + (Math.random() - 0.5) * 1.6,
+        0.18 + Math.random() * 0.3, 0.025 + Math.random() * 0.05,
+        Math.random() < 0.5 ? '#9fe8ff' : '#5f9dff', 'fumee', v.z);
+    }
+  }
+
+  if (c.tir && !v.hs) tenterTir(v);
+}
+
+// Boucle de simulation : un pas pour chaque appareil vivant.
+function simuler(dt) {
+  majTourelles(dt);
+  if (vehicule) {
+    simulerAppareil(vehicule, dt, {
+      ix: vehicule.assist ? (droite() ? 1 : 0) - (gauche() ? 1 : 0) : 0,
+      iy: (avance() ? 1 : 0) - (recule() ? 1 : 0),
+      poussee: pousseeManuelle(),
+      rotation: rotationManuelle(),
+      frein: frein(),
+      tir: souris.tir
+    });
+  }
+  if (rival) {
+    piloteRival();
+    simulerAppareil(rival, dt, rival.commandes);
+  }
+  for (const e of ennemis) {
+    piloteEnnemi(e, dt);
+    simulerAppareil(e, dt, e.commandes);
+  }
+}
+
+function majVisee(dt) {
+  const v = vehicule;
+  if (!v) return;
+  const ang = v.body.rotation();
+  for (const g of v.guns) {
+    const p = pointLocal(v, g.local);
+    const vise = Math.atan2(souris.wy - p.y, souris.wx - p.x);
+    // L'arc de visée suit l'orientation du bloc : un canon retourné couvre
+    // l'arrière au lieu d'être ramené de force vers l'avant.
+    const base = ang + g.base;
+    g.cible = base + clamp(wrap(vise - base), -CANON_ARC, CANON_ARC);
+    const d = wrap(g.cible - g.aim);
+    g.aim += clamp(d, -10 * dt, 10 * dt);
+  }
+}
+
+// ----------------------------------------------------------------- armes
+function tenterTir(v) {
+  for (const g of v.guns) {
+    if (g.def.cat === 'kinetic') {
+      if (g.cool > simTime) continue;
+      if (v.obus <= 0) {
+        if (simTime - v.videMsg > 1.6) { toast('Soute vide.', 'rouge'); v.videMsg = simTime; }
+        continue;
+      }
+      const mag = v.mags.find(m => m.obus > 0);
+      if (!mag) continue;
+      mag.obus--; v.obus--;
+      mag.col.setMass(mag.base + mag.obus * SHELL_MASS);
+      g.cool = simTime + 1 / g.def.rate;
+      tirerObus(v, g);
+    } else {
+      // L'arme tire quand sa recharge est complète : la cadence vient de la
+      // puissance reçue, exactement comme la poussée vient de la sienne.
+      if (g.charge < g.def.shotEnergy - 1e-6) continue;
+      g.charge = 0;
+      tirerLaser(v, g);
+    }
+  }
+}
+
+function tirerObus(v, g) {
+  const dir = { x: Math.cos(g.aim), y: Math.sin(g.aim) };
+  const centre = pointLocal(v, g.local);
+  const origine = { x: centre.x + dir.x * 0.64, y: centre.y + dir.y * 0.64 };
+  const t = v.body.worldCom();
+  const lv = v.body.linvel();
+  const av = v.body.angvel();
+  const rx = origine.x - t.x, ry = origine.y - t.y;
+  const vx = lv.x - av * ry, vy = lv.y + av * rx;
+  const body = monde.createRigidBody(
+    RAPIER.RigidBodyDesc.dynamic().setTranslation(origine.x, origine.y)
+      .setLinvel(dir.x * g.def.muzzle + vx, dir.y * g.def.muzzle + vy)
+      .setLinearDamping(0.004).setCcdEnabled(true)
+  );
+  const col = monde.createCollider(
+    RAPIER.ColliderDesc.ball(0.07).setMass(SHELL_MASS).setFriction(0.35)
+      .setRestitution(0.08).setCollisionGroups(GROUP_OBUS).setActiveEvents(EVENTS), body
+  );
+  const p = {
+    body, col, vie: 5, damage: g.def.damage, mort: false,
+    prec: { x: origine.x, y: origine.y }
+  };
+  projectiles.set(col.handle, p);
+  listeProjectiles.push(p);
+
+  const impulsion = SHELL_MASS * g.def.muzzle;
+  v.body.applyImpulseAtPoint({ x: -dir.x * impulsion, y: -dir.y * impulsion }, origine, true);
+  v.recul = Math.min(1, v.recul + 0.6);
+  secousse = Math.min(0.6, secousse + 0.16);
+  etincelles(origine, { x: dir.x, y: dir.y }, 6, '#ffd08a');
+}
+
+// Premier point touché par un rayon : relief, cible du banc de tir ou
+// adversaire. Utilisé par l'arme à énergie (tir instantané).
+function rayonTouche(origine, dir, portee) {
+  const pas = 0.3;
+  for (let d = 0.2; d <= portee; d += pas) {
+    const x = origine.x + dir.x * d, y = origine.y + dir.y * d;
+    if (y <= solAu(x)) return { dist: d, pos: { x, y }, type: 'sol' };
+    for (const c of cibles) {
+      if (c.dead) continue;
+      const t = c.body.translation();
+      if (Math.hypot(x - t.x, y - t.y) < c.taille * 0.62) {
+        return { dist: d, pos: { x, y }, type: 'cible', cible: c };
+      }
+    }
+    for (const e of ennemis) {
+      if (e.hs) continue;
+      const cc = pointLocal(e, e.centre);
+      if (Math.hypot(x - cc.x, y - cc.y) < Math.max(1, e.bouclier.rayon)) {
+        return { dist: d, pos: { x, y }, type: 'ennemi', ennemi: e };
+      }
+    }
+  }
+  return null;
+}
+
+function tirerLaser(v, g) {
+  const dir = { x: Math.cos(g.aim), y: Math.sin(g.aim) };
+  const centre = pointLocal(v, g.local);
+  const origine = { x: centre.x + dir.x * 0.62, y: centre.y + dir.y * 0.62 };
+  const porteeMax = 55;
+  const hit = rayonTouche(origine, dir, porteeMax);
+  const portee = hit ? hit.dist : porteeMax;
+  const fin = hit ? hit.pos : { x: origine.x + dir.x * portee, y: origine.y + dir.y * portee };
+  faisceaux.push({ x1: origine.x, y1: origine.y, x2: fin.x, y2: fin.y, vie: 0.16 });
+  if (hit && hit.type === 'cible') {
+    toucherCible(hit.cible, g.def.damage, fin);
+    etincelles(fin, { x: -dir.x, y: Math.abs(dir.y) + 0.4 }, 10, '#c9b4ff');
+  } else if (hit && hit.type === 'ennemi') {
+    const e = hit.ennemi;
+    const r = absorberDegats(e, g.def.damage, Math.atan2(-dir.y, -dir.x), fin);
+    // Bloc le plus proche de l'impact.
+    let bloc = null, dmin = Infinity;
+    for (const b of e.blocks) {
+      if (b.detruit) continue;
+      const p = pointLocal(e, cellCentre(b));
+      const d = Math.hypot(p.x - fin.x, p.y - fin.y);
+      if (d < dmin) { dmin = d; bloc = b; }
+    }
+    if (bloc) appliquerDegatsBloc(e, bloc, r.passe);
+    etincelles(fin, { x: -dir.x, y: Math.abs(dir.y) + 0.4 }, 10, '#c9b4ff');
+  } else {
+    etincelles(fin, { x: -dir.x, y: Math.abs(dir.y) + 0.4 }, 4, '#b9a6ff');
+  }
+  secousse = Math.min(0.6, secousse + 0.05);
+}
+
+function detruireProjectile(p) {
+  owners.delete(p.col.handle);
+  projectiles.delete(p.col.handle);
+  try { monde.removeRigidBody(p.body); } catch (e) { }
+}
+
+function toucherCible(c, dmg, point) {
+  if (c.dead) return;
+  c.hp -= dmg;
+  c.flash = 0.18;
+  etincelles(point || c.body.translation(), { x: 0, y: 1 }, 9, '#ffbd7a');
+  if (c.hp <= 0) detruireCible(c);
+  else if (Math.random() < 0.35) toast('Cible touchée : ' + Math.max(0, Math.round(c.hp)) + ' / ' + c.max, 'or');
+}
+
+function detruireCible(c) {
+  c.dead = true;
+  score++;
+  const pos = c.body.translation();
+  owners.delete(c.col.handle);
+  try { monde.removeRigidBody(c.body); } catch (e) { }
+  for (let i = 0; i < 26; i++) {
+    particule(pos.x, pos.y,
+      (Math.random() - 0.5) * 9, Math.random() * 6 + 1,
+      0.6 + Math.random() * 1.1, 0.05 + Math.random() * 0.12,
+      Math.random() < 0.4 ? '#f0b45f' : '#6d7a88', 'debris');
+  }
+  majObjectif();
+  secousse = Math.min(0.8, secousse + 0.3);
+  if (cibles.every(t => t.dead)) toast('Toutes les cibles sont détruites.', 'or');
+}
+
+// ------------------------------------------------------------- particules
+function particule(x, y, vx, vy, vie, taille, couleur, type, z) {
+  if (particules.length > 460) particules.shift();
+  particules.push({ x, y, vx, vy, vie, max: vie, taille, couleur, type, z: z || 0 });
+}
+function etincelles(p, dir, n, couleur, z) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.atan2(dir.y, dir.x) + (Math.random() - 0.5) * 2.2;
+    const v = 1.5 + Math.random() * 5;
+    particule(p.x, p.y, Math.cos(a) * v, Math.sin(a) * v,
+      0.15 + Math.random() * 0.35, 0.02 + Math.random() * 0.04, couleur, 'etincelle', z);
+  }
+}
+
+function traiterEvenements() {
+  fileEvenements.drainCollisionEvents((h1, h2, debut) => {
+    if (!debut) return;
+    const e1 = tirsEnnemis.get(h1), e2 = tirsEnnemis.get(h2);
+    if (e1 || e2) {
+      const tir = e1 || e2;
+      if (tir.mort) return;
+      const autre = owners.get(e1 ? h2 : h1);
+      const pos = tir.body.translation();
+      const v = tir.body.linvel();
+      const d = tir.dir && (tir.dir.x || tir.dir.y) ? tir.dir : { x: 0, y: 1 };
+      if (autre && autre.kind === 'bouclier') {
+        // Le tir entre dans la bulle : s'il est entièrement absorbé, il s'arrête
+        // ici. S'il ne l'est qu'en partie, il poursuit sa course, affaibli, et
+        // vient frapper la coque — pour que la fuite soit visible.
+        const angle = Math.atan2(-d.y, -d.x);
+        const r = absorberDegats(autre.v, tir.damage, angle, pos);
+        autre.v.dernierImpact = {
+          angle: +angle.toFixed(2), absorbe: +r.absorbe.toFixed(1), passe: +r.passe.toFixed(1),
+          px: +pos.x.toFixed(2), py: +pos.y.toFixed(2), bouclier: true
+        };
+        if (r.absorbe > 0) {
+          etincelles(pos, { x: -d.x, y: -d.y }, 7, '#9fd8ff');
+          if (r.passe <= 0.05) {
+            secousse = Math.min(0.6, secousse + 0.1);
+            tir.mort = true;
+          } else {
+            tir.damage = r.passe;
+            tir.dejaBouclier = true;
+            secousse = Math.min(0.6, secousse + 0.05);
+          }
+        }
+        return;
+      }
+      if (autre && autre.kind === 'vehicule') {
+        const angle = Math.atan2(-d.y, -d.x);
+        const r = tir.dejaBouclier
+          ? { absorbe: 0, passe: tir.damage }
+          : absorberDegats(autre.v, tir.damage, angle, pos);
+        autre.v.dernierImpact = {
+          angle: +angle.toFixed(2), absorbe: +r.absorbe.toFixed(1), passe: +r.passe.toFixed(1),
+          px: +tir.prec.x.toFixed(2), py: +tir.prec.y.toFixed(2)
+        };
+        appliquerDegatsBloc(autre.v, autre.bloc, r.passe);
+        etincelles(pos, { x: -d.x, y: -d.y }, 8, r.absorbe > 0 ? '#9fd8ff' : '#ff9a72');
+        secousse = Math.min(0.6, secousse + (r.absorbe > 0 ? 0.08 : 0.18));
+      } else {
+        etincelles(pos, { x: -v.x, y: -v.y }, 5, '#ffb08a');
+      }
+      tir.mort = true;
+      return;
+    }
+    const p1 = projectiles.get(h1), p2 = projectiles.get(h2);
+    if (!p1 && !p2) return;
+    const proj = p1 || p2;
+    if (proj.mort) return;
+    const autre = owners.get(p1 ? h2 : h1);
+    const pos = proj.body.translation();
+    if (autre && autre.kind === 'cible') {
+      toucherCible(autre.cible, proj.damage, pos);
+    } else if (autre && autre.kind === 'vehicule') {
+      // Les obus du joueur blessent les adversaires comme les leurs blessent le
+      // joueur : même absorption, mêmes dégâts par bloc.
+      const vv = proj.body.linvel();
+      const angle = Math.atan2(-vv.y, -vv.x);
+      const r = absorberDegats(autre.v, proj.damage, angle, pos);
+      autre.v.dernierImpact = {
+        angle: +angle.toFixed(2), absorbe: +r.absorbe.toFixed(1), passe: +r.passe.toFixed(1),
+        px: +proj.prec.x.toFixed(2), py: +proj.prec.y.toFixed(2)
+      };
+      appliquerDegatsBloc(autre.v, autre.bloc, r.passe);
+      etincelles(pos, { x: -vv.x, y: -vv.y }, 8, r.absorbe > 0 ? '#9fd8ff' : '#ffcf8a');
+      secousse = Math.min(0.6, secousse + 0.12);
+    } else {
+      etincelles(pos, { x: -proj.body.linvel().x, y: -proj.body.linvel().y }, 7, '#ffcf8a');
+    }
+    proj.mort = true;
+  });
+
+  listeProjectiles = listeProjectiles.filter(p => {
+    if (p.mort) { detruireProjectile(p); return false; }
+    p.vie -= FIXED;
+    const t = p.body.translation();
+    if (p.vie <= 0 || t.y < -4 || t.x < -110 || t.x > 160) {
+      detruireProjectile(p); return false;
+    }
+    p.prec.x = t.x; p.prec.y = t.y;
+    return true;
+  });
+
+  listeTirsEnnemis = listeTirsEnnemis.filter(p => {
+    if (p.mort) { detruireTirEnnemi(p); return false; }
+    p.vie -= FIXED;
+    const t = p.body.translation();
+    if (p.vie <= 0 || t.y < -4 || t.x < -110 || t.x > 160) {
+      detruireTirEnnemi(p); return false;
+    }
+    p.prec.x = t.x; p.prec.y = t.y;
+    const lv = p.body.linvel();
+    p.dir.x = lv.x; p.dir.y = lv.y;
+    return true;
+  });
+}
+
+// ---------------------------------------------------------------- rendu
+function rr(x, y, w, h, r) {
+  const rad = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rad, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rad);
+  ctx.arcTo(x + w, y + h, x, y + h, rad);
+  ctx.arcTo(x, y + h, x, y, rad);
+  ctx.arcTo(x, y, x + w, y, rad);
+  ctx.closePath();
+}
+function teinte(hex, f) {
+  const n = parseInt(hex.slice(1), 16);
+  let r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  if (f >= 0) { r += (255 - r) * f; g += (255 - g) * f; b += (255 - b) * f; }
+  else { r *= 1 + f; g *= 1 + f; b *= 1 + f; }
+  return 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ')';
+}
+const etoiles = Array.from({ length: 120 }, () => ({
+  x: Math.random(), y: Math.random() * 0.62, t: Math.random() * 1.6 + 0.3,
+  p: Math.random() * 6.28, a: Math.random() * 0.5 + 0.15
+}));
+
+function dessinerCiel() {
+  const g = ctx.createLinearGradient(0, 0, 0, ch);
+  g.addColorStop(0, '#061019');
+  g.addColorStop(0.52, '#0a2130');
+  g.addColorStop(0.78, '#103440');
+  g.addColorStop(1, '#0b2028');
+  ctx.fillStyle = g;
+  ctx.fillRect(-60, -60, cw + 120, ch + 120);
+
+  for (const e of etoiles) {
+    const x = mod(e.x * cw - view.x * 2.2, cw);
+    const y = e.y * ch * 0.8 - view.y * 3;
+    if (y < -10 || y > ch) continue;
+    const a = e.a * (0.65 + 0.35 * Math.sin(simTime * 0.7 + e.p));
+    ctx.fillStyle = 'rgba(180,232,225,' + a + ')';
+    ctx.fillRect(x, y, e.t, e.t);
+  }
+
+  const base = w2s(0, 0).y;
+  const horizon = horizonRendu();
+  const crete = (couleur, ampl, par, phase, decal) => {
+    ctx.beginPath();
+    ctx.moveTo(0, ch);
+    for (let x = 0; x <= cw + 20; x += 18) {
+      const wx = (view.x * par) + (x - cw / 2) / view.zoom;
+      const h = ampl * (0.55 + 0.45 * Math.sin(wx * 0.22 + phase))
+        * (0.7 + 0.3 * Math.sin(wx * 0.071 + phase * 2.3));
+      ctx.lineTo(x, horizon - decal - h * view.zoom * 0.1);
+    }
+    ctx.lineTo(cw + 20, ch);
+    ctx.closePath();
+    ctx.fillStyle = couleur;
+    ctx.fill();
+  };
+  crete('#0a1b24', 46, 0.16, 1.1, 0);
+  crete('#0c222b', 32, 0.3, 3.4, 10);
+
+  const halo = ctx.createRadialGradient(cw * 0.72, horizon - 30, 10, cw * 0.72, horizon - 30, 520);
+  halo.addColorStop(0, 'rgba(240,180,95,.10)');
+  halo.addColorStop(1, 'rgba(240,180,95,0)');
+  ctx.fillStyle = halo;
+  ctx.fillRect(0, 0, cw, ch);
+}
+
+// Points du profil de sol visibles dans [xMin, xMax], avec leur projection.
+function pointsSol(xMin, xMax) {
+  const pts = [{ x: xMin, y: solAu(xMin) }];
+  for (const [x, y] of MONDE.sol.profil) {
+    if (x > xMin && x < xMax) pts.push({ x, y });
+  }
+  pts.push({ x: xMax, y: solAu(xMax) });
+  for (const p of pts) p.s = w2s(p.x, p.y);
+  return pts;
+}
+
+function dessinerSol() {
+  const y0 = w2s(0, 0).y;
+  // En atelier, il n'y a qu'un plan : si le sol sort du cadre, rien à dessiner.
+  if (mode !== 'jeu' && y0 > ch + 4) return;
+  // En jeu, la masse de terrain commence à l'horizon : elle porte la route du
+  // joueur et les voies parallèles. En atelier, rien ne change.
+  const hy = mode === 'jeu' ? horizonRendu() : y0;
+  const g = ctx.createLinearGradient(0, hy, 0, ch);
+  g.addColorStop(0, '#12241f');
+  g.addColorStop(0.42, '#0b1c1a');
+  g.addColorStop(0.72, '#071211');
+  g.addColorStop(1, '#040a0c');
+  ctx.fillStyle = g;
+  ctx.fillRect(-60, hy, cw + 120, ch - hy + 60);
+
+  if (mode === 'jeu') dessinerRoutesLointaines();
+
+  // Surface du sol : polyligne du relief, projetée.
+  const demi = cw / (2 * view.zoom) + 2;
+  const pts = pointsSol(view.x - demi, view.x + demi);
+  let haut = Infinity;
+  for (const p of pts) if (p.s.y < haut) haut = p.s.y;
+  if (haut > ch + 4) return;
+
+  if (mode === 'jeu') {
+    // Masse de terrain sous la surface, plus sombre que le fond.
+    ctx.beginPath();
+    ctx.moveTo(pts[0].s.x, pts[0].s.y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].s.x, pts[i].s.y);
+    ctx.lineTo(pts[pts.length - 1].s.x, ch + 60);
+    ctx.lineTo(pts[0].s.x, ch + 60);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(2,7,8,.5)';
+    ctx.fill();
+  }
+
+  ctx.strokeStyle = 'rgba(127,224,195,.35)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].s.x, pts[0].s.y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].s.x, pts[i].s.y);
+  ctx.stroke();
+
+  const gx0 = w2s(0, 0).x;
+  const pas = Math.max(22, view.zoom * 0.6);
+  ctx.strokeStyle = 'rgba(127,224,195,.07)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = mod(gx0, pas); x < cw; x += pas) {
+    const wx = s2w(x, 0).x;
+    ctx.moveTo(x, w2s(wx, solAu(wx)).y);
+    ctx.lineTo(x, ch);
+  }
+  ctx.stroke();
+
+  ctx.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--mono');
+  ctx.textAlign = 'center';
+  for (let m = Math.floor(view.x - cw / view.zoom / 2); m <= view.x + cw / view.zoom / 2; m += 5) {
+    if (m % 5 !== 0) continue;
+    const p = w2s(m, solAu(m));
+    const grand = m % 10 === 0;
+    ctx.strokeStyle = 'rgba(127,224,195,' + (grand ? 0.35 : 0.16) + ')';
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x, p.y + (grand ? 11 : 6));
+    ctx.stroke();
+    if (grand) {
+      ctx.fillStyle = 'rgba(138,169,160,.55)';
+      ctx.fillText(m + ' m', p.x, p.y + 25);
+    }
+  }
+  ctx.textAlign = 'left';
+
+  // marquages de l'aire de départ
+  const pa = w2s(-2.5, solAu(-2.5)), pb = w2s(6.5, solAu(6.5));
+  if (pb.x > 0 && pa.x < cw) {
+    ctx.strokeStyle = 'rgba(240,180,95,.18)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([14, 12]);
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y + 3);
+    ctx.lineTo(pb.x, pb.y + 3);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+// Voies parallèles : une bande par route, de la plus lointaine à la plus
+// proche. Les bords suivent le relief du sol et sont projetés à leurs
+// profondeurs respectives : épaisseur de chaussée et convergence vers l'horizon.
+function dessinerRoutesLointaines() {
+  const r = ROUTES.parallele;
+  const zn = r.z - r.largeur / 2, zf = r.z + r.largeur / 2;
+  const kn = kProf(zn), kf = kProf(zf);
+  const demi = cw / (2 * view.zoom * kn) + 4;
+  const pts = pointsSol(view.x - demi, view.x + demi);
+  const bN = pts.map(p => w2s(p.x, p.y, zn));
+  const bF = pts.map(p => w2s(p.x, p.y, zf));
+  const axe = pts.map(p => w2s(p.x, p.y, r.z));
+
+  let yMin = Infinity, yMax = -Infinity;
+  for (const p of bF) { if (p.y < yMin) yMin = p.y; }
+  for (const p of bN) { if (p.y > yMax) yMax = p.y; }
+  if (yMax < -20 || yMin > ch) return;
+
+  // Bande de chaussée entre les deux rives.
+  const g = ctx.createLinearGradient(0, yMin, 0, yMax);
+  g.addColorStop(0, '#071817');
+  g.addColorStop(1, '#030b0a');
+  ctx.beginPath();
+  ctx.moveTo(bN[0].x, bN[0].y);
+  for (let i = 1; i < bN.length; i++) ctx.lineTo(bN[i].x, bN[i].y);
+  for (let i = bF.length - 1; i >= 0; i--) ctx.lineTo(bF[i].x, bF[i].y);
+  ctx.closePath();
+  ctx.fillStyle = g;
+  ctx.fill();
+
+  // Rive lointaine (fine) et rive proche (marquée).
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(127,224,195,.20)';
+  ctx.beginPath();
+  ctx.moveTo(bF[0].x, bF[0].y);
+  for (let i = 1; i < bF.length; i++) ctx.lineTo(bF[i].x, bF[i].y);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(127,224,195,.55)';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(bN[0].x, bN[0].y);
+  for (let i = 1; i < bN.length; i++) ctx.lineTo(bN[i].x, bN[i].y);
+  ctx.stroke();
+  ctx.lineWidth = 1;
+
+  // Axe de la voie, à l'échelle de sa profondeur.
+  ctx.setLineDash([10 * kf, 16 * kf]);
+  ctx.strokeStyle = 'rgba(240,180,95,.45)';
+  ctx.beginPath();
+  ctx.moveTo(axe[0].x, axe[0].y);
+  for (let i = 1; i < axe.length; i++) ctx.lineTo(axe[i].x, axe[i].y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Repères de distance, projetés avec le facteur de la voie.
+  ctx.font = '9px ' + getComputedStyle(document.body).getPropertyValue('--mono');
+  ctx.textAlign = 'center';
+  for (let m = Math.ceil((view.x - demi) / 10) * 10; m <= view.x + demi; m += 10) {
+    const p = w2s(m, solAu(m), r.z);
+    if (p.x < -20 || p.x > cw + 20) continue;
+    ctx.strokeStyle = 'rgba(127,224,195,.22)';
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x, p.y - 5 * kn);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(138,169,160,.45)';
+    ctx.fillText(m + ' m', p.x, p.y - 8 * kn - 3);
+  }
+  ctx.textAlign = 'left';
+}
+
+// Rival : un second appareil simulé par la même physique, posé sur la voie
+// parallèle. Il ne partage aucune collision avec le joueur (groupes dédiés) :
+// les routes restent des plans indépendants.
+let rival = null;
+
+const DESIGN_RIVAL = [
+  { type: 'moteur', col: 1, row: 0, rot: 0 },
+  { type: 'moteur', col: 2, row: 0, rot: 0 },
+  { type: 'moteur', col: 3, row: 0, rot: 0 },
+  { type: 'chassis', col: 1, row: 1, rot: 0 },
+  { type: 'coeur', col: 2, row: 1, rot: 0 },
+  { type: 'chassis', col: 3, row: 1, rot: 0 },
+  { type: 'poste', col: 2, row: 2, rot: 0 }
+];
+
+function creerRival() {
+  detruireRival();
+  const a = analyser(DESIGN_RIVAL);
+  const y = solAu(12) + 4;
+  rival = construireVehicule(a, {
+    design: DESIGN_RIVAL,
+    groupes: { corps: GROUP_VEHICULE_2, roue: GROUP_ROUE_2 },
+    groupeBouclier: GROUP_BOUCLIER_2,
+    spawn: { x: 12, y },
+    z: ROUTES.parallele.z
+  });
+  rival.commandes = { ix: 0, iy: 0, frein: false, tir: false, alt: y };
+}
+
+function detruireRival() {
+  if (!rival) return;
+  detruireAppareil(rival);
+  rival = null;
+}
+
+// Pilote : tenir une position devant le joueur et suivre le relief de sa voie.
+function piloteRival() {
+  if (!rival) return;
+  const t = rival.body.worldCom();
+  const lv = rival.body.linvel();
+  const vp = vehicule ? vehicule.body.worldCom() : t;
+  const vj = vehicule ? vehicule.body.linvel() : { x: 0 };
+  // Course : tenir la station 7 m devant le joueur. La vitesse visée suit celle
+  // du joueur, corrigée par l'écart de position — sinon le rival se traîne dès
+  // que le joueur accélère.
+  const err = (vp.x + 7) - t.x;
+  const vDes = clamp(vj.x + err * 1.2, -24, 34);
+  // Anticipation de l'accélération déjà engagée par l'inclinaison courante.
+  const aPente = -G * Math.tan(clamp(rival.body.rotation(), -1, 1));
+  const dv = vDes - (lv.x + aPente * 0.35);
+  const ix = rival.hs ? 0 : (dv > 0.8 ? 1 : dv < -0.8 ? -1 : 0);
+  rival.commandes = {
+    ix, iy: 0, frein: false, tir: false,
+    alt: solAu(t.x) + 4,
+    tilt: 1.0
+  };
+}
+
+// ------------------------------------------------------------- adversaires
+// Appareils ennemis sur le plan du joueur : même physique, même énergie, mêmes
+// dégâts par bloc. Ils gardent une ancre, se placent à distance de tir et
+// ripostent avec les projectiles ennemis (que le bouclier du joueur arrête).
+let ennemis = [];
+
+const DESIGN_ENNEMI = [
+  { type: 'moteur', col: 1, row: 0, rot: 0 },
+  { type: 'moteur', col: 3, row: 0, rot: 0 },
+  { type: 'canon', col: 1, row: 1, rot: 3 },
+  { type: 'coeur', col: 2, row: 1, rot: 0 },
+  { type: 'batterie', col: 3, row: 1, rot: 0 },
+  { type: 'poste', col: 2, row: 2, rot: 0 }
+];
+
+// Char roulant : chenillard blindé, deux canons, pas de tuyère.
+const DESIGN_TANK = [
+  { type: 'roue', col: 0, row: 0, rot: 0 },
+  { type: 'chassis', col: 1, row: 0, rot: 0 },
+  { type: 'chassis', col: 2, row: 0, rot: 0 },
+  { type: 'roue', col: 3, row: 0, rot: 0 },
+  { type: 'blindage', col: 0, row: 1, rot: 0 },
+  { type: 'coeur', col: 1, row: 1, rot: 0 },
+  { type: 'batterie', col: 2, row: 1, rot: 0 },
+  { type: 'blindage', col: 3, row: 1, rot: 0 },
+  { type: 'canon', col: 1, row: 2, rot: 3 },
+  { type: 'poste', col: 2, row: 2, rot: 0 },
+  { type: 'canon', col: 3, row: 2, rot: 3 }
+];
+
+// Niveau : données de mission. Les vagues sortent l'une après l'autre, la
+// mission est gagnée quand elles sont toutes nettoyées et que l'arrivée est
+// franchie. `chrono` (secondes) est optionnel.
+const NIVEAU = {
+  nom: 'Secteur 7',
+  arrivee: 132,
+  chrono: 150,
+  objectif: { bloc: 'noyau' },
+  vagues: [
+    [{ type: 'volant', x: 46 }, { type: 'tank', x: 67 }],
+    [{ type: 'volant', x: 90 }, { type: 'tank', x: 112, noyau: true }]
+  ]
+};
+
+function creerEnnemis(liste) {
+  for (const def of liste) {
+    const plan = (def.type === 'tank' ? DESIGN_TANK : DESIGN_ENNEMI).slice();
+    if (def.noyau) plan.push({ type: 'noyau', col: 0, row: 2, rot: 0 });
+    const e = construireVehicule(analyser(plan), {
+      design: plan,
+      groupes: { corps: GROUP_ENNEMI, roue: GROUP_ENNEMI },
+      groupeBouclier: GROUP_ENNEMI,
+      spawn: { x: def.x },
+      z: 0
+    });
+    e.type = def.type;
+    e.ancre = def.x;
+    e.damage = def.type === 'tank' ? 34 : 18;
+    e.cadence = def.type === 'tank' ? 2.2 : 1.6;
+    e.portee = def.type === 'tank' ? 34 : 30;
+    e.cool = 1.2 + Math.random();
+    e.commandes = { ix: 0, iy: 0, frein: false, tir: false };
+    ennemis.push(e);
+  }
+}
+
+// Ligne de vue : le segment est-il dégagé du relief ?
+function ligneDeVue(a, b) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const n = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 0.5));
+  for (let i = 1; i < n; i++) {
+    const t = i / n;
+    if (a.y + dy * t < solAu(a.x + dx * t)) return false;
+  }
+  return true;
+}
+
+function detruireEnnemis() {
+  for (const e of ennemis) detruireAppareil(e);
+  ennemis = [];
+}
+
+// Tir de tous les canons disponibles (un pour l'aéronef, une salve pour le char).
+function tirerEnnemi(e) {
+  if (!vehicule) return;
+  const t = e.body.translation();
+  const pc = pointLocal(vehicule, vehicule.centre);
+  const lv = vehicule.body.linvel();
+  const canons = e.guns.length ? e.guns : [null];
+  for (const g of canons) {
+    const m = g ? pointLocal(e, g.local) : pointLocal(e, e.centre);
+    const dist = Math.hypot(pc.x - t.x, pc.y - t.y) || 1;
+    // Avance au tir : le projectile met dist/26 s à arriver, et la gravité le
+    // fait tomber de ½·g·t² — on vise au-dessus d'autant.
+    const temps = dist / 26;
+    const ax = pc.x + lv.x * temps - m.x;
+    const ay = pc.y + lv.y * temps + 0.5 * G * temps * temps - m.y;
+    const n = Math.hypot(ax, ay) || 1;
+    const dir = { x: ax / n, y: ay / n };
+    const origine = { x: m.x + dir.x * 0.6, y: m.y + dir.y * 0.6 };
+    tirerProjectileEnnemi(origine, dir, e.damage);
+    etincelles(origine, dir, 5, '#ff9a72');
+  }
+}
+
+function piloteEnnemi(e, dt) {
+  if (e.hs || horsCombat(e)) {
+    e.commandes = { ix: 0, iy: 0, frein: false, tir: false };
+    return;
+  }
+  const t = e.body.worldCom();
+  const pc = vehicule ? pointLocal(vehicule, vehicule.centre) : t;
+  const dx = pc.x - t.x;
+  e.cool -= dt;
+  const bouche = e.guns.length ? pointLocal(e, e.guns[0].local) : pointLocal(e, e.centre);
+  // Pas de tir à travers le relief : la colline sert de couvert.
+  const aPortee = Math.abs(dx) < e.portee && Math.abs(pc.y - t.y) < 12 &&
+    ligneDeVue(bouche, pc);
+  // Les canons suivent le joueur (visuel et cohérence du tir).
+  const angleJ = Math.atan2(pc.y - t.y, dx);
+  for (const g of e.guns) g.aim = angleJ;
+  if (e.cool <= 0 && aPortee) {
+    e.cool = e.cadence;
+    tirerEnnemi(e);
+  }
+  if (e.type === 'tank') piloteTank(e, pc, dx);
+  else piloteVolant(e, pc, dx);
+}
+
+// Char : roule vers une position de tir, s'arrête à 16 m du joueur.
+function piloteTank(e, pc, dx) {
+  const t = e.body.worldCom();
+  const loin = Math.abs(dx) > 45;
+  const cibleX = loin ? e.ancre : pc.x - Math.sign(dx || 1) * 16;
+  const err = cibleX - t.x;
+  const ix = Math.abs(err) > 2 ? Math.sign(err) : 0;
+  e.commandes = { ix, iy: 0, frein: false, tir: false };
+}
+
+// Aéronef : tient une station à 14 m du joueur, à son altitude.
+function piloteVolant(e, pc, dx) {
+  const t = e.body.worldCom();
+  const lv = e.body.linvel();
+  const loin = Math.abs(dx) > 40;
+  const cibleX = loin ? e.ancre : pc.x - Math.sign(dx || 1) * 14;
+  const cibleY = loin ? solAu(e.ancre) + 3.5 : Math.max(pc.y, solAu(cibleX) + 2.5);
+  const err = cibleX - t.x;
+  const vDes = clamp(err * 1.2, -7, 7);
+  const aPente = -G * Math.tan(clamp(e.body.rotation(), -0.8, 0.8));
+  const dv = vDes - (lv.x + aPente * 0.35);
+  const ix = dv > 0.8 ? 1 : dv < -0.8 ? -1 : 0;
+  // Posé au sol, l'assistance ne pousse pas : il faut une commande de montée
+  // pour décoller, sinon il reste cloué au sol.
+  const iy = e.sol ? 1 : 0;
+  e.commandes = { ix, iy, frein: false, tir: false, alt: cibleY, tilt: 0.7 };
+}
+
+// ---------------------------------------------------------------- mission
+// Objectif : nettoyer le secteur puis rejoindre l'extrémité droite.
+// Un appareil est hors de combat quand il ne peut plus menacer personne :
+// poste détruit, sorti du volume jouable (il ne reviendra pas et n'est plus
+// atteignable), ou cloué au sol sans assez de poussée pour redécoller.
+function horsCombat(v) {
+  if (!v || v.hs) return true;
+  const t = v.body.translation();
+  const lv = v.body.linvel();
+  if (t.x < MONDE.bornes.min - 2 || t.x > MONDE.bornes.max + 2) return true;
+  if (t.y > MONDE.plafond || t.y < solAu(t.x) - 3) return true;
+  // Cloué au sol, sans poussée, sans roues et sans arme : il ne peut plus rien.
+  if (v.sol && !v.wheels.length && !v.guns.length && Math.hypot(lv.x, lv.y) < 1.5) {
+    let poussee = 0;
+    for (const th of v.thrusters) if (th.force.y > 0.6) poussee += th.def.thrust;
+    if (poussee < v.body.mass() * G * 0.9) return true;
+  }
+  return false;
+}
+
+const MISSION = { etat: 'inactive', vague: 0, attente: 0, temps: 0, cause: '', libelle: '' };
+
+function demarrerNiveau() {
+  detruireEnnemis();
+  MISSION.etat = 'en_cours';
+  MISSION.vague = 0;
+  MISSION.attente = 1.4;
+  MISSION.temps = 0;
+  MISSION.cause = '';
+  MISSION.libelle = '';
+  creerEnnemis(NIVEAU.vagues[0]);
+}
+
+function finMission(etat, cause, libelle) {
+  MISSION.etat = etat;
+  MISSION.cause = cause;
+  MISSION.libelle = libelle;
+  toast(cause, etat === 'gagnee' ? 'or' : 'rouge');
+}
+
+function mmss(s) {
+  const t = Math.max(0, Math.ceil(s));
+  return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+}
+
+function objectifAtteint() {
+  if (!NIVEAU.objectif) return true;
+  const c = vehicule && vehicule.cargaison;
+  if (!c) return false;
+  return c.objets.some(o => o.types.includes(NIVEAU.objectif.bloc));
+}
+
+function majMission(dt) {
+  if (mode !== 'jeu' || !vehicule) return;
+  const x = vehicule.body.translation().x;
+  let vivants = ennemis.filter(e => !horsCombat(e)).length;
+  if (MISSION.etat === 'en_cours') {
+    MISSION.temps += dt;
+    if (vehicule.hs) {
+      finMission('perdue', 'Vaisseau détruit. X pour repartir.', 'VAISSEAU DÉTRUIT');
+    } else if (NIVEAU.chrono && MISSION.temps >= NIVEAU.chrono) {
+      finMission('perdue', 'Temps écoulé. X pour repartir.', 'TEMPS ÉCOULÉ');
+    } else if (vivants === 0) {
+      if (MISSION.vague + 1 < NIVEAU.vagues.length) {
+        // Vague suivante après un court répit, une fois la précédente nettoyée.
+        MISSION.attente -= dt;
+        if (MISSION.attente <= 0) {
+          MISSION.vague++;
+          detruireEnnemis();
+          creerEnnemis(NIVEAU.vagues[MISSION.vague]);
+          MISSION.attente = 1.4;
+          vivants = ennemis.filter(e => !horsCombat(e)).length;
+          toast('Vague ' + (MISSION.vague + 1) + '.', 'or');
+        }
+      } else if (x >= NIVEAU.arrivee && objectifAtteint()) {
+        finMission('gagnee', 'Secteur nettoyé, arrivée franchie. Mission accomplie.', 'MISSION ACCOMPLIE');
+      }
+    }
+  }
+  const temps = NIVEAU.chrono ? ' · ' + mmss(NIVEAU.chrono - MISSION.temps) : '';
+  let txt = '';
+  if (MISSION.etat === 'en_cours') {
+    if (vivants > 0) {
+      txt = 'VAGUE ' + (MISSION.vague + 1) + '/' + NIVEAU.vagues.length +
+        ' · ENNEMIS ' + vivants + temps;
+    } else if (MISSION.vague + 1 < NIVEAU.vagues.length) {
+      txt = 'VAGUE ' + (MISSION.vague + 2) + '/' + NIVEAU.vagues.length + ' IMMINENTE' + temps;
+    } else if (!objectifAtteint()) {
+      txt = 'RÉCUPÉRER LE NOYAU' + temps;
+    } else {
+      txt = 'ARRIVÉE ' + NIVEAU.arrivee + ' M · ENCORE ' +
+        Math.max(0, Math.round(NIVEAU.arrivee - x)) + ' M' + temps;
+    }
+  } else if (MISSION.etat !== 'inactive') {
+    txt = MISSION.libelle;
+  }
+  if (ui.objectif.textContent !== txt) ui.objectif.textContent = txt;
+}
+
+// Flèches de bord : direction des adversaires encore actifs et des noyaux à
+// ramasser quand ils sortent du cadre (dans la zone libre, hors panneaux).
+function dessinerIndicateurs() {
+  if (mode !== 'jeu' || !vehicule) return;
+  const cx = cw / 2, cy = ch / 2;
+  const g = Math.min(272, cw * 0.24);
+  const pts = [];
+  for (const e of ennemis) {
+    if (horsCombat(e)) continue;
+    const t = e.body.translation();
+    pts.push({ x: t.x, y: t.y, couleur: '#ff9070' });
+  }
+  for (const ch of chunks) {
+    if (!ch.blocs.some(b => b.type === 'noyau')) continue;
+    const t = ch.body.translation();
+    pts.push({ x: t.x, y: t.y, couleur: '#f0c060' });
+  }
+  for (const p of pts) {
+    const s = w2s(p.x, p.y, 0);
+    if (s.x > g && s.x < cw - g && s.y > 64 && s.y < ch - 64) continue;
+    const dx = s.x - cx, dy = s.y - cy;
+    const a = Math.atan2(dy, dx);
+    const ca = Math.cos(a), sa = Math.sin(a);
+    const hw = cw / 2 - g, hh = ch / 2 - 64;
+    const t = Math.min(hw / Math.max(1e-6, Math.abs(ca)), hh / Math.max(1e-6, Math.abs(sa)));
+    ctx.save();
+    ctx.translate(cx + ca * t, cy + sa * t);
+    ctx.rotate(a);
+    ctx.fillStyle = p.couleur;
+    ctx.globalAlpha = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(12, 0); ctx.lineTo(-7, -8); ctx.lineTo(-7, 8);
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(4,10,10,.55)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// Repère flottant du rival : sa position relative au joueur, en mètres.
+function dessinerMarqueurRival() {
+  if (!rival || !vehicule) return;
+  const t = rival.body.translation();
+  const s = w2s(t.x, t.y + 1.9, rival.z);
+  if (s.x < -60 || s.x > cw + 60 || s.y < -40 || s.y > ch + 40) return;
+  const ecart = t.x - vehicule.body.translation().x;
+  ctx.save();
+  ctx.font = '10px ' + getComputedStyle(document.body).getPropertyValue('--mono');
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(240,180,95,.9)';
+  ctx.fillText((ecart >= 0 ? '+' : '') + ecart.toFixed(0) + ' m', s.x, s.y - 8);
+  ctx.strokeStyle = 'rgba(240,180,95,.75)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(s.x - 4, s.y - 3);
+  ctx.lineTo(s.x, s.y + 2);
+  ctx.lineTo(s.x + 4, s.y - 3);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function dessinerGrille() {
+  const x0 = w2s(0, 0).x, x1 = w2s(COLS * CELL, 0).x;
+  const yb = w2s(0, 0).y, yh = w2s(0, ROWS * CELL).y;
+  ctx.save();
+  ctx.fillStyle = 'rgba(127,224,195,.028)';
+  ctx.fillRect(x0, yh, x1 - x0, yb - yh);
+  ctx.strokeStyle = 'rgba(127,224,195,.13)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let c = 0; c <= COLS; c++) {
+    const x = w2s(c * CELL, 0).x;
+    ctx.moveTo(x, yb); ctx.lineTo(x, yh);
+  }
+  for (let r = 0; r <= ROWS; r++) {
+    const y = w2s(0, r * CELL).y;
+    ctx.moveTo(x0, y); ctx.lineTo(x1, y);
+  }
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(127,224,195,.3)';
+  ctx.strokeRect(x0, yh, x1 - x0, yb - yh);
+  ctx.restore();
+}
+
+function dessinerCible(c) {
+  if (c.dead) return;
+  const t = c.body.translation(), a = c.body.rotation();
+  const s = w2s(t.x, t.y);
+  const z = view.zoom;
+  ctx.save();
+  ctx.translate(s.x, s.y);
+  ctx.rotate(-a);
+  const w = c.taille * z;
+  ctx.fillStyle = '#241d13';
+  rr(-w / 2, -w / 2, w, w, w * 0.08); ctx.fill();
+  ctx.fillStyle = '#3a2c1a';
+  rr(-w / 2 + 2, -w / 2 + 2, w - 4, w - 4, w * 0.06); ctx.fill();
+  ctx.strokeStyle = '#6f5730';
+  ctx.lineWidth = Math.max(1, w * 0.045);
+  ctx.strokeRect(-w / 2 + w * 0.1, -w / 2 + w * 0.1, w * 0.8, w * 0.8);
+  ctx.strokeStyle = 'rgba(240,180,95,.35)';
+  ctx.lineWidth = Math.max(1, w * 0.035);
+  ctx.beginPath();
+  ctx.moveTo(-w * 0.3, -w * 0.3); ctx.lineTo(w * 0.3, w * 0.3);
+  ctx.moveTo(w * 0.3, -w * 0.3); ctx.lineTo(-w * 0.3, w * 0.3);
+  ctx.stroke();
+  if (c.flash > 0) {
+    ctx.fillStyle = 'rgba(255,235,200,' + (c.flash / 0.18 * 0.55) + ')';
+    rr(-w / 2, -w / 2, w, w, w * 0.08); ctx.fill();
+  }
+  ctx.restore();
+
+  const hp = clamp(c.hp / c.max, 0, 1);
+  const bw = Math.max(26, c.taille * z * 0.9);
+  ctx.fillStyle = 'rgba(0,0,0,.55)';
+  ctx.fillRect(s.x - bw / 2, s.y - c.taille * z / 2 - 10, bw, 4);
+  ctx.fillStyle = hp > 0.55 ? '#7fe0c3' : hp > 0.25 ? '#f0b45f' : '#ff7a72';
+  ctx.fillRect(s.x - bw / 2, s.y - c.taille * z / 2 - 10, bw * hp, 4);
+}
+
+// ------------------------------------------------------------- véhicule
+function baseBloc(d) {
+  ctx.fillStyle = teinte(d.tint, -0.58);
+  rr(-HALF + 0.012, -HALF + 0.012, CELL - 0.024, CELL - 0.024, 0.055);
+  ctx.fill();
+  ctx.strokeStyle = teinte(d.tint, 0.08);
+  ctx.lineWidth = 0.013;
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.05)';
+  rr(-HALF + 0.04, HALF - 0.13, CELL - 0.08, 0.07, 0.03);
+  ctx.fill();
+}
+
+function dessinerBloc(type, rot, animation, niveau = 1, dommage = 0, flash = 0, extra = null, puissance = 1) {
+  const d = BLOCKS[type];
+  baseBloc(d);
+  if (type === 'blindage') {
+    ctx.strokeStyle = 'rgba(210,228,240,.16)';
+    ctx.lineWidth = 0.012;
+    for (const x of [-0.13, 0.13]) {
+      ctx.beginPath(); ctx.moveTo(x, -0.2); ctx.lineTo(x, 0.2); ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(220,235,245,.22)';
+    for (const p of [[-0.13, -0.13], [-0.13, 0.13], [0.13, -0.13], [0.13, 0.13]]) {
+      ctx.beginPath(); ctx.arc(p[0], p[1], 0.017, 0, 6.283); ctx.fill();
+    }
+  } else if (type === 'chassis') {
+    ctx.strokeStyle = teinte(d.tint, 0.28);
+    ctx.lineWidth = 0.026;
+    ctx.beginPath();
+    ctx.moveTo(-0.14, -0.14); ctx.lineTo(0.14, 0.14);
+    ctx.moveTo(0.14, -0.14); ctx.lineTo(-0.14, 0.14);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(10,18,24,.5)';
+    ctx.lineWidth = 0.018;
+    ctx.strokeRect(-0.19, -0.19, 0.38, 0.38);
+  } else if (type === 'poste') {
+    ctx.fillStyle = 'rgba(127,224,195,.16)';
+    rr(-0.15, 0.02, 0.3, 0.14, 0.05); ctx.fill();
+    ctx.strokeStyle = 'rgba(200,255,238,.55)';
+    ctx.lineWidth = 0.016;
+    rr(-0.15, 0.02, 0.3, 0.14, 0.05); ctx.stroke();
+    ctx.fillStyle = 'rgba(127,224,195,.7)';
+    ctx.beginPath(); ctx.arc(-0.09, -0.12, 0.028, 0, 6.283); ctx.fill();
+  } else if (type === 'coeur') {
+    const puls = 0.6 + 0.4 * Math.sin(simTime * 3 + 1);
+    const g = ctx.createRadialGradient(0, 0, 0.02, 0, 0, 0.24);
+    g.addColorStop(0, 'rgba(190,255,240,' + (0.75 * puls) + ')');
+    g.addColorStop(0.45, 'rgba(70,220,190,.35)');
+    g.addColorStop(1, 'rgba(70,220,190,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, 0.24, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#d9fff6';
+    ctx.beginPath(); ctx.arc(0, 0, 0.05 + 0.012 * puls, 0, 6.283); ctx.fill();
+    ctx.strokeStyle = 'rgba(180,255,240,.4)';
+    ctx.lineWidth = 0.014;
+    ctx.beginPath(); ctx.arc(0, 0, 0.16, 0, 6.283); ctx.stroke();
+  } else if (type === 'batterie' || type === 'condensateur') {
+    const n = clamp(niveau, 0, 1);
+    if (type === 'batterie') {
+      // Trois cellules qui se vident de bas en haut.
+      for (let i = 0; i < 3; i++) {
+        const x = -0.13 + i * 0.095;
+        const part = clamp(n * 3 - i, 0, 1);
+        ctx.fillStyle = 'rgba(200,230,160,.12)';
+        rr(x, -0.15, 0.055, 0.3, 0.02); ctx.fill();
+        const h = 0.27 * part;
+        if (h > 0.004) {
+          const g = ctx.createLinearGradient(0, -0.12, 0, -0.12 + h);
+          g.addColorStop(0, 'rgba(226,255,196,.95)');
+          g.addColorStop(1, 'rgba(111,138,74,.9)');
+          ctx.fillStyle = g;
+          rr(x + 0.006, -0.12, 0.043, h, 0.012); ctx.fill();
+        }
+      }
+      ctx.strokeStyle = 'rgba(210,235,180,.35)';
+      ctx.lineWidth = 0.012;
+      ctx.strokeRect(-0.16, -0.19, 0.32, 0.38);
+    } else {
+      // Condensateur : une réserve unique, deux armatures.
+      ctx.fillStyle = 'rgba(8,12,24,.62)';
+      rr(-0.1, -0.02, 0.2, 0.2, 0.025); ctx.fill();
+      const h = 0.18 * n;
+      if (h > 0.004) {
+        const g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, 'rgba(206,216,255,.96)');
+        g.addColorStop(1, 'rgba(90,109,168,.92)');
+        ctx.fillStyle = g;
+        rr(-0.088, 0, 0.176, h, 0.018); ctx.fill();
+      }
+      ctx.strokeStyle = 'rgba(200,214,255,.45)';
+      ctx.lineWidth = 0.01;
+      ctx.strokeRect(-0.1, -0.02, 0.2, 0.2);
+      ctx.fillStyle = 'rgba(206,216,255,.7)';
+      rr(-0.19, -0.18, 0.38, 0.024, 0.01); ctx.fill();
+      rr(-0.19, -0.135, 0.38, 0.024, 0.01); ctx.fill();
+    }
+  } else if (type === 'soute') {
+    ctx.save();
+    rr(-0.19, -0.19, 0.38, 0.38, 0.045); ctx.clip();
+    ctx.strokeStyle = 'rgba(240,200,120,.35)';
+    ctx.lineWidth = 0.045;
+    for (let i = -3; i < 4; i++) {
+      ctx.beginPath();
+      ctx.moveTo(-0.3 + i * 0.14, 0.25);
+      ctx.lineTo(0.1 + i * 0.14, -0.25);
+      ctx.stroke();
+    }
+    ctx.restore();
+    // Jauge de munitions : chaque graduation vaut dix obus.
+    const n = clamp(niveau, 0, 1);
+    ctx.fillStyle = 'rgba(14,10,4,.72)';
+    rr(-0.085, -0.155, 0.17, 0.31, 0.03); ctx.fill();
+    const h = 0.29 * n;
+    if (h > 0.004) {
+      const g = ctx.createLinearGradient(0, -0.135, 0, -0.135 + h);
+      g.addColorStop(0, 'rgba(255,226,155,.96)');
+      g.addColorStop(1, 'rgba(202,136,58,.9)');
+      ctx.fillStyle = g;
+      rr(-0.073, -0.135, 0.146, h, 0.02); ctx.fill();
+    }
+    ctx.strokeStyle = 'rgba(22,15,7,.5)';
+    ctx.lineWidth = 0.008;
+    for (let i = 1; i < 5; i++) {
+      const y = -0.155 + 0.31 * i / 5;
+      ctx.beginPath(); ctx.moveTo(-0.073, y); ctx.lineTo(0.073, y); ctx.stroke();
+    }
+    if (n <= 0.001) {
+      ctx.strokeStyle = 'rgba(255,120,110,.55)';
+      ctx.lineWidth = 0.012;
+      rr(-0.085, -0.155, 0.17, 0.31, 0.03); ctx.stroke();
+    }
+  } else if (type === 'bouclier') {
+    ctx.strokeStyle = 'rgba(170,235,255,.6)';
+    ctx.lineWidth = 0.028;
+    ctx.beginPath(); ctx.arc(0, 0, 0.135, 0, 6.283); ctx.stroke();
+    ctx.strokeStyle = 'rgba(170,235,255,.25)';
+    ctx.lineWidth = 0.02;
+    ctx.beginPath(); ctx.arc(0, 0, 0.175, 0, 6.283); ctx.stroke();
+    ctx.fillStyle = 'rgba(190,245,255,.85)';
+    ctx.beginPath(); ctx.arc(0, 0, 0.045, 0, 6.283); ctx.fill();
+  } else if (type === 'canon' || type === 'laser') {    ctx.fillStyle = teinte(d.tint, -0.2);
+    ctx.beginPath(); ctx.arc(0, 0, 0.16, 0, 6.283); ctx.fill();
+    ctx.strokeStyle = teinte(d.tint, 0.3);
+    ctx.lineWidth = 0.02;
+    ctx.stroke();
+    if (type === 'laser') {
+      ctx.fillStyle = 'rgba(180,150,255,.9)';
+      ctx.beginPath(); ctx.arc(0, 0, 0.045, 0, 6.283); ctx.fill();
+    }
+  } else if (type === 'moteur') {
+    const f = FORCE_DIRS[mod(rot, 4)];
+    const nx = -f[0], ny = -f[1];
+    ctx.save();
+    ctx.translate(nx * 0.17, ny * 0.17);
+    ctx.rotate(Math.atan2(ny, nx));
+    ctx.fillStyle = teinte(d.tint, -0.35);
+    ctx.beginPath();
+    ctx.moveTo(0, -0.13); ctx.lineTo(0.11, -0.08);
+    ctx.lineTo(0.11, 0.08); ctx.lineTo(0, 0.13);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = teinte(d.tint, 0.35);
+    ctx.lineWidth = 0.014; ctx.stroke();
+    ctx.restore();
+    // Jauge de poussée : longueur = poussée réellement fournie par ce bloc sur
+    // son maximum (vide à l'arrêt, partielle en sustentation). La couleur, elle,
+    // suit le budget électrique : dès que l'énergie ne permet plus de pousser
+    // davantage, la jauge passe à l'orange puis au rouge, avec un cadre
+    // clignotant pour que la saturation se voie d'un coup d'œil.
+    const puis = clamp(niveau, 0, 1);
+    const servi = clamp(puissance, 0, 1);
+    const saturé = servi < 0.995;
+    const yj = -0.19;
+    ctx.fillStyle = 'rgba(6,12,16,.8)';
+    rr(-0.18, yj, 0.36, 0.075, 0.02); ctx.fill();
+    if (puis > 0.01) {
+      ctx.fillStyle = servi > 0.85 ? 'rgba(127,224,195,.95)'
+        : servi > 0.6 ? 'rgba(240,180,95,.95)' : 'rgba(255,110,80,.95)';
+      rr(-0.17, yj + 0.009, 0.34 * puis, 0.057, 0.014); ctx.fill();
+    }
+    ctx.strokeStyle = saturé
+      ? 'rgba(255,110,80,' + (0.55 + 0.45 * Math.sin(simTime * 14)) + ')'
+      : 'rgba(120,170,180,.4)';
+    ctx.lineWidth = saturé ? 0.016 : 0.01;
+    rr(-0.18, yj, 0.36, 0.075, 0.02); ctx.stroke();
+  } else if (type === 'cargaison') {
+    // Quatre alvéoles : chaque objet ramassé occupe une case, teintée par son
+    // contenu. Un noyau se repère à son or.
+    const objets = extra || [];
+    const s = 0.135, g = 0.03;
+    for (let i = 0; i < 4; i++) {
+      const cx = (i % 2 === 0 ? -1 : 1) * (s + g) / 2;
+      const cy = (i < 2 ? 1 : -1) * (s + g) / 2;
+      const o = objets[i];
+      ctx.fillStyle = 'rgba(8,12,10,.75)';
+      rr(cx - s / 2, cy - s / 2, s, s, 0.025); ctx.fill();
+      if (o) {
+        const t0 = (BLOCKS[o.types[0]] || BLOCKS.chassis).tint;
+        ctx.fillStyle = teinte(t0, 0.05);
+        rr(cx - s / 2 + 0.012, cy - s / 2 + 0.012, s - 0.024, s - 0.024, 0.018);
+        ctx.fill();
+        if (o.types.includes('noyau')) {
+          ctx.strokeStyle = 'rgba(255,225,140,.95)';
+          ctx.lineWidth = 0.014;
+          rr(cx - s / 2 + 0.012, cy - s / 2 + 0.012, s - 0.024, s - 0.024, 0.018);
+          ctx.stroke();
+        }
+      }
+      ctx.strokeStyle = o ? 'rgba(200,230,200,.35)' : 'rgba(127,160,140,.22)';
+      ctx.lineWidth = 0.01;
+      rr(cx - s / 2, cy - s / 2, s, s, 0.025); ctx.stroke();
+    }
+  } else if (type === 'roue') {
+    // la roue est dessinée à part
+  }
+  if (dommage > 0.02) {
+    const n = clamp(dommage, 0, 1);
+    ctx.fillStyle = 'rgba(14,6,4,' + (0.38 * n) + ')';
+    rr(-HALF + 0.012, -HALF + 0.012, CELL - 0.024, CELL - 0.024, 0.055);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,110,70,' + (0.5 * n) + ')';
+    ctx.lineWidth = 0.014;
+    ctx.beginPath();
+    ctx.moveTo(-0.16, -0.02); ctx.lineTo(-0.05, 0.03); ctx.lineTo(0.02, -0.06);
+    ctx.moveTo(0.04, 0.16); ctx.lineTo(0.09, 0.03); ctx.lineTo(0.17, -0.01);
+    if (n > 0.5) {
+      ctx.moveTo(-0.15, 0.15); ctx.lineTo(-0.02, 0.08); ctx.lineTo(0.06, 0.16);
+    }
+    ctx.stroke();
+    if (n > 0.78) {
+      ctx.strokeStyle = 'rgba(255,90,60,.7)';
+      ctx.lineWidth = 0.022;
+      rr(-HALF + 0.012, -HALF + 0.012, CELL - 0.024, CELL - 0.024, 0.055);
+      ctx.stroke();
+    }
+  }
+  if (flash > 0) {
+    ctx.fillStyle = 'rgba(255,225,190,' + (0.45 * clamp(flash, 0, 1)) + ')';
+    rr(-HALF + 0.012, -HALF + 0.012, CELL - 0.024, CELL - 0.024, 0.055);
+    ctx.fill();
+  }
+}
+
+function dessinerChunks() {
+  for (const ch of chunks) {
+    const t = ch.body.translation(), a = ch.body.rotation();
+    const s = w2s(t.x, t.y);
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(-a);
+    ctx.scale(1, -1);
+    ctx.scale(view.zoom, view.zoom);
+    for (const b of ch.blocs) {
+      ctx.save();
+      ctx.translate(b.lx, b.ly);
+      if (b.type === 'roue') {
+        ctx.fillStyle = '#151c23';
+        ctx.beginPath(); ctx.arc(0, 0, RAYON_ROUE, 0, 6.283); ctx.fill();
+        ctx.strokeStyle = 'rgba(150,170,185,.5)';
+        ctx.lineWidth = 0.022;
+        ctx.beginPath(); ctx.arc(0, 0, 0.255, 0, 6.283); ctx.stroke();
+      } else {
+        dessinerBloc(b.type, b.rot, true, 1, 1 - clamp(b.hp / b.hpMax, 0, 1), 0);
+      }
+      ctx.restore();
+    }
+    ctx.restore();
+  }
+}
+
+function dessinerVehicule(v, z) {
+  const kz = kProf(z || 0);
+  const t = v.body.translation(), a = v.body.rotation();
+  const s = w2s(t.x, t.y, z);
+  const cc = pointLocal(v, v.centre);
+  const sc = w2s(cc.x, cc.y, z);
+
+  const altitude = Math.max(0, t.y - solAu(t.x));
+  const ombre = clamp(1 - altitude / 6, 0.12, 1);
+  ctx.fillStyle = 'rgba(0,0,0,' + (0.35 * ombre) + ')';
+  const gy = w2s(t.x, solAu(t.x), z).y;
+  ctx.beginPath();
+  ctx.ellipse(sc.x, gy + 2, Math.max(18, view.zoom * 0.9 * ombre * kz),
+    Math.max(4, view.zoom * 0.1 * ombre * kz), 0, 0, 6.283);
+  ctx.fill();
+
+  const bcl = v.bouclier;
+  if (bcl.capacite > 0 && bcl.energie > 0) {
+    const ratio = bcl.energie / bcl.capacite;
+    const clign = ratio < 0.2 ? 0.6 + 0.4 * Math.sin(simTime * 22) : 1;
+    ctx.save();
+    ctx.translate(sc.x, sc.y);
+    ctx.scale(1, -1);
+    ctx.scale(view.zoom * kz, view.zoom * kz);
+    ctx.globalAlpha = clign;
+    ctx.strokeStyle = 'rgba(120,205,255,' + (0.2 + 0.5 * ratio) + ')';
+    ctx.lineWidth = 0.045 + 0.03 * ratio;
+    ctx.shadowColor = 'rgba(90,190,255,' + (0.6 * ratio) + ')';
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.arc(0, 0, bcl.rayon, bcl.angle - bcl.portee / 2, bcl.angle + bcl.portee / 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+  for (const o of bcl.ondes) {
+    const p = w2s(o.x, o.y, z);
+    const k = clamp(o.t / 0.45, 0, 1);
+    ctx.strokeStyle = 'rgba(150,220,255,' + (0.8 * (1 - k)) + ')';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, (0.15 + k * 0.9) * view.zoom, 0, 6.283);
+    ctx.stroke();
+  }
+
+  ctx.save();
+  ctx.translate(s.x, s.y);
+  ctx.rotate(-a);
+  ctx.scale(1, -1);
+  ctx.scale(view.zoom * kz, view.zoom * kz);
+
+  for (const b of v.blocks) {
+    if (b.detruit) continue;
+    if (b.type === 'roue' || b.type === 'canon' || b.type === 'laser') continue;
+    const c = cellCentre(b);
+    let niveau = 1;
+    if (b.type === 'batterie' || b.type === 'condensateur') {
+      const s = v.stocks.find(x => x.cle === b.col + ',' + b.row);
+      niveau = s ? clamp(s.energie / s.cap, 0, 1) : 0;
+    } else if (b.type === 'soute') {
+      const mag = v.mags.find(m => m.cle === b.col + ',' + b.row);
+      niveau = mag ? mag.obus / BLOCKS.soute.rounds : 0;
+    } else if (b.type === 'moteur') {
+      const th = v.thrusters.find(t => t.bloc === b);
+      niveau = th ? Math.abs(th.forceN) * v.facteur / th.def.thrust : 0;
+    }
+    ctx.save(); ctx.translate(c.x, c.y);
+    dessinerBloc(b.type, b.rot, true, niveau,
+      1 - clamp(b.hp / b.hpMax, 0, 1), b.flash,
+      b.type === 'cargaison' ? v.cargaison.objets : null,
+      v.facteur);
+    ctx.restore();
+  }
+  for (const w of v.wheels) {
+    ctx.save(); ctx.translate(w.local.x, w.local.y);
+    ctx.fillStyle = '#151c23';
+    ctx.beginPath(); ctx.arc(0, 0, RAYON_ROUE, 0, 6.283); ctx.fill();
+    ctx.strokeStyle = 'rgba(150,170,185,.55)';
+    ctx.lineWidth = 0.022;
+    ctx.beginPath(); ctx.arc(0, 0, 0.255, 0, 6.283); ctx.stroke();
+    ctx.save();
+    ctx.rotate(w.spin);
+    ctx.strokeStyle = 'rgba(190,210,225,.5)';
+    ctx.lineWidth = 0.026;
+    for (let i = 0; i < 4; i++) {
+      const ang = i * Math.PI / 2 + Math.PI / 4;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(ang) * 0.05, Math.sin(ang) * 0.05);
+      ctx.lineTo(Math.cos(ang) * 0.22, Math.sin(ang) * 0.22);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.fillStyle = '#8fa3b4';
+    ctx.beginPath(); ctx.arc(0, 0, 0.05, 0, 6.283); ctx.fill();
+    ctx.restore();
+  }
+  for (const g of v.guns) {
+    ctx.save();
+    ctx.translate(g.local.x, g.local.y);
+    // Socle du bloc : la case du canon reste visible, même quand le canon
+    // pivote (sinon on voit un carré vide avec un tube flottant).
+    ctx.fillStyle = teinte(g.def.tint, -0.4);
+    rr(-0.2, -0.2, 0.4, 0.4, 0.06); ctx.fill();
+    ctx.strokeStyle = teinte(g.def.tint, 0.22);
+    ctx.lineWidth = 0.014;
+    rr(-0.2, -0.2, 0.4, 0.4, 0.06); ctx.stroke();
+    ctx.rotate(wrap(g.aim - a));
+    ctx.fillStyle = teinte(g.def.tint, -0.25);
+    rr(0.03, -0.075, 0.56, 0.15, 0.05); ctx.fill();
+    ctx.strokeStyle = teinte(g.def.tint, 0.35);
+    ctx.lineWidth = 0.016; ctx.stroke();
+    if (g.def.cat === 'energy') {
+      ctx.fillStyle = 'rgba(180,150,255,.95)';
+      ctx.beginPath(); ctx.arc(0.58, 0, 0.045, 0, 6.283); ctx.fill();
+    } else {
+      ctx.fillStyle = '#2b3138';
+      ctx.beginPath(); ctx.arc(0.58, 0, 0.055, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,.6)';
+      ctx.beginPath(); ctx.arc(0.58, 0, 0.03, 0, 6.283); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  for (const th of v.thrusters) {
+    const frac = clamp(th.forceN / th.def.thrust, -0.5, 1);
+    if (Math.abs(frac) <= 0.02) continue;
+    const rev = frac < 0;
+    const f = th.force;
+    const nx = rev ? f.x : -f.x, ny = rev ? f.y : -f.y;
+    const long = (0.22 + 0.85 * Math.abs(frac)) * (0.85 + 0.15 * Math.sin(simTime * 57 + th.local.x * 3));
+    ctx.save();
+    ctx.translate(th.local.x + nx * 0.24, th.local.y + ny * 0.24);
+    ctx.rotate(Math.atan2(ny, nx));
+    const g = ctx.createLinearGradient(0, 0, long, 0);
+    // Poussée inversée : flamme orangée sortant de l'autre côté du bloc.
+    g.addColorStop(0, rev ? 'rgba(255,225,190,.95)' : 'rgba(210,250,255,.95)');
+    g.addColorStop(0.25, rev ? 'rgba(255,165,90,.7)' : 'rgba(120,220,255,.7)');
+    g.addColorStop(0.6, rev ? 'rgba(255,110,60,.28)' : 'rgba(70,150,255,.28)');
+    g.addColorStop(1, rev ? 'rgba(255,80,40,0)' : 'rgba(60,120,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, -0.075);
+    ctx.quadraticCurveTo(long * 0.5, -0.055, long, 0);
+    ctx.quadraticCurveTo(long * 0.5, 0.055, 0, 0.075);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+// ------------------------------------------------------- atelier & effets
+function caseValide(col, row) {
+  if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return false;
+  if (blockAt(col, row)) return false;
+  if (!design.length) return selected === 'poste';
+  if (selected === 'poste') return false;
+  if (design.length >= MAX_BLOCKS) return false;
+  return design.some(b => Math.abs(b.col - col) + Math.abs(b.row - row) === 1);
+}
+
+function dessinerAtelier() {
+  const a = analyser(design);
+  const o = w2s(0, 0);
+  ctx.save();
+  ctx.translate(o.x, o.y);
+  ctx.scale(1, -1);
+  ctx.scale(view.zoom, view.zoom);
+
+  for (const b of design) {
+    const c = cellCentre(b);
+    ctx.save(); ctx.translate(c.x, c.y);
+    dessinerBloc(b.type, b.rot, false);
+    if (b.type === 'roue') {
+      ctx.fillStyle = '#151c23';
+      ctx.beginPath(); ctx.arc(0, 0, RAYON_ROUE, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = 'rgba(150,170,185,.5)';
+      ctx.lineWidth = 0.022;
+      ctx.beginPath(); ctx.arc(0, 0, 0.255, 0, 6.283); ctx.stroke();
+      ctx.fillStyle = '#8fa3b4';
+      ctx.beginPath(); ctx.arc(0, 0, 0.05, 0, 6.283); ctx.fill();
+    }
+    if (b.type === 'canon' || b.type === 'laser') {
+      ctx.rotate(CANON_ANGLE[mod(b.rot | 0, 4)]);
+      ctx.fillStyle = teinte(BLOCKS[b.type].tint, -0.25);
+      rr(0.03, -0.075, 0.56, 0.15, 0.05); ctx.fill();
+      ctx.strokeStyle = teinte(BLOCKS[b.type].tint, 0.35);
+      ctx.lineWidth = 0.016; ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  for (const b of design) {
+    if (b.type !== 'moteur') continue;
+    const f = forceLocal(b), c = cellCentre(b);
+    const x0 = c.x + f.x * 0.2, y0 = c.y + f.y * 0.2;
+    const x1 = c.x + f.x * 0.62, y1 = c.y + f.y * 0.62;
+    ctx.strokeStyle = 'rgba(120,215,255,.45)';
+    ctx.lineWidth = 0.02;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    const ang = Math.atan2(f.y, f.x);
+    ctx.fillStyle = 'rgba(120,215,255,.6)';
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x1 - Math.cos(ang - 0.5) * 0.09, y1 - Math.sin(ang - 0.5) * 0.09);
+    ctx.lineTo(x1 - Math.cos(ang + 0.5) * 0.09, y1 - Math.sin(ang + 0.5) * 0.09);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+
+  if (design.length) {
+    const c = w2s(a.com.x, a.com.y);
+    ctx.strokeStyle = 'rgba(240,180,95,.8)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, 5, 0, 6.283);
+    ctx.moveTo(c.x - 9, c.y); ctx.lineTo(c.x - 3, c.y);
+    ctx.moveTo(c.x + 3, c.y); ctx.lineTo(c.x + 9, c.y);
+    ctx.moveTo(c.x, c.y - 9); ctx.lineTo(c.x, c.y - 3);
+    ctx.moveTo(c.x, c.y + 3); ctx.lineTo(c.x, c.y + 9);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(240,180,95,.75)';
+    ctx.font = '9px "Cascadia Mono",Consolas,monospace';
+    ctx.fillText('CDM', c.x + 12, c.y + 3);
+  }
+
+  const w = s2w(souris.x, souris.y);
+  const col = Math.floor(w.x / CELL), row = Math.floor(w.y / CELL);
+  if (col >= 0 && col < COLS && row >= 0 && row < ROWS) {
+    const p = w2s(col * CELL, (row + 1) * CELL);
+    const ok = caseValide(col, row);
+    ctx.fillStyle = ok ? 'rgba(127,224,195,.1)' : 'rgba(255,122,114,.12)';
+    ctx.fillRect(p.x, p.y, CELL * view.zoom, CELL * view.zoom);
+    ctx.strokeStyle = ok ? 'rgba(127,224,195,.55)' : 'rgba(255,122,114,.6)';
+    ctx.lineWidth = 1.4;
+    ctx.strokeRect(p.x + 0.5, p.y + 0.5, CELL * view.zoom - 1, CELL * view.zoom - 1);
+
+    const c = cellCentre({ col, row });
+    ctx.save();
+    ctx.translate(w2s(0, 0).x, w2s(0, 0).y);
+    ctx.scale(1, -1);
+    ctx.scale(view.zoom, view.zoom);
+    ctx.globalAlpha = 0.45;
+    ctx.translate(c.x, c.y);
+    const copie = { type: selected, rot: estOrientable(selected) ? ghostRot : 0 };
+    if (selected === 'roue') {
+      ctx.fillStyle = '#151c23';
+      ctx.beginPath(); ctx.arc(0, 0, RAYON_ROUE, 0, 6.283); ctx.fill();
+    } else if (selected === 'canon' || selected === 'laser') {
+      dessinerBloc(selected, 0, false);
+      ctx.rotate(CANON_ANGLE[mod(ghostRot, 4)]);
+      ctx.fillStyle = teinte(BLOCKS[selected].tint, -0.25);
+      rr(0.03, -0.075, 0.56, 0.15, 0.05); ctx.fill();
+    } else {
+      dessinerBloc(selected, copie.rot, false);
+    }
+    ctx.restore();
+  }
+
+  ctx.fillStyle = 'rgba(138,169,160,.5)';
+  ctx.font = '10px "Cascadia Mono",Consolas,monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('AIRE D’ASSEMBLAGE', w2s(COLS * CELL / 2, ROWS * CELL + 0.45).x, w2s(0, ROWS * CELL + 0.45).y);
+  ctx.textAlign = 'left';
+}
+
+function dessinerProjectiles() {
+  for (const p of listeProjectiles) {
+    const t = p.body.translation();
+    const v = p.body.linvel();
+    const s = w2s(t.x, t.y);
+    const q = w2s(t.x - v.x * 0.018, t.y - v.y * 0.018);
+    const g = ctx.createLinearGradient(q.x, q.y, s.x, s.y);
+    g.addColorStop(0, 'rgba(255,190,110,0)');
+    g.addColorStop(1, 'rgba(255,225,170,.9)');
+    ctx.strokeStyle = g;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(s.x, s.y); ctx.stroke();
+    ctx.fillStyle = '#fff2cf';
+    ctx.beginPath(); ctx.arc(s.x, s.y, 1.8, 0, 6.283); ctx.fill();
+  }
+}
+
+function dessinerTirsEnnemis() {
+  for (const p of listeTirsEnnemis) {
+    const t = p.body.translation();
+    const v = p.body.linvel();
+    const s = w2s(t.x, t.y);
+    const q = w2s(t.x - v.x * 0.035, t.y - v.y * 0.035);
+    const g = ctx.createLinearGradient(q.x, q.y, s.x, s.y);
+    g.addColorStop(0, 'rgba(255,120,90,0)');
+    g.addColorStop(1, 'rgba(255,185,140,.95)');
+    ctx.strokeStyle = g;
+    ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(s.x, s.y); ctx.stroke();
+    ctx.fillStyle = '#ffd2b0';
+    ctx.beginPath(); ctx.arc(s.x, s.y, 2.4, 0, 6.283); ctx.fill();
+  }
+}
+
+function dessinerTourelles() {
+  for (const t of tourelles) {
+    const s = w2s(t.x, t.y);
+    const z = view.zoom;
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.fillStyle = '#26313a';
+    ctx.strokeStyle = 'rgba(160,190,205,.45)';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-0.4 * z, 0.12 * z);
+    ctx.lineTo(-0.28 * z, -0.28 * z);
+    ctx.lineTo(0.28 * z, -0.28 * z);
+    ctx.lineTo(0.4 * z, 0.12 * z);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.save();
+    ctx.rotate(-t.angle);
+    ctx.fillStyle = '#37444e';
+    ctx.strokeStyle = 'rgba(190,210,220,.4)';
+    ctx.fillRect(0.06 * z, -0.1 * z, 0.76 * z, 0.2 * z);
+    ctx.strokeRect(0.06 * z, -0.1 * z, 0.76 * z, 0.2 * z);
+    if (t.flash > 0) {
+      ctx.fillStyle = 'rgba(255,170,110,' + (0.85 * t.flash / 0.14) + ')';
+      ctx.beginPath(); ctx.arc(0.86 * z, 0, 0.16 * z, 0, 6.283); ctx.fill();
+    }
+    ctx.restore();
+    ctx.fillStyle = t.flash > 0 ? '#ffb08a' : '#ff6f5e';
+    ctx.beginPath(); ctx.arc(0, 0.02 * z, 0.07 * z, 0, 6.283); ctx.fill();
+    ctx.restore();
+  }
+}
+
+function dessinerFaisceaux() {
+  for (const f of faisceaux) {
+    const a = clamp(f.vie / 0.16, 0, 1);
+    const p1 = w2s(f.x1, f.y1), p2 = w2s(f.x2, f.y2);
+    ctx.strokeStyle = 'rgba(160,120,255,' + (0.22 * a) + ')';
+    ctx.lineWidth = 9;
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    ctx.strokeStyle = 'rgba(220,205,255,' + (0.9 * a) + ')';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    ctx.fillStyle = 'rgba(240,230,255,' + a + ')';
+    ctx.beginPath(); ctx.arc(p2.x, p2.y, 5 * a + 1, 0, 6.283); ctx.fill();
+  }
+}
+
+function majParticules(dt) {
+  for (const p of particules) {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    if (p.type !== 'debris') { p.vy -= 2.5 * dt; p.vx *= 0.985; }
+    else p.vy -= 9 * dt;
+    p.vie -= dt;
+  }
+  particules = particules.filter(p => p.vie > 0);
+  faisceaux = faisceaux.filter(f => (f.vie -= dt) > 0);
+  for (const v of [vehicule, rival]) {
+    if (!v) continue;
+    v.bouclier.ondes = v.bouclier.ondes.filter(o => (o.t += dt) < 0.45);
+    v.coqueFlash = Math.max(0, v.coqueFlash - dt);
+    for (const b of v.blocks) if (b.flash > 0) b.flash = Math.max(0, b.flash - dt * 4);
+  }
+  for (const c of cibles) if (c.flash > 0) c.flash -= dt;
+}
+
+function dessinerParticules() {
+  for (const p of particules) {
+    const s = w2s(p.x, p.y, p.z || 0);
+    const a = clamp(p.vie / p.max, 0, 1);
+    const r = Math.max(0.7, p.taille * view.zoom);
+    ctx.globalAlpha = p.type === 'debris' ? a * 0.9 : a * 0.65;
+    ctx.fillStyle = p.couleur;
+    ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, 6.283); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function dessinerViseur() {
+  if (!souris.dedans) return;
+  const x = souris.x, y = souris.y;
+  const vivant = vehicule && mode === 'jeu';
+  ctx.save();
+  ctx.strokeStyle = vivant ? 'rgba(240,180,95,.9)' : 'rgba(127,224,195,.65)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(x, y, vivant ? 9 : 6, 0, 6.283); ctx.stroke();
+  ctx.beginPath();
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    ctx.moveTo(x + dx * 13, y + dy * 13);
+    ctx.lineTo(x + dx * 19, y + dy * 19);
+  }
+  ctx.stroke();
+  ctx.fillStyle = vivant ? '#ffd9a8' : '#bff3e6';
+  ctx.beginPath(); ctx.arc(x, y, 1.4, 0, 6.283); ctx.fill();
+  // Recharge de l'arme à énergie : le viseur se referme à mesure que l'arme
+  // est alimentée, pour que la cadence lente se lise sans texte.
+  if (vivant && vehicule) {
+    const armes = vehicule.guns.filter(g => g.def.cat === 'energy');
+    if (armes.length) {
+      const c = Math.min(...armes.map(g => clamp(g.charge / g.def.shotEnergy, 0, 1)));
+      ctx.strokeStyle = c > 0.999 ? 'rgba(167,139,250,.95)' : 'rgba(167,139,250,.55)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, 15, -Math.PI / 2, -Math.PI / 2 + 6.283 * c);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  if (vivant && vehicule && vehicule.guns.length) {
+    const g = vehicule.guns[0];
+    const p = pointLocal(vehicule, g.local);
+    const s = w2s(p.x, p.y);
+    const d = Math.hypot(s.x - x, s.y - y);
+    ctx.strokeStyle = 'rgba(240,180,95,.16)';
+    ctx.setLineDash([3, 7]);
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(x, y); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+// ------------------------------------------------------------------ HUD
+let hudT = 0;
+function majHUD(dt) {
+  hudT += dt;
+  if (hudT < 0.08) return;
+  hudT = 0;
+  if (!vehicule) return;
+  const v = vehicule, b = v.body, t = b.worldCom(), lv = b.linvel();
+  ui.vitesse.textContent = Math.hypot(lv.x, lv.y).toFixed(1);
+  const fmtVit = n => (Math.abs(n) < 0.05 ? 0 : n).toFixed(1);
+  ui.vx.textContent = fmtVit(lv.x);
+  ui.vy.textContent = fmtVit(lv.y);
+  ui.alt.textContent = Math.max(0, t.y).toFixed(1);
+  ui.masse.textContent = masseVehicule(v).toFixed(0);
+  ui.angle.textContent = (b.rotation() * 180 / Math.PI).toFixed(0);
+  // Poussée réelle : somme des tuyères (part servie comprise) sur la capacité
+  // installée. Vide à l'arrêt, partielle en sustentation, pleine à fond.
+  let pousseeServie = 0, pousseeCapa = 0;
+  for (const th of v.thrusters) {
+    pousseeServie += Math.abs(th.forceN) * v.facteur;
+    pousseeCapa += th.def.thrust;
+  }
+  const partPoussee = pousseeCapa > 1 ? clamp(pousseeServie / pousseeCapa, 0, 1) : 0;
+  ui.poussee.textContent = Math.round(partPoussee * 100) + ' %';
+  ui.reacteur.textContent = v.puissance > 0
+    ? Math.round(v.production / 1000) + ' / ' + Math.round(v.puissance / 1000) + ' kW'
+    : 'aucun';
+  ui.conso.textContent = Math.round(v.demandeBrute / 1000) + ' kW';
+  ui.conso.classList.toggle('alerte', v.facteurGlobal < 0.97);
+  ui.profil.textContent = (PROFILS[v.profil] || PROFILS.equilibre).label;
+  ui.profil.classList.toggle('alerte', v.facteurGlobal < 0.97 && v.profil !== 'equilibre');
+  const coque = v.coqueMax > 0 ? v.coque / v.coqueMax : 1;
+  ui.coque.textContent = v.coqueMax > 0 ? Math.round(coque * 100) + ' %' : '—';
+  ui.coque.classList.toggle('alerte', coque < 0.35 || v.coqueFlash > 0);
+  const bcl = v.bouclier;
+  ui.jaugeBouclier.style.display = bcl.capacite > 0 ? 'block' : 'none';
+  if (bcl.capacite > 0) {
+    ui.bouclier.textContent = Math.round(bcl.energie / 1000) + ' / ' +
+      Math.round(bcl.capacite / 1000) + ' kJ';
+    ui.jauges.bouclier.style.width = clamp(bcl.energie / bcl.capacite, 0, 1) * 100 + '%';
+    const apport = v.demandeBouclier * v.facteurBouclier;
+    ui.bouclierNote.textContent = LIBELLES_TAILLE[bcl.taille] +
+      (apport > 500 ? ' · +' + Math.round(apport / 1000) + ' kW' : '');
+  }
+  const res = v.capacite > 0 ? v.energie / v.capacite : 0;
+  ui.reserve.textContent = v.capacite > 0
+    ? (v.energie / 1e6).toFixed(2) + ' / ' + (v.capacite / 1e6).toFixed(1) + ' MJ'
+    : 'aucun';
+  ui.flux.textContent = v.capacite <= 0 ? ''
+    : v.rechargeUtile > 500
+      ? 'recharge +' + Math.round(v.rechargeUtile / 1000) + ' kW'
+      : v.partStock > 500
+        ? 'décharge −' + Math.round(v.partStock / 1000) + ' kW'
+        : '';
+  ui.munitions.textContent = v.obus + ' obus';
+  {
+    const cg = v.cargaison;
+    ui.cargaisonLigne.style.display = cg && cg.cap ? '' : 'none';
+    if (cg && cg.cap) ui.cargaison.textContent = occupationCargaison(cg) + ' / ' + cg.cap;
+  }
+  ui.jauges.poussee.style.width = partPoussee * 100 + '%';
+  ui.jauges.reacteur.style.width = clamp(v.production / Math.max(1, v.puissance), 0, 1) * 100 + '%';
+  ui.jauges.conso.style.width =
+    clamp(v.demandeBrute / Math.max(1, v.puissance + v.decharge), 0, 1) * 100 + '%';
+  for (const s of v.stocks) {
+    if (s.el) s.el.style.width = clamp(s.energie / s.cap, 0, 1) * 100 + '%';
+  }
+
+  let proche = 0, dist = Infinity;
+  for (const c of cibles) {
+    if (c.dead) continue;
+    const ct = c.body.translation();
+    const d = Math.abs(ct.x - t.x);
+    if (d < dist) { dist = d; proche = 1; }
+  }
+  ui.distance.textContent = proche ? dist.toFixed(0) + ' m' : '—';
+
+  let alerte = '';
+  const pointe = v.puissance + v.decharge;
+  if (v.hs) {
+    alerte = 'Poste détruit. X pour repartir.';
+  } else if (v.facteurGlobal < 0.97) {
+    if (v.capacite > 0 && res <= 0.02 && v.demandeBrute > v.puissance)
+      alerte = 'Stock vide : la pointe n’est plus couverte.';
+    else
+      alerte = 'Pointe insuffisante : ' + Math.round(v.demandeBrute / 1000) + ' kW demandés, ' +
+        Math.round(pointe / 1000) + ' kW installés.';
+    if (v.profil === 'armes' && v.demandePropulsion > 0 &&
+      v.facteur < v.facteurArmes - 0.02)
+      alerte += ' Propulsion bridée par la priorité armes.';
+    else if (v.profil === 'boucliers' && v.demandePropulsion > 0 &&
+      v.facteur < v.facteurBouclier - 0.02)
+      alerte += ' Propulsion bridée par la priorité boucliers.';
+    else if (v.profil === 'propulsion' && v.demandeArmes > 0 &&
+      v.facteurArmes < v.facteur - 0.02)
+      alerte += ' Armes bridées par la priorité propulsion.';
+  } else if (v.capacite > 0 && res < 0.06) alerte = 'Stock presque vide.';
+  else if (v.guns.some(g => g.def.cat === 'kinetic') && v.obus === 0) alerte = 'Soute vide.';
+  else if (v.assist && v.thrusters.length > 0 && !v.assistOK) alerte = 'Assistance d’assiette sans autorité.';
+  ui.oAlerte.textContent = alerte;
+}
+
+function majCamera(dt) {
+  if (mode !== 'jeu' || !vehicule) return;
+  const t = vehicule.body.worldCom();
+  const lv = vehicule.body.linvel();
+  const k = 1 - Math.exp(-4.2 * dt);
+
+  // Sténopé de focale fixe : la caméra recule (et monte) quand le vaisseau
+  // prend de l'altitude. Le sol reste ancré en bas ; tout le reste se tasse
+  // vers lui — la voie voisine converge et s'affine, le vaisseau rétrécit.
+  const H_REF = 8, AU_DESSUS = 5.5;
+  const h = Math.max(H_REF, t.y + AU_DESSUS);
+  const off = ch * 0.58;
+  view.horizon = ch * 0.3;
+  view.off = off;
+  view.h = h;
+  view.dist = DIST_REF * (h / H_REF);
+  view.zoom = off / h;
+
+  // Cadrage horizontal : suivre le vaisseau dans les bornes du monde, sans
+  // jamais le laisser sortir du cadre (contrainte appliquée après le lissage).
+  const lead = clamp(lv.x * 0.35, -1.5, 2.5);
+  const demi = cw / (2 * view.zoom);
+  const marge = Math.min(6, demi * 0.35);
+  const b = MONDE.bornes;
+  let cx = t.x + 2.2 + lead;
+  if (b.max - b.min > 2 * demi) cx = clamp(cx, b.min + marge, b.max - marge);
+  view.x = lerp(view.x, cx, k);
+  view.x = clamp(view.x, t.x - (demi - marge), t.x + (demi - marge));
+  view.y = h;
+}
+
+// ----------------------------------------------------------------- rendu
+function dessiner() {
+  ctx.save();
+  if (secousse > 0.001) {
+    const s = secousse * secousse * 18;
+    ctx.translate((Math.random() - 0.5) * s, (Math.random() - 0.5) * s);
+  }
+  dessinerCiel();
+  dessinerSol();
+  if (mode === 'jeu' && rival) dessinerVehicule(rival, rival.z);
+  if (mode === 'atelier') {
+    dessinerGrille();
+    dessinerAtelier();
+  } else {
+    for (const c of cibles) dessinerCible(c);
+    dessinerTourelles();
+  }
+  dessinerFaisceaux();
+  for (const e of ennemis) dessinerVehicule(e, 0);
+  if (vehicule) dessinerVehicule(vehicule, 0);
+  dessinerChunks();
+  dessinerProjectiles();
+  dessinerTirsEnnemis();
+  dessinerParticules();
+  if (mode === 'jeu') dessinerMarqueurRival();
+  dessinerIndicateurs();
+  dessinerViseur();
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ boucle
+let dernier = performance.now() / 1000;
+let accumulateur = 0;
+
+function boucle(ms) {
+  requestAnimationFrame(boucle);
+  const maintenant = ms / 1000;
+  let dt = Math.min(0.05, maintenant - dernier);
+  dernier = maintenant;
+  if (document.hidden) { accumulateur = 0; return; }
+
+  simTime += dt;
+  const w = s2w(souris.x, souris.y);
+  souris.wx = w.x; souris.wy = w.y;
+
+  if (mode === 'jeu') {
+    majVisee(dt);
+    accumulateur += dt;
+    let n = 0;
+    while (accumulateur >= FIXED && n < 6) {
+      simuler(FIXED);
+      monde.step(fileEvenements);
+      traiterEvenements();
+      accumulateur -= FIXED;
+      n++;
+    }
+    if (n >= 6) accumulateur = 0;
+    secousse = Math.max(0, secousse - dt * 3.2);
+  }
+
+  majParticules(dt);
+  majMission(dt);
+  majCamera(dt);
+  majHUD(dt);
+  dessiner();
+}
+
+// ------------------------------------------------------------------- boot
+redimensionner();
+if (!charger()) {
+  design = PRESETS.rover.map(([type, col, row]) => ({ type, col, row, rot: 0 }));
+}
+majPalette();
+majAtelier();
+creerCibles();
+creerTourelles();
+cadrerAtelier();
+ui.chargement.classList.add('fini');
+setTimeout(() => { try { ui.chargement.remove(); } catch (e) { } }, 700);
+requestAnimationFrame(boucle);
+
+window.__fer = {
+  etat() {
+    if (!vehicule) return null;
+    const b = vehicule.body, t = b.worldCom(), lv = b.linvel();
+    return {
+      x: t.x, y: t.y, angle: b.rotation(), vx: lv.x, vy: lv.y,
+      temps: simTime,
+      masse: b.mass(), energie: vehicule.energie, capacite: vehicule.capacite,
+      obus: vehicule.obus, sol: vehicule.sol, collectif: vehicule.collectif,
+      facteur: vehicule.facteur, assist: vehicule.assist, coupleManuel: vehicule.coupleManuel,
+      freinRotationManuel: vehicule.freinRotationManuel,
+      assistOK: vehicule.assistOK, puissance: vehicule.puissance,
+      puissanceUtilisee: vehicule.puissanceUtilisee,
+      decharge: vehicule.decharge, partReacteur: vehicule.partReacteur,
+      partStock: vehicule.partStock, recharge: vehicule.recharge,
+      rechargeUtile: vehicule.rechargeUtile, production: vehicule.production,
+      demandeBrute: vehicule.demandeBrute, demandeArmes: vehicule.demandeArmes,
+      demandePropulsion: vehicule.demandePropulsion,
+      pousseeVerticale: vehicule.pousseeVerticale,
+      thetaUtil: +vehicule.thetaUtil.toFixed(3),
+      forces: vehicule.thrusters.map(t => Math.round(t.forceN)),
+      profil: vehicule.profil, facteurArmes: vehicule.facteurArmes,
+      facteurGlobal: vehicule.facteurGlobal,
+      facteurBouclier: vehicule.facteurBouclier,
+      demandeBouclier: vehicule.demandeBouclier,
+      coque: Math.round(vehicule.coque), coqueMax: vehicule.coqueMax,
+      hs: vehicule.hs,
+      nbBlocs: vehicule.blocks.filter(b => !b.detruit && !b.detache).length,
+      chunks: chunks.length,
+      centre: { x: +vehicule.centre.x.toFixed(3), y: +vehicule.centre.y.toFixed(3) },
+      dernierImpact: vehicule.dernierImpact || null,
+      bouclier: {
+        capacite: vehicule.bouclier.capacite,
+        recharge: vehicule.bouclier.recharge,
+        energie: Math.round(vehicule.bouclier.energie),
+        angle: +vehicule.bouclier.angle.toFixed(3),
+        taille: vehicule.bouclier.taille,
+        portee: +vehicule.bouclier.portee.toFixed(3),
+        rayon: +vehicule.bouclier.rayon.toFixed(2)
+      },
+      stocks: vehicule.stocks.map(s => ({
+        genre: s.genre, cle: s.cle,
+        energie: Math.round(s.energie), capacite: s.cap,
+        debit: Math.round(s.debit), charge: Math.round(s.charge)
+      }))
+    };
+  },
+  cibles() {
+    return cibles.map(c => {
+      const t = c.dead ? null : c.body.translation();
+      return { x: t ? t.x : null, hp: c.hp, dead: c.dead };
+    });
+  },
+  design() { return design.map(b => ({ ...b })); },
+  blocs() {
+    return vehicule ? vehicule.blocks.map(b => ({
+      cle: b.col + ',' + b.row, type: b.type,
+      hp: Math.round(b.hp), hpMax: b.hpMax, detruit: !!b.detruit
+    })) : [];
+  },
+  toucher(cle, degats) {
+    if (!vehicule) return null;
+    const b = vehicule.blocks.find(x => x.col + ',' + x.row === cle);
+    if (!b) return null;
+    appliquerDegatsBloc(vehicule, b, degats);
+    return {
+      detruit: !!b.detruit, hp: Math.round(b.hp),
+      coque: Math.round(vehicule.coque),
+      blocs: vehicule.blocks.filter(x => !x.detruit).length
+    };
+  },
+  canons() {
+    if (!vehicule) return [];
+    return vehicule.guns.map(g => ({
+      rot: g.rot, base: +g.base.toFixed(3),
+      aim: +g.aim.toFixed(3), cible: +g.cible.toFixed(3),
+      charge: Math.round(g.charge), rechargeP: Math.round(g.rechargeP)
+    }));
+  },
+  tirs() {
+    return listeProjectiles.map(p => {
+      const t = p.body.translation(), lv = p.body.linvel();
+      return { x: +t.x.toFixed(2), y: +t.y.toFixed(2), vx: +lv.x.toFixed(1), vy: +lv.y.toFixed(1) };
+    });
+  },
+  impact(degats, angle) {
+    if (!vehicule) return null;
+    const v = vehicule;
+    const a = angle === undefined ? v.bouclier.angle : angle;
+    const c = pointLocal(v, v.centre);
+    const pos = { x: c.x + Math.cos(a) * v.bouclier.rayon, y: c.y + Math.sin(a) * v.bouclier.rayon };
+    const r = absorberDegats(v, degats, a, pos);
+    appliquerCoque(v, r.passe);
+    return {
+      absorbe: +r.absorbe.toFixed(1), passe: +r.passe.toFixed(1),
+      energie: Math.round(v.bouclier.energie), coque: Math.round(v.coque)
+    };
+  },
+  bouclier(reglage) {
+    if (!vehicule) return null;
+    const b = vehicule.bouclier;
+    if (reglage) {
+      if (reglage.angle !== undefined) b.angle = reglage.angle;
+      if (reglage.taille !== undefined) {
+        b.taille = mod(reglage.taille | 0, TAILLES_BOUCLIER.length);
+        b.portee = TAILLES_BOUCLIER[b.taille];
+      }
+      if (reglage.energie !== undefined) b.energie = clamp(reglage.energie, 0, b.capacite);
+    }
+    return {
+      capacite: b.capacite, recharge: b.recharge, energie: Math.round(b.energie),
+      angle: +b.angle.toFixed(3), taille: b.taille, portee: +b.portee.toFixed(3)
+    };
+  },
+  chunks() {
+    return chunks.map(c => {
+      const t = c.body.translation();
+      return { x: +t.x.toFixed(2), y: +t.y.toFixed(2), blocs: c.blocs.map(b => b.type) };
+    });
+  },
+  tourelles() {
+    return {
+      tourelles: tourelles.map(t => ({ x: t.x, y: t.y, angle: +t.angle.toFixed(3) })),
+      tirs: listeTirsEnnemis.map(p => {
+        const t = p.body.translation(), lv = p.body.linvel();
+        return { x: +t.x.toFixed(2), y: +t.y.toFixed(2), vx: +lv.x.toFixed(1), vy: +lv.y.toFixed(1) };
+      })
+    };
+  },
+  tirTourelle() { if (tourelles.length) tirerTourelle(tourelles[0]); },
+  nettoyerTirs() { detruireTirsEnnemis(); },
+  roues() {
+    if (!vehicule) return [];
+    return vehicule.wheels.map(w => {
+      const t = w.body.translation(), lv = w.body.linvel(), om = w.body.angvel();
+      return {
+        x: +t.x.toFixed(3), y: +t.y.toFixed(3), vx: +lv.x.toFixed(3),
+        om: +om.toFixed(2), contact: w.contact, cible: +w.cible.toFixed(1),
+        glisse: +(lv.x + om * RAYON_ROUE).toFixed(3)
+      };
+    });
+  },
+  temps() { return simTime; },
+  poser, lancer, retourAtelier, chargerPreset, vider,
+  reinitialiserCibles() { creerCibles(); },
+  orienter(n) {
+    ghostRot = mod(n | 0, 4);
+    majPalette();
+    sauvegarder();
+  },
+  placer(x, y) {
+    if (!vehicule) return;
+    const v = vehicule;
+    // Les coordonnées de test désignent le même centre que l'assistance/HUD.
+    const com = v.body.localCom();
+    v.body.setTranslation({ x: x - com.x, y: y - com.y }, true);
+    v.body.setRotation(0, true);
+    v.body.setLinvel({ x: 0, y: 0 }, true);
+    v.body.setAngvel(0, true);
+    v.altCible = y;
+    v.altVerrou = true;
+    v.xCible = x;
+    v.latVerrou = true;
+    for (const w of v.wheels) {
+      const p = pointLocal(v, w.local);
+      w.body.setTranslation(p, true);
+      w.body.setRotation(0, true);
+      w.body.setLinvel({ x: 0, y: 0 }, true);
+      w.body.setAngvel(0, true);
+    }
+  },
+  energie(j) {
+    if (!vehicule || !vehicule.capacite) return;
+    const v = vehicule;
+    const f = clamp(j / v.capacite, 0, 1);
+    for (const s of v.stocks) s.energie = s.cap * f;
+    v.energie = v.capacite * f;
+  },
+  munition(n) {
+    if (!vehicule || !vehicule.mags.length) return;
+    let reste = clamp(Math.round(n), 0, vehicule.obusMax);
+    let total = 0;
+    for (const m of vehicule.mags) {
+      const q = Math.min(BLOCKS.soute.rounds, reste);
+      m.obus = q; reste -= q; total += q;
+      m.col.setMass(m.base + q * SHELL_MASS);
+    }
+    vehicule.obus = total;
+  },
+  ecran(x, y, z) { return w2s(x, y, z || 0); },
+  rival() {
+    if (!rival) return null;
+    const t = rival.body.translation(), lv = rival.body.linvel();
+    const s = w2s(t.x, t.y, rival.z);
+    return {
+      x: +t.x.toFixed(2), y: +t.y.toFixed(2),
+      vx: +lv.x.toFixed(2), vy: +lv.y.toFixed(2),
+      angle: +rival.body.rotation().toFixed(3),
+      z: rival.z, masse: +rival.body.mass().toFixed(0),
+      energie: Math.round(rival.energie), puissance: rival.puissance,
+      facteur: +rival.facteur.toFixed(2), assist: rival.assist,
+      production: Math.round(rival.production),
+      puissanceUtilisee: Math.round(rival.puissanceUtilisee),
+      forces: rival.thrusters.map(t => Math.round(t.forceN)),
+      thetaUtil: +rival.thetaUtil.toFixed(3),
+      inertie: +rival.inertie.toFixed(1),
+      sol: rival.sol, hs: !!rival.hs,
+      ecran: { x: +s.x.toFixed(1), y: +s.y.toFixed(1) }
+    };
+  },
+  route(nom) {
+    const r = ROUTES[nom || 'parallele'];
+    const zn = r.z - r.largeur / 2, zf = r.z + r.largeur / 2;
+    return {
+      z: r.z, largeur: r.largeur,
+      kn: +kProf(zn).toFixed(3), kf: +kProf(zf).toFixed(3),
+      yn: +w2s(0, 0, zn).y.toFixed(1), yf: +w2s(0, 0, zf).y.toFixed(1),
+      yc: +w2s(0, 0, r.z).y.toFixed(1)
+    };
+  },
+  profil(nom) {
+    if (vehicule && nom && PROFILS[nom]) vehicule.profil = nom;
+    return vehicule ? vehicule.profil : null;
+  },
+  monde: MONDE,
+  ennemis() {
+    return ennemis.map((e, i) => {
+      const t = e.body.translation();
+      const c = pointLocal(e, e.centre);
+      return {
+        i, type: e.type, x: +t.x.toFixed(1), y: +t.y.toFixed(1), hs: !!e.hs, neutre: horsCombat(e), sol: e.sol,
+        cx: +c.x.toFixed(1), cy: +c.y.toFixed(1), canons: e.guns.length,
+        coque: Math.round(e.coque), coqueMax: Math.round(e.coqueMax),
+        blocs: e.blocks.filter(b => !b.detruit).length,
+        solIci: +solAu(t.x).toFixed(2)
+      };
+    });
+  },
+  ramasser() { return vehicule ? ramasser(vehicule) : null; },
+  jeter() { return vehicule ? jeter(vehicule) : null; },
+  cargaison() {
+    if (!vehicule) return null;
+    const c = vehicule.cargaison;
+    return {
+      cap: c.cap,
+      objets: c.objets.map(o => ({ types: o.types, masse: Math.round(o.masse) })),
+      blocs: occupationCargaison(c),
+      masse: Math.round(vehicule.body.mass()),
+      texte: ui.cargaison.textContent
+    };
+  },
+  epaves() {
+    return chunks.map(c => {
+      const t = c.body.translation();
+      return { x: +t.x.toFixed(1), y: +t.y.toFixed(1), types: c.blocs.map(b => b.type) };
+    });
+  },
+  poserEpace(x, y, types) {
+    const ch = creerEpace(types || ['chassis'], x, y, 0, 0);
+    return { x, y, types: ch.blocs.map(b => b.type) };
+  },
+  retourner(a) {
+    if (!vehicule) return null;
+    vehicule.body.setRotation(a, true);
+    vehicule.body.setAngvel(0, true);
+    return a;
+  },
+  deplacerEnnemi(i, x, y) {
+    const e = ennemis[i];
+    if (!e) return null;
+    e.body.setTranslation({ x, y }, true);
+    e.body.setLinvel({ x: 0, y: 0 }, true);
+    return { x, y };
+  },
+  blesserEnnemi(i, degats) {
+    const e = ennemis[i];
+    if (!e) return null;
+    for (const b of e.blocks) if (!b.detruit) appliquerDegatsBloc(e, b, degats);
+    return { hs: !!e.hs };
+  },
+  mission() {
+    return {
+      etat: MISSION.etat, cible: NIVEAU.arrivee, texte: ui.objectif.textContent,
+      vague: MISSION.vague, vagues: NIVEAU.vagues.length,
+      temps: +MISSION.temps.toFixed(1), chrono: NIVEAU.chrono
+    };
+  },
+  ligneDeVue(ax, ay, bx, by) {
+    return ligneDeVue({ x: ax, y: ay }, { x: bx, y: by });
+  },
+  solAu(x) { return +solAu(x).toFixed(3); },
+  vue() {
+    return {
+      x: view.x, y: view.y, zoom: view.zoom,
+      horizon: view.horizon, off: view.off, h: view.h, dist: view.dist
+    };
+  },
+  curseur() { return { x: souris.wx, y: souris.wy }; },
+  vitesse() { return vehicule ? Math.hypot(vehicule.body.linvel().x, vehicule.body.linvel().y) : 0; }
+};
+</script>
+</body>
+</html>
