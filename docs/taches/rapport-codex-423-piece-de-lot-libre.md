@@ -36,11 +36,13 @@ refusée. Autres oracles : lot entier explicitement demandé, deux prélèvement
 successifs et dernière pièce déplacée après refus de quantité borné à son étape.
 Les dossiers sont indépendants de la prose, sans mutation du monde ni du plan.
 
-**Banc rapide en cours**, branche seule, Relais/auberge, 4 h × quatre graines,
-un travailleur à priorité réduite. Les quatre Relais sont sans plantage ; les
-dernières auberges restent à achever. Avis à expliquer, dérives d'avis,
-figements et répétitions signalés : sans référence appariée, aucune absence de
-régression PNJ n'est déduite. Fin attendue : `piece-de-lot-423/rapide-fin.json`.
+**Banc rapide terminé : 8/8 nuits sans plantage**, branche seule, Relais/auberge,
+4 h × quatre graines, un travailleur à priorité réduite : 608,27 s écoulées,
+600,69 s CPU. L'audit signale 52 dérives d'avis ouvertes, quatre cessations
+physiques de service, trois figements, un noir prolongé, un avis à expliquer,
+une alternance et douze appels répétés de Lucien (auberge 2024). Ces signaux
+ne prouvent pas une régression ; sans référence appariée, son absence n'est
+pas établie non plus. `rapide-fin.json` confirme les huit nuits achevées.
 
 **Luna, une passe sur copies.** Base ancienne : **11 appels / 3 tours MJ**, 55,10 s
 écoulées, aucun plantage ni erreur de recharge. Branche, `lots` et `ressources` :
@@ -60,6 +62,7 @@ contrôlés ensuite sans modèle ; aucune seconde passe Luna n'a été lancée.
 Aucun audit retiré, scénario ou registre d'esprit modifié. Pas de suite complète.
 
 **Bruts.** `C:/Users/msics/donjon/artifacts/piece-de-lot-423/` : fils et copies de
-mondes, lanceurs, commandes, tests et banc rapide. La première tentative de rejeu
+mondes, lanceurs, commandes, tests, banc rapide et `bilan.json` final. Aucun calcul
+restant. La première tentative de rejeu
 dans le bac à sable a été interrompue sans résultat après dix minutes ; la passe
 achevée et les tests utilisent les temporaires Windows accessibles hors du bac.

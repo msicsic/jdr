@@ -48,11 +48,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   **72 tests ciblés verts**, vraie boucle et recharge : planche, bûche, quantité multiple, lot entier et dernière pièce.
   Avant A4–A6 (`91a58c8f`), Luna proposait `prelever`, sans qualification admise ; verrou A5 confirmé sur la trace du 422.
   Luna branche : 17 appels/6 tours, aucun repli ni erreur ; **prélèvement non démontré**, mauvais mode au tour de prise.
-  Banc rapide branche seule, Relais/auberge 4 h × quatre graines, encore en cours ; `piece-de-lot-423/rapide-fin.json` attendu.
+  Banc rapide terminé : Relais/auberge 4 h × quatre graines, **8/8 sans plantage**, signaux PNJ non attribués ; aucun calcul restant.
   Typage libre toujours sémantique ; aucune garantie universelle ni validation Luna de l'invariant complet.
   [Rapport 423](taches/rapport-codex-423-piece-de-lot-libre.md) ; bruts `C:/Users/msics/donjon/artifacts/piece-de-lot-423/`.
 
-Lots en cours : 423 (une pièce de lot par la saisie libre), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
