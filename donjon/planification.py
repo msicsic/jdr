@@ -2267,7 +2267,7 @@ def _entrees_communes(v):
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.
-        [[q, sorted(appels_vains(monde, id, q))] for q in sorted(esprit_["recherches"])],
+        [[q, sorted(appels_vains(monde, id, q))] for q in sorted(memoire.recherches_retenues(monde, id))],
         [[s, minute - s["minute"] < ATTENTE_PART,
           # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]

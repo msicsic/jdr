@@ -183,8 +183,7 @@ def installer(monde):
         nouveaux_faits, migrer_confidences = memoire.installation_dits(monde, id)
         nouveaux_statuts = "relations" not in monde.data["esprits"].get(id, {})
         nouveau = memoire.installation_voix(monde, id)
-        migrer_recherches = "recherches" not in monde.data["esprits"].get(id, {})
-        migrer_indices = "indices_recherche" not in monde.data["esprits"].get(id, {})
+        migration_recherche = memoire.installation_recherches(monde, id)
         from .relations import installer as installer_relations
         installer_relations(monde, id)
         e = esprit(monde, id)
@@ -205,15 +204,7 @@ def installer(monde):
         if migrer_confidences:
             from .social import migrer_dits
             migrer_dits(monde, id)
-        for souvenir in episodes(monde, id, types=("appel_sans_reponse",)):
-            if migrer_recherches and souvenir["type"] == "appel_sans_reponse":
-                salles = e["recherches"].setdefault(souvenir["qui"], {})
-                salles[souvenir["salle"]] = max(salles.get(souvenir["salle"], -1), souvenir["minute"])
-        if migrer_indices:
-            from .deliberation import consommer_indices_recherche
-            for qui, salles in e["recherches"].items():
-                for salle in salles:
-                    consommer_indices_recherche(monde, id, qui, salle)
+        memoire.migrer_recherches(monde, id, *migration_recherche)
         if e["secours"] is None:
             appels = episodes(monde, id, types=("appel",))
             if appels:
@@ -470,26 +461,7 @@ def verifier(monde):
             and ('echeance' not in x or type(x['echeance']) is int and x['echeance'] >= x['minute'])
             and x["condition"].get("objet") == o and condition_valide(monde, x["condition"])
             for o, x in e["aides_attendues"].items()), "Aides attendues invalides"
-        assert isinstance(e["recherches"], dict) and all(
-            q in monde.objets or q == "joueur" for q in e["recherches"]
-        ) and all(isinstance(salles, dict) and all(s in monde.data["salles"] and type(t) is int
-                  for s, t in salles.items()) for salles in e["recherches"].values()), "Recherches de PNJ invalides"
-        assert isinstance(e["indices_recherche"], dict) and all(
-            (q in monde.objets or q == "joueur") and isinstance(salles, dict)
-            and all(s in monde.data["salles"] and isinstance(indices, list)
-                    and all(isinstance(x, list) and len(x) in (3, 4)
-                            and ((x[0] == "presence" and len(x) == 3 and type(x[1]) is int and 0 <= x[1] <= 2)
-                                 or (x[0] == "bruit" and len(x) == 4 and type(x[1]) is int and x[1] > 0
-                                     and (x[2] is None or x[2] == "joueur" or x[2] in monde.objets)))
-                            and (x[-1] is None or isinstance(x[-1], list) and len(x[-1]) == 2
-                                 and all(type(n) is int for n in x[-1])) for x in indices)
-                    for s, indices in salles.items())
-            for q, salles in e["indices_recherche"].items()), "Indices de recherche invalides"
-        assert isinstance(e["presence_recherche"], dict) and all(
-            (q in monde.objets or q == "joueur") and isinstance(p, list) and len(p) == 2
-            and p[0] in monde.data["salles"] and (p[1] is None or isinstance(p[1], list)
-                and len(p[1]) == 2 and all(type(n) is int for n in p[1]))
-            for q, p in e["presence_recherche"].items()), "Présences de recherche invalides"
+        memoire.verifier_recherches(monde, id)
         i = e["intention"]
         assert i is None or (isinstance(i, dict) and set(i) - {"attitude", "charges_suspendues"} == CLES_INTENTION
                              and isinstance(i["but"], dict) and isinstance(i["but"].get("type"), str)

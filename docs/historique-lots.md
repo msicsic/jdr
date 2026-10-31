@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1l-recherche` — lot 413, base `integration 40f062d8`, moteur `dd80f067`, clos, non fusionné ; aucun calcul restant.
+  Recherche de personne par `memoire` : négatifs, indices consommés et repère positif, migration/validation ;
+  stockage, consommation du 374 et politiques inchangés. Inventaire AST 154 → 60 (schéma + homonymes seuls).
+  218 tests distincts sur 17 fichiers validés, six nouveaux verts ; deux captures, état/rendu/scène/paroles et laps entier/découpé.
+  Empreintes 2 h × quatre graines × Relais/mine/auberge/crue : 16/16 identiques à la base exacte, aucun plantage.
+  `fin-complement.json` confirme le succès ; intégration documentaire `2b2e0a94` fusionnée ; pas de suite complète ni Luna.
+  Limites : contrôle AST local et politiques historiques. [Rapport](taches/rapport-codex-413-s1l-recherche.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 413, S1l : lieux écartés, indices de recherche, indices consommés et retrouvailles par des vues et opérations nommées ; négatifs et indices consommés persistent ensemble, consommation du 374 conservée ; inventaire AST 154 → 60. 218 tests, 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-s1k-recours` — lot 411 clos, non fusionné ; base `integration 8cb825aa`, avance `2634e48e` intégrée.
   Cinq registres de recours par `memoire`, prédicats et publication historiques conservés ; AST **84 → 1** (schéma).
   169 tests distincts, six nouveaux verts ; 38/38 après fusion ; trois sous-échecs et une erreur historiques sur la base.

@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-s1l-recherche` (296f4abc) : lot 413, S1l recherche d'une personne par l'interface. Détail dans l'historique.
 - `codex-s1k-recours` (f5127a4d) : lot 411, S1k recours par l'interface. Détail dans l'historique.
 - `codex-a3-liaison-transport` (86187c83) : lot 410, A3 liaison du transport. Détail dans l'historique.
 - `codex-s1k-refus-recours` (7da401ec) : lot 409, S1k refus retenus par l'interface. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1i-signes-dangers` (05dffdef) : lot 405, S1i signes, détresse et dangers par leurs vues. Détail dans l'historique.
 - `codex-rembourser-public` (3fbe6e74) : lot 399, rembourser depuis le menu et le terminal. Détail dans l'historique.
 - `codex-s1h-eau-statuts` (f183d930) : lot 404, S1h eau, prévisions et statuts par leurs vues. Détail dans l'historique.
-- `codex-s1g-etats-materiels` (d3326879) : lot 400, S1g états matériels et capacités crus par leurs vues. Détail dans l'historique.
 
 ## Lots non fusionnés
 

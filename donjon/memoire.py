@@ -1760,3 +1760,178 @@ def _verifier_recours(e):
         and type(x.get("pieces")) is int and x["pieces"] >= 0 and isinstance(x.get("biens"), dict)
         and all(isinstance(o, str) and type(n) is int and n >= 0 for o, n in x["biens"].items())
         for x in e["recours_propositions"]), "Tentatives de proposition invalides"
+
+
+def recherches_retenues(monde, id):
+    """Copie ordonnée des lieux écartés par personne, dates historiques comprises."""
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['recherches'])
+
+
+def lieux_ecartes(monde, id, qui):
+    """Lieux et dates d'échec connus de cet observateur, sans création ni expiration."""
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['recherches'].get(qui, {}))
+
+
+def indices_recherche_consommes(monde, id, qui):
+    """Copie des indices déjà consommés, sans consulter la présence réelle."""
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['indices_recherche'].get(qui, {}))
+
+
+def presence_recherche_retenue(monde, id, qui):
+    """Dernière présence positive, conservée malgré une absence ultérieure."""
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['presence_recherche'].get(qui))
+
+
+def appels_vains(monde, id, qui):
+    """Lieux cherchés en vain, jusqu'à un nouvel indice dans ce lieu (``esprits.croire``,
+    ``ouie._bruit_inconnu``). Ni le temps écoulé ni un constat d'absence ne les rouvrent."""
+    from .esprits import lire
+    return set(lire(monde, id)['recherches'].get(qui, {}))
+
+
+def recherche_vaine(monde, id, qui, salle):
+    """Le résultat d'une recherche se retient comme celui d'une demande, hors mémoire bornée."""
+    from .esprits import esprit
+    esprit(monde, id)["recherches"].setdefault(qui, {})[salle] = monde.data["minutes"]
+    consommer_indices_recherche(monde, id, qui, salle)
+
+
+def consommer_indices_recherche(monde, id, qui, salle):
+    """Indices déjà connus au constat d'échec, ou encore disponibles dans une ancienne partie."""
+    # Le constat consomme aussi les indices présents avant la recherche (anciennes parties
+    # comprises). Leur répétition ne doit pas suffire à annuler ce constat.
+    c = fait_brut(monde, id, qui, 'lieu')
+    if c and c["valeur"] == salle:
+        _situer_recherche(monde, id, qui, salle, c.get("case"))
+        _retenir_indice(monde, id, qui, salle, _indice_presence(c))
+    for s in bruits_retenus(monde, id, salle, examens=True):
+        _retenir_indice(monde, id, qui, salle, indice_bruit(s))
+
+
+def _indice_presence(c):
+    # La date, la confiance et la chaîne de relais ne changent pas ce qui a été appris.
+    force = 2 if c["source"] == "vu" else 1 if c["source"] == "entendu" else 0
+    return ["presence", force, c.get("case")]
+
+
+def indice_bruit(s):
+    """Ce qui est perceptible du bruit, sans identité cachée ni date de répétition."""
+    from .ouie import INTENSITES
+    return ["bruit", INTENSITES[s["nature"]], s.get("qui"), s.get("case")]
+
+
+def _retenir_indice(monde, id, qui, salle, indice):
+    from .esprits import esprit
+    from copy import deepcopy
+    connus = esprit(monde, id)["indices_recherche"].setdefault(qui, {}).setdefault(salle, [])
+
+    def couvre(a, b):
+        # Une information moins forte ou moins précise n'ajoute rien. Une autre voix ou
+        # une autre position située constitue en revanche un indice distinct.
+        return (a[0] == b[0] and a[1] >= b[1] and a[2:-1] == b[2:-1]
+                and (b[-1] is None or a[-1] == b[-1]))
+
+    if any(couvre(ancien, indice) for ancien in connus):
+        return False
+    connus[:] = [ancien for ancien in connus if not couvre(indice, ancien)]
+    connus.append(deepcopy(indice))
+    return True
+
+
+def contact_recherche(monde, id, qui, salle):
+    """Une présence directement retrouvée ou une réponse saisie permet un nouveau contact ici."""
+    from .esprits import esprit
+    e = esprit(monde, id)
+    e["recherches"].get(qui, {}).pop(salle, None)
+
+
+def _situer_recherche(monde, id, qui, salle, case):
+    """Un déplacement positivement appris est nouveau, même vers un ancien lieu d'échec.
+
+    L'absence ne déplace pas ce repère ; une localisation moins précise ne l'efface pas.
+    Cela distingue un retour appris de la répétition d'une voix au même endroit.
+    """
+    from .esprits import esprit
+    from copy import deepcopy
+    e = esprit(monde, id)
+    avant = e["presence_recherche"].get(qui)
+    deplace = bool(avant and (avant[0] != salle
+                             or case is not None and avant[1] is not None and case != avant[1]))
+    if not avant or avant[0] != salle or case is not None:
+        e["presence_recherche"][qui] = [salle, deepcopy(case)]
+    return deplace
+
+
+def indice_recherche(monde, id, salle, qui=None, *, indice=None):
+    """Seul un contenu nouveau rouvre son lieu, pour la personne identifiée ou celles cherchées.
+
+    Ce suivi survit aux changements de but, à l'effacement des quarante souvenirs et à la
+    recharge. Réentendre une voix ou réexpliquer un bruit ne crée pas un nouvel indice.
+    """
+    from .esprits import esprit
+    recherches = esprit(monde, id)["recherches"]
+    change = False
+    if indice is None:
+        c = fait_brut(monde, id, qui, 'lieu')
+        if not c or c["valeur"] != salle:
+            return False
+        indice = _indice_presence(c)
+        if _situer_recherche(monde, id, qui, salle, c.get("case")):
+            change = salle in recherches.get(qui, {})
+            recherches.get(qui, {}).pop(salle, None)
+    for sujet in ([qui] if qui is not None else recherches):
+        if _retenir_indice(monde, id, sujet, salle, indice):
+            change |= salle in recherches.get(sujet, {})
+            recherches.get(sujet, {}).pop(salle, None)
+    return change
+
+
+def installation_recherches(monde, id):
+    """Drapeaux de migration relevés avant l'installation historique de l'esprit."""
+    ancien = monde.data['esprits'].get(id, {})
+    return 'recherches' not in ancien, 'indices_recherche' not in ancien
+
+
+def migrer_recherches(monde, id, migrer_recherches, migrer_indices):
+    """Reconstruit uniquement les anciens registres absents, sans nouvel épisode."""
+    from .esprits import esprit
+    e = esprit(monde, id)
+
+    for souvenir in episodes(monde, id, types=("appel_sans_reponse",)):
+        if migrer_recherches and souvenir["type"] == "appel_sans_reponse":
+            salles = e["recherches"].setdefault(souvenir["qui"], {})
+            salles[souvenir["salle"]] = max(salles.get(souvenir["salle"], -1), souvenir["minute"])
+    if migrer_indices:
+        for qui, salles in e["recherches"].items():
+            for salle in salles:
+                consommer_indices_recherche(monde, id, qui, salle)
+
+
+def verifier_recherches(monde, id):
+    """Validation inchangée des trois registres sauvegardés de recherche."""
+    from .esprits import lire
+    e = lire(monde, id)
+    assert isinstance(e["recherches"], dict) and all(
+        q in monde.objets or q == "joueur" for q in e["recherches"]
+    ) and all(isinstance(salles, dict) and all(s in monde.data["salles"] and type(t) is int
+              for s, t in salles.items()) for salles in e["recherches"].values()), "Recherches de PNJ invalides"
+    assert isinstance(e["indices_recherche"], dict) and all(
+        (q in monde.objets or q == "joueur") and isinstance(salles, dict)
+        and all(s in monde.data["salles"] and isinstance(indices, list)
+                and all(isinstance(x, list) and len(x) in (3, 4)
+                        and ((x[0] == "presence" and len(x) == 3 and type(x[1]) is int and 0 <= x[1] <= 2)
+                             or (x[0] == "bruit" and len(x) == 4 and type(x[1]) is int and x[1] > 0
+                                 and (x[2] is None or x[2] == "joueur" or x[2] in monde.objets)))
+                        and (x[-1] is None or isinstance(x[-1], list) and len(x[-1]) == 2
+                             and all(type(n) is int for n in x[-1])) for x in indices)
+                for s, indices in salles.items())
+        for q, salles in e["indices_recherche"].items()), "Indices de recherche invalides"
+    assert isinstance(e["presence_recherche"], dict) and all(
+        (q in monde.objets or q == "joueur") and isinstance(p, list) and len(p) == 2
+        and p[0] in monde.data["salles"] and (p[1] is None or isinstance(p[1], list)
+            and len(p[1]) == 2 and all(type(n) is int for n in p[1]))
+        for q, p in e["presence_recherche"].items()), "Présences de recherche invalides"

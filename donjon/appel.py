@@ -566,7 +566,7 @@ def tenir(monde, id, minute):
         _retrouver(monde, id, d["qui"])
     elif monde.objets[id]["lieu"] == d["salle"] and (
               e["visites"].get(d["salle"], -1) > d["depuis"]
-              or e["recherches"].get(d["qui"], {}).get(d["salle"], -1) >= d["depuis"]):
+              or memoire.lieux_ecartes(monde, id, d["qui"]).get(d["salle"], -1) >= d["depuis"]):
         e["rejoindre"] = None
         memoriser(monde, id, {"type": "rendez_vous_manque", "qui": d["qui"]})
 

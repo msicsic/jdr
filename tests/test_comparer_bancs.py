@@ -45,6 +45,11 @@ class ComparerBancsTests(unittest.TestCase):
             self.assertEqual(refus, avant['esprits']['marchand']['refus'])
             self.assertEqual(module.reponses_retenues.__module__, 'donjon._memoire_observation')
             refus.append({'raison': 'invente'})
+            # S1l : les négatifs de recherche viennent aussi de l'observateur.
+            recherches = module.recherches_retenues(monde, 'marchand')
+            self.assertEqual(recherches, avant['esprits']['marchand']['recherches'])
+            self.assertEqual(module.recherches_retenues.__module__, 'donjon._memoire_observation')
+            recherches['invente'] = {'antichambre': 0}
         self.assertEqual(monde.data, avant)
 
     def config(self, **options):

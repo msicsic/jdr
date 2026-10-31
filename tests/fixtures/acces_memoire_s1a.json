@@ -209,5 +209,99 @@
       "analyser_luna/tour['refus']": 1
     }
   },
-  "recours_restants_s1k": {}
+  "recours_restants_s1k": {},
+  "recherche_homonymes_s1l": {
+    "donjon/banc_pnj.py": {
+      "main/{'resume': resume_diagnostic(recherches), 'recherches': recherches}": 1,
+      "nuit/mesures.update(silences=COMPTES['silence'], choix_minute=COMPTES['minute'], choix_evenement=COMPTES['choix'] - COMPTES['minute'], recherches=len(recherches), recherches_neuves=sum((1 for r in recherches if not r.get('memoire'))))": 1,
+      "nuit/{'resume': resume, 'recherches': recherches}": 1,
+      "resume_diagnostic/g['recherches']": 1,
+      "resume_diagnostic/{'pnj': r['pnj'], 'but': r['but'], 'recherches': 0, 'plan': 0, 'borne': 0, 'epuise': 0, 'endure': 0, 'impossible': 0, 'attente': 0, 'preuve_noeuds': 0, 'memoire': 0, 'noeuds': 0, 'noeuds_max': 0, 'profondeur_max': 0, 'duree': 0.0}": 1
+    },
+    "tools/bilan_allers_utiles.py": {
+      "bilan/compte['recherches']": 2,
+      "bilan/temoin['recherches']": 2
+    },
+    "tools/bilan_attente_bornee.py": {
+      "bilan/d['recherches']": 1,
+      "diagnostic/d['recherches']": 1
+    },
+    "tools/bilan_completion_preuves.py": {
+      "main/json.loads((racine / 'artifacts/aller-utile-92b/auberge-faits.json').read_text(encoding='utf8'))['recherches']": 1,
+      "main/json.loads((racine / 'artifacts/aller-utile-92b/causes.json').read_text(encoding='utf8'))['recherches']": 1
+    },
+    "tools/bilan_profil_98.py": {
+      "main/d['recherches']": 1,
+      "main/dict(cpu=d['cpu_tranche'], familles=groupes, fonctions=fonctions, choix=d['choix'], recherches=d['recherches'], recharge=d['recharge'], temoin=controle)": 1,
+      "main/x['recherches']": 1
+    },
+    "tools/bilan_recherche_109.py": {
+      "main/d.get('recherches')": 1,
+      "main/d['recherches']": 2,
+      "trace/d['recherches']": 1
+    },
+    "tools/bilan_reflexion_190.py": {
+      "bilan/dict(fichier=path.name, scenario=n['scenario'], variante=n['variante'], cpu=n['cpu'], recherches=sum((x['recherches'] for x in n['compteurs'])), neuves=sum((x['neuves'] for x in n['compteurs'])), noeuds=sum((x.get('noeuds', 0) for x in n['compteurs'])), certificats=sum((x['certificats'] for x in n['compteurs'])), graphes=sum((x['graphes'] for x in n['compteurs'])), odon_argent=[x for x in n['compteurs'] if x['pnj'] == 'odon' and x['but'] == 'argent'], richesse=n['richesse'], audit=dict(Counter((x['code'] for x in n['audit']))), mesures=n['donnees']['mesures'], recharge=True, rendu_sha256=_h(rendu))": 1,
+      "bilan/x['recherches']": 1
+    },
+    "tools/bilan_saillance_210.py": {
+      "bilan/a['recherches']": 1,
+      "bilan/b['recherches']": 1
+    },
+    "tools/bilan_sous_arbres.py": {
+      "main/causes['recherches']": 2,
+      "main/d['recherches']": 5,
+      "main/t['recherches']": 1
+    },
+    "tools/detecter_changements_avis.py": {
+      "relever_entrees/{'refus_tenus': [[{k: s[k] for k in sorted(s) if k != 'minute'}, bool(tenu), minute - s['minute'] < deliberation.REDEMANDE, minute == s['minute']] for s, tenu in v.refus_tenus()], 'refus_enquete': [[{k: s[k] for k in sorted(s) if k != 'minute'}, bool(deliberation.tient(monde, id, s, v.connus))] for s in reponses_retenues(monde, id) if s.get('operation') == 'enqueter'], 'promesses': [[{k: s[k] for k in sorted(s) if k != 'minute'}, minute - s['minute'] < planification.ATTENTE_PART, croyances.get(s.get('foyer'), {}).get('etat', {}).get('minute', -1) >= s['minute']] for s in episodes(monde, id) if s['type'] in ('promis', 'nourri', 'recu', 'promesse_annulee', 'creance')], 'creances_vaines': sorted({s['de'] for s in episodes(monde, id) if s['type'] == 'creance_vaine' and minute - s['minute'] < deliberation.REDEMANDE}), 'recherches': [[q, sorted(deliberation.appels_vains(monde, id, q))] for q in sorted(recherches_retenues(monde, id))], 'charges': [[x['pour'], x['condition'], bool(x.get('annule'))] for x in agendas.en_cours(monde, id)], 'engagements_tenus': [copy.deepcopy(s) for s in episodes(monde, id) if s['type'] == 'engagement_tenu' and 'pour' in s], 'agendas': [[a['id'], a.get('etat'), a.get('raison_sommeil')] for a in agendas.projets(monde, id)], 'a_prevenir': [[s.get('victime'), s.get('auteur')] for s in episodes(monde, id) if s['type'] == 'a_prevenir' and deliberation._a_dire(monde, id, s['victime'], s['auteur'])], 'rejoint': e.get('rejoint'), 'aides': v.aides}": 1
+    },
+    "tools/empreintes_nuits.py": {
+      "nuit/donnees['diagnostic']['recherches']": 1,
+      "nuit/{'scenario': scenario, 'graine': graine, 'depart': depart, 'heures': heures, 'empreintes': {'chronique': _h(donnees['chronique']), 'mesures': _h(nuit_seule), 'recit': _h(donnees['recit']), 'souvenirs': _h(donnees['souvenirs']), 'etat': _h(monde.data), 'banc': _h(donnees['empreintes']), 'recherches_neuves': _h(neuves)}, 'mesures': mesures, 'recherches': len(recherches), 'neuves': len(neuves), 'noeuds': sum((r['noeuds'] for r in recherches)), 'devis_differes': sum((r.get('devis_differes', 0) for r in recherches)), 'devis_developpes': sum((r.get('devis_developpes', 0) for r in recherches)), 'planificateur': round(sum((r.get('duree', 0.0) for r in recherches)), 2), 'choix': dict(deliberation.COMPTES), 'secondes': round(secondes, 2), 'memoire_mo': _pic_memoire(), 'cpu_cumule_4h': tranches, 'recherches_logiques': appels, 'trace_recherches': trace.hexdigest()[:16], 'impossibilites_reprises': sum((bool(r.get('impossible')) for r in recherches)), 'reprises_memoire': sum((bool(r.get('memoire')) for r in recherches)), 'reprises_graphe': sum((bool(r.get('graphe')) for r in recherches)), 'bornees': sum((r['issue'] == 'borne' and (not r.get('memoire')) for r in recherches)), 'bornes_verifier': list(planification.BORNES), 'epuisees': sum((r['issue'] == 'epuise' and (not r.get('memoire')) for r in recherches)), 'preuves': sum((r.get('preuve_issue') is not None for r in recherches)), 'preuves_bornees': sum((r.get('preuve_issue') == 'borne' for r in recherches)), 'noeuds_preuves': sum((r.get('preuve_noeuds', 0) for r in recherches))}": 1
+    },
+    "tools/mesurer_allers_utiles.py": {
+      "main/{'compter': args.compter, 'resume': resume, 'recharge': controle, 'recherches': lignes}": 1
+    },
+    "tools/mesurer_attente_bornee.py": {
+      "mesurer/{'resume': resume, 'recherches': lignes, 'series_finales': [[*k, v] for k, v in series.items()]}": 1,
+      "mesurer_cout/capture['donnees']['diagnostic']['recherches']": 1,
+      "mesurer_cout/{'resume': resume, 'recharge': controle, 'recherches': capture['donnees']['diagnostic']['recherches'], 'chronique': capture['donnees']['chronique'], 'recit': capture['donnees']['recit'], 'plans_apres_bornees': plans}": 1
+    },
+    "tools/mesurer_bissection_auberge.py": {
+      "mesurer/capture['donnees']['diagnostic']['recherches']": 1,
+      "mesurer/g['recherches']": 1,
+      "mesurer/{'pnj': r['pnj'], 'but': r['but'], 'recherches': 0, 'neuves': 0, 'noeuds': 0, 'preuves_noeuds': 0, 'bornees': 0, 'cpu': 0.0, 'cpu_neuves': 0.0, 'issues': {}}": 1
+    },
+    "tools/mesurer_completion_preuves.py": {
+      "main/causes['recherches']": 2,
+      "main/faits['recherches']": 3,
+      "main/{'expansions_reference': sum((x['expansions'] for x in faits['recherches'])), 'expansions_evitables_prix_seuls': economie, 'cout_etats_enrichis_toute_nuit': cout, 'gain_net': economie - cout, 'relances_evitables': len(sauves), 'essais': tous_essais, 'relances': sauves, 'recherches': lignes, 'resume': resume}": 1
+    },
+    "tools/mesurer_sous_arbres.py": {
+      "main/{'resume': resume, 'recharge': controles, 'recherches': lignes}": 1
+    },
+    "tools/mesure_reflexion_190.py": {
+      "main/dict(sortie=str(args.sortie), cpu=cpu, recherches=mesures['recherches'], paires=len(paires), richesse=n['richesse'])": 1,
+      "main/mesures['recherches']": 1,
+      "recherche/c.update(recherches=1, neuves=int(not diag[-1]['memoire']), graphes=int(diag[-1]['graphe']), certificats=diag[-1].get('preuve_noeuds', 0))": 1
+    },
+    "tools/mesure_saillance_210.py": {
+      "choix/dict(intention=copy.deepcopy(lire(copie, ident)['intention']), recherches=recherches_ombre)": 1
+    },
+    "tools/profil_compare_98.py": {
+      "main/capture['recherches']": 1,
+      "main/dict(depot=args.depot, depart=args.depart, profile=stats is not None, cpu_total=total, cpu_tranche=capture['fin'] - capture['debut'], choix={k: v - capture['choix'].get(k, 0) for k, v in capture['choix_fin'].items()}, recherches=capture['recherches_fin'] - capture['recherches'], recharge=controle, mesures=mesures, fonctions=fonctions)": 1,
+      "observer/capture.update(debut=time.process_time(), choix=dict(deliberation.COMPTES), recherches=len(planification.DIAGNOSTIC or []))": 1
+    },
+    "tools/recherche_tiree_109.py": {
+      "main/dict(depot=args.depot, depart=args.depart, profil=args.profil, detail=args.detail, cpu_total=time.process_time() - debut, cpu_tranche=bornes['fin'] - bornes['debut'], recharge=bornes['recharge'], recherches=lignes)": 1
+    },
+    "tools/rejouer_choix_saillance_210.py": {
+      "main/dict(intention=copy.deepcopy(s.lire(m, entree['pnj'])['intention']), recherches=recherches, diagnostics=diag)": 1
+    },
+    "tools/rejouer_plans_attente.py": {
+      "<module>/diagnostic['recherches']": 1
+    }
+  }
 }
