@@ -223,7 +223,7 @@ class TerminalTests(unittest.IsolatedAsyncioTestCase):
     pret = tui.TUITests.pret
     fermer = tui.TUITests.fermer
 
-    async def jouer_tui(self, m, geste, cible, perime=False, invalides=False):
+    async def jouer_tui(self, m, geste, cible, perime=False, invalides=False, confirmer=False):
         from textual.widgets import Input, TabbedContent
         with tempfile.TemporaryDirectory() as tmp:
             fichier = Path(tmp) / "copie.json"
@@ -273,6 +273,14 @@ class TerminalTests(unittest.IsolatedAsyncioTestCase):
                                                 "numero": numero, "occupe": app.occupe,
                                                 "saisie": app.query_one("#commande", Input).value,
                                                 "focus": str(app.focused), "sorties": app.sorties[-4:]}))
+                    if confirmer:
+                        self.assertEqual(Monde.charger(fichier).objets[cible]['lieu'],
+                                         m.objets[cible]['lieu'])
+                        self.assertTrue(any('Compris :' in t for t in app.sorties))
+                        ancien = app.derniere_vue
+                        app.query_one('#commande', Input).value = 'tenter'
+                        await pilot.press('enter')
+                        await self.attendre(termine, lambda: 'La confirmation du geste reste en attente')
                     if perime:
                         self.assertIn("Tu ne vois plus cette cible ici.", app.sorties)
                     sorties = list(app.sorties)

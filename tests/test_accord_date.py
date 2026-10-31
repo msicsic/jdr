@@ -1,6 +1,7 @@
 """E4 : termes typés, marché atomique, état et paroles après recharge."""
 import copy
 import unittest
+from tests.remboursements import rembourser_local
 from unittest.mock import patch
 
 from donjon import agendas, echanges
@@ -152,6 +153,8 @@ class AccordDateTests(unittest.TestCase):
                 for _ in range(2):
                     agendas.echoir(m, q)
                     solder(m, [])
+                    if t > 6000 and m.data.get('dettes'):
+                        self.assertTrue(rembourser_local(m, q, []))
                     m = self.recharge(m)
                 self.assertEqual((bourse(m, b), bourse(m, q)), fonds if t > 6000 else
                                  (fonds[0] - prix['montant'], fonds[1] + prix['montant']))

@@ -16,7 +16,7 @@ from donjon.deliberation import (
 from donjon.deliberation import (
     _plan_faim, _plan_enquete, _delegue, _pulsion_a_soi, _plan_garder,
     _plan_prevenir, _plan_attendre, _plan_abri, _plan_creance, _plan_argent,
-    _continuer_progres,
+    _continuer_progres, _plan_remboursement,
 )
 
 
@@ -120,7 +120,9 @@ def anciens_candidats(monde, id):
                 and not satisfaite(monde, id, x["condition"]) and not _delegue(monde, id, x)):
             buts.append((x["besoin"], lambda m, i, c=x["condition"]: _pulsion_a_soi(m, i, c), True))
     # L'argent : un poids permanent, qui ne presse jamais ; il ne passe qu'après tout le reste.
-    # Ce qu'on lui doit d'abord, puis des pièces à prendre.
+    # Lot 388 : rendre son dû, puis réclamer et acquérir, au palier argent.
+    # L'oracle conserve l'ordre exact, y compris ce nouveau choix documenté.
+    buts.append((ARGENT, _plan_remboursement, True, False))
     buts.append((ARGENT, _plan_creance, True, False))
     buts.append((ARGENT, _plan_argent, True, False))
     # Ce qui presse vraiment, la parole donnée et ce qu'on finit, puis la routine, par urgence.

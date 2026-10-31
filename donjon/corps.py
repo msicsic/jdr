@@ -442,6 +442,8 @@ def mourir(monde, id, auteur=None, cause="mort"):
     if "facettes_etablies" in o:
         o["facettes_etablies"] = [f for f in o["facettes_etablies"] if f not in ("voix", "temperament")]
     monde.data["esprits"].pop(id, None)
+    from .ecoute import retirer_interlocuteur
+    retirer_interlocuteur(monde, id)
     for bien in monde.objets.values():
         if bien["lieu"] == id:
             bien["proprietaire"] = id

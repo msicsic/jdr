@@ -1,5 +1,6 @@
 """Mort délibérée : échéance commune, témoins et état/rendu rechargés."""
 import unittest
+import copy
 from unittest.mock import patch
 from donjon import corps, tenir
 from donjon.banc_pnj import appliquer_etats
@@ -19,6 +20,40 @@ from tests.test_corps_blessable import passer
 
 
 class TuerTests(unittest.TestCase):
+    def test_parole_conservee_sans_interlocuteur_defunt_apres_recharge(self):
+        from donjon import ecoute, ouie
+        from donjon.rendu import fiche
+        from donjon.scene import scene_percue
+        for scenario in ('relais', 'auberge'):
+            with self.subTest(scenario=scenario):
+                m, c = scene(scenario)
+                corps.corps(m, c)['inconscient'] = 0
+                # Un appel portant des mots hors du champ visuel est reçu, avant
+                # la transition commune de mort (toutes causes confondues).
+                m.joueur['orientation'] = 'est'
+                percevoir_tous(m)
+                self.assertFalse(m.visible(c))
+                ouie.retentir(m, c, 'heler', texte='Une voix appelle : « Ici ! »')
+                self.assertIn(c, m.data['entendus'])
+                voix = copy.deepcopy((m.data.get('voix_entendues'), m.data.get('voix_connues')))
+                bruits = copy.deepcopy(m.data['bruits'])
+                corps.mourir(m, c)
+                self.assertEqual(m.objets[c]['type'], 'depouille')
+                self.assertNotIn(c, m.data.get('entendus', []))
+                self.assertEqual(m.data['bruits'], bruits)
+                self.assertEqual((m.data.get('voix_entendues'), m.data.get('voix_connues')), voix)
+                parole = next(b for b in m.data['bruits'] if b['auteur'] == c and b['nature'] == 'hele')
+                self.assertIn('Ici !', str(ecoute.rendre(m, [(parole, parole['niveau'], parole['par'])])))
+                self.assertTrue(c in m.data.get('voix_entendues', {}) or c in m.data.get('voix_connues', []))
+                r = recharger(m)
+                self.assertEqual(r.data, m.data)
+                self.assertEqual((regarder(r), fiche(r), scene_percue(r)),
+                                 (regarder(m), fiche(m), scene_percue(m)))
+                avant = copy.deepcopy(r.data)
+                ecoute.retenir(r, [(parole, parole['niveau'], parole['par'])])
+                self.assertEqual(r.data, avant)  # Le rejeu du son ne réadmet pas le défunt.
+                self.assertNotIn(c, ecoute.appels(r))
+
     def test_joueur_ligote_cri_temoin_nouvelle(self):
         m, c = scene()
         corps.corps(m, c)["inconscient"] = 0

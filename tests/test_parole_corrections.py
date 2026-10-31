@@ -400,7 +400,10 @@ class NommerUneVoixTests(unittest.TestCase):
 
     def test_meme_nature_au_contact_et_par_la_parole(self):
         m = self.appelee(ilse=(4, 3))
-        reprise, sortie, _ = jouer(m, "je donne le briquet à Ilse", [], [])
+        apercu, texte, _ = jouer(m, "je donne le briquet à Ilse", [], [])
+        self.assertEqual(apercu.objets['briquet']['lieu'], 'joueur')
+        self.assertIn('Compris :', texte)
+        reprise, sortie, _ = jouer(m, "je donne le briquet à Ilse", [], [], suite=('tenter',))
         self.assertEqual(reprise.objets["briquet"]["lieu"], "ilse")
         self.assertIn("Tu donnes le briquet à silex à une voix qui se dit Ilse.", sortie.split("Accords :")[-1])
         _, sortie, appels = jouer(m, "Ilse, tu as faim ?", [
