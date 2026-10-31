@@ -589,12 +589,12 @@ def verifier(monde):
 def croyance(monde, id, sujet, attribut):
     """Sa croyance sur ``sujet`` (``attribut``), telle quelle, ou None. Ce qu'il éprouve envers une
     personne ne se lit que par ``relations`` (``relations.croyance``).
-    Les faits matériels sont des copies ; la confiance de position est vieillie."""
+    Les faits matériels, d'eau et de statut sont des copies ; la confiance de position est vieillie."""
     from .relations import FIABLE, croyance as relation
     if attribut == FIABLE:
         return relation(monde, id, sujet)
     c = (memoire.localisation(monde, id, sujet) if attribut == "lieu"
-         else memoire.fait_brut(monde, id, sujet, attribut) if attribut in memoire.ATTRIBUTS_MATERIELS
+         else memoire.fait_brut(monde, id, sujet, attribut) if attribut in (memoire.ATTRIBUTS_MATERIELS | memoire.ATTRIBUTS_EAU_STATUTS)
          else lire(monde, id)["croyances"].get(sujet, {}).get(attribut))
     if c and "signe" in c:
         limite = RECENT if attribut in ("emotion", "intention", "parole_doutee") else 120
@@ -623,63 +623,18 @@ def poids_source(monde, id, c):
 
 
 def prevision_propre(monde, id):
-    """L'estimation et la qualité de ses preuves, borne comprise, sans les modifier."""
-    from .eau import estimation, borner
-    e = estimation(monde, id)
-    if e is None:
-        return None
-    vues = [c for a in lire(monde, id)["croyances"].values()
-            if (c := a.get("eau")) and c.get("niveau") is not None]
-    ancre = max(vues, key=lambda c: (c["minute"], c["niveau"]))
-    pente = max((c for c in vues if c.get("repere") is not None and c.get("montee") is not None),
-                key=lambda c: (c["repere"][0], c["montee"]))
-    e, borne = borner(monde, id, (ancre["minute"], ancre["niveau"], e[2]))
-    preuves = [ancre, pente] + ([borne] if borne else [])
-    faible = min(preuves, key=lambda c: poids_source(monde, id, c) * c["confiance"])
-    minute = max(ancre["minute"], pente["repere"][0], borne["minute"] if borne else 0)
-    return {"valeur": list(e), "minute": minute,
-            "source": faible["source"], "confiance": faible["confiance"]}
+    """Façade de l'estimation subjective, avec sa qualité de preuve historique."""
+    return memoire.prevision_propre(monde, id)
 
 
 def prevision(monde, id, salle):
-    """Prévision retenue pour ce lieu : preuves propres ou avis, jamais une mesure inventée.
-
-    Une estimation propre étayée plus récente dément l'ancien avis ; à défaut, poids × conviction
-    départage, l'égalité gardant la croyance déjà acquise.
-    """
-    propre = prevision_propre(monde, id)
-    recue = lire(monde, id)["croyances"].get(salle, {}).get("prevision")
-    if recue is None:
-        return propre
-    if propre and (propre["source"] in ("vu", "essai") and propre["minute"] > recue["minute"]
-                   or poids_source(monde, id, propre) * propre["confiance"]
-                   > poids_source(monde, id, recue) * recue["confiance"]):
-        return propre
-    if type(recue["valeur"]) is not bool:
-        from .eau import borner
-        valeur, _ = borner(monde, id, recue["valeur"])
-        return {**recue, "valeur": list(valeur)}
-    return recue
+    """Façade du choix historique entre preuves propres et avis reçu."""
+    return memoire.prevision(monde, id, salle)
 
 
 def recevoir_prevision(monde, id, locuteur, noyau, rang, *, departage=False):
-    from .voix import source_dite
-    from .pnj import _chroniquer
-    actuelle = prevision(monde, id, noyau["objet"])
-    candidate = {"valeur": noyau["prevision"], "minute": noyau["observe"],
-                 "source": source_dite(monde, id, locuteur), "confiance": noyau["conviction"]}
-    poids = round(poids_source(monde, id, candidate) * candidate["confiance"], 12)
-    acquis = round(poids_source(monde, id, actuelle) * actuelle["confiance"], 12) if actuelle else 0
-    if (actuelle and actuelle["source"] in ("vu", "essai") and actuelle["minute"] > candidate["minute"]
-            or poids < acquis or poids == acquis and not departage):
-        return "doute"
-    croire(monde, id, noyau["objet"], "prevision", copy.deepcopy(candidate["valeur"]),
-           candidate["source"], candidate["confiance"], minute=candidate["minute"], rang=rang + 1)
-    from .social import _qui
-    _chroniquer(monde, id, f"{_qui(monde, id)} révise sa prévision de l'eau.", "social")
-    monde.data["chronique"][-1]["changement_avis"] = "dit"
-    reconsiderer(monde, id)
-    return "crue"
+    """Façade de la révision déclarée des avis d'eau."""
+    return memoire.recevoir_prevision(monde, id, locuteur, noyau, rang, departage=departage)
 
 
 def memoriser(monde, id, evenement):

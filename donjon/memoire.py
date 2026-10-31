@@ -1,4 +1,4 @@
-"""Porte des épisodes et des preuves de localisation, au format historique.
+"""Porte des épisodes et des faits crus, au format historique.
 
 S1 conserve les clés sauvegardées, l'ordre, le plafond et les crochets réentrants.
 Aucune requête de ce module ne renvoie le stock mutable aux consommateurs.
@@ -349,6 +349,29 @@ def localisation(monde, id, sujet):
 
 
 ATTRIBUTS_MATERIELS = frozenset({"etat", "fin", "verrouillee", "lumiere", "pieces"})
+ATTRIBUTS_EAU_STATUTS = frozenset({"eau", "prevision", "statuts"})
+
+
+def mesure_eau(monde, id, salle):
+    """Mesure retenue, avec niveau, pente et repère ; None sans preuve."""
+    return fait_brut(monde, id, salle, "eau")
+
+
+def mesures_eau(monde, id):
+    """Preuves d'eau par sujet, dans l'ordre historique, sans compléter le réel."""
+    from .esprits import lire
+    return {s: copy.deepcopy(a["eau"]) for s, a in lire(monde, id)["croyances"].items()
+            if "eau" in a}
+
+
+def avis_eau(monde, id, salle):
+    """Avis reçu brut : conviction, date observée et rang inchangés."""
+    return fait_brut(monde, id, salle, "prevision")
+
+
+def statuts_connus(monde, id, sujet):
+    """Preuve sourcée ; [] est un démenti explicite, None une absence de preuve."""
+    return fait_brut(monde, id, sujet, "statuts")
 
 
 def etat_connu(monde, id, sujet):
@@ -541,9 +564,15 @@ def verification_positions(monde, id, sujets):
 
 
 def admettre_fait(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
-    """Admission historique : même preuve composée et même ordre des conséquences."""
-    from .esprits import (lire, esprit, _retenir_presence, prevision_propre,
-                          reconsiderer)
+    """Admission historique : même preuve composée et même ordre des conséquences.
+
+    Eau : remplacement de la mesure entière, puis retrait durable des avis
+    antérieurs à la prévision propre constatée. Prévisions et statuts :
+    remplacement entier, sans fusion ; leurs réceptions pondérées passent
+    respectivement par recevoir_prevision et recevoir_statuts ci-dessous.
+    Les constats/savoirs directs gardent leur admission sans pondération.
+    """
+    from .esprits import lire, esprit, _retenir_presence
     monde_minute = monde.data["minutes"]
     if attribut == "lieu" and valeur is None:
         # Voir l'ancienne place vide vérifie aussi la piste, même avant le
@@ -599,3 +628,90 @@ def admettre_fait(monde, id, sujet, attribut, valeur, source, confiance=1.0, **l
     if attribut == "etat" and (valeur.get("conscient") is False or valeur.get("reddition")):
         from .defense import constater_fin
         constater_fin(monde, id, sujet)
+
+
+# Révision S1h : politiques historiques distinctes, sans nouvelle règle commune.
+
+
+def prevision_propre(monde, id):
+    """L'estimation et la qualité de ses preuves, borne comprise, sans les modifier."""
+    from .esprits import poids_source
+    from .eau import estimation, borner
+    e = estimation(monde, id)
+    if e is None:
+        return None
+    vues = [c for c in mesures_eau(monde, id).values() if c.get("niveau") is not None]
+    ancre = max(vues, key=lambda c: (c["minute"], c["niveau"]))
+    pente = max((c for c in vues if c.get("repere") is not None and c.get("montee") is not None),
+                key=lambda c: (c["repere"][0], c["montee"]))
+    e, borne = borner(monde, id, (ancre["minute"], ancre["niveau"], e[2]))
+    preuves = [ancre, pente] + ([borne] if borne else [])
+    faible = min(preuves, key=lambda c: poids_source(monde, id, c) * c["confiance"])
+    minute = max(ancre["minute"], pente["repere"][0], borne["minute"] if borne else 0)
+    return {"valeur": list(e), "minute": minute,
+            "source": faible["source"], "confiance": faible["confiance"]}
+
+
+def prevision(monde, id, salle):
+    """Prévision retenue pour ce lieu : preuves propres ou avis, jamais une mesure inventée.
+
+    Une estimation propre étayée plus récente dément l'ancien avis ; à défaut, poids × conviction
+    départage, l'égalité gardant la croyance déjà acquise.
+    """
+    from .esprits import poids_source
+    propre = prevision_propre(monde, id)
+    recue = avis_eau(monde, id, salle)
+    if recue is None:
+        return propre
+    if propre and (propre["source"] in ("vu", "essai") and propre["minute"] > recue["minute"]
+                   or poids_source(monde, id, propre) * propre["confiance"]
+                   > poids_source(monde, id, recue) * recue["confiance"]):
+        return propre
+    if type(recue["valeur"]) is not bool:
+        from .eau import borner
+        valeur, _ = borner(monde, id, recue["valeur"])
+        return {**recue, "valeur": list(valeur)}
+    return recue
+
+
+def recevoir_prevision(monde, id, locuteur, noyau, rang, *, departage=False):
+    """Révision historique : preuve propre postérieure, puis poids × conviction.
+
+    Arrondi à douze décimales ; égalité refusée sauf départage de dispute.
+    L'admission, la chronique puis la reconsidération gardent leur ordre.
+    """
+    from .esprits import poids_source, reconsiderer
+    from .voix import source_dite
+    from .pnj import _chroniquer
+    actuelle = prevision(monde, id, noyau["objet"])
+    candidate = {"valeur": noyau["prevision"], "minute": noyau["observe"],
+                 "source": source_dite(monde, id, locuteur), "confiance": noyau["conviction"]}
+    poids = round(poids_source(monde, id, candidate) * candidate["confiance"], 12)
+    acquis = round(poids_source(monde, id, actuelle) * actuelle["confiance"], 12) if actuelle else 0
+    if (actuelle and actuelle["source"] in ("vu", "essai") and actuelle["minute"] > candidate["minute"]
+            or poids < acquis or poids == acquis and not departage):
+        return "doute"
+    admettre_fait(monde, id, noyau["objet"], "prevision", copy.deepcopy(candidate["valeur"]),
+                  candidate["source"], candidate["confiance"], minute=candidate["minute"], rang=rang + 1)
+    from .social import _qui
+    _chroniquer(monde, id, f"{_qui(monde, id)} révise sa prévision de l'eau.", "social")
+    monde.data["chronique"][-1]["changement_avis"] = "dit"
+    reconsiderer(monde, id)
+    return "crue"
+
+
+def recevoir_statuts(monde, id, locuteur, sujet, valeurs, *, minute=None, confiance=.7):
+    """Révision historique des statuts : date puis poids × conviction, égalité admise."""
+    from .esprits import croyance, verifier_statuts, poids_source
+    from .voix import source_dite
+    verifier_statuts(monde, valeurs)
+    source = source_dite(monde, id, locuteur)
+    ancienne = croyance(monde, id, sujet, "statuts")
+    minute = monde.data["minutes"] if minute is None else minute
+    nouvelle = {"source": source, "confiance": confiance}
+    if ancienne and (ancienne["minute"] > minute or
+                     poids_source(monde, id, ancienne) * ancienne["confiance"] >
+                     poids_source(monde, id, nouvelle) * confiance):
+        return "dementi"
+    admettre_fait(monde, id, sujet, "statuts", copy.deepcopy(valeurs), source, confiance, minute=minute)
+    return "crue"

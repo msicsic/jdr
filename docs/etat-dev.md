@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-s1h-eau-statuts` (f183d930) : lot 404, S1h eau, prévisions et statuts par leurs vues. Détail dans l'historique.
 - `codex-s1g-etats-materiels` (d3326879) : lot 400, S1g états matériels et capacités crus par leurs vues. Détail dans l'historique.
 - `codex-crash-raccord` (3c506bb1) : lot 401, le raccord des émissions ne plante plus. Détail dans l'historique.
 - `codex-s1f-localisation` (f7ec584b) : lot 397, S1f localisation crue et preuves de possession par une seule interface. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-don-consentement` (41b0c4e2) : lot 394, le don direct passe par le consentement U-C. Détail dans l'historique.
 - `codex-parite-acoustique` (ce8ea206) : lot 391, parité acoustique après 376. Détail dans l'historique.
 - `codex-reservation-contrat` (792b3b38) : lot 393, une réservation ne bloque pas son propre contrat. Détail dans l'historique.
-- `codex-um-social-comptes` (0d7039c6) : lot 380, U-M social comptes. Détail dans l'historique.
 
 ## Lots non fusionnés
 

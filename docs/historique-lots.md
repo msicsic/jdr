@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1h-eau-statuts` — lot 404, base `integration d451a4ce`, code `88f4f9ab`.
+  Eau, prévisions et statuts : vues profondes et révisions historiques par `memoire` ; aucun registre ajouté.
+  Inventaire AST 168 → 129 ; 141/142 tests verts, une erreur d'eau reproduite sur la base exacte, oracle intact.
+  Empreintes 2 h × 4 graines × 4 scénarios : 16/16 identiques ; deux captures réelles, état/rendu/scène/paroles après recharge.
+  Intégration distante inchangée ; bruts `C:/Users/msics/donjon/artifacts/s1h-404/conclusion.json`.
+  [Rapport 404](taches/rapport-codex-404-s1h-eau-statuts.md). Lot clos, aucun calcul restant ; pas de suite complète ni Luna.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 404, S1h : eau, prévisions, avis de menace et statuts sourcés par des vues et une révision déclarée ; poids, conviction, dates et jets conservés ; inventaire AST 168 → 129. 141/142 tests (erreur héritée de la base), 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-s1g-etats-materiels` — lot 400, base exacte `integration 8fa9e70e`, code `a3072b47`.
   Preuves matérielles et capacités via vues pures ; copies profondes, absence/fin négative/inconnu distincts.
   Inventaire AST 398 → 168 ; 297/298 tests verts, unique rouge de planification reproduit sur la base exacte.

@@ -14,6 +14,7 @@ def connues(monde, id, proche=None):
     from .defense import RECENT, actifs
     from .deliberation import salle_crue
     from .esprits import prevision
+    from .memoire import mesure_eau
     from .eau import menacee
     from .ouie import resolu
     cible = proche or id
@@ -28,7 +29,7 @@ def connues(monde, id, proche=None):
     salle = salle_crue(monde, id, cible) if proche else monde.objets[id]['lieu']
     if salle and menacee(monde, id, salle):
         predit = prevision(monde, id, salle)
-        c = predit or croyances.get(salle, {}).get('eau')
+        c = predit or mesure_eau(monde, id, salle)
         if c:
             yield dict(type='cause_detresse', sorte='eau', sujet=salle,
                        valeur=deepcopy(predit['valeur']) if predit else True, minute=c['minute'],

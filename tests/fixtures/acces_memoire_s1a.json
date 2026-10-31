@@ -79,10 +79,6 @@
       "connues/c['source']": 2,
       "connues/c['valeur']": 1,
       "connues/c['valeur'][cible]": 1,
-      "connues/croyances.get": 1,
-      "connues/croyances.get(salle, {})": 1,
-      "connues/croyances.get(salle, {}).get": 1,
-      "connues/croyances.get(salle, {}).get('eau')": 1,
       "connues/croyances[auteur]": 1,
       "connues/croyances[auteur]['violence']": 1,
       "connues/lire(monde, id)['croyances']": 1,
@@ -110,28 +106,6 @@
     "donjon/deliberation.py": {
       "_fin_demande/projet['croyances']": 1
     },
-    "donjon/eau.py": {
-      "borner/lire(monde, id)['croyances']": 1,
-      "borner/lire(monde, id)['croyances'].items": 1,
-      "borner/lire(monde, id)['croyances'].items()": 1,
-      "eau_crue/c['valeur']": 1,
-      "eau_crue/lire(monde, id)['croyances']": 1,
-      "eau_crue/lire(monde, id)['croyances'].get": 1,
-      "eau_crue/lire(monde, id)['croyances'].get(salle, {})": 1,
-      "eau_crue/lire(monde, id)['croyances'].get(salle, {}).get": 1,
-      "eau_crue/lire(monde, id)['croyances'].get(salle, {}).get('eau')": 1,
-      "eau_crue/return c['valeur'] if c else 0": 1,
-      "estimation/a.get": 1,
-      "estimation/a.get('eau')": 1,
-      "estimation/lire(monde, id)['croyances']": 1,
-      "estimation/lire(monde, id)['croyances'].values": 1,
-      "estimation/lire(monde, id)['croyances'].values()": 1,
-      "observer/lire(monde, id)['croyances']": 1,
-      "observer/lire(monde, id)['croyances'].get": 1,
-      "observer/lire(monde, id)['croyances'].get(salle, {})": 1,
-      "observer/lire(monde, id)['croyances'].get(salle, {}).get": 1,
-      "observer/lire(monde, id)['croyances'].get(salle, {}).get('eau')": 1
-    },
     "donjon/esprits.py": {
       "croyance/c['minute']": 1,
       "croyance/lire(monde, id)['croyances']": 1,
@@ -139,21 +113,7 @@
       "croyance/lire(monde, id)['croyances'].get(sujet, {})": 1,
       "croyance/lire(monde, id)['croyances'].get(sujet, {}).get": 1,
       "croyance/lire(monde, id)['croyances'].get(sujet, {}).get(attribut)": 1,
-      "croyance/return c": 1,
-      "prevision/lire(monde, id)['croyances']": 1,
-      "prevision/lire(monde, id)['croyances'].get": 1,
-      "prevision/lire(monde, id)['croyances'].get(salle, {})": 1,
-      "prevision/lire(monde, id)['croyances'].get(salle, {}).get": 1,
-      "prevision/lire(monde, id)['croyances'].get(salle, {}).get('prevision')": 1,
-      "prevision/recue['confiance']": 1,
-      "prevision/recue['minute']": 1,
-      "prevision/recue['valeur']": 2,
-      "prevision/return recue": 1,
-      "prevision_propre/a.get": 1,
-      "prevision_propre/a.get('eau')": 1,
-      "prevision_propre/lire(monde, id)['croyances']": 1,
-      "prevision_propre/lire(monde, id)['croyances'].values": 1,
-      "prevision_propre/lire(monde, id)['croyances'].values()": 1
+      "croyance/return c": 1
     },
     "donjon/occasion_protection.py": {
       "occasions/lire(monde, id)['croyances']": 1

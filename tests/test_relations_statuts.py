@@ -26,12 +26,14 @@ class StatutsTests(unittest.TestCase):
         return Monde(d), a, b, c, lieu, ailleurs, valeur
 
     def persiste(self, m):
+        from donjon.emissions import lire as paroles
+        from donjon.scene import scene_percue
         m.verifier()
         avant = copy.deepcopy(m.data)
-        texte = regarder(m)
+        public = regarder(m), scene_percue(m), copy.deepcopy(paroles(m))
         charge = recharger(m)
         self.assertEqual(charge.data, avant)
-        self.assertEqual(regarder(charge), texte)
+        self.assertEqual((regarder(charge), scene_percue(charge), paroles(charge)), public)
         return charge
 
     def test_savoir_declare_ignore_portee_et_recharge_deux_scenarios(self):
@@ -141,9 +143,28 @@ class StatutsTests(unittest.TestCase):
         racine = Path(__file__).resolve().parents[1]
         fautes = []
         for p in (racine / 'donjon').rglob('*.py'):
-            for n in ast.walk(ast.parse(p.read_text(encoding='utf-8'))):
+            arbre = ast.parse(p.read_text(encoding='utf-8'))
+            parents = {c: n for n in ast.walk(arbre) for c in ast.iter_child_nodes(n)}
+
+            def porte(n):
+                # S1 : seuls schéma, vue et admission historiques dans la porte,
+                # sans exemption globale pour de nouveaux lecteurs de décision.
+                if p.name != 'memoire.py':
+                    return False
+                while n in parents:
+                    n = parents[n]
+                    if isinstance(n, ast.FunctionDef):
+                        return n.name in {'statuts_connus', 'recevoir_statuts', 'verifier_faits'}
+                    if isinstance(n, ast.Assign):
+                        if any(isinstance(t, ast.Name) and t.id == 'ATTRIBUTS_EAU_STATUTS'
+                               for t in n.targets):
+                            return True
+                return False
+
+            for n in ast.walk(arbre):
                 if (isinstance(n, ast.Constant) and n.value == 'statuts'
-                        and p.name not in ('relations.py', 'esprits.py', 'social.py', 'deliberation.py') or
+                        and p.name not in ('relations.py', 'esprits.py', 'social.py', 'deliberation.py')
+                        and not porte(n) or
                     isinstance(n, ast.Call) and getattr(n.func, 'attr', getattr(n.func, 'id', '')) == 'statuts_reconnus'
                         and p.name != 'relations.py'):
                     fautes.append(f'{p.name}:{n.lineno}')
