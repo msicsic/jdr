@@ -1979,6 +1979,20 @@ def agir(monde, id, t, lignes, gestes=None, compter=True):
     return resultat
 
 
+def _contact_perime(monde, id, requis, participants=()):
+    """None sans vérification ; sinon le préfixe admis, éventuellement vide."""
+    from .esprits import position_a_verifier, hypothese_consommee
+    incertains = sorted({x for x in requis if position_a_verifier(monde, id, x)
+                        and (x in participants or not hypothese_consommee(monde, id, x))})
+    if incertains:
+        percevoir(monde, id)
+        incertains = [x for x in incertains if position_a_verifier(monde, id, x)]
+        if incertains:
+            from .planification import contacter
+            return contacter(monde, id, incertains[0]) or []
+    return None
+
+
 def _agir(monde, id, t, lignes, gestes=None, compter=True):
     """Le geste qui commence à l'instant ``t`` (en dixièmes de seconde) selon l'intention
     courante ; renvoie (durée, issue, étape manquée) : l'issue dit s'il agit (``GESTE``), attend
@@ -2016,21 +2030,13 @@ def _agir(monde, id, t, lignes, gestes=None, compter=True):
     etape = etapes[0]
     # Un plan déjà sauvegardé peut avoir vieilli depuis son admission. La
     # réalisation repasse par le même préfixe de contact que la recherche.
-    from .esprits import position_a_verifier, hypothese_consommee
     participants = _a_reunir(monde, id, etape, venues=True)
-    requis = list(participants)
-    if etape["condition"] == "sans_temoin":
-        requis = [*requis, *memoire.faits_connus(monde, id)]
-    incertains = sorted({x for x in requis if position_a_verifier(monde, id, x)
-                        and (x in participants or not hypothese_consommee(monde, id, x))})
-    if incertains:
-        percevoir(monde, id)
-        incertains = [x for x in incertains if position_a_verifier(monde, id, x)]
-        if incertains:
-            from .planification import contacter
-            verification = contacter(monde, id, incertains[0])
-            etapes[:] = verification or []
-            return _agir(monde, id, t, lignes, gestes, compter) if etapes else (reste, FIN, None)
+    verification = _contact_perime(monde, id, participants, participants)
+    if verification is not None:
+        from .planification import _preparer_suite
+        # Même provenance que la normalisation, y compris pour un vieux plan.
+        etapes[:] = _preparer_suite((0, 0, verification), etapes)[2]
+        return _agir(monde, id, t, lignes, gestes, compter) if etapes else (reste, FIN, None)
     operation = etape["operation"]
     if refus_etape(monde, id, etapes) is not None:
         return reste, MANQUE, etape
@@ -2140,6 +2146,14 @@ def _agir(monde, id, t, lignes, gestes=None, compter=True):
             if rotation:
                 return rotation, GESTE, None
             return reste, ATTENTE, None
+        # Un témoin déjà perçu suffit à retenir le geste : on ne quitte pas le
+        # guet pour en chercher un autre. Sans obstacle certain, vérifier les
+        # positions expirées avant d'autoriser le geste clandestin.
+        verification = _contact_perime(monde, id, memoire.faits_connus(monde, id))
+        if verification is not None:
+            from .planification import _preparer_suite
+            etapes[:] = _preparer_suite((0, 0, verification), etapes)[2]
+            return _agir(monde, id, t, lignes, gestes, compter) if etapes else (reste, FIN, None)
     # Il se tourne vers ce qu'il touche ou voit, jamais vers ce qu'il ignore.
     cible = etape["cible"]
     from .proximite_vocale import vocale

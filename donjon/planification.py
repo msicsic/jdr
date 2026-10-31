@@ -2872,7 +2872,8 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
                     contacts_prepares.add(x)
                     recherche = _chercher(v, e, x)
                     if recherche is not None:
-                        suites.extend(_normaliser_suites(v, e, vises, but, [recherche]))
+                        suites.extend(_normaliser_suites(v, e, vises, but,
+                                                        [_preparer_suite(recherche, ajout)]))
                 continue
         if (furtif and e.allure != 30 and getattr(v, "_cru_spatial", None) is not None
                 and (getattr(v, "_explore_furtif", False) or not getattr(v, "_decouvrir_discretion", True))):
@@ -2918,7 +2919,8 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
                     contacts_prepares.add(x)
                     recherche = _chercher(v, e, x)
                     if recherche is not None:
-                        suites.extend(_normaliser_suites(v, e, vises, but, [recherche]))
+                        suites.extend(_normaliser_suites(v, e, vises, but,
+                                                        [_preparer_suite(recherche, ajout)]))
                 continue
             mesure = _mesurer(v, e, ajout, suivant, duree)
             if mesure is None:
@@ -2933,6 +2935,31 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
         suites.append((fautes, minutes, ajout, suivant, duree, geste[5] if len(geste) > 5 else False,
                        pression / duree if duree else 0))
     return suites
+
+
+def _preparer_suite(recherche, suite):
+    """Le contact remplace l'exécution, sans effacer ce qu'il prépare.
+
+    Cette provenance n'est jamais exécutée : le constat impose de replanifier.
+    Elle reste sur chaque étape du préfixe, même après une marche consommée.
+    """
+    suite = _suite_publique(suite)
+    etapes = [{**p, "contenu": {**p.get("contenu", {}), "suite_conditionnelle": suite}}
+              for p in recherche[2]]
+    resultat = (*recherche[:2], etapes, *recherche[3:])
+    return TransitionMesuree(resultat) if isinstance(recherche, TransitionMesuree) else resultat
+
+
+def _suite_publique(suite):
+    return [{k: copy.deepcopy(x[k]) for k in ("operation", "cible", "outil", "lieu", "condition", "contenu")
+             if k in x} for x in suite]
+
+
+def gestes_conditionnes(plan):
+    """Gestes exécutables et gestes dont leur préfixe attend encore le constat."""
+    for etape in plan:
+        yield etape
+        yield from gestes_conditionnes(etape.get("contenu", {}).get("suite_conditionnelle", ()))
 
 
 def _defait_service(v, avant, suivant):
@@ -3317,7 +3344,7 @@ def _couper(etapes):
     exécutables les gestes qui dépendent encore d'une personne ou d'une part à recevoir.
     """
     prefixe = []
-    for originale in etapes:
+    for n, originale in enumerate(etapes):
         x = dict(originale)
         x.pop("part_estimee", None)
         if x.pop("attendre_remise", False):
@@ -3325,6 +3352,11 @@ def _couper(etapes):
         suppose = x.pop("suppose", False)
         prefixe.append(x)
         if suppose:
+            suite = _suite_publique(etapes[n + 1:])
+            if suite:
+                contenu = dict(x.get("contenu", {}))
+                contenu["suite_conditionnelle"] = contenu.get("suite_conditionnelle", []) + suite
+                x["contenu"] = contenu
             break
     return prefixe
 

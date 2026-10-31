@@ -2198,8 +2198,13 @@ def choisir(monde, id, minute):
             if (proposition and courant and not moyen_dementi and proposition[0] == courant["but"]
                     and candidat.besoin == courant["motif"] and courant["plan"]
                     and _meme_demande_adoptee(candidat, courant, proposition, contrat_precedent)):
-                from .planification import verification_en_cours
-                if (verification_en_cours(monde, id, courant["plan"])
+                from .planification import verification_en_cours, gestes_conditionnes
+                from .pnj import _geste
+                attente_continue = (e["patience"] is not None
+                    and courant["plan"][0].get("condition") == "sans_temoin"
+                    and any(_geste(p) == _geste(courant["plan"][0])
+                            for p in gestes_conditionnes(proposition[1])))
+                if ((verification_en_cours(monde, id, courant["plan"]) or attente_continue)
                         and refus_etape(monde, id, courant["plan"]) is None):
                     proposition = (courant["but"], courant["plan"])
             retenus = e["renoncements"].get(besoin, [])
@@ -2468,7 +2473,7 @@ def obstacle_patience(monde, id, cause):
             presents.update(temoins_crus(monde, id))
             presents.update(oreilles_crues(monde, id, cause["nature"]))
         for qui, salle in cause.get("temoins", {}).items():
-            if (salle_crue(monde, id, qui) == salle
+            if ((memoire.localisation(monde, id, qui) or {}).get("valeur") == salle
                     and (_cru(monde, id, qui, "etat") or {}).get("conscient") is not False):
                 presents.add(qui)
         if "temoins" in cause:
@@ -2476,7 +2481,7 @@ def obstacle_patience(monde, id, cause):
             # plus par vieillissement du dernier bruit ou du dernier regard.
             for qui in memoire.faits_connus(monde, id):
                 if (qui != id and (qui == "joueur" or monde.objets.get(qui, {}).get("type") == "personnage")
-                        and salle_crue(monde, id, qui) == cause["salle"]
+                        and (memoire.localisation(monde, id, qui) or {}).get("valeur") == cause["salle"]
                         and (_cru(monde, id, qui, "etat") or {}).get("conscient") is not False):
                     presents.add(qui)
         return sorted(presents)
@@ -2508,6 +2513,8 @@ def renoncement_tient(monde, id, retenu, proposition):
         return False
     cause = retenu["cause"]
     etape = cause["etape"]
+    from .planification import gestes_conditionnes
+    plan = list(gestes_conditionnes(plan))
     cles = ("operation", "cible", "lieu")
     meme_obstacle = any(all(p.get(k) == etape.get(k) for k in cles) for p in plan)
     if cause["type"] == "temoins":
