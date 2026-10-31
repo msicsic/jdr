@@ -228,29 +228,15 @@ def avertir_acces(monde, id, etape, lignes):
 
 
 def souvenirs(monde, id):
-    return monde.data.get("violences_joueur", []) if id == "joueur" else memoire.episodes(monde, id)
+    return memoire.violences_joueur(monde) if id == "joueur" else memoire.episodes(monde, id)
 
 
 def auteurs(monde, id, protege=None):
-    """Violences connues, jamais une identité déduite d'un bruit ou d'une position réelle."""
-    if id == "joueur":
-        return list(dict.fromkeys(s["auteur"] for s in souvenirs(monde, id)
-                                  if not s.get("clos") and monde.data["minutes"] - s["minute"] < RECENT))
-    resultat = []
-    for a, cs in memoire.faits_connus(monde, id).items():
-        if a == id or "violence" not in cs:
-            continue
-        for victime, s in cs["violence"]["valeur"].items():
-            if (monde.data["minutes"] - s["minute"] < RECENT and s["menace"] and not s["clos"]
-                    and (protege is None or victime == protege)):
-                resultat.append(a)
-                break
-    return resultat
+    return memoire.auteurs_dangereux(monde, id, protege)
 
 
 def retenir(monde, id, s):
     """La cause perçue reste une croyance pendant sa durée, hors du récit borné à 40 lignes."""
-    from .esprits import croire
     t = s["type"]
     op = "pousser" if t == "pousse" else s.get("operation")
     if t not in ("subi", "pousse", "vu_agir") or op not in ("frapper", "assommer", "pousser"):
@@ -269,22 +255,13 @@ def retenir(monde, id, s):
     # La défense n'est reconnue que si l'observateur en a perçu la cause ; une intention
     # privée de l'auteur n'est pas une preuve. Recevoir le coup reste un danger personnel.
     riposte_vue = t == "vu_agir" and victime in auteurs(monde, id)
-    ancien = memoire.fait_brut(monde, id, a, 'violence', {}).get("valeur", {})
-    observations = {v: dict(d) for v, d in ancien.items() if monde.data["minutes"] - d["minute"] < RECENT}
-    observations[victime] = {"minute": s["minute"], "menace": not riposte_vue, "operation": op, "clos": False}
-    croire(monde, id, a, "violence", observations, "entendu" if s.get("par") == "ouie" else "vu")
+    memoire.retenir_danger(monde, id, a, victime, s["minute"], not riposte_vue, op,
+                           "entendu" if s.get("par") == "ouie" else "vu")
 
 
 def constater_fin(monde, id, autre):
-    """Un danger vu neutralisé ne se rouvre pas au seul réveil : il faut un nouveau geste."""
-    if id == "joueur":
-        for s in souvenirs(monde, id):
-            if s["auteur"] == autre:
-                s["clos"] = True
-        return
-    c = lire(monde, id)["croyances"].get(autre, {}).get("violence", {})
-    for s in c.get("valeur", {}).values():
-        s["clos"] = True
+    """Clôture persistante ; seul un nouveau geste peut réouvrir le danger."""
+    memoire.clore_danger(monde, id, autre)
 
 
 def etat_cru(monde, id, autre):
@@ -335,9 +312,7 @@ def _agresseur(monde, cible):
 
 def noter_coup(monde, auteur, cible, percu, operation="frapper"):
     if cible == "joueur" and percu:
-        memoire = monde.data.setdefault("violences_joueur", [])
-        memoire[:] = [s for s in memoire if s["auteur"] != auteur and monde.data["minutes"] - s["minute"] < RECENT]
-        memoire.append(dict(type="subi", auteur=auteur, operation=operation, minute=monde.data["minutes"]))
+        memoire.retenir_coup_joueur(monde, auteur, operation)
     # Recevoir un coup rompt la reddition envers son auteur, sans obliger à riposter.
     r = corps.corps(monde, cible).get("reddition")
     if r and r["a"] == auteur and operation in ("frapper", "assommer", "pousser"):

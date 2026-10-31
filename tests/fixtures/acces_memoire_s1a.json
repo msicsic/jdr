@@ -73,41 +73,10 @@
       "essayables/a['croyances']": 1,
       "verifier/a['croyances']": 1
     },
-    "donjon/causes.py": {
-      "connues/c['confiance']": 2,
-      "connues/c['minute']": 1,
-      "connues/c['source']": 2,
-      "connues/c['valeur']": 1,
-      "connues/c['valeur'][cible]": 1,
-      "connues/croyances[auteur]": 1,
-      "connues/croyances[auteur]['violence']": 1,
-      "connues/lire(monde, id)['croyances']": 1,
-      "connues/v['minute']": 2,
-      "recevoir/ancienne['confiance']": 1,
-      "recevoir/lire(monde, id)['croyances']": 1,
-      "recevoir/lire(monde, id)['croyances'].get": 1,
-      "recevoir/lire(monde, id)['croyances'].get(sujet, {})": 1,
-      "recevoir/lire(monde, id)['croyances'].get(sujet, {}).get": 1,
-      "recevoir/lire(monde, id)['croyances'].get(sujet, {}).get('violence')": 1
-    },
-    "donjon/defense.py": {
-      "constater_fin/c.get": 1,
-      "constater_fin/c.get('valeur', {})": 1,
-      "constater_fin/c.get('valeur', {}).values": 1,
-      "constater_fin/c.get('valeur', {}).values()": 1,
-      "constater_fin/lire(monde, id)['croyances']": 1,
-      "constater_fin/lire(monde, id)['croyances'].get": 1,
-      "constater_fin/lire(monde, id)['croyances'].get(autre, {})": 1,
-      "constater_fin/lire(monde, id)['croyances'].get(autre, {}).get": 1,
-      "constater_fin/lire(monde, id)['croyances'].get(autre, {}).get('violence', {})": 1,
-      "constater_fin/s['auteur']": 1,
-      "constater_fin/s['clos']": 2
-    },
     "donjon/deliberation.py": {
       "_fin_demande/projet['croyances']": 1
     },
     "donjon/esprits.py": {
-      "croyance/c['minute']": 1,
       "croyance/lire(monde, id)['croyances']": 1,
       "croyance/lire(monde, id)['croyances'].get": 1,
       "croyance/lire(monde, id)['croyances'].get(sujet, {})": 1,
@@ -115,61 +84,8 @@
       "croyance/lire(monde, id)['croyances'].get(sujet, {}).get(attribut)": 1,
       "croyance/return c": 1
     },
-    "donjon/occasion_protection.py": {
-      "occasions/lire(monde, id)['croyances']": 1
-    },
-    "donjon/pnj_propositions.py": {
-      "devis_intermediaire/attitudes.get": 1,
-      "devis_intermediaire/attitudes.get('attitude:' + qui, {})": 1,
-      "devis_intermediaire/attitudes.get('attitude:' + qui, {}).get": 1,
-      "devis_intermediaire/attitudes.get('attitude:' + qui, {}).get('valeur')": 1,
-      "devis_intermediaire/e['croyances']": 2,
-      "devis_intermediaire/e['croyances'].get": 2,
-      "devis_intermediaire/e['croyances'].get(qui, {})": 1,
-      "devis_intermediaire/e['croyances'].get(qui, {}).get": 1,
-      "devis_intermediaire/e['croyances'].get(qui, {}).get('attitude:' + id, {})": 1,
-      "devis_intermediaire/e['croyances'].get(qui, {}).get('attitude:' + id, {}).get": 1,
-      "devis_intermediaire/e['croyances'].get(qui, {}).get('attitude:' + id, {}).get('valeur')": 1,
-      "devis_intermediaire/e['croyances'].get(r['de'], {})": 1
-    },
     "donjon/propositions.py": {
       "verifier/lire(monde, proposant)['croyances']": 1
-    },
-    "donjon/signes.py": {
-      "actives/c.get": 1,
-      "actives/c.get('attribut', '')": 1,
-      "actives/c['minute']": 1,
-      "actives/c['personnage']": 1,
-      "actives/c['source']": 2,
-      "actives/c['source'].startswith": 1,
-      "actives/c['source'].startswith('dit:')": 1,
-      "actives/d.items": 1,
-      "actives/d.items()": 1,
-      "actives/esprit_lu(m, observateur)['croyances']": 1,
-      "actives/esprit_lu(m, observateur)['croyances'].items": 1,
-      "actives/esprit_lu(m, observateur)['croyances'].items()": 1,
-      "lire/actuelle.get": 3,
-      "lire/actuelle.get('apprise', actuelle['minute'])": 1,
-      "lire/actuelle.get('envers')": 1,
-      "lire/actuelle.get('episode')": 1,
-      "lire/actuelle['minute']": 1,
-      "lire/actuelle['source']": 2,
-      "lire/actuelle['valeur']": 1,
-      "lire/e['croyances']": 2,
-      "lire/e['croyances'].get": 2,
-      "lire/e['croyances'].get(s['personnage'], {})": 2,
-      "lire/e['croyances'].get(s['personnage'], {}).get": 2,
-      "lire/e['croyances'].get(s['personnage'], {}).get(a)": 2,
-      "percevoir_tous/c.get": 1,
-      "percevoir_tous/c.get('detresse', {})": 1,
-      "percevoir_tous/c.get('detresse', {}).get": 1,
-      "percevoir_tous/c.get('detresse', {}).get('valeur')": 1,
-      "percevoir_tous/esprit_lu(m, id)['croyances']": 1,
-      "percevoir_tous/esprit_lu(m, id)['croyances'].values": 1,
-      "percevoir_tous/esprit_lu(m, id)['croyances'].values()": 1,
-      "retenir_detresses/e['croyances']": 1,
-      "retenir_detresses/e['croyances'].items": 1,
-      "retenir_detresses/e['croyances'].items()": 1
     },
     "tools/detecter_changements_avis.py": {
       "_diff_croyances/e1['_details']['croyances']": 1,
@@ -202,6 +118,11 @@
       "reserve_vannes/lieu.update": 1,
       "reserve_vannes/lieu.update(salle='crypte', case=[2, 4])": 1,
       "reserve_vannes/lieu['valeur']": 1
+    }
+  },
+  "suivis_restants_s1i": {
+    "tools/calibrer_signes.py": {
+      "classer/t['croyances']": 1
     }
   }
 }

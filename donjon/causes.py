@@ -7,6 +7,7 @@ from copy import deepcopy
 import json
 
 from .esprits import lire, croire, poids_source, reconsiderer
+from .memoire import fait_brut
 
 
 def connues(monde, id, proche=None):
@@ -18,9 +19,8 @@ def connues(monde, id, proche=None):
     from .eau import menacee
     from .ouie import resolu
     cible = proche or id
-    croyances = lire(monde, id)['croyances']
     for auteur in sorted(actifs(monde, id, cible)):
-        c = croyances[auteur]['violence']
+        c = fait_brut(monde, id, auteur, 'violence')
         v = c['valeur'][cible]
         if monde.data['minutes'] - v['minute'] < RECENT:
             yield dict(type='cause_detresse', sorte='violence', sujet=auteur,
@@ -82,7 +82,7 @@ def recevoir(monde, id, locuteur, c):
                                   dict(objet=sujet, prevision=c['valeur'], observe=c['minute'],
                                        conviction=confiance), 0)
     if sorte == 'violence':
-        ancienne = lire(monde, id)['croyances'].get(sujet, {}).get('violence')
+        ancienne = fait_brut(monde, id, sujet, 'violence')
         v = (ancienne or {}).get('valeur', {}).get(c['victime'])
         if v and (v['minute'] > c['minute'] or
                   poids_source(monde, id, ancienne) * ancienne['confiance'] >= poids):

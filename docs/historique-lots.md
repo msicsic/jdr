@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1i-signes-dangers` — lot 405, base `integration 0643c2ff`, code `15856296` :
+  signes, détresse et dangers via `memoire`, vues copiées et invalidations historiques conservées.
+  Inventaire AST 129 → 40 ; cinq tests nouveaux, captures mine/Relais, état et publication rechargés.
+  161/163 ciblés verts, aucune erreur ; deux rouges identiques sur la base (démenti de crainte, attente Gorm).
+  Empreintes 2 h × quatre graines × Relais/mine/auberge/crue : 16/16 identiques, aucun plantage.
+  Lot clos, non fusionné ; aucun calcul restant ; intégration distante `0643c2ff` inchangée.
+  [Rapport et limites](taches/rapport-codex-405-s1i-signes-dangers.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 405, S1i : signes perçus, détresse et dangers par des vues, une seule invalidation subjective (perdre le regard ne dément rien) ; lectures, jets et cadence conservés. 161/163 tests (deux échecs hérités de la base), empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-rembourser-public` (399), base `integration 60f857c5`, départ `561c1d16` : remboursement
   total ou partiel des dettes publiques de Corvus depuis web/console/TUI, même acte 388, U-D et U-C.
   Solde figé revalidé ; refus distincts, aucun modèle ni registre ajouté ; recharge et laps découpé.

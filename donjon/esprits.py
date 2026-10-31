@@ -589,16 +589,17 @@ def verifier(monde):
 def croyance(monde, id, sujet, attribut):
     """Sa croyance sur ``sujet`` (``attribut``), telle quelle, ou None. Ce qu'il éprouve envers une
     personne ne se lit que par ``relations`` (``relations.croyance``).
-    Les faits matériels, d'eau et de statut sont des copies ; la confiance de position est vieillie."""
+    Les familles portées en S1f–i sont des copies ; la confiance de position est vieillie."""
     from .relations import FIABLE, croyance as relation
     if attribut == FIABLE:
         return relation(monde, id, sujet)
     c = (memoire.localisation(monde, id, sujet) if attribut == "lieu"
-         else memoire.fait_brut(monde, id, sujet, attribut) if attribut in (memoire.ATTRIBUTS_MATERIELS | memoire.ATTRIBUTS_EAU_STATUTS)
+         else memoire.fait_brut(monde, id, sujet, attribut) if (
+             attribut in (memoire.ATTRIBUTS_MATERIELS | memoire.ATTRIBUTS_EAU_STATUTS | {"detresse", "violence"})
+             or memoire.attribut_lecture(attribut))
          else lire(monde, id)["croyances"].get(sujet, {}).get(attribut))
     if c and "signe" in c:
-        limite = RECENT if attribut in ("emotion", "intention", "parole_doutee") else 120
-        if monde.data["minutes"] - c["minute"] >= limite:
+        if not memoire.lecture_non_perimee(monde, attribut, c):
             return None
     if c and attribut == "lieu" and personne_autre(monde, id, sujet):
         return {**c, "confiance": confiance_position(monde, id, sujet)}

@@ -352,6 +352,92 @@ ATTRIBUTS_MATERIELS = frozenset({"etat", "fin", "verrouillee", "lumiere", "piece
 ATTRIBUTS_EAU_STATUTS = frozenset({"eau", "prevision", "statuts"})
 
 
+def attribut_lecture(attribut):
+    return attribut in ("emotion", "intention", "parole_doutee") or attribut.startswith("attitude:")
+
+
+def lecture_non_perimee(monde, attribut, preuve):
+    """Borne historique de lecture ; aucune disparition physique n'est inférée."""
+    from .esprits import RECENT
+    from .signes import ATTITUDE_MAX
+    limite = RECENT if attribut in ("emotion", "intention", "parole_doutee") else ATTITUDE_MAX
+    return monde.data["minutes"] - preuve["minute"] < limite
+
+
+def lecture_utilisable(monde, observateur, attribut, preuve):
+    """Admissibilité historique de la projection des lectures, sans identité Python."""
+    return (observateur == "joueur" or attribut_lecture(attribut) and (
+        preuve["source"] == "devine" or preuve["source"].startswith("dit:") and "signe" in preuve)
+    ) and lecture_non_perimee(monde, attribut, preuve)
+
+
+def lectures_joueur(monde):
+    return copy.deepcopy(monde.data.get("lectures", {}))
+
+
+def lecture_retenue(monde, observateur, sujet, attribut, signe):
+    """Preuve brute pour la relecture, y compris lorsqu'elle vient de périmer."""
+    return (copy.deepcopy(monde.data.get("lectures", {}).get(signe)) if observateur == "joueur"
+            else fait_brut(monde, observateur, sujet, attribut))
+
+
+def lectures_actives(monde, observateur):
+    """Copies ordonnées, mêmes sources et bornes 30/120 minutes qu'avant S1i."""
+    from .esprits import lire
+    if observateur == "joueur":
+        valeurs = [(c["personnage"], c.get("attribut", ""), c)
+                   for c in monde.data.get("lectures", {}).values()]
+    else:
+        valeurs = [(x, a, c) for x, d in lire(monde, observateur)["croyances"].items()
+                   for a, c in d.items() if attribut_lecture(a)]
+    return [(x, a, copy.deepcopy(c)) for x, a, c in valeurs
+            if lecture_utilisable(monde, observateur, a, c)]
+
+
+def retenir_lecture_joueur(monde, signe, preuve):
+    monde.data["lectures"][signe] = copy.deepcopy(preuve)
+
+
+def tenter_lecture(monde, observateur, signe):
+    """Consomme l'essai, échec compris, avant le jet ; cadence sauvegardée."""
+    from .esprits import esprit
+    from .signes import RELECTURE
+    essais = (monde.data["signes_lus_joueur"] if observateur == "joueur"
+              else esprit(monde, observateur)["signes_lus"])
+    dernier = essais.get(signe)
+    if dernier is not None and monde.data["minutes"] - dernier < RELECTURE:
+        return False
+    essais[signe] = monde.data["minutes"]
+    return True
+
+
+def preparer_suivi_signes(monde, observateur, episodes):
+    """Migration historique sans apprentissage ni reconstitution du passé physique."""
+    suivis = monde.data.setdefault("suivi_signes", {})
+    suivi = suivis.get(observateur)
+    if suivi is None or suivi.get("version") != 2:
+        suivi = suivis[observateur] = {"version": 2, "retenus": {}, "conclusions": {}}
+        for _, _, c in lectures_actives(monde, observateur):
+            if c["signe"] in episodes:
+                suivi["retenus"][c["signe"]] = episodes[c["signe"]]
+
+
+def episode_signe_retenu(monde, observateur, signe, defaut=None):
+    return monde.data.get("suivi_signes", {}).get(observateur, {}).get("retenus", {}).get(signe, defaut)
+
+
+def conclusion_signe(monde, observateur, signe):
+    return monde.data.get("suivi_signes", {}).get(observateur, {}).get("conclusions", {}).get(signe)
+
+
+def conclure_signe(monde, observateur, signe, episode):
+    monde.data["suivi_signes"][observateur]["conclusions"][signe] = episode
+
+
+def retenir_episode_signe(monde, observateur, signe, episode):
+    monde.data["suivi_signes"][observateur]["retenus"][signe] = episode
+
+
 def mesure_eau(monde, id, salle):
     """Mesure retenue, avec niveau, pente et repère ; None sans preuve."""
     return fait_brut(monde, id, salle, "eau")
@@ -715,3 +801,222 @@ def recevoir_statuts(monde, id, locuteur, sujet, valeurs, *, minute=None, confia
         return "dementi"
     admettre_fait(monde, id, sujet, "statuts", copy.deepcopy(valeurs), source, confiance, minute=minute)
     return "crue"
+
+
+DETRESSE = ("peur", "crainte", "inquietude")
+
+
+def detresse_retenue(m, observateur, sujet):
+    """Besoin cru, sans péremption ni lecture privée ; perdre un signe ne le dément pas.
+
+    Les anciennes parties conservent déjà les impressions datées : elles restent
+    utilisables sans leur demander d'être à nouveau dans le champ de vision.
+    """
+    from .esprits import lire as esprit_lu
+    crus = faits_connus(m, observateur, sujet)
+    etat = fait_brut(m, observateur, sujet, "etat", {}).get("valeur", {})
+    if etat.get("parti") or etat.get("mort") or etat.get("conscient") is False:
+        return None
+    if "detresse" in crus:
+        return crus["detresse"] if crus["detresse"]["valeur"] else None
+    anciennes = [c for a, c in crus.items()
+                 if (a in ("emotion", "intention", "parole_doutee") or a.startswith("attitude:"))
+                 and c.get("valeur") in DETRESSE and c.get("signe")]
+    if anciennes:
+        c = max(anciennes, key=lambda c: c.get("apprise", c["minute"]))
+        return {"valeur": True, "source": c["source"], "minute": c["minute"],
+                "preuve": {"canal": "lecture", "signe": c["signe"], "attribut": next(
+                    a for a, v in crus.items() if v is c), "minute": c.get("apprise", c["minute"]),
+                    "valeur": c["valeur"]}}
+    # Une sauvegarde de l'ancien moteur peut porter la raison adoptée sans
+    # avoir enregistré séparément son signe brut. Ne pas effacer cette raison.
+    from .agendas import contrat_intention
+    contrat = contrat_intention(m, observateur) or {}
+    raison = (contrat.get("demande") or {}).get("raison")
+    if raison == {"qui": sujet, "besoin": "peur"}:
+        depuis = esprit_lu(m, observateur)["intention"]["depuis"]
+        return {"valeur": True, "source": "devine", "minute": depuis,
+                "preuve": {"canal": "adoption", "signe": "", "attribut": "", "minute": depuis, "valeur": "peur"}}
+    return None
+
+
+def retenir_detresses(m, observateur, signes):
+    """Réviser seulement aux perceptions : preuve positive ou démenti discernable.
+
+    Une expression corporelle absente est un calme vu seulement quand cette
+    expression serait discernable. Un regard détourné ne contredit jamais une
+    lecture d'attitude ; il faut une nouvelle lecture contradictoire du même signe.
+    """
+    from .esprits import croire, percus as objets_percus
+    from .signes import SIGNES, _niveau_distance
+    change = False
+    positifs = {}
+    ids = {s["id"] for s in signes}
+    for s in signes:
+        if s["signe"] in ("tremble", "fuit"):
+            positifs[s["personnage"]] = ("vu", {"canal": "expression", "signe": s["id"],
+                "attribut": "", "minute": m.data["minutes"], "valeur": s["signe"]})
+    for sujet, a, c in lectures_actives(m, observateur):
+        if c["valeur"] in DETRESSE and c["signe"] in ids and sujet not in positifs:
+            positifs[sujet] = (c["source"], {"canal": "lecture", "signe": c["signe"],
+                "attribut": a, "minute": c.get("apprise", c["minute"]), "valeur": c["valeur"]})
+    for s in episodes(m, observateur, types=("detresse",)):
+        if s["type"] == "detresse" and s["minute"] == m.data["minutes"] and s["qui"] not in positifs:
+            positifs[s["qui"]] = ("entendu", {"canal": "appel", "signe": "", "attribut": "",
+                "minute": s["minute"], "valeur": "appel"})
+    vus = None
+    sujets = set(positifs) | {x for x, d in faits_connus(m, observateur).items() if "detresse" in d}
+    from .agendas import contrat_intention
+    raison = ((contrat_intention(m, observateur) or {}).get("demande") or {}).get("raison")
+    if raison and raison["besoin"] == "peur":
+        sujets.add(raison["qui"])
+    for sujet in sorted(sujets):
+        crus = faits_connus(m, observateur, sujet)
+        enregistre = crus.get("detresse")
+        ancien = enregistre or detresse_retenue(m, observateur, sujet)
+        source, preuve, valeur = None, None, True
+        etat = fait_brut(m, observateur, sujet, "etat", {})
+        if any(etat.get("valeur", {}).get(k) for k in ("parti", "mort")) or etat.get("valeur", {}).get("conscient") is False:
+            source, valeur = etat["source"], False
+            preuve = {"canal": "etat", "signe": "", "attribut": "etat", "minute": etat["minute"], "valeur": "indisponible"}
+        elif sujet in positifs:
+            source, preuve = positifs[sujet]
+        elif ancien and ancien["valeur"]:
+            p = ancien["preuve"]
+            if p["canal"] == "lecture":
+                revision = crus.get(p["attribut"], {})
+                if (revision.get("signe") == p["signe"] and revision.get("valeur") not in DETRESSE
+                        and revision.get("apprise", revision.get("minute", -1)) >= p["minute"]
+                        and p["signe"] in ids):
+                    source, valeur = revision["source"], False
+                    preuve = {**p, "minute": revision["minute"], "valeur": revision["valeur"]}
+            elif p["canal"] in ("expression", "appel"):
+                if vus is None:
+                    vus = objets_percus(m, observateur)[0]
+                if sujet in vus:
+                    niveau, distance_ = _niveau_distance(m, observateur, sujet)
+                    regle = SIGNES["tremble"]
+                    if niveau >= regle[2] and distance_ <= regle[3]:
+                        source, valeur = "vu", False
+                        preuve = {"canal": "calme", "signe": "", "attribut": "", "minute": m.data["minutes"], "valeur": "calme"}
+        if preuve is None and ancien and not enregistre:
+            source, preuve = ancien["source"], ancien["preuve"]
+        if preuve is not None and (enregistre is None or ancien["valeur"] != valeur or valeur and any(
+                preuve[k] != ancien["preuve"][k] for k in ("canal", "signe", "attribut"))):
+            confiance = (crus.get(preuve["attribut"], {}).get("confiance", .5)
+                         if preuve["canal"] in ("lecture", "adoption") else 1.0)
+            croire(m, observateur, sujet, "detresse", valeur, source, confiance, preuve=preuve)
+            from .deliberation import _poids_secours, calme_pour_secourir
+            if (ancien is None or ancien["valeur"] != valeur) and (
+                    raison and raison["besoin"] == "peur" and raison["qui"] == sujet
+                    or valeur and calme_pour_secourir(m, observateur)
+                    and _poids_secours(m, observateur, sujet) is not None):
+                # Un démenti ne change le choix que si cette détresse portait
+                # sa demande ; une naissance de secours exige sa propre
+                # disponibilité. Mémoriser n'est pas réveiller sans recours.
+                change = True
+    return change
+
+
+def auteurs_dangereux(monde, id, protege=None):
+    """Violences connues, jamais une identité déduite d'un bruit ou d'une position réelle."""
+    from .esprits import RECENT
+    if id == "joueur":
+        return list(dict.fromkeys(s["auteur"] for s in violences_joueur(monde)
+                                  if not s.get("clos") and monde.data["minutes"] - s["minute"] < RECENT))
+    resultat = []
+    for a, cs in faits_connus(monde, id).items():
+        if a == id or "violence" not in cs:
+            continue
+        for victime, s in cs["violence"]["valeur"].items():
+            if (monde.data["minutes"] - s["minute"] < RECENT and s["menace"] and not s["clos"]
+                    and (protege is None or victime == protege)):
+                resultat.append(a)
+                break
+    return resultat
+
+
+def violences_joueur(monde):
+    """Preuves de coups perçus, dans l'ordre sauvegardé, sans accès au réel."""
+    return copy.deepcopy(monde.data.get("violences_joueur", []))
+
+
+def retenir_danger(monde, id, auteur, victime, minute, menace, operation, source):
+    """Même rétention historique, hors du tampon des quarante épisodes."""
+    from .esprits import RECENT
+    ancien = _fait_stock(monde, id, auteur, "violence", {}).get("valeur", {})
+    observations = {v: dict(d) for v, d in ancien.items()
+                    if monde.data["minutes"] - d["minute"] < RECENT}
+    observations[victime] = dict(minute=minute, menace=menace, operation=operation, clos=False)
+    admettre_fait(monde, id, auteur, "violence", observations, source)
+
+
+def clore_danger(monde, id, auteur):
+    """Neutralisation constatée, conservée au réveil et après rechargement."""
+    if id == "joueur":
+        for s in monde.data.get("violences_joueur", []):
+            if s["auteur"] == auteur:
+                s["clos"] = True
+        return
+    c = _fait_stock(monde, id, auteur, "violence", {})
+    for s in c.get("valeur", {}).values():
+        s["clos"] = True
+
+
+def retenir_coup_joueur(monde, auteur, operation):
+    from .esprits import RECENT
+    stock = monde.data.setdefault("violences_joueur", [])
+    stock[:] = [s for s in stock if s["auteur"] != auteur
+                and monde.data["minutes"] - s["minute"] < RECENT]
+    stock.append(dict(type="subi", auteur=auteur, operation=operation, minute=monde.data["minutes"]))
+
+
+def installer_signes(m):
+    for cle, defaut in (("lectures", {}), ("signes_lus_joueur", {}), ("bilan_signes", {}),
+                        ("tirages_lecture", 0), ("tirages_lecture_acteurs", {}), ("mesures_signes", {}), ("tons_percus", []), ("observations_joueur", [])):
+        if cle not in m.data:
+            m.data[cle] = copy.deepcopy(defaut)
+
+
+def verifier_signes_retenus(monde):
+    """Schémas subjectifs portés ; les occurrences physiques restent dans signes."""
+    import math
+    from .esprits import lire
+    from .signes import SENS
+
+    def dates(stock):
+        return isinstance(stock, dict) and all(isinstance(k, str) and type(v) is int
+                                               for k, v in stock.items())
+
+    assert dates(monde.data.get("signes_lus_joueur", {})), "Essais de lecture invalides"
+    for id in monde.data.get("esprits", {}):
+        assert dates(lire(monde, id)["signes_lus"]), "Essais de lecture invalides"
+    lectures = monde.data.get("lectures", {})
+    assert isinstance(lectures, dict), "Lectures du joueur invalides"
+    for signe, c in lectures.items():
+        assert (isinstance(signe, str) and isinstance(c, dict)
+                and {"valeur", "source", "minute", "confiance", "signe", "envers", "personnage"} <= set(c)
+                <= {"valeur", "source", "minute", "confiance", "signe", "envers", "personnage", "attribut", "apprise", "episode"}
+                and c["signe"] == signe and c["valeur"] in SENS and c["source"] == "devine"
+                and type(c["minute"]) is int and type(c["confiance"]) in (float, int)
+                and math.isfinite(c["confiance"]) and 0 <= c["confiance"] <= 1
+                and isinstance(c["personnage"], str) and (c["envers"] is None or isinstance(c["envers"], str))
+                and ("attribut" not in c or isinstance(c["attribut"], str) and attribut_lecture(c["attribut"]))
+                and all(type(c[k]) is int for k in ("apprise", "episode") if k in c)), "Lecture du joueur invalide"
+    suivis = monde.data.get("suivi_signes", {})
+    assert isinstance(suivis, dict), "Suivi de signes invalide"
+    for id, suivi in suivis.items():
+        assert isinstance(id, str) and isinstance(suivi, dict), "Suivi de signes invalide"
+        # Les formats antérieurs à v2 sont abandonnés par preparer_suivi_signes,
+        # sans reconstruire ni valider une histoire qui n'a pas été conservée.
+        if suivi.get("version") == 2:
+            assert (set(suivi) == {"version", "retenus", "conclusions"}
+                    and dates(suivi["retenus"]) and dates(suivi["conclusions"])), "Suivi de signes invalide"
+    violences = monde.data.get("violences_joueur", [])
+    assert isinstance(violences, list), "Violences du joueur invalides"
+    for s in violences:
+        assert (isinstance(s, dict) and {"type", "auteur", "operation", "minute"} <= set(s)
+                <= {"type", "auteur", "operation", "minute", "clos"}
+                and s["type"] == "subi" and isinstance(s["auteur"], str) and bool(s["auteur"])
+                and s["operation"] in ("frapper", "assommer", "pousser")
+                and type(s["minute"]) is int and type(s.get("clos", False)) is bool), "Violence du joueur invalide"
