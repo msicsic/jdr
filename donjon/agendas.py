@@ -1034,7 +1034,7 @@ def _croyances(monde, id, *, moyens_seuls=False):
         from .spatial import porte_par
         e = lire(monde, id)
         croyances = [croyances, richesse(monde, id), _dette_situation(monde, id),
-                     contenu(e["refus"]), contenu(e["relations"]), en_cours(monde, id),
+                     contenu(memoire.reponses_retenues(monde, id)), contenu(e["relations"]), en_cours(monde, id),
                      sorted(o for o in monde.objets if porte_par(monde, o, id))]
         from .caractere import caracteristiques, VALEURS, valeur
         croyances += [caracteristiques(monde, id), {v: valeur(monde, id, v) for v in VALEURS}]
@@ -1065,7 +1065,7 @@ def entrees_recours(monde, id, identifiant):
     for cle in ('lieu', 'position', 'orientation'):
         soi.pop(cle, None)
     a = _projet(monde, id, identifiant)
-    donnees = [croyances, contenu(e['refus']), contenu(e['relations']),
+    donnees = [croyances, contenu(memoire.reponses_retenues(monde, id)), contenu(e['relations']),
                en_cours(monde, id), e['aides_attendues'],
                [aide_echue(monde, x) for x in e['aides_attendues'].values()],
                sorted(o for o in monde.objets if porte_par(monde, o, id)),

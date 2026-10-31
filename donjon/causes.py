@@ -137,8 +137,8 @@ def demander(monde, id, proche, lignes):
     # Le registre des réponses est indépendant des quarante souvenirs et du délai.
     retenir_refus(monde, id, proche, 'enqueter_cause',
                   'inconnu' if issue == 'qui_va_la' else issue, souvenir=False)
-    reponse = lire(monde, id)['refus'][-1]
-    reponse['cause'] = entree
+    from .memoire import retenir_cause_derniere_reponse
+    retenir_cause_derniere_reponse(monde, id, entree)
     _chroniquer(monde, id, texte + f' ({issue})', 'social')
     monde.data['chronique'][-1]['demande_cause'] = dict(a=proche, issue=issue)
     if dit:

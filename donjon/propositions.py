@@ -1,4 +1,5 @@
 """Contrat des termes d'un marché ; aucune interprétation de mots du scénario."""
+from . import memoire
 from .francais import quantite
 from .monde import ErreurMonde
 
@@ -305,7 +306,7 @@ def taches_crues(monde, id, autre):
     from .biens import proprietaire
     from .esprits import lire
     conditions = []
-    for refus in lire(monde, id)["refus"]:
+    for refus in memoire.reponses_retenues(monde, id):
         offre = refus.get("contre_offre", {})
         terme = offre.get("condition", {})
         if refus["de"] == autre and terme.get("type") == "tache":

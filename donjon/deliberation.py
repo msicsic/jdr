@@ -276,71 +276,19 @@ def _meme_demande(s, autre, operations, objet, besoin, mandat=None):
 
 
 def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
-    """``autre`` refuse à ``id`` cette demande (``operation`` sur ``objet``, ou ``besoin`` pour « as-tu… ? ») :
-    il s'en souvient (``souvenir``), et retient cette réponse à la place de la précédente pour la même
-    demande, avec, quand le refus a une cause, ce qu'il croit alors de ses moyens (``moyens_crus``).
-    « Qui va là ? » n'est pas un refus : il s'est nommé, il redemande."""
-    detail = {k: v for k, v in detail.items() if k in DETAILS_REFUS and v is not None}
-    historiques = []
-    repere = None
-    if operation == "enqueter_lieu":
-        for precedent in lire(monde, id)["refus"]:
-            if _meme_demande(precedent, autre, (operation,), detail.get("objet"), detail.get("besoin")):
-                if precedent.get("repere"):
-                    repere = dict(precedent["repere"])
-                historiques.extend(f for f in precedent.get("cause", []) if f[0] == "lieu_appris")
-                if precedent.get("information"):
-                    historiques.append(["lieu_appris", detail.get("objet"), precedent["information"]["lieu"], None])
-    if souvenir:
-        memoriser(monde, id, {"type": "refus", "de": autre, "operation": operation, "raison": raison,
-                              **{k: v for k, v in detail.items() if k in ("objet", "besoin")}})
-    if raison == "qui_va_la":
-        return
-    oublier_refus(monde, id, autre, operation, detail.get("objet"), detail.get("besoin"), mandat=detail.get("mandat"))
-    if operation == "acheter":
-        # L'achat est la nouvelle réponse à cette demande de bien. À minute
-        # égale, l'ancien refus gratuit ne doit pas cacher celui du marché.
-        oublier_refus(monde, id, autre, "demander", detail.get("objet"), detail.get("besoin"))
-    s = {"de": autre, "operation": operation, "raison": raison, "minute": monde.data["minutes"], **detail}
-    if historiques:
-        s["cause"] = historiques
-    if operation == "enqueter_lieu":
-        if repere is None:
-            c = memoire.fait_brut(monde, id, detail.get('objet'), 'lieu')
-            lieu = (c["valeur"] if c and c["source"] in ("vu", "entendu")
-                    and c["valeur"] in monde.data["salles"] else (detail.get("information") or {}).get("lieu"))
-            if lieu is not None:
-                repere = {"lieu": lieu, "revision": 0}
-        if repere is not None:
-            s["repere"] = repere
-    if operation == "acheter" and detail.get("prix") and detail.get("objet"):
-        from .pnj_propositions import entrees_refus
-        s["offre"] = entrees_refus(monde, id, autre, detail["objet"],
-                                   {"type": "pieces", "montant": detail["prix"]})
-        if raison == "refus":
-            s["raison"] = "persuasion"  # Un achat refusé est déjà une offre, pas une demande gratuite.
-    if (raison in CAUSES or operation in ("enqueter_lieu", "reclamer_dette")) and "contre_offre" not in s:
-        s["cause"] = moyens_crus(monde, id, s)
-    esprit(monde, id)["refus"].append(s)
-    intention = lire(monde, id)["intention"]
-    if operation in ("demander", "acheter") and detail.get("objet") and intention:
-        esprit(monde, id)["demande_refusee"] = {"de": autre, "objet": detail["objet"],
-                                                "besoin": intention["motif"]}
+    """Façade de la rétention historique ; les décisions restent dans ce module."""
+    return memoire.retenir_refus(monde, id, autre, operation, raison, souvenir, **detail)
 
 
 def oublier_refus(monde, id, autre, operation, objet=None, besoin=None, *, mandat=None):
-    """La demande accordée (ou refusée de nouveau) : la réponse retenue ne vaut plus."""
-    e = esprit(monde, id)
-    e["refus"] = [s for s in e["refus"] if not (s["de"] == autre and s["operation"] == operation
-                                                 and s.get("objet") == objet and s.get("besoin") == besoin
-                                                 and s.get("mandat") == mandat)]
+    return memoire.oublier_refus(monde, id, autre, operation, objet, besoin, mandat=mandat)
 
 
 def refus_retenu(monde, id, autre, operations, objet=None, besoin=None, *, mandat=None):
     """La dernière réponse refusée d'``autre`` à cette demande (``operations`` : les façons de la faire,
     demander ou acheter), si elle tient encore (``tient``) ; None sinon. Un refus sans objet (le
     passage) vaut pour tout objet."""
-    refus = [s for s in lire(monde, id).get("refus", ()) if _meme_demande(s, autre, operations, objet, besoin, mandat)]
+    refus = [s for s in memoire.reponses_retenues(monde, id) if _meme_demande(s, autre, operations, objet, besoin, mandat)]
     dernier = max(refus, key=lambda s: s["minute"], default=None)
     return dernier if dernier is not None and tient(monde, id, dernier) else None
 
@@ -353,7 +301,7 @@ def refus_geste(monde, id, etape):
     celles des refus et des offres ; un autre mandat ou un meilleur prix reste possible.
     Aucune parole, observation ou nouvelle réponse n'est produite par ce contrôle.
     """
-    if not lire(monde, id).get("refus"):
+    if not memoire.reponses_retenues(monde, id):
         return False
     op, autre, objet = etape["operation"], etape["cible"], etape["outil"]
     contenu = etape.get("contenu") or {}
@@ -496,7 +444,7 @@ def changer_etat(monde, auteur, objet, attribut, avant):
 def contrarie(monde, id, objet):
     """Quelqu'un s'oppose à lui sur cette chose, et l'opposition tient (``changer_etat``)."""
     return any(s["operation"] == "defaire" and s.get("objet") == objet and tient(monde, id, s)
-               for s in lire(monde, id)["refus"])
+               for s in memoire.reponses_retenues(monde, id))
 
 
 def moyens_crus(monde, id, s, connus=None):

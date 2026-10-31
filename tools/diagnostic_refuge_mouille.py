@@ -17,6 +17,7 @@ RACINE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RACINE))
 
 from tools.priorite import ceder
+from donjon import memoire
 from donjon import deliberation, eau, planification, pnj
 from donjon.esprits import lire
 from donjon.monde import Monde
@@ -73,7 +74,7 @@ def diagnostiquer(nom, qui, dossier):
         'cout_route_minutes': cout_route(route, depart.orientation),
         'marche': duree, 'eau': risques,
         'renoncements': lire(monde, qui)['renoncements'],
-        'refus': lire(monde, qui)['refus'],
+        'refus': memoire.reponses_retenues(monde, qui),
         'apres_20_minutes': {
             'salle': bloc.objets[qui]['lieu'],
             'besoins': lire(bloc, qui)['besoins'],

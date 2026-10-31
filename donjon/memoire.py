@@ -1485,3 +1485,155 @@ def verifier_noms_joueur(monde):
     noms = monde.data.get('noms_connus', [])
     assert isinstance(noms, list) and all(isinstance(x, str) for x in noms) \
         and len(set(noms)) == len(noms), 'Noms appris invalides'
+
+
+# --- Réponses retenues : stockage et prédicats historiques inchangés ---
+
+def reponses_retenues(monde, id):
+    """Copies profondes ordonnées, sans péremption ni création d'esprit.
+
+    Les décisions de réouverture restent celles de deliberation.tient et
+    pnj_propositions.refus_tient : lire n'acquitte ni ne réarme une demande.
+    """
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id).get('refus', []))
+
+
+def installer_refus_projetes(monde, id, reponses):
+    """Installe les réponses de l'observateur dans une projection de devis."""
+    from .esprits import esprit
+    esprit(monde, id)['refus'] = copy.deepcopy(reponses)
+
+
+def retenir_cause_derniere_reponse(monde, id, cause):
+    """Associe le contexte effectivement interrogé à la dernière réponse."""
+    from .esprits import lire
+    lire(monde, id)['refus'][-1]['cause'] = copy.deepcopy(cause)
+
+
+def acquitter_contre_offre_service(monde, id, pour, nourriture):
+    """La prestation accomplie acquitte seulement la condition convenue."""
+    from .esprits import lire
+    for refus in lire(monde, id)['refus']:
+        offre = refus.get('contre_offre')
+        if offre and offre['debiteur'] == pour and offre['condition'] == {
+                'type': 'tache', 'condition': {'objet': nourriture, 'servir': pour}}:
+            refus['condition_tenue'] = True
+
+
+def lever_refus_service_constate(monde, id, beneficiaire):
+    """Le service réellement constaté lève les seuls refus sociaux de ce tiers."""
+    from .esprits import lire
+    e = lire(monde, id)
+    e['refus'][:] = [s for s in e['refus'] if not (
+        s['de'] == beneficiaire and s['raison'] in ('mefiance', 'rancune'))]
+
+
+def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
+    """``autre`` refuse à ``id`` cette demande (``operation`` sur ``objet``, ou ``besoin`` pour « as-tu… ? ») :
+    il s'en souvient (``souvenir``), et retient cette réponse à la place de la précédente pour la même
+    demande, avec, quand le refus a une cause, ce qu'il croit alors de ses moyens (``moyens_crus``).
+    « Qui va là ? » n'est pas un refus : il s'est nommé, il redemande."""
+    from .esprits import lire, esprit, memoriser
+    from .deliberation import DETAILS_REFUS, CAUSES, _meme_demande, moyens_crus
+    detail = {k: copy.deepcopy(v) for k, v in detail.items() if k in DETAILS_REFUS and v is not None}
+    historiques = []
+    repere = None
+    if operation == "enqueter_lieu":
+        for precedent in lire(monde, id)["refus"]:
+            if _meme_demande(precedent, autre, (operation,), detail.get("objet"), detail.get("besoin")):
+                if precedent.get("repere"):
+                    repere = dict(precedent["repere"])
+                historiques.extend(f for f in precedent.get("cause", []) if f[0] == "lieu_appris")
+                if precedent.get("information"):
+                    historiques.append(["lieu_appris", detail.get("objet"), precedent["information"]["lieu"], None])
+    if souvenir:
+        memoriser(monde, id, {"type": "refus", "de": autre, "operation": operation, "raison": raison,
+                              **{k: v for k, v in detail.items() if k in ("objet", "besoin")}})
+    if raison == "qui_va_la":
+        return
+    oublier_refus(monde, id, autre, operation, detail.get("objet"), detail.get("besoin"), mandat=detail.get("mandat"))
+    if operation == "acheter":
+        # L'achat est la nouvelle réponse à cette demande de bien. À minute
+        # égale, l'ancien refus gratuit ne doit pas cacher celui du marché.
+        oublier_refus(monde, id, autre, "demander", detail.get("objet"), detail.get("besoin"))
+    s = {"de": autre, "operation": operation, "raison": raison, "minute": monde.data["minutes"], **detail}
+    if historiques:
+        s["cause"] = historiques
+    if operation == "enqueter_lieu":
+        if repere is None:
+            c = fait_brut(monde, id, detail.get('objet'), 'lieu')
+            lieu = (c["valeur"] if c and c["source"] in ("vu", "entendu")
+                    and c["valeur"] in monde.data["salles"] else (detail.get("information") or {}).get("lieu"))
+            if lieu is not None:
+                repere = {"lieu": lieu, "revision": 0}
+        if repere is not None:
+            s["repere"] = repere
+    if operation == "acheter" and detail.get("prix") and detail.get("objet"):
+        from .pnj_propositions import entrees_refus
+        s["offre"] = entrees_refus(monde, id, autre, detail["objet"],
+                                   {"type": "pieces", "montant": detail["prix"]})
+        if raison == "refus":
+            s["raison"] = "persuasion"  # Un achat refusé est déjà une offre, pas une demande gratuite.
+    if (raison in CAUSES or operation in ("enqueter_lieu", "reclamer_dette")) and "contre_offre" not in s:
+        s["cause"] = moyens_crus(monde, id, s)
+    esprit(monde, id)["refus"].append(s)
+    intention = lire(monde, id)["intention"]
+    if operation in ("demander", "acheter") and detail.get("objet") and intention:
+        esprit(monde, id)["demande_refusee"] = {"de": autre, "objet": detail["objet"],
+                                                "besoin": intention["motif"]}
+
+
+def oublier_refus(monde, id, autre, operation, objet=None, besoin=None, *, mandat=None):
+    """La demande accordée (ou refusée de nouveau) : la réponse retenue ne vaut plus."""
+    from .esprits import esprit
+    e = esprit(monde, id)
+    e["refus"] = [s for s in e["refus"] if not (s["de"] == autre and s["operation"] == operation
+                                                 and s.get("objet") == objet and s.get("besoin") == besoin
+                                                 and s.get("mandat") == mandat)]
+
+def _contre_offre_valide(monde, id, refus):
+    from .deliberation import condition_valide
+    o = refus["contre_offre"]
+    if (not isinstance(o, dict) or set(o) != {"etat", "debiteur", "creancier", "condition", "contrepartie"}
+            or o["etat"] != "offre" or o["debiteur"] != refus["de"] or o["creancier"] != id
+            or o["contrepartie"] not in ({"type": "objet", "objet": refus.get("objet")},
+                                         {"type": "part", "objet": refus.get("objet")})):
+        return False
+    c = o["condition"]
+    return (isinstance(c, dict) and (
+        set(c) == {"type", "montant"} and c["type"] == "pieces" and type(c["montant"]) is int and c["montant"] > 0
+        or set(c) == {"type", "condition"} and c["type"] == "tache"
+        and isinstance(c["condition"], dict) and c["condition"].get("servir") == o["debiteur"]
+        and condition_valide(monde, c["condition"])))
+
+def verifier_refus(monde, id):
+    from .esprits import lire
+    e = lire(monde, id)
+    from .deliberation import DETAILS_REFUS
+    assert isinstance(e.get("refus", []), list) and all(
+        isinstance(s, dict) and set(s) <= {"de", "operation", "raison", "minute", "cause", *DETAILS_REFUS}
+        and isinstance(s["de"], str) and isinstance(s["operation"], str) and isinstance(s["raison"], str)
+        and type(s["minute"]) is int and type(s.get("prix", 0)) is int
+        and type(s.get("condition_tenue", False)) is bool
+        and ("repere" not in s or isinstance(s["repere"], dict)
+             and set(s["repere"]) == {"lieu", "revision"}
+             and s["repere"]["lieu"] in monde.data["salles"]
+             and type(s["repere"]["revision"]) is int and s["repere"]["revision"] >= 0)
+        and ("information" not in s or isinstance(s["information"], dict)
+             and {"lieu", "minute", "source"} <= set(s["information"]) <= {"lieu", "minute", "source", "origine"}
+             and s["information"]["lieu"] in monde.data["salles"]
+             and type(s["information"]["minute"]) is int
+             and isinstance(s["information"]["source"], str)
+             and ("origine" not in s["information"] or isinstance(s["information"]["origine"], dict)
+                  and set(s["information"]["origine"]) == {"source", "minute"}
+                  and isinstance(s["information"]["origine"]["source"], str)
+                  and type(s["information"]["origine"]["minute"]) is int))
+        and ("contre_offre" not in s or _contre_offre_valide(monde, id, s))
+        and isinstance(s.get("cause", []), list) and all(isinstance(f, list) and len(f) == 4 for f in s.get("cause", []))
+        and ("offre" not in s or isinstance(s["offre"], dict) and set(s["offre"]) == {"cause", "gain"}
+             and isinstance(s["offre"]["gain"], (int, float)) and s["offre"]["gain"] >= 0
+             and isinstance(s["offre"]["cause"], list)
+             and all(isinstance(f, list) and len(f) == 4 for f in s["offre"]["cause"]))
+        for s in e.get("refus", [])
+    ), "Refus retenus de PNJ invalides"

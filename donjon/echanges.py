@@ -806,7 +806,7 @@ def contre_offre(monde, demandeur, auditeur, objet, raison):
 
 
 def offre_retenue(monde, demandeur, auditeur, objet):
-    return next((s for s in reversed(lire(monde, demandeur)["refus"])
+    return next((s for s in reversed(memoire.reponses_retenues(monde, demandeur))
                  if s["de"] == auditeur and s.get("objet") == objet and "contre_offre" in s), None)
 
 
@@ -1564,11 +1564,7 @@ def servir(monde, id, nourriture, pour, lignes):
     if "faim" in besoins:
         besoins["faim"] = max(0.0, besoins["faim"] - SATIETE)
     memoriser(monde, pour, {"type": "nourri", "de": id, "objet": nourriture, "service_utile": utile})
-    for refus in lire(monde, id)["refus"]:
-        offre = refus.get("contre_offre")
-        if offre and offre["debiteur"] == pour and offre["condition"] == {
-                "type": "tache", "condition": {"objet": nourriture, "servir": pour}}:
-            refus["condition_tenue"] = True
+    memoire.acquitter_contre_offre_service(monde, id, pour, nourriture)
     constater(monde, id, pour, "vu")  # Il le voit manger : il sait sa faim apaisée, même dans le noir.
     e = esprit(monde, id)
     tenus = [x for x in agendas.en_cours(monde, id) if x["condition"] == {"objet": nourriture, "servir": pour}]

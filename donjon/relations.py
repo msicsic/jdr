@@ -293,7 +293,8 @@ def chance_demande(monde, id, autre):
               - r["rancune"] / 250 - r["peur"] / 500 + r["dette"] / 1000)
     # Une incapacité matérielle n'est pas un rejet de la personne. Elle reste
     # traitée par les refus de la demande précise dans le planificateur.
-    refus = [s for s in e["refus"] if s["de"] == autre
+    from .memoire import reponses_retenues
+    refus = [s for s in reponses_retenues(monde, id) if s["de"] == autre
              and monde.data["minutes"] - s["minute"] < REDEMANDE
              and s["raison"] in ("refus", "mefiance")]
     if refus:

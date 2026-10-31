@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1k-refus-recours` — lot 409, base `integration 64e3b2b4`, première partie : refus retenus
+  par vues/opérations de `memoire`, prédicats historiques conservés, copies et validation portées.
+  AST refus 64 → 27 (schéma + homonymes uniquement) ; recours 85 → 84, portage restant explicite.
+  210 tests : quatre sous-échecs et une erreur de recharge, tous reproduits à la base ; cinq nouveaux verts.
+  Sonde/porte 48/48 et consultations 9/9 verts ; empreintes 2 h × 4 graines × 4 scénarios : 16/16 identiques.
+  Intégration `57299df4` fusionnée ; code mesuré `48e4231e`. Lot clos partiel ; S1k ouvert pour les recours.
+  [Rapport 409](taches/rapport-codex-409-s1k-refus-recours.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 409, S1k partiel : refus retenus lus et écrits par l'interface, réarmés seulement par leurs prédicats historiques ; recours (propositions, services, intermédiaires) restent à porter. Échecs historiques, dont l'erreur de recharge Hugues/Mathurine, reproduits sur la base. Aucun fichier de code commun depuis la base.
+
 - `codex-a2-consultation-sociale` — lot 407, base `integration b4130dc3` : contrat commun de
   `qui`/`localisation`/`ressource`/`reclamer`, schéma, typage, raccourcis et « Compris » ; mécanique conservée.
   Passe initiale : 128 tests ; reprise finale 14/14 et 27/27 verts (36 méthodes distinctes), sans erreur ni ignoré.
