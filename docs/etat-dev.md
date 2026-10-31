@@ -43,7 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 431 (admission préalable d’une création), 432 (refus du rendu sans attendu), 429 (K1, éditeur de marché), 428 (D0, parole ouverte), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+- `codex-refus-rendu-attendu` — lot 432, base `origin/integration` / `e05e2b5b` : refus du rendu et des
+  attestations avec champ, reçu et corrections publiques résolubles ; gardes de publication et audits complétés.
+  R58 : Aubin visible, `element_47` neuf indécodable ; aucune fuite, aucun ajout partiel après recharge.
+  Six tests ciblés verts ; 120 tests voisins, 3 échecs / 4 erreurs sur cinq méthodes reproduits sur la base.
+  Limites : références neuves et recadrage automatique du MJ inchangés ; correction vérifiée par un nouvel examen.
+  [Rapport](taches/rapport-codex-432-refus-rendu-attendu.md). Aucun appel Luna ni suite complète.
+
+Lots en cours : 431 (admission préalable d’une création), 429 (K1, éditeur de marché), 428 (D0, parole ouverte), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
