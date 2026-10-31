@@ -9,7 +9,7 @@ corrigeable (`attendu`), sans réparer l'inscription. Le même chemin attend tou
 421, 422, 427, et 431 en cours) : sans référence résoluble, le geste qui suit la création ne peut pas viser l'objet.
 
 Lis `AGENTS.md` (contrat du MJ, « Interactif »), `docs/etat-dev.md` (court), le rapport 432, et `donjon/noms.py`,
-`donjon/voix.py` (`reel`), `faits_locaux.preparer_complements`.
+`donjon/voix.py` (`reel`), `enrichissement.preparer_complements`.
 
 ## Invariant (un seul)
 **Toute entité ajoutée par une proposition admise (complément, détail, objet matérialisé) reçoit sa référence publique
@@ -19,7 +19,7 @@ rejetée n'inscrit rien.** Une seule voie d'inscription, commune aux complément
 qualifications ; aucune exception d'objet. Le contrôle de non-fuite reste entier.
 
 ## Contraintes
-**Poste : le PC fixe.** Fichiers attendus : `donjon/noms.py`, `donjon/faits_locaux.py`, `donjon/voix.py` au besoin,
+**Poste : le PC fixe.** Fichiers attendus : `donjon/noms.py`, `donjon/enrichissement.py`, `donjon/faits_locaux.py`, `donjon/voix.py` au besoin,
 tests. Lot en cours sur des fichiers voisins : 431 (admission préalable, `portee_narrative.py`, `mj.py`) ; évite
 `mj.py` et `portee_narrative.py`. Lots en cours : 402 (calcul), 419, 429 (K1). Pendant S1, n'ajoute aucun registre
 d'esprit (le registre des références est celui du monde). Deux processus au plus, priorité réduite.
