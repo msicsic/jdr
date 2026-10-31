@@ -43,6 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-scenes-connues` — lot 392, base `integration` `ed5d9765` : prémisses de connaissance explicites,
+  sans code du jeu ni scénario modifié ; salle/coffre et deux mandats avec contre-épreuves rechargées.
+  Deux hashes actualisés en conservant exactement les savoirs du 365 ; cinq autres inchangés.
+  Ciblés : 4/4 (24,815 s), rendu sans nom 1/1 (12,087 s) ; cinq fichiers en vérification détachée.
+  Non validé avant lecture de `artifacts/scenes-connues-392/fin-verification.json` du dépôt principal.
+  [Rapport 392](taches/rapport-codex-392-scenes-connues.md). Aucun Luna ni suite complète.
+
 Lots en cours : 374 (position crue), 380
 (U-M social comptes), 381 (A2 passage), 391 (parité acoustique après 376, question Q1 du 390), 392 (connaissances des scènes depuis 365, Q2 du 390) ; Q3 (réservation du 377) et avis redits crue 2024 (reste du 375) à ouvrir. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
