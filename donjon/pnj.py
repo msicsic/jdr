@@ -1935,7 +1935,8 @@ def refus_etape(monde, id, etapes):
         if refus_geste(monde, id, tete):
             return "refus retenu encore valable"
         from .positions_crues import contact_interrompu_tient
-        for retenus in lire(monde, id)['renoncements'].values():
+        from .memoire import renoncements_retenus
+        for retenus in renoncements_retenus(monde, id).values():
             for r in retenus if isinstance(retenus, list) else ():
                 cause = r['cause']
                 if (cause['type'] == 'contact' and _geste(tete) == _geste(cause['etape'])

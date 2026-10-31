@@ -26,7 +26,7 @@ def travail(arguments):
     import comparer_bancs as c
     from donjon import banc_pnj as banc, deliberation as d, pnj, social
     from donjon.esprits import lire, percus
-    from donjon.memoire import faits_connus
+    from donjon.memoire import faits_connus, renoncements_retenus
     from donjon.monde import Monde
     from donjon.rendu import regarder
     from donjon.scene import scene_percue
@@ -63,7 +63,7 @@ def travail(arguments):
                 'contacts': {x: {'salle': d.salle_crue(m, qui, x),
                                  'case': pnj._case_crue(m, qui, x, d.salle_crue(m, qui, x))}
                              for x in pnj._a_toucher(m, qui, g)} if g else {},
-                'renoncements': copy.deepcopy(e['renoncements']),
+                'renoncements': renoncements_retenus(m, qui),
                 'intention': copy.deepcopy(e['intention']), 'manque': copy.deepcopy(e['manque']),
                 'eveil': e['eveil'], 'libre': e['libre']}
 

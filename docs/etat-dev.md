@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-s1m-renoncements` (83ebb7a4) : lot 418, S1m renoncements et efforts bornés publiés au choix réussi. Détail dans l'historique.
 - `codex-obstacle-temoin-expire` (fe612c40) : lot 417, un renoncement dû à un témoin tient quand sa position expire. Détail dans l'historique.
 - `codex-suite-4539dd68` (1edc86e3) : lot 414, attribution des rouges de la suite 4539dd68. Détail dans l'historique.
 - `codex-a5-reprise-fidele` (46274c29) : lots 412 et 415, A4 dossier de revue et A5 reprise fidèle. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1j-voix` (146cb136) : lot 408, S1j identité vocale par des vues sourcées. Détail dans l'historique.
 - `codex-s1j-paroles-voix` (09795acb) : lot 406, S1j paroles, audiences et savoir initial par des vues sourcées. Détail dans l'historique.
 - `codex-suite-c562aa21` (f8c40269) : lot 403, rouges nouveaux de la suite c562aa21. Détail dans l'historique.
-- `codex-a2-passage` (a4c5ece4) : lot 381, A2 famille passage. Détail dans l'historique.
 
 ## Lots non fusionnés
 

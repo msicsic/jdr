@@ -6,6 +6,13 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1m-renoncements` — lot 418, base `integration 718ca2e0` : accès aux renoncements et efforts bornés par `memoire.py`, publication après le choix complet réussi, devis/interruption sans publication.
+  Stockage, causes du 417 et règles historiques conservés ; inventaire AST 46 → 7 expressions (schéma et diagnostics/archives).
+  156 tests distincts : 155 méthodes vertes ; deux sous-échecs d'étapes chaînées reproduits sur la base exacte. Sept nouveaux tests verts.
+  Empreintes 2 h × quatre graines × quatre scénarios : **16/16 identiques** à `718ca2e0` (branche mesurée `87673277`), aucun plantage ; `fin.json` vert, aucun calcul restant.
+  Avance documentaire d'intégration intégrée ; aucun changement de `mj.py`, aucun nouveau registre ; pas de suite complète ni Luna. [Rapport](taches/rapport-codex-418-s1m-renoncements.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 418, S1m : renoncements (obstacle, cause, témoins) et efforts bornés par des vues et opérations nommées, publiés seulement à la sortie d'un choix complet réussi ; levée par constat du 417 conservée. 155/156 méthodes (sous-échecs hérités de la base), 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - **417 clos avec réserves — `codex-obstacle-temoin-expire`**, base `origin/integration 19b711bf`, moteur `bb5dfc5e`.
   Le renoncement conserve sa cause malgré l'expiration ; les préfixes et suffixes coupés portent leur provenance.
   Guet engagé conservé, autre moyen permis, validation des suites à la sauvegarde ; cinq oracles 225 intacts.

@@ -46,6 +46,7 @@ episodes = _memoire_observation.episodes
 faits_connus = _memoire_observation.faits_connus
 reponses_retenues = _memoire_observation.reponses_retenues
 recherches_retenues = _memoire_observation.recherches_retenues
+renoncements_retenus = _memoire_observation.renoncements_retenus
 
 SCENARIOS_DEFAUT = ("relais", "mine", "auberge", "crue", "crue_hameau")
 SALLES_JOUEUR = {
@@ -633,7 +634,7 @@ class SondeAvis:
             "moyen_admissible": not any(
                 deliberation.renoncement_tient(monde, id, r,
                                                (dec["but"], dec.get("plan", [])))
-                for retenus in lire(monde, id).get("renoncements", {}).values()
+                for retenus in renoncements_retenus(monde, id).values()
                 if isinstance(retenus, list) for r in retenus) if dec["cle"] else False,
         })
 

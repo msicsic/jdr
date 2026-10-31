@@ -6,7 +6,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from donjon import planification as p
+from donjon import memoire, planification as p
 from donjon.esprits import croire, esprit
 from donjon.monde import Monde
 from donjon.moteur import Moteur, proposition
@@ -22,7 +22,8 @@ def joss():
 
 
 def chercher_besoin(m, id, besoin):
-    with p.vues_du_choix(m, id):
+    # Ce harnais publie une sélection complète ; vues_du_choix seul est un devis.
+    with memoire.choix_complet(m, id), p.vues_du_choix(m, id):
         return p.planifier(m, id, besoin)
 
 
@@ -80,7 +81,7 @@ class AttenteBorneeTests(unittest.TestCase):
         m = brune_affamee()
         esprit(m, "brune")["besoins"]["faim"] = 94
         def chercher(m):
-            with p.vues_du_choix(m, "brune"):
+            with memoire.choix_complet(m, "brune"), p.vues_du_choix(m, "brune"):
                 return p.chercher(m, "brune", p.a_mange, nom="faim", memo=["besoin", "faim"],
                                  emplois=("manger",), motif="faim", noeuds=1)
         with p.diagnostics() as recherches:
@@ -110,7 +111,7 @@ class AttenteBorneeTests(unittest.TestCase):
         m = brune_affamee()
         esprit(m, "brune")["besoins"]["faim"] = 94
         def chercher(m):
-            with p.vues_du_choix(m, "brune"):
+            with memoire.choix_complet(m, "brune"), p.vues_du_choix(m, "brune"):
                 return p.chercher(m, "brune", p.a_mange, memo=["condition"], noeuds=1)
         with p.diagnostics() as recherches:
             chercher(m)
@@ -150,7 +151,7 @@ class AttenteBorneeTests(unittest.TestCase):
                 requete()
                 raise RuntimeError("choix interrompu")
         self.assertEqual(m.data, avant)
-        with patch.object(p, "VERIFIER", True), p.vues_du_choix(m, "brune"):
+        with memoire.choix_complet(m, "brune"), patch.object(p, "VERIFIER", True), p.vues_du_choix(m, "brune"):
             # Contrôler ici la frontière de lecture seule, indépendamment du
             # contrôle de qualité de la recherche à un seul nœud.
             with patch.object(p, "VERIFIER", False):
