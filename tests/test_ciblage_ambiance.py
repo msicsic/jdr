@@ -4,6 +4,8 @@ import unittest
 
 from donjon.faits_locaux import preparer_faits
 from donjon.monde import ErreurMonde
+from donjon.noms import reference
+from donjon.voix import reel
 from donjon.moteur import Moteur, proposition
 from donjon.narration import (AuditIllisible, ambiance_ciblee, consigner, controler,
                               elements_ambiance, schema_audit)
@@ -43,20 +45,30 @@ class CiblageAmbianceTests(unittest.TestCase):
                 ajout = dict(type="objet", ancrage=source["id"], nom=nom, genre="m",
                              texte="Sa surface est mate.", materiau=matiere, masse=0.2,
                              mobile=True, relation="pose", capacites=[])
-                reponse = faits(ajout, proposition("prendre", source["id"]) if index == 0 else None)
+                # La référence existe avant toute adoption ou sauvegarde, sur
+                # la copie où la suite jointe va être préparée (lot 433).
+                registre = copy.deepcopy(m.data['references_personnes'])
+                travail, _, etablis = preparer_faits(m, {'ajouts': [ajout]})
+                neuf = etablis[0]['objet']
+                self.assertIn(neuf, travail.data['references_personnes'])
+                ref = reference(travail, neuf)
+                self.assertEqual(reel(travail, ref), neuf)
+                self.assertEqual(m.data['references_personnes'], registre)
+                reponse = faits(ajout, proposition("prendre", source["id"]))
                 reponses = [reponse, revue(reponse)]
-                if index:
-                    reponses.append(action(proposition("prendre", source["id"])))
                 r, texte, appels = jouer(m, "mj je ramasse " + nom,
                                          reponses, [], suite=("tenter",))
                 id = elements_ambiance(r)[0]["objet"]
+                self.assertEqual(id, neuf)
+                self.assertEqual(r.data['references_personnes'][id], travail.data['references_personnes'][id])
+                self.assertEqual(reel(r, ref), id)
                 self.assertEqual(r.objets[id]["lieu"], "joueur")
                 self.assertEqual(sum(o["nom"] == nom for o in r.objets.values()), 1)
                 self.assertIn(nom, texte)
                 self.assertIn("Compris :", texte)
                 self.assertEqual([f for f, _ in appels],
                                  ["repondre_au_joueur", "auditer_portee"]
-                                 + (["repondre_au_joueur"] if index else []) + ["auditer_action"])
+                                 + ["auditer_action"])
                 self.assertIn("Sa surface est mate.", decrire(r, id, detail=True))
                 # Une nouvelle proposition de création, même sur le support initial,
                 # retrouve l'objet emporté ; elle ne consomme plus de budget.
@@ -69,6 +81,8 @@ class CiblageAmbianceTests(unittest.TestCase):
                 self.assertEqual(elements_ambiance(apres)[0]["objet"], id)
                 self.assertIn(decrire(apres, id, detail=True), affichage)
                 recharge = recharger(apres)
+                self.assertEqual(reference(recharge, id), ref)
+                self.assertEqual(reel(recharge, ref), id)
                 self.assertEqual((regarder(apres), scene_percue(apres)),
                                  (regarder(recharge), scene_percue(recharge)))
                 # L'éviction de la prose bornée ne permet pas un second exemplaire.
@@ -104,11 +118,13 @@ class CiblageAmbianceTests(unittest.TestCase):
         m, _, _, _ = next(creation.CreationInteractiveTests().scenes())
         m, prose, _, _ = publier(m, "", "odeur de terre", False)
         avant = copy.deepcopy(m.objets)
+        registre = copy.deepcopy(m.data['references_personnes'])
         source = elements_ambiance(m)[0]
         p = action(proposition("prendre", source["id"]))
         r, texte, appels = jouer(m, "mj je ramasse cette odeur de terre", [p, p], [])
         self.assertIn("sans objet à manipuler", texte)
         self.assertEqual(r.objets, avant)
+        self.assertEqual(r.data['references_personnes'], registre)
         self.assertNotIn("objet", elements_ambiance(recharger(r))[0])
         self.assertEqual(r.data["ambiances"][r.joueur["salle"]][0]["texte"], prose)
         self.assertNotIn("auditer_action", [f for f, _ in appels])
@@ -124,6 +140,7 @@ class CiblageAmbianceTests(unittest.TestCase):
         m.data["salles"][m.joueur["salle"]]["potentiel_invention"]["objets_max"] = 0
         m = recharger(m)
         avant = copy.deepcopy(m.objets)
+        registre = copy.deepcopy(m.data['references_personnes'])
         source = copy.deepcopy(elements_ambiance(m)[0])
         ajout = dict(type="objet", ancrage=source["id"], nom=nom, genre="m",
                      texte="Sa surface est mate.", materiau=matiere, masse=0.2,
@@ -131,6 +148,7 @@ class CiblageAmbianceTests(unittest.TestCase):
         reponse = faits(ajout, proposition("prendre", source["id"]))
         r, texte, appels = jouer(m, "mj je ramasse " + nom, [reponse, reponse], [])
         self.assertEqual(r.objets, avant)
+        self.assertEqual(r.data['references_personnes'], registre)
         self.assertEqual(elements_ambiance(r)[0], source)
         self.assertIn("ne recèle plus rien", texte)
         self.assertFalse(r.data.get("inventions"))

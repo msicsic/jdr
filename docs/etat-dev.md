@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-reference-neuve` (3401e4f1) : lot 433, une entité créée est désignable dès sa création. Détail dans l'historique.
 - `codex-k1-editeur-marche` (e0f61054) : lot 429, K1 éditeur de marché à deux termes. Détail dans l'historique.
 - `codex-refus-rendu-attendu` (2b417949) : lot 432, un refus du rendu porte son attendu. Détail dans l'historique.
 - `codex-d0-parole-ouverte` (cf113fba) : lot 428, D0 parole ouverte personnelle. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-piece-de-lot-libre` (afb76e9a) : lot 423, une pièce de lot par la saisie libre. Détail dans l'historique.
 - `codex-g13-qualification` (564fb648) : lot 422, G13 qualifier une propriété inconnue avant usage. Détail dans l'historique.
 - `codex-g12-portee-creation` (7dc862b0) : lot 421, G12 portée d'une création interactive. Détail dans l'historique.
-- `codex-s1n-suivis-relationnels` (36f37037) : lot 420, S1n suivis relationnels par une preuve stable. Détail dans l'historique.
 
 ## Lots non fusionnés
 

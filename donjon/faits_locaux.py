@@ -10,6 +10,7 @@ from .geometrie import placer
 from .monde import ErreurMonde, normaliser, objet, reference_exacte
 from .perception import eclairage
 from .refus import cibles
+from .noms import inscrire
 from .matiere import (SCHEMA as SCHEMA_PHYSIQUE, SCHEMA_CONTENU, appliquer as appliquer_physique,
                       decrire as decrire_physique, decrire_contenu, valider as valider_physique,
                       valider_contenu, SCHEMA_PASSAGE, valider_passage, decrire_passage)
@@ -656,6 +657,7 @@ def preparer_faits(monde, proposition, revision=None):
                 if ajout["relation"] == "fixe" and support.get("ancrage_carte"):
                     detail["ancrage_carte"] = list(support["ancrage_carte"])
         travail.objets[id] = detail
+        inscrire(travail, id)
         travail.data.setdefault("faits_vus", []).append({
             "objet": id, "nom": detail["nom"], "salle": travail.joueur["salle"],
             "description": detail.get("description_visuelle", ""),

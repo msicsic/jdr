@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-reference-neuve` — **433**, base reçue `1c7df834` (integration), PC fixe.
+  Toute création proposée reçoit sa référence sur la copie transactionnelle avant rendu ou suite ;
+  inscription commune aux compléments et faits locaux, qualifications stables, rejet sans écriture.
+  R58 mains/yeux et G14 Relais/atelier avec prise jointe, état et vue après recharge : verts.
+  19/19 tests modifiés verts ; sélection : 103 tests, 102 méthodes vertes ; un test de noms en erreur
+  (deux sous-cas), reproduit sur la base. Sans Luna ni suite complète. [Rapport](taches/rapport-codex-433-reference-neuve.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. noms.inscrire, porte commune idempotente des références, appelée par noms.installer (installation, adoption, recharge) et dès l'ajout par enrichissement.preparer_complements et faits_locaux.preparer_faits ; rejet sans trace dans le registre. R58 (mains d'Aubin, element_47) décrit et stable après recharge ; pierre et éclat G14 créés puis pris dans la même proposition. 19/19 tests modifiés, 102/103 voisins (erreur préexistante de test_noms, frontière MJ, reproduite sur la base).
+
 - `codex-k1-editeur-marche` — lot 429, base `integration` `b941c492` : éditeur à deux termes publics,
   mêmes clauses à l’aperçu et à `echanges.proposer` ; adaptateur K0/E5 conservé, libre non daté après revue.
   Web, console et TUI partagent les termes ; clauses inconnues refusées avec `attendu`, sans effet.

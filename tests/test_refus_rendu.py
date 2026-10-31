@@ -1,4 +1,4 @@
-"""Lot 432 : du refus du rendu à la correction, sans fuite ni écriture partielle."""
+"""432/433 : refus du rendu et références neuves, sans fuite ni écriture partielle."""
 import ast
 import copy
 import gzip
@@ -6,13 +6,10 @@ import inspect
 import json
 from pathlib import Path
 import unittest
-from unittest.mock import patch
 
 from donjon import narration, rendu
 from donjon.enrichissement import preparer_complements
-from donjon.mj import MJOpenAI
 from donjon.monde import ErreurMonde, Monde, nouveau_monde
-from donjon.moteur import proposition
 from donjon.noms import reference, references
 from donjon.voix import reel
 from tests import test_attendu_designable
@@ -31,7 +28,7 @@ class RefusRenduTests(unittest.TestCase):
     def assertPublic(self, m, attendu, recus=()):
         test_attendu_designable.AttenduDesignableTests.assertReferences(self, m, attendu, recus)
 
-    def test_r58_et_autre_partie_correction_console_et_recharge(self):
+    def test_r58_et_autre_partie_admises_console_et_recharge(self):
         f = capture()
         for facette in ('mains', 'yeux'):
             with self.subTest(facette=facette):
@@ -41,45 +38,34 @@ class RefusRenduTests(unittest.TestCase):
                 ajout['facette'] = facette
                 if facette == 'yeux':
                     ajout['description'] = 'Ses yeux sont gris clair.'
-                avant, vue = copy.deepcopy(m.data), rendu.regarder(m)
+                avant = copy.deepcopy(m.data)
                 travail = preparer_complements(m, references(m, reponse['proposition']))
                 id = 'detail_aubin_' + facette
                 ref = reference(travail, id)
-                # Cause réelle : corps et détail visibles, référence neuve indécodable.
+                # Lot 433 : l'inscription précède les attestations de la copie.
                 self.assertTrue(travail.visible('aubin'))
                 self.assertTrue(travail.visible(id))
-                self.assertIsNone(reel(travail, ref))
-                with (patch.dict('os.environ', {'OPENAI_API_KEY': 'test'}),
-                      patch.object(MJOpenAI, '_appeler_brut', return_value=copy.deepcopy(reponse))):
-                    with self.assertRaises(ErreurMonde) as leve:
-                        MJOpenAI(connexion='api')._echanger_prepare(m, f['saisie'])
-                exc = leve.exception
-                self.assertEqual(str(exc), "Cet objet n'est pas visible.")
-                self.assertIn('decrire.cible', exc.attendu)
-                self.assertIn(repr(ref), exc.attendu)
-                acceptes = exc.attendu.split('acceptés : ', 1)[1]
-                self.assertNotIn(ref, acceptes)
-                self.assertIn('planches', acceptes)
-                self.assertPublic(travail, exc.attendu)
+                self.assertEqual(reel(travail, ref), id)
+                self.assertIn(id, travail.data['references_personnes'])
+                description = ajout['description']
+                self.assertEqual(rendu.decrire(travail, ref), description)
+                self.assertIn(description, narration.attestations(travail, travail.contexte()))
                 self.assertEqual(m.data, avant)
-                self.assertEqual(recharger(m).data, avant)
-                self.assertEqual(rendu.regarder(recharger(m)), vue)
-
-                # Correction vers une cible proposée par le refus : examen moteur.
-                # La capture n'a pas encore la qualification permettant de prélever.
-                p = proposition('examiner', 'planches')
-                corrigee = {'mode': 'action', 'texte': '', 'faits': [], 'proposition': p}
+                # La réponse capturée est inchangée pour les mains. La suite du
+                # fournisseur formule seulement le complément effectivement admis.
                 reprise, sortie, appels = jouer(m, 'mj ' + f['saisie'],
-                    [reponse, corrigee], [], suite=('mj examine les planches',))
-                self.assertIn(str(exc), sortie)
-                self.assertNotIn(exc.attendu, sortie)
-                self.assertNotIn(ajout['description'], sortie)
-                self.assertNotIn(id, reprise.objets)
-                self.assertEqual(reprise.objets, m.objets)
-                self.assertIn('planches', reprise.data['connus'])
-                self.assertIn(rendu.decrire(reprise, 'planches', detail=True), sortie)
+                    [reponse, dialogue(description)],
+                    [rapport(ligne('mecanique', sources=['attestations']))])
+                self.assertIn(description, sortie)
+                self.assertNotIn("Cet objet n'est pas visible.", sortie)
+                self.assertEqual(reel(reprise, ref), id)
+                self.assertEqual(reference(reprise, id), ref)
+                self.assertEqual(reprise.objets[id], travail.objets[id])
+                self.assertEqual(reprise.objets['planches'], avant['objets']['planches'])
+                self.assertIn(description, rendu.decrire(recharger(reprise), ref))
                 self.assertEqual(rendu.regarder(reprise), rendu.regarder(recharger(reprise)))
                 self.assertEqual(rendu.fiche(reprise), rendu.fiche(recharger(reprise)))
+                self.assertEqual(m.data, avant)
                 self.assertEqual([fn for fn, _ in appels].count('repondre_au_joueur'), 2)
 
     def test_parcours_des_refus_du_rendu_sans_fuite(self):
