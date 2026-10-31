@@ -135,8 +135,8 @@ def voisines(monde, salle):
 
 def eau_crue(monde, id, salle):
     """Ce que le PNJ croit de l'eau dans une salle, en cm ; 0 s'il n'en sait rien."""
-    from .esprits import lire
-    c = lire(monde, id)["croyances"].get(salle, {}).get("eau")
+    from .memoire import mesure_eau
+    c = mesure_eau(monde, id, salle)
     return c["valeur"] if c else 0
 
 
@@ -151,14 +151,13 @@ def borner(monde, id, estimation):
     caché sous le sol. Une salle non revue n'apporte aucune preuve nouvelle.
     Renvoie aussi la preuve qui a abaissé la droite, pour sa provenance.
     """
-    from .esprits import lire
+    from .memoire import mesures_eau
     minute, niveau_vu, montee = estimation
     if montee <= 0:
         return estimation, None
     borne = None
     salle_bornee = None
-    for salle, attributs in sorted(lire(monde, id)["croyances"].items()):
-        c = attributs.get("eau")
+    for salle, c in sorted(mesures_eau(monde, id).items()):
         if (salle not in monde.data["salles"] or not c
                 or c["source"] not in ("vu", "essai", "savoir") or c["minute"] < minute):
             continue
@@ -179,9 +178,8 @@ def estimation(monde, id):
     """(minute, niveau, montée en cm/h) : droite du dernier niveau vu,
     bornée par les observations suivantes, et dernière vitesse mesurée
     entre deux repères ; None sans mesure de vitesse."""
-    from .esprits import lire
-    vues = [c for a in lire(monde, id)["croyances"].values()
-            if (c := a.get("eau")) and c.get("niveau") is not None]
+    from .memoire import mesures_eau
+    vues = [c for c in mesures_eau(monde, id).values() if c.get("niveau") is not None]
     # Revoir une salle rafraîchit son niveau, pas la date de sa vitesse :
     # celle-ci n'est remesurée qu'au renouvellement du repère. Sinon, passer
     # devant deux salles promeut tour à tour deux anciennes pentes opposées.
@@ -306,9 +304,10 @@ def percevoir(monde, id):
 def observer(monde, id, salle, source="vu"):
     """Ce qu'il voit de l'eau d'une salle devient croyance : sa hauteur, le niveau, et la vitesse
     depuis son repère ; la voir gagner la salle inquiète."""
-    from .esprits import croire, lire
+    from .esprits import croire
+    from .memoire import mesure_eau
     t, vue = monde.data["minutes"], profondeur(monde, salle)
-    avant = lire(monde, id)["croyances"].get(salle, {}).get("eau") or {}
+    avant = mesure_eau(monde, id, salle) or {}
     if id != "joueur" and _rang(vue) > _rang(avant.get("valeur", 0)):
         from .deliberation import inquieter
         inquieter(monde, id, "crue")

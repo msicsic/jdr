@@ -926,21 +926,9 @@ def _entendu(monde, id, auditeur, noyau, rang, lignes):
 
 
 def recevoir_statuts(monde, id, locuteur, sujet, valeurs, *, minute=None, confiance=.7):
-    """Une prétention pèse comme sa voix, jamais comme le statut qu'elle revendique."""
-    from .esprits import croyance, verifier_statuts, poids_source
-    from .voix import source_dite
-    import copy
-    verifier_statuts(monde, valeurs)
-    source = source_dite(monde, id, locuteur)
-    ancienne = croyance(monde, id, sujet, "statuts")
-    minute = monde.data["minutes"] if minute is None else minute
-    nouvelle = {"source": source, "confiance": confiance}
-    if ancienne and (ancienne["minute"] > minute or
-                     poids_source(monde, id, ancienne) * ancienne["confiance"] >
-                     poids_source(monde, id, nouvelle) * confiance):
-        return "dementi"
-    croire(monde, id, sujet, "statuts", copy.deepcopy(valeurs), source, confiance, minute=minute)
-    return "crue"
+    """Façade de la révision déclarée des prétentions de statut."""
+    return memoire.recevoir_statuts(monde, id, locuteur, sujet, valeurs,
+                                   minute=minute, confiance=confiance)
 
 
 def recevoir(monde, id, locuteur, c):
