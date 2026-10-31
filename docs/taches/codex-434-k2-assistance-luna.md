@@ -20,7 +20,7 @@ Mesure demandée (ligne K2 du plan) : nombre d'alternatives utiles **absentes de
 appels jusqu'à une offre utile ; pas la quantité de texte.
 
 ## Contraintes
-**Poste : le laptop.** Fichiers attendus : `donjon/compilateur.py`, `donjon/echanges.py`, `donjon/dialogues.py`,
+**Poste : le laptop.** Fichiers attendus : `donjon/compilation.py`, `donjon/comprehension.py`, `donjon/echanges.py`, `donjon/dialogues.py`,
 `donjon/accords_publics.py`, rendu web/console/TUI au besoin, tests. Lots en cours : 402 (calcul), 431 (admission
 préalable, `portee_narrative.py`, `mj.py`), 433 (références des entités créées, `noms.py`, `enrichissement.py`).
 Pendant S1, n'ajoute aucun registre d'esprit. Deux processus au plus, priorité réduite.
