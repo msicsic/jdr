@@ -45,12 +45,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-s1j-paroles-voix` — 406, base `integration b4130dc3`, code `914dbb07` : première partie,
   dits, audiences et savoir initial par `memoire`, stockage et comportement historiques conservés.
-  AST dédié 122 → 0 ; 235/235 tests distincts verts, dont cinq nouveaux ; état complet, rendu, scène et paroles
-  après recharge, laps entier/découpé. Intégration `4539dd68` fusionnée sans conflit ; empreintes puis passe courte en cours.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/s1j-406/fin-integration.json`. Identité vocale et noms restent à porter.
+  AST dédié 122 → 0 ; 235/235 tests distincts verts, puis 10/10 après fusion ; cinq nouveaux tests.
+  Empreintes 2 h × 4 graines × Relais/mine/auberge/crue : 16/16 identiques à la base exacte ; état complet et rendu après recharge.
+  Intégration `b9bef393` fusionnée (dernier conflit documentaire résolu). Aucun calcul restant ; identité vocale et noms à porter.
   [Rapport et limites](taches/rapport-codex-406-s1j-paroles-voix.md).
 
-Lots en cours : 403 (rouges nouveaux de la suite c562aa21), 406 (S1j paroles et voix), 407 (A2 consultation sociale) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 407 (A2 consultation sociale), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

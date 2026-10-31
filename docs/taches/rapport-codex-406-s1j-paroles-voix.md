@@ -3,6 +3,8 @@
 31 octobre 2026 · `codex-s1j-paroles-voix` · base exacte `integration b4130dc3`.
 Code mesuré : **`914dbb07`**. Livraison partielle cohérente prévue par le brief.
 Intégration `4539dd68` fusionnée sans conflit (`3ca41108`), aucun recouvrement de code.
+Puis `b9bef393` (documentation seule), conflit d'état-dev résolu en conservant les deux apports.
+**Lot clos sur ce périmètre ; aucun calcul restant.**
 
 **Invariant porté.** Les registres `faits_dits` et `faits_initiaux` ne se lisent et
 ne se modifient plus hors de `memoire`, hormis leur déclaration de schéma et leur
@@ -37,18 +39,22 @@ JSON, lignes, rendu, scène et émissions identiques ; non-répétition contrôl
 Copies imbriquées, saturation, absence d'adoption implicite et ancien registre
 d'auditeurs également vérifiés.
 
-**Vérification détachée en cours.** Empreintes 2 h × quatre graines
-1985/7/42/2024 × Relais/mine/auberge/crue, sur les commits
-exacts `b4130dc3` et `914dbb07`, avec cache partagé. Deux travailleurs au plus,
-priorité réduite, étapes successives. Aucune suite complète ni Luna.
-Résultats attendus dans `C:/Users/msics/donjon/artifacts/s1j-406/` :
-`tests-metier.json/log`, `empreintes-base.json/log`, puis `fin.json`. Ensuite,
-`apres406.py` lance en série la porte S1j renforcée et les audiences après fusion
-(copies, schéma, mots effectivement émis/retenus, chaîne complète).
-**`fin-integration.json` est le marqueur final**, écrit après
-`tests-apres-integration.json/log`. Les premiers résultats et l'inventaire avant
-portage y sont conservés. L'identité des seize nuits n'est pas encore acquise ;
-ces empreintes précèdent la fusion et ne mesurent pas l'intégration nouvelle.
+**Empreintes : 16/16 identiques.** 2 h × quatre graines 1985/7/42/2024 ×
+Relais/mine/auberge/crue, commits exacts `b4130dc3` et `914dbb07` : chronique,
+mesures et état final complet identiques, sans exclusion ni plantage. Avis et
+constats auxiliaires concordants : zéro avis non justifié, vingt à expliquer
+de chaque côté. Les seize nuits de référence puis de branche ont été jouées
+et rangées dans le cache partagé ; aucun temps comparé. Deux travailleurs au
+plus, priorité réduite, étapes successives. Aucune suite complète ni Luna.
+Ces empreintes précèdent la fusion du 403 ; elles ne mesurent pas cette nouvelle
+intégration. Après fusion, **10/10 tests verts** (13,8 s, `1e3e378b`) : porte S1j
+renforcée et audiences, dont mots effectivement émis/retenus et chaîne complète.
+La dernière fusion est documentaire ; aucun code n'a changé depuis cette passe.
+
+**Bruts.** `C:/Users/msics/donjon/artifacts/s1j-406/` : premiers tests et inventaire
+avant portage, `tests-metier.json/log`, `empreintes-base.json/log`, `fin.json`,
+`tests-apres-integration.json/log` et **`fin-integration.json` (`succes: true`)**.
+Les scripts détachés `run406.py` et `apres406.py` et la conclusion y restent.
 
 **Limites et suite.** L'identité vocale reste à porter : voix connues et entendues,
 prétentions, imposture, noms appris, échanges retenus et leurs migrations et
@@ -58,5 +64,5 @@ L'ancienne limite de `_sait` et la rétention historique restent inchangées.
 Aucun changement dans les fonctions de passage du 381 ; aucun recouvrement avec
 le code du 403 (`corps`, `ecoute`), fusionné tel quel. `historique-lots.md` est
 modifié uniquement par cette fusion du superviseur. Ni nouvel oubli ni nouveau
-jugement social. Branche livrée avec calcul détaché ; relire le marqueur final
-avant de clore sa vérification.
+jugement social. La vérification est terminée ; la suite de S1j porte l'identité
+vocale, sans présenter cette livraison comme l'invariant complet du brief.
