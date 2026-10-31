@@ -28,12 +28,12 @@ CAPACITES = ("crochetage",)
 OPERATIONS = ("aller", "prendre", "poser", "ouvrir", "fermer", "deverrouiller", "verrouiller",
               "crocheter", "manger", "inspecter", "reposer", "chauffer", "abriter", "alimenter", "allumer", "eteindre",
               "servir", "frapper", "assommer", "dans_le_dos", "ranimer", "fuite", "se_rendre", "degager",
-              "dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager", "proposer", "interposer", "rester")
+              "dire", "demander", "acheter", "confier", "remettre", "rembourser", "demander_feu", "engager", "proposer", "interposer", "rester")
 PROGRESSIFS = ("aller", "reposer", "chauffer", "abriter", "rester")  # gestes qui durent : une minute sans les finir n'est pas un échec
 EFFORTS = ("aller", "prendre", "poser", "crocheter", "frapper", "alimenter", "servir", "inspecter")  # gestes qui creusent
 # demander_feu : tendre sa source à qui porte une flamme pour qu'il l'y allume (``echanges.demander_feu``).
 # engager : payer quelqu'un pour une tâche (``echanges.engager``).
-SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "demander_feu", "engager", "proposer")
+SOCIALES = ("dire", "demander", "acheter", "confier", "remettre", "rembourser", "demander_feu", "engager", "proposer")
 A_VUE = ("crocheter",)  # gestes qui demandent d'y voir (``planification.chance_crochetage``)
 PROFONDEUR = 4
 PATIENCE = 30          # minutes passées à attendre une occasion (ou un passage) avant de renoncer
@@ -1709,6 +1709,11 @@ def _plan_creance(monde, id):
     return reclamer(monde, id)
 
 
+def _plan_remboursement(monde, id):
+    from .planification import rembourser
+    return rembourser(monde, id)
+
+
 def _plan_froid(monde, id):
     """Se réchauffer : le plan le moins coûteux trouvé par la recherche (``planification``)."""
     from .planification import planifier
@@ -2124,8 +2129,9 @@ def _candidats(monde, id):
                     demande={"condition": x["condition"], "tache": True})
     # L'argent : un poids permanent, qui ne presse jamais ; il ne passe qu'après tout le reste.
     # Ce qu'on lui doit d'abord, puis des pièces à prendre.
-    ajouter(ARGENT, _plan_creance, Palier.ARGENT, (0,), routine=True)
-    ajouter(ARGENT, _plan_argent, Palier.ARGENT, (1,), routine=True)
+    ajouter(ARGENT, _plan_remboursement, Palier.ARGENT, (0,), routine=True)
+    ajouter(ARGENT, _plan_creance, Palier.ARGENT, (1,), routine=True)
+    ajouter(ARGENT, _plan_argent, Palier.ARGENT, (2,), routine=True)
     yield from sorted(buts, key=lambda c: c.urgence.cle())
 
 

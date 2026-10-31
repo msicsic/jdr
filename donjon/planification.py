@@ -3677,6 +3677,47 @@ def devis_enrichissement(monde, id):
     return cout, {"type": "argent", "objet": pris}, retablir(v, e, etapes)
 
 
+def rembourser(monde, id):
+    """Rendre son dû plutôt que commettre la faute de le garder : même prix moral.
+
+    Le chemin et les pièces dépensées se comparent au prix de la faute.
+    Aucune position réelle du créancier n'entre dans la préparation du plan.
+    """
+    from .biens import dettes, richesse, garde_du
+    from .caractere import ARGENT, prix_faute, valeur_pieces
+    du = {}
+    for d in dettes(monde):
+        if d['de'] == id and d['montant'] > 0:
+            du[d['a']] = du.get(d['a'], 0) + d['montant']
+    fonds = richesse(monde, id)
+    if not du or not fonds:
+        return None
+    v = vue(monde, id)
+    e = depart(monde, id, v)
+    meilleur = None
+    faute = prix_faute(monde, id, ARGENT)
+    for a in sorted(du):
+        montant = min(du[a], fonds)
+        if garde_du(monde, id, montant):
+            continue
+        salle = v.salle(e, a)
+        if salle is None:
+            continue
+        trouve = ((0, [], e) if salle == e.salle else chercher(
+            monde, id, lambda v, e, s=salle: e.salle == s, nom='rembourser:' + a,
+            memo=['rembourser', a, salle], emplois=(), motif=ARGENT))
+        if trouve is None:
+            continue
+        cout = trouve[0] + valeur_pieces(monde, id, montant, depense=True)
+        if faute is not None and cout > faute:
+            continue
+        if meilleur is None or cout < meilleur[0]:
+            meilleur = (cout, a, _couper(trouve[1]) + [_etape('rembourser', a)])
+    if meilleur is None:
+        return None
+    return {'type': 'rembourser', 'qui': meilleur[1]}, meilleur[2]
+
+
 def reclamer(monde, id):
     """(but, étapes) pour aller trouver qui lui doit des pièces (``biens.dettes``) ou garde un objet
     qu'il lui a prêté au-delà de l'échéance (``biens.echu``), là où il le croit, quand ce qu'il lui

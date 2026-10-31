@@ -43,6 +43,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-rembourser-dette` — lot 388, base `integration ea3c70e0` (laptop) : remboursement volontaire typé commun joueur/PNJ ; dette, audience, fonds et montant vérifiés avant transfert.
+  U-C confirme le débit de Corvus ; fiche, paroles enregistrées, épreuve relationnelle et sauvegarde raccordées, sans nouveau registre.
+  Tests ciblés, bancs Relais/auberge 4 h × quatre graines et une passe Luna sur copies en cours ; aucune vérification finale acquise.
+  Fin attendue : `C:/Users/msics/donjon/artifacts/rembourser-388/fin-verification.json`.
+  [Rapport 388](taches/rapport-codex-388-rembourser-dette.md). Non fusionné.
+
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
 (U-M social comptes), 381 (A2 passage), 388 (rembourser une dette en pièces). Suite complète en cours sur `663d1308`. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 

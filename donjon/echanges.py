@@ -1830,6 +1830,23 @@ def executer(monde, id, etape, lignes):
     from .spatial import porte_par
     autre, op = etape["cible"], etape["operation"]
     contenu = etape.get('contenu', {})
+    if op == 'rembourser':
+        from .biens import dues, richesse, garde_du, rembourser_dette
+        from .monde import ErreurMonde
+        du = sum(d['montant'] for d in dues(monde, id, autre))
+        if not du:
+            return True  # Compte soldé depuis la préparation du geste.
+        montant = min(du, richesse(monde, id))
+        if not montant or garde_du(monde, id, montant):
+            return False
+        try:
+            issue = rembourser_dette(monde, id, autre, montant)
+        except ErreurMonde:
+            return False
+        texte = (f"{_qui(monde, id)} dit à {_qui(monde, autre)} : « Je te rends "
+                 f"{quantite(issue['remboursement'], 'pièce')}. »")
+        faire_entendre(monde, id, autre, texte, [], lignes, acte='remboursement')
+        return True
     charge = contenu.get('mandat') or contenu.get('retrait_mandat')
     if charge:
         agendas.actualiser(monde, id)

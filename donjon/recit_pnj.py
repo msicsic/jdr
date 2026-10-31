@@ -119,6 +119,8 @@ def _but(monde, but, *, titulaire=None):
         return "prendre des pièces : " + _objet(monde, o)
     if t == "reclamer":
         return "réclamer son dû à " + court(monde, but["qui"])
+    if t == "rembourser":
+        return "rembourser sa dette à " + court(monde, but["qui"])
     if t == "pulsion":
         if "periode" in but:
             return "ronde : " + _salle(monde, but["lieu"])
