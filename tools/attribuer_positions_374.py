@@ -7,6 +7,7 @@ import argparse
 import copy
 import gzip
 import importlib
+import importlib.util
 import json
 from pathlib import Path
 import subprocess
@@ -19,6 +20,13 @@ sys.path[:] = [str(RACINE), *[p for p in sys.path if Path(p or '.').resolve() no
 importlib.import_module('tests')
 sys.path.append(str(RACINE / 'tools'))
 from priorite import ceder
+
+# L'observation courante sait lire une référence antérieure à cette vue.
+_spec_memoire = importlib.util.spec_from_file_location(
+    'donjon._memoire_attribution', SCRIPT.parents[1] / 'donjon/memoire.py')
+_memoire_observation = importlib.util.module_from_spec(_spec_memoire)
+_spec_memoire.loader.exec_module(_memoire_observation)
+lieux_ecartes = _memoire_observation.lieux_ecartes
 
 
 def ecrire(chemin, valeur):
@@ -127,7 +135,7 @@ def capturer(scenario, graine, dossier, checkpoints_extra=()):
                  'croyance': copy.deepcopy(c), 'positive': copy.deepcopy(positives.get(cle)),
                  'verification_expiree': expiree,
                  'repetition_sans_preuve': bool(expiree and ancienne and generation <= ancienne['generation']),
-                 'exclusions': copy.deepcopy(e['recherches'].get(sujet, {}))}
+                 'exclusions': lieux_ecartes(m, acteur, sujet)}
         event['capture'] = photo(m, f'verification-{len(evenements)}')
         evenements.append(event)
         # Une cible revue en chemin est une preuve neuve déjà fraîche quand

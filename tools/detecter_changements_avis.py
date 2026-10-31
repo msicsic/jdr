@@ -45,6 +45,7 @@ _spec_memoire.loader.exec_module(_memoire_observation)
 episodes = _memoire_observation.episodes
 faits_connus = _memoire_observation.faits_connus
 reponses_retenues = _memoire_observation.reponses_retenues
+recherches_retenues = _memoire_observation.recherches_retenues
 
 SCENARIOS_DEFAUT = ("relais", "mine", "auberge", "crue", "crue_hameau")
 SALLES_JOUEUR = {
@@ -298,7 +299,7 @@ def relever_entrees(monde, id, minute):
             s["de"] for s in episodes(monde, id)
             if s["type"] == "creance_vaine" and minute - s["minute"] < deliberation.REDEMANDE
         }),
-        "recherches": [[q, sorted(deliberation.appels_vains(monde, id, q))] for q in sorted(e.get("recherches", ()))],
+        "recherches": [[q, sorted(deliberation.appels_vains(monde, id, q))] for q in sorted(recherches_retenues(monde, id))],
         "charges": [[x["pour"], x["condition"], bool(x.get("annule"))] for x in agendas.en_cours(monde, id)],
         "engagements_tenus": [copy.deepcopy(s) for s in episodes(monde, id)
                               if s["type"] == "engagement_tenu" and "pour" in s],

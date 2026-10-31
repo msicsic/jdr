@@ -1198,7 +1198,7 @@ def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
         dit = [(sujet, c["valeur"])] if not arret and c and c["valeur"] in monde.data["salles"] else []
         issue = arret or ("dit" if dit else "rien")
         origine = dict(c.get("origine") or {"source": c["source"], "minute": c["minute"]}) if c else None
-        verifie = lire(monde, demandeur)["recherches"].get(sujet, {}).get(c["valeur"], -1) if dit else -1
+        verifie = memoire.lieux_ecartes(monde, demandeur, sujet).get(c["valeur"], -1) if dit else -1
         appris = bool(dit and origine["minute"] >= verifie
                       and not dementi(monde, demandeur, sujet, "lieu", c["valeur"]))
         if appris:
