@@ -6,6 +6,13 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-empreintes-374` — lot 424, base intégration `a874d646` : attribution de la famille E du 414.
+  Quatre hashes monde conservés après contrôle exact de la règle sauvegardée du 374 ; seuls deux graphes mine réancrés.
+  Preuve : Gaspard cru en galerie depuis 459, périmé à 480 ; sa seule expiration explique chaque successeur changé.
+  Aucun code moteur ; 26/26 tests ciblés verts en 64,4 s, monde/rendu rechargés. Pas de certification globale du 374.
+  [Rapport et tableau des écarts](taches/rapport-codex-424-empreintes-374.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Fusionné sur l'intégration : tests seulement, aucun code du jeu. Chaque écart attribué : champ positions_hypotheses ajouté par le 374 (quatre hashes d'origine gardés sur le reste du monde) ; Rémy mine 480 a entendu Gaspard à 459, présence expirée (confiance 0,379 ≤ 0,5), d'où le contact préalable (a_mange 503/2383/576 → 945/5678/1350, eclaire 6 → 8 successeurs) ; ablation de la seule position de Gaspard qui restitue chaque appel du parent. 26/26 tests verts.
+
 - `codex-piece-de-lot-libre` — lot 423, base `integration 07e270be`, code `ab0f9105`.
   Contrat commun pièce/lot entier, quantités par étape dans la revue et « Compris » ; reprise bornée à l'opération contestée.
   **72 tests ciblés verts**, vraie boucle et recharge : planche, bûche, quantité multiple, lot entier et dernière pièce.
