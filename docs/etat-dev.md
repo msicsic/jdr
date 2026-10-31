@@ -43,7 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 430 (diagnostic : création utile avec Luna), 429 (K1, éditeur de marché), 428 (D0, parole ouverte), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+- `codex-creation-utile-luna` — lot 430, diagnostic seul, base `origin/integration` / `3ce68e2e`.
+  Admission préalable confondue avec résultat perceptif ; rapports de portée parfois illisibles.
+  14 fils lus, 13 dossiers rejoués à l’identique sans modèle ; exception du rendu du 423 reproduite,
+  sans `attendu`. Aucun code du jeu modifié ; un petit lot de correction proposé, non réalisé.
+  Invariant de création puis manipulation avec Luna encore non garanti ; bruts `creation-utile-430/`.
+  [Rapport](taches/rapport-codex-430-creation-utile-luna.md).
+
+Lots en cours : 429 (K1, éditeur de marché), 428 (D0, parole ouverte), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
