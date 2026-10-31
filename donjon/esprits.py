@@ -331,22 +331,6 @@ def _croyance_valide(monde, attribut, c):
         assert False, "Attribut de croyance inconnu"
 
 
-def _contre_offre_valide(monde, id, refus):
-    from .deliberation import condition_valide
-    o = refus["contre_offre"]
-    if (not isinstance(o, dict) or set(o) != {"etat", "debiteur", "creancier", "condition", "contrepartie"}
-            or o["etat"] != "offre" or o["debiteur"] != refus["de"] or o["creancier"] != id
-            or o["contrepartie"] not in ({"type": "objet", "objet": refus.get("objet")},
-                                         {"type": "part", "objet": refus.get("objet")})):
-        return False
-    c = o["condition"]
-    return (isinstance(c, dict) and (
-        set(c) == {"type", "montant"} and c["type"] == "pieces" and type(c["montant"]) is int and c["montant"] > 0
-        or set(c) == {"type", "condition"} and c["type"] == "tache"
-        and isinstance(c["condition"], dict) and c["condition"].get("servir") == o["debiteur"]
-        and condition_valide(monde, c["condition"])))
-
-
 def verifier(monde):
     import math
     r = monde.data["positions_hypotheses"]
@@ -436,33 +420,7 @@ def verifier(monde):
         memoire.verifier_identite_vocale(monde, id)
         agendas.verifier(monde, id)
         memoire.verifier_faits(monde, id)
-        from .deliberation import DETAILS_REFUS
-        assert isinstance(e.get("refus", []), list) and all(
-            isinstance(s, dict) and set(s) <= {"de", "operation", "raison", "minute", "cause", *DETAILS_REFUS}
-            and isinstance(s["de"], str) and isinstance(s["operation"], str) and isinstance(s["raison"], str)
-            and type(s["minute"]) is int and type(s.get("prix", 0)) is int
-            and type(s.get("condition_tenue", False)) is bool
-            and ("repere" not in s or isinstance(s["repere"], dict)
-                 and set(s["repere"]) == {"lieu", "revision"}
-                 and s["repere"]["lieu"] in monde.data["salles"]
-                 and type(s["repere"]["revision"]) is int and s["repere"]["revision"] >= 0)
-            and ("information" not in s or isinstance(s["information"], dict)
-                 and {"lieu", "minute", "source"} <= set(s["information"]) <= {"lieu", "minute", "source", "origine"}
-                 and s["information"]["lieu"] in monde.data["salles"]
-                 and type(s["information"]["minute"]) is int
-                 and isinstance(s["information"]["source"], str)
-                 and ("origine" not in s["information"] or isinstance(s["information"]["origine"], dict)
-                      and set(s["information"]["origine"]) == {"source", "minute"}
-                      and isinstance(s["information"]["origine"]["source"], str)
-                      and type(s["information"]["origine"]["minute"]) is int))
-            and ("contre_offre" not in s or _contre_offre_valide(monde, id, s))
-            and isinstance(s.get("cause", []), list) and all(isinstance(f, list) and len(f) == 4 for f in s.get("cause", []))
-            and ("offre" not in s or isinstance(s["offre"], dict) and set(s["offre"]) == {"cause", "gain"}
-                 and isinstance(s["offre"]["gain"], (int, float)) and s["offre"]["gain"] >= 0
-                 and isinstance(s["offre"]["cause"], list)
-                 and all(isinstance(f, list) and len(f) == 4 for f in s["offre"]["cause"]))
-            for s in e.get("refus", [])
-        ), "Refus retenus de PNJ invalides"
+        memoire.verifier_refus(monde, id)
         from .deliberation import ETATS_DONNES
         assert isinstance(e["donne"], dict) and all(
             isinstance(o, str) and isinstance(a, dict) and all(

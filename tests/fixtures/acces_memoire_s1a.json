@@ -161,5 +161,119 @@
     "tools/rejouer_choix_saillance_210.py": {
       "premieres_divergences/a['final']['noms']": 1
     }
+  },
+  "refus_homonymes_s1k": {
+    "donjon/mj.py": {
+      "_appeler/{'etape': 'prévalidation', 'modele': self.modele, 'intention': intention, 'mode': reponse.get('mode'), 'refus': refus}": 1
+    },
+    "donjon/obstacles.py": {
+      "dossier/{'cible': i, 'methode': methode, 'refus': str(exc), 'attendu': exc.attendu}": 1
+    },
+    "donjon/paroles.py": {
+      "_demander/{'absent': f\"{nom} n'a pas cet objet sur {lui}.\", 'mefiance': f'{nom} refuse : {il} ne te fait pas confiance.', 'rancune': f\"{nom} refuse : {il} t'en veut encore.\", 'qui_va_la': QUI_VA_LA.format(nom=nom, il=il), 'necessaire': f'{nom} refuse de se séparer {de(o)}, qui lui sert.', 'pauvre': f\"Tu n'as pas {quantite(prix, 'pièce', determinant='defini')} que tu lui offres.\", 'refus': f\"{nom} n'est pas convaincu{e} et garde {o}\" + (f\" ; {il} en veut {quantite(vend, 'pièce')}.\" if vend and prix < vend else '.'), 'remis': f'{nom} te remet ' + ('une part ' + complement_de(travail.objets[objet]) if part else o) + (f' : {il} te le prête.' if any((p['objet'] == objet and p['a'] == 'joueur' for p in travail.data.get('permissions', ()))) else '.'), 'rendu': f'{nom} te rend {o}.', 'vendu': _part_vendue(travail, auditeur, objet, nom, il, prix) if part and (not vivres) else f\"{nom} prend {quantite(prix, 'pièce', determinant='possessif')} et accepte de t'en donner une part : \" + servie if part else f\"{nom} prend {quantite(prix, 'pièce', determinant='possessif')} et ira chercher {o} pour te {_le(travail.objets[objet])} remettre.\" if differe else f\"{nom} prend {quantite(prix, 'pièce', determinant='possessif')} et te remet {o}.\", 'promis': f'{nom} a déjà promis de te remettre {o}.' if differe else f\"{nom} accepte de t'en donner une part : \" + servie, 'impossible': f'{nom} ne voit pas comment te donner {o}.'}": 1,
+      "_demander_passage/{'qui_va_la': QUI_VA_LA.format(nom=nom, il=il), 'ecarte': f\"{nom} s'écarte d'un pas pour te laisser passer.\", 'paye': f\"{nom} prend {quantite(prix, 'pièce', determinant='possessif')} et s'écarte d'un pas pour te laisser passer.\", 'geste': f\"{nom} ne s'écarte pas : {il} est occupé{e} à ce qu'{il} fait là.\", 'mefiance': f\"{nom} refuse de s'écarter : {il} ne te fait pas confiance.\", 'rancune': f\"{nom} refuse de s'écarter : {il} t'en veut encore.\", 'place': f\"{nom} n'a pas la place de s'écarter.\", 'refus': f\"{nom} n'est pas convaincu{e} et reste où {il} est.\", 'inutile': f'{nom} ne te barre pas le passage.'}": 1,
+      "_mandat/{'mefiance': 'je ne te fais pas confiance', 'rancune': \"je t'en veux encore\", 'qui_va_la': 'je ne sais pas qui me parle', 'impossible': 'je ne vois pas comment la réaliser', 'refus': \"tu ne m'as pas convaincu\"}": 1,
+      "_reclamer/{'rendu': f'{nom} te rend {designer(o)}.', 'necessaire': f\"{nom} garde {designer(o)} : {il} s'en sert encore.\", 'mefiance': f'{nom} refuse de te rendre {designer(o)} : {il} ne te fait pas confiance.', 'rancune': f\"{nom} refuse de te rendre {designer(o)} : {il} t'en veut encore.\", 'refus': f'{nom} refuse de te rendre {designer(o)}.', 'impossible': f'{nom} ne peut pas te remettre {designer(o)}.', 'qui_va_la': QUI_VA_LA.format(nom=nom, il=il)}": 1
+    },
+    "donjon/relations.py": {
+      "<module>/{'mandat_reussi': {'ascendant': 10}, 'mandat_echoue': {'ascendant': -10}, 'mandat_abusif': {'ascendant': -20}, 'garde_ignoree': {'confiance': -10, 'rancune': 10}, 'service_rendu': {'confiance': 20, 'affection': 10, 'rancune': -15, 'dette': 20}, 'vu_agir': {'confiance': -40, 'affection': -10, 'rancune': 40}, 'vol_surpris': {'confiance': -40, 'affection': -10, 'rancune': 40}, 'vu_porter': {'confiance': -40, 'affection': -10, 'rancune': 40}, 'tort_tiers': {'confiance': -25, 'rancune': 10}, 'mensonge_decouvert': {'confiance': -35, 'affection': -5, 'rancune': 15}, 'imposture': {'confiance': -35, 'affection': -5, 'rancune': 15}, 'mensonge_dementi': {'confiance': -10}, 'dispute_perdue': {'rancune': 10}, 'parti_pris': {'affection': 3}, 'rumeur': {'confiance': -20}, 'soupcon_deduit': {'confiance': -12}, 'soupcon_leve': {'confiance': 12}, 'aveu': {'confiance': -25}, 'refus': {'rancune': 5}, 'nourri': {'confiance': 10, 'affection': 10, 'rancune': -10, 'dette': 20}, 'recu': {'confiance': 10, 'affection': 10, 'rancune': -10, 'dette': 20}, 'pret_recu': {'dette': 10}, 'pret_rendu': {'confiance': 15, 'affection': 5}, 'engagement_tenu': {'confiance': 15, 'affection': 5, 'dette': 10}, 'engagement_abandonne': {'confiance': -20, 'rancune': 15}, 'parole_rompue': {'confiance': -20, 'rancune': 15}, 'prevenu': {'confiance': 15, 'affection': 10, 'dette': 10}, 'subi': {'confiance': -40, 'affection': -15, 'rancune': 40, 'peur': 30}, 'violence_vue': {'confiance': -40, 'peur': 20}, 'pousse': {'confiance': -30, 'affection': -10, 'rancune': 25, 'peur': 20}, 'poussee_vue': {'confiance': -15, 'peur': 10}, 'passage_accorde': {'confiance': 3, 'affection': 2, 'dette': 5}, 'epreuve_partagee': {'confiance': 3, 'affection': 5}, 'dette_niee': {'confiance': -20, 'rancune': 15}, 'pret_garde': {'confiance': -20, 'rancune': 15}, 'dette_honoree': {'dette': -20}}": 1
+    },
+    "tools/banc_multi.py": {
+      "mesurer/dict(tours_mj=0, appels=0, secondes=0.0, replis=0, tours_refus=0, obstacles=0, relances=0, refus=0, dollars=0.0, appels_traces=0, avec_reflexion=0)": 1,
+      "mesurer/m['refus']": 2,
+      "mesurer/t['refus']": 1,
+      "mesurer/{'appels_par_tour': m['appels'] / tours, 'secondes_par_tour': m['secondes'] / tours, 'mediane_secondes_par_tour': statistics.median(durees_tours) if durees_tours else 0.0, 'fonctions': fonctions, 'replis': m['replis'], 'tours_refus': m['tours_refus'], 'obstacles': m['obstacles'], 'relances': m['relances'], 'refus': m['refus'], 'cout': m['dollars'], 'reflexion': m['avec_reflexion'] / (m['appels_traces'] or 1), 'tours_mj': m['tours_mj']}": 1
+    },
+    "tools/banc_parties.py": {
+      "_clore/tour.update(texte=texte, appels=len(appels), chemin_critique=appels, fonctions=[a['fonction'] for a in appels], secondes=round(sum((a['secondes'] for a in appels)), 2), tokens=sum((a['tokens'] for a in appels)), replis=[r for r in REPLIS if r in texte] + ['contrôle narratif : ' + t['voie'] for t in traces if t.get('etape') == 'repli du contrôle narratif'], refus=[t.get('obstacle', '') for t in traces if t.get('etape') == 'validation'], erreurs=[t['erreur'] for t in traces if t.get('erreur')], controle=[o.get('motif', '') + ' | ' + o.get('texte', '')[:160] for t in traces if t.get('etape') == 'contrôle narratif' for o in t['obstacles']], mentions_sans_fondement=mentions, propositions=[t['reponse']['proposition'] for t in traces if isinstance(t.get('reponse'), dict) and t['reponse'].get('proposition')])": 1,
+      "resumer/t['refus']": 1
+    },
+    "tools/comparer_noms.py": {
+      "extraire/{'contexte': projection, 'references': refs, 'interpretation': requete(monde, True), 'narration': requete(monde, False), 'scene': scene_percue(monde), 'regarder': regarder(monde), 'bilan': decrire_contexte(monde), 'carte': carte(monde), 'textes': [noms.texte(monde, textes, citations=citations, observateur=observateur) for citations in (False, True) for observateur in observateurs], 'refus': refus, 'audit': voix_inconnues(monde, [], projection, textes), 'audit_repliques': voix_inconnues(monde, paroles, projection, '« ' + textes + ' »'), 'decodees': noms.references(monde, {'cibles': list(refs.values()), 'texte': textes}), 'clarification': clarification_nominale(monde, textes, textes, projection), 'etat': copy.deepcopy(monde.data)}": 1
+    },
+    "tools/diagnostic_refuge_mouille.py": {
+      "diagnostiquer/{'scene': nom, 'minute': debut, 'pnj': qui, 'plan': plan, 'cout_route_minutes': cout_route(route, depart.orientation), 'marche': duree, 'eau': risques, 'renoncements': lire(monde, qui)['renoncements'], 'refus': memoire.reponses_retenues(monde, qui), 'apres_20_minutes': {'salle': bloc.objets[qui]['lieu'], 'besoins': lire(bloc, qui)['besoins'], 'attentes': deliberation.attentes(bloc, qui), 'rendu_joueur': regarder(bloc), 'monde_et_rendu_identiques_decoupes': True}}": 1
+    },
+    "tools/oracle_g1.py": {
+      "classer/obs['refus']": 2,
+      "classer/verdict.update(id=cas['id'], famille=cas['famille'], preuve_connue=bool(preuve), admission_premier_coup=len(cs) == 1 and (not obs['refus']), admission=verdict['admission_moteur'], texte_vu=obs['texte'], etat_recharge=obs['etat_recharge'], candidats=cs, refus=obs['refus'], sceau=sceau)": 1,
+      "observation/tour.get('refus', [])": 1,
+      "observation/{'saisie': tour['saisie'], 'candidats': compilations(tour), 'propositions': tour.get('propositions', []), 'validations': [e for e in tour.get('fil', []) if e.get('etape') == 'validation'], 'revues': [e.get('rapport') for e in tour.get('fil', []) if e.get('etape') == \"couverture de l'action\"], 'refus': tour.get('refus', []), 'texte': tour.get('texte', ''), 'etat_recharge': tour.get('etat')}": 1,
+      "rapport/x['refus']": 2
+    },
+    "tools/rapport_fil.py": {
+      "rendre/tour.get('refus')": 1,
+      "rendre/tour['refus']": 1
+    },
+    "tools/valider_mandat_joueur_341.py": {
+      "analyser_luna/tour['refus']": 1
+    }
+  },
+  "recours_restants_s1k": {
+    "donjon/agendas.py": {
+      "affecter_part/esprit(monde, x['pour'])['recours_intermediaires']": 1,
+      "tenir/lire(monde, pour)['recours_intermediaires']": 1
+    },
+    "donjon/banc_pnj.py": {
+      "_executer/lire(monde, id)['recours_intermediaires']": 1
+    },
+    "donjon/deliberation.py": {
+      "choisir/e['demande_refusee']": 1,
+      "choisir/refusee['besoin']": 2,
+      "choisir/refusee['objet']": 1
+    },
+    "donjon/echanges.py": {
+      "executer/lire(monde, id)['recours_intermediaires']": 1
+    },
+    "donjon/esprits.py": {
+      "<module>/{'emotions': dict, 'signes_lus': dict, 'relations': dict, 'compagnie': dict, 'compagnie_minute': lambda: -1, 'portages': dict, 'suites': list, 'preuves_relations': dict, 'croyances': dict, 'memoire': list, 'intention': lambda: None, 'regards_suivis': dict, 'recours_propositions': list, 'recours_services': list, 'recours_intermediaires': list, 'service_en_cours': lambda: None, 'demande_refusee': lambda: None, 'besoins': dict, 'pulsions': list, 'renoncements': dict, 'visites': dict, **agendas.CHAMPS, 'libre': int, 'balayage': lambda: None, 'voix': list, 'voix_entendues': dict, 'noms': list, 'echange': list, 'urgences': dict, 'attentes_bornees': dict, 'rejoint': lambda: None, 'rejoindre': lambda: None, 'veille': lambda: None, 'eveil': lambda: None, 'manque': lambda: None, 'patience': lambda: None, 'en_vue': lambda: None, 'refus': list, 'donne': dict, 'secours': lambda: None, 'derniere_confidence': lambda: None, 'faits_dits': dict, 'faits_initiaux': dict, 'detresses_appelees': list, 'aides_attendues': dict, 'recherches': dict, 'indices_recherche': dict, 'presence_recherche': dict, 'indices_soupcon': lambda: {'presences': [], 'gestes': [], 'constats': {}, 'soupcons': {}, 'oublis': {}}}": 1
+    },
+    "donjon/pnj_propositions.py": {
+      "devis_intermediaire/e['demande_refusee']": 1,
+      "devis_intermediaire/e['recours_intermediaires']": 1,
+      "devis_intermediaire/r['besoin']": 1,
+      "devis_intermediaire/r['de']": 4,
+      "devis_intermediaire/r['objet']": 4,
+      "executer/e['demande_refusee']": 1,
+      "executer/e['recours_propositions']": 3,
+      "executer/e['recours_propositions'].append": 1,
+      "executer/e['recours_propositions'].append(entrees)": 1,
+      "executer/e['recours_propositions'][:]": 1,
+      "plan_recours/e['demande_refusee']": 1,
+      "plan_recours/e['recours_intermediaires']": 2,
+      "plan_recours/e['recours_intermediaires'].append": 1,
+      "plan_recours/e['recours_intermediaires'].append(tentative)": 1,
+      "plan_recours/e['recours_services']": 2,
+      "plan_recours/e['recours_services'][:]": 1,
+      "plan_recours/e['service_en_cours']": 6,
+      "plan_recours/en_cours['besoin']": 1,
+      "plan_recours/en_cours['condition']": 3,
+      "plan_recours/en_cours['de']": 4,
+      "plan_recours/en_cours['objet']": 1,
+      "plan_recours/list(e['recours_services'])": 1,
+      "plan_recours/refusee['besoin']": 1,
+      "plan_recours/refusee['de']": 1,
+      "plan_recours/refusee['objet']": 1,
+      "recours/e['demande_refusee']": 1,
+      "recours/e['recours_propositions']": 1,
+      "recours/refusee['besoin']": 1,
+      "recours/refusee['de']": 1,
+      "recours/refusee['objet']": 1,
+      "rendre_service/e['demande_refusee']": 1,
+      "rendre_service/e['recours_services']": 4,
+      "rendre_service/e['recours_services'].append": 1,
+      "rendre_service/e['recours_services'].append(cle)": 1,
+      "rendre_service/e['recours_services'][:]": 1,
+      "rendre_service/e['service_en_cours']": 1,
+      "rendre_service/refusee['besoin']": 1,
+      "rendre_service/refusee['de']": 1,
+      "rendre_service/refusee['objet']": 1,
+      "verifier/e['demande_refusee']": 2,
+      "verifier/e['recours_intermediaires']": 2,
+      "verifier/e['recours_propositions']": 2,
+      "verifier/e['recours_services']": 2,
+      "verifier/e['service_en_cours']": 4,
+      "verifier/e['service_en_cours']['condition']": 1
+    }
   }
 }

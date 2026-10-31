@@ -306,7 +306,7 @@ class ContexteDevis:
         for sujet, c in connus.items():
             if sujet == acteur or sujet in projection.objets and porte_par(projection, sujet, acteur):
                 memoire.installer_faits_projetes(projection, acteur, sujet, c)
-        estime["refus"] = copy.deepcopy(e["refus"])
+        memoire.installer_refus_projetes(projection, acteur, memoire.reponses_retenues(monde, observateur))
         # Les relations/refus sont ceux de l'observateur, pas une relation
         # inventée dans le sens acteur -> tiers. Vue les lit par ce contexte.
         projection.data["esprits"][observateur] = copy.deepcopy(e)
@@ -737,7 +737,7 @@ class Vue:
             # ils ne se lisent qu'une fois.
             moyens = {}
             tenus = []
-            for s in lire(self.monde, self.id).get("refus", ()):
+            for s in memoire.reponses_retenues(self.monde, self.id):
                 if s["raison"] in CAUSES and "cause" in s:
                     cle = (s["operation"], s.get("objet"), s.get("besoin"), s.get("tache"), s.get("flamme"),
                            s["de"] if s["operation"] == "enqueter" else None)
@@ -3842,7 +3842,7 @@ def s_enquerir(monde, id, besoin=None, *, sujet=None, _vue=None, _etat=None):
     if sujet is not None:
         if hypothese_consommee(monde, id, sujet):
             return None
-        interroges = {s["de"] for s in lire(monde, id)["refus"]
+        interroges = {s["de"] for s in memoire.reponses_retenues(monde, id)
                       if s["operation"] == "enqueter_lieu" and s.get("objet") == sujet
                       and tient(monde, id, s, v.connus)}
         for autre in sorted(v.personnes()):
@@ -3853,7 +3853,7 @@ def s_enquerir(monde, id, besoin=None, *, sujet=None, _vue=None, _etat=None):
         return None
     # Qui n'en a pas, il ne le lui redemande pas tant que rien de ce qu'il croit de ces ressources n'a
     # changé ; qui s'est méfié, pas avant ``REDEMANDE`` minutes (``deliberation.tient``).
-    interroges = {s["de"] for s in lire(monde, id).get("refus", ()) if s["operation"] == "enqueter"
+    interroges = {s["de"] for s in memoire.reponses_retenues(monde, id) if s["operation"] == "enqueter"
                   and s.get("besoin") == besoin and tient(monde, id, s, v.connus)}
     connus = {v.proprietaire[o] for o in v.connus if part_pour(monde, id, o, besoin, v.connus)}
     candidats = []

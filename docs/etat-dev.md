@@ -46,6 +46,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 Lots en cours : 409 (S1k refus et recours), 407 (A2 consultation sociale), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
+- `codex-s1k-refus-recours` — lot 409, base `integration 64e3b2b4`, première partie : refus retenus
+  par vues/opérations de `memoire`, prédicats historiques conservés, copies et validation portées.
+  AST refus 64 → 27 (schéma + homonymes uniquement) ; recours 85 → 84, portage restant explicite.
+  Cinq nouveaux tests verts ; 65 métier/socle : deux sous-échecs déjà à la base, une erreur à attribuer.
+  Tests voisins/empreintes détachés : `C:/Users/msics/donjon/artifacts/s1k-409/fin.json` attendu.
+  Aucun fichier attendu du 407 touché ; pas de suite complète ni Luna. S1k reste ouvert pour les recours.
+  [Rapport 409](taches/rapport-codex-409-s1k-refus-recours.md).
+
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
 
 Deux passes, onze bancs (relais, crypte, atelier, echanges, comptes, don, avis-joueur, mandat-joueur, soir-appel,

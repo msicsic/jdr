@@ -111,7 +111,6 @@ def lever_refus(monde, beneficiaire, auteur, preuve):
     """Le service du demandeur, effectivement constaté, constitue un moyen nouveau."""
     if auteur == 'joueur' or not monde.objets.get(auteur, {}).get('profil'):
         return
-    e = lire(monde, auteur)
-    e['refus'][:] = [s for s in e['refus'] if not (
-        s['de'] == beneficiaire and s['raison'] in ('mefiance', 'rancune'))]
+    from .memoire import lever_refus_service_constate
+    lever_refus_service_constate(monde, auteur, beneficiaire)
     memoriser(monde, auteur, {'type': 'service_constate', 'a': beneficiaire, 'preuve': preuve})

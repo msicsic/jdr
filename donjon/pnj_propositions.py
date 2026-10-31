@@ -126,7 +126,7 @@ def _entrees_negatives(monde, id, autre, demande, entrees):
                if k not in CHANGEANTS and k not in ('profil', 'esprit')},
           valeur_bien(monde, id, o), valeur_bien(monde, id, o, True)] for o in connus],
         {q: relations.axes(monde, id, q) for q in relations.connus(monde, id)},
-        sans_dates(e['refus']), sans_dates(agendas.en_cours(monde, id)),
+        sans_dates(memoire.reponses_retenues(monde, id)), sans_dates(agendas.en_cours(monde, id)),
         # Les compteurs du corps/vecu avancent même sans effet sur un devis.
         # Ses conséquences mécaniques passent par les caractéristiques réelles.
         sans_dates(e['pulsions']), sans_dates(e['intention']),
@@ -205,7 +205,7 @@ def offre_refusee(monde, id, autre, objet, terme):
     devis = {}
     return any(s["de"] == autre and s.get("objet") == objet
                and s["operation"] in ("acheter", "proposer") and "offre" in s
-               and refus_tient(monde, id, s, terme, devis=devis) for s in lire(monde, id)["refus"])
+               and refus_tient(monde, id, s, terme, devis=devis) for s in memoire.reponses_retenues(monde, id))
 
 
 def reclamation(monde, id, objet):
@@ -301,7 +301,7 @@ def plan_recours(monde, id, besoin, etapes):
         return service
     refusee = e["demande_refusee"]
     if refusee and refusee["besoin"] == besoin:
-        for s in reversed(e["refus"]):
+        for s in reversed(memoire.reponses_retenues(monde, id)):
             if s["de"] != refusee["de"] or s.get("objet") != refusee["objet"] or "contre_offre" not in s:
                 continue
             if etapes and not any(g["condition"] == "sans_temoin" for g in etapes):
@@ -518,7 +518,7 @@ def recours(monde, id, besoin, etapes):
             service_devise = service_devise or negatif == avec_service
             continue
         avant = next((x for x in e["recours_propositions"] if x["de"] == autre and x["besoin"] == besoin), None)
-        refus = [s for s in e["refus"] if s["de"] == autre and s.get("objet") == demande["objet"]
+        refus = [s for s in memoire.reponses_retenues(monde, id) if s["de"] == autre and s.get("objet") == demande["objet"]
                  and s["operation"] in ("acheter", "proposer") and "offre" in s]
         if not refus and avant and _tient(avant, entrees):
             continue
