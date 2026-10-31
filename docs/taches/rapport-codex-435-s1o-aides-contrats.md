@@ -1,7 +1,7 @@
 # Lot 435 — S1o, aides et connaissances de contrat
 
 31 octobre 2026, PC fixe · `codex-s1o-aides-contrats` · base exacte `364e8722`.
-**Code publié ; empreintes complètes en cours, aucun bilan d'identité 2 h acquis.**
+**Lot livré, non fusionné ; aucun calcul restant.**
 
 **Invariant.** `memoire.py` possède les aides attendues, les deux moitiés des rendez-vous,
 les mandats perçus, services et restitutions, ainsi que leurs validations historiques.
@@ -35,18 +35,24 @@ recharge, laps entier/découpé (Bram/Josse à la mine, Gorm/Aubin au Relais).
 initiales ont été corrigées (identité du mandat et refus public `ErreurMonde`).
 Bruts : `tests-*.json`, `base-*.json`, `attribution.json`, `inventaire.json`.
 
-**Empreintes.** Contrôle court Relais/7 identique. Calcul complet : 2 h × graines
+**Empreintes : 16/16 paires identiques**, chroniques, mesures et empreintes de l'état
+final complet, sans exclusion, divergence ni plantage. 2 h × graines
 1985/7/42/2024 × Relais/mine/auberge/crue, référence `364e8722`, branche `ef9154e6`
-avant fusion ; cache partagé, deux travailleurs réduits au plus, aucun temps comparé.
-Le premier lanceur a échoué avant ces empreintes (import masqué par `tools/tests.py`).
-`reprise-definitive.py` réutilise les passes acquises et écrit **`fin-reprise.json` en
-dernier** ; les anciens échecs de lancement restent dans `fin.json` et `fin-tests.json`.
-Pas de suite complète ni Luna.
+avant fusion ; cache partagé, référence puis branche jouées une fois, deux travailleurs
+réduits au plus, aucun temps comparé. Avis concordants : zéro non justifié et huit
+à expliquer de chaque côté. `empreintes-base.json` et **`fin-reprise.json`
+(`succes: true`, `empreintes: 0`)** confirment la fin le 31 octobre à 19 h 39.
+Le contrôle court Relais/7 est aussi identique. Les échecs initiaux des lanceurs
+restent dans `fin.json` et `fin-tests.json` ; la reprise a réutilisé les passes acquises.
+Worktree de base retiré. Pas de suite complète ni Luna.
 
 **Intégration et publication.** `b21d4656` fusionnée par `c22a8d78`, puis l'avance
 strictement documentaire `693200b4` par `27e57bf7` : conflits documentaires seuls,
 K2 modifie une autre fonction d'echanges. Seule son expression de schéma public est
-actualisée dans l'inventaire. Branche publiée par le connecteur GitHub (Git local
+actualisée dans l'inventaire. Dernière avance `94fcffb9` incluse à la clôture,
+strictement documentaire : aucun moteur modifié après les 47 tests d'intégration.
+Les empreintes prouvent le portage avant K2, pas l'ensemble de l'intégration nouvelle.
+Branche publiée par le connecteur GitHub (Git local
 sans authentification), objets et arbre distant vérifiés identiques ; copie locale
 alignée, historique antérieur gardé sous `refs/lot-435/local-before-publication`.
 

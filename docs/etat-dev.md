@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-g20-repense` (4acf945a) : lot 436, G20 repensé (conception). Détail dans l'historique.
 - `codex-verif-integ-4` (da693b1e) : lot 402, vérification d’intégration moteur sur 4539dd68 (non validée pour `main`). Détail dans l'historique.
 - `codex-k2-assistance-luna` (d3b41a47) : lot 434, K2 assistance de Luna à la négociation. Détail dans l'historique.
 - `codex-verification-contact` (1c8d66ea) : lot 419, le contact prépare le moyen et son but. Détail dans l'historique.
@@ -39,20 +40,18 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-g14-ciblage-ambiance` (709f9f85) : lot 427, G14 ciblage d'un élément d'ambiance. Détail dans l'historique.
 - `codex-k0-candidats-contrat` (69080b86) : lot 426, K0 candidats de contrat déterministes. Détail dans l'historique.
 - `codex-decoupe-combustible` (5af58c58) : lot 425, découper un combustible compté. Détail dans l'historique.
-- `codex-empreintes-374` (dced64c0) : lot 424, empreintes changées par le lot 374 (famille E du 414). Détail dans l'historique.
-- `codex-piece-de-lot-libre` (afb76e9a) : lot 423, une pièce de lot par la saisie libre. Détail dans l'historique.
 
 ## Lots non fusionnés
 
 - `codex-s1o-aides-contrats` (435), base `364e8722` : aides, rendez-vous, mandats perçus et
   connaissances de contrat passent par `memoire`, archives mécaniques inchangées.
-  Copies profondes, références sans registre parallèle, clôture distante distincte du savoir.
+  AST 264 → 106 expressions ; copies profondes, clôture distante distincte du savoir.
   341 méthodes distinctes : 334 vertes, sept rouges identiques à la base ; 47 tests après fusion verts.
-  Intégration `693200b4` fusionnée, branche publiée par connecteur, arbre distant vérifié identique.
-  Empreintes 2 h × quatre graines × quatre scénarios : fin attendue `artifacts/s1o-435/fin-reprise.json`.
+  Empreintes 2 h × quatre graines × quatre scénarios : **16/16 identiques**, aucun plantage.
+  Intégration `94fcffb9` incluse, branche publiée ; lot livré, aucun calcul restant.
   [Rapport](taches/rapport-codex-435-s1o-aides-contrats.md), bruts `artifacts/s1o-435/` du dépôt principal.
 
-Lots en cours : 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 439 (coups du hameau 2024, diagnostic), 436 (G20 repensé, conception), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 440 (rouges connus, attribution), 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 439 (coups du hameau 2024, diagnostic), 431 (admission préalable d’une création) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
@@ -75,6 +74,10 @@ alternative ») ; après valider, le délai n'est pas prérempli. **« demain »
 daté » au lieu de « précise le délai en minutes »). Maintien et paiement futur refusés à juste titre 4/4. Limite d'E6
 confirmée : le typage libre de l'accord daté reste fragile (à reprendre avec K2 ou un lot de typage). Bruts
 `C:/Users/msics/donjon/artifacts/luna-e6-371/` (laptop).
+
+## Question en attente de l'utilisateur
+
+- **G20 / ambiance (lot 436)** : limiter l'ambiance publiée à un répertoire environnemental validé, composé par le moteur (voie C : garantie structurelle d'aucune attitude inventée, perte de la prose cosmétique libre), ou garder une prose libre avec garde des références et vérification de sens en fond, abandonnée si doute (voie A, décision du 2026-10-29 : les attitudes anonymes et implicites restent possibles) ? G8 à G11 et U-A attendent cette réponse. [Rapport 436](taches/rapport-codex-436-g20-repense.md).
 
 ## Décisions prises le 2026-10-30
 
