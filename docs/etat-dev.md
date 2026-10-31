@@ -43,6 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-a6-raccord-libre` (416), base `integration` `f1b15632` : entrée commune du libre et des reprises,
+  contrat A2/A3 isolé sans compaction ; projection publique A1 branchée, provenances en trace technique.
+  A4/A5, audits, U-P/U-C et voies transitoires conservés. Sept requêtes équivalentes au contrat A1 ;
+  sources mécaniques portées, trois tests ciblés verts ; voisins et empreintes 2 h/quatre graines en cours.
+  Luna : 2,42 appels/9,90 s sur sept scripts, un repli ; atelier sans appel à compléter. Non validé pour fusion.
+  Fin attendue `C:/Users/msics/donjon/artifacts/a6-raccord-libre-416/fin.json` ;
+  [rapport](taches/rapport-codex-416-a6-raccord-libre.md). Limite sémantique A5 inchangée.
+
 Lots en cours : 416 (A6 raccord libre), 414 (rouges nouveaux de la suite 4539dd68), 402 (vérification d’intégration moteur) ; S1m attend le 414 (mêmes tests de réessai) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 

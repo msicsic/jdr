@@ -29,18 +29,18 @@ class EntreeCapturee(Exception):
 def entree_actuelle(monde, message):
     """Arrête le vrai producteur avant le transport ; aucun modèle même simulé."""
     mj = MJOpenAI()
-    entree = None
-
-    def capturer(_instructions, e, *_args, **_kwargs):
-        nonlocal entree
-        entree = copy.deepcopy(e)
+    def capturer(*_args, **_kwargs):
         raise EntreeCapturee
 
-    with patch.object(mj, "_appeler", side_effect=capturer):
+    # A6 branche désormais la projection avant _appeler. Ces oracles A1
+    # continuent de contrôler le producteur brut, secrets témoins compris ;
+    # test_raccord_libre contrôle ce qui arrive réellement au compilateur.
+    with patch("donjon.projection_publique.projeter", wraps=projeter) as projection, \
+         patch.object(mj, "_appeler", side_effect=capturer):
         try:
             mj._echanger(monde, message, None, True)
         except EntreeCapturee:
-            return entree
+            return copy.deepcopy(projection.call_args.args[0])
     raise AssertionError("L'entrée actuelle n'a pas été produite")
 
 
