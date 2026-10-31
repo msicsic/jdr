@@ -43,7 +43,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 441 (S1p, conteneur versionné), 440 (rouges connus, attribution), 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 439 (coups du hameau 2024, diagnostic), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 441 (S1p, conteneur versionné), 440 (rouges connus, attribution), 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
