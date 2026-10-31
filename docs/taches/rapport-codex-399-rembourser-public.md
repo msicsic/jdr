@@ -2,7 +2,7 @@
 
 Branche `codex-rembourser-public`, issue d’`integration 60f857c5`,
 départ du lot `561c1d16` (brief), PC fixe, 31 octobre 2026.
-**Code réalisé ; vérification groupée détachée en cours, non fusionné.**
+**Lot terminé et validé, non fusionné. Code vérifié : `89b782a3`.**
 
 **Invariant.** Chaque dette personnelle en pièces déjà affichée par
 `biens.comptes_joueur` fournit un choix « Rembourser ». Les lignes d’un même
@@ -26,8 +26,12 @@ Le pont web transmet déjà la projection commune : aucun changement nécessaire
 dans `pont.py`. Aucun changement du modèle, des mécaniques du 388, de
 l’autonomie ou des registres d’esprit.
 
-**Preuves obtenues. Douze nouveaux tests verts** : neuf en **170,802 s**,
-puis trois compléments en **66,679 s**, sur les mêmes sources de production.
+**Vérification finale : 107/107 tests verts en 1 066,221 s**, neuf fichiers,
+deux travailleurs réduits ; zéro échec, erreur ou saut. Comptes publics (11),
+comptes terminal (10), descripteurs (10), information publique (12), inventaire
+public (7), remboursement du 388 (8), nouveaux parcours du 399 (12), TUI (28)
+et web (9). Le fichier des douze nouveaux tests passe en **237,551 s** ;
+les passes ciblées précédentes restent archivées, sans double comptage.
 Vrais callbacks JavaScript, boucle console et pilote Textual : remboursement
 total à Brune, partiel à Gorm (`marchand`), mêmes résultats que la parole
 typée du 388 ; monde, bourses, comptes, émissions, fiche, regard et scène
@@ -46,9 +50,10 @@ sans plantage : Relais/auberge, 2 h, graines 1985/7/42/2024, référence `561c1d
 Huit références manquantes calculées une fois puis rangées au cache commun ;
 aucune comparaison de performance revendiquée. Contrôle Node et diff propres.
 
-**À reprendre.** Neuf fichiers ciblés et voisins tournent avec deux travailleurs
-réduits ; `fin-verification.json`, écrit en dernier, vérifie tests, empreintes
-et identité des sources. Consulter ce bilan avant de déclarer le lot validé.
+**Clôture.** `fin-verification.json` : **`succes=true`** ; ses trois gardes
+valident les tests, les empreintes et l’identité des seize sources suivies.
+Le contrôle à la livraison confirme encore ces seize empreintes, sans écart.
+La branche est poussée sur `origin` ; aucun calcul restant.
 Pas de suite complète ni de Luna. Le versement reste soumis aux préconditions
 du 388 ; aucune nouvelle mécanique comptable ni éditeur de marché.
 Bruts et lanceur : `C:/Users/msics/donjon/artifacts/rembourser-public-399/`.

@@ -46,12 +46,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-rembourser-public` (399), base `integration 60f857c5`, départ `561c1d16` : remboursement
   total ou partiel des dettes publiques de Corvus depuis web/console/TUI, même acte 388, U-D et U-C.
   Solde figé revalidé ; refus distincts, aucun modèle ni registre ajouté ; recharge et laps découpé.
-  12 nouveaux tests verts (9 + 3 compléments) ; empreintes Relais/auberge 2 h × quatre graines : 8/8 identiques.
-  Vérification groupée de neuf fichiers détachée, deux travailleurs réduits ; bilan attendu :
-  `C:/Users/msics/donjon/artifacts/rembourser-public-399/fin-verification.json`. Pas encore validé globalement.
-  Rapport : [399](taches/rapport-codex-399-rembourser-public.md). Fusion au superviseur.
+  107/107 tests verts, neuf fichiers, 1 066,221 s, dont 12 nouveaux ; zéro échec, erreur ou saut.
+  Empreintes Relais/auberge 2 h × quatre graines : 8/8 identiques ; seize sources vérifiées sans écart.
+  `artifacts/rembourser-public-399/fin-verification.json` (dépôt principal) : `succes=true` ; aucun calcul restant.
+  Branche poussée, validée non fusionnée. Rapport : [399](taches/rapport-codex-399-rembourser-public.md).
 
-Lots en cours : 381 (A2 passage), 397 (S1f localisation et possession), 399 (rembourser depuis le menu et le terminal) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 381 (A2 passage), 397 (S1f localisation et possession) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Passe Luna d'E6 (2026-10-31, orchestrateur, laptop)
