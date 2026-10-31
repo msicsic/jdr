@@ -558,6 +558,18 @@ def regler(monde, d, reclamee, lignes):
                 lignes.append(f"{designer(monde.objets[de], debut=True)} refuse de rendre à "
                               f"{designer(monde.objets[a])} ce qu'{il} lui doit.")
         return "garde"
+    return _verser_dette(monde, d, possible, lignes)
+
+
+def _verser_dette(monde, d, possible, lignes):
+    """Conséquences communes d'une remise effective, réclamée ou volontaire."""
+    from .deliberation import retenir_refus, oublier_refus
+    from .esprits import memoriser
+    from .francais import designer, groupe_nominal
+    from .pnj import _chroniquer
+    from .social import _qui
+    from .voix import personne_pour_joueur
+    de, a = d['de'], d['a']
     payer(monde, de, a, possible)
     d.pop('a_prevenir', None)  # La remise réelle est désormais une preuve reçue.
     d["montant"] -= possible
@@ -577,24 +589,77 @@ def regler(monde, d, reclamee, lignes):
                       + (f" {pronom.capitalize()} t'en doit encore {d['montant']}." if d["montant"] else ""))
     else:
         memoriser(monde, a, {"type": "rembourse_par", "de": de, "montant": possible})
-        if monde.visible(de) or monde.visible(a):
+        memoriser(monde, a, {"type": "dette_honoree", "de": de, "montant": possible,
+                             "reste": sum(x['montant'] for x in dues(monde, de, a))})
+        if de == 'joueur':
+            nom = personne_pour_joueur(monde, a, court=True)[0]
+            lignes.append(f"Tu rends {pieces} à {nom}." +
+                          (f" Tu lui dois encore {_pieces(d['montant'])}." if d['montant'] else ""))
+        elif monde.visible(de) or monde.visible(a):
             lignes.append(f"{designer(monde.objets[de], debut=True)} rend {pieces} {groupe_nominal(designer(monde.objets[a]), 'à')}.")
     return "partiel" if d["montant"] else "rendu"
 
 
+def rembourser_dette(monde, de, a, montant=None, lignes=None):
+    """Acte volontaire commun : montant absent = tout le dû, lignes anciennes d'abord.
+
+    Le débiteur connaît ses propres obligations dès leur naissance. Aucun
+    souvenir borné ne fait autorité sur le compte, qui reste dans dettes.
+    Toutes les préconditions précèdent le premier transfert.
+    """
+    from .monde import ErreurMonde
+    from .ouie import _place, saisit
+    from .pnj import croit_present
+    ds = dues(monde, de, a)
+    du = sum(d['montant'] for d in ds)
+    if not du:
+        raise ErreurMonde("Aucune dette en pièces connue envers ce créancier.",
+                          f"dettes : de={de}, a={a}, montant=0 ; attendu une dette de montant > 0.")
+    verse = du if montant is None else montant
+    if type(verse) is not int or verse <= 0:
+        raise ErreurMonde("Il faut rembourser un nombre entier positif de pièces.",
+                          f"montant={montant!r} ; attendu entier de 1 à {du}, ou vide pour {du}.")
+    if verse > du:
+        raise ErreurMonde(f"Le dû est de {_pieces(du)} seulement.",
+                          f"montant={verse} ; attendu de 1 à {du} ; dû exact={du}, de={de}, a={a}.")
+    if (a != 'joueur' and a not in monde.objets or
+            _place(monde, de)[0] != _place(monde, a)[0] or
+            de != 'joueur' and not croit_present(monde, de, a)):
+        raise ErreurMonde("Le créancier n'est pas présent pour recevoir le remboursement.",
+                          f"a={a}, de={de} ; attendu créancier connu présent dans la même salle et joignable.")
+    if not saisit(monde, de, a):
+        raise ErreurMonde("Le créancier ne peut pas entendre le remboursement.",
+                          f"a={a}, de={de} ; attendu saisit(de, a)=True.")
+    fonds = richesse(monde, de)
+    if verse > fonds:
+        raise ErreurMonde("La bourse ne suffit pas au remboursement.",
+                          f"montant={verse}, de={de} ; attendu de 1 à {min(du, fonds)}, fonds={fonds}.")
+    reste = verse
+    for d in ds:
+        n = min(reste, d['montant'])
+        if n:
+            _verser_dette(monde, d, n, lignes if lignes is not None else [])
+            reste -= n
+    monde.data['dettes'] = [d for d in dettes(monde) if d['montant'] > 0]
+    return {'remboursement': verse, 'reste': du - verse}
+
+
 def solder(monde, lignes):
-    """Chaque débiteur qui sait son créancier là et peut lui parler (``pnj.pourraient_se_parler``)
-    lui rend ce qu'il doit, s'il le veut ; un créancier PNJ qui le sait là le lui réclame, sauf s'il
-    vient d'essuyer un refus (``reponse_creance_retenue``). Le débiteur rend autant qu'il le peut ; le reste
-    demeure dû (``regler``)."""
+    """Réclamations locales entre PNJ, selon la réponse retenue et le choix du débiteur.
+
+    Le remboursement volontaire est un geste du planificateur. Corvus ne paie
+    que par son acte confirmé, jamais du seul fait de l'écoulement du temps.
+    """
     from .pnj import pourraient_se_parler
     for d in list(dettes(monde)):
         de, a = d["de"], d["a"]
+        if de == 'joueur':
+            continue  # Seul son acte confirmé peut dépenser les pièces de Corvus.
         if de not in monde.objets or not (a == "joueur" or a in monde.objets):
             continue
         reclamee = (not d.get('a_prevenir') and a != "joueur" and not reponse_creance_retenue(monde, a, de)
                     and pourraient_se_parler(monde, a, de))
-        if reclamee or pourraient_se_parler(monde, de, a):
+        if reclamee:
             regler(monde, d, reclamee, lignes)
     monde.data["dettes"] = [d for d in dettes(monde) if d["montant"] > 0]
 
@@ -664,6 +729,8 @@ def comptes_joueur(monde):
     from .voix import personne_pour_joueur
     lignes = []
     for d in dettes(monde):
+        if d['de'] == 'joueur' and d['a'] in monde.objets:
+            lignes.append(f"Tu dois {_pieces(d['montant'])} à {personne_pour_joueur(monde, d['a'], court=True)[0]}.")
         if not d.get('a_prevenir') and d["a"] == "joueur" and d["de"] in monde.objets:
             ce = _ce_qui(monde, d, joueur=True)
             lignes.append(f"{personne_pour_joueur(monde, d['de'], court=True)[0]} te doit {_pieces(d['montant'])}"
@@ -912,7 +979,7 @@ def verifier(monde):
     for x in d.get("dettes", []):
         assert (isinstance(x, dict) and set(x) - {'a_prevenir'} == {"de", "a", "montant", "objet", "quoi", "minute"}
                 and ('a_prevenir' not in x or x['a_prevenir'] is True)
-                and x["de"] in d["objets"] and (x["a"] == "joueur" or x["a"] in d["objets"])
+                and (x["de"] == "joueur" or x["de"] in d["objets"]) and (x["a"] == "joueur" or x["a"] in d["objets"])
                 and type(x["montant"]) is int and x["montant"] > 0 and isinstance(x["objet"], str)
                 and x["quoi"] in QUOI and type(x["minute"]) is int), "Dette invalide"
     for o in d["objets"].values():

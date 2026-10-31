@@ -6,6 +6,13 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-rembourser-dette` — lot 388, base `integration ea3c70e0` (laptop) : remboursement volontaire typé commun joueur/PNJ ; dette, audience, fonds et montant vérifiés avant transfert.
+  U-C confirme le débit de Corvus ; fiche, paroles enregistrées, épreuve relationnelle et sauvegarde raccordées, sans nouveau registre.
+  Bilan : 97/98 tests, seul rouge Gaspard reproduit sur la base ; huit nouveaux tests verts. Bancs Relais/auberge 4 h × quatre graines : zéro usurpation ; Luna 4 appels, zéro refus/erreur.
+  Bruts : `C:/Users/msics/donjon/artifacts/rembourser-388/fin-conclusion.json`. Non-répétition du versement prouvée par tests ciblés ; aucun remboursement né dans les bancs.
+  [Rapport 388](taches/rapport-codex-388-rembourser-dette.md). Non fusionné.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 388, décidé le 2026-10-31 : remboursement volontaire total ou partiel, joueur (contenu typé, Compris avant exécution) et PNJ (geste du planificateur), dette soldée ; refus distincts avec attendu. 97/98 tests (échec Gaspard hérité de la base), huit nuits 4 h sans usurpation ni bascule, Luna une passe en quatre appels. Aucun fichier de code commun depuis la base ; touche le parcours de consentement : suite complète à relancer.
+
 - `codex-information-terminal-connu` — lot 387, base `integration` `a77727ab`.
   Cinq erreurs attribuées au souvenir absent du bois ; seuls les tests qui le choisissent le déclarent.
   Aucun code du jeu modifié, assertions conservées ; contre-épreuve bois/crochets connu ou inconnu,

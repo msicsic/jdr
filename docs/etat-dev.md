@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-rembourser-dette` (a1a50003) : lot 388, rembourser volontairement une dette en pièces. Détail dans l'historique.
 - `codex-information-terminal-connu` (7bdf4d1e) : lot 387, tests du terminal d'information après le catalogue connu. Détail dans l'historique.
 - `codex-um-social-avis` (20dcb5d2) : lot 386, U-M social avis. Détail dans l'historique.
 - `codex-s1e-vues-episodes` (56f46332) : lot 385, S1e les lecteurs d'épisodes par des vues pures. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-messages-decoupage` (9d9fd5fe) : lot 376, les messages ne dépendent pas du découpage du temps. Détail dans l'historique.
 - `codex-double-promesse` (8558adf4) : lot 377, une même part n'est pas promise deux fois. Détail dans l'historique.
 - `codex-s0-conception-memoire` (202c9fff) : lot 373, S0 conception de la mémoire unifiée des PNJ. Détail dans l'historique.
-- `codex-catalogue-connu` (fdfc31df) : lot 365, le catalogue des choix ne montre que ce que Corvus connaît. Détail dans l'historique.
 
 ## Lots non fusionnés
 

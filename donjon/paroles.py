@@ -31,7 +31,7 @@ from .monde import ErreurMonde, normaliser
 from .relations import FIABLE
 
 ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
-TYPES_JOUEUR = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "ressource", "localisation", "proposition", "mandat", "reponse_mandat", "bilan_mandat")
+TYPES_JOUEUR = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "rembourser", "ressource", "localisation", "proposition", "mandat", "reponse_mandat", "bilan_mandat")
 # Les contenus de transport restent distincts des actes proposés par le joueur.
 TYPES = (*TYPES_JOUEUR, "compte_rendu", "ordre_mandat")
 CHAMPS_CONTENU = {
@@ -39,6 +39,7 @@ CHAMPS_CONTENU = {
     "demande": ("sujet", "valeur"), "passage": ("sujet", "valeur"),
     "aveu": ("sujet", "valeur"), "nom": ("sujet",), "qui": (),
     "reclamer": ("sujet",), "ressource": ("sujet",), "localisation": ("sujet",),
+    "rembourser": ("montant",),
     "proposition": (),
     "avis": ("sujet", "attribut", "valeur"),
 }
@@ -47,6 +48,7 @@ BESOINS_DEMANDES = ("faim", "chaleur")   # ce qu'une demande « ressource » che
 # de besoins restent disponibles pour les demandes générales ; un bien nommé
 # conserve son nom, sans être élargi au besoin qu'il pourrait servir.
 SENS_CONTENU = {
+    "rembourser": "Rembourser volontairement à l'interlocuteur une dette en pièces de Corvus : montant est un entier positif en chiffres, ou vide pour tout le dû envers ce destinataire. Le moteur vérifie le dû et les fonds, transfère les pièces et conserve le reste dû.",
     "mandat": "Confier à l'interlocuteur une charge amener (qui, lieu) ou informer (qui, fait : affirmation sujet/attribut/valeur). Le fait est le contenu à faire transmettre par le mandaté au destinataire qui ; il ne constitue pas une affirmation autonome supplémentaire de Corvus à son interlocuteur actuel. Le moteur juge la demande sans accord anticipé.",
     "reponse_mandat": "Accepter ou refuser une offre de mandat effectivement entendue : offre est son identifiant public mN, accepter est un booléen. Aucun geste n'est exécuté à la place du joueur.",
     "bilan_mandat": "Rendre compte à son mandant d'une charge acceptée : agenda est son identifiant public, issue est reussi, echoue ou renonce. Cela établit une parole, jamais la vérité de son résultat.",
@@ -121,6 +123,11 @@ for _type_contenu in TYPES_JOUEUR:
     for _champ in ("sujet", "attribut", "valeur"):
         if _champ not in CHAMPS_CONTENU[_type_contenu]:
             _variante["properties"][_champ] = {"type": "string", "enum": [""]}
+    if _type_contenu == 'rembourser':
+        _variante = {'type': 'object', 'additionalProperties': False,
+            'properties': {'type': _variante['properties']['type'],
+                           'montant': {'type': 'string', 'description': 'Entier positif en chiffres ; vide = tout le dû.'}},
+            'required': ['type', 'montant']}
     _variantes_contenu.append(_variante)
 SCHEMA_PAROLE["properties"]["contenu"]["items"] = {"anyOf": [*_variantes_contenu, SCHEMA_PROPOSITION]}
 
@@ -265,6 +272,8 @@ contenu (3 éléments au plus) dit ce que la réplique transmet :
 - reclamer {sujet : vide pour les pièces que le personnage doit à Corvus, ou un objet de Corvus que le
   personnage porte ; attribut et valeur vides} : Corvus réclame son dû ; le moteur dit si le
   personnage rend, ce qu'il rend, ou qu'il ne doit rien ;
+- rembourser {montant : entier positif en chiffres, ou vide pour tout le dû envers l'interlocuteur} :
+  Corvus rembourse volontairement sa dette en pièces. Le moteur vérifie et effectue la remise.
 - ressource {sujet : le bien nommé sans article (nom, alias, matière ou catégorie), même inconnu
   de Corvus ; faim ou chaleur seulement pour une demande générale de quoi satisfaire ce besoin ;
   attribut et valeur vides} : Corvus demande au personnage s'il en a, sans savoir ce qu'il a ;
@@ -1320,6 +1329,8 @@ def verifier_nom(monde, contenu, replique):
 
 def _typer(monde, c, auditeur=None):
     """Contenu typé exploitable, ou None : ce qui ne peut pas être transmis reste un simple propos."""
+    if isinstance(c, dict) and c.get('type') == 'rembourser':
+        return {'type': 'rembourser', 'montant': int(c['montant']) if c['montant'] else None}
     if isinstance(c, dict) and c.get('type') in ('reponse_mandat', 'bilan_mandat'):
         return copy.deepcopy(c)
     if isinstance(c, dict) and c.get('type') == 'mandat':
@@ -1404,6 +1415,13 @@ def verifier_contenus(monde, contenu):
     """
     for i, c in enumerate(contenu):
         if not isinstance(c, dict):
+            continue
+        if c.get('type') == 'rembourser':
+            montant = c.get('montant')
+            if set(c) != {'type', 'montant'} or not isinstance(montant, str) or (montant != '' and
+                    (not re.fullmatch(r'[0-9]+', montant) or int(montant) <= 0)):
+                raise ErreurMonde("Le montant du remboursement est mal formé.",
+                                  f"contenu[{i}]={c!r} ; attendu type=rembourser, montant chaîne entière positive ou vide.")
             continue
         if c.get('type') in ('mandat', 'reponse_mandat', 'bilan_mandat'):
             def conforme(v, s):
@@ -1853,7 +1871,7 @@ def preparer_parole(monde, p, revision=None):
                           + " (Corvus ne l'a ni vu ni entendu nommer) ; garde les mots du joueur.")
     verifier_offres(monde, p["contenu"])
     verifier_contenus(monde, p["contenu"])
-    if any(c.get("type") in ("proposition", 'mandat', 'reponse_mandat', 'bilan_mandat') for c in p["contenu"] if isinstance(c, dict)):
+    if any(c.get("type") in ("proposition", 'mandat', 'reponse_mandat', 'bilan_mandat', 'rembourser') for c in p["contenu"] if isinstance(c, dict)):
         if len(dest) != 1 or len(p["contenu"]) != 1:
             raise ErreurMonde("Une offre liée doit être adressée à une seule personne.",
                               "contenu : une seule proposition ; personnage : un destinataire individuel ; "
@@ -1943,6 +1961,11 @@ def preparer_parole(monde, p, revision=None):
                 information = _qui_est_la(travail, auditeur, faits)
             elif c["type"] == "reclamer":
                 resolution = _reclamer(travail, auditeur, c["objet"], faits, comptes)
+            elif c['type'] == 'rembourser':
+                from .biens import rembourser_dette, compte
+                resolution = rembourser_dette(travail, 'joueur', auditeur, c['montant'], faits)
+                comptes.append(compte('joueur', auditeur, montant=resolution['reste'],
+                                      etat='du' if resolution['reste'] else 'absent'))
             elif c["type"] == "localisation":
                 from .echanges import enqueter, reponse_localisation
                 issue_lieu, dit = enqueter(travail, "joueur", auditeur, sujet=c["sujet"])
