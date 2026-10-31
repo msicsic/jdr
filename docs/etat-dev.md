@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-verif-integ-4` (da693b1e) : lot 402, vérification d’intégration moteur sur 4539dd68 (non validée pour `main`). Détail dans l'historique.
 - `codex-k2-assistance-luna` (d3b41a47) : lot 434, K2 assistance de Luna à la négociation. Détail dans l'historique.
 - `codex-verification-contact` (1c8d66ea) : lot 419, le contact prépare le moyen et son but. Détail dans l'historique.
 - `codex-reference-neuve` (3401e4f1) : lot 433, une entité créée est désignable dès sa création. Détail dans l'historique.
@@ -43,7 +44,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 436 (G20 repensé, conception), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats), 402 (vérification d’intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 439 (coups du hameau 2024, diagnostic), 436 (G20 repensé, conception), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
