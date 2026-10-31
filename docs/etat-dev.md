@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-avis-redits-crue` (c090475f) : lot 395, l'avis redit de Brune en crue 2024. Détail dans l'historique.
 - `codex-scenes-connues` (d87ff509) : lot 392, les scènes de test déclarent ce que Corvus connaît. Détail dans l'historique.
 - `codex-position-hypothese` (256f903a) : lot 374, la position crue d'autrui comme hypothèse datée. Détail dans l'historique.
 - `codex-don-consentement` (41b0c4e2) : lot 394, le don direct passe par le consentement U-C. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-ut-social-avis` (44b4d260) : lot 389, U-T social avis. Détail dans l'historique.
 - `codex-rembourser-dette` (a1a50003) : lot 388, rembourser volontairement une dette en pièces. Détail dans l'historique.
 - `codex-information-terminal-connu` (7bdf4d1e) : lot 387, tests du terminal d'information après le catalogue connu. Détail dans l'historique.
-- `codex-um-social-avis` (20dcb5d2) : lot 386, U-M social avis. Détail dans l'historique.
 
 ## Lots non fusionnés
 

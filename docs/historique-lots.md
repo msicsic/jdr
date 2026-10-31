@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-avis-redits-crue` — **395**, base `integration 1fd48fb5`, terminé, non fusionné, poussé.
+  Provenance de l'extinction portée par la vue attestée à 97 puis le constat courant à 140 ; moteur inchangé.
+  Isolation positive autorisée comme au 375 (buts concurrents), besoins/liens/audience/jets et assertion conservés.
+  Test négatif ajouté avec les profils d'origine ; la transmission spontanée dans la nuit réelle n'est pas prouvée.
+  **4/4 avis verts** ; voisins : 95/97, deux rouges d'agendas reproduits à l'identique sur la base native (hors lot).
+  [Rapport](taches/rapport-codex-395-avis-redits-crue.md) ; bruts au dépôt principal, `fin.json ok=false` expliqué, `conclusion.json`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 395, reste du 375, tests seulement : provenance historique de Brune retrouvée ; épreuve isolée (souci spontané d'autrui coupé et déclaré dans la scène), cas négatif vérifié sur la scène réelle (aucune redite sans rallumage appris) ; transmission spontanée dans la nuit réelle non prouvée. 4/4 tests d'avis, voisins 95/97 (deux échecs hérités de la base).
+
 - `codex-scenes-connues` — lot 392, base `integration` `ed5d9765` : prémisses de connaissance explicites,
   sans code du jeu ni scénario modifié ; salle/coffre et deux mandats avec contre-épreuves rechargées.
   Deux hashes actualisés en conservant exactement les savoirs du 365 ; cinq autres inchangés.
