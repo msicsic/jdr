@@ -43,15 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-a6-raccord-libre` (416), base `integration` `f1b15632` : entrée commune du libre et des reprises,
-  contrat A2/A3 isolé sans compaction ; projection publique A1 branchée, provenances en trace technique.
-  A4/A5, audits, U-P/U-C et voies transitoires conservés. Sept requêtes équivalentes au contrat A1 ;
-  sources mécaniques portées, trois tests ciblés verts ; voisins et empreintes 2 h/quatre graines en cours.
-  Luna : 2,42 appels/9,90 s sur sept scripts, un repli ; atelier sans appel à compléter. Non validé pour fusion.
-  Fin attendue `C:/Users/msics/donjon/artifacts/a6-raccord-libre-416/fin.json` ;
-  [rapport](taches/rapport-codex-416-a6-raccord-libre.md). Limite sémantique A5 inchangée.
+- `codex-a6-raccord-libre` (416), base `integration` `f1b15632`, code `f7dc9203` : raccord libre/reprises,
+  projection publique A1 et contrat A2/A3 réunis ; A4/A5, audits, U-P/U-C et voies transitoires conservés.
+  123 tests distincts sans échec (un ignoré) ; empreintes Relais/auberge identiques, 2 h × quatre graines.
+  Luna huit scripts : 96 appels/42 tours, 2,29 appels et 9,08 s/tour, un repli, aucune erreur technique/recharge.
+  Non validé pour fusion : seuils dépassés, repli de la crypte et sifflement remplacé par `voix_melodique`
+  à l'atelier, admis par la revue (limite A5). Aucun calcul actif ; bruts `artifacts/a6-raccord-libre-416/`.
+  [Rapport et limites](taches/rapport-codex-416-a6-raccord-libre.md).
 
-Lots en cours : 416 (A6 raccord libre), 414 (rouges nouveaux de la suite 4539dd68), 402 (vérification d’intégration moteur) ; S1m attend le 414 (mêmes tests de réessai) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 414 (rouges nouveaux de la suite 4539dd68), 402 (vérification d’intégration moteur) ; S1m attend le 414 (mêmes tests de réessai) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
