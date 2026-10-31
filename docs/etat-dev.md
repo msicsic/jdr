@@ -43,7 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 374 (position crue), 381 (A2 passage), 391 (parité acoustique après 376, question Q1 du 390), 392 (connaissances des scènes depuis 365, Q2 du 390), 394 (don direct après le 380) ; suite complète en cours sur `c562aa21` ; avis redits crue 2024 (reste du 375) à ouvrir. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
+- `codex-don-consentement` — lot 394, base `origin/integration df7352b7`, non fusionné.
+  Le don produit `donner`, effet lourd selon U-C : les deux tests anciens passent désormais « tenter ».
+  Moteur, classification des effets et protection des termes du lot 380 inchangés.
+  Huit parcours don/restitution, cloche/Gorm et couteau/Brune, console/pont web : verts en 49,738 s.
+  Aperçu, annulation, état et vues rechargés, reprise réelle ; zéro appel au modèle.
+  65/65 voisins verts (507,696 s), total 66/66 méthodes ; ni Luna, ni banc, ni suite complète. Branche poussée.
+  [Rapport et limites](taches/rapport-codex-394-don-consentement.md).
+
+Lots en cours : 374 (position crue), 381 (A2 passage), 391 (parité acoustique après 376, question Q1 du 390), 392 (connaissances des scènes depuis 365, Q2 du 390) ; suite complète en cours sur `c562aa21` ; avis redits crue 2024 (reste du 375) à ouvrir. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
