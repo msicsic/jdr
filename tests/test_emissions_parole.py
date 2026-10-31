@@ -27,6 +27,66 @@ class EmissionsTests(unittest.TestCase):
         self.assertEqual(emissions.lire(m), emissions.lire(reprise))
         return reprise
 
+    def test_crash_echanges_401_saisie_mj_simule_et_recharge(self):
+        capture = json.loads(gzip.decompress(Path('tests/data/crash-raccord-401.json.gz').read_bytes()))
+        avant = Monde(capture['monde_avant'])
+        proposition = copy.deepcopy(capture['proposition'])
+        codes = paroles.operations_contenu(proposition['contenu'])
+        proposition['operations_demandees'] = {t: t in codes for t in paroles.OPERATIONS}
+        reponse = capture['reponse']
+        reprise, sortie, appels = jouer(avant, capture['intention'], [
+            {'mode': 'parole_joueur', 'texte': '', 'faits': [], 'proposition': proposition},
+            {k: v for k, v in reponse.items() if k != '_audit'}],
+            [{'segments': reponse['_audit']['segments']}], suite=('tenter',))
+        rapport = appels.rapports[-1]
+        self.assertEqual(rapport, capture['rapport'])
+        fixes = [s for p in emissions.entendues(rapport)
+                 for s in narration.segments(p.get('rendu_public', p['rendu']))]
+        # Le texte fautif joint par des espaces fusionnait les deux répliques.
+        self.assertEqual(len(fixes), 2)
+        self.assertEqual(len(narration.segments(' '.join(fixes))), 1)
+        attendu = [*fixes, *narration.segments(reponse['texte'])]
+        texte = reprise.data['narrations_mj'][-1]['texte']
+        self.assertEqual(narration.segments(texte), attendu)
+        self.assertIn(texte, sortie)
+        self.assertIn('Tu dis à tous', sortie)
+        # Les émissions moteur restent exactement celles de la capture ; seule
+        # la nouvelle réplique auditée s'ajoute à l'admission.
+        flux = emissions.lire(reprise)
+        self.assertEqual(flux[:-1], emissions.lire(capture['monde']))
+        self.assertEqual(flux[-1]['texte'], reponse['_audit']['segments'][0]['citation'])
+        self.assertEqual(flux[-1]['locuteur'], 'brune')
+        self.assertIn('joueur', flux[-1]['auditeurs'])
+        self.assertRecharge(reprise)
+
+    def test_raccord_preserve_frontieres_et_occurrences_sans_ponctuation(self):
+        m = dispute()
+        # Une autre parole réelle du moteur : deux occurrences aux mêmes mots,
+        # sans ponctuation terminale. Les frontières ne viennent pas d'une majuscule.
+        for _ in range(2):
+            social.faire_entendre(m, 'aubin', 'ilse', 'une voix : « Encore »', [], [])
+        flux = [p for p in emissions.pnj(m) if p['texte'] == 'Encore']
+        self.assertEqual(len(flux), 2)
+        rapport = {'emissions': emissions.publiques(m, flux)}
+        rapport['faits'] = emissions.faits(rapport)
+        faits = {**m.contexte(), 'conversation_validee': rapport}
+        texte = 'Tu écoutes.'
+        controle = narration.controler(texte, verdicts(NEUTRE), faits)
+        reponse = {**dialogue(texte), '_audit': {**controle, 'texte_initial': texte,
+            'faits': faits, 'fondement': narration.fondement({'faits': faits})}}
+        for _ in range(2):
+            # Un second raccord de la même réponse reste idempotent.
+            reponse = narration.raccorder_emissions(reponse, rapport)
+        fixes = [s for p in emissions.entendues(rapport)
+                 for s in narration.segments(p.get('rendu_public', p['rendu']))]
+        self.assertEqual(narration.segments(reponse['texte']), [*fixes, texte])
+        avant = copy.deepcopy(emissions.lire(m))
+        narration.consigner(m, reponse)
+        self.assertEqual(emissions.lire(m), avant)
+        reprise = self.assertRecharge(m)
+        self.assertEqual(reprise.data['narrations_mj'][-1]['texte'], reponse['texte'])
+        self.assertEqual(narration.segments(reponse['_audit']['texte_initial']), [*fixes, texte])
+
     def test_archive_86_87_rejouee_sans_reseau(self):
         archive = json.loads(gzip.decompress(Path('tests/data/emissions-320-86-87.json.gz').read_bytes()))
         m = Monde(json.loads(gzip.decompress(Path('tests/data/avis-joueur-124.json.gz').read_bytes())))

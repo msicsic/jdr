@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **`codex-crash-raccord` — 401** (base `integration 4c160145`, laptop) : raccord des émissions et audit
+  sur le même découpage que le texte publié ; plus de fusion implicite des répliques avant preuve.
+  Capture réelle `echanges` rejouée dans la boucle de jeu, autre cas sans ponctuation, recharges contrôlées.
+  **63 tests verts**, quatre fichiers ; deux nouveaux tests rouges sur la base. Luna : une passe sur copies,
+  `echanges` et `noms-dialogue`, 24 appels, zéro erreur technique/de recharge ni repli ; tour fautif refusé avant raccord
+  par Luna cette fois, couvert hors ligne. [Rapport](taches/rapport-codex-401-crash-raccord-emissions.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 401 : plantage du jeu (KeyError dans narration.raccorder_emissions, banc echanges) : deux réponses moteur jointes étaient redécoupées en un segment ; les preuves s'établissent sur le texte final assemblé, même découpage pour rendu, audit et sauvegarde. Capture réelle hors ligne et autre cas, échouent sur la base ; 63 tests, deux bancs Luna sans erreur. Aucun fichier de code commun depuis la base.
+
 - `codex-s1f-localisation` — lot 397 clos, base `3d59310c`, code mesuré `13ec9204` ; intégration `561c1d16` fusionnée.
   Localisations et possessions datées par `memoire` : lectures copiées, hypothèses/consommations et écritures communes.
   Inventaire AST des croyances et dérivés : 1 619 → 398 ; autres familles et données de diagnostic gelées.
