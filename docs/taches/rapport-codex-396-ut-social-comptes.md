@@ -1,7 +1,8 @@
 # Lot 396 — U-T social comptes
 
 Branche `codex-ut-social-comptes`, base `origin/integration` **`1fd48fb5`**,
-PC fixe, 31 octobre 2026. **Code réalisé ; validation finale en cours, non fusionné.**
+PC fixe, 31 octobre 2026. Code de production vérifié : **`28239716`**.
+**Lot terminé et validé, non fusionné.**
 
 **Invariant et raccord.** La commande `comptes`, annoncée dans l'aide console
 et dans Gestes (F7), affiche les lignes et raccourcis de `comptes_publics` du
@@ -31,17 +32,28 @@ choix invalide et compte périmé à réception ou confirmation sont couverts.
 Le harnais contrôle la sauvegarde avant publication et l'absence de mutation
 avant confirmation, hors mutation externe explicitement injectée.
 
-Première passe conservée : 10 méthodes, 198,113 s, quatre réussites, deux
-échecs et quatre erreurs de harnais. Corrections : API de rendu Textual,
-référence publique du prêteur, perception spatiale installée avant la scène
-de départ ; la contre-épreuve de péremption compare précisément l'état après
-la mutation injectée. Aucun test existant ni assertion de sécurité ancienne
-n'est modifié. Les deux tests de formulaire et les deux restitutions TUI
-passent à la reprise ; la contre-épreuve console des annulations et six
-péremptions passe ensuite en **88,510 s**. Les trois autres méthodes TUI
-et les voisins attendent encore le bilan groupé. Parcours nominal : 17 touches
-avec confirmation, 18 avec F7 ; annulation U-C : 18/19 ; refus d'un compte
-périmé dès la réception : 10/11. Lecture et temps humain non mesurés.
+**Dix nouveaux tests verts en 633,931 s**, avec **36 parcours mesurés**, 18
+par terminal. Parcours nominal : 17 touches avec confirmation, 18 avec F7 ;
+annulation U-C : 18/19 ; refus d'un compte périmé dès la réception : 10/11.
+Deux abandons locaux supplémentaires n'envoient rien. Lecture et temps humain
+non mesurés. La première passe rouge du harnais est conservée : corrections
+de l'API Textual, de la référence publique et de la perception initiale ;
+les péremptions comparent précisément l'état après la mutation injectée.
+
+**Bilan groupé initial : 89/90 verts en 1 345,082 s**, huit fichiers, zéro
+erreur ou saut. L'unique rouge est `test_conversation_accord_et_paiement_actualisent_la_fiche`
+de `test_tui.py`, qui attendait un paiement immédiat après `remettre anneau`.
+Il se reproduit sur l'archive exacte de la base `1fd48fb5` : même attente
+de minute 1 à la minute 0 (`preuve-base-tui.log`, 62,209 s de test).
+L'adaptation au consentement déjà requis par les lots [380](rapport-codex-380-um-social-comptes.md)
+et [394](rapport-codex-394-don-consentement.md) ajoute l'aperçu à minute 0,
+compare tout l'état hors conversation avant transfert, puis soumet `tenter`.
+Les assertions anciennes de récompense payée, 44 pièces, possession de
+l'anneau et sauvegarde restent intactes. Méthode adaptée : **verte en 2,112 s**.
+La reprise du fichier TUI entier passe : **28/28 en 133,299 s**, sans erreur
+ou saut. Avec les 62 tests inchangés des sept autres fichiers, **90 méthodes
+distinctes sont vertes**, dont les dix nouvelles. Aucun code de production
+n'a changé ; aucun autre test ni assertion de sécurité ancienne n'est modifié.
 
 **Empreintes : 8/8 paires identiques**, chronique, mesures et état final complet,
 sans plantage : 2 h Relais/auberge × 1985/7/42/2024, **285,934 s**.
@@ -49,11 +61,12 @@ Référence exacte `1fd48fb5` : huit nuits manquantes calculées puis rangées
 une fois dans le cache commun. Un travailleur réduit, en parallèle de la
 première passe des tests ; aucun changement des sources de production depuis.
 
-Validation finale détachée : huit fichiers ciblés et voisins, deux travailleurs
-réduits, après l'achèvement des empreintes et des reprises ciblées.
-Les scripts enregistrent les empreintes des sources et écrivent leur fichier
-de fin en dernier. **Ne pas considérer le lot validé avant
-`fin-verification.json` avec `succes=true`.** Aucun banc long, aucune suite
+Validation groupée détachée à deux travailleurs réduits ; preuve sur base et
+reprise TUI ensuite, deux travailleurs réduits au plus. `fin-verification.json`
+rouge reste intact ; **`fin-cloture.json` : `succes=true`** compose les 62 tests
+inchangés des sept fichiers et la reprise des 28 TUI. Ses sept contrôles
+valident les résultats, les sources de production et la seule adaptation
+documentée de `test_tui.py`. Aucun calcul restant, aucun banc long, aucune suite
 complète ni passe Luna. Aucune comparaison de performance revendiquée.
 
 **Limite et livraison.** Le remboursement volontaire en pièces du 388 n'est
@@ -61,4 +74,4 @@ pas un choix de `comptes_publics` : il n'est donc pas ajouté au terminal.
 Les dettes de Corvus restent visibles dans les lignes de comptes. Le lot
 porte les raccourcis existants, sans éditeur de marché ni nouveau mécanisme.
 Bruts et lanceurs : `C:/Users/msics/donjon/artifacts/ut-social-comptes-396/` ;
-bilan attendu : `fin-verification.json`. Fusion laissée au superviseur.
+bilan final : `fin-cloture.json`. Branche poussée ; fusion laissée au superviseur.

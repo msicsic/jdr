@@ -46,13 +46,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-ut-social-comptes` — lot 396, base `origin/integration 1fd48fb5`, PC fixe.
   Console et TUI : `comptes` soumet les descripteurs publics du web, termes figés,
   sans modèle ; U-C et les validateurs existants gardent l'autorité sur le transfert.
-  Tests des deux terminaux, refus, péremption, recharge et laps découpés ; validation
-  ciblée/voisine en cours ; empreintes 2 h Relais/auberge × 4 graines : 8/8 identiques (285,934 s).
+  90 tests distincts verts (dont 10 nouveaux), recharge et laps découpés ; ancien test TUI
+  adapté à U-C, échec reproduit sur la base ; empreintes 2 h Relais/auberge × 4 graines : 8/8 identiques.
   Limite : remboursement du 388 absent des choix publics, donc non ajouté.
-  Bilan attendu : `artifacts/ut-social-comptes-396/fin-verification.json` du dépôt principal.
-  [Rapport 396](taches/rapport-codex-396-ut-social-comptes.md). Non validé tant que le bilan n'est pas vert.
+  Bilan : `artifacts/ut-social-comptes-396/fin-cloture.json`, `succes=true`, sources contrôlées.
+  [Rapport 396](taches/rapport-codex-396-ut-social-comptes.md). Validé, poussé, aucun calcul restant.
 
-Lots en cours : 374 (position crue), 381 (A2 passage), 392 (connaissances des scènes depuis 365, Q2 du 390), 395 (avis redits crue 2024, reste du 375), 396 (U-T social comptes) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 374 (position crue), 381 (A2 passage), 392 (connaissances des scènes depuis 365, Q2 du 390), 395 (avis redits crue 2024, reste du 375) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
