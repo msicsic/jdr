@@ -11,6 +11,7 @@ import traceback
 from priorite import ceder
 
 RACINE = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(RACINE))
 FICHIERS = [
     'test_recours_prioritaire.py', 'test_propositions_redites.py', 'test_achat_promis_annule.py',
     'test_gardien_detresse.py', 'test_empathie_peur.py', 'test_dynamique_besoins.py',
@@ -68,7 +69,6 @@ def main():
     args = parser.parse_args()
     dossier = args.sortie.resolve()
     dossier.mkdir(parents=True, exist_ok=True)
-    ceder()
     bilan = {'debut': time.time(), 'succes': False, 'termine': False}
 
     def lancer(nom, arguments):
@@ -77,6 +77,7 @@ def main():
                                   stdout=log, stderr=subprocess.STDOUT).returncode
 
     try:
+        ceder()
         if args.attendre_pid:
             (dossier / 'attente.json').write_text(json.dumps({
                 'pid': args.attendre_pid, 'depuis': time.time(), 'raison': 'deux travailleurs du lot 416 actifs'}),
