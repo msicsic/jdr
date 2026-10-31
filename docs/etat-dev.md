@@ -67,6 +67,10 @@ daté » au lieu de « précise le délai en minutes »). Maintien et paiement f
 confirmée : le typage libre de l'accord daté reste fragile (à reprendre avec K2 ou un lot de typage). Bruts
 `C:/Users/msics/donjon/artifacts/luna-e6-371/` (laptop).
 
+## Question en attente de l'utilisateur
+
+- **G20 / ambiance (lot 436)** : limiter l'ambiance publiée à un répertoire environnemental validé, composé par le moteur (voie C : garantie structurelle d'aucune attitude inventée, perte de la prose cosmétique libre), ou garder une prose libre avec garde des références et vérification de sens en fond, abandonnée si doute (voie A, décision du 2026-10-29 : les attitudes anonymes et implicites restent possibles) ? G8 à G11 et U-A attendent cette réponse. [Rapport 436](taches/rapport-codex-436-g20-repense.md).
+
 ## Décisions prises le 2026-10-30
 
 - **Échéance négociée avant la menace** (lot 347, `docs/conception-menace-echeance.md`) : les six arbitrages de sa
