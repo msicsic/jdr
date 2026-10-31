@@ -48,11 +48,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   AST 295 → 28 expressions, aucun accès aux suivis vivants ; stockage et politiques conservés.
   195 tests distincts : 194 verts, un rouge du MJ reproduit sur la base ; deux reprises complètes du 372.
   `origin/integration 78e4133b` intégré sans recouvrement de code ; après fusion 52/53 verts, même rouge.
-  Empreintes 2 h × 4 graines × 4 scénarios détachées, deux processus ; égalité non encore établie.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/s1n-420/fin.json` ; pas de suite complète ni Luna.
+  Empreintes 2 h × 4 graines × 4 scénarios : 16/16 identiques (chroniques, mesures, état complet), aucun plantage.
+  Lot clos ; `C:/Users/msics/donjon/artifacts/s1n-420/fin.json` réussi ; pas de suite complète ni Luna.
   [Rapport](taches/rapport-codex-420-s1n-suivis-relationnels.md).
 
-Lots en cours : 421 (G12 portée d'une création), 420 (S1n suivis relationnels), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 421 (G12 portée d'une création), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
