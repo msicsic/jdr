@@ -47,12 +47,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Cinq erreurs attribuées au souvenir absent du bois ; seuls les tests qui le choisissent le déclarent.
   Aucun code du jeu modifié, assertions conservées ; contre-épreuve bois/crochets connu ou inconnu,
   rendu et état après recharge, vrais choix web identiques au terminal ; parcours crochets ajouté.
-  Formulaires ciblés verts ; passe finale 26 tests / trois fichiers détachée, deux travailleurs réduits.
-  Attendre `artifacts/information-terminal-387/fin-calcul.json` dans le dépôt principal avant validation.
+  Validé : 26/26 tests, zéro échec/erreur/saut ; 34 parcours console/TUI, zéro appel au modèle.
+  1 313,203 s, deux travailleurs réduits ; `fin-calcul.json` réussi dans les bruts du dépôt principal.
   Ni Luna, suite complète ni empreintes. [Rapport](taches/rapport-codex-387-information-terminal-connu.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
-(U-M social comptes), 381 (A2 passage), 387 (tests du terminal d'information après le 365). Suite complète en cours sur `663d1308`. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
+(U-M social comptes), 381 (A2 passage). Suite complète en cours sur `663d1308`. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30

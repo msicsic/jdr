@@ -1,7 +1,7 @@
 # Lot 387 — Connaissance explicite au terminal d'information
 
 Branche `codex-information-terminal-connu`, base `integration` : `a77727ab`.
-Code et tests livrés ; **vérification des trois fichiers en cours**, sans validation finale annoncée.
+Tests livrés dans `490ef509` ; **lot validé, non fusionné** le 2026-10-31.
 
 **Invariant.** Le formulaire ne propose un bien précis que si Corvus le connaît.
 Une mention lexicale du bois dans le contexte ne constitue pas ce savoir ; connaître
@@ -39,15 +39,19 @@ complète. Le premier essai sous bac à sable a rencontré un refus d'accès aux
 répertoires temporaires ; les essais suivants utilisent le même Python du dépôt
 principal hors bac à sable, à priorité réduite.
 
-La passe finale porte sur `test_information_terminal`, `test_information_publique`
-(dont les vrais choix web) et `test_catalogue_connu` : **26 tests attendus**,
-deux travailleurs au plus, détachés. Fichier de fin écrit par le lanceur :
-`C:/Users/msics/donjon/artifacts/information-terminal-387/fin-calcul.json`.
-Lire son résultat avant de valider le lot ; la suite complète, Luna et les
-empreintes ne sont pas lancées, conformément au brief sans changement du jeu.
+La passe finale valide **26 tests distincts, zéro échec, erreur ou saut** :
+`test_information_terminal` **9/9** (1 313,194 s), `test_information_publique`
+**12/12** (582,562 s, dont les vrais choix web), `test_catalogue_connu` **5/5**
+(50,770 s). Durée écoulée totale : **1 313,203 s**, deux travailleurs réduits
+au plus, détachés. Les **34 parcours mesurés**, 17 console et 17 TUI, passent,
+dont le bois et les crochets après recharge et comparaison au web ; **zéro appel
+au modèle**. Le journal TUI ne contient que des diagnostics de lenteur asyncio.
+`fin-calcul.json` porte `succes=true` ; aucun calcul actif. La suite complète,
+Luna et les empreintes ne sont pas lancées, conformément au brief sans changement
+du jeu. Branche poussée ; fusion laissée au superviseur.
 
 **Bruts et limites.** `C:/Users/msics/donjon/artifacts/information-terminal-387/` :
-`diagnostic-base.json`, journaux du formulaire, `lancement.json` et journaux de
-la passe finale. Les sondes de diagnostic reproduisent la préparation fautive
+`diagnostic-base.json`, journaux du formulaire, `lancement.json`, `fin-calcul.json`
+et journaux de la passe finale. Les sondes de diagnostic reproduisent la préparation fautive
 des quatre parcours, sans rejouer leurs boucles avant correction. Aucun élargissement
 du contrat de connaissance, aucune migration d'une ancienne mention en prose.
