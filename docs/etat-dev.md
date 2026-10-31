@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-decoupe-combustible` (5af58c58) : lot 425, découper un combustible compté. Détail dans l'historique.
 - `codex-empreintes-374` (dced64c0) : lot 424, empreintes changées par le lot 374 (famille E du 414). Détail dans l'historique.
 - `codex-piece-de-lot-libre` (afb76e9a) : lot 423, une pièce de lot par la saisie libre. Détail dans l'historique.
 - `codex-g13-qualification` (564fb648) : lot 422, G13 qualifier une propriété inconnue avant usage. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-suite-4539dd68` (1edc86e3) : lot 414, attribution des rouges de la suite 4539dd68. Détail dans l'historique.
 - `codex-a5-reprise-fidele` (46274c29) : lots 412 et 415, A4 dossier de revue et A5 reprise fidèle. Détail dans l'historique.
 - `codex-s1l-recherche` (296f4abc) : lot 413, S1l recherche d'une personne par l'interface. Détail dans l'historique.
-- `codex-s1k-recours` (f5127a4d) : lot 411, S1k recours par l'interface. Détail dans l'historique.
 
 ## Lots non fusionnés
 

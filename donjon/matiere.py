@@ -328,6 +328,46 @@ def id_piece(m, lot):
     return f"{lot}_{k}"
 
 
+def partager_ressources(o, masse):
+    """Compteurs après découpe : (morceau, reste), sans modifier l'objet.
+
+    Une charge avec durée est une portion consommable : les fragments gardent ce
+    nombre d'usages, mais chaque usage apporte sa part de durée. La quantité
+    conservée est charges × duree_combustion. Sans durée, charges est un compte
+    simple, comme combustible (minutes restantes d'une source).
+    Les comptes restent entiers : arrondi au plus proche, solde sur le reste.
+    """
+    morceau, reste = {}, {}
+    champs = [c for c in ("combustible", "duree_combustion", "charges") if c in o]
+    if not champs:
+        return morceau, reste
+    if not o["masse"]:
+        raise ErreurMonde("La masse doit être connue pour partager la ressource.",
+                          f"{o['id']}.masse={o['masse']!r} : accepté > 0 avant découpe.")
+    fraction = masse / o["masse"]
+    for champ in champs:
+        compte = o[champ]
+        if champ == "charges" and "duree_combustion" in o:
+            if compte < 1:
+                raise ErreurMonde("Cette réserve est épuisée ; elle ne peut pas être partagée.",
+                                  f"{o['id']}.charges={compte!r} : accepté >= 1 avant découpe.")
+            morceau[champ] = reste[champ] = compte
+            continue
+        part = compte * fraction
+        if min(part, compte - part) < 1:
+            attendu = f"{o['id']}.{champ}={compte!r} : accepté >= 2 avant découpe."
+            if compte >= 2:
+                attendu = (f"{o['id']}.{champ}={compte!r}, masse_morceau={masse!r}, "
+                           f"masse_totale={o['masse']!r} : accepté une masse donnant "
+                           f"au moins 1 unité de {champ} à chaque partie "
+                           f"(fraction entre {1 / compte:g} et {1 - 1 / compte:g}).")
+            raise ErreurMonde("Cette découpe laisserait trop peu de ressource dans une partie.",
+                              attendu)
+        morceau[champ] = round(part)
+        reste[champ] = compte - morceau[champ]
+    return morceau, reste
+
+
 def prelever_piece(m, lot_id, piece_id):
     """Crée une pièce du lot, à sa place, avec sa description ; le lot diminue d'autant."""
     from .monde import objet

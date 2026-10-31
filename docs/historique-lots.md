@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-decoupe-combustible` — lot 425, base `integration a874d646` : découpe avec partage
+  des compteurs par masse ; conservation des charges × durée, refus sous l'unité avant mutation.
+  **56 tests ciblés verts** ; planche du Relais, bûche d'auberge, torche, feu joueur/PNJ et rendu après recharge.
+  Empreintes Relais/auberge 2 h × quatre graines : **8/8 identiques**, chronique, mesures et état complet.
+  Arrondi entier avec solde conservé ; aucun appel Luna ni suite complète.
+  [Rapport 425](taches/rapport-codex-425-decoupe-combustible.md) ; bruts `artifacts/decoupe-combustible-425/` du dépôt principal.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. matiere.partager_ressources répartit les compteurs (charges, minutes) selon la masse, sans mutation ; une réserve à durée par charge conserve charges × durée (le nombre de portions peut croître, la capacité cumulée non) ; part sous l'unité refusée avec attendu, avant écriture. Planche du Relais 30 + 60 min, bûche de l'auberge, torche, joueur et PNJ qui alimentent, après recharge. 56 tests verts, 8/8 empreintes 2 h identiques.
+
 - `codex-empreintes-374` — lot 424, base intégration `a874d646` : attribution de la famille E du 414.
   Quatre hashes monde conservés après contrôle exact de la règle sauvegardée du 374 ; seuls deux graphes mine réancrés.
   Preuve : Gaspard cru en galerie depuis 459, périmé à 480 ; sa seule expiration explique chaque successeur changé.
