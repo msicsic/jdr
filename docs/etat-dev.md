@@ -43,6 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+### Vérification d'intégration 4539dd68 — lot 402, en cours
+Branche `codex-verif-integ-4`, base `4539dd68` ; moteur et outils inchangés, sans Luna.
+49 nuits lancées en série sur le PC fixe, détachées et à priorité réduite ; référence 274 relue sans rejeu.
+Bruts `C:/Users/msics/donjon/artifacts/verif-integ-4539dd68/`, fin attendue `FIN.json`.
+Aucun verdict avant lecture des résultats et comparaison avec `0bad227`.
+[Rapport et protocole](taches/rapport-codex-402-verif-integ.md).
+
 Lots en cours : 403 (rouges nouveaux de la suite c562aa21), 406 (S1j paroles et voix), 407 (A2 consultation sociale) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
