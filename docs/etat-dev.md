@@ -43,7 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 436 (G20 repensé, conception), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats), 402 (vérification d’intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+- `codex-g20-repense` — lot 436, conception seule, base `integration b21d4656`, non fusionnée.
+  La garde de références ne garantit pas les attitudes implicites ; recommandation : composition moteur,
+  ambiance par répertoire validé, décision utilisateur nécessaire avant réalisation (G20 reste ouvert).
+  Archives : 17/48 réponses avec attitude ; garde conservatrice, 11/11 bloquées parmi 38 réponses avec appels,
+  mais 21 sans attitude rejetées ; quatre attitudes anonymes construites passent. Cinq tests directs verts.
+  Aucun code du jeu modifié ni appel modèle ; bruts 329 absents, rapport exploité sans recomptage.
+  [Rapport et brief](taches/rapport-codex-436-g20-repense.md).
+
+Lots en cours : 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats), 402 (vérification d’intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
