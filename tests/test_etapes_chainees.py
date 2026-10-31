@@ -147,6 +147,14 @@ def observer_capture(scenario):
         assert e.pop('recours_services', []) == [], 'Une tentative de service a changé la capture'
         assert e.pop('recours_intermediaires', []) == [], 'Une commission a changé la capture'
         assert e.pop('service_en_cours', None) is None, 'Un projet de service a changé la capture'
+    # 376/391 : le seul champ changé dans ces deux mondes est le fait sonore
+    # du dernier journal. Restaurer son ancien texte doit retrouver exactement
+    # l'empreinte historique : aucune autre donnée n'est écartée du contrôle.
+    preuve = json.loads((DONNEES.parent / 'parite-391-etapes.json').read_text(encoding='utf-8'))[scenario]
+    assert historique['journal'][96]['faits'] == preuve['faits_apres']
+    ancien = copy.deepcopy(historique)
+    ancien['journal'][96]['faits'] = preuve['faits_avant']
+    assert _empreinte(_sans_ascendant_neutre(ancien)) == preuve['monde_avant']
     return {"visites": visites.hexdigest(), "n_visites": n_visites,
             "plans": plans.hexdigest(), "n_plans": n_plans,
             "diagnostics": _empreinte([{k: v for k, v in d.items() if k != "duree"} for d in diagnostics]),
@@ -168,6 +176,7 @@ class EtapesTests(unittest.TestCase):
         contacts = json.loads((DONNEES.parent / "contact-226-etapes.json").read_text(encoding="utf-8"))
         rendez_vous = json.loads((DONNEES.parent / "rendez-vous-230-etapes.json").read_text(encoding="utf-8"))
         pas = json.loads((DONNEES.parent / "pas-233-etapes.json").read_text(encoding="utf-8"))
+        acoustique = json.loads((DONNEES.parent / 'parite-391-etapes.json').read_text(encoding='utf-8'))
         # Lot 191 : le registre d'audience change le monde sauvegardé ; dans
         # la mine, une parole supprimée change aussi les reprises du graphe
         # et les lignes. Les plans et les vues restent l'oracle historique.
@@ -189,6 +198,7 @@ class EtapesTests(unittest.TestCase):
                 "monde": "f85db4952442efdfb10ab7797c96d21fb9d35c7f43c39d4cf063351ebb564969"}}
         for scenario in ("mine", "auberge"):
             with self.subTest(scenario=scenario):
+                self.assertEqual(set(acoustique[scenario]['empreintes']), {'monde', 'lignes'})
                 # Le lot 92 c réduit les reprises, donc les visites et diagnostics.
                 # Plans, monde, lignes et rendus restent ceux de l'oracle historique.
                 nouvelles_mesures = calcul[scenario]
@@ -254,7 +264,7 @@ class EtapesTests(unittest.TestCase):
                                                                  **paroles[scenario], **contacts[scenario],
                                                                  **rendez_vous.get(scenario, {}), **pas[scenario],
                                                                  **compensation, **reserve, **contact_inconnu[scenario],
-                                                                 **emissions})
+                                                                 **emissions, **acoustique[scenario]['empreintes']})
 
     def test_plusieurs_ajouts_egalite_differee_et_aucune_reconstruction_sans_resultat(self):
         e = p.Etat("s", (), {})

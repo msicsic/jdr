@@ -988,8 +988,8 @@ class Moteur:
         retenir(travail, parvenus)
         # Les sons des événements PNJ sont déjà rendus à leur instant. Ceux produits
         # ensuite (une réponse à l'appel, par exemple) restent à dire, individuellement.
-        deja = {id(b) for b in travail.__dict__.get("_sons_rendus", ())}
-        entendu = [ligne for b, niveau, par in parvenus if id(b) not in deja
+        deja = travail.__dict__.get("_sons_rendus", ())
+        entendu = [ligne for b, niveau, par in parvenus if b not in deja
                    for ligne in rendre(travail, [(b, niveau, par)])]
         if ecoute:
             # Le résultat dit la condition que l'ouïe a prise en compte : l'oreille collée à une porte.
