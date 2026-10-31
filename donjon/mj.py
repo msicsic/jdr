@@ -12,7 +12,7 @@ from .moteur import Moteur
 from .fournisseurs import Demande, Reponse, ErreurFournisseur, creer as creer_fournisseur
 from .transport_openai import lire_flux  # réexport pour les anciens outils de diagnostic
 from .enrichissement import catalogue, preparer_complements
-from .faits_locaux import catalogue as catalogue_faits, preparer_faits
+from .faits_locaux import catalogue as catalogue_faits, preparer_faits, lier_suite
 from .dialogues import preparer_conversation
 from .paroles import (REGLES as REGLES_PAROLE, SENS_REPLIQUE, ParoleImpossible, analyser as analyser_parole,
                       annonce as annonce_parole, contexte as contexte_paroles, preparer_parole)
@@ -830,7 +830,7 @@ class MJ:
                 if suite_proposee is not None and not isinstance(suite_proposee, dict):
                     raise RefusDeForme("Le geste suivant doit être précisé.",
                                        f"proposition.suite={suite_proposee!r} : accepté une proposition d'action.")
-                travail, texte, _ = preparer_faits(monde, p, revision)
+                travail, texte, etablis = preparer_faits(monde, p, revision)
             except ErreurMonde as exc:
                 retour = retour_refus(p, exc, "Revois les ancrages et les faits actuels. Ne raconte pas un fait refusé.")
                 reponse = self._compiler_libre(monde, intention, proposition_en_attente, retour_moteur=retour)
@@ -854,7 +854,7 @@ class MJ:
                 suite_proposee = reponse["proposition"].get("suite")
                 p = sans_suite(reponse["proposition"])
                 verifier_suite_faits(reponse["proposition"], geste_en_question(monde, intention))
-                travail, texte, _ = preparer_faits(monde, p, revision)
+                travail, texte, etablis = preparer_faits(monde, p, revision)
             if suite_fait:
                 # Un seul groupe de faits par tour : le réexamen ne relance pas l'invention.
                 raise ErreurMonde("Le réexamen après un fait établi a proposé d'autres faits.")
@@ -862,7 +862,8 @@ class MJ:
                 # Une seule interprétation, deux propositions typées : les faits
                 # ne valent pas validation du geste. Celui-ci passe par toutes
                 # les validations ordinaires, sur la copie où les faits existent.
-                suite_proposee = copy.deepcopy(suite_proposee)
+                suite_proposee = lier_suite(suite_proposee, travail, etablis)
+                invariants = lier_suite(invariants, travail, etablis)
                 if "justification" in suite_proposee:
                     suite_proposee["justification"] = ""
                 suite = self._echanger_prepare(travail, intention, proposition_en_attente,
@@ -1503,10 +1504,8 @@ direction), plus lents, ils ne s'entendent que de tout près.
                                   if reponse.get("mode") == "etablir_faits" else None)
                 if ajouts or faits_proposes is not None:
                     faits = entree.get("faits", {})
-                    contexte = {cle: faits.get(cle) for cle in
-                                ("salle", "scenario", "faits_narratifs_proposables",
-                                 "descriptions_a_completer", "connaissances_a_completer",
-                                 "connaissances_pnj") if cle in faits}
+                    from .portee_narrative import contexte_admission
+                    contexte = contexte_admission(faits)
                     audit = appeler_brut(INSTRUCTIONS_PORTEE,
                                         {"descriptions": [{"sujet": a["sujet"], "texte": a["texte"]}
                                                           for a in ajouts], "monde": contexte,

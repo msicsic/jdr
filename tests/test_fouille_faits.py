@@ -16,7 +16,7 @@ from tests.test_tensions import recharger
 
 def faits(ajout, suite=None):
     return {"mode": "etablir_faits", "texte": "", "faits": [],
-            "proposition": {"ajouts": [ajout], **({"suite": suite} if suite else {})}}
+            "proposition": {"ajouts": [ajout], "suite": suite}}
 
 
 def revue(reponse, perception=False, indice=False):
