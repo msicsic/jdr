@@ -50,7 +50,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   Bilan final en attente de `C:/Users/msics/donjon/artifacts/s1g-400/fin.json` ; lot non clos.
   Limite : contrôle AST local ; politiques de révision inchangées. [Rapport](taches/rapport-codex-400-s1g-etats-materiels.md).
 
-Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels), 401 (plantage du jeu dans raccorder_emissions, banc echanges) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Passe Luna d'E6 (2026-10-31, orchestrateur, laptop)

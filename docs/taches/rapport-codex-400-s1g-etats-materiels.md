@@ -54,4 +54,5 @@ syntaxique/local, sans preuve exhaustive des flux interprocéduraux Python.
 Pas de nouvelle politique de révision, d'oubli ou de jugement des capacités.
 Aucune fonction de passage de 381 ni terminal de remboursement de 399 modifiés ;
 recouvrement limité aux interfaces communes de perception/propositions.
-`origin/integration` relue avant livraison ; à ce stade, elle reste à la base.
+`origin/integration 4c160145` fusionnée avant livraison : seulement le brief 401
+et sa mention dans le point de reprise, conflit documentaire résolu ; code mesuré inchangé.
