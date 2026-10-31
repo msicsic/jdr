@@ -367,11 +367,13 @@ def main(argv=None, interface=None):
             if interface is None:
                 from donjon.gestes_publics import gestes_du_monde, rendre_liste
                 from donjon.dialogues import AIDE_INFORMATION, AIDE_AVIS
+                from donjon.comptes_terminal import AIDE_COMPTES
                 if recette is None:
                     gestes = gestes_du_monde(m)
                 if recette is None:
                     imprimer(AIDE_INFORMATION)
                     imprimer(AIDE_AVIS)
+                    imprimer(AIDE_COMPTES)
                 imprimer(recette.rendre() if recette else rendre_liste(gestes))
             try:
                 entree = lire("\nCorvus > ")
@@ -412,6 +414,11 @@ def main(argv=None, interface=None):
                     elif cmd == "avis":
                         from donjon.dialogues import AvisTerminal, avis_publics
                         recette = AvisTerminal(avis_publics(m))
+                        continue
+                    elif cmd == "comptes":
+                        from donjon.comptes_terminal import ComptesTerminal
+                        from donjon.dialogues import comptes_publics
+                        recette = ComptesTerminal(comptes_publics(m))
                         continue
                 if interface is None and isinstance(entree, str) and cmd not in ("quitter", "q", "exit"):
                     from donjon.gestes_publics import choisir_numero

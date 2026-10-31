@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-ut-social-comptes` (628d5da6) : lot 396, U-T social comptes. Détail dans l'historique.
 - `codex-s2-conception` (00b3910d) : lot 398, conception de S2. Détail dans l'historique.
 - `codex-avis-redits-crue` (c090475f) : lot 395, l'avis redit de Brune en crue 2024. Détail dans l'historique.
 - `codex-scenes-connues` (d87ff509) : lot 392, les scènes de test déclarent ce que Corvus connaît. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-suite-e0826ef` (c68aff20) : lot 375, rouges de la suite e0826ef. Détail dans l'historique.
 - `codex-suite-663d1308` (db44eef3) : lot 390, rouges nouveaux de la suite 663d1308. Détail dans l'historique.
 - `codex-ut-social-avis` (44b4d260) : lot 389, U-T social avis. Détail dans l'historique.
-- `codex-rembourser-dette` (a1a50003) : lot 388, rembourser volontairement une dette en pièces. Détail dans l'historique.
 
 ## Lots non fusionnés
 

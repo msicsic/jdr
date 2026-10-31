@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-ut-social-comptes` — lot 396, base `origin/integration 1fd48fb5`, PC fixe.
+  Console et TUI : `comptes` soumet les descripteurs publics du web, termes figés,
+  sans modèle ; U-C et les validateurs existants gardent l'autorité sur le transfert.
+  90 tests distincts verts (dont 10 nouveaux), recharge et laps découpés ; ancien test TUI
+  adapté à U-C, échec reproduit sur la base ; empreintes 2 h Relais/auberge × 4 graines : 8/8 identiques.
+  Limite : remboursement du 388 absent des choix publics, donc non ajouté.
+  Bilan : `artifacts/ut-social-comptes-396/fin-cloture.json`, `succes=true`, sources contrôlées.
+  [Rapport 396](taches/rapport-codex-396-ut-social-comptes.md). Validé, poussé, aucun calcul restant.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 396, U-T social comptes : commande comptes à la console et à la TUI, mêmes termes que les raccourcis web du 380, transfert après verdict et consentement U-C ; le remboursement en pièces du 388 reste hors des choix publics (lot à ouvrir). 90 tests verts, 8/8 empreintes identiques.
+
 - `codex-s2-conception` — lot 398, base `integration e3adc0f4`, documentation seule.
   [Conception S2](conception-s2.md) : 18 sous-lots d'un invariant, oracles et paires de cas,
   dépendances S1f–p champ par champ ; cinq décisions S0 conservées, paramètres ouverts explicités.
