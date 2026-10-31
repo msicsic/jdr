@@ -47,11 +47,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   signes, détresse et dangers via `memoire`, vues copiées et invalidations historiques conservées.
   Inventaire AST 129 → 40 ; cinq tests nouveaux, captures mine/Relais, état et publication rechargés.
   161/163 ciblés verts, aucune erreur ; deux rouges identiques sur la base (démenti de crainte, attente Gorm).
-  Empreintes détachées 2 h × quatre graines × quatre scénarios en cours ; intégration distante inchangée.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/s1i-405/fin.json` ; lot non clos.
+  Empreintes 2 h × quatre graines × Relais/mine/auberge/crue : 16/16 identiques, aucun plantage.
+  Lot clos, non fusionné ; aucun calcul restant ; intégration distante `0643c2ff` inchangée.
   [Rapport et limites](taches/rapport-codex-405-s1i-signes-dangers.md).
 
-Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 403 (rouges nouveaux de la suite c562aa21), 405 (S1i signes, détresse et dangers) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 403 (rouges nouveaux de la suite c562aa21) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

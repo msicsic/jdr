@@ -1,7 +1,7 @@
 # Lot 405 — S1i, signes, détresse et dangers subjectifs
 
 31 octobre 2026 · `codex-s1i-signes-dangers` · base exacte `integration 0643c2ff`.
-Code porté : **`15856296`**. **Vérification en cours, lot non clos.**
+Code porté et mesuré : **`15856296`**. **Lot clos, non fusionné ; aucun calcul restant.**
 
 **Invariant et code.** Les lectures faillibles, leurs essais et conclusions par
 observateur, les preuves de détresse et les dangers passent par `memoire`.
@@ -48,17 +48,20 @@ et `test_gorm_attend_un_moyen_sur_pour_le_feu_mais_execute_encore_sa_ronde` à 8
 Oracles conservés. Le premier interdit de revendiquer une garantie générale de
 démenti sémantique : le portage conserve aussi cette limite héritée.
 
-**Empreintes requises.** Comparaison détachée lancée : 2 h × quatre graines
-1985/7/42/2024 × Relais/mine/auberge/crue, référence exacte puis branche,
-cache partagé, deux travailleurs réduits au plus ; aucun temps du cache comparé.
-L'identité des seize nuits **n'est pas encore acquise**. Ni suite complète ni Luna.
-`origin/integration 0643c2ff` n'a pas avancé lors de la vérification finale ;
-aucune fusion supplémentaire nécessaire. Le calcul mesure `15856296`.
+**Empreintes : 16/16 identiques.** 2 h × quatre graines 1985/7/42/2024 ×
+Relais/mine/auberge/crue, base exacte `0643c2ff`, branche `15856296` : chronique,
+mesures et état final complet identiques nuit par nuit, sans exclusion,
+divergence ni plantage. Les avis auxiliaires concordent également : zéro
+non justifié, vingt à expliquer de chaque côté. Les seize nuits de référence
+puis de branche ont été jouées et rangées dans le cache partagé ; deux
+travailleurs réduits au plus, aucun temps du cache comparé. `fin.json` confirme
+le code de sortie 0. Ni suite complète ni Luna. `origin/integration 0643c2ff`
+n'a pas avancé à la clôture ; aucune fusion supplémentaire nécessaire.
 
-**Bruts et reprise.** `C:/Users/msics/donjon/artifacts/s1i-405/` :
+**Bruts et limites.** `C:/Users/msics/donjon/artifacts/s1i-405/` :
 `tests-metier.json/log`, `attribution-base.json/log`, `tests-porte.json/log`,
 `tests-finaux.json/log`, puis `run405.py`, `empreintes-base.json/log` et `fin.json`.
 La première porte avait une erreur d'assertion du test de corruption (exception
 `ErreurMonde` attendue, corrigée) ; les bruts sont conservés. Le contrôle AST
 reste syntaxique/local, sans preuve de tous les flux interprocéduraux Python.
-Reprendre au fichier de fin avant de clore le lot ou d'affirmer l'identité.
+Les vérifications sont terminées ; les limites de comportement héritées restent ouvertes.
