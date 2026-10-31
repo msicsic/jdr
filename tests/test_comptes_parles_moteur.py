@@ -111,7 +111,7 @@ class ComptesParlesMoteurTests(unittest.TestCase):
                 p['proposition']['contenu'] = [{'type': 'proposition',
                     'demande': {'type': 'part', 'objet': lot},
                     'contrepartie': {'type': 'pieces', 'montant': prix}}]
-                r, sortie, appels = jouer(recharger(m), mots, [p], [])
+                r, sortie, appels = jouer(recharger(m), mots, [p], [], suite=('valider', 'tenter'))
                 self.assertEqual(r.joueur['or'], m.joueur['or'] - prix)
                 self.assertIn(f"Tu m'as payé {prix} pièces.", pnj(r)[-1]['texte'])
                 self.assertIn(m.objets[lot]['nom'], pnj(r)[-1]['texte'])

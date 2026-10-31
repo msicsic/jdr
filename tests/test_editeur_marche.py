@@ -172,12 +172,27 @@ class EditeurMarcheTuiTests(unittest.IsolatedAsyncioTestCase):
                     app = SeuilApp(['--connexion', 'api', '--save', str(f)])
                     async with app.run_test(size=(120, 40)) as pilot:
                         support = TerminalTests(); await support.pret(app)
-                        for texte in ['accord', *entrees(app.derniere_vue['accord'], qui, demande, donne), 'valider', 'tenter']:
+                        await pilot.press('f7')
+                        initial = app.derniere_vue
+                        for texte in ['accord', *entrees(initial['accord'], qui, demande, donne)]:
                             app.query_one('#commande', Input).value = texte
                             await pilot.press('enter')
-                            await support.attendre(lambda: not app.occupe, lambda: repr(app.sorties[-5:]))
+                            self.assertIs(app.derniere_vue, initial)
+                            self.assertEqual(Monde.charger(f).data, m.data)
+                        for texte in ['valider', 'tenter']:
+                            precedente = app.derniere_vue
+                            app.query_one('#commande', Input).value = texte
+                            await pilot.press('enter')
+                            await support.attendre(lambda: app.derniere_vue is not precedente and not app.occupe,
+                                                   lambda: repr(app.sorties[-5:]))
+                        vue = app.derniere_vue
                         await support.fermer(app)
                 faux.echanger.assert_not_called()
                 n = Monde.charger(f)
-                self.assertTrue(n.data['emissions'])
+                self.assertTrue(pnj(n))
+                self.assertEqual(vue['fiche'], fiche(n))
+                self.assertEqual(vue['scene'], regarder(n))
                 self.assertEqual(vues(n), vues(recharger(n)))
+                web, _, _ = support_web.InformationPubliqueTests().boucle(
+                    m.copier(), [descripteur(qui, demande, donne), 'tenter'])
+                self.assertEqual(support_console.sans_saisie(n.data), support_console.sans_saisie(web.data))
