@@ -12,7 +12,7 @@ parallèle (une par processus) et termine par leurs mesures et leur moyenne.
 ``--rejeu page.html`` écrit en plus la page où rejouer la nuit ; avec ``--graines``, une page par
 graine (``page_<graine>.html``, ou ``rejeu_<graine>.html`` dans le dossier donné).
 """
-from .memoire import episodes
+from .memoire import episodes, intermediaires_retenus
 import re
 import argparse
 from collections import Counter
@@ -264,7 +264,7 @@ def _executer(monde, minutes, recit=None, empreintes=None):
                 if s["type"] == "vu_agir" and s.get("par") == "ouie" or s["type"] == "entendu_agir"]
     examens = [c for c in chronique if " d'où venait le bruit : " in c["texte"]]
     propositions = [c for c in chronique if c.get("nature") == "social" and " propose à " in c["texte"]]
-    intermediaires = [s for id in pnjs(monde) for s in lire(monde, id)['recours_intermediaires']]
+    intermediaires = [s for id in pnjs(monde) for s in intermediaires_retenus(monde, id)]
     mesures = {"propositions": len(propositions),
                "intermediaires_sollicites": sum(s['issue'] != 'preparee' for s in intermediaires),
                "intermediaires_acceptes": sum(s['issue'] == 'accepte' for s in intermediaires),

@@ -357,8 +357,7 @@ def verifier(monde):
         memoire.verifier_dits(monde, id)
         from .relations import verifier as verifier_relations
         verifier_relations(monde, id)
-        from .pnj_propositions import verifier as verifier_recours
-        verifier_recours(e)
+        memoire.verifier_recours(monde, id)
         p = monde.objets[id].get("profil")
         if p is not None:
             from .deliberation import verifier_profil

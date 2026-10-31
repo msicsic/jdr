@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir **court** (une à deux pages). Mis à jour le 2026-10-30.
+Point de reprise, à tenir **court** (une à deux pages). Mis à jour le 2026-10-31.
 L'historique détaillé de tous les lots est dans [historique-lots.md](historique-lots.md) : à lire seulement
 quand un lot ancien est en cause, jamais en entier. Les outils de mesure sont dans [outils-mesure.md](outils-mesure.md).
 
@@ -42,6 +42,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1f-localisation` (f7ec584b) : lot 397, S1f localisation crue et preuves de possession par une seule interface. Détail dans l'historique.
 
 ## Lots non fusionnés
+
+- `codex-s1k-recours` — lot 411, base `integration 8cb825aa` : cinq registres de recours
+  par les seules vues/opérations de `memoire`, prédicats et publication historiques conservés.
+  AST **84 → 1** (schéma seul) ; 70 tests initiaux, deux sous-échecs et une erreur connus du 409.
+  Attribution à la base, tests complémentaires et empreintes 2 h × 4 graines × 4 scénarios en cours ;
+  aucune identité encore annoncée. Bruts `C:/Users/msics/donjon/artifacts/s1k-411/`, fin attendue `fin.json`.
+  [Rapport 411](taches/rapport-codex-411-s1k-recours.md) ; pas de suite complète ni Luna.
 
 Lots en cours : 411 (S1k recours), 410 (A3 liaison du transport), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 

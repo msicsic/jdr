@@ -2477,7 +2477,7 @@ def choisir(monde, id, minute):
         _classer(monde, id, pressants, liste, essais, minute)
         return
     from .pnj_propositions import plan_recours
-    refusee = e["demande_refusee"]
+    refusee = memoire.demande_refusee(monde, id)
     from .eau import en_peril
     offre = plan_recours(monde, id, refusee["besoin"], None) if refusee and not en_peril(monde, id) else None
     e["intention"] = ({"but": {"type": "proposition", "objet": refusee["objet"]},

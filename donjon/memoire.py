@@ -1637,3 +1637,126 @@ def verifier_refus(monde, id):
              and all(isinstance(f, list) and len(f) == 4 for f in s["offre"]["cause"]))
         for s in e.get("refus", [])
     ), "Refus retenus de PNJ invalides"
+
+
+# --- Recours : vues sans acquittement, opérations aux instants historiques ---
+
+def demande_refusee(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['demande_refusee'])
+
+
+def propositions_tentees(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['recours_propositions'])
+
+
+def services_tentes(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['recours_services'])
+
+
+def intermediaires_retenus(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['recours_intermediaires'])
+
+
+def service_en_cours(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['service_en_cours'])
+
+
+def retenir_service_tente(monde, id, tentative):
+    """Une tentative par tiers/besoin, même si le devis échoue.
+
+    Le prédicat historique (identité du refus, opération et minute) reste
+    évalué par pnj_propositions ; ni cette porte ni une lecture ne le réarment.
+    """
+    from .esprits import lire
+    stock = lire(monde, id)['recours_services']
+    stock[:] = [s for s in stock if (s['de'], s['besoin']) != (tentative['de'], tentative['besoin'])]
+    stock.append(copy.deepcopy(tentative))
+
+
+def entreprendre_service(monde, id, demande, condition):
+    from .esprits import lire
+    lire(monde, id)['service_en_cours'] = copy.deepcopy({**demande, 'condition': condition})
+
+
+def clore_service(monde, id):
+    from .esprits import lire
+    lire(monde, id)['service_en_cours'] = None
+
+
+def restaurer_services_devises(monde, id, tentatives, service):
+    """Annule le seul devis de service supplanté par une commission moins chère."""
+    from .esprits import lire
+    e = lire(monde, id)
+    e['recours_services'][:] = copy.deepcopy(tentatives)
+    e['service_en_cours'] = copy.deepcopy(service)
+
+
+def retenir_intermediaire(monde, id, tentative):
+    """Publie la commission choisie, jamais ses candidats de devis."""
+    from .esprits import lire
+    lire(monde, id)['recours_intermediaires'].append(copy.deepcopy(tentative))
+
+
+def retenir_issue_intermediaire(monde, id, via, demande, issue):
+    from .esprits import lire
+    for s in lire(monde, id)['recours_intermediaires']:
+        if s['via'] == via and s['objet'] == demande['objet'] and s['issue'] == 'preparee':
+            s['issue'] = issue
+
+
+def accomplir_livraison_intermediaire(monde, id, via, objet):
+    from .esprits import lire
+    for s in lire(monde, id)['recours_intermediaires']:
+        if s['via'] == via and s['livraison'] == objet and s['issue'] == 'accepte':
+            s['abouti'] = True
+
+
+def affecter_livraison_intermediaire(monde, id, via, lot, part):
+    from .esprits import esprit
+    for s in esprit(monde, id)['recours_intermediaires']:
+        if s['via'] == via and s['livraison'] == lot and s['issue'] == 'accepte':
+            s['livraison'] = part
+
+
+def retenir_proposition_tentee(monde, id, entrees):
+    """Après le marché exécuté, remplace l'essai et acquitte son déclencheur."""
+    from .esprits import lire
+    e = lire(monde, id)
+    e['recours_propositions'][:] = [x for x in e['recours_propositions']
+                                  if (x['de'], x['besoin']) != (entrees['de'], entrees['besoin'])]
+    e['recours_propositions'].append(copy.deepcopy(entrees))
+    e['demande_refusee'] = None
+
+
+def verifier_recours(monde, id):
+    from .esprits import lire
+    _verifier_recours(lire(monde, id))
+
+
+def _verifier_recours(e):
+    from .propositions import erreur_terme
+    def cible(x):
+        return isinstance(x, dict) and all(isinstance(x.get(k), str) for k in ("de", "besoin", "objet"))
+    assert e["demande_refusee"] is None or cible(e["demande_refusee"]), "Déclencheur de recours invalide"
+    assert isinstance(e['recours_intermediaires'], list) and all(
+        set(s) == {'de', 'besoin', 'objet', 'operation', 'minute', 'via', 'issue', 'livraison', 'abouti'}
+        and all(isinstance(s[k], str) for k in ('de', 'besoin', 'objet', 'operation', 'via', 'issue', 'livraison'))
+        and type(s['abouti']) is bool and type(s['minute']) is int
+        for s in e['recours_intermediaires']), 'Intermédiaires invalides'
+    assert e['service_en_cours'] is None or (cible(e['service_en_cours'])
+        and set(e['service_en_cours']) == {'de', 'besoin', 'objet', 'condition'}
+        and erreur_terme({'type': 'tache', 'condition': e['service_en_cours']['condition']}) is None), 'Service en cours invalide'
+    assert isinstance(e['recours_services'], list) and all(
+        isinstance(s, dict) and set(s) == {'de', 'besoin', 'objet', 'operation', 'minute'}
+        and all(isinstance(s[k], str) for k in ('de', 'besoin', 'objet', 'operation'))
+        and type(s['minute']) is int for s in e['recours_services']), 'Tentatives de service invalides'
+    assert isinstance(e["recours_propositions"], list) and all(
+        cible(x) and isinstance(x.get("cause"), list) and isinstance(x.get("lien"), dict)
+        and type(x.get("pieces")) is int and x["pieces"] >= 0 and isinstance(x.get("biens"), dict)
+        and all(isinstance(o, str) and type(n) is int and n >= 0 for o, n in x["biens"].items())
+        for x in e["recours_propositions"]), "Tentatives de proposition invalides"

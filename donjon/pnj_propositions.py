@@ -9,27 +9,8 @@ from .esprits import lire, memoriser
 
 
 def verifier(e):
-    from .propositions import erreur_terme
-    def cible(x):
-        return isinstance(x, dict) and all(isinstance(x.get(k), str) for k in ("de", "besoin", "objet"))
-    assert e["demande_refusee"] is None or cible(e["demande_refusee"]), "Déclencheur de recours invalide"
-    assert isinstance(e['recours_intermediaires'], list) and all(
-        set(s) == {'de', 'besoin', 'objet', 'operation', 'minute', 'via', 'issue', 'livraison', 'abouti'}
-        and all(isinstance(s[k], str) for k in ('de', 'besoin', 'objet', 'operation', 'via', 'issue', 'livraison'))
-        and type(s['abouti']) is bool and type(s['minute']) is int
-        for s in e['recours_intermediaires']), 'Intermédiaires invalides'
-    assert e['service_en_cours'] is None or (cible(e['service_en_cours'])
-        and set(e['service_en_cours']) == {'de', 'besoin', 'objet', 'condition'}
-        and erreur_terme({'type': 'tache', 'condition': e['service_en_cours']['condition']}) is None), 'Service en cours invalide'
-    assert isinstance(e['recours_services'], list) and all(
-        isinstance(s, dict) and set(s) == {'de', 'besoin', 'objet', 'operation', 'minute'}
-        and all(isinstance(s[k], str) for k in ('de', 'besoin', 'objet', 'operation'))
-        and type(s['minute']) is int for s in e['recours_services']), 'Tentatives de service invalides'
-    assert isinstance(e["recours_propositions"], list) and all(
-        cible(x) and isinstance(x.get("cause"), list) and isinstance(x.get("lien"), dict)
-        and type(x.get("pieces")) is int and x["pieces"] >= 0 and isinstance(x.get("biens"), dict)
-        and all(isinstance(o, str) and type(n) is int and n >= 0 for o, n in x["biens"].items())
-        for x in e["recours_propositions"]), "Tentatives de proposition invalides"
+    """Façade de validation historique ; le stockage appartient à memoire."""
+    memoire._verifier_recours(e)
 
 
 def _demande(monde, objet):
@@ -253,7 +234,7 @@ def plan_recours(monde, id, besoin, etapes):
     # aussi une faute pendant que l'autre accomplit sa parole.
     from .deliberation import refus_retenu
     from .echanges import ENGAGEMENT_MAX
-    for s in e['recours_intermediaires']:
+    for s in memoire.intermediaires_retenus(monde, id):
         aide = e['aides_attendues'].get(s['objet'])
         if (s['besoin'] == besoin and not s['abouti'] and s['issue'] == 'accepte'
                 and aide and aide['qui'] == s['via']
@@ -262,29 +243,29 @@ def plan_recours(monde, id, besoin, etapes):
                 and not any(refus_retenu(monde, id, s['via'], ('confier',), objet=o)
                             for o in (s['objet'], s['livraison']))):
             return [{'operation': 'inspecter', 'cible': '', 'outil': '', 'lieu': '', 'condition': ''}]
-    en_cours = e['service_en_cours']
+    en_cours = memoire.service_en_cours(monde, id)
     if en_cours and en_cours['besoin'] == besoin:
         from .deliberation import satisfaite, refus_retenu
         refus = refus_retenu(monde, id, en_cours['de'], ('demander', 'acheter', 'proposer'), objet=en_cours['objet'])
         if (not refus or refus['raison'] not in ('mefiance', 'rancune')
                 or satisfaite(monde, id, en_cours['condition'])):
-            e['service_en_cours'] = None
+            memoire.clore_service(monde, id)
         elif _dernier_recours(monde, id, en_cours['de'], etapes):
             plan = _plan_service(monde, id, en_cours['de'], en_cours['condition'])
             if plan:
                 return plan
-            e['service_en_cours'] = None
+            memoire.clore_service(monde, id)
     intermediaire = devis_intermediaire(monde, id, besoin, etapes)
     # Deviser le service ne doit pas le marquer entrepris si la commission est
     # moins chère. Les deux recours restent hors de la recherche ordinaire.
-    avant = list(e['recours_services']), e['service_en_cours']
+    avant = memoire.services_tentes(monde, id), memoire.service_en_cours(monde, id)
     service = rendre_service(monde, id, besoin, etapes)
     if intermediaire:
         cout, plan, tentative = intermediaire
         cout_service = float('inf')
         if service:
             from .echanges import _devis_proposition, valeur_proposition
-            en_cours = e['service_en_cours']
+            en_cours = memoire.service_en_cours(monde, id)
             if en_cours:
                 devis = _devis_proposition(monde, id, en_cours['condition'], en_cours['de'])
                 cout_service = devis[0] if devis else float('inf')
@@ -294,12 +275,12 @@ def plan_recours(monde, id, besoin, etapes):
                          'objet': g['cible'] if g['operation'] == 'servir' else g['outil']}
                 cout_service = valeur_proposition(monde, id, terme, tentative['de'])
         if cout_service is None or cout < cout_service:
-            e['recours_services'][:], e['service_en_cours'] = avant
-            e['recours_intermediaires'].append(tentative)
+            memoire.restaurer_services_devises(monde, id, *avant)
+            memoire.retenir_intermediaire(monde, id, tentative)
             return plan
     if service:
         return service
-    refusee = e["demande_refusee"]
+    refusee = memoire.demande_refusee(monde, id)
     if refusee and refusee["besoin"] == besoin:
         for s in reversed(memoire.reponses_retenues(monde, id)):
             if s["de"] != refusee["de"] or s.get("objet") != refusee["objet"] or "contre_offre" not in s:
@@ -347,15 +328,14 @@ def devis_intermediaire(monde, id, besoin, etapes):
     """
     from .deliberation import refus_retenu, _connus, besoin_de_part
     from .planification import rejoindre, vue, depart, TACHE
-    e = lire(monde, id)
-    r = e['demande_refusee']
+    r = memoire.demande_refusee(monde, id)
     if not r or r['besoin'] != besoin or not _dernier_recours(monde, id, r['de'], etapes):
         return None
     refus = refus_retenu(monde, id, r['de'], ('demander', 'acheter', 'proposer'), objet=r['objet'])
     if not refus or refus['raison'] not in ('mefiance', 'rancune'):
         return None
     cle = {**r, 'operation': refus['operation'], 'minute': refus['minute']}
-    if any(all(s[k] == v for k, v in cle.items()) for s in e['recours_intermediaires']):
+    if any(all(s[k] == v for k, v in cle.items()) for s in memoire.intermediaires_retenus(monde, id)):
         return None
     attitudes = memoire.faits_connus(monde, id, r['de'])
     candidats = []
@@ -413,8 +393,7 @@ def rendre_service(monde, id, besoin, etapes):
     """
     from .deliberation import refus_retenu, salle_crue
     from .propositions import taches_crues
-    e = lire(monde, id)
-    refusee = e['demande_refusee']
+    refusee = memoire.demande_refusee(monde, id)
     if not refusee or refusee['besoin'] != besoin:
         return None
     autre, objet = refusee['de'], refusee['objet']
@@ -428,16 +407,14 @@ def rendre_service(monde, id, besoin, etapes):
         return None
     cle = {'de': autre, 'besoin': besoin, 'objet': objet,
            'operation': refus['operation'], 'minute': refus['minute']}
-    if cle in e['recours_services']:
+    if cle in memoire.services_tentes(monde, id):
         return None
-    e['recours_services'][:] = [s for s in e['recours_services']
-                               if (s['de'], s['besoin']) != (autre, besoin)]
-    e['recours_services'].append(cle)
+    memoire.retenir_service_tente(monde, id, cle)
     terme = next(taches_crues(monde, id, autre), None)
     if terme:
         plan = _plan_service(monde, id, autre, terme['condition'])
         if plan:
-            e['service_en_cours'] = {**refusee, 'condition': terme['condition']}
+            memoire.entreprendre_service(monde, id, refusee, terme['condition'])
             return plan
     # Un bien porté qui répond à un manque observé ne demande aucun devis.
     from .biens import proprietaire
@@ -486,7 +463,7 @@ def recours(monde, id, besoin, etapes):
                     candidats.append((autre, demande))
                     break
         break
-    refusee = e["demande_refusee"]
+    refusee = memoire.demande_refusee(monde, id)
     if refusee and refusee["besoin"] == besoin:
         autre, o = refusee["de"], refusee["objet"]
         if refus_retenu(monde, id, autre, ("demander", "acheter"), objet=o):
@@ -517,7 +494,7 @@ def recours(monde, id, besoin, etapes):
         if negatif in (sans_service, avec_service):
             service_devise = service_devise or negatif == avec_service
             continue
-        avant = next((x for x in e["recours_propositions"] if x["de"] == autre and x["besoin"] == besoin), None)
+        avant = next((x for x in memoire.propositions_tentees(monde, id) if x["de"] == autre and x["besoin"] == besoin), None)
         refus = [s for s in memoire.reponses_retenues(monde, id) if s["de"] == autre and s.get("objet") == demande["objet"]
                  and s["operation"] in ("acheter", "proposer") and "offre" in s]
         if not refus and avant and _tient(avant, entrees):
@@ -575,10 +552,7 @@ def executer(monde, id, autre, contenu, lignes):
     entrees = _entrees(monde, id, autre, besoin, demande)
     bilan = proposer(monde, id, autre, demande, terme)
     e = lire(monde, id)
-    e["recours_propositions"][:] = [x for x in e["recours_propositions"]
-                                      if (x["de"], x["besoin"]) != (autre, besoin)]
-    e["recours_propositions"].append(entrees)
-    e["demande_refusee"] = None
+    memoire.retenir_proposition_tentee(monde, id, entrees)
     issue = bilan["cause"] or "accepte"
     if autre == 'joueur' and issue == 'attente':
         import copy

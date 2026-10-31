@@ -1994,9 +1994,7 @@ def executer(monde, id, etape, lignes):
     elif op == "confier":
         mandat = contenu.get("mandat")
         issue = confier(monde, id, autre, mandat=mandat) if mandat else confier(monde, id, autre, contenu)
-        for s in lire(monde, id)['recours_intermediaires']:
-            if s['via'] == autre and s['objet'] == contenu['objet'] and s['issue'] == 'preparee':
-                s['issue'] = issue
+        memoire.retenir_issue_intermediaire(monde, id, autre, contenu, issue)
         if mandat:
             p = mandat["parametres"]
             if issue != "qui_va_la":
