@@ -43,7 +43,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 413 (S1l recherche d'une personne), 414 (rouges nouveaux de la suite 4539dd68), 412 (A4 dossier de revue), 402 (vérification d'intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 413 (S1l recherche d'une personne), 414 (rouges nouveaux de la suite 4539dd68), 415 (A5 reprise fidèle, construit sur la branche A4 412, non fusionnée : substitution de manière acceptée), 402 (vérification d'intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
