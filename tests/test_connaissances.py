@@ -126,12 +126,24 @@ class ConnaissancesTests(unittest.TestCase):
             m = Monde.charger(path)
             self.assertEqual(m.data["savoirs_pnj"]["marchand"]["lien_anneau"]["texte"], TEXTE)
             m.data["conversation"] = []
+            avant = copy.deepcopy(m.data)
+            phases = []
             def appel(instructions, entree, intention, fonction, schema):
-                self.assertEqual(entree["faits"]["connaissances_pnj"]["marchand"]["lien_anneau"]["texte"], TEXTE)
-                self.assertNotIn("lien_anneau", entree["faits"]["connaissances_a_completer"]["marchand"]["sujets"])
+                phases.append("connaissances_pnj" in entree["faits"])
+                if phases[-1]:
+                    self.assertEqual(entree["faits"]["connaissances_pnj"]["marchand"]["lien_anneau"]["texte"], TEXTE)
+                    self.assertEqual(entree["faits"]["connaissances_a_completer"], {})
+                else:
+                    self.assertNotIn("esprits_interlocuteurs", entree["faits"])
+                    self.assertNotIn("lien_anneau", entree["faits"]["connaissances_a_completer"]["marchand"]["sujets"])
                 return dialogue()
             with patch.object(MJOpenAI, "_appeler", side_effect=appel):
                 MJOpenAI().echanger(m, "Rappelle-moi pourquoi tu veux cet anneau.")
+                # A6 réserve les savoirs privés à la mise en voix, après compilation.
+                r = MJOpenAI()._echanger(m, "Rappelle-moi pourquoi tu veux cet anneau.", None, enrichir=False)
+            self.assertEqual(phases, [False, True])
+            self.assertEqual(r["texte"], dialogue()["texte"])
+            self.assertEqual(m.data, avant)
 
     def test_sauvegarde_impossible_n_affiche_pas_nouveau_recit(self):
         with tempfile.TemporaryDirectory() as tmp:

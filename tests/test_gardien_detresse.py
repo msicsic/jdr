@@ -102,7 +102,9 @@ class GardienDetresseTests(unittest.TestCase):
             croire(m, qui, 'biscuits', 'etat', {'disponible': True}, 'vu')
         plan = d._plan_faim(m, 'bram')
         self.assertEqual(plan[1][0]['operation'], 'confier')
-        self.assertEqual(plan[1][0]['contenu'], {'objet': 'biscuits', 'remettre': 'bram'})
+        # 417/419 : la consommation projetée est descriptive ; seule la demande est exécutable.
+        self.assertEqual(plan[1][0]['contenu'], {'objet': 'biscuits', 'remettre': 'bram',
+            'suite_conditionnelle': [p._etape('manger', 'biscuits')]})
         m, texte = self.meme_laps(recharger(m), 8)
         self.assertEqual(m.objets['bram']['lieu'], 'bureau')
         self.assertLess(lire(m, 'bram')['besoins']['faim'], 100.)

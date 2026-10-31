@@ -84,17 +84,24 @@ class CitationTests(unittest.TestCase):
             relais().sauver(chemin)
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler", side_effect=appel),
+                  patch.object(MJOpenAI, "_auditer_action"),
                   patch("builtins.input", side_effect=["je demande à Gorm s'il va bien", "quitter"]),
                   patch("sys.stdout", io.StringIO())):
                 self.assertEqual(jeu.main(["--console", "--connexion", "api", "--save", str(chemin)]), 0)
         self.assertEqual(len(appels), 2)
-        for instructions, entree, schema in appels:
+        for index, (instructions, entree, schema) in enumerate(appels):
             self.assertEqual(schema["properties"]["faits"]["items"], {"type": "string"})
             citables = list(entree["faits"])
             # L1 ordonne les données sans modifier les clés citables du schéma.
             self.assertCountEqual(citables, list(entree["faits"]))
             # Les blocs du contexte de parole, et tout sous-bloc que leurs règles nomment, se citent.
-            self.assertLessEqual({"expression_joueur", "esprits_interlocuteurs"}, set(citables))
+            self.assertIn("expression_joueur", citables)
+            # A6 : les esprits privés servent à la mise en voix, pas à compiler la saisie.
+            if index == 0:
+                self.assertNotIn("esprits_interlocuteurs", citables)
+                self.assertNotIn("connaissances_pnj", citables)
+            else:
+                self.assertIn("esprits_interlocuteurs", citables)
             sous_blocs = {cle for bloc in entree["faits"].values() if isinstance(bloc, dict)
                           for cle, valeur in bloc.items() if isinstance(valeur, dict)}
             nommes = {cle for cle in sous_blocs - set(citables)
@@ -117,10 +124,13 @@ class ExpressionTests(unittest.TestCase):
             reponse_pnj("Gorm : « Ça ira. »")])
         paroles = appels[0]["faits"]
         self.assertTrue(paroles["expression_joueur"]["precision"].startswith("précise"))
-        gorm = paroles["esprits_interlocuteurs"]["marchand"]
+        self.assertNotIn("esprits_interlocuteurs", paroles)
+        self.assertNotIn("connaissances_pnj", paroles)
+        mise_en_voix = appels[1]["faits"]
+        gorm = mise_en_voix["esprits_interlocuteurs"]["marchand"]
         self.assertIn("croit que la cloche d'alarme est dans la galerie de ronde", gorm["croit"])
         self.assertIn("Bourru", gorm["traits"])
-        self.assertNotIn("brune", paroles["esprits_interlocuteurs"])
+        self.assertNotIn("brune", mise_en_voix["esprits_interlocuteurs"])
         self.assertEqual(appels.rapports[-1]["replique_joueur"], "Tout va bien, Gorm ?")
         self.assertIn("Tu dis à Gorm : « Tout va bien, Gorm ? »", sortie)
         self.assertLess(sortie.index("Tu dis à Gorm :"), sortie.index("Gorm : « Ça ira. »"))

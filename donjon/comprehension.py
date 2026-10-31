@@ -51,12 +51,33 @@ def parametres_types(proposition, chemin=""):
     return resultat
 
 
-def verifier_reprise(proposition, invariants):
+def verifier_reprise(proposition, invariants, monde=None):
     """Seuls les champs explicitement mis en cause peuvent remplacer le candidat refusé."""
     from .refus import RefusDeForme
     recus = parametres_types(proposition)
     for chemin, accepte in invariants.items():
-        if chemin not in recus or recus[chemin] != accepte:
+        identique = chemin in recus and recus[chemin] == accepte
+        if not identique and monde is not None and chemin in recus:
+            from .noms import CHAMPS_REFERENCES, LISTES_REFERENCES
+            from .voix import reel
+            champ = chemin.rsplit('.', 1)[-1]
+
+            def meme_entite(a, b):
+                if not isinstance(a, str) or not isinstance(b, str):
+                    return False
+                id_ = reel(monde, a)
+                return id_ in monde.objets and id_ == reel(monde, b)
+
+            # Une référence publique et son identifiant désignent le même corps.
+            # Leur équivalence ne vaut pas admission : les gardes de références
+            # fournies et de perception restent appliquées au candidat corrigé.
+            if champ in CHAMPS_REFERENCES:
+                identique = meme_entite(recus[chemin], accepte)
+            elif champ in LISTES_REFERENCES:
+                a, b = recus[chemin], accepte
+                identique = (isinstance(a, list) and isinstance(b, list) and len(a) == len(b)
+                             and all(x == y or meme_entite(x, y) for x, y in zip(a, b)))
+        if not identique:
             raise RefusDeForme("La correction remplace une partie du geste qui n'était pas en cause.",
                 f"proposition.{chemin} : reçu {recus.get(chemin)!r} ; accepté : {accepte!r}. "
                 "Reprendre la saisie entière et le refus ; le candidat précédent reste non admis.")

@@ -43,7 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 440 (rouges connus, attribution), 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 439 (coups du hameau 2024, diagnostic), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+- `codex-rouges-connus` — lot 440, base `integration 94fcffb9` : 14 méthodes rouges attribuées aux fusions ;
+  A5 compare l'identité des références publiques, sans autoriser une autre cible ; oracle des noms intact.
+  Onze méthodes résolues (contrats 374/410/415/416/417), trois restent ouvertes : cible inexistante figée, deux parcours de Lucien.
+  167 méthodes ciblées : 162 vertes, 5 rouges (dont deux voisins K0 attribués à `88f21002`), zéro ignoré ; empreintes 2 h en fond.
+  Aucun Luna ni suite complète ; validation finale en attente de `rouges-connus-440/fin-empreintes.json`. Lots R/L/F : [rapport 440](taches/rapport-codex-440-rouges-connus.md).
+
+Lots en cours : 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 439 (coups du hameau 2024, diagnostic), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

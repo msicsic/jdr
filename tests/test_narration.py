@@ -269,9 +269,7 @@ class NarrationTests(unittest.TestCase):
             {"mode": "action", "texte": "", "faits": [], "proposition": proposition("lire", "gravure")},
             {"mode": "action", "texte": "", "faits": [],
              "proposition": sequence(etape("allumer", "torche", outil="briquet"))},
-            dialogue(explication),
-            {"segments": [{"portee_mecanique": "aucune", "indice": i, "verdict": "mecanique", "sources": ["attestations"],
-                           "locuteur": "", "citation": "", "entites": [], "comptes": [], "motif": ""} for i in range(2)]},
+            {"mode": "action", "texte": "", "faits": [], "proposition": proposition("lire", "gravure")},
         ]
         with tempfile.TemporaryDirectory() as tmp:
             chemin = Path(tmp) / "partie.json"
@@ -283,10 +281,12 @@ class NarrationTests(unittest.TestCase):
                 self.assertEqual(jeu.main(["--defi", "--console", "--save", str(chemin),
                                            "--connexion", "api"]), 0)
             reprise = Monde.charger(chemin)
-        # G2 remplace l'explication libre par les deux messages publics, exacts et ordonnés.
-        attendu = "La lumière est trop faible pour lire avec précision. La torche n'a plus de combustible."
+        # A5 rejette la substitution lire → allumer avant préparation. G2 rend
+        # seulement le refus réellement établi, sans lui ajouter un résultat fictif.
+        attendu = "La lumière est trop faible pour lire avec précision."
         self.assertIn(attendu, sortie.getvalue())
         self.assertNotIn(explication, sortie.getvalue())
+        self.assertNotIn("La torche n'a plus de combustible.", sortie.getvalue())
         self.assertFalse(reprise.data["journal"])
         self.assertEqual(reprise.data["narrations_mj"][-1]["texte"], attendu)
 

@@ -694,7 +694,7 @@ class MJ:
             p = reponse["proposition"]
             reprise_verifiee = False
             try:
-                verifier_reprise(p, invariants)
+                verifier_reprise(p, invariants, monde)
                 reprise_verifiee = True
                 from .moteur import Moteur
                 if parole_attendue(monde, intention):
@@ -1404,7 +1404,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                         if reponse.get("mode") != "action":
                             raise RefusDeForme("La correction doit reprendre le geste refusé.",
                                                "mode : reçu " + repr(reponse.get("mode")) + "; accepté : action.")
-                        verifier_reprise(reponse["proposition"], invariants_forme)
+                        verifier_reprise(reponse["proposition"], invariants_forme, self._monde_controle)
                     if len(schema.get("properties", {}).get("mode", {}).get("enum", [])) > 1:
                         verifier_disponibilite(reponse, entree["faits"],
                             self._monde_controle is not None and geste_en_question(self._monde_controle, intention))

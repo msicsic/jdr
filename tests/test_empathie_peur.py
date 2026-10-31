@@ -87,7 +87,7 @@ class CompagnieTests(unittest.TestCase):
                          p._etape('rester', autre)]
                 with patch.object(p, 'chercher', return_value=(1, devis, None)):
                     but, plan = p.planifier_pulsion(m, acteur, {'pres': autre})
-                self.assertEqual(plan, [certain])
+                self.assertEqual(plan, [{**certain, 'contenu': {'suite_conditionnelle': [devis[1]]}}])
                 self.assertIn('suppose', devis[0])
                 lire(m, acteur)['intention'] = dict(but=but, plan=plan, motif='empathie', depuis=0, attente=0)
                 n = recharger(m)
@@ -141,8 +141,25 @@ class CompagnieTests(unittest.TestCase):
         self.assertIsNone(d._fin_demande(m, acteur, demande))
         # Nouvelle épreuve commune de ce regard : l'ancienne crainte était une méprise.
         lire(m, acteur)['signes_lus'][preuve['preuve']['signe']] = m.data['minutes'] - signes.RELECTURE
-        with patch.object(signes, '_jet', return_value=20):
+        # 374 : la cible du regard n'est plus localisée (position entendue à 167,
+        # capture à 203). Une direction seule ne permet pas de relire l'attitude.
+        with patch.object(signes, '_jet', return_value=20) as jet:
             signes.lire(m, acteur)
+        jet.assert_not_called()
+        self.assertIsNotNone(signes.detresse_retenue(m, acteur, autre))
+        self.assertIsNone(d._fin_demande(m, acteur, demande))
+        # Placement d'auteur : il vient d'entendre la cible du regard dans cette
+        # salle. Cette information rétablit la lecture, sans démentir la crainte.
+        from donjon.esprits import croire
+        cible = preuve['preuve']['attribut'].split(':', 1)[1]
+        salle = m.objets[acteur]['lieu']
+        self.assertEqual(m.objets[cible]['lieu'], salle)
+        croire(m, acteur, cible, 'lieu', salle, 'entendu', salle=salle, case=None)
+        self.assertIsNotNone(signes.detresse_retenue(m, acteur, autre))
+        self.assertIsNone(d._fin_demande(m, acteur, demande))
+        with patch.object(signes, '_jet', return_value=20) as jet:
+            signes.lire(m, acteur)
+        self.assertGreater(jet.call_count, 0)
         self.assertIsNone(signes.detresse_retenue(m, acteur, autre))
         self.assertEqual(d._fin_demande(m, acteur, demande)[0], 'dementie')
         self.assertEqual(lire(m, acteur)['croyances'][autre]['detresse']['preuve']['valeur'], 'mefiance')

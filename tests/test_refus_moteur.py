@@ -71,7 +71,8 @@ class RefusMoteurTests(unittest.TestCase):
                 from donjon.refus import RefusDeForme
                 m = banc("atelier")
                 self.assertIsInstance(self.refus(m, p), RefusDeForme)
-                self.console(m, "je fredonne", [action(p)] * 3, demande_precision(), 3)
+                # A3 valide la grammaire avant préparation : une correction de forme, puis repli.
+                self.console(m, "je fredonne", [action(p)] * 2, demande_precision(), 2)
 
     def test_enveloppe_mal_formee_persistante_demande_precision(self):
         self.console(banc("atelier"), "je fredonne", [{"mode": "action"}] * 2,
@@ -85,8 +86,13 @@ class RefusMoteurTests(unittest.TestCase):
         allumer = proposition("allumer", "torche", "briquet")
         refus = [self.refus(m, p) for p in (lire, allumer)]
         self.assertNotEqual(str(refus[0]), str(refus[1]))
-        self.console(m, "je lis la consigne", [action(lire), action(allumer)],
-                     " ".join(map(str, refus)), 2)
+        # A5 : allumer substitue un autre geste à lire ; ce candidat ne produit donc
+        # pas un second refus du monde. La troisième réponse reprend le geste initial.
+        _, appels = self.console(m, "je lis la consigne", [action(lire), action(allumer), action(lire)],
+                                 str(refus[0]), 3)
+        retour = appels[2][1]['faits']['retour_moteur']
+        self.assertEqual(retour['parametres_a_conserver']['action'], 'lire')
+        self.assertIn('proposition.action', retour['attendu'])
 
     def test_refus_de_portee_en_correction_garde_le_premier_refus(self):
         m = loin_de_la_poutre()
@@ -102,7 +108,11 @@ class RefusMoteurTests(unittest.TestCase):
                            avis("impossible", "Il te faut une échelle."),
                            avis("clarifier", "Quel identifiant vises-tu ?")):
             with self.subTest(mode=correction):
-                self.console(m, "je prends la pierre", [action(p), correction], str(self.refus(m, p)), 2)
+                # Un avis typé est aussi une substitution A5 ; il doit être corrigé
+                # sans jamais remplacer le premier refus par sa prose.
+                avis_type = correction['mode'] == 'action'
+                self.console(m, "je prends la pierre", [action(p), correction, *([action(p)] if avis_type else [])],
+                             str(self.refus(m, p)), 3 if avis_type else 2)
 
 
 if __name__ == "__main__":
