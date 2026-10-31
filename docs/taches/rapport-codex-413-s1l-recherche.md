@@ -1,7 +1,7 @@
 # Lot 413 — S1l, recherche d'une personne par la porte commune
 
 31 octobre 2026, PC fixe · `codex-s1l-recherche` · base exacte `integration 40f062d8`.
-Moteur mesuré : **`dd80f067`**. **Tests terminés ; empreintes en cours, lot non encore clos.**
+Moteur mesuré : **`dd80f067`**. **Lot clos, non fusionné ; aucun calcul restant.**
 
 **Invariant et code.** Les trois registres historiques `recherches`,
 `indices_recherche` et `presence_recherche` passent par `donjon/memoire.py`.
@@ -39,18 +39,22 @@ entre le lieu inspecté et celui du contact. Oracles corrigés, moteur inchangé
 les rouges initiaux sont conservés. L'import direct d'une classe de tests a
 été remplacé par celui du module pour éviter sa double découverte.
 
-**Empreintes attendues.** 2 h × graines 1985/7/42/2024 × Relais/mine/auberge/crue,
-contre la base exacte `40f062d8`, sans exclusion d'état. Référence puis branche,
-cache partagé, deux travailleurs réduits au plus ; aucun temps CPU à comparer
-au cache. Pas de suite complète ni Luna. Le calcul long est détaché, avec
-`C:/Users/msics/donjon/artifacts/s1l-413/fin-complement.json` écrit en dernier.
+**Empreintes : 16/16 identiques.** 2 h × graines 1985/7/42/2024 ×
+Relais/mine/auberge/crue, base exacte `40f062d8` contre `dd80f067` : chroniques,
+mesures et état final complet identiques nuit par nuit, sans exclusion,
+divergence ni plantage. Avis concordants : zéro non justifié et vingt à expliquer
+de chaque côté. Référence puis branche jouées une seule fois et rangées dans le
+cache partagé, deux travailleurs réduits au plus ; aucun temps comparé.
+`empreintes-base.json`, `conclusion.json` et **`fin-complement.json` (`succes: true`)**
+portent le résultat définitif. Pas de suite complète ni Luna.
 
 **Limites et voisinage.** Contrôle AST syntaxique local, sans preuve de tous les
 flux interprocéduraux Python ; politiques historiques conservées. Aucune
 modification de `mj.py` ou `comprehension.py` (lot 412) ; le lot 402 reste un calcul
-indépendant. L'avance documentaire `origin/integration d54d15ae` est intégrée ; seul conflit
-dans `etat-dev`, résolu en conservant le suivi du 414. Le moteur est inchangé.
-Le premier lanceur s'est arrêté avant les empreintes sur son chemin d'import,
-puis sur le module homonyme `tools/tests.py` ; erreurs de lancement conservées,
-aucun rejeu des tests verts ni des captures.
+indépendant. Avances documentaires `origin/integration d54d15ae`, puis `2b2e0a94`
+fusionnées ; seuls conflits dans `etat-dev`, résolus en conservant les suivis
+414/415. Depuis le code mesuré, seules la documentation et la découverte des
+tests ont changé ; le moteur et les sondes sont inchangés.
+Deux arrêts du lanceur avant les empreintes (chemin d'import, puis homonyme
+`tools/tests.py`) sont conservés dans les bruts ; aucun rejeu des contrôles verts.
 Bruts : `C:/Users/msics/donjon/artifacts/s1l-413/`.

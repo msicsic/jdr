@@ -43,15 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-s1l-recherche` — lot 413, base `integration 40f062d8`, moteur `dd80f067`, non fusionné ; empreintes en cours.
+- `codex-s1l-recherche` — lot 413, base `integration 40f062d8`, moteur `dd80f067`, clos, non fusionné ; aucun calcul restant.
   Recherche de personne par `memoire` : négatifs, indices consommés et repère positif, migration/validation ;
   stockage, consommation du 374 et politiques inchangés. Inventaire AST 154 → 60 (schéma + homonymes seuls).
   218 tests distincts sur 17 fichiers validés, six nouveaux verts ; deux captures, état/rendu/scène/paroles et laps entier/découpé.
-  Empreintes 2 h × quatre graines × Relais/mine/auberge/crue à vérifier contre la base exacte, deux processus réduits.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/s1l-413/fin-complement.json` ; pas de suite complète ni Luna.
+  Empreintes 2 h × quatre graines × Relais/mine/auberge/crue : 16/16 identiques à la base exacte, aucun plantage.
+  `fin-complement.json` confirme le succès ; intégration documentaire `2b2e0a94` fusionnée ; pas de suite complète ni Luna.
   Limites : contrôle AST local et politiques historiques. [Rapport](taches/rapport-codex-413-s1l-recherche.md).
 
-Lots en cours : 413 (S1l recherche d'une personne), 414 (rouges nouveaux de la suite 4539dd68), 412 (A4 dossier de revue), 402 (vérification d'intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 414 (rouges nouveaux de la suite 4539dd68), 415 (A5 reprise fidèle, construit sur la branche A4 412, non fusionnée : substitution de manière acceptée), 402 (vérification d'intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
