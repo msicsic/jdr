@@ -2,7 +2,8 @@
 
 31 octobre 2026, PC fixe. Branche `codex-reservation-contrat`, base
 `origin/integration ca0fc1f0`. Bruts :
-`C:/Users/msics/donjon/artifacts/reservation-contrat-393/`. Fusion au superviseur.
+`C:/Users/msics/donjon/artifacts/reservation-contrat-393/`. Code `89547197`,
+branche poussée, fusion au superviseur. Vérification close, aucun calcul attendu.
 
 **Invariant et cause.** La commission d'Ilse pour livrer les crochets à Brune
 était acceptée. Leur acquisition auprès de Gorm créait ensuite le prêt et son
@@ -41,12 +42,19 @@ les parts libres des stocks et le refus des doubles promesses.
 
 **Mesures.** **68/70 verts**, six fichiers prescrits, 94,2 s (`tests-final.json`) ;
 les deux rouges restants sont attribués ci-dessous, aucun nouvel échec.
-Les premiers passages corrigés donnent 67/69 puis 15/15 sur les deux fichiers
-enrichis. **Banc rapide en cours** : Relais et crue, quatre heures, graines
-1985/7/42/2024 ; `fin-verification.json` est écrit en dernier par `verifier393.py`.
-Deux travailleurs au plus, priorité réduite. Ni suite complète ni Luna.
-Le premier début de banc a été arrêté avant résultat pour ajouter la
-contre-épreuve du prêt antérieur ; seul le banc final sera retenu.
+**Banc rapide terminé : 8/8 nuits**, Relais/crue, quatre heures, graines
+1985/7/42/2024 : aucun plantage, zéro usurpation et zéro bascule contradictoire.
+Maximum de passages par PNJ et heure : Relais 11, crue 43 (Gorm, graine 42,
+première heure) ; avertissements redits : respectivement 5 et 1. Les déplacements
+de Gorm traversent cinq salles, avec évacuation, fourniture et réactions aux bruits ;
+ces compteurs ne prouvent pas l'absence générale de boucles. Aucun prêt ni commission
+dans ces nuits : la preuve de livraison vient des tests ciblés. Pas de comparaison
+de référence ni de conclusion de coût. Bruts `banc-relais.json`, `banc-crue.json` ;
+`analyse-cloture.json` synthétise les observations. `fin-verification.json` garde
+les codes bruts : tests=1 (seuls rouges de base), bancs=0, erreur=null, succès=true ;
+237,2 s pour le lanceur entier, deux travailleurs réduits au plus. Ni suite complète
+ni Luna. Premier début de banc arrêté avant résultat pour renforcer la contre-épreuve ;
+seul le banc final est retenu.
 
 **Limites attribuées.** Deux méthodes de `test_promesses.DonLocalTests` restent
 rouges : `test_le_don_de_la_cloche_aboutit_sans_appel_au_modele` (clé propriétaire

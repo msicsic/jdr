@@ -47,11 +47,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   La restitution du prêt acquis pour un transport ne réserve plus deux fois son bien ;
   les autres promesses restent opposables. Pureté du devis testée sur des cases de sol valides.
   Crochets et marteau livrés après recharge ; 68/70 tests, six fichiers, 94,2 s.
-  Banc rapide Relais/crue 4 h × 4 graines en cours : `reservation-contrat-393/fin-verification.json`.
-  Deux rouges de dons directs dans `test_promesses` reproduits sur la base, hors lot ; ni suite complète ni Luna.
+  Banc rapide Relais/crue 4 h × 4 graines : 8/8 sans plantage ni usurpation ; zéro bascule, passages/h max 43.
+  Deux rouges de dons directs reproduits sur la base ; pas de garantie générale sur les boucles. Branche poussée.
   [Rapport](taches/rapport-codex-393-reservation-contrat.md).
 
-Lots en cours : 374 (position crue), 381 (A2 passage), 391 (parité acoustique après 376, question Q1 du 390), 392 (connaissances des scènes depuis 365, Q2 du 390), 393 (réservation du 377, Q3 du 390) ; avis redits crue 2024 (reste du 375) à ouvrir. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 374 (position crue), 381 (A2 passage), 391 (parité acoustique après 376, question Q1 du 390), 392 (connaissances des scènes depuis 365, Q2 du 390) ; avis redits crue 2024 (reste du 375) à ouvrir. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
