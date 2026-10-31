@@ -43,13 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-um-social-comptes` — lot 380 non fusionné ; reprise sur `origin/integration 3999bb3a`.
+- `codex-um-social-comptes` — lot 380 terminé, non fusionné ; reprise sur `integration 3999bb3a`.
   Choix web figés sur les comptes de Corvus ; créances, restitution des prêts reçus et offres publiques.
-  Termes revalidés, consentement U-C commun aux remises ; aucun modèle ni registre d’esprit.
-  Bilan initial : 77 tests verts et 8/8 empreintes identiques ; nouvelle validation après fusion en cours.
-  Formulaires comptes et avis conservés ; ciblés U-M/U-T avis, web et empreintes Relais 2 h à rejouer.
+  Formulaires comptes et avis conservés, contrats distincts et consentement U-C ; aucun modèle ajouté.
+  Après fusion : **62/62 tests verts**, sept fichiers dont U-M/U-T avis et web ; `clic_page.js` valide.
+  Empreintes Relais **4/4 identiques**, 2 h × quatre graines ; code vérifié `643b77f5`, quinze sources inchangées.
   Limites : remboursement volontaire en pièces et création de prêts par Corvus hors lot.
-  Recouvrement possible avec 375 : `commandes.py` / `moteur.py` ; aucun `jeu.py` / `tui.py` modifié.
+  `fin-verification.json` de la reprise : `ok=true` ; aucun calcul restant. Bilan initial conservé au rapport.
   [Rapport, preuves et limites](taches/rapport-codex-380-um-social-comptes.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef),
