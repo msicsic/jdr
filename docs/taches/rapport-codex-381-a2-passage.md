@@ -1,6 +1,6 @@
 # Lot 381 — A2, passage
 
-30 octobre 2026 — branche `codex-a2-passage`, base de travail `origin/integration`
+31 octobre 2026 — branche `codex-a2-passage`, base de travail `origin/integration`
 au brief `c63dd5637648523997cc7a3f32966fd63fec6b06`, non fusionnée.
 
 **Invariant.** `donjon/contrats_passage.py` décrit le passage local dessous/dessus,
@@ -10,49 +10,50 @@ faits, les raccourcis et « Compris » réemploient ce contrat. Une méthode lé
 pour une autre opération ne remplace plus le côté, l'appui ou le destinataire.
 Les références non vides restent vérifiées dans le monde par les mécaniques.
 
-**Changement.** Les branches du schéma corrèlent l'opération avec ses champs
-neutres, ses références requises et ses méthodes. Le moteur refuse les charges
-mal dirigées avec champ, valeur reçue et valeurs acceptées ; la canonisation
-existante du support redondant d'un assemblage installé est conservée.
-Le plan public dit qui se déplace, vers quel type d'accès et ce qui reste en
-place. Le moteur garde gabarit, équipement, réception, durée, jets, accord,
-prix et conséquences sociales. Les mots d'une demande ne valent pas acte typé.
-Un prix non numérique ou un sujet extérieur aux destinataires reçoit un refus
-de forme au lieu d'une offre silencieusement nulle ou d'un acte ignoré.
+**Changement.** Le schéma corrèle opération, champs neutres, références et
+méthodes. Le refus nomme champ, valeur reçue et valeurs acceptées ; la
+canonisation existante du support redondant reste admise. Le plan dit qui
+se déplace et quel accès est utilisé. Gabarit, équipement, réception, durées,
+jets, accord, prix et conséquences sociales ne changent pas. Un prix non
+numérique ou un sujet extérieur aux destinataires reçoit un refus de forme
+au lieu d'une offre nulle ou d'un acte ignoré.
 
-**Preuves.** Cas historique `relais/20`, poutre effondrée, et longue table de
-l'auberge : compilation simulée dans la vraie boucle console/PontWeb, question
-sans action puis exécution, pureté de préparation, absence de jet en rampant,
-état et « Compris » sauvegardés avant affichage puis repris après rechargement.
-Passage dessous/dessus suivi de deux minutes en bloc ou de huit tranches de
-quinze secondes avec recharge : comparaison du monde complet et des vues.
-Raccourcis contre étapes explicites, appui mobile contre assemblage installé,
-demande et poussée à Brune puis Ilse, faux pendant de simples propos, champs
-voisins refusés sans mutation et schéma effectivement émis sont contrôlés.
-`test_passage.test_une_demande_pour_un_autre_n_est_pas_un_passage` attend
-désormais le refus explicite d'un tiers : l'absence de déplacement est gardée,
-et le monde entier doit rester identique. Aucun contrôle de sécurité n'est
-retiré. Le test sonore filtre ses branches pour accepter l'ajout des passages.
+**Preuves.** `relais/20` (poutre) et table de l'auberge : compilation simulée,
+vraie boucle console/PontWeb, faisabilité sans action puis exécution, état et
+« Compris » sauvés avant affichage et relus après recharge. Dessous/dessus puis
+deux minutes en bloc ou huit tranches de quinze secondes avec recharge : monde
+complet et vues identiques. Raccourcis/étapes explicites, appui mobile/assemblage,
+demande/poussée à Brune puis Ilse, simples propos sans passage, champs voisins
+refusés sans mutation et schéma émis sont vérifiés. Le test du sujet tiers attend
+désormais le refus explicite et conserve l'absence de déplacement, renforcée
+par l'identité du monde entier. Le test sonore filtre ses propres branches.
+Le nouveau test de poussée vérifie le recul enregistré, le récit sauvegardé et
+les vues rechargées : son attente initiale de seuil encore libre était fausse.
+Les réactions peuvent ramener la victime pendant les 3 s, comme le couvre déjà
+le test historique. Aucun code du jeu n'a changé depuis `0e3be7f5`.
 
-**Mesures en cours.** Passe ciblée sur onze fichiers, puis contrôle final du
-contrat et des trois voisins de parole ; empreintes de 2 h, Relais et auberge,
-graines 1985/7/42/2024, contre la base exacte `c63dd563` (cache partagé, aucune
-référence relancée). La branche locale `main` est ancienne : elle n'est pas
-utilisée pour attribuer au lot les différences d'intégration. L'ancien attendu
-« Tu avances d'un pas. » est revérifié sur la base, sans modifier son assertion.
-Vérification détachée, deux travailleurs au plus et priorité réduite ; résultats
-dans `C:/Users/msics/donjon/artifacts/a2-passage-381/` : `tests-finaux.json`,
-`tests-sociaux.json`, `test-base.log`, `empreintes.json`, puis **`fin.json` écrit
-en dernier**, avec les codes de sortie et toute erreur. Ni suite complète ni Luna.
+**Mesures.** Passe de onze fichiers : **138 tests, 1 644,00 s, deux échecs,
+aucune erreur ni test ignoré** (`tests-finaux.json`). Les quinze parcours
+corps/passage au terminal sont verts ; ils ne sont pas relancés. Après correction
+du seul test décrit ci-dessus, **47/47 tests verts en 73,30 s**, dont les huit
+nouveaux tests et les trois fichiers voisins de parole (`tests-sociaux.json`).
+L'autre échec, `test_cas_reel_acceptee_elle_s_ecarte_vraiment`, attend « Tu avances
+d'un pas. » ; **le même échec et le même texte réel sont reproduits sur la base
+exacte `c63dd563`** (un test, 4,33 s, `test-base.log`). Son assertion reste intacte :
+les voisins ne sont donc pas tous verts. Aucune nouvelle régression connue.
+Empreintes **en cours** : 2 h, Relais/auberge, 1985/7/42/2024, référence figée
+`c63dd563`, cache partagé, `PYTHONHASHSEED=0`, référence puis branche. La branche
+locale `main`, ancienne, n'est pas utilisée pour comparer d'autres intégrations.
+Bruts dans `C:/Users/msics/donjon/artifacts/a2-passage-381/` ; l'ancien `fin.json`
+constate l'arrêt avant le banc. **`fin-reprise.json` est le nouveau marqueur de
+fin**, écrit après `empreintes.json`, avec les codes et toute erreur. Deux
+travailleurs à priorité réduite. Ni suite complète ni Luna.
 
-**Limites.** Le contrat porte le sens des charges admises, pas la fidélité de
-leur choix par Luna. Une opération voisine bien formée peut encore être choisie
-à tort ; les revues restent en place, A4/A6 hors lot. Les raccourcis « enjamber »
-et « escalader » sélectionnent le côté dessus comme auparavant ; la forme
-détermine la manière effectivement montrée et exécutée. L'ancienne API simple
-`proposer_action` conserve son schéma transitoire (A3), avec les mêmes contrôles
-moteur ; les branches corrélées portent le compilateur d'interprétation actuel.
-`moteur.py`, `mj.py` et `paroles.py` sont raccordés pour couvrir les actions seules
-et les paroles ; aucun registre d'esprit ni changement de revue ou de raccord
-libre. Pas de recouvrement avec 374/378/380 ; `docs/etat-dev.md` est partagé et
-375 doit intégrer l'évolution structurelle des schémas.
+**Limites.** La fidélité du choix de Luna n'est pas garantie ; les revues restent
+en place, A4/A6 hors lot. « Enjamber » et « escalader » sélectionnent dessus
+comme auparavant ; la forme détermine la manière montrée et exécutée. L'ancienne
+API `proposer_action` garde son schéma transitoire (A3) et ses contrôles moteur.
+`moteur.py`, `mj.py` et `paroles.py` raccordent les actions seules et les paroles.
+Aucun registre d'esprit, changement de revue ou raccord libre ; pas de
+recouvrement avec 374/378/380. `etat-dev.md` est partagé ; 375 doit tenir compte
+de l'évolution des schémas et de l'ancien attendu de rendu.

@@ -46,9 +46,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-a2-passage` — lot 381, base d'intégration au brief `c63dd563` : contrat commun du passage
   local, de l'assemblage installé, de l'appui mobile, de la demande et de la poussée ; moteur,
   schéma du compilateur actuel, raccourcis et « Compris » gardent la même charge typée.
-  Cas réel/autre cas/faux pendant, reprise et laps découpé ; tests ciblés et empreintes 2 h en cours.
-  Mécaniques et revues conservées ; refus explicite des charges mal dirigées, pas de registre d'esprit.
-  Pas de garantie de fidélité du choix de Luna ; ancienne API simple transitoire (A3).
+  Cas réel/autre cas/faux pendant, recharge et laps découpé ; reprise ciblée **47/47 verte**.
+  Un voisin de rendu reste rouge, identique sur `c63dd563` ; assertion conservée. Mécaniques inchangées.
+  Empreintes 2 h Relais/auberge en cours : `artifacts/a2-passage-381/fin-reprise.json` du dépôt principal.
+  Revues conservées ; fidélité Luna non garantie, ancienne API simple transitoire (A3), aucun registre d'esprit.
   [Rapport](taches/rapport-codex-381-a2-passage.md), bruts `artifacts/a2-passage-381/` du dépôt principal.
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 378 (S1a, porte des épisodes), 380
