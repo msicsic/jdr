@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-reservation-contrat` — lot 393, base `ca0fc1f0` (`origin/integration`), PC fixe.
+  La restitution du prêt acquis pour un transport ne réserve plus deux fois son bien ;
+  les autres promesses restent opposables. Pureté du devis testée sur des cases de sol valides.
+  Crochets et marteau livrés après recharge ; 68/70 tests, six fichiers, 94,2 s.
+  Banc rapide Relais/crue 4 h × 4 graines : 8/8 sans plantage ni usurpation ; zéro bascule, passages/h max 43.
+  Deux rouges de dons directs reproduits sur la base ; pas de garantie générale sur les boucles. Branche poussée.
+  [Rapport](taches/rapport-codex-393-reservation-contrat.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 393, Q3 du 390 : agendas.moyens_promis ne compte plus contre son propre engagement la part réservée par lui ; double promesse toujours refusée ; prémisse de case d'auteur valide pour livraison_inconnue. 68/70 tests (deux rouges de test_promesses.DonLocalTests apparus après la suite 663d1308, hors du lot), 8/8 nuits 4 h sans usurpation. Aucun fichier de code commun depuis la base.
+
 - `codex-um-social-comptes` — lot 380 terminé, non fusionné ; reprise sur `integration 3999bb3a`.
   Choix web figés sur les comptes de Corvus ; créances, restitution des prêts reçus et offres publiques.
   Formulaires comptes et avis conservés, contrats distincts et consentement U-C ; aucun modèle ajouté.
