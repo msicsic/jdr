@@ -43,15 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-s1f-localisation` — lot 397, base `3d59310c`, code `13ec9204` ; intégration `a6f0f00b` fusionnée.
+- `codex-s1f-localisation` — lot 397 clos, base `3d59310c`, code mesuré `13ec9204` ; intégration `561c1d16` fusionnée.
   Localisations et possessions datées par `memoire` : lectures copiées, hypothèses/consommations et écritures communes.
   Inventaire AST des croyances et dérivés : 1 619 → 398 ; autres familles et données de diagnostic gelées.
-  Porte/socle/comparateur : 39/39 verts ; ancien oracle de planification rouge identique sur la base exacte.
-  Reprise des fichiers corrigés et 16 empreintes 2 h en fond, deux travailleurs, priorité réduite ; pas de Luna ni suite complète.
-  **À reprendre** à `C:/Users/msics/donjon/artifacts/s1f-397/fin.json` ; identité des nuits non encore certifiée.
+  35 fichiers ciblés : 448/451 verts, zéro erreur/saut ; trois rouges hérités reproduits sur la base exacte.
+  Empreintes 2 h, quatre graines × Relais/mine/auberge/crue : 16/16 identiques, zéro plantage ; inventaires après fusion verts.
+  Bruts `C:/Users/msics/donjon/artifacts/s1f-397/`, bilan `fin-cloture.json` ; aucun calcul restant, ni Luna ni suite complète.
   [Rapport et limites](taches/rapport-codex-397-s1f-localisation.md).
 
-Lots en cours : 381 (A2 passage), 397 (S1f localisation et possession), 399 (rembourser depuis le menu et le terminal) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Passe Luna d'E6 (2026-10-31, orchestrateur, laptop)
