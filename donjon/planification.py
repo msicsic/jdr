@@ -489,11 +489,11 @@ class Vue:
                                and refus["minute"] > x["minute"])]
         # Le travail payé possède déjà son contrat dans la mémoire du payeur.
         # Il ne crée pas une nouvelle délégation à échéance ni une visite urgente.
+        from .memoire import travaux_payes_retenus
         self.travaux_payes = [(s["condition"], qui, s.get("echeance"),
                               "echeance" in s and monde.data["minutes"] > s["echeance"])
-                             for s in lire(monde, id)["memoire"]
-                             if s["type"] == "tache_payee"
-                             and (qui := tache_payee(monde, id, s["condition"]))]
+                             for s in travaux_payes_retenus(monde, id)
+                             if (qui := tache_payee(monde, id, s["condition"]))]
         intention = lire(monde, id)["intention"]
         # L'aide acceptée reste une cause d'ouverture quand son bénéficiaire
         # attend sa réalisation, même si l'adoption a reclassé le besoin
@@ -2231,6 +2231,7 @@ def _entrees_communes(v):
     # Les cibles et obstacles restent localisés ; le départ est seulement la salle.
     metrique = v._metrique
     from .biens import services_proteges
+    from .memoire import episodes_parts_promises
     return json.dumps([
         agendas.mandats_percus(monde, id),  # Contrats et issues propres au témoin.
         [x for x in agendas.en_cours(monde, id) if x['condition'].get('proteger')],
@@ -2253,7 +2254,7 @@ def _entrees_communes(v):
         [[s, minute - s["minute"] < ATTENTE_PART,
           # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
-         for s in esprit_["memoire"] if s["type"] in ("promis", "nourri", "recu", "promesse_annulee", "creance")],
+         for s in episodes_parts_promises(monde, id)],
         # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents.
         # Le refus « cher » de cette minute même retient la hausse suivante (``Vue.hausse_faite``).
         [[s, tenu, minute - s["minute"] < REDEMANDE, minute == s["minute"]] for s, tenu in v.refus_tenus()],
@@ -3676,6 +3677,47 @@ def devis_enrichissement(monde, id):
     return cout, {"type": "argent", "objet": pris}, retablir(v, e, etapes)
 
 
+def rembourser(monde, id):
+    """Rendre son dû plutôt que commettre la faute de le garder : même prix moral.
+
+    Le chemin et les pièces dépensées se comparent au prix de la faute.
+    Aucune position réelle du créancier n'entre dans la préparation du plan.
+    """
+    from .biens import dettes, richesse, garde_du
+    from .caractere import ARGENT, prix_faute, valeur_pieces
+    du = {}
+    for d in dettes(monde):
+        if d['de'] == id and d['montant'] > 0:
+            du[d['a']] = du.get(d['a'], 0) + d['montant']
+    fonds = richesse(monde, id)
+    if not du or not fonds:
+        return None
+    v = vue(monde, id)
+    e = depart(monde, id, v)
+    meilleur = None
+    faute = prix_faute(monde, id, ARGENT)
+    for a in sorted(du):
+        montant = min(du[a], fonds)
+        if garde_du(monde, id, montant):
+            continue
+        salle = v.salle(e, a)
+        if salle is None:
+            continue
+        trouve = ((0, [], e) if salle == e.salle else chercher(
+            monde, id, lambda v, e, s=salle: e.salle == s, nom='rembourser:' + a,
+            memo=['rembourser', a, salle], emplois=(), motif=ARGENT))
+        if trouve is None:
+            continue
+        cout = trouve[0] + valeur_pieces(monde, id, montant, depense=True)
+        if faute is not None and cout > faute:
+            continue
+        if meilleur is None or cout < meilleur[0]:
+            meilleur = (cout, a, _couper(trouve[1]) + [_etape('rembourser', a)])
+    if meilleur is None:
+        return None
+    return {'type': 'rembourser', 'qui': meilleur[1]}, meilleur[2]
+
+
 def reclamer(monde, id):
     """(but, étapes) pour aller trouver qui lui doit des pièces (``biens.dettes``) ou garde un objet
     qu'il lui a prêté au-delà de l'échéance (``biens.echu``), là où il le croit, quand ce qu'il lui
@@ -3950,21 +3992,11 @@ def reagir(monde, id, dangers, aide=None):
     """Le graphe compare les moyens de sortir du danger ; un coup est toujours revalidé."""
     from . import corps
     from .defense import etat_cru, lieux_dangereux, protection as proteger
-    from .esprits import lire, percoit
-    e = lire(monde, id)
-    secourus = []
+    from .memoire import examiner_secours_constates
     # Le constat remplace l'appel, même si la défense interrompt l'inspection.
     # Une date à la minute ne départage pas deux événements de la même minute :
     # dans ce cas seule la vue actuelle constitue une preuve suffisante.
-    for s in e["memoire"]:
-        if s["type"] != "secours" or s.get("examine"):
-            continue
-        qui = s["qui"]
-        etat = e["croyances"].get(qui, {}).get("etat", {})
-        vu = monde.visible(qui) if id == "joueur" else percoit(monde, id, qui)
-        if vu or etat.get("source") == "vu" and etat["minute"] > s["minute"]:
-            s["examine"] = True
-            secourus.append(qui)
+    secourus = examiner_secours_constates(monde, id)
     if secourus:
         corps.evenement(monde, "intervention", id, proteges=sorted(set(secourus)))
     if aide and not aide[2] and aide[0] in secourus:

@@ -233,7 +233,11 @@ class ContrepartieTests(unittest.TestCase):
         m = self.marteau_achete()
         placer(m, "marchand", "crypte", (2, 2))
         lire(m, "marchand")["engagements"][0]["minute"] = -ENGAGEMENT_MAX - 1
-        m, _ = vivre(recharger(m), 1)
+        # Vérifier la dette à sa naissance : il peut désormais partir rembourser
+        # spontanément, sans attendre que Corvus le retrouve une minute plus tard.
+        from donjon.echanges import engagements_echus
+        engagements_echus(m, 'marchand')
+        m = recharger(m)
         self.assertEqual([(d["de"], d["a"], d["montant"], d["quoi"]) for d in m.data["dettes"]],
                          [("marchand", "joueur", 7, "objet")])
         self.assertIn("Gorm te doit 7 pièces : le marteau que tu avais payé ne t'a pas été remis.", comptes_joueur(m))
@@ -316,7 +320,9 @@ class TachePayeeTests(unittest.TestCase):
         placer(m, "anselme", "chambre_chaude", (2, 2))
         percevoir_tous(m)
         lire(m, "anselme")["engagements"][0]["minute"] = -ENGAGEMENT_MAX - 1
-        m, _ = vivre(recharger(m), 1)
+        from donjon.echanges import engagements_echus
+        engagements_echus(m, 'anselme')
+        m = recharger(m)
         self.assertEqual([(d["de"], d["a"], d["montant"], d["quoi"]) for d in m.data["dettes"]],
                          [("anselme", "mireille", 2, "tache")])
         self.assertIsNone(tache_payee(m, "mireille", {"objet": "fourneau", "allume": True}))

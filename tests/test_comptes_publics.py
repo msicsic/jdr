@@ -54,6 +54,25 @@ def offre(qui='aubin', prix=2):
 class ComptesPublicsTests(unittest.TestCase):
     boucle = information_support.InformationPubliqueTests.boucle
 
+    def test_formulaires_comptes_et_avis_coexistent_sans_croiser_leurs_termes(self):
+        m = banc('ressources')
+        public = etat(m)
+        compte = next(x for x in public['comptes']['choix']
+                      if x['descripteur']['parametres'].get('operation') == 'question')
+        qui = public['avis']['destinataires'][0]['id']
+        lieu = public['avis']['lieux'][0]['id']
+        public['sonde_comptes'] = {'choix': public['comptes']['choix'].index(compte)}
+        public['sonde_avis'] = {'À qui parler': qui, "Lieu de l'avis": lieu, 'Prévision': 'non'}
+        resultat = page(m, public)
+        self.assertEqual(resultat['comptes']['envoye'], compte['descripteur'])
+        self.assertEqual(resultat['avis']['envoye'], {'geste': 'information', 'cible': qui,
+                         'parametres': {'acte': 'avis', 'sujet': lieu, 'valeur': 'non'}})
+        for genre in ('comptes', 'avis'):
+            self.assertEqual(resultat[genre]['envois'], 1)
+            self.assertTrue(resultat[genre]['ferme_apres_etat'])
+            for champ in ('incomplet', 'clavier', 'occupe'):
+                self.assertEqual(resultat[genre][champ], 0)
+
     def vues(self, m):
         return fiche(m), regarder(m), comptes_joueur(m), scene_percue(m), pnj(m)
 

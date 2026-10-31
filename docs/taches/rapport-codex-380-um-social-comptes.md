@@ -1,7 +1,18 @@
 # Lot 380 — U-M social comptes
 
 Branche `codex-um-social-comptes`, base `integration 85052cf8`, PC fixe.
-**Terminé le 2026-10-31, non fusionné. Code vérifié : `168ee1f2`, inchangé à la clôture.**
+**Bilan initial validé le 2026-10-31, non fusionné. Code initial vérifié : `168ee1f2`.**
+
+**Reprise de fusion du 2026-10-31.** `origin/integration 3999bb3a` est repris
+dans la branche pour réunir comptes et avis (386/389). Les styles, projections,
+boutons, réinitialisations et sondes Node des deux formulaires sont conservés ;
+leurs descripteurs et validateurs restent distincts. Une régression soumet les
+deux formulaires depuis le même état public et contrôle leurs termes propres.
+Les tests comptes/inventaire/descripteurs, avis web/terminal, information et web,
+le contrôle de `clic_page.js` et les empreintes Relais 2 h × quatre graines sont
+relancés. Nouvelle fin attendue :
+`C:/Users/msics/donjon/artifacts/um-social-comptes-380/reprise-integration-3999bb3a/fin-verification.json`.
+Les mesures ci-dessous décrivent la livraison initiale, pas encore cette fusion.
 
 **Invariant.** Le formulaire web fige un choix public complet : débiteur,
 créancier, montant, objet ou termes de l’offre déjà proposée à Corvus.
@@ -66,7 +77,8 @@ sans créer un éditeur de marché ni une nouvelle offre. Pas de Luna ni de suit
 complète. Prêter un objet de Corvus à un PNJ n’est pas une voie admise par les
 validateurs actuels ; son portage reste aussi hors lot. Le test exploratoire
 qui l’a révélé est conservé dans les bruts ; aucun validateur n’est assoupli.
-Deux travailleurs réduits au plus ; aucun calcul restant. Branche poussée sur `origin`.
+Deux travailleurs réduits au plus ; bilan initial clos, reprise de fusion en vérification.
+La branche est poussée sur `origin` ; les limites concernent le périmètre du formulaire 380.
 Synthèse dédupliquée et contrôle des sources : `cloture.json`.
 Bruts et lanceur : `C:/Users/msics/donjon/artifacts/um-social-comptes-380/`.
 Fusion et vérification d’intégration laissées au superviseur.

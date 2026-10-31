@@ -65,6 +65,8 @@ def _geste(monde, plan, parametres):
                 details["accord"] = offre_en_mots(monde, offre)
     from .contrats_sequence import precision_publique
     precision = precision_publique(parametres)
+    from .contrats_son import precision_publique as precision_son
+    precision = " ".join(p for p in (precision, precision_son(plan, parametres)) if p)
     return (plan.titre + (" (" + valeur(monde, details) + ")" if details else "")
             + (" " + precision if precision else ""))
 
@@ -80,7 +82,7 @@ def plan_admis(monde, plan):
     return "Compris : " + _geste(monde, plan, plan.proposition)
 
 
-def contenu(monde, c, interlocuteur="", *, reference_ressource=False):
+def contenu(monde, c, interlocuteur="", *, reference_ressource=False, destinataire=None):
     """Contenu typé d'une parole, distinct de la vérité de ce qu'elle affirme."""
     from .propositions import en_mots
     from .paroles import RESSOURCES_DEMANDEES, resoudre
@@ -89,6 +91,11 @@ def contenu(monde, c, interlocuteur="", *, reference_ressource=False):
         from .agendas import phrase_charge
         from .paroles import _typer
         return 'confier la charge de ' + phrase_charge(monde, c['sorte'], _typer(monde, c)['parametres'])
+    if t == 'rembourser':
+        from .biens import dues
+        montant = c['montant'] or sum(d['montant'] for d in dues(monde, 'joueur', destinataire))
+        return (f"rembourser {montant} pièces à {interlocuteur}"
+                + (" (tout le dû)" if not c['montant'] else ""))
     if t == 'reponse_mandat':
         return ('accepter' if c['accepter'] else 'refuser') + ' le mandat ' + c['offre']
     if t == 'bilan_mandat':
@@ -145,7 +152,7 @@ def transactions_admises(monde, transactions, rapports):
             lignes.append(annonce(monde, rapport) + " (" + rapport["maniere"] + ")")
             qui = rapport["personnage"]
             a = "" if qui in ("personne", "tous") else rapport.get("a_qui") or repere(monde, qui)
-            lignes.extend(contenu(monde, c, a, reference_ressource="_adresse" in p)
+            lignes.extend(contenu(monde, c, a, reference_ressource="_adresse" in p, destinataire=qui)
                           for c in p["contenu"])
         elif transaction["type"] == "conversation_pnj":
             operations = {"discuter": "discuter", "proposer": "demander une offre", "negocier": "négocier",

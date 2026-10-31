@@ -28,32 +28,32 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-ut-social-avis` (44b4d260) : lot 389, U-T social avis. Détail dans l'historique.
+- `codex-rembourser-dette` (a1a50003) : lot 388, rembourser volontairement une dette en pièces. Détail dans l'historique.
+- `codex-information-terminal-connu` (7bdf4d1e) : lot 387, tests du terminal d'information après le catalogue connu. Détail dans l'historique.
+- `codex-um-social-avis` (20dcb5d2) : lot 386, U-M social avis. Détail dans l'historique.
+- `codex-s1e-vues-episodes` (56f46332) : lot 385, S1e les lecteurs d'épisodes par des vues pures. Détail dans l'historique.
+- `codex-s1d-promesses` (ae83ca65) : lot 384, S1d promesses, prêts et travaux payés. Détail dans l'historique.
+- `codex-s1c-approches-secours` (762b3ac7) : lot 383, S1c approches, avertissements et secours. Détail dans l'historique.
+- `codex-s1b-sons-examens` (30256b08) : lot 382, S1b sons et examens par la porte de la mémoire. Détail dans l'historique.
+- `codex-s1a-porte-episodes` (eecbe2a5) : lot 378, S1a une seule porte pour les épisodes. Détail dans l'historique.
+- `codex-a2-expression-son` (e868d585) : lot 379, A2 famille expression et son. Détail dans l'historique.
 - `codex-messages-decoupage` (9d9fd5fe) : lot 376, les messages ne dépendent pas du découpage du temps. Détail dans l'historique.
 - `codex-double-promesse` (8558adf4) : lot 377, une même part n'est pas promise deux fois. Détail dans l'historique.
-- `codex-s0-conception-memoire` (202c9fff) : lot 373, S0 conception de la mémoire unifiée des PNJ. Détail dans l'historique.
-- `codex-catalogue-connu` (fdfc31df) : lot 365, le catalogue des choix ne montre que ce que Corvus connaît. Détail dans l'historique.
-- `codex-ut-social-information` (8245d178) : lot 369, U-T social information, l'acte d'information au terminal. Détail dans l'historique.
-- `codex-soupcon-deduit` (6aeec863) : lot 372, A6 le soupçon déduit des croyances. Détail dans l'historique.
-- `codex-a2-sequence-attente` (b75dcf62) : lot 370, A2 famille séquence et attente. Détail dans l'historique.
-- `codex-evaluation-echeance` (76305cc6) : lot 371, évaluation du noyau de l'échéance négociée. Détail dans l'historique.
-- `codex-quatre-regressions` (a4788b4c) : lot 368, quatre régressions isolées (313, 330, 332, 333). Détail dans l'historique.
-- `codex-service-evacuation` (e0c95ced) : lot 367, un service payé reste protégé quand l'évacuation déplace la lumière. Détail dans l'historique.
-- `codex-refus-leve-contrepartie` (140cb9f0) : lot 366, un refus retenu se lève par une contrepartie ou un accord nouveau. Détail dans l'historique.
-- `codex-e6-libre-date` (7dc16a0d) : lots 363 et 364, E6 partiel, la proposition datée en texte libre ouvre le choix direct. Détail dans l'historique.
 
 ## Lots non fusionnés
 
-- `codex-um-social-comptes` — lot 380 terminé, non fusionné ; base `integration 85052cf8`.
+- `codex-um-social-comptes` — lot 380 non fusionné ; reprise sur `origin/integration 3999bb3a`.
   Choix web figés sur les comptes de Corvus ; créances, restitution des prêts reçus et offres publiques.
   Termes revalidés, consentement U-C commun aux remises ; aucun modèle ni registre d’esprit.
-  **77 tests distincts verts**, zéro échec/erreur/saut ; sources du code `168ee1f2` inchangées.
-  Empreintes **8/8 identiques** : 2 h × 4 graines, Relais/auberge ; `fin-verification.json` : `ok=true`.
+  Bilan initial : 77 tests verts et 8/8 empreintes identiques ; nouvelle validation après fusion en cours.
+  Formulaires comptes et avis conservés ; ciblés U-M/U-T avis, web et empreintes Relais 2 h à rejouer.
   Limites : remboursement volontaire en pièces et création de prêts par Corvus hors lot.
   Recouvrement possible avec 375 : `commandes.py` / `moteur.py` ; aucun `jeu.py` / `tui.py` modifié.
   [Rapport, preuves et limites](taches/rapport-codex-380-um-social-comptes.md).
 
-Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 378 (S1a, porte des épisodes), 379
-(A2 expression et son). Questions de S0 en arbitrage (1 validée : tri par importance et âge).
+Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef),
+381 (A2 passage), 390 (rouges nouveaux de la suite 663d1308 : 42 méthodes, dont 11 au 375 et 5 au 387). Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
@@ -78,6 +78,16 @@ Leurs entrées arrivent ici à leur livraison.
   S3, S4 sans lecteur, S5 (vérification d'intégration avant et après) ; S6 sur la table d'A6 ; S7/S8 après A2 à A6 du
   compilateur et D0. A6 (restes) et A7 sont absorbés (S3, S5, S6) ; A8 après S5 et S7 ; 3d porté par S2. Questions
   ouvertes : ordre des actes oui ; biographies à la main pour la tranche, générées ensuite ; tranche sur l'auberge.
+- **Questions de S0** : (1) rétention selon importance et âge, recommandation acceptée ; (2) anciennes sauvegardes :
+  l'utilisateur n'y tient pas et laisse décider ; retenu l'héritage minimal, pour garder les captures réelles des tests
+  (`tests/data`) : S1 relit à l'identique, S2 lit une attitude sans acte comme « héritée, cause inconnue », non
+  compensable par une réparation, estompée par les règles ordinaires ; aucun passé reconstruit, parties neuves pour
+  valider réparation, trahison et repentir ; (3) compenser un tort : seul un acte rattaché au tort identifié
+  (restitution, réparation, équivalent) le compense ; un service sans lien ajoute du crédit (affection, dette morale)
+  sans effacer le tort ; des actes répétés peuvent réviser un trait cru ; les créances matérielles suivent leurs actes ; (4) deux ouï-dire incompatibles de même force : incertitude gardée
+  et racontable, vérification ou question à un tiers si l'action l'exige (jets actuels en S1, règle en lot S2) ; (5) le grief durable alimente la bande de refus, la colère aiguë
+  module l'expression et l'urgence sans décider seule d'un refus ; hystérésis et signatures gardées, mesure au lot de
+  séparation colère/grief de S2. Ces décisions entrent dans les briefs de bascule de S2.
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 

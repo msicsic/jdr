@@ -41,12 +41,12 @@ import copy
 from contextlib import contextmanager
 
 from .biens import permis as _permis
+from .memoire import MEMOIRE_MAX, episodes, migrer_presences_percues, retenir_episode
 from .perception import _par_case, eclairage, faible
 from .spatial import (CLES_VUE, _champ, _memo_vue, _murs, _position_vue, a_verifier, carte_lumiere, dans_le_regard,
                       etat_fige, porte_par, poses as salles_posees, sans_memoire, vue_memorisee)
 from .vol import proprietaire as _proprietaire
 
-MEMOIRE_MAX = 40
 PRESENCES_MAX = 40     # Indépendant des souvenirs employés par le comportement.
 GESTES_SOUPCON_MAX = 40
 RECENT = 30            # minutes pendant lesquelles ce qu'on a vu, ou ce qu'on vient d'entendre, fait foi
@@ -186,11 +186,10 @@ def installer(monde):
         for ancien, destination in (("constats_biens", "constats"), ("soupcons", "soupcons")):
             if ancien in e:
                 r[destination].update(e.pop(ancien))
-        for s in list(e["memoire"]):
-            if s["type"] == "presence_percue":
-                migration_soupcon = True
-                e["memoire"].remove(s)
-                r["presences"].append({k: s[k] for k in ("qui", "salle", "instant")})
+        presences = migrer_presences_percues(monde, id)
+        if presences:
+            migration_soupcon = True
+            r["presences"].extend(presences)
         if migration_soupcon:
             _purger_indices_soupcon(monde, id)
         for fait in e["faits_dits"].values():
@@ -199,7 +198,7 @@ def installer(monde):
         if migrer_confidences:
             from .social import migrer_dits
             migrer_dits(monde, id)
-        for souvenir in e["memoire"]:
+        for souvenir in episodes(monde, id, types=("appel_sans_reponse",)):
             if migrer_recherches and souvenir["type"] == "appel_sans_reponse":
                 salles = e["recherches"].setdefault(souvenir["qui"], {})
                 salles[souvenir["salle"]] = max(salles.get(souvenir["salle"], -1), souvenir["minute"])
@@ -209,7 +208,7 @@ def installer(monde):
                 for salle in salles:
                     consommer_indices_recherche(monde, id, qui, salle)
         if e["secours"] is None:
-            appels = [s for s in e["memoire"] if s["type"] == "appel"]
+            appels = episodes(monde, id, types=("appel",))
             if appels:
                 from .deliberation import DESESPOIR, urgents
                 e["secours"] = {"minute": appels[-1]["minute"],
@@ -715,27 +714,8 @@ def recevoir_prevision(monde, id, locuteur, noyau, rang, *, departage=False):
 
 
 def memoriser(monde, id, evenement):
-    if evenement["type"] == "dit" and "valeur" in evenement:
-        from .social import retenir_dit
-        retenir_dit(monde, id, evenement["a"], {"type": "affirmation", **{
-            k: evenement[k] for k in ("sujet", "attribut", "valeur")}})
-    memoire = esprit(monde, id)["memoire"]
-    souvenir = copy.deepcopy({"minute": monde.data["minutes"], **evenement})
-    from .relations import identifier
-    from .temps import instant
-    if id != "joueur" and souvenir["type"] in ("vu_agir", "entendu_agir", "vu_porter", "vol_surpris"):
-        # La précision de l'indice reste dans son registre ; l'identité
-        # de la preuve commune reste celle du moteur antérieur.
-        gestes = esprit(monde, id)["indices_soupcon"]["gestes"]
-        gestes.append({"objet": souvenir["objet"], "instant": _date_indices_soupcon(monde)})
-        del gestes[:-GESTES_SOUPCON_MAX]
-    identifier(souvenir, instant(monde))
-    memoire.append(souvenir)
-    del memoire[:-MEMOIRE_MAX]
-    from .relations import souvenir as eprouver_souvenir
-    eprouver_souvenir(monde, id, souvenir)
-    from .defense import retenir as retenir_violence
-    retenir_violence(monde, id, souvenir)
+    """Compatibilité des écrivains historiques ; la porte est dans memoire."""
+    retenir_episode(monde, id, evenement)
 
 
 def _retenir_presences(monde, id, vus):
@@ -862,7 +842,8 @@ def dernier_son(monde, id):
     """Le dernier bruit qu'il a entendu sans en voir la cause, tel que l'ouïe commune le retient
     (``ouie._bruit_inconnu`` : un souvenir par lieu) : {minute, salle, nature, niveau[, qui]} ; None.
     La case d'où il l'a situé ne sert qu'à aller voir : le MJ n'en reçoit que le lieu."""
-    sons = [s for s in lire(monde, id)["memoire"] if s["type"] == "bruit"]
+    from .memoire import bruits_retenus
+    sons = bruits_retenus(monde, id)
     return {k: v for k, v in copy.deepcopy(sons[-1]).items() if k not in ("type", "case")} if sons else None
 
 
@@ -1154,7 +1135,8 @@ def reviser(monde, id, sujet, attribut, valeur, source="vu", **lieu):
 
 
 def prete(monde, id, objet, a):
-    return any(s["type"] == "pret" and s.get("objet") == objet and s.get("a") == a for s in lire(monde, id)["memoire"])
+    from .memoire import pret_retenu
+    return pret_retenu(monde, id, objet, a)
 
 
 def preuve_possession(monde, sujet, *, precedente=None, remis_par=None, autorise=False):

@@ -119,6 +119,8 @@ def _but(monde, but, *, titulaire=None):
         return "prendre des pièces : " + _objet(monde, o)
     if t == "reclamer":
         return "réclamer son dû à " + court(monde, but["qui"])
+    if t == "rembourser":
+        return "rembourser sa dette à " + court(monde, but["qui"])
     if t == "pulsion":
         if "periode" in but:
             return "ronde : " + _salle(monde, but["lieu"])
@@ -175,6 +177,7 @@ class Recit:
             yield self
 
     def _noter(self, monde, id, minute):
+        from .memoire import episodes
         from .deliberation import inactivite, seuils, urgents
         e = lire(monde, id)
         for x in relations.connus(monde, id):
@@ -187,7 +190,7 @@ class Recit:
                                                   "bandes": r["bandes"], "resume": relations.resume(detail), "motifs": detail["motifs"]})
             self._relations[cle] = r["bandes"]
         # Souvenirs nouveaux depuis sa dernière délibération (les sons sont le fond du monde).
-        for s in e["memoire"]:
+        for s in episodes(monde, id):
             cle = json.dumps(s, sort_keys=True, ensure_ascii=False)
             if s["minute"] >= self._derniere[id] and cle not in self._vus[id] and s["type"] != "son":
                 self._vus[id].add(cle)

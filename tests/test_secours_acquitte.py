@@ -1,6 +1,7 @@
 """Le constat remplace l'appel ; un cri ne rend pas une destination sûre."""
 import copy
 import gzip
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -28,10 +29,13 @@ def capture(n):
 
 class SecoursAcquitteTests(unittest.TestCase):
     def identique(self, a, b):
+        from donjon.emissions import lire as paroles
         a, b = recharger(a), recharger(b)
         self.assertEqual(a.data, b.data)
+        self.assertEqual(json.dumps(a.data), json.dumps(b.data))
         self.assertEqual(regarder(a), regarder(b))
         self.assertEqual(scene_percue(a), scene_percue(b))
+        self.assertEqual(paroles(a), paroles(b))
 
     def test_captures_reelles_ne_renvoient_plus_au_danger(self):
         for n in (22, 26):
