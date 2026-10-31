@@ -49,6 +49,7 @@ def main():
     parser.add_argument("--revision", default="HEAD", help="commit de branche figé au lancement")
     parser.add_argument("--reference", default="origin/main", help="main distant, le main local de ce poste est ancien")
     parser.add_argument("--base", default="b83f5a5933850907a6a1d7388cf1966944c665f0")
+    parser.add_argument("--historique", type=Path, help="rapport ancien : réutiliser sa référence sans la rejouer")
     args = parser.parse_args()
     dossier = args.sortie.resolve()
     dossier.mkdir(parents=True, exist_ok=True)
@@ -63,6 +64,16 @@ def main():
     # main local est ancien et incompatible avec l'audit courant. La base exacte isole le lot ; les
     # mêmes nuits de branche sont relues du cache, jamais jouées deux fois.
     for nom, reference in (("banc-reference", args.reference), ("banc-base", args.base)):
+        if nom == "banc-base" and args.historique:
+            ancien = json.loads(args.historique.read_text(encoding="utf8"))
+            courant = json.loads((dossier / "banc-reference.json").read_text(encoding="utf8"))
+            rapport = {"config": courant["config"], "reference": ancien["reference"],
+                       "branche": courant["branche"], "provenance_reference": str(args.historique),
+                       "limite": "Référence historique relue sans rejeu ; instrumentation et intégration ont évolué. "
+                                 "Le comparatif isolant le lot est banc-reference.json. Aucun temps comparé."}
+            ecrire(dossier / (nom + ".json"), rapport)
+            ecrire(dossier / ("analyse-" + nom + ".json"), analyser(rapport))
+            continue
         commande = [sys.executable, str(RACINE / "tools/comparer_bancs.py"),
                     "--reference", reference, "--branche", args.revision, "--heures", "4",
                     "--scenarios", "relais", "auberge", "mine", "crue",

@@ -1,9 +1,11 @@
 """Reprise détachée : mesures figées et captures d'attribution, deux travailleurs au plus."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 import json
 import gzip
 import hashlib
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -11,6 +13,7 @@ import tempfile
 import traceback
 
 RACINE = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(RACINE))
 
 
 def analyser_captures(dossier):
@@ -56,20 +59,35 @@ def main():
     p.add_argument('--ancien', required=True, type=Path)
     p.add_argument('--sortie', required=True, type=Path)
     p.add_argument('--fin', required=True, type=Path)
+    p.add_argument('--reference', required=True, help='commit integration figé avant le lancement')
     args = p.parse_args()
-    from priorite import ceder
-    ceder()
     args.sortie.mkdir(parents=True, exist_ok=True)
-    bilan = {'revision': args.revision, 'statut': 'echec', 'etapes': []}
+    args.fin.parent.mkdir(parents=True, exist_ok=True)
+    bilan = {'revision': args.revision, 'reference': args.reference, 'statut': 'echec', 'etapes': []}
+
+    def tracer(message):
+        print(f'{datetime.now().isoformat(timespec="seconds")} {message}', flush=True)
 
     def lancer(nom, commande, cwd=RACINE):
+        tracer(f'Début {nom}')
         with (args.sortie / (nom + '.stdout.txt')).open('w', encoding='utf8') as out, \
                 (args.sortie / (nom + '.stderr.txt')).open('w', encoding='utf8') as err:
-            r = subprocess.run(commande, cwd=cwd, stdout=out, stderr=err)
-        return {'nom': nom, 'code': r.returncode}
+            processus = subprocess.Popen(commande, cwd=cwd, stdout=out, stderr=err,
+                env={**os.environ, 'PYTHONIOENCODING': 'utf-8', 'PYTHONUTF8': '1'})
+            tracer(f'{nom} : processus {processus.pid}')
+            code = processus.wait()
+        tracer(f'Fin {nom} : code {code}')
+        return {'nom': nom, 'code': code}
 
     try:
-        fichiers = ['test_chercher_appeler', 'test_position_hypothese', 'test_ou_est_il',
+        from tools.priorite import ceder
+        ceder()
+        tracer(f'Démarrage réussi, branche {args.revision}, intégration {args.reference}')
+        r = lancer('tests-position', [sys.executable, '-m', 'unittest', 'tests.test_position_hypothese', '-q'])
+        bilan['etapes'].append(r)
+        if r['code']:
+            raise RuntimeError('Échec des tests de position après fusion.')
+        fichiers = ['test_chercher_appeler', 'test_ou_est_il',
             'test_contact_sous_but', 'test_reprise_contact', 'test_ouie_temoins', 'test_memoire_socle',
             'test_but_protection', 'test_contact_position_inconnue', 'test_localisation_crue',
             'test_localisation', 'test_protection', 'test_verifier_contact313', 'test_appels_restes']
@@ -80,12 +98,15 @@ def main():
         bilan['etapes'].append(r)
         rapport = json.loads(tests.read_text(encoding='utf8'))
         connus = []
+        echecs_base = {
+            'test_ilse_capture_141000_pas_de_reprise_par_la_minute': 'self.assertEqual(texte, decoupe)',
+            'test_contenant_dans_une_autre_salle': 'self.assertEqual(lignes, decoupees)',
+        }
         for f in rapport['fichiers']:
             if f['errors']:
                 raise RuntimeError('Erreur dans les tests ciblés.')
             for e in f['failures']:
-                if ('test_ilse_capture_141000_pas_de_reprise_par_la_minute' not in e[0]
-                        or 'self.assertEqual(texte, decoupe)' not in e[1]):
+                if not any(nom in e[0] and assertion in e[1] for nom, assertion in echecs_base.items()):
                     raise RuntimeError('Nouvel échec dans les tests ciblés.')
                 connus.append(e)
         bilan['echecs_deja_reproduits_sur_fusion_avant_correctif'] = connus
@@ -99,21 +120,28 @@ def main():
         taches = [(s, g) for s in ('auberge', 'mine') for g in (1985, 7, 42, 2024)]
         taches += [('crue', g) for g in (1985, 2024, 42)]
         with ThreadPoolExecutor(max_workers=2) as pool:
-            bilan['etapes'].extend(pool.map(capturer, taches))
-        if any(e['code'] for e in bilan['etapes']):
+            captures = list(pool.map(capturer, taches))
+        bilan['etapes'].extend(captures)
+        if any(e['code'] for e in captures):
             raise RuntimeError('Échec de capture : voir les journaux attribution.')
+        tracer('Début rechargement et attribution des captures')
         analyser_captures(args.sortie)
+        tracer('Fin rechargement et attribution des captures')
         r = lancer('mesures', [sys.executable, str(RACINE / 'tools/mesurer_position_374.py'),
             '--sortie', str(args.sortie / 'mesures'), '--revision', args.revision,
-            '--reference', '06895c7d', '--base', 'b83f5a5933850907a6a1d7388cf1966944c665f0'])
+            '--reference', args.reference, '--historique', str(args.sortie.parent / 'final/banc-base.json')])
         bilan['etapes'].append(r)
         if r['code']:
             raise RuntimeError('Échec du banc : voir mesures.stderr.txt et mesures/.')
         bilan['statut'] = 'calculs_termines_a_analyser'
     except Exception:
         bilan['trace'] = traceback.format_exc()
+        tracer(bilan['trace'])
     finally:
-        args.fin.write_text(json.dumps(bilan, ensure_ascii=False, indent=2), encoding='utf8')
+        temporaire = args.fin.with_suffix('.tmp')
+        temporaire.write_text(json.dumps(bilan, ensure_ascii=False, indent=2), encoding='utf8')
+        temporaire.replace(args.fin)
+        tracer(f'Fichier de fin : {args.fin} ({bilan["statut"]})')
     return int(bilan['statut'] == 'echec')
 
 

@@ -1,8 +1,8 @@
 # Lot 374 — position crue comme hypothèse datée
 
-30 octobre 2026, PC fixe, branche `codex-position-hypothese`. Reprise demandée
+31 octobre 2026, PC fixe, branche `codex-position-hypothese`. Reprise demandée
 après réserve du premier banc ; **fusion suspendue jusqu'à analyse du nouveau banc**.
-`origin/integration 06895c7d` fusionné dans `a50bbd95` ; seul conflit : `etat-dev.md`.
+`origin/integration 3999bb3a` fusionné sans conflit dans `b3233153` (S1c–S1e, 386–389).
 Bruts : `C:/Users/msics/donjon/artifacts/position-hypothese-374/`, reprise dans `reprise/`.
 
 **Contrat commun.** La dernière position d'autrui reste un indice après expiration.
@@ -22,7 +22,7 @@ rafraîchissement ne programme pas un autre essai quinze minutes plus tard.
 Un bruit simplement attribué conserve date et origine ; il ne vaut pas voix reconnue.
 Les témoins consommés cessent de déclencher une recherche furtive. Un contact
 requis garde la recherche commune, bornée par ses lieux déjà vérifiés.
-La porte mémoire S1a est conservée ; aucune insertion d'épisode hors `memoire.py`.
+Les portes et vues mémoire S1a–S1e sont conservées ; aucun épisode écrit hors porte.
 
 **Attribution sur captures rechargées.** Le rejeu ancien crue 42 reproduit les
 empreintes de `7986b7d2`. Aubin : **24→54 passages de salle** dans la première heure
@@ -44,17 +44,25 @@ reste à consolider après les captures détachées.
 **Tests et mesures.** Auberge 371/7 à 240 (Lucien cru au couloir depuis 174), mine
 69/7 à 470 (Rémy cru au baraquement), variantes parti/resté : exécution réelle,
 monde/croyances/rendu/scène après recharge ; pas d'oracle de position cachée.
-**12 tests position verts** après la reprise : consommation, vieux relais,
-bruits attribués, nouvelle voix, agenda et temps bloc/découpé.
+**31 tests position/mémoire/témoins verts** avant la dernière fusion, dont 12 de
+position : consommation, vieux relais, bruits attribués, nouvelle voix, agenda et découpage.
 Première passe de voisins : **64/65**, 262,384 s. L'échec de texte bloc/découpé de
 `test_ilse_capture_141000_pas_de_reprise_par_la_minute` est aussi reproduit
-sur **a50bbd95 avant ce correctif** ; égalité du monde conservée. Il reste déclaré,
-sans modifier son oracle. Une passe finale ciblée doit distinguer cet échec hérité
-de tout nouvel échec, puis lancer les mêmes **16 nuits × 4 h**, deux travailleurs,
-priorité réduite, contre la base initiale en cache et l'intégration fusionnée.
+sur **a50bbd95 avant ce correctif** ; égalité du monde conservée. Après dernière
+fusion, ce test et `test_contenant_dans_une_autre_salle` sont reproduits rouges
+sur la base **3999bb3a**, toujours sur le texte (preuve `base-3999.stderr.txt`).
+Leurs oracles restent intacts. Nouvelle passe ciblée, puis attribution et mêmes
+**16 nuits × 4 h**, deux travailleurs, priorité réduite, contre **3999bb3a**.
+La référence historique `b83f5a59` est relue depuis le rapport précédent : ni rejeu,
+ni assimilation à un comparatif isolant le lot sur l'intégration actuelle.
 Pas de suite complète ni Luna ; pas de comparaison CPU avec des références en cache.
 
-**État de livraison.** Calculs et attribution en cours ; aucune certification
-d'absence de boucle ni validation de fusion avant leurs résultats. Demi-vies non
-calibrées. Forme signalée pour S0 : mobilité et consommation dans la croyance,
-confiance dérivée à la lecture, cause de vérification dans le plan sauvegardé.
+**Relance.** Le lancement du 30 octobre à 22:14 a échoué avant tout calcul : racine
+absente de `sys.path` dans `reprendre_position_374.py`. Racine ajoutée avant les
+imports métier, démarrage par `-m`, priorité sous le `try/finally`, fin atomique
+même sur erreur et traces début/fin avec PID. Un second défaut de contrôle est
+corrigé : les échecs hérités déclarés ne bloquent plus l'étape de capture.
+Fin attendue : `C:/Users/msics/donjon/artifacts/position-hypothese-374/fin-consommation.json`.
+Aucune certification d'absence de boucle ni validation de fusion avant analyse.
+Demi-vies non calibrées. Forme S0 : mobilité/consommation dans la croyance,
+confiance dérivée, cause de vérification dans le plan sauvegardé.

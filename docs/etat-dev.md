@@ -43,13 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-position-hypothese` — lot 374 repris, fusion `origin/integration 06895c7d` dans `a50bbd95`, PC fixe.
+- `codex-position-hypothese` — lot 374 repris, fusion `origin/integration 3999bb3a` dans `b3233153`, PC fixe.
   Hypothèse datée 15/60/120 min ; inspection/appel/question consomment la piste, le temps et les vieux relais ne la rouvrent pas.
   Le résultat de sa propre inspection ne programme plus un nouvel essai ; bruit attribué distinct d'une voix reconnue.
   Captures rechargées : Brune crue 1985, répétition 190/205 identifiée ; Brune 2024, nouvelle case acoustique prouvée.
-  12 tests position verts ; première passe voisins 64/65, écart texte reprise-contact aussi reproduit sur la fusion avant correction.
-  Nouvelle passe ciblée, attribution exhaustive des appels et banc 16 nuits × 4 h à terminer ; fusion toujours suspendue.
-  Porte mémoire S1a conservée, aucun épisode écrit hors porte. Bruts et réserves au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
+  31 tests position/mémoire/témoins verts avant dernière fusion ; 2 écarts de texte voisins reproduits sur la base 3999bb3a.
+  Lanceur corrigé (import racine, fin même sur erreur, traces d'étape) ; reprise ciblée, attribution et banc 16 nuits × 4 h détachés.
+  Fusion suspendue aux résultats ; porte mémoire S1a–S1e conservée. Bruts et réserves au [rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
 (U-M social comptes), 381 (A2 passage), 390 (rouges nouveaux de la suite 663d1308 : 42 méthodes, dont 11 au 375 et 5 au 387). Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
