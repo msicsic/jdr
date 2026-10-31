@@ -45,15 +45,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-ut-social-avis` — lot 389, base `integration` `5cc189c9`, code `cf7a421f`.
   Console/TUI : commande `avis`, catalogue et descripteur du web, réception/dispute G18 conservées.
-  Quatre tests ciblés verts, dont console/TUI deux lieux ; 20 touches (21 avec F7), zéro modèle.
-  Validation finale détachée : huit fichiers ciblés/voisins, empreintes 2 h crue/Relais × quatre graines.
-  Deux travailleurs réduits au plus ; ni suite complète ni Luna. Résultats finaux encore attendus.
-  Fin : `C:/Users/msics/donjon/artifacts/ut-social-avis-389/fin-calcul.json`.
-  Limites : avis de menace d'eau ; clôture après lecture du fichier de fin.
+  92 tests distincts validés / huit fichiers : 90 conservés, deux erreurs Windows reprises vertes (21,864 s).
+  8/8 empreintes identiques, 2 h crue/Relais × quatre graines ; sources et assertions inchangées.
+  14 parcours mesurés ; 20 touches (21 avec F7), zéro modèle. Ni suite complète ni Luna.
+  Bruts : `C:/Users/msics/donjon/artifacts/ut-social-avis-389/fin-cloture.json`, `succes=true`.
+  Terminé, poussé, aucun calcul actif ; limite : avis de menace d'eau, parole distincte de la vérité.
   [Rapport 389](taches/rapport-codex-389-ut-social-avis.md).
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
-(U-M social comptes), 381 (A2 passage), 389 (U-T social avis). Suite complète en cours sur `663d1308`. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
+(U-M social comptes), 381 (A2 passage). Suite complète en cours sur `663d1308`. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
