@@ -66,6 +66,8 @@ corrigé : les échecs hérités déclarés ne bloquent plus l'étape de capture
 Le contrôle du redémarrage a repéré une référence de test inexistante, retirée
 de la liste ; son arrêt a bien écrit le fichier de fin d'échec.
 Fin de la nouvelle relance : `C:/Users/msics/donjon/artifacts/position-hypothese-374/fin-consommation-relance.json`.
+Redémarrage contrôlé : PID **44468** actif, priorité réduite, journal passé des
+12 tests position verts aux voisins ; preuve `reprise/demarrage-verifie.json`.
 Aucune certification d'absence de boucle ni validation de fusion avant analyse.
 Demi-vies non calibrées. Forme S0 : mobilité/consommation dans la croyance,
 confiance dérivée, cause de vérification dans le plan sauvegardé.
