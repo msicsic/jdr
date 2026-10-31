@@ -39,6 +39,17 @@ class GestesTests(unittest.TestCase):
         # Lot 221 : la question ajoute 215 états à ce graphe ; même résultat
         # impossible et mêmes cinq autres captures, monde/rendu vérifiés ci-dessous.
         attendus = json.loads((DONNEES / "gestes-attendus.json").read_text(encoding="utf8"))
+        # 374, attribué au lot 424 : Rémy situe Gaspard en galerie depuis 459,
+        # à 480 sa confiance vaut 2**(-21/15) < .5. Les contacts passent par
+        # une question à Mathe ou une inspection ; rétablir cette seule position
+        # fraîche restitue tous les successeurs de c3f0c2d5^, coûts et ordre compris.
+        # Seuls ces deux graphes changent ; leurs résultats restent ceux de la base.
+        attendus["mine-1985-480.json.gz/a_mange"].update(
+            empreinte="ff451cb28c167d4d601c159752eb63445a75dc3e6fe25947207f4d82cee9de01",
+            etats=945, successeurs=5678, noeuds=1350)
+        attendus["mine-1985-480.json.gz/eclaire"].update(
+            empreinte="068fbcdfb227a3cd3bd9dd92b0f77d74ea7ce613a53fc72eea7e5398c8d93a8b",
+            etats=1, successeurs=8, noeuds=2)
         self.assertEqual(captures(p, DONNEES), attendus)
 
     def test_cles_lieux_contenants_porteurs_et_permissions(self):

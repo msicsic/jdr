@@ -43,6 +43,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-empreintes-374` — lot 424, base intégration `a874d646` : attribution de la famille E du 414.
+  Quatre hashes monde conservés après contrôle exact de la règle sauvegardée du 374 ; seuls deux graphes mine réancrés.
+  Preuve : Gaspard cru en galerie depuis 459, périmé à 480 ; sa seule expiration explique chaque successeur changé.
+  Aucun code moteur ; 26/26 tests ciblés verts en 64,4 s, monde/rendu rechargés. Pas de certification globale du 374.
+  [Rapport et tableau des écarts](taches/rapport-codex-424-empreintes-374.md).
+
 Lots en cours : 424 (empreintes du 374, famille E), 425 (découpe d’un combustible), 426 (K0, candidats de contrat), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 

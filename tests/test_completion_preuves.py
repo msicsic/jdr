@@ -70,6 +70,11 @@ class CompletionTests(unittest.TestCase):
                 recharge = Monde.charger(fichier)
                 self.assertEqual(m.data, recharge.data)
                 historique = sans_indices_soupcon_passifs(recharge)
+                # 374 : seul écart des quatre mondes face à c3f0c2d5^ :
+                # la règle persistée. Plans, prix, croyances et rendu identiques.
+                # Contrôler exactement cet ajout, puis garder les anciens hashes.
+                self.assertEqual(historique.pop('positions_hypotheses'),
+                                 {'seuil': .5, 'demi_vies': {'mobile': 15, 'pose': 60, 'retenu': 120}})
                 for e in historique['esprits'].values():
                     # 360 : provenance initiale ajoutée à la migration, comme
                     # dans l'oracle d'étapes. Le monde complet, provenance
