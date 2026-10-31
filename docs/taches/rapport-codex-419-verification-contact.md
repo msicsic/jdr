@@ -1,69 +1,68 @@
 # Lot 419 — le contact prépare le moyen et son but
 
-31 octobre 2026, laptop · `codex-verification-contact`. Première base `8c5eaaa7`,
-livraison mesurée `4fc57520` ; reprise après fusion d'**`origin/integration 07e270be`**
-(G12, G13, S1m, S1n), merge `d500fdcb`. Correctifs de reprise `a02d670f`, `40f21b85`.
-**Vérification finale en cours ; fusion non encore validée.** Bruts :
-`C:/Users/msics/donjon/artifacts/verification-contact-419/`, sous-dossier `reprise/`.
+31 octobre 2026, laptop · `codex-verification-contact` · intégration **`07e270be`**
+fusionnée par `d500fdcb` (G12, G13, S1m, S1n). Moteur final **`cd19880e`**.
+**Lot livré dans son périmètre ; cinq rouges hérités restent ouverts.**
+Bruts : `C:/Users/msics/donjon/artifacts/verification-contact-419/`.
 
-**Invariant et fonctions.** `planification.preparer_contact` garde le moyen derrière
-le préfixe de vérification ; seul le constat autorise sa recompilation. Les
-propositions conservent l'offre licite, les agendas utilisent le terminal du
-graphe, `_appeler` peut éprouver un ancien repère inaccessible. La consommation
-d'hypothèse du 374 reste inchangée. `echanges.executer` sépare la provenance du
-contenu effectivement prononcé et sauvegardé. Aucun prompt ni registre d'esprit
-ajouté ; `memoire.py`, `deliberation.py` et les familles R/E restent inchangés.
+**Invariant et code.** La vérification est un préfixe du moyen : constat puis
+recompilation, sans perdre le but, l'aide ou l'offre. `planification` conserve
+la suite conditionnelle ; propositions et parole d'agenda utilisent ce contrat.
+`echanges.executer` sépare provenance et termes entendus. Aucun prompt ni registre
+d'esprit ajouté ; familles R/E, `memoire.py` et `deliberation.py` inchangés.
 
-**Régression Tilo/Mathurine corrigée.** Le but adopté visait `marmite_1`, mais le
-moyen porté était `marmite_1_1`. Le contrat commun enregistre désormais
-`lot_origine` lors de tout prélèvement physique ou détachement de part.
-`matiere.installer` reprend les réceptions typées des anciennes sauvegardes ;
-`planification._pulsion` compare les moyens portés issus du lot en conservant
-l'identité du but adopté. Aucun identifiant ni nom de scénario n'est interprété.
-La filiation persiste après éviction des souvenirs, reste interne au moteur et
-n'établit pas la connaissance publique du lot source (`Monde.contexte`, projection).
+**Tilo/Mathurine corrigé sans exception de scénario.** `detacher_part` et
+`matiere.prelever_piece` enregistrent `lot_origine`. La reprise de pulsion utilise
+une part issue du lot et portée par l'acteur, tout en conservant le but initial.
+Les réceptions typées migrent les anciennes parts ; `remettre` fixe aussi cette
+filiation au moment d'une livraison ancienne, avant sauvegarde. Elle persiste
+après éviction des souvenirs, sans révéler le lot au joueur ou au MJ.
 
-Preuves : capture réelle 289, même laps entier/découpé et rechargé ; autre cas,
-part de bois reçue pour un feu, avec ou sans vérification préalable du contact,
-rechargement entre les étapes, feu effectivement alimenté, part consommée et
-monde/rendu identiques après recharge. **44 méthodes ciblées vertes** sur les
-fichiers service, part estimée, matière et projection. La reprise finale relit
-26 fichiers concernés ; aucune suite complète ni Luna.
+Preuves : capture réelle 289, laps entier/découpé, rechargement et rendu ; autre
+cas, bois reçu pour un feu, avec/sans vérification du contact, part consommée et
+feu alimenté après recharge. La capture crue 42 sert désormais Brune avec la
+part portée dès 18, puis revoit Ilse à 24 : son oracle exige la consommation
+réelle de la part et conserve les contrôles de durée, passages, monde et rendu.
 
-**Treize méthodes du brief : douze acceptées, une ouverte.** Les défauts de raccord
-concernent les deux aides prioritaires, contre-offre, offre sensée, parole
-d'agenda et appel du repère inaccessible. Les adaptations prouvées du 374
-concernent achat annulé, gardien, ronde de Gorm, signalements et vitesse de fuite
-de l'eau ; captures dans `diagnostic/`, classement initial dans `fin.json`.
-Le ballot de Lucien reste ouvert, oracle intact : à 120 il garde la chambre,
-ballot au coffre, piste consommée à 93. Quelle preuve autoriserait le vol attendu
-à 107–110 avant de rechercher le porteur ? Ne pas contourner le 417.
+**Tests.** 26 fichiers, **242/247 méthodes vertes** après reprise de trois fichiers
+directement concernés (32 méthodes, dont deux rouges héritées). Les deux rouges
+nouveaux du calcul initial sont résolus : filiation créée tardivement au
+rechargement, puis attente devenue fausse de consommation de la piste d'Ilse.
+Cinq rouges antérieurs demeurent : lanterne et ballot de Lucien, démenti
+empathique, deux égalités rejetant le suffixe descriptif du 417.
+Les douze méthodes et adaptations acceptées du brief sont conservées ; le ballot
+reste ouvert (piste consommée à 93, vol attendu à 107–110 sans preuve nouvelle).
+Aucune suite complète ni Luna.
 
-**Mesure historique, non remplacée.** Les 22 fichiers de la première livraison
-comptaient 197/203 méthodes vertes : cinq rouges héritées (lanterne, ballot,
-démenti empathique, deux égalités rejetant le suffixe descriptif du 417), plus
-Tilo corrigé depuis. Banc 4 h × quatre graines × trois scénarios, zéro plantage :
+**Attribution des 42→47 appels historiques, un par un.** Les cinq sont un solde :
+25 ajouts bruts, 20 retraits, comptés par auteur/cible et rang, sans prétendre
+apparier causalement des trajectoires divergentes. Les 47 appels ont été rejoués
+à l'identique : **38 premiers examens de lieux, six retours avec nouveaux indices,
+trois vérifications uniques d'hypothèses expirées ; zéro répétition sans preuve**.
+Parmi les 25 ajouts : respectivement 19, cinq et un. Détail individuel et indices :
+`reprise/attribution-appels.md` et `.json`, mondes avant chaque appel conservés.
 
-| Scénario | Appels base → branche | Retours suspects |
-|---|---:|---:|
-| Auberge | 13 → 13 | 0 → 0 |
-| Mine | 5 → 4 | 1 → 0 |
-| Crue | 42 → 47 | 0 → 0 |
+Le dernier cas (Brune → Aubin, graine 7, instant 39804) était un faux positif du
+classement : plan de vérification adopté à 66, arrivée à 39723, piste consommée
+par la perception pendant l'approche, premier cri à 39804 puis réponse entendue.
+Il achève la vérification déjà engagée ; il n'en relance pas une autre.
 
-**Attribution en cours, appel par appel.** Les cinq appels sont un solde : par
-auteur/cible et rang, 25 ajouts bruts et 20 retraits, convention comptable sans
-équivalence causale entre trajectoires divergentes. Les graines 1985 et 2024
-rejouent exactement leurs 24 appels : 18 premiers examens de lieux, cinq retours
-avec nouveaux indices de position, une hypothèse expirée vérifiée une fois
-(Ilse → Gorm, instant 143533). Aucune répétition sans preuve nouvelle parmi ces
-24 appels. Une recherche sans position initiale n'est pas une hypothèse expirée :
-les preuves sont conservées séparément. Les autres graines et la consolidation
-des 47 appels restent à lire dans `reprise/attribution-appels.json` et `.md`.
+**Banc rapide crue après fusion : 4 h × quatre graines**, référence `07e270be`
+puis branche figée `d64f5fe3`, zéro retour suspect et zéro plantage.
 
-**Fin attendue : `reprise/fin-reprise.json`.** Deux travailleurs au plus, priorité
-réduite : tests d'un côté ; attribution restante puis crue 4 h × quatre graines,
-référence `07e270be` réutilisée si disponible puis branche figée, de l'autre.
-Le critère brut de non-hausse reste contrôlé sans reclasser les appels.
-L'ancien `fin.json` reste un échec historique. Limite de migration : une ancienne
-part sans filiation ni réception typée conservée ne peut être reliée au lot par
-son seul nom. Aucun succès global ni absence générale de boucle n'est encore affirmé.
+| Graine | Référence | Première livraison | Reprise |
+|---|---:|---:|---:|
+| 1985 | 5 | 6 | 7 |
+| 7 | 10 | 7 | 8 |
+| 42 | 18 | 16 | 6 |
+| 2024 | 9 | 18 | 18 |
+| **Total** | **42** | **47** | **39** |
+
+Critère agrégé de non-hausse atteint. Les mesures historiques auberge (13→13)
+et mine (5→4, suspects 1→0) restent dans `banc.json`.
+`reprise/conclusion.json` consolide les résultats ; `fin-reprise.json` garde
+son échec brut antérieur aux deux corrections et à l'attribution vérifiée.
+Le dernier correctif de filiation des pièces anciennes a ses tests ciblés ;
+le banc n'a pas été relancé. Sans filiation ni réception typée conservée,
+une ancienne part ne peut être reliée au lot par son nom. Aucune garantie
+supplémentaire sur les boucles hors des cas et graines mesurés.

@@ -43,13 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-verification-contact` — lot 419, reprise après fusion `integration 07e270be` ; moteur `40f21b85`.
+- `codex-verification-contact` — lot 419, fusion `integration 07e270be` ; moteur `cd19880e`.
   Contact = préfixe du moyen ; but du lot repris avec sa part reçue, filiation persistée et privée.
-  Tilo/Mathurine et bois reçu pour un feu verts après recharge ; 44 méthodes ciblées vertes.
-  Douze méthodes du brief acceptées, ballot ouvert ; cinq anciens rouges hérités, à relire après fusion.
-  Ancien banc : auberge 13→13, mine 5→4, crue 42→47 ; 24/47 appels attribués sans répétition sans preuve.
-  **Calcul en cours, fusion non validée** : 26 fichiers, attribution restante, crue 4 h × 4 graines.
-  Fin : `C:/Users/msics/donjon/artifacts/verification-contact-419/reprise/fin-reprise.json`.
+  Tilo/Mathurine et bois reçu pour un feu verts après recharge ; ancienne livraison stable avant sauvegarde.
+  26 fichiers : 242/247 méthodes vertes, cinq rouges héritées ; douze méthodes du brief acceptées, ballot ouvert.
+  Ancien 42→47 : 47 appels attribués, 38 premiers examens, six preuves nouvelles, trois hypothèses uniques.
+  Reprise crue 4 h × 4 graines : appels 42→39 ; zéro retour suspect, zéro plantage ; aucune répétition sans preuve.
+  **Terminé** ; `verification-contact-419/reprise/conclusion.json` ; pas de suite complète ni Luna.
   [Rapport 419](taches/rapport-codex-419-verification-contact.md).
 
 Lots en cours : 423 (une pièce de lot par la saisie libre), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
