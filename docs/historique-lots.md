@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-don-consentement` — lot 394, base `origin/integration df7352b7`, non fusionné.
+  Le don produit `donner`, effet lourd selon U-C : les deux tests anciens passent désormais « tenter ».
+  Moteur, classification des effets et protection des termes du lot 380 inchangés.
+  Huit parcours don/restitution, cloche/Gorm et couteau/Brune, console/pont web : verts en 49,738 s.
+  Aperçu, annulation, état et vues rechargés, reprise réelle ; zéro appel au modèle.
+  65/65 voisins verts (507,696 s), total 66/66 méthodes ; ni Luna, ni banc, ni suite complète. Branche poussée.
+  [Rapport et limites](taches/rapport-codex-394-don-consentement.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 394, tests seulement : le don est un acte lourd selon U-C (consentement.plan_lourd), le 380 l'avait aligné ; les tests du don local passent par « tenter », moteur inchangé. 66 tests verts, dont huit parcours don/restitution console et web après recharge.
+
 - `codex-parite-acoustique` — lot 391, base `integration 55c3a456`.
   Perceptions à chaque événement PNJ ; copies de transaction reconnues sans rejouer les sons.
   Trois méthodes du brief corrigées ; réancrage limité à `/journal/96/faits`, ancienne empreinte restaurée en test.

@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-don-consentement` (41b0c4e2) : lot 394, le don direct passe par le consentement U-C. Détail dans l'historique.
 - `codex-parite-acoustique` (ce8ea206) : lot 391, parité acoustique après 376. Détail dans l'historique.
 - `codex-reservation-contrat` (792b3b38) : lot 393, une réservation ne bloque pas son propre contrat. Détail dans l'historique.
 - `codex-um-social-comptes` (0d7039c6) : lot 380, U-M social comptes. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-um-social-avis` (20dcb5d2) : lot 386, U-M social avis. Détail dans l'historique.
 - `codex-s1e-vues-episodes` (56f46332) : lot 385, S1e les lecteurs d'épisodes par des vues pures. Détail dans l'historique.
 - `codex-s1d-promesses` (ae83ca65) : lot 384, S1d promesses, prêts et travaux payés. Détail dans l'historique.
-- `codex-s1c-approches-secours` (762b3ac7) : lot 383, S1c approches, avertissements et secours. Détail dans l'historique.
 
 ## Lots non fusionnés
 
