@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-um-social-avis` — lot 386 terminé, non fusionné, base `integration` `cbecf8c8`, code `060a4930`.
+  Le formulaire web conserve lieu connu et valeur de l'avis via U-D information ; mêmes U-C/G18, zéro modèle.
+  5/5 nouveaux tests verts (111,385 s) : deux lieux, valeurs et disputes, recharge et laps découpés.
+  Total 73/78 verts ; cinq erreurs U-T information héritées prouvées sur la base (fixture `bois` non connu).
+  Empreintes 2 h crue/Relais × quatre graines : 8/8 identiques. Aucun calcul actif ; clôture poussée.
+  Limite : prédicat menace d'eau existant ; pas d'U-T. [Rapport](taches/rapport-codex-386-um-social-avis.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 386, U-M social avis : le formulaire web soumet sujet et valeur choisis, sans modèle, lieux publics connus seulement. 73/78 tests ciblés : cinq erreurs héritées de U-T information sur la base (bois non connu dans la fixture ressources depuis le catalogue connu 365), à traiter. 8/8 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-s1e-vues-episodes` — lot 385 clos, base `integration b2028ede` ; `fcb82692` fusionnée (documentation seule).
   Tous les lecteurs d'épisodes utilisent des copies profondes ; inventaire AST à zéro hors exceptions nommées.
   Stockage/ordre/plafond inchangés ; rafraîchissement du geste entendu et migration des présences dans la porte.

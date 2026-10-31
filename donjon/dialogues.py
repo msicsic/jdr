@@ -59,6 +59,25 @@ def information_publique(monde):
             "ressources": [*ressources, *({"id": b, "nom": n} for b, n in RESSOURCES_DEMANDEES.items())]}
 
 
+def formulaires_avis():
+    """Le prédicat d'avis déjà évaluable par le moteur, sans vérité préremplie."""
+    return [{"acte": "avis", "libelle": "Donner un avis sur la menace d'eau",
+             "champs": [{"champ": "sujet", "libelle": "Lieu de l'avis", "choix": "lieux"},
+                        {"champ": "valeur", "libelle": "Prévision", "choix": "valeurs"}]}]
+
+
+def avis_publics(monde):
+    """Seuls des noms publics connus ; ni prévision calculée ni croyance privée."""
+    from .paroles import _connu_du_joueur, contexte_fige
+    with contexte_fige():
+        lieux = [{"id": id, "nom": s["nom"]} for id, s in monde.data["salles"].items()
+                 if _connu_du_joueur(monde, id)]
+    return {"destinataires": [{"id": id, "nom": x["nom"]} for id, x in interlocuteurs(monde).items()],
+            "lieux": lieux,
+            "valeurs": [{"id": "oui", "nom": "L'eau menace ce lieu, selon moi"},
+                        {"id": "non", "nom": "L'eau épargne ce lieu, selon moi"}]}
+
+
 class InformationTerminal:
     """Formulaire numéroté sur les mêmes paramètres publics que le web."""
 
@@ -141,15 +160,16 @@ def parole_information(monde, d):
     if not isinstance(p, dict) or not all(isinstance(v, str) and len(v) <= 1000 for v in p.values()):
         raise ErreurMonde("Les paramètres de cette parole sont mal formés.",
                           f"descripteur.parametres : reçu {p!r} ; attendu dictionnaire de chaînes.")
-    f = next((f for f in formulaires_information() if f["acte"] == p.get("acte")), None)
+    formulaires = [*formulaires_information(), *formulaires_avis()]
+    f = next((f for f in formulaires if f["acte"] == p.get("acte")), None)
     if not f:
         raise ErreurMonde("Cet acte d'information n'est pas proposé.",
-                          f"parametres.acte : reçu {p.get('acte')!r} ; attendu {[f['acte'] for f in formulaires_information()]}.")
+                          f"parametres.acte : reçu {p.get('acte')!r} ; attendu {[f['acte'] for f in formulaires]}.")
     champs = {"acte", *(c["champ"] for c in f["champs"])}
     if set(p) != champs:
         raise ErreurMonde("Ce choix d'information est incomplet ou comporte un paramètre inconnu.",
                           f"descripteur.parametres : reçu {sorted(p)} ; attendu {sorted(champs)}.")
-    choix = information_publique(monde)
+    choix = avis_publics(monde) if p["acte"] == "avis" else information_publique(monde)
     if d["cible"] not in {x["id"] for x in choix["destinataires"]}:
         raise ErreurMonde("Tu ne perçois plus cet interlocuteur pour lui parler.",
                           f"descripteur.cible : reçu {d['cible']!r} ; attendu {[x['id'] for x in choix['destinataires']]}.")
@@ -164,12 +184,13 @@ def parole_information(monde, d):
     replique = ("Qui es-tu ?" if acte == "qui" else
                 f"Où se trouve {noms['sujet']} ?" if acte == "localisation" else
                 f"Possèdes-tu ceci : {noms['sujet']} ?" if acte == "ressource" else
+                f"Selon moi, l'eau {'menace' if p['valeur'] == 'oui' else 'ne menace pas'} ce lieu : {noms['sujet']}." if acte == "avis" else
                 f"La localisation que je t'annonce pour {noms['sujet']} : {noms['valeur']}.")
     from .voix import reel
     sujet = reel(monde, p.get("sujet", "")) if acte == "ressource" else p.get("sujet", "")
     return {"personnage": d["cible"], "replique": replique,
             "contenu": [{"type": acte, "sujet": sujet,
-                         "attribut": "lieu" if acte == "affirmation" else "",
+                         "attribut": "lieu" if acte == "affirmation" else "menace" if acte == "avis" else "",
                          "valeur": p.get("valeur", "")}]}
 
 
