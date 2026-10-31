@@ -1,6 +1,6 @@
 # État du développement
 
-Point de reprise, à tenir **court** (une à deux pages). Mis à jour le 2026-10-30.
+Point de reprise, à tenir **court** (une à deux pages). Mis à jour le 2026-10-31.
 L'historique détaillé de tous les lots est dans [historique-lots.md](historique-lots.md) : à lire seulement
 quand un lot ancien est en cause, jamais en entier. Les outils de mesure sont dans [outils-mesure.md](outils-mesure.md).
 
@@ -48,12 +48,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   schéma du compilateur actuel, raccourcis et « Compris » gardent la même charge typée.
   Cas réel/autre cas/faux pendant, recharge et laps découpé ; reprise ciblée **47/47 verte**.
   Un voisin de rendu reste rouge, identique sur `c63dd563` ; assertion conservée. Mécaniques inchangées.
-  Empreintes 2 h Relais/auberge en cours : `artifacts/a2-passage-381/fin-reprise.json` du dépôt principal.
+  Empreintes identiques : 2 h, Relais/auberge × 4 graines, chronique/mesures/monde complet ; zéro plantage.
   Revues conservées ; fidélité Luna non garantie, ancienne API simple transitoire (A3), aucun registre d'esprit.
   [Rapport](taches/rapport-codex-381-a2-passage.md), bruts `artifacts/a2-passage-381/` du dépôt principal.
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 378 (S1a, porte des épisodes), 380
-(U-M social comptes), 381 (A2 passage). Questions de S0 en arbitrage (1 et 2 tranchées, voir décisions).
+(U-M social comptes). Questions de S0 en arbitrage (1 et 2 tranchées, voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30

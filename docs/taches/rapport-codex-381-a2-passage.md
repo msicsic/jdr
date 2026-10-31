@@ -41,13 +41,17 @@ L'autre échec, `test_cas_reel_acceptee_elle_s_ecarte_vraiment`, attend « Tu av
 d'un pas. » ; **le même échec et le même texte réel sont reproduits sur la base
 exacte `c63dd563`** (un test, 4,33 s, `test-base.log`). Son assertion reste intacte :
 les voisins ne sont donc pas tous verts. Aucune nouvelle régression connue.
-Empreintes **en cours** : 2 h, Relais/auberge, 1985/7/42/2024, référence figée
-`c63dd563`, cache partagé, `PYTHONHASHSEED=0`, référence puis branche. La branche
-locale `main`, ancienne, n'est pas utilisée pour comparer d'autres intégrations.
-Bruts dans `C:/Users/msics/donjon/artifacts/a2-passage-381/` ; l'ancien `fin.json`
-constate l'arrêt avant le banc. **`fin-reprise.json` est le nouveau marqueur de
-fin**, écrit après `empreintes.json`, avec les codes et toute erreur. Deux
-travailleurs à priorité réduite. Ni suite complète ni Luna.
+**Empreintes identiques** sur huit nuits de 2 h par version, Relais/auberge,
+1985/7/42/2024 : chronique, mesures et état final complet, **zéro divergence et
+zéro plantage** (`empreintes.json`). Référence figée `c63dd563`, calculée une fois
+puis rangée dans le cache partagé ; branche `a8f9e2ad`, sans cache. Même
+`PYTHONHASHSEED=0`, référence puis branche ; aucun gain de vitesse revendiqué.
+La branche locale `main`, ancienne, n'est pas utilisée pour comparer d'autres
+intégrations. Bruts dans `C:/Users/msics/donjon/artifacts/a2-passage-381/`.
+L'ancien `fin.json` constate l'arrêt avant le banc ; **`fin-reprise.json` clôt la
+reprise** : `tests_sociaux=0`, `base=1` (échec ancien attendu), `empreintes=0`,
+`erreur=null`. Copie de base supprimée. Deux travailleurs à priorité réduite.
+Ni suite complète ni Luna. Lot livré, non fusionné.
 
 **Limites.** La fidélité du choix de Luna n'est pas garantie ; les revues restent
 en place, A4/A6 hors lot. « Enjamber » et « escalader » sélectionnent dessus
