@@ -2031,7 +2031,10 @@ def _agir(monde, id, t, lignes, gestes=None, compter=True):
     # Un plan déjà sauvegardé peut avoir vieilli depuis son admission. La
     # réalisation repasse par le même préfixe de contact que la recherche.
     participants = _a_reunir(monde, id, etape, venues=True)
-    verification = _contact_perime(monde, id, participants, participants)
+    requis = list(participants)
+    if etape["condition"] == "sans_temoin" and e["patience"] is None:
+        requis.extend(memoire.faits_connus(monde, id))
+    verification = _contact_perime(monde, id, requis, participants)
     if verification is not None:
         from .planification import _preparer_suite
         # Même provenance que la normalisation, y compris pour un vieux plan.
