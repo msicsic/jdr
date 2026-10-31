@@ -43,13 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-a6-raccord-libre` (416), base `integration` `f1b15632`, code `f7dc9203` : raccord libre/reprises,
-  projection publique A1 et contrat A2/A3 réunis ; A4/A5, audits, U-P/U-C et voies transitoires conservés.
-  123 tests distincts sans échec (un ignoré) ; empreintes Relais/auberge identiques, 2 h × quatre graines.
-  Luna huit scripts : 96 appels/42 tours, 2,29 appels et 9,08 s/tour, un repli, aucune erreur technique/recharge.
-  Non validé pour fusion : seuils dépassés, repli de la crypte et sifflement remplacé par `voix_melodique`
-  à l'atelier, admis par la revue (limite A5). Aucun calcul actif ; bruts `artifacts/a6-raccord-libre-416/`.
-  [Rapport et limites](taches/rapport-codex-416-a6-raccord-libre.md).
+- `codex-a6-raccord-libre` (416), reprise `20ac5f1e` : chaque champ typé du geste exige un jugement,
+  sa valeur demandée et le périmètre mécanique ; rapport incomplet/cosmétique refusé avec attendu.
+  Plus d'admission après deux revues illisibles. Trois contre-épreuves Luna correctes ; 24 tests ciblés
+  puis quatre finaux verts ; voisins en cours. Atelier ×2 : sifflement refusé puis exécuté ; crypte : repli.
+  Crypte : base `19b711bf` sans repli en Luna ; rejeu des vingt réponses du 416 sur base reproduit le repli.
+  Passe : 69 appels/31 tours, 2,23 appels/9,78 s, deux replis, sans erreur ; coût accepté, fidélité encore limitée.
+  Fin `C:/Users/msics/donjon/artifacts/a6-raccord-libre-416/reprise/fin.json` ; [rapport](taches/rapport-codex-416-a6-raccord-libre.md).
 
 Lots en cours : 414 (rouges nouveaux de la suite 4539dd68), 402 (vérification d’intégration moteur) ; S1m attend le 414 (mêmes tests de réessai) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 

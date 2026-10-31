@@ -1,74 +1,79 @@
-# Lot 416 — A6, raccord libre
+# Lot 416 — A6, raccord libre et reprise de la revue
 
-31 octobre 2026 — `codex-a6-raccord-libre`, base `integration` `f1b15632` ;
-code mesuré `f7dc9203`. **Lot conclu, non validé pour fusion.** Les vérifications
-déterministes passent ; les critères Luna et la fidélité du sifflement échouent.
+31 octobre 2026 — `codex-a6-raccord-libre`, base initiale `integration`
+`f1b15632` ; raccord `f7dc9203`, reprise de code `20ac5f1e`.
+**Forme de revue renforcée ; validation globale ouverte, tests voisins en cours.**
+Le superviseur accepte le coût initial de 2,29 appels/9,08 s par tour, corpus
+différent du repère. Aucune optimisation de coût ajoutée.
 
-**Invariant et changement.** Le libre et ses reprises passent par
-`MJ._compiler_libre`. `compilation.schema_reponse` réunit le contrat A2/A3
-sans compaction, changement de consigne ou sélection selon la saisie.
-Les neuf modes, suites après faits et charges transitoires restent exposés.
-Audits, dossier A4, invariants A5, bornes de reprise et chemins U-P/U-C sont
-conservés ; aucune mécanique ni aucun registre d'esprit ajouté.
+**Invariant.** La revue des gestes compare obligatoirement chaque paramètre
+typé du candidat : opérations, références, méthodes, approches, formes sonores,
+nombres et clauses. `comprehension.champs_types_revue` les sépare des proses
+`intention`, `justification`, `recit`, sans lire la saisie. Ce contrat de revue
+est distinct de l'empreinte conservatrice A5. Les paroles conservent leur revue
+de contenu et leurs contrôles distincts ; aucun audit n'est retiré.
 
-Le raccord manquant était A1 : `MJ._echanger` applique désormais
-`projection_publique.projeter` avant l'interprétation et ses contrôles
-narratifs. Les valeurs publiques gardent leur place et leur contenu ; les
-exclusions suivent le contrat A1. Provenances et exclusions restent dans la
-trace technique, sans gonfler la requête au modèle. Un champ de producteur
-sans contrat refuse avant l'appel, avec `attendu`, sans retour au contexte
-privé. Les contrats publics de matière, contenus et fabrication sont portés,
-y compris les structures créées en jeu ; arbitrage et santé internes restent
-privés. Les sept états initiaux sont couverts. Mise en voix et narration de
-résultat gardent leur voie transitoire.
+`couverture_action.schema/entree/verifier` imposent une table complète : chaque
+champ porte sa valeur demandée, un jugement individuel et `perimetre=contrat_type`.
+Champs manquants/supplémentaires, classement cosmétique, jugement contredisant
+les valeurs et JSON illisible sont refusés avec `attendu`. Tous les écarts
+sont contrôlés avant le verdict global ; celui-ci ne peut plus les neutraliser.
+Les sens des valeurs viennent du registre commun des quatre familles A2,
+exposé sans sélection selon les mots du joueur. Le jugement sémantique reste
+à Luna : le moteur n'infère aucune intention depuis un mot-clé ou une prose.
 
-**Preuves et tests.** Sept requêtes comparées hors ligne au MJ de la base :
-instructions, schéma, fonction, saisie, ordre et valeurs publiques identiques
-au contrat A1 ; six interprétations couvrent 503 à 601 valeurs, une narration
-reste entièrement identique. **123 tests distincts réussis ou ignorés, dont
-un ignoré** : 91 tests des treize fichiers voisins, puis 38 tests A1/A0/raccord
-(dont six déjà comptés), sans échec ni erreur. Un travailleur à priorité réduite ;
-1 352,77 s puis 118,20 s. Pas de suite complète.
+`MJ._auditer_action` redemande une revue illisible une fois, avec son rapport
+refusé et son attendu. Un second échec refuse le geste, sans l'exécuter ;
+l'ancienne admission sans revue est supprimée dans ce portage. Une valeur
+demandée par la revue mais inexprimable dans la grammaire du candidat conteste
+sa représentation entière ; le nouveau candidat est intégralement préparé
+et revu. Sinon, seuls les champs explicitement contestés sont libérés par A5.
+Aucune nouvelle mécanique ni registre d'esprit ; U-P/U-C et sauvegarde conservés.
 
-Dix tests nouveaux couvrent douze saisies dans la vraie boucle console/PontWeb :
-cas réel/autre cas par famille, `prendre` transitoire, matières typées,
-consentement avant effet, commande directe sans compilation, provenance et
-refus fermé. Monde entier, « Compris », sons/paroles, conversation et vues
-vérifiés après recharge ; chaque saisie compare aussi une minute entière à
-quatre tranches avec recharges. Une fixture encore en vente a été corrigée ;
-aucune assertion de sécurité retirée. La capture des oracles A1 est déplacée
-avant la projection pour continuer à éprouver le producteur brut et ses
-secrets témoins ; le nouveau test contrôle l'entrée effectivement transmise.
+**Tests.** Première passe ciblée : 24 tests verts ; après finition du contrat,
+quatre tests finaux verts en 29,00 s. Contre-épreuves sur sifflement/cri et
+références : table exhaustive, champs non classables en cosmétique, refus
+après deux rapports invalides, vraie nuance admise, proposition sonore refusée
+puis reprise canonique. La vraie boucle console/PontWeb contrôle sons, « Compris »,
+conversation, monde et vues après recharge. Les fixtures réseau sont portées
+au rapport complet, sans changer leurs oracles de sens. L'assertion historique
+« deux revues illisibles puis plan accepté » devient explicitement un refus,
+conformément à la décision du superviseur. Les vingt fichiers concernés sont
+en cours, puis les quatre fichiers du contrat seront vérifiés sur le code figé.
+Un travailleur à priorité réduite ; aucune suite complète.
 
-**Empreintes identiques** : chronique, mesures et monde complet, nuit par nuit ;
-Relais/auberge, 2 h × 1985/7/42/2024. Huit nuits par version, référence exacte
-jouée une fois puis rangée dans le cache, branche seule ensuite ; aucun
-plantage. L'avis à expliquer du Relais 2024 est identique des deux côtés.
+**Contre-épreuves Luna sur copies.** Trois sur trois avec le contrat complet :
+sifflement fidèle admis ; `voix_melodique` pour « je siffle un air joyeux »
+refusé sur `reussite.effets.0.texte`, demandé `sifflement` ; nuance joyeux/gai
+admise. Une première table ne demandant que les valeurs échouait encore sur
+la négative : diagnostic conservé, puis jugements individuels et registre A2
+portés dans le contrat commun. Aucun cas particulier dans le moteur ou le prompt.
 
-**Luna sur copies, huit scripts demandés.** **96 appels / 42 tours MJ,
-2,29 appels et 9,08 s/tour**, médiane 8,22 s ; un repli, aucune erreur technique,
-de recharge ou interruption. Les seuils 2,26 appels/8,5 s et zéro repli ne sont
-pas atteints. Corpus différents des repères : aucune régression causale de
-latence démontrée. Le repli concerne la question sur l'autre côté de la porte,
-dans la crypte : les rappels de parole sont refusés jusqu'au repli partiel.
-À l'atelier, « je siffle un air joyeux » devient `voix_melodique` ; la revue
-l'admet comme `nuance_cosmetique`, sans écart typé. Le rendu montre des notes
-de voix. La limite A5 est donc aussi observée en jeu ; fidélité non acquise.
+**Crypte, base `origin/integration` `19b711bf`.** La nouvelle passe Luna
+sur copie donne 18 appels/9 tours, aucun repli, aucune erreur de recharge.
+Elle répond à la question sans rappel de Gorm. Le rejeu hors réseau des vingt
+réponses du fil défaillant du 416, sur cette même base, reproduit exactement
+le repli à la même saisie, sans erreur de recharge. Les contrôles concernés
+(`narration.py`, `noms.py`, `consignes.py`, `portee_narrative.py`) sont identiques.
+Cela prouve un mécanisme de refus déjà présent sur la base pour ces réponses,
+pas une fréquence comparable ni une régression causale de génération Luna.
+Aucun retrait ou assouplissement d'audit pour masquer le repli.
 
-Un lancement prématuré avant A1 a été interrompu (Relais : 21 appels, un repli),
-conservé et exclu du bilan. Dans la passe suivante, l'atelier a été bloqué
-avant tout appel modèle par le contrat de source manquant : après portage,
-sa seule exécution Luna donne 21 appels/11 tours, sans repli ni erreur.
-L'agrégat conserve les sept autres scripts ; aucun résultat raté n'est rejoué.
-Aucune autre campagne lancée, aucune correction de gameplay ou d'audit mêlée
-au raccord pour faire passer ces critères.
+**Passe autorisée terminée.** Atelier deux fois puis crypte, copies neuves,
+`gpt-6-luna`, coffre du dépôt principal : **69 appels/31 tours, 2,23 appels et
+9,78 s/tour**, médiane 8,71 s, deux replis, aucune erreur technique/recharge.
+Premier atelier : voix substituée refusée ; la correction reste inadéquate et
+le sifflement finit sans geste (« Corvus n'a rien tenté »). Second atelier :
+sifflement canonique exécuté, sans substitution. **Intention servie une fois
+sur deux**, pas une garantie générale. La crypte reproduit le repli historique
+sur l'autre côté de la porte. Tous les résultats sont conservés ; aucun rejet
+n'est rejoué pour améliorer le bilan. Le contrôle de forme ne garantit pas la
+vérité du jugement de Luna ni sa compilation fidèle.
+Les preuves initiales du raccord restent dans les bruts : 123 tests distincts
+sans échec (un ignoré), sept requêtes publiques couvertes et empreintes
+Relais/auberge identiques, 2 h × quatre graines ; aucun code PNJ modifié depuis.
+Les résultats finaux des tests voisins et du contrat restent à lire. **Aucune fidélité universelle revendiquée.**
 
-**Limites et livraison.** Le contrat de source reste fermé : une extension
-future doit être portée. Les tests déterministes n'établissent pas la fidélité
-sémantique universelle, ni les axes globaux I/V/F/P. Les limites A5, le repli
-et les seuils de coût restent ouverts ; le raccord n'est pas présenté comme
-une solution générale achevée. Aucun calcul du lot encore actif.
-
-Bruts : `C:/Users/msics/donjon/artifacts/a6-raccord-libre-416/` : `fin.json`,
-`tests-finaux.json`, `tests-projection.json`, `empreintes.json`,
-`mesures-luna-completes.json`, fils des huit parties et commandes exactes.
+Bruts : `C:/Users/msics/donjon/artifacts/a6-raccord-libre-416/reprise/` :
+`fin-base.json`, `diagnostic-crypte.json`, `contre-epreuves-luna-completes.json`,
+commandes, copies et fils. Fin attendue de la reprise : `fin.json`.
