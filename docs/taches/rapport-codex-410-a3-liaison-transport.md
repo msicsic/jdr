@@ -34,13 +34,15 @@ Une seule fixture ancienne est complétée par `proposition('observer')` :
 l'ancien objet réduit à `action` était volontairement hors du schéma ; les
 assertions de disponibilité, relance et identité du schéma restent inchangées.
 
-**Mesures en cours.** Passe ciblée de treize fichiers, deux travailleurs à
-priorité réduite ; pas de suite complète. La reprise finale des deux fichiers
+**Mesures.** Première passe ciblée : **146 tests, zéro échec, zéro erreur,
+quatre ignorés**, treize fichiers, **328,12 s**, deux travailleurs à priorité
+réduite ; pas de suite complète (`tests-cibles.json`). La reprise finale des deux fichiers
 A3/schéma, les empreintes Relais/auberge (2 h × quatre graines, référence exacte
 ci-dessus réemployée depuis le cache) et une passe Luna des cinq bancs demandés
 sont consignées dans les bruts. Le résultat définitif et les dimensions finales
 seront inscrits après lecture du fichier de fin ; aucun succès de calcul encore
-inachevé n'est revendiqué. Bruts :
+inachevé n'est revendiqué. Le lanceur détaché vit, à priorité réduite, et écrit
+`fin.json` en dernier ; ses commandes exactes restent dans `commandes.json`. Bruts :
 `C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/`.
 
 **Limites.** La grammaire garantit la forme et la liaison des charges des

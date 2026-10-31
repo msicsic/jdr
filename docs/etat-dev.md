@@ -46,7 +46,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-a3-liaison-transport` — lot 410, base `57299df4` : mode/charge et contrats A2 liés dans une
   grammaire commune cloud/local ; enveloppe `reponse`, contrôle avant audit/préparation avec `attendu`.
   Parcours réseau simulé Relais/auberge, sons, sauvegarde et reprise ; assertions de sécurité conservées.
-  Tests ciblés en cours ; empreintes 2 h × quatre graines Relais/auberge et passe Luna ciblée à lire dans
+  146 tests ciblés verts (4 ignorés), 328 s ; reprise finale, empreintes 2 h × quatre graines et Luna à lire dans
   `C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/fin.json` après le calcul détaché.
   Aucun choix sémantique de Luna garanti ; voies transitoires et audits conservés.
   [Rapport](taches/rapport-codex-410-a3-liaison-transport.md).
