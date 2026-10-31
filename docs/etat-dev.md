@@ -45,8 +45,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-s1k-recours` — lot 411, base `integration 8cb825aa` : cinq registres de recours
   par les seules vues/opérations de `memoire`, prédicats et publication historiques conservés.
-  AST **84 → 1** (schéma seul) ; 70 tests initiaux, deux sous-échecs et une erreur connus du 409.
-  Attribution à la base, tests complémentaires et empreintes 2 h × 4 graines × 4 scénarios en cours ;
+  AST **84 → 1** (schéma seul) ; 169 tests distincts, six nouveaux verts ; trois sous-échecs
+  et une erreur historiques reproduits sur la base. Empreintes 2 h × 4 graines × 4 scénarios en cours ;
   aucune identité encore annoncée. Bruts `C:/Users/msics/donjon/artifacts/s1k-411/`, fin attendue `fin.json`.
   [Rapport 411](taches/rapport-codex-411-s1k-recours.md) ; pas de suite complète ni Luna.
 

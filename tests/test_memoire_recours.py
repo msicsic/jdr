@@ -74,7 +74,12 @@ class RecoursMemoireTests(unittest.TestCase):
                           ('ilse', 'mefiance', 'vivres', False)])
 
     def test_predicats_et_survie_hors_tampon(self):
+        from donjon import relations
         m = scene()
+        # Isoler le temps des évolutions relationnelles historiques : une
+        # rancune qui s'estompe serait une amélioration réelle du lien.
+        lire(m, 'brune')['relations']['marchand'] = relations._nouvelle(
+            m.objets['brune']['profil']['liens']['marchand'])
         demande = {'type': 'part', 'objet': 'vivres'}
         avant = _entrees(m, 'brune', 'marchand', 'faim', demande)
         memoire.retenir_proposition_tentee(m, 'brune', avant)

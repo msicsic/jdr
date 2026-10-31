@@ -1,8 +1,8 @@
 # Lot 411 — S1k, recours historiques par la porte commune
 
 31 octobre 2026 · `codex-s1k-recours` · base exacte `integration 8cb825aa`.
-**Lot non fusionné ; vérification en cours.** Le commit mesuré et le résultat final
-des empreintes sont consignés dans les bruts `debut.json` et `fin.json`.
+Moteur porté **`693a214c`**. **Lot non fusionné ; empreintes en cours.** Le commit
+mesuré et le résultat final des empreintes sont dans `debut.json` et `fin.json`.
 
 **Invariant et code.** Les cinq registres `demande_refusee`, `recours_propositions`,
 `recours_services`, `recours_intermediaires` et `service_en_cours` passent par
@@ -27,14 +27,20 @@ consomment la porte ; leurs autres responsabilités restent locales.
 déclaration exacte du schéma : **zéro accès au stockage hors porte**. Le contrôle
 fermé et ses contre-épreuves de clés indirectes, alias, boucles, méthodes détachées,
 retours et mutations sont conservés ; l'inventaire des refus du 409 ne croît pas.
-Première passe : **70 tests**, dont socle et porte verts ; deux sous-échecs
-`offre_sensee` (marchand/Aubin) et une erreur de placement Hugues/Mathurine déjà
-signalés par le 409. Leur attribution à la base exacte est vérifiée séparément.
-Les tests complémentaires portent sur les copies imbriquées, les admissions,
+**169 tests distincts sur 17 fichiers**, dont le socle, la porte et **les six
+nouveaux tests verts**. Restent deux sous-échecs `offre_sensee` (marchand/Aubin),
+un échec `contre_offre` (inspection de position au lieu de `None`) et une erreur
+de placement Hugues/Mathurine déjà signalés par le 409, **tous reproduits sur
+la base exacte `8cb825aa`** (`base-tests.json`, `base-contre-offre.log`), sans
+modifier leurs assertions. Une première éprouvette confondait le temps seul et
+l'estompage historique de la rancune (5 → 3) : lien stabilisé dans la fixture,
+puis fichier entier rejoué, **6/6 verts** ; aucun changement moteur nécessaire.
+Les nouveaux contrôles portent sur les copies imbriquées, les admissions,
 les écritures ciblées, les corruptions, les prédicats et la survie après 45 épisodes.
 La capture réelle crue 7, minute 353, puis deux services et deux commissions
 contrôlent état complet, ordre JSON, lignes, rendu, scène et paroles après recharge,
-pour deux minutes entières ou quatre tranches. Résultats détaillés dans les bruts.
+pour deux minutes entières ou quatre tranches. Bruts : `tests-initial.json`,
+`tests-voisins.json` et `tests-recours-final.json` ; les premiers rouges sont conservés.
 
 **Empreintes en cours.** 2 h × graines 1985/7/42/2024 × Relais/mine/auberge/crue,
 comparées à la base exacte `8cb825aa`, sans exclusion. Référence et branche
