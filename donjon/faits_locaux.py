@@ -210,6 +210,45 @@ def _texte(texte, maximum):
             and all(ord(c) >= 32 for c in texte))
 
 
+def lier_suite(proposition, monde, etablis):
+    """Lie les noms exacts des sujets admis, jamais une cible inventée ou cachée.
+
+    La suite est proposée avant que leurs identifiants existent. La liaison
+    ne touche que les champs de référence du contrat commun, sans interpréter
+    les mots du joueur ni changer les autres paramètres du geste.
+    """
+    from .noms import CHAMPS_REFERENCES, LISTES_REFERENCES
+    objets = [monde.objets[f["objet"]] for f in etablis if "objet" in f]
+
+    def reference(valeur, chemin):
+        try:
+            return reference_exacte(objets, valeur) or valeur
+        except ErreurMonde:
+            raise ErreurMonde("La suite doit préciser quel nouvel élément elle vise.",
+                              f"{chemin} : reçu {valeur!r} ; accepté : un identifiant distinct parmi "
+                              + ", ".join(o["id"] for o in objets) + ".") from None
+
+    def parcourir(valeur, chemin="proposition.suite"):
+        if isinstance(valeur, list):
+            return [parcourir(v, f"{chemin}[{i}]") for i, v in enumerate(valeur)]
+        if isinstance(valeur, dict):
+            resultat = {}
+            for cle, v in valeur.items():
+                champ = f"{chemin}.{cle}"
+                # Les empreintes de reprise utilisent des chemins plats.
+                nom = cle.rsplit(".", 1)[-1]
+                if nom in CHAMPS_REFERENCES and isinstance(v, str):
+                    resultat[cle] = reference(v, champ)
+                elif nom in LISTES_REFERENCES and isinstance(v, list):
+                    resultat[cle] = [reference(e, f"{champ}[{i}]") for i, e in enumerate(v)]
+                else:
+                    resultat[cle] = parcourir(v, champ)
+            return resultat
+        return copy.deepcopy(valeur)
+
+    return parcourir(proposition)
+
+
 def _outil_de_coupe(monde, cible, identifiant):
     resolution = reference_exacte(monde.objets.values(), identifiant)
     moyen = monde.objets.get(resolution)

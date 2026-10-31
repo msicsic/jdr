@@ -54,6 +54,21 @@ SCHEMA_FAITS["properties"]["usages"] = {
 SCHEMA_FAITS["required"].append("usages")
 
 
+def contexte_admission(faits):
+    """Les preuves publiques de la portée ; jamais un état caché du monde.
+
+    Le catalogue seul dit où créer, pas ce qui existe déjà. La même projection
+    que le compilateur fournit perceptions, objets connus et résultats établis.
+    L'ambiance reste identifiée comme telle, sans devenir une attestation.
+    """
+    sources = {"salle", "scenario", "perception", "faits_narratifs_proposables",
+               "descriptions_a_completer", "connaissances_a_completer",
+               "souvenirs_faits", "souvenirs_visuels", "ambiance_etablie",
+               "ambiance_ciblee", "engagements", "missions_discutables"}
+    return {cle: copy.deepcopy(valeur) for cle, valeur in faits.items()
+            if cle in sources or cle.startswith("objet:")}
+
+
 def controler_usages(proposition, rapport):
     """Un jugement par ajout, avant toute mutation ; aucune détection par mots clés."""
     ajouts = proposition.get("ajouts") if isinstance(proposition, dict) else None

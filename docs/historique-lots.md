@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-g12-portee-creation` — lot 421, base `integration` / `78e4133b` : création admise puis
+  liaison exacte de sa suite ; projection des objets créés et contexte public de la revue portés.
+  Refus de faux indices/perceptions conservés ; recharges et laps découpés sur Relais/atelier.
+  58 tests verts, puis les 4 tests G12 finaux verts ; empreintes Relais 2 h × 4 graines identiques à la base.
+  Luna : 62 appels / 26 tours (2,38), aucune erreur ; aucune création d'objet proposée, pierre non ramassée.
+  Limites : choix de l'invention utile non acquis ; portée française toujours soumise à revue sémantique.
+  Bruts `artifacts/g12-portee-creation-421/` du dépôt principal ; calculs finis, `fin.json` vert.
+  [Rapport](taches/rapport-codex-421-g12-portee-creation.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 421, G12 : une invention admise existe avant manipulation, persiste après recharge et ne vaut ni découverte, ni perception, ni effet implicite ; la revue reçoit perceptions, objets, souvenirs et missions publics. Tests verts, empreintes identiques ; Luna une passe : 2,38 appels et 10,04 s par tour, un repli (sifflement). Limite : aucune création utile suivie d'un ramassage démontrée en jeu (Luna n'a proposé aucun ajout d'objet). Aucun fichier de code commun depuis la base.
+
 - `codex-s1n-suivis-relationnels` — lot 420, base exacte `7f9b08e4`, portage `7c1948e7`.
   Preuves, ancrages/bandes, portages, suites, compagnie et soupçons par `memoire` ; axes sous `relations`.
   AST 295 → 28 expressions, aucun accès aux suivis vivants ; stockage et politiques conservés.

@@ -43,7 +43,7 @@ class FaitsLocauxTests(unittest.TestCase):
                 def proposition_mj(nom_propose, description):
                     return {"mode": "etablir_faits", "texte": "",
                             "faits": ["faits_narratifs_proposables"],
-                            "proposition": {"ajouts": [{"type": "detail",
+                            "proposition": {"suite": None, "ajouts": [{"type": "detail",
                                 "ancrage": "antichambre_murs", "nom": nom_propose,
                                 "genre": "f", "texte": description}]}}
                 def audit(nom_propose, description, nom_requis, texte_requis):
@@ -90,7 +90,7 @@ class FaitsLocauxTests(unittest.TestCase):
                 def proposition_mj(texte):
                     return {"mode": "etablir_faits", "texte": "",
                             "faits": ["faits_narratifs_proposables"],
-                            "proposition": {"ajouts": [{**base, "texte": texte}]}}
+                            "proposition": {"suite": None, "ajouts": [{**base, "texte": texte}]}}
                 def portee(texte, douteux=False):
                     return {"usages": [{"perception_requise": False, "indice": False, "motif": ""}], "descriptions": [
                         {"representation": "aspect", "mobilite": [], "placement": "aucun", "impact_scenario": "aucun", "capacites": [], "fragments": [
@@ -268,7 +268,7 @@ class FaitsLocauxTests(unittest.TestCase):
         m = nouveau_monde()
         avant = copy.deepcopy(m.data)
         premier = {"mode": "etablir_faits", "texte": "", "faits": ["faits_narratifs_proposables"],
-                   "proposition": {"ajouts": [{**FAITS["ajouts"][0], "ancrage": "poutre_inexistante"}]}}
+                   "proposition": {"suite": None, "ajouts": [{**FAITS["ajouts"][0], "ancrage": "poutre_inexistante"}]}}
         second = {"mode": "etablir_faits", "texte": "", "faits": ["faits_narratifs_proposables"],
                   "proposition": FAITS}
         with patch.object(MJOpenAI, "_appeler", side_effect=[premier, second]) as appel:
