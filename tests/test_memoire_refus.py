@@ -45,7 +45,10 @@ class RefusTests(unittest.TestCase):
         mesures = inventaire(REGISTRES)
         self.assertEqual(mesures['donjon/esprits.py'].pop('<module>/' + test_memoire_socle.AccesTests.schema_champs()), 1)
         self.assertEqual({f: a for f, a in mesures.items() if a}, fixture['refus_homonymes_s1k'])
-        self.assertEqual(inventaire(RECOURS), fixture['recours_restants_s1k'])
+        recours = inventaire(RECOURS)
+        self.assertEqual(recours['donjon/esprits.py'].pop('<module>/' + test_memoire_socle.AccesTests.schema_champs()), 1)
+        self.assertEqual({f: a for f, a in recours.items() if a}, fixture['recours_restants_s1k'])
+        self.assertEqual(fixture['recours_restants_s1k'], {})
         for registre in REGISTRES | RECOURS:
             for source in (
                 f'e["{registre}"]', f'e.get("{registre}")', f'e.setdefault("{registre}", [])',

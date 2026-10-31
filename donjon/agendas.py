@@ -2275,12 +2275,9 @@ def renouveler(monde, id, engagement, minute):
 
 def tenir(monde, id, engagement):
     """Retirer une parole exécutée ; l'appelant inscrit son souvenir au même instant."""
-    from .esprits import lire
     pour = engagement['pour']
     if pour != 'joueur':
-        for s in lire(monde, pour)['recours_intermediaires']:
-            if s['via'] == id and s['livraison'] == engagement['condition'].get('objet') and s['issue'] == 'accepte':
-                s['abouti'] = True
+        memoire.accomplir_livraison_intermediaire(monde, pour, id, engagement['condition'].get('objet'))
     if reference_temporelle(engagement):
         from .temps import instant
         _clore_datee(monde, id, engagement, instant(monde), connue=True)
@@ -2298,9 +2295,7 @@ def affecter_part(monde, id, lot, part):
         if c.get('objet') == lot and any(k in c for k in ('servir', 'remettre')) and not x.get('annule'):
             c['objet'] = part
             if x['pour'] != 'joueur':
-                for s in esprit(monde, x['pour'])['recours_intermediaires']:
-                    if s['via'] == id and s['livraison'] == lot and s['issue'] == 'accepte':
-                        s['livraison'] = part
+                memoire.affecter_livraison_intermediaire(monde, x['pour'], id, lot, part)
             break  # Une seule part ne finance pas deux paroles.
 
 

@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1k-recours` — lot 411 clos, non fusionné ; base `integration 8cb825aa`, avance `2634e48e` intégrée.
+  Cinq registres de recours par `memoire`, prédicats et publication historiques conservés ; AST **84 → 1** (schéma).
+  169 tests distincts, six nouveaux verts ; 38/38 après fusion ; trois sous-échecs et une erreur historiques sur la base.
+  Empreintes **16/16 identiques** (2 h × 4 graines × Relais/mine/auberge/crue), code mesuré `c6f029f5`.
+  `fin.json` : succès ; aucun calcul restant. Bruts `C:/Users/msics/donjon/artifacts/s1k-411/`.
+  [Rapport 411](taches/rapport-codex-411-s1k-recours.md) ; pas de suite complète ni Luna.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 411, fin de S1k : recours de propositions, de services et d'intermédiaires, service en cours et contre-offres par des vues et opérations nommées, réarmés seulement par leurs prédicats historiques. 38/38 tests après intégration, 16/16 empreintes identiques ; trois sous-échecs et une erreur historiques reproduits sur la base. Aucun fichier de code commun depuis la base.
+
 - `codex-a3-liaison-transport` — lot 410, base `57299df4`, **transport validé sur cinq bancs** :
   Mode/charge et contrats A2 liés cloud/local ; enveloppe `reponse`, contrôle avant audit/préparation avec `attendu`.
   Parcours réseau simulé Relais/auberge, sons, sauvegarde et reprise ; assertions de sécurité conservées.

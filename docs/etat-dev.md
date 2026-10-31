@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-s1k-recours` (f5127a4d) : lot 411, S1k recours par l'interface. Détail dans l'historique.
 - `codex-a3-liaison-transport` (86187c83) : lot 410, A3 liaison du transport. Détail dans l'historique.
 - `codex-s1k-refus-recours` (7da401ec) : lot 409, S1k refus retenus par l'interface. Détail dans l'historique.
 - `codex-a2-consultation-sociale` (79663ec3) : lot 407, A2 famille consultation sociale. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-rembourser-public` (3fbe6e74) : lot 399, rembourser depuis le menu et le terminal. Détail dans l'historique.
 - `codex-s1h-eau-statuts` (f183d930) : lot 404, S1h eau, prévisions et statuts par leurs vues. Détail dans l'historique.
 - `codex-s1g-etats-materiels` (d3326879) : lot 400, S1g états matériels et capacités crus par leurs vues. Détail dans l'historique.
-- `codex-crash-raccord` (3c506bb1) : lot 401, le raccord des émissions ne plante plus. Détail dans l'historique.
 
 ## Lots non fusionnés
 
