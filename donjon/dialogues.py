@@ -253,6 +253,71 @@ def parole_directe(monde, d):
     return parole_information(monde, d)
 
 
+def candidats_contrat(monde, projection):
+    """Référence K0 : achats de parts et tâches publiques, sans état mental privé.
+
+    Le formulaire E5 paie en pièces : pas de troc ni de clause supplémentaire.
+    Une tâche découle d'un état actuellement vu ; aucune faim ou pulsion cachée
+    n'est consultée pour choisir les termes ou leur prix de départ.
+    """
+    from .echanges import candidat_proposition, PRIX_SANS_PRIX
+    from .biens import prix, proprietaire
+    from .voix import reel
+    from .noms import public
+    from .perception import faible
+    from .esprits import preuve_possession
+    from . import memoire
+    import json
+    candidats, visibilite = [], {}
+    for qui in sorted(projection['destinataires'], key=lambda x: x['id']):
+        for prestation in sorted(projection['prestations'], key=lambda x: json.dumps(x['terme'], sort_keys=True)):
+            terme = prestation['terme']
+            id = reel(monde, terme.get('objet') or terme['condition']['objet'])
+            # Connaître un nom ne révèle pas la possession ou l'état courant.
+            if id not in visibilite:
+                visibilite[id] = monde.visible(id)
+            if not visibilite[id]:
+                continue
+            if terme['type'] == 'tache':
+                c, o = terme['condition'], monde.objets[id]
+                manque = (c.get('allume') and (not o.get('allume') or faible(o))
+                          or c.get('verrouillee') and o.get('verrouillee') is False)
+                if not manque:
+                    continue
+                montant = PRIX_SANS_PRIX
+            else:
+                # Une ressource vue au sol n'en révèle pas le propriétaire.
+                # Utiliser le même constat de possession que la perception,
+                # ou la preuve déjà retenue par Corvus, sans créer de registre.
+                possession = (preuve_possession(monde, id) or
+                              (memoire.fait_brut(monde, 'joueur', id, 'lieu') or {}).get('possession', {}))
+                if possession.get('proprietaire') != reel(monde, qui['id']):
+                    continue
+                # Préfiltre identique au contrôle des droits sur copie ; il
+                # évite un devis jetable pour chaque propriétaire impossible.
+                if proprietaire(monde, id) != reel(monde, qui['id']):
+                    continue
+                montant = prix(monde, id, part=True) or PRIX_SANS_PRIX
+            if montant > projection['or']:
+                continue
+            demande = copy.deepcopy(terme)
+            if 'objet' in demande:
+                demande['objet'] = id
+            else:
+                demande['condition'] = {k: reel(monde, v) if isinstance(v, str) else v
+                                        for k, v in demande['condition'].items()}
+            if not candidat_proposition(monde, reel(monde, qui['id']), demande, montant):
+                continue
+            initial = {'destinataire': qui['id'], 'prestation': copy.deepcopy(terme),
+                       'prix': montant, 'sans_limite': True}
+            if any(x['initial'] == initial for x in candidats):
+                continue
+            candidats.append({'nom': f"{qui['nom']} — {prestation['nom']} ; "
+                               f"{quantite(montant, 'pièce')} à payer maintenant ; sans limite négociée",
+                              'initial': initial})
+    return public(monde, candidats)
+
+
 def comptes_publics(monde):
     """Choix sur les comptes de Corvus ; aucune bourse ni dette entre tiers.
 

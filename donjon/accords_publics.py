@@ -7,7 +7,7 @@ from .monde import ErreurMonde
 from .temps import instant, MINUTE
 
 
-def accords_publics(monde):
+def accords_publics(monde, *, avec_suggestions=True):
     from .dialogues import information_publique
     from .paroles import _connu_du_joueur, contexte_fige
     from .deliberation import besoin_de_part
@@ -35,8 +35,12 @@ def accords_publics(monde):
                 for qui in info['personnes']:
                     from .voix import reel
                     ajouter({'type': 'tache', 'condition': {'objet': id, 'servir': reel(monde, qui['id'])}})
-    return {"destinataires": info['destinataires'], "prestations": public(monde, prestations),
-            "or": monde.joueur['or'], "instant": instant(monde)}
+    projection = {"destinataires": info['destinataires'], "prestations": public(monde, prestations),
+                  "or": monde.joueur['or'], "instant": instant(monde)}
+    if avec_suggestions:
+        from .dialogues import candidats_contrat
+        projection['suggestions'] = candidats_contrat(monde, projection)
+    return projection
 
 
 def parole_accord(monde, d):
@@ -48,7 +52,7 @@ def parole_accord(monde, d):
     p = d['parametres']
     if not isinstance(p, dict) or set(p) not in ({'prestation', 'prix'}, {'prestation', 'prix', 'limite'}):
         refuser('parametres', p, 'prestation, prix, limite facultative en dixièmes absolus')
-    choix = accords_publics(monde)
+    choix = accords_publics(monde, avec_suggestions=False)
     if d['cible'] not in [x['id'] for x in choix['destinataires']]:
         refuser('cible', d['cible'], [x['id'] for x in choix['destinataires']],
                 "Tu ne perçois plus cet interlocuteur pour lui proposer l'accord.")
@@ -89,6 +93,8 @@ class AccordTerminal:
         self.etape = 'destinataire'
         self.terminee = False
         initial = initial or {}
+        if initial.get('sans_limite') is True:
+            self.valeurs['delai'] = (None, 'sans limite négociée')
         for cle, liste, champ in (('destinataire', 'destinataires', 'id'), ('prestation', 'prestations', 'terme')):
             for x in self.public[liste]:
                 if cle in initial and x[champ] == initial[cle]:
@@ -115,6 +121,11 @@ class AccordTerminal:
         lignes = ['Accord — annuler pour fermer ; corriger destinataire/prestation/prix/delai.',
                   'Prestation ponctuelle, pièces payées maintenant ; ni prêt daté, ni maintien, ni paiement futur.',
                   'Une durée indéterminée ne peut être promise : un nouvel accord sans limite reste possible.']
+        if not self.valeurs and self.public.get('suggestions'):
+            lignes.extend(['Suggestions à discuter ; aucun accord ni paiement. Prix modifiable.',
+                           *(f'suggestion {i}. {s["nom"]}'
+                             for i, s in enumerate(self.public['suggestions'], 1)),
+                           'Saisis « suggestion N » pour préremplir, ou compose les termes ci-dessous.'])
         for cle in self.champs:
             if cle in self.valeurs:
                 valeur, nom = self.valeurs[cle]
@@ -136,6 +147,13 @@ class AccordTerminal:
             raise ValueError('Ce brouillon est fermé.')
         if t == 'annuler':
             self.terminee = True
+            return None
+        if not self.valeurs and t.startswith('suggestion '):
+            numero = t[11:]
+            suggestions = self.public.get('suggestions', [])
+            if not re.fullmatch('[0-9]{1,9}', numero) or not 1 <= int(numero) <= len(suggestions):
+                raise ValueError('Choisis une suggestion affichée.')
+            self.__init__(self.public, suggestions[int(numero) - 1]['initial'])
             return None
         if t.startswith('corriger ') and t[9:] in self.champs:
             self.etape = t[9:]

@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **`codex-k0-candidats-contrat` — 426 / K0**, base `integration` `a874d646` : suggestions déterministes
+  de parts et tâches visibles, possession publique, admission sur copie ; sélection → formulaire E5/U-D, aucun accord.
+  Terminé, non fusionné : cas Aubin/planches, Odile/huile et verrouillage ; 62 tests réussis, 2 ignorés (`jsonschema`).
+  Aucun modèle ; besoins secrets ignorés. Référence bornée à E5, pas de troc ni de nouvelles clauses.
+  Bruts `artifacts/k0-candidats-426/` du dépôt principal ; `fin.json` vert, aucun calcul actif ; branche poussée.
+  [Rapport](taches/rapport-codex-426-k0-candidats-contrat.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. dialogues.candidats_contrat : brouillons publics de marché (parts visibles et possédées connues, tâches sur un défaut visible), admis sur copie par echanges.candidat_proposition (moyens_proposition extrait et partagé avec proposer) ; jamais d'accord, de paiement ni de besoin privé lu. Web, console, TUI : une suggestion préremplit le formulaire E5. 62 tests verts, 2 ignorés (jsonschema). Référence bornée au formulaire E5 (parts contre pièces, flamme, verrouillage).
+
 - `codex-decoupe-combustible` — lot 425, base `integration a874d646` : découpe avec partage
   des compteurs par masse ; conservation des charges × durée, refus sous l'unité avant mutation.
   **56 tests ciblés verts** ; planche du Relais, bûche d'auberge, torche, feu joueur/PNJ et rendu après recharge.
