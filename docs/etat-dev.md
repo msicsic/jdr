@@ -43,7 +43,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels), 401 (plantage du jeu dans raccorder_emissions, banc echanges) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels), 403 (rouges nouveaux de la suite c562aa21) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Passe Luna d'E6 (2026-10-31, orchestrateur, laptop)
