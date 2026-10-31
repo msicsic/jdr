@@ -44,7 +44,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 ## Lots non fusionnés
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
-(U-M social comptes), 381 (A2 passage), 388 (rembourser une dette en pièces). Suite complète en cours sur `663d1308`. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
+(U-M social comptes), 381 (A2 passage), 389 (U-T social avis). Suite complète en cours sur `663d1308`. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
