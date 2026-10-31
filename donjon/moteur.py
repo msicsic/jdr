@@ -68,6 +68,7 @@ class Plan:
     origine: str = "règles"
     etapes: list = field(default_factory=list)
     plans: list = field(default_factory=list)
+    quantite_transfert: dict | None = None  # quantité proposée dans l'état de cette étape, avant exécution
     regard: str = ""            # le joueur se tourne d'abord vers ce qu'il vise (spatial.orientation_vers)
     effort: bool = True        # le geste creuse et fatigue (``corps``)
     confirmation: bool = False   # la fiche doit précéder toute tentative, même par commande locale

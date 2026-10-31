@@ -48,6 +48,7 @@ from .moteur import QualificationRequise
 from .proximite import HorsDePortee
 from .refus import RapportIllisible, RefusDeForme, ProprieteInconnue, audit as refus_audit, audit_illisible, depuis_refus
 from .sources import ordonner_entree
+from .contrats_lots import description as description_transferts
 from .transactions import ajouter as ajouter_transaction
 
 LIMITE_INTENTION = 2000  # caractères d'une action du joueur, quel que soit le fournisseur
@@ -151,6 +152,7 @@ Une règle manquante n'est pas une impossibilité physique : utilise l'arbitrage
 quand son schéma est disponible, sans remplacer l'intention par une action différente.
 """
 
+REGLES_ACTIONS += "\n" + description_transferts() + "\n"
 INSTRUCTIONS = INTRO_ARBITRE + REGLES_ACTIONS + "Appelle proposer_action exactement une fois."
 
 NARRATION = """Tu rédiges la réponse finale du maître du jeu de LE SEUIL, en français.
