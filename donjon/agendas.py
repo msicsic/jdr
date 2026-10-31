@@ -4,7 +4,7 @@ Au premier lot qui en a besoin, chaque engagement deviendra un agenda d'origine
 « contrat » s'il est payé, « parole » sinon, en conservant condition, bénéficiaire et minute.
 Les lectures renvoient des copies : toute mutation passe par une opération nommée.
 """
-from . import memoire
+from . import memoire, relations
 import copy
 import hashlib
 import json
@@ -28,9 +28,7 @@ def _dette_situation(monde, id):
 
 def _torts_connus(monde, id):
     """Preuves propres persistantes ; ni mémoire courte ni enquête sur le réel."""
-    from .esprits import lire
-    e = lire(monde, id)
-    for objet, portage in sorted(e["portages"].items()):
+    for objet, portage in sorted(memoire.portages_retenus(monde, id).items()):
         connu = memoire.faits_connus(monde, id, objet)
         p = connu.get("lieu", {}).get("possession", {})
         if (p.get("proprietaire") == id and p.get("porteur") not in (None, id)
@@ -41,16 +39,15 @@ def _torts_connus(monde, id):
 
 def _biens_soupconnes(monde, id):
     """Une disparition propre attribuée reste distincte d'un portage prouvé."""
-    from .esprits import lire
-    e = lire(monde, id)
-    r = e['indices_soupcon']
-    for preuve, s in sorted(r['soupcons'].items()):
+    constats = memoire.constats_retenus(monde, id)
+    portages = memoire.portages_retenus(monde, id)
+    for preuve, s in sorted(memoire.soupcons_retenus(monde, id).items()):
         if s['auteur'] is None:
             continue
         for objet, indices in sorted(s['indices'].items()):
-            constat = r['constats'].get(objet, {}).get('present', {})
+            constat = constats.get(objet, {}).get('present', {})
             if (indices.get('present') is True and constat.get('proprietaire') == id
-                    and constat.get('valeur') is False and objet not in e['portages']
+                    and constat.get('valeur') is False and objet not in portages
                     and not memoire.fait_brut(monde, id, objet, 'fin', {}).get('valeur')):
                 yield objet, {'auteur': s['auteur'], 'preuve': preuve}
 
@@ -1017,7 +1014,6 @@ def evaluation(monde, id, *, publier=True):
 
 def _croyances(monde, id, *, moyens_seuls=False):
     """Une nouvelle date de regard ne constitue pas un nouveau moyen."""
-    from .esprits import lire
     def contenu(x):
         if isinstance(x, dict):
             return {k: contenu(v) for k, v in x.items() if k not in ("minute", "depuis")}
@@ -1032,9 +1028,8 @@ def _croyances(monde, id, *, moyens_seuls=False):
     if not moyens_seuls and any(a["sorte"] in ("obtenir", "récupérer", "offrir") for a in (_stock(monde, id) or [])):
         from .biens import richesse
         from .spatial import porte_par
-        e = lire(monde, id)
         croyances = [croyances, richesse(monde, id), _dette_situation(monde, id),
-                     contenu(memoire.reponses_retenues(monde, id)), contenu(e["relations"]), en_cours(monde, id),
+                     contenu(memoire.reponses_retenues(monde, id)), contenu(relations.suivis_decision(monde, id)), en_cours(monde, id),
                      sorted(o for o in monde.objets if porte_par(monde, o, id))]
         from .caractere import caracteristiques, VALEURS, valeur
         croyances += [caracteristiques(monde, id), {v: valeur(monde, id, v) for v in VALEURS}]
@@ -1065,7 +1060,7 @@ def entrees_recours(monde, id, identifiant):
     for cle in ('lieu', 'position', 'orientation'):
         soi.pop(cle, None)
     a = _projet(monde, id, identifiant)
-    donnees = [croyances, contenu(memoire.reponses_retenues(monde, id)), contenu(e['relations']),
+    donnees = [croyances, contenu(memoire.reponses_retenues(monde, id)), contenu(relations.suivis_decision(monde, id)),
                en_cours(monde, id), e['aides_attendues'],
                [aide_echue(monde, x) for x in e['aides_attendues'].values()],
                sorted(o for o in monde.objets if porte_par(monde, o, id)),
@@ -1181,7 +1176,7 @@ def actualiser(monde, id):
                 _changer(monde, id, a, "abandonne", "bien cru " + connu["fin"]["valeur"], empreinte)
             elif connu.get("lieu", {}).get("possession", {}).get("porteur") == id:
                 _changer(monde, id, a, "atteint", "bien cru rendu", empreinte)
-            elif a['origine'].get('soupcon') and a['origine']['preuve'] not in lire(monde, id)['indices_soupcon']['soupcons']:
+            elif a['origine'].get('soupcon') and a['origine']['preuve'] not in memoire.soupcons_retenus(monde, id):
                 _changer(monde, id, a, 'abandonne', 'soupcon leve', empreinte)
             continue
         if a["sorte"] == "garder":

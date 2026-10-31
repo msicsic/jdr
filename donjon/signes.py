@@ -442,7 +442,7 @@ def lire(m, observateur, signes=None, expres=False, occurrences=None):
             continue
         bonus = modificateur(m, observateur, "PSY") + (2 if expres else 0)
         if not joueur and (relations.familier(relations.axes(m, observateur, s["personnage"]))
-                           or e["compagnie"].get(s["personnage"], 0) >= 60):
+                           or memoire.compagnie_retenue(m, observateur, s["personnage"]) >= 60):
             bonus += 2
         bonus -= (PENOMBRE if s["niveau"] == 1 else 0) + (2 if s["distance"] > 4 else 0)
         dd = 10 + regle[4] + (modificateur(m, s["personnage"], "ELO" if s["elo"] else "VOL") + DISSIMULATION

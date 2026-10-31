@@ -2099,3 +2099,337 @@ def verifier_obstacles_efforts(monde, id):
     assert isinstance(e["attentes_bornees"], dict) and all(
         isinstance(k, str) and isinstance(v, str) for k, v in e["attentes_bornees"].items()
     ), "Attentes de recherche invalides"
+
+
+# S1n : preuves, suivis et cellules historiques ; les axes sont calculés par relations.
+
+def installation_relations(monde, id):
+    return "relations" not in monde.data.get("esprits", {}).get(id, {})
+
+
+def relations_retenues(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id).get("relations", {}))
+
+
+def relation_retenue(monde, id, autre):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id).get("relations", {}).get(autre))
+
+
+def retenir_relation(monde, id, autre, relation):
+    """Publie la cellule calculée par l'autorité des axes, sans la recalculer."""
+    from .esprits import esprit
+    esprit(monde, id)["relations"][autre] = copy.deepcopy(relation)
+
+
+def installer_relations(monde, id, relations):
+    from .esprits import esprit
+    esprit(monde, id)["relations"] = copy.deepcopy(relations)
+
+
+def liens_initiaux(monde, id, defaut=None):
+    return copy.deepcopy((monde.objets[id].get("profil") or {}).get("liens", defaut))
+
+
+def epreuve_retenue(monde, id, autre, preuve):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id).get("preuves_relations", {}).get(autre + ":" + preuve))
+
+
+def retenir_epreuve(monde, id, autre, preuve, niveau, effets):
+    from .esprits import esprit
+    esprit(monde, id)["preuves_relations"][autre + ":" + preuve] = {"niveau": niveau, "effets": copy.deepcopy(effets)}
+
+
+def portages_retenus(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id).get("portages", {}))
+
+
+def portage_retenu(monde, id, objet):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id).get("portages", {}).get(objet))
+
+
+def retenir_portage(monde, id, objet, auteur, preuve):
+    from .esprits import esprit
+    esprit(monde, id)["portages"][objet] = {"auteur": auteur, "preuve": preuve}
+
+
+def oublier_portage(monde, id, objet):
+    from .esprits import esprit
+    esprit(monde, id)["portages"].pop(objet, None)
+
+
+def suites_relationnelles(monde, id, pour):
+    from .esprits import lire
+    return copy.deepcopy([s for s in lire(monde, id).get("suites", ()) if s["pour"] == pour])
+
+
+def retenir_suite_relationnelle(monde, id, consequence):
+    from .esprits import esprit
+    esprit(monde, id)["suites"].append(copy.deepcopy(consequence))
+
+
+def acquitter_suite_relationnelle(monde, id, suite):
+    from .esprits import esprit
+    esprit(monde, id)["suites"].remove(suite)
+
+
+def compagnie_retenue(monde, id, autre):
+    from .esprits import lire
+    return lire(monde, id).get("compagnie", {}).get(autre, 0)
+
+
+def commencer_minute_compagnie(monde, id, minute):
+    """Acquitte la minute même si aucune épreuve commune n'est admissible."""
+    from .esprits import esprit
+    e = esprit(monde, id)
+    if e["compagnie_minute"] >= minute:
+        return False
+    e["compagnie_minute"] = minute
+    return True
+
+
+def progresser_compagnie(monde, id, autre):
+    from .esprits import esprit
+    e = esprit(monde, id)
+    n = e["compagnie"].get(autre, 0) + 1
+    e["compagnie"][autre] = n % 60
+    return n >= 60
+
+
+def soupcons_retenus(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id).get("indices_soupcon", {}).get("soupcons", {}))
+
+
+def constats_retenus(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id).get("indices_soupcon", {}).get("constats", {}))
+
+
+def retenir_presence_soupcon(monde, id, qui, salle):
+    from .esprits import esprit, _date_indices_soupcon, _purger_indices_soupcon
+    if qui == id:
+        return
+    r = esprit(monde, id)["indices_soupcon"]
+    r["presences"] = [s for s in r["presences"] if (s["qui"], s["salle"]) != (qui, salle)]
+    r["presences"].append({"qui": qui, "salle": salle, "instant": _date_indices_soupcon(monde)})
+    r["presences"].sort(key=lambda s: (s["instant"], s["salle"], s["qui"]))
+    _purger_indices_soupcon(monde, id)
+
+
+def purger_indices_soupcon(monde, id):
+    """Purger ce qui précède les intervalles encore ouverts, sans état caché.
+
+    Une troncature de capacité interdit l'attribution d'un intervalle devenu
+    incomplet : oublier un second passant ne doit pas en désigner un seul.
+    """
+    from .esprits import esprit, _date_indices_soupcon, PRESENCES_MAX, GESTES_SOUPCON_MAX
+    r = esprit(monde, id)["indices_soupcon"]
+    debuts = {}
+    for cs in r["constats"].values():
+        for champ, c in cs.items():
+            utile = c["valeur"] is False if champ == "vide" else bool(c["valeur"]) and champ != "charge"
+            if utile:
+                debuts[c["salle"]] = min(debuts.get(c["salle"], c["instant"]), c["instant"])
+    maintenant = _date_indices_soupcon(monde)
+    r["presences"] = [s for s in r["presences"] if s["instant"] >= debuts.get(s["salle"], maintenant)]
+    for s in r["presences"][:-PRESENCES_MAX]:
+        r["oublis"][s["salle"]] = max(r["oublis"].get(s["salle"], -1), s["instant"])
+    del r["presences"][:-PRESENCES_MAX]
+    r["oublis"] = {s: t for s, t in r["oublis"].items() if t >= debuts.get(s, maintenant)}
+    debut = min(debuts.values(), default=maintenant)
+    r["gestes"] = [s for s in r["gestes"] if s["instant"] >= debut][-GESTES_SOUPCON_MAX:]
+
+
+def constater_bien(monde, id, sujet, faits, salle, source="vu"):
+    """Comparer des propriétés réellement constatées, jamais un état caché.
+
+    Chaque propriété garde son propre dernier constat (le contenu d'un coffre
+    fermé n'est pas revu). Les présences et gestes viennent du registre perceptif.
+    """
+    from .esprits import (esprit, croyance, _proprietaire, _date_indices_soupcon,
+                          _purger_indices_soupcon, _candidats_soupcon)
+    if id == "joueur" or salle is None:
+        return
+    from .relations import deduire_soupcon, reviser_soupcons
+    e = esprit(monde, id)
+    reviser_soupcons(monde, id, sujet, faits, salle=salle)
+    r = e["indices_soupcon"]
+    maintenant = _date_indices_soupcon(monde)
+    constats = r["constats"].setdefault(sujet, {})
+    for champ, valeur in faits.items():
+        avant = constats.get(champ)
+        proprietaire = (_proprietaire(monde, monde.objets[sujet]) if faits.get("present") is True
+                        else (avant or {}).get("proprietaire"))
+        lieu_cru = croyance(monde, id, sujet, "lieu") or {}
+        constats[champ] = {"valeur": valeur, "salle": salle, "instant": maintenant,
+                           "proprietaire": proprietaire, "lieu": lieu_cru.get("valeur")}
+        if not avant or avant["proprietaire"] is None or avant["salle"] != salle or avant["instant"] >= maintenant:
+            continue
+        atteint = (valeur < avant["valeur"] if champ == "integrite" else
+                   valeur and not avant["valeur"] if champ == "vide" else not valeur and avant["valeur"])
+        if not atteint or source != "vu" or getattr(monde, "_agit", None) == id:
+            continue
+        # L'extinction par épuisement n'est pas une atteinte imputable.
+        if champ == "allume" and not faits.get("charge", False):
+            continue
+        if champ == "charge":
+            continue
+        lies = {sujet, avant["lieu"]} | {o for o, cs in r["constats"].items()
+                                        if cs.get("present", {}).get("lieu") == sujet}
+        connus = [s for s in r["gestes"] if s["objet"] in lies and s["instant"] >= avant["instant"]]
+        if connus or sujet in e["portages"]:
+            continue
+        if r["oublis"].get(salle, -1) >= avant["instant"]:
+            continue
+        suspects = {s["qui"] for s in r["presences"]
+                    if s["salle"] == salle and avant["instant"] <= s["instant"] <= maintenant}
+        if avant['proprietaire'] in suspects:
+            continue  # Une manipulation légitime par le propriétaire reste possible.
+        candidats = _candidats_soupcon(monde, id, suspects, lies)
+        if candidats:
+            deduire_soupcon(monde, id, candidats, sujet, champ, avant)
+    _purger_indices_soupcon(monde, id)
+
+
+def migrer_indices_soupcon(monde, id):
+    from .esprits import esprit, migrer_presences_percues, _purger_indices_soupcon
+    e = esprit(monde, id)
+    # Migration des premières sauvegardes du 267 : aucune présence ne
+    # reste dans les quarante souvenirs employés par le comportement.
+    r = e["indices_soupcon"]
+    migration_soupcon = any(k in e for k in ("constats_biens", "soupcons"))
+    for ancien, destination in (("constats_biens", "constats"), ("soupcons", "soupcons")):
+        if ancien in e:
+            r[destination].update(e.pop(ancien))
+    presences = migrer_presences_percues(monde, id)
+    if presences:
+        migration_soupcon = True
+        r["presences"].extend(presences)
+    if migration_soupcon:
+        _purger_indices_soupcon(monde, id)
+
+
+def verifier_indices_soupcon(monde, id):
+    from .esprits import lire, PRESENCES_MAX, GESTES_SOUPCON_MAX
+    e = lire(monde, id)
+    r = e["indices_soupcon"]
+    assert isinstance(r, dict) and set(r) == {"presences", "gestes", "constats", "soupcons", "oublis"}, "Registre de soupçon invalide"
+    assert isinstance(r["presences"], list) and len(r["presences"]) <= PRESENCES_MAX, "Présences d'inférence invalides"
+    assert all(set(s) == {"qui", "salle", "instant"} and s["qui"] != id and isinstance(s["qui"], str)
+               and s["salle"] in monde.data["salles"] and type(s["instant"]) is int and s["instant"] >= 0
+               for s in r["presences"]), "Présence d'inférence invalide"
+    assert isinstance(r["gestes"], list) and len(r["gestes"]) <= GESTES_SOUPCON_MAX and all(
+        set(s) == {"objet", "instant"} and isinstance(s["objet"], str)
+        and type(s["instant"]) is int and s["instant"] >= 0 for s in r["gestes"]), "Gestes d'inférence invalides"
+    assert isinstance(r["oublis"], dict) and all(s in monde.data["salles"] and type(t) is int and t >= 0
+                                               for s, t in r["oublis"].items()), "Oublis d'inférence invalides"
+    assert isinstance(r["constats"], dict), "Constats de biens invalides"
+    for o, cs in r["constats"].items():
+        assert isinstance(o, str) and isinstance(cs, dict) and set(cs) <= {
+            "present", "integrite", "vide", "allume", "charge", "disponible"}, "Propriétés constatées invalides"
+        for champ, c in cs.items():
+            assert (set(c) == {"valeur", "salle", "instant", "proprietaire", "lieu"}
+                    and c["salle"] in monde.data["salles"] and type(c["instant"]) is int
+                    and (c["proprietaire"] is None or isinstance(c["proprietaire"], str))
+                    and (c["lieu"] is None or isinstance(c["lieu"], str))
+                    and (type(c["valeur"]) is int if champ == "integrite" else type(c["valeur"]) is bool)), "Constat de bien invalide"
+
+
+def retenir_soupcon_deduit(monde, id, candidats, objet, champ, avant):
+    """Un indice faillible, distinct de tout portage constaté et du témoignage."""
+    from .esprits import esprit, memoriser, _date_indices_soupcon
+    from .relations import envers
+    e = esprit(monde, id)
+    maximum = max(candidats.values())
+    premiers = [qui for qui, poids in candidats.items() if poids == maximum]
+    auteur = premiers[0] if len(premiers) == 1 else None
+    conviction = .4 * maximum / sum(candidats.values())
+    # Deux conséquences concomitantes (coffre vide et bien absent) étayent
+    # le même indice ; elles ne multiplient pas la peine relationnelle.
+    for s in e["indices_soupcon"]["soupcons"].values():
+        if (s["auteur"] == auteur and s.get('candidats', {auteur: 1.0}) == candidats
+                and s["salle"] == avant["salle"] and avant["instant"] <= s["fin"]):
+            s["indices"].setdefault(objet, {})[champ] = avant["valeur"]
+            return
+    maintenant = _date_indices_soupcon(monde)
+    preuve = f"soupcon:{id}:{objet}:{champ}:{avant['instant']}:{maintenant}"
+    s = {"auteur": auteur, "salle": avant["salle"], "debut": avant["instant"], "fin": maintenant,
+         "indices": {objet: {champ: avant["valeur"]}}, "perte": 0,
+         "candidats": copy.deepcopy(candidats), "conviction": conviction}
+    e["indices_soupcon"]["soupcons"][preuve] = s
+    if auteur is None:
+        return  # L'égalité ne désigne personne, même par ordre des identifiants.
+    confiance_avant = envers(monde, id, auteur)["confiance"]
+    memoriser(monde, id, {"type": "soupcon_deduit", "auteur": auteur, "objet": objet,
+                         "preuve": preuve, "source": "devine", "conviction": conviction})
+    s["perte"] = confiance_avant - envers(monde, id, auteur)["confiance"]
+
+
+def reviser_soupcons(monde, id, objet, faits=None, *, auteur_appris=False, salle=None, rendu=False):
+    """Retirer l'indice démenti ; aucun crédit pour une pénalité non appliquée."""
+    from .esprits import esprit, memoriser
+    e = esprit(monde, id)
+    for preuve, s in list(e["indices_soupcon"]["soupcons"].items()):
+        if objet not in s["indices"]:
+            continue
+        retrouve = (faits or {}).get('present') is True and s['indices'][objet].get('present') is True
+        if auteur_appris or rendu or retrouve:
+            s["indices"].clear()
+        else:
+            indices = s["indices"][objet]
+            for champ, valeur in list(indices.items()):
+                if champ in (faits or {}) and (faits[champ] >= valeur if champ == "integrite" else faits[champ] == valeur):
+                    del indices[champ]
+            if not indices:
+                del s["indices"][objet]
+        if not s["indices"]:
+            del e["indices_soupcon"]["soupcons"][preuve]
+            if s['auteur'] is not None:
+                memoriser(monde, id, {"type": "soupcon_leve", "auteur": s["auteur"], "objet": objet,
+                                     "preuve": "leve:" + preuve, "perte": s["perte"], "source": "devine"})
+
+
+def verifier_suivis_relationnels(monde, id):
+    from .esprits import lire
+    from .relations import AXES
+    e = lire(monde, id)
+    assert isinstance(e["indices_soupcon"]["soupcons"], dict), "Soupçons invalides"
+    for preuve, s in e["indices_soupcon"]["soupcons"].items():
+        assert (isinstance(preuve, str) and set(s) in (
+                    {"auteur", "salle", "debut", "fin", "indices", "perte"},
+                    {"auteur", "salle", "debut", "fin", "indices", "perte", "candidats", "conviction"})
+                and (isinstance(s["auteur"], str) or s["auteur"] is None and 'candidats' in s)
+                and s["salle"] in monde.data["salles"]
+                and type(s["debut"]) is int and type(s["fin"]) is int and 0 <= s["debut"] <= s["fin"]
+                and type(s["perte"]) is int and 0 <= s["perte"] <= 18
+                and isinstance(s["indices"], dict) and bool(s["indices"])
+                and all(isinstance(o, str) and isinstance(cs, dict) and cs and set(cs) <= {
+                    "present", "integrite", "vide", "allume", "disponible"} and all(
+                        type(v) is int if c == "integrite" else type(v) is bool for c, v in cs.items())
+                    for o, cs in s["indices"].items())), "Indice de soupçon invalide"
+        if 'candidats' in s:
+            candidats = s['candidats']
+            assert (isinstance(candidats, dict) and candidats and all(
+                isinstance(qui, str) and qui != id and type(p) in (int, float) and 1 <= p <= 2.5
+                for qui, p in candidats.items()) and type(s['conviction']) in (int, float)
+                and s['conviction'] == .4 * max(candidats.values()) / sum(candidats.values())
+                and ([q for q, p in candidats.items() if p == max(candidats.values())] == [s['auteur']]
+                     if s['auteur'] is not None else sum(p == max(candidats.values()) for p in candidats.values()) > 1)
+                and (s['auteur'] is not None or s['perte'] == 0)), 'Pondération de soupçon invalide'
+    assert isinstance(e["preuves_relations"], dict) and all(isinstance(p, str) and isinstance(v, dict) and set(v) == {"niveau", "effets"}
+        and v["niveau"] in (0.4, 0.5, 0.8, 1.0) and isinstance(v["effets"], dict) and set(v["effets"]) <= set(AXES)
+        and all(type(d) is int for d in v["effets"].values()) for p, v in e["preuves_relations"].items()), "Preuves de relation invalides"
+    assert isinstance(e["portages"], dict) and all(isinstance(o, str) and isinstance(p, dict) and set(p) == {"auteur", "preuve"}
+        and all(isinstance(v, str) for v in p.values()) for o, p in e["portages"].items()), "Portages retenus invalides"
+    assert type(e["compagnie_minute"]) is int and isinstance(e["compagnie"], dict) and all(
+        isinstance(x, str) and type(n) is int and 0 <= n < 60 for x, n in e["compagnie"].items()), "Compagnie retenue invalide"
+    assert isinstance(e["suites"], list) and all(
+        isinstance(s, dict) and set(s) == {"type", "de", "pour", "condition", "minute", "preuve"}
+        and s["type"] in ("engagement_tenu", "engagement_abandonne") and s["de"] == id
+        and isinstance(s["pour"], str) and isinstance(s["condition"], dict) and type(s["minute"]) is int
+        for s in e["suites"]), "Suites de parole invalides"
