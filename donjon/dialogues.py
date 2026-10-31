@@ -264,6 +264,21 @@ def comptes_publics(monde):
     def ajouter(nom, d):
         choix.append({'nom': nom, 'descripteur': d})
 
+    # Une obligation connue reste proposée même si le créancier est absent.
+    # Le moteur revalide la présence et les fonds à réception et à confirmation.
+    from .voix import personne_pour_joueur
+    soldes = {}
+    for dette in dettes(monde):
+        if dette['de'] == 'joueur' and dette['a'] in monde.objets:
+            soldes[dette['a']] = soldes.get(dette['a'], 0) + dette['montant']
+    for id, montant in soldes.items():
+        ref = reference(monde, id)
+        nom = personne_pour_joueur(monde, id, court=True)[0]
+        ajouter(f'Rembourser — débiteur : toi ; créancier : {nom} ; solde connu : {quantite(montant, "pièce")}',
+                {'geste': GESTE_INFORMATION, 'cible': ref,
+                 'parametres': {'acte': 'compte', 'operation': 'rembourser',
+                                'compte': compte('joueur', ref, montant=montant), 'montant': montant}})
+
     for ref, personne in interlocuteurs(monde).items():
         id, nom = reel(monde, ref), personne['nom']
         montant = sum(d['montant'] for d in dettes(monde, connues_de='joueur') if d['de'] == id)
@@ -296,8 +311,20 @@ def comptes_publics(monde):
 
 def valider_choix_compte(monde, d):
     import json
+    candidat = d
+    if (isinstance(d, dict) and isinstance(d.get('parametres'), dict)
+            and d['parametres'].get('operation') == 'rembourser'):
+        montant = d['parametres'].get('montant')
+        if type(montant) is not int or montant <= 0:
+            raise ErreurMonde('Il faut rembourser un nombre entier positif de pièces.',
+                              f'parametres.montant={montant!r} ; attendu entier strictement positif.')
+        # Seul le versement est éditable ; le compte public reste strictement figé.
+        candidat = copy.deepcopy(d)
+        c = candidat['parametres'].get('compte')
+        if isinstance(c, dict):
+            candidat['parametres']['montant'] = c.get('montant')
     try:
-        recu = json.dumps(d, sort_keys=True, allow_nan=False)
+        recu = json.dumps(candidat, sort_keys=True, allow_nan=False)
     except (TypeError, ValueError):
         recu = None
     if not any(recu == json.dumps(x['descripteur'], sort_keys=True, allow_nan=False)
@@ -313,6 +340,15 @@ def parole_compte(monde, d):
     from .noms import public
     c = valider_choix_compte(monde, d)
     op = d['parametres']['operation']
+    if op == 'rembourser':
+        from .biens import rembourser_dette
+        montant = d['parametres']['montant']
+        # Même contrat que le 388, y compris ses refus avant les gardes de parole.
+        # L'essai sur copie ne publie rien ; U-C rejoue l'acte à la confirmation.
+        rembourser_dette(monde.copier(), 'joueur', reel(monde, d['cible']), montant)
+        return {'personnage': d['cible'],
+                'replique': f'Je te rembourse {quantite(montant, "pièce")} sur ma dette.',
+                'contenu': [{'type': 'rembourser', 'montant': str(montant)}]}
     if op == 'payer':
         raise ErreurMonde('Cette offre attend le règlement par le moteur.',
                           'parametres.operation=payer : attendu preparer_direct puis conversation_pnj accepter.')

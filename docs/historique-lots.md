@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-rembourser-public` (399), base `integration 60f857c5`, départ `561c1d16` : remboursement
+  total ou partiel des dettes publiques de Corvus depuis web/console/TUI, même acte 388, U-D et U-C.
+  Solde figé revalidé ; refus distincts, aucun modèle ni registre ajouté ; recharge et laps découpé.
+  107/107 tests verts, neuf fichiers, 1 066,221 s, dont 12 nouveaux ; zéro échec, erreur ou saut.
+  Empreintes Relais/auberge 2 h × quatre graines : 8/8 identiques ; seize sources vérifiées sans écart.
+  `artifacts/rembourser-public-399/fin-verification.json` (dépôt principal) : `succes=true` ; aucun calcul restant.
+  Branche poussée, validée fusionnée. Rapport : [399](taches/rapport-codex-399-rembourser-public.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 399 : remboursement total ou partiel d'une dette en pièces proposé au menu web, à la console et à la TUI, acte du 388 par le descripteur U-D et le consentement U-C, sans modèle. Douze nouveaux tests verts, 8/8 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-s1h-eau-statuts` — lot 404, base `integration d451a4ce`, code `88f4f9ab`.
   Eau, prévisions et statuts : vues profondes et révisions historiques par `memoire` ; aucun registre ajouté.
   Inventaire AST 168 → 129 ; 141/142 tests verts, une erreur d'eau reproduite sur la base exacte, oracle intact.

@@ -13,8 +13,17 @@ class ComptesTerminal:
     def __init__(self, public):
         self.public = copy.deepcopy(public)
         self.terminee = False
+        self.remboursement = None
+
+    @property
+    def accepte_vide(self):
+        return self.remboursement is not None
 
     def rendre(self):
+        if self.remboursement is not None:
+            return (self.remboursement['nom'] + '\nMontant à rembourser en pièces '
+                    f"[Entrée : {self.remboursement['descripteur']['parametres']['montant']}] ; "
+                    'montant partiel possible ; annuler pour fermer.')
         lignes = ["Mes comptes — numéro puis Entrée ; annuler pour fermer.",
                   "Le choix est soumis au moteur ; tenter confirme les actes lourds.",
                   *self.public['lignes']]
@@ -36,9 +45,21 @@ class ComptesTerminal:
         if texte.casefold() == 'annuler':
             self.terminee = True
             return None
+        if self.remboursement is not None:
+            if texte and (not texte.isascii() or not texte.isdecimal() or len(texte) > 16
+                          or not 0 < int(texte) <= 9007199254740991):
+                raise ValueError('Saisis un nombre entier positif de pièces, ou Entrée pour le montant proposé.')
+            d = copy.deepcopy(self.remboursement['descripteur'])
+            if texte:
+                d['parametres']['montant'] = int(texte)
+            self.terminee = True
+            return DescripteurPublic(d)
         choix = next((x for i, x in enumerate(self.public['choix'], 1)
                       if texte.lstrip('0') == str(i)), None)
         if choix is None:
             raise ValueError("Choisis un seul numéro du formulaire affiché.")
+        if choix['descripteur']['parametres'].get('operation') == 'rembourser':
+            self.remboursement = choix
+            return None
         self.terminee = True
         return DescripteurPublic(copy.deepcopy(choix['descripteur']))

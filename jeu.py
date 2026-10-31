@@ -382,7 +382,8 @@ def main(argv=None, interface=None):
                 imprimer()
                 entree = texte = "quitter"
             cmd = normaliser(texte)
-            if not cmd and not isinstance(entree, DescripteurPublic):
+            if (not cmd and not isinstance(entree, DescripteurPublic)
+                    and not getattr(recette, 'accepte_vide', False)):
                 continue
             try:
                 if interface is None and isinstance(entree, str):
