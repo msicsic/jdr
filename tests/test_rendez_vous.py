@@ -17,6 +17,7 @@ from tests.test_parole_voix import gorm_derriere_la_porte
 from tests.test_repli_et_appel import jouer
 from tests.test_tensions import chronique, placer, recharger, vivre
 from tests.test_voix import appels
+from tests.support import canal_constats_anterieur_337
 
 
 def auberge_42():
@@ -59,7 +60,10 @@ class RendezVousTests(unittest.TestCase):
         self.assertEqual(regarder(bloc), regarder(coupe))
         self.assertEqual(regarder(bloc), regarder(recharger(bloc)))
 
+    @canal_constats_anterieur_337
     def test_capture_auberge_42_rendez_vous_convenu_une_retrouvaille_et_demande(self):
+        # 360 : l'oracle de cette ancienne nuit déclare récents ses constats
+        # de 55 ; il ne porte pas sur les nouvelles possessions racontables.
         from donjon import pnj
         chroniquer = pnj._chroniquer
         annonces = []

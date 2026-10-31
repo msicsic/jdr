@@ -71,6 +71,10 @@ class CompletionTests(unittest.TestCase):
                 self.assertEqual(m.data, recharge.data)
                 historique = sans_indices_soupcon_passifs(recharge)
                 for e in historique['esprits'].values():
+                    # 360 : provenance initiale ajoutée à la migration, comme
+                    # dans l'oracle d'étapes. Le monde complet, provenance
+                    # comprise, vient d'être comparé après sauvegarde/recharge.
+                    self.assertIsInstance(e.pop('faits_initiaux'), dict)
                     # 332 ajoute ce registre à toute sauvegarde. Aucun regard
                     # suivi dans ces captures : conserver l'oracle historique
                     # après contrôle strict de sa vacuité, jamais d'un acte.

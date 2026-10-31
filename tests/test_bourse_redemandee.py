@@ -12,6 +12,7 @@ from donjon.monde import Monde
 from donjon.rendu import regarder
 from tests import test_garde_pret as scenes
 from tests.test_tensions import recharger
+from tests.support import canal_constats_anterieur_337
 
 
 class RestitutionTests(unittest.TestCase):
@@ -21,7 +22,10 @@ class RestitutionTests(unittest.TestCase):
         self.assertEqual(regarder(m), regarder(n))
         return n
 
+    @canal_constats_anterieur_337
     def test_capture_reelle_mine_mathe_remy_et_laps_decoupe(self):
+        # 360 : conserver le canal de constats récents de cette ancienne
+        # nuit ; restitution, droits et blocage du réemprunt restent réels.
         with gzip.open(Path(__file__).parent / 'data/bourse-220-mine-290.json.gz', 'rt', encoding='utf-8') as f:
             m = Monde(json.load(f))
         a, b = self.stable(m), self.stable(m)

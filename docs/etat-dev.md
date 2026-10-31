@@ -43,6 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-suite-e0826ef` — **375 clos partiel**, `integration 3999bb3a` fusionnée, branche poussée : dix méthodes
+  validées sur onze ; neuf bascules natives au 360, parent direct vert, deux antérieures (337, G7).
+  Campagne : 171 tests, 161 verts, dix échecs dont huit du 390 ; reprise finale 12/12 verte.
+  Crue sans transmission réservée au 360, assertion intacte ; question précise au [rapport](taches/rapport-codex-375-suite-e0826ef.md).
+  526 assertions originales identiques, trois formulations portées, six ajoutées ; aucun moteur changé.
+  Méthodes du 390 intactes ; bruts `artifacts/suite-e0826ef-375/`, `conclusion.json`, aucun calcul actif.
+
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380
 (U-M social comptes), 381 (A2 passage), 390 (rouges nouveaux de la suite 663d1308 : 42 méthodes, dont 11 au 375 et 5 au 387). Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 

@@ -5,7 +5,7 @@ par la parole, la demande de ce que l'autre pourrait avoir (``biens``, ``echange
 Chaque test vérifie l'état du monde, et ce que le joueur lit, après rechargement.
 """
 
-from tests.support import lier
+from tests.support import lier, canal_constats_anterieur_337
 from copy import deepcopy
 import unittest
 from unittest.mock import patch
@@ -380,7 +380,10 @@ class PretReclameTests(unittest.TestCase):
         self.assertIs(fiable(m, "gaspard", "joueur"), False)
         self.assertEqual(memoires(m, "gaspard", "pret_garde")[-1]["auteur"], "joueur")
 
+    @canal_constats_anterieur_337
     def test_scene_exacte_le_secours_differe_le_pret_jusqu_au_calme_percu(self):
+        # 360 : scène historique des priorités secours/prêt, sur le canal de
+        # constats récents antérieur ; aucun verdict de secours n'est simulé.
         from donjon.deliberation import Palier
         from donjon.agendas import contrat_intention
         m = self.lampe_pretee_au_joueur()
