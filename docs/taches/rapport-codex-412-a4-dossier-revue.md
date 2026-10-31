@@ -3,66 +3,58 @@
 31 octobre 2026 — `codex-a4-dossier-revue`, base `integration`
 `2634e48e7ba39533bcb9e876487bac7536ee57af`, non fusionnée.
 
-**Réexamen demandé par le superviseur : correctif en vérification.** La
-substitution n’est acceptée dans aucune des trois parties sur la base.
-La régression observée avec A4 est corrigée dans le contrat commun ; aucun
-audit retiré. La validation finale du correctif reste en cours.
+**Verdict final : non validé pour fusion.** Le dossier est raccordé et les
+omissions sonores sont détectées. La régression de fidélité apparue avec A4
+reste ouverte après le correctif `6bad59cb` ; elle ne peut pas être renvoyée
+à A5 comme simple défaut préexistant. Aucun audit retiré.
 
-**Invariant et changement.** `comprehension.sens_propose` joint les paramètres,
-la manière et les récits transitoires proposés aux contrats communs de
+**Invariant et fonctions.** `comprehension.sens_propose` joint opération,
+paramètres, manière et récits transitoires proposés aux contrats communs de
 séquence/attente, expression/son et passage. `couverture_action.entree` les
-associe à chaque étape développée, dont celles des raccourcis, aux effets de
-réussite/échec/échec critique et aux conditions d’exécution. Les autres
-opérations conservent paramètres et titre moteur ; la parole garde son
-contrat distinct. `MJ._auditer_action` fige ce dossier. La revue distingue
-admission et fidélité, et compare les conséquences observables, même
-temporaires, les clauses et la manière. Les textes libres ne prouvent aucun
-effet. Mécaniques et registres d’esprit inchangés, aucune sélection sur la saisie.
+associe aux étapes développées, effets des trois branches et conditions
+calculées ; `MJ._auditer_action` fige le dossier. Les autres opérations gardent
+paramètres et titre moteur, la parole son contrat distinct. Le correctif
+ajoute méthode/outil canoniques à la manière et partage `_precisions` avec
+« Compris ». La revue distingue forme concrète et nuance cosmétique, sans
+exiger de nouveau paramètre pour cette dernière. Textes proposés et admission
+ne prouvent pas la fidélité. Mécaniques et registres d’esprit inchangés.
 
-**Preuves.** Cinq nouveaux tests : pureté du dossier, son présent accepté,
-omission refusée avec l’effet dans `attendu`, attente développée, manière
-littérale et branches distinctes. La vraie boucle console/PontWeb corrige
-une omission pour « je fredonne doucement » au Relais et un rythme corporel :
-un son, aucun jet, sauvegarde avant affichage et réponse retrouvée après
-reprise. Deux minutes en bloc ou huit tranches de quinze secondes avec
-recharges donnent le même monde complet et les mêmes vues. Les verdicts y
-sont simulés. **171 tests ciblés, un ignoré** : seul échec initial, l’ancien
-texte exact d’`attendu` ; le fichier adapté est rejoué **18/18, 11,50 s**.
-Les cinq tests renforcés passent en **13,97 s**. L’égalité exacte de
-`test_contre_revue_d_action_cite_le_plan` reste entière : sa fin attendue suit
-le changement voulu (conséquences observables, clauses, manière).
+**Tests.** Sept nouveaux tests couvrent pureté, paramètres canoniques,
+précisions identiques au rendu, branches, son présent et omission dans
+`attendu`. La vraie boucle console/PontWeb corrige le fredonnement du Relais
+et un rythme corporel : un son, aucun jet, sauvegarde avant affichage,
+réponse relue après reprise ; deux minutes en bloc ou huit tranches avec
+recharges donnent le même monde complet et les mêmes vues. Verdicts simulés.
+Passe initiale : 171 tests, un ignoré ; seul ancien texte attendu adapté,
+fichier rejoué 18/18. Ses égalités exactes restent conservées. Après correctif,
+**44 tests concernés, un ignoré, aucun échec ni erreur, 261,70 s**.
 
-**Mesures finales.** Empreintes **identiques**, Relais/auberge, 2 h × graines
-1985/7/42/2024 : chronique, mesures et monde complet, aucun plantage.
-Référence absente calculée une fois et cachée, puis branche ; aucune
-comparaison de vitesse. Une passe Luna sur copies, quatre parties :
-**62 appels / 26 tours MJ = 2,38 appels et 9,19 s/tour**, médiane 8,40 s ;
-aucune interruption, erreur technique, erreur de recharge ni repli.
-Onze refus, quatre obstacles narratifs, trois relances. Hors de ce dénominateur,
-les quatre contre-épreuves directes sont justes (quatre appels, 23,75 s avec
-préparation/fermeture) : deux sons présents acceptés, deux omissions refusées
-avec le manque dans `attendu`. Fredonnement émis dans les deux scripts ;
-omission du rythme effectivement refusée puis corrigée dans le script dédié.
+**Luna et comparaison demandée.** Première passe sur quatre scripts :
+62 appels/26 tours MJ, **2,38 appels et 9,19 s/tour**, quatre contre-épreuves
+sonores justes ; rythme réellement omis puis corrigé. Dans atelier, la revue
+refuse cependant le sifflement pour sa manière absente, puis accepte des
+notes de voix. Sur `origin/integration` figé en **40f062d8**, sans A4, même
+script et mêmes fichiers de revue que la base initiale : **0/3 substitutions
+acceptées**. Deux parties acceptent le sifflement ; la troisième refuse voix
+mélodique puis souffle. Ce résultat déclenche la correction du contrat commun,
+plutôt qu’un classement en limite A5.
 
-**Comparaison et correction.** `origin/integration` figé en `40f062d8`, sans
-A4, même script et mêmes fichiers de revue que `2634e48e` : **0/3 substitutions
-acceptées**. Deux parties acceptent le sifflement canonique ; la troisième
-refuse successivement voix mélodique et souffle. Le défaut ne peut donc pas
-être classé comme simple limite A5 sur cet échantillon. Dans A4, le critère
-exigeait toute manière, mais le champ correspondant omettait méthode et outil
-canoniques ; il ne portait pas les précisions du rendu calculé. Le contrat
-commun inclut maintenant ces paramètres et partage `_precisions` avec
-« Compris ». La revue distingue forme concrète et nuance cosmétique : cette
-dernière n’exige pas de nouveau paramètre d’une opération qui porte le geste.
-Deux tests ajoutés couvrent méthodes canoniques et modalité réellement rendue,
-même si la prose proposée dit autre chose. Tests concernés, sept revues Luna,
-une partie atelier et empreintes de la branche sont en cours ; fin attendue
-`correction/fin.json`. Aucun succès global de fidélité en français libre
-revendiqué ; les refus de préparation et le repli après deux revues illisibles
-gardent leurs voies actuelles.
+**Correctif insuffisant.** Sept revues directes : **six booléens sur sept
+attendus** ; les quatre cas sonores restent justes, le sifflement canonique
+passe, mais le cri « de colère » est refusé pour sa nuance absente.
+Dans le nouvel atelier, le faux refus du sifflement puis l’acceptation de
+`voix_melodique` se reproduisent malgré les précisions moteur jointes.
+Atelier : **22 appels/11 tours, 2 appels et 6,90 s/tour**, aucune erreur,
+interruption, erreur de recharge ni repli. Ces corpus ne prouvent aucun gain
+de latence. La présence déterministe du sens dans le dossier est garantie ;
+son exploitation correcte par la revue sémantique ne l’est pas. Aucun succès
+global de fidélité revendiqué, aucun traitement propre à ces formulations.
 
-Bruts : `C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/`, notamment
-`fin-reprise.json`, `mesures-luna.json`, `contre-epreuves-luna.json`,
-`empreintes.json`, `commandes-reprise.json`. Deux travailleurs au plus,
-priorité réduite ; aucune suite complète. La comparaison et la vérification
-supplémentaires répondent au réexamen explicitement demandé par le superviseur.
+Empreintes finales **identiques**, chronique/mesures/monde complet :
+Relais/auberge, 2 h × 1985/7/42/2024, référence réutilisée, branche seule
+rejouée. Bruts `C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/` :
+`comparaison-base/fin.json`, `correction/fin.json`, `correction/revues.json`
+et `correction/atelier.json`. Vérifications supplémentaires explicitement
+demandées par le superviseur ; deux travailleurs au plus, priorité réduite,
+aucune suite complète. Les refus de préparation et le repli historique après
+deux revues illisibles restent sur leurs voies actuelles.
