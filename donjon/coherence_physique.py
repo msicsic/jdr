@@ -4,6 +4,7 @@ import json
 
 from .monde import ErreurMonde, reference_exacte
 from .refus import RapportIllisible, audit
+from .matiere import DIMENSIONS
 
 
 SCHEMA = {
@@ -67,7 +68,8 @@ def propositions(reponse, faits):
                                     ("id", "nom", "type", "materiau", "masse", "mobile",
                                      "description_visuelle", "integrite", "maximum",
                                      "seuil_coupe", "usages", "puissance",
-                                     "constats_capacites", "physique", "contenu", "bloque_passage")},
+                                     "constats_capacites", "physique", "contenu", "bloque_passage",
+                                     "charges", "ressource", "charge_jeu_kg", *DIMENSIONS)},
                         "champs_a_etablir": [k for k in ("physique", "contenu", "passage")
                                               if k in ajout and k not in cible],
                         "passage_etabli": cible.get("passage"),

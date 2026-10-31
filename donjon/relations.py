@@ -1,9 +1,10 @@
-"""Relations orientées. Seul accès aux axes, aux bandes et à leurs causes.
+"""Relations orientées. Seule autorité sur les axes, bandes et leurs causes.
 
 Les souvenirs sont la porte d'écriture (esprits.memoriser). Les lectures sont pures :
 estompement depuis l'ancre du dernier événement, sans arrondis cumulés ni état caché.
 « fiable » reste un avis dans la parole, jamais un attribut de croyance.
 """
+from . import memoire
 from .memoire import fait_brut
 from .memoire import episodes
 import copy
@@ -89,16 +90,15 @@ def _completer(r):
 
 def installer(monde, id):
     from .esprits import esprit
-    nouveau = "relations" not in monde.data.get("esprits", {}).get(id, {})
-    e = esprit(monde, id)
+    nouveau = memoire.installation_relations(monde, id)
+    esprit(monde, id)
     if nouveau:
-        e["relations"] = {x: _nouvelle(a) for x, a in (monde.objets[id].get("profil") or {}).get("liens", {}).items()}
+        memoire.installer_relations(monde, id, {x: _nouvelle(a) for x, a in memoire.liens_initiaux(monde, id, {}).items()})
 
 
 def connus(monde, id):
-    from .esprits import lire
     id = _observateur_devis(monde, id)
-    return sorted(lire(monde, id).get("relations", {}))
+    return sorted(memoire.relations_retenues(monde, id))
 
 
 def _observateur_devis(monde, id):
@@ -107,16 +107,13 @@ def _observateur_devis(monde, id):
 
 
 def oublier_portage(monde, id, objet):
-    from .esprits import esprit
-    esprit(monde, id)["portages"].pop(objet, None)
+    memoire.oublier_portage(monde, id, objet)
 
 
 def portage_connu(monde, id, objet, porteur):
-    from .esprits import lire
-    e = lire(monde, id)
-    p = e["portages"].get(objet)
+    p = memoire.portage_retenu(monde, id, objet)
     return bool(p and p["auteur"] == porteur
-                and e["preuves_relations"].get(porteur + ":" + p["preuve"], {}).get("niveau", 0) >= 1)
+                and (memoire.epreuve_retenue(monde, id, porteur, p["preuve"]) or {}).get("niveau", 0) >= 1)
 
 
 def verifier_chronique(c):
@@ -130,7 +127,7 @@ def verifier_chronique(c):
 def _estompes(monde, id, autre, r):
     # Ascendant : même retour lent au lien initial que l’affection (1 point/h).
     from .caractere import valeur
-    liens = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {})
+    liens = memoire.liens_initiaux(monde, id, {}).get(autre, {})
     demie = max(1, 720 * valeur(monde, id, "fierte") / 50 / (1 + valeur(monde, id, "douceur") / 100))
     resultat = {}
     for a, (base, minute) in r["ancrages"].items():
@@ -145,25 +142,23 @@ def _estompes(monde, id, autre, r):
 
 
 def _lecture_pure(monde, id, autre):
-    from .esprits import lire
-    brut = lire(monde, id).get("relations", {}).get(autre)
+    brut = memoire.relation_retenue(monde, id, autre)
     if brut is None:
         return _nouvelle()
     r = _completer(brut)
     for a, v in _estompes(monde, id, autre, r).items():
-        ancre = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {}).get(a, 0)
+        ancre = memoire.liens_initiaux(monde, id, {}).get(autre, {}).get(a, 0)
         r[a] = math.ceil(v - 1e-9) if a in ("affection", "ascendant") and r["ancrages"][a][0] > ancre else math.floor(v + 1e-9)
     r["bandes"] = _bandes(r, brut["bandes"])
     return r
 
 
 def _lecture(monde, id, autre):
-    from .esprits import lire
     id = _observateur_devis(monde, id)
     profil = monde.objets[id].get("profil") or {}
-    brut = lire(monde, id).get("relations", {}).get(autre)
+    brut = memoire.relation_retenue(monde, id, autre)
     cle = (monde.data["minutes"],
-           tuple((profil.get("liens") or {}).get(autre, {}).get(a, 0)
+           tuple((memoire.liens_initiaux(monde, id) or {}).get(autre, {}).get(a, 0)
                  for a in ("affection", "ascendant")),
            profil.get("valeurs", {}).get("fierte", 50),
            profil.get("valeurs", {}).get("douceur", 50))
@@ -181,10 +176,9 @@ def _lecture(monde, id, autre):
 
 def signature_signes(monde, id):
     """Seulement les bandes et seuils effectivement lus par les émissions."""
-    from .esprits import lire
     profil = monde.objets[id].get("profil") or {}
-    brut = lire(monde, id)["relations"]
-    cle = (monde.data["minutes"], repr(profil.get("liens")),
+    brut = memoire.relations_retenues(monde, id)
+    cle = (monde.data["minutes"], repr(memoire.liens_initiaux(monde, id)),
            profil.get("valeurs", {}).get("fierte", 50), profil.get("valeurs", {}).get("douceur", 50))
     cache = monde.__dict__.setdefault("_signatures_relations_signes", {})
     entree = cache.get(id)
@@ -235,14 +229,14 @@ def eprouver_mandat(monde, id, mandant, preuve, issue, source="essai", poids=1):
     Le registre commun survit à la mémoire courte et à l'estompement. Une
     parole crue ne pèse que la moitié de son poids de croyance, même certaine.
     """
-    from .esprits import lire, memoriser
+    from .esprits import memoriser
     if id in ("joueur", mandant) or poids <= 0:
         return
     cause = {"reussi": "mandat_reussi", "echoue": "mandat_echoue",
              "renonce": "mandat_echoue", "abus": "mandat_abusif"}[issue]
     preuve = "mandat:" + preuve + ":" + cause
     niveau = .5 if source.startswith("dit:") else 1
-    if lire(monde, id)["preuves_relations"].get(mandant + ":" + preuve, {}).get("niveau", 0) >= niveau:
+    if (memoire.epreuve_retenue(monde, id, mandant, preuve) or {}).get("niveau", 0) >= niveau:
         return
     memoriser(monde, id, {"type": cause, "de": mandant, "preuve": preuve,
                          "source": source, "poids": poids})
@@ -286,9 +280,8 @@ def chance_demande(monde, id, autre):
     enrichir cette seule estimation. Ce n'est pas la chance du jet réel.
     """
     from .deliberation import REDEMANDE
-    from .esprits import lire
     id = _observateur_devis(monde, id)
-    r, e = axes(monde, id, autre), lire(monde, id)
+    r = axes(monde, id, autre)
     chance = (0.5 + (r["confiance"] - 40) / 200 + r["affection"] / 500
               - r["rancune"] / 250 - r["peur"] / 500 + r["dette"] / 1000)
     # Une incapacité matérielle n'est pas un rejet de la personne. Elle reste
@@ -317,13 +310,12 @@ def signature(monde, id):
     """Clé pure des lectures d'axes : le cache des signes n'accède pas au stockage.
     Les ancres et bandes comptent aussi, même si l'arrondi actuel ne bouge pas.
     """
-    from .esprits import lire
     profil = monde.objets[id].get("profil") or {}
     return (monde.data["minutes"],
             tuple((x, tuple(r[a] for a in AXES), tuple(r["bandes"].items()),
                    tuple((a, tuple(v)) for a, v in r["ancrages"].items()))
-                  for x, brut in lire(monde, id)["relations"].items() for r in [_completer(brut)]),
-            repr(profil.get("liens")), profil.get("valeurs", {}).get("fierte"),
+                  for x, brut in memoire.relations_retenues(monde, id).items() for r in [_completer(brut)]),
+            repr(memoire.liens_initiaux(monde, id)), profil.get("valeurs", {}).get("fierte"),
             profil.get("valeurs", {}).get("douceur"))
 
 
@@ -376,14 +368,12 @@ def dette_notable(r):
 
 
 def se_mefie(monde, id, autre):
-    from .esprits import lire
-    r = lire(monde, id)["relations"].get(autre)
+    r = memoire.relation_retenue(monde, id, autre)
     return bool(r and r["bandes"]["mefiance"])
 
 
 def se_fie(monde, id, autre):
-    from .esprits import lire
-    r = lire(monde, id)["relations"].get(autre)
+    r = memoire.relation_retenue(monde, id, autre)
     return bool(r and r["bandes"]["confiance"])
 
 
@@ -398,8 +388,7 @@ def craint(monde, id, autre, seuil=PEUR):
 
 
 def doit(monde, id, autre):
-    from .esprits import lire
-    return lire(monde, id)["relations"].get(autre, ETRANGER)["dette"]
+    return (memoire.relation_retenue(monde, id, autre) or ETRANGER)["dette"]
 
 
 def fiable(monde, id, autre):
@@ -420,19 +409,17 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
         return
     from .esprits import esprit, reconsiderer, percoit
     from .memoire import faits_connus
-    e = esprit(monde, id)
-    if (autre not in e["relations"] and autre not in memoire.voix_connues(monde, id)
+    esprit(monde, id)
+    if (memoire.relation_retenue(monde, id, autre) is None and autre not in memoire.voix_connues(monde, id)
             and not any(c["source"] in ("vu", "essai", "entendu", "savoir") for c in faits_connus(monde, id, autre).values())
             and not percoit(monde, id, autre)):
         return  # une identité seulement prétendue ou nommée n'est pas une personne identifiée
     from .caractere import valeur
     preuve = s.get("preuve") or hashlib.sha256(json.dumps(s, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-    cle = autre + ":" + preuve
-    preuves = esprit(monde, id)["preuves_relations"]
     niveau = (0.5 if cause.startswith("mandat_") and s.get("source", "").startswith("dit:") else
               0.4 if cause == "soupcon_deduit" else 0.5 if cause == "rumeur" else
               0.8 if cause == "aveu" or s.get("par") == "ouie" else 1.0)
-    precedente = preuves.get(cle)
+    precedente = memoire.epreuve_retenue(monde, id, autre, preuve)
     if precedente and precedente["niveau"] > niveau:
         return
     r = envers(monde, id, autre)
@@ -456,7 +443,7 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
     deja = precedente["effets"] if precedente else {}
     retenus = {a: (deja.get(a, 0) if abs(deja.get(a, 0)) >= abs(souhaites.get(a, 0)) else souhaites.get(a, 0))
                for a in set(deja) | set(souhaites)}
-    preuves[cle] = {"niveau": niveau, "effets": retenus}
+    memoire.retenir_epreuve(monde, id, autre, preuve, niveau, retenus)
     effets = {a: retenus[a] - deja.get(a, 0) for a in retenus}
     avant = {a: r[a] for a in AXES}
     estompes = _estompes(monde, id, autre, r)
@@ -465,7 +452,7 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
         if not montant:
             continue
         exact = min(100, max(0, estompes.get(a, r[a]) + montant))
-        ancre = (monde.objets[id].get("profil") or {}).get("liens", {}).get(autre, {}).get(a, 0)
+        ancre = memoire.liens_initiaux(monde, id, {}).get(autre, {}).get(a, 0)
         r[a] = math.ceil(exact - 1e-9) if a in ("affection", "ascendant") and exact > ancre else math.floor(exact + 1e-9)
         if a in r["ancrages"]:
             r["ancrages"][a] = [exact, monde.data["minutes"]]
@@ -480,7 +467,7 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
             motif[k] = copy.deepcopy(s[k])
     r["motifs"] = (r["motifs"] + [motif])[-3:]
     r.update(minute=monde.data["minutes"], source=s.get("source", "entendu" if s.get("par") == "ouie" else "vu"))
-    esprit(monde, id)["relations"][autre] = r
+    memoire.retenir_relation(monde, id, autre, r)
     from .signes import eprouver as eprouver_emotion
     if cause != "refus" or s.get("raison") == "mefiance":
         eprouver_emotion(monde, id, autre, cause, delta)
@@ -496,56 +483,11 @@ def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
 
 
 def deduire_soupcon(monde, id, candidats, objet, champ, avant):
-    """Un indice faillible, distinct de tout portage constaté et du témoignage."""
-    from .esprits import esprit, memoriser, _date_indices_soupcon
-    e = esprit(monde, id)
-    maximum = max(candidats.values())
-    premiers = [qui for qui, poids in candidats.items() if poids == maximum]
-    auteur = premiers[0] if len(premiers) == 1 else None
-    conviction = .4 * maximum / sum(candidats.values())
-    # Deux conséquences concomitantes (coffre vide et bien absent) étayent
-    # le même indice ; elles ne multiplient pas la peine relationnelle.
-    for s in e["indices_soupcon"]["soupcons"].values():
-        if (s["auteur"] == auteur and s.get('candidats', {auteur: 1.0}) == candidats
-                and s["salle"] == avant["salle"] and avant["instant"] <= s["fin"]):
-            s["indices"].setdefault(objet, {})[champ] = avant["valeur"]
-            return
-    maintenant = _date_indices_soupcon(monde)
-    preuve = f"soupcon:{id}:{objet}:{champ}:{avant['instant']}:{maintenant}"
-    s = {"auteur": auteur, "salle": avant["salle"], "debut": avant["instant"], "fin": maintenant,
-         "indices": {objet: {champ: avant["valeur"]}}, "perte": 0,
-         "candidats": candidats, "conviction": conviction}
-    e["indices_soupcon"]["soupcons"][preuve] = s
-    if auteur is None:
-        return  # L'égalité ne désigne personne, même par ordre des identifiants.
-    confiance_avant = envers(monde, id, auteur)["confiance"]
-    memoriser(monde, id, {"type": "soupcon_deduit", "auteur": auteur, "objet": objet,
-                         "preuve": preuve, "source": "devine", "conviction": conviction})
-    s["perte"] = confiance_avant - envers(monde, id, auteur)["confiance"]
+    return memoire.retenir_soupcon_deduit(monde, id, candidats, objet, champ, avant)
 
 
 def reviser_soupcons(monde, id, objet, faits=None, *, auteur_appris=False, salle=None, rendu=False):
-    """Retirer l'indice démenti ; aucun crédit pour une pénalité non appliquée."""
-    from .esprits import esprit, memoriser
-    e = esprit(monde, id)
-    for preuve, s in list(e["indices_soupcon"]["soupcons"].items()):
-        if objet not in s["indices"]:
-            continue
-        retrouve = (faits or {}).get('present') is True and s['indices'][objet].get('present') is True
-        if auteur_appris or rendu or retrouve:
-            s["indices"].clear()
-        else:
-            indices = s["indices"][objet]
-            for champ, valeur in list(indices.items()):
-                if champ in (faits or {}) and (faits[champ] >= valeur if champ == "integrite" else faits[champ] == valeur):
-                    del indices[champ]
-            if not indices:
-                del s["indices"][objet]
-        if not s["indices"]:
-            del e["indices_soupcon"]["soupcons"][preuve]
-            if s['auteur'] is not None:
-                memoriser(monde, id, {"type": "soupcon_leve", "auteur": s["auteur"], "objet": objet,
-                                     "preuve": "leve:" + preuve, "perte": s["perte"], "source": "devine"})
+    return memoire.reviser_soupcons(monde, id, objet, faits, auteur_appris=auteur_appris, salle=salle, rendu=rendu)
 
 
 def souvenir(monde, id, s):
@@ -586,14 +528,13 @@ def souvenir(monde, id, s):
             return  # la remise attribuée constate la restitution, une seule fois
         pour = s["pour"]
         if pour != "joueur":
-            from .esprits import esprit
             from .memoire import remise_retenue
             consequence = {"type": t, "de": id, "pour": pour, "condition": s["condition"], "minute": s["minute"], "preuve": s["preuve"]}
             recu = remise_retenue(monde, pour, id, s["condition"].get("objet"), s["minute"])
             if t == "engagement_tenu" and recu and identifie(monde, pour, id):
                 memoriser(monde, pour, {k: v for k, v in consequence.items() if k != "pour"})
             else:
-                esprit(monde, id)["suites"].append(consequence)
+                memoire.retenir_suite_relationnelle(monde, id, consequence)
         return
     if t == "don" and "de" in s:
         t = "recu"
@@ -635,16 +576,14 @@ def souvenir(monde, id, s):
         _appliquer(monde, id, autre, "tort_tiers", s, tiers=s.get("victime"))
         return
     if t in ("vu_porter", "vu_agir") and (t == "vu_porter" or s.get("operation") == "prendre"):
-        from .esprits import esprit
         from .vol import proprietaire
         o = s.get("objet")
         if o in monde.objets and proprietaire(monde, monde.objets[o]) == id:
-            portages = esprit(monde, id)["portages"]
-            precedent = portages.get(o)
+            precedent = memoire.portage_retenu(monde, id, o)
             if precedent and precedent["auteur"] == autre:
                 s["preuve"] = precedent["preuve"]
             else:
-                portages[o] = {"auteur": autre, "preuve": s["preuve"]}
+                memoire.retenir_portage(monde, id, o, autre, s["preuve"])
     if t in ("subi", "pousse") and autre is None:
         return
     if t == "vu_agir":
@@ -667,8 +606,7 @@ def souvenir(monde, id, s):
              "refus", "passage_accorde", "service_rendu"):
         if autre is None or not identifie(monde, id, autre):
             return
-    from .esprits import lire
-    nouveau_service = t == "service_rendu" and autre + ':' + s['preuve'] not in lire(monde, id)['preuves_relations']
+    nouveau_service = t == "service_rendu" and memoire.epreuve_retenue(monde, id, autre, s['preuve']) is None
     _appliquer(monde, id, autre, t, s)
     if nouveau_service:
         from .services import lever_refus
@@ -689,12 +627,12 @@ def annoncer_suites(monde, auteur, pour, lignes):
     from .esprits import esprit, memoriser
     from .voix import identifie
     from .social import faire_entendre, _qui
-    e = esprit(monde, auteur)
+    esprit(monde, auteur)
     if not identifie(monde, pour, auteur):
         return
-    suites = [s for s in e["suites"] if s["pour"] == pour]
+    suites = memoire.suites_relationnelles(monde, auteur, pour)
     for s in suites:
-        e["suites"].remove(s)
+        memoire.acquitter_suite_relationnelle(monde, auteur, s)
         issue = "tenu" if s["type"] == "engagement_tenu" else "abandonné"
         texte = f"{_qui(monde, auteur)} dit à {_qui(monde, pour)} avoir {issue} sa parole."
         faire_entendre(monde, auteur, pour, texte, [], lignes, [], suites=False)
@@ -709,9 +647,8 @@ def partager(monde, id, minute):
     from .deliberation import urgents
     from .corps import au_chaud
     e = esprit(monde, id)
-    if e["compagnie_minute"] >= minute:
+    if not memoire.commencer_minute_compagnie(monde, id, minute):
         return
-    e["compagnie_minute"] = minute
     if not urgents(monde, id):
         return
     abri = (e["intention"] or {}).get("but", {}).get("type") == "abri"
@@ -724,9 +661,7 @@ def partager(monde, id, minute):
         etat = fait_brut(monde, id, autre, "etat", {}).get("valeur", {})
         if not any(etat.get(b) for b in ("faim", "chaleur", "repos")):
             continue
-        n = e["compagnie"].get(autre, 0) + 1
-        e["compagnie"][autre] = n % 60
-        if n >= 60:
+        if memoire.progresser_compagnie(monde, id, autre):
             memoriser(monde, id, {"type": "epreuve_partagee", "de": autre})
 
 
@@ -740,51 +675,15 @@ def resume(r):
 
 
 def verifier(monde, id):
-    from .esprits import lire
-    e = lire(monde, id)
-    assert isinstance(e["indices_soupcon"]["soupcons"], dict), "Soupçons invalides"
-    for preuve, s in e["indices_soupcon"]["soupcons"].items():
-        assert (isinstance(preuve, str) and set(s) in (
-                    {"auteur", "salle", "debut", "fin", "indices", "perte"},
-                    {"auteur", "salle", "debut", "fin", "indices", "perte", "candidats", "conviction"})
-                and (isinstance(s["auteur"], str) or s["auteur"] is None and 'candidats' in s)
-                and s["salle"] in monde.data["salles"]
-                and type(s["debut"]) is int and type(s["fin"]) is int and 0 <= s["debut"] <= s["fin"]
-                and type(s["perte"]) is int and 0 <= s["perte"] <= 18
-                and isinstance(s["indices"], dict) and bool(s["indices"])
-                and all(isinstance(o, str) and isinstance(cs, dict) and cs and set(cs) <= {
-                    "present", "integrite", "vide", "allume", "disponible"} and all(
-                        type(v) is int if c == "integrite" else type(v) is bool for c, v in cs.items())
-                    for o, cs in s["indices"].items())), "Indice de soupçon invalide"
-        if 'candidats' in s:
-            candidats = s['candidats']
-            assert (isinstance(candidats, dict) and candidats and all(
-                isinstance(qui, str) and qui != id and type(p) in (int, float) and 1 <= p <= 2.5
-                for qui, p in candidats.items()) and type(s['conviction']) in (int, float)
-                and s['conviction'] == .4 * max(candidats.values()) / sum(candidats.values())
-                and ([q for q, p in candidats.items() if p == max(candidats.values())] == [s['auteur']]
-                     if s['auteur'] is not None else sum(p == max(candidats.values()) for p in candidats.values()) > 1)
-                and (s['auteur'] is not None or s['perte'] == 0)), 'Pondération de soupçon invalide'
-    assert isinstance(e["preuves_relations"], dict) and all(isinstance(p, str) and isinstance(v, dict) and set(v) == {"niveau", "effets"}
-        and v["niveau"] in (0.4, 0.5, 0.8, 1.0) and isinstance(v["effets"], dict) and set(v["effets"]) <= set(AXES)
-        and all(type(d) is int for d in v["effets"].values()) for p, v in e["preuves_relations"].items()), "Preuves de relation invalides"
-    assert isinstance(e["portages"], dict) and all(isinstance(o, str) and isinstance(p, dict) and set(p) == {"auteur", "preuve"}
-        and all(isinstance(v, str) for v in p.values()) for o, p in e["portages"].items()), "Portages retenus invalides"
-    assert type(e["compagnie_minute"]) is int and isinstance(e["compagnie"], dict) and all(
-        isinstance(x, str) and type(n) is int and 0 <= n < 60 for x, n in e["compagnie"].items()), "Compagnie retenue invalide"
-    assert isinstance(e["suites"], list) and all(
-        isinstance(s, dict) and set(s) == {"type", "de", "pour", "condition", "minute", "preuve"}
-        and s["type"] in ("engagement_tenu", "engagement_abandonne") and s["de"] == id
-        and isinstance(s["pour"], str) and isinstance(s["condition"], dict) and type(s["minute"]) is int
-        for s in e["suites"]), "Suites de parole invalides"
-    liens = (monde.objets[id].get("profil") or {}).get("liens", {})
+    memoire.verifier_suivis_relationnels(monde, id)
+    liens = memoire.liens_initiaux(monde, id, {})
     assert isinstance(liens, dict), "Liens de départ invalides"
     for x, axes in liens.items():
         # Un lien survit à la mort de l'autre (``corps.mourir`` : la dépouille garde son identifiant).
         assert x != id and (x == "joueur" or x in monde.objets and monde.objets[x]["type"] in ("personnage", "depouille")), "Lien sans personnage"
         assert isinstance(axes, dict) and set(axes) <= set(AXES), "Axes de lien invalides"
         assert all(type(v) is int and 0 <= v <= 100 for v in axes.values()), "Valeur de lien invalide"
-    for x, r in lire(monde, id)["relations"].items():
+    for x, r in memoire.relations_retenues(monde, id).items():
         assert isinstance(x, str) and x != id and isinstance(r, dict), "Relation invalide"
         ancien = "ascendant" not in r
         assert set(r) == {*(a for a in AXES if not ancien or a != "ascendant"),
@@ -801,3 +700,21 @@ def verifier(monde, id):
                    and 0 <= v[0] <= 100 and type(v[1]) is int and v[1] >= 0 for v in r["ancrages"].values()), "Ancre de relation invalide"
         for m in r["motifs"]:
             assert m["type"] in EPREUVES and type(m["minute"]) is int and set(m["effets"]) <= set(AXES), "Motif invalide"
+
+
+def antecedent_prise(monde, id, autre):
+    """Même projection des trois motifs retenus pour pondérer une occasion."""
+    motifs = (memoire.relation_retenue(monde, id, autre) or {}).get("motifs", [])
+    return any(s['type'] in ('vol_surpris', 'vu_porter') or
+               s['type'] in ('vu_agir', 'tort_tiers') and s.get('operation') == 'prendre'
+               for s in motifs)
+
+
+def suivis_decision(monde, id):
+    """Cellules historiques pour les signatures ; aucun nouvel estompement ni classement."""
+    return memoire.relations_retenues(monde, id)
+
+
+def installer_lien(monde, id, autre, axes):
+    """Préparation explicite d'un banc, calculée par la même autorité des axes."""
+    memoire.retenir_relation(monde, id, autre, _nouvelle(axes, monde.data["minutes"]))

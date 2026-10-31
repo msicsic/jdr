@@ -28,6 +28,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-g13-qualification` (564fb648) : lot 422, G13 qualifier une propriété inconnue avant usage. Détail dans l'historique.
+- `codex-g12-portee-creation` (7dc862b0) : lot 421, G12 portée d'une création interactive. Détail dans l'historique.
+- `codex-s1n-suivis-relationnels` (36f37037) : lot 420, S1n suivis relationnels par une preuve stable. Détail dans l'historique.
+- `codex-a6-raccord-libre` (8f806a98) : lot 416, A6 raccord du texte libre au compilateur forme A. Détail dans l'historique.
+- `codex-s1m-renoncements` (83ebb7a4) : lot 418, S1m renoncements et efforts bornés publiés au choix réussi. Détail dans l'historique.
 - `codex-obstacle-temoin-expire` (fe612c40) : lot 417, un renoncement dû à un témoin tient quand sa position expire. Détail dans l'historique.
 - `codex-suite-4539dd68` (1edc86e3) : lot 414, attribution des rouges de la suite 4539dd68. Détail dans l'historique.
 - `codex-a5-reprise-fidele` (46274c29) : lots 412 et 415, A4 dossier de revue et A5 reprise fidèle. Détail dans l'historique.
@@ -35,11 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1k-recours` (f5127a4d) : lot 411, S1k recours par l'interface. Détail dans l'historique.
 - `codex-a3-liaison-transport` (86187c83) : lot 410, A3 liaison du transport. Détail dans l'historique.
 - `codex-s1k-refus-recours` (7da401ec) : lot 409, S1k refus retenus par l'interface. Détail dans l'historique.
-- `codex-a2-consultation-sociale` (79663ec3) : lot 407, A2 famille consultation sociale. Détail dans l'historique.
-- `codex-s1j-voix` (146cb136) : lot 408, S1j identité vocale par des vues sourcées. Détail dans l'historique.
-- `codex-s1j-paroles-voix` (09795acb) : lot 406, S1j paroles, audiences et savoir initial par des vues sourcées. Détail dans l'historique.
-- `codex-suite-c562aa21` (f8c40269) : lot 403, rouges nouveaux de la suite c562aa21. Détail dans l'historique.
-- `codex-a2-passage` (a4c5ece4) : lot 381, A2 famille passage. Détail dans l'historique.
 
 ## Lots non fusionnés
 
@@ -51,7 +51,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   **Clos, non validé pour fusion** ; `verification-contact-419/fin.json` terminé, succès faux ; aucun calcul restant.
   [Rapport 419](taches/rapport-codex-419-verification-contact.md).
 
-Lots en cours : 416 (A6 raccord libre), 418 (S1m renoncements et efforts bornés), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 423 (une pièce de lot par la saisie libre), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

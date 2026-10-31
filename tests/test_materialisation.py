@@ -1,3 +1,4 @@
+from tests.revue_support import rapport as rapport_complet
 import io
 from pathlib import Path
 import tempfile
@@ -40,12 +41,12 @@ class MaterialisationTests(unittest.TestCase):
             if fonction == "auditer_portee":
                 return portee("gravat", texte_objet)
             if fonction == "auditer_action":
-                return {"conforme": True, "motif": ""}
+                return rapport_complet(entree, True, "")
             faits = entree["faits"]
             if "premier" not in vus:
                 vus["premier"] = faits.get("ambiance_ciblee")
                 return {"mode": "etablir_faits", "texte": "", "faits": ["ambiance_ciblee"],
-                        "proposition": {"ajouts": [{
+                        "proposition": {"suite": None, "ajouts": [{
                             "type": "objet", "ancrage": "antichambre_sol", "nom": "gravat",
                             "genre": "m", "texte": texte_objet, "materiau": "pierre",
                             "masse": 0.4, "mobile": True, "relation": "pose", "capacites": []}]}}

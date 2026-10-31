@@ -176,32 +176,22 @@ def vues_du_choix(monde, id):
     Les méthodes candidates ne font que proposer des plans. Les mises à jour de
     l'intention, des urgences et les gestes restent hors de ce bloc. Le témoin de
     vérification contrôle cette frontière, sans lui-même employer le partage.
+    Les suivis d'obstacles/efforts restent privés jusqu'au choix complet appelant ;
+    employés sans ce choix, ils sont jetés comme ceux de tout devis isolé.
     """
     ancien = getattr(monde, "_vues_du_choix", None)
     temoin = copy.deepcopy(monde.data) if VERIFIER else None
-    origine = ancien[2] if ancien is not None and ancien[0] == id else lire(monde, id).get("attentes_bornees", {})
-    bloc = (id, [None, None], dict(origine))
+    bloc = (id, [None, None])
     monde._vues_du_choix = bloc
-    termine = False
     from .agendas import evaluation
     from .biens import clotures_services_du_choix
-    with clotures_services_du_choix(monde), evaluation(monde, id):
+    with memoire.evaluation_obstacles(monde, id), clotures_services_du_choix(monde), evaluation(monde, id):
         try:
             yield
-            termine = True
         finally:
             monde._vues_du_choix = ancien
             if temoin is not None:
                 assert monde.data == temoin, "Une méthode candidate a modifié le monde ou l'esprit"
-            # L'effort et les transitions d'agenda appartiennent au choix réel,
-            # jamais aux devis ni à une sélection interrompue.
-            if termine:
-                if ancien is not None and ancien[0] == id:
-                    ancien[2].clear()
-                    ancien[2].update(bloc[2])
-                else:
-                    from .esprits import esprit
-                    esprit(monde, id)["attentes_bornees"] = bloc[2]
 
 
 def vue(monde, id):
@@ -2383,7 +2373,7 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
     preuve_noeuds, preuve_issue = 0, None
     completion = None
     attente = False
-    retenues = None
+    suivre_effort = False
     if memo is not None and depuis is None:
         # Ce que la recherche lit de son caractère et de son état : l'adresse modulée qui fait la
         # chance de crocheter, la force celle de forcer ; s'il envisage d'abîmer. Les gestes et leurs
@@ -2411,12 +2401,12 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
                        for b, seuil in seuils(monde, id).items() if motif is None or b == motif]
             signature_attente = json.dumps([signature_vide, paliers],
                                            ensure_ascii=False)
-            retenues = choix[2]
-            attente = retenues.get(place[1]) == signature_attente
+            suivre_effort = True
+            attente = memoire.effort_retenu(monde, id, place[1]) == signature_attente
             if attente:
                 garde = (entrees, None, "attente", True)
             else:
-                retenues.pop(place[1], None)
+                memoire.rouvrir_effort_du_choix(monde, id, place[1])
         vide_garde = _IMPOSSIBLES.get(place)
         if garde is None and vide_garde == (signature_vide, True):
             garde = (entrees, None, "impossible", False)
@@ -2464,11 +2454,11 @@ def chercher(monde, id, but, vises=None, depuis=None, profondeur=PROFONDEUR, noe
             trouve, issue = None, "endure"
         if memo is not None and depuis is None:
             _MEMOIRE[place] = (entrees, trouve, issue, borne)
-    if retenues is not None and not attente:
+    if suivre_effort and not attente:
         if issue == "borne" and trouve is None:
-            retenues[place[1]] = signature_attente
+            memoire.retenir_effort_du_choix(monde, id, place[1], signature_attente)
         else:
-            retenues.pop(place[1], None)
+            memoire.rouvrir_effort_du_choix(monde, id, place[1])
     if VERIFIER:
         _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir, endurer, seul, nom,
                   trouve, borne, "impossibilité" if absence else "mémoire" if garde is not None else "graphe" if repris else "borne")

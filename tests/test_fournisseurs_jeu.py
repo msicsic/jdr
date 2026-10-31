@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import jeu
+from tests.revue_support import rapport as rapport_complet
 from donjon.fournisseurs.anthropic import Anthropic
 from donjon.fournisseurs.openai import OpenAI
 from donjon.mj import MJ
@@ -29,7 +30,7 @@ except ImportError:
 
 def arguments(cible, fonction, entree):
     if fonction == 'auditer_action':
-        return {'conforme': True, 'motif': ''}
+        return rapport_complet(entree)
     if fonction == 'auditer_narration':
         return {'segments': {i: {"portee_mecanique": "etablie", 'nature': 'mecanique',
             'sources': ['resultat_resolu'],

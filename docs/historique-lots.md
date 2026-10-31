@@ -6,6 +6,51 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-g13-qualification` — lot 422, base `origin/integration` / `152a2aa0` :
+  admission physique sans écraser mesures, rôle ni charge établis ; reprise avec refus moteur conservé.
+  Huit fichiers ciblés : 95 tests verts ; monde et rendu après recharge et laps découpé.
+  Empreintes Relais 2 h × 4 graines identiques ; Luna sur copies : 54 appels / 19 tours, 12,56 s/tour, aucune erreur technique/recharge ni repli.
+  Validation Luna partielle : torche non qualifiée ; prise du tas entier pour « une planche ». Découpe combustible invalide déjà sur la base.
+  Calculs terminés ; bruts `artifacts/g13-qualification-422/` du dépôt principal (`conclusion-luna.json`).
+  [Rapport 422](taches/rapport-codex-422-g13-qualification.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 422, G13 : qualifier complète l'inconnu avant usage sans écraser l'établi (matiere._grandeurs : même dérivation au contrôle et à l'application), une seule revue physique par admission, requalification refusée localement. 95 tests, empreintes identiques. Luna une passe : 2,84 appels et 12,56 s par tour sur scripts de qualification, aucun repli. Limites : « une planche » prise pour le tas entier (correction prelever rejetée par la reprise, lot à ouvrir), longueur de la torche refusée par le garde de portée, découpe des planches combustibles du Relais en échec sur la base (lot à ouvrir).
+
+- `codex-g12-portee-creation` — lot 421, base `integration` / `78e4133b` : création admise puis
+  liaison exacte de sa suite ; projection des objets créés et contexte public de la revue portés.
+  Refus de faux indices/perceptions conservés ; recharges et laps découpés sur Relais/atelier.
+  58 tests verts, puis les 4 tests G12 finaux verts ; empreintes Relais 2 h × 4 graines identiques à la base.
+  Luna : 62 appels / 26 tours (2,38), aucune erreur ; aucune création d'objet proposée, pierre non ramassée.
+  Limites : choix de l'invention utile non acquis ; portée française toujours soumise à revue sémantique.
+  Bruts `artifacts/g12-portee-creation-421/` du dépôt principal ; calculs finis, `fin.json` vert.
+  [Rapport](taches/rapport-codex-421-g12-portee-creation.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 421, G12 : une invention admise existe avant manipulation, persiste après recharge et ne vaut ni découverte, ni perception, ni effet implicite ; la revue reçoit perceptions, objets, souvenirs et missions publics. Tests verts, empreintes identiques ; Luna une passe : 2,38 appels et 10,04 s par tour, un repli (sifflement). Limite : aucune création utile suivie d'un ramassage démontrée en jeu (Luna n'a proposé aucun ajout d'objet). Aucun fichier de code commun depuis la base.
+
+- `codex-s1n-suivis-relationnels` — lot 420, base exacte `7f9b08e4`, portage `7c1948e7`.
+  Preuves, ancrages/bandes, portages, suites, compagnie et soupçons par `memoire` ; axes sous `relations`.
+  AST 295 → 28 expressions, aucun accès aux suivis vivants ; stockage et politiques conservés.
+  195 tests distincts : 194 verts, un rouge du MJ reproduit sur la base ; deux reprises complètes du 372.
+  `origin/integration 78e4133b` intégré sans recouvrement de code ; après fusion 52/53 verts, même rouge.
+  Empreintes 2 h × 4 graines × 4 scénarios : 16/16 identiques (chroniques, mesures, état complet), aucun plantage.
+  Lot clos ; `C:/Users/msics/donjon/artifacts/s1n-420/fin.json` réussi ; pas de suite complète ni Luna.
+  [Rapport](taches/rapport-codex-420-s1n-suivis-relationnels.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 420, S1n : épreuves, ancrages, compagnie partagée, soupçons déduits et liens par des vues et opérations nommées, une seule projection vers les décisions, relations.py seule autorité sur les axes ; inventaire AST 295 → 28. 194/195 tests (rouge hérité de la base), 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
+- `codex-a6-raccord-libre` (416), correctif `bcd5729e` : régression A6 des entraves corrigée dans A1,
+  sans ouvrir les champs inconnus ni toucher aux gestes sonores ; base `8c5eaaa7` et branche vertes en libération.
+  36 ciblés verts ; deux PNJ/deux producteurs de liens, consentement, monde/rendu après recharge et laps découpés.
+  Vingt voisins : 222 méthodes, 602,59 s, trois ignorés ; seuls trois échecs/une erreur des trois méthodes
+  déjà rouges sur la base et acceptées subsistent ; tous les autres fichiers verts, aucune nouvelle régression observée.
+  Prêt pour fusion sous les limites acceptées (coût, sifflement partiel, repli crypte, rouges de base) ; aucun calcul actif.
+  [Rapport et preuves](taches/rapport-codex-416-a6-raccord-libre.md) ; bruts `artifacts/a6-raccord-libre-416/entraves/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 416, A6 : la saisie libre passe par le compilateur forme A (contrats A2, liaison A3, dossier A4, reprise A5, U-P/U-C) ; la revue juge chaque champ typé, un écart typé n'est jamais cosmétique (garde déterministe) ; régression des entraves corrigée. Luna : 2,29 appels et 9,08 s par tour (corpus différent du repère), aucun son substitué admis, sifflement servi une fois sur deux (l'autre refusé, visible) ; repli de la crypte présent sur la base. 36 tests ciblés ; voisins : trois rouges hérités de la base. La forme A du compilateur est complète.
+
+- `codex-s1m-renoncements` — lot 418, base `integration 718ca2e0` : accès aux renoncements et efforts bornés par `memoire.py`, publication après le choix complet réussi, devis/interruption sans publication.
+  Stockage, causes du 417 et règles historiques conservés ; inventaire AST 46 → 7 expressions (schéma et diagnostics/archives).
+  156 tests distincts : 155 méthodes vertes ; deux sous-échecs d'étapes chaînées reproduits sur la base exacte. Sept nouveaux tests verts.
+  Empreintes 2 h × quatre graines × quatre scénarios : **16/16 identiques** à `718ca2e0` (branche mesurée `87673277`), aucun plantage ; `fin.json` vert, aucun calcul restant.
+  Avance documentaire d'intégration intégrée ; aucun changement de `mj.py`, aucun nouveau registre ; pas de suite complète ni Luna. [Rapport](taches/rapport-codex-418-s1m-renoncements.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 418, S1m : renoncements (obstacle, cause, témoins) et efforts bornés par des vues et opérations nommées, publiés seulement à la sortie d'un choix complet réussi ; levée par constat du 417 conservée. 155/156 méthodes (sous-échecs hérités de la base), 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - **417 clos avec réserves — `codex-obstacle-temoin-expire`**, base `origin/integration 19b711bf`, moteur `bb5dfc5e`.
   Le renoncement conserve sa cause malgré l'expiration ; les préfixes et suffixes coupés portent leur provenance.
   Guet engagé conservé, autre moyen permis, validation des suites à la sauvegarde ; cinq oracles 225 intacts.

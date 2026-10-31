@@ -121,7 +121,7 @@ class CompensationTests(unittest.TestCase):
         self.assertIn("prend l'argent", ' '.join(lignes))
 
     def test_negatif_du_contrat_precedent_est_rejuge_apres_recharge(self):
-        from donjon import pnj_propositions as propositions
+        from donjon import memoire, pnj_propositions as propositions
         data = Path(__file__).parent / 'data'
         m = self.stable(Monde(json.loads(gzip.decompress((data / 'recours-228-odon.json.gz').read_bytes()))))
         lire(m, 'odon')['attentes_bornees'].update(json.loads((data / 'compensation-228-cache-v1.json').read_text(encoding='utf8')))
@@ -129,7 +129,8 @@ class CompensationTests(unittest.TestCase):
             for _ in range(2):
                 m = self.stable(m)
                 intention = lire(m, 'odon')['intention']
-                self.assertIsNone(propositions.recours(m, 'odon', intention['motif'], intention['plan']))
+                with memoire.choix_complet(m, 'odon'):
+                    self.assertIsNone(propositions.recours(m, 'odon', intention['motif'], intention['plan']))
             self.assertEqual(calcul.call_count, 1)
 
 

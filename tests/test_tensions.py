@@ -3,6 +3,7 @@
 Chaque test vérifie l'état du monde et, quand le joueur est présent, ce qu'il lit, après
 rechargement.
 """
+from tests.revue_support import rapport as rapport_complet
 from pathlib import Path
 import tempfile
 import unittest
@@ -388,7 +389,7 @@ class JoueurFeuTests(unittest.TestCase):
             m.sauver(chemin)
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=lambda *a: (
-                      {"conforme": True, "motif": ""} if a[3] == "auditer_action" else
+                      rapport_complet(a[1], True, "") if a[3] == "auditer_action" else
                       {"mode": "action", "texte": "", "faits": [], "proposition": proposee})),
                   patch("builtins.input", side_effect=[
                       "je ramasse les fagots et j'en mets une brassée dans le feu du brasero", "tenter", "quitter"]),

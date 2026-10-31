@@ -6,6 +6,7 @@ from pathlib import Path
 import unittest
 
 from donjon import agendas, planification, relations
+from donjon.emissions import lire as emissions
 from donjon.esprits import lire, croire, memoriser, percevoir, verifier
 from donjon.rendu import regarder as rendu
 from donjon.recit_pnj import Recit
@@ -19,6 +20,8 @@ class AgendaSoupconTests(unittest.TestCase):
         from donjon.scene import scene_percue
         n = recharger(m)
         self.assertEqual(m.data, n.data)
+        self.assertEqual(json.dumps(m.data), json.dumps(n.data))
+        self.assertEqual(emissions(m), emissions(n))
         self.assertEqual(rendu(m), rendu(n))
         self.assertEqual(scene_percue(m), scene_percue(n))
         self.assertEqual(Recit(m).entre_eux(m, m.data.get('chronique', [])),
@@ -28,7 +31,7 @@ class AgendaSoupconTests(unittest.TestCase):
             p = Path(os.environ['SEUIL_PREUVES_SOUPCON']) / (nom + '.json')
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(json.dumps({'monde': n.data, 'rendu': rendu(n),
-                'scene': scene_percue(n), 'recit': Recit(n).entre_eux(n, n.data['chronique'])},
+                'scene': scene_percue(n), 'paroles': emissions(n), 'recit': Recit(n).entre_eux(n, n.data['chronique'])},
                 ensure_ascii=False, indent=2), encoding='utf-8')
         return n
 
@@ -79,12 +82,23 @@ class AgendaSoupconTests(unittest.TestCase):
                 suivant = agendas.planifier(m, victime, a['id'])
             self.assertFalse(suivant and any(g.get('contenu') == {'localisation': bien} for g in suivant[1]))
             m = self.recharge(m, 'question-' + ('auberge' if autre else 'relais'))
-            entier, _ = vivre(self.recharge(m), 2, jet=20)
+            entier, lignes = vivre(self.recharge(m), 2, jet=20)
             decoupe = self.recharge(m)
+            suite = []
             for _ in range(2):
-                decoupe, _ = vivre(decoupe, 1, jet=20)
+                decoupe, nouvelles = vivre(decoupe, 1, jet=20)
+                suite.extend(nouvelles)
+                decoupe = self.recharge(decoupe)
+            entier = self.recharge(entier, 'laps-' + ('auberge' if autre else 'relais'))
+            self.assertEqual(lignes, suite)
             self.assertEqual(entier.data, decoupe.data)
-            self.assertEqual(rendu(entier), rendu(self.recharge(decoupe)))
+            self.assertEqual(json.dumps(entier.data), json.dumps(decoupe.data))
+            self.assertEqual(rendu(entier), rendu(decoupe))
+            from donjon.scene import scene_percue
+            self.assertEqual(scene_percue(entier), scene_percue(decoupe))
+            self.assertEqual(emissions(entier), emissions(decoupe))
+            self.assertEqual(Recit(entier).entre_eux(entier, entier.data['chronique']),
+                             Recit(decoupe).entre_eux(decoupe, decoupe.data['chronique']))
 
     def test_ponderation_signes_antecedents_et_pas_profils_secrets(self):
         for indice in ('guet', 'garde', 'ancien', 'secret'):

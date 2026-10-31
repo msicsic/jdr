@@ -76,6 +76,26 @@ OBJET_PUBLIC = frozenset("""
     bloque_vue passage lieu position position_salle case_percue a_portee
     sens constats_capacites
 """.split())
+# Contrats des producteurs mécaniques déjà exposés par Monde.contexte :
+# matiere.appliquer/fixer_longueur/valider_contenu et artisanat.appliquer.
+# Ils couvrent aussi les pièces et structures créées pendant la partie, sans
+# distinguer leur identifiant, leur lieu, ni leur scénario d'origine.
+from .matiere import DIMENSIONS
+OBJET_PUBLIC |= frozenset(DIMENSIONS) | frozenset("""
+    physique ressource charge_jeu_kg contenu portions contenu_vide
+    assemblage barreaux composants installation incorpore pieces
+    description sonorite facettes facettes_etablies
+""".split())
+OBJET_PRIVE |= frozenset(("arbitrage", "pv", "pv_max", "corps"))
+# tenir.finir marque tout lien qui retient un corps avec entrave=True et
+# retire ce marqueur quand le lien est défait. C'est un état mécanique public
+# du lien perceptible, également produit par banc_pnj.appliquer_etats.
+OBJET_PUBLIC |= frozenset(("entrave",))
+# faits_locaux produit une relation mécanique publique et des métadonnées
+# de persistance. Ces dernières ne sont ni une perception ni une capacité.
+OBJET_PUBLIC |= frozenset(("relation_support",))
+OBJET_TECHNIQUE = frozenset(("origine_description", "scene_detail", "detail_local",
+                             "cartographier", "position_autonome", "ancrage_initial"))
 SOUVENIR_PERSONNAGE_PUBLIC = frozenset(("nom", "portrait", "traits", "details", "source", "minute",
                                        "tour", "maniere_de_parler"))
 SOUVENIR_VISUEL_PUBLIC = frozenset(("id", "nom", "derniere_salle", "hors_de_vue", "distance_metres",
@@ -140,7 +160,7 @@ def projeter(entree):
         _verifier_champs(bloc, SOUVENIR_VISUEL_PUBLIC, ("faits", "souvenirs_visuels", i))
     for cle, bloc in faits.items():
         if cle.startswith("objet:"):
-            _verifier_champs(bloc, OBJET_PUBLIC | OBJET_PRIVE, ("faits", cle))
+            _verifier_champs(bloc, OBJET_PUBLIC | OBJET_PRIVE | OBJET_TECHNIQUE, ("faits", cle))
 
     provenance, exclusions = [], []
     # Seuls les répertoires de désignation publics font connaître une référence.
@@ -157,6 +177,8 @@ def projeter(entree):
         if len(chemin) < 2 or chemin[0] != "faits":
             return None
         source = chemin[1]
+        if source.startswith("objet:") and len(chemin) >= 3 and chemin[2] in OBJET_TECHNIQUE:
+            return "métadonnée de création et de persistance, sans autorité perceptive"
         if source == "connaissances_pnj":
             return "dossier de savoir privé du PNJ ; les mots transmis restent dans les paroles"
         if source == "esprits_interlocuteurs" and len(chemin) >= 4 and chemin[3] in ESPRIT_PRIVE:

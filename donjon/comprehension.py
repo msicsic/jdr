@@ -8,6 +8,29 @@ from .francais import designer
 from .noms import reference, texte
 
 
+def champs_types_revue(proposition, chemin=""):
+    """Tous les paramètres mécaniques du candidat ; les trois proses sont distinctes.
+
+    Le candidat est déjà contrôlé par sa grammaire. Contrairement à l'empreinte
+    conservatrice A5, cette table couvre aussi nombres, quantités et clauses.
+    Elle ne lit jamais la saisie et ne décide pas des valeurs qu'elle demande.
+    """
+    import copy
+    resultat = {}
+    for cle, v in proposition.items():
+        if cle in {"justification", "intention", "recit"}:
+            continue
+        nom = chemin + cle
+        if isinstance(v, dict) and v:
+            resultat.update(champs_types_revue(v, nom + "."))
+        elif isinstance(v, list) and v and all(isinstance(e, dict) for e in v):
+            for i, e in enumerate(v):
+                resultat.update(champs_types_revue(e, f"{nom}.{i}."))
+        else:
+            resultat[nom] = copy.deepcopy(v)
+    return resultat
+
+
 def parametres_types(proposition, chemin=""):
     """Empreinte de sens d'un candidat, même non préparé. Aucune prose ne fait foi."""
     import copy

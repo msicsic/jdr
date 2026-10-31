@@ -73,7 +73,7 @@ def diagnostiquer(nom, qui, dossier):
         'scene': nom, 'minute': debut, 'pnj': qui, 'plan': plan,
         'cout_route_minutes': cout_route(route, depart.orientation),
         'marche': duree, 'eau': risques,
-        'renoncements': lire(monde, qui)['renoncements'],
+        'renoncements': memoire.renoncements_retenus(monde, qui),
         'refus': memoire.reponses_retenues(monde, qui),
         'apres_20_minutes': {
             'salle': bloc.objets[qui]['lieu'],

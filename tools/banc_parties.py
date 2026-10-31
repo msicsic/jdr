@@ -275,9 +275,9 @@ def preparer(donnees, sauvegarde):
     for id, valeurs in prep.get("valeurs", {}).items():
         m.objets[id]["profil"]["valeurs"].update(valeurs)   # Placement d'auteur : un caractère retouché.
     for id, liens in prep.get("relations", {}).items():
-        from donjon.relations import _nouvelle
+        from donjon.relations import installer_lien
         for autre, axes in liens.items():
-            esprit(m, id)["relations"][autre] = _nouvelle(axes, m.data["minutes"])
+            installer_lien(m, id, autre, axes)
     from donjon.biens import rembourser
     for d in prep.get("dettes", []):
         # Placement d'auteur : une contrepartie payée et jamais livrée, comme l'échéance la fait naître.

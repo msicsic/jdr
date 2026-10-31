@@ -10,7 +10,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import patch
 
-from donjon import pnj_propositions as p
+from donjon import memoire, pnj_propositions as p
 from donjon.esprits import lire, croire
 from donjon.monde import Monde
 from donjon.rendu import regarder
@@ -32,7 +32,9 @@ class RecoursNegatifTests(unittest.TestCase):
 
     def appeler(self, m, qui):
         intention = lire(m, qui)['intention']
-        return p.recours(m, qui, intention['motif'], intention['plan'])
+        # Le devis n'acquitte l'effort que dans un choix explicitement achevé.
+        with memoire.choix_complet(m, qui):
+            return p.recours(m, qui, intention['motif'], intention['plan'])
 
     def stable(self, m):
         r = recharger(m)
@@ -186,7 +188,7 @@ class RecoursNegatifTests(unittest.TestCase):
                             self.assertEqual(m.data, avant)
                             raise RuntimeError('annulation')
                     self.assertEqual(m.data, avant)
-                    with planification.vues_du_choix(m, qui):
+                    with memoire.choix_complet(m, qui), planification.vues_du_choix(m, qui):
                         self.assertIsNone(self.appeler(m, qui))
                         self.assertEqual(m.data, avant)
                 self.assertNotEqual(lire(m, qui)['attentes_bornees'], avant['esprits'][qui]['attentes_bornees'])
