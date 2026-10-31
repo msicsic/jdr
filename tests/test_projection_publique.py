@@ -128,6 +128,22 @@ class ProjectionCorpusTests(unittest.TestCase):
             with self.subTest(source=source), self.assertRaises(ProvenanceAbsente):
                 projeter(e)
 
+    def test_marqueur_entrave_conserve_sans_ouvrir_les_champs_sans_contrat(self):
+        for valeur in (True, False):
+            e = copy.deepcopy(self.corpus[0]["entree"])
+            objet = next(k for k in e["faits"] if k.startswith("objet:"))
+            e["faits"][objet]["entrave"] = valeur
+            p = projeter(e)
+            self.assertIs(p.entree["faits"][objet]["entrave"], valeur)
+            self.assertGreater(verifier_couverture(e, p), 0)
+            chemin = ["faits", objet, "entrave"]
+            preuve = next(v for v in p.provenances if v["chemin"] == chemin)
+            self.assertEqual(preuve["destination"], chemin)
+            # L'admission du marqueur moteur ne rend public aucun autre champ.
+            e["faits"][objet]["capacite_non_portee"] = "SECRET_SANS_CONTRAT"
+            with self.assertRaises(ProvenanceAbsente):
+                projeter(e)
+
     def test_paroles_conservees_sans_croyances_ni_auditeurs_inconnus(self):
         e = copy.deepcopy(next(e["entree"] for e in self.corpus if e["id"] == "echanges/2"))
         p = projeter(e)

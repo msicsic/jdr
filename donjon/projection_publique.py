@@ -87,6 +87,10 @@ OBJET_PUBLIC |= frozenset(DIMENSIONS) | frozenset("""
     description sonorite facettes facettes_etablies
 """.split())
 OBJET_PRIVE |= frozenset(("arbitrage", "pv", "pv_max", "corps"))
+# tenir.finir marque tout lien qui retient un corps avec entrave=True et
+# retire ce marqueur quand le lien est défait. C'est un état mécanique public
+# du lien perceptible, également produit par banc_pnj.appliquer_etats.
+OBJET_PUBLIC |= frozenset(("entrave",))
 SOUVENIR_PERSONNAGE_PUBLIC = frozenset(("nom", "portrait", "traits", "details", "source", "minute",
                                        "tour", "maniere_de_parler"))
 SOUVENIR_VISUEL_PUBLIC = frozenset(("id", "nom", "derniere_salle", "hors_de_vue", "distance_metres",

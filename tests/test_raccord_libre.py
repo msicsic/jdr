@@ -205,6 +205,39 @@ class RaccordLibreTests(unittest.TestCase):
                 r, _ = self.action(m, "je ramasse " + cible, proposition("prendre", cible))
                 self.assertEqual(r.objets[cible]["lieu"], "joueur")
 
+    def test_liberation_saisie_libre_liens_de_deux_producteurs_apres_recharge(self):
+        from donjon import corps
+        from donjon.banc_pnj import appliquer_etats
+        from donjon.esprits import percevoir_tous
+        from donjon.moteur import Moteur
+        from tests.test_tenir import situation
+        for cible, origine in (("brune", "etat"), ("aubin", "geste")):
+            with self.subTest(cible=cible, origine=origine):
+                m = situation(cible)
+                for id, o in m.objets.items():
+                    if o["type"] == "personnage":
+                        corps.endormir(m, id)
+                if origine == "etat":
+                    appliquer_etats(m, [cible + ":ligote"])
+                else:
+                    moteur = Moteur(m)
+                    moteur.executer(moteur.preparer(proposition("ligoter", cible, "corde_test")))
+                # État d'auteur : ces liens retiennent maintenant Corvus.
+                liens = corps.corps(m, cible).pop("lie")
+                corps.corps(m, "joueur")["lie"] = liens
+                lien = liens["lien"]
+                m.objets[lien]["lieu"] = "joueur"
+                percevoir_tous(m)
+                m = recharger(m)
+                self.assertIs(m.objets[lien]["entrave"], True)
+                or_avant = m.joueur["or"]
+                r, apercus = self.action(m, "je dénoue mes liens", proposition("liberer", "joueur"))
+                self.assertTrue(apercus)
+                self.assertNotIn("lie", corps.corps(r, "joueur"))
+                self.assertNotIn("entrave", r.objets[lien])
+                self.assertEqual(r.joueur["or"], or_avant)
+                self.assertIn("liens", r.data["conversation"][-1]["reponse"])
+
     def test_matieres_typees_retrouvees_apres_geste_recharge_et_laps(self):
         from donjon.atelier import nouveau_atelier
         source = nouveau_atelier()
