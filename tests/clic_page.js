@@ -228,9 +228,9 @@ if (ETAT.sonde_accord_libre) {
 }
 if (ETAT.sonde_suggestion !== undefined) {
   appliquerEtat(ETAT); occupe = false; envois.length = 0;
-  $("negocier").onclick();
+  if (!ETAT.brouillon_accord) $("negocier").onclick();
   let form = $("accord");
-  const s = ETAT.accord.suggestions[ETAT.sonde_suggestion];
+  const s = (ETAT.brouillon_accord?.public || ETAT.accord).suggestions[ETAT.sonde_suggestion];
   const bouton = form.children.find(c => c.tagName === "BUTTON" && c.textContent === s.nom);
   bouton.onclick();
   form = $("accord");

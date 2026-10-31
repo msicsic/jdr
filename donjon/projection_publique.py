@@ -44,6 +44,7 @@ SOURCES = {
     "expression_joueur": "fait_moteur", "parole_prevue": "proposition_non_executee",
     "ambiance_ciblee": "ambiance_enregistree", "reperes_demandes": "saisie_joueur",
     "retour_moteur": "refus_moteur",
+    "accords_negociables": "catalogue_admission",
 }
 SOURCES_ENTREE = {
     "message": "saisie_joueur", "conversation": "historique_conversation",

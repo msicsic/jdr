@@ -43,6 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-k2-assistance-luna` — lot 434, base `integration` `364e8722` : aide demandée,
+  au plus deux alternatives typées, admission commune sur copie puis éditeur K1.
+  Aucun accord, prix accepté ou besoin privé décidé par Luna ; clauses inconnues écartées entières.
+  Code réalisé, vérification K2/K0/K1/E5/E6/propositions/projection et passe Luna ciblée en cours ;
+  fin attendue : `artifacts/k2-assistance-434/fin.json` dans le worktree du lot.
+  Fidélité sémantique non garantie pour tout français libre ; aucun audit retiré.
+  [Rapport et commande de reprise](taches/rapport-codex-434-k2-assistance-luna.md).
+
 Lots en cours : 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats), 434 (K2, assistance Luna), 402 (vérification d’intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 

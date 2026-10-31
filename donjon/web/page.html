@@ -764,7 +764,7 @@ function ouvrirAccord(brouillon = null) {
   const aide = document.createElement("p");
   aide.textContent = "Compose les deux termes : ce que Corvus donne et ce qu’il demande. Un objet ou une part est remis si l’accord est accepté ; une tâche reste une promesse. Ni prêt daté, ni maintien, ni paiement futur. Une limite ponctuelle exige des pièces présentes en face.";
   form.appendChild(aide);
-  if (!brouillon && projection.suggestions?.length) {
+  if ((!brouillon || !Object.keys(brouillon.initial || {}).length) && projection.suggestions?.length) {
     const titre = document.createElement("p");
     titre.textContent = "Suggestions à discuter ; aucun accord ni paiement. Prix modifiable.";
     form.appendChild(titre);

@@ -70,6 +70,8 @@ def schema_reponse(*, enrichir=True):
                                    **schema_parole["properties"]}
     schema_parole["required"] = ["operations_demandees", *schema_parole["required"]]
     from .accords_libres import SCHEMA as SCHEMA_ACCORD
+    from .negociation import SCHEMA as SCHEMA_AIDE
+    schema_accord = {'anyOf': [SCHEMA_ACCORD, SCHEMA_AIDE]}
     schema = {
         "type": "object", "additionalProperties": False,
         "properties": {
@@ -80,7 +82,7 @@ def schema_reponse(*, enrichir=True):
             "proposition": {"anyOf": [SCHEMA, *SCHEMAS_PASSAGE, SCHEMA_ATTENTE, SCHEMA_SEQUENCE, {"type": "null"}, SCHEMA_PROFIL,
                                       SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE,
                                       SCHEMA_COMPLEMENTS, SCHEMA_CONVERSATION, schema_parole,
-                                      SCHEMA_SAVOIRS, SCHEMA_DEMANDE_OUVERTE, schema_faits_suite, SCHEMA_ACCORD]},
+                                      SCHEMA_SAVOIRS, SCHEMA_DEMANDE_OUVERTE, schema_faits_suite, schema_accord]},
         },
         "required": ["mode", "texte", "faits", "proposition"],
     }
@@ -97,6 +99,6 @@ def schema_reponse(*, enrichir=True):
         "conversation_pnj": SCHEMA_CONVERSATION, "parole_joueur": schema_parole,
         "parole_ouverte": SCHEMA_DEMANDE_OUVERTE,
         "enrichir_savoirs": SCHEMA_SAVOIRS, "etablir_faits": schema_faits_suite,
-        "accord": SCHEMA_ACCORD,
+        "accord": schema_accord,
     })
     return schema
