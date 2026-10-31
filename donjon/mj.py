@@ -493,13 +493,13 @@ class MJ:
             rapport = self._appeler_brut(
                 (INSTRUCTIONS_PAROLE + "\n" + SENS_REPLIQUE) if plan.parole is not None else INSTRUCTIONS_COUVERTURE,
                 dossier,
-                "Contrôler la fidélité du plan", "auditer_action", schema_couverture(plan))
+                "Contrôler la fidélité du plan", "auditer_action", schema_couverture(plan, monde))
             if self.observateur:
                 self.observateur({"etape": "couverture de l'action", "modele": self.modele,
                                   "revision": revision, "intention": intention,
                                   "rapport": copy.deepcopy(rapport)})
             try:
-                verifier_couverture(rapport, plan, operations_demandees)
+                verifier_couverture(rapport, plan, operations_demandees, monde=monde)
                 return
             except RapportInvalide as exc:
                 # Une revue incomplète ne peut pas autoriser un geste. La seconde

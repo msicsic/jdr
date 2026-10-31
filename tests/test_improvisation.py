@@ -179,7 +179,7 @@ class ImprovisationTests(unittest.TestCase):
     def test_refus_impossible_reexamine_intention_sans_regle_de_mot_cle(self):
         refus = reponse(action("impossible", justification="Je ne vois pas de voie."))
         with patch.object(MJOpenAI, "_appeler", side_effect=[refus, reponse(chant())]) as api, \
-             patch.object(MJOpenAI, "_appeler_brut", return_value={"conforme": True, "motif": ""}):
+             patch.object(MJOpenAI, "_appeler_brut", side_effect=lambda *args: rapport_complet(args[1])):
             sortie = MJOpenAI().echanger(self.m, "je chante")
         self.assertEqual(api.call_count, 2)
         self.assertEqual(sortie["proposition"], chant())

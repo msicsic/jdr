@@ -13,7 +13,7 @@ Cas réels : « Tu demandes à Ilse de t'aider. « Pas maintenant », te répond
 (``narration-fidele``) ; la voix qui se disait Brune (``voix``) ; « Prise non demandée » de la
 contre-revue (``contre-revue``). Chaque voie est vérifiée sur un autre cas de même nature, et les
 chaînes complètes après rechargement."""
-from tests.revue_support import porter as porter_revue
+from tests.revue_support import porter as porter_revue, rapport as rapport_complet
 import io
 from pathlib import Path
 import tempfile
@@ -241,7 +241,7 @@ class ContreRevuesTests(unittest.TestCase):
         m = nouveau_monde()
         plan = Moteur(m).preparer(proposition("detacher", "axe_haut", "couteau", "levier", 18))
         with self.assertRaises(ErreurMonde) as refus:
-            verifier_couverture({"conforme": False, "motif": "Prise non demandée."}, plan)
+            verifier_couverture(rapport_complet(plan, False, "Prise non demandée."), plan)
         self.assertEqual(str(refus.exception), "La manœuvre proposée ne couvre pas la demande : Prise non demandée.")
         self.assertEqual(refus.exception.attendu,
                          f"proposition, reçu « {plan.titre} (action detacher, cible axe_haut) » ; selon l'auditeur "

@@ -1,5 +1,6 @@
 """416 reprise : table exhaustive, distinction typé/cosmétique et recharge."""
 import copy
+import json
 import unittest
 from unittest.mock import patch
 
@@ -7,7 +8,7 @@ from donjon.comprehension import champs_types_revue
 from donjon.couverture_action import entree, schema, verifier, RapportInvalide
 from donjon.mj import MJ
 from donjon.monde import ErreurMonde, nouveau_monde
-from donjon.moteur import Moteur
+from donjon.moteur import Moteur, Plan, proposition as geste
 from donjon.improvisation import proposition, issue, effet
 from tests.revue_support import rapport
 from tests import test_reprise_fidele as reprise
@@ -16,6 +17,20 @@ from tests.test_paroles import relais
 
 
 class RevueChampsTypesTests(unittest.TestCase):
+    def test_refs_publiques_dans_table_et_schema_puis_comparees_au_moteur(self):
+        from donjon.noms import reference
+        m = relais()
+        plan = Plan(geste("pousser", "brune"), m.data["revision"], "Pousser cette personne.")
+        with patch("donjon.noms.connait", return_value=False):
+            ref = reference(m, "brune")
+            self.assertNotEqual(ref, "brune")
+            dossier = entree("je pousse cette personne", plan, m)
+            s = schema(plan, m)
+            self.assertEqual(dossier["champs_types"]["cible"], ref)
+            self.assertNotIn('brune', json.dumps(dossier, ensure_ascii=False).lower())
+            self.assertNotIn('brune', json.dumps(s, ensure_ascii=False).lower())
+            verifier(rapport(dossier), plan, monde=m)
+
     def test_chaque_champ_est_obligatoire_et_ne_peut_pas_devenir_cosmetique(self):
         p = proposition("Une manière libre", issue("Une prose libre", [effet("son", "joueur", texte="voix_melodique", valeur=1)]))
         plan = Moteur(nouveau_monde()).preparer(p)

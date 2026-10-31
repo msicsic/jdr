@@ -243,7 +243,7 @@ class ForceLunaTests(unittest.TestCase):
             self.assertEqual(piece['personnes_retenues_apres_operation'],
                              [x for x in piece['personnes_connues'] if cible in x])
             self.assertEqual(fermeture['passages'][0]['personnes_retenues_apres_operation'], [])
-            verifier({"conforme": True, "motif": "porte fermée et verrouillée"}, plan)
+            verifier(rapport_complet(plan, True, "porte fermée et verrouillée"), plan)
             with self.assertRaises(ErreurMonde):
                 verifier({"conforme": False, "motif": "la demande exige de rouvrir"}, plan)
             def admettre(recu):

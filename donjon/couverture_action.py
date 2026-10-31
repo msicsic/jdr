@@ -34,7 +34,21 @@ SCHEMA_PAROLE = {
 }
 
 
-def schema(plan):
+def champs_revue(plan, monde=None):
+    from .comprehension import champs_types_revue
+    from .noms import reference, CHAMPS_REFERENCES, LISTES_REFERENCES
+    valeurs = champs_types_revue(plan.proposition)
+    if monde is not None:
+        for chemin, v in valeurs.items():
+            champ = chemin.rsplit(".", 1)[-1]
+            if champ in CHAMPS_REFERENCES and isinstance(v, str):
+                valeurs[chemin] = reference(monde, v)
+            elif champ in LISTES_REFERENCES and isinstance(v, list):
+                valeurs[chemin] = [reference(monde, r) for r in v]
+    return valeurs
+
+
+def schema(plan, monde=None):
     if plan.parole is not None:
         return SCHEMA_PAROLE
     import copy
@@ -52,7 +66,7 @@ def schema(plan):
                         "Si non précisée, reprendre la valeur proposée : " + valeur_typee(v)},
                     "perimetre": {"type": "string", "enum": ["contrat_type"]}},
                 "required": ["conforme", "demande", "perimetre"]}
-                for champ, v in champs_types_revue(plan.proposition).items()},
+                for champ, v in champs_revue(plan, monde).items()},
             "required": list(champs_types_revue(plan.proposition)),
             "description": "Comparer séparément TOUS les champs. Les chaînes restent littérales ; "
                            "les autres valeurs sont encodées en JSON. Aucun champ typé n'est cosmétique."}})
@@ -336,7 +350,7 @@ def entree(intention, plan, monde=None):
     from .comprehension import champs_types_revue
     entree_ = {"demande": intention, "plan": operations}
     if plan.parole is None:
-        entree_["champs_types"] = champs_types_revue(plan.proposition)
+        entree_["champs_types"] = champs_revue(plan, monde)
         entree_["contrats_canoniques"] = contrats_revue()
     if monde is not None:
         from .noms import public
@@ -383,7 +397,7 @@ def verifier_operations(plan, requises):
                           forme, ("opération demandée absente", operation)))
 
 
-def verifier(rapport, plan=None, operations_demandees=None):
+def verifier(rapport, plan=None, operations_demandees=None, *, monde=None):
     """Le verdict de la contre-revue. Non conforme : un refus dont ``attendu`` (``refus.attendu_audit``)
     cite le plan reçu, le motif de la revue tel quel, et ce qui serait accepté."""
     if plan is not None and plan.parole is not None:
@@ -417,6 +431,7 @@ def verifier(rapport, plan=None, operations_demandees=None):
     if plan is not None:
         from .comprehension import champs_types_revue
         types = champs_types_revue(plan.proposition)
+        publics = champs_revue(plan, monde)
         if (not isinstance(rapport, dict)
                 or set(rapport) != {"conforme", "motif", "perimetre", "champs_types"}
                 or type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)
@@ -452,12 +467,24 @@ def verifier(rapport, plan=None, operations_demandees=None):
                 except ValueError as exc:
                     raise RapportInvalide("La valeur typée demandée est illisible.",
                         f"champs_types.{champ}.demande : reçu {demande!r} ; accepté un JSON "
-                        f"du même type que {valeur_typee(types[champ])!r}.") from exc
+                        f"du même type que {valeur_typee(publics[champ])!r}.") from exc
+            if monde is not None:
+                from .noms import CHAMPS_REFERENCES, LISTES_REFERENCES
+                from .voix import reel
+                nom = champ.rsplit(".", 1)[-1]
+                if nom in CHAMPS_REFERENCES and isinstance(demande, str):
+                    demande = reel(monde, demande)
+                elif nom in LISTES_REFERENCES and isinstance(demande, list):
+                    if not all(isinstance(v, str) for v in demande):
+                        raise RapportInvalide("La liste de références demandées est mal formée.",
+                            f"champs_types.{champ}.demande : reçu {comparaison['demande']!r} ; "
+                            "accepté une liste JSON d'identifiants publics.")
+                    demande = [reel(monde, v) for v in demande]
             identique = type(demande) is type(types[champ]) and demande == types[champ]
             demandes[champ] = demande
             if comparaison["conforme"] != identique:
                 raise RapportInvalide("Le jugement du champ contredit ses valeurs typées.",
-                    f"champs_types.{champ} : reçu {comparaison!r}, proposé {types[champ]!r} ; "
+                    f"champs_types.{champ} : reçu {comparaison!r}, proposé {publics[champ]!r} ; "
                     "accepté conforme=true si valeurs égales, false si différentes.")
             if not identique:
                 champs_corrigeables.append(champ)
@@ -495,7 +522,7 @@ def verifier(rapport, plan=None, operations_demandees=None):
                         # entier est contesté ; le suivant sera préparé et revu.
                         libres = ("",)
             raise ErreurMonde("Le plan propose une autre opération ou manière que celle demandée.",
-                f"proposition.{champ} : reçu {types[champ]!r} ; accepté : "
+                f"proposition.{champ} : reçu {publics[champ]!r} ; accepté : "
                 f"{recus[champ]['demande']!r} (sens proposé par la revue).",
                 champs_corrigeables=libres)
         if rapport["perimetre"] in {"contrat_type", "nuance_cosmetique"}:
