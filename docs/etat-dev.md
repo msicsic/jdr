@@ -47,8 +47,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1o-aides-contrats` (435), base `364e8722` : aides, rendez-vous, mandats perçus et
   connaissances de contrat passent par `memoire`, archives mécaniques inchangées.
   Copies profondes, références sans registre parallèle, clôture distante distincte du savoir.
-  8 épreuves S1o, 6 tests du socle d'agendas et 43 tests des sondes verts ; rouges historiques en attribution.
-  Fusion de `b21d4656` par `c22a8d78`, sans recouvrement de fonction ; contrôles après fusion enchaînés.
+  341 méthodes distinctes : 334 vertes, sept rouges identiques à la base ; 47 tests après fusion verts.
+  Intégration `693200b4` fusionnée, branche publiée par connecteur, arbre distant vérifié identique.
   Empreintes 2 h × quatre graines × quatre scénarios : fin attendue `artifacts/s1o-435/fin-reprise.json`.
   [Rapport](taches/rapport-codex-435-s1o-aides-contrats.md), bruts `artifacts/s1o-435/` du dépôt principal.
 
