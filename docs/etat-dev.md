@@ -45,13 +45,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-a2-consultation-sociale` — lot 407, base `integration b4130dc3` : contrat commun de
   `qui`/`localisation`/`ressource`/`reclamer`, schéma, typage, raccourcis et « Compris » ; mécanique conservée.
-  Neuf nouveaux tests ; deux sous-cas de montage corrigés, rejeu ciblé 2/2 vert en 72,35 s.
-  Vérification finale détachée : 13 fichiers voisins ; empreintes 2 h × quatre graines Relais/auberge.
-  Résultats attendus : `C:/Users/msics/donjon/artifacts/a2-consultation-sociale-407/fin.json` ; lot pas encore validé.
-  Aucune assertion existante changée, ni Luna, ni registre d'esprit ; fidélité Luna hors A2.
+  Passe initiale : 128 tests ; reprise finale 14/14 et 27/27 verts (36 méthodes distinctes), sans erreur ni ignoré.
+  Empreintes identiques : 2 h × quatre graines Relais/auberge, huit nuits par version, zéro plantage.
+  Deux corrections de tests reprises à l'identique du 403 (`fc370ec6`) ; assertions de sécurité conservées/renforcées.
+  Bruts `artifacts/a2-consultation-sociale-407/` du dépôt principal ; ni Luna ni registre d'esprit ; fidélité hors A2.
   [Rapport](taches/rapport-codex-407-a2-consultation-sociale.md).
 
-Lots en cours : 403 (rouges nouveaux de la suite c562aa21), 406 (S1j paroles et voix), 407 (A2 consultation sociale) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 403 (rouges nouveaux de la suite c562aa21), 406 (S1j paroles et voix) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

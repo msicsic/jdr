@@ -47,7 +47,10 @@ def verifier(c, chemin="contenu"):
         if champ not in contrat["champs"] and c.get(champ, "") != "":
             raise RefusDeForme("Le contenu de cette parole comporte un champ sans sens pour son type.",
                               f"{chemin}.{champ} : reçu {c[champ]!r} ; accepté : vide pour type {c['type']}.")
-        if champ in contrat["requis"] and not normaliser(c.get(champ, "")):
+    # La charge interdite se refuse avant l'absence d'un sujet : elle ne peut
+    # pas être masquée par un second défaut de la même proposition.
+    for champ in contrat["requis"]:
+        if not normaliser(c.get(champ, "")):
             raise RefusDeForme("Corvus ne dit pas ce qu'il cherche.",
                               f"{chemin}.{champ} : reçu {c.get(champ)!r} ; accepté : sujet non vide. {contrat['sens']}")
 
