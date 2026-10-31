@@ -8,6 +8,28 @@ from .francais import designer
 from .noms import reference, texte
 
 
+def sens_propose(plan, parametres=None):
+    """Dossier de sens, distinct du verdict d'admission et du rendu public.
+
+    Le texte libre reste une proposition de manière, jamais une preuve d'effet.
+    Les étapes développées peuvent porter une opération absente du raccourci.
+    Aucun mot de la saisie ne choisit ici un contrat ou une conséquence.
+    """
+    import copy
+    from . import contrats_sequence, contrats_son, contrats_passage
+    p = plan.proposition if parametres is None else parametres
+    contrats = [s for famille in (contrats_sequence, contrats_son, contrats_passage)
+                if (s := famille.sens_propose(p))]
+    maniere = {k: copy.deepcopy(p[k]) for k in ("intention", "approche") if k in p}
+    for branche in ("reussite", "echec"):
+        if isinstance(p.get(branche), dict) and "recit" in p[branche]:
+            maniere[branche] = p[branche]["recit"]
+    return {"operation": p.get("operation", p.get("action", "")),
+            "parametres": copy.deepcopy({k: v for k, v in p.items()
+                                         if k not in ("justification", "etapes")}),
+            "contrats": contrats, "maniere_proposee": maniere}
+
+
 def repere(monde, identifiant):
     if identifiant == "joueur":
         return "toi"

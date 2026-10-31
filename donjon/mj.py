@@ -505,10 +505,14 @@ class MJ:
                                         INSTRUCTIONS_PAROLE,
                                         RapportInvalide, entree as entree_couverture,
                                         verifier as verifier_couverture)
+        # Figer le sens proposé et l'expansion moteur ensemble, avant la revue.
+        # L'admission n'est pas une preuve de fidélité ; le dossier ne remplace
+        # aucun contrôle mécanique et ses textes libres ne deviennent pas des faits.
+        dossier = entree_couverture(intention, plan, monde)
         for essai in range(2):
             rapport = self._appeler_brut(
                 (INSTRUCTIONS_PAROLE + "\n" + SENS_REPLIQUE) if plan.parole is not None else INSTRUCTIONS_COUVERTURE,
-                entree_couverture(intention, plan, monde),
+                dossier,
                 "Contrôler la fidélité du plan", "auditer_action", schema_couverture(plan))
             if self.observateur:
                 self.observateur({"etape": "couverture de l'action", "modele": self.modele,

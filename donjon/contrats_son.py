@@ -135,3 +135,12 @@ def precision_publique(plan, parametres):
                 lignes.append(prefixe + (" ".join(sons) if sons else "aucun son prévu parmi les effets du geste."))
         return " ".join(lignes) + (" " + AUDITION if sonore else "")
     return ""
+
+
+def sens_propose(parametres):
+    op = parametres.get("operation", parametres.get("action"))
+    if op == "emettre_son":
+        return emissions().get(parametres.get("methode"), {}).get("sens", "")
+    if op == "improviser":
+        return SON_IMPROVISE["sens"]
+    return ""

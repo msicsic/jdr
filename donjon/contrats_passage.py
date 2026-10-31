@@ -61,6 +61,12 @@ def champs(operation):
     return c
 
 
+def sens_propose(parametres):
+    op = parametres.get("operation", parametres.get("action"))
+    contrat = PASSAGES.get(op)
+    return contrat["sens"] + " " + contrat["public"] if contrat else ""
+
+
 def verifier(p):
     op = p.get("operation", p.get("action"))
     if op not in PASSAGES:
