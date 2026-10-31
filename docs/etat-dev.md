@@ -43,6 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-s1j-paroles-voix` — 406, base `integration b4130dc3`, code `914dbb07` : première partie,
+  dits, audiences et savoir initial par `memoire`, stockage et comportement historiques conservés.
+  AST dédié 122 → 0 ; 63/63 tests ciblés verts, dont cinq nouveaux ; état complet, rendu, scène et paroles
+  après recharge, laps entier/découpé. Onze fichiers voisins puis empreintes 2 h × 4 graines × 4 scénarios en cours.
+  Fin attendue : `C:/Users/msics/donjon/artifacts/s1j-406/fin.json`. Identité vocale et noms restent à porter.
+  [Rapport et limites](taches/rapport-codex-406-s1j-paroles-voix.md).
+
 Lots en cours : 403 (rouges nouveaux de la suite c562aa21), 406 (S1j paroles et voix), 407 (A2 consultation sociale) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 

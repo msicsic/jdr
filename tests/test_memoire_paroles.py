@@ -14,6 +14,7 @@ from donjon.scene import scene_percue
 from donjon.temps import ecouler
 from tests.test_deja_entendu import assemblee, dire
 from tests.test_memoire_localisation import acces_croyances, RACINE
+from tests.test_memoire_socle import AccesTests
 from tests.test_tensions import recharger
 
 
@@ -23,8 +24,8 @@ REGISTRES = {'faits_dits', 'faits_initiaux'}
 def acces_dits(source):
     """Alias locaux du contrôle S1f, complétés des écritures de clés racines.
 
-    Les créations de schéma ne consomment pas le registre ; elles sont déjà
-    gelées par test_memoire_socle (CHAMPS et connaissances_joueur).
+    Les deux créations de schéma sont admises par leur expression exacte
+    dans le test d'inventaire, sans exemption pour les autres dictionnaires.
     """
     acces = acces_croyances(source, registres=REGISTRES)
     arbre = ast.parse(source)
@@ -46,6 +47,11 @@ def acces_dits(source):
 
     for n in ast.walk(arbre):
         f = fonction(n)
+        if isinstance(n, ast.Dict) and any(cle(k, f) in REGISTRES for k in n.keys):
+            acces[f, ast.unparse(n)] += 1
+        if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == 'dict':
+            if any(k.arg in REGISTRES for k in n.keywords):
+                acces[f, ast.unparse(n)] += 1
         if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute):
             if n.func.attr in ('pop', '__setitem__', '__delitem__') and n.args and cle(n.args[0], f) in REGISTRES:
                 acces[f, ast.unparse(n)] += 1
@@ -70,6 +76,11 @@ class ParolesTests(unittest.TestCase):
             acces = acces_dits(p.read_text(encoding='utf-8-sig'))
             if acces:
                 mesures[relatif] = {f'{f}/{e}': n for (f, e), n in sorted(acces.items())}
+        # Même frontière de schéma que S1a ; aucune création brute supplémentaire.
+        for f, e in (('<module>', AccesTests.schema_champs()),
+                     ('esprit', "{'croyances': {}, 'memoire': [], 'faits_dits': {}}")):
+            self.assertEqual(mesures['donjon/esprits.py'].pop(f'{f}/{e}'), 1)
+        mesures = {f: a for f, a in mesures.items() if a}
         self.assertEqual(mesures, fixture['dits_restants_s1j'])
         self.assertEqual(mesures, {})
         for registre in REGISTRES:
@@ -82,6 +93,7 @@ class ParolesTests(unittest.TestCase):
                 f'del e["{registre}"]', f'e.pop("{registre}")',
                 f'e.update({registre}={{}})', f'e.update(**{{"{registre}": stock}})',
                 f'e.__setitem__("{registre}", {{}})',
+                f'e = {{"{registre}": stock}}', f'e = dict({registre}=stock)',
             ):
                 with self.subTest(source=source):
                     self.assertTrue(acces_dits(source))
