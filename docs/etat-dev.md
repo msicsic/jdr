@@ -45,7 +45,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-a2-consultation-sociale` — lot 407, base `integration b4130dc3` : contrat commun de
   `qui`/`localisation`/`ressource`/`reclamer`, schéma, typage, raccourcis et « Compris » ; mécanique conservée.
-  Neuf nouveaux tests ; première passe 7/9 (montage de localisation corrigé), rejeu ciblé 2/2 vert en 72,35 s.
+  Neuf nouveaux tests ; deux sous-cas de montage corrigés, rejeu ciblé 2/2 vert en 72,35 s.
   Vérification finale détachée : 13 fichiers voisins ; empreintes 2 h × quatre graines Relais/auberge.
   Résultats attendus : `C:/Users/msics/donjon/artifacts/a2-consultation-sociale-407/fin.json` ; lot pas encore validé.
   Aucune assertion existante changée, ni Luna, ni registre d'esprit ; fidélité Luna hors A2.

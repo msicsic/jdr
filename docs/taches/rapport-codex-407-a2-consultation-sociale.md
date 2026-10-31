@@ -40,7 +40,7 @@ schéma effectivement émis ; deux minutes en bloc ou huit tranches avec
 recharge, monde complet et vues comparés. Aucune assertion existante modifiée.
 
 **Mesures provisoires — vérification en cours.** Première passe : neuf tests,
-219,82 s, sept méthodes vertes et deux sous-cas rouges dans la nouvelle méthode
+219,82 s, huit méthodes vertes et deux sous-cas rouges dans la nouvelle méthode
 de localisation. Le montage ne changeait que les coordonnées, sans changer
 `lieu` ; corrigé en fixant aussi le lieu, sans changer les attentes ni le jeu.
 Rejeu des deux méthodes localisation/biens : **2/2 vertes, 72,35 s**.
