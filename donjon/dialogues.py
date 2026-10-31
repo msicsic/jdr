@@ -13,6 +13,7 @@ from .esprits import dernier_son
 OPERATIONS = ("discuter", "proposer", "negocier", "accepter", "refuser")
 GESTE_INFORMATION = "information"
 AIDE_INFORMATION = "information. Demander ou transmettre une information."
+AIDE_AVIS = "avis. Donner un avis sur la menace d'eau."
 
 
 def formulaires_information():
@@ -59,12 +60,36 @@ def information_publique(monde):
             "ressources": [*ressources, *({"id": b, "nom": n} for b, n in RESSOURCES_DEMANDEES.items())]}
 
 
+def formulaires_avis():
+    """Le prédicat d'avis déjà évaluable par le moteur, sans vérité préremplie."""
+    return [{"acte": "avis", "libelle": "Donner un avis sur la menace d'eau",
+             "champs": [{"champ": "sujet", "libelle": "Lieu de l'avis", "choix": "lieux"},
+                        {"champ": "valeur", "libelle": "Prévision", "choix": "valeurs"}]}]
+
+
+def avis_publics(monde):
+    """Seuls des noms publics connus ; ni prévision calculée ni croyance privée."""
+    from .paroles import _connu_du_joueur, contexte_fige
+    with contexte_fige():
+        lieux = [{"id": id, "nom": s["nom"]} for id, s in monde.data["salles"].items()
+                 if _connu_du_joueur(monde, id)]
+    return {"destinataires": [{"id": id, "nom": x["nom"]} for id, x in interlocuteurs(monde).items()],
+            "lieux": lieux,
+            "valeurs": [{"id": "oui", "nom": "L'eau menace ce lieu, selon moi"},
+                        {"id": "non", "nom": "L'eau épargne ce lieu, selon moi"}]}
+
+
 class InformationTerminal:
     """Formulaire numéroté sur les mêmes paramètres publics que le web."""
 
+    catalogue = staticmethod(formulaires_information)
+    titre = "Information"
+    indications = ("Le dernier choix transmet la parole ; une affirmation demande confirmation.",
+                   "Demander où est un objet reste indisponible.")
+
     def __init__(self, public):
         self.public = copy.deepcopy(public)
-        self.formulaires = formulaires_information()
+        self.formulaires = self.catalogue()
         self.destinataire = None
         self.formulaire = None
         self.valeurs = []
@@ -84,9 +109,7 @@ class InformationTerminal:
                 for x in self.public[self.champ["choix"]]]
 
     def rendre(self):
-        lignes = ["Information — numéro puis Entrée ; annuler pour fermer.",
-                  "Le dernier choix transmet la parole ; une affirmation demande confirmation.",
-                  "Demander où est un objet reste indisponible."]
+        lignes = [self.titre + " — numéro puis Entrée ; annuler pour fermer.", *self.indications]
         if self.destinataire:
             lignes.append("À qui parler : " + self.destinataire[1])
         if self.formulaire:
@@ -127,6 +150,14 @@ class InformationTerminal:
                            **{c["champ"]: v[0] for c, v in zip(self.formulaire["champs"], self.valeurs)}}})
 
 
+class AvisTerminal(InformationTerminal):
+    """Même sélecteur public ; le catalogue d'avis fixe les champs disponibles."""
+
+    catalogue = staticmethod(formulaires_avis)
+    titre = "Avis"
+    indications = ("Le dernier choix prépare l'avis ; tenter le confirme, annuler l'abandonne.",)
+
+
 def parole_information(monde, d):
     """Descripteur U-D → contenu canonique, sans analyse de texte.
 
@@ -141,15 +172,16 @@ def parole_information(monde, d):
     if not isinstance(p, dict) or not all(isinstance(v, str) and len(v) <= 1000 for v in p.values()):
         raise ErreurMonde("Les paramètres de cette parole sont mal formés.",
                           f"descripteur.parametres : reçu {p!r} ; attendu dictionnaire de chaînes.")
-    f = next((f for f in formulaires_information() if f["acte"] == p.get("acte")), None)
+    formulaires = [*formulaires_information(), *formulaires_avis()]
+    f = next((f for f in formulaires if f["acte"] == p.get("acte")), None)
     if not f:
         raise ErreurMonde("Cet acte d'information n'est pas proposé.",
-                          f"parametres.acte : reçu {p.get('acte')!r} ; attendu {[f['acte'] for f in formulaires_information()]}.")
+                          f"parametres.acte : reçu {p.get('acte')!r} ; attendu {[f['acte'] for f in formulaires]}.")
     champs = {"acte", *(c["champ"] for c in f["champs"])}
     if set(p) != champs:
         raise ErreurMonde("Ce choix d'information est incomplet ou comporte un paramètre inconnu.",
                           f"descripteur.parametres : reçu {sorted(p)} ; attendu {sorted(champs)}.")
-    choix = information_publique(monde)
+    choix = avis_publics(monde) if p["acte"] == "avis" else information_publique(monde)
     if d["cible"] not in {x["id"] for x in choix["destinataires"]}:
         raise ErreurMonde("Tu ne perçois plus cet interlocuteur pour lui parler.",
                           f"descripteur.cible : reçu {d['cible']!r} ; attendu {[x['id'] for x in choix['destinataires']]}.")
@@ -164,12 +196,13 @@ def parole_information(monde, d):
     replique = ("Qui es-tu ?" if acte == "qui" else
                 f"Où se trouve {noms['sujet']} ?" if acte == "localisation" else
                 f"Possèdes-tu ceci : {noms['sujet']} ?" if acte == "ressource" else
+                f"Selon moi, l'eau {'menace' if p['valeur'] == 'oui' else 'ne menace pas'} ce lieu : {noms['sujet']}." if acte == "avis" else
                 f"La localisation que je t'annonce pour {noms['sujet']} : {noms['valeur']}.")
     from .voix import reel
     sujet = reel(monde, p.get("sujet", "")) if acte == "ressource" else p.get("sujet", "")
     return {"personnage": d["cible"], "replique": replique,
             "contenu": [{"type": acte, "sujet": sujet,
-                         "attribut": "lieu" if acte == "affirmation" else "",
+                         "attribut": "lieu" if acte == "affirmation" else "menace" if acte == "avis" else "",
                          "valeur": p.get("valeur", "")}]}
 
 
@@ -182,6 +215,18 @@ def preparer_direct(monde, descripteur):
     from .consentement import preparer
     from .paroles import annonce
     d = copy.deepcopy(descripteur.contenu)
+    if (isinstance(d, dict) and isinstance(d.get('parametres'), dict)
+            and d['parametres'].get('acte') == 'compte'
+            and d['parametres'].get('operation') == 'payer'):
+        p = conversation_compte(monde, d)
+        r = {'mode': 'dialogue', 'texte': 'Offre soumise au moteur.', 'faits': [], 'proposition': None,
+             '_texte_moteur': True, '_transactions': [{'type': 'conversation_pnj',
+                 'revision': monde.data['revision'], 'proposition': {**p, '_adresse': d}}]}
+        dossier = preparer(monde, r, 'Geste direct')
+        compte = dossier.compte_parle()
+        if compte:
+            dossier.reponse.update(compte)
+        return dossier
     p = {**parole_directe(monde, d), "_adresse": d}
     r = {"mode": "dialogue", "texte": "Parole enregistrée.", "faits": [], "proposition": None,
          "_texte_moteur": True,
@@ -195,10 +240,103 @@ def preparer_direct(monde, descripteur):
 
 
 def parole_directe(monde, d):
+    if (isinstance(d, dict) and d.get('geste') == GESTE_INFORMATION
+            and isinstance(d.get('parametres'), dict) and d['parametres'].get('acte') == 'compte'):
+        return parole_compte(monde, d)
     if isinstance(d, dict) and d.get('geste') == 'accord':
         from .accords_publics import parole_accord
         return parole_accord(monde, d)
     return parole_information(monde, d)
+
+
+def comptes_publics(monde):
+    """Choix sur les comptes de Corvus ; aucune bourse ni dette entre tiers.
+
+    Les termes transportés sont aussi ceux du libellé. Ils servent de garde de
+    péremption, jamais d'autorisation de paiement ou de preuve de possession.
+    """
+    from .biens import comptes_joueur, dettes, prets, compte
+    from .noms import public, reference
+    from .voix import reel
+    from .propositions import en_mots
+    choix = []
+
+    def ajouter(nom, d):
+        choix.append({'nom': nom, 'descripteur': d})
+
+    for ref, personne in interlocuteurs(monde).items():
+        id, nom = reel(monde, ref), personne['nom']
+        montant = sum(d['montant'] for d in dettes(monde, connues_de='joueur') if d['de'] == id)
+        c = compte(ref, 'joueur', montant=montant, etat='du' if montant else 'absent')
+        for op, libelle in (('question', 'Demander ce que cette personne me doit'),
+                            *([('reclamer', 'Réclamer le solde dû')] if montant else [])):
+            ajouter(f'{libelle} — {nom} ; créancier : toi ; solde connu : {quantite(montant, "pièce")}',
+                    {'geste': GESTE_INFORMATION, 'cible': ref,
+                     'parametres': {'acte': 'compte', 'operation': op, 'compte': c}})
+        for p in prets(monde):
+            if p['objet'] not in monde.objets:
+                continue
+            if p['a'] == 'joueur' and p['de'] == id:
+                objet = reference(monde, p['objet'])
+                c = compte('joueur', ref, objet, 1)
+                ajouter(f'Restituer le prêt — débiteur : toi ; créancier : {nom} ; {public(monde, designer(monde.objets[p["objet"]]))}',
+                    {'geste': 'remettre', 'cible': objet,
+                     'parametres': {'destinataire': ref, 'compte': c}})
+        for identifiant, o in monde.data.get('offres_joueur', {}).items():
+            if o['de'] != id or o['statut'] != 'propose' or o['demande']['type'] != 'pieces':
+                continue
+            termes = public(monde, {'offre': identifiant, 'debiteur': 'joueur', 'creancier': ref,
+                                    'demande': o['demande'], 'contrepartie': o['contrepartie']})
+            ajouter(public(monde, f'Régler l’offre de {nom} — tu paies {en_mots(monde, o["demande"])} ; '
+                           f'tu reçois {en_mots(monde, o["contrepartie"])} ; après accord moteur'),
+                    {'geste': GESTE_INFORMATION, 'cible': ref,
+                     'parametres': {'acte': 'compte', 'operation': 'payer', 'compte': termes}})
+    return {'lignes': comptes_joueur(monde), 'choix': choix}
+
+
+def valider_choix_compte(monde, d):
+    import json
+    try:
+        recu = json.dumps(d, sort_keys=True, allow_nan=False)
+    except (TypeError, ValueError):
+        recu = None
+    if not any(recu == json.dumps(x['descripteur'], sort_keys=True, allow_nan=False)
+               for x in comptes_publics(monde)['choix']):
+        raise ErreurMonde('Ce choix de compte a changé ou ne fait plus partie de tes comptes publics.',
+                          f'descripteur : reçu {d!r} ; attendu un choix exact de comptes_publics(monde).')
+    return d['parametres']['compte']
+
+
+def parole_compte(monde, d):
+    from .voix import reel
+    from .biens import dues
+    from .noms import public
+    c = valider_choix_compte(monde, d)
+    op = d['parametres']['operation']
+    if op == 'payer':
+        raise ErreurMonde('Cette offre attend le règlement par le moteur.',
+                          'parametres.operation=payer : attendu preparer_direct puis conversation_pnj accepter.')
+    if op == 'reclamer' and not c['objet']:
+        montant = sum(x['montant'] for x in dues(monde, reel(monde, d['cible']), 'joueur'))
+        if montant != c['montant']:
+            raise ErreurMonde('Le solde doit être revérifié avant de le réclamer.',
+                              f'compte.montant : reçu {c["montant"]} ; attendu solde actuel {montant}.')
+    objet = c['objet']
+    mots = ('Que me dois-tu en pièces ?' if op == 'question' else
+            f'Je te réclame {designer(monde.objets[reel(monde, objet)])} que je t’ai prêté.' if objet else
+            f'Je te réclame le solde de {quantite(c["montant"], "pièce")} que tu me dois.')
+    return {'personnage': d['cible'], 'replique': public(monde, mots),
+            'contenu': [{'type': 'reclamer', 'sujet': objet, 'attribut': '', 'valeur': ''}]}
+
+
+def conversation_compte(monde, d):
+    c = valider_choix_compte(monde, d)
+    if d['parametres'].get('operation') != 'payer':
+        raise ErreurMonde('Ce choix ne règle pas une offre.',
+                          f'parametres.operation : reçu {d["parametres"].get("operation")!r} ; attendu payer.')
+    nom = next(x['nom'] for x in comptes_publics(monde)['choix'] if x['descripteur'] == d)
+    return {'personnage': d['cible'], 'sujet': nom,
+            'operation': 'accepter', 'mission': c['offre'], 'montant_demande': 0}
 
 
 SCHEMA_CONVERSATION = {
@@ -292,7 +430,9 @@ def _mission_publique(monde, id):
 
 def offre_mission(monde, id):
     from .propositions import offre
-    mission = monde.data["missions"][id]
+    mission = monde.data["missions"].get(id)
+    if mission is None:
+        return None  # Un marché public n'est pas une mission à prime.
     accord = agendas.contrats(monde).get(id, {})
     if accord.get("statut") in ("paye", "refuse"):
         return None
@@ -311,6 +451,12 @@ def disponible(monde, donneur, sauf=None):
 
 
 def preparer_conversation(monde, p, revision=None):
+    if isinstance(p, dict) and '_adresse' in p:
+        canonique = conversation_compte(monde, p['_adresse'])
+        if {k: v for k, v in p.items() if k != '_adresse'} != canonique:
+            raise ErreurMonde('Les termes de ce règlement ont changé.',
+                              f'conversation : reçu {p!r} ; attendu {canonique!r} avec _adresse inchangée.')
+        p = canonique
     if revision is not None and revision != monde.data["revision"]:
         raise ErreurMonde("Le monde a changé avant la fin de la conversation.", "re-propose à partir des faits actuels.")
     champs = SCHEMA_CONVERSATION["required"]

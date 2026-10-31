@@ -149,8 +149,9 @@ class Enregistreur:
         esprit[f"{id}|:lectures"] = actives(monde, id)
         esprit[f"{id}|:emotion"] = emotion(monde, id)
         salles = monde.data["salles"]
+        from .memoire import bruits_retenus
         esprit[f"{id}|:bruits"] = sorted([salles[m["salle"]]["nom"], m["nature"]]
-                                         for m in e["memoire"] if m["type"] == "bruit" and m["salle"] in salles) or None
+                                         for m in bruits_retenus(monde, id) if m["salle"] in salles) or None
         avant = self._esprit.get(f"{id}|:but")
         if i and i["but"]["type"] == "voir" and (not avant or avant[0] != esprit[f"{id}|:but"][0]):
             self.evenements.append({"t": self._instant(monde), "pnj": id, "nature": "voir",

@@ -10,6 +10,31 @@ import comparer_bancs as outil
 
 
 class ComparerBancsTests(unittest.TestCase):
+    def test_observateur_courant_charge_sans_vue_dans_la_reference(self):
+        import importlib.util
+        from types import ModuleType
+        from unittest.mock import patch
+        from donjon.banc_pnj import creer
+        from donjon.esprits import memoriser
+
+        monde = creer('relais', 7, 'fixe')
+        memoriser(monde, 'marchand', {'type': 'examen', 'salle': 'antichambre',
+                                    'nature': 'pas', 'case': None})
+        avant = copy.deepcopy(monde.data)
+        # Une référence ancienne ne livre pas episodes. L'observation courante
+        # emploie sa propre porte, dont les imports lisent toujours ce moteur.
+        racine = Path(__file__).resolve().parents[1]
+        with patch.dict(sys.modules, {'donjon.memoire': ModuleType('donjon.memoire')}):
+            for nom, fichier in (('donjon._recit_test', 'donjon/recit_pnj.py'),
+                                 ('_detecteur_test', 'tools/detecter_changements_avis.py')):
+                spec = importlib.util.spec_from_file_location(nom, racine / fichier)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+            vue = module.episodes(monde, 'marchand')
+            self.assertEqual(vue[-1]['type'], 'examen')
+            vue[-1].clear()
+        self.assertEqual(monde.data, avant)
+
     def config(self, **options):
         return {"empreintes": True, "heures": 5 / 60, "depart": "fixe", "verifier": False,
                 "joueurs": outil.JOUEURS, "scenarios": ["relais"], "graines": [7], "processus": 1, **options}

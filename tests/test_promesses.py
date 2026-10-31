@@ -104,16 +104,20 @@ class DonLocalTests(unittest.TestCase):
         self.assertIsNone(analyser(m, "je donne la cloche à Gorm ?"))
 
     def test_le_don_de_la_cloche_aboutit_sans_appel_au_modele(self):
-        recharge, sortie = jouer(aupres_de_gorm(), ["je donne la cloche a Gorm"])
+        # U-C : l'effet typé « donner » est lourd ; la remise attend « tenter ».
+        recharge, sortie = jouer(aupres_de_gorm(), ["je donne la cloche a Gorm", "tenter"])
         cloche = recharge.objets["cloche"]
         self.assertEqual((cloche["lieu"], cloche["proprietaire"]), ("marchand", "marchand"))
         self.assertIn("Tu donnes la cloche d'alarme à Gorm", sortie)
+        self.assertLess(sortie.index("Compris :"), sortie.index("Tu donnes la cloche"))
         self.assertEqual(recharge.data["conversation"][-1]["nature"], "resultat_moteur")
 
     def test_un_autre_objet_a_un_autre_personnage(self):
-        recharge, sortie = jouer(refuge(), ["je remets le couteau à Brune"])
+        # Même règle U-C, quels que soient l'objet, le destinataire et le verbe.
+        recharge, sortie = jouer(refuge(), ["je remets le couteau à Brune", "tenter"])
         self.assertEqual(recharge.objets["couteau"]["lieu"], "brune")
         self.assertIn("Tu donnes le couteau à lame fine à Brune", sortie)
+        self.assertLess(sortie.index("Compris :"), sortie.index("Tu donnes le couteau"))
         souvenirs = recharge.data["esprits"]["brune"]["memoire"]
         self.assertTrue(any(s["type"] == "don" and s["objet"] == "couteau" for s in souvenirs))
 

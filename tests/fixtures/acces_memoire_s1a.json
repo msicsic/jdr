@@ -1,0 +1,69 @@
+{
+  "lectures_restantes": {},
+  "exceptions": {
+    "donjon/banc_pnj.py": {
+      "fichier": "donjon/banc_pnj.py",
+      "raison": "Homonyme : cache de recherche, aucun épisode narratif.",
+      "acces": {
+        "nuit/memoire": 1,
+        "resume_diagnostic/memoire": 2
+      }
+    },
+    "donjon/esprits.py": {
+      "fichier": "donjon/esprits.py",
+      "raison": "Validation historique du schéma, sans consommation métier.",
+      "acces": {
+        "verifier/memoire": 5
+      }
+    },
+    "tools/bilan_sous_arbres.py": {
+      "fichier": "tools/bilan_sous_arbres.py",
+      "raison": "Homonyme : cache de recherche, aucun épisode narratif.",
+      "acces": {
+        "main/memoire": 1
+      }
+    },
+    "tools/empreintes_nuits.py": {
+      "fichier": "tools/empreintes_nuits.py",
+      "raison": "Homonyme : cache de recherche, aucun épisode narratif.",
+      "acces": {
+        "nuit/memoire": 4
+      }
+    },
+    "tools/mesurer_attente_bornee.py": {
+      "fichier": "tools/mesurer_attente_bornee.py",
+      "raison": "Homonyme : cache de recherche, aucun épisode narratif.",
+      "acces": {
+        "observer/memoire": 2
+      }
+    },
+    "tools/mesurer_bissection_auberge.py": {
+      "fichier": "tools/mesurer_bissection_auberge.py",
+      "raison": "Homonyme : cache de recherche, aucun épisode narratif.",
+      "acces": {
+        "mesurer/memoire": 3
+      }
+    },
+    "tools/mesure_cout.py": {
+      "fichier": "tools/mesure_cout.py",
+      "raison": "Homonyme : cache de recherche, aucun épisode narratif.",
+      "acces": {
+        "recherche/memoire": 2
+      }
+    },
+    "tools/mesure_reflexion_190.py": {
+      "fichier": "tools/mesure_reflexion_190.py",
+      "raison": "Homonyme : cache de recherche, aucun épisode narratif.",
+      "acces": {
+        "recherche/memoire": 1
+      }
+    },
+    "tools/mesure_saillance_210.py": {
+      "fichier": "tools/mesure_saillance_210.py",
+      "raison": "Homonyme : cache de recherche, aucun épisode narratif.",
+      "acces": {
+        "recherche/memoire": 2
+      }
+    }
+  }
+}

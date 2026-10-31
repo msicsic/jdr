@@ -28,18 +28,18 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
-- `codex-a2-expression-son` (e868d585) : lot 379, A2 famille expression et son. Détail dans l'historique.
-- `codex-messages-decoupage` (9d9fd5fe) : lot 376, les messages ne dépendent pas du découpage du temps. Détail dans l'historique.
-- `codex-double-promesse` (8558adf4) : lot 377, une même part n'est pas promise deux fois. Détail dans l'historique.
-- `codex-s0-conception-memoire` (202c9fff) : lot 373, S0 conception de la mémoire unifiée des PNJ. Détail dans l'historique.
-- `codex-catalogue-connu` (fdfc31df) : lot 365, le catalogue des choix ne montre que ce que Corvus connaît. Détail dans l'historique.
-- `codex-ut-social-information` (8245d178) : lot 369, U-T social information, l'acte d'information au terminal. Détail dans l'historique.
-- `codex-soupcon-deduit` (6aeec863) : lot 372, A6 le soupçon déduit des croyances. Détail dans l'historique.
-- `codex-a2-sequence-attente` (b75dcf62) : lot 370, A2 famille séquence et attente. Détail dans l'historique.
-- `codex-evaluation-echeance` (76305cc6) : lot 371, évaluation du noyau de l'échéance négociée. Détail dans l'historique.
-- `codex-quatre-regressions` (a4788b4c) : lot 368, quatre régressions isolées (313, 330, 332, 333). Détail dans l'historique.
-- `codex-service-evacuation` (e0c95ced) : lot 367, un service payé reste protégé quand l'évacuation déplace la lumière. Détail dans l'historique.
-- `codex-refus-leve-contrepartie` (140cb9f0) : lot 366, un refus retenu se lève par une contrepartie ou un accord nouveau. Détail dans l'historique.
+- `codex-scenes-connues` (d87ff509) : lot 392, les scènes de test déclarent ce que Corvus connaît. Détail dans l'historique.
+- `codex-position-hypothese` (256f903a) : lot 374, la position crue d'autrui comme hypothèse datée. Détail dans l'historique.
+- `codex-don-consentement` (41b0c4e2) : lot 394, le don direct passe par le consentement U-C. Détail dans l'historique.
+- `codex-parite-acoustique` (ce8ea206) : lot 391, parité acoustique après 376. Détail dans l'historique.
+- `codex-reservation-contrat` (792b3b38) : lot 393, une réservation ne bloque pas son propre contrat. Détail dans l'historique.
+- `codex-um-social-comptes` (0d7039c6) : lot 380, U-M social comptes. Détail dans l'historique.
+- `codex-suite-e0826ef` (c68aff20) : lot 375, rouges de la suite e0826ef. Détail dans l'historique.
+- `codex-suite-663d1308` (db44eef3) : lot 390, rouges nouveaux de la suite 663d1308. Détail dans l'historique.
+- `codex-ut-social-avis` (44b4d260) : lot 389, U-T social avis. Détail dans l'historique.
+- `codex-rembourser-dette` (a1a50003) : lot 388, rembourser volontairement une dette en pièces. Détail dans l'historique.
+- `codex-information-terminal-connu` (7bdf4d1e) : lot 387, tests du terminal d'information après le catalogue connu. Détail dans l'historique.
+- `codex-um-social-avis` (20dcb5d2) : lot 386, U-M social avis. Détail dans l'historique.
 
 ## Lots non fusionnés
 
@@ -47,13 +47,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   local, de l'assemblage installé, de l'appui mobile, de la demande et de la poussée ; moteur,
   schéma du compilateur actuel, raccourcis et « Compris » gardent la même charge typée.
   Cas réel/autre cas/faux pendant, recharge et laps découpé ; reprise ciblée **47/47 verte**.
-  Un voisin de rendu reste rouge, identique sur `c63dd563` ; assertion conservée. Mécaniques inchangées.
-  Empreintes identiques : 2 h, Relais/auberge × 4 graines, chronique/mesures/monde complet ; zéro plantage.
+  Fusion d'`origin/integration` (`a6f0f00b`) : passages, remboursement, comptes et consentement conservés.
+  Vérification après fusion en cours : tests ciblés/voisins demandés et empreintes 2 h Relais × 4 graines.
   Revues conservées ; fidélité Luna non garantie, ancienne API simple transitoire (A3), aucun registre d'esprit.
   [Rapport](taches/rapport-codex-381-a2-passage.md), bruts `artifacts/a2-passage-381/` du dépôt principal.
 
-Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 378 (S1a, porte des épisodes), 380
-(U-M social comptes). Questions de S0 en arbitrage (1 et 2 tranchées, voir décisions).
+Lots en cours : 381 (A2 passage), 392 (connaissances des scènes depuis 365, Q2 du 390), 395 (avis redits crue 2024, reste du 375), 396 (U-T social comptes), 397 (S1f localisation et possession) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
@@ -82,7 +81,12 @@ Leurs entrées arrivent ici à leur livraison.
   l'utilisateur n'y tient pas et laisse décider ; retenu l'héritage minimal, pour garder les captures réelles des tests
   (`tests/data`) : S1 relit à l'identique, S2 lit une attitude sans acte comme « héritée, cause inconnue », non
   compensable par une réparation, estompée par les règles ordinaires ; aucun passé reconstruit, parties neuves pour
-  valider réparation, trahison et repentir.
+  valider réparation, trahison et repentir ; (3) compenser un tort : seul un acte rattaché au tort identifié
+  (restitution, réparation, équivalent) le compense ; un service sans lien ajoute du crédit (affection, dette morale)
+  sans effacer le tort ; des actes répétés peuvent réviser un trait cru ; les créances matérielles suivent leurs actes ; (4) deux ouï-dire incompatibles de même force : incertitude gardée
+  et racontable, vérification ou question à un tiers si l'action l'exige (jets actuels en S1, règle en lot S2) ; (5) le grief durable alimente la bande de refus, la colère aiguë
+  module l'expression et l'urgence sans décider seule d'un refus ; hystérésis et signatures gardées, mesure au lot de
+  séparation colère/grief de S2. Ces décisions entrent dans les briefs de bascule de S2.
 - **Sessions de l'orchestrateur** ouvertes dans `.worktrees/integration` (etat-dev court) tant que `main` n'a pas
   avancé au-delà de l'allègement.
 

@@ -28,7 +28,7 @@ from .deliberation import (ATTENTE_PART, CAUSES, REDEMANDE, _connus, appels_vain
                            peur_du_noir, profil, promesse_en_cours, refus_retenu, salle_crue, taux, tient)
 from . import eau, force
 from .biens import PRIX_PART
-from .esprits import lire
+from .esprits import lire, position_a_verifier, hypothese_consommee
 from .perception import brule, recharge
 from .relations import se_fie, se_mefie
 from .spatial import porte_par, QUART, VECTEURS, a_verifier
@@ -257,7 +257,7 @@ class ContexteDevis:
         # savoirs et les profils réels. Pas de caches hérités du monde source.
         projection = object.__new__(type(monde))
         data = copy.deepcopy({k: monde.data[k] for k in
-            ("salles", "minutes", "dixiemes", "mode_cases", "geometrie_version") if k in monde.data})
+            ("salles", "minutes", "dixiemes", "mode_cases", "geometrie_version", "positions_hypotheses") if k in monde.data})
         data.update(objets={}, esprits={}, joueur={"salle": None, "or": 0},
                     connaissances_joueur={}, finances_pnj={}, revision=0, jets=0)
         projection.data = data
@@ -489,11 +489,11 @@ class Vue:
                                and refus["minute"] > x["minute"])]
         # Le travail payé possède déjà son contrat dans la mémoire du payeur.
         # Il ne crée pas une nouvelle délégation à échéance ni une visite urgente.
+        from .memoire import travaux_payes_retenus
         self.travaux_payes = [(s["condition"], qui, s.get("echeance"),
                               "echeance" in s and monde.data["minutes"] > s["echeance"])
-                             for s in lire(monde, id)["memoire"]
-                             if s["type"] == "tache_payee"
-                             and (qui := tache_payee(monde, id, s["condition"]))]
+                             for s in travaux_payes_retenus(monde, id)
+                             if (qui := tache_payee(monde, id, s["condition"]))]
         intention = lire(monde, id)["intention"]
         # L'aide acceptée reste une cause d'ouverture quand son bénéficiaire
         # attend sa réalisation, même si l'adoption a reclassé le besoin
@@ -2138,6 +2138,11 @@ def _chercher(v, e, sujet):
         return None
     if v.salle(e, sujet) is not None:
         return _appeler(v, e, sujet)
+    if hypothese_consommee(v.monde, v.id, sujet):
+        # Le besoin du parent ne crée pas de nouvel indice. Une piste expirée
+        # déjà vérifiée ne devient pas une recherche inconnue à travers toutes
+        # les autres salles ; seule une nouvelle localisation la rouvre.
+        return None
     # Le contact inconnu peut d'abord faire l'objet d'une question présente.
     # Comme l'inspection, cette transition s'arrête avant toute suite supposée.
     question = None
@@ -2157,10 +2162,17 @@ def _chercher(v, e, sujet):
     if not routes:
         return question
     # Le coût d'une route est celui de toute la recherche (``Vue.allers`` : passages compris).
-    salle = min(routes, key=lambda s: (visites.get(s, -1), cout_route(routes[s], e.orientation), s))
+    # Une hypothèse périmée reste un indice, jamais une présence projetée.
+    ancienne = lire(v.monde, v.id)["croyances"].get(sujet, {}).get("lieu", {})
+    perimee = position_a_verifier(v.monde, v.id, sujet) and not hypothese_consommee(v.monde, v.id, sujet)
+    dernier_lieu = ancienne.get("salle") if perimee else None
+    salle = min(routes, key=lambda s: (s != dernier_lieu, visites.get(s, -1),
+                                      cout_route(routes[s], e.orientation), s))
     # Il y parcourt la salle des yeux, et l'appelle s'il ne le voit pas (``pnj.appeler``).
     etapes = ([_etape("aller", lieu=salle)] if salle != e.salle else []) + [
-        {**_etape("inspecter", lieu=salle, contenu={"cherche": sujet}), "suppose": True}]
+        {**_etape("inspecter", lieu=salle, contenu={"cherche": sujet,
+                  **({"verification": {"type": "position", "lieu": ancienne["valeur"]}} if perimee else {})}),
+         "suppose": True}]
     suivant = e.apres(salle=salle, faits=[(("lieu", sujet), salle), (("cherche", sujet), True)])
     mesure = _mesurer(v, e, etapes, suivant, cout_route(routes[salle], e.orientation) + 1)
     if mesure is None:
@@ -2231,6 +2243,7 @@ def _entrees_communes(v):
     # Les cibles et obstacles restent localisés ; le départ est seulement la salle.
     metrique = v._metrique
     from .biens import services_proteges
+    from .memoire import episodes_parts_promises
     return json.dumps([
         agendas.mandats_percus(monde, id),  # Contrats et issues propres au témoin.
         [x for x in agendas.en_cours(monde, id) if x['condition'].get('proteger')],
@@ -2246,6 +2259,10 @@ def _entrees_communes(v):
         [[s, a, c["valeur"]] for s, d in croyances.items() for a, c in d.items()
          if a != "fin" or c["valeur"] is not None
          and monde.objets.get(s, {}).get("type") in ("porte", "contenant")],
+        # Le graphe lit le seuil, pas une confiance flottante à chaque tick.
+        # Dates et provenance agissent via ce booléen ; la règle est sauvegardée.
+        monde.data["positions_hypotheses"],
+        [[s, position_a_verifier(monde, id, s), hypothese_consommee(monde, id, s)] for s in sorted(croyances)],
         [[x, {a: r[a] for a in (*relations.AXES, "bandes")} ]
          for x in relations.connus(monde, id) for r in [relations.axes(monde, id, x)]],
         # Les salles cherchées en vain (``_chercher``), tant qu'elles comptent.
@@ -2253,7 +2270,7 @@ def _entrees_communes(v):
         [[s, minute - s["minute"] < ATTENTE_PART,
           # Une part de bois promise : le feu revu rechargé depuis (``promesse_en_cours``).
           croyances.get(s.get("foyer"), {}).get("etat", {}).get("minute", -1) >= s["minute"]]
-         for s in esprit_["memoire"] if s["type"] in ("promis", "nourri", "recu", "promesse_annulee", "creance")],
+         for s in episodes_parts_promises(monde, id)],
         # Les refus retenus, s'ils tiennent (``Vue.refus_tenus``) et s'ils sont récents.
         # Le refus « cher » de cette minute même retient la hausse suivante (``Vue.hausse_faite``).
         [[s, tenu, minute - s["minute"] < REDEMANDE, minute == s["minute"]] for s, tenu in v.refus_tenus()],
@@ -2801,6 +2818,30 @@ def _localiser(v, e, sujets):
                key=lambda r: r[1] + r[6], default=None)
 
 
+def verification_en_cours(monde, id, etapes):
+    """Une inspection engagée reste à terminer tant que son indice tient.
+
+    Recomposer le parent ne doit pas remettre ses préparatifs devant ce
+    préfixe incertain à chaque minute. Un lieu appris, une nouvelle piste,
+    un échec retenu ou une fin connue rendent la main à la planification.
+    """
+    if not etapes:
+        return False
+    fin = etapes[-1]
+    sujet = (fin.get("contenu") or {}).get("cherche")
+    preuve = (fin.get("contenu") or {}).get("verification")
+    if (fin["operation"] != "inspecter" or not sujet or not preuve
+            or preuve.get("type") != "position" or hypothese_consommee(monde, id, sujet)
+            or _lieu_cru(monde, id, sujet) is not None):
+        return False
+    croyances = lire(monde, id)["croyances"].get(sujet, {})
+    etat = (croyances.get("etat") or {}).get("valeur", {})
+    lieu = croyances.get("lieu") or {}
+    return (not etat.get("mort") and not etat.get("parti")
+            and fin["lieu"] not in appels_vains(monde, id, sujet)
+            and lieu.get("valeur") in (None, preuve["lieu"]))
+
+
 def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
     """Même contrat pour les gestes immédiats et les suites révélées à leur borne."""
     suites = []
@@ -2811,6 +2852,27 @@ def _normaliser_suites(v, e, vises, but, possibles, conclure=False):
             continue
         fautes, minutes, ajout, suivant = geste[:4]
         furtif = any(x.get("condition") in ("sans_temoin", "dans_le_dos") for x in ajout)
+        if furtif:
+            # Une localisation incertaine n'est ni une présence certaine ni
+            # la preuve que le témoin est ailleurs. Vérifier avant la faute.
+            a_eviter = ([*v.personnes(), "joueur"] if any(x.get("condition") == "sans_temoin" for x in ajout)
+                        else [x["cible"] for x in ajout if x.get("condition") == "dans_le_dos"])
+            incertains = {x for x in a_eviter
+                          if position_a_verifier(v.monde, v.id, x) and not hypothese_consommee(v.monde, v.id, x)
+                          and not e.fait("cherche", x)}
+            if incertains:
+                if conclure:
+                    continue  # Un préfixe de vérification n'est pas un geste conclusif.
+                # Le préfixe est incertain : son résultat impose une nouvelle
+                # décision. Ne pas explorer les permutations de vérifications.
+                for x in sorted(incertains)[:1]:
+                    if x in contacts_prepares:
+                        continue
+                    contacts_prepares.add(x)
+                    recherche = _chercher(v, e, x)
+                    if recherche is not None:
+                        suites.extend(_normaliser_suites(v, e, vises, but, [recherche]))
+                continue
         if (furtif and e.allure != 30 and getattr(v, "_cru_spatial", None) is not None
                 and (getattr(v, "_explore_furtif", False) or not getattr(v, "_decouvrir_discretion", True))):
             continue   # filtre historique ; seule la découverte lit les gardes suivantes
@@ -3676,6 +3738,47 @@ def devis_enrichissement(monde, id):
     return cout, {"type": "argent", "objet": pris}, retablir(v, e, etapes)
 
 
+def rembourser(monde, id):
+    """Rendre son dû plutôt que commettre la faute de le garder : même prix moral.
+
+    Le chemin et les pièces dépensées se comparent au prix de la faute.
+    Aucune position réelle du créancier n'entre dans la préparation du plan.
+    """
+    from .biens import dettes, richesse, garde_du
+    from .caractere import ARGENT, prix_faute, valeur_pieces
+    du = {}
+    for d in dettes(monde):
+        if d['de'] == id and d['montant'] > 0:
+            du[d['a']] = du.get(d['a'], 0) + d['montant']
+    fonds = richesse(monde, id)
+    if not du or not fonds:
+        return None
+    v = vue(monde, id)
+    e = depart(monde, id, v)
+    meilleur = None
+    faute = prix_faute(monde, id, ARGENT)
+    for a in sorted(du):
+        montant = min(du[a], fonds)
+        if garde_du(monde, id, montant):
+            continue
+        salle = v.salle(e, a)
+        if salle is None:
+            continue
+        trouve = ((0, [], e) if salle == e.salle else chercher(
+            monde, id, lambda v, e, s=salle: e.salle == s, nom='rembourser:' + a,
+            memo=['rembourser', a, salle], emplois=(), motif=ARGENT))
+        if trouve is None:
+            continue
+        cout = trouve[0] + valeur_pieces(monde, id, montant, depense=True)
+        if faute is not None and cout > faute:
+            continue
+        if meilleur is None or cout < meilleur[0]:
+            meilleur = (cout, a, _couper(trouve[1]) + [_etape('rembourser', a)])
+    if meilleur is None:
+        return None
+    return {'type': 'rembourser', 'qui': meilleur[1]}, meilleur[2]
+
+
 def reclamer(monde, id):
     """(but, étapes) pour aller trouver qui lui doit des pièces (``biens.dettes``) ou garde un objet
     qu'il lui a prêté au-delà de l'échéance (``biens.echu``), là où il le croit, quand ce qu'il lui
@@ -3736,6 +3839,8 @@ def s_enquerir(monde, id, besoin=None, *, sujet=None, _vue=None, _etat=None):
     v = _vue or vue(monde, id)
     e = _etat or depart(monde, id, v)
     if sujet is not None:
+        if hypothese_consommee(monde, id, sujet):
+            return None
         interroges = {s["de"] for s in lire(monde, id)["refus"]
                       if s["operation"] == "enqueter_lieu" and s.get("objet") == sujet
                       and tient(monde, id, s, v.connus)}
@@ -3950,21 +4055,11 @@ def reagir(monde, id, dangers, aide=None):
     """Le graphe compare les moyens de sortir du danger ; un coup est toujours revalidé."""
     from . import corps
     from .defense import etat_cru, lieux_dangereux, protection as proteger
-    from .esprits import lire, percoit
-    e = lire(monde, id)
-    secourus = []
+    from .memoire import examiner_secours_constates
     # Le constat remplace l'appel, même si la défense interrompt l'inspection.
     # Une date à la minute ne départage pas deux événements de la même minute :
     # dans ce cas seule la vue actuelle constitue une preuve suffisante.
-    for s in e["memoire"]:
-        if s["type"] != "secours" or s.get("examine"):
-            continue
-        qui = s["qui"]
-        etat = e["croyances"].get(qui, {}).get("etat", {})
-        vu = monde.visible(qui) if id == "joueur" else percoit(monde, id, qui)
-        if vu or etat.get("source") == "vu" and etat["minute"] > s["minute"]:
-            s["examine"] = True
-            secourus.append(qui)
+    secourus = examiner_secours_constates(monde, id)
     if secourus:
         corps.evenement(monde, "intervention", id, proteges=sorted(set(secourus)))
     if aide and not aide[2] and aide[0] in secourus:

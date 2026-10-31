@@ -1774,16 +1774,27 @@ def moyens_promis(monde, id, condition=None, pour=None):
 
     Une remise réserve le bien entier ; un service réserve les parts consommées
     par son devis cru. La parole que l'on revalide n'est comptée qu'une fois.
-    Les outils réutilisables ne sont pas consommés par leur emploi.
+    La restitution d'un prêt acquis pour ce transport ne le réserve pas une
+    seconde fois. Les outils réutilisables ne sont pas consommés par leur emploi.
     """
     from collections import Counter
     from .planification import devis_pulsion
     charges, entiers = Counter(), set()
-    propre = False
-    for x in en_cours(monde, id, actifs=True):
+    engagements = en_cours(monde, id, actifs=True)
+    propre = next((x for x in engagements if x['condition'] == condition and x['pour'] == pour), None)
+    # Le prêt acquis pour un transport ajoute une restitution, pas un second
+    # emploi du bien. Seul le transport revalidé en bénéficie : sa réservation
+    # reste opposable aux autres offres, y compris après acquisition du prêt.
+    # prendre ajoute en fin de registre : une restitution antérieure au
+    # transport est une charge préexistante, pas un prêt acquis pour lui.
+    transport = None
+    for x in engagements:
         c = x['condition']
-        if not propre and c == condition and x['pour'] == pour:
-            propre = True
+        if x is propre:
+            if any(k in c for k in ('remettre', 'lieu')):
+                transport = c.get('objet')
+            continue
+        if transport is not None and c.get('objet') == transport and 'rendre' in c:
             continue
         o = c.get('objet')
         if any(k in c for k in ('remettre', 'rendre', 'lieu')) and o != id:

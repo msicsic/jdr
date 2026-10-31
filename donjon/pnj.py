@@ -12,6 +12,7 @@ réels sont ceux qui voient l'auteur pendant la durée de son geste, joueur comp
 dépend pas du découpage des actions du joueur. Le moteur annonce ce que le joueur perçoit et
 tient une chronique complète, réservée au débogage et au banc. Luna n'intervient pas.
 """
+from .memoire import episodes
 from collections import deque
 from .monde import ErreurMonde
 
@@ -30,7 +31,7 @@ PAS = 15
 DUREES = {"prendre": 20, "poser": 20, "ouvrir": 20, "fermer": 20, "deverrouiller": 50, "verrouiller": 50,
           "crocheter": 600, "frapper": 600, "manger": 600, "servir": 300, "alimenter": 100, "allumer": 100, "eteindre": 30,
           "inspecter": 100, "dire": 100, "demander": 100, "acheter": 100, "confier": 100, "remettre": 50,
-          "demander_feu": 100, "proposer": 100, "ranimer": 100, "interposer": 100}
+          "demander_feu": 100, "proposer": 100, "rembourser": 100, "ranimer": 100, "interposer": 100}
 DURABLES = ("reposer", "chauffer", "abriter", "rester")
 # deplacement : passer une salle, ouvrir une porte en chemin ; geste : agir sur un objet ;
 # social : une parole entre PNJ ; decision : un plan choisi ou abandonné par un PNJ ; ouie : se
@@ -424,10 +425,8 @@ def _temoins_a_l_oreille(monde, geste, souvenir, victime):
         reconnu = id in _crus_la(monde, autre, salle, case)
         if not reconnu:
             # Quelqu'un touche encore à ce bien, il le sait déjà : rien de nouveau, sinon que ça dure.
-            deja = next((x for x in reversed(esprit(monde, autre)["memoire"]) if x["type"] == "entendu_agir"
-                         and x["objet"] == objet and monde.data["minutes"] - x["minute"] <= RECENT), None)
-            if deja is not None:
-                deja["minute"] = monde.data["minutes"]
+            from .memoire import rafraichir_geste_entendu
+            if rafraichir_geste_entendu(monde, autre, objet):
                 continue
         inquieter(monde, autre, "illicite")
         verbe = GESTES.get(geste["operation"], "a touché à")
@@ -559,6 +558,16 @@ def _inspecter(monde, id, cherche=None, lignes=None, vers=None):
     """Depuis le centre de la salle (où il a marché), ou d'où il voit l'endroit d'où venait un bruit
     (``vers``), il la parcourt des yeux. S'il y cherche quelqu'un (``cherche``) qu'il ne sait pas là
     (``croit_present`` : il ne l'a pas vu en parcourant la salle des yeux), il l'appelle (``appeler``)."""
+    from .esprits import verification_positions
+    o = monde.objets[id]
+    sujets = [s for s, a in lire(monde, id)["croyances"].items()
+              if s == cherche or (a.get("lieu") or {}).get("salle") == o["lieu"]
+              or (a.get("lieu") or {}).get("valeur") == o["lieu"]]
+    with verification_positions(monde, id, sujets):
+        return _inspecter_salle(monde, id, cherche, lignes, vers)
+
+
+def _inspecter_salle(monde, id, cherche=None, lignes=None, vers=None):
     from .ouie import parcouru
     o = monde.objets[id]
     if cherche:
@@ -613,6 +622,8 @@ def heler(monde, id, qui, lignes):
     from .corps import conscient
     if not conscient(monde, id):
         return False
+    from .esprits import consommer_hypothese
+    consommer_hypothese(monde, id, qui)
     from .ouie import retentir
     from .social import _qui
     a, b = _qui(monde, id), _qui(monde, qui, id)
@@ -936,11 +947,8 @@ def _executer_effet(monde, id, etape, lignes, gestes):
         _inspecter(monde, id, contenu.get("cherche"), lignes, contenu.get("vers"))
         intention = lire(monde, id)["intention"]
         if intention and intention["but"]["type"] == "proteger":
-            secourus = []
-            for s in lire(monde, id)["memoire"]:
-                if s["type"] == "secours" and s["salle"] == o["lieu"] and not s.get("examine"):
-                    s["examine"] = True
-                    secourus.append(s["qui"])
+            from .memoire import examiner_secours_du_lieu
+            secourus = examiner_secours_du_lieu(monde, id, o["lieu"])
             if secourus:
                 from .corps import evenement
                 evenement(monde, "intervention", id, proteges=sorted(set(secourus)))
@@ -963,7 +971,7 @@ def _executer_effet(monde, id, etape, lignes, gestes):
         depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
         if not any(s["type"] == "compagnie" and s.get("qui") == etape["cible"]
                    and s.get('portee') == ('voix' if vocal else None)
-                   and s["minute"] >= depuis for s in e["memoire"]):
+                   and s["minute"] >= depuis for s in episodes(monde, id, types=('compagnie',))):
             # Le contact est revalidé physiquement ; la veille vocale porte
             # seulement sur les arrivées crues, sans prétendre voir sa cible.
             memoriser(monde, id, {"type": "compagnie", "qui": etape["cible"], **({'portee': 'voix'} if vocal else {})})
@@ -1179,7 +1187,7 @@ def _chauffer(monde, id, foyer, lignes):
     if not f.get("allume"):
         return _rate(monde, id, foyer, "etat", {"allume": False, "faible": False, "charge": f["combustible"] > 0})
     depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
-    if not any(s["type"] == "se_chauffe" and s["minute"] >= depuis for s in e["memoire"]):
+    if not any(s["type"] == "se_chauffe" and s["minute"] >= depuis for s in episodes(monde, id, types=('se_chauffe',))):
         memoriser(monde, id, {"type": "se_chauffe", "objet": foyer})
         _raconter(monde, id, "se chauffe près de", f, lignes)
     # La chaleur du feu agit d'elle-même dans sa salle (``corps``) : il reste jusqu'à être réchauffé.
@@ -1202,7 +1210,7 @@ def _abriter(monde, id, lieu, lignes):
         return False
     a = autour(monde, id)
     depuis = e["intention"]["depuis"] if e["intention"] else monde.data["minutes"]
-    if not any(s["type"] == "abrite" and s["minute"] >= depuis for s in e["memoire"]):
+    if not any(s["type"] == "abrite" and s["minute"] >= depuis for s in episodes(monde, id, types=('abrite',))):
         memoriser(monde, id, {"type": "abrite", "lieu": lieu})
         from .relations import envers
         # Le choix du déplacement utilise ses croyances ; le récit du moteur
@@ -1813,9 +1821,10 @@ def croit_present(monde, a, b):
     reconnu à la voix ou entendu se nommer dans sa salle depuis peu (``RECENT``)."""
     if percoit(monde, a, b):
         return True
-    from .esprits import RECENT
+    from .esprits import RECENT, position_a_verifier
     c = lire(monde, a)["croyances"].get(b, {}).get("lieu")
-    return bool(c and c["valeur"] == monde.objets[a]["lieu"] and c["source"] in ("vu", "entendu", "se_dit")
+    return bool(c and not position_a_verifier(monde, a, b)
+                and c["valeur"] == monde.objets[a]["lieu"] and c["source"] in ("vu", "entendu", "se_dit")
                 and monde.data["minutes"] - c["minute"] <= RECENT)
 
 
@@ -2004,6 +2013,23 @@ def _agir(monde, id, t, lignes, gestes=None, compter=True):
             e["intention"] = None
         return reste, FIN, None
     etape = etapes[0]
+    # Un plan déjà sauvegardé peut avoir vieilli depuis son admission. La
+    # réalisation repasse par le même préfixe de contact que la recherche.
+    from .esprits import position_a_verifier, hypothese_consommee
+    participants = _a_reunir(monde, id, etape, venues=True)
+    requis = list(participants)
+    if etape["condition"] == "sans_temoin":
+        requis = [*requis, *e["croyances"]]
+    incertains = sorted({x for x in requis if position_a_verifier(monde, id, x)
+                        and (x in participants or not hypothese_consommee(monde, id, x))})
+    if incertains:
+        percevoir(monde, id)
+        incertains = [x for x in incertains if position_a_verifier(monde, id, x)]
+        if incertains:
+            from .planification import contacter
+            verification = contacter(monde, id, incertains[0])
+            etapes[:] = verification or []
+            return _agir(monde, id, t, lignes, gestes, compter) if etapes else (reste, FIN, None)
     operation = etape["operation"]
     if refus_etape(monde, id, etapes) is not None:
         return reste, MANQUE, etape
@@ -2297,7 +2323,6 @@ def _avancer(monde, minutes, lignes, dixiemes):
     # Les sons, eux aussi, se rendent sur leur perception, avant qu'une autre action
     # ou la limite de la file de bruits puisse changer leur regroupement ou leur voix.
     from .ecoute import ENTENDU, entendus, rendre_evenement
-    from builtins import id as identite
     bruits_vus = list(monde.data.get("bruits", ()))
     if propre:
         monde._sons_rendus = []
@@ -2307,12 +2332,14 @@ def _avancer(monde, minutes, lignes, dixiemes):
         for id, visible in _observer_presences(monde, suivi, lignes).items():
             if visible and not vus.get(id) and id not in apparus:
                 apparus.append(id)
-        anciens = {identite(b) for b in bruits_vus}
         seuil = getattr(monde, "_seuil_ecoute", ENTENDU)
         passes = entendus(monde, -1, seuil, bruits=bruits_vus)
         precedent = passes[-1] if passes else None
         for b, niveau, par in entendus(monde, debut, seuil):
-            if identite(b) not in anciens:
+            # Une transaction adoptée remplace les éléments des listes par
+            # leurs copies validées. L'événement sauvegardé reste le même,
+            # même si son dictionnaire Python n'est plus le même objet.
+            if b not in bruits_vus:
                 parvenu = (b, niveau, par)
                 lignes.extend(rendre_evenement(monde, parvenu, precedent))
                 precedent = parvenu
@@ -2467,7 +2494,6 @@ def _avancer(monde, minutes, lignes, dixiemes):
                     percevoir_tous(monde)
                     monde._agit = None
                     temoigner_en_cours(monde)
-                    observer()
                     if profil:
                         noter(monde, id, t, monde._activite)
                 percevoir_signes(monde)
@@ -2482,6 +2508,10 @@ def _avancer(monde, minutes, lignes, dixiemes):
                 e["libre"], e["veille"] = t, t + duree
             else:
                 e["libre"] = t + max(1, duree)
+            # Toute branche peut avoir fait entendre quelque chose (conversation,
+            # secours, geste). Relever sa perception avant d'avancer l'horloge :
+            # un ton bref ne doit pas attendre la prochaine borne d'action.
+            observer()
     temoigner_en_cours(monde)
     monde.data["minutes"], monde.data["dixiemes"] = fin_minutes, fin_dixiemes
     finir_gestes(monde, fin)  # Ceux qui durent encore attendent l'action suivante du joueur.

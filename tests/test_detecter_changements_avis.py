@@ -587,7 +587,7 @@ class DetecterAvisTests(unittest.TestCase):
         souvenir = {"type": "tache_payee", "a": "artisan", "minute": 0,
                     "condition": {"objet": "bien", "verrouillee": True}, "prix": 2}
         monde = SimpleNamespace(objets={"bien": {"verrouillee": False}}, data={"minutes": 0})
-        with patch.object(d, "lire", return_value={"memoire": [souvenir]}), patch.object(d, "instant", return_value=600):
+        with patch.object(d, "episodes", return_value=[souvenir]), patch.object(d, "instant", return_value=600):
             sonde.relever_services(monde)
             monde.objets["bien"]["verrouillee"] = True
             sonde.relever_services(monde)

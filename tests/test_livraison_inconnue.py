@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from donjon import agendas, deliberation as d, echanges, planification as p, pnj
 from donjon.esprits import croire, lire
+from donjon.geometrie import cases
 from donjon.monde import Monde
 from donjon.rendu import regarder
 from donjon.scene import scene_percue
@@ -114,9 +115,14 @@ class LivraisonInconnueTests(unittest.TestCase):
             self.assertEqual(m.data, avant)
             for salle in m.data['salles']:
                 n = Monde(copy.deepcopy(avant))
-                placer(n, b, salle, [1, 1])
+                # Placement d'auteur sur le sol déclaré, même dans une salle
+                # dont le plan n'inclut pas (1, 1). Aucun savoir n'est rafraîchi.
+                placer(n, b, salle, min(cases(n.data['salles'][salle])))
+                n = self.recharge(n)
+                avant_devis = copy.deepcopy(n.data)
                 self.assertEqual(p.devis_pulsion(n, a, c, b), devis)
                 self.assertFalse(echanges.empeche(n, a, e))
+                self.assertEqual(n.data, avant_devis)
 
     def test_depart_cru_annule_encore_meme_si_le_destinataire_est_reellement_present(self):
         for fabrique in (relais, mine):

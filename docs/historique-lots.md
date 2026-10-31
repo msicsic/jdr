@@ -6,6 +6,157 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-scenes-connues` — lot 392, base `integration` `ed5d9765` : prémisses de connaissance explicites,
+  sans code du jeu ni scénario modifié ; salle/coffre et deux mandats avec contre-épreuves rechargées.
+  Deux hashes actualisés en conservant exactement les savoirs du 365 ; cinq autres inchangés.
+  Vérification finale : 47/47, cinq fichiers, zéro échec/erreur/saut (1 506,952 s), code `d02624a0`.
+  Validé, branche poussée ; `fin-verification.json` confirme le succès, aucun calcul restant.
+  [Rapport 392](taches/rapport-codex-392-scenes-connues.md). Aucun Luna ni suite complète.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 392, Q2 du 390, tests seulement : connaissances de prémisse déclarées explicitement depuis le catalogue connu (365), contre-épreuves après recharge ; aucun code du jeu ni scénario modifié. 47/47 tests.
+
+- `codex-position-hypothese` — lot 374 livré, moteur `66d3efe8`, base `3999bb3a` fusionnée dans `b3233153`, PC fixe.
+  Position datée 15/60/120 min ; inspection/appel/question consomment la piste, y compris pour un contact requis ; seuls de nouveaux faits rouvrent.
+  Aubin crue 42 : 24→54→24 passages en 1 h ; trois retours initiaux corrigés/attribués, seul signal strict final Lucien auberge 7 justifié.
+  16 nuits × 4 h : zéro plantage/usurpation ; appels Relais 4→4, auberge 13→15, mine 9→7, crue 35→43 ; VERIFIER 1 h vert.
+  312 captures anciennes + 121 finales rechargées ; 22 appels finaux attribués, aucune répétition expirée observée dans les vérifications capturées.
+  119 tests ciblés, 117 verts ; 2 échecs de texte hérités reproduits sur la base (lot 390), oracles intacts ; pas de suite complète ni Luna.
+  Portes/vues mémoire S1a–S1e conservées ; mesure bornée à 4 h, demi-vies non calibrées ; aucun calcul en cours. [Rapport 374](taches/rapport-codex-374-position-hypothese-datee.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `ouie.py`, `pnj.py`, fusionnés sans conflit textuel. lot 374 (reprise) : la position d'autrui vieillit à la lecture (demi-vies 15/60/120 min, seuil 0,5) ; inspection, appel, question ou constat d'absence consomment la piste expirée, seule une preuve nouvelle la rouvre. 16 nuits 4 h sans usurpation, Aubin crue 42 24 → 54 → 24 passages, appels auberge 46 → 15 et mine 38 → 7 (base 13/9), crue 35 → 43 ; trois retours suspects corrigés ou attribués. 117/119 tests (deux hérités). Fichiers de code communs : ouie.py (390), pnj.py (391), fusionnés sans conflit textuel, tests ciblés rejoués.
+
+- `codex-don-consentement` — lot 394, base `origin/integration df7352b7`, non fusionné.
+  Le don produit `donner`, effet lourd selon U-C : les deux tests anciens passent désormais « tenter ».
+  Moteur, classification des effets et protection des termes du lot 380 inchangés.
+  Huit parcours don/restitution, cloche/Gorm et couteau/Brune, console/pont web : verts en 49,738 s.
+  Aperçu, annulation, état et vues rechargés, reprise réelle ; zéro appel au modèle.
+  65/65 voisins verts (507,696 s), total 66/66 méthodes ; ni Luna, ni banc, ni suite complète. Branche poussée.
+  [Rapport et limites](taches/rapport-codex-394-don-consentement.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 394, tests seulement : le don est un acte lourd selon U-C (consentement.plan_lourd), le 380 l'avait aligné ; les tests du don local passent par « tenter », moteur inchangé. 66 tests verts, dont huit parcours don/restitution console et web après recharge.
+
+- `codex-parite-acoustique` — lot 391, base `integration 55c3a456`.
+  Perceptions à chaque événement PNJ ; copies de transaction reconnues sans rejouer les sons.
+  Trois méthodes du brief corrigées ; réancrage limité à `/journal/96/faits`, ancienne empreinte restaurée en test.
+  75 tests verts ; 16/16 nuits de 2 h sans plantage/usurpation, mêmes empreintes physiques, chroniques et mesures.
+  État complet identique 9/16 ; sept hashes finaux non intégralement attribués (préfixes : journal seul).
+  Limite : `entendus` garde son contrat par dernier geste ; aucun registre ajouté, ni suite complète/Luna.
+  [Rapport](taches/rapport-codex-391-parite-acoustique-376.md) ; bruts `artifacts/parite-acoustique-391/` du dépôt principal.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `moteur.py`, fusionnés sans conflit textuel. lot 391, Q1 du 390 : laps entier ou découpé, même monde et mêmes messages ; empreintes historiques d'etapes_chainees attribuées. 75 tests ; 16/16 nuits 2 h identiques en chronique, mesures, récit, empreintes physiques ; état complet identique 9/16 (sept écarts de hash non intégralement attribués, limite). Fichier de code commun : moteur.py (380), fusionné sans conflit textuel, tests ciblés rejoués.
+
+- `codex-reservation-contrat` — lot 393, base `ca0fc1f0` (`origin/integration`), PC fixe.
+  La restitution du prêt acquis pour un transport ne réserve plus deux fois son bien ;
+  les autres promesses restent opposables. Pureté du devis testée sur des cases de sol valides.
+  Crochets et marteau livrés après recharge ; 68/70 tests, six fichiers, 94,2 s.
+  Banc rapide Relais/crue 4 h × 4 graines : 8/8 sans plantage ni usurpation ; zéro bascule, passages/h max 43.
+  Deux rouges de dons directs reproduits sur la base ; pas de garantie générale sur les boucles. Branche poussée.
+  [Rapport](taches/rapport-codex-393-reservation-contrat.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 393, Q3 du 390 : agendas.moyens_promis ne compte plus contre son propre engagement la part réservée par lui ; double promesse toujours refusée ; prémisse de case d'auteur valide pour livraison_inconnue. 68/70 tests (deux rouges de test_promesses.DonLocalTests apparus après la suite 663d1308, hors du lot), 8/8 nuits 4 h sans usurpation. Aucun fichier de code commun depuis la base.
+
+- `codex-um-social-comptes` — lot 380 terminé, non fusionné ; reprise sur `integration 3999bb3a`.
+  Choix web figés sur les comptes de Corvus ; créances, restitution des prêts reçus et offres publiques.
+  Formulaires comptes et avis conservés, contrats distincts et consentement U-C ; aucun modèle ajouté.
+  Après fusion : **62/62 tests verts**, sept fichiers dont U-M/U-T avis et web ; `clic_page.js` valide.
+  Empreintes Relais **4/4 identiques**, 2 h × quatre graines ; code vérifié `643b77f5`, quinze sources inchangées.
+  Limites : remboursement volontaire en pièces et création de prêts par Corvus hors lot.
+  `fin-verification.json` de la reprise : `ok=true` ; aucun calcul restant. Bilan initial conservé au rapport.
+  [Rapport, preuves et limites](taches/rapport-codex-380-um-social-comptes.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 380, U-M social comptes : les raccourcis web (réclamer, restituer un prêt, régler un échange convenu) soumettent les termes affichés, transfert seulement après verdict du moteur, comptes publics de Corvus seuls ; formulaires comptes et avis réunis. 62 tests verts après réintégration, 4/4 empreintes Relais. Remboursement volontaire en pièces confié au 388 (fusionné).
+
+- `codex-suite-e0826ef` — **375 clos partiel**, `integration 3999bb3a` fusionnée, branche poussée : dix méthodes
+  validées sur onze ; neuf bascules natives au 360, parent direct vert, deux antérieures (337, G7).
+  Campagne : 171 tests, 161 verts, dix échecs dont huit du 390 ; reprise finale 12/12 verte.
+  Crue sans transmission réservée au 360, assertion intacte ; question précise au [rapport](taches/rapport-codex-375-suite-e0826ef.md).
+  526 assertions originales identiques, trois formulations portées, six ajoutées ; aucun moteur changé.
+  Méthodes du 390 intactes ; bruts `artifacts/suite-e0826ef-375/`, `conclusion.json`, aucun calcul actif.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 375, tests seulement : dix méthodes sur onze vertes (neuf basculées au 360, deux plus anciennes), prémisses explicites, 526/529 assertions identiques ; réservée : avis redits crue 2024 (aucune transmission de Brune, à reprendre). Aucun fichier de code commun depuis la base.
+
+- `codex-suite-663d1308` — lot 390, base `integration 70b2fdfa` : 27 nouvelles méthodes rouges
+  attribuées, 19 corrigées ; admission des voix dès leur réception avant le rendu événementiel.
+  Clôture : 204/214 tests passent sur 20 fichiers ; huit rouges du lot et deux réservés au 375.
+  Empreintes 2 h Relais/auberge/mine × quatre graines : physique/chronique/mesures identiques sur 12/12.
+  État complet identique sur 4/12 ; huit écarts finaux partiellement attribués au rendu vocal (limite).
+  Aucun calcul actif ; méthodes du 375/387 intactes, questions des huit cas et limites dans le rapport.
+  Voir [rapport](taches/rapport-codex-390-suite-663d1308.md), bruts `artifacts/suite-663d1308-390/` du dépôt principal.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 390 : 27 bascules attribuées (376 : 16, 365 : 4, 377 : 2, 370 : 1, 379 : 1…) ; correctif commun ouie._au_joueur (la voix reçue mémorisée avant le rendu, défaut révélé par 376) ; 19 corrigées, 8 restent en trois questions Q1 (376 découpage), Q2 (365 connaissances des scènes), Q3 (377 réservation). 204/214 tests. Aucun fichier de code commun depuis la base.
+
+- `codex-ut-social-avis` — lot 389, base `integration` `5cc189c9`, code `cf7a421f`.
+  Console/TUI : commande `avis`, catalogue et descripteur du web, réception/dispute G18 conservées.
+  92 tests distincts validés / huit fichiers : 90 conservés, deux erreurs Windows reprises vertes (21,864 s).
+  8/8 empreintes identiques, 2 h crue/Relais × quatre graines ; sources et assertions inchangées.
+  14 parcours mesurés ; 20 touches (21 avec F7), zéro modèle. Ni suite complète ni Luna.
+  Bruts : `C:/Users/msics/donjon/artifacts/ut-social-avis-389/fin-cloture.json`, `succes=true`.
+  Terminé, poussé, aucun calcul actif ; limite : avis de menace d'eau, parole distincte de la vérité.
+  [Rapport 389](taches/rapport-codex-389-ut-social-avis.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 389, U-T social avis : commande avis à la console et à la TUI, même avis structuré que le formulaire web du 386, sans modèle. 92 tests verts, 8/8 empreintes identiques. Aucun fichier de code commun depuis la base.
+
+- `codex-rembourser-dette` — lot 388, base `integration ea3c70e0` (laptop) : remboursement volontaire typé commun joueur/PNJ ; dette, audience, fonds et montant vérifiés avant transfert.
+  U-C confirme le débit de Corvus ; fiche, paroles enregistrées, épreuve relationnelle et sauvegarde raccordées, sans nouveau registre.
+  Bilan : 97/98 tests, seul rouge Gaspard reproduit sur la base ; huit nouveaux tests verts. Bancs Relais/auberge 4 h × quatre graines : zéro usurpation ; Luna 4 appels, zéro refus/erreur.
+  Bruts : `C:/Users/msics/donjon/artifacts/rembourser-388/fin-conclusion.json`. Non-répétition du versement prouvée par tests ciblés ; aucun remboursement né dans les bancs.
+  [Rapport 388](taches/rapport-codex-388-rembourser-dette.md). Non fusionné.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 388, décidé le 2026-10-31 : remboursement volontaire total ou partiel, joueur (contenu typé, Compris avant exécution) et PNJ (geste du planificateur), dette soldée ; refus distincts avec attendu. 97/98 tests (échec Gaspard hérité de la base), huit nuits 4 h sans usurpation ni bascule, Luna une passe en quatre appels. Aucun fichier de code commun depuis la base ; touche le parcours de consentement : suite complète à relancer.
+
+- `codex-information-terminal-connu` — lot 387, base `integration` `a77727ab`.
+  Cinq erreurs attribuées au souvenir absent du bois ; seuls les tests qui le choisissent le déclarent.
+  Aucun code du jeu modifié, assertions conservées ; contre-épreuve bois/crochets connu ou inconnu,
+  rendu et état après recharge, vrais choix web identiques au terminal ; parcours crochets ajouté.
+  Validé : 26/26 tests, zéro échec/erreur/saut ; 34 parcours console/TUI, zéro appel au modèle.
+  1 313,203 s, deux travailleurs réduits ; `fin-calcul.json` réussi dans les bruts du dépôt principal.
+  Ni Luna, suite complète ni empreintes. [Rapport](taches/rapport-codex-387-information-terminal-connu.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 387 : cinq prémisses de tests rendues explicites (bois connu déclaré), contre-épreuves bois/crochets, moteur inchangé ; 26/26 tests ciblés. Aucun fichier de code commun depuis la base.
+
+- `codex-um-social-avis` — lot 386 terminé, non fusionné, base `integration` `cbecf8c8`, code `060a4930`.
+  Le formulaire web conserve lieu connu et valeur de l'avis via U-D information ; mêmes U-C/G18, zéro modèle.
+  5/5 nouveaux tests verts (111,385 s) : deux lieux, valeurs et disputes, recharge et laps découpés.
+  Total 73/78 verts ; cinq erreurs U-T information héritées prouvées sur la base (fixture `bois` non connu).
+  Empreintes 2 h crue/Relais × quatre graines : 8/8 identiques. Aucun calcul actif ; clôture poussée.
+  Limite : prédicat menace d'eau existant ; pas d'U-T. [Rapport](taches/rapport-codex-386-um-social-avis.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 386, U-M social avis : le formulaire web soumet sujet et valeur choisis, sans modèle, lieux publics connus seulement. 73/78 tests ciblés : cinq erreurs héritées de U-T information sur la base (bois non connu dans la fixture ressources depuis le catalogue connu 365), à traiter. 8/8 empreintes identiques. Aucun fichier de code commun depuis la base.
+
+- `codex-s1e-vues-episodes` — lot 385 clos, base `integration b2028ede` ; `fcb82692` fusionnée (documentation seule).
+  Tous les lecteurs d'épisodes utilisent des copies profondes ; inventaire AST à zéro hors exceptions nommées.
+  Stockage/ordre/plafond inchangés ; rafraîchissement du geste entendu et migration des présences dans la porte.
+  325/326 tests ciblés verts, aucune erreur ni saut ; seul rouge de texte de passage reproduit sur la base exacte.
+  Deux chaînes réelles : état complet/rendu/scène/paroles après recharge et même laps entier/découpé.
+  16/16 empreintes identiques sur 2 h × quatre graines × quatre scénarios ; aucun plantage, aucune suite complète/Luna.
+  Limites : AST syntaxique, oubli historique et rouge hérité. [Rapport](taches/rapport-codex-385-s1e-vues-episodes.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 385, S1e : tous les lecteurs d'épisodes restants (jeu, rendu, récit, banc, outils) passent par des vues pures de donjon/memoire.py ; lectures directes à zéro hors exceptions nommées. 325/326 tests ciblés (rouge hérité de la base), 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
+- `codex-s1d-promesses` — lot 384, base `integration 31f80725`, code `37069459`.
+  Promesses, prêts et travaux payés : requêtes nommées et jugement réentrant dans `memoire` ;
+  fenêtre 40, ordre et engagements inchangés. Inventaire AST : 78 → 69, sans exemption nouvelle.
+  Tests : 191/192 verts après relance 34/34 ; seul rouge hérité de Gaspard attribué à la base exacte.
+  Empreintes 2 h × quatre graines × quatre scénarios : 16/16 identiques, aucun plantage.
+  `origin/integration dd133ece` fusionnée (documentation seule). Lot clos, branche poussée.
+  Limites : notifications sonores du laps découpé héritées, autres lecteurs/oubli hors lot ; [rapport 384](taches/rapport-codex-384-s1d-promesses.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 384, S1d : promesses, prêts et travaux payés lisent leurs épisodes par donjon/memoire.py, même fenêtre de 40 ; inventaire AST 78 → 69. 191/192 tests ciblés (l'échec restant est sur la base, suivi par le 375), 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
+- `codex-s1c-approches-secours` — lot 383, base exacte `integration 1da5b943`.
+  Approches, mises en garde, avertissements et secours lus/acquittés par `memoire` ;
+  mêmes occurrences, ordre, clés et crochets ; inventaire AST 90 → 78.
+  177/177 tests ciblés verts ; 16/16 empreintes identiques, 2 h × 4 graines ×
+  Relais/mine/auberge/crue ; aucun plantage, sans exclusion de l'état final.
+  Branche poussée ; intégration inchangée ; sans suite complète ni Luna.
+  Limites et recouvrement 374 : [rapport 383](taches/rapport-codex-383-s1c-approches-secours.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 383, S1c : approches, avertissements et secours lus et acquittés sur la même occurrence par donjon/memoire.py ; inventaire AST 90 → 78. 177/177 tests ciblés, 16/16 empreintes identiques à la base. Aucun fichier de code commun depuis la base.
+
+- `codex-s1b-sons-examens` (382), base `integration 06895c7d` : sons/examens lus par copies,
+  remplacements et rafraîchissement dans `memoire.py`, format historique et crochets conservés.
+  Inventaire AST : 102 → 90 expressions ; **158 tests ciblés passent** dans 12 fichiers, dont
+  Mathe et Bram après recharge, état complet/rendu/scène/paroles et laps entier/découpé.
+  **16/16 empreintes identiques** (chronique, mesures, état complet) : 2 h × 4 graines × 4 scénarios.
+  Code mesuré `ff467a7b`, base exacte ; aucun plantage. Bruts : `artifacts/s1b-382/` du dépôt principal.
+  Recouvrement 374 : seulement `dernier_son` ; autres familles/oubli hors lot.
+  [Rapport 382](taches/rapport-codex-382-s1b-sons-examens.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 382, S1b : sons et examens lus et modifiés par des requêtes et opérations nommées de donjon/memoire.py, stockage inchangé. 158/158 tests ciblés, 16/16 empreintes identiques à la base. Aucun fichier de code commun depuis la base.
+
+- `codex-s1a-porte-episodes` (378), base `integration eb84aad7` : porte commune des insertions/évictions
+  dans `memoire.py`, liste/plafond/crochets historiques conservés ; façade `esprits`, migrations et ouïe portées.
+  Contrôle AST fermé et chaînes auberge/Relais ajoutés ; lectures et contenus restent pour S1b–e.
+  158 tests ciblés passent (13 fichiers) ; empreintes 2 h/quatre scénarios/quatre graines : 16/16 identiques à la base.
+  Écart à l'ancien main attribué à l'intégration ; `origin/integration c63dd563` fusionné, 30 tests repassés après fusion du code.
+  Aucun stock renvoyé par la nouvelle API ; limite AST : flux interprocéduraux non exhaustifs. Bruts : `artifacts/s1a-378/` du dépôt principal.
+  [Rapport](taches/rapport-codex-378-s1a-porte-episodes.md). Recouvrement 374 limité à `esprits.py`.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 378, S1a : insertion et éviction des épisodes par donjon/memoire.py, stockage inchangé ; contrôle AST des écritures. 16/16 empreintes identiques à la base. Aucun fichier de code commun depuis la base.
+
 - `codex-a2-expression-son` — lot 379, base `origin/integration 85052cf8` : contrat commun
   expression/son pour moteur, schémas, raccourcis et « Compris » ; mécanique inchangée.
   Cas historique, rythme corporel, faux pendant silencieux, recharge et laps découpé couverts.

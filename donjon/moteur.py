@@ -75,7 +75,7 @@ class Plan:
     marge: int | None = None   # au jet : de combien il passe le DD (None : manqué, ou pas encore jeté) ;
     #                            le bruit d'un crochetage en dépend (``ouie.nature_crochetage``)
     compris: str = ""          # texte libre admis : récapitulatif moteur figé avant affichage
-    choix_public: object = None  # descripteur et origine d'entrée conservés jusqu'à confirmation
+    choix_public: object = None  # entrée exacte et origine conservées jusqu'à confirmation
     etat_consentement: str = ""
 
     @property
@@ -211,7 +211,7 @@ class Moteur:
         passage = (p.get("action") in GESTES_PASSAGE or
                    p.get("action") == "composer" and any(
                        e.get("operation") in GESTES_PASSAGE for e in p.get("etapes", [])))
-        if (passage or p.get("action") in GESTES_CORPS and
+        if (passage or p.get('action') == 'remettre' or p.get("action") in GESTES_CORPS and
                 (p["action"] != "frapper" or self.monde.objets.get(p["cible"], {}).get("type") == "personnage")):
             from .consentement import plan_lourd, _empreinte, _etat
             from .comprehension import plan_admis
@@ -222,11 +222,11 @@ class Moteur:
             if passage:
                 plan.confirmation = plan.confirmation or bool(plan.stat)
             # Le libre porte déjà son récapitulatif dans PropositionLibre.
-            # Les nouveaux passages directs le portent sur le Plan lui-même.
+            # Les gestes directs et les remises le portent sur le Plan lui-même.
             if not passage or choix_public or origine == "règles":
                 plan.compris = plan_admis(self.monde, plan)
-            if choix_public and plan.confirmation:
-                plan.choix_public = (copy.deepcopy(choix_public), origine)
+            if plan.confirmation and (choix_public or p.get('action') == 'remettre'):
+                plan.choix_public = (copy.deepcopy(choix_public if choix_public else p), origine)
                 plan.etat_consentement = _empreinte(_etat(self.monde))
         return plan
 
@@ -475,7 +475,10 @@ class Moteur:
             destinataire = verifier_don(m, cible, outil)
             exiger(m, destinataire)
             from .voix import nom_pour_joueur
-            plan.titre = "Donner " + designer(m.objets[cible]) + " " + groupe_nominal(nom_pour_joueur(m, destinataire, court=False), "à") + "."
+            from .biens import pret
+            emprunt = pret(m, cible)
+            restitution = emprunt and emprunt['a'] == 'joueur' and emprunt['de'] == destinataire
+            plan.titre = ("Restituer " if restitution else "Donner ") + designer(m.objets[cible]) + " " + groupe_nominal(nom_pour_joueur(m, destinataire, court=False), "à") + "."
             plan.effets = [("donner", cible, destinataire)]
             return plan
         if not m.accessible(cible):
@@ -990,8 +993,8 @@ class Moteur:
         retenir(travail, parvenus)
         # Les sons des événements PNJ sont déjà rendus à leur instant. Ceux produits
         # ensuite (une réponse à l'appel, par exemple) restent à dire, individuellement.
-        deja = {id(b) for b in travail.__dict__.get("_sons_rendus", ())}
-        entendu = [ligne for b, niveau, par in parvenus if id(b) not in deja
+        deja = travail.__dict__.get("_sons_rendus", ())
+        entendu = [ligne for b, niveau, par in parvenus if b not in deja
                    for ligne in rendre(travail, [(b, niveau, par)])]
         if ecoute:
             # Le résultat dit la condition que l'ouïe a prise en compte : l'oreille collée à une porte.
@@ -1268,7 +1271,7 @@ class Moteur:
             memoriser(m, valeur, {"type": "restitution" if pret else "don", "de": "joueur", "objet": cible,
                                 "ponctuel": ponctuel, "service_utile": utile})
             from .voix import nom_pour_joueur
-            lignes.append("Tu donnes " + designer(o) + " " + groupe_nominal(nom_pour_joueur(m, valeur, court=False), "à") + ".")
+            lignes.append(("Tu restitues " if pret else "Tu donnes ") + designer(o) + " " + groupe_nominal(nom_pour_joueur(m, valeur, court=False), "à") + ".")
             return
         o = m.objets.get(cible)
         if op == "liberer":

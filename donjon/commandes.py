@@ -273,6 +273,15 @@ def proposition_descripteur(monde, descripteur):
     from .voix import reel
     from .gestes_publics import GESTES_CORPS, GESTES_PASSAGE, REACTIONS, dangers_publics
     d = descripteur.contenu
+    if (isinstance(d, dict) and d.get('geste') == 'remettre'
+            and isinstance(d.get('parametres'), dict) and 'compte' in d['parametres']):
+        from .dialogues import valider_choix_compte, remise_convenue
+        valider_choix_compte(monde, d)
+        if remise_convenue(monde, reel(monde, d['cible']), reel(monde, d['parametres']['destinataire'])):
+            raise ErreurMonde('Cet objet relève aussi d’un accord : vérifie ses termes avant de le remettre.',
+                              f'descripteur.parametres.compte : reçu restitution de {d["cible"]!r} ; '
+                              'attendu aucun accord de remise rémunérée concurrent, ou choix de cet accord.')
+        d = {**d, 'parametres': {k: v for k, v in d['parametres'].items() if k != 'compte'}}
     if (not isinstance(d, dict) or not {"geste", "cible"} <= d.keys()
             or d.keys() - {"geste", "cible", "parametres"}
             or any(not isinstance(d[k], str) or not d[k] or len(d[k]) > 1000 for k in ("geste", "cible"))):

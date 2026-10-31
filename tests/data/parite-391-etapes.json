@@ -1,0 +1,58 @@
+{
+  "avant": "d1c3d1f9",
+  "apres": "69ae6101",
+  "champ_unique_modifie": "/journal/96/faits",
+  "mine": {
+    "monde_avant": "f6fef42c0ff663398182fcece93c50df3ab43ad071b27a491194ee94f1e9bcd6",
+    "faits_avant": [
+      "Cinq minutes passent. Le calme revient peu à peu.",
+      "Tu entends, à l'ouest, l'homme de trente-cinq ans appeler : « Josse ? »",
+      "Tu entends, tout près, l'homme taillé en bloc répondre : « Qu'est-ce que tu veux ? »",
+      "Tu entends, à l'ouest, l'homme de trente-cinq ans répondre : « J'ai quelque chose à te demander. »",
+      "Tu entends, tout près, l'homme taillé en bloc répondre : « Ici, viens ! »",
+      "Tu entends, à l'ouest, l'homme de trente-cinq ans répondre : « J'arrive ! »",
+      "Tu entends, tout près, l'homme de trente-cinq ans : « Me voici ! »",
+      "Tu entends des voix et des pas tout près."
+    ],
+    "faits_apres": [
+      "Cinq minutes passent. Le calme revient peu à peu.",
+      "Tu entends une voix tout près.",
+      "Tu entends une voix tout près.",
+      "Tu entends, à l'ouest, l'homme de trente-cinq ans appeler : « Josse ? »",
+      "Tu entends, tout près, l'homme taillé en bloc répondre : « Qu'est-ce que tu veux ? »",
+      "Tu entends, à l'ouest, l'homme de trente-cinq ans répondre : « J'ai quelque chose à te demander. »",
+      "Tu entends, tout près, l'homme taillé en bloc répondre : « Ici, viens ! »",
+      "Tu entends, à l'ouest, l'homme de trente-cinq ans répondre : « J'arrive ! »",
+      "Tu entends des pas tout près.",
+      "Tu entends, tout près, l'homme de trente-cinq ans : « Me voici ! »",
+      "Tu entends une voix tout près.",
+      "Tu entends une voix tout près.",
+      "Tu entends une voix tout près.",
+      "Tu entends une voix tout près."
+    ],
+    "empreintes": {
+      "monde": "7479931e2417c7d9f2ae810ceba23a4b9ac194ced125ea825688dd98c78bbeb4",
+      "lignes": "9779fbb66e6b4a67cf28306b31b28c5565b85c119c13b7fef05fd715dc86fbe1"
+    }
+  },
+  "auberge": {
+    "monde_avant": "52bb40f121653875af09faa5edd9b5c11654a4ec8c375d00bfd83535ae2636ee",
+    "faits_avant": [
+      "Cinq minutes passent. Le calme revient peu à peu.",
+      "Tu entends des voix à l'est."
+    ],
+    "faits_apres": [
+      "Cinq minutes passent. Le calme revient peu à peu.",
+      "Tu entends une voix à l'est.",
+      "Tu entends une voix à l'est.",
+      "Tu entends une voix à l'est.",
+      "Tu entends une voix à l'est.",
+      "Tu entends une voix à l'est.",
+      "Tu entends une voix à l'est."
+    ],
+    "empreintes": {
+      "monde": "721dc3f46e587bb0726fe6e7c2ba81fa59f6681d83484a36ef9710cadecee9ee",
+      "lignes": "6dfeacd4347cf2776f6a1a3b695a943311f34ae10831c0b22dd35f88a3920bb6"
+    }
+  }
+}

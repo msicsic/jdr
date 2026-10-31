@@ -11,6 +11,7 @@
   },
   "calmes": ["brune", "aubin", "ilse", "marchand"],
   "noms_connus": ["aubin", "brune"],
+  "connus": ["brasero", "echoppe"],
   "relations": {"aubin": {"joueur": {"confiance": 100, "affection": 100}}}
  },
  "types_attendus": [["mandat"], ["mandat"], ["affirmation"], ["mandat"], []],

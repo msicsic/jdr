@@ -4,6 +4,7 @@ Les souvenirs sont la porte d'écriture (esprits.memoriser). Les lectures sont p
 estompement depuis l'ancre du dernier événement, sans arrondis cumulés ni état caché.
 « fiable » reste un avis dans la parole, jamais un attribut de croyance.
 """
+from .memoire import episodes
 import copy
 import math
 import hashlib
@@ -296,7 +297,7 @@ def chance_demande(monde, id, autre):
              and s["raison"] in ("refus", "mefiance")]
     if refus:
         chance -= 0.3 if any(s["raison"] == "mefiance" for s in refus) else 0.15
-    recents = [s for s in e["memoire"] if monde.data["minutes"] - s["minute"] < REDEMANDE]
+    recents = [s for s in episodes(monde, id, types=('don', 'engagement_tenu', 'se_sait_vu')) if monde.data["minutes"] - s["minute"] < REDEMANDE]
     if any(s["type"] in ("don", "engagement_tenu") and s.get("a", s.get("pour")) == autre
            for s in recents):
         chance += 0.1  # Il espère la réciprocité, sans la savoir acquise.
@@ -582,10 +583,9 @@ def souvenir(monde, id, s):
         pour = s["pour"]
         if pour != "joueur":
             from .esprits import esprit
+            from .memoire import remise_retenue
             consequence = {"type": t, "de": id, "pour": pour, "condition": s["condition"], "minute": s["minute"], "preuve": s["preuve"]}
-            connus = esprit(monde, pour)["memoire"]
-            recu = any(x["type"] in ("nourri", "recu") and x.get("de") == id
-                       and x.get("objet") == s["condition"].get("objet") and x["minute"] == s["minute"] for x in connus)
+            recu = remise_retenue(monde, pour, id, s["condition"].get("objet"), s["minute"])
             if t == "engagement_tenu" and recu and identifie(monde, pour, id):
                 memoriser(monde, pour, {k: v for k, v in consequence.items() if k != "pour"})
             else:
@@ -594,11 +594,10 @@ def souvenir(monde, id, s):
     if t == "don" and "de" in s:
         t = "recu"
     if t == "dit" and s.get("attribut") == FIABLE and s.get("valeur") is False:
-        from .esprits import lire
-        alerte = next((x for x in lire(monde, id)["memoire"] if x["type"] == "a_prevenir"
-                       and x["victime"] == s["a"] and x["auteur"] == s["sujet"]), None)
+        from .memoire import avertissement_du, acquitter_avertissement
+        alerte = avertissement_du(monde, id, s["a"], s["sujet"])
         if alerte and not alerte.get("tenu") and identifie(monde, s["a"], id):
-            alerte["tenu"] = True
+            acquitter_avertissement(monde, id, s["a"], s["sujet"])
             memoriser(monde, s["a"], {"type": "prevenu", "de": id, "sujet": s["sujet"], "preuve": "service:" + alerte.get("preuve", str(alerte["minute"]))})
         return
     if t == "rumeur":

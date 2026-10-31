@@ -23,6 +23,7 @@ valeurs le lui permettent, enfin patiente et renonce à la longue. Le joueur, qu
 déplace jamais de lui-même, est prié de laisser passer : s'il reste, c'est un refus. Tout ce dont
 dépend la suite est dans ``data`` (positions, esprits, registre des gestes).
 """
+from .memoire import episodes
 from .caractere import interdit, penchant, prix_faute, valeur
 from .esprits import esprit, lire, memoriser
 from .francais import designer, sujet, complement_de
@@ -283,7 +284,7 @@ def _demande(monde, id, autre):
     """La dernière fois qu'il a prié ``autre`` (le joueur) de le laisser passer, il y a moins de
     ``REDEMANDE`` minutes : depuis combien de dixièmes de seconde, ou None."""
     from .deliberation import REDEMANDE
-    s = next((s for s in reversed(lire(monde, id)["memoire"]) if s["type"] == "passage_demande" and s["a"] == autre),
+    s = next((s for s in reversed(episodes(monde, id, types=('passage_demande',))) if s["type"] == "passage_demande" and s["a"] == autre),
              None)
     if s is None or monde.data["minutes"] - s["minute"] >= REDEMANDE:
         return None
@@ -533,7 +534,7 @@ def a_pousse(monde, id, victime):
     from .deliberation import REDEMANDE
     minute = monde.data["minutes"]
     return any(s["type"] == "a_pousse" and s["victime"] == victime and minute - s["minute"] < REDEMANDE
-               for s in lire(monde, id)["memoire"])
+               for s in episodes(monde, id, types=('a_pousse',)))
 
 
 # --- Un PNJ bloqué ---------------------------------------------------------------------------------

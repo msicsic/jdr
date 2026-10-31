@@ -18,6 +18,7 @@ que le planificateur du moteur exécute quand rien de plus urgent ne presse ; su
 qui la confie, elle en confie la garde (``biens.gardes``). Tout est déterministe hors des jets du
 moteur.
 """
+from .memoire import episodes
 from .francais import pluriel as nombre_pluriel
 from .francais import quantite
 from . import agendas
@@ -655,7 +656,7 @@ def affirmer(monde, locuteur, auditeur, sujet, attribut, valeur):
     memoriser(monde, auditeur, {"type": "parole_crue", "locuteur": locuteur, "sujet": sujet, "attribut": attribut})
     # Ce qu'il a sous les yeux peut le démentir aussitôt.
     percevoir(monde, auditeur)
-    if any(s["type"] == "mensonge_decouvert" and s.get("sujet") == sujet for s in e["memoire"][-3:]):
+    if any(s["type"] == "mensonge_decouvert" and s.get("sujet") == sujet for s in episodes(monde, auditeur, derniers=3)):
         return "decouvert"
     return "crue"
 
@@ -1188,6 +1189,8 @@ def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
     from .deliberation import oublier_refus, retenir_refus
     arret = accueil(monde, demandeur, auditeur)
     if sujet is not None:
+        from .esprits import consommer_hypothese
+        consommer_hypothese(monde, demandeur, sujet)
         # Une réponse de localisation porte exclusivement la croyance du témoin.
         # La date d'acquisition et la provenance restent distinctes de la réception.
         c = croyance(monde, auditeur, sujet, "lieu")
@@ -1200,8 +1203,10 @@ def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
         if appris:
             from .voix import source_dite
             croire(monde, demandeur, sujet, "lieu", c["valeur"], source_dite(monde, demandeur, auditeur),
-                   round(.7 * clarte(monde, demandeur), 2), salle=c["valeur"], case=None,
-                   origine=origine)
+                   min(round(.7 * clarte(monde, demandeur), 2),
+                       lire(monde, auditeur)["croyances"][sujet]["lieu"]["confiance"]),
+                   salle=c["valeur"], case=None,
+                   origine=origine, mobilite=c.get("mobilite", "mobile"))
         if demandeur != "joueur" and issue != "qui_va_la":
             from .deliberation import consommer_indices_recherche
             if appris:
@@ -1331,15 +1336,8 @@ def tenu(monde, id, condition, depuis=None):
         # survit à une recharge et départage les faits d'une même minute sans
         # inventer l'instant de perception. Une mémoire oubliée ne fait pas
         # preuve : le nouveau suivi repart seulement de ce qu'il croit alors.
-        suivi = None
-        for s in reversed(e["memoire"]):
-            if s.get("condition") != condition:
-                continue
-            if s["type"] in ("engagement_pris", "engagement_tenu", "engagement_abandonne"):
-                break  # Une autre parole identique n'hérite pas de cette preuve.
-            if s["type"] == "suivi_engagement" and s["depuis"] == depuis:
-                suivi = s
-                break
+        from .memoire import suivi_engagement
+        suivi = suivi_engagement(monde, id, condition, depuis)
         if suivi is None:
             memoriser(monde, id, {"type": "suivi_engagement", "depuis": depuis,
                                   "condition": condition, "initiale": preuve})
@@ -1836,6 +1834,23 @@ def executer(monde, id, etape, lignes):
     from .spatial import porte_par
     autre, op = etape["cible"], etape["operation"]
     contenu = etape.get('contenu', {})
+    if op == 'rembourser':
+        from .biens import dues, richesse, garde_du, rembourser_dette
+        from .monde import ErreurMonde
+        du = sum(d['montant'] for d in dues(monde, id, autre))
+        if not du:
+            return True  # Compte soldé depuis la préparation du geste.
+        montant = min(du, richesse(monde, id))
+        if not montant or garde_du(monde, id, montant):
+            return False
+        try:
+            issue = rembourser_dette(monde, id, autre, montant, lignes)
+        except ErreurMonde:
+            return False
+        texte = (f"{_qui(monde, id)} dit à {_qui(monde, autre)} : « Je te rends "
+                 f"{quantite(issue['remboursement'], 'pièce')}. »")
+        faire_entendre(monde, id, autre, texte, [], lignes, acte='remboursement')
+        return True
     charge = contenu.get('mandat') or contenu.get('retrait_mandat')
     if charge:
         agendas.actualiser(monde, id)

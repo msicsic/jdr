@@ -58,9 +58,9 @@
   button:disabled, input:disabled { opacity: .5; cursor: default; }
   .aide { color: var(--doux); font-size: 12px; }
   #statut { font-weight: 600; }
-  #fabrication label, #information label, #accord label { display: block; margin: 8px 0; }
-  #fabrication select, #fabrication input, #information select, #accord select, #accord input { width: 100%; background: var(--fond); color: var(--texte); padding: 4px; }
-  #fabrication .aide, #information .aide { display: block; }
+  #fabrication label, #information label, #avis label, #accord label, #comptes label { display: block; margin: 8px 0; }
+  #fabrication select, #fabrication input, #information select, #avis select, #accord select, #accord input, #comptes select { width: 100%; background: var(--fond); color: var(--texte); padding: 4px; }
+  #fabrication .aide, #information .aide, #avis .aide { display: block; }
 </style>
 </head>
 <body>
@@ -81,8 +81,13 @@
     <h2>Informations — parler</h2>
     <button id="informer">Poser une question / dire un lieu…</button>
     <form id="information" hidden></form>
+    <button id="avertir">Donner un avis sur la menace d'eau…</button>
+    <form id="avis" hidden></form>
     <button id="negocier">Proposer une prestation, un délai et un prix…</button>
     <form id="accord" hidden></form>
+    <h2>Mes comptes</h2>
+    <button id="regler">Réclamer / restituer un prêt / régler une offre…</button>
+    <form id="comptes" hidden></form>
     <h2>Autour de toi</h2>
     <ul id="personnes"></ul>
     <h2>Objets en vue</h2>
@@ -138,7 +143,9 @@ let dangers = [];
 let offresPassages = [];
 let catalogueGestes = {objets: [], portes: []};
 let information = {destinataires: [], formulaires: []};
+let avis = {destinataires: [], formulaires: []};
 let accord = {destinataires: [], prestations: [], or: 0, instant: 0};
+let comptes = {lignes: [], choix: []};
 let animJoueur = null, animRotJoueur = null, bumpJoueur = null, derniereDirectionTentee = null;
 const parCase = {}, sols = {};
 let occupe = true, historique = [], indice = 0, brouillon = "";
@@ -421,11 +428,17 @@ function appliquerEtat(e) {
   dangers = e.dangers || [];
   offresPassages = e.passages || [];
   information = e.information || {destinataires: [], formulaires: []};
+  avis = e.avis || {destinataires: [], formulaires: []};
   accord = e.accord || {destinataires: [], prestations: [], or: 0, instant: 0};
+  comptes = e.comptes || {lignes: [], choix: []};
+  $("comptes").hidden = true;
+  $("comptes").innerHTML = "";
   $("accord").hidden = true;
   $("accord").innerHTML = "";
   $("information").hidden = true;
   $("information").innerHTML = "";
+  $("avis").hidden = true;
+  $("avis").innerHTML = "";
   $("fabrication").hidden = true;
   $("fabrication").innerHTML = "";
   afficherInventaire(e.inventaire || []);
@@ -686,6 +699,45 @@ function choixMateriels(o, executer, x, y, porte = false) {
   });
 }
 $("informer").onclick = () => ouvrirInformation();
+$("regler").onclick = () => ouvrirComptes();
+function ouvrirComptes() {
+  if (occupe) return;
+  const projection = JSON.parse(JSON.stringify(comptes));
+  const form = $("comptes"); form.hidden = false; form.innerHTML = "";
+  for (const ligne of projection.lignes) {
+    const p = document.createElement("p"); p.textContent = ligne; form.appendChild(p);
+  }
+  const aide = document.createElement("p");
+  aide.textContent = "Le moteur décide du règlement, y compris après une question sur le dû. Préparer ne transfère rien ; confirme ensuite avec tenter. Restituer concerne les prêts d’objets. Le remboursement volontaire d’une dette en pièces reste indisponible.";
+  form.appendChild(aide);
+  const label = document.createElement("label"), titre = document.createElement("span");
+  titre.textContent = "Choix de compte"; label.appendChild(titre);
+  const choix = document.createElement("select"); choix.required = true;
+  const vide = document.createElement("option"); vide.value = "";
+  vide.textContent = projection.choix.length ? "Choisir…" : "Aucun choix public à portée de voix";
+  choix.appendChild(vide);
+  projection.choix.forEach((c, i) => {
+    const option = document.createElement("option"); option.value = String(i);
+    const homonymes = projection.choix.filter(x => x.nom === c.nom);
+    option.textContent = c.nom + (homonymes.length > 1 ? ` (${homonymes.indexOf(c) + 1}/${homonymes.length})` : "");
+    choix.appendChild(option);
+  });
+  choix.value = ""; label.appendChild(choix); form.appendChild(label);
+  const resume = document.createElement("p"); form.appendChild(resume);
+  choix.onchange = () => { resume.textContent = projection.choix[choix.value]?.nom || "Choisis les termes à soumettre."; };
+  choix.onchange();
+  const preparer = document.createElement("button"); preparer.type = "submit";
+  preparer.textContent = "Préparer ce choix"; form.appendChild(preparer);
+  const annuler = document.createElement("button"); annuler.type = "button"; annuler.textContent = "Annuler";
+  annuler.onclick = () => { form.hidden = true; }; form.appendChild(annuler);
+  form.onsubmit = e => {
+    e.preventDefault(); if (occupe || form.hidden) return;
+    const c = projection.choix[choix.value];
+    if (!c) { resume.textContent = "Choisis un compte affiché."; return; }
+    arreter(null); envoyer(c.descripteur); form.hidden = true;
+  };
+}
+$("avertir").onclick = () => ouvrirInformation("", "avis");
 $("negocier").onclick = () => ouvrirAccord();
 function ouvrirAccord(brouillon = null) {
   if (occupe && !brouillon) return;
@@ -750,11 +802,14 @@ function ouvrirAccord(brouillon = null) {
     arreter(null); envoyer({geste: "accord", cible: projection.destinataires[qui.value].id, parametres: p}); form.hidden = true;
   };
 }
-function ouvrirInformation(destinataire = "") {
+function ouvrirInformation(destinataire = "", genre = "information") {
   if (occupe) return;
-  const form = $("information"); form.hidden = false; form.innerHTML = "";
+  const projection = JSON.parse(JSON.stringify(genre === "avis" ? avis : information));
+  const form = $(genre); form.hidden = false; form.innerHTML = "";
   const aide = document.createElement("p"); aide.className = "aide";
-  aide.textContent = "Le moteur décide de la réponse et de ce qui est cru. Le lieu annoncé est ton choix. Demander où se trouve un objet n'est pas encore disponible.";
+  aide.textContent = genre === "avis" ?
+    "Ton avis reste une prévision, jamais un fait établi. Le moteur décide de sa réception ; un avis contraire peut susciter une dispute. Choisis le lieu et ta prévision, puis confirme l'aperçu." :
+    "Le moteur décide de la réponse et de ce qui est cru. Le lieu annoncé est ton choix. Demander où se trouve un objet n'est pas encore disponible.";
   form.appendChild(aide);
   const select = (parent, titre, choix, valeur = "") => {
     const label = document.createElement("label"), nom = document.createElement("span");
@@ -771,15 +826,17 @@ function ouvrirInformation(destinataire = "") {
     input.value = valeur; label.appendChild(input); parent.appendChild(label);
     return input;
   };
-  const qui = select(form, "À qui parler", information.destinataires, destinataire);
-  const acte = select(form, "Acte d'information", information.formulaires.map(f => ({id: f.acte, nom: f.libelle})));
+  const qui = select(form, "À qui parler", projection.destinataires, destinataire);
+  const acte = genre === "avis" ? {value: "avis"} :
+    select(form, "Acte d'information", projection.formulaires.map(f => ({id: f.acte, nom: f.libelle})));
   const parametres = document.createElement("div"); form.appendChild(parametres);
   let champs = [];
   acte.onchange = () => {
     parametres.innerHTML = "";
-    const offre = information.formulaires.find(f => f.acte === acte.value);
-    champs = (offre?.champs || []).map(c => [c.champ, select(parametres, c.libelle, information[c.choix] || [])]);
+    const offre = projection.formulaires.find(f => f.acte === acte.value);
+    champs = (offre?.champs || []).map(c => [c.champ, select(parametres, c.libelle, projection[c.choix] || [])]);
   };
+  if (genre === "avis") acte.onchange();
   const message = document.createElement("p"); message.className = "aide"; form.appendChild(message);
   const soumettre = document.createElement("button"); soumettre.type = "submit"; soumettre.textContent = "Dire ces mots"; form.appendChild(soumettre);
   const fermer = document.createElement("button"); fermer.type = "button"; fermer.textContent = "Fermer";

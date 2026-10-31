@@ -76,13 +76,13 @@ def vues(m):
 
 
 class DescripteurPublicTests(unittest.TestCase):
-    def boucle(self, m, entree):
+    def boucle(self, m, entree, *, confirmer=False):
         """Vraie boucle avec MJ actif : le moindre appel libre fait échouer le test."""
         with tempfile.TemporaryDirectory() as tmp:
             fichier = Path(tmp) / "copie.json"
             m.sauver(fichier)
             test = self
-            saisies = iter((entree, "quitter"))
+            saisies = iter((entree, *(['tenter'] if confirmer else []), "quitter"))
             lignes, etats = [], []
             faux_mj = MagicMock(connexion="api", erreur_auth=None)
             faux_mj.echanger.side_effect = AssertionError("Appel au MJ")

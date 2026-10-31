@@ -5,6 +5,7 @@ La vérité et les jets restent au moteur ; ``publics`` ne projette que l'observ
 Les décisions de place/regard conservent leur cause dans l'intention avant de produire
 un signe. Aucune relation n'est reconstruite d'après une simple proximité.
 """
+from .memoire import episodes as episodes_retenus
 import copy
 import hashlib
 import random
@@ -572,7 +573,7 @@ def retenir_detresses(m, observateur, signes):
         if c["valeur"] in DETRESSE and c["signe"] in ids and sujet not in positifs:
             positifs[sujet] = (c["source"], {"canal": "lecture", "signe": c["signe"],
                 "attribut": a, "minute": c.get("apprise", c["minute"]), "valeur": c["valeur"]})
-    for s in e["memoire"]:
+    for s in episodes_retenus(m, observateur, types=("detresse",)):
         if s["type"] == "detresse" and s["minute"] == m.data["minutes"] and s["qui"] not in positifs:
             positifs[s["qui"]] = ("entendu", {"canal": "appel", "signe": "", "attribut": "",
                 "minute": s["minute"], "valeur": "appel"})
@@ -878,7 +879,7 @@ def percevoir_tous(m):
     acteurs = pnjs(m)
     if not any(emissions.values()) and not any(
             any(c.get("detresse", {}).get("valeur") for c in esprit_lu(m, id)["croyances"].values())
-            or any(s["type"] == "detresse" and s["minute"] == m.data["minutes"] for s in esprit_lu(m, id)["memoire"])
+            or any(s["type"] == "detresse" and s["minute"] == m.data["minutes"] for s in episodes_retenus(m, id, types=("detresse",)))
             for id in acteurs):
         return
     with vue_memorisee(m), etat_fige(m):

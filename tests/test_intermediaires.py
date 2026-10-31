@@ -9,6 +9,8 @@ from donjon.esprits import lire, croire, percevoir_tous
 from donjon.monde import Monde
 from donjon.moteur import Moteur, proposition
 from donjon.pnj_propositions import plan_recours, devis_intermediaire
+from donjon.rendu import regarder as rendu
+from donjon.scene import scene_percue
 from tests.support import regarder
 from tests.test_proposer_recours import scene as crue
 from tests.test_tache_promise_recours import reserve
@@ -62,23 +64,71 @@ def attendre(m, decoupe=False):
 
 
 class IntermediairesTests(unittest.TestCase):
+    def recharge(self, m):
+        r = recharger(m)
+        self.assertEqual(m.data, r.data)
+        self.assertEqual(rendu(m), rendu(r))
+        self.assertEqual(scene_percue(m), scene_percue(r))
+        return r
+
     def test_bien_durable_livre_par_le_meme_contrat(self):
+        for objet in ('crochets', 'marteau'):
+            with self.subTest(objet=objet):
+                self.livrer_bien_durable(objet)
+
+    def livrer_bien_durable(self, objet):
         m, id, cible, via = scene()
-        m.objets['crochets'].update(lieu=cible, proprietaire=cible)
+        m.objets[objet].update(lieu=cible, proprietaire=cible)
         for qui in (id, cible, via):
-            croire(m, qui, 'crochets', 'lieu', cible, 'entendu',
+            croire(m, qui, objet, 'lieu', cible, 'entendu',
                    salle=m.objets[cible]['lieu'], case=m.objets[cible]['position'])
-        c = {'objet': 'crochets', 'remettre': id}
+        c = {'objet': objet, 'remettre': id}
         with patch.object(Monde, 'd20', return_value=20):
             self.assertEqual(confier(m, id, via, c), 'accepte')
-            self.assertEqual(m.objets['crochets']['lieu'], cible)
-            _, m = attendre(recharger(m))
-        self.assertEqual(m.objets['crochets']['lieu'], id)
-        self.assertEqual(m.objets['crochets']['proprietaire'], cible)
+            self.assertEqual(m.objets[objet]['lieu'], cible)
+            _, m = attendre(self.recharge(m))
+        m = self.recharge(m)
+        self.assertEqual(m.objets[objet]['lieu'], id)
+        self.assertEqual(m.objets[objet]['proprietaire'], cible)
         from donjon.biens import permis
-        self.assertFalse(permis(m, id, 'crochets'))
+        self.assertFalse(permis(m, id, objet))
         self.assertFalse(agendas.en_cours(m, via, condition=c))
+        self.assertEqual(len(agendas.en_cours(m, via,
+                         condition={'objet': objet, 'rendre': cible}, actifs=True)), 1)
         self.assertTrue(any('remet' in f for t in m.data['journal'] for f in t['faits']))
+
+    def test_restitution_accessoire_ne_libere_pas_une_seconde_promesse(self):
+        from donjon.echanges import demander, devis_service, _devis_proposition
+        for cle, destination in (('remettre', 'brune'), ('lieu', 'echoppe')):
+            with self.subTest(transport=cle):
+                m, id, cible, via = scene()
+                objet = 'crochets'
+                m.objets[objet].update(lieu=cible, proprietaire=cible)
+                croire(m, via, objet, 'lieu', cible, 'entendu',
+                       salle=m.objets[cible]['lieu'], case=m.objets[cible]['position'])
+                c = {'objet': objet, cle: destination}
+                with patch.object(Monde, 'd20', return_value=20):
+                    self.assertEqual(confier(m, id, via, c), 'accepte')
+                    self.assertEqual(demander(m, via, cible, objet), 'remis')
+                m = self.recharge(m)
+                retour = {'objet': objet, 'rendre': cible}
+                self.assertTrue(agendas.en_cours(m, via, condition=retour, actifs=True))
+                avant = m.copier().data
+                self.assertIsNotNone(devis_service(m, via, c, id))
+                self.assertTrue(agendas.disponibilite_promise(m, via, objet, condition=c, pour=id))
+                self.assertFalse(agendas.disponibilite_promise(m, via, objet))
+                autre = {'objet': objet, 'remettre': cible}
+                self.assertIsNone(_devis_proposition(m, via, autre, cible))
+                self.assertEqual(confier(m, cible, via, autre), 'impossible')
+                self.assertEqual(m.data, avant)
+                self.recharge(m)
+                # Un nouveau contrat ne peut pas s'attribuer un prêt déjà
+                # réservé au retour, même avec des termes de transport égaux.
+                copie = self.recharge(m)
+                x, = agendas.en_cours(copie, via, condition=c)
+                agendas.retirer_proposition(copie, via, x)
+                self.assertIsNone(_devis_proposition(copie, via, c, id))
+                self.recharge(copie)
 
     def test_le_devis_moins_cher_choisit_le_recours(self):
         from donjon.pnj_propositions import rendre_service
@@ -132,7 +182,10 @@ class IntermediairesTests(unittest.TestCase):
                 self.assertEqual(m.objets[s['livraison']]['lieu'], via)
                 faits = ' '.join(f for t in m.data['journal'] for f in t['faits'])
                 self.assertIn('demande', faits)
-                self.assertIn('donne une part', faits)
+                # La remise immédiate et la livraison différée attestent la
+                # même part ; la chaîne et sa consommation sont vérifiées
+                # ci-dessus, indépendamment de cette formulation du journal.
+                self.assertRegex(faits, r'(donne|remet) une part')
                 self.assertTrue(texte)
                 self.assertFalse(agendas.en_cours(m, via, actifs=True))
 

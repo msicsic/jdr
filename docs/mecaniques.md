@@ -892,6 +892,16 @@ Les mêmes règles valent pour le joueur et pour les PNJ (`donjon/biens.py`).
   « Brune refuse de te rendre les 2 pièces qu'elle te doit. », « … ne te doit rien. » ; un sujet que
   le moteur ne sait résoudre est refusé au MJ avec un `attendu`. La fiche (`fiche`, `inventaire`)
   montre ses comptes : ce qu'on lui doit, ce qu'on lui a prêté (`biens.comptes_joueur`).
+- **Rembourser volontairement** (`biens.rembourser_dette`, parole `rembourser {montant}`) :
+  un montant vide rembourse tout le dû envers l'interlocuteur, un entier positif une partie.
+  Le moteur exige la dette, le créancier présent dans la même salle et capable d'entendre,
+  et les fonds du débiteur. Un montant supérieur au dû est refusé. Les lignes anciennes sont
+  réglées d'abord ; le reste figure dans les comptes de la fiche, y compris les dettes de Corvus.
+  Le libre affiche le montant et le créancier dans « Compris » et attend « tenter » ; le temps
+  seul ne dépense jamais les pièces du joueur. Le PNJ choisit le geste `rembourser` sur l'échelle
+  de l'argent : pièces et trajet contre le prix moral de garder son dû, sans urgence croissante.
+  La remise réelle donne au créancier l'épreuve existante `dette_honoree` à hauteur du montant
+  versé ; ni nouveau registre ni effacement d'un tort sans lien. Une dette soldée n'est plus candidate.
 - **Le prêt réclamé** : passé l'échéance (240 minutes), le prêteur va redemander son objet à qui
   le garde, PNJ ou joueur (but `reclamer`), comme il le redemande quand il en a besoin. Un PNJ
   emprunteur qui s'en sert encore refuse ; le joueur lit « Gaspard te demande de lui rendre la

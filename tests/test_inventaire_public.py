@@ -94,9 +94,21 @@ class InventairePublicTests(unittest.TestCase):
                     p = proposition_descripteur(m, d)
                     self.assertEqual(p, analyser(m, commande))
                     a, b = m.copier(), m.copier()
-                    self.assertEqual(Moteur(a).preparer(d).__dict__, Moteur(b).preparer(analyser(b, commande)).__dict__)
-                    direct, ld = self.boucle(m.copier(), d)
-                    texte, lt = self.boucle(m.copier(), commande)
+                    direct_plan, texte_plan = Moteur(a).preparer(d), Moteur(b).preparer(analyser(b, commande))
+                    if geste == 'remettre':
+                        # Lot 380 : les remises rejoignent U-C. Le transport du
+                        # clic ajoute la garde de péremption ; le plan reste identique.
+                        self.assertTrue(direct_plan.confirmation)
+                        self.assertTrue(texte_plan.confirmation)
+                        self.assertEqual(direct_plan.choix_public, (d, 'règles'))
+                        self.assertTrue(direct_plan.etat_consentement)
+                        self.assertEqual(texte_plan.choix_public, (p, 'règles'))
+                        self.assertEqual(direct_plan.etat_consentement, texte_plan.etat_consentement)
+                        direct_plan.choix_public = None
+                        texte_plan.choix_public = None
+                    self.assertEqual(direct_plan.__dict__, texte_plan.__dict__)
+                    direct, ld = self.boucle(m.copier(), d, confirmer=geste == 'remettre')
+                    texte, lt = self.boucle(m.copier(), commande, confirmer=geste == 'remettre')
                     self.assertEqual(ld, lt)
                     dd, dt = copy.deepcopy(direct.data), copy.deepcopy(texte.data)
                     for data in (dd, dt):

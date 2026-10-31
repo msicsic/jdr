@@ -104,7 +104,7 @@ class HelerTests(unittest.TestCase):
         dont il connaît la voix, et la réponse d'une voix qu'il ne connaît pas : celle qu'Hugues appelle
         Anselme (branche ``voix-inconnues`` : ce qu'il surprend lui nomme la voix, comme un ouï-dire).
         Anselme venant au couloir (``appel`` : « J'arrive ! »), le joueur le voit avant la fin de son
-        attente : ce qu'il entend se rend sous le nom de qui il voit, sans qu'il connaisse sa voix."""
+        attente. Le rendu 376 conserve cependant le savoir au moment de chaque parole."""
         m = hugues_cherche_anselme()
         m.joueur.update(salle="couloir", position=[1, 2])
         m.data["visitees"] = sorted({*m.data["visitees"], "couloir"})
@@ -119,10 +119,11 @@ class HelerTests(unittest.TestCase):
         self.assertIn("Anselme répond : « J'arrive ! »", chronique(m))
         self.assertIn("Hugues dit à Anselme que Lucien est peu fiable (crue).", chronique(m))
         self.assertEqual(len(appels(m, "hugues")), 1)
-        self.assertIn("Tu entends, tout près : Hugues appelle : « Anselme ? »", texte)
+        self.assertIn("Tu entends, tout près, Hugues appeler : « Anselme ? »", texte)
         # Branche des noms : la voix qu'Hugues appelle Anselme se révèle celle de qui vient au couloir,
-        # que Corvus voit parler ; il apprend alors son nom, et ce qu'il a entendu se rend sous ce nom.
-        self.assertIn("Tu entends, à l'est, Anselme répondre : « Qu'est-ce que tu veux ? »", texte)
+        # que Corvus voit parler ; il apprend alors son nom. La réponse antérieure
+        # reste attribuée à une voix nommée par ouï-dire, sans ce savoir ultérieur.
+        self.assertIn("Tu entends, à l'est, une voix qu'on appelle Anselme répondre : « Qu'est-ce que tu veux ? »", texte)
         self.assertIn("anselme", m.data["noms_connus"])
         self.assertEqual(m.data["voix_entendues"]["anselme"]["appelee"], "anselme")
         self.assertNotIn("anselme", m.data["voix_connues"])

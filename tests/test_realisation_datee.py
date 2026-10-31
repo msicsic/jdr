@@ -1,5 +1,6 @@
 """E2 : effet réel, date inclusive, compte unique et connaissance séparée."""
 import copy
+import json
 import unittest
 from unittest.mock import patch
 
@@ -27,9 +28,11 @@ class RealisationDateeTests(unittest.TestCase):
     def recharge(self, m):
         r = recharger(m)
         self.assertEqual(m.data, r.data)
+        self.assertEqual(json.dumps(m.data, ensure_ascii=False), json.dumps(r.data, ensure_ascii=False))
         self.assertEqual(rendu(m), rendu(r))
         self.assertEqual(scene_percue(m), scene_percue(r))
         self.assertEqual(agendas.promesses_visibles(m), agendas.promesses_visibles(r))
+        self.assertEqual(m.data.get('emissions_parole'), r.data.get('emissions_parole'))
         return r
 
     def dater(self, m, qui, limite=100):
@@ -169,6 +172,8 @@ class RealisationDateeTests(unittest.TestCase):
         self.assertEqual(la, lb)
         self.assertEqual(agendas.issues_temporelles(a)[0]['cloture'], 101)
         self.assertEqual(rendu(a), rendu(b))
+        self.assertEqual(scene_percue(a), scene_percue(b))
+        self.assertEqual(json.dumps(a.data, ensure_ascii=False), json.dumps(b.data, ensure_ascii=False))
 
     def test_part_reelle_du_relais_livree_memes_paroles_et_monde_en_bloc_ou_decoupe(self):
         from donjon.paroles import preparer_parole
@@ -187,6 +192,10 @@ class RealisationDateeTests(unittest.TestCase):
         self.assertEqual(la, lb)
         self.assertIn("Aubin te remet les planches de bac : tu l'avais payé.", la)
         a = self.recharge(a)
+        b = self.recharge(b)
+        self.assertEqual(scene_percue(a), scene_percue(b))
+        self.assertEqual(rendu(a), rendu(b))
+        self.assertEqual(json.dumps(a.data, ensure_ascii=False), json.dumps(b.data, ensure_ascii=False))
         self.assertEqual(a.objets['planches_1']['lieu'], 'joueur')
         self.assertEqual(agendas.issues_temporelles(a)[0]['verdict'], 'tenue_a_temps')
 

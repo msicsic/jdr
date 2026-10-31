@@ -2,6 +2,7 @@
 
 31 octobre 2026 — branche `codex-a2-passage`, base de travail `origin/integration`
 au brief `c63dd5637648523997cc7a3f32966fd63fec6b06`, non fusionnée.
+Rapprochement avec `origin/integration a6f0f00b` demandé le 31 octobre.
 
 **Invariant.** `donjon/contrats_passage.py` décrit le passage local dessous/dessus,
 l'assemblage installé, l'appui mobile, la poussée et la demande de passage.
@@ -30,34 +31,36 @@ par l'identité du monde entier. Le test sonore filtre ses propres branches.
 Le nouveau test de poussée vérifie le recul enregistré, le récit sauvegardé et
 les vues rechargées : son attente initiale de seuil encore libre était fausse.
 Les réactions peuvent ramener la victime pendant les 3 s, comme le couvre déjà
-le test historique. Aucun code du jeu n'a changé depuis `0e3be7f5`.
+le test historique. La reprise initiale n'avait changé aucun code du jeu.
 
-**Mesures.** Passe de onze fichiers : **138 tests, 1 644,00 s, deux échecs,
-aucune erreur ni test ignoré** (`tests-finaux.json`). Les quinze parcours
-corps/passage au terminal sont verts ; ils ne sont pas relancés. Après correction
-du seul test décrit ci-dessus, **47/47 tests verts en 73,30 s**, dont les huit
-nouveaux tests et les trois fichiers voisins de parole (`tests-sociaux.json`).
-L'autre échec, `test_cas_reel_acceptee_elle_s_ecarte_vraiment`, attend « Tu avances
-d'un pas. » ; **le même échec et le même texte réel sont reproduits sur la base
-exacte `c63dd563`** (un test, 4,33 s, `test-base.log`). Son assertion reste intacte :
-les voisins ne sont donc pas tous verts. Aucune nouvelle régression connue.
-**Empreintes identiques** sur huit nuits de 2 h par version, Relais/auberge,
-1985/7/42/2024 : chronique, mesures et état final complet, **zéro divergence et
-zéro plantage** (`empreintes.json`). Référence figée `c63dd563`, calculée une fois
-puis rangée dans le cache partagé ; branche `a8f9e2ad`, sans cache. Même
-`PYTHONHASHSEED=0`, référence puis branche ; aucun gain de vitesse revendiqué.
-La branche locale `main`, ancienne, n'est pas utilisée pour comparer d'autres
-intégrations. Bruts dans `C:/Users/msics/donjon/artifacts/a2-passage-381/`.
-L'ancien `fin.json` constate l'arrêt avant le banc ; **`fin-reprise.json` clôt la
-reprise** : `tests_sociaux=0`, `base=1` (échec ancien attendu), `empreintes=0`,
-`erreur=null`. Copie de base supprimée. Deux travailleurs à priorité réduite.
-Ni suite complète ni Luna. Lot livré, non fusionné.
+**Raccord d'intégration.** Fusion d'`a6f0f00b` (y compris 392 arrivé depuis la
+demande). Les deux conflits de `paroles.py` sont résolus en gardant la variante
+`rembourser {montant}`, le schéma du passage, son contrôle de destinataire et
+le remboursement individuel. Les raccourcis comptes de 380, le rendu du prix
+de 388 et la remise par U-C sont conservés dans les trois fusions automatiques
+de `commandes`, `comprehension` et `moteur`. Le test du sujet tiers garde son
+refus sans mutation ; l'attendu de déplacement corrigé par 390 est conservé.
+Vérification en cours sur les sept fichiers demandés et `test_don_consentement`,
+puis empreintes Relais, 2 h × 1985/7/42/2024, contre `a6f0f00b`.
+Bruts : `C:/Users/msics/donjon/artifacts/a2-passage-381/integration/` ;
+`fin.json` écrit après `tests.json` et `empreintes.json`. Deux travailleurs
+à priorité réduite ; ni suite complète ni Luna.
+
+**Références initiales conservées.** Reprise **47/47 verte en 73,30 s**
+(`tests-sociaux.json`), après une passe de 138 tests qui avait révélé l'attente
+erronée du nouveau test de poussée et un ancien rendu rouge reproduit sur
+`c63dd563` (`test-base.log`). Ce dernier est corrigé depuis par le lot 390.
+Empreintes Relais/auberge : **huit nuits de 2 h par version identiques** à
+`c63dd563`, chronique, mesures et monde complet, zéro plantage (`empreintes.json`,
+`fin-reprise.json`). Références calculées une fois puis cachées ; aucun gain de
+vitesse revendiqué. Les bruts initiaux restent dans le dossier parent.
 
 **Limites.** La fidélité du choix de Luna n'est pas garantie ; les revues restent
 en place, A4/A6 hors lot. « Enjamber » et « escalader » sélectionnent dessus
 comme auparavant ; la forme détermine la manière montrée et exécutée. L'ancienne
 API `proposer_action` garde son schéma transitoire (A3) et ses contrôles moteur.
 `moteur.py`, `mj.py` et `paroles.py` raccordent les actions seules et les paroles.
-Aucun registre d'esprit, changement de revue ou raccord libre ; pas de
-recouvrement avec 374/378/380. `etat-dev.md` est partagé ; 375 doit tenir compte
-de l'évolution des schémas et de l'ancien attendu de rendu.
+Aucun registre d'esprit, changement de revue ou raccord libre ajouté par 381.
+Les fichiers partagés avec les lots de comptes et de consentement ont été relus
+au rapprochement ; `etat-dev.md` reste partagé. La fusion dans l'intégration
+reste au superviseur.

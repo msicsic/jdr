@@ -267,7 +267,8 @@ class ProfilTests(unittest.TestCase):
         self.assertRegex(sortie.getvalue(), r"Brune demande une part des vivres du refuge à Gorm \("
                                             r"|servir les vivres du refuge à Brune \(empathie\)")
         self.assertRegex(sortie.getvalue(), "Gorm appelle Brune et lui donne une part des vivres du refuge"
-                                           "|Gorm remet les vivres du refuge à Brune")
+                                           "|Gorm remet les vivres du refuge à Brune"
+                                           "|Gorm donne une part des vivres du refuge à Brune")
         self.assertIn("Gorm, gardien du relais verrouille la réserve de vivres.", sortie.getvalue())
         self.assertIn("se chauffe près du brasero.", sortie.getvalue())
         self.assertIn("Gorm, gardien du relais alimente le brasero.", sortie.getvalue())
