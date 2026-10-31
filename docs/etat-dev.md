@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-a2-consultation-sociale` (79663ec3) : lot 407, A2 famille consultation sociale. Détail dans l'historique.
 - `codex-s1j-voix` (146cb136) : lot 408, S1j identité vocale par des vues sourcées. Détail dans l'historique.
 - `codex-s1j-paroles-voix` (09795acb) : lot 406, S1j paroles, audiences et savoir initial par des vues sourcées. Détail dans l'historique.
 - `codex-suite-c562aa21` (f8c40269) : lot 403, rouges nouveaux de la suite c562aa21. Détail dans l'historique.
@@ -39,11 +40,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-crash-raccord` (3c506bb1) : lot 401, le raccord des émissions ne plante plus. Détail dans l'historique.
 - `codex-s1f-localisation` (f7ec584b) : lot 397, S1f localisation crue et preuves de possession par une seule interface. Détail dans l'historique.
 - `codex-ut-social-comptes` (628d5da6) : lot 396, U-T social comptes. Détail dans l'historique.
-- `codex-s2-conception` (00b3910d) : lot 398, conception de S2. Détail dans l'historique.
 
 ## Lots non fusionnés
 
-Lots en cours : 409 (S1k refus et recours), 407 (A2 consultation sociale), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 409 (S1k refus et recours), 410 (A3 liaison du transport), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 - `codex-s1k-refus-recours` — lot 409, base `integration 64e3b2b4`, première partie : refus retenus

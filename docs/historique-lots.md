@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-a2-consultation-sociale` — lot 407, base `integration b4130dc3` : contrat commun de
+  `qui`/`localisation`/`ressource`/`reclamer`, schéma, typage, raccourcis et « Compris » ; mécanique conservée.
+  Passe initiale : 128 tests ; reprise finale 14/14 et 27/27 verts (36 méthodes distinctes), sans erreur ni ignoré.
+  Empreintes identiques : 2 h × quatre graines Relais/auberge, huit nuits par version, zéro plantage.
+  Deux corrections de tests reprises à l'identique du 403 (`fc370ec6`) ; assertions de sécurité conservées/renforcées.
+  Bruts `artifacts/a2-consultation-sociale-407/` du dépôt principal ; ni Luna ni registre d'esprit ; fidélité hors A2.
+  [Rapport](taches/rapport-codex-407-a2-consultation-sociale.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `paroles.py`, fusionnés sans conflit textuel. lot 407, dernière famille A2 : contrat commun (contrats_consultation) pour moteur, schéma et plan public des questions d'information, localisation, ressource et réclamation interrogative ; mécanique inchangée. 36 tests, empreintes identiques. Fichiers communs : paroles.py (406/408), tests de contenus et corrections de parole (403), fusionnés sans conflit textuel, tests ciblés rejoués.
+
 - `codex-s1j-voix` — lot 408 clos, non fusionné ; base `integration 44745a89`, code mesuré `bea3d8ec`.
   Identité vocale, noms et échanges retenus : vues copiées et écritures nommées dans `memoire`, stockage conservé.
   Inventaire AST vocal 98 → 17 (schéma + homonymes exacts), zéro accès brut restant ; 217/217 tests, seize fichiers.

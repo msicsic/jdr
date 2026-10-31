@@ -86,8 +86,11 @@ def plan_admis(monde, plan):
 def contenu(monde, c, interlocuteur="", *, reference_ressource=False, destinataire=None):
     """Contenu typé d'une parole, distinct de la vérité de ce qu'elle affirme."""
     from .propositions import en_mots
-    from .paroles import RESSOURCES_DEMANDEES, resoudre
+    from .paroles import resoudre
+    from .contrats_consultation import CONSULTATIONS, public as consultation_publique
     t = c["type"]
+    if t in CONSULTATIONS:
+        return consultation_publique(monde, c, reference_ressource=reference_ressource)
     if t == 'mandat':
         from .agendas import phrase_charge
         from .paroles import _typer
@@ -129,20 +132,6 @@ def contenu(monde, c, interlocuteur="", *, reference_ressource=False, destinatai
     if t == "nom":
         nom = monde.joueur["nom"] if s == "joueur" else sujet
         return f"se présenter sous le nom {nom}"
-    if t == "qui":
-        return "demander l'identité de l'interlocuteur"
-    if t == "reclamer":
-        return f"réclamer le dû : {sujet or 'pièces'}"
-    if t == "ressource":
-        # Un nom recherché est du texte, pas l'identifiant d'un bien caché.
-        # Le formulaire fournit une référence exacte validée, le texte une
-        # recherche lexicale. Apprendre un objet ne réinterprète pas cette
-        # recherche, même si ses mots coïncident avec un identifiant interne.
-        if reference_ressource and s in monde.objets:
-            return "demander si l'interlocuteur possède " + repere(monde, s)
-        return "demander si l'interlocuteur possède " + RESSOURCES_DEMANDEES.get(s, s)
-    if t == "localisation":
-        return "demander où se trouve " + sujet
     raise ValueError(f"Contenu sans rendu public : {t}")
 
 
