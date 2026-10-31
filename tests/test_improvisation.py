@@ -1,3 +1,4 @@
+from tests.revue_support import rapport as rapport_complet
 import copy
 import io
 import tempfile
@@ -236,7 +237,7 @@ class ImprovisationTests(unittest.TestCase):
                         effets = entree["plan"]["effets_reussite"]
                         conforme = any(e[0] == operation for e in effets)
                         appels.append(("audit", conforme))
-                        return {"conforme": conforme, "motif": "L'effet demandé manque." if not conforme else ""}
+                        return rapport_complet(entree, conforme, "L'effet demandé manque." if not conforme else "")
                     self.assertEqual(fonction, "repondre_au_joueur")
                     corrige = "retour_moteur" in entree["faits"]
                     appels.append(("proposition", corrige))

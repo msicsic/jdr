@@ -1,4 +1,5 @@
 """Forme, saisie, MJ simulé, moteur, trajet, rendu et sauvegarde du même passage."""
+from tests.revue_support import rapport as rapport_complet
 import copy
 import io
 from pathlib import Path
@@ -57,7 +58,7 @@ def jouer(m, saisies, reponses=()):
     reponses = iter(reponses)
     def appel(instructions, entree, intention_, fonction, schema):
         if fonction == "auditer_action":
-            return {"conforme": True, "motif": ""}
+            return rapport_complet(entree, True, "")
         if fonction == "auditer_narration":
             # Aucun récit libre n'est nécessaire pour ces mouvements du moteur.
             return {"segments": {}}

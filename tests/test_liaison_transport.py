@@ -8,6 +8,8 @@ import unittest
 from unittest.mock import patch
 
 import jeu
+from tests.revue_support import rapport as rapport_complet
+from donjon.moteur import Moteur
 from donjon.fournisseurs.contrat import Demande
 from donjon.fournisseurs.local import Local
 from donjon.fournisseurs.openai import OpenAI
@@ -253,7 +255,7 @@ class LiaisonTransportTests(unittest.TestCase):
             fonction = outil['name']
             requetes.append(fonction)
             if fonction == 'auditer_action':
-                a = {'conforme': True, 'motif': ''}
+                a = rapport_complet(Moteur(m).preparer(p))
             else:
                 self.assertEqual(fonction, 'repondre_au_joueur')
                 a = {'reponse': reponse(p)}

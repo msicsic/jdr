@@ -38,20 +38,46 @@ def schema(plan):
     if plan.parole is not None:
         return SCHEMA_PAROLE
     import copy
-    from .comprehension import parametres_types
+    from .comprehension import champs_types_revue
     s = copy.deepcopy(SCHEMA)
     s["properties"].update({
         "perimetre": {"type": "string", "enum": ["sens", "contrat_type", "nuance_cosmetique"],
-            "description": "sens : écart hors des champs typés ; contrat_type : comparaison explicite des champs dans ecarts_types ; nuance_cosmetique : style, émotion ou intention sans effet typé, hors du verdict mécanique."},
-        "ecarts_types": {"type": "array", "items": {
-            "type": "object", "additionalProperties": False,
-            "properties": {
-                "champ": {"type": "string", "enum": list(parametres_types(plan.proposition))},
-                "demande": {"type": "string", "description": "Valeur typée demandée par la saisie entière, en identifiant canonique ; encodage JSON pour une liste."}},
-            "required": ["champ", "demande"]},
-            "description": "Seuls écarts des opérations, références, méthodes, outils et formes acoustiques typés. Une valeur identique au plan n'est pas un écart. Une nuance non représentée par le contrat n'en change pas la méthode."}})
-    s["required"] += ["perimetre", "ecarts_types"]
+            "description": "sens : écart hors des champs typés ; contrat_type : comparaison complète dans champs_types ; nuance_cosmetique : style, émotion ou intention sans effet typé, hors du verdict mécanique."},
+        "champs_types": {"type": "object", "additionalProperties": False,
+            "properties": {champ: {"type": "object", "additionalProperties": False,
+                "properties": {
+                    "conforme": {"type": "boolean", "description": "Ce champ précis traduit-il la demande entière ?"},
+                    "demande": {"type": "string", "description":
+                        "Valeur demandée par la saisie entière ; identifiants canoniques. "
+                        "Si non précisée, reprendre la valeur proposée : " + valeur_typee(v)},
+                    "perimetre": {"type": "string", "enum": ["contrat_type"]}},
+                "required": ["conforme", "demande", "perimetre"]}
+                for champ, v in champs_types_revue(plan.proposition).items()},
+            "required": list(champs_types_revue(plan.proposition)),
+            "description": "Comparer séparément TOUS les champs. Les chaînes restent littérales ; "
+                           "les autres valeurs sont encodées en JSON. Aucun champ typé n'est cosmétique."}})
+    s["required"] += ["perimetre", "champs_types"]
     return s
+
+
+def valeur_typee(v):
+    return v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
+
+
+def contrats_revue():
+    """Sens des valeurs canoniques A2, sans sélection linguistique de famille."""
+    import copy
+    from .contrats_sequence import COMPOSITION, ATTENTES, RACCOURCIS_VOL
+    from .contrats_son import emissions, FORMES_SONORES, SON_IMPROVISE
+    from .contrats_passage import PASSAGES, DEMANDE
+    from .contrats_consultation import CONSULTATIONS
+    return copy.deepcopy({
+        "sequence_attente": {"composition": COMPOSITION, "attentes": ATTENTES,
+                             "raccourcis_vol": RACCOURCIS_VOL},
+        "expression_son": {"emettre_son": emissions(), "son_improvise": SON_IMPROVISE,
+                           "formes_improvisees": FORMES_SONORES},
+        "passage": {"operations": PASSAGES, "parole": DEMANDE},
+        "consultation": CONSULTATIONS})
 
 INSTRUCTIONS = """Tu fais une contre-revue indépendante de la fidélité d'un plan de jeu.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
@@ -82,8 +108,16 @@ Réponds conforme=false seulement pour un écart net de sens :
 - une conséquence ajoutée que le joueur n'a pas demandée ;
 - une clause ou une forme concrète du geste demandée contredite ou omise par les paramètres
   et la manière proposés. Le rapport sépare le périmètre sens, contrat_type et nuance_cosmetique.
-  Toute contestation d'un champ typé donne dans ecarts_types son chemin et sa valeur demandée
-  canonique ; le moteur compare ces valeurs. Une nuance cosmétique sans effet typé reste dans
+  champs_types exige une comparaison indépendante pour CHAQUE champ du plan, y compris
+  opération, méthode, approche, références, forme acoustique, nombres et clauses.
+  Indique pour chacun la valeur canonique demandée par la saisie entière ; si elle ne précise
+  pas ce paramètre, conserve la valeur proposée. Les valeurs proposées ne prouvent pas leur
+  fidélité. Le moteur compare toutes ces valeurs avant le verdict global. Le périmètre de
+  chaque champ est toujours contrat_type : aucun désaccord typé ne peut devenir cosmétique.
+  Le booléen conforme de chaque champ juge ce champ seul. Les contrats_canoniques décrivent
+  le sens des valeurs : deux modalités distinctes n'acquièrent pas le même sens parce que
+  leurs effets partagent une catégorie générale. La prose proposée ne change pas ces valeurs.
+  Une nuance cosmétique sans effet typé reste dans
   son périmètre distinct, sans exiger de nouveau paramètre de l'opération canonique.
 Compare la demande à l'état final établi par le moteur, en lisant ensemble le titre,
 l'information, deplacements, passages, les effets et les étapes. Les déplacements et
@@ -299,7 +333,11 @@ def entree(intention, plan, monde=None):
                                             "outil": _nommer(op["geste_improvise"]["outil"], monde)}}
                        if "geste_improvise" in op else {})}
         operations = nommer_plan(operations)
+    from .comprehension import champs_types_revue
     entree_ = {"demande": intention, "plan": operations}
+    if plan.parole is None:
+        entree_["champs_types"] = champs_types_revue(plan.proposition)
+        entree_["contrats_canoniques"] = contrats_revue()
     if monde is not None:
         from .noms import public
         # Seulement ce que le joueur peut désigner ; jamais le lexique privé du monde.
@@ -376,28 +414,91 @@ def verifier(rapport, plan=None, operations_demandees=None):
                               ("contenu non conforme", motif)))
         return
     champs_corrigeables = []
-    if isinstance(rapport, dict) and set(rapport) == {"conforme", "motif", "perimetre", "ecarts_types"}:
-        from .comprehension import parametres_types
-        types = parametres_types(plan.proposition) if plan else {}
-        if (type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)
+    if plan is not None:
+        from .comprehension import champs_types_revue
+        types = champs_types_revue(plan.proposition)
+        if (not isinstance(rapport, dict)
+                or set(rapport) != {"conforme", "motif", "perimetre", "champs_types"}
+                or type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)
                 or not isinstance(rapport["perimetre"], str)
                 or rapport["perimetre"] not in {"sens", "contrat_type", "nuance_cosmetique"}
-                or not isinstance(rapport["ecarts_types"], list)):
-            raise RapportInvalide("Le périmètre de la contre-revue est invalide.")
-        for ecart in rapport["ecarts_types"]:
-            if (not isinstance(ecart, dict) or set(ecart) != {"champ", "demande"}
-                    or not isinstance(ecart["champ"], str) or ecart["champ"] not in types
-                    or not isinstance(ecart["demande"], str)):
-                raise RapportInvalide("La comparaison typée de la contre-revue est invalide.")
-            champ, demande = ecart["champ"], ecart["demande"]
-            recu = types[champ]
-            if demande != (json.dumps(recu, ensure_ascii=False) if isinstance(recu, list) else recu):
-                raise ErreurMonde("Le plan propose une autre opération ou manière que celle demandée.",
-                    f"proposition.{champ} : reçu {recu!r} ; accepté : {demande!r} (sens proposé par la revue).",
-                    champs_corrigeables=(champ,))
+                or not isinstance(rapport["champs_types"], dict)):
+            raise RapportInvalide("La comparaison complète de la contre-revue manque.",
+                f"rapport reçu {rapport!r} ; accepté conforme, motif, perimetre et champs_types "
+                f"couvrant exactement {list(types)!r}.")
+        recus = rapport["champs_types"]
+        if set(recus) != set(types):
+            raise RapportInvalide("La contre-revue ne couvre pas tous les champs typés.",
+                f"champs_types : reçu {list(recus)!r} ; accepté exactement {list(types)!r}.")
+        demandes = {}
+        for champ, comparaison in recus.items():
+            if not isinstance(comparaison, dict) or set(comparaison) != {"conforme", "demande", "perimetre"}:
+                raise RapportInvalide("La comparaison d'un champ typé est mal formée.",
+                    f"champs_types.{champ} : reçu {comparaison!r} ; accepté exactement conforme, demande et perimetre.")
+            if type(comparaison["conforme"]) is not bool:
+                raise RapportInvalide("Le jugement du champ typé est illisible.",
+                    f"champs_types.{champ}.conforme : reçu {comparaison['conforme']!r} ; accepté un booléen.")
+            if not isinstance(comparaison["demande"], str):
+                raise RapportInvalide("La valeur demandée doit être précisée.",
+                    f"champs_types.{champ}.demande : reçu {comparaison['demande']!r} ; accepté une chaîne.")
+            if comparaison["perimetre"] != "contrat_type":
+                raise RapportInvalide("Un champ typé ne peut pas être classé cosmétique.",
+                    f"champs_types.{champ} : reçu {comparaison!r} ; accepté "
+                    "{conforme: booléen, demande: valeur canonique demandée, perimetre: contrat_type}.")
+            demande = comparaison["demande"]
+            if not isinstance(types[champ], str):
+                try:
+                    demande = json.loads(demande)
+                except ValueError as exc:
+                    raise RapportInvalide("La valeur typée demandée est illisible.",
+                        f"champs_types.{champ}.demande : reçu {demande!r} ; accepté un JSON "
+                        f"du même type que {valeur_typee(types[champ])!r}.") from exc
+            identique = type(demande) is type(types[champ]) and demande == types[champ]
+            demandes[champ] = demande
+            if comparaison["conforme"] != identique:
+                raise RapportInvalide("Le jugement du champ contredit ses valeurs typées.",
+                    f"champs_types.{champ} : reçu {comparaison!r}, proposé {types[champ]!r} ; "
+                    "accepté conforme=true si valeurs égales, false si différentes.")
+            if not identique:
+                champs_corrigeables.append(champ)
+        if champs_corrigeables:
+            champ = champs_corrigeables[0]
+            # Un changement de contrat racine invalide sa charge entière : les
+            # chemins du contrat refusé ne décrivent plus le nouveau candidat.
+            # Celui-ci sera entièrement revu, jamais admis par cette correction.
+            libres = ("",) if "action" in champs_corrigeables else tuple(champs_corrigeables)
+            if libres != ("",):
+                import copy
+                from .compilation import schema_reponse
+                from .fournisseurs.schema import verifier as verifier_grammaire
+                from .refus import RefusDeForme
+                candidat = copy.deepcopy(plan.proposition)
+                for chemin in champs_corrigeables:
+                    morceaux = chemin.split(".")
+                    parent = candidat
+                    for morceau in morceaux[:-1]:
+                        parent = parent[int(morceau)] if isinstance(parent, list) else parent[morceau]
+                    parent[morceaux[-1]] = demandes[chemin]
+                grammaire = schema_reponse()
+                def reponse(p):
+                    return dict(mode="action", texte="", faits=[], proposition=p)
+                try:
+                    verifier_grammaire(reponse(plan.proposition), grammaire)
+                except RefusDeForme:
+                    pass  # Un ancien candidat hors grammaire ne libère rien de plus.
+                else:
+                    try:
+                        verifier_grammaire(reponse(candidat), grammaire)
+                    except RefusDeForme:
+                        # Les valeurs explicitement demandées par la revue ne
+                        # s'expriment pas dans cette représentation. Le contrat
+                        # entier est contesté ; le suivant sera préparé et revu.
+                        libres = ("",)
+            raise ErreurMonde("Le plan propose une autre opération ou manière que celle demandée.",
+                f"proposition.{champ} : reçu {types[champ]!r} ; accepté : "
+                f"{recus[champ]['demande']!r} (sens proposé par la revue).",
+                champs_corrigeables=libres)
         if rapport["perimetre"] in {"contrat_type", "nuance_cosmetique"}:
-            # Le verdict de sens libre ne peut invalider une égalité du contrat.
-            # Ce contrôle n'infère aucun mot de la saisie ni aucun effet de la prose.
             rapport = {**rapport, "conforme": True}
         rapport = {k: rapport[k] for k in ("conforme", "motif")}
     if (not isinstance(rapport, dict) or set(rapport) != {"conforme", "motif"}

@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
+from tests.revue_support import rapport as rapport_complet
 from donjon.compilation import schema_reponse
 from donjon.emissions import joueur, pnj
 from donjon.mj import MJ
@@ -101,7 +102,7 @@ class RaccordLibreTests(unittest.TestCase):
                     codes = operations_contenu(entree["plan"]["parole"]["contenu"])
                     return dict(contenu_conforme=True, motif="", perimetre="sens",
                                 operations_demandees={t: t in codes for t in OPERATIONS})
-                return dict(conforme=True, motif="")
+                return rapport_complet(entree)
             self.assertEqual(fonction, "repondre_au_joueur")
             self.assertEqual(schema, schema_reponse())
             return copy.deepcopy(r)

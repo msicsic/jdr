@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
-from donjon.comprehension import invariants_reprise, verifier_reprise
+from donjon.comprehension import invariants_reprise, verifier_reprise, champs_types_revue
 from donjon.couverture_action import verifier, schema
 from donjon.improvisation import effet, issue, proposition as improviser
 from donjon.mj import MJ
@@ -19,6 +19,7 @@ from donjon.rendu import regarder, fiche
 from donjon.scene import scene_percue
 from tests.test_comprehension import PontScript
 from tests.test_paroles import relais
+from tests.revue_support import porter, rapport as rapport_complet
 
 
 def revue(conforme=True, perimetre="sens", ecarts=(), motif=""):
@@ -37,7 +38,8 @@ class RepriseFideleTests(unittest.TestCase):
         def appel(instructions, dossier, intention, fonction, contrat):
             appels.append((fonction, copy.deepcopy(dossier)))
             if fonction == "auditer_action":
-                return next(revues)
+                r = next(revues)
+                return r if "champs_types" in r else porter(r, dossier)
             self.assertEqual(fonction, "repondre_au_joueur")
             if "retour_moteur" in dossier["faits"]:
                 retours.append(copy.deepcopy(dossier["faits"]["retour_moteur"]))
@@ -75,8 +77,8 @@ class RepriseFideleTests(unittest.TestCase):
                 avant = copy.deepcopy(m.data)
                 # Même un verdict faux ne peut invalider une égalité typée.
                 r = revue(False, "contrat_type", [{"champ": "etapes.0.methode", "demande": methode}], "nuance absente")
-                verifier(r, plan)
-                verifier(revue(False, "nuance_cosmetique", motif="émotion absente"), plan)
+                verifier(porter(r, {"champs_types": champs_types_revue(plan.proposition)}), plan)
+                verifier(rapport_complet(plan, False, "émotion absente", "nuance_cosmetique"), plan)
                 self.assertEqual(m.data, avant)
                 charge, retours, appels = self.jouer(m, saisie, [p], [r])
                 self.assertFalse(retours)
@@ -150,9 +152,9 @@ class RepriseFideleTests(unittest.TestCase):
         self.assertIn("reussite.effets.0.texte", refus.exception.attendu)
         plan = Moteur(nouveau_monde()).preparer(son("sifflement"))
         with self.assertRaises(ErreurMonde) as refus:
-            verifier(revue(True, "contrat_type", [{"champ": "etapes.0.methode", "demande": "cri"}]), plan)
+            verifier(rapport_complet(plan, True, perimetre="contrat_type", ecarts=[{"champ": "etapes.0.methode", "demande": "cri"}]), plan)
         self.assertEqual(refus.exception.champs_corrigeables, ("etapes.0.methode",))
-        self.assertIn("ecarts_types", schema(plan)["required"])
+        self.assertIn("champs_types", schema(plan)["required"])
         original = son("sifflement")
         with self.assertRaises(ErreurMonde) as refus:
             verifier_reprise(son("cri"), invariants_reprise(original, ErreurMonde("Une autre clause manque.")))
@@ -160,7 +162,7 @@ class RepriseFideleTests(unittest.TestCase):
         # Un booléen mal formé ne devient pas valide par son périmètre.
         from donjon.couverture_action import RapportInvalide
         with self.assertRaises(RapportInvalide):
-            verifier({**revue(False, "nuance_cosmetique"), "conforme": "non"}, plan)
+            verifier({**rapport_complet(plan, False, perimetre="nuance_cosmetique"), "conforme": "non"}, plan)
 
 
 if __name__ == "__main__":

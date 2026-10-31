@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
+from tests.revue_support import rapport as rapport_complet
 from donjon import corps
 from donjon.config import MODELE_PAR_DEFAUT
 from donjon.comprehension import plan_admis
@@ -80,7 +81,7 @@ class RecitResultatTests(unittest.TestCase):
                 self.assertFalse(phase["execution"], "Appel MJ après exécution : " + fonction)
                 appels.append(fonction)
                 if fonction == "auditer_action":
-                    return {"conforme": True, "motif": ""}
+                    return rapport_complet(_entree)
                 self.assertEqual(fonction, "repondre_au_joueur")
                 return {"mode": "action", "texte": "", "faits": [], "proposition": copy.deepcopy(p)}
 

@@ -13,6 +13,7 @@ Cas réels : « Tu demandes à Ilse de t'aider. « Pas maintenant », te répond
 (``narration-fidele``) ; la voix qui se disait Brune (``voix``) ; « Prise non demandée » de la
 contre-revue (``contre-revue``). Chaque voie est vérifiée sur un autre cas de même nature, et les
 chaînes complètes après rechargement."""
+from tests.revue_support import porter as porter_revue
 import io
 from pathlib import Path
 import tempfile
@@ -67,6 +68,8 @@ def jouer(monde, saisie, reponses, audits, revues=(), *, suite=()):
                 if isinstance(revue["operations_demandees"], list):
                     from donjon.couverture_action import OPERATIONS
                     revue["operations_demandees"] = {t: t in revue["operations_demandees"] for t in OPERATIONS}
+            elif set(revue) == {"conforme", "motif"}:
+                revue = porter_revue(revue, entree)
             return revue
         return (audits if fonction == "auditer_narration" else reponses).pop(0)
     with tempfile.TemporaryDirectory() as tmp:

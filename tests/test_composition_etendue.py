@@ -1,3 +1,4 @@
+from tests.revue_support import rapport as rapport_complet
 import copy
 import io
 from pathlib import Path
@@ -39,7 +40,7 @@ class CompositionEtendueTests(unittest.TestCase):
             m.sauver(chemin)
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=lambda *a: (
-                      {"conforme": True, "motif": ""} if a[3] == "auditer_action" else
+                      rapport_complet(a[1], True, "") if a[3] == "auditer_action" else
                       {"mode": "action", "texte": "", "faits": [], "proposition": CROCHETER_OUVRIR_CALER})),
                   patch.object(Monde, "d20", return_value=20),
                   patch("builtins.input", side_effect=[

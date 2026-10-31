@@ -501,9 +501,11 @@ class MJ:
             try:
                 verifier_couverture(rapport, plan, operations_demandees)
                 return
-            except RapportInvalide:
-                # Une revue illisible est redemandée une fois. La parole exige
-                # son analyse des opérations ; un geste conserve le repli historique.
+            except RapportInvalide as exc:
+                # Une revue incomplète ne peut pas autoriser un geste. La seconde
+                # lecture garde la même proposition et le refus structuré.
+                dossier["retour_revue"] = {"rapport_refuse": copy.deepcopy(rapport),
+                                           "attendu": exc.attendu}
                 if essai:
                     if plan.parole is not None:
                         raise RapportIllisible("Le contenu de ta parole n'a pas pu être vérifié.",
@@ -511,11 +513,8 @@ class MJ:
                             f"contre-revue reçue {json.dumps(rapport, ensure_ascii=False)} ; "
                             "accepté un contenu couvrant les opérations demandées, "
                             "après une contre-revue lisible (contenu_conforme, motif, operations_demandees, perimetre).")
-                    if self.observateur:
-                        self.observateur({"etape": "couverture de l'action", "modele": self.modele,
-                                          "revision": revision, "intention": intention,
-                                          "erreur": "Contre-revue illisible deux fois : plan accepté sans elle."})
-                    return
+                    raise RapportIllisible("Le geste proposé n'a pas pu être vérifié. Rien n'est tenté.",
+                        exc.attendu or "rapport : accepté une comparaison complète des champs typés du plan.") from exc
 
     def _verifier_fidelite_parole(self, monde, intention, complements, rapport, revision,
                                  operations_demandees=None, declaration_connue=True,

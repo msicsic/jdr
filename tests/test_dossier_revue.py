@@ -22,6 +22,7 @@ from donjon.temps import instant
 from tests.test_comprehension import PontScript
 from tests.test_paroles import relais
 from tests.test_tensions import recharger
+from tests.revue_support import rapport
 
 
 def expression(maniere, forme=None, bruit=0):
@@ -65,8 +66,8 @@ class DossierRevueTests(unittest.TestCase):
                 recus.append(dossier)
                 # Oracle de protocole, pas une simulation de compréhension du français.
                 porte_son = any(e[0] == "son_improvise" for e in dossier["plan"]["effets_reussite"])
-                return {"conforme": porte_son, "motif": "" if porte_son else
-                        "proposition.reussite.effets : effet son manquant (son_improvise à l'exécution)."}
+                return rapport(dossier, porte_son, "" if porte_son else
+                        "proposition.reussite.effets : effet son manquant (son_improvise à l'exécution).")
             with patch.object(mj, "_appeler_brut", side_effect=revue):
                 if forme:
                     mj._auditer_action("je fredonne doucement", plan, m.data["revision"], m)
@@ -90,7 +91,7 @@ class DossierRevueTests(unittest.TestCase):
         self.assertIn("aucune orientation", str(d))
         # Le verdict de fidélité n'exécute rien et ne garantit pas le vol.
         avant = copy.deepcopy(m.data)
-        verifier({"conforme": True, "motif": ""}, plan)
+        verifier(rapport(plan), plan)
         self.assertEqual(m.data, avant)
         composition = Moteur(m).preparer(sequence(etape("patienter")))
         self.assertIn(COMPOSITION["sens"], str(sens_propose(composition)))
@@ -152,7 +153,7 @@ class DossierRevueTests(unittest.TestCase):
                     self.assertEqual(fonction, "auditer_action")
                     recus.append(copy.deepcopy(dossier))
                     porte_son = any(e[0] == "son_improvise" for e in dossier["plan"]["effets_reussite"])
-                    return {"conforme": porte_son, "motif": "" if porte_son else "effet son manquant"}
+                    return rapport(dossier, porte_son, "" if porte_son else "effet son manquant")
                 pont = PontScript(["mj " + saisie, "tenter", "quitter"], chemin)
                 with patch.object(jeu, "MJ", return_value=mj), patch.object(mj, "_appeler_brut", side_effect=appel), \
                      patch("sys.stdout", io.StringIO()), patch.object(Monde, "d20", side_effect=AssertionError("Sans jet")):
