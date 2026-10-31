@@ -9,6 +9,8 @@ from donjon.monde import ErreurMonde
 from donjon.paroles import OPERATIONS, preparer_parole, verifier_contenus
 from donjon.rendu import fiche, regarder
 from donjon.scene import scene_percue
+from donjon.spatial import memoriser as memoriser_vue
+from tests.support import sans_le_sou
 from tests.test_audits_attendu import jouer
 from tests.test_echanges_suite import ensemble, memoires
 from tests.test_parole_corrections import banc
@@ -20,6 +22,7 @@ def scene(qui='brune', montant=4):
     m = banc('comptes')
     m.data['dettes'] = []
     rembourser(m, 'joueur', qui, montant, 'vivres')
+    memoriser_vue(m)  # La scène affichée au chargement est déjà connue avant l'aperçu.
     return recharger(m)
 
 
@@ -133,9 +136,12 @@ class RemboursementVolontaireTests(unittest.TestCase):
                 m = scene()
                 m.data['dettes'] = []
                 m.objets['brune']['profil']['valeurs']['honnetete'] = 100
+                # La dette personnelle de départ est un autre souci, qui peut
+                # déclencher une vente concurrente : seule la créance testée reste.
+                m.objets['brune']['profil'].setdefault('situation', {})['dette'] = 0
                 if a == 'ilse':
                     ensemble(m, 'brune', 'ilse')
-                    m.joueur.update(salle='antichambre', position=[3, 3])
+                    m.joueur.update(salle='antichambre', position=[3, 5])
                 rembourser(m, 'brune', a, 2, 'vivres')
                 avant = bourse(m, 'brune'), bourse(m, a)
                 # Une réclamation n'est pas nécessaire : créancier non averti.
@@ -157,6 +163,8 @@ class RemboursementVolontaireTests(unittest.TestCase):
         m = scene()
         m.data['dettes'] = []
         m.objets['brune']['profil']['valeurs']['honnetete'] = 100
+        m.objets['brune']['profil'].setdefault('situation', {})['dette'] = 0
+        sans_le_sou(m, 'marchand', 'aubin', 'ilse')  # Aucun achat concurrent ne finance un second versement.
         m.data['finances_pnj']['brune'] = 1
         rembourser(m, 'brune', 'joueur', 4, 'vivres')
         placer(m, 'brune', 'antichambre', (2, 3))

@@ -45,8 +45,8 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-rembourser-dette` — lot 388, base `integration ea3c70e0` (laptop) : remboursement volontaire typé commun joueur/PNJ ; dette, audience, fonds et montant vérifiés avant transfert.
   U-C confirme le débit de Corvus ; fiche, paroles enregistrées, épreuve relationnelle et sauvegarde raccordées, sans nouveau registre.
-  Tests ciblés, bancs Relais/auberge 4 h × quatre graines et une passe Luna sur copies en cours ; aucune vérification finale acquise.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/rembourser-388/fin-verification.json`.
+  Bilan : 97/98 tests, seul rouge Gaspard reproduit sur la base ; huit nouveaux tests verts. Bancs Relais/auberge 4 h × quatre graines : zéro usurpation ; Luna 4 appels, zéro refus/erreur.
+  Bruts : `C:/Users/msics/donjon/artifacts/rembourser-388/fin-conclusion.json`. Non-répétition du versement prouvée par tests ciblés ; aucun remboursement né dans les bancs.
   [Rapport 388](taches/rapport-codex-388-rembourser-dette.md). Non fusionné.
 
 Lots en cours : 374 (position crue), 375 (11 rouges de la suite e0826ef), 380

@@ -1840,7 +1840,7 @@ def executer(monde, id, etape, lignes):
         if not montant or garde_du(monde, id, montant):
             return False
         try:
-            issue = rembourser_dette(monde, id, autre, montant)
+            issue = rembourser_dette(monde, id, autre, montant, lignes)
         except ErreurMonde:
             return False
         texte = (f"{_qui(monde, id)} dit à {_qui(monde, autre)} : « Je te rends "

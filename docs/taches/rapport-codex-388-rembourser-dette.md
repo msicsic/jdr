@@ -1,57 +1,56 @@
 # Lot 388 — Rembourser volontairement une dette en pièces
 
 Branche `codex-rembourser-dette`, base `integration ea3c70e0`, laptop.
-**Implémentation livrée ; vérification finale en cours, non fusionnée.**
+**Terminé, non fusionné. Un échec préexistant demeure dans les tests ciblés.**
 
-**Invariant.** Le remboursement volontaire du joueur et celui du PNJ utilisent
-`biens.rembourser_dette` : dette existante du débiteur, montant entier positif
-au plus égal au dû, créancier présent et capable d'entendre, fonds suffisants.
-Chaque refus décrit sa cause et son `attendu`, avant tout transfert. Le montant
-vide règle tout le dû envers ce destinataire ; les lignes anciennes passent
-d'abord. Le reste demeure dans `data["dettes"]`, sans nouveau registre d'esprit.
+**Invariant.** Joueur et PNJ utilisent `biens.rembourser_dette` : dette connue
+du débiteur, entier positif au plus égal au dû, créancier présent et capable
+d'entendre, fonds suffisants. Chaque refus a son `attendu`, avant transfert.
+Un montant vide règle tout le dû envers ce destinataire, les lignes anciennes
+d'abord ; le reste demeure dans `data["dettes"]`, sans registre supplémentaire.
+`_verser_dette` partage avec le règlement réclamé transfert, comptes et souvenirs.
+La remise donne au créancier l'épreuve existante `dette_honoree`, à hauteur des
+pièces versées ; les restes distinguent deux versements identiques sur plusieurs
+lignes. Sauvegarde et `comptes_joueur` admettent désormais Corvus débiteur.
 
-**Chaîne commune.** `_verser_dette` partage avec le règlement réclamé le transfert,
-les comptes et les souvenirs. Le créancier reçoit l'épreuve relationnelle
-existante `dette_honoree`, proportionnée aux pièces effectivement remises ;
-les restes distincts différencient deux versements d'une même somme sur plusieurs
-lignes. Le validateur de sauvegarde admet désormais Corvus comme débiteur.
-`comptes_joueur` affiche aussi ses dettes dans la fiche.
+Le contenu `rembourser {montant}` rejoint l'union des paroles et la fidélité.
+U-C prépare sur copie, montre « Compris » avec montant et créancier, attend
+confirmation ; G17 enregistre les mots comptables avant affichage. Annuler ou
+laisser passer le temps ne paie pas. Aucun menu ni formulaire ajouté.
+Le planificateur compare pièces et trajet au prix moral de garder le dû, sur
+le palier permanent de l'argent. Il vise la position crue ; le geste revalide
+le réel, conserve le récapitulatif visible du versement et enregistre sa parole.
+Une dette soldée ou une bourse vide ne produit plus de versement candidat.
 
-Le contenu `rembourser {montant}` entre dans l'union des paroles, son sens et
-la revue de fidélité. U-C le traite comme lourd par défaut : préparation sur
-copie, « Compris » avec montant et créancier, puis confirmation avant publication.
-G17 formule et enregistre la réponse comptable ; une annulation ne paie pas.
-Le temps seul ne débite jamais Corvus. Aucun formulaire web ni menu ajouté.
+**Tests : 97 réussites / 98, sur onze fichiers, bilan consolidé des reprises.**
+Les huit nouveaux tests passent : total à Brune, partiel à Gorm, plusieurs
+lignes, refus distincts sans mutation, aperçu/annulation sans effet, PNJ honnête
+sans réclamation, déplacement et absence de second versement sans fonds.
+Bourses, dettes, paroles entendues, épreuve relationnelle et vues sont contrôlées
+après recharge ; comptes et émissions concordent entre laps entier et découpé.
+Les tests d'échéance observent désormais la naissance de la dette avant le
+départ spontané du PNJ, puis sa remise effective. Les scènes isolent la créance
+testée de la dette personnelle de scénario, qui déclenchait une vente concurrente
+légitime. Le seul rouge, le secours de Gaspard
+(`test_scene_exacte_le_secours_differe_le_pret_jusqu_au_calme_percu`), se reproduit
+sur une archive de la base `ea3c70e0` ; il reste hors lot. Aucune suite complète.
 
-Le planificateur propose le geste `rembourser` sur le palier permanent de
-l'argent : coût du trajet et des pièces contre le prix moral de garder le dû,
-selon l'honnêteté existante. La position visée est crue ; le geste revalide
-présence, audience, fonds et dette réels, puis enregistre ses mots par la voie
-commune des paroles PNJ. Plus de dette ou de fonds : plus de versement candidat.
-Les réclamations automatiques entre PNJ conservent leur voie actuelle ; le
-remboursement spontané est désormais choisi par le planificateur.
+**Bancs :** Relais et auberge, 4 h × graines 1985/7/42/2024, deux travailleurs
+réduits, huit nuits achevées ; zéro usurpation, zéro bascule d'état répétée.
+Maximum de passages par PNJ/heure : 10 au Relais, 24 à l'auberge ; trois avis
+redits à l'auberge. Ces nuits ne déclenchent aucun remboursement : la preuve
+de non-répétition du versement vient des tests ciblés. Durées par nuit :
+28,41–37,20 s / 50,09–74,19 s ; aucun gain comparatif de performance affirmé.
 
-**Épreuves.** Le nouveau fichier couvre total à Brune, partiel à Gorm, plusieurs
-lignes, aperçu/annulation, dépassement, dette inconnue, absence, inaudibilité,
-manque de fonds, absence de débit au passage du temps, PNJ honnête sans
-réclamation, déplacement et remboursement partiel sans répétition. Il contrôle
-bourses, dettes, paroles, épreuve relationnelle et vues après recharge, ainsi
-que les mêmes comptes et émissions après un laps entier ou découpé.
-Le premier passage a révélé le contrat de sauvegarde manquant, puis deux erreurs
-de montage des tests (champs de transport et case hors sol), corrigées.
-Les premiers parcours joueur, U-C et refus passent ; le résultat final fait foi.
+**Luna : une passe sur copies**, `tests/data/bancs/rembourser.json` : quatre
+appels, 20,07 s au total, zéro refus, repli, erreur ou échec de recharge.
+Brune reçoit les quatre pièces après confirmation ; Gorm reçoit deux pièces
+et dit les trois restantes. Les aperçus conservent les montants demandés.
 
-Onze fichiers ciblés sont lancés, sans suite complète, puis une reprise des
-trois fichiers directement concernés par les derniers changements. Le lanceur
-enchaîne les bancs de branche Relais et auberge, 4 h × quatre graines, deux
-travailleurs à priorité réduite, puis **une seule passe Luna ChatGPT** sur
-`tests/data/bancs/rembourser.json`, exclusivement sur copies temporaires.
-Commandes exactes, journaux et résultats :
-`C:/Users/msics/donjon/artifacts/rembourser-388/` ; fichier de fin écrit en dernier :
-`fin-verification.json`. Ne pas déclarer la vérification acquise avant lecture
-de `tests-cibles.json`, `tests-finaux.json`, des bancs et du fil Luna.
-
-**Limites.** Aucun résultat de performance ni absence générale de régression
-affirmé avant la fin des calculs. Le remboursement peut attendre les besoins
-plus urgents du PNJ. Il n'efface aucun tort indépendant et ne crée pas de prêt
-monétaire nouveau. Fusion et vérification d'intégration laissées au superviseur.
+**Limites et livraison.** Le remboursement peut attendre un besoin plus urgent
+ou une autre démarche financière ; il n'efface aucun tort indépendant et ne
+crée pas de prêt monétaire nouveau. Les réclamations entre PNJ gardent leur voie
+actuelle. Fusion et vérification d'intégration restent au superviseur.
+Bruts, commandes, fil Luna et preuve du rouge hérité :
+`C:/Users/msics/donjon/artifacts/rembourser-388/` ; bilan final
+`fin-conclusion.json`. Les anciens fichiers rouges sont conservés.
