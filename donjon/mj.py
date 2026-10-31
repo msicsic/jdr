@@ -878,7 +878,11 @@ class MJ:
                 try:
                     suite = self._echanger_prepare(travail, intention,
                                                    proposition_en_attente, suite_fait=True, invariants_retenus=invariants)
-                    if suite["mode"] == "action" or (suite["mode"] == "dialogue" and not qualification):
+                    if suite["mode"] == "action" or (suite["mode"] == "dialogue" and
+                            (not qualification or suite.get("_texte_moteur"))):
+                        # Une qualification admise reste acquise même si un autre
+                        # prérequis empêche le geste. Son refus déterministe doit
+                        # répondre au joueur, sans lui faire répéter sa demande.
                         return ajouter_transaction(suite, "faits", revision, p, debut=True)
                 except ErreurMonde:
                     pass
