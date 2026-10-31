@@ -11,7 +11,11 @@ import sys
 import time
 
 BASE = Path(__file__).resolve().parents[1]
+# Ne pas confondre le namespace tests/ avec le lanceur tools/tests.py.
+sys.path[:] = [p for p in sys.path if Path(p or '.').resolve() != BASE / 'tools']
 sys.path.insert(0, str(BASE))
+import tests
+sys.path.append(str(BASE / 'tools'))
 from priorite import ceder
 from donjon.accords_publics import accords_publics, AccordTerminal, termes_parametres
 from donjon.mj import MJOpenAI
@@ -50,6 +54,7 @@ def main():
         k0 = accords_publics(m)['suggestions']
         trace = []
         mj = MJOpenAI('gpt-6-luna', connexion=args.connexion)
+        mj.journal_complet = True
         mj.observateur = lambda evenement: trace.append(copy.deepcopy(evenement))
         mesure = {'saisie': saisie, 'reference_k0': k0}
         debut = time.monotonic()

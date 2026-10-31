@@ -1,61 +1,64 @@
 # Lot 434 — K2, assistance de Luna à la négociation
 
 Branche `codex-k2-assistance-luna`, base `integration` **`364e8722`**.
-Code réalisé ; **vérification en cours, lot non déclaré terminé**.
+**Terminé, non fusionné** ; code `7f59f07d`, clôture après vérification et passe Luna.
 
-**Invariant et réalisation.** L’aide demandée emprunte le mode `accord` du
-compilateur public, avec une charge distincte portant un obstacle ou au plus
-deux alternatives. Aucun routage lexical ni nouvelle mécanique sociale.
-`negociation.py` réutilise les termes du moteur et le catalogue public K1,
-ajouté au contexte avec sa provenance ; aucun dossier mental privé n’est
-ajouté. Une alternative passe par `parole_accord`, puis par
-`echanges.candidat_proposition`, étendu aux deux termes sur copie : droits,
-fonds, disponibilité, doublons, livraison et devis du PNJ. Aucun jet social,
-paiement ou engagement à cette étape. La possession actuelle ne peut servir
-de preuve que pour un bien visible ; sinon seule la preuve mémorisée est lue.
+**Invariant.** Une aide demandée produit au plus deux alternatives typées,
+admises sur copie avant affichage, puis sélectionnées dans K1. Aucun paiement,
+engagement ni jet social avant la soumission ; le PNJ garde son verdict.
 
-**Clauses et interfaces.** Une clause supplémentaire ne se répare pas : le
-candidat entier est écarté. Un obstacle déclaré arrête l’ensemble du marché,
-même si le modèle joint des alternatives. Les limites ponctuelles existantes
-sont compilées en instants par `compiler_limites` et admises par le contrôle
-temporel commun ; aucun événement incertain n’est une nouvelle date.
-Les libellés affichés sont écrits par le moteur. La sélection ouvre K1
-prérempli en console, TUI et web ; le web accepte désormais aussi la liste
-d’alternatives d’un brouillon vide. Modifier, valider et tenter restent les
-étapes ordinaires, avec revalidation et verdict du PNJ.
+**Réalisation.** `compilation.py` étend le mode `accord` avec la charge
+`obstacle/alternatives`. `negociation.py` utilise le catalogue public K1,
+transmis par `mj.py` avec sa provenance, sans dossier mental privé.
+Chaque candidat passe par `parole_accord` puis `echanges.candidat_proposition`,
+étendu aux deux termes : droits, fonds, disponibilité, doublons, livraison,
+devis du PNJ et limites temporelles communes. La possession actuelle exige
+un bien visible ; sinon seule sa preuve mémorisée est utilisée.
+Une clause inconnue écarte le candidat entier ; un obstacle déclaré arrête
+toutes les alternatives. Les durées typées passent par `compiler_limites`.
+Les libellés viennent du moteur. Console, TUI et web réutilisent K1 ; le web
+affiche aussi les suggestions d’un brouillon vide. Aucun routage lexical,
+registre d’esprit ou mécanisme social ajouté ; aucun audit retiré.
 
-**Vérification lancée.** `compileall` et `git diff --check` réussis. Les tests
-K2 contrôlent Aubin/planches contre tâche ponctuelle et Odile/huile contre
-lanterne, le vrai callback web, la sélection terminale, les termes soumis,
-le verdict, l’état et les vues après recharge. Autres preuves : mélange de
-candidats admis/refusés, fonds insuffisants, référence privée, propriété sans
-preuve, clause inconnue, arrêt sur obstacle, déduplication, plafond de deux,
-limite relative puis instant exact, contexte inchangé quand un besoin privé
-varie. La première exécution ciblée a révélé trois erreurs du test, corrigées
-(signature du helper et nom du registre des paroles).
-La vérification voisine porte sur K0, K1, E5, E6, propositions et projection
-publique ; une reprise K2 et raccord libre couvre les dernières modifications.
-Deux travailleurs au plus à priorité réduite ; pas de suite complète ni banc PNJ.
+**Tests.** **75 tests distincts : 74 réussis, 1 ignoré, zéro échec/erreur.**
+Le test ignoré dépend de `jsonschema`, facultatif. K0/K1/E5/E6/propositions/
+projection : 63 tests en 546,3 s, incluant 4 K2 intermédiaires ; reprise finale
+K2 (5) et raccord libre (11) : 16 tests en 144,4 s. Le décompte distinct
+remplace les 4 intermédiaires par les 5 finaux.
+Aubin/planches contre tâche et Odile/huile contre lanterne : vrais callbacks
+web, éditeur terminal prérempli, termes soumis, accords acceptés, état et vues
+identiques après recharge. Autres preuves : candidats refusés jamais affichés,
+fonds, références privées, possession sans preuve, clauses inconnues, obstacle,
+déduplication, plafond de deux, limite relative puis instant exact et contexte
+inchangé quand un besoin privé varie. `compileall`, `--help` du banc et
+`git diff --check` réussis. Deux travailleurs au plus, priorité réduite ;
+ni suite complète ni banc PNJ.
 
-**Luna et mesure.** `tools/banc_negociation_aide.py` prépare les mêmes scènes
-sur copies, garde K0, les requêtes, les sorties admises et les appels, puis
-soumet la première alternative au moteur et compare état/vues rechargés.
-La troisième demande porte sur « ramène Brune avant la crue », payé seulement
-en cas de succès. Une seule passe attend la fin des tests. Aucun résultat
-Luna ni gain de richesse n’est encore revendiqué. Le compteur hors K0 compare
-les termes canoniques, indépendamment des anciens champs `prestation/prix`.
+**Luna : une passe sur copies, référence K0 sur les mêmes scènes.**
 
-**Limites.** La détection d’une clause inexprimable dans le français libre
-reste sémantique : un candidat typé valide ne prouve pas la fidélité à toute
-saisie. Les deux termes restent exposés au contrôle du joueur dans K1 ; aucun
-audit des voies à effets n’est retiré. Une tâche promise par Corvus ne reçoit
-pas de plan autonome ni de garantie de réussite. L’admission ne prédit pas
-l’utilité privée de la contrepartie ni l’acceptation du PNJ.
+| Scène | Alternatives hors K0 admises | Acceptées, première soumise |
+|---|---:|---:|
+| Aubin : planches contre déplacement de cloche ou torche | 2 | 1, cloche |
+| Odile : huile contre lanterne ou déplacement de lanterne | 2 | 1, lanterne |
+| Brune avant la crue, payé seulement en cas de succès | 0 | refus `reglement_conditionnel` |
 
-**Bruts et reprise.** `artifacts/k2-assistance-434/` dans ce worktree :
-`verification.json`, `final-cibles.json`, `luna/bilan.json` et fils par scène ;
-le fichier de fin de toute la chaîne est **`fin.json`**, écrit en dernier.
-Copie de livraison : `C:/Users/msics/donjon/artifacts/k2-assistance-434/`.
-Commande Luna exacte :
-`$env:SEUIL_AUTH='C:\Users\msics\donjon\.seuil-auth'; & C:/Users/msics/donjon/.venv/Scripts/python.exe tools/banc_negociation_aide.py --sortie artifacts/k2-assistance-434/luna`.
-Le bilan final doit être lu avant de conclure le lot et d’annoncer les mesures.
+**Deux alternatives utiles hors K0 confirmées**, deux autres non soumises.
+Monde inchangé avant sélection ; état et vues identiques après les deux
+soumissions et recharges. Compilation : 8,954 / 6,723 / 4,432 s, sans comparaison
+de vitesse. **Un appel jusqu’à chaque première offre utile, reconstitué** :
+le compteur initial affichait zéro car `journal_complet` était désactivé.
+Chaque fil contient une seule interprétation en mode accord, sans prose,
+correction ni reprise ; ce chemin ne fait aucune revue supplémentaire.
+L’analyse séparée conserve cette limite ; journal complet désormais activé.
+Le premier lancement avait échoué avant appel (`tools/tests.py` masquait
+`tests/`) ; import corrigé. Aucun rejeu de la passe.
+
+**Limites.** Détecter une clause inexprimable dans tout français libre reste
+sémantique ; la validité typée ne prouve pas la fidélité. Le joueur contrôle
+les deux termes dans K1. Une tâche de Corvus reste une promesse, sans plan
+autonome ni garantie de réussite. Admission et utilité privée sont distinctes.
+
+**Bruts.** `C:/Users/msics/donjon/artifacts/k2-assistance-434/` :
+`verification.json`, `final-cibles.json`, `luna/bilan.json`, `luna/analyse.json`,
+trois fils, copies avant/après, commandes et `fin.json` de clôture.
+Branche poussée ; aucun calcul en cours. Fusion et suite complète au superviseur.
