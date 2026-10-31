@@ -1,18 +1,17 @@
 """Chaque plan de référence après une borne reste trouvable avec l'attente retenue."""
-import copy
 import json
 from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from donjon import banc_pnj, planification as p
+from donjon import banc_pnj, memoire, planification as p
 from donjon.monde import Monde
 from donjon.rendu import regarder
 from donjon.scene import scene_percue
 
 
 def chercher(monde, id, nom):
-    with p.vues_du_choix(monde, id):
+    with memoire.choix_complet(monde, id), p.vues_du_choix(monde, id):
         return _chercher(monde, id, nom)
 
 
@@ -59,7 +58,8 @@ if __name__ == "__main__":
             with p.diagnostics() as recherches:
                 chercher(a, id, nom)
                 assert recherches[-1]["issue"] == "borne", recherches[-1]
-                b.data["esprits"][id]["attentes_bornees"] = copy.deepcopy(a.data["esprits"][id]["attentes_bornees"])
+                with memoire.choix_complet(b, id):
+                    memoire.restaurer_efforts_bornes(b, id, memoire.efforts_retenus(a, id))
                 b = recharger(b, root / "rejeu-avant.json")
                 r = chercher(b, id, nom)
                 assert r is not None, (plan, recherches[-1])

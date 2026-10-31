@@ -43,6 +43,11 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-s1m-renoncements` — lot 418, base `integration 718ca2e0` : accès aux renoncements et efforts bornés par `memoire.py`, publication après le choix complet réussi, devis/interruption sans publication.
+  Stockage, causes du 417 et règles historiques conservés ; inventaire AST 46 → 7 expressions (schéma et diagnostics/archives).
+  Tests ciblés et empreintes 2 h × quatre graines × quatre scénarios en cours ; aucune identité encore affirmée.
+  Aucun changement de `mj.py`, aucun nouveau registre ; pas de suite complète ni Luna. [Rapport](taches/rapport-codex-418-s1m-renoncements.md).
+
 Lots en cours : 416 (A6 raccord libre), 418 (S1m renoncements et efforts bornés), 402 (vérification d’intégration moteur) ; familles C et E du 414 à ouvrir ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 

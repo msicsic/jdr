@@ -9,6 +9,142 @@ from contextlib import contextmanager
 MEMOIRE_MAX = 40
 
 
+def _suivis_choix(monde, id):
+    return next((b for b in reversed(getattr(monde, '_suivis_memoire', ()))
+                 if b['id'] == id), None)
+
+
+@contextmanager
+def _preparer_suivis(monde, id, *, publier):
+    """Brouillon privé ; une exception, y compris imbriquée, ne publie rien."""
+    from .esprits import lire, esprit
+    pile = getattr(monde, '_suivis_memoire', ())
+    parent = _suivis_choix(monde, id)
+    origine = parent if parent is not None else lire(monde, id)
+    bloc = {'id': id, 'renoncements': copy.deepcopy(origine['renoncements']),
+            'attentes_bornees': dict(origine['attentes_bornees']), 'modifies': set()}
+    monde._suivis_memoire = (*pile, bloc)
+    try:
+        yield
+    except BaseException:
+        raise
+    else:
+        for cle in bloc['modifies']:
+            if parent is not None:
+                parent[cle] = bloc[cle]
+                parent['modifies'].add(cle)
+            elif publier:
+                esprit(monde, id)[cle] = bloc[cle]
+    finally:
+        monde._suivis_memoire = pile
+
+
+@contextmanager
+def choix_complet(monde, id):
+    """Publie les obstacles/efforts seulement après le retour réussi du choix.
+
+    Ne transactionne pas les autres effets opérationnels de la délibération.
+    Aucun registre n'est installé si le choix ne touche pas ces suivis.
+    """
+    with _preparer_suivis(monde, id, publier=True):
+        yield
+
+
+@contextmanager
+def evaluation_obstacles(monde, id):
+    """Un devis isolé est jeté ; dans un choix, il enrichit son brouillon."""
+    with _preparer_suivis(monde, id, publier=False):
+        yield
+
+
+def _obstacles_stock(monde, id):
+    from .esprits import lire
+    bloc = _suivis_choix(monde, id)
+    return (bloc if bloc is not None else lire(monde, id))['renoncements']
+
+
+def renoncements_retenus(monde, id):
+    """Copie des causes historiques, sans péremption ni accès au réel."""
+    return copy.deepcopy(_obstacles_stock(monde, id))
+
+
+def obstacles_du_motif(monde, id, motif):
+    """Les anciens délais entiers ne deviennent pas des preuves d'obstacle."""
+    retenus = _obstacles_stock(monde, id).get(motif, [])
+    return copy.deepcopy(retenus) if isinstance(retenus, list) else []
+
+
+def _remplacer_obstacles(monde, id, motif, retenus):
+    from .esprits import esprit
+    bloc = _suivis_choix(monde, id)
+    if bloc is None:
+        esprit(monde, id)['renoncements'][motif] = retenus
+    else:
+        bloc['renoncements'][motif] = retenus
+        bloc['modifies'].add('renoncements')
+
+
+def retenir_renoncement(monde, id, motif, but, cause):
+    """Retient le constat réel ; remplace seulement le même obstacle/moyen."""
+    from .temps import instant
+    retenu = copy.deepcopy({'instant': instant(monde), 'but': but, 'cause': cause})
+    def meme_obstacle(r):
+        return (r['but'] == but and r['cause']['type'] == cause['type']
+                and r['cause']['salle'] == cause['salle']
+                and all(r['cause']['etape'].get(k) == cause['etape'].get(k)
+                        for k in ('operation', 'cible', 'lieu')))
+    retenus = [r for r in obstacles_du_motif(monde, id, motif) if not meme_obstacle(r)]
+    _remplacer_obstacles(monde, id, motif, retenus + [retenu])
+
+
+def clore_obstacles_leves(monde, id, motif, but, tient):
+    """Seul le démenti de la cause clôt ; le juge métier garde son autorité."""
+    assert _suivis_choix(monde, id) is not None, 'Clore un obstacle exige un choix complet'
+    if isinstance(_obstacles_stock(monde, id).get(motif), list):
+        retenus = [r for r in obstacles_du_motif(monde, id, motif)
+                   if r['but'] != but or tient(r['cause'])]
+        _remplacer_obstacles(monde, id, motif, retenus)
+
+
+def effort_retenu(monde, id, recours):
+    """Signature immuable du recours, sans consommer l'effort à la lecture."""
+    from .esprits import lire
+    bloc = _suivis_choix(monde, id)
+    return (bloc if bloc is not None else lire(monde, id))['attentes_bornees'].get(recours)
+
+
+def efforts_retenus(monde, id):
+    """Copie des signatures pour les diagnostics et la reprise d'un essai."""
+    from .esprits import lire
+    bloc = _suivis_choix(monde, id)
+    return dict((bloc if bloc is not None else lire(monde, id))['attentes_bornees'])
+
+
+def restaurer_efforts_bornes(monde, id, efforts):
+    """Restaure les signatures d'une capture d'essai, sans garder son alias."""
+    bloc = _suivis_choix(monde, id)
+    assert bloc is not None, 'Restaurer les efforts exige un choix complet'
+    assert all(isinstance(k, str) and isinstance(v, str) for k, v in efforts.items())
+    bloc['attentes_bornees'] = dict(efforts)
+    bloc['modifies'].add('attentes_bornees')
+
+
+def retenir_effort_du_choix(monde, id, recours, signature):
+    """Hors choix/évaluation, un devis ne laisse aucun marqueur persistant."""
+    bloc = _suivis_choix(monde, id)
+    if bloc is not None:
+        assert isinstance(recours, str) and isinstance(signature, str)
+        bloc['attentes_bornees'][recours] = signature
+        bloc['modifies'].add('attentes_bornees')
+
+
+def rouvrir_effort_du_choix(monde, id, recours):
+    bloc = _suivis_choix(monde, id)
+    if bloc is not None:
+        bloc['attentes_bornees'].pop(recours, None)
+        bloc['modifies'].add('attentes_bornees')
+
+
 def episodes(monde, id, *, types=None, derniers=None):
     """Copies profondes dans l'ordre du tampon, sans créer d'esprit.
 
@@ -1935,3 +2071,31 @@ def verifier_recherches(monde, id):
         and p[0] in monde.data["salles"] and (p[1] is None or isinstance(p[1], list)
             and len(p[1]) == 2 and all(type(n) is int for n in p[1]))
         for q, p in e["presence_recherche"].items()), "Présences de recherche invalides"
+
+
+def verifier_obstacles_efforts(monde, id):
+    from .esprits import lire
+    e = lire(monde, id)
+    # Entiers : anciennes sauvegardes sans cause, conservées sans inventer
+    # de preuve. Les renoncements nouveaux n'ont aucune date de réveil.
+    assert isinstance(e["renoncements"], dict) and all(
+        isinstance(k, str) and (type(v) is int or isinstance(v, list) and all(
+            isinstance(r, dict) and set(r) == {"instant", "but", "cause"}
+            and type(r["instant"]) is int and r["instant"] >= 0 and isinstance(r["but"], dict)
+            and isinstance(r["cause"], dict)
+            and r["cause"].get("type") in ("temoins", "passage", "corps", "contact")
+            and r["cause"].get("salle") in monde.data["salles"]
+            and isinstance(r["cause"].get("etape"), dict)
+            and (r["cause"]["type"] == "corps" or
+                 r['cause']['type'] == 'contact' and isinstance(r['cause'].get('repere'), dict)
+                 and set(r['cause']['repere']) == {'contacts', 'lumiere', 'portes', 'moyens', 'perception'}
+                 and all(isinstance(r['cause']['repere'][k], list) for k in r['cause']['repere'])
+                 or r['cause']['type'] == 'temoins'
+                 and isinstance(r["cause"].get("temoins"), dict) and "nature" in r["cause"]
+                 or r['cause']['type'] == 'passage' and isinstance(r["cause"].get("arrivees"), list)
+                 and all(s in monde.data["salles"] and isinstance(c, list) and len(c) == 2
+                         and all(type(x) is int for x in c) for s, c in r["cause"]["arrivees"]))
+            for r in v)) for k, v in e["renoncements"].items()), "Renoncements invalides"
+    assert isinstance(e["attentes_bornees"], dict) and all(
+        isinstance(k, str) and isinstance(v, str) for k, v in e["attentes_bornees"].items()
+    ), "Attentes de recherche invalides"

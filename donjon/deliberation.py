@@ -2066,6 +2066,12 @@ def deliberer(monde, id, minute):
 
 
 def choisir(monde, id, minute):
+    """Publie les suivis subjectifs après le choix complet, classement compris."""
+    with memoire.choix_complet(monde, id):
+        return _choisir(monde, id, minute)
+
+
+def _choisir(monde, id, minute):
     """Le choix du but et du plan, sur ce qu'il croit à cet instant : à chaque minute après ses
     besoins (``deliberer``), et entre deux minutes à la fin de son plan, après un geste manqué ou
     un événement qui change sa situation (``pnj._avancer``). Ne fait rien passer du temps : ses
@@ -2162,7 +2168,7 @@ def choisir(monde, id, minute):
             e["intention"] = parent
         # Vérifier une occasion n'est pas reprendre le geste abandonné. La
         # ronde existante met les croyances à jour, même sans nouvelle reçue.
-        lieux = {r["cause"]["salle"] for rs in e["renoncements"].values()
+        lieux = {r["cause"]["salle"] for rs in memoire.renoncements_retenus(monde, id).values()
                  if isinstance(rs, list) for r in rs if r["cause"]["type"] != "corps"}
         for salle in sorted(lieux):
             condition = {"lieu": salle, "periode": PATIENCE}
@@ -2207,7 +2213,7 @@ def choisir(monde, id, minute):
                 if ((verification_en_cours(monde, id, courant["plan"]) or attente_continue)
                         and refus_etape(monde, id, courant["plan"]) is None):
                     proposition = (courant["but"], courant["plan"])
-            retenus = e["renoncements"].get(besoin, [])
+            retenus = memoire.obstacles_du_motif(monde, id, besoin)
             if (proposition and urgence.palier != Palier.PERIL_EAU
                     and any(renoncement_tient(monde, id, r, proposition)
                             for r in (retenus if isinstance(retenus, list) else []))):
@@ -2368,12 +2374,8 @@ def choisir(monde, id, minute):
         besoin = choisi.besoin
         from .eau import en_peril
         but, etapes = resultat
-        retenus = e["renoncements"].get(besoin)
-        if isinstance(retenus, list):
-            # Essayer un autre moyen ne réhabilite pas le premier. Seule la
-            # levée de sa cause peut solder la mémoire de cet obstacle.
-            e["renoncements"][besoin] = [r for r in retenus
-                                        if r["but"] != but or obstacle_patience(monde, id, r["cause"])]
+        memoire.clore_obstacles_leves(monde, id, besoin, but,
+                                     lambda cause: obstacle_patience(monde, id, cause))
         # Une sortie nécessaire ne devient pas une attente de rendez-vous ou
         # de contrepartie dans l'eau après le contrôle du candidat.
         but, etapes = _attendre_qui_vient(monde, id, resultat, choisi.urgence.palier)
@@ -2529,8 +2531,6 @@ def renoncement_tient(monde, id, retenu, proposition):
 
 def renoncer(monde, id, minute, cause=None):
     """Retient l'obstacle réellement rencontré, sans échéance de réessai."""
-    from copy import deepcopy
-    from .temps import instant
     e = esprit(monde, id)
     intention = e["intention"]
     if cause is None:
@@ -2538,19 +2538,7 @@ def renoncer(monde, id, minute, cause=None):
         assert not conscient(monde, id), "Un renoncement conscient doit transmettre sa cause"
         cause = {"type": "corps", "salle": monde.objets[id]["lieu"],
                  "etape": dict(intention["plan"][0]) if intention["plan"] else {}}
-    motif = intention["motif"]
-    retenus = e["renoncements"].get(motif, [])
-    # L'ancien entier ne portait aucune cause : ne pas en inventer une lors
-    # d'une migration. Les nouveaux renoncements remplacent ces seuls délais.
-    if not isinstance(retenus, list):
-        retenus = []
-    retenu = {"instant": instant(monde), "but": deepcopy(intention["but"]), "cause": deepcopy(cause)}
-    def meme_obstacle(r):
-        return (r["but"] == retenu["but"] and r["cause"]["type"] == cause["type"]
-                and r["cause"]["salle"] == cause["salle"]
-                and all(r["cause"]["etape"].get(k) == cause["etape"].get(k)
-                        for k in ("operation", "cible", "lieu")))
-    e["renoncements"][motif] = [r for r in retenus if not meme_obstacle(r)] + [retenu]
+    memoire.retenir_renoncement(monde, id, intention['motif'], intention['but'], cause)
     e["patience"] = None
     memoriser(monde, id, {"type": "renoncement", "but": dict(intention["but"])})
     e["intention"] = None

@@ -440,11 +440,9 @@ def recours(monde, id, besoin, etapes):
     from .deliberation import _connus, salle_crue, refus_retenu
     if etapes and not any(g["condition"] == "sans_temoin" for g in etapes):
         return None  # Un ancien refus ne remplace jamais un moyen ordinaire nouveau.
-    e, candidats = lire(monde, id), []
+    candidats = []
     # Même transaction que les recours bornés de la recherche : aucune écriture
     # du monde pendant l'évaluation, publication seulement à la sortie du choix.
-    choix = getattr(monde, '_vues_du_choix', None)
-    retenues = choix[2] if choix is not None and choix[0] == id else e['attentes_bornees']
     service_devise = False
     # Les demandes ordinaires du préfixe gardent leur chance avant tout recours.
     for n, geste in enumerate(etapes):
@@ -488,7 +486,7 @@ def recours(monde, id, besoin, etapes):
         entrees = _entrees(monde, id, autre, besoin, demande)
         cle = json.dumps(['recours_proposition', autre, besoin, demande['objet']], ensure_ascii=False)
         dependances = _entrees_negatives(monde, id, autre, demande, entrees)
-        negatif = retenues.get(cle)
+        negatif = memoire.effort_retenu(monde, id, cle)
         sans_service = json.dumps([dependances, False])
         avec_service = json.dumps([dependances, True])
         if negatif in (sans_service, avec_service):
@@ -519,7 +517,7 @@ def recours(monde, id, besoin, etapes):
                     offres.append((relations.chance_proposition(chance, cout / PAS_PROPOSITION), -cout, terme))
         if not offres:
             if complet:
-                retenues[cle] = avec_service if service_devise else sans_service
+                memoire.retenir_effort_du_choix(monde, id, cle, avec_service if service_devise else sans_service)
             continue
         if contact is not None:
             # L'appel sert une négociation réellement admissible. Il ne

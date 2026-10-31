@@ -92,7 +92,7 @@ def _releve(monde):
             # Le comparateur charge aussi cet observateur sur des références plus anciennes.
             "inactivite": (deliberation.inactivite(monde, id) if hasattr(deliberation, "inactivite")
                            else "non_relevee"), "attentes": attentes(monde, id),
-            "renoncements": dict(e["renoncements"]),
+            "renoncements": detecteur_avis().renoncements_retenus(monde, id),
             "noir": bool(peur_du_noir(monde, id) and o["lieu"] in monde.data["salles"] and not autour(monde, id)["lumiere"]),
             "eau": profondeur(monde, o["lieu"]) if active(monde) and o["lieu"] in monde.data["salles"] else 0,
             "corps": {k: v for k, v in (o.get("corps") or {}).items() if isinstance(v, (int, float, bool))},
@@ -116,7 +116,8 @@ def _final(monde):
             "dettes": monde.data.get("dettes"), "permissions": monde.data.get("permissions"),
             "engagements": {id: agendas.en_cours(monde, id) for id in pnjs(monde) if agendas.en_cours(monde, id)},
             "rejoint": {id: lire(monde, id)["rejoint"] for id in pnjs(monde) if lire(monde, id)["rejoint"]},
-            "renoncements": {id: lire(monde, id)["renoncements"] for id in pnjs(monde) if lire(monde, id)["renoncements"]},
+            "renoncements": {id: rs for id in pnjs(monde)
+                             if (rs := detecteur_avis().renoncements_retenus(monde, id))},
             "urgences": {id: lire(monde, id)["urgences"] for id in pnjs(monde)},
             "pulsions": {id: lire(monde, id)["pulsions"] for id in pnjs(monde)},
             "noms": {id: monde.objets[id]["nom"] for id in pnjs(monde)}}
