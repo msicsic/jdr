@@ -43,6 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-a3-liaison-transport` — lot 410, base `57299df4` : mode/charge et contrats A2 liés dans une
+  grammaire commune cloud/local ; enveloppe `reponse`, contrôle avant audit/préparation avec `attendu`.
+  Parcours réseau simulé Relais/auberge, sons, sauvegarde et reprise ; assertions de sécurité conservées.
+  Tests ciblés en cours ; empreintes 2 h × quatre graines Relais/auberge et passe Luna ciblée à lire dans
+  `C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/fin.json` après le calcul détaché.
+  Aucun choix sémantique de Luna garanti ; voies transitoires et audits conservés.
+  [Rapport](taches/rapport-codex-410-a3-liaison-transport.md).
+
 Lots en cours : 409 (S1k refus et recours), 410 (A3 liaison du transport), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 

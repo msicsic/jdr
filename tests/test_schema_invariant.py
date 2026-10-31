@@ -134,6 +134,7 @@ class SchemaInvariantTests(unittest.TestCase):
                     self.assertEqual(regarder(reprise), regarder(temoin))
 
     def test_refus_disponibilite_relance_avec_attendu_et_schema_identique(self):
+        from donjon.moteur import proposition
         m = nouveau_defi(depart='fixe')
         capter = prefixe.PrefixeKVTests()._capter_appel
         _, entree, _, schema = capter(m, 'Je regarde.')
@@ -143,7 +144,7 @@ class SchemaInvariantTests(unittest.TestCase):
             appels.append((copy.deepcopy(e), copy.deepcopy(s)))
             if len(appels) == 1:
                 return {'mode': 'enrichir_joueur', 'texte': '', 'faits': [], 'proposition': {'profil_joueur': {}}}
-            return {'mode': 'action', 'texte': '', 'faits': [], 'proposition': {'action': 'observer'}}
+            return {'mode': 'action', 'texte': '', 'faits': [], 'proposition': proposition('observer')}
         mj = MJ(connexion='local')
         with patch.object(mj, '_appeler_brut', side_effect=brut):
             r = mj._appeler('', entree, 'Je regarde.', 'repondre_au_joueur', schema)
