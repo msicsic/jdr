@@ -258,7 +258,7 @@ def _concerne(monde, id, autre, salle):
     if salle_crue(monde, id, autre) == salle:
         return True
     # Une destination n'est connue que si elle a été convenue : aucune lecture du plan privé.
-    rendez_vous = lire(monde, id)["rejoint"]
+    rendez_vous = memoire.attente_convenue(monde, id)
     return bool(rendez_vous and rendez_vous["qui"] == autre and rendez_vous["vient"]
                 and monde.data["minutes"] < rendez_vous["jusqu_a"] and monde.objets[id]["lieu"] == salle)
 

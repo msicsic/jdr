@@ -725,7 +725,7 @@ def entendre(monde, id, auteur, salle, case, n, t, niveau=SEUIL, vises=(), par=N
         if percoit(monde, id, auteur):
             connaitre(monde, id, auteur)
             return retourne
-    elif (lire(monde, id)["rejoint"] or {}).get("qui") == auteur and _vers_qui_l_a_hele(monde, id, auteur, t):
+    elif (memoire.attente_convenue(monde, id) or {}).get("qui") == auteur and _vers_qui_l_a_hele(monde, id, auteur, t):
         # Il attend qui doit le rejoindre : à son approche, il se tourne vers lui dès qu'il peut le voir.
         if mots:
             connaitre(monde, id, auteur)

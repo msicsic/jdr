@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1o-aides-contrats` (435), base `364e8722` : aides, rendez-vous, mandats perçus et
+  connaissances de contrat passent par `memoire`, archives mécaniques inchangées.
+  AST 264 → 106 expressions ; copies profondes, clôture distante distincte du savoir.
+  341 méthodes distinctes : 334 vertes, sept rouges identiques à la base ; 47 tests après fusion verts.
+  Empreintes 2 h × quatre graines × quatre scénarios : **16/16 identiques**, aucun plantage.
+  Intégration `94fcffb9` incluse, branche publiée ; lot livré, aucun calcul restant.
+  [Rapport](taches/rapport-codex-435-s1o-aides-contrats.md), bruts `artifacts/s1o-435/` du dépôt principal.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. La branche contient déjà l'intégration (94fcffb9) ; K2 fusionné dans la branche, 47 tests après fusion verts. memoire.py possède aides attendues, rendez-vous, mandats perçus, services et restitutions ; agendas reste l'autorité de l'archive, référencée sans copie ; issues_connues exige l'acquittement du titulaire. Inventaire AST 264 → 106 expressions (suivis subjectifs 159 → 3). 334/341 tests, sept rouges hérités identiques à la base. Empreintes 2 h 16/16 identiques (avant K2). Branche publiée par le connecteur GitHub (poussée Git indisponible sur le PC fixe), identique à la branche locale.
+
 - `codex-g20-repense` — lot 436, conception seule, base `integration b21d4656`, fusionnée.
   La garde de références ne garantit pas les attitudes implicites ; recommandation : composition moteur,
   ambiance par répertoire validé, décision utilisateur nécessaire avant réalisation (G20 reste ouvert).

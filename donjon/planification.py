@@ -471,7 +471,7 @@ class Vue:
         # Un recours ordinaire épuisé ouvre l'aide sur place ; la garde ne se lève pas.
         from .deliberation import attentes, _lieux_gardes, tache_payee
         from .echanges import ENGAGEMENT_MAX
-        self.aides = [(x["qui"], x) for x in lire(monde, id)["aides_attendues"].values()
+        self.aides = [(x["qui"], x) for x in memoire.aides_attendues(monde, id).values()
                       if monde.data["minutes"] - x["minute"] <= ENGAGEMENT_MAX
                       and not agendas.aide_echue(monde, x)
                       and not se_mefie(monde, id, x["qui"])
@@ -2296,7 +2296,7 @@ def _entrees_communes(v):
         [[o, v.leses_bris[o]] for o in v.connus if v.brise_illicite[o]],
         v.richesse, v.piece,
         [[o, bool(v.refuse(retour["a"], o))] for o, retour in
-         monde.data.get("restitutions", {}).get(id, {}).items() if o in monde.objets],
+         memoire.restitutions_retenues(monde, id).items() if o in monde.objets],
         # Ce qu'une source allumée ou posée depuis apporte devant un objet où il a vu la lumière.
         [[o, v.apport(o)] for o in v.connus if "lumiere" in croyances.get(o, ())],
         # L'eau qu'il attend : où elle menace, où il l'attend noyée (``eau.attendue``).
@@ -3837,7 +3837,7 @@ def reclamer(monde, id):
     sociaux ; entrer dans sa salle ne suffit pas. Le règlement spontané reste possible. La réponse
     à la créance tient selon sa cause, sans délai. Pour un prêt, il le lui redemande
     (``demander``), joueur compris, selon le contrat existant des prêts."""
-    from .biens import VALEUR_OBJET, dettes, echu, reponse_creance_retenue, prets, prix
+    from .biens import VALEUR_OBJET, dettes, echu, reponse_creance_retenue, prix
     from .caractere import ARGENT, valeur_pieces
     if not profil(monde, id):
         return None
@@ -3845,7 +3845,7 @@ def reclamer(monde, id):
     for d in dettes(monde, connues_de=id):
         if d["de"] in monde.objets and not reponse_creance_retenue(monde, id, d["de"]):
             du[d["de"]] = du.get(d["de"], 0) + d["montant"]
-    for p in prets(monde):
+    for p in memoire.permissions_connues(monde, id):
         if (p["de"] == id and p["objet"] in monde.objets and (p["a"] == "joueur" or p["a"] in monde.objets)
                 and echu(monde, p["objet"])
                 and not refus_retenu(monde, id, p["a"], ("demander",), p["objet"])):

@@ -2433,3 +2433,230 @@ def verifier_suivis_relationnels(monde, id):
         and s["type"] in ("engagement_tenu", "engagement_abandonne") and s["de"] == id
         and isinstance(s["pour"], str) and isinstance(s["condition"], dict) and type(s["minute"]) is int
         for s in e["suites"]), "Suites de parole invalides"
+
+
+# --- Aides, rendez-vous et références de contrat (S1o) ----------------------
+
+def aides_attendues(monde, id):
+    """Paroles reçues par cet observateur ; aucun résultat réel consulté."""
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['aides_attendues'])
+
+
+def retenir_aide(monde, id, objet, aide):
+    from .esprits import esprit
+    esprit(monde, id)['aides_attendues'][objet] = copy.deepcopy(aide)
+
+
+def clore_aide(monde, id, objet):
+    from .esprits import esprit
+    del esprit(monde, id)['aides_attendues'][objet]
+
+
+def attente_convenue(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['rejoint'])
+
+
+def venue_convenue(monde, id):
+    from .esprits import lire
+    return copy.deepcopy(lire(monde, id)['rejoindre'])
+
+
+def retenir_attente(monde, id, attente):
+    from .esprits import esprit
+    esprit(monde, id)['rejoint'] = copy.deepcopy(attente)
+
+
+def retenir_venue(monde, id, venue):
+    from .esprits import esprit
+    esprit(monde, id)['rejoindre'] = copy.deepcopy(venue)
+
+
+def _mandats_stock(monde, id, *, creer=False):
+    from .esprits import lire, esprit
+    evaluation = getattr(monde, '_evaluation_agendas', None)
+    if evaluation is not None and evaluation[0] == id:
+        if evaluation[1]['percus'] is None and creer:
+            evaluation[1]['percus'] = []
+        return evaluation[1]['percus']
+    return (esprit(monde, id).setdefault('mandats_percus', []) if creer
+            else lire(monde, id).get('mandats_percus'))
+
+
+def mandats_connus(monde, id):
+    return copy.deepcopy(_mandats_stock(monde, id) or [])
+
+
+def mandats_pour_evaluation(monde, id):
+    """Conserve l'absence historique du registre dans le brouillon privé."""
+    return copy.deepcopy(_mandats_stock(monde, id))
+
+
+def publier_mandats(monde, id, mandats):
+    from .esprits import esprit
+    esprit(monde, id)['mandats_percus'] = copy.deepcopy(mandats)
+
+
+def retenir_mandat_percu(monde, id, mandat):
+    from .agendas import _identite_charge
+    stock = _mandats_stock(monde, id, creer=True)
+    identite = _identite_charge(mandat['de'], mandat['charge'])
+    r = next((r for r in stock if _identite_charge(r['de'], r['charge']) == identite), None)
+    if r is None:
+        stock.append(copy.deepcopy(mandat))
+    else:
+        r.clear()
+        r.update(copy.deepcopy(mandat))
+
+
+def engagements_connus(monde, id, *, condition=None, objet=None, personne=None, actifs=False):
+    """Les propres paroles du titulaire, référencées à l'archive d'agendas.
+
+    Pas de registre parallèle : identité/version/accord viennent de l'archive.
+    Cette lecture n'apprend pas les contrats privés d'un autre personnage.
+    """
+    from .esprits import lire
+    stock = monde.data.get('promesses_joueur', []) if id == 'joueur' else lire(monde, id)['engagements']
+    return [copy.deepcopy(x) for x in stock
+            if (condition is None or x['condition'] == condition)
+            and (objet is None or x['condition'].get('objet') == objet)
+            and (personne is None or x['pour'] == personne
+                 or any(x['condition'].get(k) == personne for k in ('servir', 'rendre', 'remettre')))
+            and (not actifs or not x.get('annule'))]
+
+
+def issues_connues(monde, id):
+    """Issues apprises par leur titulaire ; aucun savoir prêté au bénéficiaire.
+
+    ``constatee`` acquitte le titulaire, pas tous les participants au contrat.
+    Le bénéficiaire conserve ses aides et épisodes effectivement reçus.
+    """
+    from .agendas import issues_temporelles
+    return [i for i in issues_temporelles(monde) if i['constatee'] and i['titulaire'] == id]
+
+
+def reference_contrat(monde, id, reference):
+    """Résout une identité/version connue, sans importer l'issue réelle distante."""
+    from .agendas import reference_temporelle
+    contrats = engagements_connus(monde, id)
+    contrats.extend(i['engagement'] for i in issues_connues(monde, id))
+    return next((x for x in contrats if reference_temporelle(x) == reference), None)
+
+
+def dettes_connues(monde, id):
+    from .biens import _dettes_archivees
+    return copy.deepcopy([d for d in _dettes_archivees(monde)
+                          if d['a'] == id and not d.get('a_prevenir')])
+
+
+def permissions_connues(monde, id):
+    """Projection historique des prêts pour leur participant, sans nouvel apprentissage."""
+    from .biens import prets
+    return copy.deepcopy([p for p in prets(monde) if id in (p['a'], p['de'])])
+
+
+def restitutions_retenues(monde, id):
+    return copy.deepcopy(monde.data.get('restitutions', {}).get(id, {}))
+
+
+def retenir_restitution(monde, id, objet, retour):
+    monde.data.setdefault('restitutions', {}).setdefault(id, {})[objet] = copy.deepcopy(retour)
+
+
+def services_retenus(monde, id):
+    return copy.deepcopy([s for s in monde.data.get('services_rendus', []) if s['de'] == id])
+
+
+def retenir_service(monde, trace):
+    services = monde.data.setdefault('services_rendus', [])
+    services.append(copy.deepcopy(trace))
+
+
+def clore_services(monde, clotures):
+    services = monde.data.get('services_rendus', [])
+    services[:] = [s for s in services if s not in clotures]
+
+
+def verifier_aides(monde, id):
+    from .esprits import lire
+    e = lire(monde, id)
+    from .deliberation import condition_valide
+    assert isinstance(e['aides_attendues'], dict), 'Aides attendues invalides'
+    for o, x in e['aides_attendues'].items():
+        if isinstance(x, dict) and 'echeance' in x and (type(x['echeance']) is not int
+                or type(x.get('minute')) is not int or x['echeance'] < x['minute']):
+            from .monde import ErreurMonde
+            raise ErreurMonde('Échéance d’aide invalide.',
+                              f"{id}.aides_attendues.{o}.echeance reçu {x['echeance']!r} ; attendu : entier >= minute ({x.get('minute')!r}).")
+    assert isinstance(e["aides_attendues"], dict) and all(
+        o in monde.objets and isinstance(x, dict) and set(x) - {"echeance"} == {"qui", "condition", "minute"}
+        and x["qui"] in monde.objets and type(x["minute"]) is int
+        and ('echeance' not in x or type(x['echeance']) is int and x['echeance'] >= x['minute'])
+        and x["condition"].get("objet") == o and condition_valide(monde, x["condition"])
+        for o, x in e["aides_attendues"].items()), "Aides attendues invalides"
+
+
+def verifier_rendez_vous(monde, id):
+    """La forme du rendez-vous dans un esprit (``esprits.verifier``)."""
+    from .esprits import lire
+    e = lire(monde, id)
+    r, d = e['rejoint'], e['rejoindre']
+    assert r is None or (isinstance(r, dict) and set(r) == {"qui", "depuis", "jusqu_a", "vient"}
+                         and (r["qui"] == "joueur" or r["qui"] in monde.objets) and type(r["vient"]) is bool
+                         and type(r["depuis"]) is int and type(r["jusqu_a"]) is int), "Attente de PNJ invalide"
+    assert d is None or (isinstance(d, dict) and set(d) == {"qui", "salle", "depuis", "jusqu_a"}
+                         and (d["qui"] == "joueur" or d["qui"] in monde.objets) and d["salle"] in monde.data["salles"]
+                         and type(d["depuis"]) is int and type(d["jusqu_a"]) is int), "Rendez-vous de PNJ invalide"
+
+
+def verifier_mandats(monde, id):
+    from .esprits import lire
+    from .agendas import _charge_partagee, _identite_charge, ISSUES_COMPTE_RENDU, _verifier_abus
+    percus = lire(monde, id).get("mandats_percus", [])
+    assert isinstance(percus, list), "Mandats perçus invalides"
+    identites = set()
+    for r in percus:
+        assert (isinstance(r, dict) and set(r) - {"croyance", "abus"} == {"de", "charge", "minute", "source"}
+                and isinstance(r["de"], str) and type(r["minute"]) is int and r["minute"] >= 0
+                and r["source"] in ("entendu", "dit:" + r["de"])
+                and _charge_partagee(monde, r["de"], r["charge"])), "Mandat perçu invalide"
+        cle = _identite_charge(r["de"], r["charge"])
+        assert cle not in identites, "Mandat perçu dupliqué"
+        identites.add(cle)
+        if "croyance" in r:
+            c = r["croyance"]
+            assert (set(c) == {"valeur", "source", "minute", "confiance", "poids"}
+                    and c["valeur"] in (None, *ISSUES_COMPTE_RENDU)
+                    and c["source"] in ("vu", "entendu", "dit:" + r["de"])
+                    and type(c["minute"]) is int and 0 <= c["confiance"] <= 1
+                    and 0 <= c["poids"] <= 1.05), "Issue perçue invalide"
+        _verifier_abus(r)
+
+
+def verifier_services_restitutions(monde):
+    from .deliberation import condition_valide
+    d = monde.data
+    assert isinstance(d.get("services_rendus", []), list), "Traces de service invalides"
+    for s in d.get("services_rendus", []):
+        assert (isinstance(s, dict) and set(s) in ({"de", "pour", "condition"},
+                                                {"de", "pour", "condition", "lieu_beneficiaire"})
+                and (s.get("lieu_beneficiaire") is None or s["lieu_beneficiaire"] in monde.data["salles"])
+                and s["de"] in monde.objets and monde.objets[s["de"]]["type"] in ("personnage", "depouille")
+                and (s["pour"] == "joueur" or s["pour"] in monde.objets
+                     and monde.objets[s["pour"]]["type"] in ("personnage", "depouille"))
+                and condition_valide(monde, s["condition"])
+                and set(s["condition"]) in ({"objet", "allume"}, {"objet", "verrouillee"}, {"objet", "lieu"})
+                ), "Trace de service invalide"
+    for id, retours in d.get("restitutions", {}).items():
+        assert id == "joueur" or id in monde.objets, "Emprunteur restituant inconnu"
+        for objet, retour in retours.items():
+            assert isinstance(objet, str) and set(retour) == {"a", "entrees"}, "Restitution invalide"
+            assert isinstance(retour["a"], str), "Destinataire de restitution invalide"
+            e = retour["entrees"]
+            assert set(e) == {"besoins", "moyens", "pieces", "contenu", "proprietaire", "prix"}, "Entrées de restitution invalides"
+            assert all(isinstance(e[k], list) and all(isinstance(x, str) for x in e[k])
+                       for k in ("besoins", "moyens")), "Moyens de restitution invalides"
+            assert all(type(e[k]) is int and e[k] >= 0 for k in ("pieces", "contenu")), "Fonds de restitution invalides"
+            assert e["proprietaire"] is None or isinstance(e["proprietaire"], str), "Propriété de restitution invalide"
+            assert e["prix"] is None or type(e["prix"]) is int and e["prix"] >= 0, "Prix de restitution invalide"
