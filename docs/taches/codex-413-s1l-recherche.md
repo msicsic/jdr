@@ -1,7 +1,7 @@
 # Tâche Codex 413 : S1l, la recherche d'une personne garde ensemble négatifs et indices consommés
 
 Douzième lot de S1, le socle de la mémoire unifiée ([plan de l'esprit social](../plan-esprit-social.md) ;
-[conception S0](../conception-memoire-unifiee.md), § 5, ligne S1k, et son
+[conception S0](../conception-memoire-unifiee.md), § 5, ligne S1l, et son
 [annexe d'accès](../conception-memoire-unifiee-annexe-acces.md)), après S1a (378), S1b (382), S1c (383), S1d (384), S1e (385), S1f (397), S1g (400), S1h (404), S1i (405), S1j (406, 408) et S1k (409, 411), fusionnés (porte
 `donjon/memoire.py`, inventaire AST `tests/fixtures/acces_memoire_s1a.json`). Lis `AGENTS.md`, `docs/etat-dev.md`
 (court), la conception S0 (§ 2 à 7) et les rapports 378, 409 et 411, et le rapport 374 (consommation des hypothèses de position), dont tu reprends la méthode.
