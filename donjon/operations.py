@@ -10,6 +10,7 @@ from .vol import proprietaire
 from .refus import cibles, inaccessible, portes_avec_usage
 from .contrats_sequence import COMPOSITION, schema_occasion, preparer_occasion, developper_vol
 from .contrats_son import emissions, schemas_emissions
+from .contrats_passage import COTES, schemas as schemas_passages, verifier as verifier_passage
 
 
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
@@ -18,7 +19,7 @@ ACTIONS_COMPOSABLES = ("ouvrir", "fermer", "deverrouiller", "verrouiller", "croc
 OPERATIONS = ("patienter", "deplacer", "prelever", "detacher", "allumer", "eteindre", "alimenter", "manger", "franchir_obstacle", "passer_obstacle", "emettre_son",
               "soulever", "appuyer", "franchir", "sauter", *ACTIONS_COMPOSABLES)
 METHODES = ("simple", "discret", "levier", "finesse", "percussion", "assommer", "appui_mobile",
-            *(m for m in emissions() if m != "simple"), "dessous", "dessus")
+            *(m for m in emissions() if m != "simple"), *COTES)
 
 
 def etape(operation, cible="", destination="", outil="", methode="simple", difficulte=0):
@@ -52,8 +53,12 @@ _schema_etape = SCHEMA_SEQUENCE["properties"]["etapes"]["items"]
 _autres_etapes = copy.deepcopy(_schema_etape)
 _autres_etapes["properties"]["operation"]["enum"].remove("patienter")
 _autres_etapes["properties"]["operation"]["enum"].remove("emettre_son")
+_operations_passage = ("passer_obstacle", "franchir", "franchir_obstacle")
+for _op in _operations_passage:
+    _autres_etapes["properties"]["operation"]["enum"].remove(_op)
 SCHEMA_SEQUENCE["properties"]["etapes"]["items"] = {
-    "anyOf": [_autres_etapes, schema_occasion(_schema_etape), *schemas_emissions(_schema_etape)]}
+    "anyOf": [_autres_etapes, schema_occasion(_schema_etape), *schemas_emissions(_schema_etape),
+              *schemas_passages(_schema_etape, "operation", _operations_passage)]}
 
 
 def traduire(monde, p):
@@ -145,6 +150,7 @@ def a_portee(monde, id):
 def compiler(monde, e, precedent=None, justification="", origine="règles"):
     from .moteur import Plan
     verifier_etape(e)
+    verifier_passage(e)
     from .tenir import autoriser
     autoriser(monde, "joueur", e["operation"])
     if e["operation"] == "passer_obstacle":

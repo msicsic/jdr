@@ -20,6 +20,7 @@ from .commandes import PERCEPTIONS, est_question, faisabilite
 from .connaissances import SCHEMA_SAVOIRS, catalogue as catalogue_savoirs, preparer_savoirs
 from .operations import SCHEMA_SEQUENCE
 from .contrats_sequence import schemas_actions
+from .contrats_passage import schemas as schemas_passages
 from .config import MODELE_PAR_DEFAUT, DEFAUTS_CONNEXION
 from .francais import designer
 from .artisanat import (SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, dossier as dossier_atelier,
@@ -213,9 +214,13 @@ SCHEMA = {
     "additionalProperties": False,
 }
 
-# La famille attente porte ses contraintes ; les autres actions restent sur
+# Les familles attente et passage portent leurs contraintes ; les autres actions restent sur
 # leur contrat transitoire. Aucune sélection selon la saisie ou le scénario.
 SCHEMA_PROPOSER = copy.deepcopy(SCHEMA)  # ancienne API simple, transport inchangé (A3)
+SCHEMA = copy.deepcopy(SCHEMA)  # les enums initiaux référencent aussi les listes du moteur
+SCHEMAS_PASSAGE = schemas_passages(SCHEMA, "action", ("franchir", "pousser"))
+for _action in ("franchir", "pousser"):
+    SCHEMA["properties"]["action"]["enum"].remove(_action)
 SCHEMA, SCHEMA_ATTENTE = schemas_actions(SCHEMA)
 
 
@@ -1156,7 +1161,7 @@ class MJ:
             a for a in schema_geste["properties"]["action"]["enum"] if a not in ("clarifier", "impossible")]
         schema_faits_suite["properties"]["suite"] = {
             "description": "Le geste demandé, à préparer après validation des ajouts, sans supposer leur acceptation.",
-            "anyOf": [schema_geste, SCHEMA_ATTENTE, SCHEMA_SEQUENCE, SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, {"type": "null"}]}
+            "anyOf": [schema_geste, *SCHEMAS_PASSAGE, SCHEMA_ATTENTE, SCHEMA_SEQUENCE, SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE, {"type": "null"}]}
         schema_faits_suite["required"].append("suite")
         from .paroles import SCHEMA_OPERATIONS
         schema_parole = copy.deepcopy(SCHEMA_PAROLE)
@@ -1181,7 +1186,7 @@ class MJ:
                                                        "conversation_pnj", "parole_joueur", "enrichir_savoirs", "etablir_faits", "accord"]},
                 "texte": {"type": "string"},
                 "faits": {"type": "array", "items": {"type": "string"}},
-                "proposition": {"anyOf": [SCHEMA, SCHEMA_ATTENTE, SCHEMA_SEQUENCE, {"type": "null"}, SCHEMA_PROFIL,
+                "proposition": {"anyOf": [SCHEMA, *SCHEMAS_PASSAGE, SCHEMA_ATTENTE, SCHEMA_SEQUENCE, {"type": "null"}, SCHEMA_PROFIL,
                                           SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE,
                                           SCHEMA_COMPLEMENTS, SCHEMA_CONVERSATION, schema_parole,
                                           SCHEMA_SAVOIRS, schema_faits_suite, SCHEMA_ACCORD]},

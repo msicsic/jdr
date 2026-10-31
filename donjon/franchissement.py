@@ -141,9 +141,8 @@ def cle_arbitrage(m, cible, outil, destination, valeurs=None):
 
 def compiler(m, e, justification, origine):
     from .moteur import Plan
-    if e["methode"] != "appui_mobile" or not 16 <= e["difficulte"] <= 22:
-        raise ErreurMonde("Un franchissement avec appui mobile exige une difficulté entre 16 et 22.",
-                          f"franchir_obstacle : methode appui_mobile, difficulte 16 à 22 (reçu « {e['methode']} », {e['difficulte']}).")
+    from .contrats_passage import verifier
+    verifier(e)
     a, valeurs = conditions(m, e["cible"], e["outil"], e["destination"])
     from .proximite import exiger
     exiger(m, e["cible"])

@@ -179,7 +179,8 @@ class ExpressionSonTests(unittest.TestCase):
             self.assertIn(SCHEMA_IMPROVISATION, variantes)
             son = SCHEMA_IMPROVISATION["properties"]["reussite"]["properties"]["effets"]["items"]["anyOf"][1]
             self.assertEqual(son["properties"]["texte"]["enum"], list(FORMES_SONORES))
-        autres, _, *sons = SCHEMA_SEQUENCE["properties"]["etapes"]["items"]["anyOf"]
+        autres, _, *variantes = SCHEMA_SEQUENCE["properties"]["etapes"]["items"]["anyOf"]
+        sons = [s for s in variantes if s["properties"]["operation"]["enum"] == ["emettre_son"]]
         self.assertNotIn("emettre_son", autres["properties"]["operation"]["enum"])
         self.assertEqual({s["properties"]["methode"]["enum"][0] for s in sons}, set(emissions()))
         self.assertTrue(all(s["additionalProperties"] is False for s in sons))

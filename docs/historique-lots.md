@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-a2-passage` — lot 381, base d'intégration au brief `c63dd563` : contrat commun du passage
+  local, de l'assemblage installé, de l'appui mobile, de la demande et de la poussée ; moteur,
+  schéma du compilateur actuel, raccourcis et « Compris » gardent la même charge typée.
+  Cas réel/autre cas/faux pendant, recharge et laps découpé ; après rapprochement, **77/77 tests verts** (8 fichiers).
+  Fusion d'`origin/integration` (`a6f0f00b`) : passages, remboursement, comptes et consentement conservés.
+  Empreintes Relais 2 h × 4 graines identiques à `a6f0f00b` : chronique/mesures/monde complet ; zéro plantage.
+  Revues conservées ; fidélité Luna non garantie, ancienne API simple transitoire (A3), aucun registre d'esprit.
+  [Rapport](taches/rapport-codex-381-a2-passage.md), bruts `artifacts/a2-passage-381/` du dépôt principal.
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `obstacles.py`, `paroles.py`, fusionnés sans conflit textuel. lot 381, A2 famille passage : contrat commun (contrats_passage) pour moteur, schéma et plan public de passer_obstacle, franchir, demander le passage et pousser ; mécanique inchangée. 77/77 tests après réintégration, empreintes Relais identiques. Fichiers de code communs : obstacles.py (S1g), paroles.py (388/399), fusionnés sans conflit textuel, tests ciblés rejoués.
+
 - `codex-s1i-signes-dangers` — lot 405, base `integration 0643c2ff`, code `15856296` :
   signes, détresse et dangers via `memoire`, vues copiées et invalidations historiques conservées.
   Inventaire AST 129 → 40 ; cinq tests nouveaux, captures mine/Relais, état et publication rechargés.
