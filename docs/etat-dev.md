@@ -43,6 +43,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-avis-redits-crue` — **395**, base `integration 1fd48fb5`, validation en cours.
+  Provenance de l'extinction portée par la vue attestée à 97 puis le constat courant à 140 ; moteur inchangé.
+  Isolation positive autorisée comme au 375 (buts concurrents), besoins/liens/audience/jets et assertion conservés.
+  Test négatif ajouté avec les profils d'origine ; la transmission spontanée dans la nuit réelle n'est pas prouvée.
+  Quatre tests d'avis et dix fichiers 360/non-redite en cours, deux travailleurs réduits ; fin : `artifacts/avis-redits-395/fin.json`.
+  [Rapport](taches/rapport-codex-395-avis-redits-crue.md) ; bruts au dépôt principal, campagne finale détachée.
+
 Lots en cours : 374 (position crue), 381 (A2 passage), 392 (connaissances des scènes depuis 365, Q2 du 390), 395 (avis redits crue 2024, reste du 375), 396 (U-T social comptes) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
