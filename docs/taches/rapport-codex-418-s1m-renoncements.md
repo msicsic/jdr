@@ -1,8 +1,8 @@
 # Lot 418 — S1m, renoncements et efforts publiés au choix complet
 
 31 octobre 2026, PC fixe · `codex-s1m-renoncements` · base exacte `integration 718ca2e0`.
-Moteur `0e143815`, inchangé depuis. **Tests achevés ; empreintes en cours,
-le lot n'est pas encore déclaré terminé.**
+Moteur `0e143815`, inchangé depuis ; commit mesuré `87673277`.
+**Lot clos, non fusionné ; aucun calcul restant.**
 
 **Invariant et code.** `donjon/memoire.py` possède les lectures, admissions, clôtures et
 validations de `renoncements` et `attentes_bornees`. Les vues rendent des copies profondes
@@ -40,15 +40,19 @@ qui n'effectuait pas le constat perceptif réel ; harnais/fixture corrigés, ass
 finales conservées, fichiers concernés rejoués. Détails dans `tests-cibles.json`,
 `tests-final-voisins.json` et `tests-compensation-final.json` ; rouges conservés.
 
-**Empreintes détachées.** 2 h × graines 1985/7/42/2024 × Relais/mine/auberge/crue,
-base exacte `718ca2e0` puis branche, cache partagé, deux travailleurs réduits au plus.
-Résultat attendu : `empreintes-base.json`, puis **`fin.json` écrit en dernier** dans
-les bruts ; aucune identité n'est affirmée avant sa lecture. Aucun temps comparé au cache.
+**Empreintes : 16/16 identiques.** 2 h × graines 1985/7/42/2024 ×
+Relais/mine/auberge/crue, base exacte `718ca2e0` contre `87673277` : chroniques,
+mesures et empreintes de l'état final complet identiques nuit par nuit, sans exclusion,
+divergence ni plantage. Avis concordants : zéro non justifié, dix à expliquer de chaque
+côté. Les seize références puis les seize nuits de branche ont été jouées et rangées
+dans le cache avec les sondes portées, deux travailleurs réduits au plus ; aucun temps
+comparé au cache. `empreintes-base.json` et **`fin.json` (`code: 0`, `succes: true`)**
+confirment la fin du calcul à 14 h 46. `conclusion.json` porte le bilan final.
 
 **Limites et voisinage.** Contrôle AST syntaxique local, sans preuve de tous les flux
 interprocéduraux Python ; politiques historiques conservées. Aucune modification de
 `mj.py` (416), aucun nouveau registre. Avance documentaire `8c5eaaa7` intégrée par
-`ac6a998e` : seul conflit dans `etat-dev`, suivi du 419 conservé. Pas de suite complète ni Luna. Deux travailleurs
-réduits au plus. Les premières tentatives confinées des tests ont rencontré les droits
+`ac6a998e` : seul conflit dans `etat-dev`, suivi du 419 conservé. Aucune nouvelle avance
+à la clôture. Pas de suite complète ni Luna. Les premières tentatives confinées des tests ont rencontré les droits
 des répertoires temporaires Windows ; les passages de validation disposent des droits
 nécessaires. Bruts : `C:/Users/msics/donjon/artifacts/s1m-418/`.

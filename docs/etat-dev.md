@@ -46,10 +46,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1m-renoncements` — lot 418, base `integration 718ca2e0` : accès aux renoncements et efforts bornés par `memoire.py`, publication après le choix complet réussi, devis/interruption sans publication.
   Stockage, causes du 417 et règles historiques conservés ; inventaire AST 46 → 7 expressions (schéma et diagnostics/archives).
   156 tests distincts : 155 méthodes vertes ; deux sous-échecs d'étapes chaînées reproduits sur la base exacte. Sept nouveaux tests verts.
-  Empreintes 2 h × quatre graines × quatre scénarios détachées : `C:/Users/msics/donjon/artifacts/s1m-418/fin.json` ; identité à confirmer à la reprise.
-  Aucun changement de `mj.py`, aucun nouveau registre ; pas de suite complète ni Luna. [Rapport](taches/rapport-codex-418-s1m-renoncements.md).
+  Empreintes 2 h × quatre graines × quatre scénarios : **16/16 identiques** à `718ca2e0` (branche mesurée `87673277`), aucun plantage ; `fin.json` vert, aucun calcul restant.
+  Avance documentaire d'intégration intégrée ; aucun changement de `mj.py`, aucun nouveau registre ; pas de suite complète ni Luna. [Rapport](taches/rapport-codex-418-s1m-renoncements.md).
 
-Lots en cours : 416 (A6 raccord libre), 418 (S1m renoncements et efforts bornés), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 416 (A6 raccord libre), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
