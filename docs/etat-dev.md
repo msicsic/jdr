@@ -43,7 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 426 (K0, candidats de contrat), 427 (G14, ciblage d’ambiance), 428 (D0, parole ouverte), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+- **Lot 428 — `codex-d0-parole-ouverte`, non fusionnée**, départ `ce64ba7e`, ancêtre `integration` `60f857c5`.
+  Parole personnelle admise dans G15 sans effet mécanique ; refus typés des engagements et sources privées fermées.
+  Sujet connu : restitution G19 sans formulation, admission ni réémission ; six tests console/recharge sur Gorm et Odile.
+  Voisins ciblés vérifiés ; une attente périmée de `connaissances_pnj` reproduite sur les modules d'origine.
+  Luna une passe : 7 appels/4 tours, aucun plantage ; récit vague et textes vides avant séparation choix/formulation.
+  Extraction sémantique et qualité Luna finale non garanties ; banc rapide détaché, fin attendue `artifacts/d0-parole-428/fin-banc-rapide.json` du dépôt principal.
+  [Rapport du lot](taches/rapport-codex-428-d0-parole-ouverte.md).
+
+Lots en cours : 426 (K0, candidats de contrat), 427 (G14, ciblage d’ambiance), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)

@@ -14,9 +14,10 @@ def _preparateurs():
     from .espace import preparer as preparer_espace
     from .faits_locaux import preparer_faits
     from .profil_joueur import preparer as preparer_profil
-    from .paroles import preparer_parole
+    from .paroles import preparer_parole, preparer_ouverte
     return {
         "parole": preparer_parole,
+        "parole_ouverte": preparer_ouverte,
         "espace": lambda m, p, r: (preparer_espace(m, p, r), None),
         "conversation_pnj": preparer_conversation,
         "complements": lambda m, p, r: (preparer_complements(m, p, r), None),
@@ -26,7 +27,7 @@ def _preparateurs():
     }
 
 
-TYPES = ("espace", "conversation_pnj", "complements", "savoirs", "profil_joueur", "faits", "parole")
+TYPES = ("espace", "conversation_pnj", "complements", "savoirs", "profil_joueur", "faits", "parole", "parole_ouverte")
 
 
 def ajouter(reponse, nature, revision, proposition, rapport=None, debut=False):

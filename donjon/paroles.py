@@ -35,6 +35,168 @@ from .contrats_consultation import (CONSULTATIONS, BESOINS_DEMANDES, RESSOURCES_
     verifier as verifier_consultation, schema_contenu as schema_consultation, typer as typer_consultation)
 
 ATTRIBUTS = ("lieu", "verrouillee", FIABLE)
+# D0 : les mots proposés sont un témoignage personnel, jamais un savoir acquis.
+SCHEMA_OUVERTE = {'type': 'object', 'additionalProperties': False,
+    'properties': {'personnage': {'type': 'string'}, 'sujet': {'type': 'string'},
+        'contenu': {'type': 'object', 'additionalProperties': False,
+            'properties': {'type': {'type': 'string', 'enum': ['propos', 'promesse', 'accord']},
+                'texte': {'type': 'string', 'description': 'Mots au discours direct ; vide si le sujet a déjà été entendu.'},
+                'sources': {'type': 'array', 'items': {'type': 'string'}}},
+            'required': ['type', 'texte', 'sources']}},
+    'required': ['personnage', 'sujet', 'contenu']}
+SCHEMA_DEMANDE_OUVERTE = {'type': 'object', 'additionalProperties': False,
+    'properties': {k: SCHEMA_OUVERTE['properties'][k] for k in ('personnage', 'sujet')},
+    'required': ['personnage', 'sujet']}
+SCHEMA_CONTENU_OUVERT = SCHEMA_OUVERTE['properties']['contenu']
+SCHEMA_ADMISSION_OUVERTE = {'type': 'object', 'additionalProperties': False,
+    'properties': {'types': {'type': 'array', 'minItems': 1,
+                           'items': {'type': 'string', 'enum': ['propos', 'promesse', 'accord']}},
+        'sources': {'type': 'array', 'items': {'type': 'string'}},
+        'compatible': {'type': 'boolean'}, 'motif': {'type': 'string'}},
+    'required': ['types', 'sources', 'compatible', 'motif']}
+REGLES_OUVERTE = '''
+Conversation personnelle : mode parole_ouverte, proposition {personnage, sujet}.
+Choisir un sujet de interlocuteurs[personnage].sujets_ouverts, sans le formuler.
+Le moteur restitue les mots déjà entendus pour ce sujet, ou demande séparément une
+formulation inédite. Cette parole n'établit aucune vérité mécanique. Une promesse
+ou un accord appartient aux actes typés existants.
+'''
+INSTRUCTIONS_FORMULATION_OUVERTE = '''
+Formule les mots prononcés par le locuteur pour répondre à la demande sur le sujet
+autorisé. Respecte sa consigne et le caractère du locuteur. Réponds au discours
+direct à la première personne, sans cadre narratif. Le contenu est une parole
+personnelle, pas un nouveau savoir vrai du monde ni un acte mécanique.
+Retourne {type, texte, sources}. Type : propos, promesse ou accord selon les actes
+accomplis ; sources : identifiants des savoirs utilisés, vide pour un récit inédit.
+Texte : 3 à 600 caractères sans saut de ligne. Ne crée aucune entité interactive.
+'''
+INSTRUCTIONS_ADMISSION_OUVERTE = '''
+Contrôle ciblé d'admission d'une parole personnelle, pas rédaction ni correction.
+Type indépendamment les actes accomplis par les mots : propos, promesse, accord.
+Renseigne toutes les sources de savoirs_pnj dont le contenu est révélé, même par
+paraphrase et même omises par la proposition. Les clés sont les identifiants sources.
+Compatible exige le sujet autorisé, ses contraintes, le portrait et les faits connus
+du locuteur : aucun nouveau fait mécanique, objet interactif, indice, pouvoir,
+événement courant ni savoir sur le monde auquel il n'a pas accès. Un passé personnel
+ordinaire inédit est un récit, pas une nouvelle connaissance vraie du monde.
+En cas de doute compatible=false. Ne réécris rien.
+'''
+
+
+def ouverte_connue(monde, personnage, sujet, interlocuteur='joueur'):
+    from .emissions import lire
+    return next((p for p in lire(monde) if p['locuteur'] == personnage
+        and p['acte'] == 'parole_ouverte' and p['parametres'].get('sujet') == sujet
+        and interlocuteur in p.get('a', []) and interlocuteur in p['auditeurs']), None)
+
+
+def dossier_ouverte(monde):
+    """Projection commune ; aucun savoir privé n'entre dans le fondement nominal."""
+    from .projection_publique import projeter
+    from .noms import public
+    contexte = monde.contexte()
+    objets = contexte.pop('objets_perceptibles')
+    contexte.update({'objet:' + o['id']: o for o in objets})
+    return projeter({'faits': public(monde, contexte)}).entree['faits']
+
+
+def rendre_ouverte_connue(monde, rapport):
+    """Restitution G19, avec ses preuves revérifiées avant publication."""
+    from .narration import echanges_passes, segments_etablis, fondement
+    from .dialogues import interlocuteurs
+    from .noms import public
+    faits = {'interlocuteurs': public(monde, interlocuteurs(monde))}
+    faits['echanges_passes'] = echanges_passes(monde, faits['interlocuteurs'])
+    p = rapport['rappel']
+    texte = next(passe['rappel_exact'] for ps in faits['echanges_passes'].values()
+                 for passe in ps if passe.get('id') == p['id'])
+    return {'mode': 'dialogue', 'texte': texte, 'faits': [], 'proposition': None,
+        '_audit': {'texte_initial': texte, 'faits': faits,
+                   'segments': segments_etablis(texte, faits),
+                   'fondement': fondement({'faits': faits})}}
+
+
+def verifier_ouverte(monde, p, revision=None):
+    """Contrat commun à la préparation et au rejeu avant sauvegarde."""
+    from .dialogues import reels
+    from .voix import reel
+    from .connaissances import sujets_parlables, verifier_sources_parole
+    from .fournisseurs.schema import verifier
+    public = {k: v for k, v in p.items() if k != '_admission'} if isinstance(p, dict) else p
+    verifier(public, SCHEMA_OUVERTE, 'parole_ouverte')
+    if revision is not None and revision != monde.data['revision']:
+        raise ErreurMonde("Le monde a changé avant cette parole.",
+                          f'revision reçu {revision!r} ; attendu {monde.data["revision"]}.')
+    auteur = reel(monde, p['personnage'])
+    if auteur not in reels(monde):
+        raise ErreurMonde("Ce personnage ne peut pas te répondre ici.",
+                          f'personnage reçu {p["personnage"]!r} ; interlocuteur audible et perçu requis.')
+    sujets = sujets_parlables(monde, auteur)
+    if p['sujet'] not in sujets:
+        raise ErreurMonde("Ce sujet n'est pas ouvert à un récit personnel.",
+                          f'sujet reçu {p["sujet"]!r} ; attendu parmi {list(sujets)!r}.')
+    if p['contenu']['type'] != 'propos':
+        raise ErreurMonde("Cette parole ne peut pas engager le personnage.",
+                          f'contenu.type reçu {p["contenu"]["type"]!r} ; propos sans engagement, sinon acte typé existant.')
+    verifier_sources_parole(monde, auteur, p['contenu']['sources'])
+    return auteur
+
+
+def preparer_ouverte(monde, p, revision=None):
+    from .connaissances import verifier_sources_parole
+    from .fournisseurs.schema import verifier
+    from .emissions import enregistrer
+    from .ouie import auditeurs_parole
+    from .voix import nom_pour_joueur
+    auteur = verifier_ouverte(monde, p, revision)
+    connue = ouverte_connue(monde, auteur, p['sujet'])
+    if connue:
+        return monde.copier(), {'emissions': [], 'rappel': copy.deepcopy(connue)}
+    texte = p['contenu']['texte'].strip()
+    if not 3 <= len(texte) <= 600 or any(ord(c) < 32 for c in texte):
+        raise ErreurMonde("Cette parole est vide ou trop longue.",
+                          f'contenu.texte reçu {texte!r} ; 3 à 600 caractères sans contrôle.')
+    preuve = p.get('_admission', {})
+    if (not isinstance(preuve, dict)
+            or preuve.get('proposition') != {k: v for k, v in p.items() if k != '_admission'}
+            or preuve.get('revision') != monde.data['revision']):
+        raise ErreurMonde("Cette parole n'a pas d'admission actuelle.",
+                          '_admission : proposition et revision actuelles requises avant enregistrement.')
+    admission = preuve.get('verdict')
+    verifier(admission, SCHEMA_ADMISSION_OUVERTE, 'parole_ouverte._admission')
+    for acte in admission['types']:
+        if acte != 'propos':
+            raise ErreurMonde("Cette parole contient un engagement non admis.",
+                              f'_admission.types reçu {acte!r} ; propos uniquement, sinon acte typé existant.')
+    verifier_sources_parole(monde, auteur, admission['sources'])
+    if not admission['compatible']:
+        raise ErreurMonde("Ce récit personnel ne peut pas être admis.",
+                          f'_admission.compatible reçu false ; attendu true : {admission["motif"]}')
+    from .narration import verifier_unites, mentions, voix_inconnues
+    # Le contrôle nominal commun garde les entités non perçues hors des mots.
+    contexte = dossier_ouverte(monde)
+    from .narration import fondement
+    base = fondement({'faits': contexte})
+    obstacles = mentions(monde, texte, base, partie='description', paroles_validees=[])
+    obstacles += voix_inconnues(monde, [], {}, texte, partie='description', citations_historiques=False)
+    if obstacles:
+        raise ErreurMonde("Ce récit révèle une référence non admise.", obstacles[0]['attendu'])
+    verifier_unites(texte, 'contenu.texte')
+    auditeurs = auditeurs_parole(monde, auteur)
+    if 'joueur' not in auditeurs:
+        raise ErreurMonde("Tu n'entends pas cette réponse.", 'auditeurs : joueur requis ; rapprocher les interlocuteurs.')
+    travail = monde.copier()
+    travail.data['revision'] += 1
+    rendu = f'{nom_pour_joueur(travail, auteur)} : « {texte} »'
+    emission = enregistrer(travail, auteur, acte='parole_ouverte',
+        parametres={'sujet': p['sujet'], 'contenu': copy.deepcopy(p['contenu'])},
+        modalite='constat', evenement={'type': 'dialogue_personnel', 'replique_moteur': True,
+            'admission': copy.deepcopy(admission)}, auditeurs=auditeurs, a=['joueur'], texte=texte, rendu=rendu)
+    emission['rendu_public'] = rendu
+    travail.verifier()
+    return travail, {'emissions': [emission]}
+
+
 TYPES_JOUEUR = ("propos", "affirmation", "avis", "demande", "passage", "aveu", "nom", "qui", "reclamer", "rembourser", "ressource", "localisation", "proposition", "mandat", "reponse_mandat", "bilan_mandat")
 # Les contenus de transport restent distincts des actes proposés par le joueur.
 TYPES = (*TYPES_JOUEUR, "compte_rendu", "ordre_mandat")

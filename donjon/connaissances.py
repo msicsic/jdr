@@ -57,6 +57,27 @@ def catalogue(monde):
     return resultat
 
 
+def sujets_parlables(monde, personnage):
+    """Les sujets ouverts par l'auteur, même après une première parole.
+
+    Un savoir privé hors de ce catalogue reste fermé à l'invention et à la
+    divulgation. Cette lecture ne transforme aucun récit en connaissance.
+    """
+    return copy.deepcopy(monde.data['sujets_savoirs_pnj'].get(personnage, {}))
+
+
+def verifier_sources_parole(monde, personnage, sources):
+    savoirs = monde.data['savoirs_pnj'].get(personnage, {})
+    ouverts = sujets_parlables(monde, personnage)
+    for source in sources:
+        if source not in savoirs:
+            raise ErreurMonde("Ce personnage ne connaît pas ce contenu.",
+                f'contenu.sources reçu {source!r} ; savoir établi de {personnage} parmi {list(savoirs)!r}.')
+        if source not in ouverts:
+            raise ErreurMonde("Ce personnage garde ce savoir pour lui.",
+                f'contenu.sources reçu {source!r} ; sujet autorisé parmi {list(ouverts)!r}.')
+
+
 def preparer_savoirs(monde, proposition, revision=None):
     if revision is not None and revision != monde.data["revision"]:
         raise ErreurMonde("Le monde a changé avant l'enregistrement des connaissances.", "re-propose à partir des faits actuels.")

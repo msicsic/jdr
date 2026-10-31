@@ -1,0 +1,13 @@
+{
+ "scenario": "auberge",
+ "seed": 1985,
+ "preparation": {
+  "salle": "salle_commune", "position": [3, 3], "orientation": "nord",
+  "personnages": {"odile": {"salle": "salle_commune", "position": [3, 2], "orientation": "sud"}},
+  "calmes": ["odile"], "noms_connus": ["odile"]
+ },
+ "tours": [
+  "Quel souvenir personnel Odile pourrait-elle me raconter ?",
+  "Rappelle-moi ce même souvenir personnel d'Odile."
+ ]
+}

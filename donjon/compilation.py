@@ -9,7 +9,7 @@ from .moteur import ACTIONS, METHODES
 from .enrichissement import SCHEMA_COMPLEMENTS
 from .faits_locaux import SCHEMA_FAITS
 from .dialogues import SCHEMA_CONVERSATION
-from .paroles import SCHEMA_PAROLE
+from .paroles import SCHEMA_PAROLE, SCHEMA_DEMANDE_OUVERTE
 from .connaissances import SCHEMA_SAVOIRS
 from .operations import SCHEMA_SEQUENCE
 from .fournisseurs.contrat import lier_modes
@@ -74,13 +74,13 @@ def schema_reponse(*, enrichir=True):
         "type": "object", "additionalProperties": False,
         "properties": {
             "mode": {"type": "string", "enum": ["dialogue", "action", "enrichir_joueur", "enrichir",
-                                                   "conversation_pnj", "parole_joueur", "enrichir_savoirs", "etablir_faits", "accord"]},
+                                                   "conversation_pnj", "parole_joueur", "parole_ouverte", "enrichir_savoirs", "etablir_faits", "accord"]},
             "texte": {"type": "string"},
             "faits": {"type": "array", "items": {"type": "string"}},
             "proposition": {"anyOf": [SCHEMA, *SCHEMAS_PASSAGE, SCHEMA_ATTENTE, SCHEMA_SEQUENCE, {"type": "null"}, SCHEMA_PROFIL,
                                       SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE,
                                       SCHEMA_COMPLEMENTS, SCHEMA_CONVERSATION, schema_parole,
-                                      SCHEMA_SAVOIRS, schema_faits_suite, SCHEMA_ACCORD]},
+                                      SCHEMA_SAVOIRS, SCHEMA_DEMANDE_OUVERTE, schema_faits_suite, SCHEMA_ACCORD]},
         },
         "required": ["mode", "texte", "faits", "proposition"],
     }
@@ -95,6 +95,7 @@ def schema_reponse(*, enrichir=True):
                               SCHEMA_IMPROVISATION, SCHEMA_ASSEMBLAGE, SCHEMA_DECOUPE]},
         "enrichir_joueur": SCHEMA_PROFIL, "enrichir": SCHEMA_COMPLEMENTS,
         "conversation_pnj": SCHEMA_CONVERSATION, "parole_joueur": schema_parole,
+        "parole_ouverte": SCHEMA_DEMANDE_OUVERTE,
         "enrichir_savoirs": SCHEMA_SAVOIRS, "etablir_faits": schema_faits_suite,
         "accord": SCHEMA_ACCORD,
     })

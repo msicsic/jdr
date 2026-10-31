@@ -60,7 +60,7 @@ INTERLOCUTEUR_PRIVE = frozenset(("intentions", "ton", "dernier_son_entendu",
 OBJET_PRIVE = frozenset(("profil", "humeur", "connait_noms", "vigilance", "refuse_ventes_apres_vol"))
 ESPRIT_PUBLIC = frozenset(("voix_inconnue", "genre"))
 INTERLOCUTEUR_PUBLIC = frozenset(("nom", "voix_inconnue", "personne_inconnue", "entendue",
-                                "genre", "signes", "offres"))
+                                "genre", "signes", "offres", "sujets_ouverts"))
 # La copie d'un objet est un dossier mixte, contrairement aux dossiers publics
 # du moteur. Une propriété d'auteur nouvelle n'est donc jamais admise par
 # défaut. Ce contrat ne dépend ni du type d'objet, ni de son identifiant.

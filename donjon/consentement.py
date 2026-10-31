@@ -24,7 +24,7 @@ EFFETS_LEGERS = frozenset((
     "passer_obstacle", "recit_improvise", "son_improvise",
 ))
 CONTENUS_LEGERS = frozenset(("propos", "qui", "ressource", "localisation"))
-ADMISSIONS = frozenset(("espace", "complements", "savoirs", "profil_joueur", "faits"))
+ADMISSIONS = frozenset(("espace", "complements", "savoirs", "profil_joueur", "faits", "parole_ouverte"))
 
 
 def effets_lourds(effets):

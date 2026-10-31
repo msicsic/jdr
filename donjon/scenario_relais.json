@@ -1692,7 +1692,9 @@
   "seed": 1985,
   "souvenirs_personnages": {},
   "sujets_savoirs_pnj": {
-    "marchand": {}
+    "marchand": {
+      "souvenir_personnel": "Un souvenir ordinaire, sans nouveau lieu visitable, PNJ interactif, trésor ou secret."
+    }
   },
   "version": 1,
   "visitees": [
