@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-suite-4539dd68` (1edc86e3) : lot 414, attribution des rouges de la suite 4539dd68. Détail dans l'historique.
 - `codex-a5-reprise-fidele` (46274c29) : lots 412 et 415, A4 dossier de revue et A5 reprise fidèle. Détail dans l'historique.
 - `codex-s1l-recherche` (296f4abc) : lot 413, S1l recherche d'une personne par l'interface. Détail dans l'historique.
 - `codex-s1k-recours` (f5127a4d) : lot 411, S1k recours par l'interface. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-suite-c562aa21` (f8c40269) : lot 403, rouges nouveaux de la suite c562aa21. Détail dans l'historique.
 - `codex-a2-passage` (a4c5ece4) : lot 381, A2 famille passage. Détail dans l'historique.
 - `codex-s1i-signes-dangers` (05dffdef) : lot 405, S1i signes, détresse et dangers par leurs vues. Détail dans l'historique.
-- `codex-rembourser-public` (3fbe6e74) : lot 399, rembourser depuis le menu et le terminal. Détail dans l'historique.
 
 ## Lots non fusionnés
 

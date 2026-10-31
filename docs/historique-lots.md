@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-suite-4539dd68` — lot 414, base `integration d54d15ae`, livraison partielle :
+  30 méthodes initialement rouges ; bissection : 29 au 374 (dont étapes chaînées
+  re-verte avant le 374), une au 381. Trois adaptations vertes ; aucun correctif moteur.
+  Les 27 autres restent ouvertes, avec questions par méthode ; renoncements d'Odon et
+  boucles conservés rouges, recouvrement recherche/appels à coordonner avec 413.
+  Fichiers adaptés : 35/37 verts, deux erreurs hors liste reproduites sur base ; ni suite complète ni Luna.
+  [Rapport et tableau d'attribution](taches/rapport-codex-414-suite-4539dd68.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 414, partiel : 30 méthodes attribuées (29 au 374, une au 381) ; trois tests adaptés avec preuve, aucun correctif moteur ; 27 restent ouvertes, surtout le réessai d'un obstacle quand la position du témoin expire (R), les vérifications de contact (C) et les empreintes changées par le 374 (E). Tests seulement.
+
 - `codex-a5-reprise-fidele` (lot 415), base A4 `aaa0b8db`, intégration `2b2e0a94` fusionnée :
   les reprises conservent les paramètres typés non contestés ; candidat non admis, saisie entière et refus transmis.
   **Non validé pour fusion** : deux sifflements d'atelier conservés, mais voix mélodique acceptée comme sifflement

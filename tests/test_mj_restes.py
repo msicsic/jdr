@@ -209,8 +209,14 @@ class FaisabiliteTests(unittest.TestCase):
                 "outil": "", "methode": "appui_mobile", "difficulte": 19}]}}
         reprise, sortie, appels = jouer(m, "est-ce que je pourrais grimper sur le palier ?", [grimper, grimper], [])
         self.assertEqual(len(mj(appels)), 2)
-        self.assertIn("Il te faut un appui long à tenir, une perche par exemple : rien de tel n'est à ta "
-                      "disposition ici.", sortie)
+        # 381 : une proposition d'appui mobile doit désigner son outil avant
+        # l'évaluation mécanique. Le champ vide reçoit le refus de forme.
+        attendu = mj(appels)[1]["retour_forme"]["attendu"]
+        self.assertIn("proposition.etapes[0].outil", attendu)
+        self.assertIn("reçu ''", attendu)
+        self.assertIn("longueur 1", attendu)
+        self.assertIn("Précise la manœuvre que tu veux tenter. Corvus n'a rien tenté.", sortie)
+        self.assertIn("Corvus n'a rien tenté.", reprise.data["conversation"][-1]["reponse"])
         self.assertEqual(reprise.joueur["salle"], "antichambre")
         self.assertFalse(reprise.data["journal"])
 

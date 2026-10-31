@@ -174,20 +174,39 @@ class MemoireTests(unittest.TestCase):
         crocheter = ("crocheter", "reserve", "crochets")
         self.assertIn(crocheter, gestes(planifier(m, "brune", "faim")))
         # Elle ne sait plus où sont les crochets, puis les revoit.
-        croire(m, "brune", "crochets", "lieu", None, "vu")
+        croire(m, "brune", "crochets", "lieu", None, "vu", salle=None, case=None)
         self.assertIsNone(planifier(m, "brune", "faim"))
-        croire(m, "brune", "crochets", "lieu", "echoppe", "vu")
+        croire(m, "brune", "crochets", "lieu", "echoppe", "vu", salle="echoppe", case=None)
         self.assertIn(crocheter, gestes(planifier(m, "brune", "faim")))
         # Une honnêteté à son comble : voler n'est plus permis.
         m.objets["brune"]["profil"]["valeurs"]["honnetete"] = 100
         self.assertIsNone(planifier(m, "brune", "faim"))
-        # Le refus s'oublie avec le temps : elle peut redemander sa part ; un nouveau refus l'en empêche.
+        # 374 : le temps expire aussi la position du marchand. Un ancien lieu
+        # donne une inspection, sans autoriser une demande à une présence supposée.
         m.data["minutes"] += REDEMANDE
+        self.assertEqual(gestes(planifier(m, "brune", "faim")), [
+            ("aller", "echoppe", ""), ("inspecter", "echoppe", "")])
+        from tests.test_tensions import recharger
+        from donjon.rendu import regarder
+        from donjon.scene import scene_percue
+        n = recharger(m)
+        self.assertEqual(m.data, n.data)
+        self.assertEqual(regarder(m), regarder(n))
+        self.assertEqual(scene_percue(m), scene_percue(n))
+        self.assertEqual(planifier(m, "brune", "faim"), planifier(n, "brune", "faim"))
+        # Une observation neuve rétablit la prémisse de l'épreuve du refus :
+        # elle sait de nouveau où le trouver, sans réinitialiser le refus.
+        croire(m, "brune", "marchand", "lieu", "echoppe", "vu", salle="echoppe", case=None)
         self.assertEqual(gestes(planifier(m, "brune", "faim")), [("aller", "echoppe", ""),
                                                                  ("demander", "marchand", "vivres"),
                                                                  ("aller", "antichambre", "")])
         retenir_refus(m, "brune", "marchand", "demander", "necessaire", objet="vivres")
         self.assertIsNone(planifier(m, "brune", "faim"))
+        n = recharger(m)
+        self.assertEqual(m.data, n.data)
+        self.assertEqual(regarder(m), regarder(n))
+        self.assertEqual(scene_percue(m), scene_percue(n))
+        self.assertIsNone(planifier(n, "brune", "faim"))
 
     def test_une_nuit_ou_chaque_resultat_repris_ou_borne_est_recalcule(self):
         # Repris de la mémoire, ou cherché parmi ce qu'il vaut la peine de porter : une recherche
