@@ -45,10 +45,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-s1h-eau-statuts` — lot 404, base `integration d451a4ce`, code `88f4f9ab`.
   Eau, prévisions et statuts : vues profondes et révisions historiques par `memoire` ; aucun registre ajouté.
-  Inventaire AST 168 → 129 ; porte 36/36 verte, deux captures réelles avec état/rendu/scène/paroles après recharge.
-  Tests complémentaires puis empreintes 2 h × 4 graines × 4 scénarios en cours, deux travailleurs réduits au plus.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/s1h-404/fin.json` ; identité des empreintes encore à confirmer.
-  [Rapport 404](taches/rapport-codex-404-s1h-eau-statuts.md). Pas de suite complète ni Luna.
+  Inventaire AST 168 → 129 ; 141/142 tests verts, une erreur d'eau reproduite sur la base exacte, oracle intact.
+  Empreintes 2 h × 4 graines × 4 scénarios : 16/16 identiques ; deux captures réelles, état/rendu/scène/paroles après recharge.
+  Intégration distante inchangée ; bruts `C:/Users/msics/donjon/artifacts/s1h-404/conclusion.json`.
+  [Rapport 404](taches/rapport-codex-404-s1h-eau-statuts.md). Lot clos, aucun calcul restant ; pas de suite complète ni Luna.
 
 Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 403 (rouges nouveaux de la suite c562aa21), 404 (S1h eau et statuts) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 

@@ -156,8 +156,9 @@ class StatutsTests(unittest.TestCase):
                     if isinstance(n, ast.FunctionDef):
                         return n.name in {'statuts_connus', 'recevoir_statuts', 'verifier_faits'}
                     if isinstance(n, ast.Assign):
-                        return any(isinstance(t, ast.Name) and t.id == 'ATTRIBUTS_EAU_STATUTS'
-                                   for t in n.targets)
+                        if any(isinstance(t, ast.Name) and t.id == 'ATTRIBUTS_EAU_STATUTS'
+                               for t in n.targets):
+                            return True
                 return False
 
             for n in ast.walk(arbre):
