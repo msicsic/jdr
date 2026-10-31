@@ -37,10 +37,34 @@ def bilan_banc(rapport):
     return resume
 
 
+def attendre_processus(pid):
+    """Attente Windows sans sondage ni consommation d'un travailleur."""
+    import ctypes
+    from ctypes import wintypes
+    noyau = ctypes.WinDLL('kernel32', use_last_error=True)
+    noyau.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+    noyau.OpenProcess.restype = wintypes.HANDLE
+    noyau.WaitForSingleObject.argtypes = (wintypes.HANDLE, wintypes.DWORD)
+    noyau.WaitForSingleObject.restype = wintypes.DWORD
+    noyau.CloseHandle.argtypes = (wintypes.HANDLE,)
+    processus = noyau.OpenProcess(0x00100000, False, pid)
+    if not processus:
+        erreur = ctypes.get_last_error()
+        if erreur == 87:  # Déjà terminé avant l'ouverture du handle.
+            return
+        raise ctypes.WinError(erreur)
+    try:
+        if noyau.WaitForSingleObject(processus, 0xFFFFFFFF) != 0:
+            raise ctypes.WinError(ctypes.get_last_error())
+    finally:
+        noyau.CloseHandle(processus)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--sortie', type=Path, required=True)
     parser.add_argument('--reference', required=True)
+    parser.add_argument('--attendre-pid', type=int)
     args = parser.parse_args()
     dossier = args.sortie.resolve()
     dossier.mkdir(parents=True, exist_ok=True)
@@ -53,6 +77,11 @@ def main():
                                   stdout=log, stderr=subprocess.STDOUT).returncode
 
     try:
+        if args.attendre_pid:
+            (dossier / 'attente.json').write_text(json.dumps({
+                'pid': args.attendre_pid, 'depuis': time.time(), 'raison': 'deux travailleurs du lot 416 actifs'}),
+                encoding='utf8')
+            attendre_processus(args.attendre_pid)
         commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=RACINE, text=True).strip()
         reference = subprocess.check_output(['git', 'rev-parse', args.reference], cwd=RACINE, text=True).strip()
         bilan.update(commit=commit, reference=reference)

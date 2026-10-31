@@ -37,12 +37,13 @@ rechargées sont dans `diagnostic/` ; les cas anciens sont attribués au 374 par
 verts** ; leurs fichiers repassent au final. Quatre nouveaux tests verts :
 Rémy/Bram, deux autres contacts présents/absents rechargés, recours conditionnel,
 termes d'aide. Achat/eau adaptés : **2/2 verts**, 74,7 s ; aides, transmission,
-Gorm et Bram également verts en ciblé. Reconnaissance initiale interrompue ;
+Gorm et Bram également verts en ciblé ; rendez-vous adapté **1/1 vert**, 124,4 s.
+Reconnaissance initiale interrompue ;
 incidents temporaires/imports et rouges conservés.
 
 **En cours.** `tools/verifier_contact_419.py` complète les fichiers concernés et
 compare **4 h × 4 graines × auberge/mine/crue** à la base, cache partagé réutilisé.
-Deux travailleurs réduits ; référence puis branche, aucun temps CPU comparé au
+Départ après le calcul 416 déjà actif, puis deux travailleurs réduits ; référence puis branche, aucun temps CPU comparé au
 cache. `fin.json`, écrit en dernier, exige la non-hausse des appels et suspects
 par scénario. **Aucune garantie générale de non-régression encore acquise.**
 Pas de suite complète ni Luna ; fusion au superviseur.
