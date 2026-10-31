@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-creation-utile-luna` — lot 430, diagnostic seul, base `origin/integration` / `3ce68e2e`.
+  Admission préalable confondue avec résultat perceptif ; rapports de portée parfois illisibles.
+  14 fils lus, 13 dossiers rejoués à l’identique sans modèle ; exception du rendu du 423 reproduite,
+  sans `attendu`. Aucun code du jeu modifié ; un petit lot de correction proposé, non réalisé.
+  Invariant de création puis manipulation avec Luna encore non garanti ; bruts `creation-utile-430/`.
+  [Rapport](taches/rapport-codex-430-creation-utile-luna.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Rapport seulement. 14 fils lus, 13 dossiers de portée rejoués à l'identique sans modèle. Cause commune : la revue de portée (portee_narrative, usages) juge globalement demande et ajout ; une matérialisation ou une qualification préalable au geste devient une « recherche implicite » (perception requise), descriptions vides sans dossier des champs à établir, cardinalités non fixées. Faux refus : torche, planches qualifiées, pierre mouillée, éclat de bois ; justes : masse incompatible, odeur. Défaut séparé R58 : rendu.decrire refuse sans attendu. Lot de correction proposé (431).
+
 - `codex-g14-ciblage-ambiance` — lot 427, base `origin/integration` / `ce64ba7e`.
   Enveloppe cosmétique validée et persistée ; matérialisation unique par les faits communs,
   reprise vers le même objet après recharge et éviction de prose ; odeur et budget refusés.
