@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-k2-assistance-luna` (d3b41a47) : lot 434, K2 assistance de Luna à la négociation. Détail dans l'historique.
 - `codex-verification-contact` (1c8d66ea) : lot 419, le contact prépare le moyen et son but. Détail dans l'historique.
 - `codex-reference-neuve` (3401e4f1) : lot 433, une entité créée est désignable dès sa création. Détail dans l'historique.
 - `codex-k1-editeur-marche` (e0f61054) : lot 429, K1 éditeur de marché à deux termes. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-decoupe-combustible` (5af58c58) : lot 425, découper un combustible compté. Détail dans l'historique.
 - `codex-empreintes-374` (dced64c0) : lot 424, empreintes changées par le lot 374 (famille E du 414). Détail dans l'historique.
 - `codex-piece-de-lot-libre` (afb76e9a) : lot 423, une pièce de lot par la saisie libre. Détail dans l'historique.
-- `codex-g13-qualification` (564fb648) : lot 422, G13 qualifier une propriété inconnue avant usage. Détail dans l'historique.
 
 ## Lots non fusionnés
 

@@ -423,8 +423,8 @@ def anticiper_valeur(monde, proposant, autre, demande, contrepartie):
     return _bilan_valeur(p, g or 0.0, 0, 10, {"affection": 0, "dette": 0, "rancune": 0})
 
 
-def candidat_proposition(monde, auditeur, demande, prix):
-    """Admission matérielle K0 sur copie ; le verdict social attend la soumission.
+def candidat_proposition(monde, auditeur, demande, prix=None, *, contrepartie=None):
+    """Admission matérielle commune sur copie ; le verdict social attend la soumission.
 
     Aucun jet, paiement, publication ou consultation des besoins privés. Le prix
     est une mise de départ modifiable, pas une estimation de l'accord du PNJ.
@@ -433,24 +433,33 @@ def candidat_proposition(monde, auditeur, demande, prix):
     from .propositions import verifier
     from .passage import au_contact
     copie = monde.copier()
-    contrepartie = {'type': 'pieces', 'montant': prix}
+    contrepartie = (contrepartie if contrepartie is not None else
+                   {'type': 'pieces', 'montant': prix})
     try:
         verifier(copie, {'type': 'proposition', 'demande': demande, 'contrepartie': contrepartie})
         if not au_contact(copie, auditeur, 'joueur'):
             return False
         if moyens_proposition(copie, 'joueur', auditeur, demande, contrepartie):
             return False
-        if demande['type'] == 'tache':
-            c = demande['condition']
-            if agendas.en_cours(copie, auditeur, condition=c, personne='joueur', actifs=True):
+        if any('limite' in t for t in (demande, contrepartie)):
+            if _juger_termes_dates(copie, 'joueur', auditeur, demande, contrepartie):
                 return False
-            return _devis_proposition(copie, auditeur, c, 'joueur') is not None
-        if demande['type'] == 'part':
-            if any(x.get('lot') == demande['objet'] and x['pour'] == 'joueur'
-                   for x in agendas.en_cours(copie, auditeur)):
-                return False
-            return _livraison_proposition(copie, auditeur, 'joueur', demande)
-        return False
+        for terme, de, a in ((demande, auditeur, 'joueur'), (contrepartie, 'joueur', auditeur)):
+            if terme['type'] == 'tache':
+                c = terme['condition']
+                if agendas.en_cours(copie, de, condition=c, personne=a, actifs=True):
+                    return False
+                # Le joueur promet un acte typé, sans plan autonome ni garantie
+                # de réussite, comme lors de la soumission ordinaire.
+                if de != 'joueur' and _devis_proposition(copie, de, c, a) is None:
+                    return False
+            elif terme['type'] in ('objet', 'part'):
+                if any(x.get('lot') == terme['objet'] and x['pour'] == a
+                       for x in agendas.en_cours(copie, de)):
+                    return False
+                if not _livraison_proposition(copie, de, a, terme):
+                    return False
+        return True
     except ErreurMonde:
         return False
 

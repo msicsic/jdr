@@ -86,6 +86,9 @@ def secondes_ecrites(expression, saisie):
 
 def ouvrir(monde, p, saisie):
     from .accords_publics import accords_publics
+    if isinstance(p, dict) and ('alternatives' in p or 'obstacle' in p and 'prestation' not in p):
+        from .negociation import ouvrir as ouvrir_aide
+        return ouvrir_aide(monde, p)
     if not isinstance(p, dict) or set(p) != set(SCHEMA['required']) or p.get('obstacle') not in ('', *REFUS):
         raise ErreurMonde('Précise les clauses de cet accord dans le choix direct.',
                           f'accord reçu {p!r} ; attendu {SCHEMA["required"]}.')

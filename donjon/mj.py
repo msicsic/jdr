@@ -1223,9 +1223,13 @@ class MJ:
             if locuteur in monde.objets:
                 esprit["nom_du_locuteur"] = monde.objets[locuteur]["nom"].split(",")[0]
         from .accords_libres import REGLES as REGLES_ACCORD
+        from .negociation import REGLES as REGLES_NEGOCIATION
+        if enrichir:
+            from .accords_publics import accords_publics
+            faits['accords_negociables'] = accords_publics(monde, avec_suggestions=False)
         schema = schema_reponse(enrichir=enrichir)
         instructions = (INTERPRETATION + REGLES_ATELIER + REGLES_FRANCHISSEMENT
-                        + REGLES_OBSTACLES + REGLES_ESPACE + REGLES_PAROLE + REGLES_ACCORD + REGLES_OUVERTE)
+                        + REGLES_OBSTACLES + REGLES_ESPACE + REGLES_PAROLE + REGLES_ACCORD + REGLES_NEGOCIATION + REGLES_OUVERTE)
         consigne_retour = None
         if retour_moteur:
             consigne_retour = RETOUR_INTERPRETATION

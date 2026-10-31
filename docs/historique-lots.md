@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-k2-assistance-luna` — lot 434, base `integration` `364e8722` : aide demandée,
+  au plus deux alternatives typées, admission commune sur copie puis éditeur K1.
+  Aucun accord, prix accepté ou besoin privé décidé par Luna ; clauses inconnues écartées entières.
+  Terminé, non fusionné : 75 tests distincts, 74 réussis et 1 ignoré ; aucun échec.
+  Luna : 4 alternatives hors K0 admises, 2 soumises et acceptées, recharge identique ; clause conditionnelle refusée.
+  Un appel par scène reconstitué (compteur initial défectueux) ; fidélité libre non garantie, aucun audit retiré.
+  [Rapport et limites de mesure](taches/rapport-codex-434-k2-assistance-luna.md) ; bruts `artifacts/k2-assistance-434/` du dépôt principal.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Une aide demandée produit au plus deux alternatives typées (negociation.py, mode accord du compilateur), admises sur copie par echanges.candidat_proposition étendu aux deux termes, affichées puis ouvertes dans l'éditeur K1 ; aucun paiement ni jet avant soumission ; clause inconnue ou obstacle (règlement conditionnel) arrêtent. 74/75 tests (un ignoré, jsonschema). Luna une passe : deux alternatives utiles hors K0 acceptées (Aubin planches contre déplacement de la cloche, Odile huile contre lanterne), un appel jusqu'à chaque offre ; « ramène Brune… » refusé reglement_conditionnel.
+
 - `codex-verification-contact` — lot 419, fusion `integration 07e270be` ; moteur `cd19880e`.
   Contact = préfixe du moyen ; but du lot repris avec sa part reçue, filiation persistée et privée.
   Tilo/Mathurine et bois reçu pour un feu verts après recharge ; ancienne livraison stable avant sauvegarde.
