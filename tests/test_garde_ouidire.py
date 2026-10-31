@@ -97,31 +97,49 @@ class GardeOuidireTests(unittest.TestCase):
 
     def test_preuves_sans_porteur_salle_et_contenant_transmises_et_rechargees(self):
         from donjon.francais import designer, lieu
+        from donjon.paroles import _connu_du_joueur, resoudre
         for scenario, objet, endroit in (("relais", "cle_reserve", "crypte"),
                                          ("auberge", "ballot", "coffre_marchand")):
-            with self.subTest(scenario=scenario):
-                m, g, t, p = garde(scenario, objet)
-                possession = {"porteur": None, "proprietaire": None, "permis": False,
-                              "remis_par": None, "remise_autorisee": False}
-                salle = endroit if endroit in m.data["salles"] else m.objets[endroit]["lieu"]
-                # Preuve héritée admise à la recharge. Le bien est depuis
-                # porté ailleurs : le récit ne doit pas lire ce lieu privé.
-                croire(m, t, objet, "lieu", endroit, "vu", salle=salle,
-                       case=[4, 3], possession=possession)
-                m = recharger(m)
-                avant = copy.deepcopy(m.objets[objet])
-                m, texte = self.confier(m, t)
-                attendu = lieu(m.data["salles"][endroit]) if endroit in m.data["salles"] else designer(m.objets[endroit])
-                self.assertIn("dans " + attendu, texte)
-                self.assertNotIn("aux mains de", texte)
-                self.assertNotIn("permission", texte)
-                self.assertEqual(m.objets[objet], avant)
-                c = lire(m, g)["croyances"][objet]["lieu"]
-                self.assertEqual((c["valeur"], c["possession"]), (endroit, possession))
-                r = recharger(m)
-                self.assertEqual(m.data, r.data)
-                self.assertEqual(regarder(m), regarder(r))
-                self.assertEqual(scene_web(m), scene_web(r))
+            for connu in (False, True):
+                with self.subTest(scenario=scenario, connu=connu):
+                    m, g, t, p = garde(scenario, objet)
+                    # Le témoin connaît le lieu ; cela ne présente pas son nom
+                    # à Corvus. La scène nommée suppose ce souvenir explicitement.
+                    m.data["connus"] = [x for x in m.data["connus"] if x != endroit]
+                    if connu:
+                        m.data["connus"].append(endroit)
+                    possession = {"porteur": None, "proprietaire": None, "permis": False,
+                                  "remis_par": None, "remise_autorisee": False}
+                    salle = endroit if endroit in m.data["salles"] else m.objets[endroit]["lieu"]
+                    # Preuve héritée admise à la recharge. Le bien est depuis
+                    # porté ailleurs : le récit ne doit pas lire ce lieu privé.
+                    croire(m, t, objet, "lieu", endroit, "vu", salle=salle,
+                           case=[4, 3], possession=possession)
+                    m = recharger(m)
+                    self.assertEqual(_connu_du_joueur(m, endroit), connu)
+                    self.assertEqual(resoudre(m, endroit), endroit if connu else None)
+                    avant = copy.deepcopy(m.objets[objet])
+                    m, texte = self.confier(m, t)
+                    attendu = lieu(m.data["salles"][endroit]) if endroit in m.data["salles"] else designer(m.objets[endroit])
+                    if connu:
+                        self.assertIn("dans " + attendu, texte)
+                    else:
+                        self.assertNotIn(attendu, texte)
+                    self.assertNotIn("aux mains de", texte)
+                    self.assertNotIn("permission", texte)
+                    self.assertEqual(m.objets[objet], avant)
+                    c = lire(m, g)["croyances"][objet]["lieu"]
+                    self.assertEqual((c["valeur"], c["possession"]), (endroit, possession))
+                    r = recharger(m)
+                    self.assertEqual(m.data, r.data)
+                    self.assertEqual(regarder(m), regarder(r))
+                    self.assertEqual(scene_web(m), scene_web(r))
+                    self.assertEqual(_connu_du_joueur(r, endroit), connu)
+                    self.assertEqual(resoudre(r, endroit), endroit if connu else None)
+                    if not connu:
+                        nom = (r.data["salles"].get(endroit) or r.objets[endroit])["nom"].casefold()
+                        self.assertNotIn(nom, regarder(r).casefold())
+                        self.assertNotIn(nom, str(scene_web(r)).casefold())
 
     def confier(self, m, temoin):
         lignes = []
