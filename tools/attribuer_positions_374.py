@@ -26,7 +26,7 @@ def ecrire(chemin, valeur):
 
 
 def capturer(scenario, graine, dossier, checkpoints_extra=()):
-    from donjon import banc_pnj, deliberation, esprits, pnj, echanges, ouie
+    from donjon import banc_pnj, deliberation, esprits, pnj, echanges, ouie, memoire
     from donjon.temps import instant
     from tools.audit_nuits import JOUEURS
     dossier.mkdir(parents=True, exist_ok=True)
@@ -61,7 +61,7 @@ def capturer(scenario, graine, dossier, checkpoints_extra=()):
         m = creer(*a, **kw)
         monde_actif = m
         for acteur, e in m.data['esprits'].items():
-            for sujet, attributs in e['croyances'].items():
+            for sujet, attributs in memoire.faits_connus(m, acteur).items():
                 c = attributs.get('lieu')
                 if c and c['valeur'] is not None:
                     positives[acteur, sujet] = copy.deepcopy(c)
@@ -80,7 +80,7 @@ def capturer(scenario, graine, dossier, checkpoints_extra=()):
         r = croire(m, acteur, sujet, attribut, valeur, source, *a, **kw)
         if m is monde_actif and attribut == 'lieu' and valeur is not None:
             cle = acteur, sujet
-            c = esprits.lire(m, acteur)['croyances'][sujet]['lieu']
+            c = memoire.localisation(m, acteur, sujet)
             date = min(c['minute'], c.get('origine', {}).get('minute', c['minute']))
             directe = source in ('vu', 'entendu', 'essai', 'se_dit') and 'origine' not in kw
             verification_propre = cle in en_cours and valeur == (positives.get(cle) or {}).get('valeur')
@@ -108,7 +108,7 @@ def capturer(scenario, graine, dossier, checkpoints_extra=()):
         e = esprits.lire(m, acteur)
         preuve = next((g.get('contenu', {}).get('verification') for g in (e['intention'] or {}).get('plan', [])
                        if g.get('contenu', {}).get('cherche') == sujet), None)
-        c = e['croyances'].get(sujet, {}).get('lieu') or {}
+        c = memoire.localisation(m, acteur, sujet) or {}
         positive = positives.get((acteur, sujet)) or {}
         age = m.data['minutes'] - min(positive.get('minute', m.data['minutes']),
                                     positive.get('origine', {}).get('minute', m.data['minutes']))
@@ -161,7 +161,7 @@ def capturer(scenario, graine, dossier, checkpoints_extra=()):
         appels.append({'instant': instant(m), 'acteur': acteur, 'sujet': sujet,
                        'salle': m.objets[acteur]['lieu'], 'verification': index,
                        'generation': generations.get((acteur, sujet), 0),
-                       'croyance': copy.deepcopy(esprits.lire(m, acteur)['croyances'].get(sujet, {}).get('lieu')),
+                       'croyance': memoire.localisation(m, acteur, sujet),
                        'intention': copy.deepcopy(esprits.lire(m, acteur)['intention']),
                        'capture': photo(m, f'appel-{len(appels)}')})
         return heler(m, acteur, sujet, *a, **kw)

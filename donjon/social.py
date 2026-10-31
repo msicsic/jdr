@@ -21,6 +21,7 @@ affirmation se juge comme une confidence, une nouvelle comme une rumeur, un aveu
 se pèse (``voix.se_nommer``). Qui parle d'une voix que l'auditeur ne sait à qui prêter reste un
 inconnu pour lui : sa méfiance va à cette voix, son ouï-dire ne nomme personne (``voix``).
 """
+from . import memoire
 from .memoire import episodes
 import copy
 import json
@@ -112,7 +113,7 @@ def installer_faits_initiaux(monde, id, *, perception=False):
                 if attribut == "lieu" or p["porteur"] == id:
                     initiaux.update(copy.deepcopy(faits_dits({"type": "constat", "objet": sujet,
                         "attribut": attribut, "valeur": valeur, "details": details})))
-    for sujet, attributs in e["croyances"].items():
+    for sujet, attributs in memoire.faits_connus(monde, id).items():
         for attribut, c in attributs.items():
             # Les anciennes localisations sans droits ne deviennent pas une
             # nouvelle par la seule installation de la preuve de possession.
@@ -278,7 +279,7 @@ def migrer_dits(monde, id):
         elif s["type"] in NOUVELLES or s["type"] == "rumeur":
             for a in s.get("dit_a", []):
                 retenir_dit(monde, id, a, s["evenement"] if s["type"] == "rumeur" else s)
-    for sujet, attributs in e["croyances"].items():
+    for sujet, attributs in memoire.faits_connus(monde, id).items():
         for attribut, c in attributs.items():
             for a in c.get("confie", {}).get("dit_a", []):
                 retenir_dit(monde, id, a, {"type": "affirmation", "sujet": sujet, "attribut": attribut,
@@ -317,7 +318,7 @@ def _proprietaire(monde, evenement):
 
 def _croit_encore(monde, id, noyau):
     """On ne répète que ce qu'on croit encore."""
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     if noyau["type"] == "constat":
         c = croyances.get(noyau["objet"], {}).get(noyau["attribut"])
         return (monde.data["minutes"] - noyau["observe"] <= RECENT and _meme_constat(c, noyau))
@@ -328,7 +329,7 @@ def _croit_encore(monde, id, noyau):
         lieu = croyances.get(noyau["objet"], {}).get("lieu")
         return bool(lieu) and lieu["valeur"] is None
     if noyau["type"] == "mort_vue":
-        return bool(lire(monde, id)["croyances"].get(noyau["objet"], {}).get("etat", {}).get("valeur", {}).get("mort"))
+        return bool(memoire.fait_brut(monde, id, noyau['objet'], 'etat', {}).get("valeur", {}).get("mort"))
     return not se_fie(monde, id, accuse(noyau))
 
 
@@ -371,7 +372,7 @@ def _nouvelles(monde, id):
         if "lieu" in noyau and _cru_ailleurs(monde, id, noyau):
             noyau = _fait(noyau)  # Il ne le croit plus là : il dit le geste, sans le lieu.
         if noyau["type"] == "constat":
-            c = lire(monde, id)["croyances"][noyau["objet"]][noyau["attribut"]]
+            c = memoire.faits_connus(monde, id)[noyau["objet"]][noyau["attribut"]]
             if c["source"] in ("vu", "essai"):
                 continue  # Son propre constat est déjà offert, de première main.
             souvenir = c
@@ -420,7 +421,7 @@ def _concerne(monde, id, autre, salle):
 
 
 def _constats(monde, id):
-    for objet, attributs in lire(monde, id)["croyances"].items():
+    for objet, attributs in memoire.faits_connus(monde, id).items():
         for attribut, c in attributs.items():
             if (objet not in monde.objets and objet not in monde.data["salles"]
                     and not (attribut == "fin" and c.get("designation"))):
@@ -456,7 +457,7 @@ def _constats(monde, id):
 
 def _cru_ailleurs(monde, id, noyau):
     """Depuis ce que dit la nouvelle, il a appris que l'objet n'est plus là où elle le met."""
-    lieu = lire(monde, id)["croyances"].get(noyau["objet"], {}).get("lieu")
+    lieu = memoire.fait_brut(monde, id, noyau['objet'], 'lieu')
     return bool(lieu) and lieu["minute"] > noyau["lieu"]["minute"] and lieu["valeur"] != noyau["lieu"]["valeur"]
 
 
@@ -468,7 +469,7 @@ def _sait(monde, id, noyau):
         # Le registre des faits dits borne les avertissements, même refusés.
         return False
     if noyau["type"] == "constat":
-        c = lire(monde, id)["croyances"].get(noyau["objet"], {}).get(noyau["attribut"])
+        c = memoire.fait_brut(monde, id, noyau['objet'], noyau['attribut'])
         return (_meme_constat(c, noyau) or bool(c and c["source"] in ("vu", "essai", "entendu")
                                                and c["minute"] >= noyau["observe"]))
     if noyau["type"] == "intention_lue":
@@ -620,11 +621,11 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
     proprietes = [json.loads(cle) for cle, _ in faits_dits(noyau)]
     if all(isinstance(cle, list) for cle in proprietes):
         for sujet, attribut, *_ in proprietes:
-            c = lire(monde, auditeur)["croyances"].get(sujet, {}).get(attribut)
+            c = memoire.fait_brut(monde, auditeur, sujet, attribut)
             if c and (c["minute"] > observe or c["minute"] == observe
                       and c["source"] in ("vu", "essai", "entendu", "devine")):
                 return None  # Toute propriété transmise garde la date de sa source.
-    actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get(noyau.get("attribut"))
+    actuelle = memoire.fait_brut(monde, auditeur, objet, noyau.get('attribut'))
     if noyau["type"] == "absence" and dementi(monde, auditeur, objet, "lieu", None):
         if identifie(monde, auditeur, locuteur):
             memoriser(monde, auditeur, {"type": "mensonge_dementi", "locuteur": locuteur, "sujet": objet,
@@ -648,7 +649,7 @@ def _adopter(monde, auditeur, locuteur, noyau, rang):
                minute=observe,
                **({"episode": noyau["episode"]} if "episode" in noyau else {}))
     elif noyau["type"] == "mort_vue":
-        actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get("etat")
+        actuelle = memoire.fait_brut(monde, auditeur, objet, 'etat')
         if not actuelle or actuelle["source"] != "vu":
             croire(monde, auditeur, objet, "etat", {"mort": True}, source, confiance, minute=observe)
             from .deliberation import inquieter
@@ -670,7 +671,7 @@ def _apprendre_lieu(monde, auditeur, noyau, source, confiance):
         return
     if not (lieu["valeur"] in monde.data["salles"] or lieu["valeur"] in monde.objets or lieu["valeur"] == "joueur"):
         return  # Le lieu a disparu depuis : il n'y a plus rien à en croire.
-    actuelle = lire(monde, auditeur)["croyances"].get(objet, {}).get("lieu")
+    actuelle = memoire.fait_brut(monde, auditeur, objet, 'lieu')
     if (actuelle and actuelle["valeur"] is not None and (actuelle["minute"] > lieu["minute"]
                      or actuelle["minute"] == lieu["minute"]
                      and (actuelle["source"] in ("vu", "essai", "entendu")

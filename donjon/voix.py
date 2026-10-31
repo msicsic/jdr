@@ -38,6 +38,7 @@ Une voix qu'il ne sait à qui prêter est un étranger : aucune confiance connue
 moins (``INCONNU``) ; s'il est prudent (``prudent`` : sa crainte contre son courage), il répond
 « Qui va là ? » à une voix qui ne s'est pas nommée, au lieu d'accéder (``qui_va_la``).
 """
+from . import memoire
 import re
 
 from .esprits import RECENT, croire, esprit, lire, memoriser
@@ -272,7 +273,7 @@ def _vu_ailleurs(monde, auditeur, nom, salle):
     """Il a vu ``nom`` ailleurs il y a peu : « c'est lui, ici » lui semble douteux."""
     if not connait_nom(monde,auditeur,nom):
         return False
-    c = lire(monde, auditeur)["croyances"].get(nom, {}).get("lieu")
+    c = memoire.fait_brut(monde, auditeur, nom, 'lieu')
     return bool(c and c["source"] in ("vu", "essai") and c["valeur"] not in (None, salle)
                 and monde.data["minutes"] - c["minute"] <= VU_AILLEURS)
 
@@ -322,22 +323,17 @@ def connaitre(monde, qui, autre):
         apprendre_nom(monde, qui, autre)
     if qui == "joueur":
         return  # Le joueur juge lui-même : ce qu'il entend s'affiche (``nom_pour_joueur``).
-    croyances = esprit(monde, qui)["croyances"]
     if entree and (entree["mefiance"] or entree["se_dit"] not in (None, autre)):
         memoriser(monde, qui, {"type": "imposture", "locuteur": autre, "se_disait": entree["se_dit"]})
     elif entree and entree["se_dit"] == autre:
-        c = croyances.get(autre, {}).get("lieu")
-        if c and c["source"] == "se_dit":
-            c.update(source="entendu", confiance=1.0)
+        memoire.reconnaitre_localisation_vocale(monde, qui, autre)
     if entree and not entree["mefiance"] and autre in (entree["se_dit"], entree.get("appelee")):
         apprendre_nom(monde, qui, autre)  # C'était bien lui : son nom ne s'oublie pas avec la voix inconnue.
     for signature, x in voix.items():
         if connait_nom(monde,qui,autre) and x["se_dit"] == autre and not x["mefiance"]:
             x["mefiance"] = True
             memoriser(monde, qui, {"type": "imposture", "se_disait": autre})
-            c = croyances.get(autre, {}).get("lieu")
-            if c and c["source"] == "se_dit":
-                del croyances[autre]["lieu"]  # Ce n'était pas lui : il ne sait plus où il est.
+            memoire.reconnaitre_localisation_vocale(monde, qui, autre, imposture=True)
 
 
 def se_mefier(monde, auditeur, locuteur, source="entendu", cause="mensonge_dementi"):

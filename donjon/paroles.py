@@ -16,6 +16,7 @@ retiennent, destinataires ou non (``ouie``, ``social.retenir_parole``) ; seuls s
 y répondent.
 """
 from .memoire import episodes
+from . import memoire
 from .emissions import joueur as emissions_joueur
 from .francais import pluriel as nombre_pluriel
 from .francais import quantite
@@ -420,7 +421,7 @@ def esprits_interlocuteurs(monde, presents):
             continue
         e, profil = lire(monde, id), monde.objets[id].get("profil")
         croyances = []
-        for sujet, attributs in e["croyances"].items():
+        for sujet, attributs in memoire.faits_connus(monde, id).items():
             for attribut, c in attributs.items():
                 if attribut in ATTRIBUTS and attribut != FIABLE and (sujet == "joueur" or sujet in monde.objets):
                     croyances.append((not c["source"].startswith("dit:"), -c["minute"],
@@ -1191,7 +1192,7 @@ def _cites_du_contexte(monde):
         # La mémoire du joueur conserve aussi les faits appris par une voix,
         # même après disparition de la parole de l'historique récent. Ce
         # souvenir ne prouve ni la vérité du propos ni la présence actuelle.
-        for sujet, attributs in lire(monde, "joueur")["croyances"].items():
+        for sujet, attributs in memoire.faits_connus(monde, "joueur").items():
             refs.add(sujet)
             lieu = attributs.get("lieu", {}).get("valeur")
             if isinstance(lieu, str):

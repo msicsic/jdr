@@ -12,6 +12,7 @@ réels sont ceux qui voient l'auteur pendant la durée de son geste, joueur comp
 dépend pas du découpage des actions du joueur. Le moteur annonce ce que le joueur perçoit et
 tient une chronique complète, réservée au débogage et au banc. Luna n'intervient pas.
 """
+from . import memoire
 from .memoire import episodes
 from collections import deque
 from .monde import ErreurMonde
@@ -113,14 +114,14 @@ def _cle_portee(monde, id, cible, cles=()):
 
 
 def _verrouillee_crue(monde, id, porte):
-    cru = lire(monde, id)["croyances"].get(porte, {}).get("verrouillee")
+    cru = memoire.fait_brut(monde, id, porte, 'verrouillee')
     return bool(cru and cru["valeur"])
 
 
 def _cases_barrees_crues(monde, id):
     """Les cases où il croit un obstacle qui barre le passage : vu, ou buté dessus (``_impasse``)."""
     barrees = set()
-    for sujet, attributs in lire(monde, id)["croyances"].items():
+    for sujet, attributs in memoire.faits_connus(monde, id).items():
         lieu = attributs.get("lieu")
         if (lieu and lieu["valeur"] is not None and lieu.get("case")
                 and monde.objets.get(sujet, {}).get("bloque_passage")):
@@ -226,7 +227,7 @@ def _annoncer_porte(monde, id, porte, verbe, texte_porte, lignes):
 
 def temoins_crus(monde, id):
     """Ceux que le PNJ perçoit : il se croit observé par chacun d'eux."""
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     return [s for s in percus(monde, id)[0]
             if (s == "joueur" or monde.objets[s]["type"] == "personnage")
             and croyances.get(s, {}).get("etat", {}).get("valeur", {}).get("conscient") is not False]
@@ -244,7 +245,7 @@ def oreilles_crues(monde, id, nature):
         return []
     ici, minute = o.get("position"), monde.data["minutes"]
     crus = []
-    for x, a in lire(monde, id)["croyances"].items():
+    for x, a in memoire.faits_connus(monde, id).items():
         c = a.get("lieu")
         if (x == id or a.get("etat", {}).get("valeur", {}).get("conscient") is False or not c or c["valeur"] != o["lieu"] or minute - c["minute"] > RECENT
                 or not (x == "joueur" or monde.objets.get(x, {}).get("type") == "personnage")):
@@ -560,7 +561,7 @@ def _inspecter(monde, id, cherche=None, lignes=None, vers=None):
     (``croit_present`` : il ne l'a pas vu en parcourant la salle des yeux), il l'appelle (``appeler``)."""
     from .esprits import verification_positions
     o = monde.objets[id]
-    sujets = [s for s, a in lire(monde, id)["croyances"].items()
+    sujets = [s for s, a in memoire.faits_connus(monde, id).items()
               if s == cherche or (a.get("lieu") or {}).get("salle") == o["lieu"]
               or (a.get("lieu") or {}).get("valeur") == o["lieu"]]
     with verification_positions(monde, id, sujets):
@@ -1624,7 +1625,7 @@ def _case_crue(monde, id, x, salle=None):
     from .deliberation import _lieu_cru
     from .positions_crues import case_contact
     ici = salle or monde.objets[id]['lieu']
-    croyances = lire(monde, id)['croyances']
+    croyances = memoire.faits_connus(monde, id)
 
     def lieu(sujet):
         return monde.objets[id]['lieu'] if sujet == id else _lieu_cru(monde, id, sujet)
@@ -1822,7 +1823,7 @@ def croit_present(monde, a, b):
     if percoit(monde, a, b):
         return True
     from .esprits import RECENT, position_a_verifier
-    c = lire(monde, a)["croyances"].get(b, {}).get("lieu")
+    c = memoire.fait_brut(monde, a, b, 'lieu')
     return bool(c and not position_a_verifier(monde, a, b)
                 and c["valeur"] == monde.objets[a]["lieu"] and c["source"] in ("vu", "entendu", "se_dit")
                 and monde.data["minutes"] - c["minute"] <= RECENT)
@@ -2019,7 +2020,7 @@ def _agir(monde, id, t, lignes, gestes=None, compter=True):
     participants = _a_reunir(monde, id, etape, venues=True)
     requis = list(participants)
     if etape["condition"] == "sans_temoin":
-        requis = [*requis, *e["croyances"]]
+        requis = [*requis, *memoire.faits_connus(monde, id)]
     incertains = sorted({x for x in requis if position_a_verifier(monde, id, x)
                         and (x in participants or not hypothese_consommee(monde, id, x))})
     if incertains:

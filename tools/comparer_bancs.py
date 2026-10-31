@@ -236,7 +236,8 @@ def instrumentation():
     return references.empreinte(inspect.getsource(jouer_nuit), inspect.getsource(empreinte),
                                 Path(audit.__file__).read_text(encoding="utf-8"),
                                 (RACINE / "tools/detecter_changements_avis.py").read_text(encoding="utf-8"),
-                                inspect.getsource(audit.detecteur_avis().episodes))
+                                inspect.getsource(audit.detecteur_avis().episodes),
+                                inspect.getsource(audit.detecteur_avis().faits_connus))
 
 
 def cle_nuit(config, scenario, graine, outil):

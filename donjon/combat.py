@@ -202,7 +202,8 @@ def force_crue(monde, auteur, autre):
     etat = lire(monde, auteur)["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
     if etat.get("conscient") is False:
         return 1.0
-    connus = lire(monde, auteur)["croyances"]
+    from .memoire import faits_connus
+    connus = faits_connus(monde, auteur)
     adverse = max((arme(monde.objets[x])[1] for x, d in connus.items()
                    if x in monde.objets and d.get("lieu", {}).get("valeur") == autre and arme(monde.objets[x])), default=0)
     propre = max((arme(o)[1] for o in monde.objets.values() if o["lieu"] == auteur and arme(o)), default=0)

@@ -24,6 +24,7 @@ bourse, une paie) : qui le porte peut les dépenser. Une part d'une ressource co
 (``prix_part``, sinon ``PRIX_PART``), un objet le sien s'il est déclaré (``prix``). Ce que vaut une
 pièce pour chacun vient de ses besoins et de ses valeurs (``caractere.valeur_piece``).
 """
+from . import memoire
 from contextlib import contextmanager
 
 from .francais import quantite
@@ -94,7 +95,7 @@ def entrees_reemprunt(monde, id, autre, objet):
     from .deliberation import urgents
     from .esprits import lire
     from .spatial import porte_par
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     return {
         "besoins": sorted(urgents(monde, id)) if monde.objets.get(id, {}).get("profil") else [],
         "moyens": sorted(k for k in croyances if k != objet and k in monde.objets
@@ -347,7 +348,7 @@ def capacites_crues(monde, id, objet):
         resultat.add("coupe")
     if "crochetage" in profil.get("capacites", ()) and "crochetage" in usages:
         resultat.add("crochetage")
-    connus = lire(monde, id)["croyances"]
+    connus = memoire.faits_connus(monde, id)
     resultat.update("cle:" + cible for cible in o.get("ouvre", ()) if cible in connus)
     etat = croyance(monde, id, objet, "etat")
     etat = etat["valeur"] if etat else {}
@@ -497,7 +498,7 @@ def entrees_creance(monde, a, de):
     from .deliberation import _lieu_cru
     faits = [["dette", d["objet"], d["quoi"], d["montant"]]
              for d in dettes(monde, connues_de=a) if d['de'] == de]
-    for k, c in lire(monde, a)["croyances"].items():
+    for k, c in memoire.faits_connus(monde, a).items():
         if k in monde.objets and _lieu_cru(monde, a, k) == de:
             pieces = c.get("pieces", {}).get("valeur", 0)
             if pieces:
@@ -924,7 +925,7 @@ def services_proteges(monde, id):
         # posé ensuite, ne prouve jamais un départ de son bénéficiaire.
         reference = s.get("lieu_beneficiaire",
                           None if mobile_par_nature(monde.objets.get(o, {})) else lieu)
-        possession = (lire(monde, id)["croyances"].get(o, {}).get("lieu") or {}).get("possession") or {}
+        possession = (memoire.fait_brut(monde, id, o, 'lieu') or {}).get("possession") or {}
         bien_beneficiaire = (mobile_par_nature(monde.objets.get(o, {}))
                             and possession.get("proprietaire") == pour)
         parti = (not bien_beneficiaire and porteur != pour and reference is not None and lieu is not None

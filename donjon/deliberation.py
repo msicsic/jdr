@@ -10,6 +10,7 @@ son plan, après un geste manqué, et après un événement qui change sa situat
 ``esprits.reconsiderer``). Les étapes sont ensuite revalidées sur l'état réel par ``pnj.py``.
 Tout est déterministe ; Luna n'intervient pas.
 """
+from . import memoire
 from .memoire import episodes
 from . import agendas
 from collections import Counter
@@ -202,7 +203,7 @@ def _lieu_cru(monde, id, sujet):
     from .esprits import position_a_verifier
     if position_a_verifier(monde, id, sujet):
         return None
-    c = lire(monde, id)["croyances"].get(sujet, {}).get("lieu")
+    c = memoire.fait_brut(monde, id, sujet, 'lieu')
     if c:
         return c["valeur"]
     o = monde.objets.get(sujet)
@@ -224,7 +225,7 @@ def salle_crue(monde, id, sujet, profondeur=0):
 
 
 def _cru(monde, id, sujet, attribut):
-    c = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
+    c = memoire.fait_brut(monde, id, sujet, attribut)
     return None if c is None else c["valeur"]
 
 
@@ -235,7 +236,7 @@ def _ouvert_cru(monde, id, sujet):
 
 def _connus(monde, id):
     """Objets dont le PNJ a une croyance ou qu'il porte, dans un ordre stable."""
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     return sorted(s for s in monde.objets if s in croyances or porte_par(monde, s, id))
 
 
@@ -304,7 +305,7 @@ def retenir_refus(monde, id, autre, operation, raison, souvenir=True, **detail):
         s["cause"] = historiques
     if operation == "enqueter_lieu":
         if repere is None:
-            c = lire(monde, id)["croyances"].get(detail.get("objet"), {}).get("lieu")
+            c = memoire.fait_brut(monde, id, detail.get('objet'), 'lieu')
             lieu = (c["valeur"] if c and c["source"] in ("vu", "entendu")
                     and c["valeur"] in monde.data["salles"] else (detail.get("information") or {}).get("lieu"))
             if lieu is not None:
@@ -512,7 +513,7 @@ def moyens_crus(monde, id, s, connus=None):
     from .perception import recharge
     from .vol import proprietaire
     objets, salles = monde.objets, monde.data["salles"]
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     connus = _connus(monde, id) if connus is None else connus
     op, o = s["operation"], s.get("objet")
     faits, abords = set(), []
@@ -618,7 +619,7 @@ def consommer_indices_recherche(monde, id, qui, salle):
     """Indices déjà connus au constat d'échec, ou encore disponibles dans une ancienne partie."""
     # Le constat consomme aussi les indices présents avant la recherche (anciennes parties
     # comprises). Leur répétition ne doit pas suffire à annuler ce constat.
-    c = lire(monde, id)["croyances"].get(qui, {}).get("lieu")
+    c = memoire.fait_brut(monde, id, qui, 'lieu')
     if c and c["valeur"] == salle:
         _situer_recherche(monde, id, qui, salle, c.get("case"))
         _retenir_indice(monde, id, qui, salle, _indice_presence(c))
@@ -687,7 +688,7 @@ def indice_recherche(monde, id, salle, qui=None, *, indice=None):
     recherches = esprit(monde, id)["recherches"]
     change = False
     if indice is None:
-        c = lire(monde, id)["croyances"].get(qui, {}).get("lieu")
+        c = memoire.fait_brut(monde, id, qui, 'lieu')
         if not c or c["valeur"] != salle:
             return False
         indice = _indice_presence(c)
@@ -800,7 +801,7 @@ def promesse_en_cours(monde, id, objet, remise=None):
             if s.get("part") and any(x["type"] in ("recu", "promesse_annulee", "creance") and x.get("objet") == s["part"]
                                      for x in episodes):
                 return None
-            feu = e["croyances"].get(s.get("foyer"), {}).get("etat")
+            feu = memoire.fait_brut(monde, id, s.get('foyer'), 'etat')
             if (monde.data["minutes"] - s["minute"] >= ATTENTE_PART or feu and feu["minute"] >= s["minute"]
                     and feu["valeur"].get("allume") and not feu["valeur"].get("faible")):
                 return None
@@ -834,7 +835,7 @@ def satisfaite(monde, id, condition):
     if "allume" in condition:
         # Un feu qui baisse n'est plus entretenu ; un feu vu vif il y a longtemps n'est plus sûr :
         # il faut aller le voir, et le recharger tant qu'il reste le temps d'aller chercher du bois.
-        c = lire(monde, id)["croyances"].get(condition["objet"], {}).get("etat")
+        c = memoire.fait_brut(monde, id, condition['objet'], 'etat')
         return bool(c and c["valeur"].get("allume") and not c["valeur"].get("faible")
                     and monde.data["minutes"] - c["minute"] < REVOIR_FEU)
     if "lieu" in condition:
@@ -1201,7 +1202,7 @@ def _eclairee_crue(monde, id, salle):
 def sources_posees_crues(monde, id, salle):
     """{source: case ou None} : les sources qu'il croit allumées et posées dans cette salle (pas
     dans une main : elles suivent leur porteur), avec la case où il les croit."""
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     trouvees = {}
     for k in _connus(monde, id):
         o = monde.objets[k]
@@ -1226,7 +1227,7 @@ def apport_cru(monde, id, objet):
     (``pnj._assez_de_lumiere``). 0 si rien n'a changé à sa connaissance."""
     from .geometrie import distance
     from .perception import PORTEES
-    c = lire(monde, id)["croyances"].get(objet, {})
+    c = memoire.faits_connus(monde, id, objet)
     vue = c.get("lumiere")
     if vue is None:
         return 0
@@ -1792,7 +1793,7 @@ def secours(monde, id):
     vus = percus(monde, id)[0]
     e = lire(monde, id)
     from .signes import detresse_retenue
-    peurs = (detresses_percues(monde, id) | {x for x, c in e["croyances"].items()
+    peurs = (detresses_percues(monde, id) | {x for x, c in memoire.faits_connus(monde, id).items()
              if (x == "joueur" or monde.objets.get(x, {}).get("type") == "personnage")
              and c.get("detresse", {}).get("valeur")
              and detresse_retenue(monde, id, x)}) if calme_pour_secourir(monde, id) else set()
@@ -1802,7 +1803,7 @@ def secours(monde, id):
         poids = _poids_secours(monde, id, autre)
         if poids is None:
             continue
-        etat = e["croyances"].get(autre, {}).get("etat", {})
+        etat = memoire.fait_brut(monde, id, autre, 'etat', {})
         corps = etat.get("valeur", {})
         if corps.get("mort") or corps.get("conscient") is False:
             continue
@@ -1940,7 +1941,7 @@ def _fin_demande(monde, id, demande):
     raison = demande.get("raison")
     if raison:
         if raison["besoin"] == "peur" and not _raison_tient(monde, id, demande):
-            return "dementie", {"raison": raison, "detresse_retenue": lire(monde, id)["croyances"].get(raison["qui"], {}).get("detresse"),
+            return "dementie", {"raison": raison, "detresse_retenue": memoire.fait_brut(monde, id, raison['qui'], 'detresse'),
                                 "calme": calme_pour_secourir(monde, id),
                                 "souci": _poids_secours(monde, id, raison["qui"])}
         etat = _cru(monde, id, raison["qui"], "etat") or {}
@@ -2593,7 +2594,7 @@ def obstacle_patience(monde, id, cause):
         if "temoins" in cause:
             # Une présence apprise depuis le renoncement ne disparaît pas non
             # plus par vieillissement du dernier bruit ou du dernier regard.
-            for qui in e["croyances"]:
+            for qui in memoire.faits_connus(monde, id):
                 if (qui != id and (qui == "joueur" or monde.objets.get(qui, {}).get("type") == "personnage")
                         and salle_crue(monde, id, qui) == cause["salle"]
                         and (_cru(monde, id, qui, "etat") or {}).get("conscient") is not False):
@@ -2602,7 +2603,7 @@ def obstacle_patience(monde, id, cause):
     from .spatial import trajet
     o = monde.objets[id]
     places, solides = set(), set()
-    for qui, attributs in e["croyances"].items():
+    for qui, attributs in memoire.faits_connus(monde, id).items():
         lieu = attributs.get("lieu") or {}
         salle, case = lieu.get("salle"), lieu.get("case")
         if qui == id or salle not in monde.data["salles"] or case is None or lieu.get("valeur") != salle:

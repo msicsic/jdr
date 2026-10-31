@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1f-localisation` — lot 397 clos, base `3d59310c`, code mesuré `13ec9204` ; intégration `561c1d16` fusionnée.
+  Localisations et possessions datées par `memoire` : lectures copiées, hypothèses/consommations et écritures communes.
+  Inventaire AST des croyances et dérivés : 1 619 → 398 ; autres familles et données de diagnostic gelées.
+  35 fichiers ciblés : 448/451 verts, zéro erreur/saut ; trois rouges hérités reproduits sur la base exacte.
+  Empreintes 2 h, quatre graines × Relais/mine/auberge/crue : 16/16 identiques, zéro plantage ; inventaires après fusion verts.
+  Bruts `C:/Users/msics/donjon/artifacts/s1f-397/`, bilan `fin-cloture.json` ; aucun calcul restant, ni Luna ni suite complète.
+  [Rapport et limites](taches/rapport-codex-397-s1f-localisation.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 397, S1f : localisation crue (hypothèses datées du 374 comprises) et preuves de possession lues et écrites par une seule interface ; statut daté, confiance et consommation conservés, stockage inchangé. 448/451 tests (trois échecs préexistants sur la base exacte), 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-ut-social-comptes` — lot 396, base `origin/integration 1fd48fb5`, PC fixe.
   Console et TUI : `comptes` soumet les descripteurs publics du web, termes figés,
   sans modèle ; U-C et les validateurs existants gardent l'autorité sur le transfert.

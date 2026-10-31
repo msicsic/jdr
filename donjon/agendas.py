@@ -4,6 +4,7 @@ Au premier lot qui en a besoin, chaque engagement deviendra un agenda d'origine
 « contrat » s'il est payé, « parole » sinon, en conservant condition, bénéficiaire et minute.
 Les lectures renvoient des copies : toute mutation passe par une opération nommée.
 """
+from . import memoire
 import copy
 import hashlib
 import json
@@ -30,7 +31,7 @@ def _torts_connus(monde, id):
     from .esprits import lire
     e = lire(monde, id)
     for objet, portage in sorted(e["portages"].items()):
-        connu = e["croyances"].get(objet, {})
+        connu = memoire.faits_connus(monde, id, objet)
         p = connu.get("lieu", {}).get("possession", {})
         if (p.get("proprietaire") == id and p.get("porteur") not in (None, id)
                 and p.get("permis") is False
@@ -50,7 +51,7 @@ def _biens_soupconnes(monde, id):
             constat = r['constats'].get(objet, {}).get('present', {})
             if (indices.get('present') is True and constat.get('proprietaire') == id
                     and constat.get('valeur') is False and objet not in e['portages']
-                    and not e['croyances'].get(objet, {}).get('fin', {}).get('valeur')):
+                    and not memoire.fait_brut(monde, id, objet, 'fin', {}).get('valeur')):
                 yield objet, {'auteur': s['auteur'], 'preuve': preuve}
 
 
@@ -412,7 +413,7 @@ def _constat_charge(monde, id, charge):
         if all(transmission_attestee(monde, id, q, _noyau(charge)) for q in p["qui"]):
             return "reussi"
         return None
-    constats = [lire(monde, id)["croyances"].get(q, {}).get("lieu", {}) for q in p["qui"]]
+    constats = [memoire.fait_brut(monde, id, q, 'lieu', {}) for q in p["qui"]]
     propres = [c for c in constats if c.get("source") in ("vu", "essai")
                and monde.data["minutes"] - c["minute"] <= RECENT and c["valeur"] is not None]
     if any(c["valeur"] != p["lieu"] for c in propres):
@@ -613,7 +614,7 @@ def _actualiser_epreuves(monde, id):
             issue = "reussi" if a["etat"] == "atteint" else "echoue"
             sources = ([r["croyance"] for r in a.get("comptes_recus", [])
                         if r["croyance"]["valeur"] == "reussi"] if a["raison"] == "compte rendu cru" else
-                       [lire(monde, id)["croyances"].get(q, {}).get("lieu", {})
+                       [memoire.fait_brut(monde, id, q, 'lieu', {})
                         for q in _destinataires(a)] if a["raison"] == "arrivee crue" else [])
             dites = [c for c in sources if c.get("source", "").startswith("dit:")]
             _epreuve(monde, id, o["de"], preuve, issue,
@@ -703,10 +704,10 @@ def devis_observateur(monde, observateur, parent, acteur, sorte, parametres, *, 
             substitut += '_'
         copie.objets[substitut] = {'id': substitut, 'type': 'personnage', 'nom': 'mandataire',
                                    'lieu': None, 'mobile': True}
-        connus = esprit(copie, observateur)['croyances']
+        connus = memoire.faits_connus(copie, observateur)
         if 'joueur' not in connus:
             return None
-        connus[substitut] = copy.deepcopy(connus['joueur'])
+        memoire.installer_faits_projetes(copie, observateur, substitut, connus['joueur'])
         return devis_observateur(copie, observateur, parent, substitut, sorte, parametres,
                                  transmis=transmis, duree=duree)
     p = _condition_mandat(monde, sorte, parametres)
@@ -892,7 +893,7 @@ def avertissements(monde, id, parent, sorte, p):
 
 def _presence_connue(monde, id, autre):
     from .esprits import lire
-    c = lire(monde, id)['croyances'].get(autre, {}).get('lieu', {})
+    c = memoire.fait_brut(monde, id, autre, 'lieu', {})
     return {k: copy.deepcopy(c[k]) for k in ('valeur', 'source', 'salle', 'case') if k in c}
 
 
@@ -947,7 +948,7 @@ def echeance_observee(monde, id, parent, acteur, sorte, parametres):
         return None  # Aucun plan privé prêté au joueur.
     from math import ceil
     p = _condition_mandat(monde, sorte, parametres)
-    croyances = lire(monde, id)['croyances']
+    croyances = memoire.faits_connus(monde, id)
     transmis = [(q, 'lieu') for q in p['qui'] if 'lieu' in croyances.get(q, {})]
     if 'fait' in p:
         transmis.append((p['fait']['sujet'], p['fait']['attribut']))
@@ -1027,7 +1028,7 @@ def _croyances(monde, id, *, moyens_seuls=False):
     # nouvelles ; elle n'ajoute aucun moyen au plan, qui lisait déjà None.
     croyances = contenu({s: {a: c for a, c in d.items()
                             if a != "fin" or c["valeur"] is not None}
-                         for s, d in lire(monde, id)["croyances"].items()})
+                         for s, d in memoire.faits_connus(monde, id).items()})
     if not moyens_seuls and any(a["sorte"] in ("obtenir", "récupérer", "offrir") for a in (_stock(monde, id) or [])):
         from .biens import richesse
         from .spatial import porte_par
@@ -1058,7 +1059,7 @@ def entrees_recours(monde, id, identifiant):
         if isinstance(x, list):
             return [contenu(v) for v in x]
         return x
-    croyances = contenu(e['croyances'])
+    croyances = contenu(memoire.faits_connus(monde, id))
     # Son propre trajet n'est pas une nouvelle sur les moyens de son but.
     soi = croyances.get(id, {})
     for cle in ('lieu', 'position', 'orientation'):
@@ -1175,7 +1176,7 @@ def actualiser(monde, id):
             continue
         if a["sorte"] == "récupérer":
             from .esprits import lire
-            connu = lire(monde, id)["croyances"].get(a["parametres"]["objet"], {})
+            connu = memoire.faits_connus(monde, id, a['parametres']['objet'])
             if connu.get("fin", {}).get("valeur"):
                 _changer(monde, id, a, "abandonne", "bien cru " + connu["fin"]["valeur"], empreinte)
             elif connu.get("lieu", {}).get("possession", {}).get("porteur") == id:
@@ -1191,7 +1192,7 @@ def actualiser(monde, id):
         if a["sorte"] == "protéger":
             from .esprits import lire
             qui = a["parametres"]["qui"]
-            etat = lire(monde, id)["croyances"].get(qui, {}).get("etat", {}).get("valeur", {})
+            etat = memoire.fait_brut(monde, id, qui, 'etat', {}).get("valeur", {})
             if etat.get("mort"):
                 _changer(monde, id, a, "abandonne", "protege cru mort", empreinte)
             elif etat.get("parti"):
@@ -1247,7 +1248,7 @@ def _personne_disponible_crue(monde, id, qui):
     """Identité connue, ni mort ni départ crus ; aucune lecture du corps réel."""
     from .esprits import lire
     from .noms import PERSONNES
-    etat = lire(monde, id)["croyances"].get(qui, {}).get("etat", {}).get("valeur", {})
+    etat = memoire.fait_brut(monde, id, qui, 'etat', {}).get("valeur", {})
     return (monde.objets.get(qui, {}).get("type") in PERSONNES
             and not etat.get("mort") and not etat.get("parti"))
 
@@ -1365,7 +1366,7 @@ def choisir_mandataire(monde, id, identifiant, propre, mesure):
         return propre
     exclus = {r["titulaire"] for r in chaine} | set(p["qui"])
     exclus |= {x['titulaire'] for x in a.get('attributions', []) if _meme_charge(x, a['sorte'], p)}
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     transmis = [(qui, "lieu")] if "lieu" in croyances.get(qui, {}) else []
     if a["sorte"] == "informer" and "fait" in p:
         fait = p["fait"]
@@ -1582,7 +1583,7 @@ def _prochain_sous_but(monde, id, identifiant, *, cout=None):
         connu = menacee(monde, id, noyau["objet"]) == noyau["valeur"]
         contenu = {"avis": avis_exprime(monde, id, noyau["objet"], noyau["valeur"])}
     else:
-        cru = lire(monde, id)["croyances"].get(noyau["sujet"], {}).get(noyau["attribut"])
+        cru = memoire.fait_brut(monde, id, noyau['sujet'], noyau['attribut'])
         connu = cru is not None and cru["valeur"] == noyau["valeur"]
         contenu = {k: noyau[k] for k in ("sujet", "attribut", "valeur")}
     if not connu:
@@ -1718,7 +1719,7 @@ def clore_aides_constatees(monde, id):
         c = aide['condition']
         attribut = 'etat' if 'allume' in c or 'servir' in c else 'lieu' if any(
             k in c for k in ('lieu', 'rendre', 'remettre')) else 'verrouillee'
-        preuve = e['croyances'].get(c.get('servir', objet), {}).get(attribut)
+        preuve = memoire.fait_brut(monde, id, c.get('servir', objet), attribut)
         if not preuve or preuve['minute'] <= aide['minute']:
             continue
         destinataire = c.get('remettre', c.get('rendre'))
@@ -1862,12 +1863,7 @@ def monde_devis_libre(monde, id, condition, pour):
             copie.objets[o].update(lieu=copie.objets[id]['lieu'],
                                    position=copy.deepcopy(copie.objets[id].get('position')),
                                    position_salle=copie.objets[id]['lieu'])
-        attributs = esprit(copie, id)['croyances'].setdefault(o, {})
-        attributs['lieu'] = {'valeur': None, 'salle': None, 'case': None,
-                            'source': 'savoir', 'minute': copie.data['minutes'], 'confiance': 1}
-        etat = attributs.get('etat')
-        if etat and 'disponible' in etat['valeur']:
-            etat['valeur']['disponible'] = False
+        memoire.retirer_moyen_projete(copie, id, o)
     return copie
 
 
@@ -2024,7 +2020,7 @@ def _constater_issues(monde, id, lignes=None):
             from .deliberation import satisfaite
             c = x['condition']
             attribut = 'etat' if 'allume' in c else 'lieu' if 'lieu' in c else 'verrouillee'
-            preuve = lire(monde, observateur)['croyances'].get(c['objet'], {}).get(attribut)
+            preuve = memoire.fait_brut(monde, observateur, c['objet'], attribut)
             if ('remettre' in c or 'servir' in c or not preuve
                     or preuve['source'] not in ('vu', 'essai')
                     or preuve['minute'] * 600 <= reference_temporelle(x)['limite']
@@ -2331,7 +2327,7 @@ def _fin_garde(monde, id, a):
     """Aucune interrogation de l'objet réel, même s'il a été supprimé."""
     from .esprits import lire
     objet = a["parametres"].get("objet")
-    connu = lire(monde, id)["croyances"].get(objet, {})
+    connu = memoire.faits_connus(monde, id, objet)
     fin = connu.get("fin")
     if fin and fin["valeur"]:
         return "bien cru " + fin["valeur"]
@@ -2373,7 +2369,7 @@ def proteges(monde, id):
     """
     from .esprits import lire
     stock = _stock(monde, id)
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     return {a["parametres"]["qui"] for a in (depart(monde, id) if stock is None else stock)
             if a["sorte"] == "protéger" and a.get("etat", "actif") in ("actif", "sommeil")
             and a.get("echeance", float("inf")) >= monde.data["minutes"]

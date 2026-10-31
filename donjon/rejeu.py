@@ -11,6 +11,7 @@ Pistes (suites de [instant en dixièmes, changements]) : ``etats``, ``vues``, ``
 a fait), ``gestes`` (les gestes illicites : qui était là, qui en a été témoin et quand) et
 ``evenements`` (les « aller voir »). Rien de tout cela n'est lu par le jeu.
 """
+from . import memoire
 from contextlib import ExitStack, contextmanager
 from functools import wraps
 from inspect import signature
@@ -139,7 +140,7 @@ class Enregistreur:
         # Une clé par chose suivie (« id|:but », « id|objet ») : seul ce qui change est noté.
         esprit = {f"{id}|:but": [but_en_mots(monde, i["but"], titulaire=id), i["motif"]] if i else None,
                   f"{id}|:besoins": {k: round(v) for k, v in e["besoins"].items()}}
-        for objet, croyance in e["croyances"].items():
+        for objet, croyance in memoire.faits_connus(monde, id).items():
             lieu = croyance.get("lieu")
             if lieu:
                 esprit[f"{id}|{objet}"] = [lieu.get("valeur"), lieu.get("salle"), lieu.get("case")]

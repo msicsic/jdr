@@ -37,7 +37,7 @@ def _acces_charge(monde, id, charge, salle, case, reel=False):
                 yield list(sortie["case"]), list(acces)
     else:
         c = (dict(valeur=monde.objets[charge]["lieu"], case=position_cible(monde, charge, salle))
-             if reel else lire(monde, id)["croyances"].get(charge, {}).get("lieu", {}))
+             if reel else memoire.fait_brut(monde, id, charge, 'lieu', {}))
         cible = c.get("case")
         if c.get("valeur") == salle and cible is not None:
             v = sens(monde, (salle, cible), (salle, case))
@@ -55,7 +55,7 @@ def _poste_atteignable(monde, id, salle, acces, personnages):
     from .spatial import trajet
     from .pnj import _franchissable
     from .eau import noyee_crue
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     occupees = {(c["lieu"].get("valeur"), tuple(c["lieu"]["case"]))
                 for x, c in croyances.items() if x in personnages and x != id
                 and c.get("lieu", {}).get("case") is not None}
@@ -141,7 +141,7 @@ def interposition(monde, id):
     objets = charges(monde, id)
     if not objets:
         return None
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     guets = dict(intentions_lues(monde, id))
     personnages = (*pnjs(monde), "joueur")
     ici = monde.objets[id]["lieu"]
@@ -237,7 +237,7 @@ def auteurs(monde, id, protege=None):
         return list(dict.fromkeys(s["auteur"] for s in souvenirs(monde, id)
                                   if not s.get("clos") and monde.data["minutes"] - s["minute"] < RECENT))
     resultat = []
-    for a, cs in lire(monde, id)["croyances"].items():
+    for a, cs in memoire.faits_connus(monde, id).items():
         if a == id or "violence" not in cs:
             continue
         for victime, s in cs["violence"]["valeur"].items():
@@ -269,7 +269,7 @@ def retenir(monde, id, s):
     # La défense n'est reconnue que si l'observateur en a perçu la cause ; une intention
     # privée de l'auteur n'est pas une preuve. Recevoir le coup reste un danger personnel.
     riposte_vue = t == "vu_agir" and victime in auteurs(monde, id)
-    ancien = lire(monde, id)["croyances"].get(a, {}).get("violence", {}).get("valeur", {})
+    ancien = memoire.fait_brut(monde, id, a, 'violence', {}).get("valeur", {})
     observations = {v: dict(d) for v, d in ancien.items() if monde.data["minutes"] - d["minute"] < RECENT}
     observations[victime] = {"minute": s["minute"], "menace": not riposte_vue, "operation": op, "clos": False}
     croire(monde, id, a, "violence", observations, "entendu" if s.get("par") == "ouie" else "vu")
@@ -290,7 +290,7 @@ def constater_fin(monde, id, autre):
 def etat_cru(monde, id, autre):
     if id == "joueur":
         return corps.visible(monde, autre) if monde.visible(autre) else {}
-    return lire(monde, id)["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
+    return memoire.fait_brut(monde, id, autre, 'etat', {}).get("valeur", {})
 
 
 def dangers(monde, id, protege=None):

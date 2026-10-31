@@ -3,6 +3,7 @@
 La marche et son devis emploient le même ensemble d'arrivées. La portée est
 celle des mots d'une voix ordinaire ; ni position ni oreille privées du tiers.
 """
+from . import memoire
 from . import ouie
 from .esprits import lire
 from .obstacles import monde_cru
@@ -13,7 +14,7 @@ def vocale(etape):
 
 
 def arrivees(monde, acteur, sujet, *, portes=()):
-    croyances = lire(monde, acteur)['croyances']
+    croyances = memoire.faits_connus(monde, acteur)
     lieu = croyances.get(sujet, {}).get('lieu', {})
     salle = lieu.get('salle')
     if salle not in monde.data['salles'] or lieu.get('valeur') is None:

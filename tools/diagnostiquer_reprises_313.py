@@ -26,6 +26,7 @@ def travail(arguments):
     import comparer_bancs as c
     from donjon import banc_pnj as banc, deliberation as d, pnj, social
     from donjon.esprits import lire, percus
+    from donjon.memoire import faits_connus
     from donjon.monde import Monde
     from donjon.rendu import regarder
     from donjon.scene import scene_percue
@@ -57,7 +58,7 @@ def travail(arguments):
                 'lieu': o['lieu'], 'case': copy.deepcopy(o.get('position')),
                 'orientation': o.get('orientation'), 'dernier_choix': copy.deepcopy(dernier_choix.get(qui)),
                 'croyances': {s: {a: copy.deepcopy(v['valeur']) for a, v in attrs.items()}
-                              for s, attrs in e['croyances'].items()},
+                              for s, attrs in faits_connus(m, qui).items()},
                 'perception': copy.deepcopy(percus(m, qui)[0]),
                 'contacts': {x: {'salle': d.salle_crue(m, qui, x),
                                  'case': pnj._case_crue(m, qui, x, d.salle_crue(m, qui, x))}

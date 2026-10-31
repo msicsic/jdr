@@ -48,6 +48,7 @@ Le joueur entend par le même calcul : ce qui lui parvient est rangé dans ``dat
 le niveau et la direction d'où il arrive ; ``ecoute`` en fait « Tu entends… », sans nommer ce qu'il
 ne connaît pas. Il choisit lui-même de se retourner.
 """
+from . import memoire
 import heapq
 from itertools import count
 
@@ -483,7 +484,7 @@ def _crus_la(monde, id, salle, case):
     from .temps import MINUTE, PAS_JOUEUR, instant
     minute = monde.data["minutes"]
     crus = []
-    for x, attributs in lire(monde, id)["croyances"].items():
+    for x, attributs in memoire.faits_connus(monde, id).items():
         if x == id or not (x == "joueur" or monde.objets.get(x, {}).get("type") == "personnage"):
             continue
         c = attributs.get("lieu")
@@ -507,7 +508,7 @@ def objet_situe(monde, id, objet, salle, case):
     croyance, ou c'est le sien) est à sa place : on sait où se tient un coffre, une réserve, même
     sans en retenir la case."""
     from .esprits import lire
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     vus, x = set(), objet
     while x in monde.objets and x not in vus:
         vus.add(x)
@@ -531,7 +532,7 @@ def objet_situe(monde, id, objet, salle, case):
 def _cru_le_plus_proche(monde, id, crus, case):
     """La même attribution pour interpréter le bruit, le surveiller et le retenir."""
     from .esprits import lire
-    croyances = lire(monde, id)["croyances"]
+    croyances = memoire.faits_connus(monde, id)
 
     def ecart(x):
         c = croyances[x]["lieu"]
@@ -543,7 +544,7 @@ def _attribuer(monde, id, crus, salle, case):
     """Recaler dans la zone crue ; expliquer un déplacement possible ne le confirme pas."""
     from .esprits import croire, lire
     x = _cru_le_plus_proche(monde, id, crus, case)
-    c = lire(monde, id)["croyances"][x]["lieu"]
+    c = memoire.faits_connus(monde, id)[x]["lieu"]
     # Pouvoir avoir marché jusque-là explique le bruit, sans identifier celui
     # qui l'a fait. Cette hypothèse ne doit pas déplacer ni rajeunir la preuve
     # de présence qui l'a rendue possible. La localisation acoustique précise
@@ -589,7 +590,7 @@ def resolu(monde, id, souvenir):
     if monde.data["minutes"] - minute > RECENT:
         return True
     return any(x != id and (a.get("lieu") or {}).get("valeur") == salle and a["lieu"]["source"] == "vu"
-               and a["lieu"]["minute"] > minute for x, a in e["croyances"].items()
+               and a["lieu"]["minute"] > minute for x, a in memoire.faits_connus(monde, id).items()
                if x == "joueur" or monde.objets.get(x, {}).get("type") == "personnage")
 
 

@@ -43,6 +43,7 @@ _spec_memoire = importlib.util.spec_from_file_location(
 _memoire_observation = importlib.util.module_from_spec(_spec_memoire)
 _spec_memoire.loader.exec_module(_memoire_observation)
 episodes = _memoire_observation.episodes
+faits_connus = _memoire_observation.faits_connus
 
 SCENARIOS_DEFAUT = ("relais", "mine", "auberge", "crue", "crue_hameau")
 SALLES_JOUEUR = {
@@ -200,7 +201,7 @@ def relever_entrees(monde, id, minute):
     """Photographie sans effet de bord des entrées lues par ``choisir`` et ``_entrees``."""
     v = planification.Vue(monde, id)
     e = lire(monde, id)
-    croyances = e["croyances"]
+    croyances = faits_connus(monde, id)
     ici = monde.objets[id]["lieu"]
     p = deliberation.profil(monde, id) or {"pulsions": []}
     pressants = e.get("pressants", ())
@@ -487,7 +488,7 @@ class SondeAvis:
                         "t": instant(monde), "preuve": "retrait_publie_services_rendus",
                         "trace": copy.deepcopy(trace),
                         "presence": self.presence_service(monde, service, trace),
-                        "croyances": copy.deepcopy(lire(monde, trace["de"])["croyances"]),
+                        "croyances": faits_connus(monde, trace["de"]),
                     }
 
     def accomplissements(self, monde):

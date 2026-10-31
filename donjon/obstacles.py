@@ -3,6 +3,7 @@
 La géométrie est une donnée, jamais une déduction du nom. Un franchissement rejoint
 le sol libre d'en face, dans la même salle ; il ne rend pas la case de l'obstacle habitable.
 """
+from . import memoire
 import copy
 import math
 import json
@@ -125,7 +126,7 @@ def conditions(m, cible, methode, acteur="joueur", description=None, equipement=
 
 def descriptions_crues(m, acteur):
     from .esprits import lire
-    c = lire(m, acteur)["croyances"]
+    c = memoire.faits_connus(m, acteur)
     return {i: copy.deepcopy(d["passage"]["valeur"]) for i, d in c.items()
             if i in m.objets and "passage" in d}
 
@@ -169,7 +170,7 @@ def metrique_necessaire(m, acteur, allure=PAS_JOUEUR):
     formes = descriptions_crues(m, acteur)
     if not formes or not m.data.get("mode_cases"):
         return False
-    croyances = lire(m, acteur)["croyances"]
+    croyances = memoire.faits_connus(m, acteur)
     # Toutes les lectures du test : géométrie, obstacles crus (sans leurs dates),
     # gabarit. Ni lumière, ni humeur, ni positions des autres personnages.
     obstacles = [(i, o,
@@ -336,7 +337,7 @@ def distances(cru, acteur, salle, depart, equipement, allure, passages):
 def monde_cru(m, acteur):
     """Copie de lecture : les positions et formes des obstacles viennent des croyances."""
     from .esprits import lire
-    croyances = lire(m, acteur)["croyances"]
+    croyances = memoire.faits_connus(m, acteur)
     cru = copy.copy(m)
     # Ce monde de lecture ne sert qu'à la géométrie ; ses tables de pas sont
     # privées et leur clé reste vérifiée par spatial.VERIFICATION.
