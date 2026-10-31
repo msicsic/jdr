@@ -17,7 +17,8 @@ def peur_crue(monde, id, autre):
 
 def fonds_crus(monde, id, autre):
     """Sommes connues, jamais la bourse réelle ni une fortune supposée."""
-    connus = lire(monde, id)['croyances']
+    from .memoire import faits_connus
+    connus = faits_connus(monde, id)
     return sum(c.get('pieces', {}).get('valeur', 0) for x, c in connus.items()
                if x == autre or c.get('lieu', {}).get('possession', {}).get('porteur') == autre)
 

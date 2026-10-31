@@ -12,6 +12,7 @@ allumé, où il se tiendra.
 Le choix du but reste à ``deliberation.candidats`` ; l'exécution, geste par geste revalidé sur
 l'état réel, à ``pnj.agir``. Le stratège complète ses gestes par la même recherche.
 """
+from . import memoire
 from . import agendas
 from . import relations
 import copy
@@ -250,7 +251,7 @@ class ContexteDevis:
         if observateur == acteur:
             raise ValueError("Un devis observateur exige deux personnages distincts")
         e = lire(monde, observateur)
-        lieu = e["croyances"].get(acteur, {}).get("lieu", {})
+        lieu = memoire.fait_brut(monde, observateur, acteur, 'lieu', {})
         if lieu.get("salle") not in monde.data["salles"]:
             return None
         # Pas de constructeur Monde : ses installateurs réintroduiraient les
@@ -261,7 +262,7 @@ class ContexteDevis:
         data.update(objets={}, esprits={}, joueur={"salle": None, "or": 0},
                     connaissances_joueur={}, finances_pnj={}, revision=0, jets=0)
         projection.data = data
-        connus = e["croyances"]
+        connus = memoire.faits_connus(monde, observateur)
         for sujet, original in monde.objets.items():
             mobile = mobile_par_nature(original)
             if mobile and sujet not in connus and sujet not in (observateur, acteur):
@@ -297,14 +298,14 @@ class ContexteDevis:
         # État de calcul neuf : seules les connaissances explicitement
         # partagées/transmises et les moyens observés entrent dans l'estimation.
         estime = {k: f() for k, f in CHAMPS.items()}
+        projection.data["esprits"][acteur] = estime
         for sujet, attribut in self.transmis:
             if attribut not in connus.get(sujet, {}):
                 raise ValueError(f"Connaissance à transmettre absente : {sujet}/{attribut}")
-            estime["croyances"].setdefault(sujet, {})[attribut] = copy.deepcopy(connus[sujet][attribut])
+            memoire.installer_faits_projetes(projection, acteur, sujet, {attribut: connus[sujet][attribut]})
         for sujet, c in connus.items():
             if sujet == acteur or sujet in projection.objets and porte_par(projection, sujet, acteur):
-                estime["croyances"].setdefault(sujet, {}).update(copy.deepcopy(c))
-        projection.data["esprits"][acteur] = estime
+                memoire.installer_faits_projetes(projection, acteur, sujet, c)
         estime["refus"] = copy.deepcopy(e["refus"])
         # Les relations/refus sont ceux de l'observateur, pas une relation
         # inventée dans le sens acteur -> tiers. Vue les lit par ce contexte.
@@ -409,7 +410,7 @@ class Vue:
         self.refus_routes = {}
         self._descentes = {}
         self._chemin, self._parcourir, self._parcours = pnj.chemin, pnj.parcours, {}
-        self._passages_crus = any("passage" in c for c in lire(monde, id)["croyances"].values())
+        self._passages_crus = any("passage" in c for c in memoire.faits_connus(monde, id).values())
         self._metrique = metrique_necessaire(monde, id) if self._passages_crus else False
         self._metriques = {15: self._metrique}
         self._cru_spatial = interieur(monde_cru(monde, id)) if monde.data.get("mode_cases") else None
@@ -688,7 +689,7 @@ class Vue:
             x not in (self.id, cible) and (x == "joueur" or self.objets.get(x, {}).get("type") == "personnage")
             and d.get("lieu", {}).get("valeur") == e.salle
             and d.get("etat", {}).get("valeur", {}).get("conscient") is not False
-            for x, d in lire(self.monde, self.id)["croyances"].items()))
+            for x, d in memoire.faits_connus(self.monde, self.id).items()))
 
     def moyen_du_but(self, o, vises):
         """Ce qui vaut d'aller chercher qui le porte : ce que le but vise lui-même, ou, pour avoir de
@@ -983,7 +984,7 @@ class Vue:
             return e.salle if x in e.portes or x == self.id else self.lieu(e, x)
 
         def case(x):
-            cru = lire(self.monde, self.id)['croyances'].get(x, {}).get('lieu') or {}
+            cru = memoire.fait_brut(self.monde, self.id, x, 'lieu') or {}
             return cru.get('case') if cru.get('salle') == e.salle else None
 
         def prevue(x):
@@ -1705,7 +1706,7 @@ def gestes(v, e, vises=None, but=None):
         if v.besoin[o]:
             yield from _parts(v, e, o, dans, vises, but)
     for cible in vises.get("ranimer", ()):
-        etat = lire(v.monde, v.id)["croyances"].get(cible, {}).get("etat", {}).get("valeur", {})
+        etat = memoire.fait_brut(v.monde, v.id, cible, 'etat', {}).get("valeur", {})
         if etat.get("conscient") is False and v.salle(e, cible) == e.salle and not e.fait("ranime", cible):
             yield 0, 1 / 6, [_etape("ranimer", cible)], e.apres(faits=[(("ranime", cible), True)])
     for salle in vises.get("inspecter", ()):
@@ -2109,7 +2110,7 @@ def _appeler(v, e, sujet):
     if sol:
         x, y = sum(c[0] for c in sol) / len(sol), sum(c[1] for c in sol) / len(sol)
         centre = min(sol, key=lambda c: ((c[0] - x) ** 2 + (c[1] - y) ** 2, c))
-    lieu = lire(v.monde, v.id)["croyances"].get(sujet, {}).get("lieu", {})
+    lieu = memoire.fait_brut(v.monde, v.id, sujet, 'lieu', {})
     case = lieu.get("case") if lieu.get("salle") == salle else None
     niveau = parvenu(propager(cru, e.salle, centre, INTENSITES["hele"]), salle, case)
     if niveau is None or niveau[0] < SEUIL:
@@ -2163,7 +2164,7 @@ def _chercher(v, e, sujet):
         return question
     # Le coût d'une route est celui de toute la recherche (``Vue.allers`` : passages compris).
     # Une hypothèse périmée reste un indice, jamais une présence projetée.
-    ancienne = lire(v.monde, v.id)["croyances"].get(sujet, {}).get("lieu", {})
+    ancienne = memoire.fait_brut(v.monde, v.id, sujet, 'lieu', {})
     perimee = position_a_verifier(v.monde, v.id, sujet) and not hypothese_consommee(v.monde, v.id, sujet)
     dernier_lieu = ancienne.get("salle") if perimee else None
     salle = min(routes, key=lambda s: (s != dernier_lieu, visites.get(s, -1),
@@ -2237,7 +2238,7 @@ def _entrees_communes(v):
     résultat périmé serait repris : ``VERIFIER`` le contrôle dans les tests."""
     monde, id = v.monde, v.id
     esprit_ = lire(monde, id)
-    croyances = esprit_["croyances"]
+    croyances = memoire.faits_connus(monde, id)
     minute = monde.data["minutes"]
     from .signes import actives
     # Les cibles et obstacles restent localisés ; le départ est seulement la salle.
@@ -2834,7 +2835,7 @@ def verification_en_cours(monde, id, etapes):
             or preuve.get("type") != "position" or hypothese_consommee(monde, id, sujet)
             or _lieu_cru(monde, id, sujet) is not None):
         return False
-    croyances = lire(monde, id)["croyances"].get(sujet, {})
+    croyances = memoire.faits_connus(monde, id, sujet)
     etat = (croyances.get("etat") or {}).get("valeur", {})
     lieu = croyances.get("lieu") or {}
     return (not etat.get("mort") and not etat.get("parti")
@@ -3453,7 +3454,7 @@ def proximite(monde, id, sujet, *, portee=None, endurer=None):
     vises = {'pres': (sujet,)}
     if portee == 'voix':
         from .proximite_vocale import arrivees
-        lieu = lire(monde, id)['croyances'].get(sujet, {}).get('lieu', {})
+        lieu = memoire.fait_brut(monde, id, sujet, 'lieu', {})
         if monde.data.get('mode_cases') and lieu.get('case') is None:
             contact = rejoindre(monde, id, sujet)
             if contact is None:
@@ -3578,7 +3579,7 @@ def _vu_avant_la_tache(monde, id, condition, payeur):
     un ouï-dire de cette minute ne dit rien de plus que l'offre."""
     debut = next((x["minute"] for x in agendas.en_cours(monde, id)
                   if x["pour"] == payeur and x["condition"] == condition and not x.get("annule")), monde.data["minutes"])
-    etat = lire(monde, id)["croyances"].get(condition["objet"], {}).get("etat")
+    etat = memoire.fait_brut(monde, id, condition['objet'], 'etat')
     return etat is None or etat["minute"] < debut or etat["minute"] == debut and etat["source"] not in ("vu", "essai")
 
 

@@ -782,13 +782,14 @@ def etat_signes(m):
     les croyances et relations constatées par les PNJ à changer dans le bloc.
     """
     from .relations import signature
+    from .memoire import faits_connus
     from .corps import conscient
     # La conscience (4a) n'est pas dans l'empreinte physique : l'inconscient ne montre ni ne lit
     # aucun signe, elle entre donc dans cette clé.
     sans_connaissance = tuple(id for id in [*m.data.get("esprits", {}), "joueur"] if not conscient(m, id))
     return (m.data["minutes"], m.data.get("dixiemes", 0), sans_connaissance, repr(m.data.get("observation_joueur")), repr(m.data.get("tons_percus")), repr([
         (id, signature(m, id), e.get("emotions"), e.get("besoins"), e.get("intention"), e.get("patience"),
-         [(x, c.get("lieu")) for x, c in e.get("croyances", {}).items()])
+         [(x, c.get("lieu")) for x, c in faits_connus(m, id).items()])
         for id, e in m.data.get("esprits", {}).items()]))
 
 

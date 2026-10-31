@@ -77,8 +77,9 @@ def retenus_apres(monde, auteur, porte, verrouillee=True):
         memoriser(monde)
         lieux = {i: s["salle"] for i, s in monde.data.get("souvenirs_visuels", {}).items()}
     else:
+        from .memoire import faits_connus
         lieux = {i: c.get("lieu", {}).get("valeur")
-                 for i, c in lire(monde, auteur)["croyances"].items()}
+                 for i, c in faits_connus(monde, auteur).items()}
     resultat = {}
     for salle, piece in monde.data["salles"].items():
         if not any(s.get("porte") == porte for s in piece.get("sorties", {}).values()):

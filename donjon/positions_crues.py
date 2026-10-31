@@ -1,4 +1,5 @@
 """Positions de contact, communes au monde cru et aux états projetés du plan."""
+from . import memoire
 
 
 def case_contact(monde, objet, salle, lieu, case, vus=(), prevue=None):
@@ -47,7 +48,7 @@ def repere_contact(monde, acteur, etape):
     from .deliberation import _lieu_cru, porte_par
     from .esprits import lire, percus
     from .pnj import _a_toucher, _position_crue
-    croyances = lire(monde, acteur)['croyances']
+    croyances = memoire.faits_connus(monde, acteur)
     contacts, supports, salles = [], set(), set()
     for cible in _a_toucher(monde, acteur, etape):
         liens, vus, x = [], set(), cible

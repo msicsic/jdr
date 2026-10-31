@@ -4,6 +4,7 @@ S1 conserve la liste sauvegardée, son plafond et les crochets réentrants.
 Aucune requête de ce module ne renvoie le stock mutable aux consommateurs.
 """
 import copy
+from contextlib import contextmanager
 
 MEMOIRE_MAX = 40
 
@@ -313,3 +314,270 @@ def retenir_bruit_sans_profil(monde, id, salle, n, niveau):
     retenir_episode(monde, id, {'type': 'bruit', 'salle': salle,
                                'nature': max([n, *(s['nature'] for s in anciens)], key=INTENSITES.get),
                                'niveau': max([niveau, *(s.get('niveau', niveau) for s in anciens)])})
+
+
+
+# Localisation et preuves composées : le stockage reste celui des croyances
+# historiques. Une lecture brute conserve la confiance initiale ; la façade
+# esprits.croyance applique encore ses filtres et le vieillissement courant.
+
+
+def _fait_stock(monde, id, sujet, attribut, defaut=None):
+    """Accès privé ; aucune référence de stockage ne sort de cette porte."""
+    from .esprits import lire
+    return lire(monde, id)["croyances"].get(sujet, {}).get(attribut, defaut)
+
+
+def fait_brut(monde, id, sujet, attribut, defaut=None):
+    """Copie pure d'une preuve, sans vieillissement ni création d'esprit."""
+    return copy.deepcopy(_fait_stock(monde, id, sujet, attribut, defaut))
+
+
+_TOUS_LES_SUJETS = object()
+
+
+def faits_connus(monde, id, sujet=_TOUS_LES_SUJETS):
+    """Photographie ordonnée des preuves ; aucun droit ni état réel ajouté."""
+    from .esprits import lire
+    stock = lire(monde, id)["croyances"]
+    return copy.deepcopy(stock if sujet is _TOUS_LES_SUJETS else stock.get(sujet, {}))
+
+
+def localisation(monde, id, sujet):
+    """Dernière preuve composée, confiance initiale et consommation comprises."""
+    return fait_brut(monde, id, sujet, "lieu")
+
+
+def rafraichir_mobilite_constatee(monde, id, sujet, source):
+    from .esprits import lire
+    lieu = lire(monde, id)["croyances"].get(sujet, {}).get("lieu")
+    if (lieu and lieu["source"] == source == "vu" and lieu["minute"] == monde.data["minutes"]
+            and personne_autre(monde, id, sujet)):
+        lieu["mobilite"] = mobilite_crue(monde, id, sujet)
+
+
+def reconnaitre_localisation_vocale(monde, id, sujet, *, imposture=False):
+    """Reconnaissance de la même voix : confirme ou retire sa seule piste déclarée."""
+    from .esprits import esprit
+    attributs = esprit(monde, id)["croyances"].get(sujet, {})
+    c = attributs.get("lieu")
+    if c and c["source"] == "se_dit":
+        if imposture:
+            del attributs["lieu"]
+        else:
+            c.update(source="entendu", confiance=1.0)
+
+
+def installer_faits_projetes(monde, id, sujet, faits):
+    """Copie mécanique dans un devis isolé, sans admission ni crochet réel."""
+    from .esprits import esprit
+    esprit(monde, id)["croyances"].setdefault(sujet, {}).update(copy.deepcopy(faits))
+
+
+def remplacer_faits_projetes(monde, id, faits):
+    """Remplace le savoir d'un acteur de calcul par celui de son observateur."""
+    from .esprits import esprit
+    esprit(monde, id)["croyances"] = copy.deepcopy(faits)
+
+
+def retirer_faits(monde, id, sujet):
+    """Retrait historique complet d'un sujet (annulation d'un bien provisoire)."""
+    from .esprits import esprit
+    del esprit(monde, id)["croyances"][sujet]
+
+
+def retirer_moyen_projete(monde, id, objet):
+    """Épuisement d'une réservation dans la copie de calcul uniquement."""
+    from .esprits import esprit
+    attributs = esprit(monde, id)["croyances"].setdefault(objet, {})
+    attributs['lieu'] = {'valeur': None, 'salle': None, 'case': None,
+                        'source': 'savoir', 'minute': monde.data['minutes'], 'confiance': 1}
+    etat = attributs.get('etat')
+    if etat and 'disponible' in etat['valeur']:
+        etat['valeur']['disponible'] = False
+
+
+def verifier_localisation(monde, c):
+    from .esprits import POSITIONS_HYPOTHESES
+    assert c.get("mobilite", "mobile") in POSITIONS_HYPOTHESES["demi_vies"], "Mobilité crue invalide"
+    if "hypothese_consommee" in c:
+        p = c["hypothese_consommee"]
+        assert (isinstance(p, dict) and set(p) == {"minute", "lieu"}
+                and type(p["minute"]) is int and isinstance(p["lieu"], str)), "Hypothèse consommée invalide"
+    # Une croyance peut survivre à son objet (détruit, retiré).
+    assert (set(c) >= {"valeur", "salle", "case"}
+            and (c["valeur"] is None or isinstance(c["valeur"], str))
+            and (c["salle"] is None or c["salle"] in monde.data["salles"])
+            and (c["case"] is None or (isinstance(c["case"], list) and len(c["case"]) == 2))), "Croyance de lieu invalide"
+    if "possession" in c:
+        p = c["possession"]
+        assert (isinstance(p, dict) and set(p) == {"porteur", "proprietaire", "permis", "remis_par", "remise_autorisee"}
+                and all(p[k] is None or isinstance(p[k], str)
+                        for k in ("porteur", "proprietaire", "remis_par"))
+                and type(p["permis"]) is bool and type(p["remise_autorisee"]) is bool), "Possession constatée invalide"
+
+
+def verifier_faits(monde, id):
+    """Validation historique, sans copie ni réparation d'une sauvegarde invalide."""
+    from .esprits import lire, _croyance_valide
+    stock = lire(monde, id)["croyances"]
+    if id == "joueur":
+        assert isinstance(stock, dict), "Croyances du joueur invalides"
+    for sujet, attributs in stock.items():
+        if id == "joueur":
+            assert (isinstance(sujet, str) and isinstance(attributs, dict)
+                    and (sujet in monde.data["salles"] and set(attributs) <= {"eau", "prevision"}
+                         or set(attributs) <= {"fin", "lieu", "etat", "verrouillee", "statuts", "detresse"})), "Perception du joueur invalide"
+        else:
+            assert isinstance(sujet, str) and isinstance(attributs, dict), "Sujet de croyance invalide"
+        for attribut, c in attributs.items():
+            _croyance_valide(monde, attribut, c)
+
+
+def personne_autre(monde, id, sujet):
+    return sujet != id and (sujet == "joueur" or monde.objets.get(sujet, {}).get("type") == "personnage")
+
+
+def mobilite_crue(monde, id, sujet):
+    """Ce qui retient la personne, selon les seules preuves de l'observateur."""
+    c = _fait_stock(monde, id, sujet, "lieu", {})
+    from .esprits import croyance, lire
+    preuve = croyance(monde, id, sujet, "etat") or {}
+    etat = preuve.get("valeur", {}) if preuve.get("minute", -1) >= c.get("minute", 0) else {}
+    if any(etat.get(k) for k in ("lie", "tenu", "enferme")) or etat.get("conscient") is False:
+        return "retenu"
+    croyances = lire(monde, id)["croyances"]
+    lieu = croyances.get(sujet, {}).get("lieu", {}).get("salle")
+    sorties = monde.data["salles"].get(lieu, {}).get("sorties", {}).values()
+    if sorties and all(s.get("porte") and
+                       (croyances.get(s["porte"], {}).get("verrouillee") or {}).get("valeur")
+                       and not (croyances.get(s["porte"], {}).get("etat") or {}).get("valeur", {}).get("ouverte")
+                       for s in sorties):
+        return "retenu"
+    intention = (croyance(monde, id, sujet, "intention") or {}).get("valeur")
+    if etat.get("assis") or intention in ("garde", "guet"):
+        return "pose"
+    return "mobile"
+
+
+def confiance_position(monde, id, sujet):
+    """Confiance actuelle, sans effacer la dernière position ni rajeunir un relais."""
+    c = _fait_stock(monde, id, sujet, "lieu")
+    if not c:
+        return 0.
+    if not personne_autre(monde, id, sujet) or c["valeur"] is None:
+        return c["confiance"]
+    from .esprits import POSITIONS_HYPOTHESES
+    regle = monde.data.get("positions_hypotheses", POSITIONS_HYPOTHESES)
+    date = min(c["minute"], c.get("origine", {}).get("minute", c["minute"]))
+    age = max(0, monde.data["minutes"] - date)
+    return c["confiance"] * 2 ** (-age / regle["demi_vies"][c.get("mobilite", "mobile")])
+
+
+def position_a_verifier(monde, id, sujet):
+    c = _fait_stock(monde, id, sujet, "lieu")
+    from .esprits import POSITIONS_HYPOTHESES
+    return bool(personne_autre(monde, id, sujet) and c and c["valeur"] is not None
+                and confiance_position(monde, id, sujet)
+                <= monde.data.get("positions_hypotheses", POSITIONS_HYPOTHESES)["seuil"])
+
+
+def hypothese_consommee(monde, id, sujet):
+    """La piste expirée a déjà été éprouvée, sans nouvelle localisation positive."""
+    c = _fait_stock(monde, id, sujet, "lieu", {})
+    return personne_autre(monde, id, sujet) and "hypothese_consommee" in c
+
+
+def consommer_hypothese(monde, id, sujet):
+    """Une inspection/un appel épuise sa piste, pas la recherche de toute personne.
+
+    Le repère appartient à la croyance, survit à son constat d'absence et aux
+    relais de l'ancien renseignement. Seul croire admet une nouvelle preuve.
+    """
+    if not position_a_verifier(monde, id, sujet) or hypothese_consommee(monde, id, sujet):
+        return
+    from .esprits import esprit
+    c = esprit(monde, id)["croyances"][sujet]["lieu"]
+    c["hypothese_consommee"] = {"minute": monde.data["minutes"], "lieu": c["valeur"]}
+
+
+@contextmanager
+def verification_positions(monde, id, sujets):
+    """Le résultat de sa propre vérification n'en programme pas une autre.
+
+    Retrouver la même personne au même lieu clôt cette piste, même si le
+    regard vient d'en rafraîchir la date. Une position différente reste une
+    nouvelle entrée. Les perceptions ultérieures peuvent rouvrir la piste.
+    """
+    pistes = {s: localisation(monde, id, s)["valeur"]
+              for s in sujets if position_a_verifier(monde, id, s)}
+    for s in pistes:
+        consommer_hypothese(monde, id, s)
+    try:
+        yield
+    finally:
+        from .esprits import esprit
+        for s, lieu in pistes.items():
+            c = esprit(monde, id)["croyances"][s]["lieu"]
+            if c["valeur"] in (None, lieu):
+                c["hypothese_consommee"] = {"minute": monde.data["minutes"], "lieu": lieu}
+
+
+def admettre_fait(monde, id, sujet, attribut, valeur, source, confiance=1.0, **lieu):
+    from .esprits import (lire, esprit, _retenir_presence, prevision_propre,
+                          reconsiderer)
+    monde_minute = monde.data["minutes"]
+    if attribut == "lieu" and valeur is None:
+        # Voir l'ancienne place vide vérifie aussi la piste, même avant le
+        # dernier geste du tour d'horizon prévu par le plan.
+        consommer_hypothese(monde, id, sujet)
+    ancienne = lire(monde, id)["croyances"].get(sujet, {}).get(attribut)
+    croyance = {"valeur": valeur, "source": source, "minute": monde_minute, "confiance": confiance, **lieu}
+    if attribut == "lieu" and (consommee := (ancienne or {}).get("hypothese_consommee")):
+        date = min(croyance["minute"], croyance.get("origine", {}).get("minute", croyance["minute"]))
+        directe = (source in ("vu", "entendu", "essai", "se_dit") and "origine" not in lieu
+                   and ("minute" not in lieu or lieu["minute"] >= monde_minute))
+        if valeur is None or not (directe or date > consommee["minute"]):
+            croyance["hypothese_consommee"] = copy.deepcopy(consommee)
+    esprit(monde, id)["croyances"].setdefault(sujet, {})[attribut] = croyance
+    if attribut == "lieu" and personne_autre(monde, id, sujet) and valeur is not None:
+        croyance.setdefault("mobilite", mobilite_crue(monde, id, sujet))
+    if (id != "joueur" and attribut == "lieu" and source == "entendu" and valeur in monde.data["salles"]
+            and (sujet == "joueur" or monde.objets.get(sujet, {}).get("type") == "personnage")):
+        _retenir_presence(monde, id, sujet, valeur)
+    if attribut == "lieu" and source in ("vu", "entendu") and valeur in monde.data["salles"]:
+        # Le contexte d'une réponse retenue change avec un déplacement
+        # réellement perçu de la personne, jamais avec une date, une autre
+        # case dans la même salle ou la répétition d'un renseignement tiers.
+        for reponse in esprit(monde, id).get("refus", ()):
+            if reponse["operation"] != "enqueter_lieu" or reponse.get("objet") != sujet:
+                continue
+            repere = reponse.get("repere")
+            if repere is None or repere["lieu"] != valeur:
+                reponse["repere"] = {"lieu": valeur, "revision": (repere["revision"] if repere else 0) + 1}
+    if attribut == "lieu":
+        from .defense import approche_vue
+        approche_vue(monde, id, sujet, ancienne or {}, croyance)
+    if attribut == "eau" and source in ("vu", "essai"):
+        # Une preuve propre postérieure dément l'avis durablement : le perdre de vue
+        # ensuite ne doit pas ressusciter une ancienne prévision reçue.
+        avis = [a for a in lire(monde, id)["croyances"].values() if "prevision" in a]
+        propre = prevision_propre(monde, id) if avis else None
+        if propre and propre["source"] in ("vu", "essai"):
+            for a in avis:
+                if propre["minute"] > a["prevision"]["minute"]:
+                    del a["prevision"]
+    from .social import reviser_dits
+    if attribut != "prevision":  # Le fait dit est la menace, pas les coefficients de sa prévision.
+        reviser_dits(monde, id, sujet, attribut, valeur, precedente=ancienne or {}, **lieu)
+    if attribut == "lieu" and sujet in lire(monde, id)["recherches"] and valeur in monde.data["salles"]:
+        # Un contenu positif nouveau rouvre ce lieu seul ; une répétition ou une absence,
+        # même datée de nouveau, n'annule pas le résultat d'une recherche.
+        from .deliberation import contact_recherche, indice_recherche
+        if source == "vu" and (not ancienne or ancienne["valeur"] != valeur
+                               or ancienne.get("case") != lieu.get("case")):
+            contact_recherche(monde, id, sujet, valeur)
+        indice_recherche(monde, id, valeur, sujet)
+    if attribut == "etat" and (valeur.get("conscient") is False or valeur.get("reddition")):
+        from .defense import constater_fin
+        constater_fin(monde, id, sujet)

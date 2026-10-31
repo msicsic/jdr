@@ -3,7 +3,7 @@
 Contreparties portées puis service autonome, sans geste de marché dans la
 recherche. L'auditeur évalue le marché réel par le contrat du joueur.
 """
-from . import relations
+from . import relations, memoire
 from .esprits import lire, memoriser
 
 
@@ -120,7 +120,7 @@ def _entrees_negatives(monde, id, autre, demande, entrees):
         # n'est pas une preuve sous les règles actuelles, même à monde égal.
         2, demande, entrees, monde.objets[id]['lieu'], monde.objets[id].get('profil'),
         {o: {a: {k: c[k] for k in ('valeur', 'salle', 'case', 'possession', 'envers') if k in c}
-             for a, c in d.items()} for o, d in e['croyances'].items()},
+             for a, c in d.items()} for o, d in memoire.faits_connus(monde, id).items()},
         [[o, {k: x for k, x in monde.objets[o].items()
                if k not in CHANGEANTS and k not in ('profil', 'esprit')},
           valeur_bien(monde, id, o), valeur_bien(monde, id, o, True)] for o in connus],
@@ -213,7 +213,7 @@ def reclamation(monde, id, objet):
     from .defense import actifs, lieux_dangereux
     if objet not in monde.objets:
         return None
-    connu = lire(monde, id)['croyances'].get(objet, {})
+    connu = memoire.faits_connus(monde, id, objet)
     porteur = connu.get('lieu', {}).get('possession', {}).get('porteur')
     if not porteur or porteur == id:
         return None

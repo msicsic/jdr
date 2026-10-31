@@ -72,7 +72,7 @@ def _releve(monde):
         if o["lieu"] in monde.data["salles"]:
             vus, _ = percus(monde, id)
             for sujet in vus:
-                c = e["croyances"].get(sujet, {})
+                c = detecteur_avis().faits_connus(monde, id, sujet)
                 reel = monde.objets.get(sujet)
                 if reel is None:
                     continue

@@ -160,12 +160,13 @@ def connait(monde, qui, autre):
     if qui == "joueur":
         return autre in monde.data.get("noms_connus", [])
     from .esprits import lire  # esprits installe lui-même la mémoire des noms.
+    from .memoire import faits_connus
     esprit = lire(monde, qui)
     if autre in esprit["noms"] or autre in monde.objets.get(qui, {}).get("connait_noms", []):
         return True
     # Un savoir est déclaré par l'auteur ; une perception n'est jamais une présentation.
     return any(c.get("source") == "savoir"
-               for c in esprit["croyances"].get(autre, {}).values())
+               for c in faits_connus(monde, qui, autre).values())
 
 
 def apprendre(monde, qui, autre):
@@ -192,8 +193,9 @@ def nom(monde, id, observateur="joueur"):
         vu = monde.visible(id) or id in monde.data.get("personnages_vus", [])
     else:
         from .esprits import lire, percoit
+        from .memoire import faits_connus
         vu = percoit(monde, observateur, id) or any(
-            c.get("source") == "vu" for c in lire(monde, observateur)["croyances"].get(id, {}).values())
+            c.get("source") == "vu" for c in faits_connus(monde, observateur, id).values())
     if not vu:
         return 'une personne inconnue'
     return monde.data.get("personnes", {}).get(id, {}).get("nom") or apparence(monde.objets[id])

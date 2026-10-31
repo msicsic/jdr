@@ -18,6 +18,7 @@ que le planificateur du moteur exécute quand rien de plus urgent ne presse ; su
 qui la confie, elle en confie la garde (``biens.gardes``). Tout est déterministe hors des jets du
 moteur.
 """
+from . import memoire
 from .memoire import episodes
 from .francais import pluriel as nombre_pluriel
 from .francais import quantite
@@ -399,8 +400,8 @@ def anticiper_valeur(monde, proposant, autre, demande, contrepartie):
     m._cache_vue = {}
     m.objets[autre]["profil"] = None
     m.objets[autre]["corps"] = {}
-    crues = lire(monde, proposant)["croyances"]
-    m.data["esprits"][autre]["croyances"] = crues
+    crues = memoire.faits_connus(monde, proposant)
+    memoire.remplacer_faits_projetes(m, autre, crues)
     for i, o in m.objets.items():
         # L'estimation marginale ne doit pas découvrir les outils cachés de
         # l'autre par son inventaire réel. Même projection que ses croyances.
@@ -1037,7 +1038,7 @@ def _remettre_part(monde, vendeur, acheteur, lot, prix, persuasion=None, *,
     if issue:
         agendas.retirer_proposition(monde, vendeur, engagement)
         del monde.objets[piece]
-        del esprit(monde, vendeur)["croyances"][piece]
+        memoire.retirer_faits(monde, vendeur, piece)
         monde.objets[lot] = avant
         return issue
     if prix:
@@ -1204,7 +1205,7 @@ def enqueter(monde, demandeur, auditeur, besoin=None, *, sujet=None):
             from .voix import source_dite
             croire(monde, demandeur, sujet, "lieu", c["valeur"], source_dite(monde, demandeur, auditeur),
                    min(round(.7 * clarte(monde, demandeur), 2),
-                       lire(monde, auditeur)["croyances"][sujet]["lieu"]["confiance"]),
+                       memoire.faits_connus(monde, auditeur)[sujet]["lieu"]["confiance"]),
                    salle=c["valeur"], case=None,
                    origine=origine, mobilite=c.get("mobilite", "mobile"))
         if demandeur != "joueur" and issue != "qui_va_la":
@@ -1328,7 +1329,7 @@ def tenu(monde, id, condition, depuis=None):
         return False  # Ces paroles se soldent au geste de remise, pas au constat.
     e = lire(monde, id)
     attribut = "etat" if "allume" in condition else "lieu" if "lieu" in condition else "verrouillee"
-    preuve = e["croyances"].get(condition.get("objet"), {}).get(attribut)
+    preuve = memoire.fait_brut(monde, id, condition.get('objet'), attribut)
     nouvelle = False
     if depuis is not None and any(not x.get("annule") and x["condition"] == condition
                                  and x["minute"] == depuis for x in agendas.en_cours(monde, id)):

@@ -27,6 +27,7 @@ rigueur comme d'une autre parole non tenue (``relations``, cause « parole_rompu
 Le joueur répond ou demande de même, sans le MJ (``paroles.reponse_a_l_appel``, ``sons``) ; les réponses
 des PNJ lui parviennent par l'ouïe commune (``ecoute``).
 """
+from . import memoire
 import re
 
 from .esprits import esprit, lire, memoriser
@@ -457,7 +458,7 @@ def rompre_attente(monde, id):
         attend = esprit(monde, qui)["rejoint"]
         if d and d["qui"] == id or attend and attend["qui"] == id:
             salle = d["salle"] if d and d["qui"] == id else (
-                lire(monde, qui)["croyances"].get(id, {}).get("lieu") or {}).get("valeur")
+                memoire.fait_brut(monde, qui, id, 'lieu') or {}).get("valeur")
             for cle in ("rejoindre", "rejoint"):
                 if (esprit(monde, qui)[cle] or {}).get("qui") == id:
                     esprit(monde, qui)[cle] = None
