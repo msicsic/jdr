@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
+from tests.revue_support import rapport as rapport_complet
 from donjon.monde import Monde
 from donjon.moteur import proposition
 from tests.faux_websocket import FauxWebSocket, resultat
@@ -19,7 +20,7 @@ class ParcoursWebSocketTests(unittest.TestCase):
         fonction = outil['name']
         entree = json.loads(payload['input'][0]['content'])
         if fonction == 'auditer_action':
-            args = {'conforme': True, 'motif': ''}
+            args = rapport_complet(entree)
         elif fonction == 'repondre_au_joueur':
             self.assertNotIn('resultat_resolu', entree.get('faits', {}))
             args = {'mode': 'action', 'texte': '', 'faits': ['joueur'], 'proposition': proposition('prendre', cible)}

@@ -76,6 +76,21 @@ OBJET_PUBLIC = frozenset("""
     bloque_vue passage lieu position position_salle case_percue a_portee
     sens constats_capacites
 """.split())
+# Contrats des producteurs mécaniques déjà exposés par Monde.contexte :
+# matiere.appliquer/fixer_longueur/valider_contenu et artisanat.appliquer.
+# Ils couvrent aussi les pièces et structures créées pendant la partie, sans
+# distinguer leur identifiant, leur lieu, ni leur scénario d'origine.
+from .matiere import DIMENSIONS
+OBJET_PUBLIC |= frozenset(DIMENSIONS) | frozenset("""
+    physique ressource charge_jeu_kg contenu portions contenu_vide
+    assemblage barreaux composants installation incorpore pieces
+    description sonorite facettes facettes_etablies
+""".split())
+OBJET_PRIVE |= frozenset(("arbitrage", "pv", "pv_max", "corps"))
+# tenir.finir marque tout lien qui retient un corps avec entrave=True et
+# retire ce marqueur quand le lien est défait. C'est un état mécanique public
+# du lien perceptible, également produit par banc_pnj.appliquer_etats.
+OBJET_PUBLIC |= frozenset(("entrave",))
 SOUVENIR_PERSONNAGE_PUBLIC = frozenset(("nom", "portrait", "traits", "details", "source", "minute",
                                        "tour", "maniere_de_parler"))
 SOUVENIR_VISUEL_PUBLIC = frozenset(("id", "nom", "derniere_salle", "hors_de_vue", "distance_metres",

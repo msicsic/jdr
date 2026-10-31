@@ -1,3 +1,4 @@
+from tests.revue_support import rapport as rapport_complet
 from donjon.emissions import pnj as emissions_pnj
 from tests.support import presentes
 import json
@@ -339,7 +340,7 @@ class NarrationTests(unittest.TestCase):
             chemin = Path(tmp) / "partie.json"
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=lambda *a: (
-                      {"conforme": True, "motif": ""} if a[3] == "auditer_action" else reponse)),
+                      rapport_complet(a[1], True, "") if a[3] == "auditer_action" else reponse)),
                   patch("builtins.input", side_effect=["mj je tape des mains", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin),
@@ -367,7 +368,7 @@ class NarrationTests(unittest.TestCase):
             monde.sauver(chemin)
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=lambda *args: (
-                      {"conforme": True, "motif": ""} if args[3] == "auditer_action" else reponse)),
+                      rapport_complet(args[1], True, "") if args[3] == "auditer_action" else reponse)),
                   patch("builtins.input", side_effect=["mj je tape des mains", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin),
@@ -396,7 +397,7 @@ class NarrationTests(unittest.TestCase):
             chemin = Path(tmp) / "partie.json"
             with (patch.dict("os.environ", {"OPENAI_API_KEY": "test"}),
                   patch.object(MJOpenAI, "_appeler_brut", side_effect=lambda *args: (
-                      {"conforme": True, "motif": ""} if args[3] == "auditer_action" else reponse)),
+                      rapport_complet(args[1], True, "") if args[3] == "auditer_action" else reponse)),
                   patch("builtins.input", side_effect=["mj je tente un geste", "tenter", "quitter"]),
                   patch("sys.stdout", io.StringIO()) as sortie):
                 self.assertEqual(jeu.main(["--console", "--save", str(chemin),

@@ -18,6 +18,7 @@ import unittest
 from unittest.mock import patch
 
 import jeu
+from tests.revue_support import rapport as rapport_complet
 from tests.paroles_support import AppelsParole
 from donjon.esprits import lire
 from donjon.mj import MJOpenAI
@@ -64,7 +65,7 @@ def jouer(monde, saisie, reponses, audits, jet=20, options=(), suite=()):
                 return {"contenu_conforme": True, "motif": "", "perimetre": "sens",
                         "operations_demandees": {t: t in operations_contenu(entree["plan"]["parole"]["contenu"])
                                                  for t in OPERATIONS}}
-            return {"conforme": True, "motif": ""}
+            return rapport_complet(entree)
         return (audits if fonction == "auditer_narration" else reponses).pop(0)
     with tempfile.TemporaryDirectory() as tmp:
         chemin = Path(tmp) / "partie.json"

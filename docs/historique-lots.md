@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-a6-raccord-libre` (416), correctif `bcd5729e` : régression A6 des entraves corrigée dans A1,
+  sans ouvrir les champs inconnus ni toucher aux gestes sonores ; base `8c5eaaa7` et branche vertes en libération.
+  36 ciblés verts ; deux PNJ/deux producteurs de liens, consentement, monde/rendu après recharge et laps découpés.
+  Vingt voisins : 222 méthodes, 602,59 s, trois ignorés ; seuls trois échecs/une erreur des trois méthodes
+  déjà rouges sur la base et acceptées subsistent ; tous les autres fichiers verts, aucune nouvelle régression observée.
+  Prêt pour fusion sous les limites acceptées (coût, sifflement partiel, repli crypte, rouges de base) ; aucun calcul actif.
+  [Rapport et preuves](taches/rapport-codex-416-a6-raccord-libre.md) ; bruts `artifacts/a6-raccord-libre-416/entraves/`.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 416, A6 : la saisie libre passe par le compilateur forme A (contrats A2, liaison A3, dossier A4, reprise A5, U-P/U-C) ; la revue juge chaque champ typé, un écart typé n'est jamais cosmétique (garde déterministe) ; régression des entraves corrigée. Luna : 2,29 appels et 9,08 s par tour (corpus différent du repère), aucun son substitué admis, sifflement servi une fois sur deux (l'autre refusé, visible) ; repli de la crypte présent sur la base. 36 tests ciblés ; voisins : trois rouges hérités de la base. La forme A du compilateur est complète.
+
 - `codex-s1m-renoncements` — lot 418, base `integration 718ca2e0` : accès aux renoncements et efforts bornés par `memoire.py`, publication après le choix complet réussi, devis/interruption sans publication.
   Stockage, causes du 417 et règles historiques conservés ; inventaire AST 46 → 7 expressions (schéma et diagnostics/archives).
   156 tests distincts : 155 méthodes vertes ; deux sous-échecs d'étapes chaînées reproduits sur la base exacte. Sept nouveaux tests verts.

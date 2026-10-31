@@ -1,4 +1,5 @@
 """Les dossiers suivent la main ; les repères suivent toujours la vue."""
+from tests.revue_support import rapport as rapport_complet
 import copy
 import io
 from pathlib import Path
@@ -28,7 +29,7 @@ def console(m, p, tenter=False, requetes=None):
 
     def appel(instructions, entree, intention, fonction, schema):
         if fonction == "auditer_action":
-            return {"conforme": True, "motif": ""}
+            return rapport_complet(entree, True, "")
         if fonction == "auditer_narration":
             return {"segments": {}}
         if requetes is not None:

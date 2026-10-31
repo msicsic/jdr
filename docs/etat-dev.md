@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-a6-raccord-libre` (8f806a98) : lot 416, A6 raccord du texte libre au compilateur forme A. Détail dans l'historique.
 - `codex-s1m-renoncements` (83ebb7a4) : lot 418, S1m renoncements et efforts bornés publiés au choix réussi. Détail dans l'historique.
 - `codex-obstacle-temoin-expire` (fe612c40) : lot 417, un renoncement dû à un témoin tient quand sa position expire. Détail dans l'historique.
 - `codex-suite-4539dd68` (1edc86e3) : lot 414, attribution des rouges de la suite 4539dd68. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-a2-consultation-sociale` (79663ec3) : lot 407, A2 famille consultation sociale. Détail dans l'historique.
 - `codex-s1j-voix` (146cb136) : lot 408, S1j identité vocale par des vues sourcées. Détail dans l'historique.
 - `codex-s1j-paroles-voix` (09795acb) : lot 406, S1j paroles, audiences et savoir initial par des vues sourcées. Détail dans l'historique.
-- `codex-suite-c562aa21` (f8c40269) : lot 403, rouges nouveaux de la suite c562aa21. Détail dans l'historique.
 
 ## Lots non fusionnés
 
