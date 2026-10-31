@@ -43,15 +43,15 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels), 403 (rouges nouveaux de la suite c562aa21) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels) ; lot 403 livré (rouges nouveaux de la suite c562aa21) ; suite `c562aa21` : 3 359 tests, 37 échecs, 4 erreurs (19 méthodes au 403, le reste corrigé depuis) ; suite en cours sur `4311249e`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
-- `codex-suite-c562aa21` — 403, base `integration d23d081d`, dernière reprise en cours sur le laptop.
+- `codex-suite-c562aa21` — 403 terminé, non fusionné, base `integration d23d081d`, code `e5f5befb`, poussé.
   19 bascules attribuées : 14 au 388, quatre au 380, une au 390 ; tableau dans le rapport.
   Mort : retire l'interlocuteur entendu, conserve sa voix et ses sons, refuse sa réadmission par rejeu.
   Oracles adaptés aux contrats 388/394 ; cas réel et deux scènes de voix/décès verts après recharge.
-  152 méthodes : 149 vertes, deux rouges d'oracle U-C repris, un saut facultatif ; empreintes 2 h : 8/8 identiques.
-  Deux méthodes console/TUI seules en cours ; fin : `C:/Users/msics/donjon/artifacts/suite-c562aa21-403/fin-inventaire.json`.
+  19/19 rouges corrigés ; 15 fichiers : 151 réussites, un saut facultatif sur 152 ; empreintes 2 h : 8/8 identiques.
+  `fin-inventaire.json` : `ok=true`, sources identiques ; aucun calcul actif, ni Luna ni suite complète.
   Détail et limites : [rapport 403](taches/rapport-codex-403-suite-c562aa21.md).
 
 ## Passe Luna d'E6 (2026-10-31, orchestrateur, laptop)
