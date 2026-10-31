@@ -43,10 +43,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-- `codex-s1l-recherche` — lot 413, base `integration 40f062d8`, non fusionné ; contrôles en cours.
+- `codex-s1l-recherche` — lot 413, base `integration 40f062d8`, moteur `dd80f067`, non fusionné ; empreintes en cours.
   Recherche de personne par `memoire` : négatifs, indices consommés et repère positif, migration/validation ;
   stockage, consommation du 374 et politiques inchangés. Inventaire AST 154 → 60 (schéma + homonymes seuls).
-  Six nouveaux tests, deux captures historiques, état/rendu/scène/paroles et laps entier/découpé.
+  218 tests distincts sur 17 fichiers validés, six nouveaux verts ; deux captures, état/rendu/scène/paroles et laps entier/découpé.
   Empreintes 2 h × quatre graines × Relais/mine/auberge/crue à vérifier contre la base exacte, deux processus réduits.
   Fin attendue : `C:/Users/msics/donjon/artifacts/s1l-413/fin.json` ; pas de suite complète ni Luna.
   Limites : contrôle AST local et politiques historiques. [Rapport](taches/rapport-codex-413-s1l-recherche.md).

@@ -14,19 +14,20 @@ from donjon.rendu import regarder
 from donjon.scene import scene_percue
 from tests.test_memoire_paroles import acces_dits
 from tests.test_memoire_refus import inventaire
-from tests.test_memoire_socle import AccesTests, RACINE
+from tests import test_memoire_socle
 from tests.test_tensions import recharger, vivre
 from tests.test_voix import aubin_cherche_gorm
 
 
 REGISTRES = {'recherches', 'indices_recherche', 'presence_recherche'}
+RACINE = test_memoire_socle.RACINE
 
 
 class RechercheMemoireTests(unittest.TestCase):
     def test_inventaire_ferme_et_contre_epreuves(self):
         fixture = json.loads((RACINE / 'tests/fixtures/acces_memoire_s1a.json').read_text(encoding='utf8'))
         mesures = inventaire(REGISTRES)
-        self.assertEqual(mesures['donjon/esprits.py'].pop('<module>/' + AccesTests.schema_champs()), 1)
+        self.assertEqual(mesures['donjon/esprits.py'].pop('<module>/' + test_memoire_socle.AccesTests.schema_champs()), 1)
         self.assertEqual({f: a for f, a in mesures.items() if a}, fixture['recherche_homonymes_s1l'])
         for registre in REGISTRES:
             for source in (

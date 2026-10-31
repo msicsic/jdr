@@ -1,7 +1,7 @@
 # Lot 413 — S1l, recherche d'une personne par la porte commune
 
 31 octobre 2026, PC fixe · `codex-s1l-recherche` · base exacte `integration 40f062d8`.
-**Vérification en cours ; lot non encore clos.**
+Moteur mesuré : **`dd80f067`**. **Tests terminés ; empreintes en cours, lot non encore clos.**
 
 **Invariant et code.** Les trois registres historiques `recherches`,
 `indices_recherche` et `presence_recherche` passent par `donjon/memoire.py`.
@@ -30,16 +30,26 @@ les hypothèses consommées, la migration, les corruptions, l'inspection et le
 contact entendu. Captures réelles : mine 7 à 470 (Odon/Lucien) et auberge 7 à 625
 (Odile/Joss), dix minutes entières ou quatre puis six minutes avec recharges ;
 comparaison de l'état complet, de l'ordre JSON, des lignes, du rendu, de la scène
-et des émissions. Résultats définitifs à consigner après les contrôles ciblés.
+et des émissions. **218 tests distincts sur 17 fichiers**, dont les six nouveaux
+tests verts : les captures dans `tests-cibles.json`, les cinq autres dans
+`tests-porte-finale.json` ; **129/129 voisins verts** (`tests-voisins.json`).
+Les trois sous-échecs initiaux provenaient de deux nouvelles éprouvettes :
+mutation du tableau passé à l'ancienne admission de croyance, puis confusion
+entre le lieu inspecté et celui du contact. Oracles corrigés, moteur inchangé ;
+les rouges initiaux sont conservés. L'import direct d'une classe de tests a
+été remplacé par celui du module pour éviter sa double découverte.
 
 **Empreintes attendues.** 2 h × graines 1985/7/42/2024 × Relais/mine/auberge/crue,
 contre la base exacte `40f062d8`, sans exclusion d'état. Référence puis branche,
 cache partagé, deux travailleurs réduits au plus ; aucun temps CPU à comparer
-au cache. Pas de suite complète ni Luna. Le calcul long sera détaché, avec
+au cache. Pas de suite complète ni Luna. Le calcul long est détaché, avec
 `C:/Users/msics/donjon/artifacts/s1l-413/fin.json` écrit en dernier.
 
 **Limites et voisinage.** Contrôle AST syntaxique local, sans preuve de tous les
 flux interprocéduraux Python ; politiques historiques conservées. Aucune
 modification de `mj.py` ou `comprehension.py` (lot 412) ; le lot 402 reste un calcul
-indépendant. À la dernière lecture, `origin/integration` reste à `40f062d8`.
+indépendant. L'avance documentaire `origin/integration d54d15ae` est à intégrer.
+Le premier lanceur s'est arrêté avant les empreintes sur son chemin d'import,
+puis sur le module homonyme `tools/tests.py` ; erreurs de lancement conservées,
+aucun rejeu des tests verts ni des captures.
 Bruts : `C:/Users/msics/donjon/artifacts/s1l-413/`.
