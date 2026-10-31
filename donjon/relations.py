@@ -4,6 +4,7 @@ Les souvenirs sont la porte d'écriture (esprits.memoriser). Les lectures sont p
 estompement depuis l'ancre du dernier événement, sans arrondis cumulés ni état caché.
 « fiable » reste un avis dans la parole, jamais un attribut de croyance.
 """
+from .memoire import fait_brut
 from .memoire import episodes
 import copy
 import math
@@ -718,7 +719,7 @@ def partager(monde, id, minute):
     for autre in sorted(vus):
         if autre == id or autre != "joueur" and (autre not in monde.objets or monde.objets[autre]["type"] != "personnage"):
             continue
-        etat = e["croyances"].get(autre, {}).get("etat", {}).get("valeur", {})
+        etat = fait_brut(monde, id, autre, "etat", {}).get("valeur", {})
         if not any(etat.get(b) for b in ("faim", "chaleur", "repos")):
             continue
         n = e["compagnie"].get(autre, 0) + 1

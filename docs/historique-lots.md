@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1g-etats-materiels` — lot 400, base exacte `integration 8fa9e70e`, code `a3072b47`.
+  Preuves matérielles et capacités via vues pures ; copies profondes, absence/fin négative/inconnu distincts.
+  Inventaire AST 398 → 168 ; 297/298 tests verts, unique rouge de planification reproduit sur la base exacte.
+  Empreintes 16/16 identiques : 2 h × 4 graines × Relais/mine/auberge/crue ; deux chaînes après recharge.
+  Intégration `d23d081d` fusionnée, 20/20 contrôles verts ; lot clos avec le rouge hérité attribué.
+  Limite : contrôle AST local ; politiques de révision inchangées. [Rapport](taches/rapport-codex-400-s1g-etats-materiels.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 400, S1g : états matériels crus (ouvert, verrouillé, allumé, charge, fin, réservé) et capacités par leurs seules vues, absence/fin négative/inconnu distingués ; inventaire AST 398 → 168. 297/298 tests (échec hérité de la base), empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - **`codex-crash-raccord` — 401** (base `integration 4c160145`, laptop) : raccord des émissions et audit
   sur le même découpage que le texte publié ; plus de fusion implicite des répliques avant preuve.
   Capture réelle `echanges` rejouée dans la boucle de jeu, autre cas sans ponctuation, recharges contrôlées.

@@ -10,6 +10,7 @@ son plan, après un geste manqué, et après un événement qui change sa situat
 ``esprits.reconsiderer``). Les étapes sont ensuite revalidées sur l'état réel par ``pnj.py``.
 Tout est déterministe ; Luna n'intervient pas.
 """
+from .memoire import fait_brut
 from . import memoire
 from .memoire import episodes
 from . import agendas
@@ -2066,7 +2067,7 @@ def _candidats(monde, id):
         ajouter("engagement", lambda m, i, x=x: planifier_engagement(m, i, x), Palier.PAROLE_DUE, (rang,))
     # Un corps à terre connu : recours au même graphe de gestes, sans accès à ses PV ni son réveil.
     for rang, protege in enumerate(proteges(monde, id)):
-        c = e["croyances"].get(protege, {}).get("etat", {})
+        c = fait_brut(monde, id, protege, "etat", {})
         if c.get("valeur", {}).get("conscient") is False and not c["valeur"].get("mort"):
             from .planification import ranimer
             ajouter("devoir", lambda m, i, x=protege: ranimer(m, i, x), Palier.RANIMER, (-rang,))

@@ -5,6 +5,7 @@ La vérité et les jets restent au moteur ; ``publics`` ne projette que l'observ
 Les décisions de place/regard conservent leur cause dans l'intention avant de produire
 un signe. Aucune relation n'est reconstruite d'après une simple proximité.
 """
+from .memoire import fait_brut, faits_connus
 from .memoire import episodes as episodes_retenus
 import copy
 import hashlib
@@ -526,8 +527,8 @@ def detresse_retenue(m, observateur, sujet):
     Les anciennes parties conservent déjà les impressions datées : elles restent
     utilisables sans leur demander d'être à nouveau dans le champ de vision.
     """
-    crus = esprit_lu(m, observateur)["croyances"].get(sujet, {})
-    etat = crus.get("etat", {}).get("valeur", {})
+    crus = faits_connus(m, observateur, sujet)
+    etat = fait_brut(m, observateur, sujet, "etat", {}).get("valeur", {})
     if etat.get("parti") or etat.get("mort") or etat.get("conscient") is False:
         return None
     if "detresse" in crus:
@@ -584,11 +585,11 @@ def retenir_detresses(m, observateur, signes):
     if raison and raison["besoin"] == "peur":
         sujets.add(raison["qui"])
     for sujet in sorted(sujets):
-        crus = e["croyances"].get(sujet, {})
+        crus = faits_connus(m, observateur, sujet)
         enregistre = crus.get("detresse")
         ancien = enregistre or detresse_retenue(m, observateur, sujet)
         source, preuve, valeur = None, None, True
-        etat = crus.get("etat", {})
+        etat = fait_brut(m, observateur, sujet, "etat", {})
         if any(etat.get("valeur", {}).get(k) for k in ("parti", "mort")) or etat.get("valeur", {}).get("conscient") is False:
             source, valeur = etat["source"], False
             preuve = {"canal": "etat", "signe": "", "attribut": "etat", "minute": etat["minute"], "valeur": "indisponible"}
