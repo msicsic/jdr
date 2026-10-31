@@ -15,7 +15,7 @@ from tests.test_tensions import recharger, vivre
 RACINE = Path(__file__).resolve().parents[1]
 
 
-def acces_croyances(source):
+def acces_croyances(source, *, registres=('croyances',)):
     """Suit stocks, cellules, alias, boucles et méthodes détachées locaux.
 
     L'inventaire gèle aussi les expressions dérivées : ajouter une lecture de
@@ -46,7 +46,7 @@ def acces_croyances(source):
         if isinstance(n, ast.IfExp):
             return max(niveau(n.body, f), niveau(n.orelse, f))
         if isinstance(n, ast.Subscript):
-            if cle(n.slice, f) == 'croyances':
+            if cle(n.slice, f) in registres:
                 return 1
             v = niveau(n.value, f)
             return v + 1 if v else 0
@@ -54,7 +54,7 @@ def acces_croyances(source):
             return niveau(n.value, f)
         if isinstance(n, ast.Call):
             if isinstance(n.func, ast.Attribute):
-                if n.args and n.func.attr in ('get', 'setdefault', '__getitem__') and cle(n.args[0], f) == 'croyances':
+                if n.args and n.func.attr in ('get', 'setdefault', '__getitem__') and cle(n.args[0], f) in registres:
                     return 1
                 v = niveau(n.func.value, f)
                 if v:

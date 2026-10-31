@@ -467,7 +467,7 @@ def paroles_retenues(monde, id):
     Une parole qui nomme ce que le joueur ne connaît pas reste tue."""
     from .social import _qui
     retenues = []
-    for s in reversed(episodes(monde, id, types=("parole",))):
+    for s in reversed(memoire.paroles_retenues(monde, id)):
         if len(retenues) == 4:
             break
         if s["type"] != "parole":

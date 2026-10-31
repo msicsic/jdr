@@ -180,10 +180,9 @@ def installer(monde):
         installer_statuts(monde, "joueur")
     personnages = set(pnjs(monde)) | {"joueur"}
     for id in pnjs(monde):
-        nouveaux_faits = "faits_initiaux" not in monde.data["esprits"].get(id, {})
+        nouveaux_faits, migrer_confidences = memoire.installation_dits(monde, id)
         nouveaux_statuts = "relations" not in monde.data["esprits"].get(id, {})
         nouveau = "voix" not in monde.data["esprits"].get(id, {})
-        migrer_confidences = "faits_dits" not in monde.data["esprits"].get(id, {})
         migrer_recherches = "recherches" not in monde.data["esprits"].get(id, {})
         migrer_indices = "indices_recherche" not in monde.data["esprits"].get(id, {})
         from .relations import installer as installer_relations
@@ -202,9 +201,7 @@ def installer(monde):
             r["presences"].extend(presences)
         if migration_soupcon:
             _purger_indices_soupcon(monde, id)
-        for fait in e["faits_dits"].values():
-            if isinstance(fait["dit_a"], list):
-                fait["dit_a"] = {a: copy.deepcopy(fait["valeur"]) for a in fait["dit_a"]}
+        memoire.migrer_auditeurs_dits(monde, id)
         if migrer_confidences:
             from .social import migrer_dits
             migrer_dits(monde, id)
@@ -367,8 +364,7 @@ def verifier(monde):
         assert isinstance(e, dict) and set(e) == {"croyances", "memoire", "faits_dits"}, "Connaissances du joueur invalides"
         memoire.verifier_faits(monde, "joueur")
         assert isinstance(e["memoire"], list) and len(e["memoire"]) <= MEMOIRE_MAX, "Mémoire du joueur invalide"
-        from .social import DITS_MAX
-        assert isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX, "Faits dits du joueur invalides"
+        memoire.verifier_dits(monde, "joueur")
     from .signes import verifier as verifier_signes
     verifier_signes(monde)
     esprits = monde.data.get("esprits", {})
@@ -376,7 +372,7 @@ def verifier(monde):
     for id, e in esprits.items():
         assert id in monde.objets and monde.objets[id]["type"] == "personnage", "Esprit sans personnage"
         assert agendas.champs_esprit(e) == set(CHAMPS), "Esprit mal formé"
-        assert isinstance(e["faits_initiaux"], dict) and all(isinstance(k, str) for k in e["faits_initiaux"]), "Faits initiaux invalides"
+        memoire.verifier_dits(monde, id)
         from .relations import verifier as verifier_relations
         verifier_relations(monde, id)
         from .pnj_propositions import verifier as verifier_recours
@@ -504,16 +500,6 @@ def verifier(monde):
                         and (c["proprietaire"] is None or isinstance(c["proprietaire"], str))
                         and (c["lieu"] is None or isinstance(c["lieu"], str))
                         and (type(c["valeur"]) is int if champ == "integrite" else type(c["valeur"]) is bool)), "Constat de bien invalide"
-        from .social import DITS_MAX
-        assert (isinstance(e["faits_dits"], dict) and len(e["faits_dits"]) <= DITS_MAX
-                and all(isinstance(k, str) and isinstance(v, dict) and {"valeur", "dit_a"} <= set(v)
-                        and set(v) <= {"valeur", "dit_a", "entendu_a", "valeur_inconnue"}
-                        and isinstance(v.get("valeur_inconnue", False), bool)
-                        and isinstance(v["dit_a"], dict) and all(isinstance(a, str) for a in v["dit_a"])
-                        and isinstance(v.get("entendu_a", {}), dict)
-                        and all(isinstance(a, str) and isinstance(valeurs, list)
-                                for a, valeurs in v.get("entendu_a", {}).items())
-                        for k, v in e["faits_dits"].items())), "Faits dits invalides"
         assert e["secours"] is None or (
             isinstance(e["secours"], dict) and set(e["secours"]) == {"minute", "apaise"}
             and type(e["secours"]["minute"]) is int and type(e["secours"]["apaise"]) is bool
