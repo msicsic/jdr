@@ -44,8 +44,14 @@ narrative ni gain causal de latence revendiqué. Commande exacte : `commande-lun
 
 **Banc rapide.** Branche seule, Relais et auberge, quatre heures et graines 1985/7/42/2024,
 un travailleur réduit, lancé détaché par `artifacts/d0-banc-rapide.py`. Aucun rejeu de référence.
-Calcul en cours à la livraison ; résultat attendu écrit en dernier :
-`C:/Users/msics/donjon/artifacts/d0-parole-428/fin-banc-rapide.json`.
+Terminé : **8/8 nuits**, `fin-banc-rapide.json` porte `ok=true`, journal d'erreurs vide.
+Zéro usurpation, écart ou minute urgente sans recours compté ; Relais : 102–134 gestes,
+62,1 s/nuit en moyenne ; auberge : 122–183 gestes, 122,7 s/nuit. Les quatre graines donnent
+quatre issues distinctes dans chaque scénario. Ces temps ne sont pas comparés à une référence.
+Lecture des chroniques et épisodes : rondes, repas et services se poursuivent ; auberge 2024,
+Lucien appelle Hugues douze fois entre 109 et 131 min. Sans référence, aucune attribution de
+cette répétition à D0 ni garantie générale d'absence de boucle. Ce banc passif n'exerce pas
+la parole ouverte ; sa preuve reste celle des tests console. Détail : `analyse-banc-rapide.json`.
 
 **Limites.** Les effets, l'enregistrement et les refus sur les types/sources sont déterministes.
 L'extraction des engagements, des paraphrases d'un secret et la compatibilité du français
