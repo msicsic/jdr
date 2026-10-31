@@ -36,13 +36,18 @@ assertions de disponibilité, relance et identité du schéma restent inchangée
 
 **Mesures.** Première passe ciblée : **146 tests, zéro échec, zéro erreur,
 quatre ignorés**, treize fichiers, **328,12 s**, deux travailleurs à priorité
-réduite ; pas de suite complète (`tests-cibles.json`). La reprise finale des deux fichiers
-A3/schéma, les empreintes Relais/auberge (2 h × quatre graines, référence exacte
-ci-dessus réemployée depuis le cache) et une passe Luna des cinq bancs demandés
-sont consignées dans les bruts. Le résultat définitif et les dimensions finales
-seront inscrits après lecture du fichier de fin ; aucun succès de calcul encore
-inachevé n'est revendiqué. Le lanceur détaché vit, à priorité réduite, et écrit
-`fin.json` en dernier ; ses commandes exactes restent dans `commandes.json`. Bruts :
+réduite ; pas de suite complète (`tests-cibles.json`). Reprise finale A3/schéma :
+**15/15 verts, 105,51 s**, aucun ignoré (`tests-finaux.json`). Prévol final :
+**446 propriétés, 473 valeurs d'enum, 6 551 caractères comptés, profondeur 9**,
+62 963 octets de schéma mutualisé ; les limites publiées sont respectées.
+Le premier lanceur s'est arrêté après les tests sur une collision entre
+`tools/tests.py` et le dossier `tests` (`fin.json`) : aucun banc ni appel Luna
+n'avait démarré. Le chemin d'import du lanceur est corrigé, sans modifier le
+jeu ni relancer les tests. La reprise détachée est confirmée vivante à l'étape
+empreintes : Relais/auberge, 2 h × quatre graines, référence exacte ci-dessus
+réemployée depuis le cache ; puis une passe Luna des cinq bancs demandés.
+Le résultat sera inscrit après lecture de **`fin-reprise.json`** ; aucun succès
+de calcul inachevé n'est revendiqué. Commandes exactes : `commandes-reprise.json`. Bruts :
 `C:/Users/msics/donjon/artifacts/a3-liaison-transport-410/`.
 
 **Limites.** La grammaire garantit la forme et la liaison des charges des
