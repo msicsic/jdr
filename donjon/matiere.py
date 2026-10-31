@@ -178,6 +178,15 @@ def valider(o, physique):
     normale = {"forme": forme, "matiere": matiere, "pieces": pieces, "dimensions": utiles}
     if pieces > 1:
         normale["nom_piece"] = nom_piece
+    # Une description complète peut arriver après des mesures partielles. Les
+    # champs déduits et les dimensions ont le même contrat d'autorité : compléter
+    # une inconnue ne permet jamais de remplacer une grandeur déjà établie.
+    grandeurs = {**utiles, **_grandeurs(normale)}
+    for champ in (*DIMENSIONS, "ressource", "charge_jeu_kg"):
+        if champ in o and (champ not in grandeurs or o[champ] != grandeurs[champ]):
+            raise ErreurMonde("Cette description contredit une propriété établie.",
+                              f"{o['id']}.{champ} : reçu {grandeurs.get(champ)!r} ; "
+                              f"accepté {o[champ]!r} (valeur établie, sans réécriture).")
     masse = o.get("masse", 0)
     if masse > 0:
         deduite = masse_deduite(normale)
@@ -191,17 +200,25 @@ def valider(o, physique):
 def appliquer(o, physique):
     """Enregistre la description et ce que le moteur en déduit."""
     o["physique"] = physique
+    if not o.get("materiau"):
+        o["materiau"] = physique["matiere"]
     deduire(o)
 
 
-def deduire(o):
-    p = o["physique"]
+def _grandeurs(p):
+    """Même dérivation pour contrôler l'admission et enregistrer ses conséquences."""
+    resultat = {}
     if p["forme"] in ROLES:
-        o["ressource"] = ROLES[p["forme"]]
-        o["longueur_cm"] = p["dimensions"]["longueur_cm"]
-        o["charge_jeu_kg"] = charge_deduite(p)
+        resultat.update(ressource=ROLES[p["forme"]],
+                        longueur_cm=p["dimensions"]["longueur_cm"],
+                        charge_jeu_kg=charge_deduite(p))
         if "diametre_cm" in p["dimensions"]:
-            o["diametre_cm"] = p["dimensions"]["diametre_cm"]
+            resultat["diametre_cm"] = p["dimensions"]["diametre_cm"]
+    return resultat
+
+
+def deduire(o):
+    o.update(_grandeurs(o["physique"]))
 
 
 def fixer_longueur(o, longueur_cm):

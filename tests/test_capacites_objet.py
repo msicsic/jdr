@@ -81,7 +81,7 @@ class CapacitesObjetTests(unittest.TestCase):
                                                   "usages": ["allumage"], "puissance": 0}]}
         reponse = {"mode": "etablir_faits", "texte": "",
                    "faits": ["faits_narratifs_proposables"],
-                   "proposition": {"ajouts": [ajout]}}
+                   "proposition": {"ajouts": [ajout], "suite": None}}
         rapport = {"usages": [{"perception_requise": False, "indice": False, "motif": ""}], "descriptions": [{
             "representation": representation, "mobilite": [], "placement": "aucun",
             "impact_scenario": "aucun", "capacites": ["allumage"],
@@ -118,7 +118,7 @@ class CapacitesObjetTests(unittest.TestCase):
                  "relation": "pose", "capacites": [{"nature": "son", "intensite": 2}]}
         reponse = {"mode": "etablir_faits", "texte": "",
                    "faits": ["faits_narratifs_proposables"],
-                   "proposition": {"ajouts": [ajout]}}
+                   "proposition": {"ajouts": [ajout], "suite": None}}
         rapport = {"usages": [{"perception_requise": False, "indice": False, "motif": ""}], "descriptions": [
             {"representation": "objet", "mobilite": [], "placement": "aucun",
              "impact_scenario": "aucun", "capacites": ["son"], "fragments": [{

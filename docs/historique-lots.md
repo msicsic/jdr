@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-g13-qualification` — lot 422, base `origin/integration` / `152a2aa0` :
+  admission physique sans écraser mesures, rôle ni charge établis ; reprise avec refus moteur conservé.
+  Huit fichiers ciblés : 95 tests verts ; monde et rendu après recharge et laps découpé.
+  Empreintes Relais 2 h × 4 graines identiques ; Luna sur copies : 54 appels / 19 tours, 12,56 s/tour, aucune erreur technique/recharge ni repli.
+  Validation Luna partielle : torche non qualifiée ; prise du tas entier pour « une planche ». Découpe combustible invalide déjà sur la base.
+  Calculs terminés ; bruts `artifacts/g13-qualification-422/` du dépôt principal (`conclusion-luna.json`).
+  [Rapport 422](taches/rapport-codex-422-g13-qualification.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 422, G13 : qualifier complète l'inconnu avant usage sans écraser l'établi (matiere._grandeurs : même dérivation au contrôle et à l'application), une seule revue physique par admission, requalification refusée localement. 95 tests, empreintes identiques. Luna une passe : 2,84 appels et 12,56 s par tour sur scripts de qualification, aucun repli. Limites : « une planche » prise pour le tas entier (correction prelever rejetée par la reprise, lot à ouvrir), longueur de la torche refusée par le garde de portée, découpe des planches combustibles du Relais en échec sur la base (lot à ouvrir).
+
 - `codex-g12-portee-creation` — lot 421, base `integration` / `78e4133b` : création admise puis
   liaison exacte de sa suite ; projection des objets créés et contexte public de la revue portés.
   Refus de faux indices/perceptions conservés ; recharges et laps découpés sur Relais/atelier.
