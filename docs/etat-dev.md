@@ -44,7 +44,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 439 (coups du hameau 2024, diagnostic), 436 (G20 repensé, conception), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+- `codex-coups-hameau` (439, base intégration `60f857c5`, départ `693200b4`) : diagnostic seul sur `4539dd68` ;
+  hameau 2024 reproduit à l'identique, **35 frappes/18 touchées**, cinq épisodes imbriqués en 22,6 s.
+  Deux tentatives d'assomment sans plan pacifique, puis 33 ripostes au coût ; aucune régression de décision établie.
+  Les mêmes 35 photographies donnent les mêmes décisions/coûts avec `0bad227` ; 77 recharges état/rendu stables.
+  Divergence des trajectoires non attribuée, aucune bissection ni correction ; pas de Luna ni de suite complète.
+  Bruts `C:/Users/msics/donjon/artifacts/coups-hameau-439/` ; [rapport](taches/rapport-codex-439-coups-hameau.md).
+
+Lots en cours : 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 436 (G20 repensé, conception), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
