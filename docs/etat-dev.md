@@ -45,13 +45,13 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 - `codex-a4-dossier-revue` (lot 412), base `integration` `2634e48e` : dossier de fidélité avec sens proposé,
   paramètres/manière, contrats et effets des étapes développées, indépendants du jugement d'admission.
-  Aucun audit retiré ; 171 tests (un ignoré), seul échec textuel adapté puis fichier rejoué vert (18 tests).
-  Cinq tests renforcés verts (13,97 s) ; quatre contre-épreuves Luna justes ; parties et empreintes en cours.
-  Bruts `C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/`, fin attendue `fin-reprise.json`.
-  Limites : verdict sémantique non garanti, repli historique illisible conservé ; pas de plan inventé après refus moteur.
+  **Non validé pour fusion** : Luna refuse le sifflement pour sa manière absente, puis accepte des notes de voix.
+  Aucun audit retiré ; 171 tests (un ignoré), seul texte attendu adapté, fichier rejoué vert (18 tests), cinq renforcés verts.
+  Empreintes Relais/auberge identiques (2 h × quatre graines). Luna : 62 appels/26 tours, 2,38 appels et 9,19 s/tour,
+  zéro erreur ou repli ; quatre contre-épreuves justes. Bruts `C:/Users/msics/donjon/artifacts/a4-dossier-revue-412/`.
   Rapport : [lot 412](taches/rapport-codex-412-a4-dossier-revue.md).
 
-Lots en cours : 411 (S1k recours), 412 (A4 dossier de revue), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 411 (S1k recours), 402 (vérification d'intégration moteur) ; 412 livré non validé (voir ci-dessus) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
