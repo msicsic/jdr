@@ -2032,7 +2032,7 @@ def _agir(monde, id, t, lignes, gestes=None, compter=True):
     # réalisation repasse par le même préfixe de contact que la recherche.
     participants = _a_reunir(monde, id, etape, venues=True)
     requis = list(participants)
-    if etape["condition"] == "sans_temoin" and e["patience"] is None:
+    if etape["condition"] == "sans_temoin" and intention["attente"] == 0:
         requis.extend(memoire.faits_connus(monde, id))
     verification = _contact_perime(monde, id, requis, participants)
     if verification is not None:
