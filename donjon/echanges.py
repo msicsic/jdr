@@ -423,13 +423,77 @@ def anticiper_valeur(monde, proposant, autre, demande, contrepartie):
     return _bilan_valeur(p, g or 0.0, 0, 10, {"affection": 0, "dette": 0, "rancune": 0})
 
 
+def candidat_proposition(monde, auditeur, demande, prix):
+    """Admission matérielle K0 sur copie ; le verdict social attend la soumission.
+
+    Aucun jet, paiement, publication ou consultation des besoins privés. Le prix
+    est une mise de départ modifiable, pas une estimation de l'accord du PNJ.
+    """
+    from .monde import ErreurMonde
+    from .propositions import verifier
+    from .passage import au_contact
+    copie = monde.copier()
+    contrepartie = {'type': 'pieces', 'montant': prix}
+    try:
+        verifier(copie, {'type': 'proposition', 'demande': demande, 'contrepartie': contrepartie})
+        if not au_contact(copie, auditeur, 'joueur'):
+            return False
+        if moyens_proposition(copie, 'joueur', auditeur, demande, contrepartie):
+            return False
+        if demande['type'] == 'tache':
+            c = demande['condition']
+            if agendas.en_cours(copie, auditeur, condition=c, personne='joueur', actifs=True):
+                return False
+            return _devis_proposition(copie, auditeur, c, 'joueur') is not None
+        if demande['type'] == 'part':
+            if any(x.get('lot') == demande['objet'] and x['pour'] == 'joueur'
+                   for x in agendas.en_cours(copie, auditeur)):
+                return False
+            return _livraison_proposition(copie, auditeur, 'joueur', demande)
+        return False
+    except ErreurMonde:
+        return False
+
+
+def moyens_proposition(monde, proposant, auditeur, demande, contrepartie):
+    """Droits et ressources communs, sans jugement social ni accord."""
+    from .biens import richesse
+    from .deliberation import parts
+    from .spatial import porte_par
+    from .vol import proprietaire
+    for terme, de in ((demande, auditeur), (contrepartie, proposant)):
+        if terme["type"] in ("objet", "part"):
+            if not agendas.disponibilite_promise(monde, de, terme['objet'], part=terme['type'] == 'part'):
+                return {'cause': 'impossible'}
+            o = monde.objets[terme["objet"]]
+            if proprietaire(monde, o) != de:
+                return {"cause": "propriete"}
+            if de == proposant and not porte_par(monde, o["id"], de):
+                return {"cause": "absent"}
+            if terme["type"] == "part" and parts(o) <= 0:
+                return {"cause": "epuise"}
+        elif terme["type"] == "pieces":
+            if "objet" in terme:
+                source = monde.objets[terme["objet"]]
+                if proprietaire(monde, source) != de:
+                    return {"cause": "propriete"}
+                if garde(monde, de, source):
+                    return {"cause": "garde"}
+                if not porte_par(monde, source["id"], de):
+                    return {"cause": "absent"}
+                disponible = source["pieces"]
+            else:
+                disponible = richesse(monde, de)
+            if disponible < terme["montant"]:
+                return {"cause": "pauvre"}
+    return None
+
+
 def proposer(monde, proposant, auditeur, demande, contrepartie, *, accord_joueur=False):
     """Marché atomique : devis, jet, transferts et engagements avant publication des faits."""
-    from .biens import donner, richesse
-    from .deliberation import parts
+    from .biens import donner
     from .deplacement_objet import deplacer
-    from .spatial import porte_par, proche
-    from .vol import proprietaire
+    from .spatial import porte_par
     from .propositions import verifier, payer_terme
     verifier(monde, {"type": "proposition", "demande": demande, "contrepartie": contrepartie}, proposant=proposant)
     original, monde = monde, monde.copier()
@@ -456,31 +520,9 @@ def proposer(monde, proposant, auditeur, demande, contrepartie, *, accord_joueur
         return evaluer_proposition(monde, proposant, auditeur, demande, contrepartie)
     if contrepartie["type"] == "tache" and not promesse_autonome(monde, proposant, auditeur, contrepartie):
         return {"cause": "impossible"}
-    for terme, de in ((demande, auditeur), (contrepartie, proposant)):
-        if terme["type"] in ("objet", "part"):
-            if not agendas.disponibilite_promise(monde, de, terme['objet'], part=terme['type'] == 'part'):
-                return {'cause': 'impossible'}
-            o = monde.objets[terme["objet"]]
-            if proprietaire(monde, o) != de:
-                return {"cause": "propriete"}
-            if de == proposant and not porte_par(monde, o["id"], de):
-                return {"cause": "absent"}
-            if terme["type"] == "part" and parts(o) <= 0:
-                return {"cause": "epuise"}
-        elif terme["type"] == "pieces":
-            if "objet" in terme:
-                source = monde.objets[terme["objet"]]
-                if proprietaire(monde, source) != de:
-                    return {"cause": "propriete"}
-                if garde(monde, de, source):
-                    return {"cause": "garde"}
-                if not porte_par(monde, source["id"], de):
-                    return {"cause": "absent"}
-                disponible = source["pieces"]
-            else:
-                disponible = richesse(monde, de)
-            if disponible < terme["montant"]:
-                return {"cause": "pauvre"}
+    arret = moyens_proposition(monde, proposant, auditeur, demande, contrepartie)
+    if arret:
+        return arret
     if auditeur == 'joueur':
         temporel = _juger_termes_dates(monde, proposant, auditeur, demande, contrepartie)
         if temporel:

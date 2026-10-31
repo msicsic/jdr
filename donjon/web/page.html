@@ -764,6 +764,17 @@ function ouvrirAccord(brouillon = null) {
   const aide = document.createElement("p");
   aide.textContent = "Prestation ponctuelle, paiement maintenant. Ni prêt daté, ni maintien, ni paiement futur. Une durée indéterminée ne peut être promise : tu peux proposer un nouvel accord sans limite. Demain exige un repère : précise un délai en minutes.";
   form.appendChild(aide);
+  if (!brouillon && projection.suggestions?.length) {
+    const titre = document.createElement("p");
+    titre.textContent = "Suggestions à discuter ; aucun accord ni paiement. Prix modifiable.";
+    form.appendChild(titre);
+    projection.suggestions.forEach(s => {
+      const bouton = document.createElement("button"); bouton.type = "button";
+      bouton.textContent = s.nom;
+      bouton.onclick = () => ouvrirAccord({public: projection, initial: s.initial});
+      form.appendChild(bouton);
+    });
+  }
   const champ = (nom, choix = null) => {
     const label = document.createElement("label"), titre = document.createElement("span");
     titre.textContent = nom; label.appendChild(titre);
@@ -784,6 +795,7 @@ function ouvrirAccord(brouillon = null) {
   const prix = champ("Prix payé maintenant"); prix.min = "1"; prix.max = String(projection.or);
   const delai = champ("Délai en minutes (0 = sans limite)");
   const initial = brouillon?.initial || {};
+  if (initial.sans_limite === true) delai.value = "0";
   const destinataireInitial = projection.destinataires.findIndex(x => x.id === initial.destinataire);
   const prestationInitiale = projection.prestations.findIndex(x => JSON.stringify(x.terme) === JSON.stringify(initial.prestation));
   if (destinataireInitial >= 0) qui.value = String(destinataireInitial);

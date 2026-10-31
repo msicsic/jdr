@@ -226,6 +226,21 @@ if (ETAT.sonde_accord_libre) {
   form.children.filter(c => c.tagName === "BUTTON").at(-1).onclick();
   sortie.accord_libre.envois_apres_annuler = envois.length;
 }
+if (ETAT.sonde_suggestion !== undefined) {
+  appliquerEtat(ETAT); occupe = false; envois.length = 0;
+  $("negocier").onclick();
+  let form = $("accord");
+  const s = ETAT.accord.suggestions[ETAT.sonde_suggestion];
+  const bouton = form.children.find(c => c.tagName === "BUTTON" && c.textContent === s.nom);
+  bouton.onclick();
+  form = $("accord");
+  sortie.suggestion = {avant: envois.length, champs: {}};
+  for (const label of form.children.filter(l => l.tagName === "LABEL"))
+    sortie.suggestion.champs[label.children[0].textContent] = label.children[1].value;
+  form.onsubmit({preventDefault() {}});
+  sortie.suggestion.envoye = envois[0];
+  sortie.suggestion.envois = envois.length;
+}
 if (ETAT.sonde_accord) {
   appliquerEtat(ETAT); occupe = false; envois.length = 0;
   $("negocier").onclick();
