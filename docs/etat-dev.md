@@ -43,7 +43,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 374 (position crue), 381 (A2 passage), 391 (parité acoustique après 376, question Q1 du 390), 392 (connaissances des scènes depuis 365, Q2 du 390), 393 (réservation du 377, Q3 du 390) ; avis redits crue 2024 (reste du 375) à ouvrir. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 374 (position crue), 381 (A2 passage), 391 (parité acoustique après 376, question Q1 du 390), 392 (connaissances des scènes depuis 365, Q2 du 390), 394 (don direct après le 380) ; suite complète en cours sur `c562aa21` ; avis redits crue 2024 (reste du 375) à ouvrir. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. S1f attend le 374 (même famille de croyances). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Décisions prises le 2026-10-30
