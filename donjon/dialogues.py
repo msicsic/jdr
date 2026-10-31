@@ -494,6 +494,14 @@ def interlocuteurs(monde):
                             p for p in emissions_publiques(monde, emissions_pnj(monde)) if id in p["auditeurs"]][-4:]),
                         "refuse_ventes_apres_vol": bool(o.get("refuse_ventes_apres_vol")),
                         "signes": []}
+    from .connaissances import sujets_parlables
+    from .paroles import ouverte_connue
+    for cle, contenu in resultat.items():
+        from .voix import reel
+        auteur = reel(monde, cle)
+        contenu['sujets_ouverts'] = {s: {'consigne': consigne,
+            'deja_entendu': ouverte_connue(monde, auteur, s) is not None}
+            for s, consigne in sujets_parlables(monde, auteur).items()}
     from .voix import reel
     for cle, contenu in resultat.items():
         offres = [{**copy.deepcopy(o), 'de': cle} for o in monde.data.get('offres_joueur', {}).values()

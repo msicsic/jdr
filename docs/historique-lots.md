@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- **Lot 428 — `codex-d0-parole-ouverte`, fusionnée**, départ `ce64ba7e`, ancêtre `integration` `60f857c5`.
+  Parole personnelle admise dans G15 sans effet mécanique ; refus typés des engagements et sources privées fermées.
+  Sujet connu : restitution G19 sans formulation, admission ni réémission ; six tests console/recharge sur Gorm et Odile.
+  94 tests ciblés verts ; une attente périmée de `connaissances_pnj` reproduite sur les modules d'origine.
+  Luna une passe : 7 appels/4 tours, aucun plantage ; récit vague et textes vides avant séparation choix/formulation.
+  Banc rapide Relais/auberge : 8/8 nuits de 4 h, zéro usurpation/écart ; répétitions d'appels non attribuées. Extraction sémantique et qualité Luna finale non garanties.
+  [Rapport du lot](taches/rapport-codex-428-d0-parole-ouverte.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : `dialogues.py`, `mj.py`, `projection_publique.py`, fusionnés sans conflit textuel. Fusionné sur l'intégration : seul conflit de documentation ; fichiers de code touchés aussi depuis la base : dialogues.py, mj.py, projection_publique.py (K0 et G14), fusionnés sans conflit textuel ; tests ciblés des trois lots sur la fusion : 73 verts. Le compilateur choisit {personnage, sujet} ; Luna formule, une admission indépendante type engagements et sources ; paroles.verifier_ouverte refuse secret gardé, savoir absent, promesse et accord avec attendu ; parole inscrite au registre G15 sans effet mécanique ; même sujet entendu : zéro appel. Souvenir personnel de Gorm ouvert dans le scénario du Relais. Luna une passe avant la séparation finale choix/formulation : parole vague, qualité narrative non démontrée ; une erreur préexistante de test_connaissances.
+
 - `codex-creation-utile-luna` — lot 430, diagnostic seul, base `origin/integration` / `3ce68e2e`.
   Admission préalable confondue avec résultat perceptif ; rapports de portée parfois illisibles.
   14 fils lus, 13 dossiers rejoués à l’identique sans modèle ; exception du rendu du 423 reproduite,

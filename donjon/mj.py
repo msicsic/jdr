@@ -50,6 +50,9 @@ from .refus import RapportIllisible, RefusDeForme, ProprieteInconnue, audit as r
 from .sources import ordonner_entree
 from .contrats_lots import description as description_transferts
 from .transactions import ajouter as ajouter_transaction
+from .paroles import (SCHEMA_ADMISSION_OUVERTE, INSTRUCTIONS_ADMISSION_OUVERTE,
+    SCHEMA_CONTENU_OUVERT, INSTRUCTIONS_FORMULATION_OUVERTE,
+    REGLES_OUVERTE, verifier_ouverte, ouverte_connue, preparer_ouverte, dossier_ouverte)
 
 LIMITE_INTENTION = 2000  # caractères d'une action du joueur, quel que soit le fournisseur
 
@@ -393,14 +396,9 @@ def verifier_forme_reponse(reponse, schema):
             raise RefusDeForme("La proposition ne correspond pas au mode de réponse.",
                                f"proposition reçue {reponse['proposition']!r}, mode {reponse['mode']!r} ; "
                                f"accepté : une proposition portant {marqueur!r} pour ce mode.")
-        for champ in ("ajouts", "contenu"):
-            if champ not in reponse["proposition"]:
-                continue
-            valeur = reponse["proposition"][champ]
-            if not isinstance(valeur, list) or any(not isinstance(v, dict) for v in valeur):
-                raise RefusDeForme("Le contenu typé doit être une liste d'objets structurés.",
-                                   f"proposition.{champ} reçu {valeur!r} ; accepté : une liste "
-                                   "d'objets conformes au schéma, pas une liste de sources citées.")
+        # La forme des champs appartient à la grammaire de chaque branche,
+        # vérifiée dans _appeler après la disponibilité du mode. Un nom de
+        # champ ne suffit pas à en déduire le type.
 
 
 def verifier_disponibilite(reponse, faits, geste_requis=False):
@@ -411,6 +409,7 @@ def verifier_disponibilite(reponse, faits, geste_requis=False):
         "enrichir_joueur": bool(faits.get("profil_joueur_a_completer")),
         "enrichir": bool(faits.get("descriptions_a_completer")),
         "conversation_pnj": bool(faits.get("interlocuteurs")),
+        "parole_ouverte": bool(faits.get("interlocuteurs")),
         "parole_joueur": bool(faits.get("interlocuteurs")) or
                           "personnage" in (faits.get("parole_prevue") or {}),
         "enrichir_savoirs": bool(faits.get("connaissances_a_completer")),
@@ -906,6 +905,46 @@ class MJ:
             return {"mode": "dialogue", "texte": reponse["proposition"]["justification"],
                     "faits": reponse["faits"], "proposition": None,
                     "_audit": reponse["_audit_justification"]}
+        if reponse['mode'] == 'parole_ouverte':
+            p = copy.deepcopy(reponse['proposition'])
+            p['contenu'] = {'type': 'propos', 'texte': '', 'sources': []}
+            try:
+                auteur = verifier_ouverte(monde, p, revision)
+                if ouverte_connue(monde, auteur, p['sujet']) is None:
+                    from .connaissances import sujets_parlables
+                    dossier = {'personnage': auteur, 'sujet': p['sujet'],
+                        'consigne': sujets_parlables(monde, auteur)[p['sujet']],
+                        'locuteur': monde.objets[auteur],
+                        'savoirs_pnj': {s: v for s, v in monde.data['savoirs_pnj'].get(auteur, {}).items()
+                                       if s in sujets_parlables(monde, auteur)},
+                        'faits': dossier_ouverte(monde)}
+                    p['contenu'] = self._appeler(INSTRUCTIONS_FORMULATION_OUVERTE,
+                        dossier, intention, 'formuler_parole_ouverte', SCHEMA_CONTENU_OUVERT)
+                    # Contrôler la grammaire et les sources déclarées avant la revue indépendante.
+                    verifier_ouverte(monde, p, revision)
+                    verdict = self._appeler(INSTRUCTIONS_ADMISSION_OUVERTE,
+                        {'proposition': p, 'consigne': sujets_parlables(monde, auteur)[p['sujet']],
+                         'locuteur': monde.objets[auteur],
+                         'savoirs_pnj': monde.data['savoirs_pnj'].get(auteur, {}),
+                         'faits': dossier_ouverte(monde)},
+                        intention, 'admettre_parole_ouverte',
+                        SCHEMA_ADMISSION_OUVERTE)
+                    p['_admission'] = {'proposition': copy.deepcopy(p), 'revision': revision, 'verdict': verdict}
+                travail, rapport = preparer_ouverte(monde, p, revision)
+            except ErreurMonde as exc:
+                # Une admission douteuse est abandonnée ; aucun récit de secours inventé.
+                if self.observateur:
+                    self.observateur({'etape': 'validation', 'modele': self.modele,
+                        'intention': intention, 'revision': revision,
+                        **retour_refus(p, exc, 'Parole ouverte abandonnée avant publication.')})
+                return {'mode': 'dialogue', 'texte': str(exc), 'faits': [], 'proposition': None,
+                        '_texte_moteur': True, '_validation_refusee': True}
+            if 'rappel' in rapport:
+                from .paroles import rendre_ouverte_connue
+                return ajouter_transaction(rendre_ouverte_connue(travail, rapport),
+                                           'parole_ouverte', revision, p, rapport)
+            from .repliques_moteur import reponse as rendre, sceller
+            return ajouter_transaction(sceller(rendre(rapport), rapport), 'parole_ouverte', revision, p, rapport)
         if reponse["mode"] not in ("enrichir", "conversation_pnj", "enrichir_savoirs", "parole_joueur"):
             return reponse
         complements = reponse["proposition"]
@@ -1183,7 +1222,7 @@ class MJ:
         from .accords_libres import REGLES as REGLES_ACCORD
         schema = schema_reponse(enrichir=enrichir)
         instructions = (INTERPRETATION + REGLES_ATELIER + REGLES_FRANCHISSEMENT
-                        + REGLES_OBSTACLES + REGLES_ESPACE + REGLES_PAROLE + REGLES_ACCORD)
+                        + REGLES_OBSTACLES + REGLES_ESPACE + REGLES_PAROLE + REGLES_ACCORD + REGLES_OUVERTE)
         consigne_retour = None
         if retour_moteur:
             consigne_retour = RETOUR_INTERPRETATION
@@ -1300,6 +1339,10 @@ direction), plus lents, ils ne s'entendent que de tout près.
         elif reponse["mode"] == "conversation_pnj":
             if not social or reponse["texte"] or not isinstance(reponse["proposition"], dict):
                 raise ErreurMonde("Conversation invalide. Aucun engagement enregistré.")
+        elif reponse['mode'] == 'parole_ouverte':
+            if not social or reponse['texte'] or not isinstance(reponse['proposition'], dict):
+                raise ErreurMonde('Parole personnelle invalide.',
+                                  'parole_ouverte : texte vide et proposition structurée pour un interlocuteur présent.')
         elif reponse["mode"] == "parole_joueur":
             if not parler or reponse["texte"] or not isinstance(reponse["proposition"], dict):
                 raise ErreurMonde("Parole invalide. Rien n'a été dit.")

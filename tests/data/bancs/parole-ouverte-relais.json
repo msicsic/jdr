@@ -1,0 +1,13 @@
+{
+ "scenario": "relais",
+ "seed": 1985,
+ "preparation": {
+  "salle": "echoppe", "position": [1, 2], "orientation": "nord",
+  "personnages": {"marchand": {"salle": "echoppe", "position": [1, 1], "orientation": "sud"}},
+  "calmes": ["marchand"], "noms_connus": ["marchand"]
+ },
+ "tours": [
+  "Quel souvenir personnel Gorm pourrait-il me raconter ?",
+  "Rappelle-moi ce même souvenir personnel de Gorm."
+ ]
+}

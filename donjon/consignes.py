@@ -263,6 +263,9 @@ yeux, barbe, mains : cette partie du corps ; voix : timbre et débit ; temperame
 habituelle, pas l'humeur du moment), cohérente avec les faits, sans objet, vêtement, indice,
 capacité, histoire ni geste. Sans facette libre, réponds avec les faits reçus.
 ### enrichir_savoirs : un sujet libre de connaissances_a_completer qui répond à la question
+Pour faire raconter un contenu personnel inédit, utiliser parole_ouverte : ses mots
+enregistrés ne deviennent pas un savoir vrai. enrichir_savoirs reste une admission
+de connaissance, distincte d'une parole personnelle.
 proposition = {"personnage", "savoirs":[{"sujet", "texte"}]} : un fait autonome, à la
 troisième personne, selon la consigne du sujet (souvenir, coutume, apprentissage, attachement
 ordinaire), sans mécanisme, passage, objet, pouvoir, secret de quête, récompense, personnage à
@@ -290,7 +293,7 @@ personnage, mission, CHA) et te renvoie conversation_validee : fais alors parler
 avec exactement les montants, conditions et refus validés. Une offre n'est pas un accord, un
 accord n'est pas un paiement. Sans accord à modifier, le personnage répond d'après ses faits et
 ses intentions, sans inventer de passé, de secret ni de promesse. Un personnage absent ne répond
-pas : reste en dialogue. Pour un savoir qui manque, préfère enrichir_savoirs.
+pas : reste en dialogue. Pour un récit personnel, utiliser parole_ouverte.
 """
 
 
