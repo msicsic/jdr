@@ -290,6 +290,10 @@ class NarrationTests(unittest.TestCase):
                 # structurée ou le brouillon en une description du geste.
                 compris = (f"Compris : Geste. (cibles : aucun; approche : {approche}; minutes : 1; bruit : 0; "
                            "en cas de réussite : effets : aucun; en cas d'échec : effets : aucun)")
+                if approche == "expression":
+                    # Contrat sonore 379 : le résumé précise aussi l'absence
+                    # de son, sans inventer une description de la manière.
+                    compris += " En cas de réussite : aucun son prévu parmi les effets du geste."
                 r, sortie, appels = jouer(m, saisie, [action(p)], [])
                 self.assertIn(attendu, sortie)
                 self.assertEqual(r.data['conversation'][-1]['compris'], compris)

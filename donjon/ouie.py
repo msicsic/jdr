@@ -458,6 +458,12 @@ def _au_joueur(monde, auteur, salle, case, n, entrees, t, texte, cites, a=(), co
             del bruits[semblable]
     bruits.append(entree)
     del bruits[:-BRUITS_MAX]
+    # Le rendu aux événements peut précéder la fin de l'action du joueur.
+    # Admettre la voix dès sa réception, comme les noms de l'échange, pour
+    # qu'une voix encore inconnue ait déjà sa référence publique sauvegardable.
+    from .ecoute import ENTENDU, retenir
+    if niveau >= ENTENDU:
+        retenir(monde, [(entree, niveau, par)])
     if mots and texte:
         from .ecoute import lier
         lier(monde, entree, contenu)

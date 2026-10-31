@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-suite-663d1308` — lot 390, base `integration 70b2fdfa` : 27 nouvelles méthodes rouges
+  attribuées, 19 corrigées ; admission des voix dès leur réception avant le rendu événementiel.
+  Clôture : 204/214 tests passent sur 20 fichiers ; huit rouges du lot et deux réservés au 375.
+  Empreintes 2 h Relais/auberge/mine × quatre graines : physique/chronique/mesures identiques sur 12/12.
+  État complet identique sur 4/12 ; huit écarts finaux partiellement attribués au rendu vocal (limite).
+  Aucun calcul actif ; méthodes du 375/387 intactes, questions des huit cas et limites dans le rapport.
+  Voir [rapport](taches/rapport-codex-390-suite-663d1308.md), bruts `artifacts/suite-663d1308-390/` du dépôt principal.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 390 : 27 bascules attribuées (376 : 16, 365 : 4, 377 : 2, 370 : 1, 379 : 1…) ; correctif commun ouie._au_joueur (la voix reçue mémorisée avant le rendu, défaut révélé par 376) ; 19 corrigées, 8 restent en trois questions Q1 (376 découpage), Q2 (365 connaissances des scènes), Q3 (377 réservation). 204/214 tests. Aucun fichier de code commun depuis la base.
+
 - `codex-ut-social-avis` — lot 389, base `integration` `5cc189c9`, code `cf7a421f`.
   Console/TUI : commande `avis`, catalogue et descripteur du web, réception/dispute G18 conservées.
   92 tests distincts validés / huit fichiers : 90 conservés, deux erreurs Windows reprises vertes (21,864 s).
