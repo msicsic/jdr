@@ -110,24 +110,32 @@ def _nom_reel(monde, identifiant, objet):
 
 def installer(monde):
     """Installe les mémoires et attribue les références dans l'ordre des identifiants."""
-    donnees = monde.data
     memoire.installer_noms_joueur(monde)
-    personnes = donnees.setdefault("personnes", {})
-    elements = donnees.setdefault("references_personnes", {})
     for identifiant in sorted(monde.objets):
-        if identifiant not in elements:
-            elements[identifiant] = _numero(elements, identifiant, [identifiant])
-    for identifiant, objet in sorted(monde.objets.items()):
-        if objet["type"] != "personnage" or identifiant in personnes:
-            continue
-        base = apparence(objet)
-        deja = [entree["nom"] for entree in personnes.values()]
-        nom, rang = base, 2
-        while nom in deja:
-            nom = f"{base} ({rang})"
-            rang += 1
-        personnes[identifiant] = {"n": _numero(personnes, identifiant, [identifiant], personnes=True),
-                                 "nom": nom}
+        inscrire(monde, identifiant)
+
+
+def inscrire(monde, identifiant):
+    """Inscrit une entité dès son ajout sur le monde de travail, sans la rendre perceptible.
+
+    Même porte pour l'installation, les créations et la recharge. Les lectures
+    de références restent pures ; une inscription existante reste inchangée.
+    """
+    objet = monde.objets[identifiant]
+    elements = monde.data.setdefault("references_personnes", {})
+    if identifiant not in elements:
+        elements[identifiant] = _numero(elements, identifiant, [identifiant])
+    personnes = monde.data.setdefault("personnes", {})
+    if objet["type"] != "personnage" or identifiant in personnes:
+        return
+    base = apparence(objet)
+    deja = [entree["nom"] for entree in personnes.values()]
+    nom, rang = base, 2
+    while nom in deja:
+        nom = f"{base} ({rang})"
+        rang += 1
+    personnes[identifiant] = {"n": _numero(personnes, identifiant, [identifiant], personnes=True),
+                             "nom": nom}
 
 
 def apparence(o):

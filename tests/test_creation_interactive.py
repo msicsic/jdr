@@ -91,6 +91,8 @@ class CreationInteractiveTests(unittest.TestCase):
                     self.assertNotIn(texte, affichage)
                     self.assertNotIn(texte, str(monde.data))
                     self.assertEqual(set(monde.objets), set(m.objets))
+                    self.assertEqual(monde.data['references_personnes'], m.data['references_personnes'])
+                    self.assertEqual(recharger(monde).data['references_personnes'], m.data['references_personnes'])
                     self.assertEqual(monde.data.get("faits_vus", []), m.data.get("faits_vus", []))
                     self.assertIn(decrire(monde, support, detail=True), affichage)
                     self.assertEqual(monde.data["conversation"][-1]["nature"], "resultat_moteur")

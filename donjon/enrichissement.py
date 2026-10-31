@@ -4,6 +4,7 @@ import copy
 from .refus import cibles
 from .monde import ErreurMonde, normaliser, objet
 from .perception import eclairage
+from .noms import inscrire
 
 
 # Le modèle choisit du texte, jamais une propriété mécanique ou un identifiant neuf.
@@ -107,6 +108,7 @@ def preparer_complements(monde, proposition, revision=None):
                 detail_id, nom + " " + de(p["nom"]), "partie_corps", id,
                 aliases=[nom], genre=genre, pluriel=pluriel, materiau=materiau,
                 facette=facette, description_visuelle=texte, origine_description="MJ")
+            inscrire(travail, detail_id)
             valeur = {"objet": detail_id}
         else:
             valeur = {"texte": texte}
