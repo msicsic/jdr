@@ -413,13 +413,14 @@ def croyance(monde, id, autre):
 
 
 def _appliquer(monde, id, autre, cause, s, facteur=1, tiers=None):
+    from . import memoire
     if id == "joueur" or autre in (None, id) or autre != "joueur" and (
             autre not in monde.objets or monde.objets[autre]["type"] != "personnage"):
         return
     from .esprits import esprit, reconsiderer, percoit
     from .memoire import faits_connus
     e = esprit(monde, id)
-    if (autre not in e["relations"] and autre not in e["voix"]
+    if (autre not in e["relations"] and autre not in memoire.voix_connues(monde, id)
             and not any(c["source"] in ("vu", "essai", "entendu", "savoir") for c in faits_connus(monde, id, autre).values())
             and not percoit(monde, id, autre)):
         return  # une identité seulement prétendue ou nommée n'est pas une personne identifiée

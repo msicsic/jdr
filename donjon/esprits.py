@@ -182,7 +182,7 @@ def installer(monde):
     for id in pnjs(monde):
         nouveaux_faits, migrer_confidences = memoire.installation_dits(monde, id)
         nouveaux_statuts = "relations" not in monde.data["esprits"].get(id, {})
-        nouveau = "voix" not in monde.data["esprits"].get(id, {})
+        nouveau = memoire.installation_voix(monde, id)
         migrer_recherches = "recherches" not in monde.data["esprits"].get(id, {})
         migrer_indices = "indices_recherche" not in monde.data["esprits"].get(id, {})
         from .relations import installer as installer_relations
@@ -227,8 +227,7 @@ def installer(monde):
         if nouveau:
             # Début de partie : le scénario déclare qui se connaît déjà (un savoir à son sujet) ;
             # il connaît leur voix. Voir quelqu'un, plus tard, n'y ajoute rien (``voix``).
-            e["voix"] = sorted(x for x, attributs in memoire.faits_connus(monde, id).items() if x in personnages and x != id
-                               and any(c.get("source") == "savoir" for c in attributs.values()))
+            memoire.installer_voix_initiales(monde, id, personnages)
         o = monde.objets[id]
         # Anciennes parties : le trajet devient intention.
         trajet = o.pop("trajet", None)
@@ -248,8 +247,7 @@ def installer(monde):
     # Le joueur arrive en étranger : il ne connaît encore aucune voix.
     from .signes import installer as installer_signes
     installer_signes(monde)
-    monde.data.setdefault("voix_connues", [])
-    monde.data.setdefault("voix_entendues", {})
+    memoire.installer_voix_joueur(monde)
 
 
 def connaitre(monde, qui, autre):
@@ -435,13 +433,7 @@ def verifier(monde):
         assert all(s in monde.data["salles"] and type(v) is int for s, v in e["visites"].items()), "Visites invalides"
         from .appel import verifier as verifier_rendez_vous
         verifier_rendez_vous(monde, e)
-        assert isinstance(e["voix"], list) and all(
-            isinstance(x, str) for x in e["voix"]  # Comme une croyance, il survit à qui a quitté la partie.
-        ) and len(set(e["voix"])) == len(e["voix"]), "Voix connues invalides"
-        from .voix import verifier_echange, verifier_entrees
-        verifier_entrees(e["voix_entendues"])
-        verifier_echange(e["echange"])
-        assert isinstance(e["noms"], list) and all(isinstance(x, str) for x in e["noms"]) and len(set(e["noms"])) == len(e["noms"]), "Noms retenus invalides"
+        memoire.verifier_identite_vocale(monde, id)
         agendas.verifier(monde, id)
         memoire.verifier_faits(monde, id)
         from .deliberation import DETAILS_REFUS
@@ -1034,12 +1026,12 @@ def reviser(monde, id, sujet, attribut, valeur, source="vu", **lieu):
     porte = attribut == "lieu" and (valeur == "joueur" or monde.objets.get(valeur or "", {}).get("type") == "personnage")
     if (ancienne and ancienne["source"].startswith("dit:") and ancienne["valeur"] != valeur and not porte
             and monde.data["minutes"] - ancienne["minute"] <= RECENT):
-        from .voix import auteur_dit, retenir
+        from .voix import auteur_dit
         locuteur, inconnue = auteur_dit(ancienne["source"])
         if inconnue:
             # Une voix qu'il ne savait à qui prêter : il se méfie d'elle, sans savoir qui c'était.
             if locuteur in monde.objets or locuteur == "joueur":
-                retenir(monde, id, locuteur)["mefiance"] = True
+                memoire.retenir_mefiance_vocale(monde, id, locuteur)
         else:
             memoriser(monde, id, {"type": "mensonge_decouvert", "locuteur": locuteur, "sujet": sujet})
     croire(monde, id, sujet, attribut, valeur, source, **lieu)

@@ -125,5 +125,41 @@
       "classer/t['croyances']": 1
     }
   },
-  "dits_restants_s1j": {}
+  "dits_restants_s1j": {},
+  "voix_homonymes_s1j": {
+    "donjon/ecoute.py": {
+      "_rendre/natures['voix']": 1
+    },
+    "donjon/ouie.py": {
+      "<module>/{'feutre': 1, 'pas': 3, 'geste': 3, 'voix': 4, 'eclat': 6, 'bruyant': 7, 'hele': 9, 'appel': 9, 'cri': 9}": 1
+    },
+    "donjon/proximite_vocale.py": {
+      "arrivees/ouie.INTENSITES['voix']": 1,
+      "entrees/ouie.INTENSITES['voix']": 1
+    },
+    "donjon/voix.py": {
+      "lier/b['noms']": 1,
+      "lier/parole['noms']": 1,
+      "parole_saisie/{'instant': instant_, 'auteur': auteur, 'a': list(a), 'noms': [x for x in dict.fromkeys([*a, auteur]) if nom_dit(monde, x, nominaux)]}": 1
+    },
+    "tools/audit_nuits.py": {
+      "_final/{'minute': monde.data['minutes'], 'mandats': observation.mesures_mandats(monde), 'projets': {id: agendas.projets(monde, id) for id in monde.data.get('esprits', {})}, 'dettes': monde.data.get('dettes'), 'permissions': monde.data.get('permissions'), 'engagements': {id: agendas.en_cours(monde, id) for id in pnjs(monde) if agendas.en_cours(monde, id)}, 'rejoint': {id: lire(monde, id)['rejoint'] for id in pnjs(monde) if lire(monde, id)['rejoint']}, 'renoncements': {id: lire(monde, id)['renoncements'] for id in pnjs(monde) if lire(monde, id)['renoncements']}, 'urgences': {id: lire(monde, id)['urgences'] for id in pnjs(monde)}, 'pulsions': {id: lire(monde, id)['pulsions'] for id in pnjs(monde)}, 'noms': {id: monde.objets[id]['nom'] for id in pnjs(monde)}}": 1,
+      "analyser_nuit/(n.get('final') or {}).get('noms', {})": 1
+    },
+    "tools/banc_parties.py": {
+      "jouer/donnees.get('noms_connus')": 1,
+      "jouer/donnees['noms_connus']": 1,
+      "preparer/prep.get('noms_connus')": 1,
+      "preparer/prep['noms_connus']": 1
+    },
+    "tools/mesure_reflexion_190.py": {
+      "main/n['final']['noms']": 1
+    },
+    "tools/mesure_saillance_210.py": {
+      "nuit/audit._final(monde)['noms']": 1
+    },
+    "tools/rejouer_choix_saillance_210.py": {
+      "premieres_divergences/a['final']['noms']": 1
+    }
+  }
 }

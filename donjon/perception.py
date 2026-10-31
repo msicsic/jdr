@@ -101,8 +101,9 @@ def non_vus_connus(monde):
     autorise la référence, sans établir une présence ni une absence.
     """
     from .noms import public
-    connus = set().union(*(set(monde.data.get(champ, ())) for champ in (
-        "connus", "souvenirs_visuels", "personnages_vus", "noms_connus")))
+    from .memoire import noms_retenus
+    connus = set(noms_retenus(monde, "joueur")).union(*(set(monde.data.get(champ, ())) for champ in (
+        "connus", "souvenirs_visuels", "personnages_vus")))
     return [public(monde, {"id": id, "nom": monde.objets[id]["nom"]})
             for id in sorted(connus) if id in monde.objets and not monde.visible(id)]
 

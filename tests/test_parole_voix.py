@@ -26,7 +26,7 @@ from donjon.paroles import _connu_du_joueur, analyser
 from donjon.operations import etape, sequence
 from donjon.paroles import hele
 from donjon.pnj import appeler
-from donjon.voix import connaitre, entendues
+from donjon.voix import connaitre
 from tests.support import calme
 from tests.test_repli_et_appel import jouer
 from tests.test_tensions import chronique, placer, recharger, relais, vivre
@@ -99,7 +99,7 @@ class NommerTests(unittest.TestCase):
         for id in ("brune", "aubin", "ilse"):
             m.data["souvenirs_visuels"].pop(id, None)
         connaitre(m, "joueur", "brune")
-        entendues(m, "joueur", ecrire=True)["ilse"] = {"minute": 0, "se_dit": "aubin", "mefiance": False, "n": 1}
+        m.data["voix_entendues"]["ilse"] = {"minute": 0, "se_dit": "aubin", "mefiance": False, "n": 1}
         m = recharger(m)
         self.assertNotIn("brune", m.data.get("personnages_vus", []))
         for nom, id in (("Brune", "brune"), ("Aubin", "aubin")):

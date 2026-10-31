@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-s1j-voix` — lot 408 clos, non fusionné ; base `integration 44745a89`, code mesuré `bea3d8ec`.
+  Identité vocale, noms et échanges retenus : vues copiées et écritures nommées dans `memoire`, stockage conservé.
+  Inventaire AST vocal 98 → 17 (schéma + homonymes exacts), zéro accès brut restant ; 217/217 tests, seize fichiers.
+  Présentations de Corvus, imposture différée et capture mine 470 : état complet, rendu, scène et paroles identiques après recharge/découpage.
+  Empreintes 2 h × quatre graines × Relais/mine/auberge/crue : 16/16 identiques (chroniques, mesures, état final complet), aucun plantage.
+  Vérification terminée : `C:/Users/msics/donjon/artifacts/s1j-408/fin.json` réussi ; limite AST locale. Ni Luna ni suite complète.
+  [Rapport 408](taches/rapport-codex-408-s1j-voix.md).
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. lot 408, fin de S1j : voix connues et entendues, prétentions, méfiance, imposture et noms retenus par des vues sourcées ; saturation, voix inconnue au MJ et genre conservés. 217 tests verts, 16/16 empreintes identiques. Aucun fichier de code commun depuis la base.
+
 - `codex-s1j-paroles-voix` — 406, base `integration b4130dc3`, code `914dbb07` : première partie,
   dits, audiences et savoir initial par `memoire`, stockage et comportement historiques conservés.
   AST dédié 122 → 0 ; 235/235 tests distincts verts, puis 10/10 après fusion ; cinq nouveaux tests.

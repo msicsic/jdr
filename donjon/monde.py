@@ -404,6 +404,7 @@ class Monde:
 
     def contexte(self):
         """Vue du MJ bornée à ce qui est perceptible : pas de trésor caché ni de sens secret."""
+        from . import memoire
         from .paroles import identites
         objets = []
         niveau = eclairage(self)["niveau"]
@@ -513,7 +514,7 @@ class Monde:
                 "scenario": self.contexte_scenario(),
                 "souvenirs_personnages": copy.deepcopy(self.data["souvenirs_personnages"]),
                 # Ceux dont Corvus sait qui ils sont, où qu'ils soient (``paroles.identites``).
-                "personnages_connus": {id: self.objets[id]["nom"] for id in self.data.get("noms_connus", []) if id in self.objets},
+                "personnages_connus": {id: self.objets[id]["nom"] for id in memoire.noms_retenus(self, "joueur") if id in self.objets},
                 "noms_entendus": [self.objets[id]["nom"].split(",")[0] for id,o in self.objets.items()
                                   if o['type']=='personnage' and connait_appellation(self,'joueur',id)],
                 "interlocuteurs": interlocuteurs(self), "missions_discutables": missions_discutables(self),

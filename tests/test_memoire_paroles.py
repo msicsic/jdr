@@ -21,13 +21,13 @@ from tests.test_tensions import recharger
 REGISTRES = {'faits_dits', 'faits_initiaux'}
 
 
-def acces_dits(source):
+def acces_dits(source, *, registres=REGISTRES):
     """Alias locaux du contrôle S1f, complétés des écritures de clés racines.
 
     Les deux créations de schéma sont admises par leur expression exacte
     dans le test d'inventaire, sans exemption pour les autres dictionnaires.
     """
-    acces = acces_croyances(source, registres=REGISTRES)
+    acces = acces_croyances(source, registres=registres)
     arbre = ast.parse(source)
     parents = {c: n for n in ast.walk(arbre) for c in ast.iter_child_nodes(n)}
 
@@ -47,20 +47,20 @@ def acces_dits(source):
 
     for n in ast.walk(arbre):
         f = fonction(n)
-        if isinstance(n, ast.Dict) and any(cle(k, f) in REGISTRES for k in n.keys):
+        if isinstance(n, ast.Dict) and any(cle(k, f) in registres for k in n.keys):
             acces[f, ast.unparse(n)] += 1
         if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) and n.func.id == 'dict':
-            if any(k.arg in REGISTRES for k in n.keywords):
+            if any(k.arg in registres for k in n.keywords):
                 acces[f, ast.unparse(n)] += 1
         if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute):
-            if n.func.attr in ('pop', '__setitem__', '__delitem__') and n.args and cle(n.args[0], f) in REGISTRES:
+            if n.func.attr in ('pop', '__setitem__', '__delitem__') and n.args and cle(n.args[0], f) in registres:
                 acces[f, ast.unparse(n)] += 1
             if n.func.attr == 'update':
                 valeurs = [k.arg for k in n.keywords]
                 for a in [*n.args, *(k.value for k in n.keywords if k.arg is None)]:
                     if isinstance(a, ast.Dict):
                         valeurs.extend(cle(k, f) for k in a.keys)
-                if any(v in REGISTRES for v in valeurs):
+                if any(v in registres for v in valeurs):
                     acces[f, ast.unparse(n)] += 1
     return acces
 

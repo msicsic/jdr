@@ -41,7 +41,7 @@ moins (``INCONNU``) ; s'il est prudent (``prudent`` : sa crainte contre son cour
 from . import memoire
 import re
 
-from .esprits import RECENT, croire, esprit, lire, memoriser
+from .esprits import RECENT, croire, lire, memoriser
 
 INCONNUE, PRETENDUE, RECONNUE, SUSPECTE = "inconnue", "pretendue", "reconnue", "suspecte"
 VOIX_MAX = 24          # voix inconnues retenues ; au-delà, la plus anciennement entendue s'oublie
@@ -56,14 +56,13 @@ OPTIONNELS = {"appelee"}   # le nom qu'une autre voix lui a donné en s'adressan
 # --- Ce que chacun connaît -----------------------------------------------------------------
 
 def _connues(monde, qui):
-    return monde.data.get("voix_connues", []) if qui == "joueur" else lire(monde, qui)["voix"]
+    """Copie des voix reliées à leur porteur par cet observateur."""
+    return memoire.voix_connues(monde, qui)
 
 
-def entendues(monde, qui, ecrire=False):
-    """Les voix inconnues qu'il a entendues : {signature: {minute, se_dit, mefiance, n}}."""
-    if qui == "joueur":
-        return monde.data.setdefault("voix_entendues", {}) if ecrire else monde.data.get("voix_entendues", {})
-    return esprit(monde, qui)["voix_entendues"] if ecrire else lire(monde, qui)["voix_entendues"]
+def entendues(monde, qui):
+    """Copie des signatures entendues et de leurs prétentions, dates et rangs."""
+    return memoire.voix_entendues(monde, qui)
 
 
 def connait(monde, qui, autre):
@@ -151,18 +150,8 @@ def auteur_dit(source):
 # --- Ce qu'on apprend en entendant ------------------------------------------------------------
 
 def retenir(monde, qui, signature, minute=None):
-    """Il retient une voix inconnue entendue à ``minute`` (maintenant par défaut) ; renvoie ce qu'il
-    en retient."""
-    minute = monde.data["minutes"] if minute is None else minute
-    voix = entendues(monde, qui, ecrire=True)
-    entree = voix.get(signature)
-    if entree is None:
-        entree = voix[signature] = {"minute": minute, "se_dit": None, "mefiance": False,
-                                    "n": 1 + max((e["n"] for e in voix.values()), default=0)}
-        for vieille in sorted(voix, key=lambda s: (voix[s]["minute"], voix[s]["n"]))[:max(0, len(voix) - VOIX_MAX)]:
-            del voix[vieille]
-    entree["minute"] = max(entree["minute"], minute)
-    return entree
+    """Retient/rafraîchit une audition ; le retour est une copie de l'entrée."""
+    return memoire.retenir_voix(monde, qui, signature, minute)
 
 
 def nommer(monde, qui, signature, nom):
@@ -178,11 +167,7 @@ def nommer(monde, qui, signature, nom):
         return nom == signature and apprendre_nom(monde, qui, signature)
     if connait(monde, qui, nom):
         return False
-    entree = retenir(monde, qui, signature)
-    if entree["se_dit"] or entree["mefiance"] or entree.get("appelee") == nom:
-        return False
-    entree["appelee"] = nom
-    return True
+    return memoire.retenir_appellation_vocale(monde, qui, signature, nom)
 
 
 CITE = re.compile(r"«\s*(.+?)\s*»")
@@ -248,20 +233,13 @@ def lier(monde, auditeur, parole, recentes):
 
 
 def retenir_echange(monde, id, parole):
-    """Un PNJ garde en tête la parole nette qu'il vient de saisir, le temps d'un échange
-    (``ECHANGE``) : c'est par elle qu'il reliera les voix qui suivent (``lier``). Renvoie celles
-    d'avant, encore de l'échange."""
-    e = esprit(monde, id)
-    recentes = [b for b in e["echange"] if 0 <= parole["instant"] - b["instant"] <= ECHANGE]
-    e["echange"] = [*recentes, parole][-ECHANGE_MAX:]
-    return recentes
+    """Retient une parole nette ; copie des précédentes du même échange."""
+    return memoire.retenir_echange(monde, id, parole)
 
 
 def verifier_echange(echange):
-    assert isinstance(echange, list) and len(echange) <= ECHANGE_MAX and all(
-        isinstance(b, dict) and set(b) == {"instant", "auteur", "a", "noms"} and type(b["instant"]) is int
-        and isinstance(b["auteur"], str) and isinstance(b["a"], list) and isinstance(b["noms"], list)
-        and all(isinstance(x, str) for x in [*b["a"], *b["noms"]]) for b in echange), "Échange retenu invalide"
+    """Façade de la porte mémoire ; aucune référence au stock."""
+    return memoire.verifier_echange(echange)
 
 
 def _clarte(monde, id):
@@ -304,36 +282,8 @@ def entendre(monde, auditeur, locuteur, salle, case=None):
 
 
 def connaitre(monde, qui, autre):
-    """``qui`` connaît désormais la voix d'``autre`` : il l'a entendu parler en sachant que c'était
-    lui. Il la compare à ce que les voix inconnues lui ont dit : la voix d'``autre`` s'était dite
-    quelqu'un d'autre, ou il s'en méfiait, il se méfie désormais d'``autre`` ; elle s'était
-    dite ``autre``, c'était bien lui, ce qu'il en croyait sur sa parole devient un constat ; une
-    autre voix s'était dite ``autre``, il sait qu'on lui a menti, sans savoir qui."""
-    connues = monde.data.setdefault("voix_connues", []) if qui == "joueur" else esprit(monde, qui)["voix"]
-    if autre == qui or autre in connues:
-        return
-    connues.append(autre)
-    voix = entendues(monde, qui, ecrire=True)
-    entree = voix.pop(autre, None)
-    if entree and entree['se_dit'] not in (None,autre) and not entree['mefiance'] \
-            and not connait_nom(monde,qui,autre) and not connait_nom(monde,qui,entree['se_dit']):
-        voix[autre] = entree  # Reconnaître le corps ne réfute pas un nom qu'on n'a pas encore relié.
-        entree = None
-    if entree and not entree["mefiance"] and autre in (entree["se_dit"], entree.get("appelee")):
-        apprendre_nom(monde, qui, autre)
-    if qui == "joueur":
-        return  # Le joueur juge lui-même : ce qu'il entend s'affiche (``nom_pour_joueur``).
-    if entree and (entree["mefiance"] or entree["se_dit"] not in (None, autre)):
-        memoriser(monde, qui, {"type": "imposture", "locuteur": autre, "se_disait": entree["se_dit"]})
-    elif entree and entree["se_dit"] == autre:
-        memoire.reconnaitre_localisation_vocale(monde, qui, autre)
-    if entree and not entree["mefiance"] and autre in (entree["se_dit"], entree.get("appelee")):
-        apprendre_nom(monde, qui, autre)  # C'était bien lui : son nom ne s'oublie pas avec la voix inconnue.
-    for signature, x in voix.items():
-        if connait_nom(monde,qui,autre) and x["se_dit"] == autre and not x["mefiance"]:
-            x["mefiance"] = True
-            memoriser(monde, qui, {"type": "imposture", "se_disait": autre})
-            memoire.reconnaitre_localisation_vocale(monde, qui, autre, imposture=True)
+    """Relie la voix à son porteur et révise les prétentions retenues."""
+    return memoire.reconnaitre_voix(monde, qui, autre)
 
 
 def se_mefier(monde, auditeur, locuteur, source="entendu", cause="mensonge_dementi"):
@@ -344,7 +294,7 @@ def se_mefier(monde, auditeur, locuteur, source="entendu", cause="mensonge_demen
     if identifie(monde, auditeur, locuteur):
         pass  # Le souvenir nominatif est inscrit par l'appelant, une seule fois.
     else:
-        retenir(monde, auditeur, locuteur)["mefiance"] = True
+        memoire.retenir_mefiance_vocale(monde, auditeur, locuteur)
 
 
 def se_nommer(monde, auditeur, locuteur, nom):
@@ -356,10 +306,10 @@ def se_nommer(monde, auditeur, locuteur, nom):
             if nom == locuteur:
                 apprendre_nom(monde, "joueur", locuteur)
             elif not connait_nom(monde, auditeur, locuteur) and not connait_nom(monde, auditeur, nom):
-                retenir(monde, auditeur, locuteur)['se_dit'] = nom
+                memoire.retenir_pretention_vocale(monde, auditeur, locuteur, nom)
                 return 'crue'
             return "connu" if nom == locuteur else "demasque"
-        retenir(monde, "joueur", locuteur)["se_dit"] = nom
+        memoire.retenir_pretention_vocale(monde, "joueur", locuteur, nom)
         return "crue"
     if identifie(monde, auditeur, locuteur):
         if nom == locuteur:
@@ -367,7 +317,7 @@ def se_nommer(monde, auditeur, locuteur, nom):
             return "connu"
         if (not connait_nom(monde, auditeur, locuteur) and not connait_nom(monde, auditeur, nom)
                 and nom != auditeur):
-            retenir(monde, auditeur, locuteur)['se_dit'] = nom
+            memoire.retenir_pretention_vocale(monde, auditeur, locuteur, nom)
             salle, case = _place(monde, locuteur)
             _situer(monde, auditeur, nom, salle, list(case) if case is not None else None)
             return 'crue'
@@ -378,16 +328,15 @@ def se_nommer(monde, auditeur, locuteur, nom):
         return "demasque"
     if nom == auditeur or connait(monde, auditeur, nom):
         # Il connaît la vraie voix de celui qu'elle prétend être, ou c'est lui qu'elle prétend être.
-        entree = retenir(monde, auditeur, locuteur)
-        entree.update(se_dit=nom, mefiance=True)
+        memoire.retenir_pretention_vocale(monde, auditeur, locuteur, nom, mefiance=True)
         memoriser(monde, auditeur, {"type": "imposture", "se_disait": nom})
         return "demasque"
     salle, case = _place(monde, locuteur)
-    entree = retenir(monde, auditeur, locuteur)
+    retenir(monde, auditeur, locuteur)
     if _vu_ailleurs(monde, auditeur, nom, salle):
         memoriser(monde, auditeur, {"type": "parole_doutee", "sujet": nom, "attribut": "nom"})
         return "doute"
-    entree["se_dit"] = nom
+    memoire.retenir_pretention_vocale(monde, auditeur, locuteur, nom)
     _situer(monde, auditeur, nom, salle, list(case) if case is not None else None)
     return "crue"
 
@@ -438,7 +387,7 @@ def designation(monde, id):
         return f"voix_reconnue_{numero}"
     if identifie(monde, "joueur", id):
         return id
-    entree = monde.data.get("voix_entendues", {}).get(id)
+    entree = memoire.voix_entendues(monde, "joueur").get(id)
     if entree:
         return f"{PREFIXE}{entree['n']}"
     return id
@@ -448,7 +397,7 @@ def porteur_du_nom(monde, nom, presents):
     """Celui que le joueur nomme ``nom`` parmi ``presents`` (des identifiants réels) quand il ne le sait
     là que par sa voix : la voix qui s'est dite ainsi, ou qu'on a appelée ainsi devant lui. Le nom
     désigne cette voix, quelle qu'elle soit (une imposture comprise) ; None si aucune ou plusieurs."""
-    voix = monde.data.get("voix_entendues", {})
+    voix = memoire.voix_entendues(monde, "joueur")
     trouves = [x for x in presents if designation(monde, x) != x and nom in (voix.get(x, {}).get("se_dit"),
                                                                             voix.get(x, {}).get("appelee"))]
     return trouves[0] if len(trouves) == 1 else None
@@ -478,7 +427,7 @@ def reel(monde, designation_):
         return None
     if not isinstance(designation_, str) or not designation_.startswith(PREFIXE):
         return designation_
-    return next((s for s, e in monde.data.get("voix_entendues", {}).items()
+    return next((s for s, e in memoire.voix_entendues(monde, "joueur").items()
                  if f"{PREFIXE}{e['n']}" == designation_ and s in monde.objets), None)
 
 
@@ -499,7 +448,7 @@ def nom_pour_joueur(monde, id, court=True):
             return 'une personne inconnue'
         nom = monde.joueur["nom"] if id == "joueur" else monde.objets[id]["nom"]
         return nom.split(",")[0] if court else nom
-    entree = monde.data.get("voix_entendues", {}).get(id) or {}
+    entree = memoire.voix_entendues(monde, "joueur").get(id) or {}
     nom, appelee = entree.get("se_dit"), not entree.get("se_dit") and entree.get("appelee")
     nom = nom or appelee
     if not nom or nom not in monde.objets and nom != "joueur":
@@ -526,9 +475,5 @@ def personne_pour_joueur(monde, id, court=False):
 
 
 def verifier_entrees(voix):
-    assert isinstance(voix, dict) and all(
-        isinstance(s, str) and isinstance(e, dict) and CHAMPS_VOIX <= set(e) <= CHAMPS_VOIX | OPTIONNELS
-        and type(e["minute"]) is int and (e["se_dit"] is None or isinstance(e["se_dit"], str))
-        and isinstance(e.get("appelee", ""), str) and type(e["mefiance"]) is bool
-        and type(e["n"]) is int and e["n"] >= 1 for s, e in voix.items()), "Voix entendues invalides"
-    assert len({e["n"] for e in voix.values()}) == len(voix), "Voix entendues invalides"
+    """Façade de la porte mémoire ; aucune référence au stock."""
+    return memoire.verifier_entrees(voix)

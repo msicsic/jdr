@@ -36,7 +36,7 @@ def mondes():
     from tools.banc_parties import preparer
     from donjon.banc_pnj import creer
     from donjon.noms import apprendre
-    from donjon.voix import retenir
+    from donjon import memoire
 
     with tempfile.TemporaryDirectory() as dossier:
         sauvegarde = Path(dossier) / "partie.json"
@@ -64,7 +64,10 @@ def mondes():
             yield f"construit/defunt-{connu}", monde
         for appellation in ("se_dit", "appelee"):
             monde = creer("relais", 1985, "fixe")
-            retenir(monde, "joueur", "ilse")[appellation] = "aubin"
+            if appellation == 'se_dit':
+                memoire.retenir_pretention_vocale(monde, "joueur", "ilse", "aubin")
+            else:
+                memoire.retenir_appellation_vocale(monde, "joueur", "ilse", "aubin")
             yield f"construit/voix-{appellation}", monde
         monde = creer("relais", 1985, "fixe")
         monde.objets["briquet"]["lieu"] = "aubin"

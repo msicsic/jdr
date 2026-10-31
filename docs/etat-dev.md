@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-s1j-voix` (146cb136) : lot 408, S1j identité vocale par des vues sourcées. Détail dans l'historique.
 - `codex-s1j-paroles-voix` (09795acb) : lot 406, S1j paroles, audiences et savoir initial par des vues sourcées. Détail dans l'historique.
 - `codex-suite-c562aa21` (f8c40269) : lot 403, rouges nouveaux de la suite c562aa21. Détail dans l'historique.
 - `codex-a2-passage` (a4c5ece4) : lot 381, A2 famille passage. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1f-localisation` (f7ec584b) : lot 397, S1f localisation crue et preuves de possession par une seule interface. Détail dans l'historique.
 - `codex-ut-social-comptes` (628d5da6) : lot 396, U-T social comptes. Détail dans l'historique.
 - `codex-s2-conception` (00b3910d) : lot 398, conception de S2. Détail dans l'historique.
-- `codex-avis-redits-crue` (c090475f) : lot 395, l'avis redit de Brune en crue 2024. Détail dans l'historique.
 
 ## Lots non fusionnés
 
