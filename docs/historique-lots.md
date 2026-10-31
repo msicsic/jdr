@@ -6,6 +6,14 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-scenes-connues` — lot 392, base `integration` `ed5d9765` : prémisses de connaissance explicites,
+  sans code du jeu ni scénario modifié ; salle/coffre et deux mandats avec contre-épreuves rechargées.
+  Deux hashes actualisés en conservant exactement les savoirs du 365 ; cinq autres inchangés.
+  Vérification finale : 47/47, cinq fichiers, zéro échec/erreur/saut (1 506,952 s), code `d02624a0`.
+  Validé, branche poussée ; `fin-verification.json` confirme le succès, aucun calcul restant.
+  [Rapport 392](taches/rapport-codex-392-scenes-connues.md). Aucun Luna ni suite complète.
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 392, Q2 du 390, tests seulement : connaissances de prémisse déclarées explicitement depuis le catalogue connu (365), contre-épreuves après recharge ; aucun code du jeu ni scénario modifié. 47/47 tests.
+
 - `codex-position-hypothese` — lot 374 livré, moteur `66d3efe8`, base `3999bb3a` fusionnée dans `b3233153`, PC fixe.
   Position datée 15/60/120 min ; inspection/appel/question consomment la piste, y compris pour un contact requis ; seuls de nouveaux faits rouvrent.
   Aubin crue 42 : 24→54→24 passages en 1 h ; trois retours initiaux corrigés/attribués, seul signal strict final Lucien auberge 7 justifié.

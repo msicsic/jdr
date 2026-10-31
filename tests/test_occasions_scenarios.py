@@ -63,10 +63,15 @@ class OccasionsScenariosTests(unittest.TestCase):
         # Empreintes JSON avant construction de Monde : base 23aba63 ; pour
         # le hameau, plus le statut/trois ascendants 302 et l'agenda 306.
         # Ces données restent présentes après l'inverse des seules occasions.
+        # Seul delta depuis 2d696f65 (365/fdbc6ed0), conservé dans le hash :
+        # relais.connus : [] -> ['cloche'] ; auberge.connus : [] ->
+        # ['atre', 'coffre_marchand', 'lits_dortoir']. Aucun champ exclu.
+        savoirs_365 = {'relais': ['cloche'],
+                      'auberge': ['atre', 'coffre_marchand', 'lits_dortoir']}
         attendus = {
-            'relais': '23ba952f562f9bf0de5a3cfebc976443644e02193c31b0c2130d7193c837cb0c',
+            'relais': '4a62a5f2b3620445afd5ff1366daa0b582932b32ecd609ac625ced8eddd0b647',
             'mine': 'cb52faa7ba7241d4d145b1bd0f5148b777147b4798c91281cf9e5aae44b115c7',
-            'auberge': '848ac337dd2990a94641c69f77f8ac9f27d033124c39033b88563b691327facb',
+            'auberge': '7b2f89475051e169c8d1ef8d2f6aea78d27a1e0f78b0ebc70d18d62a2a0182d0',
             'crue': '6ff6d9e7a1ac1ee934470bf20d7bbc9c648da5decdecb2dfcf58110c1ed63a89',
             'crue_hameau': '85955d0edd5cf76a223ef56ddde5103d65bde1eb75f367d599d3a70440c62f10',
             'rixe': '711c3f594711e036b0e60630489d58866708ca34da70913146bc15f0618efc9e',
@@ -75,6 +80,7 @@ class OccasionsScenariosTests(unittest.TestCase):
         for nom, attendu in attendus.items():
             with self.subTest(scenario=nom):
                 d = donnees(nom)
+                self.assertEqual(d['connus'], savoirs_365.get(nom, []))
                 contenu = json.dumps(d, sort_keys=True, ensure_ascii=False)
                 self.assertEqual(hashlib.sha256(contenu.encode()).hexdigest(), attendu)
                 if nom == 'crue_hameau':

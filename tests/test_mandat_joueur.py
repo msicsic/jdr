@@ -282,6 +282,41 @@ class MandatJoueurTests(unittest.TestCase):
         from tools.banc_parties import resume_etat
         self.assertEqual(resume_etat(m)['charges_joueur'][-1]['jugements'][-1]['issue'], 'accepte')
 
+    def test_references_du_banc_connues_explicitement_et_refusees_sans_souvenir(self):
+        from tests.test_parole_corrections import banc
+        for reference, contenu in (
+            ('brasero', {'type': 'mandat', 'sorte': 'informer', 'qui': ['brune'], 'fait': {
+                'type': 'affirmation', 'sujet': 'brasero', 'attribut': 'lieu', 'valeur': 'antichambre'}}),
+            ('echoppe', {'type': 'mandat', 'sorte': 'amener', 'qui': ['brune'], 'lieu': 'echoppe'}),
+        ):
+            with self.subTest(reference=reference):
+                m = banc('mandat-joueur')
+                self.assertIn(reference, m.data['connus'])
+                m.data['connus'].remove(reference)
+                m = self.persiste(m)
+                self.assertFalse(paroles._connu_du_joueur(m, reference))
+                self.assertIsNone(paroles.resoudre(m, reference))
+                avant = copy.deepcopy(m.data)
+                with self.assertRaises(ErreurMonde) as refus:
+                    self.dire(m, contenu)
+                self.assertTrue(refus.exception.attendu)
+                self.assertEqual(m.data, avant)
+                self.assertFalse(agendas.projets(m, 'joueur'))
+                m = self.persiste(m)
+                # Un souvenir donne le droit de désigner, sans établir ni
+                # la position du bien ni la réussite de la charge.
+                m.data['connus'].append(reference)
+                m = self.persiste(m)
+                self.assertEqual(paroles.resoudre(m, reference), reference)
+                objets = copy.deepcopy(m.objets)
+                n, r = self.dire(m, contenu)
+                self.assertTrue(agendas.projets(n, 'joueur'))
+                self.assertIn('charge', str(r['faits']))
+                self.assertEqual(n.objets[reference] if reference in n.objets else n.data['salles'][reference],
+                                 objets[reference] if reference in objets else m.data['salles'][reference])
+                n = self.persiste(n)
+                self.assertEqual(paroles.resoudre(n, reference), reference)
+
     def test_fait_confie_distinct_de_l_affirmation_directe_apres_recharge(self):
         from tests.test_repli_et_appel import jouer
         for sujet in ('brasero', 'fanal'):
