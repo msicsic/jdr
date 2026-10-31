@@ -6,6 +6,15 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-g20-repense` — lot 436, conception seule, base `integration b21d4656`, fusionnée.
+  La garde de références ne garantit pas les attitudes implicites ; recommandation : composition moteur,
+  ambiance par répertoire validé, décision utilisateur nécessaire avant réalisation (G20 reste ouvert).
+  Archives : 17/48 réponses avec attitude ; garde conservatrice, 11/11 bloquées parmi 38 réponses avec appels,
+  mais 21 sans attitude rejetées ; quatre attitudes anonymes construites passent. Cinq tests directs verts.
+  Aucun code du jeu modifié ni appel modèle ; bruts 329 absents, rapport exploité sans recomptage.
+  [Rapport et brief](taches/rapport-codex-436-g20-repense.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. Rapport seulement. 48 réponses de 12 fils : 17 avec une attitude (11/38 avec appels). Trois voies : A direct + garde des références (32 rejets sur 38 réponses assemblées, manque les attitudes anonymes), B sélection typée par Luna (0 sélection sur 16), C composition moteur et ambiance par répertoire environnemental validé (garantie structurelle, perte de la prose cosmétique libre). Recommandation de l'agent : C ; décision de l'utilisateur demandée.
+
 - **Vérification d'intégration 4539dd68**, lot **402**, branche `codex-verif-integ-4`, fusionnée (rapport seulement) : 49 archives, 48 nuits achevées ; intégration non validée pour avancer `main`. Arrêt `VERIFIER` auberge 42 à 360→365 (Lucien `garder:chambre_chaude`, reprise d'une recherche bornée au coût 82,72 contre recalcul `None`) ; 29 bornes sans plan quand le contrôle en trouve. Gorm propose 14 fois à Maël et 11 fois à Sève d'évacuer Ilse (hameau 1985, 129–143, `impossible`). Frappes 15 → 50 (hameau 2024 35 contre 0). Attente et noir en forte baisse, S/F/D en hausse ; 219 à expliquer 167 → 475. Zéro violation, mort ou usurpation ; 49 états rechargés stables. Bruts `C:/Users/msics/donjon/artifacts/verif-integ-4539dd68/` ; [rapport 402](taches/rapport-codex-402-verif-integ.md).
   Fusionné sur l'intégration : rapport seulement. Petits lots ouverts : reprise des recherches bornées (437), réessai d'un mandat refusé (438), coups du hameau 2024 (439).
 

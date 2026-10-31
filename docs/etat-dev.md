@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-g20-repense` (4acf945a) : lot 436, G20 repensé (conception). Détail dans l'historique.
 - `codex-verif-integ-4` (da693b1e) : lot 402, vérification d’intégration moteur sur 4539dd68 (non validée pour `main`). Détail dans l'historique.
 - `codex-k2-assistance-luna` (d3b41a47) : lot 434, K2 assistance de Luna à la négociation. Détail dans l'historique.
 - `codex-verification-contact` (1c8d66ea) : lot 419, le contact prépare le moyen et son but. Détail dans l'historique.
@@ -39,8 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-g14-ciblage-ambiance` (709f9f85) : lot 427, G14 ciblage d'un élément d'ambiance. Détail dans l'historique.
 - `codex-k0-candidats-contrat` (69080b86) : lot 426, K0 candidats de contrat déterministes. Détail dans l'historique.
 - `codex-decoupe-combustible` (5af58c58) : lot 425, découper un combustible compté. Détail dans l'historique.
-- `codex-empreintes-374` (dced64c0) : lot 424, empreintes changées par le lot 374 (famille E du 414). Détail dans l'historique.
-- `codex-piece-de-lot-libre` (afb76e9a) : lot 423, une pièce de lot par la saisie libre. Détail dans l'historique.
 
 ## Lots non fusionnés
 
