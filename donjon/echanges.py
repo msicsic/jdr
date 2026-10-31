@@ -995,6 +995,7 @@ def detacher_part(monde, lot):
     part = copy.deepcopy(o)
     compteur = "portions" if o["type"] == "nourriture" else "charges"
     part.update(id=piece, masse=round(o["masse"] / max(1, o[compteur]), 3))
+    part['lot_origine'] = lot
     part[compteur] = 1
     o[compteur] -= 1
     o["masse"] = round(o["masse"] - part["masse"], 3)

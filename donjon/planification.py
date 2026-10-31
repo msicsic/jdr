@@ -3513,6 +3513,32 @@ def proximite(monde, id, sujet, *, portee=None, endurer=None):
 
 
 def _pulsion(monde, id, condition, tache, entretenir=None, *, duree=None):
+    """Le but garde son identité ; une part déjà reçue reste son moyen.
+
+    Seules les parts portées sont lues : aucune origine d'un bien caché
+    n'est employée pour localiser une personne ou projeter une possession.
+    """
+    objet = condition.get('objet')
+    conditions = [condition]
+    if objet:
+        from .matiere import issu_du_lot
+        conditions += [{**condition, 'objet': p} for p in sorted(monde.objets)
+                       if p != objet and porte_par(monde, p, id) and issu_du_lot(monde, p, objet)]
+    candidats = []
+    for c in conditions:
+        mesure = [] if duree is not None else None
+        trouve = _pulsion_moyen(monde, id, c, tache, entretenir, duree=mesure)
+        if trouve is not None:
+            candidats.append((trouve, mesure))
+    if not candidats:
+        return None
+    trouve, mesure = min(candidats, key=lambda r: r[0][0])
+    if duree is not None:
+        duree.extend(mesure)
+    return trouve[0], {'type': 'pulsion', **condition}, trouve[2]
+
+
+def _pulsion_moyen(monde, id, condition, tache, entretenir=None, *, duree=None):
     """(coût, but, étapes) de ``planifier_pulsion``, ou None."""
     from .deliberation import salle_crue
     from .echanges import tache as sorte

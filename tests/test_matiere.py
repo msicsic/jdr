@@ -30,6 +30,15 @@ def qualifier(m, id, physique):
 
 
 class DescriptionTests(unittest.TestCase):
+    def test_origine_de_lot_invalide_refusee_a_la_recharge(self):
+        from tests.test_tensions import recharger
+        for origine in ('planches', 'lot_absent'):
+            with self.subTest(origine=origine):
+                m = relais_avec_planches()
+                m.objets['planches']['lot_origine'] = origine
+                with self.assertRaisesRegex(ErreurMonde, 'Origine de lot invalide'):
+                    recharger(m)
+
     def test_les_planches_du_relais_se_decrivent_et_le_restent_apres_rechargement(self):
         m = relais_avec_planches()
         travail, texte, _ = qualifier(m, "planches", planches())
@@ -173,6 +182,7 @@ class LotTests(unittest.TestCase):
         with patch.object(Monde, "d20", return_value=20):
             Moteur(m).executer(plan)
         piece = m.objets["planches_1"]
+        self.assertEqual(piece['lot_origine'], 'planches')
         self.assertEqual((piece["nom"], piece["lieu"], piece["physique"]["pieces"]), ("planche de bac", "joueur", 1))
         self.assertEqual(piece["longueur_cm"], 150)
         lot = m.objets["planches"]
@@ -183,6 +193,7 @@ class LotTests(unittest.TestCase):
             m.sauver(chemin)
             recharge = Monde.charger(chemin)
         self.assertEqual(recharge.objets["planches_1"]["lieu"], "joueur")
+        self.assertEqual(recharge.objets['planches_1']['lot_origine'], 'planches')
         self.assertIn("1,5 m", decrire(recharge, "planches_1", detail=True))
 
     def test_un_objet_seul_ne_se_preleve_pas(self):
