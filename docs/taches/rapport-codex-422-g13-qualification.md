@@ -1,55 +1,58 @@
 # Lot 422 — G13, admission d'une propriété inconnue
 
-31 octobre 2026 — `codex-g13-qualification`, base `origin/integration` / `152a2aa0`.
+31 octobre 2026 — `codex-g13-qualification`, base `origin/integration` / `152a2aa0`,
+code `e6211a98`. **Portage moteur vérifié ; validation Luna partielle.**
 
-**Invariant.** Qualifier complète l'inconnu avant usage, sans remplacer l'établi.
-`matiere.valider` contrôlait la matière, la masse et le nombre de pièces, mais
-laissait `deduire` écraser les mesures partielles et la charge connue.
-La dérivation commune `_grandeurs` sert maintenant au contrôle puis à l'application :
-dimension, rôle ou charge incompatibles sont refusés avec identifiant, champ,
-valeur reçue et valeur acceptée. Une matière jusque-là vide rejoint aussi le
-matériau public, donc l'examen et les morceaux hérités. Masse et état restent acquis.
+**Invariant et changement.** Qualifier complète l'inconnu avant usage, sans remplacer
+l'établi. `matiere.valider` contrôlait matière, masse et pièces, mais laissait
+`deduire` écraser les mesures partielles et la charge connue. `_grandeurs` fournit
+la même dérivation au contrôle et à l'application : dimension, rôle ou charge
+incompatibles sont refusés avec identifiant, champ, reçu et accepté. Une matière
+jusque-là vide rejoint le matériau public et les morceaux hérités.
+`coherence_physique.propositions` transmet aussi mesures, comptes et grandeurs
+établies à la revue d'admission. Dans `mj`, un autre obstacle au réexamen conserve
+la qualification admise et affiche le refus déterministe. Le contrat existant de
+`faits_locaux` et des transactions assure enregistrement, sauvegarde et reprise.
+Aucun audit retiré, prompt ajouté ni registre d'esprit créé.
 
-`coherence_physique.propositions` transmet les mesures partielles, les comptes
-et les grandeurs connues à la revue ciblée d'admission. Le moteur garde ses
-contrôles avant cette revue. Dans `mj`, si le réexamen rencontre un autre obstacle,
-son refus déterministe accompagne désormais la transaction de qualification admise ;
-il n'est plus remplacé par la seule description de l'objet. Le contrat existant de
-`faits_locaux` et des transactions assure enregistrement, sauvegarde, reprise et
-héritage aux pièces. Aucun audit retiré, prompt ajouté ni registre d'esprit créé.
+**Tests.** Huit fichiers, **95 tests verts**, deux travailleurs au plus à priorité
+réduite ; dernières exécutions dans `tests-voisins.json`, `tests-final.json` et
+`tests-g13-final.json` (76,89 s cumulées par fichier). Planche qualifiée puis découpée ;
+ficelle qualifiée puis nouée en assemblage, suite jointe ou réexamen ; nouvel usage
+après recharge sans qualification supplémentaire ; monde et rendu après laps
+entier/découpé. Cas réel du Relais : qualification, prélèvement et héritage des
+planches. Perche de fer de 200 g et mesures contradictoires refusées avant revue ;
+deux revues négatives interdisent admission et usage. Deux fixtures ont reçu
+`suite: null`, requis depuis A6, sans changer leurs assertions de sécurité :
+`diagnostics-base.log` reproduit leurs échecs sur `152a2aa0`. Les ACL temporaires
+Windows ont nécessité une relance autorisée hors bac à sable. Aucune suite complète.
 
-**Vérification ciblée.** Huit fichiers, **95 tests verts** sur leurs dernières
-exécutions (`tests-voisins.json`, `tests-final.json`, `tests-g13-final.json`), deux
-travailleurs au plus à priorité réduite. Planche de bois qualifiée puis découpée ; ficelle de fibres qualifiée
-puis nouée en assemblage, avec suite jointe ou réexamen ; nouvel usage après
-recharge sans qualification supplémentaire ; monde et rendu stables après laps
-entier/découpé. Planches réelles du Relais : admission puis prélèvement et héritage.
-Perche de fer de 200 g et mesures contradictoires : refus local avant revue,
-monde conservé et examen rendu après recharge.
-Deux revues négatives simulées interdisent admission et usage. Un obstacle d'outil
-après admission conserve le fait et affiche le refus moteur.
+**Empreintes.** Relais 2 h, graines 1985/7/42/2024 : chroniques, mesures et états
+finaux complets **identiques** à `152a2aa0`, aucun plantage, 146,94 s. Référence
+calculée puis cachée une fois ; aucun gain CPU revendiqué. L'atelier n'a pas de banc PNJ.
 
-Deux fixtures voisines ont reçu `suite: null`, requis par
-`compilation.schema_reponse` depuis A6 ; aucune assertion de sécurité modifiée.
-`diagnostics-base.py` / `.log` reproduisent leurs deux échecs sur les sources
-exactes de `152a2aa0`. Les premiers lancements ont rencontré les ACL des dossiers
-temporaires Windows ; relance autorisée hors bac à sable.
+**Luna : une passe sur copies**, coffre principal, `gpt-6-luna`, quatre scripts :
+**54 appels / 19 tours MJ**, soit **2,84 appels et 12,56 s/tour** ; 282 s écoulées.
+Aucun repli, erreur technique ou de recharge ; trois tours avec refus.
+`materiaux` : planches admises en **7 appels / 27,04 s**, examen suivant sans modèle.
+`lots` : admission en **6 appels / 22,26 s**, tentative en **11 appels / 44,26 s**
+cumulés. Chaque admission passe une seule revue physique ; la qualification répétée
+au réexamen est refusée localement. Mais la tentative prend **le tas entier** pour
+« une planche » : le coût jusqu'au prélèvement fidèle n'est donc pas démontré.
+La correction `prelever` a été rejetée par la reprise qui conservait `deplacer`,
+puis une revue a admis le déplacement du lot. `assemblage` réussit en
+**2 appels / 13,57 s**, puis découpe la ficelle en **2 / 10,88 s** ; les propriétés
+étaient déjà fournies par le scénario. `atelier` n'admet aucune qualification
+physique. La longueur de la torche est refusée par le garde de portée au motif de
+perception requise ; l'examen suivant n'établit aucune longueur. La qualification
+utile générale par Luna n'est donc pas démontrée. Aucun second essai.
 
-**Empreintes et Luna.** Relais 2 h, graines 1985/7/42/2024 : chroniques, mesures
-et états finaux complets **identiques** à `152a2aa0` ; 146,94 s, aucun plantage.
-Référence calculée puis cachée une seule fois ; aucun gain CPU revendiqué.
-L'atelier n'a pas de scénario PNJ. Une seule passe `gpt-6-luna` sur copies
-en cours : `materiaux`, `atelier`, `assemblage`,
-`lots`, coffre principal via `SEUIL_AUTH`. Commandes exactes dans `commandes.json`.
-Aucune suite complète lancée.
+**Limites.** La plausibilité non calculable reste sémantique. La découpe des planches
+combustibles du Relais échoue déjà sur la base : le morceau hérite de l'usage sans
+compteur (`Combustible invalide`, `diagnostics-base.log`). Ce partage de ressource
+reste à corriger dans un lot dédié ; la découpe vérifiée ici porte sur une planche
+ordinaire à l'atelier. Les limites de portée et de fidélité Luna restent ouvertes.
 
-**Limites.** La plausibilité d'une propriété non calculable reste une revue
-sémantique, sans garantie générale sur tous les implicites. La découpe des planches
-combustibles du Relais échoue déjà sur la base : le morceau hérite de l'usage
-combustible sans son compteur (`Combustible invalide`, `diagnostics-base.log`).
-Ce défaut de partage d'une ressource combustible reste à traiter dans un lot dédié ;
-la découpe réussie vérifiée ici porte sur une planche ordinaire à l'atelier.
-La qualification générale ne résout pas ce défaut d'usage.
-
-**Bruts.** `C:/Users/msics/donjon/artifacts/g13-qualification-422/` ;
-fichier de fin des deux calculs : `fin.json`.
+**Bruts.** `C:/Users/msics/donjon/artifacts/g13-qualification-422/` : commandes
+exactes, tests, diagnostics de base, empreintes, quatre fils Luna, `mesures.json`
+et `conclusion-luna.json`. `fin.json` : deux codes zéro ; calculs du lot terminés.

@@ -46,11 +46,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-g13-qualification` — lot 422, base `origin/integration` / `152a2aa0` :
   admission physique sans écraser mesures, rôle ni charge établis ; reprise avec refus moteur conservé.
   Huit fichiers ciblés : 95 tests verts ; monde et rendu après recharge et laps découpé.
-  Empreintes Relais 2 h × 4 graines identiques à la base ; Luna ciblée une passe sur copies en cours ; bruts `artifacts/g13-qualification-422/` du dépôt principal.
-  Limite distincte reproduite sur la base : découpe des planches combustibles invalide (compteur absent du morceau).
+  Empreintes Relais 2 h × 4 graines identiques ; Luna sur copies : 54 appels / 19 tours, 12,56 s/tour, aucune erreur technique/recharge ni repli.
+  Validation Luna partielle : torche non qualifiée ; prise du tas entier pour « une planche ». Découpe combustible invalide déjà sur la base.
+  Calculs terminés ; bruts `artifacts/g13-qualification-422/` du dépôt principal (`conclusion-luna.json`).
   [Rapport 422](taches/rapport-codex-422-g13-qualification.md).
 
-Lots en cours : 422 (G13 qualification), 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 402 (vérification d’intégration moteur) ; 419 (vérification de contact, famille C du 414) ; S1o attend le 419 (aides et gardien) ; famille E (empreintes) après ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
