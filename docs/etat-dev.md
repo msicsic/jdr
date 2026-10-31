@@ -28,6 +28,7 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Dernières fusions
 
+- `codex-piece-de-lot-libre` (afb76e9a) : lot 423, une pièce de lot par la saisie libre. Détail dans l'historique.
 - `codex-g13-qualification` (564fb648) : lot 422, G13 qualifier une propriété inconnue avant usage. Détail dans l'historique.
 - `codex-g12-portee-creation` (7dc862b0) : lot 421, G12 portée d'une création interactive. Détail dans l'historique.
 - `codex-s1n-suivis-relationnels` (36f37037) : lot 420, S1n suivis relationnels par une preuve stable. Détail dans l'historique.
@@ -39,7 +40,6 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 - `codex-s1l-recherche` (296f4abc) : lot 413, S1l recherche d'une personne par l'interface. Détail dans l'historique.
 - `codex-s1k-recours` (f5127a4d) : lot 411, S1k recours par l'interface. Détail dans l'historique.
 - `codex-a3-liaison-transport` (86187c83) : lot 410, A3 liaison du transport. Détail dans l'historique.
-- `codex-s1k-refus-recours` (7da401ec) : lot 409, S1k refus retenus par l'interface. Détail dans l'historique.
 
 ## Lots non fusionnés
 

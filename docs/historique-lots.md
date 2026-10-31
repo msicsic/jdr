@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-piece-de-lot-libre` — lot 423, base `integration 07e270be`, code `ab0f9105`.
+  Contrat commun pièce/lot entier, quantités par étape dans la revue et « Compris » ; reprise bornée à l'opération contestée.
+  **72 tests ciblés verts**, vraie boucle et recharge : planche, bûche, quantité multiple, lot entier et dernière pièce.
+  Avant A4–A6 (`91a58c8f`), Luna proposait `prelever`, sans qualification admise ; verrou A5 confirmé sur la trace du 422.
+  Luna branche : 17 appels/6 tours, aucun repli ni erreur ; **prélèvement non démontré**, mauvais mode au tour de prise.
+  Banc rapide terminé : Relais/auberge 4 h × quatre graines, **8/8 sans plantage**, signaux PNJ non attribués ; aucun calcul restant.
+  Typage libre toujours sémantique ; aucune garantie universelle ni validation Luna de l'invariant complet.
+  [Rapport 423](taches/rapport-codex-423-piece-de-lot-libre.md) ; bruts `C:/Users/msics/donjon/artifacts/piece-de-lot-423/`.
+  Fusionné sur l'intégration : aucun conflit ; aucun fichier de code commun depuis la base. Fusionné sur l'intégration : aucun conflit de code ; intégration inchangée depuis la base. Contrat commun des quantités (contrats_lots) : une demande sur une pièce donne prelever d'une pièce ; A5 laisse corriger l'opération et la quantité qu'un refus de quantité met en cause, sans rouvrir le reste. 72 tests verts, banc 8/8 nuits sans plantage. Limite : prélèvement fidèle par Luna non démontré (la passe a échoué en amont sur la qualification et un enrichissement refusé).
+
 - `codex-g13-qualification` — lot 422, base `origin/integration` / `152a2aa0` :
   admission physique sans écraser mesures, rôle ni charge établis ; reprise avec refus moteur conservé.
   Huit fichiers ciblés : 95 tests verts ; monde et rendu après recharge et laps découpé.

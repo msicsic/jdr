@@ -31,6 +31,34 @@ def expression(maniere, forme=None, bruit=0):
 
 
 class DossierRevueTests(unittest.TestCase):
+    def test_contrat_quantite_partage_et_dossier_independant_du_recit(self):
+        from donjon.contrats_lots import TRANSFERTS, description
+        from donjon.operations import SCHEMA_SEQUENCE
+        from donjon.mj import REGLES_ACTIONS
+        from donjon.consignes import INTERPRETATION
+        from tests.test_matiere import relais_avec_planches, planches, qualifier
+        m, _, _ = qualifier(relais_avec_planches(), "planches", planches())
+        m.objets["planches"]["proprietaire"] = "joueur"
+        avant = copy.deepcopy(m.data)
+        for op, pieces, reste, unite in (("deplacer", 2, 0, "objet"), ("prelever", 1, 1, "part")):
+            with self.subTest(operation=op):
+                plan = Moteur(m).preparer(sequence(etape(op, "planches", "joueur"),
+                                                  justification="Une quantité prétendue sans autorité."))
+                dossier = entree("je prends une pièce du lot", plan, m)
+                s = dossier["plan"]["etapes"][0]["sens_propose"]
+                q = s["quantite_transfert"]
+                self.assertEqual((q["pieces_transferees"], q["pieces_restantes"], q["unite"]),
+                                 (pieces, reste, unite))
+                self.assertEqual(q["nom_piece"], "planche de bac")
+                self.assertIn(TRANSFERTS[op]["sens"], s["contrats"])
+                self.assertEqual(dossier["contrats_canoniques"]["transfert"], TRANSFERTS)
+                q["pieces_transferees"] = 999
+                self.assertEqual(plan.plans[0].quantite_transfert["pieces_transferees"], pieces)
+                self.assertEqual(m.data, avant)
+        self.assertIn(description(), REGLES_ACTIONS)
+        self.assertIn(description(), INTERPRETATION)
+        self.assertIn(description(), str(SCHEMA_SEQUENCE))
+
     def test_proposition_et_effets_distincts_sans_mutation_ni_publication(self):
         for forme in (None, "voix_melodique", "corps_rythmique"):
             with self.subTest(forme=forme):

@@ -11,6 +11,7 @@ from .refus import cibles, inaccessible, portes_avec_usage
 from .contrats_sequence import COMPOSITION, schema_occasion, preparer_occasion, developper_vol
 from .contrats_son import emissions, schemas_emissions
 from .contrats_passage import COTES, schemas as schemas_passages, verifier as verifier_passage
+from .contrats_lots import description as description_transferts, quantite_proposee
 
 
 # Ces actions gardent leurs propres règles ; une séquence les compile comme une action seule.
@@ -40,7 +41,8 @@ SCHEMA_SEQUENCE = {
         "etapes": {"type": "array", "minItems": COMPOSITION["minimum"], "maxItems": COMPOSITION["maximum"], "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "operation": {"type": "string", "enum": list(OPERATIONS)},
+                "operation": {"type": "string", "enum": list(OPERATIONS),
+                              "description": description_transferts()},
                 "cible": {"type": "string"}, "destination": {"type": "string"},
                 "outil": {"type": "string"}, "methode": {"type": "string", "enum": list(METHODES)},
                 "difficulte": {"type": "integer"},
@@ -324,7 +326,9 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                               "puis prelever.")
         if physique["pieces"] < 2:
             raise ErreurMonde(designer(o, debut=True) + " ne forme qu'une pièce.",
-                              f"{cible} est un objet seul : deplacer, pas prelever.")
+                              f"operation : reçu {op!r} pour {cible}, physique.pieces={physique['pieces']} ; "
+                              "accepté : 'deplacer' pour déplacer cette pièce seule.",
+                              champs_corrigeables=("operation",))
         piece_id = id_piece(monde, cible)
         avec_piece = monde.copier()
         prelever_piece(avec_piece, cible, piece_id)
@@ -334,6 +338,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
                 raise ErreurMonde("Séparer une pièce du lot se fait à la main.", "prelever sur place : outil vide, methode simple.")
             p = Plan({"action": "composer", "justification": justification}, monde.data["revision"], "", origine=origine)
             p.effets = [("prelever_piece", cible, piece_id)]
+            p.quantite_transfert = quantite_proposee(e, monde)
             if destination == monde.joueur["salle"]:
                 # Séparer au sol pose la nouvelle pièce à nos pieds, comme tout dépôt.
                 p.effets.append(("transferer", piece_id, destination))
@@ -345,6 +350,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         p = compiler(avec_piece, etape("deplacer", piece_id, destination or "joueur", methode=methode),
                      precedent, justification, origine)
         p.effets = [("prelever_piece", cible, piece_id)] + p.effets
+        p.quantite_transfert = quantite_proposee(e, monde)
         # Un vol manqué vise le lot : la pièce n'en a pas été séparée.
         p.echec = [(a, b, cible if c == piece_id else c) for a, b, c in p.echec]
         p.titre = "Prélever " + designer(avec_piece.objets[piece_id], "indefini") + "."
@@ -361,6 +367,7 @@ def compiler(monde, e, precedent=None, justification="", origine="règles"):
         return compiler(monde, {**e, "operation": "alimenter", "cible": destination,
                                 "destination": "", "outil": cible}, precedent, justification, origine)
     if op == "deplacer":
+        p.quantite_transfert = quantite_proposee(e, monde)
         if outil or methode not in ("simple", "discret"):
             raise ErreurMonde("Déplacer un objet se fait à la main, simplement ou discrètement.",
                               f"deplacer : outil vide, methode simple ou discret (reçu outil « {outil} », methode « {methode} »).")

@@ -85,13 +85,14 @@ def contrats_revue():
     from .contrats_son import emissions, FORMES_SONORES, SON_IMPROVISE
     from .contrats_passage import PASSAGES, DEMANDE
     from .contrats_consultation import CONSULTATIONS
+    from .contrats_lots import TRANSFERTS
     return copy.deepcopy({
         "sequence_attente": {"composition": COMPOSITION, "attentes": ATTENTES,
                              "raccourcis_vol": RACCOURCIS_VOL},
         "expression_son": {"emettre_son": emissions(), "son_improvise": SON_IMPROVISE,
                            "formes_improvisees": FORMES_SONORES},
         "passage": {"operations": PASSAGES, "parole": DEMANDE},
-        "consultation": CONSULTATIONS})
+        "consultation": CONSULTATIONS, "transfert": TRANSFERTS})
 
 INSTRUCTIONS = """Tu fais une contre-revue indépendante de la fidélité d'un plan de jeu.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.

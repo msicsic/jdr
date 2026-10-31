@@ -75,7 +75,9 @@ def _precisions(plan, parametres):
     from .contrats_sequence import precision_publique as sequence
     from .contrats_son import precision_publique as son
     from .contrats_passage import precision_publique as passage
-    return [p for p in (sequence(parametres), son(plan, parametres), passage(parametres)) if p]
+    from .contrats_lots import precision_publique as lot
+    return [p for p in (sequence(parametres), son(plan, parametres), passage(parametres),
+                       lot(plan.quantite_transfert)) if p]
 
 
 def sens_propose(plan, parametres=None):
@@ -86,15 +88,17 @@ def sens_propose(plan, parametres=None):
     Aucun mot de la saisie ne choisit ici un contrat ou une conséquence.
     """
     import copy
-    from . import contrats_sequence, contrats_son, contrats_passage
+    from . import contrats_sequence, contrats_son, contrats_passage, contrats_lots
     p = plan.proposition if parametres is None else parametres
-    contrats = [s for famille in (contrats_sequence, contrats_son, contrats_passage)
+    contrats = [s for famille in (contrats_sequence, contrats_son, contrats_passage, contrats_lots)
                 if (s := famille.sens_propose(p))]
     maniere = {k: copy.deepcopy(p[k]) for k in ("methode", "outil", "intention", "approche") if k in p}
     for branche in ("reussite", "echec"):
         if isinstance(p.get(branche), dict) and "recit" in p[branche]:
             maniere[branche] = p[branche]["recit"]
+    quantite = plan.quantite_transfert
     return {"operation": p.get("operation", p.get("action", "")),
+            **({"quantite_transfert": copy.deepcopy(quantite)} if quantite is not None else {}),
             "parametres": copy.deepcopy({k: v for k, v in p.items()
                                          if k not in ("justification", "etapes")}),
             "contrats": contrats, "maniere_proposee": maniere,
