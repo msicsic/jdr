@@ -44,6 +44,12 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
+- `codex-reprise-bornee` (437), base `integration 693200b4` : reprise exacte contrôlée séparément du témoin uniforme ; complète avec borne admissible de séjour.
+  Cas réel 360 → 365 : neuve = résultat joué, coût 82,7203945 / 285 nœuds ; témoins uniformes plafonnés à 4 000 et 60 000, aucun plan.
+  Deux contre-épreuves vertes ; six fichiers ciblés puis empreintes 2 h auberge/Relais et nuit renforcée auberge 42 sur 8 h en cours, deux travailleurs réduits au plus.
+  Plafonds et décisions inchangés ; résultats finaux à lire dans `artifacts/reprise-bornee-437/FIN.json` du dépôt principal.
+  [Rapport](taches/rapport-codex-437-reprise-bornee.md) ; ni suite complète ni Luna.
+
 Lots en cours : 437 (reprise d’une recherche bornée), 438 (mandat refusé reproposé), 439 (coups du hameau 2024, diagnostic), 436 (G20 repensé, conception), 431 (admission préalable d’une création), 435 (S1o, aides, rendez-vous et contrats) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 

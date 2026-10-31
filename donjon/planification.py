@@ -2491,12 +2491,13 @@ def _egaux(a, b):
 
 def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir, endurer, seul, nom, trouve, borne,
               reprise):
-    """``VERIFIER`` : deux contrôles, chacun avec sa référence.
+    """``VERIFIER`` : reprise exacte, témoin uniforme et restriction d'emplois.
 
     Repris de la mémoire ou du graphe (``reprise``), le résultat doit être exactement celui d'une
-    recherche uniforme refaite de zéro avec les mêmes paramètres (mêmes gestes, même plafond) :
-    même plan, mêmes égalités. Si cette référence atteint son plafond, un autre résultat n'est
-    permis que s'il égale le coût de la complète à ``REFERENCE`` ; il est noté dans ``BORNES``.
+    recherche jouée refaite de zéro avec les mêmes paramètres : même plan, mêmes égalités,
+    même plafond. Le témoin uniforme contrôle séparément les optimisations de parcours.
+    Si ce témoin atteint son plafond, un autre résultat n'est permis que s'il égale le coût
+    de la complète à ``REFERENCE`` ; il est noté dans ``BORNES``.
 
     Cherché parmi ce qu'il vaut la peine de porter (``emplois``), il doit avoir le coût de l'optimum
     d'une recherche complète pour le même but (``emplois`` à None, mêmes gestes propres au but :
@@ -2506,7 +2507,7 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
     restreinte l'atteint, l'écart n'est pas un défaut de la restriction mais une limite de la recherche
     jouée : il est noté (``BORNES``), pas tenu pour faux ;
     si la référence l'atteint, la restreinte doit seulement ne pas coûter plus qu'elle."""
-    def refaire(emplois, borne):
+    def refaire(emplois, borne, *, uniforme=True, borner=False):
         brute = Vue(monde, id)
         # Même photographie du monde : géométrie et tarifs ne dépendent ni du
         # but ni des emplois. Découvertes et graphe de référence restent privés.
@@ -2518,13 +2519,17 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
         brute.motif = v.motif
         brute.desespere = v.desespere
         r = _explorer(brute, depuis or depart(monde, id, brute), but, vises, profondeur, borne, faute, tenir,
-                      differer=False, borner=False, decouvrir_discretion=False)
+                      differer=not uniforme, borner=borner, decouvrir_discretion=not uniforme)
         refait = r[0]
         if endurer is not None and _endure(brute, refait, depuis, endurer):
             refait = None
         return refait, r[1] >= borne
     divergence_bornee = False
     if reprise is not None:
+        if reprise in ("mémoire", "graphe"):
+            neuf, _ = refaire(v.emplois, noeuds, uniforme=False, borner=True)
+            assert neuf == trouve, (
+                f"Recherche de {id} ({nom}, {reprise}, neuve) : {trouve} au lieu de {neuf}")
         refait, refait_borne = refaire(v.emplois, noeuds)
         divergence_bornee = refait != trouve and refait_borne
         assert refait == trouve or divergence_bornee, (
@@ -2535,7 +2540,11 @@ def _verifier(monde, id, v, but, vises, depuis, profondeur, noeuds, faute, tenir
             borne = refait_borne
     if v.emplois is None and not divergence_bornee and reprise != "impossibilité":
         return
-    refait, reference_bornee = refaire(None, REFERENCE)
+    # Le témoin historique ci-dessus reste uniforme. La complète conserve la
+    # borne admissible du séjour : son retrait peut épuiser REFERENCE avant
+    # tout résultat, ce qui ne constitue pas une preuve d'absence de plan.
+    # Aucun report de devis, découverte ou graphe repris dans cette référence.
+    refait, reference_bornee = refaire(None, REFERENCE, borner=True)
     if reprise == "impossibilité":
         assert trouve is None and refait is None, (
             f"Recherche de {id} ({nom}, certificat, complète) : {trouve} au lieu de {refait}")
