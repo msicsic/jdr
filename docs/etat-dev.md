@@ -43,7 +43,14 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
 
 ## Lots non fusionnés
 
-Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels), 401 (plantage du jeu dans raccorder_emissions, banc echanges) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
+- **`codex-crash-raccord` — 401** (base `integration 4c160145`, laptop) : raccord des émissions et audit
+  sur le même découpage que le texte publié ; plus de fusion implicite des répliques avant preuve.
+  Capture réelle `echanges` rejouée dans la boucle de jeu, autre cas sans ponctuation, recharges contrôlées.
+  **63 tests verts**, quatre fichiers ; deux nouveaux tests rouges sur la base. Luna : une passe sur copies,
+  `echanges` et `noms-dialogue`, 24 appels, zéro erreur technique/de recharge ni repli ; tour fautif refusé avant raccord
+  par Luna cette fois, couvert hors ligne. [Rapport](taches/rapport-codex-401-crash-raccord-emissions.md).
+
+Lots en cours : 381 (A2 passage), 399 (rembourser depuis le menu et le terminal), 400 (S1g états matériels) ; suite complète en cours sur `c562aa21`. Suite complète `663d1308` : 3 329 tests, 42 échecs et 7 erreurs. Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Passe Luna d'E6 (2026-10-31, orchestrateur, laptop)
