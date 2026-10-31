@@ -43,12 +43,13 @@ les rouges initiaux sont conservés. L'import direct d'une classe de tests a
 contre la base exacte `40f062d8`, sans exclusion d'état. Référence puis branche,
 cache partagé, deux travailleurs réduits au plus ; aucun temps CPU à comparer
 au cache. Pas de suite complète ni Luna. Le calcul long est détaché, avec
-`C:/Users/msics/donjon/artifacts/s1l-413/fin.json` écrit en dernier.
+`C:/Users/msics/donjon/artifacts/s1l-413/fin-complement.json` écrit en dernier.
 
 **Limites et voisinage.** Contrôle AST syntaxique local, sans preuve de tous les
 flux interprocéduraux Python ; politiques historiques conservées. Aucune
 modification de `mj.py` ou `comprehension.py` (lot 412) ; le lot 402 reste un calcul
-indépendant. L'avance documentaire `origin/integration d54d15ae` est à intégrer.
+indépendant. L'avance documentaire `origin/integration d54d15ae` est intégrée ; seul conflit
+dans `etat-dev`, résolu en conservant le suivi du 414. Le moteur est inchangé.
 Le premier lanceur s'est arrêté avant les empreintes sur son chemin d'import,
 puis sur le module homonyme `tools/tests.py` ; erreurs de lancement conservées,
 aucun rejeu des tests verts ni des captures.

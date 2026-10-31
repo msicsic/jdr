@@ -48,10 +48,10 @@ va dans le rapport du lot, pas ici. N'écris pas dans `historique-lots.md` : le 
   stockage, consommation du 374 et politiques inchangés. Inventaire AST 154 → 60 (schéma + homonymes seuls).
   218 tests distincts sur 17 fichiers validés, six nouveaux verts ; deux captures, état/rendu/scène/paroles et laps entier/découpé.
   Empreintes 2 h × quatre graines × Relais/mine/auberge/crue à vérifier contre la base exacte, deux processus réduits.
-  Fin attendue : `C:/Users/msics/donjon/artifacts/s1l-413/fin.json` ; pas de suite complète ni Luna.
+  Fin attendue : `C:/Users/msics/donjon/artifacts/s1l-413/fin-complement.json` ; pas de suite complète ni Luna.
   Limites : contrôle AST local et politiques historiques. [Rapport](taches/rapport-codex-413-s1l-recherche.md).
 
-Lots en cours : 413 (S1l recherche d'une personne), 412 (A4 dossier de revue), 402 (vérification d'intégration moteur) ; suite `c562aa21` : 37 échecs et 4 erreurs, tous traités (391 à 396, 403) ; suite en cours sur `4539dd68`. Les cinq questions de S0 sont tranchées (voir décisions).
+Lots en cours : 413 (S1l recherche d'une personne), 414 (rouges nouveaux de la suite 4539dd68), 412 (A4 dossier de revue), 402 (vérification d'intégration moteur) ; suite `4539dd68` : 3 427 tests, 31 échecs et 5 erreurs, nouveaux depuis `c562aa21` (lot 414). Les cinq questions de S0 sont tranchées (voir décisions).
 Leurs entrées arrivent ici à leur livraison. 
 
 ## Vérification Luna de l'intégration ca8b8e2 (2026-10-31, orchestrateur, laptop)
