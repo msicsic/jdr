@@ -221,14 +221,15 @@ class LiaisonTransportTests(unittest.TestCase):
         from tests.test_repli_et_appel import jouer
         for creer in (nouveau_defi, nouveau_auberge):
             m = creer(depart='fixe')
-            bon = reponse(proposition('observer'))
-            faux = reponse(sequence(etape('patienter', outil='cle')))
-            r, texte, appels = jouer(m, 'mj Je contemple les environs.', [faux, bon], [])
+            bon = reponse(sequence(etape('emettre_son', 'joueur', methode='sifflement')))
+            faux = copy.deepcopy(bon)
+            faux['proposition']['etapes'][0]['outil'] = 'cle'
+            r, texte, appels = jouer(m, 'mj Je siffle.', [faux, bon], [])
             corrections = [e['retour_forme'] for f, e in appels if 'retour_forme' in e]
             self.assertEqual(len(corrections), 1)
             self.assertIn('outil', corrections[0]['attendu'])
             self.assertIn('cle', corrections[0]['attendu'])
-            temoin, rendu, _ = jouer(m, 'mj Je contemple les environs.', [bon], [])
+            temoin, rendu, _ = jouer(m, 'mj Je siffle.', [bon], [])
             self.assertEqual(r.data, temoin.data)
             self.assertEqual(texte, rendu)
             self.assertEqual(regarder(r), regarder(recharger(r)))

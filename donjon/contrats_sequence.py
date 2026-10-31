@@ -49,7 +49,8 @@ def verifier_champs(p, valeurs, operation):
     for champ, accepte in valeurs.items():
         if p[champ] != accepte:
             raise ErreurMonde("Ces paramètres ne décrivent pas cette attente.",
-                              f"{operation}.{champ} : reçu {p[champ]!r} ; accepté : {accepte!r}.")
+                              f"{operation}.{champ} : reçu {p[champ]!r} ; accepté : {accepte!r}.",
+                              champs_corrigeables=(champ,))
 
 
 def preparer_attente(plan):
@@ -110,4 +111,18 @@ def precision_publique(parametres):
         return ATTENTES["occasion"]["public"]
     if parametres.get("action") == "attendre":
         return ATTENTES["duree" if parametres["cible"] else "bloc"]["public"]
+    return ""
+
+
+def sens_propose(parametres):
+    """Sens du contrat choisi, sans décider de sa fidélité ni de sa faisabilité."""
+    op = parametres.get("operation", parametres.get("action"))
+    if op == "composer":
+        return COMPOSITION["sens"] + " " + COMPOSITION["arret"]
+    if op == "patienter":
+        return ATTENTES["occasion"]["sens"]
+    if op == "attendre":
+        return ATTENTES["duree" if parametres.get("cible") else "bloc"]["sens"]
+    if op == "voler":
+        return RACCOURCIS_VOL.get(parametres.get("methode"), {}).get("sens", "")
     return ""

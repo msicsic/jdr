@@ -65,15 +65,18 @@ def verifier_emission(e):
     contrats = emissions()
     if e["methode"] not in contrats:
         raise RefusDeForme("Cette méthode ne décrit pas une émission sonore.",
-                          f"emettre_son.methode : reçu {e['methode']!r} ; accepté : {', '.join(contrats)}.")
+                          f"emettre_son.methode : reçu {e['methode']!r} ; accepté : {', '.join(contrats)}.",
+                          champs_corrigeables=("methode",))
     for champ, valeur in CHAMPS_EMISSION.items():
         if e[champ] != valeur:
             raise RefusDeForme("Une émission sonore n'impose ni destination, ni outil, ni jet.",
-                              f"emettre_son.{champ} : reçu {e[champ]!r} ; accepté : {valeur!r}.")
+                              f"emettre_son.{champ} : reçu {e[champ]!r} ; accepté : {valeur!r}.",
+                              champs_corrigeables=(champ,))
     cibles = contrats[e["methode"]].get("cibles")
     if cibles is not None and e["cible"] not in cibles:
         raise RefusDeForme("Une émission vocale vient du joueur.",
-                          f"emettre_son.cible : reçu {e['cible']!r} ; accepté : {cibles!r}.")
+                          f"emettre_son.cible : reçu {e['cible']!r} ; accepté : {cibles!r}.",
+                          champs_corrigeables=("cible",))
 
 
 def schemas_emissions(schema_etape):
@@ -106,7 +109,8 @@ def compiler_son_improvise(monde, e):
     for champ, valeur in CHAMPS_SON.items():
         if e[champ] != valeur:
             raise RefusDeForme("Un son improvisé vient du joueur, sans destination imposée.",
-                              f"son.{champ} : reçu {e[champ]!r} ; accepté : {valeur!r}.")
+                              f"son.{champ} : reçu {e[champ]!r} ; accepté : {valeur!r}.",
+                              champs_corrigeables=(champ,))
     intensite, forme = e["valeur"], e["texte"]
     if not SON_IMPROVISE["minimum"] <= intensite <= SON_IMPROVISE["maximum"]:
         raise RefusDeForme("Un son improvisé a une intensité de 1 à 3.",
@@ -114,7 +118,8 @@ def compiler_son_improvise(monde, e):
                           f"{SON_IMPROVISE['minimum']} à {SON_IMPROVISE['maximum']}.")
     if forme not in FORMES_SONORES:
         raise RefusDeForme("La forme sonore doit être une catégorie acoustique connue.",
-                          f"son.texte : reçu {forme!r} ; accepté : {', '.join(FORMES_SONORES)}.")
+                          f"son.texte : reçu {forme!r} ; accepté : {', '.join(FORMES_SONORES)}.",
+                          champs_corrigeables=("texte",))
     if forme.startswith("voix_") and monde.joueur.get("peut_parler") is False:
         raise ErreurMonde("Ta voix ne peut actuellement pas produire ce son.",
                           "le joueur ne peut pas parler : une forme sans voix (souffle, corps_rythmique, corps_bref).")
@@ -134,4 +139,13 @@ def precision_publique(plan, parametres):
                 prefixe = "En cas de réussite : " if branche == "réussite" else "En cas d'échec : "
                 lignes.append(prefixe + (" ".join(sons) if sons else "aucun son prévu parmi les effets du geste."))
         return " ".join(lignes) + (" " + AUDITION if sonore else "")
+    return ""
+
+
+def sens_propose(parametres):
+    op = parametres.get("operation", parametres.get("action"))
+    if op == "emettre_son":
+        return emissions().get(parametres.get("methode"), {}).get("sens", "")
+    if op == "improviser":
+        return SON_IMPROVISE["sens"]
     return ""

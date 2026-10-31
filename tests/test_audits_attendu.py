@@ -242,9 +242,10 @@ class ContreRevuesTests(unittest.TestCase):
         self.assertEqual(str(refus.exception), "La manœuvre proposée ne couvre pas la demande : Prise non demandée.")
         self.assertEqual(refus.exception.attendu,
                          f"proposition, reçu « {plan.titre} (action detacher, cible axe_haut) » ; selon l'auditeur "
-                         "(verdict non conforme) : « Prise non demandée. » ; accepté : le même geste, dont les "
-                         "changements durables sont ceux de la demande : retire celui qu'elle ne demande pas, ou "
-                         "ajoute l'étape qui manque")
+                         "(verdict non conforme) : « Prise non demandée. » ; accepté : le même geste, les clauses "
+                         "et la manière demandées, avec leurs conséquences observables portées par les opérations "
+                         "et effets typés : retire l'ajout ou ajoute l'opération, le paramètre ou l'effet manquant "
+                         "désigné par le motif de revue")
 
     def test_un_ajout_mal_forme_garde_l_attendu_du_moteur(self):
         from donjon.refus import depuis_refus

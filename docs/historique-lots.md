@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-a5-reprise-fidele` (lot 415), base A4 `aaa0b8db`, intégration `2b2e0a94` fusionnée :
+  les reprises conservent les paramètres typés non contestés ; candidat non admis, saisie entière et refus transmis.
+  **Non validé pour fusion** : deux sifflements d'atelier conservés, mais voix mélodique acceptée comme sifflement
+  en contre-épreuve ; six revues sur sept justes. Choix du périmètre encore sémantique ; aucun audit retiré.
+  87 tests concernés verts (un ignoré) ; Luna : 77 appels/37 tours, 2,08 appels et 8,05 s/tour, aucun repli ni erreur.
+  Banc Relais/auberge 4 h × quatre graines : aucun plantage/usurpation ; avis et répétitions à examiner sans référence.
+  A4 et A5 à évaluer ensemble ; bruts `C:/Users/msics/donjon/artifacts/a5-reprise-415/`, `conclusion.json` et `fin.json`.
+  Rapport : [lot 415](taches/rapport-codex-415-a5-reprise-fidele.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lots 412 (A4) et 415 (A5), fusionnés ensemble : la revue reçoit le plan développé et le sens proposé (omission sonore détectée) ; une correction ne remplace plus ce que le refus typé n'a pas mis en cause (champs_corrigeables, garde déterministe). Luna une passe : 77 appels, 2,08 appels et 8,05 s par tour, aucun repli, les deux ateliers gardent le sifflement. Limite : une revue de premier passage accepte encore une voix mélodique comme sifflement dans une contre-épreuve forgée (6/7 revues justes) ; le joueur reste le contrôleur par « Compris ». 87 tests. Aucun fichier de code commun depuis la base.
+
 - `codex-s1l-recherche` — lot 413, base `integration 40f062d8`, moteur `dd80f067`, clos, non fusionné ; aucun calcul restant.
   Recherche de personne par `memoire` : négatifs, indices consommés et repère positif, migration/validation ;
   stockage, consommation du 374 et politiques inchangés. Inventaire AST 154 → 60 (schéma + homonymes seuls).

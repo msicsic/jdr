@@ -61,6 +61,12 @@ def champs(operation):
     return c
 
 
+def sens_propose(parametres):
+    op = parametres.get("operation", parametres.get("action"))
+    contrat = PASSAGES.get(op)
+    return contrat["sens"] + " " + contrat["public"] if contrat else ""
+
+
 def verifier(p):
     op = p.get("operation", p.get("action"))
     if op not in PASSAGES:
@@ -69,11 +75,13 @@ def verifier(p):
     for champ, acceptes in champs(op).items():
         if champ in p and p[champ] not in acceptes:
             raise RefusDeForme("Les paramètres ne correspondent pas à ce passage.",
-                              f"{op}.{champ} : reçu {p[champ]!r} ; accepté : {acceptes!r}.")
+                              f"{op}.{champ} : reçu {p[champ]!r} ; accepté : {acceptes!r}.",
+                              champs_corrigeables=(champ,))
     for champ in contrat["requis"]:
         if not p.get(champ):
             raise RefusDeForme("Ce passage doit désigner ses appuis et sa cible.",
-                              f"{op}.{champ} : reçu {p.get(champ)!r} ; accepté : référence non vide. {contrat['sens']}")
+                              f"{op}.{champ} : reçu {p.get(champ)!r} ; accepté : référence non vide. {contrat['sens']}",
+                              champs_corrigeables=(champ,))
 
 
 def schemas(schema, discriminant, operations):

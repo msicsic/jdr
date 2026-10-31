@@ -355,7 +355,12 @@ ATTENDU_REEXAMEN = ("action : le geste que demande la saisie, tel quel, même si
 
 def retour_refus(proposition, exc, consigne):
     """Ce que la boucle de correction transmet au MJ : le refus, et ce que le moteur accepterait."""
-    retour = {"proposition_refusee": proposition, "obstacle": str(exc), "consigne": consigne}
+    retour = {"proposition_refusee": copy.deepcopy(proposition), "statut_candidat": "non_admis",
+              "obstacle": str(exc), "consigne": consigne,
+              "champs_corrigeables": list(getattr(exc, "champs_corrigeables", ()))}
+    if isinstance(proposition, dict):
+        from .comprehension import invariants_reprise
+        retour["parametres_a_conserver"] = invariants_reprise(proposition, exc)
     if getattr(exc, "attendu", ""):
         retour["attendu"] = exc.attendu
     return retour
@@ -505,10 +510,14 @@ class MJ:
                                         INSTRUCTIONS_PAROLE,
                                         RapportInvalide, entree as entree_couverture,
                                         verifier as verifier_couverture)
+        # Figer le sens proposé et l'expansion moteur ensemble, avant la revue.
+        # L'admission n'est pas une preuve de fidélité ; le dossier ne remplace
+        # aucun contrôle mécanique et ses textes libres ne deviennent pas des faits.
+        dossier = entree_couverture(intention, plan, monde)
         for essai in range(2):
             rapport = self._appeler_brut(
                 (INSTRUCTIONS_PAROLE + "\n" + SENS_REPLIQUE) if plan.parole is not None else INSTRUCTIONS_COUVERTURE,
-                entree_couverture(intention, plan, monde),
+                dossier,
                 "Contrôler la fidélité du plan", "auditer_action", schema_couverture(plan))
             if self.observateur:
                 self.observateur({"etape": "couverture de l'action", "modele": self.modele,
@@ -613,7 +622,7 @@ class MJ:
         return ajouter_transaction(reponse, "espace", monde.data["revision"], p, debut=True)
 
     def _echanger_prepare(self, monde, intention, proposition_en_attente=None,
-                          suite_fait=False, reponse=None, recadre=False):
+                          suite_fait=False, reponse=None, recadre=False, invariants_retenus=None):
         """Interprétation, une correction au plus, puis narration si enrichissement.
 
         ``reponse`` : une réponse déjà obtenue (corrigée après un refus), traitée par le chemin
@@ -702,17 +711,23 @@ class MJ:
         faisabilite, refus_du_moteur = est_question(intention), None
         # Les refus du monde, quelle que soit l'action : seul leur message public répond au joueur.
         refus_monde = []
+        from .comprehension import verifier_reprise, invariants_reprise
+        invariants = copy.deepcopy(invariants_retenus or {})
         for tentative in range(3):
             if reponse["mode"] != "action":
                 break
             p = reponse["proposition"]
+            reprise_verifiee = False
             try:
+                verifier_reprise(p, invariants)
+                reprise_verifiee = True
                 from .moteur import Moteur
                 if parole_attendue(monde, intention):
                     # Une parole sans conteste (guillemets, « je dis… », à tous…) : Corvus le dit, même si ses mots
                     # annoncent un geste ; le moteur a déjà fixé à qui, il n'y a rien à clarifier.
                     raise ErreurMonde("Corvus le dit ; il ne le fait pas.", ATTENDU_PAROLE
-                                      + " ; le geste annoncé attend que le joueur le fasse.")
+                                      + " ; le geste annoncé attend que le joueur le fasse.",
+                                      champs_corrigeables=("",))
                 if p.get("action") == "impossible":
                     if not (correction_utilisee or forme_corrigee):
                         raise RefusDeForme(REEXAMEN, ATTENDU_REEXAMEN)
@@ -749,10 +764,22 @@ class MJ:
                 self._auditer_action(intention, plan, revision, monde)
                 break
             except ErreurMonde as exc:
+                # Une substitution refusée n'acquiert jamais l'autorité du candidat initial.
+                if not invariants:
+                    invariants = invariants_reprise(p, exc)
+                elif reprise_verifiee:
+                    # Une autre cause réelle peut libérer un autre champ. Une
+                    # substitution rejetée par verifier_reprise ne peut le faire.
+                    libres = getattr(exc, "champs_corrigeables", ())
+                    invariants = {k: v for k, v in invariants.items()
+                                  if not any(c == "" or k == c or k.startswith(c + ".") for c in libres)}
+                    invariants.update(invariants_reprise(p, exc))
                 dernier_refus = (p, str(exc))
                 if premier_refus is None:
                     premier_refus = dernier_refus
                 retour = retour_refus(p, exc, "Corrige uniquement la proposition de la même intention, sans modifier les faits ni abandonner une partie de l'intention. Sinon renvoie-la telle quelle : le moteur dira ce qui manque au joueur.")
+                retour["saisie_entiere"] = intention
+                retour["parametres_a_conserver"] = copy.deepcopy(invariants)
                 if faisabilite and refus_du_moteur is exc:
                     retour["consigne"] = ("C'est une question de faisabilité : corrige la proposition si elle visait mal "
                                           "(identifiants, champs) d'après attendu ; sinon renvoie-la telle quelle, et le "
@@ -799,6 +826,8 @@ class MJ:
                 finally:
                     self._sans_dialogue = False
                     self._impossible_admis = admis
+        if invariants and reponse["mode"] not in {"action", "dialogue", "etablir_faits"}:
+            return reponse_du_moteur(ErreurMonde("La correction ne reprend pas le geste demandé."))
         if reponse["mode"] == "dialogue" and refus_monde:
             return reponse_du_moteur(ErreurMonde(" ".join(str(e) for e in refus_monde)))
         if (reponse["mode"] == "dialogue" and not reponse.get("_validation_refusee")
@@ -846,7 +875,7 @@ class MJ:
                         return reponse_du_moteur(ErreurMonde(" ".join(str(e) for e in refus_monde)))
                     if reponse["mode"] == "action" and not recadre:
                         return self._echanger_prepare(monde, intention, proposition_en_attente, suite_fait=suite_fait,
-                                                      reponse=reponse, recadre=True)
+                                                      reponse=reponse, recadre=True, invariants_retenus=invariants)
                     return {"mode": "dialogue", "texte": demande_precision(), "faits": [],
                             "proposition": None, "_validation_refusee": True, "_texte_moteur": True}
                 suite_proposee = reponse["proposition"].get("suite")
@@ -865,7 +894,7 @@ class MJ:
                     suite_proposee["justification"] = ""
                 suite = self._echanger_prepare(travail, intention, proposition_en_attente,
                     suite_fait=True, reponse={"mode": "action", "texte": "", "faits": [],
-                                             "proposition": suite_proposee})
+                                             "proposition": suite_proposee}, invariants_retenus=invariants)
                 return ajouter_transaction(suite, "faits", revision, p, debut=True)
             qualification = any(a["type"] == "qualification" for a in p["ajouts"])
             manipulable = any(a["type"] == "objet" for a in p["ajouts"])
@@ -874,7 +903,7 @@ class MJ:
                 # le joueur n'a pas à la répéter.
                 try:
                     suite = self._echanger_prepare(travail, intention,
-                                                   proposition_en_attente, suite_fait=True)
+                                                   proposition_en_attente, suite_fait=True, invariants_retenus=invariants)
                     if suite["mode"] == "action" or (suite["mode"] == "dialogue" and not qualification):
                         return ajouter_transaction(suite, "faits", revision, p, debut=True)
                 except ErreurMonde:
@@ -1356,10 +1385,17 @@ direction), plus lents, ils ne s'entendent que de tout près.
         # Les segments admis de chaque réponse refusée : le dernier recours avant le repli du moteur.
         rescapes = []
         forme_corrigee = False
+        from .comprehension import invariants_reprise, verifier_reprise
+        invariants_forme = {}
         for tentative in range(3):
             while True:
                 try:
                     verifier_forme_reponse(reponse, schema)
+                    if invariants_forme:
+                        if reponse.get("mode") != "action":
+                            raise RefusDeForme("La correction doit reprendre le geste refusé.",
+                                               "mode : reçu " + repr(reponse.get("mode")) + "; accepté : action.")
+                        verifier_reprise(reponse["proposition"], invariants_forme)
                     if len(schema.get("properties", {}).get("mode", {}).get("enum", [])) > 1:
                         verifier_disponibilite(reponse, entree["faits"],
                             self._monde_controle is not None and geste_en_question(self._monde_controle, intention))
@@ -1367,10 +1403,16 @@ direction), plus lents, ils ne s'entendent que de tout près.
                         verifier_grammaire(reponse, schema, 'reponse[' + reponse['mode'] + ']')
                     break
                 except RefusDeForme as exc:
+                    candidat = reponse.get("proposition") if isinstance(reponse, dict) else None
+                    if (not invariants_forme and isinstance(reponse, dict) and reponse.get("mode") == "action"
+                            and isinstance(candidat, dict) and "action" in candidat):
+                        invariants_forme = invariants_reprise(candidat, exc)
+                    retour_forme = retour_refus(reponse, exc, "Corrige la forme sans abandonner l'intention.")
+                    retour_forme.update(saisie_entiere=intention,
+                                        parametres_a_conserver=copy.deepcopy(invariants_forme))
                     if self.observateur:
                         self.observateur({"etape": "validation de forme", "modele": self.modele,
-                                          "intention": intention, **retour_refus(reponse, exc,
-                                          "Corrige la forme sans abandonner l'intention.")})
+                                          "intention": intention, **retour_forme})
                     if forme_corrigee:
                         # Une forme invalide ne détermine pas ce que le joueur demandait.
                         # Garder ce qu'il perçoit de sa cible ; sans réponse perceptible,
@@ -1378,8 +1420,7 @@ direction), plus lents, ils ne s'entendent que de tout près.
                         return self._repli(entree, intention, rescapes,
                             defaut=demande_precision() if self._interpretation else None)
                     forme_corrigee = True
-                    reponse = appeler_brut(instructions, {**entree, "retour_forme":
-                        retour_refus(reponse, exc, "Corrige la forme sans abandonner l'intention.")},
+                    reponse = appeler_brut(instructions, {**entree, "retour_forme": retour_forme},
                         intention, fonction, schema)
             if self._sans_dialogue and (reponse["mode"] == "dialogue" or
                     (reponse["mode"] == "action" and
@@ -1580,6 +1621,13 @@ direction), plus lents, ils ne s'entendent que de tout près.
                     refusees.append(o)
             correction = ordonner_entree({**entree, "controle_narratif": refusees,
                                           "consigne_revision": INSTRUCTIONS_REVISION.strip()})
+            if reponse.get("mode") == "action" and isinstance(reponse.get("proposition"), dict):
+                # Une réparation de prose n'autorise aucune substitution typée.
+                invariants_forme.update(invariants_reprise(reponse["proposition"], ErreurMonde()))
+                correction["reprise_fidele"] = {
+                    "saisie_entiere": intention, "statut_candidat": "non_admis",
+                    "proposition_refusee": copy.deepcopy(reponse["proposition"]),
+                    "parametres_a_conserver": copy.deepcopy(invariants_forme)}
             reponse = appeler_brut(instructions, correction,
                                    intention, fonction, schema)
         raise ErreurMonde("Le contrôle narratif n'a pas abouti.")

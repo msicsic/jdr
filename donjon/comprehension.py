@@ -8,6 +8,76 @@ from .francais import designer
 from .noms import reference, texte
 
 
+def parametres_types(proposition, chemin=""):
+    """Empreinte de sens d'un candidat, même non préparé. Aucune prose ne fait foi."""
+    import copy
+    resultat = {}
+    if not isinstance(proposition, dict):
+        return resultat
+    for cle, valeur_ in proposition.items():
+        nom = chemin + cle
+        if cle in {"action", "operation", "methode", "outil", "approche", "cible", "cibles", "destination"}:
+            resultat[nom] = copy.deepcopy(valeur_)
+        if cle == "texte" and proposition.get("operation") == "son":
+            resultat[nom] = valeur_
+        if isinstance(valeur_, dict):
+            resultat.update(parametres_types(valeur_, nom + "."))
+        elif isinstance(valeur_, list) and cle in {"etapes", "effets"}:
+            for i, v in enumerate(valeur_):
+                resultat.update(parametres_types(v, f"{nom}.{i}."))
+    return resultat
+
+
+def verifier_reprise(proposition, invariants):
+    """Seuls les champs explicitement mis en cause peuvent remplacer le candidat refusé."""
+    from .refus import RefusDeForme
+    recus = parametres_types(proposition)
+    for chemin, accepte in invariants.items():
+        if chemin not in recus or recus[chemin] != accepte:
+            raise RefusDeForme("La correction remplace une partie du geste qui n'était pas en cause.",
+                f"proposition.{chemin} : reçu {recus.get(chemin)!r} ; accepté : {accepte!r}. "
+                "Reprendre la saisie entière et le refus ; le candidat précédent reste non admis.")
+
+
+def invariants_reprise(proposition, exc):
+    if proposition.get("action") in {"impossible", "clarifier"}:
+        return {}
+    libres = getattr(exc, "champs_corrigeables", ())
+    return {k: v for k, v in parametres_types(proposition).items()
+            if not any(c == "" or k == c or k.startswith(c + ".") for c in libres)}
+
+
+def _precisions(plan, parametres):
+    """Même sens calculé pour le joueur et la revue, sans lire la prose proposée."""
+    from .contrats_sequence import precision_publique as sequence
+    from .contrats_son import precision_publique as son
+    from .contrats_passage import precision_publique as passage
+    return [p for p in (sequence(parametres), son(plan, parametres), passage(parametres)) if p]
+
+
+def sens_propose(plan, parametres=None):
+    """Dossier de sens, distinct du verdict d'admission et du rendu public.
+
+    Le texte libre reste une proposition de manière, jamais une preuve d'effet.
+    Les étapes développées peuvent porter une opération absente du raccourci.
+    Aucun mot de la saisie ne choisit ici un contrat ou une conséquence.
+    """
+    import copy
+    from . import contrats_sequence, contrats_son, contrats_passage
+    p = plan.proposition if parametres is None else parametres
+    contrats = [s for famille in (contrats_sequence, contrats_son, contrats_passage)
+                if (s := famille.sens_propose(p))]
+    maniere = {k: copy.deepcopy(p[k]) for k in ("methode", "outil", "intention", "approche") if k in p}
+    for branche in ("reussite", "echec"):
+        if isinstance(p.get(branche), dict) and "recit" in p[branche]:
+            maniere[branche] = p[branche]["recit"]
+    return {"operation": p.get("operation", p.get("action", "")),
+            "parametres": copy.deepcopy({k: v for k, v in p.items()
+                                         if k not in ("justification", "etapes")}),
+            "contrats": contrats, "maniere_proposee": maniere,
+            "precisions_moteur": _precisions(plan, p)}
+
+
 def repere(monde, identifiant):
     if identifiant == "joueur":
         return "toi"
@@ -63,11 +133,7 @@ def _geste(monde, plan, parametres):
             if offre:
                 from .propositions import offre_en_mots
                 details["accord"] = offre_en_mots(monde, offre)
-    from .contrats_sequence import precision_publique
-    precision = precision_publique(parametres)
-    from .contrats_son import precision_publique as precision_son
-    from .contrats_passage import precision_publique as precision_passage
-    precision = " ".join(p for p in (precision, precision_son(plan, parametres), precision_passage(parametres)) if p)
+    precision = " ".join(_precisions(plan, parametres))
     return (plan.titre + (" (" + valeur(monde, details) + ")" if details else "")
             + (" " + precision if precision else ""))
 

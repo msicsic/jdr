@@ -35,10 +35,34 @@ SCHEMA_PAROLE = {
 
 
 def schema(plan):
-    return SCHEMA_PAROLE if plan.parole is not None else SCHEMA
+    if plan.parole is not None:
+        return SCHEMA_PAROLE
+    import copy
+    from .comprehension import parametres_types
+    s = copy.deepcopy(SCHEMA)
+    s["properties"].update({
+        "perimetre": {"type": "string", "enum": ["sens", "contrat_type", "nuance_cosmetique"],
+            "description": "sens : écart hors des champs typés ; contrat_type : comparaison explicite des champs dans ecarts_types ; nuance_cosmetique : style, émotion ou intention sans effet typé, hors du verdict mécanique."},
+        "ecarts_types": {"type": "array", "items": {
+            "type": "object", "additionalProperties": False,
+            "properties": {
+                "champ": {"type": "string", "enum": list(parametres_types(plan.proposition))},
+                "demande": {"type": "string", "description": "Valeur typée demandée par la saisie entière, en identifiant canonique ; encodage JSON pour une liste."}},
+            "required": ["champ", "demande"]},
+            "description": "Seuls écarts des opérations, références, méthodes, outils et formes acoustiques typés. Une valeur identique au plan n'est pas un écart. Une nuance non représentée par le contrat n'en change pas la méthode."}})
+    s["required"] += ["perimetre", "ecarts_types"]
+    return s
 
-INSTRUCTIONS = """Tu fais une contre-revue indépendante d'un plan de jeu déjà validé mécaniquement.
+INSTRUCTIONS = """Tu fais une contre-revue indépendante de la fidélité d'un plan de jeu.
 Compare la demande entière du joueur aux opérations que le moteur exécutera vraiment.
+Le sens_propose de chaque étape donne l'opération, ses paramètres, les contrats canoniques
+et la manière proposée. Ce sens est distinct de l'admission mécanique : un plan possible
+peut être infidèle et un geste fidèle peut être empêché par le monde. Ne déduis jamais
+une omission de son refus ou de sa non-exécution. Compare aussi les clauses transitoires.
+precisions_moteur donne le sens affiché par le moteur depuis ses opérations et effets,
+indépendamment des textes proposés ; il fait autorité sur leurs conséquences.
+Les textes de maniere_proposee sont des propositions, jamais des preuves d'effet :
+seuls les effets typés et les opérations du moteur produisent les conséquences.
 Le champ parole est le dossier de contenu d'une parole préparée : replique, contenu et
 sens_contenu. Compare ces mots et ce contenu à la demande du joueur avant enregistrement.
 L'adresse, les auditeurs et les effets mécaniques sont fixés et validés séparément par le
@@ -46,15 +70,21 @@ moteur ; ils ne font pas partie de ce dossier ni du sens à contrôler. contenu 
 qui est demandé ou affirmé, pas les opérations de transfert ou de paiement à exécuter.
 Les opérations désignent chaque chose par « nom (identifiant) » : le nom est celui que le joueur
 emploie, l'identifiant n'est qu'une étiquette technique.
-Le plan représente l'état du monde : action, cibles, outil, et changements durables
+Le plan représente l'état du monde : action, cibles, outil, et conséquences observables
 (objet déplacé, détaché, allumé, marqué, son émis, blessure, usure). La manière du geste
-(position des mains, style, intention affichée, caractère d'un son ou d'un air) relève du
-récit et n'a pas à figurer dans les opérations ; l'outil et la méthode la portent déjà.
+(position des mains, style, intention affichée, caractère d'un son ou d'un air) figure dans
+les paramètres ou maniere_proposee ; compare-la sans lui attribuer d'effet non typé.
 Une question sur la faisabilité d'un geste (« puis-je… ? ») se juge comme la demande de ce geste.
-Réponds conforme=false seulement pour un écart d'état net :
+Réponds conforme=false seulement pour un écart net de sens :
 - une action ou une cible différente de celle demandée ;
-- un état durable demandé qui n'est ni déjà vrai d'après le dossier, ni produit par le plan ;
-- un changement durable ajouté que le joueur n'a pas demandé.
+- une conséquence observable demandée qui n'est ni déjà vraie d'après le dossier, ni produite par le plan,
+  même temporaire ; le récit, le bruit d'un geste et sa manière ne valent pas un effet typé ;
+- une conséquence ajoutée que le joueur n'a pas demandée ;
+- une clause ou une forme concrète du geste demandée contredite ou omise par les paramètres
+  et la manière proposés. Le rapport sépare le périmètre sens, contrat_type et nuance_cosmetique.
+  Toute contestation d'un champ typé donne dans ecarts_types son chemin et sa valeur demandée
+  canonique ; le moteur compare ces valeurs. Une nuance cosmétique sans effet typé reste dans
+  son périmètre distinct, sans exiger de nouveau paramètre de l'opération canonique.
 Compare la demande à l'état final établi par le moteur, en lisant ensemble le titre,
 l'information, deplacements, passages, les effets et les étapes. Les déplacements et
 effets que le moteur établit pour accomplir le geste font partie de ce geste : ils
@@ -75,13 +105,14 @@ ne révèle pas, est le résultat que le moteur décide, et elle couvre la deman
 agresseur que le titre du plan nomme (« qui t'a agressé »), se défendre se fait en ripostant (le
 frapper), en fuyant, en se dégageant ou en se rendant : la cible de cette réaction est cet agresseur,
 que le moteur fixe seul quand la demande ne le nomme pas ; ce n'est ni une cible ni une action ajoutée. Un geste
-improvisé (geste_improvise) accomplit un geste sur ses cibles : sa forme (coup de
-pied, poussée, caresse, air sifflé) relève du récit ; juge seulement ses changements durables.
+improvisé (geste_improvise) accomplit un geste sur ses cibles : sa forme proposée reste
+à comparer à la demande ; ses conséquences doivent être portées par les effets typés.
 Il ne déplace pas Corvus : un déplacement demandé exige une opération qui le produit.
 N'exige ni résultat incertain, ni réaction d'un tiers, ni effet non demandé.
 La branche d'échec d'un jet peut ne pas atteindre le but ; juge sa cohérence avec le risque.
 En cas de doute, réponds conforme=true : le moteur garde l'autorité sur chaque effet.
-Le motif désigne seulement l'écart d'état, sans inventer un fait du monde.
+Le motif désigne un seul écart de sens, en nommant l'opération, le paramètre ou l'effet
+typé manquant ou ajouté selon le contrat, sans inventer un fait du monde.
 Pour un plan de parole, rends contenu_conforme : les mots et le contenu typé traduisent-ils
 la demande ? Un contenu vide ou propos n'attribue aucun effet mécanique aux mots ; il n'est
 pas infidèle par son seul manque de typage. Juge les mots et les effets des seuls contenus
@@ -133,7 +164,8 @@ def sens_parole(contenu, monde):
             for c, sens in zip(contenu, sens_contenu(contenu, monde))]
 
 
-def _operations(plan, monde=None):
+def _operations(plan, monde=None, parametres=None):
+    from .comprehension import sens_propose
     from .deplacement_objet import presenter_effet
     def presenter(effet):
         # La bascule interne « ouverture=False » signifie fermer, pas ouvrir.
@@ -144,6 +176,7 @@ def _operations(plan, monde=None):
     improvise = plan.proposition.get("action") == "improviser"
     return {
         "titre": plan.titre,
+        "sens_propose": sens_propose(plan, parametres),
         **({"deplacements": _deplacements(plan, monde)}
            if monde is not None and hasattr(plan, "deplacements") else {}),
         **({"passages": passages} if monde is not None and (passages := _passages(plan, monde)) else {}),
@@ -156,9 +189,14 @@ def _operations(plan, monde=None):
                                 "outil": plan.proposition.get("outil", "")}} if improvise else {}),
         "effets_reussite": [presenter(e) for e in plan.effets if e[0] != "recit_improvise"],
         "effets_echec": [presenter(e) for e in plan.echec if e[0] != "recit_improvise"],
+        "effets_echec_critique": [presenter(e) for e in plan.echec_critique if e[0] != "recit_improvise"],
         "information": plan.information,
         "jet": bool(plan.stat),
-        "etapes": [_operations(etape, monde) for etape in plan.plans],
+        "conditions_execution": {"stat": plan.stat, "difficulte": plan.dd,
+                                 "minutes": plan.minutes, "dixiemes": plan.dixiemes,
+                                 "bruit": plan.bruit},
+        "etapes": [_operations(etape, monde, plan.etapes[i] if i < len(plan.etapes) else None)
+                   for i, etape in enumerate(plan.plans)],
     }
 
 
@@ -234,24 +272,24 @@ def entree(intention, plan, monde=None):
     """La demande et les opérations du plan, chaque identifiant cité accompagné de son nom."""
     operations = _operations(plan, monde)
     if monde is not None:
+        def nommer_parametres(c):
+            from .noms import CHAMPS_REFERENCES, LISTES_REFERENCES
+            if isinstance(c, list):
+                return [nommer_parametres(v) for v in c]
+            if not isinstance(c, dict) or c.get('type') == 'ressource':
+                return c
+            return {k: (_nommer(v, monde) if k in CHAMPS_REFERENCES | LISTES_REFERENCES
+                        else nommer_parametres(v)) for k, v in c.items()}
+
         def nommer_parole(p):
             # Les références sont nommées, les mots libres restent littéraux.
-            def nommer_contenu(c):
-                from .noms import CHAMPS_REFERENCES, LISTES_REFERENCES
-                if isinstance(c, list):
-                    return [nommer_contenu(v) for v in c]
-                if not isinstance(c, dict) or c.get('type') == 'ressource':
-                    return c
-                # Le registre commun des références vaut à toute profondeur :
-                # une charge, un fait ou une condition ne rend pas son lieu
-                # anonyme. Les clés de prose ne sont jamais réécrites.
-                return {k: (_nommer(v, monde) if k in CHAMPS_REFERENCES | LISTES_REFERENCES
-                            else nommer_contenu(v)) for k, v in c.items()}
-            return {**p, "contenu": [nommer_contenu(c) for c in p.get("contenu", [])],
+            return {**p, "contenu": [nommer_parametres(c) for c in p.get("contenu", [])],
                     **({"comptes_avant": _nommer(p["comptes_avant"], monde)}
                        if "comptes_avant" in p else {})}
         def nommer_plan(op):
-            return {**op, **{cle: _nommer(op[cle], monde) for cle in ("effets_reussite", "effets_echec")},
+            return {**op, **{cle: _nommer(op[cle], monde) for cle in
+                            ("effets_reussite", "effets_echec", "effets_echec_critique")},
+                    "sens_propose": nommer_parametres(op["sens_propose"]),
                     **({"perception": {**op["perception"], "cible": _nommer(op["perception"]["cible"], monde)}}
                        if "perception" in op else {}),
                     **({"parole": nommer_parole(op["parole"])} if "parole" in op else {}),
@@ -337,6 +375,31 @@ def verifier(rapport, plan=None, operations_demandees=None):
                               "les mots et le contenu de la demande, sans changement de sens",
                               ("contenu non conforme", motif)))
         return
+    champs_corrigeables = []
+    if isinstance(rapport, dict) and set(rapport) == {"conforme", "motif", "perimetre", "ecarts_types"}:
+        from .comprehension import parametres_types
+        types = parametres_types(plan.proposition) if plan else {}
+        if (type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)
+                or not isinstance(rapport["perimetre"], str)
+                or rapport["perimetre"] not in {"sens", "contrat_type", "nuance_cosmetique"}
+                or not isinstance(rapport["ecarts_types"], list)):
+            raise RapportInvalide("Le périmètre de la contre-revue est invalide.")
+        for ecart in rapport["ecarts_types"]:
+            if (not isinstance(ecart, dict) or set(ecart) != {"champ", "demande"}
+                    or not isinstance(ecart["champ"], str) or ecart["champ"] not in types
+                    or not isinstance(ecart["demande"], str)):
+                raise RapportInvalide("La comparaison typée de la contre-revue est invalide.")
+            champ, demande = ecart["champ"], ecart["demande"]
+            recu = types[champ]
+            if demande != (json.dumps(recu, ensure_ascii=False) if isinstance(recu, list) else recu):
+                raise ErreurMonde("Le plan propose une autre opération ou manière que celle demandée.",
+                    f"proposition.{champ} : reçu {recu!r} ; accepté : {demande!r} (sens proposé par la revue).",
+                    champs_corrigeables=(champ,))
+        if rapport["perimetre"] in {"contrat_type", "nuance_cosmetique"}:
+            # Le verdict de sens libre ne peut invalider une égalité du contrat.
+            # Ce contrôle n'infère aucun mot de la saisie ni aucun effet de la prose.
+            rapport = {**rapport, "conforme": True}
+        rapport = {k: rapport[k] for k in ("conforme", "motif")}
     if (not isinstance(rapport, dict) or set(rapport) != {"conforme", "motif"}
             or type(rapport["conforme"]) is not bool or not isinstance(rapport["motif"], str)):
         raise RapportInvalide("La contre-revue de la manœuvre est invalide.")
@@ -347,8 +410,9 @@ def verifier(rapport, plan=None, operations_demandees=None):
             motif = motif[:MOTIF_MAX - 1].rstrip() + "…"
         recu = ""
         partie = "proposition"
-        accepte = ("le même geste, dont les changements durables sont ceux de la demande : "
-                   "retire celui qu'elle ne demande pas, ou ajoute l'étape qui manque")
+        accepte = ("le même geste, les clauses et la manière demandées, avec leurs conséquences observables "
+                   "portées par les opérations et effets typés : retire l'ajout ou ajoute l'opération, "
+                   "le paramètre ou l'effet manquant désigné par le motif de revue")
         if plan is not None:
             p = plan.proposition if isinstance(plan.proposition, dict) else {}
             cibles = p.get("cible") or ", ".join(map(str, p.get("cibles") or []))
@@ -356,4 +420,5 @@ def verifier(rapport, plan=None, operations_demandees=None):
         raise ErreurMonde("La manœuvre proposée ne couvre pas la demande : " +
                           (motif or "une conséquence demandée manque."),
                           attendu_audit(partie, recu or "le plan proposé", accepte,
-                                        ("non conforme", motif)))
+                                        ("non conforme", motif)),
+                          champs_corrigeables=champs_corrigeables)

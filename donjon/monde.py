@@ -19,9 +19,11 @@ class ErreurMonde(ValueError):
     """Refus du moteur. Le message s'adresse au joueur ; ``attendu`` dit au MJ, en champs et
     identifiants, ce qu'une proposition corrigée doit contenir (voir ``refus.py``)."""
 
-    def __init__(self, message="", attendu=""):
+    def __init__(self, message="", attendu="", *, champs_corrigeables=()):
         super().__init__(message)
         self.attendu = attendu
+        # Chemins relatifs à la proposition, jamais déduits du texte du refus.
+        self.champs_corrigeables = tuple(champs_corrigeables)
 
 
 def normaliser(texte: str) -> str:
