@@ -215,6 +215,18 @@ def preparer_direct(monde, descripteur):
     from .consentement import preparer
     from .paroles import annonce
     d = copy.deepcopy(descripteur.contenu)
+    if (isinstance(d, dict) and isinstance(d.get('parametres'), dict)
+            and d['parametres'].get('acte') == 'compte'
+            and d['parametres'].get('operation') == 'payer'):
+        p = conversation_compte(monde, d)
+        r = {'mode': 'dialogue', 'texte': 'Offre soumise au moteur.', 'faits': [], 'proposition': None,
+             '_texte_moteur': True, '_transactions': [{'type': 'conversation_pnj',
+                 'revision': monde.data['revision'], 'proposition': {**p, '_adresse': d}}]}
+        dossier = preparer(monde, r, 'Geste direct')
+        compte = dossier.compte_parle()
+        if compte:
+            dossier.reponse.update(compte)
+        return dossier
     p = {**parole_directe(monde, d), "_adresse": d}
     r = {"mode": "dialogue", "texte": "Parole enregistrée.", "faits": [], "proposition": None,
          "_texte_moteur": True,
@@ -228,10 +240,103 @@ def preparer_direct(monde, descripteur):
 
 
 def parole_directe(monde, d):
+    if (isinstance(d, dict) and d.get('geste') == GESTE_INFORMATION
+            and isinstance(d.get('parametres'), dict) and d['parametres'].get('acte') == 'compte'):
+        return parole_compte(monde, d)
     if isinstance(d, dict) and d.get('geste') == 'accord':
         from .accords_publics import parole_accord
         return parole_accord(monde, d)
     return parole_information(monde, d)
+
+
+def comptes_publics(monde):
+    """Choix sur les comptes de Corvus ; aucune bourse ni dette entre tiers.
+
+    Les termes transportés sont aussi ceux du libellé. Ils servent de garde de
+    péremption, jamais d'autorisation de paiement ou de preuve de possession.
+    """
+    from .biens import comptes_joueur, dettes, prets, compte
+    from .noms import public, reference
+    from .voix import reel
+    from .propositions import en_mots
+    choix = []
+
+    def ajouter(nom, d):
+        choix.append({'nom': nom, 'descripteur': d})
+
+    for ref, personne in interlocuteurs(monde).items():
+        id, nom = reel(monde, ref), personne['nom']
+        montant = sum(d['montant'] for d in dettes(monde, connues_de='joueur') if d['de'] == id)
+        c = compte(ref, 'joueur', montant=montant, etat='du' if montant else 'absent')
+        for op, libelle in (('question', 'Demander ce que cette personne me doit'),
+                            *([('reclamer', 'Réclamer le solde dû')] if montant else [])):
+            ajouter(f'{libelle} — {nom} ; créancier : toi ; solde connu : {quantite(montant, "pièce")}',
+                    {'geste': GESTE_INFORMATION, 'cible': ref,
+                     'parametres': {'acte': 'compte', 'operation': op, 'compte': c}})
+        for p in prets(monde):
+            if p['objet'] not in monde.objets:
+                continue
+            if p['a'] == 'joueur' and p['de'] == id:
+                objet = reference(monde, p['objet'])
+                c = compte('joueur', ref, objet, 1)
+                ajouter(f'Restituer le prêt — débiteur : toi ; créancier : {nom} ; {public(monde, designer(monde.objets[p["objet"]]))}',
+                    {'geste': 'remettre', 'cible': objet,
+                     'parametres': {'destinataire': ref, 'compte': c}})
+        for identifiant, o in monde.data.get('offres_joueur', {}).items():
+            if o['de'] != id or o['statut'] != 'propose' or o['demande']['type'] != 'pieces':
+                continue
+            termes = public(monde, {'offre': identifiant, 'debiteur': 'joueur', 'creancier': ref,
+                                    'demande': o['demande'], 'contrepartie': o['contrepartie']})
+            ajouter(public(monde, f'Régler l’offre de {nom} — tu paies {en_mots(monde, o["demande"])} ; '
+                           f'tu reçois {en_mots(monde, o["contrepartie"])} ; après accord moteur'),
+                    {'geste': GESTE_INFORMATION, 'cible': ref,
+                     'parametres': {'acte': 'compte', 'operation': 'payer', 'compte': termes}})
+    return {'lignes': comptes_joueur(monde), 'choix': choix}
+
+
+def valider_choix_compte(monde, d):
+    import json
+    try:
+        recu = json.dumps(d, sort_keys=True, allow_nan=False)
+    except (TypeError, ValueError):
+        recu = None
+    if not any(recu == json.dumps(x['descripteur'], sort_keys=True, allow_nan=False)
+               for x in comptes_publics(monde)['choix']):
+        raise ErreurMonde('Ce choix de compte a changé ou ne fait plus partie de tes comptes publics.',
+                          f'descripteur : reçu {d!r} ; attendu un choix exact de comptes_publics(monde).')
+    return d['parametres']['compte']
+
+
+def parole_compte(monde, d):
+    from .voix import reel
+    from .biens import dues
+    from .noms import public
+    c = valider_choix_compte(monde, d)
+    op = d['parametres']['operation']
+    if op == 'payer':
+        raise ErreurMonde('Cette offre attend le règlement par le moteur.',
+                          'parametres.operation=payer : attendu preparer_direct puis conversation_pnj accepter.')
+    if op == 'reclamer' and not c['objet']:
+        montant = sum(x['montant'] for x in dues(monde, reel(monde, d['cible']), 'joueur'))
+        if montant != c['montant']:
+            raise ErreurMonde('Le solde doit être revérifié avant de le réclamer.',
+                              f'compte.montant : reçu {c["montant"]} ; attendu solde actuel {montant}.')
+    objet = c['objet']
+    mots = ('Que me dois-tu en pièces ?' if op == 'question' else
+            f'Je te réclame {designer(monde.objets[reel(monde, objet)])} que je t’ai prêté.' if objet else
+            f'Je te réclame le solde de {quantite(c["montant"], "pièce")} que tu me dois.')
+    return {'personnage': d['cible'], 'replique': public(monde, mots),
+            'contenu': [{'type': 'reclamer', 'sujet': objet, 'attribut': '', 'valeur': ''}]}
+
+
+def conversation_compte(monde, d):
+    c = valider_choix_compte(monde, d)
+    if d['parametres'].get('operation') != 'payer':
+        raise ErreurMonde('Ce choix ne règle pas une offre.',
+                          f'parametres.operation : reçu {d["parametres"].get("operation")!r} ; attendu payer.')
+    nom = next(x['nom'] for x in comptes_publics(monde)['choix'] if x['descripteur'] == d)
+    return {'personnage': d['cible'], 'sujet': nom,
+            'operation': 'accepter', 'mission': c['offre'], 'montant_demande': 0}
 
 
 SCHEMA_CONVERSATION = {
@@ -325,7 +430,9 @@ def _mission_publique(monde, id):
 
 def offre_mission(monde, id):
     from .propositions import offre
-    mission = monde.data["missions"][id]
+    mission = monde.data["missions"].get(id)
+    if mission is None:
+        return None  # Un marché public n'est pas une mission à prime.
     accord = agendas.contrats(monde).get(id, {})
     if accord.get("statut") in ("paye", "refuse"):
         return None
@@ -344,6 +451,12 @@ def disponible(monde, donneur, sauf=None):
 
 
 def preparer_conversation(monde, p, revision=None):
+    if isinstance(p, dict) and '_adresse' in p:
+        canonique = conversation_compte(monde, p['_adresse'])
+        if {k: v for k, v in p.items() if k != '_adresse'} != canonique:
+            raise ErreurMonde('Les termes de ce règlement ont changé.',
+                              f'conversation : reçu {p!r} ; attendu {canonique!r} avec _adresse inchangée.')
+        p = canonique
     if revision is not None and revision != monde.data["revision"]:
         raise ErreurMonde("Le monde a changé avant la fin de la conversation.", "re-propose à partir des faits actuels.")
     champs = SCHEMA_CONVERSATION["required"]

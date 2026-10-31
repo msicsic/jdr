@@ -6,6 +6,16 @@ Archive, à lire à la demande seulement. Jusqu'au 2026-10-30, c'était le conte
 
 <!-- fusions -->
 
+- `codex-um-social-comptes` — lot 380 terminé, non fusionné ; reprise sur `integration 3999bb3a`.
+  Choix web figés sur les comptes de Corvus ; créances, restitution des prêts reçus et offres publiques.
+  Formulaires comptes et avis conservés, contrats distincts et consentement U-C ; aucun modèle ajouté.
+  Après fusion : **62/62 tests verts**, sept fichiers dont U-M/U-T avis et web ; `clic_page.js` valide.
+  Empreintes Relais **4/4 identiques**, 2 h × quatre graines ; code vérifié `643b77f5`, quinze sources inchangées.
+  Limites : remboursement volontaire en pièces et création de prêts par Corvus hors lot.
+  `fin-verification.json` de la reprise : `ok=true` ; aucun calcul restant. Bilan initial conservé au rapport.
+  [Rapport, preuves et limites](taches/rapport-codex-380-um-social-comptes.md).
+  Fusionné sur l'intégration : seul conflit de documentation ; aucun fichier de code commun depuis la base. lot 380, U-M social comptes : les raccourcis web (réclamer, restituer un prêt, régler un échange convenu) soumettent les termes affichés, transfert seulement après verdict du moteur, comptes publics de Corvus seuls ; formulaires comptes et avis réunis. 62 tests verts après réintégration, 4/4 empreintes Relais. Remboursement volontaire en pièces confié au 388 (fusionné).
+
 - `codex-suite-e0826ef` — **375 clos partiel**, `integration 3999bb3a` fusionnée, branche poussée : dix méthodes
   validées sur onze ; neuf bascules natives au 360, parent direct vert, deux antérieures (337, G7).
   Campagne : 171 tests, 161 verts, dix échecs dont huit du 390 ; reprise finale 12/12 verte.
